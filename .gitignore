@@ -4,11 +4,27 @@ node_modules/
 out/
 tsconfig.tsbuildinfo
 
+# === Python ===
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv*/
+.python-*/
+.pytest_cache/
+
 # === Environment & secrets ===
 .env
 .env.local
 .env.*.local
 *.pem
+
+# === Database & runtime data ===
+*.db
+data/
+backend/data/
+.openyakdb/
+backend/.openyak/
 
 # === IDE & OS ===
 .vscode/
@@ -22,10 +38,27 @@ Thumbs.db
 # === Claude local config ===
 .claude/
 CLAUDE.md
+cowork/
+.dev/
+.harness/
+
+# === Ollama runtime binaries ===
+backend/ollama/
+
+# === Bundled Node.js runtime ===
+backend/resources/nodejs/
+
+# === OpenClaw local install ===
+backend/openclaw/
 
 # === Auto-copied vendor files ===
 public/pdf.worker.min.mjs
+frontend/public/pdf.worker.min.mjs
 
 # === Build artifacts ===
 dist*/
 build*/
+*.egg
+desktop/release/
+desktop-tauri/src-tauri/target/
+desktop-tauri/src-tauri/gen/schemas/
