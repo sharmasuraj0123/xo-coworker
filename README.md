@@ -50,6 +50,34 @@ Open <http://localhost:3000>.
 | `NEXT_PUBLIC_XO_COWORKER_API_URL` | Backend base URL used by desktop/remote-PWA direct calls (`/gateway/*`, `/codex/*`). Normally identical to `NEXT_PUBLIC_API_URL`. | `http://localhost:5002` |
 | `DESKTOP_BUILD` | Set to `true` to produce a static export for Tauri packaging | unset |
 
+## OpenClaw Gateway Configuration
+
+Make sure your `~/.openclaw/openclaw.json` includes the following `gateway.http` block:
+
+```json
+"gateway": {
+  "mode": "local",
+  "controlUi": {
+    "dangerouslyDisableDeviceAuth": true,
+    "allowedOrigins": [
+      "..."
+    ]
+  },
+  "http": {
+    "endpoints": {
+      "chatCompletions": {
+        "enabled": true
+      },
+      "responses": {
+        "enabled": true
+      }
+    }
+  }
+}
+```
+
+> **Important:** The `http.endpoints` section above is essential. You must explicitly enable `chatCompletions` and `responses` — without these, the OpenClaw HTTP API endpoints will not be available and the bridge will fail to connect.
+
 ## Tech Stack
 
 | Layer | Stack |
