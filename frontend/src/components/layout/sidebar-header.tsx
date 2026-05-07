@@ -1,0 +1,54 @@
+"use client";
+
+import { AppLink as Link } from "@/lib/navigation";
+import { useTranslation } from 'react-i18next';
+import { PanelLeft, SquarePen } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useSidebarStore } from "@/stores/sidebar-store";
+import { useSettingsStore } from "@/stores/settings-store";
+
+export function SidebarHeader() {
+  const { t } = useTranslation('common');
+  const toggle = useSidebarStore((s) => s.toggle);
+  const companyName = useSettingsStore((s) => s.companyName);
+
+  return (
+    <div className="flex h-14 items-center justify-between gap-2 px-3">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            className="h-9 w-9 shrink-0 inline-flex items-center justify-center rounded-md text-sm font-medium hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
+            onClick={toggle}
+          >
+            <PanelLeft className="h-[18px] w-[18px]" />
+            <span className="sr-only">{t('toggleSidebar')}</span>
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="right">{t('toggleSidebar')}</TooltipContent>
+      </Tooltip>
+
+      {companyName && (
+        <div
+          className="flex-1 min-w-0 text-sm font-semibold text-[var(--text-primary)] truncate"
+          title={companyName}
+        >
+          {companyName}
+        </div>
+      )}
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" asChild>
+            <Link href="/c/new">
+              <SquarePen className="h-[18px] w-[18px]" />
+              <span className="sr-only">{t('newChat')}</span>
+            </Link>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="right">{t('newChat')}</TooltipContent>
+      </Tooltip>
+    </div>
+  );
+}
