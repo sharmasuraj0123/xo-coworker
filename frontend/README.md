@@ -1,8 +1,8 @@
 [中文](README.zh-CN.md)
 
-# OpenYak Frontend
+# XO Coworker Frontend
 
-Next.js 15 frontend providing a professional-grade Chat UI for the OpenYak backend, inspired by LibreChat's UX architecture.
+Next.js 15 frontend providing a professional-grade Chat UI for the XO Coworker backend, inspired by LibreChat's UX architecture.
 
 ## Quick Start
 
@@ -10,7 +10,7 @@ Next.js 15 frontend providing a professional-grade Chat UI for the OpenYak backe
 # 1. Install dependencies
 npm install
 
-# 2. Start dev server (requires xo-cowork-api running on localhost:5002)
+# 2. Start dev server (requires xo-coworker-api running on localhost:5002)
 npm run dev
 
 # Or start both frontend and backend from the project root
@@ -444,8 +444,8 @@ directory without requiring manual selection.
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `NEXT_PUBLIC_API_URL` | xo-cowork-api base URL (serves `/api/*` and `/health`) | `http://localhost:5002` |
-| `NEXT_PUBLIC_XO_COWORK_API_URL` | xo-cowork-api base URL used by desktop/remote-PWA direct calls (`/gateway/*`, `/codex/*`); normally identical to `NEXT_PUBLIC_API_URL` | `http://localhost:5002` |
+| `NEXT_PUBLIC_API_URL` | xo-coworker-api base URL (serves `/api/*` and `/health`) | `http://localhost:5002` |
+| `NEXT_PUBLIC_XO_COWORKER_API_URL` | xo-coworker-api base URL used by desktop/remote-PWA direct calls (`/gateway/*`, `/codex/*`); normally identical to `NEXT_PUBLIC_API_URL` | `http://localhost:5002` |
 
 ## Scripts
 

@@ -1,4 +1,4 @@
-/** Lightweight fetch wrapper for the XO-Cowork backend API. */
+/** Lightweight fetch wrapper for the XO-Coworker backend API. */
 
 import {
   appendPreservedParams,

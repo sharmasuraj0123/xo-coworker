@@ -5,7 +5,7 @@ import { Loader2, Download, Play, RotateCw, RefreshCw, Eye, EyeOff, ExternalLink
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { API, getBackendUrl, resolveCoworkApiUrl } from "@/lib/constants";
+import { API, getBackendUrl, resolveCoworkerApiUrl } from "@/lib/constants";
 import { api, ApiError } from "@/lib/api";
 import {
   useChannels,
@@ -79,7 +79,7 @@ function OpenClawSection() {
         status: string;
         output?: string;
         error?: string | null;
-      }>(resolveCoworkApiUrl(API.GATEWAY.RESTART));
+      }>(resolveCoworkerApiUrl(API.GATEWAY.RESTART));
       if (res.status === "restarted") {
         toast.success(t("gatewayRestarted"));
         setPendingRestart(new Set());

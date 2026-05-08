@@ -35,7 +35,7 @@ function MobileLoadingScreen() {
         <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-[var(--text-primary)] animate-spin" />
       </div>
       <p className="text-sm text-[var(--text-secondary)] animate-pulse">
-        Connecting to XO-Cowork...
+        Connecting to XO-Coworker...
       </p>
     </div>
   );
@@ -47,7 +47,7 @@ function MobileLoadingScreen() {
  *
  * Provider source of truth: desktop computer's configuration,
  * fetched via GET /api/remote/provider-info.
- * Cached in localStorage as xocowork_remote_provider after first fetch.
+ * Cached in localStorage as xocoworker_remote_provider after first fetch.
  */
 async function syncProviderAndModel(): Promise<void> {
   if (!isRemoteMode()) return;

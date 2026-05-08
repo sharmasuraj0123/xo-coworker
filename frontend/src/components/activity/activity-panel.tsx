@@ -21,7 +21,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { XoCoworkLogo } from "@/components/ui/xo-cowork-logo";
+import { XoCoworkerLogo } from "@/components/ui/xo-coworker-logo";
 import { IS_DESKTOP, TITLE_BAR_HEIGHT } from "@/lib/constants";
 import {
   Sheet,
@@ -154,7 +154,7 @@ function ThinkingGroup({ texts }: { texts: string[] }) {
     <div className="relative pl-7">
       {/* Timeline dot */}
       <div className="absolute left-0 top-0.5 flex items-center justify-center">
-        <XoCoworkLogo size={14} className="text-[var(--text-secondary)]" />
+        <XoCoworkerLogo size={14} className="text-[var(--text-secondary)]" />
       </div>
 
       <p className="text-[13px] font-semibold text-[var(--text-primary)]">

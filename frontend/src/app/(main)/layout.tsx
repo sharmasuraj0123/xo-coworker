@@ -20,7 +20,7 @@ import { TitleBar } from "@/components/desktop/title-bar";
 import { UpdateBanner } from "@/components/desktop/update-banner";
 import { UpgradePrompt } from "@/components/billing/upgrade-prompt";
 import { Button } from "@/components/ui/button";
-import { XoCoworkLogo } from "@/components/ui/xo-cowork-logo";
+import { XoCoworkerLogo } from "@/components/ui/xo-coworker-logo";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useSidebarStore } from "@/stores/sidebar-store";
 import { OnboardingGate } from "@/components/onboarding/onboarding-gate";
@@ -196,7 +196,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                   onClick={toggleSidebar}
                   aria-label={t("openSidebar")}
                 >
-                  <XoCoworkLogo size={18} />
+                  <XoCoworkerLogo size={18} />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom">{t("openSidebar")}</TooltipContent>

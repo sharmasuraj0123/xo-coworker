@@ -10,7 +10,7 @@ import { useOnboardingStatus } from "@/hooks/use-onboarding";
  * Redirects first-time users to `/onboard`. Renders nothing.
  *
  * Source of truth is the server (`GET /api/onboarding`) — persisted at
- * `~/.xo-cowork/state.json`, so onboarding does not re-trigger in a new
+ * `~/.xo-coworker/state.json`, so onboarding does not re-trigger in a new
  * browser, incognito window, or after a localStorage clear.
  *
  * The zustand `hasCompletedOnboarding` flag (in localStorage) is kept

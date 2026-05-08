@@ -21,8 +21,8 @@ venv*/
 *.db
 data/
 backend/data/
-.openyakdb/
-backend/.openyak/
+.xo-coworker-db/
+backend/.xo-coworker/
 
 # === IDE & OS ===
 .vscode/
@@ -68,7 +68,7 @@ backend/
 # === Unused upstream folders ===
 desktop-tauri/
 scripts/
-OpenYak-Logo/
+xo-coworker-logo/
 .github/
 LINUX.md
 CHANGELOG.md

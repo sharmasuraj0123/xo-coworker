@@ -50,7 +50,7 @@ i18n
     },
     detection: {
       order: ["localStorage", "navigator"],
-      lookupLocalStorage: "xo-cowork-language",
+      lookupLocalStorage: "xo-coworker-language",
       caches: ["localStorage"],
     },
   });

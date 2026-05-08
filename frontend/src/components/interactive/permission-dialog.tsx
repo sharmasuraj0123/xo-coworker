@@ -59,9 +59,9 @@ function notifyIfHidden(tool: string) {
   if (typeof document === "undefined" || document.visibilityState !== "hidden") return;
   if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
   try {
-    new Notification("XO-Cowork — Permission Required", {
+    new Notification("XO-Coworker — Permission Required", {
       body: `The assistant wants to use ${tool} and needs your approval.`,
-      tag: "xo-cowork-permission", // deduplicate
+      tag: "xo-coworker-permission", // deduplicate
     });
   } catch {
     // Notifications may not be supported in all contexts

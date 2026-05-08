@@ -6,14 +6,14 @@ import { Minus, Square, X, Copy, Plus } from "lucide-react";
 import { IS_DESKTOP, TITLE_BAR_HEIGHT } from "@/lib/constants";
 import { desktopAPI } from "@/lib/tauri-api";
 
-/** XO-Cowork logo rendered at title bar size. */
-function XoCoworkLogo() {
+/** XO-Coworker logo rendered at title bar size. */
+function XoCoworkerLogo() {
   return (
     <img
       src="/favicon.svg"
       width={18}
       height={18}
-      alt="XO-Cowork"
+      alt="XO-Coworker"
       className="shrink-0"
     />
   );
@@ -99,9 +99,9 @@ export function TitleBar() {
         className="flex items-center gap-2 pl-3 h-full shrink-0"
         style={{ paddingLeft: isMac ? 78 : 12 }}
       >
-        <XoCoworkLogo />
+        <XoCoworkerLogo />
         <span className="text-xs font-medium text-[var(--text-secondary)] tracking-wide">
-          XO-Cowork
+          XO-Coworker
         </span>
       </div>
 
@@ -147,10 +147,10 @@ export function TitleBar() {
 }
 
 function getSectionTitle(pathname: string): string {
-  if (pathname.startsWith("/settings")) return "XO-Cowork - Settings";
-  if (pathname.startsWith("/billing")) return "XO-Cowork - Billing";
-  if (pathname.startsWith("/usage")) return "XO-Cowork - Usage";
-  if (pathname.startsWith("/c/new")) return "XO-Cowork - New Chat";
-  if (pathname.startsWith("/c/")) return "XO-Cowork - Chat";
-  return "XO-Cowork";
+  if (pathname.startsWith("/settings")) return "XO-Coworker - Settings";
+  if (pathname.startsWith("/billing")) return "XO-Coworker - Billing";
+  if (pathname.startsWith("/usage")) return "XO-Coworker - Usage";
+  if (pathname.startsWith("/c/new")) return "XO-Coworker - New Chat";
+  if (pathname.startsWith("/c/")) return "XO-Coworker - Chat";
+  return "XO-Coworker";
 }

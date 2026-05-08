@@ -152,7 +152,7 @@ export function useChat(currentSessionId?: string) {
         console.error("Failed to start generation:", err);
         useChatStore.getState().reset();
 
-        // Show upgrade prompt for billing errors (proxied from XO-Cowork proxy)
+        // Show upgrade prompt for billing errors (proxied from XO-Coworker proxy)
         if (err instanceof ApiError) {
           if (err.status === 429) {
             useBillingStore.getState().showUpgrade("quota_exceeded");

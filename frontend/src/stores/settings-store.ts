@@ -180,7 +180,7 @@ export const useSettingsStore = create<SettingsStore>()(
       setWorkspaceDirectory: (dir) => set({ workspaceDirectory: dir }),
       completeOnboarding: () => {
         set({ hasCompletedOnboarding: true });
-        // Persist on the user's machine via xo-cowork-api so onboarding
+        // Persist on the user's machine via xo-coworker-api so onboarding
         // does not re-trigger in a new browser / incognito / after a
         // localStorage clear. Fire-and-forget — the localStorage flag is
         // the fast path, the server is the durable record.
@@ -193,7 +193,7 @@ export const useSettingsStore = create<SettingsStore>()(
       setHasSeenHints: (seen) => set({ hasSeenHints: seen }),
       setLanguage: (lang) => {
         set({ language: lang });
-        localStorage.setItem("xo-cowork-language", lang);
+        localStorage.setItem("xo-coworker-language", lang);
         // Dynamic import to avoid circular dependency
         import("@/i18n/config").then((mod) => mod.default.changeLanguage(lang));
       },
@@ -201,7 +201,7 @@ export const useSettingsStore = create<SettingsStore>()(
       setAgentName: (name) => set({ agentName: name }),
     }),
     {
-      name: "xo-cowork-settings",
+      name: "xo-coworker-settings",
     },
   ),
 );

@@ -7,7 +7,7 @@ import { SquarePen, ArrowLeft, List, Square } from "lucide-react";
 import { HeaderModelDropdown } from "@/components/selectors/header-model-dropdown";
 import { ContextIndicator } from "@/components/chat/context-indicator";
 import { Button } from "@/components/ui/button";
-import { XoCoworkLogo } from "@/components/ui/xo-cowork-logo";
+import { XoCoworkerLogo } from "@/components/ui/xo-coworker-logo";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { useSidebarStore } from "@/stores/sidebar-store";
 import { useChatStore } from "@/stores/chat-store";
@@ -69,7 +69,7 @@ export function ChatHeader({ sessionId }: ChatHeaderProps) {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-9 w-9" onClick={toggle} aria-label={t('toggleSidebar', { ns: 'common' })}>
-                  <XoCoworkLogo size={18} />
+                  <XoCoworkerLogo size={18} />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom">{t('openSidebar', { ns: 'common' })}</TooltipContent>

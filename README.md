@@ -1,6 +1,6 @@
-# XO Cowork
+# XO Coworker
 
-XO Cowork is a web frontend built to interact with OpenClaw. It provides a clean chat interface for communicating with OpenClaw agents, managing sessions, and streaming responses in real time. Connects to OpenClaw via a lightweight bridge API, replacing the need for a standalone backend.
+XO Coworker is a web frontend built to interact with OpenClaw. It provides a clean chat interface for communicating with OpenClaw agents, managing sessions, and streaming responses in real time. Connects to OpenClaw via a lightweight bridge API, replacing the need for a standalone backend.
 
 ## Architecture
 
@@ -72,7 +72,7 @@ Make sure your `~/.openclaw/openclaw.json` includes the following `gateway.http`
 ## Project Structure
 
 ```
-xo-cowork/
+xo-coworker/
   frontend/       # Next.js web app (chat UI, session management)
   bridge/         # FastAPI bridge to OpenClaw
   package.json    # Root scripts

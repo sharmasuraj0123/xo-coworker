@@ -2,7 +2,7 @@
 
 import { ChevronRight, Wrench } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { XoCoworkLogo } from "@/components/ui/xo-cowork-logo";
+import { XoCoworkerLogo } from "@/components/ui/xo-coworker-logo";
 import { useActivityStore, type ActivityData } from "@/stores/activity-store";
 
 interface ActivitySummaryProps {
@@ -38,7 +38,7 @@ export function ActivitySummary({ data }: ActivitySummaryProps) {
       className="flex items-center gap-2 text-xs text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors py-1.5 group"
     >
       {hasReasoning ? (
-        <XoCoworkLogo size={14} />
+        <XoCoworkerLogo size={14} />
       ) : (
         <Wrench className="h-3.5 w-3.5" />
       )}

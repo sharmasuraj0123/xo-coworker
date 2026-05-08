@@ -1,15 +1,15 @@
-interface XoCoworkLogoProps {
+interface XoCoworkerLogoProps {
   size?: number;
   className?: string;
 }
 
-export function XoCoworkLogo({ size = 20, className }: XoCoworkLogoProps) {
+export function XoCoworkerLogo({ size = 20, className }: XoCoworkerLogoProps) {
   return (
     <img
       src="/favicon.svg"
       width={size}
       height={size}
-      alt="XO-Cowork"
+      alt="XO-Coworker"
       className={className}
     />
   );

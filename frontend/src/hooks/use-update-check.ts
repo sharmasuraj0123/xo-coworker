@@ -36,7 +36,7 @@ export function useUpdateCheck(): UpdateInfo {
       const { check } = await import("@tauri-apps/plugin-updater");
       const update = await check();
       if (update) {
-        const dismissedVersion = localStorage.getItem("xo-cowork-dismissed-update");
+        const dismissedVersion = localStorage.getItem("xo-coworker-dismissed-update");
         if (dismissedVersion === update.version) return;
         updateRef.current = update;
         setVersion(update.version);
@@ -79,7 +79,7 @@ export function useUpdateCheck(): UpdateInfo {
   }, []);
 
   const dismiss = useCallback(() => {
-    if (version) localStorage.setItem("xo-cowork-dismissed-update", version);
+    if (version) localStorage.setItem("xo-coworker-dismissed-update", version);
     setDismissed(true);
     setAvailable(false);
   }, [version]);

@@ -101,26 +101,26 @@ export function resolveApiUrl(path: string): string {
 }
 
 /**
- * xo-cowork-api (FastAPI), default http://localhost:5002. Since the bridge
- * service was folded into xo-cowork-api, `NEXT_PUBLIC_API_URL` and
- * `NEXT_PUBLIC_XO_COWORK_API_URL` now point at the same backend; the latter
+ * xo-coworker-api (FastAPI), default http://localhost:5002. Since the bridge
+ * service was folded into xo-coworker-api, `NEXT_PUBLIC_API_URL` and
+ * `NEXT_PUBLIC_XO_COWORKER_API_URL` now point at the same backend; the latter
  * remains available as an override for desktop/remote PWA builds.
  */
-export const XO_COWORK_API_BASE = (
-  process.env.NEXT_PUBLIC_XO_COWORK_API_URL ?? ""
+export const XO_COWORKER_API_BASE = (
+  process.env.NEXT_PUBLIC_XO_COWORKER_API_URL ?? ""
 ).replace(/\/$/, "");
 
 /**
- * Resolve a path on xo-cowork-api. Browser web app uses a root-relative URL so Next.js rewrites avoid
- * cross-origin calls. Desktop and remote PWA use {@link XO_COWORK_API_BASE}.
+ * Resolve a path on xo-coworker-api. Browser web app uses a root-relative URL so Next.js rewrites avoid
+ * cross-origin calls. Desktop and remote PWA use {@link XO_COWORKER_API_BASE}.
  */
-export function resolveCoworkApiUrl(path: string): string {
+export function resolveCoworkerApiUrl(path: string): string {
   const p = path.startsWith("/") ? path : `/${path}`;
   if (typeof window === "undefined") {
-    return `${XO_COWORK_API_BASE}${p}`;
+    return `${XO_COWORKER_API_BASE}${p}`;
   }
   if (IS_DESKTOP || getRemoteConfig()) {
-    return `${XO_COWORK_API_BASE}${p}`;
+    return `${XO_COWORKER_API_BASE}${p}`;
   }
   return p;
 }

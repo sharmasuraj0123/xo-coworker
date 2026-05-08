@@ -6,7 +6,7 @@ import remarkGfm from "remark-gfm";
 import { ChevronRight, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
-import { XoCoworkLogo } from "@/components/ui/xo-cowork-logo";
+import { XoCoworkerLogo } from "@/components/ui/xo-coworker-logo";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { ToolPart } from "@/types/message";
@@ -112,7 +112,7 @@ export function ReasoningPart({ texts, toolParts = [], isStreaming, onDurationCh
             isOpen && "rotate-90",
           )}
         />
-        <XoCoworkLogo size={14} className={cn(isStreaming && "shimmer-icon")} />
+        <XoCoworkerLogo size={14} className={cn(isStreaming && "shimmer-icon")} />
         <span className={cn(isStreaming && "shimmer-text")}>{label}</span>
       </button>
 

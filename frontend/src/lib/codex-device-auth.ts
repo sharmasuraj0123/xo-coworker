@@ -1,5 +1,5 @@
 /**
- * Client for POST /codex/setup on xo-cowork-api.
+ * Client for POST /codex/setup on xo-coworker-api.
  *
  * The endpoint runs `codex login --device-auth` under a PTY and streams its
  * output as Server-Sent Events. We parse the stdout lines to extract the
