@@ -1,23 +1,6 @@
-[中文](README.zh-CN.md)
+# XO Coworker Architecture
 
-# XO Coworker Frontend
-
-Next.js 15 frontend providing a professional-grade Chat UI for the XO Coworker backend, inspired by LibreChat's UX architecture.
-
-## Quick Start
-
-```bash
-# 1. Install dependencies
-npm install
-
-# 2. Start dev server (requires xo-coworker-api running on localhost:5002)
-npm run dev
-
-# Or start both frontend and backend from the project root
-cd .. && npm run dev:all
-```
-
-Open http://localhost:3000 in your browser.
+Deep dive into the XO Coworker frontend: the Next.js 15 chat UI that talks to `xo-coworker-api`. For setup and quick start, see the project [README](./README.md).
 
 ## Tech Stack
 
