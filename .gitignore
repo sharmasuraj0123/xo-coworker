@@ -21,8 +21,8 @@ venv*/
 *.db
 data/
 backend/data/
-.xo-coworker-db/
-backend/.xo-coworker/
+.xodb/
+backend/.xo/
 
 # === IDE & OS ===
 .vscode/
