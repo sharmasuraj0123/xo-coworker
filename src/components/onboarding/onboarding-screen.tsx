@@ -844,14 +844,12 @@ const saveEnvVar = async () => {
         Continue
         <ArrowRight className="ml-2 h-4 w-4" />
       </Button>
-      {detectedEnvKeys.length > 0 && !canContinue && (
-        <button
-          onClick={onSkip}
-          className="mt-3 text-xs text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
-        >
-          Skip, I already have a key
-        </button>
-      )}
+      <button
+        onClick={onSkip}
+        className="mt-3 text-xs text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
+      >
+        Skip for now
+      </button>
     </div>
   );
 }
@@ -1358,6 +1356,7 @@ export function OnboardingScreen() {
                 onInitialLoad={setPersonalityContent}
                 onChange={setPersonalityContent}
                 onNext={goNext}
+                onSkip={goNext}
               />
             </motion.div>
           )}

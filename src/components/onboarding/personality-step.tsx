@@ -26,6 +26,8 @@ interface PersonalityStepProps {
   onChange: (content: PersonalityContent) => void;
   /** Called after all four files save successfully. */
   onNext: () => void;
+  /** Called when the user opts out — skip without saving. */
+  onSkip: () => void;
 }
 
 export function PersonalityStep({
@@ -33,6 +35,7 @@ export function PersonalityStep({
   onInitialLoad,
   onChange,
   onNext,
+  onSkip,
 }: PersonalityStepProps) {
   const queryClient = useQueryClient();
   const { data: loadedContent, isPending, error, refetch } = usePersonalityFiles();
@@ -54,19 +57,8 @@ export function PersonalityStep({
     ) as Record<PersonalityFileKey, boolean>;
   }, [content, baseline]);
 
-  // Loading
-  if (isPending || !content) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <Loader2 className="h-5 w-5 animate-spin text-[var(--text-tertiary)]" />
-        <p className="mt-3 text-xs text-[var(--text-tertiary)]">
-          Reading agent files…
-        </p>
-      </div>
-    );
-  }
-
-  // Error
+  // Error — checked before loading so a settled error doesn't get
+  // swallowed by `!content` (parent's hoisted state stays null on failure).
   if (error) {
     return (
       <div className="flex flex-col">
@@ -78,20 +70,50 @@ export function PersonalityStep({
             <AlertCircle className="h-4 w-4 mt-0.5 shrink-0 text-[var(--color-destructive)]" />
             <div className="flex-1">
               <p className="text-sm text-[var(--text-primary)]">
-                Couldn&apos;t read the agent files.
+                Couldn&apos;t find the agent files.
               </p>
               <p className="mt-1 text-xs text-[var(--text-tertiary)]">
+                OpenClaw may not be installed, or its workspace isn&apos;t set up
+                yet. You can skip this step and configure your agent later.
+              </p>
+              <p className="mt-2 text-[10px] text-[var(--text-tertiary)]/70 font-mono">
                 {error instanceof Error ? error.message : "Unknown error"}
               </p>
-              <button
-                onClick={() => refetch()}
-                className="mt-2 text-xs font-medium text-[var(--color-primary)] hover:underline"
-              >
-                Try again
-              </button>
+              <div className="mt-3 flex items-center gap-3">
+                <button
+                  onClick={() => refetch()}
+                  className="text-xs font-medium text-[var(--color-primary)] hover:underline"
+                >
+                  Try again
+                </button>
+                <button
+                  onClick={onSkip}
+                  className="text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                >
+                  Skip for now
+                </button>
+              </div>
             </div>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  // Loading
+  if (isPending || !content) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <Loader2 className="h-5 w-5 animate-spin text-[var(--text-tertiary)]" />
+        <p className="mt-3 text-xs text-[var(--text-tertiary)]">
+          Reading agent files…
+        </p>
+        <button
+          onClick={onSkip}
+          className="mt-6 text-xs text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
+        >
+          Skip for now
+        </button>
       </div>
     );
   }
@@ -201,6 +223,12 @@ export function PersonalityStep({
           </>
         )}
       </Button>
+      <button
+        onClick={onSkip}
+        className="mt-3 text-xs text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
+      >
+        Skip for now
+      </button>
     </div>
   );
 }
