@@ -96,7 +96,7 @@ interface SettingsStore {
 export const useSettingsStore = create<SettingsStore>()(
   persist(
     (set, get) => ({
-      hasCompletedOnboarding: true,
+      hasCompletedOnboarding: false,
       companyName: "",
       selectedModel: null,
       selectedProviderId: null,
@@ -202,6 +202,11 @@ export const useSettingsStore = create<SettingsStore>()(
     }),
     {
       name: "xo-cowork-settings",
+      version: 2,
+      migrate: (persisted: unknown) => {
+        const state = persisted as Record<string, unknown>;
+        return { ...state, hasCompletedOnboarding: false };
+      },
     },
   ),
 );
