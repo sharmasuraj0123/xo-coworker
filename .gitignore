@@ -1,6 +1,7 @@
 # === Node.js ===
 node_modules/
 .next/
+out/
 tsconfig.tsbuildinfo
 
 # === Environment & secrets ===
@@ -13,19 +14,18 @@ tsconfig.tsbuildinfo
 .vscode/
 .idea/
 .cursor/
-*.swp
-*.swo
 .DS_Store
 Thumbs.db
+*.swp
+*.swo
 
 # === Claude local config ===
 .claude/
 CLAUDE.md
 
+# === Auto-copied vendor files ===
+public/pdf.worker.min.mjs
+
 # === Build artifacts ===
 dist*/
 build*/
-out/
-
-# === Auto-copied vendor files ===
-frontend/public/pdf.worker.min.mjs

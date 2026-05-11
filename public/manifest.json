@@ -1,0 +1,36 @@
+{
+  "name": "XO",
+  "short_name": "XO",
+  "description": "Workspaces for AI agents. Run, chat with, and orchestrate agents from anywhere.",
+  "id": "xo",
+  "start_url": "/m",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#000000",
+  "theme_color": "#83d63a",
+  "categories": ["productivity", "developer", "utilities"],
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/xo-logo-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/xo-logo-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
