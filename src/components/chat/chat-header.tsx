@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import { AppLink as Link, useAppRouter } from "@/lib/navigation";
 import { SquarePen, ArrowLeft, List, Square } from "lucide-react";
 import { HeaderModelDropdown } from "@/components/selectors/header-model-dropdown";
-import { ContextIndicator } from "@/components/chat/context-indicator";
 import { Button } from "@/components/ui/button";
 import { XoCoworkerLogo } from "@/components/ui/xo-coworker-logo";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
@@ -13,11 +12,7 @@ import { useSidebarStore } from "@/stores/sidebar-store";
 import { useChatStore } from "@/stores/chat-store";
 import { isRemoteMode } from "@/lib/remote-connection";
 
-interface ChatHeaderProps {
-  sessionId?: string;
-}
-
-export function ChatHeader({ sessionId }: ChatHeaderProps) {
+export function ChatHeader() {
   const { t } = useTranslation('chat');
   const router = useAppRouter();
   const isCollapsed = useSidebarStore((s) => s.isCollapsed);
@@ -97,9 +92,6 @@ export function ChatHeader({ sessionId }: ChatHeaderProps) {
             {streamStatus}
           </span>
         )}
-
-        {/* Context usage indicator — desktop only */}
-        {!remote && sessionId && <ContextIndicator sessionId={sessionId} />}
       </header>
     </TooltipProvider>
   );

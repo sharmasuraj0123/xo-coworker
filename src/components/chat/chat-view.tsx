@@ -174,7 +174,7 @@ export function ChatView({ sessionId }: ChatViewProps) {
   return (
     <div className="relative flex flex-1 flex-col h-full overflow-hidden bg-[var(--surface-chat)]">
       <OfflineOverlay />
-      <ChatHeader sessionId={sessionId} />
+      <ChatHeader />
 
       {/* Message list */}
       <MessageList
