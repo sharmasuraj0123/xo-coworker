@@ -42,6 +42,7 @@ import {
 import { toast } from "sonner";
 import { PersonalityStep } from "./personality-step";
 import type { PersonalityContent } from "@/hooks/use-personality-files";
+import type { ListSecretsResponse } from "@/types/bff";
 import { useWorkspaceConfig } from "@/hooks/use-workspace-config";
 
 /* ------------------------------------------------------------------ */
@@ -333,23 +334,25 @@ function ModelsStep({
   const { setActiveProvider } = useSettingsStore();
 
   // If OpenClaw's `.env` already has ANTHROPIC_API_KEY or OPENAI_API_KEY,
-  // let the user skip this step instead of forcing a re-entry.
-  // Reads only the keys (no plaintext values cross the wire) and is
+  // let the user skip this step instead of forcing a re-entry. Reads
+  // masked summaries only (no plaintext values cross the wire) and is
   // prefetched at OnboardingScreen mount, so the cache is hot by the
   // time this step renders.
-  const { data: envKeysData } = useQuery({
-    queryKey: ["secrets-env-keys"],
-    queryFn: () => api.get<{ keys: string[] }>(API.SECRETS.ENV_KEYS),
+  const { data: secretsList } = useQuery({
+    queryKey: queryKeys.secrets,
+    queryFn: () => api.get<ListSecretsResponse>(API.SECRETS.LIST),
     staleTime: 30_000,
   });
 
   const detectedEnvKeys = useMemo<("ANTHROPIC_API_KEY" | "OPENAI_API_KEY")[]>(() => {
-    const keys = envKeysData?.keys ?? [];
+    const setKeys = new Set(
+      (secretsList?.items ?? []).filter((i) => i.is_set).map((i) => i.key),
+    );
     const detected: ("ANTHROPIC_API_KEY" | "OPENAI_API_KEY")[] = [];
-    if (keys.includes("ANTHROPIC_API_KEY")) detected.push("ANTHROPIC_API_KEY");
-    if (keys.includes("OPENAI_API_KEY")) detected.push("OPENAI_API_KEY");
+    if (setKeys.has("ANTHROPIC_API_KEY")) detected.push("ANTHROPIC_API_KEY");
+    if (setKeys.has("OPENAI_API_KEY")) detected.push("OPENAI_API_KEY");
     return detected;
-  }, [envKeysData]);
+  }, [secretsList]);
 
   const [selected, setSelected] = useState<ModelProvider>("anthropic");
 
@@ -519,12 +522,10 @@ const saveEnvVar = async () => {
     setEnvSaving(true);
     setEnvError(null);
     try {
-      const existing = await api.get<{ entries: { key: string; value: string }[] }>(API.SECRETS.ENV);
-      const entries = [
-        ...existing.entries.filter((e) => e.key !== envKey.trim()),
-        { key: envKey.trim(), value: envValue.trim() },
-      ];
-      await api.put(API.SECRETS.ENV, { entries });
+      // BFF PATCH upserts a single key atomically; no read-modify-write
+      // and no other plaintext values cross the wire.
+      await api.patch(API.SECRETS.PATCH(envKey.trim()), { value: envValue.trim() });
+      qc.invalidateQueries({ queryKey: queryKeys.secrets });
       setEnvSaved(true);
       setEnvKey("");
       setEnvValue("");
@@ -1206,13 +1207,13 @@ export function OnboardingScreen() {
   const completeOnboarding = useSettingsStore((s) => s.completeOnboarding);
   const setCompanyName = useSettingsStore((s) => s.setCompanyName);
 
-  // Prefetch the env-keys list at mount so by the time the user reaches
+  // Prefetch the secrets list at mount so by the time the user reaches
   // the Models step, the "ANTHROPIC_API_KEY is already set" banner
   // appears with no perceptible delay. ModelsStep reads from this same
-  // cached query.
+  // cached query. Masked previews only — no plaintext over the wire.
   useQuery({
-    queryKey: ["secrets-env-keys"],
-    queryFn: () => api.get<{ keys: string[] }>(API.SECRETS.ENV_KEYS),
+    queryKey: queryKeys.secrets,
+    queryFn: () => api.get<ListSecretsResponse>(API.SECRETS.LIST),
     staleTime: 30_000,
   });
 

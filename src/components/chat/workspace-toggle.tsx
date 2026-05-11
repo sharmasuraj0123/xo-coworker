@@ -17,6 +17,7 @@ import { api } from "@/lib/api";
 import { API, queryKeys } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { useWorkspaceConfig } from "@/hooks/use-workspace-config";
+import type { ListXoProjectsResponse } from "@/types/bff";
 
 interface WorkspaceToggleProps {
   /** When provided, workspace changes are persisted to this session via PATCH. */
@@ -27,22 +28,11 @@ interface WorkspaceToggleProps {
   isIndexing?: boolean;
 }
 
-interface DirEntry {
-  name: string;
-  path: string;
-}
-
-interface ListDirectoryResponse {
-  path: string;
-  parent: string | null;
-  dirs: DirEntry[];
-  files: DirEntry[];
-}
-
-const SYSTEM_DIRS = new Set(["agents", "memory", "state", "projects"]);
-
-function isUserProject(entry: DirEntry): boolean {
-  return !entry.name.startsWith(".") && !SYSTEM_DIRS.has(entry.name);
+interface ProjectItem {
+  id: string;
+  displayName: string;
+  /** Absolute path — assembled from workspaceRoot + id; persisted on the session. */
+  absolutePath: string;
 }
 
 function getDisplayName(path: string | null | undefined, workspaceRoot: string): string | null {
@@ -55,7 +45,7 @@ function getDisplayName(path: string | null | undefined, workspaceRoot: string):
 export function WorkspaceToggle({ sessionId, directory, isIndexing }: WorkspaceToggleProps) {
   const { t } = useTranslation("chat");
   const queryClient = useQueryClient();
-  const [projects, setProjects] = useState<DirEntry[]>([]);
+  const [projects, setProjects] = useState<ProjectItem[]>([]);
   const [loaded, setLoaded] = useState(false);
   const { workspaceRoot } = useWorkspaceConfig();
 
@@ -67,13 +57,19 @@ export function WorkspaceToggle({ sessionId, directory, isIndexing }: WorkspaceT
   const currentPath = sessionId ? directory : globalWorkspace;
   const displayName = getDisplayName(currentPath, workspaceRoot);
 
-  // Load user projects from workspace
+  // Load user projects from workspace. The BFF returns curated ids;
+  // we assemble the absolute path locally because the session API
+  // still expects `directory` as an absolute path.
   const loadProjects = useCallback(async () => {
     try {
-      const res = await api.post<ListDirectoryResponse>(API.FILES.LIST_DIRECTORY, {
-        path: workspaceRoot,
-      });
-      setProjects(res.dirs.filter(isUserProject));
+      const res = await api.get<ListXoProjectsResponse>(API.XO_PROJECTS.LIST);
+      setProjects(
+        res.items.map((p) => ({
+          id: p.id,
+          displayName: p.display_name,
+          absolutePath: `${workspaceRoot}/${p.id}`,
+        })),
+      );
     } catch {
       setProjects([]);
     } finally {
@@ -145,18 +141,18 @@ export function WorkspaceToggle({ sessionId, directory, isIndexing }: WorkspaceT
           <>
             <DropdownMenuSeparator />
             {projects.map((p) => {
-              const isActive = currentPath === p.path;
+              const isActive = currentPath === p.absolutePath;
               return (
                 <DropdownMenuItem
-                  key={p.path}
+                  key={p.id}
                   className={cn(
                     "flex items-center gap-2 text-[13px]",
                     isActive && "text-[var(--brand-primary)] font-medium",
                   )}
-                  onClick={() => void selectPath(p.path)}
+                  onClick={() => void selectPath(p.absolutePath)}
                 >
                   <FolderOpen className="h-3.5 w-3.5 shrink-0" />
-                  <span className="truncate capitalize">{p.name}</span>
+                  <span className="truncate capitalize">{p.displayName}</span>
                 </DropdownMenuItem>
               );
             })}
