@@ -176,9 +176,31 @@ export const API = {
   ARTIFACTS: {
     EXPORT_PDF: "/api/artifacts/export-pdf",
   },
+  /**
+   * BFF secrets routes. `LEGACY_ENV` / `LEGACY_ENV_KEYS` are the old
+   * unscoped endpoints over `~/.openclaw/.env`; kept only for code
+   * paths that haven't migrated yet. New callers use:
+   *   - LIST           → GET    /api/secrets               (masked previews, no raw values)
+   *   - REVEAL(key)    → GET    /api/secrets/{key}/reveal  (the eye-toggle backend)
+   *   - REPLACE_ALL    → PUT    /api/secrets               (destructive bulk replace)
+   *   - PATCH(key)     → PATCH  /api/secrets/{key}         (single upsert)
+   *   - DELETE(key)    → DELETE /api/secrets/{key}         (single hard-delete, idempotent)
+   */
   SECRETS: {
-    ENV: "/api/secrets/env",
-    ENV_KEYS: "/api/secrets/env/keys",
+    LIST: "/api/secrets",
+    REVEAL: (key: string) => `/api/secrets/${encodeURIComponent(key)}/reveal` as const,
+    REPLACE_ALL: "/api/secrets",
+    PATCH: (key: string) => `/api/secrets/${encodeURIComponent(key)}` as const,
+    DELETE: (key: string) => `/api/secrets/${encodeURIComponent(key)}` as const,
+    LEGACY_ENV: "/api/secrets/env",
+    LEGACY_ENV_KEYS: "/api/secrets/env/keys",
+  },
+  XO_PROJECTS: {
+    LIST: "/api/xo-projects",
+    TREE: (id: string, relativePath = "") => {
+      const q = relativePath ? `?relative_path=${encodeURIComponent(relativePath)}` : "";
+      return `/api/xo-projects/${encodeURIComponent(id)}/tree${q}` as const;
+    },
   },
   USAGE: "/api/usage",
   CONFIG: {
@@ -362,6 +384,8 @@ export const queryKeys = {
   openaiSubscription: ["openaiSubscription"] as const,
   localProvider: ["localProvider"] as const,
   openclawConfig: ["openclawConfig"] as const,
+  secrets: ["secrets"] as const,
+  xoProjects: ["xo-projects"] as const,
   ollamaStatus: ["ollamaStatus"] as const,
   connectors: ["connectors"] as const,
   channels: ["channels"] as const,

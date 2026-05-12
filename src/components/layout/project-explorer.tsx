@@ -22,17 +22,19 @@ import { API } from "@/lib/constants";
 import { useArtifactStore } from "@/stores/artifact-store";
 import { artifactTypeFromExtension, languageFromExtension } from "@/lib/artifacts";
 import { useWorkspaceConfig } from "@/hooks/use-workspace-config";
+import type {
+  ListXoProjectsResponse,
+  ProjectTreeEntry,
+  ProjectTreeResponse,
+} from "@/types/bff";
 
-interface DirEntry {
-  name: string;
-  path: string;
-}
-
-interface ListDirectoryResponse {
-  path: string;
-  parent: string | null;
-  dirs: DirEntry[];
-  files: DirEntry[];
+/** Build the absolute on-disk path for a project tree entry. The BFF
+ *  curates entry shape to `(name, relative_path)`; we re-assemble the
+ *  full path only when handing it to legacy endpoints (artifact open,
+ *  the file-content reader). */
+function absolutePath(workspaceRoot: string, projectId: string, relativePath: string): string {
+  const base = `${workspaceRoot}/${projectId}`;
+  return relativePath ? `${base}/${relativePath}` : base;
 }
 
 /** Map file extension to an icon component. */
@@ -53,14 +55,19 @@ function fileIcon(name: string) {
 
 interface FolderNodeProps {
   name: string;
-  path: string;
+  projectId: string;
+  relativePath: string;
+  workspaceRoot: string;
   depth: number;
 }
 
-function FolderNode({ name, path, depth }: FolderNodeProps) {
+function FolderNode({ name, projectId, relativePath, workspaceRoot, depth }: FolderNodeProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [children, setChildren] = useState<{ dirs: DirEntry[]; files: DirEntry[] } | null>(null);
+  const [children, setChildren] = useState<{
+    dirs: ProjectTreeEntry[];
+    files: ProjectTreeEntry[];
+  } | null>(null);
 
   const toggle = useCallback(async () => {
     if (isOpen) {
@@ -70,7 +77,9 @@ function FolderNode({ name, path, depth }: FolderNodeProps) {
     if (!children) {
       setLoading(true);
       try {
-        const res = await api.post<ListDirectoryResponse>(API.FILES.LIST_DIRECTORY, { path });
+        const res = await api.get<ProjectTreeResponse>(
+          API.XO_PROJECTS.TREE(projectId, relativePath),
+        );
         setChildren({ dirs: res.dirs, files: res.files });
       } catch {
         setChildren({ dirs: [], files: [] });
@@ -79,7 +88,7 @@ function FolderNode({ name, path, depth }: FolderNodeProps) {
       }
     }
     setIsOpen(true);
-  }, [isOpen, children, path]);
+  }, [isOpen, children, projectId, relativePath]);
 
   const Icon = isOpen ? FolderOpen : FolderClosed;
   const Chevron = isOpen ? ChevronDown : ChevronRight;
@@ -105,10 +114,22 @@ function FolderNode({ name, path, depth }: FolderNodeProps) {
       {isOpen && children && (
         <div>
           {children.dirs.map((d) => (
-            <FolderNode key={d.path} name={d.name} path={d.path} depth={depth + 1} />
+            <FolderNode
+              key={d.relative_path}
+              name={d.name}
+              projectId={projectId}
+              relativePath={d.relative_path}
+              workspaceRoot={workspaceRoot}
+              depth={depth + 1}
+            />
           ))}
           {children.files.map((f) => (
-            <FileNode key={f.path} name={f.name} path={f.path} depth={depth + 1} />
+            <FileNode
+              key={f.relative_path}
+              name={f.name}
+              path={absolutePath(workspaceRoot, projectId, f.relative_path)}
+              depth={depth + 1}
+            />
           ))}
         </div>
       )}
@@ -118,6 +139,7 @@ function FolderNode({ name, path, depth }: FolderNodeProps) {
 
 interface FileNodeProps {
   name: string;
+  /** Absolute on-disk path — needed by the legacy artifact / content endpoints. */
   path: string;
   depth: number;
 }
@@ -152,17 +174,14 @@ function FileNode({ name, path, depth }: FileNodeProps) {
   );
 }
 
-/** System/internal directories that should not appear as user projects. */
-const SYSTEM_DIRS = new Set(["memory", "state", "projects", "agents"]);
-
-/** Returns true for directories the user explicitly created (not hidden or system). */
-function isUserProject(entry: DirEntry): boolean {
-  return !entry.name.startsWith(".") && !SYSTEM_DIRS.has(entry.name);
+interface ProjectEntry {
+  id: string;
+  displayName: string;
 }
 
 export function ProjectExplorer() {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [rootData, setRootData] = useState<{ dirs: DirEntry[]; files: DirEntry[] } | null>(null);
+  const [projects, setProjects] = useState<ProjectEntry[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [addingFolder, setAddingFolder] = useState(false);
   const [folderName, setFolderName] = useState("");
@@ -170,30 +189,30 @@ export function ProjectExplorer() {
   const inputRef = useRef<HTMLInputElement>(null);
   const { workspaceRoot } = useWorkspaceConfig();
 
-  const loadRoot = useCallback(async () => {
+  const loadProjects = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.post<ListDirectoryResponse>(API.FILES.LIST_DIRECTORY, {
-        path: workspaceRoot,
-      });
-      setRootData({ dirs: res.dirs.filter(isUserProject), files: res.files });
+      const res = await api.get<ListXoProjectsResponse>(API.XO_PROJECTS.LIST);
+      setProjects(
+        res.items.map((p) => ({ id: p.id, displayName: p.display_name })),
+      );
     } catch {
-      setRootData({ dirs: [], files: [] });
+      setProjects([]);
     } finally {
       setLoading(false);
     }
-  }, [workspaceRoot]);
+  }, []);
 
   const toggle = useCallback(async () => {
     if (isExpanded) {
       setIsExpanded(false);
       return;
     }
-    if (!rootData) {
-      await loadRoot();
+    if (!projects) {
+      await loadProjects();
     }
     setIsExpanded(true);
-  }, [isExpanded, rootData, loadRoot]);
+  }, [isExpanded, projects, loadProjects]);
 
   const openNewFolder = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -211,17 +230,19 @@ export function ProjectExplorer() {
     if (!name) return;
     setCreating(true);
     try {
+      // MKDIR is still a legacy path-taking endpoint; the BFF doesn't
+      // (yet) expose project creation.
       await api.post(API.FILES.MKDIR, { path: `${workspaceRoot}/${name}`, scaffold: true });
       setAddingFolder(false);
       setFolderName("");
-      await loadRoot();
+      await loadProjects();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to create folder";
       toast.error(msg);
     } finally {
       setCreating(false);
     }
-  }, [folderName, loadRoot]);
+  }, [folderName, loadProjects, workspaceRoot]);
 
   useEffect(() => {
     if (addingFolder) {
@@ -253,7 +274,7 @@ export function ProjectExplorer() {
         )}
       </button>
 
-      {isExpanded && rootData && (
+      {isExpanded && projects && (
         <div className="mt-1 max-h-[280px] overflow-y-auto scrollbar-thin">
           {/* New folder button */}
           <div className="flex justify-end px-1 pb-1">
@@ -308,12 +329,19 @@ export function ProjectExplorer() {
             </div>
           )}
 
-          {rootData.dirs.length === 0 && !addingFolder ? (
+          {projects.length === 0 && !addingFolder ? (
             <p className="px-3 py-2 text-[11px] text-[var(--text-tertiary)]">No projects yet</p>
           ) : (
             <>
-              {rootData.dirs.map((d) => (
-                <FolderNode key={d.path} name={d.name} path={d.path} depth={0} />
+              {projects.map((p) => (
+                <FolderNode
+                  key={p.id}
+                  name={p.displayName}
+                  projectId={p.id}
+                  relativePath=""
+                  workspaceRoot={workspaceRoot}
+                  depth={0}
+                />
               ))}
             </>
           )}

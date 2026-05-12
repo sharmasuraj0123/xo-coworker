@@ -25,6 +25,8 @@ import {
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 import { API } from "@/lib/constants";
+import { useWorkspaceConfig } from "@/hooks/use-workspace-config";
+import type { ProjectTreeEntry, ProjectTreeResponse } from "@/types/bff";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -49,20 +51,24 @@ interface MdTabDef {
   emptyDesc: string;
 }
 
-interface DirEntry {
-  name: string;
-  path: string;
+/**
+ * Derive the BFF project id from an absolute project path. The
+ * caller still hands us absolute paths (kept for now — see legacy
+ * /api/files/content below); the BFF only knows the id, so we strip
+ * the workspace prefix here.
+ */
+function projectIdFromPath(projectPath: string, workspaceRoot: string): string {
+  const root = workspaceRoot.replace(/\/$/, "");
+  const trimmed = projectPath.replace(/\/$/, "");
+  if (root && trimmed.startsWith(root + "/")) {
+    const rest = trimmed.slice(root.length + 1);
+    // First segment is the project id; anything deeper would be a relative_path
+    // which OverviewTab never receives (landing only opens project roots).
+    return rest.split("/")[0] ?? rest;
+  }
+  // Fallback: best-effort last segment, matches the visual project name.
+  return trimmed.split("/").pop() ?? trimmed;
 }
-
-interface ListDirectoryResponse {
-  path: string;
-  parent: string | null;
-  dirs: DirEntry[];
-  files: DirEntry[];
-}
-
-/** The 3 agent markdown files hidden from the Overview file list */
-const AGENT_FILES = new Set(["WORKSPACE.md", "AGENTS.md", "OBJECTIVES.md"]);
 
 const ALL_TABS: { id: TabId; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "files", label: "Overview", icon: Layers },
@@ -118,22 +124,24 @@ function fileIcon(name: string) {
 /* ------------------------------------------------------------------ */
 
 function OverviewTab({ projectPath }: { projectPath: string }) {
-  const [dirs, setDirs] = useState<DirEntry[]>([]);
-  const [files, setFiles] = useState<DirEntry[]>([]);
+  const [dirs, setDirs] = useState<ProjectTreeEntry[]>([]);
+  const [files, setFiles] = useState<ProjectTreeEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const { workspaceRoot } = useWorkspaceConfig();
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     (async () => {
       try {
-        const res = await api.post<ListDirectoryResponse>(API.FILES.LIST_DIRECTORY, {
-          path: projectPath,
-        });
+        // BFF strips `.xo`, `.git`, other dotfiles, and the canonical
+        // root-only agent files (WORKSPACE.md / AGENTS.md / OBJECTIVES.md /
+        // CLAUDE.md) server-side — no client-side filter needed.
+        const projectId = projectIdFromPath(projectPath, workspaceRoot);
+        const res = await api.get<ProjectTreeResponse>(API.XO_PROJECTS.TREE(projectId));
         if (!cancelled) {
-          // Filter out agent files and hidden entries
-          setDirs(res.dirs.filter((d) => !d.name.startsWith(".")));
-          setFiles(res.files.filter((f) => !AGENT_FILES.has(f.name) && !f.name.startsWith(".")));
+          setDirs(res.dirs);
+          setFiles(res.files);
         }
       } catch {
         if (!cancelled) {
@@ -145,7 +153,7 @@ function OverviewTab({ projectPath }: { projectPath: string }) {
       }
     })();
     return () => { cancelled = true; };
-  }, [projectPath]);
+  }, [projectPath, workspaceRoot]);
 
   if (loading) {
     return (
@@ -189,7 +197,7 @@ function OverviewTab({ projectPath }: { projectPath: string }) {
         {/* Directories first */}
         {dirs.map((dir) => (
           <div
-            key={dir.path}
+            key={dir.relative_path}
             className="flex items-center gap-3 px-4 py-2.5 hover:bg-[var(--surface-tertiary)] transition-colors"
           >
             <Folder className="h-4 w-4 text-[var(--text-tertiary)]" />
@@ -202,7 +210,7 @@ function OverviewTab({ projectPath }: { projectPath: string }) {
         {/* Files */}
         {files.map((file) => (
           <div
-            key={file.path}
+            key={file.relative_path}
             className="flex items-center gap-3 px-4 py-2.5 hover:bg-[var(--surface-tertiary)] transition-colors"
           >
             {fileIcon(file.name)}
