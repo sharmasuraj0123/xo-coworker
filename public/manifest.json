@@ -1,36 +1,17 @@
 {
-  "name": "XO",
-  "short_name": "XO",
-  "description": "Workspaces for AI agents. Run, chat with, and orchestrate agents from anywhere.",
-  "id": "xo",
+  "name": "OpenYak Remote",
+  "short_name": "OpenYak",
+  "description": "Remote control for your desktop OpenYak AI assistant",
   "start_url": "/m",
-  "scope": "/",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
   "orientation": "portrait-primary",
-  "background_color": "#000000",
-  "theme_color": "#83d63a",
-  "categories": ["productivity", "developer", "utilities"],
-  "lang": "en",
-  "dir": "ltr",
   "icons": [
     {
       "src": "/favicon.svg",
       "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "/xo-logo-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/xo-logo-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
+      "type": "image/svg+xml"
     }
   ]
 }

@@ -126,7 +126,7 @@ export function HeaderModelDropdown() {
     const isSubscription = activeProvider === "chatgpt";
 
     for (const m of visibleModels) {
-      if (m.id === "xo-coworker/best-free") pinned = m;
+      if (m.id === "xo-cowork/best-free") pinned = m;
       else if (isFreeModel(m)) free.push(m);
       else paid.push(m);
     }

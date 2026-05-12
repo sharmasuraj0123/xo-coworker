@@ -2,14 +2,14 @@
  * Remote connection state manager.
  *
  * Stores {url, token} in localStorage for persistent remote connections.
- * Used by mobile PWA to connect to a desktop XO-Coworker instance over the internet.
+ * Used by mobile PWA to connect to a desktop XO-Cowork instance over the internet.
  */
 
-const STORAGE_KEY = "xocoworker_remote_connection";
+const STORAGE_KEY = "xocowork_remote_connection";
 
 export interface RemoteConfig {
   url: string; // Tunnel URL (e.g., https://xxx.trycloudflare.com)
-  token: string; // Bearer token (xocoworker_rt_...)
+  token: string; // Bearer token (xocowork_rt_...)
 }
 
 /** Get the stored remote connection config, or null if not connected. */
@@ -55,7 +55,7 @@ export function getRemoteUrl(): string | null {
 
 export type RemoteProvider = "chatgpt" | "openrouter";
 
-const PROVIDER_KEY = "xocoworker_remote_provider";
+const PROVIDER_KEY = "xocowork_remote_provider";
 
 /** Get saved provider preference, or null for auto-detect. */
 export function getRemoteProvider(): RemoteProvider | null {
@@ -72,11 +72,11 @@ export function saveRemoteProvider(provider: RemoteProvider): void {
  * Parse QR code data into a RemoteConfig.
  *
  * Supports two formats:
- * - URL format (from backend QR): "https://xxx.trycloudflare.com/m?token=xocoworker_rt_..."
- * - JSON format (legacy): {"url":"https://...","token":"xocoworker_rt_..."}
+ * - URL format (from backend QR): "https://xxx.trycloudflare.com/m?token=xocowork_rt_..."
+ * - JSON format (legacy): {"url":"https://...","token":"xocowork_rt_..."}
  */
 /**
- * Auto-connect from URL query params (e.g., ?token=xocoworker_rt_...).
+ * Auto-connect from URL query params (e.g., ?token=xocowork_rt_...).
  * Called on mobile page load to enable direct link sharing.
  * Returns true if a new connection was established.
  */

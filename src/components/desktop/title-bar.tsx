@@ -6,14 +6,14 @@ import { Minus, Square, X, Copy, Plus } from "lucide-react";
 import { IS_DESKTOP, TITLE_BAR_HEIGHT } from "@/lib/constants";
 import { desktopAPI } from "@/lib/tauri-api";
 
-/** XO-Coworker logo rendered at title bar size. */
+/** XO-Cowork logo rendered at title bar size. */
 function XoCoworkerLogo() {
   return (
     <img
       src="/favicon.svg"
       width={18}
       height={18}
-      alt="XO"
+      alt="XO-Cowork"
       className="shrink-0"
     />
   );
@@ -101,7 +101,7 @@ export function TitleBar() {
       >
         <XoCoworkerLogo />
         <span className="text-xs font-medium text-[var(--text-secondary)] tracking-wide">
-          XO-Coworker
+          XO-Cowork
         </span>
       </div>
 
@@ -147,10 +147,10 @@ export function TitleBar() {
 }
 
 function getSectionTitle(pathname: string): string {
-  if (pathname.startsWith("/settings")) return "XO-Coworker - Settings";
-  if (pathname.startsWith("/billing")) return "XO-Coworker - Billing";
-  if (pathname.startsWith("/usage")) return "XO-Coworker - Usage";
-  if (pathname.startsWith("/c/new")) return "XO-Coworker - New Chat";
-  if (pathname.startsWith("/c/")) return "XO-Coworker - Chat";
-  return "XO-Coworker";
+  if (pathname.startsWith("/settings")) return "XO-Cowork - Settings";
+  if (pathname.startsWith("/billing")) return "XO-Cowork - Billing";
+  if (pathname.startsWith("/usage")) return "XO-Cowork - Usage";
+  if (pathname.startsWith("/c/new")) return "XO-Cowork - New Chat";
+  if (pathname.startsWith("/c/")) return "XO-Cowork - Chat";
+  return "XO-Cowork";
 }

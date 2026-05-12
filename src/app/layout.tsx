@@ -15,7 +15,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 
 export const metadata: Metadata = {
-  title: "XO-Coworker",
+  title: "XO-Cowork",
   description: "Your local AI assistant — private, powerful, personal",
   icons: {
     icon: "/favicon.svg",
