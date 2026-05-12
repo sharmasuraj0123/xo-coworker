@@ -101,26 +101,26 @@ export function resolveApiUrl(path: string): string {
 }
 
 /**
- * xo-coworker-api (FastAPI), default http://localhost:5002. Since the bridge
- * service was folded into xo-coworker-api, `NEXT_PUBLIC_API_URL` and
- * `NEXT_PUBLIC_XO_COWORKER_API_URL` now point at the same backend; the latter
+ * xo-cowork-api (FastAPI), default http://localhost:5002. Since the bridge
+ * service was folded into xo-cowork-api, `NEXT_PUBLIC_API_URL` and
+ * `NEXT_PUBLIC_XO_COWORK_API_URL` now point at the same backend; the latter
  * remains available as an override for desktop/remote PWA builds.
  */
-export const XO_COWORKER_API_BASE = (
-  process.env.NEXT_PUBLIC_XO_COWORKER_API_URL ?? ""
+export const XO_COWORK_API_BASE = (
+  process.env.NEXT_PUBLIC_XO_COWORK_API_URL ?? ""
 ).replace(/\/$/, "");
 
 /**
- * Resolve a path on xo-coworker-api. Browser web app uses a root-relative URL so Next.js rewrites avoid
- * cross-origin calls. Desktop and remote PWA use {@link XO_COWORKER_API_BASE}.
+ * Resolve a path on xo-cowork-api. Browser web app uses a root-relative URL so Next.js rewrites avoid
+ * cross-origin calls. Desktop and remote PWA use {@link XO_COWORK_API_BASE}.
  */
-export function resolveCoworkerApiUrl(path: string): string {
+export function resolveCoworkApiUrl(path: string): string {
   const p = path.startsWith("/") ? path : `/${path}`;
   if (typeof window === "undefined") {
-    return `${XO_COWORKER_API_BASE}${p}`;
+    return `${XO_COWORK_API_BASE}${p}`;
   }
   if (IS_DESKTOP || getRemoteConfig()) {
-    return `${XO_COWORKER_API_BASE}${p}`;
+    return `${XO_COWORK_API_BASE}${p}`;
   }
   return p;
 }
@@ -310,6 +310,10 @@ export const API = {
     SESSION: (id: string) => `/api/connectors/gdrive/sessions/${id}` as const,
     CANCEL_SESSION: (id: string) => `/api/connectors/gdrive/sessions/${id}/cancel` as const,
     SUBMIT_CODE: (id: string) => `/api/connectors/gdrive/sessions/${id}/submit` as const,
+    MKDIR: (name: string) => `/api/connectors/gdrive/remotes/${encodeURIComponent(name)}/mkdir` as const,
+    RMDIR: (name: string) => `/api/connectors/gdrive/remotes/${encodeURIComponent(name)}/rmdir` as const,
+    FOLDERS: (name: string) => `/api/connectors/gdrive/remotes/${encodeURIComponent(name)}/folders` as const,
+    UPLOAD: (name: string) => `/api/connectors/gdrive/remotes/${encodeURIComponent(name)}/upload` as const,
   },
   ONEDRIVE: {
     REMOTES: "/api/connectors/onedrive/remotes",
@@ -324,6 +328,9 @@ export const API = {
     TOKEN: "/api/connectors/github/token",
     DISCONNECT: "/api/connectors/github/disconnect",
     RECONNECT: "/api/connectors/github/reconnect",
+    CLI_START: "/api/connectors/github/cli/start",
+    CLI_POLL: "/api/connectors/github/cli/poll",
+    CLI_CANCEL: "/api/connectors/github/cli/cancel",
   },
   VERCEL: {
     TOKEN: "/api/connectors/vercel/token",
@@ -389,56 +396,6 @@ export const queryKeys = {
  * Consumed by `useAppRouter` and `AppLink` in `src/lib/navigation.tsx`.
  */
 export const PRESERVED_QUERY_PARAMS = ["coder_session_token"] as const;
-
-/** Must match `STORAGE_PREFIX` in `components/providers/preserve-query-params.tsx`. */
-const PRESERVE_STORAGE_PREFIX = "xo:preserve:";
-
-/** URL bar first, then sessionStorage. SSR-safe (returns null on server). */
-function readPreservedParam(key: string): string | null {
-  if (typeof window === "undefined") return null;
-  const fromUrl = new URLSearchParams(window.location.search).get(key);
-  if (fromUrl) return fromUrl;
-  return sessionStorage.getItem(PRESERVE_STORAGE_PREFIX + key);
-}
-
-/** Coder tunnel session token — used for the `Coder-Session-Token` header. */
-export function getCoderSessionToken(): string | null {
-  return readPreservedParam("coder_session_token");
-}
-
-/**
- * Append `PRESERVED_QUERY_PARAMS` onto an outbound request URL. Without
- * this, fetch/SSE calls only carry Coder's session cookie — when that
- * cookie drifts (short TTL, partitioning, eviction) the tunnel proxy
- * 303s to a cross-origin auth-redirect and the browser blocks the chain
- * with a CORS error. Source: URL bar first, then sessionStorage.
- * Existing keys on the URL are not overwritten.
- */
-export function appendPreservedParams(url: string): string {
-  if (typeof window === "undefined") return url;
-
-  const placeholder = "http://_xo_placeholder_";
-  const isAbsolute = /^[a-z][a-z0-9+.-]*:\/\//i.test(url);
-  let parsed: URL;
-  try {
-    parsed = new URL(url, placeholder);
-  } catch {
-    return url;
-  }
-
-  let changed = false;
-  for (const key of PRESERVED_QUERY_PARAMS) {
-    if (parsed.searchParams.has(key)) continue;
-    const value = readPreservedParam(key);
-    if (value) {
-      parsed.searchParams.set(key, value);
-      changed = true;
-    }
-  }
-  if (!changed) return url;
-  if (isAbsolute) return parsed.toString();
-  return `${parsed.pathname}${parsed.search}${parsed.hash}`;
-}
 
 /** UI constants */
 export const SIDEBAR_WIDTH = 280;

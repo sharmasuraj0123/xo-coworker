@@ -12,7 +12,11 @@ import { useSidebarStore } from "@/stores/sidebar-store";
 import { useChatStore } from "@/stores/chat-store";
 import { isRemoteMode } from "@/lib/remote-connection";
 
-export function ChatHeader() {
+interface ChatHeaderProps {
+  sessionId?: string;
+}
+
+export function ChatHeader({ sessionId }: ChatHeaderProps) {
   const { t } = useTranslation('chat');
   const router = useAppRouter();
   const isCollapsed = useSidebarStore((s) => s.isCollapsed);

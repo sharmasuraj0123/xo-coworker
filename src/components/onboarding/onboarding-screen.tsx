@@ -30,7 +30,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSettingsStore } from "@/stores/settings-store";
 import { api, ApiError } from "@/lib/api";
-import { API, IS_DESKTOP, resolveCoworkerApiUrl, queryKeys } from "@/lib/constants";
+import { API, IS_DESKTOP, resolveCoworkApiUrl, queryKeys } from "@/lib/constants";
 import { desktopAPI } from "@/lib/tauri-api";
 import { consumeCodexSetupStream } from "@/lib/codex-device-auth";
 import {
@@ -416,7 +416,7 @@ function ModelsStep({
     codexAbortRef.current = ctrl;
 
     try {
-      const url = resolveCoworkerApiUrl(API.CODEX.SETUP);
+      const url = resolveCoworkApiUrl(API.CODEX.SETUP);
       const resp = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -844,12 +844,14 @@ const saveEnvVar = async () => {
         Continue
         <ArrowRight className="ml-2 h-4 w-4" />
       </Button>
-      <button
-        onClick={onSkip}
-        className="mt-3 text-xs text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
-      >
-        Skip for now
-      </button>
+      {detectedEnvKeys.length > 0 && !canContinue && (
+        <button
+          onClick={onSkip}
+          className="mt-3 text-xs text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
+        >
+          Skip, I already have a key
+        </button>
+      )}
     </div>
   );
 }
@@ -1267,9 +1269,9 @@ export function OnboardingScreen() {
       <div className="min-h-full flex flex-col items-center justify-center py-8">
       {/* Logo */}
       <div className="mb-6 flex flex-col items-center">
-        <img src="/favicon.svg" width={40} height={40} alt="XO" className="mb-3" />
+        <img src="/favicon.svg" width={40} height={40} alt="XO-Cowork" className="mb-3" />
         <span className="text-xs font-medium text-[var(--text-tertiary)] tracking-wide uppercase">
-          XO-Coworker Setup
+          XO-Cowork Setup
         </span>
       </div>
 
@@ -1356,7 +1358,6 @@ export function OnboardingScreen() {
                 onInitialLoad={setPersonalityContent}
                 onChange={setPersonalityContent}
                 onNext={goNext}
-                onSkip={goNext}
               />
             </motion.div>
           )}

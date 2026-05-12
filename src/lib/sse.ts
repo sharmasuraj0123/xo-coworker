@@ -15,8 +15,6 @@ import {
   SSE_RECONNECT_MAX_DELAY,
   SSE_RECONNECT_BACKOFF,
   SSE_MAX_RETRIES,
-  appendPreservedParams,
-  getCoderSessionToken,
 } from "./constants";
 import { getRemoteToken } from "./remote-connection";
 import type { SSEEventData } from "@/types/streaming";
@@ -163,7 +161,7 @@ export class SSEClient {
     const remoteToken = getRemoteToken();
     if (remoteToken) params.set("token", remoteToken);
     const qs = params.toString();
-    const url = appendPreservedParams(qs ? `${baseUrl}?${qs}` : baseUrl);
+    const url = qs ? `${baseUrl}?${qs}` : baseUrl;
 
     // Cloudflare Quick Tunnels buffer GET SSE responses until the connection
     // closes, breaking real-time streaming. POST SSE works correctly.
@@ -209,13 +207,9 @@ export class SSEClient {
 
     this.options.onStatusChange?.("connecting");
 
-    const headers: Record<string, string> = { "Accept": "text/event-stream" };
-    const coderToken = getCoderSessionToken();
-    if (coderToken) headers["Coder-Session-Token"] = coderToken;
-
     fetch(url, {
       method: "POST",
-      headers,
+      headers: { "Accept": "text/event-stream" },
       signal: controller.signal,
     })
       .then(async (res) => {
