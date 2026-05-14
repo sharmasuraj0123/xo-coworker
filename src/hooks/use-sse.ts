@@ -20,15 +20,36 @@ import { getChatRoute } from "@/lib/routes";
 import type { SessionResponse } from "@/types/session";
 import type { ArtifactType } from "@/types/artifact";
 
-// ─── Module-level state ───
-// Persisted across component mounts to survive React navigation.
-// When a component unmounts and remounts (e.g., Landing → ChatView),
-// the new SSEClient can resume from the last known event ID instead
-// of replaying all events and duplicating content in the Zustand store.
-let persistedLastEventId = 0;
-let currentStreamId: string | null = null;
-/** Last time any SSE event was received (milliseconds since epoch). */
-let lastEventTimestamp = 0;
+// ─── Module-level per-stream state ───
+// Persisted across component mounts to survive React navigation. When a
+// component unmounts and remounts for the SAME stream (e.g., Landing →
+// ChatView), the new SSEClient resumes from the last known event ID
+// instead of replaying all events and duplicating content in the store.
+//
+// All per-stream fields live on a single record so a stream switch
+// replaces them wholesale. Adding a new per-stream value = add a field
+// to StreamState; it's zeroed automatically on the next stream change.
+// Free siblings would force every new field to be reset by hand and the
+// next missed reset would leak across sessions (see issues Trigger B).
+type StreamState = {
+  streamId: string;
+  /** Last SSE event id we've seen for this stream — sent as Last-Event-ID on reconnect. */
+  lastEventId: number;
+  /** Wall-clock ms of the last event we received; used by the idle-recovery safety net. */
+  lastEventTimestamp: number;
+};
+
+let activeStream: StreamState | null = null;
+
+/** Persist the latest event id seen on the current stream. No-op when no stream is active. */
+function recordEventId(id: number): void {
+  if (activeStream) activeStream.lastEventId = id;
+}
+
+/** Stamp "an event arrived now" so idle-recovery measures silence on the current stream only. */
+function markEventReceived(): void {
+  if (activeStream) activeStream.lastEventTimestamp = Date.now();
+}
 
 /**
  * Progressive text buffer — simulates streaming when provider sends
@@ -116,10 +137,11 @@ export function useSSE(streamId: string | null) {
 
       // Detect whether this is a brand-new generation or a remount for the
       // same stream (e.g., navigation from Landing → ChatView).
-      if (streamId !== currentStreamId) {
-        // New generation — reset replay tracking
-        persistedLastEventId = 0;
-        currentStreamId = streamId;
+      if (activeStream?.streamId !== streamId) {
+        // New generation — replace per-stream state wholesale. This is the
+        // single place fields are zeroed; using one record makes it
+        // structurally impossible to leak a field into the next stream.
+        activeStream = { streamId, lastEventId: 0, lastEventTimestamp: 0 };
       }
 
       const reasoningBuffer = new ProgressiveBuffer((text) => {
@@ -127,15 +149,15 @@ export function useSSE(streamId: string | null) {
       });
       reasoningBufferRef.current = reasoningBuffer;
 
-      console.log("[SSE] Creating SSEClient for stream:", streamId, "lastEventId:", persistedLastEventId);
+      console.log("[SSE] Creating SSEClient for stream:", streamId, "lastEventId:", activeStream?.lastEventId ?? 0);
 
       const client = new SSEClient({
         url: API.CHAT.STREAM(streamId),
         // Re-resolve URL on each reconnect so port changes (backend restart) are picked up
         urlProvider: () => API.CHAT.STREAM(streamId),
-        initialLastEventId: persistedLastEventId,
+        initialLastEventId: activeStream?.lastEventId ?? 0,
         onEvent: () => {
-          lastEventTimestamp = Date.now();
+          markEventReceived();
           console.log("[SSE] Event received at", Date.now());
         },
         onStatusChange: (status) => {
@@ -177,14 +199,14 @@ export function useSSE(streamId: string | null) {
 
     // Model loading (Ollama cold start)
     client.on(SSE_EVENTS.MODEL_LOADING, (_data, id) => {
-      persistedLastEventId = id;
+      recordEventId(id);
       store.getState().setModelLoading(true);
     });
 
     // Session created — new session's real ID resolved by the bridge.
     // Update store and sidebar. Navigation happens in the DONE handler.
     client.on(SSE_EVENTS.SESSION_CREATED, (data, id) => {
-      persistedLastEventId = id;
+      recordEventId(id);
       if (data.session_id) {
         // Update session ID in the chat store
         useChatStore.setState({ sessionId: data.session_id });
@@ -225,19 +247,19 @@ export function useSSE(streamId: string | null) {
 
     // Text streaming
     client.on(SSE_EVENTS.TEXT_DELTA, (data, id) => {
-      persistedLastEventId = id;
+      recordEventId(id);
       if (store.getState().isModelLoading) store.getState().setModelLoading(false);
       if (data.text) store.getState().appendTextDelta(data.text);
     });
 
     client.on(SSE_EVENTS.REASONING_DELTA, (data, id) => {
-      persistedLastEventId = id;
+      recordEventId(id);
       if (data.text) reasoningBuffer.push(data.text);
     });
 
     // Tool lifecycle
     client.on(SSE_EVENTS.TOOL_START, (data, id) => {
-      persistedLastEventId = id;
+      recordEventId(id);
       if (data.tool && data.call_id) {
         store.getState().addToolStart(
           data.tool,
@@ -287,7 +309,7 @@ export function useSSE(streamId: string | null) {
     });
 
     client.on(SSE_EVENTS.TOOL_RESULT, (data, id) => {
-      persistedLastEventId = id;
+      recordEventId(id);
       if (data.call_id) {
         store.getState().setToolResult(
           data.call_id,
@@ -349,7 +371,7 @@ export function useSSE(streamId: string | null) {
     });
 
     client.on(SSE_EVENTS.TOOL_ERROR, (data, id) => {
-      persistedLastEventId = id;
+      recordEventId(id);
       if (data.call_id) {
         store.getState().setToolError(data.call_id, data.output ?? data.error_message ?? "Error");
       }
@@ -357,7 +379,7 @@ export function useSSE(streamId: string | null) {
 
     // Step lifecycle
     client.on(SSE_EVENTS.STEP_START, (data, id) => {
-      persistedLastEventId = id;
+      recordEventId(id);
       store.getState().addStepStart(data.step ?? 0);
     });
 
@@ -366,7 +388,7 @@ export function useSSE(streamId: string | null) {
     let stepFinishTimer: ReturnType<typeof setTimeout> | null = null;
 
     client.on(SSE_EVENTS.STEP_FINISH, (data, id) => {
-      persistedLastEventId = id;
+      recordEventId(id);
       store.getState().addStepFinish(
         data.reason ?? "stop",
         data.tokens ?? {},
@@ -413,32 +435,32 @@ export function useSSE(streamId: string | null) {
 
     // Compaction lifecycle
     client.on(SSE_EVENTS.COMPACTION_START, (data, id) => {
-      persistedLastEventId = id;
+      recordEventId(id);
       store.getState().startCompaction(data.phases ?? ["prune", "summarize"]);
     });
 
     client.on(SSE_EVENTS.COMPACTION_PHASE, (data, id) => {
-      persistedLastEventId = id;
+      recordEventId(id);
       if (data.phase && data.status) {
         store.getState().updateCompactionPhase(data.phase, data.status);
       }
     });
 
     client.on(SSE_EVENTS.COMPACTION_PROGRESS, (data, id) => {
-      persistedLastEventId = id;
+      recordEventId(id);
       if (data.phase && data.chars != null) {
         store.getState().updateCompactionProgress(data.phase, data.chars);
       }
     });
 
     client.on(SSE_EVENTS.COMPACTED, (_data, id) => {
-      persistedLastEventId = id;
+      recordEventId(id);
       store.getState().addCompaction(true);
     });
 
     // Interactive: Permission
     client.on(SSE_EVENTS.PERMISSION_REQUEST, (data, id) => {
-      persistedLastEventId = id;
+      recordEventId(id);
       if (data.call_id) {
         // In "auto" mode, auto-approve all permission requests
         const workMode = useSettingsStore.getState().workMode;
@@ -464,7 +486,7 @@ export function useSSE(streamId: string | null) {
 
     // Interactive: Question
     client.on(SSE_EVENTS.QUESTION, (data, id) => {
-      persistedLastEventId = id;
+      recordEventId(id);
       console.log("[SSE] QUESTION event received:", { call_id: data.call_id, id, hasArgs: !!data.arguments });
       if (data.call_id) {
         store.getState().setQuestion({
@@ -479,7 +501,7 @@ export function useSSE(streamId: string | null) {
     // Interactive resolved: another client (PC or mobile) already responded
     // to a permission or question prompt — dismiss the local UI.
     client.on(SSE_EVENTS.PERMISSION_RESOLVED, (data, id) => {
-      persistedLastEventId = id;
+      recordEventId(id);
       const pending = store.getState().pendingPermission;
       if (pending && data.call_id === pending.callId) {
         store.getState().clearPermissionRequest();
@@ -487,7 +509,7 @@ export function useSSE(streamId: string | null) {
     });
 
     client.on(SSE_EVENTS.QUESTION_RESOLVED, (data, id) => {
-      persistedLastEventId = id;
+      recordEventId(id);
       const pending = store.getState().pendingQuestion;
       if (pending && data.call_id === pending.callId) {
         store.getState().clearQuestion();
@@ -496,7 +518,7 @@ export function useSSE(streamId: string | null) {
 
     // Interactive: Plan Review
     client.on(SSE_EVENTS.PLAN_REVIEW, (data, id) => {
-      persistedLastEventId = id;
+      recordEventId(id);
       if (data.call_id) {
         const reviewData = {
           callId: data.call_id,
@@ -517,7 +539,7 @@ export function useSSE(streamId: string | null) {
 
     // Title update — live title refresh during streaming
     client.on(SSE_EVENTS.TITLE_UPDATE, (data, id) => {
-      persistedLastEventId = id;
+      recordEventId(id);
       if (data.title) {
         const sessionId = store.getState().sessionId;
         if (sessionId) {
@@ -551,7 +573,7 @@ export function useSSE(streamId: string | null) {
     // Desync — backend dropped events due to subscriber queue overflow.
     // Clear stale streaming state, then refetch messages from DB.
     client.on(SSE_EVENTS.DESYNC, (_data, id) => {
-      persistedLastEventId = id;
+      recordEventId(id);
       store.getState().clearStreamingContent();
       const sessionId = store.getState().sessionId;
       if (sessionId) {
@@ -565,7 +587,7 @@ export function useSSE(streamId: string | null) {
 
     // Completion
     client.on(SSE_EVENTS.DONE, async (_data, id) => {
-      persistedLastEventId = id;
+      recordEventId(id);
       if (stepFinishTimer) {
         clearTimeout(stepFinishTimer);
         stepFinishTimer = null;
@@ -634,7 +656,7 @@ export function useSSE(streamId: string | null) {
 
     // Agent error (business-level), not EventSource transport errors.
     const handleAgentError = async (data: { error_message?: string | null }, id: number) => {
-      persistedLastEventId = id;
+      recordEventId(id);
       const message = data.error_message ?? "Unknown stream error";
       const contextLimitError = /maximum context length|requested about/i.test(message);
       if (contextLimitError) {
@@ -708,7 +730,8 @@ export function useSSE(streamId: string | null) {
           clearInterval(idleCheckTimer);
           return;
         }
-        if (lastEventTimestamp > 0 && Date.now() - lastEventTimestamp > IDLE_RECOVERY_MS) {
+        const lastEventTs = activeStream?.lastEventTimestamp ?? 0;
+        if (lastEventTs > 0 && Date.now() - lastEventTs > IDLE_RECOVERY_MS) {
           console.warn("SSE idle recovery: no events for 60s, forcing finishGeneration");
           clearInterval(idleCheckTimer);
           reasoningBuffer.flush();
@@ -780,9 +803,11 @@ export function useSSE(streamId: string | null) {
         client.close();
         clientRef.current = null;
         if (store.getState().isGenerating) {
-          // Reset module-level state so a future stream doesn't inherit stale values
-          persistedLastEventId = 0;
-          currentStreamId = null;
+          // Reset per-stream state so a future stream doesn't inherit stale values.
+          // (When cleanup runs after a clean DONE — isGenerating already false —
+          // the next stream's start block recreates activeStream anyway, but
+          // nulling here is defense-in-depth against unexpected unmount paths.)
+          activeStream = null;
         } else {
           connectionStore.getState().setStatus("idle");
         }
