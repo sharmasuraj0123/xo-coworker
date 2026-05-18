@@ -1,0 +1,123 @@
+"use client";
+
+import { Loader2, AlertCircle, Cpu } from "lucide-react";
+import { ComposioConnector } from "@/components/connectors/composio-connector";
+import {
+  useComposioInstallIntoGateway,
+  useComposioToolkits,
+} from "@/hooks/use-composio";
+import { COMPOSIO_TOOLKITS } from "@/lib/composio-toolkits";
+import { Button } from "@/components/ui/button";
+
+type Props = { search?: string };
+
+export function ComposioGrid({ search = "" }: Props) {
+  const { data, isLoading, error } = useComposioToolkits();
+  const install = useComposioInstallIntoGateway();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8 text-[var(--text-secondary)]">
+        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+        <span className="text-xs">Loading Composio toolkits…</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/5 p-3">
+        <AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+        <div className="text-xs text-[var(--text-primary)]">
+          Could not load Composio toolkits. Check that <code>COMPOSIO_API_KEY</code> is set in the backend.
+        </div>
+      </div>
+    );
+  }
+
+  const byId = new Map((data?.toolkits ?? []).map((t) => [t.id, t]));
+  const q = search.trim().toLowerCase();
+  const cards = COMPOSIO_TOOLKITS.filter((m) => {
+    if (!q) return true;
+    return (
+      m.displayName.toLowerCase().includes(q) ||
+      m.id.includes(q) ||
+      m.description.toLowerCase().includes(q)
+    );
+  });
+
+  return (
+    <div className="space-y-4">
+      <ProviderNotice install={install} />
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {cards.map((meta) => {
+          const toolkit = byId.get(meta.id) ?? {
+            id: meta.id,
+            slug: meta.slug,
+            display_name: meta.displayName,
+            schemes: meta.schemes,
+            status: "NEEDS_AUTH" as const,
+            connected_account_id: null,
+            scheme: null,
+          };
+          return <ComposioConnector key={meta.id} meta={meta} toolkit={toolkit} />;
+        })}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Tools execute in the chat only when the active provider can route to
+ * Composio's MCP server. claude_code wires it automatically per session;
+ * openclaw and hermes need a one-time install into the gateway config.
+ */
+function ProviderNotice({
+  install,
+}: {
+  install: ReturnType<typeof useComposioInstallIntoGateway>;
+}) {
+  return (
+    <div className="rounded-xl border border-[var(--border-default)] bg-[var(--surface-secondary)] p-3 space-y-2 text-xs text-[var(--text-secondary)]">
+      <div className="flex items-start gap-2">
+        <Cpu className="h-4 w-4 text-[var(--text-primary)] shrink-0 mt-0.5" />
+        <div className="space-y-1.5">
+          <p className="text-[var(--text-primary)] font-medium">How tools reach the agent</p>
+          <p>
+            On the <strong>Claude</strong> provider, Composio tools are wired automatically every
+            chat turn. On <strong>OpenClaw</strong> and <strong>Hermes</strong>, install Composio
+            once into the gateway config; restart the gateway to pick it up.
+          </p>
+          <div className="flex gap-2 pt-1">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => install.mutate("openclaw")}
+              disabled={install.isPending}
+            >
+              Install into OpenClaw
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => install.mutate("hermes")}
+              disabled={install.isPending}
+            >
+              Install into Hermes
+            </Button>
+          </div>
+          {install.data?.ok && (
+            <p className="text-emerald-600 dark:text-emerald-400">
+              Installed. Restart the gateway to activate.
+            </p>
+          )}
+          {install.data && !install.data.ok && (
+            <p className="text-amber-600 dark:text-amber-400">
+              {install.data.error ?? "Install failed."}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
