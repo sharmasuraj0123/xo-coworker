@@ -404,6 +404,22 @@ export const API = {
     DISCONNECT: "/api/connectors/manus/disconnect",
     RECONNECT: "/api/connectors/manus/reconnect",
   },
+  COMPOSIO: {
+    TOOLKITS: "/api/connectors/composio/toolkits",
+    CONNECT: (toolkit: string) =>
+      `/api/connectors/composio/${encodeURIComponent(toolkit)}/connect` as const,
+    STATUS: (toolkit: string) =>
+      `/api/connectors/composio/${encodeURIComponent(toolkit)}/status` as const,
+    DISCONNECT: (toolkit: string) =>
+      `/api/connectors/composio/${encodeURIComponent(toolkit)}/disconnect` as const,
+    TOOLS: (toolkit: string) =>
+      `/api/connectors/composio/${encodeURIComponent(toolkit)}/tools` as const,
+    PREFS: (toolkit: string) =>
+      `/api/connectors/composio/${encodeURIComponent(toolkit)}/prefs` as const,
+    EXECUTE: "/api/connectors/composio/execute",
+    MCP_URL: "/api/connectors/composio/mcp-url",
+    INSTALL_INTO_GATEWAY: "/api/connectors/composio/install-into-gateway",
+  },
 } as const;
 
 /** Query key factories for TanStack Query. */
@@ -431,6 +447,12 @@ export const queryKeys = {
   xoProjects: ["xo-projects"] as const,
   ollamaStatus: ["ollamaStatus"] as const,
   connectors: ["connectors"] as const,
+  composio: {
+    all: ["composio"] as const,
+    toolkits: ["composio", "toolkits"] as const,
+    tools: (toolkit: string) => ["composio", "tools", toolkit] as const,
+    prefs: (toolkit: string) => ["composio", "prefs", toolkit] as const,
+  },
   channels: ["channels"] as const,
   openclawStatus: ["openclawStatus"] as const,
   hermes: {
