@@ -45,6 +45,7 @@ import { OneDriveConnectorTile } from "@/components/connectors/onedrive-connecto
 import { GitHubConnectorTile } from "@/components/connectors/github-connector";
 import { VercelConnectorTile } from "@/components/connectors/vercel-connector";
 import { ManusConnectorTile } from "@/components/connectors/manus-connector";
+import { ComposioGrid } from "@/components/connectors/composio-grid";
 
 const SOURCE_COLORS: Record<string, string> = {
   builtin: "bg-blue-500/10 text-blue-400",
@@ -58,7 +59,7 @@ const SOURCE_COLORS: Record<string, string> = {
 /** Derive i18n key from category slug: "dev-tools" → "category_dev_tools" */
 const categoryKey = (cat: string) => `category_${cat.replace(/-/g, "_")}`;
 
-type Tab = "connectors" | "plugins" | "skills";
+type Tab = "connectors" | "composio" | "plugins" | "skills";
 
 /* ------------------------------------------------------------------ */
 /* Tab content (embedded in Settings)                                  */
@@ -73,7 +74,7 @@ export function PluginsTabContent() {
     <div className="space-y-4">
       {/* Tabs */}
       <div className="flex items-center gap-1 border-b border-[var(--border-default)]">
-        {(["connectors", "plugins", "skills"] as Tab[]).map((tabKey) => (
+        {(["connectors", "composio", "plugins", "skills"] as Tab[]).map((tabKey) => (
           <button
             key={tabKey}
             onClick={() => { setTab(tabKey); setSearch(""); }}
@@ -85,27 +86,20 @@ export function PluginsTabContent() {
           >
             {tabKey === "connectors"
               ? t("connectorsTab")
-              : tabKey === "plugins"
-                ? t("pluginsTab")
-                : t("skills")}
+              : tabKey === "composio"
+                ? "Composio"
+                : tabKey === "plugins"
+                  ? t("pluginsTab")
+                  : t("skills")}
           </button>
         ))}
-      </div>
-
-      {/* Search */}
-      <div>
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder={t("searchPlaceholder")}
-          className="w-full h-8 rounded-md border border-[var(--border-default)] bg-transparent px-3 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:ring-1 focus:ring-[var(--border-focus)]"
-        />
       </div>
 
       {/* Content */}
       {tab === "connectors" ? (
         <ConnectorsTab search={search} />
+      ) : tab === "composio" ? (
+        <ComposioGrid search={search} />
       ) : tab === "plugins" ? (
         <PluginsTab search={search} />
       ) : (
