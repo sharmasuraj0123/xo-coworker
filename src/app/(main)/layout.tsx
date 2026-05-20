@@ -14,6 +14,7 @@ import { PlanReviewPanel } from "@/components/plan-review/plan-review-panel";
 import { WorkspacePanel } from "@/components/workspace/workspace-panel";
 import { usePlanReviewStore } from "@/stores/plan-review-store";
 import { ConnectionStatus } from "@/components/layout/connection-status";
+import { SSEManager } from "@/components/layout/sse-manager";
 import { RouteProgressBar } from "@/components/layout/route-progress-bar";
 import { SplashScreen } from "@/components/layout/splash-screen";
 import { TitleBar } from "@/components/desktop/title-bar";
@@ -240,6 +241,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       >
         <ConnectionStatus />
         <UpdateBanner />
+        <SSEManager />
         <Suspense fallback={null}>{children}</Suspense>
       </motion.main>
 

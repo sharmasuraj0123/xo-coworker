@@ -11,7 +11,6 @@ import { useChatStore } from "@/stores/chat-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useBillingStore } from "@/stores/billing-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
-import { useSSE } from "./use-sse";
 import { useRemoteGenerationSync } from "./use-remote-generation-sync";
 import type { InfiniteData } from "@tanstack/react-query";
 import type { FileAttachment, PromptResponse, RespondRequest } from "@/types/chat";
@@ -39,8 +38,7 @@ export function useChat(currentSessionId?: string) {
   const pendingQuestion = useChatStore((s) => s.pendingQuestion);
   const pendingPlanReview = useChatStore((s) => s.pendingPlanReview);
 
-  // SSE connection — activates when streamId is set
-  useSSE(streamId);
+  // SSE connection is owned by `<SSEManager />` at the route-layout level.
 
   // Detect generations started by other clients (e.g., mobile)
   useRemoteGenerationSync(currentSessionId);
