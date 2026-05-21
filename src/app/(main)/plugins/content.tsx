@@ -2,21 +2,16 @@
 
 import { useState } from "react";
 import {
-  ArrowLeft,
   ChevronDown,
   ChevronRight,
-  ExternalLink,
   Loader2,
-  Plus,
   Plug,
   RotateCw,
   Sparkles,
-  Unplug,
   Workflow,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
-import { AppLink as Link } from "@/lib/navigation";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { api } from "@/lib/api";
@@ -35,7 +30,6 @@ import {
   useConnectorConnect,
   useConnectorDisconnect,
   useConnectorReconnect,
-  useAddCustomConnector,
   useSetConnectorToken,
 } from "@/hooks/use-connectors";
 import type { PluginInfo, SkillInfo } from "@/types/plugins";
@@ -45,7 +39,8 @@ import { OneDriveConnectorTile } from "@/components/connectors/onedrive-connecto
 import { GitHubConnectorTile } from "@/components/connectors/github-connector";
 import { VercelConnectorTile } from "@/components/connectors/vercel-connector";
 import { ManusConnectorTile } from "@/components/connectors/manus-connector";
-import { ComposioGrid } from "@/components/connectors/composio-grid";
+import { ComposioCards, ComposioProviderNotice } from "@/components/connectors/composio-grid";
+import { ConnectorCard, type ConnectorCardStatus } from "@/components/connectors/connector-card";
 
 const SOURCE_COLORS: Record<string, string> = {
   builtin: "bg-blue-500/10 text-blue-400",
@@ -56,10 +51,7 @@ const SOURCE_COLORS: Record<string, string> = {
   custom: "bg-orange-500/10 text-orange-400",
 };
 
-/** Derive i18n key from category slug: "dev-tools" → "category_dev_tools" */
-const categoryKey = (cat: string) => `category_${cat.replace(/-/g, "_")}`;
-
-type Tab = "connectors" | "composio" | "plugins" | "skills";
+type Tab = "connectors" | "plugins" | "skills";
 
 /* ------------------------------------------------------------------ */
 /* Tab content (embedded in Settings)                                  */
@@ -74,7 +66,7 @@ export function PluginsTabContent() {
     <div className="space-y-4">
       {/* Tabs */}
       <div className="flex items-center gap-1 border-b border-[var(--border-default)]">
-        {(["connectors", "composio", "plugins", "skills"] as Tab[]).map((tabKey) => (
+        {(["connectors", "plugins", "skills"] as Tab[]).map((tabKey) => (
           <button
             key={tabKey}
             onClick={() => { setTab(tabKey); setSearch(""); }}
@@ -86,11 +78,9 @@ export function PluginsTabContent() {
           >
             {tabKey === "connectors"
               ? t("connectorsTab")
-              : tabKey === "composio"
-                ? "Composio"
-                : tabKey === "plugins"
-                  ? t("pluginsTab")
-                  : t("skills")}
+              : tabKey === "plugins"
+                ? t("pluginsTab")
+                : t("skills")}
           </button>
         ))}
       </div>
@@ -98,8 +88,6 @@ export function PluginsTabContent() {
       {/* Content */}
       {tab === "connectors" ? (
         <ConnectorsTab search={search} />
-      ) : tab === "composio" ? (
-        <ComposioGrid search={search} />
       ) : tab === "plugins" ? (
         <PluginsTab search={search} />
       ) : (
@@ -123,13 +111,10 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 function ConnectorsTab({ search }: { search: string }) {
-  const { t } = useTranslation("plugins");
-  const { data, isLoading } = useConnectors();
-  const [showAdd, setShowAdd] = useState(false);
+  const { data } = useConnectors();
 
   const connectors = data?.connectors ?? {};
   const entries = Object.entries(connectors);
-  const connectedCount = entries.filter(([, c]) => c.status === "connected").length;
 
   const filtered = search
     ? entries.filter(
@@ -140,108 +125,40 @@ function ConnectorsTab({ search }: { search: string }) {
       )
     : entries;
 
-  // Group by category
-  const byCategory: Record<string, [string, ConnectorInfo][]> = {};
-  for (const entry of filtered) {
-    const cat = entry[1].category || "other";
-    (byCategory[cat] ??= []).push(entry);
-  }
-
-  // Sort categories
-  const categoryOrder = [
-    "communication", "productivity", "dev-tools", "design", "crm",
-    "analytics", "marketing", "sales", "data", "legal", "operations",
-    "knowledge", "bio-research", "custom", "other",
-  ];
-  const sortedCategories = Object.keys(byCategory).sort(
-    (a, b) => (categoryOrder.indexOf(a) ?? 99) - (categoryOrder.indexOf(b) ?? 99),
-  );
+  const gridClass = "grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3";
 
   return (
-    <>
-      {/* ---- Cloud Storage (rclone-backed) ---- */}
-      <div className="mb-5">
-        <h3 className="text-[11px] font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-2">
-          Cloud Storage
-        </h3>
-        <div className="space-y-2">
-          <GDriveConnectorTile />
-          <OneDriveConnectorTile />
-        </div>
-      </div>
-
-      {/* ---- Dev Tools ---- */}
-      <div className="mb-5">
-        <h3 className="text-[11px] font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-2">
-          Dev Tools
-        </h3>
-        <div className="space-y-2">
-          <GitHubConnectorTile />
-          <VercelConnectorTile />
-        </div>
-      </div>
-
-      {/* ---- AI Agents ---- */}
-      <div className="mb-5">
-        <h3 className="text-[11px] font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-2">
-          AI Agents
-        </h3>
+    <div className="space-y-4">
+      <ComposioProviderNotice />
+      <div className={gridClass}>
+        <GDriveConnectorTile />
+        <OneDriveConnectorTile />
+        <GitHubConnectorTile />
+        <VercelConnectorTile />
         <ManusConnectorTile />
+        {filtered.map(([id, connector]) => (
+          <MCPConnectorCard key={id} id={id} connector={connector} />
+        ))}
+        <ComposioCards search={search} />
       </div>
-
-      <div className="flex items-center justify-between mb-3">
-        {!isLoading && (
-          <p className="text-[11px] text-[var(--text-tertiary)]">
-            {t("connectedCount", { count: connectedCount })} / {entries.length}
-          </p>
-        )}
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-7 text-[11px] px-2.5"
-          onClick={() => setShowAdd(!showAdd)}
-        >
-          <Plus className="h-3 w-3 mr-1" />
-          {t("addCustom")}
-        </Button>
-      </div>
-
-      {showAdd && <AddConnectorForm onClose={() => setShowAdd(false)} />}
-
-      {isLoading ? (
-        <div className="space-y-2">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="h-14 rounded-lg bg-[var(--surface-tertiary)] animate-pulse"
-            />
-          ))}
-        </div>
-      ) : filtered.length === 0 ? (
-        <p className="text-xs text-[var(--text-tertiary)] text-center py-8">
-          {t("noConnectors")}
-        </p>
-      ) : (
-        <div className="space-y-5">
-          {sortedCategories.map((cat) => (
-            <div key={cat}>
-              <h3 className="text-[11px] font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-2">
-                {t(categoryKey(cat), cat)} ({byCategory[cat].length})
-              </h3>
-              <div className="space-y-1.5">
-                {byCategory[cat].map(([id, connector]) => (
-                  <ConnectorRow key={id} id={id} connector={connector} />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </>
+    </div>
   );
 }
 
-function ConnectorRow({
+function mcpStatus(s: ConnectorInfo["status"]): ConnectorCardStatus {
+  switch (s) {
+    case "connected":
+      return "connected";
+    case "needs_auth":
+      return "needs_auth";
+    case "failed":
+      return "failed";
+    default:
+      return "disconnected";
+  }
+}
+
+function MCPConnectorCard({
   id,
   connector,
 }: {
@@ -262,7 +179,6 @@ function ConnectorRow({
   const qc = useQueryClient();
 
   const handleConnect = async () => {
-    // Google Workspace uses direct Google OAuth (not MCP OAuth)
     const isGoogle = id === "google-workspace";
     const result = isGoogle
       ? await api.post<{ success: boolean; auth_url?: string; state?: string; error?: string }>(API.GOOGLE.AUTH_START)
@@ -270,15 +186,12 @@ function ConnectorRow({
 
     if (result.success && result.auth_url) {
       if (IS_DESKTOP) {
-        // Tauri: open system browser + poll for auth completion
         await desktopAPI.openExternal(result.auth_url);
         const poll = setInterval(async () => {
           await qc.invalidateQueries({ queryKey: queryKeys.connectors });
         }, 3000);
-        // Stop polling after 5 minutes
         setTimeout(() => clearInterval(poll), 300_000);
       } else {
-        // Web: open popup + listen for postMessage
         const popup = window.open(
           result.auth_url,
           "connector-auth",
@@ -299,7 +212,6 @@ function ConnectorRow({
             if (popup.closed) {
               clearInterval(timer);
               window.removeEventListener("message", handler);
-              // Also refresh in case auth completed before popup closed
               qc.invalidateQueries({ queryKey: queryKeys.connectors });
             }
           }, 1000);
@@ -308,193 +220,115 @@ function ConnectorRow({
     }
   };
 
-  return (
-    <div className="flex items-center gap-3 rounded-lg border border-[var(--border-default)] p-2.5">
-      {/* Status dot */}
-      <span
-        className={`h-2 w-2 rounded-full shrink-0 ${
-          STATUS_COLORS[connector.status] ?? STATUS_COLORS.disconnected
-        }`}
-      />
-
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-[var(--text-primary)]">
-            {connector.name}
-          </span>
-          {connector.type === "local" && id !== "google-workspace" && (
-            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400">
-              {t("localSetup")}
-            </span>
-          )}
-          {connector.source === "custom" && (
-            <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${SOURCE_COLORS.custom}`}>
-              {t("custom")}
-            </span>
-          )}
-          {connector.status === "connected" && connector.tools_count > 0 && (
-            <span className="text-[10px] text-[var(--text-tertiary)]">
-              {connector.tools_count} {t("tools")}
-            </span>
-          )}
-        </div>
-        <p className="text-[10px] text-[var(--text-tertiary)] truncate mt-0.5">
-          {connector.description}
-        </p>
-      </div>
-
-      {/* Action buttons */}
-      <div className="flex items-center gap-1.5 shrink-0">
-        {connector.status === "needs_auth" && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-6 text-[10px] px-2"
-            onClick={handleConnect}
-            disabled={isPending}
-          >
-            {isPending ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            ) : (
-              <ExternalLink className="h-3 w-3" />
-            )}
-            <span className="ml-1">{t("connect")}</span>
-          </Button>
-        )}
-
-        {(connector.status === "needs_auth" || connector.status === "failed") && connector.enabled && (
-          <form
-            className="flex items-center gap-1"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (tokenInput.trim()) {
-                setToken.mutate({ id, token: tokenInput.trim() });
-                setTokenInput("");
-              }
-            }}
-          >
-            <input
-              type="password"
-              value={tokenInput}
-              onChange={(e) => setTokenInput(e.target.value)}
-              placeholder={t("tokenPatPlaceholder")}
-              className="h-6 w-28 rounded border border-[var(--border-default)] bg-transparent px-1.5 text-[10px] text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:ring-1 focus:ring-[var(--border-focus)]"
-            />
-            <Button
-              type="submit"
-              variant="outline"
-              size="sm"
-              className="h-6 text-[10px] px-2"
-              disabled={!tokenInput.trim() || setToken.isPending}
-            >
-              {setToken.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "OK"}
-            </Button>
-          </form>
-        )}
-
-        {connector.status === "connected" && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 text-[10px] px-1.5 text-[var(--text-tertiary)]"
-            onClick={() => disconnect.mutate(id)}
-            disabled={isPending}
-            title={t("disconnect")}
-          >
-            <Unplug className="h-3 w-3" />
-          </Button>
-        )}
-
-        {connector.status === "failed" && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-6 text-[10px] px-2"
-            onClick={() => reconnect.mutate(id)}
-            disabled={isPending}
-          >
-            {isPending ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            ) : (
-              <RotateCw className="h-3 w-3" />
-            )}
-            <span className="ml-1">{t("retry")}</span>
-          </Button>
-        )}
-
-        {/* Enable/disable toggle */}
-        <Switch
-          checked={connector.enabled}
-          onCheckedChange={async (checked) => {
-            await toggle.mutateAsync({ id, enable: checked });
-            if (checked && (connector.type === "remote" || id === "google-workspace")) {
-              // Remote or Google: auto-trigger OAuth after enable
-              await new Promise((r) => setTimeout(r, 500));
-              await qc.invalidateQueries({ queryKey: queryKeys.connectors });
-              handleConnect();
-            } else if (checked) {
-              // Local: just refresh status
-              await new Promise((r) => setTimeout(r, 1000));
-              await qc.invalidateQueries({ queryKey: queryKeys.connectors });
-            }
-          }}
-          disabled={toggle.isPending}
-          className="shrink-0"
-        />
-      </div>
-    </div>
-  );
-}
-
-function AddConnectorForm({ onClose }: { onClose: () => void }) {
-  const { t } = useTranslation("plugins");
-  const addConnector = useAddCustomConnector();
-  const [name, setName] = useState("");
-  const [url, setUrl] = useState("");
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || !url) return;
-    const id = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-    await addConnector.mutateAsync({ id, name, url });
-    onClose();
+  const handleToggle = async (checked: boolean) => {
+    await toggle.mutateAsync({ id, enable: checked });
+    if (checked && (connector.type === "remote" || id === "google-workspace")) {
+      await new Promise((r) => setTimeout(r, 500));
+      await qc.invalidateQueries({ queryKey: queryKeys.connectors });
+      handleConnect();
+    } else if (checked) {
+      await new Promise((r) => setTimeout(r, 1000));
+      await qc.invalidateQueries({ queryKey: queryKeys.connectors });
+    }
   };
 
+  const status = mcpStatus(connector.status);
+  const description =
+    connector.status === "connected" && connector.tools_count > 0
+      ? `${connector.description} (${connector.tools_count} ${t("tools")})`
+      : connector.description;
+
+  const primaryAction = !connector.enabled
+    ? {
+        label: t("connect"),
+        onClick: () => handleToggle(true),
+        loading: toggle.isPending,
+      }
+    : connector.status === "connected"
+      ? {
+          label: t("disconnect"),
+          onClick: () => disconnect.mutate(id),
+          loading: disconnect.isPending,
+          variant: "ghost" as const,
+        }
+      : connector.status === "failed"
+        ? {
+            label: t("retry"),
+            onClick: () => reconnect.mutate(id),
+            icon: <RotateCw className="h-3.5 w-3.5" />,
+            loading: isPending,
+          }
+        : {
+            label: `Connect with ${connector.name}`,
+            onClick: handleConnect,
+            loading: isPending,
+          };
+
+  const badges = (
+    <>
+      {connector.type === "local" && id !== "google-workspace" && (
+        <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400">
+          {t("localSetup")}
+        </span>
+      )}
+      {connector.source === "custom" && (
+        <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${SOURCE_COLORS.custom}`}>
+          {t("custom")}
+        </span>
+      )}
+    </>
+  );
+
+  const showTokenForm =
+    (connector.status === "needs_auth" || connector.status === "failed") && connector.enabled;
+
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="mb-4 rounded-lg border border-[var(--border-default)] bg-[var(--surface-secondary)] p-3 space-y-2.5"
+    <ConnectorCard
+      icon={<Plug className="h-5 w-5 text-[var(--text-secondary)]" />}
+      name={connector.name}
+      description={description}
+      status={status}
+      badge={badges}
+      primaryAction={primaryAction}
     >
-      <h4 className="text-xs font-semibold text-[var(--text-primary)]">
-        {t("addConnector")}
-      </h4>
-      <input
-        type="text"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder={t("connectorName")}
-        className="w-full h-7 rounded-md border border-[var(--border-default)] bg-transparent px-2.5 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:ring-1 focus:ring-[var(--border-focus)]"
-        required
-      />
-      <input
-        type="url"
-        value={url}
-        onChange={(e) => setUrl(e.target.value)}
-        placeholder="https://mcp.example.com/mcp"
-        className="w-full h-7 rounded-md border border-[var(--border-default)] bg-transparent px-2.5 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:ring-1 focus:ring-[var(--border-focus)]"
-        required
-      />
-      <div className="flex justify-end gap-2">
-        <Button variant="ghost" size="sm" className="h-7 text-[11px]" onClick={onClose} type="button">
-          {t("cancel")}
-        </Button>
-        <Button size="sm" className="h-7 text-[11px]" type="submit" disabled={addConnector.isPending}>
-          {addConnector.isPending ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
-          {t("add")}
-        </Button>
+      {showTokenForm && (
+        <form
+          className="flex items-center gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (tokenInput.trim()) {
+              setToken.mutate({ id, token: tokenInput.trim() });
+              setTokenInput("");
+            }
+          }}
+        >
+          <input
+            type="password"
+            value={tokenInput}
+            onChange={(e) => setTokenInput(e.target.value)}
+            placeholder={t("tokenPatPlaceholder")}
+            className="flex-1 h-7 rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-2 text-[11px] text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:ring-1 focus:ring-[var(--border-focus)]"
+          />
+          <Button
+            type="submit"
+            variant="outline"
+            size="sm"
+            className="h-7 text-[11px] px-2.5"
+            disabled={!tokenInput.trim() || setToken.isPending}
+          >
+            {setToken.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "OK"}
+          </Button>
+        </form>
+      )}
+      <div className="flex items-center justify-between text-[10px] text-[var(--text-tertiary)]">
+        <span>{connector.enabled ? "Enabled" : "Disabled"}</span>
+        <Switch
+          checked={connector.enabled}
+          onCheckedChange={handleToggle}
+          disabled={toggle.isPending}
+        />
       </div>
-    </form>
+    </ConnectorCard>
   );
 }
 
