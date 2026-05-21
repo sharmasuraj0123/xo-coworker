@@ -14,6 +14,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ConnectorCard } from "@/components/connectors/connector-card";
 import {
   useManusStatus,
   useManusSubmitKey,
@@ -294,34 +295,37 @@ export function ManusConnectorTile() {
   const [modalOpen, setModalOpen] = useState(false);
   const { data, isLoading } = useManusStatus();
   const isConnected = data?.status === "connected";
+  const isFailed = data?.status === "failed";
+
+  const status = isLoading
+    ? "disconnected"
+    : isConnected
+      ? "connected"
+      : isFailed
+        ? "failed"
+        : "disconnected";
+
+  const statusLabel = isLoading
+    ? "Loading…"
+    : isConnected
+      ? "Connected"
+      : isFailed
+        ? "Failed"
+        : "Not connected";
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setModalOpen(true)}
-        className="flex items-center gap-3 rounded-xl border border-[var(--border-default)] bg-[var(--surface-secondary)] p-3 hover:bg-[var(--surface-tertiary)] transition-colors text-left w-full group"
-      >
-        <span
-          className={`h-2 w-2 rounded-full shrink-0 ${
-            isConnected ? "bg-emerald-500" : "bg-[var(--text-tertiary)]"
-          }`}
-        />
-        <div className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0">
-          <ManusIcon size={22} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium text-[var(--text-primary)] truncate">Manus AI</p>
-          <p className="text-[10px] text-[var(--text-tertiary)]">
-            {isLoading
-              ? "Loading…"
-              : isConnected
-              ? "Connected"
-              : "Not connected"}
-          </p>
-        </div>
-      </button>
-
+      <ConnectorCard
+        icon={<ManusIcon size={22} />}
+        name="Manus AI"
+        description="Autonomous AI agent for tasks, research, and coding."
+        status={status}
+        statusLabel={statusLabel}
+        primaryAction={{
+          label: isConnected ? "Manage" : "Connect with Manus",
+          onClick: () => setModalOpen(true),
+        }}
+      />
       {modalOpen && <ManusModal onClose={() => setModalOpen(false)} />}
     </>
   );
