@@ -16,6 +16,7 @@ import {
   Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ConnectorCard } from "@/components/connectors/connector-card";
 import {
   useOneDriveRemotes,
   useOneDriveCreateRemote,
@@ -605,40 +606,30 @@ export function OneDriveConnectorTile() {
   const remotes = data?.remotes ?? [];
   const connectedCount = remotes.filter((r) => r.complete).length;
 
+  const status = isLoading
+    ? "disconnected"
+    : connectedCount > 0
+      ? "connected"
+      : "disconnected";
+
+  const description =
+    connectedCount > 0
+      ? `Connect Microsoft OneDrive personal, business, or SharePoint. (${connectedCount} connected)`
+      : "Connect Microsoft OneDrive personal, business, or SharePoint.";
+
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setModalOpen(true)}
-        className="flex items-center gap-3 rounded-xl border border-[var(--border-default)] bg-[var(--surface-secondary)] p-3 hover:bg-[var(--surface-tertiary)] transition-colors text-left w-full group"
-      >
-        <span
-          className={`h-2 w-2 rounded-full shrink-0 ${
-            connectedCount > 0 ? "bg-emerald-500" : "bg-[var(--text-tertiary)]"
-          }`}
-        />
-
-        <div className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
-          <OneDriveIcon size={18} />
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium text-[var(--text-primary)] truncate">
-            OneDrive
-          </p>
-          <p className="text-[10px] text-[var(--text-tertiary)]">
-            {isLoading
-              ? "Loading…"
-              : connectedCount > 0
-              ? `${connectedCount} connected`
-              : "Not connected"}
-          </p>
-        </div>
-      </button>
-
-      {modalOpen && (
-        <OneDriveModal onClose={() => setModalOpen(false)} />
-      )}
+      <ConnectorCard
+        icon={<OneDriveIcon size={20} />}
+        name="OneDrive"
+        description={description}
+        status={status}
+        primaryAction={{
+          label: connectedCount > 0 ? "Manage" : "Connect with OneDrive",
+          onClick: () => setModalOpen(true),
+        }}
+      />
+      {modalOpen && <OneDriveModal onClose={() => setModalOpen(false)} />}
     </>
   );
 }
