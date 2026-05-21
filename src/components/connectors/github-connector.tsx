@@ -17,6 +17,7 @@ import {
   Terminal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ConnectorCard } from "@/components/connectors/connector-card";
 import {
   useGitHubStatus,
   useGitHubSubmitToken,
@@ -576,34 +577,32 @@ export function GitHubConnectorTile() {
   const [modalOpen, setModalOpen] = useState(false);
   const { data, isLoading } = useGitHubStatus();
   const isConnected = data?.status === "connected";
+  const isFailed = data?.status === "failed";
+
+  const status = isLoading
+    ? "disconnected"
+    : isConnected
+      ? "connected"
+      : isFailed
+        ? "failed"
+        : "disconnected";
+
+  const description = isConnected && data?.username
+    ? `Manage repos, issues, pull requests, and code search. (@${data.username})`
+    : "Manage repos, issues, pull requests, and code search.";
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setModalOpen(true)}
-        className="flex items-center gap-3 rounded-xl border border-[var(--border-default)] bg-[var(--surface-secondary)] p-3 hover:bg-[var(--surface-tertiary)] transition-colors text-left w-full group"
-      >
-        <span
-          className={`h-2 w-2 rounded-full shrink-0 ${
-            isConnected ? "bg-emerald-500" : "bg-[var(--text-tertiary)]"
-          }`}
-        />
-        <div className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0 text-[var(--text-primary)]">
-          <GitHubIcon size={18} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium text-[var(--text-primary)] truncate">GitHub</p>
-          <p className="text-[10px] text-[var(--text-tertiary)]">
-            {isLoading
-              ? "Loading…"
-              : isConnected
-              ? `@${data?.username}`
-              : "Not connected"}
-          </p>
-        </div>
-      </button>
-
+      <ConnectorCard
+        icon={<GitHubIcon size={20} />}
+        name="GitHub"
+        description={description}
+        status={status}
+        primaryAction={{
+          label: isConnected ? "Manage" : "Connect with GitHub",
+          onClick: () => setModalOpen(true),
+        }}
+      />
       {modalOpen && <GitHubModal onClose={() => setModalOpen(false)} />}
     </>
   );

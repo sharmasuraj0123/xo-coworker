@@ -3,8 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertCircle,
-  CheckCircle2,
-  ExternalLink,
   Loader2,
   LogOut,
   Settings2,
@@ -12,6 +10,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  ConnectorCard,
+  type ConnectorCardStatus,
+} from "@/components/connectors/connector-card";
 import {
   useComposioConnect,
   useComposioConnectStatus,
@@ -28,10 +30,15 @@ import { queryKeys } from "@/lib/constants";
 import type { ComposioToolkitMeta } from "@/lib/composio-toolkits";
 
 /** Toolkits whose tile shows the "Configure tools" per-action toggle panel.
- *  v1: Google Calendar only — see /home/coder/.claude/plans/but-why-its-loauding-declarative-quail.md.
- *  When adding a new entry here, also ensure the backend allows PUT
- *  /api/connectors/composio/{toolkit}/prefs for that toolkit. */
-const TOOLKITS_WITH_ACTION_TOGGLES = new Set<string>(["googlecalendar"]);
+ *  When adding a new entry here, ensure the backend also allows PUT
+ *  /api/connectors/composio/{toolkit}/prefs for that toolkit (see
+ *  _PREFS_WRITABLE_TOOLKITS in routers/cowork_agent/composio.py) AND has
+ *  a category map or heuristic in services/composio_categories.py. */
+const TOOLKITS_WITH_ACTION_TOGGLES = new Set<string>([
+  "googlecalendar",
+  "gmail",
+  "stripe",
+]);
 
 type Props = {
   meta: ComposioToolkitMeta;
@@ -136,139 +143,119 @@ export function ComposioConnector({ meta, toolkit }: Props) {
 
   const connecting = connectMutation.isPending || Boolean(connectionRequestId);
   const isActive = toolkit.status === "ACTIVE";
+  const supportsTogglePanel = TOOLKITS_WITH_ACTION_TOGGLES.has(meta.id);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
-  return (
-    <div className="flex flex-col h-full rounded-xl border border-[var(--border-default)] bg-[var(--surface-secondary)] p-4 gap-3">
-      <header className="flex items-start gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-tertiary)]">
-          <img
-            src={`https://api.iconify.design/${meta.iconKey}.svg`}
-            alt=""
-            className="h-5 w-5 object-contain"
-            aria-hidden
-          />
-        </div>
-        <div className="min-w-0 flex-1">
-          <h3 className="text-sm font-semibold text-[var(--text-primary)] line-clamp-1">{meta.displayName}</h3>
-          <p className="text-xs text-[var(--text-secondary)] line-clamp-2">{meta.description}</p>
-        </div>
-        <StatusDot status={toolkit.status} />
-      </header>
+  const cardStatus = mapStatus(toolkit.status);
+  const cardStatusLabel =
+    toolkit.status === "ACTIVE"
+      ? toolkit.scheme
+        ? `Connected · ${toolkit.scheme.toLowerCase()}`
+        : "Connected"
+      : undefined;
 
-      <div className="mt-auto">
-        {isActive ? (
-          <ConnectedView
-            meta={meta}
-            toolkit={toolkit}
-            onDisconnect={handleDisconnect}
-            pending={disconnectMutation.isPending}
-          />
-        ) : (
-          <ConnectView
-            meta={meta}
-            scheme={scheme}
-            setScheme={setScheme}
-            apiKey={apiKey}
-            setApiKey={setApiKey}
-            onConnect={handleConnect}
-            connecting={connecting}
-            status={toolkit.status}
-          />
-        )}
-      </div>
+  const icon = (
+    <img
+      src={`https://api.iconify.design/${meta.iconKey}.svg`}
+      alt=""
+      className="h-5 w-5 object-contain"
+      aria-hidden
+    />
+  );
 
+  const inlineChildren = (
+    <>
+      {!isActive && (
+        <ConnectView
+          meta={meta}
+          scheme={scheme}
+          setScheme={setScheme}
+          apiKey={apiKey}
+          setApiKey={setApiKey}
+        />
+      )}
       {error && (
         <div className="flex items-start gap-2 rounded-lg border border-[var(--color-destructive)]/30 bg-[var(--color-destructive)]/5 p-2">
           <AlertCircle className="h-4 w-4 text-[var(--color-destructive)] shrink-0 mt-0.5" />
           <p className="text-xs text-[var(--text-primary)]">{error}</p>
         </div>
       )}
-    </div>
-  );
-}
-
-function StatusDot({ status }: { status: ComposioStatus }) {
-  const map: Record<ComposioStatus, { color: string; label: string }> = {
-    ACTIVE: { color: "bg-emerald-500", label: "Connected" },
-    PENDING: { color: "bg-amber-500", label: "Pending" },
-    FAILED: { color: "bg-red-500", label: "Failed" },
-    NEEDS_AUTH: { color: "bg-zinc-400", label: "Not connected" },
-    UNKNOWN: { color: "bg-zinc-400", label: "Unknown" },
-  };
-  const entry = map[status] ?? map.UNKNOWN;
-  return (
-    <span className="inline-flex items-center gap-1.5 text-[10px] text-[var(--text-secondary)]" title={entry.label}>
-      <span className={`h-2 w-2 rounded-full ${entry.color}`} />
-      {entry.label}
-    </span>
-  );
-}
-
-function ConnectedView({
-  meta,
-  toolkit,
-  onDisconnect,
-  pending,
-}: {
-  meta: ComposioToolkitMeta;
-  toolkit: ComposioToolkit;
-  onDisconnect: () => void;
-  pending: boolean;
-}) {
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const supportsTogglePanel = TOOLKITS_WITH_ACTION_TOGGLES.has(meta.id);
-
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-1.5 text-xs text-[var(--text-primary)]">
-        <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
-        <span className="truncate">
-          Connected
-          {toolkit.scheme ? ` · ${toolkit.scheme.toLowerCase()}` : ""}
-        </span>
-      </div>
-      <div
-        className={
-          supportsTogglePanel
-            ? "grid grid-cols-2 gap-1.5"
-            : "flex"
-        }
-      >
-        {supportsTogglePanel && (
-          <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-            <SheetTrigger asChild>
-              <Button
-                size="sm"
-                variant="outline"
-                aria-label="Configure tools"
-                title="Configure tools"
-                className="w-full justify-center"
-              >
-                <Settings2 className="h-3.5 w-3.5" />
-                <span className="ml-1 text-xs">Tools</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent
-              side="right"
-              className="w-full max-w-[640px] sm:max-w-[640px] flex flex-col p-0"
+      {!isActive && toolkit.status === "PENDING" && (
+        <p className="text-[10px] text-[var(--text-secondary)]">
+          Complete the authorization in the popup, then this card will update automatically.
+        </p>
+      )}
+      {isActive && supportsTogglePanel && (
+        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+          <SheetTrigger asChild>
+            <Button
+              size="sm"
+              variant="outline"
+              aria-label="Configure tools"
+              title="Configure tools"
+              className="w-full justify-center"
             >
-              <ActionTogglePanel meta={meta} toolkit={toolkit} />
-            </SheetContent>
-          </Sheet>
-        )}
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={onDisconnect}
-          disabled={pending}
-          className="w-full justify-center"
-        >
-          {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <LogOut className="h-3.5 w-3.5" />}
-          <span className="ml-1 text-xs">Disconnect</span>
-        </Button>
-      </div>
-    </div>
+              <Settings2 className="h-3.5 w-3.5" />
+              <span className="ml-1 text-xs">Configure tools</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent
+            side="right"
+            className="w-full max-w-[640px] sm:max-w-[640px] flex flex-col p-0"
+          >
+            <ActionTogglePanel meta={meta} toolkit={toolkit} />
+          </SheetContent>
+        </Sheet>
+      )}
+    </>
   );
+
+  const primaryAction = isActive
+    ? {
+        label: "Disconnect",
+        onClick: handleDisconnect,
+        icon: <LogOut className="h-3.5 w-3.5" />,
+        loading: disconnectMutation.isPending,
+        variant: "ghost" as const,
+      }
+    : {
+        label: connecting
+          ? "Connecting…"
+          : scheme === "OAUTH2"
+            ? `Connect with ${meta.displayName}`
+            : "Save API key",
+        onClick: handleConnect,
+        loading: connecting,
+        disabled: scheme === "API_KEY" && !apiKey.trim(),
+      };
+
+  return (
+    <ConnectorCard
+      icon={icon}
+      name={meta.displayName}
+      description={meta.description}
+      status={cardStatus}
+      statusLabel={cardStatusLabel}
+      primaryAction={primaryAction}
+    >
+      {inlineChildren}
+    </ConnectorCard>
+  );
+}
+
+function mapStatus(status: ComposioStatus): ConnectorCardStatus {
+  switch (status) {
+    case "ACTIVE":
+      return "connected";
+    case "PENDING":
+      return "pending";
+    case "FAILED":
+      return "failed";
+    case "NEEDS_AUTH":
+      return "needs_auth";
+    default:
+      return "disconnected";
+  }
 }
 
 /**
@@ -488,18 +475,12 @@ function ConnectView({
   setScheme,
   apiKey,
   setApiKey,
-  onConnect,
-  connecting,
-  status,
 }: {
   meta: ComposioToolkitMeta;
   scheme: "OAUTH2" | "API_KEY";
   setScheme: (s: "OAUTH2" | "API_KEY") => void;
   apiKey: string;
   setApiKey: (v: string) => void;
-  onConnect: () => void;
-  connecting: boolean;
-  status: ComposioStatus;
 }) {
   const multi = meta.schemes.length > 1;
 
@@ -532,23 +513,6 @@ function ConnectView({
           placeholder={`Paste your ${meta.displayName} API key`}
           className="w-full rounded-lg border border-[var(--border-default)] bg-[var(--surface-secondary)] px-3 py-1.5 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)]"
         />
-      )}
-
-      <Button
-        className="w-full gap-2"
-        onClick={onConnect}
-        disabled={connecting || (scheme === "API_KEY" && !apiKey.trim())}
-      >
-        {connecting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ExternalLink className="h-3.5 w-3.5" />}
-        <span className="text-xs">
-          {connecting ? "Connecting…" : scheme === "OAUTH2" ? `Connect with ${meta.displayName}` : "Save API key"}
-        </span>
-      </Button>
-
-      {status === "PENDING" && (
-        <p className="text-[10px] text-[var(--text-secondary)]">
-          Complete the authorization in the popup, then this card will update automatically.
-        </p>
       )}
     </div>
   );

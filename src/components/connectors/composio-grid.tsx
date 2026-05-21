@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, AlertCircle, Cpu } from "lucide-react";
+import { Cpu } from "lucide-react";
 import { ComposioConnector } from "@/components/connectors/composio-connector";
 import {
   useComposioInstallIntoGateway,
@@ -9,31 +9,16 @@ import {
 import { COMPOSIO_TOOLKITS } from "@/lib/composio-toolkits";
 import { Button } from "@/components/ui/button";
 
-type Props = { search?: string };
+type CardsProps = { search?: string };
 
-export function ComposioGrid({ search = "" }: Props) {
+/**
+ * Composio cards only — no banner, no grid wrapper. Returns a Fragment so the
+ * parent grid lays them out alongside other connector cards.
+ */
+export function ComposioCards({ search = "" }: CardsProps) {
   const { data, isLoading, error } = useComposioToolkits();
-  const install = useComposioInstallIntoGateway();
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-8 text-[var(--text-secondary)]">
-        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-        <span className="text-xs">Loading Composio toolkits…</span>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/5 p-3">
-        <AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-        <div className="text-xs text-[var(--text-primary)]">
-          Could not load Composio toolkits. Check that <code>COMPOSIO_API_KEY</code> is set in the backend.
-        </div>
-      </div>
-    );
-  }
+  if (isLoading || error) return null;
 
   const byId = new Map((data?.toolkits ?? []).map((t) => [t.id, t]));
   const q = search.trim().toLowerCase();
@@ -47,24 +32,26 @@ export function ComposioGrid({ search = "" }: Props) {
   });
 
   return (
-    <div className="space-y-4">
-      <ProviderNotice install={install} />
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {cards.map((meta) => {
-          const toolkit = byId.get(meta.id) ?? {
-            id: meta.id,
-            slug: meta.slug,
-            display_name: meta.displayName,
-            schemes: meta.schemes,
-            status: "NEEDS_AUTH" as const,
-            connected_account_id: null,
-            scheme: null,
-          };
-          return <ComposioConnector key={meta.id} meta={meta} toolkit={toolkit} />;
-        })}
-      </div>
-    </div>
+    <>
+      {cards.map((meta) => {
+        const toolkit = byId.get(meta.id) ?? {
+          id: meta.id,
+          slug: meta.slug,
+          display_name: meta.displayName,
+          schemes: meta.schemes,
+          status: "NEEDS_AUTH" as const,
+          connected_account_id: null,
+          scheme: null,
+        };
+        return <ComposioConnector key={meta.id} meta={meta} toolkit={toolkit} />;
+      })}
+    </>
   );
+}
+
+export function ComposioProviderNotice() {
+  const install = useComposioInstallIntoGateway();
+  return <ProviderNotice install={install} />;
 }
 
 /**
