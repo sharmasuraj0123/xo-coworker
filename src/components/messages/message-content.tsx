@@ -8,6 +8,7 @@ import { CompactionPart } from "@/components/parts/compaction-part";
 import { SubtaskPart } from "@/components/parts/subtask-part";
 import { ArtifactCard } from "@/components/parts/artifact-card";
 import { PlanFileCard } from "@/components/parts/plan-file-card";
+import { ComposioPart, isComposioTool } from "@/components/parts/composio-part";
 import { SourcesFooter } from "@/components/parts/sources-footer";
 import { ActivitySummary } from "@/components/activity/activity-summary";
 import { TodoProgress, type TodoItem } from "@/components/parts/todo-progress";
@@ -117,7 +118,12 @@ export function MessageContent({ parts, isStreaming }: MessageContentProps) {
           p.type !== "reasoning" &&
           p.type !== "step-start" &&
           p.type !== "step-finish" &&
-          !(p.type === "tool" && (p as ToolPart).tool !== "artifact" && (p as ToolPart).tool !== "submit_plan") &&
+          !(
+            p.type === "tool" &&
+            (p as ToolPart).tool !== "artifact" &&
+            (p as ToolPart).tool !== "submit_plan" &&
+            !isComposioTool((p as ToolPart).tool)
+          ) &&
           !(p.type === "tool" && (p as ToolPart).tool === "artifact" && (p as ToolPart).state.status === "error"),
       ),
     [parts],
@@ -175,6 +181,7 @@ export function MessageContent({ parts, isStreaming }: MessageContentProps) {
           case "tool": {
             const tp = part as ToolPart;
             if (tp.tool === "submit_plan") return <PlanFileCard key={originalIndex} data={tp} />;
+            if (isComposioTool(tp.tool)) return <ComposioPart key={originalIndex} data={tp} />;
             return <ArtifactCard key={originalIndex} data={tp} />;
           }
           default:
