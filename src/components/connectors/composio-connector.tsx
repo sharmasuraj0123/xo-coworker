@@ -14,6 +14,8 @@ import {
   ConnectorCard,
   type ConnectorCardStatus,
 } from "@/components/connectors/connector-card";
+import { ConnectorTile } from "@/components/connectors/connector-tile";
+import { ConnectorDetailDialog } from "@/components/connectors/connector-detail-dialog";
 import {
   useComposioConnect,
   useComposioConnectStatus,
@@ -145,6 +147,7 @@ export function ComposioConnector({ meta, toolkit }: Props) {
   const isActive = toolkit.status === "ACTIVE";
   const supportsTogglePanel = TOOLKITS_WITH_ACTION_TOGGLES.has(meta.id);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const cardStatus = mapStatus(toolkit.status);
   const cardStatusLabel =
@@ -230,16 +233,26 @@ export function ComposioConnector({ meta, toolkit }: Props) {
       };
 
   return (
-    <ConnectorCard
-      icon={icon}
-      name={meta.displayName}
-      description={meta.description}
-      status={cardStatus}
-      statusLabel={cardStatusLabel}
-      primaryAction={primaryAction}
-    >
-      {inlineChildren}
-    </ConnectorCard>
+    <>
+      <ConnectorTile
+        icon={icon}
+        name={meta.displayName}
+        status={cardStatus}
+        onClick={() => setDialogOpen(true)}
+      />
+      <ConnectorDetailDialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <ConnectorCard
+          icon={icon}
+          name={meta.displayName}
+          description={meta.description}
+          status={cardStatus}
+          statusLabel={cardStatusLabel}
+          primaryAction={primaryAction}
+        >
+          {inlineChildren}
+        </ConnectorCard>
+      </ConnectorDetailDialog>
+    </>
   );
 }
 

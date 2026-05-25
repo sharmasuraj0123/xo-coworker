@@ -16,7 +16,7 @@ import {
   Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ConnectorCard } from "@/components/connectors/connector-card";
+import { ConnectorTile } from "@/components/connectors/connector-tile";
 import {
   useOneDriveRemotes,
   useOneDriveCreateRemote,
@@ -612,22 +612,13 @@ export function OneDriveConnectorTile() {
       ? "connected"
       : "disconnected";
 
-  const description =
-    connectedCount > 0
-      ? `Connect Microsoft OneDrive personal, business, or SharePoint. (${connectedCount} connected)`
-      : "Connect Microsoft OneDrive personal, business, or SharePoint.";
-
   return (
     <>
-      <ConnectorCard
-        icon={<OneDriveIcon size={20} />}
+      <ConnectorTile
+        icon={<OneDriveIcon size={28} />}
         name="OneDrive"
-        description={description}
         status={status}
-        primaryAction={{
-          label: connectedCount > 0 ? "Manage" : "Connect with OneDrive",
-          onClick: () => setModalOpen(true),
-        }}
+        onClick={() => setModalOpen(true)}
       />
       {modalOpen && <OneDriveModal onClose={() => setModalOpen(false)} />}
     </>

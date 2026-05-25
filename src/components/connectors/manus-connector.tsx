@@ -14,7 +14,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ConnectorCard } from "@/components/connectors/connector-card";
+import { ConnectorTile } from "@/components/connectors/connector-tile";
 import {
   useManusStatus,
   useManusSubmitKey,
@@ -305,26 +305,13 @@ export function ManusConnectorTile() {
         ? "failed"
         : "disconnected";
 
-  const statusLabel = isLoading
-    ? "Loading…"
-    : isConnected
-      ? "Connected"
-      : isFailed
-        ? "Failed"
-        : "Not connected";
-
   return (
     <>
-      <ConnectorCard
-        icon={<ManusIcon size={22} />}
+      <ConnectorTile
+        icon={<ManusIcon size={28} />}
         name="Manus AI"
-        description="Autonomous AI agent for tasks, research, and coding."
         status={status}
-        statusLabel={statusLabel}
-        primaryAction={{
-          label: isConnected ? "Manage" : "Connect with Manus",
-          onClick: () => setModalOpen(true),
-        }}
+        onClick={() => setModalOpen(true)}
       />
       {modalOpen && <ManusModal onClose={() => setModalOpen(false)} />}
     </>
