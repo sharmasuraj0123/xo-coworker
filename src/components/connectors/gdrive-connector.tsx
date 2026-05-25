@@ -19,7 +19,7 @@ import {
   Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ConnectorCard } from "@/components/connectors/connector-card";
+import { ConnectorTile } from "@/components/connectors/connector-tile";
 import {
   useGDriveRemotes,
   useGDriveCreateRemote,
@@ -993,22 +993,13 @@ export function GDriveConnectorTile() {
       ? "connected"
       : "disconnected";
 
-  const description =
-    connectedCount > 0
-      ? `Browse, create, and upload to Google Drive folders. (${connectedCount} connected)`
-      : "Browse, create, and upload to Google Drive folders.";
-
   return (
     <>
-      <ConnectorCard
-        icon={<GDriveIcon size={20} />}
+      <ConnectorTile
+        icon={<GDriveIcon size={28} />}
         name="Google Drive"
-        description={description}
         status={status}
-        primaryAction={{
-          label: connectedCount > 0 ? "Manage" : "Connect with Google Drive",
-          onClick: () => setModalOpen(true),
-        }}
+        onClick={() => setModalOpen(true)}
       />
       {modalOpen && <GDriveModal onClose={() => setModalOpen(false)} />}
     </>

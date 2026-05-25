@@ -41,6 +41,8 @@ import { VercelConnectorTile } from "@/components/connectors/vercel-connector";
 import { ManusConnectorTile } from "@/components/connectors/manus-connector";
 import { ComposioCards, ComposioProviderNotice } from "@/components/connectors/composio-grid";
 import { ConnectorCard, type ConnectorCardStatus } from "@/components/connectors/connector-card";
+import { ConnectorTile } from "@/components/connectors/connector-tile";
+import { ConnectorDetailDialog } from "@/components/connectors/connector-detail-dialog";
 
 const SOURCE_COLORS: Record<string, string> = {
   builtin: "bg-blue-500/10 text-blue-400",
@@ -125,7 +127,7 @@ function ConnectorsTab({ search }: { search: string }) {
       )
     : entries;
 
-  const gridClass = "grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3";
+  const gridClass = "grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7";
 
   return (
     <div className="space-y-4">
@@ -172,6 +174,7 @@ function MCPConnectorCard({
   const reconnect = useConnectorReconnect();
   const setToken = useSetConnectorToken();
   const [tokenInput, setTokenInput] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const isPending =
     toggle.isPending || connect.isPending || disconnect.isPending || reconnect.isPending;
@@ -282,53 +285,65 @@ function MCPConnectorCard({
   const showTokenForm =
     (connector.status === "needs_auth" || connector.status === "failed") && connector.enabled;
 
+  const icon = <Plug className="h-5 w-5 text-[var(--text-secondary)]" />;
+
   return (
-    <ConnectorCard
-      icon={<Plug className="h-5 w-5 text-[var(--text-secondary)]" />}
-      name={connector.name}
-      description={description}
-      status={status}
-      badge={badges}
-      primaryAction={primaryAction}
-    >
-      {showTokenForm && (
-        <form
-          className="flex items-center gap-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (tokenInput.trim()) {
-              setToken.mutate({ id, token: tokenInput.trim() });
-              setTokenInput("");
-            }
-          }}
+    <>
+      <ConnectorTile
+        icon={icon}
+        name={connector.name}
+        status={status}
+        onClick={() => setDialogOpen(true)}
+      />
+      <ConnectorDetailDialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <ConnectorCard
+          icon={icon}
+          name={connector.name}
+          description={description}
+          status={status}
+          badge={badges}
+          primaryAction={primaryAction}
         >
-          <input
-            type="password"
-            value={tokenInput}
-            onChange={(e) => setTokenInput(e.target.value)}
-            placeholder={t("tokenPatPlaceholder")}
-            className="flex-1 h-7 rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-2 text-[11px] text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:ring-1 focus:ring-[var(--border-focus)]"
-          />
-          <Button
-            type="submit"
-            variant="outline"
-            size="sm"
-            className="h-7 text-[11px] px-2.5"
-            disabled={!tokenInput.trim() || setToken.isPending}
-          >
-            {setToken.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "OK"}
-          </Button>
-        </form>
-      )}
-      <div className="flex items-center justify-between text-[10px] text-[var(--text-tertiary)]">
-        <span>{connector.enabled ? "Enabled" : "Disabled"}</span>
-        <Switch
-          checked={connector.enabled}
-          onCheckedChange={handleToggle}
-          disabled={toggle.isPending}
-        />
-      </div>
-    </ConnectorCard>
+          {showTokenForm && (
+            <form
+              className="flex items-center gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (tokenInput.trim()) {
+                  setToken.mutate({ id, token: tokenInput.trim() });
+                  setTokenInput("");
+                }
+              }}
+            >
+              <input
+                type="password"
+                value={tokenInput}
+                onChange={(e) => setTokenInput(e.target.value)}
+                placeholder={t("tokenPatPlaceholder")}
+                className="flex-1 h-7 rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-2 text-[11px] text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:ring-1 focus:ring-[var(--border-focus)]"
+              />
+              <Button
+                type="submit"
+                variant="outline"
+                size="sm"
+                className="h-7 text-[11px] px-2.5"
+                disabled={!tokenInput.trim() || setToken.isPending}
+              >
+                {setToken.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "OK"}
+              </Button>
+            </form>
+          )}
+          <div className="flex items-center justify-between text-[10px] text-[var(--text-tertiary)]">
+            <span>{connector.enabled ? "Enabled" : "Disabled"}</span>
+            <Switch
+              checked={connector.enabled}
+              onCheckedChange={handleToggle}
+              disabled={toggle.isPending}
+            />
+          </div>
+        </ConnectorCard>
+      </ConnectorDetailDialog>
+    </>
   );
 }
 
