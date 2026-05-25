@@ -16,7 +16,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ConnectorCard } from "@/components/connectors/connector-card";
+import { ConnectorTile } from "@/components/connectors/connector-tile";
 import {
   useVercelStatus,
   useVercelSubmitToken,
@@ -525,21 +525,13 @@ export function VercelConnectorTile() {
         ? "failed"
         : "disconnected";
 
-  const description = isConnected && data?.username
-    ? `Manage deployments, projects, domains, and env vars. (@${data.username})`
-    : "Manage deployments, projects, domains, and env vars.";
-
   return (
     <>
-      <ConnectorCard
-        icon={<VercelIcon size={18} />}
+      <ConnectorTile
+        icon={<VercelIcon size={26} />}
         name="Vercel"
-        description={description}
         status={status}
-        primaryAction={{
-          label: isConnected ? "Manage" : "Connect with Vercel",
-          onClick: () => setModalOpen(true),
-        }}
+        onClick={() => setModalOpen(true)}
       />
       {modalOpen && <VercelModal onClose={() => setModalOpen(false)} />}
     </>

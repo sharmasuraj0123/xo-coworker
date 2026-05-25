@@ -17,7 +17,7 @@ import {
   Terminal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ConnectorCard } from "@/components/connectors/connector-card";
+import { ConnectorTile } from "@/components/connectors/connector-tile";
 import {
   useGitHubStatus,
   useGitHubSubmitToken,
@@ -587,21 +587,13 @@ export function GitHubConnectorTile() {
         ? "failed"
         : "disconnected";
 
-  const description = isConnected && data?.username
-    ? `Manage repos, issues, pull requests, and code search. (@${data.username})`
-    : "Manage repos, issues, pull requests, and code search.";
-
   return (
     <>
-      <ConnectorCard
-        icon={<GitHubIcon size={20} />}
+      <ConnectorTile
+        icon={<GitHubIcon size={28} />}
         name="GitHub"
-        description={description}
         status={status}
-        primaryAction={{
-          label: isConnected ? "Manage" : "Connect with GitHub",
-          onClick: () => setModalOpen(true),
-        }}
+        onClick={() => setModalOpen(true)}
       />
       {modalOpen && <GitHubModal onClose={() => setModalOpen(false)} />}
     </>
