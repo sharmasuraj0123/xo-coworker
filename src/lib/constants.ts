@@ -418,7 +418,7 @@ export const API = {
       `/api/connectors/composio/${encodeURIComponent(toolkit)}/prefs` as const,
     EXECUTE: "/api/connectors/composio/execute",
     MCP_URL: "/api/connectors/composio/mcp-url",
-    INSTALL_INTO_GATEWAY: "/api/connectors/composio/install-into-gateway",
+    INSTALL_INTO_GATEWAY: "/api/connectors/composio/refresh-gateway",
   },
 } as const;
 
