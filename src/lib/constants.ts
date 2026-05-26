@@ -202,7 +202,10 @@ export const API = {
       return `/api/xo-projects/${encodeURIComponent(id)}/tree${q}` as const;
     },
   },
-  USAGE: "/api/usage",
+  // Workspace-aggregated usage across every xo-project (was the global
+  // /api/usage which mirrors the active backend's full transcript view).
+  // Returns the same UsageStats shape so no consumer changes are needed.
+  USAGE: "/api/xo-projects/usage",
   CONFIG: {
     API_KEY: "/api/config/api-key",
     PROVIDERS: "/api/config/providers",
