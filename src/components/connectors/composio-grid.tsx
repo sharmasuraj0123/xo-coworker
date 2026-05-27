@@ -42,6 +42,10 @@ export function ComposioCards({ search = "" }: CardsProps) {
           status: "NEEDS_AUTH" as const,
           connected_account_id: null,
           scheme: null,
+          // Real value comes from the server payload once /toolkits resolves;
+          // the disconnected-fallback case won't render Configure tools anyway
+          // (the panel is gated by `isActive`), so `false` is safe here.
+          supports_action_prefs: false,
         };
         return <ComposioConnector key={meta.id} meta={meta} toolkit={toolkit} />;
       })}

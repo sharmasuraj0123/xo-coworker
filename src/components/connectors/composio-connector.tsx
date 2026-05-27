@@ -28,19 +28,25 @@ import {
   type ComposioToolkit,
 } from "@/hooks/use-composio";
 import { useQueryClient } from "@tanstack/react-query";
+
+// Resolve an iconKey to a URL.
+// - "/icons/foo.svg" or "http(s)://…" → returned verbatim (locally-hosted or absolute)
+// - "set/name?color=ffffff"          → iconify URL with hex color URL-encoded as
+//   `%23ffffff` so the API emits a valid `fill="#ffffff"`. Without the `%23`,
+//   iconify returns `fill="ffffff"` which browsers treat as invalid and render black.
+// - "set/name"                       → iconify URL.
+function iconifyUrl(iconKey: string): string {
+  if (iconKey.startsWith("/") || iconKey.startsWith("http://") || iconKey.startsWith("https://")) {
+    return iconKey;
+  }
+  const qIdx = iconKey.indexOf("?");
+  if (qIdx === -1) return `https://api.iconify.design/${iconKey}.svg`;
+  const path = iconKey.slice(0, qIdx);
+  const query = iconKey.slice(qIdx + 1).replace(/color=([0-9a-fA-F]{3,8})\b/g, "color=%23$1");
+  return `https://api.iconify.design/${path}.svg?${query}`;
+}
 import { queryKeys } from "@/lib/constants";
 import type { ComposioToolkitMeta } from "@/lib/composio-toolkits";
-
-/** Toolkits whose tile shows the "Configure tools" per-action toggle panel.
- *  When adding a new entry here, ensure the backend also allows PUT
- *  /api/connectors/composio/{toolkit}/prefs for that toolkit (see
- *  _PREFS_WRITABLE_TOOLKITS in routers/cowork_agent/composio.py) AND has
- *  a category map or heuristic in services/composio_categories.py. */
-const TOOLKITS_WITH_ACTION_TOGGLES = new Set<string>([
-  "googlecalendar",
-  "gmail",
-  "stripe",
-]);
 
 type Props = {
   meta: ComposioToolkitMeta;
@@ -145,7 +151,7 @@ export function ComposioConnector({ meta, toolkit }: Props) {
 
   const connecting = connectMutation.isPending || Boolean(connectionRequestId);
   const isActive = toolkit.status === "ACTIVE";
-  const supportsTogglePanel = TOOLKITS_WITH_ACTION_TOGGLES.has(meta.id);
+  const supportsTogglePanel = toolkit.supports_action_prefs;
   const [sheetOpen, setSheetOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -159,7 +165,7 @@ export function ComposioConnector({ meta, toolkit }: Props) {
 
   const icon = (
     <img
-      src={`https://api.iconify.design/${meta.iconKey}.svg`}
+      src={iconifyUrl(meta.iconKey)}
       alt=""
       className="h-5 w-5 object-contain"
       aria-hidden
@@ -318,28 +324,31 @@ function ActionTogglePanel({
   );
   const totalActions = toolsQuery.data?.tools.length ?? 0;
 
+  const isEmpty =
+    !toolsQuery.isLoading && !toolsQuery.isError && totalActions === 0;
+
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col bg-[var(--sidebar-bg)]">
       {/* Header */}
-      <div className="flex items-start gap-3 border-b border-[var(--border-default)] px-6 py-5">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-tertiary)]">
+      <div className="flex items-start gap-3 border-b border-[var(--border-default)] px-5 py-4">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-tertiary)]">
           <img
-            src={`https://api.iconify.design/${meta.iconKey}.svg`}
+            src={iconifyUrl(meta.iconKey)}
             alt=""
-            className="h-6 w-6 object-contain"
+            className="h-5 w-5 object-contain"
             aria-hidden
           />
         </div>
         <div className="min-w-0 flex-1 pr-8">
-          <h2 className="text-base font-semibold text-[var(--text-primary)]">
+          <h2 className="text-sm font-semibold text-[var(--text-primary)]">
             {meta.displayName} actions
           </h2>
-          <p className="mt-0.5 text-xs text-[var(--text-secondary)]">
+          <p className="mt-0.5 text-[11px] leading-snug text-[var(--text-secondary)]">
             Choose which actions the agent can use. Disabled actions are hidden
             from the agent and blocked at execution.
           </p>
-          {toolsQuery.data && (
-            <p className="mt-1.5 text-[11px] text-[var(--text-tertiary)]">
+          {toolsQuery.data && totalActions > 0 && (
+            <p className="mt-1 text-[10px] text-[var(--text-tertiary)]">
               {totalEnabled} of {totalActions} enabled
               {toolkit.scheme ? ` · ${toolkit.scheme.toLowerCase()}` : ""}
             </p>
@@ -348,7 +357,7 @@ function ActionTogglePanel({
       </div>
 
       {/* Body */}
-      <div className="flex-1 overflow-y-auto px-6 py-5">
+      <div className="flex-1 overflow-y-auto px-5 py-4">
         {toolsQuery.isLoading ? (
           <div className="flex items-center justify-center py-10 text-sm text-[var(--text-secondary)]">
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -359,8 +368,12 @@ function ActionTogglePanel({
             Failed to load actions.{" "}
             {toolsQuery.error instanceof Error ? toolsQuery.error.message : ""}
           </div>
+        ) : isEmpty ? (
+          <div className="rounded-lg border border-dashed border-[var(--border-default)] p-6 text-center text-xs text-[var(--text-secondary)]">
+            No actions are available for {meta.displayName} yet.
+          </div>
         ) : (
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-5">
             {grouped.write.length > 0 && (
               <ActionGroup
                 title="Write actions"
@@ -433,37 +446,37 @@ function ActionGroup({
     <section className="flex flex-col">
       <header className="mb-2 flex items-center justify-between">
         <div className="flex items-baseline gap-2">
-          <h3 className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-secondary)]">
+          <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--text-secondary)]">
             {title}
           </h3>
-          <span className="text-[11px] text-[var(--text-tertiary)]">
+          <span className="text-[10px] text-[var(--text-tertiary)]">
             {tools.filter((t) => t.enabled).length} / {tools.length}
           </span>
         </div>
         <button
           type="button"
           onClick={() => onBulk(noneEnabled ? true : !allEnabled)}
-          className="text-[11px] font-medium text-[var(--text-tertiary)] underline-offset-2 hover:text-[var(--text-primary)] hover:underline"
+          className="text-[10px] font-medium text-[var(--text-tertiary)] underline-offset-2 hover:text-[var(--text-primary)] hover:underline"
         >
           {allEnabled ? "Uncheck all" : "Check all"}
         </button>
       </header>
-      <ul className="flex flex-col divide-y divide-[var(--border-default)] rounded-lg border border-[var(--border-default)] bg-[var(--surface-secondary)]">
+      <ul className="flex flex-col divide-y divide-[var(--border-default)]/60 rounded-lg border border-[var(--border-default)] bg-[var(--surface-secondary)]">
         {tools.map((t) => (
           <li
             key={t.slug}
-            className="flex items-start justify-between gap-4 px-4 py-3"
+            className="flex items-center justify-between gap-3 px-3 py-2.5 transition-colors hover:bg-[var(--surface-tertiary)]/40"
           >
             <div className="min-w-0 flex-1">
               <p
-                className="text-sm font-medium text-[var(--text-primary)]"
+                className="truncate text-[13px] font-medium text-[var(--text-primary)]"
                 title={t.slug}
               >
                 {t.name || t.slug}
               </p>
               {t.description && (
                 <p
-                  className="mt-0.5 line-clamp-2 text-xs text-[var(--text-secondary)]"
+                  className="mt-0.5 truncate text-[11px] text-[var(--text-secondary)]"
                   title={t.description}
                 >
                   {t.description}
@@ -474,6 +487,7 @@ function ActionGroup({
               checked={t.enabled}
               onCheckedChange={(checked) => onToggle(t.slug, checked)}
               aria-label={`${t.enabled ? "Disable" : "Enable"} ${t.name || t.slug}`}
+              className="shrink-0 scale-90"
             />
           </li>
         ))}
