@@ -14,6 +14,7 @@ import { useSettingsStore, type ActiveProvider } from "@/stores/settings-store";
 import { api } from "@/lib/api";
 import { API } from "@/lib/constants";
 import type { ModelInfo } from "@/types/model";
+import { SSEManager } from "@/components/layout/sse-manager";
 
 /** Map remote provider key → Zustand ActiveProvider value */
 const ZUSTAND_PROVIDER_MAP: Record<string, string> = {
@@ -160,7 +161,12 @@ function MobileLayoutInner({ children }: { children: React.ReactNode }) {
   }, [router, searchParams]);
 
   if (!ready) return <MobileLoadingScreen />;
-  return <>{children}</>;
+  return (
+    <>
+      <SSEManager />
+      {children}
+    </>
+  );
 }
 
 export default function MobileLayout({ children }: { children: React.ReactNode }) {
