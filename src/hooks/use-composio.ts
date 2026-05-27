@@ -19,6 +19,11 @@ export type ComposioToolkit = {
   status: ComposioStatus;
   connected_account_id: string | null;
   scheme: string | null;
+  /** True when the backend has a read/write classification for this toolkit
+   *  (and therefore accepts PUT /prefs and renders the "Configure tools"
+   *  per-action panel). Derived server-side from
+   *  `composio_categories.classified_toolkits()`. */
+  supports_action_prefs: boolean;
 };
 
 export type ComposioActionCategory = "read" | "write";
