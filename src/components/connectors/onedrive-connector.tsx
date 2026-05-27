@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
-  X,
   Plus,
   Trash2,
   Loader2,
@@ -16,6 +15,8 @@ import {
   Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ConnectorTile } from "@/components/connectors/connector-tile";
+import { ConnectorModalShell } from "@/components/connectors/connector-modal-shell";
 import {
   useOneDriveRemotes,
   useOneDriveCreateRemote,
@@ -471,25 +472,17 @@ function AddRemoteFlow({
 // Main modal
 // ---------------------------------------------------------------------------
 
-function OneDriveModal({
-  onClose,
+function OneDriveModalBody({
+  onSessionCanceled,
 }: {
-  onClose: () => void;
+  onSessionCanceled: () => void;
 }) {
   const { data, isLoading, error, refetch } = useOneDriveRemotes();
   const cancelSession = useOneDriveCancelSession();
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
-  const overlayRef = useRef<HTMLDivElement>(null);
+  const [, setActiveSessionId] = useState<string | null>(null);
 
   const remotes = data?.remotes ?? [];
   const existingNames = remotes.map((r) => r.name);
-
-  const handleClose = useCallback(async () => {
-    if (activeSessionId) {
-      await cancelSession.mutateAsync(activeSessionId).catch(() => {});
-    }
-    onClose();
-  }, [activeSessionId, cancelSession, onClose]);
 
   const handleCompleted = () => {
     setActiveSessionId(null);
@@ -501,96 +494,67 @@ function OneDriveModal({
       await cancelSession.mutateAsync(sessionId).catch(() => {});
     }
     setActiveSessionId(null);
-  };
-
-  const handleOverlayClick = (e: React.MouseEvent) => {
-    if (e.target === overlayRef.current) handleClose();
+    onSessionCanceled();
   };
 
   return (
-    <div
-      ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-      onClick={handleOverlayClick}
-    >
-      <div className="relative w-full max-w-md bg-[var(--surface-primary)] rounded-2xl border border-[var(--border-default)] shadow-2xl flex flex-col max-h-[90vh]">
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-[var(--border-default)] shrink-0">
-          <OneDriveIcon size={20} />
-          <div className="flex-1 min-w-0">
-            <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-              OneDrive
-            </h2>
-            <p className="text-[11px] text-[var(--text-tertiary)]">
-              Connect your Microsoft OneDrive account
-            </p>
-          </div>
-          <button
-            onClick={handleClose}
-            className="h-7 w-7 rounded-lg flex items-center justify-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-secondary)] transition-colors"
-          >
-            <X className="h-4 w-4" />
-          </button>
+    <div className="space-y-4">
+      {isLoading && (
+        <div className="space-y-2">
+          {[1, 2].map((i) => (
+            <div
+              key={i}
+              className="h-14 rounded-xl bg-[var(--surface-secondary)] animate-pulse"
+            />
+          ))}
         </div>
+      )}
 
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-          {isLoading && (
-            <div className="space-y-2">
-              {[1, 2].map((i) => (
-                <div
-                  key={i}
-                  className="h-14 rounded-xl bg-[var(--surface-secondary)] animate-pulse"
-                />
-              ))}
-            </div>
-          )}
-
-          {error && (
-            <div className="flex items-start gap-2 rounded-xl border border-[var(--color-destructive)]/30 bg-[var(--color-destructive)]/5 p-3">
-              <AlertCircle className="h-4 w-4 text-[var(--color-destructive)] shrink-0 mt-0.5" />
-              <p className="text-xs text-[var(--text-primary)]">
-                Could not reach rclone daemon. Make sure rclone is installed
-                and the bridge server is running.
-              </p>
-            </div>
-          )}
-
-          {!isLoading && !error && remotes.length === 0 && (
-            <div className="flex flex-col items-center gap-2 py-6 text-center">
-              <Cloud className="h-8 w-8 text-[var(--text-tertiary)]" />
-              <p className="text-sm text-[var(--text-secondary)]">
-                No OneDrive connections yet
-              </p>
-              <p className="text-[11px] text-[var(--text-tertiary)]">
-                Add one below to get started.
-              </p>
-            </div>
-          )}
-
-          {remotes.length > 0 && (
-            <div className="space-y-2">
-              <h3 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
-                Connected accounts
-              </h3>
-              {remotes.map((r) => (
-                <RemoteRow
-                  key={r.name}
-                  remote={r}
-                  onDelete={() => refetch()}
-                  onReconnect={() => {
-                    refetch();
-                  }}
-                />
-              ))}
-            </div>
-          )}
-
-          <AddRemoteFlow
-            existingNames={existingNames}
-            onCompleted={handleCompleted}
-            onCancel={handleCancelFlow}
-          />
+      {error && (
+        <div className="flex items-start gap-2 rounded-xl border border-[var(--color-destructive)]/30 bg-[var(--color-destructive)]/5 p-3">
+          <AlertCircle className="h-4 w-4 text-[var(--color-destructive)] shrink-0 mt-0.5" />
+          <p className="text-xs text-[var(--text-primary)]">
+            Could not reach rclone daemon. Make sure rclone is installed
+            and the bridge server is running.
+          </p>
         </div>
-      </div>
+      )}
+
+      {!isLoading && !error && remotes.length === 0 && (
+        <div className="flex flex-col items-center gap-2 py-6 text-center">
+          <Cloud className="h-8 w-8 text-[var(--text-tertiary)]" />
+          <p className="text-sm text-[var(--text-secondary)]">
+            No OneDrive connections yet
+          </p>
+          <p className="text-[11px] text-[var(--text-tertiary)]">
+            Add one below to get started.
+          </p>
+        </div>
+      )}
+
+      {remotes.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+            Connected accounts
+          </h3>
+          {remotes.map((r) => (
+            <RemoteRow
+              key={r.name}
+              remote={r}
+              onDelete={() => refetch()}
+              onReconnect={() => {
+                refetch();
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      <AddRemoteFlow
+        existingNames={existingNames}
+        onCompleted={handleCompleted}
+        onCancel={handleCancelFlow}
+      />
     </div>
   );
 }
@@ -605,40 +569,31 @@ export function OneDriveConnectorTile() {
   const remotes = data?.remotes ?? [];
   const connectedCount = remotes.filter((r) => r.complete).length;
 
+  const status = isLoading
+    ? "disconnected"
+    : connectedCount > 0
+      ? "connected"
+      : "disconnected";
+
   return (
     <>
-      <button
-        type="button"
+      <ConnectorTile
+        icon={<OneDriveIcon size={28} />}
+        name="OneDrive"
+        status={status}
         onClick={() => setModalOpen(true)}
-        className="flex items-center gap-3 rounded-xl border border-[var(--border-default)] bg-[var(--surface-secondary)] p-3 hover:bg-[var(--surface-tertiary)] transition-colors text-left w-full group"
+      />
+      <ConnectorModalShell
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        icon={<OneDriveIcon size={20} />}
+        name="OneDrive"
+        description="Connect your Microsoft OneDrive account"
       >
-        <span
-          className={`h-2 w-2 rounded-full shrink-0 ${
-            connectedCount > 0 ? "bg-emerald-500" : "bg-[var(--text-tertiary)]"
-          }`}
-        />
-
-        <div className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
-          <OneDriveIcon size={18} />
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium text-[var(--text-primary)] truncate">
-            OneDrive
-          </p>
-          <p className="text-[10px] text-[var(--text-tertiary)]">
-            {isLoading
-              ? "Loading…"
-              : connectedCount > 0
-              ? `${connectedCount} connected`
-              : "Not connected"}
-          </p>
-        </div>
-      </button>
-
-      {modalOpen && (
-        <OneDriveModal onClose={() => setModalOpen(false)} />
-      )}
+        {modalOpen && (
+          <OneDriveModalBody onSessionCanceled={() => setModalOpen(false)} />
+        )}
+      </ConnectorModalShell>
     </>
   );
 }

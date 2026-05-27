@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import {
-  X,
   Loader2,
   ExternalLink,
   CheckCircle2,
@@ -16,6 +15,8 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ConnectorTile } from "@/components/connectors/connector-tile";
+import { ConnectorModalShell } from "@/components/connectors/connector-modal-shell";
 import {
   useVercelStatus,
   useVercelSubmitToken,
@@ -440,69 +441,39 @@ function ConnectedView({
 // Modal
 // ---------------------------------------------------------------------------
 
-function VercelModal({ onClose }: { onClose: () => void }) {
+function VercelModalBody() {
   const { data, isLoading, refetch } = useVercelStatus();
-  const overlayRef = useRef<HTMLDivElement>(null);
-
-  const handleOverlayClick = (e: React.MouseEvent) => {
-    if (e.target === overlayRef.current) onClose();
-  };
-
   const isConnected = data?.status === "connected";
 
-  return (
-    <div
-      ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-      onClick={handleOverlayClick}
-    >
-      <div className="relative w-full max-w-md bg-[var(--surface-primary)] rounded-2xl border border-[var(--border-default)] shadow-2xl flex flex-col max-h-[90vh]">
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-[var(--border-default)] shrink-0">
-          <div className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center text-[var(--text-primary)]">
-            <VercelIcon size={16} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h2 className="text-sm font-semibold text-[var(--text-primary)]">Vercel</h2>
-            <p className="text-[11px] text-[var(--text-tertiary)]">
-              Manage deployments, projects, domains, and env vars
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="h-7 w-7 rounded-lg flex items-center justify-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-secondary)] transition-colors"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto px-5 py-4">
-          {isLoading ? (
-            <div className="flex flex-col items-center gap-3 py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-[var(--text-tertiary)]" />
-              <p className="text-sm text-[var(--text-secondary)]">Checking connection…</p>
-            </div>
-          ) : isConnected ? (
-            <ConnectedView
-              username={data?.username ?? ""}
-              name={data?.name}
-              authMethod={data?.auth_method}
-              onDisconnect={() => refetch()}
-              onReconnect={() => refetch()}
-            />
-          ) : (
-            <>
-              {data?.status === "failed" && data?.error && (
-                <div className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 mb-4">
-                  <AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-                  <p className="text-xs text-[var(--text-primary)]">{data.error}</p>
-                </div>
-              )}
-              <ConnectView onSuccess={() => refetch()} />
-            </>
-          )}
-        </div>
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-[var(--text-tertiary)]" />
+        <p className="text-sm text-[var(--text-secondary)]">Checking connection…</p>
       </div>
-    </div>
+    );
+  }
+  if (isConnected) {
+    return (
+      <ConnectedView
+        username={data?.username ?? ""}
+        name={data?.name}
+        authMethod={data?.auth_method}
+        onDisconnect={() => refetch()}
+        onReconnect={() => refetch()}
+      />
+    );
+  }
+  return (
+    <>
+      {data?.status === "failed" && data?.error && (
+        <div className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 mb-4">
+          <AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+          <p className="text-xs text-[var(--text-primary)]">{data.error}</p>
+        </div>
+      )}
+      <ConnectView onSuccess={() => refetch()} />
+    </>
   );
 }
 
@@ -514,35 +485,33 @@ export function VercelConnectorTile() {
   const [modalOpen, setModalOpen] = useState(false);
   const { data, isLoading } = useVercelStatus();
   const isConnected = data?.status === "connected";
+  const isFailed = data?.status === "failed";
+
+  const status = isLoading
+    ? "disconnected"
+    : isConnected
+      ? "connected"
+      : isFailed
+        ? "failed"
+        : "disconnected";
 
   return (
     <>
-      <button
-        type="button"
+      <ConnectorTile
+        icon={<VercelIcon size={26} />}
+        name="Vercel"
+        status={status}
         onClick={() => setModalOpen(true)}
-        className="flex items-center gap-3 rounded-xl border border-[var(--border-default)] bg-[var(--surface-secondary)] p-3 hover:bg-[var(--surface-tertiary)] transition-colors text-left w-full group"
+      />
+      <ConnectorModalShell
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        icon={<VercelIcon size={16} />}
+        name="Vercel"
+        description="Manage deployments, projects, domains, and env vars"
       >
-        <span
-          className={`h-2 w-2 rounded-full shrink-0 ${
-            isConnected ? "bg-emerald-500" : "bg-[var(--text-tertiary)]"
-          }`}
-        />
-        <div className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0 text-[var(--text-primary)]">
-          <VercelIcon size={16} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium text-[var(--text-primary)] truncate">Vercel</p>
-          <p className="text-[10px] text-[var(--text-tertiary)]">
-            {isLoading
-              ? "Loading…"
-              : isConnected
-              ? `@${data?.username}`
-              : "Not connected"}
-          </p>
-        </div>
-      </button>
-
-      {modalOpen && <VercelModal onClose={() => setModalOpen(false)} />}
+        {modalOpen && <VercelModalBody />}
+      </ConnectorModalShell>
     </>
   );
 }
