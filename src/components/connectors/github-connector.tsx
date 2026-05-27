@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import {
   X,
   Loader2,
@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConnectorTile } from "@/components/connectors/connector-tile";
+import { ConnectorModalShell } from "@/components/connectors/connector-modal-shell";
 import {
   useGitHubStatus,
   useGitHubSubmitToken,
@@ -493,78 +494,46 @@ function ConnectedView({
 // Main modal
 // ---------------------------------------------------------------------------
 
-function GitHubModal({ onClose }: { onClose: () => void }) {
+function GitHubModalBody() {
   const { data, isLoading, refetch } = useGitHubStatus();
   const [tab, setTab] = useState<AuthTab>("pat");
-  const overlayRef = useRef<HTMLDivElement>(null);
-
-  const handleOverlayClick = (e: React.MouseEvent) => {
-    if (e.target === overlayRef.current) onClose();
-  };
 
   const isConnected = data?.status === "connected";
 
-  return (
-    <div
-      ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-      onClick={handleOverlayClick}
-    >
-      <div className="relative w-full max-w-md bg-[var(--surface-primary)] rounded-2xl border border-[var(--border-default)] shadow-2xl flex flex-col max-h-[90vh]">
-        {/* Header */}
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-[var(--border-default)] shrink-0">
-          <div className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center">
-            <GitHubIcon size={18} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h2 className="text-sm font-semibold text-[var(--text-primary)]">GitHub</h2>
-            <p className="text-[11px] text-[var(--text-tertiary)]">
-              Manage repos, issues, pull requests, and code search
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="h-7 w-7 rounded-lg flex items-center justify-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-secondary)] transition-colors"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto px-5 py-4">
-          {isLoading ? (
-            <div className="flex flex-col items-center gap-3 py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-[var(--text-tertiary)]" />
-              <p className="text-sm text-[var(--text-secondary)]">Checking connection…</p>
-            </div>
-          ) : isConnected ? (
-            <ConnectedView
-              username={data?.username ?? ""}
-              name={data?.name}
-              avatarUrl={data?.avatar_url}
-              authMethod={data?.auth_method}
-              onDisconnect={() => refetch()}
-              onReconnect={() => refetch()}
-            />
-          ) : (
-            <div className="space-y-4">
-              {/* Error from previous failed state */}
-              {data?.status === "failed" && data?.error && (
-                <div className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/5 p-3">
-                  <AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-                  <p className="text-xs text-[var(--text-primary)]">{data.error}</p>
-                </div>
-              )}
-              <MethodTabs active={tab} onChange={setTab} />
-              {tab === "pat" ? (
-                <TokenForm onSuccess={() => refetch()} />
-              ) : (
-                <CliForm onSuccess={() => refetch()} />
-              )}
-            </div>
-          )}
-        </div>
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-[var(--text-tertiary)]" />
+        <p className="text-sm text-[var(--text-secondary)]">Checking connection…</p>
       </div>
+    );
+  }
+  if (isConnected) {
+    return (
+      <ConnectedView
+        username={data?.username ?? ""}
+        name={data?.name}
+        avatarUrl={data?.avatar_url}
+        authMethod={data?.auth_method}
+        onDisconnect={() => refetch()}
+        onReconnect={() => refetch()}
+      />
+    );
+  }
+  return (
+    <div className="space-y-4">
+      {data?.status === "failed" && data?.error && (
+        <div className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/5 p-3">
+          <AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+          <p className="text-xs text-[var(--text-primary)]">{data.error}</p>
+        </div>
+      )}
+      <MethodTabs active={tab} onChange={setTab} />
+      {tab === "pat" ? (
+        <TokenForm onSuccess={() => refetch()} />
+      ) : (
+        <CliForm onSuccess={() => refetch()} />
+      )}
     </div>
   );
 }
@@ -595,7 +564,15 @@ export function GitHubConnectorTile() {
         status={status}
         onClick={() => setModalOpen(true)}
       />
-      {modalOpen && <GitHubModal onClose={() => setModalOpen(false)} />}
+      <ConnectorModalShell
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        icon={<GitHubIcon size={18} />}
+        name="GitHub"
+        description="Manage repos, issues, pull requests, and code search"
+      >
+        {modalOpen && <GitHubModalBody />}
+      </ConnectorModalShell>
     </>
   );
 }

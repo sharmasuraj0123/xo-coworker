@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import {
-  X,
   Plus,
   Trash2,
   Loader2,
@@ -20,6 +19,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConnectorTile } from "@/components/connectors/connector-tile";
+import { ConnectorModalShell } from "@/components/connectors/connector-modal-shell";
 import {
   useGDriveRemotes,
   useGDriveCreateRemote,
@@ -846,26 +846,13 @@ function AddRemoteFlow({
 // Main modal
 // ---------------------------------------------------------------------------
 
-function GDriveModal({
-  onClose,
-}: {
-  onClose: () => void;
-}) {
+function GDriveModalBody() {
   const { data, isLoading, error, refetch } = useGDriveRemotes();
   const cancelSession = useGDriveCancelSession();
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
-  const overlayRef = useRef<HTMLDivElement>(null);
+  const [, setActiveSessionId] = useState<string | null>(null);
 
   const remotes = data?.remotes ?? [];
   const existingNames = remotes.map((r) => r.name);
-
-  // Cancel session on modal close
-  const handleClose = useCallback(async () => {
-    if (activeSessionId) {
-      await cancelSession.mutateAsync(activeSessionId).catch(() => {});
-    }
-    onClose();
-  }, [activeSessionId, cancelSession, onClose]);
 
   const handleCompleted = () => {
     setActiveSessionId(null);
@@ -879,100 +866,64 @@ function GDriveModal({
     setActiveSessionId(null);
   };
 
-  // Close on backdrop click
-  const handleOverlayClick = (e: React.MouseEvent) => {
-    if (e.target === overlayRef.current) handleClose();
-  };
-
   return (
-    <div
-      ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-      onClick={handleOverlayClick}
-    >
-      <div className="relative w-full max-w-md bg-[var(--surface-primary)] rounded-2xl border border-[var(--border-default)] shadow-2xl flex flex-col max-h-[90vh]">
-        {/* Header */}
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-[var(--border-default)] shrink-0">
-          <GDriveIcon size={20} />
-          <div className="flex-1 min-w-0">
-            <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-              Google Drive
-            </h2>
-            <p className="text-[11px] text-[var(--text-tertiary)]">
-              Connect your Google Drive account
-            </p>
-          </div>
-          <button
-            onClick={handleClose}
-            className="h-7 w-7 rounded-lg flex items-center justify-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-secondary)] transition-colors"
-          >
-            <X className="h-4 w-4" />
-          </button>
+    <div className="space-y-4">
+      {isLoading && (
+        <div className="space-y-2">
+          {[1, 2].map((i) => (
+            <div
+              key={i}
+              className="h-14 rounded-xl bg-[var(--surface-secondary)] animate-pulse"
+            />
+          ))}
         </div>
+      )}
 
-        {/* Scrollable body */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-          {/* Existing remotes */}
-          {isLoading && (
-            <div className="space-y-2">
-              {[1, 2].map((i) => (
-                <div
-                  key={i}
-                  className="h-14 rounded-xl bg-[var(--surface-secondary)] animate-pulse"
-                />
-              ))}
-            </div>
-          )}
-
-          {error && (
-            <div className="flex items-start gap-2 rounded-xl border border-[var(--color-destructive)]/30 bg-[var(--color-destructive)]/5 p-3">
-              <AlertCircle className="h-4 w-4 text-[var(--color-destructive)] shrink-0 mt-0.5" />
-              <p className="text-xs text-[var(--text-primary)]">
-                Could not reach rclone daemon. Make sure rclone is installed
-                and the bridge server is running.
-              </p>
-            </div>
-          )}
-
-          {!isLoading && !error && remotes.length === 0 && (
-            <div className="flex flex-col items-center gap-2 py-6 text-center">
-              <HardDrive className="h-8 w-8 text-[var(--text-tertiary)]" />
-              <p className="text-sm text-[var(--text-secondary)]">
-                No Google Drive connections yet
-              </p>
-              <p className="text-[11px] text-[var(--text-tertiary)]">
-                Add one below to get started.
-              </p>
-            </div>
-          )}
-
-          {remotes.length > 0 && (
-            <div className="space-y-2">
-              <h3 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
-                Connected accounts
-              </h3>
-              {remotes.map((r) => (
-                <RemoteRow
-                  key={r.name}
-                  remote={r}
-                  onDelete={() => refetch()}
-                  onReconnect={(remoteName) => {
-                    // Put the name in the form for reconnect
-                    refetch();
-                  }}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Add new flow */}
-          <AddRemoteFlow
-            existingNames={existingNames}
-            onCompleted={handleCompleted}
-            onCancel={handleCancelFlow}
-          />
+      {error && (
+        <div className="flex items-start gap-2 rounded-xl border border-[var(--color-destructive)]/30 bg-[var(--color-destructive)]/5 p-3">
+          <AlertCircle className="h-4 w-4 text-[var(--color-destructive)] shrink-0 mt-0.5" />
+          <p className="text-xs text-[var(--text-primary)]">
+            Could not reach rclone daemon. Make sure rclone is installed
+            and the bridge server is running.
+          </p>
         </div>
-      </div>
+      )}
+
+      {!isLoading && !error && remotes.length === 0 && (
+        <div className="flex flex-col items-center gap-2 py-6 text-center">
+          <HardDrive className="h-8 w-8 text-[var(--text-tertiary)]" />
+          <p className="text-sm text-[var(--text-secondary)]">
+            No Google Drive connections yet
+          </p>
+          <p className="text-[11px] text-[var(--text-tertiary)]">
+            Add one below to get started.
+          </p>
+        </div>
+      )}
+
+      {remotes.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+            Connected accounts
+          </h3>
+          {remotes.map((r) => (
+            <RemoteRow
+              key={r.name}
+              remote={r}
+              onDelete={() => refetch()}
+              onReconnect={() => {
+                refetch();
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      <AddRemoteFlow
+        existingNames={existingNames}
+        onCompleted={handleCompleted}
+        onCancel={handleCancelFlow}
+      />
     </div>
   );
 }
@@ -1001,7 +952,15 @@ export function GDriveConnectorTile() {
         status={status}
         onClick={() => setModalOpen(true)}
       />
-      {modalOpen && <GDriveModal onClose={() => setModalOpen(false)} />}
+      <ConnectorModalShell
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        icon={<GDriveIcon size={20} />}
+        name="Google Drive"
+        description="Connect your Google Drive account"
+      >
+        {modalOpen && <GDriveModalBody />}
+      </ConnectorModalShell>
     </>
   );
 }
