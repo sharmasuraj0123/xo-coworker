@@ -6,6 +6,42 @@
 
 export type ComposioScheme = "OAUTH2" | "API_KEY";
 
+/** Tool category used by the connectors grid filter. Presentation-only. */
+export type ConnectorCategory =
+  | "productivity"
+  | "communication"
+  | "social"
+  | "design"
+  | "dev"
+  | "storage"
+  | "finance"
+  | "ai"
+  | "analytics"
+  | "other";
+
+/** Ordered labels for the category dropdown (insertion order = display order). */
+export const CONNECTOR_CATEGORY_LABELS: Record<ConnectorCategory, string> = {
+  productivity: "Productivity",
+  communication: "Communication",
+  social: "Social & Media",
+  design: "Design",
+  dev: "Dev & Cloud",
+  storage: "Storage",
+  finance: "Finance & Commerce",
+  ai: "AI & Media",
+  analytics: "Analytics & Sales",
+  other: "Other",
+};
+
+/** Category for the hardcoded custom connector tiles, keyed by their tile id. */
+export const CUSTOM_CONNECTOR_CATEGORY: Record<string, ConnectorCategory> = {
+  gdrive: "storage",
+  onedrive: "storage",
+  github: "dev",
+  vercel: "dev",
+  manus: "ai",
+};
+
 export type ComposioToolkitMeta = {
   /** lowercase id used in URLs and the backend TOOLKITS map. */
   id: string;
@@ -16,6 +52,7 @@ export type ComposioToolkitMeta = {
   schemes: ComposioScheme[];
   /** Iconify reference in `set/name` form (e.g. `logos/gmail`). */
   iconKey: string;
+  category: ConnectorCategory;
 };
 
 export const COMPOSIO_TOOLKITS: ComposioToolkitMeta[] = [
@@ -26,6 +63,7 @@ export const COMPOSIO_TOOLKITS: ComposioToolkitMeta[] = [
     description: "Send and read emails on the user's behalf.",
     schemes: ["OAUTH2"],
     iconKey: "logos/google-gmail",
+    category: "communication",
   },
   {
     id: "googlecalendar",
@@ -34,6 +72,7 @@ export const COMPOSIO_TOOLKITS: ComposioToolkitMeta[] = [
     description: "Create events, check availability, manage invites.",
     schemes: ["OAUTH2"],
     iconKey: "logos/google-calendar",
+    category: "productivity",
   },
   {
     id: "notion",
@@ -42,6 +81,7 @@ export const COMPOSIO_TOOLKITS: ComposioToolkitMeta[] = [
     description: "Read pages, create entries, manage databases.",
     schemes: ["OAUTH2"],
     iconKey: "logos/notion-icon",
+    category: "productivity",
   },
   {
     id: "stripe",
@@ -50,6 +90,7 @@ export const COMPOSIO_TOOLKITS: ComposioToolkitMeta[] = [
     description: "Customers, charges, invoices, payment intents.",
     schemes: ["OAUTH2", "API_KEY"],
     iconKey: "logos/stripe",
+    category: "finance",
   },
   {
     id: "supabase",
@@ -58,6 +99,7 @@ export const COMPOSIO_TOOLKITS: ComposioToolkitMeta[] = [
     description: "Query Postgres, manage tables, auth users.",
     schemes: ["API_KEY"],
     iconKey: "logos/supabase-icon",
+    category: "dev",
   },
   {
     id: "digitalocean",
@@ -66,6 +108,7 @@ export const COMPOSIO_TOOLKITS: ComposioToolkitMeta[] = [
     description: "Droplets, volumes, billing, monitoring.",
     schemes: ["API_KEY"],
     iconKey: "logos/digital-ocean-icon",
+    category: "dev",
   },
   {
     id: "youtube",
@@ -74,6 +117,7 @@ export const COMPOSIO_TOOLKITS: ComposioToolkitMeta[] = [
     description: "Search videos, channels, playlists.",
     schemes: ["OAUTH2"],
     iconKey: "logos/youtube-icon",
+    category: "social",
   },
   {
     id: "miro",
@@ -82,6 +126,7 @@ export const COMPOSIO_TOOLKITS: ComposioToolkitMeta[] = [
     description: "Boards, sticky notes, frames.",
     schemes: ["OAUTH2"],
     iconKey: "logos/miro-icon",
+    category: "design",
   },
   {
     id: "canva",
@@ -90,6 +135,7 @@ export const COMPOSIO_TOOLKITS: ComposioToolkitMeta[] = [
     description: "Designs, brand templates, assets.",
     schemes: ["OAUTH2"],
     iconKey: "devicon/canva",
+    category: "design",
   },
   {
     id: "googlesheets",
@@ -98,6 +144,7 @@ export const COMPOSIO_TOOLKITS: ComposioToolkitMeta[] = [
     description: "Read and write spreadsheets on the user's behalf.",
     schemes: ["OAUTH2"],
     iconKey: "/icons/google-sheets.svg",
+    category: "productivity",
   },
   {
     id: "googledocs",
@@ -106,6 +153,7 @@ export const COMPOSIO_TOOLKITS: ComposioToolkitMeta[] = [
     description: "Create, read, and edit documents.",
     schemes: ["OAUTH2"],
     iconKey: "/icons/google-docs.svg",
+    category: "productivity",
   },
   {
     id: "googleslides",
@@ -114,6 +162,7 @@ export const COMPOSIO_TOOLKITS: ComposioToolkitMeta[] = [
     description: "Build and edit slide decks.",
     schemes: ["OAUTH2"],
     iconKey: "/icons/google-slides.svg",
+    category: "productivity",
   },
   {
     id: "googlemeet",
@@ -122,6 +171,7 @@ export const COMPOSIO_TOOLKITS: ComposioToolkitMeta[] = [
     description: "Schedule and manage video meetings.",
     schemes: ["OAUTH2"],
     iconKey: "logos/google-meet",
+    category: "communication",
   },
   {
     id: "instagram",
@@ -130,6 +180,7 @@ export const COMPOSIO_TOOLKITS: ComposioToolkitMeta[] = [
     description: "Post media and read account insights.",
     schemes: ["OAUTH2"],
     iconKey: "skill-icons/instagram",
+    category: "social",
   },
   {
     id: "linkedin",
@@ -138,6 +189,7 @@ export const COMPOSIO_TOOLKITS: ComposioToolkitMeta[] = [
     description: "Share posts and read profile data.",
     schemes: ["OAUTH2"],
     iconKey: "logos/linkedin-icon",
+    category: "social",
   },
   {
     id: "twitter",
@@ -146,6 +198,7 @@ export const COMPOSIO_TOOLKITS: ComposioToolkitMeta[] = [
     description: "Post tweets and read timelines.",
     schemes: ["OAUTH2"],
     iconKey: "simple-icons/x?color=ffffff",
+    category: "social",
   },
   {
     id: "reddit",
@@ -154,6 +207,7 @@ export const COMPOSIO_TOOLKITS: ComposioToolkitMeta[] = [
     description: "Read subreddits and submit posts.",
     schemes: ["OAUTH2"],
     iconKey: "logos/reddit-icon",
+    category: "social",
   },
   {
     id: "shopify",
@@ -162,14 +216,16 @@ export const COMPOSIO_TOOLKITS: ComposioToolkitMeta[] = [
     description: "Products, orders, customers, inventory.",
     schemes: ["OAUTH2"],
     iconKey: "logos/shopify",
+    category: "finance",
   },
   {
     id: "excel",
     slug: "EXCEL",
     displayName: "Excel",
     description: "Read and write Microsoft Excel workbooks.",
-    schemes: ["API_KEY"],
+    schemes: ["OAUTH2"],
     iconKey: "vscode-icons/file-type-excel",
+    category: "productivity",
   },
   {
     id: "elevenlabs",
@@ -178,14 +234,16 @@ export const COMPOSIO_TOOLKITS: ComposioToolkitMeta[] = [
     description: "Text-to-speech and voice cloning.",
     schemes: ["API_KEY"],
     iconKey: "simple-icons/elevenlabs?color=ffffff",
+    category: "ai",
   },
   {
     id: "figma",
     slug: "FIGMA",
     displayName: "Figma",
     description: "Files, frames, comments, exports.",
-    schemes: ["API_KEY"],
+    schemes: ["OAUTH2"],
     iconKey: "logos/figma",
+    category: "design",
   },
   {
     id: "cloudflare",
@@ -194,14 +252,16 @@ export const COMPOSIO_TOOLKITS: ComposioToolkitMeta[] = [
     description: "DNS, Workers, R2, caching, analytics.",
     schemes: ["API_KEY"],
     iconKey: "logos/cloudflare-icon",
+    category: "dev",
   },
   {
     id: "clickup",
     slug: "CLICKUP",
     displayName: "ClickUp",
     description: "Tasks, lists, docs, time tracking.",
-    schemes: ["API_KEY"],
+    schemes: ["OAUTH2"],
     iconKey: "simple-icons/clickup?color=7B68EE",
+    category: "productivity",
   },
   {
     id: "apollo",
@@ -210,14 +270,16 @@ export const COMPOSIO_TOOLKITS: ComposioToolkitMeta[] = [
     description: "Sales prospecting and contact enrichment.",
     schemes: ["API_KEY"],
     iconKey: "simple-icons/apollographql?color=ffffff",
+    category: "analytics",
   },
   {
     id: "dropbox",
     slug: "DROPBOX",
     displayName: "Dropbox",
     description: "Files, folders, shared links.",
-    schemes: ["API_KEY"],
+    schemes: ["OAUTH2"],
     iconKey: "logos/dropbox",
+    category: "storage",
   },
   {
     id: "coinbase",
@@ -226,6 +288,7 @@ export const COMPOSIO_TOOLKITS: ComposioToolkitMeta[] = [
     description: "Accounts, balances, transactions.",
     schemes: ["API_KEY"],
     iconKey: "token-branded/coinbase",
+    category: "finance",
   },
   {
     id: "posthog",
@@ -234,6 +297,7 @@ export const COMPOSIO_TOOLKITS: ComposioToolkitMeta[] = [
     description: "Events, dashboards, feature flags.",
     schemes: ["API_KEY"],
     iconKey: "logos/posthog-icon",
+    category: "analytics",
   },
 ];
 
