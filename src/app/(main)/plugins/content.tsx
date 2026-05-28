@@ -14,6 +14,13 @@ import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { api } from "@/lib/api";
 import { API, IS_DESKTOP, queryKeys } from "@/lib/constants";
 import { desktopAPI } from "@/lib/tauri-api";
@@ -40,6 +47,11 @@ import { GitHubConnectorTile } from "@/components/connectors/github-connector";
 import { VercelConnectorTile } from "@/components/connectors/vercel-connector";
 import { ManusConnectorTile } from "@/components/connectors/manus-connector";
 import { ComposioCards, ComposioProviderNotice } from "@/components/connectors/composio-grid";
+import {
+  CONNECTOR_CATEGORY_LABELS,
+  CUSTOM_CONNECTOR_CATEGORY,
+  type ConnectorCategory,
+} from "@/lib/composio-toolkits";
 import { ConnectorCard, type ConnectorCardStatus } from "@/components/connectors/connector-card";
 import { ConnectorTile } from "@/components/connectors/connector-tile";
 import { ConnectorDetailDialog } from "@/components/connectors/connector-detail-dialog";
@@ -114,6 +126,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 function ConnectorsTab({ search }: { search: string }) {
   const { data } = useConnectors();
+  const [category, setCategory] = useState<ConnectorCategory | "all">("all");
 
   const connectors = data?.connectors ?? {};
   const entries = Object.entries(connectors);
@@ -127,21 +140,49 @@ function ConnectorsTab({ search }: { search: string }) {
       )
     : entries;
 
+  // MCP / user-added connectors are uncategorizable, so they live under "other".
+  const mcpEntries = category === "all" || category === "other" ? filtered : [];
+  // Custom tiles are tagged via CUSTOM_CONNECTOR_CATEGORY.
+  const showCustom = (id: string) =>
+    category === "all" || CUSTOM_CONNECTOR_CATEGORY[id] === category;
+  // "Other" only makes sense when there are MCP connectors to put in it.
+  const categoryOptions = (
+    Object.keys(CONNECTOR_CATEGORY_LABELS) as ConnectorCategory[]
+  ).filter((c) => c !== "other" || entries.length > 0);
+
   const gridClass = "grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7";
 
   return (
     <div className="space-y-4">
       <ComposioProviderNotice />
+      <div className="flex items-center justify-end">
+        <Select
+          value={category}
+          onValueChange={(v) => setCategory(v as ConnectorCategory | "all")}
+        >
+          <SelectTrigger className="h-8 w-48 text-xs">
+            <SelectValue placeholder="All tools" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All tools</SelectItem>
+            {categoryOptions.map((c) => (
+              <SelectItem key={c} value={c}>
+                {CONNECTOR_CATEGORY_LABELS[c]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
       <div className={gridClass}>
-        <GDriveConnectorTile />
-        <OneDriveConnectorTile />
-        <GitHubConnectorTile />
-        <VercelConnectorTile />
-        <ManusConnectorTile />
-        {filtered.map(([id, connector]) => (
+        {showCustom("gdrive") && <GDriveConnectorTile />}
+        {showCustom("onedrive") && <OneDriveConnectorTile />}
+        {showCustom("github") && <GitHubConnectorTile />}
+        {showCustom("vercel") && <VercelConnectorTile />}
+        {showCustom("manus") && <ManusConnectorTile />}
+        {mcpEntries.map(([id, connector]) => (
           <MCPConnectorCard key={id} id={id} connector={connector} />
         ))}
-        <ComposioCards search={search} />
+        <ComposioCards search={search} category={category} />
       </div>
     </div>
   );

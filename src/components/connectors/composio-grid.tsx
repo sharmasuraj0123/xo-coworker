@@ -6,16 +6,16 @@ import {
   useComposioInstallIntoGateway,
   useComposioToolkits,
 } from "@/hooks/use-composio";
-import { COMPOSIO_TOOLKITS } from "@/lib/composio-toolkits";
+import { COMPOSIO_TOOLKITS, type ConnectorCategory } from "@/lib/composio-toolkits";
 import { Button } from "@/components/ui/button";
 
-type CardsProps = { search?: string };
+type CardsProps = { search?: string; category?: ConnectorCategory | "all" };
 
 /**
  * Composio cards only — no banner, no grid wrapper. Returns a Fragment so the
  * parent grid lays them out alongside other connector cards.
  */
-export function ComposioCards({ search = "" }: CardsProps) {
+export function ComposioCards({ search = "", category = "all" }: CardsProps) {
   const { data, isLoading, error } = useComposioToolkits();
 
   if (isLoading || error) return null;
@@ -23,6 +23,7 @@ export function ComposioCards({ search = "" }: CardsProps) {
   const byId = new Map((data?.toolkits ?? []).map((t) => [t.id, t]));
   const q = search.trim().toLowerCase();
   const cards = COMPOSIO_TOOLKITS.filter((m) => {
+    if (category !== "all" && m.category !== category) return false;
     if (!q) return true;
     return (
       m.displayName.toLowerCase().includes(q) ||
