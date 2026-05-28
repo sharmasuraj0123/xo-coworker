@@ -241,6 +241,39 @@ export const API = {
   },
   AGENTS: "/api/agents",
   AGENT: (id: string) => `/api/agents/${encodeURIComponent(id)}` as const,
+  /**
+   * Hermes per-profile routes. Every endpoint lives under
+   * `/api/agents/hermes/{profile}/*`. The unified `/api/agents/{id}` shape
+   * still works for the basic agent snapshot — these are for the per-tab
+   * controls (gateway lifecycle, channels, providers, secrets, memory).
+   */
+  HERMES: {
+    PROFILE: (p: string) => `/api/agents/hermes/${encodeURIComponent(p)}` as const,
+    GATEWAY: (p: string) => `/api/agents/hermes/${encodeURIComponent(p)}/gateway` as const,
+    GATEWAY_START: (p: string) => `/api/agents/hermes/${encodeURIComponent(p)}/gateway/start` as const,
+    GATEWAY_STOP: (p: string) => `/api/agents/hermes/${encodeURIComponent(p)}/gateway/stop` as const,
+    GATEWAY_RESTART: (p: string) => `/api/agents/hermes/${encodeURIComponent(p)}/gateway/restart` as const,
+    CONFIG: (p: string) => `/api/agents/hermes/${encodeURIComponent(p)}/config` as const,
+    CHANNELS: (p: string) => `/api/agents/hermes/${encodeURIComponent(p)}/channels` as const,
+    CHANNEL: (p: string, platform: string) =>
+      `/api/agents/hermes/${encodeURIComponent(p)}/channels/${encodeURIComponent(platform)}` as const,
+    PROVIDERS: (p: string) => `/api/agents/hermes/${encodeURIComponent(p)}/providers` as const,
+    PROVIDER_KEY: (p: string, id: string) =>
+      `/api/agents/hermes/${encodeURIComponent(p)}/providers/${encodeURIComponent(id)}/key` as const,
+    PROVIDER_LOGIN: (p: string, id: string) =>
+      `/api/agents/hermes/${encodeURIComponent(p)}/providers/${encodeURIComponent(id)}/login` as const,
+    PROVIDER_LOGOUT: (p: string, id: string) =>
+      `/api/agents/hermes/${encodeURIComponent(p)}/providers/${encodeURIComponent(id)}/logout` as const,
+    SECRETS: (p: string) => `/api/agents/hermes/${encodeURIComponent(p)}/secrets` as const,
+    SECRETS_KEYS: (p: string) => `/api/agents/hermes/${encodeURIComponent(p)}/secrets/keys` as const,
+    SOUL: (p: string) => `/api/agents/hermes/${encodeURIComponent(p)}/soul` as const,
+    MEMORY: (p: string) => `/api/agents/hermes/${encodeURIComponent(p)}/memory` as const,
+    MEMORY_FILE: (p: string, filename: string) =>
+      `/api/agents/hermes/${encodeURIComponent(p)}/memory/${encodeURIComponent(filename)}` as const,
+    MODELS: (p: string) => `/api/agents/hermes/${encodeURIComponent(p)}/models` as const,
+    INSIGHTS: (p: string, days = 30) =>
+      `/api/agents/hermes/${encodeURIComponent(p)}/insights?days=${days}` as const,
+  },
   MODELS: "/api/models",
   TOOLS: "/api/tools",
   SKILLS: {
@@ -422,6 +455,21 @@ export const queryKeys = {
   },
   channels: ["channels"] as const,
   openclawStatus: ["openclawStatus"] as const,
+  hermes: {
+    profile: (p: string) => ["hermes", "profile", p] as const,
+    gateway: (p: string) => ["hermes", "profile", p, "gateway"] as const,
+    config: (p: string) => ["hermes", "profile", p, "config"] as const,
+    channels: (p: string) => ["hermes", "profile", p, "channels"] as const,
+    providers: (p: string) => ["hermes", "profile", p, "providers"] as const,
+    secrets: (p: string) => ["hermes", "profile", p, "secrets"] as const,
+    soul: (p: string) => ["hermes", "profile", p, "soul"] as const,
+    memory: (p: string) => ["hermes", "profile", p, "memory"] as const,
+    memoryFile: (p: string, filename: string) =>
+      ["hermes", "profile", p, "memory", filename] as const,
+    models: (p: string) => ["hermes", "profile", p, "models"] as const,
+    insights: (p: string, days: number) =>
+      ["hermes", "profile", p, "insights", days] as const,
+  },
   onboardingStatus: ["onboardingStatus"] as const,
   codexStatus: ["codexStatus"] as const,
   plugins: {
