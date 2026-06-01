@@ -197,26 +197,13 @@ export function MessageList({
     }
   }, [messages.length, isAtBottom]);
 
-  // Dedupe by id first. During the in-flight ↔ DB commit window, the cowork-api
-  // can briefly serve both a cached synthetic copy from `register_inflight_exchange`
-  // and the freshly committed DB row for the same hermes_<n> id. The first arrival
-  // wins (the cached copy is fine; the DB row replaces it once the cache evicts).
-  const dedupedMessages = useMemo(() => {
-    const seen = new Set<string>();
-    return messages.filter((m) => {
-      if (seen.has(m.id)) return false;
-      seen.add(m.id);
-      return true;
-    });
-  }, [messages]);
-
   // Group consecutive assistant messages so multi-step responses render as one block
   // Regroup whenever message content changes. Parts can be appended to existing
   // message IDs during/after generation, so depending only on length/last-id can
   // leave stale groups that miss the final assistant text until a full refresh.
   const groups = useMemo(
-    () => groupMessages(dedupedMessages),
-    [dedupedMessages]
+    () => groupMessages(messages),
+    [messages]
   );
 
   // The shell message only exists after the backend created it (streamId is set).
@@ -370,7 +357,7 @@ export function MessageList({
 
               return (
                 <AssistantMessageGroup
-                  key={`asst-${group.messages[0].id}-${group.messages[group.messages.length - 1].id}-${group.messages.length}`}
+                  key={group.messages[0].id}
                   messages={group.messages}
                   isNew={groupIsNew}
                 />
