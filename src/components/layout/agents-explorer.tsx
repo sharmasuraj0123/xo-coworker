@@ -373,10 +373,7 @@ export function AgentsExplorer() {
   }, [activeBackend, agentDescription, agentIdDraft, createAgent, displayName, t]);
 
   const sessions = useMemo(() => {
-    const flat = sessionPages?.pages.flat() ?? [];
-    // Dedupe by id: infinite-query pages can overlap at boundaries and
-    // produce duplicate session entries, which breaks React's key uniqueness.
-    return Array.from(new Map(flat.map((s) => [s.id, s])).values());
+    return sessionPages?.pages.flat() ?? [];
   }, [sessionPages]);
 
   // Group sessions by agent directory + collect workspace paths + BE-authoritative counts

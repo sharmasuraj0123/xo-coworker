@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
+  X,
   Loader2,
   ExternalLink,
   CheckCircle2,
@@ -13,8 +14,6 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ConnectorTile } from "@/components/connectors/connector-tile";
-import { ConnectorModalShell } from "@/components/connectors/connector-modal-shell";
 import {
   useManusStatus,
   useManusSubmitKey,
@@ -222,36 +221,68 @@ function ConnectedView({
 // Modal
 // ---------------------------------------------------------------------------
 
-function ManusModalBody() {
+function ManusModal({ onClose }: { onClose: () => void }) {
   const { data, isLoading, refetch } = useManusStatus();
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    if (e.target === overlayRef.current) onClose();
+  };
+
   const isConnected = data?.status === "connected";
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center gap-3 py-8">
-        <Loader2 className="h-6 w-6 animate-spin text-[var(--text-tertiary)]" />
-        <p className="text-sm text-[var(--text-secondary)]">Checking connection…</p>
-      </div>
-    );
-  }
-  if (isConnected) {
-    return (
-      <ConnectedView
-        onDisconnect={() => refetch()}
-        onReconnect={() => refetch()}
-      />
-    );
-  }
   return (
-    <>
-      {data?.status === "failed" && data?.error && (
-        <div className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 mb-4">
-          <AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-          <p className="text-xs text-[var(--text-primary)]">{data.error}</p>
+    <div
+      ref={overlayRef}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      onClick={handleOverlayClick}
+    >
+      <div className="relative w-full max-w-md bg-[var(--surface-primary)] rounded-2xl border border-[var(--border-default)] shadow-2xl flex flex-col max-h-[90vh]">
+        {/* Header */}
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-[var(--border-default)] shrink-0">
+          <div className="h-8 w-8 rounded-lg flex items-center justify-center">
+            <ManusIcon size={22} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-sm font-semibold text-[var(--text-primary)]">Manus AI</h2>
+            <p className="text-[11px] text-[var(--text-tertiary)]">
+              Autonomous AI agent for tasks, research, and coding
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="h-7 w-7 rounded-lg flex items-center justify-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-secondary)] transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
-      )}
-      <KeyForm onSuccess={() => refetch()} />
-    </>
+
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto px-5 py-4">
+          {isLoading ? (
+            <div className="flex flex-col items-center gap-3 py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-[var(--text-tertiary)]" />
+              <p className="text-sm text-[var(--text-secondary)]">Checking connection…</p>
+            </div>
+          ) : isConnected ? (
+            <ConnectedView
+              onDisconnect={() => refetch()}
+              onReconnect={() => refetch()}
+            />
+          ) : (
+            <>
+              {data?.status === "failed" && data?.error && (
+                <div className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 mb-4">
+                  <AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                  <p className="text-xs text-[var(--text-primary)]">{data.error}</p>
+                </div>
+              )}
+              <KeyForm onSuccess={() => refetch()} />
+            </>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -263,33 +294,35 @@ export function ManusConnectorTile() {
   const [modalOpen, setModalOpen] = useState(false);
   const { data, isLoading } = useManusStatus();
   const isConnected = data?.status === "connected";
-  const isFailed = data?.status === "failed";
-
-  const status = isLoading
-    ? "disconnected"
-    : isConnected
-      ? "connected"
-      : isFailed
-        ? "failed"
-        : "disconnected";
 
   return (
     <>
-      <ConnectorTile
-        icon={<ManusIcon size={28} />}
-        name="Manus AI"
-        status={status}
+      <button
+        type="button"
         onClick={() => setModalOpen(true)}
-      />
-      <ConnectorModalShell
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        icon={<ManusIcon size={22} />}
-        name="Manus AI"
-        description="Autonomous AI agent for tasks, research, and coding"
+        className="flex items-center gap-3 rounded-xl border border-[var(--border-default)] bg-[var(--surface-secondary)] p-3 hover:bg-[var(--surface-tertiary)] transition-colors text-left w-full group"
       >
-        {modalOpen && <ManusModalBody />}
-      </ConnectorModalShell>
+        <span
+          className={`h-2 w-2 rounded-full shrink-0 ${
+            isConnected ? "bg-emerald-500" : "bg-[var(--text-tertiary)]"
+          }`}
+        />
+        <div className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0">
+          <ManusIcon size={22} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-medium text-[var(--text-primary)] truncate">Manus AI</p>
+          <p className="text-[10px] text-[var(--text-tertiary)]">
+            {isLoading
+              ? "Loading…"
+              : isConnected
+              ? "Connected"
+              : "Not connected"}
+          </p>
+        </div>
+      </button>
+
+      {modalOpen && <ManusModal onClose={() => setModalOpen(false)} />}
     </>
   );
 }

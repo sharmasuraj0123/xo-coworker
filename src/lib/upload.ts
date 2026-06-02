@@ -36,13 +36,8 @@ export async function uploadFile(file: File, workspace?: string | null): Promise
 }
 
 /**
- * Open a file picker and return selected files as FileAttachments.
- *
- * Desktop (Tauri): native OS dialog → backend-attach-by-path (no copy).
- * Browser:         hidden <input type="file"> → upload each file.
- *                  The backend has no native OS dialog to expose, and the
- *                  user's local files are only reachable via the browser's
- *                  own picker + multipart upload.
+ * Open a native OS file dialog via the backend and return selected files.
+ * Files are referenced in-place — no copying to data/uploads.
  */
 export async function browseFiles(): Promise<FileAttachment[]> {
   if (IS_DESKTOP) {
@@ -63,54 +58,23 @@ export async function browseFiles(): Promise<FileAttachment[]> {
       if (paths.length === 0) return [];
       return attachByPath(paths);
     } catch {
-      // Tauri plugin unavailable — fall through to the browser picker below.
+      // Fallback to backend-based picker for compatibility.
     }
   }
 
-  // Browser mode: use a hidden <input type="file" multiple> to let the user
-  // pick files from their local machine, then upload each via /api/files/upload.
-  if (typeof document === "undefined") return [];
-
-  const files = await new Promise<File[]>((resolve) => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.multiple = true;
-    input.style.position = "fixed";
-    input.style.left = "-9999px";
-
-    let resolved = false;
-    const cleanup = () => {
-      window.removeEventListener("focus", onFocus);
-      input.remove();
-    };
-    const onChange = () => {
-      resolved = true;
-      const picked = Array.from(input.files ?? []);
-      cleanup();
-      resolve(picked);
-    };
-    // Detect cancel (user closes the picker without choosing). The browser
-    // doesn't fire 'change' on cancel, but window 'focus' fires once the
-    // dialog closes — resolve as empty if 'change' hasn't fired by then.
-    const onFocus = () => {
-      setTimeout(() => {
-        if (!resolved) {
-          cleanup();
-          resolve([]);
-        }
-      }, 300);
-    };
-
-    input.addEventListener("change", onChange, { once: true });
-    window.addEventListener("focus", onFocus);
-    document.body.appendChild(input);
-    input.click();
+  // Use raw fetch — same reason as browseDirectory: avoid retry-on-timeout
+  // opening duplicate OS dialogs.
+  const url = IS_DESKTOP
+    ? `${await getBackendUrl()}${API.FILES.BROWSE}`
+    : resolveApiUrl(API.FILES.BROWSE);
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ multiple: true, title: "Select files" }),
+    signal: AbortSignal.timeout(600_000),
   });
-
-  if (files.length === 0) return [];
-
-  const uploads = await Promise.all(files.map((f) => uploadFile(f)));
-  return uploads;
+  if (!res.ok) throw new Error(`Browse failed: ${res.status}`);
+  return res.json() as Promise<FileAttachment[]>;
 }
 
 /**
