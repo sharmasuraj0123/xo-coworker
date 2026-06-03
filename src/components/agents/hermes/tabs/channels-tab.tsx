@@ -12,9 +12,10 @@ import { useHermesChannels, useHermesChannelAdd, useHermesChannelRemove } from "
  * Channels tab — manifests live on the BE (`config/agents/hermes/commands.json`).
  * The FE hardcodes only the visible bits: icon, label, field labels.
  *
- * Discord/WhatsApp are kept hidden until the hermes manifest ships matching
- * recipes — connecting them via this tab would write a token the gateway
- * never picks up.
+ * WhatsApp is kept hidden until the hermes manifest ships a matching recipe
+ * (it also needs a QR-pairing flow, not a token) — connecting it via this tab
+ * would write a credential the gateway never picks up. Slack, Telegram, and
+ * Discord all have recipes in `commands.json` and are connectable here.
  */
 
 interface ChannelDef {
@@ -44,7 +45,15 @@ const CHANNELS: ChannelDef[] = [
     color: "text-[#26A5E4]",
     fields: [{ key: "token", label: "Bot Token", placeholder: "123456:ABC-DEF…" }],
   },
-  { id: "discord", name: "Discord", icon: <DiscordIcon size={18} />, color: "text-[#5865F2]", fields: [], hidden: true },
+  {
+    id: "discord",
+    name: "Discord",
+    icon: <DiscordIcon size={18} />,
+    color: "text-[#5865F2]",
+    // Token only — allowed_users / allowed_channels default to "*" on the BE
+    // (hermes manifest defaults), so we don't surface them here.
+    fields: [{ key: "token", label: "Bot Token", placeholder: "Bot token from the Discord Developer Portal" }],
+  },
   { id: "whatsapp", name: "WhatsApp", icon: <WhatsAppIcon size={18} />, color: "text-[#25D366]", fields: [], hidden: true },
 ];
 
