@@ -11,7 +11,7 @@ import { useChatStore } from "@/stores/chat-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useBillingStore } from "@/stores/billing-store";
 import { useWorkspaceStore } from "@/stores/workspace-store";
-import { useSSE } from "./use-sse";
+import { useActiveAgentId } from "./use-active-agent-id";
 import { useRemoteGenerationSync } from "./use-remote-generation-sync";
 import type { InfiniteData } from "@tanstack/react-query";
 import type { FileAttachment, PromptResponse, RespondRequest } from "@/types/chat";
@@ -39,11 +39,17 @@ export function useChat(currentSessionId?: string) {
   const pendingQuestion = useChatStore((s) => s.pendingQuestion);
   const pendingPlanReview = useChatStore((s) => s.pendingPlanReview);
 
-  // SSE connection — activates when streamId is set
-  useSSE(streamId);
+  // SSE connection is owned by `<SSEManager />` at the route-layout level.
 
   // Detect generations started by other clients (e.g., mobile)
   useRemoteGenerationSync(currentSessionId);
+
+  // Route-derived agent target — non-null only when the user is on
+  // `/agents/<id>` (or has `?agentId=…`). Captured here so `sendMessage`
+  // routes by URL rather than a sticky global, which used to leak across
+  // navigation (open /agents/aria → navigate to a chat → message would
+  // still fork to a fresh aria session).
+  const activeAgentId = useActiveAgentId();
 
   const sendMessage = useCallback(
     async (text: string, attachments?: FileAttachment[]): Promise<boolean> => {
@@ -88,15 +94,28 @@ export function useChat(currentSessionId?: string) {
           ? `${text.trim()}\n\n---\n\n> **Project context**\n> Working directory: \`${ws}\`\n>\n> This folder is governed by \`AGENTS.md\` — read it first; it is the contract.\n> - If you see \`[TEMPLATE]\` markers in \`PROJECT.md\`, \`OBJECTIVES.md\`, \`PLAN.md\`, or \`PROGRESS.md\`, follow the §3 first-boot ritual (ask the human to clarify scope before doing real work).\n> - Otherwise, follow the §4 boot ritual before answering: \`PROJECT.md\` → \`OBJECTIVES.md\` → \`PLAN.md\` → \`memory/semantic/*.md\` → last ~30 lines of \`PROGRESS.md\` → \`.xo/todos.json\` → last 3 entries of \`.xo/sessions/sessionslist.json\` → \`.xo/activity.json\`.\n>\n> **Hard rules**\n> - Never write to \`.xo/\` — the watcher service owns that directory; your edits will be overwritten.\n> - Keep all file writes inside the working directory above.\n> - At session close, do the §6 closing ritual (\`PROGRESS.md\` paragraph, episodic/procedural/semantic updates per §8, wipe \`memory/working/\`).`
           : text.trim();
 
+        // Routing fields, matching the BE's openclaw pattern:
+        //   - agent_name → backend identifier ("openclaw" / "hermes" /
+        //     "claude_code"). Undefined means "server picks via AGENT_NAME".
+        //   - agent_id   → within-backend selector (openclaw agent name OR
+        //     hermes profile name). Undefined means "server resolves from
+        //     model string or falls back to the backend's default."
+        //
+        // Profile selection from the model dropdown rides on the ``model``
+        // field (``hermes/aria``, ``openclaw/research``). The BE parses it
+        // via hermes_profile_from_prompt_body / openclaw_agent_id_from_prompt_body.
+        //
+        // We send agent_name even on existing sessions: when it matches the
+        // session's existing backend, the BE no-ops; when it differs,
+        // chat.py:184 forks to a fresh session.
         const res = await api.post<PromptResponse>(API.CHAT.PROMPT, {
           text: promptText,
           session_id: currentSessionId ?? null,
           model: settingsState.selectedModel,
           provider_id: settingsState.selectedProviderId,
           agent: settingsState.selectedAgent,
-          // Existing sessions: let server detect backend from session index (never override).
-          // New sessions: derive from workspace root — null means server uses AGENT_NAME default.
-          agent_name: currentSessionId ? undefined : agentNameForWorkspace(ws),
+          agent_name: agentNameForWorkspace(ws),
+          agent_id: activeAgentId ?? undefined,
           attachments: attachments ?? [],
           permission_presets: hasActivePresets ? permissionPresets : null,
           reasoning: settingsState.reasoningEnabled,
@@ -168,7 +187,7 @@ export function useChat(currentSessionId?: string) {
         return false;
       }
     },
-    [currentSessionId, router, queryClient],
+    [currentSessionId, router, queryClient, activeAgentId],
   );
 
   const stopGeneration = useCallback(async () => {

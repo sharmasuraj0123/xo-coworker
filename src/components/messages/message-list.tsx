@@ -312,7 +312,7 @@ export function MessageList({
           </div>
         )}
 
-        {messages.length === 0 && !isGenerating ? (
+        {messages.length === 0 && !isGenerating && !showStreamingFallback ? (
           <div className="flex items-center justify-center h-full text-[var(--text-tertiary)] text-sm">
             No messages yet
           </div>

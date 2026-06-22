@@ -30,6 +30,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useAgents, useCreateAgent } from "@/hooks/use-agents";
+import { useWorkspaceConfig } from "@/hooks/use-workspace-config";
+import type { AgentBackend } from "@/types/agent";
 import { useSessions } from "@/hooks/use-sessions";
 import { useActiveSessionId } from "@/hooks/use-active-session-id";
 import { api, ApiError } from "@/lib/api";
@@ -253,9 +255,12 @@ interface AgentNodeProps {
   sessions: SessionResponse[];
   activeSessionId: string | null;
   onSelectSession: (id: string) => void;
+  /** BE-authoritative count from agent.metadata.sessions_count when available;
+   *  falls back to sessions.length (loaded so far). */
+  totalCount?: number;
 }
 
-function AgentNode({ name, workspacePath, sessions, activeSessionId, onSelectSession }: AgentNodeProps) {
+function AgentNode({ name, workspacePath, sessions, activeSessionId, onSelectSession, totalCount }: AgentNodeProps) {
   const { t } = useTranslation("common");
   const router = useAppRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -290,7 +295,7 @@ function AgentNode({ name, workspacePath, sessions, activeSessionId, onSelectSes
         >
           <Settings2 className="h-3.5 w-3.5" />
         </button>
-        <span className="text-[11px] text-[var(--text-tertiary)] shrink-0 tabular-nums">{sessions.length}</span>
+        <span className="text-[11px] text-[var(--text-tertiary)] shrink-0 tabular-nums">{totalCount ?? sessions.length}</span>
       </div>
 
       {isOpen && (
@@ -340,12 +345,18 @@ export function AgentsExplorer() {
     setAddOpen(true);
   }, []);
 
+  // Default the new agent to whichever backend is active server-side
+  // (AGENT_NAME env). Without this, the BE silently defaults to "openclaw"
+  // and hermes users find their new agent in the wrong list.
+  const { backend: activeBackend } = useWorkspaceConfig();
+
   const handleCreateAgent = useCallback(() => {
     const name = displayName.trim();
     if (!name) return;
     createAgent.mutate(
       {
         name,
+        backend: activeBackend as AgentBackend,
         ...(agentIdDraft.trim() ? { id: agentIdDraft.trim() } : {}),
         ...(agentDescription.trim() ? { description: agentDescription.trim() } : {}),
       },
@@ -359,21 +370,23 @@ export function AgentsExplorer() {
         },
       },
     );
-  }, [agentDescription, agentIdDraft, createAgent, displayName, t]);
+  }, [activeBackend, agentDescription, agentIdDraft, createAgent, displayName, t]);
 
   const sessions = useMemo(() => {
     return sessionPages?.pages.flat() ?? [];
   }, [sessionPages]);
 
-  // Group sessions by agent directory + collect workspace paths
-  const { agentSessionMap, agentWorkspaceMap } = useMemo(() => {
+  // Group sessions by agent directory + collect workspace paths + BE-authoritative counts
+  const { agentSessionMap, agentWorkspaceMap, agentCountMap } = useMemo(() => {
     const sessionMap = new Map<string, SessionResponse[]>();
     const workspaceMap = new Map<string, string | null>();
+    const countMap = new Map<string, number | undefined>();
     // Initialize with known agents
     if (agents) {
       for (const agent of agents) {
         sessionMap.set(agent.name, []);
         workspaceMap.set(agent.name, (agent.metadata?.workspace as string) ?? null);
+        countMap.set(agent.name, agent.metadata?.sessions_count);
       }
     }
     // Assign sessions to agents
@@ -382,7 +395,7 @@ export function AgentsExplorer() {
       if (!sessionMap.has(agentName)) sessionMap.set(agentName, []);
       sessionMap.get(agentName)!.push(session);
     }
-    return { agentSessionMap: sessionMap, agentWorkspaceMap: workspaceMap };
+    return { agentSessionMap: sessionMap, agentWorkspaceMap: workspaceMap, agentCountMap: countMap };
   }, [agents, sessions]);
 
   const handleSelectSession = useCallback(
@@ -446,6 +459,7 @@ export function AgentsExplorer() {
                 sessions={agentSessions}
                 activeSessionId={activeSessionId}
                 onSelectSession={handleSelectSession}
+                totalCount={agentCountMap.get(agentName)}
               />
             ))
           )}

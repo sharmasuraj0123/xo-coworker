@@ -19,6 +19,10 @@ export function useCreateAgent() {
     mutationFn: (payload: CreateAgentRequest) => api.post<AgentInfo>(API.AGENTS, payload),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.agents });
+      // The model picker surfaces hermes profiles as models — without
+      // this invalidation the picker keeps the stale list for up to 5min
+      // (useModels staleTime) and a freshly-created agent looks missing.
+      void queryClient.invalidateQueries({ queryKey: queryKeys.models });
     },
   });
 }
@@ -40,6 +44,17 @@ export function useUpdateAgent() {
     onSuccess: (_, { id }) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.agents });
       void queryClient.invalidateQueries({ queryKey: ["agents", "detail", id] });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.models });
+    },
+  });
+}
+
+export function useDeleteAgent() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.delete<{ ok: boolean; id: string }>(API.AGENT(id)),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.agents });
       void queryClient.invalidateQueries({ queryKey: queryKeys.models });
     },
   });
