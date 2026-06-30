@@ -70,7 +70,7 @@ Notes:
 - For avatars, use a workspace-relative path like \`avatars/openclaw.png\`.
 `;
 
-const SOUL_DEFAULT = `# SOUL.md - Who You Are
+export const SOUL_DEFAULT = `# SOUL.md - Who You Are
 
 _You're not a chatbot. You're becoming someone._
 
@@ -184,9 +184,19 @@ export const PERSONALITY_DEFAULTS: Record<PersonalityFileKey, string> = {
   user: USER_DEFAULT,
 };
 
-/** Absolute path on disk for a given personality file. */
-export const PERSONALITY_WORKSPACE_ROOT = "/home/coder/.openclaw/workspace";
+/**
+ * OpenClaw stores its persona files in its own workspace dir.
+ *
+ * This path is **OpenClaw-specific** and must only be used when the active
+ * backend is OpenClaw. Other backends own their persona elsewhere — hermes,
+ * for example, exposes it through the per-profile `SOUL.md` endpoint
+ * (`/api/agents/hermes/<profile>/soul`). Writing these files unconditionally
+ * is what used to pollute `~/.openclaw/workspace` on hermes deployments; the
+ * backend-aware `useAgentPersona()` hook now routes each backend correctly.
+ */
+export const OPENCLAW_PERSONA_ROOT = "/home/coder/.openclaw/workspace";
 
-export function personalityFilePath(filename: string): string {
-  return `${PERSONALITY_WORKSPACE_ROOT}/${filename}`;
+/** Absolute path on disk for an OpenClaw persona file. OpenClaw-only. */
+export function openclawPersonaFilePath(filename: string): string {
+  return `${OPENCLAW_PERSONA_ROOT}/${filename}`;
 }
