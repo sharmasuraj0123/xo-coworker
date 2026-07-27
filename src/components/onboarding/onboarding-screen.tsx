@@ -63,7 +63,16 @@ const transition = { duration: 0.28, ease: [0.25, 0.1, 0.25, 1] as const };
 
 type Step = "company" | "models" | "channels" | "personality" | "project";
 
-const STEPS: Step[] = ["company", "models", "channels", "personality", "project"];
+const FULL_STEPS: Step[] = ["company", "models", "channels", "personality", "project"];
+
+/**
+ * Backends without the OpenClaw/Hermes setup surface (claude_code, codex,
+ * antigravity, ...) have no models/channels config or persona MD files to
+ * edit — they only get the workspace-name and first-project steps.
+ */
+const MINIMAL_STEPS: Step[] = ["company", "project"];
+
+const FULL_FLOW_BACKENDS = new Set(["openclaw", "hermes"]);
 
 const STEP_META: Record<Step, { icon: React.ReactNode; label: string; description: string }> = {
   company: {
@@ -1164,11 +1173,11 @@ function ProjectStep({
 /* Progress stepper                                                    */
 /* ------------------------------------------------------------------ */
 
-function Stepper({ current }: { current: Step }) {
-  const currentIdx = STEPS.indexOf(current);
+function Stepper({ current, steps }: { current: Step; steps: Step[] }) {
+  const currentIdx = steps.indexOf(current);
   return (
     <div className="flex items-center justify-center gap-2 mb-8">
-      {STEPS.map((step, idx) => {
+      {steps.map((step, idx) => {
         const done = idx < currentIdx;
         const active = idx === currentIdx;
         return (
@@ -1184,7 +1193,7 @@ function Stepper({ current }: { current: Step }) {
             >
               {done ? <Check className="h-3.5 w-3.5" /> : idx + 1}
             </div>
-            {idx < STEPS.length - 1 && (
+            {idx < steps.length - 1 && (
               <div
                 className={`h-px w-6 transition-all ${
                   done ? "bg-[var(--color-primary)]" : "bg-[var(--border-default)]"
@@ -1206,6 +1215,16 @@ export function OnboardingScreen() {
   const router = useAppRouter();
   const completeOnboarding = useSettingsStore((s) => s.completeOnboarding);
   const setCompanyName = useSettingsStore((s) => s.setCompanyName);
+  const { backend, isReady } = useWorkspaceConfig();
+
+  // Full setup flow (models / channels / persona MD files) only applies to
+  // openclaw and hermes. Other backends (claude_code, codex, antigravity, ...)
+  // get the minimal flow. Until the server config resolves, assume full so
+  // the stepper doesn't visibly grow mid-flow for the common backends.
+  const steps = useMemo<Step[]>(
+    () => (!isReady || FULL_FLOW_BACKENDS.has(backend) ? FULL_STEPS : MINIMAL_STEPS),
+    [backend, isReady],
+  );
 
   // Prefetch the secrets list at mount so by the time the user reaches
   // the Models step, the "ANTHROPIC_API_KEY is already set" banner
@@ -1238,14 +1257,20 @@ export function OnboardingScreen() {
     setStep(next);
   };
 
+  // If the flow shrinks after the server config resolves (non-openclaw/hermes
+  // backend) while the user sits on a now-removed step, snap back to the start.
+  useEffect(() => {
+    if (!steps.includes(step)) setStep(steps[0]);
+  }, [steps, step]);
+
   const goNext = () => {
-    const idx = STEPS.indexOf(step);
-    if (idx < STEPS.length - 1) goTo(STEPS[idx + 1], 1);
+    const idx = steps.indexOf(step);
+    if (idx < steps.length - 1) goTo(steps[idx + 1], 1);
   };
 
   const goBack = () => {
-    const idx = STEPS.indexOf(step);
-    if (idx > 0) goTo(STEPS[idx - 1], -1);
+    const idx = steps.indexOf(step);
+    if (idx > 0) goTo(steps[idx - 1], -1);
   };
 
   const handleCompanyNext = () => {
@@ -1282,7 +1307,7 @@ export function OnboardingScreen() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: "easeOut" }}
       >
-        <Stepper current={step} />
+        <Stepper current={step} steps={steps} />
 
         {/* Back button (not on first step) */}
         {step !== "company" && (
