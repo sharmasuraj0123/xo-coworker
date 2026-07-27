@@ -24,5 +24,8 @@ export function useWorkspaceConfig() {
   const workspaceRoot =
     data?.roots[backend] ?? FALLBACKS[backend] ?? FALLBACKS.openclaw;
 
-  return { workspaceRoot, backend, roots: data?.roots ?? FALLBACKS };
+  // `isReady` lets callers avoid acting on the provisional `backend` fallback
+  // before the server response lands (e.g. writing persona files to the wrong
+  // backend during the initial load flash).
+  return { workspaceRoot, backend, roots: data?.roots ?? FALLBACKS, isReady: Boolean(data) };
 }

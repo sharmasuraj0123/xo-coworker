@@ -2,18 +2,10 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { ArrowRight, Loader2, RotateCcw, AlertCircle } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
-  PERSONALITY_FILES,
-  PERSONALITY_DEFAULTS,
-  type PersonalityFileKey,
-} from "@/lib/personality-defaults";
-import {
-  usePersonalityFiles,
-  useSavePersonalityFiles,
-  personalityQueryKey,
+  useAgentPersona,
   type PersonalityContent,
 } from "@/hooks/use-personality-files";
 
@@ -24,7 +16,7 @@ interface PersonalityStepProps {
   onInitialLoad: (content: PersonalityContent) => void;
   /** Called on every keystroke / reset. */
   onChange: (content: PersonalityContent) => void;
-  /** Called after all four files save successfully. */
+  /** Called after the persona saves successfully. */
   onNext: () => void;
   /** Called when the user opts out — skip without saving. */
   onSkip: () => void;
@@ -37,29 +29,48 @@ export function PersonalityStep({
   onNext,
   onSkip,
 }: PersonalityStepProps) {
-  const queryClient = useQueryClient();
-  const { data: loadedContent, isPending, error, refetch } = usePersonalityFiles();
-  const saveMutation = useSavePersonalityFiles();
+  const persona = useAgentPersona();
+  const { fields, defaults, supported } = persona;
 
-  const [activeTab, setActiveTab] = useState<PersonalityFileKey>("agents");
+  const [activeTab, setActiveTab] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   // Seed the hoisted state on first successful load.
   useEffect(() => {
-    if (loadedContent && !content) onInitialLoad(loadedContent);
-  }, [loadedContent, content, onInitialLoad]);
+    if (persona.content && !content) onInitialLoad(persona.content);
+  }, [persona.content, content, onInitialLoad]);
 
-  const baseline = loadedContent ?? null;
+  const baseline = persona.content ?? null;
 
   const isDirty = useMemo(() => {
-    if (!content || !baseline) return {} as Record<PersonalityFileKey, boolean>;
+    if (!content || !baseline) return {} as Record<string, boolean>;
     return Object.fromEntries(
-      PERSONALITY_FILES.map((f) => [f.key, content[f.key] !== baseline[f.key]]),
-    ) as Record<PersonalityFileKey, boolean>;
-  }, [content, baseline]);
+      fields.map((f) => [f.key, content[f.key] !== baseline[f.key]]),
+    ) as Record<string, boolean>;
+  }, [content, baseline, fields]);
+
+  // Backend has no persona model (e.g. claude_code) — let the user move on
+  // without writing files anywhere.
+  if (supported === false) {
+    return (
+      <div className="flex flex-col">
+        <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-1">
+          Shape your agent
+        </h2>
+        <p className="text-sm text-[var(--text-secondary)] mb-4">
+          This agent doesn&apos;t use editable personality files. You can
+          configure its behavior later from its settings.
+        </p>
+        <Button className="w-full mt-2" onClick={onNext}>
+          Continue <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
+    );
+  }
 
   // Error — checked before loading so a settled error doesn't get
   // swallowed by `!content` (parent's hoisted state stays null on failure).
-  if (error) {
+  if (persona.error) {
     return (
       <div className="flex flex-col">
         <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-1">
@@ -70,18 +81,20 @@ export function PersonalityStep({
             <AlertCircle className="h-4 w-4 mt-0.5 shrink-0 text-[var(--color-destructive)]" />
             <div className="flex-1">
               <p className="text-sm text-[var(--text-primary)]">
-                Couldn&apos;t find the agent files.
+                Couldn&apos;t load the agent&apos;s personality files.
               </p>
               <p className="mt-1 text-xs text-[var(--text-tertiary)]">
-                OpenClaw may not be installed, or its workspace isn&apos;t set up
-                yet. You can skip this step and configure your agent later.
+                The agent may still be setting up its workspace. You can skip
+                this step and configure your agent later.
               </p>
               <p className="mt-2 text-[10px] text-[var(--text-tertiary)]/70 font-mono">
-                {error instanceof Error ? error.message : "Unknown error"}
+                {persona.error instanceof Error
+                  ? persona.error.message
+                  : "Unknown error"}
               </p>
               <div className="mt-3 flex items-center gap-3">
                 <button
-                  onClick={() => refetch()}
+                  onClick={() => persona.refetch()}
                   className="text-xs font-medium text-[var(--color-primary)] hover:underline"
                 >
                   Try again
@@ -101,7 +114,7 @@ export function PersonalityStep({
   }
 
   // Loading
-  if (isPending || !content) {
+  if (persona.isPending || !content) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <Loader2 className="h-5 w-5 animate-spin text-[var(--text-tertiary)]" />
@@ -118,29 +131,38 @@ export function PersonalityStep({
     );
   }
 
-  const activeDef = PERSONALITY_FILES.find((f) => f.key === activeTab)!;
-  const activeValue = content[activeTab];
-  const activeDefault = PERSONALITY_DEFAULTS[activeTab];
+  const tab = activeTab ?? fields[0]?.key;
+  const activeDef = fields.find((f) => f.key === tab) ?? fields[0];
+  const activeValue = content[activeDef.key] ?? "";
+  const activeDefault = defaults[activeDef.key] ?? activeDef.default;
   const canReset = activeValue !== activeDefault;
 
   const handleTextareaChange = (value: string) => {
-    onChange({ ...content, [activeTab]: value });
+    onChange({ ...content, [activeDef.key]: value });
   };
 
   const handleReset = () => {
-    onChange({ ...content, [activeTab]: activeDefault });
+    onChange({ ...content, [activeDef.key]: activeDefault });
   };
 
   const handleContinue = async () => {
     try {
-      await saveMutation.mutateAsync(content);
-      queryClient.invalidateQueries({ queryKey: personalityQueryKey });
+      setSaving(true);
+      // Save silently and advance — during onboarding the persona is applied
+      // as part of first-run setup (the gateway is started/restarted when
+      // onboarding completes), so we don't nag about restarting here. The
+      // post-onboarding persona editor surfaces the restart prompt instead.
+      await persona.save(content);
       onNext();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to save";
       toast.error(`Couldn't save agent files: ${msg}`);
+    } finally {
+      setSaving(false);
     }
   };
+
+  const multiFile = fields.length > 1;
 
   return (
     <div className="flex flex-col">
@@ -148,39 +170,41 @@ export function PersonalityStep({
         Shape your agent
       </h2>
       <p className="text-sm text-[var(--text-secondary)] mb-4">
-        Four files define your agent&apos;s identity, voice, workspace rules,
-        and what it knows about you. Tweak them now or leave the defaults —
-        you can revisit anytime.
+        {multiFile
+          ? "These files define your agent's identity, voice, workspace rules, and what it knows about you. Tweak them now or leave the defaults — you can revisit anytime."
+          : "This defines your agent's persona, tone, and boundaries. Tweak it now or leave the default — you can revisit anytime."}
       </p>
 
-      {/* Tabs */}
-      <div className="flex gap-1 p-1 rounded-lg bg-[var(--surface-primary)] border border-[var(--border-default)] mb-3">
-        {PERSONALITY_FILES.map((f) => {
-          const dirty = isDirty[f.key];
-          const active = activeTab === f.key;
-          return (
-            <button
-              key={f.key}
-              onClick={() => setActiveTab(f.key)}
-              className={`relative flex-1 text-xs py-1.5 rounded-md font-medium transition-all ${
-                active
-                  ? "bg-[var(--surface-secondary)] text-[var(--text-primary)] shadow-sm"
-                  : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
-              }`}
-            >
-              <span className="inline-flex items-center gap-1.5">
-                {f.tabLabel}
-                {dirty && (
-                  <span
-                    className="h-1.5 w-1.5 rounded-full bg-[var(--color-primary)]"
-                    aria-label="unsaved changes"
-                  />
-                )}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+      {/* Tabs (only when there's more than one file) */}
+      {multiFile && (
+        <div className="flex gap-1 p-1 rounded-lg bg-[var(--surface-primary)] border border-[var(--border-default)] mb-3">
+          {fields.map((f) => {
+            const dirty = isDirty[f.key];
+            const active = activeDef.key === f.key;
+            return (
+              <button
+                key={f.key}
+                onClick={() => setActiveTab(f.key)}
+                className={`relative flex-1 text-xs py-1.5 rounded-md font-medium transition-all ${
+                  active
+                    ? "bg-[var(--surface-secondary)] text-[var(--text-primary)] shadow-sm"
+                    : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
+                }`}
+              >
+                <span className="inline-flex items-center gap-1.5">
+                  {f.tabLabel}
+                  {dirty && (
+                    <span
+                      className="h-1.5 w-1.5 rounded-full bg-[var(--color-primary)]"
+                      aria-label="unsaved changes"
+                    />
+                  )}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Caption */}
       <p className="text-xs text-[var(--text-tertiary)] mb-2">
@@ -210,12 +234,8 @@ export function PersonalityStep({
         </button>
       </div>
 
-      <Button
-        className="w-full mt-5"
-        onClick={handleContinue}
-        disabled={saveMutation.isPending}
-      >
-        {saveMutation.isPending ? (
+      <Button className="w-full mt-5" onClick={handleContinue} disabled={saving}>
+        {saving ? (
           <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
           <>
