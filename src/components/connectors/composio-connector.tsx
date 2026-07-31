@@ -31,17 +31,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/constants";
 import type { ComposioToolkitMeta } from "@/lib/composio-toolkits";
 
-/** Toolkits whose tile shows the "Configure tools" per-action toggle panel.
- *  When adding a new entry here, ensure the backend also allows PUT
- *  /api/connectors/composio/{toolkit}/prefs for that toolkit (see
- *  _PREFS_WRITABLE_TOOLKITS in routers/cowork_agent/composio.py) AND has
- *  a category map or heuristic in services/composio_categories.py. */
-const TOOLKITS_WITH_ACTION_TOGGLES = new Set<string>([
-  "googlecalendar",
-  "gmail",
-  "stripe",
-]);
-
 type Props = {
   meta: ComposioToolkitMeta;
   toolkit: ComposioToolkit;
@@ -145,7 +134,10 @@ export function ComposioConnector({ meta, toolkit }: Props) {
 
   const connecting = connectMutation.isPending || Boolean(connectionRequestId);
   const isActive = toolkit.status === "ACTIVE";
-  const supportsTogglePanel = TOOLKITS_WITH_ACTION_TOGGLES.has(meta.id);
+  // Whether the "Configure tools" per-action panel is available is the
+  // backend's call: it reports supports_action_prefs for toolkits that have a
+  // category map in services/composio/categories.py and accept PUT /prefs.
+  const supportsTogglePanel = toolkit.supports_action_prefs === true;
   const [sheetOpen, setSheetOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
 

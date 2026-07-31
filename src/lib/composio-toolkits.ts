@@ -2,6 +2,11 @@
  * Static metadata for the nine Composio toolkits we surface in the UI.
  * Backend authoritative status comes from /api/connectors/composio/toolkits;
  * this file owns presentation (display name, description, icon hint).
+ *
+ * Ids here MUST exist in the backend `TOOLKITS` map
+ * (xo-cowork-api services/composio/service.py). A card whose id the backend
+ * does not return is filtered out by ComposioCards rather than rendered as a
+ * dead "Connect" button.
  */
 
 export type ComposioScheme = "OAUTH2" | "API_KEY";
@@ -44,52 +49,52 @@ export const COMPOSIO_TOOLKITS: ComposioToolkitMeta[] = [
     iconKey: "logos/notion-icon",
   },
   {
-    id: "stripe",
-    slug: "STRIPE",
-    displayName: "Stripe",
-    description: "Customers, charges, invoices, payment intents.",
-    schemes: ["OAUTH2", "API_KEY"],
-    iconKey: "logos/stripe",
+    id: "googlesheets",
+    slug: "GOOGLESHEETS",
+    displayName: "Google Sheets",
+    description: "Read and write spreadsheets, rows, and formulas.",
+    schemes: ["OAUTH2"],
+    iconKey: "selfhst/google-sheets",
   },
   {
-    id: "supabase",
-    slug: "SUPABASE",
-    displayName: "Supabase",
-    description: "Query Postgres, manage tables, auth users.",
+    id: "googledocs",
+    slug: "GOOGLEDOCS",
+    displayName: "Google Docs",
+    description: "Create and edit documents, insert and format content.",
+    schemes: ["OAUTH2"],
+    iconKey: "selfhst/google-docs",
+  },
+  {
+    id: "googleslides",
+    slug: "GOOGLESLIDES",
+    displayName: "Google Slides",
+    description: "Build decks, add slides, update shapes and text.",
+    schemes: ["OAUTH2"],
+    iconKey: "selfhst/google-slides",
+  },
+  {
+    id: "googlemeet",
+    slug: "GOOGLEMEET",
+    displayName: "Google Meet",
+    description: "Create meetings, fetch recordings and transcripts.",
+    schemes: ["OAUTH2"],
+    iconKey: "logos/google-meet",
+  },
+  {
+    id: "figma",
+    slug: "FIGMA",
+    displayName: "Figma",
+    description: "Read files, frames, comments, and component metadata.",
+    schemes: ["OAUTH2"],
+    iconKey: "logos/figma",
+  },
+  {
+    id: "browserbase",
+    slug: "BROWSERBASE_TOOL",
+    displayName: "Browserbase",
+    description: "Drive a headless browser session to scrape or automate.",
     schemes: ["API_KEY"],
-    iconKey: "logos/supabase-icon",
-  },
-  {
-    id: "digitalocean",
-    slug: "DIGITALOCEAN",
-    displayName: "DigitalOcean",
-    description: "Droplets, volumes, billing, monitoring.",
-    schemes: ["API_KEY"],
-    iconKey: "logos/digital-ocean-icon",
-  },
-  {
-    id: "youtube",
-    slug: "YOUTUBE",
-    displayName: "YouTube",
-    description: "Search videos, channels, playlists.",
-    schemes: ["OAUTH2"],
-    iconKey: "logos/youtube-icon",
-  },
-  {
-    id: "miro",
-    slug: "MIRO",
-    displayName: "Miro",
-    description: "Boards, sticky notes, frames.",
-    schemes: ["OAUTH2"],
-    iconKey: "logos/miro-icon",
-  },
-  {
-    id: "canva",
-    slug: "CANVA",
-    displayName: "Canva",
-    description: "Designs, brand templates, assets.",
-    schemes: ["OAUTH2"],
-    iconKey: "devicon/canva",
+    iconKey: "twemoji/globe-with-meridians",
   },
 ];
 

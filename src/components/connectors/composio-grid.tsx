@@ -22,7 +22,10 @@ export function ComposioCards({ search = "" }: CardsProps) {
 
   const byId = new Map((data?.toolkits ?? []).map((t) => [t.id, t]));
   const q = search.trim().toLowerCase();
+  // The backend TOOLKITS map is authoritative: a toolkit it no longer serves
+  // would 400 on /connect, so never render a card for it.
   const cards = COMPOSIO_TOOLKITS.filter((m) => {
+    if (!byId.has(m.id)) return false;
     if (!q) return true;
     return (
       m.displayName.toLowerCase().includes(q) ||
@@ -33,18 +36,9 @@ export function ComposioCards({ search = "" }: CardsProps) {
 
   return (
     <>
-      {cards.map((meta) => {
-        const toolkit = byId.get(meta.id) ?? {
-          id: meta.id,
-          slug: meta.slug,
-          display_name: meta.displayName,
-          schemes: meta.schemes,
-          status: "NEEDS_AUTH" as const,
-          connected_account_id: null,
-          scheme: null,
-        };
-        return <ComposioConnector key={meta.id} meta={meta} toolkit={toolkit} />;
-      })}
+      {cards.map((meta) => (
+        <ComposioConnector key={meta.id} meta={meta} toolkit={byId.get(meta.id)!} />
+      ))}
     </>
   );
 }

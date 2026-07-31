@@ -19,6 +19,8 @@ export type ComposioToolkit = {
   status: ComposioStatus;
   connected_account_id: string | null;
   scheme: string | null;
+  /** Backend gate for the per-action "Configure tools" panel. */
+  supports_action_prefs?: boolean;
 };
 
 export type ComposioActionCategory = "read" | "write";
