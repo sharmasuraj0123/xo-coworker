@@ -118,10 +118,24 @@ export function useComposioDisconnect() {
   });
 }
 
+export type GatewayInstallResult = {
+  ok: boolean;
+  restart_required?: boolean;
+  error?: string;
+  /**
+   * Always present on success. The OpenClaw/Hermes gateway config is a single
+   * machine-global file, so the install points it at whoever called last — for
+   * every session on the host, not just theirs. Worth showing rather than
+   * implying an isolation the file layout can't provide. Claude Code is
+   * unaffected: its MCP config is written per session.
+   */
+  multi_tenant_warning?: string;
+};
+
 export function useComposioInstallIntoGateway() {
   return useMutation({
     mutationFn: (agent: "openclaw" | "hermes") =>
-      api.post<{ ok: boolean; restart_required?: boolean; error?: string }>(
+      api.post<GatewayInstallResult>(
         `${API.COMPOSIO.INSTALL_INTO_GATEWAY}?agent=${agent}`,
       ),
   });

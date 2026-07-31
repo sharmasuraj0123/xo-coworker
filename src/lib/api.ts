@@ -8,6 +8,7 @@ import {
   resolveApiUrl,
 } from "./constants";
 import { getRemoteConfig } from "./remote-connection";
+import { clearXoSessionId, xoSessionHeaders } from "./xo-session";
 import i18n from "@/i18n/config";
 
 class ApiError extends Error {
@@ -69,6 +70,9 @@ async function request<T>(
   resolvedUrl = appendPreservedParams(resolvedUrl);
 
   let lastError: unknown;
+  // A session id is only re-minted once per request; without this a backend
+  // that 401s for any other reason would loop.
+  let sessionRetried = false;
 
   // Build auth headers for remote mode + Coder tunnel
   const authHeaders: Record<string, string> = {};
@@ -78,6 +82,12 @@ async function request<T>(
   const coderToken = getCoderSessionToken();
   if (coderToken) {
     authHeaders["Coder-Session-Token"] = coderToken;
+  }
+  // XO identity. The backend is multi-tenant — Composio routes 401 without it,
+  // and chat turns silently lose their Composio tools. Minted once and cached;
+  // `/xo-auth/*` is skipped so the mint call itself can't recurse.
+  if (!url.startsWith("/xo-auth/")) {
+    Object.assign(authHeaders, await xoSessionHeaders());
   }
 
   for (let attempt = 0; attempt <= NETWORK_RETRY_MAX; attempt++) {
@@ -123,6 +133,25 @@ async function request<T>(
         err instanceof ApiError &&
         err.status === 500 &&
         !(typeof err.body === "object" && err.body !== null && "detail" in err.body);
+
+      // Expired session id. They carry a TTL (XO_SESSION_TTL, 12h default), so
+      // a long-lived tab eventually holds a stale one and every call 401s.
+      // Drop it, mint a fresh one, and replay this request once.
+      const isAuthErr =
+        err instanceof ApiError &&
+        err.status === 401 &&
+        !url.startsWith("/xo-auth/");
+      if (isAuthErr && !sessionRetried) {
+        sessionRetried = true;
+        clearXoSessionId();
+        const fresh = await xoSessionHeaders();
+        if (Object.keys(fresh).length > 0) {
+          Object.assign(authHeaders, fresh);
+          continue;
+        }
+        throw err; // couldn't re-mint — surface the original 401
+      }
+
       if ((isNetworkErr || isGatewayErr || isProxy500) && attempt < NETWORK_RETRY_MAX) {
         lastError = err;
         await new Promise((r) => setTimeout(r, 1000 * 2 ** attempt));

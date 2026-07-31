@@ -92,6 +92,11 @@ function ProviderNotice({
               Installed. Restart the gateway to activate.
             </p>
           )}
+          {install.data?.ok && install.data.multi_tenant_warning && (
+            <p className="text-amber-600 dark:text-amber-400">
+              {install.data.multi_tenant_warning}
+            </p>
+          )}
           {install.data && !install.data.ok && (
             <p className="text-amber-600 dark:text-amber-400">
               {install.data.error ?? "Install failed."}

@@ -40,6 +40,14 @@ const nextConfig: NextConfig = {
           destination: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002"}/health`,
         },
         {
+          // XO identity. The browser mints its session id here
+          // (GET /xo-auth/session/self) and sends it back as X-XO-Session on
+          // every API call; without this rewrite that fetch lands on Next
+          // itself and the backend 401s every Composio route.
+          source: "/xo-auth/:path*",
+          destination: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002"}/xo-auth/:path*`,
+        },
+        {
           source: "/gateway/:path*",
           destination: `${process.env.NEXT_PUBLIC_XO_COWORKER_API_URL || "http://localhost:5002"}/gateway/:path*`,
         },
