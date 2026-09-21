@@ -80,6 +80,9 @@ export interface SSEEventData {
   // plan-review
   plan?: string | null;
   files_to_modify?: string[] | null;
+
+  // model-loading — what the backend is doing right now, in its own words.
+  label?: string | null;
 }
 
 /** Parsed SSE event with type and data. */

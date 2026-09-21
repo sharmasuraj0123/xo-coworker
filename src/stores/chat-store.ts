@@ -27,6 +27,15 @@ interface ChatStore {
 
   // ─── Model loading (Ollama cold start) ───
   isModelLoading: boolean;
+  /**
+   * Live activity reported by the active backend on `model-loading` events —
+   * e.g. "running command", a RAG/web-search step, a transcript stage.
+   *
+   * Backend-agnostic by design: the label is whatever the adapter sent and is
+   * rendered verbatim, so no backend is named here. Null when the backend sent
+   * no label, in which case the stage line falls back to its previous wording.
+   */
+  activityLabel: string | null;
 
   // ─── Interactive prompts ───
   pendingPermission: PermissionRequest | null;
@@ -56,6 +65,7 @@ interface ChatStore {
   setPlanReview: (req: PlanReviewRequest) => void;
   clearPlanReview: () => void;
   setModelLoading: (loading: boolean) => void;
+  setActivityLabel: (label: string | null) => void;
   clearStreamingContent: () => void;
   finishGeneration: () => void;
   reset: () => void;
@@ -91,6 +101,7 @@ export const useChatStore = create<ChatStore>((set) => ({
   streamingText: "",
   streamingReasoning: "",
   isModelLoading: false,
+  activityLabel: null,
   pendingPermission: null,
   pendingQuestion: null,
   pendingPlanReview: null,
@@ -100,6 +111,7 @@ export const useChatStore = create<ChatStore>((set) => ({
     set({
       isGenerating: true,
       isModelLoading: false,
+      activityLabel: null,
       pendingUserText: text,
       pendingAttachments: attachments?.length ? attachments : null,
       streamingParts: [],
@@ -343,6 +355,8 @@ export const useChatStore = create<ChatStore>((set) => ({
 
   setModelLoading: (loading) => set({ isModelLoading: loading }),
 
+  setActivityLabel: (label) => set({ activityLabel: label || null }),
+
   clearStreamingContent: () =>
     set({
       streamingParts: [],
@@ -361,6 +375,7 @@ export const useChatStore = create<ChatStore>((set) => ({
         streamId: null,
         isGenerating: false,
         isModelLoading: false,
+        activityLabel: null,
         pendingUserText: null,
         pendingAttachments: null,
         pendingPermission: null,
@@ -378,6 +393,7 @@ export const useChatStore = create<ChatStore>((set) => ({
       sessionId: null,
       isGenerating: false,
       isModelLoading: false,
+      activityLabel: null,
       pendingUserText: null,
       pendingAttachments: null,
       streamingParts: [],

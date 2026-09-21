@@ -94,6 +94,7 @@ interface StreamingMessageProps {
 export const StreamingMessage = memo(function StreamingMessage({ parts, streamingText, streamingReasoning }: StreamingMessageProps) {
   const { t } = useTranslation("chat");
   const isModelLoading = useChatStore((s) => s.isModelLoading);
+  const activityLabel = useChatStore((s) => s.activityLabel);
 
   // Stabilize liveParts reference — without useMemo, a new array is created
   // on every render, breaking downstream useMemo dependencies in MessageContent.
@@ -108,7 +109,9 @@ export const StreamingMessage = memo(function StreamingMessage({ parts, streamin
   if (liveParts.length === 0) {
     return (
       <div className="animate-fade-in">
-        {isModelLoading && <StreamingStage label={t("loadingModel")} />}
+        {isModelLoading && (
+          <StreamingStage label={activityLabel ?? t("loadingModel")} />
+        )}
         <StreamingIndicator />
       </div>
     );
@@ -130,8 +133,12 @@ export const StreamingMessage = memo(function StreamingMessage({ parts, streamin
   const isGenerationDone = !!lastStepFinish && lastStepFinish.reason !== "tool_use";
   const showTail = !isActivelyStreaming && !hasRunningTool && !isGenerationDone;
 
+  // The backend's own label wins when it sent one: it names the actual phase
+  // ("running command") instead of a guess made from the parts we happen to
+  // have. No backend is named here — whatever arrived is shown verbatim.
   let stageLabel = "Preparing";
-  if (isModelLoading) stageLabel = t("loadingModel");
+  if (activityLabel) stageLabel = activityLabel;
+  else if (isModelLoading) stageLabel = t("loadingModel");
   else if (hasRunningTool) stageLabel = "Working with tools";
   else if (isActivelyStreaming) stageLabel = "Drafting response";
   else if (hasAnyTool) stageLabel = "Finalizing output";

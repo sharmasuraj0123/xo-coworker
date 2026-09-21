@@ -197,10 +197,15 @@ export function useSSE(streamId: string | null) {
         },
       });
 
-    // Model loading (Ollama cold start)
-    client.on(SSE_EVENTS.MODEL_LOADING, (_data, id) => {
+    // Backend activity ping: an Ollama cold start, or a backend reporting what
+    // it is doing between text (tool runs, retrieval steps). Keep the label the
+    // backend sent — it is the only description of the current phase, and
+    // dropping it leaves a long tool run looking frozen. Backends that send no
+    // label fall back to the previous cold-start wording.
+    client.on(SSE_EVENTS.MODEL_LOADING, (data, id) => {
       recordEventId(id);
       store.getState().setModelLoading(true);
+      store.getState().setActivityLabel(data.label ?? null);
     });
 
     // Session created — new session's real ID resolved by the bridge.
@@ -249,6 +254,9 @@ export function useSSE(streamId: string | null) {
     client.on(SSE_EVENTS.TEXT_DELTA, (data, id) => {
       recordEventId(id);
       if (store.getState().isModelLoading) store.getState().setModelLoading(false);
+      // Text is flowing again, so the reported activity is over. Clearing here
+      // (and in finishGeneration) is what stops a stale label sticking around.
+      if (store.getState().activityLabel) store.getState().setActivityLabel(null);
       if (data.text) store.getState().appendTextDelta(data.text);
     });
 
