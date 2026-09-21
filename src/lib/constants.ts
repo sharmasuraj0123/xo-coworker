@@ -347,10 +347,6 @@ export const API = {
   GATEWAY: {
     RESTART: "/gateway/restart",
   },
-  ONBOARDING: {
-    STATUS: "/api/onboarding",
-    COMPLETE: "/api/onboarding/complete",
-  },
   REMOTE: {
     ENABLE: "/api/remote/enable",
     DISABLE: "/api/remote/disable",
@@ -448,7 +444,6 @@ export const queryKeys = {
     insights: (p: string, days: number) =>
       ["hermes", "profile", p, "insights", days] as const,
   },
-  onboardingStatus: ["onboardingStatus"] as const,
   codexStatus: ["codexStatus"] as const,
   plugins: {
     all: ["plugins"] as const,
