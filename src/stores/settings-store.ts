@@ -27,9 +27,7 @@ export type ActiveProvider = "byok" | "chatgpt" | "ollama" | "local" | "custom" 
 export type WorkMode = "plan" | "ask" | "auto";
 
 interface SettingsStore {
-  /** Whether the user has completed the first-run onboarding flow */
-  hasCompletedOnboarding: boolean;
-  /** Company / workspace name set during onboarding */
+  /** Company / workspace name shown in the sidebar header */
   companyName: string;
   /** Selected model ID (e.g. "claude-sonnet-4-20250514") */
   selectedModel: string | null;
@@ -81,8 +79,6 @@ interface SettingsStore {
   clearAllPermissionRules: () => void;
   /** Set workspace directory (null = unrestricted) */
   setWorkspaceDirectory: (dir: string | null) => void;
-  /** Mark onboarding as complete */
-  completeOnboarding: () => void;
   /** Set company name */
   setCompanyName: (name: string) => void;
   /** Mark feature hints as seen */
@@ -96,7 +92,6 @@ interface SettingsStore {
 export const useSettingsStore = create<SettingsStore>()(
   persist(
     (set, get) => ({
-      hasCompletedOnboarding: false,
       companyName: "",
       selectedModel: null,
       selectedProviderId: null,
@@ -178,17 +173,6 @@ export const useSettingsStore = create<SettingsStore>()(
         })),
       clearAllPermissionRules: () => set({ savedPermissions: [] }),
       setWorkspaceDirectory: (dir) => set({ workspaceDirectory: dir }),
-      completeOnboarding: () => {
-        set({ hasCompletedOnboarding: true });
-        // Persist on the user's machine via xo-coworker-api so onboarding
-        // does not re-trigger in a new browser / incognito / after a
-        // localStorage clear. Fire-and-forget — the localStorage flag is
-        // the fast path, the server is the durable record.
-        import("@/lib/api")
-          .then(({ api }) => import("@/lib/constants").then(({ API }) =>
-            api.post(API.ONBOARDING.COMPLETE)))
-          .catch(() => { /* non-fatal */ });
-      },
       setCompanyName: (name) => set({ companyName: name }),
       setHasSeenHints: (seen) => set({ hasSeenHints: seen }),
       setLanguage: (lang) => {

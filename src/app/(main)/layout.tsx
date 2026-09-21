@@ -24,7 +24,6 @@ import { Button } from "@/components/ui/button";
 import { XoCoworkerLogo } from "@/components/ui/xo-coworker-logo";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useSidebarStore } from "@/stores/sidebar-store";
-import { OnboardingGate } from "@/components/onboarding/onboarding-gate";
 import { useAutoDetectProvider } from "@/hooks/use-auto-detect-provider";
 import { useActivityStore } from "@/stores/activity-store";
 import { useArtifactStore } from "@/stores/artifact-store";
@@ -126,11 +125,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     closePlanReview();
   }, [pathname, closeActivity, closeArtifact, closePlanReview]);
 
-  const isOnboardPage = pathname === "/onboard";
-  const marginLeft = !isOnboardPage && isDesktop && !isCollapsed ? SIDEBAR_WIDTH : 0;
+  const marginLeft = isDesktop && !isCollapsed ? SIDEBAR_WIDTH : 0;
   const isChatPage = pathname?.startsWith("/c/") ?? false;
   const isActiveChat = isChatPage && pathname !== "/c/new";
-  const showWorkspace = !isOnboardPage && isDesktop && isActiveChat;
+  const showWorkspace = isDesktop && isActiveChat;
   const overlayWidth = artifactIsOpen
     ? artifactWidth
     : planReviewIsOpen
@@ -138,7 +136,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       : activityIsOpen
         ? ACTIVITY_PANEL_WIDTH
         : 0;
-  const marginRight = !isOnboardPage && isDesktop
+  const marginRight = isDesktop
     ? Math.max(showWorkspace ? WORKSPACE_PANEL_WIDTH : 0, overlayWidth)
     : 0;
 
@@ -158,11 +156,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       {/* Splash screen for desktop app initialization */}
       {showSplash && <SplashScreen />}
 
-      {/* Redirect first-time users to /onboard — no render */}
-      <Suspense fallback={null}>
-        <OnboardingGate />
-      </Suspense>
-
       {/* Top progress bar for route transitions */}
       <RouteProgressBar />
 
@@ -170,19 +163,17 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       <TitleBar />
 
       {/* Desktop sidebar */}
-      {!isOnboardPage && (
-        <div className="hidden lg:block">
-          <Suspense fallback={null}>
-            <Sidebar />
-          </Suspense>
-        </div>
-      )}
+      <div className="hidden lg:block">
+        <Suspense fallback={null}>
+          <Sidebar />
+        </Suspense>
+      </div>
 
       {/* Mobile nav drawer */}
-      {!isOnboardPage && <MobileNav />}
+      <MobileNav />
 
       {/* Collapsed quick actions for non-chat pages */}
-      {!isOnboardPage && isDesktop && isCollapsed && !isChatPage && (
+      {isDesktop && isCollapsed && !isChatPage && (
         <TooltipProvider delayDuration={200}>
           <div
             className="fixed left-3 z-40 flex items-center gap-1 rounded-xl bg-[var(--surface-primary)]/80 backdrop-blur-sm px-1 py-0.5"
@@ -249,18 +240,16 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       {showWorkspace && <WorkspacePanel />}
 
       {/* Overlay panels (mutually exclusive, z-35) - cover workspace when open */}
-      {!isOnboardPage && (
-        <ErrorBoundary>
-          <AnimatePresence mode="wait">
-            {activityIsOpen && <ActivityPanel key="activity" />}
-            {artifactIsOpen && <ArtifactPanel key="artifact" />}
-            {planReviewIsOpen && <PlanReviewPanel key="plan-review" />}
-          </AnimatePresence>
-        </ErrorBoundary>
-      )}
+      <ErrorBoundary>
+        <AnimatePresence mode="wait">
+          {activityIsOpen && <ActivityPanel key="activity" />}
+          {artifactIsOpen && <ArtifactPanel key="artifact" />}
+          {planReviewIsOpen && <PlanReviewPanel key="plan-review" />}
+        </AnimatePresence>
+      </ErrorBoundary>
 
       {/* Upgrade prompt dialog */}
-      {!isOnboardPage && <UpgradePrompt />}
+      <UpgradePrompt />
     </div>
   );
 }

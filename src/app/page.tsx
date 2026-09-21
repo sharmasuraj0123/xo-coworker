@@ -2,32 +2,20 @@
 
 import { useEffect } from "react";
 import { useAppRouter } from "@/lib/navigation";
-import { useSettingsStore, useSettingsHasHydrated } from "@/stores/settings-store";
-import { useOnboardingStatus } from "@/hooks/use-onboarding";
 
 /**
- * Root redirect. Sends first-run users straight to `/onboard` instead of
- * bouncing them through `/c/new` first (which `OnboardingGate` would
- * then redirect again — visible as a brief flash).
+ * Root redirect. Every visit lands on a new chat.
  *
- * Decision logic mirrors `OnboardingGate`: localStorage flag is the
- * fast path; the API at `/api/onboarding` is the source of truth.
+ * Uses `useAppRouter` rather than a server-side `redirect()` so the
+ * preserved query params (e.g. `coder_session_token`) ride along to
+ * the destination.
  */
 export default function Home() {
   const router = useAppRouter();
-  const hydrated = useSettingsHasHydrated();
-  const cachedCompleted = useSettingsStore((s) => s.hasCompletedOnboarding);
-  const { data: serverStatus, isLoading } = useOnboardingStatus();
 
   useEffect(() => {
-    if (!hydrated) return;
-    if (cachedCompleted) {
-      router.replace("/c/new");
-      return;
-    }
-    if (isLoading) return;
-    router.replace(serverStatus?.completed ? "/c/new" : "/onboard");
-  }, [hydrated, cachedCompleted, isLoading, serverStatus?.completed, router]);
+    router.replace("/c/new");
+  }, [router]);
 
   return null;
 }
