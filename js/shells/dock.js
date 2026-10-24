@@ -13,6 +13,7 @@ import { esc } from "../util.js";
 import { ICON } from "../ui.js";
 import * as K from "../keys.js";
 import { mountShell } from "./term.js";
+import { drag, follow, glide, unstyle, tick, FLICK } from "../gestures.js";
 import { busyWith, isRunning, isDetached, stateLine, dotOf, runningOf, listRows, cleanName, nameFor, whereOf } from "./model.js";
 
 const LIST = "list";
@@ -42,6 +43,7 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
     active: LIST,
     filter: null,         // a project's folder, "workspace", or null for every shell
     open: false, min: !!saved.min, h: saved.h || 320,
+    half: false,          // on a phone: the sheet rests at half height, the conversation showing above it
     edit: null,           // the shell being renamed
     confirm: null,        // {kind: "close", id, fg} | {kind: "detached", ids}
     busy: new Set(),      // shells with a write on its way
@@ -300,6 +302,7 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
     }
     root.hidden = !show || !R.open;
     root.classList.toggle("is-min", R.min);
+    root.classList.toggle("is-half", R.half);
     document.getElementById("app")?.classList.toggle("has-shd", show && R.open);
     root.style.setProperty("--shd-h", `${R.h}px`);
     if (root.hidden) return;
@@ -508,6 +511,37 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
     render(); persist();
   });
 
+  // on a phone the dock is a sheet: drag its bar between full screen and half, or down to put it away
+  // (it waits in the sidebar's Shells row). Inside the terminal every touch stays the terminal's.
+  const PHONE = matchMedia("(max-width: 760px)");
+  const bar = root.querySelector(".shd-bar");
+  const refit = () => R.tabs.get(R.active)?.handle.refit();
+  drag(bar, {
+    axis: "y",
+    start: ({ target }) => PHONE.matches && R.open && !R.min && !target.closest("input"),
+    move: (_dx, dy) => follow(root, `translateY(${Math.max(R.half ? -root.offsetTop : 0, dy)}px)`),
+    end: async (_dx, dy, _vx, vy) => {
+      const H = innerHeight, top = root.offsetTop + dy;
+      const flick = Math.abs(vy) > FLICK ? Math.sign(vy) : 0;
+      // where it settles: full, half, or away; a flick moves one step its way
+      let to = top < H * 0.25 ? "full" : top < H * 0.72 ? "half" : "away";
+      if (flick > 0) to = R.half ? "away" : "half";
+      if (flick < 0) to = "full";
+      if (to !== (R.half ? "half" : "full")) tick();
+      if (to === "away") {
+        await glide(root, `translateY(${H - root.offsetTop}px)`, { ms: 180 });
+        R.min = true; R.half = false; unstyle(root); changed();
+        document.getElementById("scroller")?.focus({ preventScroll: true });
+        return;
+      }
+      const target = to === "half" ? Math.round(H * 0.45) : 0;
+      await glide(root, `translateY(${target - root.offsetTop}px)`, { ms: 200 });
+      R.half = to === "half"; unstyle(root); render(); refit();
+    },
+    cancel: () => unstyle(root),
+  });
+  PHONE.addEventListener("change", () => { if (R.half) { R.half = false; render(); refit(); } });
+
   // a reload while a shell is on screen asks first (⌘W / Ctrl+W can't be caught)
   addEventListener("beforeunload", (e) => {
     if ([...R.tabs.values()].some((t) => t.state === "live")) { e.preventDefault(); e.returnValue = ""; }
@@ -537,5 +571,15 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
     /** Running shells: a project's (its folder name), the workspace's ("workspace"), or every one (null). */
     countFor: (p = null) => (p === "workspace" ? R.list.filter((t) => isRunning(t) && t.scope === "workspace").length : runningOf(R.list, p).length),
     openProject, openWorkspace, openThread, showList, toggle, owns,
+    /** On a phone, is the shells sheet up over the page (so Back puts it away first)? */
+    get raised() { return PHONE.matches && R.enabled && R.open && !R.min; },
+    /** Back on a phone: half height first, then away into the sidebar row. */
+    lower() {
+      if (!(PHONE.matches && R.open && !R.min)) return false;
+      if (!R.half) { R.half = true; render(); refit(); return true; }
+      R.min = true; R.half = false; changed();
+      document.getElementById("scroller")?.focus({ preventScroll: true });
+      return true;
+    },
   };
 }

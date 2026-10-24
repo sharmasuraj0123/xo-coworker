@@ -1993,3 +1993,37 @@ a.vw-btn{text-decoration:none}
   .shl-acts{width:100%;justify-content:flex-end}
   .shd-tx{width:30px;height:30px}
 }
+
+/* ── touch gestures (js/gestures.js, design-research/11) ──────────────────────
+   The surfaces follow the finger; these are only what shows while they do: the page being swiped back
+   lifts off the list, the sidebar casts its shadow while dragged, sheets show a grabber, a row swiped
+   left shows what letting go will do. */
+.conv.is-swiped{background:var(--canvas);box-shadow:-24px 0 48px rgb(0 0 0 / calc(.4 * var(--sha)))}
+.main:has(.conv.is-swiped){background:var(--side)}
+.lp-menu{position:fixed;z-index:95;display:flex;gap:2px;padding:4px;border-radius:14px;background:var(--pop-bg);border:1px solid var(--pop-line);box-shadow:0 18px 50px var(--pop-shadow);animation:pop-in .16s var(--glide)}
+.lp-menu button{min-height:40px;padding:0 14px;border-radius:10px;font:500 15px/1 var(--sans);color:var(--ink)}
+.lp-menu button:active,.lp-menu button:focus-visible{background:var(--bg-3)}
+.ar-list li{position:relative;border-radius:11px}
+.ar-list li.is-swiping::before{content:attr(data-act);position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;padding-right:18px;border-radius:11px;background:var(--g23);color:var(--ink-3);font:600 var(--fs-md)/1 var(--sans);transition:background var(--dur-fast),color var(--dur-fast)}
+.ar-list li.is-armed::before{background:color-mix(in srgb,var(--accent-fill) 26%,var(--g23));color:var(--ink)}
+.ar-list li.is-swiping .ar{position:relative;background:var(--g1B)}
+.ar-undo{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:42px;padding:4px 6px 4px 10px;font-size:var(--fs-md);color:var(--ink-3)}
+.ar-undo span{display:inline-flex;align-items:center;gap:8px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ar-undo svg{flex:none;width:14px;height:14px;color:var(--accent-fill)}
+.ar-undo b{color:var(--ink);font-weight:600}
+.ar-undo button{flex:none;min-height:36px;padding:0 12px;border-radius:9px;border:1px solid var(--g2E);font-weight:600;color:var(--ink)}
+@media (pointer:coarse){
+  /* a long-press opens Copy · Select text (the browser's own selection comes back with Select text) */
+  .m-you .bubble,.m-them>.mb>.prose,.m-turn .tb-answer{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+  .m-you .bubble.is-selecting,.m-them>.mb>.prose.is-selecting,.m-turn .tb-answer.is-selecting{-webkit-user-select:text;user-select:text}
+}
+@media (max-width:760px){
+  .side.is-drag{box-shadow:30px 0 80px rgb(0 0 0 / calc(.5 * var(--sha)))}
+  .sheet-card{position:relative}
+  .panel::before,.iq-pop.is-sheet::before,.sheet-card::before,.shd-bar::before{content:"";position:absolute;z-index:3;top:6px;left:50%;width:36px;height:4px;margin-left:-18px;border-radius:2px;background:var(--g36);pointer-events:none}
+  .shd-bar{position:relative}
+  .shd-bar::before{top:calc(env(safe-area-inset-top) + 4px)}
+  .shd.is-half{top:45dvh;border-top:1px solid var(--g26);border-radius:20px 20px 0 0;overflow:hidden;box-shadow:0 -24px 60px rgb(0 0 0 / calc(.45 * var(--sha)))}
+  .shd.is-half .shd-bar{padding-top:6px}
+  .shd.is-half .shd-bar::before{top:4px}
+}

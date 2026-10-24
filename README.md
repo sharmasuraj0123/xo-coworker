@@ -90,6 +90,7 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 | `js/intel.js` | the model and depth chip |
 | `js/content.js` | what an ask costs you, what it frees, and its evidence |
 | `js/ui.js` | icons and motion helpers |
+| `js/gestures.js` | touch gestures on a phone: swipe back or open the sidebar, drag sheets away, swipe between asks, long-press Copy (design-research/11) |
 | `js/shells/dock.js` | shells: the dock, its tabs and list, the sidebar row; what `app.js` calls |
 | `js/shells/term.js` | one shell on screen: xterm.js, its WebSocket, reconnects, flow control, theme |
 | `js/shells/model.js` | shells, the pure part: row words, counts, flow-control watermarks, backoff |

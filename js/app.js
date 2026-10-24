@@ -27,6 +27,7 @@ import { createViewer } from "./viewer.js";
 import { createTray, fmtSize, kindOf, typeWord, isLargePaste, pasteLabel, uploadErrorText, FINAL, MAX_FILES } from "./attach.js";
 import { uploadAttachment, attachmentUrl } from "./api.js";
 import { createShells } from "./shells/dock.js";
+import { wireGestures } from "./gestures.js";
 
 const world = createWorld();
 
@@ -76,6 +77,7 @@ const S = {
   desc: {},
   seen: null,
   allFilter: "all", allDone: false,
+  trail: [],               // places visited before this one, for the phone's Back (a thread's own Back is its parent)
   n: 0,
 };
 const waitSince = new Map();
@@ -1784,6 +1786,8 @@ function go(v, { from, focus = false } = {}) {
   const opener = a && a.closest?.("[data-k], .nw");
   if (opener && (opener.closest("#msgs") || opener.closest("#now-wrap"))) S.opener[S.view] = opener.dataset.k || opener.dataset.go;
   saveScroll(); saveDraft();
+  // the phone's Back retraces the places you went; a thread's parent already knows its own way back
+  if (!S.retrace && !v.startsWith("t:") && !v.startsWith("c:")) { S.trail = S.trail.filter((x) => x !== v); S.trail.push(S.view); if (S.trail.length > 30) S.trail.shift(); }
   const deeper = v.startsWith("t:") && !S.view.startsWith("t:");
   if (v.startsWith("t:")) S.parent[v] = from || (S.view.startsWith("t:") ? S.parent[S.view] : S.view);
   const back = from && from.startsWith("t:");
@@ -1838,8 +1842,10 @@ function ensureRoot() {
 }
 function back() {
   const v = S.view;
-  if (v.startsWith("c:")) { go("chats", { from: "t:" }); return; }
-  if (v.startsWith("t:")) go(S.parent[v] || "p:" + convThread(v)?.project, { from: v });
+  S.retrace = true;
+  if (v.startsWith("c:")) go("chats", { from: "t:" });
+  else if (v.startsWith("t:")) go(S.parent[v] || "p:" + convThread(v)?.project, { from: v });
+  S.retrace = false;
 }
 $("#top-back").addEventListener("click", back);
 
@@ -2376,6 +2382,99 @@ addEventListener("keydown", (e) => {
   // Only keys that can't be hit by accident: no single letters (a stray keystroke must never
   // navigate or open something). Decision keys live on a focused decision card only.
   for (const id of Object.keys(GLOBAL)) if (K.is(e, id)) { e.preventDefault(); GLOBAL[id](); return; }
+});
+
+// ── the phone's own Back (Android's back gesture, Safari's edge swipe) ──────
+// The app keeps one history entry of its own while there is somewhere to go back to. Back then does
+// what Esc does (the top sheet, the viewer, Settings, the sidebar), then a thread's parent, then the
+// places you came through; with nothing left it lets the browser leave.
+const sheetsOpen = () => !jump.hidden || !keys.hidden || !allEl.hidden || RS.open || dlg.open || IQ.isOpen || CH.setupOpen;
+const placeOk = (v) => v === "home" || v === "ws" || v === "chats" || (v.startsWith("p:") && !!world.project(v.slice(2))) || (v.startsWith("t:") && !!world.thread(v.slice(2))) || v.startsWith("c:");
+function canBack() {
+  return sheetsOpen() || VW.isOpen || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised || S.view !== "home" || S.trail.length > 0;
+}
+/** One step back. False when there's nothing left in the app to go back to. */
+function stepBack() {
+  if (dlg.open) { closeCreate(); return true; }
+  if (!jump.hidden) { closeJump(); return true; }
+  if (IQ.isOpen) { IQ.close(); return true; }
+  if (CH.setupOpen) { CH.closeSetup(); return true; }
+  if (RS.open) { runsEscape(); return true; }
+  if (!keys.hidden) { closeKeys(); return true; }
+  if (!allEl.hidden) { closeAll(); return true; }
+  if (VW.isOpen) { VW.close(); return true; }
+  if (!setEl.hidden) { closeSettings(); return true; }
+  if (SH.raised && SH.lower()) return true;
+  if ($("#app").classList.contains("drawer")) { setDrawer(false); return true; }
+  if (D.isOpen()) { D.close(); return true; }
+  if (S.view.startsWith("t:") || S.view.startsWith("c:")) { back(); return true; }
+  while (S.trail.length) {
+    const v = S.trail.pop();
+    if (v === S.view || !placeOk(v)) continue;
+    S.retrace = true; go(v); S.retrace = false;
+    return true;
+  }
+  if (S.view !== "home") { S.retrace = true; go("home"); S.retrace = false; return true; }
+  return false;
+}
+const HIST = { armed: history.state?.xo === 1 };
+function armBack() {
+  if (HIST.armed || !canBack()) return;
+  try { history.pushState({ ...(history.state || {}), xo: 1 }, ""); HIST.armed = true; } catch { /* a sandboxed frame */ }
+}
+addEventListener("popstate", () => {
+  HIST.armed = history.state?.xo === 1;
+  if (HIST.armed) return; // forward onto our own entry: nothing to undo
+  if (!stepBack()) { history.back(); return; }
+  armBack();
+});
+// arm on the person's own taps and keys (an entry pushed without one can be skipped by Back)
+document.addEventListener("click", () => setTimeout(armBack, 0), true);
+addEventListener("keyup", () => setTimeout(armBack, 0), true);
+document.addEventListener("touchend", () => setTimeout(armBack, 0), { capture: true, passive: true });
+document.addEventListener("xo:gesture", armBack);
+
+// ── touch: gestures for the same moves (js/gestures.js), and the title back to the top ──
+wireGestures({
+  phone: () => PHONE.matches,
+  overlay: () => sheetsOpen() || VW.isOpen || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised,
+  view: () => S.view,
+  back,
+  drawer: (open) => setDrawer(open),
+  isDrawer: () => $("#app").classList.contains("drawer"),
+  settingsOpen: () => !setEl.hidden, closeSettings: () => closeSettings(),
+  viewerOpen: () => VW.isOpen, closeViewer: () => VW.close(),
+  panelOpen: () => D.isOpen(),
+  runsDeep: () => RS.open && RS.view === "run", runsBack: () => runsEscape(),
+  sheets: [
+    { host: $("#panel"), open: () => PHONE.matches && D.isOpen(), close: () => D.close() },
+    { host: allEl, card: () => allEl.querySelector(".sheet-card"), open: () => !allEl.hidden, close: closeAll },
+    { host: runsEl, card: () => runsCard, open: () => RS.open, close: closeRuns },
+    { host: jump, card: () => jump.querySelector(".sheet-card"), open: () => !jump.hidden, close: closeJump },
+    { host: keys, card: () => keys.querySelector(".sheet-card"), open: () => !keys.hidden, close: closeKeys },
+    { host: $("#iq-pop"), open: () => IQ.isOpen && $("#iq-pop").classList.contains("is-sheet"), close: () => IQ.close() },
+    { host: $("#cs-pop"), open: () => CH.setupOpen && $("#cs-pop").classList.contains("is-sheet"), close: () => { CH.closeSetup(); updateComposer(); } },
+  ],
+  say,
+  canResolve: () => !!world.act.storm,
+  threadOf: (id) => world.thread(id),
+  resolve: (tid, resolved, li) => resolveFromRow(tid, resolved, li),
+  toast: (text) => { announce(text); heraldShow({ kind: "done", text }, 1600); },
+});
+/** Resolved by a swipe in All threads: the row says so, with Undo, until the list is drawn again. */
+function resolveFromRow(tid, resolved, li) {
+  const t = world.thread(tid);
+  li.classList.remove("is-swiping", "is-armed");
+  li.innerHTML = `<p class="ar-undo" role="status"><span>${ICON.check}<b>${resolved ? "Resolved" : "Reopened"}</b> ${esc(t ? t.title : "")}</span><button type="button" data-ar-undo>Undo</button></p>`;
+  const redraw = setTimeout(() => { if (!allEl.hidden) allRender(); }, 5000);
+  li.querySelector("[data-ar-undo]").addEventListener("click", () => { clearTimeout(redraw); resolveThread(tid, !resolved, { undo: false }).then(() => { if (!allEl.hidden) allRender(); }); });
+  resolveThread(tid, resolved);
+}
+// on a phone the shells open as a sheet over everything: the sidebar they were opened from steps aside
+$("#nv-shells").addEventListener("click", () => setDrawer(false));
+$("#pb-t").addEventListener("click", () => {
+  const el = S.view === "home" ? $("#home") : scroller;
+  el.scrollTo({ top: 0, behavior: RM.matches ? "auto" : "smooth" });
 });
 
 // ── boot ────────────────────────────────────────────────────────────────────
