@@ -1409,6 +1409,10 @@ button.kr-r:hover{background:var(--bg-3);color:var(--ink)}
 .hist-more:hover{color:var(--ink);border-color:var(--g33)}
 @media (max-width:760px){.day.hist{min-height:36px}.hist-more{height:36px;padding:0 16px}}
 .ev-sys .ev-ic{background:var(--bg-3);color:var(--ink-3)}
+.ev-asked .ev-t{text-align:left;cursor:pointer}
+.ev-asked .ev-t:hover{color:var(--ink-2)}
+.ev-asked.is-open{align-items:flex-start}
+.ev-asked.is-open .ev-t{white-space:pre-wrap;overflow-wrap:anywhere}
 .target .tg-warn{display:inline-flex}
 .target .tg-warn svg{color:var(--warn)}
 .target .tg-end{display:inline-flex}

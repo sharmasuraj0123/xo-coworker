@@ -17,7 +17,7 @@ import { createPacing } from "./pacing.js";
 import { createIntel } from "./intel.js";
 import { EFFORT, estLine, evidenceFor } from "./content.js";
 import { ICON, XO, NEXT_GLYPH, $, $$, RM, clock, dayOf, short, elapsed, reconcile, sound, wait, dial, morph, expand } from "./ui.js";
-import { uiMsg, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn } from "./timeline.js";
+import { uiMsg, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes } from "./timeline.js";
 import { turnHtml } from "./turnview.js";
 import { itemParts } from "./review.js";
 import { runsStripHtml, runsListHtml, runViewHtml } from "./runsview.js";
@@ -509,10 +509,20 @@ function messagesOf(conv) {
     for (const m of shown) out.push({ key: `relay:${m.id}`, at: m.at, seq: m.seq, who: "you", text: m.text, files: m.files, chatId: m.chatId, relay: { project: t.project, id: m.id, fwd: m.fwd } });
     if (world.act.findRows) for (const x of missing) world.act.findRows(t.project, x.ids, x.seq);
   }
+  // what the coordinators and this thread wrote each other: storm keeps it as hops (their note), never
+  // as messages, so it's shown here in place, whatever the hops setting
+  const noted = new Set();
+  if (t && st.hops) {
+    for (const n of hopNotes(t, st.hops.values())) {
+      noted.add(n.id);
+      if (n.dir === "down") out.push({ key: `hopn:${n.id}`, at: n.at, seq: n.seq, who: "coord", text: n.text, name: n.from === "workspace" ? "Workspace coordinator" : `${PROJ(t.project)} coordinator`, role: n.kind });
+      else out.push({ key: `hopn:${n.id}`, at: n.at, seq: n.seq, who: "asked", text: n.text });
+    }
+  }
   // how messages travelled to and from this thread (11 §16): hidden by default, shown by choice
   if (t && S.showHops && st.hops) {
     for (const hp of st.hops.values()) {
-      if (hp.thread_ts !== t.id) continue;
+      if (hp.thread_ts !== t.id || noted.has(hp.id)) continue;
       const text = hopLine(hp, PROJ(t.project));
       if (text) out.push({ key: `hop:${hp.id}`, at: Date.parse(hp.at || hp.created_at) || 0, seq: hp.seq ?? null, who: "system", text });
     }
@@ -626,7 +636,7 @@ function msgItems(conv, needs) {
       const files = m.files && m.files.length ? filesHtml(m.files, m.chatId) : "";
       html = `<div class="m m-you${cont ? " cont" : ""}${m.relay ? " is-relay" : ""}${m.status === "failed" ? " is-failed" : ""}${m.status === "sending" ? " is-pending" : ""}">${m.text ? `<div class="bubble" title="${esc(clock(m.at))}">${esc(m.text)}</div>` : ""}${files}${meta}${route}</div>`;
     } else if (m.who === "coord" || m.who === "agent") {
-      const [name, role] = nameOf(conv, m.who);
+      const [name, role] = m.name ? [m.name, m.role || ""] : nameOf(conv, m.who);
       const av = m.who === "coord" ? `<div class="av">${XO}</div>` : `<div class="av av-t">${ICON.thread}</div>`;
       const tid = m.thread || m.threadId;
       const iq = m.iq ? `<span class="m-iq" title="${m.iq.src === "pinned" ? "Pinned for this conversation" : `Chosen by the ${esc(m.iq.src)}`}">${esc(m.iq.name)} ${m.iq.pips} · ${esc(m.iq.src)}</span>` : "";
@@ -643,6 +653,10 @@ function msgItems(conv, needs) {
       // XO's line: this project's work went on to another project, through the Workspace (always shown)
       const p = m.passedOn;
       html = `<div class="ev ev-sys ev-pass"><span class="ev-ic">${ICON.arrow}</span><span class="ev-t">Passed to <button type="button" class="rt-go" data-go="p:${esc(p.project)}"${p.to ? ` data-go-msg="${esc(p.to)}"` : ""} title="Open ${esc(PROJ(p.project))}'s chat"><b>${esc(PROJ(p.project))}</b></button> through the Workspace</span><time>${clock(m.at)}</time></div>`;
+    } else if (m.who === "asked") {
+      // the thread's own message to its coordinator: one quiet line, the whole text on a press
+      const open = !!S.tbOpen[m.key];
+      html = `<div class="ev ev-sys ev-asked${open ? " is-open" : ""}"><span class="ev-ic">${ICON.arrow}</span><button type="button" class="ev-t" data-tb="${esc(m.key)}" aria-expanded="${open}" title="${open ? "Fold" : "Show all of it"}">Asked the coordinator: ${esc(m.text)}</button><time>${clock(m.at)}</time></div>`;
     } else if (m.who === "system") {
       html = `<div class="ev ev-sys" title="${esc(m.text)}"><span class="ev-ic">${ICON.router}</span><span class="ev-t">${esc(m.text)}</span><time>${clock(m.at)}</time></div>`;
     } else if (m.who === "note") {

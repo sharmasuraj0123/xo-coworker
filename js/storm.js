@@ -462,6 +462,8 @@ export function stormSource(state, emit, event) {
         // creation: the hop without its note; a state move: {id, state}
         const old = state.hops.get(d.id);
         if (old || d.kind) { state.hops.set(d.id, { ...(old || {}), ...d, seq: (old && old.seq) ?? env.seq ?? null, at: (old && old.at) || env.ts }); emitSoon(); }
+        // the open thread shows what its hops say: read the new one's note
+        if (d.kind && d.thread_ts && d.thread_ts === watched.thread) hopsSoon(d.thread_ts);
         break;
       }
       case "chat": {
@@ -616,6 +618,14 @@ export function stormSource(state, emit, event) {
     return row;
   }
   const threadOf = (id) => rawThreads.get(id) || null;
+  async function loadThreadHops(ts) {
+    const r = rawThreads.get(ts);
+    if (!r) return;
+    try { const d = await api.hops(r.chat_id, { thread: ts, before_seq: NEWEST, limit: 200 }); for (const h of d.hops || []) state.hops.set(h.id, { ...(state.hops.get(h.id) || {}), ...h, at: h.created_at }); emitSoon(); } catch { /* the stream's hops still arrive */ }
+  }
+  // a burst of hops (a relay and its state moves) is one read
+  let hopsT = 0;
+  const hopsSoon = (ts) => { clearTimeout(hopsT); hopsT = setTimeout(() => loadThreadHops(ts), 400); };
   const sought = new Set(); // findRows: what was already looked for
   const hopsRead = new Set(); // loadChatHops: the chats whose hops were read
 
@@ -760,12 +770,8 @@ export function stormSource(state, emit, event) {
         const s = Object.values(state.sessions).find((x) => x.chat_id === chat && COORD.has(x.role) && !x.retired_at && BUSY.has(x.state));
         return s ? s.id : null;
       },
-      /** A thread's hops (how messages travelled to and from it), read once when they're shown. */
-      loadHops: async (ts) => {
-        const r = rawThreads.get(ts);
-        if (!r) return;
-        try { const d = await api.hops(r.chat_id, { thread: ts, before_seq: NEWEST, limit: 200 }); for (const h of d.hops || []) state.hops.set(h.id, { ...(state.hops.get(h.id) || {}), ...h, at: h.created_at }); emitSoon(); } catch { /* the stream's hops still arrive */ }
-      },
+      /** A thread's hops (how messages travelled to and from it, and what they said), read when it's opened. */
+      loadHops: loadThreadHops,
       /**
        * A Workspace or project chat's own hops, for "Show hops" on its timeline: the ones no thread
        * holds (a coordinator acting on its own), and the forward and answer when its work went on to
