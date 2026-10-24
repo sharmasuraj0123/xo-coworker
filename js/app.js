@@ -17,7 +17,7 @@ import { createPacing } from "./pacing.js";
 import { createIntel } from "./intel.js";
 import { EFFORT, estLine, evidenceFor } from "./content.js";
 import { ICON, XO, NEXT_GLYPH, $, $$, RM, clock, dayOf, short, elapsed, reconcile, sound, wait, dial, morph, expand } from "./ui.js";
-import { uiMsg, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto } from "./timeline.js";
+import { uiMsg, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn } from "./timeline.js";
 import { turnHtml } from "./turnview.js";
 import { itemParts } from "./review.js";
 import { runsStripHtml, runsListHtml, runViewHtml } from "./runsview.js";
@@ -26,6 +26,7 @@ import { createChats } from "./chats.js";
 import { createViewer } from "./viewer.js";
 import { createTray, fmtSize, kindOf, typeWord, isLargePaste, pasteLabel, uploadErrorText, FINAL, MAX_FILES } from "./attach.js";
 import { uploadAttachment, attachmentUrl } from "./api.js";
+import { createShells } from "./shells/dock.js";
 
 const world = createWorld();
 
@@ -125,6 +126,10 @@ const CH = createChats({
 });
 world.ui = { tbOpen: S.tbOpen }; // turn blocks open or folded, shared with the Chats view
 const VW = createViewer({ announce }); // a shared file beside the conversation (if1 #2)
+// shells (js/shells/): the dock under the main column, the sidebar's Shells row, the top bar's Shell buttons
+const SH = createShells({ PROJ, announce, notify: (h) => heraldShow(h, 6000), onChange: () => schedule() });
+/** A Shell button for the top bar: a count when shells already run there (it opens their list then). */
+const shellBtn = (attr, n, title) => `<button type="button" class="all-btn sh-btn" ${attr} title="${esc(title)}">${ICON.shell}Shell${n ? `<span>${n}</span>` : ""}</button>`;
 
 // ── world helpers ───────────────────────────────────────────────────────────
 const projects = () => world.state.projects.filter((p) => p.id !== "workspace");
@@ -466,11 +471,13 @@ function messagesOf(conv) {
   }
   const ids = t ? [] : world.state.threads.filter((x) => x.project === chat).map((x) => x.id);
   const { on, alone } = threadAnchors(rows, ids);
+  // the thread's running turn: your messages sent after it started wait for it to end
+  const turn = t && t.busy && t.sessionId && st.turns ? st.turns.running(t.sessionId) : null;
   for (const m of rows) {
     const key = S.alias.get(m.id) || m.id;
     const base = { key, at: m.at, seq: m.seq, text: m.text, sent: S.alias.has(m.id), files: m.files, chatId: m.chatId };
     if (m.who === "you") {
-      out.push({ ...base, who: "you", fwd: conv !== "ws" && m.fwd ? m.fwd : null, routed: conv === "ws" ? st.routed[m.id] || null : null });
+      out.push({ ...base, who: "you", fwd: conv !== "ws" && m.fwd ? m.fwd : null, routed: conv === "ws" ? st.routed[m.id] || null : null, queued: waitsForTurn(m, turn) });
       if (alone.has(m.id)) out.push({ key: `${m.id}:card`, at: m.at, who: "card", thread: m.id });
     } else if (m.who === "system") out.push({ ...base, who: "system", passedOn: m.passedOn });
     else if (t && m.who === "agent" && /^✓\s/.test(m.text)) out.push({ key, at: m.at, who: "event", text: m.text.replace(/^✓\s*/, ""), tone: "ok" });
@@ -562,6 +569,18 @@ function threadCardHtml(tid, needs) {
     (n ? `<button type="button" class="tc-dec" data-decide="${esc(n.key)}">Decide</button>` : "") + `</div>`;
 }
 
+/** Under your message that waits for the agent's turn to end: what happens to it, and Interrupt. */
+function queuedMeta(conv) {
+  const t = convThread(conv);
+  if (!t) return "";
+  if (S.stops.has(t.sessionId) || world.act.sessionState(t.sessionId) === "stopping") return `<div class="meta"><i class="spin" aria-hidden="true"></i><span>Stopping its turn · it reads this next</span></div>`;
+  const run = conv === S.view ? running() : null;
+  const n = workingRuns(t);
+  const title = `Stop the agent's current turn${n ? ` and its ${n} sub-agent${n === 1 ? "" : "s"}` : ""} so it reads this now (Undo for 3 s)`;
+  return `<div class="meta"><span>Waiting · the agent reads this when its current turn ends</span>` +
+    (run && run.kind === "thread" ? `<button type="button" class="meta-btn" data-interrupt title="${esc(title)}">${ICON.bolt}Interrupt</button>` : "") + `</div>`;
+}
+
 function nameOf(conv, who) {
   if (who === "coord") return [conv === "ws" ? "Coordinator" : `${PROJ(convProject(conv))} coordinator`, ""];
   const t = convThread(conv);
@@ -574,6 +593,8 @@ function msgItems(conv, needs) {
   const items = [];
   let day = "", prev = null;
   const lastYou = [...list].reverse().find((m) => m.who === "you");
+  // your newest message the agent hasn't read yet: Interrupt stops the turn so it reads it next
+  const lastQueued = [...list].reverse().find((m) => m.queued);
   for (const m of list) {
     const d = Number.isFinite(m.at) ? dayOf(m.at) : day;
     if (d !== day) { items.push({ key: "day|" + d, html: `<div class="day" role="separator"><span>${esc(d)}</span></div>` }); day = d; prev = null; }
@@ -583,6 +604,7 @@ function msgItems(conv, needs) {
       let meta = "";
       if (m.status === "sending") meta = `<div class="meta"><i class="spin" aria-hidden="true"></i>Sending</div>`;
       else if (m.status === "failed") meta = `<div class="meta is-err"><span${m.err ? ` title="${esc(m.err.text)}"` : ""}>${m.err ? esc(m.err.title) : "Not sent"}</span><button type="button" class="meta-btn" data-retry="${esc(m.id)}">${ICON.retry}Retry</button><button type="button" class="meta-btn" data-edit="${esc(m.id)}">${ICON.edit}Edit</button></div>`;
+      else if (m === lastQueued) meta = queuedMeta(conv);
       else if (m === lastYou && (m.status === "sent" || m.sent)) meta = `<div class="meta"><time>${clock(m.at)}</time><span class="sent">Sent ${ICON.check}</span></div>`;
       let route = "";
       if (m.waiting) route = `<div class="route-row"><i class="dash" aria-hidden="true"></i>Sent to <b>${esc(m.target === "workspace" ? "the coordinator" : PROJ(m.target))}</b> · waiting for a thread</div>`;
@@ -700,6 +722,7 @@ function topRender(needs) {
     const parts = [nd && `<b class="is-amber">${nd} need${nd === 1 ? "s" : ""} you</b>`, working && `${working} working`, P0.held.length && `${P0.held.length} can wait`, idle && `${idle} idle`, done && `${done} finished today`].filter(Boolean);
     who = `<span class="tw-ic tw-xo" aria-hidden="true">${XO}</span><span class="tw-t"><h1 id="conv-title">Workspace</h1><span class="pj-s">${parts.join(" · ") || "All quiet"} · across ${projects().length} projects</span></span>`;
     end = P0.next ? `<button type="button" class="all-btn is-need" data-decide="${esc(P0.next.key)}" title="${esc(askShort(P0.next))}">Next move<span>${nd}</span></button>` : "";
+    if (SH.enabled) { const n = SH.countFor("workspace"); end += shellBtn(`data-shell="ws"`, n, n ? "The workspace's shells" : "A shell in the projects folder"); }
   } else if (v.startsWith("p:")) {
     const pid = v.slice(2);
     const ts = threadsOf(pid);
@@ -711,6 +734,8 @@ function topRender(needs) {
     const parts = [nd && `<b class="is-amber">${nd} need${nd === 1 ? "s" : ""} you</b>`, w && `${w} working`, dn && `${dn} done this week`, rs && `${rs} resolved`].filter(Boolean);
     who = `<span class="tw-ic" aria-hidden="true">${ICON.project}</span><span class="tw-t"><h1 id="conv-title">${esc(PROJ(pid))}</h1><span class="pj-s">${parts.join(" · ") || (every.length ? "All quiet" : "No threads yet")}${S.desc[pid] ? ` · ${esc(S.desc[pid])}` : ""}</span></span>`;
     end = every.length ? `<button type="button" class="all-btn" data-all-threads aria-haspopup="dialog" title="All threads">All threads<span>${every.length}</span></button>` : "";
+    // the owner's placement: Shell next to All threads, shown even before the project has threads
+    if (SH.enabled) { const n = SH.countFor(pid); end += shellBtn(`data-shell="p:${esc(pid)}"`, n, n ? `${PROJ(pid)}'s shells` : `A shell in ${PROJ(pid)}'s folder`); }
   } else if (t) {
     const ed = S.tEdit && S.tEdit.tid === t.id ? S.tEdit.field : null;
     const title = ed === "title"
@@ -723,7 +748,10 @@ function topRender(needs) {
     const acts = world.act.storm ? `<span class="tw-acts"><button type="button" class="tw-act" data-resolve="${esc(t.id)}" data-to="${resolved ? "open" : "resolve"}" title="${resolved ? "Reopen it: its agent can pick it up again" : "Mark it resolved: nothing more is owed"}">${resolved ? ICON.retry : ICON.check}<span>${resolved ? "Reopen" : "Resolve"}</span></button>` +
       `<button type="button" class="tw-act tw-more" data-tmenu="${esc(t.id)}" aria-haspopup="menu" aria-expanded="${S.tMenu === t.id}" title="Rename or label" aria-label="Rename or label">${ICON.edit}</button>` +
       (S.tMenu === t.id ? `<span class="tw-menu" role="menu"><button type="button" role="menuitem" data-tfield="title">Rename</button><button type="button" role="menuitem" data-tfield="label">${t.label ? "Change label" : "Add a label"}</button>${t.label ? `<button type="button" role="menuitem" data-tfield="clear-label">Remove the label</button>` : ""}</span>` : "") + `</span>` : "";
-    who = `${title}${label}<span class="badge st-${t.state}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${wordOf(t)}</span>${acts}`;
+    // a shell in the thread's own worktree (its branch and folder), beside Resolve
+    const shAct = SH.enabled ? `<button type="button" class="tw-act" data-shell="t:${esc(t.id)}" title="A shell in this thread's worktree">${ICON.shell}<span>Shell</span></button>` : "";
+    const allActs = acts ? acts.replace('<span class="tw-acts">', `<span class="tw-acts">${shAct}`) : shAct ? `<span class="tw-acts">${shAct}</span>` : "";
+    who = `${title}${label}<span class="badge st-${t.state}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${wordOf(t)}</span>${allActs}`;
     // a field being edited is never replaced under the person's fingers (a frame may change the badge)
     if (ed && $("#tw-edit")) who = null;
   } else who = `<span class="tw-t"><h1 id="conv-title">Thread</h1></span>`;
@@ -814,13 +842,17 @@ function checklistRender(needs) {
 // ── sub-agents (U2, ch 14 §11): working now under the checklist; the list and each run in a sheet ──
 const LIVE_RUN = (r) => r.state === "running" || r.state === "waiting";
 const runsAsked = new Map(); // session → the working count its runs were last listed for
+/** How many of a thread's sub-agents work now, by the best count known (the stream's, or the thread's). */
+function workingRuns(t) {
+  const lr = (world.state.liveRuns || {})[t.sessionId];
+  return Math.max((t.runs && (t.runs.running || 0) + (t.runs.waiting || 0)) || 0, lr ? lr.running + lr.waiting : 0, (t.session && t.session.live_runs) || 0);
+}
 function runsStrip(t) {
   if (!t.sessionId || !world.state.runs) return "";
   const mine = [...world.state.runs.values()].filter((r) => r.session === t.sessionId && !r.hidden);
   const live = mine.filter((r) => LIVE_RUN(r) && (r.depth || 1) === 1);
   // after a reload the stream hasn't named the runs still working: the thread's counts know, so list them
-  const lr = (world.state.liveRuns || {})[t.sessionId];
-  const working = Math.max((t.runs && (t.runs.running || 0) + (t.runs.waiting || 0)) || 0, lr ? lr.running + lr.waiting : 0, (t.session && t.session.live_runs) || 0);
+  const working = workingRuns(t);
   // asked once per count: if the thread's counts stay stale after a read, the read isn't repeated
   if (working > mine.filter(LIVE_RUN).length && runsAsked.get(t.sessionId) !== working) {
     runsAsked.set(t.sessionId, working);
@@ -1457,13 +1489,14 @@ $("#iq").addEventListener("click", () => { if (IQ.isOpen) IQ.close(); else IQ.op
  * Live Stop: nothing is sent for 3 s (Undo), then the session's turn and its sub-agents stop at once
  * (POST /api/chat/abort). The turn's own record then says what ran: "Stopped after …".
  */
-function stopLive(run) {
+function stopLive(run, { interrupt = false, runs = 0 } = {}) {
   const what = run.kind === "thread" ? run.t.title : run.kind === "chat" ? "This chat" : run.conv === "ws" ? "The coordinator" : `${PROJ(chatOf(run.conv))} coordinator`;
   // the turn you chose to stop: if it ends inside the window and another starts, that one is left alone
-  const token = { session: run.session, turn: world.act.turnOf(run.session), what, until: Date.now() + Kit.COMMIT_MS, cancelled: false, sent: false };
+  const token = { session: run.session, turn: world.act.turnOf(run.session), what, interrupt, until: Date.now() + Kit.COMMIT_MS, cancelled: false, sent: false };
   S.stops.set(run.session, token);
   stopsHerald();
-  announce(`Stopping ${what} in 3 seconds. Undo to keep it working.`);
+  const also = runs ? ` and its ${runs} sub-agent${runs === 1 ? "" : "s"}` : "";
+  announce(interrupt ? `Interrupting ${what}${also} in 3 seconds, so it reads your message next. Undo to let it finish.` : `Stopping ${what} in 3 seconds. Undo to keep it working.`);
   sound.play("back");
   schedule();
   setTimeout(async () => {
@@ -1473,6 +1506,13 @@ function stopLive(run) {
     const now = world.act.turnOf(token.session);
     if (token.turn && now !== token.turn) {
       S.stops.delete(token.session);
+      if (interrupt) {
+        // its next turn is the one that reads your message
+        heraldShow({ kind: "halt", text: "It had already finished", sub: `${what} · it reads your message next` }, 4200);
+        announce("It had already finished that turn. It reads your message next.");
+        schedule();
+        return;
+      }
       heraldShow({ kind: "halt", text: "It had already finished", sub: now ? `${what} · its next turn goes on` : what }, 4200);
       announce(now ? "It had already finished that turn. The next one goes on; Stop again to end it." : "It had already finished.");
       schedule();
@@ -1480,11 +1520,17 @@ function stopLive(run) {
     }
     try {
       const r = await world.act.stop(token.session);
-      heraldShow({ kind: "halt", text: r && r.stopped === false ? "It had already finished" : "Stopped", sub: r && r.stopped === false ? what : `${what} · what it did is kept` }, 4200);
-      announce(r && r.stopped === false ? "It had already finished." : `Stopped ${what}. What it did is kept.`);
+      const done = r && r.stopped === false;
+      if (interrupt) {
+        heraldShow({ kind: "halt", text: done ? "It had already finished" : "Interrupted", sub: `${what} · it reads your message next` }, 4200);
+        announce(done ? "It had already finished. It reads your message next." : `Interrupted ${what}. What it did is kept, and it reads your message next.`);
+      } else {
+        heraldShow({ kind: "halt", text: done ? "It had already finished" : "Stopped", sub: done ? what : `${what} · what it did is kept` }, 4200);
+        announce(done ? "It had already finished." : `Stopped ${what}. What it did is kept.`);
+      }
     } catch (err) {
       // Retry stops the same session, wherever you are when you press it
-      heraldShow({ kind: "stopped", text: "Couldn't stop it", sub: `${what} · ${err.message}`, undo: () => stopLive(run), undoLabel: "Retry" }, 7000);
+      heraldShow({ kind: "stopped", text: interrupt ? "Couldn't interrupt it" : "Couldn't stop it", sub: `${what} · ${err.message}`, undo: () => stopLive(run, { interrupt, runs }), undoLabel: "Retry" }, 7000);
     } finally {
       if (S.stops.get(token.session) === token) S.stops.delete(token.session);
       schedule();
@@ -1501,7 +1547,7 @@ function stopsHerald() {
   const all = [...turns, ...runs];
   if (!all.length) { if (S.herald && S.herald.tag === "stops") { S.herald.until = 0; heraldNext(); } return; }
   const last = Math.max(...all.map((x) => x.until));
-  heraldShow({ kind: "halt", tag: "stops", text: "Stopping", sub: all.map((x) => x.what).join(", "), undo: () => {
+  heraldShow({ kind: "halt", tag: "stops", text: all.every((x) => x.interrupt) ? "Interrupting" : "Stopping", sub: all.map((x) => x.what).join(", "), undo: () => {
     for (const x of turns) { x.cancelled = true; if (S.stops.get(x.session) === x) S.stops.delete(x.session); }
     for (const j of runs) { j.cancelled = true; const i = pendingStops.indexOf(j); if (i >= 0) pendingStops.splice(i, 1); }
     announce(all.length > 1 ? "Not stopped. They keep working." : "Not stopped. It keeps working.");
@@ -1513,6 +1559,14 @@ function stopsHerald() {
 function stopRun() {
   const run = running();
   if (run) stopLive(run);
+}
+/**
+ * Interrupt: the same Stop, from your message that waits for the turn to end. Storm runs that
+ * message as the agent's next turn once the stopped one ends; a thread message has no "send now".
+ */
+function interruptRun() {
+  const run = running();
+  if (run && run.kind === "thread") stopLive(run, { interrupt: true, runs: workingRuns(run.t) });
 }
 
 function lift(el, from) {
@@ -1914,6 +1968,8 @@ document.addEventListener("click", (e) => {
   if (t.closest("[data-next]")) { openNext(); return; }
   if (t.closest("[data-create]")) { openCreate(); return; }
   if (t.closest("[data-all-threads]")) { openAll(); return; }
+  const sh = t.closest("[data-shell]");
+  if (sh) { openShell(sh.dataset.shell); return; }
   if (t.closest("[data-open-all]")) { D.open(homeParts().next?.key); return; }
   if (t.closest("[data-glances]")) { D.open(null, { only: "glance" }); return; }
   const l = t.closest("[data-later]");
@@ -1959,6 +2015,7 @@ document.addEventListener("click", (e) => {
   if (t.closest("[data-nx-cancel]")) { const card = $("#hm-next .next"); morph(card, () => { card.classList.remove("noting"); card.querySelector(".nx-note").hidden = true; }, { duration: 260 }); card.focus({ preventScroll: true }); return; }
   const r = t.closest("[data-retry]");
   if (r) { retry(r.dataset.retry); return; }
+  if (t.closest("[data-interrupt]")) { interruptRun(); return; }
   const ed = t.closest("[data-edit]");
   if (ed) { editFailed(ed.dataset.edit); return; }
   const ab = t.closest("[data-att]");
@@ -2020,6 +2077,13 @@ function allRender() {
   if (done.length) html += `<div class="ar-done${S.allDone ? " is-open" : ""}"><button type="button" class="ar-fold" data-all-done aria-expanded="${S.allDone}">${ICON.check}<span><b>${done.length} done</b>${done.some((t) => t.state === "resolved") ? " or resolved" : ""}</span>${ICON.chevron}</button><div class="ar-db"${S.allDone ? "" : " hidden"}><div class="ar-di"><ul class="ar-list">${done.map(row).join("")}</ul></div></div></div>`;
   if (!html) html = `<p class="ar-none">Nothing matches “${esc(q)}”.</p>`;
   $("#all-list").innerHTML = html;
+}
+/** A Shell button: "ws", "p:<project folder>" or "t:<thread>" (its worktree, else the project's folder). */
+function openShell(where) {
+  if (where === "ws") return SH.openWorkspace();
+  if (where.startsWith("p:")) return SH.openProject(where.slice(2));
+  const t = world.thread(where.slice(2));
+  if (t) SH.openThread({ project: t.project, chatId: t.chatId, ts: t.id, title: t.title });
 }
 function openAll() {
   if (!convProject(S.view) || convProject(S.view) === "workspace") return;
@@ -2281,6 +2345,7 @@ $("#theme").addEventListener("click", () => {
 
 // ── global keys ─────────────────────────────────────────────────────────────
 const GLOBAL = {
+  shells: () => SH.toggle(),
   jump: () => (jump.hidden ? openJump() : closeJump()),
   intel: () => (IQ.isOpen ? IQ.close() : IQ.open(sessionOf(S.view), $("#iq"))),
   write: () => say.focus(),
@@ -2288,8 +2353,10 @@ const GLOBAL = {
 };
 addEventListener("keydown", (e) => {
   if (S.recording) return; // Settings › Keyboard is listening for a new key
+  // inside a shell every key is the shell's (Esc for vim, Ctrl+K for bash), but the shells' own toggle
+  if (SH.owns(e)) { if (K.hasMod("shells") && K.is(e, "shells")) { e.preventDefault(); GLOBAL.shells(); } return; }
   // ⌘/Ctrl keys work everywhere, even while typing
-  for (const id of ["jump", "intel"]) if (K.hasMod(id) && K.is(e, id)) { e.preventDefault(); GLOBAL[id](); return; }
+  for (const id of ["jump", "intel", "shells"]) if (K.hasMod(id) && K.is(e, id)) { e.preventDefault(); GLOBAL[id](); return; }
   if (!jump.hidden || dlg.open || IQ.isOpen) return;
   if (e.key === "Escape") {
     if (RS.open) { runsEscape(); return; }
@@ -2318,6 +2385,7 @@ $("#dlg-ic").innerHTML = ICON.project;
 $("#ic-home").innerHTML = ICON.home;
 $("#ic-ws").innerHTML = XO;
 $("#ic-chats").innerHTML = ICON.thread;
+$("#ic-shells").innerHTML = ICON.shell;
 // a new chat's setup: folder, agent, model, effort, what it may do (all from the runtime's feature list)
 {
   const cs = $("#cs-pop");

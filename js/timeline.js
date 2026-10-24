@@ -49,6 +49,16 @@ export function mergeRows(list, incoming) {
 const bySeq = (a, b) => (a.seq ?? Infinity) - (b.seq ?? Infinity) || (Date.parse(a.created_at) || 0) - (Date.parse(b.created_at) || 0);
 
 /**
+ * Your message in a thread that waits for its agent's running turn to end: stored after the turn
+ * started and not one of its wakes (`msg:<id>`). A thread message never joins a running turn, so it
+ * waits until the turn ends, or until a Stop ends it and the message runs next.
+ */
+export function waitsForTurn(m, turn) {
+  return !!(turn && turn.status === "running" && m && m.who === "you" && m.id && m.seq != null && turn.seq != null &&
+    m.seq > turn.seq && !(turn.wakes || []).includes(`msg:${m.id}`));
+}
+
+/**
  * Optimistic rows whose server copy is already in `rows` (the stream can beat
  * the POST). Returns Map(localId → serverId). A server row is used once, and
  * only if no other local row claimed it (`taken`).
@@ -87,6 +97,16 @@ export function askText(md, max = 140) {
   else title = s.slice(0, max - 1).replace(/\s+\S*$/, "") + "…";
   const used = m && m[1].length <= max ? m[1].length : title.replace(/…$/, "").length;
   return { title, rest: s.slice(used).trim() };
+}
+
+/**
+ * The thread's state as shown, given its session's running turn (or null). A stopped turn leaves
+ * the thread at needs_reply (ch 11 §7.3) until its next input ends; after an Interrupt that input is
+ * already your message, running, so the thread isn't waiting on you.
+ */
+export function threadState(state, turn) {
+  if (state === "needs_reply" && turn && turn.status === "running" && turn.origin === "person") return "working";
+  return state || "working";
 }
 
 const clip = (s, n) => (s.length > n ? s.slice(0, n - 1).replace(/\s+\S*$/, "") + "…" : s);
