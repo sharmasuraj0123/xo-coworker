@@ -7,7 +7,7 @@ import { renderMarkdown, renderInline, threadLinks, excerptMarkdown } from "../j
 import { parseChecklist, tasksOf } from "../js/model.js";
 import { request } from "../js/api.js";
 import { highlight, langOf } from "../js/highlight.js";
-import { uiMsg, mergeRows, echoes, askText, stormAsks, threadAnchors, parseTarget, stripTarget, sendErrorTitle, connLine, currentPools, sharedFileRoute, relayedInto, sendBlock, mapLimit, plainText, hopLine } from "../js/timeline.js";
+import { uiMsg, mergeRows, echoes, askText, stormAsks, threadAnchors, parseTarget, stripTarget, sendErrorTitle, connLine, currentPools, sharedFileRoute, relayedInto, sendBlock, mapLimit, plainText, hopLine, mainRuntime, chatOrder } from "../js/timeline.js";
 
 let passed = 0;
 const t = (name, fn) => {
@@ -183,6 +183,42 @@ t("the connection line and the send block are honest", () => {
   assert.equal(connLine({ ...ok, pools: { p: { state: "warn" } } }), null, "warn only holds later work: no line");
   assert.equal(sendBlock({ ...ok, loaded: false }), "Connecting to XO…");
   assert.equal(connLine({ ...ok, error: null, errorCode: null }), null, "a recovered state has no line");
+});
+t("the server's own runtime is the one named and chosen, not the first listed", () => {
+  const claude = { name: "claude_code", cli: null, error: { code: "cli_missing" } };
+  const codex = { name: "codex", cli: { logged_in: false } };
+  const ok = { loaded: true, conn: "live", router: { mode: "agent" }, pools: {} };
+  assert.equal(mainRuntime([claude, { ...codex, default: true }]).name, "codex", "marked default");
+  assert.equal(mainRuntime([{ ...claude, error: null, cli: { logged_in: false } }, { ...codex, cli: { logged_in: true } }]).name, "codex", "else the one connected");
+  assert.equal(mainRuntime([claude, codex]).name, "claude_code", "else the first");
+  assert.equal(mainRuntime([]), null);
+  assert.match(connLine({ ...ok, runtimes: [claude, { ...codex, default: true }] }).text, /^Codex isn't connected/);
+  assert.equal(sendBlock({ ...ok, runtimes: [claude, { ...codex, default: true }] }), "Codex isn't connected");
+});
+t("a plain chat pairs each turn with the prompt that woke it, whenever the CLI wrote it down", () => {
+  const at = (s) => Date.parse(`2026-10-26T11:${s}Z`);
+  const turn = (id, s, n = 1) => ({ id, at: `2026-10-26T11:${s}Z`, origin: "person", wakes: Array.from({ length: n }, (_, i) => `msg:prompt:${id}${i}`) });
+  const said = (out) => out.map((x) => (x.kind === "you" ? x.m.text : x.t.id)).join(" ");
+  // codex, cold: the prompt is written ~3.7 s after its turn began (live, 0.164)
+  assert.equal(said(chatOrder([{ text: "hey", at: at("44:51.708") }], [turn("T1", "44:48")])), "hey T1");
+  // and later turns, written well after their start, still under their own turn
+  assert.equal(said(chatOrder(
+    [{ text: "a", at: at("44:51.7") }, { text: "b", at: at("46:25") }, { text: "c", at: at("47:20") }],
+    [turn("T1", "44:48"), turn("T2", "46:19"), turn("T3", "47:19")])), "a T1 b T2 c T3");
+  // claude: written within the second its turn began (storm stamps whole seconds)
+  assert.equal(said(chatOrder([{ text: "a", at: at("44:48.2") }], [turn("T1", "44:48")])), "a T1");
+  // sent from this tab and not in the history yet: its send time, before the turn
+  assert.equal(said(chatOrder([{ text: "a", at: at("44:47.9") }], [turn("T1", "44:48")])), "a T1");
+  // a prompt added while a turn ran shows under it; the next turn still gets its own
+  assert.equal(said(chatOrder(
+    [{ text: "a", at: at("44:49") }, { text: "more", at: at("44:55") }, { text: "b", at: at("46:22") }],
+    [turn("T1", "44:48", 2), turn("T2", "46:19")])), "a T1 more b T2");
+  // no turn for it (typed in the CLI itself): by its time
+  assert.equal(said(chatOrder(
+    [{ text: "a", at: at("44:49") }, { text: "cli", at: at("45:30") }, { text: "b", at: at("46:22") }],
+    [turn("T1", "44:48"), turn("T2", "46:19")])), "a T1 cli b T2");
+  // a turn still waiting for its prompt to be written: the turn alone
+  assert.equal(said(chatOrder([], [turn("T1", "44:48")])), "T1");
 });
 t("an old account's closed pool pauses nothing after a re-login (if1 #1)", () => {
   const rt = (account) => [{ name: "claude_code", cli: { logged_in: true, account } }];

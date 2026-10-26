@@ -10,7 +10,7 @@ import { esc } from "./world.js";
 import { ICON } from "./ui.js";
 import { renderMarkdown } from "./markdown.js";
 import { turnHtml } from "./turnview.js";
-import { cliName } from "./timeline.js";
+import { cliName, mainRuntime, chatOrder } from "./timeline.js";
 
 const MODE_WORDS = {
   auto: ["Auto", "Its own safety check decides; most actions run unasked."],
@@ -33,7 +33,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
 
   const sessions = () => Object.values(world.state.sessions || {}).filter((s) => s.role === "plain" && !s.retired_at);
   const session = (sid) => (world.state.sessions || {})[sid] || null;
-  const runtime = (name) => (world.state.runtimes || []).find((r) => r.name === name) || (!name ? (world.state.runtimes || [])[0] : null) || null;
+  const runtime = (name) => (world.state.runtimes || []).find((r) => r.name === name) || (!name ? mainRuntime(world.state.runtimes) : null) || null;
   const feature = (rt, key) => (rt && rt.features && rt.features.features && rt.features.features[key]) || null;
   const offers = (rt, key) => { const f = feature(rt, key); return !!f && (f.support === "native" || f.support === "emulated"); };
 
@@ -150,12 +150,8 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     // your prompts sent from this tab and not in its history yet
     for (const l of C.local.get(sid) || []) if (!mine.some((m) => m.text === l.text && Math.abs(m.at - l.at) < 120000)) mine.push(l);
     const turns = world.state.turns ? world.state.turns.list((t) => t.session === sid) : [];
-    const all = [
-      ...mine.map((m, i) => ({ at: m.at, kind: "you", m, i })),
-      // storm stamps whole seconds and the CLI records your prompt a moment after the turn starts:
-      // a turn follows the prompt that woke it, so it sorts 3 s later than its start
-      ...turns.map((t, i) => ({ at: (Date.parse(t.at) || 0) + 3000, kind: "turn", t, i })),
-    ].sort((a, b) => a.at - b.at || (a.kind === b.kind ? a.i - b.i : a.kind === "you" ? -1 : 1));
+    // each turn right under the prompt that woke it, whenever the CLI got round to writing that down
+    const all = chatOrder(mine, turns);
     if (h.loading && !all.length) items.push({ key: "chat-load", html: `<p class="m-note">Reading the chat…</p>` });
     if (h.error) items.push({ key: "chat-err", html: `<p class="m-note">Couldn't read its history: ${esc(h.error)}</p>` });
     for (const x of all) {

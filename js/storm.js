@@ -13,7 +13,7 @@ import { api, clientId as newClientId, NEWEST, coderHeaders, STORM_DOWN } from "
 import { SSEStream } from "./sse.js";
 import { createTurns } from "./blocks.js";
 import { tasksOf } from "./model.js";
-import { uiMsg, mergeRows, stormAsks, mapLimit, currentPools } from "./timeline.js";
+import { uiMsg, mergeRows, stormAsks, mapLimit, currentPools, mainRuntime } from "./timeline.js";
 import { hostOf } from "./review.js";
 
 const STATUS_MS = 30000;          // the engine's status (pools, review counts); frames carry the rest
@@ -739,7 +739,7 @@ export function stormSource(state, emit, event) {
       /** What a session's runtime offers (its feature list), e.g. "runs.stop" — never decided by agent name. */
       feature: (session, key) => {
         const s = state.sessions[session];
-        const rt = (state.runtimes || []).find((r) => r.name === (s && s.agent)) || (state.runtimes || [])[0];
+        const rt = (state.runtimes || []).find((r) => r.name === (s && s.agent)) || mainRuntime(state.runtimes);
         const f = rt && rt.features && rt.features.features && rt.features.features[key];
         return !!f && (f.support === "native" || f.support === "emulated");
       },

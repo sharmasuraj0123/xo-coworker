@@ -172,6 +172,11 @@ const STORM_DOWN = new Set(["engine_not_running", "engine_elsewhere", "engine_fa
 const CLI_NAME = { claude_code: "Claude", codex: "Codex", antigravity: "Antigravity" };
 /** A runtime's name as people say it (display only). */
 export const cliName = (name) => CLI_NAME[name] || String(name || "The agent");
+/**
+ * The runtime this server is for: the one /api/chat/runtimes marks `default` (the server's AGENT_NAME),
+ * else the first one connected, else the first listed. Null when there are none.
+ */
+export const mainRuntime = (rts) => (rts || []).find((r) => r.default) || (rts || []).find((r) => r.cli && r.cli.logged_in && !r.error) || (rts || [])[0] || null;
 
 /** A plain title for a failed send (the storm error codes, UI-reference §2.2). */
 export function sendErrorTitle(err) {
@@ -221,7 +226,7 @@ export function connLine(w) {
   if (w.error || w.statusError || w.conn === "down") return { kind: "down", text: "Can't reach XO", sub: "retrying · what you see may be out of date" };
   const rts = w.runtimes || [];
   if (rts.length && rts.every((r) => !r.cli || r.cli.logged_in === false || r.error)) {
-    const r = rts[0];
+    const r = mainRuntime(rts);
     return { kind: "off", text: `${cliName(r.name)} isn't connected`, sub: "connect it in XO · sending waits until then" };
   }
   if (w.router && w.router.mode === "off") return { kind: "off", text: "The router is off", sub: "new messages to the Workspace and projects are refused · threads still take replies" };
@@ -240,9 +245,52 @@ export function sendBlock(w, { timeline = true } = {}) {
   if (w.error && !(w.projects && w.projects.length)) return "Can't reach XO right now";
   if (!w.loaded) return "Connecting to XO…";
   const rts = w.runtimes || [];
-  if (rts.length && rts.every((r) => !r.cli || r.cli.logged_in === false || r.error)) return `${cliName(rts[0].name)} isn't connected`;
+  if (rts.length && rts.every((r) => !r.cli || r.cli.logged_in === false || r.error)) return `${cliName(mainRuntime(rts).name)} isn't connected`;
   if (timeline && w.router && w.router.mode === "off") return "The router is off";
   return "";
+}
+
+/**
+ * A plain chat in order: your prompts (from the CLI's own history, each at the time the CLI wrote it)
+ * and storm's turns (each at its start, whole seconds), as [{kind: "you", m} | {kind: "turn", t}].
+ * The CLI writes a prompt some time after its turn starts (claude at once, codex after its own context,
+ * seconds on a cold start), so times alone can put a reply above its prompt. A turn is paired with the
+ * prompts that woke it instead: as many as its `msg:prompt:` wakes (one for a turn you started), taken
+ * between the start of the turn before it and the start of the next: those written once it began,
+ * else the last one sent just before it (from this tab, not in the history yet). The first goes just
+ * above the turn; any more (added while it ran) just below. A prompt no turn took (typed in the CLI
+ * itself, say) keeps its time.
+ * prompts: [{at: ms, …}]; turns: [{at: ISO, origin, wakes}] in the order they ran.
+ */
+export function chatOrder(prompts, turns) {
+  const mine = prompts.map((m, i) => ({ m, i })).sort((a, b) => a.m.at - b.m.at || a.i - b.i);
+  const taken = new Set();
+  const start = (t) => Date.parse(t && t.at) || 0;
+  const groups = turns.map((t, k) => {
+    const n = (t.wakes || []).filter((w) => String(w).startsWith("msg:prompt:")).length || (t.origin === "person" ? 1 : 0);
+    const lo = k ? start(turns[k - 1]) : -Infinity;
+    const hi = k + 1 < turns.length ? start(turns[k + 1]) : Infinity;
+    const at = start(t);
+    const free = mine.filter((x) => !taken.has(x) && x.m.at >= lo && x.m.at < hi);
+    // written once the turn began (the CLI's history), else the last one sent just before (this tab's
+    // own, not in the history yet); one typed in the CLI between turns is left to its time
+    const after = free.filter((x) => x.m.at >= at);
+    const before = free.filter((x) => x.m.at < at);
+    const pick = n ? (after.length ? after.slice(0, n) : before.slice(-1).concat(after.slice(0, n - 1))) : [];
+    for (const x of pick) taken.add(x);
+    return { at, k, t, got: pick.map((x) => x.m) };
+  });
+  const loose = mine.filter((x) => !taken.has(x)).map((x) => ({ at: x.m.at, m: x.m }));
+  // a loose prompt at the same moment as a turn goes first: it may have woken it
+  const all = [...loose, ...groups].sort((a, b) => a.at - b.at || (a.t ? 1 : 0) - (b.t ? 1 : 0) || (a.k ?? 0) - (b.k ?? 0));
+  const out = [];
+  for (const x of all) {
+    if (!x.t) { out.push({ kind: "you", m: x.m }); continue; }
+    if (x.got[0]) out.push({ kind: "you", m: x.got[0] });
+    out.push({ kind: "turn", t: x.t });
+    for (const m of x.got.slice(1)) out.push({ kind: "you", m });
+  }
+  return out;
 }
 
 /** Run `fn` over `items`, at most `cap` at a time. */

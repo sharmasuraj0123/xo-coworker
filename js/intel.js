@@ -13,6 +13,7 @@ import * as K from "./keys.js";
 import { esc } from "./world.js";
 import { ICON, RM } from "./ui.js";
 import { api } from "./api.js";
+import { mainRuntime } from "./timeline.js";
 
 const EFFORT_WORD = { low: "Quick", medium: "Balanced", high: "Deep", xhigh: "Deeper", max: "Deepest" };
 const PIPS = { low: 1, medium: 2, high: 3, xhigh: 4, max: 5 };
@@ -33,7 +34,7 @@ export function createIntel({ world, PROJ, onChange, record }) {
     // a thread: its session's agent; a chat: its pin, else its coordinator's own session
     const agent = t ? (t.session && t.session.agent) : c.pin?.agent || (world.act.coordinatorAgent ? world.act.coordinatorAgent(c.chatId) : null);
     const rts = world.state.runtimes || [];
-    return (rts.find((r) => r.name === agent) || rts[0] || {}).name || null;
+    return (rts.find((r) => r.name === agent) || mainRuntime(rts) || {}).name || null;
   };
   /** A runtime's models, read fresh each time the popover opens (the chip uses the last read). */
   async function catalog(name, { fresh = false } = {}) {

@@ -76,6 +76,8 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 ```sh
 node tests/logic.test.mjs        # pure modules; the live-data part only sends GETs through :5180
 node tests/attach.test.mjs       # files on a message and the hop line; no network
+node tests/storm.test.mjs        # the stream parser and the turn store; no network
+node tests/turnview.test.mjs     # how a turn renders: changed-file chips, runtime notices; no network
 ```
 
 The browser suites (Playwright) live outside the repo:
