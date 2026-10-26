@@ -104,6 +104,8 @@ node tests/logic.test.mjs        # pure modules; the live-data part only sends G
 node tests/attach.test.mjs       # files on a message and the hop line; no network
 node tests/shells.test.mjs       # shells' pure parts, and the vendored xterm hashes; no network
 python3 tests/serve.test.py      # serve.py: the Host allowlist and the WebSocket tunnel, against fake backends
+node tests/storm.test.mjs        # the stream parser and the turn store; no network
+node tests/turnview.test.mjs     # how a turn renders: changed-file chips, runtime notices; no network
 ```
 
 The browser suites (Playwright) live outside the repo:
