@@ -324,9 +324,32 @@ export function sharedFileRoute(thread, path) {
   return none;
 }
 
+const COORD_WORD = { "project-coordinator": "project", "workspace-coordinator": "workspace" };
+const DOWN_KINDS = { brief: "brief", relay: "follow-up", answer: "answer" };
+
+/**
+ * What a thread and its coordinators said to each other. Storm keeps those words as hops, the text
+ * in `note` (ch 11 §16), never as chat messages: a coordinator's brief, follow-up or answer to the
+ * thread, and the thread's own message_coordinator. Returns [{id, seq, at, dir: "down"|"up", from,
+ * kind, text}]: `down` is a coordinator writing to the thread (`from` "project" or "workspace", `kind`
+ * brief | follow-up | answer), `up` the thread writing to its coordinator. A hop whose note hasn't
+ * been read yet (the stream's hop frame carries none) isn't here until it is.
+ */
+export function hopNotes(thread, hops) {
+  const out = [];
+  for (const hp of hops || []) {
+    if (!hp || hp.thread_ts !== thread.id || !String(hp.note || "").trim()) continue;
+    const at = Date.parse(hp.created_at || hp.at) || 0;
+    const base = { id: hp.id, seq: hp.seq ?? null, at, text: String(hp.note).trim() };
+    if (hp.to_role === "thread" && COORD_WORD[hp.from_role] && DOWN_KINDS[hp.kind]) out.push({ ...base, dir: "down", from: COORD_WORD[hp.from_role], kind: DOWN_KINDS[hp.kind] });
+    else if (hp.from_role === "thread" && COORD_WORD[hp.to_role] && hp.kind === "relay") out.push({ ...base, dir: "up", from: "thread", kind: "relay" });
+  }
+  return out;
+}
+
 /**
  * Your messages relayed into a thread (if1 #7). Storm doesn't copy a relayed message into the thread:
- * the `relay` hop into it names the message, which stays on the project's timeline. Returns
+ * the hop into it (a relay, a brief, an answer: any hop to the thread) names the message, which stays on the project's timeline. Returns
  * {shown: [ui message], missing: [{ids, seq}]}: the owner's own messages found on the loaded
  * timeline (each once, never one the thread already has), and per hop the ids not loaded yet,
  * with the hop's seq as the upper bound to page back from. Someone else's words are never shown as yours.
@@ -334,7 +357,7 @@ export function sharedFileRoute(thread, path) {
 export function relayedInto(thread, hops, timeline, have = new Set()) {
   const shown = [], missing = [], seen = new Set(have);
   for (const hp of hops || []) {
-    if (!hp || hp.thread_ts !== thread.id || hp.kind !== "relay" || !(hp.message_ids || []).length) continue;
+    if (!hp || hp.thread_ts !== thread.id || hp.to_role !== "thread" || !(hp.message_ids || []).length) continue;
     const lost = [];
     for (const id of hp.message_ids) {
       if (seen.has(id)) continue;

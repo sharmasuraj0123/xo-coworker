@@ -7,7 +7,7 @@ import { renderMarkdown, renderInline, threadLinks, excerptMarkdown } from "../j
 import { parseChecklist, tasksOf } from "../js/model.js";
 import { request } from "../js/api.js";
 import { highlight, langOf } from "../js/highlight.js";
-import { uiMsg, mergeRows, echoes, askText, stormAsks, threadAnchors, parseTarget, stripTarget, sendErrorTitle, connLine, currentPools, sharedFileRoute, relayedInto, sendBlock, mapLimit, plainText, hopLine, waitsForTurn, threadState } from "../js/timeline.js";
+import { uiMsg, mergeRows, echoes, askText, stormAsks, threadAnchors, parseTarget, stripTarget, sendErrorTitle, connLine, currentPools, sharedFileRoute, relayedInto, sendBlock, mapLimit, plainText, hopLine, waitsForTurn, threadState, hopNotes } from "../js/timeline.js";
 
 let passed = 0;
 const t = (name, fn) => {
@@ -263,11 +263,12 @@ t("a message relayed into a thread shows there, as yours (if1 #7)", () => {
     { id: "cmsg_co", seq: 1793, author_kind: "agent", author_id: "project-coordinator", text: "On it.", created_at: "2026-10-22T12:04:31Z" },
   ];
   const hops = [
-    { id: "h1", kind: "relay", thread_ts: "cmsg_t", seq: 1803, message_ids: ["cmsg_fwd"] },
-    { id: "h2", kind: "relay", thread_ts: "cmsg_t", seq: 722, message_ids: ["cmsg_old"] },
-    { id: "h3", kind: "relay", thread_ts: "cmsg_other", seq: 9, message_ids: ["cmsg_fwd"] },
-    { id: "h4", kind: "status", thread_ts: "cmsg_t", seq: 2000, message_ids: ["cmsg_co"] },
-    { id: "h5", kind: "relay", thread_ts: "cmsg_t", seq: 1810, message_ids: ["cmsg_co", "cmsg_fwd"] },
+    { id: "h1", kind: "relay", to_role: "thread", thread_ts: "cmsg_t", seq: 1803, message_ids: ["cmsg_fwd"] },
+    { id: "h2", kind: "answer", to_role: "thread", thread_ts: "cmsg_t", seq: 722, message_ids: ["cmsg_old"] },
+    { id: "h3", kind: "relay", to_role: "thread", thread_ts: "cmsg_other", seq: 9, message_ids: ["cmsg_fwd"] },
+    { id: "h4", kind: "status", to_role: "project-coordinator", thread_ts: "cmsg_t", seq: 2000, message_ids: ["cmsg_co"] },
+    { id: "h5", kind: "brief", to_role: "thread", thread_ts: "cmsg_t", seq: 1810, message_ids: ["cmsg_co", "cmsg_fwd"] },
+    { id: "h6", kind: "ask", to_role: "workspace-coordinator", thread_ts: "cmsg_t", seq: 1811, message_ids: ["cmsg_up"] },
   ];
   const { shown, missing } = relayedInto(th, hops, tl);
   assert.deepEqual(shown.map((m) => m.id), ["cmsg_fwd"], "once, only the owner's words");
@@ -297,6 +298,25 @@ t("after an Interrupt, a thread running your message doesn't ask for a reply", (
   assert.equal(threadState("needs_reply", null), "needs_reply", "a plain Stop still waits on you");
   assert.equal(threadState("needs_approval", yours), "needs_approval");
   assert.equal(threadState(undefined, null), "working");
+});
+
+t("what a thread and its coordinators wrote each other shows in the thread", () => {
+  const th = { id: "cmsg_t" };
+  const hops = [
+    { id: "b", kind: "brief", from_role: "project-coordinator", to_role: "thread", thread_ts: "cmsg_t", seq: 10, created_at: "2026-10-24T10:00:00Z", note: "Build the UI. " },
+    { id: "r", kind: "relay", from_role: "project-coordinator", to_role: "thread", thread_ts: "cmsg_t", seq: 20, note: "A follow-up" },
+    { id: "a", kind: "answer", from_role: "workspace-coordinator", to_role: "thread", thread_ts: "cmsg_t", seq: 30, note: "Yes" },
+    { id: "u", kind: "relay", from_role: "thread", to_role: "project-coordinator", thread_ts: "cmsg_t", seq: 40, note: "Which branch?" },
+    { id: "s", kind: "status", from_role: "thread", to_role: "project-coordinator", thread_ts: "cmsg_t", seq: 50, note: "Done" },
+    { id: "k", kind: "ask", from_role: "project-coordinator", to_role: "workspace-coordinator", thread_ts: "cmsg_t", seq: 60, note: "On its behalf" },
+    { id: "n", kind: "relay", from_role: "project-coordinator", to_role: "thread", thread_ts: "cmsg_t", seq: 70 },
+    { id: "o", kind: "relay", from_role: "project-coordinator", to_role: "thread", thread_ts: "cmsg_other", seq: 80, note: "Elsewhere" },
+  ];
+  const out = hopNotes(th, hops);
+  assert.deepEqual(out.map((x) => [x.id, x.dir, x.from, x.kind]), [["b", "down", "project", "brief"], ["r", "down", "project", "follow-up"], ["a", "down", "workspace", "answer"], ["u", "up", "thread", "relay"]]);
+  assert.equal(out[0].text, "Build the UI.", "trimmed");
+  assert.equal(out[0].at, Date.parse("2026-10-24T10:00:00Z"));
+  assert.equal(out[0].seq, 10);
 });
 
 // ── a request that never settles gives up (if1 #6) ─────────────────────────
