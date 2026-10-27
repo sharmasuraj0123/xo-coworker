@@ -1785,6 +1785,8 @@ body.viewer-open .tdock{display:none}
 .vw-src code{font:inherit;background:none;border:0;padding:0}
 .vw-cut{display:flex;align-items:center;gap:8px;margin:0;padding:9px 16px;border-bottom:1px solid var(--g22);background:var(--warn-subtle);font-size:var(--fs-base);color:var(--ink-2)}
 .vw-cut svg{flex:none;width:14px;height:14px;color:var(--warn)}
+.vw-cut-dl{margin-left:auto;flex:none;color:var(--ink);font-weight:500;text-decoration:underline;text-underline-offset:2px}
+.vw-cut-dl:disabled,.vw-btn:disabled{opacity:.6;cursor:progress}
 .vw-empty{display:grid;gap:12px;place-content:center;justify-items:center;min-height:60%;padding:32px;text-align:center;font-size:var(--fs-md);color:var(--ink-3)}
 .vw-empty p{max-width:44ch}
 .vw-path{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center}
