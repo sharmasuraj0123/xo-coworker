@@ -7,7 +7,7 @@ import { renderMarkdown, renderInline, threadLinks, excerptMarkdown } from "../j
 import { parseChecklist, tasksOf } from "../js/model.js";
 import { request } from "../js/api.js";
 import { highlight, langOf } from "../js/highlight.js";
-import { uiMsg, mergeRows, echoes, askText, stormAsks, threadAnchors, parseTarget, stripTarget, sendErrorTitle, connLine, currentPools, sharedFileRoute, relayedInto, sendBlock, mapLimit, plainText, hopLine, waitsForTurn, threadState, hopNotes, mainRuntime, chatOrder } from "../js/timeline.js";
+import { uiMsg, mergeRows, echoes, askText, stormAsks, threadAnchors, parseTarget, stripTarget, sendErrorTitle, connLine, currentPools, sharedFileRoute, relayedInto, sendBlock, mapLimit, plainText, hopLine, waitsForTurn, threadState, hopNotes, mainRuntime, chatOrder, addReaction, reactionGroups } from "../js/timeline.js";
 
 let passed = 0;
 const t = (name, fn) => {
@@ -89,6 +89,23 @@ t("tasks leave notes out of the count and the bar", () => {
 });
 
 // ── storm rows and the live timeline (js/timeline.js) ────────────────────
+t("an agent's reactions: read from extra, applied live, grouped by emoji", () => {
+  const row = { id: "cmsg_a1", seq: 4, created_at: "2026-01-01T00:00:00Z", author_kind: "owner", author_id: "owner", text: "hi", extra: { reactions: [{ emoji: "👀", by: "cse_1", at: "x" }, { emoji: null }] } };
+  assert.deepEqual(uiMsg(row).reactions, [{ emoji: "👀", by: "cse_1", at: "x" }]);
+  assert.deepEqual(uiMsg({ ...row, extra: {} }).reactions, []);
+  const list = [{ id: "cmsg_a0", extra: {} }, row];
+  const next = addReaction(list, { message_id: "cmsg_a1", emoji: "🚀", by: "cse_2" }, "t");
+  assert.notEqual(next, list);
+  assert.equal(list[1].extra.reactions.length, 2); // the old list is left alone
+  assert.deepEqual(next[1].extra.reactions.map((r) => r.emoji), ["👀", null, "🚀"]);
+  assert.deepEqual(uiMsg(next[1]).reactions.at(-1), { emoji: "🚀", by: "cse_2", at: "t" });
+  assert.equal(next[0], list[0]);
+  assert.equal(addReaction(list, { message_id: "cmsg_zz", emoji: "🚀" }), null);
+  assert.equal(addReaction(undefined, { message_id: "cmsg_a1", emoji: "🚀" }), null);
+  assert.deepEqual(reactionGroups([{ emoji: "👀", by: "a" }, { emoji: "🚀", by: "a" }, { emoji: "👀", by: "b" }, { emoji: "👀", by: "a" }]),
+    [{ emoji: "👀", count: 3, by: ["a", "b"] }, { emoji: "🚀", count: 1, by: ["a"] }]);
+  assert.deepEqual(reactionGroups(undefined), []);
+});
 t("storm rows map to the UI's authors (role ids)", () => {
   const base = { id: "cmsg_a1", seq: 4, created_at: "2026-01-01T00:00:00Z", text: "hi", extra: {} };
   assert.equal(uiMsg({ ...base, author_kind: "owner", author_id: "owner" }).who, "you");

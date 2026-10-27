@@ -10,6 +10,7 @@ const COORDINATORS = new Set(["workspace-coordinator", "project-coordinator"]);
  * job, files, passedOn}. author_kind owner|agent|system; an agent's author_id is its role (UI-reference
  * §3 Message). files: extra.attachments, read through this row's own chat (a forwarded copy has its own
  * ids). passedOn: XO's note that this project's work went on to another project through the Workspace.
+ * reactions: extra.reactions, the emoji agents put on it ({emoji, by: session id, at}).
  */
 export function uiMsg(row) {
   const who = row.author_kind === "owner" ? "you"
@@ -31,7 +32,33 @@ export function uiMsg(row) {
     noOne: !!row.reply_to, // XO's "This message reached no one: …" note
     files: attachmentsOf(row),
     passedOn: p && p.project ? { project: String(p.project), to: (p.forwarded_message_ids || [])[0] || null } : null,
+    reactions: Array.isArray(x.reactions) ? x.reactions.filter((r) => r && r.emoji) : [],
   };
+}
+
+/**
+ * A `reaction` event ({message_id, emoji, by}) onto the storm rows holding its message: a new list
+ * with that row's extra.reactions grown by one, or null when the message isn't in `list`.
+ */
+export function addReaction(list, d, at = null) {
+  const i = (list || []).findIndex((r) => r && r.id === d.message_id);
+  if (i < 0 || !d.emoji) return null;
+  const row = list[i], x = row.extra || {};
+  const next = [...list];
+  next[i] = { ...row, extra: { ...x, reactions: [...(x.reactions || []), { emoji: d.emoji, by: d.by || null, at }] } };
+  return next;
+}
+
+/** A message's reactions grouped by emoji, first-seen order: [{emoji, count, by: [session ids]}]. */
+export function reactionGroups(reactions) {
+  const by = new Map();
+  for (const r of reactions || []) {
+    const g = by.get(r.emoji) || { emoji: r.emoji, count: 0, by: [] };
+    g.count++;
+    if (r.by && !g.by.includes(r.by)) g.by.push(r.by);
+    by.set(r.emoji, g);
+  }
+  return [...by.values()];
 }
 
 /** Merge storm rows into a list ordered by seq (ids are not ordered). Returns {list, added}. */

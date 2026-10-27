@@ -17,7 +17,7 @@ import { createPacing } from "./pacing.js";
 import { createIntel } from "./intel.js";
 import { EFFORT, estLine, evidenceFor } from "./content.js";
 import { ICON, XO, NEXT_GLYPH, $, $$, RM, clock, dayOf, short, elapsed, reconcile, sound, wait, dial, morph, expand } from "./ui.js";
-import { uiMsg, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes } from "./timeline.js";
+import { uiMsg, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups } from "./timeline.js";
 import { turnHtml } from "./turnview.js";
 import { itemParts } from "./review.js";
 import { runsStripHtml, runsListHtml, runViewHtml } from "./runsview.js";
@@ -477,7 +477,7 @@ function messagesOf(conv) {
   const turn = t && t.busy && t.sessionId && st.turns ? st.turns.running(t.sessionId) : null;
   for (const m of rows) {
     const key = S.alias.get(m.id) || m.id;
-    const base = { key, at: m.at, seq: m.seq, text: m.text, sent: S.alias.has(m.id), files: m.files, chatId: m.chatId };
+    const base = { key, at: m.at, seq: m.seq, text: m.text, sent: S.alias.has(m.id), files: m.files, chatId: m.chatId, reactions: m.reactions };
     if (m.who === "you") {
       out.push({ ...base, who: "you", fwd: conv !== "ws" && m.fwd ? m.fwd : null, routed: conv === "ws" ? st.routed[m.id] || null : null, queued: waitsForTurn(m, turn) });
       if (alone.has(m.id)) out.push({ key: `${m.id}:card`, at: m.at, who: "card", thread: m.id });
@@ -636,7 +636,7 @@ function msgItems(conv, needs) {
       }
       else if (m.routed && m.routed.length) route = `<div class="route-row">${ICON.arrow}<span>Routed to ${[...new Set(m.routed.map((r) => r.chat))].map((c) => `<button type="button" class="rt-go" data-go="p:${esc(c)}"><b>${esc(PROJ(c))}</b></button>`).join(", ")}</span></div>`;
       const files = m.files && m.files.length ? filesHtml(m.files, m.chatId) : "";
-      html = `<div class="m m-you${cont ? " cont" : ""}${m.relay ? " is-relay" : ""}${m.status === "failed" ? " is-failed" : ""}${m.status === "sending" ? " is-pending" : ""}">${m.text ? `<div class="bubble" title="${esc(clock(m.at))}">${esc(m.text)}</div>` : ""}${files}${meta}${route}</div>`;
+      html = `<div class="m m-you${cont ? " cont" : ""}${m.relay ? " is-relay" : ""}${m.status === "failed" ? " is-failed" : ""}${m.status === "sending" ? " is-pending" : ""}">${m.text ? `<div class="bubble" title="${esc(clock(m.at))}">${esc(m.text)}</div>` : ""}${files}${reactionsHtml(m.reactions)}${meta}${route}</div>`;
     } else if (m.who === "coord" || m.who === "agent") {
       const [name, role] = m.name ? [m.name, m.role || ""] : nameOf(conv, m.who);
       const av = m.who === "coord" ? `<div class="av">${XO}</div>` : `<div class="av av-t">${ICON.thread}</div>`;
@@ -644,7 +644,7 @@ function msgItems(conv, needs) {
       const iq = m.iq ? `<span class="m-iq" title="${m.iq.src === "pinned" ? "Pinned for this conversation" : `Chosen by the ${esc(m.iq.src)}`}">${esc(m.iq.name)} ${m.iq.pips} · ${esc(m.iq.src)}</span>` : "";
       html = `<div class="m m-them${cont ? " cont" : ""}">${cont ? `<div class="av av-gap"></div>` : av}<div class="mb">` +
         (cont ? "" : `<div class="mh"><b>${esc(name)}</b>${role ? `<span class="role">${esc(role)}</span>` : ""}<time>${clock(m.at)}</time>${iq}</div>`) +
-        `<div class="prose">${renderMarkdown(m.text)}</div>${tid ? threadCardHtml(tid, needs) : ""}${(m.threads || []).map((x) => threadCardHtml(x, needs)).join("")}</div></div>`;
+        `<div class="prose">${renderMarkdown(m.text)}</div>${reactionsHtml(m.reactions)}${tid ? threadCardHtml(tid, needs) : ""}${(m.threads || []).map((x) => threadCardHtml(x, needs)).join("")}</div></div>`;
     } else if (m.who === "turn") {
       const inner = turnHtml(m.turn, m.blocks, { open: S.tbOpen, hideAnswer: m.hideAnswer });
       if (!inner) { prev = m; continue; }
@@ -1897,6 +1897,23 @@ function fwdSource(fwd) {
   if (p) return p === "workspace" ? null : p;
   const v = fwd.via || [];
   return v.length > 1 && v[0] !== "workspace" && v[0] !== "project" && world.project(v[0]) ? v[0] : null;
+}
+/** The emoji agents put on a message, one chip per emoji with its count; hover names who. */
+function reactionsHtml(reactions) {
+  const groups = reactionGroups(reactions);
+  if (!groups.length) return "";
+  return `<div class="m-reacts" aria-label="Reactions">${groups.map((g) => {
+    const who = g.by.map(reactorName).join(", ") || "An agent";
+    return `<span class="m-react" title="${esc(`${who} reacted ${g.emoji}`)}">${esc(g.emoji)}${g.count > 1 ? `<span class="m-react-n">${g.count}</span>` : ""}</span>`;
+  }).join("")}</div>`;
+}
+function reactorName(sessionId) {
+  const s = (world.state.sessions || {})[sessionId];
+  if (!s) return "An agent";
+  if (s.role === "workspace-coordinator") return "The Workspace coordinator";
+  const p = s.chat_id && world.act.projectOf ? world.act.projectOf(s.chat_id) : null;
+  if (s.role === "project-coordinator") return p && p !== "workspace" ? `The ${PROJ(p)} coordinator` : "The coordinator";
+  return p && p !== "workspace" ? `A ${PROJ(p)} agent` : "An agent";
 }
 /** A message's files as cards: each opens in the viewer, read through `chatId` (the message's own chat). */
 function filesHtml(files, chatId) {

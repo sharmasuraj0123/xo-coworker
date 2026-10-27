@@ -1885,6 +1885,10 @@ button.att-ic:hover img{opacity:.85}
 .drop-veil p{display:inline-flex;align-items:center;gap:10px;padding:12px 18px;border-radius:999px;background:var(--herald-bg);border:1px solid var(--g27);font-size:var(--fs-md);color:var(--ink)}
 .drop-veil svg{width:18px;height:18px;color:var(--accent)}
 :root[data-theme="light"] .drop-veil{background:rgb(255 255 255 / .55)}
+.m-reacts{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 0}
+.m-you .m-reacts{justify-content:flex-end}
+.m-react{display:inline-flex;align-items:center;gap:3px;height:22px;padding:0 7px;border:1px solid var(--line);border-radius:11px;background:var(--g22);font-size:13px;line-height:1;cursor:default}
+.m-react-n{font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums}
 .m-files{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin:6px 0 0;padding:0;list-style:none;max-width:min(560px,100%)}
 .m-files .tb-fb{min-width:min(220px,100%)}
 .m-files .tb-fb:disabled{cursor:default;opacity:.75}
