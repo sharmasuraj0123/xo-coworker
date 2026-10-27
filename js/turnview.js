@@ -106,6 +106,22 @@ const BAD = new Set(["error", "denied"]);
 const CHANGED = new Set(["create_file", "edit_file"]);
 const base = (p) => String(p || "").replace(/\/+$/, "").split("/").pop();
 
+/**
+ * The files a finished turn created or edited, as chips (a file it also shared shows there instead).
+ * more: the data-tb key "+N more" opens (the work it hides).
+ */
+function changedChips(rows, blocks, more) {
+  const shared = new Set(blocks.filter((b) => b.type === "shared_files").flatMap((b) => (b.files || []).map((f) => base(f.path || f.name))));
+  const files = new Map();
+  for (const r of rows) if (CHANGED.has(r.kind) && r.status === "ok" && r.target && !shared.has(base(r.target))) files.set(r.target, r);
+  if (!files.size) return "";
+  const list = [...files.values()];
+  const shown = list.slice(0, 6);
+  const rest = list.length - shown.length;
+  return `<ul class="tb-chg" aria-label="Files changed">${shown.map((r) => `<li><button type="button" class="tb-cf" data-file="${esc(r.target)}" data-file-name="${esc(base(r.target))}" title="${esc(r.target)}"><span class="tb-cfi">${r.kind === "create_file" ? (isImagePath(r.target) ? ICON.image : ICON.doc) : ICON.edit}</span><span class="tb-cfn">${esc(base(r.target))}</span></button></li>`).join("")}` +
+    (rest > 0 ? `<li><button type="button" class="tb-cf is-more" data-tb="${esc(more)}">+${rest} more</button></li>` : "") + `</ul>`;
+}
+
 function workFold(turn, work, blocks, open, live, now) {
   const key = `work:${turn.id}`;
   const isOpen = !!open[key];
@@ -133,17 +149,24 @@ function workFold(turn, work, blocks, open, live, now) {
     // a failed turn's own error is said in its last line already
     const bad = rows.filter((r) => (BAD.has(r.status) || r.kind === "error") && !(turn.status === "failed" && r.kind === "error"));
     if (bad.length) under += `<ul class="tb-rows tb-bad">${bad.slice(-3).map((r) => rowHtml(r, open)).join("")}</ul>`;
-    const shared = new Set(blocks.filter((b) => b.type === "shared_files").flatMap((b) => (b.files || []).map((f) => base(f.path || f.name))));
-    const files = new Map();
-    for (const r of rows) if (CHANGED.has(r.kind) && r.status === "ok" && r.target && !shared.has(base(r.target))) files.set(r.target, r);
-    if (files.size) {
-      const list = [...files.values()];
-      const shown = list.slice(0, 6);
-      under += `<ul class="tb-chg" aria-label="Files changed">${shown.map((r) => `<li><button type="button" class="tb-cf" data-file="${esc(r.target)}" data-file-name="${esc(base(r.target))}" title="${esc(r.target)}"><span class="tb-cfi">${r.kind === "create_file" ? (isImagePath(r.target) ? ICON.image : ICON.doc) : ICON.edit}</span><span class="tb-cfn">${esc(base(r.target))}</span></button></li>`).join("")}` +
-        (list.length > shown.length ? `<li><button type="button" class="tb-cf is-more" data-tb="${esc(key)}">+${list.length - shown.length} more</button></li>` : "") + `</ul>`;
-    }
+    under += changedChips(rows, blocks, key);
   }
   return `<div class="tb tb-work${live ? " is-live" : ""}${waiting ? " is-waiting" : ""}">${head}${under}</div>`;
+}
+
+/**
+ * A block without the runtime's "sent something I don't know" notices (code unknown_wire): news for
+ * whoever maintains the runtime, not for you, so they go to the console. A group left empty goes.
+ */
+const wireSeen = new Set();
+function withoutWireNotices(b) {
+  if (b.type !== "activity" || !(b.rows || []).some((r) => r.kind === "notice" && r.summary === "unknown_wire")) return b;
+  const rows = b.rows.filter((r) => {
+    if (r.kind !== "notice" || r.summary !== "unknown_wire") return true;
+    if (!wireSeen.has(r.line)) { wireSeen.add(r.line); console.info(`[runtime] ${r.line}`); }
+    return false;
+  });
+  return rows.length ? { ...b, rows } : null;
 }
 
 /**
@@ -153,13 +176,16 @@ function workFold(turn, work, blocks, open, live, now) {
  */
 export function turnHtml(turn, blocks, { open = {}, hideAnswer = false, now = Date.now() } = {}) {
   const live = turn.status === "running";
-  const shown = blocks.filter((b) => !(hideAnswer && b.type === "answer"));
+  const shown = blocks.filter((b) => !(hideAnswer && b.type === "answer")).map(withoutWireNotices).filter(Boolean);
   const work = shown.filter((b) => WORK.has(b.type));
   const fold = work.length >= 2;
   const parts = [];
   for (const b of shown) {
     if (fold && WORK.has(b.type)) { if (b === work[0]) parts.push(workFold(turn, work, shown, open, live, now)); continue; }
     parts.push(blockHtml(b, open, live, now));
+    // a turn whose work is one tool group (codex often has no thinking or narration): its files show
+    // under that group, as they would under the fold
+    if (b.type === "activity" && !live && b.done && !open[b.id]) parts.push(changedChips(b.rows || [], shown, b.id));
   }
   const html = parts.filter(Boolean);
   const end = turn.end || {};

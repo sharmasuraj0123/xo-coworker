@@ -10,6 +10,7 @@ const COORDINATORS = new Set(["workspace-coordinator", "project-coordinator"]);
  * job, files, passedOn}. author_kind owner|agent|system; an agent's author_id is its role (UI-reference
  * §3 Message). files: extra.attachments, read through this row's own chat (a forwarded copy has its own
  * ids). passedOn: XO's note that this project's work went on to another project through the Workspace.
+ * reactions: extra.reactions, the emoji agents put on it ({emoji, by: session id, at}).
  */
 export function uiMsg(row) {
   const who = row.author_kind === "owner" ? "you"
@@ -31,7 +32,33 @@ export function uiMsg(row) {
     noOne: !!row.reply_to, // XO's "This message reached no one: …" note
     files: attachmentsOf(row),
     passedOn: p && p.project ? { project: String(p.project), to: (p.forwarded_message_ids || [])[0] || null } : null,
+    reactions: Array.isArray(x.reactions) ? x.reactions.filter((r) => r && r.emoji) : [],
   };
+}
+
+/**
+ * A `reaction` event ({message_id, emoji, by}) onto the storm rows holding its message: a new list
+ * with that row's extra.reactions grown by one, or null when the message isn't in `list`.
+ */
+export function addReaction(list, d, at = null) {
+  const i = (list || []).findIndex((r) => r && r.id === d.message_id);
+  if (i < 0 || !d.emoji) return null;
+  const row = list[i], x = row.extra || {};
+  const next = [...list];
+  next[i] = { ...row, extra: { ...x, reactions: [...(x.reactions || []), { emoji: d.emoji, by: d.by || null, at }] } };
+  return next;
+}
+
+/** A message's reactions grouped by emoji, first-seen order: [{emoji, count, by: [session ids]}]. */
+export function reactionGroups(reactions) {
+  const by = new Map();
+  for (const r of reactions || []) {
+    const g = by.get(r.emoji) || { emoji: r.emoji, count: 0, by: [] };
+    g.count++;
+    if (r.by && !g.by.includes(r.by)) g.by.push(r.by);
+    by.set(r.emoji, g);
+  }
+  return [...by.values()];
 }
 
 /** Merge storm rows into a list ordered by seq (ids are not ordered). Returns {list, added}. */
@@ -47,6 +74,16 @@ export function mergeRows(list, incoming) {
   return { list: [...byId.values()].sort(bySeq), added };
 }
 const bySeq = (a, b) => (a.seq ?? Infinity) - (b.seq ?? Infinity) || (Date.parse(a.created_at) || 0) - (Date.parse(b.created_at) || 0);
+
+/**
+ * Your message in a thread that waits for its agent's running turn to end: stored after the turn
+ * started and not one of its wakes (`msg:<id>`). A thread message never joins a running turn, so it
+ * waits until the turn ends, or until a Stop ends it and the message runs next.
+ */
+export function waitsForTurn(m, turn) {
+  return !!(turn && turn.status === "running" && m && m.who === "you" && m.id && m.seq != null && turn.seq != null &&
+    m.seq > turn.seq && !(turn.wakes || []).includes(`msg:${m.id}`));
+}
 
 /**
  * Optimistic rows whose server copy is already in `rows` (the stream can beat
@@ -87,6 +124,16 @@ export function askText(md, max = 140) {
   else title = s.slice(0, max - 1).replace(/\s+\S*$/, "") + "…";
   const used = m && m[1].length <= max ? m[1].length : title.replace(/…$/, "").length;
   return { title, rest: s.slice(used).trim() };
+}
+
+/**
+ * The thread's state as shown, given its session's running turn (or null). A stopped turn leaves
+ * the thread at needs_reply (ch 11 §7.3) until its next input ends; after an Interrupt that input is
+ * already your message, running, so the thread isn't waiting on you.
+ */
+export function threadState(state, turn) {
+  if (state === "needs_reply" && turn && turn.status === "running" && turn.origin === "person") return "working";
+  return state || "working";
 }
 
 const clip = (s, n) => (s.length > n ? s.slice(0, n - 1).replace(/\s+\S*$/, "") + "…" : s);
@@ -172,6 +219,11 @@ const STORM_DOWN = new Set(["engine_not_running", "engine_elsewhere", "engine_fa
 const CLI_NAME = { claude_code: "Claude", codex: "Codex", antigravity: "Antigravity" };
 /** A runtime's name as people say it (display only). */
 export const cliName = (name) => CLI_NAME[name] || String(name || "The agent");
+/**
+ * The runtime this server is for: the one /api/chat/runtimes marks `default` (the server's AGENT_NAME),
+ * else the first one connected, else the first listed. Null when there are none.
+ */
+export const mainRuntime = (rts) => (rts || []).find((r) => r.default) || (rts || []).find((r) => r.cli && r.cli.logged_in && !r.error) || (rts || [])[0] || null;
 
 /** A plain title for a failed send (the storm error codes, UI-reference §2.2). */
 export function sendErrorTitle(err) {
@@ -221,7 +273,7 @@ export function connLine(w) {
   if (w.error || w.statusError || w.conn === "down") return { kind: "down", text: "Can't reach XO", sub: "retrying · what you see may be out of date" };
   const rts = w.runtimes || [];
   if (rts.length && rts.every((r) => !r.cli || r.cli.logged_in === false || r.error)) {
-    const r = rts[0];
+    const r = mainRuntime(rts);
     return { kind: "off", text: `${cliName(r.name)} isn't connected`, sub: "connect it in XO · sending waits until then" };
   }
   if (w.router && w.router.mode === "off") return { kind: "off", text: "The router is off", sub: "new messages to the Workspace and projects are refused · threads still take replies" };
@@ -240,9 +292,52 @@ export function sendBlock(w, { timeline = true } = {}) {
   if (w.error && !(w.projects && w.projects.length)) return "Can't reach XO right now";
   if (!w.loaded) return "Connecting to XO…";
   const rts = w.runtimes || [];
-  if (rts.length && rts.every((r) => !r.cli || r.cli.logged_in === false || r.error)) return `${cliName(rts[0].name)} isn't connected`;
+  if (rts.length && rts.every((r) => !r.cli || r.cli.logged_in === false || r.error)) return `${cliName(mainRuntime(rts).name)} isn't connected`;
   if (timeline && w.router && w.router.mode === "off") return "The router is off";
   return "";
+}
+
+/**
+ * A plain chat in order: your prompts (from the CLI's own history, each at the time the CLI wrote it)
+ * and storm's turns (each at its start, whole seconds), as [{kind: "you", m} | {kind: "turn", t}].
+ * The CLI writes a prompt some time after its turn starts (claude at once, codex after its own context,
+ * seconds on a cold start), so times alone can put a reply above its prompt. A turn is paired with the
+ * prompts that woke it instead: as many as its `msg:prompt:` wakes (one for a turn you started), taken
+ * between the start of the turn before it and the start of the next: those written once it began,
+ * else the last one sent just before it (from this tab, not in the history yet). The first goes just
+ * above the turn; any more (added while it ran) just below. A prompt no turn took (typed in the CLI
+ * itself, say) keeps its time.
+ * prompts: [{at: ms, …}]; turns: [{at: ISO, origin, wakes}] in the order they ran.
+ */
+export function chatOrder(prompts, turns) {
+  const mine = prompts.map((m, i) => ({ m, i })).sort((a, b) => a.m.at - b.m.at || a.i - b.i);
+  const taken = new Set();
+  const start = (t) => Date.parse(t && t.at) || 0;
+  const groups = turns.map((t, k) => {
+    const n = (t.wakes || []).filter((w) => String(w).startsWith("msg:prompt:")).length || (t.origin === "person" ? 1 : 0);
+    const lo = k ? start(turns[k - 1]) : -Infinity;
+    const hi = k + 1 < turns.length ? start(turns[k + 1]) : Infinity;
+    const at = start(t);
+    const free = mine.filter((x) => !taken.has(x) && x.m.at >= lo && x.m.at < hi);
+    // written once the turn began (the CLI's history), else the last one sent just before (this tab's
+    // own, not in the history yet); one typed in the CLI between turns is left to its time
+    const after = free.filter((x) => x.m.at >= at);
+    const before = free.filter((x) => x.m.at < at);
+    const pick = n ? (after.length ? after.slice(0, n) : before.slice(-1).concat(after.slice(0, n - 1))) : [];
+    for (const x of pick) taken.add(x);
+    return { at, k, t, got: pick.map((x) => x.m) };
+  });
+  const loose = mine.filter((x) => !taken.has(x)).map((x) => ({ at: x.m.at, m: x.m }));
+  // a loose prompt at the same moment as a turn goes first: it may have woken it
+  const all = [...loose, ...groups].sort((a, b) => a.at - b.at || (a.t ? 1 : 0) - (b.t ? 1 : 0) || (a.k ?? 0) - (b.k ?? 0));
+  const out = [];
+  for (const x of all) {
+    if (!x.t) { out.push({ kind: "you", m: x.m }); continue; }
+    if (x.got[0]) out.push({ kind: "you", m: x.got[0] });
+    out.push({ kind: "turn", t: x.t });
+    for (const m of x.got.slice(1)) out.push({ kind: "you", m });
+  }
+  return out;
 }
 
 /** Run `fn` over `items`, at most `cap` at a time. */
@@ -304,9 +399,32 @@ export function sharedFileRoute(thread, path) {
   return none;
 }
 
+const COORD_WORD = { "project-coordinator": "project", "workspace-coordinator": "workspace" };
+const DOWN_KINDS = { brief: "brief", relay: "follow-up", answer: "answer" };
+
+/**
+ * What a thread and its coordinators said to each other. Storm keeps those words as hops, the text
+ * in `note` (ch 11 §16), never as chat messages: a coordinator's brief, follow-up or answer to the
+ * thread, and the thread's own message_coordinator. Returns [{id, seq, at, dir: "down"|"up", from,
+ * kind, text}]: `down` is a coordinator writing to the thread (`from` "project" or "workspace", `kind`
+ * brief | follow-up | answer), `up` the thread writing to its coordinator. A hop whose note hasn't
+ * been read yet (the stream's hop frame carries none) isn't here until it is.
+ */
+export function hopNotes(thread, hops) {
+  const out = [];
+  for (const hp of hops || []) {
+    if (!hp || hp.thread_ts !== thread.id || !String(hp.note || "").trim()) continue;
+    const at = Date.parse(hp.created_at || hp.at) || 0;
+    const base = { id: hp.id, seq: hp.seq ?? null, at, text: String(hp.note).trim() };
+    if (hp.to_role === "thread" && COORD_WORD[hp.from_role] && DOWN_KINDS[hp.kind]) out.push({ ...base, dir: "down", from: COORD_WORD[hp.from_role], kind: DOWN_KINDS[hp.kind] });
+    else if (hp.from_role === "thread" && COORD_WORD[hp.to_role] && hp.kind === "relay") out.push({ ...base, dir: "up", from: "thread", kind: "relay" });
+  }
+  return out;
+}
+
 /**
  * Your messages relayed into a thread (if1 #7). Storm doesn't copy a relayed message into the thread:
- * the `relay` hop into it names the message, which stays on the project's timeline. Returns
+ * the hop into it (a relay, a brief, an answer: any hop to the thread) names the message, which stays on the project's timeline. Returns
  * {shown: [ui message], missing: [{ids, seq}]}: the owner's own messages found on the loaded
  * timeline (each once, never one the thread already has), and per hop the ids not loaded yet,
  * with the hop's seq as the upper bound to page back from. Someone else's words are never shown as yours.
@@ -314,7 +432,7 @@ export function sharedFileRoute(thread, path) {
 export function relayedInto(thread, hops, timeline, have = new Set()) {
   const shown = [], missing = [], seen = new Set(have);
   for (const hp of hops || []) {
-    if (!hp || hp.thread_ts !== thread.id || hp.kind !== "relay" || !(hp.message_ids || []).length) continue;
+    if (!hp || hp.thread_ts !== thread.id || hp.to_role !== "thread" || !(hp.message_ids || []).length) continue;
     const lost = [];
     for (const id of hp.message_ids) {
       if (seen.has(id)) continue;

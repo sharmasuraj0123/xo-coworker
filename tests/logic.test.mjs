@@ -7,7 +7,7 @@ import { renderMarkdown, renderInline, threadLinks, excerptMarkdown } from "../j
 import { parseChecklist, tasksOf } from "../js/model.js";
 import { request } from "../js/api.js";
 import { highlight, langOf } from "../js/highlight.js";
-import { uiMsg, mergeRows, echoes, askText, stormAsks, threadAnchors, parseTarget, stripTarget, sendErrorTitle, connLine, currentPools, sharedFileRoute, relayedInto, sendBlock, mapLimit, plainText, hopLine } from "../js/timeline.js";
+import { uiMsg, mergeRows, echoes, askText, stormAsks, threadAnchors, parseTarget, stripTarget, sendErrorTitle, connLine, currentPools, sharedFileRoute, relayedInto, sendBlock, mapLimit, plainText, hopLine, waitsForTurn, threadState, hopNotes, mainRuntime, chatOrder, addReaction, reactionGroups } from "../js/timeline.js";
 
 let passed = 0;
 const t = (name, fn) => {
@@ -89,6 +89,23 @@ t("tasks leave notes out of the count and the bar", () => {
 });
 
 // ── storm rows and the live timeline (js/timeline.js) ────────────────────
+t("an agent's reactions: read from extra, applied live, grouped by emoji", () => {
+  const row = { id: "cmsg_a1", seq: 4, created_at: "2026-01-01T00:00:00Z", author_kind: "owner", author_id: "owner", text: "hi", extra: { reactions: [{ emoji: "👀", by: "cse_1", at: "x" }, { emoji: null }] } };
+  assert.deepEqual(uiMsg(row).reactions, [{ emoji: "👀", by: "cse_1", at: "x" }]);
+  assert.deepEqual(uiMsg({ ...row, extra: {} }).reactions, []);
+  const list = [{ id: "cmsg_a0", extra: {} }, row];
+  const next = addReaction(list, { message_id: "cmsg_a1", emoji: "🚀", by: "cse_2" }, "t");
+  assert.notEqual(next, list);
+  assert.equal(list[1].extra.reactions.length, 2); // the old list is left alone
+  assert.deepEqual(next[1].extra.reactions.map((r) => r.emoji), ["👀", null, "🚀"]);
+  assert.deepEqual(uiMsg(next[1]).reactions.at(-1), { emoji: "🚀", by: "cse_2", at: "t" });
+  assert.equal(next[0], list[0]);
+  assert.equal(addReaction(list, { message_id: "cmsg_zz", emoji: "🚀" }), null);
+  assert.equal(addReaction(undefined, { message_id: "cmsg_a1", emoji: "🚀" }), null);
+  assert.deepEqual(reactionGroups([{ emoji: "👀", by: "a" }, { emoji: "🚀", by: "a" }, { emoji: "👀", by: "b" }, { emoji: "👀", by: "a" }]),
+    [{ emoji: "👀", count: 3, by: ["a", "b"] }, { emoji: "🚀", count: 1, by: ["a"] }]);
+  assert.deepEqual(reactionGroups(undefined), []);
+});
 t("storm rows map to the UI's authors (role ids)", () => {
   const base = { id: "cmsg_a1", seq: 4, created_at: "2026-01-01T00:00:00Z", text: "hi", extra: {} };
   assert.equal(uiMsg({ ...base, author_kind: "owner", author_id: "owner" }).who, "you");
@@ -184,6 +201,42 @@ t("the connection line and the send block are honest", () => {
   assert.equal(sendBlock({ ...ok, loaded: false }), "Connecting to XO…");
   assert.equal(connLine({ ...ok, error: null, errorCode: null }), null, "a recovered state has no line");
 });
+t("the server's own runtime is the one named and chosen, not the first listed", () => {
+  const claude = { name: "claude_code", cli: null, error: { code: "cli_missing" } };
+  const codex = { name: "codex", cli: { logged_in: false } };
+  const ok = { loaded: true, conn: "live", router: { mode: "agent" }, pools: {} };
+  assert.equal(mainRuntime([claude, { ...codex, default: true }]).name, "codex", "marked default");
+  assert.equal(mainRuntime([{ ...claude, error: null, cli: { logged_in: false } }, { ...codex, cli: { logged_in: true } }]).name, "codex", "else the one connected");
+  assert.equal(mainRuntime([claude, codex]).name, "claude_code", "else the first");
+  assert.equal(mainRuntime([]), null);
+  assert.match(connLine({ ...ok, runtimes: [claude, { ...codex, default: true }] }).text, /^Codex isn't connected/);
+  assert.equal(sendBlock({ ...ok, runtimes: [claude, { ...codex, default: true }] }), "Codex isn't connected");
+});
+t("a plain chat pairs each turn with the prompt that woke it, whenever the CLI wrote it down", () => {
+  const at = (s) => Date.parse(`2026-10-26T11:${s}Z`);
+  const turn = (id, s, n = 1) => ({ id, at: `2026-10-26T11:${s}Z`, origin: "person", wakes: Array.from({ length: n }, (_, i) => `msg:prompt:${id}${i}`) });
+  const said = (out) => out.map((x) => (x.kind === "you" ? x.m.text : x.t.id)).join(" ");
+  // codex, cold: the prompt is written ~3.7 s after its turn began (live, 0.164)
+  assert.equal(said(chatOrder([{ text: "hey", at: at("44:51.708") }], [turn("T1", "44:48")])), "hey T1");
+  // and later turns, written well after their start, still under their own turn
+  assert.equal(said(chatOrder(
+    [{ text: "a", at: at("44:51.7") }, { text: "b", at: at("46:25") }, { text: "c", at: at("47:20") }],
+    [turn("T1", "44:48"), turn("T2", "46:19"), turn("T3", "47:19")])), "a T1 b T2 c T3");
+  // claude: written within the second its turn began (storm stamps whole seconds)
+  assert.equal(said(chatOrder([{ text: "a", at: at("44:48.2") }], [turn("T1", "44:48")])), "a T1");
+  // sent from this tab and not in the history yet: its send time, before the turn
+  assert.equal(said(chatOrder([{ text: "a", at: at("44:47.9") }], [turn("T1", "44:48")])), "a T1");
+  // a prompt added while a turn ran shows under it; the next turn still gets its own
+  assert.equal(said(chatOrder(
+    [{ text: "a", at: at("44:49") }, { text: "more", at: at("44:55") }, { text: "b", at: at("46:22") }],
+    [turn("T1", "44:48", 2), turn("T2", "46:19")])), "a T1 more b T2");
+  // no turn for it (typed in the CLI itself): by its time
+  assert.equal(said(chatOrder(
+    [{ text: "a", at: at("44:49") }, { text: "cli", at: at("45:30") }, { text: "b", at: at("46:22") }],
+    [turn("T1", "44:48"), turn("T2", "46:19")])), "a T1 cli b T2");
+  // a turn still waiting for its prompt to be written: the turn alone
+  assert.equal(said(chatOrder([], [turn("T1", "44:48")])), "T1");
+});
 t("an old account's closed pool pauses nothing after a re-login (if1 #1)", () => {
   const rt = (account) => [{ name: "claude_code", cli: { logged_in: true, account } }];
   const pools = {
@@ -263,17 +316,60 @@ t("a message relayed into a thread shows there, as yours (if1 #7)", () => {
     { id: "cmsg_co", seq: 1793, author_kind: "agent", author_id: "project-coordinator", text: "On it.", created_at: "2026-10-22T12:04:31Z" },
   ];
   const hops = [
-    { id: "h1", kind: "relay", thread_ts: "cmsg_t", seq: 1803, message_ids: ["cmsg_fwd"] },
-    { id: "h2", kind: "relay", thread_ts: "cmsg_t", seq: 722, message_ids: ["cmsg_old"] },
-    { id: "h3", kind: "relay", thread_ts: "cmsg_other", seq: 9, message_ids: ["cmsg_fwd"] },
-    { id: "h4", kind: "status", thread_ts: "cmsg_t", seq: 2000, message_ids: ["cmsg_co"] },
-    { id: "h5", kind: "relay", thread_ts: "cmsg_t", seq: 1810, message_ids: ["cmsg_co", "cmsg_fwd"] },
+    { id: "h1", kind: "relay", to_role: "thread", thread_ts: "cmsg_t", seq: 1803, message_ids: ["cmsg_fwd"] },
+    { id: "h2", kind: "answer", to_role: "thread", thread_ts: "cmsg_t", seq: 722, message_ids: ["cmsg_old"] },
+    { id: "h3", kind: "relay", to_role: "thread", thread_ts: "cmsg_other", seq: 9, message_ids: ["cmsg_fwd"] },
+    { id: "h4", kind: "status", to_role: "project-coordinator", thread_ts: "cmsg_t", seq: 2000, message_ids: ["cmsg_co"] },
+    { id: "h5", kind: "brief", to_role: "thread", thread_ts: "cmsg_t", seq: 1810, message_ids: ["cmsg_co", "cmsg_fwd"] },
+    { id: "h6", kind: "ask", to_role: "workspace-coordinator", thread_ts: "cmsg_t", seq: 1811, message_ids: ["cmsg_up"] },
   ];
   const { shown, missing } = relayedInto(th, hops, tl);
   assert.deepEqual(shown.map((m) => m.id), ["cmsg_fwd"], "once, only the owner's words");
   assert.equal(shown[0].who, "you"); assert.equal(shown[0].seq, 1792); assert.equal(shown[0].fwd.id, "cmsg_ws");
   assert.deepEqual(missing, [{ ids: ["cmsg_old"], seq: 722 }], "not loaded: paged back from the hop's seq");
   assert.equal(relayedInto(th, hops, tl, new Set(["cmsg_fwd"])).shown.length, 0, "never twice in the thread");
+});
+
+t("a thread message sent during a turn waits for it (Interrupt)", () => {
+  const turn = { id: "turn_1", status: "running", seq: 500, wakes: ["msg:cmsg_a"] };
+  const you = (id, seq) => ({ id, seq, who: "you" });
+  assert.equal(waitsForTurn(you("cmsg_a", 490), turn), false, "the message that woke the turn");
+  assert.equal(waitsForTurn(you("cmsg_b", 510), turn), true, "sent after it started");
+  assert.equal(waitsForTurn(you("cmsg_a", 510), turn), false, "one the turn took");
+  assert.equal(waitsForTurn({ ...you("cmsg_c", 510), who: "agent" }, turn), false, "only yours");
+  assert.equal(waitsForTurn(you("cmsg_d", null), turn), false, "not stored yet");
+  assert.equal(waitsForTurn(you("cmsg_e", 510), { ...turn, status: "finished" }), false, "no turn running");
+  assert.equal(waitsForTurn(you("cmsg_f", 510), null), false);
+  assert.equal(waitsForTurn(you("cmsg_g", 510), { id: "turn_2", status: "running", seq: 500 }), true, "a turn that names no wakes");
+});
+
+t("after an Interrupt, a thread running your message doesn't ask for a reply", () => {
+  const yours = { status: "running", origin: "person" };
+  assert.equal(threadState("needs_reply", yours), "working", "the stopped turn's needs_reply");
+  assert.equal(threadState("needs_reply", { ...yours, origin: "wake" }), "needs_reply", "a turn you didn't start");
+  assert.equal(threadState("needs_reply", { ...yours, status: "finished" }), "needs_reply");
+  assert.equal(threadState("needs_reply", null), "needs_reply", "a plain Stop still waits on you");
+  assert.equal(threadState("needs_approval", yours), "needs_approval");
+  assert.equal(threadState(undefined, null), "working");
+});
+
+t("what a thread and its coordinators wrote each other shows in the thread", () => {
+  const th = { id: "cmsg_t" };
+  const hops = [
+    { id: "b", kind: "brief", from_role: "project-coordinator", to_role: "thread", thread_ts: "cmsg_t", seq: 10, created_at: "2026-10-24T10:00:00Z", note: "Build the UI. " },
+    { id: "r", kind: "relay", from_role: "project-coordinator", to_role: "thread", thread_ts: "cmsg_t", seq: 20, note: "A follow-up" },
+    { id: "a", kind: "answer", from_role: "workspace-coordinator", to_role: "thread", thread_ts: "cmsg_t", seq: 30, note: "Yes" },
+    { id: "u", kind: "relay", from_role: "thread", to_role: "project-coordinator", thread_ts: "cmsg_t", seq: 40, note: "Which branch?" },
+    { id: "s", kind: "status", from_role: "thread", to_role: "project-coordinator", thread_ts: "cmsg_t", seq: 50, note: "Done" },
+    { id: "k", kind: "ask", from_role: "project-coordinator", to_role: "workspace-coordinator", thread_ts: "cmsg_t", seq: 60, note: "On its behalf" },
+    { id: "n", kind: "relay", from_role: "project-coordinator", to_role: "thread", thread_ts: "cmsg_t", seq: 70 },
+    { id: "o", kind: "relay", from_role: "project-coordinator", to_role: "thread", thread_ts: "cmsg_other", seq: 80, note: "Elsewhere" },
+  ];
+  const out = hopNotes(th, hops);
+  assert.deepEqual(out.map((x) => [x.id, x.dir, x.from, x.kind]), [["b", "down", "project", "brief"], ["r", "down", "project", "follow-up"], ["a", "down", "workspace", "answer"], ["u", "up", "thread", "relay"]]);
+  assert.equal(out[0].text, "Build the UI.", "trimmed");
+  assert.equal(out[0].at, Date.parse("2026-10-24T10:00:00Z"));
+  assert.equal(out[0].seq, 10);
 });
 
 // ── a request that never settles gives up (if1 #6) ─────────────────────────

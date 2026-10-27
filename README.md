@@ -29,11 +29,18 @@ python3 serve.py                 # foreground, http://127.0.0.1:5180
 | `HOST`   | `127.0.0.1`             | bind address                  |
 
 `serve.py` (standard library only) serves the files and reverse-proxies `/api/*` to `XO_API`:
+- It answers only requests addressed to it as `localhost` or an IP address on its own port, or as a hostname
+  through a proxy on the same machine (Coder's app proxy: a loopback peer, and a Host not on serve.py's port,
+  which a page reaching serve.py directly always sends). Anything else, static files included, gets a 421
+  before any routing, so a DNS-rebinding page never reaches the backend.
 - It answers only pages it served: a request from any other page, read or write, gets a 403.
 - It never forwards the backend routes this UI doesn't use that expose secret values, raw files or file writes
   under `$HOME`, however they are spelled, and refuses a path with `#` or dot segments.
 - It drops the browser's `Origin`, `Referer` and `Sec-Fetch-*` headers before forwarding.
 - It relays Server-Sent Events unbuffered.
+- It tunnels one WebSocket, a shell's terminal (`GET /api/terminal/sessions/{id}/ws`), after the same checks,
+  forwarding only `Upgrade`, `Connection` and `Sec-WebSocket-*` (no `Origin`, cookies, Coder token or query),
+  and refuses every other upgrade.
 
 ## The backend
 
@@ -44,8 +51,22 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 - **Conversations:** `GET /chats/{chat}/messages?limit=40`, plus an SSE `ChatStream` for the open chat (the Workspace while on Home). `message`, `thread` and `heartbeat` events are handled, with backoff and a polling fallback. Scrolling up grows history 40 → 80 → 160… (up to 1,000).
 - **Files (hub #30):** the paperclip, a drop or a paste adds text, images or PDFs (25 MB each, 10 per message). Each uploads at once to the chat (`POST /chats/{chat}/attachments`) as a chip with progress, Retry and Remove; Send waits for them. A paste over 4,000 characters or 80 lines becomes `pasted-text-N.md`. Sent files open in the viewer through their message's own chat.
 - **Sending:** `POST /chats/{chat}/messages {text, thread_ts?, attachments?}`. Your message appears at once and is replaced in place by the server's row. "Replying" follows the coordinator's real heartbeat. Errors use plain titles, with Retry and Edit.
+- **Interrupt:** a reply sent while the thread's agent works waits for its turn to end (storm never adds a thread message to a running turn). Under your newest waiting reply, **Interrupt** stops the turn and its sub-agents (`POST /chat/abort`, with the usual 3 s Undo), and the agent reads your message as its next turn.
 - **Open thread:** polled every 4 s while its agent is busy and every 15 s otherwise. "Working" means the session is actually busy. An idle one reads "Idle".
+- **Coordinator messages:** storm keeps what a coordinator and a thread write each other as hops (`GET /chats/{chat}/hops?thread=`, the text in `note`), not as messages. A thread shows them in place: the coordinator's brief, follow-ups and answers as its messages, the thread's own questions as a quiet "Asked the coordinator" line, and your messages they cite. A hop that arrives on the stream has no note, so the open thread reads its hops again.
 - **Asks:** a thread waiting on you is titled from its agent's last message. You answer in words, as a thread reply.
+- **Shells (`/api/terminal/*`):** only when `GET /terminal/status` says `enabled`; otherwise no shell UI shows at all.
+  - Where they open: **Shell** beside All threads on a project (its folder), beside Next move on the Workspace
+    (the projects root), and in a thread's header (its worktree from `/chat/worktrees`, else the project folder).
+    Where shells already run, the button shows their count and opens their list.
+  - The dock under the main column holds them as tabs and survives navigation. Closing a tab only detaches; the
+    shell keeps running. A reload reattaches this browser tab's shells with their recent output.
+  - The sidebar's **Shells** row (the running count) opens the list: status, the program in front, watching or
+    detached and when it closes, with Open, Rename, Close and Close all detached. Closing asks first when
+    something other than the shell is running. The list is polled every 15 s while on screen, else every 60 s.
+  - The socket: `…/ws` through serve.py, the ticket as the first message (never in the URL), a fresh ticket on every
+    reconnect (with backoff; none after 4404, 4403 or 4429, too many viewers, which is said in words), `pause`/`resume` from xterm's write callbacks (100 KB / 10 KB).
+  - Inside a shell every key is the shell's (Esc, Ctrl+K…) except the toggle (`` mod+` ``). Ctrl+Shift+C / V copy and paste.
 
 **The backend does not have these yet**, so the UI hides or degrades them (see `docs/requirements.md`):
 - approvals with an approve/deny route (R2);
@@ -70,12 +91,21 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 | `js/intel.js` | the model and depth chip |
 | `js/content.js` | what an ask costs you, what it frees, and its evidence |
 | `js/ui.js` | icons and motion helpers |
+| `js/gestures.js` | touch gestures on a phone: swipe back or open the sidebar, drag sheets away, swipe between asks, long-press Copy (design-research/11) |
+| `js/shells/dock.js` | shells: the dock, its tabs and list, the sidebar row; what `app.js` calls |
+| `js/shells/term.js` | one shell on screen: xterm.js, its WebSocket, reconnects, flow control, theme |
+| `js/shells/model.js` | shells, the pure part: row words, counts, flow-control watermarks, backoff |
+| `js/vendor/xterm/` | xterm.js 6.0.0 and addon-fit 0.11.0, copied byte for byte (pinned hashes in its README) |
 
 ## Tests
 
 ```sh
 node tests/logic.test.mjs        # pure modules; the live-data part only sends GETs through :5180
 node tests/attach.test.mjs       # files on a message and the hop line; no network
+node tests/shells.test.mjs       # shells' pure parts, and the vendored xterm hashes; no network
+python3 tests/serve.test.py      # serve.py: the Host allowlist and the WebSocket tunnel, against fake backends
+node tests/storm.test.mjs        # the stream parser and the turn store; no network
+node tests/turnview.test.mjs     # how a turn renders: changed-file chips, runtime notices; no network
 ```
 
 The browser suites (Playwright) live outside the repo:

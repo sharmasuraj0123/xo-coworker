@@ -13,7 +13,7 @@ import { api, clientId as newClientId, NEWEST, coderHeaders, STORM_DOWN } from "
 import { SSEStream } from "./sse.js";
 import { createTurns } from "./blocks.js";
 import { tasksOf } from "./model.js";
-import { uiMsg, mergeRows, stormAsks, mapLimit, currentPools } from "./timeline.js";
+import { uiMsg, mergeRows, addReaction, stormAsks, mapLimit, currentPools, threadState, mainRuntime } from "./timeline.js";
 import { hostOf } from "./review.js";
 
 const STATUS_MS = 30000;          // the engine's status (pools, review counts); frames carry the rest
@@ -78,10 +78,11 @@ export function stormSource(state, emit, event) {
     const project = projectOf(r.chat_id);
     const sstate = sessionStateOf(r);
     const card = r.card || {};
+    const turn = r.session_id && sstate && BUSY.has(sstate) ? state.turns.running(r.session_id) : null;
     const t = {
       id: r.ts, project, chatId: r.chat_id,
       title: r.title || "Thread", label: r.label || null,
-      state: r.state || "working",
+      state: threadState(r.state, turn),
       headline: "", happened: card.happened || "", needsYou: "",
       branch: r.branch || null, worktree: r.worktree_path || null, cwd: r.cwd || null,
       createdAt: Date.parse(r.created_at) || Date.now(), lastAt: Date.parse(r.updated_at) || Date.now(),
@@ -407,6 +408,16 @@ export function stormSource(state, emit, event) {
         emit();
         break;
       }
+      case "reaction": {
+        // an agent's emoji on a message: onto the row wherever we hold it (its thread, or its timeline)
+        const ts = d.thread_ts || env.thread_ts;
+        const inThread = ts && addReaction(state.threadMsgs[ts], d, env.ts);
+        if (inThread) { state.threadMsgs[ts] = inThread; soon(); break; }
+        const project = projectOf(env.chat_id);
+        const onTimeline = project && addReaction(state.timeline[project], d, env.ts);
+        if (onTimeline) { state.timeline[project] = onTimeline; soon(); }
+        break;
+      }
       case "thread": {
         const ts = d.ts;
         if (!ts) break;
@@ -461,6 +472,8 @@ export function stormSource(state, emit, event) {
         // creation: the hop without its note; a state move: {id, state}
         const old = state.hops.get(d.id);
         if (old || d.kind) { state.hops.set(d.id, { ...(old || {}), ...d, seq: (old && old.seq) ?? env.seq ?? null, at: (old && old.at) || env.ts }); emitSoon(); }
+        // the open thread shows what its hops say: read the new one's note
+        if (d.kind && d.thread_ts && d.thread_ts === watched.thread) hopsSoon(d.thread_ts);
         break;
       }
       case "chat": {
@@ -615,6 +628,14 @@ export function stormSource(state, emit, event) {
     return row;
   }
   const threadOf = (id) => rawThreads.get(id) || null;
+  async function loadThreadHops(ts) {
+    const r = rawThreads.get(ts);
+    if (!r) return;
+    try { const d = await api.hops(r.chat_id, { thread: ts, before_seq: NEWEST, limit: 200 }); for (const h of d.hops || []) state.hops.set(h.id, { ...(state.hops.get(h.id) || {}), ...h, at: h.created_at }); emitSoon(); } catch { /* the stream's hops still arrive */ }
+  }
+  // a burst of hops (a relay and its state moves) is one read
+  let hopsT = 0;
+  const hopsSoon = (ts) => { clearTimeout(hopsT); hopsT = setTimeout(() => loadThreadHops(ts), 400); };
   const sought = new Set(); // findRows: what was already looked for
   const hopsRead = new Set(); // loadChatHops: the chats whose hops were read
 
@@ -739,7 +760,7 @@ export function stormSource(state, emit, event) {
       /** What a session's runtime offers (its feature list), e.g. "runs.stop" — never decided by agent name. */
       feature: (session, key) => {
         const s = state.sessions[session];
-        const rt = (state.runtimes || []).find((r) => r.name === (s && s.agent)) || (state.runtimes || [])[0];
+        const rt = (state.runtimes || []).find((r) => r.name === (s && s.agent)) || mainRuntime(state.runtimes);
         const f = rt && rt.features && rt.features.features && rt.features.features[key];
         return !!f && (f.support === "native" || f.support === "emulated");
       },
@@ -759,12 +780,8 @@ export function stormSource(state, emit, event) {
         const s = Object.values(state.sessions).find((x) => x.chat_id === chat && COORD.has(x.role) && !x.retired_at && BUSY.has(x.state));
         return s ? s.id : null;
       },
-      /** A thread's hops (how messages travelled to and from it), read once when they're shown. */
-      loadHops: async (ts) => {
-        const r = rawThreads.get(ts);
-        if (!r) return;
-        try { const d = await api.hops(r.chat_id, { thread: ts, before_seq: NEWEST, limit: 200 }); for (const h of d.hops || []) state.hops.set(h.id, { ...(state.hops.get(h.id) || {}), ...h, at: h.created_at }); emitSoon(); } catch { /* the stream's hops still arrive */ }
-      },
+      /** A thread's hops (how messages travelled to and from it, and what they said), read when it's opened. */
+      loadHops: loadThreadHops,
       /**
        * A Workspace or project chat's own hops, for "Show hops" on its timeline: the ones no thread
        * holds (a coordinator acting on its own), and the forward and answer when its work went on to
