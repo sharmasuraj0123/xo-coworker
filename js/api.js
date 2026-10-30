@@ -214,8 +214,8 @@ const get = (path, query) => request(path, { query });
 const send = (method, path, body, query) => request(path, { method, body, query });
 
 /** GET a file's bytes as a Blob; failures throw the same ApiErrors as `request`. */
-async function blob(path, { signal } = {}) {
-  const dl = deadline(signal, READ_MS);
+async function blob(path, { signal, ms = READ_MS } = {}) {
+  const dl = deadline(signal, ms);
   try {
     const res = await fetch(BASE + path, { signal: dl.signal, headers: coderHeaders(), cache: "no-store", redirect: "manual" });
     if (res.type === "opaqueredirect") throw new ApiError(401, "signed_out", "Signed out of the workspace. Reopen this app from XO.");
@@ -225,7 +225,7 @@ async function blob(path, { signal } = {}) {
     throw new ApiError(res.status, (d && d.code) || `http_${res.status}`, (d && d.message) || (typeof d === "string" ? d : "") || `${res.status} ${res.statusText || "error"}`);
   } catch (err) {
     if (err instanceof ApiError) throw err;
-    if (err && err.name === "AbortError" && dl.timedOut()) throw new ApiError(0, "timeout", `XO didn't answer in ${Math.round(READ_MS / 1000)} s.`);
+    if (err && err.name === "AbortError" && dl.timedOut()) throw new ApiError(0, "timeout", `XO didn't answer in ${Math.round(ms / 1000)} s.`);
     if (err && err.name === "AbortError") throw err;
     throw new ApiError(0, "network", "Can't reach the UI server. Is serve.py running?");
   } finally {
@@ -310,6 +310,8 @@ export const api = {
   projectFile: (project, relativePath) => get(`/xo-projects/${enc(project)}/file`, { relative_path: relativePath }),
   /** An image inside a project, as a Blob for the image viewer (fetched, so it carries the Coder header and errors read as words). */
   projectImage: (project, relativePath, opts) => blob(`/xo-projects/${enc(project)}/image?relative_path=${enc(relativePath)}`, opts),
+  /** A whole project file as a Blob, for the viewer's Download (fetched, so the Coder token stays out of every URL). */
+  projectDownload: (project, relativePath) => blob(`/xo-projects/${enc(project)}/download?relative_path=${enc(relativePath)}`, { ms: 300000 }),
   /** Where xo-projects live: {roots: {...}, default}. Never hard-code the root. */
   workspaceConfig: () => get("/config/workspace"),
   /** Scaffold a new xo-project (xo-cowork-api). 409 when the folder exists. */
