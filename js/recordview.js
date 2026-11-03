@@ -46,8 +46,12 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
     return null;
   }
   /** First arrival at a place in this page: were you away long enough to be told what happened? */
+  // ?away=3d (or 12h) pretends you were away that long, for every place in this page: a way to see the
+  // cards without waiting. Nothing is stored by it.
+  const AWAY = (() => { const m = /^(\d+)([dh])$/.exec(new URLSearchParams(location.search).get("away") || ""); return m ? +m[1] * (m[2] === "d" ? 86400000 : 3600000) : 0; })();
   function arrive(place) {
     if (since.has(place)) return since.get(place);
+    if (AWAY) { since.set(place, Date.now() - AWAY); return since.get(place); }
     const at = seen.get(place);
     const s = at != null && Date.now() - at >= R.AWAY_MS ? at : null;
     since.set(place, s);
