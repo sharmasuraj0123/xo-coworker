@@ -2349,3 +2349,116 @@ button.dg-n:hover{border-color:var(--g4A);color:var(--ink);background:var(--g20)
   .map-dot{left:20px}
 }
 @media (prefers-reduced-motion:reduce){.map-dot,.mp-who i,.st-busy .mp-pulse::after,.dg-dot.d-hot,.dg-edges path.is-hot,.dg-cur:not(.is-idle) .dg-arrow{animation:none}.dg-cur,.dg-world.is-glide{transition:none}}
+
+/* ── the panel (js/stage.js): one card on the right, with tabs. Map, Made and File today; apps later.
+   It owns the frame (card, tabs, full size, close); each tab owns only what's inside. Same family as
+   the Needs you panel, which takes the right side while it's open and gives it back. One width for
+   every tab (the Map's --mw), so switching tabs never moves the conversation. ───────────────────── */
+body.stage-open{--vw:var(--mw)}
+body.stage-open:not(.panel-open):not(.stage-full) .conv{--rp:calc(var(--mw) + 28px)}
+body.stage-open:not(.panel-open):not(.stage-full) .scroller,body.stage-open:not(.panel-open):not(.stage-full) .home{padding-right:calc(var(--mw) + 40px)}
+body.stage-open:not(.panel-open):not(.stage-full) .dock{right:calc(var(--mw) + 24px)}
+body.stage-open:not(.panel-open):not(.stage-full) .toast-wrap{right:calc(var(--mw) + 28px)}
+body.panel-open .stage{display:none}
+.stage{position:absolute;z-index:20;top:14px;right:14px;bottom:14px;width:var(--mw);display:flex;flex-direction:column;border-radius:22px;background:var(--g17);border:1px solid var(--g26);box-shadow:0 30px 90px rgb(0 0 0 / calc(.55 * var(--sha))),var(--hairline);overflow:hidden;outline:none}
+.stage[hidden]{display:none}
+.stage.is-in{animation:pn-in .32s var(--glide) both}
+:root[data-theme="light"] .stage{background:var(--surface)}
+body.stage-full .stage{left:14px;width:auto;z-index:21}
+body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
+.stg-bar{flex:none;display:flex;align-items:center;gap:8px;padding:10px 10px 10px 10px;border-bottom:1px solid var(--g1F)}
+.stg-tabs{flex:1;min-width:0;display:flex;align-items:center;gap:2px;overflow-x:auto;scrollbar-width:none}
+.stg-tabs::-webkit-scrollbar{display:none}
+.stg-tab{position:relative;flex:none;display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 12px 0 10px;border-radius:10px;font:500 var(--fs-base)/1 var(--sans);color:var(--ink-3);transition:background var(--dur-fast),color var(--dur-fast)}
+.stg-tab svg{flex:none;width:15px;height:15px}
+.stg-tab:hover{background:var(--g1F);color:var(--ink)}
+.stg-tab.is-on{background:var(--g24);color:var(--ink);box-shadow:var(--hairline)}
+.stg-tab:focus-visible{outline-offset:-2px}
+.stg-n{font:500 var(--fs-xs)/1 var(--mono);color:var(--ink-4);font-variant-numeric:tabular-nums}
+.stg-tab.is-on .stg-n{color:var(--ink-3)}
+.stg-dot{flex:none;width:6px;height:6px;border-radius:50%;background:var(--info);box-shadow:0 0 6px var(--info);animation:breathe 2.4s ease-in-out infinite}
+.stg-filew{flex:0 1 auto;min-width:0;display:inline-flex;align-items:center;border-radius:10px;transition:background var(--dur-fast)}
+.stg-filew:hover{background:var(--g1F)}
+.stg-filew.is-on{background:var(--g24);box-shadow:var(--hairline)}
+.stg-filew .stg-tab{min-width:0;max-width:220px;padding-right:4px;background:none;box-shadow:none}
+.stg-filew .stg-tab span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stg-x{flex:none;display:grid;place-items:center;width:24px;height:24px;margin-right:4px;border-radius:7px;color:var(--ink-4);transition:background var(--dur-fast),color var(--dur-fast)}
+.stg-x svg{width:12px;height:12px}
+.stg-x:hover{background:var(--g2A);color:var(--ink)}
+.stg-acts{flex:none;display:flex;align-items:center;gap:2px}
+.stg-ic{display:grid;place-items:center;width:32px;height:32px;border-radius:10px;color:var(--ink-3);transition:background var(--dur-fast),color var(--dur-fast)}
+.stg-ic svg{width:16px;height:16px}
+.stg-ic:hover{background:var(--g1F);color:var(--ink)}
+.stg-body{position:relative;flex:1;min-height:0}
+.stg-pane{position:absolute;inset:0;display:flex;flex-direction:column;min-height:0}
+.stg-pane[hidden]{display:none}
+/* the Map and the viewer inside it: the panel is their card, their tabs and their close */
+.stage .map,.stage .viewer,body.map-full .stage .map{position:relative;inset:auto;z-index:auto;flex:1;width:auto;min-height:0;border:0;border-radius:0;background:transparent;box-shadow:none;animation:none}
+.stage .stage-tabs,.stage [data-mp-close],.stage [data-mp-full],.stage [data-vw-close]{display:none}
+/* the header's one button */
+.stg-btn{position:relative;flex:none;display:grid;place-items:center;width:34px;height:32px;border-radius:10px;border:1px solid var(--g26);color:var(--ink-2);align-self:center;transition:background var(--dur-fast),border-color var(--dur-fast),color var(--dur-fast),transform 90ms var(--press)}
+.top[data-kind="project"] .stg-btn{align-self:flex-end}
+.stg-btn svg{width:16px;height:16px}
+.stg-btn:hover{background:var(--g1A);border-color:var(--g33);color:var(--ink)}
+.stg-btn:active{transform:scale(.95)}
+.stg-btn.is-on{background:var(--g22);border-color:var(--g3A);color:var(--ink)}
+.stg-btn .stg-dot{position:absolute;top:6px;right:6px;box-shadow:0 0 0 2px var(--canvas),0 0 6px var(--info)}
+/* Made, as a tab */
+.md-pane{display:flex;flex-direction:column;min-height:0;height:100%}
+.md-pane .md-h{padding:16px 18px 2px}
+.md-pane .md-h h2{font:600 var(--fs-xl)/1.25 var(--sans);letter-spacing:-.01em}
+.md-pane .md-tools{padding:10px 18px 10px}
+.md-pane .md-tools .all-q{max-width:none;flex-basis:100%}
+.md-pane .md-body{flex:1;min-height:0}
+.md-pane .md-grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+.md-none{padding:28px 6px;font:400 var(--fs-base)/1.5 var(--sans);color:var(--ink-3)}
+.md-none b{display:block;margin-bottom:3px;color:var(--ink-2);font-weight:600}
+/* the project's title is its thread switcher */
+.pj-title{display:inline-flex;align-items:center;gap:8px;max-width:calc(100% + 14px);margin:-3px -7px -3px -7px;padding:3px 7px;border-radius:9px;font:inherit;color:inherit;letter-spacing:inherit;text-align:left;transition:background var(--dur-fast)}
+.pj-title>span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pj-title:hover,.pj-title[aria-expanded="true"]{background:var(--g1F)}
+.pj-title svg{flex:none;width:14px;height:14px;color:var(--ink-4);transition:transform .2s var(--glide),color var(--dur-fast)}
+.pj-title:hover svg{color:var(--ink-2)}
+.pj-title[aria-expanded="true"] svg{transform:rotate(180deg)}
+.pj-n{flex:none;padding:2px 6px;border-radius:6px;background:var(--g22);font:500 var(--fs-xs)/1.3 var(--mono);color:var(--ink-3);letter-spacing:0;font-variant-numeric:tabular-nums}
+.sheet.is-drop{display:block;padding:0;background:transparent;animation:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+.sheet.is-drop .all-card{position:absolute;left:var(--dx);top:var(--dy);width:min(480px,calc(100vw - var(--dx) - 16px));max-height:min(70vh,580px);border-radius:16px;box-shadow:0 24px 70px rgb(0 0 0 / calc(.55 * var(--sha))),var(--hairline);animation:drop-in .16s var(--glide) both;transform-origin:top left}
+.sheet.is-drop .sheet-h{padding-top:14px}
+.sheet.is-drop .sheet-h h2{font-size:var(--fs-lg)}
+@keyframes drop-in{from{opacity:0;transform:translateY(-6px) scale(.985)}}
+@media (max-width:760px){
+  .stage,body.stage-full .stage{position:fixed;inset:0;width:auto;z-index:79;border-radius:0;border:0}
+  .stg-bar{padding-top:max(10px,env(safe-area-inset-top))}
+  body.stage-open:not(.panel-open) .conv{--rp:0px}
+  body.stage-open:not(.panel-open) .scroller,body.stage-open:not(.panel-open) .home{padding-right:16px}
+  body.stage-open:not(.panel-open) .dock,body.stage-open:not(.panel-open) .toast-wrap{right:0}
+}
+@media (prefers-reduced-motion:reduce){.stg-dot{animation:none}}
+/* the header is the project's name and one button now: the name keeps its room; the Now strip gives way */
+.top[data-kind="project"] .top-who{flex:0 0 auto;max-width:min(52%,426px)}
+.top[data-kind="project"] .stg-btn{align-self:center}
+.top[data-kind="project"] .top-who .tw-t{flex:0 1 auto}
+/* an agent at work: its tile beside the turn (and the "working" line) glows, a short blue light
+   travelling round the border, as the sidebar's working cubes do; a running step is a breathing dot,
+   never a spinner. Waiting on you: amber, still. */
+.av-live{position:relative;color:var(--info);border-color:transparent;background:linear-gradient(color-mix(in srgb,var(--info) 12%,var(--g1C)),color-mix(in srgb,var(--info) 12%,var(--g1C))) padding-box,conic-gradient(from var(--pr-a),transparent 0deg,color-mix(in srgb,var(--info) 95%,transparent) 70deg,transparent 140deg) border-box,linear-gradient(color-mix(in srgb,var(--info) 26%,var(--g26)),color-mix(in srgb,var(--info) 26%,var(--g26))) border-box;box-shadow:0 0 16px -4px color-mix(in srgb,var(--info) 60%,transparent);animation:pr-orbit 2.8s linear infinite}
+.av-live svg{width:15px;height:15px;filter:drop-shadow(0 0 4px color-mix(in srgb,var(--info) 55%,transparent));animation:av-glow 2.8s ease-in-out infinite}
+.av-live.is-xo .xo-mark{width:18px;height:8px}
+.av-live.is-wait{color:var(--warn);background:color-mix(in srgb,var(--warn) 10%,var(--g1C));border-color:color-mix(in srgb,var(--warn) 45%,var(--g26));box-shadow:0 0 14px -5px color-mix(in srgb,var(--warn) 60%,transparent);animation:none}
+.av-live.is-wait svg{filter:none;animation:none}
+@keyframes av-glow{0%,100%{opacity:.8}50%{opacity:1}}
+.m-turn.is-live{align-items:flex-start}
+.tb-live{display:block;width:7px;height:7px;border-radius:50%;background:var(--info);box-shadow:0 0 0 3px color-mix(in srgb,var(--info) 16%,transparent),0 0 8px color-mix(in srgb,var(--info) 55%,transparent);animation:tb-breathe 1.6s ease-in-out infinite}
+@keyframes tb-breathe{0%,100%{transform:scale(.8);opacity:.7}50%{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){.av-live,.av-live svg,.tb-live{animation:none}}
+/* a thread in ⌘K: the thread mark, its state on its corner */
+.j-th{position:relative;display:grid;place-items:center;width:20px;height:20px;color:var(--ink-3)}
+.j-th svg{width:16px;height:16px}
+.j-th i{position:absolute;right:-2px;bottom:-1px;width:7px;height:7px;border-radius:50%;background:var(--ink-4);box-shadow:0 0 0 2px var(--g1B)}
+.j-th.st-busy{color:var(--info)}
+.j-th.st-busy i{background:var(--info);box-shadow:0 0 0 2px var(--g1B),0 0 6px var(--info);animation:tb-breathe 1.6s ease-in-out infinite}
+.j-th.st-needs{color:var(--warn)}.j-th.st-needs i{background:var(--warn)}
+.j-th.st-stopped i{background:var(--err)}
+.j-th.st-done i{background:var(--accent-fill)}
+.jump-list li[aria-selected="true"] .j-th i{box-shadow:0 0 0 2px var(--bg-3)}
+@media (prefers-reduced-motion:reduce){.j-th.st-busy i{animation:none}}

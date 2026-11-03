@@ -53,6 +53,8 @@ export const ICON = {
   rule: I('<path d="M5 5h14M5 10h14M5 15h8"/><path d="M16 15.5l1.8 1.8L21 14"/>'),
   shield: I('<path d="M12 3.5 19 6v5.6c0 4.2-2.9 7.5-7 8.9-4.1-1.4-7-4.7-7-8.9V6z"/><path d="M9 12l2.2 2.2L15.5 10"/>'),
   key: I('<circle cx="8" cy="15" r="3.5"/><path d="M10.5 12.5 19 4M16 7l2.5 2.5M14 9l2 2"/>'),
+  // a thread: one agent's conversation with words in it (Chats keeps the empty bubble)
+  threadOne: I('<path d="M20.5 11.6a8 8 0 0 1-11.6 7.1L4 20l1.3-4.4A8 8 0 1 1 20.5 11.6z"/><path d="M8.6 10.2h7M8.6 13.4h4.4"/>'),
   pin: I('<path d="M14.5 3.5 20.5 9.5 18 10.5 14.5 14l.5 4.5-1.5 1.5-3.8-3.8L5 20.9 3.1 19l4.7-4.7L4 10.5 5.5 9l4.5.5L13.5 6z"/>'),
   shell: I('<rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="m7 9.5 3 2.5-3 2.5M12.5 15H17"/>'),
   minimize: I('<path d="M6 12h12"/>', ' stroke-width="2"'),

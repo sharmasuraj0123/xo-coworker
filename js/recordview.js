@@ -6,17 +6,17 @@
 // what moved since, until "Got it" or a reload. A thread counts as its project, so opening a line
 // and coming back keeps the card. Git words come from `GET /chat/worktrees`, read when a card shows.
 //
-// Made: what a project's threads made, in a sheet from the project's header, newest first, by kind,
-// with pins. A newer backend keeps it (`/chat/chats/{chat}/made`: files, links and branches, pins
+// Made: what a project's threads made (every project's, on Home and the Workspace), as the Made tab
+// of the panel (js/stage.js), newest first, by kind, with pins. A newer backend keeps it (`/chat/chats/{chat}/made`: files, links and branches, pins
 // for every device, copies of shared files once a worktree goes); with an older one it is what each
-// thread shared (its `outputs`), pinned per browser. A file opens in the viewer beside its thread.
+// thread shared (its `outputs`), pinned per browser. A file opens in the panel's File tab.
 //
 // Every newer field is optional: a missing route (404) or field means the fallback, never an error.
 // "Seen" is the backend's per chat when it has it (the later of it and this browser's), else this
 // browser's; the thread's `summary` and `git` state make the card's words exact when they're there.
 //
-// app.js calls: placeOf, leave, projectSince, homeSinceHtml, homeMadeHtml, madeCount, openMade,
-// closeMade, madeOpen, jumpItems.
+// app.js calls: placeOf, leave, projectSince, homeSinceHtml, homeMadeHtml, madeCount, jumpItems, and
+// the panel's Made tab (made: mount, show, count); `panel` is set to the panel once it exists.
 
 import * as R from "./record.js";
 import { api } from "./api.js";
@@ -175,8 +175,11 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
   }
 
   // ── Made ────────────────────────────────────────────────────────────────
-  const M = { pid: null, kind: "all", q: "", ret: null };
-  const sheet = $("#made");
+  const M = { pid: null, kind: "all", q: "", host: null, built: false };
+  let panel = null;
+  const shown = () => !!(M.host && !M.host.hidden && panel && panel.isOpen);
+  /** The project a view belongs to, or null (Home, the Workspace, Chats: every project). */
+  const pidOf = (v) => (!v ? null : v.startsWith("p:") ? v.slice(2) : v.startsWith("t:") ? world.thread(v.slice(2))?.project || null : null);
   const thumbs = new Map(); // key → object URL, or "" when it couldn't be read
 
   // the backend's Made, per chat: {at, loading, rows} while it answers, {off} when it has no such route
@@ -191,7 +194,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
       served.set(chat, entry);
       api.made(chat, { limit: 200 }).then((d) => { entry.rows = Array.isArray(d.made) ? d.made : null; if (!entry.rows) entry.off = true; })
         .catch((err) => { if (err.status === 404 || err.status === 405) entry.off = true; /* else: try again later, the fallback meanwhile */ })
-        .finally(() => { entry.loading = false; entry.at = Date.now(); schedule(); if (!sheet.hidden) madeRender(); });
+        .finally(() => { entry.loading = false; entry.at = Date.now(); schedule(); if (shown()) madeRender(); });
       c = entry;
     }
     return c.rows;
@@ -222,7 +225,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
       if (m.exists === false) { thumbs.set(m.key, ""); continue; }
       if (!r.project) { thumbs.set(m.key, ""); continue; }
       thumbs.set(m.key, "");
-      api.projectImage(r.project, r.rel).then((b) => { thumbs.set(m.key, URL.createObjectURL(b)); schedule(); if (!sheet.hidden) madeRender(); }).catch(() => {});
+      api.projectImage(r.project, r.rel).then((b) => { thumbs.set(m.key, URL.createObjectURL(b)); schedule(); if (shown()) madeRender(); }).catch(() => {});
     }
   }
   const hostOf = (u) => { try { return new URL(u).host; } catch { return "link"; } };
@@ -237,44 +240,46 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
   }
 
   function madeRender() {
-    if (!M.pid) return;
-    const items = madeOf(M.pid);
+    if (!M.host) return;
+    const pid = M.pid && world.project(M.pid) ? M.pid : null;
+    const items = madeOf(pid);
     const counts = Object.fromEntries(R.KINDS.map(([k]) => [k, k === "all" ? items.length : items.filter((m) => m.kind === k).length]));
-    const shown = R.filterMade(items, { kind: M.kind, q: M.q });
-    const groups = R.madeGroups(shown);
-    loadThumbs(shown);
-    const card = sheet.querySelector(".sheet-card");
-    if (card._pid !== M.pid) {
-      card.innerHTML = `<header class="sheet-h md-h"><div><h2 id="made-h"></h2><p id="made-sub"></p></div><button type="button" class="x" data-close aria-label="Close">${ICON.close}</button></header>` +
+    const list = R.filterMade(items, { kind: M.kind, q: M.q });
+    const groups = R.madeGroups(list);
+    loadThumbs(list);
+    const h = M.host;
+    if (!M.built) {
+      h.innerHTML = `<div class="md-pane"><header class="md-h"><h2 id="made-h"></h2><p id="made-sub"></p></header>` +
         `<div class="all-tools md-tools"><div class="all-q"><span>${ICON.search}</span><input id="made-q" placeholder="Find something made" autocomplete="off" aria-label="Find something made"></div>` +
-        `<div class="all-f" id="made-f" role="radiogroup" aria-label="Show"></div></div><div class="md-body" id="made-body"></div>`;
-      card._pid = M.pid;
+        `<div class="all-f" id="made-f" role="radiogroup" aria-label="Show"></div></div><div class="md-body" id="made-body"></div></div>`;
+      M.built = true;
     }
-    card.querySelector("#made-h").textContent = `Made in ${PROJ(M.pid)}`;
+    h.querySelector("#made-h").textContent = pid ? `Made in ${PROJ(pid)}` : "Made across your projects";
     const kept = items.some((m) => m.server);
-    card.querySelector("#made-sub").textContent = kept ? `${items.length} ${items.length === 1 ? "thing" : "things"} its threads made, newest first` : `${items.length} ${items.length === 1 ? "file" : "files"} its threads shared, newest first`;
+    h.querySelector("#made-sub").textContent = kept ? `${items.length} ${items.length === 1 ? "thing" : "things"} ${pid ? "its" : "your"} threads made, newest first` : `${items.length} ${items.length === 1 ? "file" : "files"} ${pid ? "its" : "your"} threads shared, newest first`;
     const f = R.KINDS.filter(([k]) => k === "all" || counts[k]).map(([k, w]) => `<button type="button" role="radio" data-made-kind="${k}" aria-checked="${M.kind === k}">${w}<span>${counts[k]}</span></button>`).join("");
-    const fe = card.querySelector("#made-f");
+    const fe = h.querySelector("#made-f");
     if (fe._h !== f) { fe.innerHTML = f; fe._h = f; }
     const body = groups.length
-      ? groups.map((g) => `<section class="md-g"><h3 class="md-gh">${esc(g.label)}</h3><ul class="md-grid">${g.items.map((m) => cardHtml(m)).join("")}</ul></section>`).join("")
-      : `<p class="ar-none">${items.length ? `Nothing made matches “${esc(M.q)}”.` : "Nothing shared yet. Files a thread shares show here."}</p>`;
-    const be = card.querySelector("#made-body");
+      ? groups.map((g) => `<section class="md-g"><h3 class="md-gh">${esc(g.label)}</h3><ul class="md-grid">${g.items.map((m) => cardHtml(m, { where: !pid })).join("")}</ul></section>`).join("")
+      : `<p class="md-none">${items.length ? `Nothing made matches “${esc(M.q)}”.` : `<b>Nothing made yet.</b> Files ${pid ? "its" : "your"} threads share show up here, newest first.`}</p>`;
+    const be = h.querySelector("#made-body");
     if (be._h !== body) { be.innerHTML = body; be._h = body; }
   }
-  function openMade(pid) {
-    if (!pid) return;
-    M.pid = pid; M.kind = "all"; M.q = "";
-    M.ret = document.activeElement;
-    sheet.querySelector(".sheet-card")._pid = null;
-    madeRender();
-    sheet.hidden = false;
-    sheet.querySelector("#made-q").focus();
+  /** The panel's Made tab: where it draws, and which project it shows (the view's, or every one). */
+  function mount(el) {
+    M.host = el;
+    el.addEventListener("click", (e) => {
+      const k = e.target.closest("[data-made-kind]");
+      if (k) { M.kind = k.dataset.madeKind; madeRender(); }
+    });
+    el.addEventListener("input", (e) => { if (e.target.id === "made-q") { M.q = e.target.value; madeRender(); } });
+    el.addEventListener("keydown", (e) => { if (e.key === "Escape" && e.target.id === "made-q" && e.target.value) { e.preventDefault(); e.stopPropagation(); e.target.value = ""; M.q = ""; madeRender(); } });
   }
-  function closeMade({ restore = true } = {}) {
-    if (sheet.hidden) return;
-    sheet.hidden = true;
-    if (restore) M.ret?.focus?.({ preventScroll: true });
+  function showMade(view) {
+    const pid = pidOf(view);
+    if (pid !== M.pid) { M.pid = pid; M.kind = "all"; M.q = ""; const q = M.host && M.host.querySelector("#made-q"); if (q) q.value = ""; }
+    madeRender();
   }
   function openFile(key, from) {
     const m = madeOf(null).find((x) => x.key === key);
@@ -292,13 +297,13 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
       // the backend's pin, for every device: shown at once, put back if it's refused
       const row = (served.get(m.chat)?.rows || []).find((r) => r.id === m.id);
       if (row) row.pinned = on;
-      api.pinMade(m.chat, m.id, on).catch((err) => { if (row) row.pinned = !on; announce(`Couldn't ${on ? "pin" : "unpin"} it: ${err.message}`); schedule(); if (!sheet.hidden) madeRender(); });
+      api.pinMade(m.chat, m.id, on).catch((err) => { if (row) row.pinned = !on; announce(`Couldn't ${on ? "pin" : "unpin"} it: ${err.message}`); schedule(); if (shown()) madeRender(); });
     } else {
       if (on) pins.add(key); else pins.delete(key);
       savePins();
     }
     announce(on ? "Pinned" : "Unpinned");
-    if (!sheet.hidden) madeRender();
+    if (shown()) madeRender();
     schedule();
   }
 
@@ -327,35 +332,28 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
     const mr = t.closest("[data-rec-more]");
     if (mr) { more.add(mr.dataset.recMore); schedule(); return; }
     const mo = t.closest("[data-made-open]");
-    if (mo) { openMade(mo.dataset.madeOpen); return; }
+    if (mo && panel) { panel.open("made"); return; }
     const pin = t.closest("[data-made-pin]");
     if (pin) { togglePin(pin.dataset.madePin); return; }
     const f = t.closest("[data-made-file]");
     if (f) {
       const key = f.dataset.madeFile;
       const m = madeOf(null).find((x) => x.key === key);
-      if (m && m.kind === "link") { openFile(key, f); return; }
-      if (!sheet.hidden) closeMade({ restore: false });
-      // a file opens beside the conversation it came from (a branch: its thread is where it's told)
-      if (m && m.tid && !currentView()?.startsWith("t:" + m.tid)) go("t:" + m.tid);
+      // a file opens in the panel's File tab, wherever you are; a branch is told in its thread
+      if (m && m.kind === "branch") { if (m.tid) go("t:" + m.tid); return; }
       openFile(key, f);
       return;
     }
     const g = t.closest("[data-made-go]");
-    if (g) { closeMade({ restore: false }); go(g.dataset.madeGo); return; }
-    if (!sheet.hidden && (t === sheet || t.closest("#made [data-close]"))) closeMade();
+    if (g) { go(g.dataset.madeGo); return; }
   });
-  sheet.addEventListener("click", (e) => {
-    const k = e.target.closest("[data-made-kind]");
-    if (k) { M.kind = k.dataset.madeKind; madeRender(); }
-  });
-  sheet.addEventListener("input", (e) => { if (e.target.id === "made-q") { M.q = e.target.value; madeRender(); } });
-  sheet.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeMade(); } });
 
   return {
-    placeOf, leave, projectSince, homeSinceHtml, homeMadeHtml, madeCount, openMade, closeMade, jumpItems,
-    get madeOpen() { return !sheet.hidden; },
-    refresh() { if (!sheet.hidden) madeRender(); },
+    placeOf, leave, projectSince, homeSinceHtml, homeMadeHtml, madeCount, jumpItems,
+    /** The panel's Made tab. */
+    made: { mount, show: showMade, count: (v) => madeOf(pidOf(v)).length },
+    set panel(p) { panel = p; },
+    refresh() { if (shown()) madeRender(); },
     /** app.js tells it where you are, for the tab's hide and close. */
     set view(fn) { currentView = fn; },
   };

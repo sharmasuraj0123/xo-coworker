@@ -9,7 +9,7 @@ import { api, clientId, NEWEST } from "./api.js";
 import { esc } from "./world.js";
 import { ICON } from "./ui.js";
 import { renderMarkdown } from "./markdown.js";
-import { turnHtml } from "./turnview.js";
+import { turnHtml, turnAv } from "./turnview.js";
 import { cliName, mainRuntime, chatOrder } from "./timeline.js";
 
 const MODE_WORDS = {
@@ -164,7 +164,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
         items.push({ key: `u:${m.id}`, html: `<div class="m m-you${m.status === "failed" ? " is-failed" : ""}"><div class="bubble">${esc(m.text)}</div>${meta}</div>` });
       } else {
         const inner = turnHtml(x.t, world.state.turns.blocksOf(x.t), { open: world.ui ? world.ui.tbOpen : {} });
-        if (inner) items.push({ key: `turn:${x.t.id}`, html: `<div class="m m-them m-turn"><div class="av av-t">${ICON.thread}</div><div class="mb">${inner}</div></div>` });
+        if (inner) items.push({ key: `turn:${x.t.id}`, html: `<div class="m m-them m-turn">${x.t.status === "running" ? turnAv(x.t, world.state.turns.blocksOf(x.t)) : `<div class="av av-t">${ICON.thread}</div>`}<div class="mb">${inner}</div></div>` });
       }
     }
     if (!all.length && !h.loading && !h.error) items.push({ key: "chat-empty", html: `<p class="m-note">Nothing here yet.</p>` });

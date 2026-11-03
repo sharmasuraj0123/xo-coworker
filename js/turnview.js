@@ -27,7 +27,7 @@ const size = (n) => (n == null ? "" : n < 1024 ? `${n} B` : n < 1048576 ? `${(n 
 const secs = (ms) => { if (ms == null || !Number.isFinite(ms)) return ""; const t = Math.max(1, Math.round(ms / 1000)); return t < 60 ? `${t}s` : `${Math.floor(t / 60)}m ${t % 60}s`; };
 
 function rowMark(r) {
-  if (r.status === "running") return r.waiting ? `<i class="tb-m is-wait" title="Waiting for you"></i>` : `<i class="spin tb-spin" aria-hidden="true"></i>`;
+  if (r.status === "running") return r.waiting ? `<i class="tb-m is-wait" title="Waiting for you"></i>` : `<i class="tb-live" aria-hidden="true"></i>`;
   if (r.status === "error") return `<span class="tb-m is-err" title="Failed">${ICON.close}</span>`;
   if (r.status === "denied") return `<span class="tb-m is-den" title="Denied">${ICON.lock}</span>`;
   if (r.status === "cancelled") return `<span class="tb-m is-den" title="Cancelled">■</span>`;
@@ -68,7 +68,7 @@ function blockHtml(b, open, live, now) {
       const cur = running ? rows.filter((r) => r.status === "running") : [];
       const waiting = rows.some((r) => r.waiting);
       return `<div class="tb tb-act${running ? " is-live" : ""}${waiting ? " is-waiting" : ""}"><button type="button" class="tb-h" data-tb="${esc(b.id)}" aria-expanded="${isOpen}">` +
-        `<span class="tb-hi">${running ? `<i class="spin tb-spin" aria-hidden="true"></i>` : ICON.list}</span><span class="tb-ht">${renderInline(b.header || "Working", true)}</span>` +
+        `<span class="tb-hi">${running ? `<i class="tb-live" aria-hidden="true"></i>` : ICON.list}</span><span class="tb-ht">${renderInline(b.header || "Working", true)}</span>` +
         `<span class="tb-n">${rows.length}</span><span class="tb-chev">${ICON.chevron}</span></button>` +
         (isOpen ? `<ul class="tb-rows">${rows.map((r) => rowHtml(r, open)).join("")}</ul>` : cur.length ? `<ul class="tb-rows is-cur">${cur.map((r) => rowHtml(r, open)).join("")}</ul>` : "") + `</div>`;
     }
@@ -135,7 +135,8 @@ function workFold(turn, work, blocks, open, live, now) {
     : took != null ? ` ${secs(took)}` : "";
   const waiting = live && rows.some((r) => r.waiting);
   const head = `<button type="button" class="tb-h tb-wh" data-tb="${esc(key)}" aria-expanded="${isOpen}">` +
-    `<span class="tb-hi">${live ? `<i class="spin tb-spin" aria-hidden="true"></i>` : ICON.list}</span>` +
+    // while it runs, the agent's glowing tile beside the turn says so (turnAv); the line needs no spinner
+    (live ? "" : `<span class="tb-hi">${ICON.list}</span>`) +
     `<span class="tb-ht${live && !waiting ? " shimmer" : ""}">${live ? (waiting ? "Waiting for you" : "Working") : "Worked"}${time}</span>` +
     (steps ? `<span class="tb-wn">${steps} ${steps === 1 ? "step" : "steps"}</span>` : "") + `<span class="tb-chev">${ICON.chevron}</span></button>`;
   if (isOpen) return `<div class="tb tb-work is-open${live ? " is-live" : ""}">${head}<div class="tb-rail">${work.map((b) => blockHtml(b, open, live, now)).join("")}</div></div>`;
@@ -195,4 +196,15 @@ export function turnHtml(turn, blocks, { open = {}, hideAnswer = false, now = Da
   else if (turn.status === "interrupted") foot = `<p class="tb-end">Interrupted${end.reason === "restart" ? " by a restart; it picks up again" : ""}</p>`;
   if (!html.length && !foot) return "";
   return `<div class="turn${live ? " is-live" : ""}" data-turn="${esc(turn.id)}">${html.join("")}${foot}</div>`;
+}
+
+/**
+ * The tile beside a turn, in the avatar column: while the turn runs, the agent's mark with a blue glow
+ * travelling round its border (the sidebar's working cubes, at avatar size); amber and still while a
+ * step waits on you. A finished turn leaves the column empty, as a continuation of the agent's words.
+ */
+export function turnAv(turn, blocks = []) {
+  if (!turn || turn.status !== "running") return `<div class="av av-gap"></div>`;
+  const waiting = blocks.some((b) => (b.rows || []).some((r) => r.status === "running" && r.waiting));
+  return `<div class="av av-live${waiting ? " is-wait" : ""}" role="img" aria-label="${waiting ? "Waiting for you" : "Working"}" title="${waiting ? "Waiting for you" : "Working"}">${ICON.thread}</div>`;
 }

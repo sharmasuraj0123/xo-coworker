@@ -18,13 +18,14 @@ import { createIntel } from "./intel.js";
 import { EFFORT, estLine, evidenceFor } from "./content.js";
 import { ICON, XO, NEXT_GLYPH, $, $$, RM, clock, dayOf, short, elapsed, reconcile, sound, wait, dial, morph, expand } from "./ui.js";
 import { uiMsg, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups } from "./timeline.js";
-import { turnHtml } from "./turnview.js";
+import { turnHtml, turnAv } from "./turnview.js";
 import { itemParts } from "./review.js";
 import { runsStripHtml, runsListHtml, runViewHtml } from "./runsview.js";
 import { createSettings } from "./settings.js";
 import { createChats } from "./chats.js";
 import { createViewer } from "./viewer.js";
-import { createMap } from "./map.js";
+import { createMap, MAP_ICON } from "./map.js";
+import { createStage } from "./stage.js";
 import { createTray, fmtSize, kindOf, typeWord, isLargePaste, pasteLabel, uploadErrorText, FINAL, MAX_FILES } from "./attach.js";
 import { uploadAttachment, attachmentUrl } from "./api.js";
 import { createShells } from "./shells/dock.js";
@@ -129,14 +130,13 @@ const CH = createChats({
   },
 });
 world.ui = { tbOpen: S.tbOpen }; // turn blocks open or folded, shared with the Chats view
-const VW = createViewer({ announce, onChange: () => schedule(), tabs: () => MAP.tabs("file") }); // a shared file beside the conversation (if1 #2)
+const VW = createViewer({ announce, onChange: () => schedule() }); // a file, in the panel's File tab (if1 #2, js/stage.js)
 // shells (js/shells/): the dock under the main column, the sidebar's Shells row, the top bar's Shell buttons
 const SH = createShells({ PROJ, announce, notify: (h) => heraldShow(h, 6000), onChange: () => schedule() });
 // a project's record: Since you left, Made, Recently made (design-research/12)
 const REC = createRecord({ world, go: (v) => go(v), VW, PROJ, schedule: () => schedule(), announce });
 REC.view = () => S.view;
 /** A Shell button for the top bar: a count when shells already run there (it opens their list then). */
-const shellBtn = (attr, n, title) => `<button type="button" class="all-btn sh-btn" ${attr} title="${esc(title)}">${ICON.shell}Shell${n ? `<span>${n}</span>` : ""}</button>`;
 
 // ── world helpers ───────────────────────────────────────────────────────────
 const projects = () => world.state.projects.filter((p) => p.id !== "workspace");
@@ -169,6 +169,9 @@ const wordOf = (t) => (glyphOf(t) === "idle" ? "Idle" : STATE_WORD[t.state]);
 const SORT_STATE = { needs_approval: 0, needs_reply: 0, paused: 0, failed: 1, working: 2, done: 3, resolved: 4 };
 // the Map (js/map.js): where your agents are working, beside the conversation; the viewer stacks over it
 const MAP = createMap({ world, viewer: VW, go: (v) => go(v), announce, isBusy, onChange: () => schedule() });
+// the panel: one card on the right with tabs (Map, Made, File; later apps), one header button, ⌘\
+const STAGE = createStage({ map: MAP, mapIcon: MAP_ICON, viewer: VW, made: REC.made, view: () => S.view, announce, onChange: () => schedule() });
+REC.panel = STAGE;
 const doneToday = () => world.state.threads.filter((t) => t.state === "done" && new Date(t.lastAt).toDateString() === new Date().toDateString());
 
 // ── events: a calm labelled line, never the composer, never a quiet row ────
@@ -658,7 +661,7 @@ function msgItems(conv, needs) {
     } else if (m.who === "turn") {
       const inner = turnHtml(m.turn, m.blocks, { open: S.tbOpen, hideAnswer: m.hideAnswer });
       if (!inner) { prev = m; continue; }
-      html = `<div class="m m-them m-turn"><div class="av av-gap"></div><div class="mb">${inner}</div></div>`;
+      html = `<div class="m m-them m-turn${m.turn.status === "running" ? " is-live" : ""}">${turnAv(m.turn, m.blocks)}<div class="mb">${inner}</div></div>`;
     } else if (m.who === "card") {
       html = `<div class="m m-them m-card"><div class="av av-gap"></div><div class="mb">${threadCardHtml(m.thread, needs)}</div></div>`;
     } else if (m.who === "system" && m.passedOn) {
@@ -715,7 +718,7 @@ function topRender(needs) {
     back.hidden = v === "chats";
     if (v !== "chats") { back.innerHTML = `${ICON.back}<span>Chats</span>`; back.setAttribute("aria-label", "Back to Chats"); back.title = "Back (Esc)"; }
     patch($("#top-who"), CH.headHtml(v));
-    patch($("#top-end"), MAP.button(v));
+    patch($("#top-end"), STAGE.button(v));
     nowRender(needs); checklistRender(needs);
     return;
   }
@@ -738,7 +741,6 @@ function topRender(needs) {
     const parts = [nd && `<b class="is-amber">${nd} need${nd === 1 ? "s" : ""} you</b>`, working && `${working} working`, P0.held.length && `${P0.held.length} can wait`, idle && `${idle} idle`, done && `${done} finished today`].filter(Boolean);
     who = `<span class="tw-ic tw-xo" aria-hidden="true">${XO}</span><span class="tw-t"><h1 id="conv-title">Workspace</h1><button type="button" class="pj-s pj-home" data-go="home" title="What needs you is on Home">${parts.join(" · ") || "All quiet"} · across ${projects().length} projects</button></span>`;
     end = P0.next ? `<button type="button" class="all-btn is-need" data-decide="${esc(P0.next.key)}" title="${esc(askShort(P0.next))}">Next move<span>${nd}</span></button>` : "";
-    if (SH.enabled) { const n = SH.countFor("workspace"); end += shellBtn(`data-shell="ws"`, n, n ? "The workspace's shells" : "A shell in the projects folder"); }
   } else if (v.startsWith("p:")) {
     const pid = v.slice(2);
     const ts = threadsOf(pid);
@@ -748,13 +750,9 @@ function topRender(needs) {
     const dn = ts.filter((x) => x.state === "done").length;
     const rs = every.length - ts.length;
     const parts = [nd && `<b class="is-amber">${nd} need${nd === 1 ? "s" : ""} you</b>`, w && `${w} working`, dn && `${dn} done this week`, rs && `${rs} resolved`].filter(Boolean);
-    who = `<span class="tw-ic" aria-hidden="true">${ICON.project}</span><span class="tw-t"><h1 id="conv-title">${esc(PROJ(pid))}</h1><span class="pj-s">${parts.join(" · ") || (every.length ? "All quiet" : "No threads yet")}${S.desc[pid] ? ` · ${esc(S.desc[pid])}` : ""}</span></span>`;
-    end = every.length ? `<button type="button" class="all-btn" data-all-threads aria-haspopup="dialog" title="All threads">All threads<span>${every.length}</span></button>` : "";
-    // Made: what its threads shared, beside All threads (design-research/12 §4.2)
-    const made = REC.madeCount(pid);
-    if (made) end = `<button type="button" class="all-btn is-made" data-made-open="${esc(pid)}" aria-haspopup="dialog" title="Everything its threads made">${ICON.spark}Made<span>${made}</span></button>` + end;
-    // the owner's placement: Shell next to All threads, shown even before the project has threads
-    if (SH.enabled) { const n = SH.countFor(pid); end += shellBtn(`data-shell="p:${esc(pid)}"`, n, n ? `${PROJ(pid)}'s shells` : `A shell in ${PROJ(pid)}'s folder`); }
+    // the title is the thread switcher: every thread here, searchable (⌘K reaches them too)
+    const nT = every.length;
+    who = `<span class="tw-ic" aria-hidden="true">${ICON.project}</span><span class="tw-t"><h1 id="conv-title"><button type="button" class="pj-title" data-switch aria-haspopup="dialog" aria-expanded="${!allEl.hidden}" title="${nT ? `Switch to one of its ${nT} threads` : "Its threads"}"><span>${esc(PROJ(pid))}</span>${nT ? `<span class="pj-n">${nT}</span>` : ""}${ICON.chevron}</button></h1><span class="pj-s">${parts.join(" · ") || (every.length ? "All quiet" : "No threads yet")}${S.desc[pid] ? ` · ${esc(S.desc[pid])}` : ""}</span></span>`;
   } else if (t) {
     const ed = S.tEdit && S.tEdit.tid === t.id ? S.tEdit.field : null;
     const title = ed === "title"
@@ -766,16 +764,15 @@ function topRender(needs) {
     const resolved = t.state === "resolved";
     const acts = world.act.storm ? `<span class="tw-acts"><button type="button" class="tw-act" data-resolve="${esc(t.id)}" data-to="${resolved ? "open" : "resolve"}" title="${resolved ? "Reopen it: its agent can pick it up again" : "Mark it resolved: nothing more is owed"}">${resolved ? ICON.retry : ICON.check}<span>${resolved ? "Reopen" : "Resolve"}</span></button>` +
       `<button type="button" class="tw-act tw-more" data-tmenu="${esc(t.id)}" aria-haspopup="menu" aria-expanded="${S.tMenu === t.id}" title="Rename or label" aria-label="Rename or label">${ICON.edit}</button>` +
-      (S.tMenu === t.id ? `<span class="tw-menu" role="menu"><button type="button" role="menuitem" data-tfield="title">Rename</button><button type="button" role="menuitem" data-tfield="label">${t.label ? "Change label" : "Add a label"}</button>${t.label ? `<button type="button" role="menuitem" data-tfield="clear-label">Remove the label</button>` : ""}</span>` : "") + `</span>` : "";
-    // a shell in the thread's own worktree (its branch and folder), beside Resolve
-    const shAct = SH.enabled ? `<button type="button" class="tw-act" data-shell="t:${esc(t.id)}" title="A shell in this thread's worktree">${ICON.shell}<span>Shell</span></button>` : "";
-    const allActs = acts ? acts.replace('<span class="tw-acts">', `<span class="tw-acts">${shAct}`).replace(/<\/span>$/, `${MAP.button(v)}</span>`) : `<span class="tw-acts">${shAct}${MAP.button(v)}</span>`;
+      (S.tMenu === t.id ? `<span class="tw-menu" role="menu"><button type="button" role="menuitem" data-tfield="title">Rename</button><button type="button" role="menuitem" data-tfield="label">${t.label ? "Change label" : "Add a label"}</button>${t.label ? `<button type="button" role="menuitem" data-tfield="clear-label">Remove the label</button>` : ""}${SH.enabled ? `<button type="button" role="menuitem" data-shell="t:${esc(t.id)}">Open a shell in its worktree</button>` : ""}</span>` : "") + `</span>` : "";
+    // a shell in its worktree is in the menu (and the shells dock); the header keeps Resolve and the panel
+    const allActs = acts ? acts.replace(/<\/span>$/, `${STAGE.button(v)}</span>`) : `<span class="tw-acts">${STAGE.button(v)}</span>`;
     who = `${title}${label}<span class="badge st-${t.state}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${wordOf(t)}</span>${allActs}`;
     // a field being edited is never replaced under the person's fingers (a frame may change the badge)
     if (ed && $("#tw-edit")) who = null;
   } else who = `<span class="tw-t"><h1 id="conv-title">Thread</h1></span>`;
   if (who != null) patch($("#top-who"), who);
-  patch($("#top-end"), t ? end : end + MAP.button(v));
+  patch($("#top-end"), t ? end : end + STAGE.button(v));
   nowRender(needs);
   checklistRender(needs);
 }
@@ -1100,15 +1097,15 @@ function typingRender() {
     const aw = world.state.awaiting[chat];
     const who = S.view === "ws" ? "The coordinator" : `${esc(PROJ(chat))} coordinator`;
     const doing = world.act.doing ? world.act.doing(chat) : null;
-    html = `<div class="typing" role="status"><div class="av av-w">${XO}</div><div class="ty-b"><span class="shimmer">${who} is ${aw ? "replying" : "working"}${doing ? ` · ${esc(doing.replace(/`/g, ""))}` : ""}</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>${aw ? `<span class="elapsed" data-since="${aw.at}"></span>` : ""}</div></div>`;
+    html = `<div class="typing" role="status"><div class="av av-live is-xo">${XO}</div><div class="ty-b"><span class="shimmer">${who} is ${aw ? "replying" : "working"}${doing ? ` · ${esc(doing.replace(/`/g, ""))}` : ""}</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>${aw ? `<span class="elapsed" data-since="${aw.at}"></span>` : ""}</div></div>`;
   } else if (S.view.startsWith("c:")) {
     const sid = S.view.slice(2), tu = world.state.turns && world.state.turns.running(sid);
-    if (CH.working(S.view) && !(tu && world.state.turns.blocksOf(tu).length)) html = `<div class="typing" role="status"><div class="av av-t av-w">${ICON.thread}</div><div class="ty-b"><span class="shimmer">Working</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></div></div>`;
+    if (CH.working(S.view) && !(tu && world.state.turns.blocksOf(tu).length)) html = `<div class="typing" role="status"><div class="av av-live">${ICON.thread}</div><div class="ty-b"><span class="shimmer">Working</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></div></div>`;
   } else if (t && t.sessionId && world.state.turns && world.state.turns.running(t.sessionId) && world.state.turns.blocksOf(world.state.turns.running(t.sessionId)).length) {
     html = ""; // its running turn shows the work itself
   } else if (t && isBusy(t)) {
     const cur = t.checklist.items.find((i) => i.state === "doing");
-    html = `<div class="typing" role="status"><div class="av av-t av-w">${ICON.thread}</div><div class="ty-b"><span class="shimmer">Working${cur ? ` · ${esc(cur.text)}` : ""}</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="elapsed" data-since="${t.lastAt}"></span></div></div>`;
+    html = `<div class="typing" role="status"><div class="av av-live">${ICON.thread}</div><div class="ty-b"><span class="shimmer">Working${cur ? ` · ${esc(cur.text)}` : ""}</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="elapsed" data-since="${t.lastAt}"></span></div></div>`;
   }
   const changed = box._h !== html;
   if (changed) { box.innerHTML = html; box._h = html; }
@@ -1765,6 +1762,7 @@ function render() {
   chipRender();
   D.sync();
   MAP.render(v);
+  STAGE.sync();
   const nd = needs.filter((n) => n.admitted && !n.later).length;
   document.title = Kit.titleFor(nd, "XO Space");
 }
@@ -2015,6 +2013,8 @@ document.addEventListener("click", (e) => {
   if (t.closest("[data-next]")) { openNext(); return; }
   if (t.closest("[data-create]")) { openCreate(); return; }
   if (t.closest("[data-all-threads]")) { openAll(); return; }
+  const sw = t.closest("[data-switch]");
+  if (sw) { if (allEl.hidden) openAll(sw); else closeAll(); return; }
   const sh = t.closest("[data-shell]");
   if (sh) { openShell(sh.dataset.shell); return; }
   if (t.closest("[data-open-all]")) { D.open(homeParts().next?.key); return; }
@@ -2132,17 +2132,40 @@ function openShell(where) {
   const t = world.thread(where.slice(2));
   if (t) SH.openThread({ project: t.project, chatId: t.chatId, ts: t.id, title: t.title });
 }
-function openAll() {
+/** All threads: from the project's title it drops down under it (the thread switcher); elsewhere a sheet. */
+function openAll(anchor = null) {
   if (!convProject(S.view) || convProject(S.view) === "workspace") return;
   allReturn = document.activeElement;
+  const drop = !!anchor && !PHONE.matches;
+  allEl.classList.toggle("is-drop", drop);
+  if (drop) {
+    const r = anchor.getBoundingClientRect();
+    allEl.style.setProperty("--dx", `${Math.round(r.left - 6)}px`);
+    allEl.style.setProperty("--dy", `${Math.round(r.bottom + 8)}px`);
+  }
   S.allFilter = "all"; S.allDone = false;
   $("#all-q").value = "";
   allRender();
   allEl.hidden = false;
   $("#all-q").focus();
 }
-function closeAll() { if (allEl.hidden) return; allEl.hidden = true; allReturn?.focus?.({ preventScroll: true }); }
+function closeAll() { if (allEl.hidden) return; allEl.hidden = true; allReturn?.focus?.({ preventScroll: true }); schedule(); }
 $("#all-q").addEventListener("input", allRender);
+// the switcher's keys: ↓ ↑ walk the list, Enter opens the first (or the one you walked to)
+$("#all-q").addEventListener("keydown", (e) => {
+  const rows = [...allEl.querySelectorAll(".all-list [data-go]")].filter((b) => b.offsetParent);
+  if (e.key === "ArrowDown" && rows.length) { e.preventDefault(); rows[0].focus(); return; }
+  if (e.key === "Enter" && rows.length) { e.preventDefault(); allEl.hidden = true; go(rows[0].dataset.go); }
+});
+allEl.addEventListener("keydown", (e) => {
+  if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+  const rows = [...allEl.querySelectorAll(".all-list [data-go]")].filter((b) => b.offsetParent);
+  const i = rows.indexOf(document.activeElement);
+  if (i < 0) return;
+  e.preventDefault();
+  if (e.key === "ArrowUp" && i === 0) { $("#all-q").focus(); return; }
+  rows[Math.min(rows.length - 1, Math.max(0, i + (e.key === "ArrowDown" ? 1 : -1)))].focus();
+});
 allEl.addEventListener("click", (e) => {
   if (e.target === allEl || e.target.closest("[data-close]")) { closeAll(); return; }
   const f = e.target.closest("[data-af]");
@@ -2245,12 +2268,18 @@ $("#side-scrim").addEventListener("click", () => setDrawer(false));
 // ── jump (⌘K) ───────────────────────────────────────────────────────────────
 const jump = $("#jump"), jq = $("#jump-q"), jl = $("#jump-list");
 let jsel = 0, jitems = [];
+/** A thread's icon in ⌘K: the thread mark, its state as a dot on its corner (blue and glowing while it works). */
+function threadIc(t) {
+  const n = D.needItems().some((x) => x.t.id === t.id && x.admitted);
+  const st = n ? "needs" : t.state === "failed" ? "stopped" : isBusy(t) ? "busy" : t.state === "done" || t.state === "resolved" ? "done" : "idle";
+  return `<span class="j-th st-${st}">${ICON.threadOne}<i aria-hidden="true"></i></span>`;
+}
 function jumpRender() {
   const q = jq.value.trim().toLowerCase();
   const all = [{ v: "home", name: "Home", sub: "Your next move", icon: ICON.home }, { v: "ws", name: "Workspace", sub: "The coordinator", icon: XO }, { v: "chats", name: "Chats", sub: "One agent, one folder", icon: ICON.thread }];
   for (const p of projects()) {
     all.push({ v: "p:" + p.id, name: p.name, sub: "Project", icon: ICON.project });
-    for (const t of threadsOf(p.id)) all.push({ v: "t:" + t.id, name: t.title, sub: `${p.name} · ${wordOf(t).toLowerCase()}`, icon: `<i class="g g-${glyphOf(t)}"></i>`, t: true });
+    for (const t of threadsOf(p.id)) all.push({ v: "t:" + t.id, name: t.title, sub: `${p.name} · ${wordOf(t).toLowerCase()}`, icon: threadIc(t), t: true });
   }
   jitems = all.filter((x) => !q || (x.name + " " + x.sub).toLowerCase().includes(q)).concat(REC.jumpItems(q));
   jsel = Math.min(jsel, Math.max(0, jitems.length - 1));
@@ -2391,7 +2420,7 @@ $("#theme").addEventListener("click", () => {
 });
 
 // the Map's toggle, in every conversation's header
-document.addEventListener("click", (e) => { if (e.target.closest?.("[data-map-toggle]")) MAP.toggle(); });
+document.addEventListener("click", (e) => { if (e.target.closest?.("[data-stage-toggle]")) STAGE.toggle(); });
 
 // ── global keys ─────────────────────────────────────────────────────────────
 const GLOBAL = {
@@ -2400,7 +2429,7 @@ const GLOBAL = {
   intel: () => (IQ.isOpen ? IQ.close() : IQ.open(sessionOf(S.view), $("#iq"))),
   write: () => say.focus(),
   keys: () => openKeys(),
-  map: () => MAP.toggle(),
+  map: () => STAGE.toggle(),
 };
 addEventListener("keydown", (e) => {
   if (S.recording) return; // Settings › Keyboard is listening for a new key
@@ -2415,7 +2444,6 @@ addEventListener("keydown", (e) => {
     if (!keys.hidden) { closeKeys(); return; }
     if (!setEl.hidden) { closeSettings(); return; }
     if (!allEl.hidden) { closeAll(); return; }
-    if (REC.madeOpen) { REC.closeMade(); return; }
     if ($("#app").classList.contains("drawer")) { setDrawer(false); return; }
     if (D.isOpen()) { D.close(); return; }
     if (CH.setupOpen) { CH.closeSetup(); return; }
@@ -2424,7 +2452,7 @@ addEventListener("keydown", (e) => {
     return;
   }
   if (e.target.matches?.("input, textarea, [contenteditable]") || e.metaKey || e.ctrlKey || e.altKey) return;
-  if (!keys.hidden || !allEl.hidden || REC.madeOpen) return;
+  if (!keys.hidden || !allEl.hidden) return;
   // Only keys that can't be hit by accident: no single letters (a stray keystroke must never
   // navigate or open something). Decision keys live on a focused decision card only.
   for (const id of Object.keys(GLOBAL)) if (K.is(e, id)) { e.preventDefault(); GLOBAL[id](); return; }
@@ -2434,10 +2462,10 @@ addEventListener("keydown", (e) => {
 // The app keeps one history entry of its own while there is somewhere to go back to. Back then does
 // what Esc does (the top sheet, the viewer, Settings, the sidebar), then a thread's parent, then the
 // places you came through; with nothing left it lets the browser leave.
-const sheetsOpen = () => !jump.hidden || !keys.hidden || !allEl.hidden || REC.madeOpen || RS.open || dlg.open || IQ.isOpen || CH.setupOpen;
+const sheetsOpen = () => !jump.hidden || !keys.hidden || !allEl.hidden || RS.open || dlg.open || IQ.isOpen || CH.setupOpen;
 const placeOk = (v) => v === "home" || v === "ws" || v === "chats" || (v.startsWith("p:") && !!world.project(v.slice(2))) || (v.startsWith("t:") && !!world.thread(v.slice(2))) || v.startsWith("c:");
 function canBack() {
-  return sheetsOpen() || VW.isOpen || (MAP.isOpen && PHONE.matches) || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised || S.view !== "home" || S.trail.length > 0;
+  return sheetsOpen() || VW.isOpen || (STAGE.isOpen && PHONE.matches) || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised || S.view !== "home" || S.trail.length > 0;
 }
 /** One step back. False when there's nothing left in the app to go back to. */
 function stepBack() {
@@ -2448,9 +2476,8 @@ function stepBack() {
   if (RS.open) { runsEscape(); return true; }
   if (!keys.hidden) { closeKeys(); return true; }
   if (!allEl.hidden) { closeAll(); return true; }
-  if (REC.madeOpen) { REC.closeMade(); return true; }
   if (VW.isOpen) { VW.close(); return true; }
-  if (MAP.isOpen && PHONE.matches) { MAP.close(); return true; }
+  if (STAGE.isOpen && PHONE.matches) { STAGE.close(); return true; }
   if (!setEl.hidden) { closeSettings(); return true; }
   if (SH.raised && SH.lower()) return true;
   if ($("#app").classList.contains("drawer")) { setDrawer(false); return true; }
@@ -2485,7 +2512,7 @@ document.addEventListener("xo:gesture", armBack);
 // ── touch: gestures for the same moves (js/gestures.js), and the title back to the top ──
 wireGestures({
   phone: () => PHONE.matches,
-  overlay: () => sheetsOpen() || VW.isOpen || (MAP.isOpen && PHONE.matches) || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised,
+  overlay: () => sheetsOpen() || VW.isOpen || (STAGE.isOpen && PHONE.matches) || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised,
   view: () => S.view,
   back,
   drawer: (open) => setDrawer(open),
@@ -2497,7 +2524,6 @@ wireGestures({
   sheets: [
     { host: $("#panel"), open: () => PHONE.matches && D.isOpen(), close: () => D.close() },
     { host: allEl, card: () => allEl.querySelector(".sheet-card"), open: () => !allEl.hidden, close: closeAll },
-    { host: $("#made"), card: () => $("#made .sheet-card"), open: () => REC.madeOpen, close: () => REC.closeMade() },
     { host: runsEl, card: () => runsCard, open: () => RS.open, close: closeRuns },
     { host: jump, card: () => jump.querySelector(".sheet-card"), open: () => !jump.hidden, close: closeJump },
     { host: keys, card: () => keys.querySelector(".sheet-card"), open: () => !keys.hidden, close: closeKeys },
