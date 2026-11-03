@@ -55,6 +55,12 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 - **Open thread:** polled every 4 s while its agent is busy and every 15 s otherwise. "Working" means the session is actually busy. An idle one reads "Idle".
 - **Coordinator messages:** storm keeps what a coordinator and a thread write each other as hops (`GET /chats/{chat}/hops?thread=`, the text in `note`), not as messages. A thread shows them in place: the coordinator's brief, follow-ups and answers as its messages, the thread's own questions as a quiet "Asked the coordinator" line, and your messages they cite. A hop that arrives on the stream has no note, so the open thread reads its hops again.
 - **Asks:** a thread waiting on you is titled from its agent's last message. You answer in words, as a thread reply.
+- **Since you left and Made (design-research/12):** each place (Home, a project) remembers per browser when you last
+  looked (leaving it, hiding the tab or closing it). Back after 8 h or more, a card under the header says what moved:
+  needs you, not saved, not pushed, stopped, finished, still going, one line per thread with what it did. The git
+  words come from `GET /chat/worktrees` (`would_lose`). **Made** beside All threads lists what a project's threads
+  shared (each thread's `outputs`), with pins per browser; a file opens in the viewer beside its own thread. Home shows
+  Recently made, and ⌘K finds made files by name. "Merged" and exact times wait on the backend (§5 of the note).
 - **Shells (`/api/terminal/*`):** only when `GET /terminal/status` says `enabled`; otherwise no shell UI shows at all.
   - Where they open: **Shell** beside All threads on a project (its folder), beside Next move on the Workspace
     (the projects root), and in a thread's header (its worktree from `/chat/worktrees`, else the project folder).
@@ -93,6 +99,7 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 | `js/content.js` | what an ask costs you, what it frees, and its evidence |
 | `js/ui.js` | icons and motion helpers |
 | `js/gestures.js` | touch gestures on a phone: swipe back or open the sidebar, drag sheets away, swipe between asks, long-press Copy (design-research/11) |
+| `js/record.js`, `js/recordview.js` | a project's record (design-research/12): what its threads made (Made, Recently made on Home, ⌘K) and Since you left; the pure part, then the screen |
 | `js/shells/dock.js` | shells: the dock, its tabs and list, the sidebar's toggle; what `app.js` calls |
 | `js/shells/term.js` | one shell on screen: xterm.js, its WebSocket, reconnects, flow control, theme |
 | `js/shells/model.js` | shells, the pure part: row words, counts, flow-control watermarks, backoff |
@@ -107,6 +114,7 @@ node tests/shells.test.mjs       # shells' pure parts, and the vendored xterm ha
 python3 tests/serve.test.py      # serve.py: the Host allowlist and the WebSocket tunnel, against fake backends
 node tests/storm.test.mjs        # the stream parser and the turn store; no network
 node tests/turnview.test.mjs     # how a turn renders: changed-file chips, runtime notices; no network
+node tests/record.test.mjs       # Made and Since you left: kinds, order, groups, git words, the headline; no network
 ```
 
 The browser suites (Playwright) live outside the repo:

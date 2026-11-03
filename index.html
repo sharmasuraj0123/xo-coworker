@@ -59,6 +59,8 @@
           <div class="top-end" id="top-end"></div>
         </header>
         <div class="thead" id="thead" hidden></div>
+        <!-- Since you left (js/recordview.js): what moved in this project while you were away; under the header, never scrolled away -->
+        <div class="since" id="since" hidden></div>
         <div class="scroller" id="scroller" tabindex="-1">
           <div class="column" id="column">
             <div class="ws-head" id="ws-head" hidden></div>
@@ -179,6 +181,11 @@
       </div>
       <div class="all-list" id="all-list"></div>
     </div>
+  </div>
+
+  <!-- Made (js/recordview.js): everything a project's threads shared, newest first, by kind, with pins -->
+  <div class="sheet" id="made" role="dialog" aria-modal="true" aria-labelledby="made-h" hidden>
+    <div class="sheet-card all-card made-card"></div>
   </div>
 
   <!-- Sub-agents: the live list and the log of a thread's sub-agents; one opens like a thread of its own -->
