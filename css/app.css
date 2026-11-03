@@ -2165,7 +2165,6 @@ i.t-amber{background:var(--warn)}i.t-blue{background:var(--info)}i.t-red{backgro
 .map-btn:hover{background:var(--g1A);border-color:var(--g33);color:var(--ink)}
 .map-btn:active{transform:scale(.97)}
 .map-btn.is-on{background:var(--g22);border-color:var(--g3A);color:var(--ink)}
-.map-dot{position:absolute;top:5px;left:19px;width:6px;height:6px;border-radius:50%;background:var(--info);box-shadow:0 0 0 2px var(--canvas);animation:breathe 2.4s ease-in-out infinite}
 
 body.map-open:not(.panel-open):not(.viewer-open):not(.map-full) .conv{--rp:calc(var(--mw) + 28px)}
 body.map-open:not(.panel-open):not(.viewer-open):not(.map-full) .scroller,body.map-open:not(.panel-open):not(.viewer-open):not(.map-full) .home{padding-right:calc(var(--mw) + 40px)}
@@ -2199,14 +2198,9 @@ body.map-full .dock,body.map-full .tdock{visibility:hidden}
 .mp-full svg{width:15px;height:15px}
 
 /* Now (a thread): one line for what its agent is doing */
-.mp-now{display:grid;grid-template-columns:14px minmax(0,1fr) auto;align-items:center;gap:8px;margin:0 12px 10px;padding:8px 10px;border-radius:8px;background:var(--g1C);border:1px solid var(--g26)}
-.mp-now.st-busy{border-color:color-mix(in srgb,var(--c,var(--info)) 40%,var(--g26));background:color-mix(in srgb,var(--c,var(--info)) 7%,var(--g1C))}
-.mp-now.st-wait{border-color:color-mix(in srgb,var(--warn) 40%,var(--g26));background:color-mix(in srgb,var(--warn) 6%,var(--g1C))}
-.mp-pulse{position:relative;display:block;width:8px;height:8px;margin:0 3px;border-radius:50%;background:var(--ink-4)}
-.st-busy .mp-pulse{background:var(--c,var(--info))}
-.st-busy .mp-pulse::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:1.5px solid var(--c,var(--info));opacity:0;animation:mp-ring 1.8s var(--ease-out) infinite}
-.st-wait .mp-pulse{background:var(--warn)}
-@keyframes mp-ring{0%{opacity:.7;transform:scale(.6)}100%{opacity:0;transform:scale(1.7)}}
+.mp-now{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;margin:0 12px 10px;padding:8px 10px 8px 12px;border-radius:8px;box-shadow:inset 2px 0 0 var(--ink-4);background:var(--g1C);border:1px solid var(--g26)}
+.mp-now.st-busy{box-shadow:inset 2px 0 0 var(--c,var(--info))}
+.mp-now.st-wait{box-shadow:inset 2px 0 0 var(--warn)}
 .mp-nl{min-width:0;font:500 var(--fs-base)/1.35 var(--sans);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mp-nl code{font:400 .92em/1 var(--mono);padding:1px 4px;border-radius:4px;background:var(--g22)}
 .mp-now .elapsed{font:400 var(--fs-xs)/1 var(--mono);color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -2349,7 +2343,6 @@ button.dg-n:hover{border-color:var(--g45);color:var(--ink)}
 .st-tab svg{flex:none;width:14px;height:14px}
 .st-tab:hover{background:var(--g1F);color:var(--ink)}
 .st-tab[aria-pressed="true"]{background:var(--g22);color:var(--ink);box-shadow:var(--hairline)}
-.st-tab .map-dot{top:6px;left:19px;box-shadow:0 0 0 2px var(--g17)}
 .st-x{flex:none;display:grid;place-items:center;width:24px;height:24px;border-radius:7px;color:var(--ink-4);transition:background var(--dur-fast),color var(--dur-fast)}
 .st-x:hover{background:var(--g1F);color:var(--ink)}
 .st-x svg{width:12px;height:12px}
@@ -2377,9 +2370,8 @@ button.dg-n:hover{border-color:var(--g45);color:var(--ink)}
   .dg-tools button{width:36px;height:36px}
   .map-btn span{display:none}
   .map-btn{width:34px;padding:0;justify-content:center}
-  .map-dot{left:20px}
 }
-@media (prefers-reduced-motion:reduce){.map-dot,.mp-who i,.st-busy .mp-pulse::after,.dg-n.is-hit,.gn.is-hit .gn-d{animation:none}.dg-cur,.dg-world.is-glide{transition:none}}
+@media (prefers-reduced-motion:reduce){.dg-n.is-hit,.gn.is-hit .gn-d{animation:none}.dg-cur,.dg-world.is-glide{transition:none}}
 
 /* ── the panel (js/stage.js): one card on the right, with tabs. Map, Made and File today; apps later.
    It owns the frame (card, tabs, full size, close); each tab owns only what's inside. Same family as

@@ -280,8 +280,10 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     if (!ag.busy) return "idle";
     if (ag.liveFile) return (ag.liveFile.verb || "working").toLowerCase();
     const k = ag.now && ag.now.kind;
-    return k === "command" ? "running a command" : k === "search" || k === "list" ? "looking around" : k === "web_search" || k === "web_fetch" ? "on the web" : k === "subagent" ? "with a sub-agent" : ag.act.running ? "thinking" : "working";
+    return k === "command" ? "running a command" : k === "search" || k === "list" ? "looking around" : k === "web_search" || k === "web_fetch" ? "on the web" : k === "subagent" ? "with a sub-agent" : ingOf(ag.now) || (ag.act.running ? "thinking" : "working");
   }
+  /** A running step's own verb ("Writing… · 12 KB" → "writing"), when its line starts with one. */
+  const ingOf = (row) => { const w = String((row && row.line) || "").replace(/[`*_]/g, "").trim().split(/[\s…·.]+/)[0] || ""; return /^[A-Za-z]{3,}ing$/.test(w) ? w.toLowerCase() : ""; };
   const since = (ms) => (Number.isFinite(ms) ? `<span class="elapsed" data-since="${ms}"></span>` : "");
 
   // ── folders, read a level at a time ──────────────────────────────────────────
@@ -765,7 +767,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       title = t.title; ic = ICON.thread;
       sub = [t.branch && `<span class="mp-br">${ICON.branch}<code>${esc(t.branch)}</code></span>`, scope.fold ? (scope.fold.base ? "its own worktree" : "the project folder") : ""].filter(Boolean).join(`<span class="mp-sep">·</span>`);
       const word = a.busy ? (a.waiting ? "Waiting for you" : doingLine(a)) : t.state === "done" ? "Done" : t.state === "resolved" ? "Resolved" : t.state === "failed" ? "Stopped" : "Not working right now";
-      extra = `<div class="mp-now st-${a.busy ? (a.waiting ? "wait" : "busy") : "rest"}" style="--c:${a.color}"><span class="mp-pulse" aria-hidden="true"></span><p class="mp-nl">${word}</p>${a.busy ? since(a.since) : ""}</div>`;
+      extra = `<div class="mp-now st-${a.busy ? (a.waiting ? "wait" : "busy") : "rest"}" style="--c:${a.color}"><p class="mp-nl">${word}</p>${a.busy ? since(a.since) : ""}</div>`;
     } else {
       if (scope.kind === "project") { title = (world.project(scope.pid) || {}).name || scope.pid; ic = ICON.project; }
       else { title = "Working now"; ic = MAP_ICON; }
@@ -868,7 +870,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     const f = viewer.file || {};
     const name = f.name || base(f.rel || f.path) || "File";
     const live = liveIn(M.view);
-    return `<nav class="stage-tabs" aria-label="Right panel"><button type="button" class="st-tab" data-stage="live" aria-pressed="${mode === "live"}" title="Where your agents are working">${MAP_ICON}<span>Live</span>${live ? `<i class="map-dot" aria-hidden="true"></i>` : ""}</button>` +
+    return `<nav class="stage-tabs" aria-label="Right panel"><button type="button" class="st-tab" data-stage="live" aria-pressed="${mode === "live"}" title="Where your agents are working">${MAP_ICON}<span>Live</span></button>` +
       `<span class="st-file"><button type="button" class="st-tab" data-stage="file" aria-pressed="${mode === "file"}" title="${esc(f.where || name)}">${f.image ? ICON.image : ICON.doc}<span>${esc(name)}</span></button>` +
       `<button type="button" class="st-x" data-stage="close-file" aria-label="Close ${esc(name)}" title="Close the file">${ICON.close}</button></span></nav>`;
   }
@@ -1032,7 +1034,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     /** The header's toggle, for any conversation view. */
     button(v) {
       const live = liveIn(v);
-      return `<button type="button" class="map-btn${M.open ? " is-on" : ""}" data-map-toggle aria-pressed="${M.open}" aria-controls="map" title="Map: where your agents are working">${MAP_ICON}${live ? `<i class="map-dot" aria-hidden="true"></i>` : ""}<span>Map</span></button>`;
+      return `<button type="button" class="map-btn${M.open ? " is-on" : ""}" data-map-toggle aria-pressed="${M.open}" aria-controls="map" title="Map: where your agents are working">${MAP_ICON}<span>Map</span></button>`;
     },
   };
 }
