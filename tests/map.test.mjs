@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 
 // js/ui.js reads the reduced-motion setting when it loads
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
-const { folderOf, placeOf, activityOf, layoutOf, edgePath, colorOf } = await import("../js/map.js");
+const { folderOf, placeOf, activityOf, layoutOf, edgePath, colorOf, pathsInCommand } = await import("../js/map.js");
 const { createTurns } = await import("../js/blocks.js");
 
 let passed = 0;
@@ -94,6 +94,15 @@ t("a connector runs straight when level, and turns with rounded corners otherwis
 t("an agent keeps its colour", () => {
   assert.equal(colorOf("cmsg_1"), colorOf("cmsg_1"));
   assert.match(colorOf("x"), /^#[0-9A-F]{6}$/i);
+});
+
+t("a command's files: the cursor can follow cd, relative and absolute paths, never a sed expression", () => {
+  const R = "/w/p";
+  assert.deepEqual(pathsInCommand(`cd /w/p && sed -i "s/a/b/" js/app.js && node tests/map.test.mjs`, R), ["js/app.js", "tests/map.test.mjs"]);
+  assert.deepEqual(pathsInCommand("cd js && grep -n foo app.js ../css/app.css", R), ["js/app.js", "css/app.css"]);
+  assert.deepEqual(pathsInCommand("ls design-research/*.md", R), ["design-research"]);
+  assert.deepEqual(pathsInCommand("cd /tmp && node x.mjs http://localhost:5191/", R), []);
+  assert.deepEqual(pathsInCommand("cat ../../etc/passwd", R), []);
 });
 
 console.log(`${passed} passed${process.exitCode ? ", with failures" : ""}`);

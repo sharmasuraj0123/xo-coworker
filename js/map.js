@@ -33,13 +33,17 @@ const COORD_COLOR = "#7ED957";
 
 export const MAP_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="7" height="5" rx="1.5"/><rect x="14" y="4" width="7" height="5" rx="1.5"/><rect x="14" y="15" width="7" height="5" rx="1.5"/><path d="M10 6.5h4M6.5 9v8.5H14"/></svg>';
 const DIR_OPEN = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 18V7a1.5 1.5 0 0 1 1.5-1.5h4l2 2h7A1.5 1.5 0 0 1 19.5 9v1.5"/><path d="M3.5 18l2.3-6.4a1.5 1.5 0 0 1 1.4-1h13.3l-2.4 7.4H3.5z"/></svg>';
-const ARROW = '<svg class="dg-arrow" viewBox="0 0 20 22" width="20" height="22" aria-hidden="true"><path d="M2 1.5v16.2l4.4-4.1 2.9 6.6 3-1.3-2.9-6.5h6.1z"/></svg>';
+// the pointer: a crisp arrow, its tip at (1, 1), white-edged so it reads on any box
+const ARROW = '<svg class="dg-arrow" viewBox="0 0 18 18" width="18" height="18" aria-hidden="true"><path d="M1.6 1.4 15.6 7.1c.5.2.5.9 0 1.1l-5.9 2.2a1 1 0 0 0-.6.6l-2.2 5.9c-.2.5-.9.5-1.1 0L.2 2.9C0 2 .8 1.1 1.6 1.4z"/></svg>';
+const MODE_KEY = "cv-map-mode";
 const I = (d) => `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const TOOL = {
   out: I('<path d="M6 12h12"/>'), in: I('<path d="M6 12h12M12 6v12"/>'),
   fit: I('<path d="M4 9V5.5A1.5 1.5 0 0 1 5.5 4H9M15 4h3.5A1.5 1.5 0 0 1 20 5.5V9M20 15v3.5a1.5 1.5 0 0 1-1.5 1.5H15M9 20H5.5A1.5 1.5 0 0 1 4 18.5V15"/>'),
   follow: I('<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>'),
-  full: I('<path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/>'), unfull: I('<path d="M4 14h6v6M20 10h-6V4M10 14l-7 7M14 10l7-7"/>'),
+  full: I('<path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/>'),
+  tree: I('<rect x="3" y="4" width="7" height="5" rx="1"/><rect x="14" y="4" width="7" height="5" rx="1"/><rect x="14" y="15" width="7" height="5" rx="1"/><path d="M10 6.5h4M6.5 9v8.5H14"/>'),
+  graph: I('<circle cx="6" cy="6" r="2.3"/><circle cx="18" cy="8" r="2.3"/><circle cx="9" cy="18" r="2.3"/><circle cx="18" cy="18" r="1.6"/><path d="M8.2 6.4l7.6 1.2M7 8.2l1.5 7.6M11.2 17.6l5.3.3M17.9 10.3v6.1"/>'), unfull: I('<path d="M4 14h6v6M20 10h-6V4M10 14l-7 7M14 10l7-7"/>'),
 };
 
 const base = (p) => String(p || "").replace(/\/+$/, "").split("/").pop();
@@ -75,13 +79,57 @@ export function placeOf(root, target) {
   return { rel: p };
 }
 
+/** A path with "." and ".." resolved; null if it climbs above its start. */
+function norm(p) {
+  const out = [];
+  for (const seg of p.split("/")) {
+    if (seg === "" || seg === ".") continue;
+    if (seg === "..") { if (!out.length) return null; out.pop(); } else out.push(seg);
+  }
+  return (p.startsWith("/") ? "/" : "") + out.join("/");
+}
+
+/**
+ * The files and folders a shell command names, inside `root`, in order: so a cursor can follow an agent
+ * through `cd js && sed -i … app.js` as well as through its edits. A `cd` moves where later relative
+ * paths start; a glob counts as its folder; flags, URLs and sed-like expressions don't count. Pure.
+ */
+export function pathsInCommand(cmd, root) {
+  const out = [];
+  let cwd = root || "";
+  for (const part of String(cmd || "").split(/&&|\|\||;|\||\n/)) {
+    const words = (part.trim().match(/"[^"]*"|'[^']*'|\S+/g) || []).map((t) => t.replace(/^["']|["']$/g, ""));
+    if (!words.length) continue;
+    if (words[0] === "cd") {
+      const d = words[1];
+      if (d && !d.startsWith("-")) { const n = norm(d.startsWith("/") ? d : `${cwd}/${d}`); if (n) cwd = n; }
+      continue;
+    }
+    for (const w of words.slice(1)) {
+      if (!w || w.length > 240 || w.startsWith("-") || w.includes("://") || /[\\^$#|<>(){}=;'"`\s]/.test(w)) continue;
+      if (!(w.includes("/") || /\.[A-Za-z0-9]{1,8}$/.test(w))) continue;
+      if (/^s([\/#|]).*\1.*\1[gimp]*$/.test(w)) continue; // a sed expression, not a path
+      let p = w.replace(/[,:]+$/, "");
+      const g = p.search(/[*?[]/);
+      if (g >= 0) p = p.slice(0, g).replace(/\/[^/]*$/, "");
+      if (!p) continue;
+      const abs = norm(p.startsWith("/") ? p : cwd ? `${cwd}/${p}` : p);
+      if (!abs) continue;
+      const pl = placeOf(root, abs);
+      if (pl && pl.rel != null) out.push(pl.rel);
+    }
+  }
+  return out;
+}
+
 /**
  * What a session's loaded turns did, from storm's activity rows. Pure: `turns` is the turn store.
- * → {files: Map rel → F, outside: Map abs → F, now: {row, turn} | null, last, running}
+ * → {files: Map rel → F, outside: Map abs → F, now: {row, turn} | null, last, running,
+ *    nowSpots: the paths the running step names (a command's files), lastFile: the last file it was on}
  * F = {path, mark: "new" | "edited" | "deleted" | "read", live, waiting, verb}
  */
 export function activityOf(turns, session, root) {
-  const out = { files: new Map(), outside: new Map(), now: null, last: null, running: null };
+  const out = { files: new Map(), outside: new Map(), now: null, last: null, running: null, nowSpots: [], lastFile: null };
   if (!turns || !session) return out;
   let n = 0;
   for (const tu of turns.list((x) => x.session === session)) {
@@ -95,6 +143,7 @@ export function activityOf(turns, session, root) {
         const on = live && r.status === "running";
         out.last = { row: r, turn: tu };
         if (on) out.now = { row: r, turn: tu };
+        if (on && (r.kind === "command" || r.kind === "search" || r.kind === "list") && r.target) out.nowSpots = pathsInCommand(r.target, root);
         if (!FILE_KINDS.has(r.kind) || !r.target || r.status === "error" || r.status === "denied" || r.status === "cancelled") continue;
         const pl = placeOf(root, r.target);
         if (!pl) continue;
@@ -108,6 +157,7 @@ export function activityOf(turns, session, root) {
         f.waiting = on && !!r.waiting;
         f.verb = VERB_NOW[r.kind];
         into.set(key, f);
+        if (pl.rel != null) out.lastFile = pl.rel;
       }
     }
   }
@@ -161,7 +211,12 @@ export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
     refs: new Map(),     // box id → what a click on it does
     curs: new Map(),     // agent id → its cursor element and where it was
     head: "", layoutKey: "", scope: null, layout: null, dragged: false,
+    mode: "tree",        // "tree": the diagram; "graph": a living node graph
+    bounds: null,        // the drawing's extent, for Fit
+    gpos: new Map(),     // scope key → Map box id → {x, y, vx, vy}: the graph keeps its shape across redraws
+    gkey: "", gnodes: [], gedges: [], alpha: 0, raf: 0, gags: [], glit: new Map(),
   };
+  try { if (localStorage.getItem(MODE_KEY) === "graph") M.mode = "graph"; } catch { /* private mode */ }
   const setOf = (m, key) => { if (!m.has(key)) m.set(key, new Set()); return m.get(key); };
 
   // ── what's in scope ─────────────────────────────────────────────────────────
@@ -180,7 +235,7 @@ export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
     const liveFile = [...a.files.values()].find((f) => f.live) || null;
     const lastFile = [...a.files.values()].sort((x, y) => y.seq - x.seq)[0] || null;
     const busy = isBusy(t);
-    return { id: t.id, title: t.title, go: "t:" + t.id, project: t.project, fold, act: a, now, liveFile, path: (liveFile || (!busy && lastFile) || null)?.path || null, busy, waiting: !!(now && now.waiting), since: a.running ? Date.parse(a.running.at) : null, color: colorOf(t.id) };
+    return { id: t.id, title: t.title, go: "t:" + t.id, project: t.project, fold, act: a, now, liveFile, path: (liveFile || (!busy && lastFile) || null)?.path || null, spots: a.nowSpots, prev: a.lastFile, busy, waiting: !!(now && now.waiting), since: a.running ? Date.parse(a.running.at) : null, color: colorOf(t.id) };
   }
   function coordinatorOf(pid) {
     const sid = world.act.coordinatorBusy && world.act.coordinatorBusy(pid);
@@ -190,7 +245,7 @@ export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
     const a = activityOf(turns(), sid, root);
     const now = a.now && a.now.row;
     const liveFile = [...a.files.values()].find((f) => f.live) || null;
-    return { id: "coord:" + pid, title: "Coordinator", go: pid === "workspace" ? "ws" : "p:" + pid, project: pid, fold: root ? { root, base: "", project: pid } : null, act: a, now, liveFile, path: liveFile ? liveFile.path : null, busy: true, waiting: !!(now && now.waiting), since: a.running ? Date.parse(a.running.at) : null, coord: true, color: COORD_COLOR };
+    return { id: "coord:" + pid, title: "Coordinator", go: pid === "workspace" ? "ws" : "p:" + pid, project: pid, fold: root ? { root, base: "", project: pid } : null, act: a, now, liveFile, path: liveFile ? liveFile.path : null, spots: a.nowSpots, prev: a.lastFile, busy: true, waiting: !!(now && now.waiting), since: a.running ? Date.parse(a.running.at) : null, coord: true, color: COORD_COLOR };
   }
   function agentsIn(pid) {
     const out = world.state.threads.filter((t) => (!pid || t.project === pid) && isBusy(t)).map(agentOf);
@@ -322,38 +377,41 @@ export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
   function skeleton(scope) {
     el.innerHTML = `<div class="mp-head" data-mp-head></div>` +
       `<div class="dg" data-dg tabindex="0" role="group" aria-label="The diagram: drag to move around, ⌘ or Ctrl and scroll to zoom">` +
-      `<div class="dg-world"><svg class="dg-edges" aria-hidden="true"></svg><div class="dg-nodes"></div><div class="dg-curs"></div></div>` +
+      `<div class="dg-world k-${M.mode}"><svg class="dg-edges" aria-hidden="true"></svg><div class="dg-nodes"></div><div class="dg-curs"></div></div>` +
       `<div class="dg-tools" role="toolbar" aria-label="View">` +
+      `<span class="dg-mode" role="group" aria-label="Draw it as"><button type="button" data-dg="tree" aria-pressed="${M.mode === "tree"}" title="Diagram (G)" aria-label="Diagram">${TOOL.tree}</button><button type="button" data-dg="graph" aria-pressed="${M.mode === "graph"}" title="Graph (G)" aria-label="Graph">${TOOL.graph}</button></span><i class="dg-sep" aria-hidden="true"></i>` +
       `<button type="button" data-dg="out" title="Zoom out (−)" aria-label="Zoom out">${TOOL.out}</button><button type="button" data-dg="in" title="Zoom in (+)" aria-label="Zoom in">${TOOL.in}</button>` +
       `<button type="button" data-dg="fit" title="Fit it all (0)" aria-label="Fit it all">${TOOL.fit}</button>` +
       (scope.kind !== "all" ? `<button type="button" data-dg="follow" title="Follow the agent (F)" aria-label="Follow the agent" aria-pressed="false">${TOOL.follow}</button>` : "") + `</div>` +
       `<div class="dg-key" data-dg-key></div></div>`;
-    M.head = ""; M.layoutKey = ""; M.curs = new Map();
-    el.dataset.scope = scope.key;
+    M.head = ""; M.layoutKey = ""; M.curs = new Map(); M.gkey = ""; M.gnodes = []; M.gedges = [];
+    el.dataset.scope = scope.key + "|" + M.mode;
     wire(el.querySelector("[data-dg]"));
   }
   const view = () => el.querySelector("[data-dg]");
   const world$ = () => el.querySelector(".dg-world");
 
   function camOf(scope) {
-    if (!M.cams.has(scope.key)) M.cams.set(scope.key, { x: 24, y: 24, s: 1, user: false, follow: scope.kind === "thread", target: null });
-    return M.cams.get(scope.key);
+    const k = scope.key + "|" + M.mode;
+    if (!M.cams.has(k)) M.cams.set(k, { x: 24, y: 24, s: 1, user: false, follow: scope.kind === "thread" && M.mode === "tree", target: null });
+    return M.cams.get(k);
   }
   function applyCam(c, glide) {
     const w = world$();
     if (!w) return;
     w.classList.toggle("is-glide", !!glide);
     w.style.transform = `translate(${c.x}px,${c.y}px) scale(${c.s})`;
+    w.classList.toggle("is-near", c.s >= 1.15); // close enough to read every name
     const f = el.querySelector('[data-dg="follow"]');
     if (f) f.setAttribute("aria-pressed", String(!!c.follow));
   }
   function fit(c, glide) {
-    const v = view(), L = M.layout;
-    if (!v || !L || !v.clientWidth) return;
-    const W = L.w + PAD * 2 + TAG, H = L.h + PAD * 2;
-    c.s = clamp(Math.min(v.clientWidth / W, (v.clientHeight - 44) / H), 0.3, 1.1);
-    c.x = (v.clientWidth - W * c.s) / 2;
-    c.y = Math.max(0, (v.clientHeight - 44 - H * c.s) / 2);
+    const v = view(), B = M.bounds;
+    if (!v || !B || !v.clientWidth) return;
+    const W = B.x1 - B.x0, H = B.y1 - B.y0, vh = v.clientHeight - 44;
+    c.s = clamp(Math.min(v.clientWidth / W, vh / H), 0.3, 1.1);
+    c.x = (v.clientWidth - W * c.s) / 2 - B.x0 * c.s;
+    c.y = Math.max(0, (vh - H * c.s) / 2) - B.y0 * c.s;
     applyCam(c, glide);
   }
   function centerOn(c, pt, glide, s) {
@@ -426,6 +484,7 @@ export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
       else if (k === "-" || k === "_") zoomAt(c, 1 / 1.2, ...mid());
       else if (k === "0") { c.user = true; c.follow = false; fit(c, true); }
       else if (k === "f" || k === "F") tool("follow");
+      else if (k === "g" || k === "G") tool(M.mode === "graph" ? "tree" : "graph");
       else if (k.startsWith("Arrow")) { const d = 60; c.x += k === "ArrowLeft" ? d : k === "ArrowRight" ? -d : 0; c.y += k === "ArrowUp" ? d : k === "ArrowDown" ? -d : 0; c.user = true; c.follow = false; applyCam(c, true); }
       else return;
       e.preventDefault();
@@ -437,13 +496,21 @@ export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
     if (!v) return;
     if (what === "in" || what === "out") zoomAt(c, what === "in" ? 1.25 : 0.8, v.clientWidth / 2, v.clientHeight / 2);
     else if (what === "fit") { c.user = true; c.follow = false; fit(c, true); }
+    else if (what === "tree" || what === "graph") {
+      if (M.mode === what) return;
+      M.mode = what;
+      try { localStorage.setItem(MODE_KEY, what); } catch { /* private mode */ }
+      el.dataset.scope = "";
+      paint();
+      view()?.focus({ preventScroll: true });
+      announce(what === "graph" ? "Graph view." : "Diagram view.");
+    }
     else if (what === "follow") { c.follow = !c.follow; c.user = false; c.target = null; frame(c, true); announce(c.follow ? "Following the agent." : "Not following."); }
   }
 
   /** Where the camera goes by itself: onto the followed agent, or the whole drawing, until you move it. */
   function frame(c, glide) {
-    const L = M.layout;
-    if (!L) return;
+    if (!M.bounds) return;
     const lead = M.lead;
     if (c.follow && lead) {
       if (c.target !== lead.key || !c.user) { centerOn(c, lead.pt, glide && c.target != null, c.user ? null : Math.max(c.s, 0.85)); c.target = lead.key; }
@@ -453,42 +520,156 @@ export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
   }
 
   // ── cursors ─────────────────────────────────────────────────────────────────
-  function cursors(ags, nodeAt) {
+  /** Where an agent is, as a box: the file it's on, else a file or folder its command names, else the last file it was on. */
+  function spotOf(a, ids, rootId) {
+    if (M.scope.kind === "all") return ids.has(a.node) ? a.node : null;
+    const within = (p) => { let q = p; while (q) { if (ids.has(q)) return { id: q, exact: q === p }; q = parentOf(q); } return null; };
+    const tries = [a.path, ...[...(a.spots || [])].reverse(), a.busy ? a.prev : null].filter(Boolean);
+    let near = null;
+    for (const p of tries) { const r = within(p); if (r && r.exact) return r.id; if (r && !near) near = r; }
+    return near ? near.id : rootId;
+  }
+  /** Each agent's cursor, keyed, so it glides (CSS) from where it was to where it is. place(id) → {x, y, cx, cy}. */
+  function cursors(ags, place) {
     const box = el.querySelector(".dg-curs");
     if (!box) return;
     const seen = new Set(), stack = new Map();
     M.lead = null;
     for (const a of ags) {
-      const n = nodeAt(a);
-      if (!n) continue;
-      const i = stack.get(n.id) || 0; stack.set(n.id, i + 1);
-      const x = n.x + PAD + NW - 26 + i * 16, y = n.y + PAD + NH - 12 + i * 20;
+      const p = a.nid != null ? place(a.nid) : null;
+      if (!p) continue;
+      const i = stack.get(a.nid) || 0; stack.set(a.nid, i + 1);
+      const x = p.x + i * 14, y = p.y + i * 22;
       seen.add(a.id);
       let c = M.curs.get(a.id);
-      const tag = `<b>${esc(a.title.length > 28 ? a.title.slice(0, 27) + "…" : a.title)}</b><span>${esc(verbOf(a))}</span>`;
+      const tag = `<b>${esc(a.title.length > 30 ? a.title.slice(0, 29) + "…" : a.title)}</b><span>${esc(verbOf(a))}</span>`;
       if (!c || !c.el.isConnected) {
         const d = document.createElement("div");
         d.className = "dg-cur is-new";
         d.dataset.k = a.id;
         d.innerHTML = `${ARROW}<button type="button" class="dg-tag" data-mp-go="${esc(a.go)}" title="${esc(a.coord ? "Open the conversation" : "Open the thread")}"></button>`;
+        d.style.transform = `translate(${x}px,${y}px)`;
         box.appendChild(d);
         c = { el: d, node: null, tag: "" };
         M.curs.set(a.id, c);
-        setTimeout(() => d.classList.remove("is-new"), 400);
+        requestAnimationFrame(() => d.classList.remove("is-new"));
       }
       c.el.style.setProperty("--c", a.color);
       c.el.classList.toggle("is-idle", !a.busy);
       c.el.classList.toggle("is-wait", a.waiting);
       c.el.style.transform = `translate(${x}px,${y}px)`;
       if (c.tag !== tag) { c.el.querySelector(".dg-tag").innerHTML = tag; c.tag = tag; }
-      if (c.node !== n.id) {
-        // it landed somewhere new: the box rings once in its colour
-        if (c.node != null) { const b = el.querySelector(`.dg-n[data-node="${CSS.escape(n.id)}"]`); if (b) { b.classList.remove("is-hit"); void b.offsetWidth; b.classList.add("is-hit"); } }
-        c.node = n.id;
+      if (c.node !== a.nid) {
+        // it landed somewhere new: the box answers once, in its colour
+        if (c.node != null) { const b = el.querySelector(`[data-node="${CSS.escape(a.nid)}"]`); if (b) { b.style.setProperty("--c", a.color); b.classList.remove("is-hit"); void b.offsetWidth; b.classList.add("is-hit"); } }
+        c.node = a.nid;
       }
-      if (!M.lead && a.busy) M.lead = { key: `${a.id}@${n.id}`, pt: { x: n.x + PAD + NW / 2, y: n.y + PAD + NH / 2 } };
+      if (!M.lead && a.busy) M.lead = { key: `${a.id}@${a.nid}`, pt: { x: p.cx, y: p.cy } };
     }
     for (const [k, c] of M.curs) if (!seen.has(k)) { c.el.classList.add("is-gone"); setTimeout(() => c.el.remove(), 320); M.curs.delete(k); }
+  }
+
+  // ── the graph: the same boxes as a living node graph that settles ───────────
+  const RAD = { root: 11, project: 8, dir: 6, file: 3.6, more: 3, note: 2.5 };
+  const LINK = { root: 0, project: 120, dir: 96, file: 50, more: 40, note: 30 };
+  function gnodeHtml(n, at) {
+    const here = at.get(n.id);
+    const cls = `gn k-${n.kind}${n.mark ? ` m-${n.mark}` : ""}${here ? " is-here" : ""}${n.open ? " is-open" : ""}`;
+    const clickable = M.refs.has(n.id);
+    const label = n.kind === "dir" ? `${n.name}, folder, ${n.open ? "open" : "folded"}` : n.title || n.name;
+    const inner = `<i class="gn-d" style="--r:${RAD[n.kind] || 4}px"></i><span class="gn-l">${esc(n.name)}</span>`;
+    return clickable ? `<button type="button" class="${cls}" data-node="${esc(n.id)}" aria-label="${esc(label)}" title="${esc(n.title || n.id || n.name)}"${here ? ` style="--c:${here}"` : ""}>${inner}</button>`
+      : `<div class="${cls}" data-node="${esc(n.id)}"${here ? ` style="--c:${here}"` : ""}>${inner}</div>`;
+  }
+  function paintGraph(scope, flat, ags, at) {
+    if (!M.gpos.has(scope.key)) M.gpos.set(scope.key, new Map());
+    const pos = M.gpos.get(scope.key);
+    const nodes = el.querySelector(".dg-nodes"), svg = el.querySelector(".dg-edges");
+    const html = flat.map((n) => gnodeHtml(n, at)).join("");
+    if (html !== M.layoutKey) {
+      const shape = flat.map((n) => `${n.id}<${n.parent}`).join("|");
+      const a = document.activeElement, fid = a && el.contains(a) ? a.dataset.node : null;
+      // new boxes start beside their parent, and the graph wakes up to make room
+      for (const n of flat) if (!pos.has(n.id)) {
+        const par = n.parent != null ? pos.get(n.parent) : null, ang = Math.random() * Math.PI * 2;
+        pos.set(n.id, { x: (par ? par.x : 0) + Math.cos(ang) * 24, y: (par ? par.y : 0) + Math.sin(ang) * 24, vx: 0, vy: 0 });
+      }
+      nodes.style.width = nodes.style.height = "0px";
+      nodes.innerHTML = html;
+      svg.setAttribute("width", "1"); svg.setAttribute("height", "1"); svg.removeAttribute("viewBox");
+      const byEl = new Map([...nodes.children].map((e) => [e.dataset.node, e]));
+      M.gnodes = flat.map((n) => ({ n, p: pos.get(n.id), par: n.parent != null ? pos.get(n.parent) : null, el: byEl.get(n.id) }));
+      svg.innerHTML = M.gnodes.filter((g) => g.par).map(() => "<line/>").join("");
+      M.gedges = [...svg.children];
+      M.layoutKey = html;
+      if (shape !== M.gkey) { M.gkey = shape; M.alpha = Math.max(M.alpha, 0.8); }
+      if (fid != null) nodes.querySelector(`[data-node="${CSS.escape(fid)}"]`)?.focus({ preventScroll: true });
+    }
+    M.gags = ags;
+    gdraw();
+    if (M.alpha > 0.02) gkick();
+  }
+  function gstep() {
+    const G = M.gnodes, a = M.alpha, n = G.length;
+    for (let i = 0; i < n; i++) {
+      const p = G[i].p;
+      for (let j = i + 1; j < n; j++) {
+        const q = G[j].p;
+        let dx = q.x - p.x, dy = q.y - p.y, d2 = dx * dx + dy * dy;
+        if (d2 > 160000) continue;
+        if (d2 < 1) { dx = Math.random() - 0.5; dy = Math.random() - 0.5; d2 = 1; }
+        const f = (2300 * a) / d2, d = Math.sqrt(d2);
+        p.vx -= (dx / d) * f; p.vy -= (dy / d) * f; q.vx += (dx / d) * f; q.vy += (dy / d) * f;
+      }
+    }
+    for (const g of G) {
+      if (!g.par) continue;
+      const dx = g.p.x - g.par.x, dy = g.p.y - g.par.y, d = Math.hypot(dx, dy) || 1;
+      const k = ((d - (LINK[g.n.kind] || 40)) / d) * 0.25 * a;
+      g.p.vx -= dx * k; g.p.vy -= dy * k; g.par.vx += dx * k * 0.3; g.par.vy += dy * k * 0.3;
+    }
+    for (const g of G) {
+      const p = g.p;
+      if (g.n.kind === "root") { p.x = 0; p.y = 0; p.vx = p.vy = 0; continue; }
+      p.vx -= p.x * 0.004 * a; p.vy -= p.y * 0.004 * a;
+      p.vx = clamp(p.vx * 0.58, -24, 24); p.vy = clamp(p.vy * 0.58, -24, 24);
+      p.x += p.vx; p.y += p.vy;
+    }
+  }
+  function gdraw() {
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const g of M.gnodes) {
+      const { x, y } = g.p;
+      if (g.el) g.el.style.transform = `translate(${x}px,${y}px)`;
+      if (x < x0) x0 = x; if (y < y0) y0 = y; if (x > x1) x1 = x; if (y > y1) y1 = y;
+    }
+    let i = 0;
+    for (const g of M.gnodes) {
+      if (!g.par) continue;
+      const e = M.gedges[i++];
+      if (!e) continue;
+      e.setAttribute("x1", g.par.x); e.setAttribute("y1", g.par.y); e.setAttribute("x2", g.p.x); e.setAttribute("y2", g.p.y);
+      const lit = M.glit.get(g.n.id);
+      e.setAttribute("class", lit ? "is-lit" : g.n.kind === "file" ? "k-file" : "");
+      e.style.stroke = lit || "";
+    }
+    if (M.gnodes.length) M.bounds = { x0: x0 - 40, y0: y0 - 34, x1: x1 + 60 + TAG * 0.6, y1: y1 + 40 };
+    const at = new Map(M.gnodes.map((g) => [g.n.id, g]));
+    cursors(M.gags, (id) => { const g = at.get(id); if (!g) return null; const r = RAD[g.n.kind] || 4; return { x: g.p.x + r * 0.55, y: g.p.y + r * 0.55, cx: g.p.x, cy: g.p.y }; });
+  }
+  function gkick() {
+    if (M.raf) return;
+    const loop = () => {
+      M.raf = 0;
+      if (!M.open || M.mode !== "graph" || viewer.isOpen || !M.gnodes.length) return;
+      gstep(); gstep();
+      M.alpha *= 0.975;
+      gdraw();
+      const c = M.scope && camOf(M.scope);
+      if (c) frame(c, false);
+      if (M.alpha > 0.02) M.raf = requestAnimationFrame(loop);
+    };
+    M.raf = requestAnimationFrame(loop);
   }
 
   // ── the panel ────────────────────────────────────────────────────────────────
@@ -517,7 +698,7 @@ export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
     if (!M.open || viewer.isOpen) return; // under the viewer nothing moves, so focus comes back to the box it left
     const scope = scopeOf(M.view);
     M.scope = scope;
-    if (el.dataset.scope !== scope.key || !view()) skeleton(scope);
+    if (el.dataset.scope !== scope.key + "|" + M.mode || !view()) skeleton(scope);
     // who, and where
     let ags, tree, marks = new Map();
     M.refs = new Map();
@@ -526,7 +707,7 @@ export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
       marks = ags[0].act.files;
     } else ags = agentsIn(scope.kind === "project" ? scope.pid : null);
     if (scope.kind === "all") tree = projectsTree(ags);
-    else if (scope.fold) tree = folderTree(scope, scope.fold, marks, new Set(ags.filter((a) => a.path && (scope.kind === "thread" || a.fold)).map((a) => a.path)));
+    else if (scope.fold) tree = folderTree(scope, scope.fold, marks, new Set(ags.filter((a) => scope.kind === "thread" || a.fold).flatMap((a) => [a.path, ...(a.spots || []), a.busy ? a.prev : null]).filter(Boolean)));
     else tree = { id: "", kind: "root", name: scope.t.title, sub: "its folder isn't one XO can show", children: [] };
     // head
     const h = headHtml(scope, ags);
@@ -537,39 +718,47 @@ export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
       for (const x of hd.querySelectorAll(".elapsed[data-since]")) x.textContent = elapsed(Math.max(0, Math.floor((Date.now() - +x.dataset.since) / 1000)));
       if (fid) hd.querySelector(`[data-mp-focus="${CSS.escape(fid)}"]`)?.focus({ preventScroll: true });
     }
-    // the drawing
-    const L = layoutOf(tree);
-    M.layout = L;
-    const byId = new Map(L.nodes.map((n) => [n.id, n]));
-    const nodeAt = (a) => {
-      if (scope.kind === "all") return byId.get(a.node) || null;
-      let p = a.path;
-      if (!p) return byId.get(tree.id);
-      while (p) { if (byId.has(p)) return byId.get(p); p = parentOf(p); }
-      return byId.get(tree.id);
-    };
-    const at = new Map();
-    for (const a of ags) { const n = nodeAt(a); if (n && a.busy && !at.has(n.id)) at.set(n.id, a.color); }
-    const nodesHtml = L.nodes.map((n) => boxHtml(n, at)).join("");
-    const key = `${L.w}x${L.h}|${nodesHtml}`;
-    if (key !== M.layoutKey) {
-      const a = document.activeElement, fid = a && el.contains(a) ? a.dataset.node : null;
-      const W = L.w + PAD * 2, H = L.h + PAD * 2;
-      const svg = el.querySelector(".dg-edges");
-      svg.setAttribute("width", W); svg.setAttribute("height", H); svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-      svg.innerHTML = `<g transform="translate(${PAD} ${PAD})">${L.edges.map((e) => `<path d="${edgePath(e.from, e.to)}"${at.has(e.to.id) || (e.to.kind === "dir" && e.to.dot === "hot") ? ` class="is-hot"` : ""}/><circle cx="${e.to.x}" cy="${e.to.y + NH / 2}" r="2.5"/>`).join("")}</g>`;
-      const nodes = el.querySelector(".dg-nodes");
-      nodes.style.width = W + "px"; nodes.style.height = H + "px";
-      nodes.innerHTML = nodesHtml;
-      M.layoutKey = key;
-      if (fid != null) nodes.querySelector(`[data-node="${CSS.escape(fid)}"]`)?.focus({ preventScroll: true });
+    // the drawing: every box, its parent, and where each agent is
+    const flat = [];
+    const walk = (n, parent) => { flat.push({ ...n, parent }); for (const c of n.children || []) walk(c, n.id); };
+    walk(tree, null);
+    const ids = new Set(flat.map((n) => n.id)), parentById = new Map(flat.map((n) => [n.id, n.parent]));
+    for (const a of ags) a.nid = spotOf(a, ids, tree.id);
+    const at = new Map(), lit = new Map();
+    for (const a of ags) {
+      if (!a.busy || a.nid == null) continue;
+      if (!at.has(a.nid)) at.set(a.nid, a.color);
+      // the way down to it, lit in its colour
+      for (let id = a.nid; id != null && parentById.get(id) != null; id = parentById.get(id)) if (!lit.has(id)) lit.set(id, a.color);
+    }
+    M.glit = lit;
+    if (M.mode === "graph") paintGraph(scope, flat, ags, at);
+    else {
+      const L = layoutOf(tree);
+      M.layout = L;
+      M.bounds = { x0: 0, y0: 0, x1: L.w + PAD * 2 + TAG, y1: L.h + PAD * 2 };
+      const byId = new Map(L.nodes.map((n) => [n.id, n]));
+      const nodesHtml = L.nodes.map((n) => boxHtml(n, at)).join("");
+      const key = `${L.w}x${L.h}|${nodesHtml}|${[...lit].join()}`;
+      if (key !== M.layoutKey) {
+        const a = document.activeElement, fid = a && el.contains(a) ? a.dataset.node : null;
+        const W = L.w + PAD * 2, H = L.h + PAD * 2;
+        const svg = el.querySelector(".dg-edges");
+        svg.setAttribute("width", W); svg.setAttribute("height", H); svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+        svg.innerHTML = `<g transform="translate(${PAD} ${PAD})">${L.edges.map((e) => { const c = lit.get(e.to.id); return `<path d="${edgePath(e.from, e.to)}"${c ? ` class="is-lit" style="stroke:${c}"` : ""}/>`; }).join("")}</g>`;
+        const nodes = el.querySelector(".dg-nodes");
+        nodes.style.width = W + "px"; nodes.style.height = H + "px";
+        nodes.innerHTML = nodesHtml;
+        M.layoutKey = key;
+        if (fid != null) nodes.querySelector(`[data-node="${CSS.escape(fid)}"]`)?.focus({ preventScroll: true });
+      }
+      cursors(ags, (id) => { const n = byId.get(id); return n ? { x: n.x + PAD + NW - 30, y: n.y + PAD + NH / 2 + 2, cx: n.x + PAD + NW / 2, cy: n.y + PAD + NH / 2 } : null; });
     }
     // what the marks mean, when there are some
     const kd = el.querySelector("[data-dg-key]");
     const kinds = new Set([...marks.values()].map((m) => m.mark).filter((m) => m !== "read"));
     const kh = kinds.size ? ["new", "edited", "deleted"].filter((k) => kinds.has(k)).map((k) => `<span class="m-${k}"><i></i>${k}</span>`).join("") : "";
     if (kd && kd._h !== kh) { kd.innerHTML = kh; kd._h = kh; kd.hidden = !kh; }
-    cursors(ags, nodeAt);
     frame(camOf(scope), true);
   }
 
@@ -651,9 +840,9 @@ export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
     if (r.toggle != null || r.more != null) {
       // unfold in place: the box you clicked stays under your pointer, at the same size
       const id = nb.dataset.node, c = camOf(M.scope);
-      const was = M.layout && M.layout.nodes.find((n) => n.id === id);
+      const was = M.mode === "tree" && M.layout && M.layout.nodes.find((n) => n.id === id);
       const p0 = was ? { x: was.x, y: was.y } : null;
-      c.user = true; c.follow = false;
+      if (M.mode === "tree") { c.user = true; c.follow = false; }
       if (r.more != null) setOf(M.more, key).add(r.more);
       else {
         const opened = setOf(M.opened, key), closed = setOf(M.closed, key);
@@ -662,7 +851,7 @@ export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
       paint();
       const now = M.layout && M.layout.nodes.find((n) => n.id === (r.more != null ? id : id));
       const anchor = now || (r.more != null && M.layout && M.layout.nodes.find((n) => parentOf(n.id) === r.more));
-      if (p0 && anchor) { c.x -= (anchor.x - p0.x) * c.s; c.y -= (anchor.y - p0.y) * c.s; applyCam(c, false); }
+      if (p0 && anchor && M.mode === "tree") { c.x -= (anchor.x - p0.x) * c.s; c.y -= (anchor.y - p0.y) * c.s; applyCam(c, false); }
     }
     else if (r.retry != null) load(r.fold, r.retry, { again: true });
     else if (r.go) go(r.go);
