@@ -33,7 +33,7 @@ import { uploadAttachment, attachmentUrl } from "./api.js";
 import { createShells } from "./shells/dock.js";
 import { createRecord } from "./recordview.js";
 import { wireGestures } from "./gestures.js";
-import { rtName, manyRuntimes, findRt, healthOf, canMove } from "./runtimes.js";
+import { rtName, manyRuntimes, findRt, healthOf, canMove, clockWords, untilWords } from "./runtimes.js";
 import { createMove } from "./move.js";
 
 const world = createWorld();
@@ -182,12 +182,22 @@ REC.panel = STAGE;
 /** The runtime a thread runs on, fixed for its life (its session's agent). */
 const agentOf = (t) => (t && ((t.session && t.session.agent) || (t.sessionId && world.state.sessions[t.sessionId]?.agent))) || null;
 const RT_EFFORT = { low: "Quick", medium: "Balanced", high: "Deep", xhigh: "Deeper", max: "Deepest" };
+/** When the limit that holds a thread opens (ISO), or null: a limit item names it, or it queues on a closed pool. */
+function waitingOn(t, rt) {
+  const lim = (t.limits || [])[0];
+  if (lim && lim.limit && lim.limit.resetsAt) return lim.limit.resetsAt;
+  const pool = rt && rt.health && rt.health.pool && world.state.pools[rt.health.pool];
+  return t.sessionState === "queued" && pool && pool.state === "closed" && pool.resets_at ? pool.resets_at : null;
+}
 /** F1: which runtime a thread runs on, said only when there is more than one runtime to tell apart. */
 function rtTag(t, cls) {
   const rts = world.state.runtimes;
   const agent = agentOf(t);
   if (!agent || !manyRuntimes(rts)) return "";
   const rt = findRt(rts, agent), h = healthOf(rt), se = t.session || {};
+  // F5: a thread held by its runtime's closed limit says until when, in the header
+  const wait = cls !== "ar" && waitingOn(t, rt);
+  if (wait) return `<button type="button" class="tw-rt is-warn" data-set-open="runtimes" title="${esc(`${rtName(agent)} reached its usage limit. This thread waits until ${clockWords(wait)}${untilWords(wait) ? `, ${untilWords(wait)}` : ""}.`)}">Waiting for ${esc(rtName(agent))} until ${esc(clockWords(wait))}</button>`;
   const ver = rt && rt.health && rt.health.cli_version;
   const tip = [`Runs on ${rtName(agent)}${ver ? ` ${ver}` : ""}`, se.model || "its default model", se.effort ? RT_EFFORT[se.effort] || se.effort : ""].filter(Boolean).join(" · ") +
     `. ${h.key === "usable" ? `${rtName(agent)} is usable.` : `${h.word}.${h.why ? ` ${h.why}` : ""}`}`;
@@ -225,6 +235,8 @@ world.onEvent((e) => {
   if (e.kind === "ask" && t && !waitSince.has(t.id)) waitSince.set(t.id, Date.now());
   if (e.kind === "resumed" && t) waitSince.delete(t.id);
   if (!pid || pid === "workspace") return;
+  // F5: threads moved off a closed limit arrive one by one; each says where it went
+  if (e.kind === "moved" && t && !MOVE.mine(t.id)) { heraldShow({ kind: "done", text: `${t.title} continues on ${rtName(e.agent)}`, sub: PROJ(pid), open: e.to ? "t:" + e.to : "t:" + t.id }, 5200); return; }
   if (e.kind === "done" && t) heraldShow({ kind: "done", text: `${t.title} finished`, sub: PROJ(pid), open: "t:" + t.id }, 5200);
   else if (e.kind === "state" && t && t.state === "failed") heraldShow({ kind: "stopped", text: `${t.title} stopped`, sub: PROJ(pid), open: "t:" + t.id }, 5200);
 });
@@ -543,6 +555,8 @@ function messagesOf(conv) {
     for (const d of D.decisions().filter((d) => d.project === pid)) out.push({ key: `dec:${d.id}`, at: d.at, who: "event", text: `You ${d.verb.toLowerCase()} · ${d.said || d.label}`, tone: d.choice === "deny" ? "back" : "ok" });
     for (const d of D.notSent().filter((d) => d.project === pid)) out.push({ key: `dec:${d.id}`, at: d.at, who: "event", text: `Not sent · ${d.said || d.label} · ${d.why}`, tone: "sys" });
   }
+  // a usage limit this thread waits on (F5): the same card as in Needs you, small, at the end
+  if (t) for (const it of t.limits || []) out.push({ key: `lim:${it.id}`, at: Date.now(), who: "limit", item: it });
   // a move the thread row knows but whose note isn't in what we hold: its banner anyway (F4)
   if (t && t.movedFrom && !rows.some((m) => m.continuedFrom)) out.push({ key: `mvfrom:${t.id}`, at: t.createdAt - 1, who: "system", text: "", continuedFrom: t.movedFrom.from });
   if (t && t.movedTo && t.movedTo.to && !rows.some((m) => m.continuedIn)) out.push({ key: `mvto:${t.id}`, at: Date.parse(t.movedTo.at) || t.lastAt, who: "system", text: "", continuedIn: t.movedTo.to });
@@ -725,6 +739,11 @@ function msgItems(conv, needs) {
       // XO's line: this project's work went on to another project, through the Workspace (always shown)
       const p = m.passedOn;
       html = `<div class="ev ev-sys ev-pass"><span class="ev-ic">${ICON.arrow}</span><span class="ev-t">Passed to <button type="button" class="rt-go" data-go="p:${esc(p.project)}"${p.to ? ` data-go-msg="${esc(p.to)}"` : ""} title="Open ${esc(PROJ(p.project))}'s chat"><b>${esc(PROJ(p.project))}</b></button> through the Workspace</span><time>${clock(m.at)}</time></div>`;
+    } else if (m.who === "limit") {
+      const it = m.item, L = it.limit;
+      const opts = (it.options || []).map((o) => `<button type="button" class="${o.decision === "move" ? "btn btn-pri" : "btn"}" data-limit="${esc(it.id)}" data-limit-d="${esc(o.decision)}"${S.limitBusy === it.id ? " disabled" : ""}>${esc(o.label)}</button>`).join("");
+      html = `<div class="lim-ban" role="group" aria-labelledby="lim-h-${esc(it.id)}"><p class="lim-h" id="lim-h-${esc(it.id)}">${ICON.clock}<span>${esc(it.title)}${L.resetsAt && untilWords(L.resetsAt) ? ` <em>${esc(untilWords(L.resetsAt))}</em>` : ""}</span></p>` +
+        (it.why ? `<p class="lim-why">${esc(it.why)}</p>` : "") + (S.limitErr && S.limitErr.id === it.id ? `<p class="rt-ferr" role="alert">${esc(S.limitErr.text)}</p>` : "") + `<div class="lim-acts">${opts}</div></div>`;
     } else if (m.who === "system" && (m.continuedIn || m.continuedFrom)) {
       html = moveBannerHtml(m, convThread(conv));
     } else if (m.who === "asked") {
@@ -2112,6 +2131,8 @@ document.addEventListener("click", (e) => {
   const tm = t.closest("[data-tmenu]");
   if (tm) { S.tMenu = S.tMenu === tm.dataset.tmenu ? null : tm.dataset.tmenu; $("#top-who")._h = null; schedule(); if (S.tMenu) requestAnimationFrame(() => $(".tw-menu button")?.focus()); return; }
   const tf = t.closest("[data-tfield]");
+  const lb = t.closest("[data-limit]");
+  if (lb) { decideLimit(lb.dataset.limit, lb.dataset.limitD); return; }
   const tmv = t.closest("[data-tmove]");
   if (tmv) { const th = world.thread(tmv.dataset.tmove); S.tMenu = null; $("#top-who")._h = null; schedule(); if (th) MOVE.open(th, agentOf(th)); return; }
   const unf = t.closest("[data-unfreeze]");
@@ -2394,6 +2415,15 @@ let setReturn = null;
 const SETS = createSettings({ world, announce, PROJ, onChange: () => schedule() });
 const RTSET = createRuntimeSettings({ world, announce, PROJ });
 const MOVE = createMove({ world, announce, go: (v) => go(v, { focus: true }), ICON });
+/** F5: wait for the limit, or move every waiting thread, from the card on a thread (the same item as in Needs you). */
+async function decideLimit(id, decision) {
+  S.limitBusy = id; S.limitErr = null; schedule();
+  try {
+    await world.act.decideItem(id, { decision });
+    announce(decision === "move" ? "Moving the waiting threads. Each one says where it went." : "They wait for the limit to open.");
+  } catch (err) { S.limitErr = { id, text: err.gone ? "It was already decided, or the limit opened." : err.message }; }
+  S.limitBusy = null; schedule();
+}
 /** Pick a continued thread back up (F4): it un-freezes; sending a message in it does the same. */
 async function unfreeze(tid, btn) {
   const th = world.thread(tid);

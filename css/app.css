@@ -2643,3 +2643,20 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 @media (max-width:760px){ .mv-row{grid-template-columns:1fr} .mv-ban{flex-wrap:wrap} }
 .mv-ban .ev-t{white-space:normal;overflow:visible;text-overflow:clip}
 .mv-ban .ev-ic{background:none;border:0}
+
+/* ── a usage limit (mixed runtimes F5): on the card in Needs you, and at the end of each waiting thread ── */
+.lim{display:flex;flex-direction:column;gap:8px;margin:2px 0 4px}
+.lim-when{display:flex;align-items:center;gap:7px;font-size:var(--fs-base);color:var(--warn)}
+.lim-when svg{width:14px;height:14px}
+.lim-ts{display:flex;flex-direction:column;gap:3px;padding-left:20px;list-style:disc}
+.lim-ts li{font-size:var(--fs-base);line-height:1.45;color:var(--ink-2);text-align:left}
+.lim-ts li::marker{color:var(--ink-4)}
+.lim-ts .rt-go{display:inline;text-align:left;font:inherit;color:var(--ink)}
+.lim-ts .rt-go b{font-weight:550}
+.lim-stay{margin-left:8px;font-size:var(--fs-sm);color:var(--ink-4)}
+.lim-ban{display:flex;flex-direction:column;gap:8px;margin:8px 0;padding:14px 16px;border-radius:16px;background:color-mix(in srgb,var(--warn) 6%,var(--surface));border:1px solid color-mix(in srgb,var(--warn) 28%,var(--hair))}
+.lim-h{display:flex;align-items:flex-start;gap:9px;font:550 var(--fs-md)/1.4 var(--sans);color:var(--ink)}
+.lim-h svg{flex:none;width:15px;height:15px;margin-top:3px;color:var(--warn)}
+.lim-h em{font-style:normal;font-weight:450;color:var(--ink-3)}
+.lim-why{font-size:var(--fs-base);line-height:1.55;color:var(--ink-2);padding-left:24px}
+.lim-acts{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}

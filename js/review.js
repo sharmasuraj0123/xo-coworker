@@ -4,11 +4,11 @@
 // the card's places (the main answer, the "no", the rule choices) and builds the request body.
 
 /** The decisions that say "go ahead" vs the ones that say "not this" (UI-reference §2.4). */
-const YES = new Set(["allow", "approve", "done", "continue", "answer"]);
+const YES = new Set(["allow", "approve", "done", "continue", "answer", "move"]);
 const NO = new Set(["deny", "send_back", "cant", "wait"]);
 
 /** How the person's answer reads afterwards ("Allowed · npm test"). */
-export const VERB = { allow: "Allowed", deny: "Denied", answer: "Answered", approve: "Approved", send_back: "Sent back", done: "Done", cant: "Can't do it", continue: "Continued", wait: "Waiting" };
+export const VERB = { allow: "Allowed", deny: "Denied", answer: "Answered", approve: "Approved", send_back: "Sent back", done: "Done", cant: "Can't do it", continue: "Continued", wait: "Waiting", move: "Moving" };
 
 /**
  * Sort an item's options into the card's places.

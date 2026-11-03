@@ -130,3 +130,31 @@ export function errorField(err) {
   if (/allow/i.test(m) || err.code === "unknown_runtime") return "allowed";
   return "form";
 }
+
+// ── the usage-limit card (F5) ───────────────────────────────────────────────
+/** A usage item about a closed limit (one per pool), as opposed to the paid-usage item. */
+export const isLimitItem = (it) => !!(it && it.kind === "usage" && it.detail && it.detail.limit === "closed");
+const ISO = /\b\d{4}-\d\d-\d\dT\d\d:\d\d(?::\d\d(?:\.\d+)?)?(?:Z|[+-]\d\d:?\d\d)\b/g;
+/** The server's sentence in the owner's terms: its times in their clock, its runtimes by their names. */
+export function humanize(text, rts, now = Date.now()) {
+  let s = String(text || "").replace(ISO, (iso) => clockWords(iso, now) || iso);
+  for (const r of rts || []) if (r && r.name && NAME[r.name]) s = s.replace(new RegExp(`\\b${r.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "g"), NAME[r.name]);
+  return s;
+}
+/**
+ * A limit item, ready to show: its words humanized, and its move option kept only while at least one
+ * waiting thread's project allows the runtime it would move to (a restricted project never moves).
+ * policyFor(chatId) → that project's effective policy (or null when unknown: the server decides).
+ */
+export function limitItem(it, rts, policyFor, now = Date.now()) {
+  const d = it.detail || {};
+  const to = d.move_to || null;
+  const threads = (d.threads || []).map((x) => {
+    const p = policyFor ? policyFor(x.chat_id) : null;
+    const stays = !!(to && p && Array.isArray(p.allowed) && !p.allowed.includes(to));
+    return { ...x, stays };
+  });
+  const canMove = !!to && threads.some((x) => !x.stays);
+  const options = (it.options || []).filter((o) => o.decision !== "move" || canMove).map((o) => ({ ...o, label: humanize(o.label, rts, now) }));
+  return { ...it, title: humanize(it.title, rts, now), why: humanize(it.why, rts, now), options, limit: { resetsAt: d.resets_at || null, moveTo: to, threads, canMove } };
+}

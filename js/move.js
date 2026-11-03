@@ -15,6 +15,7 @@ const EFFORT_WORD = { low: "Quick", medium: "Balanced", high: "Deep", xhigh: "De
 
 export function createMove({ world, announce, go, ICON }) {
   const dlg = document.getElementById("move-dlg");
+  const mine = new Set(); // threads this tab moved: their own frames need no second word
   const M = { t: null, agent: null, model: "", effort: "", reason: "", busy: false, err: null, retry: false, models: {}, modelErr: {}, returnTo: null };
 
   const targets = () => moveTargets(M.t.agentName, world.act.policyFor(M.t.project), world.state.runtimes || []);
@@ -67,6 +68,7 @@ export function createMove({ world, announce, go, ICON }) {
     if (!M.agent || M.busy) return;
     M.busy = true; M.err = null; draw();
     const t = M.t;
+    mine.add(t.id);
     try {
       const r = await api.continueThread(t.chatId, t.id, { agent: M.agent, model: M.model || null, effort: M.effort || null, ...(M.reason.trim() ? { reason: M.reason.trim() } : {}) });
       const next = r && r.thread_id ? await world.act.fetchThread(t.chatId, r.thread_id).catch(() => null) : null;
@@ -110,5 +112,7 @@ export function createMove({ world, announce, go, ICON }) {
       dlg.querySelector('input[name="mv-rt"]:checked')?.focus();
     },
     get isOpen() { return dlg.open; },
+    /** Did this tab move that thread (so the stream's frame for it needs no herald)? */
+    mine: (id) => mine.has(id),
   };
 }

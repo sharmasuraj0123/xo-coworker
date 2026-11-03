@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import { stormAsks, uiMsg } from "../js/timeline.js";
 import { asksOf } from "../js/kit.js";
+import { humanize, limitItem, isLimitItem } from "../js/runtimes.js";
 import { rtName, manyRuntimes, healthOf, windowsOf, allowedOf, defaultOf, policyWords, moveTargets, canMove, policyErrors, errorField, untilWords, isInstalled } from "../js/runtimes.js";
 
 let passed = 0;
@@ -105,6 +106,21 @@ t("a message carries both ends of a move", () => {
   const m = uiMsg({ id: "a", author_kind: "system", author_id: "xo", text: "Continuing “X” on codex: limit", extra: { continued_from: "cmsg_old" } });
   assert.equal(m.continuedFrom, "cmsg_old");
   assert.equal(uiMsg({ id: "b", author_kind: "system", extra: { continued_in: "cmsg_new" } }).continuedIn, "cmsg_new");
+});
+
+t("a limit item in the owner's terms; its move hidden where no waiting thread may move", () => {
+  const now = Date.parse("2026-11-03T16:00:00Z");
+  assert.match(humanize("2 threads are waiting on claude_code until 2026-11-03T18:00:00Z: it reached its usage limit.", rts, now), /^2 threads are waiting on Claude Code until \d\d:\d\d: it reached/);
+  assert.equal(humanize("Continue them on codex", rts), "Continue them on Codex");
+  const it = { kind: "usage", title: "t", why: "w", detail: { limit: "closed", move_to: "codex", resets_at: "2026-11-03T18:00:00Z", threads: [{ chat_id: "c1", ts: "a" }, { chat_id: "c2", ts: "b" }] }, options: [{ id: "wait", decision: "wait", label: "Wait" }, { id: "move", decision: "move", label: "Continue them on codex" }] };
+  assert.equal(isLimitItem(it), true);
+  assert.equal(isLimitItem({ kind: "usage", detail: {} }), false); // the paid-usage item stays as it is
+  const only = (chat) => (chat === "c1" ? { allowed: ["claude_code"] } : null);
+  const some = limitItem(it, rts, only, now);
+  assert.deepEqual(some.limit.threads.map((x) => x.stays), [true, false]);
+  assert.deepEqual(some.options.map((o) => o.decision), ["wait", "move"]);
+  const none = limitItem(it, rts, () => ({ allowed: ["claude_code"] }), now);
+  assert.deepEqual(none.options.map((o) => o.decision), ["wait"]);
 });
 
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

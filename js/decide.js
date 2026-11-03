@@ -22,6 +22,7 @@ import { renderMarkdown, renderInline, excerptMarkdown } from "./markdown.js";
 import { highlight } from "./highlight.js";
 import { itemParts, itemBody, questionsOf, evidenceOf, itemEffort, isNo, VERB, holdWords as holdWordsOf } from "./review.js";
 import { clientId as newKey } from "./api.js";
+import { resetWords, rtName } from "./runtimes.js";
 
 export const riskLabel = (r) => ({ destructive: "Destructive", notable: "Notable", routine: "Routine", stopped: "Stopped" })[r] || "Notable";
 const BIG_CHECK = `<svg viewBox="0 0 52 52" aria-hidden="true"><circle class="sc" cx="26" cy="26" r="23"/><path class="sk" d="M15 27l7.5 7.5L38 19"/></svg>`;
@@ -502,6 +503,14 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
     return act;
   }
 
+  /** A usage limit (F5): when it opens again, and the threads waiting on it (a link each). */
+  function limitHtml(it) {
+    const L = it.limit;
+    const when = L.resetsAt ? resetWords(L.resetsAt) : "";
+    return `<div class="lim">${when ? `<p class="lim-when">${ICON.clock}<span>Opens again ${esc(when)}</span></p>` : ""}` +
+      `<ul class="lim-ts" aria-label="Waiting threads">${L.threads.map((x) => `<li><button type="button" class="rt-go" data-go="t:${esc(x.ts)}" title="Open “${esc(x.title || "the thread")}”"><b>${esc(x.title || "A thread")}</b></button>${x.stays ? `<span class="lim-stay">stays: its project doesn't allow ${esc(rtName(L.moveTo))}</span>` : ""}</li>`).join("")}</ul></div>`;
+  }
+
   /** surface: "panel" | "dock" */
   function cardHtml(n, surface = "panel") {
     const id = ++cardN;
@@ -562,7 +571,7 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
       (destructive ? `<span class="risk r-destructive">${ICON.lock}Destructive</span>` : stopped ? `<span class="risk r-stopped">Stopped</span>` : "") +
       (t.host ? `<button type="button" class="c-where" data-act="thread" title="Open where it was asked">${esc(t.title)}</button></div>` : `<button type="button" class="c-where" data-act="thread" title="${surface === "dock" ? "Open the thread" : `Open the thread beside this${K.hint("open")}`}">${esc(PROJ(t.project))}<span aria-hidden="true">›</span><b>${esc(t.title)}</b></button></div>`) +
       `<h3 class="c-h" id="card-h-${id}">${headline(n)}</h3>` +
-      (line ? `<p class="c-line" id="card-why-${id}">${esc(line)}</p>` : "") + facts + est + sug +
+      (line ? `<p class="c-line" id="card-why-${id}">${esc(line)}</p>` : "") + (storm && a.item.limit ? limitHtml(a.item) : "") + facts + est + sug +
       `<div class="dis${openEv ? " is-open" : ""}" data-dis="ev"><button type="button" class="dis-h" aria-expanded="${openEv}" aria-controls="dt-${id}" title="Details${K.hint("details")}">${ICON.chevron}<span>Details</span></button>` +
       `<div class="dis-b" id="dt-${id}"${openEv ? "" : " hidden"}><div class="dis-in">${storm ? itemDetailsHtml(n) : a.live ? waitingDetailsHtml(n) : detailsHtml(n, ev)}</div></div></div>` +
       `</div>` +

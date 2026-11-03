@@ -15,6 +15,7 @@ import { createTurns } from "./blocks.js";
 import { tasksOf } from "./model.js";
 import { uiMsg, mergeRows, addReaction, stormAsks, mapLimit, currentPools, threadState, mainRuntime } from "./timeline.js";
 import { hostOf } from "./review.js";
+import { isLimitItem, limitItem } from "./runtimes.js";
 
 const STATUS_MS = 30000;          // the engine's status (pools, review counts); frames carry the rest
 const STATUS_RETRY_MS = 8000;
@@ -92,6 +93,9 @@ export function stormSource(state, emit, event) {
     // frozen: paused because its work moved on. Picked back up, the link stays as history.
     return { movedTo: to, movedFrom: from, frozen: r.state === "paused" && !!to };
   }
+  const chatPolicyOf = (chat) => (chat && state.chatPolicy[chat] && state.chatPolicy[chat].effective) || (state.policy && state.policy.effective) || null;
+  /** The open usage-limit items a thread waits on (F5), ready to show. */
+  const limitsFor = (ts) => [...state.review.values()].filter((it) => it.state === "open" && isLimitItem(it) && (it.detail.threads || []).some((x) => x.ts === ts)).map((it) => limitItem(it, state.runtimes, chatPolicyOf));
   function uiThread(r) {
     const project = projectOf(r.chat_id);
     const sstate = sessionStateOf(r);
@@ -115,7 +119,7 @@ export function stormSource(state, emit, event) {
       outputs: r.outputs || [], card,
       // a newer backend: one past-tense sentence of what it did, and its branch's git state (null until read)
       summary: r.summary || null, git: r.git || null,
-      ...moveOf(r),
+      ...moveOf(r), limits: limitsFor(r.ts),
     };
     t.asks = stormAsks(t, openItemsFor(r.ts));
     t.needsYou = t.asks.length ? t.asks[0].title : "";
@@ -152,7 +156,10 @@ export function stormSource(state, emit, event) {
       const host = hosts.get(h.id) || { id: h.id, host: true, project, chatId: h.chat, plainSession: h.session || null, title: h.title || (project === "workspace" ? "Workspace" : project),
         state: "needs_approval", checklist: { items: [], total: 0, done: 0, doing: 0 }, messages: [], asks: [], live: true, loaded: true, busy: false,
         createdAt: Date.parse(it.created_at) || Date.now(), lastAt: Date.parse(it.created_at) || Date.now(), card: {} };
-      host.asks.push(...stormAsks(host, [it]));
+      // a usage limit (F5): its words in the owner's terms, and no move a project's policy forbids
+      const shown = isLimitItem(it) ? limitItem(it, state.runtimes, chatPolicyOf) : it;
+      if (shown !== it) host.title = "Usage limit";
+      host.asks.push(...stormAsks(host, [shown]));
       hosts.set(h.id, host);
     }
     state.hosts = [...hosts.values()];
@@ -461,7 +468,7 @@ export function stormSource(state, emit, event) {
       case "thread.continued": {
         // the old thread froze and a linked new thread starts from its work (F4, F5)
         const old = d.from || env.thread_ts;
-        if (old) { state.moves[old] = { ...d, at: env.ts }; event({ kind: "moved", thread: old, to: d.to, agent: d.agent }); }
+        if (old) { state.moves[old] = { ...d, at: env.ts }; event({ kind: "moved", thread: old, project: projectOf(env.chat_id), to: d.to, agent: d.agent, by: d.by || null }); }
         if (env.chat_id && old) refetchThread(env.chat_id, old);
         if (env.chat_id && d.to && !rawThreads.has(d.to)) refetchThread(env.chat_id, d.to);
         soon();
