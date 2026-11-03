@@ -174,12 +174,18 @@ button:disabled{cursor:default}
 .nv-dot{width:6px;height:6px;border-radius:1.5px;background:var(--warn);transform:rotate(45deg)}
 
 .side-label{display:flex;align-items:center;justify-content:space-between;min-height:28px;margin:20px 12px 6px 16px;font:500 var(--fs-sm)/1 var(--sans);color:var(--ink-4)}
-/* Create XO Project: a "+" on the Projects label, quiet until you reach for it, green on hover */
-.side-plus{flex:none;display:grid;place-items:center;width:28px;height:28px;margin-right:-2px;border-radius:9px;border:1px solid var(--g26);background:var(--g1A);color:var(--ink-3);transition:background var(--dur-fast),color var(--dur-fast),border-color var(--dur-fast),transform 90ms var(--press)}
-.side-plus svg{width:14px;height:14px}
-.side-plus:hover,.side-plus:focus-visible{background:var(--accent-fill);border-color:transparent;color:var(--accent-ink)}
-:root[data-theme="light"] .side-plus:hover,:root[data-theme="light"] .side-plus:focus-visible{color:#141414}
-.side-plus:active{transform:scale(.92)}
+/* Create XO Project: a "+" on the Projects label. It belongs to the label, not to the rows: a bare glyph
+   in the label's own ink and weight, its centre over the rows' count column, quiet until you reach for
+   the sidebar. Its 28px target is invisible; a soft 24px tile shows only under the pointer or focus. */
+.side-plus{position:relative;flex:none;display:grid;place-items:center;width:28px;height:28px;margin-right:-2px;border-radius:8px;color:var(--ink-4);transition:color var(--dur-fast),transform 120ms var(--press)}
+.side-plus::before{content:"";position:absolute;inset:2px;border-radius:7px;background:var(--g22);box-shadow:var(--hairline);opacity:0;transform:scale(.86);transition:opacity var(--dur-fast),transform .18s var(--glide)}
+.side-plus svg{position:relative;width:13px;height:13px;stroke-width:2.1}
+.side:hover .side-plus{color:var(--ink-3)}
+.side-plus:hover,.side-plus:focus-visible{color:var(--ink)}
+.side-plus:hover::before,.side-plus:focus-visible::before{opacity:1;transform:none}
+.side-plus:focus-visible{outline-offset:0}
+.side-plus:active{transform:scale(.9)}
+:root[data-theme="light"] .side-plus::before{background:var(--g24)}
 .projects{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:6px;padding:2px 12px 14px;scrollbar-width:thin;scrollbar-color:var(--g2A) transparent}
 .pr-ic svg{width:15px;height:15px}
 .prow.is-on .pr-ic{color:var(--ink);background:var(--g26)}
