@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 
 // js/ui.js reads the reduced-motion setting when it loads
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
-const { folderOf, placeOf, activityOf, treeOf } = await import("../js/map.js");
+const { folderOf, placeOf, activityOf, layoutOf, edgePath, colorOf } = await import("../js/map.js");
 const { createTurns } = await import("../js/blocks.js");
 
 let passed = 0;
@@ -72,12 +72,28 @@ t("no session, no store: nothing, and no error", () => {
   assert.equal(a.now, null);
 });
 
-t("the tree folds a folder that holds only one folder", () => {
-  const tree = treeOf([{ path: "js/shells/dock.js" }, { path: "js/shells/term.js" }, { path: "index.html" }, { path: "a/b/c/d.md" }]);
-  assert.deepEqual([...tree.dirs.values()].map((d) => d.name).sort(), ["a/b/c", "js/shells"]);
-  assert.deepEqual(tree.files.map((f) => f.name), ["index.html"]);
-  const js = [...tree.dirs.values()].find((d) => d.name === "js/shells");
-  assert.deepEqual(js.files.map((f) => f.name), ["dock.js", "term.js"]);
+t("the diagram: a column per level, a row per leaf, a parent centred on its children", () => {
+  const tree = { id: "", children: [{ id: "a", children: [{ id: "a/1" }, { id: "a/2" }, { id: "a/3" }] }, { id: "b" }] };
+  const L = layoutOf(tree, { col: 100, row: 40, nw: 80, nh: 30 });
+  const at = Object.fromEntries(L.nodes.map((n) => [n.id, [n.x, n.y]]));
+  assert.deepEqual(at["a/1"], [200, 0]);
+  assert.deepEqual(at["a/3"], [200, 80]);
+  assert.deepEqual(at.a, [100, 40]);
+  assert.deepEqual(at.b, [100, 120]);
+  assert.deepEqual(at[""], [0, 80]);
+  assert.equal(L.edges.length, 5);
+  assert.equal(L.w, 280);
+  assert.equal(L.h, 150);
+});
+
+t("a connector runs straight when level, and turns with rounded corners otherwise", () => {
+  assert.equal(edgePath({ x: 0, y: 0 }, { x: 100, y: 0 }, { nw: 50, nh: 20 }), "M50 10H100");
+  assert.match(edgePath({ x: 0, y: 0 }, { x: 100, y: 60 }, { nw: 50, nh: 20 }), /^M50 10H\d+Q.*V.*Q.*H100$/);
+});
+
+t("an agent keeps its colour", () => {
+  assert.equal(colorOf("cmsg_1"), colorOf("cmsg_1"));
+  assert.match(colorOf("x"), /^#[0-9A-F]{6}$/i);
 });
 
 console.log(`${passed} passed${process.exitCode ? ", with failures" : ""}`);

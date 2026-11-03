@@ -1,14 +1,15 @@
-// The Map: where your agents are working, beside the conversation. One button (top right of every
-// conversation, ⌘\) opens it; it follows the view you're on and zooms with you:
-//   · a thread: what its agent is doing right now, and its folder (its own worktree) as a tree. The file
-//     being read or edited glows and the tree follows it. "Touched" shows only what its recent turns
-//     created, edited or read; "All files" is the whole folder, read a level at a time.
-//   · a project: the agents working in it now, and the project's folder with a dot wherever one is.
-//   · Home, the Workspace, Chats: every agent working right now, by project.
-// The Map and the file viewer are one right-hand panel with two modes, Live and File: a file opened
-// from the tree (or anywhere) shows as File, with a Live · File switch on top; Live parks the file and
-// File brings it back as it was; closing the file returns to Live. The Needs you panel takes the right
-// side while it is open and gives it back after. On a phone it is a full sheet.
+// The Map: where your agents are working, drawn. One button (top right of every conversation, ⌘\)
+// opens it beside the conversation; it follows the view you're on:
+//   · a thread: its folder (its own worktree) drawn as a diagram, boxes and connectors, and its agent as
+//     a cursor that glides from file to file as it reads and edits. What it made or changed is marked.
+//   · a project: the project's folder, with every agent working in it as its own coloured cursor.
+//   · Home, the Workspace, Chats: your projects, with the agents at work in them.
+// Drag (or scroll) to pan, ⌘/Ctrl-scroll or pinch to zoom; Fit, Follow, and a full-size mode. A box
+// opens what it is: a folder unfolds, a file opens in the viewer, a project or an agent's name goes there.
+// The Map and the file viewer are one right-hand panel with two modes, Live and File: a file opened shows
+// as File, with a Live · File switch on top; Live parks the file and File brings it back as it was. The
+// Needs you panel takes the right side while it is open and gives it back after. On a phone it is a full
+// sheet.
 //
 // What it reads: the turns the stream already brings (storm's activity rows: kind, target, status),
 // and GET /api/xo-projects/<project>/tree (one level per call; it serves a thread's worktree under
@@ -23,15 +24,30 @@ import { isImagePath } from "./util.js";
 const KEY = "cv-map";
 const FILE_KINDS = new Set(["create_file", "edit_file", "delete_file", "read"]);
 const VERB_NOW = { create_file: "Writing", edit_file: "Editing", delete_file: "Deleting", read: "Reading" };
-const CAP = 400; // rows a folder shows before "N more"
-const QUIET_MS = 6000; // after you scroll or click in the tree, it stops following for this long
 
-export const MAP_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M14.5 4.5v15M17 8.5h1M17 11.5h1M17 14.5h1"/></svg>';
+// the drawing
+const NW = 172, NH = 34, COL = 232, ROW = 46, PAD = 48, TAG = 250; // TAG: room for a cursor's name
+const FILE_CAP = 8, DIR_CAP = 14; // boxes a folder shows before "N more"
+const PALETTE = ["#4C8DFF", "#A472FF", "#FF6FAE", "#FF9F43", "#2EC4B6", "#E5C23A"];
+const COORD_COLOR = "#7ED957";
+
+export const MAP_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="7" height="5" rx="1.5"/><rect x="14" y="4" width="7" height="5" rx="1.5"/><rect x="14" y="15" width="7" height="5" rx="1.5"/><path d="M10 6.5h4M6.5 9v8.5H14"/></svg>';
 const DIR_OPEN = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 18V7a1.5 1.5 0 0 1 1.5-1.5h4l2 2h7A1.5 1.5 0 0 1 19.5 9v1.5"/><path d="M3.5 18l2.3-6.4a1.5 1.5 0 0 1 1.4-1h13.3l-2.4 7.4H3.5z"/></svg>';
+const ARROW = '<svg class="dg-arrow" viewBox="0 0 20 22" width="20" height="22" aria-hidden="true"><path d="M2 1.5v16.2l4.4-4.1 2.9 6.6 3-1.3-2.9-6.5h6.1z"/></svg>';
+const I = (d) => `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const TOOL = {
+  out: I('<path d="M6 12h12"/>'), in: I('<path d="M6 12h12M12 6v12"/>'),
+  fit: I('<path d="M4 9V5.5A1.5 1.5 0 0 1 5.5 4H9M15 4h3.5A1.5 1.5 0 0 1 20 5.5V9M20 15v3.5a1.5 1.5 0 0 1-1.5 1.5H15M9 20H5.5A1.5 1.5 0 0 1 4 18.5V15"/>'),
+  follow: I('<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>'),
+  full: I('<path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/>'), unfull: I('<path d="M4 14h6v6M20 10h-6V4M10 14l-7 7M14 10l7-7"/>'),
+};
 
 const base = (p) => String(p || "").replace(/\/+$/, "").split("/").pop();
 const parentOf = (p) => { const i = p.lastIndexOf("/"); return i < 0 ? "" : p.slice(0, i); };
-const ancestors = (p) => { const out = []; let d = parentOf(p); while (d) { out.unshift(d); d = parentOf(d); } return out; };
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+/** An agent's colour: the same agent keeps it, wherever it shows. */
+export function colorOf(id) { let h = 7; for (const c of String(id)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return PALETTE[h % PALETTE.length]; }
+
 
 /** A thread's folder: its absolute root and, inside the project, the relative base the tree route takes. */
 export function folderOf(t) {
@@ -101,29 +117,34 @@ export function activityOf(turns, session, root) {
   return out;
 }
 
-/** Paths → a nested tree; a folder with one folder and no files folds into it ("js/shells"). */
-export function treeOf(paths) {
-  const root = { name: "", path: "", dirs: new Map(), files: [] };
-  for (const f of paths) {
-    const segs = f.path.split("/");
-    let node = root;
-    for (let i = 0; i < segs.length - 1; i++) {
-      const p = segs.slice(0, i + 1).join("/");
-      if (!node.dirs.has(segs[i])) node.dirs.set(segs[i], { name: segs[i], path: p, dirs: new Map(), files: [] });
-      node = node.dirs.get(segs[i]);
-    }
-    node.files.push({ ...f, name: segs[segs.length - 1] });
-  }
-  const fold = (d) => {
-    for (const [k, c] of d.dirs) {
-      let x = c;
-      while (x.files.length === 0 && x.dirs.size === 1) { const only = [...x.dirs.values()][0]; x = { ...only, name: `${x.name}/${only.name}` }; }
-      d.dirs.set(k, x);
-      fold(x);
-    }
+
+/**
+ * A tree laid out left to right, like a hand-drawn diagram: each level a column, each leaf a row, a
+ * parent centred on its children. Pure. node: {id, children?} → {nodes (with x, y), edges, w, h}.
+ */
+export function layoutOf(root, { col = COL, row = ROW, nw = NW, nh = NH } = {}) {
+  const nodes = [], edges = [];
+  let y = 0;
+  const place = (n, depth, parent) => {
+    n.x = depth * col;
+    const kids = n.children || [];
+    if (!kids.length) { n.y = y; y += row; }
+    else { for (const c of kids) place(c, depth + 1, n); n.y = (kids[0].y + kids[kids.length - 1].y) / 2; }
+    nodes.push(n);
+    if (parent) edges.push({ from: parent, to: n });
   };
-  fold(root);
-  return root;
+  place(root, 0, null);
+  const w = Math.max(...nodes.map((n) => n.x)) + nw;
+  return { nodes, edges, w, h: Math.max(row, y) - row + nh };
+}
+
+/** A connector: out of the parent's right side, along a shared trunk, into the child, corners rounded. */
+export function edgePath(p, c, { nw = NW, nh = NH, r = 8 } = {}) {
+  const x1 = p.x + nw, y1 = p.y + nh / 2, x2 = c.x, y2 = c.y + nh / 2;
+  const xm = x1 + Math.min(28, (x2 - x1) / 2);
+  if (Math.abs(y2 - y1) < 1) return `M${x1} ${y1}H${x2}`;
+  const d = y2 > y1 ? 1 : -1, rr = Math.min(r, Math.abs(y2 - y1) / 2);
+  return `M${x1} ${y1}H${xm - rr}Q${xm} ${y1} ${xm} ${y1 + d * rr}V${y2 - d * rr}Q${xm} ${y2} ${xm + rr} ${y2}H${x2}`;
 }
 
 export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
@@ -131,29 +152,35 @@ export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
   let saved = false;
   try { saved = localStorage.getItem(KEY) === "1"; } catch { /* private mode */ }
   const M = {
-    open: saved, view: "home", mode: "touched", // thread scope: "touched" | "all"
-    dirs: new Map(),      // "<project>|<api rel>" → {state: "loading"|"ok"|"error", dirs, files, error}
-    expanded: new Map(),  // scope key → Set of local folder paths open in "All files"
-    followed: new Map(),  // scope key → the live path the tree last revealed
-    quietUntil: 0,
-    html: "",
+    open: saved, view: "home", full: false,
+    dirs: new Map(),     // "<project>|<api rel>" → {state: "loading"|"ok"|"error", dirs, files, error}
+    opened: new Map(),   // scope key → folders you unfolded
+    closed: new Map(),   // scope key → folders you folded (even with an agent inside)
+    more: new Map(),     // scope key → folders showing every box
+    cams: new Map(),     // scope key → {x, y, s, user, follow, target}
+    refs: new Map(),     // box id → what a click on it does
+    curs: new Map(),     // agent id → its cursor element and where it was
+    head: "", layoutKey: "", scope: null, layout: null, dragged: false,
   };
+  const setOf = (m, key) => { if (!m.has(key)) m.set(key, new Set()); return m.get(key); };
 
   // ── what's in scope ─────────────────────────────────────────────────────────
   function scopeOf(v) {
     if (v.startsWith("t:")) { const t = world.thread(v.slice(2)); if (t) return { kind: "thread", t, key: v, fold: folderOf(t) }; }
-    if (v.startsWith("p:")) return { kind: "project", pid: v.slice(2), key: v };
+    if (v.startsWith("p:")) return { kind: "project", pid: v.slice(2), key: v, fold: { project: v.slice(2), base: "" } };
     return { kind: "all", key: "all" };
   }
   const turns = () => world.state.turns || null;
 
-  /** One agent at work: a thread, or a project's coordinator. → {id, title, go, project, now, live file, waiting, since} */
+  /** One agent: a thread, or a project's coordinator. → {id, title, go, project, fold, act, now, path, live, waiting, since, color} */
   function agentOf(t) {
     const fold = folderOf(t);
     const a = activityOf(turns(), t.sessionId, fold && fold.root);
     const now = a.now && a.now.row;
     const liveFile = [...a.files.values()].find((f) => f.live) || null;
-    return { id: t.id, title: t.title, go: "t:" + t.id, project: t.project, fold, act: a, now, liveFile, waiting: !!(now && now.waiting), since: a.running ? Date.parse(a.running.at) : null };
+    const lastFile = [...a.files.values()].sort((x, y) => y.seq - x.seq)[0] || null;
+    const busy = isBusy(t);
+    return { id: t.id, title: t.title, go: "t:" + t.id, project: t.project, fold, act: a, now, liveFile, path: (liveFile || (!busy && lastFile) || null)?.path || null, busy, waiting: !!(now && now.waiting), since: a.running ? Date.parse(a.running.at) : null, color: colorOf(t.id) };
   }
   function coordinatorOf(pid) {
     const sid = world.act.coordinatorBusy && world.act.coordinatorBusy(pid);
@@ -162,17 +189,17 @@ export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
     const root = anyT ? folderOf(anyT).projectRoot : null;
     const a = activityOf(turns(), sid, root);
     const now = a.now && a.now.row;
-    return { id: "coord:" + pid, title: "Coordinator", go: pid === "workspace" ? "ws" : "p:" + pid, project: pid, fold: root ? { root, base: "", project: pid } : null, act: a, now, liveFile: [...a.files.values()].find((f) => f.live) || null, waiting: !!(now && now.waiting), since: a.running ? Date.parse(a.running.at) : null, coord: true };
+    const liveFile = [...a.files.values()].find((f) => f.live) || null;
+    return { id: "coord:" + pid, title: "Coordinator", go: pid === "workspace" ? "ws" : "p:" + pid, project: pid, fold: root ? { root, base: "", project: pid } : null, act: a, now, liveFile, path: liveFile ? liveFile.path : null, busy: true, waiting: !!(now && now.waiting), since: a.running ? Date.parse(a.running.at) : null, coord: true, color: COORD_COLOR };
   }
   function agentsIn(pid) {
-    const ts = world.state.threads.filter((t) => (!pid || t.project === pid) && isBusy(t));
-    const out = ts.map(agentOf);
+    const out = world.state.threads.filter((t) => (!pid || t.project === pid) && isBusy(t)).map(agentOf);
     const pids = pid ? [pid] : [...new Set(world.state.projects.map((p) => p.id))];
     for (const p of pids) { const c = coordinatorOf(p); if (c) out.unshift(c); }
     return out;
   }
 
-  // ── lines ──────────────────────────────────────────────────────────────────
+  // ── words ──────────────────────────────────────────────────────────────────
   /** What an agent is doing, in one line: its running step, else what its turn is on. */
   function doingLine(ag) {
     if (ag.now) return renderInline(ag.now.line || ag.now.tool || "Working", true);
@@ -181,173 +208,377 @@ export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
       const last = bl[bl.length - 1];
       return esc(last ? (last.type === "thinking" ? "Thinking" : last.type === "text" || last.type === "answer" ? "Writing its reply" : String(last.header || "Working").replace(/`/g, "")) : "Starting");
     }
-    return "Working";
+    return ag.busy ? "Working" : "Not working right now";
+  }
+  /** The cursor's short word: "editing", "reading", "running a command"… */
+  function verbOf(ag) {
+    if (ag.waiting) return "waiting for you";
+    if (!ag.busy) return "idle";
+    if (ag.liveFile) return (ag.liveFile.verb || "working").toLowerCase();
+    const k = ag.now && ag.now.kind;
+    return k === "command" ? "running a command" : k === "search" || k === "list" ? "looking around" : k === "web_search" || k === "web_fetch" ? "on the web" : k === "subagent" ? "with a sub-agent" : ag.act.running ? "thinking" : "working";
   }
   const since = (ms) => (Number.isFinite(ms) ? `<span class="elapsed" data-since="${ms}"></span>` : "");
 
-  // ── the tree, read a level at a time ─────────────────────────────────────────
+  // ── folders, read a level at a time ──────────────────────────────────────────
   const apiRel = (fold, local) => (fold.base ? (local ? `${fold.base}/${local}` : fold.base) : local);
   const dirKey = (fold, local) => `${fold.project}|${apiRel(fold, local)}`;
   async function load(fold, local, { again = false } = {}) {
     const k = dirKey(fold, local);
     const had = M.dirs.get(k);
     if (had && (had.state === "loading" || ((had.state === "ok" || had.state === "error") && !again))) return;
-    M.dirs.set(k, { ...(had || {}), state: had && had.state === "ok" ? "ok" : "loading", refreshing: true });
+    M.dirs.set(k, { ...(had || {}), state: had && had.state === "ok" ? "ok" : "loading" });
     try {
       const d = await api.projectTree(fold.project, apiRel(fold, local));
-      const strip = (e) => { let p = String(e.relative_path || e.name); if (fold.base && p.startsWith(fold.base + "/")) p = p.slice(fold.base.length + 1); return { name: e.name, path: p, size: e.size_bytes, entries: e.entries }; };
+      const strip = (e) => { let p = String(e.relative_path || e.name); if (fold.base && p.startsWith(fold.base + "/")) p = p.slice(fold.base.length + 1); return { name: e.name, path: p }; };
       M.dirs.set(k, { state: "ok", dirs: (d.dirs || []).map(strip), files: (d.files || []).map(strip) });
     } catch (err) {
-      M.dirs.set(k, { state: "error", error: err.status === 404 ? "This folder isn't there any more." : err.message || "Couldn't read this folder." });
+      M.dirs.set(k, { state: "error", error: err.status === 404 ? "Not there any more" : "Couldn't read it" });
     }
     paint();
   }
-  const expandedOf = (key) => { if (!M.expanded.has(key)) M.expanded.set(key, new Set()); return M.expanded.get(key); };
 
-  /** Open the folders down to `path` (and read them), so the row is on screen. */
-  function reveal(scope, fold, path) {
-    const ex = expandedOf(scope.key);
-    for (const d of ancestors(path)) { ex.add(d); load(fold, d); }
-  }
-
-  // ── rows ───────────────────────────────────────────────────────────────────
-  const MARK_WORD = { new: "new", edited: "edited", deleted: "deleted", read: "" };
-  function fileRow(f, depth, { presence = [], openable = true } = {}) {
-    const live = f.live || presence.length;
-    const mark = f.mark ? MARK_WORD[f.mark] : "";
-    const tail = f.live ? `<span class="mp-live${f.waiting ? " is-wait" : ""}">${esc(f.waiting ? "waiting" : (f.verb || "working").toLowerCase())}</span>`
-      : presence.length ? `<span class="mp-who" title="${esc(presence.map((a) => a.title).join(", "))}">${presence.length > 1 ? presence.length : ""}<i></i></span>`
-      : mark ? `<span class="mp-mk">${mark}</span>` : "";
-    const cls = `mp-r is-file${f.mark ? ` m-${f.mark}` : ""}${live ? " is-live" : ""}`;
-    const ic = isImagePath(f.path) ? ICON.image : ICON.doc;
-    const inner = `<span class="mp-ic">${ic}</span><span class="mp-n">${esc(f.name)}</span>${tail}`;
-    if (!openable || f.mark === "deleted") return `<li><div class="${cls}" style="--d:${depth}" title="${esc(f.path)}">${inner}</div></li>`;
-    return `<li><button type="button" class="${cls}" style="--d:${depth}" data-mp-file="${esc(f.path)}" data-fid="mpf:${esc(f.path)}" title="${esc(f.path)}">${inner}</button></li>`;
-  }
-
-  /** "Touched": only what this thread's turns created, edited or read; folders always open. */
-  function touchedHtml(files) {
-    const tree = treeOf([...files.values()]);
-    const walk = (d, depth) => {
-      let h = "";
-      for (const c of [...d.dirs.values()].sort((a, b) => a.name.localeCompare(b.name))) {
-        h += `<li><div class="mp-r is-dir is-open" style="--d:${depth}"><span class="mp-ic">${DIR_OPEN}</span><span class="mp-n">${esc(c.name)}</span></div></li>`;
-        h += walk(c, depth + 1);
+  // ── the diagram's boxes ─────────────────────────────────────────────────────
+  /** A folder as boxes: the folders and files it holds, those with agents (or changes) first. */
+  function folderTree(scope, fold, marks, hot) {
+    const opened = setOf(M.opened, scope.key), closed = setOf(M.closed, scope.key), more = setOf(M.more, scope.key);
+    const inside = (set, p) => { for (const h of set) if (h === p || h.startsWith(p + "/")) return true; return false; };
+    const marked = new Set(marks.keys());
+    // a thread's changes unfold their folders while there are few of them
+    const unfoldMarks = scope.kind === "thread" && marked.size <= 16;
+    const isOpen = (p) => opened.has(p) || (!closed.has(p) && (inside(hot, p) || (unfoldMarks && inside(marked, p))));
+    const kids = (local) => {
+      load(fold, local);
+      const d = M.dirs.get(dirKey(fold, local));
+      if (!d || (d.state === "loading" && !d.dirs)) return [{ id: local + "/…", kind: "note", name: "Reading…" }];
+      if (d.state === "error") { M.refs.set(local + "/!", { retry: local, fold }); return [{ id: local + "/!", kind: "note", name: `${d.error} · Try again`, btn: true }]; }
+      const all = more.has(local);
+      const rank = (p) => (inside(hot, p) ? 0 : inside(marked, p) ? 1 : 2);
+      const dirs = d.dirs.map((x, i) => ({ ...x, i })).sort((a, b) => rank(a.path) - rank(b.path) || a.i - b.i);
+      const files = d.files.map((x, i) => ({ ...x, i })).sort((a, b) => rank(a.path) - rank(b.path) || a.i - b.i);
+      const sd = all ? dirs : dirs.slice(0, DIR_CAP), sf = all ? files : files.slice(0, FILE_CAP);
+      const out = [];
+      for (const c of sd) {
+        const open = isOpen(c.path);
+        M.refs.set(c.path, { toggle: c.path, open });
+        out.push({ id: c.path, kind: "dir", name: c.name, open, dot: !open && (inside(hot, c.path) ? "hot" : inside(marked, c.path) ? "mark" : ""), children: open ? kids(c.path) : [] });
       }
-      for (const f of d.files.sort((a, b) => a.name.localeCompare(b.name))) h += fileRow(f, depth);
-      return h;
-    };
-    return `<ul class="mp-tree" role="list">${walk(tree, 0)}</ul>`;
-  }
-
-  /** "All files": the folder as it is on disk, with what agents did and where they are marked. */
-  function allHtml(scope, fold, marks, presence) {
-    const ex = expandedOf(scope.key);
-    const here = (local) => M.dirs.get(dirKey(fold, local));
-    const presIn = (dir) => { let n = 0; for (const [p, who] of presence) if (p.startsWith(dir + "/")) n += who.length; return n; };
-    const touchedIn = (dir) => { for (const p of marks.keys()) if (p.startsWith(dir + "/")) return true; return false; };
-    const walk = (local, depth) => {
-      const d = here(local);
-      if (!d || (d.state === "loading" && !d.dirs)) return `<li><p class="mp-note" style="--d:${depth}"><i class="spin" aria-hidden="true"></i>Reading…</p></li>`;
-      if (d.state === "error") return `<li><p class="mp-note is-err" style="--d:${depth}">${esc(d.error)} <button type="button" class="mp-link" data-mp-retry="${esc(local)}">Try again</button></p></li>`;
-      let h = "", shown = 0;
-      const total = d.dirs.length + d.files.length;
-      for (const c of d.dirs) {
-        if (shown++ >= CAP) break;
-        const open = ex.has(c.path);
-        const n = presIn(c.path);
-        const dot = !open && n ? `<span class="mp-who" title="${n} working in here">${n > 1 ? n : ""}<i></i></span>` : !open && touchedIn(c.path) ? `<span class="mp-mk is-dot" title="Changed in here"></span>` : "";
-        h += `<li><button type="button" class="mp-r is-dir${open ? " is-open" : ""}" style="--d:${depth}" data-mp-dir="${esc(c.path)}" data-fid="mpd:${esc(c.path)}" aria-expanded="${open}"><span class="mp-ch">${ICON.chevron}</span><span class="mp-ic">${open ? DIR_OPEN : ICON.folder}</span><span class="mp-n">${esc(c.name)}</span>${dot}</button></li>`;
-        if (open) h += walk(c.path, depth + 1);
-      }
-      for (const f of d.files) {
-        if (shown++ >= CAP) break;
+      for (const f of sf) {
         const m = marks.get(f.path);
-        h += fileRow({ ...f, ...(m || {}), name: f.name, path: f.path }, depth, { presence: presence.get(f.path) || [] });
+        if (!m || m.mark !== "deleted") M.refs.set(f.path, { open: { name: f.name, path: f.path, project: fold.project, rel: apiRel(fold, f.path) } });
+        out.push({ id: f.path, kind: "file", name: f.name, mark: m ? m.mark : "" });
       }
-      if (total > CAP) h += `<li><p class="mp-note" style="--d:${depth}">${total - CAP} more not shown</p></li>`;
-      if (!total) h += `<li><p class="mp-note" style="--d:${depth}">Empty</p></li>`;
-      return h;
+      // a deleted file isn't on disk any more, but the diagram still says it went
+      for (const [p, m] of marks) if (m.mark === "deleted" && parentOf(p) === local && !d.files.some((f) => f.path === p)) out.push({ id: p, kind: "file", name: base(p), mark: "deleted" });
+      const hidden = dirs.length - sd.length + files.length - sf.length;
+      if (hidden > 0) { M.refs.set(local + "/+", { more: local }); out.push({ id: local + "/+", kind: "more", name: `${hidden} more` }); }
+      if (!out.length) out.push({ id: local + "/∅", kind: "note", name: "Empty" });
+      return out;
     };
-    return `<ul class="mp-tree" role="list">${walk("", 0)}</ul>`;
+    const name = (world.project(fold.project) || {}).name || fold.project;
+    const sub = scope.kind === "thread" ? (fold.base ? `worktree${scope.t.branch ? ` · ${scope.t.branch}` : ""}` : "project folder") : "project";
+    return { id: "", kind: "root", name, sub, children: kids("") };
   }
 
-  function agentRow(ag, { showProject = false } = {}) {
-    const st = ag.waiting ? "wait" : "busy";
-    const file = ag.liveFile ? ` <span class="mp-af">${esc(base(ag.liveFile.path))}</span>` : "";
-    const where = showProject && ag.project ? `<span class="mp-ap">${esc((world.project(ag.project) || {}).name || ag.project)}</span>` : "";
-    return `<li><button type="button" class="mp-ag st-${st}" data-mp-go="${esc(ag.go)}" data-fid="mpa:${esc(ag.id)}" title="${esc(ag.coord ? "Open the conversation" : "Open the thread and follow it")}">` +
-      `<span class="mp-pulse" aria-hidden="true"></span><span class="mp-at"><b>${esc(ag.title)}</b>${where}</span>` +
-      `<span class="mp-ad">${ag.waiting ? "Waiting for you" : doingLine(ag)}</span>${since(ag.since)}</button></li>`;
+  /** Home and the Workspace: your projects, and the files their agents are on. */
+  function projectsTree(ags) {
+    const by = new Map();
+    for (const a of ags) { const k = a.project || "workspace"; if (!by.has(k)) by.set(k, []); by.get(k).push(a); }
+    const ps = world.state.projects.filter((p) => p.kind === "project" || by.has(p.id));
+    ps.sort((a, b) => (by.has(b.id) ? 1 : 0) - (by.has(a.id) ? 1 : 0));
+    const children = ps.map((p) => {
+      const id = "p:" + p.id;
+      M.refs.set(id, { go: p.id === "workspace" ? "ws" : id });
+      const files = new Map();
+      for (const a of by.get(p.id) || []) if (a.path && a.fold) {
+        const fid = `${id}|${a.fold.base}|${a.path}`;
+        if (!files.has(fid)) { files.set(fid, { id: fid, kind: "file", name: a.path.split("/").slice(-2).join("/"), title: a.path }); M.refs.set(fid, { open: { name: base(a.path), path: a.path, project: a.fold.project, rel: apiRel(a.fold, a.path) } }); }
+        a.node = fid;
+      }
+      for (const a of by.get(p.id) || []) if (!a.node) a.node = id;
+      return { id, kind: "project", name: p.id === "workspace" ? "Workspace" : p.name || p.id, children: [...files.values()] };
+    });
+    return { id: "@", kind: "root", name: "Your projects", sub: `${ps.length} project${ps.length === 1 ? "" : "s"}`, children };
+  }
+
+  function boxHtml(n, at) {
+    const here = at.get(n.id);
+    const cls = `dg-n k-${n.kind}${n.mark ? ` m-${n.mark}` : ""}${n.open ? " is-open" : ""}${here ? " is-here" : ""}`;
+    const ic = n.kind === "root" ? (M.scope.kind === "all" ? MAP_ICON : M.scope.kind === "thread" ? ICON.branch : ICON.project)
+      : n.kind === "project" ? ICON.project : n.kind === "dir" ? (n.open ? DIR_OPEN : ICON.folder)
+      : n.kind === "file" ? (isImagePath(n.id) ? ICON.image : ICON.doc) : n.kind === "more" ? ICON.plus : n.btn ? ICON.retry : `<i class="spin" aria-hidden="true"></i>`;
+    const tail = n.kind === "dir" ? (n.dot ? `<i class="dg-dot d-${n.dot}" aria-hidden="true"></i>` : "") + `<span class="dg-ch" aria-hidden="true">${ICON.chevron}</span>`
+      : n.mark && n.mark !== "read" ? `<span class="dg-mk">${n.mark}</span>` : "";
+    const style = `left:${n.x + PAD}px;top:${n.y + PAD}px${here ? `;--c:${here}` : ""}`;
+    const inner = `<span class="dg-ic">${ic}</span><span class="dg-t">${esc(n.name)}${n.sub ? `<small>${esc(n.sub)}</small>` : ""}</span>${tail}`;
+    const clickable = M.refs.has(n.id) || n.kind === "more";
+    const label = n.kind === "dir" ? `${n.name}, folder, ${n.open ? "open" : "folded"}` : n.kind === "file" ? `${n.title || n.name}${n.mark && n.mark !== "read" ? `, ${n.mark}` : ""}, open it` : n.name;
+    return clickable
+      ? `<button type="button" class="${cls}" style="${style}" data-node="${esc(n.id)}" aria-label="${esc(label)}" title="${esc(n.title || n.id || n.name)}"${n.kind === "dir" ? ` aria-expanded="${!!n.open}"` : ""}>${inner}</button>`
+      : `<div class="${cls}" style="${style}">${inner}</div>`;
+  }
+
+  // ── the canvas ─────────────────────────────────────────────────────────────
+  function skeleton(scope) {
+    el.innerHTML = `<div class="mp-head" data-mp-head></div>` +
+      `<div class="dg" data-dg tabindex="0" role="group" aria-label="The diagram: drag to move around, ⌘ or Ctrl and scroll to zoom">` +
+      `<div class="dg-world"><svg class="dg-edges" aria-hidden="true"></svg><div class="dg-nodes"></div><div class="dg-curs"></div></div>` +
+      `<div class="dg-tools" role="toolbar" aria-label="View">` +
+      `<button type="button" data-dg="out" title="Zoom out (−)" aria-label="Zoom out">${TOOL.out}</button><button type="button" data-dg="in" title="Zoom in (+)" aria-label="Zoom in">${TOOL.in}</button>` +
+      `<button type="button" data-dg="fit" title="Fit it all (0)" aria-label="Fit it all">${TOOL.fit}</button>` +
+      (scope.kind !== "all" ? `<button type="button" data-dg="follow" title="Follow the agent (F)" aria-label="Follow the agent" aria-pressed="false">${TOOL.follow}</button>` : "") + `</div>` +
+      `<div class="dg-key" data-dg-key></div></div>`;
+    M.head = ""; M.layoutKey = ""; M.curs = new Map();
+    el.dataset.scope = scope.key;
+    wire(el.querySelector("[data-dg]"));
+  }
+  const view = () => el.querySelector("[data-dg]");
+  const world$ = () => el.querySelector(".dg-world");
+
+  function camOf(scope) {
+    if (!M.cams.has(scope.key)) M.cams.set(scope.key, { x: 24, y: 24, s: 1, user: false, follow: scope.kind === "thread", target: null });
+    return M.cams.get(scope.key);
+  }
+  function applyCam(c, glide) {
+    const w = world$();
+    if (!w) return;
+    w.classList.toggle("is-glide", !!glide);
+    w.style.transform = `translate(${c.x}px,${c.y}px) scale(${c.s})`;
+    const f = el.querySelector('[data-dg="follow"]');
+    if (f) f.setAttribute("aria-pressed", String(!!c.follow));
+  }
+  function fit(c, glide) {
+    const v = view(), L = M.layout;
+    if (!v || !L || !v.clientWidth) return;
+    const W = L.w + PAD * 2 + TAG, H = L.h + PAD * 2;
+    c.s = clamp(Math.min(v.clientWidth / W, (v.clientHeight - 44) / H), 0.3, 1.1);
+    c.x = (v.clientWidth - W * c.s) / 2;
+    c.y = Math.max(0, (v.clientHeight - 44 - H * c.s) / 2);
+    applyCam(c, glide);
+  }
+  function centerOn(c, pt, glide, s) {
+    const v = view();
+    if (!v || !v.clientWidth) return;
+    if (s) c.s = s;
+    c.x = v.clientWidth / 2 - (pt.x + TAG / 2) * c.s; // the cursor and its name, not just the box
+    c.y = (v.clientHeight - 44) / 2 - pt.y * c.s;
+    applyCam(c, glide);
+  }
+  function zoomAt(c, f, px, py) {
+    const s = clamp(c.s * f, 0.25, 2.4);
+    c.x = px - (px - c.x) * (s / c.s); c.y = py - (py - c.y) * (s / c.s); c.s = s;
+    c.user = true;
+    applyCam(c, false);
+  }
+
+  /** Pan with a drag (a pinch zooms), scroll pans, ⌘/Ctrl-scroll zooms; a drag never counts as a click. */
+  function wire(v) {
+    const pts = new Map();
+    let start = null;
+    v.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0 && e.pointerType === "mouse") return;
+      if (e.target.closest(".dg-tools, .dg-key, .dg-tag")) return;
+      pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      const c = camOf(M.scope);
+      start = { pts: new Map(pts), x: c.x, y: c.y, s: c.s, moved: false };
+    });
+    v.addEventListener("pointermove", (e) => {
+      if (!pts.has(e.pointerId) || !start) return;
+      pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      const c = camOf(M.scope);
+      const [a, b] = [...pts.values()];
+      const [a0, b0] = [...start.pts.values()];
+      if (pts.size === 1 && a0) {
+        const dx = a.x - a0.x, dy = a.y - a0.y;
+        if (!start.moved && Math.hypot(dx, dy) < 5) return;
+        if (!start.moved) { start.moved = true; v.setPointerCapture(e.pointerId); v.classList.add("is-drag"); }
+        c.x = start.x + dx; c.y = start.y + dy;
+      } else if (b && b0) {
+        const r = v.getBoundingClientRect();
+        const d0 = Math.hypot(b0.x - a0.x, b0.y - a0.y) || 1, d1 = Math.hypot(b.x - a.x, b.y - a.y);
+        const mx = (a.x + b.x) / 2 - r.left, my = (a.y + b.y) / 2 - r.top;
+        const s = clamp(start.s * (d1 / d0), 0.25, 2.4);
+        c.x = mx - (mx - start.x) * (s / start.s); c.y = my - (my - start.y) * (s / start.s); c.s = s;
+        start.moved = true;
+      } else return;
+      c.user = true; c.follow = false;
+      applyCam(c, false);
+    });
+    const up = (e) => {
+      pts.delete(e.pointerId);
+      if (start && start.moved) { M.dragged = true; setTimeout(() => { M.dragged = false; }, 0); }
+      v.classList.remove("is-drag");
+      if (!pts.size) start = null; else { const c = camOf(M.scope); start = { pts: new Map(pts), x: c.x, y: c.y, s: c.s, moved: true }; }
+    };
+    v.addEventListener("pointerup", up);
+    v.addEventListener("pointercancel", up);
+    v.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      const c = camOf(M.scope);
+      if (e.ctrlKey || e.metaKey) { const r = v.getBoundingClientRect(); zoomAt(c, Math.exp(-e.deltaY * 0.0022), e.clientX - r.left, e.clientY - r.top); }
+      else { c.x -= e.deltaX; c.y -= e.deltaY; c.user = true; c.follow = false; applyCam(c, false); }
+    }, { passive: false });
+    v.addEventListener("keydown", (e) => {
+      if (e.target !== v || e.metaKey || e.ctrlKey || e.altKey) return;
+      const c = camOf(M.scope), mid = () => [v.clientWidth / 2, v.clientHeight / 2];
+      const k = e.key;
+      if (k === "+" || k === "=") zoomAt(c, 1.2, ...mid());
+      else if (k === "-" || k === "_") zoomAt(c, 1 / 1.2, ...mid());
+      else if (k === "0") { c.user = true; c.follow = false; fit(c, true); }
+      else if (k === "f" || k === "F") tool("follow");
+      else if (k.startsWith("Arrow")) { const d = 60; c.x += k === "ArrowLeft" ? d : k === "ArrowRight" ? -d : 0; c.y += k === "ArrowUp" ? d : k === "ArrowDown" ? -d : 0; c.user = true; c.follow = false; applyCam(c, true); }
+      else return;
+      e.preventDefault();
+    });
+  }
+
+  function tool(what) {
+    const c = camOf(M.scope), v = view();
+    if (!v) return;
+    if (what === "in" || what === "out") zoomAt(c, what === "in" ? 1.25 : 0.8, v.clientWidth / 2, v.clientHeight / 2);
+    else if (what === "fit") { c.user = true; c.follow = false; fit(c, true); }
+    else if (what === "follow") { c.follow = !c.follow; c.user = false; c.target = null; frame(c, true); announce(c.follow ? "Following the agent." : "Not following."); }
+  }
+
+  /** Where the camera goes by itself: onto the followed agent, or the whole drawing, until you move it. */
+  function frame(c, glide) {
+    const L = M.layout;
+    if (!L) return;
+    const lead = M.lead;
+    if (c.follow && lead) {
+      if (c.target !== lead.key || !c.user) { centerOn(c, lead.pt, glide && c.target != null, c.user ? null : Math.max(c.s, 0.85)); c.target = lead.key; }
+      return;
+    }
+    if (!c.user) fit(c, glide);
+  }
+
+  // ── cursors ─────────────────────────────────────────────────────────────────
+  function cursors(ags, nodeAt) {
+    const box = el.querySelector(".dg-curs");
+    if (!box) return;
+    const seen = new Set(), stack = new Map();
+    M.lead = null;
+    for (const a of ags) {
+      const n = nodeAt(a);
+      if (!n) continue;
+      const i = stack.get(n.id) || 0; stack.set(n.id, i + 1);
+      const x = n.x + PAD + NW - 26 + i * 16, y = n.y + PAD + NH - 12 + i * 20;
+      seen.add(a.id);
+      let c = M.curs.get(a.id);
+      const tag = `<b>${esc(a.title.length > 28 ? a.title.slice(0, 27) + "…" : a.title)}</b><span>${esc(verbOf(a))}</span>`;
+      if (!c || !c.el.isConnected) {
+        const d = document.createElement("div");
+        d.className = "dg-cur is-new";
+        d.dataset.k = a.id;
+        d.innerHTML = `${ARROW}<button type="button" class="dg-tag" data-mp-go="${esc(a.go)}" title="${esc(a.coord ? "Open the conversation" : "Open the thread")}"></button>`;
+        box.appendChild(d);
+        c = { el: d, node: null, tag: "" };
+        M.curs.set(a.id, c);
+        setTimeout(() => d.classList.remove("is-new"), 400);
+      }
+      c.el.style.setProperty("--c", a.color);
+      c.el.classList.toggle("is-idle", !a.busy);
+      c.el.classList.toggle("is-wait", a.waiting);
+      c.el.style.transform = `translate(${x}px,${y}px)`;
+      if (c.tag !== tag) { c.el.querySelector(".dg-tag").innerHTML = tag; c.tag = tag; }
+      if (c.node !== n.id) {
+        // it landed somewhere new: the box rings once in its colour
+        if (c.node != null) { const b = el.querySelector(`.dg-n[data-node="${CSS.escape(n.id)}"]`); if (b) { b.classList.remove("is-hit"); void b.offsetWidth; b.classList.add("is-hit"); } }
+        c.node = n.id;
+      }
+      if (!M.lead && a.busy) M.lead = { key: `${a.id}@${n.id}`, pt: { x: n.x + PAD + NW / 2, y: n.y + PAD + NH / 2 } };
+    }
+    for (const [k, c] of M.curs) if (!seen.has(k)) { c.el.classList.add("is-gone"); setTimeout(() => c.el.remove(), 320); M.curs.delete(k); }
   }
 
   // ── the panel ────────────────────────────────────────────────────────────────
-  function head(title, sub, ic) {
-    return `<header class="mp-top"><span class="mp-hic" aria-hidden="true">${ic}</span><div class="mp-t"><h2 id="mp-h">${esc(title)}</h2>${sub ? `<p class="mp-sub">${sub}</p>` : ""}</div>` +
-      `<button type="button" class="mp-x" data-mp-close aria-label="Close the map" title="Close">${ICON.close}</button></header>`;
-  }
-
-  function threadBody(scope) {
-    const t = scope.t, fold = scope.fold;
-    const ag = agentOf(t);
-    const a = ag.act;
-    const busy = isBusy(t);
-    // Now: one line for what it's doing, the file it's on one tap away
-    let now;
-    if (busy) {
-      const f = ag.liveFile;
-      now = `<div class="mp-now st-${ag.waiting ? "wait" : "busy"}"><span class="mp-pulse" aria-hidden="true"></span><div class="mp-nt"><p class="mp-nl">${ag.waiting ? "Waiting for you" : doingLine(ag)}</p>` +
-        (f ? `<button type="button" class="mp-nf" data-mp-file="${esc(f.path)}" title="Open ${esc(f.path)}"><code>${esc(f.path)}</code></button>` : ag.now && ag.now.kind === "command" && ag.now.target && ag.now.target !== ag.now.line ? `<code class="mp-cmd">${esc(String(ag.now.target).slice(0, 160))}</code>` : "") +
-        `</div>${since(ag.since)}</div>`;
+  function headHtml(scope, ags) {
+    let title, sub, ic, extra = "";
+    if (scope.kind === "thread") {
+      const t = scope.t, a = ags[0];
+      title = t.title; ic = ICON.thread;
+      sub = [t.branch && `<span class="mp-br">${ICON.branch}<code>${esc(t.branch)}</code></span>`, scope.fold ? (scope.fold.base ? "its own worktree" : "the project folder") : ""].filter(Boolean).join(`<span class="mp-sep">·</span>`);
+      const word = a.busy ? (a.waiting ? "Waiting for you" : doingLine(a)) : t.state === "done" ? "Done" : t.state === "resolved" ? "Resolved" : t.state === "failed" ? "Stopped" : "Not working right now";
+      extra = `<div class="mp-now st-${a.busy ? (a.waiting ? "wait" : "busy") : "rest"}" style="--c:${a.color}"><span class="mp-pulse" aria-hidden="true"></span><p class="mp-nl">${word}</p>${a.busy ? since(a.since) : ""}</div>`;
     } else {
-      const last = a.last && a.last.row;
-      const word = t.state === "done" ? "Done" : t.state === "resolved" ? "Resolved" : t.state === "failed" ? "Stopped" : "Not working right now";
-      now = `<div class="mp-now st-rest"><span class="mp-pulse" aria-hidden="true"></span><div class="mp-nt"><p class="mp-nl">${esc(word)}</p>${last ? `<p class="mp-nlast">Last: ${renderInline(last.line || last.tool || "", true)}</p>` : ""}</div></div>`;
+      if (scope.kind === "project") { title = (world.project(scope.pid) || {}).name || scope.pid; ic = ICON.project; }
+      else { title = "Working now"; ic = MAP_ICON; }
+      const n = ags.length;
+      sub = n ? `${n} agent${n === 1 ? "" : "s"} at work` : scope.kind === "project" ? "No agent is working here right now" : "No agent is working right now";
+      if (n) extra = `<ul class="mp-legend" aria-label="Agents">${ags.map((a) => `<li><button type="button" class="mp-who" data-mp-focus="${esc(a.id)}" style="--c:${a.color}" title="Show where it is"><i aria-hidden="true"></i><b>${esc(a.title)}</b><span>${esc(verbOf(a))}</span></button></li>`).join("")}</ul>`;
     }
-    if (!fold) return now + `<p class="mp-empty">This thread's folder isn't one XO serves to the UI, so there's no tree to show.</p>`;
-    const nT = a.files.size;
-    const seg = `<div class="mp-seg" role="group" aria-label="Show"><button type="button" data-mp-mode="touched" aria-pressed="${M.mode === "touched"}">Touched${nT ? `<span>${nT}</span>` : ""}</button><button type="button" data-mp-mode="all" aria-pressed="${M.mode === "all"}">All files</button></div>`;
-    let tree;
-    if (M.mode === "touched") {
-      tree = nT ? touchedHtml(a.files) : `<p class="mp-empty">${busy ? "Nothing touched yet in this turn." : "No files touched in its recent turns."} <button type="button" class="mp-link" data-mp-mode="all">See all files</button></p>`;
-    } else {
-      load(fold, "");
-      // follow the agent: open the folders down to the file it's on, once per file
-      const live = ag.liveFile;
-      if (live && M.followed.get(scope.key) !== live.path) { M.followed.set(scope.key, live.path); reveal(scope, fold, live.path); }
-      tree = allHtml(scope, fold, a.files, new Map());
-    }
-    const outside = a.outside.size ? `<details class="mp-out"><summary>${a.outside.size} outside its folder</summary><ul>${[...a.outside.values()].map((f) => `<li title="XO only shows files inside the thread's own folder"><code>${esc(f.path)}</code>${f.mark && f.mark !== "read" ? `<span class="mp-mk">${MARK_WORD[f.mark]}</span>` : ""}</li>`).join("")}</ul></details>` : "";
-    return now + seg + `<div class="mp-scroll" data-mp-scroll>${tree}${outside}</div>`;
+    return tabs("live") + `<header class="mp-top"><span class="mp-hic" aria-hidden="true">${ic}</span><div class="mp-t"><h2 id="mp-h">${esc(title)}</h2>${sub ? `<p class="mp-sub">${sub}</p>` : ""}</div>` +
+      `<button type="button" class="mp-x mp-full" data-mp-full aria-pressed="${M.full}" aria-label="${M.full ? "Back beside the conversation" : "Full size"}" title="${M.full ? "Back beside the conversation" : "Full size"}">${M.full ? TOOL.unfull : TOOL.full}</button>` +
+      `<button type="button" class="mp-x" data-mp-close aria-label="Close the map" title="Close">${ICON.close}</button></header>` + extra;
   }
 
-  function projectBody(scope) {
-    const pid = scope.pid;
-    const ags = agentsIn(pid);
-    const list = ags.length ? `<ul class="mp-ags">${ags.map((a) => agentRow(a)).join("")}</ul>` : `<p class="mp-empty mp-calm">No agent is working in this project right now.</p>`;
-    // the project's own folder, with a dot wherever an agent is
-    const presence = new Map();
-    for (const a of ags) if (a.liveFile) { const w = presence.get(a.liveFile.path) || []; w.push(a); presence.set(a.liveFile.path, w); }
-    const fold = { project: pid, base: "" };
-    load(fold, "");
-    return `<p class="mp-lbl">Working now</p>${list}<p class="mp-lbl">Files</p><div class="mp-scroll" data-mp-scroll>${allHtml(scope, fold, new Map(), presence)}</div>`;
-  }
-
-  function allBody() {
-    const ags = agentsIn(null);
-    if (!ags.length) return `<div class="mp-rest"><span class="mp-hic" aria-hidden="true">${MAP_ICON}</span><p><b>No agent is working right now.</b></p><p>When one starts, it shows here with the file it's on.</p></div>`;
-    const by = new Map();
-    for (const a of ags) { const k = a.project || "workspace"; if (!by.has(k)) by.set(k, []); by.get(k).push(a); }
-    let h = `<div class="mp-scroll" data-mp-scroll>`;
-    for (const [pid, list] of by) {
-      const name = pid === "workspace" ? "Workspace" : (world.project(pid) || {}).name || pid;
-      h += `<button type="button" class="mp-pj" data-mp-go="${esc(pid === "workspace" ? "ws" : "p:" + pid)}"><span class="mp-ic">${pid === "workspace" ? MAP_ICON : ICON.project}</span><b>${esc(name)}</b><span>${list.length} working</span></button><ul class="mp-ags">${list.map((a) => agentRow(a)).join("")}</ul>`;
+  /** Draw what changed: the head as words, the boxes when the drawing changes, the cursors always (they glide). */
+  function paint() {
+    if (!M.open || viewer.isOpen) return; // under the viewer nothing moves, so focus comes back to the box it left
+    const scope = scopeOf(M.view);
+    M.scope = scope;
+    if (el.dataset.scope !== scope.key || !view()) skeleton(scope);
+    // who, and where
+    let ags, tree, marks = new Map();
+    M.refs = new Map();
+    if (scope.kind === "thread") {
+      ags = [agentOf(scope.t)];
+      marks = ags[0].act.files;
+    } else ags = agentsIn(scope.kind === "project" ? scope.pid : null);
+    if (scope.kind === "all") tree = projectsTree(ags);
+    else if (scope.fold) tree = folderTree(scope, scope.fold, marks, new Set(ags.filter((a) => a.path && (scope.kind === "thread" || a.fold)).map((a) => a.path)));
+    else tree = { id: "", kind: "root", name: scope.t.title, sub: "its folder isn't one XO can show", children: [] };
+    // head
+    const h = headHtml(scope, ags);
+    if (h !== M.head) {
+      const hd = el.querySelector("[data-mp-head]");
+      const a = document.activeElement, fid = a && hd.contains(a) ? a.dataset.mpFocus || a.dataset.mpGo : null;
+      hd.innerHTML = h; M.head = h;
+      for (const x of hd.querySelectorAll(".elapsed[data-since]")) x.textContent = elapsed(Math.max(0, Math.floor((Date.now() - +x.dataset.since) / 1000)));
+      if (fid) hd.querySelector(`[data-mp-focus="${CSS.escape(fid)}"]`)?.focus({ preventScroll: true });
     }
-    return h + `</div>`;
+    // the drawing
+    const L = layoutOf(tree);
+    M.layout = L;
+    const byId = new Map(L.nodes.map((n) => [n.id, n]));
+    const nodeAt = (a) => {
+      if (scope.kind === "all") return byId.get(a.node) || null;
+      let p = a.path;
+      if (!p) return byId.get(tree.id);
+      while (p) { if (byId.has(p)) return byId.get(p); p = parentOf(p); }
+      return byId.get(tree.id);
+    };
+    const at = new Map();
+    for (const a of ags) { const n = nodeAt(a); if (n && a.busy && !at.has(n.id)) at.set(n.id, a.color); }
+    const nodesHtml = L.nodes.map((n) => boxHtml(n, at)).join("");
+    const key = `${L.w}x${L.h}|${nodesHtml}`;
+    if (key !== M.layoutKey) {
+      const a = document.activeElement, fid = a && el.contains(a) ? a.dataset.node : null;
+      const W = L.w + PAD * 2, H = L.h + PAD * 2;
+      const svg = el.querySelector(".dg-edges");
+      svg.setAttribute("width", W); svg.setAttribute("height", H); svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+      svg.innerHTML = `<g transform="translate(${PAD} ${PAD})">${L.edges.map((e) => `<path d="${edgePath(e.from, e.to)}"${at.has(e.to.id) || (e.to.kind === "dir" && e.to.dot === "hot") ? ` class="is-hot"` : ""}/><circle cx="${e.to.x}" cy="${e.to.y + NH / 2}" r="2.5"/>`).join("")}</g>`;
+      const nodes = el.querySelector(".dg-nodes");
+      nodes.style.width = W + "px"; nodes.style.height = H + "px";
+      nodes.innerHTML = nodesHtml;
+      M.layoutKey = key;
+      if (fid != null) nodes.querySelector(`[data-node="${CSS.escape(fid)}"]`)?.focus({ preventScroll: true });
+    }
+    // what the marks mean, when there are some
+    const kd = el.querySelector("[data-dg-key]");
+    const kinds = new Set([...marks.values()].map((m) => m.mark).filter((m) => m !== "read"));
+    const kh = kinds.size ? ["new", "edited", "deleted"].filter((k) => kinds.has(k)).map((k) => `<span class="m-${k}"><i></i>${k}</span>`).join("") : "";
+    if (kd && kd._h !== kh) { kd.innerHTML = kh; kd._h = kh; kd.hidden = !kh; }
+    cursors(ags, nodeAt);
+    frame(camOf(scope), true);
   }
 
-  function html() {
-    return tabs("live") + scopeHtml();
+  /** Is anything in this view's scope working? (the button's live dot) */
+  function liveIn(v) {
+    const s = scopeOf(v);
+    if (s.kind === "thread") return isBusy(s.t);
+    if (s.kind === "project") return world.state.threads.some((t) => t.project === s.pid && isBusy(t));
+    return world.state.threads.some(isBusy);
   }
 
   /** The Live · File switch, on whichever mode shows; nothing unless both are there. */
@@ -361,67 +592,31 @@ export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
       `<button type="button" class="st-x" data-stage="close-file" aria-label="Close ${esc(name)}" title="Close the file">${ICON.close}</button></span></nav>`;
   }
 
-  function scopeHtml() {
-    const scope = scopeOf(M.view);
-    if (scope.kind === "thread") {
-      const t = scope.t;
-      const sub = [t.branch && `<span class="mp-br">${ICON.branch}<code>${esc(t.branch)}</code></span>`, scope.fold && scope.fold.base ? "its own worktree" : scope.fold ? "the project folder" : ""].filter(Boolean).join("<span class=\"mp-sep\">·</span>");
-      return head(t.title, sub, ICON.thread) + `<div class="mp-body">${threadBody(scope)}</div>`;
-    }
-    if (scope.kind === "project") {
-      const name = (world.project(scope.pid) || {}).name || scope.pid;
-      return head(name, "Where its agents are working", ICON.project) + `<div class="mp-body">${projectBody(scope)}</div>`;
-    }
-    const n = agentsIn(null).length;
-    return head("Working now", n ? `${n} agent${n === 1 ? "" : "s"} across your projects` : "Across your projects", MAP_ICON) + `<div class="mp-body">${allBody()}</div>`;
-  }
-
-  /** Draw only what changed, keeping the tree's scroll and focus; follow the live row unless you're browsing. */
-  function paint() {
-    if (!M.open || viewer.isOpen) return; // under the viewer nothing moves, so focus comes back to the row it left
-    const h = html();
-    if (h === M.html) return;
-    const sc = el.querySelector("[data-mp-scroll]");
-    const top = sc ? sc.scrollTop : 0;
-    const a = document.activeElement;
-    const fid = a && el.contains(a) ? a.dataset.fid : null;
-    el.innerHTML = h; M.html = h;
-    // the timers start right away (the app's one-second tick keeps them going)
-    for (const x of el.querySelectorAll(".elapsed[data-since]")) x.textContent = elapsed(Math.max(0, Math.floor((Date.now() - +x.dataset.since) / 1000)));
-    const sc2 = el.querySelector("[data-mp-scroll]");
-    if (sc2) sc2.scrollTop = top;
-    if (fid) el.querySelector(`[data-fid="${CSS.escape(fid)}"]`)?.focus({ preventScroll: true });
-    if (Date.now() > M.quietUntil && sc2) {
-      const live = sc2.querySelector(".mp-r.is-file.is-live");
-      if (live) {
-        const r = live.getBoundingClientRect(), b = sc2.getBoundingClientRect();
-        if (r.top < b.top || r.bottom > b.bottom) sc2.scrollTop += r.top - b.top - b.height / 3;
-      }
-    }
-  }
-
-  /** Is anything in this view's scope working? (the button's live dot) */
-  function liveIn(v) {
-    const s = scopeOf(v);
-    if (s.kind === "thread") return isBusy(s.t);
-    if (s.kind === "project") return world.state.threads.some((t) => t.project === s.pid && isBusy(t));
-    return world.state.threads.some(isBusy);
+  function setFull(on) {
+    M.full = on;
+    document.body.classList.toggle("map-full", on && M.open);
+    M.head = "";
+    const c = M.scope && camOf(M.scope);
+    paint();
+    // the canvas changed size: frame it again once it has
+    if (c) requestAnimationFrame(() => { c.target = null; frame(c, true); });
   }
 
   function setOpen(on, { focus = true } = {}) {
     M.open = on;
     try { localStorage.setItem(KEY, on ? "1" : "0"); } catch { /* private mode */ }
     document.body.classList.toggle("map-open", on);
+    document.body.classList.toggle("map-full", on && M.full);
     el.hidden = !on;
-    M.html = "";
     if (on) {
       if (viewer.isOpen) viewer.park(); // one panel: Live comes forward, the file waits behind its tab
       el.classList.remove("is-in"); void el.offsetWidth; el.classList.add("is-in");
+      el.dataset.scope = "";
       paint();
-      if (focus) el.focus({ preventScroll: true });
+      if (focus) (view() || el).focus({ preventScroll: true });
       announce("The map is open: where your agents are working.");
     } else {
-      el.innerHTML = "";
+      el.innerHTML = ""; el.dataset.scope = "";
       if (viewer.isParked) viewer.close({ restore: false }); // closing the panel closes all of it
       else viewer.refresh();
       announce("Map closed.");
@@ -433,60 +628,80 @@ export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
   el.addEventListener("click", (e) => {
     const t = e.target;
     if (t.closest("[data-mp-close]")) { close(); return; }
-    const md = t.closest("[data-mp-mode]");
-    if (md) { M.mode = md.dataset.mpMode; M.html = ""; paint(); return; }
+    if (t.closest("[data-mp-full]")) { setFull(!M.full); return; }
+    const tl = t.closest("[data-dg]");
+    if (tl && tl.dataset.dg) { tool(tl.dataset.dg); return; }
     const g = t.closest("[data-mp-go]");
     if (g) { go(g.dataset.mpGo); return; }
-    const scope = scopeOf(M.view);
-    const fold = scope.kind === "thread" ? scope.fold : scope.kind === "project" ? { project: scope.pid, base: "" } : null;
-    const rt = t.closest("[data-mp-retry]");
-    if (rt && fold) { load(fold, rt.dataset.mpRetry, { again: true }); return; }
-    const d = t.closest("[data-mp-dir]");
-    if (d && fold) {
-      M.quietUntil = Date.now() + QUIET_MS;
-      const ex = expandedOf(scope.key), p = d.dataset.mpDir;
-      if (ex.has(p)) ex.delete(p); else { ex.add(p); load(fold, p, { again: true }); }
-      paint();
+    const fc = t.closest("[data-mp-focus]");
+    if (fc) {
+      const c = camOf(M.scope), cur = M.curs.get(fc.dataset.mpFocus);
+      if (cur) {
+        const m = /translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(cur.el.style.transform);
+        if (m) { c.user = true; c.follow = false; centerOn(c, { x: +m[1], y: +m[2] }, true, Math.max(c.s, 0.9)); }
+        cur.el.classList.remove("is-ping"); void cur.el.offsetWidth; cur.el.classList.add("is-ping");
+      }
       return;
     }
-    const f = t.closest("[data-mp-file]");
-    if (f && fold) {
-      M.quietUntil = Date.now() + QUIET_MS;
-      const rel = f.dataset.mpFile;
-      viewer.open({ name: base(rel), path: rel, project: fold.project, rel: apiRel(fold, rel) }, f);
+    const nb = t.closest("[data-node]");
+    if (!nb || M.dragged) return;
+    const r = M.refs.get(nb.dataset.node);
+    if (!r) return;
+    const key = M.scope.key;
+    if (r.toggle != null || r.more != null) {
+      // unfold in place: the box you clicked stays under your pointer, at the same size
+      const id = nb.dataset.node, c = camOf(M.scope);
+      const was = M.layout && M.layout.nodes.find((n) => n.id === id);
+      const p0 = was ? { x: was.x, y: was.y } : null;
+      c.user = true; c.follow = false;
+      if (r.more != null) setOf(M.more, key).add(r.more);
+      else {
+        const opened = setOf(M.opened, key), closed = setOf(M.closed, key);
+        if (r.open) { opened.delete(r.toggle); closed.add(r.toggle); } else { closed.delete(r.toggle); opened.add(r.toggle); }
+      }
+      paint();
+      const now = M.layout && M.layout.nodes.find((n) => n.id === (r.more != null ? id : id));
+      const anchor = now || (r.more != null && M.layout && M.layout.nodes.find((n) => parentOf(n.id) === r.more));
+      if (p0 && anchor) { c.x -= (anchor.x - p0.x) * c.s; c.y -= (anchor.y - p0.y) * c.s; applyCam(c, false); }
     }
+    else if (r.retry != null) load(r.fold, r.retry, { again: true });
+    else if (r.go) go(r.go);
+    else if (r.open) viewer.open(r.open, nb);
   });
   // the Live · File switch, drawn on the Map and on the viewer alike
   document.addEventListener("click", (e) => {
     const s = e.target.closest?.("[data-stage]");
     if (!s) return;
     const what = s.dataset.stage;
-    if (what === "live") { viewer.park(); M.html = ""; paint(); el.focus({ preventScroll: true }); }
+    if (what === "live") { viewer.park(); M.head = ""; paint(); (view() || el).focus({ preventScroll: true }); }
     else if (what === "file") viewer.unpark();
-    else if (what === "close-file") { viewer.close({ restore: false }); M.html = ""; paint(); el.focus({ preventScroll: true }); }
+    else if (what === "close-file") { viewer.close({ restore: false }); M.head = ""; paint(); (view() || el).focus({ preventScroll: true }); }
   });
-  el.addEventListener("wheel", () => { M.quietUntil = Date.now() + QUIET_MS; }, { passive: true });
-  el.addEventListener("touchmove", () => { M.quietUntil = Date.now() + QUIET_MS; }, { passive: true });
   el.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !viewer.isOpen) { e.preventDefault(); e.stopPropagation(); close(); }
+    if (e.key === "Escape" && !viewer.isOpen) { e.preventDefault(); e.stopPropagation(); if (M.full) setFull(false); else close(); }
   });
+  // the panel's size changes with the window: frame it again unless you've moved it
+  if (typeof ResizeObserver === "function") new ResizeObserver(() => { const c = M.scope && M.cams.get(M.scope.key); if (M.open && c) frame(c, false); }).observe(el);
 
-  function close() { if (!M.open) return; const back = document.querySelector("[data-map-toggle]"); setOpen(false); back?.focus({ preventScroll: true }); }
+  function close() {
+    if (!M.open) return;
+    const back = document.querySelector("[data-map-toggle]");
+    if (M.full) { M.full = false; document.body.classList.remove("map-full"); }
+    setOpen(false);
+    back?.focus({ preventScroll: true });
+  }
 
   if (M.open) { document.body.classList.add("map-open"); el.hidden = false; }
 
   return {
     get isOpen() { return M.open; },
     /** The header's Map button: shows Live (parking a file in front of it), or closes the panel. */
-    toggle: () => (M.open && viewer.isOpen ? (viewer.park(), (M.html = ""), paint(), el.focus({ preventScroll: true })) : M.open ? close() : setOpen(true)),
+    toggle: () => (M.open && viewer.isOpen ? (viewer.park(), (M.head = ""), paint(), (view() || el).focus({ preventScroll: true })) : M.open ? close() : setOpen(true)),
     tabs,
     open: () => setOpen(true),
     close,
     /** The view changed or the world moved: follow it. */
-    render(v) {
-      if (v !== M.view) { M.view = v; M.html = ""; M.quietUntil = 0; }
-      paint();
-    },
+    render(v) { if (v !== M.view) M.view = v; paint(); },
     /** The header's toggle, for any conversation view. */
     button(v) {
       const live = liveIn(v);
