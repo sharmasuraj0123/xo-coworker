@@ -904,13 +904,22 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     /** Standalone #map is open (always false in the panel: the panel answers that). */
     get isOpen() { return M.open && !M.hosted; },
     // ── in the right panel ──
-    /** Once: draw only inside `host` (the Map tab's body; give it a height). Nothing is painted until show(). */
+    /**
+     * Draw only inside `host` (the Map tab's body; give it a height). Either shape works: mount once and
+     * show()/hide() with the tab, or mount() each time the tab shows and unmount() when it hides. A host
+     * that's on screen when mounted is painted at once; a hidden one waits for show().
+     */
     mount(host) {
       if (!host) return;
-      M.hosted = true; M.full = false; M.open = false;
-      el = host; bind(host);
-      host.classList.add("map-host");
-      el.dataset.scope = ""; M.head = "";
+      if (el !== host || !M.hosted) {
+        // the standalone #map, if it had already reopened itself, steps aside for good
+        if (!M.hosted && M.open && el && el !== host) { el.hidden = true; el.innerHTML = ""; document.body.classList.remove("map-open", "map-full"); }
+        M.hosted = true; M.full = false; M.open = false;
+        el = host; bind(host);
+        host.classList.add("map-host");
+        el.dataset.scope = ""; M.head = "";
+      }
+      if (host.isConnected && host.getClientRects().length) this.show();
     },
     /** The tab became visible: start painting and frame the camera. */
     show(v) {
@@ -923,8 +932,11 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     },
     /** The tab was hidden or the panel closed: stop the heavy work (the graph stops), keep camera and folds. */
     hide() { M.open = false; if (M.raf) { cancelAnimationFrame(M.raf); M.raf = 0; } },
+    /** The same as hide(), for a host that mounts each time the tab shows. */
+    unmount() { this.hide(); },
     /** Agents at work in this view's scope: the tab's dot and the header button's dot. */
     live: (v) => liveIn(v),
+    liveIn: (v) => liveIn(v),
 
     // ── standalone (#map), until the panel lands ──
     /** The header's Map button: shows Live (parking a file in front of it), or closes the panel. */
