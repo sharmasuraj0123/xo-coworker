@@ -195,6 +195,14 @@ function rtTag(t, cls) {
   return cls === "ar" ? `<span class="ar-r${warn}" title="${esc(tip)}">${esc(rtName(agent))}<span aria-hidden="true"> · </span></span>`
     : `<button type="button" class="tw-rt${warn}" data-set-open="runtimes" title="${esc(tip)}" aria-label="${esc(tip)} Open Runtimes in Settings.">${esc(rtName(agent))}</button>`;
 }
+/** F7: what a runtime does with a message sent while its turn runs: "steered" (joins it) or "queued". */
+const sendWhileRunning = (t) => { const rt = findRt(world.state.runtimes, agentOf(t)); const f = rt && rt.features && rt.features.features && rt.features.features.send_while_running; return (f && f.behaviour) || null; };
+/** The composer's target line in a thread; while its agent works, where your words land. */
+function threadTargetHtml(t) {
+  const how = isBusy(t) && t.state !== "resolved" ? sendWhileRunning(t) : null;
+  const tail = how === "steered" ? `<span class="muted">· sent into the current turn</span>` : how === "queued" ? `<span class="muted">· queued for the next turn</span>` : "";
+  return `<span class="tg-t">${ICON.thread}</span><span>Reply in <b>this thread</b></span>${tail}`;
+}
 const doneToday = () => world.state.threads.filter((t) => t.state === "done" && new Date(t.lastAt).toDateString() === new Date().toDateString());
 
 // ── events: a calm labelled line, never the composer, never a quiet row ────
@@ -622,6 +630,8 @@ function queuedMeta(conv) {
   const t = convThread(conv);
   if (!t) return "";
   if (S.stops.has(t.sessionId) || world.act.sessionState(t.sessionId) === "stopping") return `<div class="meta"><i class="spin" aria-hidden="true"></i><span>Stopping its turn · it reads this next</span></div>`;
+  // a runtime that steers took it into the running turn: nothing waits, nothing to interrupt (F7)
+  if (sendWhileRunning(t) === "steered") return `<div class="meta"><span>Sent into its current turn</span></div>`;
   const run = conv === S.view ? running() : null;
   const n = workingRuns(t);
   const title = `Stop the agent's current turn${n ? ` and its ${n} sub-agent${n === 1 ? "" : "s"}` : ""} so it reads this now (Undo for 3 s)`;
@@ -1431,7 +1441,7 @@ function updateComposer() {
   else if (tg && tg.unknown && !/(^|\s)@[\w.-]*$/.test(say.value.slice(0, say.selectionStart))) html = `<span class="tg-warn">${ICON.close}</span><span>No project called <b>${esc(tg.unknown)}</b></span>`;
   else if (pid === "workspace") html = `${ICON.arrow}<span>To the <b>Workspace</b> coordinator</span>`;
   else if (pid) html = `${ICON.arrow}<span>New work for <b>${esc(PROJ(pid))}</b></span>`;
-  else if (t) html = `<span class="tg-t">${ICON.thread}</span><span>Reply in <b>this thread</b></span>`;
+  else if (t) html = threadTargetHtml(t);
   else if (S.view === "ws" || S.view === "home") html = `${ICON.arrow}<span>To the <b>Workspace</b> coordinator</span><span class="muted">· @ to aim at a project</span>`;
   else html = `${ICON.arrow}<span>To the <b>${esc(PROJ(convProject(S.view)))}</b> coordinator</span>`;
   if ($("#target")._h !== html) { $("#target").innerHTML = html; $("#target")._h = html; }
@@ -1781,6 +1791,8 @@ function render() {
   heraldRender(needs);
   chatTargetRender();
   syncPlaceholder();
+  // a thread's target line follows its agent's turn (F7), unless you are aiming the message elsewhere
+  { const t = convThread(S.view); if (t && !liveBlock() && !targetOf(say.value, world.state.projects).pid && !/(^|\s)@[\w.-]+/.test(say.value)) { const h = threadTargetHtml(t); if ($("#target")._h !== h) { $("#target").innerHTML = h; $("#target")._h = h; } } }
   sendRender();
   chipRender();
   D.sync();
