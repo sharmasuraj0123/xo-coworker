@@ -208,7 +208,11 @@ function rtTag(t, cls) {
     : `<button type="button" class="tw-rt${warn}" data-set-open="runtimes" title="${esc(tip)}" aria-label="${esc(tip)} Open Runtimes in Settings.">${esc(rtName(agent))}</button>`;
 }
 /** F7: what a runtime does with a message sent while its turn runs: "steered" (joins it) or "queued". */
-const sendWhileRunning = (t) => { const rt = findRt(world.state.runtimes, agentOf(t)); const f = rt && rt.features && rt.features.features && rt.features.features.send_while_running; return (f && f.behaviour) || null; };
+// Off until xo-space's deploy makes a reply join the running turn: the composer never promises what the
+// backend doesn't do yet. Turn it on with that deploy (the runtimes already say "steered" today).
+const STEER_LIVE = false;
+const sendWhileRunning = (t) => { if (!STEER_LIVE) return null;
+  const rt = findRt(world.state.runtimes, agentOf(t)); const f = rt && rt.features && rt.features.features && rt.features.features.send_while_running; return (f && f.behaviour) || null; };
 /** F4: a thread may continue elsewhere when another runtime its project allows can take work now, once. */
 const movable = (t) => !!(world.act.storm && world.act.policyFor && t && !t.movedTo && agentOf(t) && world.act.policyFor(t.project) && canMove(agentOf(t), world.act.policyFor(t.project), world.state.runtimes));
 /** The composer's target line in a thread; while its agent works, where your words land. */
