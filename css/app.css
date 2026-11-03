@@ -2498,3 +2498,5 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .th-btn:hover svg,.th-btn[aria-expanded="true"] svg{color:var(--ink)}
 .th-btn[aria-expanded="true"]{background:var(--g22);border-color:var(--g3A);color:var(--ink)}
 .sheet.is-drop .all-card{width:var(--dw,480px);transform-origin:top right}
+/* "New messages" centres on the conversation, not on the page under a panel */
+.new-below{left:calc((100% - var(--rp,0px)) / 2)}
