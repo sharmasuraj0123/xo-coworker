@@ -539,14 +539,27 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
   const SETTLE_MS = 1600;
   function frame(c) {
     if (!M.bounds) return;
+    // hidden (a closed panel, a background tab) or not laid out yet: framing now would frame nothing
+    const v = view();
+    if (!v || !v.clientWidth || !v.clientHeight) return;
     const now = Date.now(), lead = M.lead;
-    if (!c.settleUntil) c.settleUntil = now + (M.mode === "graph" ? SETTLE_MS + 1200 : SETTLE_MS);
-    if (!c.user && now < c.settleUntil) {
-      if (c.follow && lead) centerOn(c, lead.pt, false, Math.max(c.s, 0.85)); else fit(c, false);
-      c.target = lead ? lead.key : null;
-      return;
+    if (!c.user && !c.done) {
+      // the first look lasts until the folder has loaded (and the graph has calmed), then a moment more
+      if (!c.settleUntil) c.settleUntil = now + (M.mode === "graph" ? SETTLE_MS + 1200 : SETTLE_MS);
+      if (M.loading || (M.mode === "graph" && M.alpha > 0.06)) c.settleUntil = Math.max(c.settleUntil, now + 500);
+      if (now < c.settleUntil) {
+        if (c.follow && lead) centerOn(c, lead.pt, false, Math.max(c.s, 0.85)); else fit(c, false);
+        c.target = lead ? lead.key : null;
+        return;
+      }
+      c.done = true;
     }
     if (c.follow && lead && c.target !== lead.key) { c.target = lead.key; keepInView(c, lead.pt); }
+  }
+  /** A fresh first look for this view's camera, unless you've moved it yourself. */
+  function reframe(scope) {
+    const c = camOf(scope);
+    if (!c.user) { c.done = false; c.settleUntil = 0; c.target = null; }
   }
   /** Pan just enough that `pt` (and its name) is comfortably inside the view; never zoom. */
   function keepInView(c, pt) {
@@ -564,7 +577,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
   /** The drawing changed shape: shift the camera so the box you were looking at doesn't move on screen. */
   function holdStill(scope, old, L) {
     const c = camOf(scope), v = view();
-    if (!v || !v.clientWidth || (!c.user && Date.now() < (c.settleUntil || 0))) { M.anchorId = null; return; }
+    if (!v || !v.clientWidth || (!c.user && !c.done)) { M.anchorId = null; return; }
     const was = new Map(old.nodes.map((n) => [n.id, n]));
     let pair = null;
     for (const id of [M.anchorId, M.leadNode]) {
@@ -771,6 +784,9 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
   function paint() {
     if (!M.open || !el || (!M.hosted && viewer && viewer.isOpen)) return; // under the viewer nothing moves, so focus comes back to the box it left
     const scope = scopeOf(M.view);
+    // a different thread or project (or view): it gets its own first look
+    const sk = scope.key + "|" + M.mode;
+    if (M.lastScope !== sk) { M.lastScope = sk; reframe(scope); }
     M.scope = scope;
     if (el.dataset.scope !== scope.key + "|" + M.mode || !view()) skeleton(scope);
     // who, and where
@@ -806,6 +822,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       for (let id = a.nid; id != null && parentById.get(id) != null; id = parentById.get(id)) if (!lit.has(id)) lit.set(id, a.color);
     }
     M.glit = lit;
+    M.loading = flat.some((n) => n.kind === "note" && !n.btn && n.name === "Reading…");
     if (M.mode === "graph") paintGraph(scope, flat, ags, at);
     else {
       const L = layoutOf(tree), old = M.layout;
@@ -877,7 +894,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     if (on) {
       if (viewer && viewer.isOpen) viewer.park(); // one panel: Live comes forward, the file waits behind its tab
       el.classList.remove("is-in"); void el.offsetWidth; el.classList.add("is-in");
-      el.dataset.scope = "";
+      el.dataset.scope = ""; M.lastScope = null;
       paint();
       if (focus) (view() || el).focus({ preventScroll: true });
       announce("The map is open: where your agents are working.");
@@ -986,10 +1003,10 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     show(v) {
       if (!el) return;
       if (v) M.view = v;
-      M.open = true; el.dataset.scope = ""; M.head = "";
+      M.open = true; el.dataset.scope = ""; M.head = ""; M.lastScope = null;
       paint();
       const c = M.scope && camOf(M.scope);
-      if (c) requestAnimationFrame(() => frame(c));
+      if (c) requestAnimationFrame(() => { paint(); frame(c); });
     },
     /** The tab was hidden or the panel closed: stop the heavy work (the graph stops), keep camera and folds. */
     hide() { M.open = false; if (M.raf) { cancelAnimationFrame(M.raf); M.raf = 0; } },
