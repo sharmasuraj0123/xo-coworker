@@ -52,7 +52,13 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 - **Conversations:** `GET /chats/{chat}/messages?limit=40`, plus an SSE `ChatStream` for the open chat (the Workspace while on Home). `message`, `thread` and `heartbeat` events are handled, with backoff and a polling fallback. Scrolling up grows history 40 → 80 → 160… (up to 1,000).
 - **Files (hub #30):** the paperclip, a drop or a paste adds text, images or PDFs (25 MB each, 10 per message). Each uploads at once to the chat (`POST /chats/{chat}/attachments`) as a chip with progress, Retry and Remove; Send waits for them. A paste over 4,000 characters or 80 lines becomes `pasted-text-N.md`. Sent files open in the viewer through their message's own chat.
 - **Sending:** `POST /chats/{chat}/messages {text, thread_ts?, attachments?}`. Your message appears at once and is replaced in place by the server's row. "Replying" follows the coordinator's real heartbeat. Errors use plain titles, with Retry and Edit.
-- **Interrupt:** a reply sent while the thread's agent works waits for its turn to end (storm never adds a thread message to a running turn). Under your newest waiting reply, **Interrupt** stops the turn and its sub-agents (`POST /chat/abort`, with the usual 3 s Undo), and the agent reads your message as its next turn.
+- **Interrupt:** what a reply sent while the thread's agent works does depends on its runtime's `send_while_running` feature. On a runtime that steers (Claude Code, Codex) it joins the running turn: the composer says "sent into the current turn". On one that queues (agy) it waits for the turn to end, and under your newest waiting reply **Interrupt** stops the turn and its sub-agents (`POST /chat/abort`, with the usual 3 s Undo), so the agent reads your message as its next turn.
+- **Runtimes (mixed runtimes, xo-space's `ui-handoff-mixed-runtime.md`):** each thread runs on one runtime for its whole life. All of this is quiet while there is a single runtime and nothing is wrong.
+  - A thread's header names its runtime after its state when there is more than one runtime. Its list names only the exceptions.
+  - **Settings › Runtimes:** each runtime's health in words, its account and a meter per usage window, read every 30 s while the page is open. Below that, where work may run, for all projects and per project (`…/runtime-policy`, PUT replaces).
+  - **Continue on another runtime…** (in the thread menu): a dialog that states the consequences first, then `POST …/threads/{ts}/continue`. The two threads link to each other. The old one reads "Continued", and sending in it picks it back up.
+  - **A usage limit:** one card per runtime (decided with `move` or `wait`), shown in Needs you and at the end of each thread waiting on it. Those threads' headers read "Waiting for … until …".
+  - A coordinator's steer, interrupt or stop on a thread shows as one quiet row (`thread.control`).
 - **Open thread:** polled every 4 s while its agent is busy and every 15 s otherwise. "Working" means the session is actually busy. An idle one reads "Idle".
 - **Coordinator messages:** storm keeps what a coordinator and a thread write each other as hops (`GET /chats/{chat}/hops?thread=`, the text in `note`), not as messages. A thread shows them in place: the coordinator's brief, follow-ups and answers as its messages, the thread's own questions as a quiet "Asked the coordinator" line, and your messages they cite. A hop that arrives on the stream has no note, so the open thread reads its hops again.
 - **Asks:** a thread waiting on you is titled from its agent's last message. You answer in words, as a thread reply.
@@ -102,6 +108,8 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 | `js/model.js`, `js/timeline.js`, `js/markdown.js`, `js/util.js` | pure helpers: thread state, checklists, message rows and dedupe, asks, `@target`, safe markdown |
 | `js/decide.js`, `js/kit.js`, `js/pacing.js` | decisions, the decision kit and commit window, and pacing (what speaks up and what waits) |
 | `js/intel.js` | the model and depth chip |
+| `js/runtimes.js` | runtimes, the pure part: names, health in words, usage windows, the runtime policy, moves, the limit card |
+| `js/rtsettings.js`, `js/move.js` | Settings › Runtimes; the "Continue on another runtime" dialog |
 | `js/content.js` | what an ask costs you, what it frees, and its evidence |
 | `js/ui.js` | icons and motion helpers |
 | `js/gestures.js` | touch gestures on a phone: swipe back or open the sidebar, drag sheets away, swipe between asks, long-press Copy (design-research/11) |
@@ -123,6 +131,7 @@ node tests/shells.test.mjs       # shells' pure parts, and the vendored xterm ha
 python3 tests/serve.test.py      # serve.py: the Host allowlist and the WebSocket tunnel, against fake backends
 node tests/storm.test.mjs        # the stream parser and the turn store; no network
 node tests/turnview.test.mjs     # how a turn renders: changed-file chips, runtime notices; no network
+node tests/runtimes.test.mjs     # runtimes, policy, moves and the usage-limit card; no network
 node tests/files.test.mjs        # Files: which folder a view shows, where an opened file sits in it; no network
 node tests/record.test.mjs       # Made and Since you left: kinds, order, groups, git words, the headline; no network
 node tests/map.test.mjs          # the Map's pure parts: folders, paths, what a session touched, the diagram's layout; no network
