@@ -32,6 +32,7 @@ import { uploadAttachment, attachmentUrl } from "./api.js";
 import { createShells } from "./shells/dock.js";
 import { createRecord } from "./recordview.js";
 import { wireGestures } from "./gestures.js";
+import { rtName, manyRuntimes, findRt, healthOf } from "./runtimes.js";
 
 const world = createWorld();
 
@@ -175,6 +176,24 @@ const MAP = createMap({ world, viewer: VW, go: (v) => go(v), announce, isBusy, o
 const FILES = createFiles({ world, viewer: VW, isBusy, PROJ, go: (v) => go(v) });
 const STAGE = createStage({ files: FILES, filesIcon: FILES_ICON, made: REC.made, map: MAP, mapIcon: MAP_ICON, viewer: VW, view: () => S.view, announce, onChange: () => schedule() });
 REC.panel = STAGE;
+/** The runtime a thread runs on, fixed for its life (its session's agent). */
+const agentOf = (t) => (t && ((t.session && t.session.agent) || (t.sessionId && world.state.sessions[t.sessionId]?.agent))) || null;
+const RT_EFFORT = { low: "Quick", medium: "Balanced", high: "Deep", xhigh: "Deeper", max: "Deepest" };
+/** F1: which runtime a thread runs on, said only when there is more than one runtime to tell apart. */
+function rtTag(t, cls) {
+  const rts = world.state.runtimes;
+  const agent = agentOf(t);
+  if (!agent || !manyRuntimes(rts)) return "";
+  const rt = findRt(rts, agent), h = healthOf(rt), se = t.session || {};
+  const ver = rt && rt.health && rt.health.cli_version;
+  const tip = [`Runs on ${rtName(agent)}${ver ? ` ${ver}` : ""}`, se.model || "its default model", se.effort ? RT_EFFORT[se.effort] || se.effort : ""].filter(Boolean).join(" · ") +
+    `. ${h.key === "usable" ? `${rtName(agent)} is usable.` : `${h.word}.${h.why ? ` ${h.why}` : ""}`}`;
+  const warn = h.tone === "bad" || h.tone === "warn" ? " is-warn" : "";
+  // a list names only the exceptions: a thread on the Space's usual runtime needs no word there
+  if (cls === "ar" && rt && rt.default && !warn) return "";
+  return cls === "ar" ? `<span class="ar-r${warn}" title="${esc(tip)}">${esc(rtName(agent))}<span aria-hidden="true"> · </span></span>`
+    : `<button type="button" class="tw-rt${warn}" data-set-open="runtimes" title="${esc(tip)}" aria-label="${esc(tip)} Open Runtimes in Settings.">${esc(rtName(agent))}</button>`;
+}
 const doneToday = () => world.state.threads.filter((t) => t.state === "done" && new Date(t.lastAt).toDateString() === new Date().toDateString());
 
 // ── events: a calm labelled line, never the composer, never a quiet row ────
@@ -770,7 +789,7 @@ function topRender(needs) {
       (S.tMenu === t.id ? `<span class="tw-menu" role="menu"><button type="button" role="menuitem" data-tfield="title">Rename</button><button type="button" role="menuitem" data-tfield="label">${t.label ? "Change label" : "Add a label"}</button>${t.label ? `<button type="button" role="menuitem" data-tfield="clear-label">Remove the label</button>` : ""}${SH.enabled ? `<button type="button" role="menuitem" data-shell="t:${esc(t.id)}">Open a shell in its worktree</button>` : ""}</span>` : "") + `</span>` : "";
     // a shell in its worktree is in the menu (and the shells dock); the header keeps Resolve and the panel
     const allActs = acts ? acts.replace(/<\/span>$/, `${STAGE.button(v)}</span>`) : `<span class="tw-acts">${STAGE.button(v)}</span>`;
-    who = `${title}${label}<span class="badge st-${t.state}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${wordOf(t)}</span>${allActs}`;
+    who = `${title}${label}<span class="badge st-${t.state}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${wordOf(t)}</span>${rtTag(t)}${allActs}`;
     // a field being edited is never replaced under the person's fingers (a frame may change the badge)
     if (ed && $("#tw-edit")) who = null;
   } else who = `<span class="tw-t"><h1 id="conv-title">Thread</h1></span>`;
@@ -2118,7 +2137,7 @@ function allRender() {
   const row = (t) => {
     const c = t.checklist;
     const k = cat(t);
-    return `<li><button type="button" class="ar st-${k}" data-go="t:${esc(t.id)}"><i class="g g-${k === "needs" ? "needs_reply" : glyphOf(t)}" aria-hidden="true"></i><span class="ar-t">${esc(t.title)}</span>${t.label ? `<span class="ar-l">${esc(t.label)}</span>` : ""}<span class="ar-s">${k === "needs" ? "Needs you" : wordOf(t)}</span><span class="mini" aria-label="${c.done} of ${c.total}"><i style="--p:${c.total ? c.done / c.total : 0}"></i></span><span class="ar-a">${esc(short(t.lastAt))}</span></button></li>`;
+    return `<li><button type="button" class="ar st-${k}" data-go="t:${esc(t.id)}"><i class="g g-${k === "needs" ? "needs_reply" : glyphOf(t)}" aria-hidden="true"></i><span class="ar-t">${esc(t.title)}</span>${t.label ? `<span class="ar-l">${esc(t.label)}</span>` : ""}<span class="ar-s">${rtTag(t, "ar")}${k === "needs" ? "Needs you" : wordOf(t)}</span><span class="mini" aria-label="${c.done} of ${c.total}"><i style="--p:${c.total ? c.done / c.total : 0}"></i></span><span class="ar-a">${esc(short(t.lastAt))}</span></button></li>`;
   };
   const fold = S.allFilter === "all" && !q;
   const liveL = fold ? list.filter((t) => cat(t) !== "done") : list;
@@ -2359,6 +2378,8 @@ $("#set-side").addEventListener("click", () => (setEl.hidden ? openSettings() : 
 $("#set-phone").addEventListener("click", openSettings);
 $("#set-x").addEventListener("click", () => closeSettings());
 for (const b of $$("[data-set]")) b.addEventListener("click", () => setPage(b.dataset.set));
+/** A link into one Settings page (a thread's runtime name opens Runtimes). */
+document.addEventListener("click", (e) => { const b = e.target.closest("[data-set-open]"); if (b) { openSettings(); setPage(b.dataset.setOpen); } });
 
 // ── shortcuts: one list (keys.js) drives the handlers, the tooltips, the sheet and this page ──
 function keysSheetRender() {

@@ -1523,6 +1523,12 @@ button.kr-r:hover{background:var(--bg-3);color:var(--ink)}
 
 /* a thread's own header: its label, Resolve / Reopen (R1), rename and label */
 .tw-label{flex:none;display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:7px;background:var(--g1E);border:1px solid var(--g26);font:500 var(--fs-sm)/1 var(--sans);color:var(--ink-2);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* F1: the runtime a thread runs on, named only when there are several. Identity, not status: grey,
+   unboxed, after the state badge; amber only when that runtime can't take work. It opens Settings › Runtimes. */
+.tw-rt{flex:none;height:24px;padding:0 6px;margin-left:-4px;border-radius:7px;font:500 var(--fs-sm)/1 var(--sans);color:var(--ink-4);white-space:nowrap;transition:color var(--dur-fast),background var(--dur-fast)}
+.tw-rt:hover,.tw-rt:focus-visible{color:var(--ink-2);background:var(--g1A)}
+.tw-rt.is-warn,.ar-r.is-warn{color:var(--warn)}
+.ar-r{color:var(--ink-4)}
 .tw-acts{position:relative;flex:none;display:flex;align-items:center;gap:6px}
 .tw-act{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px 0 9px;border-radius:9px;border:1px solid var(--g26);color:var(--ink-2);font:500 var(--fs-base)/1 var(--sans);transition:background var(--dur-fast),border-color var(--dur-fast),color var(--dur-fast),transform 90ms var(--press)}
 .tw-act svg{width:14px;height:14px}
