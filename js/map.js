@@ -197,12 +197,20 @@ export function edgePath(p, c, { nw = NW, nh = NH, r = 8 } = {}) {
   return `M${x1} ${y1}H${xm - rr}Q${xm} ${y1} ${xm} ${y1 + d * rr}V${y2 - d * rr}Q${xm} ${y2} ${xm + rr} ${y2}H${x2}`;
 }
 
-export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
+/**
+ * The Map. Two ways to host it:
+ *  · in the right panel (js/stage.js): mount(host) once, then show(view) / hide() as its tab shows and
+ *    hides, render(view) on every app render, live(view) for the tab's and the header's dot. Files open
+ *    through `openFile`. The panel owns the card, tabs, close, full size, Esc and persistence.
+ *  · standalone (#map, until the panel lands): open/close/toggle/button/tabs, files through `viewer`.
+ *    None of that runs once the Map is mounted.
+ */
+export function createMap({ world, viewer = null, go, announce, isBusy, onChange, openFile = null }) {
   let el = $("#map"); // the panel it draws in: its own #map, or a host's tab (mount)
-  let saved = false;
+  let saved = false; // standalone only: was #map open last time (read on the first render, if nothing mounted it)
   try { saved = localStorage.getItem(KEY) === "1"; } catch { /* private mode */ }
   const M = {
-    open: saved, view: "home", full: false,
+    open: false, view: "home", full: false, hosted: false, restored: false,
     dirs: new Map(),     // "<project>|<api rel>" → {state: "loading"|"ok"|"error", dirs, files, error}
     opened: new Map(),   // scope key → folders you unfolded
     closed: new Map(),   // scope key → folders you folded (even with an agent inside)
@@ -661,7 +669,7 @@ export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
     if (M.raf) return;
     const loop = () => {
       M.raf = 0;
-      if (!M.open || M.mode !== "graph" || (!M.hosted && viewer.isOpen) || !M.gnodes.length) return;
+      if (!M.open || M.mode !== "graph" || (!M.hosted && viewer && viewer.isOpen) || !M.gnodes.length) return;
       gstep(); gstep();
       M.alpha *= 0.975;
       gdraw();
@@ -697,7 +705,7 @@ export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
 
   /** Draw what changed: the head as words, the boxes when the drawing changes, the cursors always (they glide). */
   function paint() {
-    if (!M.open || (!M.hosted && viewer.isOpen)) return; // under the viewer nothing moves, so focus comes back to the box it left
+    if (!M.open || !el || (!M.hosted && viewer && viewer.isOpen)) return; // under the viewer nothing moves, so focus comes back to the box it left
     const scope = scopeOf(M.view);
     M.scope = scope;
     if (el.dataset.scope !== scope.key + "|" + M.mode || !view()) skeleton(scope);
@@ -774,7 +782,7 @@ export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
 
   /** The Live · File switch, on whichever mode shows; nothing unless both are there. */
   function tabs(mode) {
-    if (!M.open || !viewer.hasFile) return "";
+    if (M.hosted || !viewer || !M.open || !viewer.hasFile) return "";
     const f = viewer.file || {};
     const name = f.name || base(f.rel || f.path) || "File";
     const live = liveIn(M.view);
@@ -784,6 +792,7 @@ export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
   }
 
   function setFull(on) {
+    if (M.hosted) return;
     M.full = on;
     document.body.classList.toggle("map-full", on && M.open);
     M.head = "";
@@ -794,13 +803,14 @@ export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
   }
 
   function setOpen(on, { focus = true } = {}) {
+    if (M.hosted || !el) return; // in the panel, the panel opens and closes it
     M.open = on;
     try { localStorage.setItem(KEY, on ? "1" : "0"); } catch { /* private mode */ }
     document.body.classList.toggle("map-open", on);
     document.body.classList.toggle("map-full", on && M.full);
     el.hidden = !on;
     if (on) {
-      if (viewer.isOpen) viewer.park(); // one panel: Live comes forward, the file waits behind its tab
+      if (viewer && viewer.isOpen) viewer.park(); // one panel: Live comes forward, the file waits behind its tab
       el.classList.remove("is-in"); void el.offsetWidth; el.classList.add("is-in");
       el.dataset.scope = "";
       paint();
@@ -808,8 +818,8 @@ export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
       announce("The map is open: where your agents are working.");
     } else {
       el.innerHTML = ""; el.dataset.scope = "";
-      if (viewer.isParked) viewer.close({ restore: false }); // closing the panel closes all of it
-      else viewer.refresh();
+      if (viewer && viewer.isParked) viewer.close({ restore: false }); // closing the panel closes all of it
+      else if (viewer) viewer.refresh();
       announce("Map closed.");
     }
     onChange && onChange();
@@ -818,7 +828,7 @@ export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
   // ── input ──────────────────────────────────────────────────────────────────
   const bound = new WeakSet();
   function bind(node) {
-  if (bound.has(node)) return;
+  if (!node || bound.has(node)) return;
   bound.add(node);
   node.addEventListener("click", (e) => {
     const t = e.target;
@@ -861,12 +871,12 @@ export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
     }
     else if (r.retry != null) load(r.fold, r.retry, { again: true });
     else if (r.go) go(r.go);
-    else if (r.open) viewer.open(r.open, nb);
+    else if (r.open) (openFile ? openFile(r.open, nb) : viewer && viewer.open(r.open, nb));
   });
   // the Live · File switch, drawn on the Map and on the viewer alike
   document.addEventListener("click", (e) => {
     const s = e.target.closest?.("[data-stage]");
-    if (!s) return;
+    if (!s || M.hosted || !viewer) return;
     const what = s.dataset.stage;
     if (what === "live") { viewer.park(); M.head = ""; paint(); (view() || el).focus({ preventScroll: true }); }
     else if (what === "file") viewer.unpark();
@@ -874,7 +884,7 @@ export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
   });
   node.addEventListener("keydown", (e) => {
     if (M.hosted) return; // the host decides what Esc does
-    if (e.key === "Escape" && !viewer.isOpen) { e.preventDefault(); e.stopPropagation(); if (M.full) setFull(false); else close(); }
+    if (e.key === "Escape" && !(viewer && viewer.isOpen)) { e.preventDefault(); e.stopPropagation(); if (M.full) setFull(false); else close(); }
   });
   // the panel's size changes with the window: frame it again unless you've moved it
   if (typeof ResizeObserver === "function") new ResizeObserver(() => { const c = M.scope && M.cams.get(M.scope.key); if (M.open && c) frame(c, false); }).observe(node);
@@ -882,43 +892,53 @@ export function createMap({ world, viewer, go, announce, isBusy, onChange }) {
   bind(el);
 
   function close() {
-    if (!M.open) return;
+    if (!M.open || M.hosted) return;
     const back = document.querySelector("[data-map-toggle]");
     if (M.full) { M.full = false; document.body.classList.remove("map-full"); }
     setOpen(false);
     back?.focus({ preventScroll: true });
   }
 
-  if (M.open) { document.body.classList.add("map-open"); el.hidden = false; }
 
   return {
-    get isOpen() { return M.open; },
-    /**
-     * Draw inside a host's panel (the right panel's Map tab) instead of #map: the host owns the tabs,
-     * Full size, Close and Esc; the Map draws its head (title, what the agent is doing, who's at work)
-     * and the canvas, and fills `node` (give it a height; it lays itself out as a column).
-     */
-    mount(node) {
-      if (!node) return;
-      const own = $("#map");
-      if (own && own !== node) { own.hidden = true; own.innerHTML = ""; document.body.classList.remove("map-open", "map-full"); }
-      M.hosted = true; M.full = false;
-      el = node; bind(node);
-      node.classList.add("map-host");
+    /** Standalone #map is open (always false in the panel: the panel answers that). */
+    get isOpen() { return M.open && !M.hosted; },
+    // ── in the right panel ──
+    /** Once: draw only inside `host` (the Map tab's body; give it a height). Nothing is painted until show(). */
+    mount(host) {
+      if (!host) return;
+      M.hosted = true; M.full = false; M.open = false;
+      el = host; bind(host);
+      host.classList.add("map-host");
+      el.dataset.scope = ""; M.head = "";
+    },
+    /** The tab became visible: start painting and frame the camera. */
+    show(v) {
+      if (!el) return;
+      if (v) M.view = v;
       M.open = true; el.dataset.scope = ""; M.head = "";
       paint();
+      const c = M.scope && camOf(M.scope);
+      if (c) requestAnimationFrame(() => { c.target = null; frame(c, false); });
     },
-    /** The host hid the Map's tab: stop drawing (the graph stops moving), keep where you were. */
-    unmount() { M.open = false; if (M.raf) { cancelAnimationFrame(M.raf); M.raf = 0; } },
-    /** Is an agent working in this view's scope? (for the host's icon: a live dot) */
-    liveIn,
+    /** The tab was hidden or the panel closed: stop the heavy work (the graph stops), keep camera and folds. */
+    hide() { M.open = false; if (M.raf) { cancelAnimationFrame(M.raf); M.raf = 0; } },
+    /** Agents at work in this view's scope: the tab's dot and the header button's dot. */
+    live: (v) => liveIn(v),
+
+    // ── standalone (#map), until the panel lands ──
     /** The header's Map button: shows Live (parking a file in front of it), or closes the panel. */
-    toggle: () => (M.open && viewer.isOpen ? (viewer.park(), (M.head = ""), paint(), (view() || el).focus({ preventScroll: true })) : M.open ? close() : setOpen(true)),
+    toggle: () => (M.open && viewer && viewer.isOpen ? (viewer.park(), (M.head = ""), paint(), (view() || el).focus({ preventScroll: true })) : M.open ? close() : setOpen(true)),
     tabs,
     open: () => setOpen(true),
     close,
     /** The view changed or the world moved: follow it. */
-    render(v) { if (v !== M.view) M.view = v; paint(); },
+    render(v) {
+      if (v !== M.view) M.view = v;
+      // standalone: reopen #map as it was, unless a panel mounted the Map first
+      if (!M.hosted && !M.restored) { M.restored = true; if (saved && el) { setOpen(true, { focus: false }); return; } }
+      paint();
+    },
     /** The header's toggle, for any conversation view. */
     button(v) {
       const live = liveIn(v);
