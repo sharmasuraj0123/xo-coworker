@@ -404,10 +404,23 @@ export function stormSource(state, emit, event) {
     soon();
   }
   /** A session's stored frames, newest page, so its finished turns show their blocks (UI-reference §1.4). */
+  /** A coordinator's control of a thread (F6), once per stored event, in order. */
+  function noteControl(env, d) {
+    const ts = env.thread_ts || d.thread_ts;
+    if (!ts || !d.action) return false;
+    const list = state.controls[ts] || (state.controls[ts] = []);
+    if (env.seq != null && list.some((c) => c.seq === env.seq)) return false;
+    list.push({ ...d, at: env.ts, seq: env.seq ?? null });
+    list.sort((a, b) => (a.seq ?? Infinity) - (b.seq ?? Infinity));
+    return true;
+  }
   async function loadTurns(session) {
     try {
       const d = await api.events({ session, before_seq: NEWEST, limit: 500 });
-      for (const f of d.events || []) state.turns.apply({ type: f.type, envelope: f });
+      for (const f of d.events || []) {
+        if (f.type === "thread.control") noteControl(f, f.data || {});
+        else state.turns.apply({ type: f.type, envelope: f });
+      }
     } catch { /* live frames still arrive */ }
   }
 
@@ -476,8 +489,7 @@ export function stormSource(state, emit, event) {
       }
       case "thread.control": {
         // a coordinator steered, interrupted or stopped a thread (F6): kept for the thread's timeline
-        const ts = env.thread_ts || d.thread_ts;
-        if (ts) { (state.controls[ts] || (state.controls[ts] = [])).push({ ...d, at: env.ts, seq: env.seq ?? null }); soon(); }
+        if (noteControl(env, d)) soon();
         break;
       }
       case "card": {

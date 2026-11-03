@@ -2660,3 +2660,7 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .lim-h em{font-style:normal;font-weight:450;color:var(--ink-3)}
 .lim-why{font-size:var(--fs-base);line-height:1.55;color:var(--ink-2);padding-left:24px}
 .lim-acts{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}
+
+/* ── what a coordinator did to a thread's turn (mixed runtimes F6): quiet rows; a stop reads a touch stronger ── */
+.ev-ctl.is-steer .ev-t{color:var(--ink-4)}
+.ev-ctl.is-stop .ev-t{color:var(--ink-2)}
