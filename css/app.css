@@ -2064,6 +2064,8 @@ body.map-full .map{left:14px;width:auto;z-index:21}
 body.map-full .dock,body.map-full .tdock{visibility:hidden}
 
 .mp-head{flex:none}
+/* inside a host's panel (the right panel's Map tab): a column that fills it */
+.map-host{display:flex;flex-direction:column;min-height:0;height:100%}
 .mp-top{display:flex;align-items:center;gap:10px;padding:12px 10px 10px 12px}
 .mp-hic{flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:8px;background:var(--g22);color:var(--ink-2)}
 .mp-hic svg{width:17px;height:17px}
