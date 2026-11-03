@@ -60,7 +60,11 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
   needs you, not saved, not pushed, stopped, finished, still going, one line per thread with what it did. The git
   words come from `GET /chat/worktrees` (`would_lose`). **Made** beside All threads lists what a project's threads
   shared (each thread's `outputs`), with pins per browser; a file opens in the viewer beside its own thread. Home shows
-  Recently made, and ⌘K finds made files by name. "Merged" and exact times wait on the backend (§5 of the note).
+  Recently made, and ⌘K finds made files by name.
+  A newer backend (xo-space `xo/thread-046666`) makes it exact, and each part falls back when its route or field
+  is missing: Made from `GET /chat/chats/{chat}/made` (files, links, branches; pins via `PUT|DELETE …/made/{id}/pin`;
+  a 404 means the fallback), the thread's `summary` and branch `git` state (merged and its PR, pushed, unpushed), the
+  worktrees' `removed` list, and "seen" per chat (`seen` on the chat, `PUT …/seen`; the later of it and this browser's).
   `?away=3d` (or `12h`) in the URL shows the cards as if you had been away that long, without storing anything.
 - **Shells (`/api/terminal/*`):** only when `GET /terminal/status` says `enabled`; otherwise no shell UI shows at all.
   - Where they open: **Shell** beside All threads on a project (its folder), beside Next move on the Workspace
