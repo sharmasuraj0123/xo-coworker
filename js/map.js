@@ -215,6 +215,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     opened: new Map(),   // scope key → folders you unfolded
     closed: new Map(),   // scope key → folders you folded (even with an agent inside)
     more: new Map(),     // scope key → folders showing every box
+    shown: new Map(),    // scope key → boxes that have been on screen (they stay, so nothing reshuffles)
     cams: new Map(),     // scope key → {x, y, s, user, follow, target}
     refs: new Map(),     // box id → what a click on it does
     curs: new Map(),     // agent id → its cursor element and where it was
@@ -240,7 +241,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     const fold = folderOf(t);
     const a = activityOf(turns(), t.sessionId, fold && fold.root);
     const now = a.now && a.now.row;
-    const liveFile = [...a.files.values()].find((f) => f.live) || null;
+    const liveFile = [...a.files.values()].filter((f) => f.live).sort((x, y) => y.seq - x.seq)[0] || null;
     const lastFile = [...a.files.values()].sort((x, y) => y.seq - x.seq)[0] || null;
     const busy = isBusy(t);
     return { id: t.id, title: t.title, go: "t:" + t.id, project: t.project, fold, act: a, now, liveFile, path: (liveFile || (!busy && lastFile) || null)?.path || null, spots: a.nowSpots, prev: a.lastFile, busy, waiting: !!(now && now.waiting), since: a.running ? Date.parse(a.running.at) : null, color: colorOf(t.id) };
@@ -252,7 +253,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     const root = anyT ? folderOf(anyT).projectRoot : null;
     const a = activityOf(turns(), sid, root);
     const now = a.now && a.now.row;
-    const liveFile = [...a.files.values()].find((f) => f.live) || null;
+    const liveFile = [...a.files.values()].filter((f) => f.live).sort((x, y) => y.seq - x.seq)[0] || null;
     return { id: "coord:" + pid, title: "Coordinator", go: pid === "workspace" ? "ws" : "p:" + pid, project: pid, fold: root ? { root, base: "", project: pid } : null, act: a, now, liveFile, path: liveFile ? liveFile.path : null, spots: a.nowSpots, prev: a.lastFile, busy: true, waiting: !!(now && now.waiting), since: a.running ? Date.parse(a.running.at) : null, coord: true, color: COORD_COLOR };
   }
   function agentsIn(pid) {
@@ -309,17 +310,27 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     const marked = new Set(marks.keys());
     // a thread's changes unfold their folders while there are few of them
     const unfoldMarks = scope.kind === "thread" && marked.size <= 16;
-    const isOpen = (p) => opened.has(p) || (!closed.has(p) && (inside(hot, p) || (unfoldMarks && inside(marked, p))));
+    // a folder an agent went into stays open after it leaves, so the drawing never folds up under you
+    const isOpen = (p) => { if (opened.has(p)) return true; if (closed.has(p)) return false; if (inside(hot, p) || (unfoldMarks && inside(marked, p))) { opened.add(p); return true; } return false; };
     const kids = (local) => {
       load(fold, local);
       const d = M.dirs.get(dirKey(fold, local));
       if (!d || (d.state === "loading" && !d.dirs)) return [{ id: local + "/…", kind: "note", name: "Reading…" }];
       if (d.state === "error") { M.refs.set(local + "/!", { retry: local, fold }); return [{ id: local + "/!", kind: "note", name: `${d.error} · Try again`, btn: true }]; }
       const all = more.has(local);
-      const rank = (p) => (inside(hot, p) ? 0 : inside(marked, p) ? 1 : 2);
-      const dirs = d.dirs.map((x, i) => ({ ...x, i })).sort((a, b) => rank(a.path) - rank(b.path) || a.i - b.i);
-      const files = d.files.map((x, i) => ({ ...x, i })).sort((a, b) => rank(a.path) - rank(b.path) || a.i - b.i);
-      const sd = all ? dirs : dirs.slice(0, DIR_CAP), sf = all ? files : files.slice(0, FILE_CAP);
+      // which boxes show: the ones an agent is on or changed always, then the first on disk up to the cap.
+      // They're drawn in their order on disk, and one that has shown keeps showing, so nothing reshuffles.
+      const seen = setOf(M.shown, scope.key);
+      const pick = (list, cap) => {
+        if (all || list.length <= cap) return list;
+        const must = new Set(list.filter((x) => inside(hot, x.path) || inside(marked, x.path) || seen.has(x.path)).map((x) => x.path));
+        let room = cap - must.size;
+        return list.filter((x) => must.has(x.path) || (room-- > 0));
+      };
+      const dirs = d.dirs, files = d.files;
+      const sd = pick(dirs, DIR_CAP), sf = pick(files, FILE_CAP);
+      for (const x of sd) seen.add(x.path);
+      for (const x of sf) seen.add(x.path);
       const out = [];
       for (const c of sd) {
         const open = isOpen(c.path);
@@ -513,18 +524,65 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       view()?.focus({ preventScroll: true });
       announce(what === "graph" ? "Graph view." : "Diagram view.");
     }
-    else if (what === "follow") { c.follow = !c.follow; c.user = false; c.target = null; frame(c, true); announce(c.follow ? "Following the agent." : "Not following."); }
+    else if (what === "follow") {
+      c.follow = !c.follow; c.user = false;
+      if (c.follow && M.lead) { c.target = M.lead.key; centerOn(c, M.lead.pt, true); }
+      announce(c.follow ? "Following the agent." : "Not following.");
+    }
   }
 
-  /** Where the camera goes by itself: onto the followed agent, or the whole drawing, until you move it. */
-  function frame(c, glide) {
+  /**
+   * Where the camera goes by itself. For its first moment on screen it frames the drawing (or the
+   * followed agent) as it loads; after that it holds still: the cursor moves, the drawing doesn't.
+   * Follow only nudges the view, gently, when the cursor would leave it.
+   */
+  const SETTLE_MS = 1600;
+  function frame(c) {
     if (!M.bounds) return;
-    const lead = M.lead;
-    if (c.follow && lead) {
-      if (c.target !== lead.key || !c.user) { centerOn(c, lead.pt, glide && c.target != null, c.user ? null : Math.max(c.s, 0.85)); c.target = lead.key; }
+    const now = Date.now(), lead = M.lead;
+    if (!c.settleUntil) c.settleUntil = now + (M.mode === "graph" ? SETTLE_MS + 1200 : SETTLE_MS);
+    if (!c.user && now < c.settleUntil) {
+      if (c.follow && lead) centerOn(c, lead.pt, false, Math.max(c.s, 0.85)); else fit(c, false);
+      c.target = lead ? lead.key : null;
       return;
     }
-    if (!c.user) fit(c, glide);
+    if (c.follow && lead && c.target !== lead.key) { c.target = lead.key; keepInView(c, lead.pt); }
+  }
+  /** Pan just enough that `pt` (and its name) is comfortably inside the view; never zoom. */
+  function keepInView(c, pt) {
+    const v = view();
+    if (!v || !v.clientWidth) return;
+    const W = v.clientWidth, H = v.clientHeight - 44, m = 48;
+    const sx = c.x + pt.x * c.s, sy = c.y + pt.y * c.s;
+    const right = W - m - Math.min(TAG * c.s, W / 3);
+    let dx = 0, dy = 0;
+    if (sx < m) dx = m + W * 0.12 - sx; else if (sx > right) dx = right - W * 0.12 - sx;
+    if (sy < m) dy = m + H * 0.12 - sy; else if (sy > H - m) dy = H - m - H * 0.12 - sy;
+    if (dx || dy) { c.x += dx; c.y += dy; applyCam(c, true); }
+  }
+
+  /** The drawing changed shape: shift the camera so the box you were looking at doesn't move on screen. */
+  function holdStill(scope, old, L) {
+    const c = camOf(scope), v = view();
+    if (!v || !v.clientWidth || (!c.user && Date.now() < (c.settleUntil || 0))) { M.anchorId = null; return; }
+    const was = new Map(old.nodes.map((n) => [n.id, n]));
+    let pair = null;
+    for (const id of [M.anchorId, M.leadNode]) {
+      if (pair || id == null) continue;
+      const o = was.get(id), n = L.nodes.find((x) => x.id === id);
+      if (o && n) pair = [o, n];
+    }
+    if (!pair) {
+      const cx = (v.clientWidth / 2 - c.x) / c.s - PAD, cy = ((v.clientHeight - 44) / 2 - c.y) / c.s - PAD;
+      let best = Infinity;
+      for (const n of L.nodes) { const o = was.get(n.id); if (!o) continue; const d = (o.x - cx) ** 2 + (o.y - cy) ** 2; if (d < best) { best = d; pair = [o, n]; } }
+    }
+    M.anchorId = null;
+    if (!pair) return;
+    const [o, n] = pair;
+    if (o.x === n.x && o.y === n.y) return;
+    c.x -= (n.x - o.x) * c.s; c.y -= (n.y - o.y) * c.s;
+    applyCam(c, false);
   }
 
   // ── cursors ─────────────────────────────────────────────────────────────────
@@ -565,13 +623,18 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       c.el.style.setProperty("--c", a.color);
       c.el.classList.toggle("is-idle", !a.busy);
       c.el.classList.toggle("is-wait", a.waiting);
-      c.el.style.transform = `translate(${x}px,${y}px)`;
+      const to = `translate(${x}px,${y}px)`;
+      if (c.node === a.nid && c.el.style.transform !== to) {
+        // same box, moved by the drawing: jump with it, no glide
+        c.el.style.transition = "none"; c.el.style.transform = to; void c.el.offsetWidth; c.el.style.transition = "";
+      } else c.el.style.transform = to;
       if (c.tag !== tag) { c.el.querySelector(".dg-tag").innerHTML = tag; c.tag = tag; }
       if (c.node !== a.nid) {
         // it landed somewhere new: the box answers once, in its colour
         if (c.node != null) { const b = el.querySelector(`[data-node="${CSS.escape(a.nid)}"]`); if (b) { b.style.setProperty("--c", a.color); b.classList.remove("is-hit"); void b.offsetWidth; b.classList.add("is-hit"); } }
         c.node = a.nid;
       }
+      if (!M.lead && a.busy) M.leadNode = a.nid;
       if (!M.lead && a.busy) M.lead = { key: `${a.id}@${a.nid}`, pt: { x: p.cx, y: p.cy } };
     }
     for (const [k, c] of M.curs) if (!seen.has(k)) { c.el.classList.add("is-gone"); setTimeout(() => c.el.remove(), 320); M.curs.delete(k); }
@@ -610,7 +673,8 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       svg.innerHTML = M.gnodes.filter((g) => g.par).map(() => "<line/>").join("");
       M.gedges = [...svg.children];
       M.layoutKey = html;
-      if (shape !== M.gkey) { M.gkey = shape; M.alpha = Math.max(M.alpha, 0.8); }
+      // the first layout settles from scratch; later dots join gently without shaking the rest
+      if (shape !== M.gkey) { M.alpha = Math.max(M.alpha, M.gkey ? 0.25 : 0.9); M.gkey = shape; }
       if (fid != null) nodes.querySelector(`[data-node="${CSS.escape(fid)}"]`)?.focus({ preventScroll: true });
     }
     M.gags = ags;
@@ -674,7 +738,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       M.alpha *= 0.975;
       gdraw();
       const c = M.scope && camOf(M.scope);
-      if (c) frame(c, false);
+      if (c) frame(c);
       if (M.alpha > 0.02) M.raf = requestAnimationFrame(loop);
     };
     M.raf = requestAnimationFrame(loop);
@@ -744,7 +808,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     M.glit = lit;
     if (M.mode === "graph") paintGraph(scope, flat, ags, at);
     else {
-      const L = layoutOf(tree);
+      const L = layoutOf(tree), old = M.layout;
       M.layout = L;
       M.bounds = { x0: 0, y0: 0, x1: L.w + PAD * 2 + TAG, y1: L.h + PAD * 2 };
       const byId = new Map(L.nodes.map((n) => [n.id, n]));
@@ -760,6 +824,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
         nodes.style.width = W + "px"; nodes.style.height = H + "px";
         nodes.innerHTML = nodesHtml;
         M.layoutKey = key;
+        if (old) holdStill(scope, old, L);
         if (fid != null) nodes.querySelector(`[data-node="${CSS.escape(fid)}"]`)?.focus({ preventScroll: true });
       }
       cursors(ags, (id) => { const n = byId.get(id); return n ? { x: n.x + PAD + NW - 30, y: n.y + PAD + NH / 2 + 2, cx: n.x + PAD + NW / 2, cy: n.y + PAD + NH / 2 } : null; });
@@ -769,7 +834,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     const kinds = new Set([...marks.values()].map((m) => m.mark).filter((m) => m !== "read"));
     const kh = kinds.size ? ["new", "edited", "deleted"].filter((k) => kinds.has(k)).map((k) => `<span class="m-${k}"><i></i>${k}</span>`).join("") : "";
     if (kd && kd._h !== kh) { kd.innerHTML = kh; kd._h = kh; kd.hidden = !kh; }
-    frame(camOf(scope), true);
+    frame(camOf(scope));
   }
 
   /** Is anything in this view's scope working? (the button's live dot) */
@@ -799,7 +864,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     const c = M.scope && camOf(M.scope);
     paint();
     // the canvas changed size: frame it again once it has
-    if (c) requestAnimationFrame(() => { c.target = null; frame(c, true); });
+    if (c) requestAnimationFrame(() => frame(c));
   }
 
   function setOpen(on, { focus = true } = {}) {
@@ -855,19 +920,15 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     const key = M.scope.key;
     if (r.toggle != null || r.more != null) {
       // unfold in place: the box you clicked stays under your pointer, at the same size
-      const id = nb.dataset.node, c = camOf(M.scope);
-      const was = M.mode === "tree" && M.layout && M.layout.nodes.find((n) => n.id === id);
-      const p0 = was ? { x: was.x, y: was.y } : null;
-      if (M.mode === "tree") { c.user = true; c.follow = false; }
+      const c = camOf(M.scope);
+      M.anchorId = nb.dataset.node;
+      c.user = true;
       if (r.more != null) setOf(M.more, key).add(r.more);
       else {
         const opened = setOf(M.opened, key), closed = setOf(M.closed, key);
         if (r.open) { opened.delete(r.toggle); closed.add(r.toggle); } else { closed.delete(r.toggle); opened.add(r.toggle); }
       }
       paint();
-      const now = M.layout && M.layout.nodes.find((n) => n.id === (r.more != null ? id : id));
-      const anchor = now || (r.more != null && M.layout && M.layout.nodes.find((n) => parentOf(n.id) === r.more));
-      if (p0 && anchor && M.mode === "tree") { c.x -= (anchor.x - p0.x) * c.s; c.y -= (anchor.y - p0.y) * c.s; applyCam(c, false); }
     }
     else if (r.retry != null) load(r.fold, r.retry, { again: true });
     else if (r.go) go(r.go);
@@ -887,7 +948,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     if (e.key === "Escape" && !(viewer && viewer.isOpen)) { e.preventDefault(); e.stopPropagation(); if (M.full) setFull(false); else close(); }
   });
   // the panel's size changes with the window: frame it again unless you've moved it
-  if (typeof ResizeObserver === "function") new ResizeObserver(() => { const c = M.scope && M.cams.get(M.scope.key); if (M.open && c) frame(c, false); }).observe(node);
+  if (typeof ResizeObserver === "function") new ResizeObserver(() => { const c = M.scope && M.cams.get(M.scope.key); if (M.open && c) frame(c); }).observe(node);
   }
   bind(el);
 
@@ -928,7 +989,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       M.open = true; el.dataset.scope = ""; M.head = "";
       paint();
       const c = M.scope && camOf(M.scope);
-      if (c) requestAnimationFrame(() => { c.target = null; frame(c, false); });
+      if (c) requestAnimationFrame(() => frame(c));
     },
     /** The tab was hidden or the panel closed: stop the heavy work (the graph stops), keep camera and folds. */
     hide() { M.open = false; if (M.raf) { cancelAnimationFrame(M.raf); M.raf = 0; } },
