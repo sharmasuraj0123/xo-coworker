@@ -105,7 +105,8 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 | `js/content.js` | what an ask costs you, what it frees, and its evidence |
 | `js/ui.js` | icons and motion helpers |
 | `js/gestures.js` | touch gestures on a phone: swipe back or open the sidebar, drag sheets away, swipe between asks, long-press Copy (design-research/11) |
-| `js/stage.js` | the panel: one card on the right with tabs (Map, Made, File; later apps), one header button (`mod+\`), full size, Esc; the Map mounts into its tab (mount, show, hide, render, live; files through openFile) |
+| `js/stage.js` | the panel (design-research/13): one card on the right, tools as labelled tabs (Files, Made, Map; apps later, past four into More), one header button (`mod+\`) that opens on Files first and then on the last tool, full size, Esc; the Map mounts into its tab |
+| `js/files.js` | Files: the project's (or a thread's worktree's) files a folder at a time, the README first, the file beside the tree or one at a time, what agents touched marked; the one place a file opens (the viewer lives in it) |
 | `js/record.js`, `js/recordview.js` | a project's record (design-research/12): what its threads made (Made, Recently made on Home, ⌘K) and Since you left; the pure part, then the screen |
 | `js/map.js` | the Map: the folder drawn as a diagram (`/xo-projects/{p}/tree`, a level at a time), agents as cursors (from the stream's activity rows), pan and zoom, the Live · File switch with the viewer |
 | `js/shells/dock.js` | shells: the dock, its tabs and list, the sidebar's toggle; what `app.js` calls |
@@ -122,6 +123,7 @@ node tests/shells.test.mjs       # shells' pure parts, and the vendored xterm ha
 python3 tests/serve.test.py      # serve.py: the Host allowlist and the WebSocket tunnel, against fake backends
 node tests/storm.test.mjs        # the stream parser and the turn store; no network
 node tests/turnview.test.mjs     # how a turn renders: changed-file chips, runtime notices; no network
+node tests/files.test.mjs        # Files: which folder a view shows, where an opened file sits in it; no network
 node tests/record.test.mjs       # Made and Since you left: kinds, order, groups, git words, the headline; no network
 node tests/map.test.mjs          # the Map's pure parts: folders, paths, what a session touched, the diagram's layout; no network
 ```

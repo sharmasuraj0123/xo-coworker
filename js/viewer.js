@@ -63,7 +63,7 @@ export function createViewer({ announce, onChange, tabs }) {
       : canSave() ? `<button type="button" class="vw-btn" data-vw-save title="Download the whole file"${V.saving ? " disabled" : ""}>${ICON.down}<span>${V.saving ? "Downloading…" : "Download"}</span></button>` : "";
     const meta = [kind, V.dims && `${V.dims.w} × ${V.dims.h}`, size(d ? d.size_bytes : f.bytes)].filter(Boolean);
     const canCopy = !!(d && typeof d.content === "string");
-    const toggle = d && d.kind === "html"
+    const toggle = d && (d.kind === "html" || d.kind === "markdown")
       ? `<div class="vw-seg" role="group" aria-label="Show"><button type="button" data-vw-mode="preview" aria-pressed="${V.mode === "preview"}">Preview</button><button type="button" data-vw-mode="source" aria-pressed="${V.mode === "source"}">Source</button></div>`
       : d && d.kind === "image"
         ? `<div class="vw-seg" role="group" aria-label="Size"><button type="button" data-vw-mode="preview" aria-pressed="${V.mode === "preview"}">Fit</button><button type="button" data-vw-mode="actual" aria-pressed="${V.mode === "actual"}" aria-label="Actual size"><span class="vw-wide">Actual size</span><span class="vw-narrow" aria-hidden="true">1:1</span></button></div>`
@@ -95,9 +95,9 @@ export function createViewer({ announce, onChange, tabs }) {
     const text = String(d.content ?? "");
     const cut = d.truncated ? `<p class="vw-cut">${ICON.clock}<span>Showing the first ${esc(size(bytes(text)))} of ${esc(size(d.size_bytes))}. The rest isn't previewed.</span>${canSave() ? `<button type="button" class="vw-cut-dl" data-vw-save${V.saving ? " disabled" : ""}>Download the whole file</button>` : ""}</p>` : "";
     let main;
-    if (d.kind === "markdown") main = `<article class="prose vw-md">${renderMarkdown(text)}</article>`;
+    if (d.kind === "markdown" && V.mode !== "source") main = `<article class="prose vw-md">${renderMarkdown(text)}</article>`;
     else if (d.kind === "html" && V.mode === "preview") main = `<iframe class="vw-frame" sandbox="" referrerpolicy="no-referrer" title="${esc(V.file.name || "HTML preview")}" srcdoc="${esc(text)}"></iframe>`;
-    else main = codeHtml(text, d.kind === "html" ? "html" : langOf(extOf(d.name || V.file.name)));
+    else main = codeHtml(text, d.kind === "html" ? "html" : d.kind === "markdown" ? "markdown" : langOf(extOf(d.name || V.file.name)));
     return cut + main;
   }
 
@@ -157,7 +157,8 @@ export function createViewer({ announce, onChange, tabs }) {
     const was = V.open;
     dropImage();
     if (V.parked) { V.parked = false; el.hidden = false; }
-    Object.assign(V, { open: true, file: { ...f, where: f.rel || f.path || "", image: f.att ? kindOf(f.type || "") === "image" : f.local == null && isImagePath(f.rel || f.path || f.name) }, data: null, dims: null, error: null, why: f.why || null, mode: "preview", copied: false, saving: false, saveError: null, returnTo: from || (was ? V.returnTo : document.activeElement) });
+    Object.assign(V, { open: true, file: { ...f, where: f.rel || f.path || "", image: f.att ? kindOf(f.type || "") === "image" : f.local == null && isImagePath(f.rel || f.path || f.name) }, data: null, dims: null, error: null, why: f.why || null, mode: V.textMode || "preview", copied: false, saving: false, saveError: null, returnTo: from || (was ? V.returnTo : document.activeElement) });
+    if (V.file.image) V.mode = "preview";
     el.hidden = false;
     document.body.classList.add("viewer-open");
     if (!was) { el.classList.remove("is-in"); void el.offsetWidth; el.classList.add("is-in"); }
@@ -189,7 +190,7 @@ export function createViewer({ announce, onChange, tabs }) {
   el.addEventListener("click", (e) => {
     if (e.target.closest("[data-vw-close]")) { close(); return; }
     const m = e.target.closest("[data-vw-mode]");
-    if (m) { V.mode = m.dataset.vwMode; render(); return; }
+    if (m) { V.mode = m.dataset.vwMode; if (V.mode !== "actual") V.textMode = V.mode; render(); return; }
     if (e.target.closest(".vw-img img")) { V.mode = V.mode === "actual" ? "preview" : "actual"; render(); return; }
     if (e.target.closest("[data-vw-copy]")) { copy(String(V.data.content)); return; }
     if (e.target.closest("[data-vw-copy-path]")) { copy(V.file.path); return; }

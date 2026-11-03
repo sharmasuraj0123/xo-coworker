@@ -26,6 +26,7 @@ import { createChats } from "./chats.js";
 import { createViewer } from "./viewer.js";
 import { createMap, MAP_ICON } from "./map.js";
 import { createStage } from "./stage.js";
+import { createFiles, FILES_ICON } from "./files.js";
 import { createTray, fmtSize, kindOf, typeWord, isLargePaste, pasteLabel, uploadErrorText, FINAL, MAX_FILES } from "./attach.js";
 import { uploadAttachment, attachmentUrl } from "./api.js";
 import { createShells } from "./shells/dock.js";
@@ -170,7 +171,9 @@ const SORT_STATE = { needs_approval: 0, needs_reply: 0, paused: 0, failed: 1, wo
 // the Map (js/map.js): where your agents are working, beside the conversation; the viewer stacks over it
 const MAP = createMap({ world, viewer: VW, go: (v) => go(v), announce, isBusy, onChange: () => schedule(), openFile: (f, from) => VW.open(f, from) });
 // the panel: one card on the right with tabs (Map, Made, File; later apps), one header button, ⌘\
-const STAGE = createStage({ map: MAP, mapIcon: MAP_ICON, viewer: VW, made: REC.made, view: () => S.view, announce, onChange: () => schedule() });
+// Files: the project's files, and the one place a file opens (js/files.js, design-research/13)
+const FILES = createFiles({ world, viewer: VW, isBusy, PROJ, go: (v) => go(v) });
+const STAGE = createStage({ files: FILES, filesIcon: FILES_ICON, made: REC.made, map: MAP, mapIcon: MAP_ICON, viewer: VW, view: () => S.view, announce, onChange: () => schedule() });
 REC.panel = STAGE;
 const doneToday = () => world.state.threads.filter((t) => t.state === "done" && new Date(t.lastAt).toDateString() === new Date().toDateString());
 
