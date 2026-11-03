@@ -108,4 +108,46 @@ t("seen: per place, kept in the store, survives a fresh read", () => {
   broken.mark("home", 1); // never throws
 });
 
+
+t("a newer backend's git state: merged says shipped (with its PR); pushed, unpushed and nothing to ship", () => {
+  const g = (x) => ({ branch: "b", branch_exists: true, commits: 2, merged: false, upstream: null, unpushed: null, pr: null, ...x });
+  assert.deepEqual(R.gitState(null, g({ merged: true, pr: { number: 37, url: "u", state: "MERGED" } })), { group: "shipped", word: "merged · PR #37", n: 0, url: "u" });
+  assert.equal(R.gitState(null, g({ merged: true })).word, "merged");
+  assert.deepEqual(R.gitState(null, g({ upstream: { pushed: true }, unpushed: 0, pr: { number: 9, state: "OPEN", url: "p" } })), { group: "unmerged", word: "PR #9 open", n: 0, url: "p" });
+  assert.equal(R.gitState(null, g({ upstream: { pushed: true }, unpushed: 0 })).word, "pushed, no PR");
+  assert.equal(R.gitState(null, g({ upstream: { pushed: true }, unpushed: 3 })).word, "3 commits not pushed");
+  assert.equal(R.gitState(null, g({ upstream: null })).word, "2 commits not pushed");    // no upstream: all its own commits
+  assert.equal(R.gitState(null, g({ commits: 0 })).group, "saved");
+  // uncommitted files still come first, from the worktree; a removed tree keeps its last git state
+  assert.equal(R.gitState(tree(lost({ changed: 1 })), g({ merged: true })).group, "unsaved");
+  assert.equal(R.gitState({ exists: false, git: g({ merged: true }) }).group, "shipped");
+  assert.equal(R.gitState({ ...tree(null), git: g({ merged: true }) }).group, "shipped");
+});
+
+t("since you left with git states: shipped and not merged get their own groups, and the headline says so", () => {
+  const since = NOW - 48 * H;
+  const threads = [th("a", "resolved", 3, { git: { merged: true, commits: 1 } }), th("b", "done", 2, { git: { commits: 1, upstream: { pushed: true }, unpushed: 0 } }), th("c", "done", 1, { summary: "Moved Shells into the foot." })];
+  const cu = R.catchUp(threads, { since });
+  assert.deepEqual(cu.groups.map((g) => g.id), ["unmerged", "shipped", "finished"]);
+  assert.equal(cu.groups[2].items[0].line, "Moved Shells into the foot.");
+  assert.deepEqual(R.headline(cu.counts), { lead: "1 shipped, 1 finished, 1 not merged.", tail: "Nothing needs you." });
+});
+
+t("made from the backend: its rows in the same shape, links and branches kept, missing fields tolerated", () => {
+  const rows = [
+    { id: "m1", kind: "file", name: "plan.md", mime: "text/markdown", bytes: 10, thread_ts: "a", updated_at: "2026-11-03T10:00:00Z", pinned: true, exists: true, project_id: "p", relative_path: ".xo/made/thread-a/plan.md", path: "plan.md" },
+    { id: "m2", kind: "link", url: "https://github.com/x/y/pull/37", name: "PR #37", thread_ts: "b", created_at: "2026-11-03T12:00:00Z" },
+    { id: "m3", kind: "branch", git: { branch: "xo/thread-1", merged: true }, thread_ts: "a", updated_at: "2026-11-03T11:00:00Z", exists: false },
+    { kind: "file" },                                         // no id: dropped
+  ];
+  const items = R.madeFromServer(rows, { project: "p", title: (ts) => ({ a: "Alpha" })[ts] || "" });
+  assert.deepEqual(items.map((m) => [m.key, m.kind]), [["m2", "link"], ["m3", "branch"], ["m1", "doc"]]);
+  assert.equal(items[0].url, "https://github.com/x/y/pull/37");
+  assert.equal(items[1].name, "thread-1");
+  assert.equal(items[1].exists, false);
+  assert.deepEqual([items[2].pinned, items[2].fileProject, items[2].rel, items[2].title], [true, "p", ".xo/made/thread-a/plan.md", "Alpha"]);
+  assert.deepEqual(R.madeFromServer(null), []);
+  assert.deepEqual(R.filterMade(items, { kind: "link" }).map((m) => m.key), ["m2"]);
+});
+
 console.log(`${passed} passed${process.exitCode ? ", with failures" : ""}`);

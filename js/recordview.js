@@ -6,8 +6,14 @@
 // what moved since, until "Got it" or a reload. A thread counts as its project, so opening a line
 // and coming back keeps the card. Git words come from `GET /chat/worktrees`, read when a card shows.
 //
-// Made: the files a project's threads shared, in a sheet from the project's header, newest first,
-// by kind, with pins (per browser). A file opens in the viewer through its own thread's folder.
+// Made: what a project's threads made, in a sheet from the project's header, newest first, by kind,
+// with pins. A newer backend keeps it (`/chat/chats/{chat}/made`: files, links and branches, pins
+// for every device, copies of shared files once a worktree goes); with an older one it is what each
+// thread shared (its `outputs`), pinned per browser. A file opens in the viewer beside its thread.
+//
+// Every newer field is optional: a missing route (404) or field means the fallback, never an error.
+// "Seen" is the backend's per chat when it has it (the later of it and this browser's), else this
+// browser's; the thread's `summary` and `git` state make the card's words exact when they're there.
 //
 // app.js calls: placeOf, leave, projectSince, homeSinceHtml, homeMadeHtml, madeCount, openMade,
 // closeMade, madeOpen, jumpItems.
@@ -23,7 +29,7 @@ const TREES_MS = 60000;     // worktrees read at most this often per chat
 const LINES = 6;            // a card's lines before "+N more"
 const RECENT = 6;           // Recently made on Home
 
-const KIND_IC = { image: ICON.image, page: ICON.globe, doc: ICON.doc, data: ICON.list, code: ICON.edit };
+const KIND_IC = { image: ICON.image, page: ICON.globe, doc: ICON.doc, data: ICON.list, code: ICON.edit, link: ICON.arrow, branch: ICON.branch };
 
 export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
   const seen = R.createSeen(localStorage);
@@ -45,6 +51,19 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
     if (v.startsWith("t:")) { const t = world.thread(v.slice(2)); return t && t.project && t.project !== "workspace" ? "p:" + t.project : null; }
     return null;
   }
+  // the backend's seen marks, per project chat ({seen_at}); null until read, {} when it has none
+  let remoteSeen = null;
+  api.chats().then((d) => {
+    const m = {};
+    for (const c of d.chats || []) if (c && "seen" in c) m[c.id] = c.seen ? Date.parse(c.seen.seen_at) || null : null;
+    remoteSeen = m;
+  }).catch(() => { remoteSeen = {}; }).finally(() => schedule());
+  const chatOfPlace = (place) => (place && place.startsWith("p:") ? world.project(place.slice(2))?.chatId || null : null);
+  function markPlace(place) {
+    seen.mark(place);
+    const chat = chatOfPlace(place);
+    if (chat && remoteSeen && chat in remoteSeen) { remoteSeen[chat] = Date.now(); api.markSeen(chat).catch(() => { /* this browser's mark still holds */ }); }
+  }
   /** First arrival at a place in this page: were you away long enough to be told what happened? */
   // ?away=3d (or 12h) pretends you were away that long, for every place in this page: a way to see the
   // cards without waiting. Nothing is stored by it.
@@ -52,25 +71,29 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
   function arrive(place) {
     if (since.has(place)) return since.get(place);
     if (AWAY) { since.set(place, Date.now() - AWAY); return since.get(place); }
-    const at = seen.get(place);
+    const chat = chatOfPlace(place);
+    if (chat && remoteSeen == null) return null;         // the backend's mark is on its way: decide then
+    const local = seen.get(place);
+    const remote = chat && remoteSeen && remoteSeen[chat] != null ? remoteSeen[chat] : null;
+    const at = local == null && remote == null ? null : Math.max(local ?? 0, remote ?? 0); // any device looking counts
     const s = at != null && Date.now() - at >= R.AWAY_MS ? at : null;
     since.set(place, s);
-    if (at == null) seen.mark(place); // first visit ever: nothing to catch up on, but from now on there is
+    if (at == null) markPlace(place); // first visit ever: nothing to catch up on, but from now on there is
     return s;
   }
   /** Leaving a view: the place it belonged to is seen, unless you're only moving inside it. */
   function leave(from, to) {
     const a = placeOf(from), b = to == null ? null : placeOf(to);
-    if (a && a !== b) seen.mark(a);
+    if (a && a !== b) markPlace(a);
   }
   // a hidden tab counts as gone: back after AWAY_MS, every place speaks again
   let hiddenAt = 0;
   document.addEventListener("visibilitychange", () => {
     const v = currentView();
-    if (document.hidden) { hiddenAt = Date.now(); const p = v && placeOf(v); if (p) seen.mark(p); return; }
+    if (document.hidden) { hiddenAt = Date.now(); const p = v && placeOf(v); if (p) markPlace(p); return; }
     if (hiddenAt && Date.now() - hiddenAt >= R.AWAY_MS) { since.clear(); done.clear(); more.clear(); schedule(); }
   });
-  addEventListener("pagehide", () => { const v = currentView(); const p = v && placeOf(v); if (p) seen.mark(p); });
+  addEventListener("pagehide", () => { const v = currentView(); const p = v && placeOf(v); if (p) markPlace(p); });
   let currentView = () => null;
 
   // ── worktrees: the git words ────────────────────────────────────────────
@@ -81,6 +104,8 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
       trees.set(chat, entry);
       api.worktrees(chat || undefined).then((d) => {
         entry.map = new Map((d.worktrees || []).map((w) => [w.thread_ts, w]));
+        // a newer backend: threads whose worktree was removed, with their branch's last git state
+        for (const w of d.removed || []) if (w && w.thread_ts && !entry.map.has(w.thread_ts)) entry.map.set(w.thread_ts, { ...w, exists: false });
       }).catch(() => { /* no git words: the groups still hold */ }).finally(() => { entry.loading = false; entry.at = Date.now(); schedule(); });
     }
     return trees.get(chat).map;
@@ -120,7 +145,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
         items.map(({ t, line, git }) => `<button type="button" class="syl-ln" data-go="t:${esc(t.id)}"><span class="syl-tt"><b>${esc(t.title)}</b>${line ? `<small>${esc(line)}</small>` : ""}</span>${gitHtml(git)}<span class="syl-ch" aria-hidden="true">${ICON.right}</span></button>`).join("");
     }
     const hidden = cu.total - Math.min(cu.total, all ? cu.total : LINES);
-    const made = R.madeItems(threadsIn(pid).filter((t) => t.lastAt > s)).length;
+    const made = madeOf(pid).filter((m) => m.at > s).length;
     const foot = [hidden > 0 ? `<button type="button" class="syl-more" data-rec-more="${esc(place)}">+${hidden} more</button>` : "",
       made ? `<button type="button" class="syl-more is-made" data-made-open="${esc(pid)}">${ICON.spark}${made} ${made === 1 ? "thing" : "things"} made</button>` : ""].filter(Boolean).join("");
     const html = `<section class="syl" aria-label="Since you left">${cardHead(place, s, cu.counts)}<div class="syl-b">${body}</div>${foot ? `<footer class="syl-f">${foot}</footer>` : ""}</section>`;
@@ -154,7 +179,31 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
   const sheet = $("#made");
   const thumbs = new Map(); // key → object URL, or "" when it couldn't be read
 
-  const madeOf = (pid) => R.madeItems(pid ? threadsIn(pid) : allThreads(), { pins });
+  // the backend's Made, per chat: {at, loading, rows} while it answers, {off} when it has no such route
+  const served = new Map();
+  const MADE_MS = 30000;
+  function servedRows(chat) {
+    if (!chat) return null;
+    let c = served.get(chat);
+    if (c && c.off) return null;
+    if (!c || (!c.loading && Date.now() - c.at > MADE_MS)) {
+      const entry = { at: Date.now(), loading: true, rows: c ? c.rows : null, off: false };
+      served.set(chat, entry);
+      api.made(chat, { limit: 200 }).then((d) => { entry.rows = Array.isArray(d.made) ? d.made : null; if (!entry.rows) entry.off = true; })
+        .catch((err) => { if (err.status === 404 || err.status === 405) entry.off = true; /* else: try again later, the fallback meanwhile */ })
+        .finally(() => { entry.loading = false; entry.at = Date.now(); schedule(); if (!sheet.hidden) madeRender(); });
+      c = entry;
+    }
+    return c.rows;
+  }
+  const titleOf = (ts) => world.thread(ts)?.title || "";
+  function madeIn(pid) {
+    const chat = world.project(pid)?.chatId;
+    const rows = servedRows(chat);
+    if (rows) return R.madeFromServer(rows, { project: pid, title: titleOf }).map((m) => ({ ...m, chat }));
+    return R.madeItems(threadsIn(pid), { pins });
+  }
+  const madeOf = (pid) => (pid ? madeIn(pid) : (world.state.projects || []).filter((p) => p && p.id !== "workspace").flatMap((p) => madeIn(p.id)).sort((a, b) => b.at - a.at));
   const madeCount = (pid) => madeOf(pid).length;
 
   function thumbHtml(m) {
@@ -162,25 +211,28 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
       const u = thumbs.get(m.key);
       if (u) return `<img src="${esc(u)}" alt="" decoding="async">`;
     }
-    return `<span class="md-ic">${KIND_IC[m.kind] || ICON.doc}</span><span class="md-ext">${esc((/\.([\w-]+)$/.exec(m.name) || [])[1] || R.KIND_WORD[m.kind])}</span>`;
+    const tag = m.kind === "link" ? hostOf(m.url) : m.kind === "branch" ? R.gitState(null, m.git).word || "branch" : (/\.([\w-]+)$/.exec(m.name) || [])[1] || R.KIND_WORD[m.kind];
+    return `<span class="md-ic">${KIND_IC[m.kind] || ICON.doc}</span><span class="md-ext${m.kind === "link" || m.kind === "branch" ? " is-word" : ""}">${esc(tag)}</span>`;
   }
   /** Image files show themselves: each read once, through its thread's folder. */
   function loadThumbs(items) {
     for (const m of items) {
       if (m.kind !== "image" || thumbs.has(m.key)) continue;
-      const r = sharedFileRoute(world.thread(m.tid), m.path);
+      const r = m.fileProject && m.rel ? { project: m.fileProject, rel: m.rel } : m.server ? {} : sharedFileRoute(world.thread(m.tid), m.path);
+      if (m.exists === false) { thumbs.set(m.key, ""); continue; }
       if (!r.project) { thumbs.set(m.key, ""); continue; }
       thumbs.set(m.key, "");
       api.projectImage(r.project, r.rel).then((b) => { thumbs.set(m.key, URL.createObjectURL(b)); schedule(); if (!sheet.hidden) madeRender(); }).catch(() => {});
     }
   }
+  const hostOf = (u) => { try { return new URL(u).host; } catch { return "link"; } };
   const size = (n) => (n == null || n === "" ? "" : n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(1)} MB`);
   function cardHtml(m, { where = false } = {}) {
-    const meta = [R.KIND_WORD[m.kind], size(m.bytes), short(m.at) === "now" ? "now" : short(m.at) + " ago"].filter(Boolean).join(" · ");
-    return `<li class="md-it${m.pinned ? " is-pin" : ""}">` +
+    const meta = [m.exists === false ? "Gone" : R.KIND_WORD[m.kind], size(m.bytes), short(m.at) === "now" ? "now" : short(m.at) + " ago"].filter(Boolean).join(" · ");
+    return `<li class="md-it${m.pinned ? " is-pin" : ""}${m.exists === false ? " is-gone" : ""}">` +
       `<button type="button" class="md-open" data-made-file="${esc(m.key)}" title="${esc(m.path)}" aria-label="Open ${esc(m.name)}"><span class="md-th k-${m.kind}">${thumbHtml(m)}</span>` +
       `<span class="md-meta"><b>${esc(m.name)}</b><span>${esc(where ? `${PROJ(m.project)} · ${short(m.at) === "now" ? "now" : short(m.at) + " ago"}` : meta)}</span></span></button>` +
-      (where ? "" : `<button type="button" class="md-from" data-made-go="t:${esc(m.tid)}" title="Open the thread that made it">${ICON.back}<span>${esc(m.title)}</span></button>`) +
+      (where || !m.tid ? "" : `<button type="button" class="md-from" data-made-go="t:${esc(m.tid)}" title="Open the thread that made it">${ICON.back}<span>${esc(m.title || "Its thread")}</span></button>`) +
       `<button type="button" class="md-pin" data-made-pin="${esc(m.key)}" aria-pressed="${m.pinned}" aria-label="${m.pinned ? "Unpin" : "Pin"} ${esc(m.name)}" title="${m.pinned ? "Unpin" : "Pin it on top"}">${ICON.pin}</button></li>`;
   }
 
@@ -199,7 +251,8 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
       card._pid = M.pid;
     }
     card.querySelector("#made-h").textContent = `Made in ${PROJ(M.pid)}`;
-    card.querySelector("#made-sub").textContent = `${items.length} ${items.length === 1 ? "file" : "files"} its threads shared, newest first`;
+    const kept = items.some((m) => m.server);
+    card.querySelector("#made-sub").textContent = kept ? `${items.length} ${items.length === 1 ? "thing" : "things"} its threads made, newest first` : `${items.length} ${items.length === 1 ? "file" : "files"} its threads shared, newest first`;
     const f = R.KINDS.filter(([k]) => k === "all" || counts[k]).map(([k, w]) => `<button type="button" role="radio" data-made-kind="${k}" aria-checked="${M.kind === k}">${w}<span>${counts[k]}</span></button>`).join("");
     const fe = card.querySelector("#made-f");
     if (fe._h !== f) { fe.innerHTML = f; fe._h = f; }
@@ -226,14 +279,24 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
   function openFile(key, from) {
     const m = madeOf(null).find((x) => x.key === key);
     if (!m) return;
-    const t = world.thread(m.tid);
-    const route = sharedFileRoute(t, m.path);
+    if (m.kind === "link" && m.url) { window.open(m.url, "_blank", "noopener,noreferrer"); return; }
+    if (m.kind === "branch") return; // its thread is the place to see a branch
+    const route = m.exists === false ? { why: "This file isn't there any more: its worktree was removed and no copy was kept." }
+      : m.fileProject && m.rel ? { project: m.fileProject, rel: m.rel } : sharedFileRoute(world.thread(m.tid), m.path);
     VW.open({ path: m.path, name: m.name, type: m.type, bytes: m.bytes, ...route }, from);
   }
   function togglePin(key) {
-    const on = !pins.has(key);
-    if (on) pins.add(key); else pins.delete(key);
-    savePins();
+    const m = madeOf(null).find((x) => x.key === key);
+    const on = m ? !m.pinned : !pins.has(key);
+    if (m && m.server && m.chat) {
+      // the backend's pin, for every device: shown at once, put back if it's refused
+      const row = (served.get(m.chat)?.rows || []).find((r) => r.id === m.id);
+      if (row) row.pinned = on;
+      api.pinMade(m.chat, m.id, on).catch((err) => { if (row) row.pinned = !on; announce(`Couldn't ${on ? "pin" : "unpin"} it: ${err.message}`); schedule(); if (!sheet.hidden) madeRender(); });
+    } else {
+      if (on) pins.add(key); else pins.delete(key);
+      savePins();
+    }
     announce(on ? "Pinned" : "Unpinned");
     if (!sheet.hidden) madeRender();
     schedule();
@@ -253,14 +316,14 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
     if (!q) return [];
     const w = q.toLowerCase();
     return madeOf(null).filter((m) => `${m.name} ${m.path}`.toLowerCase().includes(w)).slice(0, 8)
-      .map((m) => ({ name: m.name, sub: `Made in ${PROJ(m.project)} · ${m.title}`, icon: KIND_IC[m.kind] || ICON.doc, run: () => { go("t:" + m.tid); openFile(m.key, null); } }));
+      .map((m) => ({ name: m.name, sub: `Made in ${PROJ(m.project)}${m.title ? ` · ${m.title}` : ""}`, icon: KIND_IC[m.kind] || ICON.doc, run: () => { if (m.kind !== "link" && m.tid) go("t:" + m.tid); openFile(m.key, null); } }));
   }
 
   // ── events ──────────────────────────────────────────────────────────────
   document.addEventListener("click", (e) => {
     const t = e.target;
     const got = t.closest("[data-rec-got]");
-    if (got) { const p = got.dataset.recGot; done.add(p); seen.mark(p); announce("Caught up"); schedule(); return; }
+    if (got) { const p = got.dataset.recGot; done.add(p); markPlace(p); announce("Caught up"); schedule(); return; }
     const mr = t.closest("[data-rec-more]");
     if (mr) { more.add(mr.dataset.recMore); schedule(); return; }
     const mo = t.closest("[data-made-open]");
@@ -271,9 +334,10 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
     if (f) {
       const key = f.dataset.madeFile;
       const m = madeOf(null).find((x) => x.key === key);
+      if (m && m.kind === "link") { openFile(key, f); return; }
       if (!sheet.hidden) closeMade({ restore: false });
-      // a file opens beside the conversation it came from
-      if (m && !currentView()?.startsWith("t:" + m.tid)) go("t:" + m.tid);
+      // a file opens beside the conversation it came from (a branch: its thread is where it's told)
+      if (m && m.tid && !currentView()?.startsWith("t:" + m.tid)) go("t:" + m.tid);
       openFile(key, f);
       return;
     }

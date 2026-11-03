@@ -95,6 +95,8 @@ export function stormSource(state, emit, event) {
       session: r.session || null, paused: (r.session && r.session.paused) || null,
       resolvedAt: r.resolved_at || null, agentMs: r.agent_ms || 0, pin: r.pin || {}, runs: r.runs || null,
       outputs: r.outputs || [], card,
+      // a newer backend: one past-tense sentence of what it did, and its branch's git state (null until read)
+      summary: r.summary || null, git: r.git || null,
     };
     t.asks = stormAsks(t, openItemsFor(r.ts));
     t.needsYou = t.asks.length ? t.asks[0].title : "";
