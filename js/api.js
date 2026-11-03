@@ -244,6 +244,14 @@ export const api = {
   status: () => get("/chat/status"),
   runtimes: () => get("/chat/runtimes"),
   models: (runtime) => get(`/chat/runtimes/${enc(runtime)}/models`),
+  /** {space, effective}: the Space's runtime policy (mixed runtimes §2.2) */
+  runtimePolicy: () => get("/chat/runtime-policy"),
+  /** Replaces the Space's policy: {allowed, default, preferences, fallback}. */
+  setRuntimePolicy: (policy) => send("PUT", "/chat/runtime-policy", policy),
+  /** {space, project, effective}: a project chat's own override (404 no_such_chat otherwise) */
+  chatRuntimePolicy: (chat) => get(`/chat/chats/${enc(chat)}/runtime-policy`),
+  /** Replaces a project's override; a null field follows the Space. */
+  setChatRuntimePolicy: (chat, policy) => send("PUT", `/chat/chats/${enc(chat)}/runtime-policy`, policy),
   router: () => get("/chat/router"),
   setRouter: (body) => send("PUT", "/chat/router", body),
   routerModels: () => get("/chat/router/models"),
@@ -263,6 +271,8 @@ export const api = {
   thread: (chat, ts) => get(`/chat/chats/${enc(chat)}/threads/${enc(ts)}`),
   /** {resolved?, paused?: false, title?, label?, intelligence?} */
   patchThread: (chat, ts, body) => send("PATCH", `/chat/chats/${enc(chat)}/threads/${enc(ts)}`, body),
+  /** Continue a thread on another runtime (§2.4): it stops, freezes, and a linked new thread starts from its work. */
+  continueThread: (chat, ts, body) => request(`/chat/chats/${enc(chat)}/threads/${enc(ts)}/continue`, { method: "POST", body, timeout: 60000 }),
   hops: (chat, query = {}) => get(`/chat/chats/${enc(chat)}/hops`, query),
   memory: (chat) => get(`/chat/chats/${enc(chat)}/memory`),
   /** What a chat's threads made (a newer backend): {made: [...], next_before}. 404 on an older one. */

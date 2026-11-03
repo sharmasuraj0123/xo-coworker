@@ -56,10 +56,12 @@ export const resetWords = (iso, now = Date.now()) => [clockWords(iso, now), unti
 export function healthOf(rt, now = Date.now()) {
   const h = healthOfRt(rt);
   const why = h.why_not ? String(h.why_not).replace(/^\w/, (c) => c.toUpperCase()).replace(/([^.])$/, "$1.") : "";
-  if (!isInstalled(rt)) return { key: "missing", word: "Not installed", tone: "off", why, fix: "Install its CLI on this machine. XO finds it on the next check." };
+  // the server's sentence often names its own fix ("install it, or point … at …"): then it says enough
+  const said = /install|log ?in|run /i.test(why);
+  if (!isInstalled(rt)) return { key: "missing", word: "Not installed", tone: "off", why, fix: said ? "" : "Install its CLI on this machine. XO finds it on the next check." };
   if (h.logged_in === false) {
     const cmd = LOGIN[rt && rt.name];
-    return { key: "logged_out", word: "Not logged in", tone: "off", why, fix: cmd ? `Run \`${cmd}\` on this machine.` : "Log in with its CLI on this machine." };
+    return { key: "logged_out", word: "Not logged in", tone: "off", why, fix: cmd ? `Run \`${cmd}\` on this machine.` : said ? "" : "Log in with its CLI on this machine." };
   }
   if (h.limit === "closed") return { key: "closed", word: h.resets_at ? `At limit until ${clockWords(h.resets_at, now)}` : "At its limit", tone: "bad", why, fix: h.resets_at ? `It opens again ${untilWords(h.resets_at, now) || "soon"}.` : "" };
   if (h.limit === "paid") return { key: "paid", word: "Paid usage", tone: "warn", why, fix: "" };

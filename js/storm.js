@@ -33,6 +33,8 @@ export const WAITING_STATES = new Set(["needs_reply", "needs_approval", "paused"
 export function stormSource(state, emit, event) {
   Object.assign(state, {
     status: null, statusError: null, runtimes: null, router: null, pools: {},
+    policy: null,    // {space, effective}: the Space's runtime policy (mixed runtimes §2.2)
+    chatPolicy: {},  // chat_… → {space, project, effective}: a project's own runtime policy
     conn: "connecting", connInfo: null,
     timeline: {},    // project id → storm message rows on its timeline, by seq
     hist: {},        // project id → {all, loading, error, before}
@@ -293,13 +295,22 @@ export function stormSource(state, emit, event) {
     runtimesT = setTimeout(loadRuntimes, RUNTIMES_MS);
   }
 
+  /** The runtime policy: the Space's, and each project's (a backend without them leaves both empty). */
+  async function loadPolicies() {
+    try { state.policy = await api.runtimePolicy(); } catch { return; }
+    await mapLimit(state.projects.filter((p) => p.kind === "project" && p.chatId), LOAD_CAP, async (p) => {
+      try { state.chatPolicy[p.chatId] = await api.chatRuntimePolicy(p.chatId); } catch { /* the Space's applies */ }
+    });
+    emit();
+  }
+
   /** Everything, from the server. Returns once the world can render. */
   async function loadAll() {
     await loadChats();
     if (!state.projects.length) return;
     await Promise.all([
       mapLimit(state.projects.filter((p) => p.kind === "project"), LOAD_CAP, loadThreads),
-      loadSessions(), loadReview(), loadRouted(), loadRuntimes(),
+      loadSessions(), loadReview(), loadRouted(), loadRuntimes(), loadPolicies(),
     ]);
   }
 
@@ -721,6 +732,21 @@ export function stormSource(state, emit, event) {
           if (gone) err.gone = err.code || (now && now.state) || "gone";
           throw err;
         }
+      },
+      /** The runtime policy in effect for a project (its own over the Space's), or null before it is read. */
+      policyFor: (project) => {
+        const chat = chatIdOf(project);
+        return (chat && state.chatPolicy[chat] && state.chatPolicy[chat].effective) || (state.policy && state.policy.effective) || null;
+      },
+      loadPolicies,
+      /** Read the runtimes again now (Settings › Runtimes asks every 30 s while it is open). */
+      loadRuntimes: () => { refreshRuntimes(); return runtimesBusy; },
+      /** Replace the Space's runtime policy, or a project's (chat) override; the answer is kept. */
+      setPolicy: async (chat, policy) => {
+        if (!chat) { state.policy = await api.setRuntimePolicy(policy); for (const c of Object.keys(state.chatPolicy)) { try { state.chatPolicy[c] = await api.chatRuntimePolicy(c); } catch { /* keep */ } } }
+        else state.chatPolicy[chat] = await api.setChatRuntimePolicy(chat, policy);
+        emit();
+        return chat ? state.chatPolicy[chat] : state.policy;
       },
       refresh: async () => { await loadChats(); await mapLimit(state.projects.filter((p) => p.kind === "project"), LOAD_CAP, loadThreads); commit(); emit(); },
       /** The open conversations: load their timelines once; the stream keeps them current. */

@@ -22,6 +22,7 @@ import { turnHtml, turnAv } from "./turnview.js";
 import { itemParts } from "./review.js";
 import { runsStripHtml, runsListHtml, runViewHtml } from "./runsview.js";
 import { createSettings } from "./settings.js";
+import { createRuntimeSettings } from "./rtsettings.js";
 import { createChats } from "./chats.js";
 import { createViewer } from "./viewer.js";
 import { createMap, MAP_ICON } from "./map.js";
@@ -2349,10 +2350,12 @@ function closeKeys() { keys.hidden = true; keysReturn?.focus?.({ preventScroll: 
 const setEl = $("#settings");
 let setReturn = null;
 const SETS = createSettings({ world, announce, PROJ, onChange: () => schedule() });
+const RTSET = createRuntimeSettings({ world, announce, PROJ });
 function setPage(id) {
   for (const b of $$("[data-set]")) b.setAttribute("aria-selected", String(b.dataset.set === id));
   for (const p of $$("[data-page]")) p.hidden = p.dataset.page !== id;
   SETS.open(id);
+  if (id === "runtimes") RTSET.open();
 }
 function openSettings() {
   if (!setEl.hidden) return;
@@ -2607,7 +2610,7 @@ $("#set-x").innerHTML = ICON.close;
 $("#set-side-ic").innerHTML = ICON.gear;
 // Settings' rail: each section with its icon (hub #18/#19)
 {
-  const IC = { general: ICON.sliders, appearance: ICON.sun, routing: ICON.router, rules: ICON.rule, worktrees: ICON.branch, night: ICON.moon, sounds: ICON.sound, keys: ICON.key };
+  const IC = { general: ICON.sliders, appearance: ICON.sun, routing: ICON.router, runtimes: ICON.runtime, rules: ICON.rule, worktrees: ICON.branch, night: ICON.moon, sounds: ICON.sound, keys: ICON.key };
   for (const b of $$("[data-set]")) b.innerHTML = `<span class="sn-ic" aria-hidden="true">${IC[b.dataset.set] || ""}</span><span class="sn-t">${esc(b.textContent)}</span>`;
 }
 $("#sf-ic").innerHTML = ICON.search;

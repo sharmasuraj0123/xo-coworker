@@ -58,6 +58,7 @@ export const ICON = {
   pin: I('<path d="M14.5 3.5 20.5 9.5 18 10.5 14.5 14l.5 4.5-1.5 1.5-3.8-3.8L5 20.9 3.1 19l4.7-4.7L4 10.5 5.5 9l4.5.5L13.5 6z"/>'),
   shell: I('<rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="m7 9.5 3 2.5-3 2.5M12.5 15H17"/>'),
   minimize: I('<path d="M6 12h12"/>', ' stroke-width="2"'),
+  runtime: I('<rect x="6" y="6" width="12" height="12" rx="2.5"/><path d="M10 2.5v3.5M14 2.5v3.5M10 18v3.5M14 18v3.5M2.5 10H6M2.5 14H6M18 10h3.5M18 14h3.5"/>'),
   router: I('<circle cx="5.5" cy="12" r="2"/><circle cx="18.5" cy="6" r="2"/><circle cx="18.5" cy="18" r="2"/><path d="M7.5 12h4l5-5M11.5 12l5 5"/>'),
 };
 
