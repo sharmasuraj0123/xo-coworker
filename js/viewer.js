@@ -10,6 +10,8 @@
 // when the preview stops at 256 KB. It is fetched with the Coder header and saved as a blob, so the
 // token never sits in a URL (or the browser's download history).
 // Esc closes it; on phones it takes the whole screen. Focus goes in, and back to the file card.
+// With the Map open (js/map.js) the two are one right-hand panel with two modes, Live and File: `tabs`
+// draws the switch, and switching to Live parks the file (hidden, kept) until you come back to it.
 
 import { esc, isImagePath } from "./util.js";
 import { ICON, $ } from "./ui.js";
@@ -23,9 +25,9 @@ const bytes = (s) => new TextEncoder().encode(s).length;
 const extOf = (name) => (/\.([\w-]+)$/.exec(String(name || "")) || [])[1] || "";
 const KIND_WORD = { markdown: "Markdown", html: "HTML", text: "Text", code: "Code", json: "JSON" };
 
-export function createViewer({ announce, onChange }) {
+export function createViewer({ announce, onChange, tabs }) {
   const el = $("#viewer");
-  const V = { open: false, file: null, data: null, error: null, loading: false, mode: "preview", returnTo: null, gen: 0, copied: false, dims: null, saving: false, saveError: null };
+  const V = { open: false, parked: false, file: null, data: null, error: null, loading: false, mode: "preview", returnTo: null, gen: 0, copied: false, dims: null, saving: false, saveError: null };
 
   /** The object URL an image is shown from lives as long as the image is open. */
   function dropImage() {
@@ -104,7 +106,7 @@ export function createViewer({ announce, onChange }) {
     const keep = el.querySelector(".vw-body")?.scrollTop || 0;
     const framed = V.data && ((V.data.kind === "html" && V.mode === "preview") || V.data.kind === "pdf");
     const failed = V.saveError ? `<p class="vw-cut" role="alert">${ICON.clock}<span>${esc(V.saveError)}</span></p>` : "";
-    el.innerHTML = head() + `<div class="vw-body${framed ? " is-frame" : ""}" tabindex="0">${failed}${body()}</div>`;
+    el.innerHTML = (tabs ? tabs() : "") + head() + `<div class="vw-body${framed ? " is-frame" : ""}" tabindex="0">${failed}${body()}</div>`;
     if (V.keepScroll) el.querySelector(".vw-body").scrollTop = keep;
     V.keepScroll = false;
   }
@@ -154,6 +156,7 @@ export function createViewer({ announce, onChange }) {
   function open(f, from) {
     const was = V.open;
     dropImage();
+    if (V.parked) { V.parked = false; el.hidden = false; }
     Object.assign(V, { open: true, file: { ...f, where: f.rel || f.path || "", image: f.att ? kindOf(f.type || "") === "image" : f.local == null && isImagePath(f.rel || f.path || f.name) }, data: null, dims: null, error: null, why: f.why || null, mode: "preview", copied: false, saving: false, saveError: null, returnTo: from || (was ? V.returnTo : document.activeElement) });
     el.hidden = false;
     document.body.classList.add("viewer-open");
@@ -166,7 +169,7 @@ export function createViewer({ announce, onChange }) {
 
   function close({ restore = true } = {}) {
     if (!V.open) return;
-    V.open = false; V.gen++;
+    V.open = false; V.parked = false; V.gen++;
     dropImage(); V.data = null;
     el.hidden = true; el.innerHTML = "";
     document.body.classList.remove("viewer-open");
@@ -209,5 +212,26 @@ export function createViewer({ announce, onChange }) {
     if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); close(); }
   });
 
-  return { open, close, get isOpen() { return V.open; }, get file() { return V.file; } };
+  /** Live mode: the file steps aside, kept as it was (scroll and all), until `unpark`. */
+  function park() {
+    if (!V.open || V.parked) return;
+    V.keep = el.querySelector(".vw-body")?.scrollTop || 0;
+    V.parked = true; el.hidden = true;
+    document.body.classList.remove("viewer-open");
+    onChange && onChange();
+  }
+  function unpark() {
+    if (!V.open || !V.parked) return;
+    V.parked = false; el.hidden = false;
+    document.body.classList.add("viewer-open");
+    render();
+    const b = el.querySelector(".vw-body");
+    if (b) b.scrollTop = V.keep || 0;
+    el.focus({ preventScroll: true });
+    onChange && onChange();
+  }
+  /** Repaint the header (the Live · File switch follows the Map). */
+  function refresh() { if (V.open && !V.parked) { V.keepScroll = true; render(); } }
+
+  return { open, close, park, unpark, refresh, get isOpen() { return V.open && !V.parked; }, get hasFile() { return V.open; }, get isParked() { return V.open && V.parked; }, get file() { return V.file; } };
 }
