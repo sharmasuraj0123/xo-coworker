@@ -417,9 +417,15 @@ export function stormSource(state, emit, event) {
   async function loadTurns(session) {
     try {
       const d = await api.events({ session, before_seq: NEWEST, limit: 500 });
+      for (const f of d.events || []) if (f.type !== "thread.control" && f.type !== "thread.continued") state.turns.apply({ type: f.type, envelope: f });
+    } catch { /* live frames still arrive */ }
+    // F4, F6: the thread's own control rows and its move, however far back (both stored on its session)
+    try {
+      const d = await api.events({ session, kinds: "thread.control,thread.continued", before_seq: NEWEST, limit: 500 });
       for (const f of d.events || []) {
-        if (f.type === "thread.control") noteControl(f, f.data || {});
-        else state.turns.apply({ type: f.type, envelope: f });
+        const x = f.data || {};
+        if (f.type === "thread.control") noteControl(f, x);
+        else if (f.type === "thread.continued" && (x.from || f.thread_ts) && !state.moves[x.from || f.thread_ts]) state.moves[x.from || f.thread_ts] = { ...x, at: f.ts };
       }
     } catch { /* live frames still arrive */ }
   }
