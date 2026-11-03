@@ -1633,7 +1633,11 @@ function sendLive(raw) {
   say.value = ""; saveDraft(); updateComposer();
   const btn = $("#send"); btn.classList.remove("fired"); void btn.offsetWidth; btn.classList.add("fired");
   sound.play("send");
-  if (!here) heraldShow({ kind: "sent", text: `Sent to ${chat === "workspace" ? "the coordinator" : PROJ(chat)}`, sub: "open to follow the reply", open: conv }, 9000);
+  // From Home, what you wrote carries you into the conversation it went to (the Workspace, or the
+  // @project's): the bubble rises out of the composer into place, and Back returns to Home. From a
+  // conversation, a message aimed elsewhere leaves you where you are and says where it went.
+  if (!here && S.view === "home") { go(conv, { carry: true }); toBottom(false); lift(msgsEl.querySelector(`[data-k="${m.id}"]`), from); }
+  else if (!here) heraldShow({ kind: "sent", text: `Sent to ${chat === "workspace" ? "the coordinator" : PROJ(chat)}`, sub: "open to follow the reply", open: conv }, 9000);
   else { render(); toBottom(false); lift(msgsEl.querySelector(`[data-k="${m.id}"]`), from); }
   deliverLive(m, thread);
 }
@@ -1797,7 +1801,7 @@ function saveScroll() {
   if (S.view === "home") S.scroll.home = $("#home").scrollTop;
   else if (rendered === S.view) S.scroll[S.view] = nearBottom() ? "bottom" : scroller.scrollTop;
 }
-function go(v, { from, focus = false } = {}) {
+function go(v, { from, focus = false, carry = false } = {}) {
   if (!v) return;
   // an edit or menu in a thread's header belongs to that visit
   S.tEdit = null; S.tMenu = null;
@@ -1821,9 +1825,9 @@ function go(v, { from, focus = false } = {}) {
   follow();
   TD.key = null; tdock.innerHTML = ""; tdock._ch = "";
   const el = v === "home" ? $("#home") : $("#column");
-  el.classList.remove("enter-r", "enter-l", "enter");
+  el.classList.remove("enter-r", "enter-l", "enter", "enter-up");
   void el.offsetWidth;
-  el.classList.add(deeper ? "enter-r" : back ? "enter-l" : "enter");
+  el.classList.add(carry ? "enter-up" : deeper ? "enter-r" : back ? "enter-l" : "enter");
   loadDraft();
   render();
   if (v === "home") $("#home").scrollTop = S.scroll.home || 0;

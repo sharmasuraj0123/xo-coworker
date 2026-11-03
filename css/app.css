@@ -416,6 +416,9 @@ body.panel-open .conv{--rp:calc(var(--pw) + 28px)}
 .column.enter{animation:col-in .26s var(--glide)}
 .column.enter-r{animation:col-r .3s var(--glide)}
 .column.enter-l{animation:col-l .3s var(--glide)}
+/* from Home into the conversation a message went to: the page rises with the message, so it reads as one motion */
+.column.enter-up{animation:col-up .34s var(--glide)}
+@keyframes col-up{from{opacity:0;transform:translateY(18px)}}
 @keyframes col-in{from{opacity:0;transform:translateY(6px)}}
 @keyframes col-r{from{opacity:0;transform:translateX(18px)}}
 @keyframes col-l{from{opacity:0;transform:translateX(-18px)}}
