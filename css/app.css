@@ -2614,3 +2614,32 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
   .rt-w{grid-template-columns:96px minmax(60px,1fr) auto}
   .rt-form{padding:14px}
 }
+
+/* ── a move to another runtime (mixed runtimes F4) ──────────────────────────── */
+.mv-dlg{width:min(540px,calc(100vw - 32px))}
+.mv-f{border:0;padding:0;margin:0;min-width:0}
+.mv-f legend{margin-bottom:8px;font:500 var(--fs-base)/1.2 var(--sans);color:var(--ink-2)}
+.mv-rt{cursor:pointer;padding:12px 14px}
+.mv-rt input{position:absolute;opacity:0;pointer-events:none}
+.mv-rt:has(input:focus-visible){outline:2px solid rgba(var(--accent-rgb),.75);outline-offset:1px}
+.mv-rt.is-off{cursor:default;opacity:.62}
+.mv-rt.is-off .sc-b span{color:var(--ink-3)}
+.mv-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mv-sel{display:flex;flex-direction:column;gap:7px;min-width:0}
+.mv-sel>span{font:500 var(--fs-base)/1.2 var(--sans);color:var(--ink-2)}
+.mv-sel select{height:40px;padding:0 10px;border-radius:12px;border:1px solid var(--g30);background:var(--g14);color:var(--ink);font:500 var(--fs-base)/1 var(--sans);min-width:0}
+.mv-sel select:disabled{opacity:.6}
+.mv-note{display:flex;align-items:center;gap:8px;font-size:var(--fs-sm);color:var(--ink-3)}
+.mv-cons{padding:14px 16px;border-radius:14px;background:var(--g14);border:1px solid var(--g26)}
+.mv-cons-h{margin-bottom:6px;font:600 var(--fs-sm)/1.2 var(--sans);color:var(--ink-2)}
+.mv-cons ul{display:flex;flex-direction:column;gap:4px;padding-left:18px;font-size:var(--fs-base);line-height:1.5;color:var(--ink-2)}
+.mv-cons li::marker{color:var(--ink-4)}
+.mv-ban{display:flex;align-items:center;gap:10px;margin:6px 0;padding:10px 12px 10px 10px;border-radius:14px;background:var(--g14);border:1px solid var(--g26);font-size:var(--fs-base);color:var(--ink-2)}
+.mv-ban .ev-ic{flex:none;display:grid;place-items:center;width:22px;height:22px;color:var(--ink-3)}
+.mv-ban .ev-ic svg{width:15px;height:15px}
+.mv-ban .ev-t{flex:1;min-width:0;line-height:1.45}
+.mv-ban .ev-t b{color:var(--ink)}
+.mv-ban time{flex:none;font-size:var(--fs-xs);color:var(--ink-4)}
+@media (max-width:760px){ .mv-row{grid-template-columns:1fr} .mv-ban{flex-wrap:wrap} }
+.mv-ban .ev-t{white-space:normal;overflow:visible;text-overflow:clip}
+.mv-ban .ev-ic{background:none;border:0}

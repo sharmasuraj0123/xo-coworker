@@ -1,6 +1,8 @@
 // Runtimes, the pure part (js/runtimes.js): names, health, usage windows, the runtime policy, moves.
 //   node tests/runtimes.test.mjs        (no network)
 import assert from "node:assert/strict";
+import { stormAsks, uiMsg } from "../js/timeline.js";
+import { asksOf } from "../js/kit.js";
 import { rtName, manyRuntimes, healthOf, windowsOf, allowedOf, defaultOf, policyWords, moveTargets, canMove, policyErrors, errorField, untilWords, isInstalled } from "../js/runtimes.js";
 
 let passed = 0;
@@ -89,6 +91,20 @@ t("policy field errors, before and after the server", () => {
   assert.equal(errorField({ code: "invalid_argument", message: "The default 'claude_code' must be one of allowed." }), "default");
   assert.equal(errorField({ code: "http_422", message: "preferences: String should have at most 2000 characters" }), "preferences");
   assert.equal(errorField({ code: "unknown_runtime", message: "No storm runtime is named 'nope'" }), "allowed");
+});
+
+t("a thread continued elsewhere is frozen, not an ask; a loop-breaker pause still is", () => {
+  const base = { id: "cmsg_old", state: "paused", paused: "stuck", lastAt: 1, card: {} };
+  assert.equal(stormAsks({ ...base, frozen: true }).length, 0);
+  assert.equal(asksOf({ ...base, frozen: true, asks: [] }).length, 0);
+  assert.equal(stormAsks({ ...base, frozen: false }).length, 1);
+  // picked back up after a move: working, the link kept as history, and its asks are its own
+  assert.equal(stormAsks({ ...base, state: "needs_reply", frozen: false, movedTo: { to: "cmsg_new" }, card: { needs_you: "Which one?" } }).length, 1);
+});
+t("a message carries both ends of a move", () => {
+  const m = uiMsg({ id: "a", author_kind: "system", author_id: "xo", text: "Continuing “X” on codex: limit", extra: { continued_from: "cmsg_old" } });
+  assert.equal(m.continuedFrom, "cmsg_old");
+  assert.equal(uiMsg({ id: "b", author_kind: "system", extra: { continued_in: "cmsg_new" } }).continuedIn, "cmsg_new");
 });
 
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

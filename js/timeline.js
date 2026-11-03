@@ -33,6 +33,9 @@ export function uiMsg(row) {
     files: attachmentsOf(row),
     passedOn: p && p.project ? { project: String(p.project), to: (p.forwarded_message_ids || [])[0] || null } : null,
     reactions: Array.isArray(x.reactions) ? x.reactions.filter((r) => r && r.emoji) : [],
+    // a move to another runtime (mixed runtimes F4): the old thread's note, and the new thread's root
+    continuedIn: x.continued_in || null,
+    continuedFrom: x.continued_from || null,
   };
 }
 
@@ -160,7 +163,8 @@ export function stormAsks(t, items = []) {
     const full = String((t.card && t.card.needs_you) || t.happened || "").trim();
     const { title, rest } = askText(full);
     asks.push({ id: `${t.id}:${(t.card && t.card.updated_at) || t.lastAt}`, kind: "question", title: title || "It's waiting for your reply", detail: clip(rest, 220), full, risk: "notable", options: null, replyOnly: true, live: true });
-  } else if (t.state === "paused") {
+  } else if (t.state === "paused" && !t.frozen) {
+    // a thread continued elsewhere is frozen, not waiting on you (mixed runtimes F4)
     const why = String(t.paused || "it was stuck on a denied step");
     asks.push({ id: `${t.id}:paused:${t.lastAt}`, kind: "question", title: "It paused and waits for you", detail: `Why: ${why}. A reply in the thread resumes it.`, full: why, risk: "notable", options: null, replyOnly: true, live: true, paused: true });
   } else if (t.state === "needs_approval") {

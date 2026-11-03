@@ -35,6 +35,8 @@ export function stormSource(state, emit, event) {
     status: null, statusError: null, runtimes: null, router: null, pools: {},
     policy: null,    // {space, effective}: the Space's runtime policy (mixed runtimes §2.2)
     chatPolicy: {},  // chat_… → {space, project, effective}: a project's own runtime policy
+    controls: {},    // thread ts → [{action, by, by_session, reason, at, seq}]: thread.control (F6)
+    moves: {},       // old thread ts → {to, from, agent, from_agent, reason, by, wip}: thread.continued (F4)
     conn: "connecting", connInfo: null,
     timeline: {},    // project id → storm message rows on its timeline, by seq
     hist: {},        // project id → {all, loading, error, before}
@@ -76,6 +78,20 @@ export function stormSource(state, emit, event) {
     const live = r.session_id ? state.sessions[r.session_id] : null;
     return (live && live.state) || (r.session && r.session.state) || null;
   }
+  /** F4: where a thread went (continued in) and where it came from, from every trace of a move we hold. */
+  let fromIndex = new Map();
+  function indexMoves() {
+    fromIndex = new Map();
+    for (const rows of Object.values(state.timeline)) for (const row of rows || []) { const f = row.extra && row.extra.continued_from; if (f) fromIndex.set(row.id, { from: f, text: row.text || "" }); }
+  }
+  function moveOf(r) {
+    // the row says it (continued_in / continued_from, next backend); until then the frame, or the old thread's note
+    let to = state.moves[r.ts] || (r.continued_in ? { to: r.continued_in } : null);
+    if (!to) for (const m of state.threadMsgs[r.ts] || []) { const x = m.extra && m.extra.continued_in; if (x) to = { to: x, text: m.text || "" }; }
+    const from = r.continued_from ? { from: r.continued_from, ...(fromIndex.get(r.ts) || {}) } : fromIndex.get(r.ts) || null;
+    // frozen: paused because its work moved on. Picked back up, the link stays as history.
+    return { movedTo: to, movedFrom: from, frozen: r.state === "paused" && !!to };
+  }
   function uiThread(r) {
     const project = projectOf(r.chat_id);
     const sstate = sessionStateOf(r);
@@ -99,6 +115,7 @@ export function stormSource(state, emit, event) {
       outputs: r.outputs || [], card,
       // a newer backend: one past-tense sentence of what it did, and its branch's git state (null until read)
       summary: r.summary || null, git: r.git || null,
+      ...moveOf(r),
     };
     t.asks = stormAsks(t, openItemsFor(r.ts));
     t.needsYou = t.asks.length ? t.asks[0].title : "";
@@ -107,6 +124,7 @@ export function stormSource(state, emit, event) {
 
   /** Rebuild the thread list and announce the changes worth a line. */
   function commit() {
+    indexMoves();
     const prev = new Map(state.threads.map((t) => [t.id, t]));
     const known = new Set(state.projects.map((p) => p.id));
     const next = [];
@@ -115,7 +133,7 @@ export function stormSource(state, emit, event) {
       if (!t.project || !known.has(t.project)) continue;
       const old = prev.get(t.id);
       if (state.loaded && !holding) {
-        if (old && old.state !== t.state) event({ kind: t.state === "done" ? "done" : WAITING_STATES.has(t.state) ? "ask" : "state", thread: t.id, project: t.project, text: `${t.title}: ${t.state.replace("_", " ")}` });
+        if (old && old.state !== t.state) event({ kind: t.state === "done" ? "done" : WAITING_STATES.has(t.state) && !t.frozen ? "ask" : "state", thread: t.id, project: t.project, text: `${t.title}: ${t.state.replace("_", " ")}` });
         if (!old) event({ kind: "spawn", thread: t.id, project: t.project, text: `New thread: ${t.title}` });
         if (old && WAITING_STATES.has(old.state) && !WAITING_STATES.has(t.state)) event({ kind: "resumed", thread: t.id, project: t.project });
       }
@@ -440,6 +458,21 @@ export function stormSource(state, emit, event) {
         soon();
         break;
       }
+      case "thread.continued": {
+        // the old thread froze and a linked new thread starts from its work (F4, F5)
+        const old = d.from || env.thread_ts;
+        if (old) { state.moves[old] = { ...d, at: env.ts }; event({ kind: "moved", thread: old, to: d.to, agent: d.agent }); }
+        if (env.chat_id && old) refetchThread(env.chat_id, old);
+        if (env.chat_id && d.to && !rawThreads.has(d.to)) refetchThread(env.chat_id, d.to);
+        soon();
+        break;
+      }
+      case "thread.control": {
+        // a coordinator steered, interrupted or stopped a thread (F6): kept for the thread's timeline
+        const ts = env.thread_ts || d.thread_ts;
+        if (ts) { (state.controls[ts] || (state.controls[ts] = [])).push({ ...d, at: env.ts, seq: env.seq ?? null }); soon(); }
+        break;
+      }
       case "card": {
         const r = rawThreads.get(d.ts);
         if (r) { rawThreads.set(d.ts, { ...r, card: d.card, updated_at: env.ts || r.updated_at }); soon(); }
@@ -733,6 +766,10 @@ export function stormSource(state, emit, event) {
           throw err;
         }
       },
+      /** Read one thread now (a new one the stream hasn't brought yet), so the view can open it. */
+      fetchThread: async (chatId, ts) => { await refetchThread(chatId, ts); commit(); emit(); return state.threads.find((t) => t.id === ts) || null; },
+      /** The open thread's project timeline: the root message of a continued thread says where it came from. */
+      loadTimeline: (project) => loadTimeline(project),
       /** The runtime policy in effect for a project (its own over the Space's), or null before it is read. */
       policyFor: (project) => {
         const chat = chatIdOf(project);

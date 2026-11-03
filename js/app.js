@@ -33,7 +33,8 @@ import { uploadAttachment, attachmentUrl } from "./api.js";
 import { createShells } from "./shells/dock.js";
 import { createRecord } from "./recordview.js";
 import { wireGestures } from "./gestures.js";
-import { rtName, manyRuntimes, findRt, healthOf } from "./runtimes.js";
+import { rtName, manyRuntimes, findRt, healthOf, canMove } from "./runtimes.js";
+import { createMove } from "./move.js";
 
 const world = createWorld();
 
@@ -167,8 +168,9 @@ const STATE_WORD = { working: "Working", needs_reply: "Needs you", needs_approva
 // "Working" only while its agent really works (detail `busy`, or our reply awaits an answer).
 // A working thread whose session sits idle reads "Idle" (P1-8).
 const isBusy = (t) => t.busy === true || (t.state === "working" && t.busy !== false);
-const glyphOf = (t) => (t.state === "working" && t.busy === false ? "idle" : t.state);
-const wordOf = (t) => (glyphOf(t) === "idle" ? "Idle" : STATE_WORD[t.state]);
+// a thread continued on another runtime is frozen, not waiting on you: a quiet "Continued" (F4)
+const glyphOf = (t) => (t.state === "working" && t.busy === false ? "idle" : t.frozen ? "resolved" : t.state);
+const wordOf = (t) => (glyphOf(t) === "idle" ? "Idle" : t.frozen ? "Continued" : STATE_WORD[t.state]);
 const SORT_STATE = { needs_approval: 0, needs_reply: 0, paused: 0, failed: 1, working: 2, done: 3, resolved: 4 };
 // the Map (js/map.js): where your agents are working, beside the conversation; the viewer stacks over it
 const MAP = createMap({ world, viewer: VW, go: (v) => go(v), announce, isBusy, onChange: () => schedule(), openFile: (f, from) => VW.open(f, from) });
@@ -197,8 +199,11 @@ function rtTag(t, cls) {
 }
 /** F7: what a runtime does with a message sent while its turn runs: "steered" (joins it) or "queued". */
 const sendWhileRunning = (t) => { const rt = findRt(world.state.runtimes, agentOf(t)); const f = rt && rt.features && rt.features.features && rt.features.features.send_while_running; return (f && f.behaviour) || null; };
+/** F4: a thread may continue elsewhere when another runtime its project allows can take work now, once. */
+const movable = (t) => !!(world.act.storm && world.act.policyFor && t && !t.movedTo && agentOf(t) && world.act.policyFor(t.project) && canMove(agentOf(t), world.act.policyFor(t.project), world.state.runtimes));
 /** The composer's target line in a thread; while its agent works, where your words land. */
 function threadTargetHtml(t) {
+  if (t.frozen) return `<span class="tg-t">${ICON.thread}</span><span>Reply in <b>this thread</b></span><span class="muted">· sending picks it back up</span>`;
   const how = isBusy(t) && t.state !== "resolved" ? sendWhileRunning(t) : null;
   const tail = how === "steered" ? `<span class="muted">· sent into the current turn</span>` : how === "queued" ? `<span class="muted">· queued for the next turn</span>` : "";
   return `<span class="tg-t">${ICON.thread}</span><span>Reply in <b>this thread</b></span>${tail}`;
@@ -525,7 +530,7 @@ function messagesOf(conv) {
     if (m.who === "you") {
       out.push({ ...base, who: "you", fwd: conv !== "ws" && m.fwd ? m.fwd : null, routed: conv === "ws" ? st.routed[m.id] || null : null, queued: waitsForTurn(m, turn) });
       if (alone.has(m.id)) out.push({ key: `${m.id}:card`, at: m.at, who: "card", thread: m.id });
-    } else if (m.who === "system") out.push({ ...base, who: "system", passedOn: m.passedOn });
+    } else if (m.who === "system") out.push({ ...base, who: "system", passedOn: m.passedOn, continuedIn: m.continuedIn, continuedFrom: m.continuedFrom });
     else if (t && m.who === "agent" && /^✓\s/.test(m.text)) out.push({ key, at: m.at, who: "event", text: m.text.replace(/^✓\s*/, ""), tone: "ok" });
     else out.push({ ...base, who: m.who === "coord" ? "coord" : "agent", threads: on.get(m.id) || null });
   }
@@ -538,6 +543,9 @@ function messagesOf(conv) {
     for (const d of D.decisions().filter((d) => d.project === pid)) out.push({ key: `dec:${d.id}`, at: d.at, who: "event", text: `You ${d.verb.toLowerCase()} · ${d.said || d.label}`, tone: d.choice === "deny" ? "back" : "ok" });
     for (const d of D.notSent().filter((d) => d.project === pid)) out.push({ key: `dec:${d.id}`, at: d.at, who: "event", text: `Not sent · ${d.said || d.label} · ${d.why}`, tone: "sys" });
   }
+  // a move the thread row knows but whose note isn't in what we hold: its banner anyway (F4)
+  if (t && t.movedFrom && !rows.some((m) => m.continuedFrom)) out.push({ key: `mvfrom:${t.id}`, at: t.createdAt - 1, who: "system", text: "", continuedFrom: t.movedFrom.from });
+  if (t && t.movedTo && t.movedTo.to && !rows.some((m) => m.continuedIn)) out.push({ key: `mvto:${t.id}`, at: Date.parse(t.movedTo.at) || t.lastAt, who: "system", text: "", continuedIn: t.movedTo.to });
   // a thread's work: its session's turns, in place between its messages (storm's blocks)
   if (t && t.sessionId && st.turns) {
     const agentSeqs = rows.filter((m) => m.who === "agent" && m.seq != null).map((m) => m.seq);
@@ -645,6 +653,22 @@ function nameOf(conv, who) {
   return [t ? `${PROJ(t.project)} agent` : "Agent", t?.branch || "thread"];
 }
 
+/** F4: the two ends of a move, linked both ways. The reason is the server's, after its colon. */
+function moveBannerHtml(m, here) {
+  const reasonOf = (text) => { const i = String(text || "").indexOf(": "); return i > 0 ? text.slice(i + 2).trim() : ""; };
+  const link = (ts, fallback) => { const o = world.thread(ts); return o ? `<button type="button" class="rt-go" data-go="t:${esc(ts)}" title="Open “${esc(o.title)}”"><b>${esc(o.title)}</b></button>` : `<b>${esc(fallback)}</b>`; };
+  if (m.continuedIn) {
+    const to = world.thread(m.continuedIn), mv = (here && here.movedTo) || {};
+    const agent = (to && agentOf(to)) || mv.agent;
+    const why = mv.reason || reasonOf(m.text);
+    const frozen = !!(here && here.frozen);
+    return `<div class="mv-ban"><span class="ev-ic">${ICON.runtime}</span><span class="ev-t">Continued in ${link(m.continuedIn, "a new thread")}${agent ? ` on ${esc(rtName(agent))}` : ""}${why ? `: ${esc(why)}` : ""}</span>` +
+      (frozen ? `<button type="button" class="ev-undo" data-unfreeze="${esc(here.id)}" title="Its agent carries on here; the new thread keeps going too">Pick this thread back up</button>` : "") + `<time>${clock(m.at)}</time></div>`;
+  }
+  const from = world.thread(m.continuedFrom);
+  const fromAgent = from ? agentOf(from) : null;
+  return `<div class="mv-ban"><span class="ev-ic">${ICON.runtime}</span><span class="ev-t">Continued from ${link(m.continuedFrom, "an earlier thread")}${fromAgent ? ` (${esc(rtName(fromAgent))})` : ""}${reasonOf(m.text) ? `: ${esc(reasonOf(m.text))}` : ""}</span><time>${clock(m.at)}</time></div>`;
+}
 function msgItems(conv, needs) {
   if (CH.isChats(conv)) return CH.items(conv);
   const list = messagesOf(conv);
@@ -701,6 +725,8 @@ function msgItems(conv, needs) {
       // XO's line: this project's work went on to another project, through the Workspace (always shown)
       const p = m.passedOn;
       html = `<div class="ev ev-sys ev-pass"><span class="ev-ic">${ICON.arrow}</span><span class="ev-t">Passed to <button type="button" class="rt-go" data-go="p:${esc(p.project)}"${p.to ? ` data-go-msg="${esc(p.to)}"` : ""} title="Open ${esc(PROJ(p.project))}'s chat"><b>${esc(PROJ(p.project))}</b></button> through the Workspace</span><time>${clock(m.at)}</time></div>`;
+    } else if (m.who === "system" && (m.continuedIn || m.continuedFrom)) {
+      html = moveBannerHtml(m, convThread(conv));
     } else if (m.who === "asked") {
       // the thread's own message to its coordinator: one quiet line, the whole text on a press
       const open = !!S.tbOpen[m.key];
@@ -797,10 +823,10 @@ function topRender(needs) {
     const resolved = t.state === "resolved";
     const acts = world.act.storm ? `<span class="tw-acts"><button type="button" class="tw-act" data-resolve="${esc(t.id)}" data-to="${resolved ? "open" : "resolve"}" title="${resolved ? "Reopen it: its agent can pick it up again" : "Mark it resolved: nothing more is owed"}">${resolved ? ICON.retry : ICON.check}<span>${resolved ? "Reopen" : "Resolve"}</span></button>` +
       `<button type="button" class="tw-act tw-more" data-tmenu="${esc(t.id)}" aria-haspopup="menu" aria-expanded="${S.tMenu === t.id}" title="Rename or label" aria-label="Rename or label">${ICON.edit}</button>` +
-      (S.tMenu === t.id ? `<span class="tw-menu" role="menu"><button type="button" role="menuitem" data-tfield="title">Rename</button><button type="button" role="menuitem" data-tfield="label">${t.label ? "Change label" : "Add a label"}</button>${t.label ? `<button type="button" role="menuitem" data-tfield="clear-label">Remove the label</button>` : ""}${SH.enabled ? `<button type="button" role="menuitem" data-shell="t:${esc(t.id)}">Open a shell in its worktree</button>` : ""}</span>` : "") + `</span>` : "";
+      (S.tMenu === t.id ? `<span class="tw-menu" role="menu"><button type="button" role="menuitem" data-tfield="title">Rename</button><button type="button" role="menuitem" data-tfield="label">${t.label ? "Change label" : "Add a label"}</button>${t.label ? `<button type="button" role="menuitem" data-tfield="clear-label">Remove the label</button>` : ""}${SH.enabled ? `<button type="button" role="menuitem" data-shell="t:${esc(t.id)}">Open a shell in its worktree</button>` : ""}${movable(t) ? `<button type="button" role="menuitem" data-tmove="${esc(t.id)}">Continue on another runtime…</button>` : ""}</span>` : "") + `</span>` : "";
     // a shell in its worktree is in the menu (and the shells dock); the header keeps Resolve and the panel
     const allActs = acts ? acts.replace(/<\/span>$/, `${STAGE.button(v)}</span>`) : `<span class="tw-acts">${STAGE.button(v)}</span>`;
-    who = `${title}${label}<span class="badge st-${t.state}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${wordOf(t)}</span>${rtTag(t)}${allActs}`;
+    who = `${title}${label}<span class="badge st-${t.frozen ? "resolved" : t.state}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${wordOf(t)}</span>${rtTag(t)}${allActs}`;
     // a field being edited is never replaced under the person's fingers (a frame may change the badge)
     if (ed && $("#tw-edit")) who = null;
   } else who = `<span class="tw-t"><h1 id="conv-title">Thread</h1></span>`;
@@ -1468,7 +1494,7 @@ function updateComposer() {
 function syncPlaceholder() {
   if (CH.isChats(S.view)) { const ph = CH.placeholder(S.view); if (say.placeholder !== ph) { say.placeholder = ph; $("#say-label").textContent = ph; } return; }
   const t = convThread(S.view);
-  const ph = t ? (t.state === "resolved" ? "Reply to reopen it…" : "Reply to the agent…") : S.view === "home" ? (PHONE.matches ? "What should get done?" : "What should get done? Use @project to aim it") : S.view === "ws" ? "Ask anything across your projects…" : `Message ${PROJ(convProject(S.view))}…`;
+  const ph = t ? (t.state === "resolved" ? "Reply to reopen it…" : t.frozen ? "Write here to pick this thread back up…" : "Reply to the agent…") : S.view === "home" ? (PHONE.matches ? "What should get done?" : "What should get done? Use @project to aim it") : S.view === "ws" ? "Ask anything across your projects…" : `Message ${PROJ(convProject(S.view))}…`;
   if (say.placeholder !== ph) { say.placeholder = ph; $("#say-label").textContent = ph; }
 }
 function pickAt(pid) {
@@ -2086,6 +2112,10 @@ document.addEventListener("click", (e) => {
   const tm = t.closest("[data-tmenu]");
   if (tm) { S.tMenu = S.tMenu === tm.dataset.tmenu ? null : tm.dataset.tmenu; $("#top-who")._h = null; schedule(); if (S.tMenu) requestAnimationFrame(() => $(".tw-menu button")?.focus()); return; }
   const tf = t.closest("[data-tfield]");
+  const tmv = t.closest("[data-tmove]");
+  if (tmv) { const th = world.thread(tmv.dataset.tmove); S.tMenu = null; $("#top-who")._h = null; schedule(); if (th) MOVE.open(th, agentOf(th)); return; }
+  const unf = t.closest("[data-unfreeze]");
+  if (unf) { unfreeze(unf.dataset.unfreeze, unf); return; }
   if (tf) { const tid = S.tMenu; S.tMenu = null; if (tf.dataset.tfield === "clear-label") saveThreadField(tid, "label", ""); else startThreadEdit(tid, tf.dataset.tfield); return; }
   if (S.tMenu && !t.closest(".tw-menu")) { S.tMenu = null; $("#top-who")._h = null; schedule(); }
   if (t.closest("[data-ck]")) { const th = convThread(S.view); if (th) { S.ckOpen[th.id] = !S.ckOpen[th.id]; checklistRender(D.needItems()); } return; }
@@ -2137,7 +2167,7 @@ function allRender() {
   const q = $("#all-q").value.trim().toLowerCase();
   const needs = D.needItems();
   const ts = world.state.threads.filter((t) => t.project === pid);
-  const cat = (t) => (needs.some((n) => n.t.id === t.id && n.admitted && n.group !== "stopped") ? "needs" : t.state === "failed" ? "stopped" : t.state === "working" || WAITING(t.state) ? "working" : t.state === "done" || t.state === "resolved" ? "done" : "other");
+  const cat = (t) => (needs.some((n) => n.t.id === t.id && n.admitted && n.group !== "stopped") ? "needs" : t.state === "failed" ? "stopped" : t.frozen ? "done" : t.state === "working" || WAITING(t.state) ? "working" : t.state === "done" || t.state === "resolved" ? "done" : "other");
   const counts = { all: ts.length, needs: 0, working: 0, done: 0, stopped: 0 };
   for (const t of ts) { const c = cat(t); if (counts[c] != null) counts[c]++; }
   const F = [["all", "All"], ["needs", "Needs you"], ["working", "Working"], ["done", "Done"], ["stopped", "Stopped"]];
@@ -2363,6 +2393,15 @@ const setEl = $("#settings");
 let setReturn = null;
 const SETS = createSettings({ world, announce, PROJ, onChange: () => schedule() });
 const RTSET = createRuntimeSettings({ world, announce, PROJ });
+const MOVE = createMove({ world, announce, go: (v) => go(v, { focus: true }), ICON });
+/** Pick a continued thread back up (F4): it un-freezes; sending a message in it does the same. */
+async function unfreeze(tid, btn) {
+  const th = world.thread(tid);
+  if (!th) return;
+  if (btn) btn.disabled = true;
+  try { await world.act.editThread(th.id, { paused: false }); announce("Picked back up. Its agent can carry on here."); }
+  catch (err) { announce(`Couldn't pick it back up: ${err.message}`); if (btn) btn.disabled = false; }
+}
 function setPage(id) {
   for (const b of $$("[data-set]")) b.setAttribute("aria-selected", String(b.dataset.set === id));
   for (const p of $$("[data-page]")) p.hidden = p.dataset.page !== id;
@@ -2505,7 +2544,7 @@ addEventListener("keydown", (e) => {
 // The app keeps one history entry of its own while there is somewhere to go back to. Back then does
 // what Esc does (the top sheet, the viewer, Settings, the sidebar), then a thread's parent, then the
 // places you came through; with nothing left it lets the browser leave.
-const sheetsOpen = () => !jump.hidden || !keys.hidden || !allEl.hidden || RS.open || dlg.open || IQ.isOpen || CH.setupOpen;
+const sheetsOpen = () => !jump.hidden || !keys.hidden || !allEl.hidden || RS.open || dlg.open || MOVE.isOpen || IQ.isOpen || CH.setupOpen;
 const placeOk = (v) => v === "home" || v === "ws" || v === "chats" || (v.startsWith("p:") && !!world.project(v.slice(2))) || (v.startsWith("t:") && !!world.thread(v.slice(2))) || v.startsWith("c:");
 function canBack() {
   return sheetsOpen() || VW.isOpen || (STAGE.isOpen && PHONE.matches) || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised || S.view !== "home" || S.trail.length > 0;
