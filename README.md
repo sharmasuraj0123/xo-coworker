@@ -105,6 +105,7 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 | `js/content.js` | what an ask costs you, what it frees, and its evidence |
 | `js/ui.js` | icons and motion helpers |
 | `js/gestures.js` | touch gestures on a phone: swipe back or open the sidebar, drag sheets away, swipe between asks, long-press Copy (design-research/11) |
+| `js/stage.js` | the panel: one card on the right with tabs (Map, Made, File; later apps), one header button (`mod+\`), full size, Esc; the Map mounts into its tab (mount, show, hide, render, live; files through openFile) |
 | `js/record.js`, `js/recordview.js` | a project's record (design-research/12): what its threads made (Made, Recently made on Home, ⌘K) and Since you left; the pure part, then the screen |
 | `js/map.js` | the Map: the folder drawn as a diagram (`/xo-projects/{p}/tree`, a level at a time), agents as cursors (from the stream's activity rows), pan and zoom, the Live · File switch with the viewer |
 | `js/shells/dock.js` | shells: the dock, its tabs and list, the sidebar's toggle; what `app.js` calls |

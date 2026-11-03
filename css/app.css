@@ -2493,3 +2493,4 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .j-th.st-done i{background:var(--accent-fill)}
 .jump-list li[aria-selected="true"] .j-th i{box-shadow:0 0 0 2px var(--bg-3)}
 @media (prefers-reduced-motion:reduce){.j-th.st-busy i{animation:none}}
+.stg-pane:focus{outline:none}

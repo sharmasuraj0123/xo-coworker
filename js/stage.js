@@ -50,7 +50,7 @@ export function createStage({ map, mapIcon, viewer, made, view, announce, onChan
   el.setAttribute("aria-label", "Panel");
   el.innerHTML = `<header class="stg-bar"><div class="stg-tabs" role="tablist" aria-label="Panel"></div>` +
     `<div class="stg-acts"><button type="button" class="stg-ic" data-stg-full></button><button type="button" class="stg-ic" data-stg-close aria-label="Close the panel" title="Close (Esc)">${ICON.close}</button></div></header>` +
-    `<div class="stg-body"><div class="stg-pane" data-pane="map" role="tabpanel" aria-label="Map"></div><div class="stg-pane" data-pane="made" role="tabpanel" aria-label="Made"></div><div class="stg-pane" data-pane="file" role="tabpanel" aria-label="File"></div></div>`;
+    `<div class="stg-body"><div class="stg-pane" data-pane="map" role="tabpanel" aria-label="Map" tabindex="-1"></div><div class="stg-pane" data-pane="made" role="tabpanel" aria-label="Made" tabindex="-1"></div><div class="stg-pane" data-pane="file" role="tabpanel" aria-label="File" tabindex="-1"></div></div>`;
   $("#main").appendChild(el);
   const tabsEl = el.querySelector(".stg-tabs");
   const pane = (k) => el.querySelector(`[data-pane="${k}"]`);
@@ -81,7 +81,8 @@ export function createStage({ map, mapIcon, viewer, made, view, announce, onChan
     if (tab === "made") made.show(view());
     paint();
     persist();
-    if (focus) (pane(tab).querySelector("[tabindex], input, button") || el).focus({ preventScroll: true });
+    // focus lands where you'd type (Made's search) or on the tab's body, never ringing its first button
+    if (focus) ((tab === "made" && pane(tab).querySelector("input")) || pane(tab)).focus({ preventScroll: true });
     onChange && onChange();
   }
 
