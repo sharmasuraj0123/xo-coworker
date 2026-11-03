@@ -308,6 +308,8 @@ export const api = {
   // ── projects ──────────────────────────────────────────────────────────────
   /** A text file inside a project, for the file viewer: {name, kind, size_bytes, truncated, content, …}. */
   projectFile: (project, relativePath) => get(`/xo-projects/${enc(project)}/file`, { relative_path: relativePath }),
+  /** One folder of a project, a level at a time (a thread's worktree is `.xo/worktrees/<name>`): {dirs, files}. */
+  projectTree: (project, relativePath) => get(`/xo-projects/${enc(project)}/tree`, relativePath ? { relative_path: relativePath } : undefined),
   /** An image inside a project, as a Blob for the image viewer (fetched, so it carries the Coder header and errors read as words). */
   projectImage: (project, relativePath, opts) => blob(`/xo-projects/${enc(project)}/image?relative_path=${enc(relativePath)}`, opts),
   /** Where xo-projects live: {roots: {...}, default}. Never hard-code the root. */

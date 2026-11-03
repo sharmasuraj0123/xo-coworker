@@ -9,6 +9,7 @@ A web UI for the XO Space **projects chat** backend (`/api/projects-chat/*`). It
 - **Workspace**: your coordinator across all projects. Messages show where they were routed.
 - **Projects**: a title, one sentence, the Now shelf of threads in progress, and All threads (searchable, finished ones folded).
 - **Threads**: each has its own agent, branch and checklist. The thread's own decision sits above the composer.
+- **Map** (`⌘\`, or Map at the top right of any conversation): where your agents are working, beside the conversation. It follows the view: in a thread, what its agent is doing now and its own worktree as a tree, the file being read or edited lit up and followed ("Touched" or "All files"); in a project, the agents working in it and its folder with a dot wherever one is; elsewhere, every agent working now. With a file open, the Map and the viewer are one right-hand panel with two modes, **Live** and **File**.
 - **Composer**: `@project` aims a message at a project. The model chip shows the routing in effect.
 - Light and dark themes. Geist type and the XO palette, with XO green as the accent. Motion honours reduced-motion settings.
 
@@ -92,6 +93,7 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 | `js/content.js` | what an ask costs you, what it frees, and its evidence |
 | `js/ui.js` | icons and motion helpers |
 | `js/gestures.js` | touch gestures on a phone: swipe back or open the sidebar, drag sheets away, swipe between asks, long-press Copy (design-research/11) |
+| `js/map.js` | the Map: where agents are working (from the stream's activity rows), a project's or worktree's tree (`/xo-projects/{p}/tree`), the Live · File switch with the viewer |
 | `js/shells/dock.js` | shells: the dock, its tabs and list, the sidebar row; what `app.js` calls |
 | `js/shells/term.js` | one shell on screen: xterm.js, its WebSocket, reconnects, flow control, theme |
 | `js/shells/model.js` | shells, the pure part: row words, counts, flow-control watermarks, backoff |
@@ -106,6 +108,7 @@ node tests/shells.test.mjs       # shells' pure parts, and the vendored xterm ha
 python3 tests/serve.test.py      # serve.py: the Host allowlist and the WebSocket tunnel, against fake backends
 node tests/storm.test.mjs        # the stream parser and the turn store; no network
 node tests/turnview.test.mjs     # how a turn renders: changed-file chips, runtime notices; no network
+node tests/map.test.mjs          # the Map's pure parts: folders, paths, what a session touched, the folded tree; no network
 ```
 
 The browser suites (Playwright) live outside the repo:

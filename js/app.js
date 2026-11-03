@@ -24,6 +24,7 @@ import { runsStripHtml, runsListHtml, runViewHtml } from "./runsview.js";
 import { createSettings } from "./settings.js";
 import { createChats } from "./chats.js";
 import { createViewer } from "./viewer.js";
+import { createMap } from "./map.js";
 import { createTray, fmtSize, kindOf, typeWord, isLargePaste, pasteLabel, uploadErrorText, FINAL, MAX_FILES } from "./attach.js";
 import { uploadAttachment, attachmentUrl } from "./api.js";
 import { createShells } from "./shells/dock.js";
@@ -127,7 +128,7 @@ const CH = createChats({
   },
 });
 world.ui = { tbOpen: S.tbOpen }; // turn blocks open or folded, shared with the Chats view
-const VW = createViewer({ announce }); // a shared file beside the conversation (if1 #2)
+const VW = createViewer({ announce, onChange: () => schedule(), tabs: () => MAP.tabs("file") }); // a shared file beside the conversation (if1 #2)
 // shells (js/shells/): the dock under the main column, the sidebar's Shells row, the top bar's Shell buttons
 const SH = createShells({ PROJ, announce, notify: (h) => heraldShow(h, 6000), onChange: () => schedule() });
 /** A Shell button for the top bar: a count when shells already run there (it opens their list then). */
@@ -162,6 +163,8 @@ const isBusy = (t) => t.busy === true || (t.state === "working" && t.busy !== fa
 const glyphOf = (t) => (t.state === "working" && t.busy === false ? "idle" : t.state);
 const wordOf = (t) => (glyphOf(t) === "idle" ? "Idle" : STATE_WORD[t.state]);
 const SORT_STATE = { needs_approval: 0, needs_reply: 0, paused: 0, failed: 1, working: 2, done: 3, resolved: 4 };
+// the Map (js/map.js): where your agents are working, beside the conversation; the viewer stacks over it
+const MAP = createMap({ world, viewer: VW, go: (v) => go(v), announce, isBusy, onChange: () => schedule() });
 const doneToday = () => world.state.threads.filter((t) => t.state === "done" && new Date(t.lastAt).toDateString() === new Date().toDateString());
 
 // ── events: a calm labelled line, never the composer, never a quiet row ────
@@ -715,7 +718,7 @@ function topRender(needs) {
     back.hidden = v === "chats";
     if (v !== "chats") { back.innerHTML = `${ICON.back}<span>Chats</span>`; back.setAttribute("aria-label", "Back to Chats"); back.title = "Back (Esc)"; }
     patch($("#top-who"), CH.headHtml(v));
-    patch($("#top-end"), "");
+    patch($("#top-end"), MAP.button(v));
     nowRender(needs); checklistRender(needs);
     return;
   }
@@ -766,13 +769,13 @@ function topRender(needs) {
       (S.tMenu === t.id ? `<span class="tw-menu" role="menu"><button type="button" role="menuitem" data-tfield="title">Rename</button><button type="button" role="menuitem" data-tfield="label">${t.label ? "Change label" : "Add a label"}</button>${t.label ? `<button type="button" role="menuitem" data-tfield="clear-label">Remove the label</button>` : ""}</span>` : "") + `</span>` : "";
     // a shell in the thread's own worktree (its branch and folder), beside Resolve
     const shAct = SH.enabled ? `<button type="button" class="tw-act" data-shell="t:${esc(t.id)}" title="A shell in this thread's worktree">${ICON.shell}<span>Shell</span></button>` : "";
-    const allActs = acts ? acts.replace('<span class="tw-acts">', `<span class="tw-acts">${shAct}`) : shAct ? `<span class="tw-acts">${shAct}</span>` : "";
+    const allActs = acts ? acts.replace('<span class="tw-acts">', `<span class="tw-acts">${shAct}`).replace(/<\/span>$/, `${MAP.button(v)}</span>`) : `<span class="tw-acts">${shAct}${MAP.button(v)}</span>`;
     who = `${title}${label}<span class="badge st-${t.state}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${wordOf(t)}</span>${allActs}`;
     // a field being edited is never replaced under the person's fingers (a frame may change the badge)
     if (ed && $("#tw-edit")) who = null;
   } else who = `<span class="tw-t"><h1 id="conv-title">Thread</h1></span>`;
   if (who != null) patch($("#top-who"), who);
-  patch($("#top-end"), end);
+  patch($("#top-end"), t ? end : end + MAP.button(v));
   nowRender(needs);
   checklistRender(needs);
 }
@@ -1756,6 +1759,7 @@ function render() {
   sendRender();
   chipRender();
   D.sync();
+  MAP.render(v);
   const nd = needs.filter((n) => n.admitted && !n.later).length;
   document.title = Kit.titleFor(nd, "XO Space");
 }
@@ -2380,6 +2384,9 @@ $("#theme").addEventListener("click", () => {
   announce(t === "light" ? "Light mode" : "Dark mode");
 });
 
+// the Map's toggle, in every conversation's header
+document.addEventListener("click", (e) => { if (e.target.closest?.("[data-map-toggle]")) MAP.toggle(); });
+
 // ── global keys ─────────────────────────────────────────────────────────────
 const GLOBAL = {
   shells: () => SH.toggle(),
@@ -2387,13 +2394,14 @@ const GLOBAL = {
   intel: () => (IQ.isOpen ? IQ.close() : IQ.open(sessionOf(S.view), $("#iq"))),
   write: () => say.focus(),
   keys: () => openKeys(),
+  map: () => MAP.toggle(),
 };
 addEventListener("keydown", (e) => {
   if (S.recording) return; // Settings › Keyboard is listening for a new key
   // inside a shell every key is the shell's (Esc for vim, Ctrl+K for bash), but the shells' own toggle
   if (SH.owns(e)) { if (K.hasMod("shells") && K.is(e, "shells")) { e.preventDefault(); GLOBAL.shells(); } return; }
   // ⌘/Ctrl keys work everywhere, even while typing
-  for (const id of ["jump", "intel", "shells"]) if (K.hasMod(id) && K.is(e, id)) { e.preventDefault(); GLOBAL[id](); return; }
+  for (const id of ["jump", "intel", "shells", "map"]) if (K.hasMod(id) && K.is(e, id)) { e.preventDefault(); GLOBAL[id](); return; }
   if (!jump.hidden || dlg.open || IQ.isOpen) return;
   if (e.key === "Escape") {
     if (RS.open) { runsEscape(); return; }
@@ -2422,7 +2430,7 @@ addEventListener("keydown", (e) => {
 const sheetsOpen = () => !jump.hidden || !keys.hidden || !allEl.hidden || RS.open || dlg.open || IQ.isOpen || CH.setupOpen;
 const placeOk = (v) => v === "home" || v === "ws" || v === "chats" || (v.startsWith("p:") && !!world.project(v.slice(2))) || (v.startsWith("t:") && !!world.thread(v.slice(2))) || v.startsWith("c:");
 function canBack() {
-  return sheetsOpen() || VW.isOpen || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised || S.view !== "home" || S.trail.length > 0;
+  return sheetsOpen() || VW.isOpen || (MAP.isOpen && PHONE.matches) || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised || S.view !== "home" || S.trail.length > 0;
 }
 /** One step back. False when there's nothing left in the app to go back to. */
 function stepBack() {
@@ -2434,6 +2442,7 @@ function stepBack() {
   if (!keys.hidden) { closeKeys(); return true; }
   if (!allEl.hidden) { closeAll(); return true; }
   if (VW.isOpen) { VW.close(); return true; }
+  if (MAP.isOpen && PHONE.matches) { MAP.close(); return true; }
   if (!setEl.hidden) { closeSettings(); return true; }
   if (SH.raised && SH.lower()) return true;
   if ($("#app").classList.contains("drawer")) { setDrawer(false); return true; }
@@ -2468,7 +2477,7 @@ document.addEventListener("xo:gesture", armBack);
 // ── touch: gestures for the same moves (js/gestures.js), and the title back to the top ──
 wireGestures({
   phone: () => PHONE.matches,
-  overlay: () => sheetsOpen() || VW.isOpen || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised,
+  overlay: () => sheetsOpen() || VW.isOpen || (MAP.isOpen && PHONE.matches) || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised,
   view: () => S.view,
   back,
   drawer: (open) => setDrawer(open),
