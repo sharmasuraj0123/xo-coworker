@@ -686,25 +686,15 @@ function msgItems(conv, needs) {
 }
 
 // ── headers: Workspace, project (title + one sentence + the Now shelf), thread (+ checklist) ──
-/** hub #28: the Workspace's overview heads the page, always; the conversation opens on its newest
- *  message below it, and earlier messages load in between as you scroll up. The title is the top bar's. */
-function wsHeadRender(needs) {
+/** hub #28, thinned (design-research/12 §3): the Workspace is the conversation with your coordinator,
+ *  so the top of its history only says what this place is. The counts are one line in the header; what
+ *  needs you lives on Home, and the header's Next move opens it. Nothing here repeats Home. */
+function wsHeadRender() {
   const box = $("#ws-head");
   if (S.view !== "ws") { box.hidden = true; return; }
   box.hidden = false;
-  const P0 = homeParts(needs);
-  const working = world.state.threads.filter(isBusy).length;
-  const nd = P0.active.length;
-  // GitHub #32: an open thread whose agent sits idle and asks nothing is "Idle", so every open thread counts once
-  const asking = new Set(needs.map((n) => n.t.id));
-  const idle = world.state.threads.filter((t) => t.state === "working" && !isBusy(t) && !asking.has(t.id)).length;
-  const html = `<div class="wsh"><div class="wsh-mark">${XO}</div><h2 class="wsh-h">Workspace</h2>` +
-    `<p class="wsh-p">Your coordinator, across all ${projects().length} projects.</p>` +
-    `<dl class="wsh-stats"><div><dt>Working</dt><dd>${working}</dd></div><div><dt>Need you</dt><dd class="${nd ? "is-amber" : ""}">${nd}</dd></div><div><dt>Can wait</dt><dd>${P0.held.length}</dd></div>${idle ? `<div><dt>Idle</dt><dd>${idle}</dd></div>` : ""}<div><dt>Finished today</dt><dd class="is-green">${doneToday().length}</dd></div></dl>` +
-    (P0.next ? `<button type="button" class="wsh-next" data-decide="${esc(P0.next.key)}"><span class="nx-glyph">${NEXT_GLYPH}</span><span class="wn-k">Next move</span><span class="wn-t">${askTitle(P0.next)}</span><span class="eff e-${P0.next.effort}">${dial(P0.next.effort)}<b>${EFFORT[P0.next.effort].label}</b></span></button>`
-      : `<p class="wsh-calm">${ICON.check}Nothing needs you. Ask for anything below.</p>`) +
-    `</div>`;
-  patch(box, html);
+  patch(box, `<div class="wsh"><div class="wsh-mark">${XO}</div><h2 class="wsh-h">Workspace</h2>` +
+    `<p class="wsh-p">Your coordinator, across all ${projects().length} projects. Tell it what should get done; it routes the work. What needs you waits on <button type="button" class="wsh-home" data-go="home">Home</button>.</p></div>`);
 }
 
 function topRender(needs) {
@@ -743,7 +733,7 @@ function topRender(needs) {
     const idle = world.state.threads.filter((x) => x.state === "working" && !isBusy(x) && !asking.has(x.id)).length;
     const done = doneToday().length;
     const parts = [nd && `<b class="is-amber">${nd} need${nd === 1 ? "s" : ""} you</b>`, working && `${working} working`, P0.held.length && `${P0.held.length} can wait`, idle && `${idle} idle`, done && `${done} finished today`].filter(Boolean);
-    who = `<span class="tw-ic tw-xo" aria-hidden="true">${XO}</span><span class="tw-t"><h1 id="conv-title">Workspace</h1><span class="pj-s">${parts.join(" · ") || "All quiet"} · across ${projects().length} projects</span></span>`;
+    who = `<span class="tw-ic tw-xo" aria-hidden="true">${XO}</span><span class="tw-t"><h1 id="conv-title">Workspace</h1><button type="button" class="pj-s pj-home" data-go="home" title="What needs you is on Home">${parts.join(" · ") || "All quiet"} · across ${projects().length} projects</button></span>`;
     end = P0.next ? `<button type="button" class="all-btn is-need" data-decide="${esc(P0.next.key)}" title="${esc(askShort(P0.next))}">Next move<span>${nd}</span></button>` : "";
     if (SH.enabled) { const n = SH.countFor("workspace"); end += shellBtn(`data-shell="ws"`, n, n ? "The workspace's shells" : "A shell in the projects folder"); }
   } else if (v.startsWith("p:")) {
