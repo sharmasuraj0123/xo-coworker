@@ -1801,6 +1801,8 @@ body.viewer-open .tdock{display:none}
 .vw-src code{font:inherit;background:none;border:0;padding:0}
 .vw-cut{display:flex;align-items:center;gap:8px;margin:0;padding:9px 16px;border-bottom:1px solid var(--g22);background:var(--warn-subtle);font-size:var(--fs-base);color:var(--ink-2)}
 .vw-cut svg{flex:none;width:14px;height:14px;color:var(--warn)}
+.vw-cut-dl{margin-left:auto;flex:none;color:var(--ink);font-weight:500;text-decoration:underline;text-underline-offset:2px}
+.vw-cut-dl:disabled,.vw-btn:disabled{opacity:.6;cursor:progress}
 .vw-empty{display:grid;gap:12px;place-content:center;justify-items:center;min-height:60%;padding:32px;text-align:center;font-size:var(--fs-md);color:var(--ink-3)}
 .vw-empty p{max-width:44ch}
 .vw-path{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center}
@@ -2150,3 +2152,200 @@ i.t-amber{background:var(--warn)}i.t-blue{background:var(--info)}i.t-red{backgro
   .md-grid.is-strip .md-it:nth-child(n+5){display:none}
 }
 @media (prefers-reduced-motion:reduce){.syl{animation:none}}
+
+/* ── the Map (js/map.js): where your agents are working, drawn. The folder as a diagram (boxes and
+   connectors on a dotted canvas) with each agent as a coloured cursor that glides from box to box.
+   Same family as the Needs you panel and the viewer: a floating card on the right, or the whole main
+   area at full size. The viewer stacks over it (Live · File); the Needs you panel takes the right side
+   while it is open and gives it back. Blue = working, amber = waiting on you, green = new. ─────────── */
+:root{--mw:clamp(420px,42vw,720px)}
+.map-btn{position:relative;flex:none;display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px 0 9px;border-radius:9px;border:1px solid var(--g26);color:var(--ink-2);font:500 var(--fs-base)/1 var(--sans);transition:background var(--dur-fast),border-color var(--dur-fast),color var(--dur-fast),transform 90ms var(--press)}
+.top[data-kind="project"] .map-btn{height:32px;border-radius:10px;align-self:flex-end}
+.map-btn svg{width:15px;height:15px}
+.map-btn:hover{background:var(--g1A);border-color:var(--g33);color:var(--ink)}
+.map-btn:active{transform:scale(.97)}
+.map-btn.is-on{background:var(--g22);border-color:var(--g3A);color:var(--ink)}
+.map-dot{position:absolute;top:5px;left:19px;width:6px;height:6px;border-radius:50%;background:var(--info);box-shadow:0 0 0 2px var(--canvas);animation:breathe 2.4s ease-in-out infinite}
+
+body.map-open:not(.panel-open):not(.viewer-open):not(.map-full) .conv{--rp:calc(var(--mw) + 28px)}
+body.map-open:not(.panel-open):not(.viewer-open):not(.map-full) .scroller,body.map-open:not(.panel-open):not(.viewer-open):not(.map-full) .home{padding-right:calc(var(--mw) + 40px)}
+body.map-open:not(.panel-open):not(.viewer-open):not(.map-full) .dock{right:calc(var(--mw) + 24px)}
+body.map-open:not(.panel-open):not(.viewer-open):not(.map-full) .toast-wrap{right:calc(var(--mw) + 28px)}
+body.panel-open .map{display:none}
+.map{position:absolute;z-index:19;top:14px;right:14px;bottom:14px;width:var(--mw);display:flex;flex-direction:column;border-radius:22px;background:var(--g17);border:1px solid var(--g26);box-shadow:0 30px 90px rgb(0 0 0 / calc(.55 * var(--sha))),var(--hairline);outline:none;overflow:hidden;transition:width .32s var(--glide)}
+.map[hidden]{display:none}
+.map.is-in{animation:pn-in .32s var(--glide) both}
+:root[data-theme="light"] .map{background:var(--surface)}
+/* full size: the drawing takes the main area; the conversation waits behind it */
+body.map-full .map{left:14px;width:auto;z-index:21}
+body.map-full .dock,body.map-full .tdock{visibility:hidden}
+
+.mp-head{flex:none}
+.mp-top{display:flex;align-items:center;gap:11px;padding:14px 10px 10px 14px}
+.mp-hic{flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:10px;background:var(--g22);color:var(--ink-2)}
+.mp-hic svg{width:17px;height:17px}
+.mp-t{flex:1;min-width:0}
+.mp-t h2{font:600 var(--fs-lg)/1.25 var(--sans);letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mp-sub{display:flex;align-items:center;gap:6px;min-width:0;margin-top:2px;font:400 var(--fs-sm)/1.3 var(--sans);color:var(--ink-4);white-space:nowrap;overflow:hidden}
+.mp-br{display:inline-flex;align-items:center;gap:4px;min-width:0}
+.mp-br svg{flex:none;width:12px;height:12px}
+.mp-br code{font:400 var(--fs-xs)/1 var(--mono);color:var(--ink-3);overflow:hidden;text-overflow:ellipsis}
+.mp-sep{color:var(--ink-4)}
+.mp-x{flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:10px;color:var(--ink-3);transition:background var(--dur-fast),color var(--dur-fast)}
+.mp-x:hover{background:var(--bg-3);color:var(--ink)}
+.mp-x svg{width:16px;height:16px}
+.mp-full svg{width:15px;height:15px}
+
+/* Now (a thread): one line for what its agent is doing */
+.mp-now{display:grid;grid-template-columns:14px minmax(0,1fr) auto;align-items:center;gap:10px;margin:0 12px 10px;padding:9px 12px;border-radius:12px;background:var(--g1C);border:1px solid var(--g26)}
+.mp-now.st-busy{border-color:color-mix(in srgb,var(--c,var(--info)) 40%,var(--g26));background:color-mix(in srgb,var(--c,var(--info)) 7%,var(--g1C))}
+.mp-now.st-wait{border-color:color-mix(in srgb,var(--warn) 40%,var(--g26));background:color-mix(in srgb,var(--warn) 6%,var(--g1C))}
+.mp-pulse{position:relative;display:block;width:8px;height:8px;margin:0 3px;border-radius:50%;background:var(--ink-4)}
+.st-busy .mp-pulse{background:var(--c,var(--info))}
+.st-busy .mp-pulse::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:1.5px solid var(--c,var(--info));opacity:0;animation:mp-ring 1.8s var(--ease-out) infinite}
+.st-wait .mp-pulse{background:var(--warn)}
+@keyframes mp-ring{0%{opacity:.7;transform:scale(.6)}100%{opacity:0;transform:scale(1.7)}}
+.mp-nl{min-width:0;font:500 var(--fs-base)/1.35 var(--sans);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mp-nl code{font:400 .92em/1 var(--mono);padding:1px 4px;border-radius:4px;background:var(--g22)}
+.mp-now .elapsed{font:400 var(--fs-xs)/1 var(--mono);color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* the agents at work (a project, everyone): a chip each, in its cursor's colour */
+.mp-legend{list-style:none;display:flex;gap:6px;margin:0;padding:0 12px 10px;overflow-x:auto;scrollbar-width:none}
+.mp-who{display:inline-flex;align-items:center;gap:7px;max-width:260px;height:30px;padding:0 11px 0 9px;border-radius:999px;background:var(--g1C);border:1px solid color-mix(in srgb,var(--c) 45%,var(--g26));font:400 var(--fs-sm)/1 var(--sans);color:var(--ink-3);white-space:nowrap;transition:background var(--dur-fast)}
+.mp-who:hover{background:color-mix(in srgb,var(--c) 12%,var(--g1C))}
+.mp-who i{flex:none;width:8px;height:8px;border-radius:50%;background:var(--c)}
+.mp-who b{min-width:0;font-weight:550;color:var(--ink);overflow:hidden;text-overflow:ellipsis}
+
+/* the canvas: a dotted sheet you can drag around and zoom */
+.dg{position:relative;flex:1;min-height:0;margin:0 8px 8px;border-radius:16px;overflow:hidden;cursor:grab;touch-action:none;outline:none;
+  background-color:var(--g14);background-image:radial-gradient(circle,var(--g2E) 1px,transparent 1.3px);background-size:18px 18px;border:1px solid var(--g22)}
+:root[data-theme="light"] .dg{background-color:#FAFAFA;background-image:radial-gradient(circle,#D9D9D9 1px,transparent 1.3px)}
+.dg:focus-visible{box-shadow:inset 0 0 0 2px rgba(var(--accent-rgb),.5)}
+.dg.is-drag{cursor:grabbing}
+.dg-world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+.dg-world.is-glide{transition:transform .65s var(--glide)}
+.dg-edges{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+.dg-edges path{fill:none;stroke:var(--g40);stroke-width:1.4}
+.dg-edges path.is-hot{stroke:var(--info);stroke-width:1.8;stroke-dasharray:5 4;animation:dg-flow .9s linear infinite}
+@keyframes dg-flow{to{stroke-dashoffset:-9}}
+.dg-edges circle{fill:var(--g45)}
+:root[data-theme="light"] .dg-edges path{stroke:#B5B5B5}
+.dg-nodes{position:absolute;left:0;top:0}
+
+/* a box: a folder, a file, the root, a project */
+.dg-n{position:absolute;display:flex;align-items:center;gap:7px;width:172px;height:34px;padding:0 10px 0 9px;border-radius:9px;background:var(--g1C);border:1px solid var(--g2E);box-shadow:0 1px 0 rgba(255,255,255,.03) inset,0 4px 14px rgb(0 0 0 / calc(.28 * var(--sha)));text-align:left;font:450 13px/1.15 var(--sans);color:var(--ink-2);transition:border-color var(--dur-fast),background var(--dur-fast),box-shadow .3s}
+:root[data-theme="light"] .dg-n{background:#FFF;border-color:#D4D4D4;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+button.dg-n{cursor:pointer}
+button.dg-n:hover{border-color:var(--g4A);color:var(--ink);background:var(--g20)}
+:root[data-theme="light"] button.dg-n:hover{background:#F6F6F6;border-color:#A8A8A8}
+.dg-n:focus-visible{outline:2px solid rgba(var(--accent-rgb),.7);outline-offset:2px}
+.dg-ic{flex:none;display:grid;place-items:center;width:16px;color:var(--ink-4)}
+.dg-ic svg{width:15px;height:15px}
+.dg-t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dg-t small{display:block;margin-top:1px;font:400 10.5px/1.1 var(--sans);color:var(--ink-4)}
+.dg-n.k-root,.dg-n.k-project{font-weight:600;color:var(--ink)}
+.dg-n.k-root{height:40px;margin-top:-3px;border-color:color-mix(in srgb,var(--accent) 45%,var(--g2E));background:color-mix(in srgb,var(--accent) 7%,var(--g1C))}
+.dg-n.k-root .dg-ic{color:var(--accent)}
+.dg-n.k-dir{font-weight:550;color:var(--ink);background:var(--g1F)}
+:root[data-theme="light"] .dg-n.k-dir{background:#F4F6FA}
+.dg-n.k-dir .dg-ic{color:var(--ink-3)}
+.dg-ch{flex:none;display:grid;place-items:center;color:var(--ink-4)}
+.dg-ch svg{width:12px;height:12px;transform:rotate(-90deg);transition:transform var(--dur-fast)}
+.dg-n.is-open .dg-ch svg{transform:rotate(90deg)}
+.dg-dot{flex:none;width:7px;height:7px;border-radius:50%;background:var(--ink-4)}
+.dg-dot.d-hot{background:var(--info);animation:breathe 2s ease-in-out infinite}
+.dg-n.k-more{width:auto;min-width:90px;height:28px;margin-top:3px;border-style:dashed;background:transparent;box-shadow:none;color:var(--ink-3);font-size:12px}
+.dg-n.k-note{width:auto;height:28px;margin-top:3px;background:transparent;border-color:transparent;box-shadow:none;color:var(--ink-4);font-size:12px}
+.dg-n.k-note .spin{width:9px;height:9px}
+/* what a thread did to a file */
+.dg-n.m-read .dg-t{color:var(--ink-2)}
+.dg-n.m-new{border-color:color-mix(in srgb,var(--accent) 60%,var(--g2E));box-shadow:inset 3px 0 0 var(--accent),0 4px 14px rgb(0 0 0 / calc(.28 * var(--sha)))}
+.dg-n.m-edited{border-color:color-mix(in srgb,var(--violet) 60%,var(--g2E));box-shadow:inset 3px 0 0 var(--violet),0 4px 14px rgb(0 0 0 / calc(.28 * var(--sha)))}
+.dg-n.m-deleted{opacity:.6;border-style:dashed}
+.dg-n.m-deleted .dg-t{text-decoration:line-through}
+.dg-mk{flex:none;font:600 10px/1 var(--sans);letter-spacing:.03em;text-transform:uppercase;color:var(--ink-3)}
+.m-new .dg-mk{color:var(--accent)}
+.m-edited .dg-mk{color:var(--violet)}
+.m-deleted .dg-mk{color:var(--err)}
+/* an agent is here */
+.dg-n.is-here{border-color:var(--c);box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 22%,transparent),0 6px 22px color-mix(in srgb,var(--c) 25%,transparent);color:var(--ink)}
+.dg-n.is-here .dg-ic{color:var(--c)}
+.dg-n.is-hit{animation:dg-hit .9s var(--ease-out)}
+@keyframes dg-hit{0%{transform:scale(1)}18%{transform:scale(1.06)}100%{transform:scale(1)}}
+
+/* the cursors: one per agent, in its colour, with its name; they glide between boxes */
+.dg-curs{position:absolute;left:0;top:0;pointer-events:none}
+.dg-cur{--c:var(--info);position:absolute;left:0;top:0;display:flex;align-items:flex-start;transition:transform .75s cubic-bezier(.3,.9,.25,1),opacity .3s;z-index:2}
+.dg-cur.is-new{opacity:0}
+.dg-cur.is-gone{opacity:0}
+.dg-arrow{flex:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
+.dg-arrow path{fill:var(--c);stroke:#fff;stroke-width:1.4;stroke-linejoin:round}
+.dg-tag{pointer-events:auto;display:inline-flex;align-items:baseline;gap:6px;max-width:260px;margin:15px 0 0 -4px;padding:5px 9px;border-radius:4px 10px 10px 10px;background:var(--c);color:#fff;font:600 12px/1.2 var(--sans);white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.28);cursor:pointer;transition:filter var(--dur-fast)}
+.dg-tag:hover{filter:brightness(1.1)}
+.dg-tag b{min-width:0;font-weight:650;overflow:hidden;text-overflow:ellipsis}
+.dg-tag span{flex:none;font-weight:450;opacity:.88}
+.dg-cur.is-idle{opacity:.55}
+.dg-cur.is-idle .dg-arrow path{fill:var(--g55)}
+.dg-cur.is-idle .dg-tag{background:var(--g40)}
+.dg-cur.is-wait .dg-tag::after{content:"";width:7px;height:7px;align-self:center;border-radius:50%;background:var(--warn);box-shadow:0 0 0 2px rgba(255,255,255,.7)}
+.dg-cur:not(.is-idle) .dg-arrow{animation:dg-bob 2.6s ease-in-out infinite}
+@keyframes dg-bob{0%,100%{transform:translate(0,0)}50%{transform:translate(1.5px,-2px)}}
+.dg-cur.is-ping .dg-tag{animation:dg-ping .9s var(--ease-out)}
+@keyframes dg-ping{0%{box-shadow:0 0 0 0 var(--c)}100%{box-shadow:0 0 0 14px transparent}}
+
+/* the view's tools, and what the marks mean */
+.dg-tools{position:absolute;right:10px;bottom:10px;display:flex;gap:2px;padding:3px;border-radius:12px;background:var(--g1C);border:1px solid var(--g2A);box-shadow:0 6px 20px rgb(0 0 0 / calc(.35 * var(--sha)));cursor:default}
+:root[data-theme="light"] .dg-tools{background:#FFF;border-color:#D9D9D9}
+.dg-tools button{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;color:var(--ink-3);transition:background var(--dur-fast),color var(--dur-fast)}
+.dg-tools button:hover{background:var(--g26);color:var(--ink)}
+.dg-tools button[aria-pressed="true"]{background:color-mix(in srgb,var(--info) 18%,transparent);color:var(--info)}
+.dg-tools svg{width:15px;height:15px}
+.dg-key{position:absolute;left:10px;bottom:10px;display:flex;gap:10px;padding:6px 10px;border-radius:10px;background:var(--g1C);border:1px solid var(--g2A);font:500 11px/1 var(--sans);color:var(--ink-3);cursor:default}
+.dg-key[hidden]{display:none}
+:root[data-theme="light"] .dg-key{background:#FFF;border-color:#D9D9D9}
+.dg-key span{display:inline-flex;align-items:center;gap:5px}
+.dg-key i{width:10px;height:10px;border-radius:3px;border:1.5px solid var(--ink-4)}
+.dg-key .m-new i{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 25%,transparent)}
+.dg-key .m-edited i{border-color:var(--violet);background:color-mix(in srgb,var(--violet) 25%,transparent)}
+.dg-key .m-deleted i{border-style:dashed}
+
+/* one panel, two modes: the Live · File switch on top of whichever shows */
+.stage-tabs{flex:none;display:flex;align-items:center;gap:4px;padding:10px 10px 0}
+.st-file{flex:1;min-width:0;display:flex;align-items:center;gap:2px}
+.st-tab{position:relative;flex:none;display:inline-flex;align-items:center;gap:6px;min-width:0;max-width:100%;height:30px;padding:0 10px;border-radius:9px;font:500 var(--fs-sm)/1 var(--sans);color:var(--ink-3);transition:background var(--dur-fast),color var(--dur-fast)}
+.st-file .st-tab{flex:0 1 auto}
+.st-tab span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.st-tab svg{flex:none;width:14px;height:14px}
+.st-tab:hover{background:var(--g1F);color:var(--ink)}
+.st-tab[aria-pressed="true"]{background:var(--g22);color:var(--ink);box-shadow:var(--hairline)}
+.st-tab .map-dot{top:6px;left:19px;box-shadow:0 0 0 2px var(--g17)}
+.st-x{flex:none;display:grid;place-items:center;width:24px;height:24px;border-radius:7px;color:var(--ink-4);transition:background var(--dur-fast),color var(--dur-fast)}
+.st-x:hover{background:var(--g1F);color:var(--ink)}
+.st-x svg{width:12px;height:12px}
+.viewer .stage-tabs{padding-bottom:2px}
+.viewer .stage-tabs ~ .vw-top .vw-x{display:none} /* the tab closes it */
+.map .stage-tabs + .mp-top{padding-top:8px}
+
+@media (max-width:1180px) and (min-width:761px){:root{--mw:min(460px,48vw)}}
+/* too narrow to sit beside the conversation: it floats over it */
+@media (max-width:1040px) and (min-width:761px){
+  body.map-open:not(.panel-open):not(.viewer-open) .conv{--rp:0px}
+  body.map-open:not(.panel-open):not(.viewer-open) .scroller,body.map-open:not(.panel-open):not(.viewer-open) .home{padding-right:0}
+  body.map-open:not(.panel-open):not(.viewer-open) .dock,body.map-open:not(.panel-open):not(.viewer-open) .toast-wrap{right:0}
+}
+@media (max-width:760px){
+  body.map-open:not(.panel-open):not(.viewer-open) .conv{--rp:0px}
+  body.map-open:not(.panel-open):not(.viewer-open) .scroller,body.map-open:not(.panel-open):not(.viewer-open) .home{padding-right:16px}
+  body.map-open:not(.panel-open):not(.viewer-open) .dock,body.map-open:not(.panel-open):not(.viewer-open) .toast-wrap{right:0}
+  .map,body.map-full .map{position:fixed;inset:0;width:auto;z-index:79;border-radius:0;border:0}
+  .map.is-in{animation:sheet-up .32s var(--glide) both}
+  .mp-top{padding:max(10px,env(safe-area-inset-top)) 8px 8px 12px}
+  .mp-x{width:40px;height:40px}
+  .mp-full{display:none}
+  .dg{margin:0;border-radius:0;border-left:0;border-right:0}
+  .dg-tools button{width:38px;height:38px}
+  .map-btn span{display:none}
+  .map-btn{width:34px;padding:0;justify-content:center}
+  .map-dot{left:20px}
+}
+@media (prefers-reduced-motion:reduce){.map-dot,.mp-who i,.st-busy .mp-pulse::after,.dg-dot.d-hot,.dg-edges path.is-hot,.dg-cur:not(.is-idle) .dg-arrow{animation:none}.dg-cur,.dg-world.is-glide{transition:none}}

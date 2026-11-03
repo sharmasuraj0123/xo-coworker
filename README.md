@@ -9,6 +9,7 @@ A web UI for the XO Space **projects chat** backend (`/api/projects-chat/*`). It
 - **Workspace**: your coordinator across all projects. Messages show where they were routed.
 - **Projects**: a title, one sentence, the Now shelf of threads in progress, and All threads (searchable, finished ones folded).
 - **Threads**: each has its own agent, branch and checklist. The thread's own decision sits above the composer.
+- **Map** (`⌘\`, or Map at the top right of any conversation): where your agents are working, drawn. The folder as a diagram (boxes and connectors on a dotted canvas you drag and zoom), and each agent as a coloured cursor with its name that glides from file to file as it reads and edits. In a thread, its own worktree, with what it made or changed marked; in a project, the project's folder with every agent at work in it; elsewhere, your projects and the agents in them. Fit, Follow, full size. With a file open, the Map and the viewer are one right-hand panel with two modes, **Live** and **File**.
 - **Composer**: `@project` aims a message at a project. The model chip shows the routing in effect.
 - Light and dark themes. Geist type and the XO palette, with XO green as the accent. Motion honours reduced-motion settings.
 
@@ -105,6 +106,7 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 | `js/ui.js` | icons and motion helpers |
 | `js/gestures.js` | touch gestures on a phone: swipe back or open the sidebar, drag sheets away, swipe between asks, long-press Copy (design-research/11) |
 | `js/record.js`, `js/recordview.js` | a project's record (design-research/12): what its threads made (Made, Recently made on Home, ⌘K) and Since you left; the pure part, then the screen |
+| `js/map.js` | the Map: the folder drawn as a diagram (`/xo-projects/{p}/tree`, a level at a time), agents as cursors (from the stream's activity rows), pan and zoom, the Live · File switch with the viewer |
 | `js/shells/dock.js` | shells: the dock, its tabs and list, the sidebar's toggle; what `app.js` calls |
 | `js/shells/term.js` | one shell on screen: xterm.js, its WebSocket, reconnects, flow control, theme |
 | `js/shells/model.js` | shells, the pure part: row words, counts, flow-control watermarks, backoff |
@@ -120,6 +122,7 @@ python3 tests/serve.test.py      # serve.py: the Host allowlist and the WebSocke
 node tests/storm.test.mjs        # the stream parser and the turn store; no network
 node tests/turnview.test.mjs     # how a turn renders: changed-file chips, runtime notices; no network
 node tests/record.test.mjs       # Made and Since you left: kinds, order, groups, git words, the headline; no network
+node tests/map.test.mjs          # the Map's pure parts: folders, paths, what a session touched, the diagram's layout; no network
 ```
 
 The browser suites (Playwright) live outside the repo:
