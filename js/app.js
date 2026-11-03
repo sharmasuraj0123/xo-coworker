@@ -208,11 +208,15 @@ function rtTag(t, cls) {
     : `<button type="button" class="tw-rt${warn}" data-set-open="runtimes" title="${esc(tip)}" aria-label="${esc(tip)} Open Runtimes in Settings.">${esc(rtName(agent))}</button>`;
 }
 /** F7: what a runtime does with a message sent while its turn runs: "steered" (joins it) or "queued". */
-// Off until xo-space's deploy makes a reply join the running turn: the composer never promises what the
-// backend doesn't do yet. Turn it on with that deploy (the runtimes already say "steered" today).
+// The steer hint is off until xo-space's deploy makes a reply join the running turn: the composer never
+// promises what the backend doesn't do yet. Turn it on with that deploy (the runtimes already say "steered").
 const STEER_LIVE = false;
-const sendWhileRunning = (t) => { if (!STEER_LIVE) return null;
-  const rt = findRt(world.state.runtimes, agentOf(t)); const f = rt && rt.features && rt.features.features && rt.features.features.send_while_running; return (f && f.behaviour) || null; };
+const sendWhileRunning = (t) => {
+  const rt = findRt(world.state.runtimes, agentOf(t)); const f = rt && rt.features && rt.features.features && rt.features.features.send_while_running;
+  const how = (f && f.behaviour) || null;
+  // "queued" is true today (agy waits for the turn); "steered" only once the backend half is deployed
+  return how === "steered" && !STEER_LIVE ? null : how;
+};
 /** F4: a thread may continue elsewhere when another runtime its project allows can take work now, once. */
 const movable = (t) => !!(world.act.storm && world.act.policyFor && t && !t.movedTo && agentOf(t) && world.act.policyFor(t.project) && canMove(agentOf(t), world.act.policyFor(t.project), world.state.runtimes));
 /** The composer's target line in a thread; while its agent works, where your words land. */
@@ -858,7 +862,7 @@ function topRender(needs) {
       : t.label ? `<span class="tw-label" title="Label">${esc(t.label)}</span>` : "";
     const resolved = t.state === "resolved";
     const acts = world.act.storm ? `<span class="tw-acts"><button type="button" class="tw-act" data-resolve="${esc(t.id)}" data-to="${resolved ? "open" : "resolve"}" title="${resolved ? "Reopen it: its agent can pick it up again" : "Mark it resolved: nothing more is owed"}">${resolved ? ICON.retry : ICON.check}<span>${resolved ? "Reopen" : "Resolve"}</span></button>` +
-      `<button type="button" class="tw-act tw-more" data-tmenu="${esc(t.id)}" aria-haspopup="menu" aria-expanded="${S.tMenu === t.id}" title="Rename or label" aria-label="Rename or label">${ICON.edit}</button>` +
+      `<button type="button" class="tw-act tw-more" data-tmenu="${esc(t.id)}" aria-haspopup="menu" aria-expanded="${S.tMenu === t.id}" title="Rename, label and more" aria-label="Rename, label and more">${ICON.edit}</button>` +
       (S.tMenu === t.id ? `<span class="tw-menu" role="menu"><button type="button" role="menuitem" data-tfield="title">Rename</button><button type="button" role="menuitem" data-tfield="label">${t.label ? "Change label" : "Add a label"}</button>${t.label ? `<button type="button" role="menuitem" data-tfield="clear-label">Remove the label</button>` : ""}${SH.enabled ? `<button type="button" role="menuitem" data-shell="t:${esc(t.id)}">Open a shell in its worktree</button>` : ""}${movable(t) ? `<button type="button" role="menuitem" data-tmove="${esc(t.id)}">Continue on another runtime…</button>` : ""}</span>` : "") + `</span>` : "";
     // a shell in its worktree is in the menu (and the shells dock); the header keeps Resolve and the panel
     const allActs = acts ? acts.replace(/<\/span>$/, `${STAGE.button(v)}</span>`) : `<span class="tw-acts">${STAGE.button(v)}</span>`;
@@ -2480,7 +2484,7 @@ $("#set-phone").addEventListener("click", openSettings);
 $("#set-x").addEventListener("click", () => closeSettings());
 for (const b of $$("[data-set]")) b.addEventListener("click", () => setPage(b.dataset.set));
 /** A link into one Settings page (a thread's runtime name opens Runtimes). */
-document.addEventListener("click", (e) => { const b = e.target.closest("[data-set-open]"); if (b) { openSettings(); setPage(b.dataset.setOpen); } });
+document.addEventListener("click", (e) => { const b = e.target.closest("[data-set-open]"); if (b) { setPage(b.dataset.setOpen); if (setEl.hidden) openSettings(); else setEl.querySelector('[aria-selected="true"]')?.focus({ preventScroll: true }); } });
 
 // ── shortcuts: one list (keys.js) drives the handlers, the tooltips, the sheet and this page ──
 function keysSheetRender() {

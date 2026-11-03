@@ -38,7 +38,7 @@ t("health pills", () => {
   assert.equal(healthOf({ name: "codex", health: { ...codex.health, limit: "warn" } }).word, "Near limit");
   const now = Date.parse("2026-11-03T16:00:00Z");
   const closed = healthOf({ name: "codex", health: { ...codex.health, usable: false, limit: "closed", resets_at: "2026-11-03T18:00:00Z", why_not: "its usage limit is closed" } }, now);
-  assert.match(closed.word, /^At limit until \d\d:\d\d$/);
+  assert.match(closed.word, /^At limit until \d{1,2}:\d\d(\s?[AP]M)?$/);
   assert.equal(closed.tone, "bad");
   assert.equal(closed.fix, "It opens again in 2 h.");
   const out = healthOf({ name: "codex", health: { ...codex.health, usable: false, logged_in: false, why_not: "it isn't logged in" } });
@@ -110,7 +110,7 @@ t("a message carries both ends of a move", () => {
 
 t("a limit item in the owner's terms; its move hidden where no waiting thread may move", () => {
   const now = Date.parse("2026-11-03T16:00:00Z");
-  assert.match(humanize("2 threads are waiting on claude_code until 2026-11-03T18:00:00Z: it reached its usage limit.", rts, now), /^2 threads are waiting on Claude Code until \d\d:\d\d: it reached/);
+  assert.match(humanize("2 threads are waiting on claude_code until 2026-11-03T18:00:00Z: it reached its usage limit.", rts, now), /^2 threads are waiting on Claude Code until \d{1,2}:\d\d(\s?[AP]M)?: it reached/);
   assert.equal(humanize("Continue them on codex", rts), "Continue them on Codex");
   const it = { kind: "usage", title: "t", why: "w", detail: { limit: "closed", move_to: "codex", resets_at: "2026-11-03T18:00:00Z", threads: [{ chat_id: "c1", ts: "a" }, { chat_id: "c2", ts: "b" }] }, options: [{ id: "wait", decision: "wait", label: "Wait" }, { id: "move", decision: "move", label: "Continue them on codex" }] };
   assert.equal(isLimitItem(it), true);

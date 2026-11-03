@@ -1,7 +1,7 @@
 // Exercises the UI's pure modules (markdown, model, timeline) against fixed
 // cases and against live storm data through the proxy (GET only: nothing is written).
-//   node tests/logic.test.mjs            (UI server on 127.0.0.1:5180)
-//   XO_UI=http://127.0.0.1:5180 node tests/logic.test.mjs
+//   node tests/logic.test.mjs            (the live part runs if a UI answers on 127.0.0.1:5180, else it's skipped)
+//   XO_UI=http://127.0.0.1:3000 node tests/logic.test.mjs   (the live part through that UI; it must answer)
 import assert from "node:assert/strict";
 import { renderMarkdown, renderInline, threadLinks, excerptMarkdown } from "../js/markdown.js";
 import { parseChecklist, tasksOf } from "../js/model.js";
@@ -443,7 +443,10 @@ try {
   }
   console.log(`      ${threadsSeen} thread(s) across the chats`);
 } catch (e) {
-  console.error("live data unavailable:", e.message);
-  process.exitCode = 1;
+  // asked for by XO_UI: it must answer. Run plainly with no UI up: the pure checks above still count.
+  if (process.env.XO_UI || !/fetch failed|ECONNREFUSED/.test(String(e.message) + String(e.cause && e.cause.code))) {
+    console.error("live data unavailable:", e.message);
+    process.exitCode = 1;
+  } else console.log("  --  live part skipped: no UI on :5180 (set XO_UI to run it through one)");
 }
 console.log(`${passed} passed${process.exitCode ? ", with failures" : ""}`);

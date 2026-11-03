@@ -6,7 +6,7 @@
 // policy is changed only by Save (a PUT that replaces it), and a refusal lands on its field.
 
 import { esc } from "./world.js";
-import { rtName, isInstalled, healthOf, windowsOf, resetWords, allowedOf, defaultOf, policyWords, policyErrors, errorField } from "./runtimes.js";
+import { clockWords, rtName, isInstalled, healthOf, windowsOf, resetWords, allowedOf, defaultOf, policyWords, policyErrors, errorField } from "./runtimes.js";
 
 const REFRESH_MS = 30000;
 const PREF_MAX = 2000;
@@ -51,7 +51,7 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
     if (!rts().length) return `<p class="set-empty"><b>No runtimes.</b> XO didn't list any agent runtime on this server.</p>`;
     const at = rts().map((r) => r.health && r.health.checked_at).filter(Boolean).sort().pop();
     return `<ul class="rt-list">${rts().map(cardHtml).join("")}</ul>` +
-      `<p class="rt-checked">${at ? `Checked at ${esc(new Date(at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }))}. ` : ""}Read again every 30 seconds while this page is open.</p>`;
+      `<p class="rt-checked">${at ? `Checked at ${esc(clockWords(at))}. ` : ""}Read again every 30 seconds while this page is open.</p>`;
   }
 
   // ── the policy (F3) ───────────────────────────────────────────────────────

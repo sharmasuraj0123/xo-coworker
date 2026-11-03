@@ -40,7 +40,8 @@ export function clockWords(iso, now = Date.now()) {
   const ms = Date.parse(iso);
   if (!Number.isFinite(ms)) return "";
   const d = new Date(ms), t = new Date(now);
-  const hm = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  // the app's own clock format (js/ui.js clock): one way of telling the time on every screen
+  const hm = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
   if (d.toDateString() === t.toDateString()) return hm;
   if (ms - now < 6 * 86400000 && ms > now) return `${d.toLocaleDateString(undefined, { weekday: "short" })} ${hm}`;
   return `${d.toLocaleDateString(undefined, { day: "numeric", month: "short" })}, ${hm}`;
