@@ -1097,7 +1097,7 @@ function typingRender() {
     const aw = world.state.awaiting[chat];
     const who = S.view === "ws" ? "The coordinator" : `${esc(PROJ(chat))} coordinator`;
     const doing = world.act.doing ? world.act.doing(chat) : null;
-    html = `<div class="typing" role="status"><div class="av av-live is-xo">${XO}</div><div class="ty-b"><span class="shimmer">${who} is ${aw ? "replying" : "working"}${doing ? ` · ${esc(doing.replace(/`/g, ""))}` : ""}</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>${aw ? `<span class="elapsed" data-since="${aw.at}"></span>` : ""}</div></div>`;
+    html = `<div class="typing" role="status"><div class="av av-w">${XO}</div><div class="ty-b"><span class="shimmer">${who} is ${aw ? "replying" : "working"}${doing ? ` · ${esc(doing.replace(/`/g, ""))}` : ""}</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>${aw ? `<span class="elapsed" data-since="${aw.at}"></span>` : ""}</div></div>`;
   } else if (S.view.startsWith("c:")) {
     const sid = S.view.slice(2), tu = world.state.turns && world.state.turns.running(sid);
     if (CH.working(S.view) && !(tu && world.state.turns.blocksOf(tu).length)) html = `<div class="typing" role="status"><div class="av av-live">${ICON.thread}</div><div class="ty-b"><span class="shimmer">Working</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></div></div>`;

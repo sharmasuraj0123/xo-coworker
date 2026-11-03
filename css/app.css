@@ -2472,16 +2472,13 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 /* an agent at work: its tile beside the turn (and the "working" line) glows, a short blue light
    travelling round the border, as the sidebar's working cubes do; a running step is a breathing dot,
    never a spinner. Waiting on you: amber, still. */
-.av-live{position:relative;color:var(--info);border-color:transparent;background:linear-gradient(color-mix(in srgb,var(--info) 12%,var(--g1C)),color-mix(in srgb,var(--info) 12%,var(--g1C))) padding-box,conic-gradient(from var(--pr-a),transparent 0deg,color-mix(in srgb,var(--info) 95%,transparent) 70deg,transparent 140deg) border-box,linear-gradient(color-mix(in srgb,var(--info) 26%,var(--g26)),color-mix(in srgb,var(--info) 26%,var(--g26))) border-box;box-shadow:0 0 16px -4px color-mix(in srgb,var(--info) 60%,transparent);animation:pr-orbit 2.8s linear infinite}
-.av-live svg{width:15px;height:15px;filter:drop-shadow(0 0 4px color-mix(in srgb,var(--info) 55%,transparent));animation:av-glow 2.8s ease-in-out infinite}
-.av-live.is-xo .xo-mark{width:18px;height:8px}
-.av-live.is-wait{color:var(--warn);background:color-mix(in srgb,var(--warn) 10%,var(--g1C));border-color:color-mix(in srgb,var(--warn) 45%,var(--g26));box-shadow:0 0 14px -5px color-mix(in srgb,var(--warn) 60%,transparent);animation:none}
-.av-live.is-wait svg{filter:none;animation:none}
-@keyframes av-glow{0%,100%{opacity:.8}50%{opacity:1}}
+.av-live{position:relative;color:var(--info);border-color:transparent;background:linear-gradient(color-mix(in srgb,var(--info) 12%,var(--g1C)),color-mix(in srgb,var(--info) 12%,var(--g1C))) padding-box,conic-gradient(from var(--pr-a),transparent 0deg,color-mix(in srgb,var(--info) 95%,transparent) 70deg,transparent 140deg) border-box,linear-gradient(color-mix(in srgb,var(--info) 26%,var(--g26)),color-mix(in srgb,var(--info) 26%,var(--g26))) border-box;box-shadow:0 0 10px -3px color-mix(in srgb,var(--info) 45%,transparent);animation:pr-orbit 2.8s linear infinite}
+.av-live svg{width:15px;height:15px}
+.av-live.is-wait{color:var(--warn);background:color-mix(in srgb,var(--warn) 10%,var(--g1C));border-color:color-mix(in srgb,var(--warn) 45%,var(--g26));box-shadow:none;animation:none}
 .m-turn.is-live{align-items:flex-start}
 .tb-live{display:block;width:7px;height:7px;border-radius:50%;background:var(--info);box-shadow:0 0 0 3px color-mix(in srgb,var(--info) 16%,transparent),0 0 8px color-mix(in srgb,var(--info) 55%,transparent);animation:tb-breathe 1.6s ease-in-out infinite}
 @keyframes tb-breathe{0%,100%{transform:scale(.8);opacity:.7}50%{transform:scale(1);opacity:1}}
-@media (prefers-reduced-motion:reduce){.av-live,.av-live svg,.tb-live{animation:none}}
+@media (prefers-reduced-motion:reduce){.av-live,.tb-live{animation:none}}
 /* a thread in ⌘K: the thread mark, its state on its corner */
 .j-th{position:relative;display:grid;place-items:center;width:20px;height:20px;color:var(--ink-3)}
 .j-th svg{width:16px;height:16px}
