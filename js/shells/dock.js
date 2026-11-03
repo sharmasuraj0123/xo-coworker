@@ -1,4 +1,4 @@
-// Shells: the bottom dock that hosts them, the list that keeps track of them, and the sidebar row.
+// Shells: the bottom dock that hosts them, the list that keeps track of them, and the sidebar's toggle.
 //
 // The dock sits under the main column, outside every view, so moving between Home, projects and
 // threads never detaches a terminal. Tabs are attached shells; the first tab, "Shells", lists every
@@ -294,11 +294,14 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
     side.hidden = !show;
     if (show) {
       const n = runningOf(R.list).length;
-      const nEl = side.querySelector(".nr-n");
+      const nEl = side.querySelector(".sh-n");
       const h = n ? String(n) : "";
       if (nEl.textContent !== h) nEl.textContent = h;
+      const up = R.open && !R.min;
       side.setAttribute("aria-label", n ? `Shells, ${n} running` : "Shells");
-      side.classList.toggle("is-on", R.open && !R.min && R.active === LIST);
+      side.setAttribute("aria-pressed", String(up));
+      side.title = `${up ? "Hide" : "Show"} shells (${K.label("shells")})`;
+      side.classList.toggle("is-on", up);
     }
     root.hidden = !show || !R.open;
     root.classList.toggle("is-min", R.min);
@@ -426,9 +429,10 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
   }
 
   // ── events ────────────────────────────────────────────────────────────────
+  // the sidebar's toggle: the same as the key. Opening with nothing attached shows the list of every shell.
   side.addEventListener("click", () => {
-    if (R.open && !R.min && R.active === LIST && R.filter == null) { R.min = true; changed(); return; }
-    showList(null);
+    if (!R.open && !R.tabs.size) { showList(null); return; }
+    toggle();
   });
   root.addEventListener("click", (e) => {
     const t = e.target;
@@ -512,7 +516,7 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
   });
 
   // on a phone the dock is a sheet: drag its bar between full screen and half, or down to put it away
-  // (it waits in the sidebar's Shells row). Inside the terminal every touch stays the terminal's.
+  // (it waits behind the sidebar's Shells toggle). Inside the terminal every touch stays the terminal's.
   const PHONE = matchMedia("(max-width: 760px)");
   const bar = root.querySelector(".shd-bar");
   const refit = () => R.tabs.get(R.active)?.handle.refit();
@@ -573,7 +577,7 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
     openProject, openWorkspace, openThread, showList, toggle, owns,
     /** On a phone, is the shells sheet up over the page (so Back puts it away first)? */
     get raised() { return PHONE.matches && R.enabled && R.open && !R.min; },
-    /** Back on a phone: half height first, then away into the sidebar row. */
+    /** Back on a phone: half height first, then away behind the sidebar's toggle. */
     lower() {
       if (!(PHONE.matches && R.open && !R.min)) return false;
       if (!R.half) { R.half = true; render(); refit(); return true; }

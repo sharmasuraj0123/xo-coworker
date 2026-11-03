@@ -13,27 +13,30 @@
 </head>
 <body>
   <div class="app" id="app">
-    <!-- Sidebar: Home, Workspace, then projects as button-like rows. Text only when a project needs you. -->
+    <!-- Sidebar: places only. Home, Workspace, Chats, then projects as button-like rows (text only when a
+         project needs you). Tools that aren't places live in the foot: the shells toggle and Settings. -->
     <aside class="side" id="side" aria-label="Navigation">
       <div class="side-top">
         <p class="brand"><span class="brand-mark" id="brand-mark"></span><span class="sr-only">XO </span><b>Space</b></p>
         <button type="button" class="theme" id="theme" role="switch" aria-checked="false" aria-label="Light mode"></button>
         <button type="button" class="side-x" id="side-x" aria-label="Close menu"></button>
       </div>
-      <!-- Create XO Project: one easy, always-there entry under the brand -->
-      <button type="button" class="side-create" id="side-add"><span class="sc-ic" id="sc-ic"></span><span class="sc-t">Create XO Project</span></button>
       <nav class="nav" aria-label="Main">
         <button type="button" class="nrow" data-go="home" id="nv-home"><span class="nr-ic" id="ic-home"></span><span class="nr-name">Home</span><span class="nr-n" id="home-n"></span></button>
         <button type="button" class="nrow" data-go="ws" id="nv-ws"><span class="nr-ic nr-xo" id="ic-ws"></span><span class="nr-name">Workspace</span></button>
         <button type="button" class="nrow" data-go="chats" id="nv-chats"><span class="nr-ic" id="ic-chats"></span><span class="nr-name">Chats</span></button>
-        <!-- Shells (js/shells/): every shell, running or detached; shown only when the backend has them on -->
-        <button type="button" class="nrow" id="nv-shells" aria-haspopup="true" hidden><span class="nr-ic" id="ic-shells"></span><span class="nr-name">Shells</span><span class="nr-n nr-sh"></span></button>
       </nav>
-      <div class="side-label"><span id="projects-label">Projects</span></div>
+      <!-- Create XO Project: a "+" on the Projects label, where the new project will appear -->
+      <div class="side-label"><span id="projects-label">Projects</span><button type="button" class="side-plus" id="side-add" aria-label="Create XO Project" title="Create XO Project"><span id="sc-ic"></span></button></div>
       <!-- a filter once the list is long (hub #16): typing narrows it, ↑ ↓ and Enter open one, Esc clears -->
       <div class="side-find" id="side-find" hidden><span class="sf-ic" id="sf-ic" aria-hidden="true"></span><input id="pf-in" type="search" placeholder="Find a project" autocomplete="off" spellcheck="false" aria-label="Find a project" aria-controls="projects"><span class="sf-n" id="pf-n" aria-live="polite"></span></div>
       <nav class="projects" id="projects" aria-labelledby="projects-label"></nav>
-      <div class="side-foot"><button type="button" class="gear" id="set-side" title="Settings" aria-haspopup="true" aria-expanded="false"><span class="gear-ic" id="set-side-ic"></span><span class="gear-t">Settings</span></button></div>
+      <div class="side-foot">
+        <!-- Shells (js/shells/): not a place but a dock under every view; this toggles it and counts what runs.
+             Shown only when the backend has shells on. -->
+        <button type="button" class="gear sh-tog" id="nv-shells" aria-pressed="false" hidden><span class="gear-ic" id="ic-shells"></span><span class="gear-t">Shells</span><span class="sh-n"></span></button>
+        <button type="button" class="gear" id="set-side" title="Settings" aria-haspopup="true" aria-expanded="false"><span class="gear-ic" id="set-side-ic"></span><span class="gear-t">Settings</span></button>
+      </div>
     </aside>
     <div class="side-scrim" id="side-scrim" hidden></div>
 

@@ -61,7 +61,8 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
     Where shells already run, the button shows their count and opens their list.
   - The dock under the main column holds them as tabs and survives navigation. Closing a tab only detaches; the
     shell keeps running. A reload reattaches this browser tab's shells with their recent output.
-  - The sidebar's **Shells** row (the running count) opens the list: status, the program in front, watching or
+  - The **Shells** toggle in the sidebar's foot (the running count; the same as `` mod+` ``) shows or hides the dock,
+    opening on the list when nothing is attached. The list: status, the program in front, watching or
     detached and when it closes, with Open, Rename, Close and Close all detached. Closing asks first when
     something other than the shell is running. The list is polled every 15 s while on screen, else every 60 s.
   - The socket: `…/ws` through serve.py, the ticket as the first message (never in the URL), a fresh ticket on every
@@ -92,7 +93,7 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 | `js/content.js` | what an ask costs you, what it frees, and its evidence |
 | `js/ui.js` | icons and motion helpers |
 | `js/gestures.js` | touch gestures on a phone: swipe back or open the sidebar, drag sheets away, swipe between asks, long-press Copy (design-research/11) |
-| `js/shells/dock.js` | shells: the dock, its tabs and list, the sidebar row; what `app.js` calls |
+| `js/shells/dock.js` | shells: the dock, its tabs and list, the sidebar's toggle; what `app.js` calls |
 | `js/shells/term.js` | one shell on screen: xterm.js, its WebSocket, reconnects, flow control, theme |
 | `js/shells/model.js` | shells, the pure part: row words, counts, flow-control watermarks, backoff |
 | `js/vendor/xterm/` | xterm.js 6.0.0 and addon-fit 0.11.0, copied byte for byte (pinned hashes in its README) |
