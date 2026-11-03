@@ -2494,3 +2494,10 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .jump-list li[aria-selected="true"] .j-th i{box-shadow:0 0 0 2px var(--bg-3)}
 @media (prefers-reduced-motion:reduce){.j-th.st-busy i{animation:none}}
 .stg-pane:focus{outline:none}
+/* Threads: a quiet labelled button beside the panel button; its list drops down under it */
+.top-end{gap:8px}
+.th-btn{gap:7px;padding:0 6px 0 10px;align-self:center}
+.th-btn svg{width:15px;height:15px;color:var(--ink-3)}
+.th-btn:hover svg,.th-btn[aria-expanded="true"] svg{color:var(--ink)}
+.th-btn[aria-expanded="true"]{background:var(--g22);border-color:var(--g3A);color:var(--ink)}
+.sheet.is-drop .all-card{width:var(--dw,480px);transform-origin:top right}

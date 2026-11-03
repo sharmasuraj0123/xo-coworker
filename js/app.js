@@ -750,9 +750,9 @@ function topRender(needs) {
     const dn = ts.filter((x) => x.state === "done").length;
     const rs = every.length - ts.length;
     const parts = [nd && `<b class="is-amber">${nd} need${nd === 1 ? "s" : ""} you</b>`, w && `${w} working`, dn && `${dn} done this week`, rs && `${rs} resolved`].filter(Boolean);
-    // the title is the thread switcher: every thread here, searchable (⌘K reaches them too)
-    const nT = every.length;
-    who = `<span class="tw-ic" aria-hidden="true">${ICON.project}</span><span class="tw-t"><h1 id="conv-title"><button type="button" class="pj-title" data-switch aria-haspopup="dialog" aria-expanded="${!allEl.hidden}" title="${nT ? `Switch to one of its ${nT} threads` : "Its threads"}"><span>${esc(PROJ(pid))}</span>${nT ? `<span class="pj-n">${nT}</span>` : ""}${ICON.chevron}</button></h1><span class="pj-s">${parts.join(" · ") || (every.length ? "All quiet" : "No threads yet")}${S.desc[pid] ? ` · ${esc(S.desc[pid])}` : ""}</span></span>`;
+    // Threads: every thread here, searchable, dropping down under its button (⌘K reaches them too)
+    if (every.length) end = `<button type="button" class="all-btn th-btn" data-switch aria-haspopup="dialog" aria-expanded="${!allEl.hidden}" title="Every thread in ${esc(PROJ(pid))}, searchable">${ICON.threadOne}Threads<span>${every.length}</span></button>`;
+    who = `<span class="tw-ic" aria-hidden="true">${ICON.project}</span><span class="tw-t"><h1 id="conv-title">${esc(PROJ(pid))}</h1><span class="pj-s">${parts.join(" · ") || (every.length ? "All quiet" : "No threads yet")}${S.desc[pid] ? ` · ${esc(S.desc[pid])}` : ""}</span></span>`;
   } else if (t) {
     const ed = S.tEdit && S.tEdit.tid === t.id ? S.tEdit.field : null;
     const title = ed === "title"
@@ -2139,15 +2139,19 @@ function openAll(anchor = null) {
   const drop = !!anchor && !PHONE.matches;
   allEl.classList.toggle("is-drop", drop);
   if (drop) {
+    // under its button, its right edge on the button's
     const r = anchor.getBoundingClientRect();
-    allEl.style.setProperty("--dx", `${Math.round(r.left - 6)}px`);
+    const w = Math.min(480, innerWidth - 32);
+    allEl.style.setProperty("--dx", `${Math.max(16, Math.round(r.right - w))}px`);
     allEl.style.setProperty("--dy", `${Math.round(r.bottom + 8)}px`);
+    allEl.style.setProperty("--dw", `${w}px`);
   }
   S.allFilter = "all"; S.allDone = false;
   $("#all-q").value = "";
   allRender();
   allEl.hidden = false;
   $("#all-q").focus();
+  schedule();
 }
 function closeAll() { if (allEl.hidden) return; allEl.hidden = true; allReturn?.focus?.({ preventScroll: true }); schedule(); }
 $("#all-q").addEventListener("input", allRender);
