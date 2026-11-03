@@ -122,11 +122,10 @@ export function createStage({ files, filesIcon, made, map, mapIcon, viewer, view
     if (!S.open) return;
     const v = view();
     const nMade = made.count(v);
-    const live = !!map.live(v);
     const all = [
       { k: "files", label: "Files", icon: filesIcon, extra: "" },
       { k: "made", label: "Made", icon: ICON.spark, extra: nMade ? `<span class="stg-n">${nMade}</span>` : "" },
-      { k: "map", label: "Map", icon: mapIcon, extra: live ? `<i class="stg-dot" aria-hidden="true" title="Agents at work"></i>` : "" },
+      { k: "map", label: "Map", icon: mapIcon, extra: "" },
     ];
     const shown = all.slice(0, MORE_AT);
     let html = shown.map((t) => `<button type="button" role="tab" class="stg-tab${S.tab === t.k ? " is-on" : ""}" data-stg-tab="${t.k}" aria-selected="${S.tab === t.k}">${t.icon}<span>${t.label}</span>${t.extra}</button>`).join("");
@@ -193,10 +192,9 @@ export function createStage({ files, filesIcon, made, map, mapIcon, viewer, view
     open, close, toggle, sync, show: (tab) => open(tab),
     /** Is this element inside the panel (so the app's Esc leaves it alone)? */
     owns: (node) => !!(node && el.contains(node)),
-    /** The one header button: opens the panel on the last tool, or closes it. A dot while agents work here. */
-    button(v) {
-      const live = !!map.live(v);
-      return `<button type="button" class="stg-btn${S.open ? " is-on" : ""}" data-stage-toggle aria-pressed="${S.open}" aria-controls="stage" aria-label="Panel: Files, Made and Map" title="Files, Made and Map">${PANEL_IC}${live ? `<i class="stg-dot" aria-hidden="true"></i>` : ""}</button>`;
+    /** The one header button: opens the panel on the last tool, or closes it. No dot: nothing blinks here. */
+    button() {
+      return `<button type="button" class="stg-btn${S.open ? " is-on" : ""}" data-stage-toggle aria-pressed="${S.open}" aria-controls="stage" aria-label="Panel: Files, Made and Map" title="Files, Made and Map">${PANEL_IC}</button>`;
     },
   };
 }

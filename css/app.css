@@ -2399,7 +2399,6 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .stg-tab:focus-visible{outline-offset:-2px}
 .stg-n{font:500 var(--fs-xs)/1 var(--mono);color:var(--ink-4);font-variant-numeric:tabular-nums}
 .stg-tab.is-on .stg-n{color:var(--ink-3)}
-.stg-dot{flex:none;width:6px;height:6px;border-radius:50%;background:var(--info);box-shadow:0 0 6px var(--info);animation:breathe 2.4s ease-in-out infinite}
 .stg-filew{flex:0 1 auto;min-width:0;display:inline-flex;align-items:center;border-radius:10px;transition:background var(--dur-fast)}
 .stg-filew:hover{background:var(--g1F)}
 .stg-filew.is-on{background:var(--g24);box-shadow:var(--hairline)}
@@ -2425,7 +2424,6 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .stg-btn:hover{background:var(--g1A);border-color:var(--g33);color:var(--ink)}
 .stg-btn:active{transform:scale(.95)}
 .stg-btn.is-on{background:var(--g22);border-color:var(--g3A);color:var(--ink)}
-.stg-btn .stg-dot{position:absolute;top:6px;right:6px;box-shadow:0 0 0 2px var(--canvas),0 0 6px var(--info)}
 /* Made, as a tab */
 .md-pane{display:flex;flex-direction:column;min-height:0;height:100%}
 .md-pane .md-h{padding:16px 18px 2px}
@@ -2456,7 +2454,6 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
   body.stage-open:not(.panel-open) .scroller,body.stage-open:not(.panel-open) .home{padding-right:16px}
   body.stage-open:not(.panel-open) .dock,body.stage-open:not(.panel-open) .toast-wrap{right:0}
 }
-@media (prefers-reduced-motion:reduce){.stg-dot{animation:none}}
 /* the header is the project's name and one button now: the name keeps its room; the Now strip gives way */
 .top[data-kind="project"] .top-who{flex:0 0 auto;max-width:min(52%,426px)}
 .top[data-kind="project"] .stg-btn{align-self:center}
@@ -2468,20 +2465,18 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .av-live svg{width:15px;height:15px}
 .av-live.is-wait{color:var(--warn);background:color-mix(in srgb,var(--warn) 10%,var(--g1C));border-color:color-mix(in srgb,var(--warn) 45%,var(--g26));box-shadow:none;animation:none}
 .m-turn.is-live{align-items:flex-start}
-.tb-live{display:block;width:7px;height:7px;border-radius:50%;background:var(--info);box-shadow:0 0 0 3px color-mix(in srgb,var(--info) 16%,transparent),0 0 8px color-mix(in srgb,var(--info) 55%,transparent);animation:tb-breathe 1.6s ease-in-out infinite}
-@keyframes tb-breathe{0%,100%{transform:scale(.8);opacity:.7}50%{transform:scale(1);opacity:1}}
-@media (prefers-reduced-motion:reduce){.av-live,.tb-live{animation:none}}
+.tb-live{display:block;width:7px;height:7px;border-radius:50%;background:var(--info)}
+@media (prefers-reduced-motion:reduce){.av-live{animation:none}}
 /* a thread in ⌘K: the thread mark, its state on its corner */
 .j-th{position:relative;display:grid;place-items:center;width:20px;height:20px;color:var(--ink-3)}
 .j-th svg{width:16px;height:16px}
 .j-th i{position:absolute;right:-2px;bottom:-1px;width:7px;height:7px;border-radius:50%;background:var(--ink-4);box-shadow:0 0 0 2px var(--g1B)}
 .j-th.st-busy{color:var(--info)}
-.j-th.st-busy i{background:var(--info);box-shadow:0 0 0 2px var(--g1B),0 0 6px var(--info);animation:tb-breathe 1.6s ease-in-out infinite}
+.j-th.st-busy i{background:var(--info)}
 .j-th.st-needs{color:var(--warn)}.j-th.st-needs i{background:var(--warn)}
 .j-th.st-stopped i{background:var(--err)}
 .j-th.st-done i{background:var(--accent-fill)}
 .jump-list li[aria-selected="true"] .j-th i{box-shadow:0 0 0 2px var(--bg-3)}
-@media (prefers-reduced-motion:reduce){.j-th.st-busy i{animation:none}}
 .stg-pane:focus{outline:none}
 /* Threads: a quiet labelled button beside the panel button; its list drops down under it */
 .top-end{gap:8px}
@@ -2545,11 +2540,10 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .fl-who{flex:none;display:inline-flex;align-items:center;gap:5px;font:500 var(--fs-xs)/1 var(--sans);color:var(--ink-3)}
 .fl-who i{width:7px;height:7px;border-radius:50%;background:var(--ink-4)}
 .fl-who.w-live{color:var(--info)}
-.fl-who.w-live i{background:var(--info);box-shadow:0 0 6px var(--info);animation:tb-breathe 1.6s ease-in-out infinite}
+.fl-who.w-live i{background:var(--info)}
 .fl-who.w-new i{background:var(--accent-fill)}
 .fl-who.w-edited i{background:var(--warn)}
 .fl-who.w-deleted i{background:var(--err)}
 .fl-note{display:flex;align-items:center;gap:8px;min-height:28px;padding:0 10px 0 calc(32px + var(--d,0) * 16px);font:400 var(--fs-sm)/1.3 var(--sans);color:var(--ink-4)}
 .fl-note.is-err{color:var(--err-ink)}
 .fl-link{color:var(--ink-2);text-decoration:underline;text-underline-offset:2px}
-@media (prefers-reduced-motion:reduce){.fl-who.w-live i{animation:none}}
