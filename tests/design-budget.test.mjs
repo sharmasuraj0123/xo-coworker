@@ -81,4 +81,9 @@ t("no heavy shadows: floating things use var(--e2)", () => {
   assert.equal(heavy.length, 0, `blurs of 30 px or more:\n    ${where((d) => heavy.includes(d))}`);
 });
 
+t("no malformed var() (a broken value drops its whole declaration without a word)", () => {
+  const bad = D.filter((d) => /var\(--var\(|var\(\s*\)/.test(d.value));
+  assert.equal(bad.length, 0, `malformed var():\n    ${where((d) => bad.includes(d))}`);
+});
+
 console.log(`\n${passed} passed`);

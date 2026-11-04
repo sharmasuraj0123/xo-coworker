@@ -27,23 +27,26 @@
    - Thread and file capsules are the same inline element with the same box; only the glyph differs. */
 .lk-in{
   display:inline;
-  padding:.158em .5em .172em .3em;
-  border-radius:var(--r-xs);
+  padding:.158em .6em .172em .38em;
+  /* a true capsule (round ends), filled, with no ring: a thing that lives here, the way Mail and
+     Messages draw someone you've addressed. The glyph sits as far from the left end as the words
+     from the right (.38 + .2 ≈ .6em). */
+  border-radius:var(--r-pill);
   font-weight:var(--fw-medium);
   color:var(--ink);
   text-decoration:none;
   white-space:nowrap;
   background:color-mix(in srgb,var(--ink) 7%,transparent);
-  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 10%,transparent);
   -webkit-box-decoration-break:clone;box-decoration-break:clone;
   cursor:pointer;
-  transition:background-color var(--d-hover) var(--var(--ease)) var(--ease),box-shadow var(--dur-fast) var(--var(--ease)) var(--ease);
+  transition:background-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease);
 }
 /* a long title may wrap between words; each line keeps a whole capsule */
 .lk-in.is-long{white-space:normal}
-.lk-in:hover{background:color-mix(in srgb,var(--ink) 11%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 16%,transparent)}
-.lk-in:active{background:color-mix(in srgb,var(--ink) 15%,transparent)}
-.lk-in:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+/* hover is one step deeper (≥ 1.15:1 against rest in both themes), press one more; nothing moves */
+.lk-in:hover{background:color-mix(in srgb,var(--ink) 14%,transparent)}
+.lk-in:active{background:color-mix(in srgb,var(--ink) 18%,transparent)}
+.lk-in:focus-visible{outline:2px solid rgba(var(--accent-rgb),.75);outline-offset:1px}
 
 /* the glyph's 1em box: an empty inline-block sits on the baseline, so lowering it .1405em puts
    its middle on the middle of the capitals (.3595em). Its child is centred in it. */
@@ -72,7 +75,7 @@
   text-decoration-thickness:1px;
   text-underline-offset:3px;
   text-decoration-color:color-mix(in srgb,var(--accent) 55%,transparent);
-  transition:text-decoration-color var(--dur-fast) var(--var(--ease)),color var(--dur-fast) var(--var(--ease)) var(--ease);
+  transition:text-decoration-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease);
 }
 .lk-out:hover{text-decoration-color:var(--accent)}
 .lk-out:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
