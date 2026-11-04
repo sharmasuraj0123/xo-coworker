@@ -478,8 +478,15 @@ function gStart(kind, m) {
   if (kind === "reply") m.classList.add("mx-dragging"); else msgs.classList.add("mx-pulling");
 }
 // a trackpad's horizontal swipe arrives as wheel events; it ends when they stop
+// Scrolling always wins. A sideways swipe only starts from a clearly sideways movement (at least 6 px, and
+// twice the vertical) and never during a vertical scroll (or its momentum, 400 ms after it); any vertical
+// movement ends it and scrolls. (It used to catch a slightly diagonal start and then hold the page still
+// for the whole gesture: "stuck while scrolling".)
+let lastV = 0;
 scroller.addEventListener("wheel", (e) => {
-  if (Math.abs(e.deltaX) <= Math.abs(e.deltaY) * 1.2 && !g) return;
+  const ax = Math.abs(e.deltaX), ay = Math.abs(e.deltaY);
+  if (ay > ax) { lastV = e.timeStamp; if (g) gEnd(); return; }
+  if (!g && (ax < 6 || ax < ay * 2 || e.timeStamp - lastV < 400)) return;
   e.preventDefault();
   if (!g) {
     const m = e.target.closest?.("#msgs .m");

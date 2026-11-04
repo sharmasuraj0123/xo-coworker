@@ -128,11 +128,12 @@ body.files-open .mx-down{display:none}
    one at full strength. Every tone is set in OKLCH at low chroma; --ink on each measures 8.5:1 or more
    (AAA), and the bubble stands only 1.4–1.7 : 1 off the dark canvas: enough to tell who spoke, never a
    white slab. Theirs stay stone (--bubble). */
-:root[data-msgx]{--mx-you:oklch(.38 .075 134);--mx-you-ink:var(--ink);--mx-you-tail:var(--mx-you);--mx-you-hi:inset 0 1px 0 rgba(255,255,255,.06),var(--mx-lift)}
+:root[data-msgx]{--mx-you:oklch(.39 .084 134);--mx-you-ink:var(--ink);--mx-you-tail:var(--mx-you);--mx-you-hi:inset 0 1px 0 rgba(255,255,255,.06),var(--mx-lift)}
 :root[data-theme="light"][data-msgx]{--mx-you-hi:inset 0 1px 0 rgba(255,255,255,.5),var(--mx-lift)}
-:root[data-theme="light"][data-msgx]{--mx-you:oklch(.88 .11 130)}
-/* XO (the default): XO's green, deepened so it holds its colour on the dark canvas and keeps --ink at 7.5:1
-   (#324A22); in light, a clear leaf (#C0E699, 11.9:1). A colour you own, not a status chip. */
+:root[data-theme="light"][data-msgx]{--mx-you:oklch(.875 .125 130)}
+/* XO (the default): XO's green, deepened so it holds its colour on the dark canvas (#324E1D-ish, --ink at
+   7.1:1, a touch brighter than first tried at the owner's ask); in light, a clear leaf (#BBE78D, 11.9:1).
+   A colour you own, not a status chip. */
 /* XO Bright: the brand green itself, #83D63A, with dark ink like the Send button (9.2:1). The boldest. */
 :root[data-msgx-tone="bright"]{--mx-you:var(--accent-fill);--mx-you-ink:var(--accent-ink)}
 /* Graphite: no colour at all, a cool grey a step lighter than theirs */
@@ -222,7 +223,8 @@ body.files-open .mx-down{display:none}
 /* and, like a typing bubble, it is always the last thing in the conversation, even when messages arrive
    while it works (the list is a column, so this only changes where it's drawn, not the app's order) */
 :root[data-msgx] #msgs{display:flex;flex-direction:column}
-:root[data-msgx] #msgs>.m-turn.mx-live{order:1}
+:root[data-msgx] #msgs>.m-turn.mx-live{order:1;overflow-anchor:none}
+/* (drawn out of its list order, it must never be the browser's scroll anchor: its redraws would pull the page) */
 :root[data-msgx] .m-turn.mx-live:not(.mx-expanded) .turn>:is(.tb-work,.tb-think,.tb-act,.tb-narr,.tb-plan){display:none}
 :root[data-msgx] .m-turn.mx-live:not(.mx-expanded) .turn:not(:has(>:is(.tb-text,.tb-answer,.tb-files,.tb-end))){display:none}
 .mx-work{display:none}
