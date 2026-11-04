@@ -298,11 +298,17 @@ function sideRender(needs) {
     const needsMe = asks.length > 0;
     // hub #31: a project at work reads blue at a glance; what needs you (amber, red) still wins the row
     const working = busy && !needsMe;
-    // one ask, one place (design-research/14): what needs you is Home's to say (its row's count, then Home
-    // itself), so a project row stays one line; while its agents work, its icon glows
+    const label = needsMe ? askShort(lead) : working ? (nBusy > 1 ? `${nBusy} threads working` : nBusy ? "Working" : "Coordinator working") : "";
+    const kind = needsMe ? (lead.risk === "destructive" || lead.group === "stopped" ? "red" : "amber") : "";
+    const was = sideRender.needs?.get(p.id) || 0;
+    if (asks.length > was && sideRender.ready && !RM.matches) S.wash.set(p.id, { n: (S.wash.get(p.id)?.n || 0) + 1, until: now + 2600 });
+    const w = S.wash.get(p.id);
+    const washing = w && w.until > now;
     return { key: p.id, html:
-      `<button type="button" class="prow${busy ? " busy" : ""}${on ? " is-on" : ""}${q && pi === S.pfCur ? " is-cur" : ""}" data-go="p:${esc(p.id)}"${on ? ' aria-current="page"' : ""} aria-label="${esc(p.name)}${busy ? ". Agents working" : ""}${needsMe ? `. ${asks.length} need${asks.length === 1 ? "s" : ""} you` : ""}">` +
-      `<span class="pr-ic" aria-hidden="true">${ICON.project}</span><span class="pr-main"><span class="pr-l1"><span class="pr-name">${esc(p.name)}</span></span></span></button>` };
+      `<button type="button" class="prow${needsMe ? ` needs k-${kind}` : working ? " busy" : ""}${on ? " is-on" : ""}${washing ? " wash" : ""}${q && pi === S.pfCur ? " is-cur" : ""}" data-go="p:${esc(p.id)}" data-w="${washing ? w.n : 0}"${on ? ' aria-current="page"' : ""} aria-label="${esc(p.name)}${needsMe ? `. ${asks.length} need${asks.length === 1 ? "s" : ""} you: ${esc(label)}` : busy ? ". Working" : ""}">` +
+      `<span class="pr-ic" aria-hidden="true">${ICON.project}${busy && needsMe ? `<i class="pr-busy"></i>` : ""}</span>` +
+      `<span class="pr-main"><span class="pr-l1"><span class="pr-name">${esc(p.name)}</span>${needsMe ? `<span class="pr-w" aria-hidden="true"><i class="pr-d"></i>${asks.length}</span>` : ""}</span>` +
+      (label ? `<span class="pr-t">${esc(label)}</span>` : "") + `</span></button>` };
   });
   sideRender.needs = new Map(projects().map((p) => [p.id, mine.filter((x) => x.t.project === p.id).length]));
   if (q && !items.length) items.push({ key: "pf-none", html: `<p class="pf-none">No project called “${esc(S.pfind.trim())}”.</p>` });
