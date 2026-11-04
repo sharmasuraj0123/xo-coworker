@@ -1190,7 +1190,7 @@ tdock.addEventListener("keydown", (e) => {
 /**
  * The "working" line under a conversation: the agent's own mark, still, with one small arc turning at its
  * corner, then plain words and the time so far. The element stays put while the agent works; only its
- * words change, so the arc never restarts or stutters (Astra review §5). No shimmer, no bouncing dots.
+ * words change, so neither the arc nor the words' soft wave (the shimmer) restarts or stutters. No bouncing dots.
  */
 function typingRender() {
   const box = $("#typing");
@@ -1218,7 +1218,7 @@ function typingRender() {
     return changed;
   }
   if (box._k !== spec.key) {
-    box.innerHTML = `<div class="typing" role="status"><div class="av ${spec.cls}">${spec.icon}<i class="arc" aria-hidden="true"></i></div><div class="ty-b"><span class="ty-t"></span><span class="elapsed"></span></div></div>`;
+    box.innerHTML = `<div class="typing" role="status"><div class="av ${spec.cls}">${spec.icon}<i class="arc" aria-hidden="true"></i></div><div class="ty-b"><span class="ty-t shimmer"></span><span class="elapsed"></span></div></div>`;
     box._k = spec.key; box._h = spec.key;
     changed = true;
   }

@@ -271,8 +271,9 @@ export const sound = {
 export { esc };
 
 /**
- * Every turning arc on the page turns in step, from the page's first moment, whenever it was drawn. A
- * spinner redrawn by a streamed update would otherwise restart from zero and look like it stutters.
+ * Every turning arc and every shimmering "working" line on the page moves in step, from the page's first
+ * moment, whenever it was drawn: one redrawn by a streamed update would otherwise restart from zero and
+ * look like it stutters.
  */
 export function keepTurning() {
   if (typeof document === "undefined" || !document.getAnimations) return;
@@ -280,7 +281,7 @@ export function keepTurning() {
   const sync = () => {
     raf = 0;
     for (const a of document.getAnimations()) {
-      if (a.animationName === "spin" || a.animationName === "arc-turn") { if (a.startTime !== 0) a.startTime = 0; }
+      if (a.animationName === "spin" || a.animationName === "arc-turn" || a.animationName === "shimmer") { if (a.startTime !== 0) a.startTime = 0; }
     }
   };
   new MutationObserver(() => { if (!raf) raf = requestAnimationFrame(sync); }).observe(document.body, { childList: true, subtree: true });

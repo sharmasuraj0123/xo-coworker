@@ -59,7 +59,7 @@ function blockHtml(b, open, live, now) {
       const head = running ? `${esc(b.header || "Thinking…")}${b.started_at ? ` · ${secs(now - Date.parse(b.started_at))}` : ""}` : esc(b.header || "Thought");
       const steps = (b.steps || []).filter(Boolean);
       return `<div class="tb tb-think${running ? " is-live" : ""}"><button type="button" class="tb-h" data-tb="${esc(b.id)}" aria-expanded="${isOpen}"${steps.length ? "" : " disabled"}>` +
-        `<span class="tb-hi">${ICON.clock}</span><span class="tb-ht">${head}</span>${steps.length ? `<span class="tb-chev">${ICON.chevron}</span>` : ""}</button>` +
+        `<span class="tb-hi">${ICON.clock}</span><span class="tb-ht${running ? " shimmer" : ""}">${head}</span>${steps.length ? `<span class="tb-chev">${ICON.chevron}</span>` : ""}</button>` +
         (isOpen && steps.length ? `<ol class="tb-steps">${steps.map((s) => `<li>${renderInline(s, true)}</li>`).join("")}</ol>` : "") + `</div>`;
     }
     case "activity": {
@@ -137,7 +137,7 @@ function workFold(turn, work, blocks, open, live, now) {
   const head = `<button type="button" class="tb-h tb-wh" data-tb="${esc(key)}" aria-expanded="${isOpen}">` +
     // while it runs, the agent's glowing tile beside the turn says so (turnAv); the line needs no spinner
     (live ? "" : `<span class="tb-hi">${ICON.list}</span>`) +
-    `<span class="tb-ht">${live ? (waiting ? "Waiting for you" : "Working") : "Worked"}${time}</span>` +
+    `<span class="tb-ht${live && !waiting ? " shimmer" : ""}">${live ? (waiting ? "Waiting for you" : "Working") : "Worked"}${time}</span>` +
     (steps ? `<span class="tb-wn">${steps} ${steps === 1 ? "step" : "steps"}</span>` : "") + `<span class="tb-chev">${ICON.chevron}</span></button>`;
   if (isOpen) return `<div class="tb tb-work is-open${live ? " is-live" : ""}">${head}<div class="tb-rail">${work.map((b) => blockHtml(b, open, live, now)).join("")}</div></div>`;
   let under = "";
