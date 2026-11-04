@@ -13,7 +13,7 @@ import { api, clientId as newClientId, NEWEST, coderHeaders, STORM_DOWN } from "
 import { SSEStream } from "./sse.js";
 import { createTurns } from "./blocks.js";
 import { tasksOf } from "./model.js";
-import { uiMsg, mergeRows, addReaction, updateMessage, stormAsks, mapLimit, currentPools, threadState, askingState, mainRuntime } from "./timeline.js";
+import { uiMsg, mergeRows, addReaction, updateMessage, stormAsks, mapLimit, currentPools, threadState, askingState, mainRuntime, BUSY_STATES, readSub, sessionRead, sessionBusy } from "./timeline.js";
 import { hostOf, askedBy } from "./review.js";
 import { isLimitItem, limitItem } from "./runtimes.js";
 
@@ -27,7 +27,7 @@ const RUNS_KEEP = 300;            // finished sub-agents kept in memory, beyond 
 const LOAD_CAP = 6;               // parallel GETs at boot
 const AWAIT_CAP_MS = 10 * 60000;  // "replying" never outlives this without a signal
 
-const BUSY = new Set(["queued", "starting", "running", "stopping"]);
+const BUSY = BUSY_STATES; // a session on a turn (timeline.js; storm's engine BUSY_STATES)
 const COORD = new Set(["workspace-coordinator", "project-coordinator"]);
 export const WAITING_STATES = new Set(["needs_reply", "needs_approval", "paused"]);
 
@@ -50,7 +50,7 @@ export function stormSource(state, emit, event) {
     review: new Map(), // open review items by id
     runs: new Map(),   // sub-agent runs seen on the stream (run_… → summary), live list and log (ch 14 §11)
     hops: new Map(),   // hop id → hop (11 §16): how a message travelled; shown only by choice
-    liveRuns: {},      // session → {running, waiting, tokens} from the live `runs` frames
+    liveRuns: {},      // session → {running, waiting, tokens, at} from the live `runs` frames
     turns: createTurns(),
     lastSeq: 0,
   });
@@ -96,7 +96,26 @@ export function stormSource(state, emit, event) {
   const chatPolicyOf = (chat) => (chat && state.chatPolicy[chat] && state.chatPolicy[chat].effective) || (state.policy && state.policy.effective) || null;
   /** The open usage-limit items a thread waits on (F5), ready to show. */
   const limitsFor = (ts) => [...state.review.values()].filter((it) => it.state === "open" && isLimitItem(it) && (it.detail.threads || []).some((x) => x.ts === ts)).map((it) => limitItem(it, state.runtimes, chatPolicyOf));
-  function uiThread(r) {
+  /** The runs the stream named, by session (rebuilt once per commit, not per thread). */
+  function runsBySession() {
+    const by = new Map();
+    for (const r of state.runs.values()) if (r && r.session) (by.get(r.session) || by.set(r.session, []).get(r.session)).push(r);
+    return by;
+  }
+  /**
+   * Is a thread's agent at work (timeline.js sessionBusy)? Its session's newest status, and what the
+   * newest read said beyond it: the session list's or this thread view's own `busy`, whichever came later.
+   */
+  function threadBusy(r, sstate, runsBy) {
+    const sid = r.session_id;
+    if (!sid) return false;
+    const live = state.sessions[sid];
+    const view = r.session ? { sub: readSub({ state: r.session.state, busy: typeof r.session.busy === "boolean" ? r.session.busy : r.busy }), readAt: r._readAt || 0 } : null;
+    const ok = (x) => x && x.sub !== undefined;
+    const read = ok(live) && (!ok(view) || (live.readAt || 0) >= view.readAt) ? live : ok(view) ? view : null;
+    return sessionBusy({ id: sid, state: sstate, sub: read ? read.sub : undefined, readAt: read ? read.readAt || 0 : 0 }, { runs: runsBy.get(sid) || [], agg: state.liveRuns[sid] || null });
+  }
+  function uiThread(r, runsBy = runsBySession()) {
     const project = projectOf(r.chat_id);
     const sstate = sessionStateOf(r);
     const card = r.card || {};
@@ -111,8 +130,9 @@ export function stormSource(state, emit, event) {
       checklist: tasksOf(r.status_md || ""),
       messages: (state.threadMsgs[r.ts] || []).map(uiMsg),
       asks: [], live: true, loaded: !!(state.threadHist[r.ts] && state.threadHist[r.ts].loaded),
-      // "Working" means its session really works (11 §6.3), never just the thread's state.
-      busy: sstate ? BUSY.has(sstate) : false,
+      // "Working" means its agent really works (11 §6.3), never just the thread's state: on a turn, or a
+      // sub-agent working on after it; waiting on you is never Working (timeline.js sessionBusy)
+      busy: threadBusy(r, sstate, runsBy),
       sessionId: r.session_id || null, sessionState: sstate,
       session: r.session || null, paused: (r.session && r.session.paused) || null,
       resolvedAt: r.resolved_at || null, agentMs: r.agent_ms || 0, pin: r.pin || {}, runs: r.runs || null,
@@ -135,8 +155,9 @@ export function stormSource(state, emit, event) {
     const prev = new Map(state.threads.map((t) => [t.id, t]));
     const known = new Set(state.projects.map((p) => p.id));
     const next = [];
+    const runsBy = runsBySession();
     for (const r of rawThreads.values()) {
-      const t = uiThread(r);
+      const t = uiThread(r, runsBy);
       if (!t.project || !known.has(t.project)) continue;
       const old = prev.get(t.id);
       if (state.loaded && !holding) {
@@ -233,7 +254,7 @@ export function stormSource(state, emit, event) {
     try {
       const { threads } = await api.threads(p.chatId);
       const seen = new Set();
-      for (const r of threads || []) { seen.add(r.ts); rawThreads.set(r.ts, { ...(rawThreads.get(r.ts) || {}), ...r, _at: Date.now() }); }
+      for (const r of threads || []) { seen.add(r.ts); rawThreads.set(r.ts, { ...(rawThreads.get(r.ts) || {}), ...r, _at: Date.now(), _readAt: Date.now() }); }
       // gone from the listing, unless a frame made it after the listing was read
       for (const [ts, r] of rawThreads) if (r.chat_id === p.chatId && !seen.has(ts) && (r._at || 0) < asked) rawThreads.delete(ts);
     } catch { /* keep the last good threads for this project */ }
@@ -253,8 +274,9 @@ export function stormSource(state, emit, event) {
   function noteSession(s) {
     const old = state.sessions[s.id];
     if (old && old.seq != null && s.seq != null && old.seq > s.seq) return;
-    // the whole Session (a plain chat needs its native_id, cwd and permission_mode)
-    state.sessions[s.id] = { ...(old || {}), ...s, paused: s.paused || null, retired_at: s.retired_at || null, seq: s.seq ?? null };
+    // the whole Session (a plain chat needs its native_id, cwd and permission_mode), and what its `busy`
+    // says beyond the status (a sub-agent working on after the turn), with when it was read
+    state.sessions[s.id] = { ...(old || {}), ...s, paused: s.paused || null, retired_at: s.retired_at || null, seq: s.seq ?? null, ...sessionRead(s) };
   }
   async function loadReview() {
     try {
@@ -497,7 +519,7 @@ export function stormSource(state, emit, event) {
         if (!ts) break;
         const old = rawThreads.get(ts);
         if (!old && !d.chat_id) { refetchThread(env.chat_id, ts); break; }
-        rawThreads.set(ts, { ...(old || {}), ...d, _at: Date.now(), chat_id: d.chat_id || (old && old.chat_id) || env.chat_id, updated_at: d.updated_at || env.ts || (old && old.updated_at) });
+        rawThreads.set(ts, { ...(old || {}), ...d, _at: Date.now(), ...("busy" in d ? { _readAt: Date.now() } : {}), chat_id: d.chat_id || (old && old.chat_id) || env.chat_id, updated_at: d.updated_at || env.ts || (old && old.updated_at) });
         soon();
         break;
       }
@@ -583,6 +605,8 @@ export function stormSource(state, emit, event) {
       }
       case "settings":
         if (d.key === "router") { state.router = d.value; emit(); }
+        // the person's shape changed on a device (this one's own write echoes too): the shape store decides
+        else if (d.key === "ui.shape") event({ kind: "shape", value: d.value ?? null });
         break;
       case "pool":
         if (d.pool) {
@@ -594,23 +618,23 @@ export function stormSource(state, emit, event) {
         break;
       case "run.started": {
         const i = d.info || {};
-        state.runs.set(d.run_id, { ...(state.runs.get(d.run_id) || {}), id: d.run_id, session: env.session_id, parent: d.parent_run_id || null, state: d.state || "running", title: i.title || i.agent_type || "Sub-agent", kind: i.kind || "subagent", background: !!i.background, depth: i.depth || 1, model: i.model || null, spawn: i.spawn_call_id || null, started_at: env.ts, hidden: !!i.hidden });
-        emitSoon();
+        state.runs.set(d.run_id, { ...(state.runs.get(d.run_id) || {}), id: d.run_id, session: env.session_id, parent: d.parent_run_id || null, state: d.state || "running", title: i.title || i.agent_type || "Sub-agent", kind: i.kind || "subagent", background: !!i.background, depth: i.depth || 1, model: i.model || null, spawn: i.spawn_call_id || null, started_at: env.ts, hidden: !!i.hidden, seen: Date.now() });
+        soon(); // a sub-agent at work keeps its thread Working after the turn: the threads are rebuilt
         break;
       }
       case "run.state": {
         const r = state.runs.get(d.run_id);
-        if (r) { state.runs.set(d.run_id, { ...r, state: d.state || r.state, stopping: !!d.stop_requested_at, background: d.background ?? r.background }); emitSoon(); }
+        if (r) { state.runs.set(d.run_id, { ...r, state: d.state || r.state, stopping: !!d.stop_requested_at, background: d.background ?? r.background, seen: Date.now() }); soon(); }
         break;
       }
       case "run.finished": {
         const r = state.runs.get(d.run_id) || { id: d.run_id, session: env.session_id, title: "Sub-agent", kind: "subagent" };
-        state.runs.set(d.run_id, { ...r, state: d.state || "finished", status: d.status, summary: d.summary || null, tokens: d.tokens ?? r.tokens, tool_calls: d.tool_calls ?? r.tool_calls, last_tool: d.last_tool ?? r.last_tool, stopped_by: d.stopped_by || null, ended_at: env.ts });
-        emitSoon();
+        state.runs.set(d.run_id, { ...r, state: d.state || "finished", status: d.status, summary: d.summary || null, tokens: d.tokens ?? r.tokens, tool_calls: d.tool_calls ?? r.tool_calls, last_tool: d.last_tool ?? r.last_tool, stopped_by: d.stopped_by || null, ended_at: env.ts || new Date().toISOString(), seen: Date.now() });
+        soon();
         break;
       }
       case "runs": {
-        if (d.session) { state.liveRuns[d.session] = { running: d.running || 0, waiting: d.waiting || 0, tokens: d.tokens || 0 }; emitSoon(); }
+        if (d.session) { state.liveRuns[d.session] = { running: d.running || 0, waiting: d.waiting || 0, tokens: d.tokens || 0, at: Date.now() }; soon(); }
         break;
       }
       case "review.opened":
@@ -639,7 +663,7 @@ export function stormSource(state, emit, event) {
   async function refetchThread(chatId, ts) {
     if (!chatId || refetchBusy.has(ts)) return;
     refetchBusy.add(ts);
-    try { rawThreads.set(ts, await api.thread(chatId, ts)); soon(); } catch { /* the next full frame fills it */ }
+    try { rawThreads.set(ts, { ...(await api.thread(chatId, ts)), _readAt: Date.now() }); soon(); } catch { /* the next full frame fills it */ }
     refetchBusy.delete(ts);
   }
   function settleAwaiting(chatId) {
@@ -765,7 +789,7 @@ export function stormSource(state, emit, event) {
         soon();
         try {
           const t = await api.patchThread(r.chat_id, threadId, { resolved });
-          rawThreads.set(threadId, { ...rawThreads.get(threadId), ...t });
+          rawThreads.set(threadId, { ...rawThreads.get(threadId), ...t, ...(t && "busy" in t ? { _readAt: Date.now() } : {}) });
           soon();
           return t;
         } catch (err) {
@@ -779,7 +803,7 @@ export function stormSource(state, emit, event) {
         const r = threadOf(threadId);
         if (!r) throw new Error("Unknown thread");
         const t = await api.patchThread(r.chat_id, threadId, change);
-        rawThreads.set(threadId, { ...rawThreads.get(threadId), ...t });
+        rawThreads.set(threadId, { ...rawThreads.get(threadId), ...t, ...(t && "busy" in t ? { _readAt: Date.now() } : {}) });
         soon();
         return t;
       },
@@ -856,8 +880,9 @@ export function stormSource(state, emit, event) {
       /** A session's runs as a tree (the live list and the log), with counts (UI-reference §2.6). */
       listRuns: async (session) => {
         const d = await api.runs(session, { tree: "true", depth: 3, limit: 200 });
-        const walk = (nodes) => { for (const n of nodes || []) { state.runs.set(n.id, { ...(state.runs.get(n.id) || {}), id: n.id, session, parent: n.parent_run_id || null, state: n.state, title: n.title || n.agent_type || "Sub-agent", kind: n.kind, background: !!n.background, depth: n.depth, spawn: n.spawn_call_id || null, started_at: n.started_at, ended_at: n.ended_at, summary: n.summary, tokens: n.tokens, tool_calls: n.tool_calls, last_tool: n.last_tool, can_stop: n.can_stop }); walk(n.children); } };
+        const walk = (nodes) => { for (const n of nodes || []) { state.runs.set(n.id, { ...(state.runs.get(n.id) || {}), id: n.id, session, parent: n.parent_run_id || null, state: n.state, title: n.title || n.agent_type || "Sub-agent", kind: n.kind, background: !!n.background, depth: n.depth, spawn: n.spawn_call_id || null, started_at: n.started_at, ended_at: n.ended_at, summary: n.summary, tokens: n.tokens, tool_calls: n.tool_calls, last_tool: n.last_tool, can_stop: n.can_stop, seen: Date.now() }); walk(n.children); } };
         walk(d.runs);
+        soon();
         return d;
       },
       run: (id) => api.run(id),
@@ -876,6 +901,11 @@ export function stormSource(state, emit, event) {
       /** The id of a session's running turn, or null; and the session's own state. */
       turnOf: (sessionId) => { const t = state.turns.running(sessionId); return t ? t.id : null; },
       sessionState: (sessionId) => (state.sessions[sessionId] || {}).state || null,
+      /** Is a session's agent at work: on a turn, or a sub-agent working on after it? Never while it waits on you. */
+      sessionBusy: (sessionId) => {
+        const s = state.sessions[sessionId];
+        return !!s && sessionBusy(s, { runs: [...state.runs.values()].filter((r) => r.session === sessionId), agg: state.liveRuns[sessionId] || null });
+      },
       /** The agent a chat's coordinator runs on (its newest live session), if known. */
       coordinatorAgent: (chatId) => {
         const s = Object.values(state.sessions).filter((x) => x.chat_id === chatId && COORD.has(x.role) && !x.retired_at).sort((a, b) => (b.seq || 0) - (a.seq || 0))[0];

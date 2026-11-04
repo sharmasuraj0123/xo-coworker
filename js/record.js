@@ -9,6 +9,10 @@
 // does anything here say "shipped". Without it, `would_lose` on the worktrees still tells "not
 // saved" (uncommitted or untracked files) and "not pushed" (commits on no other branch, no remote).
 // A newer backend also keeps Made itself (`GET /chat/chats/{chat}/made`, see madeFromServer).
+//
+// Two titles meet on a made item and are kept apart: `title` is the file's own, in plain words (an agent's
+// share_files titles, xo-space 8c6bc03; null when none), shown in place of its `name`; `threadTitle` is the
+// title of the thread that made it (its "from" link, and what a search also matches).
 
 export const AWAY_MS = 8 * 3600 * 1000;   // away at least this long, and Since you left speaks
 const DAY = 86400000;
@@ -32,12 +36,16 @@ export function madeKind(f) {
 export const KINDS = [["all", "All"], ["doc", "Docs"], ["image", "Images"], ["page", "Pages"], ["code", "Code"], ["data", "Data"], ["link", "Links"], ["branch", "Branches"]];
 export const KIND_WORD = { image: "Image", page: "Page", doc: "Document", data: "Data", code: "Code", link: "Link", branch: "Branch" };
 
+/** A file's own title: one line of words, or null (absent, null or blank all mean none). */
+const fileTitle = (t) => (typeof t === "string" && t.trim() ? t.replace(/\s+/g, " ").trim() : null);
+
 /** One key per file per thread, stable across reloads (pins are kept by it). */
 export const madeKey = (tid, path) => `${tid}|${path}`;
 
 /**
  * Everything the given threads made, newest first: the latest thread's files first and, within a
  * thread, the file it shared last first. Pinned ones are flagged, not moved (the view groups them).
+ * A thread's `outputs` carry each file's title when its agent gave one.
  */
 export function madeItems(threads, { pins = new Set() } = {}) {
   const out = [];
@@ -48,7 +56,7 @@ export function madeItems(threads, { pins = new Set() } = {}) {
       const path = f.path || f.name;
       if (!path) return;
       const key = madeKey(t.id, path);
-      out.push({ key, tid: t.id, project: t.project, title: t.title, path, name: f.name || path.split("/").pop(), type: f.type || "", bytes: f.bytes ?? null,
+      out.push({ key, tid: t.id, project: t.project, threadTitle: t.title || "", title: fileTitle(f.title), path, name: f.name || path.split("/").pop(), type: f.type || "", bytes: f.bytes ?? null,
         kind: madeKind(f), at: t.lastAt - i, pinned: pins.has(key) });
     });
   }
@@ -58,23 +66,24 @@ export function madeItems(threads, { pins = new Set() } = {}) {
 /**
  * Made as the backend keeps it (`GET /chat/chats/{chat}/made` rows), in the same shape as madeItems:
  * files carry where to read them (`project_id`, `relative_path`), links their `url`, branches their
- * `git`. title(ts) names the thread that made it; project is the chat's project.
+ * `git`, and a file its `title` (null when none). threadTitle(ts) names the thread that made it; project
+ * is the chat's project.
  */
-export function madeFromServer(rows, { project, title = () => "" } = {}) {
+export function madeFromServer(rows, { project, threadTitle = () => "" } = {}) {
   return (rows || []).filter((r) => r && r.id).map((r) => {
     const name = r.name || (r.path || r.url || r.git?.branch || "").split("/").filter(Boolean).pop() || "Untitled";
     const kind = r.kind === "link" ? "link" : r.kind === "branch" ? "branch" : r.kind === "image" ? "image" : madeKind({ name, type: r.mime || "" });
-    return { key: r.id, id: r.id, server: true, tid: r.thread_ts || null, project, title: title(r.thread_ts) || "", path: r.path || r.relative_path || r.url || name, name,
+    return { key: r.id, id: r.id, server: true, tid: r.thread_ts || null, project, threadTitle: threadTitle(r.thread_ts) || "", title: fileTitle(r.title), path: r.path || r.relative_path || r.url || name, name,
       type: r.mime || "", bytes: r.bytes ?? null, kind, at: Date.parse(r.updated_at || r.created_at) || 0, pinned: !!r.pinned,
       exists: r.exists !== false, url: r.url || null, git: r.git || null, turn: r.turn_id || null,
       fileProject: r.project_id || null, rel: r.relative_path || null };
   }).sort((a, b) => b.at - a.at);
 }
 
-/** Narrow made items by kind and words (name, path, the thread's title). */
+/** Narrow made items by kind and words (its title, name and path, and the title of the thread that made it). */
 export function filterMade(items, { kind = "all", q = "" } = {}) {
   const w = String(q || "").trim().toLowerCase();
-  return items.filter((m) => (kind === "all" || m.kind === kind) && (!w || `${m.name} ${m.path} ${m.title}`.toLowerCase().includes(w)));
+  return items.filter((m) => (kind === "all" || m.kind === kind) && (!w || `${m.title || ""} ${m.name} ${m.path} ${m.threadTitle || ""}`.toLowerCase().includes(w)));
 }
 
 /** Made items in the groups the view shows: Pinned, Today, This week, Earlier (empty ones dropped). */

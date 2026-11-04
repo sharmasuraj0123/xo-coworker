@@ -1,9 +1,11 @@
 // The UI's shape (js/shape.js): merge semantics, per-key fallback, unknown keys, ordering, capability
-// gating, versions and the cv-hops migration. No network: the presets are read from disk.
+// gating, versions and the cv-hops migration; and mine kept on Storm (GET/PUT /api/chat/shape, xo-space
+// 8c6bc03): read on load, written only on a change, conflicts, the live event, a backend without the route.
+// No network: the presets are read from disk, and Storm is a fake.
 //   node tests/shape.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { merge, migrate, cleanLayer, createShape, describeShape, everythingLayer, migrateDevice, createShapeStore, SURFACES, KEYS, SHAPE_VERSION } from "../js/shape.js";
+import { merge, migrate, cleanLayer, createShape, describeShape, everythingLayer, migrateDevice, createShapeStore, changesOf, applyChanges, oneKey, sameDoc, SURFACES, KEYS, SHAPE_VERSION } from "../js/shape.js";
 
 let passed = 0;
 const pending = [];
@@ -304,6 +306,277 @@ function test_store_more() {
     assert.equal(S.get("density"), "compact");
   });
 }
+
+// ── mine on Storm ─────────────────────────────────────────────────────────────
+t("changesOf: one change per leaf (a switch inside surfaces is its own key); null is a value; removals listed", () => {
+  assert.deepEqual(changesOf({ shape: 1, preset: "m" }, { shape: 1, preset: "m", surfaces: { "xo:thread/branch": { on: true } } }), [{ path: ["surfaces", "xo:thread/branch", "on"], value: true }]);
+  assert.deepEqual(changesOf({ shape: 1, preset: "m" }, { shape: 1, preset: "e" }), [{ path: ["preset"], value: "e" }]);
+  assert.deepEqual(changesOf({ density: "compact", surfaces: { a: { on: true } } }, {}), [{ path: ["density"], gone: true }, { path: ["surfaces", "a", "on"], gone: true }]);
+  assert.deepEqual(changesOf({}, { words: { thread: null } }), [{ path: ["words", "thread"], value: null }]);
+  assert.deepEqual(changesOf({ layout: { dock: ["a"] } }, { layout: { dock: ["a", "b"] } }), [{ path: ["layout", "dock"], value: ["a", "b"] }]); // a list is one value
+  assert.deepEqual(changesOf(null, null), []);
+  assert.ok(sameDoc({ a: 1, b: { c: 2 } }, { b: { c: 2 }, a: 1 }) && !sameDoc({ a: 1 }, { a: 2 }) && sameDoc(null, undefined));
+});
+t("applyChanges: on top of another document, null kept as a value, an emptied object gone; oneKey", () => {
+  const theirs = { shape: 1, preset: "marketing", surfaces: { "xo:home/handled": { on: false } } };
+  const mineCh = changesOf({ shape: 1, preset: "marketing" }, { shape: 1, preset: "marketing", surfaces: { "xo:thread/branch": { on: true } } });
+  assert.deepEqual(applyChanges(theirs, mineCh), { shape: 1, preset: "marketing", surfaces: { "xo:home/handled": { on: false }, "xo:thread/branch": { on: true } } });
+  assert.deepEqual(theirs.surfaces, { "xo:home/handled": { on: false } }, "never changes its input");
+  assert.deepEqual(applyChanges({ words: { thread: "task" } }, [{ path: ["words", "thread"], value: null }]), { words: { thread: null } });
+  assert.deepEqual(applyChanges({ surfaces: { a: { on: true } }, x: 1 }, [{ path: ["surfaces", "a", "on"], gone: true }]), { x: 1 });
+  assert.equal(oneKey(mineCh), true);
+  assert.equal(oneKey([{ path: ["density"], value: "compact" }, { path: ["density"], value: "comfortable" }]), true, "the same key set twice is still one");
+  assert.equal(oneKey([{ path: ["preset"], value: "e" }, { path: ["density"], gone: true }]), false);
+  assert.equal(oneKey([]), false);
+});
+
+/** A fake Storm behind the shape route: it keeps one document, checks if_version, and records every call. */
+function fakeStorm({ doc = null, route = true } = {}) {
+  let stored = doc;
+  const calls = [];
+  const version = (d) => { if (d == null) return "new"; let h = 5381; for (const c of JSON.stringify(d)) h = ((h * 33) ^ c.charCodeAt(0)) >>> 0; return h.toString(16).padStart(12, "0").slice(-12); };
+  const view = () => ({ shape: stored == null ? null : JSON.parse(JSON.stringify(stored)), version: version(stored), updated_at: stored == null ? null : "2026-11-04T17:00:00Z" });
+  const err = (status, code, extra = {}) => Object.assign(new Error(code), { status, code, ...extra });
+  const F = {
+    calls, view, err,
+    next: { get: [], put: [] },           // one-off answers (functions), in order
+    set(d) { stored = d; },               // another device saves
+    get stored() { return stored; },
+    async get() {
+      calls.push(["GET"]);
+      if (F.next.get.length) return F.next.get.shift()();
+      if (!route) throw err(404, "http_404");
+      return view();
+    },
+    async put(body) {
+      calls.push(["PUT", JSON.parse(JSON.stringify(body))]);
+      if (F.next.put.length) await F.next.put.shift()();
+      if (!route) throw err(404, "http_404");
+      if (body.if_version != null && body.if_version !== version(stored)) throw err(409, "shape_changed", { current: view() });
+      stored = body.shape;
+      return view();
+    },
+  };
+  return F;
+}
+const puts = (F) => F.calls.filter((c) => c[0] === "PUT");
+const store = (opts) => { const notes = []; const S = createShapeStore({ load: async (id) => preset(id), notice: (n) => notes.push(n), ...opts }); return { S, notes }; };
+
+t("Storm without the route (404): this browser's copy, as before; nothing is written, on load or on a change", async () => {
+  const st = mem({ [KEYS.mine]: JSON.stringify({ shape: 1, preset: "marketing" }) });
+  const F = fakeStorm({ route: false });
+  const { S, notes } = store({ storage: st, remote: F });
+  assert.equal(S.presetId, "marketing", "the first paint is this browser's copy");
+  await S.ready;
+  assert.equal(S.sync.mode, "off");
+  await S.choose("engineering");
+  S.setDevice({ density: "comfortable" });
+  await S.settled();
+  assert.deepEqual(F.calls, [["GET"]]);
+  assert.deepEqual(JSON.parse(st.getItem(KEYS.mine)), { shape: 1, preset: "engineering" });
+  assert.deepEqual(notes, []);
+});
+t("a read that fails (not a 404) keeps this browser's copy; a change reads again, then writes with that version", async () => {
+  const doc = { shape: 1, preset: "marketing" };
+  const st = mem({ [KEYS.mine]: JSON.stringify(doc) });
+  const F = fakeStorm({ doc });
+  F.next.get.push(() => { throw F.err(0, "network"); });
+  const { S } = store({ storage: st, remote: F });
+  await S.ready;
+  assert.equal(S.sync.mode, "unknown");
+  assert.equal(S.presetId, "marketing");
+  await S.choose("engineering");
+  await S.settled();
+  assert.deepEqual(F.calls.map((c) => c[0]), ["GET", "GET", "PUT"]);
+  assert.deepEqual(puts(F)[0][1], { shape: { shape: 1, preset: "engineering" }, if_version: fakeStorm({ doc }).view().version });
+  assert.equal(S.sync.mode, "on");
+  assert.deepEqual(F.stored, { shape: 1, preset: "engineering" });
+});
+t("Storm's shape is yours here: adopted on load and cached, nothing written; your change is a PUT with if_version", async () => {
+  const theirs = { shape: 1, preset: "marketing", density: "compact" };
+  const st = mem({ [KEYS.mine]: JSON.stringify({ shape: 1, preset: "everything" }) });
+  const F = fakeStorm({ doc: theirs });
+  const v0 = F.view().version;
+  const { S } = store({ storage: st, remote: F, caps: new Set(["terminal"]) });
+  let changes = 0;
+  S.onChange(() => changes++);
+  await S.ready;
+  assert.equal(S.presetId, "marketing");
+  assert.equal(S.get("density"), "compact");
+  assert.equal(S.on("xo:dock/shells"), false, "the preset Storm's shape names is read and applied");
+  assert.ok(changes >= 1, "the page is told");
+  assert.deepEqual(JSON.parse(st.getItem(KEYS.mine)), theirs, "the copy here follows Storm's");
+  assert.deepEqual(F.calls, [["GET"]], "a load only reads");
+  S.setDevice({ density: "comfortable" });
+  await S.settled();
+  assert.equal(puts(F).length, 0, "this device's layer stays here");
+  await S.choose("engineering");
+  await S.settled();
+  assert.deepEqual(puts(F).map((c) => c[1]), [{ shape: { shape: 1, preset: "engineering" }, if_version: v0 }]);
+  assert.equal(S.sync.version, F.view().version, "the version it answered is the next write's");
+  const v1 = S.sync.version;
+  S.showEverything();
+  await S.settled();
+  assert.equal(puts(F).length, 2);
+  assert.equal(puts(F)[1][1].if_version, v1);
+  assert.deepEqual(F.stored.surfaces["xo:thread/branch"], { on: true });
+});
+t("a fresh browser waits for Storm's answer: a shape chosen on another device means no first-run question", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "engineering" } });
+  const { S } = store({ storage: mem(), remote: F });
+  assert.equal(S.chosen, false, "before the read: nothing here yet");
+  await S.synced;
+  assert.equal(S.chosen, true);
+  assert.equal(S.presetId, "engineering");
+  assert.deepEqual(F.calls, [["GET"]]);
+});
+t("Storm has none and this browser has one: nothing offered or uploaded on load; the first change uploads it as new", async () => {
+  const local = { shape: 1, preset: "marketing", surfaces: { "xo:thread/branch": { on: true } } };
+  const st = mem({ [KEYS.mine]: JSON.stringify(local) });
+  const F = fakeStorm({ doc: null });
+  const { S, notes } = store({ storage: st, remote: F });
+  await S.ready;
+  await S.settled();
+  assert.deepEqual(F.calls, [["GET"]]);
+  assert.equal(S.sync.mode, "on");
+  assert.equal(S.sync.version, "new");
+  assert.deepEqual(S.mine, local, "kept as it is");
+  assert.equal(S.on("xo:thread/branch"), true);
+  await S.setMine({ ...local, density: "compact" });
+  await S.settled();
+  assert.deepEqual(puts(F).map((c) => c[1]), [{ shape: { ...local, density: "compact" }, if_version: "new" }]);
+  assert.deepEqual(F.stored, { ...local, density: "compact" });
+  assert.deepEqual(notes, []);
+});
+t("another device saved first, and the change is one key: Storm's is taken, the change goes back on top, said quietly", async () => {
+  const d0 = { shape: 1, preset: "marketing" };
+  const F = fakeStorm({ doc: d0 });
+  const { S, notes } = store({ storage: mem(), remote: F });
+  await S.ready;
+  F.set({ shape: 1, preset: "marketing", surfaces: { "xo:home/handled": { on: false } } }); // the phone, unheard yet
+  const v1 = F.view().version;
+  await S.setMine({ shape: 1, preset: "marketing", density: "compact" });
+  await S.settled();
+  assert.deepEqual(puts(F).map((c) => c[1].if_version), [fakeStorm({ doc: d0 }).view().version, v1], "the second write is on Storm's version");
+  assert.deepEqual(F.stored, { shape: 1, preset: "marketing", surfaces: { "xo:home/handled": { on: false } }, density: "compact" });
+  assert.deepEqual(S.mine, F.stored);
+  assert.equal(S.on("xo:home/handled"), false, "the other device's change shows here");
+  assert.equal(S.get("density"), "compact", "and yours is still on top");
+  assert.equal(notes.length, 1);
+  assert.equal(notes[0].text, "Your shape changed on another device");
+  assert.match(notes[0].sub, /kept on top/);
+});
+t("another device saved first, and the change is larger (a preset switch clearing your own): Storm's stays, said quietly", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing", density: "compact" } });
+  const { S, notes } = store({ storage: mem(), remote: F });
+  await S.ready;
+  F.set({ shape: 1, preset: "engineering" });
+  await S.choose("everything");
+  await S.settled();
+  assert.equal(puts(F).length, 1, "no second write");
+  assert.deepEqual(F.stored, { shape: 1, preset: "engineering" });
+  assert.equal(S.presetId, "engineering", "this device shows Storm's");
+  assert.match(notes[0].sub, /wasn't kept/);
+});
+t("another device's change on the stream applies at once, then its version is read; our own echo changes nothing", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const st = mem();
+  const { S } = store({ storage: st, remote: F });
+  await S.ready;
+  let changes = 0;
+  S.onChange(() => changes++);
+  const phone = { shape: 1, preset: "marketing", density: "compact" };
+  F.set(phone);
+  S.heard({ doc: phone, updated_at: "2026-11-04T17:01:00Z" });
+  assert.equal(S.get("density"), "compact", "at once, without a reload");
+  assert.equal(changes, 1);
+  assert.deepEqual(JSON.parse(st.getItem(KEYS.mine)), phone, "and cached");
+  await S.settled();
+  assert.equal(S.sync.version, F.view().version, "the event has no version: it's read");
+  assert.equal(puts(F).length, 0, "hearing never writes");
+  await S.setMine({ ...phone, preset: "engineering" });
+  await S.settled();
+  const reads = F.calls.length;
+  S.heard({ doc: F.stored, updated_at: "2026-11-04T17:02:00Z" }); // our own write, echoed
+  await S.settled();
+  assert.equal(F.calls.length, reads, "nothing read or written for an echo");
+  assert.equal(changes, 2);
+  // cleared on another device while this one follows Storm: cleared here too
+  F.set(null);
+  S.heard(null);
+  assert.equal(S.mine, null);
+  assert.equal(S.chosen, false);
+});
+t("an event heard while a write is on its way waits for it: the conflict settles both", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const { S, notes } = store({ storage: mem(), remote: F });
+  await S.ready;
+  let open;
+  F.next.put.push(() => new Promise((r) => { open = r; }));
+  const done = S.setMine({ shape: 1, preset: "marketing", surfaces: { "xo:thread/branch": { on: false } } });
+  await done;
+  const phone = { shape: 1, preset: "marketing", density: "compact" };
+  F.set(phone);
+  S.heard({ doc: phone });
+  assert.equal(S.get("density"), "comfortable", "not applied under a write on its way");
+  assert.equal(S.on("xo:thread/branch"), false, "your change still shows");
+  open();
+  await S.settled();
+  assert.deepEqual(F.stored, { shape: 1, preset: "marketing", density: "compact", surfaces: { "xo:thread/branch": { on: false } } });
+  assert.deepEqual(S.mine, F.stored);
+  assert.match(notes[0].sub, /kept on top/);
+});
+t("a write Storm refuses (413, 400) or can't take stays on this device, said quietly; nothing is lost here", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const st = mem();
+  const { S, notes } = store({ storage: st, remote: F });
+  await S.ready;
+  F.next.put.push(() => { throw F.err(413, "shape_too_large"); });
+  await S.setMine({ shape: 1, preset: "marketing", density: "compact" });
+  await S.settled();
+  assert.equal(S.get("density"), "compact");
+  assert.equal(JSON.parse(st.getItem(KEYS.mine)).density, "compact");
+  assert.deepEqual(F.stored, { shape: 1, preset: "marketing" });
+  assert.equal(notes[0].text, "Your shape is saved on this device only");
+  assert.match(notes[0].sub, /64 KB/);
+  F.next.put.push(() => { throw Object.assign(new Error("The shape nests deeper than 12 levels."), { status: 400, code: "bad_shape" }); });
+  await S.setMine({ shape: 1, preset: "marketing", density: "comfortable" });
+  await S.settled();
+  assert.match(notes[1].sub, /deeper than 12 levels\. So your other devices/);
+  // the next change tries again, with everything here
+  await S.setMine({ shape: 1, preset: "engineering", density: "comfortable" });
+  await S.settled();
+  assert.deepEqual(F.stored, { shape: 1, preset: "engineering", density: "comfortable" });
+});
+t("pictures from the web: on by default and in both presets; this device can turn them off (they're links then)", () => {
+  assert.equal(createShape([]).on("xo:conversation/webpics"), true);
+  for (const id of ["engineering", "marketing"]) assert.equal(createShape([P(id)]).on("xo:conversation/webpics"), true, id);
+  const off = createShape([P("marketing"), { from: "device", doc: { surfaces: { "xo:conversation/webpics": { on: false } } } }]);
+  assert.equal(off.on("xo:conversation/webpics"), false);
+  assert.deepEqual(off.problems, []);
+});
+t("Storm gains the route while a page is open (a restart): the first ui.shape event reads it and follows it", async () => {
+  const F = fakeStorm({ route: false });
+  const { S } = store({ storage: mem({ [KEYS.mine]: JSON.stringify({ shape: 1, preset: "marketing" }) }), remote: F });
+  await S.ready;
+  assert.equal(S.sync.mode, "off");
+  const phone = { shape: 1, preset: "engineering" };
+  F.next.get.push(() => ({ shape: phone, version: "0123456789ab", updated_at: null }));
+  S.heard({ doc: phone });
+  await S.settled();
+  assert.deepEqual([S.sync.mode, S.sync.version, S.presetId], ["on", "0123456789ab", "engineering"]);
+  assert.equal(puts(F).length, 0);
+});
+t("no load ever writes: whatever Storm and this browser hold, a page load is one GET", async () => {
+  const docs = [null, { shape: 1, preset: "marketing" }];
+  for (const theirs of docs) for (const local of docs) for (const route of [true, false]) {
+    const F = fakeStorm({ doc: theirs, route });
+    const { S } = store({ storage: mem(local ? { [KEYS.mine]: JSON.stringify(local) } : {}), remote: F });
+    await S.ready;
+    await S.settled();
+    assert.deepEqual(F.calls, [["GET"]], JSON.stringify({ theirs, local, route }));
+  }
+});
 
 await Promise.all(pending);
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

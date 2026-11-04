@@ -10,6 +10,14 @@
 //     the picture gets a fixed 16:10 frame at the side's width and is fitted inside it, so it still
 //     can't jump when it loads.
 // Pictures open in the lightbox (js/lightbox.js); documents open in the viewer beside the conversation.
+// A file an agent shared may have a title in plain words (xo-space 8c6bc03); it names the file wherever it's
+// shown (the picture's label, the lightbox, a card, Made), with the file name kept beside it or in a
+// tooltip, so nothing is lost. A file name too long for its place is cut in its middle, its extension and
+// the end of its stem kept (r3-dark…title.png): those tell files apart. A title is cut at its end.
+// Pictures from the web (markdown's `![alt](https://…)`, js/markdown.js) are drawn here too, read straight
+// from their host: no referrer, lazily, never with credentials. Their size is unknown until they load, so
+// they get the fixed 16:10 frame and keep it. One that can't show (hotlinking refused, gone) becomes the
+// outbound link it would have been, its alt or host as the words; never a broken-image icon.
 //
 // The layout math (fitImage, albumLayout, dedupeByMade) is pure and tested from Node
 // (tests/media.test.mjs). The DOM part (hydrateMedia) only runs in a browser.
@@ -18,8 +26,9 @@ import { esc, isImagePath } from "./util.js";
 import { fileIcon } from "./fileicons.js";
 import { ICON } from "./ui.js";
 import { api, attachmentUrl } from "./api.js";
-import { fmtSize, typeWord } from "./attach.js";
+import { fmtSize, typeWord, titleOf } from "./attach.js";
 import { fadeImage } from "./motion.js";
+import { ARROW_OUT } from "./markdown.js";
 
 /** Each side's largest box (proposal §1). 560 is the prose measure, so a picture is never wider than its text. */
 export const LIMITS = { them: { w: 560, h: 480 }, you: { w: 320, h: 320 } };
@@ -134,8 +143,46 @@ export function dedupeByMade(files, carried) {
   return (files || []).filter((f) => !(f && f.made_id && c.has(String(f.made_id))));
 }
 
+// ── names: a title, else the file name, cut in the middle ──────────────────────
+/** How much of a stem's end a cut name keeps: enough for "-v2", "final", "320". */
+export const TAIL = 5;
+/** A file name's stem and its extension (".png"; "" for none, a dotfile, or a dot that ends no extension). */
+export function splitExt(name) {
+  const s = String(name ?? "");
+  const m = /^(.+?)(\.[A-Za-z0-9]{1,10})$/.exec(s);
+  return m ? { stem: m[1], ext: m[2] } : { stem: s, ext: "" };
+}
+/**
+ * A file name in at most `max` characters, cut in its middle: the start, "…", the stem's last TAIL
+ * characters and the extension (r3-dark…title.png). Short enough already: as it is.
+ */
+export function midName(name, max = 32) {
+  const s = String(name ?? "");
+  if (s.length <= max) return s;
+  const { stem, ext } = splitExt(s);
+  let tail = Math.min(TAIL, stem.length - 1);
+  let head = max - 1 - tail - ext.length;
+  if (head < 1) { tail = Math.max(0, tail + head - 1); head = 1; }
+  if (head + 1 + tail + ext.length > max) return s.slice(0, Math.max(1, max - 1)) + "…"; // no room for the extension
+  return stem.slice(0, head) + "…" + (tail ? stem.slice(-tail) : "") + ext;
+}
+/**
+ * A file name as HTML that cuts in its middle to fit its box, however wide (css/media.css .mx-mid): the
+ * start gives way with an ellipsis, the stem's end and the extension stay whole. `after` rides with the
+ * kept end (a card's " · Markdown · 2 KB"), so only the name ever gives way. Short names are text.
+ */
+export function midNameHtml(name, after = "") {
+  const s = String(name ?? "");
+  const { stem, ext } = splitExt(s);
+  const tail = Math.min(TAIL, stem.length - 1);
+  if (s.length <= 12 || tail < 1) return esc(s + after);
+  return `<span class="mx-mid"><span class="mx-mh">${esc(stem.slice(0, -tail))}</span><span class="mx-mt">${esc(stem.slice(-tail) + ext + after)}</span></span>`;
+}
+/** What names an item: its title, else its file name. */
+export const labelOf = (it) => (it && (it.title || it.name)) || "";
+
 // ── items: every source in one shape ─────────────────────────────────────────
-// {key, kind: image|file, name, type, bytes, w, h, tint, made, by, at, and how it's read:
+// {key, kind: image|file, name, title (null when none), type, bytes, w, h, tint, made, by, at, and how it's read:
 //  src (a URL an <img> loads directly), att {chat, id} (an upload of yours), project + rel (a project file,
 //  fetched with the Coder header as a blob), path, or why (no route: the viewer says so)}
 
@@ -153,16 +200,48 @@ export function mediaItem(raw) {
   const type = String(raw.type || "");
   const it = {
     key: String(raw.key || (raw.src ? `src:${raw.src}` : `name:${name}`)),
-    name, type, bytes: raw.bytes ?? null,
+    name, title: titleOf(raw.title) || null, type, bytes: raw.bytes ?? null,
     w: dim(raw.w), h: dim(raw.h), tint: safeTint(raw.tint),
     made: raw.made_id ? String(raw.made_id) : raw.made || null,
     by: raw.by || "", at: raw.at ?? null,
     src: raw.src || null, att: raw.att || null, project: raw.project || null, rel: raw.rel || null,
-    path: raw.path || null, why: raw.why || null,
+    path: raw.path || null, why: raw.why || null, web: raw.web || null,
   };
   const readable = !!(it.src || it.att || (it.project && it.rel));
-  it.kind = readable && isPicture(type, name) ? "image" : "file";
+  it.kind = it.web || (readable && isPicture(type, name)) ? "image" : "file";
   return it;
+}
+
+/**
+ * A picture from the web ({alt, url}, from markdown). Its name is the address's last part (else its host);
+ * its alt, when it has one, is its title. by: its host, which the lightbox names.
+ */
+export function fromWebImage({ alt = "", url }, { at = null } = {}) {
+  let host = "", file = "";
+  try { const u = new URL(url); host = u.host.replace(/^www\./i, ""); file = decodeURIComponent(u.pathname.split("/").pop() || ""); } catch { /* checked by markdown.js */ }
+  return mediaItem({ key: `web:${url}`, name: file || host || "picture", title: alt, src: url, web: { url, host }, by: host, at });
+}
+
+// ── pictures from the web that couldn't show ────────────────────────────────
+const gone = new Set(); // addresses that failed in this page: drawn as their links from then on, not tried again
+/** A web picture as the outbound link it would have been: underlined with ↗, its alt as the words, else its host. */
+export function webLinkHtml(it) {
+  const w = it.web || {};
+  return `<a href="${esc(w.url)}" target="_blank" rel="noopener noreferrer nofollow" class="lk lk-out mx-weblink" title="${esc(w.url)}"><span class="lk-t">${esc(it.title || w.host || w.url)}</span>${ARROW_OUT}</a>`;
+}
+/** Has this web picture failed in this page? (then it's a link) */
+export const webGone = (url) => gone.has(String(url));
+/** Note that a web picture couldn't show: the next drawing of it is its link. */
+export function markWebGone(url) { gone.add(String(url)); }
+/**
+ * Pictures from the web, as markdown found them ({alt, url}): one picture or an album, the ones that
+ * already failed in this page as their links under it.
+ */
+export function webImagesHtml(list) {
+  const items = (list || []).map((x) => fromWebImage(x));
+  const show = items.filter((it) => !gone.has(it.web.url)), links = items.filter((it) => gone.has(it.web.url));
+  const linkP = links.length ? `<p class="mx-weblinks">${links.map(webLinkHtml).join("")}</p>` : "";
+  return show.length ? mediaHtml(show, { side: "them" }).replace(/<\/div>$/, `${linkP}</div>`) : `<div class="mx-stack mx-them">${linkP}</div>`;
 }
 
 /**
@@ -171,7 +250,7 @@ export function mediaItem(raw) {
  */
 export function fromAttachment(f, { chat = null, by = "", at = null } = {}) {
   const c = f.chat || chat;
-  const base = { name: f.name, type: f.type, bytes: f.bytes ?? f.size, w: f.w, h: f.h, tint: f.tint, made_id: f.made_id, by, at };
+  const base = { name: f.name, title: f.title, type: f.type, bytes: f.bytes ?? f.size, w: f.w, h: f.h, tint: f.tint, made_id: f.made_id, by, at };
   if (f.id && c) return mediaItem({ ...base, key: `att:${c}:${f.id}`, att: { chat: c, id: String(f.id) }, src: attachmentUrl(c, f.id) });
   if (f.project_id && f.relative_path) return mediaItem({ ...base, key: `prj:${f.project_id}:${f.relative_path}`, project: String(f.project_id), rel: String(f.relative_path), path: f.path || f.relative_path });
   return mediaItem({ ...base, key: `none:${f.name || ""}` }); // not uploaded yet: a card that can't open
@@ -182,7 +261,7 @@ export function fromAttachment(f, { chat = null, by = "", at = null } = {}) {
  * the agent's path, which `route(path)` resolves ({project, rel} or {why}; timeline.js sharedFileRoute).
  */
 export function fromSharedFile(f, { route = null, by = "", at = null } = {}) {
-  const base = { name: f.name || f.path, type: f.type, bytes: f.bytes, w: f.w, h: f.h, tint: f.tint, made_id: f.made_id, path: f.path || f.name, by, at };
+  const base = { name: f.name || f.path, title: f.title, type: f.type, bytes: f.bytes, w: f.w, h: f.h, tint: f.tint, made_id: f.made_id, path: f.path || f.name, by, at };
   const r = f.project_id && f.relative_path ? { project: String(f.project_id), rel: String(f.relative_path) } : route ? route(f.path || f.name) : null;
   if (r && r.project && r.rel) return mediaItem({ ...base, key: `prj:${r.project}:${r.rel}`, project: r.project, rel: r.rel });
   return mediaItem({ ...base, key: `path:${f.path || f.name}`, why: (r && r.why) || "This file is in a folder XO doesn't serve to the UI yet." });
@@ -201,11 +280,18 @@ export function viewerFile(it) {
 const r6 = (x) => Math.round(x * 1e6) / 1e6;
 const sizeWords = (it) => (it.w && it.h ? `${it.w} by ${it.h}` : "");
 
-/** The <img>: a direct URL loads by itself; a project file is fetched by hydrateMedia (it needs a header). */
+/**
+ * The <img>: a direct URL loads by itself; a project file is fetched by hydrateMedia (it needs a header).
+ * A web picture tells its host nothing of where it's shown (no referrer) and sends no credentials (no
+ * crossorigin attribute, so no CORS request either).
+ */
 function imgHtml(it, cls = "") {
   const src = it.src ? ` src="${esc(it.src)}" loading="lazy"` : "";
-  return `<img class="mx-img${cls}" data-mx-img="${esc(it.key)}"${src} alt="${esc(it.name)}" decoding="async" draggable="true">`;
+  const web = it.web ? ` referrerpolicy="no-referrer" data-mx-web` : "";
+  return `<img class="mx-img${cls}" data-mx-img="${esc(it.key)}"${web}${src} alt="${esc(labelOf(it))}" decoding="async" draggable="true">`;
 }
+/** A titled picture's tooltip names its file too (nothing on the picture says it otherwise); a web picture's, its host. */
+const tipAttr = (it) => (it.web ? ` title="${esc(`${labelOf(it)} · ${it.web.host}`)}"` : it.title ? ` title="${esc(`${it.title} · ${it.name}`)}"` : "");
 /** Loading… and Couldn't load, said on the picture itself (hydrateMedia fills it). */
 const STATE = `<span class="mx-state" aria-hidden="true"></span>`;
 
@@ -214,8 +300,8 @@ function oneHtml(it, side) {
   const f = fitImage(it.w, it.h, L.w, L.h);
   const style = [`--mx-w:${f.w}px`, `--mx-r:${r6(f.w / f.h)}`, it.tint && `--mx-tint:${it.tint}`, f.mode === "tiny" && `--mx-iw:${f.iw}px;--mx-ih:${f.ih}px`].filter(Boolean).join(";");
   const tag = f.mode === "long" ? `<span class="mx-tag">Long image · ${it.w} × ${it.h}</span>` : "";
-  const label = ["Open " + it.name, "image", sizeWords(it)].filter(Boolean).join(", ");
-  return `<button type="button" class="mx-one is-${f.mode}" data-mx="${esc(it.key)}" style="${style}" aria-label="${esc(label)}">${imgHtml(it)}${tag}${STATE}</button>`;
+  const label = ["Open " + labelOf(it), "image", sizeWords(it)].filter(Boolean).join(", ");
+  return `<button type="button" class="mx-one is-${f.mode}" data-mx="${esc(it.key)}" style="${style}" aria-label="${esc(label)}"${tipAttr(it)}>${imgHtml(it)}${tag}${STATE}</button>`;
 }
 
 function albumHtml(list, side) {
@@ -225,20 +311,25 @@ function albumHtml(list, side) {
   const rows = lay.rows.map((row) => `<div class="mx-row" style="--mx-r:${r6(lay.w / row.h)}">` + row.tiles.map((t) => {
     const it = list[t.i];
     const last = lay.more && t.i === MAX_TILES - 1;
-    const label = last ? `Open ${it.name} and ${lay.more - 1} more ${lay.more - 1 === 1 ? "picture" : "pictures"}` : `Open ${it.name}, image ${t.i + 1} of ${n}`;
+    const label = last ? `Open ${labelOf(it)} and ${lay.more - 1} more ${lay.more - 1 === 1 ? "picture" : "pictures"}` : `Open ${labelOf(it)}, image ${t.i + 1} of ${n}`;
     const style = [`--mx-g:${t.w}`, it.tint && `--mx-tint:${it.tint}`].filter(Boolean).join(";");
-    return `<button type="button" class="mx-tile" data-mx="${esc(it.key)}" style="${style}" aria-label="${esc(label)}">${imgHtml(it)}${STATE}` +
+    return `<button type="button" class="mx-tile" data-mx="${esc(it.key)}" style="${style}" aria-label="${esc(label)}"${tipAttr(it)}>${imgHtml(it)}${STATE}` +
       (last ? `<span class="mx-more" aria-hidden="true">+${lay.more}</span>` : "") + `</button>`;
   }).join("") + `</div>`).join("");
   return `<div class="mx-album" role="group" aria-label="${n} pictures" style="--mx-w:${lay.w}px">${rows}</div>`;
 }
 
-/** A file that isn't a picture: today's file card, with its Pierre icon. */
+/**
+ * A file that isn't a picture: today's file card, with its Pierre icon. Titled, the title leads and the
+ * file name opens its second line; untitled, the name leads, cut in its middle when it must be.
+ */
 function cardHtml(it) {
   const meta = [it.type ? typeWord(it.type, it.name) : "", fmtSize(it.bytes)].filter(Boolean).join(" · ");
+  // a titled file's name opens the second line, and is what gives way there (its type and size stay)
+  const second = it.title ? midNameHtml(it.name, meta ? ` · ${meta}` : "") : esc(meta);
   const can = !!(it.att || it.project || it.why);
-  return `<li class="tb-file"><button type="button" class="tb-fb" ${can ? `data-mx="${esc(it.key)}" aria-label="Open ${esc(it.name)}"` : "disabled"} title="${esc(it.path || it.name)}">` +
-    `<span class="tb-fi">${fileIcon(it.name)}</span><span class="tb-ft"><span class="tb-fn">${esc(it.name)}</span><span class="tb-fm">${esc(meta)}</span></span>` +
+  return `<li class="tb-file"><button type="button" class="tb-fb" ${can ? `data-mx="${esc(it.key)}" aria-label="Open ${esc(labelOf(it))}"` : "disabled"} title="${esc(it.path || it.name)}">` +
+    `<span class="tb-fi">${fileIcon(it.name)}</span><span class="tb-ft"><span class="tb-fn">${it.title ? esc(it.title) : midNameHtml(it.name)}</span><span class="tb-fm">${second}</span></span>` +
     (can ? `<span class="tb-fo" aria-hidden="true">Open${ICON.chevron}</span>` : "") + `</button></li>`;
 }
 
@@ -331,7 +422,43 @@ function landed(img, box, key) {
 function failed(img, box, it) {
   clearTimeout(img._mxSlow);
   img.style.opacity = "0";
-  stateOf(box, "is-err", `Couldn't load ${it ? it.name : "this picture"} · Retry`);
+  if (it && it.web) { webFailed(box, it); return; }
+  stateOf(box, "is-err", `Couldn't load ${it ? labelOf(it) : "this picture"} · Retry`);
+}
+/**
+ * A web picture that couldn't show turns into its link where it was: a lone picture is replaced by it; an
+ * album loses the tile (its row closes up) and the link joins the line under it. The lightbox forgets it.
+ */
+function webFailed(box, it) {
+  markWebGone(it.web.url);
+  const stack = box && box.closest(".mx-stack");
+  if (!stack || box._mxGone) return;
+  box._mxGone = true;
+  try {
+    const ks = JSON.parse(stack.dataset.mxKeys || "[]").filter((k) => k !== it.key);
+    if (ks.length) stack.dataset.mxKeys = JSON.stringify(ks); else delete stack.dataset.mxKeys;
+  } catch { /* not ours */ }
+  let line = stack.querySelector(":scope > .mx-weblinks");
+  const fresh = !line;
+  if (fresh) { line = document.createElement("p"); line.className = "mx-weblinks"; }
+  line.insertAdjacentHTML("beforeend", webLinkHtml(it));
+  const album = box.closest(".mx-album");
+  if (!album) { if (fresh) box.replaceWith(line); else box.remove(); return; }
+  const row = box.closest(".mx-row");
+  box.remove();
+  if (row && !row.querySelector(".mx-tile")) row.remove();
+  if (!album.querySelector(".mx-tile")) { if (fresh) album.replaceWith(line); else album.remove(); }
+  else if (fresh) album.after(line);
+}
+// a web picture can fail anywhere it's drawn (an ask's excerpt, a document), not only where hydrateMedia
+// watches: one listener catches them all (an <img>'s error doesn't bubble, so it's caught on the way down)
+if (typeof document !== "undefined") {
+  document.addEventListener("error", (e) => {
+    const img = e.target;
+    if (!img || !img.matches || !img.matches("img[data-mx-web]")) return;
+    const it = REG.get(img.dataset.mxImg);
+    if (it) failed(img, img.closest(".mx-one,.mx-tile"), it);
+  }, true);
 }
 /** Show an <img> once it has decoded (motion.js fadeImage); one already decoded (cached) shows at once. */
 function watch(img, box, it) {

@@ -17,6 +17,13 @@
 //   the thing's own glyph (the thread's live state, the file's icon). It opens in place.
 // - Outside (the web) a link stays text, underlined, with a small ↗ after it:
 //   the arrow every Apple page uses for "this leaves". It opens a new tab.
+//
+// Pictures from the web (the owner's call: someone looking for a place to stay sees the listing's photos):
+// `![alt](https://…)`, or a bare http(s) address whose path ends in a picture's extension, on a line of its
+// own is a picture, shown like a shared one (js/media.js, through the app's setWebImages); consecutive such
+// lines make one album. Only http(s): any other scheme stays text. Inside a sentence it stays a link (an
+// image's alt as its words, never a stray "!"). Without the app's renderer (node, or "Show pictures from
+// the web" off on this device) the same lines are outbound links, so nothing is lost.
 
 import { esc } from "./util.js";
 import { highlight } from "./highlight.js";
@@ -35,6 +42,9 @@ export function setThreadInfo(fn) { threadInfo = typeof fn === "function" ? fn :
 const ARROW_OUT = `<svg class="lk-ar" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M3.5 8.5 8.5 3.5M4.6 3.5h3.9v3.9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const THREAD_G = `<svg class="lk-tg" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M13.6 7.8a5.6 5.6 0 0 1-8.1 5L2.4 13.6l.9-3A5.6 5.6 0 1 1 13.6 7.8z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>`;
 const STATES = new Set(["working", "idle", "needs_reply", "needs_approval", "done", "failed", "paused", "resolved"]);
+
+/** The "leaves XO" arrow after an outbound link (js/media.js uses it for a web picture that couldn't show). */
+export { ARROW_OUT };
 
 /** A web address as people read it: the host and path, no scheme, "www." or trailing slash; long ones keep their ends. */
 export function shortUrl(u) {
@@ -84,9 +94,51 @@ function linkHtml(href, label) {
   return null;
 }
 
+// ── pictures from the web ──────────────────────────────────────────────────────
+const IMG_PATH = /\.(?:png|jpe?g|gif|webp|avif|svg)$/i;
+const IMG_MD = /!\[([^\]\n]{0,500})\]\(([^()\s]{1,2000})\)/;
+/** A web picture's address, or null: http(s) only; a bare one also needs a path ending in a picture's extension. */
+export function webImageUrl(u, { bare = false } = {}) {
+  const h = String(u || "").trim();
+  if (!HTTP_HREF.test(h)) return null;
+  if (bare) {
+    let path = "";
+    try { path = new URL(h).pathname; } catch { return null; }
+    if (!IMG_PATH.test(path)) return null;
+  }
+  return h;
+}
+/** The pictures a line is made of, [{alt, url}], when it holds only `![alt](url)`s or one bare picture address; else null. */
+export function imageLine(line) {
+  const s = String(line || "").trim();
+  if (!s) return null;
+  if (/^https?:\/\/\S+$/i.test(s)) { const url = webImageUrl(s, { bare: true }); return url ? [{ alt: "", url }] : null; }
+  const out = [];
+  const re = new RegExp(IMG_MD.source + "\\s*", "y");
+  while (re.lastIndex < s.length) {
+    const m = re.exec(s);
+    if (!m) return null; // anything else on the line: it's a sentence, not pictures
+    const url = webImageUrl(m[2]);
+    if (!url) return null;
+    out.push({ alt: m[1].replace(/\s+/g, " ").trim(), url });
+  }
+  return out.length ? out : null;
+}
+// The app's way to show web pictures ({alt, url} list → HTML, or null to keep them links). Set once by app.js.
+let webImages = null;
+/** Let the app draw pictures from the web (js/media.js); unset, they're links. */
+export function setWebImages(fn) { webImages = typeof fn === "function" ? fn : null; }
+function imagesHtml(list) {
+  const shown = webImages && webImages(list);
+  if (shown) return shown;
+  // as links, one per line: the alt as words, else the address as a bare link reads
+  return `<p>${list.map((x) => linkHtml(x.url, x.alt ? renderInline(x.alt, true) : null) || esc(x.alt || x.url)).join("<br>")}</p>`;
+}
+
 // Inline patterns, tried at each position; the earliest match wins.
 const INLINE = [
   { name: "code", re: /(`+)([\s\S]*?[^`])\1(?!`)/ },
+  { name: "img", re: IMG_MD },
   { name: "link", re: /\[([^\]\n]{1,500})\]\(([^()\s]{1,2000})\)/ },
   { name: "url", re: /\bhttps?:\/\/[^\s<>()"'`]+[^\s<>()"'`.,;:!?]/i },
   { name: "bold", re: /\*\*(?=\S)([\s\S]*?\S)\*\*|__(?=\S)([\s\S]*?\S)__/ },
@@ -119,6 +171,13 @@ export function renderInline(text, noLinks = false) {
       case "link": {
         const label = renderInline(m[1], true);
         out += linkHtml(m[2], label) ?? label;
+        break;
+      }
+      case "img": {
+        // a picture inside a sentence stays a link (its alt as words, else its address); inside a link, its alt
+        const label = renderInline(m[1], true);
+        const url = noLinks ? null : webImageUrl(m[2]);
+        out += url ? linkHtml(url, label || null) : label;
         break;
       }
       case "url":
@@ -280,6 +339,16 @@ export function renderMarkdown(src) {
         i++;
       }
       out.push(renderList(items));
+      continue;
+    }
+    const pics = imageLine(line);
+    if (pics) {
+      // pictures on lines of their own: one picture, or one album for a run of them
+      flush();
+      const all = [...pics];
+      i++;
+      for (let more; i < lines.length && (more = imageLine(lines[i])); i++) all.push(...more);
+      out.push(imagesHtml(all));
       continue;
     }
     para.push(line);

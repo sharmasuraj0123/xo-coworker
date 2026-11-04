@@ -89,6 +89,8 @@ export function pasteLabel(text) {
  * its chat; a file an agent shared on its message has no id but its project's route instead: {project_id,
  * relative_path, path, made_id, mtime}. Pictures also carry w, h and tint (null when the server couldn't
  * read them, absent on uploads older than that); they're kept only when sent, so "unknown" stays unknown.
+ * A file an agent shared may carry a `title` in plain words (share_files' titles, xo-space 8c6bc03), shown
+ * in place of its name; it's absent when there's none, and the name is kept beside it.
  */
 export function attachmentsOf(row) {
   const list = row && row.extra && row.extra.attachments;
@@ -102,11 +104,16 @@ export function attachmentsOf(row) {
     else continue; // no way to read it
     if (a.made_id) f.made_id = String(a.made_id);
     if (a.mtime != null) f.mtime = a.mtime;
+    const title = titleOf(a.title);
+    if (title) f.title = title;
     Object.assign(f, picDims(a));
     out.push(f);
   }
   return out;
 }
+
+/** A file's title as people read it: one line of words, or "" when there's none (absent, null, blank). */
+export const titleOf = (t) => (typeof t === "string" ? t.replace(/\s+/g, " ").trim() : "");
 
 /** A picture's w, h and tint as the server sent them (only the keys it sent). */
 export function picDims(a) {

@@ -10,7 +10,7 @@
 // composer. Light and dark.
 import { createWorld, esc, WAITING } from "./world.js";
 import "./dropdown.js"; // <xo-select>: the one dropdown, in place of the browser's <select>
-import { renderMarkdown, renderInline, setThreadInfo } from "./markdown.js";
+import { renderMarkdown, renderInline, setThreadInfo, setWebImages } from "./markdown.js";
 import * as Kit from "./kit.js";
 import * as K from "./keys.js";
 import { createDecisions } from "./decide.js";
@@ -20,7 +20,7 @@ import { EFFORT, estLine, evidenceFor } from "./content.js";
 import { keepTurning, ICON, XO, NEXT_GLYPH, $, $$, RM, clock, dayOf, short, elapsed, reconcile, sound, wait, dial, morph, expand } from "./ui.js";
 import { uiMsg, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups } from "./timeline.js";
 import { turnHtml, turnAv } from "./turnview.js";
-import { mediaHtml, fromAttachment, hydrateMedia, mediaItemOf, viewerFile, retryMedia, wireDragOut } from "./media.js";
+import { mediaHtml, fromAttachment, hydrateMedia, mediaItemOf, viewerFile, retryMedia, wireDragOut, webImagesHtml } from "./media.js";
 import { createLightbox } from "./lightbox.js";
 import { itemParts } from "./review.js";
 import { runsStripHtml, runsListHtml, runViewHtml } from "./runsview.js";
@@ -33,7 +33,7 @@ import { createStage } from "./stage.js";
 import { createFiles } from "./files.js";
 import { createFilesView } from "./filesview.js";
 import { createTray, fmtSize, kindOf, isLargePaste, pasteLabel, uploadErrorText, FINAL, MAX_FILES } from "./attach.js";
-import { uploadAttachment } from "./api.js";
+import { api, uploadAttachment } from "./api.js";
 import { createShells } from "./shells/dock.js";
 import { createRecord } from "./recordview.js";
 import { wireGestures } from "./gestures.js";
@@ -46,7 +46,18 @@ import { setWorkMode } from "./turnview.js";
 const world = createWorld();
 // what the backend can do, asked each time (a surface that needs a missing one stays away); filled in below
 const CAP = {};
-const SHAPE = createShapeStore({ caps: { has: (c) => !CAP[c] || CAP[c]() } });
+// mine is Storm's where it keeps shapes (GET/PUT /api/chat/shape): read on load, written only on your change,
+// another device's change heard on the stream; a conflict or a write that didn't land is said in the herald
+const SHAPE = createShapeStore({
+  caps: { has: (c) => !CAP[c] || CAP[c]() },
+  remote: { get: () => api.shape(), put: (body) => api.putShape(body) },
+  notice: (h) => heraldShow({ kind: "calm", ...h }, 6000),
+});
+world.onEvent((e) => { if (e.kind === "shape") SHAPE.heard(e.value); });
+// pictures from the web in an agent's words (markdown's ![alt](https://…)) show like shared ones, unless this
+// device's "Show pictures from the web" is off (the shape's xo:conversation/webpics): then they're links
+const WEBPICS = "xo:conversation/webpics";
+setWebImages((list) => (SHAPE.on(WEBPICS) ? webImagesHtml(list) : null));
 /** A noun in the shape's words (HTML). Where it isn't XO's own, XO's word stays in a tooltip, so help
  *  text and agents never disagree with the screen. */
 const noun = (w) => { const x = SHAPE.word(w); return x === w ? esc(w) : `<span title="${esc(`XO's word: ${w}`)}">${esc(x)}</span>`; };
@@ -185,7 +196,9 @@ const askShort = (n) => {
   return n.ask.title;
 };
 const STATE_WORD = { working: "Working", needs_reply: "Needs you", needs_approval: "Needs you", paused: "Paused", done: "Done", failed: "Stopped", resolved: "Resolved" };
-// "Working" only while its agent really works (detail `busy`, or our reply awaits an answer).
+// "Working" only while its agent really works: storm's `busy` (on a turn, or a sub-agent working on after it,
+// never while it waits on you), kept live between reads by the same rule (timeline.js sessionBusy). The Working
+// filter, the header's badge and sweep, the sidebar's count and the favicon's line all read it from here.
 // A working thread whose session sits idle reads "Idle" (P1-8).
 const isBusy = (t) => t.busy === true || (t.state === "working" && t.busy !== false);
 // a thread continued on another runtime is frozen, not waiting on you: a quiet "Continued" (F4)
@@ -2180,7 +2193,10 @@ function openMedia(el, e) {
   if (retryMedia(el)) return;
   const it = mediaItemOf(el.dataset.mx);
   if (!it) return;
-  if (it.kind === "image" && !e.shiftKey) LB.open(it.key, el, msgsEl);
+  // ← → walk the conversation's pictures; a picture elsewhere (an ask's words, a document) walks its own set
+  const root = msgsEl.contains(el) ? msgsEl : el.closest(".mx-stack")?.parentElement || msgsEl;
+  // ⇧ opens a file in the viewer; a web picture has no file here, so it's the lightbox either way
+  if (it.kind === "image" && (!e.shiftKey || it.web)) LB.open(it.key, el, root);
   else VW.open(viewerFile(it), el);
 }
 
@@ -2583,6 +2599,13 @@ const keys = $("#keys");
 function soundRender() { $("#sound-tog").setAttribute("aria-checked", String(sound.on)); }
 $("#sound-tog").addEventListener("click", () => { sound.on = !sound.on; soundRender(); sound.play("allow"); });
 function hopsRender() { const b = $("#hops-tog"); b.setAttribute("aria-checked", String(!!S.showHops)); if (!b.querySelector(".th-knob svg")) b.querySelector(".th-knob").innerHTML = ICON.router; }
+function webpicsRender() { const b = $("#webpics-tog"); b.setAttribute("aria-checked", String(SHAPE.on(WEBPICS))); if (!b.querySelector(".th-knob svg")) b.querySelector(".th-knob").innerHTML = ICON.image; }
+$("#webpics-tog").addEventListener("click", () => {
+  // this device's layer of the shape: a picture's site learns someone looked, so each device decides
+  const on = !SHAPE.on(WEBPICS);
+  SHAPE.setDevice({ surfaces: { [WEBPICS]: { on } } });
+  announce(on ? "Pictures from the web show in the conversation." : "Pictures from the web show as links.");
+});
 $("#hops-tog").addEventListener("click", () => {
   // this device's layer of the shape (xo:thread/hops), where cv-hops was folded in; the shape's change redraws
   const on = !S.showHops;
@@ -2607,6 +2630,7 @@ function shapeApply({ boot = false } = {}) {
   SV.apply();
   setWorkMode(SHAPE.opts("xo:thread/work").mode);
   hopsRender();
+  webpicsRender();
   if (boot) return; // the first render draws the rest
   if (S.showHops) { const t = convThread(S.view); if (t && world.act.loadHops) world.act.loadHops(t.id); else if (!t) loadChatHops(S.view); }
   SH.redraw();

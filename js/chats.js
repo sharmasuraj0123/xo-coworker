@@ -10,7 +10,7 @@ import { esc } from "./world.js";
 import { ICON } from "./ui.js";
 import { renderMarkdown } from "./markdown.js";
 import { turnHtml, turnAv } from "./turnview.js";
-import { cliName, mainRuntime, chatOrder } from "./timeline.js";
+import { cliName, mainRuntime, chatOrder, sessionRead } from "./timeline.js";
 
 const MODE_WORDS = {
   auto: ["Auto", "Its own safety check decides; most actions run unasked."],
@@ -46,7 +46,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       for (const s of d.sessions || []) {
         const old = world.state.sessions[s.id];
         if (old && old.seq != null && s.seq != null && old.seq > s.seq) continue; // the stream knows newer
-        world.state.sessions[s.id] = { ...(old || {}), ...s };
+        world.state.sessions[s.id] = { ...(old || {}), ...s, ...sessionRead(s) }; // its `busy` beyond the status, and when
       }
       C.list = true; C.err = null;
       // the list names models as their agent's catalog does
@@ -80,7 +80,8 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     if (!C.list && !rows.length) return [{ key: "chats-load", html: `<p class="m-note">${C.err ? `Couldn't read your chats: ${esc(C.err)}` : "Reading your chats…"}</p>` }];
     if (!rows.length) return [{ key: "chats-none", html: `<div class="calm ch-calm"><div class="calm-mark">${ICON.thread}</div><h2>No chats yet.</h2><p>Ask anything below. A chat is one agent in one folder, outside your projects' coordinators.</p></div>` }];
     return [{ key: "chats-list", html: `<ul class="ch-list" aria-label="Your chats">${rows.map((s) => {
-      const busy = BUSY.has(s.state), wait = waiting(s);
+      // Working: on a turn, or a sub-agent working on after it (storm's busy rule); waiting on you says so first
+      const wait = waiting(s), busy = BUSY.has(s.state) || !!(world.act.sessionBusy && world.act.sessionBusy(s.id));
       return `<li><button type="button" class="ch-row" data-go="c:${esc(s.id)}"><i class="g g-${wait ? "needs_approval" : busy ? "working" : "idle"}" aria-hidden="true"></i>` +
         `<span class="ch-main"><span class="ch-t">${esc(titleFor(s))}</span><span class="ch-m">${esc(metaLine(s))}</span></span>` +
         `<span class="ch-a${wait ? " is-need" : ""}">${wait ? "Needs you" : busy ? "Working" : esc(ago(s.updated_at || s.created_at))}</span></button></li>`;

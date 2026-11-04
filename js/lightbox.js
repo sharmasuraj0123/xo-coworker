@@ -6,7 +6,9 @@
 //     behind an album's "+N" too, so comparing two states is two key presses;
 //   · Esc, a click outside it, or a swipe down sends it back into its spot (240 ms); if that spot has
 //     scrolled away it fades out where it is;
-//   · the caption names it, who made it and when, with Open in Files and Download;
+//   · the caption names it (its title, else its file name cut in the middle; a titled picture's file name
+//     opens the line under it), who made it and when, with Open in Files and Download; a picture from the
+//     web names its host instead, with "Open original ↗" (it's read from there, never as us: no referrer);
 //   · focus is held inside while it's open and goes back to the picture after;
 //   · reduced motion: a short cross-fade in place of every flight.
 // Durations and the curve are read from css/tokens.css (--d-move, --d-in, --d-out, --d-hover-in, --ease),
@@ -16,11 +18,12 @@
 //   openFile(item, from): "Open in Files" (app.js hands it to the viewer, which brings Files up).
 
 import { esc } from "./util.js";
+import { ARROW_OUT } from "./markdown.js";
 import { ICON, clock } from "./ui.js";
 import { api, attachmentUrl } from "./api.js";
 import { typeWord, fmtSize } from "./attach.js";
 import { still } from "./motion.js";
-import { mediaItemOf, galleryOf, slotOf, cachedSrc, loadSrc } from "./media.js";
+import { mediaItemOf, galleryOf, slotOf, cachedSrc, loadSrc, labelOf, midName, midNameHtml } from "./media.js";
 
 // The flight back is a touch quicker than the flight out (proposal §7): leaving should never feel slower
 // than arriving. Plan F has no 240 token; this is --d-hover (200) and --d-in (280) met halfway.
@@ -63,6 +66,7 @@ export function createLightbox({ openFile = null, announce = () => {} } = {}) {
       `<header class="lbx-bar"><div class="lbx-t"><b class="lbx-name"></b><span class="lbx-by"></span></div><span class="lbx-meta"></span>` +
       `<div class="lbx-acts"><button type="button" class="lbx-btn" data-lbx="files" title="Open in Files">${FILES}<span>Open in Files</span></button>` +
       `<button type="button" class="lbx-btn" data-lbx="down" title="Download">${ICON.down}<span>Download</span></button>` +
+      `<a class="lbx-btn" data-lbx="orig" target="_blank" rel="noopener noreferrer nofollow" title="Open the original" hidden><span>Open original</span>${ARROW_OUT}</a>` +
       `<button type="button" class="lbx-btn lbx-x" data-lbx="close" aria-label="Close" title="Close (Esc)">${ICON.close}</button></div></header>` +
       `<button type="button" class="lbx-arrow is-prev" data-lbx="prev" aria-label="Previous picture" title="Previous (←)">${PREV}</button>` +
       `<button type="button" class="lbx-arrow is-next" data-lbx="next" aria-label="Next picture" title="Next (→)">${NEXT}</button>` +
@@ -119,14 +123,16 @@ export function createLightbox({ openFile = null, announce = () => {} } = {}) {
     f.className = "lbx-frame";
     const img = document.createElement("img");
     img.className = "lbx-img";
-    img.alt = it.name;
+    img.alt = labelOf(it);
     img.draggable = false;
     img.decoding = "async";
+    if (it.web) img.referrerPolicy = "no-referrer"; // before any src: its host learns nothing of where it's shown
+    img.addEventListener("error", () => { f.classList.add("is-err"); f.dataset.err = `Couldn't load ${labelOf(it)}`; }, { once: true });
     f.appendChild(img);
     el.querySelector(".lbx-stage").appendChild(f);
     const u = cachedSrc(it);
     if (u) img.src = u;
-    else loadSrc(it).then((url) => { img.src = url; }, () => { f.classList.add("is-err"); f.dataset.err = `Couldn't load ${it.name}`; });
+    else loadSrc(it).then((url) => { img.src = url; }, () => { f.classList.add("is-err"); f.dataset.err = `Couldn't load ${labelOf(it)}`; });
     // a picture whose size we didn't know says it once decoded, and settles to its own shape
     img.addEventListener("load", () => {
       if (L.frame !== f || (it.w && it.h)) return;
@@ -135,13 +141,19 @@ export function createLightbox({ openFile = null, announce = () => {} } = {}) {
     }, { once: true });
     return f;
   }
-  /** "PNG · 2880 × 1800 · 412 KB": the size the server sent, else the one the picture decoded to. */
+  /**
+   * "PNG · 2880 × 1800 · 412 KB": the size the server sent, else the one the picture decoded to. A titled
+   * picture's file name leads it, so the name is never lost behind the title.
+   */
   function metaOf(it, img) {
     const n = natural(it, img);
-    return [it.type ? typeWord(it.type, it.name) : "", n ? `${n.w} × ${n.h}` : "", fmtSize(it.bytes)].filter(Boolean).join(" · ");
+    return [it.title ? midName(it.name, 40) : "", it.type ? typeWord(it.type, it.name) : "", n ? `${n.w} × ${n.h}` : "", fmtSize(it.bytes)].filter(Boolean).join(" · ");
   }
   function caption(it, img) {
-    el.querySelector(".lbx-name").textContent = it.name;
+    const name = el.querySelector(".lbx-name");
+    // a title is words and cuts at its end (CSS); a bare file name cuts in its middle, keeping its extension
+    if (it.title) name.textContent = it.title; else name.innerHTML = midNameHtml(it.name);
+    name.title = it.title ? `${it.title} · ${it.name}` : it.name;
     const when = Number.isFinite(it.at) && it.at > 0 ? clock(it.at) : "";
     el.querySelector(".lbx-by").textContent = [it.by, when].filter(Boolean).join(" · ");
     el.querySelector(".lbx-meta").textContent = metaOf(it, img);
@@ -152,7 +164,12 @@ export function createLightbox({ openFile = null, announce = () => {} } = {}) {
     el.querySelector('[data-lbx="prev"]').disabled = L.i === 0;
     el.querySelector('[data-lbx="next"]').disabled = L.i === n - 1;
     el.querySelector('[data-lbx="files"]').hidden = !openFile || !(it.att || (it.project && it.rel));
-    el.setAttribute("aria-label", `${it.name}${n > 1 ? `, picture ${L.i + 1} of ${n}` : ""}`);
+    // a picture from the web: its original, on its own site; no Download (another site's file isn't ours to save as)
+    const orig = el.querySelector('[data-lbx="orig"]');
+    orig.hidden = !it.web;
+    if (it.web) orig.href = it.web.url; else orig.removeAttribute("href");
+    el.querySelector('[data-lbx="down"]').hidden = !!it.web;
+    el.setAttribute("aria-label", `${labelOf(it)}${n > 1 ? `, picture ${L.i + 1} of ${n}` : ""}`);
   }
   function move(frame, from, to, dur, { r0 = R_REST(), r1 = R_REST() } = {}) {
     place(frame, to);
@@ -210,7 +227,7 @@ export function createLightbox({ openFile = null, announce = () => {} } = {}) {
       L.busy = move(f, box(slot), to, ms("--d-move", 320), { r0: slot.classList.contains("mx-tile") ? "0px" : R_SLOT() }).then(() => { L.busy = null; fitLike(f, null, it); });
     }
     el.focus({ preventScroll: true });
-    announce(`${it.name} is open${L.items.length > 1 ? `, picture ${L.i + 1} of ${L.items.length}` : ""}. Arrow keys move between pictures; Esc closes it.`);
+    announce(`${labelOf(it)} is open${L.items.length > 1 ? `, picture ${L.i + 1} of ${L.items.length}` : ""}. Arrow keys move between pictures; Esc closes it.`);
   }
 
   /** Step to the picture `d` away (−1, +1): the old one leaves, the new one settles in from that side. */
@@ -294,6 +311,7 @@ export function createLightbox({ openFile = null, announce = () => {} } = {}) {
     else if (k === "prev") step(-1);
     else if (k === "next") step(1);
     else if (k === "down") download(it);
+    else if (k === "orig") { /* the link opens it in a new tab */ }
     else if (k === "files" && openFile) {
       const from = slotOf(L.root, it.key) || L.returnTo;
       close({ quick: true, restore: false }).then(() => openFile(it, from));
@@ -306,7 +324,7 @@ export function createLightbox({ openFile = null, announce = () => {} } = {}) {
     if (e.key === "ArrowLeft") { e.preventDefault(); step(-1); return; }
     if (e.key === "ArrowRight") { e.preventDefault(); step(1); return; }
     if (e.key === "Tab") {
-      const list = [...el.querySelectorAll("button:not([hidden]):not(:disabled)")].filter((x) => x.offsetParent !== null);
+      const list = [...el.querySelectorAll("button:not([hidden]):not(:disabled),a[href]:not([hidden])")].filter((x) => x.offsetParent !== null);
       if (!list.length) { e.preventDefault(); return; }
       const i = list.indexOf(document.activeElement);
       e.preventDefault();

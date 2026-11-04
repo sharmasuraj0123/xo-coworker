@@ -153,6 +153,58 @@ export function threadState(state, turn) {
   return state || "working";
 }
 
+// ── busy: is an agent at work right now ("Working")? ─────────────────────────
+// Storm says it on every session and thread view (xo-space 8c6bc03): `busy` is true while the session is
+// on a turn (queued, starting, running, stopping) or while a sub-agent works on after its turn ended.
+// Live session frames still carry only the status, so between reads the same rule is applied here: the
+// status, then the sub-agents the stream names (run.* until run.finished, and the `runs` frame's counts).
+// An older backend sends no `busy`: then the status and the stream's runs are all there is, and that's
+// the same rule with less to go on.
+
+/** Session states in which its agent is on a turn (storm's engine BUSY_STATES). */
+export const BUSY_STATES = new Set(["queued", "starting", "running", "stopping"]);
+const RUN_ENDED = new Set(["finished", "failed", "stopped", "lost"]);
+/** A sub-agent run the stream said started and hasn't said ended. An internal (hidden) one isn't the person's to see. */
+export const runWorks = (r) => !!r && !r.ended_at && !RUN_ENDED.has(r.state) && !r.hidden;
+
+/**
+ * What a read of a session (a session view, or a thread view's `session`) says beyond its status: true
+ * when it was busy with no turn running, i.e. a sub-agent working on after the turn. undefined when the
+ * view has no `busy` (an older backend), so nothing is assumed either way.
+ */
+export function readSub(view) {
+  if (!view || typeof view.busy !== "boolean") return undefined;
+  return view.busy && !BUSY_STATES.has(view.state);
+}
+
+/** A session read's word on busy, to spread onto its record: {sub, readAt} when the view has `busy`, else {}. */
+export function sessionRead(view, now = Date.now()) {
+  const sub = readSub(view);
+  return sub === undefined ? {} : { sub, readAt: now };
+}
+
+/**
+ * Is a session's agent at work? s: {id, state, sub, readAt}: its newest status (frame or read), what
+ * the last read said beyond it (readSub) and when that read came (ms). runs: its runs as the stream named
+ * them ({state, ended_at, hidden, seen}, `seen` when the stream last spoke of each); agg: its newest
+ * `runs` frame ({running, waiting, at}). Each says what it knows, the newest word winning:
+ *   · waiting on the person is never Working, whatever else is true: it's you who's awaited (Needs you);
+ *   · on a turn (BUSY_STATES) is Working;
+ *   · after the turn, a sub-agent still at work keeps it Working: a run the stream named since the last
+ *     word on the counts, else the `runs` frame's counts when they're newer than the read, else the read.
+ */
+export function sessionBusy(s, { runs = [], agg = null } = {}) {
+  if (!s) return false;
+  if (s.state === "waiting_on_person") return false;
+  if (BUSY_STATES.has(s.state)) return true;
+  const readAt = s.readAt || 0;
+  const counted = agg && (agg.at || 0) >= readAt ? agg : null;
+  const since = Math.max(readAt, counted ? counted.at || 0 : 0);
+  for (const r of runs) if ((r.session == null || r.session === s.id) && runWorks(r) && (r.seen || 0) >= since) return true;
+  if (counted) return (counted.running || 0) + (counted.waiting || 0) > 0;
+  return s.sub === true;
+}
+
 /**
  * The state a thread shows while it has open items: an open item on the thread (its own ask or one of
  * its sub-agents') waits on the person whatever the row says yet. The row's needs_approval can trail

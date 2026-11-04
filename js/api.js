@@ -40,7 +40,7 @@ export class ApiError extends Error {
     super(message);
     this.status = status;
     this.code = code;
-    Object.assign(this, extra); // storm extras: feature, count, sentence, what, confirm, summary
+    Object.assign(this, extra); // storm extras: feature, count, sentence, what, confirm, summary, current
   }
 }
 
@@ -126,7 +126,7 @@ async function exchange(url, method, body, signal) {
     if (Array.isArray(d)) message = d.map((e) => `${(e.loc || []).slice(1).join(".")}: ${e.msg}`).join("; ");
     if (!message) message = `${res.status} ${res.statusText || "error"}`;
     const extra = {};
-    if (d && typeof d === "object" && !Array.isArray(d)) for (const k of ["feature", "count", "sentence", "what", "confirm", "summary"]) if (k in d) extra[k] = d[k];
+    if (d && typeof d === "object" && !Array.isArray(d)) for (const k of ["feature", "count", "sentence", "what", "confirm", "summary", "current"]) if (k in d) extra[k] = d[k];
     throw new ApiError(res.status, code, message, extra);
   }
   return data;
@@ -281,6 +281,12 @@ export const api = {
   /** The person looked at a chat (a newer backend keeps it per person, on every device): {seen: {seen_at, seen_seq}}. */
   markSeen: (chat) => send("PUT", `/chat/chats/${enc(chat)}/seen`, {}),
   memoryFile: (chat, path) => get(`/chat/chats/${enc(chat)}/memory/${enc(path)}`),
+
+  // ── the person's shape (xo-space 8c6bc03): their own layer of the UI, kept for every device ──
+  /** {shape: object|null, version: "new"|<12 hex>, updated_at}. 404 on an older backend. */
+  shape: () => get("/chat/shape"),
+  /** {shape: object|null, if_version}: compare-and-set; a stale if_version is 409 shape_changed with `current`. */
+  putShape: (body) => send("PUT", "/chat/shape", body),
 
   // ── sessions, turns, history ──────────────────────────────────────────────
   sessions: (query = {}) => get("/chat/sessions", query),

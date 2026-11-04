@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>XO · pictures and files in the conversation (demo)</title>
 <!-- A demo of js/media.js and js/lightbox.js with sample data, since Storm's w, h and tint aren't live yet
-     (xo-space 2918587). It loads the app's own stylesheets and modules and makes no network calls beyond
+     (xo-space 2918587), nor the files' titles (xo-space 8c6bc03). It loads the app's own stylesheets and modules and makes no network calls beyond
      this folder's files: every picture is a real PNG from design-research/, its w × h read from the file
      and its tint measured as its average colour. ?theme=light|dark, or the switch at the top. -->
 <script>
@@ -37,7 +37,7 @@
 </head>
 <body>
   <header class="demo-h">
-    <p><b>Pictures and files in the conversation</b> · a demo with sample data (Storm's w, h and tint aren't live yet). Click a picture; ← → walk through them all; Esc puts it back.</p>
+    <p><b>Pictures and files in the conversation</b> · a demo with sample data (Storm's w, h, tint and titles aren't live yet). Click a picture; ← → walk through them all; Esc puts it back.</p>
     <button type="button" id="theme"></button>
   </header>
   <main class="demo-b">
@@ -46,12 +46,17 @@
   <p class="demo-note" id="note" role="status" hidden></p>
 
 <script type="module">
-import { mediaHtml, mediaItem, hydrateMedia, wireDragOut, mediaItemOf, retryMedia } from "../js/media.js";
+import { mediaHtml, mediaItem, hydrateMedia, wireDragOut, mediaItemOf, retryMedia, webImagesHtml } from "../js/media.js";
 import { createLightbox } from "../js/lightbox.js";
 import { ICON } from "../js/ui.js";
-import { renderMarkdown } from "../js/markdown.js";
+import { renderMarkdown, setWebImages } from "../js/markdown.js";
+
+// pictures from the web in an agent's words, as the app draws them (Settings › General can make them links)
+setWebImages(webImagesHtml);
 
 const A = "../design-research/2026-11-vision/audit/shots/";
+// "the web" for the demo: this server's own pictures at http URLs, so nothing reaches the internet
+const W = `${location.origin}${location.pathname.replace(/\/demo\/[^/]*$/, "")}/design-research/2026-11-vision/audit/shots/`;
 const C = "../design-research/2026-11-vision/chat/shots/";
 const AGENT = "xo-coworker agent";
 const today = (h, m) => { const d = new Date(); d.setHours(h, m, 0, 0); return d.getTime(); };
@@ -79,6 +84,31 @@ const MSGS = [
   { who: "agent", at: today(10, 57), cont: true, text: "The chat proposal's mock as one long capture, and the proposal itself:",
     files: [pic(C + "mock-light.png", 2880, 8298, "#f2f3f2", 588850),
       { name: "proposal.md", type: "text/markdown", bytes: 41210, path: "design-research/2026-11-vision/chat/proposal.md", project: "xo-coworker", rel: "design-research/2026-11-vision/chat/proposal.md" }] },
+  // titles (share_files' titles[i] names paths[i]): a picture's label, the lightbox and a card say the title,
+  // the file name stays beside it or in a tooltip; an untitled long name is cut in its middle
+  { who: "agent", at: today(10, 59), text: "The right panel in both themes, titled the way `share_files` names files now:",
+    files: [{ ...pic(A + "07-thread-dark.png", 2880, 1800, "#1a1a1a", 317477), title: "Right panel, dark" }, { ...pic(A + "00-home-light.png", 2880, 1800, "#232323", 322143), title: "Right panel, light, with Recently made open" }] },
+  { who: "agent", at: today(11, 0), cont: true, text: "The brief it follows, and an export with a long name and no title:",
+    files: [{ name: "q3-campaign-brief-final-v2-reviewed.md", title: "The campaign brief", type: "text/markdown", bytes: 41210, path: "design-research/2026-11-vision/chat/proposal.md", project: "xo-coworker", rel: "design-research/2026-11-vision/chat/proposal.md" },
+      { name: "analytics-dashboard-export-weekly-sessions-by-channel-2026-11-04-final.csv", type: "text/csv", bytes: 9812, path: "README.md", project: "xo-coworker", rel: "README.md" }] },
+  // pictures from the web, in the agent's own words (markdown): an album from a run of picture lines, a bare
+  // address on its own line, one that can't load (it turns into its link), and an address in a sentence
+  { who: "you", at: today(11, 4), text: "Find me somewhere to stay near the venue for three nights.", files: [] },
+  { who: "agent", at: today(11, 6), files: [], text: `Three places within a ten-minute walk. The loft has the best light:
+
+![The loft, living room](${W}02-home-handled-light.png)
+![The loft, bedroom](${W}08-thread-top-dark.png)
+![The loft, kitchen](${W}11-settings-light.png)
+
+The garden flat is quieter, and cheaper by a third:
+
+${W}02-home-handled-dark.png
+
+The studio's listing photo wouldn't load for me:
+
+![The studio, street side](${W}no-such-listing-photo.jpg)
+
+Its floor plan is at ${W}11-settings-dark.png if you want to compare sizes.` },
 ];
 
 const clockOf = (ms) => new Date(ms).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -102,13 +132,13 @@ wireDragOut(msgs);
 const note = document.getElementById("note");
 let noteT = 0;
 const say = (text) => { note.textContent = text; note.hidden = false; clearTimeout(noteT); noteT = setTimeout(() => { note.hidden = true; }, 2600); };
-const LB = createLightbox({ openFile: (it) => say(`In the app, ${it.name} opens in Files.`), announce: () => {} });
+const LB = createLightbox({ openFile: (it) => say(`In the app, ${it.title || it.name} opens in Files.`), announce: () => {} });
 msgs.addEventListener("click", (e) => {
   const el = e.target.closest("[data-mx]");
   if (!el || retryMedia(el)) return;
   const it = mediaItemOf(el.dataset.mx);
   if (it && it.kind === "image") LB.open(it.key, el, msgs);
-  else if (it) say(`In the app, ${it.name} opens in the viewer beside the conversation.`);
+  else if (it) say(`In the app, ${it.title || it.name} opens in the viewer beside the conversation.`);
 });
 
 const tb = document.getElementById("theme");

@@ -12,6 +12,9 @@
 // thread shared (its `outputs`), pinned per browser. A file opens in the panel's File tab.
 //
 // Every newer field is optional: a missing route (404) or field means the fallback, never an error.
+// A made file with a title (xo-space 8c6bc03) is named by it, its file name on the card's second line (in
+// place of the kind word) and in its tooltip; untitled, its name cuts in the middle. The thread that made
+// it is `threadTitle` (record.js keeps the two apart).
 // "Seen" is the backend's per chat when it has it (the later of it and this browser's), else this
 // browser's; the thread's `summary` and `git` state make the card's words exact when they're there.
 //
@@ -25,6 +28,7 @@ import { esc } from "./util.js";
 import { ICON, $, short } from "./ui.js";
 import { sharedFileRoute } from "./timeline.js";
 import { fileIcon } from "./fileicons.js";
+import { midName, midNameHtml } from "./media.js";
 
 const PINS = "xo-made-pins";
 const TREES_MS = 60000;     // worktrees read at most this often per chat
@@ -32,6 +36,23 @@ const LINES = 6;            // a card's lines before "+N more"
 const RECENT = 6;           // Recently made on Home
 
 const KIND_IC = { image: ICON.image, page: ICON.globe, doc: ICON.doc, data: ICON.list, code: ICON.edit, link: ICON.arrow, branch: ICON.branch };
+/**
+ * How a made thing is named (a card, ⌘K). label: its own title, else its name. html: the card's name, a
+ * title cut at its end, a file name in its middle (its extension stays; a link's words and a branch at
+ * their end). file: its name in `max` characters, which a titled card's second line shows. tip: the
+ * card's tooltip. from: the thread that made it, by that thread's own title (never the file's).
+ */
+export function madeNaming(m, max = 28) {
+  const isFile = m.kind !== "link" && m.kind !== "branch";
+  const file = isFile ? midName(m.name, max) : m.name;
+  return {
+    label: m.title || m.name,
+    html: m.title ? esc(m.title) : isFile ? midNameHtml(m.name) : esc(m.name),
+    file,
+    tip: m.title ? `${m.title} · ${m.path}` : m.path,
+    from: m.threadTitle || "Its thread",
+  };
+}
 
 export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
   const seen = R.createSeen(localStorage);
@@ -201,11 +222,11 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
     }
     return c.rows;
   }
-  const titleOf = (ts) => world.thread(ts)?.title || "";
+  const threadTitleOf = (ts) => world.thread(ts)?.title || "";
   function madeIn(pid) {
     const chat = world.project(pid)?.chatId;
     const rows = servedRows(chat);
-    if (rows) return R.madeFromServer(rows, { project: pid, title: titleOf }).map((m) => ({ ...m, chat }));
+    if (rows) return R.madeFromServer(rows, { project: pid, threadTitle: threadTitleOf }).map((m) => ({ ...m, chat }));
     return R.madeItems(threadsIn(pid), { pins });
   }
   const madeOf = (pid) => (pid ? madeIn(pid) : (world.state.projects || []).filter((p) => p && p.id !== "workspace").flatMap((p) => madeIn(p.id)).sort((a, b) => b.at - a.at));
@@ -237,13 +258,16 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
    *  kind), "page" on the Artifacts page (the project, the kind and the thread that made it). */
   function cardHtml(m, { where = false } = {}) {
     const ago = short(m.at) === "now" ? "now" : short(m.at) + " ago";
+    const n = madeNaming(m);
+    // a titled file's name takes the kind word's place (its thumbnail already says the kind); gone says gone
+    const what = m.exists === false ? "Gone" : m.title ? n.file : R.KIND_WORD[m.kind];
     // on the page a card says where it's from, what it is and when; its size is in the file itself
-    const meta = (where === "page" ? [PROJ(m.project), m.exists === false ? "Gone" : R.KIND_WORD[m.kind], ago] : [m.exists === false ? "Gone" : R.KIND_WORD[m.kind], size(m.bytes), ago]).filter(Boolean).join(" · ");
+    const meta = (where === "page" ? [PROJ(m.project), what, ago] : [what, size(m.bytes), ago]).filter(Boolean).join(" · ");
     return `<li class="md-it${m.pinned ? " is-pin" : ""}${m.exists === false ? " is-gone" : ""}">` +
-      `<button type="button" class="md-open" data-made-file="${esc(m.key)}" title="${esc(m.path)}" aria-label="Open ${esc(m.name)}"><span class="md-th k-${m.kind}">${thumbHtml(m)}</span>` +
-      `<span class="md-meta"><b>${esc(m.name)}</b><span>${esc(where === true ? `${PROJ(m.project)} · ${ago}` : meta)}</span></span></button>` +
-      (where === true || !m.tid ? "" : `<button type="button" class="md-from" data-made-go="t:${esc(m.tid)}" title="Open the thread that made it">${ICON.back}<span>${esc(m.title || "Its thread")}</span></button>`) +
-      `<button type="button" class="md-pin" data-made-pin="${esc(m.key)}" aria-pressed="${m.pinned}" aria-label="${m.pinned ? "Unpin" : "Pin"} ${esc(m.name)}" title="${m.pinned ? "Unpin" : "Pin it on top"}">${ICON.pin}</button></li>`;
+      `<button type="button" class="md-open" data-made-file="${esc(m.key)}" title="${esc(n.tip)}" aria-label="Open ${esc(n.label)}"><span class="md-th k-${m.kind}">${thumbHtml(m)}</span>` +
+      `<span class="md-meta"><b>${n.html}</b><span>${esc(where === true ? `${PROJ(m.project)} · ${ago}` : meta)}</span></span></button>` +
+      (where === true || !m.tid ? "" : `<button type="button" class="md-from" data-made-go="t:${esc(m.tid)}" title="Open the thread that made it">${ICON.back}<span>${esc(n.from)}</span></button>`) +
+      `<button type="button" class="md-pin" data-made-pin="${esc(m.key)}" aria-pressed="${m.pinned}" aria-label="${m.pinned ? "Unpin" : "Pin"} ${esc(n.label)}" title="${m.pinned ? "Unpin" : "Pin it on top"}">${ICON.pin}</button></li>`;
   }
 
   // A card is made once and then updated in place (js/motion.js): its time, pin and picture change
@@ -261,7 +285,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
     el.className = nx.className;
     const th = el.querySelector(".md-th"), th2 = nx.querySelector(".md-th");
     if (th && th2) { th.className = th2.className; if (setHtml(th, th2.innerHTML)) fadeImage(th.querySelector("img")); }
-    setText(el.querySelector(".md-meta b"), nx.querySelector(".md-meta b").textContent);
+    setHtml(el.querySelector(".md-meta b"), nx.querySelector(".md-meta b").innerHTML); // a name cut in the middle is two spans
     setText(el.querySelector(".md-meta span"), nx.querySelector(".md-meta span").textContent);
     const fr = el.querySelector(".md-from span"), fr2 = nx.querySelector(".md-from span");
     if (fr && fr2) setText(fr, fr2.textContent);
@@ -422,12 +446,12 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
     }
   }
 
-  /** ⌘K: made files by name, only once you've typed something. */
+  /** ⌘K: made files by title or name, only once you've typed something. A titled one's file name leads its line. */
   function jumpItems(q) {
     if (!q) return [];
     const w = q.toLowerCase();
-    return madeOf(null).filter((m) => `${m.name} ${m.path}`.toLowerCase().includes(w)).slice(0, 8)
-      .map((m) => ({ name: m.name, sub: `Made in ${PROJ(m.project)}${m.title ? ` · ${m.title}` : ""}`, icon: KIND_IC[m.kind] || ICON.doc, run: () => { if (m.kind !== "link" && m.tid) go("t:" + m.tid); openFile(m.key, null); } }));
+    return madeOf(null).filter((m) => `${m.title || ""} ${m.name} ${m.path}`.toLowerCase().includes(w)).slice(0, 8)
+      .map((m) => ({ name: m.title || madeNaming(m, 48).file, sub: [m.title ? madeNaming(m, 32).file : "", `Made in ${PROJ(m.project)}`, m.threadTitle].filter(Boolean).join(" · "), icon: KIND_IC[m.kind] || ICON.doc, run: () => { if (m.kind !== "link" && m.tid) go("t:" + m.tid); openFile(m.key, null); } }));
   }
 
   // ── events ──────────────────────────────────────────────────────────────

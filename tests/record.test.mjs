@@ -4,6 +4,10 @@
 import assert from "node:assert/strict";
 import * as R from "../js/record.js";
 
+// js/ui.js (through recordview.js) reads the reduced-motion setting when it loads
+globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
+const { madeNaming } = await import("../js/recordview.js");
+
 let passed = 0;
 const t = (name, fn) => {
   try { fn(); passed++; console.log("  ok  " + name); }
@@ -140,14 +144,52 @@ t("made from the backend: its rows in the same shape, links and branches kept, m
     { id: "m3", kind: "branch", git: { branch: "xo/thread-1", merged: true }, thread_ts: "a", updated_at: "2026-11-03T11:00:00Z", exists: false },
     { kind: "file" },                                         // no id: dropped
   ];
-  const items = R.madeFromServer(rows, { project: "p", title: (ts) => ({ a: "Alpha" })[ts] || "" });
+  const items = R.madeFromServer(rows, { project: "p", threadTitle: (ts) => ({ a: "Alpha" })[ts] || "" });
   assert.deepEqual(items.map((m) => [m.key, m.kind]), [["m2", "link"], ["m3", "branch"], ["m1", "doc"]]);
   assert.equal(items[0].url, "https://github.com/x/y/pull/37");
   assert.equal(items[1].name, "thread-1");
   assert.equal(items[1].exists, false);
-  assert.deepEqual([items[2].pinned, items[2].fileProject, items[2].rel, items[2].title], [true, "p", ".xo/made/thread-a/plan.md", "Alpha"]);
+  assert.deepEqual([items[2].pinned, items[2].fileProject, items[2].rel, items[2].threadTitle, items[2].title], [true, "p", ".xo/made/thread-a/plan.md", "Alpha", null]);
   assert.deepEqual(R.madeFromServer(null), []);
   assert.deepEqual(R.filterMade(items, { kind: "link" }).map((m) => m.key), ["m2"]);
+});
+
+t("a made file's own title and its thread's title are kept apart (the server's rows and the threads' outputs)", () => {
+  const rows = [
+    { id: "m1", kind: "image", name: "r3-dark-panel-narrow-320.png", title: "Right panel,  dark, narrow", mime: "image/png", thread_ts: "a", updated_at: "2026-11-03T10:00:00Z", project_id: "p", relative_path: "out/r3-dark-panel-narrow-320.png", path: "out/r3-dark-panel-narrow-320.png" },
+    { id: "m2", kind: "file", name: "notes.md", title: null, mime: "text/markdown", thread_ts: "a", updated_at: "2026-11-03T09:00:00Z" },
+    { id: "m3", kind: "file", name: "old.md", thread_ts: "b", updated_at: "2026-11-03T08:00:00Z" }, // an older backend: no title key at all
+  ];
+  const items = R.madeFromServer(rows, { project: "p", threadTitle: (ts) => ({ a: "Design the picker", b: "Notes" })[ts] || "" });
+  assert.deepEqual(items.map((m) => [m.title, m.threadTitle, m.name]), [
+    ["Right panel, dark, narrow", "Design the picker", "r3-dark-panel-narrow-320.png"],
+    [null, "Design the picker", "notes.md"],
+    [null, "Notes", "old.md"],
+  ]);
+  // a search finds a file by its own title, its name, and the thread that made it
+  assert.deepEqual(R.filterMade(items, { q: "dark, narrow" }).map((m) => m.key), ["m1"]);
+  assert.deepEqual(R.filterMade(items, { q: "picker" }).map((m) => m.key), ["m1", "m2"]);
+  assert.deepEqual(R.filterMade(items, { q: "old.md" }).map((m) => m.key), ["m3"]);
+  // the older Made (a thread's outputs) carries a file's title the same way, and its thread's title apart
+  const out = R.madeItems([th("t", "done", 1, { title: "Make the deck", outputs: [{ path: "deck/cover.png", title: "The cover" }, { path: "deck/notes.md" }] })]);
+  assert.deepEqual(out.map((m) => [m.name, m.title, m.threadTitle]), [["notes.md", null, "Make the deck"], ["cover.png", "The cover", "Make the deck"]]);
+});
+
+t("a made card is named by the file's title, its thread link by the thread's: never the one for the other", () => {
+  const titled = madeNaming({ kind: "image", name: "r3-dark-panel-narrow-320-title.png", title: "Right panel, dark, narrow", path: "out/r3-dark-panel-narrow-320-title.png", threadTitle: "Design the picker" });
+  assert.equal(titled.label, "Right panel, dark, narrow");
+  assert.equal(titled.html, "Right panel, dark, narrow");
+  assert.equal(titled.from, "Design the picker");                       // the "from" link: the thread, not the file
+  assert.equal(titled.file, "r3-dark-panel-narr…title.png");             // the second line: the file name, cut in its middle
+  assert.equal(titled.tip, "Right panel, dark, narrow · out/r3-dark-panel-narrow-320-title.png"); // nothing lost
+  const bare = madeNaming({ kind: "doc", name: "a-rather-long-report-name-final.md", title: null, path: "a-rather-long-report-name-final.md", threadTitle: "" });
+  assert.equal(bare.label, "a-rather-long-report-name-final.md");
+  assert.match(bare.html, /<span class="mx-mid"><span class="mx-mh">a-rather-long-report-name-<\/span><span class="mx-mt">final\.md<\/span><\/span>/);
+  assert.equal(bare.from, "Its thread");                                 // no thread title: never the file's name or title
+  assert.equal(bare.tip, "a-rather-long-report-name-final.md");
+  // a link's words and a branch are cut at their end, not in the middle
+  assert.equal(madeNaming({ kind: "link", name: "The pull request that moved Shells", path: "https://x/y", threadTitle: "T" }).html, "The pull request that moved Shells");
+  assert.equal(madeNaming({ kind: "image", name: "a<b>.png", title: "<script>", path: "p", threadTitle: "t" }).html, "&lt;script&gt;");
 });
 
 console.log(`${passed} passed${process.exitCode ? ", with failures" : ""}`);

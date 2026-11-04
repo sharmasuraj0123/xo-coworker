@@ -10,7 +10,8 @@
 .mx-stack.mx-you{align-items:flex-end;width:100%}
 .prose+.mx-stack,.mx-stack+.prose{margin-top:12px}
 .m-you>.mx-stack+.bubble{margin-top:4px}
-.mx-stack>.tb-fl{margin:0}
+/* the cards never outgrow the column: a long name is cut (in its middle) instead of pushing the card past it */
+.mx-stack>.tb-fl{margin:0;min-width:0;max-width:100%}
 /* in a turn: a shared set sits 12 from the block above it (the turn's 6 + the block's 4 + 2); files alone keep
    their "Shared 3 files" line 8 above them, as before */
 .tb-files>.mx-stack:first-child{margin-top:2px}
@@ -50,6 +51,18 @@
 
 /* an agent's words under a shared set */
 .mx-cap{max-width:66ch;font:400 var(--fs-md)/var(--lh-14) var(--sans);color:var(--ink-2)}
+
+/* a picture from the web that couldn't show: the outbound link it would have been (css/links.css .lk-out), on a line
+   where the picture was; several wrap. The lightbox's "Open original ↗" is a lightbox button, its arrow the link's. */
+.mx-weblinks{display:flex;flex-wrap:wrap;gap:4px 16px;margin:0;max-width:100%;min-width:0}
+a.lbx-btn{text-decoration:none}
+.lbx-btn .lk-ar{width:10px;height:10px;margin:0;color:currentColor}
+
+/* a file name too long for its place cuts in its middle (js/media.js midNameHtml): its start gives way with an
+   ellipsis, the end of its stem and its extension stay whole (r3-dark…title.png). It takes its parent's type. */
+.mx-mid{display:flex;min-width:0;max-width:100%}
+.mx-mh{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:pre}
+.mx-mt{flex:none;white-space:pre}
 
 /* the phone: an agent's at most the column × 420, yours min(75 %, 280) square (proposal §1) */
 @media (max-width:760px){

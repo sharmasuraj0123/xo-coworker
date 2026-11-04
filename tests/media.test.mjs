@@ -10,6 +10,7 @@ const M = await import("../js/media.js");
 const { attachmentsOf } = await import("../js/attach.js");
 const { uiMsg, updateMessage } = await import("../js/timeline.js");
 const { turnHtml } = await import("../js/turnview.js");
+const MD = await import("../js/markdown.js");
 
 let passed = 0;
 const t = (name, fn) => {
@@ -174,6 +175,159 @@ t("mediaHtml: six pictures → an album of four tiles, the fourth +3, the lightb
   assert.match(html, /data-fi=/); // Pierre's coloured icon, not the plain doc glyph
   assert.equal(M.mediaItemOf("p4").name, "p4.png"); // registered for the lightbox and the click handler
   assert.equal(M.mediaHtml([]), "");
+});
+
+// ── titles: a shared file named in plain words (xo-space 8c6bc03) ───────────
+t("midName: a long file name is cut in its middle, its extension and its stem's end kept; short ones stay whole", () => {
+  assert.equal(M.midName("r3-dark-panel-narrow-320-title.png", 17), "r3-dark…title.png");
+  assert.equal(M.midName("r3-dark-panel-narrow-320-title.png", 32), "r3-dark-panel-narrow-3…title.png");
+  assert.equal(M.midName("r3-dark-panel-narrow-320-title.png", 32).length, 32);
+  assert.equal(M.midName("short.png", 17), "short.png");
+  assert.equal(M.midName("a-very-long-name-without-extension", 12), "a-very…nsion");
+  assert.equal(M.midName("report.final.v2.pdf", 12), "re…al.v2.pdf");   // the last dot is the extension
+  assert.equal(M.midName("x.markdown", 5), "x.ma…");                   // no room for the extension: cut at the end
+  assert.deepEqual(M.splitExt("archive.tar.gz"), { stem: "archive.tar", ext: ".gz" });
+  assert.deepEqual(M.splitExt(".env"), { stem: ".env", ext: "" });
+});
+t("midNameHtml: the head gives way to fit, the tail (stem's end and extension) stays; short names are plain text", () => {
+  assert.equal(M.midNameHtml("r3-dark-panel-narrow-320-title.png"), '<span class="mx-mid"><span class="mx-mh">r3-dark-panel-narrow-320-</span><span class="mx-mt">title.png</span></span>');
+  assert.equal(M.midNameHtml("notes.md"), "notes.md");
+  assert.ok(!/<b>/.test(M.midNameHtml("a-long-name-<b>-here.png")));
+});
+t("attachmentsOf: a shared file keeps its title (one line); absent, null or blank means none, and no key", () => {
+  const row = { extra: { attachments: [
+    { name: "r3-dark-320.png", title: "Right panel,  dark,\n narrow", type: "image/png", project_id: "p", relative_path: "r3-dark-320.png", path: "r3-dark-320.png" },
+    { name: "notes.md", title: null, type: "text/markdown", project_id: "p", relative_path: "notes.md" },
+    { name: "x.md", title: "   ", type: "text/markdown", project_id: "p", relative_path: "x.md" },
+    { id: "att_1", name: "mine.png", type: "image/png" },
+  ] } };
+  const f = attachmentsOf(row);
+  assert.equal(f[0].title, "Right panel, dark, narrow");
+  assert.ok(!("title" in f[1]) && !("title" in f[2]) && !("title" in f[3]));
+  assert.equal(uiMsg(row).files[0].title, "Right panel, dark, narrow");
+});
+t("items: title || name names a picture (label, alt, Couldn't load); the file name stays in its tooltip", () => {
+  const titled = M.fromAttachment({ name: "r3-dark-320.png", title: "Right panel, dark, narrow", type: "image/png", project_id: "p", relative_path: "r3-dark-320.png", w: 640, h: 400 });
+  assert.equal(titled.title, "Right panel, dark, narrow"); assert.equal(titled.name, "r3-dark-320.png");
+  assert.equal(M.labelOf(titled), "Right panel, dark, narrow");
+  const one = M.mediaHtml([titled]);
+  assert.match(one, /aria-label="Open Right panel, dark, narrow, image, 640 by 400"/);
+  assert.match(one, /title="Right panel, dark, narrow · r3-dark-320\.png"/);
+  assert.match(one, /alt="Right panel, dark, narrow"/);
+  // today's data has no titles: everything reads the file name, and no tooltip is added
+  const bare = M.fromAttachment({ name: "r3-dark-320.png", type: "image/png", project_id: "p", relative_path: "r3-dark-320.png", w: 640, h: 400 });
+  assert.equal(bare.title, null);
+  const plain = M.mediaHtml([bare]);
+  assert.match(plain, /aria-label="Open r3-dark-320\.png, image, 640 by 400"/);
+  assert.match(plain, /alt="r3-dark-320\.png"/);
+  assert.ok(!/ title="/.test(plain.replace(/alt="[^"]*"/, "")));
+  // an album's tiles say it too, and a turn's shared file carries its title the same way
+  const sh = M.fromSharedFile({ path: "b.png", name: "b.png", title: "After", type: "image/png", project_id: "p", relative_path: "b.png", w: 800, h: 600 });
+  const album = M.mediaHtml([titled, sh]);
+  assert.match(album, /aria-label="Open Right panel, dark, narrow, image 1 of 2"/);
+  assert.match(album, /aria-label="Open After, image 2 of 2"/);
+});
+t("file cards: a title leads and the file name opens the second line; untitled, a long name is cut in its middle", () => {
+  const titled = M.mediaItem({ key: "c1", name: "q3-campaign-brief-v2.md", title: "The campaign brief", type: "text/markdown", bytes: 2048, project: "p", rel: "q3-campaign-brief-v2.md" });
+  const html = M.mediaHtml([titled]);
+  assert.match(html, /<span class="tb-fn">The campaign brief<\/span>/);
+  assert.match(html, /<span class="tb-fm"><span class="mx-mid"><span class="mx-mh">q3-campaign-bri<\/span><span class="mx-mt">ef-v2\.md · Markdown · 2 KB<\/span><\/span><\/span>/); // only the name gives way
+  assert.match(html, /aria-label="Open The campaign brief"/);
+  assert.match(html, /title="q3-campaign-brief-v2\.md"/); // the tooltip keeps the path
+  const long = M.mediaItem({ key: "c2", name: "a-quite-long-quarterly-campaign-brief-final-v2.md", type: "text/markdown", bytes: 10, project: "p", rel: "x.md" });
+  const lh = M.mediaHtml([long]);
+  assert.match(lh, /<span class="tb-fn"><span class="mx-mid"><span class="mx-mh">a-quite-long-quarterly-campaign-brief-fin<\/span><span class="mx-mt">al-v2\.md<\/span><\/span><\/span>/);
+  assert.match(lh, /<span class="tb-fm">Markdown · 10 B<\/span>/);
+  // a short file name on a titled card is plain text beside its type
+  const t2 = M.mediaItem({ key: "c3", name: "brief.md", title: "Brief", type: "text/markdown", project: "p", rel: "x.md" });
+  assert.match(M.mediaHtml([t2]), /<span class="tb-fm">brief\.md · Markdown<\/span>/);
+  assert.equal(M.midNameHtml("r3-dark-panel-narrow-320-title.png", " · PNG"), '<span class="mx-mid"><span class="mx-mh">r3-dark-panel-narrow-320-</span><span class="mx-mt">title.png · PNG</span></span>');
+});
+t("turnHtml: a shared set's titles name its pictures", () => {
+  const turn = { id: "t9", status: "finished", at: "2026-11-04T10:00:00Z", end: {} };
+  const files = [{ path: "a.png", name: "a.png", title: "Before", type: "image/png", project_id: "p", relative_path: "a.png", w: 800, h: 600 },
+    { path: "b.png", name: "b.png", type: "image/png", project_id: "p", relative_path: "b.png", w: 800, h: 600 }];
+  const html = turnHtml(turn, [{ id: "f", type: "shared_files", done: true, header: "Shared 2 files", files }]);
+  assert.match(html, /aria-label="Open Before, image 1 of 2"/);
+  assert.match(html, /aria-label="Open b\.png, image 2 of 2"/);
+});
+
+// ── pictures from the web (markdown's ![alt](https://…)) ──────────────────────
+/** What markdown hands the app for each run of picture lines, and the HTML around it. */
+const seen = (src) => { const runs = []; MD.setWebImages((list) => { runs.push(list); return `<x-pics n="${list.length}"></x-pics>`; }); const html = MD.renderMarkdown(src); MD.setWebImages(null); return { runs, html }; };
+t("markdown: a picture on a line of its own is a media item (alt kept); a run of them is one album; a blank line parts them", () => {
+  assert.deepEqual(seen("Here's the loft:\n![The loft, living room](https://ex.com/p/loft.jpg)").runs, [[{ alt: "The loft, living room", url: "https://ex.com/p/loft.jpg" }]]);
+  const run = seen("![A](https://ex.com/a.jpg) ![B](https://ex.com/b.jpg)\n![C](https://ex.com/c.webp)\n\n![D](https://ex.com/d.png)");
+  assert.deepEqual(run.runs.map((r) => r.map((x) => x.alt)), [["A", "B", "C"], ["D"]]);
+  // the words before them stay a paragraph of their own
+  assert.match(seen("Three places near the venue:\n![A](https://ex.com/a.jpg)").html, /^<p>Three places near the venue:<\/p><x-pics n="1"><\/x-pics>$/);
+  // an explicit image needs no extension (a listing's photo URL often has none); a bare one does
+  assert.equal(seen("![Pool](https://cdn.ex.com/photo/123?w=720)").runs.length, 1);
+});
+t("markdown: a bare http(s) picture address on its own line is one; in a sentence, or not a picture, it stays a link", () => {
+  assert.deepEqual(seen("https://ex.com/im/pictures/9a.jpeg?im_w=720").runs, [[{ alt: "", url: "https://ex.com/im/pictures/9a.jpeg?im_w=720" }]]);
+  for (const ext of ["png", "jpg", "jpeg", "gif", "webp", "avif", "svg", "PNG"]) assert.equal(seen(`https://ex.com/x.${ext}`).runs.length, 1, ext);
+  const inline = seen("The photo is at https://ex.com/a.png if you want it.");
+  assert.deepEqual(inline.runs, []);
+  assert.match(inline.html, /<a href="https:\/\/ex\.com\/a\.png"[^>]*class="lk lk-out is-bare"/);
+  assert.deepEqual(seen("https://ex.com/listing/42").runs, [], "not a picture's address: a link");
+  assert.deepEqual(seen("https://ex.com/a.png.html").runs, []);
+  // ![alt](url) inside a sentence: a link with the alt as its words, never a stray "!"
+  const mid = seen("Look ![the pool](https://ex.com/pool.jpg) before you book.");
+  assert.deepEqual(mid.runs, []);
+  assert.ok(!mid.html.includes("!"), mid.html);
+  assert.match(mid.html, /<span class="lk-t">the pool<\/span>/);
+});
+t("markdown: only http(s): data:, javascript: and blob: are never pictures, never links", () => {
+  for (const src of ["![x](data:image/png;base64,iVBORw0KGgo=)", "![x](javascript:alert)", "![x](blob:https://ex.com/1234)", "![x](//ex.com/a.png)", "![x](ftp://ex.com/a.png)"]) {
+    const r = seen(src);
+    assert.deepEqual(r.runs, [], src);
+    assert.ok(!/<a |<img|src=/.test(r.html), `${src} → ${r.html}`);
+  }
+  assert.equal(MD.webImageUrl("javascript:alert(1)"), null);
+  assert.equal(MD.webImageUrl("https://ex.com/a.png", { bare: true }), "https://ex.com/a.png");
+  assert.equal(MD.webImageUrl("https://ex.com/a", { bare: true }), null);
+});
+t("markdown without the app's renderer (or the setting off): the same lines are outbound links", () => {
+  MD.setWebImages(() => null);
+  const html = MD.renderMarkdown("![The loft](https://ex.com/loft.jpg)\nhttps://ex.com/b.png");
+  MD.setWebImages(null);
+  assert.match(html, /^<p><a href="https:\/\/ex\.com\/loft\.jpg"[^>]*class="lk lk-out"[^>]*><span class="lk-t">The loft<\/span><svg class="lk-ar"/);
+  assert.match(html, /<br><a href="https:\/\/ex\.com\/b\.png"[^>]*class="lk lk-out is-bare"/);
+  assert.ok(!/<img/.test(html));
+});
+t("web pictures: no referrer, lazy, async, no crossorigin; the 16:10 frame (size unknown); the alt is the title; several are an album", () => {
+  const one = M.webImagesHtml([{ alt: "The loft, living room", url: "https://ex.com/p/loft.jpg" }]);
+  assert.match(one, /class="mx-one is-frame"/);
+  assert.match(one, /--mx-w:560px;--mx-r:1\.6/);
+  assert.match(one, /<img class="mx-img" data-mx-img="web:https:\/\/ex\.com\/p\/loft\.jpg" referrerpolicy="no-referrer" data-mx-web src="https:\/\/ex\.com\/p\/loft\.jpg" loading="lazy" alt="The loft, living room" decoding="async"/);
+  assert.ok(!/crossorigin/i.test(one));
+  assert.match(one, /aria-label="Open The loft, living room, image"/);
+  assert.match(one, /title="The loft, living room · ex\.com"/);
+  const it = M.mediaItemOf("web:https://ex.com/p/loft.jpg");
+  assert.deepEqual([it.kind, it.name, it.title, it.by, it.web.host, it.w, it.h], ["image", "loft.jpg", "The loft, living room", "ex.com", "ex.com", null, null]);
+  const album = M.webImagesHtml([1, 2, 3].map((i) => ({ alt: `Room ${i}`, url: `https://www.ex.com/r${i}.jpg` })));
+  assert.match(album, /class="mx-album"/);
+  assert.equal((album.match(/class="mx-tile"/g) || []).length, 3);
+  assert.equal(M.fromWebImage({ alt: "", url: "https://www.ex.com/" }).name, "ex.com", "no file name: its host");
+  assert.equal(M.mediaItemOf("web:https://www.ex.com/r1.jpg").by, "ex.com");
+});
+t("a web picture that can't show becomes its outbound link (alt or host, ↗), no broken image; it isn't tried again", () => {
+  const titled = M.fromWebImage({ alt: "The loft", url: "https://ex.com/gone.jpg" });
+  const link = M.webLinkHtml(titled);
+  assert.match(link, /^<a href="https:\/\/ex\.com\/gone\.jpg" target="_blank" rel="noopener noreferrer nofollow" class="lk lk-out mx-weblink" title="https:\/\/ex\.com\/gone\.jpg"><span class="lk-t">The loft<\/span><svg class="lk-ar"/);
+  assert.ok(!/<img/.test(link));
+  assert.match(M.webLinkHtml(M.fromWebImage({ alt: "", url: "https://www.blocked.example/x.png" })), /<span class="lk-t">blocked\.example<\/span>/);
+  assert.equal(M.webGone("https://ex.com/gone.jpg"), false);
+  M.markWebGone("https://ex.com/gone.jpg");
+  assert.equal(M.webGone("https://ex.com/gone.jpg"), true);
+  const html = M.webImagesHtml([{ alt: "The loft", url: "https://ex.com/gone.jpg" }, { alt: "The pool", url: "https://ex.com/pool.jpg" }]);
+  assert.ok(!/data-mx-img="web:https:\/\/ex\.com\/gone\.jpg"/.test(html), "the failed one isn't drawn as a picture again");
+  assert.match(html, /class="mx-one is-frame" data-mx="web:https:\/\/ex\.com\/pool\.jpg"/);
+  assert.match(html, /<p class="mx-weblinks"><a href="https:\/\/ex\.com\/gone\.jpg"[^>]*><span class="lk-t">The loft<\/span>/);
+  assert.deepEqual(JSON.parse(html.match(/data-mx-keys="([^"]+)"/)[1].replace(/&quot;/g, '"')), ["web:https://ex.com/pool.jpg"], "the lightbox walks only what shows");
+  // all of them gone: only their links
+  assert.equal(M.webImagesHtml([{ alt: "The loft", url: "https://ex.com/gone.jpg" }]).includes("<img"), false);
 });
 
 // ── a turn's shared files ─────────────────────────────────────────────────

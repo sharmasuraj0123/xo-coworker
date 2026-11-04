@@ -27,6 +27,9 @@ export function createShapeView({ shape, announce = () => {} }) {
   // ── what the page reads straight from the shape ─────────────────────────────
   function apply() {
     document.documentElement.dataset.density = shape.get("density");
+    // a shape chosen on another device arrived (Storm's) while the first-run question was up: it's answered
+    const first = document.getElementById("shape-first");
+    if (first && shape.chosen && first._dismiss) first._dismiss();
     railRender();
     if (page && !page.hidden && !document.querySelector("#settings").hidden) render();
   }
@@ -190,7 +193,11 @@ export function createShapeView({ shape, announce = () => {} }) {
   }
 
   // ── the first run: one question, never again once answered ──────────────────
-  function firstRun() {
+  // Answered on another device counts: Storm's shape is read first (briefly; a slow read asks anyway, and
+  // the question steps aside if the answer arrives after all).
+  const FIRST_WAIT_MS = 2500;
+  async function firstRun() {
+    if (!shape.chosen && shape.synced) await Promise.race([shape.synced, new Promise((r) => setTimeout(r, FIRST_WAIT_MS))]);
     if (shape.chosen || document.getElementById("shape-first")) return;
     const back = document.activeElement;
     const el = document.createElement("div");
@@ -205,15 +212,20 @@ export function createShapeView({ shape, announce = () => {} }) {
       `<p class="shp-first-l" id="shf-l">XO shows what fits. You can change it any time in Settings › Shape.</p>` +
       `<div class="set-choices shp-first-c" role="group" aria-labelledby="shf-h">${cardsOf().map((p) => `<button type="button" class="set-choice" data-shf="${esc(p.id)}"><span class="sc-dot" aria-hidden="true"></span><span class="sc-b"><b>${esc(p.name)}</b><span>${esc(p.summary)}</span></span></button>`).join("")}</div></div>`;
     document.body.appendChild(el);
+    const leave = () => {
+      el.classList.add("is-out");
+      setTimeout(() => el.remove(), matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 160);
+      (back && back.isConnected && back !== document.body ? back : document.getElementById("say"))?.focus?.({ preventScroll: true });
+    };
     const done = async (id) => {
       if (el._done) return;
       el._done = true;
       await shape.choose(id);
-      el.classList.add("is-out");
-      setTimeout(() => el.remove(), matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 160);
-      (back && back.isConnected && back !== document.body ? back : document.getElementById("say"))?.focus?.({ preventScroll: true });
+      leave();
       announce(id === "everything" ? "Everything shows. Settings › Shape changes it any time." : `${nameOf(id)}. Settings › Shape changes it any time.`);
     };
+    // answered elsewhere meanwhile: nothing is chosen here, the sheet just goes
+    el._dismiss = () => { if (el._done) return; el._done = true; leave(); announce("Your shape came from your other device."); };
     el.addEventListener("click", (e) => {
       const c = e.target.closest("[data-shf]");
       if (c) { done(c.dataset.shf); return; }
