@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="./css/foundation.css">
   <link rel="stylesheet" href="./css/panel.css">
   <link rel="stylesheet" href="./css/links.css">
+  <link rel="stylesheet" href="./css/artifacts.css">
 </head>
 <body>
   <div class="app" id="app">
@@ -30,6 +31,8 @@
         <button type="button" class="nrow" data-go="home" id="nv-home"><span class="nr-ic" id="ic-home"></span><span class="nr-name">Home</span><span class="nr-n" id="home-n"></span></button>
         <button type="button" class="nrow" data-go="ws" id="nv-ws"><span class="nr-ic nr-xo" id="ic-ws"></span><span class="nr-name">Workspace</span></button>
         <button type="button" class="nrow" data-go="chats" id="nv-chats"><span class="nr-ic" id="ic-chats"></span><span class="nr-name">Chats</span></button>
+        <!-- Artifacts (js/recordview.js): everything threads made, across projects, a place of its own -->
+        <button type="button" class="nrow" data-go="artifacts" id="nv-arts"><span class="nr-ic" id="ic-arts"></span><span class="nr-name">Artifacts</span><span class="nr-q" id="arts-n"></span></button>
       </nav>
       <!-- Create XO Project: a "+" on the Projects label, where the new project will appear -->
       <div class="side-label"><span id="projects-label">Projects</span><button type="button" class="side-plus" id="side-add" aria-label="Create XO Project" title="Create XO Project"><span id="sc-ic"></span></button></div>
@@ -54,6 +57,9 @@
 
       <!-- Home: what's worth your time, then the end of the day -->
       <section class="home" id="home" aria-labelledby="home-h" tabindex="-1"></section>
+
+      <!-- Artifacts: everything threads made, across projects (js/recordview.js) -->
+      <section class="arts" id="arts" aria-labelledby="arts-h" tabindex="-1" hidden></section>
 
       <!-- A conversation: the Workspace, a project, or a thread -->
       <section class="conv" id="conv" hidden>

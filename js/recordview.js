@@ -233,12 +233,16 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
   }
   const hostOf = (u) => { try { return new URL(u).host; } catch { return "link"; } };
   const size = (n) => (n == null || n === "" ? "" : n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(1)} MB`);
+  /** A card. where: false in a project's Made, true on Home's strip (the project instead of the
+   *  kind), "page" on the Artifacts page (the project, the kind and the thread that made it). */
   function cardHtml(m, { where = false } = {}) {
-    const meta = [m.exists === false ? "Gone" : R.KIND_WORD[m.kind], size(m.bytes), short(m.at) === "now" ? "now" : short(m.at) + " ago"].filter(Boolean).join(" · ");
+    const ago = short(m.at) === "now" ? "now" : short(m.at) + " ago";
+    // on the page a card says where it's from, what it is and when; its size is in the file itself
+    const meta = (where === "page" ? [PROJ(m.project), m.exists === false ? "Gone" : R.KIND_WORD[m.kind], ago] : [m.exists === false ? "Gone" : R.KIND_WORD[m.kind], size(m.bytes), ago]).filter(Boolean).join(" · ");
     return `<li class="md-it${m.pinned ? " is-pin" : ""}${m.exists === false ? " is-gone" : ""}">` +
       `<button type="button" class="md-open" data-made-file="${esc(m.key)}" title="${esc(m.path)}" aria-label="Open ${esc(m.name)}"><span class="md-th k-${m.kind}">${thumbHtml(m)}</span>` +
-      `<span class="md-meta"><b>${esc(m.name)}</b><span>${esc(where ? `${PROJ(m.project)} · ${short(m.at) === "now" ? "now" : short(m.at) + " ago"}` : meta)}</span></span></button>` +
-      (where || !m.tid ? "" : `<button type="button" class="md-from" data-made-go="t:${esc(m.tid)}" title="Open the thread that made it">${ICON.back}<span>${esc(m.title || "Its thread")}</span></button>`) +
+      `<span class="md-meta"><b>${esc(m.name)}</b><span>${esc(where === true ? `${PROJ(m.project)} · ${ago}` : meta)}</span></span></button>` +
+      (where === true || !m.tid ? "" : `<button type="button" class="md-from" data-made-go="t:${esc(m.tid)}" title="Open the thread that made it">${ICON.back}<span>${esc(m.title || "Its thread")}</span></button>`) +
       `<button type="button" class="md-pin" data-made-pin="${esc(m.key)}" aria-pressed="${m.pinned}" aria-label="${m.pinned ? "Unpin" : "Pin"} ${esc(m.name)}" title="${m.pinned ? "Unpin" : "Pin it on top"}">${ICON.pin}</button></li>`;
   }
 
@@ -369,6 +373,55 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
     syncCards(sec.querySelector(".md-grid"), list, true);
   }
 
+  // ── the Artifacts page: everything threads made, across projects, a place of its own ────────────
+  const A = { box: null, kind: "all", pid: "", q: "" };
+  function artsRender() {
+    const box = A.box || (A.box = document.getElementById("arts"));
+    if (!box) return;
+    if (!box._built) {
+      box.innerHTML = `<div class="ar-wrap"><header class="ar-head"><h1 id="arts-h">Artifacts</h1><p class="ar-sub" id="arts-sub"></p></header>` +
+        `<div class="ar-tools"><label class="ar-q">${ICON.search}<span class="sr-only">Find an artifact</span><input id="arts-q" placeholder="Find an artifact" autocomplete="off" spellcheck="false"></label>` +
+        `<label class="ar-pj"><span class="sr-only">Project</span><select id="arts-pj"></select></label></div>` +
+        `<div class="ar-kinds" id="arts-f" role="radiogroup" aria-label="Show"></div><div class="ar-body" id="arts-body"></div></div>`;
+      box._built = true;
+      box.addEventListener("input", (e) => { if (e.target.id === "arts-q") { A.q = e.target.value; artsRender(); } });
+      box.addEventListener("change", (e) => { if (e.target.id === "arts-pj") { A.pid = e.target.value; artsRender(); } });
+      box.addEventListener("click", (e) => { const k = e.target.closest("[data-arts-kind]"); if (k) { A.kind = k.dataset.artsKind; artsRender(); } });
+      box.addEventListener("keydown", (e) => { if (e.key === "Escape" && e.target.id === "arts-q" && e.target.value) { e.preventDefault(); e.stopPropagation(); e.target.value = ""; A.q = ""; artsRender(); } });
+    }
+    const all = madeOf(null);
+    const inPj = A.pid ? all.filter((m) => m.project === A.pid) : all;
+    const list = R.filterMade(inPj, { kind: A.kind, q: A.q });
+    loadThumbs(list.slice(0, 60));
+    setText(box.querySelector("#arts-sub"), all.length ? `${all.length} ${all.length === 1 ? "thing" : "things"} your threads made, newest first` : "What your threads make shows up here");
+    // projects that made something, in the sidebar's order
+    const pids = (world.state.projects || []).filter((p) => p && p.id !== "workspace" && all.some((m) => m.project === p.id));
+    const opts = `<option value="">All projects</option>` + pids.map((p) => `<option value="${esc(p.id)}"${A.pid === p.id ? " selected" : ""}>${esc(p.name || p.id)}</option>`).join("");
+    setHtml(box.querySelector("#arts-pj"), opts);
+    const counts = Object.fromEntries(R.KINDS.map(([k]) => [k, k === "all" ? inPj.length : inPj.filter((m) => m.kind === k).length]));
+    setHtml(box.querySelector("#arts-f"), R.KINDS.filter(([k]) => k === "all" || counts[k]).map(([k, w]) => `<button type="button" role="radio" data-arts-kind="${k}" aria-checked="${A.kind === k}">${w}<span>${counts[k]}</span></button>`).join(""));
+    const be = box.querySelector("#arts-body");
+    const scope = `${A.pid}|${A.kind}|${A.q}`;
+    if (be._scope !== scope) { be.innerHTML = ""; be._seeded = false; be._h = null; be._scope = scope; }
+    const groups = R.madeGroups(list);
+    if (!groups.length) {
+      const none = `<p class="ar-none">${all.length ? `Nothing matches “${esc(A.q || "")}”.` : "<b>Nothing made yet.</b> Files, pages and pictures your threads share land here, newest first."}</p>`;
+      if (be._h !== none) { be.innerHTML = none; be._h = none; be._seeded = false; }
+      return;
+    }
+    be._h = null;
+    const seeded = !!be._seeded;
+    syncList(be, groups.map((g) => ({ key: g.id, g })), {
+      make: ({ g }) => { const sec = document.createElement("section"); sec.className = "ar-g"; sec.innerHTML = `<h2 class="ar-gh">${esc(g.label)}</h2><ul class="md-grid ar-grid"></ul>`; return sec; },
+      update: (sec, { g }) => setText(sec.querySelector(".ar-gh"), g.label),
+    });
+    for (const g of groups) {
+      const ul = be.querySelector(`[data-k="${CSS.escape(g.id)}"] .ar-grid`);
+      if (seeded && !ul._seeded) ul._seeded = true;
+      syncCards(ul, g.items, "page");
+    }
+  }
+
   /** ⌘K: made files by name, only once you've typed something. */
   function jumpItems(q) {
     if (!q) return [];
@@ -403,6 +456,8 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
 
   return {
     placeOf, leave, projectSince, homeSinceHtml, homeMade, madeCount, jumpItems,
+    /** The Artifacts page (a sidebar place): render() draws it; count() is what the sidebar shows. */
+    artifacts: { render: artsRender, count: () => madeOf(null).length },
     /** The panel's Made tab. */
     made: { mount, show: showMade, count: (v) => madeOf(pidOf(v)).length },
     set panel(p) { panel = p; },
