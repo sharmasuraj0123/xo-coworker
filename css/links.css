@@ -17,8 +17,8 @@
    Geometry, from Geist's own metrics (per em: capitals .719, ascent .92, descent .22):
    - Every glyph and the capsule itself are centred on the middle of the capitals, .3595em
      above the baseline: where the eye reads the middle of a line of text.
-   - The capsule is 1.47em tall (22px in 15px prose, whose line box is 25.2px), so it sits
-     inside the line with about 1.6px to spare above and below. Its padding is inline padding:
+   - The capsule is 1.47em tall (22px in 15px prose, whose line box is 24px), so it sits
+     inside the line with 1px to spare above and below. Its padding is inline padding:
      it never moves the baseline or pushes lines apart.
    - Above the capitals and below the baseline there is the same .3755em (5.6px at 15px).
      Chrome rounds the font's ascent and descent to whole pixels (at 15px: 14 and 3, not 13.8
@@ -28,7 +28,6 @@
 .lk-in{
   display:inline;
   padding:.158em .5em .172em .3em;
-  margin:0 .06em;
   border-radius:var(--r-xs);
   font-weight:var(--fw-medium);
   color:var(--ink);
@@ -64,10 +63,7 @@
 /* a thread the app doesn't know (another project, not loaded): the same token, quieter */
 .lk-thread.is-unknown{color:var(--ink-2);background:color-mix(in srgb,var(--ink) 5%,transparent)}
 
-/* a working thread: no blue. A small arc in the text's own colour turns on a faint track, the same
-   1.6s arc-turn as the agent's mark (css/panel.css), so js/ui.js keepTurning keeps every one in step
-   with the arc and the wave. Still when motion is reduced. */
-.lk-ic .g-working{border:.1em solid color-mix(in srgb,currentColor 22%,transparent);border-top-color:currentColor;border-radius:50%;color:var(--ink-2);animation:arc-turn 1.6s linear infinite}
+/* a working thread: the neutral arc shared with task cards (css/app.css), its stroke scaled with the text */
 
 /* ── outside: text with ↗ ── */
 .lk-out{
@@ -87,7 +83,6 @@
 .lk-out.is-bare .lk-t{font:400 .9em/1 var(--mono);letter-spacing:-.01em}
 
 @media (prefers-reduced-motion:reduce){
-  .lk-ic .g-working{animation:none}
   .lk-ar,.lk-in{transition:none}
   .lk-out:hover .lk-ar{transform:none}
 }
