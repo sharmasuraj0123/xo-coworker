@@ -500,11 +500,10 @@ function homeRender(needs) {
   const down = (world.state.error || world.state.statusError) && !world.state.threads.length;
   if (down) sub = "XO can't be reached right now.";
   const hello = greeting();
-  // one way to create a project: the sidebar's "+" (the owner's decision). Home offers it only while
-  // there is no project yet, when it is the one thing to do (audit H3)
-  const first = !(world.state.projects || []).length;
+  // Create XO Project stays in Home's header, always: the one invitation to start something, beside the
+  // sidebar's "+ New" (the owner, 4 Nov: hiding it once a project existed made it hard to find)
   patch($("#hm-head"), `<header class="hm-top"><div class="hm-hd"><p class="hm-date">${esc(date)}</p><h1 class="hm-h" id="home-h">${hello}.<span> ${sub}</span></h1></div>` +
-    (first ? `<button type="button" class="create" data-create data-fid="create"><span class="create-ic">${ICON.plus}</span><span>Create XO Project</span></button>` : "") + `</header>`);
+    `<button type="button" class="create" data-create data-fid="create"><span class="create-ic">${ICON.plus}</span><span class="cr-l">Create XO Project</span><span class="cr-s">New project</span></button></header>`);
 
   // the next move (stays put until it's done)
   const nb = $("#hm-next");

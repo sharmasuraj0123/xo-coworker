@@ -25,7 +25,6 @@
 .nrow,.prow{border-radius:var(--r-lg);padding-left:6px}
 .nr-ic,.pr-ic{border-radius:calc(var(--r-lg) - 7px)}
 .side-find,.side .gear,.side-plus{border-radius:var(--r)}
-.side-plus::before{border-radius:calc(var(--r) - 2px)}
 .side :is(.nrow,.prow):focus-visible{border-radius:var(--r-lg)}
 .side :is(.side-find,.gear,.side-plus):focus-visible{border-radius:var(--r)}
 

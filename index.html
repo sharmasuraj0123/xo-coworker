@@ -41,8 +41,9 @@
         <!-- Artifacts (js/recordview.js): everything threads made, across projects, a place of its own -->
         <button type="button" class="nrow" data-go="artifacts" id="nv-arts"><span class="nr-ic" id="ic-arts"></span><span class="nr-name">Artifacts</span><span class="nr-q" id="arts-n"></span></button>
       </nav>
-      <!-- Create XO Project: a "+" on the Projects label, where the new project will appear -->
-      <div class="side-label"><span id="projects-label">Projects</span><button type="button" class="side-plus" id="side-add" aria-label="Create XO Project" title="Create XO Project"><span id="sc-ic"></span></button></div>
+      <!-- Create XO Project: "+ New" on the Projects label, where the new project will appear (a bare "+" was
+           too easy to miss: the owner, 4 Nov) -->
+      <div class="side-label"><span id="projects-label">Projects</span><button type="button" class="side-plus" id="side-add" aria-label="New project" title="Create XO Project"><span class="sp-ic" id="sc-ic"></span><span class="sp-t">New</span></button></div>
       <!-- a filter once the list is long (hub #16): typing narrows it, ↑ ↓ and Enter open one, Esc clears -->
       <div class="side-find" id="side-find" hidden><span class="sf-ic" id="sf-ic" aria-hidden="true"></span><input id="pf-in" type="search" placeholder="Find a project" autocomplete="off" spellcheck="false" aria-label="Find a project" aria-controls="projects"><span class="sf-n" id="pf-n" aria-live="polite"></span></div>
       <nav class="projects" id="projects" aria-labelledby="projects-label"></nav>
