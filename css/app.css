@@ -694,7 +694,7 @@ button.hr:active{transform:scale(.97)}
 .send{flex:none;display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--accent-fill);color:var(--accent-ink);transition:transform 90ms var(--ease)}
 .send svg{width:17px;height:17px}
 .send:hover{background:var(--accent-hover)}
-.send:active{transform:scale(.9)}
+.send:active{transform:scale(var(--press))}
 .send:disabled{background:var(--g26);color:var(--g6A);cursor:default}
 /* Stop: while the coordinator or this thread's agent is working (and the field is empty) */
 .send.is-stop{background:var(--ink);color:var(--on-ink)}
@@ -1358,7 +1358,7 @@ button.kr-r:hover{background:var(--bg-3);color:var(--ink)}
   .top[data-kind="project"] .tw-t h1{font-size:var(--fs-2xl)}
   .top[data-kind="project"] .tw-ic{align-self:flex-start;width:30px;height:30px;border-radius:var(--r-sm)}
   .top[data-kind="project"] .tw-ic svg{width:16px;height:16px}
-  .all-btn{align-self:flex-start;margin-top:2px;padding:0 4px 0 10px}
+  .all-btn{align-self:center;margin-top:0;padding:0 4px 0 10px}
   .pj-s{white-space:normal}
   .nw{max-width:72vw}
   .thead{padding-left:var(--hg);padding-right:var(--hg)}
@@ -1570,6 +1570,13 @@ button.kr-r:hover{background:var(--bg-3);color:var(--ink)}
 @media (max-width:760px){
   .tw-act span{display:none}
   .tw-act{width:36px;height:36px;padding:0;justify-content:center}
+  /* a phone gives the thread's name a row of its own, two lines at most (it used to get 69 px for
+     270 px of title, "Pixel …"); its state, runtime and actions share the row below, centred on one
+     line, the actions at the right. Every control here is 36 px, the panel button included. */
+  .top[data-kind="thread"] .top-who{flex-wrap:wrap;row-gap:8px}
+  .top[data-kind="thread"] .tw-h{flex:1 1 100%;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;text-overflow:clip}
+  .top[data-kind="thread"] .tw-acts{margin-left:auto}
+  .top .stg-btn,.top .tw-more{width:36px;height:36px}
   .tb-rows,.tb-steps,.tb-plan-l{margin-left:14px}
   .tw-label{max-width:110px}
 }

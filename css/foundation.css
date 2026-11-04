@@ -49,13 +49,14 @@ body.stage-full .stg-grip{display:none}
 .tb-wh .tb-hi{display:none}
 .tb-work>.tb:not(.tb-work){margin-left:0}
 
-/* ── 3 · press: small buttons scale to .97; rows, tiles, tabs and cards sink 1 px (Plan F), never scale ── */
-.then-i:active,.wsh-next:active,.tc-open:active,.dock-fold:active,.set-nav button:active,
-.tb-fb:active,.nw:active,.fl-r:active,.stg-tab:active,.ar:active,.md-it:has(.md-open:active),.syl-ln:active,.jump-list li:active,.iq-row:active,.hd:active,.hd-r:active{transform:translateY(1px)}
+/* ── 3 · press (Plan F, with Codex's audit of :3400): the outer box never moves ──────────────────────
+   A toolbar or navigation control, a row and a card keep their place and edges when pressed: they go
+   one step deeper (an inset fill, so it works on any surface and follows the corners), in 60 ms. Only
+   the commit gestures keep a small give: Send, and the decision kit's Allow / Send back / hold (07 §4.4).
+   A card with two destinations (Made: the picture, and its source) presses only the one under you. */
+:is(.help,.create,.then-i,.hm-quiet,.top-back,.all-btn,.nw,.wsh-next,.tc-open,.tc-dec,button.hr,.t-undo,.dock-hide,.dock-fold,.btn,.set-nav button,button.kr-k,.tb-cf,.tw-act,.tw-rt,.tb-fb,.syl-got,.map-btn,.stg-btn,.fl-r,.stg-tab,.ar,.syl-ln,.jump-list li,.iq-row,.hd,.hd-r,.fl-back,.stg-ic,.md-open,.md-from):active,.pn-nav:active:not(:disabled){transform:none;box-shadow:inset 0 0 0 100vmax var(--press-fill)}
+.md-it:has(.md-open:active){transform:none}
 .b-hold:active{transform:none}
-.help:active,.create:active,.hm-quiet:active,.top-back:active,.all-btn:active,.tc-dec:active,
-button.hr:active,.send:active,.t-undo:active,.dock-hide:active,.btn:active,button.kr-k:active,.tb-cf:active,.tw-act:active,
-.map-btn:active,.stg-btn:active,.syl-got:active,.fl-back:active,.stg-ic:active{transform:scale(var(--press))}
 
 /* ── 6 · whole pixels: integer line heights, so 1 px borders land on whole pixels ────────────────── */
 .tw-t h1{line-height:28px}
