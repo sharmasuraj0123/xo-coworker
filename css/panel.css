@@ -127,7 +127,8 @@ svg.fi{flex:none;display:block}
 .tb-cfi svg.fi{width:14px;height:14px}
 
 /* ── 5 · working: the agent's mark holds still; one small arc turns at its corner, in step everywhere
-   (js/ui.js keepTurning); plain words beside it, the time in steady digits. No shimmer, no bouncing
+   (js/ui.js keepTurning); the words beside it carry the soft wave (the shimmer) as before, also kept in
+   step; the time in steady digits. No bouncing
    dots, no halo, no orbiting border. Waiting on you: amber and still. ───────────────────────────── */
 .av-live,.av-w{position:relative;animation:none!important;background:var(--g1C)!important;border:1px solid color-mix(in srgb,var(--info) 38%,var(--g2A))!important;box-shadow:none!important}
 .av-w{border-color:color-mix(in srgb,var(--accent) 34%,var(--g2A))!important}
@@ -138,8 +139,7 @@ svg.fi{flex:none;display:block}
 .av-w .arc::before{border-color:color-mix(in srgb,var(--accent) 26%,transparent);border-top-color:var(--accent)}
 @keyframes arc-turn{to{transform:rotate(360deg)}}
 .spin{border:1.5px solid color-mix(in srgb,currentColor 22%,transparent);border-top-color:currentColor;animation-duration:1.1s}
-.shimmer{animation:none;background:none;-webkit-background-clip:border-box;background-clip:border-box;color:inherit}
-.ty-b .ty-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-3);font-weight:450}
+.ty-b .ty-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ty-b .elapsed{flex:none;font:400 12px/1 var(--mono);color:var(--ink-4);font-variant-numeric:tabular-nums}
 .typing{animation:none}
 .dots{display:none}
