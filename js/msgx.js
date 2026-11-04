@@ -225,6 +225,27 @@ function decorate() {
     working(el);
   }
   projectMarks();
+  cardSteps();
+}
+
+/** A thread card's step handoff: when a step completes since the card was last drawn, green fills it from
+ *  the left, then the next lights up. Keyed by the thread, so the card's redraws don't replay it. */
+const STEPS = new Map();
+function cardSteps() {
+  for (const c of msgs.querySelectorAll(".tcard")) {
+    const key = c.querySelector("[data-go]")?.dataset.go;
+    const segs = [...c.querySelectorAll(".tc-segs .sg")];
+    wave(c);
+    if (!key) continue;
+    const done = segs.filter((g) => g.classList.contains("s-done")).length;
+    const was = STEPS.get(key);
+    if (was != null && done > was && segs[done - 1]) {
+      segs[done - 1].classList.add("mx-seg-done");
+      segs.find((g) => g.classList.contains("s-doing"))?.classList.add("mx-seg-next");
+      setTimeout(() => { for (const g of c.querySelectorAll(".mx-seg-done,.mx-seg-next")) g.classList.remove("mx-seg-done", "mx-seg-next"); }, 1400);
+    }
+    STEPS.set(key, done);
+  }
 }
 
 /** A project's coordinator wears the project's own icon (the one in the sidebar); XO's mark stays with the
@@ -328,7 +349,7 @@ const WAVE_MS = 2400; // the shimmer's wave (app.css .shimmer)
 /** Give each shimmer, as it's drawn, a phase taken from the clock, so every one (old or redrawn) shows the
  *  same point of the wave: a redraw never restarts it. Set once per element; changing it later would jump. */
 function wave(root = document) {
-  for (const e of root.querySelectorAll(".shimmer, .mx-wl")) if (!e.style.getPropertyValue("--mx-wave")) e.style.setProperty("--mx-wave", `${-(Date.now() % WAVE_MS)}ms`);
+  for (const e of root.querySelectorAll(".shimmer, .mx-wl, .tc-segs, .tc-segs .sg.s-doing")) if (!e.style.getPropertyValue("--mx-wave")) e.style.setProperty("--mx-wave", `${-(Date.now() % WAVE_MS)}ms`);
 }
 function settle(el, st) {
   wave(el);

@@ -335,3 +335,21 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-them .tc-segs .sg{max-width:none;height:6px;border-radius:3px}
 :root[data-msgx] .m-them .tc-top b{font:600 var(--fs-lg)/24px var(--sans)}
 :root[data-msgx] .m-them .tc-st{color:var(--st,var(--ink-3));font-weight:500}
+
+/* The card's progress, alive (owner 22:21).
+   · Waiting for its first step (no segments yet), the band holds one soft track in its state colour that
+     breathes, with a light drifting along it: something is about to arrive here.
+   · The step in progress carries the same slow light passing through it.
+   · When a step completes, green fills it from the left over its blue (no jump), and only then does the next
+     step light up blue, also from the left: a handoff you can follow.
+   Every loop takes its phase from the clock (msgx.js), so the card's redraws never restart it. */
+:root[data-msgx] .m-them .tc-segs:not(:has(.sg))::before{content:"";display:block;flex:1;height:6px;border-radius:3px;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--st,var(--info)) 75%,transparent),transparent) 0 0/40% 100% no-repeat,color-mix(in srgb,var(--st,var(--info)) 18%,transparent);animation:mx-await 2.4s var(--ease-loop) var(--mx-wave,0s) infinite}
+@keyframes mx-await{0%{background-position:-70% 0,0 0;opacity:.6}50%{opacity:1}100%{background-position:170% 0,0 0;opacity:.6}}
+:root[data-msgx] .m-them .tc-segs .sg.s-doing{background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent) 0 0/45% 100% no-repeat,var(--info);animation:mx-doing 2.4s var(--ease-loop) var(--mx-wave,0s) infinite}
+@keyframes mx-doing{from{background-position:-90% 0,0 0}to{background-position:190% 0,0 0}}
+:root[data-msgx] .m-them .tc-segs .sg.mx-seg-done{position:relative;overflow:hidden;background:var(--info);animation:none}
+:root[data-msgx] .m-them .tc-segs .sg.mx-seg-done::after{content:"";position:absolute;inset:0;background:var(--accent-fill);transform-origin:left center;animation:seg-fill var(--d-land) var(--ease) both}
+:root[data-msgx] .m-them .tc-segs .sg.mx-seg-next{position:relative;overflow:hidden}
+:root[data-msgx] .m-them .tc-segs .sg.mx-seg-next::after{content:"";position:absolute;inset:0;background:var(--g2C);transform-origin:right center;animation:mx-seg-light var(--d-land) var(--ease) var(--d-out) both}
+@keyframes mx-seg-light{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+@media (prefers-reduced-motion:reduce){:root[data-msgx] .m-them .tc-segs :is(.sg.s-doing,.sg.mx-seg-done::after,.sg.mx-seg-next::after),:root[data-msgx] .m-them .tc-segs:not(:has(.sg))::before{animation:none}}
