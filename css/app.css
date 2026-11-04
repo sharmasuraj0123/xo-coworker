@@ -719,7 +719,7 @@ button.hr:active{transform:scale(.97)}
 .tdock{max-width:720px;margin:0 auto}
 .tdock:not(:empty){margin-bottom:12px}
 body.panel-open .tdock{display:none}
-.app:not([data-view="home"]) .main:has(#tdock > .card)::before{content:"";position:absolute;inset:0;z-index:4;background:rgb(0 0 0 / calc(.16 * var(--sha)));-webkit-backdrop-filter:blur(1.5px);backdrop-filter:blur(1.5px);pointer-events:none;animation:fade .25s}
+.app:not([data-view="home"]) .main:has(#tdock > .card)::before{content:"";position:absolute;inset:0;z-index:4;background:rgb(0 0 0 / calc(.16 * var(--sha)));pointer-events:none;animation:fade .25s}
 body.panel-open .main:has(#tdock > .card)::before{display:none}
 
 /* ── buttons ─────────────────────────────────────────────────────────────── */
@@ -820,7 +820,9 @@ body.panel-open .dock{right:calc(var(--pw) + 24px)}
 /* the card: a stable frame whose contents change; its height eases, contents cross-fade */
 .card{position:relative;isolation:isolate;flex:0 1 auto;display:flex;flex-direction:column;min-height:0;max-height:100%;border-radius:var(--r-xl);background:var(--g1D);border:1px solid var(--g29);outline:none;overflow:hidden;transition:border-color .3s var(--ease),background-color .3s var(--ease)}
 .card:focus-visible{border-color:var(--g4A)}
-.card.r-destructive{border-color:rgb(230 131 136 / .5);background:linear-gradient(180deg,rgb(215 55 63 / .11),var(--g1D) 200px)}
+/* a destructive card is tinted over its own opaque surface (the tint used to fade from transparent red, so
+   the top of the card showed the conversation through it: the "glass" the owner rejected, 4 Nov) */
+.card.r-destructive{border-color:rgb(230 131 136 / .5);background:linear-gradient(180deg,rgb(215 55 63 / .11),transparent 200px) var(--g1D)}
 .card.r-destructive:focus-visible{border-color:rgb(230 131 136 / .8)}
 .card.r-done{border-color:transparent;background:transparent}
 .card.r-vig{background:var(--g1B)}
@@ -917,7 +919,7 @@ body.panel-open .dock{right:calc(var(--pw) + 24px)}
 
 /* the thread's own card: Today's wide layout (#20) */
 .card.is-dock{max-height:min(58vh,520px);border-radius:var(--r-2xl);background:var(--g1C);border-color:var(--g2B);box-shadow:var(--e2)}
-.card.is-dock.r-destructive{background:linear-gradient(180deg,rgb(215 55 63 / .11),var(--g1C) 200px)}
+.card.is-dock.r-destructive{background:linear-gradient(180deg,rgb(215 55 63 / .11),transparent 200px) var(--g1C)}
 .card.is-dock .c-body{padding:16px 22px 6px}
 .card.is-dock .c-h{font-size:var(--fs-2xl);margin-top:6px}
 .card.is-dock .c-where{display:none}

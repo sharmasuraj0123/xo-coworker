@@ -379,10 +379,17 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
   function undo() { return !!queue.undo(); }
 
   // ── the card (shared by the panel and the thread's own decision) ─────────
+  /** The command an ask is about, when its headline would otherwise be that command (shown under it). */
+  function headCmd(n) {
+    if (n.ask.item) { const m = (n.ask.title || "").match(/`([^`]+)`/); return m && (m[1].length >= 16 || /[\s/|;&]/.test(m[1])) ? m[1] : ""; }
+    return Kit.commandOf(n.ask) || "";
+  }
+  // The headline says what will happen, in words; the exact command sits under it in mono at reading
+  // size, never at headline size (design-research/2026-11-vision/audit A6, the same rule as Home's card).
   function headline(n) {
-    if (n.ask.item) return renderInline(n.ask.title || "", true); // the server's words; `code` stays code
-    const cmd = Kit.commandOf(n.ask);
-    if (cmd) return `<span class="h-verb">Run</span> <code class="h-cmd">${esc(cmd)}</code>`;
+    const c = headCmd(n);
+    if (n.ask.item) return renderInline(c ? (n.ask.title || "").replace(`\`${c}\``, "a command") : n.ask.title || "", true); // the server's words
+    if (c) return `<span class="h-verb">Run</span> a command`;
     if (n.group === "stopped") { const c = n.t.checklist.items.find((i) => i.state !== "done"); return `<span class="h-verb">Stopped at</span> ${esc(c ? c.text : n.t.title)}`; }
     if (n.risk === "destructive") return esc(n.ask.title.replace(/:\s.*$/, ""));
     return esc(n.ask.title);
@@ -570,7 +577,7 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
       `<div class="c-top"><span class="eff e-${n.effort}">${dial(n.effort)}<b>${E.label}</b><span>${E.time}</span></span>` +
       (destructive ? `<span class="risk r-destructive">${ICON.lock}Destructive</span>` : stopped ? `<span class="risk r-stopped">Stopped</span>` : "") +
       (t.host ? `<button type="button" class="c-where" data-act="thread" title="${t.asker ? (surface === "dock" ? `Its coordinator asks, in this chat` : `Open ${esc(PROJ(t.project))}, where its coordinator asks`) : "Open where it was asked"}">${t.asker ? `${esc(PROJ(t.project))}<span aria-hidden="true">›</span><b>${esc(t.title)}</b>` : esc(t.title)}</button></div>` : `<button type="button" class="c-where" data-act="thread" title="${surface === "dock" ? "Open the thread" : `Open the thread beside this${K.hint("open")}`}">${esc(PROJ(t.project))}<span aria-hidden="true">›</span><b>${esc(t.title)}</b></button></div>`) +
-      `<h3 class="c-h" id="card-h-${id}">${headline(n)}</h3>` +
+      `<h3 class="c-h" id="card-h-${id}">${headline(n)}</h3>` + (headCmd(n) ? `<p class="nx-cmd"><code>${esc(headCmd(n))}</code></p>` : "") +
       (line ? `<p class="c-line" id="card-why-${id}">${esc(line)}</p>` : "") + (storm && a.item.limit ? limitHtml(a.item) : "") + facts + est + sug +
       `<div class="dis${openEv ? " is-open" : ""}" data-dis="ev"><button type="button" class="dis-h" aria-expanded="${openEv}" aria-controls="dt-${id}" title="Details${K.hint("details")}">${ICON.chevron}<span>Details</span></button>` +
       `<div class="dis-b" id="dt-${id}"${openEv ? "" : " hidden"}><div class="dis-in">${storm ? itemDetailsHtml(n) : a.live ? waitingDetailsHtml(n) : detailsHtml(n, ev)}</div></div></div>` +
