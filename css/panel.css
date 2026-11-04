@@ -325,3 +325,90 @@ body.fv-sizing{cursor:col-resize;user-select:none}
 .fv .viewer{position:relative;inset:auto;z-index:auto;flex:1;width:auto;min-height:0;border:0;border-radius:0;background:transparent;box-shadow:none;animation:none}
 .fv [data-vw-close]{display:none}
 body.viewer-open .fv~.dock{display:none}
+
+/* ══ Right-panel proposal · a quiet rail around the work ═══════════════════════════════════════════
+   Only the stacked panel changes. Its 40 px title and 32 px frame heads retain their sizing contract.
+   Agents get 48 px for a name and an activity; the map keeps its JS-owned 148 × 32 node geometry.
+   The recessed canvas has radius 20. Its tools sit 8 px in at radius 12 (= 20 − 8), with buttons at
+   radius 8 (= 12 − 4 px inset). No cards around frames, no permanent rules between agent rows. */
+.stage{
+  --panel-surface:var(--surface);
+  --panel-canvas:var(--canvas);
+  --panel-line:color-mix(in srgb,var(--ink) 8%,transparent);
+  --panel-hover:color-mix(in srgb,var(--ink) 6%,transparent);
+  background:var(--panel-surface);
+}
+:root[data-theme="light"] .stage{background:var(--panel-surface)}
+.stage .stg-bar{box-shadow:none;border-bottom:1px solid var(--panel-line)}
+.stage .stg-name{font-weight:500}
+.stage .fr-h{padding:0 8px 0 4px;border-bottom:0;align-items:center}
+.stage .fr-tabs{height:100%;align-items:center;gap:4px}
+.stage .fr-t{height:24px;gap:8px;border-radius:var(--r);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.stage .fr-t.is-on{color:var(--ink)}
+.stage .fr-t.is-on::after{display:none}
+.stage span.fr-t{font-weight:600}
+.stage button.fr-t.is-on{background:color-mix(in srgb,var(--ink) 9%,transparent);box-shadow:inset 0 1px 0 color-mix(in srgb,var(--ink) 4%,transparent)}
+.stage button.fr-t:hover{background:var(--panel-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
+.stage button.fr-t.is-on:hover{background:color-mix(in srgb,var(--ink) 12%,transparent)}
+.stage .fr-ib{border-radius:var(--r)}
+.stage :is(.fr-ib,.stg-ic):hover{background:var(--panel-hover)}
+.stage .fr-gut{background:transparent}
+.stage .fr-gut::before{content:"";position:absolute;inset:0 12px;background:var(--panel-line);transition:background var(--d-hover) var(--ease)}
+.stage .fr-gut:hover::before,.stage .fr-gut:focus-visible::before,body.stage-vsizing .stage .fr-gut::before{background:var(--line-hover)}
+.stage .fr-gut:focus-visible{outline:2px solid var(--accent);outline-offset:-1px}
+.stage .fr-none{padding:12px;margin:0;line-height:20px}
+
+/* Names and actions no longer compete for one line. The cursor-coloured stroke is an identity mark,
+   never a busy dot; idle agents retain the same mark at a quieter opacity. */
+.stage .ag-list{padding:4px 4px 8px}
+.stage .ag-r{height:48px;padding:4px 8px;border:0;border-radius:var(--r);align-items:start}
+.stage .ag-r:hover{background:var(--panel-hover)}
+.stage .ag-sw{width:4px;height:16px;margin-top:4px;border-radius:2px}
+.stage .ag-t{display:flex;flex-direction:column;align-items:stretch;gap:4px;overflow:hidden}
+.stage .ag-t b,.stage .ag-t span{flex:none;width:100%;overflow:hidden;text-overflow:ellipsis}
+.stage .ag-t b{font-weight:500;line-height:20px}
+.stage .ag-t span{line-height:16px}
+.stage .ag-tm{padding-top:4px;line-height:16px}
+
+/* An inset drawing surface makes the map one piece of work inside the rail. Quiet grid, open space,
+   and a single floating tool tray replace the wall of rules; node positions and hit areas stay exact. */
+.stage .fr[data-fr="map"] .dg{
+  margin:4px 8px 8px;border:0;border-radius:var(--r-xl);
+  background-color:var(--panel-canvas);
+  background-image:radial-gradient(circle,color-mix(in srgb,var(--ink) 7%,transparent) .75px,transparent 1px);
+  background-size:24px 24px;
+  box-shadow:inset 0 0 0 1px var(--panel-line);
+}
+.stage .fr[data-fr="map"] .dg:focus-visible{box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--accent) 70%,transparent)}
+.stage .dg-n{border-radius:var(--r);border-color:color-mix(in srgb,var(--ink) 10%,transparent);background:var(--panel-surface)}
+.stage .dg-n.k-dir{background:color-mix(in srgb,var(--ink) 3%,var(--panel-surface))}
+.stage .dg-n.k-root{background:color-mix(in srgb,var(--ink) 6%,var(--panel-surface))}
+.stage button.dg-n:hover{border-color:color-mix(in srgb,var(--ink) 28%,transparent);background:color-mix(in srgb,var(--ink) 6%,var(--panel-surface))}
+.stage .dg-n.k-more{background:transparent;border-style:dashed}
+.stage .dg-n.k-note{background:transparent;border-color:transparent}
+.stage .dg-n.m-new{border-color:color-mix(in srgb,var(--accent) 32%,var(--panel-line))}
+.stage .dg-n.m-edited{border-color:color-mix(in srgb,var(--violet) 32%,var(--panel-line))}
+.stage .dg-n.is-here{border-color:var(--c);box-shadow:0 0 0 1px color-mix(in srgb,var(--c) 16%,transparent)}
+.stage .dg-edges path,.stage .dg-edges line{stroke:color-mix(in srgb,var(--ink) 16%,transparent)}
+.stage .dg-tools{
+  right:8px;bottom:8px;gap:4px;padding:4px;border:0;border-radius:var(--r-lg);
+  background:color-mix(in srgb,var(--panel-surface) 90%,transparent);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  box-shadow:inset 0 0 0 1px var(--panel-line),0 2px 8px rgb(0 0 0 / .10);
+}
+.stage .dg-tools button{border-radius:calc(var(--r-lg) - 4px)}
+.stage .dg-tools button:hover{background:var(--panel-hover)}
+.stage .dg-tools button[aria-pressed="true"]{background:color-mix(in srgb,var(--ink) 10%,transparent);color:var(--ink)}
+.stage .gn-d{box-shadow:0 0 0 2px var(--panel-canvas)}
+.stage .gn.k-file .gn-d{background:var(--ink-4)}
+.stage .gn.m-new .gn-d{background:var(--accent)}
+.stage .gn.m-edited .gn-d{background:var(--violet)}
+.stage .gn.is-here .gn-d{background:var(--ink-2);box-shadow:0 0 0 2px var(--panel-canvas),0 0 0 4px color-mix(in srgb,var(--c) 35%,transparent)}
+.stage .gn-l{text-shadow:0 0 3px var(--panel-canvas),0 0 3px var(--panel-canvas)}
+
+.stage .ch-list{padding:4px 4px 8px}
+.stage .ch-r{height:32px;padding:0 8px;border-radius:var(--r)}
+.stage .ch-r:hover{background:var(--panel-hover)}
+.stage .ch-m{font-weight:400}
+.stage :is(.ag-r,.ch-r,.fr-t,.fr-ib,.stg-ic):focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+@media (prefers-reduced-motion:reduce){.stage :is(.fr-t,.fr-gut::before,.ag-r,.ch-r){transition:none}}
