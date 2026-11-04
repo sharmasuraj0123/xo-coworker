@@ -10,6 +10,8 @@
 .mx-seg button:hover,.mx-spot:hover{background:var(--hover-fill);color:var(--ink-2);transition-duration:var(--d-hover-in)}
 .mx-seg button[aria-checked="true"],.mx-spot[aria-pressed="true"]{background:var(--g2C);color:var(--ink);box-shadow:var(--hairline)}
 .mx-spot{position:relative;margin-left:5px;padding-left:10px}
+.mx-spot2{margin-left:0}
+.mx-spot2::before{content:none}
 .mx-spot::before{content:"";position:absolute;left:-5px;top:8px;bottom:8px;width:1px;background:var(--line)}
 .mx-spot svg{width:16px;height:16px}
 .mx-hint{position:absolute;z-index:6;top:calc(var(--mx-top,66px) + 56px);left:calc(var(--gut) + (100% - 2 * var(--gut) - var(--rp)) / 2);transform:translate(-50%,-4px);max-width:min(560px,90%);padding:6px 12px;border-radius:var(--r-pill);background:color-mix(in srgb,var(--bg-2) 76%,transparent);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);font-size:var(--fs-sm);line-height:16px;color:var(--ink-2);text-align:center;opacity:0;pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease)}
@@ -23,13 +25,19 @@
 
 /* ── replies: the bar on a message ─────────────────────────────────────────── */
 #msgs>.m{touch-action:pan-y}
-.mx-acts{position:absolute;z-index:2;top:-16px;right:0;display:flex;gap:2px;height:32px;padding:3px;border:1px solid var(--line);border-radius:var(--r-pill);background:color-mix(in srgb,var(--bg-2) 82%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:var(--e2);opacity:0;transform:translateY(4px);pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease)}
-.m-you>.mx-acts{right:8px}
-.m:hover>.mx-acts,.m:focus-within>.mx-acts{opacity:1;transform:none;pointer-events:auto;transition-duration:var(--d-in)}
-.mx-acts button{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+/* Reply and Copy sit beside the bubble, on the open side and centred on it, as in Messenger and iMessage:
+   two quiet 28 px circles 8 px off the bubble, no bar around them */
+.mx-acts{position:absolute;z-index:2;top:50%;left:calc(100% + 8px);display:flex;gap:2px;transform:translate(-4px,-50%);opacity:0;pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease)}
+.m-you .mx-acts{left:auto;right:calc(100% + 8px);flex-direction:row-reverse;transform:translate(4px,-50%)}
+.m:hover .mx-acts,.m:focus-within .mx-acts{opacity:1;transform:translate(0,-50%);pointer-events:auto;transition-duration:var(--d-in)}
+.mx-acts button{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .mx-acts button:hover{background:var(--hover-fill);color:var(--ink);transition-duration:var(--d-hover-in)}
 .mx-acts svg{width:16px;height:16px}
-#msgs>.m.mx-dragging>.mx-acts,#msgs.mx-pulling>.m>.mx-acts{opacity:0;pointer-events:none}
+.prose>.mx-acts,.prose>.mx-swipe{margin:0}
+/* a long reply without a bubble: the two sit under its last line, on its text edge */
+.mx-open .mx-acts{top:calc(100% + 2px);left:10px;transform:translate(0,-4px)}
+.m.mx-open:hover .mx-acts,.m.mx-open:focus-within .mx-acts{transform:none}
+.m.mx-dragging .mx-acts,#msgs.mx-pulling .mx-acts{opacity:0;pointer-events:none}
 @media (hover:none){.mx-acts{display:none}}
 
 /* a reply on its way: the quote waits above what you type */
@@ -60,8 +68,8 @@
 .mx-qpop svg{width:16px;height:16px;color:var(--ink-3)}
 
 /* swipe right on a message: it follows, an arrow grows in, and past the line it's a reply */
-#msgs>.m>*:not(.mx-acts){transition:transform var(--d-move) var(--ease)}
-#msgs>.m.mx-dragging>*:not(.mx-acts):not(.mx-swipe){transform:translateX(calc(var(--mx-drag,0) * 1px));transition:none}
+#msgs>.m>*{transition:transform var(--d-move) var(--ease)}
+#msgs>.m.mx-dragging>*:not(.mx-swipe){transform:translateX(calc(var(--mx-drag,0) * 1px));transition:none}
 .mx-swipe{position:absolute;left:12px;top:0;display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--g23);color:var(--ink-3);opacity:0;transform:scale(.6);pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease),background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .mx-swipe svg{width:16px;height:16px}
 .bubble{position:relative}
@@ -73,31 +81,46 @@
 /* swipe left anywhere: the times slide in at the right edge, as in Messages */
 #msgs>.m::after{content:attr(data-mx-time);position:absolute;top:10px;right:0;font:400 var(--fs-xs)/20px var(--mono);color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none;opacity:0;transform:translateX(64px);transition:opacity var(--d-move) var(--ease),transform var(--d-move) var(--ease)}
 #msgs.mx-pulling>.m::after{opacity:calc(var(--mx-pull,0) / 64);transform:translateX(calc((64 - var(--mx-pull,0)) * 1px));transition:none}
-#msgs.mx-pulling>.m>*:not(.mx-acts){transform:translateX(calc(var(--mx-pull,0) * -1px));transition:none}
+#msgs.mx-pulling>.m>*{transform:translateX(calc(var(--mx-pull,0) * -1px));transition:none}
 
 /* ── Bubbles ─────────────────────────────────────────────────────────────────
-   Tones for your bubbles (the switch). Theirs are always stone (--bubble). No white: the contrast comes
-   from tone, and the text stays --ink on both. */
-:root[data-msgx]{--mx-you:color-mix(in srgb,var(--ink) 15%,var(--bg));--mx-you-line:transparent;--mx-you-ink:var(--ink)}
-:root[data-msgx-tone="moss"]{--mx-you:color-mix(in srgb,var(--accent-fill) 19%,var(--bg))}
-:root[data-theme="light"][data-msgx-tone="moss"]{--mx-you:color-mix(in srgb,var(--accent-fill) 24%,var(--bg))}
-:root[data-msgx-tone="glass"]{--mx-you:color-mix(in srgb,var(--ink) 8%,transparent);--mx-you-line:color-mix(in srgb,var(--ink) 14%,transparent)}
-:root[data-msgx-tone="outline"]{--mx-you:transparent;--mx-you-line:color-mix(in srgb,var(--ink) 26%,transparent)}
+   Colour with a job (design-research/2026-11-vision/messages/README.md, round 3). XO's hues already
+   mean things: green is done, blue is working, amber needs you, violet is the coordinator, red failed. So
+   your bubble takes a hue nobody uses, or none. Every tone is set in OKLCH with low chroma, so it is calm.
+   Every tone keeps --ink text at 8.5:1 or more (AAA) and stands 1.5–1.7 : 1 off the dark canvas: enough
+   to tell who spoke, never a white slab. Theirs stay stone (--bubble). */
+:root[data-msgx]{--mx-you:oklch(.335 .004 260);--mx-you-hi:none}
+:root[data-theme="light"][data-msgx]{--mx-you:oklch(.905 .003 260)}
+/* Linen: a warm neutral. You are the warm voice in the room, the agent the cool one */
+:root[data-msgx-tone="linen"]{--mx-you:oklch(.35 .016 75)}
+:root[data-theme="light"][data-msgx-tone="linen"]{--mx-you:oklch(.93 .017 80)}
+/* Rose: a muted blush, the one hue XO has no other use for */
+:root[data-msgx-tone="rose"]{--mx-you:oklch(.355 .042 352)}
+:root[data-theme="light"][data-msgx-tone="rose"]{--mx-you:oklch(.93 .026 352)}
+/* Glass: lit from above, a highlight on its top edge, slightly lighter at the top */
+:root[data-msgx-tone="glass"]{--mx-you:linear-gradient(180deg,oklch(.33 .005 260),oklch(.30 .005 260));--mx-you-hi:inset 0 1px 0 rgba(255,255,255,.07)}
+:root[data-theme="light"][data-msgx-tone="glass"]{--mx-you:linear-gradient(180deg,oklch(1 0 0),oklch(.975 .002 260));--mx-you-hi:inset 0 1px 0 rgba(255,255,255,.9),0 1px 2px rgba(0,0,0,.08),0 2px 8px rgba(0,0,0,.05)}
+/* Dawn: one gradient fixed to the screen, rose at the top fading to linen by the composer; every bubble of
+   yours is a window onto it, so its colour drifts as you scroll (as Messages does with its blue) */
+:root[data-msgx-tone="dawn"]{--mx-you:linear-gradient(180deg,oklch(.35 .045 345),oklch(.355 .022 65)) fixed}
+:root[data-theme="light"][data-msgx-tone="dawn"]{--mx-you:linear-gradient(180deg,oklch(.925 .03 345),oklch(.935 .02 70)) fixed}
 
 /* rhythm: 16 between runs, 2 between one sender's bubbles */
 :root[data-msgx] #msgs>.m{margin-bottom:16px}
 :root[data-msgx] #msgs>.m.cont{margin-top:-14px}
 
 /* yours */
-:root[data-msgx] .m-you .bubble{border:1px solid var(--mx-you-line);border-radius:var(--r-xl);background:var(--mx-you);color:var(--mx-you-ink)}
-:root[data-msgx-tone="glass"] .m-you .bubble{-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:var(--hairline)}
+:root[data-msgx] .m-you .bubble{border:0;border-radius:var(--r-xl);background:var(--mx-you);box-shadow:var(--mx-you-hi);color:var(--ink)}
 :root[data-msgx] .m-you:has(+ .m-you.cont) .bubble{border-bottom-right-radius:var(--r-sm)}
 :root[data-msgx] .m-you.cont .bubble{border-top-right-radius:var(--r-sm)}
-:root[data-msgx] .m-you.is-relay .bubble{border:1px dashed var(--g3C);background:transparent}
+:root[data-msgx] .m-you.is-relay .bubble{border:1px dashed var(--g3C);background:transparent;box-shadow:none}
+/* sending: your bubble rises from the composer and settles, calmly */
+:root[data-msgx] .m-you.is-new .bubble{transform-origin:100% 100%;animation:mx-send var(--d-land) var(--ease)}
+@keyframes mx-send{from{opacity:0;transform:translateY(16px) scale(.94)}60%{opacity:1}}
 
 /* theirs: a round avatar, the name over the first bubble, stone bubbles */
 :root[data-msgx] .m-them{grid-template-columns:28px minmax(0,1fr);gap:8px}
-:root[data-msgx] .m-them>.av{width:28px;height:28px;margin-top:20px;border-radius:50%}
+:root[data-msgx] .m-them>.av{position:relative;z-index:1;width:28px;height:28px;margin-top:20px;border-radius:50%}
 :root[data-msgx] .m-them>.av-gap{height:0;margin:0}
 :root[data-msgx] .m-them .mh{min-height:0;padding:0 0 4px 16px}
 :root[data-msgx] .m-them .mh b{font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
@@ -107,26 +130,33 @@
 :root[data-msgx] .m-them.cont>.mb>.prose{border-top-left-radius:var(--r-sm)}
 :root[data-msgx] #msgs>.m-them>.mx-swipe{left:-2px}
 
+/* Open: a long reply (a few paragraphs, a list, code) isn't boxed. It reads on the canvas from the bubbles'
+   text edge, so a grey slab never fills the screen. Short replies stay bubbles. */
+:root[data-msgx-open] .mx-open :is(.mb>.prose,.turn>.tb-answer,.turn>.tb-text){width:auto;max-width:66ch;padding:0 0 0 16px;background:none}
+:root[data-msgx-open] #msgs>.m.mx-open{margin-bottom:32px}
+
 /* The agent's work before it answers reads as part of its message: its name first, then what it did as
-   one quiet line on the bubble's text edge, then the bubble. The name over the bubble isn't said twice. */
+   one quiet line on the bubble's text edge, then the bubble. The name isn't said twice. */
 :root[data-msgx] .m-turn>.mb[data-mx-who]::before{content:attr(data-mx-who);display:block;padding:0 0 4px 16px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
 :root[data-msgx] .m-turn .turn{gap:4px;max-width:none}
 :root[data-msgx] .m-turn .turn>.tb>.tb-h{width:fit-content;min-height:28px;margin:0;padding:4px 12px 4px 16px;border-radius:var(--r-pill);font-size:var(--fs-sm);line-height:20px}
 :root[data-msgx] .m-turn .turn>.tb>.tb-h :is(.tb-ht,.tb-wn){font-size:var(--fs-sm)}
 :root[data-msgx] .m-turn .turn>.tb>.tb-h:hover{background:var(--hover-fill)!important}
 :root[data-msgx] .m-turn .turn>.tb:is(.is-open,:has(.tb-rows))>.tb-h{background:var(--hover-fill)!important}
-:root[data-msgx] .m-turn .turn>.tb>:not(.tb-h){margin-left:16px}
+:root[data-msgx] .m-turn .turn>.tb:not(.tb-answer):not(.tb-text)>:not(.tb-h){margin-left:16px}
 :root[data-msgx] .m-turn+.m-them>.mb>.mh{display:none}
 :root[data-msgx] .m-turn+.m-them>.av{margin-top:0}
 :root[data-msgx] #msgs>.m-turn+.m-them{margin-top:-12px}
 
 /* a few emoji and nothing else are the message: large, no bubble */
-:root[data-msgx] .mx-emoji :is(.bubble,.prose){padding:0;border:0;background:none!important;font-size:var(--fs-4xl);line-height:var(--lh-40)}
-:root[data-msgx] .mx-emoji :is(.bubble,.prose)::after{content:none}
+:root[data-msgx] .mx-emoji :is(.bubble,.prose){padding:0;background:none!important;box-shadow:none;font-size:var(--fs-4xl);line-height:var(--lh-40)}
 
-/* Tails: the last bubble of a run grows a small tail at its foot, as in Messages (not on an outline) */
-:root[data-msgx-tails]:not([data-msgx-tone="outline"]) .m-you:not(:has(+ .m-you.cont)) .bubble{border-bottom-right-radius:0}
-:root[data-msgx-tails] .m-them:not(:has(+ .m-them.cont))>.mb>.prose,:root[data-msgx-tails] .m-turn .turn>:is(.tb-answer,.tb-text):last-child{border-bottom-left-radius:0}
-:root[data-msgx-tails]:not([data-msgx-tone="outline"]) .m-you:not(:has(+ .m-you.cont)) .bubble::after,:root[data-msgx-tails] .m-them:not(:has(+ .m-them.cont))>.mb>.prose::after,:root[data-msgx-tails] .m-turn .turn>:is(.tb-answer,.tb-text):last-child::after{content:"";position:absolute;bottom:-1px;right:-7px;width:7px;height:16px;background:inherit;-webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 16'><path d='M0 0C0 8 2.5 13.5 7 16H0Z'/></svg>") 0 0/100% 100% no-repeat;mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 16'><path d='M0 0C0 8 2.5 13.5 7 16H0Z'/></svg>") 0 0/100% 100% no-repeat}
-:root[data-msgx-tails] :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text)::after{right:auto;left:-7px;bottom:0;transform:scaleX(-1)}
-:root[data-msgx-tails][data-msgx-tone="glass"] .m-you .bubble::after{background:var(--mx-you)}
+/* Tails, in one piece with the bubble: a bubble-coloured curl grows out of the last bubble's corner, and a
+   canvas-coloured cut shapes its inside curve, so bubble and tail share one outline (no seam, no square
+   corner). The corner keeps its full 20 px. */
+:root[data-msgx-tails] .mx-tail{--mx-cut:var(--canvas)}
+:root[data-msgx-tails] .mx-tail::before,:root[data-msgx-tails] .mx-tail::after{content:"";position:absolute;bottom:0;height:20px;pointer-events:none}
+:root[data-msgx-tails] .mx-tail::before{right:-7px;width:20px;background:inherit;border-bottom-left-radius:calc(var(--r-xl) - 4px) calc(var(--r-xl) - 6px)}
+:root[data-msgx-tails] .mx-tail::after{right:-26px;width:26px;background:var(--mx-cut);border-bottom-left-radius:calc(var(--r-xl) - 10px)}
+:root[data-msgx-tails] .mx-tail.is-them::before{right:auto;left:-7px;border-radius:0;border-bottom-right-radius:calc(var(--r-xl) - 4px) calc(var(--r-xl) - 6px)}
+:root[data-msgx-tails] .mx-tail.is-them::after{right:auto;left:-26px;border-radius:0;border-bottom-right-radius:calc(var(--r-xl) - 10px)}

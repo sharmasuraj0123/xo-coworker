@@ -20,28 +20,33 @@ const IC = {
   copy: I('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/>'),
   check: I('<path d="m5 12.5 4.5 4.5L19 7.5"/>'),
   close: I('<path d="M6 6l12 12M18 6 6 18"/>'),
+  open: I('<path d="M4 6h16M4 10h16M4 14h10M4 18h7"/>'),
   tail: I('<path d="M5 5h11a4 4 0 0 1 4 4v4a4 4 0 0 1-4 4H9c-1.5 1.6-3.2 2.4-5 2.5 1-1.2 1-2.7 1-4.5z"/>'),
 };
 
 const TONES = [
-  { id: "graphite", name: "Graphite", hint: "Yours in soft graphite, theirs in stone: contrast from tone, not white" },
-  { id: "moss", name: "Moss", hint: "Yours quietly tinted with XO's green, like deep moss" },
-  { id: "glass", name: "Glass", hint: "Yours in frosted glass with a fine edge, theirs in stone" },
-  { id: "outline", name: "Outline", hint: "Yours drawn as an outline, theirs filled" },
+  { id: "graphite", name: "Graphite", hint: "A cool grey a step lighter than theirs: contrast from tone, not white" },
+  { id: "glass", name: "Glass", hint: "Lit from above: a fine highlight on the top edge, a touch lighter at the top" },
+  { id: "linen", name: "Linen", hint: "A warm neutral: you're the warm voice, the agent the cool one" },
+  { id: "rose", name: "Rose", hint: "A muted blush, the one hue XO doesn't already use for something" },
+  { id: "dawn", name: "Dawn", hint: "One soft gradient fixed to the screen, rose to linen; your bubbles drift through it as you scroll" },
 ];
-const KEY = "cv-msgx-tone", TAILS = "cv-msgx-tails";
+const KEY = "cv-msgx-tone", TAILS = "cv-msgx-tails", OPEN = "cv-msgx-open";
 const fromUrl = new URLSearchParams(location.search).get("tone");
-let tone = TONES.some((t) => t.id === fromUrl) ? fromUrl : (localStorage.getItem(KEY) || "graphite");
-if (!TONES.some((t) => t.id === tone)) tone = "graphite";
+let tone = TONES.some((t) => t.id === fromUrl) ? fromUrl : (localStorage.getItem(KEY) || "linen");
+if (!TONES.some((t) => t.id === tone)) tone = "linen";
 let tails = localStorage.getItem(TAILS) !== "0";
+let open = localStorage.getItem(OPEN) !== "0";
 
 function apply() {
   root.dataset.msgx = "bubbles";
   root.dataset.msgxTone = tone;
   if (tails) root.dataset.msgxTails = ""; else delete root.dataset.msgxTails;
-  try { localStorage.setItem(KEY, tone); localStorage.setItem(TAILS, tails ? "1" : "0"); } catch { /* private mode */ }
+  if (open) root.dataset.msgxOpen = ""; else delete root.dataset.msgxOpen;
+  try { localStorage.setItem(KEY, tone); localStorage.setItem(TAILS, tails ? "1" : "0"); localStorage.setItem(OPEN, open ? "1" : "0"); } catch { /* private mode */ }
   for (const b of sw.querySelectorAll("[data-tone]")) b.setAttribute("aria-checked", String(b.dataset.tone === tone));
   sw.querySelector("[data-tails]").setAttribute("aria-pressed", String(tails));
+  sw.querySelector("[data-open]").setAttribute("aria-pressed", String(open));
   decorate();
 }
 
@@ -49,7 +54,8 @@ function apply() {
 const sw = document.createElement("div");
 sw.className = "mx-switch";
 sw.innerHTML = `<div class="mx-seg" role="radiogroup" aria-label="Your bubbles">${TONES.map((t) => `<button type="button" role="radio" data-tone="${t.id}" title="${t.hint}">${t.name}</button>`).join("")}</div>` +
-  `<button type="button" class="mx-spot" data-tails aria-pressed="false" title="A small tail on the last bubble of a run">${IC.tail}<span>Tails</span></button>`;
+  `<button type="button" class="mx-spot" data-tails aria-pressed="false" title="A tail on the last bubble of a run">${IC.tail}<span>Tails</span></button>` +
+  `<button type="button" class="mx-spot mx-spot2" data-open aria-pressed="false" title="Long replies read on the canvas, not in a bubble">${IC.open}<span>Open</span></button>`;
 const hint = document.createElement("p");
 hint.className = "mx-hint"; hint.setAttribute("aria-live", "polite");
 let hintT = 0;
@@ -60,7 +66,8 @@ function say(text) {
 sw.addEventListener("click", (e) => {
   const b = e.target.closest("[data-tone]");
   if (b) { tone = b.dataset.tone; apply(); say(TONES.find((t) => t.id === tone).hint); return; }
-  if (e.target.closest("[data-tails]")) { tails = !tails; apply(); say(tails ? "Tails on: the last bubble of a run has a small tail" : "Tails off"); }
+  if (e.target.closest("[data-tails]")) { tails = !tails; apply(); say(tails ? "Tails on: the last bubble of a run curls into a tail" : "Tails off"); }
+  if (e.target.closest("[data-open]")) { open = !open; apply(); say(open ? "Open: long replies read on the canvas; short ones stay bubbles" : "Every reply in a bubble"); }
 });
 const conv = $("#conv");
 conv.append(sw, hint);
@@ -74,7 +81,8 @@ const msgs = $("#msgs");
 function nameIn(m) {
   if (m.classList.contains("m-you")) return "You";
   if (m.classList.contains("m-turn")) {
-    const n = m.nextElementSibling?.querySelector(":scope .mh b") || [...msgs.querySelectorAll(".m-them .mh b")].pop();
+    // the name the agent signs its own messages with (theirs carry the thread tile, a coordinator's the XO mark)
+    const n = [...msgs.querySelectorAll(".m-them > .av-t + .mb > .mh b")].pop();
     return n ? n.textContent.trim() : "Agent";
   }
   for (let el = m; el; el = el.previousElementSibling) {
@@ -90,6 +98,12 @@ function timeIn(m) {
   if (t) return t.trim();
   for (let el = m.previousElementSibling; el; el = el.previousElementSibling) if (el.dataset.mxTime) return el.dataset.mxTime;
   return "";
+}
+/** The element that is a message's bubble: yours, theirs, or the answer at the end of an agent's turn. */
+function bubbleOf(m) {
+  if (m.classList.contains("m-you")) return m.querySelector(":scope > .bubble");
+  if (m.classList.contains("m-turn")) return [...m.querySelectorAll(".turn > .tb-answer, .turn > .tb-text")].pop() || null;
+  return m.querySelector(":scope > .mb > .prose");
 }
 const textOf = (m) => (m.querySelector(".bubble, .mb > .prose, .tb-answer")?.innerText || "").trim();
 
@@ -128,7 +142,9 @@ function decorate() {
     const arrow = document.createElement("span");
     arrow.className = "mx-swipe"; arrow.innerHTML = IC.reply; arrow.setAttribute("aria-hidden", "true");
     quoteCard(el);
-    el.append(acts);
+    // Reply and Copy sit beside the bubble itself; a message with no words (a card, pictures) has neither
+    const bub = bubbleOf(el);
+    if (bub) bub.append(acts);
     // the swipe's arrow: beside your bubble, or in the gap a reply leaves on the left
     (el.classList.contains("m-you") && el.querySelector(".bubble") || el).append(arrow);
   });
@@ -138,6 +154,25 @@ function decorate() {
     el._mxe = el.textContent;
     const t = (el.querySelector(".bubble") || el.querySelector(".mb > .prose, .tb-answer"))?.textContent.trim() || "";
     el.classList.toggle("mx-emoji", t.length > 0 && t.length <= 16 && /^(?:\p{Extended_Pictographic}|\p{Emoji_Component}|\u200d|\ufe0f|\s)+$/u.test(t) && !/^[\d#*\s]+$/.test(t));
+  }
+  // Open: a long reply (more than a few lines, or a list, code or a table) reads without a bubble
+  for (const el of kids) {
+    if (!el.classList.contains("m-them")) continue;
+    const b = bubbleOf(el);
+    const long = !!b && (b.textContent.length > 280 || b.querySelectorAll(":scope > p").length > 2 || !!b.querySelector(":scope > :is(ul,ol,pre,table,h1,h2,h3,blockquote,.md-code)"));
+    el.classList.toggle("mx-open", long);
+  }
+  // Tails: on the last bubble of each run
+  for (const el of kids) {
+    if (!el.classList.contains("m")) continue;
+    const b = bubbleOf(el);
+    if (!b) continue;
+    const you = el.classList.contains("m-you");
+    const next = el.nextElementSibling;
+    const runGoesOn = next && (you ? next.matches(".m-you.cont") : next.matches(".m-them.cont"));
+    const tail = !runGoesOn && !el.classList.contains("mx-emoji") && !el.classList.contains("mx-open") && !el.classList.contains("is-relay");
+    b.classList.toggle("mx-tail", tail);
+    b.classList.toggle("is-them", tail && !you);
   }
   // the agent's work before its answer carries the agent's name, unless the agent was just speaking
   for (const el of kids) {
