@@ -71,7 +71,7 @@ body.files-open .mx-down{display:none}
 .mx-nobub .mx-acts.is-foot{display:flex;top:calc(100% + 6px);left:10px;transform:translateY(-4px)}
 .m.mx-nobub:hover .mx-acts.is-foot,.m.mx-nobub:focus-within .mx-acts.is-foot{transform:none}
 .m-you.mx-nobub>.mx-acts.is-foot{left:auto;right:8px;flex-direction:row-reverse}
-:root[data-msgx] #msgs>.m.mx-nobub{margin-bottom:40px}
+:root[data-msgx] #msgs>.m.mx-nobub{margin-bottom:54px}
 :root[data-msgx-open] .mx-open .mx-acts:not(.is-foot){display:none}
 :root[data-msgx-open] .mx-open>.mb{position:relative}
 :root[data-msgx-open] .mx-open .mx-acts.is-foot{display:flex;top:calc(100% + 6px);left:10px;transform:translateY(-4px)}
@@ -204,7 +204,15 @@ body.files-open .mx-down{display:none}
 /* Open: a long reply (a few paragraphs, a list, code) isn't boxed. It reads on the canvas from the bubbles'
    text edge, so a grey slab never fills the screen. Short replies stay bubbles. */
 :root[data-msgx-open] .mx-open :is(.mb>.prose,.turn>.tb-answer,.turn>.tb-text){width:auto;max-width:66ch;padding:0 0 0 16px;background:none;box-shadow:none}
-:root[data-msgx-open] #msgs>.m.mx-open{margin-bottom:40px}
+/* A long open reply ends with its action row, so the row is part of the message: 6 above it, 28 for it,
+   then the ordinary rhythm after it, 20 to a new turn (6 + 28 + 20 = 54) or 4 within a run (the next
+   bubble's −16 brings it to 38 = 6 + 28 + 4). The row shows quietly at rest (as under ChatGPT's and
+   Claude's answers), so the space it holds is never an unexplained gap; full strength on hover. */
+:root[data-msgx-open] #msgs>.m.mx-open{margin-bottom:54px}
+:root[data-msgx-open] .m.mx-open .mx-acts.is-foot,.m.mx-nobub .mx-acts.is-foot{opacity:.5;transform:none;pointer-events:auto}
+:root[data-msgx-open] .m.mx-open:hover .mx-acts.is-foot,.m.mx-nobub:hover .mx-acts.is-foot{opacity:1}
+/* a finger has no hover and the row is hidden there, so nothing is held for it */
+@media (hover:none){:root[data-msgx-open] #msgs>.m.mx-open,:root[data-msgx] #msgs>.m.mx-nobub{margin-bottom:20px}}
 /* unboxed, the first line starts at the top (no 10 px padding), so the mark moves up to stay centred on it:
    the first line of text (24 px, centre 12 → 12 − 14 = −2), or the name line when named (16 px, centre 8 → −6) */
 :root[data-msgx-open] .m-them.mx-open>.av{margin-top:-2px}
