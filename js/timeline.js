@@ -139,6 +139,17 @@ export function threadState(state, turn) {
   return state || "working";
 }
 
+/**
+ * The state a thread shows while it has open items: an open item on the thread (its own ask or one of
+ * its sub-agents') waits on the person whatever the row says yet. The row's needs_approval can trail
+ * the item's frame, and a resolved thread's sub-agent can still ask; a thread continued elsewhere
+ * (frozen) or already waiting keeps its state.
+ */
+export function askingState(state, openItems, frozen = false) {
+  if (!openItems || frozen || state === "needs_reply" || state === "needs_approval" || state === "paused") return state;
+  return "needs_approval";
+}
+
 const clip = (s, n) => (s.length > n ? s.slice(0, n - 1).replace(/\s+\S*$/, "") + "…" : s);
 
 /**

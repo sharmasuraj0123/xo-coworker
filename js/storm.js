@@ -13,8 +13,8 @@ import { api, clientId as newClientId, NEWEST, coderHeaders, STORM_DOWN } from "
 import { SSEStream } from "./sse.js";
 import { createTurns } from "./blocks.js";
 import { tasksOf } from "./model.js";
-import { uiMsg, mergeRows, addReaction, stormAsks, mapLimit, currentPools, threadState, mainRuntime } from "./timeline.js";
-import { hostOf } from "./review.js";
+import { uiMsg, mergeRows, addReaction, stormAsks, mapLimit, currentPools, threadState, askingState, mainRuntime } from "./timeline.js";
+import { hostOf, askedBy } from "./review.js";
 import { isLimitItem, limitItem } from "./runtimes.js";
 
 const STATUS_MS = 30000;          // the engine's status (pools, review counts); frames carry the rest
@@ -121,7 +121,10 @@ export function stormSource(state, emit, event) {
       summary: r.summary || null, git: r.git || null,
       ...moveOf(r), limits: limitsFor(r.ts),
     };
-    t.asks = stormAsks(t, openItemsFor(r.ts));
+    const open = openItemsFor(r.ts);
+    // an open item on the thread waits on you whatever its row says yet: its list row, header and Now chip say so
+    t.state = askingState(t.state, open.length, t.frozen);
+    t.asks = stormAsks(t, open);
     t.needsYou = t.asks.length ? t.asks[0].title : "";
     return t;
   }
@@ -153,7 +156,9 @@ export function stormSource(state, emit, event) {
       if (!h) continue;
       // an item of your account (usage) or of a plain chat belongs to no project row in the sidebar
       const project = h.chat ? projectOf(h.chat) || "workspace" : h.session ? "@chats" : "@account";
-      const host = hosts.get(h.id) || { id: h.id, host: true, project, chatId: h.chat, plainSession: h.session || null, title: h.title || (project === "workspace" ? "Workspace" : project),
+      // in a project or the Workspace, who asked: its coordinator (or a sub-agent of it), not a thread
+      const asker = h.chat ? askerOf(it) : null;
+      const host = hosts.get(h.id) || { id: h.id, host: true, project, chatId: h.chat, plainSession: h.session || null, asker, title: h.title || (asker ? "Coordinator" : project === "workspace" ? "Workspace" : project),
         state: "needs_approval", checklist: { items: [], total: 0, done: 0, doing: 0 }, messages: [], asks: [], live: true, loaded: true, busy: false,
         createdAt: Date.parse(it.created_at) || Date.now(), lastAt: Date.parse(it.created_at) || Date.now(), card: {} };
       // a usage limit (F5): its words in the owner's terms, and no move a project's policy forbids
@@ -164,6 +169,7 @@ export function stormSource(state, emit, event) {
     }
     state.hosts = [...hosts.values()];
   }
+  const askerOf = (it) => askedBy(it, it.session_id ? state.sessions[it.session_id] : null);
   let soonT = null, emitT = null;
   const soon = () => { clearTimeout(soonT); soonT = setTimeout(() => { commit(); emit(); }, 30); };
   const emitSoon = () => { if (!emitT) emitT = setTimeout(() => { emitT = null; emit(); }, 40); };

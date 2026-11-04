@@ -277,6 +277,12 @@ function sideRender(needs) {
   const hnHtml = n ? `<span class="nv-dot" aria-hidden="true"></span>${n}` : "";
   if (hn._h !== hnHtml) { hn.innerHTML = hnHtml; hn._h = hnHtml; }
   $("#nv-home").setAttribute("aria-label", n ? `Home, ${n} need you` : "Home, nothing needs you");
+  // the Workspace's own coordinator asking: the same amber mark on its row, as a project's row has
+  const wsN = mine.filter((x) => x.t.host && x.t.project === "workspace").length;
+  const wnHtml = wsN ? `<span class="nv-dot" aria-hidden="true"></span>${wsN}` : "";
+  const wn = $("#ws-n");
+  if (wn._h !== wnHtml) { wn.innerHTML = wnHtml; wn._h = wnHtml; }
+  $("#nv-ws").setAttribute("aria-label", wsN ? `Workspace, its coordinator needs you` : "Workspace");
   $("#nv-home").classList.toggle("is-on", S.view === "home");
   $("#nv-ws").classList.toggle("is-on", S.view === "ws");
   $("#nv-chats").classList.toggle("is-on", CH.isChats(S.view));
@@ -406,7 +412,7 @@ function nextCardHtml(n) {
     `<div class="nx-in">` +
     `<div class="nx-meta"><span class="eff e-${n.effort}">${dial(n.effort)}<b>${E.label}</b><span>${E.time}</span></span>` +
     (n.risk === "destructive" ? `<span class="risk r-destructive">${ICON.lock}Destructive</span>` : n.group === "stopped" ? `<span class="risk r-stopped">Stopped</span>` : "") +
-    (t.host ? `<button type="button" class="nx-where" data-fid="where"${t.chatId ? ` data-go="${esc(convOfChat(t.project))}"` : t.plainSession ? ` data-go="c:${esc(t.plainSession)}"` : ""} title="Where it was asked">${esc(t.title)}</button></div>` : `<button type="button" class="nx-where" data-fid="where" data-go="t:${esc(t.id)}" title="Open the thread">${esc(PROJ(t.project))}<span aria-hidden="true">›</span>${esc(t.title)}</button></div>`) +
+    (t.host ? `<button type="button" class="nx-where" data-fid="where"${t.chatId ? ` data-go="${esc(convOfChat(t.project))}"` : t.plainSession ? ` data-go="c:${esc(t.plainSession)}"` : ""} title="${t.asker ? `Open ${esc(PROJ(t.project))}, where its coordinator asks` : "Where it was asked"}">${t.asker ? `${esc(PROJ(t.project))}<span aria-hidden="true">›</span>${esc(t.title)}` : esc(t.title)}</button></div>` : `<button type="button" class="nx-where" data-fid="where" data-go="t:${esc(t.id)}" title="Open the thread">${esc(PROJ(t.project))}<span aria-hidden="true">›</span>${esc(t.title)}</button></div>`) +
     `<h2 class="nx-h" id="nx-h">${head}</h2>` +
     (estLine(n) ? `<p class="nx-est" title="${n.t.live ? "From its checklist: the steps not done yet." : "An estimate: the steps left that wait on this answer × a typical step time."}">${ICON.hourglass}${esc(estLine(n))}</p>` : "") +
     (n.sug ? `<p class="c-sug" title="${esc(n.sug.why)}">${ICON.spark}<span>Suggests <b>${esc(n.sug.label)}</b></span><em>${esc(n.sug.sure)}</em></p>` : "") +
@@ -465,7 +471,8 @@ function homeRender(needs) {
       P0.then.map((n) => `<li><button type="button" class="then-i r-${n.risk}" data-fid="then-${esc(n.key)}" data-decide="${esc(n.key)}">` +
         `<span class="eff e-${n.effort}">${dial(n.effort)}<b>${EFFORT[n.effort].label}</b></span>` +
         `<span class="ti-t">${askTitle(n)}</span>` +
-        `<span class="ti-p">${n.risk === "destructive" ? `<span class="risk r-destructive">Destructive</span>` : n.group === "stopped" ? `<span class="risk r-stopped">Stopped</span>` : esc(PROJ(n.t.project))}</span>${ICON.right}</button></li>`).join("") + `</ol>`;
+        // where it's asked always shows (a destructive one too): its project, or the project's coordinator
+        `<span class="ti-p">${n.risk === "destructive" ? `<span class="risk r-destructive">Destructive</span>` : n.group === "stopped" ? `<span class="risk r-stopped">Stopped</span>` : ""}<span class="ti-w">${esc(PROJ(n.t.project))}${n.t.asker ? " coordinator" : ""}</span></span>${ICON.right}</button></li>`).join("") + `</ol>`;
     const foot = [];
     if (P0.more.length) foot.push(`<button type="button" class="hm-quiet" data-fid="more" data-open-all>+${P0.more.length} more</button>`);
     if (P0.glances.length >= 2) foot.push(`<button type="button" class="hm-quiet is-glance" data-fid="glances" data-glances>${dial("glance")}Clear ${P0.glances.length} glances together</button>`);
@@ -525,6 +532,13 @@ function setHandled(open) {
 /** The chat behind a conversation: "ws" → workspace, "p:x" → x (threads use their project). */
 const chatOf = (conv) => (conv === "ws" || conv === "home" ? "workspace" : conv.startsWith("p:") ? conv.slice(2) : convThread(conv)?.project || null);
 const convOfChat = (chat) => (chat === "workspace" ? "ws" : "p:" + chat);
+/** What a project's, the Workspace's or a plain chat's own conversation asks of you (its host: no thread). */
+function convHost(v) {
+  const hosts = world.state.hosts || [];
+  if (v.startsWith("c:")) return hosts.find((h) => h.id === `session:${v.slice(2)}`) || null;
+  const chat = v === "ws" ? world.project("workspace")?.chatId : v.startsWith("p:") ? world.project(v.slice(2))?.chatId : null;
+  return chat ? hosts.find((h) => h.id === `chat:${chat}`) || null : null;
+}
 
 /** The real timeline (workspace or project) or the thread's own messages, with its root first. */
 function messagesOf(conv) {
@@ -817,6 +831,16 @@ function wsHeadRender() {
  *  line breaks only at a dot, never inside "1 resolved". */
 const counted = (n, word) => (n ? `<span class="pj-c"><span class="pj-k">${n}</span> ${word}</span>` : "");
 const countLine = (bits) => bits.filter(Boolean).join(`<span class="pj-d" aria-hidden="true"> · </span>`);
+/** A chat whose own coordinator asks: "Needs you" leads its count line, and opens the card above the composer. */
+function hostNeedHtml(v, needs) {
+  const h = convHost(v);
+  const n = h ? needs.find((x) => x.t.id === h.id && !x.later && (x.admitted || x.held)) : null;
+  if (!n) return "";
+  const k = h.asks.length;
+  const who = h.asker ? "Coordinator" : h.title;
+  return `<button type="button" class="pj-need" data-dock-open="${esc(n.key)}" title="Open the decision, above the composer">` +
+    `<i class="g g-needs_approval" aria-hidden="true"></i>${esc(who)} needs you${k > 1 ? ` <span class="pj-k">${k}</span>` : ""}</button>`;
+}
 
 function topRender(needs) {
   const v = S.view;
@@ -854,7 +878,10 @@ function topRender(needs) {
     const idle = world.state.threads.filter((x) => x.state === "working" && !isBusy(x) && !asking.has(x.id)).length;
     const done = doneToday().length;
     const parts = [counted(working, "working"), counted(P0.held.length, "can wait"), counted(idle, "idle"), counted(done, "finished today")].filter(Boolean);
-    who = `<span class="tw-ic tw-xo" aria-hidden="true">${XO}</span><span class="tw-t"><h1 id="conv-title">Workspace</h1><button type="button" class="pj-s pj-home" data-go="home" title="What needs you is on Home">${countLine([...(parts.length ? parts : ["All quiet"]), projects().length && `across ${counted(projects().length, projects().length === 1 ? "project" : "projects")}`])}</button></span>`;
+    const need = hostNeedHtml(v, needs);
+    const line = countLine([...(parts.length ? parts : ["All quiet"]), projects().length && `across ${counted(projects().length, projects().length === 1 ? "project" : "projects")}`]);
+    // the counts go to Home; what the Workspace's own coordinator asks opens here, so the two are separate buttons
+    who = `<span class="tw-ic tw-xo" aria-hidden="true">${XO}</span><span class="tw-t"><h1 id="conv-title">Workspace</h1>${need ? `<span class="pj-s">${countLine([need, `<button type="button" class="pj-home" data-go="home" title="What needs you is on Home">${line}</button>`])}</span>` : `<button type="button" class="pj-s pj-home" data-go="home" title="What needs you is on Home">${line}</button>`}</span>`;
   } else if (v.startsWith("p:")) {
     const pid = v.slice(2);
     const ts = threadsOf(pid);
@@ -867,7 +894,7 @@ function topRender(needs) {
     const parts = [counted(w, "working"), counted(dn, "done"), counted(rs, "resolved")].filter(Boolean);
     // Threads: every thread here, searchable, dropping down under its button (⌘K reaches them too)
     if (every.length) end = `<button type="button" class="all-btn th-btn" data-switch aria-haspopup="dialog" aria-expanded="${!allEl.hidden}" title="Every thread in ${esc(PROJ(pid))}, searchable">${ICON.threadOne}Threads<span>${every.length}</span></button>`;
-    who = `<span class="tw-ic" aria-hidden="true">${ICON.project}</span><span class="tw-t"><h1 id="conv-title">${esc(PROJ(pid))}</h1><span class="pj-s">${countLine([...(parts.length ? parts : [every.length ? "All quiet" : "No threads yet"]), S.desc[pid] && esc(S.desc[pid])])}</span></span>`;
+    who = `<span class="tw-ic" aria-hidden="true">${ICON.project}</span><span class="tw-t"><h1 id="conv-title">${esc(PROJ(pid))}</h1><span class="pj-s">${countLine([hostNeedHtml(v, needs), ...(parts.length ? parts : [every.length ? "All quiet" : "No threads yet"]), S.desc[pid] && esc(S.desc[pid])])}</span></span>`;
   } else if (t) {
     const ed = S.tEdit && S.tEdit.tid === t.id ? S.tEdit.field : null;
     const title = ed === "title"
@@ -1126,7 +1153,7 @@ function dockRender(needs) {
   if (hc) { if (tdock._ch !== hc) { tdock.innerHTML = hc; tdock._ch = hc; TD.key = null; } return; }
   if (tdock._ch) { tdock._ch = ""; tdock.innerHTML = ""; TD.key = null; }
   if (S.view === "chats") { if (TD.key) { TD.key = null; tdock.innerHTML = ""; } return; }
-  const t = convThread(S.view) || (S.view.startsWith("c:") ? (world.state.hosts || []).find((h) => h.id === `session:${S.view.slice(2)}`) : null);
+  const t = convThread(S.view) || convHost(S.view);
   const n = t && !D.isOpen() ? needs.find((x) => x.t.id === t.id && !x.later && (x.admitted || x.held)) : null;
   // Folded: the person chose to read the thread first. The ask waits as one slim line, and the
   // conversation isn't dimmed. A new ask on this thread docks open again.
@@ -2125,6 +2152,14 @@ async function saveThreadField(tid, field, value) {
     heraldShow({ kind: "stopped", text: field === "title" ? "Couldn't rename it" : "Couldn't change the label", sub: err.message }, 6000);
   }
 }
+// "Coordinator needs you" in a chat's header: the card above the composer, unfolded and in focus
+$("#top").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-dock-open]");
+  if (!b) return;
+  delete S.dockFold[b.dataset.dockOpen];
+  dockRender(D.needItems());
+  requestAnimationFrame(() => tdock.querySelector(".card")?.focus({ preventScroll: true }));
+});
 $("#top").addEventListener("keydown", (e) => {
   const inp = e.target.closest?.("[data-tedit]");
   if (inp) {

@@ -138,3 +138,12 @@ export function hostOf(item) {
   if (item.session_id) return { id: `session:${item.session_id}`, chat: null, session: item.session_id, title: "A plain chat" };
   return { id: `item:${item.id}`, chat: null, title: "XO" };
 }
+
+/**
+ * Who in a chat raised an item that has no thread: "coordinator" when its coordinator (or one of the
+ * coordinator's sub-agents) asked, null when XO raised it itself. session: the asking session, if known.
+ */
+export function askedBy(item, session) {
+  if (!item || (item.origin !== "cli" && item.origin !== "agent")) return null;
+  return !session || !session.role || /coordinator/.test(session.role) ? "coordinator" : null;
+}
