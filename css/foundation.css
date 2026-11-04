@@ -63,8 +63,26 @@ button.hr:active,.send:active,.t-undo:active,.dock-hide:active,.btn:active,butto
 
 /* ── 4 · an icon centres on its first line; nested corners are concentric ────────────────────────── */
 .top-who{align-items:flex-start}
-.tw-ic{width:28px;height:28px;border-radius:8px}
+/* the title bar is the exception, a lockup: its tile runs from the title's cap height to the count
+   line's baseline, so tile, title block, Now chips and Threads share one centre line */
+.tw-ic{width:40px;height:40px;border-radius:11px}
+.tw-ic svg{width:20px;height:20px}
+.tw-xo .xo-mark{width:24px;height:10px}
+.top[data-kind="project"] .top-who{align-items:center;gap:14px}
 .top[data-kind="project"] .top-who .tw-ic{margin-top:0}
+/* the count line: whole-pixel line, figures a shade brighter than their words, quiet dots */
+.pj-s{line-height:20px}
+.top[data-kind="project"] .tw-t{gap:4px}
+.pj-k{color:var(--ink-2);font-weight:500;font-variant-numeric:tabular-nums}
+.pj-c{white-space:nowrap}
+.pj-d{color:var(--ink-4)}
+/* a phone: the count line may wrap, so the tile sits on the title's line instead (28 px, the line's
+   own height), and the name takes the whole first row (the desktop's 52% cap squeezed it to 186 px) */
+@media (max-width:760px){
+  .top[data-kind="project"] .top-who{flex:1 1 100%;max-width:none;align-items:flex-start;gap:12px}
+  .top[data-kind="project"] .tw-ic{width:28px;height:28px;border-radius:8px}
+  .top[data-kind="project"] .tw-ic svg{width:16px;height:16px}
+}
 .create-ic{border-radius:6px}
 .all-btn span{border-radius:4px}
 .dlg-head{align-items:flex-start}
