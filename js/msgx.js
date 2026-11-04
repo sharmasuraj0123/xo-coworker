@@ -265,6 +265,7 @@ new MutationObserver(() => { projectMarks(); wave(document.getElementById("typin
 
 // ── the agent at work: one calm bubble ──────────────────────────────────────
 const WORKING = new Map(); // turn key → { text, since, w }
+const FINISHED_CARDS = new Map(); // only completed turns whose work card has been opened
 // A turn that ended this session stays drawn where it was, after what arrived while it worked. Pure CSS,
 // keyed by the app's own data-k, so it holds for every later redraw from the very first frame:
 //   [the turn] {order: 2n−1}   and everything after the last thing that arrived meanwhile ~ {order: 2n}
@@ -282,7 +283,8 @@ function nowText(turn) {
   const all = [...turn.querySelectorAll(".tb-rows.is-cur > li, .tb-think.is-live .tb-ht, .tb-narr, .tb-act.is-live > .tb-h .tb-ht")];
   const last = all.pop();
   if (!last) return "Working";
-  let t = (last.matches(".tb-narr") ? (last.innerText.trim().split(/\n+/).pop() || "") : (last.innerText || "").split(/\n/)[0]).trim();
+  const label = last.querySelector(".tb-rl") || last;
+  let t = (last.matches(".tb-narr") ? (last.innerText.trim().split(/\n+/).pop() || "") : (label.textContent || "").split(/\n/)[0]).trim();
   t = t.replace(/\s*·\s*[\d.]+\s*(?:ms|s|m|min)(?:\s*\d+\s*s)?$/i, "").replace(/`/g, "").replace(/\s+/g, " ").trim();
   return t || "Working";
 }
@@ -291,13 +293,20 @@ function working(el) {
   el.classList.toggle("mx-live", live);
   const key = el.dataset.k;
   const mb = el.querySelector(":scope > .mb");
+  // what you asked to see, or a step that waits on you, shows in full
+  el.classList.toggle("mx-expanded", !!el.querySelector('.turn [aria-expanded="true"], .turn .is-waiting'));
   if (!live || !mb) {
     // it just ended: it stays drawn where it was, after what arrived while it worked, so nothing jumps
     if (WORKING.has(key)) { const last = [...msgs.children].filter((c) => c !== el && c.dataset.k).pop(); if (last && last.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_PRECEDING) keepEnded(key, last.dataset.k); }
+    const previous = FINISHED_CARDS.get(key) || WORKING.get(key);
+    if (previous?.timer) clearTimeout(previous.timer);
+    if (mb && (previous || el.classList.contains("mx-expanded"))) {
+      const state = previous || {};
+      settle(el, state);
+      if (state.open) FINISHED_CARDS.set(key, state); else FINISHED_CARDS.delete(key);
+    }
     WORKING.delete(key); return;
   }
-  // what you asked to see, or a step that waits on you, shows in full
-  el.classList.toggle("mx-expanded", !!el.querySelector('.turn [aria-expanded="true"], .turn .is-waiting'));
   let w = mb.querySelector(":scope > .mx-work");
   const was = WORKING.get(key);
   // the line changes at most every 2.5 s: steps can flicker by faster than anyone can read them
@@ -357,22 +366,50 @@ function settle(el, st) {
   // once per element, like the shimmer: rewriting a running animation's delay would jump it
   for (const a of el.querySelectorAll(".arc")) if (!a.style.getPropertyValue("--mx-phase")) a.style.setProperty("--mx-phase", phase);
   for (const a of el.querySelectorAll(".tb-live")) if (!a.style.animationDelay) a.style.animationDelay = phase;
-  const card = el.classList.contains("mx-expanded") && el.querySelector(".turn > .tb-work.is-open");
-  if (!card) { st.open = false; st.rows = null; st.h = 0; return; }
+  const card = el.classList.contains("mx-expanded") ? el.querySelector('.turn > .tb-work.is-open, .turn > .tb:is(.tb-think,.tb-act,.tb-plan):has(> .tb-h[aria-expanded="true"])') : null;
+  const key = card?.querySelector(":scope > .tb-h")?.dataset.tb;
+  if (!card || st.cardKey !== key) {
+    st.resize?.animation.cancel();
+    if (st.card) st.card.style.overflow = "";
+    st.open = false; st.rows = null; st.h = 0; st.resize = null; st.card = null; st.cardKey = key;
+    if (!card) return;
+  }
   if (!st.open) card.classList.add("mx-opening");
   const seen = st.rows || new Set();
-  for (const r of card.querySelectorAll(".tb-rail > .tb, .tb-rows > li")) {
-    const k = r.querySelector("[data-tb]")?.dataset.tb || r.textContent.trim().slice(0, 80);
+  for (const r of card.querySelectorAll(".tb-rail > .tb, .tb-rows > li, .tb-steps > li, .tb-plan-l > li")) {
+    const block = r.closest(".tb");
+    const blockKey = block?.querySelector(":scope > .tb-h")?.dataset.tb || key;
+    const listKey = r.parentElement.matches(".tb-steps") ? "thinking" : r.parentElement.matches(".tb-plan-l") ? "plan" : "rows";
+    // Thinking/plan lists append in order. Tool calls have an identity independent of their text.
+    const k = r.matches(".tb") ? `block:${blockKey}` : r.dataset.callId != null ? `call:${r.dataset.callId}` : `${blockKey}:${listKey}:${[...r.parentElement.children].indexOf(r)}`;
     if (st.open && !seen.has(k)) r.classList.add("mx-row-in");
     seen.add(k);
   }
+  st.rows = seen;
+  // A timer may decorate the same DOM again during its height animation; leave that animation alone.
+  if (st.card === card) return;
   const h = card.offsetHeight;
-  if (st.open && st.h && Math.abs(h - st.h) > 1 && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    card.style.height = `${st.h}px`; card.style.overflow = "hidden"; void card.offsetHeight;
-    card.style.transition = "height var(--d-move) var(--ease)"; card.style.height = `${h}px`;
-    card.addEventListener("transitionend", () => { card.style.height = ""; card.style.overflow = ""; card.style.transition = ""; }, { once: true });
+  const previous = st.resize;
+  const progress = previous?.animation.effect.getComputedTiming().progress ?? 1;
+  const from = previous ? previous.from + (previous.to - previous.from) * progress : st.h;
+  const style = getComputedStyle(card);
+  const durationToken = style.getPropertyValue("--d-move").trim();
+  const fullDuration = parseFloat(durationToken) * (durationToken.endsWith("ms") ? 1 : 1000);
+  // A replacement with the same target keeps the original finishing time, rather than restarting.
+  const duration = previous && previous.to === h ? Math.max(0, previous.duration - (previous.animation.currentTime || 0)) : fullDuration;
+  previous?.animation.cancel();
+  if (st.card) st.card.style.overflow = "";
+  st.resize = null;
+  if (st.open && from && Math.abs(h - from) > 1 && duration > 0 && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    card.style.overflow = "hidden";
+    const animation = card.animate([{ height: `${from}px` }, { height: `${h}px` }], { duration, easing: style.getPropertyValue("--ease").trim(), fill: "both" });
+    const resize = st.resize = { animation, from, to: h, duration };
+    animation.finished.then(() => {
+      if (st.resize !== resize) return;
+      card.style.overflow = ""; st.resize = null; animation.cancel();
+    }, () => {});
   }
-  st.open = true; st.rows = seen; st.h = h;
+  st.open = true; st.card = card; st.h = h;
 }
 /** Ease the working bubble's width to fit its line (it never jumps): measure, then transition to it. */
 function sizeWork(w, key, text) {

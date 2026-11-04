@@ -52,4 +52,15 @@ t("a runtime's unknown-wire notice stays out of the conversation", () => {
   } finally { console.info = info; }
 });
 
+t("tool rows keep call identity across progress, output and row-control changes", () => {
+  const render = (rows) => turnHtml(turn("running"), [{ id: "g", type: "activity", rows }], { open: { g: true } });
+  const first = { call_id: 'read:"one', kind: "read", line: "Reading a file", status: "running", progress: { duration_ms: 1000 } };
+  const ids = (html) => [...html.matchAll(/data-call-id="([^"]*)"/g)].map((m) => m[1]);
+  assert.deepEqual(ids(render([first])), ["read:&quot;one"]);
+  assert.deepEqual(ids(render([{ ...first, progress: { duration_ms: 2000 } }])), ["read:&quot;one"]);
+  assert.deepEqual(ids(render([{ ...first, status: "ok", output: "contents" }])), ["read:&quot;one"]);
+  assert.deepEqual(ids(render([first, { ...first, call_id: "read:two" }])), ["read:&quot;one", "read:two"]);
+  assert.deepEqual(ids(render([{ ...first, kind: "subagent" }])), ["read:&quot;one"]);
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

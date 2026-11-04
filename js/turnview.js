@@ -41,12 +41,14 @@ function rowHtml(r, open) {
   const head = `<span class="tb-ri">${icon(r.kind || "other")}</span><span class="tb-rl">${renderInline(r.line || "", true)}</span>` +
     (prog ? `<span class="tb-rp">${esc(prog)}</span>` : "") + rowMark(r);
   const cls = `tb-row s-${esc(r.status || "ok")}${r.waiting ? " is-waiting" : ""}${r.pending ? " is-pending" : ""}`;
+  // A step keeps its identity when its label, status, duration or available output changes.
+  const item = `<li class="${cls}"${r.call_id != null ? ` data-call-id="${esc(r.call_id)}"` : ""}>`;
   // a sub-agent's row opens that sub-agent, like a thread of its own (ch 14 §11)
-  if (r.kind === "subagent" && r.call_id) return `<li class="${cls}"><button type="button" class="tb-rh is-btn" data-run-call="${esc(r.call_id)}" title="Open this sub-agent">${head}</button></li>`;
-  if (!canOpen) return `<li class="${cls}"><div class="tb-rh">${head}</div></li>`;
+  if (r.kind === "subagent" && r.call_id) return `${item}<button type="button" class="tb-rh is-btn" data-run-call="${esc(r.call_id)}" title="Open this sub-agent">${head}</button></li>`;
+  if (!canOpen) return `${item}<div class="tb-rh">${head}</div></li>`;
   const key = `row:${r.call_id}`;
   const isOpen = !!open[key];
-  return `<li class="${cls}"><button type="button" class="tb-rh is-btn" data-tb="${esc(key)}" aria-expanded="${isOpen}">${head}</button>` +
+  return `${item}<button type="button" class="tb-rh is-btn" data-tb="${esc(key)}" aria-expanded="${isOpen}">${head}</button>` +
     (isOpen ? `<div class="tb-rb">${r.kind === "command" && r.target ? `<code class="tb-cmd">${esc(r.target)}</code>` : ""}${out ? `<pre class="tb-out">${esc(out)}</pre>` : r.status === "running" ? `<p class="tb-note">Output appears when it finishes.</p>` : ""}</div>` : "") + `</li>`;
 }
 
