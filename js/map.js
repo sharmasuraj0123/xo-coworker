@@ -26,7 +26,8 @@ const FILE_KINDS = new Set(["create_file", "edit_file", "delete_file", "read"]);
 const VERB_NOW = { create_file: "Writing", edit_file: "Editing", delete_file: "Deleting", read: "Reading" };
 
 // the drawing
-const NW = 172, NH = 34, COL = 232, ROW = 46, PAD = 48, TAG = 250; // TAG: room for a cursor's name
+const NW = 172, NH = 34, COL = 232, ROW = 46, PAD = 48;
+
 const FILE_CAP = 8, DIR_CAP = 14; // boxes a folder shows before "N more"
 const PALETTE = ["#4C8DFF", "#A472FF", "#FF6FAE", "#FF9F43", "#2EC4B6", "#E5C23A"];
 const COORD_COLOR = "#7ED957";
@@ -226,6 +227,8 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     gkey: "", gnodes: [], gedges: [], alpha: 0, raf: 0, gags: [], glit: new Map(),
   };
   try { if (localStorage.getItem(MODE_KEY) === "graph") M.mode = "graph"; } catch { /* private mode */ }
+  // room for a cursor's name tag: in a thread it only says what the agent is doing (its name is the header)
+  const tagW = () => (M.scope && M.scope.kind === "thread" ? 130 : 240);
   const setOf = (m, key) => { if (!m.has(key)) m.set(key, new Set()); return m.get(key); };
 
   // ── what's in scope ─────────────────────────────────────────────────────────
@@ -352,8 +355,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       return out;
     };
     const name = (world.project(fold.project) || {}).name || fold.project;
-    const sub = scope.kind === "thread" ? (fold.base ? `worktree${scope.t.branch ? ` · ${scope.t.branch}` : ""}` : "project folder") : "project";
-    return { id: "", kind: "root", name, sub, children: kids("") };
+    return { id: "", kind: "root", name, title: scope.kind === "thread" && fold.base ? `${name}, its own worktree` : name, children: kids("") };
   }
 
   /** Home and the Workspace: your projects, and the files their agents are on. */
@@ -374,7 +376,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       for (const a of by.get(p.id) || []) if (!a.node) a.node = id;
       return { id, kind: "project", name: p.id === "workspace" ? "Workspace" : p.name || p.id, children: [...files.values()] };
     });
-    return { id: "@", kind: "root", name: "Your projects", sub: `${ps.length} project${ps.length === 1 ? "" : "s"}`, children };
+    return { id: "@", kind: "root", name: "Your projects", children };
   }
 
   function boxHtml(n, at) {
@@ -439,7 +441,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     const v = view();
     if (!v || !v.clientWidth) return;
     if (s) c.s = s;
-    c.x = v.clientWidth / 2 - (pt.x + TAG / 2) * c.s; // the cursor and its name, not just the box
+    c.x = v.clientWidth / 2 - (pt.x + tagW() / 2) * c.s; // the cursor and its name, not just the box
     c.y = (v.clientHeight - 44) / 2 - pt.y * c.s;
     applyCam(c, glide);
   }
@@ -550,7 +552,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       if (!c.settleUntil) c.settleUntil = now + (M.mode === "graph" ? SETTLE_MS + 1200 : SETTLE_MS);
       if (M.loading || (M.mode === "graph" && M.alpha > 0.06)) c.settleUntil = Math.max(c.settleUntil, now + 500);
       if (now < c.settleUntil) {
-        if (c.follow && lead) centerOn(c, lead.pt, false, Math.max(c.s, 0.85)); else fit(c, false);
+        if (c.follow && lead) centerOn(c, lead.pt, false, clamp(Math.min(0.9, (v.clientWidth - 40) / (NW + tagW() + 30)), 0.5, 0.9)); else fit(c, false);
         c.target = lead ? lead.key : null;
         return;
       }
@@ -569,7 +571,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     if (!v || !v.clientWidth) return;
     const W = v.clientWidth, H = v.clientHeight - 44, m = 48;
     const sx = c.x + pt.x * c.s, sy = c.y + pt.y * c.s;
-    const right = W - m - Math.min(TAG * c.s, W / 3);
+    const right = W - m - Math.min(tagW() * c.s, W / 3);
     let dx = 0, dy = 0;
     if (sx < m) dx = m + W * 0.12 - sx; else if (sx > right) dx = right - W * 0.12 - sx;
     if (sy < m) dy = m + H * 0.12 - sy; else if (sy > H - m) dy = H - m - H * 0.12 - sy;
@@ -614,16 +616,19 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
   function cursors(ags, place) {
     const box = el.querySelector(".dg-curs");
     if (!box) return;
-    const seen = new Set(), stack = new Map();
+    const seen = new Set(), stack = new Map(), share = new Map();
+    for (const a of ags) if (a.nid != null) share.set(a.nid, (share.get(a.nid) || 0) + 1);
     M.lead = null;
     for (const a of ags) {
       const p = a.nid != null ? place(a.nid) : null;
       if (!p) continue;
       const i = stack.get(a.nid) || 0; stack.set(a.nid, i + 1);
-      const x = p.x + i * 14, y = p.y + i * 22;
+      // a second agent on the same box sits beside the first, on the same row
+      const x = p.x + (p.side === "left" ? -i : i) * 18, y = p.y;
       seen.add(a.id);
       let c = M.curs.get(a.id);
-      const tag = `<b>${esc(a.title.length > 30 ? a.title.slice(0, 29) + "…" : a.title)}</b><span>${esc(verbOf(a))}</span>`;
+      const more = i === 0 ? (share.get(a.nid) || 1) - 1 : 0;
+      const tag = M.scope && M.scope.kind === "thread" ? `<span>${esc(verbOf(a))}</span>` : `<b>${esc(a.title.length > 24 ? a.title.slice(0, 23) + "…" : a.title)}</b><span>${esc(verbOf(a))}</span>${more ? `<i class="dg-more">+${more}</i>` : ""}`;
       if (!c || !c.el.isConnected) {
         const d = document.createElement("div");
         d.className = "dg-cur is-new";
@@ -638,6 +643,8 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       c.el.style.setProperty("--c", a.color);
       c.el.classList.toggle("is-idle", !a.busy);
       c.el.classList.toggle("is-wait", a.waiting);
+      c.el.classList.toggle("is-stacked", i > 0);
+      c.el.classList.toggle("is-left", p.side === "left"); // its name is in the first one's "+N" and in the chips above
       const to = `translate(${x}px,${y}px)`;
       if (c.node === a.nid && c.el.style.transform !== to) {
         // same box, moved by the drawing: jump with it, no glide
@@ -650,7 +657,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
         c.node = a.nid;
       }
       if (!M.lead && a.busy) M.leadNode = a.nid;
-      if (!M.lead && a.busy) M.lead = { key: `${a.id}@${a.nid}`, pt: { x: p.cx, y: p.cy } };
+      if (!M.lead && a.busy) M.lead = { key: `${a.id}@${a.nid}`, pt: { x: p.cx - (p.side === "left" ? tagW() : 0), y: p.cy } }; // centring takes its name in too
     }
     for (const [k, c] of M.curs) if (!seen.has(k)) { c.el.classList.add("is-gone"); setTimeout(() => c.el.remove(), 320); M.curs.delete(k); }
   }
@@ -740,7 +747,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       e.setAttribute("class", lit ? "is-lit" : g.n.kind === "file" ? "k-file" : "");
       e.style.stroke = lit || "";
     }
-    if (M.gnodes.length) M.bounds = { x0: x0 - 40, y0: y0 - 34, x1: x1 + 60 + TAG * 0.6, y1: y1 + 40 };
+    if (M.gnodes.length) M.bounds = { x0: x0 - 40, y0: y0 - 34, x1: x1 + 60 + tagW() * 0.6, y1: y1 + 40 };
     const at = new Map(M.gnodes.map((g) => [g.n.id, g]));
     cursors(M.gags, (id) => { const g = at.get(id); if (!g) return null; const r = RAD[g.n.kind] || 4; return { x: g.p.x + r * 0.55, y: g.p.y + r * 0.55, cx: g.p.x, cy: g.p.y }; });
   }
@@ -778,7 +785,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     // in a host's panel the host owns the tabs, Full size and Close
     const chrome = M.hosted ? "" : `<button type="button" class="mp-x mp-full" data-mp-full aria-pressed="${M.full}" aria-label="${M.full ? "Back beside the conversation" : "Full size"}" title="${M.full ? "Back beside the conversation" : "Full size"}">${M.full ? TOOL.unfull : TOOL.full}</button>` +
       `<button type="button" class="mp-x" data-mp-close aria-label="Close the map" title="Close">${ICON.close}</button>`;
-    return (M.hosted ? "" : tabs("live")) + `<header class="mp-top"><span class="mp-hic" aria-hidden="true">${ic}</span><div class="mp-t"><h2 id="mp-h">${esc(title)}</h2>${sub ? `<p class="mp-sub">${sub}</p>` : ""}</div>` +
+    return (M.hosted ? "" : tabs("live")) + `<header class="mp-top">${M.hosted ? "" : `<span class="mp-hic" aria-hidden="true">${ic}</span>`}<div class="mp-t"><h2 id="mp-h">${esc(title)}</h2>${sub ? `<p class="mp-sub">${sub}</p>` : ""}</div>` +
       chrome + `</header>` + extra;
   }
 
@@ -829,8 +836,19 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     else {
       const L = layoutOf(tree), old = M.layout;
       M.layout = L;
-      M.bounds = { x0: 0, y0: 0, x1: L.w + PAD * 2 + TAG, y1: L.h + PAD * 2 };
       const byId = new Map(L.nodes.map((n) => [n.id, n]));
+      // a cursor's name goes on the side of its box that's free on that row: the right for a file or a
+      // folded folder (nothing else shares a leaf's row), the left for an open folder (its children are
+      // on the right, one of them on its row), unless its parent sits on that same row
+      const parentOfId = new Map(L.edges.map((e) => [e.to.id, e.from]));
+      const sideOf = (n) => (n.children && n.children.length && !(parentOfId.get(n.id) && parentOfId.get(n.id).y === n.y) ? "left" : "right");
+      let x0 = 0, x1 = L.w + PAD * 2;
+      for (const a of ags) {
+        const n = a.nid != null && byId.get(a.nid);
+        if (!n) continue;
+        if (sideOf(n) === "left") x0 = Math.min(x0, n.x + PAD - tagW()); else x1 = Math.max(x1, n.x + PAD + NW + tagW());
+      }
+      M.bounds = { x0, y0: 0, x1, y1: L.h + PAD * 2 };
       const nodesHtml = L.nodes.map((n) => boxHtml(n, at)).join("");
       const key = `${L.w}x${L.h}|${nodesHtml}|${[...lit].join()}`;
       if (key !== M.layoutKey) {
@@ -846,7 +864,12 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
         if (old) holdStill(scope, old, L);
         if (fid != null) nodes.querySelector(`[data-node="${CSS.escape(fid)}"]`)?.focus({ preventScroll: true });
       }
-      cursors(ags, (id) => { const n = byId.get(id); return n ? { x: n.x + PAD + NW - 30, y: n.y + PAD + NH / 2 + 2, cx: n.x + PAD + NW / 2, cy: n.y + PAD + NH / 2 } : null; });
+      cursors(ags, (id) => {
+        const n = byId.get(id);
+        if (!n) return null;
+        const side = sideOf(n);
+        return { x: side === "left" ? n.x + PAD + 10 : n.x + PAD + NW - 14, y: n.y + PAD + 9, cx: n.x + PAD + NW / 2, cy: n.y + PAD + NH / 2, side };
+      });
     }
     // what the marks mean, when there are some
     const kd = el.querySelector("[data-dg-key]");
@@ -967,7 +990,19 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     if (e.key === "Escape" && !(viewer && viewer.isOpen)) { e.preventDefault(); e.stopPropagation(); if (M.full) setFull(false); else close(); }
   });
   // the panel's size changes with the window: frame it again unless you've moved it
-  if (typeof ResizeObserver === "function") new ResizeObserver(() => { const c = M.scope && M.cams.get(M.scope.key); if (M.open && c) frame(c); }).observe(node);
+  if (typeof ResizeObserver === "function") {
+    let w0 = 0, h0 = 0;
+    new ResizeObserver(() => {
+      const v = view();
+      if (!M.open || !v || !M.scope) return;
+      const w = v.clientWidth, h = v.clientHeight;
+      if (w === w0 && h === h0) return;
+      const was = w0; w0 = w; h0 = h;
+      const c = camOf(M.scope);
+      if (was && !c.user) { c.done = false; c.settleUntil = 0; c.target = null; } // the panel changed size: a fresh first look
+      frame(c);
+    }).observe(node);
+  }
   }
   bind(el);
 
