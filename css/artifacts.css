@@ -15,7 +15,7 @@ body.stage-open:not(.panel-open):not(.stage-full) .arts{padding-right:var(--sw)}
 .ar-head h1{font:600 28px/36px var(--sans);letter-spacing:-.02em;color:var(--ink)}
 .ar-sub{margin-top:4px;font:400 14px/20px var(--sans);color:var(--ink-3)}
 .ar-tools{display:flex;align-items:center;gap:8px;margin-top:24px}
-.ar-q{flex:1;min-width:0;max-width:420px;display:flex;align-items:center;gap:8px;height:36px;padding:0 12px;border-radius:8px;background:var(--g17);border:1px solid var(--g26);color:var(--ink-4);transition:border-color var(--dur-fast)}
+.ar-q{flex:1;min-width:0;max-width:420px;display:flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:8px;background:var(--g17);border:1px solid var(--g26);color:var(--ink-4);transition:border-color var(--dur-fast)}
 .ar-q:focus-within{border-color:var(--g45)}
 .ar-q svg{flex:none;width:16px;height:16px}
 .ar-q input{flex:1;min-width:0;height:100%;border:0;outline:none;background:none;color:var(--ink);font:400 14px/20px var(--sans)}
