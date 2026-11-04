@@ -27,10 +27,15 @@
 .mx-hint{position:absolute;z-index:6;top:calc(var(--mx-top,66px) + 56px);right:16px;max-width:min(560px,90%);padding:6px 12px;border-radius:var(--r-pill);background:color-mix(in srgb,var(--bg-2) 90%,transparent);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);font-size:var(--fs-sm);line-height:16px;color:var(--ink-2);opacity:0;transform:translateY(-4px);pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease)}
 .mx-hint.is-on{opacity:1;transform:none;transition-duration:var(--d-in)}
 @media (max-width:760px){
-  .mx-switch{right:12px;max-width:calc(100% - 24px)}
+  /* in the phone's top bar: a 40 px icon pill; opened, the choices drop below as a card that wraps, so nothing
+     scrolls sideways (card 20, 5 in, its 30 px pills 15 = 20 − 5) */
+  .phonebar .mx-switch{position:relative;top:auto;right:auto;flex:none;height:40px;max-width:none;padding:4px;flex-direction:row;background:var(--bg-2);-webkit-backdrop-filter:none;backdrop-filter:none}
+  .phonebar .mx-switch.is-open{flex-direction:row}
   .mx-fold>:is(span,b){display:none}
-  .mx-spot span{display:none}
-  .mx-hint{right:12px}
+  .phonebar .mx-panel{position:fixed;z-index:70;top:60px;right:12px;flex-wrap:wrap;width:min(calc(100vw - 24px),340px);padding:4px;border:1px solid var(--line);border-radius:var(--r-xl);background:color-mix(in srgb,var(--bg-2) 94%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);box-shadow:var(--e2),var(--hairline);overflow:visible}
+  .phonebar .mx-seg{flex-wrap:wrap}
+  .phonebar .mx-spot span{display:inline}
+  .mx-hint{top:calc(var(--mx-top,0px) + 8px);right:12px}
 }
 
 /* ── back to the latest ──────────────────────────────────────────────────────
@@ -66,7 +71,7 @@ body.files-open .mx-down{display:none}
 .mx-nobub .mx-acts.is-foot{display:flex;top:calc(100% + 6px);left:10px;transform:translateY(-4px)}
 .m.mx-nobub:hover .mx-acts.is-foot,.m.mx-nobub:focus-within .mx-acts.is-foot{transform:none}
 .m-you.mx-nobub>.mx-acts.is-foot{left:auto;right:8px;flex-direction:row-reverse}
-:root[data-msgx] #msgs>.m.mx-nobub{margin-bottom:36px}
+:root[data-msgx] #msgs>.m.mx-nobub{margin-bottom:40px}
 :root[data-msgx-open] .mx-open .mx-acts:not(.is-foot){display:none}
 :root[data-msgx-open] .mx-open>.mb{position:relative}
 :root[data-msgx-open] .mx-open .mx-acts.is-foot{display:flex;top:calc(100% + 6px);left:10px;transform:translateY(-4px)}
@@ -190,7 +195,7 @@ body.files-open .mx-down{display:none}
 /* Open: a long reply (a few paragraphs, a list, code) isn't boxed. It reads on the canvas from the bubbles'
    text edge, so a grey slab never fills the screen. Short replies stay bubbles. */
 :root[data-msgx-open] .mx-open :is(.mb>.prose,.turn>.tb-answer,.turn>.tb-text){width:auto;max-width:66ch;padding:0 0 0 16px;background:none;box-shadow:none}
-:root[data-msgx-open] #msgs>.m.mx-open{margin-bottom:36px}
+:root[data-msgx-open] #msgs>.m.mx-open{margin-bottom:40px}
 
 /* What the agent did before it answered: one quiet pill on the bubbles' text edge, then the bubble */
 :root[data-msgx] .m-turn>.mb[data-mx-who]::before{content:attr(data-mx-who);display:block;padding:0 0 4px 16px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}

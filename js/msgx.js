@@ -78,6 +78,10 @@ sw.addEventListener("click", (e) => {
 });
 const conv = $("#conv");
 conv.append(sw, hint);
+// on a phone there's no margin beside the text, so the switch lives in the top bar, beside Settings
+const phoneMQ = matchMedia("(max-width: 760px)");
+const seat = () => { if (phoneMQ.matches) $("#phonebar").insertBefore(sw, $("#set-phone")); else if (sw.parentNode !== conv) conv.insertBefore(sw, hint); };
+phoneMQ.addEventListener("change", seat); seat();
 // it sits just under whatever heads the conversation (the title, and in a thread its steps)
 const place = () => conv.style.setProperty("--mx-top", `${$("#scroller").offsetTop}px`);
 const ro = new ResizeObserver(place);
@@ -530,7 +534,13 @@ down.addEventListener("click", () => {
 new MutationObserver((ms) => {
   // a whole conversation swapped in is a new place, not news
   if (ms.reduce((n, m) => n + m.removedNodes.length, 0) > 6) unseen = 0;
-  else if (away() > 80) for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1 && n.classList.contains("is-new") && n.matches(".m-them, .m-you")) unseen++;
+  // only what lands at the end is news; older messages loading in above you are not
+  else if (away() > 80) for (const m of ms) for (const n of m.addedNodes) {
+    if (n.nodeType !== 1 || !n.classList.contains("is-new") || !n.matches(".m-them, .m-you")) continue;
+    let after = n.nextElementSibling;
+    while (after && (after.classList.contains("mx-live") || !after.classList.contains("m"))) after = after.nextElementSibling;
+    if (!after) unseen++;
+  }
   requestAnimationFrame(downSync);
 }).observe(msgs, { childList: true });
 const downRO = new ResizeObserver(() => downSync());
