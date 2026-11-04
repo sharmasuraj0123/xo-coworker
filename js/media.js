@@ -27,7 +27,7 @@ import { fileIcon } from "./fileicons.js";
 import { ICON } from "./ui.js";
 import { api, attachmentUrl } from "./api.js";
 import { fmtSize, typeWord, titleOf } from "./attach.js";
-import { fadeImage } from "./motion.js";
+import { fadeImage, EASE, MOVE, still } from "./motion.js";
 import { ARROW_OUT } from "./markdown.js";
 
 /** Each side's largest box (proposal §1). 560 is the prose measure, so a picture is never wider than its text. */
@@ -416,8 +416,36 @@ function landed(img, box, key) {
   clearTimeout(img._mxSlow);
   stateOf(box, null);
   box && box.classList.add("is-in");
+  if (box && box.classList.contains("mx-one") && box.classList.contains("is-frame")) settle(img, box);
   touch(shown, key, img);
   while (shown.size > CACHE_MAX) shown.delete(shown.keys().next().value);
+}
+/**
+ * A lone picture of unknown size (a web picture, an old upload) waited in the 16:10 frame so nothing
+ * jumped; once its size is known, the frame settles to the picture's own shape in one glide (320 ms)
+ * instead of keeping bars beside it. Only when it isn't above what you're reading: there, a change of
+ * height would move the text under your eyes, so it keeps the frame. Never taller than its side's cap.
+ */
+function settle(img, box) {
+  const nw = img.naturalWidth, nh = img.naturalHeight;
+  if (!nw || !nh) return;
+  const sc = box.closest(".scroller, .home, .arts");
+  const view = sc ? sc.getBoundingClientRect().top : 0;
+  const r = box.getBoundingClientRect();
+  if (r.bottom <= view) return;
+  const mw = parseFloat(getComputedStyle(box).getPropertyValue("--mx-w")) || r.width;
+  const cap = mw > 320 ? Math.round((mw * 480) / 560) : mw;
+  const h1 = Math.min(cap, Math.round((r.width * nh) / nw));
+  const ratio = h1 < Math.round((r.width * nh) / nw) ? `${Math.round(r.width)} / ${h1}` : `${nw} / ${nh}`;
+  box.classList.remove("is-frame");
+  if (Math.abs(h1 - r.height) < 2 || still()) { box.style.aspectRatio = ratio; return; }
+  box.style.height = `${r.height}px`; box.style.aspectRatio = "auto";
+  void box.offsetHeight;
+  box.style.transition = `height ${MOVE}ms ${EASE}, background-color var(--d-in) var(--ease)`;
+  box.style.height = `${h1}px`;
+  const done = () => { box.style.transition = ""; box.style.height = ""; box.style.aspectRatio = ratio; };
+  box.addEventListener("transitionend", (e) => { if (e.propertyName === "height") done(); }, { once: true });
+  setTimeout(done, MOVE + 80);
 }
 function failed(img, box, it) {
   clearTimeout(img._mxSlow);
