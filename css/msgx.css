@@ -278,7 +278,7 @@ body.files-open .mx-down{display:none}
    icons in grey, no rail, no colour. Card 20, rows 8 in, so their hover corners are 20 − 8 = 12. */
 :root[data-msgx] .m-turn .turn>.tb-work.is-open{width:min(88%,560px);padding:0 0 8px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi)}
 /* it opens once; after that only a new step moves, rising 4 px into place; and the arcs keep their turn */
-:root[data-msgx] .m-turn .turn>.tb-work.mx-opening{animation:mx-up var(--d-in) var(--ease)}
+:root[data-msgx] .m-turn .turn>.tb.mx-opening{animation:mx-up var(--d-in) var(--ease)}
 :root[data-msgx] .m-turn .mx-row-in{animation:mx-row var(--dur-slow) var(--ease) both}
 @keyframes mx-row{from{opacity:0;transform:translateY(4px)}}
 :root[data-msgx] .m-turn .arc::before{animation-delay:var(--mx-phase,0s)}
@@ -292,6 +292,9 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-hi svg{width:16px;height:16px}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>:not(.tb-h){margin-left:32px}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-rows{margin:0 0 4px 32px}
+/* Tool rows use the same 8 px inset and 12 px hover corners as the fold rows. Retain the nested
+   text column, but remove the base row's asymmetric -6 px overhang on its left edge. */
+:root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-rows>.tb-row>.tb-rh{width:calc(100% + 8px);min-height:32px;margin-left:-8px;padding:6px 8px;border-radius:calc(var(--r-xl) - 8px)}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb-narr{margin:4px 8px;padding:0 8px;font-size:var(--fs-sm);color:var(--ink-3)}
 
 /* The same card for any single work block pressed open (early in a turn there's no fold yet, only one
@@ -302,6 +305,8 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan):has(>.tb-h[aria-expanded="true"])>.tb-h :is(.tb-ht,.tb-n){font-size:var(--fs-md);color:var(--ink-2)}
 :root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan):has(>.tb-h[aria-expanded="true"])>:is(.tb-steps,.tb-rows,.tb-plan-l){margin:0;padding:0 16px;border:0;gap:4px;font-size:var(--fs-sm);line-height:20px;color:var(--ink-3)}
 :root[data-msgx] .m-turn .turn>.tb-think:has(>.tb-h[aria-expanded="true"])>.tb-steps>li{padding:4px 0}
+:root[data-msgx] .m-turn .turn>.tb.tb-act:has(>.tb-h[aria-expanded="true"])>.tb-rows{padding:0 8px}
+:root[data-msgx] .m-turn .turn>.tb.tb-act:has(>.tb-h[aria-expanded="true"])>.tb-rows>.tb-row>.tb-rh{min-height:32px;margin-left:0;padding:6px 8px;border-radius:calc(var(--r-xl) - 8px)}
 
 /* a few emoji and nothing else are the message: large, no bubble */
 :root[data-msgx] .mx-emoji :is(.bubble,.prose){padding:0;background:none!important;box-shadow:none;font-size:var(--fs-4xl);line-height:var(--lh-40)}
@@ -329,8 +334,14 @@ body.files-open .mx-down{display:none}
    where each thread stands at a glance; the caption below carries the title, branch and Open. */
 :root[data-msgx] .m-them .tcard{width:min(88%,560px);border:0;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);overflow:hidden}
 :root[data-msgx] .m-them .tcard:hover{background:var(--mx-them-top)}
+/* An admitted ask is emitted as st-needs, not st-needs_reply. Keep its band amber and full width:
+   the separate Decide button belongs in the footer, not in a column beside the preview. */
+:root[data-msgx] .m-them .tcard.st-needs{--st:var(--warn);--mx-decide-w:72px;flex-direction:column}
+:root[data-msgx] .m-them .tcard.st-needs .tc-foot{min-height:32px}
+:root[data-msgx] .m-them .tcard.st-needs .tc-go{margin-right:calc(var(--mx-decide-w) + 8px)}
+:root[data-msgx] .m-them .tcard.st-needs>.tc-dec{position:absolute;right:12px;bottom:12px;width:var(--mx-decide-w);margin:0;border-radius:calc(var(--r-xl) - 12px)}
 :root[data-msgx] .m-them .tc-open{gap:8px;padding:0 16px 12px;border-radius:var(--r-xl)}
-:root[data-msgx] .m-them .tc-segs{order:-1;margin:0 -16px 4px;width:calc(100% + 32px);padding:20px 16px;gap:4px;background:color-mix(in srgb,var(--st,var(--ink-4)) 14%,var(--mx-them-top));transition:background var(--d-hover) var(--ease)}
+:root[data-msgx] .m-them .tc-segs{order:-1;margin:0 -16px 4px;width:calc(100% + 32px);min-height:46px;padding:20px 16px;gap:4px;background:color-mix(in srgb,var(--st,var(--ink-4)) 14%,var(--mx-them-top));transition:background var(--d-hover) var(--ease)}
 :root[data-msgx] .m-them .tcard:hover .tc-segs{background:color-mix(in srgb,var(--st,var(--ink-4)) 20%,var(--mx-them-top))}
 :root[data-msgx] .m-them .tc-segs .sg{max-width:none;height:6px;border-radius:3px}
 :root[data-msgx] .m-them .tc-top b{font:600 var(--fs-lg)/24px var(--sans)}
@@ -353,3 +364,17 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-them .tc-segs .sg.mx-seg-next::after{content:"";position:absolute;inset:0;background:var(--g2C);transform-origin:right center;animation:mx-seg-light var(--d-land) var(--ease) var(--d-out) both}
 @keyframes mx-seg-light{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 @media (prefers-reduced-motion:reduce){:root[data-msgx] .m-them .tc-segs :is(.sg.s-doing,.sg.mx-seg-done::after,.sg.mx-seg-next::after),:root[data-msgx] .m-them .tc-segs:not(:has(.sg))::before{animation:none}}
+/* The band already carries progress. A second state glyph indents only the title, breaking the
+   caption's 16 px text column. Keep its words and the band as the two readable state cues. */
+:root[data-msgx] .m-them .tc-top>.g{display:none}
+/* The base card's focus shadow loses to the bubble shadow above. Draw an explicit outer focus ring. */
+:root[data-msgx] .m-them .tcard:has(.tc-open:focus-visible){outline:2px solid var(--accent);outline-offset:3px}
+@media (max-width:760px){
+  /* Give the title its own line on a phone; a fixed-width status must not consume half its width.
+     Long titles can wrap, and branch names cannot push Open past the card's right text edge. */
+  :root[data-msgx] .m-them .tc-top{flex-direction:column;align-items:flex-start;gap:4px}
+  :root[data-msgx] .m-them .tc-top b{width:100%;white-space:normal;overflow-wrap:anywhere}
+  :root[data-msgx] .m-them .tc-foot{flex-wrap:wrap;gap:4px 10px}
+  :root[data-msgx] .m-them .tc-foot>code{flex:0 1 100%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  :root[data-msgx] .m-them .tcard.st-needs>.tc-dec{height:36px}
+}
