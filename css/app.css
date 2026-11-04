@@ -290,7 +290,7 @@ button:disabled{cursor:default}
 .next.st-allow .stamp .sk{animation:draw .3s var(--glide) .05s forwards}
 .nx-meta{display:flex;align-items:center;gap:10px;min-width:0;margin-bottom:12px}
 .nx-where{min-width:0;margin-left:auto;display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px;margin-right:-8px;border-radius:var(--r-sm);font-size:var(--fs-sm);color:var(--ink-4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.nx-where:hover{background:var(--bg-3);color:var(--ink-2)}
+.nx-where:hover{background:var(--hover-fill);color:var(--ink-2)}
 .nx-where span{color:var(--g5F)}
 .nx-h{font:600 var(--fs-2xl)/28px var(--sans);letter-spacing:-.01em;color:var(--ink);overflow-wrap:anywhere;text-wrap:pretty}
 /* the exact command under the headline: mono at reading size, two lines at most (audit A6) */
@@ -1534,7 +1534,7 @@ button.kr-r:hover{background:var(--bg-3);color:var(--ink)}
 .tb-bad{margin-top:0}
 .tb-chg{list-style:none;display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 2px 24px}
 .tb-cf{display:inline-flex;align-items:center;gap:6px;max-width:260px;height:28px;padding:0 10px 0 8px;border-radius:var(--r-sm);background:var(--g1A);border:1px solid var(--g26);font:500 var(--fs-sm)/1 var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease),transform 80ms var(--ease)}
-.tb-cf:hover{background:var(--g1F);border-color:var(--g33);color:var(--ink)}
+.tb-cf:hover{background:color-mix(in srgb,var(--ink) 7%,var(--g1A));border-color:var(--g33);color:var(--ink)}
 .tb-cf:active{transform:scale(.97)}
 .tb-cfi{flex:none;display:grid;place-items:center;color:var(--ink-4)}
 .tb-cfi svg{width:13px;height:13px}
