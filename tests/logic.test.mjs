@@ -32,7 +32,7 @@ t("attribute breakout in http link is escaped", () => {
 });
 t("thread links become in-app anchors", () => {
   const out = renderMarkdown("Sent to [Power operator + tests](#cmsg_0mv6m0vxl000834eada7).");
-  assert.match(out, /<a href="#cmsg_0mv6m0vxl000834eada7" class="lk lk-in lk-thread is-unknown is-short" data-thread="cmsg_0mv6m0vxl000834eada7"[^>]*>/);
+  assert.match(out, /<a href="#cmsg_0mv6m0vxl000834eada7" class="lk lk-in lk-thread is-unknown" data-thread="cmsg_0mv6m0vxl000834eada7"[^>]*>/);
   assert.match(out, /<span class="lk-t">Power operator \+ tests<\/span><\/a>/);
   assert.deepEqual(threadLinks("[a](#cmsg_abc) [b](#cmsg_def) [a](#cmsg_abc)"), ["cmsg_abc", "cmsg_def"]);
 });
@@ -45,7 +45,7 @@ t("links say where they go: inside is a token with its glyph, outside is text wi
   setThreadInfo((id) => (id === "cmsg_live" ? { state: "working", word: "Working", title: "Live panel" } : null));
   try {
     const live = renderInline("[the panel](#cmsg_live)");
-    assert.match(live, /class="lk lk-in lk-thread is-short"/);
+    assert.match(live, /class="lk lk-in lk-thread"/);
     assert.match(live, /<i class="g g-working"/);
     assert.match(live, /title="Working · thread"/);
     const gone = renderInline("[other](#cmsg_gone)");
@@ -67,12 +67,12 @@ t("links say where they go: inside is a token with its glyph, outside is text wi
 });
 t("relative file links open in the viewer; anything that leaves the folder stays text", () => {
   const f = renderInline("[the turn view](js/turnview.js) and [readme](./README.md#L10)");
-  assert.match(f, /<button type="button" class="lk lk-in lk-file" data-file="js\/turnview.js" data-file-name="turnview.js"/);
+  assert.match(f, /<a href="#js\/turnview.js" class="lk lk-in lk-file" data-file="js\/turnview.js" data-file-name="turnview.js"/);
   assert.match(f, /<span class="lk-ic"><svg class="fi"/); // the file icon from js/fileicons.js, whichever set it draws
   assert.match(f, /data-file="README.md"/);
   for (const bad of ["[x](../etc/passwd)", "[x](/etc/passwd)", "[x](a/../../b.txt)", "[x](file:///etc/passwd)", "[x](mailto:a@b.c)", "[x](folder/)"]) {
     const out = renderInline(bad);
-    assert.ok(!out.includes("<button") && !out.includes("<a "), bad + " → " + out);
+    assert.ok(!out.includes("<a "), bad + " → " + out);
   }
 });
 t("bold, italic, code, lists, fences", () => {

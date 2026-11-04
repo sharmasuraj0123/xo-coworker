@@ -2193,7 +2193,7 @@ document.addEventListener("click", (e) => {
   const ab = t.closest("[data-att]");
   if (ab) { openAttachment(ab); return; }
   const fb = t.closest("[data-file]");
-  if (fb) { openSharedFile(fb); return; }
+  if (fb) { e.preventDefault(); openSharedFile(fb); return; }
   const cp = t.closest("[data-copy]");
   if (cp) { navigator.clipboard?.writeText(cp.closest(".md-code")?.querySelector("code")?.textContent || "").catch(() => {}); cp.textContent = "Copied"; setTimeout(() => { cp.textContent = "Copy"; }, 1400); }
 });

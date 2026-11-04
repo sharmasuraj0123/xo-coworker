@@ -12,43 +12,62 @@
    The capsule is drawn with the text's own colour mixed in, so it sits right on any
    surface in either theme. Loaded after panel.css; nothing else depends on it. */
 
-/* ── inside: a token ── */
+/* ── inside: a token ──
+
+   Geometry, from Geist's own metrics (per em: capitals .719, ascent .92, descent .22):
+   - Every glyph and the capsule itself are centred on the middle of the capitals, .3595em
+     above the baseline: where the eye reads the middle of a line of text.
+   - The capsule is 1.47em tall (22px in 15px prose, whose line box is 25.2px), so it sits
+     inside the line with about 1.6px to spare above and below. Its padding is inline padding:
+     it never moves the baseline or pushes lines apart.
+   - Above the capitals and below the baseline there is the same .3755em (5.6px at 15px).
+     Chrome rounds the font's ascent and descent to whole pixels (at 15px: 14 and 3, not 13.8
+     and 3.3), so .0163em moves from the top padding to the bottom to keep 15px exact; 13 and
+     14px stay within .3px.
+   - Thread and file capsules are the same inline element with the same box; only the glyph differs. */
 .lk-in{
   display:inline;
-  padding:.12em .42em .14em .3em;
-  margin:0 .04em;
-  border-radius:6px;
-  border:0;
-  font:inherit;
-  font-weight:480;
-  line-height:inherit;
+  padding:.158em .5em .172em .3em;
+  margin:0 .06em;
+  border-radius:var(--r-xs);
+  font-weight:var(--fw-medium);
   color:var(--ink);
-  text-align:left;
   text-decoration:none;
+  white-space:nowrap;
   background:color-mix(in srgb,var(--ink) 7%,transparent);
-  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 9%,transparent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 10%,transparent);
   -webkit-box-decoration-break:clone;box-decoration-break:clone;
   cursor:pointer;
   transition:background-color var(--dur-fast) var(--ease),box-shadow var(--dur-fast) var(--ease);
 }
-.lk-in.is-short{white-space:nowrap}
-/* a file token is a button (it opens the viewer, not a page): same box as the inline ones */
-button.lk-in{display:inline-block;line-height:1.3;padding:.08em .42em .1em .3em;vertical-align:baseline;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
-.lk-in:hover{background:color-mix(in srgb,var(--ink) 11%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 15%,transparent)}
+/* a long title may wrap between words; each line keeps a whole capsule */
+.lk-in.is-long{white-space:normal}
+.lk-in:hover{background:color-mix(in srgb,var(--ink) 11%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 16%,transparent)}
 .lk-in:active{background:color-mix(in srgb,var(--ink) 15%,transparent)}
 .lk-in:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 
-/* an empty box sits on the baseline: lowered a little, its middle meets the middle of a capital */
-.lk-ic{position:relative;display:inline-block;width:1em;height:1em;margin-right:.3em;vertical-align:-.13em;color:var(--ink-3)}
+/* the glyph's 1em box: an empty inline-block sits on the baseline, so lowering it .1405em puts
+   its middle on the middle of the capitals (.3595em). Its child is centred in it. */
+.lk-ic{position:relative;display:inline-block;width:1em;height:1em;margin-right:.2em;vertical-align:-.1405em;color:var(--ink-3)}
 .lk-ic>*{position:absolute;inset:0;margin:auto}
-.lk-ic svg{width:.86em;height:.86em}
-.lk-ic .fi{width:.95em;height:.95em}
+/* a thread's state, a little larger than in lists so it holds its own beside capitals */
+.lk-ic .g{width:.6em;height:.6em}
+.lk-ic .g-working,.lk-ic .g-idle{border-width:.1em}
+.lk-ic .g-done{width:.62em;height:.34em;border-width:0 0 .13em .13em;transform:translate(0,-.06em) rotate(-45deg)}
+.lk-ic .lk-tg{width:.86em;height:.86em}
+/* a file's own icon (js/fileicons.js), whichever set it draws. Its drawing fills about 5/6 of the
+   box, a state dot 3/5: the file capsule's padding and gap make up the difference, so the glyph
+   sits .5em from the left edge and .4em from the text in both. */
+.lk-ic .fi{width:1em;height:1em}
+.lk-file{padding-left:.4167em}
+.lk-file .lk-ic{margin-right:.3167em}
 /* a thread the app doesn't know (another project, not loaded): the same token, quieter */
 .lk-thread.is-unknown{color:var(--ink-2);background:color-mix(in srgb,var(--ink) 5%,transparent)}
 
-/* a working thread breathes, like its row in the sidebar; nothing moves when motion is reduced */
-.lk-ic .g-working{animation:lk-breathe 2.4s var(--ease) infinite}
-@keyframes lk-breathe{50%{opacity:.45}}
+/* a working thread: no blue. A small arc in the text's own colour turns on a faint track, the same
+   1.6s arc-turn as the agent's mark (css/panel.css), so js/ui.js keepTurning keeps every one in step
+   with the arc and the wave. Still when motion is reduced. */
+.lk-ic .g-working{border:.1em solid color-mix(in srgb,currentColor 22%,transparent);border-top-color:currentColor;border-radius:50%;color:var(--ink-2);animation:arc-turn 1.6s linear infinite}
 
 /* ── outside: text with ↗ ── */
 .lk-out{
@@ -61,13 +80,11 @@ button.lk-in{display:inline-block;line-height:1.3;padding:.08em .42em .1em .3em;
 }
 .lk-out:hover{text-decoration-color:var(--accent)}
 .lk-out:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
-.lk-ar{display:inline-block;width:.62em;height:.62em;margin-left:.16em;vertical-align:.12em;color:var(--accent);transition:transform var(--dur-fast) var(--ease-out)}
+/* the arrow is centred on the middle of the capitals too: .0495em + half of .62em = .3595em */
+.lk-ar{display:inline-block;width:.62em;height:.62em;margin-left:.14em;vertical-align:.0495em;color:var(--accent);transition:transform var(--dur-fast) var(--ease-out)}
 .lk-out:hover .lk-ar{transform:translate(1.5px,-1.5px)}
 /* a bare address is shown as people read it (host and path) in the code face */
 .lk-out.is-bare .lk-t{font:400 .9em/1 var(--mono);letter-spacing:-.01em}
-
-/* inside a code-ish or small context the token keeps its shape but tightens */
-.tc-now .lk-in,.dt-why .lk-in{padding:.05em .36em .07em .26em}
 
 @media (prefers-reduced-motion:reduce){
   .lk-ic .g-working{animation:none}
