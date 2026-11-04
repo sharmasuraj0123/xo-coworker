@@ -9,9 +9,13 @@ A web UI for the XO Space **projects chat** backend (`/api/projects-chat/*`). It
 - **Workspace**: your coordinator across all projects. Messages show where they were routed.
 - **Projects**: a title, one sentence, the Now shelf of threads in progress, and All threads (searchable, finished ones folded).
 - **Threads**: each has its own agent, branch and checklist. The thread's own decision sits above the composer.
+- **Pictures in the conversation** (`js/media.js`, `js/lightbox.js`): what an agent or you share is *shown*, not attached. A picture appears bare (12 px corners, a hairline, no shadow; an agent's up to 560×480, yours up to 320×320, never enlarged), several make an album with "+N", other files are cards. Its box is reserved from the server's `w`, `h` and `tint` (a fixed 16:10 frame when they're missing), so nothing moves while it loads. A picture opens in the lightbox: it grows from its place, ← → walk through the conversation's pictures, Esc or a swipe down puts it back. Sample data: `/demo/media.html`.
+- **Shape** (`js/shape.js`, `js/shapeview.js`, `presets/`): the UI fits the person. A first-run question picks **Build software**, **Make content and campaigns** or **Everything**; Settings › Shape switches it, shows what it changes, resets it, shows everything, and edits your own layer as JSON. Layers: defaults < preset < yours < this device (Compact lives here). Marketing hides branch chips, runtime names, sub-agent counts, raw commands, Shells and the Map, says "task", and puts Recently made first. XO never reshapes itself on its own.
 - **A coordinator's own ask** (it, or one of its sub-agents, asks with no thread): it sits above the composer of the project's or the Workspace's chat, the header's count line leads with "Coordinator needs you", and Home and the panel name it "xo-space › Coordinator". A thread with any open item reads Needs you in its list row, header and Now chip, whatever its row's state says yet.
 - **Map** (`⌘\`, or Map at the top right of any conversation): where your agents are working, drawn. Two ways to see it, one icon apart: a **Diagram** (the folder as boxes and connectors) or a **Graph** (a living node graph that settles). Each agent is a coloured cursor with its name that moves to the file it reads or edits, or that its command names, and the way down to it lights in its colour. In a thread, its own worktree, with what it made or changed marked; in a project, the project's folder with every agent at work; elsewhere, your projects and the agents in them. Drag, zoom, Fit, Follow, full size. With a file open, the Map and the viewer are one right-hand panel with two modes, **Live** and **File**.
-- **Composer**: `@project` aims a message at a project. The model chip shows the routing in effect.
+- **Composer**: `@project` aims a message at a project. The model chip shows the routing in effect. The line above it follows the world: "Sending is paused" shows only while it's true.
+- **Creating a project**: the sidebar's "+". Home offers "Create XO Project" only while there is no project yet.
+- **Stone and glass** (design-research/2026-11-vision/direction): the chrome is stone (neutral, crisp, shadowless; controls 32 px with 6 px corners), the work is glass (soft bubbles, vivid pictures). One scale for everything in `css/tokens.css` (**Plan F**): 8 type sizes with whole-pixel line heights and tracking by size, 3 weights, radii 6 · 12 · 20 · 22, one floating elevation, one motion curve (a hover engages in 120 ms and releases in 200, a press in 60; nothing overshoots), three lights (green done, blue working, amber needs you). Icons outside the sidebar draw one 1.5 px line at any size. Documents in Files read in a serif. `tests/design-budget.test.mjs` fails the build when a stylesheet strays from the scale. The left sidebar keeps its own look (the owner's decision).
 - Light and dark themes. Geist type and the XO palette, with XO green as the accent. Motion honours reduced-motion settings.
 
 Plain HTML, CSS and vanilla ES modules: no build step, no npm, no CDN.
@@ -107,7 +111,7 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 | File | Role |
 |---|---|
 | `index.html` | the shell: sidebar, Home, conversation, dock, panel, sheets |
-| `css/tokens.css` | palette, type scale, Geist faces |
+| `css/tokens.css` | **Plan F**, the one scale: palette, type sizes and line heights, tracking, weights, radii, elevation, motion, hover and press fills, the three lights, Geist faces. Other sheets use these names and never define a scale of their own |
 | `css/base.css`, `css/app.css` | reset and the UI |
 | `js/app.js` | views, rendering, navigation, composer, sending |
 | `js/world.js`, `js/storm.js` | the world the views render, from the real API |
@@ -132,6 +136,12 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 | `js/shells/term.js` | one shell on screen: xterm.js, its WebSocket, reconnects, flow control, theme |
 | `js/shells/model.js` | shells, the pure part: row words, counts, flow-control watermarks, backoff |
 | `js/vendor/xterm/` | xterm.js 6.0.0 and addon-fit 0.11.0, copied byte for byte (pinned hashes in its README) |
+| `js/media.js`, `css/media.css` | pictures and files on a message or a turn: single images, albums, file cards, the 16:10 fallback, dedupe of `shared_files` against a message by `made_id` |
+| `js/lightbox.js` | a picture opened over the conversation: grows from its place, ← → through the conversation's pictures, Esc or swipe down to put it back, Open in Files |
+| `js/shape.js` | the shape: the list of surfaces, the four layers, merge per key with a fallback per key and a problems list, versions |
+| `js/shapeview.js`, `css/shape.css` | Settings › Shape, the first-run question, Advanced settings, Home's order, density |
+| `presets/*.json` | the presets (Build software, Make content and campaigns), served as static files until Storm serves them |
+| `demo/media.html` | inline pictures with sample data (no network) |
 
 ## Tests
 
@@ -146,7 +156,12 @@ node tests/runtimes.test.mjs     # runtimes, policy, moves and the usage-limit c
 node tests/files.test.mjs        # Files: which folder a view shows, where an opened file sits in it; no network
 node tests/record.test.mjs       # Made and Since you left: kinds, order, groups, git words, the headline; no network
 node tests/map.test.mjs          # the Map's pure parts: folders, paths, what a session touched, the diagram's layout; no network
+node tests/media.test.mjs        # pictures in the conversation: fitting, albums, the fallback frame, dedupe by made_id; no network
+node tests/shape.test.mjs        # the shape: layers, per-key fallback, unknown keys, order, capabilities, migration; no network
+node tests/design-budget.test.mjs  # Plan F: sizes, weights, line heights, radii, curves and shadows come from css/tokens.css
 ```
+
+Measuring the live UI (read-only; every non-GET request is aborted in the browser): `design-research/2026-11-vision/audit/tools/` (`XO_URL=http://127.0.0.1:<port>/ node capture.cjs dark|light`, `titlebar.cjs`, `hoverscan.cjs`, `states.cjs`, `boot.cjs`; `PRESET=engineering|marketing|everything` answers the first-run question).
 
 The browser suites (Playwright) live outside the repo:
 - a 59-check suite for Live, which mocks or blocks every non-GET request;

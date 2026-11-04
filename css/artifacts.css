@@ -1,5 +1,5 @@
 /* Artifacts (js/recordview.js, design-research/16): everything threads made, across projects, as a place
-   of its own in the sidebar. One spacing scale (4 px steps: 4 8 12 16 24 32 48), one type scale
+   of its own in the sidebar. Sizes, radii and motion come from Plan F (css/tokens.css). One spacing scale (4 px steps: 4 8 12 16 24 32 48), one type scale
    (28/36 title, 14/20 lines, 13/20 meta, 12/16 labels), integer line heights, the one motion system. */
 
 /* the sidebar's row: like Home, Workspace and Chats; its count is a quiet number, never a signal */

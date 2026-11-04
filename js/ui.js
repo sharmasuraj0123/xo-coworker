@@ -2,6 +2,9 @@
 // reduced motion and the optional soft sounds (off by default).
 import { esc } from "./world.js";
 
+// Every glyph is drawn on a 24 grid. Its attributes are the fallback: outside the sidebar, base.css draws
+// every stroke at 1.5 px whatever the size (non-scaling stroke) with square ends (Plan F, design-research/
+// 2026-11-vision/direction), so don't tune a glyph's weight here; size it 16 (or 20) where it's used.
 const I = (d, extra = "") =>
   `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"${extra}>${d}</svg>`;
 

@@ -9,6 +9,7 @@
 //
 // The same values are CSS custom properties in css/foundation.css (--m-ease, --m-in, --m-move, --m-out).
 
+// The same values as Plan F in css/tokens.css (--ease, --d-in, --d-move, --d-out); change them together.
 export const EASE = "cubic-bezier(.2,.8,.2,1)";
 export const IN = 280, MOVE = 320, OUT = 160;
 const RM = typeof matchMedia === "function" ? matchMedia("(prefers-reduced-motion: reduce)") : { matches: true };

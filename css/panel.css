@@ -6,7 +6,7 @@
      · one name column, 36 px (edge 12 + a 16 px icon column + an 8 px gap): every row's name, the
        viewer's file name;
      · one spacing scale: 4 · 8 · 12 · 16; bars 40 px (the strip, the viewer's header); rows 28 px;
-       fields 30 px; small controls 24–28 px; radii 4 (chips) · 6 (fields, rows, buttons);
+       fields 30 px; small controls 24–28 px; radii from Plan F (css/tokens.css): 6 for chips, fields, rows, buttons;
      · two text sizes: 13 px (names, titles, inputs) and 12 px (what's secondary), one family (the UI's
        sans) with tabular figures for numbers; mono only for code and paths.
    File icons are the swarm's (Pierre Trees, js/fileicons.js), in their own colours. The left sidebar is

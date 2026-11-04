@@ -1,7 +1,7 @@
 /* The one dropdown (js/dropdown.js, <xo-select>), in place of the browser's own <select>.
    Its open list is the composer's model picker in small: the picker's surface (--pop-bg), its line
    (--pop-line), its shadow (lift-3 in light), its row type (14/20), its neutral 5 px dot for the
-   chosen row, its hover fill (--bg-3) and its fade-and-settle (.18 s, --glide; out in .14 s).
+   chosen row, its hover fill (--bg-3) and its fade-and-settle (Plan F: --d-in in, --d-out out, on --ease).
    On the 4/8/12 scale: the button is a control, 32 high (12 in, 8 to the chevron, 8 between);
    the list is 4 in, rows 32 high and 8 in, corners 8 inside 12 (8 + the 4 padding: concentric).
    The row's text starts on the button's text: the dot's column hangs out to the left. A row's name

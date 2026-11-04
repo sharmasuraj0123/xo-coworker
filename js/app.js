@@ -2670,7 +2670,7 @@ document.addEventListener("click", (e) => { const b = e.target.closest("[data-se
 function keysSheetRender() {
   const col = (ids) => `<dl class="keys">${ids.map((g) => `<dt class="kh">${esc(K.GROUPS.find((x) => x.id === g).name)}</dt><dd></dd>` +
     K.ACTIONS.filter((a) => a.scope === g).map((a) => `<dt><kbd>${esc(K.label(a.id))}</kbd></dt><dd>${esc(a.label)}</dd>`).join("")).join("")}</dl>`;
-  $("#keys-cols").innerHTML = col(["global"]) + col(["decision", "intel"]);
+  $("#keys-cols").innerHTML = col(["global", "picture"]) + col(["decision", "intel"]);
 }
 function keysPageRender() {
   const box = $("#set-keys-list");

@@ -5,7 +5,8 @@
      2 one focus ring; inset where a scroller would clip it         6 whole pixels: integer line heights
      3 press: small buttons .97; rows, tiles, tabs and cards never  7 side panels are flush, no shadow
      4 an icon centres on its first line of text                    8 nothing loops unless an agent works
-   Scale: 4 px steps; radii 6 · 8 · 12; controls 28 · 32; rows 36. */
+   Its numbers now come from Plan F in css/tokens.css (4 px steps; radii 6 · 12 · 20 · 22; controls 32;
+   rows 36); this file never defines a scale of its own (tests/design-budget.test.mjs). */
 
 :root{--sw:360px;--edge:16px;--row-h:36px;--press:.97}
 
