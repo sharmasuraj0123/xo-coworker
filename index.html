@@ -17,6 +17,10 @@
   <link rel="stylesheet" href="./css/links.css">
   <link rel="stylesheet" href="./css/artifacts.css">
   <link rel="stylesheet" href="./css/dropdown.css">
+  <!-- pictures and files in the conversation, and the lightbox (js/media.js, js/lightbox.js) -->
+  <link rel="stylesheet" href="./css/media.css">
+  <!-- the shape per person (js/shape.js): Settings › Shape, the first-run question, compact density -->
+  <link rel="stylesheet" href="./css/shape.css">
 </head>
 <body>
   <div class="app" id="app">
@@ -133,7 +137,7 @@
         <div class="set-body">
           <nav class="set-nav" aria-label="Settings" role="tablist">
             <button type="button" role="tab" data-set="general" aria-selected="true">General</button>
-            <button type="button" role="tab" data-set="appearance" aria-selected="false">Appearance</button>
+            <button type="button" role="tab" data-set="shape" aria-selected="false">Shape</button>
             <button type="button" role="tab" data-set="routing" aria-selected="false">Routing</button>
             <button type="button" role="tab" data-set="runtimes" aria-selected="false">Runtimes</button>
             <button type="button" role="tab" data-set="rules" aria-selected="false">Rules</button>
@@ -145,7 +149,8 @@
           <div class="set-page" role="tabpanel" data-page="general"><header class="set-ph"><h2>General</h2><p class="set-intro">How the conversation shows what happens behind it.</p></header>
             <div class="set-row"><div class="set-l"><b id="hops-l">Show how messages travel</b><span>Inside a thread, a quiet line each time a message passes between the workspace, a project's coordinator and the thread. Off unless you turn it on.</span></div><button type="button" class="switch" id="hops-tog" role="switch" aria-checked="false" aria-labelledby="hops-l"><span class="th-track" aria-hidden="true"><span class="th-knob"></span></span></button></div>
           </div>
-          <div class="set-page" role="tabpanel" data-page="appearance" hidden><header class="set-ph"><h2>Appearance</h2><p class="set-intro">How XO looks on this device.</p></header><p class="set-empty"><b>Nothing to set yet.</b> Appearance settings arrive here once the backend can keep them.</p></div>
+          <!-- Shape (js/shapeview.js): which parts of XO show, in what order and in which words; only ever by your choice -->
+          <div class="set-page" role="tabpanel" data-page="shape" hidden><header class="set-ph"><h2>Shape</h2><p class="set-intro">What XO shows you, and in which words. It changes only when you change it.</p></header><div class="shp"></div></div>
           <div class="set-page" role="tabpanel" data-page="routing" hidden><header class="set-ph"><h2>Routing</h2></header><div class="set-live"></div></div>
           <div class="set-page" role="tabpanel" data-page="runtimes" hidden><header class="set-ph"><h2>Runtimes</h2><p class="set-intro">The agents XO can run threads on, and where each project's work may go.</p></header><div class="set-live"></div></div>
           <div class="set-page" role="tabpanel" data-page="rules" hidden><header class="set-ph"><h2>Rules</h2></header><div class="set-live"></div></div>

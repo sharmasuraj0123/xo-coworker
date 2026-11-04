@@ -9,6 +9,7 @@ import { esc } from "./world.js";
 import { fileIcon } from "./fileicons.js";
 import { ICON, elapsed } from "./ui.js";
 import { renderMarkdown, renderInline } from "./markdown.js";
+import { mediaHtml, fromSharedFile, dedupeByMade } from "./media.js";
 
 const KIND_ICON = {
   create_file: "doc", edit_file: "edit", delete_file: "close", read: "eye", search: "search", list: "search",
@@ -23,7 +24,6 @@ const EXTRA = {
   dot: '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="2.2" fill="currentColor"/></svg>',
 };
 const icon = (k) => ICON[KIND_ICON[k]] || EXTRA[KIND_ICON[k]] || EXTRA.dot;
-const size = (n) => (n == null ? "" : n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(1)} MB`);
 const secs = (ms) => { if (ms == null || !Number.isFinite(ms)) return ""; const t = Math.max(1, Math.round(ms / 1000)); return t < 60 ? `${t}s` : `${Math.floor(t / 60)}m ${t % 60}s`; };
 
 function rowMark(r) {
@@ -50,8 +50,11 @@ function rowHtml(r, open) {
     (isOpen ? `<div class="tb-rb">${r.kind === "command" && r.target ? `<code class="tb-cmd">${esc(r.target)}</code>` : ""}${out ? `<pre class="tb-out">${esc(out)}</pre>` : r.status === "running" ? `<p class="tb-note">Output appears when it finishes.</p>` : ""}</div>` : "") + `</li>`;
 }
 
-/** One block. open: {blockId|row:callId → true}. live: the turn is still running. */
-function blockHtml(b, open, live, now) {
+/**
+ * One block. open: {blockId|row:callId → true}. live: the turn is still running. media: how its shared
+ * files are drawn (turnHtml's carried, route, by, at).
+ */
+function blockHtml(b, open, live, now, media = {}) {
   const isOpen = !!open[b.id];
   switch (b.type) {
     case "thinking": {
@@ -80,10 +83,18 @@ function blockHtml(b, open, live, now) {
         (isOpen || (live && !b.done) ? `<ol class="tb-plan-l">${items.map((i) => `<li class="ck ck-${esc(i.state)}"><span class="ck-m" aria-hidden="true">${mark(i.state)}</span><span>${renderInline(i.text || "", true)}</span></li>`).join("")}</ol>` : "") + `</div>`;
     }
     case "shared_files": {
-      const files = b.files || [];
-      return `<div class="tb tb-files"><p class="tb-fh">${ICON.doc}<span>${esc(b.header || "Shared files")}${b.caption ? ` · ${esc(b.caption)}` : ""}</span></p>` +
-        // each file opens in the viewer beside the conversation (if1 #2, js/viewer.js)
-        `<ul class="tb-fl">${files.map((f) => `<li class="tb-file"><button type="button" class="tb-fb" data-file="${esc(f.path || f.name)}" data-file-name="${esc(f.name || f.path)}" data-file-type="${esc(f.type || "")}" data-file-bytes="${esc(f.bytes ?? "")}" title="${esc(f.path || f.name)}" aria-label="Open ${esc(f.name || f.path)}"><span class="tb-fi">${fileIcon(f.name || f.path)}</span><span class="tb-ft"><span class="tb-fn">${esc(f.name || f.path)}</span><span class="tb-fm">${esc([String(f.type || "").split("/").pop(), size(f.bytes)].filter(Boolean).join(" · "))}</span></span><span class="tb-fo" aria-hidden="true">Open${ICON.chevron}</span></button></li>`).join("")}</ul></div>`;
+      // what an agent hands you is shown, not attached (js/media.js): its pictures in the conversation,
+      // its other files as cards that open in the viewer. A file its message carries too (the same
+      // made_id) shows there instead, never twice.
+      const all = b.files || [];
+      const files = dedupeByMade(all, media.carried || []);
+      if (!files.length) return "";
+      const items = files.map((f) => fromSharedFile(f, { route: media.route, by: media.by, at: media.at }));
+      const pics = items.some((it) => it.kind === "image");
+      if (pics) return `<div class="tb tb-files">${mediaHtml(items, { side: "them", caption: b.caption || "" })}</div>`;
+      // files alone keep their line: "Shared 3 files"
+      const header = files.length === all.length ? b.header || "Shared files" : `Shared ${files.length} ${files.length === 1 ? "file" : "files"}`;
+      return `<div class="tb tb-files"><p class="tb-fh">${ICON.doc}<span>${esc(header)}${b.caption ? ` · ${esc(b.caption)}` : ""}</span></p>${mediaHtml(items, { side: "them" })}</div>`;
     }
     case "narration":
       return `<div class="tb tb-narr prose">${renderMarkdown(b.text || "")}</div>`;
@@ -102,16 +113,35 @@ function blockHtml(b, open, live, now) {
 // show as chips, and a step that failed stays outside the fold. Opening the line shows every block
 // as before, on a thin rail.
 const WORK = new Set(["thinking", "activity", "narration"]);
+// The person's shape (js/shape.js, xo:thread/work), set by app.js: "raw" is the above; "words" folds every
+// turn's tool work into one plain line ("Changed 2 files and ran 3 checks"), with the commands and paths
+// kept for Details (opening the line), so nothing on screen reads like an engineer's terminal.
+let WORDS = false;
+export function setWorkMode(mode) { WORDS = mode === "words"; }
+const EDITS = new Set(["create_file", "edit_file", "delete_file"]);
+/** What a turn's steps did, in plain words. */
+function plainWork(rows) {
+  const steps = rows.filter((r) => r.kind !== "notice" && r.kind !== "error");
+  const edits = steps.filter((r) => EDITS.has(r.kind));
+  const files = new Set(edits.map((r) => r.target || r.call_id)).size;
+  const checks = steps.filter((r) => r.kind === "command").length;
+  const tools = steps.length - edits.length - checks;
+  const n = (k, one, many) => `${k} ${k === 1 ? one : many}`;
+  const parts = [files && `changed ${n(files, "file", "files")}`, checks && `ran ${n(checks, "check", "checks")}`, tools && `used ${n(tools, "tool", "tools")}`].filter(Boolean);
+  const s = !parts.length ? "thought it through" : parts.length < 2 ? parts[0] : `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
+  return s[0].toUpperCase() + s.slice(1);
+}
 const BAD = new Set(["error", "denied"]);
 const CHANGED = new Set(["create_file", "edit_file"]);
 const base = (p) => String(p || "").replace(/\/+$/, "").split("/").pop();
 
 /**
- * The files a finished turn created or edited, as chips (a file it also shared shows there instead).
+ * The files a finished turn created or edited, as chips: what it touched on the way stays a reference. A
+ * file it also shared (in a block, or on its message: `carried`) is a deliverable and shows there instead.
  * more: the data-tb key "+N more" opens (the work it hides).
  */
-function changedChips(rows, blocks, more) {
-  const shared = new Set(blocks.filter((b) => b.type === "shared_files").flatMap((b) => (b.files || []).map((f) => base(f.path || f.name))));
+function changedChips(rows, blocks, more, carried = []) {
+  const shared = new Set([...blocks.filter((b) => b.type === "shared_files").flatMap((b) => b.files || []), ...carried].map((f) => base(f.path || f.name)));
   const files = new Map();
   for (const r of rows) if (CHANGED.has(r.kind) && r.status === "ok" && r.target && !shared.has(base(r.target))) files.set(r.target, r);
   if (!files.size) return "";
@@ -122,7 +152,7 @@ function changedChips(rows, blocks, more) {
     (rest > 0 ? `<li><button type="button" class="tb-cf is-more" data-tb="${esc(more)}">+${rest} more</button></li>` : "") + `</ul>`;
 }
 
-function workFold(turn, work, blocks, open, live, now) {
+function workFold(turn, work, blocks, open, live, now, media = {}) {
   const key = `work:${turn.id}`;
   const isOpen = !!open[key];
   const rows = work.flatMap((b) => (b.type === "activity" ? b.rows || [] : []));
@@ -137,15 +167,15 @@ function workFold(turn, work, blocks, open, live, now) {
   const head = `<button type="button" class="tb-h tb-wh" data-tb="${esc(key)}" aria-expanded="${isOpen}">` +
     // while it runs, the agent's glowing tile beside the turn says so (turnAv); the line needs no spinner
     (live ? "" : `<span class="tb-hi">${ICON.list}</span>`) +
-    `<span class="tb-ht${live && !waiting ? " shimmer" : ""}">${live ? (waiting ? "Waiting for you" : "Working") : "Worked"}${time}</span>` +
-    (steps ? `<span class="tb-wn">${steps} ${steps === 1 ? "step" : "steps"}</span>` : "") + `<span class="tb-chev">${ICON.chevron}</span></button>`;
+    `<span class="tb-ht${live && !waiting ? " shimmer" : ""}">${live ? `${waiting ? "Waiting for you" : "Working"}${time}` : WORDS ? esc(plainWork(rows)) : `Worked${time}`}</span>` +
+    (WORDS && !live ? (took != null ? `<span class="tb-wn">${secs(took)}</span>` : "") : steps ? `<span class="tb-wn">${steps} ${steps === 1 ? "step" : "steps"}</span>` : "") + `<span class="tb-chev">${ICON.chevron}</span></button>`;
   if (isOpen) return `<div class="tb tb-work is-open${live ? " is-live" : ""}">${head}<div class="tb-rail">${work.map((b) => blockHtml(b, open, live, now)).join("")}</div></div>`;
   let under = "";
   if (live) {
     // the ticker: only the latest block, as it streams; older ones are in the count. A step that
     // waits on you shows wherever it is.
     const asks = rows.filter((r) => r.waiting);
-    under = asks.length ? `<ul class="tb-rows is-cur">${asks.map((r) => rowHtml(r, open)).join("")}</ul>` : blockHtml(work[work.length - 1], open, live, now);
+    under = asks.length ? `<ul class="tb-rows is-cur">${asks.map((r) => rowHtml(r, open)).join("")}</ul>` : WORDS ? "" : blockHtml(work[work.length - 1], open, live, now);
   } else {
     // a failed turn's own error is said in its last line already. A command that exited non-zero in a
     // turn that went on to finish is the agent feeling its way (`ls`, `which`): it stays in the fold,
@@ -153,8 +183,9 @@ function workFold(turn, work, blocks, open, live, now) {
     // or a real error step still shows.
     const routine = (r) => r.kind === "command" && r.status === "error" && turn.status !== "failed";
     const bad = rows.filter((r) => (BAD.has(r.status) || r.kind === "error") && !(turn.status === "failed" && r.kind === "error") && !routine(r));
-    if (bad.length) under += `<ul class="tb-rows tb-bad">${bad.slice(-3).map((r) => rowHtml(r, open)).join("")}</ul>`;
-    under += changedChips(rows, blocks, key);
+    // in words, a step that didn't work is said, not shown: what it ran is one click away, in Details
+    if (bad.length) under += WORDS ? `<p class="tb-note tb-wbad">${bad.length === 1 ? "One step" : `${bad.length} steps`} didn't work. Open the line above to see what happened.</p>` : `<ul class="tb-rows tb-bad">${bad.slice(-3).map((r) => rowHtml(r, open)).join("")}</ul>`;
+    under += changedChips(rows, blocks, key, media.carried);
   }
   return `<div class="tb tb-work${live ? " is-live" : ""}${waiting ? " is-waiting" : ""}">${head}${under}</div>`;
 }
@@ -175,22 +206,25 @@ function withoutWireNotices(b) {
 }
 
 /**
- * A turn's blocks as HTML. opts: {open, hideAnswer, now}. A turn that ended with no blocks
- * (the CLI said nothing) renders nothing; a stopped or failed turn says so in one quiet line.
+ * A turn's blocks as HTML. opts: {open, hideAnswer, now, carried, route, by}. A turn that ended with no
+ * blocks (the CLI said nothing) renders nothing; a stopped or failed turn says so in one quiet line.
  * Two or more work blocks fold into one line where the first of them was (hub #29).
+ * carried: the files the conversation's messages carry (a shared file among them isn't drawn twice);
+ * route(path): a shared file's project route ({project, rel} or {why}); by: who made them (the lightbox).
  */
-export function turnHtml(turn, blocks, { open = {}, hideAnswer = false, now = Date.now() } = {}) {
+export function turnHtml(turn, blocks, { open = {}, hideAnswer = false, now = Date.now(), carried = [], route = null, by = "" } = {}) {
+  const media = { carried, route, by, at: Date.parse(turn.at) || null };
   const live = turn.status === "running";
   const shown = blocks.filter((b) => !(hideAnswer && b.type === "answer")).map(withoutWireNotices).filter(Boolean);
   const work = shown.filter((b) => WORK.has(b.type));
-  const fold = work.length >= 2;
+  const fold = work.length >= 2 || (WORDS && work.some((b) => b.type === "activity"));
   const parts = [];
   for (const b of shown) {
-    if (fold && WORK.has(b.type)) { if (b === work[0]) parts.push(workFold(turn, work, shown, open, live, now)); continue; }
-    parts.push(blockHtml(b, open, live, now));
+    if (fold && WORK.has(b.type)) { if (b === work[0]) parts.push(workFold(turn, work, shown, open, live, now, media)); continue; }
+    parts.push(blockHtml(b, open, live, now, media));
     // a turn whose work is one tool group (codex often has no thinking or narration): its files show
     // under that group, as they would under the fold
-    if (b.type === "activity" && !live && b.done && !open[b.id]) parts.push(changedChips(b.rows || [], shown, b.id));
+    if (b.type === "activity" && !live && b.done && !open[b.id]) parts.push(changedChips(b.rows || [], shown, b.id, carried));
   }
   const html = parts.filter(Boolean);
   const end = turn.end || {};

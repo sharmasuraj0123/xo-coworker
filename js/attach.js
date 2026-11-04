@@ -84,10 +84,35 @@ export function pasteLabel(text) {
   return `Pasted text · ${n.toLocaleString("en")} line${n === 1 ? "" : "s"} · ${fmtSize(new TextEncoder().encode(String(text || "")).length)}`;
 }
 
-/** A stored message's files: extra.attachments, each {id, name, type, bytes}. */
+/**
+ * A stored message's files: extra.attachments. An upload of yours is {id, name, type, bytes}, read through
+ * its chat; a file an agent shared on its message has no id but its project's route instead: {project_id,
+ * relative_path, path, made_id, mtime}. Pictures also carry w, h and tint (null when the server couldn't
+ * read them, absent on uploads older than that); they're kept only when sent, so "unknown" stays unknown.
+ */
 export function attachmentsOf(row) {
   const list = row && row.extra && row.extra.attachments;
-  return Array.isArray(list) ? list.filter((a) => a && a.id).map((a) => ({ id: String(a.id), name: String(a.name || "file"), type: String(a.type || ""), bytes: a.bytes ?? null })) : [];
+  if (!Array.isArray(list)) return [];
+  const out = [];
+  for (const a of list) {
+    if (!a) continue;
+    const f = { name: String(a.name || "file"), type: String(a.type || ""), bytes: a.bytes ?? null };
+    if (a.id) f.id = String(a.id);
+    else if (a.project_id && a.relative_path) Object.assign(f, { project_id: String(a.project_id), relative_path: String(a.relative_path), path: String(a.path || a.relative_path) });
+    else continue; // no way to read it
+    if (a.made_id) f.made_id = String(a.made_id);
+    if (a.mtime != null) f.mtime = a.mtime;
+    Object.assign(f, picDims(a));
+    out.push(f);
+  }
+  return out;
+}
+
+/** A picture's w, h and tint as the server sent them (only the keys it sent). */
+export function picDims(a) {
+  const out = {};
+  for (const k of ["w", "h", "tint"]) if (a && k in a) out[k] = a[k];
+  return out;
 }
 
 /** image | pdf | text, from the server's type (which it sniffed from the bytes). */
@@ -143,7 +168,8 @@ export function createTray({ upload, onChange = () => {} }) {
     c.job = job;
     const mine = job.promise.then((a) => {
       if (c.job !== job) return c;
-      Object.assign(c, { id: a.id, name: a.name || c.name, type: a.type, bytes: a.bytes, state: "done", sent: c.size, job: null });
+      // a new upload's picture comes back with its size and tint, so the sent message reserves its box at once
+      Object.assign(c, { id: a.id, name: a.name || c.name, type: a.type, bytes: a.bytes, ...picDims(a), state: "done", sent: c.size, job: null });
       onChange();
       return c;
     }, (err) => {
@@ -227,7 +253,7 @@ export function createTray({ upload, onChange = () => {} }) {
         if (again || c.chat !== chat || !c.id) {
           const job = upload(chat, c.blob, c.name, {});
           const a = await job.promise;
-          Object.assign(c, { id: a.id, chat, name: a.name || c.name, type: a.type, bytes: a.bytes, state: "done" });
+          Object.assign(c, { id: a.id, chat, name: a.name || c.name, type: a.type, bytes: a.bytes, ...picDims(a), state: "done" });
         }
         ids.push(c.id);
       }

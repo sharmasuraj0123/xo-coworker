@@ -1,0 +1,96 @@
+/* Pictures and files in the conversation (js/media.js) and the lightbox (js/lightbox.js):
+   design-research/2026-11-vision/chat/proposal.md §1, §2, §7, §13. Plan F tokens only (css/tokens.css):
+   media take the cards' radius (--r-lg, 12) so a picture and a file are one family; nothing here casts a
+   shadow but the lightbox, which floats. A picture's box comes from js/media.js as three custom
+   properties on its element: --mx-w (its width at most), --mx-r (its shape, w/h) and --mx-tint (its
+   average colour, the fill while it loads). */
+
+/* ── where they sit: under an agent's words on its text column; above yours, on the right ───────── */
+.mx-stack{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0;max-width:100%}
+.mx-stack.mx-you{align-items:flex-end;width:100%}
+.prose+.mx-stack,.mx-stack+.prose{margin-top:12px}
+.m-you>.mx-stack+.bubble{margin-top:4px}
+.mx-stack>.tb-fl{margin:0}
+/* in a turn: a shared set sits 12 from the block above it (the turn's 6 + the block's 4 + 2); files alone keep
+   their "Shared 3 files" line 8 above them, as before */
+.tb-files>.mx-stack:first-child{margin-top:2px}
+.tb-fh+.mx-stack{margin-top:8px}
+
+/* ── one picture: bare, 12 px corners, a 1 px hairline drawn over it (it never shifts the layout) ── */
+.mx-one,.mx-tile{position:relative;display:block;padding:0;border:0;overflow:hidden;cursor:zoom-in;
+  background:var(--mx-tint,color-mix(in srgb,var(--ink) 6%,transparent));transition:background-color var(--d-in) var(--ease)}
+.mx-one{flex:none;width:min(100%,var(--mx-w));aspect-ratio:var(--mx-r);border-radius:var(--r-lg)}
+/* loaded: the tint has done its job; a transparent picture sits on the quiet media fill, not its own average */
+.mx-one.is-in,.mx-tile.is-in{background-color:color-mix(in srgb,var(--ink) 6%,transparent)}
+.mx-one::after,.mx-album::after{content:"";position:absolute;inset:0;z-index:2;border-radius:inherit;pointer-events:none;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 10%,transparent);transition:box-shadow var(--d-hover) var(--ease)}
+/* hover: nothing moves or scales; the edge darkens (120 ms in, 200 out) */
+.mx-one:hover::after,.mx-album:has(.mx-tile:hover)::after{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 16%,transparent)}
+.mx-img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;-webkit-user-drag:element}
+/* a long capture shows its top; a picture of unknown size and a banner are fitted, never upscaled */
+.mx-one.is-long .mx-img{object-position:top}
+.mx-one.is-frame .mx-img,.mx-one.is-banner .mx-img{object-fit:scale-down}
+.mx-one.is-tiny .mx-img{inset:0;width:var(--mx-iw);height:var(--mx-ih);margin:auto;object-fit:contain}
+.mx-tag{position:absolute;left:8px;bottom:8px;z-index:3;display:inline-flex;align-items:center;height:20px;padding:0 6px;border-radius:var(--r-sm);
+  background:rgb(0 0 0 / .56);color:#fff;font:500 var(--fs-xs)/var(--lh-12) var(--sans);letter-spacing:var(--tr-12);font-variant-numeric:tabular-nums;pointer-events:none}
+/* Loading… after 3 s, and Couldn't load · Retry: said on the picture itself, quietly */
+.mx-state{position:absolute;left:12px;right:12px;bottom:12px;z-index:3;font:400 var(--fs-xs)/var(--lh-12) var(--sans);letter-spacing:var(--tr-12);color:var(--ink-4);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;pointer-events:none}
+.mx-state:empty{display:none}
+.is-err>.mx-state{color:var(--ink-3)}
+.is-err{cursor:pointer}
+
+/* ── an album: justified rows 2 px apart, clipped once at 12 with the hairline once; tiles are square ── */
+.mx-album{position:relative;display:flex;flex-direction:column;gap:2px;flex:none;width:min(100%,var(--mx-w));border-radius:var(--r-lg);overflow:hidden;isolation:isolate}
+.mx-row{display:flex;gap:2px;aspect-ratio:var(--mx-r)}
+.mx-tile{flex:var(--mx-g) 1 0;min-width:0}
+.mx-tile:focus-visible{z-index:3;outline-offset:-2px}
+.mx-more{position:absolute;inset:0;z-index:2;display:grid;place-items:center;background:rgb(0 0 0 / .48);color:#fff;
+  font:600 var(--fs-2xl)/var(--lh-20) var(--sans);letter-spacing:var(--tr-20);font-variant-numeric:tabular-nums;pointer-events:none}
+
+/* an agent's words under a shared set */
+.mx-cap{max-width:66ch;font:400 var(--fs-md)/var(--lh-14) var(--sans);color:var(--ink-2)}
+
+/* the phone: an agent's at most the column × 420, yours min(75 %, 280) square (proposal §1) */
+@media (max-width:760px){
+  .mx-them>.mx-one{width:min(100%,var(--mx-w),calc(420px * var(--mx-r)))}
+  .mx-you>.mx-one{width:min(75%,280px,var(--mx-w),calc(280px * var(--mx-r)))}
+  .mx-you>.mx-album{width:min(75%,280px,var(--mx-w))}
+}
+
+/* ── the lightbox: over everything, on a dark scrim in both themes (a picture reads best on dark) ── */
+.lbx{position:fixed;inset:0;z-index:100;color-scheme:dark;outline:none;overscroll-behavior:contain;touch-action:none;
+  --lbx-ink:rgb(255 255 255 / .92);--lbx-ink-3:rgb(255 255 255 / .62);--lbx-ink-4:rgb(255 255 255 / .5);--lbx-fill:rgb(255 255 255 / .08);--lbx-fill-hover:rgb(255 255 255 / .14)}
+.lbx-scrim{position:absolute;inset:0;background:rgb(12 12 12 / .94);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px)}
+.lbx-stage{position:absolute;inset:0}
+.lbx-frame{position:fixed;overflow:hidden;border-radius:var(--r-xs);background:rgb(255 255 255 / .04)}
+.lbx-frame::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px rgb(255 255 255 / .1);pointer-events:none}
+.lbx-img{display:block;width:100%;height:100%;object-fit:cover;user-select:none;-webkit-user-drag:none}
+.lbx-frame.is-err::before{content:attr(data-err);position:absolute;inset:0;display:grid;place-items:center;font:400 var(--fs-xs)/var(--lh-12) var(--sans);color:var(--lbx-ink-3)}
+
+.lbx-bar{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:12px;height:48px;padding:0 8px 0 16px;color:var(--lbx-ink)}
+.lbx-t{flex:1;min-width:0;display:flex;flex-direction:column}
+.lbx-name{font:500 var(--fs-base)/var(--lh-13) var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lbx-by{font:400 var(--fs-xs)/var(--lh-12) var(--sans);letter-spacing:var(--tr-12);color:var(--lbx-ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lbx-by:empty{display:none}
+.lbx-meta{flex:none;font:400 var(--fs-xs)/var(--lh-12) var(--sans);color:var(--lbx-ink-4);font-variant-numeric:tabular-nums}
+.lbx-acts{flex:none;display:flex;align-items:center;gap:8px}
+.lbx-btn{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:var(--r);background:var(--lbx-fill);color:var(--lbx-ink);
+  font:500 var(--fs-base)/var(--lh-13) var(--sans);transition:background-color var(--d-hover) var(--ease)}
+.lbx-btn:hover{background:var(--lbx-fill-hover)}
+.lbx-btn svg{flex:none;width:16px;height:16px}
+.lbx-x{width:28px;padding:0;justify-content:center}
+.lbx-arrow{position:absolute;top:calc(50% - 20px);display:grid;place-items:center;width:40px;height:40px;border-radius:var(--r-lg);background:var(--lbx-fill);color:var(--lbx-ink);
+  transition:background-color var(--d-hover) var(--ease),opacity var(--d-hover) var(--ease)}
+.lbx-arrow:hover{background:var(--lbx-fill-hover)}
+.lbx-arrow:disabled{opacity:.32;cursor:default}
+.lbx-arrow.is-prev{left:8px}
+.lbx-arrow.is-next{right:8px}
+.lbx-count{position:absolute;left:0;right:0;bottom:24px;text-align:center;font:400 var(--fs-xs)/var(--lh-12) var(--sans);letter-spacing:var(--tr-12);color:var(--lbx-ink-3);font-variant-numeric:tabular-nums;pointer-events:none}
+.lbx :focus-visible{outline:2px solid rgb(255 255 255 / .8);outline-offset:2px}
+@media (max-width:760px){
+  .lbx-meta,.lbx-btn>span{display:none}
+  .lbx-btn{width:28px;padding:0;justify-content:center}
+  .lbx-count{bottom:16px}
+}
+@media (hover:none){.lbx-arrow{display:none}}

@@ -13,7 +13,7 @@ import { api, clientId as newClientId, NEWEST, coderHeaders, STORM_DOWN } from "
 import { SSEStream } from "./sse.js";
 import { createTurns } from "./blocks.js";
 import { tasksOf } from "./model.js";
-import { uiMsg, mergeRows, addReaction, stormAsks, mapLimit, currentPools, threadState, askingState, mainRuntime } from "./timeline.js";
+import { uiMsg, mergeRows, addReaction, updateMessage, stormAsks, mapLimit, currentPools, threadState, askingState, mainRuntime } from "./timeline.js";
 import { hostOf, askedBy } from "./review.js";
 import { isLimitItem, limitItem } from "./runtimes.js";
 
@@ -478,6 +478,17 @@ export function stormSource(state, emit, event) {
         if (inThread) { state.threadMsgs[ts] = inThread; soon(); break; }
         const project = projectOf(env.chat_id);
         const onTimeline = project && addReaction(state.timeline[project], d, env.ts);
+        if (onTimeline) { state.timeline[project] = onTimeline; soon(); }
+        break;
+      }
+      case "message.updated": {
+        // a message changed after it was sent: today, the files an agent shared after its turn's last reply,
+        // added to that reply's extra.attachments. Applied where we hold the row, like a reaction.
+        const ts = d.thread_ts || env.thread_ts;
+        const inThread = ts && updateMessage(state.threadMsgs[ts], d);
+        if (inThread) { state.threadMsgs[ts] = inThread; soon(); break; }
+        const project = projectOf(d.chat_id || env.chat_id);
+        const onTimeline = project && updateMessage(state.timeline[project], d);
         if (onTimeline) { state.timeline[project] = onTimeline; soon(); }
         break;
       }

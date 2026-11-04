@@ -1779,7 +1779,8 @@ button.kr-r:hover{background:var(--bg-3);color:var(--ink)}
 .tb-fb .tb-fi svg{width:20px;height:20px}
 .tb-ft{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
 .tb-fb .tb-fn{font:500 var(--fs-md)/20px var(--sans)}
-.tb-fb .tb-fm{font:400 var(--fs-sm)/16px var(--mono);color:var(--ink-4);font-variant-numeric:tabular-nums}
+/* a file's kind and size read in the interface face with tabular figures: mono is for code (audit A5) */
+.tb-fb .tb-fm{font:400 var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums}
 .tb-fo{flex:none;display:inline-flex;align-items:center;gap:2px;margin-left:6px;font:500 var(--fs-sm)/1 var(--sans);color:var(--ink-4);opacity:.0;transition:opacity var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .tb-fo svg{width:13px;height:13px;transform:rotate(-90deg)}
 .tb-fb:hover .tb-fo,.tb-fb:focus-visible .tb-fo{opacity:1;color:var(--ink-2)}

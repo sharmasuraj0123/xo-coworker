@@ -52,6 +52,20 @@ export function addReaction(list, d, at = null) {
   return next;
 }
 
+/**
+ * A `message.updated` event ({id, chat_id, thread_ts, extra}) onto the storm rows holding its message: a
+ * new list with that row's extra merged with the event's (files an agent shared after its turn's last
+ * reply arrive this way, on that reply), or null when the message isn't in `list`.
+ */
+export function updateMessage(list, d) {
+  const i = d && d.id ? (list || []).findIndex((r) => r && r.id === d.id) : -1;
+  if (i < 0 || !d.extra || typeof d.extra !== "object") return null;
+  const row = list[i];
+  const next = [...list];
+  next[i] = { ...row, extra: { ...(row.extra || {}), ...d.extra } };
+  return next;
+}
+
 /** A message's reactions grouped by emoji, first-seen order: [{emoji, count, by: [session ids]}]. */
 export function reactionGroups(reactions) {
   const by = new Map();
