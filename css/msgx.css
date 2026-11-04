@@ -1,7 +1,7 @@
-/* Message looks and replies, an exploration (js/msgx.js; thread "Message styles & replies", xo/thread-682d17).
+/* Bubbles and replies, an exploration (js/msgx.js; thread "Message styles & replies", xo/thread-682d17).
    Every value comes from css/tokens.css. Corners nest: an inner radius is the outer one minus the inset
    between them (the switch 20 → 15 at 5 in, the composer's reply 28 → 18 at 10 in, a quote in a bubble
-   20 → 13 at 7 in). Remove this file, js/msgx.js and their two lines in index.html to take it all out. */
+   20 → 13 at 7 in). Remove this file, js/msgx.js and their lines in index.html to take it all out. */
 
 /* ── the switch over the conversation ─────────────────────────────────────── */
 .mx-switch{position:absolute;z-index:6;top:calc(var(--mx-top,66px) + 8px);left:calc(var(--gut) + (100% - 2 * var(--gut) - var(--rp)) / 2);transform:translateX(-50%);display:flex;align-items:center;gap:4px;height:40px;padding:4px;border:1px solid var(--line);border-radius:var(--r-pill);background:color-mix(in srgb,var(--bg-2) 90%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);box-shadow:var(--e2),var(--hairline)}
@@ -75,79 +75,58 @@
 #msgs.mx-pulling>.m::after{opacity:calc(var(--mx-pull,0) / 64);transform:translateX(calc((64 - var(--mx-pull,0)) * 1px));transition:none}
 #msgs.mx-pulling>.m>*:not(.mx-acts){transform:translateX(calc(var(--mx-pull,0) * -1px));transition:none}
 
-/* Spotlight: your latest message and what follows stay lit; the rest recedes until you point at it */
-:root[data-msgx-spot] #msgs>*{transition:opacity var(--d-slow) var(--ease)}
-:root[data-msgx-spot] #msgs>:not(.mx-lit){opacity:.3}
-:root[data-msgx-spot] #msgs>:not(.mx-lit):hover{opacity:1;transition-duration:var(--d-in)}
+/* ── Bubbles ─────────────────────────────────────────────────────────────────
+   Tones for your bubbles (the switch). Theirs are always stone (--bubble). No white: the contrast comes
+   from tone, and the text stays --ink on both. */
+:root[data-msgx]{--mx-you:color-mix(in srgb,var(--ink) 15%,var(--bg));--mx-you-line:transparent;--mx-you-ink:var(--ink)}
+:root[data-msgx-tone="moss"]{--mx-you:color-mix(in srgb,var(--accent-fill) 19%,var(--bg))}
+:root[data-theme="light"][data-msgx-tone="moss"]{--mx-you:color-mix(in srgb,var(--accent-fill) 24%,var(--bg))}
+:root[data-msgx-tone="glass"]{--mx-you:color-mix(in srgb,var(--ink) 8%,transparent);--mx-you-line:color-mix(in srgb,var(--ink) 14%,transparent)}
+:root[data-msgx-tone="outline"]{--mx-you:transparent;--mx-you-line:color-mix(in srgb,var(--ink) 26%,transparent)}
 
-/* ── Bubbles: both sides in bubbles, like Messages ─────────────────────────── */
-:root[data-msgx="bubbles"] #msgs>.m{margin-bottom:16px}
-:root[data-msgx="bubbles"] #msgs>.m.cont{margin-top:-14px}
-:root[data-msgx="bubbles"] .m-them{grid-template-columns:28px minmax(0,1fr);gap:8px}
-:root[data-msgx="bubbles"] .m-them>.av{width:28px;height:28px;margin-top:20px;border-radius:50%}
-:root[data-msgx="bubbles"] .m-them>.av-gap{height:0;margin:0}
-:root[data-msgx="bubbles"] .m-them .mh{min-height:0;padding:0 0 4px 16px}
-:root[data-msgx="bubbles"] .m-them .mh b{font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
-:root[data-msgx="bubbles"] .m-them .mh :is(time,.role,.m-iq){display:none}
-:root[data-msgx="bubbles"] .m-them>.mb>.prose,:root[data-msgx="bubbles"] .m-turn .tb-answer{width:fit-content;max-width:min(88%,560px);padding:10px 16px;border:1px solid var(--bubble-line);border-radius:var(--r-xl);background:var(--bubble)}
-:root[data-msgx="bubbles"] .m-them:has(+ .m-them.cont)>.mb>.prose{border-bottom-left-radius:var(--r-sm)}
-:root[data-msgx="bubbles"] .m-them.cont>.mb>.prose{border-top-left-radius:var(--r-sm)}
-:root[data-msgx="bubbles"] .m-you .bubble{border-color:transparent;border-radius:var(--r-xl);background:var(--ink);color:var(--bg)}
-:root[data-msgx="bubbles"] .m-you:has(+ .m-you.cont) .bubble{border-bottom-right-radius:var(--r-sm)}
-:root[data-msgx="bubbles"] .m-you.cont .bubble{border-top-right-radius:var(--r-sm)}
-:root[data-msgx="bubbles"] .m-you.is-relay .bubble{border:1px dashed var(--g3C);background:transparent;color:var(--ink)}
-:root[data-msgx="bubbles"] #msgs>.m-them>.mx-swipe{left:-2px}
+/* rhythm: 16 between runs, 2 between one sender's bubbles */
+:root[data-msgx] #msgs>.m{margin-bottom:16px}
+:root[data-msgx] #msgs>.m.cont{margin-top:-14px}
 
-/* ── Script: a transcript; who speaks sits in the margin, everyone reads from one edge ── */
-:root[data-msgx="script"] #msgs>.m{padding-left:152px}
-:root[data-msgx="script"] .m-them{display:block}
-:root[data-msgx="script"] .m-them>.av{display:none}
-:root[data-msgx="script"] .m-them .mh{position:absolute;left:0;top:0;width:128px;min-height:0;padding-top:2px;display:flex;flex-direction:column;align-items:flex-end;gap:0;text-align:right}
-:root[data-msgx="script"] .m-them .mh b{font:500 var(--fs-sm)/20px var(--sans);color:var(--ink-3)}
-:root[data-msgx="script"] .m-them .mh time{font:400 var(--fs-xs)/16px var(--mono);color:var(--ink-4)}
-:root[data-msgx="script"] .m-them .mh :is(.role,.m-iq){display:none}
-:root[data-msgx="script"] :is(.m-you,.m-turn)[data-mx-who]::before{content:attr(data-mx-who);position:absolute;left:0;top:2px;width:128px;font:600 var(--fs-sm)/20px var(--sans);color:var(--ink);text-align:right}
-:root[data-msgx="script"] .m-turn[data-mx-who]::before{font-weight:500;color:var(--ink-3)}
-:root[data-msgx="script"] .m-you{align-items:stretch}
-:root[data-msgx="script"] .m-you .bubble{max-width:none;padding:0;border:0;border-radius:0;background:none;font-weight:500}
-:root[data-msgx="script"] .m-you .meta,:root[data-msgx="script"] .m-you .route-row,:root[data-msgx="script"] .m-you .m-reacts{justify-content:flex-start;padding-right:0}
-:root[data-msgx="script"] .m-you .bubble>.mx-swipe{left:-196px}
-:root[data-msgx="script"] #msgs>.ev{margin-left:152px}
-:root[data-msgx="script"] #msgs>.m>.mx-swipe{left:96px}
+/* yours */
+:root[data-msgx] .m-you .bubble{border:1px solid var(--mx-you-line);border-radius:var(--r-xl);background:var(--mx-you);color:var(--mx-you-ink)}
+:root[data-msgx-tone="glass"] .m-you .bubble{-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:var(--hairline)}
+:root[data-msgx] .m-you:has(+ .m-you.cont) .bubble{border-bottom-right-radius:var(--r-sm)}
+:root[data-msgx] .m-you.cont .bubble{border-top-right-radius:var(--r-sm)}
+:root[data-msgx] .m-you.is-relay .bubble{border:1px dashed var(--g3C);background:transparent}
 
-/* ── Pages: what you ask becomes the heading; the reply is the page under it ── */
-:root[data-msgx="pages"] #msgs>.m-you{align-items:stretch;margin-top:48px;padding-top:40px;border-top:1px solid var(--line-soft)}
-:root[data-msgx="pages"] #msgs>.m-you:first-child,:root[data-msgx="pages"] #msgs>.day+.m-you{margin-top:8px;padding-top:0;border-top:0}
-:root[data-msgx="pages"] #msgs>.m-you.cont{margin-top:-12px;padding-top:0;border-top:0}
-:root[data-msgx="pages"] .m-you .bubble{max-width:none;padding:0;border:0;border-radius:0;background:none;font:500 var(--fs-2xl)/28px var(--sans);letter-spacing:var(--tr-20);color:var(--ink)}
-:root[data-msgx="pages"] .m-you .meta,:root[data-msgx="pages"] .m-you .route-row,:root[data-msgx="pages"] .m-you .m-reacts{justify-content:flex-start;margin-top:8px;padding-right:0}
-:root[data-msgx="pages"] .m-them{grid-template-columns:minmax(0,1fr)}
-:root[data-msgx="pages"] .m-them>.av{display:none}
-:root[data-msgx="pages"] .m-them .mh{min-height:0;padding:0 0 8px}
-:root[data-msgx="pages"] .m-them .mh b{font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
-:root[data-msgx="pages"] .m-them .mh :is(.role,.m-iq){display:none}
-:root[data-msgx="pages"] .m-you .bubble>.mx-swipe{top:0}
+/* theirs: a round avatar, the name over the first bubble, stone bubbles */
+:root[data-msgx] .m-them{grid-template-columns:28px minmax(0,1fr);gap:8px}
+:root[data-msgx] .m-them>.av{width:28px;height:28px;margin-top:20px;border-radius:50%}
+:root[data-msgx] .m-them>.av-gap{height:0;margin:0}
+:root[data-msgx] .m-them .mh{min-height:0;padding:0 0 4px 16px}
+:root[data-msgx] .m-them .mh b{font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
+:root[data-msgx] .m-them .mh :is(time,.role,.m-iq){display:none}
+:root[data-msgx] :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text){position:relative;width:fit-content;max-width:min(88%,560px);padding:10px 16px;border-radius:var(--r-xl);background:var(--bubble)}
+:root[data-msgx] .m-them:has(+ .m-them.cont)>.mb>.prose{border-bottom-left-radius:var(--r-sm)}
+:root[data-msgx] .m-them.cont>.mb>.prose{border-top-left-radius:var(--r-sm)}
+:root[data-msgx] #msgs>.m-them>.mx-swipe{left:-2px}
 
-/* ── Duet: you on the left, replies on the right; your question stays beside its answer ── */
-@media (min-width:1000px){
-  :root[data-msgx="duet"] .conv .column{max-width:1040px}
-  :root[data-msgx="duet"] #msgs{display:grid;grid-template-columns:280px minmax(0,1fr);column-gap:40px;align-items:start}
-  :root[data-msgx="duet"] #msgs>*{grid-column:2}
-  :root[data-msgx="duet"] #msgs>:is(.day,.hist,.m-note,.lim-ban){grid-column:1 / -1}
-  :root[data-msgx="duet"] #msgs>.m-you{grid-column:1;grid-row:span var(--mx-span,1);align-self:stretch;margin-top:0}
-  :root[data-msgx="duet"] #msgs>.m-you>.bubble{position:sticky;top:64px;max-width:100%}
-  :root[data-msgx="duet"] #msgs>.m-you>:is(.meta,.route-row){position:sticky;top:64px}
-}
+/* The agent's work before it answers reads as part of its message: its name first, then what it did as
+   one quiet line on the bubble's text edge, then the bubble. The name over the bubble isn't said twice. */
+:root[data-msgx] .m-turn>.mb[data-mx-who]::before{content:attr(data-mx-who);display:block;padding:0 0 4px 16px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
+:root[data-msgx] .m-turn .turn{gap:4px;max-width:none}
+:root[data-msgx] .m-turn .turn>.tb>.tb-h{width:fit-content;min-height:28px;margin:0;padding:4px 12px 4px 16px;border-radius:var(--r-pill);font-size:var(--fs-sm);line-height:20px}
+:root[data-msgx] .m-turn .turn>.tb>.tb-h :is(.tb-ht,.tb-wn){font-size:var(--fs-sm)}
+:root[data-msgx] .m-turn .turn>.tb>.tb-h:hover{background:var(--hover-fill)!important}
+:root[data-msgx] .m-turn .turn>.tb:is(.is-open,:has(.tb-rows))>.tb-h{background:var(--hover-fill)!important}
+:root[data-msgx] .m-turn .turn>.tb>:not(.tb-h){margin-left:16px}
+:root[data-msgx] .m-turn+.m-them>.mb>.mh{display:none}
+:root[data-msgx] .m-turn+.m-them>.av{margin-top:0}
+:root[data-msgx] #msgs>.m-turn+.m-them{margin-top:-12px}
 
-/* ── Letters: each message a letter in the serif, signed at its end ─────────── */
-:root[data-msgx="letters"] #msgs>.m{margin-bottom:40px}
-:root[data-msgx="letters"] #msgs>.m.cont{margin-top:-28px}
-:root[data-msgx="letters"] .m-them>.av,:root[data-msgx="letters"] .m-them .mh{display:none}
-:root[data-msgx="letters"] .m-them>.mb>.prose,:root[data-msgx="letters"] .m-turn .tb-answer,:root[data-msgx="letters"] .m-you .bubble{font-family:var(--serif);font-size:var(--fs-doc);line-height:var(--lh-doc)}
-:root[data-msgx="letters"] .m-you{align-items:stretch;padding-left:20%}
-:root[data-msgx="letters"] .m-you .bubble{max-width:none;padding:0 0 0 20px;border:0;border-left:1px solid var(--line);border-radius:0;background:none;color:var(--ink-2);font-style:italic}
-:root[data-msgx="letters"] .m-you .meta{display:none}
-:root[data-msgx="letters"] .m-them{display:flex;flex-direction:column;align-items:stretch}
-:root[data-msgx="letters"] #msgs>.m[data-mx-sign]::before{content:attr(data-mx-sign);order:9;margin-top:12px;font:italic 400 var(--fs-md)/20px var(--serif);color:var(--ink-3)}
-:root[data-msgx="letters"] #msgs>.m-you[data-mx-sign]::before{padding-left:21px}
-:root[data-msgx="letters"] .m-you .bubble>.mx-swipe{font-style:normal}
+/* a few emoji and nothing else are the message: large, no bubble */
+:root[data-msgx] .mx-emoji :is(.bubble,.prose){padding:0;border:0;background:none!important;font-size:var(--fs-4xl);line-height:var(--lh-40)}
+:root[data-msgx] .mx-emoji :is(.bubble,.prose)::after{content:none}
+
+/* Tails: the last bubble of a run grows a small tail at its foot, as in Messages (not on an outline) */
+:root[data-msgx-tails]:not([data-msgx-tone="outline"]) .m-you:not(:has(+ .m-you.cont)) .bubble{border-bottom-right-radius:0}
+:root[data-msgx-tails] .m-them:not(:has(+ .m-them.cont))>.mb>.prose,:root[data-msgx-tails] .m-turn .turn>:is(.tb-answer,.tb-text):last-child{border-bottom-left-radius:0}
+:root[data-msgx-tails]:not([data-msgx-tone="outline"]) .m-you:not(:has(+ .m-you.cont)) .bubble::after,:root[data-msgx-tails] .m-them:not(:has(+ .m-them.cont))>.mb>.prose::after,:root[data-msgx-tails] .m-turn .turn>:is(.tb-answer,.tb-text):last-child::after{content:"";position:absolute;bottom:-1px;right:-7px;width:7px;height:16px;background:inherit;-webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 16'><path d='M0 0C0 8 2.5 13.5 7 16H0Z'/></svg>") 0 0/100% 100% no-repeat;mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 16'><path d='M0 0C0 8 2.5 13.5 7 16H0Z'/></svg>") 0 0/100% 100% no-repeat}
+:root[data-msgx-tails] :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text)::after{right:auto;left:-7px;bottom:0;transform:scaleX(-1)}
+:root[data-msgx-tails][data-msgx-tone="glass"] .m-you .bubble::after{background:var(--mx-you)}

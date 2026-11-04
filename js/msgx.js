@@ -1,11 +1,11 @@
-// Message looks and replies, an exploration (thread "Message styles & replies", branch xo/thread-682d17).
+// Bubbles and replies, an exploration (thread "Message styles & replies", branch xo/thread-682d17).
 // Not part of app.js: it only reads #msgs and decorates what the app draws, so it comes out by deleting
-// this file, css/msgx.css and their two lines in index.html. Nothing here sends anything on its own: a
+// this file, css/msgx.css and their lines in index.html. Nothing here sends anything on its own: a
 // reply only adds a quote ("> …") to the message you send yourself.
 //
-//   Looks (a switch over the conversation; also ?msgx=<look>): Now · Bubbles · Script · Pages · Duet · Letters
-//   Spotlight: everything before your latest message recedes
-//   Replies, in every look:
+//   Bubbles, with a switch over the conversation for the tone of yours (also ?tone=<id>):
+//     Graphite · Moss · Glass · Outline, and Tails on the last bubble of a run
+//   Replies:
 //     · hover a message: Reply and Copy on a small glass bar
 //     · select words in a message: "Reply to this" quotes exactly them
 //     · swipe a message right (trackpad or touch): reply, like WhatsApp
@@ -20,37 +20,36 @@ const IC = {
   copy: I('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/>'),
   check: I('<path d="m5 12.5 4.5 4.5L19 7.5"/>'),
   close: I('<path d="M6 6l12 12M18 6 6 18"/>'),
-  spot: I('<circle cx="12" cy="12" r="3.5"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/>'),
+  tail: I('<path d="M5 5h11a4 4 0 0 1 4 4v4a4 4 0 0 1-4 4H9c-1.5 1.6-3.2 2.4-5 2.5 1-1.2 1-2.7 1-4.5z"/>'),
 };
 
-const LOOKS = [
-  { id: "now", name: "Now", hint: "Today's build, with the new ways to reply" },
-  { id: "bubbles", name: "Bubbles", hint: "Both sides in bubbles, like Messages · swipe left for the times" },
-  { id: "script", name: "Script", hint: "A transcript: who speaks in the margin, one reading edge for everyone" },
-  { id: "pages", name: "Pages", hint: "What you ask becomes the heading; the reply is the page under it" },
-  { id: "duet", name: "Duet", hint: "You on the left, replies on the right; your question stays while you read" },
-  { id: "letters", name: "Letters", hint: "Each message a letter in the serif, signed at the end" },
+const TONES = [
+  { id: "graphite", name: "Graphite", hint: "Yours in soft graphite, theirs in stone: contrast from tone, not white" },
+  { id: "moss", name: "Moss", hint: "Yours quietly tinted with XO's green, like deep moss" },
+  { id: "glass", name: "Glass", hint: "Yours in frosted glass with a fine edge, theirs in stone" },
+  { id: "outline", name: "Outline", hint: "Yours drawn as an outline, theirs filled" },
 ];
-const KEY = "cv-msgx", SPOT = "cv-msgx-spot";
-const fromUrl = new URLSearchParams(location.search).get("msgx");
-let look = LOOKS.some((l) => l.id === fromUrl) ? fromUrl : (localStorage.getItem(KEY) || "now");
-if (!LOOKS.some((l) => l.id === look)) look = "now";
-let spot = localStorage.getItem(SPOT) === "1";
+const KEY = "cv-msgx-tone", TAILS = "cv-msgx-tails";
+const fromUrl = new URLSearchParams(location.search).get("tone");
+let tone = TONES.some((t) => t.id === fromUrl) ? fromUrl : (localStorage.getItem(KEY) || "graphite");
+if (!TONES.some((t) => t.id === tone)) tone = "graphite";
+let tails = localStorage.getItem(TAILS) !== "0";
 
 function apply() {
-  if (look === "now") delete root.dataset.msgx; else root.dataset.msgx = look;
-  if (spot) root.dataset.msgxSpot = ""; else delete root.dataset.msgxSpot;
-  try { localStorage.setItem(KEY, look); localStorage.setItem(SPOT, spot ? "1" : "0"); } catch { /* private mode */ }
-  for (const b of sw.querySelectorAll("[data-look]")) b.setAttribute("aria-checked", String(b.dataset.look === look));
-  sw.querySelector("[data-spot]").setAttribute("aria-pressed", String(spot));
+  root.dataset.msgx = "bubbles";
+  root.dataset.msgxTone = tone;
+  if (tails) root.dataset.msgxTails = ""; else delete root.dataset.msgxTails;
+  try { localStorage.setItem(KEY, tone); localStorage.setItem(TAILS, tails ? "1" : "0"); } catch { /* private mode */ }
+  for (const b of sw.querySelectorAll("[data-tone]")) b.setAttribute("aria-checked", String(b.dataset.tone === tone));
+  sw.querySelector("[data-tails]").setAttribute("aria-pressed", String(tails));
   decorate();
 }
 
 // ── the switch: a glass bar over the conversation ──────────────────────────
 const sw = document.createElement("div");
 sw.className = "mx-switch";
-sw.innerHTML = `<div class="mx-seg" role="radiogroup" aria-label="How messages look">${LOOKS.map((l) => `<button type="button" role="radio" data-look="${l.id}" title="${l.hint}">${l.name}</button>`).join("")}</div>` +
-  `<button type="button" class="mx-spot" data-spot aria-pressed="false" title="Spotlight: everything before your latest message recedes">${IC.spot}<span>Spotlight</span></button>`;
+sw.innerHTML = `<div class="mx-seg" role="radiogroup" aria-label="Your bubbles">${TONES.map((t) => `<button type="button" role="radio" data-tone="${t.id}" title="${t.hint}">${t.name}</button>`).join("")}</div>` +
+  `<button type="button" class="mx-spot" data-tails aria-pressed="false" title="A small tail on the last bubble of a run">${IC.tail}<span>Tails</span></button>`;
 const hint = document.createElement("p");
 hint.className = "mx-hint"; hint.setAttribute("aria-live", "polite");
 let hintT = 0;
@@ -59,9 +58,9 @@ function say(text) {
   clearTimeout(hintT); hintT = setTimeout(() => hint.classList.remove("is-on"), 2600);
 }
 sw.addEventListener("click", (e) => {
-  const b = e.target.closest("[data-look]");
-  if (b) { look = b.dataset.look; apply(); say(LOOKS.find((l) => l.id === look).hint); return; }
-  if (e.target.closest("[data-spot]")) { spot = !spot; apply(); say(spot ? "Spotlight on: the latest exchange stays lit, hover to read the rest" : "Spotlight off"); }
+  const b = e.target.closest("[data-tone]");
+  if (b) { tone = b.dataset.tone; apply(); say(TONES.find((t) => t.id === tone).hint); return; }
+  if (e.target.closest("[data-tails]")) { tails = !tails; apply(); say(tails ? "Tails on: the last bubble of a run has a small tail" : "Tails off"); }
 });
 const conv = $("#conv");
 conv.append(sw, hint);
@@ -74,6 +73,10 @@ ro.observe($("#top")); ro.observe($("#thead"));
 const msgs = $("#msgs");
 function nameIn(m) {
   if (m.classList.contains("m-you")) return "You";
+  if (m.classList.contains("m-turn")) {
+    const n = m.nextElementSibling?.querySelector(":scope .mh b") || [...msgs.querySelectorAll(".m-them .mh b")].pop();
+    return n ? n.textContent.trim() : "Agent";
+  }
   for (let el = m; el; el = el.previousElementSibling) {
     const b = el.querySelector(":scope .mh b");
     if (b) return b.textContent.trim();
@@ -113,10 +116,8 @@ function quoteCard(m) {
 
 function decorate() {
   const kids = [...msgs.children];
-  let lastYou = -1;
-  kids.forEach((el, i) => {
+  kids.forEach((el) => {
     if (!el.classList.contains("m") && !el.classList.contains("ev")) return;
-    if (el.classList.contains("m-you")) lastYou = i;
     if (!el.dataset.mxTime) { const t = timeIn(el); if (t) el.dataset.mxTime = t; }
     if (!el.classList.contains("m") || el._mx) return;
     el._mx = true;
@@ -131,26 +132,20 @@ function decorate() {
     // the swipe's arrow: beside your bubble, or in the gap a reply leaves on the left
     (el.classList.contains("m-you") && el.querySelector(".bubble") || el).append(arrow);
   });
-  // who speaks (on the first of a run) and the signature (on the last), for the looks that name them
-  const ms = kids.filter((el) => el.classList.contains("m"));
-  ms.forEach((el, i) => {
-    const next = ms[i + 1];
-    const first = !el.classList.contains("cont") && !(el.classList.contains("m-turn") && ms[i - 1] && ms[i - 1].nextElementSibling === el && ms[i - 1].classList.contains("m-them"));
-    const last = !(next && next === el.nextElementSibling && (next.classList.contains("cont") || next.classList.contains("m-turn")) && next.classList.contains("m-you") === el.classList.contains("m-you"));
-    const who = nameIn(el);
-    if (first) el.dataset.mxWho = who; else delete el.dataset.mxWho;
-    if (last) el.dataset.mxSign = `— ${who}${el.dataset.mxTime ? `, ${el.dataset.mxTime}` : ""}`; else delete el.dataset.mxSign;
-  });
-  // Spotlight: your latest message and everything after it stay lit
-  kids.forEach((el, i) => el.classList.toggle("mx-lit", lastYou < 0 || i >= lastYou));
-  // Duet: your message spans the rows of the replies that follow it, so it can stay in view beside them
-  if (look === "duet") {
-    for (let i = 0; i < kids.length; i++) {
-      if (!kids[i].classList.contains("m-you")) continue;
-      let n = 0;
-      for (let j = i + 1; j < kids.length && !kids[j].classList.contains("m-you") && !kids[j].classList.contains("day"); j++) n++;
-      kids[i].style.setProperty("--mx-span", String(Math.max(1, n)));
-    }
+  // a few emoji and nothing else are the message itself: large, without a bubble
+  for (const el of kids) {
+    if (!el.classList.contains("m") || el._mxe === el.textContent) continue;
+    el._mxe = el.textContent;
+    const t = (el.querySelector(".bubble") || el.querySelector(".mb > .prose, .tb-answer"))?.textContent.trim() || "";
+    el.classList.toggle("mx-emoji", t.length > 0 && t.length <= 16 && /^(?:\p{Extended_Pictographic}|\p{Emoji_Component}|\u200d|\ufe0f|\s)+$/u.test(t) && !/^[\d#*\s]+$/.test(t));
+  }
+  // the agent's work before its answer carries the agent's name, unless the agent was just speaking
+  for (const el of kids) {
+    if (!el.classList.contains("m-turn")) continue;
+    const mb = el.querySelector(":scope > .mb");
+    const prev = el.previousElementSibling;
+    const cont = prev && (prev.classList.contains("m-them") || prev.classList.contains("m-turn"));
+    if (mb && !cont) mb.dataset.mxWho = nameIn(el); else if (mb) delete mb.dataset.mxWho;
   }
 }
 new MutationObserver(decorate).observe(msgs, { childList: true });
