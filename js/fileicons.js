@@ -1,70 +1,67 @@
 // File icons: one resolver for every place a file shows (Files, Made, the viewer's header, the Map, a
 // turn's file chips, links in chat), so a file looks the same everywhere.
 //
-// The set is Lucide's (js/vendor/lucide, ISC): quiet line glyphs in the text's own colour, the way
-// Claude's own interface shows files. A file's kind is told by its glyph (code, data, text, image,
-// sheet, archive, terminal, config…), matched by exact filename first (README, LICENSE, package.json,
-// Dockerfile…), then by extension, with a plain page for anything else. Folders have an open state.
+// The set is the swarm's: Pierre Trees' "complete" coloured icons (js/vendor/pierre, Apache-2.0), its
+// glyphs, its filename and extension rules and its colours, each with a light-theme and a dark-theme
+// value. A file is matched as Pierre matches it: exact filename (package.json, Dockerfile,
+// vite.config.ts…), then each extension from the longest (".d.ts", ".env.local") to the last, with
+// its plain page for anything else. Folders keep a quiet line glyph (Pierre shows folders by their
+// chevron; the Map and Made still want a folder mark).
 //
-// API (kept for every caller): fileIcon(name), folderIcon(open), iconKey(name), fileColor(name) (null:
-// the icons take the text's colour), FOLDER_ICON, FOLDER_OPEN_ICON.
+// API (kept for every caller): fileIcon(name), folderIcon(open), iconKey(name), fileColor(name),
+// FOLDER_ICON, FOLDER_OPEN_ICON. An icon is an inline <svg class="fi"> carrying its two colours as
+// --fi-l / --fi-d; css/panel.css picks the one for the theme.
 
+import { PIERRE } from "./vendor/pierre/icons.js";
 import { LUCIDE } from "./vendor/lucide/files.js";
 
-const svg = (name, label) => `<svg class="fi" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-fi="${label}">${LUCIDE[name]}</svg>`;
+const { symbols, plainFile, names, exts, overrides, colors } = PIERRE;
+const GRAY = colors.default || ["#84848a", "#adadb1"];
 
-// what each kind is drawn with
-const GLYPH = {
-  code: "file-code", data: "file-braces", config: "file-cog", text: "file-text", readme: "book-open", license: "scale",
-  sheet: "file-spreadsheet", db: "file-database", shell: "file-terminal", image: "file-image", font: "file-type",
-  archive: "file-archive", lock: "file-lock", secret: "file-key", diff: "file-diff", container: "file-box", file: "file",
+const draw = (vb, body, token) => {
+  const [l, d] = colors[token] || GRAY;
+  return `<svg class="fi" viewBox="${vb}" width="16" height="16" aria-hidden="true" data-fi="${token}" style="--fi-l:${l};--fi-d:${d}">${body}</svg>`;
 };
-const ICONS = Object.fromEntries(Object.entries(GLYPH).map(([k, n]) => [k, svg(n, k)]));
+const cache = new Map();
 
-export const FOLDER_ICON = svg("folder", "folder");
-export const FOLDER_OPEN_ICON = svg("folder-open", "folder-open");
-
-const BY_NAME = {
-  "package.json": "data", "package-lock.json": "lock", "yarn.lock": "lock", "pnpm-lock.yaml": "lock", "bun.lockb": "lock",
-  "cargo.lock": "lock", "poetry.lock": "lock", "uv.lock": "lock", "gemfile.lock": "lock", "go.sum": "lock",
-  "dockerfile": "container", "docker-compose.yml": "container", "docker-compose.yaml": "container", "compose.yaml": "container", ".dockerignore": "container",
-  ".gitignore": "config", ".gitattributes": "config", ".gitmodules": "config", ".editorconfig": "config", ".prettierrc": "config",
-  ".eslintrc": "config", ".npmrc": "config", ".nvmrc": "config", "makefile": "config", "procfile": "config",
-  "license": "license", "licence": "license", "copying": "license",
-};
-const BY_EXT = {
-  // code
-  js: "code", mjs: "code", cjs: "code", ts: "code", mts: "code", cts: "code", jsx: "code", tsx: "code", py: "code", pyi: "code",
-  html: "code", htm: "code", css: "code", scss: "code", sass: "code", less: "code", go: "code", rs: "code", java: "code", kt: "code",
-  kts: "code", rb: "code", php: "code", c: "code", h: "code", cc: "code", cpp: "code", hpp: "code", cs: "code", swift: "code",
-  vue: "code", svelte: "code", xml: "code", plist: "code", lua: "code", dart: "code", scala: "code", ex: "code", exs: "code",
-  // data and config
-  json: "data", jsonl: "data", json5: "data", ipynb: "data", yaml: "config", yml: "config", toml: "config", ini: "config",
-  cfg: "config", conf: "config", env: "secret", pem: "secret", key: "secret", lock: "lock",
-  // words
-  md: "text", mdx: "text", markdown: "text", txt: "text", rst: "text", log: "text", pdf: "text", doc: "text", docx: "text", rtf: "text",
-  csv: "sheet", tsv: "sheet", xlsx: "sheet", xls: "sheet", sql: "db", sqlite: "db", db: "db",
-  sh: "shell", bash: "shell", zsh: "shell", fish: "shell", ps1: "shell", bat: "shell",
-  png: "image", jpg: "image", jpeg: "image", gif: "image", webp: "image", avif: "image", bmp: "image", ico: "image", svg: "image",
-  woff: "font", woff2: "font", ttf: "font", otf: "font", eot: "font",
-  zip: "archive", gz: "archive", tgz: "archive", tar: "archive", bz2: "archive", xz: "archive", "7z": "archive", rar: "archive",
-  diff: "diff", patch: "diff",
-};
-
-/** Which kind a file is: its exact name first, then README / LICENSE / .env* by prefix, then its extension. */
+/** Pierre's token for a file: its exact name, else its extensions from the longest, else "default". */
 export function iconKey(name) {
-  const n = String(name || "").split("/").pop().toLowerCase();
-  if (BY_NAME[n]) return BY_NAME[n];
-  if (/^readme(\.|$)/.test(n)) return "readme";
-  if (/^licen[cs]e(\.|$)/.test(n)) return "license";
-  if (/^\.env(\.|$)/.test(n) || n === ".envrc") return "secret";
-  const m = /\.([a-z0-9]+)$/.exec(n);
-  return (m && BY_EXT[m[1]]) || "file";
+  const file = String(name || "").split("/").pop();
+  const lower = file.toLowerCase();
+  if (names[lower]) return names[lower];
+  const segs = lower.split(".");
+  for (let i = 1; i < segs.length; i++) {
+    const ext = segs.slice(i).join(".");
+    if (overrides[ext]) return overrides[ext];
+    if (exts[ext]) return exts[ext];
+    // a few of Pierre's rules are keyed in capitals (LICENSE, CHANGELOG…)
+    const raw = file.split(".").slice(i).join(".");
+    if (exts[raw]) return exts[raw];
+  }
+  if (exts[file]) return exts[file]; // a bare LICENSE, AUTHORS…
+  return "default";
 }
 
 /** The icon for a file, by its name or path. */
-export function fileIcon(name) { return ICONS[iconKey(name)] || ICONS.file; }
+export function fileIcon(name) {
+  const t = iconKey(name);
+  if (!cache.has(t)) {
+    const s = symbols[t];
+    cache.set(t, s ? draw(s.vb, s.body, t) : draw(plainFile.vb, plainFile.body, "default"));
+  }
+  return cache.get(t);
+}
+
+const line = (n, label) => `<svg class="fi fi-line" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-fi="${label}">${LUCIDE[n]}</svg>`;
+export const FOLDER_ICON = line("folder", "folder");
+export const FOLDER_OPEN_ICON = line("folder-open", "folder-open");
 /** A folder's icon, open or not. */
 export const folderIcon = (open = false) => (open ? FOLDER_OPEN_ICON : FOLDER_ICON);
-/** A file's own colour: none, the icons take the text's colour (kept for callers). */
-export function fileColor() { return null; }
+
+/** A file's colour for the current theme (for a dot standing in for it), or null for a plain one. */
+export function fileColor(name) {
+  const c = colors[iconKey(name)];
+  if (!c) return null;
+  const light = typeof document !== "undefined" && document.documentElement.dataset.theme === "light";
+  return light ? c[0] : c[1];
+}
