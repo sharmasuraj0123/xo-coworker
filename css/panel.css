@@ -1,0 +1,161 @@
+/* The right panel, calm (design-research/right-panel-astra-review.md, in the "Right panel taste
+   research" thread). Loads last, after foundation.css.
+   One order, top to bottom: a fixed-height strip of tools · one scope line · a compact search or filter
+   · one content surface. One inner edge (12 px) for every row. Hierarchy from type, hairlines and
+   alignment, not from stacked pills, borders and cards. Files are known by their coloured icons
+   (js/fileicons.js); the colour is the glyph's, never the row's. The sidebar is not touched here. */
+
+.stage{container:stage / inline-size}
+
+/* ── 1 · the strip: 40 px, quiet tabs, the one in front underlined; past 360 px its counts show,
+   under 330 px only the icons (the names are tooltips) ─────────────────────────────────────────── */
+.stg-bar{min-height:0;height:40px;padding:0 6px 0 4px;gap:4px;border-bottom:1px solid var(--g1F)}
+.stg-tabs{gap:0;overflow:visible;align-self:stretch}
+.stg-tab{height:40px;padding:0 10px;gap:6px;border-radius:0;background:none!important;box-shadow:none!important;font:500 13px/1 var(--sans);color:var(--ink-3)}
+.stg-tab::after{content:"";position:absolute;left:8px;right:8px;bottom:-1px;height:2px;border-radius:2px 2px 0 0;background:transparent;transition:background var(--dur-fast)}
+.stg-tab:hover{color:var(--ink-2)}
+.stg-tab.is-on{color:var(--ink)}
+.stg-tab.is-on::after{background:var(--ink-2)}
+.stg-tab svg{width:15px;height:15px}
+.stg-n{font:500 11px/1 var(--mono);color:var(--ink-4)}
+.stg-tab.is-on .stg-n{color:var(--ink-4)}
+.stg-acts{gap:0}
+.stg-ic{width:28px;height:28px;border-radius:6px;color:var(--ink-4)}
+.stg-ic:hover{background:var(--g1F);color:var(--ink)}
+@container stage (max-width:359px){.stg-n{display:none}}
+@container stage (max-width:329px){.stg-tab span{display:none}.stg-tab{padding:0 12px}.stg-tab::after{left:6px;right:6px}}
+
+/* ── when the conversation beside it would get too narrow, the panel floats over it ───────────────── */
+body.stage-open.stage-over:not(.panel-open):not(.stage-full) .conv{--rp:0px}
+body.stage-open.stage-over:not(.panel-open):not(.stage-full) .scroller{padding-right:28px}
+body.stage-open.stage-over:not(.panel-open):not(.stage-full) .home{padding-right:0}
+body.stage-open.stage-over:not(.panel-open):not(.stage-full) .dock,body.stage-open.stage-over:not(.panel-open):not(.stage-full) .toast-wrap{right:0}
+body.stage-over .stage{box-shadow:-18px 0 44px rgb(0 0 0 / calc(.42 * var(--sha)))}
+:root[data-theme="light"] body.stage-over .stage{box-shadow:-12px 0 32px rgba(0,0,0,.10)}
+
+/* ── 2 · Files: one scope line, a compact search, 28 px rows on a 16 px indent ─────────────────────── */
+.fl-head{gap:8px;padding:10px 12px 8px}
+.fl-crumb{gap:8px;height:20px;padding:0}
+.fl-crumb b{font:600 13px/20px var(--sans)}
+.fl-crumb small{max-width:60%;padding:0;border-radius:0;background:none;font:400 12px/20px var(--mono);color:var(--ink-4)}
+.fl-up{width:22px;height:22px;margin-left:-4px;border-radius:5px}
+.fl-q{height:30px;padding:0 9px;border-radius:6px;background:var(--g1A);border-color:var(--g24)}
+.fl-q svg{width:13px;height:13px}
+.fl-q input{font-size:13px}
+.fl-list{padding:0 6px 12px}
+.fl-sec{padding:12px 6px 6px;font:600 11px/1 var(--sans);letter-spacing:.05em}
+.fl-sec:first-child{padding-top:2px}
+.fl-r{height:28px;min-height:28px;gap:6px;padding:0 8px 0 calc(6px + var(--d) * 16px);border-radius:5px;font:400 13px/1 var(--sans);color:var(--ink-2)}
+.fl-r.is-dir{color:var(--ink-2)}
+.fl-r:hover{background:var(--g1C);color:var(--ink)}
+.fl-r.is-on{background:var(--g22);color:var(--ink)}
+.fl-c{width:12px}
+.fl-c svg{width:11px;height:11px}
+.fl-i{width:16px;color:var(--ink-4)}
+.fl-i svg,.fl-i svg.fi{width:16px;height:16px}
+.fl-r.is-dir .fl-i{color:var(--ink-4)}
+.fl-r.is-open .fl-i{color:var(--ink-3)}
+.fl-r.is-touch .fl-n{font:400 12.5px/1 var(--mono)}
+.fl-who{margin-left:4px}
+.fl-sz{display:none}
+@container stage (min-width:480px){.fl-sz{display:inline}}
+.fl-note{min-height:28px;padding-left:calc(30px + var(--d,0) * 16px);font-size:12px}
+.fl-note .spin{width:9px;height:9px}
+:root[data-theme="light"] .fl-q{background:#fff;border-color:rgba(0,0,0,.12)}
+:root[data-theme="light"] .fl-r:hover{background:rgba(0,0,0,.04)}
+:root[data-theme="light"] .fl-r.is-on{background:rgba(0,0,0,.07)}
+
+/* ── 3 · Made: one scope line; a list (thumb, name, one line under it) until there's room for a gallery ─ */
+.md-pane{container:made / inline-size}
+.md-pane .md-h{display:flex;align-items:baseline;gap:8px;min-width:0;padding:10px 12px 0}
+.md-pane .md-h h2{flex:none;font:600 13px/20px var(--sans)}
+.md-pane .md-h p{min-width:0;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 12px/20px var(--sans);color:var(--ink-4)}
+.md-pane .md-tools{gap:8px;padding:8px 12px}
+.md-pane .md-tools .all-q{flex:1 1 100%;max-width:none;height:30px;padding:0 9px;gap:8px;border-radius:6px;background:var(--g1A);border-color:var(--g24)}
+.md-pane .md-tools .all-q input{font-size:13px}
+.md-pane .md-tools .all-q svg{width:13px;height:13px}
+.md-pane .all-f{gap:4px}
+.md-pane .all-f button{height:24px;padding:0 8px;gap:5px;border-radius:5px;font-size:12px}
+.md-pane .md-body{padding:0 6px 12px}
+.md-pane .md-gh{padding:12px 6px 6px;font:600 11px/1 var(--sans);letter-spacing:.05em;text-transform:uppercase}
+.md-pane .md-grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.md-pane .md-it{border-radius:8px}
+.md-pane .md-th{border-radius:7px 7px 0 0;height:100px}
+.md-ic{width:auto;height:auto;background:none;border:0}
+.md-ic svg.fi{width:22px;height:22px}
+@container made (max-width:519px){
+  .md-pane .md-grid{display:flex;flex-direction:column;gap:0}
+  .md-pane .md-it{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;border:0;border-radius:6px;background:none;overflow:visible}
+  .md-pane .md-it:hover{background:var(--g1C)}
+  .md-pane .md-open{grid-column:1;grid-row:1;flex-direction:row;align-items:center;gap:10px;padding:6px 6px 2px}
+  .md-pane .md-it:not(:has(.md-from)) .md-open{padding-bottom:6px}
+  .md-pane .md-th{flex:none;width:36px;height:36px;gap:0;border-radius:6px;border:1px solid var(--g24);background:var(--g1A)}
+  .md-pane .md-ext{display:none}
+  .md-pane .md-ic svg,.md-pane .md-ic svg.fi{width:18px;height:18px}
+  .md-pane .md-meta{gap:1px;padding:0}
+  .md-pane .md-meta b{font:500 13px/18px var(--sans)}
+  .md-pane .md-meta span{font:400 12px/16px var(--sans)}
+  .md-pane .md-from{grid-column:1;grid-row:2;margin:0 0 4px 52px;padding:0 0 2px;gap:4px;border-radius:0;background:none!important;font:400 12px/16px var(--sans);color:var(--ink-4)}
+  .md-pane .md-from:hover{color:var(--ink-2)}
+  .md-pane .md-from svg{display:none}
+  .md-pane .md-from span::before{content:"from "}
+  .md-pane .md-pin{position:static;grid-column:2;grid-row:1 / span 2;width:26px;height:26px;margin-right:4px;border-radius:5px;background:none}
+  .md-pane .md-pin:hover{background:var(--g22)}
+  :root[data-theme="light"] .md-pane .md-it:hover{background:rgba(0,0,0,.04)}
+  :root[data-theme="light"] .md-pane .md-th{background:#fafafa;border-color:rgba(0,0,0,.08)}
+}
+
+/* ── 4 · the Map in the panel: one scope line, then one surface edge to edge ───────────────────────── */
+.map-host .mp-top{padding:10px 12px 8px}
+.map-host .mp-t h2{font:600 13px/20px var(--sans)}
+.map-host .mp-sub{margin-top:0;font-size:12px}
+.map-host .mp-now{margin:0 12px 8px;padding:6px 10px 6px 16px;border-radius:6px}
+.map-host .mp-legend{padding:0 12px 8px;gap:4px}
+.map-host .mp-who{height:24px;padding:0 8px;gap:6px;border-radius:5px;font-size:12px}
+.map-host .dg{margin:0;border-radius:0;border-width:1px 0 0}
+.dg-tools{border-radius:7px}
+.dg-tools button{border-radius:5px}
+.dg-ic svg.fi{width:15px;height:15px}
+.gn.k-file .gn-d{background:var(--fc,var(--g4A))}
+:root[data-theme="light"] .gn.k-file .gn-d{background:var(--fc,#B9B9B6)}
+.dg-tag{font-weight:500}
+
+/* ── shared: a file's own icon, wherever a file shows ─────────────────────────────────────────────── */
+svg.fi{flex:none;display:block}
+.vw-ic svg.fi{width:18px;height:18px}
+.tb-fi svg.fi{width:18px;height:18px}
+.tb-cfi svg.fi{width:14px;height:14px}
+
+/* ── 5 · working: the agent's mark holds still; one small arc turns at its corner, in step everywhere
+   (js/ui.js keepTurning); plain words beside it, the time in steady digits. No shimmer, no bouncing
+   dots, no halo, no orbiting border. Waiting on you: amber and still. ───────────────────────────── */
+.av-live,.av-w{position:relative;animation:none!important;background:var(--g1C)!important;border:1px solid color-mix(in srgb,var(--info) 38%,var(--g2A))!important;box-shadow:none!important}
+.av-w{border-color:color-mix(in srgb,var(--accent) 34%,var(--g2A))!important}
+.av-w::after{display:none}
+.av-live.is-wait{border-color:color-mix(in srgb,var(--warn) 45%,var(--g26))!important;background:color-mix(in srgb,var(--warn) 8%,var(--g1C))!important}
+.arc{position:absolute;right:-4px;bottom:-4px;width:13px;height:13px;border-radius:50%;background:var(--canvas)}
+.arc::before{content:"";position:absolute;inset:2px;border-radius:50%;border:1.6px solid color-mix(in srgb,var(--info) 24%,transparent);border-top-color:var(--info);animation:arc-turn 1.6s linear infinite}
+.av-w .arc::before{border-color:color-mix(in srgb,var(--accent) 26%,transparent);border-top-color:var(--accent)}
+@keyframes arc-turn{to{transform:rotate(360deg)}}
+.spin{border:1.5px solid color-mix(in srgb,currentColor 22%,transparent);border-top-color:currentColor;animation-duration:1.1s}
+.shimmer{animation:none;background:none;-webkit-background-clip:border-box;background-clip:border-box;color:inherit}
+.ty-b .ty-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-3);font-weight:450}
+.ty-b .elapsed{flex:none;font:400 12px/1 var(--mono);color:var(--ink-4);font-variant-numeric:tabular-nums}
+.typing{animation:none}
+.dots{display:none}
+.top[data-state="busy"]::before{animation:none;background:color-mix(in srgb,var(--info) 70%,transparent);opacity:.7}
+@media (prefers-reduced-motion:reduce){.arc::before{animation:none;border-color:var(--info)}.spin{animation:none}}
+
+/* the diagram's boxes match the Map's compact grid (js/map.js: NW 148, NH 32) */
+.dg-n{width:148px;height:32px;padding:0 9px;gap:7px;font-size:12.5px}
+.dg-n.k-root{height:36px;margin-top:-2px}
+.dg-n.k-more,.dg-n.k-note{width:auto;height:24px;margin-top:4px}
+
+/* the file beside the tree: its header's actions shrink to icons before its name gets cut */
+.fl-pv{container:flpv / inline-size}
+@container flpv (max-width:540px){
+  .vw-btn span{display:none}
+  .vw-btn{width:30px;padding:0;justify-content:center}
+  .vw-seg button{padding:0 8px}
+}
+@container flpv (max-width:400px){.vw-seg{display:none}}

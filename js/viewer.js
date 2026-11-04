@@ -14,6 +14,7 @@
 // draws the switch, and switching to Live parks the file (hidden, kept) until you come back to it.
 
 import { esc, isImagePath } from "./util.js";
+import { fileIcon } from "./fileicons.js";
 import { ICON, $ } from "./ui.js";
 import { renderMarkdown } from "./markdown.js";
 import { highlight, langOf } from "./highlight.js";
@@ -68,7 +69,7 @@ export function createViewer({ announce, onChange, tabs }) {
       : d && d.kind === "image"
         ? `<div class="vw-seg" role="group" aria-label="Size"><button type="button" data-vw-mode="preview" aria-pressed="${V.mode === "preview"}">Fit</button><button type="button" data-vw-mode="actual" aria-pressed="${V.mode === "actual"}" aria-label="Actual size"><span class="vw-wide">Actual size</span><span class="vw-narrow" aria-hidden="true">1:1</span></button></div>`
         : "";
-    return `<header class="vw-top"><span class="vw-ic" aria-hidden="true">${f.image ? ICON.image : ICON.doc}</span>` +
+    return `<header class="vw-top"><span class="vw-ic" aria-hidden="true">${fileIcon(f.name || f.path || "")}</span>` +
       `<div class="vw-t"><h2 id="vw-h">${esc(f.name || f.path)}</h2><p class="vw-sub">${f.where ? `<code title="${esc(f.where)}">${esc(f.where)}</code>` : ""}${meta.map((m) => `<span>${esc(m)}</span>`).join("")}</p></div>` +
       `<div class="vw-acts">${toggle}${tab}` +
       (canCopy ? `<button type="button" class="vw-btn" data-vw-copy title="Copy the contents">${ICON.copy}<span>${V.copied ? "Copied" : "Copy"}</span></button>` : "") +

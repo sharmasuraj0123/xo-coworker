@@ -23,6 +23,7 @@ import { api } from "./api.js";
 import { esc } from "./util.js";
 import { ICON, $, short } from "./ui.js";
 import { sharedFileRoute } from "./timeline.js";
+import { fileIcon } from "./fileicons.js";
 
 const PINS = "xo-made-pins";
 const TREES_MS = 60000;     // worktrees read at most this often per chat
@@ -215,7 +216,8 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
       if (u) return `<img src="${esc(u)}" alt="" decoding="async">`;
     }
     const tag = m.kind === "link" ? hostOf(m.url) : m.kind === "branch" ? R.gitState(null, m.git).word || "branch" : (/\.([\w-]+)$/.exec(m.name) || [])[1] || R.KIND_WORD[m.kind];
-    return `<span class="md-ic">${KIND_IC[m.kind] || ICON.doc}</span><span class="md-ext${m.kind === "link" || m.kind === "branch" ? " is-word" : ""}">${esc(tag)}</span>`;
+    const ic = m.kind === "link" || m.kind === "branch" ? KIND_IC[m.kind] : fileIcon(m.name || m.path);
+    return `<span class="md-ic">${ic}</span><span class="md-ext${m.kind === "link" || m.kind === "branch" ? " is-word" : ""}">${esc(tag)}</span>`;
   }
   /** Image files show themselves: each read once, through its thread's folder. */
   function loadThumbs(items) {
@@ -254,9 +256,10 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
         `<div class="all-f" id="made-f" role="radiogroup" aria-label="Show"></div></div><div class="md-body" id="made-body"></div></div>`;
       M.built = true;
     }
-    h.querySelector("#made-h").textContent = pid ? `Made in ${PROJ(pid)}` : "Made across your projects";
+    // one scope line: where (the tab already says "Made"), then how many, newest first
+    h.querySelector("#made-h").textContent = pid ? PROJ(pid) : "All projects";
     const kept = items.some((m) => m.server);
-    h.querySelector("#made-sub").textContent = kept ? `${items.length} ${items.length === 1 ? "thing" : "things"} ${pid ? "its" : "your"} threads made, newest first` : `${items.length} ${items.length === 1 ? "file" : "files"} ${pid ? "its" : "your"} threads shared, newest first`;
+    h.querySelector("#made-sub").textContent = `${items.length} ${kept ? (items.length === 1 ? "thing" : "things") : (items.length === 1 ? "file" : "files")}, newest first`;
     const f = R.KINDS.filter(([k]) => k === "all" || counts[k]).map(([k, w]) => `<button type="button" role="radio" data-made-kind="${k}" aria-checked="${M.kind === k}">${w}<span>${counts[k]}</span></button>`).join("");
     const fe = h.querySelector("#made-f");
     if (fe._h !== f) { fe.innerHTML = f; fe._h = f; }

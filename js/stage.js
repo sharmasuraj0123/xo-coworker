@@ -128,7 +128,7 @@ export function createStage({ files, filesIcon, made, map, mapIcon, viewer, view
       { k: "map", label: "Map", icon: mapIcon, extra: "" },
     ];
     const shown = all.slice(0, MORE_AT);
-    let html = shown.map((t) => `<button type="button" role="tab" class="stg-tab${S.tab === t.k ? " is-on" : ""}" data-stg-tab="${t.k}" aria-selected="${S.tab === t.k}">${t.icon}<span>${t.label}</span>${t.extra}</button>`).join("");
+    let html = shown.map((t) => `<button type="button" role="tab" class="stg-tab${S.tab === t.k ? " is-on" : ""}" data-stg-tab="${t.k}" aria-selected="${S.tab === t.k}" title="${t.label}">${t.icon}<span>${t.label}</span>${t.extra}</button>`).join("");
     if (all.length > MORE_AT) html += `<button type="button" class="stg-tab" data-stg-more aria-haspopup="menu">More</button>`;
     if (tabsEl._h !== html) { tabsEl.innerHTML = html; tabsEl._h = html; }
     const fb = el.querySelector("[data-stg-full]");
@@ -185,11 +185,20 @@ export function createStage({ files, filesIcon, made, map, mapIcon, viewer, view
   });
 
   // ── width: flush to the window's right edge, 360 px by default, 320–640 by dragging its left edge ─
-  const W_KEY = "xo-stage-w", W_DEF = 360, W_MIN = 320, W_MAX = 640;
+  const W_KEY = "xo-stage-w", W_DEF = 360, W_MIN = 320, W_MAX = 720;
   const clampW = (w) => Math.round(Math.max(W_MIN, Math.min(W_MAX, innerWidth - 480, w)));
+  // when the conversation beside it would drop under READ px, the panel floats over it (with a shadow)
+  // instead of squeezing it: a cut-down thread title is worse than a covered margin
+  const READ = 560;
+  const fitOver = (v) => {
+    const side = document.querySelector(".side");
+    const sw = side && getComputedStyle(side).position !== "fixed" ? side.getBoundingClientRect().width : 0;
+    document.body.classList.toggle("stage-over", innerWidth > 760 && innerWidth - sw - v < READ);
+  };
   const setW = (w, save = false) => {
     const v = clampW(w);
     document.documentElement.style.setProperty("--sw", `${v}px`);
+    fitOver(v);
     if (save) { try { localStorage.setItem(W_KEY, String(v)); } catch { /* private mode */ } }
     return v;
   };

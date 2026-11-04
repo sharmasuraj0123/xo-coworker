@@ -20,13 +20,14 @@ import { ICON, $, elapsed } from "./ui.js";
 import { api } from "./api.js";
 import { renderInline } from "./markdown.js";
 import { isImagePath } from "./util.js";
+import { fileIcon, folderIcon, fileColor } from "./fileicons.js";
 
 const KEY = "cv-map";
 const FILE_KINDS = new Set(["create_file", "edit_file", "delete_file", "read"]);
 const VERB_NOW = { create_file: "Writing", edit_file: "Editing", delete_file: "Deleting", read: "Reading" };
 
 // the drawing
-const NW = 172, NH = 34, COL = 232, ROW = 46, PAD = 48;
+const NW = 148, NH = 32, COL = 184, ROW = 42, PAD = 28; // compact: two columns read at 360px
 
 const FILE_CAP = 8, DIR_CAP = 14; // boxes a folder shows before "N more"
 const PALETTE = ["#4C8DFF", "#A472FF", "#FF6FAE", "#FF9F43", "#2EC4B6", "#E5C23A"];
@@ -228,7 +229,8 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
   };
   try { if (localStorage.getItem(MODE_KEY) === "graph") M.mode = "graph"; } catch { /* private mode */ }
   // room for a cursor's name tag: in a thread it only says what the agent is doing (its name is the header)
-  const tagW = () => (M.scope && M.scope.kind === "thread" ? 130 : 240);
+  // room for a cursor's tag: it says only what the agent is doing (who it is: its colour, and the chips above)
+  const tagW = () => 116;
   const setOf = (m, key) => { if (!m.has(key)) m.set(key, new Set()); return m.get(key); };
 
   // ── what's in scope ─────────────────────────────────────────────────────────
@@ -383,8 +385,8 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     const here = at.get(n.id);
     const cls = `dg-n k-${n.kind}${n.mark ? ` m-${n.mark}` : ""}${n.open ? " is-open" : ""}${here ? " is-here" : ""}`;
     const ic = n.kind === "root" ? (M.scope.kind === "all" ? MAP_ICON : M.scope.kind === "thread" ? ICON.branch : ICON.project)
-      : n.kind === "project" ? ICON.project : n.kind === "dir" ? (n.open ? DIR_OPEN : ICON.folder)
-      : n.kind === "file" ? (isImagePath(n.id) ? ICON.image : ICON.doc) : n.kind === "more" ? ICON.plus : n.btn ? ICON.retry : `<i class="spin" aria-hidden="true"></i>`;
+      : n.kind === "project" ? ICON.project : n.kind === "dir" ? folderIcon(n.open)
+      : n.kind === "file" ? fileIcon(n.name) : n.kind === "more" ? ICON.plus : n.btn ? ICON.retry : `<i class="spin" aria-hidden="true"></i>`;
     const tail = n.kind === "dir" ? (n.dot ? `<i class="dg-dot d-${n.dot}" aria-hidden="true"></i>` : "") + `<span class="dg-ch" aria-hidden="true">${ICON.chevron}</span>`
       : n.mark && n.mark !== "read" ? `<span class="dg-mk">${n.mark}</span>` : "";
     const style = `left:${n.x + PAD}px;top:${n.y + PAD}px${here ? `;--c:${here}` : ""}`;
@@ -428,13 +430,24 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     const f = el.querySelector('[data-dg="follow"]');
     if (f) f.setAttribute("aria-pressed", String(!!c.follow));
   }
-  function fit(c, glide) {
+  const READABLE = 0.8; // the smallest scale the Map picks by itself: labels stay readable (≈10px)
+  /** Frame the drawing. By itself (the first look) it never goes below READABLE: a drawing too big for
+   *  the panel starts at its top box, readable, and the rest is a drag away. Fit (yours) shows it all. */
+  function fit(c, glide, all = false) {
     const v = view(), B = M.bounds;
     if (!v || !B || !v.clientWidth) return;
     const W = B.x1 - B.x0, H = B.y1 - B.y0, vh = v.clientHeight - 44;
-    c.s = clamp(Math.min(v.clientWidth / W, vh / H), 0.3, 1.1);
-    c.x = (v.clientWidth - W * c.s) / 2 - B.x0 * c.s;
-    c.y = Math.max(0, (vh - H * c.s) / 2) - B.y0 * c.s;
+    const s = Math.min(v.clientWidth / W, vh / H);
+    c.s = clamp(s, all ? 0.3 : READABLE, 1.1);
+    if (!all && s < READABLE) {
+      // too big to read whole: start at the top box (the diagram's root, the graph's middle)
+      const r = M.rootPt || { x: (B.x0 + B.x1) / 2, y: (B.y0 + B.y1) / 2 };
+      c.x = M.mode === "graph" ? v.clientWidth / 2 - r.x * c.s : 16 - B.x0 * c.s;
+      c.y = vh / 2 - r.y * c.s;
+    } else {
+      c.x = (v.clientWidth - W * c.s) / 2 - B.x0 * c.s;
+      c.y = Math.max(0, (vh - H * c.s) / 2) - B.y0 * c.s;
+    }
     applyCam(c, glide);
   }
   function centerOn(c, pt, glide, s) {
@@ -505,7 +518,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       const k = e.key;
       if (k === "+" || k === "=") zoomAt(c, 1.2, ...mid());
       else if (k === "-" || k === "_") zoomAt(c, 1 / 1.2, ...mid());
-      else if (k === "0") { c.user = true; c.follow = false; fit(c, true); }
+      else if (k === "0") { c.user = true; c.follow = false; fit(c, true, true); }
       else if (k === "f" || k === "F") tool("follow");
       else if (k === "g" || k === "G") tool(M.mode === "graph" ? "tree" : "graph");
       else if (k.startsWith("Arrow")) { const d = 60; c.x += k === "ArrowLeft" ? d : k === "ArrowRight" ? -d : 0; c.y += k === "ArrowUp" ? d : k === "ArrowDown" ? -d : 0; c.user = true; c.follow = false; applyCam(c, true); }
@@ -518,7 +531,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     const c = camOf(M.scope), v = view();
     if (!v) return;
     if (what === "in" || what === "out") zoomAt(c, what === "in" ? 1.25 : 0.8, v.clientWidth / 2, v.clientHeight / 2);
-    else if (what === "fit") { c.user = true; c.follow = false; fit(c, true); }
+    else if (what === "fit") { c.user = true; c.follow = false; fit(c, true, true); }
     else if (what === "tree" || what === "graph") {
       if (M.mode === what) return;
       M.mode = what;
@@ -628,7 +641,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       seen.add(a.id);
       let c = M.curs.get(a.id);
       const more = i === 0 ? (share.get(a.nid) || 1) - 1 : 0;
-      const tag = M.scope && M.scope.kind === "thread" ? `<span>${esc(verbOf(a))}</span>` : `<b>${esc(a.title.length > 24 ? a.title.slice(0, 23) + "…" : a.title)}</b><span>${esc(verbOf(a))}</span>${more ? `<i class="dg-more">+${more}</i>` : ""}`;
+      const tag = `<span>${esc(verbOf(a))}</span>${more ? `<i class="dg-more">+${more}</i>` : ""}`;
       if (!c || !c.el.isConnected) {
         const d = document.createElement("div");
         d.className = "dg-cur is-new";
@@ -671,7 +684,8 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     const cls = `gn k-${n.kind}${n.mark ? ` m-${n.mark}` : ""}${here ? " is-here" : ""}${n.open ? " is-open" : ""}`;
     const clickable = M.refs.has(n.id);
     const label = n.kind === "dir" ? `${n.name}, folder, ${n.open ? "open" : "folded"}` : n.title || n.name;
-    const inner = `<i class="gn-d" style="--r:${RAD[n.kind] || 4}px"></i><span class="gn-l">${esc(n.name)}</span>`;
+    const fc = n.kind === "file" ? fileColor(n.name) : null; // a file's dot in its own colour
+    const inner = `<i class="gn-d" style="--r:${RAD[n.kind] || 4}px${fc ? `;--fc:${fc}` : ""}"></i><span class="gn-l">${esc(n.name)}</span>`;
     return clickable ? `<button type="button" class="${cls}" data-node="${esc(n.id)}" aria-label="${esc(label)}" title="${esc(n.title || n.id || n.name)}"${here ? ` style="--c:${here}"` : ""}>${inner}</button>`
       : `<div class="${cls}" data-node="${esc(n.id)}"${here ? ` style="--c:${here}"` : ""}>${inner}</div>`;
   }
@@ -748,7 +762,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       e.setAttribute("class", lit ? "is-lit" : g.n.kind === "file" ? "k-file" : "");
       e.style.stroke = lit || "";
     }
-    if (M.gnodes.length) M.bounds = { x0: x0 - 40, y0: y0 - 34, x1: x1 + 60 + tagW() * 0.6, y1: y1 + 40 };
+    if (M.gnodes.length) { M.bounds = { x0: x0 - 40, y0: y0 - 34, x1: x1 + 60 + tagW() * 0.6, y1: y1 + 40 }; M.rootPt = { x: 0, y: 0 }; }
     const at = new Map(M.gnodes.map((g) => [g.n.id, g]));
     cursors(M.gags, (id) => { const g = at.get(id); if (!g) return null; const r = RAD[g.n.kind] || 4; return { x: g.p.x + r * 0.55, y: g.p.y + r * 0.55, cx: g.p.x, cy: g.p.y }; });
   }
@@ -860,6 +874,8 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
         else y1 = Math.max(y1, n.y + PAD + NH + 44);
       }
       M.bounds = { x0, y0: 0, x1, y1 };
+      const rn = byId.get(tree.id);
+      M.rootPt = rn ? { x: rn.x + PAD, y: rn.y + PAD + NH / 2 } : null;
       const nodesHtml = L.nodes.map((n) => boxHtml(n, at)).join("");
       const key = `${L.w}x${L.h}|${nodesHtml}|${[...lit].join()}`;
       if (key !== M.layoutKey) {

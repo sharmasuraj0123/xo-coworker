@@ -16,7 +16,7 @@ import { createDecisions } from "./decide.js";
 import { createPacing } from "./pacing.js";
 import { createIntel } from "./intel.js";
 import { EFFORT, estLine, evidenceFor } from "./content.js";
-import { ICON, XO, NEXT_GLYPH, $, $$, RM, clock, dayOf, short, elapsed, reconcile, sound, wait, dial, morph, expand } from "./ui.js";
+import { keepTurning, ICON, XO, NEXT_GLYPH, $, $$, RM, clock, dayOf, short, elapsed, reconcile, sound, wait, dial, morph, expand } from "./ui.js";
 import { uiMsg, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups } from "./timeline.js";
 import { turnHtml, turnAv } from "./turnview.js";
 import { itemParts } from "./review.js";
@@ -1185,28 +1185,45 @@ tdock.addEventListener("keydown", (e) => {
 });
 
 // ── typing ──────────────────────────────────────────────────────────────────
+/**
+ * The "working" line under a conversation: the agent's own mark, still, with one small arc turning at its
+ * corner, then plain words and the time so far. The element stays put while the agent works; only its
+ * words change, so the arc never restarts or stutters (Astra review §5). No shimmer, no bouncing dots.
+ */
 function typingRender() {
   const box = $("#typing");
   const t = convThread(S.view);
-  let html = "";
+  let spec = null;
   const chat = !t && S.view !== "home" ? chatOf(S.view) : null;
   if (chat && world.act.replying(chat)) {
     // the coordinator's session really works, or our message still waits for its answer (never a timer)
     const aw = world.state.awaiting[chat];
-    const who = S.view === "ws" ? "The coordinator" : `${esc(PROJ(chat))} coordinator`;
+    const who = S.view === "ws" ? "The coordinator" : `${PROJ(chat)} coordinator`;
     const doing = world.act.doing ? world.act.doing(chat) : null;
-    html = `<div class="typing" role="status"><div class="av av-w">${XO}</div><div class="ty-b"><span class="shimmer">${who} is ${aw ? "replying" : "working"}${doing ? ` · ${esc(doing.replace(/`/g, ""))}` : ""}</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>${aw ? `<span class="elapsed" data-since="${aw.at}"></span>` : ""}</div></div>`;
+    spec = { key: `co:${chat}`, cls: "av-w", icon: XO, text: `${who} is ${aw ? "replying" : "working"}${doing ? ` · ${doing.replace(/`/g, "")}` : ""}`, since: aw ? aw.at : null };
   } else if (S.view.startsWith("c:")) {
     const sid = S.view.slice(2), tu = world.state.turns && world.state.turns.running(sid);
-    if (CH.working(S.view) && !(tu && world.state.turns.blocksOf(tu).length)) html = `<div class="typing" role="status"><div class="av av-live">${ICON.thread}</div><div class="ty-b"><span class="shimmer">Working</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></div></div>`;
+    if (CH.working(S.view) && !(tu && world.state.turns.blocksOf(tu).length)) spec = { key: `c:${sid}`, cls: "av-live", icon: ICON.thread, text: "Working", since: null };
   } else if (t && t.sessionId && world.state.turns && world.state.turns.running(t.sessionId) && world.state.turns.blocksOf(world.state.turns.running(t.sessionId)).length) {
-    html = ""; // its running turn shows the work itself
+    spec = null; // its running turn shows the work itself
   } else if (t && isBusy(t)) {
     const cur = t.checklist.items.find((i) => i.state === "doing");
-    html = `<div class="typing" role="status"><div class="av av-live">${ICON.thread}</div><div class="ty-b"><span class="shimmer">Working${cur ? ` · ${esc(cur.text)}` : ""}</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="elapsed" data-since="${t.lastAt}"></span></div></div>`;
+    spec = { key: `t:${t.id}`, cls: "av-live", icon: ICON.thread, text: `Working${cur ? ` · ${cur.text}` : ""}`, since: t.lastAt };
   }
-  const changed = box._h !== html;
-  if (changed) { box.innerHTML = html; box._h = html; }
+  let changed = false;
+  if (!spec) {
+    if (box._k != null) { box.innerHTML = ""; box._k = null; box._h = ""; changed = true; }
+    return changed;
+  }
+  if (box._k !== spec.key) {
+    box.innerHTML = `<div class="typing" role="status"><div class="av ${spec.cls}">${spec.icon}<i class="arc" aria-hidden="true"></i></div><div class="ty-b"><span class="ty-t"></span><span class="elapsed"></span></div></div>`;
+    box._k = spec.key; box._h = spec.key;
+    changed = true;
+  }
+  const tx = box.querySelector(".ty-t");
+  if (tx.textContent !== spec.text) tx.textContent = spec.text;
+  const el = box.querySelector(".elapsed");
+  if (spec.since) el.dataset.since = spec.since; else { delete el.dataset.since; el.textContent = ""; }
   tickElapsed();
   return changed;
 }
@@ -2725,6 +2742,7 @@ soundRender();
 PHONE.addEventListener("change", () => { setDrawer(false); render(); });
 
 world.subscribe(() => schedule());
+keepTurning(); // every arc on the page turns in step, however often it is redrawn
 follow();
 loadDraft();
 render();

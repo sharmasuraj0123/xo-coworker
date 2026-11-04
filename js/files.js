@@ -19,14 +19,13 @@ import { esc } from "./util.js";
 import { ICON } from "./ui.js";
 import { api } from "./api.js";
 import { activityOf, folderOf } from "./map.js";
+import { fileIcon, folderIcon } from "./fileicons.js";
 
-const WIDE = 720;       // the panel's width from which tree and file sit side by side
+const WIDE = 600;       // the panel's width from which tree and file sit side by side (the panel goes to 720)
 const TOUCHED = 6;      // "Touched by agents" shows at most this many
 
 const I = (d, w = 15) => `<svg viewBox="0 0 24 24" width="${w}" height="${w}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 export const FILES_ICON = I('<path d="M3.5 18V6.5A1.5 1.5 0 0 1 5 5h4l2 2h8A1.5 1.5 0 0 1 20.5 8.5V18a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18z"/>', 16);
-const DIR = I('<path d="M3.5 18V6.5A1.5 1.5 0 0 1 5 5h4l2 2h8A1.5 1.5 0 0 1 20.5 8.5V18a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18z"/>');
-const FILE = I('<path d="M7 3.5h7l4 4V19a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 19V5a1.5 1.5 0 0 1 1-1.5z"/><path d="M14 3.5V8h4"/>');
 const CH = I('<path d="m9 6 6 6-6 6"/>', 13);
 const BACK = I('<path d="m15 6-6 6 6 6"/>');
 
@@ -113,20 +112,20 @@ export function createFiles({ world, viewer, isBusy, PROJ, go }) {
   // ── drawing ───────────────────────────────────────────────────────────────
   function rowsOf(s, local, depth, marks, out) {
     const d = F.dirs.get(dkey(s, local));
-    if (!d || (d.state === "loading" && !d.dirs)) { out.push(`<p class="fl-note" style="--d:${depth}"><i class="tb-live"></i>Reading…</p>`); return; }
+    if (!d || (d.state === "loading" && !d.dirs)) { out.push(`<p class="fl-note" style="--d:${depth}"><i class="spin" aria-hidden="true"></i>Reading…</p>`); return; }
     if (d.state === "error") { out.push(`<p class="fl-note is-err" style="--d:${depth}">${esc(d.error)} <button type="button" class="fl-link" data-fl-retry="${esc(local)}">Try again</button></p>`); return; }
     const q = F.q.trim().toLowerCase();
     const open = setOf(s.key);
     for (const x of d.dirs) {
       const on = open.has(x.path);
       if (q && !x.name.toLowerCase().includes(q) && !on) continue;
-      out.push(`<button type="button" class="fl-r is-dir${on ? " is-open" : ""}" style="--d:${depth}" data-fl-dir="${esc(x.path)}" aria-expanded="${on}"><span class="fl-c">${CH}</span><span class="fl-i">${DIR}</span><span class="fl-n">${esc(x.name)}</span>${marks.dirs.has(x.path) ? `<span class="fl-who w-${marks.dirs.get(x.path)}"><i></i></span>` : ""}</button>`);
+      out.push(`<button type="button" class="fl-r is-dir${on ? " is-open" : ""}" style="--d:${depth}" data-fl-dir="${esc(x.path)}" aria-expanded="${on}"><span class="fl-c">${CH}</span><span class="fl-i">${folderIcon(on)}</span><span class="fl-n">${esc(x.name)}</span>${marks.dirs.has(x.path) ? `<span class="fl-who w-${marks.dirs.get(x.path)}"><i></i></span>` : ""}</button>`);
       if (on) rowsOf(s, x.path, depth + 1, marks, out);
     }
     for (const x of d.files) {
       if (q && !x.name.toLowerCase().includes(q)) continue;
       const m = marks.files.get(x.path);
-      out.push(`<button type="button" class="fl-r${F.sel === x.path ? " is-on" : ""}" style="--d:${depth}" data-fl-file="${esc(x.path)}" data-fl-bytes="${x.bytes ?? ""}" title="${esc(x.path)}"><span class="fl-c"></span><span class="fl-i">${FILE}</span><span class="fl-n">${esc(x.name)}</span>${m ? dot(m) : ""}<span class="fl-sz">${esc(size(x.bytes))}</span></button>`);
+      out.push(`<button type="button" class="fl-r${F.sel === x.path ? " is-on" : ""}" style="--d:${depth}" data-fl-file="${esc(x.path)}" data-fl-bytes="${x.bytes ?? ""}" title="${esc(x.path)}"><span class="fl-c"></span><span class="fl-i">${fileIcon(x.name)}</span><span class="fl-n">${esc(x.name)}</span>${m ? dot(m) : ""}<span class="fl-sz">${esc(size(x.bytes))}</span></button>`);
     }
     if (!d.dirs.length && !d.files.length) out.push(`<p class="fl-note" style="--d:${depth}">Empty</p>`);
   }
@@ -149,7 +148,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go }) {
     const head = `<div class="fl-head"><div class="fl-crumb">${F.pick ? `<button type="button" class="fl-up" data-fl-unpick title="Your projects">${BACK}</button>` : ""}<b>${esc(s.label)}</b>${s.sub ? `<small title="${s.base ? "A thread's own worktree: its branch" : ""}">${esc(s.sub)}</small>` : ""}</div>` +
       `<label class="fl-q"><span class="sr-only">Find a file</span>${ICON.search}<input data-fl-q placeholder="Find a loaded file" value="${esc(F.q)}" autocomplete="off" spellcheck="false"></label></div>`;
     const top = tl.slice(0, TOUCHED);
-    const sec = top.length ? `<p class="fl-sec">Touched by agents</p>` + top.map((x) => `<button type="button" class="fl-r is-touch" style="--d:0" data-fl-touch="${esc(x.rel)}" title="${esc(`${x.path} · ${x.who}`)}"><span class="fl-c"></span><span class="fl-i">${FILE}</span><span class="fl-n">${esc(x.path)}</span>${dot(x, true)}</button>`).join("") + `<p class="fl-sec">All files</p>` : "";
+    const sec = top.length ? `<p class="fl-sec">Touched by agents</p>` + top.map((x) => `<button type="button" class="fl-r is-touch" style="--d:0" data-fl-touch="${esc(x.rel)}" title="${esc(`${x.path} · ${x.who}`)}"><span class="fl-c"></span><span class="fl-i">${fileIcon(x.path)}</span><span class="fl-n">${esc(x.path)}</span>${dot(x, true)}</button>`).join("") + `<p class="fl-sec">All files</p>` : "";
     return head + `<div class="fl-list">${sec}${rows.join("")}</div>`;
   }
 
