@@ -41,7 +41,7 @@ const ago = (ms) => { if (!Number.isFinite(ms)) return ""; const s = Math.max(0,
 export function createStage({ map, mapIcon, files, filesView, viewer, view, go, announce, onChange }) {
   const saved = sget(KEY);
   const fr = { agents: { h: null, folded: false }, map: { folded: false }, changes: { h: 200, folded: false }, ...sget(FR_KEY) };
-  const S = { open: false, full: false, returnTo: null, railOff: false, rail: false, h: { agents: "", changes: "", head: "" } };
+  const S = { open: false, full: false, returnTo: null, railOff: false, rail: false, filesWas: false, yielded: false, h: { agents: "", changes: "", head: "" } };
 
   const el = document.createElement("aside");
   el.className = "stage";
@@ -128,6 +128,7 @@ export function createStage({ map, mapIcon, files, filesView, viewer, view, go, 
       document.body.classList.add("stage-open");
     }
     S.railOff = true; // opened on purpose: shown whole, even beside Files
+    S.yielded = false;
     fitRail();
     layout();
     paint();
@@ -136,7 +137,7 @@ export function createStage({ map, mapIcon, files, filesView, viewer, view, go, 
     onChange && onChange();
   }
 
-  function close({ restore = true } = {}) {
+  function close({ restore = true, quiet = false } = {}) {
     if (!S.open) return;
     S.open = false;
     if (S.full) setFull(false);
@@ -148,7 +149,7 @@ export function createStage({ map, mapIcon, files, filesView, viewer, view, go, 
     const back = S.returnTo || document.querySelector("[data-stage-toggle]");
     S.returnTo = null;
     if (restore && back && back.isConnected) back.focus({ preventScroll: true });
-    announce("Panel closed.");
+    if (!quiet) announce("Panel closed.");
     onChange && onChange();
   }
 
@@ -162,6 +163,13 @@ export function createStage({ map, mapIcon, files, filesView, viewer, view, go, 
 
   /** Every render: the frames follow the view; the rail follows Files. */
   function sync() {
+    // a phone has no room for both: Files opening steps the panel aside, and closing Files brings it back
+    const fo = filesView.isOpen;
+    if (fo !== S.filesWas) {
+      S.filesWas = fo;
+      if (fo && S.open && innerWidth <= 760) { S.yielded = true; close({ restore: false, quiet: true }); return; }
+      if (!fo && S.yielded) { S.yielded = false; if (!S.open && innerWidth <= 760) open(); }
+    }
     if (!S.open) return;
     fitRail();
     paint();

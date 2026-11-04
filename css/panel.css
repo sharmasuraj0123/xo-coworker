@@ -297,6 +297,8 @@ body.stage-rail .stg-rail{display:flex;flex-direction:column;align-items:center;
 .fv{position:absolute;z-index:6;top:0;right:0;bottom:0;left:0;display:flex;flex-direction:column;min-width:0;background:var(--canvas);outline:none;--pe:12px;--pn:36px}
 .fv[hidden]{display:none}
 body.stage-open:not(.panel-open):not(.stage-full):not(.stage-over) .fv{right:var(--sw)}
+/* a phone: the panel is a sheet over everything, never a column beside Files (stage.js steps it aside) */
+@media (max-width:760px){body.stage-open:not(.panel-open):not(.stage-full):not(.stage-over) .fv{right:0}}
 body.files-open .dock,body.files-open .tdock,body.files-open .new-below{display:none}
 .fv-h{flex:none;box-sizing:border-box;height:40px;display:flex;align-items:center;gap:8px;padding:0 12px 0 8px;border-bottom:1px solid var(--g1C)}
 .fv-back{display:flex;align-items:center;gap:4px;height:28px;padding:0 8px 0 4px;border-radius:6px;font:500 13px/20px var(--sans);color:var(--ink-3);transition:background var(--dur-fast),color var(--dur-fast)}
