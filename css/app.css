@@ -1960,6 +1960,25 @@ button.att-ic:hover img{opacity:.85}
 .att.st-failed .att-ic{color:var(--err-ink)}
 .att-note{margin:8px 0 0 -6px;font-size:var(--fs-sm);line-height:16px;color:var(--ink-4)}
 .att-note code{font:400 var(--fs-sm)/1 var(--mono);color:var(--ink-3)}
+/* The composer's files and their note, measured against the composer (the owner: "the bottom text in the
+   chatbar looks hideously aligned"; from the message-styles thread, folded in here). The composer is 28 px
+   round with its controls 10 px in (1 border + 9 padding) and its text 20 px in.
+   · A file sits in the corner 10 px in on both sides (the tray is pulled up 3 px from the 12 px top
+     padding), so its corner is 28 − 10 = 18. Inside it, the picture and the × sit 8 and 9 px in: 10 and 9.
+   · The note about where files are kept belongs to the files: right under them, on the 20 px text edge. */
+.composer>.att-tray{order:-2;margin:-3px 0 8px 0}
+.composer>.att-note{order:-1;margin:0 0 10px;padding-left:10px}
+.att{padding:0 8px 0 7px;border-radius:calc(var(--r-3xl) - 10px)}
+.att-ic{border-radius:calc(var(--r-3xl) - 18px)}
+.att-b{border-radius:calc(var(--r-3xl) - 19px)}
+@media (max-width:760px){
+  /* the × grows to 36 for a finger, so it sits 5 px in: 18 − 5 = 13 */
+  .att{padding-right:4px}
+  .att-b{border-radius:calc(var(--r-3xl) - 15px)}
+}
+/* the line under the text ("Reply in this thread"): its icon sat on the baseline, 2.5 px above the row's
+   centre line; every glyph in the row centres on it */
+.target>span:has(>svg){display:inline-flex;align-items:center}
 .drop-veil{position:absolute;inset:10px;z-index:30;display:grid;place-items:center;border-radius:var(--r-2xl);border:2px dashed rgba(var(--accent-rgb),.6);background:rgb(0 0 0 / .32);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);pointer-events:none;animation:msg-in .16s var(--glide)}
 .drop-veil p{display:inline-flex;align-items:center;gap:10px;padding:12px 18px;border-radius:999px;background:var(--herald-bg);border:1px solid var(--g27);font-size:var(--fs-md);color:var(--ink)}
 .drop-veil svg{width:18px;height:18px;color:var(--accent)}
@@ -2538,7 +2557,9 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .av-live svg{width:16px;height:16px}
 .av-live.is-wait{color:var(--warn);background:color-mix(in srgb,var(--warn) 10%,var(--g1C));border-color:color-mix(in srgb,var(--warn) 45%,var(--g26));box-shadow:none;animation:none}
 .m-turn.is-live{align-items:flex-start}
-.tb-live{display:block;width:7px;height:7px;border-radius:50%;background:var(--info)}
+/* what is running now: the blue working arc (the owner bans blue dots; the arc is the one working sign) */
+.tb-live{display:block;width:10px;height:10px;box-sizing:border-box;border:1.5px solid color-mix(in srgb,var(--info) 22%,transparent);border-top-color:var(--info);border-radius:50%;animation:arc-turn 1.6s linear infinite}
+@media (prefers-reduced-motion:reduce){.tb-live{animation:none}}
 @media (prefers-reduced-motion:reduce){.av-live{animation:none}}
 /* a thread in ⌘K: the thread mark, its state on its corner */
 .j-th{position:relative;display:grid;place-items:center;width:20px;height:20px;color:var(--ink-3)}
