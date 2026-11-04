@@ -63,13 +63,22 @@ button.hr:active,.send:active,.t-undo:active,.dock-hide:active,.btn:active,butto
 
 /* ── 4 · an icon centres on its first line; nested corners are concentric ────────────────────────── */
 .top-who{align-items:flex-start}
-/* the title bar is the exception, a lockup: its tile runs from the title's cap height to the count
-   line's baseline, so tile, title block, Now chips and Threads share one centre line */
-.tw-ic{width:40px;height:40px;border-radius:11px}
-.tw-ic svg{width:20px;height:20px}
-.tw-xo .xo-mark{width:24px;height:10px}
-.top[data-kind="project"] .top-who{align-items:center;gap:14px}
+/* the title bar: the cube sits on the title's own line, a 28 px tile on the 28 px line, so its centre
+   is the title's centre line (the cap centre of 20 px Geist in a 28 px line is the line's middle) */
+.tw-ic{width:28px;height:28px;border-radius:8px}
+.tw-ic svg{width:16px;height:16px}
+.tw-xo .xo-mark{width:20px;height:8px}
+.top[data-kind="project"] .top-who{gap:12px}
 .top[data-kind="project"] .top-who .tw-ic{margin-top:0}
+/* and the bar's other controls share that line: the Now strip (40 high) and the end buttons (32 high)
+   centre on the title's 28 px line, not on the title-plus-counts block, so nothing sits 12 px lower */
+@media (min-width:761px){
+  /* 17 on top, so the tallest control (the Now strip's 34 px chips) clears the top by 14, the same
+     as the count line clears the hairline below */
+  .top[data-kind="project"]{align-items:flex-start;padding-top:17px}
+  .top[data-kind="project"] > .now-wrap{margin-top:calc((28px - 40px) / 2)}
+  .top[data-kind="project"] > .top-end{margin-top:calc((28px - 32px) / 2)}
+}
 /* the count line: whole-pixel line, figures a shade brighter than their words, quiet dots */
 .pj-s{line-height:20px}
 .top[data-kind="project"] .tw-t{gap:4px}
@@ -87,7 +96,6 @@ button.hr:active,.send:active,.t-undo:active,.dock-hide:active,.btn:active,butto
 @media (max-width:760px){
   .top[data-kind="project"] .top-who{flex:1 1 100%;max-width:none;align-items:flex-start;gap:12px}
   .top[data-kind="project"] .tw-ic{width:28px;height:28px;border-radius:8px}
-  .top[data-kind="project"] .tw-ic svg{width:16px;height:16px}
   .top[data-kind="project"] .tw-t h1{font-size:20px}
 }
 .create-ic{border-radius:6px}
