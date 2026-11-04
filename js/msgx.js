@@ -12,6 +12,8 @@
 //     · swipe left anywhere: every message's time slides in, like Messages
 //     · a sent reply shows its quote as a card in your bubble; press it to go back to the original
 
+import { elapsed } from "./ui.js";
+
 const $ = (s, r = document) => r.querySelector(s);
 const root = document.documentElement;
 const I = (d) => `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
@@ -20,21 +22,23 @@ const IC = {
   copy: I('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/>'),
   check: I('<path d="m5 12.5 4.5 4.5L19 7.5"/>'),
   close: I('<path d="M6 6l12 12M18 6 6 18"/>'),
+  down: I('<path d="M6 9.5l6 6 6-6"/>'),
   open: I('<path d="M4 6h16M4 10h16M4 14h10M4 18h7"/>'),
   tail: I('<path d="M5 5h11a4 4 0 0 1 4 4v4a4 4 0 0 1-4 4H9c-1.5 1.6-3.2 2.4-5 2.5 1-1.2 1-2.7 1-4.5z"/>'),
 };
 
 const TONES = [
-  { id: "graphite", name: "Graphite", hint: "A cool grey a step lighter than theirs: contrast from tone, not white" },
-  { id: "glass", name: "Glass", hint: "Lit from above: a fine highlight on the top edge, a touch lighter at the top" },
+  { id: "xo", name: "XO Glass", hint: "Glass lit from above, breathing the faintest of XO's green, with a fine green edge" },
+  { id: "glass", name: "Glass", hint: "The same light from above, in pure stone" },
+  { id: "graphite", name: "Graphite", hint: "A cool grey a step lighter than theirs" },
   { id: "linen", name: "Linen", hint: "A warm neutral: you're the warm voice, the agent the cool one" },
   { id: "rose", name: "Rose", hint: "A muted blush, the one hue XO doesn't already use for something" },
-  { id: "dawn", name: "Dawn", hint: "One soft gradient fixed to the screen, rose to linen; your bubbles drift through it as you scroll" },
-];
+  { id: "dawn", name: "Dawn", hint: "One soft gradient fixed to the screen; your bubbles drift through it as you scroll" },
+]
 const KEY = "cv-msgx-tone", TAILS = "cv-msgx-tails", OPEN = "cv-msgx-open";
 const fromUrl = new URLSearchParams(location.search).get("tone");
-let tone = TONES.some((t) => t.id === fromUrl) ? fromUrl : (localStorage.getItem(KEY) || "linen");
-if (!TONES.some((t) => t.id === tone)) tone = "linen";
+let tone = TONES.some((t) => t.id === fromUrl) ? fromUrl : (localStorage.getItem(KEY) || "xo");
+if (!TONES.some((t) => t.id === tone)) tone = "xo";
 let tails = localStorage.getItem(TAILS) !== "0";
 let open = localStorage.getItem(OPEN) !== "0";
 
@@ -145,6 +149,10 @@ function decorate() {
     // Reply and Copy sit beside the bubble itself; a message with no words (a card, pictures) has neither
     const bub = bubbleOf(el);
     if (bub) bub.append(acts);
+    if (bub && !el.classList.contains("m-you")) {
+      const foot = acts.cloneNode(true); foot.classList.add("is-foot");
+      el.querySelector(":scope > .mb")?.append(foot);
+    }
     // the swipe's arrow: beside your bubble, or in the gap a reply leaves on the left
     (el.classList.contains("m-you") && el.querySelector(".bubble") || el).append(arrow);
   });
@@ -162,27 +170,127 @@ function decorate() {
     const long = !!b && (b.textContent.length > 280 || b.querySelectorAll(":scope > p").length > 2 || !!b.querySelector(":scope > :is(ul,ol,pre,table,h1,h2,h3,blockquote,.md-code)"));
     el.classList.toggle("mx-open", long);
   }
-  // Tails: on the last bubble of each run
+  // Tails: on the first bubble of each run, pointing at the mark and name above it (as WhatsApp does)
   for (const el of kids) {
     if (!el.classList.contains("m")) continue;
     const b = bubbleOf(el);
     if (!b) continue;
     const you = el.classList.contains("m-you");
-    const next = el.nextElementSibling;
-    const runGoesOn = next && (you ? next.matches(".m-you.cont") : next.matches(".m-them.cont"));
-    const tail = !runGoesOn && !el.classList.contains("mx-emoji") && !el.classList.contains("mx-open") && !el.classList.contains("is-relay");
+    const prev = el.previousElementSibling;
+    const runStarted = you ? el.classList.contains("cont") : el.classList.contains("cont") || (prev && prev.matches(".m-them") && el.matches(".m-turn + .m-them:not(.mx-other), .m-them + .m-turn"));
+    // an answer under the agent's work pills, or your words under your pictures, isn't the first thing in its message
+    const first = el.classList.contains("m-turn") ? b === el.querySelector(".turn > :first-child") : !(you && el.querySelector(":scope > .mx-stack"));
+    const tail = !runStarted && first && !el.classList.contains("mx-emoji") && !el.classList.contains("mx-open") && !el.classList.contains("is-relay");
     b.classList.toggle("mx-tail", tail);
     b.classList.toggle("is-them", tail && !you);
   }
-  // the agent's work before its answer carries the agent's name, unless the agent was just speaking
+  // Names: whoever you're mainly talking to here goes unnamed, as in a one-to-one chat; anyone else who
+  // speaks up is named. In a thread, the coordinator stepping in is set apart, quietly, in its violet.
+  const view = document.getElementById("app").dataset.view;
+  const theirs = kids.filter((el) => el.classList.contains("m-them") && !el.classList.contains("m-turn") && !el.classList.contains("m-card"));
+  const count = new Map();
+  for (const el of theirs) { const n = nameIn(el); el._mxWho = n; count.set(n, (count.get(n) || 0) + 1); }
+  let main = view === "thread" ? ([...msgs.querySelectorAll(".m-them > .av-t + .mb > .mh b")].pop()?.textContent.trim() || null) : null;
+  if (!main) main = [...count].sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+  for (const el of theirs) {
+    const other = !!main && el._mxWho !== main;
+    el.classList.toggle("mx-other", other);
+    el.classList.toggle("mx-coord", other && view === "thread" && /coordinator/i.test(el._mxWho));
+  }
   for (const el of kids) {
     if (!el.classList.contains("m-turn")) continue;
     const mb = el.querySelector(":scope > .mb");
-    const prev = el.previousElementSibling;
-    const cont = prev && (prev.classList.contains("m-them") || prev.classList.contains("m-turn"));
-    if (mb && !cont) mb.dataset.mxWho = nameIn(el); else if (mb) delete mb.dataset.mxWho;
+    if (mb) delete mb.dataset.mxWho; // a turn is always the main agent's own
+    working(el);
   }
 }
+
+// ── the agent at work: one calm bubble ──────────────────────────────────────
+const WORKING = new Map(); // turn key → { text, since, w }
+/** What the agent is doing right now, in its own words where it has them. */
+function nowText(turn) {
+  const all = [...turn.querySelectorAll(".tb-rows.is-cur > li, .tb-think.is-live .tb-ht, .tb-narr, .tb-act.is-live > .tb-h .tb-ht")];
+  const last = all.pop();
+  if (!last) return "Working";
+  let t = (last.matches(".tb-narr") ? (last.innerText.trim().split(/\n+/).pop() || "") : (last.innerText || "").split(/\n/)[0]).trim();
+  t = t.replace(/\s*·\s*[\d.]+\s*(?:ms|s|m|min)(?:\s*\d+\s*s)?$/i, "").replace(/`/g, "").replace(/\s+/g, " ").trim();
+  return t || "Working";
+}
+function working(el) {
+  const live = el.classList.contains("is-live") || !!el.querySelector(".turn.is-live");
+  el.classList.toggle("mx-live", live);
+  const key = el.dataset.k;
+  const mb = el.querySelector(":scope > .mb");
+  if (!live || !mb) { WORKING.delete(key); return; }
+  // what you asked to see, or a step that waits on you, shows in full
+  el.classList.toggle("mx-expanded", !!el.querySelector('.turn [aria-expanded="true"], .turn .is-waiting'));
+  let w = mb.querySelector(":scope > .mx-work");
+  const was = WORKING.get(key);
+  // the line changes at most every 2.5 s: steps can flicker by faster than anyone can read them
+  // (Cloudscape's "thinking" guidance: never let the label flicker)
+  let text = nowText(el);
+  const now = Date.now();
+  if (was && text !== was.text && now - (was.swapped || 0) < 2500) {
+    clearTimeout(was.timer);
+    was.timer = setTimeout(decorate, 2500 - (now - was.swapped) + 20);
+    text = was.text;
+  }
+  const since = +(el.querySelector(".elapsed[data-since]")?.dataset.since || 0) || was?.since || Date.now();
+  if (!w) {
+    w = document.createElement("button");
+    w.type = "button"; w.className = "mx-work"; w.setAttribute("aria-live", "polite");
+    w.title = "See every step";
+    w.innerHTML = `<span class="mx-wt"></span><span class="mx-we"></span>`;
+    w.addEventListener("click", () => el.querySelector(".turn .tb-h")?.click());
+    mb.prepend(w);
+  }
+  const wt = w.querySelector(".mx-wt");
+  const cur = wt.querySelector(".mx-wl:not(.is-out)");
+  if (!cur || cur.textContent !== text) {
+    // the old line leaves upward as the new one rises in; the bubble eases to the new line's width
+    const old = cur || (was && was.text !== text ? Object.assign(document.createElement("span"), { className: "mx-wl", textContent: was.text }) : null);
+    if (old) { if (!old.parentNode) wt.append(old); old.className = "mx-wl is-out"; setTimeout(() => old.remove(), 220); }
+    const line = Object.assign(document.createElement("span"), { className: old || !was ? "mx-wl is-in" : "mx-wl", textContent: text });
+    wt.append(line);
+  }
+  // it starts the agent's run (so it has the tail) unless the agent was just speaking
+  // (it's drawn last, so what comes before it on screen is the conversation's last message)
+  const pv = [...msgs.children].filter((c) => c !== el && !c.classList.contains("mx-live")).pop();
+  w.classList.add("is-them");
+  w.classList.toggle("mx-tail", !(pv && pv.matches(".m-them:not(.mx-other)")));
+  WORKING.set(key, { text, since, w: was?.w, swapped: !was || was.text !== text ? now : was.swapped, timer: was?.timer });
+  sizeWork(w, key, text);
+  tick();
+}
+/** Ease the working bubble's width to fit its line (it never jumps): measure, then transition to it. */
+function sizeWork(w, key, text) {
+  const probe = document.createElement("span");
+  probe.className = "mx-wsize"; probe.textContent = text;
+  w.append(probe);
+  // padding 16 + the line + gap 12 + room for the time (48) + padding 16
+  const natural = 16 + probe.offsetWidth + 12 + 48 + 16;
+  probe.remove();
+  const max = w.parentElement.clientWidth * 0.88;
+  const target = Math.min(natural, 480, max);
+  const st = WORKING.get(key);
+  if (st && st.w && Math.abs(st.w - target) > 1) {
+    w.style.transition = "none"; w.style.width = `${st.w}px`; void w.offsetWidth;
+    w.style.transition = ""; w.style.width = `${target}px`;
+  } else w.style.width = `${target}px`;
+  if (st) st.w = target;
+}
+function tick() {
+  for (const w of document.querySelectorAll(".mx-work")) {
+    const st = WORKING.get(w.closest(".m")?.dataset.k);
+    if (!st) continue;
+    const s = Math.max(0, Math.floor((Date.now() - st.since) / 1000));
+    const t = s >= 3 ? elapsed(s) : "";
+    const e = w.querySelector(".mx-we");
+    if (e.textContent !== t) e.textContent = t;
+  }
+}
+setInterval(tick, 1000);
+
 new MutationObserver(decorate).observe(msgs, { childList: true });
 
 // ── replying ────────────────────────────────────────────────────────────────
@@ -329,3 +437,38 @@ for (const t of ["pointerup", "pointercancel"]) msgs.addEventListener(t, () => {
 
 apply();
 place();
+
+// ── back to the latest (as WhatsApp does) ───────────────────────────────────
+// Read further up than half a screen and a round button waits above the composer, on its right edge; a
+// message that arrives meanwhile is counted on it. Press it to glide back down. Coming back to a
+// conversation already returns you where you were (app.js keeps each place's scroll); this tells you
+// what's new below.
+const down = document.createElement("button");
+down.type = "button"; down.className = "mx-down"; down.title = "Back to the latest";
+down.innerHTML = `${IC.down}<span class="mx-down-n" hidden></span>`;
+conv.append(down);
+let unseen = 0;
+const away = () => scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight;
+function downSync() {
+  // 12 px above the composer itself (the dock around it has its own padding)
+  const c = composer.getBoundingClientRect(), v = conv.getBoundingClientRect();
+  if (c.height) down.style.bottom = `${Math.round(v.bottom - c.top + 12)}px`;
+  const far = away() > Math.max(240, scroller.clientHeight * 0.5);
+  if (!far) unseen = 0;
+  down.classList.toggle("is-on", far);
+  const n = down.querySelector(".mx-down-n");
+  n.hidden = !unseen; n.textContent = unseen > 99 ? "99+" : String(unseen);
+  down.setAttribute("aria-label", unseen ? `${unseen} new below · back to the latest` : "Back to the latest");
+}
+scroller.addEventListener("scroll", downSync, { passive: true });
+down.addEventListener("click", () => {
+  scroller.scrollTo({ top: scroller.scrollHeight, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+});
+new MutationObserver((ms) => {
+  // a whole conversation swapped in is a new place, not news
+  if (ms.reduce((n, m) => n + m.removedNodes.length, 0) > 6) unseen = 0;
+  else if (away() > 80) for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1 && n.classList.contains("is-new") && n.matches(".m-them, .m-you")) unseen++;
+  requestAnimationFrame(downSync);
+}).observe(msgs, { childList: true });
+const downRO = new ResizeObserver(() => downSync());
+downRO.observe(scroller); downRO.observe($("#dock"));
