@@ -194,7 +194,8 @@ body.files-open .mx-down{display:none}
 /* the coordinator stepping into a thread: its name in its violet (as a group chat colours each person's
    name) and a violet ring round its mark. No inset bubble outline: it would stop at the tail's join.
    The words stay on the same stone, so reading never changes; only who's speaking does. */
-:root[data-msgx] .mx-coord>.av{box-shadow:0 0 0 1px color-mix(in srgb,var(--violet) 45%,transparent)}
+/* its mark's own 1 px border turns violet: one real ring, not a shadow ring drawn outside a grey border */
+:root[data-msgx] .mx-coord>.av{border-color:color-mix(in srgb,var(--violet) 60%,var(--line));box-shadow:none}
 :root[data-msgx-open] .mx-coord.mx-open>.mb>.prose{border-radius:0;box-shadow:inset 2px 0 0 color-mix(in srgb,var(--violet) 45%,transparent)}
 
 /* Open: a long reply (a few paragraphs, a list, code) isn't boxed. It reads on the canvas from the bubbles'
@@ -208,7 +209,10 @@ body.files-open .mx-down{display:none}
 :root[data-msgx-open] .m.mx-open .mx-acts.is-foot,.m.mx-nobub .mx-acts.is-foot{opacity:.5;transform:none;pointer-events:auto}
 :root[data-msgx-open] .m.mx-open:hover .mx-acts.is-foot,.m.mx-nobub:hover .mx-acts.is-foot{opacity:1}
 /* a finger has no hover and the row is hidden there, so nothing is held for it */
-@media (hover:none){:root[data-msgx-open] #msgs>.m.mx-open,:root[data-msgx] #msgs>.m.mx-nobub{margin-bottom:20px}}
+@media (hover:none){
+  :root[data-msgx-open] #msgs>.m.mx-open,:root[data-msgx] #msgs>.m.mx-nobub{margin-bottom:20px}
+  :root[data-msgx-open] #msgs>.m.mx-open .mx-acts.is-foot,:root[data-msgx] #msgs>.m.mx-nobub .mx-acts.is-foot{display:none}
+}
 /* unboxed, the first line starts at the top (no 10 px padding), so the mark moves up to stay centred on it:
    the first line of text (24 px, centre 12 → 12 − 14 = −2), or the name line when named (16 px, centre 8 → −6) */
 :root[data-msgx-open] .m-them.mx-open>.av{margin-top:-2px}
@@ -229,9 +233,10 @@ body.files-open .mx-down{display:none}
    moving cue is the blue arc already on the agent's mark (research-chat.md: one working cue, no shimmer,
    no dots). Its height never changes, so nothing above it moves. Press it for every step. */
 /* and, like a typing bubble, it is always the last thing in the conversation, even when messages arrive
-   while it works (the list is a column, so this only changes where it's drawn, not the app's order) */
+   while it works; when it ends it stays where it was drawn (msgx.js sets each row's flex order, so this only
+   changes where things are drawn, never the app's order) */
 :root[data-msgx] #msgs{display:flex;flex-direction:column}
-:root[data-msgx] #msgs>.m-turn.mx-live{order:1;overflow-anchor:none}
+:root[data-msgx] #msgs>.m-turn.mx-live{overflow-anchor:none}
 /* (drawn out of its list order, it must never be the browser's scroll anchor: its redraws would pull the page) */
 :root[data-msgx] .m-turn.mx-live:not(.mx-expanded) .turn>:is(.tb-work,.tb-think,.tb-act,.tb-narr,.tb-plan){display:none}
 :root[data-msgx] .m-turn.mx-live:not(.mx-expanded) .turn:not(:has(>:is(.tb-text,.tb-answer,.tb-files,.tb-end))){display:none}
