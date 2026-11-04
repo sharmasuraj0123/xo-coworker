@@ -87,21 +87,22 @@ export function createIntel({ world, PROJ, onChange, record, onMoved }) {
     warm(s);
     const c = current(s);
     if (phone) return `<span class="iq-g" aria-hidden="true">${c.pinned ? `<i class="iq-dot"></i>` : "◇"}</span><span class="iq-p">${esc(dots(c.effort))}</span>`;
-    // a runtime other than the server's own is named first, when there are several to tell apart
+    // three parts, each one flex item: the pin's dot, one label (its separators inside it), the effort
+    const { dot, words, effort } = chipParts(s, c);
+    // a runtime other than the server's own is named first, in place of "Auto", when there are several
     const rtn = runtimeOf(s), main = (mainRuntime(world.state.runtimes) || {}).name;
-    const rtw = manyRuntimes(world.state.runtimes) && rtn && rtn !== main ? `<span class="iq-a">${esc(rtName(rtn))}</span> · ` : "";
-    // the runtime's name stands where "Auto" would: one word fewer
-    return rtw ? rtw + chipCore(s, c).replace(`<span class="iq-a">Auto</span> · `, "") : chipCore(s, c);
+    const rt = manyRuntimes(world.state.runtimes) && rtn && rtn !== main ? rtName(rtn) : null;
+    const label = rt ? [`<span class="iq-a">${esc(rt)}</span>`, ...words.filter((w) => w !== AUTO)] : words;
+    return `${dot ? `<i class="iq-dot" aria-hidden="true"></i>` : ""}<span class="iq-l">${label.join(" · ")}</span>${effort ? `<span class="iq-p">${esc(dots(effort))}</span>` : ""}`;
   }
-  function chipCore(s, c) {
-    if (kindOf(s) === "thread") {
-      const m = c.model ? nameOf(c.model) : "Default";
-      return `${c.pinned ? `<i class="iq-dot" aria-hidden="true"></i>` : `<span class="iq-a">Auto</span> · `}<span class="iq-t">${esc(m)}</span>${c.effort ? `<span class="iq-p">${esc(dots(c.effort))}</span>` : ""}`;
-    }
+  const AUTO = `<span class="iq-a">Auto</span>`;
+  /** {dot: pinned, words: the label's parts (HTML), effort} */
+  function chipParts(s, c) {
+    if (kindOf(s) === "thread") return { dot: c.pinned, words: [...(c.pinned ? [] : [AUTO]), `<span class="iq-t">${esc(c.model ? nameOf(c.model) : "Default")}</span>`], effort: c.effort };
     const who = c.routing && c.routing.mode === "decision" ? cap(c.routing.decision_model || "decision") : c.routing && c.routing.mode === "off" ? "Off" : "Router";
     return c.pinned
-      ? `<i class="iq-dot" aria-hidden="true"></i><span class="iq-t">${esc(nameOf(c.model) || "Pinned")}</span>${c.effort ? `<span class="iq-p">${esc(dots(c.effort))}</span>` : ""}`
-      : `<span class="iq-t"><span class="iq-a">Auto</span> · ${esc(who)}</span>`;
+      ? { dot: true, words: [`<span class="iq-t">${esc(nameOf(c.model) || "Pinned")}</span>`], effort: c.effort }
+      : { dot: false, words: [AUTO, `<span class="iq-t">${esc(who)}</span>`], effort: null };
   }
   function chipTitle(s) {
     const c = current(s);
