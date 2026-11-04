@@ -34,6 +34,7 @@ import { createFiles } from "./files.js";
 import { createFilesView } from "./filesview.js";
 import { createTray, fmtSize, kindOf, isLargePaste, pasteLabel, uploadErrorText, FINAL, MAX_FILES } from "./attach.js";
 import { api, uploadAttachment } from "./api.js";
+import { classify, glyph } from "./projicons.js";
 import { createShells } from "./shells/dock.js";
 import { createRecord } from "./recordview.js";
 import { wireGestures } from "./gestures.js";
@@ -175,6 +176,19 @@ REC.view = () => S.view;
 
 // ── world helpers ───────────────────────────────────────────────────────────
 const projects = () => world.state.projects.filter((p) => p.id !== "workspace");
+// Each project its own icon (js/projicons.js): from its name, and its threads' titles when the name says
+// nothing. Offline and instant; worked out again only when the project's thread count changes. A project
+// it can't place keeps the cube.
+const projIcons = new Map();
+function projectIcon(pid) {
+  const ts = world.state.threads.filter((t) => t.project === pid);
+  const memo = projIcons.get(pid);
+  if (memo && memo.n === ts.length) return memo.svg;
+  const { icon } = classify((world.project(pid) || {}).name || pid, ts.map((t) => t.title || ""));
+  const svg = icon === "box" ? ICON.project : glyph(icon);
+  projIcons.set(pid, { n: ts.length, svg });
+  return svg;
+}
 const RUNNING = new Set(["queued", "starting", "running", "stopping"]); // a session on a turn (storm.js BUSY)
 const threadsOf = (pid) => world.state.threads.filter((t) => t.project === pid && t.state !== "resolved");
 const convThread = (v) => (v && v.startsWith("t:") ? world.thread(v.slice(2)) : null);
@@ -355,7 +369,7 @@ function sideRender(needs) {
     const washing = w && w.until > now;
     return { key: p.id, html:
       `<button type="button" class="prow${needsMe ? ` needs k-${kind}` : working ? " busy" : ""}${on ? " is-on" : ""}${washing ? " wash" : ""}${q && pi === S.pfCur ? " is-cur" : ""}" data-go="p:${esc(p.id)}" data-w="${washing ? w.n : 0}"${on ? ' aria-current="page"' : ""} aria-label="${esc(p.name)}${needsMe ? `. ${asks.length} need${asks.length === 1 ? "s" : ""} you: ${esc(label)}` : busy ? ". Working" : ""}">` +
-      `<span class="pr-ic" aria-hidden="true">${ICON.project}${busy && needsMe ? `<i class="pr-busy"></i>` : ""}</span>` +
+      `<span class="pr-ic" aria-hidden="true">${projectIcon(p.id)}${busy && needsMe ? `<i class="pr-busy"></i>` : ""}</span>` +
       `<span class="pr-main"><span class="pr-l1"><span class="pr-name">${esc(p.name)}</span>${needsMe ? `<span class="pr-w" aria-hidden="true"><i class="pr-d"></i>${asks.length}</span>` : ""}</span>` +
       (label ? `<span class="pr-t">${esc(label)}</span>` : "") + `</span></button>` };
   });
@@ -954,7 +968,7 @@ function topRender(needs) {
     const parts = [counted(w, "working"), counted(dn, "done"), counted(rs, "resolved")].filter(Boolean);
     // Threads: every thread here, searchable, dropping down under its button (⌘K reaches them too)
     if (every.length) end = `<button type="button" class="all-btn th-btn" data-switch aria-haspopup="dialog" aria-expanded="${!allEl.hidden}" title="Every thread in ${esc(PROJ(pid))}, searchable">${ICON.threadOne}${esc(SHAPE.word("Threads"))}<span>${every.length}</span></button>`;
-    who = `<span class="tw-ic" aria-hidden="true">${ICON.project}</span><span class="tw-t"><h1 id="conv-title">${esc(PROJ(pid))}</h1><span class="pj-s">${countLine([hostNeedHtml(v, needs), ...(parts.length ? parts : [every.length ? "All quiet" : "No threads yet"]), S.desc[pid] && esc(S.desc[pid])])}</span></span>`;
+    who = `<span class="tw-ic" aria-hidden="true">${projectIcon(pid)}</span><span class="tw-t"><h1 id="conv-title">${esc(PROJ(pid))}</h1><span class="pj-s">${countLine([hostNeedHtml(v, needs), ...(parts.length ? parts : [every.length ? "All quiet" : "No threads yet"]), S.desc[pid] && esc(S.desc[pid])])}</span></span>`;
   } else if (t) {
     const ed = S.tEdit && S.tEdit.tid === t.id ? S.tEdit.field : null;
     const title = ed === "title"
@@ -1652,7 +1666,7 @@ function updateComposer() {
   atList._sel = Math.min(atList._sel || 0, opts.length - 1);
   atList.innerHTML = opts.map((p, i) => {
     const w = world.state.threads.filter((x) => x.project === p.id && isBusy(x)).length;
-    return `<li role="option" id="at-${i}" data-pid="${esc(p.id)}" aria-selected="${i === atList._sel}"><span class="at-ic" aria-hidden="true">${ICON.project}</span>@${esc(p.id)}<span class="at-s">${w ? `${w} working` : "quiet"}</span></li>`;
+    return `<li role="option" id="at-${i}" data-pid="${esc(p.id)}" aria-selected="${i === atList._sel}"><span class="at-ic" aria-hidden="true">${projectIcon(p.id)}</span>@${esc(p.id)}<span class="at-s">${w ? `${w} working` : "quiet"}</span></li>`;
   }).join("");
   atList.hidden = false;
   say.setAttribute("aria-expanded", "true");
@@ -2574,7 +2588,7 @@ function jumpRender() {
   const q = jq.value.trim().toLowerCase();
   const all = [{ v: "home", name: "Home", sub: "Your next move", icon: ICON.home }, { v: "ws", name: "Workspace", sub: "The coordinator", icon: XO }, { v: "chats", name: "Chats", sub: "One agent, one folder", icon: ICON.thread }, { v: "artifacts", name: "Artifacts", sub: "Everything your threads made", icon: ICON.stack }];
   for (const p of projects()) {
-    all.push({ v: "p:" + p.id, name: p.name, sub: "Project", icon: ICON.project });
+    all.push({ v: "p:" + p.id, name: p.name, sub: "Project", icon: projectIcon(p.id) });
     for (const t of threadsOf(p.id)) all.push({ v: "t:" + t.id, name: t.title, sub: `${p.name} · ${wordOf(t).toLowerCase()}`, icon: threadIc(t), t: true });
   }
   jitems = all.filter((x) => !q || (x.name + " " + x.sub).toLowerCase().includes(q)).concat(REC.jumpItems(q));
