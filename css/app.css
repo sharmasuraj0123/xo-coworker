@@ -86,8 +86,8 @@ button:disabled{cursor:default}
 /* working, where it sits in text (a task card, a link capsule): no blue. A small arc in the text's own colour
    turns on a faint track, the agent mark's own 1.6s arc-turn (css/panel.css .arc), kept in step by
    js/ui.js keepTurning. Still when motion is reduced. */
-.tc-top .g-working,.lk-ic .g-working{border:1.5px solid color-mix(in srgb,currentColor 22%,transparent);border-top-color:currentColor;color:var(--ink-2);animation:arc-turn 1.6s linear infinite}
-@media (prefers-reduced-motion:reduce){.tc-top .g-working,.lk-ic .g-working{animation:none}}
+.tc-top .g-working,.lk-ic .g-working,.nw .g-working{border:1.5px solid color-mix(in srgb,currentColor 22%,transparent);border-top-color:currentColor;color:var(--ink-2);animation:arc-turn 1.6s linear infinite}
+@media (prefers-reduced-motion:reduce){.tc-top .g-working,.lk-ic .g-working,.nw .g-working{animation:none}}
 .tcard.st-held{border-style:dashed;border-color:var(--g33)}
 
 /* effort label: dial + word + time */
