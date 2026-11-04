@@ -266,7 +266,9 @@ button:disabled{cursor:default}
    and with reduced motion. */
 @property --nx-a{syntax:"<angle>";inherits:false;initial-value:300deg}
 @keyframes nx-orbit{to{--nx-a:660deg}}
-.next{position:relative;isolation:isolate;border-radius:var(--r-2xl);border:1px solid transparent;padding:22px 24px 18px;
+/* concentric: its 6 px buttons sit 22 px from every edge (21 + the 1 px edge), so its corner is 28 (22 + 6).
+   It used to be 22 with buttons 19 px up and 25 px in: unequal, so no corner could have matched. */
+.next{position:relative;isolation:isolate;border-radius:var(--r-3xl);border:1px solid transparent;padding:21px;
   --nx-arc:rgba(var(--accent-rgb),.8);
   background:linear-gradient(var(--surface),var(--surface)) padding-box,conic-gradient(from var(--nx-a),transparent 0deg,var(--nx-arc) 50deg,transparent 110deg) border-box,linear-gradient(170deg,rgba(var(--accent-rgb),.45),var(--g2A) 34%,var(--g24)) border-box;
   box-shadow:var(--e2);
@@ -290,7 +292,9 @@ button:disabled{cursor:default}
 .next.st-allow .stamp .sk{animation:draw .3s var(--glide) .05s forwards}
 .nx-meta{display:flex;align-items:center;gap:10px;min-width:0;margin-bottom:12px}
 .nx-where{min-width:0;margin-left:auto;display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px;margin-right:-8px;border-radius:var(--r-sm);font-size:var(--fs-sm);color:var(--ink-4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.nx-where:hover{background:var(--hover-fill);color:var(--ink-2)}
+/* where it was asked: a text link in the card's corner (it hangs 8 px into the margin to align its words),
+   so its hover is the ink brightening, not a fill that would sit off the corner's curve */
+.nx-where:hover{color:var(--ink-2)}
 .nx-where span{color:var(--g5F)}
 .nx-h{font:600 var(--fs-2xl)/28px var(--sans);letter-spacing:-.01em;color:var(--ink);overflow-wrap:anywhere;text-wrap:pretty}
 /* the exact command under the headline: mono at reading size, two lines at most (audit A6) */
@@ -304,7 +308,9 @@ button:disabled{cursor:default}
 .nx-btns.one .b{flex:none;padding:0 18px}
 .nx-foot{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:10px}
 .nx-link{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 8px;margin-left:-8px;border-radius:var(--r-sm);font-size:var(--fs-base);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.nx-link:hover{background:var(--bg-3);color:var(--ink)}
+/* a text link: its hover is the ink brightening, no fill (a fill would stick out of the card's corner,
+   since the link hangs 8 px into the margin to align its glyph) */
+.nx-link:hover{color:var(--ink)}
 .nx-link svg{width:15px;height:15px}
 .next.noting .nx-opts,.next.noting .nx-btns,.next.noting .nx-foot{display:none}
 .nx-note{margin-top:16px}
@@ -1092,7 +1098,8 @@ button.tp-done-u:hover{color:var(--ink)}
 .iq-p{font:inherit;letter-spacing:.5px}
 .iq-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--ink-2)}
 .iq-g{display:inline-grid;place-items:center;width:12px;font-size:var(--fs-sm)}
-.iq-pop{position:fixed;z-index:46;display:flex;flex-direction:column;padding:14px 14px 10px;border-radius:var(--r-xl);background:var(--pop-bg);border:1px solid var(--pop-line);box-shadow:var(--e2);outline:none;animation:pop-in .18s var(--glide)}
+/* concentric: 20 outside, its 6 px controls 14 px from every edge (13 + the 1 px edge) */
+.iq-pop{position:fixed;z-index:46;display:flex;flex-direction:column;padding:13px;border-radius:var(--r-xl);background:var(--pop-bg);border:1px solid var(--pop-line);box-shadow:var(--e2);outline:none;animation:pop-in .18s var(--glide)}
 .iq-pop.is-out{animation:pop-out .14s ease-in forwards}
 @keyframes pop-in{from{opacity:0;transform:translateY(6px) scale(.985)}}
 @keyframes pop-out{to{opacity:0;transform:translateY(4px)}}
@@ -1178,7 +1185,9 @@ button.tp-done-u:hover{color:var(--ink)}
 .sheet{position:fixed;inset:0;z-index:80;display:flex;justify-content:center;align-items:flex-start;padding:12vh 16px 16px;background:rgb(0 0 0 / calc(.55 * var(--sha)));animation:fade .18s ease}
 @keyframes fade{from{opacity:0}}
 .sheet-card{width:min(600px,100%);max-height:76vh;display:flex;flex-direction:column;border-radius:var(--r-2xl);background:var(--g1B);border:1px solid var(--g2C);box-shadow:var(--e2);overflow:hidden;animation:dlg-in .24s var(--glide)}
-.sheet-h{display:flex;align-items:center;justify-content:space-between;padding:18px 14px 6px 22px}
+/* a sheet is 22: its close button sits 16 px from the corner's two edges (15 + the 1 px edge), so its 6 px
+   corner is concentric; titles, tools and rows share one text column 26 px in (25 + 1; rows: 15 + 10 + 1) */
+.sheet-h{display:flex;align-items:center;justify-content:space-between;padding:15px 15px 6px 25px}
 .sheet-h h2{font:600 var(--fs-2xl)/28px var(--sans);letter-spacing:-.01em}
 .x{display:grid;place-items:center;width:32px;height:32px;border-radius:var(--r-sm);color:var(--ink-3)}
 .x:hover{background:var(--bg-3);color:var(--ink)}
@@ -1186,7 +1195,7 @@ button.tp-done-u:hover{color:var(--ink)}
 
 /* All threads: searchable, filtered, finished ones folded into one line */
 .all-card{width:min(640px,100%)}
-.all-tools{display:flex;flex-direction:column;gap:10px;padding:8px 18px 10px}
+.all-tools{display:flex;flex-direction:column;gap:10px;padding:8px 25px 10px}
 .all-q{display:flex;align-items:center;gap:10px;height:42px;padding:0 12px;border-radius:var(--r-lg);background:var(--g14);border:1px solid var(--g2A);color:var(--ink-4)}
 .all-q:focus-within{border-color:var(--g45)}
 .all-q svg{width:16px;height:16px}
@@ -1198,7 +1207,7 @@ button.tp-done-u:hover{color:var(--ink)}
 .all-f button[aria-checked="true"]{background:var(--g2A);border-color:var(--g3A);color:var(--ink)}
 .all-f button[aria-checked="true"] span{color:var(--ink-3)}
 .all-f button:disabled{opacity:.4}
-.all-list{overflow-y:auto;padding:4px 10px 14px;scrollbar-width:thin;scrollbar-color:var(--g33) transparent}
+.all-list{overflow-y:auto;padding:4px 15px 15px;scrollbar-width:thin;scrollbar-color:var(--g33) transparent}
 .ar-list{list-style:none}
 .ar{display:grid;grid-template-columns:14px minmax(0,1fr) auto 44px 34px;align-items:center;gap:12px;width:100%;min-height:42px;padding:4px 10px;border-radius:var(--r-sm);text-align:left;font-size:var(--fs-md)}
 .ar:hover,.ar:focus-visible{background:var(--bg-3)}
@@ -1225,7 +1234,9 @@ button.tp-done-u:hover{color:var(--ink)}
 .jump-field{display:flex;align-items:center;gap:10px;padding:0 16px;height:56px;border-bottom:1px solid var(--g26);color:var(--ink-4)}
 .jump-field svg{width:18px;height:18px}
 .jump-field input{flex:1;height:100%;border:0;background:transparent;outline:none;font-size:var(--fs-lg)}
-.jump-list{list-style:none;overflow-y:auto;padding:6px}
+/* a palette like Spotlight: 12 outside, its 6 px rows 6 px from the edge (5 + the 1 px edge) */
+.jump-card{border-radius:var(--r-lg)}
+.jump-list{list-style:none;overflow-y:auto;padding:5px}
 .jump-list li{display:flex;align-items:center;gap:11px;min-height:40px;padding:6px 10px;border-radius:var(--r-sm);cursor:pointer}
 .jump-list li.is-t{padding-left:30px}
 .jump-list li[aria-selected="true"]{background:var(--bg-3)}
@@ -1312,7 +1323,7 @@ button.kr-r:hover{background:var(--bg-3);color:var(--ink)}
 @media (max-height:820px) and (min-width:761px){
   .hm{padding-top:26px}
   .hm-lbl{margin-top:24px}
-  .next{padding-top:18px;padding-bottom:14px}
+  .next{padding:21px}
 }
 
 /* ── laptop ──────────────────────────────────────────────────────────────── */
@@ -1349,7 +1360,7 @@ button.kr-r:hover{background:var(--bg-3);color:var(--ink)}
   .create{align-self:flex-start}
   .hm-lbl{margin-top:26px}
   .hm-lbl-s{display:none}
-  .next{padding:18px 16px 14px;border-radius:var(--r-xl)}
+  .next{padding:15px;border-radius:var(--r-2xl)}
   .nx-meta{flex-wrap:wrap;row-gap:8px}
   .nx-where{margin-left:-8px;order:3;flex-basis:100%}
   .nx-h{font-size:var(--fs-2xl)}
@@ -2503,7 +2514,10 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .pj-n{flex:none;padding:2px 6px;border-radius:var(--r-sm);background:var(--g22);font:500 var(--fs-sm)/16px var(--mono);color:var(--ink-3);letter-spacing:.01em;font-variant-numeric:tabular-nums}
 .sheet.is-drop{display:block;padding:0;background:transparent;animation:none;-webkit-backdrop-filter:none;backdrop-filter:none}
 .sheet.is-drop .all-card{position:absolute;left:var(--dx);top:var(--dy);width:min(480px,calc(100vw - var(--dx) - 16px));max-height:min(70vh,580px);border-radius:var(--r-lg);box-shadow:var(--e2);animation:drop-in .16s var(--glide) both;transform-origin:top left}
-.sheet.is-drop .sheet-h{padding-top:14px}
+/* dropped from its button it's 12: the same rules at 6 px (5 + 1); one text column 16 px in */
+.sheet.is-drop .sheet-h{padding:5px 5px 4px 15px}
+.sheet.is-drop .all-tools{padding:8px 15px 10px}
+.sheet.is-drop .all-list{padding:4px 5px 5px}
 .sheet.is-drop .sheet-h h2{font-size:var(--fs-lg)}
 @keyframes drop-in{from{opacity:0;transform:translateY(-6px) scale(.985)}}
 @media (max-width:760px){
