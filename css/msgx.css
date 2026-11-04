@@ -4,7 +4,17 @@
    20 → 13 at 7 in). Remove this file, js/msgx.js and their lines in index.html to take it all out. */
 
 /* ── the switch over the conversation ─────────────────────────────────────── */
-.mx-switch{position:absolute;z-index:6;top:calc(var(--mx-top,66px) + 8px);left:calc(var(--gut) + (100% - 2 * var(--gut) - var(--rp)) / 2);transform:translateX(-50%);display:flex;align-items:center;gap:4px;height:40px;padding:4px;border:1px solid var(--line);border-radius:var(--r-pill);background:color-mix(in srgb,var(--bg-2) 90%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);box-shadow:var(--e2),var(--hairline)}
+.mx-switch{position:absolute;z-index:6;top:calc(var(--mx-top,66px) + 8px);right:16px;display:flex;align-items:center;gap:4px;max-width:calc(100% - 32px);height:40px;padding:4px;border:1px solid var(--line);border-radius:var(--r-pill);background:color-mix(in srgb,var(--bg-2) 90%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);box-shadow:var(--e2),var(--hairline)}
+/* folded, it is one small pill in the right margin (beside the text column, never over it); open, the
+   tones and toggles slide out to its left */
+.mx-fold{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px 0 12px;border-radius:var(--r-pill);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3);white-space:nowrap;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.mx-fold b{font-weight:500;color:var(--ink)}
+.mx-fold svg{width:16px;height:16px;transition:transform var(--d-move) var(--ease)}
+.mx-fold:hover{background:var(--hover-fill);color:var(--ink-2)}
+.mx-switch.is-open .mx-fold svg:last-child{transform:rotate(180deg)}
+.mx-panel{display:none;align-items:center;gap:4px;min-width:0;overflow-x:auto;scrollbar-width:none}
+.mx-switch.is-open .mx-panel{display:flex;animation:mx-up var(--d-in) var(--ease)}
+.mx-switch.is-open{flex-direction:row-reverse}
 .mx-seg{display:flex;gap:2px}
 .mx-seg button,.mx-spot{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:var(--r-pill);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3);white-space:nowrap;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .mx-seg button:hover,.mx-spot:hover{background:var(--hover-fill);color:var(--ink-2);transition-duration:var(--d-hover-in)}
@@ -14,13 +24,13 @@
 .mx-spot2::before{content:none}
 .mx-spot::before{content:"";position:absolute;left:-5px;top:8px;bottom:8px;width:1px;background:var(--line)}
 .mx-spot svg{width:16px;height:16px}
-.mx-hint{position:absolute;z-index:6;top:calc(var(--mx-top,66px) + 56px);left:calc(var(--gut) + (100% - 2 * var(--gut) - var(--rp)) / 2);transform:translate(-50%,-4px);max-width:min(560px,90%);padding:6px 12px;border-radius:var(--r-pill);background:color-mix(in srgb,var(--bg-2) 76%,transparent);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);font-size:var(--fs-sm);line-height:16px;color:var(--ink-2);text-align:center;opacity:0;pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease)}
-.mx-hint.is-on{opacity:1;transform:translate(-50%,0);transition-duration:var(--d-in)}
-#msgs{padding-top:48px}
+.mx-hint{position:absolute;z-index:6;top:calc(var(--mx-top,66px) + 56px);right:16px;max-width:min(560px,90%);padding:6px 12px;border-radius:var(--r-pill);background:color-mix(in srgb,var(--bg-2) 90%,transparent);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);font-size:var(--fs-sm);line-height:16px;color:var(--ink-2);opacity:0;transform:translateY(-4px);pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease)}
+.mx-hint.is-on{opacity:1;transform:none;transition-duration:var(--d-in)}
 @media (max-width:760px){
-  .mx-switch{left:50%;max-width:calc(100% - 24px);overflow-x:auto;scrollbar-width:none}
+  .mx-switch{right:12px;max-width:calc(100% - 24px)}
+  .mx-fold>:is(span,b){display:none}
   .mx-spot span{display:none}
-  .mx-hint{left:50%}
+  .mx-hint{right:12px}
 }
 
 /* ── back to the latest ──────────────────────────────────────────────────────
@@ -51,9 +61,15 @@ body.files-open .mx-down{display:none}
 /* A long reply read open (no bubble) has them after the whole message, pictures included, on its text edge,
    as ChatGPT and Claude put theirs under an answer; never over a picture */
 .mx-acts.is-foot{display:none}
+/* pictures with no words: Reply sits under them, on the same edge, as under an open reply */
+.mx-nobub>.mb{position:relative}
+.mx-nobub .mx-acts.is-foot{display:flex;top:calc(100% + 6px);left:10px;transform:translateY(-4px)}
+.m.mx-nobub:hover .mx-acts.is-foot,.m.mx-nobub:focus-within .mx-acts.is-foot{transform:none}
+.m-you.mx-nobub>.mx-acts.is-foot{left:auto;right:8px;flex-direction:row-reverse}
+:root[data-msgx] #msgs>.m.mx-nobub{margin-bottom:36px}
 :root[data-msgx-open] .mx-open .mx-acts:not(.is-foot){display:none}
 :root[data-msgx-open] .mx-open>.mb{position:relative}
-:root[data-msgx-open] .mx-open .mx-acts.is-foot{display:flex;top:calc(100% + 2px);left:10px;transform:translateY(-4px)}
+:root[data-msgx-open] .mx-open .mx-acts.is-foot{display:flex;top:calc(100% + 6px);left:10px;transform:translateY(-4px)}
 :root[data-msgx-open] .m.mx-open:hover .mx-acts.is-foot,:root[data-msgx-open] .m.mx-open:focus-within .mx-acts.is-foot{transform:none}
 .m.mx-dragging .mx-acts,#msgs.mx-pulling .mx-acts{opacity:0;pointer-events:none}
 @media (hover:none){.mx-acts{display:none}}
@@ -73,10 +89,10 @@ body.files-open .mx-down{display:none}
 .mx-r-x svg{width:16px;height:16px}
 
 /* a sent reply: its quote is a card at the top of your bubble; press it to go back to the original */
-.mx-qc{display:flex;flex-direction:column;gap:2px;width:calc(100% + 20px);margin:-4px -10px 8px;padding:6px 10px;border-radius:calc(var(--r-xl) - 7px);background:color-mix(in srgb,currentColor 8%,transparent);color:inherit;text-align:left;white-space:normal;transition:background var(--d-hover) var(--ease)}
+.mx-qc{display:flex;flex-direction:column;gap:2px;width:calc(100% + 20px);margin:-4px -10px 8px;padding:6px 10px;border-radius:calc(var(--r-xl) - 6px);background:color-mix(in srgb,currentColor 8%,transparent);color:inherit;text-align:left;white-space:normal;transition:background var(--d-hover) var(--ease)}
 .mx-qc:hover{background:color-mix(in srgb,currentColor 13%,transparent)}
-.mx-qc b{font:600 var(--fs-xs)/16px var(--sans);opacity:.78}
-.mx-qc span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:var(--fs-md);line-height:20px;opacity:.72}
+.mx-qc b{font:600 var(--fs-xs)/16px var(--sans);opacity:.86}
+.mx-qc span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:var(--fs-md);line-height:20px;opacity:.84}
 .m.mx-flash{animation:mx-flash 1.6s var(--ease);border-radius:var(--r-lg)}
 @keyframes mx-flash{0%,30%{background:var(--hover-fill);box-shadow:0 0 0 8px var(--hover-fill)}100%{background:transparent;box-shadow:0 0 0 8px transparent}}
 
@@ -109,10 +125,11 @@ body.files-open .mx-down{display:none}
    white slab. Theirs stay stone (--bubble). */
 :root[data-msgx]{--mx-you:oklch(.335 .004 260);--mx-you-tail:var(--mx-you);--mx-you-hi:none}
 :root[data-theme="light"][data-msgx]{--mx-you:oklch(.905 .003 260)}
-/* XO Glass (the default): glass lit from above, breathing the faintest of XO's green, with a fine green
-   edge, the O of the mark, at 16 %. Chroma .011–.016: brand, not a status. */
-:root[data-msgx-tone="xo"]{--mx-you:linear-gradient(180deg,oklch(.345 .011 150),oklch(.305 .016 148));--mx-you-tail:oklch(.305 .016 148);--mx-you-hi:inset 0 1px 0 rgba(255,255,255,.07),inset 0 0 0 1px color-mix(in srgb,var(--accent-fill) 16%,transparent)}
-:root[data-theme="light"][data-msgx-tone="xo"]{--mx-you:linear-gradient(180deg,oklch(.985 .012 140),oklch(.955 .022 140));--mx-you-tail:oklch(.955 .022 140);--mx-you-hi:inset 0 1px 0 rgba(255,255,255,.9),inset 0 0 0 1px color-mix(in srgb,var(--accent-fill) 30%,transparent),0 1px 2px rgba(0,0,0,.06)}
+/* XO (the default): plain and flat. XO's own stone, one step up from theirs, with the faintest breath of
+   the O's green in it (chroma .012): no gradient, no edge, no highlight, so it never reads as selected,
+   glowing or "done". The green is felt, not seen. */
+:root[data-msgx-tone="xo"]{--mx-you:oklch(.325 .012 145)}
+:root[data-theme="light"][data-msgx-tone="xo"]{--mx-you:oklch(.935 .014 140)}
 /* Glass: the same light from above, in pure stone */
 :root[data-msgx-tone="glass"]{--mx-you:linear-gradient(180deg,oklch(.33 .005 260),oklch(.30 .005 260));--mx-you-tail:oklch(.30 .005 260);--mx-you-hi:inset 0 1px 0 rgba(255,255,255,.07)}
 :root[data-theme="light"][data-msgx-tone="glass"]{--mx-you:linear-gradient(180deg,oklch(1 0 0),oklch(.975 .002 260));--mx-you-tail:oklch(.975 .002 260);--mx-you-hi:inset 0 1px 0 rgba(255,255,255,.9),0 1px 2px rgba(0,0,0,.08),0 2px 8px rgba(0,0,0,.05)}
@@ -154,6 +171,8 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-them{grid-template-columns:28px minmax(0,1fr);gap:8px}
 :root[data-msgx] .m-them>.av{position:relative;z-index:1;width:28px;height:28px;margin-top:8px;border-radius:50%}
 :root[data-msgx] .m-them>.av-gap{height:0;margin:0}
+:root[data-msgx] .av.mx-pm{color:var(--ink-2)}
+:root[data-msgx] .av.mx-pm>svg{width:16px;height:16px}
 :root[data-msgx] .m-them .mh{display:none;min-height:0;padding:0 0 4px 16px}
 :root[data-msgx] .m-them.mx-other:not(.cont) .mh{display:flex}
 :root[data-msgx] .m-them.mx-other:not(.cont)>.av{margin-top:28px}
@@ -174,7 +193,7 @@ body.files-open .mx-down{display:none}
 /* Open: a long reply (a few paragraphs, a list, code) isn't boxed. It reads on the canvas from the bubbles'
    text edge, so a grey slab never fills the screen. Short replies stay bubbles. */
 :root[data-msgx-open] .mx-open :is(.mb>.prose,.turn>.tb-answer,.turn>.tb-text){width:auto;max-width:66ch;padding:0 0 0 16px;background:none}
-:root[data-msgx-open] #msgs>.m.mx-open{margin-bottom:32px}
+:root[data-msgx-open] #msgs>.m.mx-open{margin-bottom:36px}
 
 /* What the agent did before it answered: one quiet pill on the bubbles' text edge, then the bubble */
 :root[data-msgx] .m-turn>.mb[data-mx-who]::before{content:attr(data-mx-who);display:block;padding:0 0 4px 16px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
@@ -212,9 +231,25 @@ body.files-open .mx-down{display:none}
 /* the line under a conversation (a coordinator replying) is the same bubble */
 :root[data-msgx] .typing{grid-template-columns:28px minmax(0,1fr);gap:8px;padding-bottom:16px;animation:none}
 :root[data-msgx] .typing>.av{width:28px;height:28px;border-radius:50%;align-self:center}
-:root[data-msgx] .typing .ty-b{width:fit-content;max-width:min(88%,480px);height:44px;gap:12px;padding:0 16px;border-radius:var(--r-xl);background:var(--bubble);color:var(--ink-3)}
+:root[data-msgx] .typing .ty-b{width:fit-content;max-width:min(88%,480px);height:44px;align-items:center;gap:12px;padding:0 16px;border-radius:var(--r-xl);background:var(--bubble);color:var(--ink-2);font-size:var(--fs-md);line-height:20px}
+:root[data-msgx] .typing .ty-b .ty-t{color:var(--ink-2)}
 :root[data-msgx] .typing .ty-b .elapsed:not(:empty)::before{content:none}
 @media (prefers-reduced-motion:reduce){.mx-wl.is-in,.mx-wl.is-out{animation:none}}
+
+/* Pressed open (while it works, or after), the work is the same bubble grown into a card: its 44 px
+   header row (what it's doing, the time, a chevron to fold it back), then every step as a quiet 32 px row,
+   icons in grey, no rail, no colour. Card 20, rows 8 in, so their hover corners are 20 − 8 = 12. */
+:root[data-msgx] .m-turn .turn>.tb-work.is-open{width:min(88%,560px);padding:0 0 8px;border-radius:var(--r-xl);background:var(--bubble);animation:mx-up var(--d-in) var(--ease)}
+:root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h{width:100%;min-height:44px;margin:0;padding:0 16px;border-radius:var(--r-xl);background:none!important;font-size:var(--fs-md)}
+:root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h :is(.tb-ht,.tb-wn){font-size:var(--fs-md);color:var(--ink-2)}
+:root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-rail{gap:0;margin:0;padding:0 8px;border:0}
+:root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>.tb-h{width:100%;min-height:32px;margin:0;padding:6px 8px;border-radius:calc(var(--r-xl) - 8px);font-size:var(--fs-sm);color:var(--ink-3)}
+:root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>.tb-h:hover{background:var(--hover-fill)!important}
+:root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-hi{display:grid;color:var(--ink-4)}
+:root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-hi svg{width:16px;height:16px}
+:root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>:not(.tb-h){margin-left:32px}
+:root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-rows{margin:0 0 4px 32px}
+:root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb-narr{margin:4px 8px;padding:0 8px;font-size:var(--fs-sm);color:var(--ink-3)}
 
 /* a few emoji and nothing else are the message: large, no bubble */
 :root[data-msgx] .mx-emoji :is(.bubble,.prose){padding:0;background:none!important;box-shadow:none;font-size:var(--fs-4xl);line-height:var(--lh-40)}
@@ -229,8 +264,6 @@ body.files-open .mx-down{display:none}
 :root[data-msgx-tails] .m-you .bubble.mx-tail::before{background:var(--mx-you-tail)}
 :root[data-msgx-tails] .mx-tail.is-them::before{right:auto;left:-8px;transform:scale(-1,-1)}
 /* in a gradient tone the tail takes the bubble's top colour, where it joins */
-:root[data-msgx-tails][data-msgx-tone="xo"] .m-you .bubble.mx-tail::before{background:oklch(.345 .011 150)}
-:root[data-theme="light"][data-msgx-tails][data-msgx-tone="xo"] .m-you .bubble.mx-tail::before{background:oklch(.985 .012 140)}
 :root[data-msgx-tails][data-msgx-tone="glass"] .m-you .bubble.mx-tail::before{background:oklch(.33 .005 260)}
 :root[data-theme="light"][data-msgx-tails][data-msgx-tone="glass"] .m-you .bubble.mx-tail::before{background:oklch(1 0 0)}
 

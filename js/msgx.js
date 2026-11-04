@@ -28,7 +28,7 @@ const IC = {
 };
 
 const TONES = [
-  { id: "xo", name: "XO Glass", hint: "Glass lit from above, breathing the faintest of XO's green, with a fine green edge" },
+  { id: "xo", name: "XO", hint: "Plain and flat: XO's own stone, one step up from theirs, with the faintest breath of its green" },
   { id: "glass", name: "Glass", hint: "The same light from above, in pure stone" },
   { id: "graphite", name: "Graphite", hint: "A cool grey a step lighter than theirs" },
   { id: "linen", name: "Linen", hint: "A warm neutral: you're the warm voice, the agent the cool one" },
@@ -49,6 +49,7 @@ function apply() {
   if (open) root.dataset.msgxOpen = ""; else delete root.dataset.msgxOpen;
   try { localStorage.setItem(KEY, tone); localStorage.setItem(TAILS, tails ? "1" : "0"); localStorage.setItem(OPEN, open ? "1" : "0"); } catch { /* private mode */ }
   for (const b of sw.querySelectorAll("[data-tone]")) b.setAttribute("aria-checked", String(b.dataset.tone === tone));
+  sw.querySelector(".mx-fold b").textContent = TONES.find((t) => t.id === tone).name;
   sw.querySelector("[data-tails]").setAttribute("aria-pressed", String(tails));
   sw.querySelector("[data-open]").setAttribute("aria-pressed", String(open));
   decorate();
@@ -57,9 +58,14 @@ function apply() {
 // ── the switch: a glass bar over the conversation ──────────────────────────
 const sw = document.createElement("div");
 sw.className = "mx-switch";
-sw.innerHTML = `<div class="mx-seg" role="radiogroup" aria-label="Your bubbles">${TONES.map((t) => `<button type="button" role="radio" data-tone="${t.id}" title="${t.hint}">${t.name}</button>`).join("")}</div>` +
-  `<button type="button" class="mx-spot" data-tails aria-pressed="false" title="A tail on the last bubble of a run">${IC.tail}<span>Tails</span></button>` +
-  `<button type="button" class="mx-spot mx-spot2" data-open aria-pressed="false" title="Long replies read on the canvas, not in a bubble">${IC.open}<span>Open</span></button>`;
+sw.innerHTML = `<button type="button" class="mx-fold" aria-expanded="false" title="How your bubbles look">${IC.tail}<span>Bubbles</span><b></b>${IC.down}</button>` +
+  `<div class="mx-panel"><div class="mx-seg" role="radiogroup" aria-label="Your bubbles">${TONES.map((t) => `<button type="button" role="radio" data-tone="${t.id}" title="${t.hint}">${t.name}</button>`).join("")}</div>` +
+  `<button type="button" class="mx-spot" data-tails aria-pressed="false" title="A tail on the first bubble of a run">${IC.tail}<span>Tails</span></button>` +
+  `<button type="button" class="mx-spot mx-spot2" data-open aria-pressed="false" title="Long replies read on the canvas, not in a bubble">${IC.open}<span>Open</span></button></div>`;
+const fold = (open) => { sw.classList.toggle("is-open", open); sw.querySelector(".mx-fold").setAttribute("aria-expanded", String(open)); };
+sw.querySelector(".mx-fold").addEventListener("click", () => fold(!sw.classList.contains("is-open")));
+document.addEventListener("pointerdown", (e) => { if (!sw.contains(e.target)) fold(false); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && sw.classList.contains("is-open")) fold(false); });
 const hint = document.createElement("p");
 hint.className = "mx-hint"; hint.setAttribute("aria-live", "polite");
 let hintT = 0;
@@ -152,6 +158,12 @@ function decorate() {
     if (bub && !el.classList.contains("m-you")) {
       const foot = acts.cloneNode(true); foot.classList.add("is-foot");
       el.querySelector(":scope > .mb")?.append(foot);
+    } else if (!bub && el.querySelector(".mx-stack, .tb-files")) {
+      // pictures with no words still take a reply: beside the last picture, at its foot
+      const foot = acts.cloneNode(true); foot.classList.add("is-foot");
+      foot.querySelector("[data-mx-copy]")?.remove();
+      el.classList.add("mx-nobub");
+      (el.querySelector(":scope > .mb") || el).append(foot);
     }
     // the swipe's arrow: beside your bubble, or in the gap a reply leaves on the left
     (el.classList.contains("m-you") && el.querySelector(".bubble") || el).append(arrow);
@@ -203,7 +215,23 @@ function decorate() {
     if (mb) delete mb.dataset.mxWho; // a turn is always the main agent's own
     working(el);
   }
+  projectMarks();
 }
+
+/** A project's coordinator wears the project's own icon (the one in the sidebar); XO's mark stays with the
+ *  Workspace coordinator. In a thread, its violet ring still says "coordinator". */
+function projectMarks() {
+  const row = document.querySelector('#projects .prow.is-on[data-go^="p:"]');
+  const view = document.getElementById("app").dataset.view;
+  const ic = (view === "project" || view === "thread") && row && row.querySelector(".pr-ic svg");
+  if (!ic) return;
+  for (const av of document.querySelectorAll("#msgs .m-them > .av:not(.av-gap):not(.mx-pm), #typing .typing > .av:not(.mx-pm)")) {
+    if (!av.querySelector(".xo-mark")) continue;
+    av.classList.add("mx-pm");
+    av.replaceChildren(ic.cloneNode(true), ...[...av.querySelectorAll(".arc")]);
+  }
+}
+new MutationObserver(projectMarks).observe(document.getElementById("typing"), { childList: true, subtree: true });
 
 // ── the agent at work: one calm bubble ──────────────────────────────────────
 const WORKING = new Map(); // turn key → { text, since, w }
@@ -304,7 +332,7 @@ const clip = (s, n = 220) => { s = s.replace(/\s+/g, " ").trim(); return s.lengt
 
 function startReply(m, text) {
   const who = nameIn(m);
-  reply = { who, text: clip(text || textOf(m)) };
+  reply = { who, text: clip(text || textOf(m) || (m.querySelector(".mx-stack, .tb-files") ? "A picture" : "")) };
   chip.querySelector("b").textContent = who === "You" ? "Yourself" : who;
   chip.querySelector(".mx-r-t>span").textContent = reply.text;
   chip.hidden = false; chip.classList.remove("is-in"); void chip.offsetWidth; chip.classList.add("is-in");
