@@ -804,6 +804,12 @@ function wsHeadRender() {
     `<p class="wsh-p">Your coordinator, across all ${projects().length} projects. Tell it what should get done; it routes the work. What needs you waits on <button type="button" class="wsh-home" data-go="home">Home</button>.</p></div>`);
 }
 
+/** The title bar's count line, set as type: each figure a shade brighter than its word, in
+ *  tabular figures so a count that changes never shifts the line, and a quiet dot between; a narrow
+ *  line breaks only at a dot, never inside "1 resolved". */
+const counted = (n, word) => (n ? `<span class="pj-c"><span class="pj-k">${n}</span> ${word}</span>` : "");
+const countLine = (bits) => bits.filter(Boolean).join(`<span class="pj-d" aria-hidden="true"> · </span>`);
+
 function topRender(needs) {
   const v = S.view;
   const t = convThread(v);
@@ -839,8 +845,8 @@ function topRender(needs) {
     const working = world.state.threads.filter(isBusy).length;
     const idle = world.state.threads.filter((x) => x.state === "working" && !isBusy(x) && !asking.has(x.id)).length;
     const done = doneToday().length;
-    const parts = [working && `${working} working`, P0.held.length && `${P0.held.length} can wait`, idle && `${idle} idle`, done && `${done} finished today`].filter(Boolean);
-    who = `<span class="tw-ic tw-xo" aria-hidden="true">${XO}</span><span class="tw-t"><h1 id="conv-title">Workspace</h1><button type="button" class="pj-s pj-home" data-go="home" title="What needs you is on Home">${parts.join(" · ") || "All quiet"} · across ${projects().length} projects</button></span>`;
+    const parts = [counted(working, "working"), counted(P0.held.length, "can wait"), counted(idle, "idle"), counted(done, "finished today")].filter(Boolean);
+    who = `<span class="tw-ic tw-xo" aria-hidden="true">${XO}</span><span class="tw-t"><h1 id="conv-title">Workspace</h1><button type="button" class="pj-s pj-home" data-go="home" title="What needs you is on Home">${countLine([...(parts.length ? parts : ["All quiet"]), projects().length && `across ${counted(projects().length, projects().length === 1 ? "project" : "projects")}`])}</button></span>`;
   } else if (v.startsWith("p:")) {
     const pid = v.slice(2);
     const ts = threadsOf(pid);
@@ -849,10 +855,11 @@ function topRender(needs) {
     const w = ts.filter(isBusy).length;
     const dn = ts.filter((x) => x.state === "done").length;
     const rs = every.length - ts.length;
-    const parts = [w && `${w} working`, dn && `${dn} done this week`, rs && `${rs} resolved`].filter(Boolean);
+    // "done", not "done this week": the count is every done thread, however old
+    const parts = [counted(w, "working"), counted(dn, "done"), counted(rs, "resolved")].filter(Boolean);
     // Threads: every thread here, searchable, dropping down under its button (⌘K reaches them too)
     if (every.length) end = `<button type="button" class="all-btn th-btn" data-switch aria-haspopup="dialog" aria-expanded="${!allEl.hidden}" title="Every thread in ${esc(PROJ(pid))}, searchable">${ICON.threadOne}Threads<span>${every.length}</span></button>`;
-    who = `<span class="tw-ic" aria-hidden="true">${ICON.project}</span><span class="tw-t"><h1 id="conv-title">${esc(PROJ(pid))}</h1><span class="pj-s">${parts.join(" · ") || (every.length ? "All quiet" : "No threads yet")}${S.desc[pid] ? ` · ${esc(S.desc[pid])}` : ""}</span></span>`;
+    who = `<span class="tw-ic" aria-hidden="true">${ICON.project}</span><span class="tw-t"><h1 id="conv-title">${esc(PROJ(pid))}</h1><span class="pj-s">${countLine([...(parts.length ? parts : [every.length ? "All quiet" : "No threads yet"]), S.desc[pid] && esc(S.desc[pid])])}</span></span>`;
   } else if (t) {
     const ed = S.tEdit && S.tEdit.tid === t.id ? S.tEdit.field : null;
     const title = ed === "title"
