@@ -317,8 +317,9 @@ function wave(root = document) {
 function settle(el, st) {
   wave(el);
   const phase = `${-(Date.now() % TURN_MS)}ms`;
-  for (const a of el.querySelectorAll(".arc")) a.style.setProperty("--mx-phase", phase);
-  for (const a of el.querySelectorAll(".tb-live")) a.style.animationDelay = phase;
+  // once per element, like the shimmer: rewriting a running animation's delay would jump it
+  for (const a of el.querySelectorAll(".arc")) if (!a.style.getPropertyValue("--mx-phase")) a.style.setProperty("--mx-phase", phase);
+  for (const a of el.querySelectorAll(".tb-live")) if (!a.style.animationDelay) a.style.animationDelay = phase;
   const card = el.classList.contains("mx-expanded") && el.querySelector(".turn > .tb-work.is-open");
   if (!card) { st.open = false; st.rows = null; st.h = 0; return; }
   if (!st.open) card.classList.add("mx-opening");

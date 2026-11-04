@@ -205,6 +205,10 @@ body.files-open .mx-down{display:none}
    text edge, so a grey slab never fills the screen. Short replies stay bubbles. */
 :root[data-msgx-open] .mx-open :is(.mb>.prose,.turn>.tb-answer,.turn>.tb-text){width:auto;max-width:66ch;padding:0 0 0 16px;background:none;box-shadow:none}
 :root[data-msgx-open] #msgs>.m.mx-open{margin-bottom:40px}
+/* unboxed, the first line starts at the top (no 10 px padding), so the mark moves up to stay centred on it:
+   the first line of text (24 px, centre 12 → 12 − 14 = −2), or the name line when named (16 px, centre 8 → −6) */
+:root[data-msgx-open] .m-them.mx-open>.av{margin-top:-2px}
+:root[data-msgx-open] .m-them.mx-open.mx-other:not(.cont)>.av{margin-top:-6px}
 
 /* What the agent did before it answered: one quiet pill on the bubbles' text edge, then the bubble */
 :root[data-msgx] .m-turn>.mb[data-mx-who]::before{content:attr(data-mx-who);display:block;padding:0 0 4px 16px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
@@ -234,9 +238,9 @@ body.files-open .mx-down{display:none}
 .mx-wl{position:absolute;inset:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* the working bubble's line wears the same shimmer (the wave on the words, the crossfade on the line) */
 :root[data-msgx] .mx-wl:not(.is-out){background:linear-gradient(90deg,var(--ink-3) 0%,var(--ink-3) 35%,var(--ink) 50%,var(--ink-3) 65%,var(--ink-3) 100%) 0 0/250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:mx-shimmer 2.4s linear var(--mx-wave,0s) infinite}
-:root[data-msgx] .mx-wl.is-in{animation:mx-line-in var(--d-slow) var(--ease) both,mx-shimmer 2.4s linear var(--mx-wave,0s) infinite}
+:root[data-msgx] .mx-wl.is-in{animation:mx-line-in var(--dur-slow) var(--ease) both,mx-shimmer 2.4s linear var(--mx-wave,0s) infinite}
 @keyframes mx-shimmer{from{background-position:100% 0}to{background-position:-150% 0}}
-.mx-wl.is-in{animation:mx-line-in var(--d-slow) var(--ease) both}
+.mx-wl.is-in{animation:mx-line-in var(--dur-slow) var(--ease) both}
 .mx-wl.is-out{animation:mx-line-out var(--d-out) var(--ease) both}
 @keyframes mx-line-in{from{opacity:0;transform:translateY(6px)}}
 @keyframes mx-line-out{to{opacity:0;transform:translateY(-6px)}}
@@ -258,7 +262,7 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-turn .turn>.tb-work.is-open{width:min(88%,560px);padding:0 0 8px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi)}
 /* it opens once; after that only a new step moves, rising 4 px into place; and the arcs keep their turn */
 :root[data-msgx] .m-turn .turn>.tb-work.mx-opening{animation:mx-up var(--d-in) var(--ease)}
-:root[data-msgx] .m-turn .mx-row-in{animation:mx-row var(--d-slow) var(--ease) both}
+:root[data-msgx] .m-turn .mx-row-in{animation:mx-row var(--dur-slow) var(--ease) both}
 @keyframes mx-row{from{opacity:0;transform:translateY(4px)}}
 :root[data-msgx] .m-turn .arc::before{animation-delay:var(--mx-phase,0s)}
 @media (prefers-reduced-motion:reduce){:root[data-msgx] .m-turn :is(.mx-opening,.mx-row-in){animation:none}}
