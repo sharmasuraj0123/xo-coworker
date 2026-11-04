@@ -65,7 +65,7 @@ function linkHtml(href, label) {
     const tip = info ? [info.word, "thread"].filter(Boolean).join(" · ") : "Thread";
     // a short title stays one capsule; a long one may wrap (each line keeps its capsule)
     const text = label != null ? label.replace(/<[^>]*>/g, "") : String(info?.title || "");
-    return `<a href="#${esc(id)}" class="lk lk-in lk-thread${info ? "" : " is-unknown"}${text.length <= 36 ? " is-short" : ""}" data-thread="${esc(id)}" title="${esc(tip)}">` +
+    return `<a href="#${esc(id)}" class="lk lk-in lk-thread${info ? "" : " is-unknown"}${text.length > 36 ? " is-long" : ""}" data-thread="${esc(id)}" title="${esc(tip)}">` +
       `<span class="lk-ic">${g}</span><span class="lk-t">${label ?? esc(info?.title || "a thread")}</span></a>`;
   }
   if (HTTP_HREF.test(h)) {
@@ -77,8 +77,9 @@ function linkHtml(href, label) {
   const f = FILE_HREF.exec(h);
   if (f && label != null) {
     const path = f[1], name = path.split("/").pop();
-    return `<button type="button" class="lk lk-in lk-file" data-file="${esc(path)}" data-file-name="${esc(name)}" data-file-type="" data-file-bytes="" title="${esc(path)}">` +
-      `<span class="lk-ic">${fileIcon(name)}</span><span class="lk-t">${label}</span></button>`;
+    // an <a> like a thread's, so both capsules are the same inline box (a button would be an inline-block)
+    return `<a href="#${esc(path)}" class="lk lk-in lk-file" data-file="${esc(path)}" data-file-name="${esc(name)}" data-file-type="" data-file-bytes="" title="${esc(path)}">` +
+      `<span class="lk-ic">${fileIcon(name)}</span><span class="lk-t">${label}</span></a>`;
   }
   return null;
 }
