@@ -1751,7 +1751,7 @@ button.kr-r:hover{background:var(--bg-3);color:var(--ink)}
 .tg-now:hover{color:var(--ink);border-color:var(--g33)}
 .tg-now.is-on{background:var(--ink);border-color:var(--ink);color:var(--canvas)}
 .tg-now-on{color:var(--ink)}
-@media (max-width:760px){.tg-now{height:36px}
+@media (max-width:760px){.tg-now{height:36px}}
 /* ── shared files (if1 #2, hub #25): the card is a button; the file opens in a viewer beside
    the conversation, like a canvas. Same slot as the Needs you panel, wider; on phones, the screen. */
 .tb-file{display:block;height:auto;padding:0;background:none;border:0;border-radius:0;min-width:0;max-width:100%}
