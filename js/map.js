@@ -218,6 +218,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     closed: new Map(),   // scope key → folders you folded (even with an agent inside)
     more: new Map(),     // scope key → folders showing every box
     shown: new Map(),    // scope key → boxes that have been on screen (they stay, so nothing reshuffles)
+    autoOpen: new Map(), // scope key → folders that unfolded by themselves (kept, unless the panel is too narrow)
     cams: new Map(),     // scope key → {x, y, s, user, follow, target}
     refs: new Map(),     // box id → what a click on it does
     curs: new Map(),     // agent id → its cursor element and where it was
@@ -228,9 +229,9 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     gkey: "", gnodes: [], gedges: [], alpha: 0, raf: 0, gags: [], glit: new Map(),
   };
   try { if (localStorage.getItem(MODE_KEY) === "graph") M.mode = "graph"; } catch { /* private mode */ }
-  // room for a cursor's name tag: in a thread it only says what the agent is doing (its name is the header)
-  // room for a cursor's tag: it says only what the agent is doing (who it is: its colour, and the chips above)
-  const tagW = () => 116;
+  // a cursor is its arrow: what the agent is doing is said once, in the line above the drawing (a
+  // thread) or its chip (a project); the arrow's tag shows on hover. So it needs only the arrow's room.
+  const tagW = () => 22;
   const setOf = (m, key) => { if (!m.has(key)) m.set(key, new Set()); return m.get(key); };
 
   // ── what's in scope ─────────────────────────────────────────────────────────
@@ -311,14 +312,18 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
 
   // ── the diagram's boxes ─────────────────────────────────────────────────────
   /** A folder as boxes: the folders and files it holds, those with agents (or changes) first. */
-  function folderTree(scope, fold, marks, hot) {
+  function folderTree(scope, fold, marks, hot, auto = true) {
     const opened = setOf(M.opened, scope.key), closed = setOf(M.closed, scope.key), more = setOf(M.more, scope.key);
     const inside = (set, p) => { for (const h of set) if (h === p || h.startsWith(p + "/")) return true; return false; };
     const marked = new Set(marks.keys());
     // a thread's changes unfold their folders while there are few of them
-    const unfoldMarks = scope.kind === "thread" && marked.size <= 16;
+    // folders an agent is in (or a thread changed) unfold by themselves only when `auto`: paint() turns it
+    // off when the drawing would then be too wide to read whole in the panel
+    const roomy = auto;
+    const unfoldMarks = roomy && scope.kind === "thread" && marked.size <= 16;
+    const autoSet = setOf(M.autoOpen, scope.key);
     // a folder an agent went into stays open after it leaves, so the drawing never folds up under you
-    const isOpen = (p) => { if (opened.has(p)) return true; if (closed.has(p)) return false; if (inside(hot, p) || (unfoldMarks && inside(marked, p))) { opened.add(p); return true; } return false; };
+    const isOpen = (p) => { if (opened.has(p)) return true; if (closed.has(p)) return false; if (roomy && (autoSet.has(p) || inside(hot, p) || (unfoldMarks && inside(marked, p)))) { autoSet.add(p); return true; } return false; };
     const kids = (local) => {
       load(fold, local);
       const d = M.dirs.get(dirKey(fold, local));
@@ -436,13 +441,14 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
   function fit(c, glide, all = false) {
     const v = view(), B = M.bounds;
     if (!v || !B || !v.clientWidth) return;
-    const W = B.x1 - B.x0, H = B.y1 - B.y0, vh = v.clientHeight - 44;
-    const s = Math.min(v.clientWidth / W, vh / H);
+    const W = B.x1 - B.x0, H = B.y1 - B.y0, vh = v.clientHeight - 44, cw = v.clientWidth - 24, ch = vh - 24;
+    const s = Math.min(cw / W, ch / H);
     c.s = clamp(s, all ? 0.3 : READABLE, 1.1);
     if (!all && s < READABLE) {
-      // too big to read whole: start at the top box (the diagram's root, the graph's middle)
+      // too tall to read whole: as wide as reads (all of it across), starting at the top box
+      c.s = clamp(cw / W, READABLE, 1.1);
       const r = M.rootPt || { x: (B.x0 + B.x1) / 2, y: (B.y0 + B.y1) / 2 };
-      c.x = M.mode === "graph" ? v.clientWidth / 2 - r.x * c.s : 16 - B.x0 * c.s;
+      c.x = W * c.s <= cw ? 12 + (cw - W * c.s) / 2 - B.x0 * c.s : 12 - B.x0 * c.s;
       c.y = vh / 2 - r.y * c.s;
     } else {
       c.x = (v.clientWidth - W * c.s) / 2 - B.x0 * c.s;
@@ -565,7 +571,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       if (!c.settleUntil) c.settleUntil = now + (M.mode === "graph" ? SETTLE_MS + 1200 : SETTLE_MS);
       if (M.loading || (M.mode === "graph" && M.alpha > 0.06)) c.settleUntil = Math.max(c.settleUntil, now + 500);
       if (now < c.settleUntil) {
-        if (c.follow && lead) centerOn(c, lead.pt, false, clamp(Math.min(0.9, (v.clientWidth - 40) / (NW + tagW() + 30)), 0.5, 0.9)); else fit(c, false);
+        fit(c, false); // the first look shows the drawing whole across; Follow takes over after it
         c.target = lead ? lead.key : null;
         return;
       }
@@ -821,7 +827,19 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       marks = ags[0].act.files;
     } else ags = agentsIn(scope.kind === "project" ? scope.pid : null);
     if (scope.kind === "all") tree = projectsTree(ags);
-    else if (scope.fold) tree = folderTree(scope, scope.fold, marks, new Set(ags.filter((a) => scope.kind === "thread" || a.fold).flatMap((a) => [a.path, ...(a.spots || []), a.busy ? a.prev : null]).filter(Boolean)));
+    else if (scope.fold) {
+      const hot = new Set(ags.filter((a) => scope.kind === "thread" || a.fold).flatMap((a) => [a.path, ...(a.spots || []), a.busy ? a.prev : null]).filter(Boolean));
+      tree = folderTree(scope, scope.fold, marks, hot, true);
+      // the first look must show the whole drawing, readable: if unfolding by itself would make it wider
+      // or taller than the canvas at a readable size, those folders stay folded (yours stay as you left them)
+      const v = view();
+      if (M.mode === "tree" && v && v.clientWidth) {
+        const L = layoutOf(tree);
+        const tooWide = (L.w + PAD * 2 + tagW()) * READABLE > v.clientWidth - 24;
+        const tooTall = (L.h + PAD * 2) * READABLE > v.clientHeight - 44 - 24;
+        if (tooWide || tooTall) { M.refs = new Map(); tree = folderTree(scope, scope.fold, marks, hot, false); }
+      }
+    }
     else tree = { id: "", kind: "root", name: scope.t.title, sub: "its folder isn't one XO can show", children: [] };
     // head
     const h = headHtml(scope, ags);
@@ -894,8 +912,13 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       cursors(ags, (id) => {
         const n = byId.get(id);
         if (!n) return null;
-        const side = sideOf(n);
-        return { x: side === "left" ? n.x + PAD + 10 : n.x + PAD + NW - 14, y: n.y + PAD + 9, cx: n.x + PAD + NW / 2, cy: n.y + PAD + NH / 2, side };
+        let side = sideOf(n);
+        // a name that would run off the canvas's right edge goes on the box's left instead
+        if (side === "right") {
+          const c = camOf(scope), v = view();
+          if (v && v.clientWidth && c.x + (n.x + PAD + NW + 2 + tagW()) * c.s > v.clientWidth - 8) side = "left";
+        }
+        return { x: side === "left" ? n.x + PAD + 10 : n.x + PAD + NW + 2, y: n.y + PAD + 9, cx: n.x + PAD + NW / 2, cy: n.y + PAD + NH / 2, side };
       });
     }
     // what the marks mean, when there are some

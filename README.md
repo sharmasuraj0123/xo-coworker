@@ -117,7 +117,7 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 | `js/stage.js` | the panel (design-research/13): one card on the right, tools as labelled tabs (Files, Made, Map; apps later, past four into More), one header button (`mod+\`) that opens on Files first and then on the last tool, full size, Esc; the Map mounts into its tab |
 | `js/files.js` | Files: the project's (or a thread's worktree's) files a folder at a time, the README first, the file beside the tree or one at a time, what agents touched marked; the one place a file opens (the viewer lives in it) |
 | `js/record.js`, `js/recordview.js` | a project's record (design-research/12): what its threads made (Made, Recently made on Home, ⌘K) and Since you left; the pure part, then the screen |
-| `js/fileicons.js` | one resolver for every file's icon (Files, Made, the viewer, the Map, file chips): Lucide line glyphs (`js/vendor/lucide`, ISC) by exact name then extension |
+| `js/fileicons.js` | one resolver for every file's icon (Files, Made, the viewer, the Map, file chips): the swarm's Pierre Trees set (`js/vendor/pierre`, Apache-2.0), matched as Pierre matches; folders a Lucide line glyph |
 | `js/map.js` | the Map: the folder drawn as a diagram (`/xo-projects/{p}/tree`, a level at a time), agents as cursors (from the stream's activity rows), pan and zoom, the Live · File switch with the viewer |
 | `js/shells/dock.js` | shells: the dock, its tabs and list, the sidebar's toggle; what `app.js` calls |
 | `js/shells/term.js` | one shell on screen: xterm.js, its WebSocket, reconnects, flow control, theme |

@@ -80,9 +80,9 @@ export function createViewer({ announce, onChange, tabs }) {
     const kind = f.att || f.local != null ? typeWord(f.type || "", f.name) : d ? KIND_WORD[d.kind] || (extOf(f.name).toUpperCase() || "Text") : String(f.type || "").split("/").pop() || "";
     // an attachment opens in its own tab too; text has no inline view there, so it downloads
     const tab = f.att ? (kindOf(f.type || "") === "text"
-      ? `<a class="vw-btn" href="${esc(attachmentUrl(f.att.chat, f.att.id))}" download="${esc(f.name || "file")}" title="Download">${ICON.down}<span>Download</span></a>`
-      : `<a class="vw-btn" href="${esc(attachmentUrl(f.att.chat, f.att.id))}" target="_blank" rel="noopener noreferrer" title="Open in a new tab">${ICON.arrow}<span>New tab</span></a>`)
-      : canSave() ? `<button type="button" class="vw-btn" data-vw-save title="Download the whole file"${V.saving ? " disabled" : ""}>${ICON.down}<span>${V.saving ? "Downloading…" : "Download"}</span></button>` : "";
+      ? `<a class="vw-btn" href="${esc(attachmentUrl(f.att.chat, f.att.id))}" download="${esc(f.name || "file")}" title="Download" aria-label="Download">${ICON.down}<span>Download</span></a>`
+      : `<a class="vw-btn" href="${esc(attachmentUrl(f.att.chat, f.att.id))}" target="_blank" rel="noopener noreferrer" title="Open in a new tab" aria-label="Open in a new tab">${ICON.arrow}<span>New tab</span></a>`)
+      : canSave() ? `<button type="button" class="vw-btn" data-vw-save title="Download the whole file" aria-label="Download"${V.saving ? " disabled" : ""}>${ICON.down}<span>${V.saving ? "Downloading…" : "Download"}</span></button>` : "";
     const meta = [kind, V.dims && `${V.dims.w} × ${V.dims.h}`, size(d ? d.size_bytes : f.bytes)].filter(Boolean);
     const canCopy = !!(d && typeof d.content === "string");
     const toggle = d && (d.kind === "html" || d.kind === "markdown")
@@ -91,9 +91,9 @@ export function createViewer({ announce, onChange, tabs }) {
         ? `<div class="vw-seg" role="group" aria-label="Size"><button type="button" data-vw-mode="preview" aria-pressed="${V.mode === "preview"}">Fit</button><button type="button" data-vw-mode="actual" aria-pressed="${V.mode === "actual"}" aria-label="Actual size"><span class="vw-wide">Actual size</span><span class="vw-narrow" aria-hidden="true">1:1</span></button></div>`
         : "";
     return `<header class="vw-top"><span class="vw-ic" aria-hidden="true">${fileIcon(f.name || f.path || "")}</span>` +
-      `<div class="vw-t"><h2 id="vw-h">${esc(f.name || f.path)}</h2><p class="vw-sub">${f.where ? `<code title="${esc(f.where)}">${esc(f.where)}</code>` : ""}${meta.map((m) => `<span>${esc(m)}</span>`).join("")}</p></div>` +
+      `<div class="vw-t"><h2 id="vw-h"${f.where ? ` title="${esc(f.where)}"` : ""}>${esc(f.name || f.path)}</h2>${meta.length ? `<span class="vw-meta">${esc(meta.join(" · "))}</span>` : ""}</div>` +
       `<div class="vw-acts">${toggle}${tab}` +
-      (canCopy ? `<button type="button" class="vw-btn" data-vw-copy title="Copy the contents">${ICON.copy}<span>${V.copied ? "Copied" : "Copy"}</span></button>` : "") +
+      (canCopy ? `<button type="button" class="vw-btn" data-vw-copy title="Copy the contents" aria-label="${V.copied ? "Copied" : "Copy"}">${ICON.copy}<span>${V.copied ? "Copied" : "Copy"}</span></button>` : "") +
       `<button type="button" class="vw-x" data-vw-close aria-label="Close the file" title="Close (Esc)">${ICON.close}</button></div></header>`;
   }
 

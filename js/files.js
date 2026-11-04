@@ -119,13 +119,13 @@ export function createFiles({ world, viewer, isBusy, PROJ, go }) {
     for (const x of d.dirs) {
       const on = open.has(x.path);
       if (q && !x.name.toLowerCase().includes(q) && !on) continue;
-      out.push(`<button type="button" class="fl-r is-dir${on ? " is-open" : ""}" style="--d:${depth}" data-fl-dir="${esc(x.path)}" aria-expanded="${on}"><span class="fl-c">${CH}</span><span class="fl-i">${folderIcon(on)}</span><span class="fl-n">${esc(x.name)}</span>${marks.dirs.has(x.path) ? `<span class="fl-who w-${marks.dirs.get(x.path)}"><i></i></span>` : ""}</button>`);
+      out.push(`<button type="button" class="fl-r is-dir${on ? " is-open" : ""}" style="--d:${depth}" data-fl-dir="${esc(x.path)}" aria-expanded="${on}"><span class="fl-c">${CH}</span><span class="fl-n">${esc(x.name)}</span>${marks.dirs.has(x.path) ? `<span class="fl-who w-${marks.dirs.get(x.path)}"><i></i></span>` : ""}</button>`);
       if (on) rowsOf(s, x.path, depth + 1, marks, out);
     }
     for (const x of d.files) {
       if (q && !x.name.toLowerCase().includes(q)) continue;
       const m = marks.files.get(x.path);
-      out.push(`<button type="button" class="fl-r${F.sel === x.path ? " is-on" : ""}" style="--d:${depth}" data-fl-file="${esc(x.path)}" data-fl-bytes="${x.bytes ?? ""}" title="${esc(x.path)}"><span class="fl-c"></span><span class="fl-i">${fileIcon(x.name)}</span><span class="fl-n">${esc(x.name)}</span>${m ? dot(m) : ""}<span class="fl-sz">${esc(size(x.bytes))}</span></button>`);
+      out.push(`<button type="button" class="fl-r${F.sel === x.path ? " is-on" : ""}" style="--d:${depth}" data-fl-file="${esc(x.path)}" data-fl-bytes="${x.bytes ?? ""}" title="${esc(x.path)}"><span class="fl-c fl-i">${fileIcon(x.name)}</span><span class="fl-n">${esc(x.name)}</span>${m ? dot(m) : ""}<span class="fl-sz">${esc(size(x.bytes))}</span></button>`);
     }
     if (!d.dirs.length && !d.files.length) out.push(`<p class="fl-note" style="--d:${depth}">Empty</p>`);
   }
@@ -134,7 +134,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go }) {
     if (s.key === "all") {
       const ps = (world.state.projects || []).filter((p) => p && p.id !== "workspace");
       return `<div class="fl-head"><div class="fl-crumb"><b>Projects</b></div></div><div class="fl-list">` +
-        ps.map((p) => `<button type="button" class="fl-r is-dir" style="--d:0" data-fl-pick="${esc(p.id)}"><span class="fl-c">${CH}</span><span class="fl-i">${ICON.project}</span><span class="fl-n">${esc(p.name || p.id)}</span>${world.state.threads.some((t) => t.project === p.id && isBusy(t)) ? `<span class="fl-who w-live" title="Agents at work"><i></i></span>` : ""}</button>`).join("") + `</div>`;
+        ps.map((p) => `<button type="button" class="fl-r is-dir" style="--d:0" data-fl-pick="${esc(p.id)}"><span class="fl-c">${CH}</span><span class="fl-n">${esc(p.name || p.id)}</span>${world.state.threads.some((t) => t.project === p.id && isBusy(t)) ? `<span class="fl-who w-live" title="Agents at work"><i></i></span>` : ""}</button>`).join("") + `</div>`;
     }
     const tl = touched(s);
     const marks = { files: new Map(), dirs: new Map() };
@@ -148,7 +148,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go }) {
     const head = `<div class="fl-head"><div class="fl-crumb">${F.pick ? `<button type="button" class="fl-up" data-fl-unpick title="Your projects">${BACK}</button>` : ""}<b>${esc(s.label)}</b>${s.sub ? `<small title="${s.base ? "A thread's own worktree: its branch" : ""}">${esc(s.sub)}</small>` : ""}</div>` +
       `<label class="fl-q"><span class="sr-only">Find a file</span>${ICON.search}<input data-fl-q placeholder="Find a loaded file" value="${esc(F.q)}" autocomplete="off" spellcheck="false"></label></div>`;
     const top = tl.slice(0, TOUCHED);
-    const sec = top.length ? `<p class="fl-sec">Touched by agents</p>` + top.map((x) => `<button type="button" class="fl-r is-touch" style="--d:0" data-fl-touch="${esc(x.rel)}" title="${esc(`${x.path} · ${x.who}`)}"><span class="fl-c"></span><span class="fl-i">${fileIcon(x.path)}</span><span class="fl-n">${esc(x.path)}</span>${dot(x, true)}</button>`).join("") + `<p class="fl-sec">All files</p>` : "";
+    const sec = top.length ? `<p class="fl-sec">Touched by agents</p>` + top.map((x) => `<button type="button" class="fl-r is-touch" style="--d:0" data-fl-touch="${esc(x.rel)}" title="${esc(`${x.path} · ${x.who}`)}"><span class="fl-c fl-i">${fileIcon(x.path)}</span><span class="fl-n">${esc(x.path)}</span>${dot(x, true)}</button>`).join("") + `<p class="fl-sec">All files</p>` : "";
     return head + `<div class="fl-list">${sec}${rows.join("")}</div>`;
   }
 
