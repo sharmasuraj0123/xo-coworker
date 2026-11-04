@@ -150,6 +150,4 @@
 :root[data-theme="light"] .dg-tools button:hover,:root[data-theme="light"] .dg-mode button:hover{background:#F2F2F2}
 :root[data-theme="light"] .dg-mode button[aria-pressed="true"]{background:#EDEDED}
 
-/* ── both themes: a thread link in prose was the browser's default link blue ── */
-.md-tlink{color:inherit;text-decoration:underline;text-decoration-color:var(--g45);text-decoration-thickness:1px;text-underline-offset:3px;transition:text-decoration-color var(--dur-fast)}
-.md-tlink:hover{text-decoration-color:currentColor}
+/* thread and web links in prose: css/links.css */

@@ -7,22 +7,79 @@
 //
 // Safety: the input is never interpreted as HTML. Every piece of text goes
 // through esc(); the only tags in the output are the ones built here. Links
-// are allowed only to http(s) URLs (opened in a new tab) and to in-app
-// "#cmsg_…" thread anchors (data-thread, handled by the app). Anything else
-// renders as its plain text.
+// are allowed only to http(s) URLs (opened in a new tab), to in-app
+// "#cmsg_…" thread anchors (data-thread, handled by the app) and to relative
+// file paths (data-file, opened in the viewer). Anything else renders as its
+// plain text.
+//
+// Links say where they go by their shape, not by words (design-research/links):
+// - Inside Coworker (a thread, a file) a link is a token: a soft capsule led by
+//   the thing's own glyph (the thread's live state, the file's icon). It opens in place.
+// - Outside (the web) a link stays text, underlined, with a small ↗ after it:
+//   the arrow every Apple page uses for "this leaves". It opens a new tab.
 
 import { esc } from "./util.js";
 import { highlight } from "./highlight.js";
+import { fileIcon } from "./fileicons.js";
 
 const THREAD_HREF = /^#(cmsg_[A-Za-z0-9_-]{1,128})$/;
 const HTTP_HREF = /^https?:\/\/[^\s<>"'`]+$/i;
+// a relative path to a file in the conversation's folder: no scheme, no "..", with a name that has an extension
+const FILE_HREF = /^(?:\.\/)?(?!\/)(?![a-z][a-z0-9+.-]*:)((?:[\w@~+-][\w@~+.-]*\/)*[\w@~+-][\w@~+.-]*\.[A-Za-z0-9]{1,10})(?:#L\d+(?:-L?\d+)?)?$/;
 
-/** Render a link target, or null when it is not allowed. */
-function linkAttrs(href) {
+// How the app describes a thread it knows: {state, word, title}. Set once by app.js; the renderer stays pure without it.
+let threadInfo = null;
+/** Let the app tell the renderer about threads it knows (their live state), for thread tokens. */
+export function setThreadInfo(fn) { threadInfo = typeof fn === "function" ? fn : null; }
+
+const ARROW_OUT = `<svg class="lk-ar" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M3.5 8.5 8.5 3.5M4.6 3.5h3.9v3.9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const THREAD_G = `<svg class="lk-tg" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M13.6 7.8a5.6 5.6 0 0 1-8.1 5L2.4 13.6l.9-3A5.6 5.6 0 1 1 13.6 7.8z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>`;
+const STATES = new Set(["working", "idle", "needs_reply", "needs_approval", "done", "failed", "paused", "resolved"]);
+
+/** A web address as people read it: the host and path, no scheme, "www." or trailing slash; long ones keep their ends. */
+export function shortUrl(u) {
+  let s = String(u || "").replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/\/$/, "");
+  if (s.length > 52) {
+    s = s.replace(/[?#].*$/, "");
+    const slash = s.indexOf("/");
+    const host = slash < 0 ? s : s.slice(0, slash);
+    const tail = s.slice(s.lastIndexOf("/") + 1);
+    s = host.length + tail.length < 46 && slash >= 0 ? `${host}/…/${tail}` : s.slice(0, 50) + "…";
+  }
+  return s;
+}
+function hostOf(u) {
+  const m = /^https?:\/\/([^/?#]+)/i.exec(u);
+  return m ? m[1].replace(/^www\./i, "").replace(/^[^@]*@/, "") : "";
+}
+
+/** A link's HTML, or null when the target is not allowed. `label` is rendered HTML, or null for a bare URL. */
+function linkHtml(href, label) {
   const h = String(href || "").trim();
   const t = THREAD_HREF.exec(h);
-  if (t) return `href="#${esc(t[1])}" class="md-tlink" data-thread="${esc(t[1])}"`;
-  if (HTTP_HREF.test(h)) return `href="${esc(h)}" target="_blank" rel="noopener noreferrer nofollow" class="md-link"`;
+  if (t) {
+    const id = t[1];
+    const info = (threadInfo && threadInfo(id)) || null;
+    const st = info && STATES.has(info.state) ? info.state : "";
+    const g = st ? `<i class="g g-${st}" aria-hidden="true"></i>` : THREAD_G;
+    const tip = info ? [info.word, "thread"].filter(Boolean).join(" · ") : "Thread";
+    // a short title stays one capsule; a long one may wrap (each line keeps its capsule)
+    const text = label != null ? label.replace(/<[^>]*>/g, "") : String(info?.title || "");
+    return `<a href="#${esc(id)}" class="lk lk-in lk-thread${info ? "" : " is-unknown"}${text.length <= 36 ? " is-short" : ""}" data-thread="${esc(id)}" title="${esc(tip)}">` +
+      `<span class="lk-ic">${g}</span><span class="lk-t">${label ?? esc(info?.title || "a thread")}</span></a>`;
+  }
+  if (HTTP_HREF.test(h)) {
+    const host = hostOf(h);
+    const local = /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])(:\d+)?$/i.test(host);
+    return `<a href="${esc(h)}" target="_blank" rel="noopener noreferrer nofollow" class="lk lk-out${local ? " is-local" : ""}${label == null ? " is-bare" : ""}" title="${esc(h)}">` +
+      `<span class="lk-t">${label ?? esc(shortUrl(h))}</span>${ARROW_OUT}</a>`;
+  }
+  const f = FILE_HREF.exec(h);
+  if (f && label != null) {
+    const path = f[1], name = path.split("/").pop();
+    return `<button type="button" class="lk lk-in lk-file" data-file="${esc(path)}" data-file-name="${esc(name)}" data-file-type="" data-file-bytes="" title="${esc(path)}">` +
+      `<span class="lk-ic">${fileIcon(name)}</span><span class="lk-t">${label}</span></button>`;
+  }
   return null;
 }
 
@@ -59,16 +116,13 @@ export function renderInline(text, noLinks = false) {
         out += `<code>${esc(m[2].replace(/^ (.*) $/, "$1"))}</code>`;
         break;
       case "link": {
-        const attrs = linkAttrs(m[2]);
         const label = renderInline(m[1], true);
-        out += attrs ? `<a ${attrs}>${label}</a>` : label;
+        out += linkHtml(m[2], label) ?? label;
         break;
       }
-      case "url": {
-        const attrs = linkAttrs(m[0]);
-        out += attrs ? `<a ${attrs}>${esc(m[0])}</a>` : esc(m[0]);
+      case "url":
+        out += linkHtml(m[0], null) ?? esc(m[0]);
         break;
-      }
       case "bold":
         out += `<strong>${renderInline(m[1] ?? m[2], noLinks)}</strong>`;
         break;

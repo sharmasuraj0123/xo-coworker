@@ -9,7 +9,7 @@
 // of deciding. Stop while anything runs. Intelligence per session in the
 // composer. Light and dark.
 import { createWorld, esc, WAITING } from "./world.js";
-import { renderMarkdown, renderInline } from "./markdown.js";
+import { renderMarkdown, renderInline, setThreadInfo } from "./markdown.js";
 import * as Kit from "./kit.js";
 import * as K from "./keys.js";
 import { createDecisions } from "./decide.js";
@@ -171,6 +171,8 @@ const isBusy = (t) => t.busy === true || (t.state === "working" && t.busy !== fa
 // a thread continued on another runtime is frozen, not waiting on you: a quiet "Continued" (F4)
 const glyphOf = (t) => (t.state === "working" && t.busy === false ? "idle" : t.frozen ? "resolved" : t.state);
 const wordOf = (t) => (glyphOf(t) === "idle" ? "Idle" : t.frozen ? "Continued" : STATE_WORD[t.state]);
+// a thread link in any message is a token led by that thread's live state (js/markdown.js)
+setThreadInfo((id) => { const t = world.thread(id); return t ? { state: glyphOf(t), word: wordOf(t), title: t.title } : null; });
 const SORT_STATE = { needs_approval: 0, needs_reply: 0, paused: 0, failed: 1, working: 2, done: 3, resolved: 4 };
 // the Map (js/map.js): where your agents are working, beside the conversation; the viewer stacks over it
 const MAP = createMap({ world, viewer: VW, go: (v) => go(v), announce, isBusy, onChange: () => schedule(), openFile: (f, from) => VW.open(f, from) });
