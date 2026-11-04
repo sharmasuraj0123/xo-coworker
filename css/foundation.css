@@ -58,7 +58,7 @@ button.hr:active,.send:active,.t-undo:active,.dock-hide:active,.btn:active,butto
 /* ── 6 · whole pixels: integer line heights, so 1 px borders land on whole pixels ────────────────── */
 .tw-t h1{line-height:28px}
 .hm-h{font-size:28px;line-height:36px}
-.mh{padding-top:0;align-items:center;min-height:30px}
+.mh{padding-top:0;align-items:center;min-height:32px}
 .md-grid{grid-template-columns:repeat(auto-fill,minmax(148px,1fr))}
 
 /* ── 4 · an icon centres on its first line; nested corners are concentric ────────────────────────── */

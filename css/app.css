@@ -83,6 +83,11 @@ button:disabled{cursor:default}
 .g-failed{background:var(--err-ink);border-radius:2px}
 .g-resolved{border:1.5px dashed var(--ink-4);border-radius:50%}
 .g-held{border:1.5px solid var(--ink-4);border-radius:1.5px;transform:rotate(45deg) scale(.8)}
+/* working, where it sits in text (a task card, a link capsule): no blue. A small arc in the text's own colour
+   turns on a faint track, the agent mark's own 1.6s arc-turn (css/panel.css .arc), kept in step by
+   js/ui.js keepTurning. Still when motion is reduced. */
+.tc-top .g-working,.lk-ic .g-working{border:1.5px solid color-mix(in srgb,currentColor 22%,transparent);border-top-color:currentColor;color:var(--ink-2);animation:arc-turn 1.6s linear infinite}
+@media (prefers-reduced-motion:reduce){.tc-top .g-working,.lk-ic .g-working{animation:none}}
 .tcard.st-held{border-style:dashed;border-color:var(--g33)}
 
 /* effort label: dial + word + time */
@@ -460,8 +465,10 @@ body.panel-open .conv{--rp:calc(var(--pw) + 28px)}
 .day{display:flex;align-items:center;gap:12px;margin:24px 0 22px;color:var(--ink-4);font:500 var(--fs-sm)/1 var(--sans)}
 .day::before,.day::after{content:"";flex:1;height:1px;background:var(--g1F)}
 .msgs>.day:first-child{margin-top:8px}
-.m{position:relative;margin:0 0 22px}
-.m.cont{margin-top:-14px}
+/* chat rhythm on the 4-point scale (pixel audit #14): 24 between messages, 8 between one sender's
+   follow-ons, 12 between paragraphs, prose 15/24; the avatar is 32 with a 12 gap, so text stays 44px in */
+.m{position:relative;margin:0 0 24px}
+.m.cont{margin-top:-16px}
 .m.is-new{animation:msg-in .3s var(--glide)}
 @keyframes msg-in{from{opacity:0;transform:translateY(8px)}}
 .m-you{display:flex;flex-direction:column;align-items:flex-end}
@@ -490,18 +497,18 @@ body.panel-open .conv{--rp:calc(var(--pw) + 28px)}
 .dash{display:inline-block;width:18px;height:2px;border-radius:1px;background:linear-gradient(90deg,var(--ink-4) 50%,transparent 50%) 0 0/8px 2px;animation:dash .6s linear infinite}
 @keyframes dash{to{background-position:8px 0}}
 
-.m-them{display:grid;grid-template-columns:30px minmax(0,1fr);gap:14px;align-items:start}
-.av{display:grid;place-items:center;width:30px;height:30px;border-radius:10px;background:var(--g1A);border:1px solid var(--g2A)}
+.m-them{display:grid;grid-template-columns:32px minmax(0,1fr);gap:12px;align-items:start}
+.av{display:grid;place-items:center;width:32px;height:32px;border-radius:10px;background:var(--g1A);border:1px solid var(--g2A)}
 .av .xo-mark{width:18px;height:8px}
 .av-t{color:var(--info)}
-.av-t svg{width:15px;height:15px}
+.av-t svg{width:16px;height:16px}
 .av-gap{visibility:hidden;height:0;border:0}
 .mb{min-width:0}
-.mh{display:flex;align-items:baseline;gap:8px;min-height:30px;padding-top:5px;font-size:var(--fs-sm);color:var(--ink-4)}
+.mh{display:flex;align-items:baseline;gap:8px;min-height:32px;padding-top:5px;font-size:var(--fs-sm);color:var(--ink-4)}
 .mh b{font:600 var(--fs-md)/1.3 var(--sans);color:var(--ink)}
 .mh time{font-variant-numeric:tabular-nums}
-.prose{max-width:66ch;font-size:var(--fs-lg);line-height:1.68;color:var(--ink);overflow-wrap:anywhere}
-.prose>*+*{margin-top:.75em}
+.prose{max-width:66ch;font-size:var(--fs-lg);line-height:1.6;color:var(--ink);overflow-wrap:anywhere}
+.prose>*+*{margin-top:12px}
 .prose ul,.prose ol{padding-left:1.3em}
 .prose li+li{margin-top:.3em}
 .prose li::marker{color:var(--ink-4)}
@@ -596,7 +603,7 @@ code.hl{color:var(--code-ink)}
 .ev-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ev time{flex:none;margin-left:auto;font:400 var(--fs-xs)/1 var(--mono);color:var(--ink-4);font-variant-numeric:tabular-nums}
 
-.typing{display:grid;grid-template-columns:30px minmax(0,1fr);gap:14px;align-items:center;padding-bottom:8px;animation:msg-in .3s var(--glide)}
+.typing{display:grid;grid-template-columns:32px minmax(0,1fr);gap:12px;align-items:center;padding-bottom:8px;animation:msg-in .3s var(--glide)}
 .av-w{position:relative}
 .av-w::after{content:"";position:absolute;inset:-4px;border-radius:14px;border:1.5px solid rgba(var(--accent-rgb),.4);animation:breathe 2.4s ease-in-out infinite}
 .av-t.av-w::after{border-color:color-mix(in srgb,var(--info) 45%,transparent)}
@@ -2470,7 +2477,7 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
    travelling round the border, as the sidebar's working cubes do; a running step is a breathing dot,
    never a spinner. Waiting on you: amber, still. */
 .av-live{position:relative;color:var(--info);border-color:transparent;background:linear-gradient(color-mix(in srgb,var(--info) 12%,var(--g1C)),color-mix(in srgb,var(--info) 12%,var(--g1C))) padding-box,conic-gradient(from var(--pr-a),transparent 0deg,color-mix(in srgb,var(--info) 95%,transparent) 70deg,transparent 140deg) border-box,linear-gradient(color-mix(in srgb,var(--info) 26%,var(--g26)),color-mix(in srgb,var(--info) 26%,var(--g26))) border-box;box-shadow:0 0 10px -3px color-mix(in srgb,var(--info) 45%,transparent);animation:pr-orbit 2.8s linear infinite}
-.av-live svg{width:15px;height:15px}
+.av-live svg{width:16px;height:16px}
 .av-live.is-wait{color:var(--warn);background:color-mix(in srgb,var(--warn) 10%,var(--g1C));border-color:color-mix(in srgb,var(--warn) 45%,var(--g26));box-shadow:none;animation:none}
 .m-turn.is-live{align-items:flex-start}
 .tb-live{display:block;width:7px;height:7px;border-radius:50%;background:var(--info)}
