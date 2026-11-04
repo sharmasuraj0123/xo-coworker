@@ -123,28 +123,20 @@ body.files-open .mx-down{display:none}
    one at full strength. Every tone is set in OKLCH at low chroma; --ink on each measures 8.5:1 or more
    (AAA), and the bubble stands only 1.4–1.7 : 1 off the dark canvas: enough to tell who spoke, never a
    white slab. Theirs stay stone (--bubble). */
-:root[data-msgx]{--mx-you:oklch(.335 .004 260);--mx-you-tail:var(--mx-you);--mx-you-hi:none}
-:root[data-theme="light"][data-msgx]{--mx-you:oklch(.905 .003 260)}
-/* XO (the default): plain and flat. XO's own stone, one step up from theirs, with the faintest breath of
-   the O's green in it (chroma .012): no gradient, no edge, no highlight, so it never reads as selected,
-   glowing or "done". The green is felt, not seen. */
-:root[data-msgx-tone="xo"]{--mx-you:oklch(.325 .012 145)}
-:root[data-theme="light"][data-msgx-tone="xo"]{--mx-you:oklch(.935 .014 140)}
-/* Glass: the same light from above, in pure stone */
-:root[data-msgx-tone="glass"]{--mx-you:linear-gradient(180deg,oklch(.33 .005 260),oklch(.30 .005 260));--mx-you-tail:oklch(.30 .005 260);--mx-you-hi:inset 0 1px 0 rgba(255,255,255,.07)}
-:root[data-theme="light"][data-msgx-tone="glass"]{--mx-you:linear-gradient(180deg,oklch(1 0 0),oklch(.975 .002 260));--mx-you-tail:oklch(.975 .002 260);--mx-you-hi:inset 0 1px 0 rgba(255,255,255,.9),0 1px 2px rgba(0,0,0,.08),0 2px 8px rgba(0,0,0,.05)}
-/* Linen: a warm neutral; you're the warm voice, the agent the cool one */
-:root[data-msgx-tone="linen"]{--mx-you:oklch(.35 .016 75)}
-:root[data-theme="light"][data-msgx-tone="linen"]{--mx-you:oklch(.93 .017 80)}
-/* Rose: a muted blush, the one hue XO has no other use for */
-:root[data-msgx-tone="rose"]{--mx-you:oklch(.355 .042 352)}
-:root[data-theme="light"][data-msgx-tone="rose"]{--mx-you:oklch(.93 .026 352)}
-/* Dawn: one gradient fixed to the screen, rose at the top to linen by the composer; your bubbles are windows
-   onto it, so their colour drifts as you scroll (as Messages does with its blue) */
-:root[data-msgx-tone="dawn"]{--mx-you:linear-gradient(180deg,oklch(.35 .045 345),oklch(.355 .022 65)) fixed;--mx-you-tail:var(--mx-you)}
-:root[data-theme="light"][data-msgx-tone="dawn"]{--mx-you:linear-gradient(180deg,oklch(.925 .03 345),oklch(.935 .02 70)) fixed;--mx-you-tail:var(--mx-you)}
-/* scroll-linked colour is motion: with reduced motion, Dawn holds still at its middle */
-@media (prefers-reduced-motion:reduce){:root[data-msgx-tone="dawn"]{--mx-you:oklch(.35 .034 15)}:root[data-theme="light"][data-msgx-tone="dawn"]{--mx-you:oklch(.93 .025 20)}}
+:root[data-msgx]{--mx-you:oklch(.38 .075 134);--mx-you-ink:var(--ink);--mx-you-tail:var(--mx-you);--mx-you-hi:none}
+:root[data-theme="light"][data-msgx]{--mx-you:oklch(.88 .11 130)}
+/* XO (the default): XO's green, deepened so it holds its colour on the dark canvas and keeps --ink at 7.5:1
+   (#324A22); in light, a clear leaf (#C0E699, 11.9:1). A colour you own, not a status chip. */
+/* XO Bright: the brand green itself, #83D63A, with dark ink like the Send button (9.2:1). The boldest. */
+:root[data-msgx-tone="bright"]{--mx-you:var(--accent-fill);--mx-you-ink:var(--accent-ink)}
+/* Graphite: no colour at all, a cool grey a step lighter than theirs */
+:root[data-msgx-tone="graphite"]{--mx-you:oklch(.335 .004 260)}
+:root[data-theme="light"][data-msgx-tone="graphite"]{--mx-you:oklch(.905 .003 260)}
+
+/* Theirs are glass: lit from above, a touch lighter at the top, a fine highlight on the top edge (in light,
+   white with a soft lift). The agent's words sit on the calmer, more neutral surface; yours carry the colour. */
+:root[data-msgx]{--mx-them:linear-gradient(180deg,oklch(.30 .004 260),oklch(.27 .004 260));--mx-them-top:oklch(.30 .004 260);--mx-them-hi:inset 0 1px 0 rgba(255,255,255,.06)}
+:root[data-theme="light"][data-msgx]{--mx-them:linear-gradient(180deg,oklch(1 0 0),oklch(.975 .002 260));--mx-them-top:oklch(1 0 0);--mx-them-hi:inset 0 0 0 1px rgba(0,0,0,.05),0 1px 2px rgba(0,0,0,.06)}
 
 /* rhythm (research-chat.md §4): 20 between turns, 4 between one sender's bubbles */
 :root[data-msgx] #msgs>.m{margin-bottom:20px}
@@ -154,7 +146,7 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] :is(#msgs,#typing) .shimmer{animation:none;background:none;color:var(--ink-3);font-weight:400}
 
 /* yours */
-:root[data-msgx] .m-you .bubble{border:0;border-radius:var(--r-xl);background:var(--mx-you);box-shadow:var(--mx-you-hi);color:var(--ink)}
+:root[data-msgx] .m-you .bubble{border:0;border-radius:var(--r-xl);background:var(--mx-you);box-shadow:var(--mx-you-hi);color:var(--mx-you-ink)}
 :root[data-msgx] .m-you:has(+ .m-you.cont) .bubble{border-bottom-right-radius:var(--r-sm)}
 :root[data-msgx] .m-you.cont .bubble{border-top-right-radius:var(--r-sm)}
 :root[data-msgx] .m-you.is-relay .bubble{border:1px dashed var(--g3C);background:transparent;box-shadow:none}
@@ -174,25 +166,30 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .av.mx-pm{color:var(--ink-2)}
 :root[data-msgx] .av.mx-pm>svg{width:16px;height:16px}
 :root[data-msgx] .m-them .mh{display:none;min-height:0;padding:0 0 4px 16px}
-:root[data-msgx] .m-them.mx-other:not(.cont) .mh{display:flex}
-:root[data-msgx] .m-them.mx-other:not(.cont)>.av{margin-top:28px}
+/* a named sender's name is the first line inside their bubble (12/16, their colour); their mark centres on it */
+.mx-name{display:none}
+:root[data-msgx] .prose>.mx-name{display:block;margin:0 0 2px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
+:root[data-msgx] .prose>.mx-name+*{margin-top:0}
+:root[data-msgx] .m-them.mx-other:not(.cont)>.av{margin-top:4px}
+:root[data-msgx] .mx-coord .prose>.mx-name{color:color-mix(in srgb,var(--violet) 72%,var(--ink-3))}
+/* an open (unboxed) reply has no bubble to hold it, so its name sits above on the same text edge */
+:root[data-msgx-open] .mx-open .prose>.mx-name{margin-bottom:4px}
 :root[data-msgx] .m-them .mh b{font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
 :root[data-msgx] .m-them .mh :is(time,.role,.m-iq){display:none}
-:root[data-msgx] :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text){position:relative;width:fit-content;max-width:min(88%,560px);padding:10px 16px;border-radius:var(--r-xl);background:var(--bubble)}
+:root[data-msgx] :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text){position:relative;width:fit-content;max-width:min(88%,560px);padding:10px 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi)}
 :root[data-msgx] .m-them:has(+ .m-them.cont)>.mb>.prose{border-bottom-left-radius:var(--r-sm)}
 :root[data-msgx] .m-them.cont>.mb>.prose{border-top-left-radius:var(--r-sm)}
 :root[data-msgx] #msgs>.m-them>.mx-swipe{left:-2px}
 /* the coordinator stepping into a thread: its name in its violet (as a group chat colours each person's
    name), a violet ring round its mark, and a fine violet edge on its bubble. No violet fill: the words
    stay on the same stone, so reading never changes; only who's speaking does. */
-:root[data-msgx] .mx-coord .mh b{color:color-mix(in srgb,var(--violet) 72%,var(--ink-3))}
 :root[data-msgx] .mx-coord>.av{box-shadow:0 0 0 1px color-mix(in srgb,var(--violet) 45%,transparent)}
-:root[data-msgx] .mx-coord>.mb>.prose{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--violet) 22%,transparent)}
+:root[data-msgx] .mx-coord>.mb>.prose{box-shadow:var(--mx-them-hi),inset 0 0 0 1px color-mix(in srgb,var(--violet) 22%,transparent)}
 :root[data-msgx-open] .mx-coord.mx-open>.mb>.prose{border-radius:0;box-shadow:inset 2px 0 0 color-mix(in srgb,var(--violet) 45%,transparent)}
 
 /* Open: a long reply (a few paragraphs, a list, code) isn't boxed. It reads on the canvas from the bubbles'
    text edge, so a grey slab never fills the screen. Short replies stay bubbles. */
-:root[data-msgx-open] .mx-open :is(.mb>.prose,.turn>.tb-answer,.turn>.tb-text){width:auto;max-width:66ch;padding:0 0 0 16px;background:none}
+:root[data-msgx-open] .mx-open :is(.mb>.prose,.turn>.tb-answer,.turn>.tb-text){width:auto;max-width:66ch;padding:0 0 0 16px;background:none;box-shadow:none}
 :root[data-msgx-open] #msgs>.m.mx-open{margin-bottom:36px}
 
 /* What the agent did before it answered: one quiet pill on the bubbles' text edge, then the bubble */
@@ -216,8 +213,8 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-turn.mx-live:not(.mx-expanded) .turn>:is(.tb-work,.tb-think,.tb-act,.tb-narr,.tb-plan){display:none}
 :root[data-msgx] .m-turn.mx-live:not(.mx-expanded) .turn:not(:has(>:is(.tb-text,.tb-answer,.tb-files,.tb-end))){display:none}
 .mx-work{display:none}
-:root[data-msgx] .m-turn.mx-live:not(.mx-expanded) .mx-work{position:relative;display:flex;align-items:center;gap:12px;max-width:min(88%,480px);height:44px;padding:0 16px;border-radius:var(--r-xl);background:var(--bubble);color:var(--ink-2);font-size:var(--fs-md);line-height:20px;text-align:left;overflow:visible;transition:width var(--d-move) var(--ease),background var(--d-hover) var(--ease)}
-:root[data-msgx] .mx-work:hover{background:color-mix(in srgb,var(--ink) 4%,var(--bubble))}
+:root[data-msgx] .m-turn.mx-live:not(.mx-expanded) .mx-work{position:relative;display:flex;align-items:center;gap:12px;max-width:min(88%,480px);height:44px;padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-md);line-height:20px;text-align:left;overflow:visible;transition:width var(--d-move) var(--ease),background var(--d-hover) var(--ease)}
+:root[data-msgx] .mx-work:hover{background:var(--mx-them-top)}
 .mx-wt{position:relative;flex:1 1 auto;min-width:0;height:20px;overflow:hidden}
 .mx-wl{position:absolute;inset:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mx-wl.is-in{animation:mx-line-in var(--d-slow) var(--ease) both}
@@ -231,7 +228,7 @@ body.files-open .mx-down{display:none}
 /* the line under a conversation (a coordinator replying) is the same bubble */
 :root[data-msgx] .typing{grid-template-columns:28px minmax(0,1fr);gap:8px;padding-bottom:16px;animation:none}
 :root[data-msgx] .typing>.av{width:28px;height:28px;border-radius:50%;align-self:center}
-:root[data-msgx] .typing .ty-b{width:fit-content;max-width:min(88%,480px);height:44px;align-items:center;gap:12px;padding:0 16px;border-radius:var(--r-xl);background:var(--bubble);color:var(--ink-2);font-size:var(--fs-md);line-height:20px}
+:root[data-msgx] .typing .ty-b{width:fit-content;max-width:min(88%,480px);height:44px;align-items:center;gap:12px;padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-md);line-height:20px}
 :root[data-msgx] .typing .ty-b .ty-t{color:var(--ink-2)}
 :root[data-msgx] .typing .ty-b .elapsed:not(:empty)::before{content:none}
 @media (prefers-reduced-motion:reduce){.mx-wl.is-in,.mx-wl.is-out{animation:none}}
@@ -239,7 +236,13 @@ body.files-open .mx-down{display:none}
 /* Pressed open (while it works, or after), the work is the same bubble grown into a card: its 44 px
    header row (what it's doing, the time, a chevron to fold it back), then every step as a quiet 32 px row,
    icons in grey, no rail, no colour. Card 20, rows 8 in, so their hover corners are 20 − 8 = 12. */
-:root[data-msgx] .m-turn .turn>.tb-work.is-open{width:min(88%,560px);padding:0 0 8px;border-radius:var(--r-xl);background:var(--bubble);animation:mx-up var(--d-in) var(--ease)}
+:root[data-msgx] .m-turn .turn>.tb-work.is-open{width:min(88%,560px);padding:0 0 8px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi)}
+/* it opens once; after that only a new step moves, rising 4 px into place; and the arcs keep their turn */
+:root[data-msgx] .m-turn .turn>.tb-work.mx-opening{animation:mx-up var(--d-in) var(--ease)}
+:root[data-msgx] .m-turn .mx-row-in{animation:mx-row var(--d-slow) var(--ease) both}
+@keyframes mx-row{from{opacity:0;transform:translateY(4px)}}
+:root[data-msgx] .m-turn .arc::before{animation-delay:var(--mx-phase,0s)}
+@media (prefers-reduced-motion:reduce){:root[data-msgx] .m-turn :is(.mx-opening,.mx-row-in){animation:none}}
 :root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h{width:100%;min-height:44px;margin:0;padding:0 16px;border-radius:var(--r-xl);background:none!important;font-size:var(--fs-md)}
 :root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h :is(.tb-ht,.tb-wn){font-size:var(--fs-md);color:var(--ink-2)}
 :root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-rail{gap:0;margin:0;padding:0 8px;border:0}
@@ -255,17 +258,13 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .mx-emoji :is(.bubble,.prose){padding:0;background:none!important;box-shadow:none;font-size:var(--fs-4xl);line-height:var(--lh-40)}
 
 /* Tails, as WhatsApp places them: on the first bubble of a run, at its top corner, pointing at the name and
-   mark it belongs to (our marks sit at the top of a run, so a tail at the foot pointed at nothing). One
-   shape: that corner tightens to 6 and a 22 px curl, filled with the bubble's own colour, flows out of its
-   side, 8 px past it, with a soft notch where it meets the top edge. Nowhere else. */
-:root[data-msgx-tails] .m-you .bubble.mx-tail{border-top-right-radius:var(--r-sm)}
-:root[data-msgx-tails] :is(.prose,.tb-answer,.tb-text,.mx-work).mx-tail.is-them{border-top-left-radius:var(--r-sm)}
-:root[data-msgx-tails] .mx-tail::before{content:"";position:absolute;right:-8px;top:0;width:22px;height:22px;background:inherit;pointer-events:none;transform:scaleY(-1);-webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 22'><path d='M0 0H14C14 9 15.2 15.6 22 21.2C17.6 22.3 12.6 21.4 9.6 19.3C7.6 20.8 4.4 22 0 22Z'/></svg>") 0 0/100% 100% no-repeat;mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 22'><path d='M0 0H14C14 9 15.2 15.6 22 21.2C17.6 22.3 12.6 21.4 9.6 19.3C7.6 20.8 4.4 22 0 22Z'/></svg>") 0 0/100% 100% no-repeat}
-:root[data-msgx-tails] .m-you .bubble.mx-tail::before{background:var(--mx-you-tail)}
-:root[data-msgx-tails] .mx-tail.is-them::before{right:auto;left:-8px;transform:scale(-1,-1)}
-/* in a gradient tone the tail takes the bubble's top colour, where it joins */
-:root[data-msgx-tails][data-msgx-tone="glass"] .m-you .bubble.mx-tail::before{background:oklch(.33 .005 260)}
-:root[data-theme="light"][data-msgx-tails][data-msgx-tone="glass"] .m-you .bubble.mx-tail::before{background:oklch(1 0 0)}
+   mark it belongs to. The corner goes square and the bubble's top edge runs straight on 8 px past its
+   side, curving back into it 16 px down: one outline. The tail sits wholly outside the bubble, never on
+   top of it, so no fill, gradient or highlight can show a seam. Nowhere else. */
+:root[data-msgx-tails] .m-you .bubble.mx-tail{border-top-right-radius:0}
+:root[data-msgx-tails] :is(.prose,.tb-answer,.tb-text,.mx-work).mx-tail.is-them{border-top-left-radius:0}
+:root[data-msgx-tails] .mx-tail::before{content:"";position:absolute;right:-8px;top:0;width:8px;height:16px;background:var(--mx-you-tail);pointer-events:none;transform:scaleY(-1);-webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 16'><path d='M0 0C0 7 2 12.5 8 16H0Z'/></svg>") 0 0/100% 100% no-repeat;mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 16'><path d='M0 0C0 7 2 12.5 8 16H0Z'/></svg>") 0 0/100% 100% no-repeat}
+:root[data-msgx-tails] .mx-tail.is-them::before{right:auto;left:-8px;transform:scale(-1,-1);background:var(--mx-them-top)}
 
 /* a thread card or pictures in a message are part of the run: 4 px from its words, like the next bubble */
 :root[data-msgx] .m-them .mb>.prose~:is(.tcard,.mx-stack){margin-top:4px}

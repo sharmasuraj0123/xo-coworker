@@ -28,13 +28,10 @@ const IC = {
 };
 
 const TONES = [
-  { id: "xo", name: "XO", hint: "Plain and flat: XO's own stone, one step up from theirs, with the faintest breath of its green" },
-  { id: "glass", name: "Glass", hint: "The same light from above, in pure stone" },
-  { id: "graphite", name: "Graphite", hint: "A cool grey a step lighter than theirs" },
-  { id: "linen", name: "Linen", hint: "A warm neutral: you're the warm voice, the agent the cool one" },
-  { id: "rose", name: "Rose", hint: "A muted blush, the one hue XO doesn't already use for something" },
-  { id: "dawn", name: "Dawn", hint: "One soft gradient fixed to the screen; your bubbles drift through it as you scroll" },
-]
+  { id: "xo", name: "XO", hint: "XO's green, deepened to hold its colour on the dark; the agent answers on glass" },
+  { id: "bright", name: "XO Bright", hint: "The brand green itself with dark ink, like the Send button: the boldest" },
+  { id: "graphite", name: "Graphite", hint: "No colour: a cool grey a step lighter than the agent's glass" },
+];
 const KEY = "cv-msgx-tone", TAILS = "cv-msgx-tails", OPEN = "cv-msgx-open";
 const fromUrl = new URLSearchParams(location.search).get("tone");
 let tone = TONES.some((t) => t.id === fromUrl) ? fromUrl : (localStorage.getItem(KEY) || "xo");
@@ -115,7 +112,7 @@ function bubbleOf(m) {
   if (m.classList.contains("m-turn")) return [...m.querySelectorAll(".turn > .tb-answer, .turn > .tb-text")].pop() || null;
   return m.querySelector(":scope > .mb > .prose");
 }
-const textOf = (m) => (m.querySelector(".bubble, .mb > .prose, .tb-answer")?.innerText || "").trim();
+const textOf = (m) => { const b = m.querySelector(".bubble, .mb > .prose, .tb-answer"); if (!b) return ""; const c = b.cloneNode(true); c.querySelector(".mx-name")?.remove(); return (c.innerText || c.textContent || "").trim(); };
 
 /** A sent reply starts with "> " lines: show them as a card at the top of your bubble. */
 function quoteCard(m) {
@@ -208,6 +205,14 @@ function decorate() {
     const other = !!main && el._mxWho !== main;
     el.classList.toggle("mx-other", other);
     el.classList.toggle("mx-coord", other && view === "thread" && /coordinator/i.test(el._mxWho));
+    // a named sender's name opens their first bubble, in their colour, on the bubble's text edge (as a
+    // WhatsApp group does), so name, words and tail are one shape beside their mark
+    const b = el.querySelector(":scope > .mb > .prose");
+    const nm = b && b.querySelector(":scope > .mx-name");
+    const want = other && !el.classList.contains("cont") && b;
+    if (want && !nm) b.insertAdjacentHTML("afterbegin", `<span class="mx-name"></span>`);
+    if (want) b.querySelector(":scope > .mx-name").textContent = el._mxWho;
+    else if (nm) nm.remove();
   }
   for (const el of kids) {
     if (!el.classList.contains("m-turn")) continue;
@@ -286,17 +291,47 @@ function working(el) {
   const pv = [...msgs.children].filter((c) => c !== el && !c.classList.contains("mx-live")).pop();
   w.classList.add("is-them");
   w.classList.toggle("mx-tail", !(pv && pv.matches(".m-them:not(.mx-other)")));
-  WORKING.set(key, { text, since, w: was?.w, swapped: !was || was.text !== text ? now : was.swapped, timer: was?.timer });
+  const st = Object.assign(was || {}, { text, since, swapped: !was || was.text !== text ? now : was.swapped });
+  WORKING.set(key, st);
+  settle(el, st);
   sizeWork(w, key, text);
   tick();
+}
+/**
+ * The app redraws a working turn whole at every step, which made everything in it start over each time:
+ * the open card re-ran its entrance, every row flashed in again, the arc on the mark jumped back to the
+ * top. Here only what is really new moves: the card opens once, a new step rises into place while the
+ * others stay still, the card's height eases to fit, and the arcs keep turning from where they were.
+ */
+const TURN_MS = 1600; // the arc's turn (panel.css .arc, app.css .tb-live)
+function settle(el, st) {
+  const phase = `${-(Date.now() % TURN_MS)}ms`;
+  for (const a of el.querySelectorAll(".arc")) a.style.setProperty("--mx-phase", phase);
+  for (const a of el.querySelectorAll(".tb-live")) a.style.animationDelay = phase;
+  const card = el.classList.contains("mx-expanded") && el.querySelector(".turn > .tb-work.is-open");
+  if (!card) { st.open = false; st.rows = null; st.h = 0; return; }
+  if (!st.open) card.classList.add("mx-opening");
+  const seen = st.rows || new Set();
+  for (const r of card.querySelectorAll(".tb-rail > .tb, .tb-rows > li")) {
+    const k = r.querySelector("[data-tb]")?.dataset.tb || r.textContent.trim().slice(0, 80);
+    if (st.open && !seen.has(k)) r.classList.add("mx-row-in");
+    seen.add(k);
+  }
+  const h = card.offsetHeight;
+  if (st.open && st.h && Math.abs(h - st.h) > 1 && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    card.style.height = `${st.h}px`; card.style.overflow = "hidden"; void card.offsetHeight;
+    card.style.transition = "height var(--d-move) var(--ease)"; card.style.height = `${h}px`;
+    card.addEventListener("transitionend", () => { card.style.height = ""; card.style.overflow = ""; card.style.transition = ""; }, { once: true });
+  }
+  st.open = true; st.rows = seen; st.h = h;
 }
 /** Ease the working bubble's width to fit its line (it never jumps): measure, then transition to it. */
 function sizeWork(w, key, text) {
   const probe = document.createElement("span");
   probe.className = "mx-wsize"; probe.textContent = text;
   w.append(probe);
-  // padding 16 + the line + gap 12 + room for the time (48) + padding 16
-  const natural = 16 + probe.offsetWidth + 12 + 48 + 16;
+  // padding 16 + the line + gap 12 + the time (at least 64, so a growing clock never squeezes the line) + padding 16
+  const natural = 16 + probe.offsetWidth + 12 + Math.max(64, w.querySelector(".mx-we").offsetWidth) + 16 + 2;
   probe.remove();
   const max = w.parentElement.clientWidth * 0.88;
   const target = Math.min(natural, 480, max);
