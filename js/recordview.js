@@ -15,9 +15,10 @@
 // "Seen" is the backend's per chat when it has it (the later of it and this browser's), else this
 // browser's; the thread's `summary` and `git` state make the card's words exact when they're there.
 //
-// app.js calls: placeOf, leave, projectSince, homeSinceHtml, homeMadeHtml, madeCount, jumpItems, and
+// app.js calls: placeOf, leave, projectSince, homeSinceHtml, homeMade, madeCount, jumpItems, and
 // the panel's Made tab (made: mount, show, count); `panel` is set to the panel once it exists.
 
+import { syncList, fadeImage, setHtml, setText } from "./motion.js";
 import * as R from "./record.js";
 import { api } from "./api.js";
 import { esc } from "./util.js";
@@ -241,6 +242,32 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
       `<button type="button" class="md-pin" data-made-pin="${esc(m.key)}" aria-pressed="${m.pinned}" aria-label="${m.pinned ? "Unpin" : "Pin"} ${esc(m.name)}" title="${m.pinned ? "Unpin" : "Pin it on top"}">${ICON.pin}</button></li>`;
   }
 
+  // A card is made once and then updated in place (js/motion.js): its time, pin and picture change
+  // without redrawing it, so a picture never flashes; a new card arrives, the rest glide aside.
+  const tpl = document.createElement("template");
+  const cardMake = (where) => (m) => {
+    tpl.innerHTML = cardHtml(m, { where }).trim();
+    const el = tpl.content.firstElementChild;
+    fadeImage(el.querySelector(".md-th img"));
+    return el;
+  };
+  const cardUpdate = (where) => (el, m) => {
+    tpl.innerHTML = cardHtml(m, { where }).trim();
+    const nx = tpl.content.firstElementChild;
+    el.className = nx.className;
+    const th = el.querySelector(".md-th"), th2 = nx.querySelector(".md-th");
+    if (th && th2) { th.className = th2.className; if (setHtml(th, th2.innerHTML)) fadeImage(th.querySelector("img")); }
+    setText(el.querySelector(".md-meta b"), nx.querySelector(".md-meta b").textContent);
+    setText(el.querySelector(".md-meta span"), nx.querySelector(".md-meta span").textContent);
+    const fr = el.querySelector(".md-from span"), fr2 = nx.querySelector(".md-from span");
+    if (fr && fr2) setText(fr, fr2.textContent);
+    for (const sel of [".md-open", ".md-pin"]) {
+      const a = el.querySelector(sel), b = nx.querySelector(sel);
+      if (a && b) for (const at of ["title", "aria-label", "aria-pressed", "data-made-file", "data-made-pin"]) { const v = b.getAttribute(at); if (v != null && a.getAttribute(at) !== v) a.setAttribute(at, v); }
+    }
+  };
+  const syncCards = (ul, items, where) => syncList(ul, items, { make: cardMake(where), update: cardUpdate(where) });
+
   function madeRender() {
     if (!M.host) return;
     const pid = M.pid && world.project(M.pid) ? M.pid : null;
@@ -263,11 +290,27 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
     const f = R.KINDS.filter(([k]) => k === "all" || counts[k]).map(([k, w]) => `<button type="button" role="radio" data-made-kind="${k}" aria-checked="${M.kind === k}">${w}<span>${counts[k]}</span></button>`).join("");
     const fe = h.querySelector("#made-f");
     if (fe._h !== f) { fe.innerHTML = f; fe._h = f; }
-    const body = groups.length
-      ? groups.map((g) => `<section class="md-g"><h3 class="md-gh">${esc(g.label)}</h3><ul class="md-grid">${g.items.map((m) => cardHtml(m, { where: !pid })).join("")}</ul></section>`).join("")
-      : `<p class="md-none">${items.length ? `Nothing made matches “${esc(M.q)}”.` : `<b>Nothing made yet.</b> Files ${pid ? "its" : "your"} threads share show up here, newest first.`}</p>`;
     const be = h.querySelector("#made-body");
-    if (be._h !== body) { be.innerHTML = body; be._h = body; }
+    // a new scope starts still (nothing "arrives" when you switch project or filter); within one, arrivals move
+    const scope = `${pid}|${M.kind}|${M.q}`;
+    if (be._scope !== scope) { be.innerHTML = ""; be._seeded = false; be._h = null; be._scope = scope; }
+    if (!groups.length) {
+      const none = `<p class="md-none">${items.length ? `Nothing made matches “${esc(M.q)}”.` : `<b>Nothing made yet.</b> Files ${pid ? "its" : "your"} threads share show up here, newest first.`}</p>`;
+      if (be._h !== none) { be.innerHTML = none; be._h = none; be._seeded = false; }
+      return;
+    }
+    be._h = null;
+    const seeded = !!be._seeded;
+    syncList(be, groups.map((g) => ({ key: g.id, g })), {
+      make: ({ g }) => { const sec = document.createElement("section"); sec.className = "md-g"; sec.innerHTML = `<h3 class="md-gh">${esc(g.label)}</h3><ul class="md-grid"></ul>`; return sec; },
+      update: (sec, { g }) => setText(sec.querySelector(".md-gh"), g.label),
+    });
+    for (const g of groups) {
+      const ul = be.querySelector(`[data-k="${CSS.escape(g.id)}"] .md-grid`);
+      // a group that appears later (say, Pinned) brings its cards with it: they arrive, not land still
+      if (seeded && !ul._seeded) ul._seeded = true;
+      syncCards(ul, g.items, !pid);
+    }
   }
   /** The panel's Made tab: where it draws, and which project it shows (the view's, or every one). */
   function mount(el) {
@@ -310,13 +353,20 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
     schedule();
   }
 
-  /** Recently made, on Home: the newest few across every project, pinned ones first. */
-  function homeMadeHtml() {
+  /** Recently made, on Home: the newest few across every project, pinned ones first. Kept in place:
+   *  a new thing arrives at the front and the others glide along; nothing else is redrawn. */
+  function homeMade(box) {
     const items = madeOf(null);
-    if (!items.length) return "";
+    if (!box._built) {
+      box.innerHTML = `<section class="md-recent" aria-labelledby="md-recent-h" hidden><h2 class="hm-lbl" id="md-recent-h">${ICON.spark}Recently made</h2><ul class="md-grid is-strip"></ul></section>`;
+      box._built = true;
+    }
+    const sec = box.querySelector(".md-recent");
+    sec.hidden = !items.length;
+    if (!items.length) return;
     const list = [...items.filter((m) => m.pinned), ...items.filter((m) => !m.pinned)].slice(0, RECENT);
     loadThumbs(list);
-    return `<section class="md-recent" aria-labelledby="md-recent-h"><h2 class="hm-lbl" id="md-recent-h">${ICON.spark}Recently made</h2><ul class="md-grid is-strip">${list.map((m) => cardHtml(m, { where: true })).join("")}</ul></section>`;
+    syncCards(sec.querySelector(".md-grid"), list, true);
   }
 
   /** ⌘K: made files by name, only once you've typed something. */
@@ -352,7 +402,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
   });
 
   return {
-    placeOf, leave, projectSince, homeSinceHtml, homeMadeHtml, madeCount, jumpItems,
+    placeOf, leave, projectSince, homeSinceHtml, homeMade, madeCount, jumpItems,
     /** The panel's Made tab. */
     made: { mount, show: showMade, count: (v) => madeOf(pidOf(v)).length },
     set panel(p) { panel = p; },

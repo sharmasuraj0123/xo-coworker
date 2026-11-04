@@ -111,3 +111,11 @@ button.hr:active,.send:active,.t-undo:active,.dock-hide:active,.btn:active,butto
 .fl-head{padding:12px 12px 8px}
 /* the sidebar keeps its focus ring as it was */
 .side :focus-visible{border-radius:6px}
+
+/* ── one motion system (js/motion.js, design-research/15): one easing, three durations ─────────── */
+:root{--m-ease:cubic-bezier(.2,.8,.2,1);--m-in:280ms;--m-move:320ms;--m-out:160ms}
+/* a picture in Made fills its frame without a flash: its frame keeps its size while it decodes */
+.md-th img{transition:opacity var(--m-in) var(--m-ease)}
+
+/* ── the sidebar: no blue dot (the owner, again, 2026-11-04); nothing else there changes ─────────── */
+.pr-busy{display:none}

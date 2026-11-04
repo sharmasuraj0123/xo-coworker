@@ -467,7 +467,7 @@ function homeRender(needs) {
   } else if (P0.later.length) then = `<div class="then-foot solo"><button type="button" class="hm-quiet is-later" data-fid="bring" data-bring>${ICON.clock}${P0.later.length} later today <span>bring back</span></button></div>`;
   patch($("#hm-then"), then);
   // after Handled, the newest things made (Since you left was removed: the owner didn't want it, 2026-11-04)
-  patch($("#hm-made"), REC.homeMadeHtml());
+  REC.homeMade($("#hm-made"));
 
   endRender(P0, working);
 }
