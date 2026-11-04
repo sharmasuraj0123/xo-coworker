@@ -20,7 +20,9 @@
    Weights 400–600; motion --d-move on --ease. */
 
 .nav{padding:4px 12px 0}
-.nrow,.prow{border-radius:var(--r-lg)}
+/* the tile sits 7 px from the row's top, bottom and left alike (1 px line + 6 px padding), so 12 − 7 = 5
+   is concentric on every side (the left was 8, one pixel off: the corner checker, 4 Nov) */
+.nrow,.prow{border-radius:var(--r-lg);padding-left:6px}
 .nr-ic,.pr-ic{border-radius:calc(var(--r-lg) - 7px)}
 .side-find,.side .gear,.side-plus{border-radius:var(--r)}
 .side-plus::before{border-radius:calc(var(--r) - 2px)}
