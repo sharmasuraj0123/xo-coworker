@@ -644,7 +644,8 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       c.el.classList.toggle("is-idle", !a.busy);
       c.el.classList.toggle("is-wait", a.waiting);
       c.el.classList.toggle("is-stacked", i > 0);
-      c.el.classList.toggle("is-left", p.side === "left"); // its name is in the first one's "+N" and in the chips above
+      c.el.classList.toggle("is-left", p.side === "left");
+      c.el.classList.toggle("is-below", p.side === "below"); // its name is in the first one's "+N" and in the chips above
       const to = `translate(${x}px,${y}px)`;
       if (c.node === a.nid && c.el.style.transform !== to) {
         // same box, moved by the drawing: jump with it, no glide
@@ -657,7 +658,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
         c.node = a.nid;
       }
       if (!M.lead && a.busy) M.leadNode = a.nid;
-      if (!M.lead && a.busy) M.lead = { key: `${a.id}@${a.nid}`, pt: { x: p.cx - (p.side === "left" ? tagW() : 0), y: p.cy } }; // centring takes its name in too
+      if (!M.lead && a.busy) M.lead = { key: `${a.id}@${a.nid}`, pt: { x: p.cx - (p.side === "left" ? tagW() : p.side === "below" ? tagW() / 2 : 0), y: p.cy } }; // centring takes its name in too
     }
     for (const [k, c] of M.curs) if (!seen.has(k)) { c.el.classList.add("is-gone"); setTimeout(() => c.el.remove(), 320); M.curs.delete(k); }
   }
@@ -837,18 +838,28 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       const L = layoutOf(tree), old = M.layout;
       M.layout = L;
       const byId = new Map(L.nodes.map((n) => [n.id, n]));
-      // a cursor's name goes on the side of its box that's free on that row: the right for a file or a
-      // folded folder (nothing else shares a leaf's row), the left for an open folder (its children are
-      // on the right, one of them on its row), unless its parent sits on that same row
+      // a cursor's name goes where its box has room that nothing else uses:
+      //   · the right of a file or a folded folder (nothing else shares a leaf's row);
+      //   · under the top box (its column holds nothing else), so it never widens the drawing;
+      //   · the left of an open folder (its children are on the right, one on its row), unless its parent
+      //     sits on that same row.
       const parentOfId = new Map(L.edges.map((e) => [e.to.id, e.from]));
-      const sideOf = (n) => (n.children && n.children.length && !(parentOfId.get(n.id) && parentOfId.get(n.id).y === n.y) ? "left" : "right");
-      let x0 = 0, x1 = L.w + PAD * 2;
+      const sideOf = (n) => {
+        if (!(n.children && n.children.length)) return "right";
+        const par = parentOfId.get(n.id);
+        if (!par) return "below";
+        return par.y === n.y ? "right" : "left";
+      };
+      let x0 = 0, x1 = L.w + PAD * 2, y1 = L.h + PAD * 2;
       for (const a of ags) {
         const n = a.nid != null && byId.get(a.nid);
         if (!n) continue;
-        if (sideOf(n) === "left") x0 = Math.min(x0, n.x + PAD - tagW()); else x1 = Math.max(x1, n.x + PAD + NW + tagW());
+        const side = sideOf(n);
+        if (side === "left") x0 = Math.min(x0, n.x + PAD - tagW());
+        else if (side === "right") x1 = Math.max(x1, n.x + PAD + NW + tagW());
+        else y1 = Math.max(y1, n.y + PAD + NH + 44);
       }
-      M.bounds = { x0, y0: 0, x1, y1: L.h + PAD * 2 };
+      M.bounds = { x0, y0: 0, x1, y1 };
       const nodesHtml = L.nodes.map((n) => boxHtml(n, at)).join("");
       const key = `${L.w}x${L.h}|${nodesHtml}|${[...lit].join()}`;
       if (key !== M.layoutKey) {

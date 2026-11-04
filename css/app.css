@@ -2311,6 +2311,7 @@ button.dg-n:hover{border-color:var(--g45);color:var(--ink)}
 .dg-tag span{flex:none;font-weight:450;opacity:.85}
 .dg-cur.is-stacked .dg-tag{display:none}
 .dg-cur.is-left .dg-tag{left:auto;right:4px;border-radius:5px}
+.dg-cur.is-below .dg-tag{left:auto;right:-10px;top:31px;max-width:168px}
 .dg-more{font-style:normal;font-weight:600;padding:2px 5px;margin-right:-3px;border-radius:4px;background:rgba(255,255,255,.22)}
 .dg-cur.is-idle .dg-arrow path{fill:var(--g55)}
 .dg-cur.is-idle .dg-tag{background:var(--g33);color:var(--ink-2)}
