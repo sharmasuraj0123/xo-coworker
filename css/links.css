@@ -37,7 +37,7 @@
   box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 10%,transparent);
   -webkit-box-decoration-break:clone;box-decoration-break:clone;
   cursor:pointer;
-  transition:background-color var(--dur-fast) var(--ease),box-shadow var(--dur-fast) var(--ease);
+  transition:background-color var(--d-hover) var(--var(--ease)) var(--ease),box-shadow var(--dur-fast) var(--var(--ease)) var(--ease);
 }
 /* a long title may wrap between words; each line keeps a whole capsule */
 .lk-in.is-long{white-space:normal}
@@ -72,12 +72,12 @@
   text-decoration-thickness:1px;
   text-underline-offset:3px;
   text-decoration-color:color-mix(in srgb,var(--accent) 55%,transparent);
-  transition:text-decoration-color var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease);
+  transition:text-decoration-color var(--dur-fast) var(--var(--ease)),color var(--dur-fast) var(--var(--ease)) var(--ease);
 }
 .lk-out:hover{text-decoration-color:var(--accent)}
 .lk-out:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
 /* the arrow is centred on the middle of the capitals too: .0495em + half of .62em = .3595em */
-.lk-ar{display:inline-block;width:.62em;height:.62em;margin-left:.14em;vertical-align:.0495em;color:var(--accent);transition:transform var(--dur-fast) var(--ease-out)}
+.lk-ar{display:inline-block;width:.62em;height:.62em;margin-left:.14em;vertical-align:.0495em;color:var(--accent);transition:transform var(--dur-fast) var(--ease)}
 .lk-out:hover .lk-ar{transform:translate(1.5px,-1.5px)}
 /* a bare address is shown as people read it (host and path) in the code face */
 .lk-out.is-bare .lk-t{font:400 .9em/1 var(--mono);letter-spacing:-.01em}

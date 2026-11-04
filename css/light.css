@@ -104,12 +104,13 @@
 :root[data-theme="light"] .next{background:linear-gradient(#fff,#fff) padding-box,conic-gradient(from var(--nx-a),transparent 0deg,var(--nx-arc) 50deg,transparent 110deg) border-box,linear-gradient(170deg,rgba(61,122,23,.5),#DDDDDD 34%,#E3E3E3) border-box;box-shadow:var(--lift-3)}
 :root[data-theme="light"] .next.r-destructive{background:linear-gradient(#fff,#fff) padding-box,linear-gradient(170deg,rgba(180,35,35,.55),rgba(180,35,35,.22) 40%,#E3E3E3) border-box}
 :root[data-theme="light"] .create{background:#FFFFFF;border-color:rgba(0,0,0,.1);box-shadow:var(--lift-1)}
-:root[data-theme="light"] .create:hover{border-color:rgba(0,0,0,.18);box-shadow:var(--lift-2)}
+:root[data-theme="light"] .create:hover{border-color:rgba(0,0,0,.18);background:color-mix(in srgb,var(--ink) 6%,#FFFFFF)}
 :root[data-theme="light"] .calm{border-color:var(--hair);box-shadow:var(--lift-1)}
 :root[data-theme="light"] .hd{border-color:var(--hair)}
-:root[data-theme="light"] .hd:hover{background:#FFFFFF;border-color:var(--g2A)}
+:root[data-theme="light"] .hd:hover{background:color-mix(in srgb,var(--ink) 7%,#FFFFFF);border-color:var(--g2A)}
 :root[data-theme="light"] .md-it{background:var(--surface);border-color:var(--hair)}
 :root[data-theme="light"] .md-it:hover{border-color:var(--g33)}
+:root[data-theme="light"] .md-it:has(.md-open:hover){background:color-mix(in srgb,var(--ink) 8%,var(--surface))}
 :root[data-theme="light"] .md-th{background:var(--g16);border-bottom-color:var(--hair)}
 :root[data-theme="light"] .wsh-mark{box-shadow:var(--lift-2)}
 

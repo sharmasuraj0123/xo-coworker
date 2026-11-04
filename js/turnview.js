@@ -147,8 +147,12 @@ function workFold(turn, work, blocks, open, live, now) {
     const asks = rows.filter((r) => r.waiting);
     under = asks.length ? `<ul class="tb-rows is-cur">${asks.map((r) => rowHtml(r, open)).join("")}</ul>` : blockHtml(work[work.length - 1], open, live, now);
   } else {
-    // a failed turn's own error is said in its last line already
-    const bad = rows.filter((r) => (BAD.has(r.status) || r.kind === "error") && !(turn.status === "failed" && r.kind === "error"));
+    // a failed turn's own error is said in its last line already. A command that exited non-zero in a
+    // turn that went on to finish is the agent feeling its way (`ls`, `which`): it stays in the fold,
+    // because surfacing it in red would cry wolf (design-research/2026-11-vision/audit H2). A denial
+    // or a real error step still shows.
+    const routine = (r) => r.kind === "command" && r.status === "error" && turn.status !== "failed";
+    const bad = rows.filter((r) => (BAD.has(r.status) || r.kind === "error") && !(turn.status === "failed" && r.kind === "error") && !routine(r));
     if (bad.length) under += `<ul class="tb-rows tb-bad">${bad.slice(-3).map((r) => rowHtml(r, open)).join("")}</ul>`;
     under += changedChips(rows, blocks, key);
   }

@@ -10,7 +10,25 @@ input,textarea{font:inherit;color:inherit}
 [hidden]{display:none!important}
 :focus-visible{outline:2px solid rgba(var(--accent-rgb),.75);outline-offset:2px}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-kbd{font:500 11px/1 var(--sans);padding:2px 5px;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;color:var(--ink-3)}
+kbd{font:500 var(--fs-sm)/1 var(--sans);padding:2px 5px;border:1px solid var(--line);border-bottom-width:2px;border-radius:var(--r-sm);color:var(--ink-3)}
+/* ── Plan F · every control answers (design-research/2026-11-vision/direction) ──────────────────────
+   One curve. A hover engages in 120 ms and releases in 200 ms; a press goes down in 60 ms. Transitions
+   that a component declares read var(--d-hover), which is set here per state, so the asymmetry holds
+   everywhere without each component restating it. :where() keeps these at zero specificity: a
+   component's own transition wins, and only ones that had none (they used to snap) take this one. */
+:where(button,a[href],[role=button],[role=tab],[role=option],[role=switch],summary,xo-select,label[for]){transition-property:background-color,border-color,color,box-shadow,opacity,transform;transition-duration:var(--d-hover);transition-timing-function:var(--ease)}
+:where(*):hover{--d-hover:var(--d-hover-in)}
+:where(*):active{--d-hover:var(--d-press)}
+::selection{background:rgba(var(--accent-rgb),.24)}
+
+/* ── Plan F · icons: one drawn weight at every size, square ends like a ruled line ─────────────────
+   Every UI glyph is drawn on a 24 grid with stroke="currentColor"; drawn at 11–18 px its line used to
+   range 0.73–1.20 px. A non-scaling stroke holds it at 1.5 px whatever the size. Square caps (not
+   round, not butt): a dot drawn as a 0.01-long line still shows. Pierre's file icons are filled and
+   untouched; so are the XO mark and the left sidebar (the owner: keep it exactly as it is). */
+svg[stroke="currentColor"][fill="none"]:not(.side svg){stroke-width:1.5px;stroke-linecap:square;stroke-linejoin:miter}
+svg[stroke="currentColor"][fill="none"]:not(.side svg) :is(path,line,polyline,polygon,circle,rect,ellipse){vector-effect:non-scaling-stroke}
+
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 }

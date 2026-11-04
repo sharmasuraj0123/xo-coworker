@@ -404,9 +404,26 @@ function nextActHtml(n) {
     `<div class="c-note-row"><button type="button" class="b b-sm b-go" data-nx-send>${ICON.rewind}Send back</button><button type="button" class="b b-sm b-ghost" data-nx-cancel>Cancel</button></div></div>`;
   return html;
 }
+/**
+ * The headline says what will happen, in words; the exact command sits under it in mono at reading
+ * size, never at headline size (a raw `ls -la …` was the largest text on Home: audit A6).
+ */
+function nextHead(n) {
+  const t = n.t;
+  if (n.ask.live) {
+    const title = n.ask.title || "";
+    const m = title.match(/`([^`]+)`/);
+    if (m && (m[1].length >= 16 || /[\s/|;&]/.test(m[1]))) return { head: renderInline(title.replace(m[0], "a command"), true), cmd: m[1] };
+    return { head: renderInline(title, true), cmd: "" };
+  }
+  const cmd = Kit.commandOf(n.ask);
+  if (cmd) return { head: `<span class="h-verb">Run</span> a command`, cmd };
+  if (n.group === "stopped") return { head: `<span class="h-verb">Stopped at</span> ${esc((t.checklist.items.find((i) => i.state !== "done") || t).text || t.title)}`, cmd: "" };
+  return { head: esc(n.risk === "destructive" ? n.ask.title.replace(/:\s.*$/, "") : n.ask.title), cmd: "" };
+}
 function nextCardHtml(n) {
   const t = n.t, E = EFFORT[n.effort];
-  const head = n.ask.live ? renderInline(n.ask.title || "", true) : Kit.commandOf(n.ask) ? `<span class="h-verb">Run</span> <code class="h-cmd">${esc(Kit.commandOf(n.ask))}</code>` : n.group === "stopped" ? `<span class="h-verb">Stopped at</span> ${esc((t.checklist.items.find((i) => i.state !== "done") || t).text || t.title)}` : esc(n.risk === "destructive" ? n.ask.title.replace(/:\s.*$/, "") : n.ask.title);
+  const { head, cmd } = nextHead(n);
   return `<article class="next r-${n.risk} e-${n.effort}" data-key="${esc(n.key)}" data-fid="nextcard" tabindex="-1" aria-label="Your next move: ${esc(n.ask.title)}">` +
     `<div class="stamp stamp-allow" aria-hidden="true"><svg viewBox="0 0 52 52"><circle class="sc" cx="26" cy="26" r="23"/><path class="sk" d="M15 27l7.5 7.5L38 19"/></svg></div>` +
     `<div class="nx-in">` +
@@ -414,6 +431,7 @@ function nextCardHtml(n) {
     (n.risk === "destructive" ? `<span class="risk r-destructive">${ICON.lock}Destructive</span>` : n.group === "stopped" ? `<span class="risk r-stopped">Stopped</span>` : "") +
     (t.host ? `<button type="button" class="nx-where" data-fid="where"${t.chatId ? ` data-go="${esc(convOfChat(t.project))}"` : t.plainSession ? ` data-go="c:${esc(t.plainSession)}"` : ""} title="${t.asker ? `Open ${esc(PROJ(t.project))}, where its coordinator asks` : "Where it was asked"}">${t.asker ? `${esc(PROJ(t.project))}<span aria-hidden="true">›</span>${esc(t.title)}` : esc(t.title)}</button></div>` : `<button type="button" class="nx-where" data-fid="where" data-go="t:${esc(t.id)}" title="Open the thread">${esc(PROJ(t.project))}<span aria-hidden="true">›</span>${esc(t.title)}</button></div>`) +
     `<h2 class="nx-h" id="nx-h">${head}</h2>` +
+    (cmd ? `<p class="nx-cmd"><code>${esc(cmd)}</code></p>` : "") +
     (estLine(n) ? `<p class="nx-est" title="${n.t.live ? "From its checklist: the steps not done yet." : "An estimate: the steps left that wait on this answer × a typical step time."}">${ICON.hourglass}${esc(estLine(n))}</p>` : "") +
     (n.sug ? `<p class="c-sug" title="${esc(n.sug.why)}">${ICON.spark}<span>Suggests <b>${esc(n.sug.label)}</b></span><em>${esc(n.sug.sure)}</em></p>` : "") +
     nextActHtml(n) + `</div></article>`;
@@ -435,8 +453,11 @@ function homeRender(needs) {
   const down = (world.state.error || world.state.statusError) && !world.state.threads.length;
   if (down) sub = "XO can't be reached right now.";
   const hello = greeting();
+  // one way to create a project: the sidebar's "+" (the owner's decision). Home offers it only while
+  // there is no project yet, when it is the one thing to do (audit H3)
+  const first = !(world.state.projects || []).length;
   patch($("#hm-head"), `<header class="hm-top"><div class="hm-hd"><p class="hm-date">${esc(date)}</p><h1 class="hm-h" id="home-h">${hello}.<span> ${sub}</span></h1></div>` +
-    `<button type="button" class="create" data-create data-fid="create"><span class="create-ic">${ICON.plus}</span><span>Create XO Project</span></button></header>`);
+    (first ? `<button type="button" class="create" data-create data-fid="create"><span class="create-ic">${ICON.plus}</span><span>Create XO Project</span></button>` : "") + `</header>`);
 
   // the next move (stays put until it's done)
   const nb = $("#hm-next");
@@ -1548,14 +1569,12 @@ function chatTargetRender() {
   if ($("#target")._h !== html) { $("#target").innerHTML = html; $("#target")._h = html; }
   return true;
 }
-function updateComposer() {
-  trayRender();
-  if (chatTargetRender()) {
-    syncPlaceholder();
-    $("#composer").classList.toggle("has-text", !!say.value);
-    sendRender(); growSay(); atList.hidden = true;
-    return;
-  }
+/**
+ * The line above the composer: where this message goes, or why it can't go yet. It follows the world,
+ * not only the keyboard: render() calls it too, so a cold Home never keeps saying "Sending is paused ·
+ * Connecting to XO…" once everything has loaded (design-research/2026-11-vision/audit E4).
+ */
+function targetLineRender() {
   const tg = targetOf(say.value, world.state.projects);
   const pid = tg.pid;
   const t = convThread(S.view);
@@ -1569,6 +1588,16 @@ function updateComposer() {
   else if (S.view === "ws" || S.view === "home") html = `${ICON.arrow}<span>To the <b>Workspace</b> coordinator</span><span class="muted">· @ to aim at a project</span>`;
   else html = `${ICON.arrow}<span>To the <b>${esc(PROJ(convProject(S.view)))}</b> coordinator</span>`;
   if ($("#target")._h !== html) { $("#target").innerHTML = html; $("#target")._h = html; }
+}
+function updateComposer() {
+  trayRender();
+  if (chatTargetRender()) {
+    syncPlaceholder();
+    $("#composer").classList.toggle("has-text", !!say.value);
+    sendRender(); growSay(); atList.hidden = true;
+    return;
+  }
+  targetLineRender();
   syncPlaceholder();
   $("#composer").classList.toggle("has-text", !!say.value);
   sendRender();
@@ -1915,10 +1944,11 @@ function render() {
   if (!isHome && !isArts) requestAnimationFrame(loadAhead);
   dockRender(needs);
   heraldRender(needs);
-  chatTargetRender();
+  // the line above the composer follows the world on every view: a thread's follows its agent's turn
+  // (F7) unless you are aiming the message elsewhere, and a paused line clears the moment it stops
+  // being true (a cold Home used to keep "Connecting to XO…" until you typed)
+  if (!chatTargetRender()) targetLineRender();
   syncPlaceholder();
-  // a thread's target line follows its agent's turn (F7), unless you are aiming the message elsewhere
-  { const t = convThread(S.view); if (t && !liveBlock() && !targetOf(say.value, world.state.projects).pid && !/(^|\s)@[\w.-]+/.test(say.value)) { const h = threadTargetHtml(t); if ($("#target")._h !== h) { $("#target").innerHTML = h; $("#target")._h = h; } } }
   sendRender();
   chipRender();
   D.sync();
@@ -2289,15 +2319,17 @@ function allRender() {
   const q = $("#all-q").value.trim().toLowerCase();
   const needs = D.needItems();
   const ts = world.state.threads.filter((t) => t.project === pid);
-  const cat = (t) => (needs.some((n) => n.t.id === t.id && n.admitted && n.group !== "stopped") ? "needs" : t.state === "failed" ? "stopped" : t.frozen ? "done" : t.state === "working" || WAITING(t.state) ? "working" : t.state === "done" || t.state === "resolved" ? "done" : "other");
-  const counts = { all: ts.length, needs: 0, working: 0, done: 0, stopped: 0 };
+  // "Working" means its agent is working right now (isBusy), nothing else: an open thread whose agent
+  // sits idle, or one paused or waiting, is "Waiting" (audit: a Working filter listed 6 idle threads)
+  const cat = (t) => (needs.some((n) => n.t.id === t.id && n.admitted && n.group !== "stopped") ? "needs" : t.state === "failed" ? "stopped" : t.frozen ? "done" : t.state === "done" || t.state === "resolved" ? "done" : isBusy(t) ? "working" : t.state === "working" || WAITING(t.state) ? "waiting" : "other");
+  const counts = { all: ts.length, needs: 0, working: 0, waiting: 0, done: 0, stopped: 0 };
   for (const t of ts) { const c = cat(t); if (counts[c] != null) counts[c]++; }
-  const F = [["all", "All"], ["needs", "Needs you"], ["working", "Working"], ["done", "Done"], ["stopped", "Stopped"]];
+  const F = [["all", "All"], ["needs", "Needs you"], ["working", "Working"], ["waiting", "Waiting"], ["done", "Done"], ["stopped", "Stopped"]];
   $("#all-f").innerHTML = F.map(([k, w]) => `<button type="button" role="radio" data-af="${k}" aria-checked="${S.allFilter === k}"${!counts[k] && k !== "all" ? " disabled" : ""}>${w}<span>${counts[k]}</span></button>`).join("");
   $("#all-h").textContent = `All threads · ${PROJ(pid)}`;
   let list = ts.filter((t) => !q || t.title.toLowerCase().includes(q) || (t.branch || "").toLowerCase().includes(q));
   if (S.allFilter !== "all") list = list.filter((t) => cat(t) === S.allFilter);
-  const order = { needs: 0, stopped: 1, working: 2, done: 3, other: 4 };
+  const order = { needs: 0, stopped: 1, working: 2, waiting: 3, done: 4, other: 5 };
   list.sort((a, b) => order[cat(a)] - order[cat(b)] || b.lastAt - a.lastAt);
   const row = (t) => {
     const c = t.checklist;
