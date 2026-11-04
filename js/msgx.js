@@ -271,6 +271,10 @@ const FINISHED_CARDS = new Map(); // only completed turns whose work card has be
 //   [the turn] {order: 2n−1}   and everything after the last thing that arrived meanwhile ~ {order: 2n}
 // (the working turn is order 1000; everything else keeps its place, order 0).
 const ENDED = new Set();
+// each working turn's height, held by its key (see working(): the finished turn starts drawn at it)
+const HOLD = new Map();
+const holdSheet = document.head.appendChild(Object.assign(document.createElement("style"), { id: "mx-hold" }));
+function holdRules() { holdSheet.textContent = [...HOLD].map(([k, h]) => `:root[data-msgx] #msgs>[data-k="${CSS.escape(k)}"]{min-height:${h}px}`).join("\n"); }
 const orderSheet = document.head.appendChild(Object.assign(document.createElement("style"), { id: "mx-order" }));
 function keepEnded(key, lastKey) {
   if (ENDED.has(key)) return;
@@ -297,7 +301,23 @@ function working(el) {
   el.classList.toggle("mx-expanded", !!el.querySelector('.turn [aria-expanded="true"], .turn .is-waiting'));
   if (!live || !mb) {
     // it just ended: it stays drawn where it was, after what arrived while it worked, so nothing jumps
-    if (WORKING.has(key)) { const last = [...msgs.children].filter((c) => c !== el && c.dataset.k).pop(); if (last && last.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_PRECEDING) keepEnded(key, last.dataset.k); }
+    if (WORKING.has(key)) {
+      const last = [...msgs.children].filter((c) => c !== el && c.dataset.k).pop();
+      if (last && last.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_PRECEDING) keepEnded(key, last.dataset.k);
+      // and its height eases from the bubble's down to the finished line's (44 → 28) instead of snapping. A
+      // keyed rule (holdSheet) has held the turn at its working height since it began, so the finished
+      // element is drawn at that height from its very first frame, before this runs: no layout ever sees the
+      // drop (at the bottom, the page clamped the view 16 px in one frame). Now the hold lets go gently.
+      const from = WORKING.get(key).h;
+      const letGo = () => { HOLD.delete(key); holdRules(); };
+      // its own height, read while the hold still stands (so this layout never sees the drop either)
+      const to = Math.max(...[...el.children].map((c) => c.offsetTop - el.offsetTop + c.offsetHeight));
+      if (from && to < from - 1 && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        const cs = getComputedStyle(el), d = cs.getPropertyValue("--d-move").trim();
+        const a = el.animate([{ minHeight: `${from}px` }, { minHeight: `${to}px` }], { duration: parseFloat(d) * (d.endsWith("ms") ? 1 : 1000) || 320, easing: cs.getPropertyValue("--ease").trim() || "ease" });
+        a.finished.then(letGo, letGo);
+      } else letGo();
+    }
     const previous = FINISHED_CARDS.get(key) || WORKING.get(key);
     if (previous?.timer) clearTimeout(previous.timer);
     if (mb && (previous || el.classList.contains("mx-expanded"))) {
@@ -345,6 +365,8 @@ function working(el) {
   WORKING.set(key, st);
   settle(el, st);
   sizeWork(w, key, text);
+  st.h = el.offsetHeight; // what it measured while working, for the ease when it ends
+  if (HOLD.get(key) !== st.h) { HOLD.set(key, st.h); holdRules(); }
   tick();
 }
 /**
