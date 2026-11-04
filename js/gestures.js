@@ -114,7 +114,7 @@ const band = (d) => d * 0.28;
 const committed = (d, v, size, frac) => Math.abs(d) > size * frac || (Math.abs(v) > FLICK && Math.sign(v) === Math.sign(d) && Math.abs(d) > 24);
 
 // never start a navigation swipe on these: they take touches of their own
-const OWN = "input, textarea, select, [contenteditable], .b-hold, pre, table, .md-code, .vw-code, iframe, .xterm, [data-noswipe]";
+const OWN = "input, textarea, select, xo-select, [contenteditable], .b-hold, pre, table, .md-code, .vw-code, iframe, .xterm, [data-noswipe]";
 
 /**
  * The app's gestures. `A` is what app.js lets them do:

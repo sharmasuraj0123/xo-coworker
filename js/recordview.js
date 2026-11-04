@@ -381,7 +381,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
     if (!box._built) {
       box.innerHTML = `<div class="ar-wrap"><header class="ar-head"><h1 id="arts-h">Artifacts</h1><p class="ar-sub" id="arts-sub"></p></header>` +
         `<div class="ar-tools"><label class="ar-q">${ICON.search}<span class="sr-only">Find an artifact</span><input id="arts-q" placeholder="Find an artifact" autocomplete="off" spellcheck="false"></label>` +
-        `<label class="ar-pj"><span class="sr-only">Project</span><select id="arts-pj"></select></label></div>` +
+        `<label class="ar-pj"><span class="sr-only">Project</span><xo-select id="arts-pj"></xo-select></label></div>` +
         `<div class="ar-kinds" id="arts-f" role="radiogroup" aria-label="Show"></div><div class="ar-body" id="arts-body"></div></div>`;
       box._built = true;
       box.addEventListener("input", (e) => { if (e.target.id === "arts-q") { A.q = e.target.value; artsRender(); } });

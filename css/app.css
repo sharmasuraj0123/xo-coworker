@@ -1673,7 +1673,6 @@ button.kr-r:hover{background:var(--bg-3);color:var(--ink)}
 .set-row.is-sub{margin-top:4px}
 .set-row.dm.is-on{border-color:color-mix(in srgb,var(--accent-fill) 35%,var(--hair))}
 .set-row a{color:var(--ink-2);text-decoration:underline;text-underline-offset:2px}
-.set-sel{height:38px;padding:0 10px;border-radius:11px;border:1px solid var(--g30);background:var(--g14);color:var(--ink);font:500 var(--fs-base)/1 var(--sans)}
 .set-form{display:flex;flex-direction:column;gap:12px;padding:16px 18px;border-radius:16px;background:var(--surface);border:1px solid var(--hair)}
 .set-fa{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
 .set-confirm,.wt-confirm{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border-radius:16px;background:color-mix(in srgb,var(--err) 6%,var(--surface));border:1px solid color-mix(in srgb,var(--err-ink) 26%,var(--hair));font-size:var(--fs-base);line-height:1.5;color:var(--ink-2)}
@@ -1719,7 +1718,6 @@ button.kr-r:hover{background:var(--bg-3);color:var(--ink)}
 .tg-ch{margin-left:6px;color:var(--ink-2);text-decoration:underline;text-decoration-color:var(--g45);text-underline-offset:2px}
 .cs-pop{max-height:min(640px,80vh);overflow-y:auto}
 .cs-f{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;font-size:var(--fs-sm);color:var(--ink-3)}
-.cs-f select{flex:0 1 230px;min-width:0;height:34px;padding:0 8px;border-radius:9px;border:1px solid var(--pop-line);background:var(--pop-bg);color:var(--ink);font:500 var(--fs-base)/1 var(--sans)}
 .cs-modes{display:flex;flex-direction:column;gap:6px}
 .cs-modes .set-choice{padding:10px 12px;border-radius:12px}
 .ch-confirm{width:min(720px,100%);margin:0 auto 10px;display:flex;flex-direction:column;gap:10px;padding:14px 16px;border-radius:16px;background:color-mix(in srgb,var(--warn) 7%,var(--surface));border:1px solid color-mix(in srgb,var(--warn) 30%,var(--hair));font-size:var(--fs-base);color:var(--ink-2)}
@@ -1753,8 +1751,7 @@ button.kr-r:hover{background:var(--bg-3);color:var(--ink)}
 .tg-now:hover{color:var(--ink);border-color:var(--g33)}
 .tg-now.is-on{background:var(--ink);border-color:var(--ink);color:var(--canvas)}
 .tg-now-on{color:var(--ink)}
-@media (max-width:760px){.tg-now{height:36px}.cs-f select{height:36px}}
-
+@media (max-width:760px){.tg-now{height:36px}
 /* ── shared files (if1 #2, hub #25): the card is a button; the file opens in a viewer beside
    the conversation, like a canvas. Same slot as the Needs you panel, wider; on phones, the screen. */
 .tb-file{display:block;height:auto;padding:0;background:none;border:0;border-radius:0;min-width:0;max-width:100%}

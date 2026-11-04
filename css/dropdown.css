@@ -1,0 +1,55 @@
+/* The one dropdown (js/dropdown.js, <xo-select>), in place of the browser's own <select>.
+   Its open list is the composer's model picker in small: the picker's surface (--pop-bg), its line
+   (--pop-line), its shadow (lift-3 in light), its row type (14/20), its neutral 5 px dot for the
+   chosen row, its hover fill (--bg-3) and its fade-and-settle (.18 s, --glide; out in .14 s).
+   On the 4/8/12 scale: the button is a control, 32 high (12 in, 8 to the chevron, 8 between);
+   the list is 4 in, rows 32 high and 8 in, corners 8 inside 12 (8 + the 4 padding: concentric).
+   The row's text starts on the button's text: the dot's column hangs out to the left. A row's name
+   and its description share one baseline. */
+
+xo-select{position:relative;display:inline-flex;min-width:0;max-width:100%;vertical-align:middle}
+xo-select>option{display:none}
+
+.dd-btn{display:flex;align-items:center;gap:8px;width:100%;min-width:0;height:32px;padding:0 8px 0 12px;border-radius:8px;border:1px solid var(--g26);background:var(--g17);color:var(--ink-2);font:500 13px/20px var(--sans);text-align:left;cursor:pointer;transition:border-color var(--dur-fast),color var(--dur-fast),background var(--dur-fast)}
+.dd-v{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dd-btn svg{flex:none;width:16px;height:16px;color:var(--ink-4);transition:color var(--dur-fast)}
+.dd-btn:hover,xo-select.is-open .dd-btn{border-color:var(--g33);color:var(--ink)}
+.dd-btn:hover svg,xo-select.is-open .dd-btn svg{color:var(--ink-3)}
+.dd-btn:disabled{opacity:.5;cursor:default}
+.dd-btn:disabled:hover{border-color:var(--g26);color:var(--ink-2)}
+
+.dd-menu{position:fixed;left:0;top:0;z-index:120;box-sizing:border-box;width:max-content;max-width:400px;padding:4px;border-radius:12px;background:var(--pop-bg);border:1px solid var(--pop-line);box-shadow:0 24px 60px var(--pop-shadow);overflow-y:auto;overscroll-behavior:contain;outline:none;scrollbar-width:thin;scrollbar-color:var(--g2A) transparent;transform-origin:50% 0}
+.dd-menu.is-up{transform-origin:50% 100%}
+.dd-menu.is-in{animation:dd-in .18s var(--glide)}
+.dd-menu.is-up.is-in{animation-name:dd-in-up}
+.dd-menu.is-out{animation:dd-out .14s ease-in forwards;pointer-events:none}
+.dd-menu.is-up.is-out{animation-name:dd-out-up}
+@keyframes dd-in{from{opacity:0;transform:translateY(-6px) scale(.985)}}
+@keyframes dd-in-up{from{opacity:0;transform:translateY(6px) scale(.985)}}
+@keyframes dd-out{to{opacity:0;transform:translateY(-4px)}}
+@keyframes dd-out-up{to{opacity:0;transform:translateY(4px)}}
+
+.dd-row{display:flex;align-items:baseline;gap:8px;box-sizing:border-box;height:32px;padding:6px 8px;border-radius:8px;color:var(--ink-2);font:500 14px/20px var(--sans);white-space:nowrap;cursor:pointer;transition:background var(--dur-fast),color var(--dur-fast)}
+.dd-row.is-cur{background:var(--bg-3);color:var(--ink)}
+.dd-row[aria-selected="true"]{color:var(--ink)}
+.dd-row[aria-disabled="true"]{opacity:.45;cursor:default}
+.dd-mk{flex:none;align-self:center;display:grid;place-items:center;width:12px;height:20px}
+.dd-dot{display:block;width:5px;height:5px;border-radius:50%;background:var(--ink-2)}
+.dd-t{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.dd-d{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:400 12px/16px var(--sans);color:var(--ink-4)}
+
+:root[data-theme="light"] .dd-btn{background:#fff;border-color:rgba(0,0,0,.12)}
+:root[data-theme="light"] .dd-btn:hover,:root[data-theme="light"] xo-select.is-open .dd-btn{border-color:rgba(0,0,0,.2)}
+:root[data-theme="light"] .dd-btn:disabled:hover{border-color:rgba(0,0,0,.12)}
+:root[data-theme="light"] .dd-menu{box-shadow:var(--lift-3)}
+
+/* where each one stands */
+.ar-pj xo-select{width:200px}
+.cs-f xo-select{flex:0 1 232px}
+.set-row xo-select{flex:none;width:136px}
+
+/* a finger needs more than a pointer */
+@media (max-width:760px){
+  .dd-btn{height:36px}
+  .dd-row{height:40px;padding-block:10px}
+}

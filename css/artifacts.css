@@ -20,8 +20,6 @@ body.stage-open:not(.panel-open):not(.stage-full) .arts{padding-right:var(--sw)}
 .ar-q svg{flex:none;width:16px;height:16px}
 .ar-q input{flex:1;min-width:0;height:100%;border:0;outline:none;background:none;color:var(--ink);font:400 14px/20px var(--sans)}
 .ar-q input::placeholder{color:var(--ink-4)}
-.ar-pj select{height:36px;padding:0 32px 0 12px;border-radius:8px;border:1px solid var(--g26);background:var(--g17) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="%23909090" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>') no-repeat right 12px center;color:var(--ink-2);font:500 13px/20px var(--sans);-webkit-appearance:none;appearance:none;cursor:pointer}
-.ar-pj select:hover{border-color:var(--g33)}
 .ar-kinds{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .ar-kinds button{display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 12px;border-radius:999px;border:1px solid var(--g26);color:var(--ink-3);font:500 13px/20px var(--sans);transition:background var(--dur-fast),border-color var(--dur-fast),color var(--dur-fast)}
 .ar-kinds button span{font:500 12px/16px var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums}
@@ -43,7 +41,7 @@ body.stage-open:not(.panel-open):not(.stage-full) .arts{padding-right:var(--sw)}
 .ar-grid .md-meta span{font:400 13px/20px var(--sans)}
 .ar-grid .md-from{margin:0 4px 8px;padding:4px 8px;font:400 12px/16px var(--sans)}
 
-:root[data-theme="light"] .ar-q,:root[data-theme="light"] .ar-pj select{background-color:#fff;border-color:rgba(0,0,0,.12)}
+:root[data-theme="light"] .ar-q{background-color:#fff;border-color:rgba(0,0,0,.12)}
 :root[data-theme="light"] .ar-kinds button[aria-checked="true"]{background:rgba(0,0,0,.06)}
 
 @media (max-width:760px){

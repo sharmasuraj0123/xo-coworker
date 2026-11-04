@@ -9,6 +9,7 @@
 // of deciding. Stop while anything runs. Intelligence per session in the
 // composer. Light and dark.
 import { createWorld, esc, WAITING } from "./world.js";
+import "./dropdown.js"; // <xo-select>: the one dropdown, in place of the browser's <select>
 import { renderMarkdown, renderInline, setThreadInfo } from "./markdown.js";
 import * as Kit from "./kit.js";
 import * as K from "./keys.js";
@@ -2742,7 +2743,7 @@ $("#ic-shells").innerHTML = ICON.shell;
 // a new chat's setup: folder, agent, model, effort, what it may do (all from the runtime's feature list)
 {
   const cs = $("#cs-pop");
-  cs.addEventListener("change", (e) => { const f = e.target.closest("[data-cs]"); if (f) { CH.setPref(f.dataset.cs, f.value); CH.renderSetup(); updateComposer(); } });
+  cs.addEventListener("change", (e) => { const f = e.target.closest("[data-cs]"); if (f) { const k = f.dataset.cs; CH.setPref(k, f.value); CH.renderSetup(); updateComposer(); cs.querySelector(`[data-cs="${k}"]`)?.focus({ preventScroll: true }); } });
   cs.addEventListener("click", (e) => {
     const m = e.target.closest("[data-csmode]");
     if (m) { CH.setPref("mode", m.dataset.csmode); CH.renderSetup(); updateComposer(); return; }
