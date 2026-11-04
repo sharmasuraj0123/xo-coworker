@@ -17,8 +17,10 @@ kbd{font:500 var(--fs-sm)/1 var(--sans);padding:2px 5px;border:1px solid var(--l
    everywhere without each component restating it. :where() keeps these at zero specificity: a
    component's own transition wins, and only ones that had none (they used to snap) take this one. */
 :where(button,a[href],[role=button],[role=tab],[role=option],[role=switch],summary,xo-select,label[for]){transition-property:background-color,border-color,color,box-shadow,opacity,transform;transition-duration:var(--d-hover);transition-timing-function:var(--ease)}
-:where(*):hover{--d-hover:var(--d-hover-in)}
-:where(*):active{--d-hover:var(--d-press)}
+/* only the control under the pointer engages fast: set on every element, :hover would also catch <body>
+   and every ancestor, and their children would inherit 120 ms, so nothing would ever release slowly */
+:where(button,a[href],[role=button],[role=tab],[role=option],[role=switch],summary,xo-select,label[for],li:has(> button)):hover{--d-hover:var(--d-hover-in)}
+:where(button,a[href],[role=button],[role=tab],[role=option],[role=switch],summary,xo-select,label[for]):active{--d-hover:var(--d-press)}
 ::selection{background:rgba(var(--accent-rgb),.24)}
 
 /* ── Plan F · icons: one drawn weight at every size, square ends like a ruled line ─────────────────

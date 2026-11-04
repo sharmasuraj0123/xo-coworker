@@ -64,6 +64,10 @@ button.hr:active,.send:active,.t-undo:active,.dock-hide:active,.btn:active,butto
 
 /* ── 4 · an icon centres on its first line; nested corners are concentric ────────────────────────── */
 .top-who{align-items:flex-start}
+/* a thread's title bar is one line: the title, its state, its runtime and its controls all centre on
+   the title's own line (they used to align by their tops, so 24 px labels sat 2 px high and 32 px
+   controls 2 px low). Every control here is 32 high with a 16 px icon, 8 apart (Plan F). */
+.top[data-kind="thread"] .top-who{align-items:center;gap:12px}
 /* the title bar: the cube sits on the title's own line, a 28 px tile on the 28 px line, so its centre
    is the title's centre line (the cap centre of 20 px Geist in a 28 px line is the line's middle) */
 .tw-ic{width:28px;height:28px;border-radius:var(--r-sm)}
