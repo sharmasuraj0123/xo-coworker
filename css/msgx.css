@@ -153,8 +153,10 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] #msgs>.m{margin-bottom:20px}
 :root[data-msgx] #msgs>.m.cont{margin-top:-16px}
 
-/* no shimmering words anywhere in the conversation: work reads in plain, quiet text */
-:root[data-msgx] :is(#msgs,#typing) .shimmer{animation:none;background:none;color:var(--ink-3);font-weight:400}
+/* the working words keep the app's soft shimmer (the owner's ask, 21:37): a slow light passing through the
+   line, the same 2.4 s wave as .shimmer in app.css. msgx.js sets each one's phase from the clock, so a redraw
+   at every step never restarts it; the wave just carries on. */
+:root[data-msgx] :is(#msgs,#typing) .shimmer{animation-delay:var(--mx-wave,0s)}
 
 /* yours */
 :root[data-msgx] .m-you .bubble{border:0;border-radius:var(--r-xl);background:var(--mx-you);box-shadow:var(--mx-you-hi);color:var(--mx-you-ink)}
@@ -228,6 +230,10 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .mx-work:hover{background:var(--mx-them-top)}
 .mx-wt{position:relative;flex:1 1 auto;min-width:0;height:20px;overflow:hidden}
 .mx-wl{position:absolute;inset:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* the working bubble's line wears the same shimmer (the wave on the words, the crossfade on the line) */
+:root[data-msgx] .mx-wl:not(.is-out){background:linear-gradient(90deg,var(--ink-3) 0%,var(--ink-3) 35%,var(--ink) 50%,var(--ink-3) 65%,var(--ink-3) 100%) 0 0/250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:mx-shimmer 2.4s linear var(--mx-wave,0s) infinite}
+:root[data-msgx] .mx-wl.is-in{animation:mx-line-in var(--d-slow) var(--ease) both,mx-shimmer 2.4s linear var(--mx-wave,0s) infinite}
+@keyframes mx-shimmer{from{background-position:100% 0}to{background-position:-150% 0}}
 .mx-wl.is-in{animation:mx-line-in var(--d-slow) var(--ease) both}
 .mx-wl.is-out{animation:mx-line-out var(--d-out) var(--ease) both}
 @keyframes mx-line-in{from{opacity:0;transform:translateY(6px)}}
@@ -242,7 +248,7 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .typing .ty-b{width:fit-content;max-width:min(88%,480px);height:44px;align-items:center;gap:12px;padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-md);line-height:20px}
 :root[data-msgx] .typing .ty-b .ty-t{color:var(--ink-2)}
 :root[data-msgx] .typing .ty-b .elapsed:not(:empty)::before{content:none}
-@media (prefers-reduced-motion:reduce){.mx-wl.is-in,.mx-wl.is-out{animation:none}}
+@media (prefers-reduced-motion:reduce){.mx-wl.is-in,.mx-wl.is-out,:root[data-msgx] .mx-wl:not(.is-out){animation:none;color:var(--ink-2);background:none}}
 
 /* Pressed open (while it works, or after), the work is the same bubble grown into a card: its 44 px
    header row (what it's doing, the time, a chevron to fold it back), then every step as a quiet 32 px row,

@@ -240,7 +240,7 @@ function projectMarks() {
     av.replaceChildren(ic.cloneNode(true), ...[...av.querySelectorAll(".arc")]);
   }
 }
-new MutationObserver(projectMarks).observe(document.getElementById("typing"), { childList: true, subtree: true });
+new MutationObserver(() => { projectMarks(); wave(document.getElementById("typing")); }).observe(document.getElementById("typing"), { childList: true, subtree: true });
 
 // ── the agent at work: one calm bubble ──────────────────────────────────────
 const WORKING = new Map(); // turn key → { text, since, w }
@@ -308,7 +308,14 @@ function working(el) {
  * others stay still, the card's height eases to fit, and the arcs keep turning from where they were.
  */
 const TURN_MS = 1600; // the arc's turn (panel.css .arc, app.css .tb-live)
+const WAVE_MS = 2400; // the shimmer's wave (app.css .shimmer)
+/** Give each shimmer, as it's drawn, a phase taken from the clock, so every one (old or redrawn) shows the
+ *  same point of the wave: a redraw never restarts it. Set once per element; changing it later would jump. */
+function wave(root = document) {
+  for (const e of root.querySelectorAll(".shimmer, .mx-wl")) if (!e.style.getPropertyValue("--mx-wave")) e.style.setProperty("--mx-wave", `${-(Date.now() % WAVE_MS)}ms`);
+}
 function settle(el, st) {
+  wave(el);
   const phase = `${-(Date.now() % TURN_MS)}ms`;
   for (const a of el.querySelectorAll(".arc")) a.style.setProperty("--mx-phase", phase);
   for (const a of el.querySelectorAll(".tb-live")) a.style.animationDelay = phase;
