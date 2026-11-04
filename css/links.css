@@ -64,9 +64,10 @@
 /* a thread the app doesn't know (another project, not loaded): the same token, quieter */
 .lk-thread.is-unknown{color:var(--ink-2);background:color-mix(in srgb,var(--ink) 5%,transparent)}
 
-/* a working thread breathes, like its row in the sidebar; nothing moves when motion is reduced */
-.lk-ic .g-working{animation:lk-breathe 2.4s var(--ease) infinite}
-@keyframes lk-breathe{50%{opacity:.45}}
+/* a working thread: no blue. A small arc in the text's own colour turns on a faint track, the same
+   1.6s arc-turn as the agent's mark (css/panel.css), so js/ui.js keepTurning keeps every one in step
+   with the arc and the wave. Still when motion is reduced. */
+.lk-ic .g-working{border:.1em solid color-mix(in srgb,currentColor 22%,transparent);border-top-color:currentColor;border-radius:50%;color:var(--ink-2);animation:arc-turn 1.6s linear infinite}
 
 /* ── outside: text with ↗ ── */
 .lk-out{
