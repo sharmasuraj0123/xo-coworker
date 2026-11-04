@@ -113,6 +113,7 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 | `js/content.js` | what an ask costs you, what it frees, and its evidence |
 | `js/ui.js` | icons and motion helpers |
 | `js/gestures.js` | touch gestures on a phone: swipe back or open the sidebar, drag sheets away, swipe between asks, long-press Copy (design-research/11) |
+| `css/foundation.css` | the foundation (design-research/14): loaded last; flush side panels with one hairline, one left edge, one press, whole pixels, inset focus rings, nothing looping unless an agent works |
 | `js/stage.js` | the panel (design-research/13): one card on the right, tools as labelled tabs (Files, Made, Map; apps later, past four into More), one header button (`mod+\`) that opens on Files first and then on the last tool, full size, Esc; the Map mounts into its tab |
 | `js/files.js` | Files: the project's (or a thread's worktree's) files a folder at a time, the README first, the file beside the tree or one at a time, what agents touched marked; the one place a file opens (the viewer lives in it) |
 | `js/record.js`, `js/recordview.js` | a project's record (design-research/12): what its threads made (Made, Recently made on Home, ⌘K) and Since you left; the pure part, then the screen |

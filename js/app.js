@@ -298,17 +298,11 @@ function sideRender(needs) {
     const needsMe = asks.length > 0;
     // hub #31: a project at work reads blue at a glance; what needs you (amber, red) still wins the row
     const working = busy && !needsMe;
-    const label = needsMe ? askShort(lead) : working ? (nBusy > 1 ? `${nBusy} threads working` : nBusy ? "Working" : "Coordinator working") : "";
-    const kind = needsMe ? (lead.risk === "destructive" || lead.group === "stopped" ? "red" : "amber") : "";
-    const was = sideRender.needs?.get(p.id) || 0;
-    if (asks.length > was && sideRender.ready && !RM.matches) S.wash.set(p.id, { n: (S.wash.get(p.id)?.n || 0) + 1, until: now + 2600 });
-    const w = S.wash.get(p.id);
-    const washing = w && w.until > now;
+    // one ask, one place (design-research/14): what needs you is Home's to say (its row's count, then Home
+    // itself), so a project row stays one line; while its agents work, its icon glows
     return { key: p.id, html:
-      `<button type="button" class="prow${needsMe ? ` needs k-${kind}` : working ? " busy" : ""}${on ? " is-on" : ""}${washing ? " wash" : ""}${q && pi === S.pfCur ? " is-cur" : ""}" data-go="p:${esc(p.id)}" data-w="${washing ? w.n : 0}"${on ? ' aria-current="page"' : ""} aria-label="${esc(p.name)}${needsMe ? `. ${asks.length} need${asks.length === 1 ? "s" : ""} you: ${esc(label)}` : busy ? ". Working" : ""}">` +
-      `<span class="pr-ic" aria-hidden="true">${ICON.project}${busy && needsMe ? `<i class="pr-busy"></i>` : ""}</span>` +
-      `<span class="pr-main"><span class="pr-l1"><span class="pr-name">${esc(p.name)}</span>${needsMe ? `<span class="pr-w" aria-hidden="true"><i class="pr-d"></i>${asks.length}</span>` : ""}</span>` +
-      (label ? `<span class="pr-t">${esc(label)}</span>` : "") + `</span></button>` };
+      `<button type="button" class="prow${busy ? " busy" : ""}${on ? " is-on" : ""}${q && pi === S.pfCur ? " is-cur" : ""}" data-go="p:${esc(p.id)}"${on ? ' aria-current="page"' : ""} aria-label="${esc(p.name)}${busy ? ". Agents working" : ""}${needsMe ? `. ${asks.length} need${asks.length === 1 ? "s" : ""} you` : ""}">` +
+      `<span class="pr-ic" aria-hidden="true">${ICON.project}</span><span class="pr-main"><span class="pr-l1"><span class="pr-name">${esc(p.name)}</span></span></span></button>` };
   });
   sideRender.needs = new Map(projects().map((p) => [p.id, mine.filter((x) => x.t.project === p.id).length]));
   if (q && !items.length) items.push({ key: "pf-none", html: `<p class="pf-none">No project called “${esc(S.pfind.trim())}”.</p>` });
@@ -406,7 +400,7 @@ function nextCardHtml(n) {
 function homeRender(needs) {
   const box = $("#home");
   if (!box._built) {
-    box.innerHTML = `<div class="hm"><div id="hm-head"></div><div class="hm-body" id="hm-body"><div id="hm-next"></div><div id="hm-then"></div><div id="hm-since"></div><div id="hm-end"></div><div id="hm-made"></div></div></div>`;
+    box.innerHTML = `<div class="hm"><div id="hm-head"></div><div class="hm-body" id="hm-body"><div id="hm-next"></div><div id="hm-then"></div><div id="hm-end"></div><div id="hm-made"></div></div></div>`;
     box._built = true;
   }
   const P0 = homeParts(needs);
@@ -444,7 +438,8 @@ function homeRender(needs) {
     nb._key = null;
     const w = working.length;
     if (down) patch(nb, `<div class="calm is-down"><div class="calm-mark">${XO}</div><h2>Can't reach XO.</h2><p>Retrying every few seconds. Nothing you write is lost; sending waits until it's back.</p></div>`);
-    else patch(nb, `<div class="calm"><div class="calm-mark">${XO}</div><h2>Nothing needs you.</h2><p>${w ? `${num(w)} ${plural(w, "thread")} working. ${w === 1 ? "It'll" : "They'll"} ask when it's worth it.` : "Start something below, or enjoy the quiet."}</p></div>`);
+    // the headline already says "Nothing needs you." (say it once): one quiet line under it
+    else patch(nb, `<p class="calm-line">${w ? `${num(w)} ${plural(w, "thread")} working. ${w === 1 ? "It'll" : "They'll"} ask when it's worth it.` : "Start something below, or enjoy the quiet."}</p>`);
   }
 
   // then… at most two more
@@ -463,8 +458,7 @@ function homeRender(needs) {
     then += `</section>`;
   } else if (P0.later.length) then = `<div class="then-foot solo"><button type="button" class="hm-quiet is-later" data-fid="bring" data-bring>${ICON.clock}${P0.later.length} later today <span>bring back</span></button></div>`;
   patch($("#hm-then"), then);
-  // what happened while you were away, then (after Handled) the newest things made
-  patch($("#hm-since"), REC.homeSinceHtml(needs));
+  // after Handled, the newest things made (Since you left was removed: the owner didn't want it, 2026-11-04)
   patch($("#hm-made"), REC.homeMadeHtml());
 
   endRender(P0, working);
@@ -837,9 +831,8 @@ function topRender(needs) {
     const working = world.state.threads.filter(isBusy).length;
     const idle = world.state.threads.filter((x) => x.state === "working" && !isBusy(x) && !asking.has(x.id)).length;
     const done = doneToday().length;
-    const parts = [nd && `<b class="is-amber">${nd} need${nd === 1 ? "s" : ""} you</b>`, working && `${working} working`, P0.held.length && `${P0.held.length} can wait`, idle && `${idle} idle`, done && `${done} finished today`].filter(Boolean);
+    const parts = [working && `${working} working`, P0.held.length && `${P0.held.length} can wait`, idle && `${idle} idle`, done && `${done} finished today`].filter(Boolean);
     who = `<span class="tw-ic tw-xo" aria-hidden="true">${XO}</span><span class="tw-t"><h1 id="conv-title">Workspace</h1><button type="button" class="pj-s pj-home" data-go="home" title="What needs you is on Home">${parts.join(" · ") || "All quiet"} · across ${projects().length} projects</button></span>`;
-    end = P0.next ? `<button type="button" class="all-btn is-need" data-decide="${esc(P0.next.key)}" title="${esc(askShort(P0.next))}">Next move<span>${nd}</span></button>` : "";
   } else if (v.startsWith("p:")) {
     const pid = v.slice(2);
     const ts = threadsOf(pid);
@@ -848,7 +841,7 @@ function topRender(needs) {
     const w = ts.filter(isBusy).length;
     const dn = ts.filter((x) => x.state === "done").length;
     const rs = every.length - ts.length;
-    const parts = [nd && `<b class="is-amber">${nd} need${nd === 1 ? "s" : ""} you</b>`, w && `${w} working`, dn && `${dn} done this week`, rs && `${rs} resolved`].filter(Boolean);
+    const parts = [w && `${w} working`, dn && `${dn} done this week`, rs && `${rs} resolved`].filter(Boolean);
     // Threads: every thread here, searchable, dropping down under its button (⌘K reaches them too)
     if (every.length) end = `<button type="button" class="all-btn th-btn" data-switch aria-haspopup="dialog" aria-expanded="${!allEl.hidden}" title="Every thread in ${esc(PROJ(pid))}, searchable">${ICON.threadOne}Threads<span>${every.length}</span></button>`;
     who = `<span class="tw-ic" aria-hidden="true">${ICON.project}</span><span class="tw-t"><h1 id="conv-title">${esc(PROJ(pid))}</h1><span class="pj-s">${parts.join(" · ") || (every.length ? "All quiet" : "No threads yet")}${S.desc[pid] ? ` · ${esc(S.desc[pid])}` : ""}</span></span>`;
@@ -1276,9 +1269,7 @@ function heraldRender(needs) {
     // are already said by the sidebar's Home row and by Home, so no line sits here for them.
     const P0 = homeParts(needs);
     const nd = P0.active.length;
-    html = nd && P0.next
-      ? `<button type="button" class="hr hr-need" data-next title="Take the next move"><i class="hr-dot" aria-hidden="true"></i><span class="hr-t"><b>${nd}</b> worth your time</span><span class="hr-s">next is ${EFFORT[P0.next.effort].long}</span>${ICON.right}</button>`
-      : "";
+    html = ""; // what needs you is said once: the sidebar's Home row, then Home
   }
   const was = box._h;
   if (patch(box, html) && was != null && html) box.firstElementChild?.classList.add("is-in");
@@ -1826,7 +1817,6 @@ function render() {
   else {
     topRender(needs);
     wsHeadRender(needs);
-    REC.projectSince(v.startsWith("p:") ? v.slice(2) : null, needs);
     let switching = rendered !== v;
     // the first real fill of a conversation lands quietly and in place, like a view switch
     const ready = liveReady(v);

@@ -51,7 +51,7 @@ export function createStage({ files, filesIcon, made, map, mapIcon, viewer, view
   el.hidden = true;
   el.tabIndex = -1;
   el.setAttribute("aria-label", "Panel");
-  el.innerHTML = `<header class="stg-bar"><div class="stg-tabs" role="tablist" aria-label="Panel"></div>` +
+  el.innerHTML = `<div class="stg-grip" role="separator" aria-orientation="vertical" aria-label="Resize the panel" title="Drag to resize · double-click for the default" tabindex="0"></div><header class="stg-bar"><div class="stg-tabs" role="tablist" aria-label="Panel"></div>` +
     `<div class="stg-acts"><button type="button" class="stg-ic" data-stg-full></button><button type="button" class="stg-ic" data-stg-close aria-label="Close the panel" title="Close (Esc)">${ICON.close}</button></div></header>` +
     `<div class="stg-body">${TOOLS.map((k) => `<div class="stg-pane" data-pane="${k}" role="tabpanel" aria-label="${k}" tabindex="-1" hidden></div>`).join("")}</div>`;
   $("#main").appendChild(el);
@@ -182,6 +182,39 @@ export function createStage({ files, filesIcon, made, map, mapIcon, viewer, view
     e.preventDefault();
     const nx = tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length].dataset.stgTab;
     show(nx, { focus: false }); tabsEl.querySelector(`[data-stg-tab="${nx}"]`)?.focus();
+  });
+
+  // ── width: flush to the window's right edge, 360 px by default, 320–640 by dragging its left edge ─
+  const W_KEY = "xo-stage-w", W_DEF = 360, W_MIN = 320, W_MAX = 640;
+  const clampW = (w) => Math.round(Math.max(W_MIN, Math.min(W_MAX, innerWidth - 480, w)));
+  const setW = (w, save = false) => {
+    const v = clampW(w);
+    document.documentElement.style.setProperty("--sw", `${v}px`);
+    if (save) { try { localStorage.setItem(W_KEY, String(v)); } catch { /* private mode */ } }
+    return v;
+  };
+  let wSaved = W_DEF;
+  try { wSaved = Number(localStorage.getItem(W_KEY)) || W_DEF; } catch { /* private mode */ }
+  setW(wSaved);
+  addEventListener("resize", () => setW(wSaved));
+  const grip = el.querySelector(".stg-grip");
+  grip.addEventListener("pointerdown", (e) => {
+    if (e.button !== 0 || S.full) return;
+    e.preventDefault();
+    grip.setPointerCapture(e.pointerId);
+    const right = el.getBoundingClientRect().right;
+    document.body.classList.add("stage-sizing");
+    const move = (ev) => { wSaved = setW(right - ev.clientX); };
+    const up = () => { grip.removeEventListener("pointermove", move); document.body.classList.remove("stage-sizing"); setW(wSaved, true); };
+    grip.addEventListener("pointermove", move);
+    grip.addEventListener("pointerup", up, { once: true });
+    grip.addEventListener("pointercancel", up, { once: true });
+  });
+  grip.addEventListener("dblclick", () => { wSaved = setW(W_DEF, true); });
+  grip.addEventListener("keydown", (e) => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    e.preventDefault();
+    wSaved = setW(wSaved + (e.key === "ArrowLeft" ? 16 : -16), true);
   });
 
   if (saved.open) requestAnimationFrame(() => open(S.tab, { focus: false }));

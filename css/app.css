@@ -658,10 +658,6 @@ button.hr:active{transform:scale(.97)}
 .composer textarea::placeholder{color:var(--g72)}
 .composer textarea:focus-visible{outline:none}
 .composer-row{display:flex;align-items:center;gap:6px;margin-top:6px}
-.app[data-view="home"] .composer:not(:focus-within):not(.has-text):not(.has-files):not(.held){grid-template-columns:minmax(0,1fr) auto;align-items:center;padding:7px 7px 7px 18px}
-.app[data-view="home"] .composer:not(:focus-within):not(.has-text):not(.has-files):not(.held) textarea{padding:5px 0 3px}
-.app[data-view="home"] .composer:not(:focus-within):not(.has-text):not(.has-files):not(.held) .composer-row{margin:0}
-.app[data-view="home"] .composer:not(:focus-within):not(.has-text):not(.has-files):not(.held) .target{display:none}
 .target{display:inline-flex;align-items:center;gap:6px;min-width:0;height:30px;padding:0 10px 0 8px;margin-left:-8px;margin-right:auto;border-radius:9px;color:var(--ink-4);font-size:var(--fs-sm);white-space:nowrap;overflow:hidden;transition:background var(--dur-fast),color var(--dur-fast)}
 .target:hover{background:var(--bg-3);color:var(--ink-3)}
 .target b{color:var(--ink-2);font-weight:600}

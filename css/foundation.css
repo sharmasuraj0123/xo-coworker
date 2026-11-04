@@ -1,0 +1,135 @@
+/* The foundation (design-research/14): the interface critique of 2026-11-03 (§9, 26 surfaces), fixed.
+   Loaded last, after app.css and light.css, because these are rules of structure that hold in both
+   themes. The eight rules it applies (ui-design/README.md in the critique's folder):
+     1 hover fills sit inside their column; no negative margins   5 one left edge per region
+     2 one focus ring; inset where a scroller would clip it         6 whole pixels: integer line heights
+     3 press: small buttons .97; rows, tiles, tabs and cards never  7 side panels are flush, no shadow
+     4 an icon centres on its first line of text                    8 nothing loops unless an agent works
+   Scale: 4 px steps; radii 6 · 8 · 12; controls 28 · 32; rows 36. */
+
+:root{--sw:360px;--edge:16px;--row-h:36px;--press:.97}
+
+/* ── 7 · the side panels: flush to the window, one hairline, no float, no shadow ─────────────────── */
+.stage,.panel,body.stage-full .stage{top:0;right:0;bottom:0;border-radius:0;border:0;border-left:1px solid var(--g1F);box-shadow:none;animation:none}
+:root[data-theme="light"] :is(.stage,.panel){border-color:rgba(0,0,0,.08);box-shadow:none}
+.stage{width:var(--sw);z-index:20}
+.panel{max-height:none;height:100%}
+body.stage-full .stage{left:0}
+body.stage-open{--mw:var(--sw);--vw:var(--sw)}
+body.stage-open:not(.panel-open):not(.stage-full) .conv{--rp:var(--sw)}
+body.stage-open:not(.panel-open):not(.stage-full) .scroller,body.stage-open:not(.panel-open):not(.stage-full) .home{padding-right:var(--sw)}
+body.stage-open:not(.panel-open):not(.stage-full) .dock{right:var(--sw)}
+body.stage-open:not(.panel-open):not(.stage-full) .toast-wrap{right:var(--sw)}
+body.panel-open .conv{--rp:var(--pw)}
+body.panel-open .scroller,body.panel-open .home{padding-right:var(--pw)}
+body.panel-open .dock{right:var(--pw)}
+body.panel-open .app[data-view] .toast-wrap{right:var(--pw)}
+/* its left edge is the handle: 320–640 px, double-click for 360 */
+.stg-grip{position:absolute;z-index:3;top:0;bottom:0;left:-3px;width:6px;cursor:col-resize;outline:none}
+.stg-grip::after{content:"";position:absolute;top:0;bottom:0;left:2px;width:2px;background:transparent;transition:background var(--dur-fast)}
+.stg-grip:hover::after,.stg-grip:focus-visible::after,body.stage-sizing .stg-grip::after{background:var(--line-hover)}
+body.stage-sizing{cursor:col-resize;user-select:none}
+body.stage-sizing .stage,body.stage-sizing .conv,body.stage-sizing .scroller,body.stage-sizing .dock{transition:none}
+body.stage-full .stg-grip{display:none}
+.stg-bar{min-height:52px;padding:0 8px 0 6px}
+@media (max-width:760px){.stg-grip{display:none}.stage{width:auto}}
+/* Home's green atmosphere tinted the canvas beside the sidebar: the canvas is one colour everywhere */
+.home{background:var(--canvas)}
+
+/* ── 5 · the sidebar: one left edge (16), places as a list, not a ladder of cards ─────────────────── */
+.side-top{padding:0 12px 0 var(--edge)}
+.nav{padding:4px 8px 0;gap:2px}
+.projects{padding:2px 8px 14px;gap:2px}
+.side-label{margin:20px 8px 6px var(--edge)}
+.side-find{margin:0 8px 8px}
+.nrow,.prow{min-height:var(--row-h);height:var(--row-h);padding:0 8px;gap:10px;border-radius:8px;border:0;background:transparent;box-shadow:none}
+.nrow:hover,.prow:hover{background:var(--row-hover);border:0}
+.nrow.is-on,.prow.is-on{background:var(--row-bg-hover);box-shadow:none;border:0}
+.nr-ic,.pr-ic{width:20px;height:20px;border:0;border-radius:6px;background:transparent;color:var(--ink-3)}
+.nr-ic svg,.pr-ic svg{width:16px;height:16px}
+.nrow.is-on .nr-ic,.prow.is-on .pr-ic{background:transparent}
+.prow::before{display:none}
+.pr-main{flex-direction:row;align-items:center}
+/* a project at work: its icon gets a tile, and the tile's light travels round its border (8) */
+.prow.busy{background:transparent;border:0}
+.prow.busy.is-on{background:var(--row-bg-hover)}
+.prow.busy .pr-ic{border:1px solid transparent;border-radius:6px}
+.prow.busy .pr-name{color:var(--ink-2)}
+
+/* ── 1 · hover fills inside the column: no negative margins ──────────────────────────────────────── */
+.top-back,.tw-rt,.target,.attach{margin-left:0}
+/* 4 · work rows read as text: no fill, the ink brightens and a chevron shows; the text starts on the
+   message's own column (the live turn's agent tile sits in the avatar gutter) */
+.tb-h{margin-left:0;padding:4px 0;border-radius:0;background:none!important}
+.tb-h:hover .tb-ht,.tb-h:focus-visible .tb-ht{color:var(--ink)}
+.tb-wh .tb-hi{display:none}
+.tb-work>.tb:not(.tb-work){margin-left:0}
+
+/* ── 3 · press: small buttons scale to .97; rows, tiles, tabs and cards never scale ───────────────── */
+.nrow:active,.prow:active,.then-i:active,.wsh-next:active,.tc-open:active,.dock-fold:active,.set-nav button:active,
+.tb-fb:active,.nw:active,.fl-r:active,.stg-tab:active,.ar:active,.md-it:has(.md-open:active),.syl-ln:active,.jump-list li:active,.iq-row:active,.b-hold:active{transform:none}
+.help:active,.gear:active,.side-plus:active,.create:active,.hm-quiet:active,.top-back:active,.all-btn:active,.tc-dec:active,
+button.hr:active,.send:active,.t-undo:active,.dock-hide:active,.btn:active,button.kr-k:active,.tb-cf:active,.tw-act:active,
+.map-btn:active,.stg-btn:active,.syl-got:active,.fl-back:active,.stg-ic:active{transform:scale(var(--press))}
+
+/* ── 6 · whole pixels: integer line heights, so 1 px borders land on whole pixels ────────────────── */
+.tw-t h1{line-height:28px}
+.hm-h{font-size:28px;line-height:36px}
+.mh{padding-top:0;align-items:center;min-height:30px}
+.md-grid{grid-template-columns:repeat(auto-fill,minmax(148px,1fr))}
+
+/* ── 4 · an icon centres on its first line; nested corners are concentric ────────────────────────── */
+.top-who{align-items:flex-start}
+.tw-ic{width:28px;height:28px;border-radius:8px}
+.top[data-kind="project"] .top-who .tw-ic{margin-top:0}
+.create-ic{border-radius:6px}
+.all-btn span{border-radius:4px}
+.dlg-head{align-items:flex-start}
+
+/* ── 2 · one focus ring: never clipped, never changes a thing's shape ────────────────────────────── */
+:is(.nrow,.prow,.fl-r,.md-open,.nw,.shd-tab,.ar,.stg-tab,.syl-ln,.then-i,.jump-list li,.iq-row,.set-nav button,.tb-h,.md-from,.md-pin):focus-visible{outline-offset:-2px}
+.md-it{overflow:visible}
+.md-th{border-radius:13px 13px 0 0}
+.now{padding:3px}
+.scroller .wsh-home:focus-visible{outline-offset:1px}
+
+/* ── 8 · nothing loops unless an agent works ─────────────────────────────────────────────────────── */
+.next,.next.in-next,.next.in-undo{animation:none}
+.next:not(.r-destructive){background:var(--surface);border:1px solid color-mix(in srgb,var(--accent-fill) 32%,var(--g2A))}
+:root[data-theme="light"] .next:not(.r-destructive){background:#fff;border-color:color-mix(in srgb,var(--accent-fill) 40%,rgba(0,0,0,.1))}
+.next.in-next{animation:in-next .42s var(--spring-soft) both}
+.next.in-undo{animation:in-undo .4s var(--glide) both}
+.shd-dot.d-wait{animation:none}
+
+/* ── the worst three ─────────────────────────────────────────────────────────────────────────────── */
+/* the model picker: a model's name, then all of its description under it; the dot on the name's line */
+.iq-row,.iq-row.lv{align-items:flex-start;min-height:0;padding:8px 4px 8px 8px}
+.iq-mk{height:20px}
+.iq-nt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.iq-n,.iq-row.lv .iq-n{font:550 var(--fs-md)/20px var(--sans)}
+.iq-tr,.iq-row.lv .iq-tr{white-space:normal;overflow:visible;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.iq-d,.iq-row.lv .iq-d{align-self:center}
+.iq-back{height:auto;min-height:28px;padding:6px 10px;white-space:nowrap}
+.iq-f{flex-wrap:wrap;gap:8px}
+/* Settings: the selected page is its own fill; no detached bar on a rail 11 px away */
+.set-nav{border-left:0;padding-left:0}
+.set-nav button::before{display:none}
+.set-nav button[aria-selected="true"]{background:var(--row-bg-hover)}
+/* a turn's own lines (its work, a tool group) start on the text column: the agent's mark is the
+   avatar beside the turn, so the line needs no icon of its own */
+.turn>.tb>.tb-h .tb-hi{display:none}
+/* Home, nothing waiting: the headline says it once; one quiet line under it, no card */
+.calm-line{margin-top:12px;font:400 var(--fs-md)/20px var(--sans);color:var(--ink-3)}
+/* Settings open: it is where you are, so the sidebar's place lets go of its fill */
+body:has(#settings:not([hidden])) :is(.nrow,.prow).is-on{background:transparent}
+/* light: the sidebar's places are a list there too (light.css gave the icons white tiles and the
+   selected row a lift) */
+:root[data-theme="light"] :is(.nr-ic,.pr-ic),:root[data-theme="light"] :is(.nrow,.prow).is-on :is(.nr-ic,.pr-ic){background:transparent;border-color:transparent}
+:root[data-theme="light"] :is(.nrow,.prow).is-on{background:rgba(0,0,0,.055);box-shadow:none}
+:root[data-theme="light"] .prow.busy .pr-ic{border-color:transparent}
+/* the panel's content shares one edge (16) with its tabs */
+.md-pane .md-h{padding:16px 16px 2px}
+.md-pane .md-tools{padding:10px 16px}
+.md-pane .md-body{padding:2px 16px 16px}
+.md-pane .md-grid{grid-template-columns:repeat(auto-fill,minmax(148px,1fr))}
+.fl-head{padding:12px 12px 8px}

@@ -11,6 +11,8 @@
   <link rel="stylesheet" href="./js/vendor/xterm/xterm.css">
   <link rel="stylesheet" href="./css/app.css">
   <link rel="stylesheet" href="./css/light.css">
+  <!-- the foundation (design-research/14): structure that holds in both themes, so it loads last -->
+  <link rel="stylesheet" href="./css/foundation.css">
 </head>
 <body>
   <div class="app" id="app">
@@ -60,8 +62,6 @@
           <div class="top-end" id="top-end"></div>
         </header>
         <div class="thead" id="thead" hidden></div>
-        <!-- Since you left (js/recordview.js): what moved in this project while you were away; under the header, never scrolled away -->
-        <div class="since" id="since" hidden></div>
         <div class="scroller" id="scroller" tabindex="-1">
           <div class="column" id="column">
             <div class="ws-head" id="ws-head" hidden></div>
