@@ -684,8 +684,8 @@ button.hr:active{transform:scale(.97)}
 .composer textarea::-webkit-scrollbar{display:none;width:0;height:0}
 .composer textarea::placeholder{color:var(--g72)}
 .composer textarea:focus-visible{outline:none}
-.composer-row{display:flex;align-items:center;gap:6px;margin-top:6px}
-.target{display:inline-flex;align-items:center;gap:6px;min-width:0;height:30px;padding:0 10px 0 8px;margin-left:-8px;margin-right:auto;border-radius:var(--r-sm);color:var(--ink-4);font-size:var(--fs-sm);white-space:nowrap;overflow:hidden;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.composer-row{display:flex;align-items:center;gap:8px;margin-top:6px}
+.target{display:inline-flex;align-items:center;gap:6px;min-width:0;height:var(--h-ctl);padding:0 10px 0 8px;margin-left:-8px;margin-right:auto;border-radius:var(--r-sm);color:var(--ink-4);font-size:var(--fs-sm);white-space:nowrap;overflow:hidden;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .target:hover{background:var(--bg-3);color:var(--ink-3)}
 .target b{color:var(--ink-2);font-weight:600}
 .target svg{flex:none;width:13px;height:13px}
