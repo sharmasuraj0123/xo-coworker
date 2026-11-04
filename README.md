@@ -55,8 +55,15 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 - **Interrupt:** what a reply sent while the thread's agent works does depends on its runtime's `send_while_running` feature. On a runtime that steers (Claude Code, Codex) it joins the running turn and the composer says "sent into the current turn" (behind `STEER_LIVE` in `js/app.js`, off until xo-space deploys the backend half). On one that queues (agy) it waits for the turn to end, and under your newest waiting reply **Interrupt** stops the turn and its sub-agents (`POST /chat/abort`, with the usual 3 s Undo), so the agent reads your message as its next turn.
 - **Runtimes (mixed runtimes, xo-space's `ui-handoff-mixed-runtime.md`):** each thread runs on one runtime for its whole life. All of this is quiet while there is a single runtime and nothing is wrong.
   - A thread's header names its runtime after its state when there is more than one runtime. Its list names only the exceptions.
-  - **Settings › Runtimes:** each runtime's health in words, its account and a meter per usage window, read every 30 s while the page is open. Below that, where work may run, for all projects and per project (`…/runtime-policy`, PUT replaces).
-  - **Continue on another runtime…** (in the thread menu): a dialog that states the consequences first, then `POST …/threads/{ts}/continue`. The two threads link to each other. The old one reads "Continued", and sending in it picks it back up.
+  - **The composer's picker** chooses in one order: runtime, then model, then effort.
+    - A project: Auto (its coordinator picks per thread) or one runtime for its coordinator and its new threads
+      (`PATCH /chats/{id}` agent, and the project's `…/runtime-policy` default), with the 3 s Undo.
+    - A thread: its runtime is fixed for life, so choosing another one shows that runtime's models and what
+      happens, then **Continue on …** (`POST …/threads/{ts}/continue`). The two threads link to each other;
+      the old one reads "Continued", and sending in it picks it back up. The thread menu opens the same place.
+  - **Settings › Runtimes:** each runtime's health in words, its account and a meter per usage window, read
+    every 30 s while the page is open; then four defaults that save as they change: the usual runtime, the
+    runtimes XO may use, starting elsewhere at a limit, and how coordinators choose.
   - **A usage limit:** one card per runtime (decided with `move` or `wait`), shown in Needs you and at the end of each thread waiting on it. Those threads' headers read "Waiting for … until …".
   - A coordinator's steer, interrupt or stop on a thread shows as one quiet row (`thread.control`).
 - **Open thread:** polled every 4 s while its agent is busy and every 15 s otherwise. "Working" means the session is actually busy. An idle one reads "Idle".
@@ -109,7 +116,7 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 | `js/decide.js`, `js/kit.js`, `js/pacing.js` | decisions, the decision kit and commit window, and pacing (what speaks up and what waits) |
 | `js/intel.js` | the model and depth chip |
 | `js/runtimes.js` | runtimes, the pure part: names, health in words, usage windows, the runtime policy, moves, the limit card |
-| `js/rtsettings.js`, `js/move.js` | Settings › Runtimes; the "Continue on another runtime" dialog |
+| `js/rtsettings.js` | Settings › Runtimes: each runtime's health, and the defaults |
 | `js/content.js` | what an ask costs you, what it frees, and its evidence |
 | `js/ui.js` | icons and motion helpers |
 | `js/gestures.js` | touch gestures on a phone: swipe back or open the sidebar, drag sheets away, swipe between asks, long-press Copy (design-research/11) |

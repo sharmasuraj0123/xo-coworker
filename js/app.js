@@ -34,7 +34,6 @@ import { createShells } from "./shells/dock.js";
 import { createRecord } from "./recordview.js";
 import { wireGestures } from "./gestures.js";
 import { rtName, manyRuntimes, findRt, healthOf, canMove, clockWords, untilWords } from "./runtimes.js";
-import { createMove } from "./move.js";
 
 const world = createWorld();
 
@@ -117,6 +116,7 @@ const IQ = createIntel({
   world, PROJ,
   onChange: (o) => { chipRender(o && o.fade); },
   record: (session, rec) => recordLine(session, rec),
+  onMoved: (next, agent) => { announce(`Continuing on ${rtName(agent)}. This thread is frozen; write in it to pick it back up.`); if (next) go(`t:${next.id}`, { focus: true }); },
 });
 
 const CH = createChats({
@@ -246,7 +246,7 @@ world.onEvent((e) => {
   if (e.kind === "resumed" && t) waitSince.delete(t.id);
   if (!pid || pid === "workspace") return;
   // F5: threads moved off a closed limit arrive one by one; each says where it went
-  if (e.kind === "moved" && t && !MOVE.mine(t.id)) { heraldShow({ kind: "done", text: `${t.title} continues on ${rtName(e.agent)}`, sub: PROJ(pid), open: e.to ? "t:" + e.to : "t:" + t.id }, 5200); return; }
+  if (e.kind === "moved" && t && !IQ.movedHere(t.id)) { heraldShow({ kind: "done", text: `${t.title} continues on ${rtName(e.agent)}`, sub: PROJ(pid), open: e.to ? "t:" + e.to : "t:" + t.id }, 5200); return; }
   if (e.kind === "done" && t) heraldShow({ kind: "done", text: `${t.title} finished`, sub: PROJ(pid), open: "t:" + t.id }, 5200);
   else if (e.kind === "state" && t && t.state === "failed") heraldShow({ kind: "stopped", text: `${t.title} stopped`, sub: PROJ(pid), open: "t:" + t.id }, 5200);
 });
@@ -2173,7 +2173,13 @@ document.addEventListener("click", (e) => {
   const lb = t.closest("[data-limit]");
   if (lb) { decideLimit(lb.dataset.limit, lb.dataset.limitD); return; }
   const tmv = t.closest("[data-tmove]");
-  if (tmv) { const th = world.thread(tmv.dataset.tmove); S.tMenu = null; $("#top-who")._h = null; schedule(); if (th) MOVE.open(th, agentOf(th)); return; }
+  if (tmv) {
+    // the thread menu's way to another runtime: the composer's picker, looking at the first one that can take it
+    S.tMenu = null; $("#top-who")._h = null; schedule();
+    const sid = sessionOf(S.view), ch = IQ.runtimeChoice(sid), to = ch.list.find((o) => o.id !== ch.on && o.usable);
+    if (to) requestAnimationFrame(() => IQ.open(sid, $("#iq"), { rt: to.id }));
+    return;
+  }
   const unf = t.closest("[data-unfreeze]");
   if (unf) { unfreeze(unf.dataset.unfreeze, unf); return; }
   if (tf) { const tid = S.tMenu; S.tMenu = null; if (tf.dataset.tfield === "clear-label") saveThreadField(tid, "label", ""); else startThreadEdit(tid, tf.dataset.tfield); return; }
@@ -2453,7 +2459,6 @@ const setEl = $("#settings");
 let setReturn = null;
 const SETS = createSettings({ world, announce, PROJ, onChange: () => schedule() });
 const RTSET = createRuntimeSettings({ world, announce, PROJ });
-const MOVE = createMove({ world, announce, go: (v) => go(v, { focus: true }), ICON });
 /** F5: wait for the limit, or move every waiting thread, from the card on a thread (the same item as in Needs you). */
 async function decideLimit(id, decision) {
   S.limitBusy = id; S.limitErr = null; schedule();
@@ -2613,7 +2618,7 @@ addEventListener("keydown", (e) => {
 // The app keeps one history entry of its own while there is somewhere to go back to. Back then does
 // what Esc does (the top sheet, the viewer, Settings, the sidebar), then a thread's parent, then the
 // places you came through; with nothing left it lets the browser leave.
-const sheetsOpen = () => !jump.hidden || !keys.hidden || !allEl.hidden || RS.open || dlg.open || MOVE.isOpen || IQ.isOpen || CH.setupOpen;
+const sheetsOpen = () => !jump.hidden || !keys.hidden || !allEl.hidden || RS.open || dlg.open || IQ.isOpen || CH.setupOpen;
 const placeOk = (v) => v === "home" || v === "ws" || v === "chats" || (v.startsWith("p:") && !!world.project(v.slice(2))) || (v.startsWith("t:") && !!world.thread(v.slice(2))) || v.startsWith("c:");
 function canBack() {
   return sheetsOpen() || VW.isOpen || (STAGE.isOpen && PHONE.matches) || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised || S.view !== "home" || S.trail.length > 0;
