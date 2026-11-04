@@ -40,6 +40,12 @@ body.stage-open:not(.panel-open):not(.stage-full) .arts{padding-right:var(--sw)}
 .ar-grid .md-meta b{font:600 var(--fs-md)/20px var(--sans)}
 .ar-grid .md-meta span{font:400 var(--fs-base)/20px var(--sans)}
 .ar-grid .md-from{margin:0 4px 8px;padding:4px 8px;font:400 var(--fs-sm)/16px var(--sans)}
+/* at any size (js/recordview.js): the gallery keeps its whole height and only the lines near the screen are
+   drawn, each in its place; a card without a thread keeps an empty "from" line, so every card is one height */
+.ar-body{position:relative;overflow-anchor:none}
+.ar-line{position:absolute;left:0;right:0}
+.ar-probe{position:absolute;top:0;left:0;right:0;visibility:hidden;pointer-events:none}
+.md-from.is-none{visibility:hidden}
 
 :root[data-theme="light"] .ar-q{background-color:#fff;border-color:rgba(0,0,0,.12)}
 :root[data-theme="light"] .ar-kinds button[aria-checked="true"]{background:rgba(0,0,0,.06)}

@@ -98,6 +98,89 @@ export function madeGroups(items, now = Date.now()) {
   return G.filter((g) => g[2].length).map(([id, label, list]) => ({ id, label, items: list }));
 }
 
+// ── the Artifacts page at any size: filter the whole set, draw only what's near the screen ──────────
+// It can grow into thousands, so the page lays the gallery out as lines (a group's heading, a row of cards),
+// each at a place worked out from the cards' measured size, and draws only the lines near the screen. The
+// filters, the counts and the words always see everything.
+
+/**
+ * What the Artifacts page shows: the counts per kind within the chosen project, and the whole set filtered by
+ * project, kind and words (`total`), grouped (Pinned, Today, This week, Earlier). Filtering never looks at
+ * what's drawn: a match far down the list is found all the same.
+ */
+export function artsView(all, { pid = "", kind = "all", q = "", now = Date.now() } = {}) {
+  const inPj = pid ? all.filter((m) => m.project === pid) : all;
+  const counts = Object.fromEntries(KINDS.map(([k]) => [k, 0]));
+  counts.all = inPj.length;
+  for (const m of inPj) if (m.kind in counts) counts[m.kind]++;
+  const list = filterMade(inPj, { kind, q });
+  return { counts, total: list.length, groups: madeGroups(list, now) };
+}
+
+/**
+ * The gallery as lines, top to bottom: each group's heading (`headH` tall), then its cards in rows of `cols`
+ * (`cardH` tall, `gap` between rows). A row line holds where its cards start in the group (`start`, `n`).
+ * `tail` adds a line of stand-in rows at the end (more is still being read). Returns {lines, height}.
+ */
+export function galleryLines(groups, { cols = 1, cardH, headH, gap = 0, tail = 0 } = {}) {
+  const c = Math.max(1, Math.floor(cols));
+  const lines = [];
+  let y = 0;
+  for (const g of groups) {
+    lines.push({ key: `h:${g.id}`, kind: "head", y, h: headH, g });
+    y += headH;
+    const rows = Math.ceil(g.items.length / c);
+    for (let r = 0; r < rows; r++) {
+      const start = r * c;
+      lines.push({ key: `r:${g.id}:${r}`, kind: "row", y, h: cardH, g, start, n: Math.min(c, g.items.length - start) });
+      y += cardH + (r < rows - 1 ? gap : 0);
+    }
+  }
+  if (tail > 0) {
+    y += lines.length ? gap : 0;
+    const h = tail * cardH + (tail - 1) * gap;
+    lines.push({ key: "sk", kind: "tail", y, h, rows: tail });
+    y += h;
+  }
+  return { lines, height: y };
+}
+
+/** The lines that reach into [lo, hi] (px from the gallery's top), in order. Lines are sorted by y. */
+export function linesIn(lines, lo, hi) {
+  // the first line that ends at or below lo (binary search), then on while they start above hi
+  let a = 0, b = lines.length;
+  while (a < b) { const m = (a + b) >> 1; if (lines[m].y + lines[m].h < lo) a = m + 1; else b = m; }
+  const out = [];
+  for (let i = a; i < lines.length && lines[i].y <= hi; i++) out.push(lines[i]);
+  return out;
+}
+
+/**
+ * A chat's Made rows after reading a page of them (newest first), kept in one list: the page's rows win over
+ * older copies of the same id, and rows older than the page (read before, further back) stay. `first`: the page
+ * is the newest (a refresh), so a row newer than the page's oldest that the page doesn't hold (it moved, it went)
+ * is dropped. `complete`: the page is everything there is (no older page), so nothing else stays.
+ */
+export function mergeMadeRows(had, page, { first = false, complete = false } = {}) {
+  const fresh = (page || []).filter((r) => r && r.id);
+  if (complete || !had || !had.length) return fresh;
+  const ids = new Set(fresh.map((r) => r.id));
+  const at = (r) => r.updated_at || r.created_at || "";
+  const oldest = fresh.length ? fresh.reduce((m, r) => (at(r) < m ? at(r) : m), at(fresh[0])) : "";
+  const kept = had.filter((r) => !ids.has(r.id) && !(first && fresh.length && at(r) > oldest));
+  return [...fresh, ...kept].sort((a, b) => (at(a) < at(b) ? 1 : at(a) > at(b) ? -1 : 0));
+}
+
+/**
+ * Where the next older page starts. The Space pages Made by `updated_at` alone (`before` is strict), so rows sharing
+ * the last row's second would be skipped; asking from one second later reads them again, and mergeMadeRows drops the
+ * repeats by id.
+ */
+export function olderCursor(nextBefore) {
+  const t = Date.parse(nextBefore || "");
+  return Number.isFinite(t) ? new Date(t + 1000).toISOString().replace(/\.\d{3}Z$/, "Z") : null;
+}
+
 const plural = (n, one, many = one + "s") => `${n} ${n === 1 ? one : many}`;
 
 /**

@@ -187,15 +187,14 @@ button:disabled{cursor:default}
 /* Create XO Project: a "+" on the Projects label. It belongs to the label, not to the rows: a bare glyph
    in the label's own ink and weight, its centre over the rows' count column, quiet until you reach for
    the sidebar. Its 28px target is invisible; a soft 24px tile shows only under the pointer or focus. */
-.side-plus{position:relative;flex:none;display:grid;place-items:center;width:28px;height:28px;margin-right:-2px;border-radius:8px;color:var(--ink-4);transition:color var(--d-hover),transform 120ms var(--press)}
-.side-plus::before{content:"";position:absolute;inset:2px;border-radius:7px;background:var(--g22);box-shadow:var(--hairline);opacity:0;transform:scale(.86);transition:opacity var(--d-hover),transform .18s var(--glide)}
-.side-plus svg{position:relative;width:13px;height:13px;stroke-width:2.1}
-.side:hover .side-plus{color:var(--ink-3)}
-.side-plus:hover,.side-plus:focus-visible{color:var(--ink)}
-.side-plus:hover::before,.side-plus:focus-visible::before{opacity:1;transform:none}
-.side-plus:focus-visible{outline-offset:0}
-.side-plus:active{transform:scale(.9)}
-:root[data-theme="light"] .side-plus::before{background:var(--g24)}
+/* "+ New": a small filled pill, its right edge on the Find field's; the plus in the accent, the word in ink */
+.side-plus{flex:none;display:flex;align-items:center;gap:4px;height:24px;padding:0 10px 0 8px;border-radius:var(--r);background:var(--g22);box-shadow:var(--hairline);color:var(--ink-2);font:500 var(--fs-sm)/1 var(--sans);white-space:nowrap;transition:color var(--d-hover),background var(--d-hover),transform 120ms var(--press)}
+.sp-ic{display:grid;place-items:center;color:var(--accent)}
+.side-plus svg{width:12px;height:12px;stroke-width:2.4}
+.side-plus:hover,.side-plus:focus-visible{color:var(--ink);background:var(--g26)}
+.side-plus:active{transform:scale(.96)}
+:root[data-theme="light"] .side-plus{background:#FFFFFF;box-shadow:0 0 0 1px rgba(0,0,0,.08),var(--lift-1)}
+:root[data-theme="light"] .side-plus:hover,:root[data-theme="light"] .side-plus:focus-visible{background:color-mix(in srgb,var(--ink) 4%,#FFFFFF)}
 .projects{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:6px;padding:2px 12px 14px;scrollbar-width:thin;scrollbar-color:var(--g2A) transparent}
 .pr-ic svg{width:15px;height:15px}
 .prow.is-on .pr-ic{color:var(--ink);background:var(--g26)}
@@ -247,11 +246,13 @@ button:disabled{cursor:default}
 .hm-h{font:600 var(--fs-3xl)/36px var(--sans);letter-spacing:-.02em;color:var(--ink);text-wrap:pretty}
 .hm-h span{display:block;color:var(--ink-3)}
 /* Create XO Project (Today's style, #19): prominent, not shouting */
-.create{flex:none;display:flex;align-items:center;gap:10px;height:42px;padding:0 15px 0 8px;border-radius:var(--r-lg);background:linear-gradient(180deg,var(--g22),var(--g1D));border:1px solid var(--line);color:var(--ink);font:500 var(--fs-md)/1 var(--sans);white-space:nowrap;box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 6px 18px rgb(0 0 0 / calc(.25 * var(--sha)));transition:border-color var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease),transform 90ms var(--ease)}
+.create{flex:none;display:flex;align-items:center;gap:10px;height:42px;padding:0 15px 0 7px;border-radius:var(--r-lg);background:linear-gradient(180deg,var(--g22),var(--g1D));border:1px solid var(--line);color:var(--ink);font:500 var(--fs-md)/1 var(--sans);white-space:nowrap;box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 6px 18px rgb(0 0 0 / calc(.25 * var(--sha)));transition:border-color var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease),transform 90ms var(--ease)}
 .create:hover{border-color:var(--line-hover);background:color-mix(in srgb,var(--ink) 7%,var(--g1D))}
 .create:active{transform:scale(.98)}
 .create-ic{display:grid;place-items:center;width:26px;height:26px;border-radius:var(--r-sm);background:var(--accent-fill);color:var(--accent-ink)}
 .create-ic svg{width:15px;height:15px}
+.cr-s{display:none}
+@media (max-width:359px){.cr-l{display:none}.cr-s{display:inline}} /* the narrowest phones: the short name clears the date */
 
 .hm-lbl{display:flex;align-items:center;gap:8px;margin:30px 0 12px;font:500 var(--fs-base)/1 var(--sans);color:var(--ink-3)}
 .hm-lbl>svg{width:14px;height:14px;color:var(--coord)}
@@ -1019,6 +1020,8 @@ body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 
 /* ── Home: the last line (Handled · can wait) ──────────────────────────── */
 .hm-body{position:relative}
+/* each block holds its own margins, so its height is its whole place on the page (js/skeleton.js remembers it) */
+#hm-body>div{display:flow-root}
 .nx-est{display:flex;align-items:center;gap:7px;margin-top:8px;font-size:var(--fs-base);color:var(--ink-3)}
 .nx-est svg,.c-est svg{flex:none;width:14px;height:14px;color:var(--ink-4)}
 .c-est{display:flex;align-items:center;gap:7px;margin-top:8px;font-size:var(--fs-base);color:var(--ink-3)}
@@ -1357,7 +1360,12 @@ button.kr-r:hover{background:var(--bg-3);color:var(--ink)}
   .hm{padding:24px 16px 230px}
   .hm-top{flex-direction:column;align-items:stretch;gap:16px}
   .hm-h{font-size:var(--fs-2xl)}
-  .create{align-self:flex-start}
+  /* on a phone the button rides the date's line, top right, so the greeting and its line stay together; a
+     compact 34 px: the 24 px tile 5 px from every outer edge, its radius 12 − 5 */
+  .hm-top{position:relative}
+  .create{position:absolute;top:-10px;right:0;height:34px;padding:0 12px 0 4px;gap:8px;font-size:var(--fs-sm)}
+  .create .create-ic{width:24px;height:24px;border-radius:calc(var(--r-lg) - 5px)}
+  .create-ic svg{width:13px;height:13px}
   .hm-lbl{margin-top:26px}
   .hm-lbl-s{display:none}
   .next{padding:15px;border-radius:var(--r-2xl)}
@@ -1469,6 +1477,28 @@ button.kr-r:hover{background:var(--bg-3);color:var(--ink)}
 .hist-more{height:26px;padding:0 12px;border-radius:999px;border:1px solid var(--g25);color:var(--ink-3);font-size:var(--fs-sm);transition:color var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease)}
 .hist-more:hover{color:var(--ink);border-color:var(--g33)}
 @media (max-width:760px){.day.hist{min-height:36px}.hist-more{height:36px;padding:0 16px}}
+/* older messages loading: three rows shaped like the conversation's own (js/app.js HIST_SKEL), where the
+   page will land, in the house's loading look (a grey bar where words will be, an empty frame where a mark
+   or a bubble will be; a slow breath). They fade in only if the page takes a moment, so a quick one never
+   flashes; they're gone the moment it lands; reduced motion: still. */
+.hist-skel{display:flex;flex-direction:column;gap:24px;margin:8px 0 24px;pointer-events:none;animation:hs-in var(--d-in) var(--ease) 120ms both}
+.hs-av,.hs-bar{display:block}
+.hs-them{display:grid;grid-template-columns:32px minmax(0,1fr);gap:12px;align-items:start}
+.hs-av{width:32px;height:32px;border-radius:var(--r-sm);border:1px solid var(--g1F)}
+.hs-b{display:flex;flex-direction:column;gap:16px;padding-top:12px}
+.hs-bar{height:8px;border-radius:999px;background:var(--g24);animation:hs-breathe calc(var(--d-land) * 2) var(--ease-loop) infinite alternate}
+.hs-name{width:min(24%,120px);margin-bottom:8px}
+.hs-b>.hs-bar:nth-child(2){width:min(84%,540px)}
+.hs-b>.hs-bar:nth-child(3){width:min(56%,360px)}
+.hs-you{display:flex;justify-content:flex-end}
+.hs-bub{display:flex;align-items:center;width:min(44%,300px);height:44px;padding:0 17px;border-radius:var(--r-xl) var(--r-xl) var(--r-sm) var(--r-xl);border:1px solid var(--g1F)}
+/* its bar sits as far from the bubble's side as from its top (18 px): the corner reads concentric */
+.hs-bub>.hs-bar{width:72%}
+:root[data-theme="light"] .hs-bar{background:var(--g1F)}
+@keyframes hs-in{from{opacity:0}}
+@keyframes hs-breathe{to{opacity:.5}}
+@media (max-width:760px){.hs-them{grid-template-columns:26px minmax(0,1fr);gap:10px}.hs-av{width:26px;height:26px}}
+@media (prefers-reduced-motion:reduce){.hist-skel,.hs-bar{animation:none}}
 .ev-sys .ev-ic{background:var(--bg-3);color:var(--ink-3)}
 .ev-asked .ev-t{text-align:left;cursor:pointer}
 .ev-asked .ev-t:hover{color:var(--ink-2)}
@@ -1498,7 +1528,7 @@ button.kr-r:hover{background:var(--bg-3);color:var(--ink)}
 .tb-chev{flex:none;display:grid;place-items:center;color:var(--ink-4);transition:transform var(--dur-base) var(--ease)}
 .tb-chev svg{width:13px;height:13px}
 .tb-h[aria-expanded="true"] .tb-chev{transform:rotate(180deg)}
-.tb.is-live .tb-hi,.tb-spin{color:var(--info)}
+.tb.is-live>.tb-h .tb-hi,.tb-spin{color:var(--info)}
 .tb-spin{width:10px;height:10px}
 .tb-act.is-waiting .tb-h{color:var(--warn)}
 .tb-steps{margin:2px 0 6px 24px;padding-left:12px;border-left:1px solid var(--g26);list-style:none;display:flex;flex-direction:column;gap:6px;font-size:var(--fs-base);line-height:20px;color:var(--ink-3)}
@@ -1551,10 +1581,21 @@ button.kr-r:hover{background:var(--bg-3);color:var(--ink)}
 .tb-wn::before{content:"·";margin-right:7px;color:var(--ink-4)}
 .tb-work>.tb:not(.tb-work){margin-left:24px}
 .tb-work>.tb-narr{font-size:var(--fs-base);color:var(--ink-3)}
-.tb-rail{display:flex;flex-direction:column;gap:4px;margin:2px 0 4px 7px;padding-left:16px;border-left:1px solid var(--g26)}
+.tb-rail{display:flex;flex-direction:column;gap:4px;margin:2px 0 4px;padding-left:23px;border-left:1px solid var(--g26)}
 .tb-rail .tb-narr{font-size:var(--fs-base);color:var(--ink-3)}
 .tb-bad{margin-top:0}
 .tb-chg{list-style:none;display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 2px 24px}
+/* One left edge (the owner, 4 Nov: "Thought for 8s" started 24 px in from "Working"). What a turn shows
+   without being opened starts on the message's text column, as its line does: the latest block, read as
+   a line of the turn (no icon of its own, like the line above it), a running or failed row (its icon on
+   the column), the plan's checklist, the files it changed. What you open (a group's rows, the thinking,
+   the whole work) hangs 24 px in, the work's rail on the column. */
+.tb-work:not(.is-open)>.tb>.tb-h .tb-hi{display:none}
+.tb-rows.is-cur,.tb-work>:is(.tb-rows,.tb-chg,.tb-wbad),.turn>.tb>:is(.tb-chg,.tb-plan-l){margin-left:0}
+/* the agent's tile beside a running turn centres on the turn's first line (30 px; 36 on a phone) */
+.m-turn{--tb-line:30px;--av-h:32px}
+[data-density="compact"] .m-turn{--tb-line:var(--h-ctl)}
+.m-turn>.av:not(.av-gap){margin-top:calc((var(--tb-line) - var(--av-h)) / 2)}
 .tb-cf{display:inline-flex;align-items:center;gap:6px;max-width:260px;height:28px;padding:0 10px 0 8px;border-radius:var(--r-sm);background:var(--g1A);border:1px solid var(--g26);font:500 var(--fs-sm)/1 var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease),transform 80ms var(--ease)}
 .tb-cf:hover{background:color-mix(in srgb,var(--ink) 7%,var(--g1A));border-color:var(--g33);color:var(--ink)}
 .tb-cf:active{transform:scale(.97)}
@@ -1777,6 +1818,7 @@ button.kr-r:hover{background:var(--bg-3);color:var(--ink)}
   .tc-dec{height:36px}
   .dock-hide{height:36px;min-width:36px}
   .tb-h{min-height:36px}
+  .m-turn{--tb-line:36px;--av-h:26px}
   .nw{height:36px}
   .hr.hr-need{min-height:36px}
   .rn-chip,.rn-log,.rn-stopall{height:36px}
@@ -2219,6 +2261,25 @@ i.t-amber{background:var(--warn)}i.t-blue{background:var(--info)}i.t-red{backgro
 .md-grid.is-strip .md-th{height:80px}
 .md-grid.is-strip .md-meta{padding-bottom:10px}
 .md-recent .hm-lbl svg{width:14px;height:14px}
+/* Loading in its final shape (js/skeleton.js): a quiet bar where words will be, an empty frame where a picture
+   will be. The real thing lands in the same place at the same size, so nothing below it moves. Grey, never a
+   colour; a slow breath, still under reduced motion. */
+.sk{display:inline-block;vertical-align:middle;height:8px;max-width:100%;border-radius:999px;background:var(--g24);animation:sk-breathe calc(var(--d-land) * 2) var(--ease-loop) infinite alternate}
+.sk.sk-l{height:16px}
+.sk.sk-lb{height:10px}
+.hm-h .sk.sk-l{height:20px}
+@keyframes sk-breathe{to{opacity:.5}}
+@media (prefers-reduced-motion:reduce){.sk{animation:none}}
+.hm-sk{overflow:hidden;pointer-events:none}
+.hm-sk.is-card{display:flex;flex-direction:column}
+.hm-sk .sk-card{flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:16px;padding:24px;border-radius:var(--r-3xl);border:1px solid var(--g1F);background:var(--surface)}
+.hm-sk .sk-card .sk{flex:none}
+.handled.hm-sk .hd-ic{background:var(--g24)}
+.md-it.is-sk{pointer-events:none}
+.md-it.is-sk .md-open{cursor:default}
+:root[data-theme="light"] .sk{background:var(--g1F)}
+:root[data-theme="light"] .hm-sk .sk-card{border-color:var(--hair)}
+:root[data-theme="light"] .handled.hm-sk .hd-ic{background:var(--g1F)}
 :root[data-theme="light"] .md-pin{background:rgb(255 255 255 / .85)}
 @media (hover:none){.md-pin{opacity:1}}
 @media (max-width:760px){

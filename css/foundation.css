@@ -111,7 +111,7 @@ body.stage-full .stg-grip{display:none}
   .top[data-kind="project"] .tw-ic{width:28px;height:28px;border-radius:var(--r-sm)}
   .top[data-kind="project"] .tw-t h1{font-size:var(--fs-2xl)}
 }
-.create-ic{border-radius:var(--r-sm)}
+.create-ic{border-radius:calc(var(--r-lg) - 8px)} /* 1 px line + 7 px in, 8 px down: concentric in the 12 px button */
 .all-btn span{border-radius:var(--r-sm)}
 .dlg-head{align-items:flex-start}
 

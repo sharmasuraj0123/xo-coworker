@@ -13,7 +13,7 @@ import { api, clientId as newClientId, NEWEST, coderHeaders, STORM_DOWN } from "
 import { SSEStream } from "./sse.js";
 import { createTurns } from "./blocks.js";
 import { tasksOf } from "./model.js";
-import { uiMsg, mergeRows, addReaction, updateMessage, stormAsks, mapLimit, currentPools, threadState, askingState, mainRuntime, BUSY_STATES, readSub, sessionRead, sessionBusy } from "./timeline.js";
+import { uiMsg, mergeRows, addReaction, updateMessage, stormAsks, mapLimit, currentPools, threadState, askingState, mainRuntime, BUSY_STATES, readSub, sessionRead, sessionBusy, pageAfter, canPageOlder, framesShort } from "./timeline.js";
 import { hostOf, askedBy } from "./review.js";
 import { isLimitItem, limitItem } from "./runtimes.js";
 
@@ -42,7 +42,7 @@ export function stormSource(state, emit, event) {
     timeline: {},    // project id → storm message rows on its timeline, by seq
     hist: {},        // project id → {all, loading, error, before}
     threadMsgs: {},  // thread ts → storm message rows, by seq
-    threadHist: {},  // thread ts → {loading, error, all, before, turnsLoaded}
+    threadHist: {},  // thread ts → {loading, loaded, error, all, before, paged, older, olderError}: read in pages, newest first
     sessions: {},    // cse id → {id, role, chat_id, thread_ts, state, agent, model, effort, paused, retired_at, seq}
     awaiting: {},    // project id → {id, at}: we wrote to its timeline, no answer yet
     failed: {},      // project id → {at, error}: the coordinator's turn for our message failed
@@ -63,6 +63,7 @@ export function stormSource(state, emit, event) {
   let chatsAt = 0, chatsBusy = null;
   const watched = { projects: new Set(), thread: null, session: null }; // what's on screen, to reload after a reset
   const trimmed = new Set(); // sessions whose older turns were pruned (read again when shown)
+  const framesBefore = new Map(); // session → the cursor below its stored frames read so far (null: all read)
   let firstFrame = null;
   const sawFrame = new Promise((r) => { firstFrame = r; });
 
@@ -407,29 +408,65 @@ export function stormSource(state, emit, event) {
     h.loading = false;
     emit();
   }
-  /** An open thread: its messages and its session's recent turns (their blocks), once. */
+  /**
+   * An open thread: its newest page of messages and its session's recent turns (their blocks), once.
+   * Older pages come as you scroll up (loadOlderThread), as a project's chat does.
+   */
   async function loadThread(ts) {
     const r = rawThreads.get(ts);
     if (!r) return;
     const th = state.threadHist[ts] || (state.threadHist[ts] = { loading: false, loaded: false, error: null });
-    // its turns were pruned while it was off screen: read them again
-    if (th.loaded && r.session_id && trimmed.has(r.session_id)) { trimmed.delete(r.session_id); loadTurns(r.session_id).then(soon); return; }
+    // its turns were pruned while it was off screen: read them again, as far back as its pages go
+    if (th.loaded && r.session_id && trimmed.has(r.session_id)) {
+      trimmed.delete(r.session_id);
+      const oldest = (state.threadMsgs[ts] || [])[0];
+      loadTurns(r.session_id).then(() => loadOlderTurns(r.session_id, oldest ? oldest.seq : null)).then(soon);
+      return;
+    }
     if (th.loading || th.loaded) return;
     th.loading = true;
     soon();
     try {
       const [m] = await Promise.all([
-        api.messages(r.chat_id, { thread: ts, before_seq: NEWEST, limit: PAGE_MAX }),
+        api.messages(r.chat_id, { thread: ts, before_seq: NEWEST, limit: PAGE }),
         r.session_id ? loadTurns(r.session_id) : null,
       ]);
       const { list } = mergeRows(state.threadMsgs[ts] || [], m.messages || []);
       state.threadMsgs[ts] = list;
-      th.all = !m.next_before_seq;
-      th.before = m.next_before_seq || null;
-      th.loaded = true; th.error = null;
+      Object.assign(th, pageAfter(th, m), { error: null });
     } catch (err) { th.error = err.message; }
     th.loading = false;
     soon();
+  }
+  /**
+   * The thread's page just before the oldest we hold, and its turns' frames with it, so the page lands
+   * once, whole: its messages and the work between them. Each page is fetched exactly once.
+   */
+  async function loadOlderThread(ts) {
+    const r = rawThreads.get(ts);
+    const th = state.threadHist[ts];
+    if (!r || !canPageOlder(th)) return;
+    th.older = true;
+    soon();
+    try {
+      const m = await api.messages(r.chat_id, { thread: ts, before_seq: th.before, limit: Math.min(PAGE_MAX, PAGE * 2) });
+      const { list } = mergeRows(state.threadMsgs[ts] || [], m.messages || []);
+      if (r.session_id) await loadOlderTurns(r.session_id, list.length ? list[0].seq : null);
+      state.threadMsgs[ts] = list;
+      Object.assign(th, pageAfter(th, m), { olderError: null });
+    } catch (err) { th.olderError = err.message; }
+    th.older = false;
+    soon();
+  }
+  /** A session's older stored frames, a page at a time, until they reach `floor` (at most three pages). */
+  async function loadOlderTurns(session, floor) {
+    for (let i = 0; i < 3 && framesShort(framesBefore.get(session), floor); i++) {
+      try {
+        const d = await api.events({ session, before_seq: framesBefore.get(session), limit: 500 });
+        for (const f of d.events || []) if (f.type !== "thread.control" && f.type !== "thread.continued") state.turns.apply({ type: f.type, envelope: f });
+        framesBefore.set(session, d.next_before_seq ?? null);
+      } catch { return; /* the messages still land; their work shows when it can be read */ }
+    }
   }
   /** A session's stored frames, newest page, so its finished turns show their blocks (UI-reference §1.4). */
   /** A coordinator's control of a thread (F6), once per stored event, in order. */
@@ -446,6 +483,7 @@ export function stormSource(state, emit, event) {
     try {
       const d = await api.events({ session, before_seq: NEWEST, limit: 500 });
       for (const f of d.events || []) if (f.type !== "thread.control" && f.type !== "thread.continued") state.turns.apply({ type: f.type, envelope: f });
+      framesBefore.set(session, d.next_before_seq ?? null);
     } catch { /* live frames still arrive */ }
     // F4, F6: the thread's own control rows and its move, however far back (both stored on its session)
     try {
@@ -677,7 +715,7 @@ export function stormSource(state, emit, event) {
   async function reload() {
     // a reset for retention or a replaced store: start again from the server's state. The thread
     // list is refreshed in place (no false "new thread" lines); what's on screen loads again.
-    state.timeline = {}; state.hist = {}; state.threadMsgs = {}; state.threadHist = {};
+    state.timeline = {}; state.hist = {}; state.threadMsgs = {}; state.threadHist = {}; framesBefore.clear();
     state.review.clear(); state.routed = {}; state.turns = createTurns();
     await loadAll();
     for (const [ts, r] of rawThreads) if (!chatProject.has(r.chat_id)) rawThreads.delete(ts);
@@ -860,6 +898,8 @@ export function stormSource(state, emit, event) {
       /** Were this session's older turns pruned? (then read them again; asking clears it) */
       takeTrimmed: (sid) => trimmed.delete(sid),
       loadOlder,
+      /** A thread's next older page of messages, with its turns. */
+      loadOlderThread,
       replying: (project) => {
         const aw = state.awaiting[project];
         if (aw && Date.now() - aw.at > AWAIT_CAP_MS) delete state.awaiting[project];

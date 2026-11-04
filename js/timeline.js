@@ -92,6 +92,50 @@ export function mergeRows(list, incoming) {
 }
 const bySeq = (a, b) => (a.seq ?? Infinity) - (b.seq ?? Infinity) || (Date.parse(a.created_at) || 0) - (Date.parse(b.created_at) || 0);
 
+// ── a conversation read in pages, newest first (R5) ──────────────────────────
+// h, a conversation's history so far: {loaded, all, before, loading, older, olderError}. `before` is the
+// cursor storm gave with the last page (next_before_seq): the seq to read below. No cursor: all is read.
+
+/**
+ * The history after one page's answer ({messages, next_before_seq}): its cursor, whether that was all, and
+ * whether it ever had more than one page (then its beginning is worth saying when you reach it).
+ */
+export function pageAfter(h, d) {
+  const before = d && d.next_before_seq != null ? d.next_before_seq : null;
+  return { ...h, loaded: true, before, all: before == null, paged: !!(h && h.paged) || before != null };
+}
+
+/** Whether to read the next older page now: loaded, more to read, nothing on its way, no failure to retry by hand. */
+export function canPageOlder(h) {
+  return !!(h && h.loaded && !h.all && !h.loading && !h.older && !h.olderError && h.before != null);
+}
+
+/**
+ * The oldest seq a paged conversation holds (its messages, oldest first or not), or null once all is read.
+ * What is older than this (a thread's root request, a coordinator's note, a turn that ended before it) waits
+ * for its page, so nothing shows cut off from the messages around it.
+ */
+export function pageFloor(h, rows) {
+  if (!h || !h.loaded || h.all) return null;
+  let floor = null;
+  for (const r of rows || []) if (r && r.seq != null && (floor == null || r.seq < floor)) floor = r.seq;
+  return floor;
+}
+
+/**
+ * Whether a conversation item is inside the pages read: seq ≥ floor (a turn counts from where it ended).
+ * One with no seq (a move's banner, a note of ours) by its time, against floorAt (the oldest message's).
+ */
+export function inPage(item, floor, floorAt = null) {
+  if (floor == null || !item || item.who === "hist") return true;
+  if (item.seq == null) return floorAt == null || !(item.at < floorAt);
+  const s = item.who === "turn" && item.turn ? (item.turn.lastSeq ?? item.seq) : item.seq;
+  return s >= floor;
+}
+
+/** Whether a session's stored frames still stop short of a page's oldest message (read one more page of them). */
+export const framesShort = (framesBefore, floor) => framesBefore != null && floor != null && framesBefore > floor;
+
 /**
  * Your message in a thread that waits for its agent's running turn to end: stored after the turn
  * started and not one of its wakes (`msg:<id>`). A thread message never joins a running turn, so it

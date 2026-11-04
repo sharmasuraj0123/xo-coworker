@@ -7,6 +7,8 @@
   <script>try{document.documentElement.dataset.theme=localStorage.getItem("cv-theme")==="light"?"light":"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
   <title>XO Space</title>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <!-- the type, asked for at once: Home's first paint is in Geist, never swapped (and shifted) a moment later -->
+  <link rel="preload" href="./fonts/geist/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="./css/base.css">
   <link rel="stylesheet" href="./js/vendor/xterm/xterm.css">
   <link rel="stylesheet" href="./css/app.css">
@@ -23,6 +25,8 @@
   <link rel="stylesheet" href="./css/shape.css">
   <!-- the left sidebar: one corner system, and which project is open (thread-28ea9d) -->
   <link rel="stylesheet" href="./css/side.css">
+  <!-- exploration: bubbles and how you reply (thread-682d17); remove with css/msgx.css, js/msgx.js -->
+  <link rel="stylesheet" href="./css/msgx.css">
 </head>
 <body>
   <div class="app" id="app">
@@ -41,8 +45,9 @@
         <!-- Artifacts (js/recordview.js): everything threads made, across projects, a place of its own -->
         <button type="button" class="nrow" data-go="artifacts" id="nv-arts"><span class="nr-ic" id="ic-arts"></span><span class="nr-name">Artifacts</span><span class="nr-q" id="arts-n"></span></button>
       </nav>
-      <!-- Create XO Project: a "+" on the Projects label, where the new project will appear -->
-      <div class="side-label"><span id="projects-label">Projects</span><button type="button" class="side-plus" id="side-add" aria-label="Create XO Project" title="Create XO Project"><span id="sc-ic"></span></button></div>
+      <!-- Create XO Project: "+ New" on the Projects label, where the new project will appear (a bare "+" was
+           too easy to miss: the owner, 4 Nov) -->
+      <div class="side-label"><span id="projects-label">Projects</span><button type="button" class="side-plus" id="side-add" aria-label="New project" title="Create XO Project"><span class="sp-ic" id="sc-ic"></span><span class="sp-t">New</span></button></div>
       <!-- a filter once the list is long (hub #16): typing narrows it, ↑ ↓ and Enter open one, Esc clears -->
       <div class="side-find" id="side-find" hidden><span class="sf-ic" id="sf-ic" aria-hidden="true"></span><input id="pf-in" type="search" placeholder="Find a project" autocomplete="off" spellcheck="false" aria-label="Find a project" aria-controls="projects"><span class="sf-n" id="pf-n" aria-live="polite"></span></div>
       <nav class="projects" id="projects" aria-labelledby="projects-label"></nav>
@@ -234,6 +239,9 @@
   </div>
 
   <div id="live" class="sr-only" aria-live="polite"></div>
+  <!-- Home's greeting and its blocks' frames at once, ahead of app.js and everything it imports (js/skeleton.js) -->
+  <script type="module" src="./js/skeleton.js"></script>
   <script type="module" src="./js/app.js"></script>
+  <script type="module" src="./js/msgx.js"></script>
 </body>
 </html>

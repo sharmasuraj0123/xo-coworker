@@ -26,8 +26,11 @@ export function fadeImage(img) {
   if (!img) return;
   const show = () => { if (still()) { img.style.opacity = ""; return; } img.animate([{ opacity: 0 }, { opacity: 1 }], { duration: IN, easing: EASE }); img.style.opacity = ""; };
   img.style.opacity = "0";
-  if (img.complete && img.naturalWidth) show();
-  else img.addEventListener("load", show, { once: true }), img.addEventListener("error", () => { img.style.opacity = ""; }, { once: true });
+  if (img.complete && img.naturalWidth) { show(); return; }
+  // loaded is not yet drawable: a big picture can still be decoding, so wait for that too
+  const decoded = () => (typeof img.decode === "function" ? img.decode().catch(() => {}) : Promise.resolve()).then(show);
+  img.addEventListener("load", decoded, { once: true });
+  img.addEventListener("error", () => { img.style.opacity = ""; }, { once: true });
 }
 
 /**

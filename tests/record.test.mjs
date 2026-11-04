@@ -7,6 +7,7 @@ import * as R from "../js/record.js";
 // js/ui.js (through recordview.js) reads the reduced-motion setting when it loads
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
 const { madeNaming } = await import("../js/recordview.js");
+const S = await import("../js/skeleton.js");
 
 let passed = 0;
 const t = (name, fn) => {
@@ -190,6 +191,90 @@ t("a made card is named by the file's title, its thread link by the thread's: ne
   // a link's words and a branch are cut at their end, not in the middle
   assert.equal(madeNaming({ kind: "link", name: "The pull request that moved Shells", path: "https://x/y", threadTitle: "T" }).html, "The pull request that moved Shells");
   assert.equal(madeNaming({ kind: "image", name: "a<b>.png", title: "<script>", path: "p", threadTitle: "t" }).html, "&lt;script&gt;");
+});
+
+// ── Artifacts at any size (record.js artsView, galleryLines, linesIn) and Made read a page at a time ─────
+const many = (n, at0 = NOW) => Array.from({ length: n }, (_, i) => ({ key: `k${i}`, project: i % 3 ? "p" : "q", kind: ["doc", "image", "page", "code"][i % 4], name: `file-${i}.md`, path: `out/file-${i}.md`, title: null, threadTitle: i === n - 1 ? "The very last thread" : "", at: at0 - i * 3600000, pinned: i < 2 }));
+
+t("Artifacts filters the whole set, never only what's drawn: the last of 5,000 is found by its words", () => {
+  const all = many(5000);
+  const v = R.artsView(all, { q: "file-4999.", now: NOW });
+  assert.equal(v.total, 1);
+  assert.deepEqual(v.groups.flatMap((g) => g.items.map((m) => m.key)), ["k4999"]);
+  assert.equal(R.artsView(all, { q: "very last thread", now: NOW }).total, 1);   // the thread's title is searched too
+  // the kinds count the project's whole set, and the kind filter keeps every one of them
+  const inQ = R.artsView(all, { pid: "q", now: NOW });
+  assert.equal(inQ.counts.all, all.filter((m) => m.project === "q").length);
+  assert.equal(inQ.counts.image, all.filter((m) => m.project === "q" && m.kind === "image").length);
+  const imgs = R.artsView(all, { pid: "q", kind: "image", now: NOW });
+  assert.equal(imgs.total, inQ.counts.image);
+  assert.equal(imgs.groups.reduce((s, g) => s + g.items.length, 0), imgs.total);
+  assert.deepEqual(imgs.groups.map((g) => g.id), ["pinned", "today", "week", "earlier"].filter((id) => imgs.groups.some((g) => g.id === id)));
+});
+
+t("the gallery's lines: a heading, then rows of cards, each at its place; the last row of a group may be short", () => {
+  const groups = [{ id: "pinned", label: "Pinned", items: [1, 2, 3, 4, 5] }, { id: "today", label: "Today", items: [1, 2, 3, 4] }];
+  const { lines, height } = R.galleryLines(groups, { cols: 4, cardH: 254, headH: 52, gap: 16 });
+  assert.deepEqual(lines.map((l) => [l.key, l.y, l.h, l.start, l.n]), [
+    ["h:pinned", 0, 52, undefined, undefined], ["r:pinned:0", 52, 254, 0, 4], ["r:pinned:1", 322, 254, 4, 1],
+    ["h:today", 576, 52, undefined, undefined], ["r:today:0", 628, 254, 0, 4],
+  ]);
+  assert.equal(height, 882);
+  // the same set, two columns (a phone): twice the rows, the same order
+  const two = R.galleryLines(groups, { cols: 2, cardH: 214, headH: 52, gap: 12 });
+  assert.deepEqual(two.lines.filter((l) => l.kind === "row").map((l) => l.n), [2, 2, 1, 2, 2]);
+  // more still being read: stand-in rows after the last, a gap below it
+  const tail = R.galleryLines(groups, { cols: 4, cardH: 254, headH: 52, gap: 16, tail: 2 });
+  assert.deepEqual(tail.lines.at(-1), { key: "sk", kind: "tail", y: 898, h: 524, rows: 2 });
+  assert.equal(tail.height, 1422);
+  assert.deepEqual(R.galleryLines([], { cols: 4, cardH: 10, headH: 5 }), { lines: [], height: 0 });
+});
+
+t("only the lines near the screen are drawn: 5,000 things, a few rows, wherever the scroll is", () => {
+  const all = many(5000);
+  const v = R.artsView(all, { now: NOW });
+  const { lines, height } = R.galleryLines(v.groups, { cols: 4, cardH: 254, headH: 52, gap: 16 });
+  assert.equal(lines.filter((l) => l.kind === "row").reduce((s, l) => s + l.n, 0), 5000);
+  for (const top of [0, 1234, height / 2, height - 900]) {
+    const got = R.linesIn(lines, top - 900, top + 1800);
+    const want = lines.filter((l) => l.y + l.h >= top - 900 && l.y <= top + 1800);
+    assert.deepEqual(got.map((l) => l.key), want.map((l) => l.key));
+    assert.ok(got.length <= 14, `${got.length} lines drawn at ${top}`); // three screens, never the whole list
+  }
+  assert.deepEqual(R.linesIn(lines, height + 10, height + 900), []);
+});
+
+t("Made read a page at a time: older pages are kept, repeats dropped, the newest page wins", () => {
+  const row = (id, at, extra = {}) => ({ id, updated_at: at, ...extra });
+  const first = [row("a", "2026-11-04T10:00:05Z"), row("b", "2026-11-04T10:00:04Z")];
+  // an older page, read from a second after the last row (the Space's cursor is strict): "b" comes again
+  const older = [row("b", "2026-11-04T10:00:04Z"), row("c", "2026-11-04T10:00:04Z"), row("d", "2026-11-03T09:00:00Z")];
+  let rows = R.mergeMadeRows(first, older);
+  assert.deepEqual(rows.map((r) => r.id), ["a", "b", "c", "d"]);
+  // the newest page again: a new one on top, "a" touched (pinned). Rows of the page's last second that it
+  // doesn't hold may just not have fitted: they stay
+  rows = R.mergeMadeRows(rows, [row("n", "2026-11-04T11:00:00Z"), row("a", "2026-11-04T10:30:00Z", { pinned: true }), row("b2", "2026-11-04T10:00:04Z")], { first: true });
+  assert.deepEqual(rows.map((r) => r.id), ["n", "a", "b2", "b", "c", "d"]);
+  // a newest page reaching further back: what it should hold but doesn't (moved, gone) goes
+  rows = R.mergeMadeRows(rows, [row("n", "2026-11-04T11:00:00Z"), row("a", "2026-11-04T10:30:00Z", { pinned: true }), row("d", "2026-11-03T09:00:00Z")], { first: true });
+  assert.deepEqual(rows.map((r) => r.id), ["n", "a", "d"]);
+  assert.equal(rows[1].pinned, true);
+  // a newest page that is everything there is: nothing else stays
+  assert.deepEqual(R.mergeMadeRows(rows, [row("n", "2026-11-04T11:00:00Z")], { first: true, complete: true }).map((r) => r.id), ["n"]);
+  assert.equal(R.olderCursor("2026-11-04T10:00:04Z"), "2026-11-04T10:00:05Z");
+  assert.equal(R.olderCursor(null), null);
+  assert.equal(R.olderCursor("not a time"), null);
+});
+
+t("loading in its final shape: the greeting is local, a stand-in card is built from the card's own classes", () => {
+  assert.equal(S.greeting(3), "Working late");
+  assert.equal(S.greeting(9), "Good morning");
+  assert.equal(S.greeting(14), "Good afternoon");
+  assert.equal(S.greeting(20), "Good evening");
+  const page = S.skTile("page", 2), strip = S.skTile(true, 0);
+  for (const cls of ["md-it is-sk", "md-open", "md-th", "md-meta", "md-from"]) assert.ok(page.includes(`class="${cls}"`), cls);
+  assert.ok(!strip.includes("md-from"));                    // Home's strip has no "from" line, so neither does its stand-in
+  assert.match(page, /aria-hidden="true"/);                 // a stand-in is never read out
 });
 
 console.log(`${passed} passed${process.exitCode ? ", with failures" : ""}`);

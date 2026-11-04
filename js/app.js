@@ -18,8 +18,8 @@ import { createPacing } from "./pacing.js";
 import { createIntel } from "./intel.js";
 import { EFFORT, estLine, evidenceFor } from "./content.js";
 import { keepTurning, ICON, XO, NEXT_GLYPH, $, $$, RM, clock, dayOf, short, elapsed, reconcile, sound, wait, dial, morph, expand } from "./ui.js";
-import { uiMsg, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups } from "./timeline.js";
-import { turnHtml, turnAv } from "./turnview.js";
+import { uiMsg, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder } from "./timeline.js";
+import { turnHtml, turnAv, turnSegments, segmentTurn } from "./turnview.js";
 import { mediaHtml, fromAttachment, hydrateMedia, mediaItemOf, viewerFile, retryMedia, wireDragOut, webImagesHtml } from "./media.js";
 import { createLightbox } from "./lightbox.js";
 import { itemParts } from "./review.js";
@@ -37,6 +37,8 @@ import { api, uploadAttachment } from "./api.js";
 import { classify, glyph } from "./projicons.js";
 import { createShells } from "./shells/dock.js";
 import { createRecord } from "./recordview.js";
+import { greeting, today } from "./skeleton.js"; // Home's shell, drawn before this module graph arrives
+import { arrive, still, EASE, MOVE } from "./motion.js";
 import { wireGestures } from "./gestures.js";
 import { rtName, manyRuntimes, findRt, healthOf, canMove, clockWords, untilWords } from "./runtimes.js";
 // the UI's shape per person: which surfaces show, in what order, how dense, in which words (js/shape.js)
@@ -402,9 +404,14 @@ const FIND_AT = 8;
 }
 
 // ── Home ────────────────────────────────────────────────────────────────────
-function greeting() {
-  const h = new Date().getHours();
-  return h < 5 ? "Working late" : h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+// Before the world loads, Home is js/skeleton.js's shell: the greeting, and each block's frame in its
+// final place and size. Each block's real content replaces its stand-in and arrives (motion.js);
+// the frames don't move, so nothing below them does either.
+/** A block whose stand-in was showing: its real content arrives now. */
+function landed(el, parts = el ? [...el.children] : []) {
+  if (!el || !el._sk) return;
+  el._sk = false;
+  parts.forEach((c, i) => c && arrive(c, { delay: i * 40 }));
 }
 function patch(el, html) {
   if (el._h === html) return false;
@@ -492,7 +499,7 @@ function homeRender(needs) {
   }
   const P0 = homeParts(needs);
   const working = world.state.threads.filter(isBusy);
-  const date = new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+  const date = today();
   const act = P0.active.length;
   let sub;
   if (act) sub = act === 1 ? "One thing is worth your time." : `${num(act)} things are worth your time.`;
@@ -500,11 +507,11 @@ function homeRender(needs) {
   const down = (world.state.error || world.state.statusError) && !world.state.threads.length;
   if (down) sub = "XO can't be reached right now.";
   const hello = greeting();
-  // one way to create a project: the sidebar's "+" (the owner's decision). Home offers it only while
-  // there is no project yet, when it is the one thing to do (audit H3)
-  const first = !(world.state.projects || []).length;
+  // Create XO Project stays in Home's header, always: the one invitation to start something, beside the
+  // sidebar's "+ New" (the owner, 4 Nov: hiding it once a project existed made it hard to find)
   patch($("#hm-head"), `<header class="hm-top"><div class="hm-hd"><p class="hm-date">${esc(date)}</p><h1 class="hm-h" id="home-h">${hello}.<span> ${sub}</span></h1></div>` +
-    (first ? `<button type="button" class="create" data-create data-fid="create"><span class="create-ic">${ICON.plus}</span><span>Create XO Project</span></button>` : "") + `</header>`);
+    `<button type="button" class="create" data-create data-fid="create"><span class="create-ic">${ICON.plus}</span><span class="cr-l">Create XO Project</span><span class="cr-s">New project</span></button></header>`);
+  landed($("#hm-head"), [$("#home-h span"), $("#hm-head .create")]); // the greeting was already there: only the words after it arrive
 
   // the next move (stays put until it's done)
   const nb = $("#hm-next");
@@ -531,6 +538,7 @@ function homeRender(needs) {
     // the headline already says "Nothing needs you." (say it once): one quiet line under it
     else patch(nb, `<p class="calm-line">${w ? `${num(w)} ${noun(plural(w, "thread"))} working. ${w === 1 ? "It'll" : "They'll"} ask when it's worth it.` : "Start something below, or enjoy the quiet."}</p>`);
   }
+  landed(nb);
 
   // then… at most two more
   let then = "";
@@ -549,6 +557,7 @@ function homeRender(needs) {
     then += `</section>`;
   } else if (P0.later.length) then = `<div class="then-foot solo"><button type="button" class="hm-quiet is-later" data-fid="bring" data-bring>${ICON.clock}${P0.later.length} later today <span>bring back</span></button></div>`;
   patch($("#hm-then"), then);
+  landed($("#hm-then"));
   // after Handled, the newest things made (Since you left was removed: the owner didn't want it, 2026-11-04)
   REC.homeMade($("#hm-made"));
 
@@ -566,6 +575,7 @@ function endRender(P0, working) {
   const w = working.length, held = P0.held;
   const bits = [w ? `${low(w)} working` : "nothing running", held.length ? `${low(held.length)} can wait` : ""].filter(Boolean);
   patch($("#hd-head"), `<button type="button" class="hd" data-fid="hd" data-handled aria-expanded="${S.handledOpen}" aria-controls="hd-b"><span class="hd-ic">${ICON.check}</span><span class="hd-t"><b>Handled</b> · ${bits.join(" · ")}</span>${w || held.length ? ICON.chevron : ""}</button>`);
+  landed(end, [...$("#hd-head .hd").children]); // its frame was already there: what's in it arrives
   if (S.handledOpen) patch($("#hd-in"), handledListHtml(P0, working));
 }
 function handledListHtml(P0, working) {
@@ -633,6 +643,10 @@ function messagesOf(conv) {
     else if (h.loading && !rows.length) out.push({ key: "note", at: -Infinity, who: "note", text: "Loading the conversation…" });
     else if (rows.length || h.loading) out.push({ key: "hist", at: -Infinity, who: "hist", h });
   }
+  // a thread read in pages: the same line at its top (older pages on their way, or its beginning once a
+  // thread that needed more than one page has been read to it)
+  const th = t ? st.threadHist && st.threadHist[t.id] : null;
+  if (th && th.loaded && rows.length && (!th.all || th.paged)) out.push({ key: "hist", at: -Infinity, who: "hist", h: { loading: !!th.older, all: !!th.all, olderError: th.olderError || null, before: th.before } });
   const ids = t ? [] : world.state.threads.filter((x) => x.project === chat).map((x) => x.id);
   const { on, alone } = threadAnchors(rows, ids);
   // the thread's running turn: your messages sent after it started wait for it to end
@@ -669,15 +683,26 @@ function messagesOf(conv) {
   // a move the thread row knows but whose note isn't in what we hold: its banner anyway (F4)
   if (t && t.movedFrom && !rows.some((m) => m.continuedFrom)) out.push({ key: `mvfrom:${t.id}`, at: t.createdAt - 1, who: "system", text: "", continuedFrom: t.movedFrom.from });
   if (t && t.movedTo && t.movedTo.to && !rows.some((m) => m.continuedIn)) out.push({ key: `mvto:${t.id}`, at: Date.parse(t.movedTo.at) || t.lastAt, who: "system", text: "", continuedIn: t.movedTo.to });
-  // a thread's work: its session's turns, in place between its messages (storm's blocks)
+  // a thread's work: its session's turns, in place between its messages (storm's blocks). A turn is split
+  // where a message came during it, the agent's own or yours (turnview.js turnSegments): what it did
+  // before sits above that message, what it did after sits below, each stretch where it happened, so the
+  // running stretch grows under the latest message and nothing moves when the turn ends. The last stretch
+  // keeps the turn's own key (turn:<id>), so a running turn's line (and a layer's live bubble on it) is the
+  // same element all the way through; an earlier stretch is turn:<id>#<k>.
   if (t && t.sessionId && st.turns) {
-    const agentSeqs = rows.filter((m) => m.who === "agent" && m.seq != null).map((m) => m.seq);
+    const says = rows.filter((m) => m.seq != null && m.id !== t.id).map((m) => ({ seq: m.seq, at: m.at, who: m.who }));
     // what the agent's messages carry: a turn's shared_files block doesn't draw them a second time
     const carried = rows.filter((m) => m.who !== "you").flatMap((m) => m.files || []);
+    // a running turn's still-empty last stretch is "now": after everything held
+    const tail = rows.reduce((a, m) => (m.seq != null && m.seq > a ? m.seq : a), 0) + 0.5;
     for (const tu of st.turns.list((x) => x.session === t.sessionId)) {
       const blocks = st.turns.blocksOf(tu);
-      const said = agentSeqs.some((q) => q >= (tu.seq ?? Infinity) && q <= (tu.lastSeq || Infinity));
-      out.push({ key: `turn:${tu.id}`, at: Date.parse(tu.at) || Date.now(), seq: tu.seq, who: "turn", turn: tu, blocks, hideAnswer: said, carried });
+      const said = says.some((q) => q.who === "agent" && q.seq >= (tu.seq ?? Infinity) && q.seq <= (tu.lastSeq || Infinity));
+      for (const sg of turnSegments(tu, blocks, says)) {
+        const turn = segmentTurn(tu, sg);
+        const seq = tu.status === "running" && sg.last && sg.k > 0 && !sg.blocks.length ? Math.max(sg.seq, tail) : sg.seq;
+        out.push({ key: sg.last ? `turn:${tu.id}` : `turn:${tu.id}#${sg.k}`, at: sg.from ?? (Date.parse(tu.at) || Date.now()), seq, who: "turn", turn, blocks: sg.blocks, hideAnswer: said, carried, working: sg.k > 0 });
+      }
     }
   }
   // your messages relayed into this thread by its coordinator (if1 #7): the relay hop names them, and they
@@ -727,8 +752,13 @@ function messagesOf(conv) {
   out.push(...locals.filter((m) => !m.merged).map((m) => ({ ...m, key: m.id })));
   // storm's seq orders what the server stored; the rest (your unsent rows, notes, events) is
   // merged in by time. Two sorted lists and one stable merge: a total order, so nothing jumps.
-  const stored = out.filter((m) => m.seq != null).sort((a, b) => a.seq - b.seq);
-  const rest = out.filter((m) => m.seq == null).sort((a, b) => a.at - b.at);
+  // a paged thread shows what its pages hold: anything older (its root, a note, a turn that ended before
+  // them) waits for its page, so it never shows cut off from the messages around it
+  const floor = t ? pageFloor(th, t.messages) : null;
+  const floorAt = floor == null ? null : t.messages.find((m) => m.seq === floor)?.at ?? null;
+  const shown = floor == null ? out : out.filter((m) => inPage(m, floor, floorAt));
+  const stored = shown.filter((m) => m.seq != null).sort((a, b) => a.seq - b.seq);
+  const rest = shown.filter((m) => m.seq == null).sort((a, b) => a.at - b.at);
   const merged = [];
   let i = 0;
   for (const m of stored) {
@@ -794,6 +824,15 @@ function moveBannerHtml(m, here) {
   const fromAgent = from ? agentOf(from) : null;
   return `<div class="mv-ban"><span class="ev-ic">${ICON.runtime}</span><span class="ev-t">Continued from ${link(m.continuedFrom, "an earlier thread")}${fromAgent ? ` (${esc(rtName(fromAgent))})` : ""}${reasonOf(m.text) ? `: ${esc(reasonOf(m.text))}` : ""}</span><time>${clock(m.at)}</time></div>`;
 }
+/**
+ * Older messages loading: three quiet rows shaped like the conversation's own (the agent's words, your
+ * bubble, the agent again), standing where the page will land. Their own classes, never .m: they are no
+ * one's message (a layer that decorates messages leaves them alone). They breathe only while on screen,
+ * and not at all with reduced motion (css/app.css .hist-skel).
+ */
+const HS_THEM = (n) => `<div class="hs-them" aria-hidden="true"><i class="hs-av"></i><div class="hs-b"><i class="hs-bar hs-name"></i>${"<i class=\"hs-bar\"></i>".repeat(n)}</div></div>`;
+const HIST_SKEL = `<div class="hist-skel" role="status"><span class="sr-only">Loading earlier messages</span>${HS_THEM(2)}` +
+  `<div class="hs-you" aria-hidden="true"><i class="hs-bub"><i class="hs-bar"></i></i></div>${HS_THEM(1)}</div>`;
 function msgItems(conv, needs) {
   if (CH.isChats(conv)) return CH.items(conv);
   const list = messagesOf(conv);
@@ -844,7 +883,7 @@ function msgItems(conv, needs) {
         (cont ? "" : `<div class="mh"><b>${esc(name)}</b>${role ? `<span class="role">${esc(role)}</span>` : ""}<time>${clock(m.at)}</time>${iq}</div>`) +
         `${m.text ? `<div class="prose">${renderMarkdown(m.text)}</div>` : ""}${media}${reactionsHtml(m.reactions)}${tid ? threadCardHtml(tid, needs) : ""}${(m.threads || []).map((x) => threadCardHtml(x, needs)).join("")}</div></div>`;
     } else if (m.who === "turn") {
-      const inner = turnHtml(m.turn, m.blocks, { open: S.tbOpen, hideAnswer: m.hideAnswer, carried: m.carried, route: fileRoute, by: nameOf(conv, "agent")[0] });
+      const inner = turnHtml(m.turn, m.blocks, { open: S.tbOpen, hideAnswer: m.hideAnswer, carried: m.carried, route: fileRoute, by: nameOf(conv, "agent")[0], working: m.working });
       if (!inner) { prev = m; continue; }
       html = `<div class="m m-them m-turn${m.turn.status === "running" ? " is-live" : ""}">${turnAv(m.turn, m.blocks)}<div class="mb">${inner}</div></div>`;
     } else if (m.who === "card") {
@@ -875,7 +914,9 @@ function msgItems(conv, needs) {
       html = `<p class="m-note">${esc(m.text)}</p>`;
     } else if (m.who === "hist") {
       const h = m.h;
-      html = `<div class="day hist" role="separator">${h.loading ? `<span><i class="spin" aria-hidden="true"></i>Loading earlier messages…</span>` : h.all ? `<span>${h.capped ? "Showing the latest 1,000 messages" : "Beginning of the conversation"}</span>` : h.olderError ? `<span>Couldn't load earlier messages</span><button type="button" class="hist-more" data-older>Try again</button>` : `<button type="button" class="hist-more" data-older>Earlier messages</button>`}</div>`;
+      // older messages on their way: the shapes of messages where they will land, never a spinner
+      html = h.loading ? HIST_SKEL
+        : `<div class="day hist" role="separator">${h.all ? `<span>${h.capped ? "Showing the latest 1,000 messages" : "Beginning of the conversation"}</span>` : h.olderError ? `<span>Couldn't load earlier messages</span><button type="button" class="hist-more" data-older>Try again</button>` : `<button type="button" class="hist-more" data-older>Earlier messages</button>`}</div>`;
     } else if (m.who === "event") {
       html = `<div class="ev ev-${m.tone || "ok"}"><span class="ev-ic">${m.tone === "back" ? ICON.rewind : m.tone === "stop" ? ICON.close : m.tone === "sys" ? ICON.pause : ICON.check}</span><span class="ev-t">${esc(m.text)}</span><time>${clock(m.at)}</time></div>`;
     } else if (m.who === "rec") {
@@ -1950,7 +1991,12 @@ const FIRST_MSG = "[data-k]:not([data-k=hist]):not([data-k=note]):not([data-k^='
 let rendered = null, raf = 0;
 function schedule() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); }
 const nearBottom = () => scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 80;
-function toBottom(smooth) { scroller.scrollTo({ top: scroller.scrollHeight, behavior: smooth && !RM.matches ? "smooth" : "auto" }); }
+/** Follow to the end. A smooth follow counts as a scroll under way (holdAnchor never writes during one). */
+let followUntil = 0;
+function toBottom(smooth) {
+  if (smooth && !RM.matches) followUntil = performance.now() + 600;
+  scroller.scrollTo({ top: scroller.scrollHeight, behavior: smooth && !RM.matches ? "smooth" : "auto" });
+}
 
 function render() {
   if (!world.state.loaded) return;
@@ -1977,14 +2023,25 @@ function render() {
     if (!switching && ready && S.filled !== v) switching = true;
     S.filled = ready ? v : null;
     const atBottom = switching || nearBottom();
-    const first0 = msgsEl.querySelector(FIRST_MSG)?.dataset.k;
-    const h0 = scroller.scrollHeight, top0 = scroller.scrollTop;
-    const added = reconcile(msgsEl, msgItems(v, needs), { quiet: switching });
+    const items = msgItems(v, needs);
+    // what you're reading, and the work folds about to be redrawn: measured before anything changes
+    // following the end (at the bottom), the bottom is the anchor: nothing to hold, or holding it would
+    // fight the smooth follow below and jerk the view up and down while an agent works (the owner, 4 Nov)
+    const anchor = switching || atBottom ? null : readingAnchor();
+    const folds = switching ? null : foldsBefore(items);
+    const last0 = switching ? null : msgsEl.lastElementChild?.dataset.k || null; // the newest thing drawn so far
+    const added0 = reconcile(msgsEl, items, { quiet: switching });
     hydrateMedia(msgsEl); // new pictures load and fade in; redrawn ones keep their pixels
-    if (!switching && !atBottom && first0 && msgsEl.querySelector(FIRST_MSG)?.dataset.k !== first0) {
-      // older messages arrived above: keep what you were reading exactly where it was
-      scroller.scrollTop = top0 + (scroller.scrollHeight - h0);
+    // older messages (or anything else) landed above: what you were reading stays exactly where it was
+    if (anchor) {
+      holdAnchor(anchor);
+      // another layer may decorate what was just drawn, in its own MutationObserver (queued before this,
+      // so it runs first): hold the place again once it has, still before the frame is painted
+      queueMicrotask(() => holdAnchor(anchor));
     }
+    if (folds) workMotion(folds);
+    // only what arrived after the newest thing drawn is news (an older page landing above never is)
+    const added = last0 ? added0.filter((el) => below(el, { k: last0 })) : added0;
     ensureRoot();
     const typed = typingRender();
     if (switching) {
@@ -1995,6 +2052,10 @@ function render() {
       $("#new-below").hidden = true;
     } else if (added.length || typed) {
       if (atBottom) toBottom(true); else if (added.length) $("#new-below").hidden = false;
+    } else if (atBottom && added0.length && !nearBottom() && !scrolling()) {
+      // an older page landed above while you were at the end (a short conversation): stay at the end, at
+      // once, as a browser that keeps your place itself would (Safari doesn't)
+      toBottom(false);
     }
   }
   if (!isHome && !isArts) requestAnimationFrame(loadAhead);
@@ -2041,14 +2102,155 @@ function faviconRender(t) {
 }
 /** Earlier messages load before you reach them (hub #28). Within about a screen of the top, the next
  *  page is fetched, and it lands above what you're reading without moving it; a first page too short to
- *  scroll keeps loading until it fills the view or the conversation begins. */
+ *  scroll keeps loading until it fills the view or the conversation begins. A thread pages the same way. */
 function loadAhead() {
-  if (rendered !== S.view || S.view === "home" || convThread(S.view) || CH.isChats(S.view)) return;
+  if (rendered !== S.view || S.view === "home" || CH.isChats(S.view)) return;
   if (scroller.scrollTop > Math.max(600, scroller.clientHeight)) return;
+  const t = convThread(S.view);
+  if (t) { if (world.act.loadOlderThread && canPageOlder(world.state.threadHist?.[t.id])) world.act.loadOlderThread(t.id); return; }
   const c = chatOf(S.view); const h = c && world.state.hist[c];
   if (h && h.loaded && !h.all && !h.loading && !h.olderError) world.act.loadOlder(c);
 }
+/** "Earlier messages" (or "Try again"), pressed: the conversation's next older page. */
+function loadOlderNow() {
+  const t = convThread(S.view);
+  if (t) { const th = world.state.threadHist?.[t.id]; if (th && th.olderError) th.olderError = null; if (world.act.loadOlderThread) world.act.loadOlderThread(t.id); return; }
+  const c = chatOf(S.view); if (c) world.act.loadOlder(c);
+}
+
+// ── what you're reading stays put; the agent's work moves, never jumps ─────────────────────────────
+/**
+ * The topmost message on screen (not the line at the top) and where it stands: what a redraw must not
+ * move. Topmost as drawn, not as listed: a layer may draw an item out of order (CSS order).
+ */
+function readingAnchor() {
+  const box = scroller.getBoundingClientRect();
+  const bottom = box.top + scroller.clientHeight;
+  let best = null, firstK = null;
+  for (const el of msgsEl.children) {
+    const k = el.dataset.k;
+    // not a line between messages: a day's line moves above older messages of its day as they land
+    if (!k || k === "hist" || k === "note" || k === "empty" || k.startsWith("day|")) continue;
+    if (firstK == null) firstK = k;
+    const r = el.getBoundingClientRect();
+    if (r.height && r.bottom > box.top + 1 && r.top < bottom && (!best || r.top < best.top)) best = { k, top: r.top };
+  }
+  // first: nothing but the line where older pages land (its skeleton) stands above it
+  if (best) best.first = best.k === firstK;
+  return best;
+}
+const childOf = (k) => { for (const el of msgsEl.children) if (el.dataset.k === k) return el; return null; };
+/**
+ * Put what you were reading back where it was, when something above it changed height (an older page
+ * landed, its skeleton came or went). Writing scrollTop stops a scroll dead (a trackpad's momentum, a
+ * wheel's glide: the owner, 4 Nov, "scrolling keeps getting stuck"), so it is written only when it must
+ * be: a shift of a whole pixel or more, of a message in the upper half of the view or the first one
+ * under the skeleton (content arrived above what you're reading), and never while a scroll is under way. Then the shift waits, and is put
+ * right once the scroll has settled.
+ */
+const SETTLE_MS = 150;
+// owed: what a shift put off while you scrolled is owed to: {v, d: the shifts summed, k, top, scroll: the
+// message you were reading when the first came, where it stood, and the scroll position then}
+let scrolledAt = 0, settleT = 0, owed = null;
+const scrolling = () => performance.now() - scrolledAt < SETTLE_MS || performance.now() < followUntil;
+function holdAnchor(a) {
+  const el = childOf(a.k);
+  if (!el) return;
+  const d = el.getBoundingClientRect().top - a.top;
+  const box = scroller.getBoundingClientRect();
+  // a message in the upper half of the view, or the first one, under the line where older pages land
+  if (Math.abs(d) < 1 || (a.top > box.top + scroller.clientHeight / 2 && !a.first)) return;
+  if (!scrolling()) { scroller.scrollTop += d; return; }
+  if (!owed || owed.v !== S.view) owed = { v: S.view, d: 0, k: a.k, top: a.top, scroll: scroller.scrollTop };
+  owed.d += d;
+  a.top += d; // owed, not written: a second look (after another layer's redraw) counts only what moved since
+  clearTimeout(settleT); settleT = setTimeout(settle, SETTLE_MS);
+}
+/**
+ * The scroll has stopped: the shift put off while it ran, now (on the same conversation only). Where the
+ * browser keeps your place itself (overflow-anchor), only what it didn't is owed: the shifts summed.
+ * Where it doesn't (Safari), the message you were reading goes back to where it stood, moved only by
+ * your own scrolling since.
+ */
+function settle() {
+  if (scrolling()) { settleT = setTimeout(settle, SETTLE_MS); return; }
+  const o = owed; owed = null;
+  if (!o || o.v !== S.view || rendered !== S.view) return;
+  let d = o.d;
+  const el = getComputedStyle(scroller).overflowAnchor === "auto" ? null : childOf(o.k);
+  if (el) d = el.getBoundingClientRect().top - (o.top - (scroller.scrollTop - o.scroll));
+  if (Math.abs(d) >= 1) scroller.scrollTop += d;
+}
+const noteScroll = () => { scrolledAt = performance.now(); };
+scroller.addEventListener("wheel", noteScroll, { passive: true });
+scroller.addEventListener("touchmove", noteScroll, { passive: true });
+/** Is this element after what you were reading (news below), not before it (an older page above)? */
+function below(el, a) {
+  const at = childOf(a.k);
+  return !at || el === at || !!(at.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING);
+}
+/** Something here already moves to its own CSS animation (another layer's): motion is never stacked on it. */
+function stirred(el, root) {
+  for (let x = el; x && x !== root.parentElement; x = x.parentElement) if (getComputedStyle(x).animationName !== "none") return true;
+  return false;
+}
+/**
+ * Before a redraw: for each turn (or folding line) about to be redrawn, the height of each of its blocks
+ * and rows ([data-b], [data-r]) and which of them it has, so workMotion can glide what changed height and
+ * bring in what's new. Only the items whose markup changes are measured.
+ */
+function foldsBefore(items) {
+  const out = [];
+  const now = new Map();
+  for (const el of msgsEl.children) if (el.dataset.k) now.set(el.dataset.k, el);
+  for (const it of items) {
+    const el = now.get(it.key);
+    if (!el || el._h === it.html || !el.querySelector("[data-tb]")) continue;
+    const parts = new Map();
+    if (el.classList.contains("m-turn")) for (const x of el.querySelectorAll("[data-b],[data-r]")) parts.set(x.dataset.b ? `b:${x.dataset.b}` : `r:${x.dataset.r}`, x.offsetHeight);
+    else parts.set("self", el.offsetHeight);
+    out.push({ k: it.key, parts });
+  }
+  return out;
+}
+/**
+ * After a redraw: a fold that opened or closed, a line that grew or shrank (a running turn's latest step,
+ * the work collapsing into "Worked 3m · 27 steps" when it ends) glides to its new height; a step or a block
+ * that's new arrives (motion.js). Only on screen: above what you're reading, it lands still (holdAnchor
+ * kept your place). What you just opened isn't "new": its fold's glide shows it. Reduced motion: none.
+ */
+function workMotion(folds) {
+  const toggled = S.tbToggled;
+  S.tbToggled = null;
+  if (toggled && toggled.focus) msgsEl.querySelector(`[data-tb="${CSS.escape(toggled.k)}"]`)?.focus({ preventScroll: true });
+  if (still() || !folds.length) return;
+  const top = scroller.getBoundingClientRect().top, bottom = top + scroller.clientHeight;
+  const seen = (r) => r.bottom > top && r.top < bottom;
+  for (const f of folds) {
+    const el = childOf(f.k);
+    if (!el || !seen(el.getBoundingClientRect())) continue;
+    const opened = toggled ? el.querySelector(`[data-tb="${CSS.escape(toggled.k)}"]`)?.closest("[data-b],[data-r]") : null;
+    const glide = (x, h0) => {
+      const h1 = x.offsetHeight;
+      if (!h0 || !h1 || Math.abs(h1 - h0) < 1 || x.getBoundingClientRect().top < top || stirred(x, el)) return;
+      x.animate([{ height: `${h0}px`, overflow: "hidden" }, { height: `${h1}px`, overflow: "hidden" }], { duration: MOVE, easing: EASE });
+    };
+    if (f.parts.has("self")) { glide(el, f.parts.get("self")); continue; }
+    for (const x of el.querySelectorAll("[data-b],[data-r]")) {
+      const id = x.dataset.b ? `b:${x.dataset.b}` : `r:${x.dataset.r}`;
+      if (f.parts.has(id)) { glide(x, f.parts.get(id)); continue; }
+      // new: a step, a block of its work (not its answer: words are the message layer's to bring in)
+      if ((opened && opened.contains(x)) || x.matches(".tb-answer, .tb-text, .tb-files") || !seen(x.getBoundingClientRect()) || stirred(x, el)) continue;
+      if (x.parentElement.closest("[data-r]") || (x.parentElement.closest("[data-b]") && !f.parts.has(`b:${x.parentElement.closest("[data-b]").dataset.b}`))) continue; // its parent arrives with it
+      arrive(x);
+    }
+    // the chevron of what you opened turns, as it would had it not been redrawn
+    const chev = opened && opened.querySelector(`[data-tb="${CSS.escape(toggled.k)}"] .tb-chev`);
+    if (chev) chev.animate([{ transform: toggled.open ? "none" : "rotate(180deg)" }, { transform: toggled.open ? "rotate(180deg)" : "none" }], { duration: MOVE, easing: EASE });
+  }
+}
 scroller.addEventListener("scroll", () => {
+  noteScroll();
   loadAhead();
   if (nearBottom()) $("#new-below").hidden = true;
   $("#top").classList.toggle("is-scrolled", scroller.scrollTop > 120);
@@ -2297,7 +2499,7 @@ document.addEventListener("click", (e) => {
   if (g && !t.closest("#all")) { e.preventDefault(); go(g.dataset.go); if (g.dataset.goMsg) showMsg(g.dataset.goMsg); return; }
   const tl = t.closest("a[data-thread]");
   if (tl) { e.preventDefault(); if (world.thread(tl.dataset.thread)) go("t:" + tl.dataset.thread); else heraldShow({ kind: "calm", text: "That thread isn't loaded", sub: "it may be in another project" }, 3200); return; }
-  if (t.closest("[data-older]")) { const c = chatOf(S.view); if (c) world.act.loadOlder(c); return; }
+  if (t.closest("[data-older]")) { loadOlderNow(); return; }
   const d = t.closest("[data-decide]");
   if (d) { decideKey(d.dataset.decide); return; }
   if (t.closest("[data-next]")) { openNext(); return; }
@@ -2334,7 +2536,12 @@ document.addEventListener("click", (e) => {
   if (t.closest("#thead [data-runs]")) { openRuns(convThread(S.view)); return; }
   // storm blocks: open or fold a block or a row (thinking steps, an activity group, a command's output)
   const tb = t.closest("[data-tb]");
-  if (tb) { const k = tb.dataset.tb; S.tbOpen[k] = !S.tbOpen[k]; schedule(); return; }
+  if (tb) {
+    const k = tb.dataset.tb; S.tbOpen[k] = !S.tbOpen[k];
+    // the redraw replaces this line: its fold glides (workMotion), and focus comes back to it
+    S.tbToggled = { k, open: S.tbOpen[k], focus: tb === document.activeElement || tb.contains(document.activeElement) };
+    schedule(); return;
+  }
   // a thread's own header: resolve or reopen (R1), rename, label
   const rs = t.closest("[data-resolve]");
   if (rs) { resolveThread(rs.dataset.resolve, rs.dataset.to === "resolve"); return; }

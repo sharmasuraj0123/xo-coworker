@@ -40,13 +40,15 @@ function rowHtml(r, open) {
   const canOpen = !!(out || (r.kind === "command" && r.target));
   const head = `<span class="tb-ri">${icon(r.kind || "other")}</span><span class="tb-rl">${renderInline(r.line || "", true)}</span>` +
     (prog ? `<span class="tb-rp">${esc(prog)}</span>` : "") + rowMark(r);
-  const cls = `tb-row s-${esc(r.status || "ok")}${r.waiting ? " is-waiting" : ""}${r.pending ? " is-pending" : ""}`;
+  // data-r: the row's own key, so a step that starts while you watch can arrive (js/app.js workMotion)
+  // a step keeps its identity (data-call-id, which msgx reads) when its label, status, duration or output changes
+  const li = `<li class="tb-row s-${esc(r.status || "ok")}${r.waiting ? " is-waiting" : ""}${r.pending ? " is-pending" : ""}" data-r="${esc(r.call_id || "")}"${r.call_id != null ? ` data-call-id="${esc(r.call_id)}"` : ""}>`;
   // a sub-agent's row opens that sub-agent, like a thread of its own (ch 14 §11)
-  if (r.kind === "subagent" && r.call_id) return `<li class="${cls}"><button type="button" class="tb-rh is-btn" data-run-call="${esc(r.call_id)}" title="Open this sub-agent">${head}</button></li>`;
-  if (!canOpen) return `<li class="${cls}"><div class="tb-rh">${head}</div></li>`;
+  if (r.kind === "subagent" && r.call_id) return `${li}<button type="button" class="tb-rh is-btn" data-run-call="${esc(r.call_id)}" title="Open this sub-agent">${head}</button></li>`;
+  if (!canOpen) return `${li}<div class="tb-rh">${head}</div></li>`;
   const key = `row:${r.call_id}`;
   const isOpen = !!open[key];
-  return `<li class="${cls}"><button type="button" class="tb-rh is-btn" data-tb="${esc(key)}" aria-expanded="${isOpen}">${head}</button>` +
+  return `${li}<button type="button" class="tb-rh is-btn" data-tb="${esc(key)}" aria-expanded="${isOpen}">${head}</button>` +
     (isOpen ? `<div class="tb-rb">${r.kind === "command" && r.target ? `<code class="tb-cmd">${esc(r.target)}</code>` : ""}${out ? `<pre class="tb-out">${esc(out)}</pre>` : r.status === "running" ? `<p class="tb-note">Output appears when it finishes.</p>` : ""}</div>` : "") + `</li>`;
 }
 
@@ -54,14 +56,14 @@ function rowHtml(r, open) {
  * One block. open: {blockId|row:callId → true}. live: the turn is still running. media: how its shared
  * files are drawn (turnHtml's carried, route, by, at).
  */
-function blockHtml(b, open, live, now, media = {}) {
+function blockHtml(b, open, live, now, media = {}, tail = "") {
   const isOpen = !!open[b.id];
   switch (b.type) {
     case "thinking": {
       const running = !b.done && live;
       const head = running ? `${esc(b.header || "Thinking…")}${b.started_at ? ` · ${secs(now - Date.parse(b.started_at))}` : ""}` : esc(b.header || "Thought");
       const steps = (b.steps || []).filter(Boolean);
-      return `<div class="tb tb-think${running ? " is-live" : ""}"><button type="button" class="tb-h" data-tb="${esc(b.id)}" aria-expanded="${isOpen}"${steps.length ? "" : " disabled"}>` +
+      return `<div class="tb tb-think${running ? " is-live" : ""}" data-b="${esc(b.id)}"><button type="button" class="tb-h" data-tb="${esc(b.id)}" aria-expanded="${isOpen}"${steps.length ? "" : " disabled"}>` +
         `<span class="tb-hi">${ICON.clock}</span><span class="tb-ht${running ? " shimmer" : ""}">${head}</span>${steps.length ? `<span class="tb-chev">${ICON.chevron}</span>` : ""}</button>` +
         (isOpen && steps.length ? `<ol class="tb-steps">${steps.map((s) => `<li>${renderInline(s, true)}</li>`).join("")}</ol>` : "") + `</div>`;
     }
@@ -70,15 +72,15 @@ function blockHtml(b, open, live, now, media = {}) {
       const running = !b.done && live;
       const cur = running ? rows.filter((r) => r.status === "running") : [];
       const waiting = rows.some((r) => r.waiting);
-      return `<div class="tb tb-act${running ? " is-live" : ""}${waiting ? " is-waiting" : ""}"><button type="button" class="tb-h" data-tb="${esc(b.id)}" aria-expanded="${isOpen}">` +
+      return `<div class="tb tb-act${running ? " is-live" : ""}${waiting ? " is-waiting" : ""}" data-b="${esc(b.id)}"><button type="button" class="tb-h" data-tb="${esc(b.id)}" aria-expanded="${isOpen}">` +
         `<span class="tb-hi">${running ? `<i class="tb-live" aria-hidden="true"></i>` : ICON.list}</span><span class="tb-ht">${renderInline(b.header || "Working", true)}</span>` +
         `<span class="tb-n">${rows.length}</span><span class="tb-chev">${ICON.chevron}</span></button>` +
-        (isOpen ? `<ul class="tb-rows">${rows.map((r) => rowHtml(r, open)).join("")}</ul>` : cur.length ? `<ul class="tb-rows is-cur">${cur.map((r) => rowHtml(r, open)).join("")}</ul>` : "") + `</div>`;
+        (isOpen ? `<ul class="tb-rows">${rows.map((r) => rowHtml(r, open)).join("")}</ul>` : cur.length ? `<ul class="tb-rows is-cur">${cur.map((r) => rowHtml(r, open)).join("")}</ul>` : "") + tail + `</div>`;
     }
     case "plan": {
       const items = b.items || [];
       const mark = (s) => (s === "done" ? "✓" : s === "doing" ? "✱" : "○");
-      return `<div class="tb tb-plan"><button type="button" class="tb-h" data-tb="${esc(b.id)}" aria-expanded="${!isOpen ? "false" : "true"}">` +
+      return `<div class="tb tb-plan" data-b="${esc(b.id)}"><button type="button" class="tb-h" data-tb="${esc(b.id)}" aria-expanded="${!isOpen ? "false" : "true"}">` +
         `<span class="tb-hi">${ICON.list}</span><span class="tb-ht">${esc(b.header || "Plan")}</span><span class="tb-chev">${ICON.chevron}</span></button>` +
         (isOpen || (live && !b.done) ? `<ol class="tb-plan-l">${items.map((i) => `<li class="ck ck-${esc(i.state)}"><span class="ck-m" aria-hidden="true">${mark(i.state)}</span><span>${renderInline(i.text || "", true)}</span></li>`).join("")}</ol>` : "") + `</div>`;
     }
@@ -97,7 +99,7 @@ function blockHtml(b, open, live, now, media = {}) {
       return `<div class="tb tb-files"><p class="tb-fh">${ICON.doc}<span>${esc(header)}${b.caption ? ` · ${esc(b.caption)}` : ""}</span></p>${mediaHtml(items, { side: "them" })}</div>`;
     }
     case "narration":
-      return `<div class="tb tb-narr prose">${renderMarkdown(b.text || "")}</div>`;
+      return `<div class="tb tb-narr prose" data-b="${esc(b.id)}">${renderMarkdown(b.text || "")}</div>`;
     case "text":
       return `<div class="tb tb-text prose${!b.done && live ? " is-live" : ""}">${renderMarkdown(b.text || "")}</div>`;
     case "answer":
@@ -169,13 +171,13 @@ function workFold(turn, work, blocks, open, live, now, media = {}) {
     (live ? "" : `<span class="tb-hi">${ICON.list}</span>`) +
     `<span class="tb-ht${live && !waiting ? " shimmer" : ""}">${live ? `${waiting ? "Waiting for you" : "Working"}${time}` : WORDS ? esc(plainWork(rows)) : `Worked${time}`}</span>` +
     (WORDS && !live ? (took != null ? `<span class="tb-wn">${secs(took)}</span>` : "") : steps ? `<span class="tb-wn">${steps} ${steps === 1 ? "step" : "steps"}</span>` : "") + `<span class="tb-chev">${ICON.chevron}</span></button>`;
-  if (isOpen) return `<div class="tb tb-work is-open${live ? " is-live" : ""}">${head}<div class="tb-rail">${work.map((b) => blockHtml(b, open, live, now)).join("")}</div></div>`;
+  if (isOpen) return `<div class="tb tb-work is-open${live ? " is-live" : ""}" data-b="${esc(key)}">${head}<div class="tb-rail">${work.map((b) => blockHtml(b, open, live, now)).join("")}</div></div>`;
   let under = "";
   if (live) {
     // the ticker: only the latest block, as it streams; older ones are in the count. A step that
     // waits on you shows wherever it is.
     const asks = rows.filter((r) => r.waiting);
-    under = asks.length ? `<ul class="tb-rows is-cur">${asks.map((r) => rowHtml(r, open)).join("")}</ul>` : WORDS ? "" : blockHtml(work[work.length - 1], open, live, now);
+    under = asks.length ? `<ul class="tb-rows is-cur">${asks.map((r) => rowHtml(r, open)).join("")}</ul>` : WORDS || !work.length ? "" : blockHtml(work[work.length - 1], open, live, now);
   } else {
     // a failed turn's own error is said in its last line already. A command that exited non-zero in a
     // turn that went on to finish is the agent feeling its way (`ls`, `which`): it stays in the fold,
@@ -187,7 +189,7 @@ function workFold(turn, work, blocks, open, live, now, media = {}) {
     if (bad.length) under += WORDS ? `<p class="tb-note tb-wbad">${bad.length === 1 ? "One step" : `${bad.length} steps`} didn't work. Open the line above to see what happened.</p>` : `<ul class="tb-rows tb-bad">${bad.slice(-3).map((r) => rowHtml(r, open)).join("")}</ul>`;
     under += changedChips(rows, blocks, key, media.carried);
   }
-  return `<div class="tb tb-work${live ? " is-live" : ""}${waiting ? " is-waiting" : ""}">${head}${under}</div>`;
+  return `<div class="tb tb-work${live ? " is-live" : ""}${waiting ? " is-waiting" : ""}" data-b="${esc(key)}">${head}${under}</div>`;
 }
 
 /**
@@ -212,19 +214,22 @@ function withoutWireNotices(b) {
  * carried: the files the conversation's messages carry (a shared file among them isn't drawn twice);
  * route(path): a shared file's project route ({project, rel} or {why}); by: who made them (the lightbox).
  */
-export function turnHtml(turn, blocks, { open = {}, hideAnswer = false, now = Date.now(), carried = [], route = null, by = "" } = {}) {
+export function turnHtml(turn, blocks, { open = {}, hideAnswer = false, now = Date.now(), carried = [], route = null, by = "", working = false } = {}) {
   const media = { carried, route, by, at: Date.parse(turn.at) || null };
   const live = turn.status === "running";
   const shown = blocks.filter((b) => !(hideAnswer && b.type === "answer")).map(withoutWireNotices).filter(Boolean);
   const work = shown.filter((b) => WORK.has(b.type));
   const fold = work.length >= 2 || (WORDS && work.some((b) => b.type === "activity"));
   const parts = [];
+  // working: the turn's latest stretch, after a message of its own, before it has any work to show: its
+  // line says it's still at it ("Working · 12s"), under that message
+  if (live && working && !work.length) parts.push(workFold(turn, [], shown, open, live, now, media));
   for (const b of shown) {
     if (fold && WORK.has(b.type)) { if (b === work[0]) parts.push(workFold(turn, work, shown, open, live, now, media)); continue; }
-    parts.push(blockHtml(b, open, live, now, media));
     // a turn whose work is one tool group (codex often has no thinking or narration): its files show
-    // under that group, as they would under the fold
-    if (b.type === "activity" && !live && b.done && !open[b.id]) parts.push(changedChips(b.rows || [], shown, b.id, carried));
+    // under that group's line, inside it, as they would under the fold
+    const chips = b.type === "activity" && !live && b.done && !open[b.id] ? changedChips(b.rows || [], shown, b.id, carried) : "";
+    parts.push(blockHtml(b, open, live, now, media, chips));
   }
   const html = parts.filter(Boolean);
   const end = turn.end || {};
@@ -234,6 +239,49 @@ export function turnHtml(turn, blocks, { open = {}, hideAnswer = false, now = Da
   else if (turn.status === "interrupted") foot = `<p class="tb-end">Interrupted${end.reason === "restart" ? " by a restart; it picks up again" : ""}</p>`;
   if (!html.length && !foot) return "";
   return `<div class="turn${live ? " is-live" : ""}" data-turn="${esc(turn.id)}">${html.join("")}${foot}</div>`;
+}
+
+/**
+ * A turn's work, split at the agent's own messages from that turn, so what it did before a message sits
+ * above it and what it did after sits below, as it happened (the owner, 4 Nov: "why does the thinking and
+ * the work still happen on top of that message?"). says: the agent's messages ({seq, at}); those inside
+ * the turn (after its first frame, and before its last unless it's still running) cut it. A block goes to
+ * the stretch its first frame falls in (blocks.js keeps that seq); one without a seq stays with the block
+ * before it. Returns the stretches, oldest first: {k, blocks, seq: where it sorts (its first block's, or
+ * just after the message that opens it), from, to (ms: when it began; when the next message came or the
+ * turn ended, or null), last}. A stretch with no blocks is kept only when it is the last (a running turn's
+ * "still working", or a stopped turn's last line). Without a cut: the whole turn, as one.
+ */
+export function turnSegments(turn, blocks, says = []) {
+  const running = turn.status === "running";
+  const first = turn.seq ?? -Infinity, lastF = turn.lastSeq ?? Infinity;
+  const cut = says.filter((m) => m && m.seq != null && m.seq > first && (running || m.seq <= lastF)).sort((a, b) => a.seq - b.seq);
+  const t0 = Date.parse(turn.at);
+  const end = !running && turn.end && turn.end.wall_ms != null && Number.isFinite(t0) ? t0 + turn.end.wall_ms : null;
+  const segs = [{ k: 0, blocks: [], from: Number.isFinite(t0) ? t0 : null, after: null }];
+  for (const [i, m] of cut.entries()) segs.push({ k: i + 1, blocks: [], from: Number.isFinite(m.at) ? m.at : null, after: m.seq });
+  let k = 0;
+  for (const b of blocks) {
+    if (b.seq != null) while (k < cut.length && cut[k].seq < b.seq) k++;
+    segs[k].blocks.push(b);
+  }
+  return segs.map((s, i) => ({
+    k: s.k, blocks: s.blocks, last: i === segs.length - 1,
+    seq: i === 0 ? turn.seq : (s.blocks.find((b) => b.seq != null)?.seq ?? s.after + 0.5),
+    from: s.from, to: i < cut.length ? (Number.isFinite(cut[i].at) ? cut[i].at : null) : end,
+  })).filter((s) => s.blocks.length || s.last);
+}
+
+/**
+ * One stretch of a turn as a turn of its own for turnHtml and turnAv: only the last can still be running
+ * (and carry a stop or a failure); an earlier one is finished work, timed from its start to the message
+ * that ended it. Its id keys its folds: the first stretch keeps the turn's own.
+ */
+export function segmentTurn(turn, seg) {
+  const id = seg.k === 0 ? turn.id : `${turn.id}#${seg.k}`;
+  const at = seg.from != null ? new Date(seg.from).toISOString() : turn.at;
+  if (seg.last) return seg.k === 0 ? turn : { ...turn, id, at, end: turn.end ? { ...turn.end, wall_ms: seg.to != null && seg.from != null ? seg.to - seg.from : turn.end.wall_ms } : turn.end };
+  return { ...turn, id, at, status: "finished", stopped: null, end: { wall_ms: seg.to != null && seg.from != null ? seg.to - seg.from : null } };
 }
 
 /**

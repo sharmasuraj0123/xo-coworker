@@ -1,0 +1,384 @@
+/* Bubbles and replies, an exploration (js/msgx.js; thread "Message styles & replies", xo/thread-682d17).
+   Every value comes from css/tokens.css. Corners nest: an inner radius is the outer one minus the inset
+   between them (the switch 20 → 15 at 5 in, the composer's reply 28 → 18 at 10 in, a quote in a bubble
+   20 → 13 at 7 in). Remove this file, js/msgx.js and their lines in index.html to take it all out. */
+
+/* ── the switch over the conversation ─────────────────────────────────────── */
+.mx-switch{position:absolute;z-index:6;top:calc(var(--mx-top,66px) + 8px);right:16px;display:flex;align-items:center;gap:4px;max-width:calc(100% - 32px);height:40px;padding:4px;border:1px solid var(--line);border-radius:var(--r-pill);background:color-mix(in srgb,var(--bg-2) 90%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);box-shadow:var(--e2),var(--hairline)}
+/* folded, it is one small pill in the right margin (beside the text column, never over it); open, the
+   tones and toggles slide out to its left */
+.mx-fold{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px 0 12px;border-radius:var(--r-pill);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3);white-space:nowrap;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.mx-fold b{font-weight:500;color:var(--ink)}
+.mx-fold svg{width:16px;height:16px;transition:transform var(--d-move) var(--ease)}
+.mx-fold:hover{background:var(--hover-fill);color:var(--ink-2)}
+.mx-switch.is-open .mx-fold svg:last-child{transform:rotate(180deg)}
+.mx-panel{display:none;align-items:center;gap:4px;min-width:0;overflow-x:auto;scrollbar-width:none}
+.mx-switch.is-open .mx-panel{display:flex;animation:mx-up var(--d-in) var(--ease)}
+.mx-switch.is-open{flex-direction:row-reverse}
+.mx-seg{display:flex;gap:2px}
+.mx-seg button,.mx-spot{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:var(--r-pill);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3);white-space:nowrap;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.mx-seg button:hover,.mx-spot:hover{background:var(--hover-fill);color:var(--ink-2);transition-duration:var(--d-hover-in)}
+.mx-seg button[aria-checked="true"],.mx-spot[aria-pressed="true"]{background:var(--g2C);color:var(--ink);box-shadow:var(--hairline)}
+.mx-spot{position:relative;margin-left:5px;padding-left:10px}
+.mx-spot2{margin-left:0}
+.mx-spot2::before{content:none}
+.mx-spot::before{content:"";position:absolute;left:-5px;top:8px;bottom:8px;width:1px;background:var(--line)}
+.mx-spot svg{width:16px;height:16px}
+.mx-hint{position:absolute;z-index:6;top:calc(var(--mx-top,66px) + 56px);right:16px;max-width:min(560px,90%);padding:6px 12px;border-radius:var(--r-pill);background:color-mix(in srgb,var(--bg-2) 90%,transparent);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);font-size:var(--fs-sm);line-height:16px;color:var(--ink-2);opacity:0;transform:translateY(-4px);pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease)}
+.mx-hint.is-on{opacity:1;transform:none;transition-duration:var(--d-in)}
+@media (max-width:760px){
+  /* in the phone's top bar: a 40 px icon pill; opened, the choices drop below as a card that wraps, so nothing
+     scrolls sideways (card 20, 5 in, its 30 px pills 15 = 20 − 5) */
+  .phonebar .mx-switch{position:relative;top:auto;right:auto;flex:none;height:40px;max-width:none;padding:4px;flex-direction:row;background:var(--bg-2);-webkit-backdrop-filter:none;backdrop-filter:none}
+  .phonebar .mx-switch.is-open{flex-direction:row}
+  .mx-fold>:is(span,b){display:none}
+  .phonebar .mx-panel{position:fixed;z-index:70;top:60px;right:12px;flex-wrap:wrap;width:min(calc(100vw - 24px),340px);padding:4px;border:1px solid var(--line);border-radius:var(--r-xl);background:color-mix(in srgb,var(--bg-2) 94%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);box-shadow:var(--e2),var(--hairline);overflow:visible}
+  .phonebar .mx-seg{flex-wrap:wrap}
+  .phonebar .mx-spot span{display:inline}
+  .mx-hint{top:calc(var(--mx-top,0px) + 8px);right:12px}
+}
+
+/* ── back to the latest ──────────────────────────────────────────────────────
+   A 40 px glass circle 12 px above the composer, its right edge on the composer's right edge. It rises in
+   when you've read up more than half a screen; new messages since are counted on it in a quiet ink pill. */
+:root[data-msgx] #new-below{display:none!important}
+.mx-down{position:absolute;z-index:4;right:calc(var(--gut) + var(--rp));bottom:calc(var(--dock-h) + 12px);display:grid;place-items:center;width:40px;height:40px;border:1px solid var(--line);border-radius:50%;background:color-mix(in srgb,var(--bg-2) 90%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);box-shadow:var(--e2),var(--hairline);color:var(--ink-2);opacity:0;transform:translateY(8px) scale(.92);pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease),color var(--d-hover) var(--ease)}
+.mx-down.is-on{opacity:1;transform:none;pointer-events:auto;transition-duration:var(--d-in)}
+.mx-down:hover{color:var(--ink)}
+.mx-down svg{width:20px;height:20px}
+.mx-down-n{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 6px;border-radius:var(--r-pill);background:var(--ink);color:var(--bg);font:600 var(--fs-xs)/20px var(--sans);font-variant-numeric:tabular-nums;text-align:center}
+.mx-down-n[hidden]{display:none}
+body.files-open .mx-down{display:none}
+@media (max-width:760px){.mx-down{right:16px}}
+@media (prefers-reduced-motion:reduce){.mx-down{transform:none}}
+
+/* ── replies: the bar on a message ─────────────────────────────────────────── */
+#msgs>.m{touch-action:pan-y}
+/* Reply and Copy sit beside the bubble, on the open side and centred on it, as in Messenger and iMessage:
+   two quiet 28 px circles 8 px off the bubble, no bar around them */
+.mx-acts{position:absolute;z-index:2;top:50%;left:calc(100% + 8px);display:flex;gap:2px;transform:translate(-4px,-50%);opacity:0;pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease)}
+.m-you .mx-acts{left:auto;right:calc(100% + 8px);flex-direction:row-reverse;transform:translate(4px,-50%)}
+.m:hover .mx-acts,.m:focus-within .mx-acts{opacity:1;transform:translate(0,-50%);pointer-events:auto;transition-duration:var(--d-in)}
+.mx-acts button{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.mx-acts button:hover{background:var(--hover-fill);color:var(--ink);transition-duration:var(--d-hover-in)}
+.mx-acts svg{width:16px;height:16px}
+.prose>.mx-acts,.prose>.mx-swipe{margin:0}
+/* A long reply read open (no bubble) has them after the whole message, pictures included, on its text edge,
+   as ChatGPT and Claude put theirs under an answer; never over a picture */
+.mx-acts.is-foot{display:none}
+/* pictures with no words: Reply sits under them, on the same edge, as under an open reply */
+.mx-nobub>.mb{position:relative}
+.mx-nobub .mx-acts.is-foot{display:flex;top:calc(100% + 6px);left:10px;transform:translateY(-4px)}
+.m.mx-nobub:hover .mx-acts.is-foot,.m.mx-nobub:focus-within .mx-acts.is-foot{transform:none}
+.m-you.mx-nobub>.mx-acts.is-foot{left:auto;right:8px;flex-direction:row-reverse}
+:root[data-msgx] #msgs>.m.mx-nobub{margin-bottom:54px}
+:root[data-msgx-open] .mx-open .mx-acts:not(.is-foot){display:none}
+:root[data-msgx-open] .mx-open>.mb{position:relative}
+:root[data-msgx-open] .mx-open .mx-acts.is-foot{display:flex;top:calc(100% + 6px);left:10px;transform:translateY(-4px)}
+:root[data-msgx-open] .m.mx-open:hover .mx-acts.is-foot,:root[data-msgx-open] .m.mx-open:focus-within .mx-acts.is-foot{transform:none}
+.m.mx-dragging .mx-acts,#msgs.mx-pulling .mx-acts{opacity:0;pointer-events:none}
+@media (hover:none){.mx-acts{display:none}}
+
+/* a reply on its way: the quote waits above what you type */
+.mx-reply{display:flex;align-items:center;gap:8px;height:36px;margin:-3px 0 10px;padding:0 4px 0 12px;border-radius:calc(var(--r-3xl) - 10px);background:var(--hover-fill);box-shadow:var(--hairline)}
+.mx-reply[hidden]{display:none}
+.mx-reply.is-in{animation:mx-up var(--d-in) var(--ease)}
+@keyframes mx-up{from{opacity:0;transform:translateY(6px)}}
+.mx-r-ic{display:grid;color:var(--ink-3)}
+.mx-r-ic svg{width:16px;height:16px}
+.mx-r-t{flex:1;display:flex;gap:6px;min-width:0;font-size:var(--fs-md);line-height:20px;white-space:nowrap}
+.mx-r-t b{flex:none;font-weight:600;color:var(--ink)}
+.mx-r-t span{min-width:0;overflow:hidden;text-overflow:ellipsis;color:var(--ink-3)}
+.mx-r-x{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:50%;color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.mx-r-x:hover{background:var(--hover-fill);color:var(--ink)}
+.mx-r-x svg{width:16px;height:16px}
+
+/* a sent reply: its quote is a card at the top of your bubble; press it to go back to the original */
+.mx-qc{display:flex;flex-direction:column;gap:2px;width:calc(100% + 20px);margin:-4px -10px 8px;padding:6px 10px;border-radius:calc(var(--r-xl) - 6px);background:color-mix(in srgb,currentColor 8%,transparent);color:inherit;text-align:left;white-space:normal;transition:background var(--d-hover) var(--ease)}
+.mx-qc:hover{background:color-mix(in srgb,currentColor 13%,transparent)}
+.mx-qc b{font:600 var(--fs-xs)/16px var(--sans);opacity:.86}
+.mx-qc span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:var(--fs-md);line-height:20px;opacity:.84}
+.m.mx-flash{animation:mx-flash 1.6s var(--ease);border-radius:var(--r-lg)}
+@keyframes mx-flash{0%,30%{background:var(--hover-fill);box-shadow:0 0 0 8px var(--hover-fill)}100%{background:transparent;box-shadow:0 0 0 8px transparent}}
+
+/* select words: reply to exactly them */
+.mx-qpop{position:fixed;z-index:60;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px 0 10px;border:1px solid var(--line);border-radius:var(--r-pill);background:color-mix(in srgb,var(--bg-2) 82%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:var(--e2);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink);animation:mx-up var(--d-in) var(--ease)}
+.mx-qpop[hidden]{display:none}
+.mx-qpop svg{width:16px;height:16px;color:var(--ink-3)}
+
+/* swipe right on a message: it follows, an arrow grows in, and past the line it's a reply */
+#msgs>.m>*{transition:transform var(--d-move) var(--ease)}
+#msgs>.m.mx-dragging>*:not(.mx-swipe){transform:translateX(calc(var(--mx-drag,0) * 1px));transition:none}
+.mx-swipe{position:absolute;left:12px;top:0;display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--g23);color:var(--ink-3);opacity:0;transform:scale(.6);pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease),background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.mx-swipe svg{width:16px;height:16px}
+.bubble{position:relative}
+.bubble>.mx-swipe{left:-44px;top:calc(50% - 16px)}
+.mx-dragging .mx-swipe{opacity:calc(var(--mx-drag,0) / 56);transform:scale(calc(.6 + min(var(--mx-drag,0),56) / 140));transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.mx-dragging .bubble>.mx-swipe{transform:translateX(calc(var(--mx-drag,0) * -1px)) scale(calc(.6 + min(var(--mx-drag,0),56) / 140))}
+.mx-armed .mx-swipe{background:var(--ink);color:var(--bg)}
+
+/* swipe left anywhere: the times slide in at the right edge, as in Messages */
+#msgs>.m::after{content:attr(data-mx-time);position:absolute;top:10px;right:0;font:400 var(--fs-xs)/20px var(--mono);color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none;opacity:0;transform:translateX(64px);transition:opacity var(--d-move) var(--ease),transform var(--d-move) var(--ease)}
+#msgs.mx-pulling>.m::after{opacity:calc(var(--mx-pull,0) / 64);transform:translateX(calc((64 - var(--mx-pull,0)) * 1px));transition:none}
+#msgs.mx-pulling>.m>*{transform:translateX(calc(var(--mx-pull,0) * -1px));transition:none}
+
+/* ── Bubbles ─────────────────────────────────────────────────────────────────
+   Colour with a job (design-research/2026-11-vision/messages/README.md). XO's hues already mean things
+   (green done, blue working, amber needs you, violet the coordinator, red failed), so a bubble never wears
+   one at full strength. Every tone is set in OKLCH at low chroma; --ink on each measures 8.5:1 or more
+   (AAA), and the bubble stands only 1.4–1.7 : 1 off the dark canvas: enough to tell who spoke, never a
+   white slab. Theirs stay stone (--bubble). */
+:root[data-msgx]{--mx-you:oklch(.39 .084 134);--mx-you-ink:var(--ink);--mx-you-hi:var(--mx-lift)}
+:root[data-theme="light"][data-msgx]{--mx-you:oklch(.875 .125 130)}
+/* XO (the default): XO's green, deepened so it holds its colour on the dark canvas (#324E1D-ish, --ink at
+   7.1:1, a touch brighter than first tried at the owner's ask); in light, a clear leaf (#BBE78D, 11.9:1).
+   A colour you own, not a status chip. */
+/* XO Bright: the brand green itself, #83D63A, with dark ink like the Send button (9.2:1). The boldest. */
+:root[data-msgx-tone="bright"],:root[data-theme="light"][data-msgx-tone="bright"]{--mx-you:var(--accent-fill);--mx-you-ink:var(--accent-ink)}
+/* Graphite: no colour at all, a cool grey a step lighter than theirs */
+:root[data-msgx-tone="graphite"]{--mx-you:oklch(.335 .004 260)}
+:root[data-theme="light"][data-msgx-tone="graphite"]{--mx-you:oklch(.905 .003 260)}
+
+/* Theirs are lit from above by the surface gradient itself. An inset top highlight would stop at the
+   body/tail join and outline every grouped bubble. One contracted contact shadow rests below the body;
+   no second halo or separately shadowed tail, and no filter on the text or the reply controls. */
+:root[data-msgx]{--mx-lift:0 2px 3px -2px rgba(0,0,0,.14)}
+:root[data-theme="light"][data-msgx]{--mx-lift:0 2px 3px -2px rgba(0,0,0,.10)}
+:root[data-msgx]{--mx-them:linear-gradient(180deg,oklch(.30 .004 260),oklch(.27 .004 260));--mx-them-top:oklch(.30 .004 260);--mx-them-hi:var(--mx-lift)}
+:root[data-theme="light"][data-msgx]{--mx-them:linear-gradient(180deg,oklch(1 0 0),oklch(.975 .002 260));--mx-them-top:oklch(1 0 0);--mx-them-hi:var(--mx-lift)}
+
+/* rhythm (research-chat.md §4): 20 between turns, 4 between one sender's bubbles */
+:root[data-msgx] #msgs>.m{margin-bottom:20px}
+:root[data-msgx] #msgs>.m.cont{margin-top:-16px}
+
+/* the working words keep the app's soft shimmer (the owner's ask, 21:37): a slow light passing through the
+   line, the same 2.4 s wave as .shimmer in app.css. msgx.js sets each one's phase from the clock, so a redraw
+   at every step never restarts it; the wave just carries on. */
+:root[data-msgx] :is(#msgs,#typing) .shimmer{animation-delay:var(--mx-wave,0s)}
+
+/* yours */
+:root[data-msgx] .m-you .bubble{border:0;border-radius:var(--r-xl);background:var(--mx-you);box-shadow:var(--mx-you-hi);color:var(--mx-you-ink)}
+:root[data-msgx] .m-you:has(+ .m-you.cont) .bubble{border-bottom-right-radius:var(--r-sm)}
+:root[data-msgx] .m-you.cont .bubble{border-top-right-radius:var(--r-sm)}
+:root[data-msgx] .m-you.is-relay .bubble{border:1px dashed var(--g3C);background:transparent;box-shadow:none}
+/* sending: your bubble rises from the composer and settles, calmly */
+:root[data-msgx] .m-you.is-new .bubble{transform-origin:100% 100%;animation:mx-send var(--d-in) var(--ease)}
+@keyframes mx-send{from{opacity:0;transform:translateY(6px) scale(.98)}}
+/* arriving: a short, small settle (180 ms, 4 px); only a message that is really new, never a redraw */
+:root[data-msgx] #msgs>.m-them.is-new{animation:mx-arrive var(--dur-base) var(--ease)}
+@keyframes mx-arrive{from{opacity:0;transform:translateY(4px)}}
+@media (prefers-reduced-motion:reduce){:root[data-msgx] .m-you.is-new .bubble,:root[data-msgx] #msgs>.m-them.is-new{animation:none}}
+
+/* theirs: a round avatar and stone bubbles. Like a one-to-one chat, whoever you're mainly talking to goes
+   unnamed (their mark says who); anyone else who speaks up is named over their first bubble. */
+:root[data-msgx] .m-them{grid-template-columns:28px minmax(0,1fr);gap:8px}
+:root[data-msgx] .m-them>.av{position:relative;z-index:1;width:28px;height:28px;margin-top:8px;border-radius:50%}
+:root[data-msgx] .m-them>.av-gap{height:0;margin:0}
+:root[data-msgx] .av.mx-pm{color:var(--ink-2)}
+:root[data-msgx] .av.mx-pm>svg{width:16px;height:16px}
+:root[data-msgx] .m-them .mh{display:none;min-height:0;padding:0 0 4px 16px}
+/* a named sender's name is the first line inside their bubble (12/16, their colour); their mark centres on it */
+.mx-name{display:none}
+:root[data-msgx] .prose>.mx-name{display:block;margin:0 0 2px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
+:root[data-msgx] .prose>.mx-name+*{margin-top:0}
+:root[data-msgx] .m-them.mx-other:not(.cont)>.av{margin-top:4px}
+/* an agent's turn: its mark centres on whatever comes first, a 28 px work pill (0), or a 44 px row (8):
+   the working bubble, the opened work card's header, or an answer bubble's first line */
+:root[data-msgx] #msgs>.m-turn>.av{margin-top:0}
+:root[data-msgx] #msgs>.m-turn.is-live:not(:has(.turn [aria-expanded="true"],.turn .is-waiting))>.av,:root[data-msgx] #msgs>.m-turn:has(>.mb>.turn>:is(.tb-work.is-open,.tb-answer,.tb-text):first-child)>.av,:root[data-msgx] #msgs>.m-turn:has(>.mb>.turn>.tb:first-child>.tb-h[aria-expanded="true"])>.av{margin-top:8px}
+:root[data-msgx] .mx-coord .prose>.mx-name{color:color-mix(in srgb,var(--violet) 72%,var(--ink-3))}
+/* an open (unboxed) reply has no bubble to hold it, so its name sits above on the same text edge */
+:root[data-msgx-open] .mx-open .prose>.mx-name{margin-bottom:4px}
+:root[data-msgx] .m-them .mh b{font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
+:root[data-msgx] .m-them .mh :is(time,.role,.m-iq){display:none}
+:root[data-msgx] :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text){position:relative;width:fit-content;max-width:min(88%,560px);padding:10px 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi)}
+:root[data-msgx] .m-them:has(+ .m-them.cont)>.mb>.prose{border-bottom-left-radius:var(--r-sm)}
+:root[data-msgx] .m-them.cont>.mb>.prose{border-top-left-radius:var(--r-sm)}
+:root[data-msgx] #msgs>.m-them>.mx-swipe{left:-2px}
+/* the coordinator stepping into a thread: its name in its violet (as a group chat colours each person's
+   name) and a violet ring round its mark. No inset bubble outline: it would stop at the tail's join.
+   The words stay on the same stone, so reading never changes; only who's speaking does. */
+/* its mark's own 1 px border turns violet: one real ring, not a shadow ring drawn outside a grey border */
+:root[data-msgx] .mx-coord>.av{border-color:color-mix(in srgb,var(--violet) 60%,var(--line));box-shadow:none}
+:root[data-msgx-open] .mx-coord.mx-open>.mb>.prose{border-radius:0;box-shadow:inset 2px 0 0 color-mix(in srgb,var(--violet) 45%,transparent)}
+
+/* Open: a long reply (a few paragraphs, a list, code) isn't boxed. It reads on the canvas from the bubbles'
+   text edge, so a grey slab never fills the screen. Short replies stay bubbles. */
+:root[data-msgx-open] .mx-open :is(.mb>.prose,.turn>.tb-answer,.turn>.tb-text){width:auto;max-width:66ch;padding:0 0 0 16px;background:none;box-shadow:none}
+/* A long open reply ends with its action row, so the row is part of the message: 6 above it, 28 for it,
+   then the ordinary rhythm after it, 20 to a new turn (6 + 28 + 20 = 54) or 4 within a run (the next
+   bubble's −16 brings it to 38 = 6 + 28 + 4). The row shows quietly at rest (as under ChatGPT's and
+   Claude's answers), so the space it holds is never an unexplained gap; full strength on hover. */
+:root[data-msgx-open] #msgs>.m.mx-open{margin-bottom:54px}
+:root[data-msgx-open] .m.mx-open .mx-acts.is-foot,.m.mx-nobub .mx-acts.is-foot{opacity:.5;transform:none;pointer-events:auto}
+:root[data-msgx-open] .m.mx-open:hover .mx-acts.is-foot,.m.mx-nobub:hover .mx-acts.is-foot{opacity:1}
+/* a finger has no hover and the row is hidden there, so nothing is held for it */
+@media (hover:none){
+  :root[data-msgx-open] #msgs>.m.mx-open,:root[data-msgx] #msgs>.m.mx-nobub{margin-bottom:20px}
+  :root[data-msgx-open] #msgs>.m.mx-open .mx-acts.is-foot,:root[data-msgx] #msgs>.m.mx-nobub .mx-acts.is-foot{display:none}
+}
+/* unboxed, the first line starts at the top (no 10 px padding), so the mark moves up to stay centred on it:
+   the first line of text (24 px, centre 12 → 12 − 14 = −2), or the name line when named (16 px, centre 8 → −6) */
+:root[data-msgx-open] .m-them.mx-open>.av{margin-top:-2px}
+:root[data-msgx-open] .m-them.mx-open.mx-other:not(.cont)>.av{margin-top:-6px}
+
+/* What the agent did before it answered: one quiet pill on the bubbles' text edge, then the bubble */
+:root[data-msgx] .m-turn>.mb[data-mx-who]::before{content:attr(data-mx-who);display:block;padding:0 0 4px 16px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
+:root[data-msgx] .m-turn .turn{gap:4px;max-width:none}
+:root[data-msgx] .m-turn .turn>.tb>.tb-h{width:fit-content;min-height:28px;margin:0;padding:4px 12px 4px 16px;border-radius:var(--r-pill);font-size:var(--fs-sm);line-height:20px}
+:root[data-msgx] .m-turn .turn>.tb>.tb-h :is(.tb-ht,.tb-wn){font-size:var(--fs-sm)}
+:root[data-msgx] .m-turn .turn>.tb>.tb-h:hover{background:var(--hover-fill)!important}
+:root[data-msgx] .m-turn .turn>.tb:is(.is-open,:has(.tb-rows))>.tb-h{background:var(--hover-fill)!important}
+:root[data-msgx] .m-turn .turn>.tb:not(.tb-answer):not(.tb-text):not(.is-open)>:not(.tb-h){margin-left:16px}
+:root[data-msgx] #msgs>.m-turn+.m-them:not(.mx-other){margin-top:-12px}
+
+/* While the agent works: one calm bubble where its reply will be, as Messages shows someone typing. One
+   line says what it's doing and crossfades when that changes; the time waits quietly at the end. The only
+   moving cue is the blue arc already on the agent's mark (research-chat.md: one working cue, no shimmer,
+   no dots). Its height never changes, so nothing above it moves. Press it for every step. */
+/* and, like a typing bubble, it is always the last thing in the conversation, even when messages arrive
+   while it works; when it ends it stays where it was drawn (msgx.js sets each row's flex order, so this only
+   changes where things are drawn, never the app's order) */
+:root[data-msgx] #msgs{display:flex;flex-direction:column}
+:root[data-msgx] #msgs>.m-turn.is-live{order:1000}
+/* The browser's own scroll anchoring reads the list in its source order, which isn't the drawn order here;
+   when a turn started it pulled the view up 16 px (Design research's trace; gone with this). The app keeps
+   your reading place itself (app.js holdAnchor), so the conversation opts out of the browser's. */
+:root[data-msgx] #msgs>*{overflow-anchor:none}
+/* While it's folded, its place is held at the bubble's 44 px from the very first frame, before msgx.js has
+   drawn the bubble, so a redraw never passes through a different layout (the app's scroll-keeping measures
+   in between). Everything here keys off the app's own markup (.is-live, aria-expanded), not msgx.js. */
+:root[data-msgx] #msgs>.m-turn.is-live:not(:has(.turn [aria-expanded="true"],.turn .is-waiting))>.mb{min-height:44px}
+/* (drawn out of its list order, it must never be the browser's scroll anchor: its redraws would pull the page) */
+:root[data-msgx] .m-turn.is-live:not(:has(.turn [aria-expanded="true"],.turn .is-waiting)) .turn>:is(.tb-work,.tb-think,.tb-act,.tb-narr,.tb-plan){display:none}
+:root[data-msgx] .m-turn.is-live:not(:has(.turn [aria-expanded="true"],.turn .is-waiting)) .turn:not(:has(>:is(.tb-text,.tb-answer,.tb-files,.tb-end))){display:none}
+.mx-work{display:none}
+:root[data-msgx] .m-turn.is-live:not(:has(.turn [aria-expanded="true"],.turn .is-waiting)) .mx-work{position:relative;display:flex;align-items:center;gap:12px;max-width:min(88%,480px);height:44px;padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-md);line-height:20px;text-align:left;overflow:visible;transition:width var(--d-move) var(--ease),background var(--d-hover) var(--ease)}
+:root[data-msgx] .mx-work:hover{background:var(--mx-them-top)}
+.mx-wt{position:relative;flex:1 1 auto;min-width:0;height:20px;overflow:hidden}
+.mx-wl{position:absolute;inset:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* the working bubble's line wears the same shimmer (the wave on the words, the crossfade on the line) */
+:root[data-msgx] .mx-wl:not(.is-out){background:linear-gradient(90deg,var(--ink-3) 0%,var(--ink-3) 35%,var(--ink) 50%,var(--ink-3) 65%,var(--ink-3) 100%) 0 0/250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:mx-shimmer 2.4s linear var(--mx-wave,0s) infinite}
+:root[data-msgx] .mx-wl.is-in{animation:mx-line-in var(--dur-slow) var(--ease) both,mx-shimmer 2.4s linear var(--mx-wave,0s) infinite}
+@keyframes mx-shimmer{from{background-position:100% 0}to{background-position:-150% 0}}
+.mx-wl.is-in{animation:mx-line-in var(--dur-slow) var(--ease) both}
+.mx-wl.is-out{animation:mx-line-out var(--d-out) var(--ease) both}
+@keyframes mx-line-in{from{opacity:0;transform:translateY(6px)}}
+@keyframes mx-line-out{to{opacity:0;transform:translateY(-6px)}}
+.mx-we{flex:none;color:var(--ink-4);font-variant-numeric:tabular-nums}
+.mx-we:empty{display:none}
+/* the working bubble is sized to its line in JS (it grows and shrinks smoothly, never jumps) */
+.mx-wsize{position:absolute;visibility:hidden;white-space:nowrap;pointer-events:none}
+/* the line under a conversation (a coordinator replying) is the same bubble */
+:root[data-msgx] .typing{grid-template-columns:28px minmax(0,1fr);gap:8px;padding-bottom:16px;animation:none}
+:root[data-msgx] .typing>.av{width:28px;height:28px;border-radius:50%;align-self:center}
+:root[data-msgx] .typing .ty-b{width:fit-content;max-width:min(88%,480px);height:44px;align-items:center;gap:12px;padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-md);line-height:20px}
+:root[data-msgx] .typing .ty-b .ty-t{color:var(--ink-2)}
+:root[data-msgx] .typing .ty-b .elapsed:not(:empty)::before{content:none}
+@media (prefers-reduced-motion:reduce){.mx-wl.is-in,.mx-wl.is-out,:root[data-msgx] .mx-wl:not(.is-out){animation:none;color:var(--ink-2);background:none}}
+
+/* Pressed open (while it works, or after), the work is the same bubble grown into a card: its 44 px
+   header row (what it's doing, the time, a chevron to fold it back), then every step as a quiet 32 px row,
+   icons in grey, no rail, no colour. Card 20, rows 8 in, so their hover corners are 20 − 8 = 12. */
+:root[data-msgx] .m-turn .turn>.tb-work.is-open{width:min(88%,560px);padding:0 0 8px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi)}
+/* it opens once; after that only a new step moves, rising 4 px into place; and the arcs keep their turn */
+:root[data-msgx] .m-turn .turn>.tb.mx-opening{animation:mx-up var(--d-in) var(--ease)}
+:root[data-msgx] .m-turn .mx-row-in{animation:mx-row var(--dur-slow) var(--ease) both}
+@keyframes mx-row{from{opacity:0;transform:translateY(4px)}}
+:root[data-msgx] .m-turn .arc::before{animation-delay:var(--mx-phase,0s)}
+@media (prefers-reduced-motion:reduce){:root[data-msgx] .m-turn :is(.mx-opening,.mx-row-in){animation:none}}
+:root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h{width:100%;min-height:44px;margin:0;padding:0 16px;border-radius:var(--r-xl);background:none!important;font-size:var(--fs-md)}
+:root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h :is(.tb-ht,.tb-wn){font-size:var(--fs-md);color:var(--ink-2)}
+:root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-rail{gap:0;margin:0;padding:0 8px;border:0}
+:root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>.tb-h{width:100%;min-height:32px;margin:0;padding:6px 8px;border-radius:calc(var(--r-xl) - 8px);font-size:var(--fs-sm);color:var(--ink-3)}
+:root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>.tb-h:hover{background:var(--hover-fill)!important}
+:root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-hi{display:grid;color:var(--ink-4)}
+:root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-hi svg{width:16px;height:16px}
+:root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>:not(.tb-h){margin-left:32px}
+:root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-rows{margin:0 0 4px 32px}
+/* Tool rows use the same 8 px inset and 12 px hover corners as the fold rows. Retain the nested
+   text column, but remove the base row's asymmetric -6 px overhang on its left edge. */
+:root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-rows>.tb-row>.tb-rh{width:calc(100% + 8px);min-height:32px;margin-left:-8px;padding:6px 8px;border-radius:calc(var(--r-xl) - 8px)}
+:root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb-narr{margin:4px 8px;padding:0 8px;font-size:var(--fs-sm);color:var(--ink-3)}
+
+/* The same card for any single work block pressed open (early in a turn there's no fold yet, only one
+   "Thinking…" or one tool group, and pressing the bubble opens that block itself): the glass card, a 44 px
+   header row, then its lines as quiet rows on the text column, no rail. */
+:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan):has(>.tb-h[aria-expanded="true"]){width:min(88%,560px);padding:0 0 8px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi)}
+:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan):has(>.tb-h[aria-expanded="true"])>.tb-h{width:100%;min-height:44px;margin:0;padding:0 16px;border-radius:var(--r-xl);background:none!important;font-size:var(--fs-md)}
+:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan):has(>.tb-h[aria-expanded="true"])>.tb-h :is(.tb-ht,.tb-n){font-size:var(--fs-md);color:var(--ink-2)}
+:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan):has(>.tb-h[aria-expanded="true"])>:is(.tb-steps,.tb-rows,.tb-plan-l){margin:0;padding:0 16px;border:0;gap:4px;font-size:var(--fs-sm);line-height:20px;color:var(--ink-3)}
+:root[data-msgx] .m-turn .turn>.tb-think:has(>.tb-h[aria-expanded="true"])>.tb-steps>li{padding:4px 0}
+:root[data-msgx] .m-turn .turn>.tb.tb-act:has(>.tb-h[aria-expanded="true"])>.tb-rows{padding:0 8px}
+:root[data-msgx] .m-turn .turn>.tb.tb-act:has(>.tb-h[aria-expanded="true"])>.tb-rows>.tb-row>.tb-rh{min-height:32px;margin-left:0;padding:6px 8px;border-radius:calc(var(--r-xl) - 8px)}
+
+/* a few emoji and nothing else are the message: large, no bubble */
+:root[data-msgx] .mx-emoji :is(.bubble,.prose){padding:0;background:none!important;box-shadow:none;font-size:var(--fs-4xl);line-height:var(--lh-40)}
+:root[data-msgx] .m.mx-emoji :is(.bubble,.prose){box-shadow:none}
+
+/* Tails, as WhatsApp places them: on the first bubble of a run, at its top corner, pointing at the name and
+   mark it belongs to. The corner goes square and the bubble's top edge runs straight on 8 px past its
+   side, curving back into it 16 px down. The tail's paint box is the full height of the body, with the
+   SAME inherited background (including hover), so its gradient has exactly the same origin and length.
+   Only its top 16 px are masked in. The extra 1 px lies inside the body to seal fractional-pixel joins;
+   the visible tail remains 8 px wide. Neither the paint box nor its gradient is flipped. */
+:root[data-msgx-tails] .m-you .bubble.mx-tail{border-top-right-radius:0}
+:root[data-msgx-tails] :is(.prose,.tb-answer,.tb-text,.mx-work).mx-tail.is-them,
+:root[data-msgx-tails] .m-turn.is-live:not(:has(.turn [aria-expanded="true"],.turn .is-waiting)) .mx-work.mx-tail.is-them{border-top-left-radius:0}
+:root[data-msgx-tails] .mx-tail::before{content:"";position:absolute;right:-8px;top:0;width:9px;height:100%;background:inherit;pointer-events:none;--mx-tail-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 16'><path d='M0 0H9C3 3.5 1 9 1 16H0Z'/></svg>");-webkit-mask:var(--mx-tail-mask) 0 0/9px 16px no-repeat;mask:var(--mx-tail-mask) 0 0/9px 16px no-repeat}
+:root[data-msgx-tails] .mx-tail.is-them::before{right:auto;left:-8px;--mx-tail-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 16'><path d='M0 0H9V16H8C8 9 6 3.5 0 0Z'/></svg>")}
+
+/* a thread card or pictures in a message are part of the run: 4 px from its words, like the next bubble */
+:root[data-msgx] .m-them .mb>.prose~:is(.tcard,.mx-stack){margin-top:4px}
+
+/* ── The "thread started" card: a preview, like a link in Messages (owner's pick, 22:09) ──────────────────
+   Beside the glass bubbles the flat card looked overshadowed. Now it's one of the run: the agent's glass,
+   20 corner and soft shadow, with a header band in the thread's own state colour (--st from app.css: blue
+   working, green done, amber needs you, red failed, grey resolved) carrying its progress, so you see
+   where each thread stands at a glance; the caption below carries the title, branch and Open. */
+:root[data-msgx] .m-them .tcard{width:min(88%,560px);border:0;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);overflow:hidden}
+:root[data-msgx] .m-them .tcard:hover{background:var(--mx-them-top)}
+/* An admitted ask is emitted as st-needs, not st-needs_reply. Keep its band amber and full width:
+   the separate Decide button belongs in the footer, not in a column beside the preview. */
+:root[data-msgx] .m-them .tcard.st-needs{--st:var(--warn);--mx-decide-w:72px;flex-direction:column}
+:root[data-msgx] .m-them .tcard.st-needs .tc-foot{min-height:32px}
+:root[data-msgx] .m-them .tcard.st-needs .tc-go{margin-right:calc(var(--mx-decide-w) + 8px)}
+:root[data-msgx] .m-them .tcard.st-needs>.tc-dec{position:absolute;right:12px;bottom:12px;width:var(--mx-decide-w);margin:0;border-radius:calc(var(--r-xl) - 12px)}
+:root[data-msgx] .m-them .tc-open{gap:8px;padding:0 16px 12px;border-radius:var(--r-xl)}
+:root[data-msgx] .m-them .tc-segs{order:-1;margin:0 -16px 4px;width:calc(100% + 32px);min-height:46px;padding:20px 16px;gap:4px;background:color-mix(in srgb,var(--st,var(--ink-4)) 14%,var(--mx-them-top));transition:background var(--d-hover) var(--ease)}
+:root[data-msgx] .m-them .tcard:hover .tc-segs{background:color-mix(in srgb,var(--st,var(--ink-4)) 20%,var(--mx-them-top))}
+:root[data-msgx] .m-them .tc-segs .sg{max-width:none;height:6px;border-radius:3px}
+:root[data-msgx] .m-them .tc-top b{font:600 var(--fs-lg)/24px var(--sans)}
+:root[data-msgx] .m-them .tc-st{color:var(--st,var(--ink-3));font-weight:500}
+
+/* The card's progress, alive (owner 22:21).
+   · Waiting for its first step (no segments yet), the band holds one soft track in its state colour that
+     breathes, with a light drifting along it: something is about to arrive here.
+   · The step in progress carries the same slow light passing through it.
+   · When a step completes, green fills it from the left over its blue (no jump), and only then does the next
+     step light up blue, also from the left: a handoff you can follow.
+   Every loop takes its phase from the clock (msgx.js), so the card's redraws never restart it. */
+:root[data-msgx] .m-them .tc-segs:not(:has(.sg))::before{content:"";display:block;flex:1;height:6px;border-radius:3px;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--st,var(--info)) 75%,transparent),transparent) 0 0/40% 100% no-repeat,color-mix(in srgb,var(--st,var(--info)) 18%,transparent);animation:mx-await 2.4s var(--ease-loop) var(--mx-wave,0s) infinite}
+@keyframes mx-await{0%{background-position:-70% 0,0 0;opacity:.6}50%{opacity:1}100%{background-position:170% 0,0 0;opacity:.6}}
+:root[data-msgx] .m-them .tc-segs .sg.s-doing{background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent) 0 0/45% 100% no-repeat,var(--info);animation:mx-doing 2.4s var(--ease-loop) var(--mx-wave,0s) infinite}
+@keyframes mx-doing{from{background-position:-90% 0,0 0}to{background-position:190% 0,0 0}}
+:root[data-msgx] .m-them .tc-segs .sg.mx-seg-done{position:relative;overflow:hidden;background:var(--info);animation:none}
+:root[data-msgx] .m-them .tc-segs .sg.mx-seg-done::after{content:"";position:absolute;inset:0;background:var(--accent-fill);transform-origin:left center;animation:seg-fill var(--d-land) var(--ease) both}
+:root[data-msgx] .m-them .tc-segs .sg.mx-seg-next{position:relative;overflow:hidden}
+:root[data-msgx] .m-them .tc-segs .sg.mx-seg-next::after{content:"";position:absolute;inset:0;background:var(--g2C);transform-origin:right center;animation:mx-seg-light var(--d-land) var(--ease) var(--d-out) both}
+@keyframes mx-seg-light{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+@media (prefers-reduced-motion:reduce){:root[data-msgx] .m-them .tc-segs :is(.sg.s-doing,.sg.mx-seg-done::after,.sg.mx-seg-next::after),:root[data-msgx] .m-them .tc-segs:not(:has(.sg))::before{animation:none}}
+/* The band already carries progress. A second state glyph indents only the title, breaking the
+   caption's 16 px text column. Keep its words and the band as the two readable state cues. */
+:root[data-msgx] .m-them .tc-top>.g{display:none}
+/* The base card's focus shadow loses to the bubble shadow above. Draw an explicit outer focus ring. */
+:root[data-msgx] .m-them .tcard:has(.tc-open:focus-visible){outline:2px solid var(--accent);outline-offset:3px}
+@media (max-width:760px){
+  /* Give the title its own line on a phone; a fixed-width status must not consume half its width.
+     Long titles can wrap, and branch names cannot push Open past the card's right text edge. */
+  :root[data-msgx] .m-them .tc-top{flex-direction:column;align-items:flex-start;gap:4px}
+  :root[data-msgx] .m-them .tc-top b{width:100%;white-space:normal;overflow-wrap:anywhere}
+  :root[data-msgx] .m-them .tc-foot{flex-wrap:wrap;gap:4px 10px}
+  :root[data-msgx] .m-them .tc-foot>code{flex:0 1 100%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  :root[data-msgx] .m-them .tcard.st-needs>.tc-dec{height:36px}
+}
