@@ -1101,6 +1101,16 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     unmount() { this.hide(); },
     /** Agents at work in this view's scope: the tab's dot and the header button's dot. */
     live: (v) => liveIn(v),
+    /** Who is at work in a view's scope, in plain words, for the panel's Agents frame. */
+    agents(v) {
+      const s = scopeOf(v || M.view);
+      const list = s.kind === "thread" ? [agentOf(s.t)] : agentsIn(s.kind === "project" ? s.pid : null);
+      return list.map((a) => ({ id: a.id, title: a.title, go: a.go, busy: a.busy, waiting: a.waiting, color: a.color, since: a.since,
+        doing: a.waiting ? "waiting for you" : `${verbOf(a)}${a.liveFile ? ` ${a.liveFile.path.split("/").pop()}` : ""}` }));
+    },
+    /** The drawing: "tree" (the diagram) or "graph". */
+    get mode() { return M.mode; },
+    setMode: (m) => tool(m),
     liveIn: (v) => liveIn(v),
 
     // ── standalone (#map), until the panel lands ──

@@ -99,7 +99,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go }) {
         if (x.mark === "read" && !x.live) continue;
         // in a project, a thread's file is its worktree's: opening it reads that copy
         const local = s.base === f.base ? x.path : null;
-        const at = { path: x.path, local, rel: f.base ? `${f.base}/${x.path}` : x.path, mark: x.mark, live: x.live, seq: x.seq, who: t.title, tid: t.id, busy: isBusy(t) };
+        const at = { path: x.path, local, project: s.project, rel: f.base ? `${f.base}/${x.path}` : x.path, mark: x.mark, live: x.live, seq: x.seq, who: t.title, tid: t.id, busy: isBusy(t) };
         const prev = out.get(x.path);
         if (!prev || (at.live && !prev.live) || (at.busy && !prev.busy)) out.set(x.path, at);
       }
@@ -266,7 +266,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go }) {
     /** Once: draw inside the Files tab; the viewer moves in beside the tree. */
     mount(host) {
       F.host = host;
-      host.innerHTML = `<div class="fl"><div class="fl-tree"></div><div class="fl-pv"><div class="fl-bar"></div><div class="fl-view"></div><p class="fl-empty">Pick a file to read it here.</p></div></div>`;
+      host.innerHTML = `<div class="fl"><div class="fl-tree"></div><div class="fl-split" role="separator" aria-orientation="vertical" aria-label="Resize the file tree" title="Drag to resize · double-click for the default" tabindex="0"></div><div class="fl-pv"><div class="fl-bar"></div><div class="fl-view"></div><p class="fl-empty">Pick a file to read it here.</p></div></div>`;
       const vw = document.getElementById("viewer");
       if (vw) host.querySelector(".fl-view").appendChild(vw);
       wire(host);
@@ -287,6 +287,11 @@ export function createFiles({ world, viewer, isBusy, PROJ, go }) {
       paint();
     },
     reveal,
+    /** What agents changed in a view's scope (newest first): {path, rel, project, mark, live, who, tid}. */
+    changes(view) {
+      const s = scopeOf(view, { thread: (id) => world.thread(id), project: (id) => PROJ(id) });
+      return s.project ? touched(s) : [];
+    },
     /** The file came from you (a click), not from the front page: the panel treats it as yours. */
     get auto() { return F.auto; },
   };

@@ -219,3 +219,103 @@ svg.fi-line{color:inherit}
 .fl-who.w-live{color:var(--ink-2)}
 .fl-who.w-live i{background:var(--ink-2)}
 .dg-dot.d-hot{background:var(--ink-3)}
+
+/* ══ the panel as stacked frames (Premiere's panels): a 40 px title bar, then Agents · Map · Changes,
+   each with its own 32 px head and tabs, folding to that head, the 1 px line between two dragged ══ */
+.stg-bar{padding:0 8px 0 var(--pe)}
+.stg-t{flex:1;min-width:0;display:flex;align-items:baseline;gap:8px;white-space:nowrap;overflow:hidden}
+.stg-name{min-width:0;overflow:hidden;text-overflow:ellipsis;font:600 13px/20px var(--sans);color:var(--ink)}
+.stg-sub{flex:none;font:400 12px/16px var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
+.stg-frames{flex:1;min-height:0;display:flex;flex-direction:column}
+.fr{flex:none;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.fr.is-grow{flex:1 1 0;min-height:96px}
+.fr.is-folded{height:auto!important;flex:none}
+.fr.is-folded .fr-b{display:none}
+.fr-h{flex:none;box-sizing:border-box;height:32px;display:flex;align-items:stretch;padding:0 6px 0 4px;border-bottom:1px solid var(--g1C)}
+.fr.is-folded .fr-h{border-bottom:0}
+.fr-tabs{display:flex;align-items:stretch;min-width:0}
+.fr-t{position:relative;display:flex;align-items:center;gap:6px;padding:0 8px;border:0;background:none;font:500 13px/20px var(--sans);color:var(--ink-4);white-space:nowrap}
+button.fr-t:hover{color:var(--ink-2)}
+.fr-t.is-on{color:var(--ink)}
+.fr-t.is-on::after{content:"";position:absolute;left:8px;right:8px;bottom:-1px;height:2px;border-radius:2px 2px 0 0;background:var(--ink-2)}
+.fr.is-folded .fr-t.is-on::after{display:none}
+.fr-n{font:400 12px/16px var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
+.fr-n:empty{display:none}
+.fr-a{margin-left:auto;display:flex;align-items:center;gap:4px}
+.fr-ib{display:grid;place-items:center;width:24px;height:24px;border-radius:6px;color:var(--ink-4);transition:background var(--dur-fast),color var(--dur-fast)}
+.fr-ib:hover{background:var(--g1F);color:var(--ink)}
+.fr-ib svg{width:16px;height:16px;transition:transform .16s var(--glide)}
+.fr.is-folded .fr-fold svg{transform:rotate(-90deg)}
+.fr-b{flex:1;min-height:0;overflow:auto;scrollbar-width:thin;scrollbar-color:var(--g33) transparent}
+.fr-gut{flex:none;position:relative;height:1px;background:var(--g1F);cursor:row-resize;outline:none}
+.fr-gut::after{content:"";position:absolute;left:0;right:0;top:-4px;height:9px}
+.fr-gut:hover,.fr-gut:focus-visible,body.stage-vsizing .fr-gut{background:var(--line-hover)}
+body.stage-vsizing{cursor:row-resize;user-select:none}
+.fr-none{padding:12px var(--pe);font:400 12px/16px var(--sans);color:var(--ink-4)}
+:root[data-theme="light"] .fr-h{border-bottom-color:rgba(0,0,0,.06)}
+
+/* Agents: a 40 px row each: its colour (the Map's cursor), its title and what it's doing, how long */
+.ag-list,.ch-list{list-style:none;margin:0;padding:0}
+.ag-r{box-sizing:border-box;display:grid;grid-template-columns:16px minmax(0,1fr) auto;align-items:center;column-gap:8px;width:100%;height:40px;padding:0 var(--pe);text-align:left;border-bottom:1px solid var(--g1C);transition:background var(--dur-fast)}
+.ag-r:hover{background:var(--g1C)}
+.ag-sw{justify-self:center;width:8px;height:8px;border-radius:2px;background:var(--c)}
+.ag-r.is-idle .ag-sw{opacity:.4}
+.ag-t{min-width:0;display:flex;align-items:baseline;gap:8px;white-space:nowrap;overflow:hidden}
+.ag-t b{min-width:0;flex:0 1 auto;overflow:hidden;text-overflow:ellipsis;font:500 13px/20px var(--sans);color:var(--ink)}
+.ag-t span{flex:0 100 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:400 12px/16px var(--sans);color:var(--ink-4)}
+.ag-tm{font:400 12px/16px var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
+:root[data-theme="light"] .ag-r{border-bottom-color:rgba(0,0,0,.06)}
+:root[data-theme="light"] .ag-r:hover{background:rgba(0,0,0,.03)}
+
+/* Changes: the tree's grid (icon on the edge, the name on the name column), its mark at the end */
+.ch-list{padding:4px 6px 8px}
+.ch-r{box-sizing:border-box;display:flex;align-items:center;gap:8px;width:100%;height:28px;padding:0 6px;border-radius:6px;text-align:left;font:400 13px/20px var(--sans);color:var(--ink-2);transition:background var(--dur-fast)}
+.ch-r:hover{background:var(--g1C);color:var(--ink)}
+.ch-i{flex:none;display:grid;place-items:center;width:16px;height:16px}
+.ch-n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ch-m{flex:none;font:500 12px/16px var(--sans);color:var(--ink-4)}
+.ch-m.m-new{color:var(--accent)}
+.ch-m.m-deleted{color:var(--err)}
+.ch-m.m-live{color:var(--ink-2)}
+:root[data-theme="light"] .ch-r:hover{background:rgba(0,0,0,.04)}
+
+/* the Map inside its frame: the frame's tabs choose Diagram or Graph, the Agents frame says who */
+.fr[data-fr="map"] .fr-b{display:flex;flex-direction:column;overflow:hidden}
+.fr[data-fr="map"] .map-host{flex:1}
+.fr[data-fr="map"] .mp-head,.fr[data-fr="map"] .dg-mode,.fr[data-fr="map"] .dg-sep{display:none}
+.fr[data-fr="map"] .dg{border-top:0}
+
+/* the rail: the panel folded to 40 px beside Files; an icon opens it again */
+.stg-rail{display:none}
+body.stage-rail .stage .stg-bar,body.stage-rail .stage .stg-frames,body.stage-rail .stage .stg-grip{display:none}
+body.stage-rail .stg-rail{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0}
+
+/* ══ Files, a place in the main area: a 40 px head, the tree at a width you drag, the file in the rest ══ */
+.fv{position:absolute;z-index:6;top:0;right:0;bottom:0;left:0;display:flex;flex-direction:column;min-width:0;background:var(--canvas);outline:none;--pe:12px;--pn:36px}
+.fv[hidden]{display:none}
+body.stage-open:not(.panel-open):not(.stage-full):not(.stage-over) .fv{right:var(--sw)}
+body.files-open .dock,body.files-open .tdock,body.files-open .new-below{display:none}
+.fv-h{flex:none;box-sizing:border-box;height:40px;display:flex;align-items:center;gap:8px;padding:0 12px 0 8px;border-bottom:1px solid var(--g1C)}
+.fv-back{display:flex;align-items:center;gap:4px;height:28px;padding:0 8px 0 4px;border-radius:6px;font:500 13px/20px var(--sans);color:var(--ink-3);transition:background var(--dur-fast),color var(--dur-fast)}
+.fv-back:hover{background:var(--g1F);color:var(--ink)}
+.fv-back svg{width:16px;height:16px}
+.fv-sep{width:1px;height:16px;background:var(--g26)}
+.fv-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 13px/20px var(--sans);color:var(--ink)}
+.fv-s{flex:none;font:400 12px/16px var(--sans);color:var(--ink-4)}
+.fv-b{flex:1;min-height:0;display:flex}
+.fv-b>.fl{flex:1;min-width:0}
+.fv .fl.is-wide .fl-tree{width:var(--tw,280px);border-right:0;background:var(--g16)}
+:root[data-theme="light"] .fv .fl.is-wide .fl-tree{background:#FBFBFA}
+.fv .fl-crumb:not(:has(.fl-up)){display:none}
+.fl-split{display:none}
+.fv .fl.is-wide .fl-split{display:block;flex:none;position:relative;width:1px;background:var(--g1F);cursor:col-resize;outline:none}
+.fv .fl.is-wide .fl-split::after{content:"";position:absolute;top:0;bottom:0;left:-4px;width:9px}
+.fv .fl.is-wide .fl-split:hover,.fv .fl.is-wide .fl-split:focus-visible,body.fv-sizing .fl-split{background:var(--line-hover)}
+body.fv-sizing{cursor:col-resize;user-select:none}
+:root[data-theme="light"] .fv-h{border-bottom-color:rgba(0,0,0,.06)}
+.fv{container:fv / inline-size}
+@container fv (min-width:480px){.fl-sz{display:inline}}
+/* the file sits in the Files place now, not in the panel: it fills its column there */
+.fv .viewer{position:relative;inset:auto;z-index:auto;flex:1;width:auto;min-height:0;border:0;border-radius:0;background:transparent;box-shadow:none;animation:none}
+.fv [data-vw-close]{display:none}
+body.viewer-open .fv~.dock{display:none}

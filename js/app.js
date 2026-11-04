@@ -27,7 +27,8 @@ import { createChats } from "./chats.js";
 import { createViewer } from "./viewer.js";
 import { createMap, MAP_ICON } from "./map.js";
 import { createStage } from "./stage.js";
-import { createFiles, FILES_ICON } from "./files.js";
+import { createFiles } from "./files.js";
+import { createFilesView } from "./filesview.js";
 import { createTray, fmtSize, kindOf, typeWord, isLargePaste, pasteLabel, uploadErrorText, FINAL, MAX_FILES } from "./attach.js";
 import { uploadAttachment, attachmentUrl } from "./api.js";
 import { createShells } from "./shells/dock.js";
@@ -179,7 +180,10 @@ const MAP = createMap({ world, viewer: VW, go: (v) => go(v), announce, isBusy, o
 // the panel: one card on the right with tabs (Map, Made, File; later apps), one header button, ⌘\
 // Files: the project's files, and the one place a file opens (js/files.js, design-research/13)
 const FILES = createFiles({ world, viewer: VW, isBusy, PROJ, go: (v) => go(v) });
-const STAGE = createStage({ files: FILES, filesIcon: FILES_ICON, made: REC.made, map: MAP, mapIcon: MAP_ICON, viewer: VW, view: () => S.view, announce, onChange: () => schedule() });
+// Files is a place in the main area (js/filesview.js); the panel is a stack of frames: Agents · Map · Changes
+const FILESV = createFilesView({ files: FILES, viewer: VW, view: () => S.view, PROJ, world, announce, onChange: () => schedule() });
+const STAGE = createStage({ map: MAP, mapIcon: MAP_ICON, files: FILES, filesView: FILESV, viewer: VW, view: () => S.view, go: (v) => go(v), announce, onChange: () => schedule() });
+STAGE.names = (v) => (v.startsWith("t:") ? world.thread(v.slice(2))?.title || "Thread" : v.startsWith("p:") ? PROJ(v.slice(2)) : v === "ws" ? "Workspace" : "Your projects");
 REC.panel = STAGE;
 /** The runtime a thread runs on, fixed for its life (its session's agent). */
 const agentOf = (t) => (t && ((t.session && t.session.agent) || (t.sessionId && world.state.sessions[t.sessionId]?.agent))) || null;
@@ -1885,6 +1889,7 @@ function render() {
   chipRender();
   D.sync();
   MAP.render(v);
+  FILESV.sync();
   STAGE.sync();
   const nd = needs.filter((n) => n.admitted && !n.later).length;
   document.title = Kit.titleFor(nd, "XO Space");
@@ -1921,7 +1926,7 @@ function go(v, { from, focus = false, carry = false } = {}) {
   // an edit or menu in a thread's header belongs to that visit
   S.tEdit = null; S.tMenu = null;
   // the file viewer belongs to the conversation it was opened from
-  if (v !== S.view) VW.close({ restore: false });
+  if (v !== S.view) { VW.close({ restore: false }); FILESV.close({ restore: false }); }
   closeSettings({ restore: false });
   setDrawer(false);
   IQ.close({ restore: false });
@@ -2604,6 +2609,7 @@ addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
     if (RS.open) { runsEscape(); return; }
     if (VW.isOpen) { VW.close(); return; }
+    if (FILESV.isOpen) { FILESV.close(); return; }
     if (!keys.hidden) { closeKeys(); return; }
     if (!setEl.hidden) { closeSettings(); return; }
     if (!allEl.hidden) { closeAll(); return; }
@@ -2628,7 +2634,7 @@ addEventListener("keydown", (e) => {
 const sheetsOpen = () => !jump.hidden || !keys.hidden || !allEl.hidden || RS.open || dlg.open || IQ.isOpen || CH.setupOpen;
 const placeOk = (v) => v === "home" || v === "ws" || v === "chats" || (v.startsWith("p:") && !!world.project(v.slice(2))) || (v.startsWith("t:") && !!world.thread(v.slice(2))) || v.startsWith("c:");
 function canBack() {
-  return sheetsOpen() || VW.isOpen || (STAGE.isOpen && PHONE.matches) || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised || S.view !== "home" || S.trail.length > 0;
+  return sheetsOpen() || VW.isOpen || FILESV.isOpen || (STAGE.isOpen && PHONE.matches) || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised || S.view !== "home" || S.trail.length > 0;
 }
 /** One step back. False when there's nothing left in the app to go back to. */
 function stepBack() {
@@ -2640,6 +2646,7 @@ function stepBack() {
   if (!keys.hidden) { closeKeys(); return true; }
   if (!allEl.hidden) { closeAll(); return true; }
   if (VW.isOpen) { VW.close(); return true; }
+  if (FILESV.isOpen) { FILESV.close(); return true; }
   if (STAGE.isOpen && PHONE.matches) { STAGE.close(); return true; }
   if (!setEl.hidden) { closeSettings(); return true; }
   if (SH.raised && SH.lower()) return true;
@@ -2675,7 +2682,7 @@ document.addEventListener("xo:gesture", armBack);
 // ── touch: gestures for the same moves (js/gestures.js), and the title back to the top ──
 wireGestures({
   phone: () => PHONE.matches,
-  overlay: () => sheetsOpen() || VW.isOpen || (STAGE.isOpen && PHONE.matches) || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised,
+  overlay: () => sheetsOpen() || VW.isOpen || FILESV.isOpen || (STAGE.isOpen && PHONE.matches) || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised,
   view: () => S.view,
   back,
   drawer: (open) => setDrawer(open),
