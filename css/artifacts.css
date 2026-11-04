@@ -34,7 +34,7 @@ body.stage-open:not(.panel-open):not(.stage-full) .arts{padding-right:var(--sw)}
 /* the gallery: cards on the same 16 px rhythm; pictures 160 high */
 .ar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
 .ar-grid .md-it{border-radius:var(--r-lg)}
-.ar-grid .md-th{height:160px;border-radius:var(--r-sm) var(--r-sm) 0 0}
+.ar-grid .md-th{height:160px;border-radius:calc(var(--r-lg) - 1px) calc(var(--r-lg) - 1px) 0 0}
 .ar-grid .md-ic svg,.ar-grid .md-ic svg.fi{width:28px;height:28px}
 .ar-grid .md-meta{gap:4px;padding:12px 12px 4px}
 .ar-grid .md-meta b{font:600 var(--fs-md)/20px var(--sans)}

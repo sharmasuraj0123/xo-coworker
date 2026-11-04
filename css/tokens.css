@@ -55,6 +55,7 @@
      Nested corners are computed, never chosen: inner = outer − inset.
        6 chips and controls · 8 rows · 12 cards and media · 20 bubbles · 22 composer and sheets */
   --r-xs:6px; --r-sm:6px; --r:8px; --r-lg:12px; --r-xl:20px; --r-2xl:22px; --r-pill:999px;
+  --r-3xl:28px;   /* the composer: its corner circles (attach, Send: 36 px, 10 px in) are concentric with it, 18 + 10 */
   --h-ctl:32px; --h-bar:56px; --h-row:36px;
 
   /* Plan F · motion. One curve for everything that responds. Hover engages in 120 ms and releases in

@@ -60,7 +60,9 @@ t("line heights are whole pixels", () => {
 // Radii: the tokens, 50%/999px for round things, and 1–3 px hairline details (segments, carets).
 t("radii come from the scale", () => {
   const vals = literal(/border-radius:\s*([^;]+)/g).flatMap((v) => v.split(/\s+/));
-  const bad = [...new Set(vals.filter((v) => !/^var\(--r(?:-[\w]+)?\)$|^0$|^50%$|^999px$|^[123](?:\.5)?px$|^inherit$/.test(v)))];
+  // a nested corner may be computed from its container's: calc(var(--r-lg) - 1px) is inner = outer − inset
+  const vals2 = literal(/border-radius:\s*([^;]+)/g).flatMap((v) => v.replace(/calc\(var\(--r(?:-[\w]+)?\)\s*-\s*\d+px\)/g, "var(--r)").split(/\s+/));
+  const bad = [...new Set(vals2.filter((v) => !/^var\(--r(?:-[\w]+)?\)$|^0$|^50%$|^999px$|^[123](?:\.5)?px$|^inherit$/.test(v)))];
   assert.deepEqual(bad, [], `radii off the scale: ${bad.join(", ")}`);
 });
 

@@ -679,10 +679,12 @@ button.hr:active{transform:scale(.97)}
 .hr-ev.k-ping{border-color:rgba(var(--accent-rgb),.28)}
 .hr-ev.k-sent .hr-t{color:var(--ink-2)}
 
-.composer{position:relative;display:grid;grid-template-columns:minmax(0,1fr);max-width:720px;margin:0 auto;padding:12px 8px 8px 18px;border:1px solid var(--comp-line);border-radius:var(--r-2xl);background:var(--comp-bg);box-shadow:0 8px 24px var(--comp-shadow),0 1px 0 var(--comp-hi) inset}
+.composer{position:relative;display:grid;grid-template-columns:minmax(0,1fr);max-width:720px;margin:0 auto;padding:12px 9px 9px 9px;border:1px solid var(--comp-line);border-radius:var(--r-3xl);background:var(--comp-bg);box-shadow:0 8px 24px var(--comp-shadow),0 1px 0 var(--comp-hi) inset}
 .composer:hover{border-color:var(--comp-line-hi)}
 .composer:focus-within{border-color:var(--comp-line-hi);box-shadow:0 8px 24px var(--comp-shadow),0 1px 0 var(--comp-hi) inset}
-.composer-field{position:relative}
+/* the composer's corners hold two circles, attach and Send, 36 px and 10 px in from its edge, so the
+   composer's 28 px corner is concentric with them (18 + 10). The text starts on the paperclip's glyph. */
+.composer-field{position:relative;padding-left:10px}
 /* #14: no scrollbar; it grows with what you write */
 .composer textarea{display:block;width:100%;min-height:28px;max-height:200px;padding:2px 8px 6px 0;resize:none;border:0;outline:0;background:transparent;font-size:16px;line-height:24px;letter-spacing:0;caret-color:var(--accent);overflow:hidden;scrollbar-width:none}
 .composer textarea.is-capped{overflow-y:auto}
@@ -723,7 +725,7 @@ body.panel-open .tdock{display:none}
 body.panel-open .main:has(#tdock > .card)::before{display:none}
 
 /* ── buttons ─────────────────────────────────────────────────────────────── */
-.b{position:relative;display:flex;align-items:center;justify-content:center;gap:10px;height:46px;padding:0 16px;border-radius:var(--r-lg);border:1px solid var(--g2E);background:var(--g23);color:var(--ink);font:600 var(--fs-lg)/1 var(--sans);overflow:hidden;user-select:none;-webkit-user-select:none;
+.b{position:relative;display:flex;align-items:center;justify-content:center;gap:10px;height:46px;padding:0 16px;border-radius:var(--r-sm);border:1px solid var(--g2E);background:var(--g23);color:var(--ink);font:600 var(--fs-lg)/1 var(--sans);overflow:hidden;user-select:none;-webkit-user-select:none;
   transition:transform 80ms var(--ease),background-color var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease)}
 .b:hover{background:var(--g2A);border-color:var(--g3C)}
 .b:active,.b.pressed{transform:scale(.97);transition-duration:50ms}
@@ -773,7 +775,7 @@ body.panel-open .main:has(#tdock > .card)::before{display:none}
 @keyframes nope{20%{transform:translateX(-4px)}40%{transform:translateX(4px)}60%{transform:translateX(-2px)}80%{transform:translateX(2px)}}
 
 .c-note-l{display:block;margin-bottom:8px;font-size:var(--fs-base);color:var(--ink-3)}
-.c-note textarea{display:block;width:100%;resize:none;padding:11px 14px;border-radius:var(--r-lg);border:1px solid var(--g3A);background:var(--g14);font-size:var(--fs-lg);line-height:24px;outline:none;scrollbar-width:none}
+.c-note textarea{display:block;width:100%;resize:none;padding:11px 14px;border-radius:var(--r-sm);border:1px solid var(--g3A);background:var(--g14);font-size:var(--fs-lg);line-height:24px;outline:none;scrollbar-width:none}
 .c-note textarea:focus{border-color:var(--g4A);box-shadow:0 0 0 4px rgba(var(--accent-rgb),.07)}
 .c-note-row{display:flex;gap:8px;margin-top:10px}
 
@@ -889,7 +891,9 @@ body.panel-open .dock{right:calc(var(--pw) + 24px)}
 .fm-w time{font-weight:400;color:var(--ink-4)}
 .fm-t{font-size:var(--fs-md);line-height:20px;color:var(--ink-2);overflow-wrap:anywhere}
 
-.c-act{flex:none;padding:12px 20px 14px;border-top:1px solid var(--g26);background:inherit}
+/* nested corners are concentric (inner = outer − inset, measured from the card's outer edge): the panel's
+   card is 20 with a 1 px edge, so its 6 px controls sit 14 in: 13 of padding. The docked card (22) sets 15. */
+.c-act{flex:none;padding:12px 13px 13px;border-top:1px solid var(--g26);background:inherit}
 .c-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .c-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:10px}
 .card-in.noting .c-btns,.card-in.noting .c-opts,.card-in.noting .c-low,.card-in.noting .teach-body{display:none}
@@ -923,7 +927,7 @@ body.panel-open .dock{right:calc(var(--pw) + 24px)}
 .card.is-dock .c-body{padding:16px 22px 6px}
 .card.is-dock .c-h{font-size:var(--fs-2xl);margin-top:6px}
 .card.is-dock .c-where{display:none}
-.card.is-dock .c-act{padding:12px 16px 14px}
+.card.is-dock .c-act{padding:12px 15px 15px}
 .card.is-dock .c-opts{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
 .card.is-dock .dt{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)}
 .card.is-dock .dis{margin-top:12px}
@@ -1104,7 +1108,7 @@ button.tp-done-u:hover{color:var(--ink)}
 .iq-now .iq-dot{margin:0 6px 1px 0;vertical-align:middle}
 .iq-sec{margin-top:12px;padding-top:12px;border-top:1px solid var(--pop-line)}
 .iq-route{display:flex;padding:3px;border-radius:var(--r-sm);background:var(--bg-3)}
-.iq-route button{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:30px;border-radius:var(--r-sm);color:var(--ink-3);font:500 var(--fs-base)/1 var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.iq-route button{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:30px;border-radius:calc(var(--r-sm) - 3px);color:var(--ink-3);font:500 var(--fs-base)/1 var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .iq-route button svg{width:13px;height:13px}
 .iq-route button small{font-weight:500;font-size:var(--fs-sm);color:var(--ink-4)}
 .iq-route button[aria-checked="true"]{background:var(--pop-bg);color:var(--ink);box-shadow:0 0 0 1px var(--pop-line)}
@@ -1386,7 +1390,7 @@ button.kr-r:hover{background:var(--bg-3);color:var(--ink)}
   .herald{left:10px;right:10px;bottom:calc(100% - 14px)}
   .composer{box-shadow:0 2px 10px var(--comp-shadow),0 1px 0 var(--comp-hi) inset}
   .dock>.herald,.dock>.tdock{margin-left:0;margin-right:0}
-  .composer{padding:12px 8px 8px 14px;border-radius:var(--r-xl)}
+  .composer{padding:12px 9px 9px 9px;border-radius:var(--r-3xl)}
   .target .muted{display:none}
   .bubble{max-width:86%}
   .m-them,.typing{grid-template-columns:26px minmax(0,1fr);gap:10px}
@@ -1918,8 +1922,8 @@ body.viewer-open .tdock{display:none}
 
 /* ── files on a message (hub #30): the paperclip, the chips on the unsent message, the drop veil,
    and the cards under a sent message (the shared-file card, with a thumbnail for an image) ── */
-.attach{flex:none;display:grid;place-items:center;width:32px;height:32px;margin-left:-8px;border-radius:var(--r-sm);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.attach:hover{background:var(--bg-3);color:var(--ink-2)}
+.attach{flex:none;display:grid;place-items:center;width:36px;height:36px;margin-left:0;border-radius:50%;color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.attach:hover{background:var(--hover-fill);color:var(--ink-2)}
 .attach svg{width:17px;height:17px}
 .attach:not([hidden])+.target{margin-left:0}
 .att-tray{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px -6px;padding:0;list-style:none}
@@ -2175,7 +2179,7 @@ i.t-amber{background:var(--warn)}i.t-blue{background:var(--info)}i.t-red{backgro
 .md-from:hover{background:var(--bg-3);color:var(--ink)}
 .md-from svg{flex:none;width:12px;height:12px}
 .md-from span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.md-pin{position:absolute;top:8px;right:8px;display:grid;place-items:center;width:28px;height:28px;border-radius:var(--r-sm);background:rgb(20 20 20 / .78);color:var(--ink-3);opacity:0;transition:opacity var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.md-pin{position:absolute;top:5px;right:5px;display:grid;place-items:center;width:28px;height:28px;border-radius:var(--r-sm);background:rgb(20 20 20 / .78);color:var(--ink-3);opacity:0;transition:opacity var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .md-pin svg{width:14px;height:14px}
 .md-it:hover .md-pin,.md-pin:focus-visible,.md-it.is-pin .md-pin{opacity:1}
 .md-pin:hover{color:var(--ink)}

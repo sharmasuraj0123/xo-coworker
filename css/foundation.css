@@ -118,7 +118,7 @@ body.stage-full .stg-grip{display:none}
 /* ── 2 · one focus ring: never clipped, never changes a thing's shape ────────────────────────────── */
 :is(.fl-r,.md-open,.nw,.shd-tab,.ar,.stg-tab,.syl-ln,.then-i,.jump-list li,.iq-row,.set-nav button,.tb-h,.md-from,.md-pin):focus-visible{outline-offset:-2px}
 .md-it{overflow:visible}
-.md-th{border-radius:var(--r-lg) var(--r-lg) 0 0}
+.md-th{border-radius:calc(var(--r-lg) - 1px) calc(var(--r-lg) - 1px) 0 0}
 .now{padding:3px}
 .scroller .wsh-home:focus-visible{outline-offset:1px}
 
