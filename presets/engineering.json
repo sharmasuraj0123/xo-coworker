@@ -1,0 +1,40 @@
+{
+  "preset": 1,
+  "id": "engineering",
+  "name": "Build software",
+  "summary": "Branches, runtimes, the commands agents ran, and Shells a key away.",
+  "apps": {
+    "space.xo.diff": { "version": "^0.3", "enable": "all-projects" },
+    "space.xo.design": { "version": "^0.4", "enable": "when-asked" }
+  },
+  "layout": {
+    "artifacts": ["diff", "markdown", "design"],
+    "canvas": "xo:conversation",
+    "panel": [
+      { "tabs": ["xo:needs-you"] },
+      { "tabs": ["space.xo.diff:changes", "xo:files"], "size": "tall" }
+    ],
+    "dock": ["xo:shells"],
+    "commands": ["space.xo.diff:review", "space.xo.design:build"]
+  },
+  "density": "compact",
+  "words": { "thread": "thread" },
+  "surfaces": {
+    "xo:thread/work": { "mode": "raw" },
+    "xo:thread/branch": { "on": true },
+    "xo:thread/runtime": { "on": true },
+    "xo:thread/subagents": { "on": true },
+    "xo:thread/hops": { "on": true },
+    "xo:dock/shells": { "on": true },
+    "xo:panel/agents": { "on": true },
+    "xo:panel/map": { "on": true },
+    "xo:panel/changes": { "on": true },
+    "xo:composer/intel": { "mode": "full" }
+  },
+  "defaults": {
+    "model": "auto",
+    "effort": "deep",
+    "newProject": { "folders": ["src/", "docs/"] },
+    "skills": ["space.xo.diff:review-before-merge"]
+  }
+}

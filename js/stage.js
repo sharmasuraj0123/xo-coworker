@@ -36,9 +36,11 @@ const ago = (ms) => { if (!Number.isFinite(ms)) return ""; const s = Math.max(0,
 /**
  * map: the Map (mount, show, hide, render, live, agents, mode, setMode), mapIcon. files: js/files.js
  * (changes). filesView: js/filesview.js (open, isOpen). viewer: the file viewer. view(): the view on
- * screen. go(view): navigate. onChange(): the app re-renders (header buttons).
+ * screen. go(view): navigate. onChange(): the app re-renders (header buttons). frames(): the frames the
+ * person's shape keeps (xo:panel/*), of "agents", "map", "changes"; the order stays the panel's own,
+ * since each line between two frames sizes a known pair.
  */
-export function createStage({ map, mapIcon, files, filesView, viewer, view, go, announce, onChange }) {
+export function createStage({ map, mapIcon, files, filesView, viewer, view, go, announce, onChange, frames = () => ["agents", "map", "changes"] }) {
   const saved = sget(KEY);
   const fr = { agents: { h: null, folded: false }, map: { folded: false }, changes: { h: 200, folded: false }, ...sget(FR_KEY) };
   const S = { open: false, full: false, returnTo: null, railOff: false, rail: false, filesWas: false, yielded: false, h: { agents: "", changes: "", head: "" } };
@@ -67,6 +69,16 @@ export function createStage({ map, mapIcon, files, filesView, viewer, view, go, 
 
   // ── the frames: folded or open, their heights ───────────────────────────────
   function layout() {
+    // the shape's frames: one it doesn't keep is gone, with its rail icon and the line beside it
+    const keep = new Set(frames());
+    if (!keep.size) keep.add("agents");
+    const on = (id) => keep.has(id);
+    for (const id of ["agents", "map", "changes"]) {
+      el.querySelector(`[data-fr="${id}"]`).hidden = !on(id);
+      el.querySelector(`[data-rail="${id}"]`).hidden = !on(id);
+    }
+    el.querySelector('[data-gut="agents|map"]').hidden = !(on("agents") && (on("map") || on("changes")));
+    el.querySelector('[data-gut="map|changes"]').hidden = !(on("map") && on("changes"));
     for (const id of ["agents", "map", "changes"]) {
       const f = el.querySelector(`[data-fr="${id}"]`);
       f.classList.toggle("is-folded", !!fr[id].folded);
@@ -76,10 +88,12 @@ export function createStage({ map, mapIcon, files, filesView, viewer, view, go, 
     const a = el.querySelector('[data-fr="agents"]'), c = el.querySelector('[data-fr="changes"]'), m = el.querySelector('[data-fr="map"]');
     a.style.height = fr.agents.folded ? "" : fr.agents.h ? `${fr.agents.h}px` : "";
     c.style.height = fr.changes.folded ? "" : `${fr.changes.h}px`;
-    // when the Map folds, Changes takes the room that's left
-    m.classList.toggle("is-grow", !fr.map.folded);
-    c.classList.toggle("is-grow", !!fr.map.folded && !fr.changes.folded);
-    if (fr.map.folded || !S.open || S.rail) map.hide(); else map.show(view());
+    // when the Map folds (or the shape has none), Changes takes the room that's left; with neither, Agents
+    const grow = ["map", "changes", "agents"].find((id) => on(id) && !fr[id].folded);
+    m.classList.toggle("is-grow", grow === "map");
+    c.classList.toggle("is-grow", grow === "changes");
+    a.classList.toggle("is-grow", grow === "agents" && !on("map") && !on("changes"));
+    if (fr.map.folded || !on("map") || !S.open || S.rail) map.hide(); else map.show(view());
   }
 
   // ── what the frames say ─────────────────────────────────────────────────────
@@ -290,6 +304,8 @@ export function createStage({ map, mapIcon, files, filesView, viewer, view, go, 
   return {
     get isOpen() { return S.open; },
     open: () => open(), close, toggle, sync,
+    /** The shape changed: the frames it keeps, at once. */
+    reshape() { layout(); paint(); },
     /** The place's name for the title bar (app.js knows the names). */
     set names(fn) { nameOf = fn; },
     /** Is this element inside the panel (so the app's Esc leaves it alone)? */

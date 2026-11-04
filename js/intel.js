@@ -22,8 +22,10 @@ const EFFORT_WORD = { low: "Quick", medium: "Balanced", high: "Deep", xhigh: "De
 const PIPS = { low: 1, medium: 2, high: 3, xhigh: 4, max: 5 };
 const dots = (e) => (e ? "·".repeat(Math.min(3, PIPS[e] || 2)) + (PIPS[e] > 3 ? "+" : "") : "");
 
-export function createIntel({ world, PROJ, onChange, record, onMoved }) {
-  const P = { open: false, session: null, anchor: null, returnTo: null, models: null, err: null, busy: false, rt: null, mv: null };
+// simple(): the person's shape asks for the simple choice (xo:composer/intel "simple"): the chip opens
+// Auto · Deep first, and "More options" shows everything below, unchanged.
+export function createIntel({ world, PROJ, onChange, record, onMoved, simple = () => false }) {
+  const P = { open: false, session: null, anchor: null, returnTo: null, models: null, err: null, busy: false, rt: null, mv: null, full: false };
   const movedHere = new Set(); // threads this tab continued elsewhere (their stream frame needs no second word)
   const catalogs = new Map(); // runtime → models
   const pop = document.getElementById("iq-pop");
@@ -86,6 +88,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved }) {
   function chipHtml(s, phone) {
     warm(s);
     const c = current(s);
+    if (simple() && !phone) { const w = simpleOf(s, c); return `<span class="iq-l"><span class="${w === "auto" ? "iq-a" : "iq-t"}">${esc(w === "auto" ? "Auto" : w === "deep" ? "Deep" : nameOf(c.model) || "Pinned")}</span></span>`; }
     if (phone) return `<span class="iq-g" aria-hidden="true">${c.pinned ? `<i class="iq-dot"></i>` : "◇"}</span><span class="iq-p">${esc(dots(c.effort))}</span>`;
     // three parts, each one flex item: the pin's dot, one label (its separators inside it), the effort
     const { dot, words, effort } = chipParts(s, c);
@@ -168,8 +171,40 @@ export function createIntel({ world, PROJ, onChange, record, onMoved }) {
   // one row per family's default (claude: opus, fable, sonnet, haiku), then models in no family
   const shown = (models) => (models || []).filter((m) => !m.is_default && (m.family_default || !m.family));
 
+  // ── the simple choice: Auto or Deep ─────────────────────────────────────────
+  const DEEP = new Set(["high", "xhigh", "max"]);
+  const isDefaultModel = (id) => !id || id === "default" || [...catalogs.values()].some((l) => l.some((m) => m.id === id && m.is_default));
+  /** Which of the two a conversation is on: "auto", "deep", or null (a model picked in More options). */
+  function simpleOf(s, c = current(s)) {
+    if (c.pinned && DEEP.has(c.effort)) return "deep";
+    return !c.pinned || isDefaultModel(c.model) ? "auto" : null;
+  }
+  /** Deep: the model it runs on (else the default) thinking longer; the first model that can, if that one can't. */
+  function deepPick(s) {
+    const c = current(s);
+    const cands = [modelOf(c.model), (P.models || []).find((m) => m.is_default), ...shown(P.models)].filter(Boolean);
+    for (const m of cands) { const ef = effortsOf(m, s); if (ef.includes("high")) return { model: m.id, effort: "high" }; }
+    return null;
+  }
+  function renderSimple() {
+    const s = P.session, c = current(s), on = simpleOf(s, c);
+    const deep = P.models ? deepPick(s) : null;
+    const line = on === "deep" ? "Thinks longer before it answers: slower, for the hard problems."
+      : on === "auto" ? "XO picks the model and how long it thinks, turn by turn."
+      : `Runs ${esc(nameOf(c.model) || "a model you picked")}${c.effort ? ` · ${esc(EFFORT_WORD[c.effort] || c.effort)}` : ""}, set in More options.`;
+    const why = !P.models ? (P.err ? esc(P.err) : `<i class="spin" aria-hidden="true"></i> Reading the models…`) : deep ? "" : "None of these models can think longer.";
+    pop.innerHTML = `<header class="iq-h"><h2 id="iq-hh">Intelligence <span>for ${esc(scopeWord(s))}</span></h2></header>` +
+      `<div class="iq-sec"><div class="iq-route iq-simple" role="radiogroup" aria-labelledby="iq-hh">` +
+      `<button type="button" role="radio" data-lsimple="auto" aria-checked="${on === "auto"}">Auto</button>` +
+      `<button type="button" role="radio" data-lsimple="deep" aria-checked="${on === "deep"}"${deep ? "" : ` aria-disabled="true"`}>Deep</button></div>` +
+      `<p class="iq-rl">${line}</p>${why && on !== "deep" ? `<p class="iq-rl is-why">${why}</p>` : ""}</div>` +
+      `<footer class="iq-f"><span>Applies from its next turn.</span><button type="button" class="iq-back" data-lfull aria-expanded="false">More options</button></footer>`;
+    place();
+  }
+
   function render() {
     if (!P.open) return;
+    if (simple() && !P.full && !moving(P.session)) { renderSimple(); return; }
     const s = P.session, kind = kindOf(s), c = current(s);
     const models = P.models;
     let html = `<header class="iq-h"><h2 id="iq-hh">Intelligence <span>for ${esc(scopeWord(s))}</span></h2></header>`;
@@ -249,7 +284,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved }) {
   }
   /** opts.rt: open a thread's picker looking at continuing on that runtime (the thread menu's way in). */
   async function open(s, anchor, opts = {}) {
-    P.open = true; P.session = s; P.anchor = anchor; P.returnTo = document.activeElement; P.err = null; P.models = null; P.busy = false; P.rt = null; P.mv = null;
+    P.open = true; P.session = s; P.anchor = anchor; P.returnTo = document.activeElement; P.err = null; P.models = null; P.busy = false; P.rt = null; P.mv = null; P.full = false;
     pop.hidden = false; pop.classList.remove("is-out");
     if (opts.rt) lookAt(opts.rt); else render();
     anchor?.setAttribute("aria-expanded", "true");
@@ -367,6 +402,16 @@ export function createIntel({ world, PROJ, onChange, record, onMoved }) {
   }
 
   pop.addEventListener("click", (e) => {
+    const sm = e.target.closest("[data-lsimple]");
+    if (sm) {
+      if (sm.getAttribute("aria-disabled") === "true" || sm.getAttribute("aria-checked") === "true") return;
+      const s = P.session;
+      if (sm.dataset.lsimple === "auto") { close(); toAuto(s); return; }
+      const d = deepPick(s);
+      if (d) { close(); pin(s, d.model, d.effort); }
+      return;
+    }
+    if (e.target.closest("[data-lfull]")) { P.full = true; render(); pop.focus({ preventScroll: true }); return; }
     const rt = e.target.closest("[data-lrt]");
     if (rt) {
       if (rt.getAttribute("aria-disabled") === "true" || rt.disabled) return;
