@@ -318,7 +318,7 @@ button:disabled{cursor:default}
 .ti-dim{color:var(--ink-3)}
 .ti-lev{display:inline-flex;align-items:center;gap:5px;font-size:var(--fs-sm);color:var(--ink-3);white-space:nowrap;font-variant-numeric:tabular-nums}
 .ti-lev>svg{width:12px;height:12px;color:var(--accent)}
-.ti-p{font-size:var(--fs-sm);color:var(--ink-4);white-space:nowrap;min-width:84px;text-align:right}
+.ti-p{display:inline-flex;align-items:center;justify-content:flex-end;gap:8px;font-size:var(--fs-sm);color:var(--ink-4);white-space:nowrap;min-width:84px;text-align:right}
 .then-foot{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .then-foot.solo{margin-top:22px}
 .hm-quiet{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--g26);color:var(--ink-2);font-size:var(--fs-base);transition:background var(--dur-fast),border-color var(--dur-fast),transform 90ms var(--press)}
@@ -361,6 +361,10 @@ body.panel-open .conv{--rp:calc(var(--pw) + 28px)}
 .tw-t b{font:600 15px/1.25 var(--sans);letter-spacing:-.01em;color:var(--ink)}
 .pj-s{display:block;font-size:var(--fs-base);color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pj-s .is-amber{color:var(--warn);font-weight:600}
+/* a chat whose own coordinator asks: "Needs you" leads the count line, in the thread badge's amber and diamond */
+.pj-need{display:inline-flex;align-items:center;gap:6px;height:20px;padding:0;vertical-align:top;font:600 var(--fs-base)/20px var(--sans);color:var(--warn);border-radius:4px;white-space:nowrap;transition:color var(--dur-fast)}
+.pj-need .pj-k{color:inherit;font-weight:600}
+.pj-need:hover{color:color-mix(in srgb,var(--warn) 78%,var(--ink))}
 .pj-home{max-width:100%;padding:0;text-align:left;border-radius:4px;transition:color var(--dur-fast)}
 .pj-home:hover{color:var(--ink)}
 .wsh-home{padding:0;color:var(--ink-2);text-decoration:underline;text-decoration-color:var(--g45);text-underline-offset:3px}
