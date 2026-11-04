@@ -26,6 +26,27 @@ const bytes = (s) => new TextEncoder().encode(s).length;
 const extOf = (name) => (/\.([\w-]+)$/.exec(String(name || "")) || [])[1] || "";
 const KIND_WORD = { markdown: "Markdown", html: "HTML", text: "Text", code: "Code", json: "JSON" };
 
+/**
+ * Highlighted HTML (flat <span class="tk-…">…</span> runs, as js/highlight.js makes them) cut into
+ * lines: a run that crosses a line ends at the line's end and starts again on the next one.
+ */
+export function splitHighlighted(html) {
+  const out = [];
+  let line = "", open = null;
+  for (const part of String(html).split(/(<span class="[^"]*">|<\/span>)/)) {
+    if (!part) continue;
+    if (part.startsWith("<span")) { open = part; line += part; continue; }
+    if (part === "</span>") { open = null; line += part; continue; }
+    const bits = part.split("\n");
+    for (let i = 0; i < bits.length; i++) {
+      if (i > 0) { out.push(open ? line + "</span>" : line); line = open || ""; }
+      line += bits[i];
+    }
+  }
+  out.push(line);
+  return out;
+}
+
 export function createViewer({ announce, onChange, tabs }) {
   const el = $("#viewer");
   const V = { open: false, parked: false, file: null, data: null, error: null, loading: false, mode: "preview", returnTo: null, gen: 0, copied: false, dims: null, saving: false, saveError: null };
@@ -76,11 +97,16 @@ export function createViewer({ announce, onChange, tabs }) {
       `<button type="button" class="vw-x" data-vw-close aria-label="Close the file" title="Close (Esc)">${ICON.close}</button></div></header>`;
   }
 
+  /**
+   * Code, one row per line: its number, then the line, wrapped when it's longer than the panel is wide
+   * (with a hanging indent), so nothing is ever cut off or hidden behind a scrollbar at the bottom.
+   */
   function codeHtml(text, lang) {
     const hl = highlight(text, lang);
-    const n = text.split("\n").length;
-    const nums = Array.from({ length: n }, (_, i) => i + 1).join("\n");
-    return `<div class="vw-code"><pre class="vw-ln" aria-hidden="true">${nums}</pre><pre class="vw-src"><code${hl != null ? ' class="hl"' : ""}>${hl ?? esc(text)}</code></pre></div>`;
+    const lines = hl != null ? splitHighlighted(hl) : text.split("\n").map(esc);
+    const w = String(lines.length).length;
+    return `<div class="vw-code${hl != null ? " hl" : ""}" style="--lnw:${w}ch">` +
+      lines.map((l, i) => `<div class="vw-l"><span class="vw-n" aria-hidden="true">${i + 1}</span><code>${l || " "}</code></div>`).join("") + `</div>`;
   }
 
   function body() {

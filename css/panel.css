@@ -159,3 +159,18 @@ svg.fi{flex:none;display:block}
   .vw-seg button{padding:0 8px}
 }
 @container flpv (max-width:400px){.vw-seg{display:none}}
+
+/* ── code in the viewer: one row per line, its number beside it; a long line wraps (with a hanging
+   indent) instead of running off the panel's edge, so nothing is ever cut off ──────────────────── */
+.vw-code{display:block;min-height:100%;padding:12px 0 40px;font:400 12.5px/1.65 var(--mono)}
+.vw-l{display:grid;grid-template-columns:calc(var(--lnw, 3ch) + 26px) minmax(0,1fr)}
+.vw-n{padding:0 12px 0 14px;text-align:right;color:var(--ink-4);opacity:.7;border-right:1px solid var(--g1E);user-select:none;-webkit-user-select:none;font-variant-numeric:tabular-nums}
+.vw-l code{display:block;min-width:0;padding:0 16px 0 calc(14px + 2ch);text-indent:-2ch;white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;background:none;border:0;border-radius:0;color:var(--ink-2)}
+.vw-l:hover{background:color-mix(in srgb,var(--ink) 3%,transparent)}
+:root[data-theme="light"] .vw-n{border-right-color:rgba(0,0,0,.08)}
+
+/* file icons are quiet line glyphs in the text's colour (Lucide, js/vendor/lucide) */
+.fl-i{color:var(--ink-3)}
+.fl-r.is-dir .fl-i{color:var(--ink-3)}
+.md-ic{color:var(--ink-3)}
+.dg-n .dg-ic svg.fi{width:15px;height:15px}
