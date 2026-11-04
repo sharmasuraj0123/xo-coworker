@@ -236,12 +236,16 @@ body.files-open .mx-down{display:none}
    while it works; when it ends it stays where it was drawn (msgx.js sets each row's flex order, so this only
    changes where things are drawn, never the app's order) */
 :root[data-msgx] #msgs{display:flex;flex-direction:column}
-:root[data-msgx] #msgs>.m-turn.mx-live{overflow-anchor:none}
+:root[data-msgx] #msgs>.m-turn.is-live{order:1000;overflow-anchor:none}
+/* While it's folded, its place is held at the bubble's 44 px from the very first frame, before msgx.js has
+   drawn the bubble, so a redraw never passes through a different layout (the app's scroll-keeping measures
+   in between). Everything here keys off the app's own markup (.is-live, aria-expanded), not msgx.js. */
+:root[data-msgx] #msgs>.m-turn.is-live:not(:has(.turn [aria-expanded="true"],.turn .is-waiting))>.mb{min-height:44px}
 /* (drawn out of its list order, it must never be the browser's scroll anchor: its redraws would pull the page) */
-:root[data-msgx] .m-turn.mx-live:not(.mx-expanded) .turn>:is(.tb-work,.tb-think,.tb-act,.tb-narr,.tb-plan){display:none}
-:root[data-msgx] .m-turn.mx-live:not(.mx-expanded) .turn:not(:has(>:is(.tb-text,.tb-answer,.tb-files,.tb-end))){display:none}
+:root[data-msgx] .m-turn.is-live:not(:has(.turn [aria-expanded="true"],.turn .is-waiting)) .turn>:is(.tb-work,.tb-think,.tb-act,.tb-narr,.tb-plan){display:none}
+:root[data-msgx] .m-turn.is-live:not(:has(.turn [aria-expanded="true"],.turn .is-waiting)) .turn:not(:has(>:is(.tb-text,.tb-answer,.tb-files,.tb-end))){display:none}
 .mx-work{display:none}
-:root[data-msgx] .m-turn.mx-live:not(.mx-expanded) .mx-work{position:relative;display:flex;align-items:center;gap:12px;max-width:min(88%,480px);height:44px;padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-md);line-height:20px;text-align:left;overflow:visible;transition:width var(--d-move) var(--ease),background var(--d-hover) var(--ease)}
+:root[data-msgx] .m-turn.is-live:not(:has(.turn [aria-expanded="true"],.turn .is-waiting)) .mx-work{position:relative;display:flex;align-items:center;gap:12px;max-width:min(88%,480px);height:44px;padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-md);line-height:20px;text-align:left;overflow:visible;transition:width var(--d-move) var(--ease),background var(--d-hover) var(--ease)}
 :root[data-msgx] .mx-work:hover{background:var(--mx-them-top)}
 .mx-wt{position:relative;flex:1 1 auto;min-width:0;height:20px;overflow:hidden}
 .mx-wl{position:absolute;inset:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -298,7 +302,7 @@ body.files-open .mx-down{display:none}
    the visible tail remains 8 px wide. Neither the paint box nor its gradient is flipped. */
 :root[data-msgx-tails] .m-you .bubble.mx-tail{border-top-right-radius:0}
 :root[data-msgx-tails] :is(.prose,.tb-answer,.tb-text,.mx-work).mx-tail.is-them,
-:root[data-msgx-tails] .m-turn.mx-live:not(.mx-expanded) .mx-work.mx-tail.is-them{border-top-left-radius:0}
+:root[data-msgx-tails] .m-turn.is-live:not(:has(.turn [aria-expanded="true"],.turn .is-waiting)) .mx-work.mx-tail.is-them{border-top-left-radius:0}
 :root[data-msgx-tails] .mx-tail::before{content:"";position:absolute;right:-8px;top:0;width:9px;height:100%;background:inherit;pointer-events:none;--mx-tail-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 16'><path d='M0 0H9C3 3.5 1 9 1 16H0Z'/></svg>");-webkit-mask:var(--mx-tail-mask) 0 0/9px 16px no-repeat;mask:var(--mx-tail-mask) 0 0/9px 16px no-repeat}
 :root[data-msgx-tails] .mx-tail.is-them::before{right:auto;left:-8px;--mx-tail-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 16'><path d='M0 0H9V16H8C8 9 6 3.5 0 0Z'/></svg>")}
 

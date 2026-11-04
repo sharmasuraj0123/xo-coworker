@@ -225,7 +225,6 @@ function decorate() {
     working(el);
   }
   projectMarks();
-  placeRows();
 }
 
 /** A project's coordinator wears the project's own icon (the one in the sidebar); XO's mark stays with the
@@ -245,16 +244,17 @@ new MutationObserver(() => { projectMarks(); wave(document.getElementById("typin
 
 // ── the agent at work: one calm bubble ──────────────────────────────────────
 const WORKING = new Map(); // turn key → { text, since, w }
-const ENDED = new Map(); // turn key → the key it's drawn after (what arrived while it worked)
-/** Where each row is drawn: its own place, except a working turn (always last) and a turn that ended this
- *  session (just after what arrived while it worked). Flex order only; the app's list is never touched. */
-function placeRows() {
-  const kids = [...msgs.children], at = new Map();
-  kids.forEach((c, i) => { at.set(c.dataset.k, i * 2); c.style.order = String(i * 2); });
-  for (const c of kids) {
-    if (c.classList.contains("mx-live")) c.style.order = String(kids.length * 2 + 1);
-    else if (ENDED.has(c.dataset.k) && at.has(ENDED.get(c.dataset.k))) c.style.order = String(at.get(ENDED.get(c.dataset.k)) + 1);
-  }
+// A turn that ended this session stays drawn where it was, after what arrived while it worked. Pure CSS,
+// keyed by the app's own data-k, so it holds for every later redraw from the very first frame:
+//   [the turn] {order: 2n−1}   and everything after the last thing that arrived meanwhile ~ {order: 2n}
+// (the working turn is order 1000; everything else keeps its place, order 0).
+const ENDED = new Set();
+const orderSheet = document.head.appendChild(Object.assign(document.createElement("style"), { id: "mx-order" }));
+function keepEnded(key, lastKey) {
+  if (ENDED.has(key)) return;
+  ENDED.add(key);
+  const n = ENDED.size;
+  orderSheet.append(`:root[data-msgx] #msgs>[data-k="${CSS.escape(key)}"]{order:${2 * n - 1}}\n:root[data-msgx] #msgs>[data-k="${CSS.escape(lastKey)}"]~*{order:${2 * n}}\n`);
 }
 /** What the agent is doing right now, in its own words where it has them. */
 function nowText(turn) {
@@ -272,7 +272,7 @@ function working(el) {
   const mb = el.querySelector(":scope > .mb");
   if (!live || !mb) {
     // it just ended: it stays drawn where it was, after what arrived while it worked, so nothing jumps
-    if (WORKING.has(key)) { const last = [...msgs.children].filter((c) => c !== el && c.dataset.k).pop(); if (last) ENDED.set(key, last.dataset.k); }
+    if (WORKING.has(key)) { const last = [...msgs.children].filter((c) => c !== el && c.dataset.k).pop(); if (last && last.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_PRECEDING) keepEnded(key, last.dataset.k); }
     WORKING.delete(key); return;
   }
   // what you asked to see, or a step that waits on you, shows in full
