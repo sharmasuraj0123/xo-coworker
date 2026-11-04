@@ -182,6 +182,10 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .prose>.mx-name{display:block;margin:0 0 2px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
 :root[data-msgx] .prose>.mx-name+*{margin-top:0}
 :root[data-msgx] .m-them.mx-other:not(.cont)>.av{margin-top:4px}
+/* an agent's turn: its mark centres on whatever comes first, a 28 px work pill (0), or a 44 px row (8):
+   the working bubble, the opened work card's header, or an answer bubble's first line */
+:root[data-msgx] #msgs>.m-turn>.av{margin-top:0}
+:root[data-msgx] #msgs>.m-turn.is-live:not(:has(.turn [aria-expanded="true"],.turn .is-waiting))>.av,:root[data-msgx] #msgs>.m-turn:has(>.mb>.turn>:is(.tb-work.is-open,.tb-answer,.tb-text):first-child)>.av,:root[data-msgx] #msgs>.m-turn:has(>.mb>.turn>.tb:first-child>.tb-h[aria-expanded="true"])>.av{margin-top:8px}
 :root[data-msgx] .mx-coord .prose>.mx-name{color:color-mix(in srgb,var(--violet) 72%,var(--ink-3))}
 /* an open (unboxed) reply has no bubble to hold it, so its name sits above on the same text edge */
 :root[data-msgx-open] .mx-open .prose>.mx-name{margin-bottom:4px}
@@ -225,7 +229,7 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-turn .turn>.tb>.tb-h :is(.tb-ht,.tb-wn){font-size:var(--fs-sm)}
 :root[data-msgx] .m-turn .turn>.tb>.tb-h:hover{background:var(--hover-fill)!important}
 :root[data-msgx] .m-turn .turn>.tb:is(.is-open,:has(.tb-rows))>.tb-h{background:var(--hover-fill)!important}
-:root[data-msgx] .m-turn .turn>.tb:not(.tb-answer):not(.tb-text)>:not(.tb-h){margin-left:16px}
+:root[data-msgx] .m-turn .turn>.tb:not(.tb-answer):not(.tb-text):not(.is-open)>:not(.tb-h){margin-left:16px}
 :root[data-msgx] #msgs>.m-turn+.m-them:not(.mx-other){margin-top:-12px}
 
 /* While the agent works: one calm bubble where its reply will be, as Messages shows someone typing. One
@@ -289,6 +293,15 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>:not(.tb-h){margin-left:32px}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-rows{margin:0 0 4px 32px}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb-narr{margin:4px 8px;padding:0 8px;font-size:var(--fs-sm);color:var(--ink-3)}
+
+/* The same card for any single work block pressed open (early in a turn there's no fold yet, only one
+   "Thinking…" or one tool group, and pressing the bubble opens that block itself): the glass card, a 44 px
+   header row, then its lines as quiet rows on the text column, no rail. */
+:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan):has(>.tb-h[aria-expanded="true"]){width:min(88%,560px);padding:0 0 8px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi)}
+:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan):has(>.tb-h[aria-expanded="true"])>.tb-h{width:100%;min-height:44px;margin:0;padding:0 16px;border-radius:var(--r-xl);background:none!important;font-size:var(--fs-md)}
+:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan):has(>.tb-h[aria-expanded="true"])>.tb-h :is(.tb-ht,.tb-n){font-size:var(--fs-md);color:var(--ink-2)}
+:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan):has(>.tb-h[aria-expanded="true"])>:is(.tb-steps,.tb-rows,.tb-plan-l){margin:0;padding:0 16px;border:0;gap:4px;font-size:var(--fs-sm);line-height:20px;color:var(--ink-3)}
+:root[data-msgx] .m-turn .turn>.tb-think:has(>.tb-h[aria-expanded="true"])>.tb-steps>li{padding:4px 0}
 
 /* a few emoji and nothing else are the message: large, no bubble */
 :root[data-msgx] .mx-emoji :is(.bubble,.prose){padding:0;background:none!important;box-shadow:none;font-size:var(--fs-4xl);line-height:var(--lh-40)}
