@@ -63,7 +63,7 @@
 /* a thread the app doesn't know (another project, not loaded): the same token, quieter */
 .lk-thread.is-unknown{color:var(--ink-2);background:color-mix(in srgb,var(--ink) 5%,transparent)}
 
-/* a working thread: the neutral arc shared with task cards (css/app.css), its stroke scaled with the text */
+/* a working thread: the blue arc shared with task cards (css/app.css .g-working), its stroke scaled with the text */
 
 /* ── outside: text with ↗ ── */
 .lk-out{
