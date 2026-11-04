@@ -184,16 +184,13 @@ button:disabled{cursor:default}
 .nv-dot{width:6px;height:6px;border-radius:1.5px;background:var(--warn);transform:rotate(45deg)}
 
 .side-label{display:flex;align-items:center;justify-content:space-between;min-height:28px;margin:20px 12px 6px 16px;font:500 var(--fs-sm)/1 var(--sans);color:var(--ink-4)}
-/* Create XO Project: a "+" on the Projects label. It belongs to the label, not to the rows: a bare glyph
-   in the label's own ink and weight, its centre over the rows' count column, quiet until you reach for
-   the sidebar. Its 28px target is invisible; a soft 24px tile shows only under the pointer or focus. */
 /* "+ New": a small filled pill, its right edge on the Find field's; the plus in the accent, the word in ink */
 .side-plus{flex:none;display:flex;align-items:center;gap:4px;height:24px;padding:0 10px 0 8px;border-radius:var(--r);background:var(--g22);box-shadow:var(--hairline);color:var(--ink-2);font:500 var(--fs-sm)/1 var(--sans);white-space:nowrap;transition:color var(--d-hover),background var(--d-hover),transform 120ms var(--press)}
 .sp-ic{display:grid;place-items:center;color:var(--accent)}
 .side-plus svg{width:12px;height:12px;stroke-width:2.4}
 .side-plus:hover,.side-plus:focus-visible{color:var(--ink);background:var(--g26)}
 .side-plus:active{transform:scale(.96)}
-:root[data-theme="light"] .side-plus{background:#FFFFFF;box-shadow:0 0 0 1px rgba(0,0,0,.08),var(--lift-1)}
+:root[data-theme="light"] .side-plus{background:#FFFFFF;box-shadow:inset 0 0 0 1px rgba(0,0,0,.07)}
 :root[data-theme="light"] .side-plus:hover,:root[data-theme="light"] .side-plus:focus-visible{background:color-mix(in srgb,var(--ink) 4%,#FFFFFF)}
 .projects{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:6px;padding:2px 12px 14px;scrollbar-width:thin;scrollbar-color:var(--g2A) transparent}
 .pr-ic svg{width:15px;height:15px}
@@ -249,6 +246,7 @@ button:disabled{cursor:default}
 .create{flex:none;display:flex;align-items:center;gap:10px;height:42px;padding:0 15px 0 7px;border-radius:var(--r-lg);background:linear-gradient(180deg,var(--g22),var(--g1D));border:1px solid var(--line);color:var(--ink);font:500 var(--fs-md)/1 var(--sans);white-space:nowrap;box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 6px 18px rgb(0 0 0 / calc(.25 * var(--sha)));transition:border-color var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease),transform 90ms var(--ease)}
 .create:hover{border-color:var(--line-hover);background:color-mix(in srgb,var(--ink) 7%,var(--g1D))}
 .create:active{transform:scale(.98)}
+:root[data-theme="light"] .create:active{box-shadow:inset 0 0 0 100vmax var(--press-fill)}
 .create-ic{display:grid;place-items:center;width:26px;height:26px;border-radius:var(--r-sm);background:var(--accent-fill);color:var(--accent-ink)}
 .create-ic svg{width:15px;height:15px}
 .cr-s{display:none}
@@ -1360,10 +1358,13 @@ button.kr-r:hover{background:var(--bg-3);color:var(--ink)}
   .hm{padding:24px 16px 230px}
   .hm-top{flex-direction:column;align-items:stretch;gap:16px}
   .hm-h{font-size:var(--fs-2xl)}
-  /* on a phone the button rides the date's line, top right, so the greeting and its line stay together; a
-     compact 34 px: the 24 px tile 5 px from every outer edge, its radius 12 − 5 */
-  .hm-top{position:relative}
-  .create{position:absolute;top:-10px;right:0;height:34px;padding:0 12px 0 4px;gap:8px;font-size:var(--fs-sm)}
+  /* Give the date and action a real row, with 12px of air before the greeting.
+     The 24px tile sits 5px from the 34px control's outer edge. */
+  .hm-top{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px}
+  .hm-hd{display:contents}
+  .hm-date{grid-column:1;grid-row:1;align-self:center;margin-bottom:0}
+  .hm-h{grid-column:1 / -1;grid-row:2}
+  .create{grid-column:2;grid-row:1;height:34px;padding:0 12px 0 4px;gap:8px;font-size:var(--fs-sm)}
   .create .create-ic{width:24px;height:24px;border-radius:calc(var(--r-lg) - 5px)}
   .create-ic svg{width:13px;height:13px}
   .hm-lbl{margin-top:26px}
