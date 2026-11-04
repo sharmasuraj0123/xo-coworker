@@ -46,6 +46,15 @@ export function scopeOf(view, { thread, project }) {
   return { key: "all" };
 }
 
+/** The folder a file lives in, as a scope: its thread's worktree when it's in one, else its project. */
+export function fileScope(f, { threads, project }) {
+  if (!f || !f.project || !f.rel) return null;
+  const m = /^(\.xo\/worktrees\/[^/]+)\//.exec(String(f.rel));
+  if (!m) return { key: `${f.project}|`, project: f.project, base: "", label: project(f.project), sub: "" };
+  const t = (threads || []).find((x) => x && x.project === f.project && String(x.worktree || "").replace(/\/+$/, "").endsWith(`/${m[1]}`));
+  return { key: `${f.project}|${m[1]}`, project: f.project, base: m[1], label: project(f.project), sub: (t && t.branch) || "its worktree", tid: t ? t.id : undefined };
+}
+
 /** Where a file the viewer opened sits in a scope: its path inside it, or null when it's elsewhere. */
 export function localIn(scope, f) {
   if (!scope || !scope.project || !f || f.project !== scope.project || !f.rel) return null;
@@ -62,6 +71,8 @@ export function createFiles({ world, viewer, isBusy, PROJ, go }) {
     sel: null,           // the file shown, inside the scope (null: none, or one from elsewhere)
     fileView: false,     // narrow: the file is in front of the tree
     auto: false,         // the README was opened by us, not by you
+    follow: null,        // the folder of a file opened from elsewhere (Artifacts, another thread): shown until you leave
+    viewKey: "all",      // the scope the view itself gives
     q: "", wide: false,
   };
   const setOf = (k) => { if (!F.open.has(k)) F.open.set(k, new Set()); return F.open.get(k); };
@@ -145,7 +156,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go }) {
     }
     const rows = [];
     rowsOf(s, "", 0, marks, rows);
-    const head = `<div class="fl-head"><div class="fl-crumb">${F.pick ? `<button type="button" class="fl-up" data-fl-unpick title="Your projects">${BACK}</button>` : ""}<b>${esc(s.label)}</b>${s.sub ? `<small title="${s.base ? "A thread's own worktree: its branch" : ""}">${esc(s.sub)}</small>` : ""}</div>` +
+    const head = `<div class="fl-head"><div class="fl-crumb">${F.pick || (F.follow && F.viewKey === "all") ? `<button type="button" class="fl-up" data-fl-unpick title="Your projects">${BACK}</button>` : ""}<b>${esc(s.label)}</b>${s.sub ? `<small title="${s.base ? "A thread's own worktree: its branch" : ""}">${esc(s.sub)}</small>` : ""}</div>` +
       `<label class="fl-q"><span class="sr-only">Find a file</span>${ICON.search}<input data-fl-q placeholder="Find a loaded file" value="${esc(F.q)}" autocomplete="off" spellcheck="false"></label></div>`;
     const top = tl.slice(0, TOUCHED);
     const sec = top.length ? `<p class="fl-sec">Touched by agents</p>` + top.map((x) => `<button type="button" class="fl-r is-touch" style="--d:0" data-fl-touch="${esc(x.rel)}" title="${esc(`${x.path} · ${x.who}`)}"><span class="fl-c fl-i">${fileIcon(x.path)}</span><span class="fl-n">${esc(x.path)}</span>${dot(x, true)}</button>`).join("") + `<p class="fl-sec">All files</p>` : "";
@@ -195,6 +206,11 @@ export function createFiles({ world, viewer, isBusy, PROJ, go }) {
   /** The viewer opened a file (from anywhere): show it, and find it in the tree when it's in this folder. */
   async function reveal(f) {
     if (!f) return;
+    // a file from outside this folder: the tree goes to its folder, so it can be found and highlighted
+    if (localIn(F.scope, f) == null) {
+      const fs = fileScope(f, { threads: world.state.threads, project: (id) => PROJ(id) });
+      if (fs && localIn(fs, f) != null) { F.follow = fs; setScope(F.view); }
+    }
     const s = F.scope;
     const local = localIn(s, f);
     F.sel = local; F.fileView = true;
@@ -209,9 +225,12 @@ export function createFiles({ world, viewer, isBusy, PROJ, go }) {
   }
 
   function setScope(view) {
+    if (view !== F.view) F.follow = null;
     F.view = view;
     let s = scopeOf(view, { thread: (id) => world.thread(id), project: (id) => PROJ(id) });
-    if (s.key === "all" && F.pick) s = { key: `${F.pick}|`, project: F.pick, base: "", label: PROJ(F.pick), sub: "" };
+    F.viewKey = s.key;
+    if (F.follow) s = F.follow;
+    else if (s.key === "all" && F.pick) s = { key: `${F.pick}|`, project: F.pick, base: "", label: PROJ(F.pick), sub: "" };
     if (s.key !== F.scope.key) {
       F.scope = s; F.q = ""; F.sel = null;
       if (s.project) load(s, "");
@@ -240,8 +259,8 @@ export function createFiles({ world, viewer, isBusy, PROJ, go }) {
         viewer.open({ path: rel, name: base(rel), project: s.project, rel }, tc); return;
       }
       const pk = t.closest("[data-fl-pick]");
-      if (pk) { F.pick = pk.dataset.flPick; setScope(F.view); paint(); frontPage(); return; }
-      if (t.closest("[data-fl-unpick]")) { F.pick = null; viewer.close({ restore: false }); setScope(F.view); paint(); return; }
+      if (pk) { F.pick = pk.dataset.flPick; F.follow = null; setScope(F.view); paint(); frontPage(); return; }
+      if (t.closest("[data-fl-unpick]")) { F.pick = null; F.follow = null; viewer.close({ restore: false }); setScope(F.view); paint(); return; }
       const rt = t.closest("[data-fl-retry]");
       if (rt) { load(F.scope, rt.dataset.flRetry, { again: true }); return; }
       if (t.closest("[data-fl-back]")) { F.fileView = false; if (!F.wide) viewer.close({ restore: false }); paint(); host.querySelector(".fl-r.is-on, .fl-r")?.focus({ preventScroll: true }); }
@@ -294,5 +313,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go }) {
     },
     /** The file came from you (a click), not from the front page: the panel treats it as yours. */
     get auto() { return F.auto; },
+    /** The folder on screen ({label, sub}), or null when it's the list of projects. */
+    get place() { return F.shown && F.scope.project ? { label: F.scope.label, sub: F.scope.sub || "" } : null; },
   };
 }

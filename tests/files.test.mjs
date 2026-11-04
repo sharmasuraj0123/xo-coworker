@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
-const { scopeOf, localIn } = await import("../js/files.js");
+const { scopeOf, localIn, fileScope } = await import("../js/files.js");
 
 let passed = 0;
 const t = (name, fn) => {
@@ -35,6 +35,16 @@ t("a file the viewer opened: its path in the folder on screen, or null when it's
   assert.equal(localIn(pj, { project: "p", rel: ".xo/worktrees/thread-a/js/app.js" }), null);
   assert.equal(localIn(pj, { project: "q", rel: "js/app.js" }), null);
   assert.equal(localIn(pj, { name: "paste.txt", local: "…" }), null);              // an attachment or a paste
+});
+
+t("a file opened from elsewhere (Artifacts): the folder it lives in, so the tree can open to it", () => {
+  const c2 = { threads: Object.values(threads), project: ctx.project };
+  const w = fileScope({ project: "p", rel: ".xo/worktrees/thread-a/js/app.js" }, c2);
+  assert.deepEqual(w, { key: "p|.xo/worktrees/thread-a", project: "p", base: ".xo/worktrees/thread-a", label: "P", sub: "xo/thread-a", tid: "a" });
+  assert.equal(localIn(w, { project: "p", rel: ".xo/worktrees/thread-a/js/app.js" }), "js/app.js");
+  assert.equal(fileScope({ project: "p", rel: ".xo/worktrees/gone/x.md" }, c2).sub, "its worktree"); // its thread was removed
+  assert.deepEqual(fileScope({ project: "p", rel: "README.md" }, c2), { key: "p|", project: "p", base: "", label: "P", sub: "" });
+  assert.equal(fileScope({ name: "paste.txt" }, c2), null);
 });
 
 console.log(`${passed} passed${process.exitCode ? ", with failures" : ""}`);

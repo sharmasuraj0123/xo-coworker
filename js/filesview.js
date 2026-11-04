@@ -58,6 +58,8 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
     let name = "Your projects", sub = "";
     if (v.startsWith("t:")) { const t = world.thread(v.slice(2)); if (t) { name = PROJ(t.project); sub = t.branch || ""; } }
     else if (v.startsWith("p:")) name = PROJ(v.slice(2));
+    const at = files.place; // a file opened from elsewhere takes the tree to its own folder: name that one
+    if (at) { name = at.label; sub = at.sub; }
     const back = v === "home" ? "Home" : v === "ws" ? "Workspace" : v === "artifacts" ? "Artifacts" : v === "chats" ? "Chats" : "Conversation";
     return `<button type="button" class="fv-back" data-fv-back title="Back (Esc)">${ICON.back}<span>${esc(back)}</span></button><span class="fv-sep" aria-hidden="true"></span>` +
       `<h1 class="fv-t">${esc(name)}</h1>${sub ? `<span class="fv-s">${esc(sub)}</span>` : ""}`;
