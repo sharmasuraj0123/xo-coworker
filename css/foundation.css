@@ -70,6 +70,12 @@ body.stage-full .stg-grip{display:none}
    the title's own line (they used to align by their tops, so 24 px labels sat 2 px high and 32 px
    controls 2 px low). Every control here is 32 high with a 16 px icon, 8 apart (Plan F). */
 .top[data-kind="thread"] .top-who{align-items:center;gap:12px}
+/* its state and runtime are the same 32 px and 13 px text as the buttons beside them (they were 24 px
+   with 12 px text and looked an afterthought; the runtime is a button too). What tells them apart is
+   their surface, not their size: the state is a tinted pill, the runtime borderless, actions outlined. */
+.top .badge{height:var(--h-ctl);gap:8px;padding:0 12px;font:500 var(--fs-base)/var(--lh-13) var(--sans)}
+.top .tw-rt{height:var(--h-ctl);margin-left:0;padding:0 10px;font:500 var(--fs-base)/var(--lh-13) var(--sans)}
+@media (max-width:760px){.top .badge,.top .tw-rt{height:36px}}
 /* the title bar: the cube sits on the title's own line, a 28 px tile on the 28 px line, so its centre
    is the title's centre line (the cap centre of 20 px Geist in a 28 px line is the line's middle) */
 .tw-ic{width:28px;height:28px;border-radius:var(--r-sm)}

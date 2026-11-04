@@ -215,7 +215,8 @@ button .spin,.btn .spin{color:inherit}
 .mp-now .elapsed{font:400 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
 .typing{animation:none}
 .dots{display:none}
-.top[data-state="busy"]::before{animation:none;background:color-mix(in srgb,var(--info) 70%,transparent);opacity:.7}
+/* the thread's working line at the top of the window sweeps again (the owner, 4 Nov: "I liked the blue accent on
+   top that used to move"): it is the one loop that says an agent works right now (app.css, sl-sweep) */
 @media (prefers-reduced-motion:reduce){.arc::before{animation:none}.spin{animation:none}}
 
 /* no blue dots: "being edited now" and a folder an agent is in read in the text's own colour */

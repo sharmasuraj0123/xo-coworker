@@ -403,14 +403,17 @@ body.panel-open .conv{--rp:calc(var(--pw) + 28px)}
 .nw-segs{flex:none;display:flex;gap:2px;width:40px}
 .nw-segs .sg{flex:1;width:auto;height:3px}
 .thead{flex:none;padding:0 calc(var(--hg) + var(--rp)) 10px var(--hg);border-bottom:1px solid var(--g1C);transition:padding-right .3s var(--ease)}
-.ckbar{border-radius:var(--r-lg);background:var(--g17);border:1px solid var(--g22);transition:border-color .3s var(--ease),background .3s var(--ease)}
+.ckbar{border-radius:var(--r-lg);background:var(--g17);border:1px solid var(--g22);overflow:hidden;transition:border-color .3s var(--ease),background .3s var(--ease)}
 .ckbar.m-needs{border-color:rgb(245 166 35 / .24)}
 .ckbar.m-fresh{border-color:rgba(var(--accent-rgb),.32);background:color-mix(in srgb,var(--accent-fill) 4%,var(--g17))}
 .ckbar.m-done{border-color:rgba(var(--accent-rgb),.18)}
 .ckbar.m-failed{border-color:rgb(230 131 136 / .22)}
-.ck-row{display:flex;align-items:center;gap:6px;padding-right:6px}
-.ck-tog{flex:1;min-width:0;display:flex;align-items:center;gap:12px;height:38px;padding:0 10px 0 12px;border-radius:var(--r-lg);text-align:left;font-size:var(--fs-base);color:var(--ink-3)}
-.ck-tog:hover{background:var(--hover-fill);color:var(--ink-2)}
+/* the checklist line answers the pointer as one row, edge to edge: its fill is the row's, clipped by the
+   bar's own corners (the toggle's own fill used to stop 6 px short of the right edge) */
+.ck-row{display:flex;align-items:center;gap:6px;padding-right:6px;transition:background-color var(--d-hover) var(--ease)}
+.ck-row:has(.ck-tog:hover){background:var(--hover-fill)}
+.ck-tog{flex:1;min-width:0;display:flex;align-items:center;gap:12px;height:38px;padding:0 10px 0 12px;border-radius:0;text-align:left;font-size:var(--fs-base);color:var(--ink-3)}
+.ck-tog:hover{color:var(--ink-2)}
 .ck-segs{flex:none;display:flex;gap:3px}
 .sg{display:block;width:16px;height:4px;border-radius:2px;background:var(--g2C);transition:background .3s var(--ease)}
 .sg.s-done{background:var(--accent-fill)}
@@ -430,7 +433,9 @@ body.panel-open .conv{--rp:calc(var(--pw) + 28px)}
 .ck-m.is-ok{color:var(--accent)}.ck-m.is-blue{color:var(--info)}.ck-m.is-amber{color:var(--warn);font-size:10px}.ck-m.is-red{color:var(--err-ink);font-size:9px}
 .ck-now[data-mode="fresh"]{color:var(--ink)}
 .ck-now[data-mode="fresh"] .tk{stroke-dasharray:24;stroke-dashoffset:24;animation:draw .36s var(--glide) .05s forwards}
-.ck-chev svg{width:15px;height:15px;color:var(--ink-4);transition:transform var(--dur-base) var(--ease)}
+/* the chevron centres on the row (as an inline glyph it sat on the text baseline, 3 px high) */
+.ck-chev{display:grid;place-items:center}
+.ck-chev svg{width:16px;height:16px;color:var(--ink-4);transition:transform var(--dur-base) var(--ease)}
 .ckbar.is-open .ck-chev svg{transform:rotate(180deg)}
 .ck-b{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s var(--ease)}
 .ckbar.is-open .ck-b{grid-template-rows:1fr}
@@ -1899,7 +1904,7 @@ body.viewer-open .tdock{display:none}
 .top[data-state="need"]::before{opacity:.8;background:linear-gradient(90deg,transparent,var(--warn) 20%,var(--warn) 80%,transparent)}
 .top[data-state="stop"]::before{opacity:.8;background:linear-gradient(90deg,transparent,var(--err-ink) 20%,var(--err-ink) 80%,transparent)}
 .top[data-state="done"]::before{opacity:.55;background:linear-gradient(90deg,transparent,var(--accent-fill) 20%,var(--accent-fill) 80%,transparent)}
-.top[data-state="busy"]::before{opacity:.8;background:linear-gradient(90deg,transparent 0%,color-mix(in srgb,var(--info) 35%,transparent) 30%,var(--info) 50%,color-mix(in srgb,var(--info) 35%,transparent) 70%,transparent 100%) 0 0/50% 100% no-repeat;animation:sl-sweep 2.8s var(--ease) infinite}
+.top[data-state="busy"]::before{opacity:.8;background:linear-gradient(90deg,transparent 0%,color-mix(in srgb,var(--info) 35%,transparent) 30%,var(--info) 50%,color-mix(in srgb,var(--info) 35%,transparent) 70%,transparent 100%) 0 0/50% 100% no-repeat;animation:sl-sweep 2.8s var(--ease-loop) infinite}
 @keyframes sl-sweep{from{background-position:-100% 0}to{background-position:200% 0}}
 @media (prefers-reduced-motion:reduce){.top[data-state="busy"]::before{animation:none;background:linear-gradient(90deg,transparent,var(--info) 20%,var(--info) 80%,transparent)}}
 

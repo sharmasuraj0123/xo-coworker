@@ -61,6 +61,7 @@
      200 ms (the slower release is what feels expensive); press 60 ms down. Arrive 280, move 320,
      leave 160, the landing 600. Nothing overshoots. Gated by prefers-reduced-motion in base.css. */
   --ease:cubic-bezier(.2,.8,.2,1);
+  --ease-loop:cubic-bezier(.45,0,.55,1);   /* an ambient loop that responds to nothing (the working sweep): even in, even out */
   --ease-out:cubic-bezier(.2,.8,.2,1);
   --dur-fast:120ms; --dur-base:180ms; --dur-slow:280ms;
   --d-hover:200ms; --d-hover-in:120ms; --d-press:60ms; --d-in:280ms; --d-move:320ms; --d-out:160ms; --d-land:600ms;
