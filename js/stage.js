@@ -1,5 +1,5 @@
 // The panel: one right-hand column of stacked frames, in the manner of Premiere Pro's panels (the owner,
-// 4 November): no tab strip, but frames one above the other, each with its own 32 px head and tabs,
+// 4 November): no tab strip, but frames one above the other, each with its own 40 px head,
 // each folding to that head, the line between two frames dragged to give one of them room.
 //
 //   · Agents: who is at work in this view, on what, for how long (js/map.js agents()).
@@ -51,15 +51,15 @@ export function createStage({ map, mapIcon, files, filesView, viewer, view, go, 
   el.hidden = true;
   el.tabIndex = -1;
   el.setAttribute("aria-label", "Panel");
-  const frame = (id, tabs, acts = "") => `<section class="fr" data-fr="${id}"><header class="fr-h"><div class="fr-tabs" role="tablist" aria-label="${id}">${tabs}</div><div class="fr-a">${acts}<button type="button" class="fr-ib fr-fold" data-fr-fold="${id}" aria-expanded="true" title="Fold">${FOLD_IC}</button></div></header><div class="fr-b"></div></section>`;
+  const frame = (id, title, acts = "") => `<section class="fr" data-fr="${id}" aria-labelledby="fr-title-${id}"><header class="fr-h"><h2 class="fr-title" id="fr-title-${id}">${title}${id !== "map" ? `<span class="fr-n" data-fr-n="${id}"></span>` : ""}</h2><div class="fr-a">${acts}<button type="button" class="fr-ib fr-fold" data-fr-fold="${id}" aria-expanded="true" title="Fold">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-${id}"${id === "map" ? ' role="tabpanel"' : ""}></div></section>`;
   const gutter = (a, b) => `<div class="fr-gut" role="separator" aria-orientation="horizontal" aria-label="Resize ${a} and ${b}" data-gut="${a}|${b}" tabindex="0"></div>`;
   el.innerHTML = `<div class="stg-grip" role="separator" aria-orientation="vertical" aria-label="Resize the panel" title="Drag to resize · double-click for the default" tabindex="0"></div>` +
     `<header class="stg-bar"><div class="stg-t"></div><div class="stg-acts"><button type="button" class="stg-ic" data-stg-full></button><button type="button" class="stg-ic" data-stg-close aria-label="Close the panel" title="Close (Esc)">${ICON.close}</button></div></header>` +
     `<div class="stg-rail" aria-label="Panel, folded"><button type="button" class="stg-ic" data-rail="agents" title="Agents">${AGENTS_IC}</button><button type="button" class="stg-ic" data-rail="map" title="Map">${mapIcon}</button><button type="button" class="stg-ic" data-rail="changes" title="Changes">${CHANGES_IC}</button></div>` +
     `<div class="stg-frames">` +
-    frame("agents", `<span class="fr-t is-on" role="tab" aria-selected="true">Agents<span class="fr-n" data-fr-n="agents"></span></span>`) + gutter("agents", "map") +
-    frame("map", `<button type="button" class="fr-t" role="tab" data-map-mode="tree">Diagram</button><button type="button" class="fr-t" role="tab" data-map-mode="graph">Graph</button>`) + gutter("map", "changes") +
-    frame("changes", `<span class="fr-t is-on" role="tab" aria-selected="true">Changes<span class="fr-n" data-fr-n="changes"></span></span>`, `<button type="button" class="fr-ib" data-open-files title="All files">${FILES_IC}</button>`) +
+    frame("agents", "Agents") + gutter("agents", "map") +
+    frame("map", "Map", `<div class="fr-views" role="tablist" aria-label="Map view"><button type="button" class="fr-t" role="tab" id="stage-map-tree" aria-controls="fr-body-map" data-map-mode="tree">Diagram</button><button type="button" class="fr-t" role="tab" id="stage-map-graph" aria-controls="fr-body-map" data-map-mode="graph">Graph</button></div>`) + gutter("map", "changes") +
+    frame("changes", "Changes", `<button type="button" class="fr-ib" data-open-files title="All files">${FILES_IC}</button>`) +
     `</div>`;
   $("#main").appendChild(el);
   const body = (id) => el.querySelector(`[data-fr="${id}"] .fr-b`);
@@ -99,13 +99,16 @@ export function createStage({ map, mapIcon, files, filesView, viewer, view, go, 
   // ── what the frames say ─────────────────────────────────────────────────────
   function agentsHtml(list) {
     if (!list.length) return `<p class="fr-none">No agent is working here right now.</p>`;
-    return `<ul class="ag-list">${list.map((a) => `<li><button type="button" class="ag-r${a.busy ? "" : " is-idle"}" data-go="${esc(a.go)}" title="Open ${esc(a.title)}">` +
-      `<span class="ag-sw" style="--c:${esc(a.color)}" aria-hidden="true"></span><span class="ag-t"><b>${esc(a.title)}</b><span>${esc(a.doing)}</span></span>` +
+    return `<ul class="ag-list">${list.map((a) => `<li><button type="button" class="ag-r${a.busy ? "" : " is-idle"}${a.go === view() ? " is-on" : ""}"${a.go === view() ? ' aria-current="page"' : ""} data-go="${esc(a.go)}" title="Open ${esc(a.title)}">` +
+      `<span class="ag-ic" style="--c:${esc(a.color)}" aria-hidden="true">${ICON.threadOne}${a.waiting ? `<i class="ag-wait">${ICON.pause}</i>` : a.busy ? '<i class="arc"></i>' : ""}</span><span class="ag-t"><b>${esc(a.title)}</b><span class="ag-activity"><span class="ag-doing">${esc(a.doing)}</span></span></span>` +
       `<span class="ag-tm">${a.busy && Number.isFinite(a.since) ? `<span class="elapsed" data-since="${a.since}">${ago(a.since)}</span>` : ""}</span></button></li>`).join("")}</ul>`;
   }
   function changesHtml(list) {
     if (!list.length) return `<p class="fr-none">${view() === "home" || view() === "ws" ? "Open a project or thread to see what its agents changed." : "Nothing changed here yet."}</p>`;
-    return `<ul class="ch-list">${list.map((x) => `<li><button type="button" class="ch-r" data-change="${esc(x.rel)}" data-change-project="${esc(x.project)}" title="${esc(`${x.path} · ${x.who}`)}"><span class="ch-i">${fileIcon(x.path)}</span><span class="ch-n">${esc(x.path)}</span><span class="ch-m m-${esc(x.live ? "live" : x.mark)}">${esc(x.live ? "editing" : x.mark)}</span></button></li>`).join("")}</ul>`;
+    return `<ul class="ch-list">${list.map((x) => {
+      const slash = x.path.lastIndexOf("/"), name = x.path.slice(slash + 1), dir = slash >= 0 ? x.path.slice(0, slash) : "";
+      return `<li><button type="button" class="ch-r" data-change="${esc(x.rel)}" data-change-project="${esc(x.project)}" title="${esc(`${x.path} · ${x.who}`)}"><span class="ch-i">${fileIcon(x.path)}</span><span class="ch-copy"><span class="ch-n">${esc(name)}</span>${dir ? `<span class="ch-path">${esc(dir)}</span>` : ""}</span><span class="ch-m m-${esc(x.live ? "live" : x.mark)}">${esc(x.live ? "editing" : x.mark)}</span></button></li>`;
+    }).join("")}</ul>`;
   }
   function titleHtml(list) {
     const v = view();
@@ -125,7 +128,8 @@ export function createStage({ map, mapIcon, files, filesView, viewer, view, go, 
     set("changes", body("changes"), changesHtml(ch));
     el.querySelector('[data-fr-n="agents"]').textContent = ag.filter((a) => a.busy).length || "";
     el.querySelector('[data-fr-n="changes"]').textContent = ch.length || "";
-    for (const b of el.querySelectorAll("[data-map-mode]")) { const on = map.mode === b.dataset.mapMode; b.classList.toggle("is-on", on); b.setAttribute("aria-selected", String(on)); }
+    for (const b of el.querySelectorAll("[data-map-mode]")) { const on = map.mode === b.dataset.mapMode; b.classList.toggle("is-on", on); b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1; }
+    body("map").setAttribute("aria-labelledby", `stage-map-${map.mode}`);
     const fb = el.querySelector("[data-stg-full]");
     const fh = S.full ? UNFULL_IC : FULL_IC;
     if (fb._h !== fh) { fb.innerHTML = fh; fb._h = fh; }
@@ -208,6 +212,12 @@ export function createStage({ map, mapIcon, files, filesView, viewer, view, go, 
   });
   // Esc: a search clears first; then full size steps back, then the panel closes
   el.addEventListener("keydown", (e) => {
+    if (e.target.closest?.("[data-map-mode]") && ["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) {
+      e.preventDefault(); e.stopPropagation();
+      const tabs = [...el.querySelectorAll("[data-map-mode]")], index = tabs.indexOf(e.target.closest("[data-map-mode]"));
+      const next = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : (index + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+      tabs[next].focus(); tabs[next].click(); return;
+    }
     if (e.key !== "Escape") return;
     if (e.target.closest && e.target.closest("input") && e.target.value) return;
     e.preventDefault(); e.stopPropagation();
