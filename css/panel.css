@@ -93,8 +93,10 @@ body.stage-over .stage{box-shadow:-18px 0 44px rgb(0 0 0 / calc(.42 * var(--sha)
 .vw-seg{height:28px;padding:2px;gap:2px;border-radius:6px;background:var(--g1C);border:1px solid var(--g24)}
 .vw-seg button{height:22px;padding:0 8px;border-radius:4px;font:500 12px/16px var(--sans)}
 .vw-x{width:28px;height:28px;border-radius:6px}
-/* the name always reads whole: with Preview · Source beside it in a narrow pane, its kind and size step aside */
-@container flpv (min-width:361px) and (max-width:480px){.vw-top:has(.vw-seg) .vw-meta{display:none}}
+/* the name and its kind and size always read whole: in a narrow pane Preview · Source fold to their icons first */
+.vw-seg button{display:inline-flex;align-items:center;gap:4px}
+.vw-seg button svg{display:none;width:16px;height:16px}
+@container flpv (max-width:520px){.vw-seg button{width:28px;padding:0;justify-content:center}.vw-seg button svg{display:block}.vw-seg button span{display:none}}
 @container flpv (max-width:360px){.vw-seg{display:none}}
 .fl-pv{container:flpv / inline-size}
 :root[data-theme="light"] .vw-seg{background:#f4f4f4;border-color:rgba(0,0,0,.08)}
@@ -126,6 +128,8 @@ body.stage-over .stage{box-shadow:-18px 0 44px rgb(0 0 0 / calc(.42 * var(--sha)
 .md-pane .md-th{border-radius:5px 5px 0 0;height:100px}
 .md-ic{width:auto;height:auto;background:none;border:0}
 .md-ic svg,.md-ic svg.fi{width:24px;height:24px}
+.md-pane .md-meta{gap:4px;padding:12px 12px 4px}
+.md-pane .md-from{gap:4px;margin:0 4px 8px;padding:4px 8px;border-radius:4px;font:400 12px/16px var(--sans)}
 .md-pane .md-meta b{font:500 13px/16px var(--sans)}
 .md-pane .md-meta span{font:400 12px/16px var(--sans);font-variant-numeric:tabular-nums}
 @container made (max-width:519px){

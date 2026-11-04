@@ -30,6 +30,9 @@ const KIND_WORD = { markdown: "Markdown", html: "HTML", text: "Text", code: "Cod
  * Highlighted HTML (flat <span class="tk-…">…</span> runs, as js/highlight.js makes them) cut into
  * lines: a run that crosses a line ends at the line's end and starts again on the next one.
  */
+// the Source toggle's glyph: angle brackets, drawn like the other line icons
+const SRC_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>';
+
 export function splitHighlighted(html) {
   const out = [];
   let line = "", open = null;
@@ -86,7 +89,7 @@ export function createViewer({ announce, onChange, tabs }) {
     const meta = [kind, V.dims && `${V.dims.w} × ${V.dims.h}`, size(d ? d.size_bytes : f.bytes)].filter(Boolean);
     const canCopy = !!(d && typeof d.content === "string");
     const toggle = d && (d.kind === "html" || d.kind === "markdown")
-      ? `<div class="vw-seg" role="group" aria-label="Show"><button type="button" data-vw-mode="preview" aria-pressed="${V.mode === "preview"}">Preview</button><button type="button" data-vw-mode="source" aria-pressed="${V.mode === "source"}">Source</button></div>`
+      ? `<div class="vw-seg" role="group" aria-label="Show"><button type="button" data-vw-mode="preview" aria-pressed="${V.mode === "preview"}" title="Preview" aria-label="Preview">${ICON.eye}<span>Preview</span></button><button type="button" data-vw-mode="source" aria-pressed="${V.mode === "source"}" title="Source" aria-label="Source">${SRC_IC}<span>Source</span></button></div>`
       : d && d.kind === "image"
         ? `<div class="vw-seg" role="group" aria-label="Size"><button type="button" data-vw-mode="preview" aria-pressed="${V.mode === "preview"}">Fit</button><button type="button" data-vw-mode="actual" aria-pressed="${V.mode === "actual"}" aria-label="Actual size"><span class="vw-wide">Actual size</span><span class="vw-narrow" aria-hidden="true">1:1</span></button></div>`
         : "";
