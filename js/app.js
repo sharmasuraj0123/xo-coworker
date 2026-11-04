@@ -275,7 +275,10 @@ function sideRender(needs) {
   $("#nv-home").classList.toggle("is-on", S.view === "home");
   $("#nv-ws").classList.toggle("is-on", S.view === "ws");
   $("#nv-chats").classList.toggle("is-on", CH.isChats(S.view));
-  for (const b of [$("#nv-home"), $("#nv-ws"), $("#nv-chats")]) b.toggleAttribute("aria-current", b.classList.contains("is-on"));
+  $("#nv-arts").classList.toggle("is-on", S.view === "artifacts");
+  // the Artifacts row's count is quiet: a number, never a signal
+  { const n = REC.artifacts.count(); const t = n ? String(n) : ""; if ($("#arts-n").textContent !== t) $("#arts-n").textContent = t; $("#nv-arts").setAttribute("aria-label", n ? `Artifacts, ${n}` : "Artifacts"); }
+  for (const b of [$("#nv-home"), $("#nv-ws"), $("#nv-chats"), $("#nv-arts")]) b.toggleAttribute("aria-current", b.classList.contains("is-on"));
   const now = Date.now();
   // the project filter (hub #16): shown once the list is long; matches keep the ones needing you first
   const all = projects();
@@ -1839,13 +1842,16 @@ function render() {
   pings(needs);
   const v = S.view;
   const isHome = v === "home";
-  $("#app").dataset.view = isHome ? "home" : v === "ws" ? "ws" : v.startsWith("t:") || v.startsWith("c:") ? "thread" : "project";
+  const isArts = v === "artifacts";
+  $("#app").dataset.view = isHome ? "home" : isArts ? "artifacts" : v === "ws" ? "ws" : v.startsWith("t:") || v.startsWith("c:") ? "thread" : "project";
   $("#home").hidden = !isHome;
-  $("#conv").hidden = isHome;
-  const pbt = isHome ? "Home" : "";
+  $("#arts").hidden = !isArts;
+  $("#conv").hidden = isHome || isArts;
+  const pbt = isHome ? "Home" : isArts ? "Artifacts" : "";
   if ($("#pb-t")._h !== pbt + v) { $("#pb-t").innerHTML = pbt ? esc(pbt) : XO; $("#pb-t")._h = pbt + v; }
   sideRender(needs);
   if (isHome) { homeRender(needs); rendered = "home"; }
+  else if (isArts) { REC.artifacts.render(); rendered = "artifacts"; }
   else {
     topRender(needs);
     wsHeadRender(needs);
@@ -1874,7 +1880,7 @@ function render() {
       if (atBottom) toBottom(true); else if (added.length) $("#new-below").hidden = false;
     }
   }
-  if (!isHome) requestAnimationFrame(loadAhead);
+  if (!isHome && !isArts) requestAnimationFrame(loadAhead);
   dockRender(needs);
   heraldRender(needs);
   chatTargetRender();
@@ -1914,6 +1920,7 @@ new ResizeObserver(() => {
 // ── navigation: back always returns exactly where you were ─────────────────
 function saveScroll() {
   if (S.view === "home") S.scroll.home = $("#home").scrollTop;
+  else if (S.view === "artifacts") S.scroll.artifacts = $("#arts").scrollTop;
   else if (rendered === S.view) S.scroll[S.view] = nearBottom() ? "bottom" : scroller.scrollTop;
 }
 function go(v, { from, focus = false, carry = false } = {}) {
@@ -1939,13 +1946,14 @@ function go(v, { from, focus = false, carry = false } = {}) {
   S.view = v;
   follow();
   TD.key = null; tdock.innerHTML = ""; tdock._ch = "";
-  const el = v === "home" ? $("#home") : $("#column");
+  const el = v === "home" ? $("#home") : v === "artifacts" ? $("#arts") : $("#column");
   el.classList.remove("enter-r", "enter-l", "enter", "enter-up");
   void el.offsetWidth;
   el.classList.add(carry ? "enter-up" : deeper ? "enter-r" : back ? "enter-l" : "enter");
   loadDraft();
   render();
   if (v === "home") $("#home").scrollTop = S.scroll.home || 0;
+  if (v === "artifacts") $("#arts").scrollTop = S.scroll.artifacts || 0;
   const k = S.opener[v];
   const target = k ? ($("#msgs").querySelector(`[data-k="${CSS.escape(k)}"] [data-go]`) || $("#now-wrap").querySelector(`[data-go="${CSS.escape(k)}"]`)) : null;
   if (focus) say.focus({ preventScroll: true });
@@ -2418,7 +2426,7 @@ function threadIc(t) {
 }
 function jumpRender() {
   const q = jq.value.trim().toLowerCase();
-  const all = [{ v: "home", name: "Home", sub: "Your next move", icon: ICON.home }, { v: "ws", name: "Workspace", sub: "The coordinator", icon: XO }, { v: "chats", name: "Chats", sub: "One agent, one folder", icon: ICON.thread }];
+  const all = [{ v: "home", name: "Home", sub: "Your next move", icon: ICON.home }, { v: "ws", name: "Workspace", sub: "The coordinator", icon: XO }, { v: "chats", name: "Chats", sub: "One agent, one folder", icon: ICON.thread }, { v: "artifacts", name: "Artifacts", sub: "Everything your threads made", icon: ICON.stack }];
   for (const p of projects()) {
     all.push({ v: "p:" + p.id, name: p.name, sub: "Project", icon: ICON.project });
     for (const t of threadsOf(p.id)) all.push({ v: "t:" + t.id, name: t.title, sub: `${p.name} · ${wordOf(t).toLowerCase()}`, icon: threadIc(t), t: true });
@@ -2626,7 +2634,7 @@ addEventListener("keydown", (e) => {
 // what Esc does (the top sheet, the viewer, Settings, the sidebar), then a thread's parent, then the
 // places you came through; with nothing left it lets the browser leave.
 const sheetsOpen = () => !jump.hidden || !keys.hidden || !allEl.hidden || RS.open || dlg.open || IQ.isOpen || CH.setupOpen;
-const placeOk = (v) => v === "home" || v === "ws" || v === "chats" || (v.startsWith("p:") && !!world.project(v.slice(2))) || (v.startsWith("t:") && !!world.thread(v.slice(2))) || v.startsWith("c:");
+const placeOk = (v) => v === "home" || v === "ws" || v === "chats" || v === "artifacts" || (v.startsWith("p:") && !!world.project(v.slice(2))) || (v.startsWith("t:") && !!world.thread(v.slice(2))) || v.startsWith("c:");
 function canBack() {
   return sheetsOpen() || VW.isOpen || (STAGE.isOpen && PHONE.matches) || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised || S.view !== "home" || S.trail.length > 0;
 }
@@ -2722,6 +2730,7 @@ $("#dlg-ic").innerHTML = ICON.project;
 $("#ic-home").innerHTML = ICON.home;
 $("#ic-ws").innerHTML = XO;
 $("#ic-chats").innerHTML = ICON.thread;
+$("#ic-arts").innerHTML = ICON.stack;
 $("#ic-shells").innerHTML = ICON.shell;
 // a new chat's setup: folder, agent, model, effort, what it may do (all from the runtime's feature list)
 {
