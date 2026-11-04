@@ -1054,11 +1054,11 @@ button.tp-done-u:hover{color:var(--ink)}
 .hr-ic.k-ping .hr-dot{width:6px;height:6px}
 
 /* ── intelligence: the chip (quietest thing in the composer) and its popover ── */
-.iq{flex:none;display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 9px;border-radius:9px;color:var(--ink-4);font:500 12.5px/1 var(--sans);white-space:nowrap;font-variant-numeric:tabular-nums;transition:background var(--dur-fast),color var(--dur-fast)}
+.iq{flex:none;display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 8px;border-radius:8px;color:var(--ink-4);font:500 13px/20px var(--sans);white-space:nowrap;font-variant-numeric:tabular-nums;transition:background var(--dur-fast),color var(--dur-fast)}
 .iq:hover,.iq[aria-expanded="true"]{background:var(--bg-3);color:var(--ink-3)}
 .iq.is-pinned{color:var(--ink-3)}
 .iq-a{color:var(--ink-4)}
-.iq-p{letter-spacing:.5px;font-weight:700}
+.iq-p{font:inherit;letter-spacing:.5px}
 .iq-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--ink-2)}
 .iq-g{display:inline-grid;place-items:center;width:12px;font-size:12px}
 .iq-pop{position:fixed;z-index:46;display:flex;flex-direction:column;padding:14px 14px 10px;border-radius:18px;background:var(--pop-bg);border:1px solid var(--pop-line);box-shadow:0 24px 60px var(--pop-shadow);outline:none;animation:pop-in .18s var(--glide)}
