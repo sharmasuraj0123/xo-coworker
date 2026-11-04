@@ -2059,8 +2059,11 @@ function openAttachment(btn) {
 function openSharedFile(btn) {
   const f = { path: btn.dataset.file, name: btn.dataset.fileName, type: btn.dataset.fileType, bytes: btn.dataset.fileBytes === "" ? null : Number(btn.dataset.fileBytes) };
   const t = convThread(S.view);
-  // only a thread's own folder maps to a project route; a plain chat's files have none yet
-  const route = sharedFileRoute(t, f.path);
+  // a thread's file is in its own folder; in a project's conversation (its coordinator's words) a
+  // relative path is the project folder's; a plain chat's files have no route yet
+  const pid = !t && S.view.startsWith("p:") ? S.view.slice(2) : null;
+  const rel = String(f.path || "").replace(/^\.\//, "");
+  const route = pid && rel && !rel.startsWith("/") && !rel.split("/").some((x) => x === ".." || x === "") ? { project: pid, rel } : sharedFileRoute(t, f.path);
   VW.open({ ...f, ...route }, btn);
 }
 
