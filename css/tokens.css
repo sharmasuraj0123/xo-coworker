@@ -48,6 +48,7 @@
   --tr-12:.01em; --tr-13:0em; --tr-15:0em; --tr-20:-.01em; --tr-28:-.02em; --tr-40:-.03em;
   --lh-ui:20px; --lh-read:24px;
   --fw-regular:400; --fw-medium:500; --fw-strong:600;
+  --fs-doc:17px; --lh-doc:28px;   /* documents (Files, the viewer) read in the serif at this size */
   --serif:"Iowan Old Style","Charter","Source Serif 4","Source Serif Pro",Georgia,serif;   /* documents read as documents */
 
   /* Plan F · geometry. Stone (the chrome) is crisp; glass (the conversation and the work) is soft.

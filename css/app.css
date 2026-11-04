@@ -415,7 +415,11 @@ body.panel-open .conv{--rp:calc(var(--pw) + 28px)}
 .sg{display:block;width:16px;height:4px;border-radius:2px;background:var(--g2C);transition:background .3s var(--ease)}
 .sg.s-done{background:var(--accent-fill)}
 .sg.s-doing{background:var(--info)}
-.sg.is-pop{animation:seg-pop .5s var(--spring)}
+/* the landing (Plan F's one flourish): a step that just finished fills left to right in green, like ink
+   drawn along a rule, instead of jumping; reduced motion lands it at once (base.css) */
+.sg.s-done.is-pop{position:relative;overflow:hidden;background:var(--g2C);animation:none}
+.sg.s-done.is-pop::after{content:"";position:absolute;inset:0;background:var(--accent-fill);transform-origin:left center;animation:seg-fill var(--d-land) var(--ease) both}
+@keyframes seg-fill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 @keyframes seg-pop{40%{transform:scaleY(2.2)}}
 .ck-n{flex:none;font-weight:600;color:var(--ink-2);font-variant-numeric:tabular-nums}
 .ck-now{flex:1;min-width:0;display:flex;align-items:center;gap:8px;color:var(--ink-2);animation:now-in .3s var(--glide)}
@@ -441,6 +445,9 @@ body.panel-open .conv{--rp:calc(var(--pw) + 28px)}
 .scroller{position:relative;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:28px 28px calc(var(--dock-h) + 48px);scrollbar-width:thin;scrollbar-color:var(--g2A) transparent;transition:padding-right .3s var(--ease)}
 .scroller:focus{outline:none}
 .column{width:100%;max-width:720px;margin:0 auto}
+/* text that scrolls under the header dissolves over 24 px instead of being sliced mid-glyph (audit I2);
+   at rest the column's own 28 px top padding sits under the fade, so nothing is dimmed */
+.scroller{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 24px);mask-image:linear-gradient(to bottom,transparent 0,#000 24px)}
 .column.enter{animation:col-in .26s var(--glide)}
 .column.enter-r{animation:col-r .3s var(--glide)}
 .column.enter-l{animation:col-l .3s var(--glide)}
@@ -1807,6 +1814,10 @@ body.viewer-open .tdock{display:none}
 .vw-body{flex:1;min-height:0;overflow:auto;outline:none}
 .vw-body.is-frame{display:flex;flex-direction:column;overflow:hidden}
 .vw-md{padding:20px 28px 40px;max-width:72ch}
+/* Plan F: a document reads as a document. Its body is set in a text serif at reading size (Iowan Old
+   Style or Charter on a Mac); headings, code and tables stay in the interface's own faces. */
+.vw-md :is(p,li,blockquote){font-family:var(--serif);font-size:var(--fs-doc);line-height:var(--lh-doc)}
+.vw-md :is(p,li,blockquote) code{font-size:var(--fs-base)}
 .vw-frame{flex:1;width:100%;min-height:0;border:0;background:#fff}
 /* an image: fitted to the panel, or 1:1 (scrolls); the checkerboard shows through transparency */
 .vw-img{box-sizing:border-box;display:flex;align-items:center;justify-content:center;height:100%;padding:20px}
