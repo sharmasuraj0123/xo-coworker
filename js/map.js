@@ -435,9 +435,10 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     const f = el.querySelector('[data-dg="follow"]');
     if (f) f.setAttribute("aria-pressed", String(!!c.follow));
   }
-  const READABLE = 0.8; // the smallest scale the Map picks by itself: labels stay readable (≈10px)
-  /** Frame the drawing. By itself (the first look) it never goes below READABLE: a drawing too big for
-   *  the panel starts at its top box, readable, and the rest is a drag away. Fit (yours) shows it all. */
+  const READABLE = 0.8; // the smallest scale for a partial view (all = false): labels stay readable (≈10px)
+  /** Frame the drawing. The Map shows it all, fitted to whatever size its frame is (the owner, 4 Nov:
+   *  "I asked for the map to fit it all"), by itself and with Fit; all = false is the old readable
+   *  partial view, kept for callers that want it. */
   function fit(c, glide, all = false) {
     const v = view(), B = M.bounds;
     if (!v || !B || !v.clientWidth) return;
@@ -454,6 +455,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       c.x = (v.clientWidth - W * c.s) / 2 - B.x0 * c.s;
       c.y = Math.max(0, (vh - H * c.s) / 2) - B.y0 * c.s;
     }
+    c.fitB = { x0: B.x0, y0: B.y0, x1: B.x1, y1: B.y1 };
     applyCam(c, glide);
   }
   function centerOn(c, pt, glide, s) {
@@ -467,7 +469,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
   function zoomAt(c, f, px, py) {
     const s = clamp(c.s * f, 0.25, 2.4);
     c.x = px - (px - c.x) * (s / c.s); c.y = py - (py - c.y) * (s / c.s); c.s = s;
-    c.user = true;
+    c.user = true; c.fitAll = false;
     applyCam(c, false);
   }
 
@@ -501,7 +503,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
         c.x = mx - (mx - start.x) * (s / start.s); c.y = my - (my - start.y) * (s / start.s); c.s = s;
         start.moved = true;
       } else return;
-      c.user = true; c.follow = false;
+      c.user = true; c.follow = false; c.fitAll = false;
       applyCam(c, false);
     });
     const up = (e) => {
@@ -516,7 +518,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       e.preventDefault();
       const c = camOf(M.scope);
       if (e.ctrlKey || e.metaKey) { const r = v.getBoundingClientRect(); zoomAt(c, Math.exp(-e.deltaY * 0.0022), e.clientX - r.left, e.clientY - r.top); }
-      else { c.x -= e.deltaX; c.y -= e.deltaY; c.user = true; c.follow = false; applyCam(c, false); }
+      else { c.x -= e.deltaX; c.y -= e.deltaY; c.user = true; c.follow = false; c.fitAll = false; applyCam(c, false); }
     }, { passive: false });
     v.addEventListener("keydown", (e) => {
       if (e.target !== v || e.metaKey || e.ctrlKey || e.altKey) return;
@@ -524,10 +526,10 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       const k = e.key;
       if (k === "+" || k === "=") zoomAt(c, 1.2, ...mid());
       else if (k === "-" || k === "_") zoomAt(c, 1 / 1.2, ...mid());
-      else if (k === "0") { c.user = true; c.follow = false; fit(c, true, true); }
+      else if (k === "0") { c.user = true; c.follow = false; c.fitAll = true; fit(c, true, true); }
       else if (k === "f" || k === "F") tool("follow");
       else if (k === "g" || k === "G") tool(M.mode === "graph" ? "tree" : "graph");
-      else if (k.startsWith("Arrow")) { const d = 60; c.x += k === "ArrowLeft" ? d : k === "ArrowRight" ? -d : 0; c.y += k === "ArrowUp" ? d : k === "ArrowDown" ? -d : 0; c.user = true; c.follow = false; applyCam(c, true); }
+      else if (k.startsWith("Arrow")) { const d = 60; c.x += k === "ArrowLeft" ? d : k === "ArrowRight" ? -d : 0; c.y += k === "ArrowUp" ? d : k === "ArrowDown" ? -d : 0; c.user = true; c.follow = false; c.fitAll = false; applyCam(c, true); }
       else return;
       e.preventDefault();
     });
@@ -537,10 +539,12 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     const c = camOf(M.scope), v = view();
     if (!v) return;
     if (what === "in" || what === "out") zoomAt(c, what === "in" ? 1.25 : 0.8, v.clientWidth / 2, v.clientHeight / 2);
-    else if (what === "fit") { c.user = true; c.follow = false; fit(c, true, true); }
+    else if (what === "fit") { c.user = true; c.follow = false; c.fitAll = true; fit(c, true, true); }
     else if (what === "tree" || what === "graph") {
       if (M.mode === what) return;
       M.mode = what;
+      // the other drawing has its own size: give it its own fitted first look (unless you've moved the view)
+      { const c0 = camOf(M.scope); if (!c0.user || c0.fitAll) { c0.done = false; c0.settleUntil = 0; c0.target = null; c0.fitB = null; } }
       try { localStorage.setItem(MODE_KEY, what); } catch { /* private mode */ }
       el.dataset.scope = "";
       paint();
@@ -571,12 +575,20 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       if (!c.settleUntil) c.settleUntil = now + (M.mode === "graph" ? SETTLE_MS + 1200 : SETTLE_MS);
       if (M.loading || (M.mode === "graph" && M.alpha > 0.06)) c.settleUntil = Math.max(c.settleUntil, now + 500);
       if (now < c.settleUntil) {
-        fit(c, false); // the first look shows the drawing whole across; Follow takes over after it
+        fit(c, false, true); // the first look shows the whole drawing, fitted; Follow takes over after it
         c.target = lead ? lead.key : null;
         return;
       }
       c.done = true;
     }
+    // the drawing grew or shrank (a folder loaded, a box unfolded, the graph moved): still all of it,
+    // unless you've moved the view yourself since your last Fit
+    // (a change of 8 px or less is the graph breathing: the view holds still for it, unless the drawing
+    // would cross the frame's edge, which it never may)
+    const B = M.bounds, F = c.fitB;
+    const moved = !F || Math.max(Math.abs(B.x0 - F.x0), Math.abs(B.y0 - F.y0), Math.abs(B.x1 - F.x1), Math.abs(B.y1 - F.y1)) > 8;
+    const over = B.x0 * c.s + c.x < 0 || B.x1 * c.s + c.x > v.clientWidth || B.y0 * c.s + c.y < 0 || B.y1 * c.s + c.y > v.clientHeight - 44;
+    if ((!c.user || c.fitAll) && (moved || over)) { fit(c, true, true); return; }
     if (c.follow && lead && c.target !== lead.key) { c.target = lead.key; keepInView(c, lead.pt); }
   }
   /** A fresh first look for this view's camera, unless you've moved it yourself. */
@@ -756,7 +768,11 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     for (const g of M.gnodes) {
       const { x, y } = g.p;
       if (g.el) g.el.style.transform = `translate(${x}px,${y}px)`;
-      if (x < x0) x0 = x; if (y < y0) y0 = y; if (x > x1) x1 = x; if (y > y1) y1 = y;
+      // a node is its dot and its name: measure the box once it's laid out (names don't change), so
+      // "fit it all" fits the names too, not only the dots
+      if (g.el && !g.ext && g.el.offsetWidth) { const cs = getComputedStyle(g.el); const ml = parseFloat(cs.marginLeft) || 0, mt = parseFloat(cs.marginTop) || 0; g.ext = { l: ml, t: mt, r: ml + g.el.offsetWidth, b: mt + g.el.offsetHeight }; }
+      const e = g.ext || { l: -8, t: -8, r: 8, b: 8 };
+      if (x + e.l < x0) x0 = x + e.l; if (y + e.t < y0) y0 = y + e.t; if (x + e.r > x1) x1 = x + e.r; if (y + e.b > y1) y1 = y + e.b;
     }
     let i = 0;
     for (const g of M.gnodes) {
@@ -768,7 +784,9 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       e.setAttribute("class", lit ? "is-lit" : g.n.kind === "file" ? "k-file" : "");
       e.style.stroke = lit || "";
     }
-    if (M.gnodes.length) { M.bounds = { x0: x0 - 40, y0: y0 - 34, x1: x1 + 60 + tagW() * 0.6, y1: y1 + 40 }; M.rootPt = { x: 0, y: 0 }; }
+    // a quiet margin all round; a cursor's name tag only when an agent is in the drawing
+    const tag = M.gags && M.gags.length ? tagW() * 0.6 : 0;
+    if (M.gnodes.length) { M.bounds = { x0: x0 - 12, y0: y0 - 12, x1: x1 + 12 + tag, y1: y1 + 12 }; M.rootPt = { x: 0, y: 0 }; }
     const at = new Map(M.gnodes.map((g) => [g.n.id, g]));
     cursors(M.gags, (id) => { const g = at.get(id); if (!g) return null; const r = RAD[g.n.kind] || 4; return { x: g.p.x + r * 0.55, y: g.p.y + r * 0.55, cx: g.p.x, cy: g.p.y }; });
   }
@@ -1000,7 +1018,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       const c = camOf(M.scope), cur = M.curs.get(fc.dataset.mpFocus);
       if (cur) {
         const m = /translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(cur.el.style.transform);
-        if (m) { c.user = true; c.follow = false; centerOn(c, { x: +m[1], y: +m[2] }, true, Math.max(c.s, 0.9)); }
+        if (m) { c.user = true; c.follow = false; c.fitAll = false; centerOn(c, { x: +m[1], y: +m[2] }, true, Math.max(c.s, 0.9)); }
         cur.el.classList.remove("is-ping"); void cur.el.offsetWidth; cur.el.classList.add("is-ping");
       }
       return;
@@ -1049,7 +1067,8 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       if (w === w0 && h === h0) return;
       const was = w0; w0 = w; h0 = h;
       const c = camOf(M.scope);
-      if (was && !c.user) { c.done = false; c.settleUntil = 0; c.target = null; } // the panel changed size: a fresh first look
+      if (was && c.fitAll) { fit(c, false, true); return; } // you asked to see it all: keep it all in view
+      if (was && !c.user) { c.done = false; c.settleUntil = 0; c.target = null; } // the frame changed size: a fresh fit
       frame(c);
     }).observe(node);
   }
