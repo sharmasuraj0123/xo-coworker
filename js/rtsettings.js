@@ -1,22 +1,21 @@
-// Settings › Runtimes (mixed runtimes F2, F3): the agents XO can run threads on, how healthy each is
-// and how much of its usage is left; then where work may run, for the Space and for each project.
+// Settings › Runtimes: the agents XO can run threads on, how healthy each is and how much of its usage
+// is left; then the defaults, in four plain lines. A project's own runtime is chosen where its model is,
+// in the composer's picker, never here.
 //
-// Every value is the server's (GET /api/chat/runtimes, …/runtime-policy). The runtimes are read when
-// the page opens and every 30 s while it is on screen, never faster: each read probes the CLIs. A
-// policy is changed only by Save (a PUT that replaces it), and a refusal lands on its field.
+// Every value is the server's (GET /api/chat/runtimes, /runtime-policy). The runtimes are read when the
+// page opens and every 30 s while it is on screen, never faster: each read probes the CLIs. A default
+// is saved as it is changed (a PUT that replaces the Space's policy); a refusal is said under it.
 
 import { esc } from "./world.js";
-import { clockWords, rtName, isInstalled, healthOf, windowsOf, resetWords, allowedOf, defaultOf, policyWords, policyErrors, errorField } from "./runtimes.js";
+import { clockWords, rtName, isInstalled, healthOf, windowsOf, resetWords, allowedOf, defaultOf, errorField } from "./runtimes.js";
 
 const REFRESH_MS = 30000;
 const PREF_MAX = 2000;
-const FIELDS = ["allowed", "default", "preferences", "fallback"];
 const blank = () => ({ allowed: null, default: null, preferences: null, fallback: null });
-const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const pct = (u) => `${Math.round(u * 100)}%`;
 
 export function createRuntimeSettings({ world, announce, PROJ }) {
-  const R = { timer: null, drafts: {}, errs: {}, saving: null, editing: null, loadErr: null };
+  const R = { timer: null, saving: false, err: null, saved: null, pref: null };
   const page = () => document.querySelector('[data-page="runtimes"]');
   const live = () => page()?.querySelector(".set-live");
   const onScreen = () => { const p = page(); return !!p && !p.hidden && !document.querySelector("#settings").hidden; };
@@ -54,64 +53,37 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
       `<p class="rt-checked">${at ? `Checked at ${esc(clockWords(at))}. ` : ""}Read again every 30 seconds while this page is open.</p>`;
   }
 
-  // ── the policy (F3) ───────────────────────────────────────────────────────
-  // key "space" is the Space's own policy; a chat id is that project's override (null fields follow the Space)
-  const baseOf = (k) => (k === "space" ? world.state.policy && world.state.policy.space : world.state.chatPolicy[k] && world.state.chatPolicy[k].project) || blank();
-  const draftOf = (k) => R.drafts[k] || baseOf(k);
-  const dirty = (k) => !!R.drafts[k] && !same(R.drafts[k], { ...blank(), ...baseOf(k) });
-  const effOf = (k) => (k === "space" ? world.state.policy && world.state.policy.effective : world.state.chatPolicy[k] && world.state.chatPolicy[k].effective);
-  const spaceEff = () => (world.state.policy && world.state.policy.effective) || blank();
-  /** The policy the draft would make, for the default's choices (a project's null fields are the Space's). */
-  const wouldBe = (k) => { const d = draftOf(k); if (k === "space") return d; const s = spaceEff(); const o = {}; for (const f of FIELDS) o[f] = d[f] ?? s[f]; return o; };
-
-  function seg(k, name, opts, cur, label) {
-    return `<div class="rt-seg" role="radiogroup" aria-label="${esc(label)}">${opts.map(([v, w]) => `<button type="button" role="radio" aria-checked="${cur === v}" data-rtp-${name}="${esc(v)}">${esc(w)}</button>`).join("")}</div>`;
+  // ── the defaults ──────────────────────────────────────────────────────────
+  const space = () => ({ ...blank(), ...((world.state.policy && world.state.policy.space) || {}) });
+  async function put(patch, field, words) {
+    const next = { ...space(), ...patch };
+    if (next.preferences != null && !String(next.preferences).trim()) next.preferences = null;
+    R.saving = field; R.err = null; draw();
+    try { await world.act.setPolicy(null, next); R.saved = field; announce(words); setTimeout(() => { if (R.saved === field) { R.saved = null; if (onScreen()) draw(); } }, 1600); }
+    catch (err) { R.err = { field: errorField(err) === "form" ? field : errorField(err), text: err.message }; }
+    R.saving = false; draw();
   }
-  function formHtml(k) {
-    const d = draftOf(k), proj = k !== "space", e = R.errs[k] || {};
-    const s = spaceEff();
-    const err = (f) => (e[f] ? `<p class="rt-ferr" id="rte-${esc(k)}-${f}" role="alert">${esc(e[f])}</p>` : "");
-    const desc = (f, hint) => `aria-describedby="rth-${esc(k)}-${f}${e[f] ? ` rte-${esc(k)}-${f}` : ""}"${hint ? "" : ""}`;
-    // allowed: the Space's (projects) / every runtime / only these
-    const mode = d.allowed == null ? (proj ? "space" : "all") : "only";
-    const names = [...new Set([...installed().map((r) => r.name), ...(d.allowed || [])])];
-    const allowed = `<div class="rt-f"><div class="rt-fl"><b id="rtl-${esc(k)}-allowed">Runtimes it may use</b><span id="rth-${esc(k)}-allowed">Limit it to one and its work never goes to another provider: no moves, no fallback.</span></div>` +
-      seg(k, "allowed", [...(proj ? [["space", `As all projects (${s.allowed ? s.allowed.map(rtName).join(", ") : "all"})`]] : []), ["all", "All"], ["only", "Only these"]], mode, "Runtimes it may use") +
-      (mode === "only" ? `<div class="rt-checks" role="group" aria-labelledby="rtl-${esc(k)}-allowed" ${desc("allowed")}>${names.map((n) => `<label class="rt-check"><input type="checkbox" data-rtp-rt="${esc(n)}"${(d.allowed || []).includes(n) ? " checked" : ""}><span>${esc(rtName(n))}</span></label>`).join("")}</div>` : "") + err("allowed") + `</div>`;
-    // default: one of what it may use
-    const pool = allowedOf(wouldBe(k), rts());
-    const serverDefault = defaultOf({ default: null }, rts());
-    const def = `<div class="rt-f"><label class="rt-fl" for="rtd-${esc(k)}"><b>Usual runtime</b><span id="rth-${esc(k)}-default">Where a thread runs when its coordinator doesn't choose.</span></label>` +
-      `<select class="set-sel" id="rtd-${esc(k)}" data-rtp-default ${desc("default")}><option value="">${proj ? `As all projects (${esc(rtName(s.default || serverDefault))})` : `XO's own (${esc(rtName(serverDefault))})`}</option>` +
-      [...new Set([...pool, ...(d.default ? [d.default] : [])])].map((n) => `<option value="${esc(n)}"${d.default === n ? " selected" : ""}>${esc(rtName(n))}</option>`).join("") + `</select>` + err("default") + `</div>`;
-    // preferences: the owner's words, read by the coordinator
-    const len = (d.preferences || "").length;
-    const pref = `<div class="rt-f"><label class="rt-fl" for="rtp-${esc(k)}"><b>How to choose</b><span id="rth-${esc(k)}-preferences">In your words. The coordinator reads this when it picks a runtime for a new thread.${proj ? " Left empty, the words for all projects apply." : ""}</span></label>` +
-      `<div class="field"><textarea id="rtp-${esc(k)}" rows="3" maxlength="${PREF_MAX}" data-rtp-pref placeholder="${esc(proj && s.preferences ? s.preferences : "Refactors and tests on Codex, UI work on Claude Code.")}" ${desc("preferences")}>${esc(d.preferences || "")}</textarea></div>` +
-      `<span class="rt-count${len > PREF_MAX * 0.9 ? " is-near" : ""}" data-rtp-count aria-live="polite">${len.toLocaleString()} / ${PREF_MAX.toLocaleString()}</span>` + err("preferences") + `</div>`;
-    // fallback: off unless set; its consequence always said
-    const fbOn = d.fallback === true;
-    const fb = `<div class="rt-f"><div class="rt-fl"><b id="rtl-${esc(k)}-fallback">Start elsewhere when the usual one can't</b><span id="rth-${esc(k)}-fallback">When the chosen runtime can't take work, a new thread may start on another allowed runtime. <strong>Threads may start on another provider without asking you.</strong></span></div>` +
-      (proj ? seg(k, "fb", [["space", `As all projects (${s.fallback ? "on" : "off"})`], ["on", "On"], ["off", "Off"]], d.fallback == null ? "space" : fbOn ? "on" : "off", "Start elsewhere")
-        : `<button type="button" class="switch" role="switch" aria-checked="${fbOn}" aria-labelledby="rtl-${esc(k)}-fallback" aria-describedby="rth-${esc(k)}-fallback" data-rtp-fb="${fbOn ? "off" : "on"}"><span class="th-track" aria-hidden="true"><span class="th-knob"></span></span></button>`) +
-      err("fallback") + `</div>`;
-    const busy = R.saving === k;
-    return `<form class="rt-form" data-rtp="${esc(k)}" novalidate>${allowed}${def}${pref}${fb}${err("form")}` +
-      `<div class="set-fa"><button type="button" class="btn" data-rtp-cancel>${dirty(k) ? "Discard" : "Close"}</button><button type="submit" class="btn btn-pri"${dirty(k) && !busy ? "" : " disabled"}>${busy ? `<i class="spin" aria-hidden="true"></i> Saving` : "Save"}</button></div></form>`;
-  }
-  /** One row per scope (the Space, then each project): what is in effect, and Change to open its form under it. */
-  function policyHtml() {
+  function defaultsHtml() {
     if (!world.state.policy) return "";
-    const ps = world.state.projects.filter((p) => p.kind === "project" && p.chatId && world.state.chatPolicy[p.chatId]);
-    const row = (k, name, sub) => {
-      const open = R.editing === k;
-      return `<div class="set-row rt-prow${open ? " is-open" : ""}"><div class="set-l"><b>${esc(name)}</b><span>${esc(sub)}</span></div>` +
-        (open ? "" : `<button type="button" class="btn" data-rtp-edit="${esc(k)}" aria-label="Change where ${esc(name)} runs">Change</button>`) + `</div>` + (open ? formHtml(k) : "");
-    };
-    return `<section class="set-sec" aria-labelledby="rtsp-h"><h3 id="rtsp-h">Where work runs</h3>` +
-      `<p class="set-lead">Each thread runs on one runtime for its whole life. Its coordinator chooses which, within these limits.</p><div class="rt-projects">` +
-      row("space", "All projects", policyWords(effOf("space"), rts())) +
-      ps.map((p) => { const own = baseOf(p.chatId); return row(p.chatId, PROJ(p.id), FIELDS.some((f) => own[f] != null) ? policyWords(effOf(p.chatId), rts()) : "As all projects"); }).join("") +
+    const p = space(), names = installed().map((r) => r.name);
+    if (names.length < 2 && !p.allowed) return ""; // one runtime: nothing to choose
+    const serverOwn = defaultOf({ default: null }, rts());
+    const allowed = allowedOf(p, rts());
+    const usual = p.default || serverOwn;
+    const note = (f) => (R.err && R.err.field === f ? `<p class="rt-ferr" role="alert">${esc(R.err.text)}</p>` : R.saved === f ? `<span class="rt-saved" role="status">Saved</span>` : "");
+    const busy = R.saving ? " disabled" : "";
+    const row = (f, label, sub, ctl) => `<div class="set-row rt-def"><div class="set-l"><b id="rtd-${f}">${label}</b><span>${sub}</span>${note(f)}</div>${ctl}</div>`;
+    return `<section class="set-sec" aria-labelledby="rtsp-h"><h3 id="rtsp-h">Defaults</h3>` +
+      `<p class="set-lead">Each thread runs on one runtime for its whole life. A project or a thread picks its own in the composer, beside its model.</p>` +
+      `<div class="rt-defs">` +
+      row("default", "Usual runtime", "Where new work runs when its coordinator doesn't choose.",
+        `<div class="rt-seg" role="radiogroup" aria-labelledby="rtd-default">${allowed.map((n) => `<button type="button" role="radio" aria-checked="${usual === n}" data-rtd-default="${esc(n)}"${busy}>${esc(rtName(n))}</button>`).join("")}</div>`) +
+      row("allowed", "Runtimes XO may use", "Work never goes to a runtime you turn off: no thread starts or moves there.",
+        `<div class="rt-checks" role="group" aria-labelledby="rtd-allowed">${names.map((n) => `<label class="rt-check"><input type="checkbox" data-rtd-allowed="${esc(n)}"${allowed.includes(n) ? " checked" : ""}${busy}><span>${esc(rtName(n))}</span></label>`).join("")}</div>`) +
+      row("fallback", "Start elsewhere at a limit", "When a runtime can't take work, a new thread may start on another one. <strong>It goes to another provider without asking you.</strong>",
+        `<button type="button" class="switch" role="switch" aria-checked="${!!p.fallback}" aria-labelledby="rtd-fallback" data-rtd-fallback${busy}><span class="th-track" aria-hidden="true"><span class="th-knob"></span></span></button>`) +
+      `<div class="set-row rt-def is-col"><div class="set-l"><label for="rtd-pref"><b id="rtd-preferences">How coordinators choose</b></label><span>In your words, read when a coordinator on Auto picks a runtime for a new thread.</span>${note("preferences")}</div>` +
+      `<div class="field"><textarea id="rtd-pref" rows="2" maxlength="${PREF_MAX}" data-rtd-pref placeholder="Refactors and tests on Codex, UI work on Claude Code.">${esc(R.pref != null ? R.pref : p.preferences || "")}</textarea></div></div>` +
       `</div></section>`;
   }
 
@@ -121,16 +93,11 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
     if (!el) return;
     const a = document.activeElement;
     let focusSel = null;
-    if (a && el.contains(a)) {
-      const form = a.closest("[data-rtp]");
-      const d = [...a.attributes].find((x) => x.name.startsWith("data-rtp"));
-      if (d) focusSel = `${form ? `[data-rtp="${CSS.escape(form.dataset.rtp)}"] ` : ""}[${d.name}${d.value ? `="${CSS.escape(d.value)}"` : ""}]`;
-    }
-    el.innerHTML = `<section class="set-sec" aria-labelledby="rtl-h"><h3 id="rtl-h">On this machine</h3><div class="rt-live">${listHtml()}</div></section>` + policyHtml() +
-      (R.loadErr ? `<p class="set-err" role="alert">${esc(R.loadErr)}</p>` : "");
+    if (a && el.contains(a)) { const d = [...a.attributes].find((x) => x.name.startsWith("data-rtd")); if (d) focusSel = `[${d.name}${d.value ? `="${CSS.escape(d.value)}"` : ""}]`; }
+    el.innerHTML = `<section class="set-sec" aria-labelledby="rtl-h"><h3 id="rtl-h">On this machine</h3><div class="rt-live">${listHtml()}</div></section>` + defaultsHtml();
     if (focusSel) el.querySelector(focusSel)?.focus({ preventScroll: true });
   }
-  /** Only the runtimes' cards: a refresh never touches a form under the person's fingers. */
+  /** Only the runtimes' cards: a refresh never touches a default under the person's fingers. */
   function drawList() { const l = live()?.querySelector(".rt-live"); if (l) l.innerHTML = listHtml(); else draw(); }
 
   async function refresh() {
@@ -142,104 +109,48 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
     R.timer = setTimeout(refresh, REFRESH_MS);
   }
 
-  // ── changes ───────────────────────────────────────────────────────────────
-  const setDraft = (k, patch) => { R.drafts[k] = { ...blank(), ...draftOf(k), ...patch }; if (R.errs[k]) { for (const f of Object.keys(patch)) delete R.errs[k][f]; delete R.errs[k].form; } };
-  async function save(k) {
-    const d = { ...blank(), ...draftOf(k) };
-    if (d.preferences != null && !d.preferences.trim()) d.preferences = null;
-    const errs = policyErrors(d);
-    if (Object.keys(errs).length) { R.errs[k] = errs; draw(); focusFirstError(k); return; }
-    R.saving = k; R.errs[k] = {}; draw();
-    try {
-      await world.act.setPolicy(k === "space" ? null : k, d);
-      delete R.drafts[k];
-      R.editing = null;
-      announce(k === "space" ? "Saved. New threads follow it." : `Saved for ${PROJ(world.act.projectOf ? world.act.projectOf(k) : k)}.`);
-    } catch (err) {
-      R.errs[k] = { [errorField(err)]: err.message };
-    }
-    R.saving = null; draw();
-    if (R.errs[k] && Object.keys(R.errs[k]).length) focusFirstError(k);
-  }
-  function focusFirstError(k) {
-    const f = live()?.querySelector(`[data-rtp="${CSS.escape(k)}"]`);
-    const first = FIELDS.find((x) => R.errs[k] && R.errs[k][x]);
-    const sels = { allowed: ["[data-rtp-rt]", '[data-rtp-allowed][aria-checked="true"]'], default: ["[data-rtp-default]"], preferences: ["[data-rtp-pref]"], fallback: ["[data-rtp-fb]"] }[first] || [];
-    for (const sel of sels) { const el = f?.querySelector(sel); if (el) { el.focus(); break; } }
-  }
-
+  // ── changes: each one saves at once ─────────────────────────────────────────
   const root = document.querySelector("#settings");
   root.addEventListener("click", (e) => {
-    const t = e.target;
-    const ed = t.closest("[data-rtp-edit]");
-    if (ed) { R.editing = ed.dataset.rtpEdit; draw(); live()?.querySelector(`[data-rtp="${CSS.escape(R.editing)}"] [role="radio"][aria-checked="true"]`)?.focus(); return; }
-    const form = t.closest("[data-rtp]");
-    if (!form) return;
-    const k = form.dataset.rtp;
-    const al = t.closest("[data-rtp-allowed]");
-    if (al) {
-      const v = al.dataset.rtpAllowed;
-      const cur = draftOf(k).allowed;
-      setDraft(k, { allowed: v === "only" ? (cur || allowedOf(wouldBe(k), rts())) : null });
-      draw(); return;
-    }
-    const fb = t.closest("[data-rtp-fb]");
-    if (fb) { const v = fb.dataset.rtpFb; setDraft(k, { fallback: v === "space" ? null : v === "on" }); draw(); return; }
-    if (t.closest("[data-rtp-cancel]")) {
-      delete R.drafts[k]; delete R.errs[k];
-      R.editing = null; draw(); live()?.querySelector(`[data-rtp-edit="${CSS.escape(k)}"]`)?.focus();
-    }
+    const d = e.target.closest("[data-rtd-default]");
+    if (d && !R.saving) { const n = d.dataset.rtdDefault; if (n !== (space().default || defaultOf({ default: null }, rts()))) put({ default: n === defaultOf({ default: null }, rts()) ? null : n }, "default", `New work runs on ${rtName(n)} unless its coordinator chooses.`); return; }
+    const f = e.target.closest("[data-rtd-fallback]");
+    if (f && !R.saving) { const on = !space().fallback; put({ fallback: on }, "fallback", on ? "A new thread may start on another runtime at a limit." : "A new thread waits for its runtime at a limit."); }
   });
   root.addEventListener("change", (e) => {
-    const form = e.target.closest("[data-rtp]");
-    if (!form) return;
-    const k = form.dataset.rtp;
-    if (e.target.matches("[data-rtp-rt]")) {
-      const picked = [...form.querySelectorAll("[data-rtp-rt]:checked")].map((x) => x.dataset.rtpRt);
-      const d = draftOf(k);
-      setDraft(k, { allowed: picked, ...(d.default && !picked.includes(d.default) ? { default: null } : {}) });
-      draw();
-    } else if (e.target.matches("[data-rtp-default]")) { setDraft(k, { default: e.target.value || null }); draw(); }
+    if (!e.target.matches("[data-rtd-allowed]") || R.saving) return;
+    const names = installed().map((r) => r.name);
+    const picked = [...live().querySelectorAll("[data-rtd-allowed]:checked")].map((x) => x.dataset.rtdAllowed);
+    if (!picked.length) { e.target.checked = true; R.err = { field: "allowed", text: "Keep at least one runtime." }; draw(); return; }
+    const p = space();
+    const allowed = picked.length === names.length ? null : picked; // every runtime: null, so a new one is welcome too
+    put({ allowed, ...(p.default && !picked.includes(p.default) ? { default: null } : {}) }, "allowed", allowed ? `XO uses only ${picked.map(rtName).join(" and ")}.` : "XO may use every runtime.");
   });
-  root.addEventListener("input", (e) => {
-    if (!e.target.matches("[data-rtp-pref]")) return;
-    const form = e.target.closest("[data-rtp]"), k = form.dataset.rtp;
-    const v = e.target.value;
-    setDraft(k, { preferences: v === "" ? null : v });
-    // no re-draw while typing: the counter and Save follow in place
-    const c = form.querySelector("[data-rtp-count]");
-    if (c) { c.textContent = `${v.length.toLocaleString()} / ${PREF_MAX.toLocaleString()}`; c.classList.toggle("is-near", v.length > PREF_MAX * 0.9); }
-    const sv = form.querySelector('button[type="submit"]');
-    if (sv) sv.disabled = !dirty(k) || R.saving === k;
-    const cancel = form.querySelector("[data-rtp-cancel]");
-    if (cancel) cancel.textContent = dirty(k) ? "Discard" : "Close";
-    form.querySelector(".rt-ferr[id$='-preferences']")?.remove();
+  root.addEventListener("input", (e) => { if (e.target.matches("[data-rtd-pref]")) R.pref = e.target.value; });
+  root.addEventListener("focusout", (e) => {
+    if (!e.target.matches("[data-rtd-pref]") || R.pref == null) return;
+    const v = R.pref; R.pref = null;
+    if ((v.trim() || null) !== (space().preferences || null)) put({ preferences: v.trim() || null }, "preferences", "Saved. Coordinators read it when they choose.");
   });
-  root.addEventListener("submit", (e) => {
-    const form = e.target.closest("[data-rtp]");
-    if (!form) return;
-    e.preventDefault();
-    save(form.dataset.rtp);
-  });
-  // what the stream changes (a new reading, another tab's save) shows while the page is open, never mid-edit
+  // a new reading from elsewhere (another tab's save) shows while the page is open, never mid-typing
   if (world.subscribe) {
     let sig = "";
     world.subscribe(() => {
       if (!onScreen()) return;
-      const next = JSON.stringify([world.state.policy, world.state.chatPolicy]);
+      const next = JSON.stringify(world.state.policy);
       if (next === sig) return;
       sig = next;
-      if (!R.saving && !Object.keys(R.drafts).some(dirty)) draw();
+      if (!R.saving && R.pref == null) draw();
     });
   }
 
   return {
-    /** The page was opened: read the runtimes and the policies now, then every 30 s while it shows. */
+    /** The page was opened: read the runtimes and the defaults now, then the runtimes every 30 s while it shows. */
     open() {
-      R.loadErr = null;
+      R.err = null;
       draw();
       refresh();
-      world.act.loadPolicies?.().then(() => { if (onScreen() && !Object.keys(R.drafts).some(dirty)) draw(); });
+      world.act.loadPolicies?.().then(() => { if (onScreen() && R.pref == null) draw(); });
     },
   };
 }

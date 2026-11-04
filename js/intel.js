@@ -5,22 +5,26 @@
 // PATCH (the chat: routing, model, effort; a thread: intelligence) applied from the next turn, said
 // back as one record line with a 3 s Undo. A thread never takes its chat's pin (§0.103).
 //
-//   Workspace, a project   who routes (the Space's, the coordinator, a connected decision model, off)
-//                          and the coordinator's own model and effort
-//   a thread               its agent's model and effort (the router chose them; you can pin)
+//   Workspace, a project   the runtime it runs on (a project: Auto, or one runtime for its coordinator and
+//                          its new threads), the coordinator's model and effort, who routes a new message
+//   a thread               its runtime (fixed for life: another one continues it in a new thread, said
+//                          first), its agent's model and effort (the router chose them; you can pin)
+// One choice, in order: runtime, then model, then effort.
 
 import * as K from "./keys.js";
 import { esc } from "./world.js";
 import { ICON, RM } from "./ui.js";
 import { api } from "./api.js";
 import { mainRuntime } from "./timeline.js";
+import { rtName, usable, allowedOf, moveTargets, findRt, healthOf, manyRuntimes } from "./runtimes.js";
 
 const EFFORT_WORD = { low: "Quick", medium: "Balanced", high: "Deep", xhigh: "Deeper", max: "Deepest" };
 const PIPS = { low: 1, medium: 2, high: 3, xhigh: 4, max: 5 };
 const dots = (e) => (e ? "·".repeat(Math.min(3, PIPS[e] || 2)) + (PIPS[e] > 3 ? "+" : "") : "");
 
-export function createIntel({ world, PROJ, onChange, record }) {
-  const P = { open: false, session: null, anchor: null, returnTo: null, models: null, err: null, busy: false };
+export function createIntel({ world, PROJ, onChange, record, onMoved }) {
+  const P = { open: false, session: null, anchor: null, returnTo: null, models: null, err: null, busy: false, rt: null, mv: null };
+  const movedHere = new Set(); // threads this tab continued elsewhere (their stream frame needs no second word)
   const catalogs = new Map(); // runtime → models
   const pop = document.getElementById("iq-pop");
 
@@ -53,10 +57,10 @@ export function createIntel({ world, PROJ, onChange, record }) {
     catalog(name).then(() => onChange(), () => {}).finally(() => reading.delete(name));
   };
   /** The efforts a model takes: its own list, else the runtime's feature list (UI-reference §2.7). */
-  const effortsOf = (m, s) => {
+  const effortsOf = (m, s, name = runtimeOf(s)) => {
     if (!m || !m.takes_effort) return [];
     if (m.efforts && m.efforts.length) return m.efforts;
-    const rt = (world.state.runtimes || []).find((r) => r.name === runtimeOf(s));
+    const rt = (world.state.runtimes || []).find((r) => r.name === name);
     const f = rt && rt.features && rt.features.features && rt.features.features.effort;
     return f && f.support !== "unsupported" && Array.isArray(f.values) ? f.values : [];
   };
@@ -83,6 +87,13 @@ export function createIntel({ world, PROJ, onChange, record }) {
     warm(s);
     const c = current(s);
     if (phone) return `<span class="iq-g" aria-hidden="true">${c.pinned ? `<i class="iq-dot"></i>` : "◇"}</span><span class="iq-p">${esc(dots(c.effort))}</span>`;
+    // a runtime other than the server's own is named first, when there are several to tell apart
+    const rtn = runtimeOf(s), main = (mainRuntime(world.state.runtimes) || {}).name;
+    const rtw = manyRuntimes(world.state.runtimes) && rtn && rtn !== main ? `<span class="iq-a">${esc(rtName(rtn))}</span> · ` : "";
+    // the runtime's name stands where "Auto" would: one word fewer
+    return rtw ? rtw + chipCore(s, c).replace(`<span class="iq-a">Auto</span> · `, "") : chipCore(s, c);
+  }
+  function chipCore(s, c) {
     if (kindOf(s) === "thread") {
       const m = c.model ? nameOf(c.model) : "Default";
       return `${c.pinned ? `<i class="iq-dot" aria-hidden="true"></i>` : `<span class="iq-a">Auto</span> · `}<span class="iq-t">${esc(m)}</span>${c.effort ? `<span class="iq-p">${esc(dots(c.effort))}</span>` : ""}`;
@@ -100,12 +111,92 @@ export function createIntel({ world, PROJ, onChange, record }) {
   }
   const cap = (x) => String(x || "").replace(/^\w/, (m) => m.toUpperCase());
 
+  // ── runtimes: the first of the three choices ───────────────────────────────
+  const rts = () => world.state.runtimes || [];
+  const chatPolicy = (c) => (c && c.chatId && world.state.chatPolicy && world.state.chatPolicy[c.chatId]) || null;
+  const spaceEff = () => (world.state.policy && world.state.policy.effective) || null;
+  /** The runtimes offered here, which one is on, and whether there is a choice at all. */
+  function runtimeChoice(s) {
+    const t = threadOf(s);
+    if (t) {
+      const cur = (t.session && t.session.agent) || runtimeOf(s);
+      const eff = (world.act.policyFor && world.act.policyFor(t.project)) || spaceEff();
+      const others = eff ? moveTargets(cur, eff, rts()).filter((x) => !x.own) : [];
+      const list = [{ id: cur, label: rtName(cur), usable: true, why: "" },
+        ...others.map((x) => ({ id: x.name, label: rtName(x.name), usable: x.usable && !t.movedTo, why: t.movedTo ? "This thread has already continued in another thread." : x.why }))];
+      return { list, on: cur, multi: list.length > 1 };
+    }
+    const c = chatOfSession(s) || {};
+    const kind = kindOf(s);
+    const eff = (kind === "project" && (chatPolicy(c) || {}).effective) || spaceEff();
+    const list = allowedOf(eff, rts()).map((n) => { const rt = findRt(rts(), n); const h = healthOf(rt); return { id: n, label: rtName(n), usable: usable(rt), why: usable(rt) ? "" : h.why || h.word }; });
+    if (kind === "project" && chatPolicy(c)) {
+      const own = chatPolicy(c).project || {};
+      return { list: [{ id: "auto", label: "Auto", usable: true, why: "" }, ...list], on: own.default || (c.pin && c.pin.agent) || "auto", multi: list.length > 1 };
+    }
+    return { list, on: runtimeOf(s), multi: list.length > 1 };
+  }
+  /** The runtime whose models the list shows: the one a thread would continue on, else the one it runs on. */
+  const listRuntime = (s) => (threadOf(s) && P.rt) || runtimeOf(s);
+  const moving = (s) => !!(threadOf(s) && P.rt && P.rt !== runtimeChoice(s).on);
+
+  function runtimeHtml(s) {
+    const ch = runtimeChoice(s);
+    if (!ch.multi) return "";
+    const kind = kindOf(s);
+    const sel = kind === "thread" ? P.rt || ch.on : ch.on;
+    const btns = ch.list.map((o) => `<button type="button" role="radio" data-lrt="${esc(o.id)}" aria-checked="${sel === o.id}"${o.usable ? "" : ` aria-disabled="true" title="${esc(o.why)}"`}${P.busy ? " disabled" : ""}>${esc(o.label)}</button>`).join("");
+    const off = ch.list.filter((o) => !o.usable);
+    let line;
+    if (kind === "thread") line = moving(s) ? "" : `This thread runs on ${esc(rtName(ch.on))} for its whole life.${ch.list.some((o) => o.id !== ch.on && o.usable) ? " Choose another to continue it there." : ""}`;
+    else if (kind === "project") line = ch.on === "auto" ? `Its coordinator picks a runtime for each new thread.` : `Its coordinator and its new threads run on ${esc(rtName(ch.on))}.`;
+    else line = `The Workspace coordinator runs on ${esc(rtName(ch.on))}.`;
+    // a runtime that can't take work says why, in words, not only on hover
+    const why = off.length ? off.map((o) => `${esc(o.label)}: ${esc(o.why.replace(/\.$/, ""))}.`).join(" ") : "";
+    return `<div class="iq-sec iq-rts"><p class="iq-lab" id="iq-rt-l">Runtime</p><div class="iq-route" role="radiogroup" aria-labelledby="iq-rt-l">${btns}</div>` +
+      (line ? `<p class="iq-rl">${line}</p>` : "") + (why ? `<p class="iq-rl is-why">${why}</p>` : "") + `</div>`;
+  }
+
   // ── the popover ───────────────────────────────────────────────────────────
+  function modelRow(m, s, name, sel, selEffort, attrs) {
+    const efforts = effortsOf(m, s, name);
+    return `<div class="iq-row lv${sel ? " is-sel" : ""}" role="option" aria-selected="${sel}" ${attrs.row}="${esc(m.id)}">` +
+      `<span class="iq-mk" aria-hidden="true">${sel ? `<i class="iq-dot"></i>` : ""}</span><span class="iq-nt"><span class="iq-n">${esc(m.name)}</span>${m.description ? `<span class="iq-tr">${esc(m.description)}</span>` : ""}</span>` +
+      `<span class="iq-d">${efforts.length ? efforts.filter((e) => PIPS[e]).map((e) => `<button type="button" class="iq-pip${sel && selEffort === e ? " is-sel" : ""}" ${attrs.pip}="${esc(m.id)}|${esc(e)}" aria-label="${esc(m.name)}, ${esc(EFFORT_WORD[e] || e)}" title="${esc(EFFORT_WORD[e] || e)}"><span class="pd">${"<i></i>".repeat(PIPS[e])}</span></button>`).join("") : `<button type="button" class="iq-pip is-flat" ${attrs.pip}="${esc(m.id)}|" title="This model has no effort setting">Pick</button>`}</span></div>`;
+  }
+  // one row per family's default (claude: opus, fable, sonnet, haiku), then models in no family
+  const shown = (models) => (models || []).filter((m) => !m.is_default && (m.family_default || !m.family));
+
   function render() {
     if (!P.open) return;
     const s = P.session, kind = kindOf(s), c = current(s);
     const models = P.models;
     let html = `<header class="iq-h"><h2 id="iq-hh">Intelligence <span>for ${esc(scopeWord(s))}</span></h2></header>`;
+    html += runtimeHtml(s);
+    if (moving(s)) {
+      // continuing elsewhere: its model and effort there (its default unless chosen), then what happens
+      const to = rtName(P.rt), mv = P.mv || {};
+      html += `<div class="iq-sec"><p class="iq-now">${mv.model ? `On ${esc(to)} it will use <b>${esc(nameOf(mv.model))}${mv.effort ? ` · ${esc(EFFORT_WORD[mv.effort] || mv.effort)}` : ""}</b>.` : `On ${esc(to)} it will use its default model, unless you pick one.`}</p>`;
+      if (mv.modelsErr) html += `<p class="iq-err">${esc(mv.modelsErr)}</p>`;
+      else if (!mv.models) html += `<p class="iq-rl"><i class="spin" aria-hidden="true"></i> Reading ${esc(to)}'s models…</p>`;
+      else html += `<div class="iq-list" role="listbox" aria-label="${esc(to)}'s models">${shown(mv.models).map((m) => modelRow(m, s, P.rt, mv.model === m.id, mv.effort, { row: "data-mvm", pip: "data-mvp" })).join("")}</div>`;
+      html += `</div><div class="iq-sec iq-mv" id="iq-mv-cons"><p class="iq-lab">Continuing on ${esc(to)}</p><ul>` +
+        `<li>Its messages and work go to ${esc(to)}.</li><li>The new agent starts from a summary and the code, and re-reads files.</li>` +
+        `<li>Earlier approvals don't carry over.</li><li>This thread is frozen; write in it to pick it back up.</li></ul>` +
+        (mv.err ? `<p class="iq-err" role="alert">${esc(mv.err)}</p>` : "") +
+        `<div class="iq-mv-acts">${mv.busy ? `<span class="iq-rl"><i class="spin" aria-hidden="true"></i> Stopping the thread and saving its work…</span>` : ""}<button type="button" class="btn" data-mv-cancel${mv.busy ? " disabled" : ""}>Cancel</button><button type="button" class="btn btn-pri" data-mv-go aria-describedby="iq-mv-cons"${mv.busy ? " disabled" : ""}>${mv.retry ? "Try again" : `Continue on ${esc(to)}`}</button></div></div>`;
+      pop.innerHTML = html;
+      place();
+      return;
+    }
+    const lead = kind === "thread"
+      ? `<p class="iq-now">${c.pinned ? `<i class="iq-dot"></i>Pinned: <b>${esc(nameOf(c.model) || "the default")}${c.effort ? ` · ${esc(EFFORT_WORD[c.effort] || c.effort)}` : ""}</b>.` : `The router chose <b>${esc(c.model ? nameOf(c.model) : "the default model")}${c.effort ? ` · ${esc(EFFORT_WORD[c.effort] || c.effort)}` : ""}</b> for it.`}</p>`
+      : `<p class="iq-now">${c.pinned ? `<i class="iq-dot"></i>Its coordinator runs <b>${esc(nameOf(c.model) || "the default")}${c.effort ? ` · ${esc(EFFORT_WORD[c.effort] || c.effort)}` : ""}</b>.` : "Its coordinator runs on its default model."} New threads get their own from the router.</p>`;
+    html += `<div class="iq-sec">${lead}`;
+    if (P.err) html += `<p class="iq-err">${esc(P.err)}</p>`;
+    else if (!models) html += `<p class="iq-rl"><i class="spin" aria-hidden="true"></i> Reading the models…</p>`;
+    else html += `<div class="iq-list" role="listbox" aria-label="Models">${shown(models).map((m) => modelRow(m, s, runtimeOf(s), c.pinned && c.model === m.id, c.effort, { row: "data-lmodel", pip: "data-lpin" })).join("")}</div>`;
+    html += `</div>`;
     if (kind !== "thread") {
       const space = world.state.router || { mode: "agent" };
       const dms = (P.dms || []).filter((m) => m.connected);
@@ -116,28 +207,9 @@ export function createIntel({ world, PROJ, onChange, record }) {
         { id: "off", label: "Off", on: c.ownRouting && c.routing.mode === "off", line: "New messages to this chat are refused. Its threads still take your replies." },
       ];
       const on = opts.find((o) => o.on) || opts[0];
-      html += `<div class="iq-sec"><p class="iq-lab">Who routes a new message</p><div class="iq-route" role="radiogroup" aria-label="Who routes">${opts.map((o) => `<button type="button" role="radio" data-lroute="${esc(o.id)}" aria-checked="${o.on}">${o.id === "agent" ? ICON.router : ""}${esc(o.label)}</button>`).join("")}</div><p class="iq-rl">${esc(on.line)}</p>` +
-        (!dms.length ? `<p class="iq-rl">Connect a decision model in Settings › Routing to let one route.</p>` : "") + `</div>`;
+      html += `<div class="iq-sec"><p class="iq-lab" id="iq-ro-l">Who routes a new message</p><div class="iq-route" role="radiogroup" aria-labelledby="iq-ro-l">${opts.map((o) => `<button type="button" role="radio" data-lroute="${esc(o.id)}" aria-checked="${o.on}">${o.id === "agent" ? ICON.router : ""}${esc(o.label)}</button>`).join("")}</div><p class="iq-rl">${esc(on.line)}</p></div>`;
     }
-    const lead = kind === "thread"
-      ? `<p class="iq-now">${c.pinned ? `<i class="iq-dot"></i>Pinned: <b>${esc(nameOf(c.model) || "the default")}${c.effort ? ` · ${esc(EFFORT_WORD[c.effort] || c.effort)}` : ""}</b>.` : `The router chose <b>${esc(c.model ? nameOf(c.model) : "the default model")}${c.effort ? ` · ${esc(EFFORT_WORD[c.effort] || c.effort)}` : ""}</b> for it.`}</p>`
-      : `<p class="iq-now">${c.pinned ? `<i class="iq-dot"></i>Its coordinator runs <b>${esc(nameOf(c.model) || "the default")}${c.effort ? ` · ${esc(EFFORT_WORD[c.effort] || c.effort)}` : ""}</b>.` : "Its coordinator runs on its default."} New threads still get their own choice from the router.</p>`;
-    html += `<div class="iq-sec">${lead}`;
-    if (P.err) html += `<p class="iq-err">${esc(P.err)}</p>`;
-    else if (!models) html += `<p class="iq-rl"><i class="spin" aria-hidden="true"></i> Reading the models…</p>`;
-    else {
-      // one row per family's default (claude: opus, fable, sonnet, haiku), then models in no family
-      const fam = models.filter((m) => !m.is_default && (m.family_default || !m.family));
-      const curId = c.model;
-      html += `<div class="iq-list" role="listbox" aria-label="Models">${fam.map((m) => {
-        const sel = c.pinned && curId === m.id;
-        const efforts = effortsOf(m, s);
-        return `<div class="iq-row lv${sel ? " is-sel" : ""}" role="option" aria-selected="${sel}" data-lmodel="${esc(m.id)}">` +
-          `<span class="iq-mk" aria-hidden="true">${sel ? `<i class="iq-dot"></i>` : ""}</span><span class="iq-nt"><span class="iq-n">${esc(m.name)}</span>${m.description ? `<span class="iq-tr">${esc(m.description)}</span>` : ""}</span>` +
-          `<span class="iq-d">${efforts.length ? efforts.filter((e) => PIPS[e]).map((e) => `<button type="button" class="iq-pip${sel && c.effort === e ? " is-sel" : ""}" data-lpin="${esc(m.id)}|${esc(e)}" aria-label="${esc(m.name)}, ${esc(EFFORT_WORD[e] || e)}" title="${esc(EFFORT_WORD[e] || e)}"><span class="pd">${"<i></i>".repeat(PIPS[e])}</span></button>`).join("") : `<button type="button" class="iq-pip is-flat" data-lpin="${esc(m.id)}|" title="This model has no effort setting">Pick</button>`}</span></div>`;
-      }).join("")}</div>`;
-    }
-    html += `</div><footer class="iq-f"><span>Applies to ${esc(scopeWord(s))} from its next turn.</span>${c.pinned ? `<button type="button" class="iq-back" data-lauto>Back to ${kind === "thread" ? "the CLI's default" : "Auto"}</button>` : ""}</footer>`;
+    html += `<footer class="iq-f"><span>Applies to ${esc(scopeWord(s))} from its next turn.</span>${c.pinned ? `<button type="button" class="iq-back" data-lauto>Back to the default model</button>` : ""}</footer>`;
     pop.innerHTML = html;
     place();
   }
@@ -151,12 +223,9 @@ export function createIntel({ world, PROJ, onChange, record }) {
     pop.style.left = `${Math.max(12, Math.min(r.right - w + 10, innerWidth - w - 12))}px`;
     pop.style.top = `${Math.max(12, r.top - pop.offsetHeight - 10)}px`;
   }
-  async function open(s, anchor) {
-    P.open = true; P.session = s; P.anchor = anchor; P.returnTo = document.activeElement; P.err = null; P.models = null;
-    pop.hidden = false; pop.classList.remove("is-out");
-    render();
-    anchor?.setAttribute("aria-expanded", "true");
-    pop.focus({ preventScroll: true });
+  /** Read the models the list shows (the runtime it runs on now). */
+  async function loadModels(s) {
+    P.err = null;
     try {
       const name = runtimeOf(s);
       if (catalogs.has(name)) { P.models = catalogs.get(name); render(); }
@@ -166,8 +235,30 @@ export function createIntel({ world, PROJ, onChange, record }) {
     } catch (err) { P.err = err.status === 503 ? "The models can't be read right now." : err.message; }
     render();
   }
+  /** A thread looks at continuing on `name`: its models there, read with a deadline (Default never waits). */
+  function lookAt(name) {
+    const s = P.session;
+    P.rt = name;
+    P.mv = moving(s) ? { model: null, effort: null, models: catalogs.get(name) || null } : null;
+    render();
+    if (!P.mv || P.mv.models) return;
+    const late = new Promise((_, no) => setTimeout(() => no(new Error("slow")), 20000));
+    Promise.race([catalog(name), late]).then((m) => { if (P.mv && P.rt === name) { P.mv.models = m; render(); } },
+      (err) => { if (P.mv && P.rt === name) { P.mv.modelsErr = err.message === "slow" ? `${rtName(name)}'s models are slow to read; its default still works.` : `${rtName(name)}'s models can't be read now; its default still works.`; render(); } });
+  }
+  /** opts.rt: open a thread's picker looking at continuing on that runtime (the thread menu's way in). */
+  async function open(s, anchor, opts = {}) {
+    P.open = true; P.session = s; P.anchor = anchor; P.returnTo = document.activeElement; P.err = null; P.models = null; P.busy = false; P.rt = null; P.mv = null;
+    pop.hidden = false; pop.classList.remove("is-out");
+    if (opts.rt) lookAt(opts.rt); else render();
+    anchor?.setAttribute("aria-expanded", "true");
+    if (opts.rt) pop.querySelector(`[data-lrt="${CSS.escape(opts.rt)}"]`)?.focus({ preventScroll: true });
+    else pop.focus({ preventScroll: true });
+    await loadModels(s);
+  }
   function close({ restore = true } = {}) {
     if (!P.open) return;
+    P.rt = null; P.mv = null;
     P.open = false;
     P.anchor?.setAttribute("aria-expanded", "false");
     if (RM.matches) pop.hidden = true;
@@ -226,7 +317,72 @@ export function createIntel({ world, PROJ, onChange, record }) {
     change(s, body, { routing: before }, `${s === "ws" ? "The Workspace" : PROJ(s.slice(2))} ${label}`);
   }
 
+  const blankPolicy = { allowed: null, default: null, preferences: null, fallback: null };
+  /** A project's or the Workspace's runtime: its coordinator (from its next pause) and, for a project, its new threads. */
+  async function setRuntime(s, id) {
+    const c = chatOfSession(s), kind = kindOf(s);
+    if (!c || P.busy || id === runtimeChoice(s).on) return;
+    const pin0 = { agent: (c.pin && c.pin.agent) || null, model: (c.pin && c.pin.model) || null, effort: (c.pin && c.pin.effort) || null };
+    const pol0 = kind === "project" && chatPolicy(c) ? { ...blankPolicy, ...(chatPolicy(c).project || {}) } : null;
+    const agent = id === "auto" ? null : id;
+    P.busy = true; render();
+    try {
+      // a model belongs to its runtime: a new runtime starts on its own default model
+      await api.patchChat(c.chatId, { agent, model: null, effort: null });
+      if (pol0) await world.act.setPolicy(c.chatId, { ...pol0, default: agent });
+      await world.act.refresh?.();
+      const who = kind === "project" ? PROJ(s.slice(2)) : "The Workspace";
+      record(s, {
+        text: kind === "project" ? (agent ? `${who} runs on ${rtName(agent)}: its coordinator from its next pause, and its new threads` : `${who} is on Auto: its coordinator picks a runtime for each new thread`) : `The Workspace coordinator runs on ${rtName(agent)} from its next pause`,
+        undo: async () => {
+          try { await api.patchChat(c.chatId, pin0); if (pol0) await world.act.setPolicy(c.chatId, pol0); await world.act.refresh?.(); onChange(); }
+          catch (err) { record(s, { text: `Couldn't undo: ${err.message}`, refused: true }); }
+        },
+      });
+    } catch (err) { record(s, { text: `Nothing changed: ${err.message}`, refused: true }); }
+    P.busy = false;
+    onChange();
+    if (P.open && P.session === s) { P.models = null; render(); loadModels(s); }
+  }
+  /** Continue the thread on the runtime it looks at: XO stops it, saves its work, and a linked thread starts there. */
+  async function moveGo() {
+    const s = P.session, t = threadOf(s), mv = P.mv;
+    if (!t || !mv || mv.busy) return;
+    mv.busy = true; mv.err = null; render();
+    movedHere.add(t.id);
+    try {
+      const r = await api.continueThread(t.chatId, t.id, { agent: P.rt, model: mv.model || null, effort: mv.effort || null });
+      const next = r && r.thread_id ? await world.act.fetchThread(t.chatId, r.thread_id).catch(() => null) : null;
+      mv.busy = false;
+      close({ restore: false });
+      onMoved && onMoved(next, r.agent || P.rt);
+    } catch (err) {
+      mv.busy = false;
+      mv.retry = err.code === "still_busy" || err.code === "timeout" || err.status === 0;
+      mv.err = err.code === "still_busy" ? "The thread didn't stop in time. Nothing moved; try again." : err.message;
+      render();
+      pop.querySelector("[data-mv-go]")?.focus();
+    }
+  }
+
   pop.addEventListener("click", (e) => {
+    const rt = e.target.closest("[data-lrt]");
+    if (rt) {
+      if (rt.getAttribute("aria-disabled") === "true" || rt.disabled) return;
+      if (threadOf(P.session)) { lookAt(rt.dataset.lrt); return; }
+      setRuntime(P.session, rt.dataset.lrt); return;
+    }
+    if (e.target.closest("[data-mv-cancel]")) { lookAt(null); pop.querySelector(`[data-lrt][aria-checked="true"]`)?.focus(); return; }
+    if (e.target.closest("[data-mv-go]")) { moveGo(); return; }
+    const mvp = e.target.closest("[data-mvp]");
+    if (mvp && P.mv) { const [m, ef] = mvp.dataset.mvp.split("|"); P.mv.model = m; P.mv.effort = ef || null; render(); return; }
+    const mvm = e.target.closest("[data-mvm]");
+    if (mvm && P.mv) {
+      const m = (P.mv.models || []).find((x) => x.id === mvm.dataset.mvm);
+      const efs = effortsOf(m, P.session, P.rt);
+      P.mv.model = mvm.dataset.mvm; P.mv.effort = efs.length ? (m.default_effort && efs.includes(m.default_effort) ? m.default_effort : efs[Math.floor((efs.length - 1) / 2)]) : null;
+      render(); return;
+    }
     const r = e.target.closest("[data-lroute]");
     if (r) { const s = P.session; close(); route(s, r.dataset.lroute); return; }
     const p = e.target.closest("[data-lpin]");
@@ -241,14 +397,22 @@ export function createIntel({ world, PROJ, onChange, record }) {
       pin(s, row.dataset.lmodel, !efs.length ? null : m.default_effort && efs.includes(m.default_effort) ? m.default_effort : efs.includes(now) ? now : efs[Math.floor((efs.length - 1) / 2)]);
     }
   });
-  pop.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); close(); } });
-  document.addEventListener("pointerdown", (e) => { if (P.open && !pop.contains(e.target) && !e.target.closest("#iq")) close({ restore: false }); });
+  pop.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    e.preventDefault(); e.stopPropagation();
+    // Esc steps back out of continuing elsewhere first, then closes
+    if (P.mv && !P.mv.busy) { lookAt(null); pop.querySelector(`[data-lrt][aria-checked="true"]`)?.focus(); } else if (!(P.mv && P.mv.busy)) close();
+  });
+  document.addEventListener("pointerdown", (e) => { if (P.open && !(P.mv && P.mv.busy) && !pop.contains(e.target) && !e.target.closest("#iq")) close({ restore: false }); });
   addEventListener("resize", () => { if (P.open) place(); });
 
   return {
     current, chipHtml, chipTitle, open, close,
     routed: () => null, spawnSetup: () => null, set: () => {}, setRouting: () => {},
     get isOpen() { return P.open; },
+    /** Did this tab continue that thread elsewhere (so the stream's frame for it needs no herald)? */
+    movedHere: (id) => movedHere.has(id),
+    runtimeChoice,
     get session() { return P.session; },
     kindOf, scopeWord,
   };
