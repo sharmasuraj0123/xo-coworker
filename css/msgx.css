@@ -1,8 +1,9 @@
-/* Bubbles and replies (js/msgx.js; thread "Message styles & replies", xo/thread-682d17). The look is final
-   (owner, 5 Nov): XO's green for yours, glass for theirs, tails on, every reply in a bubble; no switch.
-   Every value comes from css/tokens.css. Corners nest: an inner radius is the outer one minus the inset
-   between them (the composer's reply 28 → 18 at 10 in, a quote in a bubble 20 → 14 at 6 in). Remove this
-   file, js/msgx.js and their lines in index.html to take it all out. */
+/* The conversation's bubbles (with js/msgx.js): message bubbles and tails, replies and quotes, the working
+   bubble and opened work card, thread cards and their progress band, back-to-latest. This is the shipped
+   chat look (owner, 5 Nov: XO's green for yours, glass for theirs, tails on, every reply in a bubble), not
+   an experiment: removing this file breaks the conversation. Every value comes from css/tokens.css.
+   Corners nest: an inner radius is the outer one minus the inset between them (the composer's reply
+   28 → 18 at 10 in, a quote in a bubble 20 → 14 at 6 in, a card's progress band 20 → 4 at 16 in). */
 
 /* ── back to the latest ──────────────────────────────────────────────────────
    A 40 px glass circle 12 px above the composer, its right edge on the composer's right edge. It rises in
@@ -289,9 +290,11 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-them .tcard.st-needs .tc-go{margin-right:calc(var(--mx-decide-w) + 8px)}
 :root[data-msgx] .m-them .tcard.st-needs>.tc-dec{position:absolute;right:12px;bottom:12px;width:var(--mx-decide-w);margin:0;border-radius:calc(var(--r-xl) - 12px)}
 :root[data-msgx] .m-them .tc-open{gap:8px;padding:0 16px 12px;border-radius:var(--r-xl)}
-:root[data-msgx] .m-them .tc-segs{order:-1;margin:0 -16px 4px;width:calc(100% + 32px);min-height:46px;padding:20px 16px;gap:4px;background:color-mix(in srgb,var(--st,var(--ink-4)) 14%,var(--mx-them-top));transition:background var(--d-hover) var(--ease)}
+/* the strip sits 16 px in from the card's top and sides (the caption's text column), so with the card's 20 px
+   corner its ends round at 20 − 16 = 4: an 8 px bar (band 16 + 8 + 16 = 40) */
+:root[data-msgx] .m-them .tc-segs{order:-1;margin:0 -16px 4px;width:calc(100% + 32px);min-height:40px;padding:16px;gap:4px;background:color-mix(in srgb,var(--st,var(--ink-4)) 14%,var(--mx-them-top));transition:background var(--d-hover) var(--ease)}
 :root[data-msgx] .m-them .tcard:hover .tc-segs{background:color-mix(in srgb,var(--st,var(--ink-4)) 20%,var(--mx-them-top))}
-:root[data-msgx] .m-them .tc-segs .sg{max-width:none;height:6px;border-radius:3px}
+:root[data-msgx] .m-them .tc-segs .sg{max-width:none;height:8px;border-radius:calc(var(--r-xl) - 16px)}
 :root[data-msgx] .m-them .tc-top b{font:600 var(--fs-lg)/24px var(--sans)}
 :root[data-msgx] .m-them .tc-st{color:var(--st,var(--ink-3));font-weight:500}
 
@@ -302,7 +305,7 @@ body.files-open .mx-down{display:none}
    · When a step completes, green fills it from the left over its blue (no jump), and only then does the next
      step light up blue, also from the left: a handoff you can follow.
    Every loop takes its phase from the clock (msgx.js), so the card's redraws never restart it. */
-:root[data-msgx] .m-them .tc-segs:not(:has(.sg))::before{content:"";display:block;flex:1;height:6px;border-radius:3px;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--st,var(--info)) 75%,transparent),transparent) 0 0/40% 100% no-repeat,color-mix(in srgb,var(--st,var(--info)) 18%,transparent);animation:mx-await 2.4s var(--ease-loop) var(--mx-wave,0s) infinite}
+:root[data-msgx] .m-them .tc-segs:not(:has(.sg))::before{content:"";display:block;flex:1;height:8px;border-radius:calc(var(--r-xl) - 16px);background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--st,var(--info)) 75%,transparent),transparent) 0 0/40% 100% no-repeat,color-mix(in srgb,var(--st,var(--info)) 18%,transparent);animation:mx-await 2.4s var(--ease-loop) var(--mx-wave,0s) infinite}
 @keyframes mx-await{0%{background-position:-70% 0,0 0;opacity:.6}50%{opacity:1}100%{background-position:170% 0,0 0;opacity:.6}}
 :root[data-msgx] .m-them .tc-segs .sg.s-doing{background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent) 0 0/45% 100% no-repeat,var(--info);animation:mx-doing 2.4s var(--ease-loop) var(--mx-wave,0s) infinite}
 @keyframes mx-doing{from{background-position:-90% 0,0 0}to{background-position:190% 0,0 0}}
