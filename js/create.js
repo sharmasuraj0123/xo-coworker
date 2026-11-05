@@ -109,9 +109,9 @@ export function initCreate(ctx) {
   }
 
   // busy: {t0, label, cloneId?, st?: Space's clone status} while creating or cloning
-  function setBusy(on, label) {
+  function setBusy(on, repoOf) {
     clearTimeout(busy?.timer);
-    busy = on ? { t0: Date.now(), label } : null;
+    busy = on ? { t0: Date.now(), label: repoOf?.label, host: repoOf && (repoOf.github ? "GitHub" : repoOf.label.split(/[/:]/)[0]) } : null;
     for (const el of [name, desc, repo]) el.disabled = on;
     for (const b of $("#cp-mode").children) b.disabled = on;
     submit.disabled = on;
@@ -134,9 +134,12 @@ export function initCreate(ctx) {
     bar.firstElementChild.style.width = pct != null ? `${pct}%` : "";
     if (pct != null) { bar.setAttribute("aria-valuenow", pct); bar.setAttribute("aria-valuemin", 0); bar.setAttribute("aria-valuemax", 100); bar.setAttribute("aria-valuetext", facts || `${pct}%`); }
     else for (const k of ["aria-valuenow", "aria-valuemin", "aria-valuemax", "aria-valuetext"]) bar.removeAttribute(k);
-    const phase = `${PHASE[st.phase] || "Cloning"} ${busy.label}`;
-    if ($("#cp-phase").dataset.v !== phase) { $("#cp-phase").dataset.v = phase; $("#cp-phase").innerHTML = `${esc(PHASE[st.phase] || "Cloning")} <b>${esc(busy.label)}</b>`; }
-    $("#cp-facts").textContent = facts;
+    // Space's idle_seconds (when it sends it): git has said nothing for that long, so say who we're waiting on
+    const quiet = st.idle_seconds >= 8 ? busy.host : "";
+    const verb = quiet && st.phase === "counting" ? `Waiting for ${quiet} to prepare` : PHASE[st.phase] || "Cloning";
+    const phase = `${verb} ${busy.label}`;
+    if ($("#cp-phase").dataset.v !== phase) { $("#cp-phase").dataset.v = phase; $("#cp-phase").innerHTML = `${esc(verb)} <b>${esc(busy.label)}</b>`; }
+    $("#cp-facts").textContent = [facts, quiet && st.phase !== "counting" && `waiting for ${quiet}`].filter(Boolean).join(" · ");
     $("#cp-time").textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
     $("#cp-stop").hidden = !busy.cloneId;
     $("#cp-hint").hidden = s < 6;
@@ -248,7 +251,7 @@ export function initCreate(ctx) {
     if (ctx.world.state.projects.some((p) => p.id === id)) { error(`There's already a project called “${id}”. Pick another name.`); name.focus(); return; }
     if (!(await loadRoot())) { error("Can't create yet: the projects folder is unknown. Is the XO API running?"); return; }
     error("");
-    setBusy(true, r?.label);
+    setBusy(true, r);
     try {
       if (r) {
         const res = await api.cloneProject({ id, url: r.url, displayName: title, description }, CLONE_V2);
