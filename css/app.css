@@ -1204,6 +1204,7 @@ button.tp-done-u:hover{color:var(--ink)}
 .cp-note{display:flex;align-items:flex-start;gap:7px;min-height:16px;font-size:var(--fs-sm);line-height:16px;color:var(--ink-4)}
 .cp-note>svg,.cp-note>.spin{flex:none;width:13px;height:13px;margin-top:1.5px}
 .cp-note>.spin{width:11px;height:11px;margin:2.5px 1px 0}
+.cp-note>span{min-width:0;overflow-wrap:anywhere}
 .cp-note code{font-size:var(--fs-sm);color:var(--ink-3)}
 .cp-note b{font-weight:500;color:var(--ink-2)}
 .cp-note[data-tone="ok"]>svg{color:var(--accent)}
@@ -1231,12 +1232,17 @@ button.tp-done-u:hover{color:var(--ink)}
 .cp-bar{height:3px;border-radius:2px;background:var(--g24);overflow:hidden}
 .cp-bar i{display:block;width:32%;height:100%;border-radius:inherit;background:var(--info);animation:cp-run 1.4s var(--ease) infinite}
 .cp-bar.is-known i{animation:none;transition:width .4s var(--ease)}
-.cp-t .cp-link{margin-right:12px}
 @keyframes cp-run{from{transform:translateX(-100%)}to{transform:translateX(312%)}}
-#cp-prog-t{display:flex;flex-wrap:wrap;column-gap:12px;row-gap:4px;font-size:var(--fs-sm);line-height:16px;color:var(--ink-3)}
-#cp-prog-t b{font-weight:500;color:var(--ink)}
-.cp-t{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--ink-4)}
-.cp-hint{flex-basis:100%;color:var(--ink-4)}
+/* What it's doing on top, how far under it; the time and Stop keep their own place on the right */
+.cp-row{display:flex;align-items:center;gap:12px;min-height:32px}
+.cp-what{flex:1;min-width:0;display:flex;flex-direction:column;font-size:var(--fs-sm);line-height:16px;color:var(--ink-3)}
+.cp-phase{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cp-phase b{font-weight:500;color:var(--ink)}
+.cp-facts{color:var(--ink-4);font-variant-numeric:tabular-nums}
+.cp-facts:empty{display:none}
+.cp-t{flex:none;font-size:var(--fs-sm);line-height:16px;font-variant-numeric:tabular-nums;color:var(--ink-4)}
+.cp-stop{flex:none;height:32px;padding:0 12px;font-size:var(--fs-base)}
+.cp-hint{font-size:var(--fs-sm);line-height:16px;color:var(--ink-4)}
 @media (prefers-reduced-motion:reduce){.cp-bar i{width:100%;animation:none;opacity:.5}}
 .dlg-err{padding:10px 12px;border-radius:var(--r-sm);background:var(--err-subtle);color:var(--err-ink);font-size:var(--fs-base);line-height:20px}
 .dlg-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:2px}

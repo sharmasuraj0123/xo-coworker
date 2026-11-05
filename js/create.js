@@ -118,20 +118,27 @@ export function initCreate(ctx) {
     submit.innerHTML = on ? `<i class="spin" aria-hidden="true"></i>${mode === "clone" ? "Cloning…" : "Creating…"}` : (mode === "clone" ? "Clone project" : "Create project");
     cancel.textContent = on && mode === "clone" ? "Close" : "Cancel";
     $("#cp-prog").hidden = !(on && mode === "clone");
+    delete $("#cp-phase").dataset.v;
+    $("#cp-stop").disabled = false;
     if (on && mode === "clone") tick();
   }
-  /** The cloning row: what Space says it's doing (or just "Cloning"), how far when it knows, the time taken. */
+  /** The cloning row: what Space says it's doing (or just "Cloning"), how far when it knows, the time taken.
+   *  Its nodes stay put (only their text changes), so Stop keeps focus; only a new phase is announced. */
   function tick() {
     if (!busy) return;
     const s = Math.floor((Date.now() - busy.t0) / 1000), st = busy.st || {};
     const pct = Number.isFinite(st.percent) ? Math.max(0, Math.min(100, Math.round(st.percent))) : null;
-    const bar = $("#cp-prog .cp-bar");
+    const bar = $("#cp-bar"), facts = [pct > 0 && `${pct}%`, st.received_bytes > 0 && fmtSize(st.received_bytes)].filter(Boolean).join(" · ");
     bar.classList.toggle("is-known", pct != null);
     bar.firstElementChild.style.width = pct != null ? `${pct}%` : "";
-    const facts = [pct > 0 && `${pct}%`, st.received_bytes > 0 && fmtSize(st.received_bytes)].filter(Boolean).join(" · ");
-    $("#cp-prog-t").innerHTML = `<span>${PHASE[st.phase] || "Cloning"} <b>${esc(busy.label)}</b>${facts ? ` · ${facts}` : ""}</span>` +
-      `<span class="cp-t">${busy.cloneId ? `<button type="button" class="cp-link" data-cp="stop">Stop</button>` : ""}${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}</span>` +
-      (s >= 6 ? `<span class="cp-hint">Big repos take a while. You can close this; you'll hear when it's ready.</span>` : "");
+    if (pct != null) { bar.setAttribute("aria-valuenow", pct); bar.setAttribute("aria-valuemin", 0); bar.setAttribute("aria-valuemax", 100); bar.setAttribute("aria-valuetext", facts || `${pct}%`); }
+    else for (const k of ["aria-valuenow", "aria-valuemin", "aria-valuemax", "aria-valuetext"]) bar.removeAttribute(k);
+    const phase = `${PHASE[st.phase] || "Cloning"} ${busy.label}`;
+    if ($("#cp-phase").dataset.v !== phase) { $("#cp-phase").dataset.v = phase; $("#cp-phase").innerHTML = `${esc(PHASE[st.phase] || "Cloning")} <b>${esc(busy.label)}</b>`; }
+    $("#cp-facts").textContent = facts;
+    $("#cp-time").textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+    $("#cp-stop").hidden = !busy.cloneId;
+    $("#cp-hint").hidden = s < 6;
     busy.timer = setTimeout(tick, 1000 - ((Date.now() - busy.t0) % 1000));
   }
   /** v2: follow a clone Space runs in the background until it's done; throws its error. */
@@ -151,13 +158,15 @@ export function initCreate(ctx) {
   async function stop() {
     const id = busy?.cloneId;
     if (!id) return;
-    $("#cp-prog-t .cp-link").disabled = true;
+    $("#cp-stop").disabled = true;
     try { await api.cancelClone(id); } catch (err) {
+      $("#cp-stop").disabled = false;
       if (err.code === "clone_finished") return; // it finished first: following it shows how
       if (err.status !== 404) { error(`Couldn't stop it: ${err.message}`); return; }
     }
     setBusy(false);
     error("");
+    submit.focus(); // Stop is gone: land on what starts it again
     ctx.announce("Stopped cloning. Nothing was kept.");
   }
 
@@ -270,7 +279,6 @@ export function initCreate(ctx) {
     if (!a) return;
     if (a.dataset.cp === "connect") { e.preventDefault(); connect(); }
     if (a.dataset.cp === "copy") navigator.clipboard?.writeText(gh.code).catch(() => {});
-    if (a.dataset.cp === "stop") stop();
   });
   repo.addEventListener("input", () => {
     error("");
@@ -281,6 +289,7 @@ export function initCreate(ctx) {
   });
   name.addEventListener("input", () => { nameTouched = !!name.value; renderWhere(); error(""); });
   cancel.addEventListener("click", close);
+  $("#cp-stop").addEventListener("click", stop);
   form.addEventListener("submit", (e) => { e.preventDefault(); submitForm(); });
   dlg.addEventListener("cancel", (e) => { e.preventDefault(); close(); });
   return { open, close, isOpen: () => dlg.open };

@@ -207,7 +207,15 @@
         <span>What is it for? <em>optional</em></span>
         <textarea id="cp-desc" name="description" rows="2" maxlength="600" placeholder="One or two sentences for the project brief."></textarea>
       </label>
-      <div class="cp-prog" id="cp-prog" hidden><div class="cp-bar"><i></i></div><p id="cp-prog-t"></p></div>
+      <div class="cp-prog" id="cp-prog" hidden>
+        <div class="cp-bar" id="cp-bar" role="progressbar" aria-label="Cloning"><i></i></div>
+        <div class="cp-row">
+          <p class="cp-what"><span class="cp-phase" id="cp-phase" aria-live="polite"></span><span class="cp-facts" id="cp-facts"></span></p>
+          <span class="cp-t" id="cp-time"></span>
+          <button type="button" class="btn cp-stop" id="cp-stop" hidden>Stop</button>
+        </div>
+        <p class="cp-hint" id="cp-hint" hidden>Big repos take a while. You can close this; you'll hear when it's ready.</p>
+      </div>
       <p class="dlg-err" id="cp-err" role="alert" hidden></p>
       <footer class="dlg-foot">
         <button type="button" class="btn" id="cp-cancel">Cancel</button>
