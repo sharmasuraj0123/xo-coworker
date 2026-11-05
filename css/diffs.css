@@ -5,6 +5,9 @@
    concrete. */
 diffs-container{
   display:block;
+  /* never 0 px tall: Pierre's virtualiser keeps a file that ends above the view where it ends, so an empty
+     one, before its first rows, read as "above" and threw a long file to its last line on opening */
+  min-height:1px;
   --diffs-font-family:var(--mono);
   --diffs-header-font-family:var(--sans);
   --diffs-font-size:13px; --diffs-line-height:20px; --diffs-tab-size:2;
@@ -98,7 +101,7 @@ diffs-container{
 
 /* ── Files › a changed file, on its diff (js/viewer.js): the page's own ground, side by side when there's room ── */
 .vw-diff{background:var(--canvas)}
-.vw-diff diffs-container{--code-bg:var(--canvas);min-height:100%}
+.vw-diff diffs-container{--code-bg:var(--canvas)}
 .vw-t .xd-n{align-self:baseline}
 .vw-btn.is-on{background:var(--g24);color:var(--ink)}
 @container flpv (max-width:1099px){.vw-split{display:none}}
@@ -106,7 +109,7 @@ diffs-container{
 
 /* ── Files › a whole file, through Pierre (js/viewer.js): the page's own ground ── */
 .vw-file{position:relative;background:var(--canvas)}
-.vw-file diffs-container{--code-bg:var(--canvas);min-height:100%}
+.vw-file diffs-container{--code-bg:var(--canvas)}
 
 /* "Ask about lines 36–43 ⌘L": under the selection's last line, at the code's right edge */
 .xd-ask{position:absolute;z-index:3;right:16px;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px 0 8px;border-radius:var(--r-pill);background:var(--surface);border:1px solid var(--g30);box-shadow:var(--e2);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink);white-space:nowrap;animation:xd-in var(--d-in) var(--ease)}
