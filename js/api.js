@@ -143,7 +143,8 @@ function errorOf(status, statusText, text) {
   let message = (d && d.message) || (typeof d === "string" ? d : "");
   if (Array.isArray(d)) message = d.map((e) => `${(e.loc || []).slice(1).join(".")}: ${e.msg}`).join("; ");
   if (!message) message = `${status} ${statusText || "error"}`;
-  return new ApiError(status, code, message);
+  // Space may add a technical line under its own words (a clone's last line from git): {detail: {code, message, detail}}
+  return new ApiError(status, code, message, d && typeof d.detail === "string" ? { detail: d.detail } : {});
 }
 
 // ── attachments (hub #30): a file is (chat id, attachment id); the browser never sees a path ──
@@ -357,6 +358,23 @@ export const api = {
   /** Scaffold a new xo-project (xo-cowork-api). 409 when the folder exists. */
   createProject: ({ path, displayName, description }) =>
     send("POST", "/files/mkdir", { path, scaffold: true, display_name: displayName, ...(description ? { description } : {}) }),
+  /** Clone a Git repository into a new xo-project (Space: POST /xo-projects).
+   *  Today Space clones before it answers (201, up to 300 s; serve.py's proxy gives up at 120 s, while Space
+   *  carries on). Space's next version (`v2`) also keeps display_name and description, and with wait:false
+   *  answers 202 {clone_id} at once; cloneStatus then reports {state, phase, percent, received_bytes, error}. */
+  cloneProject: ({ id, url, displayName, description }, v2 = false) =>
+    request("/xo-projects", { method: "POST", timeout: 330000, body: {
+      project_id: id, repository_url: url,
+      ...(v2 ? { display_name: displayName, ...(description ? { description } : {}), wait: false } : {}),
+    } }),
+  cloneStatus: (cloneId) => get(`/xo-projects/clones/${enc(cloneId)}`),
+  /** Stops a clone; Space removes what it had fetched. */
+  cancelClone: (cloneId) => send("DELETE", `/xo-projects/clones/${enc(cloneId)}`),
+  /** GitHub connector: {status: "connected"|"needs_auth", username?, avatar_url?} */
+  githubStatus: () => get("/connectors/github/status"),
+  /** Device flow: {session_id, user_code, verification_uri}; poll → {status: "pending"} until the profile. */
+  githubConnect: () => send("POST", "/connectors/github/cli/start"),
+  githubConnectPoll: (sessionId) => send("POST", "/connectors/github/cli/poll", { session_id: sessionId }),
 
   // ── shells (/api/terminal/*): T = {id, name, scope, project, path, cwd, status, foreground, viewers, …} ──
   terminalStatus: () => get("/terminal/status"),

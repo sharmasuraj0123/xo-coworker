@@ -39,6 +39,7 @@ import { countsHtml } from "./changesframe.js";
 import { setTheme as setDiffTheme } from "./diffview.js";
 import { createTray, fmtSize, kindOf, isLargePaste, pasteLabel, uploadErrorText, FINAL, MAX_FILES } from "./attach.js";
 import { api, uploadAttachment } from "./api.js";
+import { initCreate } from "./create.js";
 import { classify, glyph } from "./projicons.js";
 import { createShells } from "./shells/dock.js";
 import { createRecord } from "./recordview.js";
@@ -2638,7 +2639,7 @@ document.addEventListener("click", (e) => {
   const d = t.closest("[data-decide]");
   if (d) { decideKey(d.dataset.decide); return; }
   if (t.closest("[data-next]")) { openNext(); return; }
-  if (t.closest("[data-create]")) { openCreate(); return; }
+  if (t.closest("[data-create]")) { CREATE.open(); return; }
   if (t.closest("[data-all-threads]")) { openAll(); return; }
   const sw = t.closest("[data-switch]");
   if (sw) { if (allEl.hidden) openAll(sw); else closeAll(); return; }
@@ -2859,77 +2860,13 @@ allEl.addEventListener("click", (e) => {
   if (g) { allEl.hidden = true; go(g.dataset.go); }
 });
 
-// ── Create XO Project ───────────────────────────────────────────────────────
-const dlg = $("#create-dlg");
-let projectsRoot = null;
-const slugify = (name) => String(name || "").normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48);
-function renderWhere() {
-  const id = slugify($("#cp-name").value);
-  const root = projectsRoot ? projectsRoot.replace(/^\/home\/[^/]+/, "~") : "your projects folder";
-  const el = $("#cp-where");
-  el.innerHTML = id ? `${ICON.folder}<span>Saved as <code>${esc(root)}/${esc(id)}</code></span>` : "";
-  el.hidden = !id;
-}
-function createError(text) { $("#cp-err").textContent = text; $("#cp-err").hidden = !text; }
-async function openCreate() {
-  setDrawer(false);
-  $("#create-form").reset();
-  createError("");
-  $("#cp-submit").disabled = false;
-  $("#cp-submit").textContent = "Create project";
-  renderWhere();
-  dlg.showModal();
-  $("#cp-name").focus();
-  if (!projectsRoot) {
-    try {
-      const { api } = await import("./api.js");
-      const cfg = await api.workspaceConfig();
-      projectsRoot = cfg.roots?.[cfg.default] || null;
-      renderWhere();
-    } catch (err) { createError(`Can't read where projects live: ${err.message}`); }
-  }
-}
-function closeCreate() {
-  if (!dlg.open) return;
+// ── Create XO Project (js/create.js): start empty or clone a repository ─────
+const CREATE = initCreate({
+  world, S, go, heraldShow, announce, setDrawer,
   // On a phone the sidebar button that opened it is inside the closed drawer: return to the menu.
-  if (PHONE.matches) setTimeout(() => $("#pb-menu").focus({ preventScroll: true }), RM.matches ? 0 : 170);
-  if (RM.matches) { dlg.close(); return; }
-  dlg.classList.add("is-closing");
-  setTimeout(() => { dlg.classList.remove("is-closing"); dlg.close(); }, 160);
-}
-async function submitCreate() {
-  const name = $("#cp-name").value.trim();
-  const id = slugify(name);
-  const description = $("#cp-desc").value.trim();
-  if (!name) { createError("Give the project a name."); $("#cp-name").focus(); return; }
-  if (!/^[a-z0-9][a-z0-9-]{0,47}$/.test(id)) { createError("Use at least one letter or number in the name."); $("#cp-name").focus(); return; }
-  if (world.state.projects.some((p) => p.id === id)) { createError(`There's already a project called “${id}”. Pick another name.`); $("#cp-name").focus(); return; }
-  if (!projectsRoot) { createError("Can't create yet: the projects folder is unknown. Is the XO API running?"); return; }
-  createError("");
-  const btn = $("#cp-submit");
-  btn.disabled = true;
-  btn.innerHTML = `<i class="spin" aria-hidden="true"></i>Creating…`;
-  try {
-    const { api } = await import("./api.js");
-    await api.createProject({ path: `${projectsRoot}/${id}`, displayName: name, description });
-    await world.act.refresh();
-    if (description) S.desc[id] = description;
-    S.local["p:" + id] = [{ id: `l${++S.n}_hello`, conv: "p:" + id, at: Date.now(), who: "event", tone: "ok", text: `${name} created · folder, plan and memory scaffolded${description ? ` · ${description.replace(/[.\s]+$/, "")}` : ""}` }];
-    closeCreate();
-    go("p:" + id, { focus: true });
-    heraldShow({ kind: "ready", text: `${name} is ready`, sub: `${projectsRoot}/${id}` }, 5200);
-    announce(`${name} is ready.`);
-  } catch (err) {
-    btn.disabled = false;
-    btn.textContent = "Create project";
-    createError(err.status === 409 ? `There's already a project called “${id}”. Pick another name.` : err.message);
-  }
-}
-$("#side-add").addEventListener("click", openCreate);
-$("#cp-name").addEventListener("input", () => { renderWhere(); createError(""); });
-$("#cp-cancel").addEventListener("click", closeCreate);
-$("#create-form").addEventListener("submit", (e) => { e.preventDefault(); submitCreate(); });
-dlg.addEventListener("cancel", (e) => { e.preventDefault(); closeCreate(); });
+  onPhoneClose: () => { if (PHONE.matches) setTimeout(() => $("#pb-menu").focus({ preventScroll: true }), RM.matches ? 0 : 170); },
+});
+$("#side-add").addEventListener("click", CREATE.open);
 
 // ── phone drawer ────────────────────────────────────────────────────────────
 function setDrawer(open) {
@@ -3161,7 +3098,7 @@ addEventListener("keydown", (e) => {
   // beside a file: ⌘J the chat, ⌘B the files' tree; elsewhere these keys are the browser's
   if (K.is(e, "chatFold") && FILESV.chatKey()) { e.preventDefault(); return; }
   if (K.is(e, "treeFold") && FILESV.toggleTree()) { e.preventDefault(); return; }
-  if (!jump.hidden || dlg.open || IQ.isOpen) return;
+  if (!jump.hidden || CREATE.isOpen() || IQ.isOpen) return;
   if (e.key === "Escape") {
     if (RS.open) { runsEscape(); return; }
     // a file beside the chat: Esc puts it away (or, from an empty composer, goes back to it)
@@ -3189,14 +3126,14 @@ addEventListener("keydown", (e) => {
 // The app keeps one history entry of its own while there is somewhere to go back to. Back then does
 // what Esc does (the top sheet, the viewer, Settings, the sidebar), then a thread's parent, then the
 // places you came through; with nothing left it lets the browser leave.
-const sheetsOpen = () => !jump.hidden || !keys.hidden || !allEl.hidden || RS.open || dlg.open || IQ.isOpen || CH.setupOpen;
+const sheetsOpen = () => !jump.hidden || !keys.hidden || !allEl.hidden || RS.open || CREATE.isOpen() || IQ.isOpen || CH.setupOpen;
 const placeOk = (v) => v === "home" || v === "ws" || v === "chats" || v === "artifacts" || (v.startsWith("p:") && !!world.project(v.slice(2))) || (v.startsWith("t:") && !!world.thread(v.slice(2))) || v.startsWith("c:");
 function canBack() {
   return sheetsOpen() || LB.isOpen || VW.isOpen || FILESV.isOpen || (STAGE.isOpen && PHONE.matches) || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised || S.view !== "home" || S.trail.length > 0;
 }
 /** One step back. False when there's nothing left in the app to go back to. */
 function stepBack() {
-  if (dlg.open) { closeCreate(); return true; }
+  if (CREATE.isOpen()) { CREATE.close(); return true; }
   if (!jump.hidden) { closeJump(); return true; }
   if (IQ.isOpen) { IQ.close(); return true; }
   if (CH.setupOpen) { CH.closeSetup(); return true; }
@@ -3285,7 +3222,6 @@ $("#pb-t").addEventListener("click", () => {
 // ── boot ────────────────────────────────────────────────────────────────────
 $("#brand-mark").innerHTML = XO;
 $("#sc-ic").innerHTML = ICON.plus;
-$("#dlg-ic").innerHTML = ICON.project;
 $("#ic-home").innerHTML = ICON.home;
 $("#ic-ws").innerHTML = XO;
 $("#ic-chats").innerHTML = ICON.thread;
