@@ -112,6 +112,14 @@ body.files-open .mx-down{display:none}
 
 /* rhythm (research-chat.md §4): 20 between turns, 4 between one sender's bubbles */
 :root[data-msgx] #msgs>.m{margin-bottom:20px}
+/* The space under the last message (owner, 5 Nov: "why this much gap?"). It was 99 px on a desktop (82 on a
+   phone): the 20 px after a message, 48 (40) the app added under the conversation, and the composer bar's
+   30 (22) px fade band above the box. Now the last message ends 2 px above where that fade begins, so it is
+   never dimmed and nothing more is left: 20 + 2 + the band = 32 px to the box on a desktop, 24 on a phone.
+   (--dock-h is the dock's height, set by app.js; with a decision card docked it includes the card, and the
+   message then ends 24 px above the card instead.) */
+:root[data-msgx] .scroller{padding-bottom:calc(var(--dock-h) - 18px)}
+:root[data-msgx] .app:has(#tdock>*) .scroller{padding-bottom:calc(var(--dock-h) + 4px)}
 :root[data-msgx] #msgs>.m.cont{margin-top:-16px}
 
 /* the working words keep the app's soft shimmer (the owner's ask, 21:37): a slow light passing through the
@@ -219,7 +227,7 @@ body.files-open .mx-down{display:none}
 /* the working bubble is sized to its line in JS (it grows and shrinks smoothly, never jumps) */
 .mx-wsize{position:absolute;visibility:hidden;white-space:nowrap;pointer-events:none}
 /* the line under a conversation (a coordinator replying) is the same bubble */
-:root[data-msgx] .typing{grid-template-columns:28px minmax(0,1fr);gap:8px;padding-bottom:16px;animation:none}
+:root[data-msgx] .typing{grid-template-columns:28px minmax(0,1fr);gap:8px;padding-bottom:20px;animation:none}
 :root[data-msgx] .typing>.av{width:28px;height:28px;border-radius:50%;align-self:center}
 :root[data-msgx] .typing .ty-b{width:fit-content;max-width:min(88%,480px);height:44px;align-items:center;gap:12px;padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-md);line-height:20px}
 /* the line's words read in the conversation's own weight (400) with the shimmer passing through them. They
