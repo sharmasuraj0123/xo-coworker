@@ -62,7 +62,7 @@ export function initCreate(ctx) {
     $("#cp-repo-ic").innerHTML = !r || r.github ? GH : ICON.branch;
   }
   function renderGh() {
-    const el = $("#cp-gh"), r = parseRepo(repo.value);
+    const el = $("#cp-gh"), r = parseRepo(repo.value), off = busy ? " disabled" : ""; // no new login mid-clone
     delete el.dataset.tone;
     if (r && !r.github) { el.innerHTML = `${ICON.key}<span>Cloned with this server's own Git access.</span>`; return; }
     if (gh.status === "connected") { el.innerHTML = `${ICON.check}<span>Connected as <b>@${esc(gh.username || "you")}</b>. Private repos work too.</span>`; el.dataset.tone = "ok"; return; }
@@ -71,8 +71,8 @@ export function initCreate(ctx) {
       el.innerHTML = `${ICON.key}<span>Enter <b class="cp-code">${esc(gh.code)}</b> on GitHub. <a class="cp-link" href="${esc(gh.uri)}" target="_blank" rel="noopener" data-cp="copy">Copy code and open GitHub</a></span>`;
       return;
     }
-    if (gh.status === "failed") { el.innerHTML = `${ICON.lock}<span>${esc(gh.error || "GitHub didn't connect.")} <button type="button" class="cp-link" data-cp="connect">Try again</button></span>`; return; }
-    el.innerHTML = `${ICON.lock}<span><button type="button" class="cp-link" data-cp="connect">Connect GitHub</button> to clone private repos.</span>`;
+    if (gh.status === "failed") { el.innerHTML = `${ICON.lock}<span>${esc(gh.error || "GitHub didn't connect.")} <button type="button" class="cp-link" data-cp="connect"${off}>Try again</button></span>`; return; }
+    el.innerHTML = `${ICON.lock}<span><button type="button" class="cp-link" data-cp="connect"${off}>Connect GitHub</button> to clone private repos.</span>`;
   }
 
   async function readGh() {
@@ -88,7 +88,7 @@ export function initCreate(ctx) {
     const settle = (next) => {
       gh = next;
       renderGh();
-      if (gh.status === "connected") { error(""); ctx.announce(`GitHub connected as ${gh.username}.`); }
+      if (gh.status === "connected") { error(""); ctx.announce(`GitHub connected as ${gh.username}${gh.imported ? ", from this machine's gh login" : ""}.`); }
     };
     let s;
     try { s = await api.githubConnect(); } catch (err) { settle({ status: "failed", error: err.message }); return; }
@@ -129,6 +129,7 @@ export function initCreate(ctx) {
     $("#cp-prog").hidden = !(on && mode === "clone");
     delete $("#cp-phase").dataset.v;
     $("#cp-stop").disabled = false;
+    if (mode === "clone") renderGh();
     if (on && mode === "clone") tick();
   }
   /** The cloning row: what Space says it's doing (or just "Cloning"), how far when it knows, the time taken.
@@ -231,7 +232,8 @@ export function initCreate(ctx) {
     setTimeout(() => { dlg.classList.remove("is-closing"); dlg.close(); }, 160);
   }
 
-  async function done(id, title, description, line, where) {
+  /** warning: Space's word on what didn't stick (the project is made either way). */
+  async function done(id, title, description, line, warning) {
     // The project is made either way: a failed refresh mustn't read as a failed clone (the next one shows it)
     await ctx.world.act.refresh().catch(() => {});
     if (description) ctx.S.desc[id] = description;
@@ -239,7 +241,8 @@ export function initCreate(ctx) {
     const shown = dlg.open;
     setBusy(false);
     if (shown) { close(); ctx.go("p:" + id, { focus: true }); }
-    ctx.heraldShow({ kind: "ready", text: `${title} is ready`, sub: where, open: "p:" + id }, 5200);
+    // Taken there already: the project's own first line says it's ready, so only a warning needs the herald
+    if (!shown || warning) ctx.heraldShow({ kind: "ready", text: `${title} is ready`, sub: warning || `${root}/${id}`, ...(shown ? {} : { open: "p:" + id }) }, 5200);
     ctx.announce(`${title} is ready.`);
   }
 
@@ -263,10 +266,10 @@ export function initCreate(ctx) {
       if (r) {
         const { clone_id } = await api.cloneProject({ id, url: r.url, displayName: title, description });
         const end = await follow(clone_id);
-        await done(id, title, description, `cloned from ${r.label} · plan and memory added`, end.warning || `${root}/${id}`);
+        await done(id, title, description, `cloned from ${r.label} · plan and memory added`, end.warning);
       } else {
         await api.createProject({ path: `${root}/${id}`, displayName: title, description });
-        await done(id, title, description, "created · folder, plan and memory scaffolded", `${root}/${id}`);
+        await done(id, title, description, "created · folder, plan and memory scaffolded");
       }
     } catch (err) {
       setBusy(false);

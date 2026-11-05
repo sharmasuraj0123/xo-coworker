@@ -1210,7 +1210,8 @@ button.tp-done-u:hover{color:var(--ink)}
 .cp-note[data-tone="ok"]>svg{color:var(--accent)}
 .cp-code{padding:0 5px;border-radius:calc(var(--r-xs) - 2px);background:var(--g24);font:500 var(--fs-sm)/16px var(--mono);letter-spacing:.06em;color:var(--ink)!important}
 .cp-link{display:inline;padding:0;font:inherit;font-weight:500;color:var(--ink-2);text-decoration:underline;text-decoration-color:var(--g50);text-underline-offset:2px;cursor:pointer;transition:color var(--d-hover) var(--ease),text-decoration-color var(--d-hover) var(--ease)}
-.cp-link:hover{color:var(--ink);text-decoration-color:currentColor}
+.cp-link:hover:not(:disabled){color:var(--ink);text-decoration-color:currentColor}
+.cp-link:disabled{cursor:default;text-decoration-color:transparent}
 .dlg-err .cp-link{color:inherit}
 /* Start from: two halves, concentric with the 12 px field corners (12 − 1 border − 3 inset = 8) */
 .cp-mode{display:grid;grid-template-columns:1fr 1fr;gap:2px;height:42px;padding:3px;border:1px solid var(--g26);border-radius:var(--r-lg);background:var(--g14)}
