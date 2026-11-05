@@ -452,7 +452,9 @@ body.panel-open .conv{--rp:calc(var(--pw) + 28px)}
 .ck-doing{color:var(--ink)}.ck-doing .ck-m{color:var(--info)}
 .ck-todo .ck-m{color:var(--ink-4);font-weight:400}
 
-.scroller{position:relative;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:28px 28px calc(var(--dock-h) + 48px);scrollbar-width:thin;scrollbar-color:var(--g2A) transparent;transition:padding-right .3s var(--ease)}
+.scroller{position:relative;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:28px 28px calc(var(--dock-h) + 48px);scrollbar-width:thin;scrollbar-color:var(--g2A) transparent}
+/* (no transition on its padding: a panel taking room re-wraps the conversation once, not a step a frame, and
+   follow.js keeps the row you're reading where it was; a moving padding stops the browser's own anchoring) */
 .scroller:focus{outline:none}
 .column{width:100%;max-width:720px;margin:0 auto}
 /* text that scrolls under the header dissolves over 24 px instead of being sliced mid-glyph (audit I2);
@@ -556,22 +558,15 @@ body.panel-open .conv{--rp:calc(var(--pw) + 28px)}
    header are mixes of the text colour, not greys made for the page (on the bubble those measured 1.05 : 1
    for the frame and drew the header as a dark slab; QA #5). Cells one step under the reading size, the
    header the same size in weight, spacing on the 4 px scale, figures in columns. Wider than its frame, a
-   table scrolls sideways on its own (msgx.js leaves that gesture to it); two columns on a narrow frame
-   stack, each row's label over its value. */
+   table scrolls sideways on its own (msgx.js leaves that gesture to it). On a narrow frame it stays a
+   table, headings and all (a two-column table isn't always label and value: QA R3); its columns keep room
+   for words, and past the frame it scrolls. */
 .md-table{--tl:color-mix(in srgb,currentColor 16%,transparent);margin:12px 0;overflow-x:auto;overscroll-behavior-x:contain;touch-action:pan-x pan-y;scrollbar-width:thin;border:1px solid var(--tl);border-radius:var(--r-lg);container-type:inline-size}
 .md-table table{width:100%;border-collapse:collapse;font-size:var(--fs-md);line-height:var(--lh-14);font-variant-numeric:tabular-nums}
 .md-table th{text-align:left;font:600 var(--fs-md)/var(--lh-14) var(--sans);color:var(--ink-2);background:color-mix(in srgb,currentColor 5%,transparent);white-space:nowrap}
 .md-table th,.md-table td{min-width:9ch;padding:8px 12px;border-bottom:1px solid color-mix(in srgb,currentColor 10%,transparent);vertical-align:top}
 .md-table tr:last-child td{border-bottom:0}
-@container (max-width:400px){
-  .md-table.is-2col :is(table,tbody,tr,td){display:block;width:auto;min-width:0}
-  .md-table.is-2col thead{display:none}
-  .md-table.is-2col tr{padding:8px 12px;border-bottom:1px solid color-mix(in srgb,currentColor 10%,transparent)}
-  .md-table.is-2col tr:last-child{border-bottom:0}
-  .md-table.is-2col td{padding:0;border:0}
-  .md-table.is-2col td:first-child{font-weight:500;color:var(--ink)}
-  .md-table.is-2col td+td{margin-top:2px;color:var(--ink-2)}
-}
+@container (max-width:400px){.md-table :is(th,td){min-width:12ch}}
 .md-code pre{touch-action:pan-x pan-y;overscroll-behavior-x:contain}
 /* Code colours (js/highlight.js, if1 #3): mixed from the palette's own hues toward ink, so each
    theme's hue (darkened in light) keeps its contrast on the code surface. Comments recede. */

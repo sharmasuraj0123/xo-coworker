@@ -2048,9 +2048,9 @@ const FIRST_MSG = "[data-k]:not([data-k=hist]):not([data-k=note]):not([data-k^='
 let rendered = null, raf = 0;
 function schedule() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); }
 // Where the view is has one owner, js/follow.js (QA #9): pinned at the latest, or reading where you are.
-// Here: opening a conversation goes to the latest; where a browser has no scroll anchoring (Safari), a
-// redraw while you read puts what you read back where it stood (holdPlace).
-const ANCHORS = typeof CSS !== "undefined" && CSS.supports && CSS.supports("overflow-anchor", "auto");
+// Here: opening a conversation goes to the latest; a redraw while you read puts what you read back where it
+// stood (holdPlace). The browser's scroll anchoring usually has, so nothing is written; it can't when the
+// row you're reading is itself redrawn (a thread's first fill redraws most of them), or has none (Safari).
 
 function render() {
   if (!world.state.loaded) return;
@@ -2075,23 +2075,26 @@ function render() {
   else {
     topRender(needs);
     wsHeadRender(needs);
-    let switching = rendered !== v;
-    // the first real fill of a conversation lands quietly and in place, like a view switch
+    const opening = rendered !== v;
+    let quiet = opening;
+    // the first real fill of a conversation lands quietly (no arrivals), and where you are
     const ready = liveReady(v);
-    if (!switching && ready && S.filled !== v) switching = true;
+    if (!opening && ready && S.filled !== v) quiet = true;
     S.filled = ready ? v : null;
     const items = msgItems(v, needs);
     // the work folds about to be redrawn, measured before anything changes (workMotion glides them)
-    const folds = switching ? null : foldsBefore(items);
-    const place = !ANCHORS && !switching && !isPinned() ? readingPlace() : null;
-    reconcile(msgsEl, items, { quiet: switching });
+    const folds = quiet ? null : foldsBefore(items);
+    const place = !opening && !isPinned() ? readingPlace() : null;
+    reconcile(msgsEl, items, { quiet });
     hydrateMedia(msgsEl); // new pictures load and fade in; redrawn ones keep their pixels
     if (place) { holdPlace(place); queueMicrotask(() => holdPlace(place)); } // after msgx's decoration too
     if (folds) workMotion(folds);
     ensureRoot();
     typingRender();
-    // opening a conversation lands at the latest (the owner, 5 Nov); after that the browser keeps you there
-    if (switching) { rendered = v; toLatest(false); }
+    // opening a conversation lands at the latest (the owner, 5 Nov). After that, follow.js keeps you there
+    // while you are (its first real fill included); if you scrolled up while it loaded, you stay where you
+    // went (QA R2: the fill used to count as opening it again and threw you back to the latest)
+    if (opening) { rendered = v; toLatest(false); }
   }
   if (!isHome && !isArts) requestAnimationFrame(loadAhead);
   dockRender(needs);
@@ -2154,8 +2157,8 @@ function loadOlderNow() {
 }
 
 // ── what you're reading stays put; the agent's work moves, never jumps ─────────────────────────────
-/** Only where the browser has no scroll anchoring (Safari): the first message in view and where it stands,
- *  before a redraw (an older page landing above it), so it can be put back in the same frame. */
+/** While you read: the first message in view and where it stands, before a redraw, so it can be put back in
+ *  the same frame if the browser didn't keep it (found again by its key, so a redrawn row counts). */
 function readingPlace() {
   const top = scroller.getBoundingClientRect().top;
   for (const el of msgsEl.children) {

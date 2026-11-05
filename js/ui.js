@@ -286,20 +286,18 @@ export { esc };
  */
 export function keepTurning() {
   if (typeof document === "undefined" || !document.getAnimations) return;
-  let raf = 0;
   const sync = () => {
-    raf = 0;
     for (const a of document.getAnimations()) {
       if (a.animationName === "spin" || a.animationName === "arc-turn" || a.animationName === "shimmer") { if (a.startTime !== 0) a.startTime = 0; }
     }
   };
-  // only when something added holds an arc, a spinner or a shimmer: a scan of every animation on the page
-  // after any change at all cost tens of ms on a busy page (QA #11)
+  // only when something added holds an arc, a spinner or a shimmer (a scan of every animation on the page
+  // after any change at all cost tens of ms on a busy page, QA #11), and at once, before the frame is
+  // painted: a redrawn arc used to show one frame from its start before being put back in step
   const MOVING = ".arc, .spin, .shimmer, .tb-live";
   const moving = (n) => n.nodeType === 1 && (n.matches(MOVING) || !!n.querySelector(MOVING));
   new MutationObserver((recs) => {
-    if (raf) return;
-    for (const r of recs) for (const n of r.addedNodes) if (moving(n)) { raf = requestAnimationFrame(sync); return; }
+    for (const r of recs) for (const n of r.addedNodes) if (moving(n)) { sync(); return; }
   }).observe(document.body, { childList: true, subtree: true });
   sync();
 }

@@ -353,21 +353,18 @@ function working(el) {
  * The app redraws a working turn whole at every step, which made everything in it start over each time:
  * the open card re-ran its entrance, every row flashed in again, the arc on the mark jumped back to the
  * top. Here only what is really new moves: the card opens once, a new step rises into place while the
- * others stay still, the card's height eases to fit, and the arcs keep turning from where they were.
+ * others stay still, and the card's height eases to fit. The app's arcs, spinners and .shimmer words keep
+ * turning from where they were through ui.js's keepTurning alone (this layer also phased them, and the two
+ * clocks disagreed: the agent's arc jumped twice at every redraw, ~75 times a minute; owner, 5 Nov).
  */
-const TURN_MS = 1600; // the arc's turn (panel.css .arc, app.css .tb-live)
-const WAVE_MS = 2400; // the shimmer's wave (app.css .shimmer)
-/** Give each shimmer, as it's drawn, a phase taken from the clock, so every one (old or redrawn) shows the
- *  same point of the wave: a redraw never restarts it. Set once per element; changing it later would jump. */
+const WAVE_MS = 2400; // the wave of this layer's own animations (mx-shimmer, mx-doing, mx-await)
+/** This layer's own waves (the working line, a card's progress band), as they're drawn, take a phase from
+ *  the clock, so a redraw never restarts them. Set once per element; changing it later would jump. */
 function wave(root = document) {
-  for (const e of root.querySelectorAll(".shimmer, .mx-wl, .tc-segs, .tc-segs .sg.s-doing")) if (!e.style.getPropertyValue("--mx-wave")) e.style.setProperty("--mx-wave", `${-(Date.now() % WAVE_MS)}ms`);
+  for (const e of root.querySelectorAll(".mx-wl, .tc-segs, .tc-segs .sg.s-doing")) if (!e.style.getPropertyValue("--mx-wave")) e.style.setProperty("--mx-wave", `${-(Date.now() % WAVE_MS)}ms`);
 }
 function settle(el, st) {
   wave(el);
-  const phase = `${-(Date.now() % TURN_MS)}ms`;
-  // once per element, like the shimmer: rewriting a running animation's delay would jump it
-  for (const a of el.querySelectorAll(".arc")) if (!a.style.getPropertyValue("--mx-phase")) a.style.setProperty("--mx-phase", phase);
-  for (const a of el.querySelectorAll(".tb-live")) if (!a.style.animationDelay) a.style.animationDelay = phase;
   const card = el.classList.contains("mx-expanded") ? el.querySelector('.turn > .tb-work.is-open, .turn > .tb:is(.tb-think,.tb-act,.tb-plan):has(> .tb-h[aria-expanded="true"])') : null;
   const key = card?.querySelector(":scope > .tb-h")?.dataset.tb;
   if (!card || st.cardKey !== key) {
