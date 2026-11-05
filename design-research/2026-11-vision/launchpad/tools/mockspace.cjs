@@ -71,6 +71,7 @@ const SCENARIOS = {
   "name-taken": { check: check({ fields: { ...check().fields, env: [] } }), deploy: "name-taken" },
   "needs-agent": { check: check({ state: "needs-agent", summary: "Needs preparing.", reasons: [{ what: "A Dockerfile", why: "Nothing builds an image yet" }, { what: "A port", why: "Nothing says where it listens" }], fields: { ...check().fields, port: { value: null, source: "" } } }) },
   live: { check: check({ state: "linked", config: linked, git: { ...check().git, deployed_head: "cd6096efbe28" } }), pre: pre({ launchpad: { app: { id: "app_7f3a", name: "xo-coworker", status: "running", url: URL_, exists: true, release: 3, rollout: "ready", last_deploy_at: new Date(Date.now() - 2 * 60e3).toISOString(), ready: 1, desired: 1 } } }) },
+  "live-stopped": null, "live-failed": null, "live-rolling": null, "live-unhealthy": null,
   "not-deployable": { check: check({ state: "not-deployable" }) },
   pushing: { check: check({ running: { run_id: "r1", kind: "deploy" } }), watch: ["pushing", 2] },
   building: { check: check({ running: { run_id: "r1", kind: "deploy" } }), watch: ["building", 72 - 16] },
@@ -92,6 +93,11 @@ const APPS = [
   { id: "app_3", name: "billing-worker", status: "failed", url: "https://billing-worker-xo-b114583.apps.xo.builders", linkable: true },
 ];
 
+// a linked app in each of Launchpad's other states (the open section must say it, not only the head)
+for (const [k, st] of [["live-stopped", "stopped"], ["live-failed", "failed"], ["live-rolling", "progressing"], ["live-unhealthy", "unhealthy"]]) {
+  const p = pre({ launchpad: { app: { ...SCENARIOS.live.pre.launchpad.app, status: st } } });
+  SCENARIOS[k] = { check: SCENARIOS.live.check, pre: p };
+}
 exports.SCENARIOS = SCENARIOS;
 exports.install = async (page, name) => {
   const sc = SCENARIOS[name] || SCENARIOS.ready;

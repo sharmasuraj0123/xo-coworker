@@ -146,8 +146,9 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     const keep = new Set(frames()), on = (id) => keep.has(id) || (!keep.size && id === "agents");
     const ag = el.querySelector('[data-fr="agents"]');
     let rows = fr.agents.rows || AG_ROWS, cap = 8;
-    const room = el.querySelector(".stg-frames").clientHeight - (LPF.hidden ? 0 : HEAD + 1);
-    if (room > 0 && on("agents") && !fr.agents.folded && !S.lp && !ag.classList.contains("is-grow")) {
+    // with Launchpad open Agents is only a head: nothing to size, and no layout read under the section's first draw
+    const room = S.lp ? 0 : el.querySelector(".stg-frames").clientHeight - (LPF.hidden ? 0 : HEAD + 1);
+    if (room > 0 && on("agents") && !fr.agents.folded && !ag.classList.contains("is-grow")) {
       const grows = (id) => el.querySelector(`[data-fr="${id}"]`).classList.contains("is-grow");
       const changes = !on("changes") ? 0 : fr.changes.folded ? HEAD : CH_MIN;
       const mapH = !on("map") ? 0 : fr.map.folded ? HEAD : grows("map") ? 96 : fr.map.h;
