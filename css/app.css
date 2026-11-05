@@ -452,7 +452,9 @@ body.panel-open .conv{--rp:calc(var(--pw) + 28px)}
 .ck-doing{color:var(--ink)}.ck-doing .ck-m{color:var(--info)}
 .ck-todo .ck-m{color:var(--ink-4);font-weight:400}
 
-.scroller{position:relative;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:28px 28px calc(var(--dock-h) + 48px);scrollbar-width:thin;scrollbar-color:var(--g2A) transparent;transition:padding-right .3s var(--ease)}
+.scroller{position:relative;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:28px 28px calc(var(--dock-h) + 48px);scrollbar-width:thin;scrollbar-color:var(--g2A) transparent}
+/* (no transition on its padding: a panel taking room re-wraps the conversation once, not a step a frame, and
+   follow.js keeps the row you're reading where it was; a moving padding stops the browser's own anchoring) */
 .scroller:focus{outline:none}
 .column{width:100%;max-width:720px;margin:0 auto}
 /* text that scrolls under the header dissolves over 24 px instead of being sliced mid-glyph (audit I2);
