@@ -17,6 +17,7 @@ import * as K from "./keys.js";
 
 const OPEN_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-8 8M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg>';
 const base = (p) => String(p || "").split("/").pop();
+const SHOWN = 100; // rows drawn at first: a long list costs a frame per few hundred
 const dirOf = (p) => { const i = String(p || "").lastIndexOf("/"); return i < 0 ? "" : p.slice(0, i); };
 
 /** "+5 −8", tabular, green and red; nothing for a side with none. n: {additions, deletions} or {add, del}. */
@@ -169,7 +170,13 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
     const prevSel = st.sel;
     choose(st, files.map((f) => f.path), act);
 
-    set("list", list, files.map((f) => rowHtml(f, st.sel, act.live)).join(""));
+    // a long list draws its first SHOWN rows (and the chosen one); the rest on asking. Space itself lists at
+    // most 500 and says how many there are in all.
+    const rows = st.all || files.length <= SHOWN ? files : files.filter((f, i) => i < SHOWN || f.path === st.sel);
+    const all = c.data && c.data.total_files > files.length ? c.data.total_files : files.length;
+    const more = all - rows.length;
+    set("list", list, rows.map((f) => rowHtml(f, st.sel, act.live)).join("") +
+      (more > 0 ? `<li role="presentation"><button type="button" class="cx-more"${rows.length < files.length ? " data-cx-all" : " disabled"}>${rows.length < files.length ? `${(files.length - rows.length).toLocaleString()} more files · Show them` : `${more.toLocaleString()} more files, too many to list here`}</button></li>` : ""));
     const f = files.find((x) => x.path === st.sel);
     set("ph", ph, `<span class="cx-pp" title="${esc(f.path)}">${esc(f.path)}</span>${countsHtml(f)}<span class="cx-sp"></span><button type="button" class="cx-ofi" data-cx-open title="Open in Files: the whole file, side by side" aria-label="Open in Files">${OPEN_IC}</button>`);
     pane.hidden = false;
@@ -202,6 +209,7 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
   // ── you, in the panel ────────────────────────────────────────────────────────
   host.addEventListener("click", (e) => {
     const t = e.target;
+    if (t.closest("[data-cx-all]")) { const s = changes.scope(view()); if (s) { stOf(s.key).all = true; onChange && onChange(); } return; }
     const r = t.closest("[data-cx]");
     if (r) { const s = changes.scope(view()); if (!s) return; const st = stOf(s.key); st.follow = false; st.sig = changes.activity(view()).sig; st.sel = r.dataset.cx; if (st.pill === st.sel) st.pill = null; onChange && onChange(); return; }
     if (t.closest("[data-cx-show]")) { const s = changes.scope(view()); if (!s) return; const st = stOf(s.key); st.sel = pill.dataset.cxShow || st.sel; st.pill = null; D.patch = null; D.pend = null; onChange && onChange(); return; }
@@ -234,7 +242,7 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
     head() {
       const v = view(), s = changes.scope(v), c = changes.of(v);
       if (!s || !c || c.state === "unsupported") return null;
-      return { count: c.files.size, total: c.total, follow: stOf(s.key).follow, busy: changes.activity(v).busy };
+      return { count: Math.max(c.files.size, (c.data && c.data.total_files) || 0), total: c.total, follow: stOf(s.key).follow, busy: changes.activity(v).busy };
     },
     /** A chip's click: this file, chosen by you (following pauses). */
     select(path) { const s = changes.scope(view()); if (!s) return false; const st = stOf(s.key); st.follow = false; st.sig = changes.activity(view()).sig; st.sel = path; st.pill = null; return true; },
