@@ -1,6 +1,8 @@
 // The file viewer (if1 #2): a shared file opens in a panel beside the conversation, like a canvas.
 // Markdown renders (markdown.js), other text is coloured code with line numbers (highlight.js), and
-// HTML shows in a sandboxed frame with no scripts and no same-origin (Source shows its text), and an
+// HTML shows in a sandboxed frame that runs the page's own scripts but has no same-origin (an opaque origin:
+// no reach into XO's window, cookies, storage or /api, which serve.py refuses a null origin; no popups,
+// forms or top navigation; Source shows its text), and an
 // image shows fitted to the panel (Actual size, or a click on it, shows it 1:1). It reads the
 // project-scoped `/api/xo-projects/<project>/file` and `/image` routes only, never `/api/files/*`.
 // A file attached to a message (hub #30) opens here too: an image as itself, a PDF in a frame, text as
@@ -314,7 +316,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     const cut = d.truncated ? `<p class="vw-cut">${ICON.clock}<span>Showing the first ${esc(size(bytes(text)))} of ${esc(size(d.size_bytes))}. The rest isn't previewed.</span>${canSave() ? `<button type="button" class="vw-cut-dl" data-vw-download${V.saving ? " disabled" : ""}>Download the whole file</button>` : ""}</p>` : "";
     let main;
     if (d.kind === "markdown" && V.mode !== "source") main = `<article class="prose vw-md">${renderMarkdown(text)}</article>`;
-    else if (d.kind === "html" && V.mode === "preview") main = `<iframe class="vw-frame" sandbox="" referrerpolicy="no-referrer" title="${esc(V.file.name || "HTML preview")}" srcdoc="${esc(text)}"></iframe>`;
+    else if (d.kind === "html" && V.mode === "preview") main = `<iframe class="vw-frame" sandbox="allow-scripts" referrerpolicy="no-referrer" title="${esc(V.file.name || "HTML preview")}" srcdoc="${esc(text)}"></iframe>`;
     else main = ""; // text and code show through Pierre (render → showsFile)
     return cut + main;
   }
