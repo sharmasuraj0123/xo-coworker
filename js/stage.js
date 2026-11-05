@@ -64,7 +64,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   if (!fr.map.h) fr.map.h = MAP_H;
   // a height dragged before Agents went by rows (any pixel count, so a row could show in half): its rows
   if (fr.agents.h) { fr.agents.rows = Math.max(1, Math.min(8, Math.round((fr.agents.h - 44) / ROW))); delete fr.agents.h; }
-  const S = { lp: false, open: false, full: false, returnTo: null, railOff: false, rail: false, aside: false, yielded: false, wide: false, h: { agents: "", changes: "", head: "", chn: "" } };
+  const S = { lp: false, open: false, full: false, returnTo: null, railOff: false, rail: false, aside: false, yielded: false, wide: false, stackH: 0, h: { agents: "", changes: "", head: "", chn: "" } };
 
   const el = document.createElement("aside");
   el.className = "stage";
@@ -84,6 +84,9 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     frame("map", "Map", `<div class="fr-views" role="tablist" aria-label="Map view"><button type="button" class="fr-t" role="tab" id="stage-map-tree" aria-controls="fr-body-map" data-map-mode="tree">Diagram</button><button type="button" class="fr-t" role="tab" id="stage-map-graph" aria-controls="fr-body-map" data-map-mode="graph">Graph</button></div>`) +
     `</div>`;
   $("#main").appendChild(el);
+  // the stack's height, as laid out (the panel opening, the window resizing): Agents' cap is worked out from it
+  // when it changes, in the observer, after layout, instead of a read forcing layout in the middle of a change
+  if (typeof ResizeObserver === "function") new ResizeObserver(([e]) => { const h = Math.round(e.contentRect.height); if (h !== S.stackH) { S.stackH = h; if (S.open) capAgents(); } }).observe(el.querySelector(".stg-frames"));
   const body = (id) => el.querySelector(`[data-fr="${id}"] .fr-b`);
   map.mount(body("map"));
   const LPF = el.querySelector('[data-fr="launch"]');
@@ -147,8 +150,9 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     const keep = new Set(frames()), on = (id) => keep.has(id) || (!keep.size && id === "agents");
     const ag = el.querySelector('[data-fr="agents"]');
     let rows = fr.agents.rows || AG_ROWS, cap = 8;
-    // with Launchpad open Agents is only a head: nothing to size, and no layout read under the section's first draw
-    const room = S.lp ? 0 : el.querySelector(".stg-frames").clientHeight - (LPF.hidden ? 0 : HEAD + 1);
+    // with Launchpad open Agents is only a head: nothing to size. The stack's height comes from its resize
+    // observer, never a read here, which forced the page's layout mid-change (17–35 ms at 4×)
+    const room = S.lp ? 0 : S.stackH - (LPF.hidden ? 0 : HEAD + 1);
     if (room > 0 && on("agents") && !fr.agents.folded && !ag.classList.contains("is-grow")) {
       const grows = (id) => el.querySelector(`[data-fr="${id}"]`).classList.contains("is-grow");
       const changes = !on("changes") ? 0 : fr.changes.folded ? HEAD : CH_MIN;
@@ -400,7 +404,15 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   // instead of squeezing it: a cut-down thread title is worse than a covered margin
   const READ = 560;
   const RAIL_READ = 520; // beside Files, the reader keeps at least this much; under it the panel folds to its rail
-  const sideW = () => { const side = document.querySelector(".side"); return side && getComputedStyle(side).position !== "fixed" ? side.getBoundingClientRect().width : 0; };
+  // the sidebar's width changes only when it's resized (the window, its collapse): read once then, not on every
+  // change of the panel, where the read forced the page's layout in the middle of its own (24–88 ms at 4×)
+  let sideWv = null;
+  const sideW = () => {
+    if (sideWv == null) { const side = document.querySelector(".side"); sideWv = side && getComputedStyle(side).position !== "fixed" ? side.getBoundingClientRect().width : 0; }
+    return sideWv;
+  };
+  addEventListener("resize", () => { sideWv = null; });
+  if (typeof ResizeObserver === "function" && document.querySelector(".side")) new ResizeObserver(() => { sideWv = null; }).observe(document.querySelector(".side"));
   const clampW = (w) => Math.round(Math.max(W_MIN, Math.min(W_MAX, innerWidth - 480, w)));
   let wSaved = W_DEF, wMine = false;
   try { wMine = !!Number(localStorage.getItem(W_KEY)); wSaved = Number(localStorage.getItem(W_KEY)) || W_DEF; } catch { /* private mode */ }
