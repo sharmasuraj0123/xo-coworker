@@ -78,6 +78,30 @@ body.stage-over .stage{box-shadow:var(--e2)}
 .fl-back svg{width:16px;height:16px}
 :root[data-theme="light"] .fl-r:hover{background:rgba(0,0,0,.04)}
 :root[data-theme="light"] .fl-r.is-on{background:rgba(0,0,0,.07)}
+/* New file (js/files.js): beside Find for the place itself, in a folder's ⋯ for that folder. One ⋯ for the
+   tree, on the folder under the pointer or with focus; the new file's name takes a row at the top of its
+   folder's rows, and what that name would do is said in the row under it (both 28 px: whole rows still) */
+.fl-find{display:flex;gap:6px;min-width:0}
+.fl-find .fl-q{flex:1;min-width:0}
+.fl-add{flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:var(--r-sm);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.fl-add:hover{background:var(--g1F);color:var(--ink);transition-duration:var(--d-hover-in)}
+.fl-list{position:relative}
+.fl-more{position:absolute;right:8px;z-index:1;display:grid;place-items:center;width:24px;height:24px;margin-top:2px;border-radius:var(--r-sm);color:var(--ink-3)}
+.fl-more:hover,.fl-more[aria-expanded="true"]{background:var(--g2A);color:var(--ink)}
+.fl-r.has-more{padding-right:36px}
+.fl-menu{position:fixed;z-index:80;display:flex;flex-direction:column;min-width:168px;padding:4px;border-radius:var(--r-lg);border:1px solid var(--pop-line);background:var(--pop-bg);box-shadow:var(--e2);animation:msg-in .16s var(--glide)}
+.fl-menu[hidden]{display:none}
+.fl-menu button{display:flex;align-items:center;gap:8px;height:32px;padding:0 8px;border-radius:var(--r-sm);text-align:left;font:400 var(--fs-base)/20px var(--sans);color:var(--ink-2)}
+.fl-menu button:hover,.fl-menu button:focus-visible{background:var(--g24);color:var(--ink);outline:none}
+.fl-menu svg{flex:none;width:15px;height:15px;color:var(--ink-3)}
+.fl-new-r{display:flex;align-items:center;gap:8px;height:28px;padding:0 6px 0 calc(6px + var(--d) * 16px)}
+.fl-new-r input{flex:1;min-width:0;height:24px;margin-left:-6px;padding:0 5px;border:1px solid var(--g45);border-radius:var(--r-sm);background:var(--g14);outline:none;font:400 var(--fs-base)/20px var(--sans);color:var(--ink)}
+.fl-new-r input[aria-invalid="true"]{border-color:var(--err)}
+.fl-new-say{box-sizing:border-box;height:28px;margin:0;padding:6px 6px 0 calc(6px + var(--d) * 16px + 18px);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
+.fl-new-say.is-err{color:var(--err-ink)}
+.fl-new-say[hidden]{display:none}
+:root[data-theme="light"] .fl-new-r input{background:#fff}
+@media (prefers-reduced-motion:reduce){.fl-menu{animation:none}}
 
 /* ── the file viewer's header: one 40 px row on the grid. Icon at the edge, the name on the name column,
    then its kind and size as one quiet run on the same baseline; actions are 28 px icon buttons ───── */

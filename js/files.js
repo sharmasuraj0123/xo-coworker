@@ -4,7 +4,9 @@
 // one at a time when there isn't. Ours on top: what the agents touched, marked where it is.
 //
 // What it shows follows the view: a thread, its own worktree (its branch); a project, its folder;
-// Home, the Workspace and Chats, your projects to pick from. Read-only: nothing here writes.
+// Home, the Workspace and Chats, your projects to pick from. It writes one thing: a new file (a folder's
+// ⋯ › New file, or the head's New file), through Space's guarded save, which makes it only if nothing has
+// that name yet. The new file opens in the viewer, being edited, with "Created · Undo" at its foot.
 //
 // The file itself is the viewer (js/viewer.js), moved in here. A file opened from anywhere (a chip in
 // a turn, Made, the Map) comes forward in Files, shown in its folder when it's in the one on screen.
@@ -15,12 +17,13 @@
 //
 // stage.js calls: mount, show, hide, render, reveal, count.
 
-import { esc } from "./util.js";
+import { esc, copyText } from "./util.js";
 import { ICON } from "./ui.js";
 import { api } from "./api.js";
 import { activityOf, folderOf } from "./map.js";
 import { fileIcon, folderIcon } from "./fileicons.js";
 import { countsHtml } from "./changesframe.js";
+import { RUNS } from "./viewer.js";
 
 const WIDE = 600;       // the panel's width from which tree and file sit side by side (the panel goes to 720)
 const TOUCHED = 6;      // "Touched by agents" shows at most this many
@@ -31,6 +34,8 @@ export const FILES_ICON = I('<path d="M3.5 18V6.5A1.5 1.5 0 0 1 5 5h4l2 2h8A1.5 
 const CH = I('<path d="m9 6 6 6-6 6"/>', 13);
 const BACK = I('<path d="m15 6-6 6 6 6"/>');
 const CHANGED_IC = I('<path d="M7 3.5h7l4 4V19a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 19V5a1.5 1.5 0 0 1 1-1.5z"/><path d="M9.5 13.5l2 2 3.5-4"/>', 16);
+const MORE_IC = I('<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>', 15);
+const NEW_IC = I('<path d="M13.5 3.5H7A1.5 1.5 0 0 0 5.5 5v14A1.5 1.5 0 0 0 7 20.5h10a1.5 1.5 0 0 0 1.5-1.5V8.5z"/><path d="M13.5 3.5v5h5M12 11.5v6M9 14.5h6"/>', 16);
 const FOLDER_IC = I('<path d="M3.5 18V6.5A1.5 1.5 0 0 1 5 5h4l2 2h8A1.5 1.5 0 0 1 20.5 8.5V18a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18z"/>', 16);
 
 const size = (n) => (n == null ? "" : n < 1024 ? `${n} B` : n < 1048576 ? `${Math.round(n / 1024)} KB` : `${(n / 1048576).toFixed(1)} MB`);
@@ -65,6 +70,22 @@ export function localIn(scope, f) {
   const rel = String(f.rel);
   if (scope.base) return rel.startsWith(scope.base + "/") ? rel.slice(scope.base.length + 1) : null;
   return rel.startsWith(".xo/") ? null : rel;
+}
+
+const RUNS_SAY = { runs: true, words: "Runs code: Enter makes it anyway", why: "Git or an agent runs what a file here says" };
+/**
+ * What a new file's name would do in folder `dir` (inside the place on screen), said under the name: {err,
+ * words} when it can't be made (no name, a folder in it, a name that's there: `d` is the folder as read,
+ * {files, dirs}, or null), the runs-code note when Git or an agent runs it (or Space already said so:
+ * `confirm`), else null.
+ */
+export function newFileSay(n, dir, d, confirm = false) {
+  if (!n) return null;
+  if (/[/\\]/.test(n)) return { err: true, words: "A name only: no folders" };
+  if (n === "." || n === ".." || n.includes("\0")) return { err: true, words: "A file can't be called that" };
+  if (d && d.files.some((x) => x.name === n)) return { err: true, words: `${n} is already here` };
+  if (d && d.dirs.some((x) => x.name === n)) return { err: true, words: `There's a folder called ${n} here` };
+  return confirm || RUNS.test(dir ? `${dir}/${n}` : n) ? RUNS_SAY : null;
 }
 
 export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, onFold = null }) {
@@ -240,7 +261,8 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
 
   function headHtml(s) {
     return `<div class="fl-crumb">${F.pick || (F.follow && F.viewKey === "all") ? `<button type="button" class="fl-up" data-fl-unpick title="Your projects">${BACK}</button>` : ""}<b>${esc(s.label)}</b>${s.sub ? `<small title="${s.base ? "A thread's own worktree: its branch" : ""}">${esc(s.sub)}</small>` : ""}</div>` +
-      `<label class="fl-q"><span class="sr-only">Find a file</span>${ICON.search}<input data-fl-q placeholder="Find a loaded file" autocomplete="off" spellcheck="false"></label>`;
+      `<div class="fl-find"><label class="fl-q"><span class="sr-only">Find a file</span>${ICON.search}<input data-fl-q placeholder="Find a loaded file" autocomplete="off" spellcheck="false"></label>` +
+      `<button type="button" class="fl-add" data-fl-new="" title="New file" aria-label="New file in ${esc(s.label || "this folder")}">${NEW_IC}</button></div>`;
   }
   /** Above the tree: what this place changed (Space's /changes), every file with its counts, each opening on
    *  its diff; where Space can't say, what agents touched (from the turns). Where Space says nothing changed,
@@ -286,7 +308,14 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     const open = setOf(s.key), openIn = new Map();
     for (const p of open) { const at = parentOf(p); if (!openIn.has(at)) openIn.set(at, []); openIn.get(at).push(p); }
     const ctx = { marks: marksOf(tl), open, openIn, q: F.q.trim().toLowerCase() };
+    const naming = NW.el && NW.el.contains(document.activeElement) ? NW.el.querySelector("input") : null;
+    const onMore = !!M.btn && document.activeElement === M.btn;
+    const sel = naming ? [naming.selectionStart, naming.selectionEnd] : null;
     if (T.q !== ctx.q) { drawAll(s, ctx); T.q = ctx.q; } else sync(s, "", T.groups.get(""), ctx);
+    placeNew();
+    if (naming && naming.isConnected && document.activeElement !== naming) { naming.focus({ preventScroll: true }); naming.setSelectionRange(...sel); }
+    // the ⋯ follows its folder's row when that row was drawn anew
+    if (M.row) { const r = M.row.isConnected ? M.row : rowOf(M.row.dataset.flDir); moreAt(r); if (onMore && r) M.btn.focus({ preventScroll: true }); }
     // the file shown, marked in its folder's group
     const g = F.sel != null ? T.groups.get(parentOf(F.sel)) : null;
     const want = g ? g.el.querySelector(`:scope > [data-fl-file="${CSS.escape(F.sel)}"]`) : null;
@@ -398,12 +427,156 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     (part === "all" ? tree.querySelector(".fl-g .fl-r") : tree.querySelector(".fl-secs .fl-r") || tree.querySelector(".fl-r"))?.focus({ preventScroll: true });
   }
 
+  // ── a folder's ⋯ ──────────────────────────────────────────────────────────
+  // One ⋯ for the whole tree: it sits on the folder under the pointer or with focus, right after its row (so
+  // Tab reaches it from the row; Shift-F10 opens it too), and opens a small menu: New file, Copy path.
+  // Nowhere XO keeps (a project's .xo/): Space refuses a write there.
+  const M = { btn: null, row: null, menu: null, from: null, dir: null };
+  const canMake = (s, p) => !!s.project && !(!s.base && (p === ".xo" || p.startsWith(".xo/")));
+  const rowOf = (p) => T.groups.get(parentOf(p))?.el.querySelector(`:scope > [data-fl-dir="${CSS.escape(p)}"]`) || null;
+  function moreAt(row) {
+    const b = M.btn;
+    if (!b || (row === M.row && (!row || b.previousElementSibling === row))) { if (row && b) b.style.top = `${row.offsetTop}px`; return; }
+    M.row?.classList.remove("has-more");
+    if (!row || !canMake(F.scope, row.dataset.flDir)) { M.row = null; b.remove(); return; }
+    M.row = row;
+    row.classList.add("has-more");
+    row.after(b);
+    b.style.top = `${row.offsetTop}px`;
+    b.dataset.flMore = row.dataset.flDir;
+    b.setAttribute("aria-label", `More for ${base(row.dataset.flDir)}`);
+  }
+  function openMenu(btn) {
+    const m = M.menu;
+    M.from = btn; M.dir = btn.dataset.flMore;
+    m.innerHTML = `<button type="button" role="menuitem" data-fl-mk>${NEW_IC}<span>New file</span></button><button type="button" role="menuitem" data-fl-cp>${ICON.copy}<span>Copy path</span></button>`;
+    m.hidden = false;
+    btn.setAttribute("aria-expanded", "true");
+    const r = btn.getBoundingClientRect(), w = m.offsetWidth, h = m.offsetHeight;
+    m.style.left = `${Math.max(8, Math.min(innerWidth - w - 8, r.right - w))}px`;
+    m.style.top = `${r.bottom + 4 + h > innerHeight - 8 ? r.top - 4 - h : r.bottom + 4}px`;
+    m.querySelector("button").focus();
+  }
+  function closeMenu(back = false) {
+    if (!M.menu || M.menu.hidden) return;
+    M.menu.hidden = true;
+    M.from?.setAttribute("aria-expanded", "false");
+    if (back && M.from && M.from.isConnected) M.from.focus({ preventScroll: true });
+  }
+  function wireMenu(m) {
+    m.addEventListener("click", (e) => {
+      if (e.target.closest("[data-fl-mk]")) { closeMenu(); startNew(M.dir); return; }
+      const cp = e.target.closest("[data-fl-cp]");
+      if (cp) { copyText(M.dir); cp.innerHTML = `${ICON.check}<span>Copied</span>`; setTimeout(() => closeMenu(true), 600); }
+    });
+    m.addEventListener("keydown", (e) => {
+      const items = [...m.querySelectorAll("button")], i = items.indexOf(document.activeElement);
+      if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeMenu(true); return; }
+      if (e.key === "Tab") { closeMenu(true); e.preventDefault(); return; }
+      const to = e.key === "ArrowDown" ? i + 1 : e.key === "ArrowUp" ? i - 1 : e.key === "Home" ? 0 : e.key === "End" ? items.length - 1 : null;
+      if (to == null) return;
+      e.preventDefault();
+      items[(to + items.length) % items.length].focus();
+    });
+    document.addEventListener("pointerdown", (e) => { if (!m.hidden && !m.contains(e.target) && e.target !== M.from && !M.from?.contains(e.target)) closeMenu(); }, true);
+  }
+
+  // ── a new file ────────────────────────────────────────────────────────────
+  // A row at the top of its folder's rows takes the name: Enter makes it, Esc (or leaving it empty) lets it
+  // go. Space's save with no version makes the file, empty, only if nothing has that name yet (409
+  // file_exists); it can't make folders (404 folder_not_found), so a name is just a name. A path that runs
+  // code (.git/…, .claude/…) says so first; Enter then makes it anyway (Space's confirm: "runs_code").
+  const NW = { key: null, dir: null, el: null, busy: false, confirm: false };
+  function startNew(dir) {
+    const s = F.scope;
+    if (!canMake(s, dir)) return;
+    endNew();
+    if (dir) { setOf(s.key).add(dir); load(s, dir); }
+    const depth = dir ? dir.split("/").length : 0;
+    const el = document.createElement("div");
+    el.className = "fl-new";
+    el.innerHTML = `<div class="fl-new-r" style="--d:${depth}"><span class="fl-c fl-i">${fileIcon("")}</span><input data-fl-name aria-label="Name of the new file in ${esc(dir ? base(dir) : s.label || "this folder")}" placeholder="Name, e.g. notes.md" autocomplete="off" spellcheck="false" maxlength="255"></div>` +
+      `<p class="fl-new-say" style="--d:${depth}" role="status" hidden></p>`;
+    Object.assign(NW, { key: s.key, dir, el, busy: false, confirm: false });
+    F.q = ""; // a search could hide the folder it goes in
+    paint();
+    el.querySelector("input").focus({ preventScroll: true });
+    el.scrollIntoView({ block: "nearest" });
+  }
+  function endNew({ focus = false } = {}) {
+    if (!NW.el) return;
+    const dir = NW.dir;
+    NW.el.remove();
+    Object.assign(NW, { key: null, dir: null, el: null, busy: false, confirm: false });
+    if (focus) (dir ? rowOf(dir) : F.host.querySelector("[data-fl-new]"))?.focus({ preventScroll: true });
+  }
+  /** The new file's row stays first in its folder's rows (a redraw of the folder puts it back); a folder
+   *  closed, or another place, lets it go. */
+  function placeNew() {
+    if (!NW.el) return;
+    const g = NW.key === F.scope.key ? T.groups.get(NW.dir) : null;
+    if (!g || !g.el.isConnected) { endNew(); return; }
+    if (g.el.firstElementChild !== NW.el) g.el.prepend(NW.el);
+  }
+  /** What the name in the row would do, said under it; null when there's nothing to say. */
+  function nameSay(s, dir, n) {
+    const d = F.dirs.get(dkey(s, dir));
+    return newFileSay(n, dir, d && d.state === "ok" ? d : null, NW.confirm);
+  }
+  function sayNew(say) {
+    const p = NW.el.querySelector(".fl-new-say"), inp = NW.el.querySelector("input");
+    p.hidden = !say;
+    p.className = `fl-new-say${say && say.err ? " is-err" : ""}`;
+    p.textContent = say ? say.words : "";
+    p.title = say ? say.why || say.words : "";
+    inp.setAttribute("aria-invalid", String(!!(say && say.err)));
+  }
+  const makeWords = (err, n) => {
+    const c = err.code, st = err.status;
+    if (st === 409 && c === "file_exists") return `${n} is already here`;
+    if (st === 404 && c === "folder_not_found") return "This folder isn't there any more";
+    if (st === 403 && c === "read_only_place") return "XO keeps this folder";
+    if (st === 403 && c === "outside_project") return "A link leads out of the project";
+    if (st === 403) return "Making files isn't allowed here";
+    if (st === 503 && c === "writer_key_missing") return "XO Space hasn't enabled saving yet";
+    if (st === 400) return "A file can't be called that";
+    return err.message || "Couldn't make the file";
+  };
+  async function makeNew() {
+    if (!NW.el || NW.busy) return;
+    const s = F.scope, dir = NW.dir, inp = NW.el.querySelector("input"), n = inp.value.trim();
+    const say = n ? nameSay(s, dir, n) : { err: true, words: "Give it a name" };
+    if (say && say.err) { sayNew(say); return; }
+    const local = dir ? `${dir}/${n}` : n, rel = apiRel(s, local);
+    NW.busy = true; inp.readOnly = true; sayNew({ words: "Making it…" });
+    try {
+      const r = await api.saveProjectFile(s.project, rel, "", null, say && say.runs ? "runs_code" : null);
+      if (F.scope.key !== s.key) return;
+      endNew();
+      if (changes && changes.saved) changes.saved(s.project, rel);
+      await load(s, dir, { again: true });
+      if (F.scope.key !== s.key) return;
+      F.sel = local; F.fileView = true; F.auto = false;
+      paint();
+      viewer.open({ path: local, name: n, bytes: 0, project: s.project, rel, created: r.edit_id || true }, F.host.querySelector(`.fl-g [data-fl-file="${CSS.escape(local)}"]`));
+    } catch (err) {
+      if (!NW.el || F.scope.key !== s.key) return;
+      NW.busy = false; inp.readOnly = false;
+      if (err.status === 428) { NW.confirm = true; sayNew(RUNS_SAY); }
+      else { sayNew({ err: true, words: makeWords(err, n) }); if (err.status === 409) load(s, dir, { again: true }); }
+      inp.focus({ preventScroll: true });
+    }
+  }
+
   // ── input ─────────────────────────────────────────────────────────────────
   function wire(host) {
     host.addEventListener("click", (e) => {
       const t = e.target;
       const rl = t.closest("[data-fl-rail]");
       if (rl) { unfoldTo(rl.dataset.flRail); return; }
+      const mb = t.closest("[data-fl-more]");
+      if (mb) { if (M.menu.hidden || M.from !== mb) openMenu(mb); else closeMenu(true); return; }
+      if (t.closest("[data-fl-new]")) { startNew(""); return; }
       const dirB = t.closest("[data-fl-dir]");
       if (dirB) {
         const p = dirB.dataset.flDir, open = setOf(F.scope.key);
@@ -431,8 +604,44 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       if (rt) { load(F.scope, rt.dataset.flRetry, { again: true }); return; }
       if (t.closest("[data-fl-back]")) { F.fileView = false; if (!F.wide) viewer.close({ restore: false }); paint(); host.querySelector(".fl-r.is-on, .fl-r")?.focus({ preventScroll: true }); }
     });
-    host.addEventListener("input", (e) => { if (e.target.matches("[data-fl-q]")) { F.q = e.target.value; paint(); } });
+    host.addEventListener("input", (e) => {
+      if (e.target.matches("[data-fl-q]")) { F.q = e.target.value; paint(); return; }
+      if (e.target.matches("[data-fl-name]") && NW.el) {
+        const n = e.target.value.trim();
+        NW.el.querySelector(".fl-i").innerHTML = fileIcon(n);
+        sayNew(nameSay(F.scope, NW.dir, n));
+      }
+    });
+    // the ⋯ comes to the folder under the pointer, or the one with focus
+    const folderRow = (x) => (x && x.matches && x.matches(".fl-g > .fl-r.is-dir") ? x : null);
+    host.addEventListener("pointerover", (e) => {
+      if (!M.menu.hidden || e.target.closest(".fl-more")) return;
+      const r = e.target.closest(".fl-r");
+      if (r) moreAt(folderRow(r) || folderRow(document.activeElement));
+    });
+    host.addEventListener("pointerout", (e) => {
+      if (!M.menu.hidden || (e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest(".fl-list"))) return;
+      if (!e.target.closest || !e.target.closest(".fl-list")) return;
+      moreAt(folderRow(document.activeElement) || (document.activeElement === M.btn ? M.row : null));
+    });
+    host.addEventListener("focusin", (e) => {
+      const r = folderRow(e.target);
+      if (r) moreAt(r);
+      else if (e.target !== M.btn) moreAt(null);
+    });
+    host.addEventListener("focusout", (e) => {
+      if (e.target.matches("[data-fl-name]") && NW.el && !NW.busy && !e.target.value.trim()) setTimeout(() => { if (NW.el && !NW.el.contains(document.activeElement) && !NW.el.querySelector("input").value.trim()) endNew(); });
+    });
+    host.addEventListener("scroll", () => closeMenu(), true);
     host.addEventListener("keydown", (e) => {
+      if (e.target.matches("[data-fl-name]")) {
+        if (e.key === "Enter") { e.preventDefault(); makeNew(); }
+        else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); endNew({ focus: true }); }
+        return;
+      }
+      if ((e.key === "ContextMenu" || (e.shiftKey && e.key === "F10")) && folderRow(document.activeElement)) {
+        e.preventDefault(); moreAt(document.activeElement); if (M.row) openMenu(M.btn); return;
+      }
       if (e.key === "Escape" && e.target.matches("[data-fl-q]") && e.target.value) { e.preventDefault(); e.stopPropagation(); F.q = ""; e.target.value = ""; paint(); return; }
       if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
       const rows = [...host.querySelectorAll(".fl-tree .fl-r")];
@@ -467,6 +676,14 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
         `<div class="fl-tree"></div><div class="fl-split" role="separator" aria-orientation="vertical" aria-label="Resize the file tree" title="Drag to resize · double-click for the default" tabindex="0"></div><div class="fl-pv"><div class="fl-bar"></div><div class="fl-view"></div><p class="fl-empty">Pick a file to read it here.</p></div></div>`;
       const vw = document.getElementById("viewer");
       if (vw) host.querySelector(".fl-view").appendChild(vw);
+      M.btn = document.createElement("button");
+      M.btn.type = "button"; M.btn.className = "fl-more"; M.btn.title = "New file, copy path";
+      M.btn.setAttribute("aria-haspopup", "menu"); M.btn.setAttribute("aria-expanded", "false");
+      M.btn.innerHTML = MORE_IC;
+      M.menu = document.createElement("div");
+      M.menu.className = "fl-menu"; M.menu.setAttribute("role", "menu"); M.menu.hidden = true;
+      document.body.appendChild(M.menu);
+      wireMenu(M.menu);
       wire(host);
     },
     show(view) {
@@ -485,6 +702,16 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       paint();
     },
     reveal,
+    /** A file was made or taken away (a new file's Undo): its folder is read again, and focus that had
+     *  nowhere to go lands on that folder (or, at the top, on New file). */
+    async reread(f) {
+      const s = F.scope, local = localIn(s, f);
+      if (local == null) return;
+      const dir = parentOf(local);
+      await load(s, dir, { again: true });
+      if (F.scope.key !== s.key || (document.activeElement && document.activeElement !== document.body)) return;
+      (dir ? rowOf(dir) : F.host.querySelector("[data-fl-new]"))?.focus({ preventScroll: true });
+    },
     /** What agents changed in a view's scope (newest first): {path, rel, project, mark, live, who, tid}. */
     changes(view) {
       const s = scopeOf(view, { thread: (id) => world.thread(id), project: (id) => PROJ(id) });

@@ -160,7 +160,7 @@ diffs-container{
 .xd-edit:disabled{opacity:.6;cursor:progress}
 .xd-edit svg{width:16px;height:16px}
 .xd-state{display:inline-flex;align-items:center;gap:6px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3);white-space:nowrap}
-.xd-state i{width:6px;height:6px;border-radius:50%;background:var(--warn)}
+.xd-state i,.xd-draft i{flex:none;width:6px;height:6px;border-radius:50%;background:var(--warn)}
 .xd-errline{color:var(--err-ink)}
 .xd-vsep{flex:none;width:1px;height:16px;margin:0 4px;background:var(--g26)}
 .xd-btn{flex:none;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--g30);font:500 var(--fs-base)/20px var(--sans);color:var(--ink-2);white-space:nowrap;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
@@ -209,3 +209,17 @@ diffs-container{
   .xd-toast .t-m{flex:1 1 0}
   .xd-tacts{display:flex;order:2;flex-basis:100%;justify-content:flex-end;gap:8px}
 }
+
+/* the head's ⋯ (js/viewer.js moreHtml): Copy, Copy path and Download in a menu. While a copy or a download
+   lasts, the ⋯ says so in words ("Copied", "Downloading…"): the menu has closed by then */
+.vw-mw{position:relative;display:flex}
+.vw-more:is(.is-done,.is-busy){width:auto;padding:0 10px 0 8px;gap:6px}
+.vw-more:is(.is-done,.is-busy) span{display:inline;font:500 var(--fs-sm)/16px var(--sans)}
+.vw-more.is-done{color:var(--go)}
+.vw-more .spin{width:12px;height:12px}
+.vw-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;display:flex;flex-direction:column;min-width:176px;padding:4px;border-radius:var(--r-lg);border:1px solid var(--pop-line);background:var(--pop-bg);box-shadow:var(--e2);animation:msg-in .16s var(--glide)}
+.vw-menu [role=menuitem]{display:flex;align-items:center;gap:8px;height:32px;padding:0 8px;border-radius:var(--r-sm);text-align:left;text-decoration:none;font:400 var(--fs-base)/20px var(--sans);color:var(--ink-2);white-space:nowrap}
+.vw-menu [role=menuitem]:hover,.vw-menu [role=menuitem]:focus-visible{background:var(--g24);color:var(--ink);outline:none}
+.vw-menu svg{flex:none;width:15px;height:15px;color:var(--ink-3)}
+:root[data-theme="light"] .vw-menu{box-shadow:var(--lift-3)}
+@media (prefers-reduced-motion:reduce){.vw-menu{animation:none}}

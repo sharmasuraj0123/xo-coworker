@@ -18,6 +18,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { WAITING } from "./world.js";
 import { itemBody } from "./review.js";
+import { typing } from "./keys.js";
 
 export const COMMIT_MS = 3000;   // commit window before the world call
 export const HOLD_MS = 1200;     // destructive press-and-hold
@@ -200,7 +201,7 @@ export function createAnnouncer(region, { quietMs = 2000 } = {}) {
   let lastTyped = 0;
   const q = [];
   addEventListener("keydown", (e) => {
-    if (e.target && e.target.matches && e.target.matches("input, textarea, [contenteditable]")) lastTyped = Date.now();
+    if (typing(e)) lastTyped = Date.now(); // a field, even in a shadow root (Pierre's editor)
   }, true);
   const flush = () => {
     if (!q.length || Date.now() - lastTyped < quietMs) return;

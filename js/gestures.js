@@ -8,6 +8,7 @@
 // mind halfway. Touch events (not pointer events) because only a cancelable touchmove can stop the
 // browser's own scroll once a direction is picked.
 
+import { copyText } from "./util.js";
 const LOCK = 10;     // px before a touch picks its direction
 const SLOPE = 1.7;   // the picked axis must lead the other by this much: within ~30° of it
 export const FLICK = 0.45; // px/ms: a quick flick commits whatever the distance
@@ -425,18 +426,5 @@ function longPress(A) {
     menu.querySelector("button").focus({ preventScroll: true });
   }
 }
-/** Copy, even where the async clipboard isn't offered (a plain-http address on the network). */
-export function copyText(text) {
-  if (navigator.clipboard && isSecureContext) { navigator.clipboard.writeText(text).catch(() => legacy(text)); return; }
-  legacy(text);
-}
-function legacy(text) {
-  const ta = document.createElement("textarea");
-  ta.value = text;
-  ta.setAttribute("readonly", "");
-  ta.style.cssText = "position:fixed;top:0;left:0;opacity:0;pointer-events:none";
-  document.body.appendChild(ta);
-  ta.select();
-  try { document.execCommand("copy"); } catch { /* nothing more to try */ }
-  ta.remove();
-}
+// copyText lives in util.js (Files' Copy path uses it too); kept here for whoever imports it from gestures
+export { copyText };

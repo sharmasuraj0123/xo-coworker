@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
-const { scopeOf, localIn, fileScope } = await import("../js/files.js");
+const { scopeOf, localIn, fileScope, newFileSay } = await import("../js/files.js");
 
 let passed = 0;
 const t = (name, fn) => {
@@ -47,4 +47,20 @@ t("a file opened from elsewhere (Artifacts): the folder it lives in, so the tree
   assert.equal(fileScope({ name: "paste.txt" }, c2), null);
 });
 
+t("a new file's name: said under it before Enter (a folder in it, one that's there, one that runs code)", () => {
+  const d = { files: [{ name: "app.js" }], dirs: [{ name: "lib" }] };
+  assert.equal(newFileSay("", "js", d), null, "nothing typed: nothing said");
+  assert.equal(newFileSay("notes.md", "js", d), null);
+  assert.equal(newFileSay("x/y.md", "", d).err, true, "Space makes no folders");
+  assert.equal(newFileSay("a\\b", "", d).err, true);
+  assert.equal(newFileSay("..", "", d).err, true);
+  assert.deepEqual(newFileSay("app.js", "js", d), { err: true, words: "app.js is already here" });
+  assert.equal(newFileSay("App.js", "js", d), null, "names differ by case on the disk");
+  assert.equal(newFileSay("lib", "js", d).err, true, "a folder has that name");
+  assert.equal(newFileSay("app.js", "js", null), null, "a folder not read yet: Space says (409 file_exists)");
+  assert.equal(newFileSay("settings.json", ".claude", d).runs, true, "runs code: said, and Enter makes it anyway");
+  assert.equal(newFileSay(".mcp.json", "", d).runs, true);
+  assert.equal(newFileSay("hook", "x", d, true).runs, true, "Space said it runs code (428)");
+  assert.equal(newFileSay("settings.json", "docs/.claude", d), null, "only at the top of the place");
+});
 console.log(`${passed} passed${process.exitCode ? ", with failures" : ""}`);

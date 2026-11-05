@@ -233,7 +233,15 @@ export async function file(scroller, contents, o = {}) {
         text: () => ed.getText(),
         dirty: () => ed.canUndo,
         undo: () => ed.undo(),
-        focus: (o) => ed.focus(o),
+        // Pierre's focus does nothing until its document has arrived (an empty file's, a frame or two after
+        // attaching): it tries again for a few frames
+        async focus(o) {
+          for (let i = 0; i < 10; i++) {
+            ed.focus(o);
+            if (host.contains(document.activeElement)) return;
+            await new Promise((r) => requestAnimationFrame(r));
+          }
+        },
         stop() { detach(); ed.cleanUp("discard"); },
       };
     },
