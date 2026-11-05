@@ -2632,12 +2632,12 @@ document.addEventListener("click", (e) => {
   if (lr) { e.preventDefault(); openLineRef(lr); return; }
   // a changed file's chip: its diff in the panel's Changes; anything else (a link to a file), Files
   const cf = t.closest(".tb-cf[data-file]");
-  // opening it is reading here, as opening a work fold is: the view unpins, so the panel making room (the
-  // conversation narrows) moves nothing you're reading (the browser's scroll anchoring holds it)
+  // opening it is reading here, as opening a work fold is: the view unpins on this row, so the panel making
+  // room (the conversation narrows and re-wraps) moves nothing you're reading
   if (cf) {
     const c = CHG.forTarget(S.view, cf.dataset.file);
     if (c) {
-      unpin();
+      unpin(cf); // the row you clicked in stays where it is while the panel takes its room (follow.js)
       if (STAGE.showChange(c.path)) { schedule(); return; }
       // a shape without the panel's Changes (Make content): its diff in Files instead
       const s = CHG.scope(S.view);
