@@ -1227,7 +1227,7 @@ button.tp-done-u:hover{color:var(--ink)}
 .cp-in input{padding-left:39px}
 .field textarea{min-height:62px;max-height:160px;resize:none;field-sizing:content}
 .dlg :is(input,textarea):disabled{opacity:.55}
-/* Cloning: an honest, indeterminate bar (Space doesn't report progress yet) and the time it has taken */
+/* Cloning: a bar that runs until Space has a real figure, then fills; and the time it has taken */
 .cp-prog{display:flex;flex-direction:column;gap:10px}
 .cp-bar{height:3px;border-radius:2px;background:var(--g24);overflow:hidden}
 .cp-bar i{display:block;width:32%;height:100%;border-radius:inherit;background:var(--info);animation:cp-run 1.4s var(--ease) infinite}
