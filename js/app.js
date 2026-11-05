@@ -631,7 +631,7 @@ function messagesOf(conv) {
   const h = chat ? st.hist[chat] : null;
   let rows;
   if (t) {
-    const root = (st.timeline[t.project] || []).find((r) => r.id === t.id);
+    const root = (st.timeline[t.project] || []).find((r) => r.id === t.id) || st.found?.[t.project]?.get(t.id);
     rows = [...(root ? [uiMsg(root)] : []), ...t.messages];
   } else rows = (st.timeline[chat] || []).map(uiMsg);
   // optimistic rows whose server copy arrived first (the stream can beat the POST): the bubble stays, once
@@ -712,7 +712,7 @@ function messagesOf(conv) {
   // stay on the project's timeline (storm doesn't copy them), so they're shown here in place, whatever the
   // hops setting, marked as passed on, linking back to where you wrote them
   if (t && st.hops) {
-    const { shown, missing } = relayedInto(t, st.hops.values(), st.timeline[t.project] || [], new Set(rows.map((m) => m.id)));
+    const { shown, missing } = relayedInto(t, st.hops.values(), st.timeline[t.project] || [], new Set(rows.map((m) => m.id)), st.found?.[t.project]);
     for (const m of shown) out.push({ key: `relay:${m.id}`, at: m.at, seq: m.seq, who: "you", text: m.text, files: m.files, chatId: m.chatId, relay: { project: t.project, id: m.id, fwd: m.fwd } });
     if (world.act.findRows) for (const x of missing) world.act.findRows(t.project, x.ids, x.seq);
   }
@@ -785,7 +785,7 @@ function threadCardHtml(tid, needs) {
   return `<div class="tcard st-${n ? "needs" : t.state}">` +
     `<button type="button" class="tc-open" data-go="t:${esc(t.id)}" aria-label="Open thread: ${esc(t.title)}, ${esc(st)}">` +
     `<span class="tc-top"><i class="g g-${n ? "needs_reply" : glyphOf(t)}" aria-hidden="true"></i><b>${esc(t.title)}</b><span class="tc-st">${esc(st)}</span></span>` +
-    `<span class="tc-segs" aria-hidden="true">${segs}</span>` +
+    `<span class="tc-segs${segs ? "" : " is-empty"}" aria-hidden="true">${segs}</span>` +
     (now ? `<span class="tc-now">${now}</span>` : "") +
     `<span class="tc-foot">${t.branch && SHAPE.on("xo:thread/branch") ? `<code>${esc(t.branch)}</code>` : `<span>${noun("thread")}</span>`}${heldN ? `<span class="tc-cw">a small ask can wait</span>` : ""}<span>${short(t.lastAt) === "now" ? "just now" : short(t.lastAt) + " ago"}</span><span class="tc-go">Open ${ICON.arrow}</span></span></button>` +
     (n ? `<button type="button" class="tc-dec" data-decide="${esc(n.key)}">Decide</button>` : "") + `</div>`;
@@ -888,7 +888,9 @@ function msgItems(conv, needs) {
     } else if (m.who === "turn") {
       const inner = turnHtml(m.turn, m.blocks, { open: S.tbOpen, hideAnswer: m.hideAnswer, carried: m.carried, route: fileRoute, by: nameOf(conv, "agent")[0], working: m.working });
       if (!inner) { prev = m; continue; }
-      html = `<div class="m m-them m-turn${m.turn.status === "running" ? " is-live" : ""}">${turnAv(m.turn, m.blocks)}<div class="mb">${inner}</div></div>`;
+      // is-folded: running with nothing pressed open and no step waiting on you (the working bubble shows)
+      const live = m.turn.status === "running", unfolded = inner.includes('aria-expanded="true"') || /class="[^"]*\bis-waiting\b/.test(inner);
+      html = `<div class="m m-them m-turn${live ? " is-live" : ""}${live && !unfolded ? " is-folded" : ""}">${turnAv(m.turn, m.blocks)}<div class="mb">${inner}</div></div>`;
     } else if (m.who === "card") {
       html = `<div class="m m-them m-card"><div class="av av-gap"></div><div class="mb">${threadCardHtml(m.thread, needs)}</div></div>`;
     } else if (m.who === "system" && m.passedOn) {
@@ -1435,7 +1437,8 @@ function typingRender() {
   tickElapsed();
   return changed;
 }
-function tickElapsed() { for (const el of $$(".elapsed[data-since]")) el.textContent = elapsed(Math.max(0, Math.floor((Date.now() - +el.dataset.since) / 1000))); }
+// only a clock whose words changed is written (a rewrite is a mutation every layer reacts to)
+function tickElapsed() { for (const el of $$(".elapsed[data-since]")) { const t = elapsed(Math.max(0, Math.floor((Date.now() - +el.dataset.since) / 1000))); if (el.textContent !== t) el.textContent = t; } }
 setInterval(tickElapsed, 1000);
 
 // ── the dock line: one calm labelled line (no glow on the composer, ever) ───
@@ -2381,14 +2384,17 @@ function loadChatHops(v) {
   if (chat && world.act.loadChatHops) world.act.loadChatHops(chat);
 }
 /** An open thread's root request lives on the project timeline; page back until it's there. */
+/** An open thread's root request (on the project's timeline): looked up by id once the thread has been read
+ *  back to its beginning, just below its first message. It used to page the project's own conversation back
+ *  (up to 6 pages), which grew that conversation for nothing. */
 function ensureRoot() {
   const t = convThread(S.view);
-  if (!t) return;
-  const h = world.state.hist[t.project], tl = world.state.timeline[t.project];
-  if (!h || !tl || h.loading || h.all || h.error || tl.some((r) => r.id === t.id)) return;
-  S.rootTries = S.rootTries || {};
-  if ((S.rootTries[t.id] = (S.rootTries[t.id] || 0) + 1) > 6) return;
-  world.act.loadOlder(t.project);
+  if (!t || !world.act.findRows) return;
+  const th = world.state.threadHist?.[t.id];
+  if (!th || !th.loaded || !th.all) return;
+  if ((world.state.timeline[t.project] || []).some((r) => r.id === t.id) || world.state.found?.[t.project]?.has(t.id)) return;
+  const first = t.messages.find((m) => m.seq != null);
+  world.act.findRows(t.project, [t.id], first ? first.seq : null);
 }
 function back() {
   const v = S.view;

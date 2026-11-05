@@ -64,11 +64,16 @@ t("blocks and rows carry their keys, so what's new can arrive and a fold can gli
   const think = { id: "th", type: "thinking", done: true, header: "Thought for 2s" };
   const act = { id: "g0", type: "activity", done: false, header: "Running", rows: [row(0, "command", "ls", "running")] };
   const live = turnHtml({ ...turn("running"), id: "t9" }, [think, act]);
-  assert.match(live, /class="tb tb-work is-live" data-b="work:t9"/);
+  assert.match(live, /class="tb tb-work is-live[^"]*" data-b="work:t9"/);
+  // the states the CSS keys off are classes in the markup (no :has() over every message): its rows show
+  assert.match(live, /class="tb tb-work is-live has-rows"/);
+  assert.match(live, /^<div class="turn is-live" /, "no words yet: not is-said");
   assert.match(live, /<li class="tb-row s-running" data-r="x:0"[^>]*>/);
   const open = turnHtml({ ...turn("running"), id: "t9" }, [think, act], { open: { "work:t9": true } });
   assert.match(open, /data-b="th"/);
   assert.match(open, /data-b="g0"/);
+  const one = turnHtml({ ...turn("running"), id: "t9" }, [act], { open: { g0: true } });
+  assert.match(one, /class="tb tb-act is-live is-unfolded has-rows"/, "a block pressed open says so");
 });
 
 // ── a turn split where a message came during it: work, the message, later work, each where it happened ──

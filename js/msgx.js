@@ -134,6 +134,9 @@ function decorate() {
     const tail = !runStarted && first && !el.classList.contains("mx-emoji") && !el.classList.contains("is-relay");
     b.classList.toggle("mx-tail", tail);
     b.classList.toggle("is-them", tail && !you);
+    // the same sender goes on in the next bubble: this one's lower corner tightens (was a :has(+ …) rule)
+    const next = el.nextElementSibling;
+    el.classList.toggle("mx-next-cont", !!next && next.classList.contains("cont") && next.classList.contains(you ? "m-you" : "m-them"));
   }
   // Names: whoever you're mainly talking to here goes unnamed, as in a one-to-one chat; anyone else who
   // speaks up is named. In a thread, the coordinator stepping in is set apart, quietly, in its violet.
@@ -246,6 +249,8 @@ function working(el) {
   const mb = el.querySelector(":scope > .mb");
   // what you asked to see, or a step that waits on you, shows in full
   el.classList.toggle("mx-expanded", !!el.querySelector('.turn [aria-expanded="true"], .turn .is-waiting'));
+  // its mark centres on a 44 px row when that comes first: an open work card, an answer, a block pressed open
+  el.classList.toggle("mx-av-row", !!el.querySelector(':scope > .mb > .turn > :is(.tb-work.is-open, .tb-answer, .tb-text, .tb.is-unfolded):first-child'));
   if (!live || !mb) {
     // it just ended: it stays drawn where it was, after what arrived while it worked, so nothing jumps
     if (WORKING.has(key)) {
@@ -650,9 +655,12 @@ function downSync() {
   const far = room && away() > Math.max(240, scroller.clientHeight * 0.5);
   if (!far) unseen = 0;
   down.classList.toggle("is-on", far);
-  const n = down.querySelector(".mx-down-n");
-  n.hidden = !unseen; n.textContent = unseen > 99 ? "99+" : String(unseen);
-  down.setAttribute("aria-label", unseen ? `${unseen} new below · back to the latest` : "Back to the latest");
+  // written only when they change: this runs on every scroll event, and rewriting the count's text each time
+  // forced a full style pass (6–7 ms on a long chat; QA #6)
+  const n = down.querySelector(".mx-down-n"), txt = unseen > 99 ? "99+" : String(unseen), label = unseen ? `${unseen} new below · back to the latest` : "Back to the latest";
+  if (n.hidden !== !unseen) n.hidden = !unseen;
+  if (n.textContent !== txt) n.textContent = txt;
+  if (down.getAttribute("aria-label") !== label) down.setAttribute("aria-label", label);
 }
 scroller.addEventListener("scroll", downSync, { passive: true });
 down.addEventListener("click", () => {
@@ -675,7 +683,13 @@ downRO.observe(scroller); downRO.observe($("#dock")); downRO.observe(tdock);
 // a card docking or leaving (and its own glide in or out) moves the button with it, frame by frame
 let downRaf = 0;
 const followDock = (until) => { cancelAnimationFrame(downRaf); const step = () => { downSync(); if (performance.now() < until) downRaf = requestAnimationFrame(step); }; step(); };
-new MutationObserver(() => followDock(performance.now() + 700)).observe(tdock, { childList: true, subtree: true });
+new MutationObserver(() => {
+  // what's docked, as classes the CSS keys off (were .app:has(#tdock > …) rules)
+  const a = document.getElementById("app"), first = tdock.firstElementChild;
+  a.classList.toggle("has-tdock", !!first);
+  a.classList.toggle("has-tdock-card", !!tdock.querySelector(":scope > .card"));
+  followDock(performance.now() + 700);
+}).observe(tdock, { childList: true, subtree: true });
 
 // ── at the latest, the conversation follows itself (owner, 5 Nov) ──────────────────────────────────────
 // Opening a conversation lands at the latest, and while you're at the latest it stays there through every

@@ -63,7 +63,7 @@ function blockHtml(b, open, live, now, media = {}, tail = "") {
       const running = !b.done && live;
       const head = running ? `${esc(b.header || "Thinking…")}${b.started_at ? ` · ${secs(now - Date.parse(b.started_at))}` : ""}` : esc(b.header || "Thought");
       const steps = (b.steps || []).filter(Boolean);
-      return `<div class="tb tb-think${running ? " is-live" : ""}" data-b="${esc(b.id)}"><button type="button" class="tb-h" data-tb="${esc(b.id)}" aria-expanded="${isOpen}"${steps.length ? "" : " disabled"}>` +
+      return `<div class="tb tb-think${running ? " is-live" : ""}${isOpen ? " is-unfolded" : ""}" data-b="${esc(b.id)}"><button type="button" class="tb-h" data-tb="${esc(b.id)}" aria-expanded="${isOpen}"${steps.length ? "" : " disabled"}>` +
         `<span class="tb-hi">${ICON.clock}</span><span class="tb-ht${running ? " shimmer" : ""}">${head}</span>${steps.length ? `<span class="tb-chev">${ICON.chevron}</span>` : ""}</button>` +
         (isOpen && steps.length ? `<ol class="tb-steps">${steps.map((s) => `<li>${renderInline(s, true)}</li>`).join("")}</ol>` : "") + `</div>`;
     }
@@ -72,7 +72,7 @@ function blockHtml(b, open, live, now, media = {}, tail = "") {
       const running = !b.done && live;
       const cur = running ? rows.filter((r) => r.status === "running") : [];
       const waiting = rows.some((r) => r.waiting);
-      return `<div class="tb tb-act${running ? " is-live" : ""}${waiting ? " is-waiting" : ""}" data-b="${esc(b.id)}"><button type="button" class="tb-h" data-tb="${esc(b.id)}" aria-expanded="${isOpen}">` +
+      return `<div class="tb tb-act${running ? " is-live" : ""}${waiting ? " is-waiting" : ""}${isOpen ? " is-unfolded" : ""}${isOpen || cur.length ? " has-rows" : ""}" data-b="${esc(b.id)}"><button type="button" class="tb-h" data-tb="${esc(b.id)}" aria-expanded="${isOpen}">` +
         `<span class="tb-hi">${running ? `<i class="tb-live" aria-hidden="true"></i>` : ICON.list}</span><span class="tb-ht">${renderInline(b.header || "Working", true)}</span>` +
         `<span class="tb-n">${rows.length}</span><span class="tb-chev">${ICON.chevron}</span></button>` +
         (isOpen ? `<ul class="tb-rows">${rows.map((r) => rowHtml(r, open)).join("")}</ul>` : cur.length ? `<ul class="tb-rows is-cur">${cur.map((r) => rowHtml(r, open)).join("")}</ul>` : "") + tail + `</div>`;
@@ -80,7 +80,7 @@ function blockHtml(b, open, live, now, media = {}, tail = "") {
     case "plan": {
       const items = b.items || [];
       const mark = (s) => (s === "done" ? "✓" : s === "doing" ? "✱" : "○");
-      return `<div class="tb tb-plan" data-b="${esc(b.id)}"><button type="button" class="tb-h" data-tb="${esc(b.id)}" aria-expanded="${!isOpen ? "false" : "true"}">` +
+      return `<div class="tb tb-plan${isOpen ? " is-unfolded" : ""}" data-b="${esc(b.id)}"><button type="button" class="tb-h" data-tb="${esc(b.id)}" aria-expanded="${!isOpen ? "false" : "true"}">` +
         `<span class="tb-hi">${ICON.list}</span><span class="tb-ht">${esc(b.header || "Plan")}</span><span class="tb-chev">${ICON.chevron}</span></button>` +
         (isOpen || (live && !b.done) ? `<ol class="tb-plan-l">${items.map((i) => `<li class="ck ck-${esc(i.state)}"><span class="ck-m" aria-hidden="true">${mark(i.state)}</span><span>${renderInline(i.text || "", true)}</span></li>`).join("")}</ol>` : "") + `</div>`;
     }
@@ -189,7 +189,7 @@ function workFold(turn, work, blocks, open, live, now, media = {}) {
     if (bad.length) under += WORDS ? `<p class="tb-note tb-wbad">${bad.length === 1 ? "One step" : `${bad.length} steps`} didn't work. Open the line above to see what happened.</p>` : `<ul class="tb-rows tb-bad">${bad.slice(-3).map((r) => rowHtml(r, open)).join("")}</ul>`;
     under += changedChips(rows, blocks, key, media.carried);
   }
-  return `<div class="tb tb-work${live ? " is-live" : ""}${waiting ? " is-waiting" : ""}" data-b="${esc(key)}">${head}${under}</div>`;
+  return `<div class="tb tb-work${live ? " is-live" : ""}${waiting ? " is-waiting" : ""}${under.includes('<ul class="tb-rows') ? " has-rows" : ""}" data-b="${esc(key)}">${head}${under}</div>`;
 }
 
 /**
@@ -238,7 +238,10 @@ export function turnHtml(turn, blocks, { open = {}, hideAnswer = false, now = Da
   else if (turn.status === "failed") foot = `<p class="tb-end is-err">${ICON.close}<span>This turn failed${end.error ? `: ${esc(String(end.error).slice(0, 240))}` : ""}</span></p>`;
   else if (turn.status === "interrupted") foot = `<p class="tb-end">Interrupted${end.reason === "restart" ? " by a restart; it picks up again" : ""}</p>`;
   if (!html.length && !foot) return "";
-  return `<div class="turn${live ? " is-live" : ""}" data-turn="${esc(turn.id)}">${html.join("")}${foot}</div>`;
+  // is-said: it holds words, files or its end line (CSS shows a folded live turn only then), set here
+  // rather than found with :has(), which made every change on the page re-check every message (QA #6)
+  const said = !!foot || html.some((h) => /^<div class="tb tb-(?:text|answer|files)\b/.test(h));
+  return `<div class="turn${live ? " is-live" : ""}${said ? " is-said" : ""}" data-turn="${esc(turn.id)}">${html.join("")}${foot}</div>`;
 }
 
 /**
