@@ -1,0 +1,425 @@
+/* The right panel, on one grid. Loads last, after foundation.css.
+
+   The grid, everywhere in the panel (Files, Made, Map, the file viewer):
+     · one content edge, 12 px from the panel's left: the first tab's icon, every scope line, the search
+       box, section labels, the tree's first column, the viewer's icon, Made's thumbnails;
+     · one name column, 36 px (edge 12 + a 16 px icon column + an 8 px gap): every row's name, the
+       viewer's file name;
+     · one spacing scale: 4 · 8 · 12 · 16; bars 40 px (the strip, the viewer's header); rows 28 px;
+       fields 30 px; small controls 24–28 px; radii from Plan F (css/tokens.css): 6 for chips, fields, rows, buttons;
+     · two text sizes: 13 px (names, titles, inputs) and 12 px (what's secondary), one family (the UI's
+       sans) with tabular figures for numbers; mono only for code and paths.
+   File icons are the swarm's (Pierre Trees, js/fileicons.js), in their own colours. The left sidebar is
+   not touched here. Measured: design-research/panel/measure.md. */
+
+.stage{container:stage / inline-size;--pe:12px;--pn:36px}
+
+/* ── the strip: 40 px; quiet tabs, the one in front underlined; under 360 px the counts step aside, the names stay ─ */
+.stg-bar{box-sizing:border-box;min-height:0;height:40px;padding:0 8px 0 4px;gap:4px;border-bottom:0;box-shadow:inset 0 -1px 0 var(--g1F)}
+.stg-tabs{gap:0;overflow:visible;align-self:stretch}
+.stg-tab{height:39px;padding:0 8px;gap:8px;border-radius:0;background:none!important;box-shadow:none!important;font:500 var(--fs-base)/20px var(--sans);color:var(--ink-3)}
+.stg-tab::after{content:"";position:absolute;left:8px;right:8px;bottom:-1px;height:2px;border-radius:2px 2px 0 0;background:transparent;transition:background var(--d-hover) var(--ease)}
+.stg-tab:hover{color:var(--ink-2)}
+.stg-tab.is-on{color:var(--ink)}
+.stg-tab.is-on::after{background:var(--ink-2)}
+.stg-tab svg{width:16px;height:16px}
+.stg-n{margin-left:-2px;font:400 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
+.stg-acts{gap:4px}
+.stg-ic{width:28px;height:28px;border-radius:var(--r-sm);color:var(--ink-4)}
+.stg-ic svg{width:16px;height:16px}
+.stg-ic:hover{background:var(--g1F);color:var(--ink)}
+@container stage (max-width:359px){.stg-n{display:none}}
+
+/* ── when the conversation beside it would get too narrow, the panel floats over it ───────────────── */
+body.stage-open.stage-over:not(.panel-open):not(.stage-full) .conv{--rp:0px}
+body.stage-open.stage-over:not(.panel-open):not(.stage-full) .scroller{padding-right:28px}
+body.stage-open.stage-over:not(.panel-open):not(.stage-full) .home{padding-right:0}
+body.stage-open.stage-over:not(.panel-open):not(.stage-full) .dock,body.stage-open.stage-over:not(.panel-open):not(.stage-full) .toast-wrap{right:0}
+body.stage-over .stage{box-shadow:var(--e2)}
+:root[data-theme="light"] body.stage-over .stage{box-shadow:var(--e2)}
+
+/* ── the scope line and the field under it: the same in Files, Made and the Map ─────────────────────── */
+.fl-head{gap:8px;padding:12px var(--pe) 8px}
+.fl-crumb{gap:8px;height:20px;padding:0}
+.fl-crumb b{font:600 var(--fs-base)/20px var(--sans)}
+.fl-crumb small{max-width:60%;padding:0;border-radius:0;background:none;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.fl-up{width:20px;height:20px;margin:0 -4px 0 -4px;border-radius:var(--r-sm)}
+.fl-up svg{width:14px;height:14px}
+.fl-q,.md-pane .md-tools .all-q{box-sizing:border-box;height:32px;padding:0 8px;gap:8px;border-radius:var(--r-sm);background:var(--g1A);border:1px solid var(--g24)}
+.fl-q svg,.md-pane .md-tools .all-q svg{width:16px;height:16px}
+.fl-q input,.md-pane .md-tools .all-q input{font:400 var(--fs-base)/20px var(--sans)}
+:root[data-theme="light"] .fl-q,:root[data-theme="light"] .md-pane .md-tools .all-q{background:#fff;border-color:rgba(0,0,0,.12)}
+
+/* ── Files: the tree on Pierre's grid. A row is 28 px; one 16 px column at 12 px (+16 a level) holds a
+   folder's chevron or a file's icon; every name starts on the name column ──────────────────────────── */
+.fl-list{padding:0 6px 12px}
+.fl-sec{padding:16px 6px 8px;font:600 var(--fs-sm)/16px var(--sans);letter-spacing:.01em;color:var(--ink-4)}
+.fl-sec:first-child{padding-top:4px}
+.fl-r{height:28px;min-height:28px;gap:8px;padding:0 6px 0 calc(6px + var(--d) * 16px);border-radius:var(--r-sm);font:400 var(--fs-base)/20px var(--sans);color:var(--ink-2)}
+.fl-r.is-dir{color:var(--ink-2);font-weight:400}
+.fl-r:hover{background:var(--g1C);color:var(--ink)}
+.fl-r.is-on{background:var(--g22);color:var(--ink)}
+.fl-c{flex:none;display:grid;place-items:center;width:16px;height:16px;color:var(--ink-4)}
+.fl-c svg{width:12px;height:12px}
+.fl-c.fl-i svg,.fl-c svg.fi{width:16px;height:16px}
+.fl-r.is-open .fl-c svg{transform:rotate(90deg)}
+.fl-n{line-height:20px}
+.fl-r.is-touch .fl-n{font:400 var(--fs-base)/20px var(--sans)}
+.fl-who{margin-left:4px;font:500 var(--fs-sm)/16px var(--sans)}
+.fl-sz{display:none;font:400 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
+@container stage (min-width:480px){.fl-sz{display:inline}}
+.fl-note{min-height:28px;padding-left:calc(var(--pn) - 6px + var(--d,0) * 16px);font:400 var(--fs-sm)/16px var(--sans)}
+.fl-note .spin{width:10px;height:10px}
+.fl-bar{padding:6px 6px 0}
+.fl-back{height:28px;padding:0 8px 0 6px;gap:4px;border-radius:var(--r-sm);font:500 var(--fs-base)/20px var(--sans)}
+.fl-back svg{width:16px;height:16px}
+:root[data-theme="light"] .fl-r:hover{background:rgba(0,0,0,.04)}
+:root[data-theme="light"] .fl-r.is-on{background:rgba(0,0,0,.07)}
+
+/* ── the file viewer's header: one 40 px row on the grid. Icon at the edge, the name on the name column,
+   then its kind and size as one quiet run on the same baseline; actions are 28 px icon buttons ───── */
+.vw-top{height:40px;padding:0 8px 0 var(--pe);gap:8px;align-items:center;border-bottom:1px solid var(--g1F)}
+.vw-ic{width:16px;height:20px;border-radius:0;background:none;color:var(--ink-3);display:grid;place-items:center}
+.vw-ic svg,.vw-ic svg.fi{width:16px;height:16px}
+.vw-t{display:flex;align-items:baseline;gap:8px;min-width:0}
+.vw-t{flex:1}
+.vw-t h2{flex:0 1 auto;min-width:0;font:600 var(--fs-base)/20px var(--sans);letter-spacing:0}
+.vw-meta{flex:0 100 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
+.vw-acts{gap:4px}
+.vw-btn{width:28px;height:28px;padding:0;justify-content:center;border-radius:var(--r-sm);border:0;color:var(--ink-3)}
+.vw-btn span{display:none}
+.vw-btn svg{width:16px;height:16px}
+.vw-btn:hover{background:var(--g1F);border:0;color:var(--ink)}
+.vw-seg{height:28px;padding:2px;gap:2px;border-radius:var(--r-sm);background:var(--g1C);border:1px solid var(--g24)}
+.vw-seg button{height:22px;padding:0 8px;border-radius:var(--r-sm);font:500 var(--fs-sm)/16px var(--sans)}
+.vw-x{width:28px;height:28px;border-radius:var(--r-sm)}
+/* the name and its kind and size always read whole: in a narrow pane Preview · Source fold to their icons first */
+.vw-seg button{display:inline-flex;align-items:center;gap:4px}
+.vw-seg button svg{display:none;width:16px;height:16px}
+@container flpv (max-width:520px){.vw-seg button{width:28px;padding:0;justify-content:center}.vw-seg button svg{display:block}.vw-seg button span{display:none}}
+@container flpv (max-width:360px){.vw-seg{display:none}}
+.fl-pv{container:flpv / inline-size}
+:root[data-theme="light"] .vw-seg{background:#f4f4f4;border-color:rgba(0,0,0,.08)}
+
+/* code in the viewer: one row per line with its number; a long line wraps under itself (a hanging indent)
+   instead of running off the edge */
+.vw-code{display:block;min-height:100%;padding:12px 0 40px;font:400 var(--fs-sm)/16px var(--mono)}
+.vw-l{display:grid;grid-template-columns:calc(var(--lnw, 3ch) + 24px) minmax(0,1fr)}
+.vw-n{padding:0 12px;text-align:right;color:var(--ink-4);opacity:.7;border-right:1px solid var(--g1E);user-select:none;-webkit-user-select:none;font-variant-numeric:tabular-nums}
+.vw-l code{display:block;min-width:0;padding:0 var(--pe) 0 calc(var(--pe) + 2ch);text-indent:-2ch;white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;background:none;border:0;border-radius:0;color:var(--ink-2)}
+.vw-l:hover{background:color-mix(in srgb,var(--ink) 3%,transparent)}
+:root[data-theme="light"] .vw-n{border-right-color:rgba(0,0,0,.08)}
+
+/* ── Made: the same scope line and field; a list (36 px thumb on the edge, name, one line under it)
+   until there's room for a gallery ──────────────────────────────────────────────────────────────── */
+.md-pane{container:made / inline-size}
+.md-pane .md-h{display:flex;align-items:baseline;gap:8px;min-width:0;padding:12px var(--pe) 0}
+.md-pane .md-h h2{flex:none;font:600 var(--fs-base)/20px var(--sans)}
+.md-pane .md-h p{min-width:0;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
+.md-pane .md-tools{gap:8px;padding:8px var(--pe)}
+.md-pane .md-tools .all-q{flex:1 1 100%;max-width:none}
+.md-pane .all-f{gap:4px}
+.md-pane .all-f button{height:24px;padding:0 8px;gap:4px;border-radius:var(--r-sm);font:500 var(--fs-sm)/16px var(--sans)}
+.md-pane .all-f button span{font-variant-numeric:tabular-nums}
+.md-pane .md-body{padding:0 var(--pe) 12px}
+.md-pane .md-gh{padding:12px 0 8px;font:600 var(--fs-sm)/16px var(--sans);letter-spacing:.02em;text-transform:uppercase;color:var(--ink-4)}
+.md-pane .md-grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.md-pane .md-it{border-radius:var(--r-sm)}
+.md-pane .md-th{border-radius:var(--r-sm) var(--r-sm) 0 0;height:100px}
+.md-ic{width:auto;height:auto;background:none;border:0}
+.md-ic svg,.md-ic svg.fi{width:24px;height:24px}
+.md-pane .md-meta{gap:4px;padding:12px 12px 4px}
+.md-pane .md-from{gap:4px;margin:0 4px 8px;padding:4px 8px;border-radius:var(--r-sm);font:400 var(--fs-sm)/16px var(--sans)}
+.md-pane .md-meta b{font:500 var(--fs-base)/20px var(--sans)}
+.md-pane .md-meta span{font:400 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums}
+@container made (max-width:519px){
+  .md-pane .md-body{padding:0 6px 12px}
+  .md-pane .md-gh{padding-left:6px}
+  .md-pane .md-grid{display:flex;flex-direction:column;gap:0}
+  .md-pane .md-it{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;border:0;border-radius:var(--r-sm);background:none;overflow:visible}
+  .md-pane .md-it:hover{background:var(--g1C)}
+  .md-pane .md-it{--th:40px;--tg:12px}
+  .md-pane .md-open{grid-column:1;grid-row:1;flex-direction:row;align-items:center;gap:var(--tg);padding:8px 6px 0}
+  .md-pane .md-it:not(:has(.md-from)) .md-open{padding-bottom:8px}
+  .md-pane .md-th{flex:none;width:var(--th);height:var(--th);gap:0;border-radius:var(--r-sm);border:1px solid var(--g24);background:var(--g1A)}
+  .md-pane .md-ext{display:none}
+  .md-pane .md-ic svg,.md-pane .md-ic svg.fi{width:20px;height:20px}
+  .md-pane .md-meta{gap:0;padding:0}
+  .md-pane .md-meta b{line-height:20px}
+  .md-pane .md-from{grid-column:1;grid-row:2;margin:4px 0 8px calc(6px + var(--th) + var(--tg));padding:0;gap:4px;border-radius:0;background:none!important;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+  .md-pane .md-from:hover{color:var(--ink-2)}
+  .md-pane .md-from svg{display:none}
+  .md-pane .md-from span::before{content:"from "}
+  .md-pane .md-pin{position:static;grid-column:2;grid-row:1 / span 2;width:28px;height:28px;margin-right:4px;border-radius:var(--r-sm);background:none}
+  .md-pane .md-pin:hover{background:var(--g22)}
+  :root[data-theme="light"] .md-pane .md-it:hover{background:rgba(0,0,0,.04)}
+  :root[data-theme="light"] .md-pane .md-th{background:#fafafa;border-color:rgba(0,0,0,.08)}
+}
+
+/* ── the Map in the panel: the same scope line, then one surface edge to edge ─────────────────────── */
+.map-host .mp-top{padding:12px var(--pe) 8px}
+.map-host .mp-t h2{font:600 var(--fs-base)/20px var(--sans)}
+.map-host .mp-sub{margin-top:0;font:400 var(--fs-sm)/16px var(--sans)}
+.map-host .mp-now{margin:0 var(--pe) 8px;padding:6px 8px 6px 16px;border-radius:var(--r-sm)}
+.map-host .mp-nl{font:500 var(--fs-base)/20px var(--sans)}
+.map-host .mp-legend{padding:0 var(--pe) 8px;gap:4px}
+.map-host .mp-who{height:24px;padding:0 8px;gap:8px;border-radius:var(--r-sm);font:400 var(--fs-sm)/16px var(--sans)}
+.map-host .dg{margin:0;border-radius:0;border-width:1px 0 0}
+.dg-tools{border-radius:var(--r-sm)}
+.dg-tools button{border-radius:var(--r-sm)}
+.dg-n{width:148px;height:32px;padding:0 8px;gap:8px;font:400 var(--fs-sm)/16px var(--sans)}
+.dg-n.k-root{height:36px;margin-top:-2px;font-weight:600}
+.dg-n.k-more,.dg-n.k-note{width:auto;height:24px;margin-top:4px}
+.dg-ic svg,.dg-ic svg.fi{width:16px;height:16px}
+.gn.k-file .gn-d{background:var(--fc,var(--g4A))}
+:root[data-theme="light"] .gn.k-file .gn-d{background:var(--fc,#B9B9B6)}
+.dg-tag{font:500 var(--fs-sm)/16px var(--sans)}
+/* the cursor is its arrow; its words show on hover (they are already in the line or chip above) */
+.map-host .dg-tag{opacity:0;pointer-events:none;transition:opacity var(--d-hover) var(--ease)}
+.map-host .dg-arrow{pointer-events:auto;cursor:default}
+.map-host .dg-cur:hover .dg-tag,.map-host .dg-tag:focus-visible{opacity:1;pointer-events:auto}
+.map-host .dg-key{display:none} /* the boxes say "new" / "edited" themselves */
+
+/* ── file icons: the swarm's (Pierre Trees) in its own colour for the theme; folders a quiet line ──── */
+svg.fi{flex:none;display:block;color:var(--fi-d,currentColor)}
+:root[data-theme="light"] svg.fi{color:var(--fi-l,currentColor)}
+svg.fi-line{color:inherit}
+.tb-fi svg.fi{width:20px;height:20px}
+.tb-cfi svg.fi{width:14px;height:14px}
+
+/* ── working: the agent's mark holds still, one small arc at its corner turns, in step everywhere (js/ui.js
+   keepTurning); its words carry the soft wave (the shimmer). The time is the same font, size and weight
+   as the words beside it, with tabular figures, on their baseline. No bouncing dots, no halo. ───────── */
+.av-live,.av-w{position:relative;animation:none!important;background:var(--g1C)!important;border:1px solid var(--g2A)!important;box-shadow:none!important}
+.av-live:not(.is-wait){color:var(--ink-2)}
+.av-w::after{display:none}
+.av-live.is-wait{border-color:color-mix(in srgb,var(--warn) 45%,var(--g26))!important;background:color-mix(in srgb,var(--warn) 8%,var(--g1C))!important}
+/* the arc: the text colour on a 22% track of the same colour (the chat capsule's working glyph), never blue */
+/* one working-arc system, in the app's blue (--info), like .g-working in css/app.css: the avatar's corner arc and the
+   generic spinner share its colour, 22% track and 1.6s turn. A spinner inside a button keeps the button's ink. */
+.arc{position:absolute;right:-4px;bottom:-4px;width:12px;height:12px;border-radius:50%;background:var(--canvas);color:var(--info)}
+.arc::before{content:"";position:absolute;inset:2px;border-radius:50%;border:1.5px solid color-mix(in srgb,currentColor 22%,transparent);border-top-color:currentColor;animation:arc-turn 1.6s linear infinite}
+@keyframes arc-turn{to{transform:rotate(360deg)}}
+.spin{color:var(--info);border:1.5px solid color-mix(in srgb,currentColor 22%,transparent);border-top-color:currentColor;animation-duration:1.6s}
+button .spin,.btn .spin{color:inherit}
+/* a time is never its own font: it takes its line's, with steady (tabular) digits */
+.elapsed{font-family:inherit;font-size:inherit;font-weight:inherit;line-height:inherit;font-variant-numeric:tabular-nums;letter-spacing:0}
+.tb-ht .elapsed{color:inherit}
+.tb-wh .tb-ht,.tb-wh .tb-wn{font:500 var(--fs-base)/20px var(--sans);font-variant-numeric:tabular-nums}
+.tb-wn{color:var(--ink-4)}
+.tb-wn::before{margin-right:8px}
+.ty-b{align-items:baseline}
+.ty-b .ty-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ty-b .elapsed{flex:none;color:var(--ink-4)}
+.ty-b .elapsed:not(:empty)::before{content:"·";margin-right:8px}
+.mp-now .elapsed{font:400 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
+.typing{animation:none}
+.dots{display:none}
+/* the thread's working line at the top of the window sweeps again (the owner, 4 Nov: "I liked the blue accent on
+   top that used to move"): it is the one loop that says an agent works right now (app.css, sl-sweep) */
+@media (prefers-reduced-motion:reduce){.arc::before{animation:none}.spin{animation:none}}
+
+/* no blue dots: "being edited now" and a folder an agent is in read in the text's own colour */
+.fl-who.w-live{color:var(--ink-2)}
+.fl-who.w-live i{background:var(--ink-2)}
+.dg-dot.d-hot{background:var(--ink-3)}
+
+/* ══ the panel as stacked frames (Premiere's panels): a 40 px title bar, then Agents · Map · Changes,
+   each with its own 32 px head and tabs, folding to that head, the 1 px line between two dragged ══ */
+.stg-bar{padding:0 8px 0 var(--pe)}
+.stg-t{flex:1;min-width:0;display:flex;align-items:baseline;gap:8px;white-space:nowrap;overflow:hidden}
+.stg-name{min-width:0;overflow:hidden;text-overflow:ellipsis;font:600 var(--fs-base)/20px var(--sans);color:var(--ink)}
+.stg-sub{flex:none;font:400 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
+.stg-frames{flex:1;min-height:0;display:flex;flex-direction:column}
+.fr{flex:none;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.fr.is-grow{flex:1 1 0;min-height:96px}
+.fr.is-folded{height:auto!important;flex:none}
+.fr.is-folded .fr-b{display:none}
+.fr-h{flex:none;box-sizing:border-box;height:32px;display:flex;align-items:stretch;padding:0 6px 0 4px;border-bottom:1px solid var(--g1C)}
+.fr.is-folded .fr-h{border-bottom:0}
+.fr-tabs{display:flex;align-items:stretch;min-width:0}
+.fr-t{position:relative;display:flex;align-items:center;gap:6px;padding:0 8px;border:0;background:none;font:500 var(--fs-base)/20px var(--sans);color:var(--ink-4);white-space:nowrap}
+button.fr-t:hover{color:var(--ink-2)}
+.fr-t.is-on{color:var(--ink)}
+.fr-t.is-on::after{content:"";position:absolute;left:8px;right:8px;bottom:-1px;height:2px;border-radius:2px 2px 0 0;background:var(--ink-2)}
+.fr.is-folded .fr-t.is-on::after{display:none}
+.fr-n{font:400 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
+.fr-n:empty{display:none}
+.fr-a{margin-left:auto;display:flex;align-items:center;gap:4px}
+.fr-ib{display:grid;place-items:center;width:24px;height:24px;border-radius:var(--r-sm);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.fr-ib:hover{background:var(--g1F);color:var(--ink)}
+.fr-ib svg{width:16px;height:16px;transition:transform .16s var(--ease)}
+.fr.is-folded .fr-fold svg{transform:rotate(-90deg)}
+.fr-b{flex:1;min-height:0;overflow:auto;scrollbar-width:thin;scrollbar-color:var(--g33) transparent}
+.fr-gut{flex:none;position:relative;height:1px;background:var(--g1F);cursor:row-resize;outline:none}
+.fr-gut::after{content:"";position:absolute;left:0;right:0;top:-4px;height:9px}
+.fr-gut:hover,.fr-gut:focus-visible,body.stage-vsizing .fr-gut{background:var(--line-hover)}
+body.stage-vsizing{cursor:row-resize;user-select:none}
+.fr-none{padding:12px var(--pe);font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+:root[data-theme="light"] .fr-h{border-bottom-color:rgba(0,0,0,.06)}
+
+/* Agents: a 40 px row each: its colour (the Map's cursor), its title and what it's doing, how long */
+.ag-list,.ch-list{list-style:none;margin:0;padding:0}
+.ag-r{box-sizing:border-box;display:grid;grid-template-columns:16px minmax(0,1fr) auto;align-items:center;column-gap:8px;width:100%;height:40px;padding:0 var(--pe);text-align:left;border-bottom:1px solid var(--g1C);transition:background var(--d-hover) var(--ease)}
+.ag-r:hover{background:var(--g1C)}
+.ag-sw{justify-self:center;width:8px;height:8px;border-radius:2px;background:var(--c)}
+.ag-r.is-idle .ag-sw{opacity:.4}
+.ag-t{min-width:0;display:flex;align-items:baseline;gap:8px;white-space:nowrap;overflow:hidden}
+.ag-t b{min-width:0;flex:0 1 auto;overflow:hidden;text-overflow:ellipsis;font:500 var(--fs-base)/20px var(--sans);color:var(--ink)}
+.ag-t span{flex:0 100 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.ag-tm{font:400 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
+:root[data-theme="light"] .ag-r{border-bottom-color:rgba(0,0,0,.06)}
+:root[data-theme="light"] .ag-r:hover{background:rgba(0,0,0,.03)}
+
+/* Changes: the tree's grid (icon on the edge, the name on the name column), its mark at the end */
+.ch-list{padding:4px 6px 8px}
+.ch-r{box-sizing:border-box;display:flex;align-items:center;gap:8px;width:100%;height:28px;padding:0 6px;border-radius:var(--r-sm);text-align:left;font:400 var(--fs-base)/20px var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease)}
+.ch-r:hover{background:var(--g1C);color:var(--ink)}
+.ch-i{flex:none;display:grid;place-items:center;width:16px;height:16px}
+.ch-n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ch-m{flex:none;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.ch-m.m-new{color:var(--accent)}
+.ch-m.m-deleted{color:var(--err)}
+.ch-m.m-live{color:var(--ink-2)}
+:root[data-theme="light"] .ch-r:hover{background:rgba(0,0,0,.04)}
+
+/* the Map inside its frame: the frame's tabs choose Diagram or Graph, the Agents frame says who */
+.fr[data-fr="map"] .fr-b{display:flex;flex-direction:column;overflow:hidden}
+.fr[data-fr="map"] .map-host{flex:1}
+.fr[data-fr="map"] .mp-head,.fr[data-fr="map"] .dg-mode,.fr[data-fr="map"] .dg-sep{display:none}
+.fr[data-fr="map"] .dg{border-top:0}
+
+/* the rail: the panel folded to 40 px beside Files; an icon opens it again */
+.stg-rail{display:none}
+body.stage-rail .stage .stg-bar,body.stage-rail .stage .stg-frames,body.stage-rail .stage .stg-grip{display:none}
+body.stage-rail .stg-rail{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0}
+
+/* ══ Files, a place in the main area: a 40 px head, the tree at a width you drag, the file in the rest ══ */
+.fv{position:absolute;z-index:6;top:0;right:0;bottom:0;left:0;display:flex;flex-direction:column;min-width:0;background:var(--canvas);outline:none;--pe:12px;--pn:36px}
+.fv[hidden]{display:none}
+body.stage-open:not(.panel-open):not(.stage-full):not(.stage-over) .fv{right:var(--sw)}
+/* a phone: the panel is a sheet over everything, never a column beside Files (stage.js steps it aside) */
+@media (max-width:760px){body.stage-open:not(.panel-open):not(.stage-full):not(.stage-over) .fv{right:0}}
+body.files-open .dock,body.files-open .tdock,body.files-open .new-below{display:none}
+.fv-h{flex:none;box-sizing:border-box;height:40px;display:flex;align-items:center;gap:8px;padding:0 12px 0 8px;border-bottom:1px solid var(--g1C)}
+.fv-back{display:flex;align-items:center;gap:4px;height:28px;padding:0 8px 0 4px;border-radius:var(--r-sm);font:500 var(--fs-base)/20px var(--sans);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.fv-back:hover{background:var(--g1F);color:var(--ink)}
+.fv-back svg{width:16px;height:16px}
+.fv-sep{width:1px;height:16px;background:var(--g26)}
+.fv-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 var(--fs-base)/20px var(--sans);color:var(--ink)}
+.fv-s{flex:none;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.fv-b{flex:1;min-height:0;display:flex}
+.fv-b>.fl{flex:1;min-width:0}
+.fv .fl.is-wide .fl-tree{width:var(--tw,280px);border-right:0;background:var(--g16)}
+:root[data-theme="light"] .fv .fl.is-wide .fl-tree{background:#FBFBFA}
+.fv .fl-crumb:not(:has(.fl-up)){display:none}
+.fl-split{display:none}
+.fv .fl.is-wide .fl-split{display:block;flex:none;position:relative;width:1px;background:var(--g1F);cursor:col-resize;outline:none}
+.fv .fl.is-wide .fl-split::after{content:"";position:absolute;top:0;bottom:0;left:-4px;width:9px}
+.fv .fl.is-wide .fl-split:hover,.fv .fl.is-wide .fl-split:focus-visible,body.fv-sizing .fl-split{background:var(--line-hover)}
+body.fv-sizing{cursor:col-resize;user-select:none}
+:root[data-theme="light"] .fv-h{border-bottom-color:rgba(0,0,0,.06)}
+.fv{container:fv / inline-size}
+@container fv (min-width:480px){.fl-sz{display:inline}}
+/* the file sits in the Files place now, not in the panel: it fills its column there */
+.fv .viewer{position:relative;inset:auto;z-index:auto;flex:1;width:auto;min-height:0;border:0;border-radius:0;background:transparent;box-shadow:none;animation:none}
+.fv [data-vw-close]{display:none}
+body.viewer-open .fv~.dock{display:none}
+
+/* ══ Right panel · the sidebar's material and row grammar ════════════════════════════════════════
+   One recessed rail, three equally treated sections. Idle rows are open; selection alone is raised.
+   Agents and Changes share a 44 px row, 28 px tile, and one name column: 12 + 8 + 28 + 8 = 56 px.
+   Row radius 12 − tile inset 8 = tile radius 4, on both axes. The view switch and map tools each
+   use radius 12 − padding 4 = button radius 8. Diagram geometry stays at its JS-owned 148 × 32. */
+.stage{
+  --panel-surface:var(--surface);
+  --panel-canvas:var(--side);
+  --panel-line:color-mix(in srgb,var(--ink) 8%,transparent);
+  --panel-hover:var(--row-hover);
+  --panel-lift:inset 0 1px 0 color-mix(in srgb,var(--ink) 7%,transparent),0 6px 14px -10px rgb(0 0 0 / .7),0 1px 2px rgb(0 0 0 / .3);
+  background:var(--side);
+}
+:root[data-theme="light"] .stage{background:var(--side);--panel-lift:var(--lift-2)}
+.stage .stg-bar{box-shadow:none;border-bottom:1px solid var(--panel-line)}
+.stage .stg-name{font-weight:600}
+.stage .fr-h{height:40px;padding:0 12px;border-bottom:0;align-items:center;gap:8px}
+.stage .fr-title{display:flex;align-items:baseline;gap:8px;margin:0;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
+.stage .fr-views{display:flex;align-items:center;gap:0;padding:4px;border-radius:var(--r-lg);background:var(--panel-hover)}
+.stage .fr-t{height:24px;padding:0 8px;gap:8px;border-radius:calc(var(--r-lg) - 4px);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.stage .fr-t.is-on{color:var(--ink)}
+.stage .fr-t.is-on::after{display:none}
+.stage button.fr-t.is-on{background:var(--panel-surface);box-shadow:var(--panel-lift)}
+.stage button.fr-t:hover{background:var(--panel-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
+.stage button.fr-t.is-on:hover{background:var(--panel-surface)}
+.stage .fr-ib{border-radius:var(--r)}
+.stage :is(.fr-ib,.stg-ic):hover{background:var(--panel-hover)}
+.stage .fr-gut{background:transparent}
+.stage .fr-gut::before{content:"";position:absolute;inset:0 12px;background:var(--panel-line);transition:background var(--d-hover) var(--ease)}
+.stage .fr-gut:hover::before,.stage .fr-gut:focus-visible::before,body.stage-vsizing .stage .fr-gut::before{background:var(--line-hover)}
+.stage .fr-gut:focus-visible{outline:2px solid var(--accent);outline-offset:-1px}
+.stage .fr-none{padding:8px 20px 12px;margin:0;line-height:20px}
+
+/* A thread's coloured glyph is its map identity; its tile carries the shared corner working arc.
+   Neither tint nor a persistent card outline is needed on every row. */
+.stage .ag-list,.stage .ch-list{display:flex;flex-direction:column;gap:4px;padding:0 12px 8px}
+.stage .ag-r,.stage .ch-r{display:grid;grid-template-columns:28px minmax(0,1fr) auto;column-gap:8px;align-items:center;width:100%;height:44px;padding:4px 8px;border:0;border-radius:var(--r-lg);background:transparent;transition:background var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease)}
+.stage .ag-r:hover,.stage .ch-r:hover{background:var(--panel-hover);transition-duration:var(--d-hover-in)}
+.stage .ag-r.is-on{background:color-mix(in srgb,var(--ink) 8%,var(--side));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 11%,transparent),var(--panel-lift)}
+:root[data-theme="light"] .stage .ag-r.is-on{background:var(--surface);box-shadow:inset 0 0 0 1px var(--panel-line),var(--panel-lift)}
+.stage .ag-ic,.stage .ch-i{position:relative;display:grid;place-items:center;width:28px;height:28px;border-radius:calc(var(--r-lg) - 8px);background:var(--g1C);box-shadow:inset 0 0 0 1px var(--g26)}
+.stage .ag-ic{color:color-mix(in srgb,var(--c) 70%,var(--ink-2))}
+.stage .ag-ic svg{width:16px;height:16px}
+.stage .ch-i svg.fi{width:20px;height:20px}
+:root[data-theme="light"] .stage :is(.ag-ic,.ch-i){background:var(--surface);box-shadow:inset 0 0 0 1px var(--panel-line)}
+.stage .ag-r.is-on .ag-ic{background:color-mix(in srgb,var(--c) 12%,var(--surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 35%,var(--panel-line))}
+.stage .ag-r.is-idle .ag-ic{color:var(--ink-4)}
+.stage .ag-t,.stage .ch-copy{display:flex;flex-direction:column;align-items:stretch;gap:0;min-width:0;overflow:hidden}
+.stage .ag-t b,.stage .ch-n{display:block;flex:none;min-width:0;overflow:hidden;text-overflow:ellipsis;font:500 var(--fs-base)/20px var(--sans);color:var(--ink-2)}
+.stage .ag-r.is-on .ag-t b,.stage .ag-r:hover .ag-t b,.stage .ch-r:hover .ch-n{color:var(--ink)}
+.stage .ag-r.is-on .ag-t b{font-weight:600}
+.stage .ag-activity{display:flex;align-items:center;gap:4px;min-width:0;height:16px}
+.stage .ag-t .ag-doing,.stage .ch-path{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.stage .ag-ic .arc,.stage .ag-wait{position:absolute;right:-4px;bottom:-4px;width:12px;height:12px;border-radius:50%;background:var(--side)}
+.stage .ag-r:hover :is(.arc,.ag-wait){background:linear-gradient(var(--panel-hover),var(--panel-hover)),var(--side)}
+.stage .ag-r.is-on :is(.arc,.ag-wait){background:color-mix(in srgb,var(--ink) 8%,var(--side))}
+:root[data-theme="light"] .stage .ag-r.is-on :is(.arc,.ag-wait){background:var(--surface)}
+.stage .ag-wait{display:grid;place-items:center;color:var(--warn)}
+.stage .ag-wait svg{width:12px;height:12px}
+.stage .ag-tm,.stage .ch-m{align-self:start;padding-top:0;font:400 var(--fs-sm)/20px var(--sans)}
+.stage .ch-r:not(:has(.ch-path)) .ch-m{align-self:center}
+
+/* The map belongs to the same rail. Idle nodes are open rows; only the root and an agent's current
+   place sit on raised surfaces. The exact node bounds and pointer targets stay unchanged. */
+.stage .fr[data-fr="map"] .dg{
+  margin:0 0 8px;border:0;border-radius:0;
+  background-color:var(--panel-canvas);
+  background-image:radial-gradient(circle,color-mix(in srgb,var(--ink) 5%,transparent) .75px,transparent 1px);
+  background-size:24px 24px;
+  box-shadow:none;
+}
+.stage .fr[data-fr="map"] .dg:focus-visible{box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--accent) 70%,transparent)}
+.stage .map-host .dg-n,.stage .map-host .dg-n.k-dir{border-radius:var(--r);border-color:transparent;background:transparent}
+.stage .map-host .dg-n.k-root{background:var(--panel-surface);border-color:var(--panel-line);box-shadow:var(--panel-lift)}
+.stage .map-host button.dg-n:hover{border-color:var(--panel-line);background:var(--panel-hover)}
+.stage .map-host .dg-n.k-more{background:transparent;border-style:dashed;border-color:var(--panel-line)}
+.stage .map-host .dg-n.k-note{background:transparent;border-color:transparent}
+.stage .map-host .dg-n.is-here{background:var(--panel-surface);border-color:color-mix(in srgb,var(--c) 65%,var(--panel-line));box-shadow:var(--panel-lift)}
+.stage .map-host .dg-edges path,.stage .map-host .dg-edges line{stroke:color-mix(in srgb,var(--ink) 16%,transparent)}
+.stage .map-host .dg-tools{
+  right:12px;bottom:8px;gap:4px;padding:4px;border:0;border-radius:var(--r-lg);
+  background:color-mix(in srgb,var(--panel-surface) 90%,transparent);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  box-shadow:inset 0 0 0 1px var(--panel-line),var(--panel-lift);
+}
+.stage .map-host .dg-tools button{border-radius:calc(var(--r-lg) - 4px)}
+.stage .map-host .dg-tools button:hover{background:var(--panel-hover)}
+.stage .map-host .dg-tools button[aria-pressed="true"]{background:color-mix(in srgb,var(--ink) 10%,transparent);color:var(--ink)}
+.stage .map-host .gn-d{box-shadow:0 0 0 2px var(--panel-canvas)}
+.stage .map-host .gn.k-file .gn-d{background:var(--ink-4)}
+.stage .map-host .gn.m-new .gn-d{background:var(--accent)}
+.stage .map-host .gn.m-edited .gn-d{background:var(--violet)}
+.stage .map-host .gn.is-here .gn-d{background:var(--ink-2);box-shadow:0 0 0 2px var(--panel-canvas),0 0 0 4px color-mix(in srgb,var(--c) 35%,transparent)}
+.stage .map-host .gn-l{text-shadow:0 0 3px var(--panel-canvas),0 0 3px var(--panel-canvas)}
+
+.stage :is(.ag-r,.ch-r,.fr-t,.fr-ib,.stg-ic):focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+@media (prefers-reduced-motion:reduce){.stage :is(.fr-t,.fr-gut::before,.ag-r,.ch-r){transition:none}}

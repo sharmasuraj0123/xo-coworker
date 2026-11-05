@@ -1,4 +1,7 @@
-/* Colours distilled from xo-space-architecture-chip.html (its --ui-* palette:
+/* Plan F: the one token file every screen is built from (design-research/2026-11-vision/direction).
+   Later stylesheets use these names; they never redefine a scale of their own.
+
+   Colours distilled from xo-space-architecture-chip.html (its --ui-* palette:
    canvas, panel, header, border, text, muted, and the warning / danger / scope /
    component hues). In-between tints are mixed from those, never new hues.
    The accent is XO's green (#83D63A, the "O" of the mark). On the light canvas
@@ -25,34 +28,56 @@
   --mark-x:#E1E1E1; --mark-o:#83D63A;
   --bubble:#232323; --bubble-line:#303030;
   --code-bg:#1B1B1B;
-  --shadow-sm:0 1px 2px rgba(0,0,0,.35),0 1px 1px rgba(0,0,0,.2);
-  --shadow-md:0 4px 14px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.3);
-  --shadow-lg:0 8px 24px rgba(0,0,0,.5),0 2px 6px rgba(0,0,0,.3);
+  --shadow-sm:none;
+  --shadow-md:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.24);
+  --shadow-lg:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.24);
   --hairline:inset 0 1px 0 rgba(255,255,255,.035);
   --scrim:rgba(0,0,0,.55);
 
   --sans:"Geist",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 
-  /* One type scale, human-sized (the chip: nothing below 10.5px, sentence case).
-     xs: counts, kbd · sm: secondary, meta · base: UI · md: titles, reading in docks
-     · lg: conversation prose · xl: section title · 2xl: empty-state title. */
-  --fs-xs:11px; --fs-sm:12px; --fs-base:13px; --fs-md:14px; --fs-lg:15px; --fs-xl:16px; --fs-2xl:20px;
-  --lh-ui:1.45; --lh-read:1.65;
-  --fw-medium:500; --fw-strong:600;
+  /* Plan F · type (design-research/2026-11-vision/direction). One family, eight sizes, three weights,
+     integer line heights on a 4 px grid, tracking by size (Geist has no optical-size axis, so tracking
+     does that job). 16 is for inputs only (a phone zooms into anything smaller).
+       12/16 meta · 13/20 UI · 14/20 labels · 15/24 reading · 16/24 inputs · 20/28 titles
+       28/36 places · 40/44 ceremony
+     The old names stay and point into the scale. */
+  --fs-xs:12px; --fs-sm:12px; --fs-base:13px; --fs-md:14px; --fs-lg:15px; --fs-xl:15px; --fs-2xl:20px; --fs-3xl:28px; --fs-4xl:40px;
+  --lh-12:16px; --lh-13:20px; --lh-14:20px; --lh-15:24px; --lh-16:24px; --lh-20:28px; --lh-28:36px; --lh-40:44px;
+  --tr-12:.01em; --tr-13:0em; --tr-15:0em; --tr-20:-.01em; --tr-28:-.02em; --tr-40:-.03em;
+  --lh-ui:20px; --lh-read:24px;
+  --fw-regular:400; --fw-medium:500; --fw-strong:600;
+  --fs-doc:17px; --lh-doc:28px;   /* documents (Files, the viewer) read in the serif at this size */
+  --serif:"Iowan Old Style","Charter","Source Serif 4","Source Serif Pro",Georgia,serif;   /* documents read as documents */
 
-  /* Geometry: soft and continuous. Radii grow with the size of the surface
-     (a 34px control gets 10px, a card 14px, the composer 22px). */
-  --r-xs:6px; --r-sm:8px; --r:10px; --r-lg:14px; --r-xl:18px; --r-2xl:22px; --r-pill:999px;
-  --h-ctl:34px; --h-bar:56px; --h-row:34px;
+  /* Plan F · geometry. Stone (the chrome) is crisp; glass (the conversation and the work) is soft.
+     Nested corners are computed, never chosen: inner = outer − inset.
+       6 chips and controls · 8 rows · 12 cards and media · 20 bubbles · 22 composer and sheets */
+  --r-xs:6px; --r-sm:6px; --r:8px; --r-lg:12px; --r-xl:20px; --r-2xl:22px; --r-pill:999px;
+  --r-3xl:28px;   /* the composer: its corner circles (attach, Send: 36 px, 10 px in) are concentric with it, 18 + 10 */
+  --h-ctl:32px; --h-bar:56px; --h-row:36px;
 
-  /* Motion. Feedback is fast, layout settles; nothing bounces.
-     Every animation is gated by prefers-reduced-motion in app.css. */
-  --ease:cubic-bezier(.22,.61,.36,1);
-  --ease-out:cubic-bezier(.16,1,.3,1);
-  --dur-fast:120ms;   /* hover, press, colour */
-  --dur-base:180ms;   /* popovers, chips, entrance of one message */
-  --dur-slow:260ms;   /* sheets, drawers */
+  /* Plan F · motion. One curve for everything that responds. Hover engages in 120 ms and releases in
+     200 ms (the slower release is what feels expensive); press 60 ms down. Arrive 280, move 320,
+     leave 160, the landing 600. Nothing overshoots. Gated by prefers-reduced-motion in base.css. */
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --ease-loop:cubic-bezier(.45,0,.55,1);   /* an ambient loop that responds to nothing (the working sweep): even in, even out */
+  --ease-out:cubic-bezier(.2,.8,.2,1);
+  --dur-fast:120ms; --dur-base:180ms; --dur-slow:280ms;
+  --d-hover:200ms; --d-hover-in:120ms; --d-press:60ms; --d-in:280ms; --d-move:320ms; --d-out:160ms; --d-land:600ms;
+
+  /* Plan F · feedback. A hover is visible (≥ 1.15:1 against rest); a press goes one step further. */
+  --hover-fill:rgba(255,255,255,.06); --press-fill:rgba(255,255,255,.09);
+
+  /* Plan F · depth. Three elevations: 0 the canvas, 1 a raised surface (a step and a hairline, no
+     shadow), 2 floating (menus, sheets, the composer): one contact shadow. No 60–90 px blurs. */
+  --e1:none;
+  --e2:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.24);
+
+  /* Plan F · the three lights. Green: done or go. Blue: working now. Amber: needs you.
+     Red is kept for real, irreversible danger. Everything else in the chrome is grey. */
+  --go:var(--accent); --work:var(--info); --need:var(--warn); --danger:var(--err);
 }
 
 /* Light: chip --ui-canvas #FFFFFF / --ui-panel #F5F5F5. Applied for a light OS
@@ -70,9 +95,11 @@
     --mark-x:#1E1E1E; --mark-o:#83D63A;
     --bubble:#F0F0F0; --bubble-line:#E0E0E0;
     --code-bg:#F5F5F5;
-    --shadow-sm:0 1px 2px rgba(0,0,0,.06);
-    --shadow-md:0 4px 14px rgba(0,0,0,.08),0 1px 3px rgba(0,0,0,.05);
-    --shadow-lg:0 8px 24px rgba(0,0,0,.16),0 2px 6px rgba(0,0,0,.06);
+    --shadow-sm:none;
+    --shadow-md:0 1px 2px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.10);
+    --shadow-lg:0 1px 2px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.10);
+    --e2:0 1px 2px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.10);
+    --hover-fill:rgba(0,0,0,.065); --press-fill:rgba(0,0,0,.09);
     --hairline:inset 0 1px 0 rgba(255,255,255,.7);
     --scrim:rgba(30,30,30,.32);
   }
@@ -89,9 +116,11 @@
   --mark-x:#1E1E1E; --mark-o:#83D63A;
   --bubble:#F0F0F0; --bubble-line:#E0E0E0;
   --code-bg:#F5F5F5;
-  --shadow-sm:0 1px 2px rgba(0,0,0,.06);
-  --shadow-md:0 4px 14px rgba(0,0,0,.08),0 1px 3px rgba(0,0,0,.05);
-  --shadow-lg:0 8px 24px rgba(0,0,0,.16),0 2px 6px rgba(0,0,0,.06);
+  --shadow-sm:none;
+  --shadow-md:0 1px 2px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.10);
+  --shadow-lg:0 1px 2px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.10);
+  --e2:0 1px 2px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.10);
+  --hover-fill:rgba(0,0,0,.065); --press-fill:rgba(0,0,0,.09);
   --hairline:inset 0 1px 0 rgba(255,255,255,.7);
   --scrim:rgba(30,30,30,.32);
 }

@@ -33,6 +33,9 @@ export function uiMsg(row) {
     files: attachmentsOf(row),
     passedOn: p && p.project ? { project: String(p.project), to: (p.forwarded_message_ids || [])[0] || null } : null,
     reactions: Array.isArray(x.reactions) ? x.reactions.filter((r) => r && r.emoji) : [],
+    // a move to another runtime (mixed runtimes F4): the old thread's note, and the new thread's root
+    continuedIn: x.continued_in || null,
+    continuedFrom: x.continued_from || null,
   };
 }
 
@@ -46,6 +49,20 @@ export function addReaction(list, d, at = null) {
   const row = list[i], x = row.extra || {};
   const next = [...list];
   next[i] = { ...row, extra: { ...x, reactions: [...(x.reactions || []), { emoji: d.emoji, by: d.by || null, at }] } };
+  return next;
+}
+
+/**
+ * A `message.updated` event ({id, chat_id, thread_ts, extra}) onto the storm rows holding its message: a
+ * new list with that row's extra merged with the event's (files an agent shared after its turn's last
+ * reply arrive this way, on that reply), or null when the message isn't in `list`.
+ */
+export function updateMessage(list, d) {
+  const i = d && d.id ? (list || []).findIndex((r) => r && r.id === d.id) : -1;
+  if (i < 0 || !d.extra || typeof d.extra !== "object") return null;
+  const row = list[i];
+  const next = [...list];
+  next[i] = { ...row, extra: { ...(row.extra || {}), ...d.extra } };
   return next;
 }
 
@@ -74,6 +91,50 @@ export function mergeRows(list, incoming) {
   return { list: [...byId.values()].sort(bySeq), added };
 }
 const bySeq = (a, b) => (a.seq ?? Infinity) - (b.seq ?? Infinity) || (Date.parse(a.created_at) || 0) - (Date.parse(b.created_at) || 0);
+
+// ── a conversation read in pages, newest first (R5) ──────────────────────────
+// h, a conversation's history so far: {loaded, all, before, loading, older, olderError}. `before` is the
+// cursor storm gave with the last page (next_before_seq): the seq to read below. No cursor: all is read.
+
+/**
+ * The history after one page's answer ({messages, next_before_seq}): its cursor, whether that was all, and
+ * whether it ever had more than one page (then its beginning is worth saying when you reach it).
+ */
+export function pageAfter(h, d) {
+  const before = d && d.next_before_seq != null ? d.next_before_seq : null;
+  return { ...h, loaded: true, before, all: before == null, paged: !!(h && h.paged) || before != null };
+}
+
+/** Whether to read the next older page now: loaded, more to read, nothing on its way, no failure to retry by hand. */
+export function canPageOlder(h) {
+  return !!(h && h.loaded && !h.all && !h.loading && !h.older && !h.olderError && h.before != null);
+}
+
+/**
+ * The oldest seq a paged conversation holds (its messages, oldest first or not), or null once all is read.
+ * What is older than this (a thread's root request, a coordinator's note, a turn that ended before it) waits
+ * for its page, so nothing shows cut off from the messages around it.
+ */
+export function pageFloor(h, rows) {
+  if (!h || !h.loaded || h.all) return null;
+  let floor = null;
+  for (const r of rows || []) if (r && r.seq != null && (floor == null || r.seq < floor)) floor = r.seq;
+  return floor;
+}
+
+/**
+ * Whether a conversation item is inside the pages read: seq ≥ floor (a turn counts from where it ended).
+ * One with no seq (a move's banner, a note of ours) by its time, against floorAt (the oldest message's).
+ */
+export function inPage(item, floor, floorAt = null) {
+  if (floor == null || !item || item.who === "hist") return true;
+  if (item.seq == null) return floorAt == null || !(item.at < floorAt);
+  const s = item.who === "turn" && item.turn ? (item.turn.lastSeq ?? item.seq) : item.seq;
+  return s >= floor;
+}
+
+/** Whether a session's stored frames still stop short of a page's oldest message (read one more page of them). */
+export const framesShort = (framesBefore, floor) => framesBefore != null && floor != null && framesBefore > floor;
 
 /**
  * Your message in a thread that waits for its agent's running turn to end: stored after the turn
@@ -136,6 +197,69 @@ export function threadState(state, turn) {
   return state || "working";
 }
 
+// ── busy: is an agent at work right now ("Working")? ─────────────────────────
+// Storm says it on every session and thread view (xo-space 8c6bc03): `busy` is true while the session is
+// on a turn (queued, starting, running, stopping) or while a sub-agent works on after its turn ended.
+// Live session frames still carry only the status, so between reads the same rule is applied here: the
+// status, then the sub-agents the stream names (run.* until run.finished, and the `runs` frame's counts).
+// An older backend sends no `busy`: then the status and the stream's runs are all there is, and that's
+// the same rule with less to go on.
+
+/** Session states in which its agent is on a turn (storm's engine BUSY_STATES). */
+export const BUSY_STATES = new Set(["queued", "starting", "running", "stopping"]);
+const RUN_ENDED = new Set(["finished", "failed", "stopped", "lost"]);
+/** A sub-agent run the stream said started and hasn't said ended. An internal (hidden) one isn't the person's to see. */
+export const runWorks = (r) => !!r && !r.ended_at && !RUN_ENDED.has(r.state) && !r.hidden;
+
+/**
+ * What a read of a session (a session view, or a thread view's `session`) says beyond its status: true
+ * when it was busy with no turn running, i.e. a sub-agent working on after the turn. undefined when the
+ * view has no `busy` (an older backend), so nothing is assumed either way.
+ */
+export function readSub(view) {
+  if (!view || typeof view.busy !== "boolean") return undefined;
+  return view.busy && !BUSY_STATES.has(view.state);
+}
+
+/** A session read's word on busy, to spread onto its record: {sub, readAt} when the view has `busy`, else {}. */
+export function sessionRead(view, now = Date.now()) {
+  const sub = readSub(view);
+  return sub === undefined ? {} : { sub, readAt: now };
+}
+
+/**
+ * Is a session's agent at work? s: {id, state, sub, readAt}: its newest status (frame or read), what
+ * the last read said beyond it (readSub) and when that read came (ms). runs: its runs as the stream named
+ * them ({state, ended_at, hidden, seen}, `seen` when the stream last spoke of each); agg: its newest
+ * `runs` frame ({running, waiting, at}). Each says what it knows, the newest word winning:
+ *   · waiting on the person is never Working, whatever else is true: it's you who's awaited (Needs you);
+ *   · on a turn (BUSY_STATES) is Working;
+ *   · after the turn, a sub-agent still at work keeps it Working: a run the stream named since the last
+ *     word on the counts, else the `runs` frame's counts when they're newer than the read, else the read.
+ */
+export function sessionBusy(s, { runs = [], agg = null } = {}) {
+  if (!s) return false;
+  if (s.state === "waiting_on_person") return false;
+  if (BUSY_STATES.has(s.state)) return true;
+  const readAt = s.readAt || 0;
+  const counted = agg && (agg.at || 0) >= readAt ? agg : null;
+  const since = Math.max(readAt, counted ? counted.at || 0 : 0);
+  for (const r of runs) if ((r.session == null || r.session === s.id) && runWorks(r) && (r.seen || 0) >= since) return true;
+  if (counted) return (counted.running || 0) + (counted.waiting || 0) > 0;
+  return s.sub === true;
+}
+
+/**
+ * The state a thread shows while it has open items: an open item on the thread (its own ask or one of
+ * its sub-agents') waits on the person whatever the row says yet. The row's needs_approval can trail
+ * the item's frame, and a resolved thread's sub-agent can still ask; a thread continued elsewhere
+ * (frozen) or already waiting keeps its state.
+ */
+export function askingState(state, openItems, frozen = false) {
+  if (!openItems || frozen || state === "needs_reply" || state === "needs_approval" || state === "paused") return state;
+  return "needs_approval";
+}
+
 const clip = (s, n) => (s.length > n ? s.slice(0, n - 1).replace(/\s+\S*$/, "") + "…" : s);
 
 /**
@@ -160,7 +284,8 @@ export function stormAsks(t, items = []) {
     const full = String((t.card && t.card.needs_you) || t.happened || "").trim();
     const { title, rest } = askText(full);
     asks.push({ id: `${t.id}:${(t.card && t.card.updated_at) || t.lastAt}`, kind: "question", title: title || "It's waiting for your reply", detail: clip(rest, 220), full, risk: "notable", options: null, replyOnly: true, live: true });
-  } else if (t.state === "paused") {
+  } else if (t.state === "paused" && !t.frozen) {
+    // a thread continued elsewhere is frozen, not waiting on you (mixed runtimes F4)
     const why = String(t.paused || "it was stuck on a denied step");
     asks.push({ id: `${t.id}:paused:${t.lastAt}`, kind: "question", title: "It paused and waits for you", detail: `Why: ${why}. A reply in the thread resumes it.`, full: why, risk: "notable", options: null, replyOnly: true, live: true, paused: true });
   } else if (t.state === "needs_approval") {

@@ -43,7 +43,8 @@ export function groupOf(t, ask) {
 /** The thread's asks, or one synthetic ask when it waits on the person with none (live). */
 export function asksOf(t) {
   if (t.asks && t.asks.length) return t.asks;
-  if (!WAITING(t.state)) return [];
+  // a thread continued on another runtime is frozen, not waiting on you (mixed runtimes F4)
+  if (!WAITING(t.state) || t.frozen) return [];
   return [{
     id: null,
     kind: t.state === "needs_approval" ? "approval" : "question",

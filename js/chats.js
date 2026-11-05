@@ -9,8 +9,8 @@ import { api, clientId, NEWEST } from "./api.js";
 import { esc } from "./world.js";
 import { ICON } from "./ui.js";
 import { renderMarkdown } from "./markdown.js";
-import { turnHtml } from "./turnview.js";
-import { cliName, mainRuntime, chatOrder } from "./timeline.js";
+import { turnHtml, turnAv } from "./turnview.js";
+import { cliName, mainRuntime, chatOrder, sessionRead } from "./timeline.js";
 
 const MODE_WORDS = {
   auto: ["Auto", "Its own safety check decides; most actions run unasked."],
@@ -46,7 +46,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       for (const s of d.sessions || []) {
         const old = world.state.sessions[s.id];
         if (old && old.seq != null && s.seq != null && old.seq > s.seq) continue; // the stream knows newer
-        world.state.sessions[s.id] = { ...(old || {}), ...s };
+        world.state.sessions[s.id] = { ...(old || {}), ...s, ...sessionRead(s) }; // its `busy` beyond the status, and when
       }
       C.list = true; C.err = null;
       // the list names models as their agent's catalog does
@@ -80,7 +80,8 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     if (!C.list && !rows.length) return [{ key: "chats-load", html: `<p class="m-note">${C.err ? `Couldn't read your chats: ${esc(C.err)}` : "Reading your chats…"}</p>` }];
     if (!rows.length) return [{ key: "chats-none", html: `<div class="calm ch-calm"><div class="calm-mark">${ICON.thread}</div><h2>No chats yet.</h2><p>Ask anything below. A chat is one agent in one folder, outside your projects' coordinators.</p></div>` }];
     return [{ key: "chats-list", html: `<ul class="ch-list" aria-label="Your chats">${rows.map((s) => {
-      const busy = BUSY.has(s.state), wait = waiting(s);
+      // Working: on a turn, or a sub-agent working on after it (storm's busy rule); waiting on you says so first
+      const wait = waiting(s), busy = BUSY.has(s.state) || !!(world.act.sessionBusy && world.act.sessionBusy(s.id));
       return `<li><button type="button" class="ch-row" data-go="c:${esc(s.id)}"><i class="g g-${wait ? "needs_approval" : busy ? "working" : "idle"}" aria-hidden="true"></i>` +
         `<span class="ch-main"><span class="ch-t">${esc(titleFor(s))}</span><span class="ch-m">${esc(metaLine(s))}</span></span>` +
         `<span class="ch-a${wait ? " is-need" : ""}">${wait ? "Needs you" : busy ? "Working" : esc(ago(s.updated_at || s.created_at))}</span></button></li>`;
@@ -164,7 +165,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
         items.push({ key: `u:${m.id}`, html: `<div class="m m-you${m.status === "failed" ? " is-failed" : ""}"><div class="bubble">${esc(m.text)}</div>${meta}</div>` });
       } else {
         const inner = turnHtml(x.t, world.state.turns.blocksOf(x.t), { open: world.ui ? world.ui.tbOpen : {} });
-        if (inner) items.push({ key: `turn:${x.t.id}`, html: `<div class="m m-them m-turn"><div class="av av-t">${ICON.thread}</div><div class="mb">${inner}</div></div>` });
+        if (inner) items.push({ key: `turn:${x.t.id}`, html: `<div class="m m-them m-turn">${x.t.status === "running" ? turnAv(x.t, world.state.turns.blocksOf(x.t)) : `<div class="av av-t">${ICON.thread}</div>`}<div class="mb">${inner}</div></div>` });
       }
     }
     if (!all.length && !h.loading && !h.error) items.push({ key: "chat-empty", html: `<p class="m-note">Nothing here yet.</p>` });
@@ -255,10 +256,10 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     const modes = st.modes;
     const folders = [{ id: "", name: "Your projects folder" }, ...world.state.projects.filter((p) => p.kind === "project").map((p) => ({ id: p.id, name: p.name }))];
     pop.innerHTML = `<header class="iq-h"><h2>New chat</h2></header>` +
-      `<div class="iq-sec"><label class="cs-f"><span>Folder</span><select data-cs="cwd">${folders.map((f) => `<option value="${esc(f.id)}"${f.id === st.cwd ? " selected" : ""}>${esc(f.name)}</option>`).join("")}</select></label>` +
-      (rts.length > 1 ? `<label class="cs-f"><span>Agent</span><select data-cs="agent">${rts.map((r) => `<option value="${esc(r.name)}"${r.name === st.agent ? " selected" : ""}>${esc(cliName(r.name))}</option>`).join("")}</select></label>` : "") +
-      `<label class="cs-f"><span>Model</span><select data-cs="model"><option value="">The agent's default</option>${models.map((m) => `<option value="${esc(m.id)}"${m.id === st.model ? " selected" : ""}>${esc(m.name)}${m.description ? ` · ${esc(m.description)}` : ""}</option>`).join("")}</select></label>` +
-      (efforts.length ? `<label class="cs-f"><span>Effort</span><select data-cs="effort"><option value="">Default</option>${efforts.map((e) => `<option value="${esc(e)}"${e === st.effort ? " selected" : ""}>${esc(EFFORT_WORD[e] || e)}</option>`).join("")}</select></label>` : "") +
+      `<div class="iq-sec"><label class="cs-f"><span>Folder</span><xo-select data-cs="cwd">${folders.map((f) => `<option value="${esc(f.id)}"${f.id === st.cwd ? " selected" : ""}>${esc(f.name)}</option>`).join("")}</xo-select></label>` +
+      (rts.length > 1 ? `<label class="cs-f"><span>Agent</span><xo-select data-cs="agent">${rts.map((r) => `<option value="${esc(r.name)}"${r.name === st.agent ? " selected" : ""}>${esc(cliName(r.name))}</option>`).join("")}</xo-select></label>` : "") +
+      `<label class="cs-f"><span>Model</span><xo-select data-cs="model"><option value="">The agent's default</option>${models.map((m) => `<option value="${esc(m.id)}"${m.id === st.model ? " selected" : ""}${m.description ? ` data-desc="${esc(m.description)}"` : ""}>${esc(m.name)}</option>`).join("")}</xo-select></label>` +
+      (efforts.length ? `<label class="cs-f"><span>Effort</span><xo-select data-cs="effort"><option value="">Default</option>${efforts.map((e) => `<option value="${esc(e)}"${e === st.effort ? " selected" : ""}>${esc(EFFORT_WORD[e] || e)}</option>`).join("")}</xo-select></label>` : "") +
       `</div>` + (!modes.length ? `<div class="iq-sec"><p class="iq-rl">This agent doesn't say what it may do on its own; it uses its default.</p></div>` : `<div class="iq-sec"><p class="iq-lab">What it may do</p><div class="cs-modes" role="radiogroup" aria-label="What it may do">${modes.map((m) => `<button type="button" role="radio" class="set-choice${m === st.mode ? " is-on" : ""}" aria-checked="${m === st.mode}" data-csmode="${esc(m)}"><span class="sc-dot" aria-hidden="true"></span><span class="sc-b"><b>${esc((MODE_WORDS[m] || [m])[0])}</b><span>${esc((MODE_WORDS[m] || ["", ""])[1])}</span></span></button>`).join("")}</div></div>`) +
       `<footer class="iq-f"><span>Used for your next new chat.</span><button type="button" class="iq-back" data-cs-done>Done</button></footer>`;
     const a = C.pop.anchor;

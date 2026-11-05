@@ -7,33 +7,56 @@
   <script>try{document.documentElement.dataset.theme=localStorage.getItem("cv-theme")==="light"?"light":"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
   <title>XO Space</title>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <!-- the type, asked for at once: Home's first paint is in Geist, never swapped (and shifted) a moment later -->
+  <link rel="preload" href="./fonts/geist/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="./css/base.css">
   <link rel="stylesheet" href="./js/vendor/xterm/xterm.css">
   <link rel="stylesheet" href="./css/app.css">
+  <link rel="stylesheet" href="./css/light.css">
+  <!-- the foundation (design-research/14): structure that holds in both themes, so it loads last -->
+  <link rel="stylesheet" href="./css/foundation.css">
+  <link rel="stylesheet" href="./css/panel.css">
+  <link rel="stylesheet" href="./css/links.css">
+  <link rel="stylesheet" href="./css/artifacts.css">
+  <link rel="stylesheet" href="./css/dropdown.css">
+  <!-- pictures and files in the conversation, and the lightbox (js/media.js, js/lightbox.js) -->
+  <link rel="stylesheet" href="./css/media.css">
+  <!-- the shape per person (js/shape.js): Settings › Shape, the first-run question, compact density -->
+  <link rel="stylesheet" href="./css/shape.css">
+  <!-- the left sidebar: one corner system, and which project is open (thread-28ea9d) -->
+  <link rel="stylesheet" href="./css/side.css">
+  <!-- exploration: bubbles and how you reply (thread-682d17); remove with css/msgx.css, js/msgx.js -->
+  <link rel="stylesheet" href="./css/msgx.css">
 </head>
 <body>
   <div class="app" id="app">
-    <!-- Sidebar: Home, Workspace, then projects as button-like rows. Text only when a project needs you. -->
+    <!-- Sidebar: places only. Home, Workspace, Chats, then projects as button-like rows (text only when a
+         project needs you). Tools that aren't places live in the foot: the shells toggle and Settings. -->
     <aside class="side" id="side" aria-label="Navigation">
       <div class="side-top">
         <p class="brand"><span class="brand-mark" id="brand-mark"></span><span class="sr-only">XO </span><b>Space</b></p>
         <button type="button" class="theme" id="theme" role="switch" aria-checked="false" aria-label="Light mode"></button>
         <button type="button" class="side-x" id="side-x" aria-label="Close menu"></button>
       </div>
-      <!-- Create XO Project: one easy, always-there entry under the brand -->
-      <button type="button" class="side-create" id="side-add"><span class="sc-ic" id="sc-ic"></span><span class="sc-t">Create XO Project</span></button>
       <nav class="nav" aria-label="Main">
         <button type="button" class="nrow" data-go="home" id="nv-home"><span class="nr-ic" id="ic-home"></span><span class="nr-name">Home</span><span class="nr-n" id="home-n"></span></button>
-        <button type="button" class="nrow" data-go="ws" id="nv-ws"><span class="nr-ic nr-xo" id="ic-ws"></span><span class="nr-name">Workspace</span></button>
+        <button type="button" class="nrow" data-go="ws" id="nv-ws"><span class="nr-ic nr-xo" id="ic-ws"></span><span class="nr-name">Workspace</span><span class="nr-n" id="ws-n"></span></button>
         <button type="button" class="nrow" data-go="chats" id="nv-chats"><span class="nr-ic" id="ic-chats"></span><span class="nr-name">Chats</span></button>
-        <!-- Shells (js/shells/): every shell, running or detached; shown only when the backend has them on -->
-        <button type="button" class="nrow" id="nv-shells" aria-haspopup="true" hidden><span class="nr-ic" id="ic-shells"></span><span class="nr-name">Shells</span><span class="nr-n nr-sh"></span></button>
+        <!-- Artifacts (js/recordview.js): everything threads made, across projects, a place of its own -->
+        <button type="button" class="nrow" data-go="artifacts" id="nv-arts"><span class="nr-ic" id="ic-arts"></span><span class="nr-name">Artifacts</span><span class="nr-q" id="arts-n"></span></button>
       </nav>
-      <div class="side-label"><span id="projects-label">Projects</span></div>
+      <!-- Create XO Project: "+ New" on the Projects label, where the new project will appear (a bare "+" was
+           too easy to miss: the owner, 4 Nov) -->
+      <div class="side-label"><span id="projects-label">Projects</span><button type="button" class="side-plus" id="side-add" aria-label="New project" title="Create XO Project"><span class="sp-ic" id="sc-ic"></span><span class="sp-t">New</span></button></div>
       <!-- a filter once the list is long (hub #16): typing narrows it, ↑ ↓ and Enter open one, Esc clears -->
       <div class="side-find" id="side-find" hidden><span class="sf-ic" id="sf-ic" aria-hidden="true"></span><input id="pf-in" type="search" placeholder="Find a project" autocomplete="off" spellcheck="false" aria-label="Find a project" aria-controls="projects"><span class="sf-n" id="pf-n" aria-live="polite"></span></div>
       <nav class="projects" id="projects" aria-labelledby="projects-label"></nav>
-      <div class="side-foot"><button type="button" class="gear" id="set-side" title="Settings" aria-haspopup="true" aria-expanded="false"><span class="gear-ic" id="set-side-ic"></span><span class="gear-t">Settings</span></button></div>
+      <div class="side-foot">
+        <!-- Shells (js/shells/): not a place but a dock under every view; this toggles it and counts what runs.
+             Shown only when the backend has shells on. -->
+        <button type="button" class="gear sh-tog" id="nv-shells" aria-pressed="false" hidden><span class="gear-ic" id="ic-shells"></span><span class="gear-t">Shells</span><span class="sh-n"></span></button>
+        <button type="button" class="gear" id="set-side" title="Settings" aria-haspopup="true" aria-expanded="false"><span class="gear-ic" id="set-side-ic"></span><span class="gear-t">Settings</span></button>
+      </div>
     </aside>
     <div class="side-scrim" id="side-scrim" hidden></div>
 
@@ -46,6 +69,9 @@
 
       <!-- Home: what's worth your time, then the end of the day -->
       <section class="home" id="home" aria-labelledby="home-h" tabindex="-1"></section>
+
+      <!-- Artifacts: everything threads made, across projects (js/recordview.js) -->
+      <section class="arts" id="arts" aria-labelledby="arts-h" tabindex="-1" hidden></section>
 
       <!-- A conversation: the Workspace, a project, or a thread -->
       <section class="conv" id="conv" hidden>
@@ -104,6 +130,9 @@
         <footer class="pn-foot" id="pn-foot"></footer>
       </section>
 
+      <!-- The Map: where your agents are working, beside the conversation (js/map.js); the viewer stacks over it -->
+      <aside class="map" id="map" aria-labelledby="mp-h" tabindex="-1" hidden></aside>
+
       <!-- A shared file, opened beside the conversation (js/viewer.js) -->
       <section class="viewer" id="viewer" role="dialog" aria-labelledby="vw-h" tabindex="-1" hidden></section>
 
@@ -115,8 +144,9 @@
         <div class="set-body">
           <nav class="set-nav" aria-label="Settings" role="tablist">
             <button type="button" role="tab" data-set="general" aria-selected="true">General</button>
-            <button type="button" role="tab" data-set="appearance" aria-selected="false">Appearance</button>
+            <button type="button" role="tab" data-set="shape" aria-selected="false">Shape</button>
             <button type="button" role="tab" data-set="routing" aria-selected="false">Routing</button>
+            <button type="button" role="tab" data-set="runtimes" aria-selected="false">Runtimes</button>
             <button type="button" role="tab" data-set="rules" aria-selected="false">Rules</button>
             <button type="button" role="tab" data-set="worktrees" aria-selected="false">Worktrees</button>
             <button type="button" role="tab" data-set="night" aria-selected="false">Night mode</button>
@@ -125,9 +155,12 @@
           </nav>
           <div class="set-page" role="tabpanel" data-page="general"><header class="set-ph"><h2>General</h2><p class="set-intro">How the conversation shows what happens behind it.</p></header>
             <div class="set-row"><div class="set-l"><b id="hops-l">Show how messages travel</b><span>Inside a thread, a quiet line each time a message passes between the workspace, a project's coordinator and the thread. Off unless you turn it on.</span></div><button type="button" class="switch" id="hops-tog" role="switch" aria-checked="false" aria-labelledby="hops-l"><span class="th-track" aria-hidden="true"><span class="th-knob"></span></span></button></div>
+            <div class="set-row"><div class="set-l"><b id="webpics-l">Show pictures from the web</b><span>A picture an agent links to shows in the conversation, read straight from its site, which can tell someone looked. Off, it's a link. Only on this device.</span></div><button type="button" class="switch" id="webpics-tog" role="switch" aria-checked="true" aria-labelledby="webpics-l"><span class="th-track" aria-hidden="true"><span class="th-knob"></span></span></button></div>
           </div>
-          <div class="set-page" role="tabpanel" data-page="appearance" hidden><header class="set-ph"><h2>Appearance</h2><p class="set-intro">How XO looks on this device.</p></header><p class="set-empty"><b>Nothing to set yet.</b> Appearance settings arrive here once the backend can keep them.</p></div>
+          <!-- Shape (js/shapeview.js): which parts of XO show, in what order and in which words; only ever by your choice -->
+          <div class="set-page" role="tabpanel" data-page="shape" hidden><header class="set-ph"><h2>Shape</h2><p class="set-intro">What XO shows you, and in which words. It changes only when you change it.</p></header><div class="shp"></div></div>
           <div class="set-page" role="tabpanel" data-page="routing" hidden><header class="set-ph"><h2>Routing</h2></header><div class="set-live"></div></div>
+          <div class="set-page" role="tabpanel" data-page="runtimes" hidden><header class="set-ph"><h2>Runtimes</h2><p class="set-intro">The agents XO can run threads on, and where each project's work may go.</p></header><div class="set-live"></div></div>
           <div class="set-page" role="tabpanel" data-page="rules" hidden><header class="set-ph"><h2>Rules</h2></header><div class="set-live"></div></div>
           <div class="set-page" role="tabpanel" data-page="worktrees" hidden><header class="set-ph"><h2>Worktrees</h2></header><div class="set-live"></div></div>
           <div class="set-page" role="tabpanel" data-page="night" hidden><header class="set-ph"><h2>Night mode</h2><p class="set-intro">What happens while you're away for the night.</p></header><p class="set-empty"><b>Nothing to set yet.</b> Night mode settings arrive here once the backend can keep them.</p></div>
@@ -206,6 +239,9 @@
   </div>
 
   <div id="live" class="sr-only" aria-live="polite"></div>
+  <!-- Home's greeting and its blocks' frames at once, ahead of app.js and everything it imports (js/skeleton.js) -->
+  <script type="module" src="./js/skeleton.js"></script>
   <script type="module" src="./js/app.js"></script>
+  <script type="module" src="./js/msgx.js"></script>
 </body>
 </html>

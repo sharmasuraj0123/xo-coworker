@@ -30,6 +30,11 @@ function patchRow(old, p) {
 
 export function createTurns() {
   const turns = new Map(); // turn id → Turn
+  // the newest seq seen on any frame (messages too: every frame passes through apply). A block keeps the
+  // seq of its first frame (`seq`), so a turn can be split where the agent spoke (turnview.js
+  // turnSegments); one whose frame has none (a live-only frame) counts as just after the newest seen.
+  let seen = 0;
+  const seqOf = (env) => (env.seq != null ? env.seq : seen + 0.5);
 
   function turnOf(env) {
     const id = env.turn_id;
@@ -60,6 +65,7 @@ export function createTurns() {
     const env = frame.envelope || frame;
     const type = frame.type || env.type;
     const d = env.data || {};
+    if (env.seq != null && env.seq > seen) seen = env.seq;
     switch (type) {
       case "turn.started": {
         const t = turnOf(env);
@@ -108,8 +114,12 @@ export function createTurns() {
         if (old) {
           // rule 1: only its index; a finished block is never reopened by an older frame
           if (b.index != null) old.index = b.index;
-        } else if (t.status === "running" || env.seq != null) {
-          t.blocks.set(b.id, { ...b, rows: b.rows ? b.rows.map((r) => ({ ...r })) : b.rows, done: false, n: t.blocks.size });
+          if (env.seq != null && (old.seq == null || env.seq < old.seq)) old.seq = env.seq; // its true first frame
+        } else if (t.status === "running" || (env.seq != null && !t.end)) {
+          // (a turn that has already finished, met again through its older stored frames when a
+          // conversation pages back: a block it finished is already here, or comes with its own
+          // block.finished; one it never finished was dropped when it ended, rule 5)
+          t.blocks.set(b.id, { ...b, rows: b.rows ? b.rows.map((r) => ({ ...r })) : b.rows, done: false, n: t.blocks.size, seq: seqOf(env) });
         }
         return t.id;
       }
@@ -119,7 +129,7 @@ export function createTurns() {
         let b = t.blocks.get(d.block_id);
         if (!b) {
           if (t.status !== "running") return null;
-          b = { id: d.block_id, type: d.type, index: null, done: false, n: t.blocks.size };
+          b = { id: d.block_id, type: d.type, index: null, done: false, n: t.blocks.size, seq: seqOf(env) };
           t.blocks.set(b.id, b);
         }
         if (b.done) return null; // nothing updates a finished block
@@ -147,7 +157,7 @@ export function createTurns() {
           const o = old && old.rows ? old.rows.find((x) => x.call_id === r.call_id) : null;
           return o && o.output && r.output == null ? { ...r, output: o.output } : { ...r };
         }) : b.rows;
-        t.blocks.set(b.id, { ...b, rows, done: true, n: old ? old.n : t.blocks.size }); // rule 3
+        t.blocks.set(b.id, { ...b, rows, done: true, n: old ? old.n : t.blocks.size, seq: old && old.seq != null ? Math.min(old.seq, seqOf(env)) : seqOf(env) }); // rule 3
         return t.id;
       }
       case "snapshot": {
@@ -162,7 +172,7 @@ export function createTurns() {
           for (const b of s.blocks || []) {
             const old = t.blocks.get(b.id);
             if (old && old.done) continue;
-            t.blocks.set(b.id, { ...b, rows: b.rows ? b.rows.map((r) => ({ ...r })) : b.rows, done: false, n: old ? old.n : t.blocks.size });
+            t.blocks.set(b.id, { ...b, rows: b.rows ? b.rows.map((r) => ({ ...r })) : b.rows, done: false, n: old ? old.n : t.blocks.size, seq: old ? old.seq : seqOf(env) });
           }
           changed.push(t.id);
         }

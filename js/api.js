@@ -40,7 +40,7 @@ export class ApiError extends Error {
     super(message);
     this.status = status;
     this.code = code;
-    Object.assign(this, extra); // storm extras: feature, count, sentence, what, confirm, summary
+    Object.assign(this, extra); // storm extras: feature, count, sentence, what, confirm, summary, current
   }
 }
 
@@ -126,7 +126,7 @@ async function exchange(url, method, body, signal) {
     if (Array.isArray(d)) message = d.map((e) => `${(e.loc || []).slice(1).join(".")}: ${e.msg}`).join("; ");
     if (!message) message = `${res.status} ${res.statusText || "error"}`;
     const extra = {};
-    if (d && typeof d === "object" && !Array.isArray(d)) for (const k of ["feature", "count", "sentence", "what", "confirm", "summary"]) if (k in d) extra[k] = d[k];
+    if (d && typeof d === "object" && !Array.isArray(d)) for (const k of ["feature", "count", "sentence", "what", "confirm", "summary", "current"]) if (k in d) extra[k] = d[k];
     throw new ApiError(res.status, code, message, extra);
   }
   return data;
@@ -214,8 +214,8 @@ const get = (path, query) => request(path, { query });
 const send = (method, path, body, query) => request(path, { method, body, query });
 
 /** GET a file's bytes as a Blob; failures throw the same ApiErrors as `request`. */
-async function blob(path, { signal } = {}) {
-  const dl = deadline(signal, READ_MS);
+async function blob(path, { signal, ms = READ_MS } = {}) {
+  const dl = deadline(signal, ms);
   try {
     const res = await fetch(BASE + path, { signal: dl.signal, headers: coderHeaders(), cache: "no-store", redirect: "manual" });
     if (res.type === "opaqueredirect") throw new ApiError(401, "signed_out", "Signed out of the workspace. Reopen this app from XO.");
@@ -225,7 +225,7 @@ async function blob(path, { signal } = {}) {
     throw new ApiError(res.status, (d && d.code) || `http_${res.status}`, (d && d.message) || (typeof d === "string" ? d : "") || `${res.status} ${res.statusText || "error"}`);
   } catch (err) {
     if (err instanceof ApiError) throw err;
-    if (err && err.name === "AbortError" && dl.timedOut()) throw new ApiError(0, "timeout", `XO didn't answer in ${Math.round(READ_MS / 1000)} s.`);
+    if (err && err.name === "AbortError" && dl.timedOut()) throw new ApiError(0, "timeout", `XO didn't answer in ${Math.round(ms / 1000)} s.`);
     if (err && err.name === "AbortError") throw err;
     throw new ApiError(0, "network", "Can't reach the UI server. Is serve.py running?");
   } finally {
@@ -244,6 +244,14 @@ export const api = {
   status: () => get("/chat/status"),
   runtimes: () => get("/chat/runtimes"),
   models: (runtime) => get(`/chat/runtimes/${enc(runtime)}/models`),
+  /** {space, effective}: the Space's runtime policy (mixed runtimes §2.2) */
+  runtimePolicy: () => get("/chat/runtime-policy"),
+  /** Replaces the Space's policy: {allowed, default, preferences, fallback}. */
+  setRuntimePolicy: (policy) => send("PUT", "/chat/runtime-policy", policy),
+  /** {space, project, effective}: a project chat's own override (404 no_such_chat otherwise) */
+  chatRuntimePolicy: (chat) => get(`/chat/chats/${enc(chat)}/runtime-policy`),
+  /** Replaces a project's override; a null field follows the Space. */
+  setChatRuntimePolicy: (chat, policy) => send("PUT", `/chat/chats/${enc(chat)}/runtime-policy`, policy),
   router: () => get("/chat/router"),
   setRouter: (body) => send("PUT", "/chat/router", body),
   routerModels: () => get("/chat/router/models"),
@@ -263,9 +271,22 @@ export const api = {
   thread: (chat, ts) => get(`/chat/chats/${enc(chat)}/threads/${enc(ts)}`),
   /** {resolved?, paused?: false, title?, label?, intelligence?} */
   patchThread: (chat, ts, body) => send("PATCH", `/chat/chats/${enc(chat)}/threads/${enc(ts)}`, body),
+  /** Continue a thread on another runtime (§2.4): it stops, freezes, and a linked new thread starts from its work. */
+  continueThread: (chat, ts, body) => request(`/chat/chats/${enc(chat)}/threads/${enc(ts)}/continue`, { method: "POST", body, timeout: 60000 }),
   hops: (chat, query = {}) => get(`/chat/chats/${enc(chat)}/hops`, query),
   memory: (chat) => get(`/chat/chats/${enc(chat)}/memory`),
+  /** What a chat's threads made (a newer backend): {made: [...], next_before}. 404 on an older one. */
+  made: (chat, query = {}) => get(`/chat/chats/${enc(chat)}/made`, query),
+  pinMade: (chat, id, on) => send(on ? "PUT" : "DELETE", `/chat/chats/${enc(chat)}/made/${enc(id)}/pin`),
+  /** The person looked at a chat (a newer backend keeps it per person, on every device): {seen: {seen_at, seen_seq}}. */
+  markSeen: (chat) => send("PUT", `/chat/chats/${enc(chat)}/seen`, {}),
   memoryFile: (chat, path) => get(`/chat/chats/${enc(chat)}/memory/${enc(path)}`),
+
+  // ── the person's shape (xo-space 8c6bc03): their own layer of the UI, kept for every device ──
+  /** {shape: object|null, version: "new"|<12 hex>, updated_at}. 404 on an older backend. */
+  shape: () => get("/chat/shape"),
+  /** {shape: object|null, if_version}: compare-and-set; a stale if_version is 409 shape_changed with `current`. */
+  putShape: (body) => send("PUT", "/chat/shape", body),
 
   // ── sessions, turns, history ──────────────────────────────────────────────
   sessions: (query = {}) => get("/chat/sessions", query),
@@ -308,8 +329,12 @@ export const api = {
   // ── projects ──────────────────────────────────────────────────────────────
   /** A text file inside a project, for the file viewer: {name, kind, size_bytes, truncated, content, …}. */
   projectFile: (project, relativePath) => get(`/xo-projects/${enc(project)}/file`, { relative_path: relativePath }),
+  /** One folder of a project, a level at a time (a thread's worktree is `.xo/worktrees/<name>`): {dirs, files}. */
+  projectTree: (project, relativePath) => get(`/xo-projects/${enc(project)}/tree`, relativePath ? { relative_path: relativePath } : undefined),
   /** An image inside a project, as a Blob for the image viewer (fetched, so it carries the Coder header and errors read as words). */
   projectImage: (project, relativePath, opts) => blob(`/xo-projects/${enc(project)}/image?relative_path=${enc(relativePath)}`, opts),
+  /** A whole project file as a Blob, for the viewer's Download (fetched, so the Coder token stays out of every URL). */
+  projectDownload: (project, relativePath) => blob(`/xo-projects/${enc(project)}/download?relative_path=${enc(relativePath)}`, { ms: 300000 }),
   /** Where xo-projects live: {roots: {...}, default}. Never hard-code the root. */
   workspaceConfig: () => get("/config/workspace"),
   /** Scaffold a new xo-project (xo-cowork-api). 409 when the folder exists. */

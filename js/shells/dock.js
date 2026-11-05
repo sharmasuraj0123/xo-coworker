@@ -1,4 +1,4 @@
-// Shells: the bottom dock that hosts them, the list that keeps track of them, and the sidebar row.
+// Shells: the bottom dock that hosts them, the list that keeps track of them, and the sidebar's toggle.
 //
 // The dock sits under the main column, outside every view, so moving between Home, projects and
 // threads never detaches a terminal. Tabs are attached shells; the first tab, "Shells", lists every
@@ -30,7 +30,9 @@ const sset = (store, k, v) => { try { store.setItem(k, JSON.stringify(v)); } cat
  * PROJ(folder) → a project's display name; notify({kind, text, sub}) → one line in the herald;
  * onChange() → the app re-renders what reads the counts (top bar buttons).
  */
-export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = () => {}, announce = () => {} } = {}) {
+// wanted(): does the person's shape want shells (xo:dock/shells)? Hiding them is the shape's choice; the
+// backend's own switch (/terminal/status) still comes first.
+export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = () => {}, announce = () => {}, wanted = () => true } = {}) {
   const root = document.getElementById("shd");
   const side = document.getElementById("nv-shells");
   const saved = sget(localStorage, SIZE_KEY, {});
@@ -164,7 +166,7 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
 
   // ── what the app asks for ────────────────────────────────────────────────
   async function create(body, where) {
-    if (!R.enabled) return;
+    if (!R.enabled || !wanted()) return;
     try {
       const d = await api.openTerminal(body);
       upsert(d.terminal);
@@ -207,7 +209,7 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
   }
   /** The toggle key: open (where you left off), minimise, or open again. */
   function toggle() {
-    if (!R.enabled) return;
+    if (!R.enabled || !wanted()) return;
     if (!R.open) { activate(R.active); return; }
     R.min = !R.min;
     changed();
@@ -290,15 +292,18 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
 
   // ── render ────────────────────────────────────────────────────────────────
   function render() {
-    const show = R.enabled;
+    const show = R.enabled && wanted();
     side.hidden = !show;
     if (show) {
       const n = runningOf(R.list).length;
-      const nEl = side.querySelector(".nr-n");
+      const nEl = side.querySelector(".sh-n");
       const h = n ? String(n) : "";
       if (nEl.textContent !== h) nEl.textContent = h;
+      const up = R.open && !R.min;
       side.setAttribute("aria-label", n ? `Shells, ${n} running` : "Shells");
-      side.classList.toggle("is-on", R.open && !R.min && R.active === LIST);
+      side.setAttribute("aria-pressed", String(up));
+      side.title = `${up ? "Hide" : "Show"} shells (${K.label("shells")})`;
+      side.classList.toggle("is-on", up);
     }
     root.hidden = !show || !R.open;
     root.classList.toggle("is-min", R.min);
@@ -426,9 +431,10 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
   }
 
   // ── events ────────────────────────────────────────────────────────────────
+  // the sidebar's toggle: the same as the key. Opening with nothing attached shows the list of every shell.
   side.addEventListener("click", () => {
-    if (R.open && !R.min && R.active === LIST && R.filter == null) { R.min = true; changed(); return; }
-    showList(null);
+    if (!R.open && !R.tabs.size) { showList(null); return; }
+    toggle();
   });
   root.addEventListener("click", (e) => {
     const t = e.target;
@@ -512,7 +518,7 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
   });
 
   // on a phone the dock is a sheet: drag its bar between full screen and half, or down to put it away
-  // (it waits in the sidebar's Shells row). Inside the terminal every touch stays the terminal's.
+  // (it waits behind the sidebar's Shells toggle). Inside the terminal every touch stays the terminal's.
   const PHONE = matchMedia("(max-width: 760px)");
   const bar = root.querySelector(".shd-bar");
   const refit = () => R.tabs.get(R.active)?.handle.refit();
@@ -567,13 +573,18 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
   })();
 
   return {
-    get enabled() { return R.enabled; },
+    /** On, and wanted: the thread menu's "Open a shell" and ⌘` follow this. */
+    get enabled() { return R.enabled && wanted(); },
+    /** On at the backend, whatever the shape says (the shape's capability check). */
+    get available() { return R.enabled; },
+    /** Draw again after the shape changed. */
+    redraw: () => render(),
     /** Running shells: a project's (its folder name), the workspace's ("workspace"), or every one (null). */
     countFor: (p = null) => (p === "workspace" ? R.list.filter((t) => isRunning(t) && t.scope === "workspace").length : runningOf(R.list, p).length),
     openProject, openWorkspace, openThread, showList, toggle, owns,
     /** On a phone, is the shells sheet up over the page (so Back puts it away first)? */
-    get raised() { return PHONE.matches && R.enabled && R.open && !R.min; },
-    /** Back on a phone: half height first, then away into the sidebar row. */
+    get raised() { return PHONE.matches && R.enabled && wanted() && R.open && !R.min; },
+    /** Back on a phone: half height first, then away behind the sidebar's toggle. */
     lower() {
       if (!(PHONE.matches && R.open && !R.min)) return false;
       if (!R.half) { R.half = true; render(); refit(); return true; }

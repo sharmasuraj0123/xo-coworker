@@ -6,9 +6,15 @@
 // A file attached to a message (hub #30) opens here too: an image as itself, a PDF in a frame, text as
 // text (read with fetch, never rendered as HTML), all from the attachment route, which the server
 // guards with its own headers. A long paste not sent yet previews from the composer.
+// A project file also downloads whole from the project-scoped `/download` route, which matters most
+// when the preview stops at 256 KB. It is fetched with the Coder header and saved as a blob, so the
+// token never sits in a URL (or the browser's download history).
 // Esc closes it; on phones it takes the whole screen. Focus goes in, and back to the file card.
+// With the Map open (js/map.js) the two are one right-hand panel with two modes, Live and File: `tabs`
+// draws the switch, and switching to Live parks the file (hidden, kept) until you come back to it.
 
 import { esc, isImagePath } from "./util.js";
+import { fileIcon } from "./fileicons.js";
 import { ICON, $ } from "./ui.js";
 import { renderMarkdown } from "./markdown.js";
 import { highlight, langOf } from "./highlight.js";
@@ -20,13 +26,56 @@ const bytes = (s) => new TextEncoder().encode(s).length;
 const extOf = (name) => (/\.([\w-]+)$/.exec(String(name || "")) || [])[1] || "";
 const KIND_WORD = { markdown: "Markdown", html: "HTML", text: "Text", code: "Code", json: "JSON" };
 
-export function createViewer({ announce, onChange }) {
+/**
+ * Highlighted HTML (flat <span class="tk-…">…</span> runs, as js/highlight.js makes them) cut into
+ * lines: a run that crosses a line ends at the line's end and starts again on the next one.
+ */
+// the Source toggle's glyph: angle brackets, drawn like the other line icons
+const SRC_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>';
+
+export function splitHighlighted(html) {
+  const out = [];
+  let line = "", open = null;
+  for (const part of String(html).split(/(<span class="[^"]*">|<\/span>)/)) {
+    if (!part) continue;
+    if (part.startsWith("<span")) { open = part; line += part; continue; }
+    if (part === "</span>") { open = null; line += part; continue; }
+    const bits = part.split("\n");
+    for (let i = 0; i < bits.length; i++) {
+      if (i > 0) { out.push(open ? line + "</span>" : line); line = open || ""; }
+      line += bits[i];
+    }
+  }
+  out.push(line);
+  return out;
+}
+
+export function createViewer({ announce, onChange, tabs }) {
   const el = $("#viewer");
-  const V = { open: false, file: null, data: null, error: null, loading: false, mode: "preview", returnTo: null, gen: 0, copied: false, dims: null };
+  const V = { open: false, parked: false, file: null, data: null, error: null, loading: false, mode: "preview", returnTo: null, gen: 0, copied: false, dims: null, saving: false, saveError: null };
 
   /** The object URL an image is shown from lives as long as the image is open. */
   function dropImage() {
     if (V.data && V.data.url && !V.data.remote) URL.revokeObjectURL(V.data.url);
+  }
+
+  /** A shared project file saves whole; attachments and pastes have no project. */
+  const canSave = () => !!(V.file.project && V.file.rel);
+
+  async function save() {
+    if (V.saving) return;
+    const f = V.file;
+    V.saving = true; V.saveError = null; V.keepScroll = true; render();
+    try {
+      const url = URL.createObjectURL(await api.projectDownload(f.project, f.rel));
+      const a = Object.assign(document.createElement("a"), { href: url, download: f.name || "file" });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (err) {
+      if (f === V.file) V.saveError = err.message || "Couldn't download this file.";
+    }
+    if (f !== V.file) return;
+    V.saving = false; V.keepScroll = true; render();
   }
 
   function head() {
@@ -34,27 +83,33 @@ export function createViewer({ announce, onChange }) {
     const kind = f.att || f.local != null ? typeWord(f.type || "", f.name) : d ? KIND_WORD[d.kind] || (extOf(f.name).toUpperCase() || "Text") : String(f.type || "").split("/").pop() || "";
     // an attachment opens in its own tab too; text has no inline view there, so it downloads
     const tab = f.att ? (kindOf(f.type || "") === "text"
-      ? `<a class="vw-btn" href="${esc(attachmentUrl(f.att.chat, f.att.id))}" download="${esc(f.name || "file")}" title="Download">${ICON.down}<span>Download</span></a>`
-      : `<a class="vw-btn" href="${esc(attachmentUrl(f.att.chat, f.att.id))}" target="_blank" rel="noopener noreferrer" title="Open in a new tab">${ICON.arrow}<span>New tab</span></a>`) : "";
+      ? `<a class="vw-btn" href="${esc(attachmentUrl(f.att.chat, f.att.id))}" download="${esc(f.name || "file")}" title="Download" aria-label="Download">${ICON.down}<span>Download</span></a>`
+      : `<a class="vw-btn" href="${esc(attachmentUrl(f.att.chat, f.att.id))}" target="_blank" rel="noopener noreferrer" title="Open in a new tab" aria-label="Open in a new tab">${ICON.arrow}<span>New tab</span></a>`)
+      : canSave() ? `<button type="button" class="vw-btn" data-vw-save title="Download the whole file" aria-label="Download"${V.saving ? " disabled" : ""}>${ICON.down}<span>${V.saving ? "Downloading…" : "Download"}</span></button>` : "";
     const meta = [kind, V.dims && `${V.dims.w} × ${V.dims.h}`, size(d ? d.size_bytes : f.bytes)].filter(Boolean);
     const canCopy = !!(d && typeof d.content === "string");
-    const toggle = d && d.kind === "html"
-      ? `<div class="vw-seg" role="group" aria-label="Show"><button type="button" data-vw-mode="preview" aria-pressed="${V.mode === "preview"}">Preview</button><button type="button" data-vw-mode="source" aria-pressed="${V.mode === "source"}">Source</button></div>`
+    const toggle = d && (d.kind === "html" || d.kind === "markdown")
+      ? `<div class="vw-seg" role="group" aria-label="Show"><button type="button" data-vw-mode="preview" aria-pressed="${V.mode === "preview"}" title="Preview" aria-label="Preview">${ICON.eye}<span>Preview</span></button><button type="button" data-vw-mode="source" aria-pressed="${V.mode === "source"}" title="Source" aria-label="Source">${SRC_IC}<span>Source</span></button></div>`
       : d && d.kind === "image"
         ? `<div class="vw-seg" role="group" aria-label="Size"><button type="button" data-vw-mode="preview" aria-pressed="${V.mode === "preview"}">Fit</button><button type="button" data-vw-mode="actual" aria-pressed="${V.mode === "actual"}" aria-label="Actual size"><span class="vw-wide">Actual size</span><span class="vw-narrow" aria-hidden="true">1:1</span></button></div>`
         : "";
-    return `<header class="vw-top"><span class="vw-ic" aria-hidden="true">${f.image ? ICON.image : ICON.doc}</span>` +
-      `<div class="vw-t"><h2 id="vw-h">${esc(f.name || f.path)}</h2><p class="vw-sub">${f.where ? `<code title="${esc(f.where)}">${esc(f.where)}</code>` : ""}${meta.map((m) => `<span>${esc(m)}</span>`).join("")}</p></div>` +
+    return `<header class="vw-top"><span class="vw-ic" aria-hidden="true">${fileIcon(f.name || f.path || "")}</span>` +
+      `<div class="vw-t"><h2 id="vw-h"${f.where ? ` title="${esc(f.where)}"` : ""}>${esc(f.name || f.path)}</h2>${meta.length ? `<span class="vw-meta">${esc(meta.join(" · "))}</span>` : ""}</div>` +
       `<div class="vw-acts">${toggle}${tab}` +
-      (canCopy ? `<button type="button" class="vw-btn" data-vw-copy title="Copy the contents">${ICON.copy}<span>${V.copied ? "Copied" : "Copy"}</span></button>` : "") +
+      (canCopy ? `<button type="button" class="vw-btn" data-vw-copy title="Copy the contents" aria-label="${V.copied ? "Copied" : "Copy"}">${ICON.copy}<span>${V.copied ? "Copied" : "Copy"}</span></button>` : "") +
       `<button type="button" class="vw-x" data-vw-close aria-label="Close the file" title="Close (Esc)">${ICON.close}</button></div></header>`;
   }
 
+  /**
+   * Code, one row per line: its number, then the line, wrapped when it's longer than the panel is wide
+   * (with a hanging indent), so nothing is ever cut off or hidden behind a scrollbar at the bottom.
+   */
   function codeHtml(text, lang) {
     const hl = highlight(text, lang);
-    const n = text.split("\n").length;
-    const nums = Array.from({ length: n }, (_, i) => i + 1).join("\n");
-    return `<div class="vw-code"><pre class="vw-ln" aria-hidden="true">${nums}</pre><pre class="vw-src"><code${hl != null ? ' class="hl"' : ""}>${hl ?? esc(text)}</code></pre></div>`;
+    const lines = hl != null ? splitHighlighted(hl) : text.split("\n").map(esc);
+    const w = String(lines.length).length;
+    return `<div class="vw-code${hl != null ? " hl" : ""}" style="--lnw:${w}ch">` +
+      lines.map((l, i) => `<div class="vw-l"><span class="vw-n" aria-hidden="true">${i + 1}</span><code>${l || " "}</code></div>`).join("") + `</div>`;
   }
 
   function body() {
@@ -68,11 +123,11 @@ export function createViewer({ announce, onChange }) {
     }
     if (d.kind === "pdf") return `<iframe class="vw-frame vw-pdf" src="${esc(d.url)}" title="${esc(V.file.name || "PDF")}" referrerpolicy="no-referrer"></iframe>`;
     const text = String(d.content ?? "");
-    const cut = d.truncated ? `<p class="vw-cut">${ICON.clock}<span>Showing the first ${esc(size(bytes(text)))} of ${esc(size(d.size_bytes))}. The rest isn't previewed.</span></p>` : "";
+    const cut = d.truncated ? `<p class="vw-cut">${ICON.clock}<span>Showing the first ${esc(size(bytes(text)))} of ${esc(size(d.size_bytes))}. The rest isn't previewed.</span>${canSave() ? `<button type="button" class="vw-cut-dl" data-vw-save${V.saving ? " disabled" : ""}>Download the whole file</button>` : ""}</p>` : "";
     let main;
-    if (d.kind === "markdown") main = `<article class="prose vw-md">${renderMarkdown(text)}</article>`;
+    if (d.kind === "markdown" && V.mode !== "source") main = `<article class="prose vw-md">${renderMarkdown(text)}</article>`;
     else if (d.kind === "html" && V.mode === "preview") main = `<iframe class="vw-frame" sandbox="" referrerpolicy="no-referrer" title="${esc(V.file.name || "HTML preview")}" srcdoc="${esc(text)}"></iframe>`;
-    else main = codeHtml(text, d.kind === "html" ? "html" : langOf(extOf(d.name || V.file.name)));
+    else main = codeHtml(text, d.kind === "html" ? "html" : d.kind === "markdown" ? "markdown" : langOf(extOf(d.name || V.file.name)));
     return cut + main;
   }
 
@@ -80,7 +135,8 @@ export function createViewer({ announce, onChange }) {
     if (!V.open) return;
     const keep = el.querySelector(".vw-body")?.scrollTop || 0;
     const framed = V.data && ((V.data.kind === "html" && V.mode === "preview") || V.data.kind === "pdf");
-    el.innerHTML = head() + `<div class="vw-body${framed ? " is-frame" : ""}" tabindex="0">${body()}</div>`;
+    const failed = V.saveError ? `<p class="vw-cut" role="alert">${ICON.clock}<span>${esc(V.saveError)}</span></p>` : "";
+    el.innerHTML = (tabs ? tabs() : "") + head() + `<div class="vw-body${framed ? " is-frame" : ""}" tabindex="0">${failed}${body()}</div>`;
     if (V.keepScroll) el.querySelector(".vw-body").scrollTop = keep;
     V.keepScroll = false;
   }
@@ -130,7 +186,9 @@ export function createViewer({ announce, onChange }) {
   function open(f, from) {
     const was = V.open;
     dropImage();
-    Object.assign(V, { open: true, file: { ...f, where: f.rel || f.path || "", image: f.att ? kindOf(f.type || "") === "image" : f.local == null && isImagePath(f.rel || f.path || f.name) }, data: null, dims: null, error: null, why: f.why || null, mode: "preview", copied: false, returnTo: from || (was ? V.returnTo : document.activeElement) });
+    if (V.parked) { V.parked = false; el.hidden = false; }
+    Object.assign(V, { open: true, file: { ...f, where: f.rel || f.path || "", image: f.att ? kindOf(f.type || "") === "image" : f.local == null && isImagePath(f.rel || f.path || f.name) }, data: null, dims: null, error: null, why: f.why || null, mode: V.textMode || "preview", copied: false, saving: false, saveError: null, returnTo: from || (was ? V.returnTo : document.activeElement) });
+    if (V.file.image) V.mode = "preview";
     el.hidden = false;
     document.body.classList.add("viewer-open");
     if (!was) { el.classList.remove("is-in"); void el.offsetWidth; el.classList.add("is-in"); }
@@ -142,7 +200,7 @@ export function createViewer({ announce, onChange }) {
 
   function close({ restore = true } = {}) {
     if (!V.open) return;
-    V.open = false; V.gen++;
+    V.open = false; V.parked = false; V.gen++;
     dropImage(); V.data = null;
     el.hidden = true; el.innerHTML = "";
     document.body.classList.remove("viewer-open");
@@ -162,10 +220,11 @@ export function createViewer({ announce, onChange }) {
   el.addEventListener("click", (e) => {
     if (e.target.closest("[data-vw-close]")) { close(); return; }
     const m = e.target.closest("[data-vw-mode]");
-    if (m) { V.mode = m.dataset.vwMode; render(); return; }
+    if (m) { V.mode = m.dataset.vwMode; if (V.mode !== "actual") V.textMode = V.mode; render(); return; }
     if (e.target.closest(".vw-img img")) { V.mode = V.mode === "actual" ? "preview" : "actual"; render(); return; }
     if (e.target.closest("[data-vw-copy]")) { copy(String(V.data.content)); return; }
-    if (e.target.closest("[data-vw-copy-path]")) copy(V.file.path);
+    if (e.target.closest("[data-vw-copy-path]")) { copy(V.file.path); return; }
+    if (e.target.closest("[data-vw-save]")) save();
   });
   // an image's size shows in the header once it has decoded; one that won't decode says so
   el.addEventListener("load", (e) => {
@@ -184,5 +243,26 @@ export function createViewer({ announce, onChange }) {
     if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); close(); }
   });
 
-  return { open, close, get isOpen() { return V.open; }, get file() { return V.file; } };
+  /** Live mode: the file steps aside, kept as it was (scroll and all), until `unpark`. */
+  function park() {
+    if (!V.open || V.parked) return;
+    V.keep = el.querySelector(".vw-body")?.scrollTop || 0;
+    V.parked = true; el.hidden = true;
+    document.body.classList.remove("viewer-open");
+    onChange && onChange();
+  }
+  function unpark() {
+    if (!V.open || !V.parked) return;
+    V.parked = false; el.hidden = false;
+    document.body.classList.add("viewer-open");
+    render();
+    const b = el.querySelector(".vw-body");
+    if (b) b.scrollTop = V.keep || 0;
+    el.focus({ preventScroll: true });
+    onChange && onChange();
+  }
+  /** Repaint the header (the Live · File switch follows the Map). */
+  function refresh() { if (V.open && !V.parked) { V.keepScroll = true; render(); } }
+
+  return { open, close, park, unpark, refresh, get isOpen() { return V.open && !V.parked; }, get hasFile() { return V.open; }, get isParked() { return V.open && V.parked; }, get file() { return V.file; } };
 }

@@ -1,9 +1,9 @@
 // Exercises the UI's pure modules (markdown, model, timeline) against fixed
 // cases and against live storm data through the proxy (GET only: nothing is written).
-//   node tests/logic.test.mjs            (UI server on 127.0.0.1:5180)
-//   XO_UI=http://127.0.0.1:5180 node tests/logic.test.mjs
+//   node tests/logic.test.mjs            (the live part runs if a UI answers on 127.0.0.1:5180, else it's skipped)
+//   XO_UI=http://127.0.0.1:3000 node tests/logic.test.mjs   (the live part through that UI; it must answer)
 import assert from "node:assert/strict";
-import { renderMarkdown, renderInline, threadLinks, excerptMarkdown } from "../js/markdown.js";
+import { renderMarkdown, renderInline, threadLinks, excerptMarkdown, setThreadInfo, shortUrl } from "../js/markdown.js";
 import { parseChecklist, tasksOf } from "../js/model.js";
 import { request } from "../js/api.js";
 import { highlight, langOf } from "../js/highlight.js";
@@ -32,13 +32,48 @@ t("attribute breakout in http link is escaped", () => {
 });
 t("thread links become in-app anchors", () => {
   const out = renderMarkdown("Sent to [Power operator + tests](#cmsg_0mv6m0vxl000834eada7).");
-  assert.match(out, /<a href="#cmsg_0mv6m0vxl000834eada7" class="md-tlink" data-thread="cmsg_0mv6m0vxl000834eada7">Power operator \+ tests<\/a>/);
+  assert.match(out, /<a href="#cmsg_0mv6m0vxl000834eada7" class="lk lk-in lk-thread is-unknown" data-thread="cmsg_0mv6m0vxl000834eada7"[^>]*>/);
+  assert.match(out, /<span class="lk-t">Power operator \+ tests<\/span><\/a>/);
   assert.deepEqual(threadLinks("[a](#cmsg_abc) [b](#cmsg_def) [a](#cmsg_abc)"), ["cmsg_abc", "cmsg_def"]);
 });
 t("http links open in new tab", () => {
   const out = renderMarkdown("see https://example.com/a?b=1, and [docs](https://x.dev)");
   assert.match(out, /href="https:\/\/example.com\/a\?b=1" target="_blank" rel="noopener noreferrer nofollow"/);
   assert.match(out, /href="https:\/\/x.dev"/);
+});
+t("links say where they go: inside is a token with its glyph, outside is text with an arrow", () => {
+  setThreadInfo((id) => (id === "cmsg_live" ? { state: "working", word: "Working", title: "Live panel" } : null));
+  try {
+    const live = renderInline("[the panel](#cmsg_live)");
+    assert.match(live, /class="lk lk-in lk-thread"/);
+    assert.match(live, /<i class="g g-working"/);
+    assert.match(live, /title="Working · thread"/);
+    const gone = renderInline("[other](#cmsg_gone)");
+    assert.match(gone, /is-unknown/);
+    assert.ok(!gone.includes('class="g '), gone);
+    // the app's word can never inject a class
+    setThreadInfo(() => ({ state: 'x" onclick="1', word: "<b>", title: "t" }));
+    const odd = renderInline("[t](#cmsg_odd)");
+    assert.ok(!odd.includes("onclick") && !odd.includes("<b>"), odd);
+  } finally { setThreadInfo(null); }
+  const web = renderInline("[PR #37](https://github.com/a/b/pull/37)");
+  assert.match(web, /class="lk lk-out"/);
+  assert.match(web, /<span class="lk-t">PR #37<\/span><svg class="lk-ar"/);
+  const bare = renderInline("at http://localhost:3000/ now");
+  assert.match(bare, /lk-out is-local is-bare/);
+  assert.match(bare, /<span class="lk-t">localhost:3000<\/span>/);
+  assert.equal(shortUrl("https://www.example.com/"), "example.com");
+  assert.equal(shortUrl("https://github.com/sharmasuraj0123/xo-coworker/pull/37/files?x=1#diff-abcdef0123456789"), "github.com/…/files");
+});
+t("relative file links open in the viewer; anything that leaves the folder stays text", () => {
+  const f = renderInline("[the turn view](js/turnview.js) and [readme](./README.md#L10)");
+  assert.match(f, /<a href="#js\/turnview.js" class="lk lk-in lk-file" data-file="js\/turnview.js" data-file-name="turnview.js"/);
+  assert.match(f, /<span class="lk-ic"><svg class="fi"/); // the file icon from js/fileicons.js, whichever set it draws
+  assert.match(f, /data-file="README.md"/);
+  for (const bad of ["[x](../etc/passwd)", "[x](/etc/passwd)", "[x](a/../../b.txt)", "[x](file:///etc/passwd)", "[x](mailto:a@b.c)", "[x](folder/)"]) {
+    const out = renderInline(bad);
+    assert.ok(!out.includes("<a "), bad + " → " + out);
+  }
 });
 t("bold, italic, code, lists, fences", () => {
   const out = renderMarkdown("**bold** *it* _it2_ `a<b`\n\n- one\n- two\n  - nested\n\n1. x\n2. y\n\n```py\nprint('<hi>')\n```");
@@ -443,7 +478,10 @@ try {
   }
   console.log(`      ${threadsSeen} thread(s) across the chats`);
 } catch (e) {
-  console.error("live data unavailable:", e.message);
-  process.exitCode = 1;
+  // asked for by XO_UI: it must answer. Run plainly with no UI up: the pure checks above still count.
+  if (process.env.XO_UI || !/fetch failed|ECONNREFUSED/.test(String(e.message) + String(e.cause && e.cause.code))) {
+    console.error("live data unavailable:", e.message);
+    process.exitCode = 1;
+  } else console.log("  --  live part skipped: no UI on :5180 (set XO_UI to run it through one)");
 }
 console.log(`${passed} passed${process.exitCode ? ", with failures" : ""}`);

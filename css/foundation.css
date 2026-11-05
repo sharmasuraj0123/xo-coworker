@@ -1,0 +1,168 @@
+/* The foundation (design-research/14): the interface critique of 2026-11-03 (§9, 26 surfaces), fixed.
+   Loaded last, after app.css and light.css, because these are rules of structure that hold in both
+   themes. The eight rules it applies (ui-design/README.md in the critique's folder):
+     1 hover fills sit inside their column; no negative margins   5 one left edge per region
+     2 one focus ring; inset where a scroller would clip it         6 whole pixels: integer line heights
+     3 press: small buttons .97; rows, tiles, tabs and cards never  7 side panels are flush, no shadow
+     4 an icon centres on its first line of text                    8 nothing loops unless an agent works
+   Its numbers now come from Plan F in css/tokens.css (4 px steps; radii 6 · 12 · 20 · 22; controls 32;
+   rows 36); this file never defines a scale of its own (tests/design-budget.test.mjs). */
+
+:root{--sw:360px;--edge:16px;--row-h:36px;--press:.97}
+
+/* ── 7 · the side panels: flush to the window, one hairline, no float, no shadow ─────────────────── */
+.stage,.panel,body.stage-full .stage{top:0;right:0;bottom:0;border-radius:0;border:0;border-left:1px solid var(--g1F);box-shadow:none;animation:none}
+:root[data-theme="light"] :is(.stage,.panel){border-color:rgba(0,0,0,.08);box-shadow:none}
+.stage{width:var(--sw);z-index:20}
+.panel{max-height:none;height:100%}
+body.stage-full .stage{left:0}
+body.stage-open{--mw:var(--sw);--vw:var(--sw)}
+body.stage-open:not(.panel-open):not(.stage-full) .conv{--rp:var(--sw)}
+body.stage-open:not(.panel-open):not(.stage-full) .scroller,body.stage-open:not(.panel-open):not(.stage-full) .home{padding-right:var(--sw)}
+body.stage-open:not(.panel-open):not(.stage-full) .dock{right:var(--sw)}
+body.stage-open:not(.panel-open):not(.stage-full) .toast-wrap{right:var(--sw)}
+body.panel-open .conv{--rp:var(--pw)}
+body.panel-open .scroller,body.panel-open .home{padding-right:var(--pw)}
+body.panel-open .dock{right:var(--pw)}
+body.panel-open .app[data-view] .toast-wrap{right:var(--pw)}
+/* its left edge is the handle: 320–640 px, double-click for 360 */
+.stg-grip{position:absolute;z-index:3;top:0;bottom:0;left:-3px;width:6px;cursor:col-resize;outline:none}
+.stg-grip::after{content:"";position:absolute;top:0;bottom:0;left:2px;width:2px;background:transparent;transition:background var(--d-hover) var(--ease)}
+.stg-grip:hover::after,.stg-grip:focus-visible::after,body.stage-sizing .stg-grip::after{background:var(--line-hover)}
+body.stage-sizing{cursor:col-resize;user-select:none}
+body.stage-sizing .stage,body.stage-sizing .conv,body.stage-sizing .scroller,body.stage-sizing .dock{transition:none}
+body.stage-full .stg-grip{display:none}
+.stg-bar{min-height:52px;padding:0 8px 0 6px}
+@media (max-width:760px){.stg-grip{display:none}.stage{width:auto}}
+/* Home's green atmosphere tinted the canvas beside the sidebar: the canvas is one colour everywhere */
+.home{background:var(--canvas)}
+
+/* ── the sidebar keeps its own look (the owner, 2026-11-04: "make it like before"): nothing here
+   touches it ─────────────────────────────────────────────────────────────────────────────────────── */
+
+/* ── 1 · hover fills inside the column: no negative margins ──────────────────────────────────────── */
+.top-back,.tw-rt,.target,.attach{margin-left:0}
+/* 4 · work rows read as text: no fill, the ink brightens and a chevron shows; the text starts on the
+   message's own column (the live turn's agent tile sits in the avatar gutter) */
+.tb-h{margin-left:0;padding:4px 0;border-radius:0;background:none!important}
+.tb-h:hover .tb-ht,.tb-h:focus-visible .tb-ht{color:var(--ink)}
+.tb-wh .tb-hi{display:none}
+.tb-work>.tb:not(.tb-work){margin-left:0}
+
+/* ── 3 · press (Plan F, with Codex's audit of :3400): the outer box never moves ──────────────────────
+   A toolbar or navigation control, a row and a card keep their place and edges when pressed: they go
+   one step deeper (an inset fill, so it works on any surface and follows the corners), in 60 ms. Only
+   the commit gestures keep a small give: Send, and the decision kit's Allow / Send back / hold (07 §4.4).
+   A card with two destinations (Made: the picture, and its source) presses only the one under you. */
+:is(.help,.create,.then-i,.hm-quiet,.top-back,.all-btn,.nw,.wsh-next,.tc-open,.tc-dec,button.hr,.t-undo,.dock-hide,.dock-fold,.btn,.set-nav button,button.kr-k,.tb-cf,.tw-act,.tw-rt,.tb-fb,.syl-got,.map-btn,.stg-btn,.fl-r,.stg-tab,.ar,.syl-ln,.jump-list li,.iq-row,.hd,.hd-r,.fl-back,.stg-ic,.md-open,.md-from):active,.pn-nav:active:not(:disabled){transform:none;box-shadow:inset 0 0 0 100vmax var(--press-fill)}
+.md-it:has(.md-open:active){transform:none}
+.b-hold:active{transform:none}
+
+/* ── 6 · whole pixels: integer line heights, so 1 px borders land on whole pixels ────────────────── */
+.tw-t h1{line-height:28px}
+.hm-h{font-size:var(--fs-3xl);line-height:36px}
+.mh{padding-top:0;align-items:center;min-height:32px}
+.md-grid{grid-template-columns:repeat(auto-fill,minmax(148px,1fr))}
+
+/* ── 4 · an icon centres on its first line; nested corners are concentric ────────────────────────── */
+.top-who{align-items:flex-start}
+/* a thread's title bar is one line: the title, its state, its runtime and its controls all centre on
+   the title's own line (they used to align by their tops, so 24 px labels sat 2 px high and 32 px
+   controls 2 px low). Every control here is 32 high with a 16 px icon, 8 apart (Plan F). */
+.top[data-kind="thread"] .top-who{align-items:center;gap:12px}
+/* its state and runtime are the same 32 px and 13 px text as the buttons beside them (they were 24 px
+   with 12 px text and looked an afterthought; the runtime is a button too). What tells them apart is
+   their surface, not their size: the state is a tinted pill, the runtime borderless, actions outlined. */
+.top .badge{height:var(--h-ctl);gap:8px;padding:0 12px;font:500 var(--fs-base)/var(--lh-13) var(--sans)}
+.top .tw-rt{height:var(--h-ctl);margin-left:0;padding:0 10px;font:500 var(--fs-base)/var(--lh-13) var(--sans)}
+@media (max-width:760px){.top .badge,.top .tw-rt{height:36px}}
+/* the title bar: the cube sits on the title's own line, a 28 px tile on the 28 px line, so its centre
+   is the title's centre line (the cap centre of 20 px Geist in a 28 px line is the line's middle) */
+.tw-ic{width:28px;height:28px;border-radius:var(--r-sm)}
+.tw-ic svg{width:16px;height:16px}
+.tw-xo .xo-mark{width:20px;height:8px}
+.top[data-kind="project"] .top-who{gap:12px}
+.top[data-kind="project"] .top-who .tw-ic{margin-top:0}
+/* and the bar's other controls share that line: the Now strip (40 high) and the end buttons (32 high)
+   centre on the title's 28 px line, not on the title-plus-counts block, so nothing sits 12 px lower */
+@media (min-width:761px){
+  /* 17 on top, so the tallest control (the Now strip's 34 px chips) clears the top by 14, the same
+     as the count line clears the hairline below */
+  .top[data-kind="project"]{align-items:flex-start;padding-top:17px}
+  .top[data-kind="project"] > .now-wrap{margin-top:calc((28px - 40px) / 2)}
+  .top[data-kind="project"] > .top-end{margin-top:calc((28px - 32px) / 2)}
+}
+/* the count line: whole-pixel line, figures a shade brighter than their words, quiet dots */
+.pj-s{line-height:20px}
+.top[data-kind="project"] .tw-t{gap:4px}
+.pj-k{color:var(--ink-2);font-weight:500;font-variant-numeric:tabular-nums}
+.pj-c{white-space:nowrap}
+.pj-d{color:var(--ink-4)}
+/* one type system (pixel audit #8): the project title 20/28 at 600, the count line 13/20 at 400, 4 apart;
+   Threads 32 high, 8 in and 8 between, its count 12/16 in tabular figures */
+.tw-t h1{font-size:var(--fs-2xl);font-weight:600;letter-spacing:-.01em}
+.th-btn{gap:8px;padding:0 8px}
+.th-btn span{font:500 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums}
+/* a working thread in the Now strip: the neutral arc, one rule with task cards and link capsules (app.css) */
+/* a phone: the count line may wrap, so the tile sits on the title's line instead (28 px, the line's
+   own height), and the name takes the whole first row (the desktop's 52% cap squeezed it to 186 px) */
+@media (max-width:760px){
+  .top[data-kind="project"] .top-who{flex:1 1 100%;max-width:none;align-items:flex-start;gap:12px}
+  .top[data-kind="project"] .tw-ic{width:28px;height:28px;border-radius:var(--r-sm)}
+  .top[data-kind="project"] .tw-t h1{font-size:var(--fs-2xl)}
+}
+.create-ic{border-radius:calc(var(--r-lg) - 8px)} /* 1 px line + 7 px in, 8 px down: concentric in the 12 px button */
+.all-btn span{border-radius:var(--r-sm)}
+.dlg-head{align-items:flex-start}
+
+/* ── 2 · one focus ring: never clipped, never changes a thing's shape ────────────────────────────── */
+:is(.fl-r,.md-open,.nw,.shd-tab,.ar,.stg-tab,.syl-ln,.then-i,.jump-list li,.iq-row,.set-nav button,.tb-h,.md-from,.md-pin):focus-visible{outline-offset:-2px}
+.md-it{overflow:visible}
+.md-th{border-radius:calc(var(--r-lg) - 1px) calc(var(--r-lg) - 1px) 0 0}
+.now{padding:3px}
+.scroller .wsh-home:focus-visible{outline-offset:1px}
+
+/* ── 8 · nothing loops unless an agent works ─────────────────────────────────────────────────────── */
+.next,.next.in-next,.next.in-undo{animation:none}
+.next:not(.r-destructive){background:var(--surface);border:1px solid color-mix(in srgb,var(--accent-fill) 32%,var(--g2A))}
+:root[data-theme="light"] .next:not(.r-destructive){background:#fff;border-color:color-mix(in srgb,var(--accent-fill) 40%,rgba(0,0,0,.1))}
+.next.in-next{animation:in-next .42s var(--spring-soft) both}
+.next.in-undo{animation:in-undo .4s var(--glide) both}
+.shd-dot.d-wait{animation:none}
+
+/* ── the worst three ─────────────────────────────────────────────────────────────────────────────── */
+/* the model picker: a model's name, then all of its description under it; the dot on the name's line */
+.iq-row,.iq-row.lv{align-items:flex-start;min-height:0;padding:4px 4px 4px 8px}
+/* the effort pips (28 tall) centre on the name's line (20 tall, 4 down): one centre for the row's first line */
+.iq-mk{height:28px}
+.iq-nt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;padding:4px 0}
+.iq-n,.iq-row.lv .iq-n{font:500 var(--fs-md)/20px var(--sans)}
+.iq-tr,.iq-row.lv .iq-tr{white-space:normal;overflow:visible;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.iq-d,.iq-row.lv .iq-d{align-self:flex-start}
+.iq-back{height:auto;min-height:28px;padding:6px 10px;white-space:nowrap}
+.iq-f{flex-wrap:wrap;gap:8px}
+/* Settings: the selected page is its own fill; no detached bar on a rail 11 px away */
+.set-nav{border-left:0;padding-left:0}
+.set-nav button::before{display:none}
+.set-nav button[aria-selected="true"]{background:var(--row-bg-hover)}
+/* a turn's own lines (its work, a tool group) start on the text column: the agent's mark is the
+   avatar beside the turn, so the line needs no icon of its own */
+.turn>.tb>.tb-h .tb-hi{display:none}
+/* Home, nothing waiting: the headline says it once; one quiet line under it, no card */
+.calm-line{margin-top:12px;font:400 var(--fs-md)/20px var(--sans);color:var(--ink-3)}
+/* the panel's content shares one edge (16) with its tabs */
+.md-pane .md-h{padding:16px 16px 2px}
+.md-pane .md-tools{padding:10px 16px}
+.md-pane .md-body{padding:2px 16px 16px}
+.md-pane .md-grid{grid-template-columns:repeat(auto-fill,minmax(148px,1fr))}
+.fl-head{padding:12px 12px 8px}
+/* the sidebar keeps its focus ring as it was */
+.side :focus-visible{border-radius:6px}
+
+/* ── one motion system (js/motion.js, design-research/15): one easing, three durations ─────────── */
+:root{--m-ease:var(--ease);--m-in:var(--d-in);--m-move:var(--d-move);--m-out:var(--d-out)}
+/* a picture in Made fills its frame without a flash: its frame keeps its size while it decodes */
+.md-th img{transition:opacity var(--m-in) var(--ease)}
+
+/* ── the sidebar: no blue dot (the owner, again, 2026-11-04); nothing else there changes ─────────── */
+.pr-busy{display:none}

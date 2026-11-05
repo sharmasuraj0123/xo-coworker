@@ -2,6 +2,9 @@
 // reduced motion and the optional soft sounds (off by default).
 import { esc } from "./world.js";
 
+// Every glyph is drawn on a 24 grid. Its attributes are the fallback: outside the sidebar, base.css draws
+// every stroke at 1.5 px whatever the size (non-scaling stroke) with square ends (Plan F, design-research/
+// 2026-11-vision/direction), so don't tune a glyph's weight here; size it 16 (or 20) where it's used.
 const I = (d, extra = "") =>
   `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"${extra}>${d}</svg>`;
 
@@ -53,8 +56,14 @@ export const ICON = {
   rule: I('<path d="M5 5h14M5 10h14M5 15h8"/><path d="M16 15.5l1.8 1.8L21 14"/>'),
   shield: I('<path d="M12 3.5 19 6v5.6c0 4.2-2.9 7.5-7 8.9-4.1-1.4-7-4.7-7-8.9V6z"/><path d="M9 12l2.2 2.2L15.5 10"/>'),
   key: I('<circle cx="8" cy="15" r="3.5"/><path d="M10.5 12.5 19 4M16 7l2.5 2.5M14 9l2 2"/>'),
+  // a thread: one agent's conversation with words in it (Chats keeps the empty bubble)
+  threadOne: I('<path d="M20.5 11.6a8 8 0 0 1-11.6 7.1L4 20l1.3-4.4A8 8 0 1 1 20.5 11.6z"/><path d="M8.6 10.2h7M8.6 13.4h4.4"/>'),
+  // artifacts: what threads made, a stack of finished things
+  stack: I('<path d="M12 3.5 20.5 8 12 12.5 3.5 8z"/><path d="M3.5 12 12 16.5 20.5 12"/><path d="M3.5 16 12 20.5 20.5 16"/>'),
+  pin: I('<path d="M14.5 3.5 20.5 9.5 18 10.5 14.5 14l.5 4.5-1.5 1.5-3.8-3.8L5 20.9 3.1 19l4.7-4.7L4 10.5 5.5 9l4.5.5L13.5 6z"/>'),
   shell: I('<rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="m7 9.5 3 2.5-3 2.5M12.5 15H17"/>'),
   minimize: I('<path d="M6 12h12"/>', ' stroke-width="2"'),
+  runtime: I('<rect x="6" y="6" width="12" height="12" rx="2.5"/><path d="M10 2.5v3.5M14 2.5v3.5M10 18v3.5M14 18v3.5M2.5 10H6M2.5 14H6M18 10h3.5M18 14h3.5"/>'),
   router: I('<circle cx="5.5" cy="12" r="2"/><circle cx="18.5" cy="6" r="2"/><circle cx="18.5" cy="18" r="2"/><path d="M7.5 12h4l5-5M11.5 12l5 5"/>'),
 };
 
@@ -265,3 +274,21 @@ export const sound = {
 };
 
 export { esc };
+
+/**
+ * Every turning arc and every shimmering "working" line on the page moves in step, from the page's first
+ * moment, whenever it was drawn: one redrawn by a streamed update would otherwise restart from zero and
+ * look like it stutters.
+ */
+export function keepTurning() {
+  if (typeof document === "undefined" || !document.getAnimations) return;
+  let raf = 0;
+  const sync = () => {
+    raf = 0;
+    for (const a of document.getAnimations()) {
+      if (a.animationName === "spin" || a.animationName === "arc-turn" || a.animationName === "shimmer") { if (a.startTime !== 0) a.startTime = 0; }
+    }
+  };
+  new MutationObserver(() => { if (!raf) raf = requestAnimationFrame(sync); }).observe(document.body, { childList: true, subtree: true });
+  sync();
+}

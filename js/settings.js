@@ -58,7 +58,7 @@ export function createSettings({ world, announce, PROJ, onChange }) {
       R.models.map((m) => opt("decision", m.id, m.label, m.connected ? `A decision model routes it; when it isn't sure, the coordinator decides.` : "Connect it below to use it.", !m.connected)).join("") +
       opt("off", null, "Off", "New messages to the Workspace and projects are refused. Threads still take your replies.") +
       `</div>` +
-      (r.mode === "decision" ? `<div class="set-row is-sub"><div class="set-l"><b>When it isn't sure</b><span>Below this confidence, the coordinator decides instead.</span></div><select class="set-sel" data-abstain aria-label="Confidence needed">${pcts(r.abstain_below ?? 0.5).map((p) => `<option value="${p}"${Math.abs((r.abstain_below ?? 0.5) - p) < 0.001 ? " selected" : ""}>${Math.round(p * 100)}% sure</option>`).join("")}</select></div>` : "") +
+      (r.mode === "decision" ? `<div class="set-row is-sub"><div class="set-l"><b>When it isn't sure</b><span>Below this confidence, the coordinator decides instead.</span></div><xo-select class="set-sel" data-abstain aria-label="Confidence needed">${pcts(r.abstain_below ?? 0.5).map((p) => `<option value="${p}"${Math.abs((r.abstain_below ?? 0.5) - p) < 0.001 ? " selected" : ""}>${Math.round(p * 100)}% sure</option>`).join("")}</xo-select></div>` : "") +
       (R.err.route ? `<p class="set-err" role="alert">${esc(R.err.route)}</p>` : "") + `</section>` +
       `<section class="set-sec" aria-labelledby="dm-h"><h3 id="dm-h">Decision models</h3>` +
       `<p class="set-lead">A small model that routes quickly. Its key is saved on this machine and never shown again.</p>` +
@@ -261,7 +261,8 @@ export function createSettings({ world, announce, PROJ, onChange }) {
   });
   document.querySelector("#settings").addEventListener("change", (e) => {
     const a = e.target.closest("[data-abstain]");
-    if (a) { const r = world.state.router || R.router; setRoute(r.mode, r.decision_model, +a.value); }
+    // the page re-renders under the choice: the keyboard stays on it
+    if (a) { const r = world.state.router || R.router; setRoute(r.mode, r.decision_model, +a.value).then(() => { if (!a.isConnected && (!document.activeElement || document.activeElement === document.body)) document.querySelector("#settings [data-abstain]")?.focus({ preventScroll: true }); }); }
   });
   document.querySelector("#settings").addEventListener("submit", async (e) => {
     const f = e.target.closest("[data-dm-form]");

@@ -15,6 +15,7 @@ export const GROUPS = [
   { id: "global", name: "Anywhere" },
   { id: "decision", name: "On a decision" },
   { id: "intel", name: "In the intelligence popover" },
+  { id: "picture", name: "On a picture" },
 ];
 
 /** Every action. `fixed` rows are shown for reference but can't be changed. */
@@ -24,6 +25,7 @@ export const ACTIONS = [
   { id: "write", scope: "global", label: "Write (@ aims it at a project)", def: "/" },
   { id: "keys", scope: "global", label: "All shortcuts, on one sheet", def: "?" },
   { id: "shells", scope: "global", label: "Toggle shells", def: "mod+`" },
+  { id: "map", scope: "global", label: "The map: where your agents are working", def: "mod+\\" },
   { id: "esc", scope: "global", label: "Back, exactly where you were (a shell keeps Esc)", fixed: "Esc" },
   { id: "allow", scope: "decision", label: "Allow (routine, notable)", def: "a" },
   { id: "hold", scope: "decision", label: "Allow a destructive ask (hold 1.2 s)", fixed: "hold ↵" },
@@ -41,6 +43,10 @@ export const ACTIONS = [
   { id: "allowAll", scope: "decision", label: "Allow all routine together", def: "shift+a" },
   { id: "auto", scope: "intel", label: "Back to Auto", def: "a" },
   { id: "intelNav", scope: "intel", label: "Model · depth · pin it", fixed: "↑ ↓ · ← → · ↵" },
+  // the lightbox (js/lightbox.js) keeps these itself; they're listed so the keys sheet tells the truth
+  { id: "picOpen", scope: "picture", label: "Open a picture in the conversation", fixed: "click · ↵" },
+  { id: "picStep", scope: "picture", label: "The previous or next picture in this conversation", fixed: "← →" },
+  { id: "picClose", scope: "picture", label: "Put it back where it was (or swipe down)", fixed: "Esc" },
 ];
 const BY = new Map(ACTIONS.map((a) => [a.id, a]));
 

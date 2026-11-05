@@ -1,0 +1,78 @@
+/* The shape per person (js/shape.js, js/shapeview.js): compact density, Settings › Shape, the first-run
+   question, and the simple model choice. Built from Plan F only (css/tokens.css): the scale's sizes and
+   line heights, three weights, its radii, --e2 for the one floating sheet, --ease and its durations.
+   Everything else reuses the existing parts (.set-choice cards, .btn, .switch, .sheet), so it reads as
+   one product. The left sidebar is never styled here: a shape may only hide its Shells row. */
+
+/* ── Compact density: one step tighter, in the main column, its sheets and popovers ──────────────
+   Rows 36 → 32, controls 32 → 28, reading 15/24 → 14/20: each the scale's next step down. Comfortable
+   is today. The tokens move first, so a part already built on them follows by itself; the parts below
+   still carry their own heights from before Plan F, so they're named until they move onto the tokens. */
+:root[data-density="compact"] :is(.main,.sheet,.iq-pop){
+  --h-row:32px; --h-ctl:28px;
+  --fs-lg:var(--fs-md); --fs-xl:var(--fs-md);
+  --lh-15:var(--lh-14); --lh-read:var(--lh-14);
+}
+[data-density="compact"] :is(.prose,.bubble,.b-opt,.o-l){line-height:var(--lh-read)}
+[data-density="compact"] :is(.attach,.iq,.stg-btn,.all-btn,.target){height:var(--h-ctl)}
+[data-density="compact"] .attach{width:var(--h-ctl)}
+[data-density="compact"] .send{width:var(--h-row);height:var(--h-row)}
+[data-density="compact"] :is(.ck-tog,.nw,.ag-r,.set-nav button){height:var(--h-row)}
+[data-density="compact"] :is(.hd-r,.ar){min-height:var(--h-row)}
+[data-density="compact"] .tb-h{min-height:var(--h-ctl)}
+
+/* ── Settings' rail: technical pages under one quiet label, at its foot ─────────────────────────── */
+.shp-navh{margin:16px 0 4px;padding:0 10px;font:500 var(--fs-xs)/var(--lh-12) var(--sans);letter-spacing:var(--tr-12);color:var(--ink-4)}
+@media (max-width:760px){
+  .shp-navh{flex:none;align-self:center;margin:0 4px 0 12px;padding:0}
+}
+
+/* ── Settings › Shape ─────────────────────────────────────────────────────────────────────────── */
+.shp,.shp-top{display:flex;flex-direction:column;gap:32px}
+/* what a preset changes, read as one panel: a line per change */
+.shp-diff{list-style:none;display:flex;flex-direction:column;gap:4px;padding:12px 16px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--hair);font:400 var(--fs-base)/var(--lh-13) var(--sans);color:var(--ink-2)}
+.shp-diff li{display:flex;gap:8px}
+.shp-diff li::before{content:"–";flex:none;color:var(--ink-4)}
+.shp-own{margin-top:8px;color:var(--ink-2)}
+.shp-acts{justify-content:flex-start;margin-top:4px}
+.shp-acts .btn:disabled{opacity:.45;cursor:default}
+.shp-acts .btn:disabled:hover{background:none;color:var(--ink-2)}
+/* switching clears your own changes: asked in place, calmly (it can be made again; nothing is lost for good) */
+.shp-confirm{display:flex;flex-direction:column;gap:12px;margin-top:4px;padding:16px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-hover);font:400 var(--fs-base)/var(--lh-13) var(--sans);color:var(--ink-2)}
+.shp-confirm b{font-weight:600;color:var(--ink)}
+
+/* Edit as JSON: a disclosure, closed by default */
+.shp-json summary{display:flex;align-items:center;gap:8px;width:max-content;max-width:100%;height:var(--h-row);padding:0 12px 0 8px;margin-left:-8px;border-radius:var(--r);list-style:none;cursor:pointer;font:500 var(--fs-md)/var(--lh-14) var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.shp-json summary::-webkit-details-marker{display:none}
+.shp-json summary:hover{background:var(--hover-fill);color:var(--ink);transition-duration:var(--d-hover-in)}
+.shp-json summary:focus-visible{outline-offset:-2px}
+.shp-chev{display:grid;place-items:center;width:16px;height:16px;color:var(--ink-4)}
+.shp-chev svg{width:16px;height:16px;transform:rotate(-90deg);transition:transform var(--d-in) var(--ease)}
+.shp-json[open] .shp-chev svg{transform:none}
+.shp-n{font:400 var(--fs-xs)/var(--lh-12) var(--sans);color:var(--need)}
+.shp-n:empty{display:none}
+.shp-jb{display:flex;flex-direction:column;gap:12px;padding-top:12px}
+.shp-jb .shp-ta{font:400 var(--fs-base)/var(--lh-13) var(--mono);tab-size:2;white-space:pre;overflow:auto}
+.shp-status{min-height:var(--lh-12);font:400 var(--fs-xs)/var(--lh-12) var(--sans);color:var(--ink-3)}
+.shp-status.is-err{color:var(--need)}
+.shp-probs{display:flex;flex-direction:column;gap:8px}
+.shp-probs h4{font:500 var(--fs-base)/var(--lh-13) var(--sans);color:var(--ink)}
+.shp-probs ul{list-style:none;display:flex;flex-direction:column;gap:4px;padding:12px 16px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--hair);font:400 var(--fs-base)/var(--lh-13) var(--sans);color:var(--ink-2)}
+.shp-where{font-weight:500;color:var(--ink)}
+.shp-sep{margin:0 8px;color:var(--ink-4)}
+.shp-probs code{margin-right:4px;font:400 var(--fs-xs)/var(--lh-12) var(--mono);color:var(--ink-3)}
+
+/* ── The first run: one question, on a sheet ────────────────────────────────────────────────────── */
+.shp-first{width:min(520px,100%);outline:none}
+/* the lead lines up with the sheet's title */
+.shp-first-l{padding:4px 22px 0;font:400 var(--fs-md)/var(--lh-14) var(--sans);color:var(--ink-3)}
+.shp-first-c{margin:0;padding:16px 16px 20px}
+.shp-first-c .set-choice{width:100%}
+.shp-first-c .set-choice:hover{background:var(--hover-fill);transition-duration:var(--d-hover-in)}
+.shp-sheet.is-out{opacity:0;transition:opacity var(--d-out) var(--ease)}
+
+/* ── The simple model choice (xo:composer/intel "simple") ───────────────────────────────────────── */
+.iq-simple button[aria-disabled="true"]{color:var(--ink-4);cursor:default}
+
+/* ── A turn's work in words (xo:thread/work "words"): a step that didn't work is said, not shown ── */
+.tb-wbad{margin:4px 0 0 24px}
