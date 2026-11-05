@@ -153,7 +153,7 @@ export function createViewer({ announce, onChange, tabs, changes = null }) {
     if (!DF.el) { DF.el = document.createElement("div"); DF.el.className = "vw-body vw-diff"; DF.el.tabIndex = 0; }
     return DF.el;
   }
-  function dropDiff() { DF.gen++; if (DF.handle) { DF.handle.destroy(); DF.handle = null; } DF.key = null; }
+  function dropDiff() { DF.gen++; if (DF.handle) { DF.handle.destroy(); DF.handle = null; } DF.key = null; DF.pend = null; }
   /** Both whole versions, for "N unmodified lines" (read only when you unfold them). */
   async function bothSides(c, fd) {
     const f = V.file, oldRel = (c.scope.base ? `${c.scope.base}/` : "") + (c.file.old_path || c.path);
@@ -168,7 +168,8 @@ export function createViewer({ announce, onChange, tabs, changes = null }) {
     const host = diffBody();
     const patch = await changes.patchAt(c).catch(() => null);
     const key = `${c.scope.key}|${c.path}|${patch ? patch.length + ":" + patch.slice(-64) : "none"}`;
-    if (DF.key === key && DF.handle) return;
+    if ((DF.key === key && DF.handle) || DF.pend === key) return; // drawn, or on its way
+    DF.pend = key;
     const my = ++DF.gen;
     if (!patch) {
       dropDiff();
@@ -189,7 +190,7 @@ export function createViewer({ announce, onChange, tabs, changes = null }) {
       DF.key = key;
     } catch {
       if (my !== DF.gen) return;
-      dropDiff();
+      dropDiff(); // (clears pend: Try again draws afresh)
       host.innerHTML = `<div class="vw-empty"><p>Couldn't draw this diff.</p><p><button type="button" class="vw-cut-dl" data-vw-show="changes">Try again</button></p></div>`;
     }
   }

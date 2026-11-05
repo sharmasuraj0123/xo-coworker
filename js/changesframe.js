@@ -96,6 +96,9 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
   async function draw(key, f, patch, { scrollTo = null } = {}) {
     const same = D.key === key && D.path === f.path;
     if (same && D.patch === patch && !D.failed) return;
+    // one draw per version: renders that come while it's on its way don't start it again
+    if (D.pend && D.pend.key === key && D.pend.path === f.path && D.pend.patch === patch) return;
+    D.pend = { key, path: f.path, patch };
     const my = ++D.gen;
     if (!patch) {
       if (D.handle) { D.handle.destroy(); D.handle = null; }
@@ -118,6 +121,7 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
       if (scrollTo != null) reveal(scrollTo, my);
     } catch {
       if (my !== D.gen) return;
+      D.pend = null;
       Object.assign(D, { key, path: f.path, patch: null, failed: true });
       pd.hidden = true; note.hidden = false;
       note.textContent = "Couldn't draw this diff. Pick the file again to retry.";
@@ -156,7 +160,7 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
     if (!files.length) {
       set("none", none, "Nothing changed here yet."); none.hidden = false;
       list.hidden = true; pane.hidden = true; pill.hidden = true;
-      if (D.handle) { D.handle.destroy(); D.handle = null; D.path = null; D.patch = null; }
+      if (D.handle) { D.handle.destroy(); D.handle = null; D.path = null; D.patch = null; D.pend = null; }
       return true;
     }
     none.hidden = true; list.hidden = false;
@@ -199,7 +203,7 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
     const t = e.target;
     const r = t.closest("[data-cx]");
     if (r) { const s = changes.scope(view()); if (!s) return; const st = stOf(s.key); st.follow = false; st.sig = changes.activity(view()).sig; st.sel = r.dataset.cx; if (st.pill === st.sel) st.pill = null; onChange && onChange(); return; }
-    if (t.closest("[data-cx-show]")) { const s = changes.scope(view()); if (!s) return; const st = stOf(s.key); st.sel = pill.dataset.cxShow || st.sel; st.pill = null; D.patch = null; onChange && onChange(); return; }
+    if (t.closest("[data-cx-show]")) { const s = changes.scope(view()); if (!s) return; const st = stOf(s.key); st.sel = pill.dataset.cxShow || st.sel; st.pill = null; D.patch = null; D.pend = null; onChange && onChange(); return; }
     if (t.closest("[data-cx-open]")) { const s = changes.scope(view()); if (s && D.path) openFile(s, D.path, t.closest("[data-cx-open]")); }
   });
   // touching the diff (a scroll, a press, a key) is reading it: following pauses there

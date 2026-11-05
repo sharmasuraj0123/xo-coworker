@@ -2576,7 +2576,9 @@ document.addEventListener("click", (e) => {
   if (mx) { openMedia(mx, e); return; }
   // a changed file's chip: its diff in the panel's Changes; anything else (a link to a file), Files
   const cf = t.closest(".tb-cf[data-file]");
-  if (cf) { const c = CHG.forTarget(S.view, cf.dataset.file); if (c && STAGE.showChange(c.path)) { schedule(); return; } }
+  // opening it is reading here, as opening a work fold is: the view unpins, so the panel making room (the
+  // conversation narrows) moves nothing you're reading (the browser's scroll anchoring holds it)
+  if (cf) { const c = CHG.forTarget(S.view, cf.dataset.file); if (c) { unpin(); if (STAGE.showChange(c.path)) { schedule(); return; } } }
   const fb = t.closest("[data-file]");
   if (fb) { e.preventDefault(); openSharedFile(fb); return; }
   const cp = t.closest("[data-copy]");

@@ -4,8 +4,8 @@
 //
 // It's read when a place opens, and again after each edit an agent finishes there (one read per tool call,
 // never per keystroke): the turns the stream already brings say when (an edit row turning done). One read
-// in flight per place; edits that land meanwhile get one more read after it. The patches warm the diff
-// library while the browser is idle (js/diffview.js prefetch), so the first click draws at once.
+// in flight per place; edits that land meanwhile get one more read after it. The diff library and the
+// changed files' grammars load while the browser is idle (js/diffview.js prefetch).
 //
 // Until Space has the route (a bare 404), places say "unsupported" and the UI keeps today's list.
 //
@@ -83,8 +83,8 @@ export function createChanges({ world, onChange }) {
       let add = 0, del = 0;
       for (const f of d.files || []) { files.set(f.path, f); add += f.additions || 0; del += f.deletions || 0; }
       Object.assign(p, { state: "ok", data: d, files, total: { add, del }, err: null });
-      // the library and each language's patterns get ready while the browser is idle
-      prefetch([...files.values()].filter((f) => f.patch).slice(0, 12).map((f) => ({ path: f.path, patch: f.patch })));
+      // the library, its worker and the languages' grammars get ready while the browser is idle
+      prefetch([...files.keys()].slice(0, 24));
     } catch (err) {
       if (err.status === 404 && err.code === "http_404") { NO.add(s.project); p.state = "unsupported"; }
       else if (p.state !== "ok") { p.state = "error"; p.err = err.status === 404 ? "This folder isn't there any more." : err.message || "Couldn't read what changed."; }
