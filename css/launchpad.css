@@ -196,7 +196,12 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 
 /* not ready: what's missing */
 .lp-check{grid-template-columns:none}
-.lp-check li{grid-template-columns:28px minmax(0,1fr)}
+.lp-check li{grid-template-columns:28px minmax(0,1fr);height:auto;min-height:44px;padding:12px 8px;align-items:start}
+.lp-check li .lp-ck{margin-top:0}
+.lp-check .lp-c>b{white-space:normal;font-weight:400;color:var(--ink-2)}
+.lp-check .lp-c>span{white-space:normal}
+.lp-more{margin:0 0 0 4px}
+.lp-more svg{width:12px;height:12px}
 .lp-ck{display:grid;place-items:center;width:20px;height:20px;margin-left:4px;border-radius:50%;box-shadow:inset 0 0 0 1px var(--g40)}
 .lp-check li.is-no .lp-ck{box-shadow:inset 0 0 0 1.5px var(--g40)}
 .lp-check li.is-ok .lp-ck{background:color-mix(in srgb,var(--go) 16%,transparent);box-shadow:none;color:var(--go)}
