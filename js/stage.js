@@ -237,7 +237,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   function close({ restore = true, quiet = false } = {}) {
     if (!S.open) return;
     S.open = false;
-    S.lp = false; // Launchpad is back to its head the next time the panel opens
+    if (!quiet) S.lp = false; // closed by you: Launchpad is a head again next time; stepping aside (quiet) keeps it as it was
     if (S.full) setFull(false);
     el.hidden = true;
     document.body.classList.remove("stage-open", "stage-rail");
