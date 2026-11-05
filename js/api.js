@@ -328,7 +328,16 @@ export const api = {
 
   // ── projects ──────────────────────────────────────────────────────────────
   /** A text file inside a project, for the file viewer: {name, kind, size_bytes, truncated, content, …}. */
-  projectFile: (project, relativePath, at) => get(`/xo-projects/${enc(project)}/file`, { relative_path: relativePath, ...(at ? { commit: at.commit, commit_path: at.path } : {}) }),
+  projectFile: (project, relativePath, at, { purpose } = {}) => get(`/xo-projects/${enc(project)}/file`, { relative_path: relativePath, ...(at ? { commit: at.commit, commit_path: at.path } : {}), ...(purpose ? { purpose } : {}) }),
+  /**
+   * Save a project file (Space; serve.py adds the UI's writer key). base_version: the version you started
+   * from. → {version, saved_at, edit_id}; 409 file_changed {current: {content, version}}; 428
+   * confirm_required (send again with confirm "runs_code"); 403 read_only_place | ui_only | outside_project.
+   */
+  saveProjectFile: (project, relativePath, content, baseVersion, confirm) =>
+    send("PUT", `/xo-projects/${enc(project)}/file`, { relative_path: relativePath, content, base_version: baseVersion, ...(confirm ? { confirm } : {}) }),
+  /** Undo a save (Space's edit log): the file goes back to what it was before that save. */
+  undoProjectEdit: (project, editId) => send("POST", `/xo-projects/${enc(project)}/edits/${enc(editId)}/undo`, {}),
   /**
    * What changed in a project (Space, design-research/2026-11-vision/pierre): a thread's worktree against
    * where its branch left the default branch, uncommitted work included, or the project's own checkout

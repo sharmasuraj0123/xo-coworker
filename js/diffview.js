@@ -14,7 +14,7 @@
 // tools/diffview/theme.mjs); everything else is CSS custom properties on the library's element
 // (css/diffs.css), so light and dark switch without a redraw. app.js calls setTheme() when you switch.
 //
-// Calls: prefetch, diff, file, jump, langOf, setTheme, loaded.
+// Calls: prefetch, diff, file (with edit), conflict, jump, langOf, setTheme, loaded.
 
 const LIB = new URL("./vendor/pierre-diffs/diffs.js", import.meta.url).href;
 const WORKER = new URL("./vendor/pierre-diffs/worker.js", import.meta.url).href;
@@ -134,6 +134,36 @@ export async function diff(host, patch, o = {}) {
     split(on) { v.setOptions({ ...v.options, diffStyle: on ? "split" : "unified" }); v.rerender(); },
     destroy() { live.delete(v); v.cleanUp(); host.replaceChildren(); },
   };
+}
+
+/**
+ * A file with conflict markers (js/merge.js), in Pierre's merge view: each marked place offers three
+ * choices, drawn here (o.labels: {current, incoming, both}: the words for yours, theirs, both). o.onResolve
+ * (text, left) after each choice: the file as it now reads, and how many places are still to choose.
+ * Resolves to {destroy()}.
+ */
+export async function conflict(host, text, o = {}) {
+  const P = await load();
+  const L = { current: "Keep current", incoming: "Take incoming", both: "Keep both", ...(o.labels || {}) };
+  const left = (t) => (t.match(/^<<<<<<< /gm) || []).length;
+  const v = new P.UnresolvedFile({
+    ...common({ wrap: true }), diffIndicators: "bars", hunkSeparators: "line-info",
+    mergeConflictActionsType: (action, inst) => {
+      const bar = document.createElement("div");
+      bar.className = "xd-merge";
+      for (const res of ["current", "incoming", "both"]) {
+        const b = document.createElement("button");
+        b.type = "button"; b.className = `xd-mbtn${res === "current" ? " is-mine" : ""}`; b.textContent = L[res];
+        b.addEventListener("click", () => inst.resolveConflictAndRender(action.conflictIndex, res));
+        bar.appendChild(b);
+      }
+      return bar;
+    },
+    onMergeConflictResolve: (file) => o.onResolve && o.onResolve(file.contents, left(file.contents)),
+  }, workers(P));
+  v.render({ file: { name: String(o.path || "").split("/").pop(), contents: text, lang: langOf(o.path) }, containerWrapper: host });
+  live.add(v);
+  return { destroy() { live.delete(v); v.cleanUp(); host.replaceChildren(); } };
 }
 
 /**

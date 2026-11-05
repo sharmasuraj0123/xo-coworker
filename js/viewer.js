@@ -22,12 +22,25 @@ import { kindOf, typeWord } from "./attach.js";
 import * as DV from "./diffview.js";
 import * as K from "./keys.js";
 import { countsHtml } from "./changesframe.js";
+import { merge3 } from "./merge.js";
 
 const size = (n) => (n == null ? "" : n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(1)} MB`);
 const bytes = (s) => new TextEncoder().encode(s).length;
 const extOf = (name) => (/\.([\w-]+)$/.exec(String(name || "")) || [])[1] || "";
 const KIND_WORD = { markdown: "Markdown", html: "HTML", text: "Text", code: "Code", json: "JSON" };
 
+const EDIT_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>';
+const LOCK_IC = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10.5" width="14" height="9.5" rx="2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>';
+const BOLT_IC = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3.5 5.5 13.5H12l-1 7 7.5-10H12z"/></svg>';
+// files git or an agent runs (Space confirms a save to one with a 428; the head says so before you edit)
+const RUNS = /^(?:\.git|\.claude|\.codex|\.agents)(?:\/|$)|^\.mcp\.json$/;
+// Space's reasons a file can't be edited here, in words
+const NOT_EDITABLE = {
+  read_only_place: "Read only · XO keeps this file",
+  truncated: "Too large to edit here",
+  not_utf8: "Not plain text",
+  not_text: "Not plain text",
+};
 const ASK_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-10.9 6.7L4 19.5l1.3-4.6A7.5 7.5 0 1 1 20 11.5z"/></svg>';
 const SPLIT_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M12 4.5v15"/></svg>';
 // the Source toggle's glyph: angle brackets, drawn like the other line icons
@@ -40,7 +53,14 @@ const SRC_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stro
  * thread, or the project's coordinator. ask: {target(f) → its name in words, or null when there's nowhere
  * to send; send(f, a, b, text) → true when it went}. lines on a file opened: [a, b] selected and in view.
  */
-export function createViewer({ announce, onChange, tabs, changes = null, ask = null }) {
+/*
+ * Edit (P3): a file Space says you can edit (/file's version, editable) turns into Pierre's editor in place;
+ * Save (⌘S) sends it with the version you started from. A file that runs code asks once before its first
+ * save; a place XO keeps is read only, said in words; if the file changed while you edited, both versions
+ * are merged and any place you both changed waits in Pierre's merge view for your choice. A save never
+ * commits. edits: {saved(f, {path, editId, merged}) after a save: the app offers Undo and Tell the agent}.
+ */
+export function createViewer({ announce, onChange, tabs, changes = null, ask = null, edits = null }) {
   const el = $("#viewer");
   const V = { open: false, parked: false, file: null, data: null, error: null, loading: false, mode: "preview", returnTo: null, gen: 0, copied: false, dims: null, saving: false, saveError: null, show: "file", split: false };
   // the diff, kept across redraws of the head (Pierre's element moves with its body): {el, handle, key, gen}
@@ -50,6 +70,11 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   const showsDiff = () => V.show === "changes" && !!chg();
   // the whole file through Pierre: {el (the scroller), handle, key, pend, gen, sel: {a, b}, asking, q (the composer)}
   const FL = { el: null, handle: null, key: null, pend: null, gen: 0, sel: null, asking: false, q: null };
+  // editing: {ed (the editor), base (the text you started from), version, dirty, saving, err, confirm,
+  //   confirmed (this file runs code and you said Save once), discard (asking to discard), conflict: {view,
+  //   version, left, text}}; saved: the last save's toast {path, editId, name}
+  const ED = { on: false };
+  let saved = null;
   const showsFile = () => {
     const d = V.data;
     if (!V.open || V.loading || V.error || V.why || !d || typeof d.content !== "string" || showsDiff()) return false;
@@ -99,11 +124,141 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       : d && d.kind === "image"
         ? `<div class="vw-seg" role="group" aria-label="Size"><button type="button" data-vw-mode="preview" aria-pressed="${V.mode === "preview"}">Fit</button><button type="button" data-vw-mode="actual" aria-pressed="${V.mode === "actual"}" aria-label="Actual size"><span class="vw-wide">Actual size</span><span class="vw-narrow" aria-hidden="true">1:1</span></button></div>`
         : "";
-    return `<header class="vw-top"><span class="vw-ic" aria-hidden="true">${fileIcon(f.name || f.path || "")}</span>` +
-      `<div class="vw-t"><h2 id="vw-h"${f.where ? ` title="${esc(f.where)}"` : ""}>${esc(f.name || f.path)}</h2>${c && diffing ? countsHtml(c.file) : ""}${meta.length ? `<span class="vw-meta">${esc(meta.join(" · "))}</span>` : ""}</div>` +
-      `<div class="vw-acts">${show}${toggle}${tab}` +
+    const name = `<span class="vw-ic" aria-hidden="true">${fileIcon(f.name || f.path || "")}</span>` +
+      `<div class="vw-t"><h2 id="vw-h"${f.where ? ` title="${esc(f.where)}"` : ""}>${esc(f.name || f.path)}</h2>${c && diffing ? countsHtml(c.file) : ""}${meta.length && !ED.on ? `<span class="vw-meta">${esc(meta.join(" · "))}</span>` : ""}</div>`;
+    const runs = !diffing && runsCode() ? `<span class="xd-runs" title="Git or an agent runs what this file says">${BOLT_IC}<span>Runs code</span></span>` : "";
+    if (ED.on) return `<header class="vw-top">${name}<div class="vw-acts">${runs}${editActs()}</div>${ED.confirm ? confirmPop() : ""}</header>`;
+    const why = !diffing && showsFile() && d.editable === false ? NOT_EDITABLE[d.not_editable_reason] || "Read only" : "";
+    const edit = why ? `<span class="xd-ro" title="${d.not_editable_reason === "read_only_place" ? "XO keeps this file: change it from its own screen" : esc(why)}">${d.not_editable_reason === "read_only_place" ? LOCK_IC : ""}<span>${esc(why)}</span></span>`
+      : !diffing && canEdit() ? `<button type="button" class="xd-edit" data-vw-edit title="Edit (E)" aria-label="Edit">${EDIT_IC}<span>Edit</span></button>` : "";
+    return `<header class="vw-top">${name}` +
+      `<div class="vw-acts">${runs}${show}${toggle}${edit}${tab}` +
       (canCopy ? `<button type="button" class="vw-btn" data-vw-copy title="Copy the contents" aria-label="${V.copied ? "Copied" : "Copy"}">${ICON.copy}<span>${V.copied ? "Copied" : "Copy"}</span></button>` : "") +
       `<button type="button" class="vw-x" data-vw-close aria-label="Close the file" title="Close (Esc)">${ICON.close}</button></div></header>`;
+  }
+
+  // ── editing ─────────────────────────────────────────────────────────────────────────────────
+  /** The file's path in its own place (a worktree's own path), for the run-code rule and messages. */
+  const localPath = () => String(V.file.rel || "").replace(/^\.xo\/worktrees\/[^/]+\//, "");
+  const runsCode = () => !!(V.file && V.file.project && V.file.rel && RUNS.test(localPath()));
+  /** Space says this file can be edited here (a version to save against, and not one it keeps). */
+  const canEdit = () => !!(edits && V.file.project && V.file.rel && showsFile() && V.data.version != null && V.data.editable !== false);
+  const MODS = /Mac|iPhone|iPad/.test(navigator.platform || "") ? "⌘" : "Ctrl ";
+  function editActs() {
+    if (ED.discard) return `<span class="xd-state">Discard your edits?</span><button type="button" class="xd-btn" data-vw-keep>Keep editing</button><button type="button" class="xd-btn is-warn" data-vw-discard>Discard</button>`;
+    if (ED.conflict) return `<span class="xd-state">${ED.conflict.left ? `${ED.conflict.left} ${ED.conflict.left === 1 ? "place" : "places"} to choose` : "All chosen"}</span><span class="xd-vsep"></span><button type="button" class="xd-btn" data-vw-cancel>Cancel</button><button type="button" class="xd-btn is-pri" data-vw-saveit${ED.conflict.left || ED.saving ? " disabled" : ""}>Save <kbd>${MODS}S</kbd></button>`;
+    return (ED.err ? `<span class="xd-err" role="alert">${esc(ED.err)}</span>` : ED.dirty ? `<span class="xd-state"><i></i>Edited</span>` : "") +
+      `<span class="xd-vsep"></span><button type="button" class="xd-btn" data-vw-cancel>Cancel</button><button type="button" class="xd-btn is-pri" data-vw-saveit${ED.saving ? " disabled" : ""}>${ED.saving ? "Saving…" : `Save <kbd>${MODS}S</kbd>`}</button>`;
+  }
+  const confirmPop = () => `<div class="xd-pop" role="dialog" aria-label="Save a file that runs code"><p><b>Git or an agent runs what this file says.</b> A slip here runs on the next commit or the next agent turn. Save anyway?</p><div class="xd-pop-a"><button type="button" class="xd-btn" data-vw-noconfirm>Cancel</button><button type="button" class="xd-btn is-pri" data-vw-confirm>Save</button></div></div>`;
+  /** Redraw only the head: the editor below keeps its focus and caret. */
+  function paintHead() {
+    const top = el.querySelector(".vw-top");
+    if (top) top.outerHTML = head();
+  }
+  async function startEdit() {
+    const f = V.file, my = V.gen;
+    if (!canEdit() || ED.on) return;
+    ED.on = true; Object.assign(ED, { ed: null, base: null, version: null, dirty: false, saving: false, err: null, confirm: false, discard: false, conflict: null });
+    saved = null; toastPaint();
+    paintHead();
+    try {
+      // the whole file and its current version (a preview can stop at 256 KB; an edit reads up to 1 MB)
+      const d = await api.projectFile(f.project, f.rel, null, { purpose: "edit" });
+      if (my !== V.gen || !ED.on) return;
+      if (d.editable === false || d.truncated || d.version == null) { ED.on = false; V.data = { ...V.data, ...d, editable: false, not_editable_reason: d.not_editable_reason || (d.truncated ? "truncated" : "not_text") }; render(); return; }
+      if (d.content !== V.data.content) { V.data = d; dropFile(); render(); }
+      else V.data = d;
+      for (let i = 0; i < 60 && !FL.handle; i++) await new Promise((r) => requestAnimationFrame(r));
+      if (my !== V.gen || !ED.on || !FL.handle) return;
+      ED.ed = await FL.handle.edit({ onChange: () => { const dirty = ED.ed && ED.ed.text() !== ED.base; if (dirty !== ED.dirty || ED.err) { ED.dirty = dirty; ED.err = null; paintHead(); } } });
+      Object.assign(ED, { base: d.content, version: d.version });
+      if (FL.sel) FL.sel = null, askCapsule();
+      ED.ed.focus({ lineNumber: f.lines ? f.lines[0] : "first-visible" });
+      announce(`Editing ${f.name}. ${MODS}S saves, Esc leaves.`);
+    } catch (err) {
+      if (my !== V.gen) return;
+      ED.on = false; V.saveError = err.message || "Couldn't open this file for editing."; render();
+    }
+  }
+  /** Leave editing. keep: what's now in the file view stays (after a save); else it goes back to the file. */
+  function stopEdit({ keep = false } = {}) {
+    if (!ED.on) return;
+    if (ED.ed) ED.ed.stop();
+    const was = ED.conflict;
+    ED.on = false; ED.ed = null; ED.conflict = null; ED.confirm = false; ED.discard = false;
+    if (was && was.view) { was.view.destroy(); }
+    if (!keep || was) { dropFile(); }
+    render();
+  }
+  function cancelEdit() {
+    if (ED.dirty && !ED.discard && !ED.conflict) { ED.discard = true; paintHead(); return; }
+    stopEdit();
+  }
+  async function save(confirm = null) {
+    if (!ED.on || ED.saving) return;
+    const f = V.file, conflict = ED.conflict;
+    const text = conflict ? conflict.text : ED.ed && ED.ed.text();
+    if (text == null) return;
+    if (!conflict && text === ED.base) { stopEdit({ keep: true }); return; }
+    ED.saving = true; ED.err = null; ED.confirm = false; paintHead();
+    try {
+      const r = await api.saveProjectFile(f.project, f.rel, text, conflict ? conflict.version : ED.version, confirm || (ED.confirmed ? "runs_code" : null));
+      V.data = { ...V.data, content: text, version: r.version, size_bytes: new TextEncoder().encode(text).length, modified_at: r.saved_at || V.data.modified_at };
+      ED.saving = false;
+      stopEdit({ keep: !conflict });
+      saved = { path: localPath(), name: f.name, editId: r.edit_id, merged: !!conflict };
+      toastPaint();
+      announce(`Saved ${f.name}.`);
+      edits && edits.saved && edits.saved(f, saved);
+    } catch (err) {
+      ED.saving = false;
+      if (err.status === 428 && err.code === "confirm_required") { ED.confirm = true; paintHead(); el.querySelector("[data-vw-confirm]")?.focus(); return; }
+      if (err.status === 409 && err.code === "file_changed" && err.current) { clash(text, err.current); return; }
+      if (err.status === 403) {
+        ED.err = err.code === "read_only_place" ? "XO keeps this file: it can't be saved here" : err.code === "outside_project" ? "This file is outside the project" : "Saving isn't allowed here";
+        if (err.code === "read_only_place") V.data = { ...V.data, editable: false, not_editable_reason: "read_only_place" };
+      } else ED.err = err.status === 503 && err.code === "writer_key_missing" ? "XO Space hasn't enabled saving yet" : err.message || "Couldn't save";
+      paintHead();
+    }
+  }
+  /**
+   * The file changed while you edited (409): yours and the agent's, merged against where you started. With
+   * no place you both changed, it saves at once (against the agent's version); otherwise the merge view.
+   */
+  async function clash(mine, current) {
+    const m = merge3(ED.base, mine, current.content);
+    if (!m.conflicts) { ED.conflict = { view: null, version: current.version, left: 0, text: m.text }; return save(); }
+    if (ED.ed) { ED.ed.stop(); ED.ed = null; }
+    const host = fileBody();
+    if (FL.handle) { FL.handle.destroy(); FL.handle = null; FL.key = null; FL.pend = null; }
+    host.replaceChildren();
+    ED.conflict = { view: null, version: current.version, left: m.conflicts, text: m.text };
+    el.querySelector(".xd-bar")?.remove();
+    host.insertAdjacentHTML("beforebegin", `<p class="xd-bar"><b>The agent changed ${esc(V.file.name)} while you were editing.</b> Where you both changed the same lines, choose what to keep, then save.</p>`);
+    paintHead();
+    ED.conflict.view = await DV.conflict(host, m.text, {
+      path: V.file.name,
+      labels: { current: "Keep yours", incoming: "Take the agent's", both: "Keep both" },
+      onResolve: (text, left) => { if (!ED.conflict) return; ED.conflict.text = text; ED.conflict.left = left; paintHead(); },
+    });
+  }
+  /** "Saved · Undo · Tell the agent", at the foot of the file, for the last save. */
+  function toastPaint() {
+    let t = el.querySelector(":scope > .xd-toast");
+    if (!saved || !V.open) { if (t) t.remove(); return; }
+    if (!t) { t = document.createElement("div"); t.className = "xd-toast"; el.appendChild(t); }
+    t.innerHTML = `<div class="toast" role="status"><span class="t-ic">${ICON.check}</span><span class="t-m"><b>Saved</b> <span>${esc(saved.name)}${saved.merged ? ", with the agent's changes" : ""}</span></span>` +
+      `${saved.editId ? `<button type="button" class="t-undo" data-vw-undo>Undo</button>` : ""}${edits && edits.tell ? `<button type="button" class="t-undo" data-vw-tell>Tell the agent</button>` : ""}<button type="button" class="xd-tx" data-vw-toastx aria-label="Close">${ICON.close}</button></div>`;
+  }
+  async function undoSave() {
+    const f = V.file, s = saved;
+    if (!s || !s.editId) return;
+    saved = null; toastPaint();
+    try { await api.undoProjectEdit(f.project, s.editId); announce(`${s.name} is back as it was.`); }
+    catch (err) { V.saveError = err.message || "Couldn't undo the save."; }
+    if (V.file !== f) return;
+    dropFile(); load();
   }
 
   function body() {
@@ -275,10 +430,13 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       const host = fileBody(), top = host.scrollTop, d = V.data;
       if (DF.handle || DF.key) dropDiff();
       const cut = d.truncated ? `<p class="vw-cut">${ICON.clock}<span>Showing the first ${esc(size(bytes(d.content)))} of ${esc(size(d.size_bytes))}. The rest isn't previewed.</span>${canSave() ? `<button type="button" class="vw-cut-dl" data-vw-save${V.saving ? " disabled" : ""}>Download the whole file</button>` : ""}</p>` : "";
+      const bar = el.querySelector(":scope > .xd-bar");
       el.innerHTML = (tabs ? tabs() : "") + head() + cut + `<i data-vw-file hidden></i>`;
       el.querySelector("[data-vw-file]").replaceWith(host);
+      if (bar && ED.conflict) host.before(bar);
       host.scrollTop = top;
-      drawFile();
+      toastPaint();
+      if (!ED.conflict) drawFile();
       return;
     }
     if (FL.handle || FL.key) dropFile();
@@ -350,6 +508,8 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (V.file.image) V.mode = "preview";
     // a changed file asked for as a change (the panel's Open in Files, the tree's Changed section) opens on
     // its diff; any other way in, whole. The diff is drawn from the patch and needs no read of the file.
+    if (ED.on) { if (ED.ed) ED.ed.stop(); if (ED.conflict && ED.conflict.view) ED.conflict.view.destroy(); ED.on = false; ED.conflict = null; }
+    saved = null; ED.confirmed = false; // a file that runs code asks again once you've left it
     dropDiff(); dropFile(); if (DF.el) DF.el.scrollTop = 0; if (FL.el) FL.el.scrollTop = 0;
     V.show = f.show === "changes" ? "changes" : "file";
     el.hidden = false;
@@ -364,6 +524,8 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   function close({ restore = true } = {}) {
     if (!V.open) return;
     V.open = false; V.parked = false; V.gen++;
+    if (ED.on) { if (ED.ed) ED.ed.stop(); if (ED.conflict && ED.conflict.view) ED.conflict.view.destroy(); ED.on = false; ED.conflict = null; }
+    saved = null; el.querySelector(":scope > .xd-toast")?.remove();
     dropImage(); V.data = null; dropDiff(); dropFile();
     el.hidden = true; el.innerHTML = "";
     document.body.classList.remove("viewer-open");
@@ -385,6 +547,16 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     const sh = e.target.closest("[data-vw-show]");
     if (sh) { V.show = sh.dataset.vwShow; if (V.show === "file" && !V.data && !V.loading) { load(); return; } V.keepScroll = true; render(); return; }
     if (e.target.closest("[data-vw-ask]")) { openAsk(); return; }
+    if (e.target.closest("[data-vw-edit]")) { startEdit(); return; }
+    if (e.target.closest("[data-vw-saveit]")) { save(); return; }
+    if (e.target.closest("[data-vw-cancel]")) { cancelEdit(); return; }
+    if (e.target.closest("[data-vw-keep]")) { ED.discard = false; paintHead(); ED.ed?.focus(); return; }
+    if (e.target.closest("[data-vw-discard]")) { stopEdit(); return; }
+    if (e.target.closest("[data-vw-confirm]")) { ED.confirmed = true; save("runs_code"); return; }
+    if (e.target.closest("[data-vw-noconfirm]")) { ED.confirm = false; paintHead(); ED.ed?.focus(); return; }
+    if (e.target.closest("[data-vw-undo]")) { undoSave(); return; }
+    if (e.target.closest("[data-vw-tell]")) { const s = saved; saved = null; toastPaint(); if (s && edits.tell(V.file, s)) announce("Told the agent."); return; }
+    if (e.target.closest("[data-vw-toastx]")) { saved = null; toastPaint(); return; }
     if (e.target.closest("[data-vw-retry]")) { FL.pend = null; drawFile(); return; }
     if (e.target.closest("[data-vw-split]")) { V.split = !V.split; if (DF.handle) DF.handle.split(V.split); render(); return; }
     const m = e.target.closest("[data-vw-mode]");
@@ -408,6 +580,13 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     render();
   }, true);
   el.addEventListener("keydown", (e) => {
+    const mod = (e.metaKey || e.ctrlKey) && !e.altKey;
+    if (ED.on) {
+      if (mod && e.key.toLowerCase() === "s") { e.preventDefault(); if (ED.confirm) { ED.confirmed = true; save("runs_code"); } else save(); return; }
+      if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); if (ED.confirm) { ED.confirm = false; paintHead(); ED.ed?.focus(); } else cancelEdit(); return; }
+      return;
+    }
+    if (!mod && !e.altKey && (e.key === "e" || e.key === "E") && !e.target.closest("input, textarea, [contenteditable]") && canEdit() && !FL.asking) { e.preventDefault(); startEdit(); return; }
     if (e.key === "Escape") {
       e.preventDefault(); e.stopPropagation();
       if (FL.sel && !FL.asking) { FL.sel = null; FL.handle?.select(null); askCapsule(); return; } // a selection clears first
@@ -442,5 +621,10 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   /** Repaint the header (the Live · File switch follows the Map). */
   function refresh() { if (V.open && !V.parked) { V.keepScroll = true; render(); } }
 
-  return { open, close, park, unpark, refresh, get isOpen() { return V.open && !V.parked; }, get hasFile() { return V.open; }, get isParked() { return V.open && V.parked; }, get file() { return V.file; } };
+  return {
+    open, close, park, unpark, refresh,
+    get isOpen() { return V.open && !V.parked; }, get hasFile() { return V.open; }, get isParked() { return V.open && V.parked; }, get file() { return V.file; },
+    /** Unsaved edits on screen (leaving asks first). */
+    get editing() { return ED.on && (ED.dirty || !!ED.conflict); },
+  };
 }

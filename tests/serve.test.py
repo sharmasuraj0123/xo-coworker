@@ -414,8 +414,8 @@ class WriterKey(unittest.TestCase):
     def setUp(self):
         import tempfile
         self.tmp = tempfile.TemporaryDirectory()
-        os.makedirs(os.path.join(self.tmp.name, "space"))
-        self.path = os.path.join(self.tmp.name, "space", "ui-writer.key")
+        os.makedirs(os.path.join(self.tmp.name, "secrets"))
+        self.path = os.path.join(self.tmp.name, "secrets", "ui-writer.key")
         self.was = os.environ.get("QUIRQ_STATE_ROOT")
         os.environ["QUIRQ_STATE_ROOT"] = self.tmp.name
         self.write(self.KEY + "\n")

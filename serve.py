@@ -124,9 +124,10 @@ def writer_route(method: str, path: str) -> bool:
 
 
 def writer_key_path() -> str:
-    """Where Space keeps the key: ${QUIRQ_STATE_ROOT:-$HOME/.quirq}/space/ui-writer.key (its quirq_state_dir)."""
-    root = os.environ.get("QUIRQ_STATE_ROOT") or os.path.join(os.path.expanduser("~"), ".quirq")
-    return os.path.join(root, "space", "ui-writer.key")
+    """Where Space keeps the key: ${QUIRQ_STATE_ROOT:-$HOME/.quirq}/secrets/ui-writer.key (its secrets_dir(),
+    services/project_files/writer_key.py), beside the Space's other credentials."""
+    root = (os.environ.get("QUIRQ_STATE_ROOT") or "").strip() or os.path.join(os.path.expanduser("~"), ".quirq")
+    return os.path.join(os.path.expanduser(root), "secrets", "ui-writer.key")
 
 
 def writer_key() -> str | None:

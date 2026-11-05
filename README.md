@@ -46,7 +46,7 @@ python3 serve.py                 # foreground, http://127.0.0.1:5180
 - It adds the UI's writer key (`X-XO-UI-Writer`) to exactly two writes, saving a project file (`PUT
   /api/xo-projects/{p}/file`) and undoing a save (`POST …/edits/{id}/undo`), after its own same-origin
   check. It reads the key per request (cached by the file's change time) from
-  `${QUIRQ_STATE_ROOT:-$HOME/.quirq}/space/ui-writer.key`, where XO Space keeps it. Without a key, a save
+  `${QUIRQ_STATE_ROOT:-$HOME/.quirq}/secrets/ui-writer.key`, where XO Space keeps it. Without a key, a save
   gets a 503 and isn't forwarded. A page can never send the header itself.
 - It relays Server-Sent Events unbuffered.
 - It tunnels one WebSocket, a shell's terminal (`GET /api/terminal/sessions/{id}/ws`), after the same checks,
