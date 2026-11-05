@@ -84,6 +84,9 @@ const THEME = { get() { try { return localStorage.getItem("cv-theme") === "light
 function applyTheme(t) {
   document.documentElement.dataset.theme = t;
   document.querySelector('meta[name="color-scheme"]')?.setAttribute("content", t);
+  // the browser's own chrome (Safari's bars, Android's status bar) takes the canvas's colour
+  const canvas = getComputedStyle(document.documentElement).getPropertyValue("--canvas").trim();
+  if (canvas) document.querySelector('meta[name="theme-color"]')?.setAttribute("content", canvas);
   const b = $("#theme");
   if (b) { b.setAttribute("aria-checked", String(t === "light")); b.title = t === "light" ? "Light mode is on. Switch to dark" : "Switch to light mode"; }
 }
@@ -2776,9 +2779,11 @@ function setDrawer(open) {
   $("#app").classList.toggle("drawer", !!open);
   $("#side-scrim").hidden = !open;
   $("#pb-menu").setAttribute("aria-expanded", String(!!open));
+  $("#top-menu").setAttribute("aria-expanded", String(!!open));
   if (open) $("#nv-home").focus();
 }
 $("#pb-menu").addEventListener("click", () => setDrawer(true));
+$("#top-menu").addEventListener("click", () => setDrawer(true));
 $("#side-x").addEventListener("click", () => setDrawer(false));
 $("#side-scrim").addEventListener("click", () => setDrawer(false));
 
@@ -3135,6 +3140,7 @@ $("#ic-shells").innerHTML = ICON.shell;
   document.addEventListener("pointerdown", (e) => { if (CH.setupOpen && !cs.contains(e.target) && !e.target.closest("#target")) CH.closeSetup(); });
 }
 $("#pb-menu").innerHTML = ICON.menu;
+$("#top-menu").innerHTML = ICON.menu;
 $("#side-x").innerHTML = ICON.close;
 $("#pn-x").innerHTML = ICON.close;
 $("#set-x").innerHTML = ICON.close;
