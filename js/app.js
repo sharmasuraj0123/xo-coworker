@@ -892,7 +892,9 @@ function msgItems(conv, needs) {
   // your newest message the agent hasn't read yet: Interrupt stops the turn so it reads it next
   const lastQueued = [...list].reverse().find((m) => m.queued);
   // a changed file's chip carries its +/− counts, and reads as chosen while the panel shows its diff
-  const chosen = STAGE.chosen(conv);
+  // the chosen file: the one beside the chat when a file is open there (the middle), else the panel's
+  const shown = (FILESV.docked || FILESV.sheet) && VW.hasFile && VW.file && VW.file.project && VW.file.rel ? CHG.at(VW.file.project, VW.file.rel) : null;
+  const chosen = shown ? shown.path : STAGE.chosen(conv);
   const changed = (target) => { const c = CHG.forTarget(conv, target); return c ? { additions: c.file.additions, deletions: c.file.deletions, binary: c.file.binary, on: c.path === chosen } : null; };
   for (const m of list) {
     const d = Number.isFinite(m.at) ? dayOf(m.at) : day;
@@ -2702,7 +2704,13 @@ document.addEventListener("click", (e) => {
   }
   // beside a file, the chat folds to its rail and opens from it (js/filesview.js)
   if (t.closest("[data-chat-fold]")) { FILESV.chat(false); return; }
-  if (t.closest("[data-crail]")) { FILESV.chat(true); return; }
+  // asking you: the chat opens on its ask (the card above the composer), not the composer
+  if (t.closest("[data-crail]")) {
+    const ask = !!t.closest(".crail-b.is-ask");
+    FILESV.chat(true, { focus: !ask });
+    if (ask) requestAnimationFrame(() => requestAnimationFrame(() => { const card = $("#tdock"); card?.scrollIntoView({ block: "nearest" }); card?.querySelector("button")?.focus({ preventScroll: true }); }));
+    return;
+  }
   // a file put away: its chip brings it back as it was; its × closes it (js/filesview.js)
   if (t.closest("[data-fv-restore]")) { FILESV.restore(); return; }
   if (t.closest("[data-fv-close]")) { FILESV.close({ restore: false }); $("#say")?.focus({ preventScroll: true }); return; }
@@ -2751,10 +2759,14 @@ document.addEventListener("click", (e) => {
     const c = CHG.forTarget(S.view, cf.dataset.file);
     if (c) {
       unpin(cf); // the row you clicked in stays where it is while the panel takes its room (follow.js)
+      const s = CHG.scope(S.view);
+      const inFiles = () => VW.open({ path: c.path, name: c.path.split("/").pop(), project: s.project, rel: s.worktree ? `.xo/worktrees/${s.worktree}/${c.path}` : c.path, show: "changes" }, cf);
+      // beside a file (the chat docked, a phone's sheet), or ⌘/Ctrl-click: its diff in Files, in the middle, in
+      // place of the one shown; on a phone the sheet folds so the file shows
+      if (s && (FILESV.docked || FILESV.sheet || e.metaKey || e.ctrlKey)) { const sheet = FILESV.sheet; inFiles(); if (sheet) FILESV.chat(false); return; }
       if (STAGE.showChange(c.path)) { schedule(); return; }
       // a shape without the panel's Changes (Make content): its diff in Files instead
-      const s = CHG.scope(S.view);
-      if (s) { VW.open({ path: c.path, name: c.path.split("/").pop(), project: s.project, rel: s.worktree ? `.xo/worktrees/${s.worktree}/${c.path}` : c.path, show: "changes" }, cf); return; }
+      if (s) { inFiles(); return; }
     }
   }
   const fb = t.closest("[data-file]");

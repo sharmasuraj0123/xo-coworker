@@ -159,7 +159,7 @@ function changedChips(rows, blocks, more, carried = [], changed = null) {
   const list = [...files.values()];
   const shown = list.slice(0, 6);
   const rest = list.length - shown.length;
-  return `<ul class="tb-chg" aria-label="Files changed">${shown.map((r) => { const c = changed ? changed(r.target) : null; return `<li><button type="button" class="tb-cf${c && c.on ? " is-on" : ""}" data-file="${esc(r.target)}" data-file-name="${esc(base(r.target))}" title="${esc(r.target)}"${c && c.on ? ' aria-current="true"' : ""}><span class="tb-cfi">${fileIcon(r.target)}</span><span class="tb-cfn">${esc(base(r.target))}</span>${counts(c)}</button></li>`; }).join("")}` +
+  return `<ul class="tb-chg" aria-label="Files changed">${shown.map((r) => { const c = changed ? changed(r.target) : null; return `<li><button type="button" class="tb-cf${c && c.on ? " is-on" : ""}" data-file="${esc(r.target)}" data-file-name="${esc(base(r.target))}" title="${esc(`${r.target} · ⌘ or Ctrl-click opens it in Files`)}"${c && c.on ? ' aria-current="true"' : ""}><span class="tb-cfi">${fileIcon(r.target)}</span><span class="tb-cfn">${esc(base(r.target))}</span>${counts(c)}</button></li>`; }).join("")}` +
     (rest > 0 ? `<li><button type="button" class="tb-cf is-more" data-tb="${esc(more)}">+${rest} more</button></li>` : "") + `</ul>`;
 }
 
