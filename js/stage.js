@@ -78,7 +78,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     `<header class="stg-bar"><div class="stg-t"></div><div class="stg-acts"><button type="button" class="stg-ic" data-stg-full></button><button type="button" class="stg-ic" data-stg-close aria-label="Close the panel" title="Close (Esc)">${ICON.close}</button></div></header>` +
     `<div class="stg-rail" aria-label="Panel, folded"><button type="button" class="stg-ic" data-rail="launch" title="Launchpad">${LP_ICON.rocket}</button><button type="button" class="stg-ic" data-rail="changes" title="Changes">${CHANGES_IC}</button><button type="button" class="stg-ic" data-rail="agents" title="Agents">${AGENTS_IC}</button><button type="button" class="stg-ic" data-rail="map" title="Map">${mapIcon}</button></div>` +
     `<div class="stg-frames">` +
-    `<section class="fr fr-lp is-folded" data-fr="launch" aria-labelledby="fr-title-launch" hidden><header class="fr-h"><h2 class="fr-title" id="fr-title-launch">Launchpad</h2><span class="lp-hs"></span><div class="fr-a"><span class="lp-ha"></span><button type="button" class="fr-ib fr-fold" data-fr-fold="launch" aria-expanded="false" title="Open">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-launch"></div></section><div class="fr-line" data-lp-line hidden></div>` +
+    `<section class="fr fr-lp is-folded" data-fr="launch" aria-labelledby="fr-title-launch" hidden><header class="fr-h"><h2 class="fr-title" id="fr-title-launch">Launchpad</h2><span class="lp-hs"></span><div class="fr-a"><span class="lp-ha"></span><button type="button" class="fr-ib fr-fold" data-fr-fold="launch" aria-expanded="false" title="Open">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-launch" tabindex="-1"></div></section><div class="fr-line" data-lp-line hidden></div>` +
     frame("changes", "Changes", `<button type="button" class="xd-follow" data-follow hidden></button><button type="button" class="fr-ib" data-open-files title="All files">${FILES_IC}</button>`) + gutter("changes", "agents") +
     frame("agents", "Agents") + gutter("agents", "map") +
     frame("map", "Map", `<div class="fr-views" role="tablist" aria-label="Map view"><button type="button" class="fr-t" role="tab" id="stage-map-tree" aria-controls="fr-body-map" data-map-mode="tree">Diagram</button><button type="button" class="fr-t" role="tab" id="stage-map-graph" aria-controls="fr-body-map" data-map-mode="graph">Graph</button></div>`) +
@@ -261,6 +261,8 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     S.lp = true;
     S.lpOpened = !S.open; // pressed again, Deploy puts things back as they were: the panel closed, or Launchpad folded
     if (!S.open || S.rail) open({ focus: false }); else { layout(); paint(); }
+    // focus goes into the section, so Esc closes the panel rather than leaving the thread (Astra on 761119f)
+    requestAnimationFrame(() => LPF.querySelector(".fr-b")?.focus?.({ preventScroll: true }));
   }
 
   /** The header's Deploy shows Launchpad open as pressed. Set here, where it changes, rather than by redrawing the
