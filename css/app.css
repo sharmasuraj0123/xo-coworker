@@ -1234,14 +1234,14 @@ button.tp-done-u:hover{color:var(--ink)}
 .cp-bar.is-known i{animation:none;transition:width .4s var(--ease)}
 @keyframes cp-run{from{transform:translateX(-100%)}to{transform:translateX(312%)}}
 /* What it's doing on top, how far under it; the time and Stop keep their own place on the right */
-.cp-row{display:flex;align-items:center;gap:12px;min-height:32px}
+.cp-row{display:flex;align-items:center;gap:12px;min-height:38px}
 .cp-what{flex:1;min-width:0;display:flex;flex-direction:column;font-size:var(--fs-sm);line-height:16px;color:var(--ink-3)}
 .cp-phase{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cp-phase b{font-weight:500;color:var(--ink)}
 .cp-facts{color:var(--ink-4);font-variant-numeric:tabular-nums}
 .cp-facts:empty{display:none}
 .cp-t{flex:none;font-size:var(--fs-sm);line-height:16px;font-variant-numeric:tabular-nums;color:var(--ink-4)}
-.cp-stop{flex:none;height:32px;padding:0 12px;font-size:var(--fs-base)}
+.cp-stop{flex:none}  /* the dialog's own 38 px button, the same as Close beside it */
 .cp-hint{font-size:var(--fs-sm);line-height:16px;color:var(--ink-4)}
 @media (prefers-reduced-motion:reduce){.cp-bar i{width:100%;animation:none;opacity:.5}}
 .dlg-err{padding:10px 12px;border-radius:var(--r-sm);background:var(--err-subtle);color:var(--err-ink);font-size:var(--fs-base);line-height:20px}
