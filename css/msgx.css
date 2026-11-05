@@ -210,7 +210,7 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-turn.is-live:not(:has(.turn [aria-expanded="true"],.turn .is-waiting)) .turn>:is(.tb-work,.tb-think,.tb-act,.tb-narr,.tb-plan){display:none}
 :root[data-msgx] .m-turn.is-live:not(:has(.turn [aria-expanded="true"],.turn .is-waiting)) .turn:not(:has(>:is(.tb-text,.tb-answer,.tb-files,.tb-end))){display:none}
 .mx-work{display:none}
-:root[data-msgx] .m-turn.is-live:not(:has(.turn [aria-expanded="true"],.turn .is-waiting)) .mx-work{position:relative;display:flex;align-items:center;gap:12px;max-width:min(88%,480px);height:44px;padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-md);line-height:20px;text-align:left;overflow:visible;transition:width var(--d-move) var(--ease),background var(--d-hover) var(--ease)}
+:root[data-msgx] .m-turn.is-live:not(:has(.turn [aria-expanded="true"],.turn .is-waiting)) .mx-work{position:relative;display:flex;align-items:center;gap:12px;max-width:min(88%,560px);height:44px;padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-md);line-height:20px;text-align:left;overflow:visible;transition:width var(--d-move) var(--ease),background var(--d-hover) var(--ease)}
 :root[data-msgx] .mx-work:hover{background:var(--mx-them-top)}
 .mx-wt{position:relative;flex:1 1 auto;min-width:0;height:20px;overflow:hidden}
 .mx-wl{position:absolute;inset:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -229,7 +229,11 @@ body.files-open .mx-down{display:none}
 /* the line under a conversation (a coordinator replying) is the same bubble */
 :root[data-msgx] .typing{grid-template-columns:28px minmax(0,1fr);gap:8px;padding-bottom:20px;animation:none}
 :root[data-msgx] .typing>.av{width:28px;height:28px;border-radius:50%;align-self:center}
-:root[data-msgx] .typing .ty-b{width:fit-content;max-width:min(88%,480px);height:44px;align-items:center;gap:12px;padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-md);line-height:20px}
+:root[data-msgx] .typing .ty-b{width:fit-content;max-width:min(88%,560px);height:44px;align-items:center;gap:12px;padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-md);line-height:20px}
+/* the app writes this line itself, so when it's too long for the bubble its end fades out over 32 px
+   (msgx.js marks it) instead of stopping mid-word: CSS's "…" takes the text colour, which the shimmer
+   makes transparent */
+:root[data-msgx] .typing .ty-t.mx-fade{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 32px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 32px),transparent);text-overflow:clip}
 /* the line's words read in the conversation's own weight (400) with the shimmer passing through them. They
    used to look bold for two reasons: app.css's .shimmer sets 500, and a solid colour here painted the words
    a second time over the shimmer's gradient, which is clipped to the same letters */

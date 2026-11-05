@@ -199,7 +199,9 @@ function projectMarks() {
     av.replaceChildren(ic.cloneNode(true), ...[...av.querySelectorAll(".arc")]);
   }
 }
-new MutationObserver(() => { projectMarks(); wave(document.getElementById("typing")); }).observe(document.getElementById("typing"), { childList: true, subtree: true });
+const typingFade = () => { const t = document.querySelector("#typing .ty-t"); if (t) t.classList.toggle("mx-fade", t.scrollWidth > t.clientWidth + 1); };
+new MutationObserver(() => { projectMarks(); wave(document.getElementById("typing")); typingFade(); }).observe(document.getElementById("typing"), { childList: true, subtree: true, characterData: true });
+new ResizeObserver(typingFade).observe(document.getElementById("typing"));
 
 // ── the agent at work: one calm bubble ──────────────────────────────────────
 const WORKING = new Map(); // turn key → { text, since, w }
@@ -298,11 +300,14 @@ function working(el) {
   }
   const wt = w.querySelector(".mx-wt");
   const cur = wt.querySelector(".mx-wl:not(.is-out)");
-  if (!cur || cur.textContent !== text) {
+  // what fits on the line, ending at a word with a visible "…" (the full step is the bubble's tooltip)
+  const shown = fitLine(w, text);
+  w.title = shown === text ? "See every step" : `${text}\nSee every step`;
+  if (!cur || cur.textContent !== shown) {
     // the old line leaves upward as the new one rises in; the bubble eases to the new line's width
-    const old = cur || (was && was.text !== text ? Object.assign(document.createElement("span"), { className: "mx-wl", textContent: was.text }) : null);
+    const old = cur || (was && was.text !== text ? Object.assign(document.createElement("span"), { className: "mx-wl", textContent: was.shown || was.text }) : null);
     if (old) { if (!old.parentNode) wt.append(old); old.className = "mx-wl is-out"; setTimeout(() => old.remove(), 220); }
-    const line = Object.assign(document.createElement("span"), { className: old || !was ? "mx-wl is-in" : "mx-wl", textContent: text });
+    const line = Object.assign(document.createElement("span"), { className: old || !was ? "mx-wl is-in" : "mx-wl", textContent: shown });
     wt.append(line);
   }
   // it starts the agent's run (so it has the tail) unless the agent was just speaking
@@ -310,10 +315,10 @@ function working(el) {
   const pv = [...msgs.children].filter((c) => c !== el && !c.classList.contains("mx-live")).pop();
   w.classList.add("is-them");
   w.classList.toggle("mx-tail", !(pv && pv.matches(".m-them:not(.mx-other)")));
-  const st = Object.assign(was || {}, { text, since, swapped: !was || was.text !== text ? now : was.swapped });
+  const st = Object.assign(was || {}, { text, shown, since, swapped: !was || was.text !== text ? now : was.swapped });
   WORKING.set(key, st);
   settle(el, st);
-  sizeWork(w, key, text);
+  sizeWork(w, key, shown);
   // what it measures while working, for the ease when it ends: its content's own height, never the held
   // min-height (reading offsetHeight held it at its tallest: open the work, close it, and the turn kept the
   // open card's height as empty space; owner, 5 Nov)
@@ -394,6 +399,29 @@ function settle(el, st) {
   st.open = true; st.card = card; st.h = h;
 }
 /** Ease the working bubble's width to fit its line (it never jumps): measure, then transition to it. */
+// The working bubble is as wide as a message bubble at most (560 px, 88 % of the column); its line gets what's
+// left after the padding (16 + 16), the gap (12) and room for the time (64).
+const WORK_MAX = 560, WORK_CHROME = 16 + 12 + 64 + 16 + 2;
+const lineFont = (w) => { const c = getComputedStyle(w); return `${c.fontWeight} ${c.fontSize} ${c.fontFamily}`; };
+const measureCtx = document.createElement("canvas").getContext("2d");
+/** The step as it fits on one line: whole, or cut at a word with "…" (a real character, so the shimmer
+ *  paints it too; CSS's ellipsis takes the text colour, which the shimmer makes transparent, so a cut line
+ *  used to just stop mid-word). */
+function fitLine(w, text) {
+  const room = Math.min(WORK_MAX, (w.parentElement?.clientWidth || WORK_MAX) * 0.88) - WORK_CHROME;
+  measureCtx.font = lineFont(w);
+  if (measureCtx.measureText(text).width <= room) return text;
+  const words = text.split(" ");
+  while (words.length > 1) {
+    words.pop();
+    const t = words.join(" ").replace(/[\s,;:·–—-]+$/, "") + "…";
+    if (measureCtx.measureText(t).width <= room) return t;
+  }
+  // one long word: cut by characters
+  let t = text;
+  while (t.length > 1 && measureCtx.measureText(t + "…").width > room) t = t.slice(0, -1);
+  return t + "…";
+}
 function sizeWork(w, key, text) {
   const probe = document.createElement("span");
   probe.className = "mx-wsize"; probe.textContent = text;
@@ -402,7 +430,7 @@ function sizeWork(w, key, text) {
   const natural = 16 + probe.offsetWidth + 12 + Math.max(64, w.querySelector(".mx-we").offsetWidth) + 16 + 2;
   probe.remove();
   const max = w.parentElement.clientWidth * 0.88;
-  const target = Math.min(natural, 480, max);
+  const target = Math.min(natural, WORK_MAX, max);
   const st = WORKING.get(key);
   if (st && st.w && Math.abs(st.w - target) > 1) {
     w.style.transition = "none"; w.style.width = `${st.w}px`; void w.offsetWidth;
