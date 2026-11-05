@@ -415,7 +415,7 @@ body.viewer-open .fv~.dock{display:none}
 .stage .map-host .dg-tools button:hover{background:var(--panel-hover)}
 .stage .map-host .dg-tools button[aria-pressed="true"]{background:color-mix(in srgb,var(--ink) 10%,transparent);color:var(--ink)}
 .stage .map-host .gn-d{box-shadow:0 0 0 2px var(--panel-canvas)}
-.stage .map-host .gn.k-file .gn-d{background:var(--ink-4)}
+.stage .map-host .gn.k-file .gn-d{background:var(--fc,var(--ink-4))} /* a file keeps its own colour; new, edited and here override below */
 .stage .map-host .gn.m-new .gn-d{background:var(--accent)}
 .stage .map-host .gn.m-edited .gn-d{background:var(--violet)}
 .stage .map-host .gn.is-here .gn-d{background:var(--ink-2);box-shadow:0 0 0 2px var(--panel-canvas),0 0 0 4px color-mix(in srgb,var(--c) 35%,transparent)}
