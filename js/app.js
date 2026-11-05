@@ -35,6 +35,7 @@ import { createFiles, fileScope, localIn } from "./files.js";
 import { createFilesView } from "./filesview.js";
 import { createChanges, lineRef } from "./changes.js";
 import { fileIcon } from "./fileicons.js";
+import { countsHtml } from "./changesframe.js";
 import { setTheme as setDiffTheme } from "./diffview.js";
 import { createTray, fmtSize, kindOf, isLargePaste, pasteLabel, uploadErrorText, FINAL, MAX_FILES } from "./attach.js";
 import { api, uploadAttachment } from "./api.js";
@@ -103,6 +104,7 @@ const S = {
   pfind: "", pfCur: 0,     // the sidebar's project filter (hub #16) and its highlighted row
   parent: {}, opener: {}, scroll: {},
   dockFold: {},
+  lref: {},                // beside a file: the lines a message will be about, per conversation {path, a, b, name}
   get showHops() { return SHAPE.on("xo:thread/hops"); },  // the shape's xo:thread/hops (cv-hops folded into this device's layer)
   tbOpen: {},              // storm blocks opened by the person (by block id, or row:<call id>)
   stops: new Map(),        // live Stops by session: waiting out their Undo, or on their way
@@ -176,9 +178,10 @@ world.ui = { tbOpen: S.tbOpen }; // turn blocks open or folded, shared with the 
 const CHG = createChanges({ world, onChange: () => schedule() });
 const VW = createViewer({
   announce, onChange: () => schedule(), changes: CHG,
-  ask: { target: (f) => askPlace(f)?.name || null, send: askAboutLines },
+  ask: { target: (f) => askPlace(f)?.name || null, send: askAboutLines, compose: (f, a, b) => composeAbout(f, a, b) },
   // a save (Files › Edit): its place's changes are read again; Tell the agent is a message to its thread
   edits: { saved: (f) => CHG.saved(f.project, f.rel), tell: (f, s) => sendAbout(f, `I edited ${s.path}. Read it again before you change it.`) },
+  away: () => { if (FILESV.sheet) return FILESV.escape(document.activeElement); if (!FILESV.docked) return false; FILESV.minimise(); return true; },
 }); // a file, in Files (js/filesview.js)
 // a picture opens over the conversation (js/lightbox.js); Open in Files hands it to the viewer, which brings Files up
 const LB = createLightbox({ openFile: (it, from) => VW.open(viewerFile(it), from), announce });
@@ -242,9 +245,9 @@ const SORT_STATE = { needs_approval: 0, needs_reply: 0, paused: 0, failed: 1, wo
 const MAP = createMap({ world, viewer: VW, go: (v) => go(v), announce, isBusy, onChange: () => schedule(), openFile: (f, from) => VW.open(f, from) });
 // the panel: one card on the right with tabs (Map, Made, File; later apps), one header button, ⌘\
 // Files: the project's files, and the one place a file opens (js/files.js, design-research/13)
-const FILES = createFiles({ world, viewer: VW, isBusy, PROJ, go: (v) => go(v), changes: CHG });
+const FILES = createFiles({ world, viewer: VW, isBusy, PROJ, go: (v) => go(v), changes: CHG, onFold: (f) => FILESV.treeFolded(f) });
 // Files is a place in the main area (js/filesview.js); the panel is a stack of frames: Agents · Map · Changes
-const FILESV = createFilesView({ files: FILES, viewer: VW, view: () => S.view, PROJ, world, announce, onChange: () => schedule() });
+const FILESV = createFilesView({ files: FILES, viewer: VW, view: () => S.view, PROJ, world, announce, onChange: () => schedule(), onDock: () => STAGE.sync() });
 const STAGE = createStage({ map: MAP, mapIcon: MAP_ICON, files: FILES, changes: CHG, filesView: FILESV, viewer: VW, view: () => S.view, go: (v) => go(v), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)) });
 STAGE.names = (v) => (v.startsWith("t:") ? world.thread(v.slice(2))?.title || "Thread" : v.startsWith("p:") ? PROJ(v.slice(2)) : v === "ws" ? "Workspace" : "Your projects");
 REC.panel = STAGE;
@@ -993,10 +996,52 @@ function hostNeedHtml(v, needs) {
     `<i class="g g-needs_approval" aria-hidden="true"></i><span class="pj-nt">${esc(who)} needs you</span>${k > 1 ? ` <span class="pj-k">${k}</span>` : ""}</button>`;
 }
 
+/** A file put away (Files beside the chat, then — or Esc): its chip in the header brings it back as it was;
+ *  its × really closes it (js/filesview.js). */
+function fileChipHtml() {
+  const pa = FILESV.putAway;
+  if (!pa) return "";
+  const f = pa.file, name = f.name || String(f.path || "").split("/").pop();
+  const c = f.project && f.rel ? CHG.at(f.project, f.rel) : null;
+  return `<span class="fchip"><button type="button" class="fchip-b" data-fv-restore data-fid="fchip" title="Bring ${esc(name)} back, as you left it">` +
+    `<span class="fchip-i" aria-hidden="true">${fileIcon(name)}</span><span class="fchip-n">${esc(name)}</span>${c && !c.file.binary ? countsHtml(c.file) : ""}</button>` +
+    `<button type="button" class="fchip-x" data-fv-close data-fid="fchip-x" aria-label="Close ${esc(name)}" title="Close it">${ICON.close}</button></span>`;
+}
+const CHAT_FOLD_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7l5 5-5 5"/><path d="M20 4.5v15"/></svg>';
+const convName = (v, t) => (t ? t.title : v.startsWith("p:") ? PROJ(v.slice(2)) : v === "ws" ? "Workspace" : ($("#conv-title")?.textContent || "Conversation"));
+/** The chat's own head while it sits beside a file (body.chat-docked hides the header): its name, its state,
+ *  and fold it to its rail (js/filesview.js). */
+function cheadHtml(v, t) {
+  const badge = t ? `<span class="badge st-${t.frozen ? "resolved" : t.state}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${wordOf(t)}</span>` : "";
+  return `<h2 class="chead-t">${esc(convName(v, t))}</h2>${badge}<span class="chead-sp"></span>` +
+    (FILESV.sheet ? `<button type="button" class="fv-ib" data-chat-fold data-fid="chat-fold" title="Fold the chat to its bar" aria-label="Fold the chat">${ICON.chevron}</button>`
+      : `<button type="button" class="fv-ib" data-chat-fold data-fid="chat-fold" title="Fold the chat to a rail (${K.label("chatFold")})" aria-label="Fold the chat">${CHAT_FOLD_IC}</button>`);
+}
+/** The chat folded to a rail beside a file: who it is (the name, set vertically), working (the arc), asking
+ *  you (amber !), new messages since it folded (a blue dot). One button: it opens the chat. */
+function crailHtml(v, t, needs) {
+  if (!FILESV.chatFolded) return "";
+  const ask = t ? needs.find((n) => n.t.id === t.id && n.admitted) : null;
+  const busy = t ? isBusy(t) : false;
+  const fresh = Math.max(0, ($("#msgs")?.children.length || 0) - FILESV.chatRows);
+  const name = convName(v, t);
+  // a phone's bar also says what it's doing, or what it asks (amber), and how many new messages
+  const doing = ask ? `Needs you · ${askShort(ask)}` : busy ? `Working${(() => { const d = MAP.agents(v).find((a) => a.go === v)?.doing; return d ? ` · ${d}` : ""; })()}` : t ? wordOf(t) : "";
+  const says = [name, ask ? "needs you" : busy ? "working" : "", fresh ? "new messages" : ""].filter(Boolean).join(" · ");
+  return `<button type="button" class="crail-b${ask ? " is-ask" : ""}" data-crail data-fid="crail" title="Open the chat${FILESV.sheet ? "" : ` (${K.label("chatFold")})`}" aria-label="Open the chat: ${esc(says)}">` +
+    `<span class="crail-ic">${ICON.threadOne}${busy && !ask ? '<i class="arc"></i>' : ""}</span>` +
+    (ask ? `<em class="crail-m is-ask" aria-hidden="true">!</em>` : fresh ? `<em class="crail-m is-new" aria-hidden="true">${fresh > 9 ? "9+" : fresh}</em>` : "") +
+    `<span class="crail-t">${esc(name)}</span><span class="crail-s">${esc(doing)}</span>` +
+    (ask ? `<span class="crail-open">Open</span>` : `${fresh ? `<span class="crail-n">${fresh}</span>` : ""}<span class="crail-up" aria-hidden="true">${ICON.chevron}</span>`) + `</button>`;
+}
+
 function topRender(needs) {
   const v = S.view;
   const t = convThread(v);
   const top = $("#top");
+  patch($("#chead"), cheadHtml(v, t));
+  patch($("#crail"), crailHtml(v, t, needs));
+  patch($("#fdock"), fileChipHtml());
   top.dataset.kind = t ? "thread" : "project"; // hub #28: the Workspace has a project's header, always shown
   // a thin state line along the thread's header: amber needs you, blue working, green done, red stopped
   top.dataset.state = !t ? "" : needs.some((n) => n.t.id === t.id && n.admitted) ? "need" : t.state === "failed" ? "stop" : isBusy(t) ? "busy" : t.state === "done" || t.state === "resolved" ? "done" : "";
@@ -1060,12 +1105,12 @@ function topRender(needs) {
       (S.tMenu === t.id ? `<span class="tw-menu" role="menu"><button type="button" role="menuitem" data-tfield="title">Rename</button><button type="button" role="menuitem" data-tfield="label">${t.label ? "Change label" : "Add a label"}</button>${t.label ? `<button type="button" role="menuitem" data-tfield="clear-label">Remove the label</button>` : ""}${SH.enabled ? `<button type="button" role="menuitem" data-shell="t:${esc(t.id)}">Open a shell in its worktree</button>` : ""}${movable(t) ? `<button type="button" role="menuitem" data-tmove="${esc(t.id)}">Continue on another runtime…</button>` : ""}</span>` : "") + `</span>` : "";
     // a shell in its worktree is in the menu (and the shells dock); the header keeps Resolve and the panel
     const allActs = acts ? acts.replace(/<\/span>$/, `${STAGE.button(v)}</span>`) : `<span class="tw-acts">${STAGE.button(v)}</span>`;
-    who = `${title}${label}<span class="badge st-${t.frozen ? "resolved" : t.state}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${wordOf(t)}</span>${rtTag(t)}${allActs}`;
+    who = `${title}${label}<span class="badge st-${t.frozen ? "resolved" : t.state}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${wordOf(t)}</span>${rtTag(t)}${fileChipHtml()}${allActs}`;
     // a field being edited is never replaced under the person's fingers (a frame may change the badge)
     if (ed && $("#tw-edit")) who = null;
   } else who = `<span class="tw-t"><h1 id="conv-title">Thread</h1></span>`;
   if (who != null) patch($("#top-who"), who);
-  patch($("#top-end"), t ? end : end + STAGE.button(v));
+  patch($("#top-end"), t ? end : fileChipHtml() + end + STAGE.button(v));
   nowRender(needs);
   checklistRender(needs);
 }
@@ -1768,6 +1813,7 @@ function targetLineRender() {
 }
 function updateComposer() {
   trayRender();
+  lrefRender();
   if (chatTargetRender()) {
     syncPlaceholder();
     $("#composer").classList.toggle("has-text", !!say.value);
@@ -1968,7 +2014,7 @@ function sendLive(raw) {
   if (block) { announce(`Not sent: ${block}. Your text is kept.`); return; }
   const tg = targetOf(raw, world.state.projects);
   if (tg.unknown) { heraldShow({ kind: "stopped", text: `No project called “${tg.unknown}”`, sub: "pick one from the @ list" }, 4600); announce(`There's no project called ${tg.unknown}. Nothing was sent.`); return; }
-  const text = stripTarget(raw, tg.token);
+  let text = stripTarget(raw, tg.token);
   const files = filesHere();
   if (!text && !files.count) return;
   if (files.busy) { announce("Not sent yet: waiting for the files to upload."); return; }
@@ -1978,6 +2024,9 @@ function sendLive(raw) {
   const chat = thread ? t.project : tg.pid || chatOf(S.view) || "workspace";
   const conv = thread ? S.view : convOfChat(chat);
   const here = conv === S.view;
+  // the lines a message is about (a file beside the chat): "path:a-b", then the words, as Ask about lines sends
+  const ref = here && S.lref[conv];
+  if (ref && text) { text = `${ref.path}:${ref.a}${ref.b > ref.a ? `-${ref.b}` : ""}\n\n${text}`; delete S.lref[conv]; }
   const from = say.getBoundingClientRect();
   // client_id: a retry of this exact message is the same request, so the server stores it once (UI-reference §0.7)
   const m = { id: `l${++S.n}_${Date.now().toString(36)}`, conv, at: Date.now(), who: "you", text, status: "sending", target: thread ? null : chat, cid: `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}` };
@@ -2482,6 +2531,27 @@ function askAboutLines(f, a, b, text) {
   const at = askPlace(f);
   return !!at && sendAbout(f, `${at.path}:${a}${b > a ? `-${b}` : ""}\n\n${text}`);
 }
+/** Beside the chat (Layout A, the owner's D4): asking about lines puts them in this conversation's own composer
+ *  as a capsule, and the composer has focus. The file's place must be this conversation; else false (the
+ *  file's own composer asks, as before). */
+function composeAbout(f, a, b) {
+  const at = FILESV.docked || FILESV.sheet ? askPlace(f) : null;
+  if (!at || at.conv !== S.view || CH.isChats(S.view)) return false;
+  S.lref[S.view] = { path: at.path, a, b, name: f.name || at.path.split("/").pop() };
+  lrefRender();
+  FILESV.chat(true); // beside the file it opens if folded; on a phone the sheet comes up
+  say.focus({ preventScroll: true });
+  announce(`Lines ${a}${b > a ? ` to ${b}` : ""} of ${S.lref[S.view].name} are in your message. Write your question.`);
+  return true;
+}
+/** The capsule above the composer's field: the file and its lines (opens them), and × to take it out. */
+function lrefRender() {
+  const r = S.lref[S.view], el = $("#cref");
+  const html = r ? `<a href="#${esc(r.path)}" class="lk lk-in lk-file" data-ref="${esc(r.path)}" data-ref-a="${r.a}" data-ref-b="${r.b}" title="${esc(`${r.path}, ${r.a === r.b ? "line" : "lines"} ${r.a}${r.b > r.a ? `–${r.b}` : ""}`)}"><span class="lk-ic">${fileIcon(r.name)}</span><span class="lk-t">${esc(r.name)} · ${r.a}${r.b > r.a ? `–${r.b}` : ""}</span></a>` +
+    `<button type="button" class="cref-x" data-lref-x aria-label="Take the lines out of this message" title="Take them out">${ICON.close}</button>` : "";
+  el.hidden = !r;
+  if (el._h !== html) { el.innerHTML = html; el._h = html; }
+}
 /** A message about a project file, as yours, in its thread (or its project's chat). True when it went. */
 function sendAbout(f, text) {
   const at = askPlace(f), block = liveBlock();
@@ -2610,6 +2680,12 @@ document.addEventListener("click", (e) => {
     S.tbToggled = { k, open: S.tbOpen[k], focus: tb === document.activeElement || tb.contains(document.activeElement) };
     schedule(); return;
   }
+  // beside a file, the chat folds to its rail and opens from it (js/filesview.js)
+  if (t.closest("[data-chat-fold]")) { FILESV.chat(false); return; }
+  if (t.closest("[data-crail]")) { FILESV.chat(true); return; }
+  // a file put away: its chip brings it back as it was; its × closes it (js/filesview.js)
+  if (t.closest("[data-fv-restore]")) { FILESV.restore(); return; }
+  if (t.closest("[data-fv-close]")) { FILESV.close({ restore: false }); $("#say")?.focus({ preventScroll: true }); return; }
   // a thread's own header: resolve or reopen (R1), rename, label
   const rs = t.closest("[data-resolve]");
   if (rs) { resolveThread(rs.dataset.resolve, rs.dataset.to === "resolve"); return; }
@@ -2644,6 +2720,7 @@ document.addEventListener("click", (e) => {
   if (ed) { editFailed(ed.dataset.edit); return; }
   const mx = t.closest("[data-mx]");
   if (mx) { openMedia(mx, e); return; }
+  if (t.closest("[data-lref-x]")) { delete S.lref[S.view]; lrefRender(); say.focus(); return; }
   const lr = t.closest("[data-ref]");
   if (lr) { e.preventDefault(); openLineRef(lr); return; }
   // a changed file's chip: its diff in the panel's Changes; anything else (a link to a file), Files
@@ -3081,9 +3158,14 @@ addEventListener("keydown", (e) => {
   if (SH.owns(e)) { if (K.hasMod("shells") && K.is(e, "shells")) { e.preventDefault(); GLOBAL.shells(); } return; }
   // ⌘/Ctrl keys work everywhere, even while typing
   for (const id of ["jump", "intel", "shells", "map"]) if (K.hasMod(id) && K.is(e, id)) { e.preventDefault(); GLOBAL[id](); return; }
+  // beside a file: ⌘J the chat, ⌘B the files' tree; elsewhere these keys are the browser's
+  if (K.is(e, "chatFold") && FILESV.chatKey()) { e.preventDefault(); return; }
+  if (K.is(e, "treeFold") && FILESV.toggleTree()) { e.preventDefault(); return; }
   if (!jump.hidden || dlg.open || IQ.isOpen) return;
   if (e.key === "Escape") {
     if (RS.open) { runsEscape(); return; }
+    // a file beside the chat: Esc puts it away (or, from an empty composer, goes back to it)
+    if (FILESV.docked || FILESV.sheet) { FILESV.escape(e.target); return; }
     if (VW.isOpen) { VW.close(); return; }
     if (FILESV.isOpen) { FILESV.close(); return; }
     if (!keys.hidden) { closeKeys(); return; }
@@ -3122,6 +3204,8 @@ function stepBack() {
   if (!keys.hidden) { closeKeys(); return true; }
   if (!allEl.hidden) { closeAll(); return true; }
   if (LB.isOpen) { LB.close(); return true; }
+  // a phone's sheet: down to its bar first, then the file is put away (its chip brings it back)
+  if (FILESV.sheet && FILESV.escape(document.activeElement)) return true;
   if (VW.isOpen) { VW.close(); return true; }
   if (FILESV.isOpen) { FILESV.close(); return true; }
   if (STAGE.isOpen && PHONE.matches) { STAGE.close(); return true; }

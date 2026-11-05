@@ -59,7 +59,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   if (!fr.map.h) fr.map.h = MAP_H;
   // a height dragged before Agents went by rows (any pixel count, so a row could show in half): its rows
   if (fr.agents.h) { fr.agents.rows = Math.max(1, Math.min(8, Math.round((fr.agents.h - 44) / ROW))); delete fr.agents.h; }
-  const S = { open: false, full: false, returnTo: null, railOff: false, rail: false, filesWas: false, yielded: false, wide: false, h: { agents: "", changes: "", head: "", chn: "" } };
+  const S = { open: false, full: false, returnTo: null, railOff: false, rail: false, aside: false, yielded: false, wide: false, h: { agents: "", changes: "", head: "", chn: "" } };
 
   const el = document.createElement("aside");
   el.className = "stage";
@@ -197,6 +197,8 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   }
 
   function open({ focus = true } = {}) {
+    // asked for while a file sits beside the chat: the right column is the panel's again, the file waits
+    if (filesView.docked) { filesView.minimise({ chip: false }); S.aside = false; }
     if (!S.open) {
       S.open = true;
       S.returnTo = document.activeElement;
@@ -240,12 +242,13 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
 
   /** Every render: the frames follow the view; the rail follows Files. */
   function sync() {
-    // a phone has no room for both: Files opening steps the panel aside, and closing Files brings it back
-    const fo = filesView.isOpen;
-    if (fo !== S.filesWas) {
-      S.filesWas = fo;
-      if (fo && S.open && innerWidth <= 760) { S.yielded = true; close({ restore: false, quiet: true }); return; }
-      if (!fo && S.yielded) { S.yielded = false; if (!S.open && innerWidth <= 760) open(); }
+    // the panel steps aside while Files covers a phone, and while a file sits beside the chat (the right
+    // column holds one thing: the chat); it comes back as it was when the file goes
+    const aside = filesView.isOpen && (innerWidth <= 760 || filesView.docked);
+    if (aside !== S.aside) {
+      S.aside = aside;
+      if (aside && S.open) { S.yielded = true; close({ restore: false, quiet: true }); return; }
+      if (!aside && S.yielded) { S.yielded = false; if (!S.open) open({ focus: innerWidth <= 760 }); }
     }
     if (!S.open) return;
     fitRail();

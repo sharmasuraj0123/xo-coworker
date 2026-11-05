@@ -27,6 +27,8 @@ export const ACTIONS = [
   { id: "keys", scope: "global", label: "All shortcuts, on one sheet", def: "?" },
   { id: "shells", scope: "global", label: "Toggle shells", def: "mod+`" },
   { id: "map", scope: "global", label: "The map: where your agents are working", def: "mod+\\" },
+  { id: "chatFold", scope: "global", label: "Beside a file: fold the chat, or open it and write", def: "mod+j" },
+  { id: "treeFold", scope: "global", label: "Beside a file: fold or show the files", def: "mod+b" },
   { id: "esc", scope: "global", label: "Back, exactly where you were (a shell keeps Esc)", fixed: "Esc" },
   { id: "allow", scope: "decision", label: "Allow (routine, notable)", def: "a" },
   { id: "hold", scope: "decision", label: "Allow a destructive ask (hold 1.2 s)", fixed: "hold ↵" },
