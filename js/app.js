@@ -919,7 +919,9 @@ function msgItems(conv, needs) {
       if (!inner) { prev = m; continue; }
       // is-folded: running with nothing pressed open and no step waiting on you (the working bubble shows)
       const live = m.turn.status === "running", unfolded = inner.includes('aria-expanded="true"') || /class="[^"]*\bis-waiting\b/.test(inner);
-      html = `<div class="m m-them m-turn${live ? " is-live" : ""}${live && !unfolded ? " is-folded" : ""}">${turnAv(m.turn, m.blocks)}<div class="mb">${inner}</div></div>`;
+      // has-said: while it works it has already said something (words, files) that shows above its bubble
+      const said = live && !unfolded && /class="turn[^"]*\bis-said\b/.test(inner);
+      html = `<div class="m m-them m-turn${live ? " is-live" : ""}${live && !unfolded ? " is-folded" : ""}${said ? " has-said" : ""}">${turnAv(m.turn, m.blocks)}<div class="mb">${inner}</div></div>`;
     } else if (m.who === "card") {
       html = `<div class="m m-them m-card"><div class="av av-gap"></div><div class="mb">${threadCardHtml(m.thread, needs)}</div></div>`;
     } else if (m.who === "system" && m.passedOn) {

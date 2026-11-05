@@ -311,7 +311,9 @@ function working(el) {
       // live turn is drawn last, so that's the latest; pinned there, the card grows into view; QA #8)
       toLatest(true);
     });
-    mb.prepend(w);
+    // after what the turn has said so far: it stands where the reply will be, as a typing bubble does
+    // (put before the turn, an agent's words said mid-turn showed below it: owner, 5 Nov)
+    mb.append(w);
   }
   const wt = w.querySelector(".mx-wt");
   const cur = wt.querySelector(".mx-wl:not(.is-out)");
@@ -325,11 +327,14 @@ function working(el) {
     const line = Object.assign(document.createElement("span"), { className: old || !was ? "mx-wl is-in" : "mx-wl", textContent: shown });
     wt.append(line);
   }
-  // it starts the agent's run (so it has the tail) unless the agent was just speaking
-  // (it's drawn last, so what comes before it on screen is the conversation's last message)
+  // it starts the agent's run (so it has the tail) unless the agent was just speaking, before this turn or in
+  // it, above the bubble (it's drawn last, so what comes before it on screen is the conversation's last message)
   const pv = [...msgs.children].filter((c) => c !== el && !c.classList.contains("mx-live")).pop();
+  const said = el.classList.contains("has-said");
   w.classList.add("is-them");
-  w.classList.toggle("mx-tail", !(pv && pv.matches(".m-them:not(.mx-other)")));
+  w.classList.toggle("mx-tail", !said && !(pv && pv.matches(".m-them:not(.mx-other)")));
+  // under the work's own line ("Working · 12m · 18 steps"), the bubble needn't repeat the time
+  w.classList.toggle("mx-under", said && !!el.querySelector(":scope > .mb > .turn > .tb-work"));
   const st = Object.assign(was || {}, { text, shown, since, swapped: !was || was.text !== text ? now : was.swapped });
   WORKING.set(key, st);
   settle(el, st);
