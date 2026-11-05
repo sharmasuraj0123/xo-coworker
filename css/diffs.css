@@ -29,3 +29,76 @@ diffs-container{
   --diffs-bg-selection-number-override:color-mix(in srgb,var(--info) 24%,var(--code-bg));
   --diffs-selection-number-fg:var(--ink);
 }
+
+/* ── counts: "+5 −8", tabular so they never shift, the code tokens' green and red ── */
+.xd-n{flex:none;display:inline-flex;gap:6px;font:500 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums;letter-spacing:0;color:var(--ink-4)}
+.xd-n b{font-weight:500}
+.xd-a{color:var(--code-add)}
+.xd-d{color:var(--code-del)}
+
+/* ── a turn's changed files in chat: the chip carries its counts; the one the panel shows reads as chosen ── */
+.tb-cf .xd-n{margin-left:2px}
+.tb-cf.is-on{background:color-mix(in srgb,var(--ink) 9%,var(--g1A));border-color:var(--g40);color:var(--ink)}
+
+/* ── the panel's Changes (js/changesframe.js): the list, then the chosen file's diff ──
+   Rows are 32 px on the panel's 12 px side margins; the card's head is 36 px, its button 28 px, 4 px in:
+   radius 12 − 4 = 8. */
+.stage .fr[data-fr="changes"] .fr-b{display:flex;flex-direction:column;overflow:hidden}
+.stage .cx-host{flex:1;min-height:0;display:flex;flex-direction:column}
+.stage .cx{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
+.stage .cx-list{flex:none;list-style:none;display:flex;flex-direction:column;gap:2px;max-height:170px;margin:0;padding:0 12px 8px;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.stage .cx-r{box-sizing:border-box;display:grid;grid-template-columns:16px minmax(0,1fr) auto;column-gap:8px;align-items:center;width:100%;height:32px;padding:0 8px;border-radius:var(--r);text-align:left;color:var(--ink-2);transition:background var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease)}
+.stage .cx-r:hover{background:var(--panel-hover);transition-duration:var(--d-hover-in)}
+.stage .cx-r.is-on{background:color-mix(in srgb,var(--ink) 8%,var(--side));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 11%,transparent),var(--panel-lift)}
+:root[data-theme="light"] .stage .cx-r.is-on{background:var(--surface);box-shadow:inset 0 0 0 1px var(--panel-line),var(--panel-lift)}
+.stage .cx-i{position:relative;display:grid;place-items:center;width:16px;height:16px}
+.stage .cx-i svg.fi{width:16px;height:16px}
+.stage .cx-i .arc{right:-6px;bottom:-6px;background:var(--side)}
+.stage .cx-r.is-on .cx-i .arc{background:color-mix(in srgb,var(--ink) 8%,var(--side))}
+:root[data-theme="light"] .stage .cx-r.is-on .cx-i .arc{background:var(--surface)}
+.stage .cx-t{display:flex;align-items:baseline;gap:8px;min-width:0;overflow:hidden;white-space:nowrap}
+.stage .cx-n{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:500 var(--fs-base)/20px var(--sans)}
+.stage .cx-d{flex:0 100 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.stage .cx-r:hover .cx-n,.stage .cx-r.is-on .cx-n{color:var(--ink)}
+.stage .cx-pane{position:relative;flex:1 1 0;min-height:120px;display:flex;flex-direction:column;margin:0 12px 12px;border-radius:var(--r-lg);border:1px solid var(--panel-line);background:var(--code-bg);overflow:hidden}
+.stage .cx-pane[hidden]{display:none}
+.stage .cx-ph{flex:none;box-sizing:border-box;display:flex;align-items:center;gap:8px;height:36px;padding:0 4px 0 12px;border-bottom:1px solid var(--panel-line)}
+.stage .cx-pp{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 var(--fs-sm)/16px var(--mono);color:var(--ink-2)}
+.stage .cx-sp{flex:1}
+.stage .cx-ofi{display:grid;place-items:center;width:28px;height:28px;border-radius:calc(var(--r-lg) - 4px);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.stage .cx-ofi:hover{background:var(--panel-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
+.stage .cx-ofi svg{width:16px;height:16px}
+.stage .cx-pd{flex:1 1 0;min-height:0;overflow:auto;overscroll-behavior:contain;outline:none;scrollbar-width:thin}
+.stage .cx-pd[hidden]{display:none}
+.stage .cx-pd diffs-container{--diffs-font-size:12px;--diffs-line-height:18px}
+.stage .cx-note,.stage .cx-none{margin:0;padding:12px;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.stage .cx-none{padding:4px 20px 12px}
+.stage .cx-none .spin{display:inline-block;width:10px;height:10px;margin-right:6px;border-radius:50%;vertical-align:-1px}
+/* paused: an edit you aren't looking at, said quietly over the diff, never a jump */
+.stage .cx-pill{position:absolute;z-index:2;top:44px;left:50%;transform:translateX(-50%);display:inline-flex;align-items:center;gap:8px;height:28px;max-width:calc(100% - 48px);padding:0 12px;border-radius:var(--r-pill);background:var(--surface);border:1px solid var(--panel-line);box-shadow:var(--e2);font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-2);white-space:nowrap;animation:cx-pill var(--d-in) var(--ease)}
+.stage .cx-pill[hidden]{display:none}
+.stage .cx-pill>span:first-of-type{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.stage .cx-pill b{font-weight:500;color:var(--ink)}
+.stage .cx-pill i{width:6px;height:6px;border-radius:50%;background:var(--ink-3)}
+.stage .cx-pill .cx-show{font-weight:500;color:var(--ink)}
+.stage .cx-pill .cx-show::before{content:"·";margin-right:8px;font-weight:400;color:var(--ink-4)}
+.stage .cx-pill:hover{border-color:var(--line-hover)}
+@keyframes cx-pill{from{opacity:0;transform:translate(-50%,-4px)}}
+/* the frame's head: the total beside the count, and Follow */
+.stage [data-fr="changes"] .fr-n{display:inline-flex;align-items:baseline;gap:8px}
+.stage .xd-follow{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px;border-radius:var(--r-pill);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.stage .xd-follow[hidden]{display:none}
+.stage .xd-follow:hover{background:var(--panel-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
+.stage .xd-follow.is-on{background:color-mix(in srgb,var(--info) 14%,transparent);color:color-mix(in srgb,var(--info) 75%,var(--ink))}
+.stage .xd-follow:focus-visible,.stage .cx-r:focus-visible,.stage .cx-ofi:focus-visible,.stage .cx-pill:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.xd-arc{position:relative;width:10px;height:10px}
+.xd-arc::before{content:"";position:absolute;inset:0;border-radius:50%;border:1.5px solid color-mix(in srgb,currentColor 25%,transparent);border-top-color:currentColor;animation:arc-turn 1.6s linear infinite}
+@media (prefers-reduced-motion:reduce){.xd-arc::before,.stage .cx-pill{animation:none}.stage :is(.cx-r,.cx-ofi,.xd-follow){transition:none}}
+
+/* ── Files › a changed file, on its diff (js/viewer.js): the page's own ground, side by side when there's room ── */
+.vw-diff{background:var(--canvas)}
+.vw-diff diffs-container{--code-bg:var(--canvas);min-height:100%}
+.vw-t .xd-n{align-self:baseline}
+.vw-btn.is-on{background:var(--g24);color:var(--ink)}
+@container flpv (max-width:1099px){.vw-split{display:none}}
+.fl-r .xd-n{margin-left:4px}

@@ -10,7 +10,7 @@
 // tools/diffview/theme.mjs); everything else is CSS custom properties on the library's element
 // (css/diffs.css), so light and dark switch without a redraw. app.js calls setTheme() when you switch.
 //
-// Calls: prefetch, diff, file, langOf, setTheme, loaded.
+// Calls: prefetch, diff, file, jump, langOf, setTheme, loaded.
 
 const LIB = new URL("./vendor/pierre-diffs/diffs.js", import.meta.url).href;
 const WORKER = new URL("./vendor/pierre-diffs/worker.js", import.meta.url).href;
@@ -136,6 +136,24 @@ export async function diff(host, patch, o = {}) {
     split(on) { v.setOptions({ ...v.options, diffStyle: on ? "split" : "unified" }); v.rerender(); },
     destroy() { live.delete(v); v.cleanUp(); host.replaceChildren(); },
   };
+}
+
+/**
+ * J / K: bring the next (dir 1) or previous (dir −1) change in a drawn diff to the top of its scroller,
+ * 40 px down. A change is a run of added or removed rows. Returns false when there's none that way.
+ */
+export function jump(scroller, dir) {
+  const root = scroller.querySelector("diffs-container")?.shadowRoot;
+  if (!root) return false;
+  const rows = [...root.querySelectorAll("[data-line-type]")];
+  const changed = (r) => r && /addition|deletion/.test(r.dataset.lineType || "");
+  const starts = rows.filter((r, i) => changed(r) && !changed(rows[i - 1]));
+  const top = scroller.getBoundingClientRect().top + 40;
+  const at = (r) => r.getBoundingClientRect().top - top;
+  const to = dir > 0 ? starts.find((r) => at(r) > 2) : [...starts].reverse().find((r) => at(r) < -2);
+  if (!to) return false;
+  scroller.scrollTop += at(to);
+  return true;
 }
 
 /**

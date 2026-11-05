@@ -16,6 +16,7 @@ export const GROUPS = [
   { id: "decision", name: "On a decision" },
   { id: "intel", name: "In the intelligence popover" },
   { id: "picture", name: "On a picture" },
+  { id: "diff", name: "In a diff (the panel's Changes, Files)" },
 ];
 
 /** Every action. `fixed` rows are shown for reference but can't be changed. */
@@ -47,6 +48,8 @@ export const ACTIONS = [
   { id: "picOpen", scope: "picture", label: "Open a picture in the conversation", fixed: "click · ↵" },
   { id: "picStep", scope: "picture", label: "The previous or next picture in this conversation", fixed: "← →" },
   { id: "picClose", scope: "picture", label: "Put it back where it was (or swipe down)", fixed: "Esc" },
+  { id: "nextChange", scope: "diff", label: "The next change", def: "j" },
+  { id: "prevChange", scope: "diff", label: "The previous change", def: "k" },
 ];
 const BY = new Map(ACTIONS.map((a) => [a.id, a]));
 

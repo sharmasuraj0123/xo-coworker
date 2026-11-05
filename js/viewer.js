@@ -20,6 +20,9 @@ import { renderMarkdown } from "./markdown.js";
 import { highlight, langOf } from "./highlight.js";
 import { api, attachmentUrl, attachmentText } from "./api.js";
 import { kindOf, typeWord } from "./attach.js";
+import * as DV from "./diffview.js";
+import * as K from "./keys.js";
+import { countsHtml } from "./changesframe.js";
 
 const size = (n) => (n == null ? "" : n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(1)} MB`);
 const bytes = (s) => new TextEncoder().encode(s).length;
@@ -30,6 +33,7 @@ const KIND_WORD = { markdown: "Markdown", html: "HTML", text: "Text", code: "Cod
  * Highlighted HTML (flat <span class="tk-…">…</span> runs, as js/highlight.js makes them) cut into
  * lines: a run that crosses a line ends at the line's end and starts again on the next one.
  */
+const SPLIT_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M12 4.5v15"/></svg>';
 // the Source toggle's glyph: angle brackets, drawn like the other line icons
 const SRC_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>';
 
@@ -50,9 +54,18 @@ export function splitHighlighted(html) {
   return out;
 }
 
-export function createViewer({ announce, onChange, tabs }) {
+/**
+ * changes: js/changes.js. A file a place changed opens on its diff (Changes), drawn by js/diffview.js from
+ * git's patch; File shows it whole. "N unmodified lines" unfold from both whole versions, read only then.
+ */
+export function createViewer({ announce, onChange, tabs, changes = null }) {
   const el = $("#viewer");
-  const V = { open: false, parked: false, file: null, data: null, error: null, loading: false, mode: "preview", returnTo: null, gen: 0, copied: false, dims: null, saving: false, saveError: null };
+  const V = { open: false, parked: false, file: null, data: null, error: null, loading: false, mode: "preview", returnTo: null, gen: 0, copied: false, dims: null, saving: false, saveError: null, show: "file", split: false };
+  // the diff, kept across redraws of the head (Pierre's element moves with its body): {el, handle, key, gen}
+  const DF = { el: null, handle: null, key: null, gen: 0 };
+  /** This file in its place's changes ({scope, path, file, base}), or null. */
+  const chg = () => (changes && V.file && V.file.project && V.file.rel ? changes.at(V.file.project, V.file.rel) : null);
+  const showsDiff = () => V.show === "changes" && !!chg();
 
   /** The object URL an image is shown from lives as long as the image is open. */
   function dropImage() {
@@ -86,16 +99,20 @@ export function createViewer({ announce, onChange, tabs }) {
       ? `<a class="vw-btn" href="${esc(attachmentUrl(f.att.chat, f.att.id))}" download="${esc(f.name || "file")}" title="Download" aria-label="Download">${ICON.down}<span>Download</span></a>`
       : `<a class="vw-btn" href="${esc(attachmentUrl(f.att.chat, f.att.id))}" target="_blank" rel="noopener noreferrer" title="Open in a new tab" aria-label="Open in a new tab">${ICON.arrow}<span>New tab</span></a>`)
       : canSave() ? `<button type="button" class="vw-btn" data-vw-save title="Download the whole file" aria-label="Download"${V.saving ? " disabled" : ""}>${ICON.down}<span>${V.saving ? "Downloading…" : "Download"}</span></button>` : "";
-    const meta = [kind, V.dims && `${V.dims.w} × ${V.dims.h}`, size(d ? d.size_bytes : f.bytes)].filter(Boolean);
-    const canCopy = !!(d && typeof d.content === "string");
-    const toggle = d && (d.kind === "html" || d.kind === "markdown")
+    const c = chg(), diffing = showsDiff();
+    const meta = diffing ? [] : [kind, V.dims && `${V.dims.w} × ${V.dims.h}`, size(d ? d.size_bytes : f.bytes)].filter(Boolean);
+    const canCopy = !diffing && !!(d && typeof d.content === "string");
+    // a changed file: what changed, or the whole file (the design's head: name, counts, the switch)
+    const show = c ? `<div class="vw-seg" role="group" aria-label="Show"><button type="button" data-vw-show="changes" aria-pressed="${diffing}">Changes</button><button type="button" data-vw-show="file" aria-pressed="${!diffing}">File</button></div>` +
+      (diffing ? `<button type="button" class="vw-btn vw-split${V.split ? " is-on" : ""}" data-vw-split aria-pressed="${V.split}" title="${V.split ? "One column" : "Side by side"}" aria-label="Side by side">${SPLIT_IC}</button>` : "") : "";
+    const toggle = diffing ? "" : d && (d.kind === "html" || d.kind === "markdown")
       ? `<div class="vw-seg" role="group" aria-label="Show"><button type="button" data-vw-mode="preview" aria-pressed="${V.mode === "preview"}" title="Preview" aria-label="Preview">${ICON.eye}<span>Preview</span></button><button type="button" data-vw-mode="source" aria-pressed="${V.mode === "source"}" title="Source" aria-label="Source">${SRC_IC}<span>Source</span></button></div>`
       : d && d.kind === "image"
         ? `<div class="vw-seg" role="group" aria-label="Size"><button type="button" data-vw-mode="preview" aria-pressed="${V.mode === "preview"}">Fit</button><button type="button" data-vw-mode="actual" aria-pressed="${V.mode === "actual"}" aria-label="Actual size"><span class="vw-wide">Actual size</span><span class="vw-narrow" aria-hidden="true">1:1</span></button></div>`
         : "";
     return `<header class="vw-top"><span class="vw-ic" aria-hidden="true">${fileIcon(f.name || f.path || "")}</span>` +
-      `<div class="vw-t"><h2 id="vw-h"${f.where ? ` title="${esc(f.where)}"` : ""}>${esc(f.name || f.path)}</h2>${meta.length ? `<span class="vw-meta">${esc(meta.join(" · "))}</span>` : ""}</div>` +
-      `<div class="vw-acts">${toggle}${tab}` +
+      `<div class="vw-t"><h2 id="vw-h"${f.where ? ` title="${esc(f.where)}"` : ""}>${esc(f.name || f.path)}</h2>${c && diffing ? countsHtml(c.file) : ""}${meta.length ? `<span class="vw-meta">${esc(meta.join(" · "))}</span>` : ""}</div>` +
+      `<div class="vw-acts">${show}${toggle}${tab}` +
       (canCopy ? `<button type="button" class="vw-btn" data-vw-copy title="Copy the contents" aria-label="${V.copied ? "Copied" : "Copy"}">${ICON.copy}<span>${V.copied ? "Copied" : "Copy"}</span></button>` : "") +
       `<button type="button" class="vw-x" data-vw-close aria-label="Close the file" title="Close (Esc)">${ICON.close}</button></div></header>`;
   }
@@ -131,8 +148,64 @@ export function createViewer({ announce, onChange, tabs }) {
     return cut + main;
   }
 
+  /** The diff body: one element, kept (with Pierre's drawing in it) while the head around it redraws. */
+  function diffBody() {
+    if (!DF.el) { DF.el = document.createElement("div"); DF.el.className = "vw-body vw-diff"; DF.el.tabIndex = 0; }
+    return DF.el;
+  }
+  function dropDiff() { DF.gen++; if (DF.handle) { DF.handle.destroy(); DF.handle = null; } DF.key = null; }
+  /** Both whole versions, for "N unmodified lines" (read only when you unfold them). */
+  async function bothSides(c, fd) {
+    const f = V.file, oldRel = (c.scope.base ? `${c.scope.base}/` : "") + (c.file.old_path || c.path);
+    const [o, n] = await Promise.all([
+      c.file.status === "added" ? null : api.projectFile(f.project, oldRel, { commit: c.base, path: c.file.old_path || c.path }),
+      c.file.status === "deleted" ? null : api.projectFile(f.project, f.rel),
+    ]);
+    if ((o && o.truncated) || (n && n.truncated)) throw new Error("too large to unfold");
+    return { oldFile: o ? { name: fd.prevName || fd.name, contents: o.content } : null, newFile: n ? { name: fd.name, contents: n.content } : null };
+  }
+  async function drawDiff(c) {
+    const host = diffBody();
+    const patch = await changes.patchAt(c).catch(() => null);
+    const key = `${c.scope.key}|${c.path}|${patch ? patch.length + ":" + patch.slice(-64) : "none"}`;
+    if (DF.key === key && DF.handle) return;
+    const my = ++DF.gen;
+    if (!patch) {
+      dropDiff();
+      const why = c.file.binary || c.file.patch_omitted === "binary" ? "Binary file" : c.file.patch_omitted === "submodule" ? "A submodule" : "Too large to show here";
+      host.innerHTML = `<div class="vw-empty"><p>${esc(why)}.</p>${canSave() ? `<p><button type="button" class="vw-cut-dl" data-vw-save>Download</button></p>` : ""}</div>`;
+      DF.key = key;
+      return;
+    }
+    try {
+      if (DF.handle && DF.key && DF.key.startsWith(`${c.scope.key}|${c.path}|`)) DF.handle.update(patch);
+      else {
+        if (DF.handle) { DF.handle.destroy(); DF.handle = null; }
+        host.replaceChildren();
+        const h = await DV.diff(host, patch, { path: c.path, wrap: true, split: V.split, loadFiles: (fd) => bothSides(c, fd) });
+        if (my !== DF.gen) { h.destroy(); return; }
+        DF.handle = h;
+      }
+      DF.key = key;
+    } catch {
+      if (my !== DF.gen) return;
+      dropDiff();
+      host.innerHTML = `<div class="vw-empty"><p>Couldn't draw this diff.</p><p><button type="button" class="vw-cut-dl" data-vw-show="changes">Try again</button></p></div>`;
+    }
+  }
+
   function render() {
     if (!V.open) return;
+    if (showsDiff()) {
+      // the head redraws; the diff's body (and where you are in it) stays
+      const host = diffBody(), top = host.scrollTop;
+      el.innerHTML = (tabs ? tabs() : "") + head() + `<i data-vw-diff hidden></i>`;
+      el.querySelector("[data-vw-diff]").replaceWith(host);
+      host.scrollTop = top;
+      drawDiff(chg());
+      return;
+    }
+    if (DF.handle || DF.key) dropDiff();
     const keep = el.querySelector(".vw-body")?.scrollTop || 0;
     const framed = V.data && ((V.data.kind === "html" && V.mode === "preview") || V.data.kind === "pdf");
     const failed = V.saveError ? `<p class="vw-cut" role="alert">${ICON.clock}<span>${esc(V.saveError)}</span></p>` : "";
@@ -189,10 +262,14 @@ export function createViewer({ announce, onChange, tabs }) {
     if (V.parked) { V.parked = false; el.hidden = false; }
     Object.assign(V, { open: true, file: { ...f, where: f.rel || f.path || "", image: f.att ? kindOf(f.type || "") === "image" : f.local == null && isImagePath(f.rel || f.path || f.name) }, data: null, dims: null, error: null, why: f.why || null, mode: V.textMode || "preview", copied: false, saving: false, saveError: null, returnTo: from || (was ? V.returnTo : document.activeElement) });
     if (V.file.image) V.mode = "preview";
+    // a changed file asked for as a change (the panel's Open in Files, the tree's Changed section) opens on
+    // its diff; any other way in, whole. The diff is drawn from the patch and needs no read of the file.
+    dropDiff(); if (DF.el) DF.el.scrollTop = 0;
+    V.show = f.show === "changes" ? "changes" : "file";
     el.hidden = false;
     document.body.classList.add("viewer-open");
     if (!was) { el.classList.remove("is-in"); void el.offsetWidth; el.classList.add("is-in"); }
-    if (V.why) render(); else load();
+    if (V.why) render(); else if (showsDiff()) { V.loading = false; render(); } else load();
     el.focus({ preventScroll: true });
     announce(`${f.name || f.path} is open beside the conversation. Esc closes it.`);
     onChange && onChange();
@@ -201,7 +278,7 @@ export function createViewer({ announce, onChange, tabs }) {
   function close({ restore = true } = {}) {
     if (!V.open) return;
     V.open = false; V.parked = false; V.gen++;
-    dropImage(); V.data = null;
+    dropImage(); V.data = null; dropDiff();
     el.hidden = true; el.innerHTML = "";
     document.body.classList.remove("viewer-open");
     const back = V.returnTo;
@@ -219,6 +296,9 @@ export function createViewer({ announce, onChange, tabs }) {
 
   el.addEventListener("click", (e) => {
     if (e.target.closest("[data-vw-close]")) { close(); return; }
+    const sh = e.target.closest("[data-vw-show]");
+    if (sh) { V.show = sh.dataset.vwShow; if (V.show === "file" && !V.data && !V.loading) { load(); return; } V.keepScroll = true; render(); return; }
+    if (e.target.closest("[data-vw-split]")) { V.split = !V.split; if (DF.handle) DF.handle.split(V.split); render(); return; }
     const m = e.target.closest("[data-vw-mode]");
     if (m) { V.mode = m.dataset.vwMode; if (V.mode !== "actual") V.textMode = V.mode; render(); return; }
     if (e.target.closest(".vw-img img")) { V.mode = V.mode === "actual" ? "preview" : "actual"; render(); return; }
@@ -240,7 +320,11 @@ export function createViewer({ announce, onChange, tabs }) {
     render();
   }, true);
   el.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); close(); }
+    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); close(); return; }
+    // J / K: the next or previous change, on a diff
+    if (!showsDiff() || !DF.el || e.target.closest("input, textarea, [contenteditable]")) return;
+    const dir = K.is(e, "nextChange") ? 1 : K.is(e, "prevChange") ? -1 : 0;
+    if (dir) { e.preventDefault(); DV.jump(DF.el, dir); }
   });
 
   /** Live mode: the file steps aside, kept as it was (scroll and all), until `unpark`. */

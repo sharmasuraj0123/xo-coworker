@@ -137,12 +137,21 @@ const BAD = new Set(["error", "denied"]);
 const CHANGED = new Set(["create_file", "edit_file"]);
 const base = (p) => String(p || "").replace(/\/+$/, "").split("/").pop();
 
+/** A chip's "+5 −8": the place's whole change to that file (Space's /changes), tabular, green and red. */
+function counts(c) {
+  if (!c) return "";
+  if (c.binary) return "";
+  const a = c.additions || 0, d = c.deletions || 0;
+  return `<span class="xd-n" aria-label="${a} added, ${d} removed">${a ? `<b class="xd-a">+${a}</b>` : ""}${d ? `<b class="xd-d">−${d}</b>` : ""}</span>`;
+}
+
 /**
  * The files a finished turn created or edited, as chips: what it touched on the way stays a reference. A
  * file it also shared (in a block, or on its message: `carried`) is a deliverable and shows there instead.
- * more: the data-tb key "+N more" opens (the work it hides).
+ * more: the data-tb key "+N more" opens (the work it hides). changed(target): the file's counts in the place's
+ * changes ({additions, deletions, binary, on: chosen in the panel}), or null.
  */
-function changedChips(rows, blocks, more, carried = []) {
+function changedChips(rows, blocks, more, carried = [], changed = null) {
   const shared = new Set([...blocks.filter((b) => b.type === "shared_files").flatMap((b) => b.files || []), ...carried].map((f) => base(f.path || f.name)));
   const files = new Map();
   for (const r of rows) if (CHANGED.has(r.kind) && r.status === "ok" && r.target && !shared.has(base(r.target))) files.set(r.target, r);
@@ -150,7 +159,7 @@ function changedChips(rows, blocks, more, carried = []) {
   const list = [...files.values()];
   const shown = list.slice(0, 6);
   const rest = list.length - shown.length;
-  return `<ul class="tb-chg" aria-label="Files changed">${shown.map((r) => `<li><button type="button" class="tb-cf" data-file="${esc(r.target)}" data-file-name="${esc(base(r.target))}" title="${esc(r.target)}"><span class="tb-cfi">${fileIcon(r.target)}</span><span class="tb-cfn">${esc(base(r.target))}</span></button></li>`).join("")}` +
+  return `<ul class="tb-chg" aria-label="Files changed">${shown.map((r) => { const c = changed ? changed(r.target) : null; return `<li><button type="button" class="tb-cf${c && c.on ? " is-on" : ""}" data-file="${esc(r.target)}" data-file-name="${esc(base(r.target))}" title="${esc(r.target)}"${c && c.on ? ' aria-current="true"' : ""}><span class="tb-cfi">${fileIcon(r.target)}</span><span class="tb-cfn">${esc(base(r.target))}</span>${counts(c)}</button></li>`; }).join("")}` +
     (rest > 0 ? `<li><button type="button" class="tb-cf is-more" data-tb="${esc(more)}">+${rest} more</button></li>` : "") + `</ul>`;
 }
 
@@ -187,7 +196,7 @@ function workFold(turn, work, blocks, open, live, now, media = {}) {
     const bad = rows.filter((r) => (BAD.has(r.status) || r.kind === "error") && !(turn.status === "failed" && r.kind === "error") && !routine(r));
     // in words, a step that didn't work is said, not shown: what it ran is one click away, in Details
     if (bad.length) under += WORDS ? `<p class="tb-note tb-wbad">${bad.length === 1 ? "One step" : `${bad.length} steps`} didn't work. Open the line above to see what happened.</p>` : `<ul class="tb-rows tb-bad">${bad.slice(-3).map((r) => rowHtml(r, open)).join("")}</ul>`;
-    under += changedChips(rows, blocks, key, media.carried);
+    under += changedChips(rows, blocks, key, media.carried, media.changed);
   }
   return `<div class="tb tb-work${live ? " is-live" : ""}${waiting ? " is-waiting" : ""}${under.includes('<ul class="tb-rows') ? " has-rows" : ""}" data-b="${esc(key)}">${head}${under}</div>`;
 }
@@ -214,8 +223,8 @@ function withoutWireNotices(b) {
  * carried: the files the conversation's messages carry (a shared file among them isn't drawn twice);
  * route(path): a shared file's project route ({project, rel} or {why}); by: who made them (the lightbox).
  */
-export function turnHtml(turn, blocks, { open = {}, hideAnswer = false, now = Date.now(), carried = [], route = null, by = "", working = false } = {}) {
-  const media = { carried, route, by, at: Date.parse(turn.at) || null };
+export function turnHtml(turn, blocks, { open = {}, hideAnswer = false, now = Date.now(), carried = [], route = null, by = "", working = false, changed = null } = {}) {
+  const media = { carried, route, by, at: Date.parse(turn.at) || null, changed };
   const live = turn.status === "running";
   const shown = blocks.filter((b) => !(hideAnswer && b.type === "answer")).map(withoutWireNotices).filter(Boolean);
   const work = shown.filter((b) => WORK.has(b.type));
@@ -228,7 +237,7 @@ export function turnHtml(turn, blocks, { open = {}, hideAnswer = false, now = Da
     if (fold && WORK.has(b.type)) { if (b === work[0]) parts.push(workFold(turn, work, shown, open, live, now, media)); continue; }
     // a turn whose work is one tool group (codex often has no thinking or narration): its files show
     // under that group's line, inside it, as they would under the fold
-    const chips = b.type === "activity" && !live && b.done && !open[b.id] ? changedChips(b.rows || [], shown, b.id, carried) : "";
+    const chips = b.type === "activity" && !live && b.done && !open[b.id] ? changedChips(b.rows || [], shown, b.id, carried, changed) : "";
     parts.push(blockHtml(b, open, live, now, media, chips));
   }
   const html = parts.filter(Boolean);

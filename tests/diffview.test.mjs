@@ -76,7 +76,7 @@ await t("first load stays as it was: only js/diffview.js reaches the library, an
     assert.ok(!/vendor\/pierre-diffs|diffthemes/.test(s), `js/${f} reaches the library directly`);
   }
   const html = readFileSync(join(ROOT, "index.html"), "utf8");
-  assert.ok(!/pierre-diffs|diffview/.test(html), "index.html loads the library");
+  assert.ok(!/(?:src|href)="[^"]*(?:pierre-diffs|diffview|diffthemes)/.test(html), "index.html loads the library");
 });
 
 console.log(`\n${passed} passed`);

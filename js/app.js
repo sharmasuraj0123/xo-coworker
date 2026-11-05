@@ -33,6 +33,8 @@ import { createMap, MAP_ICON } from "./map.js";
 import { createStage } from "./stage.js";
 import { createFiles } from "./files.js";
 import { createFilesView } from "./filesview.js";
+import { createChanges } from "./changes.js";
+import { setTheme as setDiffTheme } from "./diffview.js";
 import { createTray, fmtSize, kindOf, isLargePaste, pasteLabel, uploadErrorText, FINAL, MAX_FILES } from "./attach.js";
 import { api, uploadAttachment } from "./api.js";
 import { classify, glyph } from "./projicons.js";
@@ -84,6 +86,7 @@ const STOP_ICON = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="
 const THEME = { get() { try { return localStorage.getItem("cv-theme") === "light" ? "light" : "dark"; } catch { return "dark"; } } };
 function applyTheme(t) {
   document.documentElement.dataset.theme = t;
+  setDiffTheme(t); // a drawn diff follows at once (js/diffview.js)
   document.querySelector('meta[name="color-scheme"]')?.setAttribute("content", t);
   // the browser's own chrome (Safari's bars, Android's status bar) takes the canvas's colour
   const canvas = getComputedStyle(document.documentElement).getPropertyValue("--canvas").trim();
@@ -168,7 +171,9 @@ const CH = createChats({
   },
 });
 world.ui = { tbOpen: S.tbOpen }; // turn blocks open or folded, shared with the Chats view
-const VW = createViewer({ announce, onChange: () => schedule() }); // a file, in the panel's File tab (if1 #2, js/stage.js)
+// what a place changed, from Space's /changes (js/changes.js): the panel's Changes, Files' diffs, the chips' counts
+const CHG = createChanges({ world, onChange: () => schedule() });
+const VW = createViewer({ announce, onChange: () => schedule(), changes: CHG }); // a file, in Files (js/filesview.js)
 // a picture opens over the conversation (js/lightbox.js); Open in Files hands it to the viewer, which brings Files up
 const LB = createLightbox({ openFile: (it, from) => VW.open(viewerFile(it), from), announce });
 wireDragOut($("#msgs"));
@@ -231,10 +236,10 @@ const SORT_STATE = { needs_approval: 0, needs_reply: 0, paused: 0, failed: 1, wo
 const MAP = createMap({ world, viewer: VW, go: (v) => go(v), announce, isBusy, onChange: () => schedule(), openFile: (f, from) => VW.open(f, from) });
 // the panel: one card on the right with tabs (Map, Made, File; later apps), one header button, ⌘\
 // Files: the project's files, and the one place a file opens (js/files.js, design-research/13)
-const FILES = createFiles({ world, viewer: VW, isBusy, PROJ, go: (v) => go(v) });
+const FILES = createFiles({ world, viewer: VW, isBusy, PROJ, go: (v) => go(v), changes: CHG });
 // Files is a place in the main area (js/filesview.js); the panel is a stack of frames: Agents · Map · Changes
 const FILESV = createFilesView({ files: FILES, viewer: VW, view: () => S.view, PROJ, world, announce, onChange: () => schedule() });
-const STAGE = createStage({ map: MAP, mapIcon: MAP_ICON, files: FILES, filesView: FILESV, viewer: VW, view: () => S.view, go: (v) => go(v), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)) });
+const STAGE = createStage({ map: MAP, mapIcon: MAP_ICON, files: FILES, changes: CHG, filesView: FILESV, viewer: VW, view: () => S.view, go: (v) => go(v), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)) });
 STAGE.names = (v) => (v.startsWith("t:") ? world.thread(v.slice(2))?.title || "Thread" : v.startsWith("p:") ? PROJ(v.slice(2)) : v === "ws" ? "Workspace" : "Your projects");
 REC.panel = STAGE;
 /** The runtime a thread runs on, fixed for its life (its session's agent). */
@@ -851,6 +856,9 @@ function msgItems(conv, needs) {
   const lastYou = [...list].reverse().find((m) => m.who === "you");
   // your newest message the agent hasn't read yet: Interrupt stops the turn so it reads it next
   const lastQueued = [...list].reverse().find((m) => m.queued);
+  // a changed file's chip carries its +/− counts, and reads as chosen while the panel shows its diff
+  const chosen = STAGE.chosen(conv);
+  const changed = (target) => { const c = CHG.forTarget(conv, target); return c ? { additions: c.file.additions, deletions: c.file.deletions, binary: c.file.binary, on: c.path === chosen } : null; };
   for (const m of list) {
     const d = Number.isFinite(m.at) ? dayOf(m.at) : day;
     if (d !== day) { items.push({ key: "day|" + d, html: `<div class="day" role="separator"><span>${esc(d)}</span></div>` }); day = d; prev = null; }
@@ -893,7 +901,7 @@ function msgItems(conv, needs) {
         (cont ? "" : `<div class="mh"><b>${esc(name)}</b>${role ? `<span class="role">${esc(role)}</span>` : ""}<time>${clock(m.at)}</time>${iq}</div>`) +
         `${m.text ? proseHtml(m.text) : ""}${media}${reactionsHtml(m.reactions)}${tid ? threadCardHtml(tid, needs) : ""}${(m.threads || []).map((x) => threadCardHtml(x, needs)).join("")}</div></div>`;
     } else if (m.who === "turn") {
-      const inner = turnHtml(m.turn, m.blocks, { open: S.tbOpen, hideAnswer: m.hideAnswer, carried: m.carried, route: fileRoute, by: nameOf(conv, "agent")[0], working: m.working });
+      const inner = turnHtml(m.turn, m.blocks, { open: S.tbOpen, hideAnswer: m.hideAnswer, carried: m.carried, route: fileRoute, by: nameOf(conv, "agent")[0], working: m.working, changed });
       if (!inner) { prev = m; continue; }
       // is-folded: running with nothing pressed open and no step waiting on you (the working bubble shows)
       const live = m.turn.status === "running", unfolded = inner.includes('aria-expanded="true"') || /class="[^"]*\bis-waiting\b/.test(inner);
@@ -1968,6 +1976,8 @@ function sendLive(raw) {
   if (!here && S.view === "home") { go(conv, { carry: true }); toLatest(false); lift(msgsEl.querySelector(`[data-k="${m.id}"]`), from); }
   else if (!here) heraldShow({ kind: "sent", text: `Sent to ${chat === "workspace" ? "the coordinator" : PROJ(chat)}`, sub: "open to follow the reply", open: conv }, 9000);
   else { render(); toLatest(false); lift(msgsEl.querySelector(`[data-k="${m.id}"]`), from); }
+  // handing the work back to the agent: the panel's Changes follows it again (the owner's D6)
+  if (thread) STAGE.resumeFollow(conv);
   deliverLive(m, thread);
 }
 
@@ -2081,6 +2091,7 @@ function render() {
     const ready = liveReady(v);
     if (!opening && ready && S.filled !== v) quiet = true;
     S.filled = ready ? v : null;
+    CHG.sync(v); // what this place changed: read on opening, and after each edit an agent finishes
     const items = msgItems(v, needs);
     // the work folds about to be redrawn, measured before anything changes (workMotion glides them)
     const folds = quiet ? null : foldsBefore(items);
@@ -2563,6 +2574,9 @@ document.addEventListener("click", (e) => {
   if (ed) { editFailed(ed.dataset.edit); return; }
   const mx = t.closest("[data-mx]");
   if (mx) { openMedia(mx, e); return; }
+  // a changed file's chip: its diff in the panel's Changes; anything else (a link to a file), Files
+  const cf = t.closest(".tb-cf[data-file]");
+  if (cf) { const c = CHG.forTarget(S.view, cf.dataset.file); if (c && STAGE.showChange(c.path)) { schedule(); return; } }
   const fb = t.closest("[data-file]");
   if (fb) { e.preventDefault(); openSharedFile(fb); return; }
   const cp = t.closest("[data-copy]");

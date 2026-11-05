@@ -328,7 +328,14 @@ export const api = {
 
   // ── projects ──────────────────────────────────────────────────────────────
   /** A text file inside a project, for the file viewer: {name, kind, size_bytes, truncated, content, …}. */
-  projectFile: (project, relativePath) => get(`/xo-projects/${enc(project)}/file`, { relative_path: relativePath }),
+  projectFile: (project, relativePath, at) => get(`/xo-projects/${enc(project)}/file`, { relative_path: relativePath, ...(at ? { commit: at.commit, commit_path: at.path } : {}) }),
+  /**
+   * What changed in a project (Space, design-research/2026-11-vision/pierre): a thread's worktree against
+   * where its branch left the default branch, uncommitted work included, or the project's own checkout
+   * against its HEAD. {root, base_commit, head_commit, computed_at, truncated, files: [{path, old_path?,
+   * status, additions, deletions, binary, version, patch, patch_omitted?}]}. path: one file (up to 1 MB).
+   */
+  projectChanges: (project, { worktree, path } = {}) => get(`/xo-projects/${enc(project)}/changes`, { ...(worktree ? { worktree } : {}), ...(path ? { path } : {}) }),
   /** One folder of a project, a level at a time (a thread's worktree is `.xo/worktrees/<name>`): {dirs, files}. */
   projectTree: (project, relativePath) => get(`/xo-projects/${enc(project)}/tree`, relativePath ? { relative_path: relativePath } : undefined),
   /** An image inside a project, as a Blob for the image viewer (fetched, so it carries the Coder header and errors read as words). */
