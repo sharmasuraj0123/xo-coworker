@@ -654,8 +654,9 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       const p = a.nid != null ? place(a.nid) : null;
       if (!p) continue;
       const i = stack.get(a.nid) || 0; stack.set(a.nid, i + 1);
-      // a second agent on the same box sits beside the first, on the same row
-      const x = p.x + (p.side === "left" ? -i : i) * 18, y = p.y;
+      // a second agent on the same box sits beside the first, on the same row; on the graph's small dots
+      // they stack as a deck behind the first instead (a row there runs into the labels)
+      const x = p.deck ? p.x + i * 4 : p.x + (p.side === "left" ? -i : i) * 18, y = p.deck ? p.y + i * 4 : p.y;
       seen.add(a.id);
       let c = M.curs.get(a.id);
       const more = i === 0 ? (share.get(a.nid) || 1) - 1 : 0;
@@ -675,6 +676,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       c.el.classList.toggle("is-idle", !a.busy);
       c.el.classList.toggle("is-wait", a.waiting);
       c.el.classList.toggle("is-stacked", i > 0);
+      c.el.style.zIndex = p.deck ? String(9 - Math.min(i, 8)) : "";
       c.el.classList.toggle("is-left", p.side === "left");
       c.el.classList.toggle("is-below", p.side === "below"); // its name is in the first one's "+N" and in the chips above
       const to = `translate(${x}px,${y}px)`;
@@ -816,7 +818,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     const tag = M.gags && M.gags.length ? tagW() * 0.6 : 0;
     if (M.gnodes.length) { M.bounds = { x0: x0 - 12, y0: y0 - 12, x1: x1 + 12 + tag, y1: y1 + 12 }; M.rootPt = { x: 0, y: 0 }; }
     const at = new Map(M.gnodes.map((g) => [g.n.id, g]));
-    cursors(M.gags, (id) => { const g = at.get(id); if (!g) return null; const r = RAD[g.n.kind] || 4; return { x: g.p.x + r * 0.55, y: g.p.y + r * 0.55, cx: g.p.x, cy: g.p.y }; });
+    cursors(M.gags, (id) => { const g = at.get(id); if (!g) return null; const r = RAD[g.n.kind] || 4; return { x: g.p.x + r * 0.55, y: g.p.y + r * 0.55, cx: g.p.x, cy: g.p.y, deck: true }; });
   }
   function gkick() {
     if (M.raf) return;
