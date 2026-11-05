@@ -97,7 +97,7 @@ body.chat-docked.chat-railed .crail{display:flex;position:absolute;z-index:6;top
 .crail-ic svg{width:16px;height:16px}
 .crail-m{position:absolute;top:2px;right:2px;font-style:normal}
 .crail-m.is-new{width:6px;height:6px;border-radius:50%;background:var(--info)}
-.crail-m.is-ask{display:grid;place-items:center;width:14px;height:14px;border-radius:50%;background:var(--warn);color:#1A1200;font:700 10px/1 var(--sans)}
+.crail-m.is-ask{display:grid;place-items:center;width:14px;height:14px;border-radius:50%;background:var(--warn);color:#1A1200;font:600 10px/1 var(--sans)}
 .crail-t{writing-mode:vertical-rl;transform:rotate(180deg);max-height:min(320px,60vh);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 var(--fs-sm)/16px var(--sans)}
 /* compact (under sidebar + 44 + the chat + 560): opened, the chat lies over the file's right edge */
 body.chat-docked.chat-over .fv{right:44px}
