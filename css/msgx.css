@@ -187,10 +187,12 @@ body.files-open .mx-down{display:none}
    changes where things are drawn, never the app's order) */
 :root[data-msgx] #msgs{display:flex;flex-direction:column}
 :root[data-msgx] #msgs>.m-turn.is-live{order:1000}
-/* The browser's own scroll anchoring reads the list in its source order, which isn't the drawn order here;
-   when a turn started it pulled the view up 16 px (Design research's trace; gone with this). The app keeps
-   your reading place itself (app.js holdAnchor), so the conversation opts out of the browser's. */
-:root[data-msgx] #msgs>*{overflow-anchor:none}
+/* Scroll anchoring: the browser keeps what you're reading still when something above it changes height
+   (an older page landing, its skeleton coming or going), and does it without breaking a scroll in flight.
+   Never switch it off for the whole list: that made every older page shove the view away by its height
+   while you scrolled up (owner, 5 Nov: "bumpy"). Only the working turn, drawn out of its list order, is
+   never the anchor. */
+:root[data-msgx] #msgs>.m-turn.is-live{overflow-anchor:none}
 /* While it's folded, its place is held at the bubble's 44 px from the very first frame, before msgx.js has
    drawn the bubble, so a redraw never passes through a different layout (the app's scroll-keeping measures
    in between). Everything here keys off the app's own markup (.is-live, aria-expanded), not msgx.js. */
