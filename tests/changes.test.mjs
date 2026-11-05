@@ -85,6 +85,29 @@ await t("Space without /changes: one read, then the place says so and today's li
   assert.equal(calls.length, 1, calls.join("\n"));
 });
 
+await t("a project that isn't a git repository, or a thread whose worktree is gone: what agents touched, not an error", async () => {
+  calls.length = 0;
+  reply = (u) => (u.searchParams.get("worktree")
+    ? { status: 404, body: { detail: { code: "worktree_not_found", message: "There is no such worktree in this project." } } }
+    : { status: 404, body: { detail: { code: "not_a_repository", message: "This project isn't a git repository." } } });
+  const C = createChanges({ world: world(store([])), onChange() {} });
+  C.sync("t:a"); C.sync("p:p");
+  await tick(10);
+  assert.equal(C.of("t:a").state, "unsupported");   // this thread's worktree is gone
+  assert.equal(C.of("p:p").state, "unsupported");   // the project isn't a repository: every place in it
+  const before = calls.length;
+  C.sync("p:p"); C.sync("t:b");
+  await tick(10);
+  assert.equal(calls.length, before, "a project that isn't a repository isn't asked again");
+  // anything else is an error said in Space's own words
+  reply = () => ({ status: 500, body: { detail: { code: "internal", message: "Space broke." } } });
+  const D = createChanges({ world: world(store([])), onChange() {} });
+  D.sync("t:a");
+  await tick(10);
+  assert.equal(D.of("t:a").state, "error");
+  assert.equal(D.of("t:a").err, "Space broke.");
+});
+
 await t("a place is read on opening, and once more per finished edit (not per render), one read at a time", async () => {
   calls.length = 0;
   const T = store([{ id: "u1", done: true, rows: [row(1, "edit_file", WT + "/js/a.js")] }]);

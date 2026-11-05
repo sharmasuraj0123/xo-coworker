@@ -7,7 +7,8 @@
 // in flight per place; edits that land meanwhile get one more read after it. The diff library and the
 // changed files' grammars load while the browser is idle (js/diffview.js prefetch).
 //
-// Until Space has the route (a bare 404), places say "unsupported" and the UI keeps today's list.
+// Where Space can't say (no route yet, a project that isn't a git repository, a thread whose worktree is
+// gone), the place is "unsupported" and the UI keeps the list of what the turns say agents touched.
 //
 // app.js calls: sync (every render), of, entry, forTarget, patch, activity.
 
@@ -97,8 +98,11 @@ export function createChanges({ world, onChange }) {
       // the library, its worker and the languages' grammars get ready while the browser is idle
       prefetch([...files.keys()].slice(0, 24));
     } catch (err) {
-      if (err.status === 404 && err.code === "http_404") { NO.add(s.project); p.state = "unsupported"; }
-      else if (p.state !== "ok") { p.state = "error"; p.err = err.status === 404 ? "This folder isn't there any more." : err.message || "Couldn't read what changed."; }
+      // where Space can't say what changed (no such route yet, a project that isn't a git repository, a
+      // thread whose worktree is gone), the panel and Files keep what the turns say agents touched
+      if (err.status === 404 && (err.code === "http_404" || err.code === "not_a_repository")) { NO.add(s.project); p.state = "unsupported"; }
+      else if (err.status === 404 && err.code === "worktree_not_found") p.state = "unsupported";
+      else if (p.state !== "ok") { p.state = "error"; p.err = err.message || "Couldn't read what changed."; }
     }
     p.inflight = false;
     onChange && onChange();
