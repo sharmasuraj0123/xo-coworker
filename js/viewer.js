@@ -1,6 +1,8 @@
 // The file viewer (if1 #2): a shared file opens in a panel beside the conversation, like a canvas.
 // Markdown renders (markdown.js), other text is coloured code with line numbers (highlight.js), and
-// HTML shows in a sandboxed frame with no scripts and no same-origin (Source shows its text), and an
+// HTML shows in a sandboxed frame that runs the page's own scripts but has no same-origin (an opaque origin:
+// no reach into XO's window, cookies, storage or /api, which serve.py refuses a null origin; no popups,
+// forms or top navigation; Source shows its text), and an
 // image shows fitted to the panel (Actual size, or a click on it, shows it 1:1). It reads the
 // project-scoped `/api/xo-projects/<project>/file` and `/image` routes only, never `/api/files/*`.
 // A file attached to a message (hub #30) opens here too: an image as itself, a PDF in a frame, text as
@@ -109,7 +111,8 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   /** A shared project file saves whole; attachments and pastes have no project. */
   const canSave = () => !!(V.file.project && V.file.rel);
 
-  async function save() {
+  /** Download the whole file (a project file's own route). Its own name: Edit's save() is another job. */
+  async function download() {
     if (V.saving) return;
     const f = V.file;
     V.saving = true; V.saveError = null; V.keepScroll = true; render();
@@ -132,7 +135,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     const tab = f.att ? (kindOf(f.type || "") === "text"
       ? `<a class="vw-btn" href="${esc(attachmentUrl(f.att.chat, f.att.id))}" download="${esc(f.name || "file")}" title="Download" aria-label="Download">${ICON.down}<span>Download</span></a>`
       : `<a class="vw-btn" href="${esc(attachmentUrl(f.att.chat, f.att.id))}" target="_blank" rel="noopener noreferrer" title="Open in a new tab" aria-label="Open in a new tab">${ICON.arrow}<span>New tab</span></a>`)
-      : canSave() ? `<button type="button" class="vw-btn" data-vw-save title="Download the whole file" aria-label="Download"${V.saving ? " disabled" : ""}>${ICON.down}<span>${V.saving ? "Downloading…" : "Download"}</span></button>` : "";
+      : canSave() ? `<button type="button" class="vw-btn" data-vw-download title="Download the whole file" aria-label="Download"${V.saving ? " disabled" : ""}>${ICON.down}<span>${V.saving ? "Downloading…" : "Download"}</span></button>` : "";
     const c = chg(), diffing = showsDiff();
     const meta = diffing ? [] : [kind, V.dims && `${V.dims.w} × ${V.dims.h}`, size(d ? d.size_bytes : f.bytes)].filter(Boolean);
     const canCopy = !diffing && !!(d && typeof d.content === "string");
@@ -153,7 +156,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       : !diffing && canEdit() ? `<button type="button" class="xd-edit" data-vw-edit title="Edit (E)" aria-label="Edit"${ED.opening ? " disabled" : ""}>${EDIT_IC}<span>${ED.opening ? "Opening…" : "Edit"}</span></button>` : "";
     return `<header class="vw-top">${name}` +
       `<div class="vw-acts">${runs}${show}${toggle}${edit}${tab}` +
-      (canCopy ? `<button type="button" class="vw-btn" data-vw-copy title="Copy the contents" aria-label="${V.copied ? "Copied" : "Copy"}">${ICON.copy}<span>${V.copied ? "Copied" : "Copy"}</span></button>` : "") +
+      (canCopy ? `<button type="button" class="vw-btn${V.copied ? " is-done" : ""}" data-vw-copy title="${V.copied ? "Copied" : "Copy the contents"}" aria-label="${V.copied ? "Copied" : "Copy"}">${V.copied ? ICON.check : ICON.copy}<span>${V.copied ? "Copied" : "Copy"}</span></button>` : "") +
       `<button type="button" class="vw-x" data-vw-close aria-label="Close the file" title="Close (Esc)">${ICON.close}</button></div></header>`;
   }
 
@@ -310,10 +313,10 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     }
     if (d.kind === "pdf") return `<iframe class="vw-frame vw-pdf" src="${esc(d.url)}" title="${esc(V.file.name || "PDF")}" referrerpolicy="no-referrer"></iframe>`;
     const text = String(d.content ?? "");
-    const cut = d.truncated ? `<p class="vw-cut">${ICON.clock}<span>Showing the first ${esc(size(bytes(text)))} of ${esc(size(d.size_bytes))}. The rest isn't previewed.</span>${canSave() ? `<button type="button" class="vw-cut-dl" data-vw-save${V.saving ? " disabled" : ""}>Download the whole file</button>` : ""}</p>` : "";
+    const cut = d.truncated ? `<p class="vw-cut">${ICON.clock}<span>Showing the first ${esc(size(bytes(text)))} of ${esc(size(d.size_bytes))}. The rest isn't previewed.</span>${canSave() ? `<button type="button" class="vw-cut-dl" data-vw-download${V.saving ? " disabled" : ""}>Download the whole file</button>` : ""}</p>` : "";
     let main;
     if (d.kind === "markdown" && V.mode !== "source") main = `<article class="prose vw-md">${renderMarkdown(text)}</article>`;
-    else if (d.kind === "html" && V.mode === "preview") main = `<iframe class="vw-frame" sandbox="" referrerpolicy="no-referrer" title="${esc(V.file.name || "HTML preview")}" srcdoc="${esc(text)}"></iframe>`;
+    else if (d.kind === "html" && V.mode === "preview") main = `<iframe class="vw-frame" sandbox="allow-scripts" referrerpolicy="no-referrer" title="${esc(V.file.name || "HTML preview")}" srcdoc="${esc(text)}"></iframe>`;
     else main = ""; // text and code show through Pierre (render → showsFile)
     return cut + main;
   }
@@ -344,7 +347,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (!patch) {
       dropDiff();
       const why = c.file.binary || c.file.patch_omitted === "binary" ? "Binary file" : c.file.patch_omitted === "submodule" ? "A submodule" : "Too large to show here";
-      host.innerHTML = `<div class="vw-empty"><p>${esc(why)}.</p>${canSave() ? `<p><button type="button" class="vw-cut-dl" data-vw-save>Download</button></p>` : ""}</div>`;
+      host.innerHTML = `<div class="vw-empty"><p>${esc(why)}.</p>${canSave() ? `<p><button type="button" class="vw-cut-dl" data-vw-download>Download</button></p>` : ""}</div>`;
       DF.key = key;
       return;
     }
@@ -470,7 +473,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       // the head redraws; the file's body (Pierre's drawing, where you are, a question you're writing) stays
       const host = fileBody(), top = host.scrollTop, d = V.data;
       if (DF.handle || DF.key) dropDiff();
-      const cut = d.truncated ? `<p class="vw-cut">${ICON.clock}<span>Showing the first ${esc(size(bytes(d.content)))} of ${esc(size(d.size_bytes))}. The rest isn't previewed.</span>${canSave() ? `<button type="button" class="vw-cut-dl" data-vw-save${V.saving ? " disabled" : ""}>Download the whole file</button>` : ""}</p>` : "";
+      const cut = d.truncated ? `<p class="vw-cut">${ICON.clock}<span>Showing the first ${esc(size(bytes(d.content)))} of ${esc(size(d.size_bytes))}. The rest isn't previewed.</span>${canSave() ? `<button type="button" class="vw-cut-dl" data-vw-download${V.saving ? " disabled" : ""}>Download the whole file</button>` : ""}</p>` : "";
       const bar = el.querySelector(":scope > .xd-bar");
       const failed = V.saveError ? `<p class="vw-cut" role="alert">${ICON.clock}<span>${esc(V.saveError)}</span></p>` : "";
       el.innerHTML = (tabs ? tabs() : "") + head() + failed + cut + `<i data-vw-file hidden></i>`;
@@ -578,8 +581,20 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     onChange && onChange();
   }
 
+  /** Copy, and say so on the button. Where the browser has no clipboard API (a page not served over https or
+   *  from this machine), the selection's own copy; where both refuse, the head says so in words. */
   async function copy(text) {
-    try { await navigator.clipboard.writeText(text); V.copied = true; } catch { announce("Couldn't copy: the browser refused."); return; }
+    let ok = false;
+    try { await navigator.clipboard.writeText(text); ok = true; } catch {
+      const ta = Object.assign(document.createElement("textarea"), { value: text, readOnly: true });
+      ta.style.cssText = "position:fixed;top:0;left:0;width:1px;height:1px;opacity:0";
+      const back = document.activeElement;
+      el.appendChild(ta); ta.select();
+      try { ok = document.execCommand("copy"); } catch { ok = false; }
+      ta.remove(); back && back.focus && back.focus({ preventScroll: true });
+    }
+    if (!ok) { V.saveError = "Couldn't copy: the browser didn't allow it here. Select the text and copy it, or download the file."; V.keepScroll = true; render(); announce("Couldn't copy."); return; }
+    V.copied = true; V.saveError = null;
     V.keepScroll = true; render();
     announce("Copied.");
     setTimeout(() => { if (V.copied) { V.copied = false; V.keepScroll = true; render(); } }, 1400);
@@ -607,7 +622,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (e.target.closest(".vw-img img")) { V.mode = V.mode === "actual" ? "preview" : "actual"; render(); return; }
     if (e.target.closest("[data-vw-copy]")) { copy(String(V.data.content)); return; }
     if (e.target.closest("[data-vw-copy-path]")) { copy(V.file.path); return; }
-    if (e.target.closest("[data-vw-save]")) save();
+    if (e.target.closest("[data-vw-download]")) download();
   });
   // an image's size shows in the header once it has decoded; one that won't decode says so
   el.addEventListener("load", (e) => {
