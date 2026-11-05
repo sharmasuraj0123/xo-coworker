@@ -420,6 +420,7 @@ body.viewer-open .fv~.dock{display:none}
 .stage .map-host .gn.m-edited .gn-d{background:var(--violet)}
 .stage .map-host .gn.is-here .gn-d{background:var(--c);box-shadow:0 0 0 2px var(--panel-canvas),0 0 0 5px color-mix(in srgb,var(--c) 25%,transparent)}
 .stage .map-host .gn.k-root:not(.is-here) .gn-d{background:var(--ink-3)} /* the root is neutral until an agent is there */
+:root[data-theme="light"] .stage .map-host .gn.k-root:not(.is-here) .gn-d{background:#B9B9B6} /* the pale map grey, not a black blob */
 /* light: a pale agent colour (the yellow) keeps an edge of its own hue on the pale canvas, on its dot and its arrow */
 :root[data-theme="light"] .stage .map-host .gn.is-here .gn-d{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 70%,#000),0 0 0 2px var(--panel-canvas),0 0 0 5px color-mix(in srgb,var(--c) 30%,transparent)}
 :root[data-theme="light"] .stage .map-host .dg-cur:not(.is-idle) .dg-arrow path{stroke:color-mix(in srgb,var(--c) 62%,#000);stroke-width:1}
