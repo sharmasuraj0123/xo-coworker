@@ -104,6 +104,7 @@ const S = {
   pfind: "", pfCur: 0,     // the sidebar's project filter (hub #16) and its highlighted row
   parent: {}, opener: {}, scroll: {},
   dockFold: {},
+  lref: {},                // beside a file: the lines a message will be about, per conversation {path, a, b, name}
   get showHops() { return SHAPE.on("xo:thread/hops"); },  // the shape's xo:thread/hops (cv-hops folded into this device's layer)
   tbOpen: {},              // storm blocks opened by the person (by block id, or row:<call id>)
   stops: new Map(),        // live Stops by session: waiting out their Undo, or on their way
@@ -177,7 +178,7 @@ world.ui = { tbOpen: S.tbOpen }; // turn blocks open or folded, shared with the 
 const CHG = createChanges({ world, onChange: () => schedule() });
 const VW = createViewer({
   announce, onChange: () => schedule(), changes: CHG,
-  ask: { target: (f) => askPlace(f)?.name || null, send: askAboutLines },
+  ask: { target: (f) => askPlace(f)?.name || null, send: askAboutLines, compose: (f, a, b) => composeAbout(f, a, b) },
   // a save (Files › Edit): its place's changes are read again; Tell the agent is a message to its thread
   edits: { saved: (f) => CHG.saved(f.project, f.rel), tell: (f, s) => sendAbout(f, `I edited ${s.path}. Read it again before you change it.`) },
   away: () => { if (!FILESV.docked) return false; FILESV.minimise(); return true; },
@@ -1797,6 +1798,7 @@ function targetLineRender() {
 }
 function updateComposer() {
   trayRender();
+  lrefRender();
   if (chatTargetRender()) {
     syncPlaceholder();
     $("#composer").classList.toggle("has-text", !!say.value);
@@ -1997,7 +1999,7 @@ function sendLive(raw) {
   if (block) { announce(`Not sent: ${block}. Your text is kept.`); return; }
   const tg = targetOf(raw, world.state.projects);
   if (tg.unknown) { heraldShow({ kind: "stopped", text: `No project called “${tg.unknown}”`, sub: "pick one from the @ list" }, 4600); announce(`There's no project called ${tg.unknown}. Nothing was sent.`); return; }
-  const text = stripTarget(raw, tg.token);
+  let text = stripTarget(raw, tg.token);
   const files = filesHere();
   if (!text && !files.count) return;
   if (files.busy) { announce("Not sent yet: waiting for the files to upload."); return; }
@@ -2007,6 +2009,9 @@ function sendLive(raw) {
   const chat = thread ? t.project : tg.pid || chatOf(S.view) || "workspace";
   const conv = thread ? S.view : convOfChat(chat);
   const here = conv === S.view;
+  // the lines a message is about (a file beside the chat): "path:a-b", then the words, as Ask about lines sends
+  const ref = here && S.lref[conv];
+  if (ref && text) { text = `${ref.path}:${ref.a}${ref.b > ref.a ? `-${ref.b}` : ""}\n\n${text}`; delete S.lref[conv]; }
   const from = say.getBoundingClientRect();
   // client_id: a retry of this exact message is the same request, so the server stores it once (UI-reference §0.7)
   const m = { id: `l${++S.n}_${Date.now().toString(36)}`, conv, at: Date.now(), who: "you", text, status: "sending", target: thread ? null : chat, cid: `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}` };
@@ -2505,6 +2510,27 @@ function askAboutLines(f, a, b, text) {
   const at = askPlace(f);
   return !!at && sendAbout(f, `${at.path}:${a}${b > a ? `-${b}` : ""}\n\n${text}`);
 }
+/** Beside the chat (Layout A, the owner's D4): asking about lines puts them in this conversation's own composer
+ *  as a capsule, and the composer has focus. The file's place must be this conversation; else false (the
+ *  file's own composer asks, as before). */
+function composeAbout(f, a, b) {
+  const at = FILESV.docked ? askPlace(f) : null;
+  if (!at || at.conv !== S.view || CH.isChats(S.view)) return false;
+  S.lref[S.view] = { path: at.path, a, b, name: f.name || at.path.split("/").pop() };
+  lrefRender();
+  FILESV.chat(true);
+  say.focus({ preventScroll: true });
+  announce(`Lines ${a}${b > a ? ` to ${b}` : ""} of ${S.lref[S.view].name} are in your message. Write your question.`);
+  return true;
+}
+/** The capsule above the composer's field: the file and its lines (opens them), and × to take it out. */
+function lrefRender() {
+  const r = S.lref[S.view], el = $("#cref");
+  const html = r ? `<a href="#${esc(r.path)}" class="lk lk-in lk-file" data-ref="${esc(r.path)}" data-ref-a="${r.a}" data-ref-b="${r.b}" title="${esc(`${r.path}, ${r.a === r.b ? "line" : "lines"} ${r.a}${r.b > r.a ? `–${r.b}` : ""}`)}"><span class="lk-ic">${fileIcon(r.name)}</span><span class="lk-t">${esc(r.name)} · ${r.a}${r.b > r.a ? `–${r.b}` : ""}</span></a>` +
+    `<button type="button" class="cref-x" data-lref-x aria-label="Take the lines out of this message" title="Take them out">${ICON.close}</button>` : "";
+  el.hidden = !r;
+  if (el._h !== html) { el.innerHTML = html; el._h = html; }
+}
 /** A message about a project file, as yours, in its thread (or its project's chat). True when it went. */
 function sendAbout(f, text) {
   const at = askPlace(f), block = liveBlock();
@@ -2673,6 +2699,7 @@ document.addEventListener("click", (e) => {
   if (ed) { editFailed(ed.dataset.edit); return; }
   const mx = t.closest("[data-mx]");
   if (mx) { openMedia(mx, e); return; }
+  if (t.closest("[data-lref-x]")) { delete S.lref[S.view]; lrefRender(); say.focus(); return; }
   const lr = t.closest("[data-ref]");
   if (lr) { e.preventDefault(); openLineRef(lr); return; }
   // a changed file's chip: its diff in the panel's Changes; anything else (a link to a file), Files

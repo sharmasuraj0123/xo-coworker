@@ -113,6 +113,8 @@
           <label class="sr-only" for="say" id="say-label">Message</label>
           <!-- files on this message (hub #30): each uploads as it's added; Send waits for them -->
           <ul class="att-tray" id="att-tray" aria-label="Files on this message" hidden></ul>
+          <!-- the lines this message is about, from a file beside the chat (Ask about these lines) -->
+          <div class="cref" id="cref" hidden></div>
           <div class="composer-field">
             <textarea id="say" rows="1" placeholder="Message" aria-autocomplete="list" aria-controls="at-list" aria-expanded="false" spellcheck="true"></textarea>
             <ul id="at-list" class="at-list" role="listbox" aria-label="Projects" hidden></ul>

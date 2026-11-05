@@ -104,4 +104,13 @@ body.chat-docked.chat-over .fv{right:44px}
 body.chat-docked.chat-over :is(.conv,.dock){z-index:8;box-shadow:var(--e2)}
 body.chat-docked.chat-over .conv{background:var(--canvas)}
 
+/* the lines a message is about, above the composer's field (Ask about these lines, beside a file) */
+.cref{display:flex;align-items:center;gap:4px;padding:8px 8px 0 12px}
+.cref[hidden]{display:none}
+.cref .lk{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cref-x{flex:none;display:grid;place-items:center;width:24px;height:24px;border-radius:var(--r-sm);color:var(--ink-4)}
+.cref-x:hover{background:var(--g1F);color:var(--ink)}
+.cref-x svg{width:14px;height:14px}
+.cref-x:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+
 @media (prefers-reduced-motion:reduce){.fv-ib,.fv-cgrip::before,.fl-rb,body.chat-docked :is(.conv,.dock){transition:none}}

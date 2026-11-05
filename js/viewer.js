@@ -434,6 +434,9 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (!s || !FL.handle || !ask) return;
     const to = ask.target(f);
     if (!to) return;
+    // beside the chat, the lines go into the chat's own composer (the owner's D4); this composer is the
+    // fallback where there's no chat beside the file, or it's another place's
+    if (ask.compose && ask.compose(f, s.a, s.b)) return;
     const q = composer();
     q.querySelector(".xd-ref").innerHTML = `${fileIcon(f.name || f.path)}<span>${esc(f.name || f.path)} · ${s.a === s.b ? `line ${s.a}` : `lines ${s.a}–${s.b}`}</span>`;
     q.querySelector(".xd-to").innerHTML = `To <b>${esc(to)}</b>`;
