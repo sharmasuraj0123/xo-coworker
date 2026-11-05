@@ -1,10 +1,10 @@
-// Bubbles and replies, an exploration (thread "Message styles & replies", branch xo/thread-682d17).
-// Not part of app.js: it only reads #msgs and decorates what the app draws, so it comes out by deleting
-// this file, css/msgx.css and their lines in index.html. Nothing here sends anything on its own: a
-// reply only adds a quote ("> …") to the message you send yourself.
+// The conversation's bubbles (with css/msgx.css): the shipped chat look and its behaviour, not an
+// experiment. It reads #msgs and decorates what app.js draws (it never changes the app's list), so the app
+// works without it, but the chat as designed needs it. Nothing here sends anything on its own: a reply
+// only adds a quote ("> …") to the message you send yourself.
 //
-//   Bubbles, with a switch over the conversation for the tone of yours (also ?tone=<id>):
-//     Graphite · Moss · Glass · Outline, and Tails on the last bubble of a run
+//   The look is final (owner, 5 Nov): yours in XO's green, theirs on glass, a tail on the first bubble of
+//   each run, every reply in a bubble. There is no switch.
 //   Replies:
 //     · hover a message: Reply and Copy on a small glass bar
 //     · select words in a message: "Reply to this" quotes exactly them
@@ -23,69 +23,14 @@ const IC = {
   check: I('<path d="m5 12.5 4.5 4.5L19 7.5"/>'),
   close: I('<path d="M6 6l12 12M18 6 6 18"/>'),
   down: I('<path d="M6 9.5l6 6 6-6"/>'),
-  open: I('<path d="M4 6h16M4 10h16M4 14h10M4 18h7"/>'),
-  tail: I('<path d="M5 5h11a4 4 0 0 1 4 4v4a4 4 0 0 1-4 4H9c-1.5 1.6-3.2 2.4-5 2.5 1-1.2 1-2.7 1-4.5z"/>'),
 };
 
-const TONES = [
-  { id: "xo", name: "XO", hint: "XO's green, deepened to hold its colour on the dark; the agent answers on glass" },
-  { id: "bright", name: "XO Bright", hint: "The brand green itself with dark ink, like the Send button: the boldest" },
-  { id: "graphite", name: "Graphite", hint: "No colour: a cool grey a step lighter than the agent's glass" },
-];
-const KEY = "cv-msgx-tone", TAILS = "cv-msgx-tails", OPEN = "cv-msgx-open";
-const fromUrl = new URLSearchParams(location.search).get("tone");
-let tone = TONES.some((t) => t.id === fromUrl) ? fromUrl : (localStorage.getItem(KEY) || "xo");
-if (!TONES.some((t) => t.id === tone)) tone = "xo";
-let tails = localStorage.getItem(TAILS) !== "0";
-let open = localStorage.getItem(OPEN) !== "0";
-
-function apply() {
-  root.dataset.msgx = "bubbles";
-  root.dataset.msgxTone = tone;
-  if (tails) root.dataset.msgxTails = ""; else delete root.dataset.msgxTails;
-  if (open) root.dataset.msgxOpen = ""; else delete root.dataset.msgxOpen;
-  try { localStorage.setItem(KEY, tone); localStorage.setItem(TAILS, tails ? "1" : "0"); localStorage.setItem(OPEN, open ? "1" : "0"); } catch { /* private mode */ }
-  for (const b of sw.querySelectorAll("[data-tone]")) b.setAttribute("aria-checked", String(b.dataset.tone === tone));
-  sw.querySelector(".mx-fold b").textContent = TONES.find((t) => t.id === tone).name;
-  sw.querySelector("[data-tails]").setAttribute("aria-pressed", String(tails));
-  sw.querySelector("[data-open]").setAttribute("aria-pressed", String(open));
-  decorate();
-}
-
-// ── the switch: a glass bar over the conversation ──────────────────────────
-const sw = document.createElement("div");
-sw.className = "mx-switch";
-sw.innerHTML = `<button type="button" class="mx-fold" aria-expanded="false" title="How your bubbles look">${IC.tail}<span>Bubbles</span><b></b>${IC.down}</button>` +
-  `<div class="mx-panel"><div class="mx-seg" role="radiogroup" aria-label="Your bubbles">${TONES.map((t) => `<button type="button" role="radio" data-tone="${t.id}" title="${t.hint}">${t.name}</button>`).join("")}</div>` +
-  `<button type="button" class="mx-spot" data-tails aria-pressed="false" title="A tail on the first bubble of a run">${IC.tail}<span>Tails</span></button>` +
-  `<button type="button" class="mx-spot mx-spot2" data-open aria-pressed="false" title="Long replies read on the canvas, not in a bubble">${IC.open}<span>Open</span></button></div>`;
-const fold = (open) => { sw.classList.toggle("is-open", open); sw.querySelector(".mx-fold").setAttribute("aria-expanded", String(open)); };
-sw.querySelector(".mx-fold").addEventListener("click", () => fold(!sw.classList.contains("is-open")));
-document.addEventListener("pointerdown", (e) => { if (!sw.contains(e.target)) fold(false); });
-document.addEventListener("keydown", (e) => { if (e.key === "Escape" && sw.classList.contains("is-open")) fold(false); });
-const hint = document.createElement("p");
-hint.className = "mx-hint"; hint.setAttribute("aria-live", "polite");
-let hintT = 0;
-function say(text) {
-  hint.textContent = text; hint.classList.add("is-on");
-  clearTimeout(hintT); hintT = setTimeout(() => hint.classList.remove("is-on"), 2600);
-}
-sw.addEventListener("click", (e) => {
-  const b = e.target.closest("[data-tone]");
-  if (b) { tone = b.dataset.tone; apply(); say(TONES.find((t) => t.id === tone).hint); return; }
-  if (e.target.closest("[data-tails]")) { tails = !tails; apply(); say(tails ? "Tails on: the last bubble of a run curls into a tail" : "Tails off"); }
-  if (e.target.closest("[data-open]")) { open = !open; apply(); say(open ? "Open: long replies read on the canvas; short ones stay bubbles" : "Every reply in a bubble"); }
-});
+// The CSS keys off these attributes. Fixed: XO's green for yours, tails on, long replies stay bubbles.
+root.dataset.msgx = "bubbles";
+root.dataset.msgxTone = "xo";
+root.dataset.msgxTails = "";
+delete root.dataset.msgxOpen;
 const conv = $("#conv");
-conv.append(sw, hint);
-// on a phone there's no margin beside the text, so the switch lives in the top bar, beside Settings
-const phoneMQ = matchMedia("(max-width: 760px)");
-const seat = () => { if (phoneMQ.matches) $("#phonebar").insertBefore(sw, $("#set-phone")); else if (sw.parentNode !== conv) conv.insertBefore(sw, hint); };
-phoneMQ.addEventListener("change", seat); seat();
-// it sits just under whatever heads the conversation (the title, and in a thread its steps)
-const place = () => conv.style.setProperty("--mx-top", `${$("#scroller").offsetTop}px`);
-const ro = new ResizeObserver(place);
-ro.observe($("#top")); ro.observe($("#thead"));
 
 // ── decorating what the app draws ───────────────────────────────────────────
 const msgs = $("#msgs");
@@ -176,13 +121,6 @@ function decorate() {
     const t = (el.querySelector(".bubble") || el.querySelector(".mb > .prose, .tb-answer"))?.textContent.trim() || "";
     el.classList.toggle("mx-emoji", t.length > 0 && t.length <= 16 && /^(?:\p{Extended_Pictographic}|\p{Emoji_Component}|\u200d|\ufe0f|\s)+$/u.test(t) && !/^[\d#*\s]+$/.test(t));
   }
-  // Open: a long reply (more than a few lines, or a list, code or a table) reads without a bubble
-  for (const el of kids) {
-    if (!el.classList.contains("m-them")) continue;
-    const b = bubbleOf(el);
-    const long = !!b && (b.textContent.length > 280 || b.querySelectorAll(":scope > p").length > 2 || !!b.querySelector(":scope > :is(ul,ol,pre,table,h1,h2,h3,blockquote,.md-code)"));
-    el.classList.toggle("mx-open", long);
-  }
   // Tails: on the first bubble of each run, pointing at the mark and name above it (as WhatsApp does)
   for (const el of kids) {
     if (!el.classList.contains("m")) continue;
@@ -193,7 +131,7 @@ function decorate() {
     const runStarted = you ? el.classList.contains("cont") : el.classList.contains("cont") || (prev && prev.matches(".m-them") && el.matches(".m-turn + .m-them:not(.mx-other), .m-them + .m-turn"));
     // an answer under the agent's work pills, or your words under your pictures, isn't the first thing in its message
     const first = el.classList.contains("m-turn") ? b === el.querySelector(".turn > :first-child") : !(you && el.querySelector(":scope > .mx-stack"));
-    const tail = !runStarted && first && !el.classList.contains("mx-emoji") && !el.classList.contains("mx-open") && !el.classList.contains("is-relay");
+    const tail = !runStarted && first && !el.classList.contains("mx-emoji") && !el.classList.contains("is-relay");
     b.classList.toggle("mx-tail", tail);
     b.classList.toggle("is-them", tail && !you);
   }
@@ -613,8 +551,7 @@ msgs.addEventListener("pointermove", (e) => {
 });
 for (const t of ["pointerup", "pointercancel"]) msgs.addEventListener(t, () => { if (touch && touch.on) gEnd(); touch = null; });
 
-apply();
-place();
+decorate();
 
 // ── back to the latest (as WhatsApp does) ───────────────────────────────────
 // Read further up than half a screen and a round button waits above the composer, on its right edge; a

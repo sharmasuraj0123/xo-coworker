@@ -1,0 +1,136 @@
+/* ── the phone (≤760 px): one bar per place ─────────────────────────────────────────────────────────
+   Thread "Phone UI audit" (2026-11-04), design B, chosen by the owner on 2026-11-05 with the three quick
+   fixes below. On a 390 × 844 phone a thread's bars took 282 px before the first message (the phonebar,
+   the thread's header, the checklist and its sub-agents); now 101. A conversation's own header is the
+   bar: ☰ or ‹, its name over one quiet line, its buttons; the checklist under it. Home and Artifacts keep
+   the phonebar, on the same lines. design-research/2026-11-phone/ has the measurements and the options.
+   Desktop is untouched: every rule here is inside the phone query, and .top-menu and .rn-live show only
+   there.
+
+   One scale: 4 · 8 · 12 · 16. The content's edges are 16 from the screen's. A borderless icon button
+   (☰, ‹) is 40 square, its 20 px glyph centred, so the glyph's edge sits on the content's 16 px line
+   (6 + 10). Outlined buttons are 36 square, their outer edge on the 16 px line. Every bar's controls
+   centre on y = 26 and its name starts at x = 54.
+
+   :root:root holds each rule at the specificity it was measured at (0,2,0), so it settles the earlier
+   phone rules in app.css and foundation.css without !important. */
+
+.top-menu{display:none}
+.rn-live{display:none}
+
+@media (max-width:760px){
+  /* the phonebar's outlined buttons end on the content's right edge (16, was 12); its
+     controls centre on y = 26 (6 + 40 / 2), the same line as a conversation's bar, in whole pixels
+     (it was 25.5: 51 px of content over a 1 px hairline) */
+  :root:root .phonebar{padding:6px 16px 5px 6px}
+  /* one height and one corner for the bar's outlined controls: 36 high, 12 round, the corner of the
+     checklist's 40 px box right under them (the gear was 11, the thread's buttons 6) */
+  :root:root .phonebar .help.gear,
+  :root:root .top :is(.tw-act,.stg-btn,.th-btn){border-radius:var(--r-lg)}
+  /* the thread's ✎ menu: each item on one line (at 180 px "Open a shell in its worktree" and "Continue on
+     another runtime…" wrapped out of their 36 px rows and ran into each other) */
+  :root:root .tw-menu{min-width:236px}
+  :root:root .tw-menu button{white-space:nowrap}
+
+  /* ── three quick fixes ───────────────────────────────────────────────────────────────────────────── */
+  /* 16 px in every field: under 16, iPhone zooms the page when one takes focus, and it stays zoomed
+     (Find a project was 13, New project 14, All threads 14, Jump 15, a decision's note 15) */
+  :root:root :is(input:not([type="checkbox"],[type="radio"],[type="range"],[type="file"]),textarea,select){font-size:16px}
+  /* the notch and the status bar: as a home-screen app the page runs under them (viewport-fit=cover),
+     so the bars start below the top safe area (0 in a browser tab) */
+  :root:root .phonebar{height:calc(52px + env(safe-area-inset-top));padding-top:calc(6px + env(safe-area-inset-top))}
+  :root:root :is(.home,.conv){top:calc(52px + env(safe-area-inset-top))}
+  :root:root .side-top{height:calc(64px + env(safe-area-inset-top));padding-top:env(safe-area-inset-top)}
+  :root:root .set-top{padding-top:calc(12px + env(safe-area-inset-top))}
+
+  /* ── one bar ───────────────────────────────────────────────────────────────────────────────────── */
+  /* in a conversation the phonebar steps aside; the conversation's header is the bar */
+  :root:root .app:is([data-view="thread"],[data-view="project"],[data-view="ws"]) .phonebar{display:none}
+  :root:root .app:is([data-view="thread"],[data-view="project"],[data-view="ws"]) .conv{top:0}
+  :root:root .top{
+    flex-direction:row;flex-wrap:wrap;align-items:center;align-content:flex-start;column-gap:4px;row-gap:0;
+    min-height:52px;padding:calc(6px + env(safe-area-inset-top)) 16px 5px 6px;border-bottom:1px solid var(--g1E)}
+  :root:root .top-menu,
+  :root:root .top-back{flex:none;display:grid;place-items:center;width:40px;height:40px;min-height:40px;margin:0;padding:0;border-radius:var(--r-lg);color:var(--ink-2)}
+  :root:root .top-back[hidden]{display:none}
+  :root:root .top-back:not([hidden]) ~ .top-menu{display:none}
+  :root:root .top-menu{order:-2}
+  :root:root .top-back{order:-1}
+  :root:root :is(.top-menu,.top-back) svg{width:20px;height:20px}
+  :root:root .top-back span{display:none}
+  :root:root :is(.top-menu,.top-back):active{transform:scale(.94)}
+  /* ☰ shows when there's no way back (the back button sits after it in the markup, so :has decides) */
+  :root:root .top:has(> .top-back[hidden]) .top-menu{display:grid}
+  :root:root .top:has(> .top-back:not([hidden])) .top-menu{display:none}
+
+  /* the name over one quiet line: 15/20 at 600, then 12/16; 36 high, so 8 above and below in the bar */
+  :root:root .top .top-who{flex:1 1 0;min-width:0;max-width:none;align-items:center;gap:8px}
+  :root:root .top .tw-ic{display:none}
+  :root:root .top .tw-t{display:flex;flex-direction:column;gap:0;min-width:0;padding-left:4px}
+  :root:root .top .tw-t h1,
+  :root:root .top .tw-h{font:600 var(--fs-lg)/20px var(--sans);letter-spacing:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  :root:root .top .pj-s{display:block;min-width:0;height:16px;margin:0;padding:0;font-size:var(--fs-sm);line-height:16px;color:var(--ink-3);text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  :root:root .top .pj-s :is(button,.pj-home){min-height:0;height:16px;line-height:16px}
+  :root:root .top-end{gap:8px;margin-left:8px}
+
+  /* a thread: its name, then its state and runtime as one line under it; Resolve, more, the panel */
+  :root:root .top[data-kind="thread"] .top-who{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;grid-template-rows:20px 16px;column-gap:0;row-gap:0;padding-left:4px}
+  :root:root .top[data-kind="thread"] .tw-h{grid-column:1 / 4;grid-row:1;display:block;-webkit-line-clamp:unset}
+  /* 16 px in the fields: under 16, iPhone zooms the page when one takes focus (and the label's was 13) */
+  :root:root .top[data-kind="thread"] .tw-in-t{grid-column:1 / 4;grid-row:1 / 3;height:36px;font:600 16px/1 var(--sans)}
+  :root:root .top[data-kind="thread"] .tw-in-l{grid-column:1 / 4;grid-row:1 / 3;height:36px;font:500 16px/1 var(--sans)}
+  :root:root .top[data-kind="thread"] .badge{grid-column:1;grid-row:2;height:16px;padding:0;gap:6px;background:none;font:500 var(--fs-sm)/16px var(--sans)}
+  :root:root .top[data-kind="thread"] .badge .g{width:7px;height:7px}
+  :root:root .top[data-kind="thread"] .tw-rt{grid-column:2;grid-row:2;height:16px;min-height:0;padding:0;margin:0;border-radius:0;background:none;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
+  :root:root .top[data-kind="thread"] .tw-rt::before{content:"·";margin:0 6px;color:var(--ink-4)}
+  :root:root .top[data-kind="thread"] .tw-label{grid-column:3;grid-row:2;justify-self:start;height:16px;margin-left:8px;padding:0 6px;font-size:var(--fs-sm);line-height:14px;max-width:100%}
+  :root:root .top[data-kind="thread"] .tw-acts{grid-column:4;grid-row:1 / 3;align-self:center;margin-left:8px}
+  /* renaming or labelling: the field takes the name's whole block, 36 high, and the quiet line steps aside */
+  :root:root .top[data-kind="thread"] .top-who:has(.tw-in) :is(.badge,.tw-rt,.tw-label){display:none}
+  :root:root .top[data-kind="thread"] .top-who:has(.tw-in-l) .tw-h{display:none}
+  /* a chat (Chats › one chat): its name and meta line, its state at the right */
+  :root:root .top[data-kind="thread"] .top-who:has(> .tw-t){display:flex}
+  :root:root .top[data-kind="thread"] .top-who > .tw-t{padding-left:0}
+  :root:root .top[data-kind="thread"] .top-who:has(> .tw-t) .badge{height:28px;padding:0 10px;background:color-mix(in srgb,var(--st,var(--ink-4)) 12%,transparent)}
+
+  /* a project: Threads keeps its icon and count (the word goes; its label says it) */
+  :root:root .top .th-btn{height:36px;min-height:36px;margin:0;padding:0 7px 0 10px;font-size:0;gap:6px}
+  /* its count: 20 high, 8 in from the button's outer edge all round (1 border + 7), so 12 − 8 = 4 round */
+  :root:root .top .th-btn span{font-size:var(--fs-sm);border-radius:calc(var(--r-lg) - 8px)}
+  :root:root .top[data-kind="project"] .top-who{flex:1 1 0}
+  /* the Now strip: its own row under the bar, its chips' edge on the content's 16 px line */
+  /* its chips 8 under the count line and 8 over the hairline: 6 + 40 + 4 + (2 + 36 + 2) + 6 + 1 = 97 */
+  :root:root .top[data-kind="project"]:has(> .now-wrap:not([hidden])){padding-bottom:6px}
+  :root:root .top[data-kind="project"] .now-wrap{order:3;flex:1 1 100%;margin:4px -16px 0 0;padding:0 0 0 10px}
+  :root:root .top[data-kind="project"] .now{padding:2px 16px 2px 0;scroll-padding-left:0}
+  :root:root .top[data-kind="project"] .nw{height:36px}
+
+  /* the checklist: 8 under the bar's name line, 8 above the hairline; finished sub-agents ride its row */
+  :root:root .thead{display:flex;align-items:flex-start;gap:8px;padding:0 16px 8px}
+  :root:root .top[data-kind="thread"]{border-bottom:0;padding-bottom:4px}
+  :root:root .thead .ckbar{flex:1;min-width:0}
+  /* finished sub-agents: their count alone ("≡ 9"), read from data-n; the words stay for VoiceOver */
+  :root:root .thead .rn-log{flex:none;height:40px;margin:0;padding:0 12px 0 10px;border-radius:var(--r-lg);border:1px solid var(--g22);gap:6px}
+  :root:root .thead .rn-log span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  :root:root .thead .rn-log::after{content:attr(data-n);font:500 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums}
+  /* sub-agents working now: one count beside the checklist (its arc, or ◆ when one waits on you), the
+     same 40 px box as the finished count; it opens the list, where each one is named */
+  :root:root .thead .rn-strip{display:none}
+  :root:root .thead .rn-live{flex:none;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 13px 0 12px;border-radius:var(--r-lg);border:1px solid color-mix(in srgb,var(--info) 28%,var(--g26));background:color-mix(in srgb,var(--info) 6%,transparent);color:var(--ink-2)}
+  :root:root .thead .rn-live:has(.g-needs_reply){border-color:color-mix(in srgb,var(--warn) 34%,var(--g26));background:color-mix(in srgb,var(--warn) 7%,transparent)}
+  :root:root .thead .rn-live .rn-n{font:500 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums}
+  :root:root .thead .rn-live:active{transform:scale(.96)}
+
+  /* the state line: along the bar's top edge, under the status bar */
+  :root:root .top[data-kind="thread"]::before{top:env(safe-area-inset-top);left:16px;right:16px}
+
+  /* what you open sits on top: the ✎ menu and the opened checklist paint over a decision card waiting
+     in the dock (z 5), which on a short phone covered the menu's last two commands */
+  /* (both bars rise together, so neither stays under the card's dimming while the other is lit) */
+  :root:root .conv:has(.tw-menu,.ckbar.is-open) :is(.top,.thead){position:relative;z-index:6;background:var(--canvas)}
+  :root:root .conv:has(.tw-menu) #top{z-index:7}
+  /* and the opened checklist never runs past the room: at most the screen less 380 px (the bars, the
+     composer and 120 px of conversation), its list scrolling inside; at 375 × 667 it ran 55 px past
+     the composer's top */
+  :root:root .ckbar.is-open .ck-b>ol{max-height:max(120px,calc(100dvh - 380px));overflow-y:auto;overscroll-behavior:contain}
+}
