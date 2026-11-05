@@ -269,7 +269,7 @@ function renderTable(head, sep, rows) {
   const align = cells(sep).map((c) => (/^:-+:$/.test(c) ? "center" : /-+:$/.test(c) ? "right" : ""));
   const td = (tag, c, i) => `<${tag}${align[i] ? ` style="text-align:${align[i]}"` : ""}>${renderInline(c)}</${tag}>`;
   const h = cells(head);
-  return `<div class="md-table${h.length === 2 ? " is-2col" : ""}"><table><thead><tr>${h.map((c, i) => td("th", c, i)).join("")}</tr></thead>` +
+  return `<div class="md-table"><table><thead><tr>${h.map((c, i) => td("th", c, i)).join("")}</tr></thead>` +
     `<tbody>${rows.map((r) => { const rc = cells(r); return `<tr>${h.map((_, i) => td("td", rc[i] ?? "", i)).join("")}</tr>`; }).join("")}</tbody></table></div>`;
 }
 
