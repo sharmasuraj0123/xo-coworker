@@ -148,6 +148,8 @@ export async function conflict(host, text, o = {}) {
   const left = (t) => (t.match(/^<<<<<<< /gm) || []).length;
   const v = new P.UnresolvedFile({
     ...common({ wrap: true }), diffIndicators: "bars", hunkSeparators: "line-info",
+    // the marker rows say "yours" and "the agent's" themselves: no "(Current Change)" after them
+    unsafeCSS: "[data-merge-conflict=marker-start]::after,[data-merge-conflict=marker-end]::after{content:none}",
     mergeConflictActionsType: (action, inst) => {
       const bar = document.createElement("div");
       bar.className = "xd-merge";
@@ -219,6 +221,8 @@ export async function file(scroller, contents, o = {}) {
       const E = await import(EDIT);
       const ed = new E.Editor("file", { onChange: () => onChange && onChange() });
       const detach = ed.edit(v);
+      // the document arrives a frame or two after attaching
+      for (let i = 0; i < 60 && contents && !ed.getText(); i++) await new Promise((r) => requestAnimationFrame(r));
       return {
         text: () => ed.getText(),
         dirty: () => ed.canUndo,

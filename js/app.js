@@ -174,7 +174,12 @@ const CH = createChats({
 world.ui = { tbOpen: S.tbOpen }; // turn blocks open or folded, shared with the Chats view
 // what a place changed, from Space's /changes (js/changes.js): the panel's Changes, Files' diffs, the chips' counts
 const CHG = createChanges({ world, onChange: () => schedule() });
-const VW = createViewer({ announce, onChange: () => schedule(), changes: CHG, ask: { target: (f) => askPlace(f)?.name || null, send: askAboutLines } }); // a file, in Files (js/filesview.js)
+const VW = createViewer({
+  announce, onChange: () => schedule(), changes: CHG,
+  ask: { target: (f) => askPlace(f)?.name || null, send: askAboutLines },
+  // a save (Files › Edit): its place's changes are read again; Tell the agent is a message to its thread
+  edits: { saved: (f) => CHG.saved(f.project, f.rel), tell: (f, s) => sendAbout(f, `I edited ${s.path}. Read it again before you change it.`) },
+}); // a file, in Files (js/filesview.js)
 // a picture opens over the conversation (js/lightbox.js); Open in Files hands it to the viewer, which brings Files up
 const LB = createLightbox({ openFile: (it, from) => VW.open(viewerFile(it), from), announce });
 wireDragOut($("#msgs"));
@@ -2264,6 +2269,8 @@ function saveScroll() {
 }
 function go(v, { from, focus = false, carry = false } = {}) {
   if (!v) return;
+  // a file with unsaved edits asks first (Files › Edit, its head): Discard, then on
+  if (v !== S.view && VW.editing) { VW.leave(() => go(v, { from, focus, carry })); return; }
   // an edit or menu in a thread's header belongs to that visit
   S.tEdit = null; S.tMenu = null;
   // the file viewer belongs to the conversation it was opened from
@@ -2456,10 +2463,15 @@ function askPlace(f) {
  * your bubble shows them as a capsule that opens Files at those lines (timeline.js lineRef).
  */
 function askAboutLines(f, a, b, text) {
+  const at = askPlace(f);
+  return !!at && sendAbout(f, `${at.path}:${a}${b > a ? `-${b}` : ""}\n\n${text}`);
+}
+/** A message about a project file, as yours, in its thread (or its project's chat). True when it went. */
+function sendAbout(f, text) {
   const at = askPlace(f), block = liveBlock();
   if (!at) return false;
-  if (block) { announce(`Not sent: ${block}. Your question is kept.`); return false; }
-  const m = { id: `l${++S.n}_${Date.now().toString(36)}`, conv: at.conv, at: Date.now(), who: "you", text: `${at.path}:${a}${b > a ? `-${b}` : ""}\n\n${text}`, status: "sending", target: at.thread ? null : at.chat, cid: `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}` };
+  if (block) { announce(`Not sent: ${block}. Your words are kept.`); return false; }
+  const m = { id: `l${++S.n}_${Date.now().toString(36)}`, conv: at.conv, at: Date.now(), who: "you", text, status: "sending", target: at.thread ? null : at.chat, cid: `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}` };
   (S.local[at.conv] = S.local[at.conv] || []).push(m);
   sound.play("send");
   heraldShow({ kind: "sent", text: `Sent to ${at.name}`, sub: "open to follow the reply", open: at.conv }, 9000);

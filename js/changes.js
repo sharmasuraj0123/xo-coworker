@@ -161,6 +161,12 @@ export function createChanges({ world, onChange }) {
       return { scope: { key, project, worktree: base ? base.split("/").pop() : null, base }, path, file: p.files.get(path), base: p.data.base_commit };
     },
     patchAt(c) { return patchIn(c.scope, c.path); },
+    /** You saved a file (Files › Edit): its place's changes are read again (counts, patch). */
+    saved(project, rel) {
+      const m = /^(\.xo\/worktrees\/[^/]+)\//.exec(String(rel || "")), base = m ? m[1] : "";
+      const key = `${project}|${base}`, p = P.get(key);
+      if (p && p.state === "ok") read({ key, project, worktree: base ? base.split("/").pop() : null }, p);
+    },
     /** What agents are doing in a view's place right now (see activityIn); worked out once per render. */
     activity(view) {
       const s = scopeOf(view, world), k = s ? s.key : "";

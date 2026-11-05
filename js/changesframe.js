@@ -24,7 +24,8 @@ export function countsHtml(n) {
   if (!n) return "";
   const a = n.additions ?? n.add, d = n.deletions ?? n.del;
   if (a == null && d == null) return "";
-  return `<span class="xd-n" aria-label="${a || 0} added, ${d || 0} removed">${a ? `<b class="xd-a">+${a}</b>` : ""}${d ? `<b class="xd-d">−${d}</b>` : ""}${!a && !d ? `<b>0</b>` : ""}</span>`;
+  if (!a && !d) return ""; // a pure rename, a mode change: its row says what happened
+  return `<span class="xd-n" aria-label="${a || 0} added, ${d || 0} removed">${a ? `<b class="xd-a">+${a}</b>` : ""}${d ? `<b class="xd-d">−${d}</b>` : ""}</span>`;
 }
 
 /** The hunks of a patch, as text (for "which hunk is new"). */

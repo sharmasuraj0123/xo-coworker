@@ -346,7 +346,8 @@ export const api = {
    */
   projectChanges: (project, { worktree, path } = {}) => get(`/xo-projects/${enc(project)}/changes`, { ...(worktree ? { worktree } : {}), ...(path ? { path } : {}) }),
   /** One folder of a project, a level at a time (a thread's worktree is `.xo/worktrees/<name>`): {dirs, files}. */
-  projectTree: (project, relativePath) => get(`/xo-projects/${enc(project)}/tree`, relativePath ? { relative_path: relativePath } : undefined),
+  // hidden files too (.env, .gitignore, .github/…): you can read and edit everything in a project (the owner's D1)
+  projectTree: (project, relativePath) => get(`/xo-projects/${enc(project)}/tree`, { ...(relativePath ? { relative_path: relativePath } : {}), hidden: "true" }),
   /** An image inside a project, as a Blob for the image viewer (fetched, so it carries the Coder header and errors read as words). */
   projectImage: (project, relativePath, opts) => blob(`/xo-projects/${enc(project)}/image?relative_path=${enc(relativePath)}`, opts),
   /** A whole project file as a Blob, for the viewer's Download (fetched, so the Coder token stays out of every URL). */

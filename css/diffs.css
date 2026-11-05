@@ -142,3 +142,50 @@ diffs-container{
 .vw-seg.is-words button{width:auto;min-height:0;height:22px;padding:0 8px}
 @container flpv (max-width:520px){.vw-seg.is-words button{width:auto;padding:0 8px}}
 @container flpv (max-width:360px){.vw-seg.is-words{display:flex}.vw-seg.is-words button{padding:0 6px}}
+
+/* ── Files › Edit (js/viewer.js): the head while you edit, read-only places, files that run code ──
+   Head controls are 28 px, as the viewer's icon buttons; Save is the one green thing on the screen. */
+.xd-edit{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px 0 8px;border-radius:var(--r-sm);font:500 var(--fs-base)/20px var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.xd-edit:hover{background:var(--g1F);color:var(--ink);transition-duration:var(--d-hover-in)}
+.xd-edit:disabled{opacity:.6;cursor:progress}
+.xd-edit svg{width:16px;height:16px}
+.xd-state{display:inline-flex;align-items:center;gap:6px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3);white-space:nowrap}
+.xd-state i{width:6px;height:6px;border-radius:50%;background:var(--warn)}
+.xd-err{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 var(--fs-sm)/16px var(--sans);color:var(--err-ink)}
+.xd-vsep{flex:none;width:1px;height:16px;margin:0 4px;background:var(--g26)}
+.xd-btn{flex:none;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--g30);font:500 var(--fs-base)/20px var(--sans);color:var(--ink-2);white-space:nowrap;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.xd-btn:hover{border-color:var(--line-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
+.xd-btn.is-pri{background:var(--accent-fill);border-color:var(--accent-fill);color:var(--accent-ink)}
+.xd-btn.is-pri:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+.xd-btn.is-warn{border-color:color-mix(in srgb,var(--err) 45%,var(--g30));color:var(--err-ink)}
+.xd-btn:disabled{opacity:.45;cursor:default}
+.xd-btn kbd{all:unset;font:500 var(--fs-sm)/16px var(--sans);opacity:.6}
+.xd-ro{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 8px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3);white-space:nowrap}
+.xd-ro svg{width:14px;height:14px}
+.xd-runs{flex:none;display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px 0 6px;margin-right:4px;border-radius:var(--r-pill);background:color-mix(in srgb,var(--warn) 12%,transparent);font:500 var(--fs-sm)/16px var(--sans);color:color-mix(in srgb,var(--warn) 70%,var(--ink))}
+.xd-runs svg{width:14px;height:14px}
+/* the run-code question, under Save */
+.vw-top{position:relative;z-index:3} /* above the file below it: the run-code question opens over the code */
+.xd-pop{position:absolute;z-index:20;top:calc(100% + 8px);right:8px;width:320px;padding:12px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--g30);box-shadow:var(--e2);font:400 var(--fs-md)/20px var(--sans);color:var(--ink-2);animation:xd-in var(--d-in) var(--ease)}
+:root[data-theme="light"] .xd-pop{background:#fff}
+.xd-pop p{margin:0}
+.xd-pop b{color:var(--ink);font-weight:600}
+.xd-pop-a{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+/* the file changed while you edited: said in words above the merge view */
+.xd-bar{flex:none;margin:0;padding:10px 16px;border-bottom:1px solid var(--g22);background:color-mix(in srgb,var(--warn) 7%,var(--canvas));font:400 var(--fs-md)/20px var(--sans);color:var(--ink-2)}
+.xd-bar b{color:var(--ink);font-weight:600}
+/* each place you both changed: your three choices, drawn by us in Pierre's slot */
+.xd-merge{display:flex;align-items:center;gap:4px;padding:4px 0;font-family:var(--sans)}
+.xd-mbtn{height:24px;padding:0 10px;border-radius:var(--r-pill);border:1px solid var(--g30);background:var(--surface);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.xd-mbtn:hover{border-color:var(--line-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
+.xd-mbtn.is-mine{border-color:color-mix(in srgb,var(--accent) 45%,var(--g30));color:var(--ink)}
+.xd-mbtn:focus-visible,.xd-btn:focus-visible,.xd-edit:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+/* "Saved · Undo · Tell the agent", at the foot of the file (the app's toast, here) */
+.xd-toast{position:absolute;z-index:8;left:0;right:0;bottom:16px;display:flex;justify-content:center;padding:0 16px;pointer-events:none}
+.xd-toast .toast{pointer-events:auto}
+.xd-toast .t-m b{font-weight:600}
+.xd-tx{display:grid;place-items:center;width:28px;height:28px;border-radius:var(--r-sm);color:var(--ink-3)}
+.xd-tx:hover{background:var(--g24);color:var(--ink)}
+.xd-tx svg{width:14px;height:14px}
+@media (prefers-reduced-motion:reduce){.xd-pop{animation:none}.xd-btn,.xd-edit,.xd-mbtn{transition:none}}
+@media (max-width:600px){.xd-edit span,.xd-btn kbd,.xd-runs span{display:none}.xd-edit{padding:0 6px}.xd-pop{width:min(320px,calc(100vw - 32px))}}

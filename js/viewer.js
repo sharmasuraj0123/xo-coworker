@@ -46,6 +46,23 @@ const SPLIT_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" st
 // the Source toggle's glyph: angle brackets, drawn like the other line icons
 const SRC_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>';
 
+/**
+ * What a refused save means, in words (Space's PUT /file): {kind: "confirm" (a file that runs code: ask, then
+ * send again with confirm "runs_code") | "conflict" (the file changed: merge, err.current) | "readonly" |
+ * "error", words}. Pure.
+ */
+export function saveOutcome(err) {
+  const s = err && err.status, c = err && err.code;
+  if (s === 428 && c === "confirm_required") return { kind: "confirm", words: "" };
+  if (s === 409 && c === "file_changed" && err.current && typeof err.current.content === "string") return { kind: "conflict", words: "" };
+  if (s === 403 && c === "read_only_place") return { kind: "readonly", words: "XO keeps this file: it can't be saved here" };
+  if (s === 403 && c === "outside_project") return { kind: "error", words: "This file is outside the project" };
+  if (s === 403) return { kind: "error", words: "Saving isn't allowed here" };
+  if (s === 503 && c === "writer_key_missing") return { kind: "error", words: "XO Space hasn't enabled saving yet" };
+  if (s === 409) return { kind: "error", words: "The file changed and XO didn't send the new version: copy your edit, then open it again" };
+  return { kind: "error", words: (err && err.message) || "Couldn't save" };
+}
+
 /*
  * A text file shows whole through Pierre too (js/diffview.js file: virtualised, coloured in the worker).
  * Select lines (drag across the numbers, or Shift-click) and "Ask about lines 36–43 ⌘L" appears under them;
@@ -128,9 +145,9 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       `<div class="vw-t"><h2 id="vw-h"${f.where ? ` title="${esc(f.where)}"` : ""}>${esc(f.name || f.path)}</h2>${c && diffing ? countsHtml(c.file) : ""}${meta.length && !ED.on ? `<span class="vw-meta">${esc(meta.join(" · "))}</span>` : ""}</div>`;
     const runs = !diffing && runsCode() ? `<span class="xd-runs" title="Git or an agent runs what this file says">${BOLT_IC}<span>Runs code</span></span>` : "";
     if (ED.on) return `<header class="vw-top">${name}<div class="vw-acts">${runs}${editActs()}</div>${ED.confirm ? confirmPop() : ""}</header>`;
-    const why = !diffing && showsFile() && d.editable === false ? NOT_EDITABLE[d.not_editable_reason] || "Read only" : "";
+    const why = !diffing && d && typeof d.content === "string" && d.editable === false ? NOT_EDITABLE[d.not_editable_reason] || "Read only" : "";
     const edit = why ? `<span class="xd-ro" title="${d.not_editable_reason === "read_only_place" ? "XO keeps this file: change it from its own screen" : esc(why)}">${d.not_editable_reason === "read_only_place" ? LOCK_IC : ""}<span>${esc(why)}</span></span>`
-      : !diffing && canEdit() ? `<button type="button" class="xd-edit" data-vw-edit title="Edit (E)" aria-label="Edit">${EDIT_IC}<span>Edit</span></button>` : "";
+      : !diffing && canEdit() ? `<button type="button" class="xd-edit" data-vw-edit title="Edit (E)" aria-label="Edit"${ED.opening ? " disabled" : ""}>${EDIT_IC}<span>${ED.opening ? "Opening…" : "Edit"}</span></button>` : "";
     return `<header class="vw-top">${name}` +
       `<div class="vw-acts">${runs}${show}${toggle}${edit}${tab}` +
       (canCopy ? `<button type="button" class="vw-btn" data-vw-copy title="Copy the contents" aria-label="${V.copied ? "Copied" : "Copy"}">${ICON.copy}<span>${V.copied ? "Copied" : "Copy"}</span></button>` : "") +
@@ -140,9 +157,10 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   // ── editing ─────────────────────────────────────────────────────────────────────────────────
   /** The file's path in its own place (a worktree's own path), for the run-code rule and messages. */
   const localPath = () => String(V.file.rel || "").replace(/^\.xo\/worktrees\/[^/]+\//, "");
-  const runsCode = () => !!(V.file && V.file.project && V.file.rel && RUNS.test(localPath()));
+  // Space says (/file's place: ordinary, read_only, runs_code); before it answers, the same rule by path
+  const runsCode = () => !!(V.file && V.file.project && V.file.rel && (V.data && V.data.place ? V.data.place === "runs_code" : RUNS.test(localPath())));
   /** Space says this file can be edited here (a version to save against, and not one it keeps). */
-  const canEdit = () => !!(edits && V.file.project && V.file.rel && showsFile() && V.data.version != null && V.data.editable !== false);
+  const canEdit = () => !!(edits && V.file.project && V.file.rel && V.data && typeof V.data.content === "string" && !V.loading && !showsDiff() && V.data.kind !== "image" && V.data.kind !== "pdf" && V.data.version != null && V.data.editable !== false);
   const MODS = /Mac|iPhone|iPad/.test(navigator.platform || "") ? "⌘" : "Ctrl ";
   function editActs() {
     if (ED.discard) return `<span class="xd-state">Discard your edits?</span><button type="button" class="xd-btn" data-vw-keep>Keep editing</button><button type="button" class="xd-btn is-warn" data-vw-discard>Discard</button>`;
@@ -156,29 +174,33 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     const top = el.querySelector(".vw-top");
     if (top) top.outerHTML = head();
   }
+  /** Edit: the head turns into Cancel · Save once the editor is really there (a caret you can type at). */
   async function startEdit() {
     const f = V.file, my = V.gen;
-    if (!canEdit() || ED.on) return;
-    ED.on = true; Object.assign(ED, { ed: null, base: null, version: null, dirty: false, saving: false, err: null, confirm: false, discard: false, conflict: null });
+    if (!canEdit() || ED.on || ED.opening) return;
+    Object.assign(ED, { opening: true, ed: null, base: null, version: null, dirty: false, saving: false, err: null, confirm: false, discard: false, conflict: null });
     saved = null; toastPaint();
-    paintHead();
+    // a document (Markdown, HTML) is edited as its source
+    if (!showsFile()) { V.mode = "source"; V.textMode = "source"; render(); } else paintHead();
+    const fail = (why) => { ED.opening = false; if (my !== V.gen) return; if (why) V.saveError = why; render(); };
     try {
       // the whole file and its current version (a preview can stop at 256 KB; an edit reads up to 1 MB)
       const d = await api.projectFile(f.project, f.rel, null, { purpose: "edit" });
-      if (my !== V.gen || !ED.on) return;
-      if (d.editable === false || d.truncated || d.version == null) { ED.on = false; V.data = { ...V.data, ...d, editable: false, not_editable_reason: d.not_editable_reason || (d.truncated ? "truncated" : "not_text") }; render(); return; }
+      if (my !== V.gen) return fail();
+      if (d.editable === false || d.truncated || d.version == null) { V.data = { ...V.data, ...d, editable: false, not_editable_reason: d.not_editable_reason || (d.truncated ? "truncated" : "not_text") }; return fail(); }
       if (d.content !== V.data.content) { V.data = d; dropFile(); render(); }
       else V.data = d;
       for (let i = 0; i < 60 && !FL.handle; i++) await new Promise((r) => requestAnimationFrame(r));
-      if (my !== V.gen || !ED.on || !FL.handle) return;
-      ED.ed = await FL.handle.edit({ onChange: () => { const dirty = ED.ed && ED.ed.text() !== ED.base; if (dirty !== ED.dirty || ED.err) { ED.dirty = dirty; ED.err = null; paintHead(); } } });
-      Object.assign(ED, { base: d.content, version: d.version });
-      if (FL.sel) FL.sel = null, askCapsule();
-      ED.ed.focus({ lineNumber: f.lines ? f.lines[0] : "first-visible" });
+      if (my !== V.gen || !FL.handle) return fail();
+      const ed = await FL.handle.edit({ onChange: () => { if (!ED.ed) return; const dirty = ED.ed.text() !== ED.base; if (dirty !== ED.dirty || ED.err) { ED.dirty = dirty; ED.err = null; paintHead(); } } });
+      if (my !== V.gen) { ed.stop(); return fail(); }
+      Object.assign(ED, { on: true, opening: false, ed, base: d.content, version: d.version });
+      if (FL.sel) { FL.sel = null; askCapsule(); }
+      paintHead();
+      ed.focus({ lineNumber: f.lines ? f.lines[0] : "first-visible" });
       announce(`Editing ${f.name}. ${MODS}S saves, Esc leaves.`);
     } catch (err) {
-      if (my !== V.gen) return;
-      ED.on = false; V.saveError = err.message || "Couldn't open this file for editing."; render();
+      fail(err.message || "Couldn't open this file for editing.");
     }
   }
   /** Leave editing. keep: what's now in the file view stays (after a save); else it goes back to the file. */
@@ -213,12 +235,11 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       edits && edits.saved && edits.saved(f, saved);
     } catch (err) {
       ED.saving = false;
-      if (err.status === 428 && err.code === "confirm_required") { ED.confirm = true; paintHead(); el.querySelector("[data-vw-confirm]")?.focus(); return; }
-      if (err.status === 409 && err.code === "file_changed" && err.current) { clash(text, err.current); return; }
-      if (err.status === 403) {
-        ED.err = err.code === "read_only_place" ? "XO keeps this file: it can't be saved here" : err.code === "outside_project" ? "This file is outside the project" : "Saving isn't allowed here";
-        if (err.code === "read_only_place") V.data = { ...V.data, editable: false, not_editable_reason: "read_only_place" };
-      } else ED.err = err.status === 503 && err.code === "writer_key_missing" ? "XO Space hasn't enabled saving yet" : err.message || "Couldn't save";
+      const o = saveOutcome(err);
+      if (o.kind === "confirm") { ED.confirm = true; paintHead(); el.querySelector("[data-vw-confirm]")?.focus(); return; }
+      if (o.kind === "conflict") { clash(text, err.current); return; }
+      if (o.kind === "readonly") V.data = { ...V.data, editable: false, not_editable_reason: "read_only_place" };
+      ED.err = o.words; // your edit stays in the editor: nothing is lost
       paintHead();
     }
   }
@@ -550,8 +571,8 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (e.target.closest("[data-vw-edit]")) { startEdit(); return; }
     if (e.target.closest("[data-vw-saveit]")) { save(); return; }
     if (e.target.closest("[data-vw-cancel]")) { cancelEdit(); return; }
-    if (e.target.closest("[data-vw-keep]")) { ED.discard = false; paintHead(); ED.ed?.focus(); return; }
-    if (e.target.closest("[data-vw-discard]")) { stopEdit(); return; }
+    if (e.target.closest("[data-vw-keep]")) { ED.discard = false; ED.then = null; paintHead(); ED.ed?.focus(); return; }
+    if (e.target.closest("[data-vw-discard]")) { const then = ED.then; ED.then = null; stopEdit(); if (then) then(); return; }
     if (e.target.closest("[data-vw-confirm]")) { ED.confirmed = true; save("runs_code"); return; }
     if (e.target.closest("[data-vw-noconfirm]")) { ED.confirm = false; paintHead(); ED.ed?.focus(); return; }
     if (e.target.closest("[data-vw-undo]")) { undoSave(); return; }
@@ -579,6 +600,8 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     dropImage(); V.data = null;
     render();
   }, true);
+  // a reload or a closed tab with unsaved edits: the browser's own question (the only one it allows)
+  addEventListener("beforeunload", (e) => { if (ED.on && (ED.dirty || ED.conflict)) { e.preventDefault(); e.returnValue = ""; } });
   el.addEventListener("keydown", (e) => {
     const mod = (e.metaKey || e.ctrlKey) && !e.altKey;
     if (ED.on) {
@@ -626,5 +649,8 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     get isOpen() { return V.open && !V.parked; }, get hasFile() { return V.open; }, get isParked() { return V.open && V.parked; }, get file() { return V.file; },
     /** Unsaved edits on screen (leaving asks first). */
     get editing() { return ED.on && (ED.dirty || !!ED.conflict); },
+    /** You're leaving (another place, back to the conversation): with unsaved edits, the head asks first;
+     *  go() runs once you choose Discard. */
+    leave(go) { if (!(ED.on && (ED.dirty || ED.conflict))) { go(); return; } ED.discard = true; ED.then = go; paintHead(); el.querySelector("[data-vw-keep]")?.focus(); },
   };
 }

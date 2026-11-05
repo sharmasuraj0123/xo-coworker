@@ -111,7 +111,7 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
     if (F.open) { files.render(view()); paint(); }
   }
 
-  el.addEventListener("click", (e) => { if (e.target.closest("[data-fv-back]")) close(); });
+  el.addEventListener("click", (e) => { if (e.target.closest("[data-fv-back]")) viewer.leave(() => close()); });
   el.addEventListener("keydown", (e) => {
     if (e.key !== "Escape" || e.defaultPrevented) return;
     if (e.target.closest && e.target.closest("#viewer")) return; // the file closes itself first
