@@ -58,6 +58,34 @@ export function shortUrl(u) {
   }
   return s;
 }
+// An outbound link's text, set so it wraps the way an address is read (QA F3, 2026-11-05: on a phone
+// "…/pierr" broke from "e↗"). A bare address may break only after "/" "-" "_" or before "." "?" "&"
+// "=" "#"; the last piece and the ↗ never part. A last piece longer than 20 characters keeps only its
+// final 6 with the arrow, so a long hash can still wrap rather than run off a narrow screen.
+const BREAK_AFTER = /([/\-_])/g, BREAK_BEFORE = /([.?&=#])/g;
+function addrHtml(s) {
+  const parts = String(s).replace(BREAK_AFTER, "$1\u0000").replace(BREAK_BEFORE, "\u0000$1").split("\u0000").filter(Boolean);
+  return parts.map(esc);
+}
+/** Text pieces (already HTML) and the arrow: every piece but the last can break; the last holds the ↗. */
+function outHtml(pieces, joiner) {
+  let last = pieces.pop() ?? "";
+  // a long last piece keeps only its tail with the arrow (entities are counted as written; close enough)
+  const plain = last.replace(/<[^>]*>/g, "");
+  if (plain.length > 20 && !/[<&]/.test(last)) { pieces.push(last.slice(0, -6)); last = last.slice(-6); }
+  const head = pieces.join(joiner);
+  return (head ? `<span class="lk-t">${head}</span>` : "") + `<span class="lk-end"><span class="lk-t">${last}</span>${ARROW_OUT}</span>`;
+}
+/** A labelled link's text: its last word holds the ↗; a label ending in markup keeps the arrow on with a word joiner. */
+function labelOut(label) {
+  if (/>\s*$/.test(label)) return `<span class="lk-t">${label}</span>\u2060${ARROW_OUT}`;
+  const m = /^([\s\S]*?)(\s*)([^\s]+)$/.exec(label);
+  if (!m) return `<span class="lk-t">${label}</span>${ARROW_OUT}`;
+  const pieces = m[1] ? [m[1] + m[2]] : [];
+  pieces.push(m[3]);
+  return outHtml(pieces, "");
+}
+
 function hostOf(u) {
   const m = /^https?:\/\/([^/?#]+)/i.exec(u);
   return m ? m[1].replace(/^www\./i, "").replace(/^[^@]*@/, "") : "";
@@ -82,7 +110,7 @@ function linkHtml(href, label) {
     const host = hostOf(h);
     const local = /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])(:\d+)?$/i.test(host);
     return `<a href="${esc(h)}" target="_blank" rel="noopener noreferrer nofollow" class="lk lk-out${local ? " is-local" : ""}${label == null ? " is-bare" : ""}" title="${esc(h)}">` +
-      `<span class="lk-t">${label ?? esc(shortUrl(h))}</span>${ARROW_OUT}</a>`;
+      `${label != null ? labelOut(label) : outHtml(addrHtml(shortUrl(h)), "<wbr>")}</a>`;
   }
   const f = FILE_HREF.exec(h);
   if (f && label != null) {

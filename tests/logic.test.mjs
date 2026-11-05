@@ -58,12 +58,22 @@ t("links say where they go: inside is a token with its glyph, outside is text wi
   } finally { setThreadInfo(null); }
   const web = renderInline("[PR #37](https://github.com/a/b/pull/37)");
   assert.match(web, /class="lk lk-out"/);
-  assert.match(web, /<span class="lk-t">PR #37<\/span><svg class="lk-ar"/);
+  // the last word and the ↗ never part (QA F3)
+  assert.match(web, /<span class="lk-t">PR <\/span><span class="lk-end"><span class="lk-t">#37<\/span><svg class="lk-ar"/);
   const bare = renderInline("at http://localhost:3000/ now");
   assert.match(bare, /lk-out is-local is-bare/);
   assert.match(bare, /<span class="lk-t">localhost:3000<\/span>/);
   assert.equal(shortUrl("https://www.example.com/"), "example.com");
   assert.equal(shortUrl("https://github.com/sharmasuraj0123/xo-coworker/pull/37/files?x=1#diff-abcdef0123456789"), "github.com/…/files");
+});
+t("a bare address wraps only at its seams, and its last piece keeps the arrow (QA F3)", () => {
+  const out = renderInline("https://github.com/pierrecomputer/pierre");
+  assert.match(out, /<span class="lk-t">github<wbr>\.com\/<wbr>pierrecomputer\/<\/span><span class="lk-end"><span class="lk-t">pierre<\/span><svg class="lk-ar"/);
+  // a long last piece keeps only its last 6 characters with the arrow, so it can still wrap
+  const sha = renderInline("https://x.io/c/4f765da0b2c1d3e4f5a6b7c8");
+  assert.match(sha, /<span class="lk-end"><span class="lk-t">a6b7c8<\/span><svg/);
+  // a label ending in markup keeps the arrow on with a word joiner
+  assert.ok(renderInline("[the **HIG**](https://a.b/)").includes("</strong></span>\u2060<svg"));
 });
 t("relative file links open in the viewer; anything that leaves the folder stays text", () => {
   const f = renderInline("[the turn view](js/turnview.js) and [readme](./README.md#L10)");
