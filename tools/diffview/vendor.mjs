@@ -49,7 +49,7 @@ const OUT = join(ROOT, "js/vendor/pierre-diffs");
 const tmp = mkdtempSync(join(tmpdir(), "pierre-diffs-"));
 
 // the entries: only what js/diffview.js uses
-writeFileSync(join(tmp, "diffs.js"), `export { FileDiff, File, UnresolvedFile, parsePatchFiles, parseDiffFromFile, registerCustomTheme, getSharedHighlighter } from "@pierre/diffs";
+writeFileSync(join(tmp, "diffs.js"), `export { FileDiff, File, VirtualizedFile, Virtualizer, UnresolvedFile, parsePatchFiles, parseDiffFromFile, registerCustomTheme, getSharedHighlighter } from "@pierre/diffs";
 export { getOrCreateWorkerPoolSingleton } from "@pierre/diffs/worker";
 `);
 writeFileSync(join(tmp, "edit.js"), `export * from "@pierre/diffs/edit";\n`);

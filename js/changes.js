@@ -18,6 +18,17 @@ import { prefetch } from "./diffview.js";
 const EDITS = new Set(["create_file", "edit_file", "delete_file"]);
 const QUIET = 250; // ms: edits that finish together are read once
 
+/**
+ * A question about lines (Files' "Ask about these lines"): your message starts "path:a-b" (or "path:a") and
+ * a blank line, then the question. {path, a, b, rest} for such a message, else null. Pure.
+ */
+export function lineRef(text) {
+  const m = /^([^\s:]+\.[^\s:]*|[^\s:]*\/[^\s:]+|[A-Za-z][\w.-]*):(\d+)(?:-(\d+))?\n\n([\s\S]*)$/.exec(String(text || ""));
+  if (!m) return null;
+  const a = +m[2], b = m[3] ? +m[3] : a;
+  return a > 0 && b >= a ? { path: m[1], a, b, rest: m[4] } : null;
+}
+
 /** The place a view's changes come from: {key, project, worktree (its folder name) | null, root, tid?}. */
 export function scopeOf(view, world) {
   if (view && view.startsWith("t:")) {

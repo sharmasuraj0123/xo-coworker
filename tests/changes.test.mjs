@@ -15,7 +15,7 @@ globalThis.fetch = async (url) => {
   const r = reply(u);
   return { ok: r.status < 300, status: r.status, statusText: "", type: "basic", text: async () => JSON.stringify(r.body) };
 };
-const { scopeOf, activityIn, createChanges } = await import("../js/changes.js");
+const { scopeOf, activityIn, createChanges, lineRef } = await import("../js/changes.js");
 const { choose, newestHunkLine, countsHtml } = await import("../js/changesframe.js");
 const { createTurns } = await import("../js/blocks.js");
 
@@ -162,6 +162,16 @@ await t("counts read +n −n, and say nothing for a side with none", () => {
   assert.doesNotMatch(countsHtml({ additions: 3, deletions: 0 }), /−/);
   assert.equal(countsHtml(null), "");
   assert.equal(countsHtml({ additions: null, deletions: null }), "");
+});
+
+await t("a question about lines: \"path:a-b\", a blank line, the question; nothing else reads as one", () => {
+  assert.deepEqual(lineRef("js/follow.js:36-43\n\nWhy only the real bottom?"), { path: "js/follow.js", a: 36, b: 43, rest: "Why only the real bottom?" });
+  assert.deepEqual(lineRef("Makefile:7\n\nwhat runs here?\nand here"), { path: "Makefile", a: 7, b: 7, rest: "what runs here?\nand here" });
+  assert.equal(lineRef("js/a.js:9-3\n\nbackwards"), null);
+  assert.equal(lineRef("js/a.js:36-43 no blank line"), null);
+  assert.equal(lineRef("Note: 12 things\n\nhi"), null);
+  assert.equal(lineRef("see js/a.js:3\n\nmid-sentence"), null);
+  assert.equal(lineRef(""), null);
 });
 
 console.log(`\n${passed} passed`);

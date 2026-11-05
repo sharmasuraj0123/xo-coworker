@@ -154,20 +154,32 @@ export function jump(scroller, dir) {
 }
 
 /**
- * A whole file into host. o: {path, wrap, key, onSelect(range)}. It colours in the worker; a huge one
- * stays plain. Resolves to {select(range), destroy()}.
+ * A whole file, drawn into scroller (the element that scrolls it): virtualised, so only the rows on screen
+ * are drawn (a 3,155-line file's rows in ≈4 ms) and the worker colours them. o: {path, wrap, key,
+ * onSelect(range | null) when a selection ends or clears, note(lineNumber) → the element to show under that
+ * line (the "Ask about these lines" composer; the code moves down for it)}. Resolves to {select(range),
+ * note(line | null), place(line) → {top, bottom} in the scroller's content, reveal(line), destroy()}.
  */
-export async function file(host, contents, o = {}) {
+export async function file(scroller, contents, o = {}) {
   const P = await load();
   const lang = contents.length > PLAIN_OVER ? "text" : langOf(o.path);
-  const v = new P.File({
+  const host = document.createElement("div");
+  scroller.appendChild(host);
+  const VZ = new P.Virtualizer();
+  VZ.setup(scroller, host);
+  const v = new P.VirtualizedFile({
     ...common(o),
-    ...(o.onSelect ? { enableLineSelection: true, onLineSelected: o.onSelect } : {}),
-  }, lang !== "text" ? workers(P) : undefined);
+    ...(o.onSelect ? { enableLineSelection: true, onLineSelectionEnd: (r) => o.onSelect(r), onLineSelected: (r) => { if (!r) o.onSelect(null); } } : {}),
+    ...(o.note ? { renderAnnotation: (a) => o.note(a.lineNumber) } : {}),
+  }, VZ, undefined, lang !== "text" ? workers(P) : undefined);
   v.render({ file: { name: String(o.path || "").split("/").pop(), contents, lang, ...(o.key ? { cacheKey: o.key } : {}) }, containerWrapper: host });
   live.add(v);
+  const place = (n) => { const p = v.getLinePosition(n); return p ? { top: host.offsetTop + p.top, bottom: host.offsetTop + p.top + p.height } : null; };
   return {
     select(range) { v.setSelectedLines(range); },
-    destroy() { live.delete(v); v.cleanUp(); host.replaceChildren(); },
+    note(line) { v.setLineAnnotations(line ? [{ lineNumber: line }] : []); v.rerender(); },
+    place,
+    reveal(line) { const p = place(line); if (p) scroller.scrollTop = Math.max(0, p.top - 96); },
+    destroy() { live.delete(v); v.cleanUp(); VZ.cleanUp(); host.remove(); },
   };
 }

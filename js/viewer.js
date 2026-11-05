@@ -17,7 +17,6 @@ import { esc, isImagePath } from "./util.js";
 import { fileIcon } from "./fileicons.js";
 import { ICON, $ } from "./ui.js";
 import { renderMarkdown } from "./markdown.js";
-import { highlight, langOf } from "./highlight.js";
 import { api, attachmentUrl, attachmentText } from "./api.js";
 import { kindOf, typeWord } from "./attach.js";
 import * as DV from "./diffview.js";
@@ -29,36 +28,19 @@ const bytes = (s) => new TextEncoder().encode(s).length;
 const extOf = (name) => (/\.([\w-]+)$/.exec(String(name || "")) || [])[1] || "";
 const KIND_WORD = { markdown: "Markdown", html: "HTML", text: "Text", code: "Code", json: "JSON" };
 
-/**
- * Highlighted HTML (flat <span class="tk-…">…</span> runs, as js/highlight.js makes them) cut into
- * lines: a run that crosses a line ends at the line's end and starts again on the next one.
- */
+const ASK_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-10.9 6.7L4 19.5l1.3-4.6A7.5 7.5 0 1 1 20 11.5z"/></svg>';
 const SPLIT_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M12 4.5v15"/></svg>';
 // the Source toggle's glyph: angle brackets, drawn like the other line icons
 const SRC_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>';
 
-export function splitHighlighted(html) {
-  const out = [];
-  let line = "", open = null;
-  for (const part of String(html).split(/(<span class="[^"]*">|<\/span>)/)) {
-    if (!part) continue;
-    if (part.startsWith("<span")) { open = part; line += part; continue; }
-    if (part === "</span>") { open = null; line += part; continue; }
-    const bits = part.split("\n");
-    for (let i = 0; i < bits.length; i++) {
-      if (i > 0) { out.push(open ? line + "</span>" : line); line = open || ""; }
-      line += bits[i];
-    }
-  }
-  out.push(line);
-  return out;
-}
-
-/**
- * changes: js/changes.js. A file a place changed opens on its diff (Changes), drawn by js/diffview.js from
- * git's patch; File shows it whole. "N unmodified lines" unfold from both whole versions, read only then.
+/*
+ * A text file shows whole through Pierre too (js/diffview.js file: virtualised, coloured in the worker).
+ * Select lines (drag across the numbers, or Shift-click) and "Ask about lines 36–43 ⌘L" appears under them;
+ * it opens a small composer under those lines (the code moves down for it) that sends to the file's own
+ * thread, or the project's coordinator. ask: {target(f) → its name in words, or null when there's nowhere
+ * to send; send(f, a, b, text) → true when it went}. lines on a file opened: [a, b] selected and in view.
  */
-export function createViewer({ announce, onChange, tabs, changes = null }) {
+export function createViewer({ announce, onChange, tabs, changes = null, ask = null }) {
   const el = $("#viewer");
   const V = { open: false, parked: false, file: null, data: null, error: null, loading: false, mode: "preview", returnTo: null, gen: 0, copied: false, dims: null, saving: false, saveError: null, show: "file", split: false };
   // the diff, kept across redraws of the head (Pierre's element moves with its body): {el, handle, key, gen}
@@ -66,6 +48,13 @@ export function createViewer({ announce, onChange, tabs, changes = null }) {
   /** This file in its place's changes ({scope, path, file, base}), or null. */
   const chg = () => (changes && V.file && V.file.project && V.file.rel ? changes.at(V.file.project, V.file.rel) : null);
   const showsDiff = () => V.show === "changes" && !!chg();
+  // the whole file through Pierre: {el (the scroller), handle, key, pend, gen, sel: {a, b}, asking, q (the composer)}
+  const FL = { el: null, handle: null, key: null, pend: null, gen: 0, sel: null, asking: false, q: null };
+  const showsFile = () => {
+    const d = V.data;
+    if (!V.open || V.loading || V.error || V.why || !d || typeof d.content !== "string" || showsDiff()) return false;
+    return d.kind === "markdown" || d.kind === "html" ? V.mode === "source" : d.kind !== "image" && d.kind !== "pdf";
+  };
 
   /** The object URL an image is shown from lives as long as the image is open. */
   function dropImage() {
@@ -117,18 +106,6 @@ export function createViewer({ announce, onChange, tabs, changes = null }) {
       `<button type="button" class="vw-x" data-vw-close aria-label="Close the file" title="Close (Esc)">${ICON.close}</button></div></header>`;
   }
 
-  /**
-   * Code, one row per line: its number, then the line, wrapped when it's longer than the panel is wide
-   * (with a hanging indent), so nothing is ever cut off or hidden behind a scrollbar at the bottom.
-   */
-  function codeHtml(text, lang) {
-    const hl = highlight(text, lang);
-    const lines = hl != null ? splitHighlighted(hl) : text.split("\n").map(esc);
-    const w = String(lines.length).length;
-    return `<div class="vw-code${hl != null ? " hl" : ""}" style="--lnw:${w}ch">` +
-      lines.map((l, i) => `<div class="vw-l"><span class="vw-n" aria-hidden="true">${i + 1}</span><code>${l || " "}</code></div>`).join("") + `</div>`;
-  }
-
   function body() {
     if (V.why) return `<div class="vw-empty"><p>${esc(V.why)}</p><p class="vw-path"><code>${esc(V.file.path)}</code><button type="button" class="vw-btn" data-vw-copy-path>${ICON.copy}<span>${V.copied ? "Copied" : "Copy the path"}</span></button></p></div>`;
     if (V.loading) return `<p class="vw-empty"><i class="spin" aria-hidden="true"></i> Reading the file…</p>`;
@@ -144,7 +121,7 @@ export function createViewer({ announce, onChange, tabs, changes = null }) {
     let main;
     if (d.kind === "markdown" && V.mode !== "source") main = `<article class="prose vw-md">${renderMarkdown(text)}</article>`;
     else if (d.kind === "html" && V.mode === "preview") main = `<iframe class="vw-frame" sandbox="" referrerpolicy="no-referrer" title="${esc(V.file.name || "HTML preview")}" srcdoc="${esc(text)}"></iframe>`;
-    else main = codeHtml(text, d.kind === "html" ? "html" : d.kind === "markdown" ? "markdown" : langOf(extOf(d.name || V.file.name)));
+    else main = ""; // text and code show through Pierre (render → showsFile)
     return cut + main;
   }
 
@@ -195,8 +172,116 @@ export function createViewer({ announce, onChange, tabs, changes = null }) {
     }
   }
 
+  // ── the whole file, through Pierre ──────────────────────────────────────────────────────────────
+  function fileBody() {
+    if (!FL.el) { FL.el = document.createElement("div"); FL.el.className = "vw-body vw-file"; FL.el.tabIndex = 0; }
+    return FL.el;
+  }
+  function dropFile() { FL.gen++; if (FL.handle) { FL.handle.destroy(); FL.handle = null; } FL.key = null; FL.pend = null; FL.sel = null; FL.asking = false; askCapsule(); }
+  async function drawFile() {
+    const d = V.data, f = V.file;
+    const key = `${f.project || ""}|${f.rel || f.path || f.name}|${d.size_bytes ?? d.content.length}|${d.modified_at || ""}`;
+    if ((FL.key === key && FL.handle) || FL.pend === key) return;
+    if (FL.handle) dropFile();
+    FL.pend = key;
+    const my = ++FL.gen, host = fileBody();
+    try {
+      const h = await DV.file(host, d.content, {
+        path: f.name || f.path, wrap: true, key,
+        onSelect: ask && f.project && f.rel ? (r) => select(r) : undefined,
+        note: ask && f.project && f.rel ? () => composer() : undefined,
+      });
+      if (my !== FL.gen) { h.destroy(); return; }
+      FL.handle = h; FL.key = key;
+      if (f.lines) { const [a, b] = f.lines; h.select({ start: a, end: b }); requestAnimationFrame(() => { h.reveal(a); select({ start: a, end: b }); }); }
+    } catch {
+      if (my !== FL.gen) return;
+      FL.pend = null;
+      host.innerHTML = `<div class="vw-empty"><p>Couldn't show this file.</p><p><button type="button" class="vw-cut-dl" data-vw-retry>Try again</button></p></div>`;
+    }
+  }
+  /** A selection ended (or cleared): "Ask about lines a–b" under its last line. */
+  function select(r) {
+    if (!r && FL.pressing) return; // a press on the capsule itself isn't "clicked elsewhere"
+    FL.sel = r ? { a: Math.min(r.start, r.end), b: Math.max(r.start, r.end) } : null;
+    if (!FL.sel && FL.asking) return; // the composer stays until you send or close it
+    askCapsule();
+  }
+  const MOD = /Mac|iPhone|iPad/.test(navigator.platform || "") ? "⌘" : "Ctrl ";
+  function askCapsule() {
+    const host = FL.el;
+    if (!host) return;
+    let b = host.querySelector(":scope > .xd-ask");
+    const s = FL.sel, at = s && !FL.asking && FL.handle && ask && ask.target(V.file) ? FL.handle.place(s.b) : null;
+    if (!at) { if (b) b.remove(); return; }
+    if (!b) {
+      b = document.createElement("button"); b.type = "button"; b.className = "xd-ask"; b.dataset.vwAsk = "";
+      b.addEventListener("pointerdown", () => { FL.pressing = true; addEventListener("pointerup", () => setTimeout(() => { FL.pressing = false; }), { once: true }); });
+      host.appendChild(b);
+    }
+    b.innerHTML = `${ASK_IC}<span>Ask about ${s.a === s.b ? `line ${s.a}` : `lines ${s.a}–${s.b}`}</span><kbd>${MOD}L</kbd>`;
+    b.style.top = `${Math.round(at.bottom + 6)}px`;
+  }
+  /** The small composer, as a row under the selected lines (Pierre makes room for it: nothing is covered). */
+  function composer() {
+    if (FL.q) return FL.q;
+    const q = document.createElement("form");
+    q.className = "xd-q";
+    q.innerHTML = `<p class="xd-ref"></p><textarea class="xd-in" rows="2" aria-label="Your question about these lines" placeholder="Ask about these lines"></textarea>` +
+      `<div class="xd-row"><span class="xd-to"></span><span class="xd-sp"></span><span class="xd-hint">Esc to close</span><button type="submit" class="xd-send" aria-label="Send">${ICON.send}</button></div>`;
+    q.addEventListener("submit", (e) => { e.preventDefault(); sendAsk(); });
+    q.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); sendAsk(); }
+      if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeAsk(); }
+    });
+    return (FL.q = q);
+  }
+  function openAsk() {
+    const s = FL.sel, f = V.file;
+    if (!s || !FL.handle || !ask) return;
+    const to = ask.target(f);
+    if (!to) return;
+    const q = composer();
+    q.querySelector(".xd-ref").innerHTML = `${fileIcon(f.name || f.path)}<span>${esc(f.name || f.path)} · ${s.a === s.b ? `line ${s.a}` : `lines ${s.a}–${s.b}`}</span>`;
+    q.querySelector(".xd-to").innerHTML = `To <b>${esc(to)}</b>`;
+    FL.asking = { a: s.a, b: s.b };
+    askCapsule();
+    FL.handle.select({ start: s.a, end: s.b }); // the lines stay marked while you write
+    FL.handle.note(s.b);
+    // Pierre places the row on its next frame or two: focus lands once it's there
+    const ta = q.querySelector(".xd-in");
+    let n = 0;
+    const focus = () => { if (!FL.asking) return; if (ta.isConnected) ta.focus({ preventScroll: true }); if (document.activeElement !== ta && ++n < 20) requestAnimationFrame(focus); };
+    requestAnimationFrame(focus);
+  }
+  function closeAsk() {
+    if (!FL.asking) return;
+    FL.asking = false;
+    if (FL.handle) FL.handle.note(null);
+    if (FL.q) FL.q.querySelector(".xd-in").value = "";
+    askCapsule();
+    FL.el?.focus({ preventScroll: true });
+  }
+  function sendAsk() {
+    const q = FL.q, t = q && q.querySelector(".xd-in").value.trim();
+    if (!t || !FL.asking) return;
+    if (ask.send(V.file, FL.asking.a, FL.asking.b, t)) { closeAsk(); FL.sel = null; FL.handle?.select(null); askCapsule(); }
+  }
+
   function render() {
     if (!V.open) return;
+    if (showsFile()) {
+      // the head redraws; the file's body (Pierre's drawing, where you are, a question you're writing) stays
+      const host = fileBody(), top = host.scrollTop, d = V.data;
+      if (DF.handle || DF.key) dropDiff();
+      const cut = d.truncated ? `<p class="vw-cut">${ICON.clock}<span>Showing the first ${esc(size(bytes(d.content)))} of ${esc(size(d.size_bytes))}. The rest isn't previewed.</span>${canSave() ? `<button type="button" class="vw-cut-dl" data-vw-save${V.saving ? " disabled" : ""}>Download the whole file</button>` : ""}</p>` : "";
+      el.innerHTML = (tabs ? tabs() : "") + head() + cut + `<i data-vw-file hidden></i>`;
+      el.querySelector("[data-vw-file]").replaceWith(host);
+      host.scrollTop = top;
+      drawFile();
+      return;
+    }
+    if (FL.handle || FL.key) dropFile();
     if (showsDiff()) {
       // the head redraws; the diff's body (and where you are in it) stays
       const host = diffBody(), top = host.scrollTop;
@@ -265,7 +350,7 @@ export function createViewer({ announce, onChange, tabs, changes = null }) {
     if (V.file.image) V.mode = "preview";
     // a changed file asked for as a change (the panel's Open in Files, the tree's Changed section) opens on
     // its diff; any other way in, whole. The diff is drawn from the patch and needs no read of the file.
-    dropDiff(); if (DF.el) DF.el.scrollTop = 0;
+    dropDiff(); dropFile(); if (DF.el) DF.el.scrollTop = 0; if (FL.el) FL.el.scrollTop = 0;
     V.show = f.show === "changes" ? "changes" : "file";
     el.hidden = false;
     document.body.classList.add("viewer-open");
@@ -279,7 +364,7 @@ export function createViewer({ announce, onChange, tabs, changes = null }) {
   function close({ restore = true } = {}) {
     if (!V.open) return;
     V.open = false; V.parked = false; V.gen++;
-    dropImage(); V.data = null; dropDiff();
+    dropImage(); V.data = null; dropDiff(); dropFile();
     el.hidden = true; el.innerHTML = "";
     document.body.classList.remove("viewer-open");
     const back = V.returnTo;
@@ -299,6 +384,8 @@ export function createViewer({ announce, onChange, tabs, changes = null }) {
     if (e.target.closest("[data-vw-close]")) { close(); return; }
     const sh = e.target.closest("[data-vw-show]");
     if (sh) { V.show = sh.dataset.vwShow; if (V.show === "file" && !V.data && !V.loading) { load(); return; } V.keepScroll = true; render(); return; }
+    if (e.target.closest("[data-vw-ask]")) { openAsk(); return; }
+    if (e.target.closest("[data-vw-retry]")) { FL.pend = null; drawFile(); return; }
     if (e.target.closest("[data-vw-split]")) { V.split = !V.split; if (DF.handle) DF.handle.split(V.split); render(); return; }
     const m = e.target.closest("[data-vw-mode]");
     if (m) { V.mode = m.dataset.vwMode; if (V.mode !== "actual") V.textMode = V.mode; render(); return; }
@@ -321,7 +408,13 @@ export function createViewer({ announce, onChange, tabs, changes = null }) {
     render();
   }, true);
   el.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); close(); return; }
+    if (e.key === "Escape") {
+      e.preventDefault(); e.stopPropagation();
+      if (FL.sel && !FL.asking) { FL.sel = null; FL.handle?.select(null); askCapsule(); return; } // a selection clears first
+      close(); return;
+    }
+    // ⌘L (Ctrl L): ask about the lines selected in a file (the browser's own ⌘L only while lines are selected)
+    if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === "l" && FL.sel && !FL.asking && showsFile()) { e.preventDefault(); openAsk(); return; }
     // J / K: the next or previous change, on a diff
     if (!showsDiff() || !DF.el || e.target.closest("input, textarea, [contenteditable]")) return;
     const dir = K.is(e, "nextChange") ? 1 : K.is(e, "prevChange") ? -1 : 0;

@@ -31,9 +31,10 @@ import { initFollow, toLatest, unpin, isPinned, fromTop } from "./follow.js";
 import { createViewer } from "./viewer.js";
 import { createMap, MAP_ICON } from "./map.js";
 import { createStage } from "./stage.js";
-import { createFiles } from "./files.js";
+import { createFiles, fileScope, localIn } from "./files.js";
 import { createFilesView } from "./filesview.js";
-import { createChanges } from "./changes.js";
+import { createChanges, lineRef } from "./changes.js";
+import { fileIcon } from "./fileicons.js";
 import { setTheme as setDiffTheme } from "./diffview.js";
 import { createTray, fmtSize, kindOf, isLargePaste, pasteLabel, uploadErrorText, FINAL, MAX_FILES } from "./attach.js";
 import { api, uploadAttachment } from "./api.js";
@@ -173,7 +174,7 @@ const CH = createChats({
 world.ui = { tbOpen: S.tbOpen }; // turn blocks open or folded, shared with the Chats view
 // what a place changed, from Space's /changes (js/changes.js): the panel's Changes, Files' diffs, the chips' counts
 const CHG = createChanges({ world, onChange: () => schedule() });
-const VW = createViewer({ announce, onChange: () => schedule(), changes: CHG }); // a file, in Files (js/filesview.js)
+const VW = createViewer({ announce, onChange: () => schedule(), changes: CHG, ask: { target: (f) => askPlace(f)?.name || null, send: askAboutLines } }); // a file, in Files (js/filesview.js)
 // a picture opens over the conversation (js/lightbox.js); Open in Files hands it to the viewer, which brings Files up
 const LB = createLightbox({ openFile: (it, from) => VW.open(viewerFile(it), from), announce });
 wireDragOut($("#msgs"));
@@ -889,7 +890,7 @@ function msgItems(conv, needs) {
       else if (m.routed && m.routed.length) route = `<div class="route-row">${ICON.arrow}<span>Routed to ${[...new Set(m.routed.map((r) => r.chat))].map((c) => `<button type="button" class="rt-go" data-go="p:${esc(c)}"><b>${esc(PROJ(c))}</b></button>`).join(", ")}</span></div>`;
       // your pictures sit above your words, right-aligned (js/media.js); other files as cards
       const files = m.files && m.files.length ? mediaHtml(m.files.map((f) => fromAttachment(f, { chat: m.chatId, by: "You", at: m.at })), { side: "you" }) : "";
-      html = `<div class="m m-you${cont ? " cont" : ""}${m.relay ? " is-relay" : ""}${m.status === "failed" ? " is-failed" : ""}${m.status === "sending" ? " is-pending" : ""}">${files}${m.text ? `<div class="bubble" title="${esc(clock(m.at))}">${esc(m.text)}</div>` : ""}${reactionsHtml(m.reactions)}${meta}${route}</div>`;
+      html = `<div class="m m-you${cont ? " cont" : ""}${m.relay ? " is-relay" : ""}${m.status === "failed" ? " is-failed" : ""}${m.status === "sending" ? " is-pending" : ""}">${files}${m.text ? `<div class="bubble" title="${esc(clock(m.at))}">${youText(m.text)}</div>` : ""}${reactionsHtml(m.reactions)}${meta}${route}</div>`;
     } else if (m.who === "coord" || m.who === "agent") {
       const [name, role] = m.name ? [m.name, m.role || ""] : nameOf(conv, m.who);
       const av = m.who === "coord" ? `<div class="av">${XO}</div>` : `<div class="av av-t">${ICON.thread}</div>`;
@@ -2427,6 +2428,47 @@ function openSharedFile(btn) {
   VW.open({ ...f, ...fileRoute(f.path) }, btn);
 }
 
+// ── "Ask about these lines" (Files, js/viewer.js): to the file's own thread, else its project's coordinator ──
+/** Your words; a question about lines leads with them as an in-app capsule that opens Files there. */
+function youText(text) {
+  const r = lineRef(text);
+  if (!r) return esc(text);
+  const name = r.path.split("/").pop(), lines = r.a === r.b ? `${r.a}` : `${r.a}–${r.b}`;
+  return `<a href="#${esc(r.path)}" class="lk lk-in lk-file" data-ref="${esc(r.path)}" data-ref-a="${r.a}" data-ref-b="${r.b}" title="${esc(`${r.path}, ${r.a === r.b ? "line" : "lines"} ${lines}`)}"><span class="lk-ic">${fileIcon(name)}</span><span class="lk-t">${esc(name)} · ${lines}</span></a>\n${esc(r.rest)}`;
+}
+/** A question's capsule: Files, at those lines of the file in this conversation's place, selected. */
+function openLineRef(a) {
+  const s = CHG.scope(S.view), path = a.dataset.ref;
+  if (!s) return;
+  VW.open({ path, name: path.split("/").pop(), project: s.project, rel: s.worktree ? `.xo/worktrees/${s.worktree}/${path}` : path, lines: [+a.dataset.refA, +a.dataset.refB] }, a);
+}
+/** Where a question about a project file goes: {conv, thread, chat, name, path (in its place)}, or null. */
+function askPlace(f) {
+  if (!f || !f.project || !f.rel) return null;
+  const fs = fileScope(f, { threads: world.state.threads, project: PROJ });
+  const path = fs && localIn(fs, f);
+  if (path == null) return null;
+  const thread = fs.tid ? world.thread(fs.tid) : null;
+  return thread ? { conv: `t:${thread.id}`, thread, chat: thread.project, name: thread.title || "this thread", path } : { conv: convOfChat(f.project), thread: null, chat: f.project, name: PROJ(f.project), path };
+}
+/**
+ * Send "path:a-b" and the question, as your message there. The agent reads the path and lines first;
+ * your bubble shows them as a capsule that opens Files at those lines (timeline.js lineRef).
+ */
+function askAboutLines(f, a, b, text) {
+  const at = askPlace(f), block = liveBlock();
+  if (!at) return false;
+  if (block) { announce(`Not sent: ${block}. Your question is kept.`); return false; }
+  const m = { id: `l${++S.n}_${Date.now().toString(36)}`, conv: at.conv, at: Date.now(), who: "you", text: `${at.path}:${a}${b > a ? `-${b}` : ""}\n\n${text}`, status: "sending", target: at.thread ? null : at.chat, cid: `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}` };
+  (S.local[at.conv] = S.local[at.conv] || []).push(m);
+  sound.play("send");
+  heraldShow({ kind: "sent", text: `Sent to ${at.name}`, sub: "open to follow the reply", open: at.conv }, 9000);
+  if (at.thread) STAGE.resumeFollow(at.conv);
+  deliverLive(m, at.thread);
+  schedule();
+  return true;
+}
+
 // ── a thread's own header: resolve and reopen with Undo (R1), rename, label ──
 async function resolveThread(tid, resolved, { undo = true } = {}) {
   const t = world.thread(tid);
@@ -2574,6 +2616,8 @@ document.addEventListener("click", (e) => {
   if (ed) { editFailed(ed.dataset.edit); return; }
   const mx = t.closest("[data-mx]");
   if (mx) { openMedia(mx, e); return; }
+  const lr = t.closest("[data-ref]");
+  if (lr) { e.preventDefault(); openLineRef(lr); return; }
   // a changed file's chip: its diff in the panel's Changes; anything else (a link to a file), Files
   const cf = t.closest(".tb-cf[data-file]");
   // opening it is reading here, as opening a work fold is: the view unpins, so the panel making room (the

@@ -50,6 +50,7 @@ export const ACTIONS = [
   { id: "picClose", scope: "picture", label: "Put it back where it was (or swipe down)", fixed: "Esc" },
   { id: "nextChange", scope: "diff", label: "The next change", def: "j" },
   { id: "prevChange", scope: "diff", label: "The previous change", def: "k" },
+  { id: "askLines", scope: "diff", label: "Ask about the lines selected in a file (Files)", fixed: "⌘L · Ctrl L" },
 ];
 const BY = new Map(ACTIONS.map((a) => [a.id, a]));
 
