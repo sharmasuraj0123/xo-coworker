@@ -50,7 +50,8 @@ const own = (name) => `${esc(name || "your-app")}-xo-<i class="lp-hash">····
 const where = (src) => (/^Dockerfile/.test(src) ? "the Dockerfile" : /^package\.json/.test(src) ? "package.json" : /^default/.test(src) ? "the default" : src);
 const cap = (t) => { t = String(t || ""); return /^\S*[./]/.test(t) ? t : t.replace(/^./, (x) => x.toUpperCase()); }; // a file name keeps its case
 /** A Launchpad app's status, in words and a tone. */
-const appState = (st) => /run|ready|live|healthy|serving/i.test(st) ? ["go", "Live"] : /progress|deploy|roll|start|build|pending/i.test(st) ? ["work", "Rolling out"] : /fail|crash|error|unhealthy/i.test(st) ? ["stop", "Didn't go live"] : /stop|paus|sleep/i.test(st) ? ["", "Stopped"] : ["", cap(st || "Unknown")];
+// what's wrong is read first ("unhealthy" holds "healthy"), then what's moving, then what serves
+const appState = (st) => /fail|crash|error|unhealthy|degraded/i.test(st) ? ["stop", "Didn't go live"] : /stop|paus|sleep|suspend/i.test(st) ? ["", "Stopped"] : /progress|deploy|roll|start|build|pending|creat/i.test(st) ? ["work", "Rolling out"] : /^(run|ready|live|healthy|serving|up|active)/i.test(st) ? ["go", "Live"] : ["", cap(st || "Unknown")];
 const slug = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
 
 /**
@@ -410,7 +411,8 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   }
 
   function deploy(p, again = false) {
-    const s = proj(p);
+    const s = proj(p), gh = s.check?.github;
+    if (gh && !(gh.connected && gh.workflow)) { github(p); return; }
     if (!validate(p)) {
       S.key = ""; changed();
       requestAnimationFrame(() => S.body?.querySelector('.is-bad input, [aria-invalid="true"]')?.focus());
@@ -546,7 +548,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       syncPreview(p);
     });
     section.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && e.target.matches?.(".lp-in")) { e.preventDefault(); act("deploy"); }
+      if (e.key === "Enter" && e.target.matches?.(".lp-in")) { e.preventDefault(); const go = S.body.querySelector(".lp-foot .lp-go"); if (go) act(go.dataset.lp, go); }
     });
   }
 

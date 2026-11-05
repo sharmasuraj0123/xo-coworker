@@ -321,7 +321,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
       tabs[next].focus(); tabs[next].click(); return;
     }
     if (e.key !== "Escape") return;
-    if (e.target.closest && e.target.closest("input") && e.target.value) return;
+    if (e.target.closest && e.target.closest("input:not(.lp-in)") && e.target.value) return; // a search clears first; Launchpad's fields don't
     e.preventDefault(); e.stopPropagation();
     if (S.full) setFull(false); else close();
   }, true);
