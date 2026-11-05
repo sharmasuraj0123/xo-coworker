@@ -165,7 +165,7 @@ body.files-open .mx-down{display:none}
 /* an agent's turn: its mark centres on whatever comes first, a 28 px work pill (0), or a 44 px row (8):
    the working bubble, the opened work card's header, or an answer bubble's first line */
 :root[data-msgx] #msgs>.m-turn>.av{margin-top:0}
-:root[data-msgx] #msgs>.m-turn.is-live.is-folded>.av,:root[data-msgx] #msgs>.m-turn.mx-av-row>.av{margin-top:8px}
+:root[data-msgx] #msgs>.m-turn.is-live.is-folded:not(.has-said)>.av,:root[data-msgx] #msgs>.m-turn.mx-av-row>.av{margin-top:8px}
 :root[data-msgx] .mx-coord .prose>.mx-name{color:color-mix(in srgb,var(--violet) 72%,var(--ink-3))}
 /* an open (unboxed) reply has no bubble to hold it, so its name sits above on the same text edge */
 :root[data-msgx] .m-them .mh b{font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
@@ -218,8 +218,15 @@ body.files-open .mx-down{display:none}
    in between). Everything here keys off the app's own markup (.is-live, aria-expanded), not msgx.js. */
 :root[data-msgx] #msgs>.m-turn.is-live.is-folded>.mb{min-height:44px}
 /* (drawn out of its list order, it must never be the browser's scroll anchor: its redraws would pull the page) */
-:root[data-msgx] .m-turn.is-live.is-folded .turn>:is(.tb-work,.tb-think,.tb-act,.tb-narr,.tb-plan){display:none}
+:root[data-msgx] .m-turn.is-live.is-folded .turn>:is(.tb-think,.tb-act,.tb-narr,.tb-plan){display:none}
 :root[data-msgx] .m-turn.is-live.is-folded .turn:not(.is-said){display:none}
+/* Once it has said something while it works (an agent's words mid-turn, files it shared), the turn reads in
+   order, as it will when it ends: the work's line ("Working · 12m · 18 steps"), what it said, then the bubble
+   with what it's doing now, last, where the reply will be. Only the work's line shows, not its ticker (that's
+   the bubble's), and when the turn ends the bubble gives way to the reply without moving anything above it. */
+:root[data-msgx] .m-turn.is-live.is-folded .turn>.tb-work>:not(.tb-h){display:none}
+:root[data-msgx] .m-turn.is-live.is-folded.has-said .mx-work{margin-top:4px}
+:root[data-msgx] .mx-work.mx-under .mx-we{display:none}
 .mx-work{display:none}
 :root[data-msgx] .m-turn.is-live.is-folded .mx-work{position:relative;display:flex;align-items:center;gap:12px;max-width:min(88%,560px);height:44px;padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-md);line-height:20px;text-align:left;overflow:visible;transition:width var(--d-move) var(--ease),background var(--d-hover) var(--ease)}
 :root[data-msgx] .mx-work:hover{background:var(--mx-them-top)}
