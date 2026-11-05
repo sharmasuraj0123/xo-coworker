@@ -67,7 +67,7 @@
 .lp-h.t-stop{color:var(--err-ink)}
 .lp-h.t-need{color:var(--need)}
 .lp-p{margin:2px 0 0;font:400 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
-.lp :is(.lp-p,.lp-note,.lp-rec p) code{padding:0 4px;border-radius:4px;background:var(--g22);font:400 var(--fs-sm)/16px var(--mono);color:var(--ink-3)}
+.lp :is(.lp-p,.lp-note,.lp-rec p) code{padding:0 4px;border-radius:calc(var(--r-xs) - 2px);background:var(--g22);font:400 var(--fs-sm)/16px var(--mono);color:var(--ink-3)}
 .lp-mono{font-family:var(--mono)}
 
 /* the card: repository → image → app → address */
@@ -111,7 +111,7 @@
 .lp-n.is-failed .lp-c>span{color:var(--err-ink)}
 
 /* checking: the card's shape, quietly breathing */
-.lp-sys.is-skel :is(.lp-t,.lp-c>b,.lp-c>span){background:var(--g22);box-shadow:none;border-radius:4px;animation:lp-skel 1.4s var(--ease-loop) infinite alternate}
+.lp-sys.is-skel :is(.lp-t,.lp-c>b,.lp-c>span){background:var(--g22);box-shadow:none;border-radius:calc(var(--r-xs) - 2px);animation:lp-skel 1.4s var(--ease-loop) infinite alternate}
 .lp-sys.is-skel .lp-c>b{width:60%;height:12px;margin:4px 0}
 .lp-sys.is-skel .lp-c>span{width:40%;height:10px;margin:3px 0}
 .lp-sys.is-skel .lp-n::after{display:none}
