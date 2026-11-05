@@ -50,6 +50,9 @@ const MAP_H = 260, MAP_MIN = 72;
 // Agents is sized in whole rows, never a row cut in half: up to AG_ROWS by default, 1–8 as the line above
 // it is dragged; a row and the gap under it are ROW px (css/panel.css, .stage .ag-r)
 const AG_ROWS = 3, ROW = 48;
+// Agents never takes the room Changes needs: its 40 px head, one 32 px file row and the list's 8 px foot,
+// the diff's 120 px and its 12 px margin (css/diffs.css). In a short window Agents shows fewer rows
+const CH_MIN = 212, HEAD = 40;
 export function createStage({ map, mapIcon, files, changes, filesView, viewer, view, go, announce, onChange, frames = () => ORDER }) {
   const saved = sget(KEY);
   const fr = { changes: { folded: false }, agents: { rows: null, folded: false }, map: { h: MAP_H, folded: false }, ...sget(FR_KEY) };
@@ -113,10 +116,28 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
       const h = id === "map" ? fr.map.h : null;
       f.style.height = fr[id].folded || grow === id || !h ? "" : `${h}px`;
     }
-    // Agents is as tall as its rows, up to its count of them; past that it scrolls a row at a time
-    if (fr.agents.rows) el.querySelector('[data-fr="agents"]').style.setProperty("--ag-rows", fr.agents.rows);
-    else el.querySelector('[data-fr="agents"]').style.removeProperty("--ag-rows");
+    capAgents();
     if (fr.map.folded || !on("map") || !S.open || S.rail) map.hide(); else map.show(view());
+  }
+
+  /** Agents is as tall as its rows, up to its count of them (3, or what you dragged to), and never more than
+   *  the stack has room for once Changes keeps a whole file row and its diff and the Map its height; past
+   *  that it scrolls a row at a time. */
+  function capAgents() {
+    const keep = new Set(frames()), on = (id) => keep.has(id) || (!keep.size && id === "agents");
+    const ag = el.querySelector('[data-fr="agents"]');
+    let rows = fr.agents.rows || AG_ROWS, cap = 8;
+    const room = el.querySelector(".stg-frames").clientHeight;
+    if (room > 0 && on("agents") && !fr.agents.folded && !ag.classList.contains("is-grow")) {
+      const grows = (id) => el.querySelector(`[data-fr="${id}"]`).classList.contains("is-grow");
+      const changes = !on("changes") ? 0 : fr.changes.folded ? HEAD : CH_MIN;
+      const mapH = !on("map") ? 0 : fr.map.folded ? HEAD : grows("map") ? 96 : fr.map.h;
+      const lines = [...el.querySelectorAll(".fr-gut")].filter((g) => !g.hidden).length;
+      cap = Math.max(1, Math.floor((room - changes - mapH - lines - 44) / ROW));
+      rows = Math.min(rows, cap);
+    }
+    S.agRows = rows; S.agCap = cap;
+    ag.style.setProperty("--ag-rows", rows);
   }
 
   // ── what the frames say ─────────────────────────────────────────────────────
@@ -281,11 +302,12 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
         // a row at a time, once the drag passes half a row; from the rows on screen when there are fewer
         acc += sign * dy;
         const shown = f.querySelectorAll(".ag-r").length;
-        let rows = Math.min(fr.agents.rows || AG_ROWS, Math.max(1, shown));
+        let rows = Math.min(S.agRows || AG_ROWS, Math.max(1, shown));
         const was = rows;
         while (acc >= ROW / 2) { rows++; acc -= ROW; }
         while (acc <= -ROW / 2) { rows--; acc += ROW; }
-        rows = Math.max(1, Math.min(8, Math.max(shown, AG_ROWS), rows)); // no taller than its agents need
+        // no taller than its agents need, nor than the room Changes and the Map leave it
+        rows = Math.max(1, Math.min(8, Math.max(shown, AG_ROWS), S.agCap || 8, rows));
         if (rows !== was) fr.agents.rows = rows;
       } else fr[id].h = Math.max(MAP_MIN, Math.min(640, (fr[id].h || f.getBoundingClientRect().height) + sign * dy));
       fr[id].folded = false;
@@ -354,7 +376,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     apply();
   }
   setW(wSaved);
-  addEventListener("resize", () => fitRail());
+  addEventListener("resize", () => { fitRail(); if (S.open) capAgents(); });
   const grip = el.querySelector(".stg-grip");
   grip.addEventListener("pointerdown", (e) => {
     if (e.button !== 0 || S.full || S.rail) return;
