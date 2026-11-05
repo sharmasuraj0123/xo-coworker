@@ -8,6 +8,7 @@
 
 import { ICON, $ } from "./ui.js";
 import { esc } from "./util.js";
+import { ready as diffsReady } from "./diffview.js";
 
 const TW_KEY = "xo-files-tree", TW_DEF = 280, TW_MIN = 200, TW_MAX = 480;
 
@@ -76,6 +77,7 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
       F.returnTo = document.activeElement;
       el.hidden = false;
       document.body.classList.add("files-open");
+      diffsReady(); // a file is about to be read: Pierre starts now, not on the first click
       files.show(view());
       announce("Files. Esc goes back to the conversation.");
     } else if (!fileOnly) F.fileOnly = false;

@@ -25,8 +25,10 @@ const num = (page, n) => page.evaluate((n) => { const r = document.querySelector
     let ask = null;
     if (t.rowsMs) {
       await page.waitForTimeout(800);
-      const a = await num(page, 3), b = await num(page, 5);
-      ask = { a, b, dbg: await page.evaluate(() => { const r = document.querySelector('.vw-file diffs-container')?.shadowRoot; return { files: document.querySelectorAll('.vw-file').length, nums: r?.querySelectorAll('[data-column-number]').length, first: r?.querySelector('[data-column-number]')?.getAttribute('data-column-number'), lines: r?.querySelectorAll('[data-line]').length }; }) };
+      // two lines on screen, whatever part of the file is in view
+      const first = await page.evaluate(() => { const sc = document.querySelector('.vw-file').getBoundingClientRect(); const ns = [...(document.querySelector('.vw-file diffs-container')?.shadowRoot?.querySelectorAll('[data-column-number]') || [])].filter((n) => { const r = n.getBoundingClientRect(); return r.top > sc.top + 20 && r.bottom < sc.bottom - 200; }); return ns.length > 3 ? +ns[1].getAttribute('data-column-number') : null; });
+      const a = first && await num(page, first), b = first && await num(page, first + 2);
+      ask = { firstLineInView: await page.evaluate(() => document.querySelector('.vw-file diffs-container')?.shadowRoot?.querySelector('[data-column-number]')?.getAttribute('data-column-number')) };
       if (a && b) {
         await page.mouse.click(a.x, a.y); await page.keyboard.down('Shift'); await page.mouse.click(b.x, b.y); await page.keyboard.up('Shift');
         await page.waitForTimeout(300);

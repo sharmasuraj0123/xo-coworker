@@ -14,7 +14,7 @@
 // tools/diffview/theme.mjs); everything else is CSS custom properties on the library's element
 // (css/diffs.css), so light and dark switch without a redraw. app.js calls setTheme() when you switch.
 //
-// Calls: prefetch, diff, file (with edit), conflict, jump, langOf, setTheme, loaded.
+// Calls: ready, prefetch, diff, file (with edit), conflict, jump, langOf, setTheme, loaded.
 
 const LIB = new URL("./vendor/pierre-diffs/diffs.js", import.meta.url).href;
 const WORKER = new URL("./vendor/pierre-diffs/worker.js", import.meta.url).href;
@@ -88,6 +88,12 @@ const quiet = () => new Promise((r) => {
   const check = () => (performance.now() - last >= 1200 ? (typeof requestIdleCallback === "function" ? requestIdleCallback(done, { timeout: 1000 }) : done()) : setTimeout(check, 1200 - (performance.now() - last)));
   setTimeout(check, 1200);
 });
+/** Files opened: you're about to read a file, so the library and its worker start now (≈25 ms on the page),
+ *  not on your first click (≈370 ms then). */
+export function ready() {
+  if (typeof Worker !== "function") return;
+  load().then((P) => workers(P)).catch(() => {});
+}
 export function prefetch(paths = []) {
   if (typeof Worker !== "function") return; // nowhere to colour (a test, an old browser): the first draw loads it
   const langs = [...new Set(paths.map(langOf))].filter((l) => l !== "text" && !loadedLangs.has(l));
