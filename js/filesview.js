@@ -151,7 +151,12 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
   }
   /** You folded or opened the chat (›|, the rail, ⌘J): kept, unless the width is what folds it. */
   function chat(open, { focus = open } = {}) {
-    if (F.sheet) { setChat(open ? "open" : "min"); if (open) requestAnimationFrame(() => $("#chead")?.focus({ preventScroll: true })); return; }
+    if (F.sheet) {
+      setChat(open ? "open" : "min");
+      // up, focus goes to the sheet's head, unless it's already in the chat (Ask about lines puts it in the composer)
+      if (open && focus) requestAnimationFrame(() => { const a = document.activeElement; if (!(a && a.closest && a.closest("#conv, #dock"))) $("#chead")?.focus({ preventScroll: true }); });
+      return;
+    }
     if (!F.docked) return;
     if (compact()) setChat(open ? "over" : "min");
     else { keepFold("chat", open ? "open" : "folded"); setChat(open ? "open" : "min"); }
