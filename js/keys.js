@@ -92,6 +92,13 @@ export function fromEvent(e) {
 export const binding = (id) => custom[id] ?? BY.get(id)?.def ?? null;
 export const changed = (id) => custom[id] != null && custom[id] !== BY.get(id)?.def;
 
+/**
+ * Is this keydown typing into a field? Asked of the whole path the event took, not its target: inside a shadow
+ * root the target is the host (Pierre's editor is a contenteditable in diffs-container's shadow root, so its
+ * target reads DIFFS-CONTAINER, and "/" or "?" typed there went to the global keys).
+ */
+export const typing = (e) => (e.composedPath ? e.composedPath() : [e.target]).some((n) => !!(n && n.matches && n.matches("input, textarea, [contenteditable]:not([contenteditable=\"false\"])")));
+
 /** Does this keydown trigger the action? */
 export function is(e, id) {
   const b = binding(id);

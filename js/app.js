@@ -3146,7 +3146,7 @@ addEventListener("keydown", (e) => {
     else if (S.view.startsWith("c:")) go("chats");
     return;
   }
-  if (e.target.matches?.("input, textarea, [contenteditable]") || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (K.typing(e) || e.metaKey || e.ctrlKey || e.altKey) return; // typing, even in Pierre's editor (a shadow root)
   if (!keys.hidden || !allEl.hidden) return;
   // Only keys that can't be hit by accident: no single letters (a stray keystroke must never
   // navigate or open something). Decision keys live on a focused decision card only.
