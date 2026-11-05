@@ -186,17 +186,19 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     if (!S.open) return;
     const v = view();
     const ag = map.agents(v);
-    const set = (k, node, html) => { if (S.h[k] !== html) { node.innerHTML = html; S.h[k] = html; } };
+    // a clock's figures aren't a change (the app's ticker moves them each second): without this the Agents list was
+    // rewritten every paint, and every rewrite re-added its arcs for ui.js to put back in step
+    const set = (k, node, html) => { const same = html.replace(/(<span class="elapsed" data-since="\d+">)[^<]*/g, "$1"); if (S.h[k] !== same) { node.innerHTML = html; S.h[k] = same; } };
     set("head", el.querySelector(".stg-t"), titleHtml(ag));
     if (launch && !LPF.hidden) launch.paint(v, S.lp && !S.rail);
-    set("agents", body("agents"), agentsHtml(ag));
+    if (!S.lp) set("agents", body("agents"), agentsHtml(ag)); // under Launchpad Agents is a head: its list waits
     el.querySelector('[data-fr-n="agents"]').textContent = ag.filter((a) => a.busy).length || "";
     // Changes: Space's list and diff where it has /changes, else today's list
     const cxOn = !fr.changes.folded && !S.lp && CX.paint();
     const hd = CX.head();
     const [cxHost, old] = body("changes").children;
     cxHost.hidden = !hd; old.hidden = !!hd;
-    if (!hd) { const ch = files.changes(v); set("changes", old, changesHtml(ch)); }
+    if (!hd && !S.lp) { const ch = files.changes(v); set("changes", old, changesHtml(ch)); }
     const n = el.querySelector('[data-fr-n="changes"]');
     set("chn", n, hd ? (hd.count ? `${hd.count}${hd.total.add || hd.total.del ? ` ${countsHtml(hd.total)}` : ""}` : "") : String(files.changes(v).length || ""));
     const fw = el.querySelector("[data-follow]");
@@ -208,7 +210,9 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
       fw.setAttribute("aria-pressed", String(hd.follow));
       fw.title = hd.follow ? "Following the agent: the file it changes shows here. Pick a file or scroll to stop." : "Follow the agent: show each file it changes as it changes it";
     }
-    if (S.wide !== (cxOn && CX.wide)) { S.wide = cxOn && CX.wide; apply(); }
+    // the panel keeps its width while Launchpad is open: folding Changes under it mustn't narrow the panel and
+    // reflow the whole conversation (560 ↔ 360 px on every fold and unfold, found timing it)
+    if (!S.lp && S.wide !== (cxOn && CX.wide)) { S.wide = cxOn && CX.wide; apply(); }
     for (const b of el.querySelectorAll("[data-map-mode]")) { const on = map.mode === b.dataset.mapMode; b.classList.toggle("is-on", on); b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1; }
     body("map").setAttribute("aria-labelledby", `stage-map-${map.mode}`);
     const fb = el.querySelector("[data-stg-full]");
