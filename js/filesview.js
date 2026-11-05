@@ -158,13 +158,11 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
     if (open && focus) requestAnimationFrame(() => document.getElementById("say")?.focus({ preventScroll: true }));
     fit();
   }
-  /** ⌘J: the chat and nothing else. From the file, the chat opens (if folded) and its composer has focus;
-   *  from the chat, it folds and the file has focus. */
+  /** ⌘J: the chat and nothing else. Folded, it opens and its composer has focus; open, it folds (focus that
+   *  was in it goes to the file). It never brings back a file that's put away: its chip and Esc do. */
   function chatKey() {
     if (!F.docked) return false;
-    const a = document.activeElement;
-    if (!F.chatMin && a && a.closest && a.closest("#conv, #dock")) chat(false);
-    else chat(true);
+    chat(F.chatMin);
     return true;
   }
 
