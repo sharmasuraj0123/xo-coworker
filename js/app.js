@@ -31,6 +31,8 @@ import { initFollow, toLatest, unpin, isPinned, fromTop } from "./follow.js";
 import { createViewer } from "./viewer.js";
 import { createMap, MAP_ICON } from "./map.js";
 import { createStage } from "./stage.js";
+import { createLaunchpad } from "./launchpad.js";
+import { createLpApi } from "./lpapi.js";
 import { createFiles, fileScope, localIn } from "./files.js";
 import { createFilesView } from "./filesview.js";
 import { createChanges, lineRef } from "./changes.js";
@@ -245,7 +247,13 @@ const MAP = createMap({ world, viewer: VW, go: (v) => go(v), announce, isBusy, o
 const FILES = createFiles({ world, viewer: VW, isBusy, PROJ, go: (v) => go(v), changes: CHG });
 // Files is a place in the main area (js/filesview.js); the panel is a stack of frames: Agents · Map · Changes
 const FILESV = createFilesView({ files: FILES, viewer: VW, view: () => S.view, PROJ, world, announce, onChange: () => schedule() });
-const STAGE = createStage({ map: MAP, mapIcon: MAP_ICON, files: FILES, changes: CHG, filesView: FILESV, viewer: VW, view: () => S.view, go: (v) => go(v), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)) });
+// Launchpad (js/launchpad.js): Deploy in the header row of a project and a thread; its section tops the panel
+const lpProject = (v) => (v && v.startsWith("p:") ? v.slice(2) : v && v.startsWith("t:") ? world.thread(v.slice(2))?.project || null : null);
+// the thread "Ask an agent" started (xo-space names it "Deploy to Launchpad"), while it's open
+const lpThread = (p) => { const t = world.state.threads.find((x) => x.project === p && /^deploy to launchpad/i.test(x.title || "") && x.state !== "resolved"); return t ? { thread: t.id, title: t.title, since: t.createdAt, busy: isBusy(t), done: t.state === "done" } : null; };
+const LP = createLaunchpad({ api: createLpApi(), projectOf: lpProject, nameOf: (p) => PROJ(p), findThread: lpThread, go: (v) => go(v), announce, onChange: () => schedule(),
+  notify: (text, undo) => heraldShow({ kind: "done", text, ...(undo ? { undo, undoUntil: Date.now() + 3000 } : {}) }, undo ? 3200 : 4200) });
+const STAGE = createStage({ map: MAP, mapIcon: MAP_ICON, files: FILES, changes: CHG, filesView: FILESV, viewer: VW, view: () => S.view, go: (v) => go(v), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP });
 STAGE.names = (v) => (v.startsWith("t:") ? world.thread(v.slice(2))?.title || "Thread" : v.startsWith("p:") ? PROJ(v.slice(2)) : v === "ws" ? "Workspace" : "Your projects");
 REC.panel = STAGE;
 /** The runtime a thread runs on, fixed for its life (its session's agent). */
@@ -1059,13 +1067,14 @@ function topRender(needs) {
       `<button type="button" class="tw-act tw-more" data-tmenu="${esc(t.id)}" aria-haspopup="menu" aria-expanded="${S.tMenu === t.id}" title="Rename, label and more" aria-label="Rename, label and more">${ICON.edit}</button>` +
       (S.tMenu === t.id ? `<span class="tw-menu" role="menu"><button type="button" role="menuitem" data-tfield="title">Rename</button><button type="button" role="menuitem" data-tfield="label">${t.label ? "Change label" : "Add a label"}</button>${t.label ? `<button type="button" role="menuitem" data-tfield="clear-label">Remove the label</button>` : ""}${SH.enabled ? `<button type="button" role="menuitem" data-shell="t:${esc(t.id)}">Open a shell in its worktree</button>` : ""}${movable(t) ? `<button type="button" role="menuitem" data-tmove="${esc(t.id)}">Continue on another runtime…</button>` : ""}</span>` : "") + `</span>` : "";
     // a shell in its worktree is in the menu (and the shells dock); the header keeps Resolve and the panel
-    const allActs = acts ? acts.replace(/<\/span>$/, `${STAGE.button(v)}</span>`) : `<span class="tw-acts">${STAGE.button(v)}</span>`;
+    const allActs = acts ? acts.replace(/<\/span>$/, `${LP.button(v, STAGE.launchOpen)}${STAGE.button(v)}</span>`) : `<span class="tw-acts">${LP.button(v, STAGE.launchOpen)}${STAGE.button(v)}</span>`;
     who = `${title}${label}<span class="badge st-${t.frozen ? "resolved" : t.state}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${wordOf(t)}</span>${rtTag(t)}${allActs}`;
     // a field being edited is never replaced under the person's fingers (a frame may change the badge)
     if (ed && $("#tw-edit")) who = null;
   } else who = `<span class="tw-t"><h1 id="conv-title">Thread</h1></span>`;
   if (who != null) patch($("#top-who"), who);
-  patch($("#top-end"), t ? end : end + STAGE.button(v));
+  patch($("#top-end"), t ? end : end + (v.startsWith("p:") ? LP.button(v, STAGE.launchOpen) : "") + STAGE.button(v));
+  LP.ensure(v);
   nowRender(needs);
   checklistRender(needs);
 }
@@ -3064,7 +3073,7 @@ $("#theme").addEventListener("click", () => {
 });
 
 // the Map's toggle, in every conversation's header
-document.addEventListener("click", (e) => { if (e.target.closest?.("[data-stage-toggle]")) STAGE.toggle(); });
+document.addEventListener("click", (e) => { if (e.target.closest?.("[data-stage-toggle]")) STAGE.toggle(); else if (e.target.closest?.("[data-lp-open]")) STAGE.launch(); });
 
 // ── global keys ─────────────────────────────────────────────────────────────
 const GLOBAL = {
