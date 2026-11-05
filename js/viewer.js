@@ -35,7 +35,9 @@ const EDIT_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" str
 const LOCK_IC = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10.5" width="14" height="9.5" rx="2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>';
 const BOLT_IC = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3.5 5.5 13.5H12l-1 7 7.5-10H12z"/></svg>';
 // files git or an agent runs (Space confirms a save to one with a 428; the head says so before you edit)
-const RUNS = /^(?:\.git|\.claude|\.codex|\.agents)(?:\/|$)|^\.mcp\.json$/;
+// before Space answers with the file's place: what git or an agent runs. Case doesn't matter (Space treats
+// .GIT/ and .Claude/ as .git/ and .claude/, on any file system)
+export const RUNS = /^(?:\.git|\.claude|\.codex|\.agents)(?:\/|$)|^\.mcp\.json$/i;
 // Space's reasons a file can't be edited here, in words
 const NOT_EDITABLE = {
   read_only_place: "Read only · XO keeps this file",
@@ -536,7 +538,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       }
     } catch (err) {
       if (my !== V.gen) return;
-      V.error = err.status === 404 ? "This file isn't there any more." : err.message || "Couldn't read this file.";
+      V.error = err.status === 404 ? "This file isn't there any more." : err.status === 403 && err.code === "outside_project" ? "This file is outside the project: a link leads out of it." : err.message || "Couldn't read this file.";
     }
     V.loading = false;
     render();

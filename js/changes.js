@@ -99,8 +99,9 @@ export function createChanges({ world, onChange }) {
       prefetch([...files.keys()].slice(0, 24));
     } catch (err) {
       // where Space can't say what changed (no such route yet, a project that isn't a git repository, a
-      // thread whose worktree is gone), the panel and Files keep what the turns say agents touched
-      if (err.status === 404 && (err.code === "http_404" || err.code === "not_a_repository")) { NO.add(s.project); p.state = "unsupported"; }
+      // thread whose worktree is gone, git too old), the panel and Files keep what the turns say agents touched
+      // git older than 2.40 on Space's machine (501 git_too_old): no place can say, so the same list as above
+      if ((err.status === 404 && (err.code === "http_404" || err.code === "not_a_repository")) || (err.status === 501 && err.code === "git_too_old")) { NO.add(s.project); p.state = "unsupported"; }
       else if (err.status === 404 && err.code === "worktree_not_found") p.state = "unsupported";
       else if (p.state !== "ok") { p.state = "error"; p.err = err.message || "Couldn't read what changed."; }
     }
