@@ -1200,9 +1200,42 @@ button.tp-done-u:hover{color:var(--ink)}
 .field input{height:42px}
 .field input::placeholder,.field textarea::placeholder{color:var(--g6A)}
 .field input:focus,.field textarea:focus{border-color:var(--g50);box-shadow:0 0 0 4px rgba(var(--accent-rgb),.09)}
-.cp-where{display:flex;align-items:center;gap:7px;min-height:16px;font-size:var(--fs-sm);color:var(--ink-4)}
-.cp-where svg{width:13px;height:13px;flex:none}
-.cp-where code{font-size:var(--fs-sm);color:var(--ink-3)}
+/* A note under a field: one icon, then one line of words (an action inside reads as a link) */
+.cp-note{display:flex;align-items:flex-start;gap:7px;min-height:16px;font-size:var(--fs-sm);line-height:16px;color:var(--ink-4)}
+.cp-note>svg,.cp-note>.spin{flex:none;width:13px;height:13px;margin-top:1.5px}
+.cp-note>.spin{width:11px;height:11px;margin:2.5px 1px 0}
+.cp-note code{font-size:var(--fs-sm);color:var(--ink-3)}
+.cp-note b{font-weight:500;color:var(--ink-2)}
+.cp-note[data-tone="ok"]>svg{color:var(--accent)}
+.cp-code{padding:0 5px;border-radius:4px;background:var(--g24);font:500 var(--fs-sm)/16px var(--mono);letter-spacing:.06em;color:var(--ink)!important}
+.cp-link{display:inline;padding:0;font:inherit;font-weight:500;color:var(--ink-2);text-decoration:underline;text-decoration-color:var(--g50);text-underline-offset:2px;cursor:pointer;transition:color var(--d-hover) var(--ease),text-decoration-color var(--d-hover) var(--ease)}
+.cp-link:hover{color:var(--ink);text-decoration-color:currentColor}
+.dlg-err .cp-link{color:inherit}
+/* Start from: two halves, concentric with the 12 px field corners (12 − 1 border − 3 inset = 8) */
+.cp-mode{display:grid;grid-template-columns:1fr 1fr;gap:2px;height:42px;padding:3px;border:1px solid var(--g26);border-radius:var(--r-lg);background:var(--g14)}
+.cp-mode button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:0;border-radius:var(--r);font:500 var(--fs-base)/20px var(--sans);color:var(--ink-3);white-space:nowrap;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease)}
+.cp-mode button:hover:not(:disabled){color:var(--ink)}
+.cp-mode button[aria-checked="true"]{background:var(--g26);color:var(--ink);box-shadow:inset 0 0 0 1px var(--g30)}
+.cp-mode button:disabled{cursor:default}
+.cpm-ic{display:grid;flex:none}
+.cpm-ic svg{width:16px;height:16px}
+/* An input with its glyph inside, on the text's left edge */
+.cp-in{position:relative;display:block}
+.cp-in-ic{position:absolute;left:13px;top:13px;display:grid;color:var(--ink-4);pointer-events:none}
+.cp-in-ic svg{width:16px;height:16px}
+.cp-in input{padding-left:39px}
+.field textarea{min-height:62px;max-height:160px;resize:none;field-sizing:content}
+.dlg :is(input,textarea):disabled{opacity:.55}
+/* Cloning: an honest, indeterminate bar (Space doesn't report progress yet) and the time it has taken */
+.cp-prog{display:flex;flex-direction:column;gap:10px}
+.cp-bar{height:3px;border-radius:2px;background:var(--g24);overflow:hidden}
+.cp-bar i{display:block;width:32%;height:100%;border-radius:inherit;background:var(--info);animation:cp-run 1.4s var(--ease) infinite}
+@keyframes cp-run{from{transform:translateX(-100%)}to{transform:translateX(312%)}}
+#cp-prog-t{display:flex;flex-wrap:wrap;column-gap:12px;row-gap:4px;font-size:var(--fs-sm);line-height:16px;color:var(--ink-3)}
+#cp-prog-t b{font-weight:500;color:var(--ink)}
+.cp-t{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--ink-4)}
+.cp-hint{flex-basis:100%;color:var(--ink-4)}
+@media (prefers-reduced-motion:reduce){.cp-bar i{width:100%;animation:none;opacity:.5}}
 .dlg-err{padding:10px 12px;border-radius:var(--r-sm);background:var(--err-subtle);color:var(--err-ink);font-size:var(--fs-base);line-height:20px}
 .dlg-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:2px}
 .btn{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 16px;border-radius:var(--r-lg);border:1px solid var(--g30);color:var(--ink-2);font:500 var(--fs-md)/1 var(--sans);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),transform 90ms var(--ease)}
@@ -2769,7 +2802,7 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .rt-seg{display:inline-flex;flex-wrap:wrap;gap:2px;padding:3px;border-radius:var(--r-lg);background:var(--g14);border:1px solid var(--g26)}
 .rt-seg button{height:30px;padding:0 12px;border-radius:var(--r-sm);font:500 var(--fs-base)/1 var(--sans);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .rt-seg button:hover{color:var(--ink)}
-.rt-seg button[aria-checked="true"]{background:var(--surface);color:var(--ink);box-shadow:0 0 0 1px var(--g30)}
+.rt-seg button[aria-checked="true"]{background:var(--g26);color:var(--ink);box-shadow:inset 0 0 0 1px var(--g30)}
 .rt-checks{display:flex;flex-wrap:wrap;gap:8px}
 .rt-check{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 12px 0 10px;border-radius:var(--r-sm);border:1px solid var(--g30);font-size:var(--fs-base);color:var(--ink-2);cursor:pointer}
 .rt-check:has(input:checked){border-color:color-mix(in srgb,var(--accent-fill) 55%,var(--g30));color:var(--ink)}

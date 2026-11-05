@@ -182,22 +182,32 @@
     <section class="shd" id="shd" aria-label="Shells" hidden></section>
   </div>
 
-  <!-- Create XO Project -->
+  <!-- Create XO Project: start empty, or clone a Git repository into it -->
   <dialog class="dlg" id="create-dlg" aria-labelledby="create-title">
     <form id="create-form" method="dialog" autocomplete="off" novalidate>
       <header class="dlg-head">
         <span class="dlg-ic" id="dlg-ic"></span>
         <div><h2 id="create-title">Create XO Project</h2><p>Its own coordinator, plan and memory.</p></div>
       </header>
+      <div class="cp-mode" id="cp-mode" role="radiogroup" aria-label="Start from">
+        <button type="button" role="radio" aria-checked="true" data-mode="empty"><span class="cpm-ic" id="cpm-empty"></span>Start empty</button>
+        <button type="button" role="radio" aria-checked="false" data-mode="clone"><span class="cpm-ic" id="cpm-clone"></span>From GitHub</button>
+      </div>
+      <label class="field cp-repo" id="cp-repo-f" hidden>
+        <span>Repository</span>
+        <span class="cp-in"><span class="cp-in-ic" id="cp-repo-ic"></span><input id="cp-repo" name="repo" maxlength="300" spellcheck="false" autocapitalize="off" placeholder="owner/repo or a Git URL"></span>
+        <small class="cp-note" id="cp-gh" aria-live="polite"></small>
+      </label>
       <label class="field">
         <span>Project name</span>
         <input id="cp-name" name="name" required maxlength="80" placeholder="e.g. Billing API">
-        <small class="cp-where" id="cp-where"></small>
+        <small class="cp-note" id="cp-where"></small>
       </label>
       <label class="field">
         <span>What is it for? <em>optional</em></span>
-        <textarea id="cp-desc" name="description" rows="3" maxlength="600" placeholder="One or two sentences for the project brief."></textarea>
+        <textarea id="cp-desc" name="description" rows="2" maxlength="600" placeholder="One or two sentences for the project brief."></textarea>
       </label>
+      <div class="cp-prog" id="cp-prog" hidden><div class="cp-bar"><i></i></div><p id="cp-prog-t"></p></div>
       <p class="dlg-err" id="cp-err" role="alert" hidden></p>
       <footer class="dlg-foot">
         <button type="button" class="btn" id="cp-cancel">Cancel</button>

@@ -357,6 +357,15 @@ export const api = {
   /** Scaffold a new xo-project (xo-cowork-api). 409 when the folder exists. */
   createProject: ({ path, displayName, description }) =>
     send("POST", "/files/mkdir", { path, scaffold: true, display_name: displayName, ...(description ? { description } : {}) }),
+  /** Clone a Git repository into a new xo-project (Space: POST /xo-projects). Space's own limit is 300 s;
+   *  serve.py's proxy gives up at 120 s, so a longer clone reads as a timeout while Space carries on. */
+  cloneProject: ({ id, url }) =>
+    request("/xo-projects", { method: "POST", body: { project_id: id, repository_url: url }, timeout: 330000 }),
+  /** GitHub connector: {status: "connected"|"needs_auth", username?, avatar_url?} */
+  githubStatus: () => get("/connectors/github/status"),
+  /** Device flow: {session_id, user_code, verification_uri}; poll → {status: "pending"} until the profile. */
+  githubConnect: () => send("POST", "/connectors/github/cli/start"),
+  githubConnectPoll: (sessionId) => send("POST", "/connectors/github/cli/poll", { session_id: sessionId }),
 
   // ── shells (/api/terminal/*): T = {id, name, scope, project, path, cwd, status, foreground, viewers, …} ──
   terminalStatus: () => get("/terminal/status"),
