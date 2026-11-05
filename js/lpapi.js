@@ -44,6 +44,12 @@ const ROWS = ["repo", "build", "release", "live"];
 /** A Launchpad app's status, in words and a tone: what's wrong is read first ("unhealthy" holds "healthy"),
  *  then stopped, then moving, then serving (anchored). */
 export const appState = (st) => /fail|crash|error|unhealthy|degraded/i.test(st) ? ["stop", "Didn't go live"] : /stop|paus|sleep|suspend/i.test(st) ? ["", "Stopped"] : /progress|deploy|roll|start|build|pending|creat/i.test(st) ? ["work", "Rolling out"] : /^(run|ready|live|healthy|serving|up|active)/i.test(st) ? ["go", "Live"] : ["", String(st || "Unknown").replace(/^./, (x) => x.toUpperCase())];
+/** An app's page in XO's Launchpad (xo-swarm's route app/launchpad/[deploymentId]: the app's UUID, never its slug,
+ *  which 404s), or "" while its id isn't known. The app's own address (<slug>.apps…) and Launchpad's API host are
+ *  other things. */
+const XO_ORIGIN = "https://dev.xo.builders";
+export const launchpadUrl = (id) => (id ? `${XO_ORIGIN}/launchpad/${encodeURIComponent(id)}` : "");
+
 const hostOf = (url) => { try { return new URL(url).host; } catch { return url || ""; } };
 
 /** check (and, once it's in, preflight) as the section's model. */
@@ -92,11 +98,13 @@ export function rows(on) {
         return;
       case "progress": {
         const d = ev.data || {};
+        if (ev.step === "create" && d.app_id) on({ type: "app", id: d.app_id }); // the new app exists: its id, before it's live
         if (n === "build") on({ step: "build", state: "doing", text: ev.message || said.build, url: d.run_url });
         else if (n === "release") on({ step: "release", state: "doing", text: ev.message || said.release, ready: d.ready, of: d.desired, release: d.release });
         return;
       }
-      case "done": close("live"); on({ step: "live", state: "done", text: "Live", host: hostOf(ev.url), url: ev.url, release: ev.release, commit: (ev.commit || "").slice(0, 7) }); return;
+      // the app Space made or deployed to comes with its id: Open in Launchpad needs it the moment the app is live
+      case "done": close("live"); on({ step: "live", state: "done", text: "Live", host: hostOf(ev.url), url: ev.url, release: ev.release, commit: (ev.commit || "").slice(0, 7), app: ev.app ? { id: ev.app.id || "", name: ev.app.name || "", slug: ev.app.slug || "" } : null }); return;
       case "error": {
         const d = ev.data || {};
         on({ step: n, state: "failed", text: ev.message, error: { code: ev.code, action: ev.action || "", message: ev.message, fix: ev.fix, source: d.source, app: d.app, step: d.failed_step, log: Array.isArray(d.log_tail) ? d.log_tail.slice(-3) : null, url: d.run_url, port: d.port, declared: (d.exposed_ports || [])[0], kind: d.kind, release: d.release, diagnosis: d.diagnosis } });
