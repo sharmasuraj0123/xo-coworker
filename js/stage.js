@@ -2,10 +2,13 @@
 // 4 November): no tab strip, but frames one above the other, each with its own 40 px head,
 // each folding to that head, the line between two frames dragged to give one of them room.
 //
-//   · Agents: who is at work in this view, on what, for how long (js/map.js agents()).
+//   · Changes, on top: every file the place changed with its +/− counts, then the chosen file's diff
+//     (js/changesframe.js, from Space's /changes; the owner's design, 5 November). It follows the agent
+//     until you touch it. Where Space has no /changes yet, today's list (js/files.js changes()), whose
+//     rows open the file in Files. "All files" opens Files on its own.
+//   · Agents: who is at work in this view, on what, for how long (js/map.js agents()), just above the Map,
+//     so who sits next to where.
 //   · Map: where they are, as a Diagram or a Graph (js/map.js, mounted here; its tabs are the frame's).
-//   · Changes: what they changed (js/files.js changes()); a row opens the file in the main area, where
-//     Files now lives (js/filesview.js). "All files" opens that place on its own.
 //
 // Made left the panel for the sidebar's Artifacts (another thread). The panel owns its frame: a 40 px
 // title bar (the place, full size, close), its width (dragged, 320–720, kept), whether it's open (kept),
@@ -18,9 +21,11 @@
 import { ICON, $ } from "./ui.js";
 import { esc } from "./util.js";
 import { fileIcon } from "./fileicons.js";
+import { createChangesFrame, countsHtml } from "./changesframe.js";
+import { setTheme as diffTheme } from "./diffview.js";
 
 const KEY = "xo-stage";
-const FR_KEY = "xo-stage-frames";
+const FR_KEY = "xo-stage-frames-2"; // Changes · Agents · Map (the order before it kept "xo-stage-frames")
 const PANEL_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="M14.5 4.5v15"/><path d="M17 8.5h1.5M17 11.5h1.5"/></svg>';
 const FULL_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>';
 const UNFULL_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14h6v6M20 10h-6V4M10 14l-7 7M14 10l7-7"/></svg>';
@@ -35,15 +40,18 @@ const ago = (ms) => { if (!Number.isFinite(ms)) return ""; const s = Math.max(0,
 
 /**
  * map: the Map (mount, show, hide, render, live, agents, mode, setMode), mapIcon. files: js/files.js
- * (changes). filesView: js/filesview.js (open, isOpen). viewer: the file viewer. view(): the view on
- * screen. go(view): navigate. onChange(): the app re-renders (header buttons). frames(): the frames the
- * person's shape keeps (xo:panel/*), of "agents", "map", "changes"; the order stays the panel's own,
- * since each line between two frames sizes a known pair.
+ * (changes, today's list). changes: js/changes.js (Space's /changes). filesView: js/filesview.js (open,
+ * isOpen). viewer: the file viewer. view(): the view on screen. go(view): navigate. onChange(): the app
+ * re-renders (header buttons). frames(): the frames the person's shape keeps (xo:panel/*), of "changes",
+ * "agents", "map"; the order stays the panel's own, since each line between two frames sizes a known pair.
  */
-export function createStage({ map, mapIcon, files, filesView, viewer, view, go, announce, onChange, frames = () => ["agents", "map", "changes"] }) {
+const ORDER = ["changes", "agents", "map"];
+const MAP_H = 260, AG_MIN = 72;
+export function createStage({ map, mapIcon, files, changes, filesView, viewer, view, go, announce, onChange, frames = () => ORDER }) {
   const saved = sget(KEY);
-  const fr = { agents: { h: null, folded: false }, map: { folded: false }, changes: { h: 200, folded: false }, ...sget(FR_KEY) };
-  const S = { open: false, full: false, returnTo: null, railOff: false, rail: false, filesWas: false, yielded: false, h: { agents: "", changes: "", head: "" } };
+  const fr = { changes: { folded: false }, agents: { h: null, folded: false }, map: { h: MAP_H, folded: false }, ...sget(FR_KEY) };
+  if (!fr.map.h) fr.map.h = MAP_H;
+  const S = { open: false, full: false, returnTo: null, railOff: false, rail: false, filesWas: false, yielded: false, wide: false, h: { agents: "", changes: "", head: "", chn: "" } };
 
   const el = document.createElement("aside");
   el.className = "stage";
@@ -55,15 +63,22 @@ export function createStage({ map, mapIcon, files, filesView, viewer, view, go, 
   const gutter = (a, b) => `<div class="fr-gut" role="separator" aria-orientation="horizontal" aria-label="Resize ${a} and ${b}" data-gut="${a}|${b}" tabindex="0"></div>`;
   el.innerHTML = `<div class="stg-grip" role="separator" aria-orientation="vertical" aria-label="Resize the panel" title="Drag to resize · double-click for the default" tabindex="0"></div>` +
     `<header class="stg-bar"><div class="stg-t"></div><div class="stg-acts"><button type="button" class="stg-ic" data-stg-full></button><button type="button" class="stg-ic" data-stg-close aria-label="Close the panel" title="Close (Esc)">${ICON.close}</button></div></header>` +
-    `<div class="stg-rail" aria-label="Panel, folded"><button type="button" class="stg-ic" data-rail="agents" title="Agents">${AGENTS_IC}</button><button type="button" class="stg-ic" data-rail="map" title="Map">${mapIcon}</button><button type="button" class="stg-ic" data-rail="changes" title="Changes">${CHANGES_IC}</button></div>` +
+    `<div class="stg-rail" aria-label="Panel, folded"><button type="button" class="stg-ic" data-rail="changes" title="Changes">${CHANGES_IC}</button><button type="button" class="stg-ic" data-rail="agents" title="Agents">${AGENTS_IC}</button><button type="button" class="stg-ic" data-rail="map" title="Map">${mapIcon}</button></div>` +
     `<div class="stg-frames">` +
+    frame("changes", "Changes", `<button type="button" class="xd-follow" data-follow hidden></button><button type="button" class="fr-ib" data-open-files title="All files">${FILES_IC}</button>`) + gutter("changes", "agents") +
     frame("agents", "Agents") + gutter("agents", "map") +
-    frame("map", "Map", `<div class="fr-views" role="tablist" aria-label="Map view"><button type="button" class="fr-t" role="tab" id="stage-map-tree" aria-controls="fr-body-map" data-map-mode="tree">Diagram</button><button type="button" class="fr-t" role="tab" id="stage-map-graph" aria-controls="fr-body-map" data-map-mode="graph">Graph</button></div>`) + gutter("map", "changes") +
-    frame("changes", "Changes", `<button type="button" class="fr-ib" data-open-files title="All files">${FILES_IC}</button>`) +
+    frame("map", "Map", `<div class="fr-views" role="tablist" aria-label="Map view"><button type="button" class="fr-t" role="tab" id="stage-map-tree" aria-controls="fr-body-map" data-map-mode="tree">Diagram</button><button type="button" class="fr-t" role="tab" id="stage-map-graph" aria-controls="fr-body-map" data-map-mode="graph">Graph</button></div>`) +
     `</div>`;
   $("#main").appendChild(el);
   const body = (id) => el.querySelector(`[data-fr="${id}"] .fr-b`);
   map.mount(body("map"));
+  // Changes: Space's list and diff, or (where Space has no /changes yet) today's list
+  body("changes").innerHTML = `<div class="cx-host"></div><div class="ch-old" hidden></div>`;
+  const CX = createChangesFrame({
+    host: body("changes").firstElementChild, changes, view,
+    openFile: (s, path, from) => viewer.open({ path, name: path.split("/").pop(), project: s.project, rel: s.worktree ? `.xo/worktrees/${s.worktree}/${path}` : path, show: "changes" }, from),
+    onChange: () => onChange && onChange(),
+  });
 
   function persist() { sset(KEY, { open: S.open }); sset(FR_KEY, fr); }
 
@@ -73,26 +88,26 @@ export function createStage({ map, mapIcon, files, filesView, viewer, view, go, 
     const keep = new Set(frames());
     if (!keep.size) keep.add("agents");
     const on = (id) => keep.has(id);
-    for (const id of ["agents", "map", "changes"]) {
+    for (const id of ORDER) {
       el.querySelector(`[data-fr="${id}"]`).hidden = !on(id);
       el.querySelector(`[data-rail="${id}"]`).hidden = !on(id);
     }
-    el.querySelector('[data-gut="agents|map"]').hidden = !(on("agents") && (on("map") || on("changes")));
-    el.querySelector('[data-gut="map|changes"]').hidden = !(on("map") && on("changes"));
-    for (const id of ["agents", "map", "changes"]) {
+    el.querySelector('[data-gut="changes|agents"]').hidden = !(on("changes") && (on("agents") || on("map")));
+    el.querySelector('[data-gut="agents|map"]').hidden = !(on("agents") && on("map"));
+    for (const id of ORDER) {
       const f = el.querySelector(`[data-fr="${id}"]`);
       f.classList.toggle("is-folded", !!fr[id].folded);
       f.querySelector("[data-fr-fold]").setAttribute("aria-expanded", String(!fr[id].folded));
       f.querySelector("[data-fr-fold]").title = fr[id].folded ? "Open" : "Fold";
     }
-    const a = el.querySelector('[data-fr="agents"]'), c = el.querySelector('[data-fr="changes"]'), m = el.querySelector('[data-fr="map"]');
-    a.style.height = fr.agents.folded ? "" : fr.agents.h ? `${fr.agents.h}px` : "";
-    c.style.height = fr.changes.folded ? "" : `${fr.changes.h}px`;
-    // when the Map folds (or the shape has none), Changes takes the room that's left; with neither, Agents
-    const grow = ["map", "changes", "agents"].find((id) => on(id) && !fr[id].folded);
-    m.classList.toggle("is-grow", grow === "map");
-    c.classList.toggle("is-grow", grow === "changes");
-    a.classList.toggle("is-grow", grow === "agents" && !on("map") && !on("changes"));
+    // Changes takes the room that's left; when it folds (or the shape has none), the Map; else Agents
+    const grow = ["changes", "map", "agents"].find((id) => on(id) && !fr[id].folded);
+    for (const id of ORDER) {
+      const f = el.querySelector(`[data-fr="${id}"]`);
+      f.classList.toggle("is-grow", grow === id);
+      const h = id === "changes" ? null : fr[id].h;
+      f.style.height = fr[id].folded || grow === id || !h ? "" : `${h}px`;
+    }
     if (fr.map.folded || !on("map") || !S.open || S.rail) map.hide(); else map.show(view());
   }
 
@@ -121,13 +136,28 @@ export function createStage({ map, mapIcon, files, filesView, viewer, view, go, 
     if (!S.open) return;
     const v = view();
     const ag = map.agents(v);
-    const ch = files.changes(v);
     const set = (k, node, html) => { if (S.h[k] !== html) { node.innerHTML = html; S.h[k] = html; } };
     set("head", el.querySelector(".stg-t"), titleHtml(ag));
     set("agents", body("agents"), agentsHtml(ag));
-    set("changes", body("changes"), changesHtml(ch));
     el.querySelector('[data-fr-n="agents"]').textContent = ag.filter((a) => a.busy).length || "";
-    el.querySelector('[data-fr-n="changes"]').textContent = ch.length || "";
+    // Changes: Space's list and diff where it has /changes, else today's list
+    const cxOn = !fr.changes.folded && CX.paint();
+    const hd = CX.head();
+    const [cxHost, old] = body("changes").children;
+    cxHost.hidden = !hd; old.hidden = !!hd;
+    if (!hd) { const ch = files.changes(v); set("changes", old, changesHtml(ch)); }
+    const n = el.querySelector('[data-fr-n="changes"]');
+    set("chn", n, hd ? (hd.count ? `${hd.count}${hd.total.add || hd.total.del ? ` ${countsHtml(hd.total)}` : ""}` : "") : String(files.changes(v).length || ""));
+    const fw = el.querySelector("[data-follow]");
+    fw.hidden = !hd || !hd.count;
+    if (hd) {
+      const fh = hd.follow ? `${hd.busy ? '<i class="xd-arc" aria-hidden="true"></i>' : ""}<span>Following</span>` : "<span>Follow</span>";
+      if (fw._h !== fh) { fw.innerHTML = fh; fw._h = fh; }
+      fw.classList.toggle("is-on", hd.follow);
+      fw.setAttribute("aria-pressed", String(hd.follow));
+      fw.title = hd.follow ? "Following the agent: the file it changes shows here. Pick a file or scroll to stop." : "Follow the agent: show each file it changes as it changes it";
+    }
+    if (S.wide !== (cxOn && CX.wide)) { S.wide = cxOn && CX.wide; apply(); }
     for (const b of el.querySelectorAll("[data-map-mode]")) { const on = map.mode === b.dataset.mapMode; b.classList.toggle("is-on", on); b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1; }
     body("map").setAttribute("aria-labelledby", `stage-map-${map.mode}`);
     const fb = el.querySelector("[data-stg-full]");
@@ -205,6 +235,7 @@ export function createStage({ map, mapIcon, files, filesView, viewer, view, go, 
     const mm = t.closest("[data-map-mode]");
     if (mm) { if (fr.map.folded) { fr.map.folded = false; layout(); } map.setMode(mm.dataset.mapMode); paint(); return; }
     if (t.closest("[data-open-files]")) { filesView.open(); return; }
+    if (t.closest("[data-follow]")) { CX.toggleFollow(); paint(); return; }
     const ch = t.closest("[data-change]");
     if (ch) { const rel = ch.dataset.change; viewer.open({ path: rel, name: rel.split("/").pop(), project: ch.dataset.changeProject, rel }, ch); return; }
     const g = t.closest("[data-go]");
@@ -228,9 +259,15 @@ export function createStage({ map, mapIcon, files, filesView, viewer, view, go, 
   for (const g of el.querySelectorAll("[data-gut]")) {
     const [a, b] = g.dataset.gut.split("|");
     const resize = (dy) => {
-      // the frame that isn't the Map takes or gives the room; the Map grows into what's left
-      if (a === "agents") { const f = el.querySelector('[data-fr="agents"]'); fr.agents.h = Math.max(72, Math.min(400, (fr.agents.h || f.getBoundingClientRect().height) + dy)); fr.agents.folded = false; }
-      else { fr.changes.h = Math.max(72, Math.min(600, fr.changes.h - dy)); fr.changes.folded = false; }
+      // the frame below the line gives or takes the room (dragging down shrinks it); the growing frame
+      // (Changes, or the Map when Changes is folded) has the rest. When the frame below is the one growing,
+      // the frame above sizes instead.
+      const grows = (id) => el.querySelector(`[data-fr="${id}"]`).classList.contains("is-grow");
+      const id = grows(b) ? a : b, sign = grows(b) ? 1 : -1;
+      const f = el.querySelector(`[data-fr="${id}"]`);
+      const max = id === "map" ? 640 : 400;
+      fr[id].h = Math.max(AG_MIN, Math.min(max, (fr[id].h || f.getBoundingClientRect().height) + sign * dy));
+      fr[id].folded = false;
       layout();
     };
     g.addEventListener("pointerdown", (e) => {
@@ -251,27 +288,31 @@ export function createStage({ map, mapIcon, files, filesView, viewer, view, go, 
       resize(e.key === "ArrowDown" ? 16 : -16);
       persist();
     });
-    g.addEventListener("dblclick", () => { if (a === "agents") fr.agents.h = null; else fr.changes.h = 200; layout(); persist(); });
+    g.addEventListener("dblclick", () => { fr.agents.h = null; fr.map.h = MAP_H; layout(); persist(); });
   }
 
   // ── width: flush to the window's right edge, 360 px by default, 320–720 by dragging its left edge ─
   const W_KEY = "xo-stage-w", W_DEF = 360, W_MIN = 320, W_MAX = 720, RAIL = 40;
+  // a diff wants room for code: with one showing, the panel widens to WIDE while the conversation keeps READ
+  // (never past a width you dragged it to yourself)
+  const WIDE = 560;
   // when the conversation beside it would drop under READ px, the panel floats over it (with a shadow)
   // instead of squeezing it: a cut-down thread title is worse than a covered margin
   const READ = 560;
   const RAIL_READ = 520; // beside Files, the reader keeps at least this much; under it the panel folds to its rail
   const sideW = () => { const side = document.querySelector(".side"); return side && getComputedStyle(side).position !== "fixed" ? side.getBoundingClientRect().width : 0; };
   const clampW = (w) => Math.round(Math.max(W_MIN, Math.min(W_MAX, innerWidth - 480, w)));
-  let wSaved = W_DEF;
-  try { wSaved = Number(localStorage.getItem(W_KEY)) || W_DEF; } catch { /* private mode */ }
+  let wSaved = W_DEF, wMine = false;
+  try { wMine = !!Number(localStorage.getItem(W_KEY)); wSaved = Number(localStorage.getItem(W_KEY)) || W_DEF; } catch { /* private mode */ }
+  const widthNow = () => (S.wide && !wMine && innerWidth - sideW() - WIDE >= READ ? Math.max(clampW(wSaved), clampW(WIDE)) : clampW(wSaved));
   function apply() {
-    const v = S.rail ? RAIL : clampW(wSaved);
+    const v = S.rail ? RAIL : widthNow();
     document.documentElement.style.setProperty("--sw", `${v}px`);
     document.body.classList.toggle("stage-over", !S.rail && innerWidth > 760 && innerWidth - sideW() - v < READ);
   }
   const setW = (w, save = false) => {
     wSaved = clampW(w);
-    if (save) { try { localStorage.setItem(W_KEY, String(wSaved)); } catch { /* private mode */ } }
+    if (save) { wMine = true; try { localStorage.setItem(W_KEY, String(wSaved)); } catch { /* private mode */ } }
     apply();
     return wSaved;
   };
@@ -279,7 +320,7 @@ export function createStage({ map, mapIcon, files, filesView, viewer, view, go, 
   function fitRail() {
     const tw = filesView.isOpen ? (parseFloat(getComputedStyle(document.querySelector("#fv") || document.body).getPropertyValue("--tw")) || 280) : 0;
     if (!filesView.isOpen) S.railOff = false;
-    const want = S.open && filesView.isOpen && !S.railOff && innerWidth > 760 && innerWidth - sideW() - clampW(wSaved) - tw < RAIL_READ;
+    const want = S.open && filesView.isOpen && !S.railOff && innerWidth > 760 && innerWidth - sideW() - widthNow() - tw < RAIL_READ;
     if (want !== S.rail) {
       S.rail = want;
       document.body.classList.toggle("stage-rail", want);
@@ -296,13 +337,13 @@ export function createStage({ map, mapIcon, files, filesView, viewer, view, go, 
     grip.setPointerCapture(e.pointerId);
     const right = el.getBoundingClientRect().right;
     document.body.classList.add("stage-sizing");
-    const move = (ev) => setW(right - ev.clientX);
+    const move = (ev) => { wMine = true; setW(right - ev.clientX); };
     const up = () => { grip.removeEventListener("pointermove", move); document.body.classList.remove("stage-sizing"); setW(wSaved, true); };
     grip.addEventListener("pointermove", move);
     grip.addEventListener("pointerup", up, { once: true });
     grip.addEventListener("pointercancel", up, { once: true });
   });
-  grip.addEventListener("dblclick", () => setW(W_DEF, true));
+  grip.addEventListener("dblclick", () => { wMine = false; try { localStorage.removeItem(W_KEY); } catch { /* private mode */ } setW(W_DEF); });
   grip.addEventListener("keydown", (e) => {
     if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
     e.preventDefault();
@@ -316,6 +357,20 @@ export function createStage({ map, mapIcon, files, filesView, viewer, view, go, 
     open: () => open(), close, toggle, sync,
     /** The shape changed: the frames it keeps, at once. */
     reshape() { layout(); paint(); },
+    /** A changed file's chip: the panel opens (if closed) on that file's diff; false when it can't. */
+    showChange(path) {
+      if (!frames().includes("changes") || !CX.head()) return false;
+      if (!CX.select(path)) return false;
+      fr.changes.folded = false;
+      if (!S.open || S.rail) open({ focus: false }); else { layout(); paint(); persist(); }
+      return true;
+    },
+    /** You sent the agent a message: following resumes (D6). */
+    resumeFollow(v) { CX.resume(v); },
+    /** The file chosen in the panel's Changes for a view, while the panel shows it (its chip reads as chosen). */
+    chosen(v) { return S.open && !S.rail && !fr.changes.folded && frames().includes("changes") ? CX.chosen(v) : null; },
+    /** The app's theme switched: drawn diffs follow. */
+    theme: (t) => diffTheme(t),
     /** The place's name for the title bar (app.js knows the names). */
     set names(fn) { nameOf = fn; },
     /** Is this element inside the panel (so the app's Esc leaves it alone)? */

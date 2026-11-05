@@ -328,13 +328,30 @@ export const api = {
 
   // ── projects ──────────────────────────────────────────────────────────────
   /** A text file inside a project, for the file viewer: {name, kind, size_bytes, truncated, content, …}. */
-  projectFile: (project, relativePath) => get(`/xo-projects/${enc(project)}/file`, { relative_path: relativePath }),
+  projectFile: (project, relativePath, at, { purpose } = {}) => get(`/xo-projects/${enc(project)}/file`, { relative_path: relativePath, ...(at ? { commit: at.commit, commit_path: at.path } : {}), ...(purpose ? { purpose } : {}) }),
+  /**
+   * Save a project file (Space; serve.py adds the UI's writer key). base_version: the version you started
+   * from. → {version, saved_at, edit_id}; 409 file_changed {current: {content, version}}; 428
+   * confirm_required (send again with confirm "runs_code"); 403 read_only_place | ui_only | outside_project.
+   */
+  saveProjectFile: (project, relativePath, content, baseVersion, confirm) =>
+    send("PUT", `/xo-projects/${enc(project)}/file`, { relative_path: relativePath, content, base_version: baseVersion, ...(confirm ? { confirm } : {}) }),
+  /** Undo a save (Space's edit log): the file goes back to what it was before that save. */
+  undoProjectEdit: (project, editId) => send("POST", `/xo-projects/${enc(project)}/edits/${enc(editId)}/undo`, {}),
+  /**
+   * What changed in a project (Space, design-research/2026-11-vision/pierre): a thread's worktree against
+   * where its branch left the default branch, uncommitted work included, or the project's own checkout
+   * against its HEAD. {root, base_commit, head_commit, computed_at, truncated, files: [{path, old_path?,
+   * status, additions, deletions, binary, version, patch, patch_omitted?}]}. path: one file (up to 1 MB).
+   */
+  projectChanges: (project, { worktree, path } = {}) => get(`/xo-projects/${enc(project)}/changes`, { ...(worktree ? { worktree } : {}), ...(path ? { path } : {}) }),
   /** One folder of a project, a level at a time (a thread's worktree is `.xo/worktrees/<name>`): {dirs, files}. */
-  projectTree: (project, relativePath) => get(`/xo-projects/${enc(project)}/tree`, relativePath ? { relative_path: relativePath } : undefined),
+  // hidden files too (.env, .gitignore, .github/…): you can read and edit everything in a project (the owner's D1)
+  projectTree: (project, relativePath) => get(`/xo-projects/${enc(project)}/tree`, { ...(relativePath ? { relative_path: relativePath } : {}), hidden: "true" }),
   /** An image inside a project, as a Blob for the image viewer (fetched, so it carries the Coder header and errors read as words). */
   projectImage: (project, relativePath, opts) => blob(`/xo-projects/${enc(project)}/image?relative_path=${enc(relativePath)}`, opts),
   /** A whole project file as a Blob, for the viewer's Download (fetched, so the Coder token stays out of every URL). */
-  projectDownload: (project, relativePath) => blob(`/xo-projects/${enc(project)}/download?relative_path=${enc(relativePath)}`, { ms: 300000 }),
+  projectDownload: (project, relativePath) => blob(`/xo-projects/${enc(project)}/download?relative_path=${enc(relativePath)}&hidden=true`, { ms: 300000 }),
   /** Where xo-projects live: {roots: {...}, default}. Never hard-code the root. */
   workspaceConfig: () => get("/config/workspace"),
   /** Scaffold a new xo-project (xo-cowork-api). 409 when the folder exists. */

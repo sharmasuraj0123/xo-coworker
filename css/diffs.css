@@ -1,0 +1,204 @@
+/* Diffs and files drawn by @pierre/diffs (js/diffview.js). Pierre draws inside its own element's shadow
+   root, where this sheet can't reach; custom properties set on that element can, since they inherit. So
+   the look is set here, once, from XO's tokens, and light and dark switch with the tokens. The syntax
+   colours alone are a generated TextMate pair (js/diffthemes.js), because Pierre's editor needs them
+   concrete. */
+diffs-container{
+  display:block;
+  /* never 0 px tall: Pierre's virtualiser keeps a file that ends above the view where it ends, so an empty
+     one, before its first rows, read as "above" and threw a long file to its last line on opening */
+  min-height:1px;
+  --diffs-font-family:var(--mono);
+  --diffs-header-font-family:var(--sans);
+  --diffs-font-size:13px; --diffs-line-height:20px; --diffs-tab-size:2;
+  --diffs-font-features:"liga" 0,"calt" 0;   /* => reads as two characters, as in the viewer */
+  --diffs-bg-context-override:var(--code-bg);
+  --diffs-bg-buffer-override:var(--code-bg);
+  /* a change: a low tint of green or red per line, one step stronger on the words that changed */
+  --diffs-bg-addition-override:color-mix(in srgb,var(--accent-fill) 9%,var(--code-bg));
+  --diffs-bg-addition-emphasis-override:color-mix(in srgb,var(--accent-fill) 24%,var(--code-bg));
+  --diffs-bg-addition-number-override:color-mix(in srgb,var(--accent-fill) 12%,var(--code-bg));
+  --diffs-bg-deletion-override:color-mix(in srgb,var(--err) 9%,var(--code-bg));
+  --diffs-bg-deletion-emphasis-override:color-mix(in srgb,var(--err) 24%,var(--code-bg));
+  --diffs-bg-deletion-number-override:color-mix(in srgb,var(--err) 12%,var(--code-bg));
+  --diffs-addition-color-override:var(--accent);
+  --diffs-deletion-color-override:var(--err-ink);
+  --diffs-modified-color-override:var(--info);
+  --diffs-fg-number-override:var(--ink-4);
+  /* "13 unmodified lines", hover, and the lines you select */
+  --diffs-bg-separator-override:color-mix(in srgb,var(--ink) 5%,var(--code-bg));
+  --diffs-bg-hover-override:color-mix(in srgb,var(--ink) 5%,var(--code-bg));
+  --diffs-bg-selection-override:color-mix(in srgb,var(--info) 16%,var(--code-bg));
+  --diffs-bg-selection-number-override:color-mix(in srgb,var(--info) 24%,var(--code-bg));
+  --diffs-selection-number-fg:var(--ink);
+}
+
+/* ── counts: "+5 −8", tabular so they never shift, the code tokens' green and red ── */
+.xd-n{flex:none;display:inline-flex;gap:6px;font:500 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums;letter-spacing:0;color:var(--ink-4)}
+.xd-n b{font-weight:500}
+.xd-a{color:var(--code-add)}
+.xd-d{color:var(--code-del)}
+
+/* ── a turn's changed files in chat: the chip carries its counts; the one the panel shows reads as chosen ── */
+.tb-cf .xd-n{margin-left:2px}
+.tb-cf.is-on{background:color-mix(in srgb,var(--ink) 9%,var(--g1A));border-color:var(--g40);color:var(--ink)}
+
+/* ── the panel's Changes (js/changesframe.js): the list, then the chosen file's diff ──
+   Rows are 32 px on the panel's 12 px side margins. Measured from the card's outer edge (its 1 px border
+   included): the head's button, 28 px, sits 4 px in on top and right, so its radius is 12 − 4 = 8; the
+   head is 1 + 3 + 28 + 3 = 35 px with its line, the path 12 px in, as the rows' icons are. */
+.stage .fr[data-fr="changes"] .fr-b{display:flex;flex-direction:column;overflow:hidden}
+.stage .cx-host{flex:1;min-height:0;display:flex;flex-direction:column}
+.stage .cx{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
+.stage .cx-list{flex:none;list-style:none;display:flex;flex-direction:column;gap:2px;max-height:170px;margin:0;padding:0 12px 8px;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.stage .cx-r{box-sizing:border-box;display:grid;grid-template-columns:16px minmax(0,1fr) auto;column-gap:8px;align-items:center;width:100%;height:32px;padding:0 8px;border-radius:var(--r);text-align:left;color:var(--ink-2);transition:background var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease)}
+.stage .cx-r:hover{background:var(--panel-hover);transition-duration:var(--d-hover-in)}
+.stage .cx-r.is-on{background:color-mix(in srgb,var(--ink) 8%,var(--side));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 11%,transparent),var(--panel-lift)}
+:root[data-theme="light"] .stage .cx-r.is-on{background:var(--surface);box-shadow:inset 0 0 0 1px var(--panel-line),var(--panel-lift)}
+.stage .cx-i{position:relative;display:grid;place-items:center;width:16px;height:16px}
+.stage .cx-i svg.fi{width:16px;height:16px}
+.stage .cx-i .arc{right:-6px;bottom:-6px;background:var(--side)}
+.stage .cx-r.is-on .cx-i .arc{background:color-mix(in srgb,var(--ink) 8%,var(--side))}
+:root[data-theme="light"] .stage .cx-r.is-on .cx-i .arc{background:var(--surface)}
+.stage .cx-t{display:flex;align-items:baseline;gap:8px;min-width:0;overflow:hidden;white-space:nowrap}
+.stage .cx-n{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:500 var(--fs-base)/20px var(--sans)}
+.stage .cx-d{flex:0 100 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.stage .cx-r:hover .cx-n,.stage .cx-r.is-on .cx-n{color:var(--ink)}
+.stage .cx-pane{position:relative;flex:1 1 0;min-height:120px;display:flex;flex-direction:column;margin:0 12px 12px;border-radius:var(--r-lg);border:1px solid var(--panel-line);background:var(--code-bg);overflow:hidden}
+.stage .cx-pane[hidden]{display:none}
+.stage .cx-ph{flex:none;box-sizing:border-box;display:flex;align-items:center;gap:8px;height:35px;padding:0 3px 0 11px;border-bottom:1px solid var(--panel-line)}
+.stage .cx-pp{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 var(--fs-sm)/16px var(--mono);color:var(--ink-2)}
+.stage .cx-sp{flex:1}
+.stage .cx-ofi{display:grid;place-items:center;width:28px;height:28px;border-radius:calc(var(--r-lg) - 4px);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.stage .cx-ofi:hover{background:var(--panel-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
+.stage .cx-ofi svg{width:16px;height:16px}
+.stage .cx-pd{flex:1 1 0;min-height:0;overflow:auto;overscroll-behavior:contain;outline:none;scrollbar-width:thin}
+.stage .cx-pd[hidden]{display:none}
+.stage .cx-pd diffs-container{--diffs-font-size:12px;--diffs-line-height:18px}
+.stage .cx-note,.stage .cx-none{margin:0;padding:12px;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.stage .cx-none{padding:4px 20px 12px}
+.stage .cx-none .spin{display:inline-block;width:10px;height:10px;margin-right:6px;border-radius:50%;vertical-align:-1px}
+/* paused: an edit you aren't looking at, said quietly over the diff, never a jump */
+.stage .cx-pill{position:absolute;z-index:2;top:44px;left:50%;transform:translateX(-50%);display:inline-flex;align-items:center;gap:8px;height:28px;max-width:calc(100% - 48px);padding:0 12px;border-radius:var(--r-pill);background:var(--surface);border:1px solid var(--panel-line);box-shadow:var(--e2);font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-2);white-space:nowrap;animation:cx-pill var(--d-in) var(--ease)}
+.stage .cx-pill[hidden]{display:none}
+.stage .cx-pill>span:first-of-type{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.stage .cx-pill b{font-weight:500;color:var(--ink)}
+.stage .cx-pill i{width:6px;height:6px;border-radius:50%;background:var(--ink-3)}
+.stage .cx-pill .cx-show{font-weight:500;color:var(--ink)}
+.stage .cx-pill .cx-show::before{content:"·";margin-right:8px;font-weight:400;color:var(--ink-4)}
+.stage .cx-pill:hover{border-color:var(--line-hover)}
+@keyframes cx-pill{from{opacity:0;transform:translate(-50%,-4px)}}
+/* the frame's head: the total beside the count, and Follow */
+.stage [data-fr="changes"] .fr-n{display:inline-flex;align-items:baseline;gap:8px}
+.stage .xd-follow{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px;border-radius:var(--r-pill);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.stage .xd-follow[hidden]{display:none}
+.stage .xd-follow:hover{background:var(--panel-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
+.stage .xd-follow.is-on{background:color-mix(in srgb,var(--info) 14%,transparent);color:color-mix(in srgb,var(--info) 75%,var(--ink))}
+.stage .xd-follow:focus-visible,.stage .cx-r:focus-visible,.stage .cx-ofi:focus-visible,.stage .cx-pill:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.xd-arc{position:relative;width:10px;height:10px}
+.xd-arc::before{content:"";position:absolute;inset:0;border-radius:50%;border:1.5px solid color-mix(in srgb,currentColor 25%,transparent);border-top-color:currentColor;animation:arc-turn 1.6s linear infinite}
+@media (prefers-reduced-motion:reduce){.xd-arc::before,.stage .cx-pill{animation:none}.stage :is(.cx-r,.cx-ofi,.xd-follow){transition:none}}
+
+/* ── Files › a changed file, on its diff (js/viewer.js): the page's own ground, side by side when there's room ── */
+.vw-diff{background:var(--canvas)}
+.vw-diff diffs-container{--code-bg:var(--canvas)}
+.vw-t .xd-n{align-self:baseline}
+.vw-btn.is-on{background:var(--g24);color:var(--ink)}
+@container flpv (max-width:1099px){.vw-split{display:none}}
+.fl-r .xd-n{margin-left:4px}
+
+/* ── Files › a whole file, through Pierre (js/viewer.js): the page's own ground ── */
+.vw-file{position:relative;background:var(--canvas)}
+.vw-file diffs-container{--code-bg:var(--canvas)}
+
+/* "Ask about lines 36–43 ⌘L": under the selection's last line, at the code's right edge */
+.xd-ask{position:absolute;z-index:3;right:16px;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px 0 8px;border-radius:var(--r-pill);background:var(--surface);border:1px solid var(--g30);box-shadow:var(--e2);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink);white-space:nowrap;animation:xd-in var(--d-in) var(--ease)}
+.xd-ask:hover{border-color:var(--line-hover)}
+.xd-ask svg{width:14px;height:14px;color:var(--ink-3)}
+.xd-ask kbd{all:unset;margin-left:2px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+:root[data-theme="light"] .xd-ask{background:#fff}
+@keyframes xd-in{from{opacity:0;transform:translateY(-2px)}}
+
+/* the composer under those lines: a row of the file (Pierre makes room; nothing is covered). Its corner is
+   concentric with Send's, measured from its outer edge (1 px border + 7 px): a 28 px circle 8 px in,
+   14 + 8 = 22. Send never shrinks: a long thread name is cut instead (Astra F3). */
+.xd-q{box-sizing:border-box;max-width:600px;margin:8px 16px 12px;padding:7px 7px 7px 15px;border-radius:var(--r-2xl);background:var(--surface);border:1px solid var(--g30);box-shadow:var(--e2);font-family:var(--sans);white-space:normal;animation:xd-in var(--d-in) var(--ease)}
+:root[data-theme="light"] .xd-q{background:#fff}
+.xd-q .xd-ref{display:flex;align-items:center;gap:6px;margin:4px 0 4px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
+.xd-q .xd-ref svg{width:14px;height:14px}
+.xd-q .xd-in{display:block;box-sizing:border-box;width:100%;min-height:40px;margin:0;padding:0;border:0;outline:none;resize:none;background:none;font:400 var(--fs-md)/20px var(--sans);color:var(--ink)}
+.xd-q .xd-in::placeholder{color:var(--ink-4)}
+.xd-q .xd-row{display:flex;align-items:center;gap:8px;margin-top:4px;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.xd-q .xd-row b{font-weight:500;color:var(--ink-2)}
+.xd-q .xd-sp{flex:1}
+.xd-q .xd-send{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--accent-fill);color:var(--accent-ink)}
+.xd-q .xd-to{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.xd-q .xd-hint{flex:none}
+.xd-q .xd-send svg{width:16px;height:16px}
+.xd-q .xd-send:focus-visible,.xd-ask:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.xd-ask,.xd-q{animation:none}}
+@media (max-width:600px){.xd-q .xd-hint{display:none}}
+
+/* Changes | File is words, not icons: it never folds to 28 px icon squares or hides in a narrow pane (the
+   rules for Preview · Source), and on a phone it stays inside its 40 px head (Astra F2) */
+.vw-seg.is-words{flex:none}
+.vw-seg.is-words button{width:auto;min-height:0;height:22px;padding:0 8px}
+@container flpv (max-width:520px){.vw-seg.is-words button{width:auto;padding:0 8px}}
+@container flpv (max-width:360px){.vw-seg.is-words{display:flex}.vw-seg.is-words button{padding:0 6px}}
+
+/* ── Files › Edit (js/viewer.js): the head while you edit, read-only places, files that run code ──
+   Head controls are 28 px, as the viewer's icon buttons; Save is the one green thing on the screen. */
+.xd-edit{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px 0 8px;border-radius:var(--r-sm);font:500 var(--fs-base)/20px var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.xd-edit:hover{background:var(--g1F);color:var(--ink);transition-duration:var(--d-hover-in)}
+.xd-edit:disabled{opacity:.6;cursor:progress}
+.xd-edit svg{width:16px;height:16px}
+.xd-state{display:inline-flex;align-items:center;gap:6px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3);white-space:nowrap}
+.xd-state i{width:6px;height:6px;border-radius:50%;background:var(--warn)}
+.xd-errline{color:var(--err-ink)}
+.xd-vsep{flex:none;width:1px;height:16px;margin:0 4px;background:var(--g26)}
+.xd-btn{flex:none;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--g30);font:500 var(--fs-base)/20px var(--sans);color:var(--ink-2);white-space:nowrap;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.xd-btn:hover{border-color:var(--line-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
+.xd-btn.is-pri{background:var(--accent-fill);border-color:var(--accent-fill);color:var(--accent-ink)}
+.xd-btn.is-pri:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+.xd-btn.is-warn{border-color:color-mix(in srgb,var(--err) 45%,var(--g30));color:var(--err-ink)}
+.xd-btn:disabled{opacity:.45;cursor:default}
+.xd-btn kbd{all:unset;font:500 var(--fs-sm)/16px var(--sans);opacity:.6}
+.xd-ro{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 8px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3);white-space:nowrap}
+.xd-ro svg{width:14px;height:14px}
+.xd-runs{flex:none;display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px 0 6px;margin-right:4px;border-radius:var(--r-pill);background:color-mix(in srgb,var(--warn) 12%,transparent);font:500 var(--fs-sm)/16px var(--sans);color:color-mix(in srgb,var(--warn) 70%,var(--ink))}
+.xd-runs svg{width:14px;height:14px}
+/* the run-code question, under Save */
+.vw-top{position:relative;z-index:3} /* above the file below it: the run-code question opens over the code */
+.xd-pop{position:absolute;z-index:20;top:calc(100% + 8px);right:8px;width:320px;padding:12px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--g30);box-shadow:var(--e2);font:400 var(--fs-md)/20px var(--sans);color:var(--ink-2);animation:xd-in var(--d-in) var(--ease)}
+:root[data-theme="light"] .xd-pop{background:#fff}
+.xd-pop p{margin:0}
+.xd-pop b{color:var(--ink);font-weight:600}
+.xd-pop-a{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+/* the file changed while you edited: said in words above the merge view */
+.xd-bar{flex:none;margin:0;padding:10px 16px;border-bottom:1px solid var(--g22);background:color-mix(in srgb,var(--warn) 7%,var(--canvas));font:400 var(--fs-md)/20px var(--sans);color:var(--ink-2)}
+.xd-bar b{color:var(--ink);font-weight:600}
+/* each place you both changed: your three choices, drawn by us in Pierre's slot */
+.xd-merge{display:flex;align-items:center;gap:4px;padding:4px 0;font-family:var(--sans)}
+.xd-mbtn{height:24px;padding:0 10px;border-radius:var(--r-pill);border:1px solid var(--g30);background:var(--surface);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.xd-mbtn:hover{border-color:var(--line-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
+.xd-mbtn.is-mine{border-color:color-mix(in srgb,var(--accent) 45%,var(--g30));color:var(--ink)}
+.xd-mbtn:focus-visible,.xd-btn:focus-visible,.xd-edit:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+/* "Saved · Undo · Tell the agent", at the foot of the file (the app's toast, here) */
+.xd-toast{position:absolute;z-index:8;left:0;right:0;bottom:16px;display:flex;justify-content:center;padding:0 16px;pointer-events:none}
+.xd-toast .toast{pointer-events:auto}
+.xd-toast .t-m b{font-weight:600}
+.xd-toast .t-m{min-width:0}
+.xd-tacts{display:contents}
+.xd-tx{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:var(--r-sm);color:var(--ink-3)}
+.xd-tx:hover{background:var(--g24);color:var(--ink)}
+.xd-tx svg{width:14px;height:14px}
+@media (prefers-reduced-motion:reduce){.xd-pop{animation:none}.xd-btn,.xd-edit,.xd-mbtn{transition:none}}
+@media (max-width:600px){
+  .xd-edit span,.xd-btn kbd,.xd-runs span{display:none}
+  .xd-edit{padding:0 6px}
+  .xd-pop{width:min(320px,calc(100vw - 32px))}
+  /* the toast on a phone: the words and close on the first row, the actions on their own row below (Astra) */
+  .xd-toast .toast{flex-wrap:wrap;row-gap:4px;width:100%}
+  .xd-toast .t-m{flex:1 1 0}
+  .xd-tacts{display:flex;order:2;flex-basis:100%;justify-content:flex-end;gap:8px}
+}

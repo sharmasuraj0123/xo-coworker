@@ -20,6 +20,7 @@ import { ICON } from "./ui.js";
 import { api } from "./api.js";
 import { activityOf, folderOf } from "./map.js";
 import { fileIcon, folderIcon } from "./fileicons.js";
+import { countsHtml } from "./changesframe.js";
 
 const WIDE = 600;       // the panel's width from which tree and file sit side by side (the panel goes to 720)
 const TOUCHED = 6;      // "Touched by agents" shows at most this many
@@ -63,7 +64,7 @@ export function localIn(scope, f) {
   return rel.startsWith(".xo/") ? null : rel;
 }
 
-export function createFiles({ world, viewer, isBusy, PROJ, go }) {
+export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null }) {
   const F = {
     host: null, view: "home", scope: { key: "all" }, pick: null, shown: false,
     dirs: new Map(),     // "<project>|<api path>" → {state, dirs, files, error}
@@ -158,8 +159,20 @@ export function createFiles({ world, viewer, isBusy, PROJ, go }) {
     rowsOf(s, "", 0, marks, rows);
     const head = `<div class="fl-head"><div class="fl-crumb">${F.pick || (F.follow && F.viewKey === "all") ? `<button type="button" class="fl-up" data-fl-unpick title="Your projects">${BACK}</button>` : ""}<b>${esc(s.label)}</b>${s.sub ? `<small title="${s.base ? "A thread's own worktree: its branch" : ""}">${esc(s.sub)}</small>` : ""}</div>` +
       `<label class="fl-q"><span class="sr-only">Find a file</span>${ICON.search}<input data-fl-q placeholder="Find a loaded file" value="${esc(F.q)}" autocomplete="off" spellcheck="false"></label></div>`;
-    const top = tl.slice(0, TOUCHED);
-    const sec = top.length ? `<p class="fl-sec">Touched by agents</p>` + top.map((x) => `<button type="button" class="fl-r is-touch" style="--d:0" data-fl-touch="${esc(x.rel)}" title="${esc(`${x.path} · ${x.who}`)}"><span class="fl-c fl-i">${fileIcon(x.path)}</span><span class="fl-n">${esc(x.path)}</span>${dot(x, true)}</button>`).join("") + `<p class="fl-sec">All files</p>` : "";
+    // what this place changed (Space's /changes): every file with its counts, each opening on its diff; where
+    // Space has no /changes yet, what agents touched (from the turns)
+    const cs = changes && s.key === F.viewKey ? changes.of(F.view) : null;
+    let sec = "";
+    if (cs && cs.state === "ok" && cs.files.size) {
+      const live = changes.activity(F.view).live;
+      sec = `<p class="fl-sec">Changed ${s.base ? "in this thread" : "here"}</p>` + [...cs.files.values()].map((f) => {
+        const rel = s.base ? `${s.base}/${f.path}` : f.path, on = viewer.hasFile && viewer.file && viewer.file.rel === rel && viewer.file.show === "changes";
+        return `<button type="button" class="fl-r is-touch${on ? " is-on" : ""}" style="--d:0" data-fl-change="${esc(rel)}" title="${esc(f.path)}"><span class="fl-c fl-i">${fileIcon(f.path)}</span><span class="fl-n">${esc(f.path)}</span>${live.has(f.path) ? `<span class="fl-who w-live"><i></i>editing now</span>` : f.binary ? "" : countsHtml(f)}</button>`;
+      }).join("") + `<p class="fl-sec">All files</p>`;
+    } else {
+      const top = tl.slice(0, TOUCHED);
+      sec = top.length ? `<p class="fl-sec">Touched by agents</p>` + top.map((x) => `<button type="button" class="fl-r is-touch" style="--d:0" data-fl-touch="${esc(x.rel)}" title="${esc(`${x.path} · ${x.who}`)}"><span class="fl-c fl-i">${fileIcon(x.path)}</span><span class="fl-n">${esc(x.path)}</span>${dot(x, true)}</button>`).join("") + `<p class="fl-sec">All files</p>` : "";
+    }
     return head + `<div class="fl-list">${sec}${rows.join("")}</div>`;
   }
 
@@ -252,6 +265,12 @@ export function createFiles({ world, viewer, isBusy, PROJ, go }) {
       }
       const fb = t.closest("[data-fl-file]");
       if (fb) { openFile(F.scope, fb.dataset.flFile, fb, fb.dataset.flBytes === "" ? null : Number(fb.dataset.flBytes)); return; }
+      const cg = t.closest("[data-fl-change]");
+      if (cg) {
+        const rel = cg.dataset.flChange, s = F.scope;
+        F.fileView = true; F.auto = false; F.sel = null;
+        viewer.open({ path: rel, name: base(rel), project: s.project, rel, show: "changes" }, cg); paint(); return;
+      }
       const tc = t.closest("[data-fl-touch]");
       if (tc) {
         const rel = tc.dataset.flTouch, s = F.scope;
