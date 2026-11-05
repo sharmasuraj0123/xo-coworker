@@ -772,6 +772,12 @@ function messagesOf(conv) {
   return merged;
 }
 
+/** A message's words. One that holds a table is the wide kind of bubble: the whole text column, so a
+ *  table gets the room it needs (QA #5; a prose bubble stops at 560 px, 88 % of the column). */
+function proseHtml(text) {
+  const html = renderMarkdown(text);
+  return `<div class="prose${html.includes('<div class="md-table') ? " has-table" : ""}">${html}</div>`;
+}
 function threadCardHtml(tid, needs) {
   const t = world.thread(tid);
   if (!t) return "";
@@ -884,7 +890,7 @@ function msgItems(conv, needs) {
       const media = m.files && m.files.length ? mediaHtml(m.files.map((f) => fromAttachment(f, { chat: m.chatId, by: name, at: m.at })), { side: "them" }) : "";
       html = `<div class="m m-them${cont ? " cont" : ""}">${cont ? `<div class="av av-gap"></div>` : av}<div class="mb">` +
         (cont ? "" : `<div class="mh"><b>${esc(name)}</b>${role ? `<span class="role">${esc(role)}</span>` : ""}<time>${clock(m.at)}</time>${iq}</div>`) +
-        `${m.text ? `<div class="prose">${renderMarkdown(m.text)}</div>` : ""}${media}${reactionsHtml(m.reactions)}${tid ? threadCardHtml(tid, needs) : ""}${(m.threads || []).map((x) => threadCardHtml(x, needs)).join("")}</div></div>`;
+        `${m.text ? proseHtml(m.text) : ""}${media}${reactionsHtml(m.reactions)}${tid ? threadCardHtml(tid, needs) : ""}${(m.threads || []).map((x) => threadCardHtml(x, needs)).join("")}</div></div>`;
     } else if (m.who === "turn") {
       const inner = turnHtml(m.turn, m.blocks, { open: S.tbOpen, hideAnswer: m.hideAnswer, carried: m.carried, route: fileRoute, by: nameOf(conv, "agent")[0], working: m.working });
       if (!inner) { prev = m; continue; }

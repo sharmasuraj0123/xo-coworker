@@ -101,9 +101,9 @@ function blockHtml(b, open, live, now, media = {}, tail = "") {
     case "narration":
       return `<div class="tb tb-narr prose" data-b="${esc(b.id)}">${renderMarkdown(b.text || "")}</div>`;
     case "text":
-      return `<div class="tb tb-text prose${!b.done && live ? " is-live" : ""}">${renderMarkdown(b.text || "")}</div>`;
+      { const md = renderMarkdown(b.text || ""); return `<div class="tb tb-text prose${!b.done && live ? " is-live" : ""}${md.includes('<div class="md-table') ? " has-table" : ""}">${md}</div>`; }
     case "answer":
-      return `<div class="tb tb-answer prose">${renderMarkdown(b.text || "")}</div>`;
+      { const md = renderMarkdown(b.text || ""); return `<div class="tb tb-answer prose${md.includes('<div class="md-table') ? " has-table" : ""}">${md}</div>`; }
     default:
       return "";
   }

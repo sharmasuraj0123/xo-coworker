@@ -588,10 +588,14 @@ function gStart(kind, m) {
 // movement ends it and scrolls. (It used to catch a slightly diagonal start and then hold the page still
 // for the whole gesture: "stuck while scrolling".)
 let lastV = 0;
+// Something that scrolls sideways itself (a wide table, a long code line) keeps its own sideways gesture,
+// trackpad or finger: a swipe over it is never a reply or the times (QA #7: a wide table couldn't be scrolled)
+const SIDEWAYS = ".md-table, .md-code pre";
+const ownsSideways = (t) => { const el = t && t.closest && t.closest(SIDEWAYS); return !!el && el.scrollWidth > el.clientWidth + 1; };
 scroller.addEventListener("wheel", (e) => {
   const ax = Math.abs(e.deltaX), ay = Math.abs(e.deltaY);
   if (ay > ax) { lastV = e.timeStamp; if (g) gEnd(); return; }
-  if (!g && (ax < 6 || ax < ay * 2 || e.timeStamp - lastV < 400)) return;
+  if (!g && (ax < 6 || ax < ay * 2 || e.timeStamp - lastV < 400 || ownsSideways(e.target))) return;
   e.preventDefault();
   if (!g) {
     const m = e.target.closest?.("#msgs .m");
@@ -603,7 +607,7 @@ scroller.addEventListener("wheel", (e) => {
 // a finger: a message follows it sideways; up and down still scrolls
 let touch = null;
 msgs.addEventListener("pointerdown", (e) => {
-  if (e.pointerType !== "touch") return;
+  if (e.pointerType !== "touch" || ownsSideways(e.target)) { touch = null; return; }
   touch = { x: e.clientX, y: e.clientY, m: e.target.closest(".m"), on: false };
 });
 msgs.addEventListener("pointermove", (e) => {
