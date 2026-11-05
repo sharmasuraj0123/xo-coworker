@@ -12,8 +12,10 @@
 // conversation, sending, the back-to-latest button, pressing the agent's working bubble).
 // Only four things write the scroll position: toLatest(), keeping pinned on growth, a jump to a message, and
 // keeping the row you read in place when the view changes width (a panel opening or closing, a window
-// resized): the conversation re-wraps, and a change to the view's own size is one the browser's scroll
-// anchoring doesn't hold (opening the right panel moved the row you read 840-864 px at 1280 wide).
+// resized, the chat docking beside a file): the conversation re-wraps, and a change to the view's own size is
+// one the browser's scroll anchoring doesn't hold (opening the right panel moved the row you read 840-864 px
+// at 1280 wide). The browser's own clamp when the conversation gets shorter is never read as you reaching
+// the latest (the chat leaving its 400 px column lost your place to it).
 
 const sc = () => document.getElementById("scroller");
 const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -68,10 +70,17 @@ function keepPlace() {
 export function initFollow() {
   const s = sc(), column = document.getElementById("column");
   lastTop = s.scrollTop;
+  let seenW = column.clientWidth; // the column's width as this handler last saw it (not keep()'s `width`)
   // moved up = reading; back at the latest = pinned. A glide down (smooth toLatest) never unpins, and
   // growth below changes no scrollTop, so neither is mistaken for you scrolling up.
   s.addEventListener("scroll", () => {
     const top = s.scrollTop, gap = s.scrollHeight - s.clientHeight - top;
+    // a scroll that comes with a change of the view's width isn't you: the conversation re-wrapped (wider is
+    // shorter) and the browser clamped the scroll to its new end, or keep() put the row you read back. It
+    // neither pins you to the latest nor moves the row you read; keep() holds it. Its own last-seen width,
+    // since the resize observer may already have updated `width` in the frame before this event (QA)
+    const w = column.clientWidth;
+    if (w !== seenW) { seenW = w; lastTop = top; return; }
     // only the real bottom re-arms following; a small scroll near it moves you just that far (QA R1: a 4 px
     // scroll inside the last 120 px used to jump you to the end)
     // (a scroll that's ours, keepPlace putting a row back, leaves a held row held)
