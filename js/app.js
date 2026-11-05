@@ -681,12 +681,20 @@ function messagesOf(conv) {
   }
   if (conv.startsWith("p:")) {
     const pid = conv.slice(2);
+    // These lines are dated by when they happened, but they come with the thread list, not the pages of the
+    // conversation. One older than the history loaded so far would sit above all of it, and older pages
+    // would land beneath it: the first thing you reach scrolling up never moves, so nothing keeps your place
+    // and each landing page pushed what you read down by its height (5,000-8,000 px at 4x CPU). So a line is
+    // drawn once the history reaches its time (all of them when the conversation is read to its beginning).
+    const since = h && !h.all ? rows.reduce((a, m) => (Number.isFinite(m.at) && m.at < a ? m.at : a), Infinity) : -Infinity;
+    const inView = (at) => !(at < since);
     for (const x of threadsOf(pid)) {
+      if (!inView(x.lastAt)) continue;
       if (x.state === "done") out.push({ key: `${x.id}:done`, at: x.lastAt, who: "event", text: `${x.title} finished`, tone: "ok" });
       if (x.state === "failed") out.push({ key: `${x.id}:failed`, at: x.lastAt, who: "event", text: `${x.title} stopped`, tone: "stop" });
     }
-    for (const d of D.decisions().filter((d) => d.project === pid)) out.push({ key: `dec:${d.id}`, at: d.at, who: "event", text: `You ${d.verb.toLowerCase()} · ${d.said || d.label}`, tone: d.choice === "deny" ? "back" : "ok" });
-    for (const d of D.notSent().filter((d) => d.project === pid)) out.push({ key: `dec:${d.id}`, at: d.at, who: "event", text: `Not sent · ${d.said || d.label} · ${d.why}`, tone: "sys" });
+    for (const d of D.decisions().filter((d) => d.project === pid && inView(d.at))) out.push({ key: `dec:${d.id}`, at: d.at, who: "event", text: `You ${d.verb.toLowerCase()} · ${d.said || d.label}`, tone: d.choice === "deny" ? "back" : "ok" });
+    for (const d of D.notSent().filter((d) => d.project === pid && inView(d.at))) out.push({ key: `dec:${d.id}`, at: d.at, who: "event", text: `Not sent · ${d.said || d.label} · ${d.why}`, tone: "sys" });
   }
   // what its coordinator did to its turn (F6): one row each, in order. An interrupt or a stop also left XO's
   // own note on the thread; that note becomes the row, so nothing is said twice.
@@ -2224,12 +2232,18 @@ function loadOlderNow() {
 
 // ── what you're reading stays put; the agent's work moves, never jumps ─────────────────────────────
 /** While you read: the first message in view and where it stands, before a redraw, so it can be put back in
- *  the same frame if the browser didn't keep it (found again by its key, so a redrawn row counts). */
+ *  the same frame if the browser didn't keep it (found again by its key, so a redrawn row counts). Only a
+ *  message: never the line where older pages land (its skeleton is replaced as they land), a note, or a day's
+ *  line (it moves above older messages of its day). Held on that line, the place stayed at the top while a
+ *  landing page pushed what you read 5,000-8,000 px down, and the hold undid the browser's own correction. */
+const isMessageRow = (k) => k !== "hist" && k !== "note" && k !== "empty" && !k.startsWith("day|");
 function readingPlace() {
   const top = scroller.getBoundingClientRect().top;
   for (const el of msgsEl.children) {
+    const k = el.dataset.k;
+    if (!k || !isMessageRow(k)) continue;
     const r = el.getBoundingClientRect();
-    if (el.dataset.k && r.height && r.bottom > top + 1) return { k: el.dataset.k, top: r.top };
+    if (r.height && r.bottom > top + 1) return { k, top: r.top };
   }
   return null;
 }

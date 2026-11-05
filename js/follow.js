@@ -44,20 +44,23 @@ export function unpin(row) {
   else notePlace();
 }
 
-/** The row at the top of the view and where it stands, found from the last one (a few rows' rects, read when
- *  the layout is clean: after a scroll, or as the view's size changes). */
+/** The row at the centre of the view (where you're reading) and where it stands, found from the last one (a
+ *  few rows' rects, read when the layout is clean: after a scroll, or as the view's size changes). The centre,
+ *  not the top: when the column narrows, text between the top and where you read re-wraps, and holding the
+ *  top row still moved what you read by that much (72 px at 1440, 48 at 1280, the right panel opening). */
 function notePlace() {
   const s = sc(), rows = document.getElementById("msgs").children;
   if (!rows.length) { place = null; return; }
-  const top = s.getBoundingClientRect().top + 1;
+  const top = s.getBoundingClientRect().top + 1, mid = top + s.clientHeight / 2;
   let i = Math.min(at, rows.length - 1);
-  while (i > 0 && rows[i - 1].getBoundingClientRect().bottom > top) i--;
-  while (i < rows.length - 1 && rows[i].getBoundingClientRect().bottom <= top) i++;
+  while (i > 0 && rows[i - 1].getBoundingClientRect().bottom > mid) i--;
+  while (i < rows.length - 1 && rows[i].getBoundingClientRect().bottom <= mid) i++;
   at = i;
   const el = rows[i];
   place = el.dataset.k ? { k: el.dataset.k, y: el.getBoundingClientRect().top - top } : null;
 }
-/** The view changed width while you read: the row that was at its top goes back where it stood. */
+/** The view changed width while you read: the row you read (at its centre, or the one you acted on) goes back
+ *  where it stood. */
 function keepPlace() {
   const s = sc();
   if (!place) return;
