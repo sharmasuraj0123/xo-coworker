@@ -38,7 +38,7 @@ const NEEDS_YOU = new Set(["github_workflow_scope", "github_not_connected", "git
 const WORD = { repo: "Pushing", build: "Building", release: "Releasing", live: "Going live" };
 const SLUG = /^[a-z0-9]([a-z0-9-]{0,38}[a-z0-9])?$/;
 const CACHE = "xo-lp-state"; // project → its last check's state only (no values, no secrets), so the button doesn't flicker
-const AGAIN_MS = 5 * 60e3;
+const AGAIN_MS = 5 * 60e3, ERR_MS = 60e3;
 
 const clock = (ms) => { const s = Math.max(0, Math.floor(ms / 1000)); return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, "0")}s`; };
 const ago = (at) => { const m = Math.round((Date.now() - at) / 60e3); return m < 1 ? "just now" : m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} d ago`; };
@@ -69,7 +69,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   // ── what Space says about the project ──────────────────────────────────────
   async function load(p, force = false) {
     const s = proj(p);
-    if (s.loading || (!force && s.check && Date.now() - s.at < AGAIN_MS)) return;
+    if (s.loading || (!force && s.at && Date.now() - s.at < (s.err ? ERR_MS : AGAIN_MS))) return;
     s.loading = true; s.err = null;
     try {
       const c = await api.check(p);
@@ -78,29 +78,18 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       if (c.running && !s.run) watch(p);
       cached[p] = c.state;
       try { localStorage.setItem(CACHE, JSON.stringify(cached)); } catch { /* private mode */ }
-      if (api.sc && api.sc.run && !s.run) seedPreview(p, api.sc);
-      if (api.sc && api.sc.device) s.device = { code: "WDJB-MJHT", url: "https://github.com/login/device", copied: false };
-      if (api.sc && api.sc.pick) startPick(p);
-    } catch (e) { s.err = e; }
+    } catch (e) { s.err = e; s.at = Date.now(); }
     s.loading = false;
     changed();
-  }
-
-  // the preview's frozen runs (lpfake.js): its events, as if they'd streamed
-  function seedPreview(p, sc) {
-    const s = proj(p);
-    if (sc.run.undo) { s.run = newRun(); s.run.undo = Date.now() + 3e3; return; }
-    const evs = sc.run.events, k = 60, last = evs.length ? evs[evs.length - 1].at * k : 0;
-    s.run = newRun(Date.now() - last - sc.run.ago);
-    for (const e of evs) take(p, e, s.run.startedAt + e.at * k);
   }
 
   const newRun = (at = Date.now()) => ({ startedAt: at, steps: {}, error: null, live: null, undo: 0, stop: null });
 
   /** One event off the deploy stream: its step's state and words; an error stops the run where it is. */
-  function take(p, e, at = Date.now()) {
-    const s = proj(p), r = s.run;
+  function take(p, e) {
+    const s = proj(p), r = s.run, at = e.at || Date.now(); // Space's own time, so a replayed run keeps its clocks
     if (!r) return;
+    if (e.type === "run") { if (e.started) r.startedAt = e.started; return; }
     const st = r.steps[e.step] || (r.steps[e.step] = {});
     if (e.state === "doing" && st.state !== "doing") st.at = at;
     Object.assign(st, { state: e.state, text: e.text || st.text, url: e.url || st.url });
@@ -129,7 +118,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   function watch(p) {
     const s = proj(p);
     s.run = newRun();
-    s.run.stop = api.watch(p, null, (e) => event(p, e));
+    s.run.stop = api.watch(p, (e) => event(p, e));
   }
 
   /** The stream, one event at a time: a decision goes back to the form, the rest onto the card. */
@@ -183,7 +172,13 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       case "undo": return { tone: "work", words: "Starting" };
       case "run": { const on = NODES.find((n) => r.steps[n]?.state === "doing") || "repo"; return { tone: "work", words: WORD[on], at: r.startedAt }; }
       case "failed": return { tone: NEEDS_YOU.has(r.error.code) ? "need" : "stop", words: failWords(r.error) };
-      case "live": { const a = r?.live || s.check.app; return { tone: "go", words: "Live", host: a.host, url: a.url }; }
+      case "live": {
+        const a = r?.live || s.check.app, st = String(a.status || "");
+        if (a.gone) return { tone: "stop", words: "App deleted on Launchpad" };
+        if (/fail|crash|error/i.test(st)) return { tone: "stop", words: "Didn't go live", host: a.host, url: a.url };
+        if (/stop/i.test(st)) return { tone: "", words: "Stopped", host: a.host, url: a.url };
+        return { tone: "go", words: "Live", host: a.host, url: a.url };
+      }
       default: return { tone: "", words: "" };
     }
   }
@@ -271,6 +266,9 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
 
   function liveHtml(p) {
     const s = proj(p), a = s.run?.live || s.check.app, name = esc(s.form?.name || nameOf(p));
+    if (a.gone) return head(`${name}'s app is gone`, "It was deleted on Launchpad. Its repository, port and settings are still here.", "stop") +
+      rec("Create it again", "A new app from the same repository, with the same settings.", "recreate", "Create it again", LP_ICON.rocket) +
+      `<div class="lp-or"><span>Or</span><button type="button" class="lp-b" data-lp="unlink"><span>Unlink</span></button></div>`;
     const rel = a.release ? `Release #${a.release}` : "Live";
     return head(`${name} is live`, `${rel}${s.check.app?.commit ? ` · from <code>${esc(s.check.app.commit)}</code>` : ""} · ${ago(a.at || Date.now())}`, "go") +
       `<div class="lp-url"><a class="lp-url-a" href="${esc(a.url)}" target="_blank" rel="noopener" title="Open ${esc(a.host)}">${ICON.globe}<span><b>${esc(split(a.host)[0])}</b><i>${esc(split(a.host)[1])}</i></span></a><button type="button" class="lp-ib" data-lp="copy" title="${s.copied > Date.now() ? "Copied" : "Copy the address"}" aria-label="Copy the address">${s.copied > Date.now() ? ICON.check : ICON.copy}</button><a class="lp-ib" href="${esc(a.url)}" target="_blank" rel="noopener" title="Open it" aria-label="Open it">${LP_ICON.out}</a></div>` +
@@ -338,8 +336,9 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
 
   function bodyHtml(p) {
     const sc = screen(p);
+    const s = proj(p), c = s.check;
     return {
-      key: `${p}|${sc}`,
+      key: `${p}|${sc}` + (sc === "setup" ? `|${s.pre}|${c.repo.admin}|${c.github.workflow}|${s.needs?.code || ""}|${JSON.stringify(s.form.errs || {})}` : ""),
       html: sc === "checking" ? checkingHtml(p) : sc === "check-failed" ? head("Couldn't check this project", esc(proj(p).err?.message || "XO Space didn't answer.")) + `<div class="lp-acts"><button type="button" class="lp-b" data-lp="recheck">${ICON.retry}<span>Try again</span></button></div>`
         : sc === "setup" ? setupHtml(p) : sc === "undo" || sc === "run" ? runHtml(p) : sc === "live" ? liveHtml(p) : sc === "failed" ? failedHtml(p)
         : sc === "needs" ? needsHtml(p) : sc === "getting" ? gettingHtml(p) : sc === "device" ? deviceHtml(p) : sc === "pick" ? pickHtml(p) : "",
@@ -367,12 +366,14 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     // a clock's figures aren't a change (the app's ticker moves them); a new screen arrives, the same one doesn't
     const same = b.html.replace(/(<span class="elapsed" data-since="\d+">)[^<]*/g, "$1").replace(/(class="lp-count"[^>]*>)\d+/g, "$1");
     if (S.key !== b.key || S.html !== same) {
-      const focus = document.activeElement && S.body.contains(document.activeElement) ? document.activeElement.dataset.lp : null;
-      const fresh = S.key !== b.key;
+      const ae = document.activeElement && S.body.contains(document.activeElement) ? document.activeElement : null;
+      const focus = ae ? (ae.dataset.lpF ? `[data-lp-f="${ae.dataset.lpF}"]` : ae.dataset.lpEnv ? `[data-lp-env="${ae.dataset.lpEnv}"]` : ae.dataset.lp ? `[data-lp="${ae.dataset.lp}"]` : null) : null;
+      const caret = ae && ae.matches("input") ? [ae.selectionStart, ae.selectionEnd] : null;
+      const fresh = S.key.split("|").slice(0, 2).join("|") !== b.key.split("|").slice(0, 2).join("|");
       S.body.innerHTML = `<div class="lp${fresh ? " is-new" : ""}" data-screen="${b.key.split("|")[1]}">${b.html}</div>`;
       if (fresh) S.body.scrollTop = 0;
       S.key = b.key; S.html = same;
-      if (focus) S.body.querySelector(`[data-lp="${focus}"]`)?.focus({ preventScroll: true });
+      if (focus) { const n = S.body.querySelector(focus); if (n) { n.focus({ preventScroll: true }); if (caret && n.setSelectionRange) try { n.setSelectionRange(...caret); } catch { /* a number field */ } } }
     }
   }
   /** As you type: the card's name, address and port follow the fields, and nothing else redraws. */
@@ -420,7 +421,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   function begin(p, again = false) {
     const s = proj(p), f = s.form, c = s.check;
     const env = Object.fromEntries(Object.entries(f.env).filter(([, v]) => v !== ""));
-    const body = { name: f.name, port: Number(f.port), ...(c.repo.admin ? {} : { create_repo: true, repo_name: f.name }), ...(c.app && !c.behind && again ? { rebuild: true } : {}), env, sensitive: (c.env || []).filter((x) => x.sensitive).map((x) => x.name) };
+    const body = { name: f.name, port: Number(f.port), ...(c.repo.admin ? {} : { create_repo: true, repo_name: f.name }), ...(c.app && !c.behind && again && !f.recreate ? { rebuild: true } : {}), ...(f.recreate ? { recreate: true } : {}), env, sensitive: (c.env || []).filter((x) => x.sensitive).map((x) => x.name) };
     s.run.undo = 0; s.run.startedAt = Date.now();
     s.needs = null; s.warn = null;
     s.run.stop = api.deploy(p, body, (e) => event(p, e));
@@ -480,6 +481,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
         changed();
         return;
       }
+      case "recreate": s.form.recreate = true; s.run = null; deploy(p, true); return;
       case "again": s.run = null; s.form.errs = {}; deploy(p, true); return; // the linked app, the same settings: 3 s, then it goes
       case "retry": s.run = null; deploy(p); return;
       case "copy": navigator.clipboard?.writeText((s.run?.live || s.check.app).url).catch(() => {}); s.copied = Date.now() + 1500; changed(); setTimeout(changed, 1600); return;
@@ -534,7 +536,13 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   return {
     mount, paint,
     /** Does this view's project get a Launchpad section (and the header's Deploy)? Unknown counts as yes. */
-    has(v) { const p = projectOf(v); if (!p) return false; const c = P.get(p)?.check; return (c ? c.state : cached[p]) !== "not-deployable"; },
+    has(v) {
+      const p = projectOf(v);
+      if (!p) return false;
+      const s = P.get(p);
+      if (s?.err && s.err.status === 404 && !s.check) return false; // this Space has no deploy routes, or no such project
+      return (s?.check ? s.check.state : cached[p]) !== "not-deployable";
+    },
     tone(v) { const p = projectOf(v); return p ? summary(p).tone : ""; },
     /** Read what Space says about the view's project, once in a while. */
     ensure(v) { const p = projectOf(v); if (p) load(p); },

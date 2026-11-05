@@ -52,13 +52,19 @@ export function model(c, pre = null) {
  *  step starts (or its own last step ends); progress fills in the build's link and the release's n of m. */
 function rows(on) {
   const open = new Set(), shut = new Set(), said = {};
-  const close = (upto) => { for (const n of ROWS) { if (n === upto) break; if (open.has(n) && !shut.has(n)) { shut.add(n); on({ step: n, state: "done", text: said[n] }); } } };
+  let pushed = ""; // the repository row ends on what the push did, not on the last setup step's words
+  const close = (upto) => { for (const n of ROWS) { if (n === upto) break; if (open.has(n) && !shut.has(n)) { shut.add(n); on({ step: n, state: "done", text: n === "repo" && pushed ? pushed : said[n] }); } } };
+  const raw = on;
+  on = (e) => raw({ ...e, at: stamp });
+  let stamp = 0;
   return (ev) => {
+    stamp = Date.parse(ev.ts) || Date.now();
+    if (ev.type === "run") { raw({ type: "run", started: Date.parse(ev.started_at) || stamp, at: stamp }); return; }
     const n = NODE[ev.step] || "repo";
     switch (ev.type) {
       case "step":
         if (ev.status === "running" || ev.status === "waiting") { close(n); open.add(n); said[n] = ev.message || ev.title || said[n]; on({ step: n, state: "doing", text: said[n] }); }
-        else if (ev.status === "done" || ev.status === "skipped") { if (ev.message) said[n] = ev.message; if (n !== "repo") { shut.add(n); on({ step: n, state: "done", text: said[n] }); } else if (open.has(n)) on({ step: n, state: "doing", text: said[n] }); }
+        else if (ev.status === "done" || ev.status === "skipped") { if (ev.message) said[n] = ev.message; if (ev.step === "push" && ev.message) pushed = ev.message; if (n !== "repo") { shut.add(n); on({ step: n, state: "done", text: said[n] }); } else if (open.has(n)) on({ step: n, state: "doing", text: said[n] }); }
         return;
       case "progress": {
         const d = ev.data || {};
@@ -126,18 +132,5 @@ const real = {
   githubCancel: (id) => request(`/connectors/github/cli/cancel`, { method: "POST", body: { session_id: id } }).catch(() => {}),
 };
 
-/** The API, or (only where localStorage "xo-lp-demo" names a scenario) the preview's scripted one. */
-export function createLpApi() {
-  let demo = null;
-  try { demo = localStorage.getItem("xo-lp-demo"); } catch { /* private mode */ }
-  if (!demo) return real;
-  const fake = import("./lpfake.js").then((m) => m.fakeApi(demo));
-  const api = {};
-  fake.then((f) => { api.sc = f.sc; });
-  for (const k of Object.keys(real)) {
-    api[k] = k === "deploy" || k === "watch"
-      ? (p, body, on) => { let h = null, off = false; fake.then((f) => { if (!off && f[k]) h = f[k](p, body, on); }); return { stop() { off = true; h && h.stop(); } }; }
-      : async (...a) => { const f = await fake; return f[k] ? f[k](...a) : null; };
-  }
-  return api;
-}
+/** The deploy API (a function, so a test can hand the section another). */
+export function createLpApi() { return real; }
