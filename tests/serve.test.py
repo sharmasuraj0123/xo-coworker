@@ -406,5 +406,84 @@ class Tunnel(unittest.TestCase):
         self.refused(421, "bad_host", headers=rebinding(Origin=f"http://{REBIND_HOST}:{PORT}"))
 
 
+class WriterKey(unittest.TestCase):
+    """Saving a project file and undoing a save carry the UI's writer key (serve.writer_key), added here
+    after the same-origin check; no other request does, and a page can never send its own."""
+    KEY = "ab" * 32
+
+    def setUp(self):
+        import tempfile
+        self.tmp = tempfile.TemporaryDirectory()
+        os.makedirs(os.path.join(self.tmp.name, "space"))
+        self.path = os.path.join(self.tmp.name, "space", "ui-writer.key")
+        self.was = os.environ.get("QUIRQ_STATE_ROOT")
+        os.environ["QUIRQ_STATE_ROOT"] = self.tmp.name
+        self.write(self.KEY + "\n")
+        SEEN.clear()
+
+    def tearDown(self):
+        if self.was is None:
+            os.environ.pop("QUIRQ_STATE_ROOT", None)
+        else:
+            os.environ["QUIRQ_STATE_ROOT"] = self.was
+        self.tmp.cleanup()
+
+    def write(self, text: str):
+        with open(self.path, "w") as fh:
+            fh.write(text)
+        os.utime(self.path, ns=(time.time_ns(), time.time_ns()))
+
+    def page(self, **extra) -> dict:
+        return {**local(), "Origin": f"http://localhost:{PORT}", "Sec-Fetch-Site": "same-origin", **extra}
+
+    def writer(self) -> str | None:
+        return {k.lower(): v for k, v in SEEN[-1]["headers"].items()}.get("x-xo-ui-writer")
+
+    def test_a_save_and_an_undo_carry_the_key(self):
+        self.assertEqual(ask("PUT", "/api/xo-projects/demo/file", self.page(), b"{}")[0], 200)
+        self.assertEqual(self.writer(), self.KEY)
+        self.assertEqual(ask("POST", "/api/xo-projects/demo/edits/e_1/undo", self.page(), b"")[0], 200)
+        self.assertEqual(self.writer(), self.KEY)
+        # spelled otherwise, the same route
+        self.assertEqual(ask("PUT", "/api/xo-projects/demo//file/?x=1", self.page(), b"{}")[0], 200)
+        self.assertEqual(self.writer(), self.KEY)
+
+    def test_nothing_else_carries_it(self):
+        for method, path in [("GET", "/api/xo-projects/demo/file?relative_path=a"), ("POST", "/api/xo-projects/demo/file"),
+                             ("PUT", "/api/xo-projects/demo/tree"), ("POST", "/api/chat/chats/c/messages"),
+                             ("GET", "/api/xo-projects/demo/edits"), ("POST", "/api/xo-projects/demo/edits/e_1")]:
+            self.assertEqual(ask(method, path, self.page(), b"{}" if method != "GET" else None)[0], 200, path)
+            self.assertIsNone(self.writer(), f"{method} {path}")
+
+    def test_a_page_cannot_send_its_own(self):
+        ask("POST", "/api/chat/chats/c/messages", self.page(**{"X-XO-UI-Writer": "cd" * 32}), b"{}")
+        self.assertIsNone(self.writer())
+        ask("PUT", "/api/xo-projects/demo/file", self.page(**{"X-XO-UI-Writer": "cd" * 32}), b"{}")
+        self.assertEqual(self.writer(), self.KEY)
+
+    def test_no_key_no_save(self):
+        os.remove(self.path)
+        status, body = ask("PUT", "/api/xo-projects/demo/file", self.page(), b"{}")
+        self.assertEqual(status, 503)
+        self.assertIn(b"writer_key_missing", body)
+        self.assertEqual(SEEN, [])
+        self.write("not a key\n")  # Space would replace it; until then, nothing is forwarded
+        self.assertEqual(ask("PUT", "/api/xo-projects/demo/file", self.page(), b"{}")[0], 503)
+        self.assertEqual(SEEN, [])
+
+    def test_a_new_key_is_picked_up(self):
+        ask("PUT", "/api/xo-projects/demo/file", self.page(), b"{}")
+        self.assertEqual(self.writer(), self.KEY)
+        time.sleep(0.01)
+        self.write("ef" * 32 + "\n")
+        ask("PUT", "/api/xo-projects/demo/file", self.page(), b"{}")
+        self.assertEqual(self.writer(), "ef" * 32)
+
+    def test_a_cross_origin_page_never_gets_there(self):
+        status, _ = ask("PUT", "/api/xo-projects/demo/file", {**local(), "Origin": "https://evil.example", "Sec-Fetch-Site": "cross-site"}, b"{}")
+        self.assertEqual(status, 403)
+        self.assertEqual(SEEN, [])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

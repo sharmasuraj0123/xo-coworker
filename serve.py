@@ -25,6 +25,10 @@ What it refuses, whatever the page asks:
 - a body over 1 MiB, except an attachment upload (up to 25 MiB);
 - any upgrade but a shell's WebSocket (WS_PATH).
 
+What it adds: the UI's writer key (X-XO-UI-Writer, read from the file XO Space keeps it in) on exactly
+two writes, saving a project file and undoing a save (WRITER_ROUTES), after its own same-origin check.
+A page can never send that header itself.
+
 Standard library only.
 """
 
@@ -58,6 +62,8 @@ DROP_REQUEST = {
     # The Coder token the UI sends so Coder's app proxy lets it through; the
     # backend has no use for it.
     "coder-session-token",
+    # The UI's writer key is this server's to add (`writer_key`), never a page's to send.
+    "x-xo-ui-writer",
 }
 # The same token in a query string (EventSource can't send headers).
 TOKEN_PARAM = "coder_session_token"
@@ -94,11 +100,58 @@ NEVER_FORWARD = [
 ]
 
 
+# The UI's two file writes (design-research/2026-11-vision/pierre): saving a project file and undoing a save.
+# Space accepts them only with the UI's writer key, which this server adds after its own same-origin check,
+# from the file Space keeps it in. No other request carries the key.
+WRITER_ROUTES = [
+    ("PUT", re.compile(r"^/api/xo-projects/[^/]+/file$")),
+    ("POST", re.compile(r"^/api/xo-projects/[^/]+/edits/[^/]+/undo$")),
+]
+_WRITER = {"stamp": None, "key": None}
+
+
+def clean_path(path: str) -> str:
+    """The path cut at "?" or "#", decoded (twice, for double encoding), slashes collapsed and any trailing
+    slash dropped: the one spelling route checks match against."""
+    p = unquote(unquote(re.split(r"[?#]", path, maxsplit=1)[0]))
+    return re.sub(r"/+", "/", p).rstrip("/") or "/"
+
+
+def writer_route(method: str, path: str) -> bool:
+    """True for a request that carries the writer key upstream: a file save or an undo, in any spelling."""
+    p = clean_path(path)
+    return any(m == method and rx.match(p) for m, rx in WRITER_ROUTES)
+
+
+def writer_key_path() -> str:
+    """Where Space keeps the key: ${QUIRQ_STATE_ROOT:-$HOME/.quirq}/space/ui-writer.key (its quirq_state_dir)."""
+    root = os.environ.get("QUIRQ_STATE_ROOT") or os.path.join(os.path.expanduser("~"), ".quirq")
+    return os.path.join(root, "space", "ui-writer.key")
+
+
+def writer_key() -> str | None:
+    """The key (64 lowercase hex characters), read again whenever the file changes (Space makes a new one
+    when it finds the file missing or invalid); None when there is none."""
+    path = writer_key_path()
+    try:
+        st = os.stat(path)
+    except OSError:
+        return None
+    stamp = (st.st_ino, st.st_mtime_ns, st.st_size)
+    if _WRITER["stamp"] != stamp:
+        try:
+            with open(path, encoding="ascii") as fh:
+                value = fh.read().strip()
+        except (OSError, UnicodeDecodeError):
+            value = ""
+        _WRITER["stamp"], _WRITER["key"] = stamp, value if re.fullmatch(r"[0-9a-f]{64}", value) else None
+    return _WRITER["key"]
+
+
 def never_forward(method: str, path: str) -> bool:
     """True for a route this proxy refuses: the path cut at "?" or "#", decoded (twice, for double
     encoding), slashes collapsed and any trailing slash dropped, so no spelling of it slips through."""
-    p = unquote(unquote(re.split(r"[?#]", path, maxsplit=1)[0]))
-    p = re.sub(r"/+", "/", p).rstrip("/") or "/"
+    p = clean_path(path)
     return any(m in (method, "*") and rx.match(p) for m, rx in NEVER_FORWARD)
 
 
@@ -339,6 +392,11 @@ class Handler(SimpleHTTPRequestHandler):
         body = self.rfile.read(length) if length else None
 
         headers = {k: v for k, v in self.headers.items() if k.lower() not in DROP_REQUEST}
+        if writer_route(method, self.path):
+            key = writer_key()
+            if key is None:
+                return self._json_error(503, "writer_key_missing", "XO Space hasn't given this UI its key for saving files yet.")
+            headers["X-XO-UI-Writer"] = key
         headers["Host"] = _UP.netloc
         headers["Accept-Encoding"] = "identity"
         if body is not None:

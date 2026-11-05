@@ -43,6 +43,11 @@ python3 serve.py                 # foreground, http://127.0.0.1:5180
 - It never forwards the backend routes this UI doesn't use that expose secret values, raw files or file writes
   under `$HOME`, however they are spelled, and refuses a path with `#` or dot segments.
 - It drops the browser's `Origin`, `Referer` and `Sec-Fetch-*` headers before forwarding.
+- It adds the UI's writer key (`X-XO-UI-Writer`) to exactly two writes, saving a project file (`PUT
+  /api/xo-projects/{p}/file`) and undoing a save (`POST …/edits/{id}/undo`), after its own same-origin
+  check. It reads the key per request (cached by the file's change time) from
+  `${QUIRQ_STATE_ROOT:-$HOME/.quirq}/space/ui-writer.key`, where XO Space keeps it. Without a key, a save
+  gets a 503 and isn't forwarded. A page can never send the header itself.
 - It relays Server-Sent Events unbuffered.
 - It tunnels one WebSocket, a shell's terminal (`GET /api/terminal/sessions/{id}/ws`), after the same checks,
   forwarding only `Upgrade`, `Connection` and `Sec-WebSocket-*` (no `Origin`, cookies, Coder token or query),
