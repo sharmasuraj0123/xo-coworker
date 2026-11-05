@@ -957,7 +957,7 @@ function hostNeedHtml(v, needs) {
   const k = h.asks.length;
   const who = h.asker ? "Coordinator" : h.title;
   return `<button type="button" class="pj-need" data-dock-open="${esc(n.key)}" title="Open the decision, above the composer">` +
-    `<i class="g g-needs_approval" aria-hidden="true"></i>${esc(who)} needs you${k > 1 ? ` <span class="pj-k">${k}</span>` : ""}</button>`;
+    `<i class="g g-needs_approval" aria-hidden="true"></i><span class="pj-nt">${esc(who)} needs you</span>${k > 1 ? ` <span class="pj-k">${k}</span>` : ""}</button>`;
 }
 
 function topRender(needs) {
