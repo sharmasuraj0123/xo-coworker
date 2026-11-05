@@ -80,7 +80,7 @@ export function saveOutcome(err) {
  * are merged and any place you both changed waits in Pierre's merge view for your choice. A save never
  * commits. edits: {saved(f, {path, editId, merged}) after a save: the app offers Undo and Tell the agent}.
  */
-export function createViewer({ announce, onChange, tabs, changes = null, ask = null, edits = null }) {
+export function createViewer({ announce, onChange, tabs, changes = null, ask = null, edits = null, away = null }) {
   const el = $("#viewer");
   const V = { open: false, parked: false, file: null, data: null, error: null, loading: false, mode: "preview", returnTo: null, gen: 0, copied: false, dims: null, saving: false, saveError: null, show: "file", split: false };
   // the diff, kept across redraws of the head (Pierre's element moves with its body): {el, handle, key, gen}
@@ -632,6 +632,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (e.key === "Escape") {
       e.preventDefault(); e.stopPropagation();
       if (FL.sel && !FL.asking) { FL.sel = null; FL.handle?.select(null); askCapsule(); return; } // a selection clears first
+      if (away && away()) return; // beside the chat, the file is put away, not closed (js/filesview.js)
       close(); return;
     }
     // ⌘L (Ctrl L): ask about the lines selected in a file (the browser's own ⌘L only while lines are selected)

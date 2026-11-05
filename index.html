@@ -31,6 +31,8 @@
   <!-- the conversation's bubbles (css/msgx.css + js/msgx.js): message bubbles, tails, replies, the working
        bubble, thread cards and their progress, back-to-latest. Part of the product; removing either breaks the chat. -->
   <link rel="stylesheet" href="./css/msgx.css">
+  <!-- a file beside its conversation (css/fileview.css + js/filesview.js): the chat docked in a right column -->
+  <link rel="stylesheet" href="./css/fileview.css">
   <!-- the phone (≤760 px): its top bars, last so it settles every earlier phone rule (thread "Phone UI audit") -->
   <link rel="stylesheet" href="./css/phone.css">
 </head>
@@ -81,6 +83,8 @@
 
       <!-- A conversation: the Workspace, a project, or a thread -->
       <section class="conv" id="conv" hidden>
+        <!-- the chat's own head while it sits beside a file (body.chat-docked, js/filesview.js) -->
+        <header class="chead" id="chead"></header>
         <header class="top" id="top">
           <!-- a phone's menu, inside the conversation's own bar (css/phone.css); the phonebar's ☰ elsewhere -->
           <button type="button" class="top-menu" id="top-menu" aria-label="Open menu" aria-controls="side" aria-expanded="false"></button>
@@ -125,6 +129,9 @@
         </form>
         </div>
       </div>
+
+      <!-- the chat folded to a rail beside a file (css/fileview.css, js/filesview.js) -->
+      <nav class="crail" id="crail" aria-label="The conversation, folded"></nav>
 
       <!-- Global decisions: beside the conversation, sized to its content -->
       <section class="panel" id="panel" aria-labelledby="pn-h" hidden>

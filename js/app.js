@@ -35,6 +35,7 @@ import { createFiles, fileScope, localIn } from "./files.js";
 import { createFilesView } from "./filesview.js";
 import { createChanges, lineRef } from "./changes.js";
 import { fileIcon } from "./fileicons.js";
+import { countsHtml } from "./changesframe.js";
 import { setTheme as setDiffTheme } from "./diffview.js";
 import { createTray, fmtSize, kindOf, isLargePaste, pasteLabel, uploadErrorText, FINAL, MAX_FILES } from "./attach.js";
 import { api, uploadAttachment } from "./api.js";
@@ -179,6 +180,7 @@ const VW = createViewer({
   ask: { target: (f) => askPlace(f)?.name || null, send: askAboutLines },
   // a save (Files › Edit): its place's changes are read again; Tell the agent is a message to its thread
   edits: { saved: (f) => CHG.saved(f.project, f.rel), tell: (f, s) => sendAbout(f, `I edited ${s.path}. Read it again before you change it.`) },
+  away: () => { if (!FILESV.docked) return false; FILESV.minimise(); return true; },
 }); // a file, in Files (js/filesview.js)
 // a picture opens over the conversation (js/lightbox.js); Open in Files hands it to the viewer, which brings Files up
 const LB = createLightbox({ openFile: (it, from) => VW.open(viewerFile(it), from), announce });
@@ -242,9 +244,9 @@ const SORT_STATE = { needs_approval: 0, needs_reply: 0, paused: 0, failed: 1, wo
 const MAP = createMap({ world, viewer: VW, go: (v) => go(v), announce, isBusy, onChange: () => schedule(), openFile: (f, from) => VW.open(f, from) });
 // the panel: one card on the right with tabs (Map, Made, File; later apps), one header button, ⌘\
 // Files: the project's files, and the one place a file opens (js/files.js, design-research/13)
-const FILES = createFiles({ world, viewer: VW, isBusy, PROJ, go: (v) => go(v), changes: CHG });
+const FILES = createFiles({ world, viewer: VW, isBusy, PROJ, go: (v) => go(v), changes: CHG, onFold: (f) => FILESV.treeFolded(f) });
 // Files is a place in the main area (js/filesview.js); the panel is a stack of frames: Agents · Map · Changes
-const FILESV = createFilesView({ files: FILES, viewer: VW, view: () => S.view, PROJ, world, announce, onChange: () => schedule() });
+const FILESV = createFilesView({ files: FILES, viewer: VW, view: () => S.view, PROJ, world, announce, onChange: () => schedule(), onDock: () => STAGE.sync() });
 const STAGE = createStage({ map: MAP, mapIcon: MAP_ICON, files: FILES, changes: CHG, filesView: FILESV, viewer: VW, view: () => S.view, go: (v) => go(v), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)) });
 STAGE.names = (v) => (v.startsWith("t:") ? world.thread(v.slice(2))?.title || "Thread" : v.startsWith("p:") ? PROJ(v.slice(2)) : v === "ws" ? "Workspace" : "Your projects");
 REC.panel = STAGE;
@@ -983,10 +985,47 @@ function hostNeedHtml(v, needs) {
     `<i class="g g-needs_approval" aria-hidden="true"></i><span class="pj-nt">${esc(who)} needs you</span>${k > 1 ? ` <span class="pj-k">${k}</span>` : ""}</button>`;
 }
 
+/** A file put away (Files beside the chat, then — or Esc): its chip in the header brings it back as it was;
+ *  its × really closes it (js/filesview.js). */
+function fileChipHtml() {
+  const pa = FILESV.putAway;
+  if (!pa) return "";
+  const f = pa.file, name = f.name || String(f.path || "").split("/").pop();
+  const c = f.project && f.rel ? CHG.at(f.project, f.rel) : null;
+  return `<span class="fchip"><button type="button" class="fchip-b" data-fv-restore data-fid="fchip" title="Bring ${esc(name)} back, as you left it">` +
+    `<span class="fchip-i" aria-hidden="true">${fileIcon(name)}</span><span class="fchip-n">${esc(name)}</span>${c && !c.file.binary ? countsHtml(c.file) : ""}</button>` +
+    `<button type="button" class="fchip-x" data-fv-close data-fid="fchip-x" aria-label="Close ${esc(name)}" title="Close it">${ICON.close}</button></span>`;
+}
+const CHAT_FOLD_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7l5 5-5 5"/><path d="M20 4.5v15"/></svg>';
+const convName = (v, t) => (t ? t.title : v.startsWith("p:") ? PROJ(v.slice(2)) : v === "ws" ? "Workspace" : ($("#conv-title")?.textContent || "Conversation"));
+/** The chat's own head while it sits beside a file (body.chat-docked hides the header): its name, its state,
+ *  and fold it to its rail (js/filesview.js). */
+function cheadHtml(v, t) {
+  const badge = t ? `<span class="badge st-${t.frozen ? "resolved" : t.state}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${wordOf(t)}</span>` : "";
+  return `<h2 class="chead-t">${esc(convName(v, t))}</h2>${badge}<span class="chead-sp"></span>` +
+    `<button type="button" class="fv-ib" data-chat-fold data-fid="chat-fold" title="Fold the chat to a rail (${K.label("chatFold")})" aria-label="Fold the chat">${CHAT_FOLD_IC}</button>`;
+}
+/** The chat folded to a rail beside a file: who it is (the name, set vertically), working (the arc), asking
+ *  you (amber !), new messages since it folded (a blue dot). One button: it opens the chat. */
+function crailHtml(v, t, needs) {
+  if (!FILESV.chatFolded) return "";
+  const asks = t ? needs.some((n) => n.t.id === t.id && n.admitted) : false;
+  const busy = t ? isBusy(t) : false;
+  const fresh = ($("#msgs")?.children.length || 0) > FILESV.chatRows;
+  const name = convName(v, t);
+  const says = [name, asks ? "needs you" : busy ? "working" : "", fresh ? "new messages" : ""].filter(Boolean).join(" · ");
+  return `<button type="button" class="crail-b" data-crail data-fid="crail" title="Open the chat (${K.label("chatFold")})" aria-label="Open the chat: ${esc(says)}">` +
+    `<span class="crail-ic">${ICON.threadOne}${busy && !asks ? '<i class="arc"></i>' : ""}</span>` +
+    (asks ? `<em class="crail-m is-ask" aria-hidden="true">!</em>` : fresh ? `<em class="crail-m is-new" aria-hidden="true"></em>` : "") +
+    `<span class="crail-t">${esc(name)}</span></button>`;
+}
+
 function topRender(needs) {
   const v = S.view;
   const t = convThread(v);
   const top = $("#top");
+  patch($("#chead"), cheadHtml(v, t));
+  patch($("#crail"), crailHtml(v, t, needs));
   top.dataset.kind = t ? "thread" : "project"; // hub #28: the Workspace has a project's header, always shown
   // a thin state line along the thread's header: amber needs you, blue working, green done, red stopped
   top.dataset.state = !t ? "" : needs.some((n) => n.t.id === t.id && n.admitted) ? "need" : t.state === "failed" ? "stop" : isBusy(t) ? "busy" : t.state === "done" || t.state === "resolved" ? "done" : "";
@@ -1050,12 +1089,12 @@ function topRender(needs) {
       (S.tMenu === t.id ? `<span class="tw-menu" role="menu"><button type="button" role="menuitem" data-tfield="title">Rename</button><button type="button" role="menuitem" data-tfield="label">${t.label ? "Change label" : "Add a label"}</button>${t.label ? `<button type="button" role="menuitem" data-tfield="clear-label">Remove the label</button>` : ""}${SH.enabled ? `<button type="button" role="menuitem" data-shell="t:${esc(t.id)}">Open a shell in its worktree</button>` : ""}${movable(t) ? `<button type="button" role="menuitem" data-tmove="${esc(t.id)}">Continue on another runtime…</button>` : ""}</span>` : "") + `</span>` : "";
     // a shell in its worktree is in the menu (and the shells dock); the header keeps Resolve and the panel
     const allActs = acts ? acts.replace(/<\/span>$/, `${STAGE.button(v)}</span>`) : `<span class="tw-acts">${STAGE.button(v)}</span>`;
-    who = `${title}${label}<span class="badge st-${t.frozen ? "resolved" : t.state}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${wordOf(t)}</span>${rtTag(t)}${allActs}`;
+    who = `${title}${label}<span class="badge st-${t.frozen ? "resolved" : t.state}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${wordOf(t)}</span>${rtTag(t)}${fileChipHtml()}${allActs}`;
     // a field being edited is never replaced under the person's fingers (a frame may change the badge)
     if (ed && $("#tw-edit")) who = null;
   } else who = `<span class="tw-t"><h1 id="conv-title">Thread</h1></span>`;
   if (who != null) patch($("#top-who"), who);
-  patch($("#top-end"), t ? end : end + STAGE.button(v));
+  patch($("#top-end"), t ? end : fileChipHtml() + end + STAGE.button(v));
   nowRender(needs);
   checklistRender(needs);
 }
@@ -2594,6 +2633,12 @@ document.addEventListener("click", (e) => {
     S.tbToggled = { k, open: S.tbOpen[k], focus: tb === document.activeElement || tb.contains(document.activeElement) };
     schedule(); return;
   }
+  // beside a file, the chat folds to its rail and opens from it (js/filesview.js)
+  if (t.closest("[data-chat-fold]")) { FILESV.chat(false); return; }
+  if (t.closest("[data-crail]")) { FILESV.chat(true); return; }
+  // a file put away: its chip brings it back as it was; its × closes it (js/filesview.js)
+  if (t.closest("[data-fv-restore]")) { FILESV.restore(); return; }
+  if (t.closest("[data-fv-close]")) { FILESV.close({ restore: false }); $("#say")?.focus({ preventScroll: true }); return; }
   // a thread's own header: resolve or reopen (R1), rename, label
   const rs = t.closest("[data-resolve]");
   if (rs) { resolveThread(rs.dataset.resolve, rs.dataset.to === "resolve"); return; }
@@ -3065,9 +3110,14 @@ addEventListener("keydown", (e) => {
   if (SH.owns(e)) { if (K.hasMod("shells") && K.is(e, "shells")) { e.preventDefault(); GLOBAL.shells(); } return; }
   // ⌘/Ctrl keys work everywhere, even while typing
   for (const id of ["jump", "intel", "shells", "map"]) if (K.hasMod(id) && K.is(e, id)) { e.preventDefault(); GLOBAL[id](); return; }
+  // beside a file: ⌘J the chat, ⌘B the files' tree; elsewhere these keys are the browser's
+  if (K.is(e, "chatFold") && FILESV.chatKey()) { e.preventDefault(); return; }
+  if (K.is(e, "treeFold") && FILESV.toggleTree()) { e.preventDefault(); return; }
   if (!jump.hidden || dlg.open || IQ.isOpen) return;
   if (e.key === "Escape") {
     if (RS.open) { runsEscape(); return; }
+    // a file beside the chat: Esc puts it away (or, from an empty composer, goes back to it)
+    if (FILESV.docked) { FILESV.escape(e.target); return; }
     if (VW.isOpen) { VW.close(); return; }
     if (FILESV.isOpen) { FILESV.close(); return; }
     if (!keys.hidden) { closeKeys(); return; }
