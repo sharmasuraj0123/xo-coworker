@@ -8,7 +8,7 @@ import { fmtSize } from "./attach.js";
 
 /** Space's clone v2 (xo-space, asked 2026-11-05): keeps name and brief, answers 202 {clone_id} with progress
  *  and cancel, and names its failures. Flip to true once :5002 runs it; nothing else changes here. */
-const CLONE_V2 = false;
+const CLONE_V2 = false; // contract: xo-space docs/xo-projects-clone.md
 const PHASE = { counting: "Counting files in", receiving: "Downloading", resolving: "Unpacking", checkout: "Checking out", finishing: "Adding plan and memory to" };
 
 const GH = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>`;
@@ -128,7 +128,7 @@ export function initCreate(ctx) {
     const bar = $("#cp-prog .cp-bar");
     bar.classList.toggle("is-known", pct != null);
     bar.firstElementChild.style.width = pct != null ? `${pct}%` : "";
-    const facts = [pct != null && `${pct}%`, st.received_bytes > 0 && fmtSize(st.received_bytes)].filter(Boolean).join(" · ");
+    const facts = [pct > 0 && `${pct}%`, st.received_bytes > 0 && fmtSize(st.received_bytes)].filter(Boolean).join(" · ");
     $("#cp-prog-t").innerHTML = `<span>${PHASE[st.phase] || "Cloning"} <b>${esc(busy.label)}</b>${facts ? ` · ${facts}` : ""}</span>` +
       `<span class="cp-t">${busy.cloneId ? `<button type="button" class="cp-link" data-cp="stop">Stop</button>` : ""}${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}</span>` +
       (s >= 6 ? `<span class="cp-hint">Big repos take a while. You can close this; you'll hear when it's ready.</span>` : "");
@@ -152,7 +152,10 @@ export function initCreate(ctx) {
     const id = busy?.cloneId;
     if (!id) return;
     $("#cp-prog-t .cp-link").disabled = true;
-    try { await api.cancelClone(id); } catch (err) { if (err.status !== 404) { error(`Couldn't stop it: ${err.message}`); return; } }
+    try { await api.cancelClone(id); } catch (err) {
+      if (err.code === "clone_finished") return; // it finished first: following it shows how
+      if (err.status !== 404) { error(`Couldn't stop it: ${err.message}`); return; }
+    }
     setBusy(false);
     error("");
     ctx.announce("Stopped cloning. Nothing was kept.");
@@ -171,6 +174,10 @@ export function initCreate(ctx) {
       case "auth_failed": return [r.github ? "GitHub turned the connection down." : `${host} turned this server's Git access down.`, r.github ? connect : null];
       case "host_unreachable": return [`Couldn't reach ${host}. Check the URL, or try again in a moment.`, null, repo];
       case "timed_out": return ["The clone stalled, so it stopped. Try again.", null];
+      case "clone_in_progress": return [`“${id}” is already being cloned. It shows in Projects when it's done.`, null];
+      case "too_many_clones": return ["Four clones are already running. Try again when one finishes.", null];
+      case "clone_not_found": return ["XO restarted, so the clone stopped. Try again.", null];
+      case "invalid_project_details": return [err.message, null, name];
       case "timeout": case "http_502": case "http_504": // today's blocking clone outlived the UI server's 120 s wait
         if (!CLONE_V2) return ["This is taking longer than the page waits. XO keeps cloning; the project shows in Projects when it's done.", null];
     }
@@ -235,8 +242,8 @@ export function initCreate(ctx) {
     try {
       if (r) {
         const res = await api.cloneProject({ id, url: r.url, displayName: title, description }, CLONE_V2);
-        if (res?.clone_id) await follow(res.clone_id);
-        await done(id, title, description, `cloned from ${r.label} · plan and memory added`, `${root}/${id}`);
+        const end = res?.clone_id ? await follow(res.clone_id) : res;
+        await done(id, title, description, `cloned from ${r.label} · plan and memory added`, end?.warning || `${root}/${id}`);
       } else {
         await api.createProject({ path: `${root}/${id}`, displayName: title, description });
         await done(id, title, description, "created · folder, plan and memory scaffolded", `${root}/${id}`);
