@@ -1,0 +1,39 @@
+<!doctype html>
+<!-- A development page for js/diffview.js, served from a thread's own preview port (never deployed: the
+     deploy copies only the app's paths). tools/diffview/measure.cjs drives it: real patches from this repo,
+     both themes, timings. -->
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>diffview lab</title>
+  <link rel="stylesheet" href="../../css/base.css">
+  <link rel="stylesheet" href="../../css/app.css">
+  <link rel="stylesheet" href="../../css/light.css">
+  <link rel="stylesheet" href="../../css/diffs.css">
+  <style>
+    body{margin:0;padding:24px;background:var(--bg);color:var(--ink);font:400 13px/20px var(--sans)}
+    .lab{display:grid;gap:16px;max-width:880px}
+    .lc{border:1px solid var(--g26);border-radius:var(--r-lg);overflow:hidden;background:var(--code-bg)}
+    .lc>div{max-height:520px;overflow:auto}
+    h2{margin:0;padding:8px 12px;font:500 12px/16px var(--mono);color:var(--ink-2);border-bottom:1px solid var(--g22)}
+  </style>
+</head>
+<body>
+  <div class="lab" id="lab"></div>
+  <script type="module">
+    import * as D from "../../js/diffview.js";
+    const lab = document.getElementById("lab");
+    window.D = D;
+    window.lab = {
+      card(title) {
+        const c = document.createElement("section"); c.className = "lc";
+        c.innerHTML = `<h2></h2><div></div>`; c.querySelector("h2").textContent = title;
+        lab.appendChild(c); return c.lastElementChild;
+      },
+      clear() { lab.replaceChildren(); },
+    };
+    window.labReady = true;
+  </script>
+</body>
+</html>

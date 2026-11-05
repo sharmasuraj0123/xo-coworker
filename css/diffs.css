@@ -1,0 +1,31 @@
+/* Diffs and files drawn by @pierre/diffs (js/diffview.js). Pierre draws inside its own element's shadow
+   root, where this sheet can't reach; custom properties set on that element can, since they inherit. So
+   the look is set here, once, from XO's tokens, and light and dark switch with the tokens. The syntax
+   colours alone are a generated TextMate pair (js/diffthemes.js), because Pierre's editor needs them
+   concrete. */
+diffs-container{
+  display:block;
+  --diffs-font-family:var(--mono);
+  --diffs-header-font-family:var(--sans);
+  --diffs-font-size:13px; --diffs-line-height:20px; --diffs-tab-size:2;
+  --diffs-font-features:"liga" 0,"calt" 0;   /* => reads as two characters, as in the viewer */
+  --diffs-bg-context-override:var(--code-bg);
+  --diffs-bg-buffer-override:var(--code-bg);
+  /* a change: a low tint of green or red per line, one step stronger on the words that changed */
+  --diffs-bg-addition-override:color-mix(in srgb,var(--accent-fill) 9%,var(--code-bg));
+  --diffs-bg-addition-emphasis-override:color-mix(in srgb,var(--accent-fill) 24%,var(--code-bg));
+  --diffs-bg-addition-number-override:color-mix(in srgb,var(--accent-fill) 12%,var(--code-bg));
+  --diffs-bg-deletion-override:color-mix(in srgb,var(--err) 9%,var(--code-bg));
+  --diffs-bg-deletion-emphasis-override:color-mix(in srgb,var(--err) 24%,var(--code-bg));
+  --diffs-bg-deletion-number-override:color-mix(in srgb,var(--err) 12%,var(--code-bg));
+  --diffs-addition-color-override:var(--accent);
+  --diffs-deletion-color-override:var(--err-ink);
+  --diffs-modified-color-override:var(--info);
+  --diffs-fg-number-override:var(--ink-4);
+  /* "13 unmodified lines", hover, and the lines you select */
+  --diffs-bg-separator-override:color-mix(in srgb,var(--ink) 5%,var(--code-bg));
+  --diffs-bg-hover-override:color-mix(in srgb,var(--ink) 5%,var(--code-bg));
+  --diffs-bg-selection-override:color-mix(in srgb,var(--info) 16%,var(--code-bg));
+  --diffs-bg-selection-number-override:color-mix(in srgb,var(--info) 24%,var(--code-bg));
+  --diffs-selection-number-fg:var(--ink);
+}
