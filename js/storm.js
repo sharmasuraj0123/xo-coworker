@@ -23,6 +23,9 @@ const RUNTIMES_MS = 5 * 60000;    // a CLI login can change outside XO
 const CHATS_MIN_MS = 30000;       // re-list chats at most this often on our own
 const PAGE = 40;                  // the first page of a conversation; older pages grow from here
 const PAGE_MAX = 200;
+// an older page as you scroll up: small enough that drawing it never stalls a frame for long (it was 80
+// rows: 60-90 ms at once on a desktop, 250-470 ms on a slower machine; QA #10)
+const OLDER_PAGE = 30;
 const RUNS_KEEP = 300;            // finished sub-agents kept in memory, beyond those of the open thread
 const LOAD_CAP = 6;               // parallel GETs at boot
 const AWAIT_CAP_MS = 10 * 60000;  // "replying" never outlives this without a signal
@@ -401,7 +404,7 @@ export function stormSource(state, emit, event) {
     h.loading = true;
     emit();
     try {
-      const d = await api.messages(chat, { before_seq: h.before, limit: Math.min(PAGE_MAX, PAGE * 2) });
+      const d = await api.messages(chat, { before_seq: h.before, limit: OLDER_PAGE });
       addRows(project, d.messages || []);
       h.before = d.next_before_seq || null;
       h.all = !h.before;
@@ -451,7 +454,7 @@ export function stormSource(state, emit, event) {
     th.older = true;
     soon();
     try {
-      const m = await api.messages(r.chat_id, { thread: ts, before_seq: th.before, limit: Math.min(PAGE_MAX, PAGE * 2) });
+      const m = await api.messages(r.chat_id, { thread: ts, before_seq: th.before, limit: OLDER_PAGE });
       const { list } = mergeRows(state.threadMsgs[ts] || [], m.messages || []);
       if (r.session_id) await loadOlderTurns(r.session_id, list.length ? list[0].seq : null);
       state.threadMsgs[ts] = list;

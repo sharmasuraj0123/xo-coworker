@@ -13,6 +13,7 @@
 //     · a sent reply shows its quote as a card in your bubble; press it to go back to the original
 
 import { elapsed } from "./ui.js";
+import { toLatest, fromLatest } from "./follow.js";
 
 const $ = (s, r = document) => r.querySelector(s);
 const root = document.documentElement;
@@ -34,13 +35,16 @@ const conv = $("#conv");
 
 // ── decorating what the app draws ───────────────────────────────────────────
 const msgs = $("#msgs");
+// the name the agent signs its own messages with (theirs carry the thread tile, a coordinator's the XO
+// mark): looked up once per pass, not once per turn (that made a pass over a long thread quadratic)
+let agentNameMemo = null;
+function agentName() {
+  if (agentNameMemo == null) { const n = [...msgs.querySelectorAll(".m-them > .av-t + .mb > .mh b")].pop(); agentNameMemo = n ? n.textContent.trim() : "Agent"; }
+  return agentNameMemo;
+}
 function nameIn(m) {
   if (m.classList.contains("m-you")) return "You";
-  if (m.classList.contains("m-turn")) {
-    // the name the agent signs its own messages with (theirs carry the thread tile, a coordinator's the XO mark)
-    const n = [...msgs.querySelectorAll(".m-them > .av-t + .mb > .mh b")].pop();
-    return n ? n.textContent.trim() : "Agent";
-  }
+  if (m.classList.contains("m-turn")) return agentName();
   for (let el = m; el; el = el.previousElementSibling) {
     const b = el.querySelector(":scope .mh b");
     if (b) return b.textContent.trim();
@@ -85,6 +89,7 @@ function quoteCard(m) {
 }
 
 function decorate() {
+  agentNameMemo = null;
   const kids = [...msgs.children];
   kids.forEach((el) => {
     if (!el.classList.contains("m") && !el.classList.contains("ev")) return;
@@ -300,7 +305,12 @@ function working(el) {
     w.type = "button"; w.className = "mx-work"; w.setAttribute("aria-live", "polite");
     w.title = "See every step";
     w.innerHTML = `<span class="mx-wt"></span><span class="mx-we"></span>`;
-    w.addEventListener("click", () => el.querySelector(".turn .tb-h")?.click());
+    w.addEventListener("click", () => {
+      el.querySelector(".turn .tb-h")?.click();
+      // you press it to see what the agent is doing now: its card opens with its latest step in view (the
+      // live turn is drawn last, so that's the latest; pinned there, the card grows into view; QA #8)
+      toLatest(true);
+    });
     mb.prepend(w);
   }
   const wt = w.querySelector(".mx-wt");
@@ -637,7 +647,7 @@ down.type = "button"; down.className = "mx-down"; down.title = "Back to the late
 down.innerHTML = `${IC.down}<span class="mx-down-n" hidden></span>`;
 conv.append(down);
 let unseen = 0;
-const away = () => scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight;
+const away = fromLatest;
 /** The top of what's docked above the conversation: a decision card docked over the composer when there is
  *  one (its real top, whatever its height on this screen), else the composer itself. */
 const tdock = $("#tdock");
@@ -667,19 +677,21 @@ function downSync() {
   if (down.getAttribute("aria-label") !== label) down.setAttribute("aria-label", label);
 }
 scroller.addEventListener("scroll", downSync, { passive: true });
-down.addEventListener("click", () => {
-  scroller.scrollTo({ top: scroller.scrollHeight, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
-});
+down.addEventListener("click", () => toLatest(true));
 new MutationObserver((ms) => {
   // a whole conversation swapped in is a new place, not news
-  if (ms.reduce((n, m) => n + m.removedNodes.length, 0) > 6) unseen = 0;
-  // only what lands at the end is news; older messages loading in above you are not
-  else if (away() > 80) for (const m of ms) for (const n of m.addedNodes) {
+  if (ms.reduce((n, m) => n + m.removedNodes.length, 0) > 6) { unseen = 0; requestAnimationFrame(downSync); return; }
+  // only what lands at the end is news; older messages loading in above you are not. Found from the list
+  // alone first: the layout is read (away) only when something did land at the end, never for an older
+  // page (that read forced a full layout of every page as it landed)
+  let news = 0;
+  for (const m of ms) for (const n of m.addedNodes) {
     if (n.nodeType !== 1 || !n.classList.contains("is-new") || !n.matches(".m-them, .m-you")) continue;
     let after = n.nextElementSibling;
     while (after && (after.classList.contains("mx-live") || !after.classList.contains("m"))) after = after.nextElementSibling;
-    if (!after) unseen++;
+    if (!after) news++;
   }
+  if (news && away() > 80) unseen += news;
   requestAnimationFrame(downSync);
 }).observe(msgs, { childList: true });
 const downRO = new ResizeObserver(() => downSync());
@@ -695,46 +707,5 @@ new MutationObserver(() => {
   followDock(performance.now() + 700);
 }).observe(tdock, { childList: true, subtree: true });
 
-// ── at the latest, the conversation follows itself (owner, 5 Nov) ──────────────────────────────────────
-// Opening a conversation lands at the latest, and while you're at the latest it stays there through every
-// change in height: history arriving as it opens, pictures loading, the agent's turn growing as it streams
-// (the app follows only new rows, and not a row that grows: after a moment of quiet, a working turn that
-// grew by a line left you 30 px above the latest). Following stops the moment you scroll up yourself, or
-// open something to read (a step, the work card), or go to a particular message; it starts again when you
-// come back to the latest. Your own scrolling always wins.
-const app = $("#app");
-const column = $("#column");
-const gapNow = () => scroller.scrollHeight - scroller.clientHeight - scroller.scrollTop;
-let following = true, userAt = 0, holdOff = 0;
-function toLatest() { following = true; scroller.scrollTop = scroller.scrollHeight; }
-function keepFollowing() {
-  if (performance.now() < holdOff) return;
-  if (following) { if (gapNow() > 0.5) scroller.scrollTop = scroller.scrollHeight; }
-  else if (gapNow() <= 8) following = true; // back at the latest without scrolling (something above closed)
-}
-// a conversation opens: app.js names it in data-conv (its id). Never inferred from the header's text: that
-// carries live status and counts, and a status change while you read used to throw you to the latest (QA #3)
-const opened = () => {
-  if (app.dataset.view === "home" || app.dataset.view === "artifacts" || $("#conv").hidden) return;
-  toLatest();
-};
-new MutationObserver(opened).observe(app, { attributes: true, attributeFilter: ["data-conv"] });
-// it changes height (and the view changes size): stay with it, before the frame is painted
-const followRO = new ResizeObserver(keepFollowing);
-followRO.observe(column); followRO.observe(scroller);
-new MutationObserver(keepFollowing).observe(msgs, { childList: true, subtree: true });
-// you scroll yourself: you follow only if you end up at the latest
-const moved = () => { userAt = performance.now(); };
-for (const ev of ["wheel", "touchmove"]) scroller.addEventListener(ev, moved, { passive: true });
-scroller.addEventListener("pointerdown", (e) => { if (e.target === scroller) moved(); });
-document.addEventListener("keydown", (e) => { if (["PageUp", "PageDown", "ArrowUp", "ArrowDown", "Home", "End", " "].includes(e.key) && !e.target.closest?.("textarea, input, [contenteditable]")) moved(); });
-scroller.addEventListener("scroll", () => { if (performance.now() - userAt < 500) following = gapNow() <= 8; }, { passive: true });
-// you open something to read, or go to one particular message: that's the place now, not the latest.
-// (The app's click handler runs on the same click, after this capture listener.)
-document.addEventListener("click", (e) => {
-  const t = e.target;
-  if (t.closest?.("[data-go-msg], [data-mx-jump]")) { following = false; holdOff = performance.now() + 900; return; }
-  if (t.closest?.("#msgs") && t.closest?.("[aria-expanded], .mx-work, [data-tb]")) { following = false; holdOff = performance.now() + 700; }
-}, true);
-// the back-to-latest button: follow again
-down.addEventListener("click", () => { following = true; });
+// Following the latest, keeping your place and opening at the latest belong to js/follow.js now. Nothing
+// here moves the view except the back-to-latest button and pressing the working bubble (both toLatest).

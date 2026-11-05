@@ -27,6 +27,7 @@ import { runsStripHtml, runsListHtml, runViewHtml } from "./runsview.js";
 import { createSettings } from "./settings.js";
 import { createRuntimeSettings } from "./rtsettings.js";
 import { createChats } from "./chats.js";
+import { initFollow, toLatest, unpin, isPinned, fromTop } from "./follow.js";
 import { createViewer } from "./viewer.js";
 import { createMap, MAP_ICON } from "./map.js";
 import { createStage } from "./stage.js";
@@ -1274,7 +1275,7 @@ runsEl.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventD
 // ── the thread's own decision: docked above the composer (Today's card, #20) ──
 const tdock = $("#tdock");
 const TD = { key: null, busy: false };
-const keepBottom = () => { if (stuck && rendered && rendered !== "home") toBottom(false); };
+const keepBottom = () => {}; // pinned at the latest, follow.js keeps the view there as the card changes
 /**
  * The docked card's fit (QA 2026-11-05). Its answers stay pinned under the question while the whole
  * question shows above them; on a short phone (375×667) the card is one scroll instead, question first,
@@ -1964,9 +1965,9 @@ function sendLive(raw) {
   // From Home, what you wrote carries you into the conversation it went to (the Workspace, or the
   // @project's): the bubble rises out of the composer into place, and Back returns to Home. From a
   // conversation, a message aimed elsewhere leaves you where you are and says where it went.
-  if (!here && S.view === "home") { go(conv, { carry: true }); toBottom(false); lift(msgsEl.querySelector(`[data-k="${m.id}"]`), from); }
+  if (!here && S.view === "home") { go(conv, { carry: true }); toLatest(false); lift(msgsEl.querySelector(`[data-k="${m.id}"]`), from); }
   else if (!here) heraldShow({ kind: "sent", text: `Sent to ${chat === "workspace" ? "the coordinator" : PROJ(chat)}`, sub: "open to follow the reply", open: conv }, 9000);
-  else { render(); toBottom(false); lift(msgsEl.querySelector(`[data-k="${m.id}"]`), from); }
+  else { render(); toLatest(false); lift(msgsEl.querySelector(`[data-k="${m.id}"]`), from); }
   deliverLive(m, thread);
 }
 
@@ -2046,13 +2047,10 @@ const scroller = $("#scroller"), msgsEl = $("#msgs");
 const FIRST_MSG = "[data-k]:not([data-k=hist]):not([data-k=note]):not([data-k^='day|'])";
 let rendered = null, raf = 0;
 function schedule() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); }
-const nearBottom = () => scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 80;
-/** Follow to the end. A smooth follow counts as a scroll under way (holdAnchor never writes during one). */
-let followUntil = 0;
-function toBottom(smooth) {
-  if (smooth && !RM.matches) followUntil = performance.now() + 600;
-  scroller.scrollTo({ top: scroller.scrollHeight, behavior: smooth && !RM.matches ? "smooth" : "auto" });
-}
+// Where the view is has one owner, js/follow.js (QA #9): pinned at the latest, or reading where you are.
+// Here: opening a conversation goes to the latest; where a browser has no scroll anchoring (Safari), a
+// redraw while you read puts what you read back where it stood (holdPlace).
+const ANCHORS = typeof CSS !== "undefined" && CSS.supports && CSS.supports("overflow-anchor", "auto");
 
 function render() {
   if (!world.state.loaded) return;
@@ -2082,41 +2080,18 @@ function render() {
     const ready = liveReady(v);
     if (!switching && ready && S.filled !== v) switching = true;
     S.filled = ready ? v : null;
-    const atBottom = switching || nearBottom();
     const items = msgItems(v, needs);
-    // what you're reading, and the work folds about to be redrawn: measured before anything changes
-    // following the end (at the bottom), the bottom is the anchor: nothing to hold, or holding it would
-    // fight the smooth follow below and jerk the view up and down while an agent works (the owner, 4 Nov)
-    const anchor = switching || atBottom ? null : readingAnchor();
+    // the work folds about to be redrawn, measured before anything changes (workMotion glides them)
     const folds = switching ? null : foldsBefore(items);
-    const last0 = switching ? null : msgsEl.lastElementChild?.dataset.k || null; // the newest thing drawn so far
-    const added0 = reconcile(msgsEl, items, { quiet: switching });
+    const place = !ANCHORS && !switching && !isPinned() ? readingPlace() : null;
+    reconcile(msgsEl, items, { quiet: switching });
     hydrateMedia(msgsEl); // new pictures load and fade in; redrawn ones keep their pixels
-    // older messages (or anything else) landed above: what you were reading stays exactly where it was
-    if (anchor) {
-      holdAnchor(anchor);
-      // another layer may decorate what was just drawn, in its own MutationObserver (queued before this,
-      // so it runs first): hold the place again once it has, still before the frame is painted
-      queueMicrotask(() => holdAnchor(anchor));
-    }
+    if (place) { holdPlace(place); queueMicrotask(() => holdPlace(place)); } // after msgx's decoration too
     if (folds) workMotion(folds);
-    // only what arrived after the newest thing drawn is news (an older page landing above never is)
-    const added = last0 ? added0.filter((el) => below(el, { k: last0 })) : added0;
     ensureRoot();
-    const typed = typingRender();
-    if (switching) {
-      rendered = v;
-      stuck = true;
-      const pos = S.scroll[v];
-      if (pos == null || pos === "bottom") toBottom(false); else scroller.scrollTop = pos;
-      $("#new-below").hidden = true;
-    } else if (added.length || typed) {
-      if (atBottom) toBottom(true); else if (added.length) $("#new-below").hidden = false;
-    } else if (atBottom && added0.length && !nearBottom() && !scrolling()) {
-      // an older page landed above while you were at the end (a short conversation): stay at the end, at
-      // once, as a browser that keeps your place itself would (Safari doesn't)
-      toBottom(false);
-    }
+    typingRender();
+    // opening a conversation lands at the latest (the owner, 5 Nov); after that the browser keeps you there
+    if (switching) { rendered = v; toLatest(false); }
   }
   if (!isHome && !isArts) requestAnimationFrame(loadAhead);
   dockRender(needs);
@@ -2165,7 +2140,7 @@ function faviconRender(t) {
  *  scroll keeps loading until it fills the view or the conversation begins. A thread pages the same way. */
 function loadAhead() {
   if (rendered !== S.view || S.view === "home" || CH.isChats(S.view)) return;
-  if (scroller.scrollTop > Math.max(600, scroller.clientHeight)) return;
+  if (fromTop() > Math.max(600, scroller.clientHeight)) return;
   const t = convThread(S.view);
   if (t) { if (world.act.loadOlderThread && canPageOlder(world.state.threadHist?.[t.id])) world.act.loadOlderThread(t.id); return; }
   const c = chatOf(S.view); const h = c && world.state.hist[c];
@@ -2179,75 +2154,22 @@ function loadOlderNow() {
 }
 
 // ── what you're reading stays put; the agent's work moves, never jumps ─────────────────────────────
-/**
- * The topmost message on screen (not the line at the top) and where it stands: what a redraw must not
- * move. Topmost as drawn, not as listed: a layer may draw an item out of order (CSS order).
- */
-function readingAnchor() {
-  const box = scroller.getBoundingClientRect();
-  const bottom = box.top + scroller.clientHeight;
-  let best = null, firstK = null;
+/** Only where the browser has no scroll anchoring (Safari): the first message in view and where it stands,
+ *  before a redraw (an older page landing above it), so it can be put back in the same frame. */
+function readingPlace() {
+  const top = scroller.getBoundingClientRect().top;
   for (const el of msgsEl.children) {
-    const k = el.dataset.k;
-    // not a line between messages: a day's line moves above older messages of its day as they land
-    if (!k || k === "hist" || k === "note" || k === "empty" || k.startsWith("day|")) continue;
-    if (firstK == null) firstK = k;
     const r = el.getBoundingClientRect();
-    if (r.height && r.bottom > box.top + 1 && r.top < bottom && (!best || r.top < best.top)) best = { k, top: r.top };
+    if (el.dataset.k && r.height && r.bottom > top + 1) return { k: el.dataset.k, top: r.top };
   }
-  // first: nothing but the line where older pages land (its skeleton) stands above it
-  if (best) best.first = best.k === firstK;
-  return best;
+  return null;
 }
 const childOf = (k) => { for (const el of msgsEl.children) if (el.dataset.k === k) return el; return null; };
-/**
- * Put what you were reading back where it was, when something above it changed height (an older page
- * landed, its skeleton came or went). Writing scrollTop stops a scroll dead (a trackpad's momentum, a
- * wheel's glide: the owner, 4 Nov, "scrolling keeps getting stuck"), so it is written only when it must
- * be: a shift of a whole pixel or more, of a message in the upper half of the view or the first one
- * under the skeleton (content arrived above what you're reading), and never while a scroll is under way. Then the shift waits, and is put
- * right once the scroll has settled.
- */
-const SETTLE_MS = 150;
-// owed: what a shift put off while you scrolled is owed to: {v, d: the shifts summed, k, top, scroll: the
-// message you were reading when the first came, where it stood, and the scroll position then}
-let scrolledAt = 0, settleT = 0, owed = null;
-const scrolling = () => performance.now() - scrolledAt < SETTLE_MS || performance.now() < followUntil;
-function holdAnchor(a) {
+function holdPlace(a) {
   const el = childOf(a.k);
   if (!el) return;
   const d = el.getBoundingClientRect().top - a.top;
-  const box = scroller.getBoundingClientRect();
-  // a message in the upper half of the view, or the first one, under the line where older pages land
-  if (Math.abs(d) < 1 || (a.top > box.top + scroller.clientHeight / 2 && !a.first)) return;
-  if (!scrolling()) { scroller.scrollTop += d; return; }
-  if (!owed || owed.v !== S.view) owed = { v: S.view, d: 0, k: a.k, top: a.top, scroll: scroller.scrollTop };
-  owed.d += d;
-  a.top += d; // owed, not written: a second look (after another layer's redraw) counts only what moved since
-  clearTimeout(settleT); settleT = setTimeout(settle, SETTLE_MS);
-}
-/**
- * The scroll has stopped: the shift put off while it ran, now (on the same conversation only). Where the
- * browser keeps your place itself (overflow-anchor), only what it didn't is owed: the shifts summed.
- * Where it doesn't (Safari), the message you were reading goes back to where it stood, moved only by
- * your own scrolling since.
- */
-function settle() {
-  if (scrolling()) { settleT = setTimeout(settle, SETTLE_MS); return; }
-  const o = owed; owed = null;
-  if (!o || o.v !== S.view || rendered !== S.view) return;
-  let d = o.d;
-  const el = getComputedStyle(scroller).overflowAnchor === "auto" ? null : childOf(o.k);
-  if (el) d = el.getBoundingClientRect().top - (o.top - (scroller.scrollTop - o.scroll));
-  if (Math.abs(d) >= 1) scroller.scrollTop += d;
-}
-const noteScroll = () => { scrolledAt = performance.now(); };
-scroller.addEventListener("wheel", noteScroll, { passive: true });
-scroller.addEventListener("touchmove", noteScroll, { passive: true });
-/** Is this element after what you were reading (news below), not before it (an older page above)? */
-function below(el, a) {
-  const at = childOf(a.k);
-  return !at || el === at || !!(at.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING);
+  if (Math.abs(d) >= 1) { scroller.scrollTop += d; }
 }
 /** Something here already moves to its own CSS animation (another layer's): motion is never stacked on it. */
 function stirred(el, root) {
@@ -2309,25 +2231,21 @@ function workMotion(folds) {
     if (chev) chev.animate([{ transform: toggled.open ? "none" : "rotate(180deg)" }, { transform: toggled.open ? "rotate(180deg)" : "none" }], { duration: MOVE, easing: EASE });
   }
 }
+// what scrolling asks of the page (an older page near the top, the header's edge): once a frame, not once an event
+let scrollRaf = 0;
 scroller.addEventListener("scroll", () => {
-  noteScroll();
-  loadAhead();
-  if (nearBottom()) $("#new-below").hidden = true;
-  $("#top").classList.toggle("is-scrolled", scroller.scrollTop > 120);
+  if (scrollRaf) return;
+  scrollRaf = requestAnimationFrame(() => { scrollRaf = 0; loadAhead(); $("#top").classList.toggle("is-scrolled", fromTop() > 120); });
 }, { passive: true });
-$("#new-below").addEventListener("click", () => { toBottom(true); $("#new-below").hidden = true; });
-let stuck = true;
-scroller.addEventListener("scroll", () => { stuck = nearBottom(); }, { passive: true });
-new ResizeObserver(() => {
-  $("#app").style.setProperty("--dock-h", `${$("#dock").offsetHeight}px`);
-  if (stuck && rendered && rendered !== "home") requestAnimationFrame(() => toBottom(false));
-}).observe($("#dock"));
+// the dock's height, for the space under the conversation (pinned at the latest, follow.js keeps you there)
+new ResizeObserver(() => { $("#app").style.setProperty("--dock-h", `${$("#dock").offsetHeight}px`); }).observe($("#dock"));
+initFollow();
 
 // ── navigation: back always returns exactly where you were ─────────────────
 function saveScroll() {
   if (S.view === "home") S.scroll.home = $("#home").scrollTop;
   else if (S.view === "artifacts") S.scroll.artifacts = $("#arts").scrollTop;
-  else if (rendered === S.view) S.scroll[S.view] = nearBottom() ? "bottom" : scroller.scrollTop;
+  // a conversation always opens at the latest (the owner, 5 Nov), so its place isn't kept
 }
 function go(v, { from, focus = false, carry = false } = {}) {
   if (!v) return;
@@ -2601,6 +2519,9 @@ document.addEventListener("click", (e) => {
   const tb = t.closest("[data-tb]");
   if (tb) {
     const k = tb.dataset.tb; S.tbOpen[k] = !S.tbOpen[k];
+    // you opened this to read it where it is: it unfolds downward and the view stays (even at the latest;
+    // pressing the agent's working bubble instead goes back to following, msgx.js)
+    if (tb.closest("#msgs")) unpin();
     // the redraw replaces this line: its fold glides (workMotion), and focus comes back to it
     S.tbToggled = { k, open: S.tbOpen[k], focus: tb === document.activeElement || tb.contains(document.activeElement) };
     schedule(); return;
@@ -3174,8 +3095,7 @@ function resolveFromRow(tid, resolved, li) {
 // on a phone the shells open as a sheet over everything: the sidebar they were opened from steps aside
 $("#nv-shells").addEventListener("click", () => setDrawer(false));
 $("#pb-t").addEventListener("click", () => {
-  const el = S.view === "home" ? $("#home") : scroller;
-  el.scrollTo({ top: 0, behavior: RM.matches ? "auto" : "smooth" });
+  (S.view === "home" ? $("#home") : scroller).scrollTo({ top: 0, behavior: RM.matches ? "auto" : "smooth" });
 });
 
 // ── boot ────────────────────────────────────────────────────────────────────
@@ -3217,7 +3137,6 @@ for (const x of $$(".sheet [data-close]")) x.innerHTML = ICON.close;
 $("#jump-ic").innerHTML = ICON.search;
 $("#all-ic").innerHTML = ICON.search;
 $("#send").innerHTML = ICON.send; $("#send").dataset.mode = "send";
-$("#nb-ic").innerHTML = ICON.down;
 $("#theme").innerHTML = `<span class="th-track" aria-hidden="true"><span class="th-knob">${ICON.sun}${ICON.moon}</span></span>`;
 applyTheme(THEME.get());
 soundRender();
