@@ -89,7 +89,7 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
     const sub = [dir, isLive ? "editing now" : f.status === "added" ? "new" : f.status === "deleted" ? "deleted" : f.status === "renamed" ? `from ${base(f.old_path)}` : ""].filter(Boolean).join(" · ");
     return `<li role="presentation"><button type="button" class="cx-r${on ? " is-on" : ""}" role="option" aria-selected="${on}" data-cx="${esc(f.path)}" title="${esc(f.path)}">` +
       `<span class="cx-i">${fileIcon(f.path)}${isLive ? '<i class="arc"></i>' : ""}</span><span class="cx-t"><span class="cx-n">${esc(base(f.path))}</span>${sub ? `<span class="cx-d">${esc(sub)}</span>` : ""}</span>` +
-      `${f.binary ? `<span class="xd-n"><b>bin</b></span>` : countsHtml(f)}</button></li>`;
+      `${countsHtml(f)}</button></li>`;
   }
 
   /** Draw (or keep) the chosen file's diff. scrollTo: a line of the new file to bring into view. */
