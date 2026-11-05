@@ -147,7 +147,8 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
     const act = changes.activity(v);
     const files = [...c.files.values()];
     // a file being written that the last read hasn't brought yet still shows, on top
-    for (const p of act.live) if (!c.files.has(p)) files.unshift({ path: p, additions: null, deletions: null, status: "added", live: true });
+    // (a project's own .xo/ is XO's, and Space never lists it there: nor does this)
+    for (const p of act.live) if (!c.files.has(p) && (s.worktree || !p.startsWith(".xo/"))) files.unshift({ path: p, additions: null, deletions: null, status: "added", live: true });
 
     if (c.state === "loading" || c.state === "idle") {
       set("none", none, `<i class="spin" aria-hidden="true"></i> Reading what changed…`); none.hidden = false;

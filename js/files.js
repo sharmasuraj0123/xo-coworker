@@ -243,10 +243,12 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       `<label class="fl-q"><span class="sr-only">Find a file</span>${ICON.search}<input data-fl-q placeholder="Find a loaded file" autocomplete="off" spellcheck="false"></label>`;
   }
   /** Above the tree: what this place changed (Space's /changes), every file with its counts, each opening on
-   *  its diff; where Space can't say, what agents touched (from the turns). */
+   *  its diff; where Space can't say, what agents touched (from the turns). Where Space says nothing changed,
+   *  nothing: the panel's Changes says the same, and the turns' marks aren't the place's state. */
   function secHtml(s, tl) {
     const cs = changes && s.key === F.viewKey ? changes.of(F.view) : null;
-    if (cs && cs.state === "ok" && cs.files.size) {
+    if (cs && cs.state === "ok" && !cs.files.size) return "";
+    if (cs && cs.state === "ok") {
       const live = changes.activity(F.view).live;
       return `<p class="fl-sec">Changed ${s.base ? "in this thread" : "here"}</p>` + [...cs.files.values()].map((f) => {
         const rel = s.base ? `${s.base}/${f.path}` : f.path, on = viewer.hasFile && viewer.file && viewer.file.rel === rel && viewer.file.show === "changes";
