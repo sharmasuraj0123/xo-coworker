@@ -554,14 +554,14 @@ export function hopNotes(thread, hops) {
  * timeline (each once, never one the thread already has), and per hop the ids not loaded yet,
  * with the hop's seq as the upper bound to page back from. Someone else's words are never shown as yours.
  */
-export function relayedInto(thread, hops, timeline, have = new Set()) {
+export function relayedInto(thread, hops, timeline, have = new Set(), found = null) {
   const shown = [], missing = [], seen = new Set(have);
   for (const hp of hops || []) {
     if (!hp || hp.thread_ts !== thread.id || hp.to_role !== "thread" || !(hp.message_ids || []).length) continue;
     const lost = [];
     for (const id of hp.message_ids) {
       if (seen.has(id)) continue;
-      const row = timeline.find((r) => r.id === id);
+      const row = timeline.find((r) => r.id === id) || (found && found.get(id));
       if (!row) { lost.push(id); continue; }
       seen.add(id);
       const m = uiMsg(row);
