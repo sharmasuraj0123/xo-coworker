@@ -89,7 +89,8 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     warm(s);
     const c = current(s);
     if (simple() && !phone) { const w = simpleOf(s, c); return `<span class="iq-l"><span class="${w === "auto" ? "iq-a" : "iq-t"}">${esc(w === "auto" ? "Auto" : w === "deep" ? "Deep" : nameOf(c.model) || "Pinned")}</span></span>`; }
-    if (phone) return `<span class="iq-g" aria-hidden="true">${c.pinned ? `<i class="iq-dot"></i>` : "◇"}</span><span class="iq-p">${esc(dots(c.effort))}</span>`;
+    // on a phone too, which model runs is said, short (QA #13): its name when pinned, else Auto
+    if (phone) return `<span class="iq-g" aria-hidden="true">${c.pinned ? `<i class="iq-dot"></i>` : "◇"}</span><span class="iq-mn">${esc(c.pinned && c.model ? nameOf(c.model) : "Auto")}</span><span class="iq-p">${esc(dots(c.effort))}</span>`;
     // three parts, each one flex item: the pin's dot, one label (its separators inside it), the effort
     const { dot, words, effort } = chipParts(s, c);
     // a runtime other than the server's own is named first, in place of "Auto", when there are several

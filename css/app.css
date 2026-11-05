@@ -1133,6 +1133,7 @@ button.tp-done-u:hover{color:var(--ink)}
 .iq-p{font:inherit;letter-spacing:.5px}
 .iq-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--ink-2)}
 .iq-g{display:inline-grid;place-items:center;width:12px;font-size:var(--fs-sm)}
+.iq-mn{min-width:0;max-width:72px;overflow:hidden;text-overflow:ellipsis;color:var(--ink-3)}
 /* concentric: 20 outside, its 6 px controls 14 px from every edge (13 + the 1 px edge) */
 .iq-pop{position:fixed;z-index:46;display:flex;flex-direction:column;padding:13px;border-radius:var(--r-xl);background:var(--pop-bg);border:1px solid var(--pop-line);box-shadow:var(--e2);outline:none;animation:pop-in .18s var(--glide)}
 .iq-pop.is-out{animation:pop-out .14s ease-in forwards}
@@ -1439,8 +1440,8 @@ button.kr-r:hover{background:var(--bg-3);color:var(--ink)}
   .wsh-stats>div:nth-child(n+3){border-top:1px solid var(--g1F)}
   .wsh-stats dd{font-size:var(--fs-2xl)}
   .wsh-stats>div+div{padding-left:12px}
-  .dock{padding:0 10px}
-  .cbar{margin:0 -10px;padding:22px 10px 54px;background:linear-gradient(to bottom,transparent,var(--canvas) 26px)}
+  .dock{padding:0 16px}
+  .cbar{margin:0 -16px;padding:22px 16px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(to bottom,transparent,var(--canvas) 26px)}
   .herald{left:10px;right:10px;bottom:calc(100% - 14px)}
   .composer{box-shadow:0 2px 10px var(--comp-shadow),0 1px 0 var(--comp-hi) inset}
   .dock>.herald,.dock>.tdock{margin-left:0;margin-right:0}
@@ -1449,7 +1450,6 @@ button.kr-r:hover{background:var(--bg-3);color:var(--ink)}
   .bubble{max-width:86%}
   .m-them,.typing{grid-template-columns:26px minmax(0,1fr);gap:10px}
   .av{width:26px;height:26px;border-radius:var(--r-sm)}
-  .ev{margin-left:36px}
   .hr-s{display:none}
   .card.is-dock{max-height:52vh}
   .dock-hide span,.df-e{display:none}

@@ -143,3 +143,17 @@
      the composer's top */
   :root:root .ckbar.is-open .ck-b>ol{max-height:max(120px,calc(100dvh - 380px));overflow-y:auto;overscroll-behavior:contain}
 }
+
+/* A finger needs about 44 px: on touch, the small controls keep their look and get a larger hit area
+   around it (QA #22: New project 60×24, Artifacts' filters 28 tall, pins 28×28, "Show all of it" 20 tall) */
+@media (pointer:coarse){
+  :root:root :is(.side-plus,.md-pin,[data-arts-kind],.ev-asked>.ev-t){position:relative}
+  :root:root :is(.side-plus,.md-pin,[data-arts-kind])::after{content:"";position:absolute;inset:-8px}
+  :root:root .ev-asked>.ev-t::after{content:"";position:absolute;inset:-12px 0}
+}
+
+/* A narrow phone's folded checklist has room for the count, not the step: it showed two letters of it
+   ("1 of 9 ✱ Re…"). The step's mark stays; the open list has every step in full (QA #23). */
+@media (max-width:400px){
+  :root:root .thead .ckbar:not(.is-open) .ck-now>span:last-child{display:none}
+}

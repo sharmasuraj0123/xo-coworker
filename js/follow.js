@@ -15,6 +15,7 @@
 const sc = () => document.getElementById("scroller");
 const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 let pinned = true, lastTop = 0;
+const NEAR = 120; // px: about one message
 
 /** How far the view is from the latest, and from the top of what's drawn (px). */
 export const fromLatest = () => { const s = sc(); return Math.max(0, s.scrollHeight - s.clientHeight - s.scrollTop); };
@@ -35,10 +36,14 @@ export function initFollow() {
   // moved up = reading; back at the latest = pinned. A glide down (smooth toLatest) never unpins, and
   // growth below changes no scrollTop, so neither is mistaken for you scrolling up.
   s.addEventListener("scroll", () => {
-    const top = s.scrollTop;
-    if (s.scrollHeight - s.clientHeight - top <= 2) pinned = true;
+    const top = s.scrollTop, gap = s.scrollHeight - s.clientHeight - top;
+    if (gap <= 2) pinned = true;
     else if (top < lastTop - 1) pinned = false;
-    lastTop = top;
+    // coming back down to within a message of the latest is coming back to it: something that grew while
+    // you scrolled down would otherwise leave you stopped just short of the latest, no longer following
+    // (the deploy thread saw 70 px once on a phone); the last few px glide in with you
+    else if (!pinned && top > lastTop + 1 && gap <= NEAR) { pinned = true; s.scrollTop = s.scrollHeight; }
+    lastTop = s.scrollTop;
   }, { passive: true });
   // growth (or the view's own size changing) while pinned: stay at the latest, before the frame is painted
   const keep = () => { if (pinned && fromLatest() > 0.5) { s.scrollTop = s.scrollHeight; lastTop = s.scrollTop; } };
