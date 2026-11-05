@@ -879,14 +879,15 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       const hot = new Set(ags.filter((a) => scope.kind === "thread" || a.fold).flatMap((a) => [a.path, ...(a.spots || []), a.busy ? a.prev : null]).filter(Boolean));
       tree = folderTree(scope, scope.fold, marks, hot, true);
       // the first look must show the whole drawing, readable: if unfolding by itself would make it wider
-      // or taller than the canvas at a readable size, those folders stay folded (yours stay as you left them)
+      // or taller than the canvas at a readable size, those folders stay folded (yours stay as you left them).
+      // Decided once per place, on its first look: measuring the canvas on every paint forced the page's layout
+      // in the middle of a change (Launchpad folding with a long thread and a diff open: ~150 ms at 4×)
       const v = view();
-      if (M.mode === "tree" && v && v.clientWidth) {
+      if (M.mode === "tree" && M.fit?.key !== sk && v && v.clientWidth) {
         const L = layoutOf(tree);
-        const tooWide = (L.w + PAD * 2 + tagW()) * READABLE > v.clientWidth - 24;
-        const tooTall = (L.h + PAD * 2) * READABLE > v.clientHeight - 44 - 24;
-        if (tooWide || tooTall) { M.refs = new Map(); tree = folderTree(scope, scope.fold, marks, hot, false); }
+        M.fit = { key: sk, fold: (L.w + PAD * 2 + tagW()) * READABLE > v.clientWidth - 24 || (L.h + PAD * 2) * READABLE > v.clientHeight - 44 - 24 };
       }
+      if (M.mode === "tree" && M.fit?.key === sk && M.fit.fold) { M.refs = new Map(); tree = folderTree(scope, scope.fold, marks, hot, false); }
     }
     else tree = { id: "", kind: "root", name: scope.t.title, sub: "its folder isn't one XO can show", children: [] };
     // head
@@ -1135,14 +1136,20 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       }
       if (host.isConnected && host.getClientRects().length) this.show();
     },
-    /** The tab became visible: start painting and frame the camera. */
+    /** The tab became visible: start painting and frame the camera. Shown again on the same place with its
+     *  drawing still there (the panel lays its frames out again, a fold opens, Launchpad folds), it carries on
+     *  from that drawing: paint draws only what changed, and the camera stays where it was. A new place, or
+     *  no drawing yet, starts fresh. Called while already showing, it only paints. */
     show(v) {
       if (!el) return;
+      const was = M.open;
       if (v) M.view = v;
-      M.open = true; el.dataset.scope = ""; M.head = ""; M.lastScope = null;
+      M.open = true;
+      if (!view() || el.dataset.scope !== scopeOf(M.view).key + "|" + M.mode) { el.dataset.scope = ""; M.lastScope = null; }
+      if (!was) M.head = "";
       paint();
       const c = M.scope && camOf(M.scope);
-      if (c) requestAnimationFrame(() => { paint(); frame(c); });
+      if (c && !was) requestAnimationFrame(() => { paint(); frame(c); }); // its size may have changed while hidden
     },
     /** The tab was hidden or the panel closed: stop the heavy work (the graph stops), keep camera and folds. */
     hide() { M.open = false; if (M.raf) { cancelAnimationFrame(M.raf); M.raf = 0; } },
