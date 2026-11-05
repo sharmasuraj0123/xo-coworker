@@ -4,6 +4,12 @@
 import { esc } from "./world.js";
 import { ICON, $, RM } from "./ui.js";
 import { api } from "./api.js";
+import { fmtSize } from "./attach.js";
+
+/** Space's clone v2 (xo-space, asked 2026-11-05): keeps name and brief, answers 202 {clone_id} with progress
+ *  and cancel, and names its failures. Flip to true once :5002 runs it; nothing else changes here. */
+const CLONE_V2 = false;
+const PHASE = { counting: "Counting files in", receiving: "Downloading", resolving: "Unpacking", checkout: "Checking out", finishing: "Adding plan and memory to" };
 
 const GH = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>`;
 
@@ -16,6 +22,8 @@ export function parseRepo(raw) {
   const gh = v.match(/^(?:(?:https?:\/\/)?(?:www\.)?github\.com\/)?([A-Za-z0-9-]{1,39})\/([A-Za-z0-9._-]{1,100}?)(?:\.git)?(?:\/(?:tree|blob)\/.*)?\/?$/);
   if (gh && !/^\.+$/.test(gh[2])) return { url: `https://github.com/${gh[1]}/${gh[2]}.git`, label: `${gh[1]}/${gh[2]}`, name: gh[2], github: true };
   const ssh = v.match(/^git@([A-Za-z0-9.-]+):([A-Za-z0-9._/-]+?)(?:\.git)?$/);
+  // GitHub's SSH form clones over HTTPS, so the GitHub connection (not this server's SSH keys) opens it
+  if (ssh && ssh[1] === "github.com" && /^[A-Za-z0-9-]+\/[A-Za-z0-9._-]+$/.test(ssh[2])) return parseRepo(ssh[2]);
   if (ssh) return { url: v, label: `${ssh[1] === "github.com" ? "" : ssh[1] + ":"}${ssh[2]}`, name: ssh[2].split("/").pop(), github: ssh[1] === "github.com" };
   try {
     const u = new URL(v);
@@ -100,7 +108,9 @@ export function initCreate(ctx) {
     if (focus) (m === "clone" ? repo : name).focus();
   }
 
+  // busy: {t0, label, cloneId?, st?: Space's clone status} while creating or cloning
   function setBusy(on, label) {
+    clearTimeout(busy?.timer);
     busy = on ? { t0: Date.now(), label } : null;
     for (const el of [name, desc, repo]) el.disabled = on;
     for (const b of $("#cp-mode").children) b.disabled = on;
@@ -110,12 +120,62 @@ export function initCreate(ctx) {
     $("#cp-prog").hidden = !(on && mode === "clone");
     if (on && mode === "clone") tick();
   }
+  /** The cloning row: what Space says it's doing (or just "Cloning"), how far when it knows, the time taken. */
   function tick() {
     if (!busy) return;
-    const s = Math.floor((Date.now() - busy.t0) / 1000);
-    $("#cp-prog-t").innerHTML = `<span>Cloning <b>${esc(busy.label)}</b></span><span class="cp-t">${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}</span>` +
+    const s = Math.floor((Date.now() - busy.t0) / 1000), st = busy.st || {};
+    const pct = Number.isFinite(st.percent) ? Math.max(0, Math.min(100, Math.round(st.percent))) : null;
+    const bar = $("#cp-prog .cp-bar");
+    bar.classList.toggle("is-known", pct != null);
+    bar.firstElementChild.style.width = pct != null ? `${pct}%` : "";
+    const facts = [pct != null && `${pct}%`, st.received_bytes > 0 && fmtSize(st.received_bytes)].filter(Boolean).join(" · ");
+    $("#cp-prog-t").innerHTML = `<span>${PHASE[st.phase] || "Cloning"} <b>${esc(busy.label)}</b>${facts ? ` · ${facts}` : ""}</span>` +
+      `<span class="cp-t">${busy.cloneId ? `<button type="button" class="cp-link" data-cp="stop">Stop</button>` : ""}${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}</span>` +
       (s >= 6 ? `<span class="cp-hint">Big repos take a while. You can close this; you'll hear when it's ready.</span>` : "");
-    setTimeout(tick, 1000 - ((Date.now() - busy.t0) % 1000));
+    busy.timer = setTimeout(tick, 1000 - ((Date.now() - busy.t0) % 1000));
+  }
+  /** v2: follow a clone Space runs in the background until it's done; throws its error. */
+  async function follow(cloneId) {
+    busy.cloneId = cloneId;
+    for (;;) {
+      await new Promise((r) => setTimeout(r, 1000));
+      if (!busy || busy.cloneId !== cloneId) throw Object.assign(new Error("stopped"), { code: "cancelled" });
+      let st;
+      try { st = await api.cloneStatus(cloneId); } catch (err) { if (err.status === 404) throw err; continue; } // a blip: ask again
+      busy.st = st;
+      if (st.state === "done") return st;
+      if (st.state === "failed") throw Object.assign(new Error(st.error?.message || "The clone failed."), { code: st.error?.code || "clone_failed", detail: st.error?.detail, status: 502 });
+      if (st.state === "cancelled") throw Object.assign(new Error("stopped"), { code: "cancelled" });
+    }
+  }
+  async function stop() {
+    const id = busy?.cloneId;
+    if (!id) return;
+    $("#cp-prog-t .cp-link").disabled = true;
+    try { await api.cancelClone(id); } catch (err) { if (err.status !== 404) { error(`Couldn't stop it: ${err.message}`); return; } }
+    setBusy(false);
+    error("");
+    ctx.announce("Stopped cloning. Nothing was kept.");
+  }
+
+  /** Space's words for a failed clone → what the dialog says, and the one action that helps. */
+  function cloneError(err, r, id) {
+    const code = err.code, host = r.github ? "GitHub" : r.label.split(/[/:]/)[0];
+    const connect = { id: "connect", label: gh.status === "connected" ? "Reconnect GitHub" : "Connect GitHub" };
+    switch (code) {
+      case "project_exists": return [`There's already a project called “${id}”. Pick another name.`, null, name];
+      case "invalid_repository_url": return ["Use owner/repo, or an HTTPS or SSH Git URL without a password or token.", null, repo];
+      case "repo_not_found_or_private":
+        if (r.github && gh.status !== "connected") return ["This repo is private, or doesn't exist.", connect, repo];
+        return [r.github ? `GitHub has no repo there that @${gh.username || "you"} can see.` : "There's no repository there that this server can reach.", null, repo];
+      case "auth_failed": return [r.github ? "GitHub turned the connection down." : `${host} turned this server's Git access down.`, r.github ? connect : null];
+      case "host_unreachable": return [`Couldn't reach ${host}. Check the URL, or try again in a moment.`, null, repo];
+      case "timed_out": return ["The clone stalled, so it stopped. Try again.", null];
+      case "timeout": case "http_502": case "http_504": // today's blocking clone outlived the UI server's 120 s wait
+        if (!CLONE_V2) return ["This is taking longer than the page waits. XO keeps cloning; the project shows in Projects when it's done.", null];
+    }
+    if (r.github && gh.status !== "connected" && code === "clone_failed") return ["Couldn't clone it. Is it private?", connect, repo];
+    return [err.detail ? `${err.message} (${err.detail})` : err.message, null];
   }
 
   async function open() {
@@ -128,13 +188,14 @@ export function initCreate(ctx) {
     renderWhere();
     dlg.showModal();
     (mode === "clone" ? repo : name).focus();
-    if (!root) {
-      try {
-        const cfg = await api.workspaceConfig();
-        root = cfg.roots?.[cfg.default] || null;
-        renderWhere();
-      } catch (err) { error(`Can't read where projects live: ${err.message}`); }
-    }
+    loadRoot();
+  }
+  /** Where projects live, read once; a submit that comes first waits for it. */
+  let rootP = null;
+  function loadRoot() {
+    if (root) return Promise.resolve(root);
+    return (rootP ||= api.workspaceConfig().then((cfg) => { root = cfg.roots?.[cfg.default] || null; renderWhere(); return root; },
+      (err) => { rootP = null; error(`Can't read where projects live: ${err.message}`); return null; }));
   }
   function close() {
     if (!dlg.open) return;
@@ -151,36 +212,42 @@ export function initCreate(ctx) {
     const shown = dlg.open;
     setBusy(false);
     if (shown) { close(); ctx.go("p:" + id, { focus: true }); }
-    ctx.heraldShow({ kind: "ready", text: `${title} is ready`, sub: where }, 5200);
+    ctx.heraldShow({ kind: "ready", text: `${title} is ready`, sub: where, open: "p:" + id }, 5200);
     ctx.announce(`${title} is ready.`);
   }
 
+  let checking = false;
   async function submitForm() {
-    if (busy) return;
+    if (busy || checking) return;
+    checking = true;
+    try { await check(); } finally { checking = false; }
+  }
+  async function check() {
     const title = name.value.trim(), id = slugify(title), description = desc.value.trim();
     const r = mode === "clone" ? parseRepo(repo.value) : null;
     if (mode === "clone" && !r) { error(repo.value.trim() ? "Use owner/repo, or an HTTPS or SSH Git URL." : "Which repository? Paste its URL or owner/repo."); repo.focus(); return; }
     if (!title) { error("Give the project a name."); name.focus(); return; }
     if (!/^[a-z0-9][a-z0-9-]{0,47}$/.test(id)) { error("Use at least one letter or number in the name."); name.focus(); return; }
     if (ctx.world.state.projects.some((p) => p.id === id)) { error(`There's already a project called “${id}”. Pick another name.`); name.focus(); return; }
-    if (!root) { error("Can't create yet: the projects folder is unknown. Is the XO API running?"); return; }
+    if (!(await loadRoot())) { error("Can't create yet: the projects folder is unknown. Is the XO API running?"); return; }
     error("");
     setBusy(true, r?.label);
     try {
       if (r) {
-        await api.cloneProject({ id, url: r.url, displayName: title, description });
+        const res = await api.cloneProject({ id, url: r.url, displayName: title, description }, CLONE_V2);
+        if (res?.clone_id) await follow(res.clone_id);
         await done(id, title, description, `cloned from ${r.label} · plan and memory added`, `${root}/${id}`);
       } else {
         await api.createProject({ path: `${root}/${id}`, displayName: title, description });
         await done(id, title, description, "created · folder, plan and memory scaffolded", `${root}/${id}`);
       }
     } catch (err) {
+      if (err.code === "cancelled") return;
       setBusy(false);
-      const code = err.body?.detail?.code || err.code;
-      if (!dlg.open) ctx.heraldShow({ kind: "error", text: `${title} didn't clone`, sub: err.message }, 6000);
-      if (err.status === 409) { error(`There's already a project called “${id}”. Pick another name.`); name.focus(); return; }
-      if (r?.github && gh.status !== "connected" && code === "clone_failed") { error("Couldn't clone it. Is it private?", { id: "connect", label: "Connect GitHub" }); return; }
-      error(err.message);
+      const [text, action, field] = r ? cloneError(err, r, id) : [err.status === 409 ? `There's already a project called “${id}”. Pick another name.` : err.message, null, err.status === 409 ? name : null];
+      if (!dlg.open) ctx.heraldShow({ kind: "stopped", text: `${title} didn't ${r ? "clone" : "get created"}`, sub: text }, 6000);
+      error(text, action);
+      field?.focus();
     }
   }
 
@@ -196,6 +263,7 @@ export function initCreate(ctx) {
     if (!a) return;
     if (a.dataset.cp === "connect") { e.preventDefault(); connect(); }
     if (a.dataset.cp === "copy") navigator.clipboard?.writeText(gh.code).catch(() => {});
+    if (a.dataset.cp === "stop") stop();
   });
   repo.addEventListener("input", () => {
     error("");
