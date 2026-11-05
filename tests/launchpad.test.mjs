@@ -2,7 +2,7 @@
 // the section's model, and how Space's eleven deploy steps land on the card's four rows. Pure, no network.
 //   node tests/launchpad.test.mjs
 import assert from "node:assert/strict";
-import { appState, model, rows, createLpApi, nextStep, RETRY, formKey } from "../js/lpapi.js";
+import { appState, model, rows, createLpApi, nextStep, RETRY, formKey, launchpadUrl } from "../js/lpapi.js";
 
 let passed = 0;
 let chain = Promise.resolve(); // one at a time: the stream tests stand in for fetch
@@ -49,6 +49,22 @@ t("formKey: everything the form draws is in it: GitHub connecting (gh import), i
   for (const v of variants) assert.notEqual(formKey(v, { pre: 2 }), k);
   for (const extra of [{ pre: 1 }, { pre: 2, envAll: true }, { pre: 2, thread: true }, { pre: 2, errs: { name: "x" } }, { pre: 2, needs: ["link_existing"] }]) assert.notEqual(formKey(c, extra), k, JSON.stringify(extra));
   assert.equal(formKey(model(check(), { github: { connected: false }, repo: { mode: "origin" }, launchpad: {} }), { pre: 2 }), k, "the same answers keep the form as it is");
+});
+
+// ── Open in Launchpad ─────────────────────────────────────────────────────
+t("launchpadUrl: xo-swarm's app page by the app's UUID, nothing without one", () => {
+  assert.equal(launchpadUrl("0ffce8a6-0dad-4a2a-88c1-583cf3222328"), "https://dev.xo.builders/launchpad/0ffce8a6-0dad-4a2a-88c1-583cf3222328");
+  assert.equal(launchpadUrl(""), "");
+  assert.equal(launchpadUrl(undefined), "");
+});
+t("rows: the app's id reaches the panel: from create's progress, and with done (so the link works the moment it's live)", () => {
+  const out = play([
+    { type: "progress", step: "create", data: { app_id: "a-1", url: "https://p-xo-1.apps.example.nl" }, message: "Created", ts: ts(1) },
+    { type: "done", url: "https://p-xo-1.apps.example.nl", release: 1, commit: "abc1234def", app: { id: "a-1", name: "p", slug: "p-xo-1" }, ts: ts(2) },
+  ]);
+  assert.deepEqual(out.find((e) => e.type === "app"), { type: "app", id: "a-1", at: Date.parse(ts(1)) });
+  const live = out.at(-1);
+  assert.deepEqual([live.step, live.app.id, live.app.slug, live.commit], ["live", "a-1", "p-xo-1", "abc1234"]);
 });
 
 // ── Space's action → the panel's next step ────────────────────────────────

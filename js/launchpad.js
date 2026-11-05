@@ -18,7 +18,7 @@
 // ensure(v), and opens the section through the panel (data-lp-open).
 
 import { ICON } from "./ui.js";
-import { appState, nextStep, formKey } from "./lpapi.js";
+import { appState, nextStep, formKey, launchpadUrl } from "./lpapi.js";
 import { esc } from "./util.js";
 
 const I = (d) => `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
@@ -106,7 +106,11 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     if (e.state === "failed") { st.took = at - (st.at || at); r.error = { text: e.text, ...e.error, node: e.step }; }
     if (e.step === "live" && e.state === "done") {
       r.live = { host: e.host, url: e.url, release: e.release, at };
-      s.check = { ...s.check, state: "linked", app: { url: e.url, host: e.host, status: "live", release: e.release, at, commit: s.check?.app?.commit } };
+      const was = s.check?.app || {};
+      // the run keeps the app's id: a preflight that started before the deploy finished answers after it, with the
+      // check from before, and must not take the link away (Astra on a93a2c4)
+      r.appId = e.app?.id || r.appId || was.id || "";
+      s.check = { ...s.check, state: "linked", app: { id: e.app?.id || r.appId || was.id || "", name: e.app?.name || was.name, url: e.url, host: e.host, status: "live", release: e.release, at, commit: e.commit || was.commit } };
     }
   }
 
@@ -133,6 +137,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     const s = proj(p), f = s.form;
     if (!s.run) return;
     if (e.type === "warning") { s.warn = e.message; changed(); return; }
+    if (e.type === "app") { s.run.appId = e.id; return; } // Space created the app: its id, for Open in Launchpad
     if (e.type === "replaced") { s.run.stop?.stop(); watch(p); changed(); return; } // a deploy started elsewhere: follow it
     if (e.type === "lost") { // the stream couldn't be picked up again: what was moving stops moving, and it's said
       s.run.lost = true;
@@ -320,6 +325,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
 
   function liveHtml(p) {
     const s = proj(p), a = s.run?.live || s.check.app, name = esc(s.form?.name || nameOf(p));
+    const appUrl = launchpadUrl(s.run?.appId || s.check.app?.id);
     if (a.gone) return head(`${name}'s app is gone`, "It was deleted on Launchpad. Its repository, port and settings are still here.", "stop") +
       rec("Create it again", "A new app from the same repository, with the same settings.", "recreate", "Create it again", LP_ICON.rocket) +
       `<div class="lp-or"><span>Or</span><button type="button" class="lp-b" data-lp="unlink"><span>Unlink</span></button></div>`;
@@ -329,7 +335,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     return head(title, `${rel}${s.check.app?.commit ? ` · from <code>${esc(s.check.app.commit)}</code>` : ""} · ${ago(a.at || Date.now())}`, tone) +
       `<div class="lp-url t-${tone}"><a class="lp-url-a" href="${esc(a.url)}" target="_blank" rel="noopener" title="Open ${esc(a.host)}">${ICON.globe}<span><b>${esc(split(a.host)[0])}</b><i>${esc(split(a.host)[1])}</i></span></a><button type="button" class="lp-ib" data-lp="copy" title="${s.copied > Date.now() ? "Copied" : "Copy the address"}" aria-label="Copy the address">${s.copied > Date.now() ? ICON.check : ICON.copy}</button><a class="lp-ib" href="${esc(a.url)}" target="_blank" rel="noopener" title="Open it" aria-label="Open it">${LP_ICON.out}</a></div>` +
       rows(p, "live") + (s.run?.live ? warnHtml(s) : "") +
-      `<div class="lp-acts"><button type="button" class="lp-b" data-lp="again">${LP_ICON.rocket}<span>Deploy again</span></button><a class="lp-b" href="https://launchpad.xo.builders/apps/${esc(s.check.app?.id || "")}" target="_blank" rel="noopener"><span>Open in Launchpad</span>${LP_ICON.out}</a>` +
+      `<div class="lp-acts"><button type="button" class="lp-b" data-lp="again">${LP_ICON.rocket}<span>Deploy again</span></button>${appUrl ? `<a class="lp-b" href="${esc(appUrl)}" target="_blank" rel="noopener"><span>Open in Launchpad</span>${LP_ICON.out}</a>` : ""}` +
       `<span class="lp-mw"><button type="button" class="lp-ib" data-lp="menu" aria-haspopup="menu" aria-expanded="${s.menu}" title="More" aria-label="More">${LP_ICON.more}</button>${s.menu ? `<span class="lp-menu" role="menu"><button type="button" role="menuitem" data-lp="unlink">Unlink from Launchpad</button></span>` : ""}</span></div>`;
   }
 

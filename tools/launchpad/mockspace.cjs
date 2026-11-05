@@ -120,7 +120,7 @@ exports.install = async (page, name) => {
   await page.route("**/*", async (r) => {
     const u = new URL(r.request().url()), m = r.request().method(), path = u.pathname;
     if (/\/api\/deploy\/[^/]+\/check$/.test(path)) return sc.check === "hang" ? undefined : json(r, sc.check);
-    if (/\/api\/deploy\/[^/]+\/preflight$/.test(path)) return json(r, imported ? pre() : sc.pre || pre());
+    if (/\/api\/deploy\/[^/]+\/preflight$/.test(path)) { if (page.__slowPre) await new Promise((ok) => setTimeout(ok, page.__slowPre)); return json(r, imported ? pre() : sc.pre || pre()); }
     // a resume (?run=&after=) of a frozen run: a live Space would hold the stream open with pings; the mock holds the
     // request unanswered instead (a fulfilled body can't stay open), so the run stays as it was
     if (/\/api\/deploy\/[^/]+\/watch$/.test(path) && sc.lose && u.searchParams.get("after")) return sse(r, ""); // a Space that answers with nothing

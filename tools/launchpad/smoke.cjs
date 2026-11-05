@@ -24,6 +24,10 @@ const FLOWS = {
   'tab-trap': [['wait', 800], ['click', '[data-ghost="agents"]'], ['wait', 400], ['open'], ['agents-open']],
   'tab-walk': [['wait', 900], ['focus', '[data-lp="pick"]'], ['walk', 5], ['walkback', 3]],
   'gh-import-slow': [['wait', 1500], ['click', '[data-lp="reconnect"]'], ['wait', 2500], ['screen'], ['text', '.lp-foot .lp-go span']],
+  'lp-link': [['click', '[data-lp="deploy"]'], ['wait', 4200], ['screen'], ['href', '.lp-acts a.lp-b']],
+  'lp-link-linked': [['wait', 1500], ['screen'], ['href', '.lp-acts a.lp-b']],
+  'lp-link-slowpre': [['click', '[data-lp="deploy"]'], ['wait', 4500], ['screen'], ['href', '.lp-acts a.lp-b'], ['wait', 1500], ['href', '.lp-acts a.lp-b']],
+  'lp-link-watch-slowpre': [['wait', 2500], ['screen'], ['href', '.lp-acts a.lp-b']],
   building: [['wait', 600], ['screen'], ['text', '[data-n="repo"] .lp-c > span'], ['click', '[data-lp="hide"]'], ['wait', 300], ['head'], ['click', '[data-lp-open]'], ['wait', 300], ['open']],
 };
 (async () => {
@@ -35,7 +39,8 @@ const FLOWS = {
     if (sc === 'gh-import-slow') await ctx.addInitScript(() => { const raf = window.requestAnimationFrame.bind(window); window.requestAnimationFrame = (f) => setTimeout(() => raf(f), 250); });
     const page = await ctx.newPage(); const errs = [];
     page.on('pageerror', (e) => errs.push(e.message));
-    await install(page, { 'scope-enter': 'scope', 'esc-field': 'ready', pressed: 'ready', 'deploy-esc': 'ready', 'tab-trap': 'ready', 'tab-walk': 'ready', 'gh-import-slow': 'gh-import' }[sc] || sc);
+    if (sc === 'lp-link-slowpre' || sc === 'lp-link-watch-slowpre') page.__slowPre = 500; // Astra's race: preflight answers half a second late
+    await install(page, { 'scope-enter': 'scope', 'esc-field': 'ready', pressed: 'ready', 'deploy-esc': 'ready', 'tab-trap': 'ready', 'tab-walk': 'ready', 'gh-import-slow': 'gh-import', 'lp-link': 'play', 'lp-link-linked': 'live', 'lp-link-slowpre': 'play', 'lp-link-watch-slowpre': 'just-live' }[sc] || sc);
     await page.goto('http://127.0.0.1:3466/', { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => document.querySelector('.prow[data-go="p:xo-coworker"]'), null, { timeout: 45000 });
     await page.evaluate(() => document.querySelector('.prow[data-go="p:xo-coworker"]').click());
@@ -66,6 +71,7 @@ const FLOWS = {
         }
         out.push(`${k}:` + seen.join(' > '));
       }
+      else if (k === 'href') out.push('href:' + await page.evaluate((s) => [...document.querySelectorAll(s)].map((a) => a.href).find((h) => /launchpad/.test(h)) || '(none)', a));
       else if (k === 'view') out.push('view:' + await page.evaluate(() => document.querySelector('#app').dataset.conv));
       else if (k === 'screen') out.push(await page.evaluate(() => document.querySelector('#fr-body-launch .lp')?.dataset.screen || '(none)'));
       else if (k === 'head') out.push('head:' + await page.evaluate(() => document.querySelector('.lp-hs')?.innerText.replace(/\s+/g, ' ')));
