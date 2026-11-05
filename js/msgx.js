@@ -454,29 +454,44 @@ new MutationObserver(decorate).observe(msgs, { childList: true });
 
 // ── replying ────────────────────────────────────────────────────────────────
 const composer = $("#composer"), sayEl = $("#say");
-let reply = null; // { who, text }
+// A reply belongs to the conversation it was started in, like a draft (QA #4: one page-wide quote used to
+// follow you into every other conversation and go out with the next message there). Each conversation keeps
+// its own; switching shows that conversation's (or none).
+let reply = null; // { who, text, conv }
+const replies = new Map(); // conversation id → its reply on the way
 const chip = document.createElement("div");
 chip.className = "mx-reply"; chip.hidden = true;
 chip.innerHTML = `<span class="mx-r-ic">${IC.reply}</span><span class="mx-r-t"><b></b><span></span></span><button type="button" class="mx-r-x" aria-label="Don't reply to this" title="Don't reply (Esc)">${IC.close}</button>`;
 composer.insertBefore(chip, $(".composer-field", composer));
 const clip = (s, n = 220) => { s = s.replace(/\s+/g, " ").trim(); return s.length > n ? s.slice(0, n - 1).replace(/\s+\S*$/, "") + "…" : s; };
 
+const convNow = () => document.getElementById("app").dataset.conv || "";
+function showReply(r, animate) {
+  reply = r;
+  chip.hidden = !r;
+  if (!r) return;
+  chip.querySelector("b").textContent = r.who === "You" ? "Yourself" : r.who;
+  chip.querySelector(".mx-r-t>span").textContent = r.text;
+  chip.classList.remove("is-in");
+  if (animate) { void chip.offsetWidth; chip.classList.add("is-in"); }
+}
 function startReply(m, text) {
   const who = nameIn(m);
-  reply = { who, text: clip(text || textOf(m) || (m.querySelector(".mx-stack, .tb-files") ? "A picture" : "")) };
-  chip.querySelector("b").textContent = who === "You" ? "Yourself" : who;
-  chip.querySelector(".mx-r-t>span").textContent = reply.text;
-  chip.hidden = false; chip.classList.remove("is-in"); void chip.offsetWidth; chip.classList.add("is-in");
+  const r = { who, text: clip(text || textOf(m) || (m.querySelector(".mx-stack, .tb-files") ? "A picture" : "")), conv: convNow() };
+  replies.set(r.conv, r);
+  showReply(r, true);
   m.classList.remove("mx-flash"); void m.offsetWidth; m.classList.add("mx-flash");
   sayEl.focus();
 }
-function endReply() { reply = null; chip.hidden = true; }
+function endReply() { if (reply) replies.delete(reply.conv); showReply(null); }
+// another conversation: its own reply, or none
+new MutationObserver(() => showReply(replies.get(convNow()) || null, false)).observe(document.getElementById("app"), { attributes: true, attributeFilter: ["data-conv"] });
 chip.querySelector(".mx-r-x").addEventListener("click", () => { endReply(); sayEl.focus(); });
 
 // When you send, the quote goes first, as Markdown the agent reads like any quote. If the app doesn't send
 // (an empty message, a block), the quote comes back off.
 function withQuote() {
-  if (!reply || !sayEl.value.trim()) return;
+  if (!reply || reply.conv !== convNow() || !sayEl.value.trim()) return;
   const before = sayEl.value;
   const prefix = `> **${reply.who}**\n> ${reply.text}\n\n`;
   sayEl.value = prefix + before;
@@ -679,17 +694,13 @@ function keepFollowing() {
   if (following) { if (gapNow() > 0.5) scroller.scrollTop = scroller.scrollHeight; }
   else if (gapNow() <= 8) following = true; // back at the latest without scrolling (something above closed)
 }
-// a conversation opens: the view (Workspace, a project, a thread, a chat) or its title changes
-let shown = "";
+// a conversation opens: app.js names it in data-conv (its id). Never inferred from the header's text: that
+// carries live status and counts, and a status change while you read used to throw you to the latest (QA #3)
 const opened = () => {
-  const key = `${app.dataset.view}|${$("#top-who")?.textContent.trim() || ""}`;
-  if (key === shown) return;
-  shown = key;
   if (app.dataset.view === "home" || app.dataset.view === "artifacts" || $("#conv").hidden) return;
   toLatest();
 };
-new MutationObserver(opened).observe(app, { attributes: true, attributeFilter: ["data-view"] });
-new MutationObserver(opened).observe($("#top-who"), { childList: true, subtree: true, characterData: true });
+new MutationObserver(opened).observe(app, { attributes: true, attributeFilter: ["data-conv"] });
 // it changes height (and the view changes size): stay with it, before the frame is painted
 const followRO = new ResizeObserver(keepFollowing);
 followRO.observe(column); followRO.observe(scroller);
