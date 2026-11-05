@@ -32,7 +32,7 @@ export function parseRepo(raw) {
   } catch { return null; }
 }
 
-/** ctx: {world, S, go, heraldShow, announce, setDrawer, PHONE, onPhoneClose} */
+/** ctx: {world, S, go, heraldShow, announce, setDrawer, onPhoneClose} */
 export function initCreate(ctx) {
   const dlg = $("#create-dlg"), form = $("#create-form");
   const name = $("#cp-name"), desc = $("#cp-desc"), repo = $("#cp-repo"), submit = $("#cp-submit"), cancel = $("#cp-cancel");
@@ -59,9 +59,9 @@ export function initCreate(ctx) {
   }
   function renderGh() {
     const el = $("#cp-gh"), r = parseRepo(repo.value);
+    delete el.dataset.tone;
     if (r && !r.github) { el.innerHTML = `${ICON.key}<span>Cloned with this server's own Git access.</span>`; return; }
     if (gh.status === "connected") { el.innerHTML = `${ICON.check}<span>Connected as <b>@${esc(gh.username || "you")}</b>. Private repos work too.</span>`; el.dataset.tone = "ok"; return; }
-    delete el.dataset.tone;
     if (gh.status === "unknown") { el.innerHTML = `<i class="spin" aria-hidden="true"></i><span>Checking GitHub…</span>`; return; }
     if (gh.status === "code") {
       el.innerHTML = `${ICON.key}<span>Enter <b class="cp-code">${esc(gh.code)}</b> on GitHub. <a class="cp-link" href="${esc(gh.uri)}" target="_blank" rel="noopener" data-cp="copy">Copy code and open GitHub</a></span>`;
@@ -76,24 +76,30 @@ export function initCreate(ctx) {
     if (gh.status !== "connected") gh = { status: "needs_auth" };
     renderGh();
   }
+  /** GitHub's device flow, in place. Space answers "connected" at once when it can reuse this machine's gh
+   *  login. A code keeps being polled with the dialog closed: Space allows one login at a time, so dropping it
+   *  would leave the next Connect refused until the code expires. */
   async function connect() {
-    try {
-      const s = await api.githubConnect();
-      gh = { status: "code", code: s.user_code, uri: s.verification_uri, session: s.session_id };
+    clearTimeout(login);
+    const settle = (next) => {
+      gh = next;
       renderGh();
-      clearTimeout(login);
-      const poll = async () => {
-        if (!dlg.open || gh.session !== s.session_id) return;
-        try {
-          const r = await api.githubConnectPoll(s.session_id);
-          if (r.status === "pending") { login = setTimeout(poll, 5000); return; }
-          gh = r.status === "connected" ? r : { status: "failed", error: r.error };
-        } catch (err) { gh = { status: "failed", error: err.message }; }
-        renderGh();
-        if (gh.status === "connected") { error(""); ctx.announce(`GitHub connected as ${gh.username}.`); }
-      };
-      login = setTimeout(poll, 5000);
-    } catch (err) { gh = { status: "failed", error: err.message }; renderGh(); }
+      if (gh.status === "connected") { error(""); ctx.announce(`GitHub connected as ${gh.username}.`); }
+    };
+    let s;
+    try { s = await api.githubConnect(); } catch (err) { settle({ status: "failed", error: err.message }); return; }
+    if (s.status === "connected") { settle(s); return; }
+    gh = { status: "code", code: s.user_code, uri: s.verification_uri, session: s.session_id };
+    renderGh();
+    const poll = async () => {
+      let r;
+      // Space's 502 carries its words in a field ApiError doesn't read; 404 is a code that expired
+      try { r = await api.githubConnectPoll(s.session_id); } catch (err) { r = { status: "failed", error: err.status === 404 ? "That code expired." : "" }; }
+      if (gh.session !== s.session_id) return; // a newer code took over
+      if (r.status === "pending") { login = setTimeout(poll, 5000); return; }
+      settle(r.status === "connected" ? r : { status: "failed", error: r.error });
+    };
+    login = setTimeout(poll, 5000);
   }
 
   function setMode(m, { focus = true } = {}) {
@@ -144,12 +150,12 @@ export function initCreate(ctx) {
     $("#cp-hint").hidden = s < 6;
     busy.timer = setTimeout(tick, 1000 - ((Date.now() - busy.t0) % 1000));
   }
-  /** Follow a clone Space runs in the background until it's done; throws its error. */
+  /** Follow a clone Space runs in the background until it's done; throws its error, or "cancelled" once it's
+   *  stopped (from here or anywhere else). This is the one place a clone ends, so busy stays this clone's. */
   async function follow(cloneId) {
     busy.cloneId = cloneId;
     for (;;) {
       await new Promise((r) => setTimeout(r, 1000));
-      if (!busy || busy.cloneId !== cloneId) throw Object.assign(new Error("stopped"), { code: "cancelled" });
       let st;
       try { st = await api.cloneStatus(cloneId); } catch (err) { if (err.status === 404) throw err; continue; } // a blip: ask again
       busy.st = st;
@@ -162,18 +168,13 @@ export function initCreate(ctx) {
     const id = busy?.cloneId;
     if (!id) return;
     $("#cp-stop").disabled = true;
-    try {
-      // Too late to stop: the project is already published, so Space ends the job "done". Following it opens it.
-      if ((await api.cancelClone(id))?.state === "done") return;
-    } catch (err) {
-      if (err.code === "clone_finished") return; // it finished (or failed) first: following it shows how
+    // Following the clone shows how it ended: stopped, or done or failed when Stop came too late
+    // (once Space has published the project, a cancel ends the job "done" and the project opens).
+    try { await api.cancelClone(id); } catch (err) {
+      if (err.code === "clone_finished" || err.status === 404) return;
       $("#cp-stop").disabled = false;
-      if (err.status !== 404) { error(`Couldn't stop it: ${err.message}`); return; }
+      error(`Couldn't stop it: ${err.message}`);
     }
-    setBusy(false);
-    error("");
-    submit.focus(); // Stop is gone: land on what starts it again
-    ctx.announce("Stopped cloning. Nothing was kept.");
   }
 
   /** Space's words for a failed clone → what the dialog says, and the one action that helps. */
@@ -202,6 +203,7 @@ export function initCreate(ctx) {
     ctx.setDrawer(false);
     if (busy) { dlg.showModal(); return; } // a clone still running: show it again as it is
     form.reset();
+    if (gh.status !== "code") gh = { status: "unknown" }; // read GitHub again: it may have been connected (or dropped) elsewhere
     nameTouched = false;
     setBusy(false);
     setMode(mode, { focus: false });
@@ -226,7 +228,8 @@ export function initCreate(ctx) {
   }
 
   async function done(id, title, description, line, where) {
-    await ctx.world.act.refresh();
+    // The project is made either way: a failed refresh mustn't read as a failed clone (the next one shows it)
+    await ctx.world.act.refresh().catch(() => {});
     if (description) ctx.S.desc[id] = description;
     ctx.S.local["p:" + id] = [{ id: `l${++ctx.S.n}_hello`, conv: "p:" + id, at: Date.now(), who: "event", tone: "ok", text: `${title} ${line}${description ? ` · ${description.replace(/[.\s]+$/, "")}` : ""}` }];
     const shown = dlg.open;
@@ -262,8 +265,9 @@ export function initCreate(ctx) {
         await done(id, title, description, "created · folder, plan and memory scaffolded", `${root}/${id}`);
       }
     } catch (err) {
-      if (err.code === "cancelled") return;
       setBusy(false);
+      // Stop is gone: land on what starts it again
+      if (err.code === "cancelled") { error(""); submit.focus(); ctx.announce("Stopped cloning. Nothing was kept."); return; }
       const [text, action, field] = r ? cloneError(err, r, id) : [err.status === 409 ? `There's already a project called “${id}”. Pick another name.` : err.message, null, err.status === 409 ? name : null];
       if (!dlg.open) ctx.heraldShow({ kind: "stopped", text: `${title} didn't ${r ? "clone" : "get created"}`, sub: text }, 6000);
       error(text, action);
