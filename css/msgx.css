@@ -132,9 +132,9 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] #msgs>.m.cont{margin-top:-16px}
 
 /* the working words keep the app's soft shimmer (the owner's ask, 21:37): a slow light passing through the
-   line, the same 2.4 s wave as .shimmer in app.css. msgx.js sets each one's phase from the clock, so a redraw
-   at every step never restarts it; the wave just carries on. */
-:root[data-msgx] :is(#msgs,#typing) .shimmer{animation-delay:var(--mx-wave,0s)}
+   line, the same 2.4 s wave as .shimmer in app.css. A redraw at every step never restarts it: ui.js's
+   keepTurning holds every app shimmer, arc and spinner to one clock (a second phase set here fought it, so
+   each redraw jumped the wave twice) */
 
 /* yours */
 :root[data-msgx] .m-you .bubble{border:0;border-radius:var(--r-xl);background:var(--mx-you);box-shadow:var(--mx-you-hi);color:var(--mx-you-ink)}
@@ -260,7 +260,6 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-turn .turn>.tb.mx-opening{animation:mx-up var(--d-in) var(--ease)}
 :root[data-msgx] .m-turn .mx-row-in{animation:mx-row var(--dur-slow) var(--ease) both}
 @keyframes mx-row{from{opacity:0;transform:translateY(4px)}}
-:root[data-msgx] .m-turn .arc::before{animation-delay:var(--mx-phase,0s)}
 @media (prefers-reduced-motion:reduce){:root[data-msgx] .m-turn :is(.mx-opening,.mx-row-in){animation:none}}
 :root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h{width:100%;min-height:44px;margin:0;padding:0 16px;border-radius:var(--r-xl);background:none!important;font-size:var(--fs-md)}
 /* A long turn's open card is taller than the view, and it opens at its latest step: its header (what it's
