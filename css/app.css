@@ -947,11 +947,11 @@ body.panel-open .dock{right:calc(var(--pw) + 24px)}
 .dock-more{display:none}
 .card.is-dock.is-one .dock-more{position:sticky;bottom:0;z-index:1;display:flex;justify-content:center;width:100%;margin:-62px 0 -6px;padding:24px 0 10px;background:linear-gradient(to bottom,transparent,var(--g1C) 22px);border:0;cursor:pointer;transition:opacity var(--d-hover) var(--ease)}
 .card.is-dock.is-one.ans-in .dock-more{opacity:0;pointer-events:none}
-.dm-p{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px 0 12px;border-radius:14px;background:var(--g20);border:1px solid var(--g33);color:var(--ink-2);font:500 var(--fs-sm)/16px var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.dm-p{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px 0 12px;border-radius:var(--r-pill);background:var(--g20);border:1px solid var(--g33);color:var(--ink-2);font:500 var(--fs-sm)/16px var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .dm-p svg{width:14px;height:14px;color:var(--ink-3)}
 .dock-more:hover .dm-p{background:var(--g26);color:var(--ink)}
 /* concentric with the card's r22: "Read the chat first" sits 13 in, so r9 */
-.card.is-dock .dock-hide{border-radius:9px}
+.card.is-dock .dock-hide{border-radius:calc(var(--r-2xl) - 13px)}
 .card.is-dock .c-act{padding:12px 15px 15px}
 .card.is-dock .c-opts{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
 .card.is-dock .dt{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)}
@@ -1442,8 +1442,8 @@ button.kr-r:hover{background:var(--bg-3);color:var(--ink)}
   .card.is-dock .c-body{padding:14px 16px 6px}
   .card.is-dock .c-act{padding:10px 12px 12px}
   /* concentric with the card's r22: Answer in words sits 13 in (r9); the fold chevron 11 down and 11 in (r11) */
-  .card.is-dock .c-act:not(:has(.c-low)) .c-btns .b{border-radius:9px}
-  .card.is-dock .dock-hide{margin-right:-6px;border-radius:11px}
+  .card.is-dock .c-act:not(:has(.c-low)) .c-btns .b{border-radius:calc(var(--r-2xl) - 13px)}
+  .card.is-dock .dock-hide{margin-right:-6px;border-radius:calc(var(--r-2xl) - 11px)}
   .card.is-dock .dt,.dt{grid-template-columns:1fr}
   body.panel-open .scroller,body.panel-open .home{padding-right:16px}
   .conv,body.panel-open .conv{--rp:0px;--gut:16px;--hg:16px}
