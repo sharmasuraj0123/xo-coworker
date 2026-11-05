@@ -99,7 +99,6 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
   is missing: Made from `GET /chat/chats/{chat}/made` (files, links, branches; pins via `PUT|DELETE …/made/{id}/pin`;
   a 404 means the fallback), the thread's `summary` and branch `git` state (merged and its PR, pushed, unpushed), the
   worktrees' `removed` list, and "seen" per chat (`seen` on the chat, `PUT …/seen`; the later of it and this browser's).
-  `?away=3d` (or `12h`) in the URL shows the cards as if you had been away that long, without storing anything.
 - **Shells (`/api/terminal/*`):** only when `GET /terminal/status` says `enabled`; otherwise no shell UI shows at all.
   - Where they open: **Shell** beside All threads on a project (its folder), beside Next move on the Workspace
     (the projects root), and in a thread's header (its worktree from `/chat/worktrees`, else the project folder).
