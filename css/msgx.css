@@ -11,6 +11,9 @@
    when you've read up more than half a screen; new messages since are counted on it in a quiet ink pill. */
 .mx-down{position:absolute;z-index:4;right:calc(var(--gut) + var(--rp));bottom:calc(var(--dock-h) + 12px);display:grid;place-items:center;width:40px;height:40px;border:1px solid var(--line);border-radius:50%;background:color-mix(in srgb,var(--bg-2) 90%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);box-shadow:var(--e2),var(--hairline);color:var(--ink-2);opacity:0;transform:translateY(8px) scale(.92);pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease),color var(--d-hover) var(--ease)}
 .mx-down.is-on{opacity:1;transform:none;pointer-events:auto;transition-duration:var(--d-in)}
+/* hidden, it's out of the keyboard order and unread by screen readers (it faded only: QA #12); visibility
+   waits for the fade out, and comes back at once */
+.mx-down:not(.is-on){visibility:hidden;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease),visibility 0s linear var(--d-out)}
 .mx-down:hover{color:var(--ink)}
 .mx-down svg{width:20px;height:20px}
 .mx-down-n{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 6px;border-radius:var(--r-pill);background:var(--ink);color:var(--bg);font:600 var(--fs-xs)/20px var(--sans);font-variant-numeric:tabular-nums;text-align:center}
@@ -111,6 +114,13 @@ body.files-open .mx-down{display:none}
 
 /* rhythm (research-chat.md §4): 20 between turns, 4 between one sender's bubbles */
 :root[data-msgx] #msgs>.m{margin-bottom:20px}
+/* a line between messages (asked the coordinator, a decision, a thread finished) sits on the bubbles' grid:
+   its icon centred on the 28 px avatar column, its words on the bubbles' text edge (28 + 8 + 16); it was on
+   app.css's old 32 + 12 grid, 8 px off on a desktop and 28 on a phone (QA #16). As the last row, it leaves
+   the same space above the composer as a message does (QA #25). */
+:root[data-msgx] #msgs>.ev{gap:24px}
+:root[data-msgx] #msgs>.ev>.ev-ic{width:22px;margin:0 3px}
+:root[data-msgx] #msgs>.ev:last-child{margin-bottom:20px}
 /* The space under the last message (owner, 5 Nov: "why this much gap?"). It was 99 px on a desktop (82 on a
    phone): the 20 px after a message, 48 (40) the app added under the conversation, and the composer bar's
    30 (22) px fade band above the box. Now the last message ends 2 px above where that fade begins, so it is

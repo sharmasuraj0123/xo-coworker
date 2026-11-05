@@ -293,6 +293,13 @@ export function keepTurning() {
       if (a.animationName === "spin" || a.animationName === "arc-turn" || a.animationName === "shimmer") { if (a.startTime !== 0) a.startTime = 0; }
     }
   };
-  new MutationObserver(() => { if (!raf) raf = requestAnimationFrame(sync); }).observe(document.body, { childList: true, subtree: true });
+  // only when something added holds an arc, a spinner or a shimmer: a scan of every animation on the page
+  // after any change at all cost tens of ms on a busy page (QA #11)
+  const MOVING = ".arc, .spin, .shimmer, .tb-live";
+  const moving = (n) => n.nodeType === 1 && (n.matches(MOVING) || !!n.querySelector(MOVING));
+  new MutationObserver((recs) => {
+    if (raf) return;
+    for (const r of recs) for (const n of r.addedNodes) if (moving(n)) { raf = requestAnimationFrame(sync); return; }
+  }).observe(document.body, { childList: true, subtree: true });
   sync();
 }

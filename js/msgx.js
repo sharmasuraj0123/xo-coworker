@@ -302,7 +302,7 @@ function working(el) {
   const since = +(el.querySelector(".elapsed[data-since]")?.dataset.since || 0) || was?.since || Date.now();
   if (!w) {
     w = document.createElement("button");
-    w.type = "button"; w.className = "mx-work"; w.setAttribute("aria-live", "polite");
+    w.type = "button"; w.className = "mx-work";
     w.title = "See every step";
     w.innerHTML = `<span class="mx-wt"></span><span class="mx-we"></span>`;
     w.addEventListener("click", () => {
@@ -445,8 +445,9 @@ function sizeWork(w, key, text) {
   const natural = 16 + probe.offsetWidth + 12 + Math.max(64, w.querySelector(".mx-we").offsetWidth) + 16 + 2;
   probe.remove();
   const max = w.parentElement.clientWidth * 0.88;
-  const target = Math.min(natural, WORK_MAX, max);
   const st = WORKING.get(key);
+  // it only grows during a turn: a calm bubble doesn't change size at every step (QA #18: 214 ↔ 555 px)
+  const target = Math.max(Math.min(natural, WORK_MAX, max), st && st.w ? Math.min(st.w, WORK_MAX, max) : 0);
   if (st && st.w && Math.abs(st.w - target) > 1) {
     w.style.transition = "none"; w.style.width = `${st.w}px`; void w.offsetWidth;
     w.style.transition = ""; w.style.width = `${target}px`;
