@@ -1,0 +1,241 @@
+/* Launchpad in the panel (js/launchpad.js), on the panel's grid (css/panel.css): a 40 px head; text at 20 px
+   from the panel's edge; cards at 12 px with 44 px rows, 28 px tiles at 8 px in (radius 12 − 8 = 4); fields
+   30 px; 13/20 and 12/16 type, mono for addresses and code. Lit buttons sit in 20 px cards 8 px in, so their
+   corners are 12 (20 − 8); the full-width Deploy keeps the same 12.
+
+   Its light: 1 px along the top edge of the section, in the colour of what it's doing, after the Launchpad
+   demo. Green and still when live, a blue sweep while it deploys, red when it didn't go live (one call, then
+   still), amber when it waits for you. Nothing else in the panel glows. */
+
+.stage .fr-lp{position:relative;--tone:transparent}
+.stage .fr-lp[data-tone="go"]{--tone:var(--go)}
+.stage .fr-lp[data-tone="work"]{--tone:var(--work)}
+.stage .fr-lp[data-tone="stop"]{--tone:var(--danger)}
+.stage .fr-lp[data-tone="need"]{--tone:var(--need)}
+.stage .fr-lp::before{content:"";position:absolute;z-index:1;left:0;right:0;top:-1px;height:1px;pointer-events:none;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--tone) 85%,transparent) 22%,color-mix(in srgb,var(--tone) 85%,transparent) 78%,transparent)}
+.stage .fr-lp[data-tone="work"]::before{background:linear-gradient(90deg,transparent,var(--tone),transparent) no-repeat,linear-gradient(90deg,transparent,color-mix(in srgb,var(--tone) 22%,transparent) 22%,color-mix(in srgb,var(--tone) 22%,transparent) 78%,transparent);background-size:36% 100%,100% 100%;animation:lp-sweep 2.2s var(--ease-loop) infinite}
+.stage .fr-lp[data-tone="stop"]::before{animation:lp-call 1.2s var(--ease) 1}
+@keyframes lp-sweep{from{background-position:-60% 0,0 0}to{background-position:160% 0,0 0}}
+@keyframes lp-call{0%,100%{opacity:1}35%{opacity:.35}}
+/* the light falls a little way into the head */
+.stage .fr-lp>.fr-h{background:linear-gradient(to bottom,color-mix(in srgb,var(--tone) 7%,transparent),transparent 40px)}
+.stage .fr-lp[data-tone=""]>.fr-h{background:none}
+.stage .fr-line{flex:none;height:1px;margin:0 12px;background:var(--panel-line)}
+.stage .fr-lp.is-grow{min-height:0}
+.stage .fr-lp>.fr-b{outline:none;overscroll-behavior:contain}
+.stage .fr-lp>.fr-b.is-over:not(:has(.lp-foot)){-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 32px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 32px),transparent)}
+/* the form's Deploy stays in reach: in a short window it sits at the section's foot, the fields scrolling under a fade */
+.lp-foot{position:sticky;z-index:1;bottom:0;margin-bottom:-16px;padding-bottom:12px;background:var(--side)}
+.lp-foot::before{content:"";position:absolute;left:0;right:0;bottom:100%;height:32px;background:linear-gradient(to bottom,transparent,var(--side));opacity:0;pointer-events:none;transition:opacity var(--d-hover) var(--ease)}
+.stage .fr-lp>.fr-b.is-over .lp-foot::before{opacity:1}
+.lp-foot .lp-wide{margin-top:16px}
+
+/* ── the head: Launchpad, where it stands, the address or Deploy ──────────────────────────────── */
+.stage .fr-lp .fr-h{cursor:default}
+.stage .fr-lp.is-folded .fr-h{cursor:pointer}
+.stage .fr-lp .fr-title{flex:none}
+.lp-hs{flex:1;min-width:0;display:flex;align-items:baseline;gap:8px;overflow:hidden;white-space:nowrap}
+.lp-ha{display:flex;align-items:center;gap:4px}
+.lp-ha:empty{display:none}
+.lp-st{flex:none;display:inline-flex;align-items:center;gap:6px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.lp-st>i:not(.lp-arc){flex:none;width:6px;height:6px;border-radius:50%;background:currentColor}
+.lp-st.t->i:not(.lp-arc){display:none}
+.lp-st.t-go{color:var(--go)}
+.lp-st.t-work{color:var(--work)}
+.lp-st.t-stop{color:var(--err-ink)}
+.lp-st.t-stop>i:not(.lp-arc){border-radius:1px}
+.lp-st.t-need{color:var(--need)}
+.lp-st.t-need>i:not(.lp-arc){width:0;height:0;border-radius:0;background:none;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:7px solid currentColor}
+.lp-tm{font:400 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
+.lp-hh{min-width:0;overflow:hidden;text-overflow:ellipsis;font:400 var(--fs-sm)/16px var(--mono);color:var(--ink-4);text-decoration:none}
+.lp-hh:hover{color:var(--ink-2);text-decoration:underline;text-underline-offset:3px}
+.lp-hb{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px 0 6px;border-radius:var(--r);border:1px solid var(--g26);color:var(--ink-2);font:500 var(--fs-sm)/16px var(--sans);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.lp-hb svg{width:14px;height:14px}
+.lp-hb:hover{background:var(--panel-hover);border-color:var(--g33);color:var(--ink);transition-duration:var(--d-hover-in)}
+
+/* the small working arc, inline (the panel's .arc is a corner badge) */
+.lp-arc{flex:none;position:relative;display:inline-block;width:12px;height:12px;color:var(--work)}
+.lp-arc::before{content:"";position:absolute;inset:1px;border-radius:50%;border:1.5px solid color-mix(in srgb,currentColor 22%,transparent);border-top-color:currentColor;animation:arc-turn 1.6s linear infinite}
+
+/* ── the body ──────────────────────────────────────────────────────────────────────────────── */
+.lp{padding:0 0 16px}
+.lp.is-new{animation:lp-in var(--d-in) var(--ease)}
+@keyframes lp-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.lp-hd{padding:4px 20px 12px}
+.lp-h{margin:0;font:600 var(--fs-lg)/24px var(--sans);letter-spacing:0;color:var(--ink);overflow-wrap:anywhere}
+.lp-h.t-go{color:var(--accent)}
+.lp-h.t-stop{color:var(--err-ink)}
+.lp-h.t-need{color:var(--need)}
+.lp-p{margin:2px 0 0;font:400 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
+.lp :is(.lp-p,.lp-note,.lp-rec p) code{padding:0 4px;border-radius:4px;background:var(--g22);font:400 var(--fs-sm)/16px var(--mono);color:var(--ink-3)}
+.lp-mono{font-family:var(--mono)}
+
+/* the card: repository → image → app → address */
+.lp-sys,.lp-check{list-style:none;margin:0 12px;padding:4px 0;border-radius:var(--r-lg);background:var(--panel-surface);box-shadow:inset 0 0 0 1px var(--panel-line)}
+.lp-n,.lp-check li{position:relative;display:grid;grid-template-columns:28px minmax(0,1fr) auto;column-gap:8px;align-items:center;height:44px;padding:0 8px}
+.lp-t{position:relative;display:grid;place-items:center;width:28px;height:28px;border-radius:calc(var(--r-lg) - 8px);background:var(--g1C);box-shadow:inset 0 0 0 1px var(--g26);color:var(--ink-3);transition:color var(--d-move) var(--ease),background var(--d-move) var(--ease),box-shadow var(--d-move) var(--ease)}
+.lp-t svg{width:16px;height:16px}
+.lp-c{display:flex;flex-direction:column;min-width:0}
+.lp-c>b{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 var(--fs-base)/20px var(--sans);color:var(--ink-2);transition:color var(--d-move) var(--ease)}
+.lp-c>span{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.lp-host{font:400 var(--fs-sm)/20px var(--mono);letter-spacing:-.01em}
+.lp-hash{font-style:normal;color:var(--ink-4)}
+.lp-new{display:inline-block;margin-left:6px;padding:0 6px;border-radius:var(--r-sm);background:color-mix(in srgb,var(--go) 14%,transparent);font:500 var(--fs-sm)/16px var(--sans);color:var(--accent);vertical-align:1px}
+.lp-m{display:flex;align-items:center;gap:6px;font:400 var(--fs-sm)/20px var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
+.lp-m:empty{display:none}
+.lp-k{font:400 var(--fs-sm)/20px var(--mono);color:var(--ink-4)}
+.lp-ok,.lp-bad{display:grid;place-items:center;width:16px;height:16px}
+.lp-ok{color:var(--go)}
+.lp-bad{color:var(--err-ink)}
+.lp-ok svg,.lp-bad svg{width:16px;height:16px}
+.lp-ln{color:var(--ink-3);text-decoration:underline;text-decoration-color:var(--g40);text-underline-offset:3px}
+.lp-ln:hover{color:var(--ink)}
+
+/* the line between two parts: dashed until it's reached, green once the part below is up, a blue sweep
+   flowing into the part being built; its 1 px centred under the tiles' 28 px (8 + 14 − .5) */
+.lp-n:not(:last-child)::after{content:"";position:absolute;left:21.5px;top:36px;width:1px;height:16px;background:repeating-linear-gradient(to bottom,var(--g40) 0 3px,transparent 3px 6px)}
+.lp-n:has(+ .is-done)::after,.lp-sys[data-mode="live"] .lp-n::after{background:color-mix(in srgb,var(--go) 60%,transparent)}
+.lp-n:has(+ .is-doing)::after{background:linear-gradient(to bottom,transparent,var(--work),transparent) no-repeat,color-mix(in srgb,var(--work) 25%,transparent);background-size:100% 60%,100% 100%;animation:lp-flow 1.4s var(--ease-loop) infinite}
+@keyframes lp-flow{from{background-position:0 -120%,0 0}to{background-position:0 220%,0 0}}
+
+.lp-n.is-todo .lp-t{color:var(--ink-4);background:transparent;box-shadow:inset 0 0 0 1px var(--g26)}
+.lp-n.is-todo .lp-c{opacity:.6}
+.lp-n.is-doing .lp-t{color:var(--work);background:color-mix(in srgb,var(--work) 10%,var(--panel-surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--work) 50%,transparent)}
+.lp-n.is-doing .lp-c>b{color:var(--ink)}
+.lp-n.is-done .lp-t{color:var(--go);background:color-mix(in srgb,var(--go) 8%,var(--panel-surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--go) 32%,transparent)}
+.lp-n.is-need .lp-t{color:var(--need);background:color-mix(in srgb,var(--need) 10%,var(--panel-surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--need) 45%,transparent)}
+.lp-n.is-need .lp-c>span{color:var(--need)}
+.lp-warn{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:9px solid var(--need)}
+.lp-n.is-failed .lp-t{color:var(--err-ink);background:color-mix(in srgb,var(--danger) 10%,var(--panel-surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--danger) 55%,transparent)}
+.lp-n.is-failed .lp-c>b{color:var(--ink)}
+.lp-n.is-failed .lp-c>span{color:var(--err-ink)}
+
+/* checking: the card's shape, quietly breathing */
+.lp-sys.is-skel :is(.lp-t,.lp-c>b,.lp-c>span){background:var(--g22);box-shadow:none;border-radius:4px;animation:lp-skel 1.4s var(--ease-loop) infinite alternate}
+.lp-sys.is-skel .lp-c>b{width:60%;height:12px;margin:4px 0}
+.lp-sys.is-skel .lp-c>span{width:40%;height:10px;margin:3px 0}
+.lp-sys.is-skel .lp-n::after{display:none}
+@keyframes lp-skel{from{opacity:.55}to{opacity:1}}
+
+/* ── settings ──────────────────────────────────────────────────────────────────────────────── */
+.lp-note{margin:0;padding:12px 20px 0;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
+.lp-note b{font-weight:500;color:var(--ink-2)}
+.lp-src{display:flex;align-items:flex-start;gap:8px}
+.lp-src svg{flex:none;width:14px;height:14px;margin-top:1px;color:var(--ink-4)}
+.lp-set{padding:12px 12px 0}
+.lp-f{display:grid;grid-template-columns:104px minmax(0,1fr);column-gap:8px;align-items:start;padding:6px 8px}
+.lp-l{padding:5px 0;font:500 var(--fs-base)/20px var(--sans);color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lp-v{display:flex;flex-direction:column;gap:4px;min-width:0}
+.lp-v.is-row{flex-direction:row;align-items:center;gap:8px}
+.lp-v.is-row .lp-hint{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lp-in{box-sizing:border-box;width:100%;height:30px;padding:0 8px;border-radius:var(--r-sm);border:1px solid var(--g24);background:var(--g1A);font:400 var(--fs-base)/20px var(--sans);color:var(--ink);outline:none;transition:border-color var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease)}
+.lp-in.is-short{flex:none;width:64px;font-variant-numeric:tabular-nums}
+.lp-in::placeholder{color:var(--ink-4)}
+.lp-in:hover{border-color:var(--g33)}
+.lp-in:focus{border-color:color-mix(in srgb,var(--accent) 70%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
+.lp-hint{font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.lp-f.is-bad .lp-in{border-color:color-mix(in srgb,var(--danger) 70%,transparent)}
+.lp-f.is-bad .lp-hint{color:var(--err-ink)}
+.lp-fix{display:inline;height:auto;padding:0;color:var(--ink-2);text-decoration:underline;text-underline-offset:3px}
+.lp-env{margin:8px 12px 0;padding:0;border:0;min-width:0}
+.lp-env legend{display:flex;align-items:baseline;gap:8px;width:100%;padding:8px 8px 2px;font:600 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.lp-env legend small{font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.lp-ev{align-items:center}
+.lp-ev .lp-l{padding:0;font:400 var(--fs-sm)/20px var(--mono);color:var(--ink-2)}
+.lp-lock{display:flex;align-items:center;gap:6px;margin:0;padding:4px 8px 0;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.lp-lock svg{flex:none;width:14px;height:14px}
+
+/* ── buttons: lit (the one thing to do), quiet (an alternative), a word (a way out) ───────────────── */
+.lp-go{display:flex;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;height:36px;padding:0 16px;border-radius:var(--r-lg);border:0;background:var(--accent-fill);color:var(--accent-ink);font:600 var(--fs-base)/20px var(--sans);text-decoration:none;white-space:nowrap;box-shadow:0 0 0 1px color-mix(in srgb,var(--accent-fill) 50%,transparent),0 6px 18px -8px color-mix(in srgb,var(--accent-fill) 70%,transparent);transition:background var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease),transform 90ms var(--ease)}
+.lp-go span{overflow:hidden;text-overflow:ellipsis}
+.lp-go svg{flex:none;width:16px;height:16px}
+.lp-go:hover{background:var(--accent-hover);box-shadow:0 0 0 1px color-mix(in srgb,var(--accent-fill) 60%,transparent),0 8px 22px -8px color-mix(in srgb,var(--accent-fill) 85%,transparent);transition-duration:var(--d-hover-in)}
+.lp-go:active{transform:scale(.98)}
+.lp-wide{width:calc(100% - 24px);margin:16px 12px 0}
+.lp-b{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px 0 10px;border-radius:var(--r);border:1px solid var(--g26);background:none;color:var(--ink-2);font:500 var(--fs-base)/20px var(--sans);text-decoration:none;white-space:nowrap;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.lp-b svg{flex:none;width:16px;height:16px}
+a.lp-b{padding:0 10px 0 12px}
+a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
+.lp-b:hover{background:var(--panel-hover);border-color:var(--g33);color:var(--ink);transition-duration:var(--d-hover-in)}
+.lp-a{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 8px;border-radius:var(--r);border:0;background:none;color:var(--ink-3);font:500 var(--fs-sm)/16px var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.lp-a svg{width:14px;height:14px}
+.lp-a:hover{background:var(--panel-hover);color:var(--ink)}
+.lp-ib{display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:var(--r);border:0;background:none;color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.lp-ib svg{width:16px;height:16px}
+.lp-ib:hover{background:var(--panel-hover);color:var(--ink)}
+.lp-alt{display:flex;justify-content:center;padding:8px 12px 0}
+.lp-acts{display:flex;align-items:center;gap:8px;padding:16px 12px 0}
+.lp-acts .lp-go{flex:1}
+.lp-q{flex:1;min-width:0;margin:0;padding-left:8px;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.lp-or{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:12px 20px 0}
+.lp-or>span{font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+
+/* the fix, lit: a 20 px card, its button 8 px in */
+.lp-rec{margin:16px 12px 0;padding:8px;border-radius:var(--r-xl);background:var(--panel-surface);box-shadow:inset 0 0 0 1px var(--panel-line),var(--panel-lift)}
+.lp-rec-c{padding:4px 8px 12px}
+.lp-rec-k{display:flex;align-items:center;gap:6px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.lp-rec-k svg{width:14px;height:14px;color:var(--accent)}
+.lp-rec-c b{display:block;margin-top:8px;font:600 var(--fs-base)/20px var(--sans);color:var(--ink)}
+.lp-rec-c p{margin:2px 0 0;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
+.lp-rec .lp-go{width:100%}
+.lp-log{margin:12px 12px 0;padding:8px 12px;border-radius:var(--r);background:var(--code-bg);box-shadow:inset 0 0 0 1px var(--panel-line);font:400 var(--fs-sm)/16px var(--mono);color:var(--ink-3);white-space:pre-wrap;overflow-wrap:anywhere}
+
+/* live: the address, the one thing you came for */
+.lp-url{display:flex;align-items:center;gap:2px;height:56px;margin:0 12px 12px;padding:0 12px 0 12px;border-radius:var(--r-lg);background:var(--panel-surface);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--go) 30%,var(--panel-line))}
+.lp-url-a{flex:1;min-width:0;display:flex;align-items:center;gap:8px;color:var(--ink);text-decoration:none}
+.lp-url-a svg{flex:none;width:16px;height:16px;color:var(--go)}
+.lp-url-a span{display:flex;flex-direction:column;min-width:0}
+.lp-url-a :is(b,i){overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 var(--fs-base)/20px var(--mono);letter-spacing:-.01em;color:var(--ink)}
+.lp-url-a i{font:400 var(--fs-sm)/16px var(--mono);font-style:normal;color:var(--ink-4)}
+.lp-url-a:hover b{text-decoration:underline;text-underline-offset:3px}
+.lp-url .lp-ib{border-radius:var(--r)} /* 32 px, 12 px in from the right; corners stay apart */
+.lp-mw{position:relative;margin-left:auto}
+.lp-menu{position:absolute;z-index:3;right:0;bottom:calc(100% + 4px);display:flex;flex-direction:column;min-width:200px;padding:4px;border-radius:var(--r-lg);background:var(--surface);box-shadow:inset 0 0 0 1px var(--panel-line),var(--e2)}
+.lp-menu button{height:32px;padding:0 8px;border-radius:var(--r);text-align:left;font:500 var(--fs-base)/20px var(--sans);color:var(--ink-2)}
+.lp-menu button:hover{background:var(--panel-hover);color:var(--ink)}
+
+/* not ready: what's missing */
+.lp-check{grid-template-columns:none}
+.lp-check li{grid-template-columns:28px minmax(0,1fr)}
+.lp-ck{display:grid;place-items:center;width:20px;height:20px;margin-left:4px;border-radius:50%;box-shadow:inset 0 0 0 1px var(--g40)}
+.lp-check li.is-no .lp-ck{box-shadow:inset 0 0 0 1.5px var(--g40)}
+.lp-check li.is-ok .lp-ck{background:color-mix(in srgb,var(--go) 16%,transparent);box-shadow:none;color:var(--go)}
+.lp-ck svg{width:12px;height:12px}
+.lp-check li.is-ok .lp-c>b{color:var(--ink-3)}
+
+/* getting ready: the agent at it, raised like the panel's chosen row */
+.lp-ag{list-style:none;margin:0 12px 12px;padding:0}
+.lp-agr,.lp-appr{display:grid;grid-template-columns:28px minmax(0,1fr) auto;column-gap:8px;align-items:center;width:100%;height:44px;padding:4px 8px;border:0;border-radius:var(--r-lg);background:transparent;text-align:left;transition:background var(--d-hover) var(--ease)}
+.lp-agr{background:color-mix(in srgb,var(--ink) 8%,var(--side));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 11%,transparent),var(--panel-lift)}
+.lp-agr .lp-t{background:color-mix(in srgb,var(--work) 10%,var(--surface));color:var(--work)}
+.lp-agr .arc{background:color-mix(in srgb,var(--ink) 8%,var(--side))}
+.lp-appr:hover{background:var(--panel-hover);transition-duration:var(--d-hover-in)}
+.lp-apps{list-style:none;display:flex;flex-direction:column;gap:4px;margin:0;padding:0 12px}
+.lp-apps .lp-c>span{font-family:var(--mono)}
+.lp-apps .lp-m .lp-st{font-weight:400}
+
+/* GitHub's code */
+.lp-code{display:flex;align-items:center;justify-content:space-between;gap:8px;height:56px;margin:0 12px;padding:0 12px 0 16px;border-radius:var(--r-lg);background:var(--panel-surface);box-shadow:inset 0 0 0 1px var(--panel-line)}
+.lp-code code{font:600 var(--fs-2xl)/28px var(--mono);letter-spacing:.12em;color:var(--ink);background:none;padding:0}
+.lp-wait{display:flex;align-items:center;gap:8px;margin:0;padding:12px 20px 0;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+
+/* the header's Deploy: Resolve's button; its rocket takes the deploy's colour */
+.tw-act.lp-btn.t-go svg{color:var(--go)}
+.tw-act.lp-btn.t-stop svg{color:var(--err-ink)}
+.tw-act.lp-btn.t-need svg{color:var(--need)}
+.tw-act.lp-btn.t-work{color:var(--ink)}
+.tw-act.lp-btn.is-on{background:var(--g22);border-color:var(--g3A);color:var(--ink)}
+.top-end .lp-btn,#top-end .lp-btn{flex:none;align-self:center}
+
+/* light */
+:root[data-theme="light"] .lp-in{background:#fff;border-color:rgba(0,0,0,.12)}
+:root[data-theme="light"] .lp-in:hover{border-color:rgba(0,0,0,.2)}
+:root[data-theme="light"] .lp-t{background:var(--surface);box-shadow:inset 0 0 0 1px var(--panel-line)}
+:root[data-theme="light"] .lp-agr{background:var(--surface);box-shadow:inset 0 0 0 1px var(--panel-line),var(--panel-lift)}
+:root[data-theme="light"] .lp-agr .arc{background:var(--surface)}
+:root[data-theme="light"] .lp :is(.lp-p,.lp-note,.lp-rec p) code{background:rgba(0,0,0,.05)}
+:root[data-theme="light"] .tw-act.lp-btn.is-on{background:rgba(0,0,0,.07);border-color:rgba(0,0,0,.16)}
+
+@media (prefers-reduced-motion:reduce){
+  .stage .fr-lp::before,.lp-n::after,.lp,.lp-arc::before,.lp-sys.is-skel *{animation:none!important}
+}
