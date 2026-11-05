@@ -879,14 +879,15 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       const hot = new Set(ags.filter((a) => scope.kind === "thread" || a.fold).flatMap((a) => [a.path, ...(a.spots || []), a.busy ? a.prev : null]).filter(Boolean));
       tree = folderTree(scope, scope.fold, marks, hot, true);
       // the first look must show the whole drawing, readable: if unfolding by itself would make it wider
-      // or taller than the canvas at a readable size, those folders stay folded (yours stay as you left them)
+      // or taller than the canvas at a readable size, those folders stay folded (yours stay as you left them).
+      // Decided once per place, on its first look: measuring the canvas on every paint forced the page's layout
+      // in the middle of a change (Launchpad folding with a long thread and a diff open: ~150 ms at 4×)
       const v = view();
-      if (M.mode === "tree" && v && v.clientWidth) {
+      if (M.mode === "tree" && M.fit?.key !== sk && v && v.clientWidth) {
         const L = layoutOf(tree);
-        const tooWide = (L.w + PAD * 2 + tagW()) * READABLE > v.clientWidth - 24;
-        const tooTall = (L.h + PAD * 2) * READABLE > v.clientHeight - 44 - 24;
-        if (tooWide || tooTall) { M.refs = new Map(); tree = folderTree(scope, scope.fold, marks, hot, false); }
+        M.fit = { key: sk, fold: (L.w + PAD * 2 + tagW()) * READABLE > v.clientWidth - 24 || (L.h + PAD * 2) * READABLE > v.clientHeight - 44 - 24 };
       }
+      if (M.mode === "tree" && M.fit?.key === sk && M.fit.fold) { M.refs = new Map(); tree = folderTree(scope, scope.fold, marks, hot, false); }
     }
     else tree = { id: "", kind: "root", name: scope.t.title, sub: "its folder isn't one XO can show", children: [] };
     // head

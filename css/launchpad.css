@@ -21,9 +21,8 @@
 .stage .fr-lp>.fr-h{background:linear-gradient(to bottom,color-mix(in srgb,var(--tone) 7%,transparent),transparent 40px)}
 .stage .fr-lp[data-tone=""]>.fr-h{background:none}
 .stage .fr-line{flex:none;height:1px;margin:0 12px;background:var(--panel-line)}
-.stage .fr-lp.is-grow{min-height:0}
 .stage .fr-lp>.fr-b{outline:none;overscroll-behavior:contain}
-.stage .fr-lp>.fr-b.is-over:not(:has(.lp-foot)){-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 32px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 32px),transparent)}
+.stage .fr-lp>.fr-b.is-fade{-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 32px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 32px),transparent)}
 /* the form's Deploy stays in reach: in a short window it sits at the section's foot, the fields scrolling under a fade */
 .lp-foot{position:sticky;z-index:1;bottom:0;margin-bottom:-16px;padding-bottom:12px;background:var(--side)}
 .lp-foot::before{content:"";position:absolute;left:0;right:0;bottom:100%;height:32px;background:linear-gradient(to bottom,transparent,var(--side));opacity:0;pointer-events:none;transition:opacity var(--d-hover) var(--ease)}
@@ -100,6 +99,7 @@
 
 .lp-n.is-todo .lp-t{color:var(--ink-4);background:transparent;box-shadow:inset 0 0 0 1px var(--g26)}
 .lp-n.is-todo .lp-c{opacity:.6}
+.lp-n.is-paused .lp-c{opacity:.7}
 .lp-n.is-doing .lp-t{color:var(--work);background:color-mix(in srgb,var(--work) 10%,var(--panel-surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--work) 50%,transparent)}
 .lp-n.is-doing .lp-c>b{color:var(--ink)}
 .lp-n.is-done .lp-t{color:var(--go);background:color-mix(in srgb,var(--go) 8%,var(--panel-surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--go) 32%,transparent)}
@@ -120,6 +120,7 @@
 /* ── settings ──────────────────────────────────────────────────────────────────────────────── */
 .lp-note{margin:0;padding:12px 20px 0;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
 .lp-note b{font-weight:500;color:var(--ink-2)}
+.lp-note.t-need{padding-bottom:4px;color:var(--need)}
 .lp-src{display:flex;align-items:flex-start;gap:8px}
 .lp-src svg{flex:none;width:14px;height:14px;margin-top:1px;color:var(--ink-4)}
 .lp-set{padding:12px 12px 0}
@@ -218,7 +219,8 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .lp-agr{background:color-mix(in srgb,var(--ink) 8%,var(--side));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 11%,transparent),var(--panel-lift)}
 .lp-agr .lp-t{background:color-mix(in srgb,var(--work) 10%,var(--surface));color:var(--work)}
 .lp-agr .arc{background:color-mix(in srgb,var(--ink) 8%,var(--side))}
-.lp-appr:hover{background:var(--panel-hover);transition-duration:var(--d-hover-in)}
+.lp-appr:not(:disabled):hover{background:var(--panel-hover);transition-duration:var(--d-hover-in)}
+.lp-appr:disabled{opacity:.5;cursor:default}
 .lp-apps{list-style:none;display:flex;flex-direction:column;gap:4px;margin:0;padding:0 12px}
 .lp-apps .lp-c>span{font-family:var(--mono)}
 .lp-apps .lp-m .lp-st{font-weight:400}
@@ -226,6 +228,18 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 /* GitHub's code */
 .lp-code{display:flex;align-items:center;justify-content:space-between;gap:8px;height:56px;margin:0 12px;padding:0 12px 0 16px;border-radius:var(--r-lg);background:var(--panel-surface);box-shadow:inset 0 0 0 1px var(--panel-line)}
 .lp-code code{font:600 var(--fs-2xl)/28px var(--mono);letter-spacing:.12em;color:var(--ink);background:none;padding:0}
+/* a command to run on this machine (gh's own fix), to copy */
+.lp-cmd{display:flex;align-items:flex-start;gap:4px;margin:8px 12px 0;padding:4px 4px 4px 12px;border-radius:var(--r-lg);background:var(--code-bg);box-shadow:inset 0 0 0 1px var(--panel-line)}
+.lp-cmd code{flex:1;min-width:0;padding:8px 0;font:400 var(--fs-sm)/16px var(--mono);color:var(--ink-2);background:none;white-space:pre-wrap;overflow-wrap:anywhere}
+.lp-cmd .lp-ib{border-radius:calc(var(--r-lg) - 4px)} /* 32 px, 4 px in: 12 − 4 */
+.lp-rec .lp-cmd{margin:0 0 8px}
+.lp-gh .lp-note{padding-top:12px}
+.lp-alt.lp-left{justify-content:flex-start;padding-left:12px}
+/* Deploy steps back while a decision Space asked for shows its own lit button */
+.lp-go.is-quiet{background:none;color:var(--ink-2);box-shadow:inset 0 0 0 1px var(--g26)}
+.lp-go.is-quiet:hover{background:var(--panel-hover);color:var(--ink);box-shadow:inset 0 0 0 1px var(--g33)}
+/* a decision Space asked for, above the form */
+.lp-ask{margin:0 12px 12px}
 .lp-wait{display:flex;align-items:center;gap:8px;margin:0;padding:12px 20px 0;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
 
 /* Lit, XO green (the owner, 5 November: "XO green, attractive"): the brand's fill with a breath of light at
@@ -261,3 +275,24 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 @media (prefers-reduced-motion:reduce){
   .stage .fr-lp::before,.lp-n::after,.lp,.lp-arc::before,.lp-sys.is-skel *{animation:none!important}
 }
+
+/* Open, Launchpad is drawn over the panel's other frames instead of folding them: its head stays in the stack (so
+   nothing below changes size), its body covers the rest, and the frames stay laid out beneath with their rendering
+   kept; inert while covered (nothing reachable by keyboard or screen reader). Folding it shows them again at once. Their
+   heads show at its foot, as they would folded (js/stage.js ghosts()). */
+.stage .stg-frames{position:relative}
+.stage .fr-lp.is-open{position:static} /* the stack, not the head, holds what it draws over (its light sits where it did: the stack's top) */
+.stage .fr-lp.is-open>.fr-b{position:absolute;z-index:3;left:0;right:0;top:41px;bottom:var(--ghosts,0px);background:var(--side)}
+.stage .fr-lp.is-open>.fr-ghosts{position:absolute;z-index:3;left:0;right:0;bottom:0;background:var(--side)}
+.fr-ghosts{flex:none;display:flex;flex-direction:column}
+.fr-ghosts:empty{display:none}
+.fr-ghost{position:relative;display:block;width:100%;height:40px;padding:0;border:0;background:none;text-align:left;cursor:pointer}
+.fr-ghost-v{display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;pointer-events:none}
+.fr-ghost::before{content:"";position:absolute;top:0;left:12px;right:12px;height:1px;background:var(--panel-line)}
+.fr-ghost:hover{background:var(--panel-hover)}
+.fr-ghost:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+/* the copy's controls are spans: what their buttons had, by look */
+.fr-ghost .fr-fold svg{transform:rotate(-90deg)}
+.fr-ghost .fr-ib,.fr-ghost .fr-t{display:inline-grid;place-items:center}
+.fr-ghost .fr-t{display:flex;align-items:center}
+.fr-ghost .fr-t.is-on{background:var(--panel-surface);box-shadow:var(--panel-lift);color:var(--ink)}

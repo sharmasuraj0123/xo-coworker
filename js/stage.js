@@ -78,7 +78,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     `<header class="stg-bar"><div class="stg-t"></div><div class="stg-acts"><button type="button" class="stg-ic" data-stg-full></button><button type="button" class="stg-ic" data-stg-close aria-label="Close the panel" title="Close (Esc)">${ICON.close}</button></div></header>` +
     `<div class="stg-rail" aria-label="Panel, folded"><button type="button" class="stg-ic" data-rail="launch" title="Launchpad">${LP_ICON.rocket}</button><button type="button" class="stg-ic" data-rail="changes" title="Changes">${CHANGES_IC}</button><button type="button" class="stg-ic" data-rail="agents" title="Agents">${AGENTS_IC}</button><button type="button" class="stg-ic" data-rail="map" title="Map">${mapIcon}</button></div>` +
     `<div class="stg-frames">` +
-    `<section class="fr fr-lp is-folded" data-fr="launch" aria-labelledby="fr-title-launch" hidden><header class="fr-h"><h2 class="fr-title" id="fr-title-launch">Launchpad</h2><span class="lp-hs"></span><div class="fr-a"><span class="lp-ha"></span><button type="button" class="fr-ib fr-fold" data-fr-fold="launch" aria-expanded="false" title="Open">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-launch" tabindex="-1"></div></section><div class="fr-line" data-lp-line hidden></div>` +
+    `<section class="fr fr-lp is-folded" data-fr="launch" aria-labelledby="fr-title-launch" hidden><header class="fr-h"><h2 class="fr-title" id="fr-title-launch">Launchpad</h2><span class="lp-hs"></span><div class="fr-a"><span class="lp-ha"></span><button type="button" class="fr-ib fr-fold" data-fr-fold="launch" aria-expanded="false" title="Open">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-launch" tabindex="-1"></div><div class="fr-ghosts" role="group" aria-label="Under Launchpad"></div></section><div class="fr-line" data-lp-line hidden></div>` +
     frame("changes", "Changes", `<button type="button" class="xd-follow" data-follow hidden></button><button type="button" class="fr-ib" data-open-files title="All files">${FILES_IC}</button>`) + gutter("changes", "agents") +
     frame("agents", "Agents") + gutter("agents", "map") +
     frame("map", "Map", `<div class="fr-views" role="tablist" aria-label="Map view"><button type="button" class="fr-t" role="tab" id="stage-map-tree" aria-controls="fr-body-map" data-map-mode="tree">Diagram</button><button type="button" class="fr-t" role="tab" id="stage-map-graph" aria-controls="fr-body-map" data-map-mode="graph">Graph</button></div>`) +
@@ -118,21 +118,26 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     el.querySelector("[data-lp-line]").hidden = !lpOn;
     el.querySelector('[data-rail="launch"]').hidden = !lpOn;
     LPF.classList.toggle("is-folded", !S.lp);
-    LPF.classList.toggle("is-grow", S.lp);
     LPF.querySelector("[data-fr-fold]").setAttribute("aria-expanded", String(S.lp));
     LPF.querySelector("[data-fr-fold]").title = S.lp ? "Fold" : "Open";
-    el.classList.toggle("is-lp", S.lp);
+    // classes on the frames themselves, never on the panel: a class on the panel with rules below it restyled every
+    // element in it (6,900 with a diff open) on each fold
+    LPF.classList.toggle("is-open", S.lp);
     pressDeploy();
     el.querySelector('[data-gut="changes|agents"]').hidden = !(on("changes") && (on("agents") || on("map")));
     el.querySelector('[data-gut="agents|map"]').hidden = !(on("agents") && on("map"));
     for (const id of ORDER) {
-      const f = el.querySelector(`[data-fr="${id}"]`), folded = !!fr[id].folded || S.lp;
+      const f = el.querySelector(`[data-fr="${id}"]`), folded = !!fr[id].folded;
+      // covered by an open Launchpad: out of the accessibility tree (an attribute no style reads, so nothing restyles;
+      // `inert` restyled the whole diff, 7,400 elements, on every fold and unfold), and focus that wanders in goes back
+      if (S.lp) f.setAttribute("aria-hidden", "true"); else f.removeAttribute("aria-hidden");
+      untab(f, S.lp);
       f.classList.toggle("is-folded", folded);
       f.querySelector("[data-fr-fold]").setAttribute("aria-expanded", String(!folded));
       f.querySelector("[data-fr-fold]").title = folded ? "Open" : "Fold";
     }
     // Changes takes the room that's left; when it folds (or the shape has none), the Map; else Agents
-    const grow = S.lp ? null : ["changes", "map", "agents"].find((id) => on(id) && !fr[id].folded);
+    const grow = ["changes", "map", "agents"].find((id) => on(id) && !fr[id].folded);
     for (const id of ORDER) {
       const f = el.querySelector(`[data-fr="${id}"]`);
       f.classList.toggle("is-grow", grow === id);
@@ -163,6 +168,24 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     }
     S.agRows = rows; S.agCap = cap;
     ag.style.setProperty("--ag-rows", rows);
+  }
+
+  /** Launchpad open is drawn over the frames below its head, which stay laid out at their own sizes beneath it
+   *  (css/launchpad.css: content-visibility hidden keeps their rendering), so folding it shows them again without
+   *  laying out a whole diff (Changes with a file open, 4× CPU: ~250 → ~95 ms). Their heads show at its foot as
+   *  they would folded: copies of the real ones, kept current here; a click on one folds Launchpad and opens it. */
+  function ghosts() {
+    const g = LPF.querySelector(".fr-ghosts");
+    // each a real button, named "Open Changes, 47 +514 −78": the copy inside is only its look (its controls turned
+    // to spans, their hooks dropped), so Tab goes Launchpad → these → out of the panel and a click opens that frame
+    const NAME = { changes: "Changes", agents: "Agents", map: "Map" };
+    const html = !S.lp ? "" : ORDER.filter((id) => !el.querySelector(`[data-fr="${id}"]`).hidden).map((id) => {
+      const f = el.querySelector(`[data-fr="${id}"]`), n = f.querySelector(`[data-fr-n="${id}"]`)?.textContent.trim();
+      const look = f.querySelector(":scope > .fr-h").innerHTML
+        .replace(/<(\/?)(button|h2)\b/g, "<$1span").replace(/ (id|aria-[a-z]+|title|role|tabindex|type|data-[a-z-]+)="[^"]*"/g, "");
+      return `<button type="button" class="fr-ghost" data-ghost="${id}" aria-label="Open ${NAME[id]}${n ? `, ${esc(n)}` : ""}"><span class="fr-ghost-v" aria-hidden="true">${look}</span></button>`;
+    }).join("");
+    if (g._h !== html) { g.innerHTML = html; g._h = html; LPF.style.setProperty("--ghosts", `${g.children.length * HEAD}px`); }
   }
 
   // ── what the frames say ─────────────────────────────────────────────────────
@@ -223,6 +246,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     const fh = S.full ? UNFULL_IC : FULL_IC;
     if (fb._h !== fh) { fb.innerHTML = fh; fb._h = fh; }
     fb.setAttribute("aria-label", S.full ? "Back beside the conversation" : "Full size");
+    ghosts(); // last: the heads it copies are current by now
     fb.title = S.full ? "Back beside the conversation" : "Full size";
   }
 
@@ -319,6 +343,8 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
       else fr[id].folded = !fr[id].folded;
       layout(); paint(); persist(); return;
     }
+    const gh = t.closest("[data-ghost]");
+    if (gh) { const id = gh.dataset.ghost; S.lp = false; fr[id].folded = false; layout(); paint(); persist(); el.querySelector(`[data-fr="${id}"] [data-fr-fold]`)?.focus({ preventScroll: true }); return; }
     // Launchpad's head, folded: anywhere on it opens it (its links and buttons do their own thing)
     if (t.closest('[data-fr="launch"] .fr-h') && !S.lp && !t.closest("a,button")) { S.lp = true; layout(); paint(); return; }
     const mm = t.closest("[data-map-mode]");
@@ -330,6 +356,34 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     const g = t.closest("[data-go]");
     if (g) { go(g.dataset.go); }
   });
+  // focus that lands in a frame Launchpad covers moves on: forward (from Launchpad or its heads) out of the panel,
+  // backward (from beyond the panel) to the last of its heads. No loop: Tab always gets out.
+  el.addEventListener("focusin", (e) => {
+    if (!S.lp || LPF.contains(e.target) || !e.target.closest?.(".stg-frames")) return;
+    if (e.relatedTarget && el.contains(e.relatedTarget)) {
+      // the panel is last on the page: past it, Tab comes round to the page's first control, as it would
+      const next = focusAfter(el) || focusAfter(document.body.firstElementChild, true);
+      if (next) next.focus({ preventScroll: true }); else e.target.blur();
+    } else (LPF.querySelector(".fr-ghost:last-child") || LPF.querySelector(".fr-b"))?.focus({ preventScroll: true });
+  });
+  /** A covered frame's controls out of the tab order while Launchpad covers it, and back as they were after: just
+   *  those controls, so nothing restyles (inert restyled the whole diff). Controls in a shadow root (the diff's)
+   *  aren't reached here; the focus guard above moves on from them. */
+  const TABBABLE = 'a[href],button,input,select,textarea,[tabindex]:not([tabindex="-1"])';
+  function untab(frame, off) {
+    if (off) {
+      for (const x of frame.querySelectorAll(TABBABLE)) if (!x.hasAttribute("data-lp-tab")) { x.setAttribute("data-lp-tab", x.getAttribute("tabindex") ?? ""); x.tabIndex = -1; }
+    } else {
+      for (const x of frame.querySelectorAll("[data-lp-tab]")) { const was = x.getAttribute("data-lp-tab"); if (was === "") x.removeAttribute("tabindex"); else x.setAttribute("tabindex", was); x.removeAttribute("data-lp-tab"); }
+    }
+  }
+
+  /** The first control after `node` in the page's order (Tab's next stop past it), or from it when `from`; or null. */
+  function focusAfter(node, from = false) {
+    const FOCUS = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+    return [...document.querySelectorAll(FOCUS)].find((x) => (from ? node.contains(x) || (node.compareDocumentPosition(x) & Node.DOCUMENT_POSITION_FOLLOWING) : !node.contains(x) && (node.compareDocumentPosition(x) & Node.DOCUMENT_POSITION_FOLLOWING))
+      && !el.contains(x) && x.getClientRects().length && !x.closest("[inert],[hidden],[aria-hidden='true']")) || null;
+  }
   // Esc: a search clears first; then full size steps back, then the panel closes
   el.addEventListener("keydown", (e) => {
     if (e.target.closest?.("[data-map-mode]") && ["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) {
