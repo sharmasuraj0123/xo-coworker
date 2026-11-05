@@ -18,7 +18,8 @@
 const sc = () => document.getElementById("scroller");
 const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 let pinned = true, lastTop = 0;
-let place = null, at = 0, width = 0; // while reading: the row at the top of the view {k, y}; its index; the column's width
+let place = null, at = 0, width = 0; // while reading: the row held {k, y}; the top row's index; the column's width
+let held = false; // the place is a row you acted on (not the top row): it's kept until you scroll
 
 /** How far the view is from the latest, and from the top of what's drawn (px). */
 export const fromLatest = () => { const s = sc(); return Math.max(0, s.scrollHeight - s.clientHeight - s.scrollTop); };
@@ -30,8 +31,16 @@ export function toLatest(smooth = false) {
   pinned = true;
   s.scrollTo({ top: s.scrollHeight, behavior: smooth && !reduced() ? "smooth" : "auto" });
 }
-/** You've chosen something to read where it is (a fold you opened): growth no longer carries the view. */
-export function unpin() { pinned = false; notePlace(); }
+/** You've chosen something to read where it is: growth no longer carries the view. Given the row you acted on
+ *  (or anything in it: a file chip opening the panel), that row is the one held if the view changes width,
+ *  until you scroll; else the row at the top of the view (a fold you opened). */
+export function unpin(row) {
+  pinned = false;
+  const el = row && row.closest && row.closest("#msgs > [data-k]");
+  held = !!el;
+  if (el) place = { k: el.dataset.k, y: el.getBoundingClientRect().top - (sc().getBoundingClientRect().top + 1) };
+  else notePlace();
+}
 
 /** The row at the top of the view and where it stands, found from the last one (a few rows' rects, read when
  *  the layout is clean: after a scroll, or as the view's size changes). */
@@ -65,17 +74,19 @@ export function initFollow() {
     const top = s.scrollTop, gap = s.scrollHeight - s.clientHeight - top;
     // only the real bottom re-arms following; a small scroll near it moves you just that far (QA R1: a 4 px
     // scroll inside the last 120 px used to jump you to the end)
+    // (a scroll that's ours, keepPlace putting a row back, leaves a held row held)
+    const ours = Math.abs(top - lastTop) < 1;
     if (gap <= 2) pinned = true;
     else if (top < lastTop - 1) pinned = false;
     lastTop = top;
-    if (!pinned) notePlace();
+    if (!pinned && !(held && ours)) { held = false; notePlace(); }
   }, { passive: true });
   // growth (or the view's own size changing) while pinned: stay at the latest, before the frame is painted;
   // while reading, a change of width keeps the row you read in place (same moment, same observer)
   const keep = () => {
     if (pinned) { if (fromLatest() > 0.5) { s.scrollTop = s.scrollHeight; lastTop = s.scrollTop; } width = column.clientWidth; return; }
     if (column.clientWidth !== width) { width = column.clientWidth; keepPlace(); }
-    notePlace();
+    if (!held) notePlace();
   };
   width = column.clientWidth;
   const ro = new ResizeObserver(keep);

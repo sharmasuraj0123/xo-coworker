@@ -157,3 +157,13 @@
 @media (max-width:400px){
   :root:root .thead .ckbar:not(.is-open) .ck-now>span:last-child{display:none}
 }
+
+/* On a phone the right panel covers the whole view, so the conversation behind it keeps its own width.
+   foundation.css's room-taking (padding-right: the panel's width) out-ranked app.css's phone rule, so the
+   conversation was laid out 54 px wide behind the panel and re-wrapped on the way back: closing the panel
+   moved what you were reading by up to 1,400 px. */
+@media (max-width:760px){
+  :root:root body.stage-open .scroller{padding-right:16px}
+  :root:root body.stage-open .home{padding-right:16px}
+  :root:root body.stage-open :is(.dock,.toast-wrap){right:0}
+}
