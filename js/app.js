@@ -183,7 +183,7 @@ const VW = createViewer({
   announce, onChange: () => schedule(), changes: CHG,
   ask: { target: (f) => askPlace(f)?.name || null, send: askAboutLines, compose: (f, a, b) => composeAbout(f, a, b) },
   // a save (Files › Edit): its place's changes are read again; Tell the agent is a message to its thread
-  edits: { saved: (f) => CHG.saved(f.project, f.rel), tell: (f, s) => sendAbout(f, `I edited ${s.path}. Read it again before you change it.`) },
+  edits: { saved: (f) => CHG.saved(f.project, f.rel), removed: (f) => { CHG.saved(f.project, f.rel); FILES.reread(f); }, tell: (f, s) => sendAbout(f, `I edited ${s.path}. Read it again before you change it.`) },
   away: () => { if (FILESV.sheet) return FILESV.escape(document.activeElement); if (!FILESV.docked) return false; FILESV.minimise(); return true; },
 }); // a file, in Files (js/filesview.js)
 // a picture opens over the conversation (js/lightbox.js); Open in Files hands it to the viewer, which brings Files up

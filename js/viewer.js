@@ -25,6 +25,7 @@ import * as DV from "./diffview.js";
 import * as K from "./keys.js";
 import { countsHtml } from "./changesframe.js";
 import { merge3 } from "./merge.js";
+import { draftKey, getDraft, putDraft, dropDraft } from "./drafts.js";
 
 const size = (n) => (n == null ? "" : n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(1)} MB`);
 const bytes = (s) => new TextEncoder().encode(s).length;
@@ -48,6 +49,7 @@ const NOT_EDITABLE = {
   historical: "An earlier version: read only",
 };
 const ASK_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-10.9 6.7L4 19.5l1.3-4.6A7.5 7.5 0 1 1 20 11.5z"/></svg>';
+const MORE_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>';
 const SPLIT_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M12 4.5v15"/></svg>';
 // the Source toggle's glyph: angle brackets, drawn like the other line icons
 const SRC_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>';
@@ -82,11 +84,13 @@ export function saveOutcome(err) {
  * Save (⌘S) sends it with the version you started from. A file that runs code asks once before its first
  * save; a place XO keeps is read only, said in words; if the file changed while you edited, both versions
  * are merged and any place you both changed waits in Pierre's merge view for your choice. A save never
- * commits. edits: {saved(f, {path, editId, merged}) after a save: the app offers Undo and Tell the agent}.
+ * commits. edits: {saved(f, {path, editId, merged}) after a save: the app offers Undo and Tell the agent;
+ * removed(f) when a new file's Undo took it away}. A file just made (Files › New file, open's f.created: its
+ * edit id) opens being edited, with "Created · Undo" at its foot.
  */
 export function createViewer({ announce, onChange, tabs, changes = null, ask = null, edits = null, away = null }) {
   const el = $("#viewer");
-  const V = { open: false, parked: false, file: null, data: null, error: null, loading: false, mode: "preview", returnTo: null, gen: 0, copied: false, dims: null, saving: false, saveError: null, show: "file", split: false };
+  const V = { open: false, parked: false, file: null, data: null, error: null, loading: false, mode: "preview", returnTo: null, gen: 0, copied: false, dims: null, saving: false, saveError: null, show: "file", split: false, draft: null, menu: false };
   // the diff, kept across redraws of the head (Pierre's element moves with its body): {el, handle, key, gen}
   const DF = { el: null, handle: null, key: null, gen: 0 };
   /** This file in its place's changes ({scope, path, file, base}), or null. */
@@ -95,9 +99,28 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   // the whole file through Pierre: {el (the scroller), handle, key, pend, gen, sel: {a, b}, asking, q (the composer)}
   const FL = { el: null, handle: null, key: null, pend: null, gen: 0, sel: null, asking: false, q: null };
   // editing: {ed (the editor), base (the text you started from), version, dirty, saving, err, confirm,
-  //   confirmed (this file runs code and you said Save once), discard (asking to discard), conflict: {view,
-  //   version, left, text}}; saved: the last save's toast {path, editId, name}
+  //   from (opened from a draft unlike the file), confirmed (this file runs code and you said Save once),
+  //   discard (asking to discard), conflict: {view, version, left, text}}; saved: the last save's toast
+  //   {path, editId, name}
   const ED = { on: false };
+  // drafts (js/drafts.js): your unsaved edits, kept in this browser when you leave the file
+  const store = (() => { try { return localStorage; } catch { return null; } })();
+  const dkey = () => (V.file && V.file.project && V.file.rel ? draftKey(V.file.project, V.file.rel) : null);
+  let draftT = 0;
+  /** Keep what's in the editor as this file's draft (or let it go, when it's the file again). False: not kept. */
+  function keepDraft() {
+    clearTimeout(draftT);
+    if (!ED.on || !ED.ed || ED.conflict) return false;
+    const text = ED.ed.text();
+    if (text === ED.base) { dropDraft(store, dkey()); V.draft = null; if (ED.dirty) { ED.dirty = false; ED.from = false; paintHead(); } return true; }
+    const d = { text, base: ED.base, version: ED.version, at: Date.now() };
+    if (!putDraft(store, dkey(), d)) return false;
+    V.draft = d;
+    return true;
+  }
+  /** After a pause in typing, never on a keystroke. */
+  const draftSoon = () => { clearTimeout(draftT); draftT = setTimeout(keepDraft, 800); };
+  const letDraftGo = () => { clearTimeout(draftT); dropDraft(store, dkey()); V.draft = null; };
   let saved = null;
   const showsFile = () => {
     const d = V.data;
@@ -117,7 +140,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   async function download() {
     if (V.saving) return;
     const f = V.file;
-    V.saving = true; V.saveError = null; V.keepScroll = true; render();
+    V.saving = true; V.saveError = null; redrawKeep();
     try {
       const url = URL.createObjectURL(await api.projectDownload(f.project, f.rel));
       const a = Object.assign(document.createElement("a"), { href: url, download: f.name || "file" });
@@ -127,20 +150,52 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       if (f === V.file) V.saveError = err.message || "Couldn't download this file.";
     }
     if (f !== V.file) return;
-    V.saving = false; V.keepScroll = true; render();
+    V.saving = false; redrawKeep();
+  }
+
+  /**
+   * ⋯ in the head: Copy, Copy path, Download (an attachment: Download, or Open in a new tab), in a menu. While
+   * a copy or a download lasts, the ⋯ itself says so ("Copied", "Downloading…"): the menu has closed by then.
+   */
+  function moreHtml(f, canCopy) {
+    const url = f.att ? esc(attachmentUrl(f.att.chat, f.att.id)) : "";
+    const items = [
+      canCopy && `<button type="button" role="menuitem" data-vw-copy>${ICON.copy}<span>Copy</span></button>`,
+      canSave() && `<button type="button" role="menuitem" data-vw-copy-path>${ICON.copy}<span>Copy path</span></button>`,
+      // an attachment opens in its own tab too; text has no inline view there, so it downloads
+      f.att ? (kindOf(f.type || "") === "text"
+        ? `<a role="menuitem" href="${url}" download="${esc(f.name || "file")}">${ICON.down}<span>Download</span></a>`
+        : `<a role="menuitem" href="${url}" target="_blank" rel="noopener noreferrer">${ICON.arrow}<span>Open in a new tab</span></a>`)
+        : canSave() && `<button type="button" role="menuitem" data-vw-download>${ICON.down}<span>Download</span></button>`,
+    ].filter(Boolean);
+    if (!items.length) return "";
+    const done = V.copied, busy = V.saving, word = done ? "Copied" : busy ? "Downloading…" : "";
+    return `<span class="vw-mw"><button type="button" class="vw-btn vw-more${done ? " is-done" : busy ? " is-busy" : ""}" data-vw-more aria-haspopup="menu" aria-expanded="${!!V.menu}" title="${word || "Copy, download"}" aria-label="${word || "More: copy, download"}"${busy ? " disabled" : ""}>` +
+      `${done ? ICON.check : busy ? `<i class="spin" aria-hidden="true"></i>` : MORE_IC}${word ? `<span>${word}</span>` : ""}</button>` +
+      (V.menu ? `<span class="vw-menu" role="menu" aria-label="${esc(f.name || "This file")}">${items.join("")}</span>` : "") + `</span>`;
+  }
+  /** Close the ⋯'s menu; back: focus the ⋯ again (Esc, Tab, or after what you chose). */
+  function menuOff(back = false) {
+    if (!V.menu) return;
+    V.menu = false;
+    paintHead();
+    if (back) el.querySelector("[data-vw-more]")?.focus({ preventScroll: true });
+  }
+  const inMore = () => !!(document.activeElement && document.activeElement.closest && document.activeElement.closest(".vw-mw"));
+  /** Redraw for a copy or a download, with focus kept on the ⋯ when it was there or in its menu. */
+  function redrawKeep() {
+    const on = inMore();
+    V.keepScroll = true; render();
+    if (on) el.querySelector("[data-vw-more]")?.focus({ preventScroll: true });
   }
 
   function head() {
     const f = V.file, d = V.data;
     const kind = f.att || f.local != null ? typeWord(f.type || "", f.name) : d ? KIND_WORD[d.kind] || (extOf(f.name).toUpperCase() || "Text") : String(f.type || "").split("/").pop() || "";
-    // an attachment opens in its own tab too; text has no inline view there, so it downloads
-    const tab = f.att ? (kindOf(f.type || "") === "text"
-      ? `<a class="vw-btn" href="${esc(attachmentUrl(f.att.chat, f.att.id))}" download="${esc(f.name || "file")}" title="Download" aria-label="Download">${ICON.down}<span>Download</span></a>`
-      : `<a class="vw-btn" href="${esc(attachmentUrl(f.att.chat, f.att.id))}" target="_blank" rel="noopener noreferrer" title="Open in a new tab" aria-label="Open in a new tab">${ICON.arrow}<span>New tab</span></a>`)
-      : canSave() ? `<button type="button" class="vw-btn" data-vw-download title="Download the whole file" aria-label="Download"${V.saving ? " disabled" : ""}>${ICON.down}<span>${V.saving ? "Downloading…" : "Download"}</span></button>` : "";
     const c = chg(), diffing = showsDiff();
     const meta = diffing ? [] : [kind, V.dims && `${V.dims.w} × ${V.dims.h}`, size(d ? d.size_bytes : f.bytes)].filter(Boolean);
     const canCopy = !diffing && !!(d && typeof d.content === "string");
+    const more = moreHtml(f, canCopy);
     // a changed file: what changed, or the whole file (the design's head: name, counts, the switch)
     const show = c ? `<div class="vw-seg is-words" role="group" aria-label="Show"><button type="button" data-vw-show="changes" aria-pressed="${diffing}">Changes</button><button type="button" data-vw-show="file" aria-pressed="${!diffing}">File</button></div>` +
       (diffing ? `<button type="button" class="vw-btn vw-split${V.split ? " is-on" : ""}" data-vw-split aria-pressed="${V.split}" title="${V.split ? "One column" : "Side by side"}" aria-label="Side by side">${SPLIT_IC}</button>` : "") : "";
@@ -155,10 +210,11 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (ED.on) return `<header class="vw-top">${name}<div class="vw-acts">${runs}${editActs()}</div>${ED.confirm ? confirmPop() : ""}</header>`;
     const why = !diffing && d && typeof d.content === "string" && d.editable === false ? NOT_EDITABLE[d.not_editable_reason] || "Read only" : "";
     const edit = why ? `<span class="xd-ro" title="${d.not_editable_reason === "read_only_place" ? "XO keeps this file: change it from its own screen" : esc(why)}">${d.not_editable_reason === "read_only_place" ? LOCK_IC : ""}<span>${esc(why)}</span></span>`
+      : diffing && V.draft ? `<button type="button" class="xd-btn xd-draft" data-vw-show="file" title="Your unsaved edits to this file are kept: see them in File"><i></i>Your draft</button>`
+      : !diffing && canEdit() && V.draft && !ED.opening ? `<span class="xd-state" title="Your unsaved edits, kept in this browser"><i></i>Your draft</span><button type="button" class="xd-btn" data-vw-draftx title="Let your draft go">Discard</button><button type="button" class="xd-edit" data-vw-edit title="Continue editing (E)" aria-label="Continue your draft">${EDIT_IC}<span>Continue</span></button>`
       : !diffing && canEdit() ? `<button type="button" class="xd-edit" data-vw-edit title="Edit (E)" aria-label="Edit"${ED.opening ? " disabled" : ""}>${EDIT_IC}<span>${ED.opening ? "Opening…" : "Edit"}</span></button>` : "";
     return `<header class="vw-top">${name}` +
-      `<div class="vw-acts">${runs}${show}${toggle}${edit}${tab}` +
-      (canCopy ? `<button type="button" class="vw-btn${V.copied ? " is-done" : ""}" data-vw-copy title="${V.copied ? "Copied" : "Copy the contents"}" aria-label="${V.copied ? "Copied" : "Copy"}">${V.copied ? ICON.check : ICON.copy}<span>${V.copied ? "Copied" : "Copy"}</span></button>` : "") +
+      `<div class="vw-acts">${runs}${show}${toggle}${edit}${more}` +
       `<button type="button" class="vw-x" data-vw-close aria-label="Close the file" title="Close (Esc)">${ICON.close}</button></div></header>`;
   }
 
@@ -174,7 +230,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   function editActs() {
     if (ED.discard) return `<span class="xd-state">Discard your edits?</span><button type="button" class="xd-btn" data-vw-keep>Keep editing</button><button type="button" class="xd-btn is-warn" data-vw-discard>Discard</button>`;
     if (ED.conflict) return `<span class="xd-state">${ED.conflict.left ? `${ED.conflict.left} ${ED.conflict.left === 1 ? "place" : "places"} to choose` : "All chosen"}</span><span class="xd-vsep"></span><button type="button" class="xd-btn" data-vw-cancel>Cancel</button><button type="button" class="xd-btn is-pri" data-vw-saveit${ED.conflict.left || ED.saving ? " disabled" : ""}>Save <kbd>${MODS}S</kbd></button>`;
-    return (ED.dirty || ED.err ? `<span class="xd-state"><i></i>Edited</span>` : "") +
+    return (ED.moved ? `<span class="xd-state" title="It changed since you left it: Save merges your edits with those changes">Changed since your draft</span>` : ED.dirty || ED.err ? `<span class="xd-state"><i></i>Edited</span>` : "") +
       `<span class="xd-vsep"></span><button type="button" class="xd-btn" data-vw-cancel>Cancel</button><button type="button" class="xd-btn is-pri" data-vw-saveit${ED.saving ? " disabled" : ""}>${ED.saving ? "Saving…" : `Save <kbd>${MODS}S</kbd>`}</button>`;
   }
   const confirmPop = () => `<div class="xd-pop" role="dialog" aria-label="Save a file that runs code"><p><b>Git or an agent runs what this file says.</b> A slip here runs on the next commit or the next agent turn. Save anyway?</p><div class="xd-pop-a"><button type="button" class="xd-btn" data-vw-noconfirm>Cancel</button><button type="button" class="xd-btn is-pri" data-vw-confirm>Save</button></div></div>`;
@@ -197,9 +253,9 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   async function startEdit() {
     const f = V.file, my = V.gen;
     if (!canEdit() || ED.on || ED.opening) return;
-    Object.assign(ED, { opening: true, ed: null, base: null, version: null, dirty: false, saving: false, err: null, confirm: false, discard: false, conflict: null });
-    V.saveError = null;
-    saved = null; toastPaint();
+    Object.assign(ED, { opening: true, ed: null, base: null, version: null, dirty: false, saving: false, err: null, confirm: false, discard: false, conflict: null, real: null, moved: false, from: false });
+    V.saveError = null; V.menu = false;
+    if (!(saved && saved.created)) { saved = null; toastPaint(); }
     // a document (Markdown, HTML) is edited as its source
     if (!showsFile()) { V.mode = "source"; V.textMode = "source"; render(); } else paintHead();
     const fail = (why) => { ED.opening = false; if (my !== V.gen) return; if (why) V.saveError = why; render(); };
@@ -208,13 +264,19 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       const d = await api.projectFile(f.project, f.rel, null, { purpose: "edit" });
       if (my !== V.gen) return fail();
       if (d.editable === false || d.truncated || d.version == null) { V.data = { ...V.data, ...d, editable: false, not_editable_reason: d.not_editable_reason || (d.truncated ? "truncated" : "not_text") }; return fail(); }
-      if (d.content !== V.data.content) { V.data = d; dropFile(); render(); }
+      // your draft, if you left one: the editor opens on it, against the version you started from (a file
+      // that changed since saves through the usual merge); the file itself comes back if you leave it again
+      const dr = V.draft;
+      if (dr) { ED.real = d; ED.moved = dr.version !== d.version; V.data = { ...d, content: dr.text, version: dr.version }; dropFile(); render(); }
+      else if (d.content !== V.data.content) { V.data = d; dropFile(); render(); }
       else V.data = d;
       for (let i = 0; i < 60 && !FL.handle; i++) await new Promise((r) => requestAnimationFrame(r));
       if (my !== V.gen || !FL.handle) return fail();
-      const ed = await FL.handle.edit({ onChange: () => { if (!ED.ed) return; const dirty = ED.ed.text() !== ED.base; if (dirty !== ED.dirty || ED.err) { ED.dirty = dirty; ED.err = null; paintHead(); } } });
+      // per keystroke only what's cheap: the editor's own "something to undo"; the whole text is read once a
+      // pause in typing, for the draft (and its "the same as the file again")
+      const ed = await FL.handle.edit({ onChange: () => { if (!ED.ed) return; const dirty = ED.from || ED.ed.dirty(); draftSoon(); if (dirty !== ED.dirty || ED.err) { ED.dirty = dirty; ED.err = null; paintHead(); } } });
       if (my !== V.gen) { ed.stop(); return fail(); }
-      Object.assign(ED, { on: true, opening: false, ed, base: d.content, version: d.version });
+      Object.assign(ED, dr ? { on: true, opening: false, ed, base: dr.base, version: dr.version, dirty: dr.text !== dr.base, from: dr.text !== dr.base } : { on: true, opening: false, ed, base: d.content, version: d.version, from: false });
       if (FL.sel) { FL.sel = null; askCapsule(); }
       paintHead();
       ed.focus({ lineNumber: f.lines ? f.lines[0] : "first-visible" });
@@ -229,13 +291,17 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (!ED.on) return;
     if (ED.ed) ED.ed.stop();
     const was = ED.conflict;
-    ED.on = false; ED.ed = null; ED.conflict = null; ED.confirm = false; ED.discard = false;
+    clearTimeout(draftT);
+    ED.on = false; ED.ed = null; ED.conflict = null; ED.confirm = false; ED.discard = false; ED.moved = false;
     if (was && was.view) { was.view.destroy(); }
+    if (!keep && ED.real) V.data = ED.real; // the file as it is, not your draft
+    ED.real = null;
     if (!keep || was) { dropFile(); }
     render();
   }
   function cancelEdit() {
     if (ED.dirty && !ED.discard && !ED.conflict) { ED.discard = true; paintHead(); return; }
+    letDraftGo();
     stopEdit();
   }
   async function save(confirm = null) {
@@ -249,6 +315,8 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       const r = await api.saveProjectFile(f.project, f.rel, text, conflict ? conflict.version : ED.version, confirm || (ED.confirmed ? "runs_code" : null));
       V.data = { ...V.data, content: text, version: r.version, size_bytes: new TextEncoder().encode(text).length, modified_at: r.saved_at || V.data.modified_at };
       ED.saving = false;
+      letDraftGo();
+      ED.real = null;
       stopEdit({ keep: !conflict });
       saved = { path: localPath(), name: f.name, editId: r.edit_id, merged: !!conflict, unchanged: !!r.unchanged };
       toastPaint();
@@ -290,14 +358,23 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     let t = el.querySelector(":scope > .xd-toast");
     if (!saved || !V.open) { if (t) t.remove(); return; }
     if (!t) { t = document.createElement("div"); t.className = "xd-toast"; el.appendChild(t); }
-    const acts = `${saved.editId ? `<button type="button" class="t-undo" data-vw-undo>Undo</button>` : ""}${edits && edits.tell && !saved.unchanged ? `<button type="button" class="t-undo" data-vw-tell>Tell the agent</button>` : ""}`;
-    t.innerHTML = `<div class="toast" role="status"><span class="t-ic">${ICON.check}</span><span class="t-m"><b>${saved.unchanged ? "Nothing to save" : "Saved"}</b> <span>${esc(saved.name)}${saved.unchanged ? " is as it was" : saved.merged ? ", with the agent's changes" : ""}</span></span>` +
+    const acts = `${saved.editId ? `<button type="button" class="t-undo" data-vw-undo${saved.created ? ` title="Take ${esc(saved.name)} away again"` : ""}>Undo</button>` : ""}${edits && edits.tell && !saved.unchanged && !saved.created ? `<button type="button" class="t-undo" data-vw-tell>Tell the agent</button>` : ""}`;
+    t.innerHTML = `<div class="toast" role="status"><span class="t-ic">${ICON.check}</span><span class="t-m"><b>${saved.created ? "Created" : saved.unchanged ? "Nothing to save" : "Saved"}</b> <span>${esc(saved.name)}${saved.unchanged ? " is as it was" : saved.merged ? ", with the agent's changes" : ""}</span></span>` +
       `${acts ? `<span class="xd-tacts">${acts}</span>` : ""}<button type="button" class="xd-tx" data-vw-toastx aria-label="Close">${ICON.close}</button></div>`;
   }
   async function undoSave() {
     const f = V.file, s = saved;
     if (!s || !s.editId) return;
     saved = null; toastPaint();
+    if (s.created) { // the file goes: what you typed in it since goes with it
+      if (ED.on) { letDraftGo(); stopEdit(); }
+      try { await api.undoProjectEdit(f.project, s.editId); }
+      catch (err) { if (V.file === f) { V.saveError = err.status === 409 ? `${s.name} changed since it was made: it stays` : err.message || "Couldn't undo it."; render(); } return; }
+      announce(`${s.name} is gone.`);
+      if (V.file === f) close();
+      if (edits && edits.removed) edits.removed(f);
+      return;
+    }
     try { await api.undoProjectEdit(f.project, s.editId); announce(`${s.name} is back as it was.`); }
     catch (err) { V.saveError = err.status === 410 ? "That save can't be undone any more: the version before it is gone" : err.status === 404 ? "That save isn't in XO's log any more" : err.message || "Couldn't undo the save."; }
     if (V.file !== f) return;
@@ -542,6 +619,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     }
     V.loading = false;
     render();
+    if (V.fresh) { V.fresh = false; if (canEdit()) startEdit(); }
   }
 
   /**
@@ -550,14 +628,20 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
    */
   function open(f, from) {
     const was = V.open;
+    // the file you were editing, before this one takes its place: your edits wait as its draft
+    if (ED.on && ED.dirty) keepDraft();
+    if (ED.on) { if (ED.ed) ED.ed.stop(); if (ED.conflict && ED.conflict.view) ED.conflict.view.destroy(); ED.on = false; ED.conflict = null; ED.real = null; ED.moved = false; }
     dropImage();
     if (V.parked) { V.parked = false; el.hidden = false; }
-    Object.assign(V, { open: true, file: { ...f, where: f.rel || f.path || "", image: f.att ? kindOf(f.type || "") === "image" : f.local == null && isImagePath(f.rel || f.path || f.name) }, data: null, dims: null, error: null, why: f.why || null, mode: V.textMode || "preview", copied: false, saving: false, saveError: null, returnTo: from || (was ? V.returnTo : document.activeElement) });
+    Object.assign(V, { open: true, file: { ...f, where: f.rel || f.path || "", image: f.att ? kindOf(f.type || "") === "image" : f.local == null && isImagePath(f.rel || f.path || f.name) }, data: null, dims: null, error: null, why: f.why || null, mode: V.textMode || "preview", copied: false, saving: false, saveError: null, menu: false, returnTo: from || (was ? V.returnTo : document.activeElement) });
     if (V.file.image) V.mode = "preview";
+    V.draft = getDraft(store, dkey()); // your unsaved edits in this file from before, if any
     // a changed file asked for as a change (the panel's Open in Files, the tree's Changed section) opens on
     // its diff; any other way in, whole. The diff is drawn from the patch and needs no read of the file.
-    if (ED.on) { if (ED.ed) ED.ed.stop(); if (ED.conflict && ED.conflict.view) ED.conflict.view.destroy(); ED.on = false; ED.conflict = null; }
-    saved = null; ED.confirmed = false; // a file that runs code asks again once you've left it
+    // a file just made: "Created · Undo" until the next save, and the editor opens on it once it's read
+    saved = f.created ? { path: localPath(), name: f.name, editId: typeof f.created === "string" ? f.created : null, created: true } : null;
+    V.fresh = !!f.created;
+    ED.confirmed = false; // a file that runs code asks again once you've left it
     dropDiff(); dropFile(); if (DF.el) DF.el.scrollTop = 0; if (FL.el) FL.el.scrollTop = 0;
     V.show = f.show === "changes" ? "changes" : "file";
     el.hidden = false;
@@ -572,7 +656,9 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   function close({ restore = true } = {}) {
     if (!V.open) return;
     V.open = false; V.parked = false; V.gen++;
-    if (ED.on) { if (ED.ed) ED.ed.stop(); if (ED.conflict && ED.conflict.view) ED.conflict.view.destroy(); ED.on = false; ED.conflict = null; }
+    if (ED.on && ED.dirty) keepDraft(); // closed while editing: your edits wait as its draft
+    if (ED.on) { if (ED.ed) ED.ed.stop(); if (ED.conflict && ED.conflict.view) ED.conflict.view.destroy(); ED.on = false; ED.conflict = null; ED.real = null; ED.moved = false; }
+    V.draft = null;
     saved = null; el.querySelector(":scope > .xd-toast")?.remove();
     dropImage(); V.data = null; dropDiff(); dropFile();
     el.hidden = true; el.innerHTML = "";
@@ -595,14 +681,22 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       try { ok = document.execCommand("copy"); } catch { ok = false; }
       ta.remove(); back && back.focus && back.focus({ preventScroll: true });
     }
-    if (!ok) { V.saveError = "Couldn't copy: the browser didn't allow it here. Select the text and copy it, or download the file."; V.keepScroll = true; render(); announce("Couldn't copy."); return; }
+    if (!ok) { V.saveError = "Couldn't copy: the browser didn't allow it here. Select the text and copy it, or download the file."; redrawKeep(); announce("Couldn't copy."); return; }
     V.copied = true; V.saveError = null;
-    V.keepScroll = true; render();
+    redrawKeep();
     announce("Copied.");
-    setTimeout(() => { if (V.copied) { V.copied = false; V.keepScroll = true; render(); } }, 1400);
+    setTimeout(() => { if (V.copied) { V.copied = false; redrawKeep(); } }, 1400);
   }
 
   el.addEventListener("click", (e) => {
+    if (e.target.closest("[data-vw-more]")) {
+      V.menu = !V.menu; paintHead();
+      (V.menu ? el.querySelector(".vw-menu [role=menuitem]") : el.querySelector("[data-vw-more]"))?.focus({ preventScroll: true });
+      return;
+    }
+    // a menu item: the menu closes, then it acts (a link is left to the browser, so its close waits a turn)
+    if (V.menu && e.target.closest(".vw-menu a")) { setTimeout(() => menuOff(true)); return; }
+    if (V.menu && e.target.closest(".vw-menu")) V.menu = false;
     if (e.target.closest("[data-vw-close]")) { close(); return; }
     const sh = e.target.closest("[data-vw-show]");
     if (sh) { V.show = sh.dataset.vwShow; if (V.show === "file" && !V.data && !V.loading) { load(); return; } V.keepScroll = true; render(); return; }
@@ -611,7 +705,8 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (e.target.closest("[data-vw-saveit]")) { save(); return; }
     if (e.target.closest("[data-vw-cancel]")) { cancelEdit(); return; }
     if (e.target.closest("[data-vw-keep]")) { ED.discard = false; ED.then = null; paintHead(); ED.ed?.focus(); return; }
-    if (e.target.closest("[data-vw-discard]")) { const then = ED.then; ED.then = null; stopEdit(); if (then) then(); return; }
+    if (e.target.closest("[data-vw-discard]")) { const then = ED.then; ED.then = null; letDraftGo(); stopEdit(); if (then) then(); return; }
+    if (e.target.closest("[data-vw-draftx]")) { letDraftGo(); paintHead(); el.querySelector("[data-vw-edit]")?.focus(); announce("Your draft is gone."); return; }
     if (e.target.closest("[data-vw-confirm]")) { ED.confirmed = true; save("runs_code"); return; }
     if (e.target.closest("[data-vw-noconfirm]")) { ED.confirm = false; paintHead(); ED.ed?.focus(); return; }
     if (e.target.closest("[data-vw-undo]")) { undoSave(); return; }
@@ -623,7 +718,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (m) { V.mode = m.dataset.vwMode; if (V.mode !== "actual") V.textMode = V.mode; render(); return; }
     if (e.target.closest(".vw-img img")) { V.mode = V.mode === "actual" ? "preview" : "actual"; render(); return; }
     if (e.target.closest("[data-vw-copy]")) { copy(String(V.data.content)); return; }
-    if (e.target.closest("[data-vw-copy-path]")) { copy(V.file.path); return; }
+    if (e.target.closest("[data-vw-copy-path]")) { copy(V.file.rel ? localPath() : V.file.path); return; }
     if (e.target.closest("[data-vw-download]")) download();
   });
   // an image's size shows in the header once it has decoded; one that won't decode says so
@@ -640,8 +735,19 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     render();
   }, true);
   // a reload or a closed tab with unsaved edits: the browser's own question (the only one it allows)
-  addEventListener("beforeunload", (e) => { if (ED.on && (ED.dirty || ED.conflict)) { e.preventDefault(); e.returnValue = ""; } });
+  addEventListener("beforeunload", (e) => { if (ED.on && (ED.dirty || ED.conflict) && !(ED.dirty && !ED.conflict && keepDraft())) { e.preventDefault(); e.returnValue = ""; } });
+  // a press anywhere but the ⋯ and its menu closes the menu
+  document.addEventListener("pointerdown", (e) => { if (V.menu && !(e.target.closest && e.target.closest(".vw-mw"))) menuOff(); }, true);
+  // a tab put away (a phone may close it later): the draft is kept now
+  document.addEventListener("visibilitychange", () => { if (document.hidden && ED.on && ED.dirty) keepDraft(); });
   el.addEventListener("keydown", (e) => {
+    if (V.menu && e.target.closest(".vw-mw")) {
+      const items = [...el.querySelectorAll(".vw-menu [role=menuitem]")], i = items.indexOf(document.activeElement);
+      if (e.key === "Escape" || e.key === "Tab") { e.preventDefault(); e.stopPropagation(); menuOff(true); return; }
+      const to = e.key === "ArrowDown" ? i + 1 : e.key === "ArrowUp" ? (i < 0 ? -1 : i - 1) : e.key === "Home" ? 0 : e.key === "End" ? items.length - 1 : null;
+      if (to != null && items.length) { e.preventDefault(); items[(to + items.length) % items.length].focus(); }
+      return;
+    }
     const mod = (e.metaKey || e.ctrlKey) && !e.altKey;
     if (ED.on) {
       if (mod && e.key.toLowerCase() === "s") { e.preventDefault(); if (ED.confirm) { ED.confirmed = true; save("runs_code"); } else save(); return; }
@@ -691,6 +797,12 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     get editing() { return ED.on && (ED.dirty || !!ED.conflict); },
     /** You're leaving (another place, back to the conversation): with unsaved edits, the head asks first;
      *  go() runs once you choose Discard. */
-    leave(go) { if (!(ED.on && (ED.dirty || ED.conflict))) { go(); return; } ED.discard = true; ED.then = go; paintHead(); el.querySelector("[data-vw-keep]")?.focus(); },
+    leave(go) {
+      if (!(ED.on && (ED.dirty || ED.conflict))) { go(); return; }
+      // kept as a draft in this browser: it'll be waiting when you come back. A merge in progress, or a draft
+      // too big to keep, asks first, as before
+      if (!ED.conflict && keepDraft()) { stopEdit(); announce("Your edits are kept as a draft."); go(); return; }
+      ED.discard = true; ED.then = go; paintHead(); el.querySelector("[data-vw-keep]")?.focus();
+    },
   };
 }

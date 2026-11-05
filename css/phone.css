@@ -152,6 +152,9 @@
   :root:root :is(.side-plus,.md-pin,[data-arts-kind],.ev-asked>.ev-t){position:relative}
   :root:root :is(.side-plus,.md-pin,[data-arts-kind])::after{content:"";position:absolute;inset:-8px}
   :root:root .ev-asked>.ev-t::after{content:"";position:absolute;inset:-12px 0}
+  /* a finger's menus: the file's ⋯ and a folder's ⋯ (44 px items), and the folder's ⋯ itself (32 px) */
+  :root:root :is(.vw-menu [role=menuitem],.fl-menu button){height:44px}
+  :root:root .fl-more{width:32px;height:28px;margin-top:0}
 }
 
 /* A narrow phone's folded checklist has room for the count, not the step: it showed two letters of it
