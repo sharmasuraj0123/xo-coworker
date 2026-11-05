@@ -10,7 +10,9 @@
 //   · put away (— in the head, or Esc): the file waits, as it was, as a chip in the thread's header
 //     (app.js); the chat goes back to the middle. Its × really closes it;
 //   · the chat folds to a 44 px rail (›| or ⌘J), the tree to a 44 px rail (◧ or ⌘B) (js/files.js).
-// Where the view has no conversation (Home, Artifacts) or on a phone, Files covers the main area as before.
+// On a phone the same rule runs vertically (body.chat-sheet): the file fills the screen and the chat is a
+// sheet that folds to one bar (who, what it's doing, new messages; amber when it asks) and never closes; up
+// it covers the lower 70 %. Where the view has no conversation (Home, Artifacts), Files covers the main area.
 // follow.js keeps the row you were reading through the chat's change of width; nothing here scrolls it.
 //
 // app.js calls: open, close, minimise, restore, escape, sync (every render), isOpen, docked, putAway, owns.
@@ -26,7 +28,7 @@ const PHONE = 760, RAIL = 44, FILE_MIN = 640, COMPACT_FILE = 560, SLIDE = 200;
 const TREE_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M9.5 4.5v15"/></svg>';
 
 export function createFilesView({ files, viewer, view, PROJ, world, announce, onChange, onDock = null }) {
-  const F = { open: false, min: false, docked: false, fileOnly: false, seen: null, returnTo: null, head: "", toChip: false,
+  const F = { open: false, min: false, docked: false, sheet: false, fileOnly: false, seen: null, returnTo: null, head: "", toChip: false,
     chatMin: false, chatOver: false, rows: 0, had: false }; // the chat folded to its rail; open over the file (compact); rows when it folded
   const el = document.createElement("section");
   el.className = "fv";
@@ -119,10 +121,18 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
     const had = document.activeElement;
     F.chatMin = min; F.chatOver = over;
     clearTimeout(slideT);
+    if (min) F.rows = document.getElementById("msgs")?.children.length || 0;
+    if (F.sheet) {
+      // the phone's sheet: up over the lower 70 %, or down to its bar; the conversation stays as it was
+      cls.toggle("sheet-up", !min);
+      for (const n of [$("#conv"), $("#dock")]) n && n.toggleAttribute("inert", min);
+      if (min && had && had.closest && had.closest("#conv, #dock")) toFile();
+      onChange && onChange();
+      return;
+    }
     const still = matchMedia("(prefers-reduced-motion: reduce)").matches || cls.contains("dock-switch"); // no slide as the file opens
     cls.toggle("chat-over", over);
     if (min) {
-      F.rows = document.getElementById("msgs")?.children.length || 0;
       cls.add("chat-min");
       if (still) cls.add("chat-railed"); else slideT = setTimeout(() => cls.add("chat-railed"), SLIDE);
       for (const n of [$("#conv"), $("#dock")]) n && n.setAttribute("inert", "");
@@ -135,12 +145,13 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
     onChange && onChange();
   }
   function unChat() {
-    cls.remove("chat-min", "chat-railed", "chat-over");
+    cls.remove("chat-min", "chat-railed", "chat-over", "sheet-up");
     for (const n of [$("#conv"), $("#dock")]) n && n.removeAttribute("inert");
     F.chatMin = false; F.chatOver = false;
   }
   /** You folded or opened the chat (›|, the rail, ⌘J): kept, unless the width is what folds it. */
   function chat(open, { focus = open } = {}) {
+    if (F.sheet) { setChat(open ? "open" : "min"); if (open) requestAnimationFrame(() => $("#chead")?.focus({ preventScroll: true })); return; }
     if (!F.docked) return;
     if (compact()) setChat(open ? "over" : "min");
     else { keepFold("chat", open ? "open" : "folded"); setChat(open ? "open" : "min"); }
@@ -157,12 +168,19 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
     return true;
   }
 
-  /** A file beside a conversation docks the chat: a desktop, and a view that has one (not Home, Artifacts). */
-  const dockable = () => innerWidth > PHONE && !$("#conv").hidden;
+  /** A file beside a conversation: the chat docks in a column on a desktop, is a sheet on a phone; a view with
+   *  no conversation (Home, Artifacts) has Files cover it. "docked" | "sheet" | "" */
+  const modeNow = () => ($("#conv").hidden ? "" : innerWidth > PHONE ? "docked" : "sheet");
+  const modeOf = () => (F.docked ? "docked" : F.sheet ? "sheet" : "");
+  const dockable = () => modeNow() !== "";
   function setDocked(on) {
-    if (on === F.docked) return;
-    F.docked = on;
-    if (!on) unChat();
+    const m = on ? modeNow() : "";
+    if (m === modeOf()) return;
+    unChat();
+    F.docked = m === "docked"; F.sheet = m === "sheet";
+    cls.toggle("chat-sheet", F.sheet);
+    if (F.sheet) setChat("min"); // the sheet starts as its bar
+    on = F.docked;
     // the switch is one frame: the conversation's own 300 ms padding and offset transitions sit it out
     cls.add("dock-switch");
     cls.toggle("chat-docked", on);
@@ -180,11 +198,11 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
     else if (v.startsWith("p:")) name = PROJ(v.slice(2));
     const at = files.place; // a file opened from elsewhere takes the tree to its own folder: name that one
     if (at) { name = at.label; sub = at.sub; }
-    const folded = files.folded;
+    const folded = files.listing ? false : F.sheet ? true : files.folded;
     const tree = viewer.hasFile ? `<button type="button" class="fv-ib" data-fv-tree aria-pressed="${!folded}" title="${folded ? "Show the files (⌘B)" : "Fold the files to a rail (⌘B)"}" aria-label="${folded ? "Show the files" : "Fold the files"}">${TREE_IC}</button>` : "";
     const where = `${tree}<h1 class="fv-t">${esc(name)}</h1>${sub ? `<span class="fv-s">${esc(sub)}</span>` : ""}`;
     // beside the chat: the file is put away (it waits in the thread's header), never closed from here
-    if (F.docked) return `${where}<span class="fv-sp"></span><button type="button" class="fv-ib" data-fv-min title="Put the file away (Esc)" aria-label="Put the file away">${ICON.minimize}</button>`;
+    if (F.docked || F.sheet) return `${where}<span class="fv-sp"></span><button type="button" class="fv-ib" data-fv-min title="Put the file away (Esc)" aria-label="Put the file away">${ICON.minimize}</button>`;
     const back = v === "home" ? "Home" : v === "ws" ? "Workspace" : v === "artifacts" ? "Artifacts" : v === "chats" ? "Chats" : "Conversation";
     return `<button type="button" class="fv-back" data-fv-back title="Back (Esc)">${ICON.back}<span>${esc(back)}</span></button><span class="fv-sep" aria-hidden="true"></span>${where}`;
   }
@@ -265,6 +283,7 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
   /** Esc: beside the chat, the file is put away (from the chat, an empty composer goes back to the file);
    *  covering the conversation, Files closes. True when it did something. */
   function escape(target) {
+    if (F.sheet && F.open) { if (!F.chatMin) setChat("min"); else minimise(); return true; }
     if (F.docked && target && target.closest && target.closest("#conv, #dock")) {
       if (target.matches("textarea, input") && target.value) return false;
       toFile();
@@ -281,7 +300,7 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
     if (f && f !== F.seen) {
       F.seen = f;
       // beside the chat, the file you opened has focus (Esc puts it away); covering the conversation, as before
-      if (!F.open) open({ fileOnly: !files.auto, focus: dockable() });
+      if (!F.open) open({ fileOnly: !files.auto, focus: modeNow() === "docked" });
       if (!files.auto) files.reveal(f);
     } else if (!f && F.seen) {
       F.seen = null;
@@ -289,7 +308,7 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
       if (F.min) close({ restore: false });
     }
     // a window crossing the phone's width, or a view that gained or lost its conversation
-    if (F.open && dockable() !== F.docked) { setDocked(dockable()); fit(); }
+    if (F.open && modeNow() !== modeOf()) { setDocked(dockable()); fit(); }
     if (F.open && viewer.hasFile !== F.had) { F.had = viewer.hasFile; fit(); }
     if (F.open) { files.render(view()); paint(); }
     // focus that was on the file goes to its chip once the header has drawn it
@@ -304,6 +323,8 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
   /** ◧, ⌘B: the tree folds to its rail or opens, and that's kept. */
   function toggleTree() {
     if (!F.open || !viewer.hasFile) return false;
+    // one at a time (a phone): the list swaps in for the file, and picking a file (or ◧ again) swaps back
+    if (files.list(!files.listing)) { F.head = ""; paint(); return true; }
     files.fold(!files.folded, { mine: true });
     return true;
   }
@@ -314,9 +335,19 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
     e.preventDefault(); e.stopPropagation();
     escape(e.target);
   });
+  // a phone's sheet: swipe its bar up, or its head down (a tap on the bar opens it too, as its click)
+  const swipe = (node, dir, act) => {
+    if (!node) return;
+    let y0 = null;
+    node.addEventListener("pointerdown", (e) => { y0 = F.sheet ? e.clientY : null; });
+    node.addEventListener("pointerup", (e) => { if (y0 != null && dir * (e.clientY - y0) > 32) act(); y0 = null; });
+    node.addEventListener("pointercancel", () => { y0 = null; });
+  };
+  swipe($("#crail"), -1, () => chat(true));
+  swipe($("#chead"), 1, () => chat(false));
   addEventListener("resize", () => {
     if (!F.open) return;
-    if (dockable() !== F.docked) { setDocked(dockable()); paint(); onChange && onChange(); }
+    if (modeNow() !== modeOf()) { setDocked(dockable()); paint(); onChange && onChange(); }
     fit();
   });
 
@@ -327,7 +358,9 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
     /** The file put away: {file} for its chip in the thread's header, or null. */
     get putAway() { return F.min && viewer.hasFile ? { file: viewer.file } : null; },
     /** The chat folded to its rail beside a file, and how many rows it had when it folded (new ones: a dot). */
-    get chatFolded() { return F.docked && F.chatMin; },
+    get chatFolded() { return (F.docked || F.sheet) && F.open && F.chatMin; },
+    /** A phone: the chat is a sheet over the file. */
+    get sheet() { return F.open && F.sheet; },
     get chatRows() { return F.rows; },
     open: () => open(),
     close,

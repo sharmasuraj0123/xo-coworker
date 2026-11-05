@@ -114,3 +114,45 @@ body.chat-docked.chat-over .conv{background:var(--canvas)}
 .cref-x:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 
 @media (prefers-reduced-motion:reduce){.fv-ib,.fv-cgrip::before,.fl-rb,body.chat-docked :is(.conv,.dock){transition:none}}
+
+/* ── a phone (≤ 760 px): the same rule, vertically (body.chat-sheet). The file fills the screen; the chat is
+   a sheet that folds to one bar and never closes. Up, the same #conv and #dock cover the lower 70 %, the
+   composer at the bottom; down, they're out of sight with their scroll kept (inert), and the bar says who,
+   what it's doing and how many new messages; amber when it asks, with Open. phone.css comes after this
+   file, so these rules carry its :root:root weight. ───────────────────────────────────────────────────── */
+.crail-s,.crail-n,.crail-up,.crail-open{display:none}
+@media (max-width:760px){
+  :root:root body.chat-sheet .fv{padding-bottom:calc(80px + env(safe-area-inset-bottom))}
+  :root:root body.files-open.chat-sheet .dock{display:block}
+  :root:root body.files-open.chat-sheet .tdock{display:block}
+  :root:root body.chat-sheet .conv>.top{display:none}
+  :root:root body.chat-sheet .fv .fl-bar{display:none} /* the head's ◧ swaps the list in and out */
+  :root:root body.chat-sheet .thead .rn-strip{display:none}
+  :root:root body.chat-sheet :is(.conv,.dock){z-index:8;transition:transform .24s var(--glide),visibility 0s linear .24s}
+  :root:root body.chat-sheet:not(.sheet-up) :is(.conv,.dock){transform:translateY(100%);visibility:hidden;pointer-events:none}
+  :root:root body.chat-sheet.sheet-up :is(.conv,.dock){transition:transform .24s var(--glide)}
+  :root:root body.chat-sheet .app .conv{top:30%;border-radius:var(--r-2xl) var(--r-2xl) 0 0;background:var(--canvas);box-shadow:var(--e2),inset 0 1px 0 var(--g26)}
+  :root:root body.chat-sheet .dock{z-index:9}
+  /* its head: a grabber over the name, its state and ⌄ */
+  :root:root body.chat-sheet .chead{display:flex;align-items:center;gap:8px;flex:none;position:relative;box-sizing:border-box;height:52px;padding:8px 4px 0 16px;border-bottom:1px solid var(--g1C);border-radius:var(--r-2xl) var(--r-2xl) 0 0;background:var(--canvas);touch-action:none}
+  :root:root body.chat-sheet .chead::before{content:"";position:absolute;top:6px;left:50%;width:36px;height:4px;margin-left:-18px;border-radius:2px;background:var(--g33)}
+  :root:root body.chat-sheet .chead .fv-ib{width:40px;height:40px}
+  /* the bar: folded, one line over the file's foot */
+  :root:root body.chat-sheet.files-open:not(.sheet-up) .crail{display:flex;position:fixed;z-index:8;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));height:56px;padding:0;border-radius:var(--r-xl);background:var(--g17);box-shadow:var(--e2),inset 0 0 0 1px var(--g26);touch-action:none}
+  :root[data-theme="light"]:root body.chat-sheet.files-open:not(.sheet-up) .crail{background:var(--surface);box-shadow:var(--e2),inset 0 0 0 1px var(--panel-line)}
+  :root:root body.chat-sheet .crail-b{flex:1;width:auto;height:56px;padding:0 8px 0 12px;border-radius:var(--r-xl);text-align:left;display:grid;grid-template-columns:32px minmax(0,1fr) auto;grid-template-rows:20px 16px;column-gap:12px;row-gap:0;align-content:center}
+  :root:root body.chat-sheet .crail-ic{grid-row:1/3}
+  :root:root body.chat-sheet .crail-t{writing-mode:horizontal-tb;transform:none;max-height:none;font:600 var(--fs-base)/20px var(--sans);color:var(--ink)}
+  :root:root body.chat-sheet .crail-s{display:block;grid-column:2;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
+  :root:root body.chat-sheet :is(.crail-n,.crail-up,.crail-open){grid-column:3;grid-row:1/3}
+  :root:root body.chat-sheet .crail-up{display:grid;place-items:center;width:32px;height:32px;color:var(--ink-3);transform:rotate(180deg)}
+  :root:root body.chat-sheet .crail-up svg{width:16px;height:16px}
+  :root:root body.chat-sheet .crail-b:has(.crail-n) .crail-up{display:none}
+  :root:root body.chat-sheet .crail-n{display:grid;place-items:center;min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:999px;background:var(--info);color:#fff;font:600 var(--fs-sm)/1 var(--sans)}
+  :root:root body.chat-sheet .crail-b.is-ask{background:color-mix(in srgb,var(--warn) 12%,transparent)}
+  :root:root body.chat-sheet .crail-b.is-ask .crail-s{color:var(--warn)}
+  :root:root body.chat-sheet .crail-open{display:grid;place-items:center;height:32px;padding:0 12px;border-radius:var(--r);background:var(--warn);color:#1A1200;font:600 var(--fs-sm)/1 var(--sans)}
+  :root:root body.chat-sheet .crail-m{display:none}
+}
+@media (max-width:760px) and (prefers-reduced-motion:reduce){:root:root body.chat-sheet :is(.conv,.dock){transition:none}}
+

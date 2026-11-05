@@ -465,6 +465,9 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     },
     /** Beside a file: fold the tree to its rail, or open it (mine: you did, so it's kept). */
     fold,
+    /** One at a time (a phone): the list in front of the file, or the file again; the file stays open. */
+    list(on) { if (F.wide || !viewer.hasFile) return false; F.fileView = !on; paint(); return true; },
+    get listing() { return !F.wide && viewer.hasFile && !F.fileView; },
     get folded() { return F.folded; },
     /** The file came from you (a click), not from the front page: the panel treats it as yours. */
     get auto() { return F.auto; },

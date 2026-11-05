@@ -1004,21 +1004,25 @@ const convName = (v, t) => (t ? t.title : v.startsWith("p:") ? PROJ(v.slice(2)) 
 function cheadHtml(v, t) {
   const badge = t ? `<span class="badge st-${t.frozen ? "resolved" : t.state}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${wordOf(t)}</span>` : "";
   return `<h2 class="chead-t">${esc(convName(v, t))}</h2>${badge}<span class="chead-sp"></span>` +
-    `<button type="button" class="fv-ib" data-chat-fold data-fid="chat-fold" title="Fold the chat to a rail (${K.label("chatFold")})" aria-label="Fold the chat">${CHAT_FOLD_IC}</button>`;
+    (FILESV.sheet ? `<button type="button" class="fv-ib" data-chat-fold data-fid="chat-fold" title="Fold the chat to its bar" aria-label="Fold the chat">${ICON.chevron}</button>`
+      : `<button type="button" class="fv-ib" data-chat-fold data-fid="chat-fold" title="Fold the chat to a rail (${K.label("chatFold")})" aria-label="Fold the chat">${CHAT_FOLD_IC}</button>`);
 }
 /** The chat folded to a rail beside a file: who it is (the name, set vertically), working (the arc), asking
  *  you (amber !), new messages since it folded (a blue dot). One button: it opens the chat. */
 function crailHtml(v, t, needs) {
   if (!FILESV.chatFolded) return "";
-  const asks = t ? needs.some((n) => n.t.id === t.id && n.admitted) : false;
+  const ask = t ? needs.find((n) => n.t.id === t.id && n.admitted) : null;
   const busy = t ? isBusy(t) : false;
-  const fresh = ($("#msgs")?.children.length || 0) > FILESV.chatRows;
+  const fresh = Math.max(0, ($("#msgs")?.children.length || 0) - FILESV.chatRows);
   const name = convName(v, t);
-  const says = [name, asks ? "needs you" : busy ? "working" : "", fresh ? "new messages" : ""].filter(Boolean).join(" · ");
-  return `<button type="button" class="crail-b" data-crail data-fid="crail" title="Open the chat (${K.label("chatFold")})" aria-label="Open the chat: ${esc(says)}">` +
-    `<span class="crail-ic">${ICON.threadOne}${busy && !asks ? '<i class="arc"></i>' : ""}</span>` +
-    (asks ? `<em class="crail-m is-ask" aria-hidden="true">!</em>` : fresh ? `<em class="crail-m is-new" aria-hidden="true"></em>` : "") +
-    `<span class="crail-t">${esc(name)}</span></button>`;
+  // a phone's bar also says what it's doing, or what it asks (amber), and how many new messages
+  const doing = ask ? `Needs you · ${askShort(ask)}` : busy ? `Working${(() => { const d = MAP.agents(v).find((a) => a.go === v)?.doing; return d ? ` · ${d}` : ""; })()}` : t ? wordOf(t) : "";
+  const says = [name, ask ? "needs you" : busy ? "working" : "", fresh ? "new messages" : ""].filter(Boolean).join(" · ");
+  return `<button type="button" class="crail-b${ask ? " is-ask" : ""}" data-crail data-fid="crail" title="Open the chat${FILESV.sheet ? "" : ` (${K.label("chatFold")})`}" aria-label="Open the chat: ${esc(says)}">` +
+    `<span class="crail-ic">${ICON.threadOne}${busy && !ask ? '<i class="arc"></i>' : ""}</span>` +
+    (ask ? `<em class="crail-m is-ask" aria-hidden="true">!</em>` : fresh ? `<em class="crail-m is-new" aria-hidden="true"></em>` : "") +
+    `<span class="crail-t">${esc(name)}</span><span class="crail-s">${esc(doing)}</span>` +
+    (ask ? `<span class="crail-open">Open</span>` : `${fresh ? `<span class="crail-n">${fresh}</span>` : ""}<span class="crail-up" aria-hidden="true">${ICON.chevron}</span>`) + `</button>`;
 }
 
 function topRender(needs) {
@@ -3144,7 +3148,7 @@ addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
     if (RS.open) { runsEscape(); return; }
     // a file beside the chat: Esc puts it away (or, from an empty composer, goes back to it)
-    if (FILESV.docked) { FILESV.escape(e.target); return; }
+    if (FILESV.docked || FILESV.sheet) { FILESV.escape(e.target); return; }
     if (VW.isOpen) { VW.close(); return; }
     if (FILESV.isOpen) { FILESV.close(); return; }
     if (!keys.hidden) { closeKeys(); return; }
@@ -3183,6 +3187,8 @@ function stepBack() {
   if (!keys.hidden) { closeKeys(); return true; }
   if (!allEl.hidden) { closeAll(); return true; }
   if (LB.isOpen) { LB.close(); return true; }
+  // a phone's sheet: down to its bar first, then the file is put away (its chip brings it back)
+  if (FILESV.sheet && FILESV.escape(document.activeElement)) return true;
   if (VW.isOpen) { VW.close(); return true; }
   if (FILESV.isOpen) { FILESV.close(); return true; }
   if (STAGE.isOpen && PHONE.matches) { STAGE.close(); return true; }
