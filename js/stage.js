@@ -46,11 +46,19 @@ const ago = (ms) => { if (!Number.isFinite(ms)) return ""; const s = Math.max(0,
  * "agents", "map"; the order stays the panel's own, since each line between two frames sizes a known pair.
  */
 const ORDER = ["changes", "agents", "map"];
-const MAP_H = 260, AG_MIN = 72;
+const MAP_H = 260, MAP_MIN = 72;
+// Agents is sized in whole rows, never a row cut in half: up to AG_ROWS by default, 1–8 as the line above
+// it is dragged; a row and the gap under it are ROW px (css/panel.css, .stage .ag-r)
+const AG_ROWS = 3, ROW = 48;
+// Agents never takes the room Changes needs: its 40 px head, one 32 px file row and the list's 8 px foot,
+// the diff's 120 px and its 12 px margin (css/diffs.css). In a short window Agents shows fewer rows
+const CH_MIN = 212, HEAD = 40;
 export function createStage({ map, mapIcon, files, changes, filesView, viewer, view, go, announce, onChange, frames = () => ORDER }) {
   const saved = sget(KEY);
-  const fr = { changes: { folded: false }, agents: { h: null, folded: false }, map: { h: MAP_H, folded: false }, ...sget(FR_KEY) };
+  const fr = { changes: { folded: false }, agents: { rows: null, folded: false }, map: { h: MAP_H, folded: false }, ...sget(FR_KEY) };
   if (!fr.map.h) fr.map.h = MAP_H;
+  // a height dragged before Agents went by rows (any pixel count, so a row could show in half): its rows
+  if (fr.agents.h) { fr.agents.rows = Math.max(1, Math.min(8, Math.round((fr.agents.h - 44) / ROW))); delete fr.agents.h; }
   const S = { open: false, full: false, returnTo: null, railOff: false, rail: false, filesWas: false, yielded: false, wide: false, h: { agents: "", changes: "", head: "", chn: "" } };
 
   const el = document.createElement("aside");
@@ -105,10 +113,31 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     for (const id of ORDER) {
       const f = el.querySelector(`[data-fr="${id}"]`);
       f.classList.toggle("is-grow", grow === id);
-      const h = id === "changes" ? null : fr[id].h;
+      const h = id === "map" ? fr.map.h : null;
       f.style.height = fr[id].folded || grow === id || !h ? "" : `${h}px`;
     }
+    capAgents();
     if (fr.map.folded || !on("map") || !S.open || S.rail) map.hide(); else map.show(view());
+  }
+
+  /** Agents is as tall as its rows, up to its count of them (3, or what you dragged to), and never more than
+   *  the stack has room for once Changes keeps a whole file row and its diff and the Map its height; past
+   *  that it scrolls a row at a time. */
+  function capAgents() {
+    const keep = new Set(frames()), on = (id) => keep.has(id) || (!keep.size && id === "agents");
+    const ag = el.querySelector('[data-fr="agents"]');
+    let rows = fr.agents.rows || AG_ROWS, cap = 8;
+    const room = el.querySelector(".stg-frames").clientHeight;
+    if (room > 0 && on("agents") && !fr.agents.folded && !ag.classList.contains("is-grow")) {
+      const grows = (id) => el.querySelector(`[data-fr="${id}"]`).classList.contains("is-grow");
+      const changes = !on("changes") ? 0 : fr.changes.folded ? HEAD : CH_MIN;
+      const mapH = !on("map") ? 0 : fr.map.folded ? HEAD : grows("map") ? 96 : fr.map.h;
+      const lines = [...el.querySelectorAll(".fr-gut")].filter((g) => !g.hidden).length;
+      cap = Math.max(1, Math.floor((room - changes - mapH - lines - 44) / ROW));
+      rows = Math.min(rows, cap);
+    }
+    S.agRows = rows; S.agCap = cap;
+    ag.style.setProperty("--ag-rows", rows);
   }
 
   // ── what the frames say ─────────────────────────────────────────────────────
@@ -258,15 +287,26 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   // the line between two frames: drag it (or ↑ ↓ on it) to give one of them room
   for (const g of el.querySelectorAll("[data-gut]")) {
     const [a, b] = g.dataset.gut.split("|");
+    let acc = 0; // Agents: the drag that isn't a whole row yet
+    // the frame below the line gives or takes the room (dragging down shrinks it); the growing frame
+    // (Changes, or the Map when Changes is folded) has the rest. When the frame below is the one growing,
+    // the frame above sizes instead.
+    const sized = () => (el.querySelector(`[data-fr="${b}"]`).classList.contains("is-grow") ? { id: a, sign: 1 } : { id: b, sign: -1 });
     const resize = (dy) => {
-      // the frame below the line gives or takes the room (dragging down shrinks it); the growing frame
-      // (Changes, or the Map when Changes is folded) has the rest. When the frame below is the one growing,
-      // the frame above sizes instead.
-      const grows = (id) => el.querySelector(`[data-fr="${id}"]`).classList.contains("is-grow");
-      const id = grows(b) ? a : b, sign = grows(b) ? 1 : -1;
+      const { id, sign } = sized();
       const f = el.querySelector(`[data-fr="${id}"]`);
-      const max = id === "map" ? 640 : 400;
-      fr[id].h = Math.max(AG_MIN, Math.min(max, (fr[id].h || f.getBoundingClientRect().height) + sign * dy));
+      if (id === "agents") {
+        // a row at a time, once the drag passes half a row; from the rows on screen when there are fewer
+        acc += sign * dy;
+        const shown = f.querySelectorAll(".ag-r").length;
+        let rows = Math.min(S.agRows || AG_ROWS, Math.max(1, shown));
+        const was = rows;
+        while (acc >= ROW / 2) { rows++; acc -= ROW; }
+        while (acc <= -ROW / 2) { rows--; acc += ROW; }
+        // no taller than its agents need, nor than the room Changes and the Map leave it
+        rows = Math.max(1, Math.min(8, Math.max(shown, AG_ROWS), S.agCap || 8, rows));
+        if (rows !== was) fr.agents.rows = rows;
+      } else fr[id].h = Math.max(MAP_MIN, Math.min(640, (fr[id].h || f.getBoundingClientRect().height) + sign * dy));
       fr[id].folded = false;
       layout();
     };
@@ -275,6 +315,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
       e.preventDefault();
       g.setPointerCapture(e.pointerId);
       let y0 = e.clientY;
+      acc = 0;
       document.body.classList.add("stage-vsizing");
       const move = (ev) => { resize(ev.clientY - y0); y0 = ev.clientY; };
       const up = () => { g.removeEventListener("pointermove", move); document.body.classList.remove("stage-vsizing"); persist(); };
@@ -285,10 +326,13 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     g.addEventListener("keydown", (e) => {
       if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
       e.preventDefault();
-      resize(e.key === "ArrowDown" ? 16 : -16);
+      acc = 0;
+      // Agents steps a row; the Map 16 px
+      const step = sized().id === "agents" ? ROW : 16;
+      resize(e.key === "ArrowDown" ? step : -step);
       persist();
     });
-    g.addEventListener("dblclick", () => { fr.agents.h = null; fr.map.h = MAP_H; layout(); persist(); });
+    g.addEventListener("dblclick", () => { fr.agents.rows = null; fr.map.h = MAP_H; layout(); persist(); });
   }
 
   // ── width: flush to the window's right edge, 360 px by default, 320–720 by dragging its left edge ─
@@ -329,7 +373,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     apply();
   }
   setW(wSaved);
-  addEventListener("resize", () => fitRail());
+  addEventListener("resize", () => { fitRail(); if (S.open) capAgents(); });
   const grip = el.querySelector(".stg-grip");
   grip.addEventListener("pointerdown", (e) => {
     if (e.button !== 0 || S.full || S.rail) return;
