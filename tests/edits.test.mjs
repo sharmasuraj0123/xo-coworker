@@ -24,6 +24,11 @@ t("the file changed meanwhile: merge with what's there now (sent with the 409)",
   assert.equal(o.kind, "error");
   assert.match(o.words, /copy your edit/);
 });
+t("the file was deleted while you edited (409, current null): said, never recreated behind your back", () => {
+  const o = saveOutcome(err(409, "file_changed", { current: null }));
+  assert.equal(o.kind, "error");
+  assert.match(o.words, /deleted/);
+});
 t("a place XO keeps: read only from now on, in words", () => {
   assert.deepEqual(saveOutcome(err(403, "read_only_place")), { kind: "readonly", words: "XO keeps this file: it can't be saved here" });
 });

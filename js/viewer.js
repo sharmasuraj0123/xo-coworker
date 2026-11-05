@@ -37,9 +37,11 @@ const RUNS = /^(?:\.git|\.claude|\.codex|\.agents)(?:\/|$)|^\.mcp\.json$/;
 // Space's reasons a file can't be edited here, in words
 const NOT_EDITABLE = {
   read_only_place: "Read only · XO keeps this file",
+  too_large: "Too large to edit here",
   truncated: "Too large to edit here",
   not_utf8: "Not plain text",
   not_text: "Not plain text",
+  historical: "An earlier version: read only",
 };
 const ASK_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-10.9 6.7L4 19.5l1.3-4.6A7.5 7.5 0 1 1 20 11.5z"/></svg>';
 const SPLIT_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M12 4.5v15"/></svg>';
@@ -55,6 +57,7 @@ export function saveOutcome(err) {
   const s = err && err.status, c = err && err.code;
   if (s === 428 && c === "confirm_required") return { kind: "confirm", words: "" };
   if (s === 409 && c === "file_changed" && err.current && typeof err.current.content === "string") return { kind: "conflict", words: "" };
+  if (s === 409 && c === "file_changed" && err.current === null) return { kind: "error", words: "This file was deleted while you were editing: copy what you need" };
   if (s === 403 && c === "read_only_place") return { kind: "readonly", words: "XO keeps this file: it can't be saved here" };
   if (s === 403 && c === "outside_project") return { kind: "error", words: "This file is outside the project" };
   if (s === 403) return { kind: "error", words: "Saving isn't allowed here" };
@@ -160,7 +163,8 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   // Space says (/file's place: ordinary, read_only, runs_code); before it answers, the same rule by path
   const runsCode = () => !!(V.file && V.file.project && V.file.rel && (V.data && V.data.place ? V.data.place === "runs_code" : RUNS.test(localPath())));
   /** Space says this file can be edited here (a version to save against, and not one it keeps). */
-  const canEdit = () => !!(edits && V.file.project && V.file.rel && V.data && typeof V.data.content === "string" && !V.loading && !showsDiff() && V.data.kind !== "image" && V.data.kind !== "pdf" && V.data.version != null && V.data.editable !== false);
+  // only where Space answers with its edit fields; a cut preview has no version and is read whole to edit
+  const canEdit = () => !!(edits && V.file.project && V.file.rel && V.data && typeof V.data.content === "string" && !V.loading && !showsDiff() && V.data.kind !== "image" && V.data.kind !== "pdf" && "editable" in V.data && V.data.editable !== false && (V.data.version != null || V.data.truncated));
   const MODS = /Mac|iPhone|iPad/.test(navigator.platform || "") ? "⌘" : "Ctrl ";
   function editActs() {
     if (ED.discard) return `<span class="xd-state">Discard your edits?</span><button type="button" class="xd-btn" data-vw-keep>Keep editing</button><button type="button" class="xd-btn is-warn" data-vw-discard>Discard</button>`;
@@ -179,6 +183,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     const f = V.file, my = V.gen;
     if (!canEdit() || ED.on || ED.opening) return;
     Object.assign(ED, { opening: true, ed: null, base: null, version: null, dirty: false, saving: false, err: null, confirm: false, discard: false, conflict: null });
+    V.saveError = null;
     saved = null; toastPaint();
     // a document (Markdown, HTML) is edited as its source
     if (!showsFile()) { V.mode = "source"; V.textMode = "source"; render(); } else paintHead();
@@ -200,6 +205,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       ed.focus({ lineNumber: f.lines ? f.lines[0] : "first-visible" });
       announce(`Editing ${f.name}. ${MODS}S saves, Esc leaves.`);
     } catch (err) {
+      if (err.status === 413) { V.data = { ...V.data, editable: false, not_editable_reason: "too_large" }; return fail(); }
       fail(err.message || "Couldn't open this file for editing.");
     }
   }
@@ -229,7 +235,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       V.data = { ...V.data, content: text, version: r.version, size_bytes: new TextEncoder().encode(text).length, modified_at: r.saved_at || V.data.modified_at };
       ED.saving = false;
       stopEdit({ keep: !conflict });
-      saved = { path: localPath(), name: f.name, editId: r.edit_id, merged: !!conflict };
+      saved = { path: localPath(), name: f.name, editId: r.edit_id, merged: !!conflict, unchanged: !!r.unchanged };
       toastPaint();
       announce(`Saved ${f.name}.`);
       edits && edits.saved && edits.saved(f, saved);
@@ -269,15 +275,15 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     let t = el.querySelector(":scope > .xd-toast");
     if (!saved || !V.open) { if (t) t.remove(); return; }
     if (!t) { t = document.createElement("div"); t.className = "xd-toast"; el.appendChild(t); }
-    t.innerHTML = `<div class="toast" role="status"><span class="t-ic">${ICON.check}</span><span class="t-m"><b>Saved</b> <span>${esc(saved.name)}${saved.merged ? ", with the agent's changes" : ""}</span></span>` +
-      `${saved.editId ? `<button type="button" class="t-undo" data-vw-undo>Undo</button>` : ""}${edits && edits.tell ? `<button type="button" class="t-undo" data-vw-tell>Tell the agent</button>` : ""}<button type="button" class="xd-tx" data-vw-toastx aria-label="Close">${ICON.close}</button></div>`;
+    t.innerHTML = `<div class="toast" role="status"><span class="t-ic">${ICON.check}</span><span class="t-m"><b>${saved.unchanged ? "Nothing to save" : "Saved"}</b> <span>${esc(saved.name)}${saved.unchanged ? " is as it was" : saved.merged ? ", with the agent's changes" : ""}</span></span>` +
+      `${saved.editId ? `<button type="button" class="t-undo" data-vw-undo>Undo</button>` : ""}${edits && edits.tell && !saved.unchanged ? `<button type="button" class="t-undo" data-vw-tell>Tell the agent</button>` : ""}<button type="button" class="xd-tx" data-vw-toastx aria-label="Close">${ICON.close}</button></div>`;
   }
   async function undoSave() {
     const f = V.file, s = saved;
     if (!s || !s.editId) return;
     saved = null; toastPaint();
     try { await api.undoProjectEdit(f.project, s.editId); announce(`${s.name} is back as it was.`); }
-    catch (err) { V.saveError = err.message || "Couldn't undo the save."; }
+    catch (err) { V.saveError = err.status === 410 ? "That save can't be undone any more: the version before it is gone" : err.status === 404 ? "That save isn't in XO's log any more" : err.message || "Couldn't undo the save."; }
     if (V.file !== f) return;
     dropFile(); load();
   }
@@ -452,7 +458,8 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       if (DF.handle || DF.key) dropDiff();
       const cut = d.truncated ? `<p class="vw-cut">${ICON.clock}<span>Showing the first ${esc(size(bytes(d.content)))} of ${esc(size(d.size_bytes))}. The rest isn't previewed.</span>${canSave() ? `<button type="button" class="vw-cut-dl" data-vw-save${V.saving ? " disabled" : ""}>Download the whole file</button>` : ""}</p>` : "";
       const bar = el.querySelector(":scope > .xd-bar");
-      el.innerHTML = (tabs ? tabs() : "") + head() + cut + `<i data-vw-file hidden></i>`;
+      const failed = V.saveError ? `<p class="vw-cut" role="alert">${ICON.clock}<span>${esc(V.saveError)}</span></p>` : "";
+      el.innerHTML = (tabs ? tabs() : "") + head() + failed + cut + `<i data-vw-file hidden></i>`;
       el.querySelector("[data-vw-file]").replaceWith(host);
       if (bar && ED.conflict) host.before(bar);
       host.scrollTop = top;
