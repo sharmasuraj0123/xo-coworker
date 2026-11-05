@@ -1,7 +1,7 @@
-// Bubbles and replies (thread "Message styles & replies", branch xo/thread-682d17).
-// Not part of app.js: it only reads #msgs and decorates what the app draws, so it comes out by deleting
-// this file, css/msgx.css and their lines in index.html. Nothing here sends anything on its own: a
-// reply only adds a quote ("> …") to the message you send yourself.
+// The conversation's bubbles (with css/msgx.css): the shipped chat look and its behaviour, not an
+// experiment. It reads #msgs and decorates what app.js draws (it never changes the app's list), so the app
+// works without it, but the chat as designed needs it. Nothing here sends anything on its own: a reply
+// only adds a quote ("> …") to the message you send yourself.
 //
 //   The look is final (owner, 5 Nov): yours in XO's green, theirs on glass, a tail on the first bubble of
 //   each run, every reply in a bubble. There is no switch.
