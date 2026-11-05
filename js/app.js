@@ -2052,7 +2052,11 @@ function render() {
   const v = S.view;
   const isHome = v === "home";
   const isArts = v === "artifacts";
-  $("#app").dataset.view = isHome ? "home" : isArts ? "artifacts" : v === "ws" ? "ws" : v.startsWith("t:") || v.startsWith("c:") ? "thread" : "project";
+  // written only when they change: every write is a mutation other layers react to. data-conv names the
+  // conversation itself (its id), so nothing has to infer "a new conversation opened" from what's on screen
+  const appEl = $("#app"), kind = isHome ? "home" : isArts ? "artifacts" : v === "ws" ? "ws" : v.startsWith("t:") || v.startsWith("c:") ? "thread" : "project";
+  if (appEl.dataset.view !== kind) appEl.dataset.view = kind;
+  if (appEl.dataset.conv !== v) appEl.dataset.conv = v;
   $("#home").hidden = !isHome;
   $("#arts").hidden = !isArts;
   $("#conv").hidden = isHome || isArts;
