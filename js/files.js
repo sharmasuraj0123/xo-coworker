@@ -67,7 +67,7 @@ export function localIn(scope, f) {
 export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null }) {
   const F = {
     host: null, view: "home", scope: { key: "all" }, pick: null, shown: false,
-    dirs: new Map(),     // "<project>|<api path>" → {state, dirs, files, error}
+    dirs: new Map(),     // "<project>|<api path>" → {state, dirs, files, error, v (new with every change)}
     open: new Map(),     // scope key → Set of open folders (paths inside the scope)
     sel: null,           // the file shown, inside the scope (null: none, or one from elsewhere)
     fileView: false,     // narrow: the file is in front of the tree
@@ -79,19 +79,20 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null })
   const setOf = (k) => { if (!F.open.has(k)) F.open.set(k, new Set()); return F.open.get(k); };
   const apiRel = (s, local) => (s.base ? (local ? `${s.base}/${local}` : s.base) : local);
   const dkey = (s, local) => `${s.project}|${apiRel(s, local)}`;
+  let VER = 0;
 
   // ── reading a folder ──────────────────────────────────────────────────────
   async function load(s, local, { again = false } = {}) {
     const k = dkey(s, local);
     const had = F.dirs.get(k);
     if (had && (had.state === "loading" || (had.state === "ok" && !again))) return had;
-    F.dirs.set(k, { ...(had || {}), state: had && had.state === "ok" ? "ok" : "loading" });
+    F.dirs.set(k, { ...(had || {}), state: had && had.state === "ok" ? "ok" : "loading", v: ++VER });
     try {
       const d = await api.projectTree(s.project, apiRel(s, local));
       const strip = (e) => { let p = String(e.relative_path || e.name); if (s.base && p.startsWith(s.base + "/")) p = p.slice(s.base.length + 1); return { name: e.name, path: p, bytes: e.size_bytes ?? null, at: Date.parse(e.modified_at) || 0 }; };
-      F.dirs.set(k, { state: "ok", dirs: (d.dirs || []).map(strip), files: (d.files || []).map(strip) });
+      F.dirs.set(k, { state: "ok", dirs: (d.dirs || []).map(strip), files: (d.files || []).map(strip), v: ++VER });
     } catch (err) {
-      F.dirs.set(k, { state: "error", error: err.status === 404 ? "Not there any more" : "Couldn't read it" });
+      F.dirs.set(k, { state: "error", error: err.status === 404 ? "Not there any more" : "Couldn't read it", v: ++VER });
     }
     paint();
     return F.dirs.get(k);
@@ -122,74 +123,173 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null })
   const dot = (x, words = false) => `<span class="fl-who w-${markOf(x)}"${words ? "" : ` title="${esc(`${x.live ? "Being edited now" : MARK_WORD[x.mark] || x.mark} by ${x.who}`)}"`}><i></i>${words ? esc(x.live ? "editing now" : MARK_WORD[x.mark] || "") : ""}</span>`;
 
   // ── drawing ───────────────────────────────────────────────────────────────
-  function rowsOf(s, local, depth, marks, out) {
-    const d = F.dirs.get(dkey(s, local));
-    if (!d || (d.state === "loading" && !d.dirs)) { out.push(`<p class="fl-note" style="--d:${depth}"><i class="spin" aria-hidden="true"></i>Reading…</p>`); return; }
-    if (d.state === "error") { out.push(`<p class="fl-note is-err" style="--d:${depth}">${esc(d.error)} <button type="button" class="fl-link" data-fl-retry="${esc(local)}">Try again</button></p>`); return; }
-    const q = F.q.trim().toLowerCase();
+  // The tree is drawn a folder at a time. Each open folder's rows sit in their own group (div.fl-g) right
+  // after its row, and a group is redrawn only when what it shows changes: the folder was read again, or an
+  // agent's mark in it changed. Opening or closing a folder adds or removes just its group (a closed folder
+  // keeps its group, to come back as it was), and the file shown is marked in place. So a click no longer
+  // redraws thousands of rows, and keyboard focus stays where it was. A new place or a new search changes
+  // every folder's rows, so those draw the whole tree in one go.
+  const T = { key: null, groups: new Map(), on: null, q: null }; // groups: folder → {el, sig, open (child groups drawn)}
+
+  /** What agents touched, as marks: by file, by folder (the newest, or one being edited), and per folder a
+   *  signature of the marks on its own rows. */
+  function marksOf(tl) {
+    const files = new Map(), dirs = new Map(), sig = new Map();
+    for (const x of tl) {
+      if (x.local == null) continue;
+      files.set(x.local, x);
+      for (let p = parentOf(x.local); p; p = parentOf(p)) if (!dirs.has(p) || x.live) dirs.set(p, markOf(x));
+    }
+    const add = (p, v) => sig.set(p, (sig.get(p) || "") + v + "\n");
+    for (const [p, x] of files) add(parentOf(p), `${p}:${markOf(x)}:${x.who}`);
+    for (const [p, m] of dirs) add(parentOf(p), `${p}/:${m}`);
+    return { files, dirs, sig };
+  }
+
+  /** One folder's own rows (those the search finds, and open folders). An open folder inside it gets a
+   *  group: empty, for sync to fill, or with inner(path)'s rows when the whole tree is drawn at once. */
+  function rowsHtml(s, local, d, marks, q, inner = null) {
+    const depth = local ? local.split("/").length : 0;
+    if (!d || (d.state === "loading" && !d.dirs)) return `<p class="fl-note" style="--d:${depth}"><i class="spin" aria-hidden="true"></i>Reading…</p>`;
+    if (d.state === "error") return `<p class="fl-note is-err" style="--d:${depth}">${esc(d.error)} <button type="button" class="fl-link" data-fl-retry="${esc(local)}">Try again</button></p>`;
     const open = setOf(s.key);
+    let h = "";
     for (const x of d.dirs) {
       const on = open.has(x.path);
       if (q && !x.name.toLowerCase().includes(q) && !on) continue;
-      out.push(`<button type="button" class="fl-r is-dir${on ? " is-open" : ""}" style="--d:${depth}" data-fl-dir="${esc(x.path)}" aria-expanded="${on}"><span class="fl-c">${CH}</span><span class="fl-n">${esc(x.name)}</span>${marks.dirs.has(x.path) ? `<span class="fl-who w-${marks.dirs.get(x.path)}"><i></i></span>` : ""}</button>`);
-      if (on) rowsOf(s, x.path, depth + 1, marks, out);
+      h += `<button type="button" class="fl-r is-dir${on ? " is-open" : ""}" style="--d:${depth}" data-fl-dir="${esc(x.path)}" aria-expanded="${on}"><span class="fl-c">${CH}</span><span class="fl-n">${esc(x.name)}</span>${marks.dirs.has(x.path) ? `<span class="fl-who w-${marks.dirs.get(x.path)}"><i></i></span>` : ""}</button>`;
+      if (on) h += `<div class="fl-g" data-fl-g="${esc(x.path)}">${inner ? inner(x.path) : ""}</div>`;
     }
     for (const x of d.files) {
       if (q && !x.name.toLowerCase().includes(q)) continue;
       const m = marks.files.get(x.path);
-      out.push(`<button type="button" class="fl-r${F.sel === x.path ? " is-on" : ""}" style="--d:${depth}" data-fl-file="${esc(x.path)}" data-fl-bytes="${x.bytes ?? ""}" title="${esc(x.path)}"><span class="fl-c fl-i">${fileIcon(x.name)}</span><span class="fl-n">${esc(x.name)}</span>${m ? dot(m) : ""}<span class="fl-sz">${esc(size(x.bytes))}</span></button>`);
+      h += `<button type="button" class="fl-r" style="--d:${depth}" data-fl-file="${esc(x.path)}" data-fl-bytes="${x.bytes ?? ""}" title="${esc(x.path)}"><span class="fl-c fl-i">${fileIcon(x.name)}</span><span class="fl-n">${esc(x.name)}</span>${m ? dot(m) : ""}<span class="fl-sz">${esc(size(x.bytes))}</span></button>`;
     }
-    if (!d.dirs.length && !d.files.length) out.push(`<p class="fl-note" style="--d:${depth}">Empty</p>`);
+    if (!d.dirs.length && !d.files.length) h += `<p class="fl-note" style="--d:${depth}">Empty</p>`;
+    return h;
   }
 
-  function treeHtml(s) {
-    if (s.key === "all") {
-      const ps = (world.state.projects || []).filter((p) => p && p.id !== "workspace");
-      return `<div class="fl-head"><div class="fl-crumb"><b>Projects</b></div></div><div class="fl-list">` +
-        ps.map((p) => `<button type="button" class="fl-r is-dir" style="--d:0" data-fl-pick="${esc(p.id)}"><span class="fl-c">${CH}</span><span class="fl-n">${esc(p.name || p.id)}</span>${world.state.threads.some((t) => t.project === p.id && isBusy(t)) ? `<span class="fl-who w-live" title="Agents at work"><i></i></span>` : ""}</button>`).join("") + `</div>`;
+  /** A folder's row, opened or closed in place. */
+  function flip(el, p, on) {
+    const b = el.querySelector(`:scope > [data-fl-dir="${CSS.escape(p)}"]`);
+    if (b) { b.classList.toggle("is-open", on); b.setAttribute("aria-expanded", String(on)); }
+    return b;
+  }
+  const group = (p) => {
+    let g = T.groups.get(p);
+    if (!g) { const el = document.createElement("div"); el.className = "fl-g"; el.dataset.flG = p; T.groups.set(p, g = { el, sig: null, open: new Set() }); }
+    return g;
+  };
+
+  /** What a folder's own rows show: its read, the marks on them, the search, and (while searching, when an
+   *  open folder shows even if its name doesn't match) which folders in it are open. */
+  const sigOf = (d, local, ctx) => `${d ? d.v : 0}|${ctx.marks.sig.get(local) || ""}|${ctx.q}|${ctx.q ? (ctx.openIn.get(local) || []).join("\n") : ""}`;
+  /** The row that had focus, found again after its rows were drawn anew. */
+  function refocus(had, root) {
+    if (!had) return;
+    if (had.isConnected) { had.focus({ preventScroll: true }); return; }
+    const k = had.dataset.flDir != null ? `[data-fl-dir="${CSS.escape(had.dataset.flDir)}"]` : had.dataset.flFile != null ? `[data-fl-file="${CSS.escape(had.dataset.flFile)}"]` : null;
+    (k && root.querySelector(k))?.focus({ preventScroll: true });
+  }
+
+  /** The whole tree in one go: on a new place, and when the search changes (every folder's rows do). */
+  function drawAll(s, ctx) {
+    const root = T.groups.get("").el, made = new Map();
+    const a = document.activeElement, had = a && root.contains(a) ? a : null;
+    const inner = (p) => {
+      const d = F.dirs.get(dkey(s, p)), g = { el: null, sig: sigOf(d, p, ctx), open: new Set() };
+      made.set(p, g);
+      return rowsHtml(s, p, d, ctx.marks, ctx.q, (c) => { g.open.add(c); return inner(c); });
+    };
+    root.innerHTML = inner("");
+    made.get("").el = root;
+    for (const el of root.querySelectorAll(".fl-g")) made.get(el.dataset.flG).el = el;
+    T.groups = made;
+    refocus(had, root);
+  }
+
+  /** Bring a folder's group up to date, then the open folders inside it. */
+  function sync(s, local, g, ctx) {
+    const d = F.dirs.get(dkey(s, local));
+    const sig = sigOf(d, local, ctx);
+    if (g.sig !== sig) {
+      const a = document.activeElement, had = a && g.el.contains(a) ? a : null;
+      g.el.innerHTML = rowsHtml(s, local, d, ctx.marks, ctx.q);
+      g.sig = sig; g.open.clear();
+      for (const ph of g.el.querySelectorAll(":scope > .fl-g")) {
+        const c = T.groups.get(ph.dataset.flG);
+        if (c) ph.replaceWith(c.el); else T.groups.set(ph.dataset.flG, { el: ph, sig: null, open: new Set() });
+        g.open.add(ph.dataset.flG);
+      }
+      refocus(had, g.el);
+    } else {
+      const open = ctx.open;
+      for (const p of g.open) if (!open.has(p)) { flip(g.el, p, false); T.groups.get(p).el.remove(); g.open.delete(p); }
+      for (const p of ctx.openIn.get(local) || []) {
+        if (g.open.has(p)) continue;
+        const b = flip(g.el, p, true);
+        if (b) { b.after(group(p).el); g.open.add(p); }
+      }
     }
-    const tl = touched(s);
-    const marks = { files: new Map(), dirs: new Map() };
-    for (const x of tl) {
-      if (x.local == null) continue;
-      marks.files.set(x.local, x);
-      for (let p = parentOf(x.local); p; p = parentOf(p)) if (!marks.dirs.has(p) || x.live) marks.dirs.set(p, markOf(x));
-    }
-    const rows = [];
-    rowsOf(s, "", 0, marks, rows);
-    const head = `<div class="fl-head"><div class="fl-crumb">${F.pick || (F.follow && F.viewKey === "all") ? `<button type="button" class="fl-up" data-fl-unpick title="Your projects">${BACK}</button>` : ""}<b>${esc(s.label)}</b>${s.sub ? `<small title="${s.base ? "A thread's own worktree: its branch" : ""}">${esc(s.sub)}</small>` : ""}</div>` +
-      `<label class="fl-q"><span class="sr-only">Find a file</span>${ICON.search}<input data-fl-q placeholder="Find a loaded file" value="${esc(F.q)}" autocomplete="off" spellcheck="false"></label></div>`;
-    // what this place changed (Space's /changes): every file with its counts, each opening on its diff; where
-    // Space has no /changes yet, what agents touched (from the turns)
+    for (const p of g.open) sync(s, p, T.groups.get(p), ctx);
+  }
+
+  function headHtml(s) {
+    return `<div class="fl-crumb">${F.pick || (F.follow && F.viewKey === "all") ? `<button type="button" class="fl-up" data-fl-unpick title="Your projects">${BACK}</button>` : ""}<b>${esc(s.label)}</b>${s.sub ? `<small title="${s.base ? "A thread's own worktree: its branch" : ""}">${esc(s.sub)}</small>` : ""}</div>` +
+      `<label class="fl-q"><span class="sr-only">Find a file</span>${ICON.search}<input data-fl-q placeholder="Find a loaded file" autocomplete="off" spellcheck="false"></label>`;
+  }
+  /** Above the tree: what this place changed (Space's /changes), every file with its counts, each opening on
+   *  its diff; where Space can't say, what agents touched (from the turns). */
+  function secHtml(s, tl) {
     const cs = changes && s.key === F.viewKey ? changes.of(F.view) : null;
-    let sec = "";
     if (cs && cs.state === "ok" && cs.files.size) {
       const live = changes.activity(F.view).live;
-      sec = `<p class="fl-sec">Changed ${s.base ? "in this thread" : "here"}</p>` + [...cs.files.values()].map((f) => {
+      return `<p class="fl-sec">Changed ${s.base ? "in this thread" : "here"}</p>` + [...cs.files.values()].map((f) => {
         const rel = s.base ? `${s.base}/${f.path}` : f.path, on = viewer.hasFile && viewer.file && viewer.file.rel === rel && viewer.file.show === "changes";
         return `<button type="button" class="fl-r is-touch${on ? " is-on" : ""}" style="--d:0" data-fl-change="${esc(rel)}" title="${esc(f.path)}"><span class="fl-c fl-i">${fileIcon(f.path)}</span><span class="fl-n">${esc(f.path)}</span>${live.has(f.path) ? `<span class="fl-who w-live"><i></i>editing now</span>` : f.binary ? "" : countsHtml(f)}</button>`;
       }).join("") + `<p class="fl-sec">All files</p>`;
-    } else {
-      const top = tl.slice(0, TOUCHED);
-      sec = top.length ? `<p class="fl-sec">Touched by agents</p>` + top.map((x) => `<button type="button" class="fl-r is-touch" style="--d:0" data-fl-touch="${esc(x.rel)}" title="${esc(`${x.path} · ${x.who}`)}"><span class="fl-c fl-i">${fileIcon(x.path)}</span><span class="fl-n">${esc(x.path)}</span>${dot(x, true)}</button>`).join("") + `<p class="fl-sec">All files</p>` : "";
     }
-    return head + `<div class="fl-list">${sec}${rows.join("")}</div>`;
+    const top = tl.slice(0, TOUCHED);
+    return top.length ? `<p class="fl-sec">Touched by agents</p>` + top.map((x) => `<button type="button" class="fl-r is-touch" style="--d:0" data-fl-touch="${esc(x.rel)}" title="${esc(`${x.path} · ${x.who}`)}"><span class="fl-c fl-i">${fileIcon(x.path)}</span><span class="fl-n">${esc(x.path)}</span>${dot(x, true)}</button>`).join("") + `<p class="fl-sec">All files</p>` : "";
+  }
+  const pickHtml = () => `<div class="fl-head"><div class="fl-crumb"><b>Projects</b></div></div><div class="fl-list">` +
+    (world.state.projects || []).filter((p) => p && p.id !== "workspace").map((p) => `<button type="button" class="fl-r is-dir" style="--d:0" data-fl-pick="${esc(p.id)}"><span class="fl-c">${CH}</span><span class="fl-n">${esc(p.name || p.id)}</span>${world.state.threads.some((t) => t.project === p.id && isBusy(t)) ? `<span class="fl-who w-live" title="Agents at work"><i></i></span>` : ""}</button>`).join("") + `</div>`;
+  const put = (node, html) => { if (node._h !== html) { node.innerHTML = html; node._h = html; return true; } return false; };
+
+  function paintTree(s, tree) {
+    if (s.key === "all") {
+      if (T.key !== "all") { T.key = "all"; T.groups = new Map(); T.on = null; tree._h = null; }
+      put(tree, pickHtml());
+      return;
+    }
+    if (T.key !== s.key || !tree.firstElementChild) {
+      tree.innerHTML = `<div class="fl-head"></div><div class="fl-list"><div class="fl-secs"></div><div class="fl-g" data-fl-g=""></div></div>`;
+      tree._h = null; T.key = s.key; T.on = null; T.q = null;
+      T.groups = new Map([["", { el: tree.querySelector(".fl-list > .fl-g"), sig: null, open: new Set() }]]);
+    }
+    const head = tree.querySelector(".fl-head");
+    const qi = head.querySelector("[data-fl-q]"), typing = qi && document.activeElement === qi ? [qi.selectionStart, qi.selectionEnd] : null;
+    if (put(head, headHtml(s)) && typing) { const q2 = head.querySelector("[data-fl-q]"); q2.value = F.q; q2.focus(); q2.setSelectionRange(...typing); }
+    const q = head.querySelector("[data-fl-q]");
+    if (q.value !== F.q) q.value = F.q;
+    const tl = touched(s);
+    put(tree.querySelector(".fl-secs"), secHtml(s, tl));
+    const open = setOf(s.key), openIn = new Map();
+    for (const p of open) { const at = parentOf(p); if (!openIn.has(at)) openIn.set(at, []); openIn.get(at).push(p); }
+    const ctx = { marks: marksOf(tl), open, openIn, q: F.q.trim().toLowerCase() };
+    if (T.q !== ctx.q) { drawAll(s, ctx); T.q = ctx.q; } else sync(s, "", T.groups.get(""), ctx);
+    // the file shown, marked in its folder's group
+    const g = F.sel != null ? T.groups.get(parentOf(F.sel)) : null;
+    const want = g ? g.el.querySelector(`:scope > [data-fl-file="${CSS.escape(F.sel)}"]`) : null;
+    if (T.on !== want) T.on?.classList.remove("is-on");
+    want?.classList.add("is-on");
+    T.on = want;
   }
 
   function paint() {
     if (!F.host || !F.shown) return;
     const s = F.scope;
-    const tree = F.host.querySelector(".fl-tree");
-    const q = tree.querySelector("[data-fl-q]");
-    const typing = q && document.activeElement === q;
-    const caret = typing ? [q.selectionStart, q.selectionEnd] : null;
-    const html = treeHtml(s);
-    if (tree._h !== html) {
-      const list = tree.querySelector(".fl-list"), top = list ? list.scrollTop : 0;
-      tree.innerHTML = html; tree._h = html;
-      const l2 = tree.querySelector(".fl-list"); if (l2) l2.scrollTop = top;
-      if (caret) { const q2 = tree.querySelector("[data-fl-q]"); q2.focus(); q2.setSelectionRange(...caret); }
-    }
+    paintTree(s, F.host.querySelector(".fl-tree"));
     const has = viewer.hasFile;
     const lay = F.host.querySelector(".fl");
     lay.classList.toggle("is-wide", F.wide);
