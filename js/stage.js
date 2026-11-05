@@ -119,6 +119,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     LPF.querySelector("[data-fr-fold]").setAttribute("aria-expanded", String(S.lp));
     LPF.querySelector("[data-fr-fold]").title = S.lp ? "Fold" : "Open";
     el.classList.toggle("is-lp", S.lp);
+    pressDeploy();
     el.querySelector('[data-gut="changes|agents"]').hidden = !(on("changes") && (on("agents") || on("map")));
     el.querySelector('[data-gut="agents|map"]').hidden = !(on("agents") && on("map"));
     for (const id of ORDER) {
@@ -245,6 +246,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     el.hidden = true;
     document.body.classList.remove("stage-open", "stage-rail");
     S.rail = false;
+    pressDeploy();
     map.hide();
     persist();
     const back = S.returnTo || document.querySelector("[data-stage-toggle]");
@@ -259,8 +261,13 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     S.lp = true;
     S.lpOpened = !S.open; // pressed again, Deploy puts things back as they were: the panel closed, or Launchpad folded
     if (!S.open || S.rail) open({ focus: false }); else { layout(); paint(); }
-    requestAnimationFrame(() => LPF.querySelector(".fr-b")?.focus?.({ preventScroll: true }));
-    onChange && onChange();
+  }
+
+  /** The header's Deploy shows Launchpad open as pressed. Set here, where it changes, rather than by redrawing the
+   *  app: the header's next draw writes the same state (app.js asks launchOpen), so the two never disagree. */
+  function pressDeploy() {
+    const on = S.open && S.lp && !S.rail;
+    for (const b of document.querySelectorAll("[data-lp-open]")) { b.classList.toggle("is-on", on); b.setAttribute("aria-pressed", String(on)); }
   }
 
   function setFull(on) {
@@ -300,10 +307,10 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
       if (id === "launch") S.lp = !S.lp;
       else if (S.lp) { S.lp = false; fr[id].folded = false; } // a head under an open Launchpad opens its frame
       else fr[id].folded = !fr[id].folded;
-      layout(); paint(); persist(); onChange && onChange(); return;
+      layout(); paint(); persist(); return;
     }
     // Launchpad's head, folded: anywhere on it opens it (its links and buttons do their own thing)
-    if (t.closest('[data-fr="launch"] .fr-h') && !S.lp && !t.closest("a,button")) { S.lp = true; layout(); paint(); onChange && onChange(); return; }
+    if (t.closest('[data-fr="launch"] .fr-h') && !S.lp && !t.closest("a,button")) { S.lp = true; layout(); paint(); return; }
     const mm = t.closest("[data-map-mode]");
     if (mm) { if (fr.map.folded) { fr.map.folded = false; layout(); } map.setMode(mm.dataset.mapMode); paint(); return; }
     if (t.closest("[data-open-files]")) { filesView.open(); return; }
@@ -445,7 +452,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     /** The header's Deploy. */
     launch() {
       if (!(S.open && S.lp && !S.rail)) { openLaunch(); return; }
-      if (S.lpOpened) close(); else { S.lp = false; layout(); paint(); onChange && onChange(); }
+      if (S.lpOpened) close(); else { S.lp = false; layout(); paint(); }
     },
     /** Is Launchpad open in the panel (the header's Deploy reads as pressed)? */
     get launchOpen() { return S.open && S.lp && !S.rail; },
