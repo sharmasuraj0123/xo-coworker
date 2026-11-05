@@ -46,6 +46,8 @@ const since = (at) => `<span class="elapsed" data-since="${at}">${clock(Date.now
 /** An address in two parts: the app's own (xo-coworker-xo-4f1c2a9) and Launchpad's domain (.apps.xo.builders). */
 const split = (host) => { const i = String(host || "").indexOf("."); return i < 0 ? [host || "", ""] : [host.slice(0, i), host.slice(i)]; };
 const own = (name) => `${esc(name || "your-app")}-xo-<i class="lp-hash">·······</i>`;
+/** Where Space found a value, in a few words ("Dockerfile EXPOSE" → "the Dockerfile"). */
+const where = (src) => (/^Dockerfile/.test(src) ? "the Dockerfile" : /^package\.json/.test(src) ? "package.json" : /^default/.test(src) ? "the default" : src);
 const slug = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
 
 /**
@@ -191,13 +193,16 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     const real = r?.live?.host || (mode === "live" && c.app ? c.app.host : "");
     const [mine, domain] = real ? split(real) : ["", ".apps.xo.builders"];
     const port = f.port || "—";
-    const st = (n) => (mode === "preview" ? "plan" : mode === "live" ? "done" : r?.steps[n]?.state || "todo");
+    // GitHub in the way (not connected, or no workflow permission) is said on the repository's row, in amber
+    const gh = !c.github ? "" : !c.github.connected ? "GitHub isn't connected" : !c.github.workflow ? "GitHub needs the workflow permission" : "";
+    const st = (n) => (mode === "preview" ? (n === "repo" && gh ? "need" : "plan") : mode === "live" ? "done" : r?.steps[n]?.state || "todo");
     const meta = (n) => {
       const x = st(n), step = r?.steps[n];
       if (n === "live" && x === "done") return "";
       if (x === "done") return `<span class="lp-ok" title="Done">${ICON.check}</span>`;
       if (x === "failed") return `<span class="lp-bad" title="Failed">${LP_ICON.x}</span>`;
       if (x === "doing") return `<span class="lp-tm">${since(step.at)}</span><i class="lp-arc" aria-hidden="true"></i>`;
+      if (x === "need") return `<i class="lp-warn" title="${esc(gh)}"></i>`;
       return n === "repo" && mode === "preview" ? `<span class="lp-k">${esc(c.repo.branch || "main")}</span>` : n === "release" && mode === "preview" ? `<span class="lp-k">:${esc(port)}</span>` : "";
     };
     const sub = (n) => {
@@ -210,7 +215,8 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
         if (n === "release" && x === "doing" && step.of) return `Release #${r.release} · ${step.ready} of ${step.of} ready`;
         return esc(step.text);
       }
-      if (n === "repo") return admin ? `Your repository · ${esc(c.repo.branch || "main")}` : `Private, in your GitHub`;
+      if (n === "repo" && x === "need") return gh;
+      if (n === "repo") return admin ? `Your repository · ${esc(c.repo.branch || "main")}` : `<span title="You're not an admin on ${esc(c.repo.full)}, so Launchpad can't add its build there">Private copy · you're not admin on origin</span>`;
       if (n === "build") return "Built by GitHub Actions on every push";
       return mode === "live" ? `Release #${r?.live?.release || c.app?.release || 1} · port ${esc(port)}` : `1 instance · port ${esc(port)}`;
     };
@@ -236,19 +242,18 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     const from = [...new Set(env.map((x) => x.source).filter(Boolean))].join(", ");
     return head(`Put ${esc(nameOf(p))} on the web`, guessed ? "Found these in the project. Check them, then deploy." : "Launchpad builds it on every push and runs it.") +
       rows(p, "preview") +
-      (S.v && S.v.startsWith("t:") ? `<p class="lp-note lp-src">${ICON.branch}<span>Deploys <b>${esc(c.repo.branch || "main")}</b> as it is now. This thread's work goes out once it's merged.</span></p>` : "") +
-      (!admin ? `<p class="lp-note">You're not an admin on <b>${esc(c.repo.full)}</b>, so XO puts a private copy in your GitHub for Launchpad to build.</p>` : "") +
+      (S.v && S.v.startsWith("t:") ? `<p class="lp-note lp-src" title="This thread's work goes out once it's merged into ${esc(c.repo.branch || "main")}">${ICON.branch}<span>Deploys <b>${esc(c.repo.branch || "main")}</b>, not this thread's branch.</span></p>` : "") +
       `<div class="lp-set">` +
       field("name", "Name", f.name, { hint: e.name || "In the address; it can't change later.", bad: !!e.name, fix: e.nameFix }) +
-      field("port", "Port", f.port, { hint: e.port || (c.portFrom ? `From ${esc(c.portFrom)}` : "Where the app listens"), bad: !!e.port, mode: "numeric", short: true }) +
+      field("port", "Port", f.port, { hint: e.port || (c.portFrom ? `${c.portSure === false ? "A guess from" : "From"} ${esc(where(c.portFrom))}` : "Where the app listens"), bad: !!e.port, mode: "numeric", short: true }) +
       `</div>` +
       (env.length ? `<fieldset class="lp-env"><legend><span>Environment</span>${from ? `<small>from ${esc(from)}</small>` : ""}</legend>` +
         env.map((x) => `<label class="lp-f lp-ev"><span class="lp-l lp-mono" title="${esc(x.name)}">${esc(x.name)}</span><input class="lp-in" data-lp-env="${esc(x.name)}" type="${x.sensitive ? "password" : "text"}" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${esc(x.default || "")}" value="${esc(f.env[x.name] || "")}" aria-label="${esc(x.name)}"></label>`).join("") +
         `<p class="lp-lock">${ICON.lock}<span>Straight to Launchpad; XO never keeps them.</span></p></fieldset>` : "") +
-      (scope
+      `<div class="lp-foot">` + (scope
         ? `<button type="button" class="lp-go lp-wide" data-lp="deploy">${LP_ICON.rocket}<span>Deploy ${esc(f.name || nameOf(p))}</span></button>`
-        : `<div class="lp-need">${ICON.lock}<p><b>One thing first.</b> GitHub needs the <code>workflow</code> permission so Launchpad can add its build.</p></div><button type="button" class="lp-go lp-wide" data-lp="reconnect">${LP_ICON.github}<span>Reconnect GitHub</span></button>`) +
-      `<div class="lp-alt"><button type="button" class="lp-a" data-lp="pick">${LP_ICON.link}<span>Link an app already on Launchpad</span></button></div>`;
+        : `<button type="button" class="lp-go lp-wide" data-lp="reconnect">${LP_ICON.github}<span>${c.github.connected ? "Reconnect GitHub" : "Connect GitHub"}</span></button>`) +
+      `<div class="lp-alt"><button type="button" class="lp-a" data-lp="pick">${LP_ICON.link}<span>Link an app already on Launchpad</span></button></div></div>`;
   }
   function field(id, label, value, { hint = "", bad = false, mode = "text", short = false, fix = "" } = {}) {
     return `<label class="lp-f${bad ? " is-bad" : ""}"><span class="lp-l">${label}</span><span class="lp-v${short ? " is-row" : ""}"><input class="lp-in${short ? " is-short" : ""}" data-lp-f="${id}" value="${esc(value || "")}" inputmode="${mode}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="lp-h-${id}"${bad ? ' aria-invalid="true"' : ""}><span class="lp-hint" id="lp-h-${id}">${hint}${fix ? ` <button type="button" class="lp-a lp-fix" data-lp="use-name" data-v="${esc(fix)}">Use ${esc(fix)}</button>` : ""}</span></span></label>`;
@@ -373,6 +378,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       S.body.innerHTML = `<div class="lp${fresh ? " is-new" : ""}" data-screen="${b.key.split("|")[1]}">${b.html}</div>`;
       if (fresh) S.body.scrollTop = 0;
       S.key = b.key; S.html = same;
+      requestAnimationFrame(over);
       if (focus) { const n = S.body.querySelector(focus); if (n) { n.focus({ preventScroll: true }); if (caret && n.setSelectionRange) try { n.setSelectionRange(...caret); } catch { /* a number field */ } } }
     }
   }
@@ -510,8 +516,13 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   }
   let onOpen = null, onHide = null;
 
+  /** More below than the section shows: its foot fades rather than ending on a cut row. */
+  function over() { const b = S.body; if (b) b.classList.toggle("is-over", b.scrollTop + b.clientHeight < b.scrollHeight - 1); }
+
   function mount(section, { open, hide }) {
     S.el = section; S.hs = section.querySelector(".lp-hs"); S.ha = section.querySelector(".lp-ha"); S.body = section.querySelector(".fr-b");
+    S.body.addEventListener("scroll", over, { passive: true });
+    addEventListener("resize", over);
     onOpen = open; onHide = hide;
     section.addEventListener("click", (e) => {
       const b = e.target.closest("[data-lp]");

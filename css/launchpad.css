@@ -23,6 +23,12 @@
 .stage .fr-line{flex:none;height:1px;margin:0 12px;background:var(--panel-line)}
 .stage .fr-lp.is-grow{min-height:0}
 .stage .fr-lp>.fr-b{outline:none;overscroll-behavior:contain}
+.stage .fr-lp>.fr-b.is-over:not(:has(.lp-foot)){-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 32px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 32px),transparent)}
+/* the form's Deploy stays in reach: in a short window it sits at the section's foot, the fields scrolling under a fade */
+.lp-foot{position:sticky;z-index:1;bottom:0;margin-bottom:-16px;padding-bottom:12px;background:var(--side)}
+.lp-foot::before{content:"";position:absolute;left:0;right:0;bottom:100%;height:32px;background:linear-gradient(to bottom,transparent,var(--side));opacity:0;pointer-events:none;transition:opacity var(--d-hover) var(--ease)}
+.stage .fr-lp>.fr-b.is-over .lp-foot::before{opacity:1}
+.lp-foot .lp-wide{margin-top:16px}
 
 /* ── the head: Launchpad, where it stands, the address or Deploy ──────────────────────────────── */
 .stage .fr-lp .fr-h{cursor:default}
@@ -61,7 +67,7 @@
 .lp-h.t-stop{color:var(--err-ink)}
 .lp-h.t-need{color:var(--need)}
 .lp-p{margin:2px 0 0;font:400 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
-.lp :is(.lp-p,.lp-note,.lp-need p,.lp-rec p) code{padding:0 4px;border-radius:4px;background:var(--g22);font:400 var(--fs-sm)/16px var(--mono);color:var(--ink-3)}
+.lp :is(.lp-p,.lp-note,.lp-rec p) code{padding:0 4px;border-radius:4px;background:var(--g22);font:400 var(--fs-sm)/16px var(--mono);color:var(--ink-3)}
 .lp-mono{font-family:var(--mono)}
 
 /* the card: repository → image → app → address */
@@ -97,6 +103,9 @@
 .lp-n.is-doing .lp-t{color:var(--work);background:color-mix(in srgb,var(--work) 10%,var(--panel-surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--work) 50%,transparent)}
 .lp-n.is-doing .lp-c>b{color:var(--ink)}
 .lp-n.is-done .lp-t{color:var(--go);background:color-mix(in srgb,var(--go) 8%,var(--panel-surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--go) 32%,transparent)}
+.lp-n.is-need .lp-t{color:var(--need);background:color-mix(in srgb,var(--need) 10%,var(--panel-surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--need) 45%,transparent)}
+.lp-n.is-need .lp-c>span{color:var(--need)}
+.lp-warn{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:9px solid var(--need)}
 .lp-n.is-failed .lp-t{color:var(--err-ink);background:color-mix(in srgb,var(--danger) 10%,var(--panel-surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--danger) 55%,transparent)}
 .lp-n.is-failed .lp-c>b{color:var(--ink)}
 .lp-n.is-failed .lp-c>span{color:var(--err-ink)}
@@ -135,10 +144,6 @@
 .lp-ev .lp-l{padding:0;font:400 var(--fs-sm)/20px var(--mono);color:var(--ink-2)}
 .lp-lock{display:flex;align-items:center;gap:6px;margin:0;padding:4px 8px 0;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
 .lp-lock svg{flex:none;width:14px;height:14px}
-.lp-need{display:flex;align-items:flex-start;gap:8px;margin:16px 12px 0;padding:8px 12px;border-radius:var(--r-lg);background:color-mix(in srgb,var(--need) 8%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--need) 25%,transparent)}
-.lp-need svg{flex:none;width:16px;height:16px;margin-top:0;color:var(--need)}
-.lp-need p{margin:0;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-2)}
-.lp-need b{font-weight:600}
 
 /* ── buttons: lit (the one thing to do), quiet (an alternative), a word (a way out) ───────────────── */
 .lp-go{display:flex;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;height:36px;padding:0 16px;border-radius:var(--r-lg);border:0;background:var(--accent-fill);color:var(--accent-ink);font:600 var(--fs-base)/20px var(--sans);text-decoration:none;white-space:nowrap;box-shadow:0 0 0 1px color-mix(in srgb,var(--accent-fill) 50%,transparent),0 6px 18px -8px color-mix(in srgb,var(--accent-fill) 70%,transparent);transition:background var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease),transform 90ms var(--ease)}
@@ -228,7 +233,7 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 :root[data-theme="light"] .lp-t{background:var(--surface);box-shadow:inset 0 0 0 1px var(--panel-line)}
 :root[data-theme="light"] .lp-agr{background:var(--surface);box-shadow:inset 0 0 0 1px var(--panel-line),var(--panel-lift)}
 :root[data-theme="light"] .lp-agr .arc{background:var(--surface)}
-:root[data-theme="light"] .lp :is(.lp-p,.lp-note,.lp-need p,.lp-rec p) code{background:rgba(0,0,0,.05)}
+:root[data-theme="light"] .lp :is(.lp-p,.lp-note,.lp-rec p) code{background:rgba(0,0,0,.05)}
 :root[data-theme="light"] .tw-act.lp-btn.is-on{background:rgba(0,0,0,.07);border-color:rgba(0,0,0,.16)}
 
 @media (prefers-reduced-motion:reduce){
