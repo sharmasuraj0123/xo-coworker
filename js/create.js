@@ -19,7 +19,8 @@ export const slugify = (name) => String(name || "").normalize("NFKD").replace(/[
 export function parseRepo(raw) {
   const v = String(raw || "").trim();
   if (!v || /\s/.test(v)) return null;
-  const gh = v.match(/^(?:(?:https?:\/\/)?(?:www\.)?github\.com\/)?([A-Za-z0-9-]{1,39})\/([A-Za-z0-9._-]{1,100}?)(?:\.git)?(?:\/(?:tree|blob)\/.*)?\/?$/);
+  // A browser's GitHub address may carry ?tab=… or #readme: neither names a different repo
+  const gh = v.replace(/^((?:https?:\/\/)?(?:www\.)?github\.com\/[^?#]*)[?#].*$/i, "$1").match(/^(?:(?:https?:\/\/)?(?:www\.)?github\.com\/)?([A-Za-z0-9-]{1,39})\/([A-Za-z0-9._-]{1,100}?)(?:\.git)?(?:\/(?:tree|blob)\/.*)?\/?$/i);
   if (gh && !/^\.+$/.test(gh[2])) return { url: `https://github.com/${gh[1]}/${gh[2]}.git`, label: `${gh[1]}/${gh[2]}`, name: gh[2], github: true };
   const ssh = v.match(/^git@([A-Za-z0-9.-]+):([A-Za-z0-9._/-]+?)(?:\.git)?$/);
   // GitHub's SSH form clones over HTTPS, so the GitHub connection (not this server's SSH keys) opens it
@@ -28,7 +29,7 @@ export function parseRepo(raw) {
   try {
     const u = new URL(v);
     const path = u.pathname.replace(/\/+$/, "").replace(/\.git$/, "");
-    if (!/^(https|ssh):$/.test(u.protocol) || u.password || u.search || u.hash || path.split("/").filter(Boolean).length < 1) return null;
+    if (!/^(https|ssh):$/.test(u.protocol) || u.password || (u.username && u.protocol === "https:") || u.search || u.hash || path.split("/").filter(Boolean).length < 1) return null;
     return { url: v, label: `${u.host}${path}`, name: path.split("/").pop(), github: false };
   } catch { return null; }
 }
@@ -163,9 +164,12 @@ export function initCreate(ctx) {
     const id = busy?.cloneId;
     if (!id) return;
     $("#cp-stop").disabled = true;
-    try { await api.cancelClone(id); } catch (err) {
+    try {
+      // Too late to stop: the project is already published, so Space ends the job "done". Following it opens it.
+      if ((await api.cancelClone(id))?.state === "done") return;
+    } catch (err) {
+      if (err.code === "clone_finished") return; // it finished (or failed) first: following it shows how
       $("#cp-stop").disabled = false;
-      if (err.code === "clone_finished") return; // it finished first: following it shows how
       if (err.status !== 404) { error(`Couldn't stop it: ${err.message}`); return; }
     }
     setBusy(false);
