@@ -84,6 +84,10 @@
 .lk-out:hover .lk-ar{transform:translate(1.5px,-1.5px)}
 /* a bare address is shown as people read it (host and path) in the code face */
 .lk-out.is-bare .lk-t{font:400 .9em/1 var(--mono);letter-spacing:-.01em}
+/* wrapping (QA F3): an address breaks at its own seams (js/markdown.js puts <wbr> after / - _ and before
+   . ? & = #), never mid-word unless one piece is wider than the line; the last piece and the ↗ never part */
+.lk-out .lk-t{overflow-wrap:break-word;word-break:normal}
+.lk-end{white-space:nowrap}
 
 @media (prefers-reduced-motion:reduce){
   .lk-ar,.lk-in{transition:none}

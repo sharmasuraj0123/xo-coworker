@@ -276,7 +276,8 @@ t("markdown: a bare http(s) picture address on its own line is one; in a sentenc
   const mid = seen("Look ![the pool](https://ex.com/pool.jpg) before you book.");
   assert.deepEqual(mid.runs, []);
   assert.ok(!mid.html.includes("!"), mid.html);
-  assert.match(mid.html, /<span class="lk-t">the pool<\/span>/);
+  // an outbound link's last word holds the ↗ (QA F3)
+  assert.match(mid.html, /<span class="lk-t">the <\/span><span class="lk-end"><span class="lk-t">pool<\/span><svg class="lk-ar"/);
 });
 t("markdown: only http(s): data:, javascript: and blob: are never pictures, never links", () => {
   for (const src of ["![x](data:image/png;base64,iVBORw0KGgo=)", "![x](javascript:alert)", "![x](blob:https://ex.com/1234)", "![x](//ex.com/a.png)", "![x](ftp://ex.com/a.png)"]) {
@@ -292,7 +293,7 @@ t("markdown without the app's renderer (or the setting off): the same lines are 
   MD.setWebImages(() => null);
   const html = MD.renderMarkdown("![The loft](https://ex.com/loft.jpg)\nhttps://ex.com/b.png");
   MD.setWebImages(null);
-  assert.match(html, /^<p><a href="https:\/\/ex\.com\/loft\.jpg"[^>]*class="lk lk-out"[^>]*><span class="lk-t">The loft<\/span><svg class="lk-ar"/);
+  assert.match(html, /^<p><a href="https:\/\/ex\.com\/loft\.jpg"[^>]*class="lk lk-out"[^>]*><span class="lk-t">The <\/span><span class="lk-end"><span class="lk-t">loft<\/span><svg class="lk-ar"/);
   assert.match(html, /<br><a href="https:\/\/ex\.com\/b\.png"[^>]*class="lk lk-out is-bare"/);
   assert.ok(!/<img/.test(html));
 });
@@ -315,16 +316,16 @@ t("web pictures: no referrer, lazy, async, no crossorigin; the 16:10 frame (size
 t("a web picture that can't show becomes its outbound link (alt or host, ↗), no broken image; it isn't tried again", () => {
   const titled = M.fromWebImage({ alt: "The loft", url: "https://ex.com/gone.jpg" });
   const link = M.webLinkHtml(titled);
-  assert.match(link, /^<a href="https:\/\/ex\.com\/gone\.jpg" target="_blank" rel="noopener noreferrer nofollow" class="lk lk-out mx-weblink" title="https:\/\/ex\.com\/gone\.jpg"><span class="lk-t">The loft<\/span><svg class="lk-ar"/);
+  assert.match(link, /^<a href="https:\/\/ex\.com\/gone\.jpg" target="_blank" rel="noopener noreferrer nofollow" class="lk lk-out mx-weblink" title="https:\/\/ex\.com\/gone\.jpg"><span class="lk-t">The <\/span><span class="lk-end"><span class="lk-t">loft<\/span><svg class="lk-ar"/);
   assert.ok(!/<img/.test(link));
-  assert.match(M.webLinkHtml(M.fromWebImage({ alt: "", url: "https://www.blocked.example/x.png" })), /<span class="lk-t">blocked\.example<\/span>/);
+  assert.match(M.webLinkHtml(M.fromWebImage({ alt: "", url: "https://www.blocked.example/x.png" })), /<span class="lk-t">blocked<\/span><span class="lk-end"><span class="lk-t">\.example<\/span><svg class="lk-ar"/);
   assert.equal(M.webGone("https://ex.com/gone.jpg"), false);
   M.markWebGone("https://ex.com/gone.jpg");
   assert.equal(M.webGone("https://ex.com/gone.jpg"), true);
   const html = M.webImagesHtml([{ alt: "The loft", url: "https://ex.com/gone.jpg" }, { alt: "The pool", url: "https://ex.com/pool.jpg" }]);
   assert.ok(!/data-mx-img="web:https:\/\/ex\.com\/gone\.jpg"/.test(html), "the failed one isn't drawn as a picture again");
   assert.match(html, /class="mx-one is-frame" data-mx="web:https:\/\/ex\.com\/pool\.jpg"/);
-  assert.match(html, /<p class="mx-weblinks"><a href="https:\/\/ex\.com\/gone\.jpg"[^>]*><span class="lk-t">The loft<\/span>/);
+  assert.match(html, /<p class="mx-weblinks"><a href="https:\/\/ex\.com\/gone\.jpg"[^>]*><span class="lk-t">The <\/span><span class="lk-end"><span class="lk-t">loft<\/span>/);
   assert.deepEqual(JSON.parse(html.match(/data-mx-keys="([^"]+)"/)[1].replace(/&quot;/g, '"')), ["web:https://ex.com/pool.jpg"], "the lightbox walks only what shows");
   // all of them gone: only their links
   assert.equal(M.webImagesHtml([{ alt: "The loft", url: "https://ex.com/gone.jpg" }]).includes("<img"), false);

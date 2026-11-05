@@ -6,7 +6,8 @@
    28 → 18 at 10 in, a quote in a bubble 20 → 14 at 6 in, a card's progress band 20 → 4 at 16 in). */
 
 /* ── back to the latest ──────────────────────────────────────────────────────
-   A 40 px glass circle 12 px above the composer, its right edge on the composer's right edge. It rises in
+   A 40 px glass circle 12 px above what's docked (the composer, or a decision card docked over it: its real
+   top, tracked in msgx.js), its right edge on the composer's right edge. It rises in
    when you've read up more than half a screen; new messages since are counted on it in a quiet ink pill. */
 :root[data-msgx] #new-below{display:none!important}
 .mx-down{position:absolute;z-index:4;right:calc(var(--gut) + var(--rp));bottom:calc(var(--dock-h) + 12px);display:grid;place-items:center;width:40px;height:40px;border:1px solid var(--line);border-radius:50%;background:color-mix(in srgb,var(--bg-2) 90%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);box-shadow:var(--e2),var(--hairline);color:var(--ink-2);opacity:0;transform:translateY(8px) scale(.92);pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease),color var(--d-hover) var(--ease)}
@@ -105,11 +106,20 @@ body.files-open .mx-down{display:none}
    no second halo or separately shadowed tail, and no filter on the text or the reply controls. */
 :root[data-msgx]{--mx-lift:0 2px 3px -2px rgba(0,0,0,.14)}
 :root[data-theme="light"][data-msgx]{--mx-lift:0 2px 3px -2px rgba(0,0,0,.10)}
-:root[data-msgx]{--mx-them:linear-gradient(180deg,oklch(.30 .004 260),oklch(.27 .004 260));--mx-them-top:oklch(.30 .004 260);--mx-them-hi:var(--mx-lift)}
+/* (one step darker than first built, at the owner's ask, 5 Nov: #292A2C → #222325, --ink at 12:1) */
+:root[data-msgx]{--mx-them:linear-gradient(180deg,oklch(.285 .004 260),oklch(.255 .004 260));--mx-them-top:oklch(.285 .004 260);--mx-them-hi:var(--mx-lift)}
 :root[data-theme="light"][data-msgx]{--mx-them:linear-gradient(180deg,oklch(1 0 0),oklch(.975 .002 260));--mx-them-top:oklch(1 0 0);--mx-them-hi:var(--mx-lift)}
 
 /* rhythm (research-chat.md §4): 20 between turns, 4 between one sender's bubbles */
 :root[data-msgx] #msgs>.m{margin-bottom:20px}
+/* The space under the last message (owner, 5 Nov: "why this much gap?"). It was 99 px on a desktop (82 on a
+   phone): the 20 px after a message, 48 (40) the app added under the conversation, and the composer bar's
+   30 (22) px fade band above the box. Now the last message ends 2 px above where that fade begins, so it is
+   never dimmed and nothing more is left: 20 + 2 + the band = 32 px to the box on a desktop, 24 on a phone.
+   (--dock-h is the dock's height, set by app.js; with a decision card docked it includes the card, and the
+   message then ends 24 px above the card instead.) */
+:root[data-msgx] .scroller{padding-bottom:calc(var(--dock-h) - 18px)}
+:root[data-msgx] .app:has(#tdock>*) .scroller{padding-bottom:calc(var(--dock-h) + 4px)}
 :root[data-msgx] #msgs>.m.cont{margin-top:-16px}
 
 /* the working words keep the app's soft shimmer (the owner's ask, 21:37): a slow light passing through the
@@ -186,10 +196,12 @@ body.files-open .mx-down{display:none}
    changes where things are drawn, never the app's order) */
 :root[data-msgx] #msgs{display:flex;flex-direction:column}
 :root[data-msgx] #msgs>.m-turn.is-live{order:1000}
-/* The browser's own scroll anchoring reads the list in its source order, which isn't the drawn order here;
-   when a turn started it pulled the view up 16 px (Design research's trace; gone with this). The app keeps
-   your reading place itself (app.js holdAnchor), so the conversation opts out of the browser's. */
-:root[data-msgx] #msgs>*{overflow-anchor:none}
+/* Scroll anchoring: the browser keeps what you're reading still when something above it changes height
+   (an older page landing, its skeleton coming or going), and does it without breaking a scroll in flight.
+   Never switch it off for the whole list: that made every older page shove the view away by its height
+   while you scrolled up (owner, 5 Nov: "bumpy"). Only the working turn, drawn out of its list order, is
+   never the anchor. */
+:root[data-msgx] #msgs>.m-turn.is-live{overflow-anchor:none}
 /* While it's folded, its place is held at the bubble's 44 px from the very first frame, before msgx.js has
    drawn the bubble, so a redraw never passes through a different layout (the app's scroll-keeping measures
    in between). Everything here keys off the app's own markup (.is-live, aria-expanded), not msgx.js. */
@@ -198,7 +210,7 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-turn.is-live:not(:has(.turn [aria-expanded="true"],.turn .is-waiting)) .turn>:is(.tb-work,.tb-think,.tb-act,.tb-narr,.tb-plan){display:none}
 :root[data-msgx] .m-turn.is-live:not(:has(.turn [aria-expanded="true"],.turn .is-waiting)) .turn:not(:has(>:is(.tb-text,.tb-answer,.tb-files,.tb-end))){display:none}
 .mx-work{display:none}
-:root[data-msgx] .m-turn.is-live:not(:has(.turn [aria-expanded="true"],.turn .is-waiting)) .mx-work{position:relative;display:flex;align-items:center;gap:12px;max-width:min(88%,480px);height:44px;padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-md);line-height:20px;text-align:left;overflow:visible;transition:width var(--d-move) var(--ease),background var(--d-hover) var(--ease)}
+:root[data-msgx] .m-turn.is-live:not(:has(.turn [aria-expanded="true"],.turn .is-waiting)) .mx-work{position:relative;display:flex;align-items:center;gap:12px;max-width:min(88%,560px);height:44px;padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-md);line-height:20px;text-align:left;overflow:visible;transition:width var(--d-move) var(--ease),background var(--d-hover) var(--ease)}
 :root[data-msgx] .mx-work:hover{background:var(--mx-them-top)}
 .mx-wt{position:relative;flex:1 1 auto;min-width:0;height:20px;overflow:hidden}
 .mx-wl{position:absolute;inset:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -215,10 +227,17 @@ body.files-open .mx-down{display:none}
 /* the working bubble is sized to its line in JS (it grows and shrinks smoothly, never jumps) */
 .mx-wsize{position:absolute;visibility:hidden;white-space:nowrap;pointer-events:none}
 /* the line under a conversation (a coordinator replying) is the same bubble */
-:root[data-msgx] .typing{grid-template-columns:28px minmax(0,1fr);gap:8px;padding-bottom:16px;animation:none}
+:root[data-msgx] .typing{grid-template-columns:28px minmax(0,1fr);gap:8px;padding-bottom:20px;animation:none}
 :root[data-msgx] .typing>.av{width:28px;height:28px;border-radius:50%;align-self:center}
-:root[data-msgx] .typing .ty-b{width:fit-content;max-width:min(88%,480px);height:44px;align-items:center;gap:12px;padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-md);line-height:20px}
-:root[data-msgx] .typing .ty-b .ty-t{color:var(--ink-2)}
+:root[data-msgx] .typing .ty-b{width:fit-content;max-width:min(88%,560px);height:44px;align-items:center;gap:12px;padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-md);line-height:20px}
+/* the app writes this line itself, so when it's too long for the bubble its end fades out over 32 px
+   (msgx.js marks it) instead of stopping mid-word: CSS's "…" takes the text colour, which the shimmer
+   makes transparent */
+:root[data-msgx] .typing .ty-t.mx-fade{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 32px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 32px),transparent);text-overflow:clip}
+/* the line's words read in the conversation's own weight (400) with the shimmer passing through them. They
+   used to look bold for two reasons: app.css's .shimmer sets 500, and a solid colour here painted the words
+   a second time over the shimmer's gradient, which is clipped to the same letters */
+:root[data-msgx] :is(#typing,#msgs) .shimmer{font-weight:400}
 :root[data-msgx] .typing .ty-b .elapsed:not(:empty)::before{content:none}
 @media (prefers-reduced-motion:reduce){.mx-wl.is-in,.mx-wl.is-out,:root[data-msgx] .mx-wl:not(.is-out){animation:none;color:var(--ink-2);background:none}}
 

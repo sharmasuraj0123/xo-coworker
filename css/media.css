@@ -55,6 +55,8 @@
 /* a picture from the web that couldn't show: the outbound link it would have been (css/links.css .lk-out), on a line
    where the picture was; several wrap. The lightbox's "Open original ↗" is a lightbox button, its arrow the link's. */
 .mx-weblinks{display:flex;flex-wrap:wrap;gap:4px 16px;margin:0;max-width:100%;min-width:0}
+/* each link may shrink to the line, so a long title wraps at its words (its last word keeps the ↗) instead of overflowing */
+.mx-weblink{min-width:0}
 a.lbx-btn{text-decoration:none}
 .lbx-btn .lk-ar{width:10px;height:10px;margin:0;color:currentColor}
 
