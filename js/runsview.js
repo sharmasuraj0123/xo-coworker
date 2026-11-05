@@ -22,10 +22,14 @@ const glyph = (st) => (st === "running" ? "working" : st === "waiting" ? "needs_
 /** The thread's own line about its sub-agents: the ones working now, else the log count. */
 export function runsStripHtml(live, total) {
   if (live.length) {
-    return `<div class="rn-strip" role="list" aria-label="Sub-agents working now">${live.map((r) =>
+    // a phone's checklist row has no room for the chips: there, one count opens the list (css/phone.css)
+    const n = live.length, wait = live.filter((r) => r.state === "waiting").length;
+    const word = `${n} sub-agent${n === 1 ? "" : "s"} working${wait ? `, ${wait} waiting on you` : ""}`;
+    const count = `<button type="button" class="rn-live" data-runs title="${word}" aria-label="${word}"><i class="g g-${wait ? "needs_reply" : "working"}" aria-hidden="true"></i><b class="rn-n">${n}</b></button>`;
+    return count + `<div class="rn-strip" role="list" aria-label="Sub-agents working now">${live.map((r) =>
       `<button type="button" class="rn-chip st-${esc(r.state)}" role="listitem" data-run="${esc(r.id)}" title="Open: ${esc(r.title)}"><i class="g g-${glyph(r.state)}" aria-hidden="true"></i><span>${esc(r.title)}</span>${r.state === "waiting" ? `<em>waiting on you</em>` : ""}</button>`).join("")}</div>`;
   }
-  return total ? `<button type="button" class="rn-log" data-runs title="What its sub-agents did">${ICON.list}<span>${total} sub-agent${total === 1 ? "" : "s"} ran</span></button>` : "";
+  return total ? `<button type="button" class="rn-log" data-runs data-n="${total}" title="What its sub-agents did">${ICON.list}<span>${total} sub-agent${total === 1 ? "" : "s"} ran</span></button>` : "";
 }
 
 /** One row of the list (recursive for children). */

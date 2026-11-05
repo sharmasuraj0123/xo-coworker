@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#141414">
   <script>try{document.documentElement.dataset.theme=localStorage.getItem("cv-theme")==="light"?"light":"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
   <title>XO Space</title>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
@@ -27,6 +28,8 @@
   <link rel="stylesheet" href="./css/side.css">
   <!-- exploration: bubbles and how you reply (thread-682d17); remove with css/msgx.css, js/msgx.js -->
   <link rel="stylesheet" href="./css/msgx.css">
+  <!-- the phone (≤760 px): its top bars, last so it settles every earlier phone rule (thread "Phone UI audit") -->
+  <link rel="stylesheet" href="./css/phone.css">
 </head>
 <body>
   <div class="app" id="app">
@@ -76,6 +79,8 @@
       <!-- A conversation: the Workspace, a project, or a thread -->
       <section class="conv" id="conv" hidden>
         <header class="top" id="top">
+          <!-- a phone's menu, inside the conversation's own bar (css/phone.css); the phonebar's ☰ elsewhere -->
+          <button type="button" class="top-menu" id="top-menu" aria-label="Open menu" aria-controls="side" aria-expanded="false"></button>
           <button type="button" class="top-back" id="top-back" hidden></button>
           <div class="top-who" id="top-who"></div>
           <div class="now-wrap" id="now-wrap" hidden></div>
