@@ -78,7 +78,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     `<header class="stg-bar"><div class="stg-t"></div><div class="stg-acts"><button type="button" class="stg-ic" data-stg-full></button><button type="button" class="stg-ic" data-stg-close aria-label="Close the panel" title="Close (Esc)">${ICON.close}</button></div></header>` +
     `<div class="stg-rail" aria-label="Panel, folded"><button type="button" class="stg-ic" data-rail="launch" title="Launchpad">${LP_ICON.rocket}</button><button type="button" class="stg-ic" data-rail="changes" title="Changes">${CHANGES_IC}</button><button type="button" class="stg-ic" data-rail="agents" title="Agents">${AGENTS_IC}</button><button type="button" class="stg-ic" data-rail="map" title="Map">${mapIcon}</button></div>` +
     `<div class="stg-frames">` +
-    `<section class="fr fr-lp is-folded" data-fr="launch" aria-labelledby="fr-title-launch" hidden><header class="fr-h"><h2 class="fr-title" id="fr-title-launch">Launchpad</h2><span class="lp-hs"></span><div class="fr-a"><span class="lp-ha"></span><button type="button" class="fr-ib fr-fold" data-fr-fold="launch" aria-expanded="false" title="Open">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-launch"></div></section><div class="fr-line" data-lp-line hidden></div>` +
+    `<section class="fr fr-lp is-folded" data-fr="launch" aria-labelledby="fr-title-launch" hidden><header class="fr-h"><h2 class="fr-title" id="fr-title-launch">Launchpad</h2><span class="lp-hs"></span><div class="fr-a"><span class="lp-ha"></span><button type="button" class="fr-ib fr-fold" data-fr-fold="launch" aria-expanded="false" title="Open">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-launch" tabindex="-1"></div></section><div class="fr-line" data-lp-line hidden></div>` +
     frame("changes", "Changes", `<button type="button" class="xd-follow" data-follow hidden></button><button type="button" class="fr-ib" data-open-files title="All files">${FILES_IC}</button>`) + gutter("changes", "agents") +
     frame("agents", "Agents") + gutter("agents", "map") +
     frame("map", "Map", `<div class="fr-views" role="tablist" aria-label="Map view"><button type="button" class="fr-t" role="tab" id="stage-map-tree" aria-controls="fr-body-map" data-map-mode="tree">Diagram</button><button type="button" class="fr-t" role="tab" id="stage-map-graph" aria-controls="fr-body-map" data-map-mode="graph">Graph</button></div>`) +
@@ -119,6 +119,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     LPF.querySelector("[data-fr-fold]").setAttribute("aria-expanded", String(S.lp));
     LPF.querySelector("[data-fr-fold]").title = S.lp ? "Fold" : "Open";
     el.classList.toggle("is-lp", S.lp);
+    pressDeploy();
     el.querySelector('[data-gut="changes|agents"]').hidden = !(on("changes") && (on("agents") || on("map")));
     el.querySelector('[data-gut="agents|map"]').hidden = !(on("agents") && on("map"));
     for (const id of ORDER) {
@@ -146,8 +147,9 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     const keep = new Set(frames()), on = (id) => keep.has(id) || (!keep.size && id === "agents");
     const ag = el.querySelector('[data-fr="agents"]');
     let rows = fr.agents.rows || AG_ROWS, cap = 8;
-    const room = el.querySelector(".stg-frames").clientHeight - (LPF.hidden ? 0 : HEAD + 1);
-    if (room > 0 && on("agents") && !fr.agents.folded && !S.lp && !ag.classList.contains("is-grow")) {
+    // with Launchpad open Agents is only a head: nothing to size, and no layout read under the section's first draw
+    const room = S.lp ? 0 : el.querySelector(".stg-frames").clientHeight - (LPF.hidden ? 0 : HEAD + 1);
+    if (room > 0 && on("agents") && !fr.agents.folded && !ag.classList.contains("is-grow")) {
       const grows = (id) => el.querySelector(`[data-fr="${id}"]`).classList.contains("is-grow");
       const changes = !on("changes") ? 0 : fr.changes.folded ? HEAD : CH_MIN;
       const mapH = !on("map") ? 0 : fr.map.folded ? HEAD : grows("map") ? 96 : fr.map.h;
@@ -184,17 +186,19 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     if (!S.open) return;
     const v = view();
     const ag = map.agents(v);
-    const set = (k, node, html) => { if (S.h[k] !== html) { node.innerHTML = html; S.h[k] = html; } };
+    // a clock's figures aren't a change (the app's ticker moves them each second): without this the Agents list was
+    // rewritten every paint, and every rewrite re-added its arcs for ui.js to put back in step
+    const set = (k, node, html) => { const same = html.replace(/(<span class="elapsed" data-since="\d+">)[^<]*/g, "$1"); if (S.h[k] !== same) { node.innerHTML = html; S.h[k] = same; } };
     set("head", el.querySelector(".stg-t"), titleHtml(ag));
     if (launch && !LPF.hidden) launch.paint(v, S.lp && !S.rail);
-    set("agents", body("agents"), agentsHtml(ag));
+    if (!S.lp) set("agents", body("agents"), agentsHtml(ag)); // under Launchpad Agents is a head: its list waits
     el.querySelector('[data-fr-n="agents"]').textContent = ag.filter((a) => a.busy).length || "";
     // Changes: Space's list and diff where it has /changes, else today's list
     const cxOn = !fr.changes.folded && !S.lp && CX.paint();
     const hd = CX.head();
     const [cxHost, old] = body("changes").children;
     cxHost.hidden = !hd; old.hidden = !!hd;
-    if (!hd) { const ch = files.changes(v); set("changes", old, changesHtml(ch)); }
+    if (!hd && !S.lp) { const ch = files.changes(v); set("changes", old, changesHtml(ch)); }
     const n = el.querySelector('[data-fr-n="changes"]');
     set("chn", n, hd ? (hd.count ? `${hd.count}${hd.total.add || hd.total.del ? ` ${countsHtml(hd.total)}` : ""}` : "") : String(files.changes(v).length || ""));
     const fw = el.querySelector("[data-follow]");
@@ -206,7 +210,9 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
       fw.setAttribute("aria-pressed", String(hd.follow));
       fw.title = hd.follow ? "Following the agent: the file it changes shows here. Pick a file or scroll to stop." : "Follow the agent: show each file it changes as it changes it";
     }
-    if (S.wide !== (cxOn && CX.wide)) { S.wide = cxOn && CX.wide; apply(); }
+    // the panel keeps its width while Launchpad is open: folding Changes under it mustn't narrow the panel and
+    // reflow the whole conversation (560 ↔ 360 px on every fold and unfold, found timing it)
+    if (!S.lp && S.wide !== (cxOn && CX.wide)) { S.wide = cxOn && CX.wide; apply(); }
     for (const b of el.querySelectorAll("[data-map-mode]")) { const on = map.mode === b.dataset.mapMode; b.classList.toggle("is-on", on); b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1; }
     body("map").setAttribute("aria-labelledby", `stage-map-${map.mode}`);
     const fb = el.querySelector("[data-stg-full]");
@@ -244,6 +250,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     el.hidden = true;
     document.body.classList.remove("stage-open", "stage-rail");
     S.rail = false;
+    pressDeploy();
     map.hide();
     persist();
     const back = S.returnTo || document.querySelector("[data-stage-toggle]");
@@ -258,8 +265,15 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     S.lp = true;
     S.lpOpened = !S.open; // pressed again, Deploy puts things back as they were: the panel closed, or Launchpad folded
     if (!S.open || S.rail) open({ focus: false }); else { layout(); paint(); }
+    // focus goes into the section, so Esc closes the panel rather than leaving the thread (Astra on 761119f)
     requestAnimationFrame(() => LPF.querySelector(".fr-b")?.focus?.({ preventScroll: true }));
-    onChange && onChange();
+  }
+
+  /** The header's Deploy shows Launchpad open as pressed. Set here, where it changes, rather than by redrawing the
+   *  app: the header's next draw writes the same state (app.js asks launchOpen), so the two never disagree. */
+  function pressDeploy() {
+    const on = S.open && S.lp && !S.rail;
+    for (const b of document.querySelectorAll("[data-lp-open]")) { b.classList.toggle("is-on", on); b.setAttribute("aria-pressed", String(on)); }
   }
 
   function setFull(on) {
@@ -299,10 +313,10 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
       if (id === "launch") S.lp = !S.lp;
       else if (S.lp) { S.lp = false; fr[id].folded = false; } // a head under an open Launchpad opens its frame
       else fr[id].folded = !fr[id].folded;
-      layout(); paint(); persist(); onChange && onChange(); return;
+      layout(); paint(); persist(); return;
     }
     // Launchpad's head, folded: anywhere on it opens it (its links and buttons do their own thing)
-    if (t.closest('[data-fr="launch"] .fr-h') && !S.lp && !t.closest("a,button")) { S.lp = true; layout(); paint(); onChange && onChange(); return; }
+    if (t.closest('[data-fr="launch"] .fr-h') && !S.lp && !t.closest("a,button")) { S.lp = true; layout(); paint(); return; }
     const mm = t.closest("[data-map-mode]");
     if (mm) { if (fr.map.folded) { fr.map.folded = false; layout(); } map.setMode(mm.dataset.mapMode); paint(); return; }
     if (t.closest("[data-open-files]")) { filesView.open(); return; }
@@ -321,7 +335,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
       tabs[next].focus(); tabs[next].click(); return;
     }
     if (e.key !== "Escape") return;
-    if (e.target.closest && e.target.closest("input") && e.target.value) return;
+    if (e.target.closest && e.target.closest("input:not(.lp-in)") && e.target.value) return; // a search clears first; Launchpad's fields don't
     e.preventDefault(); e.stopPropagation();
     if (S.full) setFull(false); else close();
   }, true);
@@ -444,7 +458,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     /** The header's Deploy. */
     launch() {
       if (!(S.open && S.lp && !S.rail)) { openLaunch(); return; }
-      if (S.lpOpened) close(); else { S.lp = false; layout(); paint(); onChange && onChange(); }
+      if (S.lpOpened) close(); else { S.lp = false; layout(); paint(); }
     },
     /** Is Launchpad open in the panel (the header's Deploy reads as pressed)? */
     get launchOpen() { return S.open && S.lp && !S.rail; },

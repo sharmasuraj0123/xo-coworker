@@ -20,6 +20,9 @@ const enc = encodeURIComponent;
 /** Space's eleven steps onto the card's four rows: everything before the build is the repository's row. */
 const NODE = { check: "repo", credentials: "repo", repo: "repo", app: "repo", prepare: "repo", push: "repo", create: "repo", env: "repo", build: "build", release: "release", url: "live" };
 const ROWS = ["repo", "build", "release", "live"];
+/** A Launchpad app's status, in words and a tone: what's wrong is read first ("unhealthy" holds "healthy"),
+ *  then stopped, then moving, then serving (anchored). */
+export const appState = (st) => /fail|crash|error|unhealthy|degraded/i.test(st) ? ["stop", "Didn't go live"] : /stop|paus|sleep|suspend/i.test(st) ? ["", "Stopped"] : /progress|deploy|roll|start|build|pending|creat/i.test(st) ? ["work", "Rolling out"] : /^(run|ready|live|healthy|serving|up|active)/i.test(st) ? ["go", "Live"] : ["", String(st || "Unknown").replace(/^./, (x) => x.toUpperCase())];
 const hostOf = (url) => { try { return new URL(url).host; } catch { return url || ""; } };
 
 /** check (and, once it's in, preflight) as the section's model. */
@@ -50,7 +53,7 @@ export function model(c, pre = null) {
 
 /** One stream's events as the card's: a row opens when its first step runs and closes when a later row's
  *  step starts (or its own last step ends); progress fills in the build's link and the release's n of m. */
-function rows(on) {
+export function rows(on) {
   const open = new Set(), shut = new Set(), said = {};
   let pushed = ""; // the repository row ends on what the push did, not on the last setup step's words
   const close = (upto) => { for (const n of ROWS) { if (n === upto) break; if (open.has(n) && !shut.has(n)) { shut.add(n); on({ step: n, state: "done", text: n === "repo" && pushed ? pushed : said[n] }); } } };

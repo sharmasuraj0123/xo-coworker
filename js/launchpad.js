@@ -18,6 +18,7 @@
 // ensure(v), and opens the section through the panel (data-lp-open).
 
 import { ICON } from "./ui.js";
+import { appState } from "./lpapi.js";
 import { esc } from "./util.js";
 
 const I = (d) => `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
@@ -48,6 +49,7 @@ const split = (host) => { const i = String(host || "").indexOf("."); return i < 
 const own = (name) => `${esc(name || "your-app")}-xo-<i class="lp-hash">·······</i>`;
 /** Where Space found a value, in a few words ("Dockerfile EXPOSE" → "the Dockerfile"). */
 const where = (src) => (/^Dockerfile/.test(src) ? "the Dockerfile" : /^package\.json/.test(src) ? "package.json" : /^default/.test(src) ? "the default" : src);
+const cap = (t) => { t = String(t || ""); return /^\S*[./]/.test(t) ? t : t.replace(/^./, (x) => x.toUpperCase()); }; // a file name keeps its case
 const slug = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
 
 /**
@@ -177,9 +179,8 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       case "live": {
         const a = r?.live || s.check.app, st = String(a.status || "");
         if (a.gone) return { tone: "stop", words: "App deleted on Launchpad" };
-        if (/fail|crash|error/i.test(st)) return { tone: "stop", words: "Didn't go live", host: a.host, url: a.url };
-        if (/stop/i.test(st)) return { tone: "", words: "Stopped", host: a.host, url: a.url };
-        return { tone: "go", words: "Live", host: a.host, url: a.url };
+        const [tone, words] = st ? appState(st) : ["go", "Live"]; // no status yet (before preflight): it was live when linked
+        return { tone, words, host: a.host, url: a.url };
       }
       default: return { tone: "", words: "" };
     }
@@ -189,25 +190,30 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   // ── the card: the project as it runs, one 44 px row per part ─────────────────
   function rows(p, mode) {
     const s = proj(p), c = s.check, f = s.form, r = s.run;
-    const admin = c.repo && c.repo.admin;
+    const admin = c.repo && (c.repo.admin || !c.github?.connected);
     const real = r?.live?.host || (mode === "live" && c.app ? c.app.host : "");
-    const [mine, domain] = real ? split(real) : ["", ".apps.xo.builders"];
+    const [mine, domain] = real ? split(real) : ["", ""];
     const port = f.port || "—";
+    const linked = mode === "live" ? r?.live || c.app : null;
+    const [linkedTone, linkedWords] = linked?.status ? appState(linked.status) : ["go", "Live"];
     // GitHub in the way (not connected, or no workflow permission) is said on the repository's row, in amber
     const gh = !c.github ? "" : !c.github.connected ? "GitHub isn't connected" : !c.github.workflow ? "GitHub needs the workflow permission" : "";
-    const st = (n) => (mode === "preview" ? (n === "repo" && gh ? "need" : "plan") : mode === "live" ? "done" : r?.steps[n]?.state || "todo");
+    const st = (n) => (mode === "preview" ? (n === "repo" && gh ? "need" : "plan") : mode === "live"
+      ? linkedTone === "go" || n === "repo" || n === "build" ? "done" : n === "release" ? ({ work: "doing", stop: "failed" }[linkedTone] || "todo") : "todo"
+      : r?.steps[n]?.state || "todo");
     const meta = (n) => {
       const x = st(n), step = r?.steps[n];
       if (n === "live" && x === "done") return "";
       if (x === "done") return `<span class="lp-ok" title="Done">${ICON.check}</span>`;
       if (x === "failed") return `<span class="lp-bad" title="Failed">${LP_ICON.x}</span>`;
-      if (x === "doing") return `<span class="lp-tm">${since(step.at)}</span><i class="lp-arc" aria-hidden="true"></i>`;
+      if (x === "doing") return `${step?.at ? `<span class="lp-tm">${since(step.at)}</span>` : ""}<i class="lp-arc" aria-hidden="true"></i>`;
       if (x === "need") return `<i class="lp-warn" title="${esc(gh)}"></i>`;
       return n === "repo" && mode === "preview" ? `<span class="lp-k">${esc(c.repo.branch || "main")}</span>` : n === "release" && mode === "preview" ? `<span class="lp-k">:${esc(port)}</span>` : "";
     };
     const sub = (n) => {
       const step = r?.steps[n], x = st(n);
-      if (n === "live") return `<span class="lp-mono">${esc(domain)}</span> · HTTPS`;
+      if (n === "live") return domain ? `<span class="lp-mono">${esc(domain)}</span> · HTTPS` : "Its address, with HTTPS";
+      if (n === "release" && mode === "live" && linkedTone !== "go") return esc(linkedWords);
       if (mode !== "preview" && step && step.text && x !== "todo") {
         const logs = step.url ? ` · <a class="lp-ln" href="${esc(step.url)}" target="_blank" rel="noopener">Logs</a>` : "";
         if (n === "build" && x === "doing") return `On GitHub Actions${logs}`;
@@ -227,7 +233,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       live: `<span class="lp-host">${real ? esc(mine) : own(f.name)}</span>`,
     };
     const icon = { repo: LP_ICON.github, build: LP_ICON.image, release: LP_ICON.app, live: ICON.globe };
-    return `<ol class="lp-sys" data-mode="${mode}" aria-label="How ${esc(nameOf(p))} runs">${NODES.map((n) =>
+    return `<ol class="lp-sys" data-mode="${mode === "live" && linkedTone !== "go" ? "linked" : mode}" aria-label="How ${esc(nameOf(p))} runs">${NODES.map((n) =>
       `<li class="lp-n is-${st(n)}" data-n="${n}"><span class="lp-t">${icon[n]}</span><span class="lp-c"><b>${name[n]}</b><span>${sub(n)}</span></span><span class="lp-m">${meta(n)}</span></li>`).join("")}</ol>`;
   }
 
@@ -236,10 +242,11 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
 
   function setupHtml(p) {
     const s = proj(p), c = s.check, f = s.form, e = f.errs || {};
-    const admin = c.repo && c.repo.admin, scope = c.github && c.github.connected && c.github.workflow;
+    const scope = c.github && c.github.connected && c.github.workflow;
     const guessed = c.state === "detectable";
     const env = c.env || [];
     const from = [...new Set(env.map((x) => x.source).filter(Boolean))].join(", ");
+    const mine = env.filter((x) => x.sensitive || !x.default || f.env[x.name] || s.envAll), rest = env.length - mine.length;
     return head(`Put ${esc(nameOf(p))} on the web`, guessed ? "Found these in the project. Check them, then deploy." : "Launchpad builds it on every push and runs it.") +
       rows(p, "preview") +
       (S.v && S.v.startsWith("t:") ? `<p class="lp-note lp-src" title="This thread's work goes out once it's merged into ${esc(c.repo.branch || "main")}">${ICON.branch}<span>Deploys <b>${esc(c.repo.branch || "main")}</b>, not this thread's branch.</span></p>` : "") +
@@ -248,7 +255,8 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       field("port", "Port", f.port, { hint: e.port || (c.portFrom ? `${c.portSure === false ? "A guess from" : "From"} ${esc(where(c.portFrom))}` : "Where the app listens"), bad: !!e.port, mode: "numeric", short: true }) +
       `</div>` +
       (env.length ? `<fieldset class="lp-env"><legend><span>Environment</span>${from ? `<small>from ${esc(from)}</small>` : ""}</legend>` +
-        env.map((x) => `<label class="lp-f lp-ev"><span class="lp-l lp-mono" title="${esc(x.name)}">${esc(x.name)}</span><input class="lp-in" data-lp-env="${esc(x.name)}" type="${x.sensitive ? "password" : "text"}" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${esc(x.default || "")}" value="${esc(f.env[x.name] || "")}" aria-label="${esc(x.name)}"></label>`).join("") +
+        mine.map((x) => `<label class="lp-f lp-ev"><span class="lp-l lp-mono" title="${esc(x.name)}">${esc(x.name)}</span><input class="lp-in" data-lp-env="${esc(x.name)}" type="${x.sensitive ? "password" : "text"}" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${esc(x.default || "")}" value="${esc(f.env[x.name] || "")}" aria-label="${esc(x.name)}"></label>`).join("") +
+        (rest ? `<button type="button" class="lp-a lp-more" data-lp="env-all"><span>${rest} more with example values</span>${ICON.chevron || ""}</button>` : "") +
         `<p class="lp-lock">${ICON.lock}<span>Straight to Launchpad; XO never keeps them.</span></p></fieldset>` : "") +
       `<div class="lp-foot">` + (scope
         ? `<button type="button" class="lp-go lp-wide" data-lp="deploy">${LP_ICON.rocket}<span>Deploy ${esc(f.name || nameOf(p))}</span></button>`
@@ -274,9 +282,11 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     if (a.gone) return head(`${name}'s app is gone`, "It was deleted on Launchpad. Its repository, port and settings are still here.", "stop") +
       rec("Create it again", "A new app from the same repository, with the same settings.", "recreate", "Create it again", LP_ICON.rocket) +
       `<div class="lp-or"><span>Or</span><button type="button" class="lp-b" data-lp="unlink"><span>Unlink</span></button></div>`;
-    const rel = a.release ? `Release #${a.release}` : "Live";
-    return head(`${name} is live`, `${rel}${s.check.app?.commit ? ` · from <code>${esc(s.check.app.commit)}</code>` : ""} · ${ago(a.at || Date.now())}`, "go") +
-      `<div class="lp-url"><a class="lp-url-a" href="${esc(a.url)}" target="_blank" rel="noopener" title="Open ${esc(a.host)}">${ICON.globe}<span><b>${esc(split(a.host)[0])}</b><i>${esc(split(a.host)[1])}</i></span></a><button type="button" class="lp-ib" data-lp="copy" title="${s.copied > Date.now() ? "Copied" : "Copy the address"}" aria-label="Copy the address">${s.copied > Date.now() ? ICON.check : ICON.copy}</button><a class="lp-ib" href="${esc(a.url)}" target="_blank" rel="noopener" title="Open it" aria-label="Open it">${LP_ICON.out}</a></div>` +
+    const [tone, words] = a.status ? appState(a.status) : ["go", "Live"];
+    const title = tone === "go" ? `${name} is live` : tone === "work" ? `${name} is rolling out` : tone === "stop" ? `${name} didn't go live` : words === "Stopped" ? `${name} is stopped` : `${name} · ${esc(words)}`;
+    const rel = a.release ? `Release #${a.release}` : esc(words);
+    return head(title, `${rel}${s.check.app?.commit ? ` · from <code>${esc(s.check.app.commit)}</code>` : ""} · ${ago(a.at || Date.now())}`, tone) +
+      `<div class="lp-url t-${tone}"><a class="lp-url-a" href="${esc(a.url)}" target="_blank" rel="noopener" title="Open ${esc(a.host)}">${ICON.globe}<span><b>${esc(split(a.host)[0])}</b><i>${esc(split(a.host)[1])}</i></span></a><button type="button" class="lp-ib" data-lp="copy" title="${s.copied > Date.now() ? "Copied" : "Copy the address"}" aria-label="Copy the address">${s.copied > Date.now() ? ICON.check : ICON.copy}</button><a class="lp-ib" href="${esc(a.url)}" target="_blank" rel="noopener" title="Open it" aria-label="Open it">${LP_ICON.out}</a></div>` +
       rows(p, "live") +
       `<div class="lp-acts"><button type="button" class="lp-b" data-lp="again">${LP_ICON.rocket}<span>Deploy again</span></button><a class="lp-b" href="https://launchpad.xo.builders/apps/${esc(s.check.app?.id || "")}" target="_blank" rel="noopener"><span>Open in Launchpad</span>${LP_ICON.out}</a>` +
       `<span class="lp-mw"><button type="button" class="lp-ib" data-lp="menu" aria-haspopup="menu" aria-expanded="${s.menu}" title="More" aria-label="More">${LP_ICON.more}</button>${s.menu ? `<span class="lp-menu" role="menu"><button type="button" role="menuitem" data-lp="unlink">Unlink from Launchpad</button></span>` : ""}</span></div>`;
@@ -303,8 +313,8 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
 
   function needsHtml(p) {
     const c = proj(p).check;
-    return head(`${esc(nameOf(p))} isn't ready to deploy`, "Launchpad runs an app from a Docker image, and this project doesn't make one yet.") +
-      `<ul class="lp-check">${c.missing.map((m) => `<li class="${m.ok ? "is-ok" : "is-no"}"><span class="lp-ck">${m.ok ? ICON.check : ""}</span><span class="lp-c"><b>${esc(m.what)}</b><span>${esc(m.why)}</span></span></li>`).join("")}</ul>` +
+    return head(`${esc(nameOf(p))} needs preparing first`, "Launchpad can't tell how to run it as it is. An agent can prepare it.") +
+      (c.missing.length ? `<ul class="lp-check">${c.missing.map((m) => `<li class="${m.ok ? "is-ok" : "is-no"}"><span class="lp-ck">${m.ok ? ICON.check : ""}</span><span class="lp-c"><b>${esc(cap(m.what))}</b>${m.why ? `<span>${esc(m.why)}</span>` : ""}</span></li>`).join("")}</ul>` : "") +
       rec("Ask an agent to get it ready", "In a new thread it adds what's missing. Once that's merged, deploy from here.", "ask", "Ask an agent", LP_ICON.rocket);
   }
 
@@ -326,11 +336,10 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
 
   function pickHtml(p) {
     const s = proj(p), list = s.picking.apps;
-    const tone = { live: "go", rolling: "work", failed: "stop", stopped: "" };
-    const word = { live: "Live", rolling: "Rolling out", failed: "Didn't go live", stopped: "Stopped" };
+
     return head("Link an app on Launchpad", `${esc(nameOf(p))} deploys to the app you pick from now on.`) +
       (!list ? `<p class="lp-wait"><i class="lp-arc" aria-hidden="true"></i><span>Reading your apps…</span></p>` :
-        `<ul class="lp-apps">${list.map((a) => `<li><button type="button" class="lp-appr" data-lp="link" data-id="${esc(a.id)}"><span class="lp-t">${LP_ICON.app}</span><span class="lp-c"><b>${esc(a.name)}</b><span class="lp-mono">${esc(a.host)}</span></span><span class="lp-m"><span class="lp-st t-${tone[a.status] || ""}">${a.status === "rolling" ? '<i class="lp-arc" aria-hidden="true"></i>' : "<i></i>"}${word[a.status] || esc(a.status)}</span></span></button></li>`).join("")}</ul>`) +
+        `<ul class="lp-apps">${list.map((a) => `<li><button type="button" class="lp-appr" data-lp="link" data-id="${esc(a.id)}"><span class="lp-t">${LP_ICON.app}</span><span class="lp-c"><b>${esc(a.name)}</b><span class="lp-mono">${esc(a.host)}</span></span><span class="lp-m">${((t, w) => `<span class="lp-st t-${t}">${t === "work" ? '<i class="lp-arc" aria-hidden="true"></i>' : "<i></i>"}${esc(w)}</span>`)(...appState(a.status))}</span></button></li>`).join("")}</ul>`) +
       `<div class="lp-alt"><button type="button" class="lp-a" data-lp="pick-cancel"><span>Back</span></button></div>`;
   }
 
@@ -407,7 +416,8 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   }
 
   function deploy(p, again = false) {
-    const s = proj(p);
+    const s = proj(p), gh = s.check?.github;
+    if (gh && !(gh.connected && gh.workflow)) { github(p); return; }
     if (!validate(p)) {
       S.key = ""; changed();
       requestAnimationFrame(() => S.body?.querySelector('.is-bad input, [aria-invalid="true"]')?.focus());
@@ -423,6 +433,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     }, 200);
     changed();
     announce(`Deploying ${s.form.name} in 3 seconds. Undo to stop it.`);
+    requestAnimationFrame(() => S.body?.querySelector('[data-lp="undo"]')?.focus({ preventScroll: true }));
   }
   function begin(p, again = false) {
     const s = proj(p), f = s.form, c = s.check;
@@ -487,6 +498,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
         changed();
         return;
       }
+      case "env-all": s.envAll = true; S.key = ""; changed(); requestAnimationFrame(() => S.body?.querySelectorAll(".lp-ev input")[mine0(p)]?.focus()); return;
       case "recreate": s.form.recreate = true; s.run = null; deploy(p, true); return;
       case "again": s.run = null; s.form.errs = {}; deploy(p, true); return; // the linked app, the same settings: 3 s, then it goes
       case "retry": s.run = null; deploy(p); return;
@@ -516,6 +528,8 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   }
   let onOpen = null, onHide = null;
 
+  const mine0 = (p) => { const s = proj(p), f = s.form; return (s.check.env || []).filter((x) => x.sensitive || !x.default || f.env[x.name]).length; };
+
   /** More below than the section shows: its foot fades rather than ending on a cut row. */
   function over() { const b = S.body; if (b) b.classList.toggle("is-over", b.scrollTop + b.clientHeight < b.scrollHeight - 1); }
 
@@ -540,7 +554,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       syncPreview(p);
     });
     section.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && e.target.matches?.(".lp-in")) { e.preventDefault(); act("deploy"); }
+      if (e.key === "Enter" && e.target.matches?.(".lp-in")) { e.preventDefault(); const go = S.body.querySelector(".lp-foot .lp-go"); if (go) act(go.dataset.lp, go); }
     });
   }
 

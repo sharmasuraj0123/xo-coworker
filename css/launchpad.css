@@ -70,8 +70,8 @@
 .lp :is(.lp-p,.lp-note,.lp-rec p) code{padding:0 4px;border-radius:calc(var(--r-xs) - 2px);background:var(--g22);font:400 var(--fs-sm)/16px var(--mono);color:var(--ink-3)}
 .lp-mono{font-family:var(--mono)}
 
-/* the card: repository → image → app → address */
-.lp-sys,.lp-check{list-style:none;margin:0 12px;padding:4px 0;border-radius:var(--r-lg);background:var(--panel-surface);box-shadow:inset 0 0 0 1px var(--panel-line)}
+/* the card: repository → image → app → address; its tiles sit 8 px in on every side (rows 44, tiles 28), so 12 − 8 = 4 */
+.lp-sys,.lp-check{list-style:none;margin:0 12px;padding:0;border-radius:var(--r-lg);background:var(--panel-surface);box-shadow:inset 0 0 0 1px var(--panel-line)}
 .lp-n,.lp-check li{position:relative;display:grid;grid-template-columns:28px minmax(0,1fr) auto;column-gap:8px;align-items:center;height:44px;padding:0 8px}
 .lp-t{position:relative;display:grid;place-items:center;width:28px;height:28px;border-radius:calc(var(--r-lg) - 8px);background:var(--g1C);box-shadow:inset 0 0 0 1px var(--g26);color:var(--ink-3);transition:color var(--d-move) var(--ease),background var(--d-move) var(--ease),box-shadow var(--d-move) var(--ease)}
 .lp-t svg{width:16px;height:16px}
@@ -146,11 +146,12 @@
 .lp-lock svg{flex:none;width:14px;height:14px}
 
 /* ── buttons: lit (the one thing to do), quiet (an alternative), a word (a way out) ───────────────── */
-.lp-go{display:flex;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;height:36px;padding:0 16px;border-radius:var(--r-lg);border:0;background:var(--accent-fill);color:var(--accent-ink);font:600 var(--fs-base)/20px var(--sans);text-decoration:none;white-space:nowrap;box-shadow:0 0 0 1px color-mix(in srgb,var(--accent-fill) 50%,transparent),0 6px 18px -8px color-mix(in srgb,var(--accent-fill) 70%,transparent);transition:background var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease),transform 90ms var(--ease)}
+.lp-go{display:flex;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;height:36px;padding:0 16px;border-radius:var(--r-lg);border:0;background:var(--lit);color:var(--accent-ink);font:600 var(--fs-base)/20px var(--sans);text-decoration:none;white-space:nowrap;box-shadow:var(--lit-edge),var(--lit-glow);transition:background var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease),transform 90ms var(--ease)}
 .lp-go span{overflow:hidden;text-overflow:ellipsis}
 .lp-go svg{flex:none;width:16px;height:16px}
-.lp-go:hover{background:var(--accent-hover);box-shadow:0 0 0 1px color-mix(in srgb,var(--accent-fill) 60%,transparent),0 8px 22px -8px color-mix(in srgb,var(--accent-fill) 85%,transparent);transition-duration:var(--d-hover-in)}
-.lp-go:active{transform:scale(.98)}
+.lp-go:hover{background:var(--lit-hover);box-shadow:var(--lit-edge),var(--lit-glow-hover);transition-duration:var(--d-hover-in)}
+.lp-go:active{transform:scale(.98);background:var(--lit-press);box-shadow:var(--lit-edge),inset 0 1px 2px rgb(0 0 0 / .2)}
+.lp-go:focus-visible{outline:2px solid var(--accent-fill);outline-offset:2px}
 .lp-wide{width:calc(100% - 24px);margin:16px 12px 0}
 .lp-b{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px 0 10px;border-radius:var(--r);border:1px solid var(--g26);background:none;color:var(--ink-2);font:500 var(--fs-base)/20px var(--sans);text-decoration:none;white-space:nowrap;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .lp-b svg{flex:none;width:16px;height:16px}
@@ -184,6 +185,9 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .lp-url{display:flex;align-items:center;gap:2px;height:56px;margin:0 12px 12px;padding:0 12px 0 12px;border-radius:var(--r-lg);background:var(--panel-surface);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--go) 30%,var(--panel-line))}
 .lp-url-a{flex:1;min-width:0;display:flex;align-items:center;gap:8px;color:var(--ink);text-decoration:none}
 .lp-url-a svg{flex:none;width:16px;height:16px;color:var(--go)}
+/* the address keeps its green only while the app serves */
+.lp-url:not(.t-go){box-shadow:inset 0 0 0 1px var(--panel-line)}
+.lp-url:not(.t-go) .lp-url-a svg{color:var(--ink-3)}
 .lp-url-a span{display:flex;flex-direction:column;min-width:0}
 .lp-url-a :is(b,i){overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 var(--fs-base)/20px var(--mono);letter-spacing:-.01em;color:var(--ink)}
 .lp-url-a i{font:400 var(--fs-sm)/16px var(--mono);font-style:normal;color:var(--ink-4)}
@@ -196,7 +200,12 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 
 /* not ready: what's missing */
 .lp-check{grid-template-columns:none}
-.lp-check li{grid-template-columns:28px minmax(0,1fr)}
+.lp-check li{grid-template-columns:28px minmax(0,1fr);height:auto;min-height:44px;padding:12px 8px;align-items:start}
+.lp-check li .lp-ck{margin-top:0}
+.lp-check .lp-c>b{white-space:normal;font-weight:400;color:var(--ink-2)}
+.lp-check .lp-c>span{white-space:normal}
+.lp-more{margin:0 0 0 4px}
+.lp-more svg{width:12px;height:12px}
 .lp-ck{display:grid;place-items:center;width:20px;height:20px;margin-left:4px;border-radius:50%;box-shadow:inset 0 0 0 1px var(--g40)}
 .lp-check li.is-no .lp-ck{box-shadow:inset 0 0 0 1.5px var(--g40)}
 .lp-check li.is-ok .lp-ck{background:color-mix(in srgb,var(--go) 16%,transparent);box-shadow:none;color:var(--go)}
@@ -219,12 +228,26 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .lp-code code{font:600 var(--fs-2xl)/28px var(--mono);letter-spacing:.12em;color:var(--ink);background:none;padding:0}
 .lp-wait{display:flex;align-items:center;gap:8px;margin:0;padding:12px 20px 0;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
 
-/* the header's Deploy: Resolve's button; its rocket takes the deploy's colour */
-.tw-act.lp-btn.t-go svg{color:var(--go)}
-.tw-act.lp-btn.t-stop svg{color:var(--err-ink)}
-.tw-act.lp-btn.t-need svg{color:var(--need)}
-.tw-act.lp-btn.t-work{color:var(--ink)}
-.tw-act.lp-btn.is-on{background:var(--g22);border-color:var(--g3A);color:var(--ink)}
+/* Lit, XO green (the owner, 5 November: "XO green, attractive"): the brand's fill with a breath of light at
+   the top, a hairline edge a shade darker (so it holds its shape on white), a soft glow of its own colour
+   under it; the label in the accent's ink (≈ 10:1 in both themes). Pressed, it sinks; open, it stays pressed. */
+:root{
+  --lit:linear-gradient(to bottom,color-mix(in srgb,var(--accent-fill) 86%,#fff),var(--accent-fill) 70%);
+  --lit-hover:linear-gradient(to bottom,color-mix(in srgb,var(--accent-hover) 84%,#fff),var(--accent-hover) 70%);
+  --lit-press:color-mix(in srgb,var(--accent-fill) 88%,#000);
+  --lit-edge:inset 0 0 0 1px color-mix(in srgb,var(--accent-fill) 78%,#000),inset 0 1px 0 rgb(255 255 255 / .32);
+  --lit-glow:0 6px 18px -8px color-mix(in srgb,var(--accent-fill) 75%,transparent);
+  --lit-glow-hover:0 8px 22px -8px color-mix(in srgb,var(--accent-fill) 95%,transparent);
+}
+:root[data-theme="light"]{--lit-glow:0 4px 14px -6px color-mix(in srgb,var(--accent-fill) 60%,transparent);--lit-glow-hover:0 6px 18px -6px color-mix(in srgb,var(--accent-fill) 80%,transparent)}
+.tw-act.lp-btn{border:0;padding:0 14px 0 12px;background:var(--lit);color:var(--accent-ink);font-weight:600;box-shadow:var(--lit-edge),var(--lit-glow);transition:background var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease),transform 90ms var(--ease)}
+.tw-act.lp-btn svg,.tw-act.lp-btn .lp-arc{color:currentColor}
+.tw-act.lp-btn:hover{background:var(--lit-hover);color:var(--accent-ink);box-shadow:var(--lit-edge),var(--lit-glow-hover);transition-duration:var(--d-hover-in)}
+.tw-act.lp-btn:active,.tw-act.lp-btn.is-on{background:var(--lit-press);color:var(--accent-ink);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent-fill) 70%,#000),inset 0 1px 3px rgb(0 0 0 / .22)}
+.tw-act.lp-btn:active{transform:scale(.97)}
+.tw-act.lp-btn.is-on:hover{background:color-mix(in srgb,var(--accent-hover) 88%,#000)}
+.tw-act.lp-btn:focus-visible{outline:2px solid var(--accent-fill);outline-offset:2px}
+.tw-act.lp-btn:disabled{background:var(--g22);color:var(--ink-4);box-shadow:inset 0 0 0 1px var(--g26);cursor:default;transform:none}
 .top-end .lp-btn,#top-end .lp-btn{flex:none;align-self:center}
 
 /* light */
@@ -234,7 +257,6 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 :root[data-theme="light"] .lp-agr{background:var(--surface);box-shadow:inset 0 0 0 1px var(--panel-line),var(--panel-lift)}
 :root[data-theme="light"] .lp-agr .arc{background:var(--surface)}
 :root[data-theme="light"] .lp :is(.lp-p,.lp-note,.lp-rec p) code{background:rgba(0,0,0,.05)}
-:root[data-theme="light"] .tw-act.lp-btn.is-on{background:rgba(0,0,0,.07);border-color:rgba(0,0,0,.16)}
 
 @media (prefers-reduced-motion:reduce){
   .stage .fr-lp::before,.lp-n::after,.lp,.lp-arc::before,.lp-sys.is-skel *{animation:none!important}
