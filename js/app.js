@@ -665,6 +665,15 @@ function messagesOf(conv) {
     const m = locals.find((x) => x.id === lid);
     m.merged = true; m.status = "sent";
   }
+  // a thread draws nothing of its own until its first page is in. Its turns and notes are read alongside the
+  // page and came sooner: drawn alone they sat under "No messages in this thread yet." for seconds, then the
+  // messages landed among them and pushed what you were reading away (1-5k px on a long thread, at 1x)
+  if (t && !t.loaded) {
+    const err = st.threadHist?.[t.id]?.error;
+    out.push({ key: "note", at: -Infinity, who: "note", text: err ? `Couldn't load this thread: ${err}` : "Loading the thread…" });
+    out.push(...locals.filter((m) => !m.merged).map((m) => ({ ...m, key: m.id })));
+    return out;
+  }
   if (!t && h) {
     if (h.error && !rows.length) out.push({ key: "note", at: -Infinity, who: "note", text: `Couldn't load this conversation: ${h.error} Retrying.` });
     else if (h.loading && !rows.length) out.push({ key: "note", at: -Infinity, who: "note", text: "Loading the conversation…" });

@@ -432,9 +432,12 @@ export function stormSource(state, emit, event) {
     th.loading = true;
     soon();
     try {
+      // its notes and the messages relayed into it (hops) land with the page too: arriving after it, they
+      // slotted in among its messages and moved what you were reading (438 px at 4x)
       const [m] = await Promise.all([
         api.messages(r.chat_id, { thread: ts, before_seq: NEWEST, limit: PAGE }),
         r.session_id ? loadTurns(r.session_id) : null,
+        hopsOnce(ts),
       ]);
       const { list } = mergeRows(state.threadMsgs[ts] || [], m.messages || []);
       state.threadMsgs[ts] = list;
@@ -485,21 +488,24 @@ export function stormSource(state, emit, event) {
     return true;
   }
   async function loadTurns(session) {
-    try {
-      const d = await api.events({ session, before_seq: NEWEST, limit: 500 });
+    // its frames, and the thread's own control rows and its move (F4, F6: however far back, both stored on its
+    // session), read side by side: a thread's first page waits for both (one after the other, they kept its
+    // messages off the screen for a second round trip, 3.5 s on live)
+    const [d, c] = await Promise.all([
+      api.events({ session, before_seq: NEWEST, limit: 500 }).catch(() => null), // live frames still arrive
+      api.events({ session, kinds: "thread.control,thread.continued", before_seq: NEWEST, limit: 500 }).catch(() => null),
+    ]);
+    if (d) {
       for (const f of d.events || []) if (f.type !== "thread.control" && f.type !== "thread.continued") state.turns.apply({ type: f.type, envelope: f });
       framesBefore.set(session, d.next_before_seq ?? null);
-    } catch { /* live frames still arrive */ }
-    // F4, F6: the thread's own control rows and its move, however far back (both stored on its session)
-    try {
-      const d = await api.events({ session, kinds: "thread.control,thread.continued", before_seq: NEWEST, limit: 500 });
-      for (const f of d.events || []) {
-        const x = f.data || {};
-        if (f.type === "thread.control") noteControl(f, x);
-        else if (f.type === "thread.continued" && (x.from || f.thread_ts) && !state.moves[x.from || f.thread_ts]) state.moves[x.from || f.thread_ts] = { ...x, at: f.ts };
-      }
-    } catch { /* live frames still arrive */ }
+    }
+    for (const f of (c && c.events) || []) {
+      const x = f.data || {};
+      if (f.type === "thread.control") noteControl(f, x);
+      else if (f.type === "thread.continued" && (x.from || f.thread_ts) && !state.moves[x.from || f.thread_ts]) state.moves[x.from || f.thread_ts] = { ...x, at: f.ts };
+    }
   }
+
 
   // ── the stream ────────────────────────────────────────────────────────────
   function onFrame(f) {
@@ -794,7 +800,9 @@ export function stormSource(state, emit, event) {
   const hopsSoon = (ts) => { clearTimeout(hopsT); hopsT = setTimeout(() => loadThreadHops(ts), 400); };
   const sought = new Set(); // findRows: "project|id@hint" already looked for
   const hopsRead = new Set(); // loadChatHops: the chats whose hops were read
-  const threadHopsRead = new Set(); // threads whose hops were read once; the stream keeps them current after
+  // a thread's hops, read once (the stream keeps them current after); its first page waits for that read
+  const threadHops = new Map(); // ts → the read
+  const hopsOnce = (ts) => { if (!threadHops.has(ts)) threadHops.set(ts, loadThreadHops(ts)); return threadHops.get(ts); };
   /**
    * Rows named by id that aren't loaded (a message relayed into a thread, a thread's root). There's no read by
    * id, so this pages back from each one's hint (the seq it lies just below), but as ONE walk per project for
@@ -1010,7 +1018,7 @@ export function stormSource(state, emit, event) {
       },
       /** A thread's hops (how messages travelled to and from it, and what they said), read when it's opened. */
       // once per thread per page: after that the stream's hops (and hopsSoon's re-read on a relay) keep it current
-      loadHops: (ts) => { if (threadHopsRead.has(ts)) return; threadHopsRead.add(ts); loadThreadHops(ts); },
+      loadHops: (ts) => { hopsOnce(ts); },
       /**
        * A Workspace or project chat's own hops, for "Show hops" on its timeline: the ones no thread
        * holds (a coordinator acting on its own), and the forward and answer when its work went on to
