@@ -633,3 +633,47 @@ downRO.observe(scroller); downRO.observe($("#dock")); downRO.observe(tdock);
 let downRaf = 0;
 const followDock = (until) => { cancelAnimationFrame(downRaf); const step = () => { downSync(); if (performance.now() < until) downRaf = requestAnimationFrame(step); }; step(); };
 new MutationObserver(() => followDock(performance.now() + 700)).observe(tdock, { childList: true, subtree: true });
+
+// ── opening a conversation lands at the latest, and stays there while it loads (owner, 5 Nov) ────────
+// The app goes to the bottom once, as a conversation opens; then the conversation keeps arriving (its
+// history, its work, pictures, these bubbles) and grew past where it left you, so you landed hundreds of
+// px above the latest, after visible jumps. Now, from the moment a conversation opens, every change in its
+// height keeps you at the latest, until it has been still for a moment or you move yourself (wheel, touch,
+// keys, the scrollbar): your own scrolling always wins.
+const PIN_QUIET = 900, PIN_MAX = 6000;
+let pin = null; // { until, lastChange }
+const app = $("#app");
+function pinToLatest() {
+  const now = performance.now();
+  pin = { until: now + PIN_MAX, lastChange: now };
+  scroller.scrollTop = scroller.scrollHeight;
+}
+function unpin() { pin = null; }
+function keepPinned() {
+  if (!pin) return;
+  const now = performance.now();
+  if (now > pin.until || now - pin.lastChange > PIN_QUIET) { pin = null; return; }
+  pin.lastChange = now;
+  scroller.scrollTop = scroller.scrollHeight;
+}
+// a conversation opens: the view (Workspace, a project, a thread, a chat) or its title changes
+let shown = "";
+const opened = () => {
+  const key = `${app.dataset.view}|${$("#top-who")?.textContent.trim() || ""}`;
+  if (key === shown) return;
+  shown = key;
+  if (app.dataset.view === "home" || app.dataset.view === "artifacts" || $("#conv").hidden) { unpin(); return; }
+  pinToLatest();
+};
+new MutationObserver(opened).observe(app, { attributes: true, attributeFilter: ["data-view"] });
+new MutationObserver(opened).observe($("#top-who"), { childList: true, subtree: true, characterData: true });
+// it keeps arriving: stay with it
+new ResizeObserver(keepPinned).observe(msgs);
+new MutationObserver(keepPinned).observe(msgs, { childList: true, subtree: true });
+// going to one particular message ("where you wrote it", a quote's original): that message is the place,
+// not the latest. The app's click handler runs on the same click, after this capture listener.
+document.addEventListener("click", (e) => { if (e.target.closest?.("[data-go-msg], [data-mx-jump]")) setTimeout(unpin, 0); }, true);
+// you move yourself: you're in charge from here
+for (const ev of ["wheel", "touchstart"]) scroller.addEventListener(ev, unpin, { passive: true });
+scroller.addEventListener("pointerdown", (e) => { if (e.target === scroller) unpin(); });
+document.addEventListener("keydown", (e) => { if (["PageUp", "PageDown", "ArrowUp", "ArrowDown", "Home", "End", " "].includes(e.key) && !e.target.closest?.("textarea, input, [contenteditable]")) unpin(); });
