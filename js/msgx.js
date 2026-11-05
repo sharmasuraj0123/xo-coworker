@@ -212,6 +212,13 @@ const ENDED = new Set();
 // each working turn's height, held by its key (see working(): the finished turn starts drawn at it)
 const HOLD = new Map();
 const holdSheet = document.head.appendChild(Object.assign(document.createElement("style"), { id: "mx-hold" }));
+/** An element's height from its content alone (its children's extent), whatever min-height holds it at. */
+function naturalHeight(el) {
+  const top = el.getBoundingClientRect().top;
+  let h = 0;
+  for (const c of el.children) { const r = c.getBoundingClientRect(); if (r.height) h = Math.max(h, r.bottom - top); }
+  return Math.round(h);
+}
 function holdRules() { holdSheet.textContent = [...HOLD].map(([k, h]) => `:root[data-msgx] #msgs>[data-k="${CSS.escape(k)}"]{min-height:${h}px}`).join("\n"); }
 const orderSheet = document.head.appendChild(Object.assign(document.createElement("style"), { id: "mx-order" }));
 function keepEnded(key, lastKey) {
@@ -249,10 +256,14 @@ function working(el) {
       const from = WORKING.get(key).h;
       const letGo = () => { HOLD.delete(key); holdRules(); };
       // its own height, read while the hold still stands (so this layout never sees the drop either)
-      const to = Math.max(...[...el.children].map((c) => c.offsetTop - el.offsetTop + c.offsetHeight));
+      const to = naturalHeight(el);
       if (from && to < from - 1 && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
         const cs = getComputedStyle(el), d = cs.getPropertyValue("--d-move").trim();
-        const a = el.animate([{ minHeight: `${from}px` }, { minHeight: `${to}px` }], { duration: parseFloat(d) * (d.endsWith("ms") ? 1 : 1000) || 320, easing: cs.getPropertyValue("--ease").trim() || "ease" });
+        // it waits one beat first: the turn's answer usually lands with its end, and the app's follow is
+        // carrying the view down to it; a shrink during that glide is absorbed, where one at the very bottom
+        // would pull the view up a few px a frame
+        const ms = parseFloat(d) * (d.endsWith("ms") ? 1 : 1000) || 320;
+        const a = el.animate([{ minHeight: `${from}px` }, { minHeight: `${to}px` }], { duration: ms, delay: ms, fill: "backwards", easing: cs.getPropertyValue("--ease").trim() || "ease" });
         a.finished.then(letGo, letGo);
       } else letGo();
     }
@@ -303,8 +314,19 @@ function working(el) {
   WORKING.set(key, st);
   settle(el, st);
   sizeWork(w, key, text);
-  st.h = el.offsetHeight; // what it measured while working, for the ease when it ends
-  if (HOLD.get(key) !== st.h) { HOLD.set(key, st.h); holdRules(); }
+  // what it measures while working, for the ease when it ends: its content's own height, never the held
+  // min-height (reading offsetHeight held it at its tallest: open the work, close it, and the turn kept the
+  // open card's height as empty space; owner, 5 Nov)
+  const held = HOLD.get(key) || 0;
+  st.h = naturalHeight(el);
+  if (Math.abs(held - st.h) >= 1) {
+    HOLD.set(key, st.h); holdRules();
+    // it got shorter (the work folded back): ease down to it instead of snapping, the way it opened
+    if (held > st.h + 1 && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      const cs = getComputedStyle(el), d = cs.getPropertyValue("--d-move").trim();
+      el.animate([{ minHeight: `${held}px` }, { minHeight: `${st.h}px` }], { duration: parseFloat(d) * (d.endsWith("ms") ? 1 : 1000) || 320, easing: cs.getPropertyValue("--ease").trim() || "ease" });
+    }
+  }
   tick();
 }
 /**
