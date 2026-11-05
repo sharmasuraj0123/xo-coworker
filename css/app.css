@@ -552,11 +552,27 @@ body.panel-open .conv{--rp:calc(var(--pw) + 28px)}
 .md-copy:hover{background:var(--bg-3);color:var(--ink)}
 .md-code pre{margin:0;padding:12px 16px;overflow-x:auto;font:400 var(--fs-base)/20px var(--mono)}
 .md-code code{background:none;border:0;padding:0;font:inherit}
-.md-table{margin:.6em 0 .9em;overflow-x:auto;border:1px solid var(--g26);border-radius:var(--r-lg)}
-.md-table table{width:100%;border-collapse:collapse;font-size:var(--fs-base);line-height:var(--lh-13)}
-.md-table th{text-align:left;font:600 var(--fs-sm)/16px var(--sans);color:var(--ink-3);background:var(--g1A);white-space:nowrap}
-.md-table th,.md-table td{padding:8px 12px;border-bottom:1px solid var(--g22);vertical-align:top}
+/* Tables read on whatever they sit on (the page, an agent's glass bubble, a card): their frame, rules and
+   header are mixes of the text colour, not greys made for the page (on the bubble those measured 1.05 : 1
+   for the frame and drew the header as a dark slab; QA #5). Cells one step under the reading size, the
+   header the same size in weight, spacing on the 4 px scale, figures in columns. Wider than its frame, a
+   table scrolls sideways on its own (msgx.js leaves that gesture to it); two columns on a narrow frame
+   stack, each row's label over its value. */
+.md-table{--tl:color-mix(in srgb,currentColor 16%,transparent);margin:12px 0;overflow-x:auto;overscroll-behavior-x:contain;touch-action:pan-x pan-y;scrollbar-width:thin;border:1px solid var(--tl);border-radius:var(--r-lg);container-type:inline-size}
+.md-table table{width:100%;border-collapse:collapse;font-size:var(--fs-md);line-height:var(--lh-14);font-variant-numeric:tabular-nums}
+.md-table th{text-align:left;font:600 var(--fs-md)/var(--lh-14) var(--sans);color:var(--ink-2);background:color-mix(in srgb,currentColor 5%,transparent);white-space:nowrap}
+.md-table th,.md-table td{min-width:9ch;padding:8px 12px;border-bottom:1px solid color-mix(in srgb,currentColor 10%,transparent);vertical-align:top}
 .md-table tr:last-child td{border-bottom:0}
+@container (max-width:400px){
+  .md-table.is-2col :is(table,tbody,tr,td){display:block;width:auto;min-width:0}
+  .md-table.is-2col thead{display:none}
+  .md-table.is-2col tr{padding:8px 12px;border-bottom:1px solid color-mix(in srgb,currentColor 10%,transparent)}
+  .md-table.is-2col tr:last-child{border-bottom:0}
+  .md-table.is-2col td{padding:0;border:0}
+  .md-table.is-2col td:first-child{font-weight:500;color:var(--ink)}
+  .md-table.is-2col td+td{margin-top:2px;color:var(--ink-2)}
+}
+.md-code pre{touch-action:pan-x pan-y;overscroll-behavior-x:contain}
 /* Code colours (js/highlight.js, if1 #3): mixed from the palette's own hues toward ink, so each
    theme's hue (darkened in light) keeps its contrast on the code surface. Comments recede. */
 :root{
