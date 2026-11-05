@@ -1095,7 +1095,7 @@ function topRender(needs) {
     const need = hostNeedHtml(v, needs);
     const line = countLine([...(parts.length ? parts : ["All quiet"]), projects().length && `across ${counted(projects().length, projects().length === 1 ? "project" : "projects")}`]);
     // the counts go to Home; what the Workspace's own coordinator asks opens here, so the two are separate buttons
-    who = `<span class="tw-ic tw-xo" aria-hidden="true">${XO}</span><span class="tw-t"><h1 id="conv-title">Workspace</h1>${need ? `<span class="pj-s">${countLine([need, `<button type="button" class="pj-home" data-go="home" title="What needs you is on Home">${line}</button>`])}</span>` : `<button type="button" class="pj-s pj-home" data-go="home" title="What needs you is on Home">${line}</button>`}</span>`;
+    who = `<span class="tw-ic tw-xo" aria-hidden="true">${XO}</span><span class="tw-t"><h1 id="conv-title">Workspace</h1>${need ? `<span class="pj-s has-need">${countLine([need, `<button type="button" class="pj-home" data-go="home" title="What needs you is on Home">${line}</button>`])}</span>` : `<button type="button" class="pj-s pj-home" data-go="home" title="What needs you is on Home">${line}</button>`}</span>`;
   } else if (v.startsWith("p:")) {
     const pid = v.slice(2);
     const ts = threadsOf(pid);
@@ -1108,7 +1108,8 @@ function topRender(needs) {
     const parts = [counted(w, "working"), counted(dn, "done"), counted(rs, "resolved")].filter(Boolean);
     // Threads: every thread here, searchable, dropping down under its button (⌘K reaches them too)
     if (every.length) end = `<button type="button" class="all-btn th-btn" data-switch aria-haspopup="dialog" aria-expanded="${!allEl.hidden}" title="Every thread in ${esc(PROJ(pid))}, searchable">${ICON.threadOne}${esc(SHAPE.word("Threads"))}<span>${every.length}</span></button>`;
-    who = `<span class="tw-ic" aria-hidden="true">${projectIcon(pid)}</span><span class="tw-t"><h1 id="conv-title">${esc(PROJ(pid))}</h1><span class="pj-s">${countLine([hostNeedHtml(v, needs), ...(parts.length ? parts : [every.length ? "All quiet" : "No threads yet"]), S.desc[pid] && esc(S.desc[pid])])}</span></span>`;
+    const need = hostNeedHtml(v, needs);
+    who = `<span class="tw-ic" aria-hidden="true">${projectIcon(pid)}</span><span class="tw-t"><h1 id="conv-title">${esc(PROJ(pid))}</h1><span class="pj-s${need ? " has-need" : ""}">${countLine([need, ...(parts.length ? parts : [every.length ? "All quiet" : "No threads yet"]), S.desc[pid] && esc(S.desc[pid])])}</span></span>`;
   } else if (t) {
     const ed = S.tEdit && S.tEdit.tid === t.id ? S.tEdit.field : null;
     const title = ed === "title"
