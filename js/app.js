@@ -2634,7 +2634,16 @@ document.addEventListener("click", (e) => {
   const cf = t.closest(".tb-cf[data-file]");
   // opening it is reading here, as opening a work fold is: the view unpins, so the panel making room (the
   // conversation narrows) moves nothing you're reading (the browser's scroll anchoring holds it)
-  if (cf) { const c = CHG.forTarget(S.view, cf.dataset.file); if (c) { unpin(); if (STAGE.showChange(c.path)) { schedule(); return; } } }
+  if (cf) {
+    const c = CHG.forTarget(S.view, cf.dataset.file);
+    if (c) {
+      unpin();
+      if (STAGE.showChange(c.path)) { schedule(); return; }
+      // a shape without the panel's Changes (Make content): its diff in Files instead
+      const s = CHG.scope(S.view);
+      if (s) { VW.open({ path: c.path, name: c.path.split("/").pop(), project: s.project, rel: s.worktree ? `.xo/worktrees/${s.worktree}/${c.path}` : c.path, show: "changes" }, cf); return; }
+    }
+  }
   const fb = t.closest("[data-file]");
   if (fb) { e.preventDefault(); openSharedFile(fb); return; }
   const cp = t.closest("[data-copy]");
