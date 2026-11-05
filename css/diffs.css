@@ -151,7 +151,7 @@ diffs-container{
 .xd-edit svg{width:16px;height:16px}
 .xd-state{display:inline-flex;align-items:center;gap:6px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3);white-space:nowrap}
 .xd-state i{width:6px;height:6px;border-radius:50%;background:var(--warn)}
-.xd-err{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 var(--fs-sm)/16px var(--sans);color:var(--err-ink)}
+.xd-errline{color:var(--err-ink)}
 .xd-vsep{flex:none;width:1px;height:16px;margin:0 4px;background:var(--g26)}
 .xd-btn{flex:none;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--g30);font:500 var(--fs-base)/20px var(--sans);color:var(--ink-2);white-space:nowrap;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .xd-btn:hover{border-color:var(--line-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
@@ -184,8 +184,18 @@ diffs-container{
 .xd-toast{position:absolute;z-index:8;left:0;right:0;bottom:16px;display:flex;justify-content:center;padding:0 16px;pointer-events:none}
 .xd-toast .toast{pointer-events:auto}
 .xd-toast .t-m b{font-weight:600}
-.xd-tx{display:grid;place-items:center;width:28px;height:28px;border-radius:var(--r-sm);color:var(--ink-3)}
+.xd-toast .t-m{min-width:0}
+.xd-tacts{display:contents}
+.xd-tx{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:var(--r-sm);color:var(--ink-3)}
 .xd-tx:hover{background:var(--g24);color:var(--ink)}
 .xd-tx svg{width:14px;height:14px}
 @media (prefers-reduced-motion:reduce){.xd-pop{animation:none}.xd-btn,.xd-edit,.xd-mbtn{transition:none}}
-@media (max-width:600px){.xd-edit span,.xd-btn kbd,.xd-runs span{display:none}.xd-edit{padding:0 6px}.xd-pop{width:min(320px,calc(100vw - 32px))}}
+@media (max-width:600px){
+  .xd-edit span,.xd-btn kbd,.xd-runs span{display:none}
+  .xd-edit{padding:0 6px}
+  .xd-pop{width:min(320px,calc(100vw - 32px))}
+  /* the toast on a phone: the words and close on the first row, the actions on their own row below (Astra) */
+  .xd-toast .toast{flex-wrap:wrap;row-gap:4px;width:100%}
+  .xd-toast .t-m{flex:1 1 0}
+  .xd-tacts{display:flex;order:2;flex-basis:100%;justify-content:flex-end;gap:8px}
+}

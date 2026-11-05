@@ -169,14 +169,24 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   function editActs() {
     if (ED.discard) return `<span class="xd-state">Discard your edits?</span><button type="button" class="xd-btn" data-vw-keep>Keep editing</button><button type="button" class="xd-btn is-warn" data-vw-discard>Discard</button>`;
     if (ED.conflict) return `<span class="xd-state">${ED.conflict.left ? `${ED.conflict.left} ${ED.conflict.left === 1 ? "place" : "places"} to choose` : "All chosen"}</span><span class="xd-vsep"></span><button type="button" class="xd-btn" data-vw-cancel>Cancel</button><button type="button" class="xd-btn is-pri" data-vw-saveit${ED.conflict.left || ED.saving ? " disabled" : ""}>Save <kbd>${MODS}S</kbd></button>`;
-    return (ED.err ? `<span class="xd-err" role="alert">${esc(ED.err)}</span>` : ED.dirty ? `<span class="xd-state"><i></i>Edited</span>` : "") +
+    return (ED.dirty || ED.err ? `<span class="xd-state"><i></i>Edited</span>` : "") +
       `<span class="xd-vsep"></span><button type="button" class="xd-btn" data-vw-cancel>Cancel</button><button type="button" class="xd-btn is-pri" data-vw-saveit${ED.saving ? " disabled" : ""}>${ED.saving ? "Saving…" : `Save <kbd>${MODS}S</kbd>`}</button>`;
   }
   const confirmPop = () => `<div class="xd-pop" role="dialog" aria-label="Save a file that runs code"><p><b>Git or an agent runs what this file says.</b> A slip here runs on the next commit or the next agent turn. Save anyway?</p><div class="xd-pop-a"><button type="button" class="xd-btn" data-vw-noconfirm>Cancel</button><button type="button" class="xd-btn is-pri" data-vw-confirm>Save</button></div></div>`;
   /** Redraw only the head: the editor below keeps its focus and caret. */
   function paintHead() {
     const top = el.querySelector(".vw-top");
-    if (top) top.outerHTML = head();
+    if (!top) return;
+    top.outerHTML = head();
+    errPaint();
+  }
+  /** A save that didn't go, in words, on its own line under the head: never pushing Cancel and Save away. */
+  function errPaint() {
+    let line = el.querySelector(":scope > .xd-errline");
+    const why = ED.on ? ED.err : null;
+    if (!why) { if (line) line.remove(); return; }
+    if (!line) { line = document.createElement("p"); line.className = "vw-cut xd-errline"; line.setAttribute("role", "alert"); el.querySelector(".vw-top")?.after(line); }
+    line.innerHTML = `${ICON.clock}<span>${esc(why)}</span>`;
   }
   /** Edit: the head turns into Cancel · Save once the editor is really there (a caret you can type at). */
   async function startEdit() {
@@ -275,8 +285,9 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     let t = el.querySelector(":scope > .xd-toast");
     if (!saved || !V.open) { if (t) t.remove(); return; }
     if (!t) { t = document.createElement("div"); t.className = "xd-toast"; el.appendChild(t); }
+    const acts = `${saved.editId ? `<button type="button" class="t-undo" data-vw-undo>Undo</button>` : ""}${edits && edits.tell && !saved.unchanged ? `<button type="button" class="t-undo" data-vw-tell>Tell the agent</button>` : ""}`;
     t.innerHTML = `<div class="toast" role="status"><span class="t-ic">${ICON.check}</span><span class="t-m"><b>${saved.unchanged ? "Nothing to save" : "Saved"}</b> <span>${esc(saved.name)}${saved.unchanged ? " is as it was" : saved.merged ? ", with the agent's changes" : ""}</span></span>` +
-      `${saved.editId ? `<button type="button" class="t-undo" data-vw-undo>Undo</button>` : ""}${edits && edits.tell && !saved.unchanged ? `<button type="button" class="t-undo" data-vw-tell>Tell the agent</button>` : ""}<button type="button" class="xd-tx" data-vw-toastx aria-label="Close">${ICON.close}</button></div>`;
+      `${acts ? `<span class="xd-tacts">${acts}</span>` : ""}<button type="button" class="xd-tx" data-vw-toastx aria-label="Close">${ICON.close}</button></div>`;
   }
   async function undoSave() {
     const f = V.file, s = saved;
@@ -463,6 +474,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       el.querySelector("[data-vw-file]").replaceWith(host);
       if (bar && ED.conflict) host.before(bar);
       host.scrollTop = top;
+      errPaint();
       toastPaint();
       if (!ED.conflict) drawFile();
       return;
