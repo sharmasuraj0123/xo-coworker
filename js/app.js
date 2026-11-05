@@ -1020,7 +1020,7 @@ function crailHtml(v, t, needs) {
   const says = [name, ask ? "needs you" : busy ? "working" : "", fresh ? "new messages" : ""].filter(Boolean).join(" · ");
   return `<button type="button" class="crail-b${ask ? " is-ask" : ""}" data-crail data-fid="crail" title="Open the chat${FILESV.sheet ? "" : ` (${K.label("chatFold")})`}" aria-label="Open the chat: ${esc(says)}">` +
     `<span class="crail-ic">${ICON.threadOne}${busy && !ask ? '<i class="arc"></i>' : ""}</span>` +
-    (ask ? `<em class="crail-m is-ask" aria-hidden="true">!</em>` : fresh ? `<em class="crail-m is-new" aria-hidden="true"></em>` : "") +
+    (ask ? `<em class="crail-m is-ask" aria-hidden="true">!</em>` : fresh ? `<em class="crail-m is-new" aria-hidden="true">${fresh > 9 ? "9+" : fresh}</em>` : "") +
     `<span class="crail-t">${esc(name)}</span><span class="crail-s">${esc(doing)}</span>` +
     (ask ? `<span class="crail-open">Open</span>` : `${fresh ? `<span class="crail-n">${fresh}</span>` : ""}<span class="crail-up" aria-hidden="true">${ICON.chevron}</span>`) + `</button>`;
 }

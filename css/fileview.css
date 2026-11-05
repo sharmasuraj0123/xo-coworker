@@ -32,8 +32,17 @@ body.chat-docked .chead{display:flex;align-items:center;gap:8px;flex:none;box-si
 :root[data-theme="light"] body.chat-docked .chead{border-bottom-color:rgba(0,0,0,.06)}
 .chead-t{min-width:0;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 var(--fs-base)/20px var(--sans);color:var(--ink)}
 .chead .badge{height:20px;padding:0 8px;gap:6px}
-body.chat-docked .thead{padding-top:8px}
+/* the thread's strip, one line: the checklist, then its sub-agents as counts in the same 40 px boxes (as a
+   phone has them); the chips are a tap away in the checklist's list */
+body.chat-docked .thead{display:flex;align-items:flex-start;gap:8px;padding:8px 16px}
+body.chat-docked .thead .ckbar{flex:1;min-width:0}
 body.chat-docked .thead .rn-strip{display:none}
+body.chat-docked .thead .rn-log{flex:none;height:40px;margin:0;padding:0 12px 0 10px;border-radius:var(--r-lg);border:1px solid var(--g22);gap:6px}
+body.chat-docked .thead .rn-log span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+body.chat-docked .thead .rn-log::after{content:attr(data-n);font:500 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums}
+body.chat-docked .thead .rn-live{flex:none;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 13px 0 12px;border-radius:var(--r-lg);border:1px solid color-mix(in srgb,var(--info) 28%,var(--g26));background:color-mix(in srgb,var(--info) 6%,transparent);color:var(--ink-2)}
+body.chat-docked .thead .rn-live:has(.g-needs_reply){border-color:color-mix(in srgb,var(--warn) 34%,var(--g26));background:color-mix(in srgb,var(--warn) 7%,transparent)}
+body.chat-docked .thead .rn-live .rn-n{font:500 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums}
 body.chat-docked .scroller{padding-left:16px;padding-right:16px}
 body.files-open.chat-docked .mx-down{display:grid}
 /* agent bubbles stop 72 px short of the column's edge, so their hover Reply and Copy fit inside it */
@@ -87,16 +96,17 @@ body.chat-docked.chat-railed :is(.conv,.dock){visibility:hidden}
 body.chat-docked.chat-railed .fv{right:44px}
 body.chat-docked.chat-railed .fv-cgrip{display:none}
 .crail{display:none}
-body.chat-docked.chat-railed .crail{display:flex;position:absolute;z-index:6;top:0;right:0;bottom:0;width:44px;padding:4px 0;background:var(--canvas);box-shadow:inset 1px 0 var(--g1C)}
+body.chat-docked.chat-railed .crail{display:flex;position:absolute;z-index:6;top:0;right:0;bottom:0;width:44px;padding:0;background:var(--canvas);box-shadow:inset 1px 0 var(--g1C)}
 :root[data-theme="light"] body.chat-docked.chat-railed .crail{box-shadow:inset 1px 0 rgba(0,0,0,.08)}
-.crail-b{position:relative;display:flex;flex-direction:column;align-items:center;gap:12px;width:44px;padding:2px 0 12px;border-radius:0;color:var(--ink-3)}
+.crail-b{position:relative;display:flex;flex-direction:column;align-items:center;gap:12px;width:44px;padding:3.5px 0 12px;border-radius:0;color:var(--ink-3)} /* its tile on the heads' controls' line (y 3.5) */
 .crail-b:hover{background:var(--g1C);color:var(--ink)}
 .crail-b:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 .crail-ic{position:relative;display:grid;place-items:center;width:32px;height:32px;border-radius:var(--r);background:var(--g1C);box-shadow:inset 0 0 0 1px var(--g26);color:var(--ink-2)}
 :root[data-theme="light"] .crail-ic{background:var(--surface);box-shadow:inset 0 0 0 1px var(--panel-line)}
 .crail-ic svg{width:16px;height:16px}
-.crail-m{position:absolute;top:2px;right:2px;font-style:normal}
-.crail-m.is-new{width:6px;height:6px;border-radius:50%;background:var(--info)}
+.crail-m{position:absolute;top:0;right:2px;font-style:normal} /* on the tile's corner, inside the 44 px rail */
+.crail-m.is-new{display:grid;place-items:center;min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;border-radius:999px;background:var(--g33);color:var(--ink);font:600 10px/1 var(--sans);font-variant-numeric:tabular-nums} /* a count, never a blue dot */
+:root[data-theme="light"] .crail-m.is-new{background:var(--ink-2);color:var(--surface)}
 .crail-m.is-ask{display:grid;place-items:center;width:14px;height:14px;border-radius:50%;background:var(--warn);color:#1A1200;font:600 10px/1 var(--sans)}
 .crail-t{writing-mode:vertical-rl;transform:rotate(180deg);max-height:min(320px,60vh);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 var(--fs-sm)/16px var(--sans)}
 /* compact (under sidebar + 44 + the chat + 560): opened, the chat lies over the file's right edge */
@@ -149,7 +159,10 @@ body.chat-docked.chat-over .conv{background:var(--canvas)}
   :root:root body.chat-sheet .crail-up{display:grid;place-items:center;width:32px;height:32px;color:var(--ink-3);transform:rotate(180deg)}
   :root:root body.chat-sheet .crail-up svg{width:16px;height:16px}
   :root:root body.chat-sheet .crail-b:has(.crail-n) .crail-up{display:none}
-  :root:root body.chat-sheet .crail-n{display:grid;place-items:center;min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:999px;background:var(--info);color:#fff;font:600 var(--fs-sm)/1 var(--sans)}
+  :root:root body.chat-sheet .crail-n{display:grid;place-items:center;min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:999px;background:var(--g33);color:var(--ink);font:600 var(--fs-sm)/1 var(--sans);font-variant-numeric:tabular-nums}
+  :root[data-theme="light"]:root body.chat-sheet .crail-n{background:var(--ink-2);color:var(--surface)}
+  /* the file's segment buttons keep the segment's 22 px on a phone (a legacy 40 px min-height pushed them out) */
+  :root:root .fv .vw-seg button{min-height:0}
   :root:root body.chat-sheet .crail-b.is-ask{background:color-mix(in srgb,var(--warn) 12%,transparent)}
   :root:root body.chat-sheet .crail-b.is-ask .crail-s{color:var(--warn)}
   :root:root body.chat-sheet .crail-open{display:grid;place-items:center;height:32px;padding:0 12px;border-radius:var(--r);background:var(--warn);color:#1A1200;font:600 var(--fs-sm)/1 var(--sans)}

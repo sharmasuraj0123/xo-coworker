@@ -24,6 +24,7 @@ import { countsHtml } from "./changesframe.js";
 
 const WIDE = 600;       // the panel's width from which tree and file sit side by side (the panel goes to 720)
 const TOUCHED = 6;      // "Touched by agents" shows at most this many
+const ROW = 28;         // a row's height, and a heading's: the list is a whole number of them (css/panel.css)
 
 const I = (d, w = 15) => `<svg viewBox="0 0 24 24" width="${w}" height="${w}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 export const FILES_ICON = I('<path d="M3.5 18V6.5A1.5 1.5 0 0 1 5 5h4l2 2h8A1.5 1.5 0 0 1 20.5 8.5V18a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18z"/>', 16);
@@ -269,6 +270,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       tree.innerHTML = `<div class="fl-head"></div><div class="fl-list"><div class="fl-secs"></div><div class="fl-g" data-fl-g=""></div></div>`;
       tree._h = null; T.key = s.key; T.on = null; T.q = null;
       T.groups = new Map([["", { el: tree.querySelector(".fl-list > .fl-g"), sig: null, open: new Set() }]]);
+      requestAnimationFrame(fitList);
     }
     const head = tree.querySelector(".fl-head");
     const qi = head.querySelector("[data-fl-q]"), typing = qi && document.activeElement === qi ? [qi.selectionStart, qi.selectionEnd] : null;
@@ -364,6 +366,17 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     return false;
   }
 
+  /** Whole rows: the list is a whole number of its 28 px rows tall (headings are 28 too), and it snaps to
+   *  them, so the last row on screen is never cut (Astra, 5 Nov). */
+  function fitList() {
+    const tree = F.host && F.host.querySelector(".fl-tree"), list = tree && tree.querySelector(".fl-list");
+    if (!list) return;
+    const head = tree.querySelector(".fl-head"), room = tree.clientHeight - (head ? head.offsetHeight : 0);
+    const h = room > 0 ? Math.floor(room / ROW) * ROW : 0;
+    const px = h ? `${h}px` : "";
+    if (list.style.maxHeight !== px) list.style.maxHeight = px;
+  }
+
   // ── folded to a rail (beside a file) ─────────────────────────────────────
   /** Fold or open the tree; `onFold` (js/filesview.js) hears it when it was you. */
   function fold(on, { mine = false } = {}) {
@@ -430,6 +443,18 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       const w = host.getBoundingClientRect().width >= WIDE;
       if (w !== F.wide) { F.wide = w; paint(); if (w) frontPage(); }
     }).observe(host);
+    // the list's whole rows follow the tree's own height (it shows, folds, or the window changes)
+    if (typeof ResizeObserver === "function") new ResizeObserver(() => fitList()).observe(host.querySelector(".fl-tree"));
+    // a scroll that ends between rows settles on the nearest one (every row, heading and note is 28 px)
+    let settleT = 0;
+    const settle = (e) => {
+      const l = e.target;
+      if (!l.classList || !l.classList.contains("fl-list")) return;
+      const t = Math.round(l.scrollTop / ROW) * ROW;
+      if (Math.abs(t - l.scrollTop) >= 1 && t <= l.scrollHeight - l.clientHeight) l.scrollTo({ top: t, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    };
+    if ("onscrollend" in window) host.addEventListener("scrollend", settle, true);
+    else host.addEventListener("scroll", (e) => { clearTimeout(settleT); settleT = setTimeout(() => settle(e), 160); }, true);
   }
 
   return {
