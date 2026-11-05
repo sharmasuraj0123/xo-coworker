@@ -13,12 +13,16 @@ const GH = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="
 
 export const slugify = (name) => String(name || "").normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48);
 
+// GitHub as Space reads it (services/project_management.py _github_url): any page of a repo (…/tree/main,
+// …/pulls?q=…, #readme) names the repo; owner/repo alone does too
+const GH_PAGE = /^(?:https?:\/\/)?(?:www\.)?github\.com\/([A-Za-z0-9][A-Za-z0-9-]{0,38})\/([A-Za-z0-9._-]{1,100}?)(?:\.git)?(?:\/[^?#]*)?(?:[?#].*)?$/i;
+const GH_SHORT = /^([A-Za-z0-9][A-Za-z0-9-]{0,38})\/([A-Za-z0-9._-]{1,100}?)(?:\.git)?\/?$/;
+
 /** What the Repository field holds → {url, label, name, github} or null. owner/repo and github.com/… mean GitHub. */
 export function parseRepo(raw) {
   const v = String(raw || "").trim();
   if (!v || /\s/.test(v)) return null;
-  // A browser's GitHub address may carry ?tab=… or #readme: neither names a different repo
-  const gh = v.replace(/^((?:https?:\/\/)?(?:www\.)?github\.com\/[^?#]*)[?#].*$/i, "$1").match(/^(?:(?:https?:\/\/)?(?:www\.)?github\.com\/)?([A-Za-z0-9-]{1,39})\/([A-Za-z0-9._-]{1,100}?)(?:\.git)?(?:\/(?:tree|blob)\/.*)?\/?$/i);
+  const gh = v.match(GH_PAGE) || v.match(GH_SHORT);
   if (gh && !/^\.+$/.test(gh[2])) return { url: `https://github.com/${gh[1]}/${gh[2]}.git`, label: `${gh[1]}/${gh[2]}`, name: gh[2], github: true };
   const ssh = v.match(/^git@([A-Za-z0-9.-]+):([A-Za-z0-9._/-]+?)(?:\.git)?$/);
   // GitHub's SSH form clones over HTTPS, so the GitHub connection (not this server's SSH keys) opens it
