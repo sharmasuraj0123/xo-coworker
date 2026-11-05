@@ -23,6 +23,9 @@ const RUNTIMES_MS = 5 * 60000;    // a CLI login can change outside XO
 const CHATS_MIN_MS = 30000;       // re-list chats at most this often on our own
 const PAGE = 40;                  // the first page of a conversation; older pages grow from here
 const PAGE_MAX = 200;
+// an older page as you scroll up: small enough that drawing it never stalls a frame for long (it was 80
+// rows: 60-90 ms at once on a desktop, 250-470 ms on a slower machine; QA #10)
+const OLDER_PAGE = 30;
 const RUNS_KEEP = 300;            // finished sub-agents kept in memory, beyond those of the open thread
 const LOAD_CAP = 6;               // parallel GETs at boot
 const AWAIT_CAP_MS = 10 * 60000;  // "replying" never outlives this without a signal
@@ -41,6 +44,8 @@ export function stormSource(state, emit, event) {
     conn: "connecting", connInfo: null,
     timeline: {},    // project id → storm message rows on its timeline, by seq
     hist: {},        // project id → {all, loading, error, before}
+    found: {},       // project id → Map(message id → row): rows looked up by id (a relayed message, a thread's
+                     // root), kept off the visible timeline so a lookup never grows the project's conversation
     threadMsgs: {},  // thread ts → storm message rows, by seq
     threadHist: {},  // thread ts → {loading, loaded, error, all, before, paged, older, olderError}: read in pages, newest first
     sessions: {},    // cse id → {id, role, chat_id, thread_ts, state, agent, model, effort, paused, retired_at, seq}
@@ -399,7 +404,7 @@ export function stormSource(state, emit, event) {
     h.loading = true;
     emit();
     try {
-      const d = await api.messages(chat, { before_seq: h.before, limit: Math.min(PAGE_MAX, PAGE * 2) });
+      const d = await api.messages(chat, { before_seq: h.before, limit: OLDER_PAGE });
       addRows(project, d.messages || []);
       h.before = d.next_before_seq || null;
       h.all = !h.before;
@@ -449,7 +454,7 @@ export function stormSource(state, emit, event) {
     th.older = true;
     soon();
     try {
-      const m = await api.messages(r.chat_id, { thread: ts, before_seq: th.before, limit: Math.min(PAGE_MAX, PAGE * 2) });
+      const m = await api.messages(r.chat_id, { thread: ts, before_seq: th.before, limit: OLDER_PAGE });
       const { list } = mergeRows(state.threadMsgs[ts] || [], m.messages || []);
       if (r.session_id) await loadOlderTurns(r.session_id, list.length ? list[0].seq : null);
       state.threadMsgs[ts] = list;
@@ -715,7 +720,8 @@ export function stormSource(state, emit, event) {
   async function reload() {
     // a reset for retention or a replaced store: start again from the server's state. The thread
     // list is refreshed in place (no false "new thread" lines); what's on screen loads again.
-    state.timeline = {}; state.hist = {}; state.threadMsgs = {}; state.threadHist = {}; framesBefore.clear();
+    state.timeline = {}; state.hist = {}; state.threadMsgs = {}; state.threadHist = {}; state.found = {}; framesBefore.clear();
+    sought.clear();
     state.review.clear(); state.routed = {}; state.turns = createTurns();
     await loadAll();
     for (const [ts, r] of rawThreads) if (!chatProject.has(r.chat_id)) rawThreads.delete(ts);
@@ -786,8 +792,53 @@ export function stormSource(state, emit, event) {
   // a burst of hops (a relay and its state moves) is one read
   let hopsT = 0;
   const hopsSoon = (ts) => { clearTimeout(hopsT); hopsT = setTimeout(() => loadThreadHops(ts), 400); };
-  const sought = new Set(); // findRows: what was already looked for
+  const sought = new Set(); // findRows: "project|id@hint" already looked for
   const hopsRead = new Set(); // loadChatHops: the chats whose hops were read
+  const threadHopsRead = new Set(); // threads whose hops were read once; the stream keeps them current after
+  /**
+   * Rows named by id that aren't loaded (a message relayed into a thread, a thread's root). There's no read by
+   * id, so this pages back from each one's hint (the seq it lies just below), but as ONE walk per project for
+   * everything asked in the same moment: small pages (50), one at a time, newest hint first, jumping down to
+   * the next hint, stopping when all are found or after 6 pages. What it finds goes to state.found, never the
+   * visible timeline. (It used to start a 5 × 200-row search per relayed message, all at once and overlapping:
+   * 13 requests and 2.4 MB on opening one thread, and the project's conversation grew from 45 to 402 rows.)
+   */
+  const wanted = new Map(); // project → Map(id → hint seq | null)
+  let findT = 0;
+  function findRows(project, ids, beforeSeq) {
+    let q = wanted.get(project);
+    for (const id of ids) {
+      if ((state.timeline[project] || []).some((r) => r.id === id) || state.found[project]?.has(id)) continue;
+      const key = `${project}|${id}@${beforeSeq ?? ""}`;
+      if (sought.has(key)) continue;
+      sought.add(key);
+      if (!q) wanted.set(project, (q = new Map()));
+      q.set(id, beforeSeq ?? null);
+    }
+    if (q && q.size && !findT) findT = setTimeout(walkFound, 0);
+  }
+  async function walkFound() {
+    findT = 0;
+    const jobs = [...wanted]; wanted.clear();
+    await Promise.all(jobs.map(async ([project, q]) => {
+      const chat = chatIdOf(project);
+      if (!chat) return;
+      const map = state.found[project] || (state.found[project] = new Map());
+      let floor = Infinity; // nothing at or above this seq is left to read
+      for (let page = 0; page < 6 && q.size; page++) {
+        const top = Math.max(...[...q.values()].map((s) => (s == null ? Infinity : s)));
+        const from = Math.min(top === Infinity ? Infinity : top + 1, floor);
+        let d;
+        try { d = await api.messages(chat, { before_seq: from === Infinity ? NEWEST : from, limit: 50 }); } catch { return; }
+        const rows = d.messages || [];
+        for (const r of rows) { map.set(r.id, r); q.delete(r.id); }
+        if (!rows.length || !d.next_before_seq) break;
+        floor = Math.min(...rows.map((r) => r.seq));
+        for (const [id, s] of q) if (s == null || s >= floor) q.set(id, floor - 1);
+      }
+    }));
+    emitSoon();
+  }
 
   return {
     act: {
@@ -958,7 +1009,8 @@ export function stormSource(state, emit, event) {
         return s ? s.id : null;
       },
       /** A thread's hops (how messages travelled to and from it, and what they said), read when it's opened. */
-      loadHops: loadThreadHops,
+      // once per thread per page: after that the stream's hops (and hopsSoon's re-read on a relay) keep it current
+      loadHops: (ts) => { if (threadHopsRead.has(ts)) return; threadHopsRead.add(ts); loadThreadHops(ts); },
       /**
        * A Workspace or project chat's own hops, for "Show hops" on its timeline: the ones no thread
        * holds (a coordinator acting on its own), and the forward and answer when its work went on to
@@ -980,25 +1032,7 @@ export function stormSource(state, emit, event) {
        * above), at most a few pages, and adds what it finds to the project's timeline. Each
        * (project, ids) is tried once; what isn't found stays unknown, never guessed.
        */
-      findRows: async (project, ids, beforeSeq) => {
-        const key = `${project}|${ids.join(",")}`;
-        if (sought.has(key)) return;
-        sought.add(key);
-        const chat = chatIdOf(project);
-        if (!chat) return;
-        const want = new Set(ids);
-        let before = beforeSeq != null ? beforeSeq + 1 : NEWEST;
-        try {
-          for (let page = 0; page < 5 && want.size && before; page++) {
-            const d = await api.messages(chat, { before_seq: before, limit: PAGE_MAX });
-            const rows = d.messages || [];
-            addRows(project, rows);
-            for (const r of rows) want.delete(r.id);
-            before = d.next_before_seq || null;
-          }
-        } catch { /* it stays unknown; the thread says so */ }
-        emitSoon();
-      },
+      findRows,
       /** A session's recent turns, read from its stored frames (a plain chat's work, a thread's). */
       loadTurns: async (sid) => { await loadTurns(sid); emitSoon(); },
       status: loadStatus,

@@ -9,9 +9,11 @@
    A 40 px glass circle 12 px above what's docked (the composer, or a decision card docked over it: its real
    top, tracked in msgx.js), its right edge on the composer's right edge. It rises in
    when you've read up more than half a screen; new messages since are counted on it in a quiet ink pill. */
-:root[data-msgx] #new-below{display:none!important}
 .mx-down{position:absolute;z-index:4;right:calc(var(--gut) + var(--rp));bottom:calc(var(--dock-h) + 12px);display:grid;place-items:center;width:40px;height:40px;border:1px solid var(--line);border-radius:50%;background:color-mix(in srgb,var(--bg-2) 90%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);box-shadow:var(--e2),var(--hairline);color:var(--ink-2);opacity:0;transform:translateY(8px) scale(.92);pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease),color var(--d-hover) var(--ease)}
 .mx-down.is-on{opacity:1;transform:none;pointer-events:auto;transition-duration:var(--d-in)}
+/* hidden, it's out of the keyboard order and unread by screen readers (it faded only: QA #12); visibility
+   waits for the fade out, and comes back at once */
+.mx-down:not(.is-on){visibility:hidden;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease),visibility 0s linear var(--d-out)}
 .mx-down:hover{color:var(--ink)}
 .mx-down svg{width:20px;height:20px}
 .mx-down-n{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 6px;border-radius:var(--r-pill);background:var(--ink);color:var(--bg);font:600 var(--fs-xs)/20px var(--sans);font-variant-numeric:tabular-nums;text-align:center}
@@ -112,6 +114,13 @@ body.files-open .mx-down{display:none}
 
 /* rhythm (research-chat.md §4): 20 between turns, 4 between one sender's bubbles */
 :root[data-msgx] #msgs>.m{margin-bottom:20px}
+/* a line between messages (asked the coordinator, a decision, a thread finished) sits on the bubbles' grid:
+   its icon centred on the 28 px avatar column, its words on the bubbles' text edge (28 + 8 + 16); it was on
+   app.css's old 32 + 12 grid, 8 px off on a desktop and 28 on a phone (QA #16). As the last row, it leaves
+   the same space above the composer as a message does (QA #25). */
+:root[data-msgx] #msgs>.ev{gap:24px}
+:root[data-msgx] #msgs>.ev>.ev-ic{width:22px;margin:0 3px}
+:root[data-msgx] #msgs>.ev:last-child{margin-bottom:20px}
 /* The space under the last message (owner, 5 Nov: "why this much gap?"). It was 99 px on a desktop (82 on a
    phone): the 20 px after a message, 48 (40) the app added under the conversation, and the composer bar's
    30 (22) px fade band above the box. Now the last message ends 2 px above where that fade begins, so it is
@@ -119,7 +128,7 @@ body.files-open .mx-down{display:none}
    (--dock-h is the dock's height, set by app.js; with a decision card docked it includes the card, and the
    message then ends 24 px above the card instead.) */
 :root[data-msgx] .scroller{padding-bottom:calc(var(--dock-h) - 18px)}
-:root[data-msgx] .app:has(#tdock>*) .scroller{padding-bottom:calc(var(--dock-h) + 4px)}
+:root[data-msgx] .app.has-tdock .scroller{padding-bottom:calc(var(--dock-h) + 4px)}
 :root[data-msgx] #msgs>.m.cont{margin-top:-16px}
 
 /* the working words keep the app's soft shimmer (the owner's ask, 21:37): a slow light passing through the
@@ -129,7 +138,7 @@ body.files-open .mx-down{display:none}
 
 /* yours */
 :root[data-msgx] .m-you .bubble{border:0;border-radius:var(--r-xl);background:var(--mx-you);box-shadow:var(--mx-you-hi);color:var(--mx-you-ink)}
-:root[data-msgx] .m-you:has(+ .m-you.cont) .bubble{border-bottom-right-radius:var(--r-sm)}
+:root[data-msgx] .m-you.mx-next-cont .bubble{border-bottom-right-radius:var(--r-sm)}
 :root[data-msgx] .m-you.cont .bubble{border-top-right-radius:var(--r-sm)}
 :root[data-msgx] .m-you.is-relay .bubble{border:1px dashed var(--g3C);background:transparent;box-shadow:none}
 /* sending: your bubble rises from the composer and settles, calmly */
@@ -156,13 +165,15 @@ body.files-open .mx-down{display:none}
 /* an agent's turn: its mark centres on whatever comes first, a 28 px work pill (0), or a 44 px row (8):
    the working bubble, the opened work card's header, or an answer bubble's first line */
 :root[data-msgx] #msgs>.m-turn>.av{margin-top:0}
-:root[data-msgx] #msgs>.m-turn.is-live:not(:has(.turn [aria-expanded="true"],.turn .is-waiting))>.av,:root[data-msgx] #msgs>.m-turn:has(>.mb>.turn>:is(.tb-work.is-open,.tb-answer,.tb-text):first-child)>.av,:root[data-msgx] #msgs>.m-turn:has(>.mb>.turn>.tb:first-child>.tb-h[aria-expanded="true"])>.av{margin-top:8px}
+:root[data-msgx] #msgs>.m-turn.is-live.is-folded>.av,:root[data-msgx] #msgs>.m-turn.mx-av-row>.av{margin-top:8px}
 :root[data-msgx] .mx-coord .prose>.mx-name{color:color-mix(in srgb,var(--violet) 72%,var(--ink-3))}
 /* an open (unboxed) reply has no bubble to hold it, so its name sits above on the same text edge */
 :root[data-msgx] .m-them .mh b{font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
 :root[data-msgx] .m-them .mh :is(time,.role,.m-iq){display:none}
 :root[data-msgx] :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text){position:relative;width:fit-content;max-width:min(88%,560px);padding:10px 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi)}
-:root[data-msgx] .m-them:has(+ .m-them.cont)>.mb>.prose{border-bottom-left-radius:var(--r-sm)}
+/* a reply that holds a table takes the whole text column: structured content gets its room (QA #5) */
+:root[data-msgx] :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text).has-table{width:100%;max-width:100%}
+:root[data-msgx] .m-them.mx-next-cont>.mb>.prose{border-bottom-left-radius:var(--r-sm)}
 :root[data-msgx] .m-them.cont>.mb>.prose{border-top-left-radius:var(--r-sm)}
 :root[data-msgx] #msgs>.m-them>.mx-swipe{left:-2px}
 /* the coordinator stepping into a thread: its name in its violet (as a group chat colours each person's
@@ -183,7 +194,7 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-turn .turn>.tb>.tb-h{width:fit-content;min-height:28px;margin:0;padding:4px 12px 4px 16px;border-radius:var(--r-pill);font-size:var(--fs-sm);line-height:20px}
 :root[data-msgx] .m-turn .turn>.tb>.tb-h :is(.tb-ht,.tb-wn){font-size:var(--fs-sm)}
 :root[data-msgx] .m-turn .turn>.tb>.tb-h:hover{background:var(--hover-fill)!important}
-:root[data-msgx] .m-turn .turn>.tb:is(.is-open,:has(.tb-rows))>.tb-h{background:var(--hover-fill)!important}
+:root[data-msgx] .m-turn .turn>.tb:is(.is-open,.has-rows)>.tb-h{background:var(--hover-fill)!important}
 :root[data-msgx] .m-turn .turn>.tb:not(.tb-answer):not(.tb-text):not(.is-open)>:not(.tb-h){margin-left:16px}
 :root[data-msgx] #msgs>.m-turn+.m-them:not(.mx-other){margin-top:-12px}
 
@@ -205,12 +216,12 @@ body.files-open .mx-down{display:none}
 /* While it's folded, its place is held at the bubble's 44 px from the very first frame, before msgx.js has
    drawn the bubble, so a redraw never passes through a different layout (the app's scroll-keeping measures
    in between). Everything here keys off the app's own markup (.is-live, aria-expanded), not msgx.js. */
-:root[data-msgx] #msgs>.m-turn.is-live:not(:has(.turn [aria-expanded="true"],.turn .is-waiting))>.mb{min-height:44px}
+:root[data-msgx] #msgs>.m-turn.is-live.is-folded>.mb{min-height:44px}
 /* (drawn out of its list order, it must never be the browser's scroll anchor: its redraws would pull the page) */
-:root[data-msgx] .m-turn.is-live:not(:has(.turn [aria-expanded="true"],.turn .is-waiting)) .turn>:is(.tb-work,.tb-think,.tb-act,.tb-narr,.tb-plan){display:none}
-:root[data-msgx] .m-turn.is-live:not(:has(.turn [aria-expanded="true"],.turn .is-waiting)) .turn:not(:has(>:is(.tb-text,.tb-answer,.tb-files,.tb-end))){display:none}
+:root[data-msgx] .m-turn.is-live.is-folded .turn>:is(.tb-work,.tb-think,.tb-act,.tb-narr,.tb-plan){display:none}
+:root[data-msgx] .m-turn.is-live.is-folded .turn:not(.is-said){display:none}
 .mx-work{display:none}
-:root[data-msgx] .m-turn.is-live:not(:has(.turn [aria-expanded="true"],.turn .is-waiting)) .mx-work{position:relative;display:flex;align-items:center;gap:12px;max-width:min(88%,560px);height:44px;padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-md);line-height:20px;text-align:left;overflow:visible;transition:width var(--d-move) var(--ease),background var(--d-hover) var(--ease)}
+:root[data-msgx] .m-turn.is-live.is-folded .mx-work{position:relative;display:flex;align-items:center;gap:12px;max-width:min(88%,560px);height:44px;padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-md);line-height:20px;text-align:left;overflow:visible;transition:width var(--d-move) var(--ease),background var(--d-hover) var(--ease)}
 :root[data-msgx] .mx-work:hover{background:var(--mx-them-top)}
 .mx-wt{position:relative;flex:1 1 auto;min-width:0;height:20px;overflow:hidden}
 .mx-wl{position:absolute;inset:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -252,6 +263,10 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-turn .arc::before{animation-delay:var(--mx-phase,0s)}
 @media (prefers-reduced-motion:reduce){:root[data-msgx] .m-turn :is(.mx-opening,.mx-row-in){animation:none}}
 :root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h{width:100%;min-height:44px;margin:0;padding:0 16px;border-radius:var(--r-xl);background:none!important;font-size:var(--fs-md)}
+/* A long turn's open card is taller than the view, and it opens at its latest step: its header (what it's
+   doing, the time, the chevron that folds it) stays at the top of the view while you read through it, so
+   folding it back is always one press away. On the card's own glass, under the conversation's top fade. */
+:root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h{position:sticky;top:0;z-index:1;border-radius:var(--r-xl) var(--r-xl) 0 0;background:var(--mx-them-top)!important}
 :root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h :is(.tb-ht,.tb-wn){font-size:var(--fs-md);color:var(--ink-2)}
 :root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-rail{gap:0;margin:0;padding:0 8px;border:0}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>.tb-h{width:100%;min-height:32px;margin:0;padding:6px 8px;border-radius:calc(var(--r-xl) - 8px);font-size:var(--fs-sm);color:var(--ink-3)}
@@ -268,13 +283,13 @@ body.files-open .mx-down{display:none}
 /* The same card for any single work block pressed open (early in a turn there's no fold yet, only one
    "Thinking…" or one tool group, and pressing the bubble opens that block itself): the glass card, a 44 px
    header row, then its lines as quiet rows on the text column, no rail. */
-:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan):has(>.tb-h[aria-expanded="true"]){width:min(88%,560px);padding:0 0 8px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi)}
-:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan):has(>.tb-h[aria-expanded="true"])>.tb-h{width:100%;min-height:44px;margin:0;padding:0 16px;border-radius:var(--r-xl);background:none!important;font-size:var(--fs-md)}
-:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan):has(>.tb-h[aria-expanded="true"])>.tb-h :is(.tb-ht,.tb-n){font-size:var(--fs-md);color:var(--ink-2)}
-:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan):has(>.tb-h[aria-expanded="true"])>:is(.tb-steps,.tb-rows,.tb-plan-l){margin:0;padding:0 16px;border:0;gap:4px;font-size:var(--fs-sm);line-height:20px;color:var(--ink-3)}
-:root[data-msgx] .m-turn .turn>.tb-think:has(>.tb-h[aria-expanded="true"])>.tb-steps>li{padding:4px 0}
-:root[data-msgx] .m-turn .turn>.tb.tb-act:has(>.tb-h[aria-expanded="true"])>.tb-rows{padding:0 8px}
-:root[data-msgx] .m-turn .turn>.tb.tb-act:has(>.tb-h[aria-expanded="true"])>.tb-rows>.tb-row>.tb-rh{min-height:32px;margin-left:0;padding:6px 8px;border-radius:calc(var(--r-xl) - 8px)}
+:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded{width:min(88%,560px);padding:0 0 8px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi)}
+:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>.tb-h{width:100%;min-height:44px;margin:0;padding:0 16px;border-radius:var(--r-xl);background:none!important;font-size:var(--fs-md)}
+:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>.tb-h :is(.tb-ht,.tb-n){font-size:var(--fs-md);color:var(--ink-2)}
+:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>:is(.tb-steps,.tb-rows,.tb-plan-l){margin:0;padding:0 16px;border:0;gap:4px;font-size:var(--fs-sm);line-height:20px;color:var(--ink-3)}
+:root[data-msgx] .m-turn .turn>.tb-think.is-unfolded>.tb-steps>li{padding:4px 0}
+:root[data-msgx] .m-turn .turn>.tb.tb-act.is-unfolded>.tb-rows{padding:0 8px}
+:root[data-msgx] .m-turn .turn>.tb.tb-act.is-unfolded>.tb-rows>.tb-row>.tb-rh{min-height:32px;margin-left:0;padding:6px 8px;border-radius:calc(var(--r-xl) - 8px)}
 
 /* a few emoji and nothing else are the message: large, no bubble */
 :root[data-msgx] .mx-emoji :is(.bubble,.prose){padding:0;background:none!important;box-shadow:none;font-size:var(--fs-4xl);line-height:var(--lh-40)}
@@ -288,7 +303,7 @@ body.files-open .mx-down{display:none}
    the visible tail remains 8 px wide. Neither the paint box nor its gradient is flipped. */
 :root[data-msgx-tails] .m-you .bubble.mx-tail{border-top-right-radius:0}
 :root[data-msgx-tails] :is(.prose,.tb-answer,.tb-text,.mx-work).mx-tail.is-them,
-:root[data-msgx-tails] .m-turn.is-live:not(:has(.turn [aria-expanded="true"],.turn .is-waiting)) .mx-work.mx-tail.is-them{border-top-left-radius:0}
+:root[data-msgx-tails] .m-turn.is-live.is-folded .mx-work.mx-tail.is-them{border-top-left-radius:0}
 :root[data-msgx-tails] .mx-tail::before{content:"";position:absolute;right:-8px;top:0;width:9px;height:100%;background:inherit;pointer-events:none;--mx-tail-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 16'><path d='M0 0H9C3 3.5 1 9 1 16H0Z'/></svg>");-webkit-mask:var(--mx-tail-mask) 0 0/9px 16px no-repeat;mask:var(--mx-tail-mask) 0 0/9px 16px no-repeat}
 :root[data-msgx-tails] .mx-tail.is-them::before{right:auto;left:-8px;--mx-tail-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 16'><path d='M0 0H9V16H8C8 9 6 3.5 0 0Z'/></svg>")}
 
@@ -324,7 +339,7 @@ body.files-open .mx-down{display:none}
    · When a step completes, green fills it from the left over its blue (no jump), and only then does the next
      step light up blue, also from the left: a handoff you can follow.
    Every loop takes its phase from the clock (msgx.js), so the card's redraws never restart it. */
-:root[data-msgx] .m-them .tc-segs:not(:has(.sg))::before{content:"";display:block;flex:1;height:8px;border-radius:calc(var(--r-xl) - 16px);background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--st,var(--info)) 75%,transparent),transparent) 0 0/40% 100% no-repeat,color-mix(in srgb,var(--st,var(--info)) 18%,transparent);animation:mx-await 2.4s var(--ease-loop) var(--mx-wave,0s) infinite}
+:root[data-msgx] .m-them .tc-segs.is-empty::before{content:"";display:block;flex:1;height:8px;border-radius:calc(var(--r-xl) - 16px);background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--st,var(--info)) 75%,transparent),transparent) 0 0/40% 100% no-repeat,color-mix(in srgb,var(--st,var(--info)) 18%,transparent);animation:mx-await 2.4s var(--ease-loop) var(--mx-wave,0s) infinite}
 @keyframes mx-await{0%{background-position:-70% 0,0 0;opacity:.6}50%{opacity:1}100%{background-position:170% 0,0 0;opacity:.6}}
 :root[data-msgx] .m-them .tc-segs .sg.s-doing{background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent) 0 0/45% 100% no-repeat,var(--info);animation:mx-doing 2.4s var(--ease-loop) var(--mx-wave,0s) infinite}
 @keyframes mx-doing{from{background-position:-90% 0,0 0}to{background-position:190% 0,0 0}}
@@ -333,7 +348,7 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-them .tc-segs .sg.mx-seg-next{position:relative;overflow:hidden}
 :root[data-msgx] .m-them .tc-segs .sg.mx-seg-next::after{content:"";position:absolute;inset:0;background:var(--g2C);transform-origin:right center;animation:mx-seg-light var(--d-land) var(--ease) var(--d-out) both}
 @keyframes mx-seg-light{from{transform:scaleX(1)}to{transform:scaleX(0)}}
-@media (prefers-reduced-motion:reduce){:root[data-msgx] .m-them .tc-segs :is(.sg.s-doing,.sg.mx-seg-done::after,.sg.mx-seg-next::after),:root[data-msgx] .m-them .tc-segs:not(:has(.sg))::before{animation:none}}
+@media (prefers-reduced-motion:reduce){:root[data-msgx] .m-them .tc-segs :is(.sg.s-doing,.sg.mx-seg-done::after,.sg.mx-seg-next::after),:root[data-msgx] .m-them .tc-segs.is-empty::before{animation:none}}
 /* The band already carries progress. A second state glyph indents only the title, breaking the
    caption's 16 px text column. Keep its words and the band as the two readable state cues. */
 :root[data-msgx] .m-them .tc-top>.g{display:none}

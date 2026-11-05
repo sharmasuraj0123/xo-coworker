@@ -193,14 +193,18 @@ export const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 export const RM = matchMedia("(prefers-reduced-motion: reduce)");
 export const wait = (ms) => new Promise((r) => setTimeout(r, RM.matches ? 0 : ms));
 
+// one formatter each, made once: toLocale*String with options builds a new one per call (25 ms per redraw
+// of a 400-row conversation; QA C5)
+const CLOCK_F = new Intl.DateTimeFormat([], { hour: "numeric", minute: "2-digit" });
+const DAY_F = new Intl.DateTimeFormat(undefined, { weekday: "short", month: "short", day: "numeric" });
 export function clock(ms) {
-  return new Date(ms).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  return CLOCK_F.format(ms);
 }
 export function dayOf(ms, now = Date.now()) {
   const d = new Date(ms), t = new Date(now), y = new Date(now - 86400000);
   if (d.toDateString() === t.toDateString()) return "Today";
   if (d.toDateString() === y.toDateString()) return "Yesterday";
-  return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  return DAY_F.format(d);
 }
 export function short(ms, now = Date.now()) {
   const s = Math.max(0, Math.round((now - ms) / 1000));
@@ -289,6 +293,13 @@ export function keepTurning() {
       if (a.animationName === "spin" || a.animationName === "arc-turn" || a.animationName === "shimmer") { if (a.startTime !== 0) a.startTime = 0; }
     }
   };
-  new MutationObserver(() => { if (!raf) raf = requestAnimationFrame(sync); }).observe(document.body, { childList: true, subtree: true });
+  // only when something added holds an arc, a spinner or a shimmer: a scan of every animation on the page
+  // after any change at all cost tens of ms on a busy page (QA #11)
+  const MOVING = ".arc, .spin, .shimmer, .tb-live";
+  const moving = (n) => n.nodeType === 1 && (n.matches(MOVING) || !!n.querySelector(MOVING));
+  new MutationObserver((recs) => {
+    if (raf) return;
+    for (const r of recs) for (const n of r.addedNodes) if (moving(n)) { raf = requestAnimationFrame(sync); return; }
+  }).observe(document.body, { childList: true, subtree: true });
   sync();
 }
