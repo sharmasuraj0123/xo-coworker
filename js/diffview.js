@@ -18,6 +18,7 @@
 
 const LIB = new URL("./vendor/pierre-diffs/diffs.js", import.meta.url).href;
 const WORKER = new URL("./vendor/pierre-diffs/worker.js", import.meta.url).href;
+const EDIT = new URL("./vendor/pierre-diffs/edit.js", import.meta.url).href;
 const THEMES = { dark: "xo-dark", light: "xo-light" };
 const PLAIN_OVER = 262144; // a file over 256 KB stays plain text: colouring it would cost more than reading it
 
@@ -180,6 +181,22 @@ export async function file(scroller, contents, o = {}) {
     note(line) { v.setLineAnnotations(line ? [{ lineNumber: line }] : []); v.rerender(); },
     place,
     reveal(line) { const p = place(line); if (p) scroller.scrollTop = Math.max(0, p.top - 96); },
+    /**
+     * Pierre's editor on this file, in place: a caret, undo, find. onChange() after each edit. Resolves to
+     * {text() (exactly what's in it: line endings as they were), dirty(), undo(), focus(), stop()}.
+     */
+    async edit({ onChange } = {}) {
+      const E = await import(EDIT);
+      const ed = new E.Editor("file", { onChange: () => onChange && onChange() });
+      const detach = ed.edit(v);
+      return {
+        text: () => ed.getText(),
+        dirty: () => ed.canUndo,
+        undo: () => ed.undo(),
+        focus: (o) => ed.focus(o),
+        stop() { detach(); ed.cleanUp("discard"); },
+      };
+    },
     destroy() { live.delete(v); v.cleanUp(); VZ.cleanUp(); host.remove(); },
   };
 }
