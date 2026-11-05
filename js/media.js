@@ -28,7 +28,7 @@ import { ICON } from "./ui.js";
 import { api, attachmentUrl } from "./api.js";
 import { fmtSize, typeWord, titleOf } from "./attach.js";
 import { fadeImage, EASE, MOVE, still } from "./motion.js";
-import { ARROW_OUT } from "./markdown.js";
+import { ARROW_OUT, outText } from "./markdown.js";
 
 /** Each side's largest box (proposal §1). 560 is the prose measure, so a picture is never wider than its text. */
 export const LIMITS = { them: { w: 560, h: 480 }, you: { w: 320, h: 320 } };
@@ -227,7 +227,9 @@ const gone = new Set(); // addresses that failed in this page: drawn as their li
 /** A web picture as the outbound link it would have been: underlined with ↗, its alt as the words, else its host. */
 export function webLinkHtml(it) {
   const w = it.web || {};
-  return `<a href="${esc(w.url)}" target="_blank" rel="noopener noreferrer nofollow" class="lk lk-out mx-weblink" title="${esc(w.url)}"><span class="lk-t">${esc(it.title || w.host || w.url)}</span>${ARROW_OUT}</a>`;
+  // set like any outbound link (js/markdown.js outText): its last word, or an address's last piece, keeps the ↗
+  const words = it.title ? outText(it.title) : outText(w.host || w.url, { address: true });
+  return `<a href="${esc(w.url)}" target="_blank" rel="noopener noreferrer nofollow" class="lk lk-out mx-weblink" title="${esc(w.url)}">${words}</a>`;
 }
 /** Has this web picture failed in this page? (then it's a link) */
 export const webGone = (url) => gone.has(String(url));

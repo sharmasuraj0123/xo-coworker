@@ -86,6 +86,11 @@ function labelOut(label) {
   return outHtml(pieces, "");
 }
 
+/** Plain words (or, with address, a web address or host) set like an outbound link's text, its last piece holding the ↗. */
+export function outText(plain, { address = false } = {}) {
+  return address ? outHtml(addrHtml(plain), "<wbr>") : labelOut(esc(plain));
+}
+
 function hostOf(u) {
   const m = /^https?:\/\/([^/?#]+)/i.exec(u);
   return m ? m[1].replace(/^www\./i, "").replace(/^[^@]*@/, "") : "";
