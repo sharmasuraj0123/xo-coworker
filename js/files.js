@@ -24,11 +24,14 @@ import { countsHtml } from "./changesframe.js";
 
 const WIDE = 600;       // the panel's width from which tree and file sit side by side (the panel goes to 720)
 const TOUCHED = 6;      // "Touched by agents" shows at most this many
+const ROW = 28;         // a row's height, and a heading's: the list is a whole number of them (css/panel.css)
 
 const I = (d, w = 15) => `<svg viewBox="0 0 24 24" width="${w}" height="${w}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 export const FILES_ICON = I('<path d="M3.5 18V6.5A1.5 1.5 0 0 1 5 5h4l2 2h8A1.5 1.5 0 0 1 20.5 8.5V18a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18z"/>', 16);
 const CH = I('<path d="m9 6 6 6-6 6"/>', 13);
 const BACK = I('<path d="m15 6-6 6 6 6"/>');
+const CHANGED_IC = I('<path d="M7 3.5h7l4 4V19a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 19V5a1.5 1.5 0 0 1 1-1.5z"/><path d="M9.5 13.5l2 2 3.5-4"/>', 16);
+const FOLDER_IC = I('<path d="M3.5 18V6.5A1.5 1.5 0 0 1 5 5h4l2 2h8A1.5 1.5 0 0 1 20.5 8.5V18a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18z"/>', 16);
 
 const size = (n) => (n == null ? "" : n < 1024 ? `${n} B` : n < 1048576 ? `${Math.round(n / 1024)} KB` : `${(n / 1048576).toFixed(1)} MB`);
 const base = (p) => String(p || "").split("/").pop();
@@ -64,7 +67,7 @@ export function localIn(scope, f) {
   return rel.startsWith(".xo/") ? null : rel;
 }
 
-export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null }) {
+export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, onFold = null }) {
   const F = {
     host: null, view: "home", scope: { key: "all" }, pick: null, shown: false,
     dirs: new Map(),     // "<project>|<api path>" → {state, dirs, files, error, v (new with every change)}
@@ -75,6 +78,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null })
     follow: null,        // the folder of a file opened from elsewhere (Artifacts, another thread): shown until you leave
     viewKey: "all",      // the scope the view itself gives
     q: "", wide: false,
+    folded: false,       // beside a file, the tree folded to its rail (◧, ⌘B; js/filesview.js decides when)
   };
   const setOf = (k) => { if (!F.open.has(k)) F.open.set(k, new Set()); return F.open.get(k); };
   const apiRel = (s, local) => (s.base ? (local ? `${s.base}/${local}` : s.base) : local);
@@ -129,7 +133,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null })
   // keeps its group, to come back as it was), and the file shown is marked in place. So a click no longer
   // redraws thousands of rows, and keyboard focus stays where it was. A new place or a new search changes
   // every folder's rows, so those draw the whole tree in one go.
-  const T = { key: null, groups: new Map(), on: null, q: null }; // groups: folder → {el, sig, open (child groups drawn)}
+  const T = { key: null, groups: new Map(), on: null, q: null, changed: 0 }; // groups: folder → {el, sig, open (child groups drawn)}
 
   /** What agents touched, as marks: by file, by folder (the newest, or one being edited), and per folder a
    *  signature of the marks on its own rows. */
@@ -266,6 +270,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null })
       tree.innerHTML = `<div class="fl-head"></div><div class="fl-list"><div class="fl-secs"></div><div class="fl-g" data-fl-g=""></div></div>`;
       tree._h = null; T.key = s.key; T.on = null; T.q = null;
       T.groups = new Map([["", { el: tree.querySelector(".fl-list > .fl-g"), sig: null, open: new Set() }]]);
+      requestAnimationFrame(fitList);
     }
     const head = tree.querySelector(".fl-head");
     const qi = head.querySelector("[data-fl-q]"), typing = qi && document.activeElement === qi ? [qi.selectionStart, qi.selectionEnd] : null;
@@ -273,6 +278,8 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null })
     const q = head.querySelector("[data-fl-q]");
     if (q.value !== F.q) q.value = F.q;
     const tl = touched(s);
+    const cs = changes && s.key === F.viewKey ? changes.of(F.view) : null;
+    T.changed = cs && cs.state === "ok" ? cs.files.size : tl.length;
     put(tree.querySelector(".fl-secs"), secHtml(s, tl));
     const open = setOf(s.key), openIn = new Map();
     for (const p of open) { const at = parentOf(p); if (!openIn.has(at)) openIn.set(at, []); openIn.get(at).push(p); }
@@ -293,6 +300,12 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null })
     const has = viewer.hasFile;
     const lay = F.host.querySelector(".fl");
     lay.classList.toggle("is-wide", F.wide);
+    lay.classList.toggle("is-folded", F.folded && F.wide && has);
+    // the folded tree's Changed: a mark when this place changed something; how many is in its title
+    const n = s.key === "all" ? 0 : T.changed;
+    const rb = lay.querySelector('[data-fl-rail="changes"]');
+    rb.title = n ? `Changed ${s.base ? "in this thread" : "here"}: ${n.toLocaleString()} file${n === 1 ? "" : "s"}` : "Changed here: nothing yet";
+    rb.querySelector("em").hidden = !n;
     lay.classList.toggle("is-file", !F.wide && has && F.fileView);
     lay.classList.toggle("has-file", has);
     const bar = F.host.querySelector(".fl-bar");
@@ -353,10 +366,42 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null })
     return false;
   }
 
+  /** Whole rows: the list is a whole number of its 28 px rows tall (headings are 28 too), and it snaps to
+   *  them, so the last row on screen is never cut (Astra, 5 Nov). */
+  function fitList() {
+    const tree = F.host && F.host.querySelector(".fl-tree"), list = tree && tree.querySelector(".fl-list");
+    if (!list) return;
+    const head = tree.querySelector(".fl-head"), room = tree.clientHeight - (head ? head.offsetHeight : 0);
+    const h = room > 0 ? Math.floor(room / ROW) * ROW : 0;
+    const px = h ? `${h}px` : "";
+    if (list.style.maxHeight !== px) list.style.maxHeight = px;
+  }
+
+  // ── folded to a rail (beside a file) ─────────────────────────────────────
+  /** Fold or open the tree; `onFold` (js/filesview.js) hears it when it was you. */
+  function fold(on, { mine = false } = {}) {
+    if (F.folded === !!on) return;
+    F.folded = !!on;
+    paint();
+    if (mine && onFold) onFold(F.folded);
+  }
+  /** A rail icon: the tree opens on that section (Changed, All files, or Find with its field focused). */
+  function unfoldTo(part) {
+    fold(false, { mine: true });
+    const tree = F.host.querySelector(".fl-tree"), list = tree.querySelector(".fl-list");
+    if (part === "find") { tree.querySelector("[data-fl-q]")?.focus(); return; }
+    const secs = [...tree.querySelectorAll(".fl-sec")];
+    const at = part === "all" ? secs.find((x) => /^All files/.test(x.textContent)) : secs[0];
+    if (list) list.scrollTop = at && part === "all" ? at.offsetTop - list.offsetTop : 0;
+    (part === "all" ? tree.querySelector(".fl-g .fl-r") : tree.querySelector(".fl-secs .fl-r") || tree.querySelector(".fl-r"))?.focus({ preventScroll: true });
+  }
+
   // ── input ─────────────────────────────────────────────────────────────────
   function wire(host) {
     host.addEventListener("click", (e) => {
       const t = e.target;
+      const rl = t.closest("[data-fl-rail]");
+      if (rl) { unfoldTo(rl.dataset.flRail); return; }
       const dirB = t.closest("[data-fl-dir]");
       if (dirB) {
         const p = dirB.dataset.flDir, open = setOf(F.scope.key);
@@ -398,13 +443,26 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null })
       const w = host.getBoundingClientRect().width >= WIDE;
       if (w !== F.wide) { F.wide = w; paint(); if (w) frontPage(); }
     }).observe(host);
+    // the list's whole rows follow the tree's own height (it shows, folds, or the window changes)
+    if (typeof ResizeObserver === "function") new ResizeObserver(() => fitList()).observe(host.querySelector(".fl-tree"));
+    // a scroll that ends between rows settles on the nearest one (every row, heading and note is 28 px)
+    let settleT = 0;
+    const settle = (e) => {
+      const l = e.target;
+      if (!l.classList || !l.classList.contains("fl-list")) return;
+      const t = Math.round(l.scrollTop / ROW) * ROW;
+      if (Math.abs(t - l.scrollTop) >= 1 && t <= l.scrollHeight - l.clientHeight) l.scrollTo({ top: t, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    };
+    if ("onscrollend" in window) host.addEventListener("scrollend", settle, true);
+    else host.addEventListener("scroll", (e) => { clearTimeout(settleT); settleT = setTimeout(() => settle(e), 160); }, true);
   }
 
   return {
     /** Once: draw inside the Files tab; the viewer moves in beside the tree. */
     mount(host) {
       F.host = host;
-      host.innerHTML = `<div class="fl"><div class="fl-tree"></div><div class="fl-split" role="separator" aria-orientation="vertical" aria-label="Resize the file tree" title="Drag to resize · double-click for the default" tabindex="0"></div><div class="fl-pv"><div class="fl-bar"></div><div class="fl-view"></div><p class="fl-empty">Pick a file to read it here.</p></div></div>`;
+      host.innerHTML = `<div class="fl"><nav class="fl-rail" aria-label="Files, folded"><button type="button" class="fl-rb" data-fl-rail="changes">${CHANGED_IC}<em hidden></em></button><button type="button" class="fl-rb" data-fl-rail="all" title="All files">${FOLDER_IC}</button><button type="button" class="fl-rb" data-fl-rail="find" title="Find a file">${ICON.search}</button></nav>` +
+        `<div class="fl-tree"></div><div class="fl-split" role="separator" aria-orientation="vertical" aria-label="Resize the file tree" title="Drag to resize · double-click for the default" tabindex="0"></div><div class="fl-pv"><div class="fl-bar"></div><div class="fl-view"></div><p class="fl-empty">Pick a file to read it here.</p></div></div>`;
       const vw = document.getElementById("viewer");
       if (vw) host.querySelector(".fl-view").appendChild(vw);
       wire(host);
@@ -430,6 +488,12 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null })
       const s = scopeOf(view, { thread: (id) => world.thread(id), project: (id) => PROJ(id) });
       return s.project ? touched(s) : [];
     },
+    /** Beside a file: fold the tree to its rail, or open it (mine: you did, so it's kept). */
+    fold,
+    /** One at a time (a phone): the list in front of the file, or the file again; the file stays open. */
+    list(on) { if (F.wide || !viewer.hasFile) return false; F.fileView = !on; paint(); return true; },
+    get listing() { return !F.wide && viewer.hasFile && !F.fileView; },
+    get folded() { return F.folded; },
     /** The file came from you (a click), not from the front page: the panel treats it as yours. */
     get auto() { return F.auto; },
     /** The folder on screen ({label, sub}), or null when it's the list of projects. */

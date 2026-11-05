@@ -52,9 +52,12 @@ body.stage-over .stage{box-shadow:var(--e2)}
 
 /* ── Files: the tree on Pierre's grid. A row is 28 px; one 16 px column at 12 px (+16 a level) holds a
    folder's chevron or a file's icon; every name starts on the name column ──────────────────────────── */
-.fl-list{padding:0 6px 12px}
-.fl-sec{padding:16px 6px 8px;font:600 var(--fs-sm)/16px var(--sans);letter-spacing:.01em;color:var(--ink-4)}
-.fl-sec:first-child{padding-top:4px}
+/* whole rows (Astra, 5 Nov): rows, headings and notes are all 28 px, the list is a whole number of them tall
+   (js/files.js fitList) with no foot inside its scroller, and it settles on a row when a scroll ends (not CSS
+   scroll snapping: thousands of snap areas made a 2,000-row tree four times slower to click and scroll) */
+.fl-list{padding:0 6px}
+.fl-sec{box-sizing:border-box;height:28px;margin:0;padding:8px 6px 4px;font:600 var(--fs-sm)/16px var(--sans);letter-spacing:.01em;color:var(--ink-4)}
+.fl-sec:first-child{padding-top:8px}
 .fl-r{height:28px;min-height:28px;gap:8px;padding:0 6px 0 calc(6px + var(--d) * 16px);border-radius:var(--r-sm);font:400 var(--fs-base)/20px var(--sans);color:var(--ink-2)}
 .fl-r.is-dir{color:var(--ink-2);font-weight:400}
 .fl-r:hover{background:var(--g1C);color:var(--ink)}

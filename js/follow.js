@@ -12,8 +12,10 @@
 // conversation, sending, the back-to-latest button, pressing the agent's working bubble).
 // Only four things write the scroll position: toLatest(), keeping pinned on growth, a jump to a message, and
 // keeping the row you read in place when the view changes width (a panel opening or closing, a window
-// resized): the conversation re-wraps, and a change to the view's own size is one the browser's scroll
-// anchoring doesn't hold (opening the right panel moved the row you read 840-864 px at 1280 wide).
+// resized, the chat docking beside a file): the conversation re-wraps, and a change to the view's own size is
+// one the browser's scroll anchoring doesn't hold (opening the right panel moved the row you read 840-864 px
+// at 1280 wide). The browser's own clamp when the conversation gets shorter is never read as you reaching
+// the latest (the chat leaving its 400 px column lost your place to it).
 
 const sc = () => document.getElementById("scroller");
 const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -42,20 +44,23 @@ export function unpin(row) {
   else notePlace();
 }
 
-/** The row at the top of the view and where it stands, found from the last one (a few rows' rects, read when
- *  the layout is clean: after a scroll, or as the view's size changes). */
+/** The row at the centre of the view (where you're reading) and where it stands, found from the last one (a
+ *  few rows' rects, read when the layout is clean: after a scroll, or as the view's size changes). The centre,
+ *  not the top: when the column narrows, text between the top and where you read re-wraps, and holding the
+ *  top row still moved what you read by that much (72 px at 1440, 48 at 1280, the right panel opening). */
 function notePlace() {
   const s = sc(), rows = document.getElementById("msgs").children;
   if (!rows.length) { place = null; return; }
-  const top = s.getBoundingClientRect().top + 1;
+  const top = s.getBoundingClientRect().top + 1, mid = top + s.clientHeight / 2;
   let i = Math.min(at, rows.length - 1);
-  while (i > 0 && rows[i - 1].getBoundingClientRect().bottom > top) i--;
-  while (i < rows.length - 1 && rows[i].getBoundingClientRect().bottom <= top) i++;
+  while (i > 0 && rows[i - 1].getBoundingClientRect().bottom > mid) i--;
+  while (i < rows.length - 1 && rows[i].getBoundingClientRect().bottom <= mid) i++;
   at = i;
   const el = rows[i];
   place = el.dataset.k ? { k: el.dataset.k, y: el.getBoundingClientRect().top - top } : null;
 }
-/** The view changed width while you read: the row that was at its top goes back where it stood. */
+/** The view changed width while you read: the row you read (at its centre, or the one you acted on) goes back
+ *  where it stood. */
 function keepPlace() {
   const s = sc();
   if (!place) return;
@@ -68,10 +73,17 @@ function keepPlace() {
 export function initFollow() {
   const s = sc(), column = document.getElementById("column");
   lastTop = s.scrollTop;
+  let seenW = column.clientWidth; // the column's width as this handler last saw it (not keep()'s `width`)
   // moved up = reading; back at the latest = pinned. A glide down (smooth toLatest) never unpins, and
   // growth below changes no scrollTop, so neither is mistaken for you scrolling up.
   s.addEventListener("scroll", () => {
     const top = s.scrollTop, gap = s.scrollHeight - s.clientHeight - top;
+    // a scroll that comes with a change of the view's width isn't you: the conversation re-wrapped (wider is
+    // shorter) and the browser clamped the scroll to its new end, or keep() put the row you read back. It
+    // neither pins you to the latest nor moves the row you read; keep() holds it. Its own last-seen width,
+    // since the resize observer may already have updated `width` in the frame before this event (QA)
+    const w = column.clientWidth;
+    if (w !== seenW) { seenW = w; lastTop = top; return; }
     // only the real bottom re-arms following; a small scroll near it moves you just that far (QA R1: a 4 px
     // scroll inside the last 120 px used to jump you to the end)
     // (a scroll that's ours, keepPlace putting a row back, leaves a held row held)
