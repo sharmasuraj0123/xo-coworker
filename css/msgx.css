@@ -9,7 +9,6 @@
    A 40 px glass circle 12 px above what's docked (the composer, or a decision card docked over it: its real
    top, tracked in msgx.js), its right edge on the composer's right edge. It rises in
    when you've read up more than half a screen; new messages since are counted on it in a quiet ink pill. */
-:root[data-msgx] #new-below{display:none!important}
 .mx-down{position:absolute;z-index:4;right:calc(var(--gut) + var(--rp));bottom:calc(var(--dock-h) + 12px);display:grid;place-items:center;width:40px;height:40px;border:1px solid var(--line);border-radius:50%;background:color-mix(in srgb,var(--bg-2) 90%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);box-shadow:var(--e2),var(--hairline);color:var(--ink-2);opacity:0;transform:translateY(8px) scale(.92);pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease),color var(--d-hover) var(--ease)}
 .mx-down.is-on{opacity:1;transform:none;pointer-events:auto;transition-duration:var(--d-in)}
 .mx-down:hover{color:var(--ink)}
@@ -254,6 +253,10 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-turn .arc::before{animation-delay:var(--mx-phase,0s)}
 @media (prefers-reduced-motion:reduce){:root[data-msgx] .m-turn :is(.mx-opening,.mx-row-in){animation:none}}
 :root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h{width:100%;min-height:44px;margin:0;padding:0 16px;border-radius:var(--r-xl);background:none!important;font-size:var(--fs-md)}
+/* A long turn's open card is taller than the view, and it opens at its latest step: its header (what it's
+   doing, the time, the chevron that folds it) stays at the top of the view while you read through it, so
+   folding it back is always one press away. On the card's own glass, under the conversation's top fade. */
+:root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h{position:sticky;top:0;z-index:1;border-radius:var(--r-xl) var(--r-xl) 0 0;background:var(--mx-them-top)!important}
 :root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h :is(.tb-ht,.tb-wn){font-size:var(--fs-md);color:var(--ink-2)}
 :root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-rail{gap:0;margin:0;padding:0 8px;border:0}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>.tb-h{width:100%;min-height:32px;margin:0;padding:6px 8px;border-radius:calc(var(--r-xl) - 8px);font-size:var(--fs-sm);color:var(--ink-3)}
