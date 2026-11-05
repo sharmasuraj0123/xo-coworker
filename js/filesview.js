@@ -161,8 +161,9 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
   /** ⌘J: the chat and nothing else. Folded, it opens and its composer has focus; open, it folds (focus that
    *  was in it goes to the file). It never brings back a file that's put away: its chip and Esc do. */
   function chatKey() {
-    if (!F.docked) return false;
+    if (!F.open || (!F.docked && !F.sheet)) return false;
     chat(F.chatMin);
+    if (F.sheet && !F.chatMin) requestAnimationFrame(() => document.getElementById("say")?.focus({ preventScroll: true }));
     return true;
   }
 
@@ -310,7 +311,7 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
     if (F.open && viewer.hasFile !== F.had) { F.had = viewer.hasFile; fit(); }
     if (F.open) { files.render(view()); paint(); }
     // focus that was on the file goes to its chip once the header has drawn it
-    if (F.toChip) { const c = document.querySelector("[data-fv-restore]"); if (c) { F.toChip = false; c.focus({ preventScroll: true }); } }
+    if (F.toChip) { const c = [...document.querySelectorAll("[data-fv-restore]")].find((x) => x.offsetParent); if (c) { F.toChip = false; c.focus({ preventScroll: true }); } }
   }
 
   el.addEventListener("click", (e) => {

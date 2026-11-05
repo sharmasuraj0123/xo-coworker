@@ -181,7 +181,7 @@ const VW = createViewer({
   ask: { target: (f) => askPlace(f)?.name || null, send: askAboutLines, compose: (f, a, b) => composeAbout(f, a, b) },
   // a save (Files › Edit): its place's changes are read again; Tell the agent is a message to its thread
   edits: { saved: (f) => CHG.saved(f.project, f.rel), tell: (f, s) => sendAbout(f, `I edited ${s.path}. Read it again before you change it.`) },
-  away: () => { if (!FILESV.docked) return false; FILESV.minimise(); return true; },
+  away: () => { if (FILESV.sheet) return FILESV.escape(document.activeElement); if (!FILESV.docked) return false; FILESV.minimise(); return true; },
 }); // a file, in Files (js/filesview.js)
 // a picture opens over the conversation (js/lightbox.js); Open in Files hands it to the viewer, which brings Files up
 const LB = createLightbox({ openFile: (it, from) => VW.open(viewerFile(it), from), announce });
@@ -1031,6 +1031,7 @@ function topRender(needs) {
   const top = $("#top");
   patch($("#chead"), cheadHtml(v, t));
   patch($("#crail"), crailHtml(v, t, needs));
+  patch($("#fdock"), fileChipHtml());
   top.dataset.kind = t ? "thread" : "project"; // hub #28: the Workspace has a project's header, always shown
   // a thin state line along the thread's header: amber needs you, blue working, green done, red stopped
   top.dataset.state = !t ? "" : needs.some((n) => n.t.id === t.id && n.admitted) ? "need" : t.state === "failed" ? "stop" : isBusy(t) ? "busy" : t.state === "done" || t.state === "resolved" ? "done" : "";
@@ -2518,11 +2519,11 @@ function askAboutLines(f, a, b, text) {
  *  as a capsule, and the composer has focus. The file's place must be this conversation; else false (the
  *  file's own composer asks, as before). */
 function composeAbout(f, a, b) {
-  const at = FILESV.docked ? askPlace(f) : null;
+  const at = FILESV.docked || FILESV.sheet ? askPlace(f) : null;
   if (!at || at.conv !== S.view || CH.isChats(S.view)) return false;
   S.lref[S.view] = { path: at.path, a, b, name: f.name || at.path.split("/").pop() };
   lrefRender();
-  FILESV.chat(true);
+  FILESV.chat(true); // beside the file it opens if folded; on a phone the sheet comes up
   say.focus({ preventScroll: true });
   announce(`Lines ${a}${b > a ? ` to ${b}` : ""} of ${S.lref[S.view].name} are in your message. Write your question.`);
   return true;

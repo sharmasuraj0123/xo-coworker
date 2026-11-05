@@ -76,7 +76,7 @@ body.fv-min .fv{visibility:hidden;pointer-events:none;right:var(--cw)}
 .fl-rb{position:relative;display:grid;place-items:center;width:32px;height:32px;border-radius:var(--r);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .fl-rb:hover{background:var(--g1F);color:var(--ink)}
 .fl-rb svg{width:16px;height:16px}
-.fl-rb em{position:absolute;top:3px;right:1px;width:6px;height:6px;border-radius:50%;background:var(--info)}
+.fl-rb em{position:absolute;top:3px;right:1px;width:6px;height:6px;border-radius:50%;background:var(--ink-3)} /* a mark, not news: blue is the chat's new messages */
 .fl-rb:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 
 /* the chat, folded: the column slides out on transform (it keeps its width, nothing in it reflows, its scroll
@@ -121,6 +121,7 @@ body.chat-docked.chat-over .conv{background:var(--canvas)}
    what it's doing and how many new messages; amber when it asks, with Open. phone.css comes after this
    file, so these rules carry its :root:root weight. ───────────────────────────────────────────────────── */
 .crail-s,.crail-n,.crail-up,.crail-open{display:none}
+.fdock{display:none}
 @media (max-width:760px){
   :root:root body.chat-sheet .fv{padding-bottom:calc(80px + env(safe-area-inset-bottom))}
   :root:root body.files-open.chat-sheet .dock{display:block}
@@ -153,6 +154,14 @@ body.chat-docked.chat-over .conv{background:var(--canvas)}
   :root:root body.chat-sheet .crail-b.is-ask .crail-s{color:var(--warn)}
   :root:root body.chat-sheet .crail-open{display:grid;place-items:center;height:32px;padding:0 12px;border-radius:var(--r);background:var(--warn);color:#1A1200;font:600 var(--fs-sm)/1 var(--sans)}
   :root:root body.chat-sheet .crail-m{display:none}
+  /* the put-away file's chip: above the composer, where there's room for its name and counts */
+  :root:root .top .fchip{display:none}
+  :root:root .fdock:not(:empty){display:flex;max-width:720px;margin:0 auto 8px;pointer-events:auto}
+  :root:root .fdock .fchip{max-width:100%;height:32px;background:var(--g17);box-shadow:var(--e1),inset 0 0 0 1px var(--g26)}
+  :root[data-theme="light"]:root .fdock .fchip{background:var(--surface);box-shadow:var(--e1),inset 0 0 0 1px var(--panel-line)}
+  :root:root .fdock :is(.fchip-b,.fchip-x){height:32px}
+  :root:root .fdock .fchip-b{min-width:0}
+  :root:root .fdock .fchip-x{width:32px}
 }
 @media (max-width:760px) and (prefers-reduced-motion:reduce){:root:root body.chat-sheet :is(.conv,.dock){transition:none}}
 
