@@ -5,7 +5,7 @@
 import assert from "node:assert/strict";
 
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
-const { saveOutcome } = await import("../js/viewer.js");
+const { saveOutcome, RUNS } = await import("../js/viewer.js");
 const err = (status, code, extra = {}) => Object.assign(new Error(`${status} ${code}`), { status, code, ...extra });
 
 let passed = 0;
@@ -16,6 +16,10 @@ const t = (name, fn) => {
 
 t("a file that runs code: ask, then send again with confirm", () => {
   assert.equal(saveOutcome(err(428, "confirm_required")).kind, "confirm");
+});
+t("what runs code, before Space says: any case (Space treats .GIT/ and .Claude/ as .git/ and .claude/)", () => {
+  for (const p of [".git/hooks/pre-commit", ".GIT/config", ".claude/settings.json", ".Claude/settings.json", ".codex/x", ".Agents/run.md", ".mcp.json", ".MCP.json"]) assert.ok(RUNS.test(p), p);
+  for (const p of ["src/.git.md", "gitignore", "docs/.claude.md", "a/.mcp.json"]) assert.ok(!RUNS.test(p), p);
 });
 t("the file changed meanwhile: merge with what's there now (sent with the 409)", () => {
   assert.equal(saveOutcome(err(409, "file_changed", { current: { content: "x", version: "v2" } })).kind, "conflict");

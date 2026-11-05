@@ -99,6 +99,13 @@ await t("a project that isn't a git repository, or a thread whose worktree is go
   C.sync("p:p"); C.sync("t:b");
   await tick(10);
   assert.equal(calls.length, before, "a project that isn't a repository isn't asked again");
+  // git older than 2.40 on Space's machine: no place can say what changed, so the same list, not an error
+  reply = () => ({ status: 501, body: { detail: { code: "git_too_old", message: "Space's git is older than 2.40." } } });
+  const G = createChanges({ world: world(store([])), onChange() {} });
+  G.sync("t:a"); G.sync("p:p");
+  await tick(10);
+  assert.equal(G.of("t:a").state, "unsupported");
+  assert.equal(G.of("p:p").state, "unsupported");
   // anything else is an error said in Space's own words
   reply = () => ({ status: 500, body: { detail: { code: "internal", message: "Space broke." } } });
   const D = createChanges({ world: world(store([])), onChange() {} });
