@@ -564,11 +564,25 @@ down.innerHTML = `${IC.down}<span class="mx-down-n" hidden></span>`;
 conv.append(down);
 let unseen = 0;
 const away = () => scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight;
+/** The top of what's docked above the conversation: a decision card docked over the composer when there is
+ *  one (its real top, whatever its height on this screen), else the composer itself. */
+const tdock = $("#tdock");
+function dockTop() {
+  let top = composer.getBoundingClientRect().top;
+  for (const el of tdock.querySelectorAll(":scope > *, :scope > * > *")) {
+    const r = el.getBoundingClientRect();
+    if (r.height > 0 && r.width > 0 && getComputedStyle(el).visibility !== "hidden") top = Math.min(top, r.top);
+  }
+  return top;
+}
 function downSync() {
-  // 12 px above the composer itself (the dock around it has its own padding)
-  const c = composer.getBoundingClientRect(), v = conv.getBoundingClientRect();
-  if (c.height) down.style.bottom = `${Math.round(v.bottom - c.top + 12)}px`;
-  const far = away() > Math.max(240, scroller.clientHeight * 0.5);
+  // 12 px above whatever is docked: the decision card when one is docked, else the composer itself
+  const top = dockTop(), v = conv.getBoundingClientRect();
+  if (Number.isFinite(top) && composer.getBoundingClientRect().height) down.style.bottom = `${Math.round(v.bottom - top + 12)}px`;
+  // on a short phone a docked card can take nearly all the room: if the button would reach the header (less
+  // than 8 px below the conversation's top), it stays away rather than sit on the title or the tabs
+  const room = top - 12 - 40 >= scroller.getBoundingClientRect().top + 8;
+  const far = room && away() > Math.max(240, scroller.clientHeight * 0.5);
   if (!far) unseen = 0;
   down.classList.toggle("is-on", far);
   const n = down.querySelector(".mx-down-n");
@@ -592,4 +606,8 @@ new MutationObserver((ms) => {
   requestAnimationFrame(downSync);
 }).observe(msgs, { childList: true });
 const downRO = new ResizeObserver(() => downSync());
-downRO.observe(scroller); downRO.observe($("#dock"));
+downRO.observe(scroller); downRO.observe($("#dock")); downRO.observe(tdock);
+// a card docking or leaving (and its own glide in or out) moves the button with it, frame by frame
+let downRaf = 0;
+const followDock = (until) => { cancelAnimationFrame(downRaf); const step = () => { downSync(); if (performance.now() < until) downRaf = requestAnimationFrame(step); }; step(); };
+new MutationObserver(() => followDock(performance.now() + 700)).observe(tdock, { childList: true, subtree: true });
