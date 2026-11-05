@@ -6,9 +6,9 @@ import { ICON, $, RM } from "./ui.js";
 import { api } from "./api.js";
 import { fmtSize } from "./attach.js";
 
-/** Space's clone v2 (xo-space, asked 2026-11-05): keeps name and brief, answers 202 {clone_id} with progress
- *  and cancel, and names its failures. Flip to true once :5002 runs it; nothing else changes here. */
-const CLONE_V2 = false; // contract: xo-space docs/xo-projects-clone.md
+/** Space's clone v2 (xo-space, live on :5002 since 2026-11-05): keeps name and brief, answers 202 {clone_id}
+ *  with progress and cancel, and names its failures. False sends today's minimal blocking POST. */
+const CLONE_V2 = true; // contract: xo-space docs/xo-projects-clone.md
 const PHASE = { counting: "Counting files in", receiving: "Downloading", resolving: "Unpacking", checkout: "Checking out", finishing: "Adding plan and memory to" };
 
 const GH = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>`;
@@ -19,7 +19,8 @@ export const slugify = (name) => String(name || "").normalize("NFKD").replace(/[
 export function parseRepo(raw) {
   const v = String(raw || "").trim();
   if (!v || /\s/.test(v)) return null;
-  const gh = v.match(/^(?:(?:https?:\/\/)?(?:www\.)?github\.com\/)?([A-Za-z0-9-]{1,39})\/([A-Za-z0-9._-]{1,100}?)(?:\.git)?(?:\/(?:tree|blob)\/.*)?\/?$/);
+  // A browser's GitHub address may carry ?tab=… or #readme: neither names a different repo
+  const gh = v.replace(/^((?:https?:\/\/)?(?:www\.)?github\.com\/[^?#]*)[?#].*$/i, "$1").match(/^(?:(?:https?:\/\/)?(?:www\.)?github\.com\/)?([A-Za-z0-9-]{1,39})\/([A-Za-z0-9._-]{1,100}?)(?:\.git)?(?:\/(?:tree|blob)\/.*)?\/?$/i);
   if (gh && !/^\.+$/.test(gh[2])) return { url: `https://github.com/${gh[1]}/${gh[2]}.git`, label: `${gh[1]}/${gh[2]}`, name: gh[2], github: true };
   const ssh = v.match(/^git@([A-Za-z0-9.-]+):([A-Za-z0-9._/-]+?)(?:\.git)?$/);
   // GitHub's SSH form clones over HTTPS, so the GitHub connection (not this server's SSH keys) opens it
@@ -28,7 +29,7 @@ export function parseRepo(raw) {
   try {
     const u = new URL(v);
     const path = u.pathname.replace(/\/+$/, "").replace(/\.git$/, "");
-    if (!/^(https|ssh):$/.test(u.protocol) || u.password || u.search || u.hash || path.split("/").filter(Boolean).length < 1) return null;
+    if (!/^(https|ssh):$/.test(u.protocol) || u.password || (u.username && u.protocol === "https:") || u.search || u.hash || path.split("/").filter(Boolean).length < 1) return null;
     return { url: v, label: `${u.host}${path}`, name: path.split("/").pop(), github: false };
   } catch { return null; }
 }
@@ -109,9 +110,9 @@ export function initCreate(ctx) {
   }
 
   // busy: {t0, label, cloneId?, st?: Space's clone status} while creating or cloning
-  function setBusy(on, label) {
+  function setBusy(on, repoOf) {
     clearTimeout(busy?.timer);
-    busy = on ? { t0: Date.now(), label } : null;
+    busy = on ? { t0: Date.now(), label: repoOf?.label, host: repoOf && (repoOf.github ? "GitHub" : repoOf.label.split(/[/:]/)[0]) } : null;
     for (const el of [name, desc, repo]) el.disabled = on;
     for (const b of $("#cp-mode").children) b.disabled = on;
     submit.disabled = on;
@@ -127,15 +128,19 @@ export function initCreate(ctx) {
   function tick() {
     if (!busy) return;
     const s = Math.floor((Date.now() - busy.t0) / 1000), st = busy.st || {};
-    const pct = Number.isFinite(st.percent) ? Math.max(0, Math.min(100, Math.round(st.percent))) : null;
+    // 0 % is "not started yet" (a big repo can count for a while on GitHub's side): the bar keeps moving until it has a real figure
+    const pct = st.percent > 0 ? Math.min(100, Math.round(st.percent)) : null;
     const bar = $("#cp-bar"), facts = [pct > 0 && `${pct}%`, st.received_bytes > 0 && fmtSize(st.received_bytes)].filter(Boolean).join(" · ");
     bar.classList.toggle("is-known", pct != null);
     bar.firstElementChild.style.width = pct != null ? `${pct}%` : "";
     if (pct != null) { bar.setAttribute("aria-valuenow", pct); bar.setAttribute("aria-valuemin", 0); bar.setAttribute("aria-valuemax", 100); bar.setAttribute("aria-valuetext", facts || `${pct}%`); }
     else for (const k of ["aria-valuenow", "aria-valuemin", "aria-valuemax", "aria-valuetext"]) bar.removeAttribute(k);
-    const phase = `${PHASE[st.phase] || "Cloning"} ${busy.label}`;
-    if ($("#cp-phase").dataset.v !== phase) { $("#cp-phase").dataset.v = phase; $("#cp-phase").innerHTML = `${esc(PHASE[st.phase] || "Cloning")} <b>${esc(busy.label)}</b>`; }
-    $("#cp-facts").textContent = facts;
+    // Space's idle_seconds (when it sends it): git has said nothing for that long, so say who we're waiting on
+    const quiet = st.idle_seconds >= 8 ? busy.host : "";
+    const verb = quiet && st.phase === "counting" ? `Waiting for ${quiet} to prepare` : PHASE[st.phase] || "Cloning";
+    const phase = `${verb} ${busy.label}`;
+    if ($("#cp-phase").dataset.v !== phase) { $("#cp-phase").dataset.v = phase; $("#cp-phase").innerHTML = `${esc(verb)} <b>${esc(busy.label)}</b>`; }
+    $("#cp-facts").textContent = [facts, quiet && st.phase !== "counting" && `waiting for ${quiet}`].filter(Boolean).join(" · ");
     $("#cp-time").textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
     $("#cp-stop").hidden = !busy.cloneId;
     $("#cp-hint").hidden = s < 6;
@@ -159,9 +164,12 @@ export function initCreate(ctx) {
     const id = busy?.cloneId;
     if (!id) return;
     $("#cp-stop").disabled = true;
-    try { await api.cancelClone(id); } catch (err) {
+    try {
+      // Too late to stop: the project is already published, so Space ends the job "done". Following it opens it.
+      if ((await api.cancelClone(id))?.state === "done") return;
+    } catch (err) {
+      if (err.code === "clone_finished") return; // it finished (or failed) first: following it shows how
       $("#cp-stop").disabled = false;
-      if (err.code === "clone_finished") return; // it finished first: following it shows how
       if (err.status !== 404) { error(`Couldn't stop it: ${err.message}`); return; }
     }
     setBusy(false);
@@ -247,7 +255,7 @@ export function initCreate(ctx) {
     if (ctx.world.state.projects.some((p) => p.id === id)) { error(`There's already a project called “${id}”. Pick another name.`); name.focus(); return; }
     if (!(await loadRoot())) { error("Can't create yet: the projects folder is unknown. Is the XO API running?"); return; }
     error("");
-    setBusy(true, r?.label);
+    setBusy(true, r);
     try {
       if (r) {
         const res = await api.cloneProject({ id, url: r.url, displayName: title, description }, CLONE_V2);
