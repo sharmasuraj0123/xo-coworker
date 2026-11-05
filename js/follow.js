@@ -8,14 +8,13 @@
 //   reading you've moved up from the latest (wheel, finger, keys, scrollbar, find-in-page, a jump to a
 //           message): nothing here moves the view; the browser keeps your place as older pages land
 //           (scroll anchoring; app.js puts it right itself where a browser has none).
-// You're pinned again the moment the view is back at the latest, or by toLatest() (opening a conversation,
-// the back-to-latest button, pressing the agent's working bubble).
+// You're pinned again only at the real bottom, or by toLatest(): an intent to go to the latest (opening a
+// conversation, sending, the back-to-latest button, pressing the agent's working bubble).
 // Only three things write the scroll position: toLatest(), keeping pinned on growth, and a jump to a message.
 
 const sc = () => document.getElementById("scroller");
 const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 let pinned = true, lastTop = 0;
-const NEAR = 120; // px: about one message
 
 /** How far the view is from the latest, and from the top of what's drawn (px). */
 export const fromLatest = () => { const s = sc(); return Math.max(0, s.scrollHeight - s.clientHeight - s.scrollTop); };
@@ -37,13 +36,11 @@ export function initFollow() {
   // growth below changes no scrollTop, so neither is mistaken for you scrolling up.
   s.addEventListener("scroll", () => {
     const top = s.scrollTop, gap = s.scrollHeight - s.clientHeight - top;
+    // only the real bottom re-arms following; a small scroll near it moves you just that far (QA R1: a 4 px
+    // scroll inside the last 120 px used to jump you to the end)
     if (gap <= 2) pinned = true;
     else if (top < lastTop - 1) pinned = false;
-    // coming back down to within a message of the latest is coming back to it: something that grew while
-    // you scrolled down would otherwise leave you stopped just short of the latest, no longer following
-    // (the deploy thread saw 70 px once on a phone); the last few px glide in with you
-    else if (!pinned && top > lastTop + 1 && gap <= NEAR) { pinned = true; s.scrollTop = s.scrollHeight; }
-    lastTop = s.scrollTop;
+    lastTop = top;
   }, { passive: true });
   // growth (or the view's own size changing) while pinned: stay at the latest, before the frame is painted
   const keep = () => { if (pinned && fromLatest() > 0.5) { s.scrollTop = s.scrollHeight; lastTop = s.scrollTop; } };
