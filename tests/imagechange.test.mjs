@@ -2,7 +2,7 @@
 // under it. The owner, 6 Nov: an image in the panel's Changes said only "Binary file".
 //   node tests/imagechange.test.mjs
 import assert from "node:assert/strict";
-import { isImageChange, imageWords } from "../js/imagechange.js";
+import { isImageChange, imageWords, noRoute } from "../js/imagechange.js";
 
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
@@ -18,10 +18,17 @@ t("everything else keeps what it had: a diff, or \"Binary file\"", () => {
   assert.equal(isImageChange({ path: "doc.pdf", binary: true }), false);
   assert.equal(isImageChange(null), false);
 });
-t("the words under it: new, changed (the earlier version can't be shown yet), deleted, renamed", () => {
-  assert.deepEqual(imageWords({ path: "a.png", status: "added" }), { what: "New image", note: "", shows: true });
-  assert.deepEqual(imageWords({ path: "a.png", status: "modified" }), { what: "Changed image", note: "The earlier version can't be shown yet.", shows: true });
-  assert.deepEqual(imageWords({ path: "a.png", status: "deleted" }), { what: "Deleted image", note: "The earlier version can't be shown yet.", shows: false });
-  assert.deepEqual(imageWords({ path: "img/b.png", status: "renamed", old_path: "old/a.png" }), { what: "Renamed from a.png", note: "", shows: true });
+t("the words, and which versions each has: new (now), changed (before and now), deleted (before), renamed (now)", () => {
+  assert.deepEqual(imageWords({ path: "a.png", status: "added" }), { what: "New image", before: false, now: true });
+  assert.deepEqual(imageWords({ path: "a.png", status: "modified" }), { what: "Changed image", before: true, now: true });
+  assert.deepEqual(imageWords({ path: "a.png", status: "deleted" }), { what: "Deleted image", before: true, now: false });
+  assert.deepEqual(imageWords({ path: "img/b.png", status: "renamed", old_path: "old/a.png" }), { what: "Renamed from a.png", before: false, now: true });
+});
+t("the version route not there yet (the server's own 404) is told apart from its answers", () => {
+  assert.equal(noRoute({ status: 404, code: "http_404" }), true, "FastAPI's {detail: \"Not Found\"}: xo-space not restarted");
+  assert.equal(noRoute({ status: 404, code: "version_not_found" }), false);
+  assert.equal(noRoute({ status: 404, code: "file_not_found" }), false);
+  assert.equal(noRoute({ status: 413, code: "image_too_large" }), false);
+  assert.equal(noRoute(null), false);
 });
 console.log(`${passed} passed${process.exitCode ? ", with failures" : ""}`);

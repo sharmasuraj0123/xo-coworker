@@ -91,11 +91,21 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
   let H = { list: "", ph: "", pill: "", none: "" };
 
   const set = (k, node, html) => { if (H[k] !== html) { node.innerHTML = html; H[k] = html; } };
+  /** The picked row marked, the one before unmarked: after a redraw of the list too (its rows come unmarked). */
+  function markPick(path) {
+    const was = list.querySelector(".cx-r.is-on");
+    if (was && was.dataset.cx === path) return;
+    if (was) { was.classList.remove("is-on"); was.setAttribute("aria-selected", "false"); }
+    const now = path == null ? null : list.querySelector(`.cx-r[data-cx="${CSS.escape(path)}"]`);
+    if (now) { now.classList.add("is-on"); now.setAttribute("aria-selected", "true"); }
+  }
 
-  function rowHtml(f, sel, live) {
-    const on = f.path === sel, dir = dirOf(f.path), isLive = live.has(f.path);
+  /** One file's row, as it is whichever file is picked: the pick is marked in place (markPick), so picking
+   *  another file changes two rows, not the list (Astra, 6 Nov: 500 rows were rebuilt per pick, ~0.2 s at 4×). */
+  function rowHtml(f, live) {
+    const dir = dirOf(f.path), isLive = live.has(f.path);
     const sub = [dir, isLive ? "editing now" : f.status === "added" ? "new" : f.status === "deleted" ? "deleted" : f.status === "renamed" ? `from ${base(f.old_path)}` : ""].filter(Boolean).join(" · ");
-    return `<li role="presentation"><button type="button" class="cx-r${on ? " is-on" : ""}" role="option" aria-selected="${on}" data-cx="${esc(f.path)}" title="${esc(f.path)}">` +
+    return `<li role="presentation"><button type="button" class="cx-r" role="option" aria-selected="false" data-cx="${esc(f.path)}" title="${esc(f.path)}">` +
       `<span class="cx-i">${fileIcon(f.path)}${isLive ? '<i class="arc"></i>' : ""}</span><span class="cx-t"><span class="cx-n">${esc(base(f.path))}</span>${sub ? `<span class="cx-d">${esc(sub)}</span>` : ""}</span>` +
       `${countsHtml(f)}</button></li>`;
   }
@@ -118,7 +128,8 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
       if (s && s.key === key) {
         note.hidden = true; im.hidden = false;
         const rel = s.worktree ? `.xo/worktrees/${s.worktree}/${f.path}` : f.path;
-        D.img = drawImageChange(im, { project: s.project, rel, file: f, open: (from) => openFile(s, f.path, from) });
+        const at = changes.of(view())?.data?.base_commit || null;
+        D.img = drawImageChange(im, { project: s.project, rel, file: f, at, open: (from) => openFile(s, f.path, from) });
         return;
       }
       note.hidden = false;
@@ -192,8 +203,9 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
     const rows = st.all || files.length <= SHOWN ? files : files.filter((f, i) => i < SHOWN || f.path === st.sel);
     const all = c.data && c.data.total_files > files.length ? c.data.total_files : files.length;
     const more = all - rows.length;
-    set("list", list, rows.map((f) => rowHtml(f, st.sel, act.live)).join("") +
+    set("list", list, rows.map((f) => rowHtml(f, act.live)).join("") +
       (more > 0 ? `<li role="presentation"><button type="button" class="cx-more"${rows.length < files.length ? " data-cx-all" : " disabled"}>${rows.length < files.length ? `${(files.length - rows.length).toLocaleString()} more files · Show them` : `${more.toLocaleString()} more files, too many to list here`}</button></li>` : ""));
+    markPick(st.sel);
     const f = files.find((x) => x.path === st.sel);
     set("ph", ph, `<span class="cx-pp" title="${esc(f.path)}">${esc(f.path)}</span>${countsHtml(f)}<span class="cx-sp"></span><button type="button" class="cx-ofi" data-cx-open title="Open in Files: the whole file, side by side" aria-label="Open in Files">${OPEN_IC}</button>`);
     pane.hidden = false;

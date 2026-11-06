@@ -350,6 +350,13 @@ export const api = {
   projectTree: (project, relativePath) => get(`/xo-projects/${enc(project)}/tree`, { ...(relativePath ? { relative_path: relativePath } : {}), hidden: "true" }),
   /** An image inside a project, as a Blob for the image viewer (fetched, so it carries the Coder header and errors read as words). */
   projectImage: (project, relativePath, opts) => blob(`/xo-projects/${enc(project)}/image?relative_path=${enc(relativePath)}`, opts),
+  /**
+   * A project file as a commit had it (the coworker service's version route, xo-space 6 Nov): the Changes
+   * view's "Before" of a changed or deleted image (commit: /changes' base_commit). relativePath: the file now,
+   * project-relative (it may be gone); was: its name at that commit when it was renamed since (/changes'
+   * old_path, relative to the worktree). Images come inline. 404 version_not_found when the commit hadn't it.
+   */
+  projectVersion: (project, relativePath, { commit, was = null }, opts) => blob(`/coworker/xo-projects/${enc(project)}/version?relative_path=${enc(relativePath)}&commit=${enc(commit)}${was ? `&commit_path=${enc(was)}` : ""}&hidden=true`, opts),
   /** A whole project file as a Blob, for the viewer's Download (fetched, so the Coder token stays out of every URL). */
   projectDownload: (project, relativePath) => blob(`/xo-projects/${enc(project)}/download?relative_path=${enc(relativePath)}&hidden=true`, { ms: 300000 }),
   /** Where xo-projects live: {roots: {...}, default}. Never hard-code the root. */
