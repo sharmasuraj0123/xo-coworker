@@ -403,27 +403,42 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   for (const g of el.querySelectorAll("[data-gut]")) {
     const [a, b] = g.dataset.gut.split("|");
     let acc = 0; // Agents: the drag that isn't a whole row yet
+    let past = 0; // how far the pointer went on past where the Map stopped growing: the line waits for it to come back
     // the frame below the line gives or takes the room (dragging down shrinks it); the growing frame
     // (Changes, or the Map when Changes is folded) has the rest. When the frame below is the one growing,
     // the frame above sizes instead.
     const sized = () => (el.querySelector(`[data-fr="${b}"]`).classList.contains("is-grow") ? { id: a, sign: 1 } : { id: b, sign: -1 });
     // the Map, when it's there to take or give room: open, and not the frame that has the rest
     const mapSizes = () => { const m = el.querySelector('[data-fr="map"]'); return !m.hidden && !fr.map.folded && !m.classList.contains("is-grow"); };
-    const sizeMap = (d) => { fr.map.h = Math.max(MAP_MIN, Math.min(640, (fr.map.h || MAP_H) + d)); };
+    // the Map grows only into the room Changes can spare (its CH_MIN) with Agents' rows as they are: past that,
+    // capAgents took a row from Agents and the line jumped back down, behind the pointer (Astra, on 3df29a4: a
+    // phone, three agents). Capped there, the drag comes to a stop instead
+    const mapTop = () => {
+      const shown = (id) => !el.querySelector(`[data-fr="${id}"]`).hidden;
+      const room = S.stackH - (LPF.hidden ? 0 : HEAD + 1), lines = [...el.querySelectorAll(".fr-gut")].filter((g) => !g.hidden).length;
+      const changes = !shown("changes") ? 0 : fr.changes.folded ? HEAD : CH_MIN;
+      return room - changes - lines - 44 - (S.agRows || 1) * ROW;
+    };
+    const sizeMap = (d) => {
+      const h = fr.map.h || MAP_H;
+      fr.map.h = Math.max(MAP_MIN, Math.min(640, d > 0 ? Math.max(h, Math.min(h + d, mapTop())) : h + d));
+    };
     const resize = (dy) => {
       const { id, sign } = sized();
       const f = el.querySelector(`[data-fr="${id}"]`);
       if (id === "agents") {
         // a row at a time, once the drag passes half a row; from the rows on screen when there are fewer. It's
         // never taller than its agents need, nor than the room Changes and the Map leave it
-        const d = sign * dy, shown = f.querySelectorAll(".ag-r").length;
+        let d = sign * dy;
+        if (past && Math.sign(d) !== Math.sign(past)) { const back = Math.sign(d) * Math.min(Math.abs(d), Math.abs(past)); past += back; d -= back; if (!d) return; }
+        const shown = f.querySelectorAll(".ag-r").length;
         const was = Math.min(S.agRows || AG_ROWS, Math.max(1, shown)), top = Math.max(1, Math.min(8, shown, S.agCap || 8));
         // past that, the line goes on moving: the Map under Agents takes the room or gives it (the owner, 6 Nov:
         // with one agent at work the line above Agents didn't move at all, while the Map's did)
         // (what the rows' snapping left the line ahead of the pointer is taken off first, so it stays under it)
         if (!fr.agents.folded && ((d > 0 && was >= top) || (d < 0 && was <= 1)) && mapSizes()) {
           const t = acc + d;
-          if (Math.sign(t) === Math.sign(d)) { acc = 0; sizeMap(t); layout(); } else acc = t;
+          if (Math.sign(t) === Math.sign(d)) { acc = 0; const h = fr.map.h || MAP_H; sizeMap(t); past += t - ((fr.map.h || MAP_H) - h); layout(); } else acc = t;
           return;
         }
         acc += d;
@@ -440,7 +455,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
       e.preventDefault();
       g.setPointerCapture(e.pointerId);
       let y0 = e.clientY;
-      acc = 0;
+      acc = 0; past = 0;
       document.body.classList.add("stage-vsizing");
       const move = (ev) => { resize(ev.clientY - y0); y0 = ev.clientY; };
       const up = () => { g.removeEventListener("pointermove", move); document.body.classList.remove("stage-vsizing"); persist(); };
@@ -451,7 +466,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     g.addEventListener("keydown", (e) => {
       if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
       e.preventDefault();
-      acc = 0;
+      acc = 0; past = 0;
       // Agents steps a row; the Map 16 px
       const step = sized().id === "agents" ? ROW : 16;
       resize(e.key === "ArrowDown" ? step : -step);
