@@ -255,8 +255,9 @@ button .spin,.btn .spin{color:inherit}
    each with its own 32 px head and tabs, folding to that head, the 1 px line between two dragged ══ */
 .stg-bar{padding:0 8px 0 var(--pe)}
 .stg-t{flex:1;min-width:0;display:flex;align-items:baseline;gap:8px;white-space:nowrap;overflow:hidden}
-.stg-name{min-width:0;overflow:hidden;text-overflow:ellipsis;font:600 var(--fs-base)/20px var(--sans);color:var(--ink)}
-.stg-sub{flex:none;font:400 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
+/* "Agentic Control Pane", then the place it shows, quieter: a long place name gives way first */
+.stg-name{flex:none;font:600 var(--fs-base)/20px var(--sans);color:var(--ink)}
+.stg-sub{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
 .stg-frames{flex:1;min-height:0;display:flex;flex-direction:column}
 .fr{flex:none;display:flex;flex-direction:column;min-height:0;overflow:hidden}
 .fr.is-grow{flex:1 1 0;min-height:96px}

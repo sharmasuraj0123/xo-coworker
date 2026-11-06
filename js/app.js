@@ -258,7 +258,11 @@ const lpThread = (p) => { const t = world.state.threads.find((x) => x.project ==
 const LP = createLaunchpad({ api: createLpApi(), projectOf: lpProject, nameOf: (p) => PROJ(p), findThread: lpThread, go: (v) => go(v), announce, onChange: () => schedule(),
   notify: (text, undo) => heraldShow({ kind: "done", text, ...(undo ? { undo, undoUntil: Date.now() + 3000 } : {}) }, undo ? 3200 : 4200) });
 const STAGE = createStage({ map: MAP, mapIcon: MAP_ICON, files: FILES, changes: CHG, filesView: FILESV, viewer: VW, view: () => S.view, go: (v) => go(v), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP });
-STAGE.names = (v) => (v.startsWith("t:") ? world.thread(v.slice(2))?.title || "Thread" : v.startsWith("p:") ? PROJ(v.slice(2)) : v === "ws" ? "Workspace" : "Your projects");
+// the place beside the panel's name: a thread's project (its title is the conversation's own head), a project
+STAGE.names = (v) => {
+  const p = v.startsWith("t:") ? world.thread(v.slice(2))?.project : v.startsWith("p:") ? v.slice(2) : null;
+  return p && p !== "workspace" ? PROJ(p) : p === "workspace" || v === "ws" ? "Workspace" : "Your projects";
+};
 REC.panel = STAGE;
 /** The runtime a thread runs on, fixed for its life (its session's agent). */
 const agentOf = (t) => (t && ((t.session && t.session.agent) || (t.sessionId && world.state.sessions[t.sessionId]?.agent))) || null;

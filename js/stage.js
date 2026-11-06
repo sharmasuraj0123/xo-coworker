@@ -71,7 +71,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   el.id = "stage";
   el.hidden = true;
   el.tabIndex = -1;
-  el.setAttribute("aria-label", "Panel");
+  el.setAttribute("aria-label", "Agentic Control Pane");
   const frame = (id, title, acts = "") => `<section class="fr" data-fr="${id}" aria-labelledby="fr-title-${id}"><header class="fr-h"><h2 class="fr-title" id="fr-title-${id}">${title}${id !== "map" ? `<span class="fr-n" data-fr-n="${id}"></span>` : ""}</h2><div class="fr-a">${acts}<button type="button" class="fr-ib fr-fold" data-fr-fold="${id}" aria-expanded="true" title="Fold">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-${id}"${id === "map" ? ' role="tabpanel"' : ""}></div></section>`;
   const gutter = (a, b) => `<div class="fr-gut" role="separator" aria-orientation="horizontal" aria-label="Resize ${a} and ${b}" data-gut="${a}|${b}" tabindex="0"></div>`;
   el.innerHTML = `<div class="stg-grip" role="separator" aria-orientation="vertical" aria-label="Resize the panel" title="Drag to resize · double-click for the default" tabindex="0"></div>` +
@@ -202,10 +202,11 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
       return `<li><button type="button" class="ch-r" data-change="${esc(x.rel)}" data-change-project="${esc(x.project)}" title="${esc(`${x.path} · ${x.who}`)}"><span class="ch-i">${fileIcon(x.path)}</span><span class="ch-copy"><span class="ch-n">${esc(name)}</span>${dir ? `<span class="ch-path">${esc(dir)}</span>` : ""}</span><span class="ch-m m-${esc(x.live ? "live" : x.mark)}">${esc(x.live ? "editing" : x.mark)}</span></button></li>`;
     }).join("")}</ul>`;
   }
-  function titleHtml(list) {
-    const v = view();
-    const busy = list.filter((a) => a.busy).length;
-    return `<b class="stg-name">${esc(nameOf(v))}</b><span class="stg-sub">${busy ? `${busy} at work` : "No one at work"}</span>`;
+  /** The panel's name, and the place it's showing beside it, quieter (the owner, 6 Nov). Who's at work is
+   *  Agents' own head, so it isn't said here too. */
+  function titleHtml() {
+    const place = nameOf(view());
+    return `<b class="stg-name">Agentic Control Pane</b>${place ? `<span class="stg-sub" title="${esc(place)}">${esc(place)}</span>` : ""}`;
   }
   let nameOf = () => "";
 
@@ -216,7 +217,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     // a clock's figures aren't a change (the app's ticker moves them each second): without this the Agents list was
     // rewritten every paint, and every rewrite re-added its arcs for ui.js to put back in step
     const set = (k, node, html) => { const same = html.replace(/(<span class="elapsed" data-since="\d+">)[^<]*/g, "$1"); if (S.h[k] !== same) { node.innerHTML = html; S.h[k] = same; } };
-    set("head", el.querySelector(".stg-t"), titleHtml(ag));
+    set("head", el.querySelector(".stg-t"), titleHtml());
     if (launch && !LPF.hidden) launch.paint(v, S.lp && !S.rail);
     if (!S.lp) set("agents", body("agents"), agentsHtml(ag)); // under Launchpad Agents is a head: its list waits
     el.querySelector('[data-fr-n="agents"]').textContent = ag.filter((a) => a.busy).length || "";
@@ -402,23 +403,51 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   for (const g of el.querySelectorAll("[data-gut]")) {
     const [a, b] = g.dataset.gut.split("|");
     let acc = 0; // Agents: the drag that isn't a whole row yet
+    let past = 0; // how far the pointer went on past where the Map stopped growing: the line waits for it to come back
     // the frame below the line gives or takes the room (dragging down shrinks it); the growing frame
     // (Changes, or the Map when Changes is folded) has the rest. When the frame below is the one growing,
     // the frame above sizes instead.
     const sized = () => (el.querySelector(`[data-fr="${b}"]`).classList.contains("is-grow") ? { id: a, sign: 1 } : { id: b, sign: -1 });
+    // the Map, when it's there to take or give room: open, and not the frame that has the rest
+    const mapSizes = () => { const m = el.querySelector('[data-fr="map"]'); return !m.hidden && !fr.map.folded && !m.classList.contains("is-grow"); };
+    // the Map grows only into the room Changes can spare (its CH_MIN) with Agents' rows as they are: past that,
+    // capAgents took a row from Agents and the line jumped back down, behind the pointer (Astra, on 3df29a4: a
+    // phone, three agents). Capped there, the drag comes to a stop instead
+    const mapTop = () => {
+      const shown = (id) => !el.querySelector(`[data-fr="${id}"]`).hidden;
+      const room = S.stackH - (LPF.hidden ? 0 : HEAD + 1), lines = [...el.querySelectorAll(".fr-gut")].filter((g) => !g.hidden).length;
+      const changes = !shown("changes") ? 0 : fr.changes.folded ? HEAD : CH_MIN;
+      // Agents' rows as they are on screen: its cap (3) when it has fewer agents would keep room for rows that
+      // aren't there (Astra, on 47d871e: one agent, the line stopped 96 px short)
+      const rows = Math.min(S.agRows || 1, Math.max(1, el.querySelectorAll('[data-fr="agents"] .ag-r').length));
+      return room - changes - lines - 44 - rows * ROW;
+    };
+    const sizeMap = (d) => {
+      const h = fr.map.h || MAP_H;
+      fr.map.h = Math.max(MAP_MIN, Math.min(640, d > 0 ? Math.max(h, Math.min(h + d, mapTop())) : h + d));
+    };
     const resize = (dy) => {
       const { id, sign } = sized();
       const f = el.querySelector(`[data-fr="${id}"]`);
       if (id === "agents") {
-        // a row at a time, once the drag passes half a row; from the rows on screen when there are fewer
-        acc += sign * dy;
+        // a row at a time, once the drag passes half a row; from the rows on screen when there are fewer. It's
+        // never taller than its agents need, nor than the room Changes and the Map leave it
+        let d = sign * dy;
+        if (past && Math.sign(d) !== Math.sign(past)) { const back = Math.sign(d) * Math.min(Math.abs(d), Math.abs(past)); past += back; d -= back; if (!d) return; }
         const shown = f.querySelectorAll(".ag-r").length;
-        let rows = Math.min(S.agRows || AG_ROWS, Math.max(1, shown));
-        const was = rows;
-        while (acc >= ROW / 2) { rows++; acc -= ROW; }
-        while (acc <= -ROW / 2) { rows--; acc += ROW; }
-        // no taller than its agents need, nor than the room Changes and the Map leave it
-        rows = Math.max(1, Math.min(8, Math.max(shown, AG_ROWS), S.agCap || 8, rows));
+        const was = Math.min(S.agRows || AG_ROWS, Math.max(1, shown)), top = Math.max(1, Math.min(8, shown, S.agCap || 8));
+        // past that, the line goes on moving: the Map under Agents takes the room or gives it (the owner, 6 Nov:
+        // with one agent at work the line above Agents didn't move at all, while the Map's did)
+        // (what the rows' snapping left the line ahead of the pointer is taken off first, so it stays under it)
+        if (!fr.agents.folded && ((d > 0 && was >= top) || (d < 0 && was <= 1)) && mapSizes()) {
+          const t = acc + d;
+          if (Math.sign(t) === Math.sign(d)) { acc = 0; const h = fr.map.h || MAP_H; sizeMap(t); past += t - ((fr.map.h || MAP_H) - h); layout(); } else acc = t;
+          return;
+        }
+        acc += d;
+        let rows = was;
+        while (acc >= ROW / 2 && rows < top) { rows++; acc -= ROW; }
+        while (acc <= -ROW / 2 && rows > 1) { rows--; acc += ROW; }
         if (rows !== was) fr.agents.rows = rows;
       } else fr[id].h = Math.max(MAP_MIN, Math.min(640, (fr[id].h || f.getBoundingClientRect().height) + sign * dy));
       fr[id].folded = false;
@@ -429,7 +458,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
       e.preventDefault();
       g.setPointerCapture(e.pointerId);
       let y0 = e.clientY;
-      acc = 0;
+      acc = 0; past = 0;
       document.body.classList.add("stage-vsizing");
       const move = (ev) => { resize(ev.clientY - y0); y0 = ev.clientY; };
       const up = () => { g.removeEventListener("pointermove", move); document.body.classList.remove("stage-vsizing"); persist(); };
@@ -440,7 +469,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     g.addEventListener("keydown", (e) => {
       if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
       e.preventDefault();
-      acc = 0;
+      acc = 0; past = 0;
       // Agents steps a row; the Map 16 px
       const step = sized().id === "agents" ? ROW : 16;
       resize(e.key === "ArrowDown" ? step : -step);
