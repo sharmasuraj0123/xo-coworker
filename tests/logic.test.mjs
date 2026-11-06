@@ -398,6 +398,16 @@ t("after an Interrupt, a thread running your message doesn't ask for a reply", (
   assert.equal(threadState(undefined, null), "working");
 });
 
+t("a done or stopped thread whose agent is back at work shows Working (storm keeps the last turn's state)", () => {
+  assert.equal(threadState("done", null, true), "working", "you wrote into a done thread; its turn runs");
+  assert.equal(threadState("failed", null, true), "working", "a stopped thread you wrote into");
+  assert.equal(threadState("done", null, false), "done", "the turn ended: done again");
+  assert.equal(threadState("done", null), "done", "no word on busy");
+  assert.equal(threadState("resolved", null, true), "resolved", "resolved stays resolved");
+  assert.equal(threadState("needs_reply", null, true), "needs_reply", "a turn you didn't start still waits on you");
+  assert.equal(threadState("needs_approval", null, true), "needs_approval");
+});
+
 t("what a thread and its coordinators wrote each other shows in the thread", () => {
   const th = { id: "cmsg_t" };
   const hops = [

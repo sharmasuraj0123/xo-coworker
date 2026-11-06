@@ -126,10 +126,11 @@ export function stormSource(state, emit, event) {
     const sstate = sessionStateOf(r);
     const card = r.card || {};
     const turn = r.session_id && sstate && BUSY.has(sstate) ? state.turns.running(r.session_id) : null;
+    const busy = threadBusy(r, sstate, runsBy);
     const t = {
       id: r.ts, project, chatId: r.chat_id,
       title: r.title || "Thread", label: r.label || null,
-      state: threadState(r.state, turn),
+      state: threadState(r.state, turn, busy),
       headline: "", happened: card.happened || "", needsYou: "",
       branch: r.branch || null, worktree: r.worktree_path || null, cwd: r.cwd || null,
       createdAt: Date.parse(r.created_at) || Date.now(), lastAt: Date.parse(r.updated_at) || Date.now(),
@@ -138,7 +139,7 @@ export function stormSource(state, emit, event) {
       asks: [], live: true, loaded: !!(state.threadHist[r.ts] && state.threadHist[r.ts].loaded),
       // "Working" means its agent really works (11 §6.3), never just the thread's state: on a turn, or a
       // sub-agent working on after it; waiting on you is never Working (timeline.js sessionBusy)
-      busy: threadBusy(r, sstate, runsBy),
+      busy,
       sessionId: r.session_id || null, sessionState: sstate,
       session: r.session || null, paused: (r.session && r.session.paused) || null,
       resolvedAt: r.resolved_at || null, agentMs: r.agent_ms || 0, pin: r.pin || {}, runs: r.runs || null,
