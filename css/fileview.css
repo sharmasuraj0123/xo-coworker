@@ -24,6 +24,23 @@ body.chat-docked .fv-h{padding:0 4px 0 16px}
 .fv-ib:hover{background:var(--g1F);color:var(--ink)}
 .fv-ib svg{width:16px;height:16px}
 .fv-ib:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+/* the way back to the chat (js/filesview.js, Codex Astra's design-research/files-return): first in the head, in
+   words and a muted plum (not red: nothing is lost), 32 px tall in the 40 px head. Hover only strengthens
+   its fill and hairline; on hover or keyboard focus a note under it says what it does */
+.fv-ret{--ret-ink:#deb8d6;--ret-fill:#302531;--ret-line:#50394d;--ret-hover:#3b2b3b;--ret-hover-line:#74516c;position:relative;box-sizing:border-box;flex:none;display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:var(--r);font:500 var(--fs-base)/20px var(--sans);white-space:nowrap;color:var(--ret-ink);background:var(--ret-fill);box-shadow:inset 0 0 0 1px var(--ret-line);transition:background var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease)}
+:root[data-theme="light"] .fv-ret{--ret-ink:#773c6d;--ret-fill:#f5ecf3;--ret-line:#dfc9da;--ret-hover:#efdfeb;--ret-hover-line:#ba93b2}
+.fv-ret:hover,.fv-ret:focus-visible{background:var(--ret-hover);box-shadow:inset 0 0 0 1px var(--ret-hover-line);transition-duration:var(--d-hover-in)}
+.fv-ret:focus-visible{outline:2px solid var(--ret-ink);outline-offset:2px}
+.fv-ret>svg{flex:none;width:16px;height:16px}
+.fv-h .fv-sep{flex:none}
+.fv-tip{position:absolute;top:calc(100% + 8px);left:0;z-index:30;display:flex;flex-direction:column;gap:2px;min-width:208px;padding:10px 12px;border-radius:var(--r-lg);background:var(--g1C);box-shadow:var(--e2),inset 0 0 0 1px var(--g33);font:500 var(--fs-base)/20px var(--sans);color:var(--ink);text-align:left;white-space:nowrap;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .12s var(--ease),visibility 0s linear .12s}
+:root[data-theme="light"] .fv-tip{background:var(--surface);box-shadow:var(--e2),inset 0 0 0 1px var(--panel-line)}
+.fv-tip-t{display:flex;align-items:center;justify-content:space-between;gap:24px}
+.fv-tip kbd{font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
+.fv-tip-s{font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
+.fv-ret:hover .fv-tip{opacity:1;visibility:visible;transition-delay:.4s,.4s}
+.fv-ret:focus-visible .fv-tip{opacity:1;visibility:visible;transition-delay:0s,0s}
+@media (hover:none){.fv-tip{display:none}}
 
 /* the chat: the same conversation, in a column on the right */
 body.chat-docked .conv{left:auto;width:var(--cw);--rp:0px;--gut:16px;--hg:16px}
@@ -123,7 +140,7 @@ body.chat-docked.chat-over .conv{background:var(--canvas)}
 .cref-x svg{width:14px;height:14px}
 .cref-x:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 
-@media (prefers-reduced-motion:reduce){.fv-ib,.fv-cgrip::before,.fl-rb,body.chat-docked :is(.conv,.dock){transition:none}}
+@media (prefers-reduced-motion:reduce){.fv-ret,.fv-tip,.fv-ib,.fv-cgrip::before,.fl-rb,body.chat-docked :is(.conv,.dock){transition:none}}
 
 /* ── a phone (≤ 760 px): the same rule, vertically (body.chat-sheet). The file fills the screen; the chat is
    a sheet that folds to one bar and never closes. Up, the same #conv and #dock cover the lower 70 %, the

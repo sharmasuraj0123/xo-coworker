@@ -25,6 +25,7 @@ const TW_KEY = "xo-files-tree", TW_DEF = 280, TW_MIN = 200, TW_MAX = 480;
 const CW_KEY = "xo-chat-w", CW_DEF = 400, CW_MIN = 360, CW_MAX = 560;
 const FOLD_KEY = "xo-files-folds"; // {tree: "open"|"folded", chat: "open"|"folded"}: what you chose, per browser
 const PHONE = 760, RAIL = 44, FILE_MIN = 640, COMPACT_FILE = 560, SLIDE = 200;
+const BACK_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 5-7 7 7 7M3 12h18"/></svg>';
 const TREE_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M9.5 4.5v15"/></svg>';
 
 export function createFilesView({ files, viewer, view, PROJ, world, announce, onChange, onDock = null }) {
@@ -205,8 +206,12 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
     const folded = files.listing ? false : F.sheet ? true : files.folded;
     const tree = viewer.hasFile ? `<button type="button" class="fv-ib" data-fv-tree aria-pressed="${!folded}" title="${folded ? "Show the files (⌘B)" : "Fold the files to a rail (⌘B)"}" aria-label="${folded ? "Show the files" : "Fold the files"}">${TREE_IC}</button>` : "";
     const where = `${tree}<h1 class="fv-t">${esc(name)}</h1>${sub ? `<span class="fv-s">${esc(sub)}</span>` : ""}`;
-    // beside the chat: the file is put away (it waits in the thread's header), never closed from here
-    if (F.docked || F.sheet) return `${where}<span class="fv-sp"></span><button type="button" class="fv-ib" data-fv-min title="Put the file away (Esc)" aria-label="Put the file away">${ICON.minimize}</button>`;
+    // beside the chat: the way back to it leads the head, in words and its own plum, where browsing and reading
+    // both keep it (the owner, 6 Nov: the minus at the far right was hard to find; Codex Astra's
+    // design-research/files-return). Files is minimised, not closed: the file waits in the thread's header
+    if (F.docked || F.sheet) return `<button type="button" class="fv-ret" data-fv-min aria-label="Back to chat: minimise Files" aria-describedby="fv-ret-tip">${BACK_IC}<span>Back to chat</span>` +
+      `<span class="fv-tip" role="tooltip" id="fv-ret-tip"><span class="fv-tip-t">Minimise Files<kbd>Esc</kbd></span><span class="fv-tip-s">Your file stays open.</span></span></button>` +
+      `<span class="fv-sep" aria-hidden="true"></span>${where}`;
     const back = v === "home" ? "Home" : v === "ws" ? "Workspace" : v === "artifacts" ? "Artifacts" : v === "chats" ? "Chats" : "Conversation";
     return `<button type="button" class="fv-back" data-fv-back title="Back (Esc)">${ICON.back}<span>${esc(back)}</span></button><span class="fv-sep" aria-hidden="true"></span>${where}`;
   }
