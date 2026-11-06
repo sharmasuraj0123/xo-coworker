@@ -76,13 +76,15 @@ const SCENARIOS = {
   scope: { check: check(), pre: pre({ github: { workflow_scope: false, scopes: ["repo"] } }) },
   "name-taken": { check: check({ fields: { ...check().fields, env: [] } }), deploy: "name-taken" },
   "needs-agent": { check: check({ state: "needs-agent", summary: "Needs preparing.", reasons: [{ what: "A Dockerfile", why: "Nothing builds an image yet" }, { what: "A port", why: "Nothing says where it listens" }], fields: { ...check().fields, port: { value: null, source: "" } } }) },
-  live: { check: check({ state: "linked", config: linked, git: { ...check().git, deployed_head: "cd6096efbe28" } }), pre: pre({ launchpad: { app: { id: "app_7f3a", name: "xo-coworker", status: "running", url: URL_, exists: true, release: 3, rollout: "ready", last_deploy_at: new Date(Date.now() - 2 * 60e3).toISOString(), ready: 1, desired: 1 } } }) },
+  live: { check: check({ state: "linked", config: linked, git: { ...check().git, deployed_head: "cd6096efbe28" } }), pre: pre({ launchpad: { app: { id: "app_7f3a", name: "xo-coworker", status: "running", url: URL_, exists: true, release: 3, rollout: "ready", last_deploy_at: new Date(Date.now() - 2 * 60e3).toISOString(), ready: 1, desired: 1 }, env_set: { XO_API: true, XO_API_KEY: true } } }) },
+  // linked, and main has moved on since the live release
+  "live-behind": { check: check({ state: "linked", config: linked, git: { ...check().git, head: "9e1f0aa77c21", deployed_head: "cd6096efbe28" } }), pre: null },
   "live-stopped": null, "live-failed": null, "live-rolling": null, "live-unhealthy": null,
   "not-deployable": { check: check({ state: "not-deployable" }) },
   pushing: { check: check({ running: { run_id: "r1", kind: "deploy" } }), watch: ["pushing", 2] },
   building: { check: check({ running: { run_id: "r1", kind: "deploy" } }), watch: ["building", 72 - 16] },
   releasing: { check: check({ running: { run_id: "r1", kind: "deploy" } }), watch: ["releasing", 14] },
-  "just-live": { check: check({ running: { run_id: "r1", kind: "deploy" } }), watch: ["live", 1] },
+  "just-live": { check: check({ running: { run_id: "r1", kind: "deploy" } }), pre: pre({ launchpad: { env_set: { XO_API: true, XO_API_KEY: true, XO_SPACE_ID: true } } }), watch: ["live", 1] }, // the deploy set all three
   "failed-build": { check: check({ running: { run_id: "r1", kind: "deploy" } }), watch: ["failed-build", 0] },
   "failed-health": { check: check({ running: { run_id: "r1", kind: "deploy" } }), watch: ["failed-health", 0] },
   play: { check: check(), deploy: "live" },
@@ -108,9 +110,10 @@ const APPS = [
 
 // a linked app in each of Launchpad's other states (the open section must say it, not only the head)
 for (const [k, st] of [["live-stopped", "stopped"], ["live-failed", "failed"], ["live-rolling", "progressing"], ["live-unhealthy", "unhealthy"]]) {
-  const p = pre({ launchpad: { app: { ...SCENARIOS.live.pre.launchpad.app, status: st } } });
+  const p = pre({ launchpad: { app: { ...SCENARIOS.live.pre.launchpad.app, status: st, ...(st === "stopped" ? { ready: 0, desired: 0 } : {}) }, env_set: SCENARIOS.live.pre.launchpad.env_set } });
   SCENARIOS[k] = { check: SCENARIOS.live.check, pre: p };
 }
+SCENARIOS["live-behind"].pre = SCENARIOS.live.pre;
 exports.SCENARIOS = SCENARIOS;
 exports.install = async (page, name) => {
   const sc = SCENARIOS[name] || SCENARIOS.ready;
@@ -128,7 +131,7 @@ exports.install = async (page, name) => {
     if (/\/api\/deploy\/[^/]+\/apps$/.test(path)) return json(r, { apps: APPS, linked: null, name: "xo-coworker" });
     if (/\/api\/deploy\/[^/]+\/link$/.test(path)) return m === "DELETE" ? json(r, { unlinked: { app_id: "app_7f3a" }, forgot: false }) : json(r, { config: { ...linked, app_id: "app_1", name: "storefront", url: APPS[0].url }, app: APPS[0] });
     if (/\/api\/deploy\/[^/]+\/agent$/.test(path)) return json(r, { chat_id: "chat_9460bc3363914c18", thread_ts: "t_ready", already: false, state: "needs-agent" });
-    if (/\/api\/deploy\/[^/]+$/.test(path) && m === "POST") return sse(r, body(sc.deploy || "live", 0));
+    if (/\/api\/deploy\/[^/]+$/.test(path) && m === "POST") { (page.__sent ||= []).push(JSON.parse(r.request().postData() || "{}")); return sse(r, body(sc.deploy || "live", 0)); } // what the deploy asked for, for the smoke
     if (/\/api\/deploy\/[^/]+$/.test(path) && m === "DELETE") return json(r, { stopped: true });
     if (path.endsWith("/connectors/github/cli/start") && sc.imports) imported = true;
     if (path.endsWith("/connectors/github/cli/start")) return json(r, sc.imports ? { status: "connected", imported: true, username: "sharmasuraj0123", user_code: "", session_id: "s1" } : { session_id: "s1", user_code: "WDJB-MJHT", verification_uri: "https://github.com/login/device", expires_in: 900 });

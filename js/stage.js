@@ -279,6 +279,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     el.hidden = true;
     document.body.classList.remove("stage-open", "stage-rail");
     S.rail = false;
+    launch && launch.away && launch.away(); // typed secrets don't stay behind in a closed panel (Astra)
     pressDeploy();
     map.hide();
     persist();

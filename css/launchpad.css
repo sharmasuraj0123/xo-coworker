@@ -69,52 +69,24 @@
 .lp :is(.lp-p,.lp-note,.lp-rec p) code{padding:0 4px;border-radius:calc(var(--r-xs) - 2px);background:var(--g22);font:400 var(--fs-sm)/16px var(--mono);color:var(--ink-3)}
 .lp-mono{font-family:var(--mono)}
 
-/* the card: repository → image → app → address; its tiles sit 8 px in on every side (rows 44, tiles 28), so 12 − 8 = 4 */
-.lp-sys,.lp-check{list-style:none;margin:0 12px;padding:0;border-radius:var(--r-lg);background:var(--panel-surface);box-shadow:inset 0 0 0 1px var(--panel-line)}
-.lp-n,.lp-check li{position:relative;display:grid;grid-template-columns:28px minmax(0,1fr) auto;column-gap:8px;align-items:center;height:44px;padding:0 8px}
+.lp-check{list-style:none;margin:0 12px;padding:0;border-radius:var(--r-lg);background:var(--panel-surface);box-shadow:inset 0 0 0 1px var(--panel-line)}
+.lp-check li{position:relative;display:grid;grid-template-columns:28px minmax(0,1fr) auto;column-gap:8px;align-items:center;height:44px;padding:0 8px}
 .lp-t{position:relative;display:grid;place-items:center;width:28px;height:28px;border-radius:calc(var(--r-lg) - 8px);background:var(--g1C);box-shadow:inset 0 0 0 1px var(--g26);color:var(--ink-3);transition:color var(--d-move) var(--ease),background var(--d-move) var(--ease),box-shadow var(--d-move) var(--ease)}
 .lp-t svg{width:16px;height:16px}
 .lp-c{display:flex;flex-direction:column;min-width:0}
 .lp-c>b{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 var(--fs-base)/20px var(--sans);color:var(--ink-2);transition:color var(--d-move) var(--ease)}
 .lp-c>span{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
-.lp-host{font:400 var(--fs-sm)/20px var(--mono);letter-spacing:-.01em}
 .lp-hash{font-style:normal;color:var(--ink-4)}
 .lp-new{display:inline-block;margin-left:6px;padding:0 6px;border-radius:var(--r-sm);background:color-mix(in srgb,var(--go) 14%,transparent);font:500 var(--fs-sm)/16px var(--sans);color:var(--accent);vertical-align:1px}
 .lp-m{display:flex;align-items:center;gap:6px;font:400 var(--fs-sm)/20px var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
 .lp-m:empty{display:none}
-.lp-k{font:400 var(--fs-sm)/20px var(--mono);color:var(--ink-4)}
-.lp-ok,.lp-bad{display:grid;place-items:center;width:16px;height:16px}
-.lp-ok{color:var(--go)}
-.lp-bad{color:var(--err-ink)}
-.lp-ok svg,.lp-bad svg{width:16px;height:16px}
 .lp-ln{color:var(--ink-3);text-decoration:underline;text-decoration-color:var(--g40);text-underline-offset:3px}
 .lp-ln:hover{color:var(--ink)}
 
-/* the line between two parts: dashed until it's reached, green once the part below is up, a blue sweep
-   flowing into the part being built; its 1 px centred under the tiles' 28 px (8 + 14 − .5) */
-.lp-n:not(:last-child)::after{content:"";position:absolute;left:21.5px;top:36px;width:1px;height:16px;background:repeating-linear-gradient(to bottom,var(--g40) 0 3px,transparent 3px 6px)}
-.lp-n:has(+ .is-done)::after,.lp-sys[data-mode="live"] .lp-n::after{background:color-mix(in srgb,var(--go) 60%,transparent)}
-.lp-n:has(+ .is-doing)::after{background:linear-gradient(to bottom,transparent,var(--work),transparent) no-repeat,color-mix(in srgb,var(--work) 25%,transparent);background-size:100% 60%,100% 100%;animation:lp-flow 1.4s var(--ease-loop) infinite}
 @keyframes lp-flow{from{background-position:0 -120%,0 0}to{background-position:0 220%,0 0}}
 
-.lp-n.is-todo .lp-t{color:var(--ink-4);background:transparent;box-shadow:inset 0 0 0 1px var(--g26)}
-.lp-n.is-todo .lp-c{opacity:.6}
-.lp-n.is-paused .lp-c{opacity:.7}
-.lp-n.is-doing .lp-t{color:var(--work);background:color-mix(in srgb,var(--work) 10%,var(--panel-surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--work) 50%,transparent)}
-.lp-n.is-doing .lp-c>b{color:var(--ink)}
-.lp-n.is-done .lp-t{color:var(--go);background:color-mix(in srgb,var(--go) 8%,var(--panel-surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--go) 32%,transparent)}
-.lp-n.is-need .lp-t{color:var(--need);background:color-mix(in srgb,var(--need) 10%,var(--panel-surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--need) 45%,transparent)}
-.lp-n.is-need .lp-c>span{color:var(--need)}
-.lp-warn{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:9px solid var(--need)}
-.lp-n.is-failed .lp-t{color:var(--err-ink);background:color-mix(in srgb,var(--danger) 10%,var(--panel-surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--danger) 55%,transparent)}
-.lp-n.is-failed .lp-c>b{color:var(--ink)}
-.lp-n.is-failed .lp-c>span{color:var(--err-ink)}
 
 /* checking: the card's shape, quietly breathing */
-.lp-sys.is-skel :is(.lp-t,.lp-c>b,.lp-c>span){background:var(--g22);box-shadow:none;border-radius:calc(var(--r-xs) - 2px);animation:lp-skel 1.4s var(--ease-loop) infinite alternate}
-.lp-sys.is-skel .lp-c>b{width:60%;height:12px;margin:4px 0}
-.lp-sys.is-skel .lp-c>span{width:40%;height:10px;margin:3px 0}
-.lp-sys.is-skel .lp-n::after{display:none}
 @keyframes lp-skel{from{opacity:.55}to{opacity:1}}
 
 /* ── settings ──────────────────────────────────────────────────────────────────────────────── */
@@ -147,10 +119,10 @@
 .lp-lock svg{flex:none;width:14px;height:14px}
 
 /* ── buttons: lit (the one thing to do), quiet (an alternative), a word (a way out) ───────────────── */
-.lp-go{display:flex;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;height:36px;padding:0 16px;border-radius:var(--r-lg);border:0;background:var(--lit);color:var(--accent-ink);font:600 var(--fs-base)/20px var(--sans);text-decoration:none;white-space:nowrap;box-shadow:var(--lit-edge),var(--lit-glow);transition:background var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease),transform 90ms var(--ease)}
+.lp-go{display:flex;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;height:36px;padding:0 16px;border-radius:var(--r-lg);border:0;background:var(--lit);color:var(--accent-ink);font:600 var(--fs-base)/20px var(--sans);text-decoration:none;white-space:nowrap;box-shadow:var(--lit-edge);transition:background var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease),transform 90ms var(--ease)}
 .lp-go span{overflow:hidden;text-overflow:ellipsis}
 .lp-go svg{flex:none;width:16px;height:16px}
-.lp-go:hover{background:var(--lit-hover);box-shadow:var(--lit-edge),var(--lit-glow-hover);transition-duration:var(--d-hover-in)}
+.lp-go:hover{background:var(--lit-hover);transition-duration:var(--d-hover-in)}
 .lp-go:active{transform:scale(.98);background:var(--lit-press);box-shadow:var(--lit-edge),inset 0 1px 2px rgb(0 0 0 / .2)}
 .lp-go:focus-visible{outline:2px solid var(--accent-fill);outline-offset:2px}
 .lp-wide{width:calc(100% - 24px);margin:16px 12px 0}
@@ -182,18 +154,6 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .lp-rec .lp-go{width:100%}
 .lp-log{margin:12px 12px 0;padding:8px 12px;border-radius:var(--r);background:var(--code-bg);box-shadow:inset 0 0 0 1px var(--panel-line);font:400 var(--fs-sm)/16px var(--mono);color:var(--ink-3);white-space:pre-wrap;overflow-wrap:anywhere}
 
-/* live: the address, the one thing you came for */
-.lp-url{display:flex;align-items:center;gap:2px;height:56px;margin:0 12px 12px;padding:0 12px 0 12px;border-radius:var(--r-lg);background:var(--panel-surface);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--go) 30%,var(--panel-line))}
-.lp-url-a{flex:1;min-width:0;display:flex;align-items:center;gap:8px;color:var(--ink);text-decoration:none}
-.lp-url-a svg{flex:none;width:16px;height:16px;color:var(--go)}
-/* the address keeps its green only while the app serves */
-.lp-url:not(.t-go){box-shadow:inset 0 0 0 1px var(--panel-line)}
-.lp-url:not(.t-go) .lp-url-a svg{color:var(--ink-3)}
-.lp-url-a span{display:flex;flex-direction:column;min-width:0}
-.lp-url-a :is(b,i){overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 var(--fs-base)/20px var(--mono);letter-spacing:-.01em;color:var(--ink)}
-.lp-url-a i{font:400 var(--fs-sm)/16px var(--mono);font-style:normal;color:var(--ink-4)}
-.lp-url-a:hover b{text-decoration:underline;text-underline-offset:3px}
-.lp-url .lp-ib{border-radius:var(--r)} /* 32 px, 12 px in from the right; corners stay apart */
 .lp-mw{position:relative;margin-left:auto}
 .lp-menu{position:absolute;z-index:3;right:0;bottom:calc(100% + 4px);display:flex;flex-direction:column;min-width:200px;padding:4px;border-radius:var(--r-lg);background:var(--surface);box-shadow:inset 0 0 0 1px var(--panel-line),var(--e2)}
 .lp-menu button{height:32px;padding:0 8px;border-radius:var(--r);text-align:left;font:500 var(--fs-base)/20px var(--sans);color:var(--ink-2)}
@@ -242,26 +202,25 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .lp-ask{margin:0 12px 12px}
 .lp-wait{display:flex;align-items:center;gap:8px;margin:0;padding:12px 20px 0;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
 
-/* Lit, XO green (the owner, 5 November: "XO green, attractive"): the brand's fill with a breath of light at
-   the top, a hairline edge a shade darker (so it holds its shape on white), a soft glow of its own colour
-   under it; the label in the accent's ink (≈ 10:1 in both themes). Pressed, it sinks; open, it stays pressed. */
+/* The panel's own lit buttons: XO green, a breath of light at the top and a hairline edge; no glow (the owner,
+   6 November: "do not make it glow") */
 :root{
   --lit:linear-gradient(to bottom,color-mix(in srgb,var(--accent-fill) 86%,#fff),var(--accent-fill) 70%);
   --lit-hover:linear-gradient(to bottom,color-mix(in srgb,var(--accent-hover) 84%,#fff),var(--accent-hover) 70%);
   --lit-press:color-mix(in srgb,var(--accent-fill) 88%,#000);
   --lit-edge:inset 0 0 0 1px color-mix(in srgb,var(--accent-fill) 78%,#000),inset 0 1px 0 rgb(255 255 255 / .32);
-  --lit-glow:0 6px 18px -8px color-mix(in srgb,var(--accent-fill) 75%,transparent);
-  --lit-glow-hover:0 8px 22px -8px color-mix(in srgb,var(--accent-fill) 95%,transparent);
 }
-:root[data-theme="light"]{--lit-glow:0 4px 14px -6px color-mix(in srgb,var(--accent-fill) 60%,transparent);--lit-glow-hover:0 6px 18px -6px color-mix(in srgb,var(--accent-fill) 80%,transparent)}
-.tw-act.lp-btn{border:0;padding:0 14px 0 12px;background:var(--lit);color:var(--accent-ink);font-weight:600;box-shadow:var(--lit-edge),var(--lit-glow);transition:background var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease),transform 90ms var(--ease)}
-.tw-act.lp-btn svg,.tw-act.lp-btn .lp-arc{color:currentColor}
-.tw-act.lp-btn:hover{background:var(--lit-hover);color:var(--accent-ink);box-shadow:var(--lit-edge),var(--lit-glow-hover);transition-duration:var(--d-hover-in)}
-.tw-act.lp-btn:active,.tw-act.lp-btn.is-on{background:var(--lit-press);color:var(--accent-ink);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent-fill) 70%,#000),inset 0 1px 3px rgb(0 0 0 / .22)}
+/* The header's Deploy: Resolve's quiet button, set apart by a green rocket, a faint green tint and a green-tinted
+   edge: enough to draw the eye to it without shouting. Pressed or open, the tint deepens. */
+.tw-act.lp-btn{background:color-mix(in srgb,var(--accent-fill) 9%,transparent);border-color:color-mix(in srgb,var(--accent-fill) 38%,var(--g26));color:var(--ink)}
+.tw-act.lp-btn svg{color:var(--accent)}
+.tw-act.lp-btn .lp-arc{color:var(--work)}
+.tw-act.lp-btn:hover{background:color-mix(in srgb,var(--accent-fill) 15%,transparent);border-color:color-mix(in srgb,var(--accent-fill) 55%,var(--g26));color:var(--ink)}
+.tw-act.lp-btn:active,.tw-act.lp-btn.is-on{background:color-mix(in srgb,var(--accent-fill) 20%,transparent);border-color:color-mix(in srgb,var(--accent-fill) 60%,var(--g26));box-shadow:inset 0 1px 2px rgb(0 0 0 / .18)}
 .tw-act.lp-btn:active{transform:scale(.97)}
-.tw-act.lp-btn.is-on:hover{background:color-mix(in srgb,var(--accent-hover) 88%,#000)}
-.tw-act.lp-btn:focus-visible{outline:2px solid var(--accent-fill);outline-offset:2px}
-.tw-act.lp-btn:disabled{background:var(--g22);color:var(--ink-4);box-shadow:inset 0 0 0 1px var(--g26);cursor:default;transform:none}
+.tw-act.lp-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tw-act.lp-btn:disabled{background:none;border-color:var(--g26);color:var(--ink-4);box-shadow:none;cursor:default;transform:none}
+.tw-act.lp-btn:disabled svg{color:var(--ink-4)}
 .top-end .lp-btn,#top-end .lp-btn{flex:none;align-self:center}
 
 /* light */
@@ -272,8 +231,129 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 :root[data-theme="light"] .lp-agr .arc{background:var(--surface)}
 :root[data-theme="light"] .lp :is(.lp-p,.lp-note,.lp-rec p) code{background:rgba(0,0,0,.05)}
 
+/* ── the system view (after the Launchpad demo) ─────────────────────────────────────────────────────
+   Visitors → Address → the app → Image, as cards on the panel's grid (12 px in, 12 px corners), joined by lines
+   that carry the state: green where traffic flows, a blue streak flowing up from the image while it builds or
+   rolls out, red dashes where it broke, grey dashes for what isn't there yet. Stacked in the panel; side by side
+   when the panel is wide (full size). A live part has a soft halo of its colour, as in the demo; nothing else
+   glows. */
+.lpv-hero{padding:4px 20px 12px}
+.lpv-hero .lp-h{font:600 var(--fs-3xl)/36px var(--sans);letter-spacing:var(--tr-28)}
+.lpv-hero .lp-p{margin-top:4px;font:400 var(--fs-base)/20px var(--sans);color:var(--ink-3)}
+.lpv{--halo:transparent;display:flex;flex-direction:column;align-items:stretch;margin:0 12px}
+.lpv-vis{display:flex;flex-direction:column;align-items:center;gap:6px}
+.lpv-orb{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;color:var(--ink-4);background:radial-gradient(circle at 35% 30%,color-mix(in srgb,var(--ink) 9%,transparent),transparent 60%),var(--panel-surface);box-shadow:inset 0 0 0 1px var(--panel-line)}
+.lpv-orb svg{width:20px;height:20px}
+.lpv-orb.on{color:var(--ink);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--go) 50%,transparent),0 0 28px -6px color-mix(in srgb,var(--go) 45%,transparent)}
+.lpv-cap{font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
+.lpv-link{position:relative;flex:none;align-self:center;width:2px;height:20px;margin:2px 0;border-radius:1px;overflow:hidden;background:repeating-linear-gradient(to bottom,var(--g40) 0 3px,transparent 3px 6px)}
+.lpv-link.ok{background:color-mix(in srgb,var(--go) 75%,transparent);box-shadow:0 0 8px color-mix(in srgb,var(--go) 45%,transparent);overflow:visible}
+.lpv-link.feed{background:color-mix(in srgb,var(--ink) 22%,transparent)}
+.lpv-link.err{background:repeating-linear-gradient(to bottom,var(--danger) 0 3px,transparent 3px 6px)}
+.lpv-link.flow{background:color-mix(in srgb,var(--work) 25%,transparent)}
+.lpv-link.flow::after{content:"";position:absolute;left:0;right:0;height:8px;border-radius:1px;background:var(--work);box-shadow:0 0 6px var(--work);animation:lpv-up 1.4s linear infinite}
+@keyframes lpv-up{from{top:100%}to{top:-8px}}
+.lpv-card{display:grid;gap:6px;min-width:0;padding:12px 14px;border-radius:var(--r-lg);background:linear-gradient(180deg,color-mix(in srgb,var(--ink) 4%,transparent),transparent),var(--panel-surface);box-shadow:inset 0 0 0 1px var(--panel-line),0 0 24px -8px var(--halo);transition:box-shadow var(--d-move) var(--ease)}
+.lpv-card.plan,.lpv-card.none,.lpv-card.todo,.lpv-card.off,.lpv-card.paused{background:transparent;box-shadow:none;outline:1px dashed var(--g33);outline-offset:-1px}
+.lpv-card.on,.lpv-card.ready{--halo:color-mix(in srgb,var(--go) 45%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--go) 35%,transparent),0 0 24px -8px var(--halo)}
+.lpv-card.starting,.lpv-card.building{--halo:color-mix(in srgb,var(--work) 50%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--work) 45%,transparent),0 0 24px -8px var(--halo)}
+.lpv-card.failing,.lpv-card.failed{--halo:color-mix(in srgb,var(--danger) 45%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--danger) 50%,transparent),0 0 24px -8px var(--halo)}
+.lpv-card.need{outline:1px dashed color-mix(in srgb,var(--need) 60%,transparent);outline-offset:-1px;background:transparent;box-shadow:none}
+.lpv-h{display:flex;align-items:center;gap:6px;min-height:20px;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.lpv-h>svg{flex:none;width:14px;height:14px}
+.lpv-h .lp-tm,.lpv-acts{margin-left:auto}
+.lpv-acts{display:flex;gap:2px;margin:-6px -8px -6px auto}
+.lpv-acts .lp-ib{width:28px;height:28px;border-radius:var(--r)}
+.lpv-host{display:flex;flex-direction:column;min-width:0}
+.lpv-host b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 var(--fs-base)/20px var(--mono);letter-spacing:-.01em;color:var(--ink)}
+.lpv-host span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 var(--fs-sm)/16px var(--mono);color:var(--ink-4)}
+.lpv-tags{display:flex;flex-wrap:wrap;gap:6px}
+.lpv-tag{padding:0 8px;border-radius:var(--r-pill);background:var(--g22);font:500 var(--fs-sm)/20px var(--sans);color:var(--ink-3)}
+.lpv-top{display:flex;align-items:center;gap:8px;min-width:0}
+.lpv-top b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 var(--fs-md)/20px var(--sans);color:var(--ink)}
+.lpv-st{flex:none;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.lpv-st.ready{color:var(--accent)}
+.lpv-st.starting{color:var(--work)}
+.lpv-st.failing{color:var(--err-ink)}
+.lpv-light{flex:none;width:8px;height:8px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--g40)}
+.lpv-light.ready{background:var(--go);box-shadow:0 0 8px color-mix(in srgb,var(--go) 70%,transparent)}
+.lpv-light.failing{border-radius:2px;background:var(--danger)}
+.lpv-facts,.lpv-meta{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 12px;min-width:0;font:400 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
+.lpv-meta code{font:400 var(--fs-sm)/16px var(--mono);color:var(--ink-2);background:none;padding:0}
+.lpv-meta .lpv-need{color:var(--need)}
+.lpv-rel{font:600 var(--fs-lg)/24px var(--sans);letter-spacing:-.01em;color:var(--ink)}
+.lpv-card.plan .lpv-rel,.lpv-card.todo .lpv-rel,.lpv-card.need .lpv-rel{font-weight:500;color:var(--ink-2)}
+.lpv-card.failed .lpv-meta:not(:last-child){color:var(--err-ink)}
+.lpv-legend{display:flex;gap:16px;margin:0;padding:12px 20px 0;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
+.lpv-legend span{display:inline-flex;align-items:center;gap:6px}
+/* checking: the view's shape, breathing */
+.lpm.is-skel :is(.lpm-t,.lpm-n b){background:var(--g22);box-shadow:none;animation:lp-skel 1.4s var(--ease-loop) infinite alternate}
+.lpm.is-skel .lpm-n b{width:40px;height:10px;border-radius:calc(var(--r-xs) - 2px)}
+.lpv.is-skel :is(.lpv-orb,.lpv-card b,.lpv-card span){background:var(--g22);box-shadow:none;animation:lp-skel 1.4s var(--ease-loop) infinite alternate}
+.lpv.is-skel .lpv-card{min-height:64px;align-content:center}
+.lpv.is-skel .lpv-card b{display:block;width:55%;height:12px;border-radius:calc(var(--r-xs) - 2px)}
+.lpv.is-skel .lpv-card span{display:block;width:35%;height:10px;border-radius:calc(var(--r-xs) - 2px)}
+/* ── in the panel: the same system as one row of four small lit nodes (the demo's mini flow), what matters
+   under it in a line or two. The demo's full cards show only when the panel is wide (full size). */
+.lpm{margin:0 12px}
+.lpm-row{display:flex;align-items:flex-start;padding:4px 0 8px}
+.lpm-n{flex:none;display:flex;flex-direction:column;align-items:center;gap:6px;width:72px;min-width:0}
+.lpm-n b{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
+.lpm-t{position:relative;display:grid;place-items:center;width:36px;height:36px;border-radius:var(--r-lg);background:var(--panel-surface);box-shadow:inset 0 0 0 1px var(--panel-line);color:var(--ink-3);font-style:normal;transition:box-shadow var(--d-move) var(--ease),color var(--d-move) var(--ease)}
+.lpm-t>svg{width:16px;height:16px}
+.lpm-t .arc{right:-4px;bottom:-4px;background:var(--side)}
+.lpm-n:is(.plan,.off,.none,.todo,.paused) .lpm-t{background:transparent;box-shadow:none;outline:1px dashed var(--g40);outline-offset:-1px;color:var(--ink-4)}
+.lpm-n:is(.on,.ready) .lpm-t{color:var(--go);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--go) 45%,transparent),0 0 16px -4px color-mix(in srgb,var(--go) 45%,transparent)}
+.lpm-n:is(.starting,.building) .lpm-t{color:var(--work);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--work) 50%,transparent),0 0 16px -4px color-mix(in srgb,var(--work) 45%,transparent)}
+.lpm-n:is(.failing,.failed) .lpm-t{color:var(--err-ink);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--danger) 55%,transparent),0 0 16px -4px color-mix(in srgb,var(--danger) 45%,transparent)}
+.lpm-n.need .lpm-t{background:transparent;box-shadow:none;outline:1px dashed color-mix(in srgb,var(--need) 70%,transparent);outline-offset:-1px;color:var(--need)}
+.lpm-n:is(.on,.ready,.starting,.building,.failing,.failed) b{color:var(--ink-2)}
+.lpm-l{position:relative;flex:1;min-width:8px;height:2px;margin-top:17px;border-radius:1px;overflow:hidden;background:repeating-linear-gradient(to right,var(--g40) 0 3px,transparent 3px 6px)}
+.lpm-l.ok{background:color-mix(in srgb,var(--go) 75%,transparent);box-shadow:0 0 6px color-mix(in srgb,var(--go) 45%,transparent);overflow:visible}
+.lpm-l.feed{background:color-mix(in srgb,var(--ink) 22%,transparent)}
+.lpm-l.err{background:repeating-linear-gradient(to right,var(--danger) 0 3px,transparent 3px 6px)}
+.lpm-l.flow{background:color-mix(in srgb,var(--work) 25%,transparent)}
+.lpm-l.flow::after{content:"";position:absolute;top:0;bottom:0;width:10px;border-radius:1px;background:var(--work);box-shadow:0 0 6px var(--work);animation:lpv-left 1.4s linear infinite}
+.lpm-addr{display:flex;align-items:center;gap:2px;margin:4px 0 0;padding:6px 6px 6px 12px;border-radius:var(--r-lg);background:var(--panel-surface);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--go) 30%,var(--panel-line))}
+.lpm-addr.is-off{box-shadow:inset 0 0 0 1px var(--panel-line)} /* its address, not serving now: no green edge */
+.lpm-host{flex:1;min-width:0;display:flex;flex-direction:column;text-decoration:none}
+.lpm-host b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 var(--fs-base)/20px var(--mono);letter-spacing:-.01em;color:var(--ink)}
+.lpm-host span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 var(--fs-sm)/16px var(--mono);color:var(--ink-4)}
+.lpm-host:hover b{text-decoration:underline;text-underline-offset:3px}
+.lpm-addr .lp-ib{border-radius:var(--r)}
+.lpm-meta{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;margin:0;padding:8px 8px 0;font:400 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
+.lpm-meta+.lpm-meta{padding-top:4px}
+.lpm-meta code{font:400 var(--fs-sm)/16px var(--mono);color:var(--ink-2);background:none;padding:0}
+.lpm-k{min-width:52px;color:var(--ink-3);font-weight:500}
+.lpm-env{margin:0 12px;padding-top:4px}
+.lpm-env .lp-a{height:20px;margin-left:auto;padding:0 6px}
+.lpm-meta .lpv-need{color:var(--need)}
+.lpv{display:none}
+:root[data-theme="light"] .lpm-t,:root[data-theme="light"] .lpm-addr{background:var(--surface)}
+:root[data-theme="light"] .lpm-n:is(.plan,.off,.none,.todo,.paused,.need) .lpm-t{background:transparent}
+
+/* full size (a wide panel): the demo's own layout, side by side */
+@container stage (min-width:720px){
+  .lpm{display:none}
+  .lpv{display:flex;flex-direction:row;align-items:center}
+  .lpv>.lpv-card{flex:1 1 0}
+  .lpm-env{padding-top:12px}
+  .lpm-env .lp-a{margin-left:0}
+  .lpv-vis{flex:none;width:72px}
+  .lpv-link{width:32px;height:2px;margin:0 2px;background:repeating-linear-gradient(to right,var(--g40) 0 3px,transparent 3px 6px)}
+  .lpv-link.err{background:repeating-linear-gradient(to right,var(--danger) 0 3px,transparent 3px 6px)}
+  .lpv-link.ok{background:color-mix(in srgb,var(--go) 75%,transparent)}
+  .lpv-link.feed{background:color-mix(in srgb,var(--ink) 22%,transparent)}
+  .lpv-link.flow{background:color-mix(in srgb,var(--work) 25%,transparent)}
+  .lpv-link.flow::after{top:0;bottom:0;width:8px;height:auto;animation-name:lpv-left}
+}
+@keyframes lpv-left{from{left:100%}to{left:-8px}}
+:root[data-theme="light"] .lpv-card:not(.plan):not(.none):not(.todo):not(.off):not(.paused):not(.need){background:var(--surface)}
+:root[data-theme="light"] .lpv-orb{background:var(--surface)}
+:root[data-theme="light"] .lpv-tag{background:rgba(0,0,0,.05)}
+
 @media (prefers-reduced-motion:reduce){
-  .stage .fr-lp::before,.lp-n::after,.lp,.lp-arc::before,.lp-sys.is-skel *{animation:none!important}
+  .stage .fr-lp::before,.lpv-link::after,.lpm-l::after,.lp,.lp-arc::before,.lpv.is-skel *,.lpm.is-skel *{animation:none!important}
 }
 
 /* Open, Launchpad is drawn over the panel's other frames instead of folding them: its head stays in the stack (so
