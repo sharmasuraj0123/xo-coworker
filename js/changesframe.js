@@ -118,7 +118,8 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
       if (s && s.key === key) {
         note.hidden = true; im.hidden = false;
         const rel = s.worktree ? `.xo/worktrees/${s.worktree}/${f.path}` : f.path;
-        D.img = drawImageChange(im, { project: s.project, rel, file: f, open: (from) => openFile(s, f.path, from) });
+        const at = changes.of(view())?.data?.base_commit || null;
+        D.img = drawImageChange(im, { project: s.project, rel, file: f, at, open: (from) => openFile(s, f.path, from) });
         return;
       }
       note.hidden = false;

@@ -427,9 +427,9 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     const my = ++DF.gen;
     if (!patch) {
       dropDiff();
-      // an image: itself, as it is now (js/imagechange.js), in place of "Binary file"
+      // an image: itself (js/imagechange.js), Before beside Now when it changed, in place of "Binary file"
       if (isImageChange(c.file) && V.file.project && V.file.rel) {
-        DF.img = drawImageChange(host, { project: V.file.project, rel: V.file.rel, file: c.file });
+        DF.img = drawImageChange(host, { project: V.file.project, rel: V.file.rel, file: c.file, at: c.base || null });
         DF.key = key;
         return;
       }
