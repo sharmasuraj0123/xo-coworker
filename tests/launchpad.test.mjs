@@ -51,6 +51,16 @@ t("formKey: everything the form draws is in it: GitHub connecting (gh import), i
   assert.equal(formKey(model(check(), { github: { connected: false }, repo: { mode: "origin" }, launchpad: {} }), { pre: 2 }), k, "the same answers keep the form as it is");
 });
 
+t("model: which environment names are set on Launchpad comes from preflight, by name only; a form for the app's settings redraws", () => {
+  const before = model(check(), { github: { connected: true, workflow_scope: true }, repo: { mode: "origin" }, launchpad: {} });
+  assert.deepEqual(before.env.map((x) => x.set), [false, false], "check alone knows no values on Launchpad");
+  const m = model(check(), { github: { connected: true, workflow_scope: true }, repo: { mode: "origin" }, launchpad: { env_set: { KEY: true } } });
+  assert.deepEqual(m.env.map((x) => [x.name, x.set]), [["KEY", true], ["LOG", false]]);
+  assert.ok(!JSON.stringify(m.env).includes("value"), "no value is ever in the model");
+  assert.notEqual(formKey(m, { pre: 2 }), formKey(before, { pre: 2 }), "a name set since redraws the form");
+  assert.notEqual(formKey(m, { pre: 2, editing: true }), formKey(m, { pre: 2 }), "the app's settings are their own form");
+});
+
 // ── Open in Launchpad ─────────────────────────────────────────────────────
 t("launchpadUrl: xo-swarm's app page by the app's UUID, nothing without one", () => {
   assert.equal(launchpadUrl("0ffce8a6-0dad-4a2a-88c1-583cf3222328"), "https://dev.xo.builders/launchpad/0ffce8a6-0dad-4a2a-88c1-583cf3222328");
