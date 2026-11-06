@@ -26,6 +26,7 @@ import * as K from "./keys.js";
 import { countsHtml } from "./changesframe.js";
 import { merge3 } from "./merge.js";
 import { draftKey, getDraft, putDraft, dropDraft } from "./drafts.js";
+import { isImageChange, drawImageChange } from "./imagechange.js";
 
 const size = (n) => (n == null ? "" : n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(1)} MB`);
 const bytes = (s) => new TextEncoder().encode(s).length;
@@ -91,8 +92,9 @@ export function saveOutcome(err) {
 export function createViewer({ announce, onChange, tabs, changes = null, ask = null, edits = null, away = null }) {
   const el = $("#viewer");
   const V = { open: false, parked: false, file: null, data: null, error: null, loading: false, mode: "preview", returnTo: null, gen: 0, copied: false, dims: null, saving: false, saveError: null, show: "file", split: false, draft: null, menu: false };
-  // the diff, kept across redraws of the head (Pierre's element moves with its body): {el, handle, key, gen}
-  const DF = { el: null, handle: null, key: null, gen: 0 };
+  // the diff, kept across redraws of the head (Pierre's element moves with its body): {el, handle, img (an image
+  // change's drawing, js/imagechange.js), key, gen}
+  const DF = { el: null, handle: null, img: null, key: null, gen: 0 };
   /** This file in its place's changes ({scope, path, file, base}), or null. */
   const chg = () => (changes && V.file && V.file.project && V.file.rel ? changes.at(V.file.project, V.file.rel) : null);
   const showsDiff = () => V.show === "changes" && !!chg();
@@ -405,7 +407,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (!DF.el) { DF.el = document.createElement("div"); DF.el.className = "vw-body vw-diff"; DF.el.tabIndex = 0; }
     return DF.el;
   }
-  function dropDiff() { DF.gen++; if (DF.handle) { DF.handle.destroy(); DF.handle = null; } DF.key = null; DF.pend = null; }
+  function dropDiff() { DF.gen++; if (DF.handle) { DF.handle.destroy(); DF.handle = null; } if (DF.img) { DF.img.drop(); DF.img = null; } DF.key = null; DF.pend = null; }
   /** Both whole versions, for "N unmodified lines" (read only when you unfold them). */
   async function bothSides(c, fd) {
     const f = V.file, oldRel = (c.scope.base ? `${c.scope.base}/` : "") + (c.file.old_path || c.path);
@@ -419,17 +421,24 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   async function drawDiff(c) {
     const host = diffBody();
     const patch = await changes.patchAt(c).catch(() => null);
-    const key = `${c.scope.key}|${c.path}|${patch ? patch.length + ":" + patch.slice(-64) : "none"}`;
-    if ((DF.key === key && DF.handle) || DF.pend === key) return; // drawn, or on its way
+    const key = `${c.scope.key}|${c.path}|${patch ? patch.length + ":" + patch.slice(-64) : `none:${c.file.version || ""}`}`;
+    if ((DF.key === key && (DF.handle || DF.img)) || DF.pend === key) return; // drawn, or on its way
     DF.pend = key;
     const my = ++DF.gen;
     if (!patch) {
       dropDiff();
+      // an image: itself, as it is now (js/imagechange.js), in place of "Binary file"
+      if (isImageChange(c.file) && V.file.project && V.file.rel) {
+        DF.img = drawImageChange(host, { project: V.file.project, rel: V.file.rel, file: c.file });
+        DF.key = key;
+        return;
+      }
       const why = c.file.binary || c.file.patch_omitted === "binary" ? "Binary file" : c.file.patch_omitted === "submodule" ? "A submodule" : "Too large to show here";
       host.innerHTML = `<div class="vw-empty"><p>${esc(why)}.</p>${canSave() ? `<p><button type="button" class="vw-cut-dl" data-vw-download>Download</button></p>` : ""}</div>`;
       DF.key = key;
       return;
     }
+    if (DF.img) { DF.img.drop(); DF.img = null; }
     try {
       if (DF.handle && DF.key && DF.key.startsWith(`${c.scope.key}|${c.path}|`)) DF.handle.update(patch);
       else {
