@@ -33,6 +33,11 @@ body.chat-docked .fv-h{padding:0 4px 0 16px}
 .fv-ret:focus-visible{outline:2px solid var(--ret-ink);outline-offset:2px}
 .fv-ret>svg{flex:none;width:16px;height:16px}
 .fv-h .fv-sep{flex:none}
+/* a long branch gives way before the project's name, and never pushes the head past the window (Astra, on
+   7868494: at 390 "feature/improve-files-navigation" squeezed the name to 0 px and overflowed by 3 px). It has
+   only the room the name leaves (a basis of 0, growing up to its own width), so the name is cut only when it
+   alone doesn't fit; shrinking both, the name lost a fraction of a pixel and showed "xo-cowork…" */
+.fv-h .fv-s{flex:1 1 0;min-width:0;max-width:max-content;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fv-tip{position:absolute;top:calc(100% + 8px);left:0;z-index:30;display:flex;flex-direction:column;gap:2px;min-width:208px;padding:10px 12px;border-radius:var(--r-lg);background:var(--g1C);box-shadow:var(--e2),inset 0 0 0 1px var(--g33);font:500 var(--fs-base)/20px var(--sans);color:var(--ink);text-align:left;white-space:nowrap;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .12s var(--ease),visibility 0s linear .12s}
 :root[data-theme="light"] .fv-tip{background:var(--surface);box-shadow:var(--e2),inset 0 0 0 1px var(--panel-line)}
 .fv-tip-t{display:flex;align-items:center;justify-content:space-between;gap:24px}
