@@ -223,3 +223,20 @@ diffs-container{
 .vw-menu svg{flex:none;width:15px;height:15px;color:var(--ink-3)}
 :root[data-theme="light"] .vw-menu{box-shadow:var(--lift-3)}
 @media (prefers-reduced-motion:reduce){.vw-menu{animation:none}}
+
+/* an image change (js/imagechange.js): the image itself, fitted on a checkerboard (its transparent parts show
+   as such), and a line under it: what changed, its size, what can't be shown. In the panel's pane and in
+   Files' Changes view */
+.stage .cx-im{flex:1 1 0;min-height:0;display:flex;flex-direction:column}
+.stage .cx-im[hidden]{display:none}
+.ximg{flex:1 1 0;min-height:0;height:100%;display:flex;flex-direction:column;margin:0}
+.ximg-c{--ck:color-mix(in srgb,var(--ink) 5%,transparent);flex:1 1 0;min-height:0;display:grid;grid-template:minmax(0,1fr)/minmax(0,1fr);place-items:center;padding:12px;overflow:hidden;background:conic-gradient(var(--ck) 25%,transparent 0 50%,var(--ck) 0 75%,transparent 0) 0 0/16px 16px,var(--code-bg)}
+.ximg-c img{display:block;max-width:100%;max-height:100%;object-fit:contain;box-shadow:0 0 0 1px var(--panel-line)}
+.ximg-open{width:100%;height:100%;min-height:0;display:grid;grid-template:minmax(0,1fr)/minmax(0,1fr);place-items:center;padding:0;border-radius:var(--r-sm);cursor:zoom-in}
+.ximg-open:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.ximg-say{display:flex;align-items:center;gap:8px;margin:0;padding:4px 8px;border-radius:var(--r-sm);background:var(--code-bg);font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.ximg-say .spin{width:10px;height:10px}
+.ximg-cap{flex:none;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;padding:8px 12px;border-top:1px solid var(--panel-line);font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.ximg-cap b{font-weight:500;color:var(--ink-2)}
+.ximg-m{font-variant-numeric:tabular-nums}
+.ximg-n{flex-basis:100%}

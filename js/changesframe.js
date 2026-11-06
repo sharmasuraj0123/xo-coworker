@@ -7,6 +7,9 @@
 // scroll or click in the diff, a key in it) it stays where you are; an edit after that shows a quiet pill,
 // "app.js changed · Show", and never moves anything. Sending the agent a message, or Follow, resumes it.
 //
+// An image Space sends without a patch (git has no line diff for a picture) shows as itself in the pane
+// (js/imagechange.js); a click on it opens it in Files.
+//
 // stage.js mounts it in the Changes frame and calls: paint (every render), head, select, resume, chosen,
 // wide. It reads js/changes.js; "Open in Files" goes through openFile.
 
@@ -14,6 +17,7 @@ import { esc } from "./util.js";
 import { fileIcon } from "./fileicons.js";
 import * as DV from "./diffview.js";
 import * as K from "./keys.js";
+import { isImageChange, drawImageChange } from "./imagechange.js";
 
 const OPEN_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-8 8M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg>';
 const base = (p) => String(p || "").split("/").pop();
@@ -73,15 +77,17 @@ function noPatchWords(f) {
 
 export function createChangesFrame({ host, changes, view, openFile, onChange }) {
   host.innerHTML = `<div class="cx"><ul class="cx-list" role="listbox" aria-label="Changed files"></ul>` +
-    `<section class="cx-pane" hidden><header class="cx-ph"></header><div class="cx-pd" tabindex="0" aria-label="The diff"></div><p class="cx-note" hidden></p>` +
+    `<section class="cx-pane" hidden><header class="cx-ph"></header><div class="cx-pd" tabindex="0" aria-label="The diff"></div><div class="cx-im" hidden></div><p class="cx-note" hidden></p>` +
     `<button type="button" class="cx-pill" data-cx-show hidden></button></section><p class="cx-none" hidden></p></div>`;
   const $ = (s) => host.querySelector(s);
-  const list = $(".cx-list"), pane = $(".cx-pane"), ph = $(".cx-ph"), pd = $(".cx-pd"), note = $(".cx-note"), pill = $(".cx-pill"), none = $(".cx-none");
+  const list = $(".cx-list"), pane = $(".cx-pane"), ph = $(".cx-ph"), pd = $(".cx-pd"), im = $(".cx-im"), note = $(".cx-note"), pill = $(".cx-pill"), none = $(".cx-none");
 
   const ST = new Map(); // scope key → {follow, sel, pill, paused sig}
   const stOf = (key) => { if (!ST.has(key)) ST.set(key, { follow: true, sel: null, pill: null, sig: null }); return ST.get(key); };
-  // what's drawn: {key, path, patch, handle}
-  const D = { key: null, path: null, patch: null, handle: null, gen: 0, failed: false };
+  // what's drawn: {key, path, patch, ver (an image's version: a new one is read again), handle, img (an image
+  // change's drawing)}
+  const D = { key: null, path: null, patch: null, ver: null, handle: null, img: null, gen: 0, failed: false };
+  const dropImg = () => { if (D.img) { D.img.drop(); D.img = null; } im.hidden = true; im.replaceChildren(); };
   let H = { list: "", ph: "", pill: "", none: "" };
 
   const set = (k, node, html) => { if (H[k] !== html) { node.innerHTML = html; H[k] = html; } };
@@ -96,16 +102,26 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
 
   /** Draw (or keep) the chosen file's diff. scrollTo: a line of the new file to bring into view. */
   async function draw(key, f, patch, { scrollTo = null } = {}) {
+    const ver = patch ? null : f.version ?? null;
     const same = D.key === key && D.path === f.path;
-    if (same && D.patch === patch && !D.failed) return;
+    if (same && D.patch === patch && D.ver === ver && !D.failed) return;
     // one draw per version: renders that come while it's on its way don't start it again
-    if (D.pend && D.pend.key === key && D.pend.path === f.path && D.pend.patch === patch) return;
-    D.pend = { key, path: f.path, patch };
+    if (D.pend && D.pend.key === key && D.pend.path === f.path && D.pend.patch === patch && D.pend.ver === ver) return;
+    D.pend = { key, path: f.path, patch, ver };
     const my = ++D.gen;
+    dropImg();
     if (!patch) {
       if (D.handle) { D.handle.destroy(); D.handle = null; }
-      Object.assign(D, { key, path: f.path, patch: null, failed: false });
-      pd.hidden = true; note.hidden = false;
+      Object.assign(D, { key, path: f.path, patch: null, ver, failed: false });
+      pd.hidden = true;
+      const s = isImageChange(f) ? changes.scope(view()) : null;
+      if (s && s.key === key) {
+        note.hidden = true; im.hidden = false;
+        const rel = s.worktree ? `.xo/worktrees/${s.worktree}/${f.path}` : f.path;
+        D.img = drawImageChange(im, { project: s.project, rel, file: f, open: (from) => openFile(s, f.path, from) });
+        return;
+      }
+      note.hidden = false;
       note.textContent = noPatchWords(f);
       return;
     }
@@ -163,7 +179,7 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
     if (!files.length) {
       set("none", none, "Nothing changed here yet."); none.hidden = false;
       list.hidden = true; pane.hidden = true; pill.hidden = true;
-      if (D.handle) { D.handle.destroy(); D.handle = null; D.path = null; D.patch = null; D.pend = null; }
+      if (D.handle || D.img) { if (D.handle) D.handle.destroy(); dropImg(); Object.assign(D, { handle: null, path: null, patch: null, ver: null, pend: null }); }
       return true;
     }
     none.hidden = true; list.hidden = false;
