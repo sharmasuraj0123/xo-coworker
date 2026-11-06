@@ -188,12 +188,16 @@ export function askText(md, max = 140) {
 }
 
 /**
- * The thread's state as shown, given its session's running turn (or null). A stopped turn leaves
- * the thread at needs_reply (ch 11 §7.3) until its next input ends; after an Interrupt that input is
- * already your message, running, so the thread isn't waiting on you.
+ * The thread's state as shown, given its session's running turn (or null) and whether its agent works
+ * now (busy, below). A stopped turn leaves the thread at needs_reply (ch 11 §7.3) until its next input
+ * ends; after an Interrupt that input is already your message, running, so the thread isn't waiting on you.
+ * Storm's state is how the last turn ended: a message into a done or stopped thread starts a turn and
+ * leaves it done or failed until that turn ends (only resolved and paused flip to working). While its
+ * agent works, it shows Working, everywhere a thread's state is read; the turn's end sets it again.
  */
-export function threadState(state, turn) {
+export function threadState(state, turn, busy = false) {
   if (state === "needs_reply" && turn && turn.status === "running" && turn.origin === "person") return "working";
+  if (busy && (state === "done" || state === "failed")) return "working";
   return state || "working";
 }
 
