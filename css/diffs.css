@@ -55,8 +55,10 @@ diffs-container{
    takes the room that's left), as many whole rows as fit above the diff's 120 px and its 12 px margin */
 .stage .cx-list{flex:none;list-style:none;display:flex;flex-direction:column;gap:2px;max-height:min(168px,calc(round(down,100cqh - 178px,34px) - 2px));margin:0 0 8px;padding:0 12px;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scroll-snap-type:y mandatory}
 /* a row off screen isn't laid out (each is 32 px, so the list's height and its whole rows stay exact): a
-   500-file list cost a layout of every row on each pick or render (Astra, 6 Nov) */
-.stage .cx-list>li{scroll-snap-align:start;content-visibility:auto;contain-intrinsic-size:auto 32px}
+   500-file list cost a layout of every row on each pick or render (Astra, 6 Nov). flex:0 0 32px: a row not
+   drawn yet is a flex item that could shrink, so 500 rows measured ~2,400 px, not ~17,000, and scrolling
+   jumped (Astra, on 58a4883) */
+.stage .cx-list>li{flex:0 0 32px;scroll-snap-align:start;content-visibility:auto;contain-intrinsic-size:auto 32px}
 .stage .cx-more{box-sizing:border-box;display:flex;align-items:center;width:100%;height:32px;padding:0 8px 0 32px;border-radius:var(--r);text-align:left;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .stage .cx-more:not(:disabled):hover{background:var(--panel-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
 .stage .cx-more:disabled{color:var(--ink-4)}
