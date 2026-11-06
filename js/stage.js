@@ -417,7 +417,10 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
       const shown = (id) => !el.querySelector(`[data-fr="${id}"]`).hidden;
       const room = S.stackH - (LPF.hidden ? 0 : HEAD + 1), lines = [...el.querySelectorAll(".fr-gut")].filter((g) => !g.hidden).length;
       const changes = !shown("changes") ? 0 : fr.changes.folded ? HEAD : CH_MIN;
-      return room - changes - lines - 44 - (S.agRows || 1) * ROW;
+      // Agents' rows as they are on screen: its cap (3) when it has fewer agents would keep room for rows that
+      // aren't there (Astra, on 47d871e: one agent, the line stopped 96 px short)
+      const rows = Math.min(S.agRows || 1, Math.max(1, el.querySelectorAll('[data-fr="agents"] .ag-r').length));
+      return room - changes - lines - 44 - rows * ROW;
     };
     const sizeMap = (d) => {
       const h = fr.map.h || MAP_H;
