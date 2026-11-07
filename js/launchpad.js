@@ -347,9 +347,9 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       (c.github.source === "gh" && c.github.connected && !c.github.workflow && ghCmd(c.github.fix) ? `<div class="lp-gh"><p class="lp-note">Or grant it to this machine's gh login, then check again:</p>${cmdHtml(ghCmd(c.github.fix))}<div class="lp-alt lp-left"><button type="button" class="lp-a" data-lp="recheck-gh">${ICON.retry}<span>I ran it: check again</span></button></div></div>` : "") +
       (S.v && S.v.startsWith("t:") ? `<p class="lp-note lp-src" title="This thread's work goes out once it's merged into ${esc(c.repo.branch || "main")}">${ICON.branch}<span>Deploys <b>${esc(c.repo.branch || "main")}</b>, not this thread's branch.</span></p>` : "") +
       `<div class="lp-set">` +
-      (editing ? "" : field("name", "Name", f.name, { hint: e.name || "On Launchpad; it can't change later.", bad: !!e.name, fix: e.nameFix })) +
+      (editing ? "" : field("name", "Name", f.name, { hint: e.name || "It can't change later.", bad: !!e.name, fix: e.nameFix })) +
       field("port", "Port", f.port, { hint: e.port || (c.portFrom ? `${c.portSure === false ? "A guess from" : "From"} ${esc(where(c.portFrom))}` : "Where the app listens"), bad: !!e.port, mode: "numeric", short: true }) +
-      machineRows(c, f, e, editing) +
+      machineRows(s, c, f, e, editing) +
       (e.repo ? field("repo", "Repository", f.repo, { hint: e.repo, bad: true }) : "") +
       `</div>` +
       (env.length ? `<fieldset class="lp-env"><legend><span>Environment</span>${from ? `<small>from ${esc(from)}</small>` : ""}</legend>` +
@@ -364,7 +364,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   }
   /** The machine: for a new app, its size (only what the template allows, its default chosen) and an optional disk;
    *  in a linked app's settings, the size it was made with (fixed) and its disk, which can grow but never shrink. */
-  function machineRows(c, f, e, editing) {
+  function machineRows(s, c, f, e, editing) {
     const ids = (id) => `aria-describedby="lp-h-${id}"${e[id] ? ' aria-invalid="true"' : ""}`;
     const row = (label, inner, bad = false, tag = "div") => `<${tag} class="lp-f${bad ? " is-bad" : ""}"><span class="lp-l">${label}</span>${inner}</${tag}>`;
     const hint = (id, text) => `<span class="lp-hint" id="lp-h-${id}">${text}</span>`;
@@ -372,15 +372,21 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       const a = c.app;
       return (a.size || a.sizeLabel ? row("Size", `<span class="lp-v"><span class="lp-ro">${esc(sizeText(c, a.size, a.sizeLabel))}</span>${hint("size", "Fixed when it was created.")}</span>`) : "") +
         (a.storage === undefined ? "" : a.storage
-          ? row("Disk", `<span class="lp-v"><span class="lp-pair"><input class="lp-in is-gb" data-lp-f="diskGb" value="${esc(f.diskGb)}" inputmode="numeric" autocomplete="off" aria-label="Disk size in GB" ${ids("disk")}><span class="lp-u">GB at <code>${esc(a.storage.path)}</code></span></span>${hint("disk", e.disk || "Can grow, never shrink.")}</span>`, !!e.disk, "label")
+          ? row("Disk", `<span class="lp-v"><span class="lp-pair"><input class="lp-in is-gb" data-lp-f="diskGb" value="${esc(f.diskGb)}" inputmode="numeric" autocomplete="off" aria-label="Disk size in GB" ${ids("disk")}><span class="lp-u">GB at <code>${esc(a.storage.path)}</code></span></span>${hint("disk", e.disk || "Grows, never shrinks.")}</span>`, !!e.disk, "label")
           : row("Disk", `<span class="lp-v"><span class="lp-ro">None</span>${hint("disk", "Can't be added after creation.")}</span>`));
     }
+    // a Space that offers sizes (xo-space 3886701 on): folded to one line until you change it; an older one, nothing
     const z = c.sizes, at = f.size || z?.def || "";
+    if (!z) return "";
+    if (!(s.machine || e.size || e.disk)) {
+      const t = z.tiers.find((x) => x.name === at);
+      return row("Machine", `<span class="lp-v is-row"><span class="lp-ro">${esc(t ? `${t.label} · ${t.cpu} CPU, ${t.memory_gb} GB` : "Launchpad's default")}${f.disk ? ` · ${esc(f.diskGb)} GB disk` : ""}</span><button type="button" class="lp-a lp-chg" data-lp="machine-open" aria-label="Change the machine">Change</button></span>`);
+    }
     return (z ? row("Size", `<span class="lp-v"><span class="lp-selw"><select class="lp-in lp-sel" data-lp-f="size" aria-label="Size" ${ids("size")}>${z.def ? "" : `<option value=""${at ? "" : " selected"}>Launchpad's default</option>`}` +
         z.tiers.map((t) => `<option value="${esc(t.name)}"${at === t.name ? " selected" : ""}>${esc(`${t.label} · ${t.cpu} CPU, ${t.memory_gb} GB`)}</option>`).join("") +
         `</select>${ICON.chevron}</span>${hint("size", e.size || sizeHint(c, f))}</span>`, !!e.size, "label") : "") +
       (f.disk
-        ? row("Disk", `<span class="lp-v"><span class="lp-pair"><input class="lp-in lp-mono" data-lp-f="diskPath" value="${esc(f.diskPath)}" placeholder="/data" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Where the disk is mounted" ${ids("disk")}><input class="lp-in is-gb" data-lp-f="diskGb" value="${esc(f.diskGb)}" inputmode="numeric" autocomplete="off" aria-label="Disk size in GB" ${ids("disk")}><span class="lp-u">GB</span><button type="button" class="lp-ib" data-lp="disk-remove" title="No disk" aria-label="No disk">${ICON.close}</button></span>${hint("disk", e.disk || "Kept across restarts. Can grow, never shrink.")}</span>`, !!e.disk)
+        ? row("Disk", `<span class="lp-v"><span class="lp-pair"><input class="lp-in lp-mono" data-lp-f="diskPath" value="${esc(f.diskPath)}" placeholder="/data" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Where the disk is mounted" ${ids("disk")}><input class="lp-in is-gb" data-lp-f="diskGb" value="${esc(f.diskGb)}" inputmode="numeric" autocomplete="off" aria-label="Disk size in GB" ${ids("disk")}><span class="lp-u">GB</span><button type="button" class="lp-ib" data-lp="disk-remove" title="No disk" aria-label="No disk">${ICON.close}</button></span>${hint("disk", e.disk || "Grows later, never shrinks.")}</span>`, !!e.disk)
         : row("Disk", `<span class="lp-v is-row"><button type="button" class="lp-a lp-add" data-lp="disk-add">${ICON.plus}<span>Add a disk</span></button>${hint("disk", "Only at creation")}</span>`));
   }
   const sizeHint = (c, f) => (c.sizes?.def && (f.size || c.sizes.def) === c.sizes.def ? "The default; fixed once created." : "Fixed once it's created.");
@@ -487,7 +493,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     const sc = screen(p);
     const s = proj(p), c = s.check;
     return {
-      key: `${p}|${sc}` + (sc === "setup" ? `|${formKey(c, { pre: s.pre, needs: s.needs && [s.needs.code, s.needs.message, s.needs.fix, s.needs.action], errs: s.form.errs || {}, envAll: !!s.envAll, editing: !!s.editing, thread: !!S.v?.startsWith("t:") })}` : ""),
+      key: `${p}|${sc}` + (sc === "setup" ? `|${formKey(c, { pre: s.pre, needs: s.needs && [s.needs.code, s.needs.message, s.needs.fix, s.needs.action], errs: s.form.errs || {}, envAll: !!s.envAll, editing: !!s.editing, machine: !!s.machine, disk: !!s.form.disk, thread: !!S.v?.startsWith("t:") })}` : ""),
       html: sc === "checking" ? checkingHtml(p) : sc === "check-failed" ? head("Couldn't check this project", esc(proj(p).err?.message || "XO Space didn't answer.")) + `<div class="lp-acts"><button type="button" class="lp-b" data-lp="recheck">${ICON.retry}<span>Try again</span></button></div>`
         : sc === "setup" ? setupHtml(p) : sc === "undo" || sc === "run" ? runHtml(p) : sc === "lost" ? lostHtml(p) : sc === "live" ? liveHtml(p) : sc === "failed" ? failedHtml(p)
         : sc === "needs" ? needsHtml(p) : sc === "getting" ? gettingHtml(p) : sc === "device" ? deviceHtml(p) : sc === "pick" ? pickHtml(p) : "",
@@ -684,6 +690,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       case "recheck-gh": s.pre = 0; if (NEEDS_YOU.has(s.run?.error?.code)) s.run = null; announce("Checking GitHub again."); changed(); preflight(p); return;
       case "rewatch": s.run = null; watch(p); changed(); return;
       case "settings": s.run = null; s.needs = null; S.key = ""; changed(); requestAnimationFrame(() => S.body?.querySelector(s.form.errs?.size ? '[data-lp-f="size"]' : '[data-lp-f="name"]')?.focus()); return;
+      case "machine-open": s.machine = true; S.key = ""; changed(); requestAnimationFrame(() => S.body?.querySelector('[data-lp-f="size"]')?.focus()); return;
       case "disk-add": s.form.disk = true; s.form.errs = { ...s.form.errs, disk: "" }; S.key = ""; changed(); requestAnimationFrame(() => S.body?.querySelector('[data-lp-f="diskPath"]')?.focus()); return;
       case "disk-remove": s.form.disk = false; s.form.errs = { ...s.form.errs, disk: "" }; S.key = ""; changed(); requestAnimationFrame(() => S.body?.querySelector('[data-lp="disk-add"]')?.focus()); return;
       case "create-repo": s.check = { ...s.check, repo: { ...s.check.repo, admin: false } }; s.needs = null; s.run = null; deploy(p); return;
