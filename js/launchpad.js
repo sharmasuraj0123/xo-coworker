@@ -304,8 +304,11 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       visitors + line(toAddr) + address + line(toApp) + instance + line(fed) + image + `</div>`;
     // the environment, under either view: how many of its names are set on Launchpad (names only), and Change
     // what it runs on: the size it was made with, and its disk if it has one
-    const ca = c.app, machine = mode === "live" && real && ca && (ca.size || ca.sizeLabel) ? `<p class="lpm-meta lpm-env"><span class="lpm-k">Machine</span><span>${esc(sizeText(c, ca.size, ca.sizeLabel))}</span>${ca.storage ? `<span>${esc(String(ca.storage.gb))} GB disk at <code>${esc(ca.storage.path)}</code></span>` : ""}</p>` : "";
-    const env = machine + (mode === "live" && real && c.env?.length ? `<p class="lpm-meta lpm-env"><span class="lpm-k">Environment</span><span>${c.env.filter((x) => x.set).length} of ${c.env.length} set on Launchpad</span><button type="button" class="lp-a" data-lp="edit">Change</button></p>` : "");
+    // the settings (Change) hang off the last line they cover: the environment's, else the machine's, so an app with
+    // a disk and no environment can still grow it (Astra on b33d3eb)
+    const hasEnv = !!(mode === "live" && real && c.env?.length), change = `<button type="button" class="lp-a" data-lp="edit">Change</button>`;
+    const ca = c.app, machine = mode === "live" && real && ca && (ca.size || ca.sizeLabel) ? `<p class="lpm-meta lpm-env"><span class="lpm-k">Machine</span><span>${esc(sizeText(c, ca.size, ca.sizeLabel))}</span>${ca.storage ? `<span>${esc(String(ca.storage.gb))} GB disk at <code>${esc(ca.storage.path)}</code></span>` : ""}${hasEnv ? "" : change}</p>` : "";
+    const env = machine + (hasEnv ? `<p class="lpm-meta lpm-env"><span class="lpm-k">Environment</span><span>${c.env.filter((x) => x.set).length} of ${c.env.length} set on Launchpad</span><button type="button" class="lp-a" data-lp="edit">Change</button></p>` : "");
     return mini + cards + env;
   }
 
@@ -372,7 +375,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       const a = c.app;
       return (a.size || a.sizeLabel ? row("Size", `<span class="lp-v"><span class="lp-ro">${esc(sizeText(c, a.size, a.sizeLabel))}</span>${hint("size", "Fixed when it was created.")}</span>`) : "") +
         (a.storage === undefined ? "" : a.storage
-          ? row("Disk", `<span class="lp-v"><span class="lp-pair"><input class="lp-in is-gb" data-lp-f="diskGb" value="${esc(f.diskGb)}" inputmode="numeric" autocomplete="off" aria-label="Disk size in GB" ${ids("disk")}><span class="lp-u">GB at <code>${esc(a.storage.path)}</code></span></span>${hint("disk", e.disk || "Grows, never shrinks.")}</span>`, !!e.disk, "label")
+          ? row("Disk", `<span class="lp-v"><span class="lp-pair"><input class="lp-in is-gb" data-lp-f="diskGb" value="${esc(f.diskGb)}" inputmode="numeric" autocomplete="off" aria-label="Disk size in GB" ${ids("disk")}><span class="lp-u lp-at">GB at <code>${esc(a.storage.path)}</code></span></span>${hint("disk", e.disk || "Grows, never shrinks.")}</span>`, !!e.disk, "label")
           : row("Disk", `<span class="lp-v"><span class="lp-ro">None</span>${hint("disk", "Can't be added after creation.")}</span>`));
     }
     // a Space that offers sizes (xo-space 3886701 on): folded to one line until you change it; an older one, nothing

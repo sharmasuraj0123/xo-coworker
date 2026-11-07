@@ -56,19 +56,24 @@ const FLOWS = {
   'old-space': [['wait', 1200], ['count', '.lpm-env'], ['click', '[data-lp="edit"]'], ['wait', 300], ['count', '.lp-ro'], ['count', '[data-lp-f="diskGb"]']],
   'live-domain': [['wait', 1500], ['head'], ['text', '.lpm-host']],
   'no-built-address': [['wait', 1200], ['fill', '[data-lp-f="name"]', 'my-shop'], ['wait', 200], ['text', '.lpm'], ['leak', 'my-shop-xo']],
+  // Astra on b33d3eb: settings reachable without an environment; a long disk path wraps whole; Tab never lands
+  // behind the sticky Deploy
+  'disk-noenv': [['wait', 1500], ['count', '[data-lp="edit"]'], ['text', '.lpm-env'], ['click', '[data-lp="edit"]'], ['wait', 300], ['screen'], ['value', '[data-lp-f="diskGb"]'], ['text', '.lp-at'], ['overflow']],
+  'tab-under-foot': [['wait', 1500], ['under-foot']],
+  'tab-under-foot-edit': [['wait', 1500], ['click', '[data-lp="edit"]'], ['wait', 300], ['under-foot']],
   building: [['wait', 600], ['screen'], ['text', '.lpv-img .lpv-rel'], ['click', '[data-lp="hide"]'], ['wait', 300], ['head'], ['click', '[data-lp-open]'], ['wait', 300], ['open']],
 };
 (async () => {
   const b = await chromium.launch({ executablePath: EXE });
   for (const [sc, steps] of Object.entries(FLOWS).filter(([k]) => !process.env.ONLY || process.env.ONLY.split(',').includes(k))) {
-    const ctx = await b.newContext({ viewport: process.env.PHONE ? { width: 390, height: 844 } : { width: 1440, height: 900 }, isMobile: !!process.env.PHONE, hasTouch: !!process.env.PHONE });
+    const ctx = await b.newContext({ viewport: process.env.PHONE ? { width: 390, height: 844 } : process.env.VP ? { width: +process.env.VP.split('x')[0], height: +process.env.VP.split('x')[1] } : { width: 1440, height: 900 }, isMobile: !!process.env.PHONE, hasTouch: !!process.env.PHONE });
     await ctx.addInitScript(() => { localStorage.removeItem('xo-stage'); localStorage.removeItem('xo-lp-state'); });
     // Astra's repro: frames 250 ms apart, so an import and its preflight both land before the next paint
     if (sc === 'gh-import-slow') await ctx.addInitScript(() => { const raf = window.requestAnimationFrame.bind(window); window.requestAnimationFrame = (f) => setTimeout(() => raf(f), 250); });
     const page = await ctx.newPage(); const errs = [];
     page.on('pageerror', (e) => errs.push(e.message));
     if (sc === 'lp-link-slowpre' || sc === 'lp-link-watch-slowpre') page.__slowPre = 500; // Astra's race: preflight answers half a second late
-    await install(page, { 'scope-enter': 'scope', 'esc-field': 'ready', pressed: 'ready', 'deploy-esc': 'ready', 'tab-trap': 'ready', 'tab-walk': 'ready', 'gh-import-slow': 'gh-import', 'lp-link': 'play', 'lp-link-linked': 'live', 'lp-link-slowpre': 'play', 'lp-link-watch-slowpre': 'just-live', 'edit-env': 'live', 'edit-behind': 'live-behind', 'again-behind': 'live-behind', 'live-change': 'play', 'secret-close': 'ready', 'secret-fold': 'ready', 'secret-undo-close': 'play', 'secret-project': 'ready', 'lost-still': 'lost', 'size-pick': 'play', 'size-default': 'play', 'size-fallback': 'sizes-fallback', 'disk-bad': 'ready', 'grow-disk': 'live', 'nodisk-edit': 'live-nodisk', 'old-space': 'live-oldspace', 'no-built-address': 'ready', 'secret-redraw': 'ready', 'secret-redraw-edit': 'live' }[sc] || sc);
+    await install(page, { 'scope-enter': 'scope', 'esc-field': 'ready', pressed: 'ready', 'deploy-esc': 'ready', 'tab-trap': 'ready', 'tab-walk': 'ready', 'gh-import-slow': 'gh-import', 'lp-link': 'play', 'lp-link-linked': 'live', 'lp-link-slowpre': 'play', 'lp-link-watch-slowpre': 'just-live', 'edit-env': 'live', 'edit-behind': 'live-behind', 'again-behind': 'live-behind', 'live-change': 'play', 'secret-close': 'ready', 'secret-fold': 'ready', 'secret-undo-close': 'play', 'secret-project': 'ready', 'lost-still': 'lost', 'size-pick': 'play', 'size-default': 'play', 'size-fallback': 'sizes-fallback', 'disk-bad': 'ready', 'grow-disk': 'live', 'nodisk-edit': 'live-nodisk', 'old-space': 'live-oldspace', 'no-built-address': 'ready', 'disk-noenv': 'live-noenv-disk', 'tab-under-foot': 'ready', 'tab-under-foot-edit': 'live', 'secret-redraw': 'ready', 'secret-redraw-edit': 'live' }[sc] || sc);
     await page.goto('http://127.0.0.1:3466/', { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => document.querySelector('.prow[data-go="p:xo-coworker"]'), null, { timeout: 45000 });
     await page.evaluate(() => document.querySelector('.prow[data-go="p:xo-coworker"]').click());
@@ -90,6 +95,10 @@ const FLOWS = {
       // where a string is found: the markup (attributes, outerHTML) or a live input's value
       else if (k === 'leak') out.push('leak:' + await page.evaluate((x) => [document.documentElement.outerHTML.includes(x) ? 'markup' : '', [...document.querySelectorAll('input')].some((i) => i.value === x || i.defaultValue === x) ? 'input' : ''].filter(Boolean).join('+') || 'none', a));
       else if (k === 'focused') out.push('focused:' + await page.evaluate(() => document.activeElement?.dataset?.lpF || document.activeElement?.dataset?.lp || document.activeElement?.tagName));
+      // anything in the section wider than the pane (cut at its edge)
+      else if (k === 'overflow') out.push('overflow:' + await page.evaluate(() => { const b = document.querySelector('#fr-body-launch'), R = b.getBoundingClientRect().right; return [...b.querySelectorAll('*')].filter((n) => n.offsetParent && n.getBoundingClientRect().right > R + 0.5).map((n) => n.className || n.tagName).slice(0, 3).join(',') || 'none'; }));
+      // Tab and Shift+Tab through the section: which focused controls sit behind the sticky foot
+      else if (k === 'under-foot') { const hid = new Set(); for (const key of ['Tab', 'Shift+Tab']) { await page.evaluate(() => document.querySelector(key === 'Tab' ? '#fr-body-launch' : '[data-lp="deploy"]')?.focus(), null).catch(() => {}); await page.evaluate((k) => (k === 'Tab' ? document.querySelector('#fr-body-launch .lp-set input, #fr-body-launch .lp-in') : document.querySelector('#fr-body-launch .lp-foot .lp-go'))?.focus(), key); for (let i = 0; i < 14; i++) { await page.keyboard.press(key); await page.waitForTimeout(60); const r = await page.evaluate(() => { const a = document.activeElement, f = document.querySelector('#fr-body-launch .lp-foot'); if (!a || !f || f.contains(a) || !document.querySelector('#fr-body-launch').contains(a)) return ''; const x = a.getBoundingClientRect(), y = f.getBoundingClientRect(); return x.bottom > y.top + 1 ? (a.dataset.lpEnv || a.dataset.lpF || a.dataset.lp || a.tagName) : ''; }); if (r) hid.add(r); } } out.push('under-foot:' + ([...hid].join(',') || 'none')); }
       else if (k === 'value') out.push('value:' + await page.evaluate((s) => document.querySelector(s)?.value, a));
       else if (k === 'count') out.push('count:' + await page.evaluate((s) => document.querySelectorAll(s).length, a));
       else if (k === 'tabs') { for (let i = 0; i < a; i++) await page.keyboard.press('Tab'); }

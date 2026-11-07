@@ -118,6 +118,10 @@
 .lp-pair .lp-in{flex:1 1 auto;min-width:0}
 .lp-pair .lp-in.is-gb{flex:none;width:48px;text-align:right;font-variant-numeric:tabular-nums}
 .lp-u{flex:none;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.lp-u.lp-at{flex:1 1 0;min-width:0;overflow-wrap:anywhere;white-space:normal} /* a linked disk's path: whole, wrapped, never cut */
+.lp-at code{font:inherit;font-family:var(--mono);color:var(--ink-3);overflow-wrap:anywhere}
+/* Tab never lands on a field hidden behind the sticky Deploy: the scroll keeps room for the foot (Astra on b33d3eb) */
+#fr-body-launch{scroll-padding-bottom:120px}
 .lp-pair .lp-ib{width:28px;height:28px}
 .lp-ro{padding:5px 0;font:400 var(--fs-base)/20px var(--sans);color:var(--ink-2)}
 .lp-hint code{font:400 var(--fs-sm)/16px var(--mono);color:var(--ink-3);background:none;padding:0}

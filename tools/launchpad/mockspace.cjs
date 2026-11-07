@@ -88,7 +88,7 @@ const SCENARIOS = {
   // a linked app made without a disk; a linked app as a Space before sizes reports it (today's :5002)
   "sizes-fallback": { check: check(), pre: pre({ launchpad: { sizes: { ...SIZES, default: null, source: "flow.json", error: "launchpad_unreachable" } } }) },
   "size-refused": { check: check(), deploy: "size-refused" },
-  "live-nodisk": null, "live-oldspace": null, "live-domain": null,
+  "live-nodisk": null, "live-oldspace": null, "live-domain": null, "live-noenv-disk": null,
   "live-stopped": null, "live-failed": null, "live-rolling": null, "live-unhealthy": null,
   "not-deployable": { check: check({ state: "not-deployable" }) },
   pushing: { check: check({ running: { run_id: "r1", kind: "deploy" } }), watch: ["pushing", 2] },
@@ -128,6 +128,8 @@ SCENARIOS["live-behind"].pre = SCENARIOS.live.pre;
   SCENARIOS["live-nodisk"] = { check: SCENARIOS.live.check, pre: pre({ launchpad: { app: { ...a, storage: null }, env_set: SCENARIOS.live.pre.launchpad.env_set } }) };
   // a custom domain on Launchpad since launchpad.json was written: preflight's url is the live one
   SCENARIOS["live-domain"] = { check: SCENARIOS.live.check, pre: pre({ launchpad: { app: { ...a, url: "https://coworker.example.com" }, env_set: SCENARIOS.live.pre.launchpad.env_set } }) };
+  // Astra on b33d3eb: a linked app with a disk at a long path and no environment declared
+  SCENARIOS["live-noenv-disk"] = { check: { ...SCENARIOS.live.check, fields: { ...SCENARIOS.live.check.fields, env: [] } }, pre: pre({ launchpad: { app: { ...a, storage: { path: "/var/lib/postgresql/data", size: "4Gi" } } } }) };
   SCENARIOS["live-oldspace"] = { check: SCENARIOS.live.check, pre: pre({ launchpad: { app: old, env_set: SCENARIOS.live.pre.launchpad.env_set } }) }; }
 exports.SCENARIOS = SCENARIOS;
 exports.install = async (page, name) => {
