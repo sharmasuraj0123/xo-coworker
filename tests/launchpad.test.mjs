@@ -2,7 +2,7 @@
 // the section's model, and how Space's eleven deploy steps land on the card's four rows. Pure, no network.
 //   node tests/launchpad.test.mjs
 import assert from "node:assert/strict";
-import { appState, model, rows, createLpApi, nextStep, RETRY, formKey, launchpadUrl } from "../js/lpapi.js";
+import { appState, model, rows, createLpApi, nextStep, RETRY, formKey, launchpadUrl, sizeWords } from "../js/lpapi.js";
 
 let passed = 0;
 let chain = Promise.resolve(); // one at a time: the stream tests stand in for fetch
@@ -59,6 +59,58 @@ t("model: which environment names are set on Launchpad comes from preflight, by 
   assert.ok(!JSON.stringify(m.env).includes("value"), "no value is ever in the model");
   assert.notEqual(formKey(m, { pre: 2 }), formKey(before, { pre: 2 }), "a name set since redraws the form");
   assert.notEqual(formKey(m, { pre: 2, editing: true }), formKey(m, { pre: 2 }), "the app's settings are their own form");
+});
+
+// ── the machine and the address (xo-space 3886701) ─────────────────────────
+const TIERS = [{ name: "xo.mini", label: "Mini", cpu: 0.5, memory_gb: 1 }, { name: "xo.small", label: "Small", cpu: 1, memory_gb: 2 }, { name: "xo.medium", label: "Medium", cpu: 1, memory_gb: 4 }, { name: "xo.large", label: "Large", cpu: 2, memory_gb: 8 }];
+const GH = { github: { connected: true, workflow_scope: true }, repo: { mode: "origin" } };
+t("model: the size picker offers only the template's allowed sizes, in the catalog's order, with its default", () => {
+  const m = model(check(), { ...GH, launchpad: { sizes: { template: "github", default: "xo.medium", allowed: ["xo.medium", "xo.small"], tiers: TIERS, fixed_after_create: true, source: "launchpad" } } });
+  assert.deepEqual(m.sizes.tiers.map((t) => t.name), ["xo.small", "xo.medium"]);
+  assert.equal(m.sizes.def, "xo.medium");
+  assert.equal(model(check(), { ...GH, launchpad: {} }).sizes, null, "a Space without sizes: no picker");
+  assert.equal(model(check()).sizes, null, "before preflight: no picker yet");
+});
+t("model: flow.json's fallback table has no default (Launchpad's catalog out of reach), and a default outside allowed isn't one", () => {
+  const m = model(check(), { ...GH, launchpad: { sizes: { template: "github", default: null, allowed: TIERS.map((t) => t.name), tiers: TIERS, source: "flow.json", error: "launchpad_unreachable" } } });
+  assert.equal(m.sizes.def, "");
+  assert.equal(m.sizes.source, "flow.json");
+  assert.equal(model(check(), { ...GH, launchpad: { sizes: { default: "xo.large", allowed: ["xo.small"], tiers: TIERS } } }).sizes.def, "");
+});
+t("model: launchpad.json's size and disk fill a new app's form (null: the default, no disk)", () => {
+  const m = model(check({ fields: { ...check().fields, size: { value: "xo.small" }, storage: { value: { path: "/data", size_gb: 5 } } } }));
+  assert.equal(m.size, "xo.small");
+  assert.deepEqual(m.storage, { path: "/data", gb: 5 });
+  const d = model(check({ fields: { ...check().fields, size: { value: null }, storage: { value: null } } }));
+  assert.equal(d.size, "");
+  assert.equal(d.storage, null);
+});
+t("model: a linked app's size and disk come from preflight (Launchpad's '2Gi'); none known from an older Space", () => {
+  const cfg = { app_id: "a1", name: "p", url: "https://p-xo-1234567.apps.hello-xo.nl" };
+  const m = model(check({ state: "linked", config: cfg }), { ...GH, launchpad: { app: { status: "running", size: "xo.small", size_label: "xo.small, 1 CPU and 2 GB memory", storage: { path: "/data", size: "2Gi" } } } });
+  assert.equal(m.app.size, "xo.small");
+  assert.deepEqual(m.app.storage, { path: "/data", gb: 2 });
+  assert.equal(model(check({ state: "linked", config: cfg }), { ...GH, launchpad: { app: { status: "running", size: "xo.small", storage: null } } }).app.storage, null, "made without a disk");
+  assert.equal(model(check({ state: "linked", config: cfg }), { ...GH, launchpad: { app: { status: "running" } } }).app.storage, undefined, "an older Space says nothing of disks");
+  assert.deepEqual(model(check({ state: "linked", config: { ...cfg, size: "xo.large", storage: { path: "/srv", size_gb: 4 } } })).app.storage, { path: "/srv", gb: 4 }, "before preflight: launchpad.json's");
+});
+t("model: the address is Launchpad's: preflight's live url (a custom domain) over launchpad.json's", () => {
+  const cfg = { app_id: "a1", name: "p", url: "https://p-xo-1234567.apps.hello-xo.nl" };
+  assert.equal(model(check({ state: "linked", config: cfg })).app.host, "p-xo-1234567.apps.hello-xo.nl");
+  const m = model(check({ state: "linked", config: cfg }), { ...GH, launchpad: { app: { status: "running", url: "https://shop.example.com" } } });
+  assert.equal(m.app.url, "https://shop.example.com");
+  assert.equal(m.app.host, "shop.example.com");
+});
+t("sizeWords: a tier, Launchpad's own label, or the name as it is", () => {
+  assert.equal(sizeWords(TIERS[0]), "Mini · 0.5 CPU, 1 GB memory");
+  assert.equal(sizeWords(null, "xo.medium, 1 CPU and 4 GB memory"), "Medium · 1 CPU, 4 GB memory");
+  assert.equal(sizeWords(null, "something else"), "something else");
+  assert.equal(sizeWords(undefined, ""), "");
+});
+t("formKey: the size catalog, launchpad.json's machine and a linked app's are in it", () => {
+  const a = model(check(), { ...GH, launchpad: { sizes: { default: "xo.medium", tiers: TIERS } } });
+  const b = model(check(), { ...GH, launchpad: { sizes: { default: "xo.small", tiers: TIERS } } });
+  assert.notEqual(formKey(a, { pre: 2 }), formKey(b, { pre: 2 }));
 });
 
 // ── Open in Launchpad ─────────────────────────────────────────────────────

@@ -109,6 +109,19 @@
 .lp-hint{font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
 .lp-f.is-bad .lp-in{border-color:color-mix(in srgb,var(--danger) 70%,transparent)}
 .lp-f.is-bad .lp-hint{color:var(--err-ink)}
+/* the machine: a size from what Launchpad allows, a disk's path and GB, what a linked app was made with */
+.lp-selw{position:relative;display:block}
+.lp-sel{appearance:none;-webkit-appearance:none;padding-right:28px;cursor:pointer;text-overflow:ellipsis}
+.lp-selw svg{position:absolute;right:8px;top:8px;width:14px;height:14px;color:var(--ink-4);pointer-events:none}
+.lp-f.is-bad .lp-sel{border-color:color-mix(in srgb,var(--danger) 70%,transparent)}
+.lp-pair{display:flex;align-items:center;gap:6px;min-width:0}
+.lp-pair .lp-in{flex:1 1 auto;min-width:0}
+.lp-pair .lp-in.is-gb{flex:none;width:48px;text-align:right;font-variant-numeric:tabular-nums}
+.lp-u{flex:none;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.lp-pair .lp-ib{width:28px;height:28px}
+.lp-ro{padding:5px 0;font:400 var(--fs-base)/20px var(--sans);color:var(--ink-2)}
+.lp-hint code{font:400 var(--fs-sm)/16px var(--mono);color:var(--ink-3);background:none;padding:0}
+.lp-add{flex:none;margin-left:-8px}
 .lp-fix{display:inline;height:auto;padding:0;color:var(--ink-2);text-decoration:underline;text-underline-offset:3px}
 .lp-env{margin:8px 12px 0;padding:0;border:0;min-width:0}
 .lp-env legend{display:flex;align-items:baseline;gap:8px;width:100%;padding:8px 8px 2px;font:600 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}

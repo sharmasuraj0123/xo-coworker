@@ -4,8 +4,11 @@
 // Every other non-GET request is aborted: tests never write to the live backend.
 
 const MIN = 60;
-const REPO = "sharmasuraj0123/xo-coworker", HOST = "xo-coworker-xo-4f1c2a9.apps.xo.builders", URL_ = `https://${HOST}`;
+const REPO = "sharmasuraj0123/xo-coworker", HOST = "xo-coworker-xo-4f1c2a9.apps.hello-xo.nl", URL_ = `https://${HOST}`;
 const RUN_URL = `https://github.com/${REPO}/actions/runs/128`;
+// Launchpad's size catalog for the github template (API.md, GET /api/deploy/sizes and preflight's launchpad.sizes)
+const TIERS = [{ name: "xo.mini", label: "Mini", cpu: 0.5, memory_gb: 1 }, { name: "xo.small", label: "Small", cpu: 1, memory_gb: 2 }, { name: "xo.medium", label: "Medium", cpu: 1, memory_gb: 4 }, { name: "xo.large", label: "Large", cpu: 2, memory_gb: 8 }];
+const SIZES = { template: "github", default: "xo.medium", allowed: TIERS.map((t) => t.name), tiers: TIERS, fixed_after_create: true, source: "launchpad" };
 
 const check = (o = {}) => ({
   schema: 1, project: "xo-coworker", state: "ready", summary: "Ready to deploy as xo-coworker on port 3000.", reasons: [], blockers: [], warnings: [],
@@ -16,6 +19,7 @@ const check = (o = {}) => ({
     health_path: { value: null, source: "default" },
     env: [{ name: "XO_API", sensitive: false, source: ".env.example", default: "http://127.0.0.1:5002" }, { name: "XO_API_KEY", sensitive: true, source: ".env.example" }, { name: "XO_SPACE_ID", sensitive: false, source: ".env.example" }],
     repo: { full_name: null, remote: null, branch: "main", origin: REPO, new_repo_name: "xo-coworker" },
+    size: { value: null, source: "the template's default (preflight says which)" }, storage: { value: null, source: "none" },
   },
   git: { repo: true, branch: "main", head: "cd6096efbe28", deployed_head: null, origin_github: REPO },
   prerequisites: { github_connected: true, launchpad_key: true, launchpad_cli: true },
@@ -26,7 +30,7 @@ const pre = (o = {}) => ({
   state: "ready",
   github: { connected: true, login: "sharmasuraj0123", scopes: ["repo", "workflow"], scopes_known: true, workflow_scope: true, ...(o.github || {}) },
   repo: { branch: "main", origin: REPO, is_admin: true, default_branch: "main", mode: "origin", full_name: REPO, ...(o.repo || {}) },
-  launchpad: { key: true, cli: true, name_free: true, ...(o.launchpad || {}) },
+  launchpad: { key: true, cli: true, name_free: true, ...(o.launchpad?.app ? {} : { sizes: SIZES }), ...(o.launchpad || {}) }, // sizes: not linked
 });
 
 // a deploy's events, t seconds after its start
@@ -40,7 +44,7 @@ const STEPS = [
   [251, "progress", "release", { release: 4, rollout: "ready", ready: 1, desired: 1 }, "Release #4 · 1 of 1 ready"], [252, "step", "release", "done", "Release #4 is serving"],
   [252, "step", "url", "running"], [254, "done"],
 ];
-const UPTO = { "name-taken": 8, "repo-taken": 6, "link-existing": 8, "gh-scope-run": 4, pull: 11, pushing: 12, building: 19, releasing: 22, "failed-build": 19, "failed-health": 22, live: STEPS.length };
+const UPTO = { "size-refused": 8, "name-taken": 8, "repo-taken": 6, "link-existing": 8, "gh-scope-run": 4, pull: 11, pushing: 12, building: 19, releasing: 22, "failed-build": 19, "failed-health": 22, live: STEPS.length };
 const ev = (row, start) => {
   const [t, type, step, a, b] = row, ts = new Date(start + t * 1000).toISOString();
   if (type === "run") return { type, ts, run_id: "r1", kind: "deploy", attached: false, started_at: new Date(start).toISOString() };
@@ -58,6 +62,7 @@ const ENDS = {
   "failed-build": (ts) => ({ type: "error", ts, step: "build", code: "build_failed", action: "ask_agent", message: "npm ci exited with code 1", fix: "Read the log, fix the cause, push again.", data: { run_url: RUN_URL, failed_step: "RUN npm ci", conclusion: "failure", log_tail: ["#12 [build 4/7] RUN npm ci", "npm ERR! code ERESOLVE", "npm ERR! peer react@\"^18\" from @pierre/diffs@0.4.1"] } }),
   "failed-health": (ts) => ({ type: "error", ts, step: "release", code: "health_check_failed", action: "edit_settings", message: "Release #4 failed its health check on port 3000.", fix: "Use the port the image listens on.", data: { kind: "port", port: 3000, exposed_ports: [8080], release: 4 } }),
   "name-taken": (ts) => ({ type: "needs", ts, step: "app", code: "name_taken", action: "edit_settings", message: "Another app already has this name.", fix: "Pick another name.", options: [], data: { suggestion: "xo-coworker-2" } }),
+  "size-refused": (ts) => ({ type: "error", ts, step: "app", code: "size_not_allowed", action: "edit_settings", message: "Launchpad does not allow that machine size for this app.", fix: "Pick one of the template's allowed sizes.", data: { size: "xo.large" } }),
   scope: (ts) => ({ type: "error", ts, step: "credentials", code: "github_workflow_scope", action: "reconnect_github", message: "The GitHub connection cannot write workflow files, which Launchpad needs.", fix: "Reconnect GitHub.", data: {} }),
 };
 /** The SSE body of a deploy: from its start, `ago` seconds back, up to a scenario's point (and its end). */
@@ -76,9 +81,14 @@ const SCENARIOS = {
   scope: { check: check(), pre: pre({ github: { workflow_scope: false, scopes: ["repo"] } }) },
   "name-taken": { check: check({ fields: { ...check().fields, env: [] } }), deploy: "name-taken" },
   "needs-agent": { check: check({ state: "needs-agent", summary: "Needs preparing.", reasons: [{ what: "A Dockerfile", why: "Nothing builds an image yet" }, { what: "A port", why: "Nothing says where it listens" }], fields: { ...check().fields, port: { value: null, source: "" } } }) },
-  live: { check: check({ state: "linked", config: linked, git: { ...check().git, deployed_head: "cd6096efbe28" } }), pre: pre({ launchpad: { app: { id: "app_7f3a", name: "xo-coworker", status: "running", url: URL_, exists: true, release: 3, rollout: "ready", last_deploy_at: new Date(Date.now() - 2 * 60e3).toISOString(), ready: 1, desired: 1 }, env_set: { XO_API: true, XO_API_KEY: true } } }) },
+  live: { check: check({ state: "linked", config: linked, git: { ...check().git, deployed_head: "cd6096efbe28" } }), pre: pre({ launchpad: { app: { id: "app_7f3a", name: "xo-coworker", status: "running", url: URL_, exists: true, release: 3, rollout: "ready", last_deploy_at: new Date(Date.now() - 2 * 60e3).toISOString(), ready: 1, desired: 1, size: "xo.small", size_label: "xo.small, 1 CPU and 2 GB memory", storage: { path: "/data", size: "2Gi" } }, env_set: { XO_API: true, XO_API_KEY: true } } }) },
   // linked, and main has moved on since the live release
   "live-behind": { check: check({ state: "linked", config: linked, git: { ...check().git, head: "9e1f0aa77c21", deployed_head: "cd6096efbe28" } }), pre: null },
+  // the machine: Launchpad's catalog out of reach (flow.json's table, no default); a size Launchpad refuses;
+  // a linked app made without a disk; a linked app as a Space before sizes reports it (today's :5002)
+  "sizes-fallback": { check: check(), pre: pre({ launchpad: { sizes: { ...SIZES, default: null, source: "flow.json", error: "launchpad_unreachable" } } }) },
+  "size-refused": { check: check(), deploy: "size-refused" },
+  "live-nodisk": null, "live-oldspace": null, "live-domain": null,
   "live-stopped": null, "live-failed": null, "live-rolling": null, "live-unhealthy": null,
   "not-deployable": { check: check({ state: "not-deployable" }) },
   pushing: { check: check({ running: { run_id: "r1", kind: "deploy" } }), watch: ["pushing", 2] },
@@ -103,9 +113,9 @@ const SCENARIOS = {
   undo: { check: check(), click: ['[data-lp="deploy"]'] },
 };
 const APPS = [
-  { id: "app_1", name: "storefront", status: "running", url: "https://storefront-xo-8288e36.apps.xo.builders", linkable: true },
-  { id: "app_2", name: "api-gateway", status: "progressing", url: "https://api-gateway-xo-37ec5cd.apps.xo.builders", linkable: true },
-  { id: "app_3", name: "billing-worker", status: "failed", url: "https://billing-worker-xo-b114583.apps.xo.builders", linkable: true },
+  { id: "app_1", name: "storefront", status: "running", url: "https://storefront-xo-8288e36.apps.hello-xo.nl", linkable: true },
+  { id: "app_2", name: "api-gateway", status: "progressing", url: "https://api-gateway-xo-37ec5cd.apps.hello-xo.nl", linkable: true },
+  { id: "app_3", name: "billing-worker", status: "failed", url: "https://billing-worker-xo-b114583.apps.hello-xo.nl", linkable: true },
 ];
 
 // a linked app in each of Launchpad's other states (the open section must say it, not only the head)
@@ -114,6 +124,11 @@ for (const [k, st] of [["live-stopped", "stopped"], ["live-failed", "failed"], [
   SCENARIOS[k] = { check: SCENARIOS.live.check, pre: p };
 }
 SCENARIOS["live-behind"].pre = SCENARIOS.live.pre;
+{ const a = SCENARIOS.live.pre.launchpad.app, { size, size_label, storage, ...old } = a;
+  SCENARIOS["live-nodisk"] = { check: SCENARIOS.live.check, pre: pre({ launchpad: { app: { ...a, storage: null }, env_set: SCENARIOS.live.pre.launchpad.env_set } }) };
+  // a custom domain on Launchpad since launchpad.json was written: preflight's url is the live one
+  SCENARIOS["live-domain"] = { check: SCENARIOS.live.check, pre: pre({ launchpad: { app: { ...a, url: "https://coworker.example.com" }, env_set: SCENARIOS.live.pre.launchpad.env_set } }) };
+  SCENARIOS["live-oldspace"] = { check: SCENARIOS.live.check, pre: pre({ launchpad: { app: old, env_set: SCENARIOS.live.pre.launchpad.env_set } }) }; }
 exports.SCENARIOS = SCENARIOS;
 exports.install = async (page, name) => {
   const sc = SCENARIOS[name] || SCENARIOS.ready;

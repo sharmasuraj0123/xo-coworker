@@ -18,7 +18,7 @@
 // ensure(v), and opens the section through the panel (data-lp-open).
 
 import { ICON } from "./ui.js";
-import { appState, nextStep, formKey, launchpadUrl } from "./lpapi.js";
+import { appState, nextStep, formKey, launchpadUrl, sizeWords } from "./lpapi.js";
 import { esc } from "./util.js";
 
 const I = (d) => `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
@@ -44,12 +44,13 @@ const AGAIN_MS = 5 * 60e3, ERR_MS = 60e3;
 const clock = (ms) => { const s = Math.max(0, Math.floor(ms / 1000)); return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, "0")}s`; };
 const ago = (at) => { const m = Math.round((Date.now() - at) / 60e3); return m < 1 ? "just now" : m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} d ago`; };
 const since = (at) => `<span class="elapsed" data-since="${at}">${clock(Date.now() - at)}</span>`;
-/** An address in two parts: the app's own (xo-coworker-xo-4f1c2a9) and Launchpad's domain (.apps.xo.builders). */
+/** An address Launchpad gave, in two parts: its first label (the app's own) and the rest, quieter. Only ever an
+ *  address Space reported (the app's url): never one built from the name (API.md). */
 const split = (host) => { const i = String(host || "").indexOf("."); return i < 0 ? [host || "", ""] : [host.slice(0, i), host.slice(i)]; };
-const own = (name) => `${esc(name || "your-app")}-xo-<i class="lp-hash">·······</i>`;
 /** Where Space found a value, in a few words ("Dockerfile EXPOSE" → "the Dockerfile"). */
 const where = (src) => (/^Dockerfile/.test(src) ? "the Dockerfile" : /^package\.json/.test(src) ? "package.json" : /^default/.test(src) ? "the default" : src);
 const cap = (t) => { t = String(t || ""); return /^\S*[./]/.test(t) ? t : t.replace(/^./, (x) => x.toUpperCase()); }; // a file name keeps its case
+const sizeText = (c, name, label = "") => sizeWords(c.sizes?.tiers.find((t) => t.name === name), label) || name || "";
 const slug = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+/, "").slice(0, 25).replace(/-+$/, "");
 
 /**
@@ -81,7 +82,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       let c = await api.check(p);
       if (s.pre === 2 && api.preflight) c = await api.preflight(p, s.form?.name);
       s.check = c; s.at = Date.now();
-      if (!s.form) s.form = { name: slug(c.name || p), port: c.port ? String(c.port) : "", repo: c.repo?.create || slug(p), env: {}, errs: {} };
+      if (!s.form) s.form = { name: slug(c.name || p), port: c.port ? String(c.port) : "", repo: c.repo?.create || slug(p), env: {}, errs: {}, size: c.size || "", disk: !!c.storage, diskPath: c.storage?.path || "", diskGb: String(c.storage?.gb || 2) };
       if (c.running && !s.run && c.running !== s.ended) watch(p); // never the run Space just said was over
       cached[p] = c.state;
       try { localStorage.setItem(CACHE, JSON.stringify(cached)); } catch { /* private mode */ }
@@ -112,7 +113,10 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       r.appId = e.app?.id || r.appId || was.id || "";
       // the names this deploy carried are set on Launchpad now (their values went with the request, never kept here)
       const env = (s.check?.env || []).map((x) => (r.sent?.includes(x.name) ? { ...x, set: true } : x));
-      s.check = { ...s.check, state: "linked", env, app: { id: e.app?.id || r.appId || was.id || "", name: e.app?.name || was.name, url: e.url, host: e.host, status: "live", release: e.release, at, commit: e.commit || was.commit } };
+      // its size and disk: what it had, else what this deploy made it with (preflight says Launchpad's own soon after)
+      const made = r.made || {};
+      s.check = { ...s.check, state: "linked", env, app: { id: e.app?.id || r.appId || was.id || "", name: e.app?.name || was.name, url: e.url, host: e.host, status: "live", release: e.release, at, commit: e.commit || was.commit,
+        size: was.size || made.size || "", sizeLabel: was.sizeLabel || "", storage: made.storage !== undefined ? made.storage : was.storage } };
     }
   }
 
@@ -138,7 +142,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   function event(p, e) {
     const s = proj(p), f = s.form;
     if (!s.run) return;
-    if (e.type === "warning") { s.warn = e.message; changed(); return; }
+    if (e.type === "warning") { if (e.message && !(s.warn || []).includes(e.message)) s.warn = [...(s.warn || []), e.message]; changed(); return; }
     if (e.type === "app") { s.run.appId = e.id; return; } // Space created the app: its id, for Open in Launchpad
     if (e.type === "replaced") { s.run.stop?.stop(); watch(p); changed(); return; } // a deploy started elsewhere: follow it
     if (e.type === "lost") { // the stream couldn't be picked up again: what was moving stops moving, and it's said
@@ -159,6 +163,12 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       return;
     }
     if (e.state === "doing" || e.state === "done" || e.state === "failed") f.env = {}; // under way: the values have gone with the request
+    if (e.state === "failed" && e.error?.code === "size_not_allowed") {
+      s.run = null; f.errs = { size: "Launchpad doesn't allow this size for this app. Pick another." }; S.key = "";
+      announce("Launchpad doesn't allow that size for this app. Pick another."); changed();
+      requestAnimationFrame(() => S.body?.querySelector('[data-lp-f="size"]')?.focus());
+      return;
+    }
     take(p, e);
     const name = f.name || nameOf(p);
     if (e.step === "live" && e.state === "done") { announce(`${name} is live.`); if (!visible(p)) notify && notify(`${name} is live`); }
@@ -259,7 +269,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     const visitors = `<div class="lpv-vis"><span class="lpv-orb${on ? " on" : ""}">${ICON.globe}</span><span class="lpv-cap">Visitors</span></div>`;
     const address = `<div class="lpv-card lpv-addr ${mode === "preview" ? "plan" : on ? "on" : "off"}">` +
       `<div class="lpv-h">${LP_ICON.link}<span>Address</span>${real ? `<span class="lpv-acts"><button type="button" class="lp-ib" data-lp="copy" title="${s.copied > Date.now() ? "Copied" : "Copy the address"}" aria-label="Copy the address">${s.copied > Date.now() ? ICON.check : ICON.copy}</button><a class="lp-ib" href="${esc(app.url)}" target="_blank" rel="noopener" title="Open it" aria-label="Open it">${LP_ICON.out}</a></span>` : ""}</div>` +
-      `<div class="lpv-host">${real ? `<b>${esc(mine)}</b><span>${esc(domain)}</span>` : `<b>${own(f.name)}</b><span>its address on Launchpad</span>`}</div>` +
+      `<div class="lpv-host">${real ? `<b>${esc(mine)}</b><span>${esc(domain)}</span>` : `<b>Launchpad's</b><span>given when it's created</span>`}</div>` +
       `<div class="lpv-tags"><span class="lpv-tag">HTTPS</span></div></div>`;
     const instance = `<div class="lpv-card lpv-inst ${inst}">` +
       `<div class="lpv-top">${light(inst)}<b>${name}</b><span class="lpv-st ${inst}">${esc(instWord)}</span></div>` +
@@ -281,7 +291,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       ? `<div class="lpm-addr${addr === "on" ? "" : " is-off"}"><a class="lpm-host" href="${esc(app.url)}" target="_blank" rel="noopener" title="Open ${esc(real)}"><b>${esc(mine)}</b><span>${esc(domain)}</span></a><button type="button" class="lp-ib" data-lp="copy" title="${s.copied > Date.now() ? "Copied" : "Copy the address"}" aria-label="Copy the address">${s.copied > Date.now() ? ICON.check : ICON.copy}</button><a class="lp-ib" href="${esc(app.url)}" target="_blank" rel="noopener" title="Open it" aria-label="Open it">${LP_ICON.out}</a></div>` +
         `<p class="lpm-meta">${release ? `<span>Release #${release}</span>` : ""}${commit ? `<code>${esc(commit)}</code>` : ""}<span>GitHub build${at ? ` · ${ago(at)}` : ""}</span>${of ? `<span>${ready} of ${of} ready</span>` : ""}</p>`
       : mode === "preview"
-        ? `<p class="lpm-meta"><span class="lpm-k">Address</span><span class="lp-mono lpm-own">${own(f.name)}</span></p><p class="lpm-meta"><span class="lpm-k">Image</span>${img === "need" ? `<span class="lpv-need">${gh}</span>` : `<span>from ${repoLine}</span>`}</p>`
+        ? `<p class="lpm-meta"><span class="lpm-k">Image</span>${img === "need" ? `<span class="lpv-need">${gh}</span>` : `<span>from ${repoLine}</span>`}</p>`
         : inst === "starting" || inst === "failing" ? `<p class="lpm-meta"><span class="lpm-k">${name}</span><span>${esc(instWord)}</span>${of ? `<span>${ready} of ${of} ready</span>` : instText ? `<span>${instText}</span>` : ""}${clock(instAt)}</p>`
         : imgText || imgAt ? `<p class="lpm-meta"><span class="lpm-k">Image</span><span>${imgText}</span>${clock(imgAt)}</p>` : "";
     const mini = `<div class="lpm" data-mode="${mode}" role="img" aria-label="${esc(`${nameOf(p)}: visitors, its address, the app (${instWord}), the image`)}"><div class="lpm-row">` +
@@ -293,7 +303,9 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     const cards = `<div class="lpv" data-mode="${mode}" role="img" aria-label="${esc(`How ${nameOf(p)} runs: visitors, its address, the app, the image`)}">` +
       visitors + line(toAddr) + address + line(toApp) + instance + line(fed) + image + `</div>`;
     // the environment, under either view: how many of its names are set on Launchpad (names only), and Change
-    const env = mode === "live" && real && c.env?.length ? `<p class="lpm-meta lpm-env"><span class="lpm-k">Environment</span><span>${c.env.filter((x) => x.set).length} of ${c.env.length} set on Launchpad</span><button type="button" class="lp-a" data-lp="edit">Change</button></p>` : "";
+    // what it runs on: the size it was made with, and its disk if it has one
+    const ca = c.app, machine = mode === "live" && real && ca && (ca.size || ca.sizeLabel) ? `<p class="lpm-meta lpm-env"><span class="lpm-k">Machine</span><span>${esc(sizeText(c, ca.size, ca.sizeLabel))}</span>${ca.storage ? `<span>${esc(String(ca.storage.gb))} GB disk at <code>${esc(ca.storage.path)}</code></span>` : ""}</p>` : "";
+    const env = machine + (mode === "live" && real && c.env?.length ? `<p class="lpm-meta lpm-env"><span class="lpm-k">Environment</span><span>${c.env.filter((x) => x.set).length} of ${c.env.length} set on Launchpad</span><button type="button" class="lp-a" data-lp="edit">Change</button></p>` : "");
     return mini + cards + env;
   }
 
@@ -335,8 +347,9 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       (c.github.source === "gh" && c.github.connected && !c.github.workflow && ghCmd(c.github.fix) ? `<div class="lp-gh"><p class="lp-note">Or grant it to this machine's gh login, then check again:</p>${cmdHtml(ghCmd(c.github.fix))}<div class="lp-alt lp-left"><button type="button" class="lp-a" data-lp="recheck-gh">${ICON.retry}<span>I ran it: check again</span></button></div></div>` : "") +
       (S.v && S.v.startsWith("t:") ? `<p class="lp-note lp-src" title="This thread's work goes out once it's merged into ${esc(c.repo.branch || "main")}">${ICON.branch}<span>Deploys <b>${esc(c.repo.branch || "main")}</b>, not this thread's branch.</span></p>` : "") +
       `<div class="lp-set">` +
-      (editing ? "" : field("name", "Name", f.name, { hint: e.name || "In the address; it can't change later.", bad: !!e.name, fix: e.nameFix })) +
+      (editing ? "" : field("name", "Name", f.name, { hint: e.name || "On Launchpad; it can't change later.", bad: !!e.name, fix: e.nameFix })) +
       field("port", "Port", f.port, { hint: e.port || (c.portFrom ? `${c.portSure === false ? "A guess from" : "From"} ${esc(where(c.portFrom))}` : "Where the app listens"), bad: !!e.port, mode: "numeric", short: true }) +
+      machineRows(c, f, e, editing) +
       (e.repo ? field("repo", "Repository", f.repo, { hint: e.repo, bad: true }) : "") +
       `</div>` +
       (env.length ? `<fieldset class="lp-env"><legend><span>Environment</span>${from ? `<small>from ${esc(from)}</small>` : ""}</legend>` +
@@ -349,12 +362,34 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       (editing ? `<div class="lp-alt"><button type="button" class="lp-a" data-lp="edit-cancel"><span>Cancel</span></button></div></div>`
         : `<div class="lp-alt"><button type="button" class="lp-a" data-lp="pick">${LP_ICON.link}<span>Link an app already on Launchpad</span></button></div></div>`);
   }
+  /** The machine: for a new app, its size (only what the template allows, its default chosen) and an optional disk;
+   *  in a linked app's settings, the size it was made with (fixed) and its disk, which can grow but never shrink. */
+  function machineRows(c, f, e, editing) {
+    const ids = (id) => `aria-describedby="lp-h-${id}"${e[id] ? ' aria-invalid="true"' : ""}`;
+    const row = (label, inner, bad = false, tag = "div") => `<${tag} class="lp-f${bad ? " is-bad" : ""}"><span class="lp-l">${label}</span>${inner}</${tag}>`;
+    const hint = (id, text) => `<span class="lp-hint" id="lp-h-${id}">${text}</span>`;
+    if (editing) {
+      const a = c.app;
+      return (a.size || a.sizeLabel ? row("Size", `<span class="lp-v"><span class="lp-ro">${esc(sizeText(c, a.size, a.sizeLabel))}</span>${hint("size", "Fixed when it was created.")}</span>`) : "") +
+        (a.storage === undefined ? "" : a.storage
+          ? row("Disk", `<span class="lp-v"><span class="lp-pair"><input class="lp-in is-gb" data-lp-f="diskGb" value="${esc(f.diskGb)}" inputmode="numeric" autocomplete="off" aria-label="Disk size in GB" ${ids("disk")}><span class="lp-u">GB at <code>${esc(a.storage.path)}</code></span></span>${hint("disk", e.disk || "Can grow, never shrink.")}</span>`, !!e.disk, "label")
+          : row("Disk", `<span class="lp-v"><span class="lp-ro">None</span>${hint("disk", "Can't be added after creation.")}</span>`));
+    }
+    const z = c.sizes, at = f.size || z?.def || "";
+    return (z ? row("Size", `<span class="lp-v"><span class="lp-selw"><select class="lp-in lp-sel" data-lp-f="size" aria-label="Size" ${ids("size")}>${z.def ? "" : `<option value=""${at ? "" : " selected"}>Launchpad's default</option>`}` +
+        z.tiers.map((t) => `<option value="${esc(t.name)}"${at === t.name ? " selected" : ""}>${esc(`${t.label} · ${t.cpu} CPU, ${t.memory_gb} GB`)}</option>`).join("") +
+        `</select>${ICON.chevron}</span>${hint("size", e.size || sizeHint(c, f))}</span>`, !!e.size, "label") : "") +
+      (f.disk
+        ? row("Disk", `<span class="lp-v"><span class="lp-pair"><input class="lp-in lp-mono" data-lp-f="diskPath" value="${esc(f.diskPath)}" placeholder="/data" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Where the disk is mounted" ${ids("disk")}><input class="lp-in is-gb" data-lp-f="diskGb" value="${esc(f.diskGb)}" inputmode="numeric" autocomplete="off" aria-label="Disk size in GB" ${ids("disk")}><span class="lp-u">GB</span><button type="button" class="lp-ib" data-lp="disk-remove" title="No disk" aria-label="No disk">${ICON.close}</button></span>${hint("disk", e.disk || "Kept across restarts. Can grow, never shrink.")}</span>`, !!e.disk)
+        : row("Disk", `<span class="lp-v is-row"><button type="button" class="lp-a lp-add" data-lp="disk-add">${ICON.plus}<span>Add a disk</span></button>${hint("disk", "Only at creation")}</span>`));
+  }
+  const sizeHint = (c, f) => (c.sizes?.def && (f.size || c.sizes.def) === c.sizes.def ? "The default; fixed once created." : "Fixed once it's created.");
   function field(id, label, value, { hint = "", bad = false, mode = "text", short = false, fix = "" } = {}) {
     return `<label class="lp-f${bad ? " is-bad" : ""}"><span class="lp-l">${label}</span><span class="lp-v${short ? " is-row" : ""}"><input class="lp-in${short ? " is-short" : ""}" data-lp-f="${id}" value="${esc(value || "")}" inputmode="${mode}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="lp-h-${id}"${bad ? ' aria-invalid="true"' : ""}><span class="lp-hint" id="lp-h-${id}">${hint}${fix ? ` <button type="button" class="lp-a lp-fix" data-lp="use-name" data-v="${esc(fix)}">Use ${esc(fix)}</button>` : ""}</span></span></label>`;
   }
 
   /** What Space warned of on the way (uncommitted changes left out, env names with no value): worth reading, not fatal. */
-  const warnHtml = (s) => (s.warn ? `<p class="lp-note t-need">${esc(s.warn)}</p>` : "");
+  const warnHtml = (s) => (s.warn || []).map((w) => `<p class="lp-note t-need">${esc(w)}</p>`).join("");
 
   function runHtml(p) {
     const s = proj(p), r = s.run, name = esc(s.form.name || nameOf(p));
@@ -509,12 +544,12 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   /** As you type: the card's name, address and port follow the fields, and nothing else redraws. */
   function syncPreview(p) {
     const f = proj(p).form, view = S.body.querySelector('.lpv[data-mode="preview"]');
+    const sh = S.body.querySelector("#lp-h-size");
+    if (sh && !f.errs?.size && sh.closest("label")?.querySelector("select")) sh.textContent = sizeHint(proj(p).check, f);
     if (!view) return;
     const set = (sel, html) => { const n = S.body.querySelector(sel); if (n && n.innerHTML !== html) n.innerHTML = html; };
     set(".lpm .lpm-app b", esc(f.name || nameOf(p)));
-    set(".lpm .lpm-own", own(f.name));
     set('.lpv[data-mode="preview"] .lpv-inst .lpv-top b', esc(f.name || nameOf(p)));
-    set('.lpv[data-mode="preview"] .lpv-addr .lpv-host b', own(f.name));
     set('.lpv[data-mode="preview"] .lpv-inst .lpv-facts', `<span>1 instance</span><span>port ${esc(f.port || "—")}</span>`);
     const go = S.body.querySelector('[data-lp="deploy"] span');
     if (go) go.textContent = `Deploy ${f.name || nameOf(p)}`;
@@ -527,6 +562,13 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     if (!SLUG.test(f.name)) errs.name = "Lowercase letters, digits and hyphens, up to 25.";
     const port = Number(f.port);
     if (!Number.isInteger(port) || port < 1 || port > 65535) errs.port = "A port from 1 to 65535.";
+    const editing = !!(s.editing && c?.app), gb = Number(f.diskGb), was = c?.app?.storage;
+    if (!editing && c?.sizes && f.size && !c.sizes.tiers.some((t) => t.name === f.size)) errs.size = "Pick one of the sizes Launchpad offers.";
+    if (!editing && f.disk) {
+      if (!/^\/[^/]/.test(f.diskPath) || /(^|\/)\.\.(\/|$)/.test(f.diskPath)) errs.disk = "Where it's mounted: an absolute path other than /, like /data.";
+      else if (!Number.isInteger(gb) || gb < 1 || gb > 20) errs.disk = "A size from 1 to 20 GB.";
+    }
+    if (editing && was && f.diskGb !== String(was.gb) && (!Number.isInteger(gb) || gb < was.gb || gb > 20)) errs.disk = gb < was.gb ? `It can't shrink: ${was.gb} GB or more, up to 20.` : `From ${was.gb} to 20 GB.`;
     f.errs = errs;
     return !Object.keys(errs).length;
   }
@@ -540,7 +582,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     if (gh && !(gh.connected && gh.workflow)) { github(p); return; }
     if (!validate(p)) {
       S.key = ""; changed();
-      requestAnimationFrame(() => S.body?.querySelector('.is-bad input, [aria-invalid="true"]')?.focus());
+      requestAnimationFrame(() => S.body?.querySelector('[aria-invalid="true"], .is-bad input, .is-bad select')?.focus());
       return;
     }
     s.run = newRun(); s.run.undo = Date.now() + 3e3; s.run.edit = edit; s.editing = false;
@@ -558,7 +600,12 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   function begin(p, again = false) {
     const s = proj(p), f = s.form, c = s.check;
     const env = Object.fromEntries(Object.entries(f.env).filter(([, v]) => v !== ""));
-    const body = { name: f.name, port: Number(f.port), ...(c.repo.admin ? {} : { create_repo: true, repo_name: f.repoChosen ? f.repo : f.name }), ...(c.app && again && !f.recreate && (s.run.edit || !c.behind) ? { rebuild: true } : {}), ...(f.recreate ? { recreate: true } : {}), env, sensitive: (c.env || []).filter((x) => x.sensitive).map((x) => x.name) };
+    // a new app (or one made again): its size and disk; a linked app's settings: a larger disk, at the same path
+    const creating = !c.app || f.recreate, was = c.app?.storage, gb = Number(f.diskGb);
+    const machine = creating ? { ...(c.sizes && f.size ? { size: f.size } : {}), ...(f.disk ? { storage_path: f.diskPath, storage_size: gb } : {}) }
+      : s.run.edit && was && gb > was.gb ? { storage_path: was.path, storage_size: gb } : {};
+    s.run.made = creating ? { size: (c.sizes && (f.size || c.sizes.def)) || c.size || "", storage: f.disk ? { path: f.diskPath, gb } : null } : machine.storage_size ? { storage: { path: was.path, gb } } : {};
+    const body = { name: f.name, port: Number(f.port), ...machine, ...(c.repo.admin ? {} : { create_repo: true, repo_name: f.repoChosen ? f.repo : f.name }), ...(c.app && again && !f.recreate && (s.run.edit || !c.behind) ? { rebuild: true } : {}), ...(f.recreate ? { recreate: true } : {}), env, sensitive: (c.env || []).filter((x) => x.sensitive).map((x) => x.name) };
     s.run.undo = 0; s.run.startedAt = Date.now(); s.run.sent = Object.keys(env); // names only: what goes live with this release
     s.needs = null; s.warn = null; f.recreate = false; // recreate is asked once, not for every deploy after
     s.run.stop = api.deploy(p, body, (e) => event(p, e));
@@ -636,12 +683,14 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       case "cmd-copy": navigator.clipboard?.writeText(el.dataset.v).catch(() => {}); announce("Copied the command."); return;
       case "recheck-gh": s.pre = 0; if (NEEDS_YOU.has(s.run?.error?.code)) s.run = null; announce("Checking GitHub again."); changed(); preflight(p); return;
       case "rewatch": s.run = null; watch(p); changed(); return;
-      case "settings": s.run = null; s.needs = null; S.key = ""; changed(); requestAnimationFrame(() => S.body?.querySelector('[data-lp-f="name"]')?.focus()); return;
+      case "settings": s.run = null; s.needs = null; S.key = ""; changed(); requestAnimationFrame(() => S.body?.querySelector(s.form.errs?.size ? '[data-lp-f="size"]' : '[data-lp-f="name"]')?.focus()); return;
+      case "disk-add": s.form.disk = true; s.form.errs = { ...s.form.errs, disk: "" }; S.key = ""; changed(); requestAnimationFrame(() => S.body?.querySelector('[data-lp-f="diskPath"]')?.focus()); return;
+      case "disk-remove": s.form.disk = false; s.form.errs = { ...s.form.errs, disk: "" }; S.key = ""; changed(); requestAnimationFrame(() => S.body?.querySelector('[data-lp="disk-add"]')?.focus()); return;
       case "create-repo": s.check = { ...s.check, repo: { ...s.check.repo, admin: false } }; s.needs = null; s.run = null; deploy(p); return;
       case "link-same": { const id = s.needs?.data?.app?.id || s.run?.error?.app?.id; s.needs = null; s.run = null; if (id) api.link(p, id).then((a) => { s.check = { ...s.check, state: "linked", app: a }; deploy(p, true); }).catch((err) => notify && notify(`Couldn't link it: ${err.message}`)); changed(); return; }
       case "env-all": s.envAll = true; S.key = ""; changed(); requestAnimationFrame(() => S.body?.querySelectorAll(".lp-ev input")[mine0(p)]?.focus()); return;
       case "recreate": s.form.recreate = true; s.run = null; deploy(p, true); return;
-      case "edit": s.editing = true; s.menu = false; S.key = ""; changed(); requestAnimationFrame(() => S.body?.querySelector(".lp-ev input, [data-lp-f]")?.focus()); return;
+      case "edit": s.editing = true; s.form.diskGb = String(s.check.app?.storage?.gb || ""); s.form.errs = {}; s.menu = false; S.key = ""; changed(); requestAnimationFrame(() => S.body?.querySelector(".lp-ev input, [data-lp-f]")?.focus()); return;
       case "edit-cancel": s.editing = false; s.form.env = {}; S.key = ""; changed(); return;
       case "again": s.run = null; s.form.errs = {}; deploy(p, true); return; // the linked app, the same settings: 3 s, then it goes
       case "retry": s.run = null; deploy(p); return;
@@ -701,7 +750,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     });
     section.addEventListener("input", (e) => {
       const p = projectOf(S.v), t = e.target;
-      if (!p || !t.matches("input")) return;
+      if (!p || !t.matches("input, select")) return;
       const f = proj(p).form;
       if (t.dataset.lpF) f[t.dataset.lpF] = t.dataset.lpF === "name" || t.dataset.lpF === "repo" ? t.value.toLowerCase() : t.value.trim();
       if (t.dataset.lpEnv) f.env[t.dataset.lpEnv] = t.value;

@@ -45,6 +45,17 @@ const FLOWS = {
   // Astra on 4026444: a validation redraw must not write a typed secret into markup, open or closed
   'secret-redraw': [['fill', '[data-lp-env="XO_API_KEY"]', 'xo_sk_sentinel_42'], ['fill', '[data-lp-f="port"]', 'bad'], ['click', '[data-lp="deploy"]'], ['wait', 400], ['screen'], ['value', '[data-lp-env="XO_API_KEY"]'], ['leak', 'xo_sk_sentinel_42'], ['click', '[data-stg-close]'], ['wait', 300], ['leak', 'xo_sk_sentinel_42'], ['click', '[data-lp-open]'], ['wait', 600], ['leak', 'xo_sk_sentinel_42']],
   'secret-redraw-edit': [['wait', 1200], ['click', '[data-lp="edit"]'], ['wait', 300], ['fill', '[data-lp-env="XO_API_KEY"]', 'xo_sk_sentinel_42'], ['fill', '[data-lp-f="port"]', 'bad'], ['click', '[data-lp="deploy"]'], ['wait', 400], ['screen'], ['leak', 'xo_sk_sentinel_42'], ['click', '[data-stg-close]'], ['wait', 300], ['leak', 'xo_sk_sentinel_42']],
+  // the machine (xo-space 3886701): a size from what the template allows, a disk at creation, what's sent
+  'size-pick': [['wait', 1200], ['value', '[data-lp-f="size"]'], ['text', '#lp-h-size'], ['select', '[data-lp-f="size"]', 'xo.small'], ['text', '#lp-h-size'], ['click', '[data-lp="disk-add"]'], ['wait', 300], ['fill', '[data-lp-f="diskPath"]', '/data'], ['click', '[data-lp="deploy"]'], ['wait', 4500], ['screen'], ['sent'], ['text', '.lpm-env']],
+  'size-default': [['wait', 1200], ['click', '[data-lp="deploy"]'], ['wait', 4500], ['screen'], ['sent'], ['text', '.lpm-env']],
+  'size-fallback': [['wait', 1200], ['value', '[data-lp-f="size"]'], ['count', '[data-lp-f="size"] option'], ['click', '[data-lp="deploy"]'], ['wait', 4500], ['sent']],
+  'disk-bad': [['wait', 1200], ['click', '[data-lp="disk-add"]'], ['wait', 300], ['fill', '[data-lp-f="diskPath"]', 'data'], ['click', '[data-lp="deploy"]'], ['wait', 300], ['screen'], ['text', '#lp-h-disk'], ['fill', '[data-lp-f="diskPath"]', '/'], ['click', '[data-lp="deploy"]'], ['wait', 300], ['text', '#lp-h-disk'], ['fill', '[data-lp-f="diskPath"]', '/srv/../etc'], ['click', '[data-lp="deploy"]'], ['wait', 300], ['text', '#lp-h-disk'], ['fill', '[data-lp-f="diskPath"]', '/data'], ['fill', '[data-lp-f="diskGb"]', '30'], ['click', '[data-lp="deploy"]'], ['wait', 300], ['text', '#lp-h-disk'], ['click', '[data-lp="disk-remove"]'], ['wait', 300], ['count', '[data-lp-f="diskPath"]']],
+  'size-refused': [['wait', 1200], ['select', '[data-lp-f="size"]', 'xo.large'], ['click', '[data-lp="deploy"]'], ['wait', 4500], ['screen'], ['text', '#lp-h-size'], ['value', '[data-lp-f="size"]'], ['focused']],
+  'grow-disk': [['wait', 1200], ['click', '[data-lp="edit"]'], ['wait', 300], ['text', '.lp-ro'], ['value', '[data-lp-f="diskGb"]'], ['fill', '[data-lp-f="diskGb"]', '1'], ['click', '[data-lp="deploy"]'], ['wait', 300], ['text', '#lp-h-disk'], ['fill', '[data-lp-f="diskGb"]', '5'], ['click', '[data-lp="deploy"]'], ['wait', 4500], ['screen'], ['sent'], ['text', '.lpm-env']],
+  'nodisk-edit': [['wait', 1200], ['click', '[data-lp="edit"]'], ['wait', 300], ['text', '#lp-h-disk'], ['count', '[data-lp-f="diskGb"]'], ['click', '[data-lp="deploy"]'], ['wait', 4500], ['sent']],
+  'old-space': [['wait', 1200], ['count', '.lpm-env'], ['click', '[data-lp="edit"]'], ['wait', 300], ['count', '.lp-ro'], ['count', '[data-lp-f="diskGb"]']],
+  'live-domain': [['wait', 1500], ['head'], ['text', '.lpm-host']],
+  'no-built-address': [['wait', 1200], ['fill', '[data-lp-f="name"]', 'my-shop'], ['wait', 200], ['text', '.lpm'], ['leak', 'my-shop-xo']],
   building: [['wait', 600], ['screen'], ['text', '.lpv-img .lpv-rel'], ['click', '[data-lp="hide"]'], ['wait', 300], ['head'], ['click', '[data-lp-open]'], ['wait', 300], ['open']],
 };
 (async () => {
@@ -57,7 +68,7 @@ const FLOWS = {
     const page = await ctx.newPage(); const errs = [];
     page.on('pageerror', (e) => errs.push(e.message));
     if (sc === 'lp-link-slowpre' || sc === 'lp-link-watch-slowpre') page.__slowPre = 500; // Astra's race: preflight answers half a second late
-    await install(page, { 'scope-enter': 'scope', 'esc-field': 'ready', pressed: 'ready', 'deploy-esc': 'ready', 'tab-trap': 'ready', 'tab-walk': 'ready', 'gh-import-slow': 'gh-import', 'lp-link': 'play', 'lp-link-linked': 'live', 'lp-link-slowpre': 'play', 'lp-link-watch-slowpre': 'just-live', 'edit-env': 'live', 'edit-behind': 'live-behind', 'again-behind': 'live-behind', 'live-change': 'play', 'secret-close': 'ready', 'secret-fold': 'ready', 'secret-undo-close': 'play', 'secret-project': 'ready', 'lost-still': 'lost', 'secret-redraw': 'ready', 'secret-redraw-edit': 'live' }[sc] || sc);
+    await install(page, { 'scope-enter': 'scope', 'esc-field': 'ready', pressed: 'ready', 'deploy-esc': 'ready', 'tab-trap': 'ready', 'tab-walk': 'ready', 'gh-import-slow': 'gh-import', 'lp-link': 'play', 'lp-link-linked': 'live', 'lp-link-slowpre': 'play', 'lp-link-watch-slowpre': 'just-live', 'edit-env': 'live', 'edit-behind': 'live-behind', 'again-behind': 'live-behind', 'live-change': 'play', 'secret-close': 'ready', 'secret-fold': 'ready', 'secret-undo-close': 'play', 'secret-project': 'ready', 'lost-still': 'lost', 'size-pick': 'play', 'size-default': 'play', 'size-fallback': 'sizes-fallback', 'disk-bad': 'ready', 'grow-disk': 'live', 'nodisk-edit': 'live-nodisk', 'old-space': 'live-oldspace', 'no-built-address': 'ready', 'secret-redraw': 'ready', 'secret-redraw-edit': 'live' }[sc] || sc);
     await page.goto('http://127.0.0.1:3466/', { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => document.querySelector('.prow[data-go="p:xo-coworker"]'), null, { timeout: 45000 });
     await page.evaluate(() => document.querySelector('.prow[data-go="p:xo-coworker"]').click());
@@ -74,9 +85,11 @@ const FLOWS = {
       else if (k === 'pressed') out.push(await page.evaluate(() => { const b = document.querySelector('[data-lp-open]'); return `${b.getAttribute('aria-pressed')}/${b.classList.contains('is-on')}/${!document.querySelector('[data-fr="launch"]').classList.contains('is-folded') && document.body.classList.contains('stage-open')}`; }));
       else if (k === 'press') await page.keyboard.press(a);
       else if (k === 'fill') await page.fill(a, args[0]);
-      else if (k === 'sent') out.push('sent:' + JSON.stringify((({ rebuild = false, env = {} }) => ({ rebuild, env: Object.keys(env) }))((page.__sent || []).at(-1) || {})));
+      else if (k === 'sent') out.push('sent:' + JSON.stringify((({ rebuild = false, env = {}, size, storage_path, storage_size }) => ({ rebuild, env: Object.keys(env), ...(size ? { size } : {}), ...(storage_path ? { storage_path, storage_size } : {}) }))((page.__sent || []).at(-1) || {})));
+      else if (k === 'select') await page.selectOption(a, args[0]);
       // where a string is found: the markup (attributes, outerHTML) or a live input's value
       else if (k === 'leak') out.push('leak:' + await page.evaluate((x) => [document.documentElement.outerHTML.includes(x) ? 'markup' : '', [...document.querySelectorAll('input')].some((i) => i.value === x || i.defaultValue === x) ? 'input' : ''].filter(Boolean).join('+') || 'none', a));
+      else if (k === 'focused') out.push('focused:' + await page.evaluate(() => document.activeElement?.dataset?.lpF || document.activeElement?.dataset?.lp || document.activeElement?.tagName));
       else if (k === 'value') out.push('value:' + await page.evaluate((s) => document.querySelector(s)?.value, a));
       else if (k === 'count') out.push('count:' + await page.evaluate((s) => document.querySelectorAll(s).length, a));
       else if (k === 'tabs') { for (let i = 0; i < a; i++) await page.keyboard.press('Tab'); }
