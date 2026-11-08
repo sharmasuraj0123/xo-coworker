@@ -105,9 +105,11 @@ export function createShapeView({ shape, announce = () => {} }) {
     const held = shape.held;
     return (V.unkept ? `<p class="set-err" role="alert">${esc(UNKEPT)}</p>` : "") +
       // a change XO hasn't taken is said as long as it isn't there: refused (and why), or on its way again
+      // (and, when this browser couldn't keep it either, that it lasts only while this page is open)
       (held ? held.why === "refused"
-        ? `<p class="set-err" role="alert">XO refused your last shape change. ${esc(held.text)} It's kept on this device only: your other devices don't have it. Your next change tries again.</p>`
-        : `<p class="set-note" role="status">Not on your other devices yet: XO couldn't be reached. It's sent again when XO answers.</p>` : "") +
+        ? `<p class="set-err" role="alert">XO refused your last shape change. ${esc(held.text)} ${held.kept ? "It's kept on this device only: your other devices don't have it." : "This browser can't keep it after a reload either: it lasts only while this page is open."} Your next change tries again.</p>`
+        : held.kept ? `<p class="set-note" role="status">Not on your other devices yet: XO couldn't be reached. It's sent again when XO answers.</p>`
+          : `<p class="set-err" role="alert">Not saved yet: XO couldn't be reached, and this browser can't keep it after a reload. It's sent again while this page is open.</p>` : "") +
       `<section class="set-sec" aria-labelledby="shp-h-p"><h3 id="shp-h-p">What you mostly do here</h3>` +
       `<div class="set-choices" role="radiogroup" aria-labelledby="shp-h-p">${cardsOf().map((p) => `<button type="button" class="set-choice${p.id === id ? " is-on" : ""}" role="radio" aria-checked="${p.id === id}" data-shp-preset="${esc(p.id)}"${rovingTab(p.id === id)}${busyAttrs(SHAPING)}><span class="sc-dot" aria-hidden="true"></span><span class="sc-b"><b>${esc(p.name)}</b><span>${esc(p.summary)}</span></span></button>`).join("")}</div>` +
       // once Switch is pressed the choice is on its way (its preset may still be reading): Keep mine waits with it

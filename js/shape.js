@@ -369,7 +369,7 @@ const fetchPreset = async (id) => {
  * remote: {get(), put({shape, if_version})}, both → {shape, version, updated_at} (api.js's in the app;
  * none in node tests, which is the localStorage behaviour). notice({text, sub}): the app's quiet line.
  */
-export function createShapeStore({ storage = defaultStorage(), load = fetchPreset, caps = null, remote = null, notice = () => {} } = {}) {
+export function createShapeStore({ storage = defaultStorage(), load = fetchPreset, caps = null, remote = null, notice = () => {}, retryMs = RETRY_MS } = {}) {
   const read = (k) => { try { const s = storage.getItem(k); return s ? JSON.parse(s) : null; } catch { return null; } };
   // a write says whether this browser kept it (a full or switched-off storage refuses): the change still applies,
   // and the caller is told it won't survive a reload, never that it was saved
@@ -418,9 +418,10 @@ export function createShapeStore({ storage = defaultStorage(), load = fetchPrese
   // changesOf); known: what Storm held when they began, so a read that finds otherwise is a conflict; busy:
   // the PUT on its way; heard: a ui.shape heard on the stream while one was.
   // held: your changes a write couldn't land (why: "unreachable", sent again by itself; "refused", sent with your
-  // next change), kept here and in KEYS.unsynced so no read takes Storm's older shape over them; localOk: whether
-  // this browser kept mine at its last write.
-  const R = { mode: remote ? "reading" : "off", version: null, synced: null, knows: false, known: null, pend: [], busy: null, heard: undefined, retried: false, read: Promise.resolve(), held: [], why: null, text: "", tries: 0, timer: null, localOk: true };
+  // next change), kept here and in KEYS.unsynced so no read takes Storm's older shape over them. why/text stay set
+  // until Storm has them (a change sent again with them doesn't hide that they're not there yet). kept: whether this
+  // browser kept both mine and that note of it, so a reload finds them; localOk: whether it kept mine at its last write.
+  const R = { mode: remote ? "reading" : "off", version: null, synced: null, knows: false, known: null, pend: [], busy: null, heard: undefined, retried: false, read: Promise.resolve(), held: [], why: null, text: "", kept: true, tries: 0, timer: null, localOk: true };
   const heldSubs = new Set(); // Settings › Shape: what's held, and why, shown while it is
   const heldSaid = () => { for (const f of heldSubs) f(); };
   {
@@ -429,12 +430,12 @@ export function createShapeStore({ storage = defaultStorage(), load = fetchPrese
     else if (!remote) { try { storage.removeItem(KEYS.unsynced); } catch { /* nothing kept */ } }
   }
   /** Keep the held changes (and why) where a reload finds them; or let them go, once Storm has them or can't. */
-  function hold(why, text) { R.why = why; R.text = text; write(KEYS.unsynced, { changes: R.held.flat(), known: R.known, why, text }); heldSaid(); }
-  function unhold() { const was = !!R.why; R.held = []; R.why = null; R.text = ""; R.tries = 0; clearTimeout(R.timer); try { storage.removeItem(KEYS.unsynced); } catch { /* nothing kept */ } if (was) heldSaid(); }
+  function hold(why, text) { R.why = why; R.text = text; R.kept = write(KEYS.unsynced, { changes: R.held.flat(), known: R.known, why, text }) && R.localOk; heldSaid(); }
+  function unhold() { const was = !!R.why; R.held = []; R.why = null; R.text = ""; R.kept = true; R.tries = 0; clearTimeout(R.timer); try { storage.removeItem(KEYS.unsynced); } catch { /* nothing kept */ } if (was) heldSaid(); }
   /** A write XO couldn't take goes again by itself: after a while, or as soon as a read reaches Storm. */
   function later() {
     clearTimeout(R.timer);
-    R.timer = setTimeout(resend, RETRY_MS[Math.min(R.tries++, RETRY_MS.length - 1)]);
+    R.timer = setTimeout(resend, retryMs[Math.min(R.tries++, retryMs.length - 1)]);
     R.timer.unref?.(); // never keeps a node test (or a closing page) alive
   }
   function resend() {
@@ -472,7 +473,11 @@ export function createShapeStore({ storage = defaultStorage(), load = fetchPrese
         // Storm without a shape doesn't take this browser's away: it goes up with your first change
         if (took(v, { adopt: adopt && isObj(v.shape) && !R.pend.length && !R.busy && !R.held.length })) { ensurePreset(); emit(); }
         settleHeld();
-      } catch (err) { R.mode = gone(err) ? "off" : R.mode === "on" ? "on" : "unknown"; if (R.mode === "off") unhold(); }
+      } catch (err) {
+        R.mode = gone(err) ? "off" : R.mode === "on" ? "on" : "unknown";
+        if (R.mode === "off") unhold();
+        else if (R.held.length && R.why === "unreachable") later(); // still can't reach it: try again in a while
+      }
     })();
     return R.read;
   }
@@ -494,7 +499,8 @@ export function createShapeStore({ storage = defaultStorage(), load = fetchPrese
     R.held.push(...pend);
     hold(refused ? "refused" : "unreachable", reason);
     if (!refused) later();
-    if (!R.localOk) notice({ text: "Your shape isn't saved", sub: `This browser won't keep it after a reload, and ${refused ? `XO refused it: ${reason}` : "XO couldn't be reached."}` });
+    // kept here (mine and the note of it) or not: said the same way now and in Settings › Shape after
+    if (!R.kept) notice({ text: "Your shape isn't saved", sub: `This browser won't keep it after a reload, and ${refused ? `XO refused it: ${reason}` : "XO couldn't be reached. It's sent again while this page is open."}` });
     else if (refused) notice({ text: "XO refused your shape change", sub: `${reason} It's kept on this device only: ${NOT_THERE}.` });
     else notice({ text: "Your shape is saved on this device only", sub: `XO couldn't be reached, so ${NOT_THERE} yet. It's sent again when XO answers.` });
   }
@@ -629,7 +635,7 @@ export function createShapeStore({ storage = defaultStorage(), load = fetchPrese
     /** Settles when every change so far has been written (or refused); for tests and a page about to go. */
     settled: async () => { while (R.busy || R.pend.length) { await (R.busy || push()); } await R.read; },
     /** Changes of yours a write couldn't land yet: {why: "unreachable" (sent again by itself) or "refused" (with your next), text: why, in a sentence}, else null. */
-    get held() { return R.held.length ? { why: R.why, text: R.text } : null; },
+    get held() { return R.why ? { why: R.why, text: R.text, kept: R.kept } : null; },
     /** Called when what's held changes (held, or landed). */
     onHeld(fn) { heldSubs.add(fn); return () => heldSubs.delete(fn); },
     ownKeys, ready, loadPreset,

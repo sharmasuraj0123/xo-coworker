@@ -539,7 +539,7 @@ t("a write Storm refuses (413, 400) or can't take stays on this device, said qui
   assert.deepEqual(F.stored, { shape: 1, preset: "marketing" });
   assert.equal(notes[0].text, "XO refused your shape change", "a refusal says so plainly, never that it's saved");
   assert.match(notes[0].sub, /64 KB, and this one is larger\. It's kept on this device only/);
-  assert.deepEqual(S.held, { why: "refused", text: "XO keeps a shape of up to 64 KB, and this one is larger." });
+  assert.deepEqual(S.held, { why: "refused", text: "XO keeps a shape of up to 64 KB, and this one is larger.", kept: true });
   F.next.put.push(() => { throw Object.assign(new Error("The shape nests deeper than 12 levels."), { status: 400, code: "bad_shape" }); });
   await S.setMine({ shape: 1, preset: "marketing", density: "comfortable" });
   await S.settled();
@@ -611,7 +611,7 @@ t("a write XO couldn't take (503) is held here, so a reload doesn't read Storm's
   F.next.put.push(() => { throw F.err(503, "unavailable"); });
   await first.S.setMine({ shape: 1, preset: "marketing", density: "compact" });
   await first.S.settled();
-  assert.deepEqual(first.S.held, { why: "unreachable", text: "XO couldn't be reached." });
+  assert.deepEqual(first.S.held, { why: "unreachable", text: "XO couldn't be reached.", kept: true });
   assert.deepEqual(F.stored, { shape: 1, preset: "marketing" }, "Storm still has the old one");
   assert.match(first.notes[0].sub, /sent again when XO answers/);
   assert.ok(st.getItem(KEYS.unsynced), "held where a reload finds it");
@@ -658,7 +658,7 @@ t("a write XO refused (413) stays on this device across a reload: the load only 
   await again.S.ready;
   await again.S.settled();
   assert.deepEqual(F.calls.slice(calls).map((c) => c[0]), ["GET"], "a refused change isn't sent again by itself");
-  assert.deepEqual(again.S.held, { why: "refused", text: "XO keeps a shape of up to 64 KB, and this one is larger." }, "and after a reload it still says why");
+  assert.deepEqual(again.S.held, { why: "refused", text: "XO keeps a shape of up to 64 KB, and this one is larger.", kept: true }, "and after a reload it still says why");
   assert.equal(again.S.get("density"), "compact", "and the read didn't take it away");
   await again.S.setMine({ shape: 1, preset: "engineering", density: "compact" });
   await again.S.settled();
@@ -689,6 +689,71 @@ t("neither kept here nor taken by XO: it says so plainly, never \"saved on this 
   await S.settled();
   assert.equal(notes[0].text, "Your shape isn't saved");
   assert.match(notes[0].sub, /won't keep it after a reload, and XO couldn't be reached/);
+});
+
+// ── Astra on a63139f: held changes across an offline reload, an unkept note, both refusing, a replacement in flight ──
+t("a reload while XO can't be reached, with a change held: the retry is scheduled, and it lands once XO answers", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const st = mem();
+  const first = store({ storage: st, remote: F });
+  await first.S.ready;
+  F.next.put.push(() => { throw F.err(503, "unavailable"); });
+  await first.S.setMine({ shape: 1, preset: "marketing", density: "compact" });
+  await first.S.settled();
+  // the reload's read fails too (offline): nothing else will come along to send it, so its own timer must
+  F.next.get.push(() => { throw F.err(0, "network"); });
+  const again = store({ storage: st, remote: F, retryMs: [20] });
+  await again.S.ready;
+  await again.S.settled();
+  assert.equal(again.S.held.why, "unreachable");
+  for (let i = 0; i < 50 && F.stored.density !== "compact"; i++) await new Promise((r) => setTimeout(r, 10));
+  await again.S.settled();
+  assert.deepEqual(F.stored, { shape: 1, preset: "marketing", density: "compact" }, "sent again by itself");
+  assert.equal(again.S.held, null);
+});
+t("held, but this browser couldn't keep the note of it: never \"kept on this device\", it says a reload loses it", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const base = mem();
+  const st = { ...base, setItem: (k, v) => { if (k === KEYS.unsynced) throw new Error("QuotaExceededError"); base.setItem(k, v); } };
+  const { S, notes } = store({ storage: st, remote: F });
+  await S.ready;
+  F.next.put.push(() => { throw F.err(503, "unavailable"); });
+  await S.setMine({ shape: 1, preset: "marketing", density: "compact" });
+  await S.settled();
+  assert.deepEqual(S.held, { why: "unreachable", text: "XO couldn't be reached.", kept: false });
+  assert.equal(notes[0].text, "Your shape isn't saved");
+  assert.match(notes[0].sub, /won't keep it after a reload/);
+});
+t("XO refused it and this browser couldn't keep it either: what's held says so (kept: false), as the notice does", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const refusingAll = { ...mem(), setItem: (k) => { if (String(k).startsWith("cv-shape")) throw new Error("QuotaExceededError"); } };
+  const { S, notes } = store({ storage: refusingAll, remote: F });
+  await S.ready;
+  F.next.put.push(() => { throw F.err(413, "shape_too_large"); });
+  await S.setMine({ shape: 1, preset: "marketing", density: "compact" });
+  await S.settled();
+  assert.equal(S.held.why, "refused");
+  assert.equal(S.held.kept, false, "not on this device either");
+  assert.equal(notes[0].text, "Your shape isn't saved");
+});
+t("a change sent while another is held doesn't hide that it's held until XO has them; then it's gone", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const { S } = store({ storage: mem(), remote: F });
+  await S.ready;
+  F.next.put.push(() => { throw F.err(413, "shape_too_large"); });
+  await S.setMine({ shape: 1, preset: "marketing", density: "compact" });
+  await S.settled();
+  assert.equal(S.held.why, "refused");
+  let answer;
+  F.next.put.push(() => new Promise((r) => (answer = r)));
+  const next = S.setMine({ shape: 1, preset: "engineering", density: "compact" });
+  await new Promise((r) => setTimeout(r, 10));
+  assert.equal(S.held && S.held.why, "refused", "still said while the new PUT is out");
+  answer();
+  await next;
+  await S.settled();
+  assert.equal(S.held, null);
+  assert.equal(F.stored.preset, "engineering");
 });
 
 await Promise.all(pending);

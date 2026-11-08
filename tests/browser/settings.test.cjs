@@ -660,6 +660,19 @@ t("S115 C101 a save XO refused (413) says so plainly and why, on the Shape page 
   assert.equal(W.shape.shape.preset, "engineering");
   await done(page);
 });
+t("S115 C101 refused by XO and not kept by this browser either: the Shape page never says \"kept on this device\"", async (ctx) => {
+  const W = world();
+  W.fail.shape = [{ status: 413, body: { detail: { code: "shape_too_large", message: "Too large" } } }];
+  const page = await open(W, ctx, { fullStorage: true });
+  await settings(page, "shape");
+  await keyFocus(page, '[data-shp-preset="marketing"]');
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => /XO refused your last shape change/.test(document.querySelector('[data-page="shape"]').innerText));
+  const text = await page.locator('[data-page="shape"] .shp-top').innerText();
+  assert.match(text, /This browser can't keep it after a reload either: it lasts only while this page is open/);
+  assert.doesNotMatch(text, /kept on this device only/);
+  await done(page);
+});
 t("C114 a refused usual runtime: the saved one stays chosen, the reason shows under it, the keyboard stays, and Enter tries again", async (ctx) => {
   const W = world({ delay: 300 });
   W.fail.policy = [err("unavailable", "Policy fixture unavailable")];
