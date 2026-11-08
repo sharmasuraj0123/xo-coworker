@@ -2473,7 +2473,9 @@ function follow() {
   world.act.watchSession?.(null);
   // a thread's hops are always read: a message relayed into it shows in place (if1 #7); their lines stay by choice
   if (t && world.act.loadHops) world.act.loadHops(t.id);
-  if (S.showHops && !t) loadChatHops(v);
+  // a chat's hops are read on opening it too: the coordinator's "Waiting for … to reply" needs its open asks
+  // (the hop lines themselves still show only by choice)
+  if (!t) loadChatHops(v);
   world.act.watch(v === "home" || v === "ws" ? ["workspace"] : v.startsWith("p:") ? [v.slice(2)] : t ? [t.project] : []);
   world.act.watchThread(t ? t.id : null);
 }
@@ -2966,15 +2968,20 @@ const CREATE = initCreate({
 $("#side-add").addEventListener("click", CREATE.open);
 
 // ── phone drawer ────────────────────────────────────────────────────────────
+let drawerReturn = null;
 function setDrawer(open) {
   if (!PHONE.matches && open) return;
+  if (open) drawerReturn = document.activeElement;
   $("#app").classList.toggle("drawer", !!open);
   $("#side-scrim").hidden = !open;
   $("#pb-menu").setAttribute("aria-expanded", String(!!open));
   $("#top-menu").setAttribute("aria-expanded", String(!!open));
   syncInert();
   if (open) $("#nv-home").focus();
-  else if ($("#side").contains(document.activeElement)) (PHONE.matches ? $("#pb-menu") : null)?.focus({ preventScroll: true });
+  else if ($("#side").contains(document.activeElement) || document.activeElement === document.body) {
+    const back = [drawerReturn, $("#top-menu"), $("#pb-menu")].find((b) => b && b.isConnected && b.offsetParent && !b.closest("[inert]"));
+    if (PHONE.matches) back?.focus({ preventScroll: true });
+  }
 }
 $("#pb-menu").addEventListener("click", () => setDrawer(true));
 $("#top-menu").addEventListener("click", () => setDrawer(true));
@@ -2997,7 +3004,17 @@ function jumpRender() {
     all.push({ v: "p:" + p.id, name: p.name, sub: "Project", icon: projectIcon(p.id) });
     for (const t of threadsOf(p.id)) all.push({ v: "t:" + t.id, name: t.title, sub: `${p.name} · ${wordOf(t).toLowerCase()}`, icon: threadIc(t), t: true });
   }
-  jitems = all.filter((x) => !q || (x.name + " " + x.sub).toLowerCase().includes(q)).concat(REC.jumpItems(q));
+  // verbs, after the places and only when typed for: searching never runs one; Enter or a click does
+  const light = document.documentElement.dataset.theme === "light";
+  const verbs = q ? [
+    { name: "New project…", sub: "Action", icon: ICON.plus, run: () => CREATE.open() },
+    { name: "Settings", sub: "Action", icon: ICON.sliders, run: () => openSettings() },
+    { name: "Keyboard shortcuts", sub: "Action", icon: ICON.sliders, run: () => openKeys() },
+    { name: light ? "Dark mode" : "Light mode", sub: "Action", icon: light ? ICON.moon : ICON.sun, run: () => $("#theme").click() },
+    ...(IQ.kindOf(sessionOf(S.view)) ? [{ name: "Intelligence: model and thinking", sub: "Action", icon: ICON.sliders, run: () => IQ.open(sessionOf(S.view), $("#iq")) }] : []),
+    ...(S.view !== "home" && S.view !== "artifacts" ? [{ name: "Agents, Map and Changes", sub: "Action", icon: ICON.sliders, run: () => STAGE.toggle() }] : []),
+  ].filter((x) => x.name.toLowerCase().includes(q)) : [];
+  jitems = all.filter((x) => !q || (x.name + " " + x.sub).toLowerCase().includes(q)).concat(verbs, REC.jumpItems(q));
   jsel = Math.min(jsel, Math.max(0, jitems.length - 1));
   jl.innerHTML = jitems.map((x, i) => `<li role="option" id="j-${i}" aria-selected="${i === jsel}" data-i="${i}" class="${x.t ? "is-t" : ""}"><span class="j-ic">${x.icon}</span><span class="j-n">${esc(x.name)}</span><span class="j-s">${esc(x.sub)}</span></li>`).join("") || `<li class="j-none">Nothing matches “${esc(q)}”.</li>`;
   jq.setAttribute("aria-activedescendant", jitems.length ? `j-${jsel}` : "");
