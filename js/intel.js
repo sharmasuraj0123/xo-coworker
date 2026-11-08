@@ -14,7 +14,7 @@
 import * as K from "./keys.js";
 import { esc } from "./world.js";
 import { redraw } from "./redraw.js";
-import { once, busyAttrs } from "./pending.js";
+import { once } from "./pending.js";
 import { ICON, RM } from "./ui.js";
 import { api } from "./api.js";
 import { mainRuntime } from "./timeline.js";
@@ -29,7 +29,8 @@ const effortWord = (e) => (e ? EFFORT_WORD[e] || e : "");
 // simple(): the person's shape asks for the simple choice (xo:composer/intel "simple"): the chip opens
 // Auto · Deep first, and "More options" shows everything below, unchanged.
 export function createIntel({ world, PROJ, onChange, record, onMoved, simple = () => false }) {
-  const P = { open: false, session: null, anchor: null, returnTo: null, models: null, err: null, busy: false, rt: null, mv: null, full: false, draft: null, more: false };
+  // gen: this opening (open and close each start a new one): a request's result belongs to the opening that asked
+  const P = { open: false, gen: 0, session: null, anchor: null, returnTo: null, models: null, err: null, busy: false, rt: null, mv: null, full: false, draft: null, more: false };
   const movedHere = new Set(); // threads this tab continued elsewhere (their stream frame needs no second word)
   const catalogs = new Map(); // runtime → models
   const pop = document.getElementById("iq-pop");
@@ -49,11 +50,16 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     return (rts.find((r) => r.name === agent) || mainRuntime(rts) || {}).name || null;
   };
   /** A runtime's models, read fresh each time the popover opens (the chip uses the last read). */
+  // each read is numbered per runtime: an older read answering after a newer one never replaces the newer list
+  // (Astra MIG-3: a cancelled read's late answer put an old catalog back under a newer choice)
+  const reads = new Map();
   async function catalog(name, { fresh = false } = {}) {
     if (!name) return [];
     if (catalogs.has(name) && !fresh) return catalogs.get(name);
+    const n = (reads.get(name) || 0) + 1;
+    reads.set(name, n);
     const d = await api.models(name);
-    catalogs.set(name, d.models || []);
+    if (reads.get(name) === n || !catalogs.has(name)) catalogs.set(name, d.models || []);
     return catalogs.get(name);
   }
   // the chip names models before the popover was ever opened: read the catalog once, quietly
@@ -196,7 +202,10 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     if (!ch.multi) return "";
     const kind = kindOf(s);
     const sel = kind === "thread" ? P.rt || ch.on : ch.on;
-    const btns = ch.list.map((o) => `<button type="button" role="radio" data-lrt="${esc(o.id)}" aria-checked="${sel === o.id}"${o.usable ? "" : ` aria-disabled="true" title="${esc(o.why)}"`}${P.busy ? " disabled" : P.mv && P.mv.busy ? ' aria-disabled="true"' : ""}>${esc(o.label)}</button>`).join("");
+    // while a change is out (a runtime set, a move, a save), every choice here waits: aria-disabled, not disabled,
+    // so the one you're on keeps focus
+    const wait = P.busy || P.saving || (P.mv && P.mv.busy);
+    const btns = ch.list.map((o) => `<button type="button" role="radio" data-lrt="${esc(o.id)}" aria-checked="${sel === o.id}"${!o.usable ? ` aria-disabled="true" title="${esc(o.why)}"` : wait ? ' aria-disabled="true"' : ""}>${esc(o.label)}</button>`).join("");
     const off = ch.list.filter((o) => !o.usable);
     let line;
     if (kind === "thread") line = moving(s) ? "" : `This thread runs on ${esc(rtName(ch.on))} for its whole life.${ch.list.some((o) => o.id !== ch.on && o.usable) ? " Choose another to continue it there." : ""}`;
@@ -209,12 +218,14 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
   }
 
   // ── the popover ───────────────────────────────────────────────────────────
-  function modelRow(m, s, name, sel, selEffort, attrs, first = false) {
-    return `<div class="iq-row${sel ? " is-sel" : ""}" role="radio" aria-checked="${sel}" tabindex="${sel || first ? 0 : -1}" ${attrs.row}="${esc(m.id)}" title="${esc(m.description || "")}"><span class="iq-n">${esc(m.name)}</span>${m.description ? `<span class="iq-tr">${esc(m.description)}</span>` : ""}${CHECK}</div>`;
+  // wait: a change is out, so the choice on screen is the one being sent and can't change under it
+  const WAIT = ' aria-disabled="true"';
+  function modelRow(m, s, name, sel, selEffort, attrs, first = false, wait = false) {
+    return `<div class="iq-row${sel ? " is-sel" : ""}" role="radio" aria-checked="${sel}" tabindex="${sel || first ? 0 : -1}"${wait ? WAIT : ""} ${attrs.row}="${esc(m.id)}" title="${esc(m.description || "")}"><span class="iq-n">${esc(m.name)}</span>${m.description ? `<span class="iq-tr">${esc(m.description)}</span>` : ""}${CHECK}</div>`;
   }
-  function depthHtml(efs, sel, attr) {
+  function depthHtml(efs, sel, attr, wait = false) {
     if (!efs.length) return "";
-    return `<p class="iq-lab">Thinking</p><div class="iq-route iq-depth" role="radiogroup" aria-label="Thinking">${efs.map((e, i) => `<button type="button" role="radio" aria-checked="${sel === e}" tabindex="${sel === e || (i === 0 && !efs.includes(sel)) ? 0 : -1}" ${attr}="${esc(e)}">${esc(effortWord(e))}</button>`).join("")}</div><p class="iq-rl">${esc(EFFORT_HINT[sel] || "")}</p>`;
+    return `<p class="iq-lab">Thinking</p><div class="iq-route iq-depth" role="radiogroup" aria-label="Thinking">${efs.map((e, i) => `<button type="button" role="radio" aria-checked="${sel === e}" tabindex="${sel === e || (i === 0 && !efs.includes(sel)) ? 0 : -1}"${wait ? WAIT : ""} ${attr}="${esc(e)}">${esc(effortWord(e))}</button>`).join("")}</div><p class="iq-rl">${esc(EFFORT_HINT[sel] || "")}</p>`;
   }
   // one row per family's default (claude: opus, fable, sonnet, haiku), then models in no family
   const shown = (models) => (models || []).filter((m) => !m.is_default && (m.family_default || !m.family));
@@ -241,12 +252,13 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       : on === "auto" ? "XO picks the model and how long it thinks, turn by turn."
       : `Runs ${esc(nameOf(c.model) || "a model you picked")}${c.effort ? ` · ${esc(EFFORT_WORD[c.effort] || c.effort)}` : ""}, set in More options.`;
     const why = !P.models ? (P.err ? esc(P.err) : `<i class="spin" aria-hidden="true"></i> Reading the models…`) : deep ? "" : "None of these models can think longer.";
-    pop.innerHTML = `<header class="iq-h"><h2 id="iq-hh">Intelligence <span>for ${esc(scopeWord(s))}</span></h2></header>` +
+    // in place: the catalog arriving never replaces the choice you're on (Astra D884-SIMPLE-1)
+    redraw(pop, `<header class="iq-h"><h2 id="iq-hh">Intelligence <span>for ${esc(scopeWord(s))}</span></h2></header>` +
       `<div class="iq-sec"><div class="iq-route iq-simple" role="radiogroup" aria-labelledby="iq-hh">` +
       `<button type="button" role="radio" data-lsimple="auto" aria-checked="${on === "auto"}">Auto</button>` +
       `<button type="button" role="radio" data-lsimple="deep" aria-checked="${on === "deep"}"${deep ? "" : ` aria-disabled="true"`}>Deep</button></div>` +
       `<p class="iq-rl">${line}</p>${why && on !== "deep" ? `<p class="iq-rl is-why">${why}</p>` : ""}</div>` +
-      `<footer class="iq-f"><span>Applies from its next turn.</span><button type="button" class="iq-back" data-lfull aria-expanded="false">More options</button></footer>`;
+      `<footer class="iq-f"><span>Applies from its next turn.</span><button type="button" class="iq-back" data-lfull aria-expanded="false">More options</button></footer>`);
     place();
   }
 
@@ -263,13 +275,15 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       html += `<div class="iq-sec"><p class="iq-now">${mv.model ? `On ${esc(to)} it will use <b>${esc(nameOf(mv.model))}${mv.effort ? ` · ${esc(EFFORT_WORD[mv.effort] || mv.effort)}` : ""}</b>.` : `On ${esc(to)} it will use its default model, unless you pick one.`}</p>`;
       if (mv.modelsErr) html += `<p class="iq-err">${esc(mv.modelsErr)}</p>`;
       else if (!mv.models) html += `<p class="iq-rl"><i class="spin" aria-hidden="true"></i> Reading ${esc(to)}'s models…</p>`;
-      else html += `<div class="iq-list" role="radiogroup" aria-label="${esc(to)}'s models">${shown(mv.models).map((m, i) => modelRow(m, s, P.rt, mv.model === m.id, mv.effort, { row: "data-mvm" }, !mv.model && i === 0)).join("")}</div>` + (mv.model ? depthHtml(effortsOf((mv.models || []).find((x) => x.id === mv.model), s, P.rt).filter((e) => PIPS[e]), mv.effort, "data-mvp") : "");
+      // while it moves, the model and depth on screen are the ones sent: they don't change (Astra MIG-1)
+      else html += `<div class="iq-list" role="radiogroup" aria-label="${esc(to)}'s models">${shown(mv.models).map((m, i) => modelRow(m, s, P.rt, mv.model === m.id, mv.effort, { row: "data-mvm" }, !mv.model && i === 0, !!mv.busy)).join("")}</div>` + (mv.model ? depthHtml(effortsOf((mv.models || []).find((x) => x.id === mv.model), s, P.rt).filter((e) => PIPS[e]), mv.effort, "data-mvp", !!mv.busy) : "");
       html += `</div><div class="iq-sec iq-mv" id="iq-mv-cons"><p class="iq-lab">Continuing on ${esc(to)}</p><ul>` +
         `<li>Its messages and work go to ${esc(to)}.</li><li>The new agent starts from a summary and the code, and re-reads files.</li>` +
         `<li>Earlier approvals don't carry over.</li><li>This thread is frozen; write in it to pick it back up.</li></ul>` +
         (mv.err ? `<p class="iq-err" role="alert">${esc(mv.err)}</p>` : "") +
-        `<div class="iq-mv-acts">${mv.busy ? `<span class="iq-rl"><i class="spin" aria-hidden="true"></i> Stopping the thread and saving its work…</span>` : ""}<button type="button" class="btn" data-mv-cancel${mv.busy ? " disabled" : ""}>Cancel</button><button type="button" class="btn btn-pri" data-mv-go aria-describedby="iq-mv-cons"${mv.busy ? " disabled" : ""}>${mv.retry ? "Try again" : `Continue on ${esc(to)}`}</button></div></div>`;
-      pop.innerHTML = html;
+        `<div class="iq-mv-acts">${mv.busy ? `<span class="iq-rl"><i class="spin" aria-hidden="true"></i> Stopping the thread and saving its work…</span>` : ""}<button type="button" class="btn" data-mv-cancel${mv.busy ? WAIT : ""}>Cancel</button><button type="button" class="btn btn-pri" data-mv-go aria-describedby="iq-mv-cons"${mv.busy ? WAIT + ' aria-busy="true"' : ""}>${mv.retry ? "Try again" : `Continue on ${esc(to)}`}</button></div></div>`;
+      // in place, as the rest of the picker: the control you're on stays (Astra MIG-2)
+      redraw(pop, html);
       place();
       return;
     }
@@ -291,13 +305,15 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     else if (!models) html += `<p class="iq-rl"><i class="spin" aria-hidden="true"></i> Reading the models…</p>`;
     else {
       const rows = shown(models);
-      const autoRow = kind !== "thread" ? `<div class="iq-row${d.auto ? " is-sel" : ""}" role="radio" aria-checked="${d.auto}" tabindex="${d.auto ? 0 : -1}" data-dmodel=""><span class="iq-n">Auto</span><span class="iq-tr">Its default, and the router's pick for each thread</span>${CHECK}</div>` : "";
+      // while Done saves, the choice on screen is the one being saved: it can't change under it (Astra D884-SAVE-1)
+      const wait = P.saving ? WAIT : "";
+      const autoRow = kind !== "thread" ? `<div class="iq-row${d.auto ? " is-sel" : ""}" role="radio" aria-checked="${d.auto}" tabindex="${d.auto ? 0 : -1}"${wait} data-dmodel=""><span class="iq-n">Auto</span><span class="iq-tr">Its default, and the router's pick for each thread</span>${CHECK}</div>` : "";
       html += `<p class="iq-lab" id="iq-m-l">Model</p><div class="iq-list" role="radiogroup" aria-labelledby="iq-m-l">${autoRow}` +
-        rows.map((m, i) => { const on = !d.auto && d.model === m.id; const tab = on || (i === 0 && !d.auto && !rows.some((x) => x.id === d.model)); return `<div class="iq-row${on ? " is-sel" : ""}" role="radio" aria-checked="${on}" tabindex="${tab ? 0 : -1}" data-dmodel="${esc(m.id)}" title="${esc(m.description || "")}"><span class="iq-n">${esc(m.name)}</span>${m.description ? `<span class="iq-tr">${esc(m.description)}</span>` : ""}${CHECK}</div>`; }).join("") + `</div>`;
+        rows.map((m, i) => { const on = !d.auto && d.model === m.id; const tab = on || (i === 0 && !d.auto && !rows.some((x) => x.id === d.model)); return `<div class="iq-row${on ? " is-sel" : ""}" role="radio" aria-checked="${on}" tabindex="${tab ? 0 : -1}"${wait} data-dmodel="${esc(m.id)}" title="${esc(m.description || "")}"><span class="iq-n">${esc(m.name)}</span>${m.description ? `<span class="iq-tr">${esc(m.description)}</span>` : ""}${CHECK}</div>`; }).join("") + `</div>`;
       const efs = d.auto ? [] : effortsOf(modelOf(d.model), s).filter((e) => PIPS[e]);
       if (efs.length) {
         html += `<p class="iq-lab" id="iq-e-l">Thinking</p><div class="iq-route iq-depth" role="radiogroup" aria-labelledby="iq-e-l">` +
-          efs.map((e, i) => `<button type="button" role="radio" aria-checked="${d.effort === e}" tabindex="${d.effort === e || (i === 0 && !efs.includes(d.effort)) ? 0 : -1}" data-deffort="${esc(e)}">${esc(effortWord(e))}</button>`).join("") +
+          efs.map((e, i) => `<button type="button" role="radio" aria-checked="${d.effort === e}" tabindex="${d.effort === e || (i === 0 && !efs.includes(d.effort)) ? 0 : -1}"${wait} data-deffort="${esc(e)}">${esc(effortWord(e))}</button>`).join("") +
           `</div><p class="iq-rl">${esc(EFFORT_HINT[d.effort] || "")}</p>`;
       }
     }
@@ -309,7 +325,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     }
     const changed = draftChanged(s);
     html += changed
-      ? (P.saveErr ? `<p class="iq-err" role="alert">${esc(P.saveErr)}</p>` : "") + `<footer class="iq-f"><span>${P.saving ? "Saving…" : "From the next turn · Esc cancels"}</span><button type="button" class="iq-done" data-ldone${busyAttrs(`iq:${s}`)}>${P.saving ? "Saving…" : "Done"}</button></footer>`
+      ? (P.saveErr ? `<p class="iq-err" role="alert">${esc(P.saveErr)}</p>` : "") + `<footer class="iq-f"><span>${P.saving ? "Saving…" : "From the next turn · Esc cancels"}</span><button type="button" class="iq-done" data-ldone${P.saving ? ' aria-busy="true" aria-disabled="true"' : ""}>${P.saving ? "Saving…" : "Done"}</button></footer>`
       : `<footer class="iq-f"><span>Applies from the next turn.</span>${kind === "thread" && c.pinned ? `<button type="button" class="iq-back" data-lauto>Default model</button>` : ""}</footer>`;
     // in place: the catalog arriving (or any change) never replaces the row you're on (Astra INT-1)
     redraw(pop, html);
@@ -327,7 +343,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       { id: "off", label: "Off", on: c.ownRouting && c.routing.mode === "off", line: "New messages to this chat are refused. Its threads still take your replies." },
     ];
     const on = opts.find((o) => o.on) || opts[0];
-    return `<div class="iq-sec"><p class="iq-lab" id="iq-ro-l">Who routes a new message</p><div class="iq-route" role="radiogroup" aria-labelledby="iq-ro-l">${opts.map((o) => `<button type="button" role="radio" data-lroute="${esc(o.id)}" aria-checked="${o.on}">${esc(o.label)}</button>`).join("")}</div><p class="iq-rl">${esc(on.line)}</p></div>`;
+    return `<div class="iq-sec"><p class="iq-lab" id="iq-ro-l">Who routes a new message</p><div class="iq-route" role="radiogroup" aria-labelledby="iq-ro-l">${opts.map((o) => `<button type="button" role="radio" data-lroute="${esc(o.id)}" aria-checked="${o.on}"${P.saving ? WAIT : ""}>${esc(o.label)}</button>`).join("")}</div><p class="iq-rl">${esc(on.line)}</p></div>`;
   }
   /** The choice on screen: what you picked while it's open, else what it runs on. {auto, model, effort} */
   function draftOf(s) {
@@ -364,24 +380,52 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     const d = P.draft; P.draft = null;
     if (!d.auto && !(P.models || []).some((m) => m.id === d.model)) return; // picked in another runtime's list
     // closed by a click outside: it applies as it closes; refused, the choice waits for the next opening
-    once(`iq:${s}`, () => (d.auto ? toAuto(s) : pin(s, d.model, d.effort))).then((ok) => { if (!ok) failed.set(s, d); });
+    save(s, d, P.gen);
   }
   const failed = new Map(); // session → the choice a refused save left behind (the picker reopens on it)
+  const queue = new Map(); // session → its last save: a later one is sent once it has settled, never beside it
+  const asked = new Map(); // session → the number of its latest save: only the latest says what's left behind
+  /**
+   * Save a choice for a conversation, from one opening (gen). A second Done in the same opening joins the first
+   * (once); a save from a later opening waits for the earlier one, then goes as its own request, so the server
+   * gets them in the order you made them. The latest save's result says whether a choice was left behind.
+   */
+  function save(s, d, gen) {
+    return once(`iq:${s}:${gen}`, () => {
+      const n = (asked.get(s) || 0) + 1;
+      asked.set(s, n);
+      const prev = queue.get(s);
+      const p = (prev || Promise.resolve()).then(() => (d.auto ? toAuto(s) : pin(s, d.model, d.effort)));
+      queue.set(s, p);
+      return p.then((ok) => {
+        if (queue.get(s) === p) queue.delete(s);
+        if (asked.get(s) === n) { if (ok) failed.delete(s); else failed.set(s, d); }
+        return ok;
+      });
+    });
+  }
   /**
    * Done: the choice is saved, and the picker closes once it has been. While it saves, Done says so and a second
    * Done joins the first; refused, the picker stays open on your choice with what went wrong, and Done tries
    * again (Astra INT-2).
    */
   async function done() {
-    const s = P.session;
+    // while it saves, Done (and Enter) is that same save: nothing more is asked
+    if (P.saving) return;
+    const s = P.session, gen = P.gen;
     if (!draftChanged(s)) { close(); return; }
     const d = P.draft;
     if (!d.auto && !(P.models || []).some((m) => m.id === d.model)) { close(); return; }
-    P.saving = true; P.saveErr = null; render();
-    const ok = await once(`iq:${s}`, () => (d.auto ? toAuto(s) : pin(s, d.model, d.effort)));
+    P.saving = true; P.saveErr = null;
+    const p = save(s, d, gen);
+    render(); // Saving…, busy, the choices waiting: all from this first draw (Astra D884-SAVE-3)
+    const ok = await p;
+    // its result is this opening's only: closed meanwhile, or opened again, it closes and changes nothing there
+    // (a refusal leaves the choice for the next opening: save() says so) (Astra D884-SAVE-2)
+    if (P.gen !== gen) return;
     P.saving = false;
-    if (!P.open || P.session !== s) { if (!ok) failed.set(s, d); return; } // closed meanwhile: it waits for the next opening
-    if (ok) { failed.delete(s); P.draft = null; close({ apply: false }); return; }
+    if (ok) { P.draft = null; close({ apply: false }); return; }
+    failed.delete(s); // it's on screen, with what went wrong
     P.saveErr = "That didn't save, so nothing changed. Your choice is still here: Done tries again.";
     render();
     pop.querySelector("[data-ldone]")?.focus({ preventScroll: true });
@@ -420,13 +464,23 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     P.mv = moving(s) ? { model: null, effort: null, models: catalogs.get(name) || null } : null;
     render();
     if (!P.mv || P.mv.models) return;
+    // the read belongs to this look: a look cancelled (or another opening) drops its answer (Astra MIG-3)
+    const mv = P.mv, mine = () => P.open && P.mv === mv;
     const late = new Promise((_, no) => setTimeout(() => no(new Error("slow")), 20000));
-    Promise.race([catalog(name), late]).then((m) => { if (P.mv && P.rt === name) { P.mv.models = m; render(); } },
-      (err) => { if (P.mv && P.rt === name) { P.mv.modelsErr = err.message === "slow" ? `${rtName(name)}'s models are slow to read; its default still works.` : `${rtName(name)}'s models can't be read now; its default still works.`; render(); } });
+    Promise.race([catalog(name), late]).then((m) => { if (mine()) { mv.models = m; render(); } },
+      (err) => { if (mine()) { mv.modelsErr = err.message === "slow" ? `${rtName(name)}'s models are slow to read; its default still works.` : `${rtName(name)}'s models can't be read now; its default still works.`; render(); } });
+  }
+  /** Out of continuing elsewhere, back to the runtime choice: its section is open (it's where you were choosing),
+   *  focus on the runtime it runs on, never on the Cancel that went with the move's view. */
+  function stepBack() {
+    P.more = true;
+    lookAt(null);
+    pop.querySelector(`[data-lrt][aria-checked="true"]`)?.focus({ preventScroll: true });
   }
   /** opts.rt: open a thread's picker looking at continuing on that runtime (the thread menu's way in). */
   async function open(s, anchor, opts = {}) {
     if (!live(s)) return;
+    P.gen++;
     P.open = true; P.session = s; P.anchor = anchor; P.returnTo = document.activeElement; P.err = null; P.models = null; P.busy = false; P.rt = null; P.mv = null; P.full = false; P.draft = null; P.more = false;
     P.saving = false;
     P.saveErr = null;
@@ -442,6 +496,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     if (!P.open) return;
     if (apply && !P.mv && !P.saving) commit(P.session); else P.draft = null;
     P.req = (P.req || 0) + 1; // a read still in flight belongs to this opening only
+    P.gen++; // and so does a save: its result won't close or change what opens next
     P.rt = null; P.mv = null;
     P.open = false;
     P.anchor?.setAttribute("aria-expanded", "false");
@@ -550,7 +605,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       mv.retry = err.code === "still_busy" || err.code === "timeout" || err.status === 0;
       mv.err = err.code === "still_busy" ? "The thread didn't stop in time. Nothing moved; try again." : err.message;
       // its failure is said in the picker that started it, if that picker is still open on it
-      if (P.open && P.session === s && P.mv === mv) { render(); pop.querySelector("[data-mv-go]")?.focus(); }
+      if (P.open && P.session === s && P.mv === mv) { render(); pop.querySelector("[data-mv-go]")?.focus({ preventScroll: true }); }
     }
   }
 
@@ -571,20 +626,24 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       if (threadOf(P.session)) { lookAt(rt.dataset.lrt); return; }
       setRuntime(P.session, rt.dataset.lrt); return;
     }
-    if (e.target.closest("[data-mv-cancel]")) { lookAt(null); pop.querySelector(`[data-lrt][aria-checked="true"]`)?.focus(); return; }
+    // a choice that waits (aria-disabled: a save or a move is out) does nothing, and keeps focus
+    const waiting = e.target.closest('[aria-disabled="true"]');
+    if (e.target.closest("[data-mv-cancel]")) { if (waiting) return; stepBack(); return; }
     if (e.target.closest("[data-mv-go]")) { moveGo(); return; }
     const mvp = e.target.closest("[data-mvp]");
-    if (mvp && P.mv) { P.mv.effort = mvp.dataset.mvp || null; render(); return; }
+    if (mvp && P.mv) { if (waiting || P.mv.busy) return; P.mv.effort = mvp.dataset.mvp || null; render(); return; }
     const mvm = e.target.closest("[data-mvm]");
-    if (mvm && P.mv) { pickMove(mvm.dataset.mvm); pop.querySelector(`[data-mvm="${CSS.escape(mvm.dataset.mvm)}"]`)?.focus({ preventScroll: true }); return; }
+    if (mvm && P.mv) { if (waiting || P.mv.busy) return; pickMove(mvm.dataset.mvm); pop.querySelector(`[data-mvm="${CSS.escape(mvm.dataset.mvm)}"]`)?.focus({ preventScroll: true }); return; }
     const r = e.target.closest("[data-lroute]");
-    if (r) { const s = P.session; close(); route(s, r.dataset.lroute); return; }
+    if (r) { if (waiting) return; const s = P.session; close(); route(s, r.dataset.lroute); return; }
     if (e.target.closest("[data-lauto]")) { const s = P.session; P.draft = null; close({ apply: false }); toAuto(s); return; }
     if (e.target.closest("[data-ldone]")) { done(); return; }
     if (e.target.closest("[data-lmore]")) { P.more = !P.more; render(); pop.querySelector("[data-lmore]")?.focus({ preventScroll: true }); return; }
     const dm = e.target.closest("[data-dmodel]");
+    if (dm && (waiting || P.saving)) return;
     if (dm) { pickModel(dm.dataset.dmodel); pop.querySelector(`[data-dmodel="${CSS.escape(dm.dataset.dmodel)}"]`)?.focus({ preventScroll: true }); return; }
     const de = e.target.closest("[data-deffort]");
+    if (de && (waiting || P.saving)) return;
     if (de) { pickEffort(de.dataset.deffort); pop.querySelector(`[data-deffort="${CSS.escape(de.dataset.deffort)}"]`)?.focus({ preventScroll: true }); }
   });
   pop.addEventListener("keydown", (e) => {
@@ -598,6 +657,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     const row = e.target.closest("[data-dmodel],[data-mvm]");
     if (row && (e.key === " " || (e.key === "Enter" && row.getAttribute("aria-checked") !== "true"))) {
       e.preventDefault();
+      if (row.getAttribute("aria-disabled") === "true") return; // a save or a move is out: the choice waits
       if (row.dataset.mvm != null) { pickMove(row.dataset.mvm); pop.querySelector(`[data-mvm="${CSS.escape(row.dataset.mvm)}"]`)?.focus({ preventScroll: true }); }
       else { pickModel(row.dataset.dmodel); pop.querySelector(`[data-dmodel="${CSS.escape(row.dataset.dmodel)}"]`)?.focus({ preventScroll: true }); }
       return;
@@ -610,7 +670,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       return;
     }
     if (seg && (e.key === "Enter" || e.key === " ")) return; // the segment's own click
-    if (P.busy || (P.mv && P.mv.busy)) { if (e.key !== "Escape") return; }
+    if (P.busy || P.saving || (P.mv && P.mv.busy)) { if (e.key !== "Escape") return; }
     else if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "ArrowLeft" || e.key === "ArrowRight") {
       if (e.target.closest(".iq-route:not(.iq-depth), .iq-moreb")) return;   // runtime and routing keep the browser's own keys
       const vertical = e.key === "ArrowDown" || e.key === "ArrowUp";
@@ -633,7 +693,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     if (e.key !== "Escape") return;
     e.preventDefault(); e.stopPropagation();
     // Esc steps back out of continuing elsewhere first, then closes
-    if (P.mv && !P.mv.busy) { lookAt(null); pop.querySelector(`[data-lrt][aria-checked="true"]`)?.focus(); } else if (!(P.mv && P.mv.busy)) close({ apply: false });
+    if (P.mv && !P.mv.busy) stepBack(); else if (!(P.mv && P.mv.busy)) close({ apply: false });
   });
   document.addEventListener("pointerdown", (e) => { if (P.open && !(P.mv && P.mv.busy) && !pop.contains(e.target) && !e.target.closest("#iq")) close({ restore: false }); });
   addEventListener("resize", () => { if (P.open) place(); });

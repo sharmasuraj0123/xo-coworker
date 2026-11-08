@@ -825,6 +825,195 @@ t("EDITOR-regex: a pattern that isn't a valid regexp says so", async () => {
   await done(page);
 });
 
+// ── the picker: Astra's d88441d findings (D884-SAVE-1..3, D884-SIMPLE-1, MIG-1..3) ──
+t("D884-SAVE-3: the first Done says it's saving at once: busy, its words, focus kept", async () => {
+  let answer;
+  const W = {};
+  const page = await app(W);
+  await picker(page);
+  await page.locator('#iq-pop [data-dmodel="sonnet"]').click();
+  W.patchGate = new Promise((ok) => (answer = ok));
+  await page.locator("#iq-pop [data-ldone]").focus();
+  await page.keyboard.press("Enter");
+  const b = page.locator("#iq-pop [data-ldone]");
+  assert.equal(await b.getAttribute("aria-busy"), "true", "busy from the first press");
+  assert.equal(await b.getAttribute("aria-disabled"), "true");
+  assert.equal((await b.innerText()).trim(), "Saving…");
+  assert.match(await active(page), /data-ldone/);
+  answer();
+  await page.waitForFunction(() => document.querySelector("#iq-pop").hidden || document.querySelector("#iq-pop").classList.contains("is-out"));
+  assert.equal(W.patches, 1);
+  await done(page);
+});
+t("D884-SAVE-1: while Done saves, the choice on screen is the one being saved and can't change", async () => {
+  let answer;
+  const W = {};
+  const page = await app(W);
+  await picker(page);
+  await page.locator('#iq-pop [data-dmodel="sonnet"]').click();
+  await page.locator('#iq-pop [data-deffort="low"]').click();
+  W.patchGate = new Promise((ok) => (answer = ok));
+  await page.locator("#iq-pop [data-ldone]").click();
+  // every way to change it while it saves: a click, Space on another model, an arrow on the depth, Done again
+  await page.evaluate(() => document.querySelector('#iq-pop [data-dmodel="opus"]').click());
+  await page.locator('#iq-pop [data-dmodel="opus"]').focus();
+  await page.keyboard.press(" ");
+  await page.locator('#iq-pop [data-deffort="low"]').focus();
+  await page.keyboard.press("ArrowRight");
+  await page.evaluate(() => document.querySelector("#iq-pop [data-ldone]").click());
+  const st = await page.evaluate(() => ({
+    model: document.querySelector('#iq-pop [data-dmodel][aria-checked="true"]')?.dataset.dmodel,
+    effort: document.querySelector('#iq-pop [data-deffort][aria-checked="true"]')?.dataset.deffort,
+    waits: document.querySelector('#iq-pop [data-dmodel="opus"]').getAttribute("aria-disabled"),
+  }));
+  assert.deepEqual(st, { model: "sonnet", effort: "low", waits: "true" }, "what's on screen is what's being sent");
+  assert.match(await active(page), /data-deffort=low/, "focus stays where it was");
+  answer();
+  await page.waitForFunction(() => document.querySelector("#iq-pop").hidden || document.querySelector("#iq-pop").classList.contains("is-out"));
+  assert.equal(W.patches, 1, "one request");
+  assert.deepEqual(W.patchBodies[0], { model: "sonnet", effort: "low" });
+  await done(page);
+});
+t("D884-SAVE-2: an earlier Done's success doesn't close a newer opening or take its choice", async () => {
+  let answer;
+  const W = {};
+  const page = await app(W);
+  await picker(page);
+  await page.locator('#iq-pop [data-dmodel="sonnet"]').click();
+  await page.locator('#iq-pop [data-deffort="low"]').click();
+  W.patchGate = new Promise((ok) => (answer = ok));
+  await page.locator("#iq-pop [data-ldone]").click();
+  await page.keyboard.press("Escape"); // put away while it saves
+  await page.locator("#iq").filter({ visible: true }).first().click();
+  await page.locator('#iq-pop [data-dmodel="opus"]').waitFor();
+  await page.locator('#iq-pop [data-dmodel="opus"]').click();
+  await page.locator('#iq-pop [data-deffort="high"]').click();
+  answer(); // the earlier save answers
+  await page.waitForTimeout(400);
+  assert.ok(await page.locator("#iq-pop").isVisible(), "the newer opening stays open");
+  assert.equal(await page.locator('#iq-pop [data-dmodel="opus"]').getAttribute("aria-checked"), "true", "with its own choice");
+  assert.equal(await page.locator('#iq-pop [data-deffort="high"]').getAttribute("aria-checked"), "true");
+  W.patchGate = null;
+  await page.locator("#iq-pop [data-ldone]").click();
+  await page.waitForFunction(() => document.querySelector("#iq-pop").hidden || document.querySelector("#iq-pop").classList.contains("is-out"));
+  assert.deepEqual(W.patchBodies, [{ model: "sonnet", effort: "low" }, { model: "opus", effort: "high" }], "each opening's choice, in order");
+  await done(page);
+});
+t("D884-SIMPLE-1: the simple picker's catalog arriving keeps you on the choice you're on", async () => {
+  let answer;
+  const W = {};
+  const page = await app(W);
+  await page.evaluate(() => localStorage.setItem("cv-shape-device", JSON.stringify({ shape: 1, surfaces: { "xo:composer/intel": { mode: "simple" } } })));
+  await page.reload();
+  await page.waitForSelector('[data-go="p:demo"]', { state: "attached", timeout: 30000 });
+  await toDemo(page);
+  const chip = page.locator("#iq").filter({ visible: true }).first();
+  await chip.click();
+  await page.locator('#iq-pop [data-lsimple="deep"]:not([aria-disabled="true"])').waitFor(); // read once: cached
+  await page.keyboard.press("Escape");
+  W.modelsGate = new Promise((ok) => (answer = ok)); // the next opening's fresh read waits
+  await chip.click();
+  const deep = page.locator('#iq-pop [data-lsimple="deep"]:not([aria-disabled="true"])');
+  await deep.waitFor();
+  await deep.focus();
+  answer();
+  await page.waitForTimeout(400);
+  assert.match(await active(page), /data-lsimple=deep/);
+  await page.keyboard.press("Escape");
+  await done(page);
+});
+
+// ── continuing a thread on another runtime (the picker opened on Codex, as the thread menu opens it) ──
+const RT = (name, dflt) => ({ name, default: dflt, health: { agent: name, usable: true, why_not: null, installed: true, logged_in: true, account: "acct-test", cli_version: "1.0", pool: `${name}:acct-test`, limit: "open", resets_at: null, windows: {}, error: null, checked_at: NOW }, cli: { version: "1.0", logged_in: true, account: "acct-test", limits: {} }, features: { agent: name, cli_version: "1.0", contract_version: "1.0", features: { model: { support: "native", values: [] }, effort: { support: "native", values: [] } } } });
+const CODEX = (list) => ({ name: "codex", models: list.map(([id, efforts]) => ({ id, name: id, efforts, default_effort: null, context_window: null, is_default: false, takes_effort: true, family: null, family_default: false, description: "" })) });
+async function movePicker(W) {
+  W.runtimes = [RT("claude_code", true), RT("codex", false)];
+  const page = await app(W);
+  await toDemo(page);
+  await page.evaluate(() => {
+    const t = window.__t;
+    t.world.state.threads = [{ id: "mig", chatId: "chat_demo", title: "A local task", project: "demo", state: "idle", live: false, busy: false, messages: [], lastAt: Date.now(), happened: "Test only",
+      session: { agent: "claude_code", model: "opus", effort: "low" }, pin: {}, checklist: { total: 0, done: 0, items: [] }, asks: [] }];
+    t.IQ.open("t:mig", document.querySelector("#iq"), { rt: "codex" });
+  });
+  return page;
+}
+t("MIG-1: while it moves, the model and depth it's moving with can't change", async () => {
+  let answer;
+  const W = { modelsFor: (name) => (name === "codex" ? CODEX([["codex-a", ["low", "high"]], ["codex-b", ["low", "max"]]]) : null) };
+  const page = await movePicker(W);
+  await page.locator('#iq-pop [data-mvm="codex-a"]').click();
+  await page.locator('#iq-pop [data-mvp="low"]').waitFor();
+  W.continueGate = new Promise((ok) => (answer = ok));
+  await page.locator("#iq-pop [data-mv-go]").click();
+  await page.waitForFunction(() => document.querySelector("#iq-pop [data-mv-go]")?.getAttribute("aria-busy") === "true");
+  // try to change it while it moves: a click on another model, Space on it, a click on another depth
+  await page.evaluate(() => document.querySelector('#iq-pop [data-mvm="codex-b"]').click());
+  await page.locator('#iq-pop [data-mvm="codex-b"]').focus();
+  await page.keyboard.press(" ");
+  await page.evaluate(() => document.querySelector('#iq-pop [data-mvp="high"]').click());
+  const st = await page.evaluate(() => ({ model: document.querySelector('#iq-pop [data-mvm][aria-checked="true"]')?.dataset.mvm, effort: document.querySelector('#iq-pop [data-mvp][aria-checked="true"]')?.dataset.mvp, says: document.querySelector("#iq-pop .iq-now").textContent }));
+  assert.equal(st.model, "codex-a");
+  assert.equal(st.effort, "low");
+  assert.match(st.says, /codex-a · Quick/, "the promise on screen is what's sent");
+  answer(); // refused: still busy
+  await page.waitForFunction(() => document.querySelector("#iq-pop [data-mv-go]")?.getAttribute("aria-busy") !== "true");
+  assert.deepEqual(W.continues.map((b) => [b.model, b.effort]), [["codex-a", "low"]]);
+  assert.match(await page.locator("#iq-pop .iq-now").innerText(), /codex-a · Quick/, "and it still says what was sent");
+  await done(page);
+});
+t("MIG-2: choosing a depth, and Continue, keep focus where you are", async () => {
+  let answer;
+  const W = { modelsFor: (name) => (name === "codex" ? CODEX([["codex-a", ["low", "medium", "high"]]]) : null) };
+  const page = await movePicker(W);
+  await page.locator('#iq-pop [data-mvm="codex-a"]').click();
+  const hi = page.locator('#iq-pop [data-mvp="high"]');
+  await hi.focus();
+  await page.keyboard.press("Enter");
+  assert.equal(await hi.getAttribute("aria-checked"), "true");
+  assert.match(await active(page), /data-mvp=high/, "Enter on a depth");
+  await page.locator('#iq-pop [data-mvp="low"]').click();
+  assert.match(await active(page), /data-mvp=low/, "a click on a depth");
+  W.continueGate = new Promise((ok) => (answer = ok));
+  await page.locator("#iq-pop [data-mv-go]").focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelector("#iq-pop [data-mv-go]")?.getAttribute("aria-busy") === "true");
+  assert.match(await active(page), /data-mv-go/, "on Continue while it moves");
+  answer();
+  await page.waitForFunction(() => document.querySelector("#iq-pop [data-mv-go]")?.getAttribute("aria-busy") !== "true");
+  assert.match(await active(page), /data-mv-go/, "and on Try again after");
+  await done(page);
+});
+t("MIG-3: a cancelled read of the same runtime's models doesn't replace a newer one", async () => {
+  const gates = [];
+  const W = { modelsFor: (name) => {
+    if (name !== "codex") return null;
+    const n = gates.length;
+    let open; const g = new Promise((ok) => (open = ok)); gates.push(open);
+    return g.then(() => (n === 0 ? CODEX([["codex-old", ["low"]]]) : CODEX([["codex-new", ["low", "high"]]])));
+  } };
+  const page = await movePicker(W); // the first read of Codex's models is out
+  await page.waitForFunction(() => document.querySelector("#iq-pop [data-mv-cancel]"));
+  await page.locator("#iq-pop [data-mv-cancel]").click();
+  await page.locator('#iq-pop [data-lrt="codex"]').click(); // look again: a second read
+  await page.waitForFunction(() => document.querySelector("#iq-pop [data-mv-cancel]"));
+  while (gates.length < 2) await page.waitForTimeout(50);
+  gates[1](); // the newer read answers first
+  await page.locator('#iq-pop [data-mvm="codex-new"]').click();
+  await page.locator('#iq-pop [data-mvp="high"]').click();
+  gates[0](); // then the cancelled one
+  await page.waitForTimeout(400);
+  const st = await page.evaluate(() => ({ rows: [...document.querySelectorAll("#iq-pop [data-mvm]")].map((r) => r.dataset.mvm), model: document.querySelector('#iq-pop [data-mvm][aria-checked="true"]')?.dataset.mvm, effort: document.querySelector('#iq-pop [data-mvp][aria-checked="true"]')?.dataset.mvp }));
+  assert.deepEqual(st, { rows: ["codex-new"], model: "codex-new", effort: "high" }, "the newer list and the choice in it stay");
+  assert.match(await active(page), /data-mvp=high/);
+  // and the list kept for next time is the newer one
+  await page.locator("#iq-pop [data-mv-cancel]").click();
+  await page.locator('#iq-pop [data-lrt="codex"]').click();
+  await page.locator('#iq-pop [data-mvm="codex-new"]').waitFor();
+  assert.equal(await page.locator('#iq-pop [data-mvm="codex-old"]').count(), 0);
+  await done(page);
+});
+
 t("C029: on a phone, Back to chat from a file shows the chat, not the panel again", async () => {
   if (WIDTH > 760) return; // beside the chat on a desktop, the panel coming back is the design
   const page = await app({ files: { "a.js": FILE() } });

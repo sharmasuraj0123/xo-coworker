@@ -53,6 +53,7 @@ function mockApi(W) {
     if (p.startsWith("/api/deploy/")) return W.launchpad ? (W.onDeploy ? W.onDeploy(r, m, p) : r.fallback()) : json({ detail: { code: "not_found", message: "no deploys in tests" } }, 404);
     if (p === "/api/chat/stream") return r.fulfill({ status: 200, contentType: "text/event-stream", body: "retry: 600000\n\n" });
     if (p === "/api/chat/chats") return json({ chats: CHATS.concat(W.extraChats || []) });
+    if (p === "/api/chat/runtimes" && W.runtimes) return json({ runtimes: W.runtimes });
     if (STATIC[p]) return json(STATIC[p]);
     let k;
     if ((k = /^\/api\/chat\/chats\/([^/]+)\/(threads|messages|hops|made|runtime-policy)$/.exec(p))) {
@@ -66,6 +67,8 @@ function mockApi(W) {
     if (/^\/api\/chat\/chats\/[^/]+\/made\/[^/]+\/pin$/.test(p) && (m === "PUT" || m === "DELETE")) { W.pins = (W.pins || 0) + 1; return json({ pinned: m === "PUT" }); }
     if (/^\/api\/chat\/runtimes\/[^/]+\/models$/.test(p)) {
       if (W.modelsGate) await W.modelsGate; // the test says when the catalog answers
+      // W.modelsFor(name): a runtime's catalog as the test answers it (null: the usual Claude list)
+      if (W.modelsFor) { const name = decodeURIComponent(p.split("/")[4]); const b = await W.modelsFor(name); if (b) return json(b); }
       return json({ name: "claude_code", models: W.models || [
         { id: "default", name: "Default", efforts: ["low", "medium", "high"], default_effort: null, context_window: null, is_default: true, takes_effort: true, family: null, family_default: false, description: "The CLI's own choice" },
         { id: "opus", name: "Opus", efforts: ["low", "medium", "high"], default_effort: null, context_window: null, is_default: false, takes_effort: true, family: "opus", family_default: true, description: "For complex work" },
@@ -73,6 +76,7 @@ function mockApi(W) {
     }
     if (/^\/api\/chat\/chats\/[^/]+$/.test(p) && m === "PATCH") {
       W.patches = (W.patches || 0) + 1;
+      W.patchBodies = (W.patchBodies || []).concat([JSON.parse(req.postData() || "{}")]);
       if (W.patchGate) await W.patchGate;
       if (W.patchMode === "503") return json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503);
       return json({});
@@ -159,6 +163,12 @@ function mockApi(W) {
       if (W.ghGate) await W.ghGate;
       return W.ghMode === "connected" ? json({ status: "connected", username: "tester" }) : json({ detail: { code: "unavailable", message: "GitHub didn't answer" } }, 503);
     }
+    // continuing a thread on another runtime: held by W.continueGate, then refused (409 still_busy)
+    if (/^\/api\/chat\/chats\/[^/]+\/threads\/[^/]+\/continue$/.test(p) && m === "POST") {
+      W.continues = (W.continues || []).concat([JSON.parse(req.postData() || "{}")]);
+      if (W.continueGate) await W.continueGate;
+      return json({ detail: { code: "still_busy", message: "The thread didn't stop in time" } }, 409);
+    }
     if (m !== "GET") return r.abort(); // a write this world doesn't know: never sent
     return json({ detail: { code: "not_found", message: "not in the test world" } }, 404);
   };
@@ -166,7 +176,7 @@ function mockApi(W) {
 
 // test hooks, added to the served modules in the page only (the files on disk are untouched)
 async function hooks(page) {
-  await page.route("**/js/app.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()) + "\nwindow.__t={VW,S,world,go,typingRender,lrefRender,render,D,openRuns};" }); });
+  await page.route("**/js/app.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()) + "\nwindow.__t={VW,S,world,go,typingRender,lrefRender,render,D,openRuns,IQ};" }); });
   await page.route("**/js/viewer.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()).replace("function startEdit() {", "function startEdit() { window.__ED=ED; window.__V=V;") }); });
   await page.route("**/js/storm.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()).replace("  boot();", "  window.__storm={apply,stop:()=>{stream?.close();clearTimeout(statusT);clearTimeout(runtimesT);clearTimeout(recoverT);}};\n  boot();") }); });
 }

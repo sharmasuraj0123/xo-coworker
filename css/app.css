@@ -777,6 +777,10 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .iq-row:hover{background:var(--hover-fill)}
 .iq-row:active{background:var(--press-fill)}
 .iq-row:focus-visible{box-shadow:inset 0 0 0 2px var(--focus)}
+/* a choice that waits while a save or a move is out: it keeps focus, says it can't change, doesn't answer hover */
+.iq-row[aria-disabled="true"]{cursor:default}
+.iq-row[aria-disabled="true"]:not(.is-sel){opacity:.55}
+.iq-row[aria-disabled="true"]:is(:hover,:active){background:none}
 .iq-n{flex:none;font:500 var(--fs-base)/20px var(--sans);color:var(--ink-2)}
 .iq-tr{flex:1;min-width:0;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .iq-ck{flex:none;width:14px;height:14px;margin-left:auto;color:var(--accent);opacity:0;transform:scale(.6);transition:opacity var(--d-hover) var(--ease),transform var(--d-hover) var(--ease)}
@@ -806,6 +810,12 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .iq-done{margin-left:auto;height:28px;padding:0 12px;border-radius:var(--r-sm);background:var(--ink);color:var(--on-ink);font:500 var(--fs-sm)/16px var(--sans)}
 .iq-done:hover{background:var(--ink-hi)}
 .iq-done:active{transform:scale(var(--press-scale))}
+.iq-done[aria-busy="true"]{cursor:progress}
+.iq-done[aria-busy="true"]:is(:hover,:active){background:var(--ink);transform:none}
+.iq-mv-acts .btn[aria-disabled="true"]{opacity:.55;cursor:default;transform:none}
+.iq-mv-acts .btn[aria-disabled="true"]:hover{background:none;border-color:var(--line);color:var(--ink-2)}
+.iq-mv-acts .btn-pri[aria-disabled="true"]:hover{background:var(--accent-fill);border-color:var(--accent-fill);color:var(--accent-ink)}
+.iq-mv-acts .btn[aria-busy="true"]{cursor:progress}
 .iq-err{padding:6px 10px 0;font:400 var(--fs-sm)/16px var(--sans);color:var(--err-ink)}
 .iq-mv ul{display:flex;flex-direction:column;gap:4px;margin:0;padding:4px 10px 0 28px;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-2)}
 .iq-mv li::marker{color:var(--ink-4)}
