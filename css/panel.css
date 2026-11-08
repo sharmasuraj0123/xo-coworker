@@ -194,9 +194,11 @@ body.stage-over .stage{box-shadow:var(--e2)}
 .dg-n{width:148px;height:32px;padding:0 8px;gap:8px;font:400 var(--fs-sm)/16px var(--sans)}
 .dg-n.k-root{height:36px;margin-top:-2px;font-weight:600}
 .dg-n.k-more,.dg-n.k-note{width:auto;height:24px;margin-top:4px}
-/* a node's hit area never shrinks below ~24 px on screen however far the map is zoomed out: an invisible margin,
-   in the map's own units, of 12 px × (1/scale − 1) on each side (Astra: More measured 25.8 × 7.2 px after Fit) */
-.dg-n::before{content:"";position:absolute;inset:calc(12px * (1 - 1 / var(--dg-s, 1)))}
+/* a node's hit area stays ~24 px on screen as the map zooms out: an invisible margin, in the map's own units, of
+   12 px × (1/scale − 1) on each side (Astra: More measured 25.8 × 7.2 px after Fit), never more than 20 px: boxes
+   sit 42 px apart, so a grown target (16 + 20 from its centre) never reaches a neighbour's centre (Files/Map grader:
+   below a scale of 0.316 it did); never less than none when zoomed in */
+.dg-n::before{content:"";position:absolute;inset:clamp(-20px, calc(12px * (1 - 1 / var(--dg-s, 1))), 0px)}
 .dg-ic svg,.dg-ic svg.fi{width:16px;height:16px}
 .gn.k-file .gn-d{background:var(--fc,var(--fill-4))}
 :root[data-theme="light"] .gn.k-file .gn-d{background:var(--fc,#B9B9B6)}

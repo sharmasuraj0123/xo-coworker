@@ -584,6 +584,9 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       if (changes && changes.saved) changes.saved(s.project, rel);
       await load(s, dir, { again: true });
       if (F.scope.key !== s.key) return;
+      // a newer New file started while the folder was read again: that row, and what's typed in it, stay; this
+      // file is made and listed, not opened over it (Files/Map grader: the guard sat before this await)
+      if (NW.el) { paint(); return; }
       F.sel = local; F.fileView = true; F.auto = false;
       paint();
       viewer.open({ path: local, name: n, bytes: 0, project: s.project, rel, created: r.edit_id || true }, F.host.querySelector(`.fl-g [data-fl-file="${CSS.escape(local)}"]`));

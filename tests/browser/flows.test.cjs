@@ -25,9 +25,12 @@ try { ({ chromium } = require(PW)); } catch { console.error(`not run: Playwright
 const H = require("./harness.cjs");
 const { SSE, serve, NOW, openApp, launch, LP } = H;
 
-let browser, server, BASE, WIDTH = 1440, passed = 0, failed = 0;
+let browser, server, BASE, WIDTH = 1440, passed = 0, failed = 0, skipped = 0;
 const tests = [];
 const t = (name, fn) => tests.push({ name, fn });
+// a case that doesn't apply at this width says so, and is counted as skipped, never as passed (Files/Map grader)
+class Skip extends Error {}
+const skip = (why) => { throw new Skip(why); };
 // the project's own page, as its row in the sidebar opens it (on a phone the sidebar is a drawer)
 const toDemo = (page) => page.evaluate(() => window.__t.go("p:demo"));
 // theme: "dark" (the harness default) or "light" (Files/Map grader on 453de55: it was dropped here, so the light
@@ -485,7 +488,7 @@ t("S061: the project's top failing, then reading empty: Try again lands on New f
 });
 
 t("C036: the tree toggle beside a file keeps focus as it folds and unfolds", async () => {
-  if (WIDTH < 600) return; // the toggle shows beside a file on a desktop
+  if (WIDTH < 600) skip("the toggle shows beside a file on a desktop");
   const page = await app({ files: { "a.js": FILE() } });
   await panelOpen(page);
   await filesOpen(page);
@@ -503,7 +506,7 @@ t("C036: the tree toggle beside a file keeps focus as it folds and unfolds", asy
 });
 
 t("C034: Files' divider takes the pointer at its line, over the file beside it too", async () => {
-  if (WIDTH < 600) return; // side by side on a desktop only
+  if (WIDTH < 600) skip("side by side on a desktop only");
   const page = await app({ files: { "a.js": FILE() } });
   await panelOpen(page);
   await filesOpen(page);
@@ -535,6 +538,27 @@ t("C031: a New file started while the last one is being made keeps its row, what
   await page.waitForTimeout(200);
   const st = await page.evaluate(() => { const i = document.querySelector("[data-fl-name]"); return { value: i && i.value, focused: !!i && document.activeElement === i }; });
   assert.deepEqual(st, { value: "sec", focused: true }, "the newer row stays, with what's typed in it");
+  await done(page);
+});
+t("C031: a New file started while the last one's folder is read again keeps its row; the last file isn't opened over it", async () => {
+  let answer;
+  const page = await app({ files: { "a.js": FILE() } });
+  await panelOpen(page);
+  await filesOpen(page);
+  const nb = page.locator("[data-fl-new]").filter({ visible: true }).first();
+  await nb.click();
+  await page.keyboard.insertText("first.md");
+  page.W.rootGate = new Promise((ok) => (answer = ok)); // the save answers; the folder's read after it waits
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => !document.querySelector("[data-fl-name]")); // made: its row has gone
+  await nb.click();
+  await page.waitForFunction(() => { const i = document.querySelector("[data-fl-name]"); return i && document.activeElement === i; });
+  await page.keyboard.insertText("sec");
+  answer(); page.W.rootGate = null;
+  await page.locator('[data-fl-file="first.md"]').filter({ visible: true }).first().waitFor();
+  await page.waitForTimeout(250);
+  const st = await page.evaluate(() => { const i = document.querySelector("[data-fl-name]"); return { value: i && i.value, focused: !!i && document.activeElement === i, opened: window.__t.VW.isOpen && window.__t.VW.file?.rel === "first.md" }; });
+  assert.deepEqual(st, { value: "sec", focused: true, opened: false });
   await done(page);
 });
 t("S208: the map's Follow says on and off as it's pressed", async () => {
@@ -581,7 +605,7 @@ const MADE = () => [
   { id: "mk2", kind: "link", url: "https://example.com/report", name: "report", created_at: NOW, updated_at: NOW },
 ];
 t("C013: on a phone, Artifacts is a list of rows (the name gets the width), pictures stay pictures under Images", async () => {
-  if (WIDTH >= 600) return; // a phone's layout
+  if (WIDTH >= 600) skip("a phone's layout");
   const long = "quarterly-research-findings-for-the-board-final-draft.md";
   const made = [
     { id: "r1", name: long, path: long, relative_path: long, project_id: "demo", mime: "text/markdown", bytes: 10, created_at: NOW, updated_at: NOW },
@@ -1185,28 +1209,36 @@ for (const variant of ["read", "held", "refused"]) {
     await done(page);
   });
 }
-t("S207: the map's Fit shows every box, and a box far out still takes a pointer", async () => {
+t("S207: Fit shows every box, even with a folder's More opened; each box's middle is its own, never a neighbour's", async () => {
   const dirs = Array.from({ length: 40 }, (_, i) => `folder-${String(i).padStart(2, "0")}`);
   const page = await app({ files: { "a.js": FILE() }, dirs });
   await panelOpen(page);
   if (await page.locator('[data-ghost="map"]').filter({ visible: true }).count()) await page.locator('[data-ghost="map"]').filter({ visible: true }).first().click();
   await page.locator("#stage-map-tree").waitFor();
   await page.evaluate(() => document.querySelector("#stage-map-tree").click());
-  await page.locator('[data-node="folder-39"], .dg-n.k-more').first().waitFor();
+  await page.locator(".dg-world [data-node]").first().waitFor();
+  // the top folder shows 14 and "N more": open them all
+  const more = page.locator(".dg-world .dg-n.k-more").first();
+  if (await more.count()) { await more.click(); await page.waitForTimeout(300); }
   await page.locator('[data-dg="fit"]').filter({ visible: true }).first().click();
-  await page.waitForTimeout(400);
+  await page.waitForTimeout(500);
   const r = await page.evaluate(() => {
-    const box = document.querySelector(".dg-world").parentElement.getBoundingClientRect(); // the map's view
+    const box = document.querySelector(".dg-world").parentElement.getBoundingClientRect();
     const nodes = [...document.querySelectorAll(".dg-world [data-node]")];
-    const out = nodes.filter((n) => { const b = n.getBoundingClientRect(); return b.left < box.left - 1 || b.right > box.right + 1 || b.top < box.top - 1 || b.bottom > box.bottom + 1; }).map((n) => n.dataset.node);
-    // the smallest box: 12 px above its middle is still the box (its hit area doesn't shrink with the map)
-    const n = nodes.sort((a, b) => a.getBoundingClientRect().height - b.getBoundingClientRect().height)[0];
-    const b = n.getBoundingClientRect(), hit = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2 - 10);
-    return { n: nodes.length, out, h: b.height, hits: !!hit && n.contains(hit) };
+    const out = [], stolen = [];
+    for (const n of nodes) {
+      const b = n.getBoundingClientRect();
+      if (b.left < box.left - 1 || b.right > box.right + 1 || b.top < box.top - 1 || b.bottom > box.bottom + 1) out.push(n.dataset.node);
+      const hit = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
+      const owner = hit && hit.closest("[data-node]");
+      if (owner !== n) stolen.push(`${n.dataset.node} → ${owner ? owner.dataset.node : hit && hit.tagName}`);
+    }
+    const s = parseFloat(document.querySelector(".dg-world").style.getPropertyValue("--dg-s")) || 1;
+    return { n: nodes.length, out, stolen, s };
   });
-  assert.ok(r.n > 14, `the map draws the folders (${r.n})`);
+  assert.ok(r.n >= 40, `every folder drawn (${r.n})`);
   assert.deepEqual(r.out, [], "every box inside the view after Fit");
-  if (r.h < 20) assert.ok(r.hits, `a ${r.h.toFixed(1)} px box still takes the pointer 10 px above its middle`);
+  assert.deepEqual(r.stolen, [], `at scale ${r.s.toFixed(3)} each box's middle is its own`);
   await done(page);
 });
 t("H12: a made thing's age updates in place, and a name cut in the middle stays whole", async () => {
@@ -1544,7 +1576,7 @@ for (const [name, sel, place] of [["C007 project search", "#pf-in", "home"], ["C
     // the project search shows once the list is long: enough projects for it
     const W = sel === "#pf-in" ? { extraChats: Array.from({ length: 12 }, (_, i) => H.chat(`chat_p${i}`, "project", `proj-${i}`)) } : {};
     const page = await app(W, { theme: "light" });
-    if (WIDTH < 600 && sel === "#pf-in") { await done(page); return; } // the phone's sidebar is a drawer: the desktop case covers the rule
+    if (WIDTH < 600 && sel === "#pf-in") { await done(page); skip("the phone's sidebar is a drawer: the desktop case covers the rule"); }
     await page.evaluate((v) => window.__t.go(v), place);
     await page.locator(sel).waitFor({ state: "attached", timeout: 20000 }); // the place's own field, once it's drawn
     const box = await page.evaluate((sel) => { const e = document.querySelector(sel); const b = e.parentElement; return { rest: getComputedStyle(b).borderColor }; }, sel);
@@ -1751,13 +1783,16 @@ async function ctxDone(page) { const errs = page.errors; await page.context().cl
     WIDTH = width;
     for (const { name, fn } of tests) {
       if (only && !only.test(name)) continue;
-      if (width !== 1440 && /^G[12]:/.test(name)) continue;
       const label = `${name} [${width}]`;
+      if (width !== 1440 && /^G[12]:/.test(name)) { skipped++; console.log(`  skip ${label} (a desktop case)`); continue; }
       try { await fn(); passed++; console.log("  ok  " + label); }
-      catch (e) { failed++; console.error("  FAIL " + label + "\n" + (e.stack || e)); }
+      catch (e) {
+        if (e instanceof Skip) { skipped++; console.log(`  skip ${label} (${e.message})`); continue; }
+        failed++; console.error("  FAIL " + label + "\n" + (e.stack || e));
+      }
     }
   }
   await browser.close(); server.close();
-  console.log(`${passed} passed${failed ? `, ${failed} failed` : ""}`);
+  console.log(`${passed} passed${failed ? `, ${failed} failed` : ""}${skipped ? `, ${skipped} skipped` : ""}`);
   process.exitCode = failed ? 1 : 0;
 })();
