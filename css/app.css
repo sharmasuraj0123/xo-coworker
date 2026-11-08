@@ -370,7 +370,16 @@ button:disabled{cursor:default}
 .nw-more:hover{color:var(--ink)}
 /* A thread's header keeps its title: when the row is short (a panel open, a narrow window) the actions give
    way first and become their icons; the runtime's name goes (it is in the composer's chip). */
-.top[data-kind="thread"]{container:top / inline-size}
+.top[data-kind="thread"],.top[data-kind="project"]{container:top / inline-size}
+/* a project's header in a short row: the Now strip goes before anything is cut (it's one click away in Threads),
+   then the actions become their icons; the title keeps its room */
+@container top (max-width:700px){
+  .top[data-kind="project"] .now-wrap{display:none}
+}
+@container top (max-width:560px){
+  .top[data-kind="project"] .tw-act.lp-btn{width:var(--h-ctl);padding:0;justify-content:center}
+  .top[data-kind="project"] .tw-act.lp-btn>span{display:none}
+}
 @container top (max-width:820px){
   .top .tw-act:not(.tw-more){width:var(--h-ctl);padding:0;justify-content:center}
   .top .tw-act:not(.tw-more)>span{display:none}
