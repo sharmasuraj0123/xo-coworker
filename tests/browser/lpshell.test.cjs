@@ -2,7 +2,7 @@
 // The rows they lock are listed in design-research/2026-11-lg/LAUNCHPAD-SHELL.md.
 //   Launchpad: errors are whole · name taken · size dropdown · undo · stop window · copy is truthful · menu keys ·
 //              ask pending
-//   Shells: toggle · close says so · tab keys · rename in the tab · close asks in its row · new shell pending · retry counts ·
+//   Shells: toggle · close says so · close all detached · tab keys · rename in the tab · close asks in its row · new shell pending · retry counts ·
 //           ended · terminal copy
 //
 // Self-contained: the app is served from this folder, every /api request is answered in the page by
@@ -20,12 +20,14 @@ let env, WIDTH = 1440, passed = 0, failed = 0;
 const tests = [];
 const t = (name, fn) => tests.push({ name, fn });
 const open = (o = {}) => W.open(env.browser, env.base, { width: WIDTH, height: WIDTH > 760 ? 900 : 844, motion: "reduce", ...o });
-// every case ends by asking Launchpad whether any redraw took focus away with no place named for it (a bug either way)
+// every case ends with both focus checks: Launchpad's own (a redraw with no place named) and the main build's
+// (window.__focusDrops: focus fell to the page because its control was removed or hidden)
 async function done(page) {
-  const lost = await page.evaluate(() => window.__t?.LP?.lostFocus?.() || []).catch(() => []);
+  const { lost, drops } = await page.evaluate(() => ({ lost: window.__t?.LP?.lostFocus?.() || [], drops: window.__focusDrops || [] })).catch(() => ({ lost: [], drops: [] }));
   const errs = page.errors; await page.context().close();
   assert.deepEqual(errs, [], "page errors");
   assert.deepEqual(lost, [], "focus lost to the page by a redraw with no place named");
+  assert.deepEqual(drops, [], "focus fell to the page: its control was removed or hidden (the main build's check)");
 }
 const live = (page) => page.locator("#live").innerText();
 const json = (r, o, status = 200) => r.fulfill({ status, contentType: "application/json", body: JSON.stringify(o) });
@@ -386,6 +388,34 @@ t("SH07/SH25: a refused close keeps the shell: its tab, its socket, its row; foc
   assert.match(await live(page), /Couldn't close .*still running/);
   await page.locator('[data-sh-tab="list"]').click();
   assert.equal(await page.locator('.shl-row [data-sh-close="sh_2"]').count(), 1, "its row stays");
+  await done(page);
+});
+
+t("SH21/SH08/SH09: Close all detached asks and answers; minimise, show and hide keep focus off the page", async () => {
+  const page = await dock();
+  await page.locator("[data-sh-closedet]").focus();
+  await page.keyboard.press("Enter");
+  await page.waitForSelector(".shd-confirm:not([hidden])");
+  assert.match(await page.locator(".shd-confirm").innerText(), /Close 3 detached shells\?/);
+  await page.keyboard.press("Escape");
+  assert.equal(await page.evaluate(() => document.activeElement.hasAttribute("data-sh-closedet")), true, "Esc: back on Close all detached");
+  await page.keyboard.press("Enter");
+  await page.locator(".shd-confirm [data-sh-yes]").focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelectorAll(".shl-row:not(.is-ended)").length === 0);
+  assert.equal(page.W.closed.length, 3);
+  assert.ok(await page.evaluate(() => document.querySelector("#shd").contains(document.activeElement)), "focus stays in the dock");
+  if (WIDTH > 760) {
+    await page.locator("[data-sh-min]").focus();
+    await page.keyboard.press("Enter");
+    assert.equal(await page.evaluate(() => document.querySelector("#shd").classList.contains("is-min")), true);
+    await page.locator("[data-sh-min]").focus();
+    await page.keyboard.press("Enter");
+    assert.equal(await page.evaluate(() => document.querySelector("#shd").classList.contains("is-min")), false);
+  }
+  await page.locator("[data-sh-hide]").focus();
+  await page.keyboard.press("Enter");
+  assert.equal(await page.locator("#shd").isHidden(), true);
   await done(page);
 });
 

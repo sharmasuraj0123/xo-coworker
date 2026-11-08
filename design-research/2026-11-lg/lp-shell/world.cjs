@@ -163,6 +163,25 @@ async function open(browser, base, opts = {}) {
     const c = { writeText: (s) => (mode === "deny" ? Promise.reject(new DOMException("Write permission denied.", "NotAllowedError")) : (window.__clip.push(String(s)), Promise.resolve())), readText: () => Promise.resolve(window.__clip.at(-1) || "") };
     try { Object.defineProperty(navigator, "clipboard", { value: c, configurable: true }); } catch { /* */ }
   }, [opts.clip || "ok"]);
+  // the main build's focus check (tests/browser/harness.cjs, 69f8f2a): every time focus falls to the page because
+  // the control that had it was removed or hidden, it's recorded in window.__focusDrops. One change: Chrome 156
+  // fires focusout on a node being removed while it is still connected, so harness.cjs's focusout (which forgets a
+  // control still in the page) forgot every removed one and recorded only hidden ones. Here the decision waits a
+  // microtask: still connected and shown then is a blur on purpose; gone or hidden is a drop.
+  await ctx.addInitScript(() => {
+    window.__focusDrops = [];
+    let last = null;
+    const name = (e) => `${e.tagName.toLowerCase()}${e.id ? "#" + e.id : ""}${[...e.attributes].filter((a) => a.name.startsWith("data-")).map((a) => `[${a.name}${a.value ? "=" + a.value : ""}]`).join("")} "${(e.getAttribute("aria-label") || e.textContent || "").trim().slice(0, 30)}"`;
+    addEventListener("DOMContentLoaded", () => {
+      document.addEventListener("focusin", (e) => { if (e.target !== document.body) last = e.target; }, true);
+      document.addEventListener("focusout", (e) => { const t = e.target; queueMicrotask(() => { if (last === t && t.isConnected && t.getClientRects().length) last = null; }); }, true);
+      const check = () => {
+        const a = document.activeElement;
+        if ((!a || a === document.body) && last && (!last.isConnected || !last.getClientRects().length)) { window.__focusDrops.push(name(last)); last = null; }
+      };
+      new MutationObserver(() => queueMicrotask(check)).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden", "class", "inert", "style"] });
+    });
+  });
   const page = await ctx.newPage();
   page.setDefaultTimeout(8000);
   const errors = [];

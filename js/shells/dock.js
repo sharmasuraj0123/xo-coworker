@@ -10,6 +10,7 @@
 
 import { api } from "../api.js";
 import { esc, COPY_REFUSED } from "../util.js";
+import { redraw } from "../redraw.js"; // in place: the control a person is on is kept, never replaced under them
 import { ICON } from "../ui.js";
 import * as K from "../keys.js";
 import { mountShell } from "./term.js";
@@ -141,7 +142,7 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
         copy: (ok) => { if (ok) announce("Copied the selection."); else { announce(COPY_REFUSED); notify({ kind: "stopped", text: "Couldn't copy", sub: COPY_REFUSED }); } },
       },
     });
-    if (focus) requestAnimationFrame(() => tab.handle.focus());
+    if (focus) tab.handle.focus(); // at once: the list (and the Open pressed in it) is hidden in this same render
     persist(); onChange();
   }
   function activate(id, { focus = true } = {}) {
@@ -150,7 +151,7 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
     render(); persist();
     const tab = R.tabs.get(id);
     if (tab) requestAnimationFrame(() => { tab.handle.refit(); if (focus) tab.handle.focus(); });
-    else if (id === LIST) { refresh(); if (focus) requestAnimationFrame(() => tabsEl.querySelector(`[data-sh-tab="${LIST}"]`)?.focus()); }
+    else if (id === LIST) { refresh(); if (focus) tabsEl.querySelector(`[data-sh-tab="${LIST}"]`)?.focus(); }
   }
   /** Stop watching: the socket closes, the shell keeps running. */
   function detach(id, { quiet = false } = {}) {
@@ -162,7 +163,12 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
     const i = R.order.indexOf(id);
     R.order.splice(i, 1);
     if (R.active === id) R.active = R.order[Math.min(i, R.order.length - 1)] || LIST;
-    if (!quiet) { changed(); refreshSoon(); const t = R.tabs.get(R.active); if (t) t.handle.focus(); }
+    // Stop watching / Close tab: the tab now in front takes focus, else the Shells tab (its list), in the same breath
+    if (!quiet) {
+      const here = root.contains(document.activeElement) || document.activeElement === document.body;
+      changed(); refreshSoon();
+      if (here) { const t = R.tabs.get(R.active); if (t) t.handle.focus(); else tabsEl.querySelector(`[data-sh-tab="${LIST}"]`)?.focus(); }
+    }
   }
   /** A tab waiting to reconnect counts its seconds down (a number written once and never moved was a lie a second later). */
   let cdT = 0;
@@ -260,6 +266,8 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
     const at = [...listEl.querySelectorAll(".shl-row [data-sh-close]")].findIndex((b) => b.dataset.shClose === id); // its place in the list
     R.confirm = null;
     R.busy.add(id); render();
+    // the question (Close shell, Keep it) went in that render: its × (Closing…) holds focus while it closes
+    if (had && (!root.contains(document.activeElement) || document.activeElement === document.body)) root.querySelector(`${R.active === LIST ? ".shl-row" : ".shd-acts"} [data-sh-close="${CSS.escape(id)}"]`)?.focus();
     const name = nameOf(id);
     try {
       await api.closeTerminal(id);
@@ -297,9 +305,13 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
     confirmEl.querySelector("[data-sh-no]")?.focus();
   }
   async function closeDetached(ids) {
+    const had = root.contains(document.activeElement);
+    const lost = () => had && (!root.contains(document.activeElement) || document.activeElement === document.body);
     R.confirm = null;
     for (const id of ids) R.busy.add(id);
     render();
+    // the question went in that render: Close all detached holds focus while they close
+    if (lost()) listEl.querySelector("[data-sh-closedet]")?.focus();
     const failed = [];
     for (const id of ids) {
       let gone = true;
@@ -311,6 +323,8 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
     else announce(`${ids.length} detached shell${ids.length === 1 ? "" : "s"} closed`);
     changed();
     refreshSoon();
+    // done: Close all detached again if some were refused, else New shell (the list's way on)
+    if (lost()) (listEl.querySelector("[data-sh-closedet]") || listEl.querySelector("[data-sh-new]"))?.focus();
   }
 
   // ── renaming ──────────────────────────────────────────────────────────────
@@ -321,13 +335,16 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
     const inp = root.querySelector(`[data-sh-name="${CSS.escape(id)}"]`);
     if (inp) { inp.focus(); inp.select(); }
   }
+  /** Where focus goes when a name field closes: its tab, or (renamed in the list) the row's Rename. */
+  const renameBack = (id) => (R.active === id ? `[data-sh-tab="${CSS.escape(id)}"]` : `.shl-row [data-sh-rename="${CSS.escape(id)}"]`);
   async function saveRename(id, value) {
-    const back = R.active === id ? `[data-sh-tab="${CSS.escape(id)}"]` : `[data-sh-rename="${CSS.escape(id)}"]`;
+    const back = renameBack(id);
     const refocus = root.contains(document.activeElement) || document.activeElement === document.body;
     R.edit = null;
     const name = cleanName(value);
     if (!name || name === nameOf(id)) { render(); if (refocus) root.querySelector(back)?.focus(); return; }
     R.busy.add(id); render();
+    if (refocus) root.querySelector(back)?.focus(); // the field went in that render: its tab has focus while it saves
     let failed = false;
     try {
       const d = await api.renameTerminal(id, name);
@@ -381,7 +398,7 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
       const note = noteFor(id, tab);
       const el = tab.pane.querySelector(".shd-note");
       el.hidden = !note;
-      if (note && el._h !== note) { el.innerHTML = note; el._h = note; }
+      if (note && el._h !== note) { redraw(el, note); el._h = note; }
       tab.pane.classList.toggle("is-ended", tab.state === "ended" || tab.state === "off");
     }
     if (R.active === LIST) renderList();
@@ -405,7 +422,7 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
         `<button type="button" class="shd-tx" data-sh-detach="${esc(id)}" aria-label="Stop watching ${esc(nameOf(id))}" title="Stop watching (it keeps running)">${ICON.close}</button></span>`);
     }
     const html = tabs.join("");
-    if (tabsEl._h !== html) { tabsEl.innerHTML = html; tabsEl._h = html; }
+    if (tabsEl._h !== html) { redraw(tabsEl, html); tabsEl._h = html; }
   }
 
   function renderActs() {
@@ -424,7 +441,7 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
     // − folds the dock to its bar, and minimised a chevron points up, the way it comes back; ↓ puts it away
     html += `<button type="button" class="shd-act shd-ic${R.min ? " is-up" : ""}" data-sh-min aria-label="${R.min ? "Show shells" : "Minimise shells"}" title="${R.min ? "Show" : "Minimise"} (${esc(K.label("shells"))})">${R.min ? ICON.chevron : ICON.minimize}</button>` +
       `<button type="button" class="shd-act shd-ic" data-sh-hide aria-label="Hide shells" title="Hide (they keep running)">${ICON.down}</button>`;
-    if (actsEl._h !== html) { actsEl.innerHTML = html; actsEl._h = html; }
+    if (actsEl._h !== html) { redraw(actsEl, html); actsEl._h = html; }
   }
 
   function renderConfirm() {
@@ -434,7 +451,7 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
     const html = c.kind === "close"
       ? `<p><b>${esc(c.fg)}</b> is running in <b>${esc(nameOf(c.id))}</b>. Closing the shell stops it, and everything else started there.</p><div class="shd-ca"><button type="button" class="btn" data-sh-no>Keep it</button><button type="button" class="btn btn-danger" data-sh-yes>Close shell</button></div>`
       : `<p>Close <b>${c.ids.length} detached shell${c.ids.length === 1 ? "" : "s"}</b>? Everything running in ${c.ids.length === 1 ? "it" : "them"} stops.</p><div class="shd-ca"><button type="button" class="btn" data-sh-no>Keep them</button><button type="button" class="btn btn-danger" data-sh-yes>Close ${c.ids.length}</button></div>`;
-    if (confirmEl._h !== html) { confirmEl.innerHTML = html; confirmEl._h = html; }
+    if (confirmEl._h !== html) { redraw(confirmEl, html); confirmEl._h = html; }
     confirmEl.setAttribute("aria-label", c.kind === "close" ? "Close this shell" : "Close detached shells");
   }
 
@@ -474,7 +491,7 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
     else if (!rows.length) body = `<p class="shl-empty"><b>No shells${where ? ` in ${esc(where)}` : ""} yet.</b> New shell opens one in ${where ? (f === "workspace" ? "the projects folder" : "the project's folder") : "the projects folder"}. A shell keeps running when you look away, and comes back with its output.</p>`;
     else body = `<ul class="shl-list">${rows.map((t) => rowHtml(t, now)).join("")}</ul>`;
     const html = head + body + (R.err && R.loaded ? `<p class="shl-err">Couldn't refresh: ${esc(R.err)}</p>` : "");
-    if (listEl._h !== html) { listEl.innerHTML = html; listEl._h = html; }
+    if (listEl._h !== html) { redraw(listEl, html); listEl._h = html; }
     if (R.edit) listEl.querySelector("[data-sh-name]")?.focus();
   }
 
@@ -537,7 +554,7 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
     const inp = e.target.closest?.("[data-sh-name]");
     if (inp) {
       if (e.key === "Enter") { e.preventDefault(); saveRename(inp.dataset.shName, inp.value); }
-      else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); R.edit = null; render(); }
+      else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); const id = inp.dataset.shName; R.edit = null; render(); root.querySelector(renameBack(id))?.focus(); }
       return;
     }
     if (owns(e)) return; // the shell has every key
