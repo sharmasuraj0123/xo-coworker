@@ -157,6 +157,22 @@ const busy = (page, sel) => page.locator(sel).getAttribute("aria-busy");
 const shot = (page, name) => page.screenshot({ path: `/tmp/settings-work/shots/${page.width}-${page.theme}-${name}.png` });
 
 // ── closing Settings, and General's switches ─────────────────────────────────────────────────
+t("C097 Close settings (Enter, Space, a click, Esc) returns the keyboard to what opened Settings", async (ctx) => {
+  const page = await open(world(), ctx);
+  const opener = ctx.width < 600 ? "#set-phone" : "#set-side";
+  const back = () => page.evaluate(() => { const a = document.activeElement; return a && a.id ? `#${a.id}` : a.tagName; });
+  for (const how of ["Enter", "Space", "click", "Escape"]) {
+    await keyFocus(page, opener);
+    await page.keyboard.press("Enter");
+    await page.waitForSelector("#settings:not([hidden])");
+    if (how === "click") await page.locator("#set-x").click();
+    else if (how === "Escape") await page.keyboard.press("Escape");
+    else { await keyFocus(page, "#set-x"); await page.keyboard.press(how); }
+    await page.waitForSelector("#settings", { state: "hidden" });
+    assert.equal(await back(), opener, `${how} closes Settings back to ${opener}`);
+  }
+  await done(page);
+});
 t("H17 C010 Esc from Settings returns the keyboard to what opened it: the menu, when it came from a phone's drawer", async (ctx) => {
   const page = await open(world(), ctx);
   let opener;
@@ -572,6 +588,61 @@ t("C115 a refused box shows what's saved again, says why, and Space tries again"
   assert.equal(writes(page, "policy"), 2);
   await done(page);
 });
+t("C114 a refused usual runtime: the saved one stays chosen, the reason shows under it, the keyboard stays, and Enter tries again", async (ctx) => {
+  const W = world({ delay: 300 });
+  W.fail.policy = [err("unavailable", "Policy fixture unavailable")];
+  const page = await open(W, ctx);
+  await settings(page, "runtimes");
+  const codex = '[data-rtd-default="codex"]';
+  await page.waitForSelector(codex);
+  await keyFocus(page, codex);
+  await page.keyboard.press("Enter");
+  await page.waitForSelector('.rt-ferr[role="alert"]');
+  assert.equal(await page.locator(codex).getAttribute("aria-checked"), "false", "refused: not chosen");
+  assert.equal(await page.locator('[data-rtd-default="claude_code"]').getAttribute("aria-checked"), "true", "the saved one is");
+  assert.equal(await focused(page), `button${codex}`);
+  await page.keyboard.press("Enter");
+  await page.waitForFunction((s) => document.querySelector(s).getAttribute("aria-checked") === "true" && !document.querySelector(".rt-ferr"), codex);
+  assert.equal(page.W.policy.default, "codex");
+  assert.equal(await focused(page), `button${codex}`);
+  await done(page);
+});
+t("C106 Compact: the switch stays the same node (its knob slides), says its state and sets the density", async (ctx) => {
+  const page = await open(world(), ctx);
+  await settings(page, "shape");
+  const sw = "[data-shp-dense]";
+  await keyFocus(page, sw);
+  const node = await page.locator(sw).elementHandle(), knob = await page.locator(`${sw} .th-knob`).elementHandle();
+  await page.keyboard.press("Space");
+  await page.waitForFunction(() => document.documentElement.dataset.density === "compact");
+  assert.equal(await page.locator(sw).getAttribute("aria-checked"), "true");
+  assert.equal(await node.evaluate((e) => e === document.activeElement && e.isConnected), true, "the same switch keeps the keyboard");
+  assert.equal(await knob.evaluate((e) => e.isConnected), true, "its knob wasn't redrawn, so it slides");
+  await page.keyboard.press("Space");
+  await page.waitForFunction(() => document.documentElement.dataset.density !== "compact");
+  assert.equal(await page.locator(sw).getAttribute("aria-checked"), "false");
+  await done(page);
+});
+t("C112 a decision model's \"about it\" link opens its page in a new tab, by Enter as by a click", async (ctx) => {
+  const W = world();
+  W.dms = W.dms.map((m) => (m.id === "quill" ? { ...m, docs_url: "https://example.invalid/quill" } : m));
+  const page = await open(W, ctx);
+  await settings(page, "routing");
+  const a = page.locator('[data-key="dm:quill"] a');
+  assert.equal(await a.getAttribute("target"), "_blank");
+  assert.match(await a.getAttribute("rel"), /noopener/);
+  // the new tab's request is answered here and goes nowhere: what's checked is that a new tab asked for that page
+  await page.context().route("https://example.invalid/**", (r) => r.fulfill({ status: 200, contentType: "text/html", body: "<title>about</title>" }));
+  for (const how of ["Enter", "click"]) {
+    const req = page.context().waitForEvent("request", (r) => r.url() === "https://example.invalid/quill");
+    if (how === "click") await a.click(); else { await keyFocus(page, '[data-key="dm:quill"] a'); await page.keyboard.press("Enter"); }
+    const r = await req;
+    const tab = r.frame().page();
+    assert.notEqual(tab, page, `${how}: a new tab, not this one`);
+    await tab.close();
+  }
+  await done(page);
+});
 t("S098 a refused preference keeps what was typed, with the reason under it", async (ctx) => {
   const W = world({ delay: 300 });
   W.fail.policy = [err("unavailable", "Policy fixture unavailable")];
@@ -858,7 +929,7 @@ t("S116 S117 the first-run question keeps Tab and Shift+Tab inside it", async (c
 });
 
 // ── Home ─────────────────────────────────────────────────────────────────────────────────
-t("C012 C013 Home: Handled and a Recently made file keep focus through Home's redraws (and a second)", async (ctx) => {
+t("H1 C012 C013 Home: Handled and a Recently made file keep focus through Home's redraws (and a second)", async (ctx) => {
   const made = [{ id: "artifact-note", name: "artifact.txt", path: "artifact.txt", relative_path: "artifact.txt", project_id: "demo", thread_ts: null, kind: "file", created_at: NOW, exists: true }];
   const page = await open(world({ made }), ctx);
   await page.evaluate(() => window.__t.go("home"));
