@@ -56,6 +56,8 @@ import { rtName, manyRuntimes, findRt, healthOf, canMove, clockWords, untilWords
 import { createShapeStore } from "./shape.js";
 import { createShapeView, SHAPE_IC } from "./shapeview.js";
 import { setWorkMode } from "./turnview.js";
+import { once, busyAttrs } from "./pending.js";
+import { radioKeys, menuKeys } from "./keynav.js";
 
 const world = createWorld();
 // what the backend can do, asked each time (a surface that needs a missing one stays away); filled in below
@@ -173,10 +175,8 @@ const CH = createChats({
   restore: (text, { force = false } = {}) => {
     if (force && S.view !== "chats") go("chats");
     if (S.view !== "chats") return false;
-    const now = say.value.trim();
-    if (now && !force) return false;
-    say.value = now ? `${text}\n\n${now}` : text;
-    growSay(); saveDraft(); updateComposer(); say.focus();
+    if (say.value.trim() && !force) return false;
+    putBack(text);
     return true;
   },
 });
@@ -1196,14 +1196,16 @@ function topRender(needs) {
     who = `<span class="tw-ic" aria-hidden="true">${projectIcon(pid)}</span><span class="tw-t"><h1 id="conv-title">${esc(PROJ(pid))}</h1><span class="pj-s${need ? " has-need" : ""}">${countLine([need, ...(parts.length ? parts : [every.length ? "All quiet" : "No threads yet"]), S.desc[pid] && esc(S.desc[pid])])}</span></span>`;
   } else if (t) {
     const ed = S.tEdit && S.tEdit.tid === t.id ? S.tEdit.field : null;
+    // the field shows what was typed (kept through a refusal), and says it's waiting while it saves
+    const edVal = ed ? S.tEdit.value : "", edBusy = ed && S.tEdit.busy ? ' aria-busy="true" readonly' : "";
     const title = ed === "title"
-      ? `<input class="tw-in tw-in-t" id="tw-edit" data-tedit="title" maxlength="120" value="${esc(t.title)}" aria-label="Thread name">`
+      ? `<input class="tw-in tw-in-t" id="tw-edit" data-tedit="title" maxlength="120" value="${esc(edVal)}" aria-label="Thread name"${edBusy}>`
       : `<h1 class="tw-h" id="conv-title">${esc(t.title)}</h1>`;
     const label = ed === "label"
-      ? `<input class="tw-in tw-in-l" id="tw-edit" data-tedit="label" maxlength="32" value="${esc(t.label || "")}" placeholder="A short label" aria-label="Label">`
+      ? `<input class="tw-in tw-in-l" id="tw-edit" data-tedit="label" maxlength="32" value="${esc(edVal)}" placeholder="A short label" aria-label="Label"${edBusy}>`
       : t.label ? `<span class="tw-label" title="Label">${esc(t.label)}</span>` : "";
     const resolved = t.state === "resolved";
-    const acts = world.act.storm ? `<span class="tw-acts"><button type="button" class="tw-act" data-resolve="${esc(t.id)}" data-to="${resolved ? "open" : "resolve"}" title="${resolved ? "Reopen it: its agent can pick it up again" : "Mark it resolved: nothing more is owed"}">${resolved ? ICON.retry : ICON.check}<span>${resolved ? "Reopen" : "Resolve"}</span></button>` +
+    const acts = world.act.storm ? `<span class="tw-acts"><button type="button" class="tw-act" data-key="tw-resolve" data-resolve="${esc(t.id)}" data-to="${resolved ? "open" : "resolve"}"${busyAttrs(`resolve:${t.id}`)} title="${resolved ? "Reopen it: its agent can pick it up again" : "Mark it resolved: nothing more is owed"}">${resolved ? ICON.retry : ICON.check}<span>${resolved ? "Reopen" : "Resolve"}</span></button>` +
       `<button type="button" class="tw-act tw-more" data-tmenu="${esc(t.id)}" aria-haspopup="menu" aria-expanded="${S.tMenu === t.id}" title="Rename, label and more" aria-label="Rename, label and more">${ICON.edit}</button>` +
       (S.tMenu === t.id ? `<span class="tw-menu" role="menu"><button type="button" role="menuitem" data-tfield="title">Rename</button><button type="button" role="menuitem" data-tfield="label">${t.label ? "Change label" : "Add a label"}</button>${t.label ? `<button type="button" role="menuitem" data-tfield="clear-label">Remove the label</button>` : ""}${SH.enabled ? `<button type="button" role="menuitem" data-shell="t:${esc(t.id)}">Open a shell in its worktree</button>` : ""}${movable(t) ? `<button type="button" role="menuitem" data-tmove="${esc(t.id)}">Continue on another runtime…</button>` : ""}</span>` : "") + `</span>` : "";
     // a shell in its worktree is in the menu (and the shells dock); the header keeps Resolve and the panel
@@ -1212,8 +1214,13 @@ function topRender(needs) {
     // a field being edited is never replaced under the person's fingers (a frame may change the badge)
     if (ed && $("#tw-edit")) who = null;
   } else who = `<span class="tw-t"><h1 id="conv-title">Thread</h1></span>`;
-  if (who != null) patch($("#top-who"), who);
-  patch($("#top-end"), t ? end : fileChipHtml() + end + (v.startsWith("p:") ? LP.button(v, STAGE.launchOpen) : "") + STAGE.button(v));
+  // in place (js/redraw.js): Resolve turning into Reopen, ⋯ opening its menu, the badge changing, all keep the
+  // control you're on
+  if (who != null && $("#top-who")._h !== who) { redraw($("#top-who"), who); $("#top-who")._h = who; }
+  // in place too: Threads (the switcher's opener) is the same button when All opens and sets aria-expanded, so
+  // closing All finds it to return to (Astra H30)
+  const endHtml = t ? end : fileChipHtml() + end + (v.startsWith("p:") ? LP.button(v, STAGE.launchOpen) : "") + STAGE.button(v);
+  if ($("#top-end")._h !== endHtml) { redraw($("#top-end"), endHtml); $("#top-end")._h = endHtml; }
   LP.ensure(v);
   nowRender(needs);
   checklistRender(needs);
@@ -1251,19 +1258,28 @@ function nowEdges() {
   if (!now) return;
   // with a pointer, the strip shows whole chips only, and what doesn't fit is one "+N" that opens the
   // project's threads (a chip cut mid-word read as broken); a touch screen keeps the swipe and the fades
+  // The "+N" is one button for as long as it's needed: its count changes in place, so a scroll, a resize or All
+  // opening never replaces it (it's the switcher's opener, the place Escape returns to: Astra H30)
   if (matchMedia("(hover: hover) and (pointer: fine)").matches) {
     const chips = [...now.querySelectorAll(".nw:not(.nw-more)")];
+    let more = now.querySelector(".nw-more");
     for (const c of chips) c.hidden = false;
-    now.querySelector(".nw-more")?.remove();
     now.classList.remove("fade-l", "fade-r");
-    if (now.scrollWidth - now.clientWidth <= 2) return;
-    const room = now.clientWidth - 56;
-    let used = 0, fit = 0;
-    for (const c of chips) { used += c.offsetWidth + (fit ? 6 : 0); if (used <= room) fit++; else break; }
-    fit = Math.max(1, fit);
-    for (const c of chips.slice(fit)) c.hidden = true;
-    const n = chips.length - fit;
-    if (n > 0) now.insertAdjacentHTML("beforeend", `<button type="button" class="nw nw-more" data-switch aria-haspopup="dialog" title="${n} more in progress: every thread in this project">+${n}</button>`);
+    const cs = getComputedStyle(now), inner = now.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const all = chips.reduce((w, c, i) => w + c.offsetWidth + (i ? 6 : 0), 0);
+    let n = 0;
+    if (all > inner + 2) {
+      const room = inner - 56;
+      let used = 0, fit = 0;
+      for (const c of chips) { used += c.offsetWidth + (fit ? 6 : 0); if (used <= room) fit++; else break; }
+      fit = Math.max(1, fit);
+      for (const c of chips.slice(fit)) c.hidden = true;
+      n = chips.length - fit;
+    }
+    if (!n) { more?.remove(); return; }
+    if (!more) { now.insertAdjacentHTML("beforeend", `<button type="button" class="nw nw-more" data-switch aria-haspopup="dialog"></button>`); more = now.lastElementChild; }
+    else if (more !== now.lastElementChild) now.append(more);
+    if (more.textContent !== `+${n}`) { more.textContent = `+${n}`; more.title = `${n} more in progress: every thread in this project`; }
     return;
   }
   const more = now.scrollWidth - now.clientWidth > 2;
@@ -1312,7 +1328,9 @@ function checklistRender(needs) {
     `<span class="ck-segs" aria-hidden="true">${segs}</span><span class="ck-n">${c.done} of ${c.total}</span>` +
     `<span class="ck-now" data-mode="${mode}">${nowHtml}</span>${t.branch && SHAPE.on("xo:thread/branch") ? `<code class="ck-br">${ICON.branch}${esc(t.branch)}</code>` : ""}<span class="ck-chev">${ICON.chevron}</span></button></div>` +
     `<div class="ck-b"><ol class="ck-list" id="ck-list" aria-label="Checklist">${list}</ol></div></div>`;
-  patch(th, html + runsStrip(t));
+  // in place: the toggle you pressed is the same element afterwards (it keeps focus), and so is a run's row
+  const all = html + runsStrip(t);
+  if (th._h !== all) { redraw(th, all); th._h = all; }
 }
 
 // ── sub-agents (U2, ch 14 §11): working now under the checklist; the list and each run in a sheet ──
@@ -1867,7 +1885,9 @@ function trayRender() {
   $("#att-note").hidden = !list.length;
   $("#composer").classList.toggle("has-files", !!list.length);
   const html = list.map(chipHtml).join("");
-  if (trayEl._h !== html) { trayEl.innerHTML = html; trayEl._h = html; }
+  // in place (js/redraw.js): a chip whose upload finishes or fails is the same chip, its Remove the same button,
+  // so a focused Remove keeps focus (Astra H28)
+  if (trayEl._h !== html) { redraw(trayEl, html); trayEl._h = html; }
   // progress moves without redrawing the chips (a focused Remove stays focused)
   for (const c of list) {
     const el = trayEl.querySelector(`[data-lid="${CSS.escape(c.lid)}"]`);
@@ -1909,13 +1929,19 @@ trayEl.addEventListener("click", (e) => {
   const lid = li.dataset.lid, c = tray.list(S.view).find((x) => x.lid === lid);
   if (!c) return;
   if (b.dataset.a === "x") {
-    // just drop its id: the server sweeps a file no message names
+    // just drop its id: the server sweeps a file no message names. Focus goes on first, to the next chip's Remove
+    // (or the composer), so it never sits on a chip that's going
     const next = li.nextElementSibling?.querySelector("[data-a=x]") || li.previousElementSibling?.querySelector("[data-a=x]");
+    if (li.contains(document.activeElement)) (next || say).focus({ preventScroll: true });
     dropThumb(tray.remove(S.view, lid));
     announce(`${c.paste ? "The pasted text" : c.name} removed.`);
     trayRender();
-    (next && next.isConnected ? next : say).focus({ preventScroll: true });
-  } else if (b.dataset.a === "retry") tray.retry(S.view, lid);
+  } else if (b.dataset.a === "retry") {
+    // Retry goes as the upload starts again: focus moves first to the same chip's Remove, which stays (H28)
+    if (b === document.activeElement) li.querySelector("[data-a=x]")?.focus({ preventScroll: true });
+    tray.retry(S.view, lid);
+    trayRender();
+  }
   else if (b.dataset.a === "view") VW.open(c.paste != null ? { name: c.name, bytes: c.size, local: c.paste } : { name: c.name, type: c.type, bytes: c.bytes ?? c.size, att: { chat: c.chat, id: c.id } }, b);
   else if (b.dataset.a === "inline") { tray.remove(S.view, lid); insertText(c.paste); announce("The pasted text is back in the message."); }
 });
@@ -2019,7 +2045,7 @@ function updateComposer() {
   if (chatTargetRender()) {
     syncPlaceholder();
     $("#composer").classList.toggle("has-text", !!say.value);
-    sendRender(); growSay(); atList.hidden = true;
+    sendRender(); growSay(); atClose();
     return;
   }
   targetLineRender();
@@ -2029,10 +2055,12 @@ function updateComposer() {
   growSay();
   const before = say.value.slice(0, say.selectionStart);
   const m = before.match(/(^|\s)@([\w.-]*)$/);
-  if (!m) { atList.hidden = true; say.setAttribute("aria-expanded", "false"); say.removeAttribute("aria-activedescendant"); return; }
+  // no @ at the caret, or the list was shut here with Escape (until the text or the caret moves): closed
+  if (!m || atList._shut === before) { atClose(); return; }
+  atList._shut = null;
   const q = m[2].toLowerCase();
   const opts = projects().filter((p) => p.id.toLowerCase().includes(q) || p.name.toLowerCase().includes(q));
-  if (!opts.length) { atList.hidden = true; return; }
+  if (!opts.length) { atClose(); return; }
   atList._sel = Math.min(atList._sel || 0, opts.length - 1);
   atList.innerHTML = opts.map((p, i) => {
     const w = world.state.threads.filter((x) => x.project === p.id && isBusy(x)).length;
@@ -2049,12 +2077,26 @@ function syncPlaceholder() {
   const ph = t ? (t.state === "resolved" ? "Reply to reopen it…" : t.frozen ? "Write here to pick this thread back up…" : "Reply to the agent…") : S.view === "home" ? (PHONE.matches ? "What should get done?" : "What should get done? Use @project to aim it") : S.view === "ws" ? "Ask anything across your projects…" : `Message ${PROJ(convProject(S.view))}…`;
   if (say.placeholder !== ph) { say.placeholder = ph; $("#say-label").textContent = ph; }
 }
+/** The @ list closed, and the field's accessible state with it (no longer expanded, no active option): one
+ *  operation, so what's seen and what's announced always agree (Astra H24). */
+function atClose() {
+  atList.hidden = true;
+  if (say.getAttribute("aria-expanded") !== "false") say.setAttribute("aria-expanded", "false");
+  say.removeAttribute("aria-activedescendant");
+}
+/**
+ * The recipient chosen from the @ list: the whole @token at the caret (the part after it too) becomes @pid, one
+ * space after it, and the draft is saved at once: who it goes to is part of the draft, so a reload keeps it
+ * (Astra H27: it fell back to the Workspace).
+ */
 function pickAt(pid) {
   const pos = say.selectionStart;
-  const before = say.value.slice(0, pos).replace(/(^|\s)@([\w.-]*)$/, `$1@${pid} `);
-  say.value = before + say.value.slice(pos);
-  say.setSelectionRange(before.length, before.length);
-  atList.hidden = true; atList._sel = 0;
+  const before = say.value.slice(0, pos).replace(/(^|\s)@([\w.-]*)$/, `$1@${pid}`);
+  const after = say.value.slice(pos).replace(/^[\w.-]*/, "");
+  say.value = before + (/^\s/.test(after) ? "" : " ") + after;
+  say.setSelectionRange(before.length + 1, before.length + 1);
+  atList._sel = 0; atList._shut = null;
+  saveDraft();
   updateComposer(); say.focus();
 }
 function saveDraft() { if (say.value) S.drafts[S.view] = say.value; else delete S.drafts[S.view]; store.set(DRAFTS, S.drafts); }
@@ -2063,19 +2105,18 @@ function loadDraft() { say.value = S.drafts[S.view] || ""; atList._sel = 0; upda
 say.addEventListener("input", () => { atList._sel = 0; updateComposer(); saveDraft(); });
 say.addEventListener("click", updateComposer);
 say.addEventListener("keydown", (e) => {
+  // an IME composing (its Enter commits the words, its arrows walk its candidates, its Escape cancels them) owns
+  // every key: neither the @ list, nor Send, nor the page's own keys take them (Astra H25: a composing Enter chose
+  // a recipient; a composing Escape would have left the thread)
+  if (e.isComposing || e.keyCode === 229) { e.stopPropagation(); return; }
   if (!atList.hidden) {
     const n = atList.children.length;
     if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); atList._sel = (atList._sel + (e.key === "ArrowDown" ? 1 : n - 1)) % n; updateComposer(); return; }
-    if (e.key === "Enter" || e.key === "Tab") {
-      const pid = atList.children[atList._sel].dataset.pid;
-      const tok = (say.value.slice(0, say.selectionStart).match(/@([\w.-]*)$/) || [])[1] || "";
-      if (tok.toLowerCase() !== pid.toLowerCase()) { e.preventDefault(); pickAt(pid); return; }
-      atList.hidden = true;
-      if (e.key === "Tab") { e.preventDefault(); return; }
-    }
-    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); atList.hidden = true; return; }
+    // the open list owns Enter and Tab: they choose (never send); Shift+Enter is still a new line
+    if ((e.key === "Enter" && !e.shiftKey) || e.key === "Tab") { e.preventDefault(); pickAt(atList.children[atList._sel].dataset.pid); return; }
+    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); atList._shut = say.value.slice(0, say.selectionStart); atClose(); return; }
   }
-  if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); }
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
   if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); say.blur(); }
 });
 atList.addEventListener("mousedown", (e) => { const li = e.target.closest("li"); if (li) { e.preventDefault(); pickAt(li.dataset.pid); } });
@@ -2099,8 +2140,16 @@ $("#composer").addEventListener("submit", (e) => { e.preventDefault(); if ($("#s
 $("#target").addEventListener("click", () => {
   if (S.view === "chats") { CH.openSetup($("#target")); return; }
   if (S.view.startsWith("c:")) { say.focus(); return; }
-  if (!/(^|\s)@/.test(say.value)) say.value = "@" + (say.value ? " " + say.value : "");
-  say.focus(); say.setSelectionRange(1, 1); updateComposer();
+  // the chooser opens on the recipient the draft already names, wherever it is, with every project listed and
+  // that one active (Astra H26); with none, on a new @ at the start. Either way the draft is saved as it now reads
+  const tok = /(^|\s)@([\w.-]*)/.exec(say.value);
+  let at = 1;
+  if (tok) {
+    at = tok.index + tok[1].length + 1;
+    atList._sel = Math.max(0, projects().findIndex((p) => p.id.toLowerCase() === tok[2].toLowerCase()));
+  } else { say.value = "@" + (say.value ? " " + say.value : ""); atList._sel = 0; saveDraft(); }
+  atList._shut = null;
+  say.focus(); say.setSelectionRange(at, at); updateComposer();
 });
 /** "Send now": its own toggle, shown in a chat whose turn is running where the agent can be interrupted. */
 function sendNowRender() {
@@ -2248,8 +2297,10 @@ function sendLive(raw) {
   deliverLive(m, thread);
 }
 
-/** The server's row replaces the optimistic one (same bubble, never twice); errors keep the text. */
-async function deliverLive(m, thread) {
+/** The server's row replaces the optimistic one (same bubble, never twice); errors keep the text. One request at
+ *  a time per message: a Retry pressed again while it's out joins it (js/pending.js). */
+function deliverLive(m, thread) { return once(`send:${m.cid}`, () => postLive(m, thread)); }
+async function postLive(m, thread) {
   m.status = "sending"; delete m.err;
   try {
     const row = await postWithFiles(m, thread);
@@ -2286,27 +2337,45 @@ async function postWithFiles(m, thread) {
   }
 }
 
+/** Send what's in the composer. Pressed on Send itself, focus goes to the composer: Send empties it and is
+ *  disabled until you write again, which would leave focus on nothing. */
 function send() {
   const raw = say.value;
+  const fromSend = document.activeElement === $("#send");
   if (CH.isChats(S.view)) {
     const text = raw.trim();
     if (!text || liveBlock()) return;
     say.value = ""; saveDraft(); updateComposer();
     sound.play("send");
     CH.send(S.view, text);
-    return;
-  }
-  sendLive(raw);
+  } else sendLive(raw);
+  if (fromSend && document.activeElement !== say && !say.value) say.focus({ preventScroll: true });
 }
 
+/** A failed message sent again: the same request (its client_id), one at a time, so a second press joins the
+ *  first. Its Retry goes as it starts: focus, if it was there, goes to the composer. */
 function retry(id) {
   for (const list of Object.values(S.local)) {
     const m = list.find((x) => x.id === id);
     if (m) {
       if (liveBlock()) { announce(`Not sent: ${liveBlock()}.`); return; }
-      m.status = "sending"; schedule(); deliverLive(m, convThread(m.conv) && !m.target ? convThread(m.conv) : null); return;
+      const had = !!document.activeElement?.closest?.(`[data-retry="${CSS.escape(id)}"]`);
+      deliverLive(m, convThread(m.conv) && !m.target ? convThread(m.conv) : null);
+      schedule();
+      if (had) say.focus({ preventScroll: true });
+      return;
     }
   }
+}
+/**
+ * A message's words back in the composer (Edit on a failed one, a refused new chat): with what you've written
+ * since, never instead of it. The words come first, your newer draft under them, and focus is in the composer.
+ */
+function putBack(text) {
+  const now = say.value.trim();
+  say.value = now ? `${text}\n\n${say.value.replace(/^\s+/, "")}` : text;
+  growSay(); saveDraft(); updateComposer(); say.focus();
+  say.setSelectionRange(say.value.length, say.value.length);
 }
 function editFailed(id) {
   const list = S.local[S.view] || [];
@@ -2314,8 +2383,8 @@ function editFailed(id) {
   if (i < 0) return;
   const [m] = list.splice(i, 1);
   if (m.files && m.files.length) tray.restore(S.view, m.files);
-  say.value = (m.target && m.target !== convProject(S.view) ? `@${m.target} ` : "") + m.text;
-  updateComposer(); render(); say.focus();
+  putBack((m.target && m.target !== convProject(S.view) ? `@${m.target} ` : "") + m.text);
+  render();
 }
 
 // ── render ──────────────────────────────────────────────────────────────────
@@ -2438,10 +2507,24 @@ function loadAhead() {
   if (h && h.loaded && !h.all && !h.loading && !h.olderError) world.act.loadOlder(c);
 }
 /** "Earlier messages" (or "Try again"), pressed: the conversation's next older page. */
+/**
+ * Earlier messages, or Try again after a failed read. The button gives way to the shapes of the messages it reads,
+ * so focus, if it was on it, waits on the conversation itself meanwhile; when the read is over it goes to the
+ * button that's there again (Try again after another failure, Earlier messages when there's more), and stays on
+ * the conversation at its beginning (Astra DET-3: it fell to the page).
+ */
 function loadOlderNow() {
+  const from = document.activeElement?.closest?.("[data-older]") ? S.view : null;
+  if (from) scroller.focus({ preventScroll: true });
+  let read = null;
   const t = convThread(S.view);
-  if (t) { const th = world.state.threadHist?.[t.id]; if (th && th.olderError) th.olderError = null; if (world.act.loadOlderThread) world.act.loadOlderThread(t.id); return; }
-  const c = chatOf(S.view); if (c) world.act.loadOlder(c);
+  if (t) { const th = world.state.threadHist?.[t.id]; if (th && th.olderError) th.olderError = null; if (world.act.loadOlderThread) read = world.act.loadOlderThread(t.id); }
+  else { const c = chatOf(S.view); if (c) read = world.act.loadOlder(c); }
+  if (from) Promise.resolve(read).finally(() => {
+    if (S.view !== from || document.activeElement !== scroller) return;
+    render();
+    msgsEl.querySelector("[data-older]")?.focus({ preventScroll: true });
+  });
 }
 
 // ── what you're reading stays put; the agent's work moves, never jumps ─────────────────────────────
@@ -2677,6 +2760,8 @@ function decideKey(key, opts) {
   const t = convThread(S.view);
   const n = D.needItems().find((x) => x.key === key);
   if (t && n && n.t.id === t.id && !D.isOpen() && !opts) {
+    // asked to open this thread's own decision: it opens, folded or not (Astra S150: its notice left it folded)
+    delete S.dockFold[key];
     if (n.later) S.later.delete(key);
     if (n.held) D.bringIn(key);
     schedule();
@@ -2848,41 +2933,88 @@ function sendAbout(f, text) {
 }
 
 // ── a thread's own header: resolve and reopen with Undo (R1), rename, label ──
-async function resolveThread(tid, resolved, { undo = true } = {}) {
-  const t = world.thread(tid);
-  if (!t) return;
-  const name = t.title;
-  try {
-    await world.act.resolve(tid, resolved);
+/**
+ * Resolve or reopen. One request at a time per thread (js/pending.js): a second press, a held Enter, or the
+ * All row's swipe while the header's is out, joins the first, and the button says it's waiting. "Resolved" is
+ * said only once Space has. A refusal says so with Retry; sayFail: false leaves that to the caller (the All
+ * row, whose herald sits behind the sheet). Resolves to {ok} and, refused, {why}.
+ */
+function resolveThread(tid, resolved, { undo = true, sayFail = true } = {}) {
+  const p = once(`resolve:${tid}`, async () => {
+    const t = world.thread(tid);
+    if (!t) return { ok: false, why: "That thread isn't loaded." };
+    const name = t.title;
+    schedule(); // the button, drawn as waiting
+    try {
+      await world.act.resolve(tid, resolved);
+    } catch (err) {
+      announce(`${resolved ? "Couldn't resolve" : "Couldn't reopen"} ${name}. ${err.message}`);
+      if (sayFail) heraldShow({ kind: "stopped", text: resolved ? "Couldn't resolve it" : "Couldn't reopen it", sub: err.message, back: [`[data-resolve="${CSS.escape(tid)}"]`], undo: () => resolveThread(tid, resolved, { undo }), undoLabel: "Retry" }, 8000);
+      return { ok: false, why: err.message };
+    }
     announce(resolved ? `Resolved ${name}.` : `Reopened ${name}.`);
     // Undo is the same call the other way (the route is idempotent); it never starts or stops a turn
     if (undo) heraldShow({ kind: "done", text: resolved ? "Resolved" : "Reopened", sub: name, back: [`[data-resolve="${CSS.escape(tid)}"]`], undo: () => resolveThread(tid, !resolved, { undo: false }) }, 6000);
-  } catch (err) {
-    heraldShow({ kind: "stopped", text: resolved ? "Couldn't resolve it" : "Couldn't reopen it", sub: err.message, back: [`[data-resolve="${CSS.escape(tid)}"]`], undo: () => resolveThread(tid, resolved, { undo }), undoLabel: "Retry" }, 8000);
-  }
+    return { ok: true };
+  });
+  p.finally(schedule); // drawn again once the request is no longer out
+  return p;
 }
+/** The header's ⋯ menu closed: Escape, Tab, a choice made, a click elsewhere. Focus goes back to ⋯ when it was
+ *  in the menu (Tab then goes on from ⋯). */
+function closeThreadMenu({ focus = true } = {}) {
+  if (!S.tMenu) return;
+  const back = focus && !!document.activeElement?.closest?.(".tw-menu");
+  S.tMenu = null; $("#top-who")._h = null;
+  if (!back) { schedule(); return; }
+  render();
+  $("[data-tmenu]")?.focus({ preventScroll: true });
+}
+menuKeys($("#top"), { close: () => closeThreadMenu() });
 function startThreadEdit(tid, field) {
-  S.tEdit = { tid, field };
+  const t = world.thread(tid);
+  if (!t) return;
+  S.tEdit = { tid, field, value: field === "title" ? t.title : t.label || "" };
   $("#top-who")._h = null;
   render();
   const inp = $("#tw-edit");
   if (inp) { inp.focus(); inp.select(); }
 }
-async function saveThreadField(tid, field, value) {
-  S.tEdit = null;
-  $("#top-who")._h = null;
+/** The field closes (saved, unchanged, or Escape): the header shows the name again and, if focus was in the
+ *  field, it goes to ⋯, where the rename came from. Only the edit that is still open closes. */
+function endThreadEdit(edit) {
+  if (S.tEdit !== edit) return;
+  const had = document.activeElement?.id === "tw-edit";
+  S.tEdit = null; $("#top-who")._h = null; render();
+  if (had) $("[data-tmenu]")?.focus({ preventScroll: true });
+}
+/**
+ * Save the header field being edited. While it saves, the field stays as typed, says it's waiting (aria-busy,
+ * read-only) and keeps focus; a second Enter joins the first. Saved, it closes (endThreadEdit). Refused, it stays
+ * open with what was typed and its focus, and says why, so the retry is one Enter away.
+ */
+function saveThreadField(tid, field, value) {
+  const edit = S.tEdit && S.tEdit.tid === tid && S.tEdit.field === field ? S.tEdit : null;
   const t = world.thread(tid);
-  if (!t) { render(); return; }
+  if (!t) { if (edit) endThreadEdit(edit); return Promise.resolve(); }
   const v = String(value || "").trim();
-  if (field === "title" && (!v || v === t.title)) { render(); return; }
-  if (field === "label" && v === (t.label || "")) { render(); return; }
-  render();
-  try {
-    await world.act.editThread(tid, field === "title" ? { title: v.slice(0, 120) } : { label: v ? v.slice(0, 32) : null });
+  if ((field === "title" && (!v || v === t.title)) || (field === "label" && v === (t.label || ""))) { if (edit) endThreadEdit(edit); return Promise.resolve(); }
+  return once(`thread-edit:${tid}:${field}`, async () => {
+    if (edit) { edit.value = value; edit.busy = true; }
+    const inp = edit && $("#tw-edit");
+    if (inp) { inp.readOnly = true; inp.setAttribute("aria-busy", "true"); }
+    try {
+      await world.act.editThread(tid, field === "title" ? { title: v.slice(0, 120) } : { label: v ? v.slice(0, 32) : null });
+    } catch (err) {
+      if (edit) { edit.busy = false; edit.failed = value; }
+      if (inp && inp.isConnected) { inp.readOnly = false; inp.removeAttribute("aria-busy"); }
+      announce(`${field === "title" ? "Couldn't rename it" : "Couldn't change the label"}. ${err.message} What you typed is kept.`);
+      heraldShow({ kind: "stopped", text: field === "title" ? "Couldn't rename it" : "Couldn't change the label", sub: err.message }, 6000);
+      return;
+    }
     announce(field === "title" ? `Renamed to ${v}.` : v ? `Labelled ${v}.` : "Label removed.");
-  } catch (err) {
-    heraldShow({ kind: "stopped", text: field === "title" ? "Couldn't rename it" : "Couldn't change the label", sub: err.message }, 6000);
-  }
+    if (edit) endThreadEdit(edit);
+  });
 }
 // "Coordinator needs you" in a chat's header: the card above the composer, unfolded and in focus
 $("#top").addEventListener("click", (e) => {
@@ -2895,15 +3027,20 @@ $("#top").addEventListener("click", (e) => {
 $("#top").addEventListener("keydown", (e) => {
   const inp = e.target.closest?.("[data-tedit]");
   if (inp) {
-    if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); saveThreadField(S.tEdit?.tid, inp.dataset.tedit, inp.value); }
-    else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); S.tEdit = null; $("#top-who")._h = null; render(); $("#conv-title")?.focus?.(); }
+    // an IME composing owns Enter and Escape (they commit or cancel its words): not the rename's, nor the page's
+    if (e.isComposing || e.keyCode === 229) { e.stopPropagation(); return; }
+    if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); if (S.tEdit) saveThreadField(S.tEdit.tid, inp.dataset.tedit, inp.value); }
+    else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); if (S.tEdit && !S.tEdit.busy) endThreadEdit(S.tEdit); }
     return;
   }
+  // the menu's own keys (↓ ↑ Home End, Escape, Tab) are menuKeys'; this is Escape with focus on ⋯ itself
   if (e.key === "Escape" && S.tMenu) { e.preventDefault(); e.stopPropagation(); S.tMenu = null; $("#top-who")._h = null; render(); $("[data-tmenu]")?.focus(); }
 });
+$("#top").addEventListener("input", (e) => { if (e.target.closest?.("[data-tedit]") && S.tEdit) S.tEdit.value = e.target.value; });
+// leaving the field saves it, unless it's what was just refused (Enter retries that; leaving keeps it, as typed)
 $("#top").addEventListener("focusout", (e) => {
   const inp = e.target.closest?.("[data-tedit]");
-  if (inp && S.tEdit) setTimeout(() => { if (S.tEdit && inp.isConnected && document.activeElement !== inp) saveThreadField(S.tEdit.tid, inp.dataset.tedit, inp.value); }, 0);
+  if (inp && S.tEdit) setTimeout(() => { const ed = S.tEdit; if (ed && !ed.busy && inp.isConnected && document.activeElement !== inp && inp.value !== ed.failed) saveThreadField(ed.tid, inp.dataset.tedit, inp.value); }, 0);
 });
 
 // ── clicks ──────────────────────────────────────────────────────────────────
@@ -2946,12 +3083,13 @@ document.addEventListener("click", (e) => {
     return;
   }
   // Chats: "send now" would stop background tasks; a failed prompt
+  // both leave with the question or the failed line they're on: the composer is where you are next
   const chc = t.closest("[data-chc]");
-  if (chc) { CH.resolveConfirm(S.view, chc.dataset.chc); return; }
+  if (chc) { const had = chc.contains(document.activeElement); CH.resolveConfirm(S.view, chc.dataset.chc); if (had) say.focus({ preventScroll: true }); return; }
   const chr = t.closest("[data-chat-retry]");
-  if (chr) { CH.retry(chr.dataset.chatRetry); return; }
+  if (chr) { const had = chr.contains(document.activeElement); CH.retry(chr.dataset.chatRetry); if (had) say.focus({ preventScroll: true }); return; }
   const che = t.closest("[data-chat-edit]");
-  if (che) { const text = CH.edit(che.dataset.chatEdit); if (text != null) { say.value = say.value.trim() ? `${text}\n\n${say.value}` : text; growSay(); saveDraft(); updateComposer(); say.focus(); } return; }
+  if (che) { const text = CH.edit(che.dataset.chatEdit); if (text != null) putBack(text); return; }
   if (e.target.closest("[data-chat-stop]")) { stopRun(); return; }
   // sub-agents: the strip under the checklist, the log, a sub-agent's row in a turn
   const rc = t.closest("[data-run-call]");
@@ -2986,7 +3124,7 @@ document.addEventListener("click", (e) => {
   const rs = t.closest("[data-resolve]");
   if (rs) { resolveThread(rs.dataset.resolve, rs.dataset.to === "resolve"); return; }
   const tm = t.closest("[data-tmenu]");
-  if (tm) { S.tMenu = S.tMenu === tm.dataset.tmenu ? null : tm.dataset.tmenu; $("#top-who")._h = null; schedule(); if (S.tMenu) requestAnimationFrame(() => $(".tw-menu button")?.focus()); return; }
+  if (tm) { S.tMenu = S.tMenu === tm.dataset.tmenu ? null : tm.dataset.tmenu; $("#top-who")._h = null; schedule(); if (S.tMenu) requestAnimationFrame(() => $(".tw-menu [role=menuitem]")?.focus()); return; }
   const tf = t.closest("[data-tfield]");
   const lb = t.closest("[data-limit]");
   if (lb) { decideLimit(lb.dataset.limit, lb.dataset.limitD); return; }
@@ -3000,8 +3138,9 @@ document.addEventListener("click", (e) => {
   }
   const unf = t.closest("[data-unfreeze]");
   if (unf) { unfreeze(unf.dataset.unfreeze, unf); return; }
-  if (tf) { const tid = S.tMenu; S.tMenu = null; if (tf.dataset.tfield === "clear-label") saveThreadField(tid, "label", ""); else startThreadEdit(tid, tf.dataset.tfield); return; }
-  if (S.tMenu && !t.closest(".tw-menu")) { S.tMenu = null; $("#top-who")._h = null; schedule(); }
+  // Rename and the label open their field (focus goes there); Remove the label is done from ⋯ (focus back on it)
+  if (tf) { const tid = S.tMenu; if (tf.dataset.tfield === "clear-label") { closeThreadMenu(); saveThreadField(tid, "label", ""); } else { S.tMenu = null; startThreadEdit(tid, tf.dataset.tfield); } return; }
+  if (S.tMenu && !t.closest(".tw-menu")) closeThreadMenu({ focus: false });
   if (t.closest("[data-ck]")) { const th = convThread(S.view); if (th) { S.ckOpen[th.id] = !S.ckOpen[th.id]; checklistRender(D.needItems()); } return; }
   const o = t.closest("[data-nx-opt]");
   if (o) { const n = homeParts().next; if (n) { o.classList.add("pressed"); nextDecide({ option: n.ask.options[+o.dataset.nxOpt] }); } return; }
@@ -3099,8 +3238,7 @@ function allRender() {
   const cat = (t) => (needs.some((n) => n.t.id === t.id && n.admitted && n.group !== "stopped") ? "needs" : t.state === "failed" ? "stopped" : t.frozen ? "done" : t.state === "done" || t.state === "resolved" ? "done" : isBusy(t) ? "working" : t.state === "working" || WAITING(t.state) ? "waiting" : "other");
   const counts = { all: ts.length, needs: 0, working: 0, waiting: 0, done: 0, stopped: 0 };
   for (const t of ts) { const c = cat(t); if (counts[c] != null) counts[c]++; }
-  const F = [["all", "All"], ["needs", "Needs you"], ["working", "Working"], ["waiting", "Waiting"], ["done", "Done"], ["stopped", "Stopped"]];
-  $("#all-f").innerHTML = F.map(([k, w]) => `<button type="button" role="radio" data-af="${k}" aria-checked="${S.allFilter === k}"${!counts[k] && k !== "all" ? " disabled" : ""}>${w}<span>${counts[k]}</span></button>`).join("");
+  allFilterRender(counts);
   $("#all-h").textContent = `All ${SHAPE.word("threads")} · ${PROJ(pid)}`;
   $("#all-h").title = SHAPE.word("threads") === "threads" ? "" : "XO's word: threads";
   $("#all-q").placeholder = `Search ${SHAPE.word("threads")}`;
@@ -3121,6 +3259,24 @@ function allRender() {
   if (!html) html = `<p class="ar-none">Nothing matches “${esc(q)}”.</p>`;
   $("#all-list").innerHTML = html;
 }
+/**
+ * The filter: one radio group, drawn once and then updated in place, so the option you chose (by a click, Space,
+ * or the arrows: keynav.js) is the same element afterwards and keeps focus. Only the chosen one is in the Tab
+ * order. An empty filter can't be chosen, except the one already chosen (it stays reachable while it empties).
+ */
+const ALL_F = [["all", "All"], ["needs", "Needs you"], ["working", "Working"], ["waiting", "Waiting"], ["done", "Done"], ["stopped", "Stopped"]];
+function allFilterRender(counts) {
+  const box = $("#all-f");
+  if (box.children.length !== ALL_F.length) box.innerHTML = ALL_F.map(([k, w]) => `<button type="button" role="radio" data-af="${k}">${w}<span></span></button>`).join("");
+  for (const b of box.children) {
+    const k = b.dataset.af, on = S.allFilter === k, n = String(counts[k]);
+    if (b.getAttribute("aria-checked") !== String(on)) b.setAttribute("aria-checked", String(on));
+    if (b.tabIndex !== (on ? 0 : -1)) b.tabIndex = on ? 0 : -1;
+    b.disabled = !on && k !== "all" && !counts[k];
+    if (b.lastChild.textContent !== n) b.lastChild.textContent = n;
+  }
+}
+radioKeys($("#all-f"));
 /** A Shell button: "ws", "p:<project folder>" or "t:<thread>" (its worktree, else the project's folder). */
 function openShell(where) {
   if (where === "ws") return SH.openWorkspace();
@@ -3149,17 +3305,33 @@ function openAll(anchor = null) {
   $("#all-q").focus();
   schedule();
 }
-function closeAll() { if (allEl.hidden) return; allEl.hidden = true; syncInert(); allReturn?.focus?.({ preventScroll: true }); schedule(); }
+/** All closes back to what opened it; if that control has gone meanwhile (the +N, once everything fits), to the
+ *  switcher that's shown now, never the page. */
+function closeAll() {
+  if (allEl.hidden) return;
+  allEl.hidden = true; syncInert();
+  const shown = (el) => el && el.isConnected && el.getClientRects().length > 0;
+  const back = shown(allReturn) ? allReturn : [...document.querySelectorAll("[data-switch]")].find(shown);
+  back?.focus({ preventScroll: true });
+  schedule();
+}
 $("#all-q").addEventListener("input", allRender);
-// the switcher's keys: ↓ ↑ walk the list, Enter opens the first (or the one you walked to)
-$("#all-q").addEventListener("keydown", (e) => {
-  const rows = [...allEl.querySelectorAll(".all-list [data-go]")].filter((b) => b.offsetParent);
-  if (e.key === "ArrowDown" && rows.length) { e.preventDefault(); rows[0].focus(); return; }
-  if (e.key === "Enter" && rows.length) { e.preventDefault(); allEl.hidden = true; go(rows[0].dataset.go); }
-});
+// The switcher's keys, in one place so a key takes one step (Astra H31: ↓ from the search moved two): from the
+// search, ↓ goes to the first thread and Enter opens it; on the list, ↓ ↑ walk it and ↑ from the first is the
+// search again. An IME composing in the search owns its keys (H32: its Enter opened a thread).
 allEl.addEventListener("keydown", (e) => {
-  if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+  if (e.isComposing || e.keyCode === 229) { e.stopPropagation(); return; } // the IME's keys, not the switcher's or the page's
+  if (e.altKey || e.ctrlKey || e.metaKey) return;
+  const inSearch = e.target === $("#all-q");
+  if (e.key !== "ArrowDown" && e.key !== "ArrowUp" && !(inSearch && e.key === "Enter")) return;
   const rows = [...allEl.querySelectorAll(".all-list [data-go]")].filter((b) => b.offsetParent);
+  if (inSearch) {
+    if (!rows.length || e.key === "ArrowUp") return;
+    e.preventDefault();
+    if (e.key === "ArrowDown") rows[0].focus();
+    else { allEl.hidden = true; go(rows[0].dataset.go); }
+    return;
+  }
   const i = rows.indexOf(document.activeElement);
   if (i < 0) return;
   e.preventDefault();
@@ -3642,14 +3814,66 @@ wireGestures({
   resolve: (tid, resolved, li) => resolveFromRow(tid, resolved, li),
   toast: (text) => { announce(text); heraldShow({ kind: "done", text }, 1600); },
 });
-/** Resolved by a swipe in All threads: the row says so, with Undo, until the list is drawn again. */
+/** fn, once the world shows what test() looks for: an act's answer reaches the world on its next commit. */
+function whenWorld(test, fn) {
+  let off = null, met = false;
+  const check = () => { if (met || !test()) return; met = true; off?.(); fn(); };
+  off = world.subscribe(check);
+  if (met) off();
+}
+/**
+ * Resolved (or reopened) by a swipe in All threads. The row says what is happening where it happened: waiting on
+ * Space, then "Resolved" with Undo only once Space did it, or what refused it with Retry (the herald sits behind
+ * the sheet). The row's button is one element through Undo, its wait and a refused Undo's Retry, so focus stays on
+ * it; an Undo that works puts the thread's row back with focus on it. The list is drawn again a few seconds
+ * later (the thread moves to where it now belongs), unless you're on the row.
+ */
 function resolveFromRow(tid, resolved, li) {
   const t = world.thread(tid);
+  const name = t ? t.title : "";
   li.classList.remove("is-swiping", "is-armed");
-  li.innerHTML = `<p class="ar-undo" role="status"><span>${ICON.check}<b>${resolved ? "Resolved" : "Reopened"}</b> ${esc(t ? t.title : "")}</span><button type="button" data-ar-undo>Undo</button></p>`;
-  const redraw = setTimeout(() => { if (!allEl.hidden) allRender(); }, 5000);
-  li.querySelector("[data-ar-undo]").addEventListener("click", () => { clearTimeout(redraw); resolveThread(tid, !resolved, { undo: false }).then(() => { if (!allEl.hidden) allRender(); }); });
-  resolveThread(tid, resolved);
+  li.innerHTML = `<p class="ar-undo"><span></span><button type="button" data-ar-undo hidden></button></p>`;
+  const box = li.firstElementChild, line = box.firstElementChild, btn = box.lastElementChild;
+  let next = null;
+  // the line says what's happening; the button (label undefined: as it is) stays one element throughout
+  const show = (html, label, err = false) => {
+    line.innerHTML = html;
+    box.classList.toggle("is-err", err);
+    if (label === undefined) return;
+    btn.hidden = !label;
+    if (label) btn.textContent = label;
+  };
+  const act = (to) => {
+    const busy = (on) => { if (on) { box.setAttribute("aria-busy", "true"); btn.setAttribute("aria-busy", "true"); btn.setAttribute("aria-disabled", "true"); } else { box.removeAttribute("aria-busy"); btn.removeAttribute("aria-busy"); btn.removeAttribute("aria-disabled"); } };
+    busy(true);
+    show(`<i class="spin" aria-hidden="true"></i><b>${to ? "Resolving" : "Reopening"}</b> ${esc(name)}`);
+    resolveThread(tid, to, { undo: false, sayFail: false }).then(({ ok, why }) => {
+      busy(false);
+      if (!li.isConnected) return;
+      line.title = ok ? "" : why || "";
+      if (ok && to === resolved) {
+        show(`${ICON.check}<b>${resolved ? "Resolved" : "Reopened"}</b> ${esc(name)}`, "Undo");
+        next = () => act(!resolved);
+        clearTimeout(li._redraw);
+        li._redraw = setTimeout(() => { if (li.isConnected && !li.contains(document.activeElement) && !allEl.hidden) allRender(); }, 5000);
+      } else if (ok) {
+        // undone: the thread's own row again, drawn once the world has it back as it was (Space's answer lands
+        // in the world on its next commit), with focus on it if it was on Undo
+        clearTimeout(li._redraw);
+        whenWorld(() => (world.thread(tid)?.state === "resolved") === to, () => {
+          if (!li.isConnected || allEl.hidden) return;
+          const had = li.contains(document.activeElement);
+          allRender();
+          if (had) allEl.querySelector(`#all-list [data-go="t:${CSS.escape(tid)}"]`)?.focus({ preventScroll: true });
+        });
+      } else {
+        show(`${ICON.close}<b>${to ? "Couldn't resolve" : "Couldn't reopen"}</b> ${esc(name)}`, "Retry", true);
+        next = () => act(to);
+      }
+    });
+  };
+  btn.addEventListener("click", () => { if (btn.getAttribute("aria-busy") !== "true" && next) next(); });
+  act(resolved);
 }
 // on a phone the shells open as a sheet over everything: the sidebar they were opened from steps aside
 $("#nv-shells").addEventListener("click", () => setDrawer(false));
@@ -3668,7 +3892,9 @@ $("#ic-shells").innerHTML = ICON.shell;
 // a new chat's setup: folder, agent, model, effort, what it may do (all from the runtime's feature list)
 {
   const cs = $("#cs-pop");
-  cs.addEventListener("change", (e) => { const f = e.target.closest("[data-cs]"); if (f) { const k = f.dataset.cs; CH.setPref(k, f.value); CH.renderSetup(); updateComposer(); cs.querySelector(`[data-cs="${k}"]`)?.focus({ preventScroll: true }); } });
+  // drawn in place (CH.renderSetup): the picker or the mode you chose keeps focus; arrows move through the modes
+  cs.addEventListener("change", (e) => { const f = e.target.closest("[data-cs]"); if (f) { CH.setPref(f.dataset.cs, f.value); CH.renderSetup(); updateComposer(); } });
+  radioKeys(cs);
   cs.addEventListener("click", (e) => {
     const m = e.target.closest("[data-csmode]");
     if (m) { CH.setPref("mode", m.dataset.csmode); CH.renderSetup(); updateComposer(); return; }

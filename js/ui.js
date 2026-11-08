@@ -1,6 +1,7 @@
 // Converged · small shared helpers: icons, a keyed DOM reconciler, time words, smooth disclosure,
 // reduced motion and the optional soft sounds (off by default).
 import { esc } from "./world.js";
+import { redraw } from "./redraw.js";
 
 // Every glyph is drawn on a 24 grid. Its attributes are the fallback: outside the sidebar, base.css draws
 // every stroke at 1.5 px whatever the size (non-scaling stroke) with square ends (Plan F, design-research/
@@ -231,21 +232,36 @@ export const plain = (md) => String(md || "").replace(/```[\s\S]*?```/g, "[code]
  * Keyed reconcile: items [{key, html}] → children of `box`. Unchanged items
  * keep their element (so animations, focus and selection survive a tick);
  * new ones get `is-new` unless `quiet`. Returns the list of new elements.
+ *
+ * A changed item is drawn anew, except the one you're in: a row holding focus is brought to its new HTML in
+ * place (js/redraw.js), so the control you're on stays (Astra DET-1: a tool's output arriving took focus from
+ * its disclosure). Its own attributes come from the new HTML; once the list is in order it hears "redrawn"
+ * (bubbling), so whatever decorates rows (js/msgx.js) puts its additions back in the same task. Every other row
+ * is replaced as before.
  */
 export function reconcile(box, items, { quiet = false } = {}) {
   const old = new Map();
   for (const el of box.children) if (el.dataset.k) old.set(el.dataset.k, el);
   const added = [];
   const tpl = document.createElement("template");
+  const active = document.activeElement, inPlace = [];
   items.forEach((it, i) => {
     let el = old.get(it.key);
     if (el && el._h !== it.html) {
       tpl.innerHTML = it.html.trim();
       const fresh = tpl.content.firstElementChild;
-      fresh.dataset.k = it.key; fresh._h = it.html;
-      const had = el === document.activeElement;
-      el.replaceWith(fresh); el = fresh;
-      if (had && fresh.tabIndex >= 0) fresh.focus({ preventScroll: true });
+      if (active && active !== el && el.contains(active) && fresh && fresh.tagName === el.tagName) {
+        for (const a of [...el.attributes]) if (a.name !== "data-k" && !fresh.hasAttribute(a.name)) el.removeAttribute(a.name);
+        for (const a of fresh.attributes) if (el.getAttribute(a.name) !== a.value) el.setAttribute(a.name, a.value);
+        redraw(el, fresh.innerHTML);
+        el._h = it.html;
+        inPlace.push(el);
+      } else {
+        fresh.dataset.k = it.key; fresh._h = it.html;
+        const had = el === active;
+        el.replaceWith(fresh); el = fresh;
+        if (had && fresh.tabIndex >= 0) fresh.focus({ preventScroll: true });
+      }
     } else if (!el) {
       tpl.innerHTML = it.html.trim();
       el = tpl.content.firstElementChild;
@@ -257,6 +273,8 @@ export function reconcile(box, items, { quiet = false } = {}) {
     if (at !== el) box.insertBefore(el, at || null);
   });
   for (const el of old.values()) el.remove();
+  // told once the list is in its final order, so what decorates rows sees their neighbours as they are
+  for (const el of inPlace) if (el.isConnected) el.dispatchEvent(new CustomEvent("redrawn", { bubbles: true }));
   return added;
 }
 
