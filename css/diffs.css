@@ -83,7 +83,7 @@ diffs-container{
 .stage .cx-ofi{display:grid;place-items:center;width:28px;height:28px;border-radius:calc(var(--r-lg) - 4px);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .stage .cx-ofi:hover{background:var(--panel-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
 .stage .cx-ofi svg{width:16px;height:16px}
-.stage .cx-pd{flex:1 1 0;min-height:0;overflow:auto;overscroll-behavior:contain;outline:none;scrollbar-width:thin}
+.stage .cx-pd{flex:1 1 0;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin}
 .stage .cx-pd[hidden]{display:none}
 .stage .cx-pd diffs-container{--diffs-font-size:12px;--diffs-line-height:18px}
 .stage .cx-note,.stage .cx-none{margin:0;padding:12px;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}

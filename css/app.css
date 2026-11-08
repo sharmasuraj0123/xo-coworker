@@ -2008,7 +2008,7 @@ body.viewer-open .tdock{display:none}
 .vw-seg button{height:26px;padding:0 10px;border-radius:var(--r-sm);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
 .vw-seg button[aria-pressed="true"]{background:var(--fill-3);color:var(--ink)}
 .vw-seg button:not([aria-pressed="true"]):hover{background:var(--hover-fill);color:var(--ink-2)}
-.vw-body{flex:1;min-height:0;overflow:auto;outline:none}
+.vw-body{flex:1;min-height:0;overflow:auto}
 .vw-body.is-frame{display:flex;flex-direction:column;overflow:hidden}
 .vw-md{padding:20px 28px 40px;max-width:72ch}
 /* Plan F: a document reads as a document. Its body is set in a text serif at reading size (Iowan Old
