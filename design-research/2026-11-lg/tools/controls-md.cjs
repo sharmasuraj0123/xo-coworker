@@ -285,6 +285,7 @@ const DOES = {
   'data-vw-tell': 'Tells the agent you edited it, so it reads it again.',
   'data-vw-toastx': 'Closes the Saved notice.',
   'data-vw-retry': 'Draws the file again after its view failed to show it.',
+  'data-vw-diff-retry': 'Reads a change again after it failed to read.',
   '#top-back': 'Back to the thread\'s project.',
   'data-resolve': 'Marks the thread resolved (or open again).',
   'data-tmenu': 'Thread menu: rename, label and more.',

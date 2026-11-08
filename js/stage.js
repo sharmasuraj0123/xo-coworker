@@ -343,7 +343,9 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     if (t.closest("[data-stg-close]")) { close(); return; }
     if (t.closest("[data-stg-full]")) { setFull(!S.full); return; }
     const rl = t.closest("[data-rail]");
-    if (rl) { S.railOff = true; if (rl.dataset.rail === "launch") S.lp = true; else { S.lp = false; fr[rl.dataset.rail].folded = false; } fitRail(); layout(); paint(); persist(); return; }
+    // the rail goes as the part you asked for opens: focus goes to that part's own fold button, in its title row,
+    // which now says it's open (Astra S121)
+    if (rl) { const id = rl.dataset.rail; S.railOff = true; if (id === "launch") S.lp = true; else { S.lp = false; fr[id].folded = false; } fitRail(); layout(); paint(); persist(); (el.querySelector(`[data-fr-fold="${CSS.escape(id)}"]`) || body(id))?.focus({ preventScroll: true }); return; }
     const fo = t.closest("[data-fr-fold]");
     if (fo) {
       const id = fo.dataset.frFold;

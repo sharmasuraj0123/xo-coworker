@@ -570,9 +570,13 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     if (say && say.err) { sayNew(say); return; }
     const local = dir ? `${dir}/${n}` : n, rel = apiRel(s, local);
     NW.busy = true; inp.readOnly = true; sayNew({ words: "Making it…" });
+    // this row's own result: if another New file was started while this one was made, the newer row (and what's
+    // typed in it) stays; this one's file is made and listed, without taking the newer row away (Astra C031)
+    const mine = NW.el;
     try {
       const r = await api.saveProjectFile(s.project, rel, "", null, say && say.runs ? "runs_code" : null);
       if (F.scope.key !== s.key) return;
+      if (NW.el !== mine) { if (changes && changes.saved) changes.saved(s.project, rel); await load(s, dir, { again: true }); paint(); return; }
       endNew();
       if (changes && changes.saved) changes.saved(s.project, rel);
       await load(s, dir, { again: true });
@@ -581,7 +585,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       paint();
       viewer.open({ path: local, name: n, bytes: 0, project: s.project, rel, created: r.edit_id || true }, F.host.querySelector(`.fl-g [data-fl-file="${CSS.escape(local)}"]`));
     } catch (err) {
-      if (!NW.el || F.scope.key !== s.key) return;
+      if (!NW.el || NW.el !== mine || F.scope.key !== s.key) return;
       NW.busy = false; inp.readOnly = false;
       if (err.status === 428) { NW.confirm = true; sayNew(RUNS_SAY); }
       else { sayNew({ err: true, words: makeWords(err, n) }); if (err.status === 409) load(s, dir, { again: true }); }

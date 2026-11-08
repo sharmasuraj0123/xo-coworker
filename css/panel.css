@@ -194,6 +194,9 @@ body.stage-over .stage{box-shadow:var(--e2)}
 .dg-n{width:148px;height:32px;padding:0 8px;gap:8px;font:400 var(--fs-sm)/16px var(--sans)}
 .dg-n.k-root{height:36px;margin-top:-2px;font-weight:600}
 .dg-n.k-more,.dg-n.k-note{width:auto;height:24px;margin-top:4px}
+/* a node's hit area never shrinks below ~24 px on screen however far the map is zoomed out: an invisible margin,
+   in the map's own units, of 12 px × (1/scale − 1) on each side (Astra: More measured 25.8 × 7.2 px after Fit) */
+.dg-n::before{content:"";position:absolute;inset:calc(12px * (1 - 1 / var(--dg-s, 1)))}
 .dg-ic svg,.dg-ic svg.fi{width:16px;height:16px}
 .gn.k-file .gn-d{background:var(--fc,var(--fill-4))}
 :root[data-theme="light"] .gn.k-file .gn-d{background:var(--fc,#B9B9B6)}
@@ -339,7 +342,8 @@ body.files-open .dock,body.files-open .tdock{display:none}
 :root[data-theme="light"] .fv .fl.is-wide .fl-tree{background:#FBFBFA}
 .fv .fl-crumb:not(:has(.fl-up)){display:none}
 .fl-split{display:none}
-.fv .fl.is-wide .fl-split{display:block;flex:none;position:relative;width:1px;background:var(--fill-2);cursor:col-resize;outline:none}
+/* its 9 px grab area reaches over the file beside it: raised above it, so the pointer can take it at its line (C034) */
+.fv .fl.is-wide .fl-split{display:block;flex:none;position:relative;z-index:var(--z-raised);width:1px;background:var(--fill-2);cursor:col-resize;outline:none}
 .fv .fl.is-wide .fl-split::after{content:"";position:absolute;top:0;bottom:0;left:-4px;width:9px}
 .fv .fl.is-wide .fl-split:hover,.fv .fl.is-wide .fl-split:focus-visible,body.fv-sizing .fl-split{background:var(--line-hover)}
 body.fv-sizing{cursor:col-resize;user-select:none}

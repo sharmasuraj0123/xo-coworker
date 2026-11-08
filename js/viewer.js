@@ -514,8 +514,10 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   }
   async function drawDiff(c) {
     const host = diffBody();
-    const patch = await changes.patchAt(c).catch(() => null);
-    const key = `${c.scope.key}|${c.path}|${patch ? patch.length + ":" + patch.slice(-64) : `none:${c.file.version || ""}`}`;
+    // a read that failed is said as a failure, never as "too large" (Astra: a failed fetch read "Too large to show")
+    let readErr = null;
+    const patch = await changes.patchAt(c).catch((err) => { readErr = err; return null; });
+    const key = `${c.scope.key}|${c.path}|${patch ? patch.length + ":" + patch.slice(-64) : `none:${readErr ? "error" : c.file.version || ""}`}`;
     if ((DF.key === key && (DF.handle || DF.img)) || DF.pend === key) return; // drawn, or on its way
     DF.pend = key;
     const my = ++DF.gen;
@@ -525,6 +527,11 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       if (isImageChange(c.file) && V.file.project && V.file.rel) {
         DF.img = drawImageChange(host, { project: V.file.project, rel: V.file.rel, file: c.file, at: c.base || null });
         DF.key = key;
+        return;
+      }
+      if (readErr) {
+        host.innerHTML = `<div class="vw-empty" role="alert"><p>Couldn't read this change${readErr.message ? `: ${esc(readErr.message)}` : ""}.</p><p><button type="button" class="vw-cut-dl" data-vw-diff-retry>Try again</button></p></div>`;
+        DF.key = null; DF.pend = null;
         return;
       }
       const why = c.file.binary || c.file.patch_omitted === "binary" ? "Binary file" : c.file.patch_omitted === "submodule" ? "A submodule" : "Too large to show here";
@@ -854,10 +861,14 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (e.target.closest("[data-vw-confirm]")) { ED.confirmed = true; save("runs_code"); return; }
     if (e.target.closest("[data-vw-noconfirm]")) { ED.confirm = false; paintHead(); ED.ed?.focus(); return; }
     if (e.target.closest("[data-vw-undo]")) { undoSave(); return; }
-    if (e.target.closest("[data-vw-tell]")) { const s = saved; saved = null; toastPaint(); if (s && edits.tell(V.file, s)) announce("Told the agent."); return; }
+    // the notice goes once you've told the agent: focus goes to the file's head, not the page (Astra S137)
+    if (e.target.closest("[data-vw-tell]")) { const back = focusHere(), s = saved; saved = null; toastPaint(); if (back) headFocus(); if (s && edits.tell(V.file, s)) announce("Told the agent."); return; }
     // the notice goes with its ×: focus goes to the file's head, not the page (Astra S138)
     if (e.target.closest("[data-vw-toastx]")) { const back = focusHere(); saved = null; toastPaint(); if (back) headFocus(); return; }
-    if (e.target.closest("[data-vw-retry]")) { FL.pend = null; drawFile(); return; }
+    // a change that failed to read: read it again; focus waits on the diff's body, where the change appears
+    if (e.target.closest("[data-vw-diff-retry]")) { const c = chg(); if (!c) return; diffBody().focus({ preventScroll: true }); drawDiff(c); return; }
+    // the renderer's Try again goes as the file draws: focus waits on the file's body, where the file appears (S139)
+    if (e.target.closest("[data-vw-retry]")) { const back = focusHere(); FL.pend = null; drawFile(); if (back) (fileBody() || el).focus({ preventScroll: true }); return; }
     if (e.target.closest("[data-vw-split]")) { V.split = !V.split; if (DF.handle) DF.handle.split(V.split); render(); return; }
     const m = e.target.closest("[data-vw-mode]");
     if (m) { V.mode = m.dataset.vwMode; if (V.mode !== "actual") V.textMode = V.mode; render(); return; }

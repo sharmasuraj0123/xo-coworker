@@ -143,7 +143,7 @@ export function initCreate(ctx) {
     cancel.textContent = on && mode === "clone" ? "Close" : "Cancel";
     $("#cp-prog").hidden = !(on && mode === "clone");
     delete $("#cp-phase").dataset.v;
-    $("#cp-stop").disabled = false;
+    $("#cp-stop").disabled = false; $("#cp-stop").removeAttribute("aria-disabled"); $("#cp-stop").removeAttribute("aria-busy");
     if (mode === "clone") renderGh();
     if (on && mode === "clone") tick();
   }
@@ -186,13 +186,16 @@ export function initCreate(ctx) {
   }
   async function stop() {
     const id = busy?.cloneId;
-    if (!id) return;
-    $("#cp-stop").disabled = true;
+    const st = $("#cp-stop");
+    if (!id || st.getAttribute("aria-busy") === "true") return;
+    // aria-disabled while it asks, not disabled: a disabled button drops focus to the page, and a refused stop
+    // leaves you on Stop to try again (Astra H20/S144)
+    st.setAttribute("aria-disabled", "true"); st.setAttribute("aria-busy", "true");
     // Following the clone shows how it ended: stopped, or done or failed when Stop came too late
     // (once Space has published the project, a cancel ends the job "done" and the project opens).
     try { await api.cancelClone(id); } catch (err) {
       if (err.code === "clone_finished" || err.status === 404) return;
-      $("#cp-stop").disabled = false;
+      st.removeAttribute("aria-disabled"); st.removeAttribute("aria-busy");
       error(`Couldn't stop it: ${err.message}`);
     }
   }

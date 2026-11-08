@@ -58,11 +58,12 @@ function mockApi(W) {
     if ((k = /^\/api\/chat\/chats\/([^/]+)\/(threads|messages|hops|made|runtime-policy)$/.exec(p))) {
       if (k[2] === "threads") return json({ threads: [] });
       if (k[2] === "messages") return json({ messages: k[1] === "chat_demo" && W.messages ? W.messages : [], next_after_seq: 0, next_before_seq: 0 });
-      if (k[2] === "made") return json({ made: [], next_before: null });
+      if (k[2] === "made") return json({ made: (k[1] === "chat_demo" && W.made) || [], next_before: null });
       if (k[2] === "runtime-policy") return json({ space: policy, project: policy, effective: { ...policy, fallback: false } });
       if (W.hops) return W.hops(r, k[1], json);
       return json({ hops: [], next_after_seq: null, next_before_seq: null });
     }
+    if (/^\/api\/chat\/chats\/[^/]+\/made\/[^/]+\/pin$/.test(p) && (m === "PUT" || m === "DELETE")) { W.pins = (W.pins || 0) + 1; return json({ pinned: m === "PUT" }); }
     if (/^\/api\/chat\/runtimes\/[^/]+\/models$/.test(p)) {
       if (W.modelsGate) await W.modelsGate; // the test says when the catalog answers
       return json({ name: "claude_code", models: W.models || [
@@ -76,7 +77,20 @@ function mockApi(W) {
       if (W.patchMode === "503") return json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503);
       return json({});
     }
-    if (/^\/api\/xo-projects\/[^/]+\/changes$/.test(p)) return json({ project_id: "demo", worktree: null, root: "/demo", base_ref: "HEAD", base_commit: "c0", base_source: "head", head_commit: "c0", computed_at: NOW, truncated: false, total_files: 0, files: [] });
+    if (/^\/api\/xo-projects\/[^/]+\/changes$/.test(p)) {
+      // W.changes: [{path, status, additions, deletions, patch | patch_omitted: "response_budget" + full}]; a file
+      // sent without its patch is read on its own (?path=), held by W.changesGate when the test says
+      const all = W.changes || [], one = u.searchParams.get("path");
+      const head = { project_id: "demo", worktree: null, root: "/demo", base_ref: "HEAD", base_commit: "c0", base_source: "head", head_commit: "c0", computed_at: NOW, truncated: false };
+      if (one) { if (W.changesGate) await W.changesGate; return json({ ...head, total_files: 1, files: all.filter((f) => f.path === one).map(({ full, ...f }) => ({ ...f, patch: full || f.patch, patch_omitted: null })) }); }
+      return json({ ...head, total_files: all.length, files: all.map(({ full, ...f }) => f) });
+    }
+    // a clone Space runs: started at once, running until stopped; W.cloneStopMode "503" refuses the stop
+    if (p === "/api/xo-projects" && m === "POST") return json({ clone_id: "clone-1" }, 202);
+    if ((k = /^\/api\/xo-projects\/clones\/([^/]+)$/.exec(p))) {
+      if (m === "DELETE") { W.cloneStops = (W.cloneStops || 0) + 1; return W.cloneStopMode === "503" ? json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503) : json({ cancelled: true }); }
+      return json({ state: "running", phase: "receiving", percent: 12, received_bytes: 1024, idle_seconds: 0 });
+    }
     if (/^\/api\/xo-projects\/[^/]+\/tree$/.test(p)) {
       const rel = u.searchParams.get("relative_path") || "";
       if (!rel && W.rootFails) { W.rootFails--; return json({ detail: { code: "unavailable", message: "Fixture offline" } }, 503); }
@@ -97,7 +111,8 @@ function mockApi(W) {
       W.saves.push(b);
       if (W.saveDelay) await new Promise((ok) => setTimeout(ok, W.saveDelay));
       if (W.saveGate) await W.saveGate; // the test says when the answer comes (no race with a slow machine)
-      const f = W.files[b.relative_path];
+      // a save with no version makes the file (Files' New file)
+      const f = W.files[b.relative_path] || (W.files[b.relative_path] = { content: "", version: null });
       if (W.saveMode === "503") return json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503);
       if (W.saveMode === "confirm" && b.confirm !== "runs_code") return json({ detail: { code: "confirm_required", message: "This file runs code" } }, 428);
       if (W.saveMode === "overlap" && !W.clashed) {

@@ -475,6 +475,152 @@ t("S061: the project's top failing, then reading empty: Try again lands on New f
   await done(page);
 });
 
+t("C036: the tree toggle beside a file keeps focus as it folds and unfolds", async () => {
+  if (WIDTH < 600) return; // the toggle shows beside a file on a desktop
+  const page = await app({ files: { "a.js": FILE() } });
+  await panelOpen(page);
+  await filesOpen(page);
+  await page.locator('[data-fl-file="a.js"]').filter({ visible: true }).first().click();
+  const tog = page.locator("[data-fv-tree]").filter({ visible: true }).first();
+  await tog.waitFor();
+  await tog.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(200);
+  assert.match(await active(page), /data-fv-tree/);
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(200);
+  assert.match(await active(page), /data-fv-tree/);
+  await done(page);
+});
+
+t("C034: Files' divider takes the pointer at its line, over the file beside it too", async () => {
+  if (WIDTH < 600) return; // side by side on a desktop only
+  const page = await app({ files: { "a.js": FILE() } });
+  await panelOpen(page);
+  await filesOpen(page);
+  await page.locator('[data-fl-file="a.js"]').filter({ visible: true }).first().click();
+  const sp = page.locator(".fv .fl.is-wide .fl-split").first();
+  await sp.waitFor();
+  const hit = await sp.evaluate((e) => { const r = e.getBoundingClientRect(), y = r.top + r.height / 2; return [-3, 3].map((dx) => document.elementFromPoint(r.left + dx, y) === e); });
+  assert.deepEqual(hit, [true, true], "3 px either side of the line is the divider's");
+  await done(page);
+});
+t("C031: a New file started while the last one is being made keeps its row, what's typed in it, and focus", async () => {
+  let answer;
+  const page = await app({ files: { "a.js": FILE() }, saveGate: new Promise((ok) => (answer = ok)) });
+  await panelOpen(page);
+  await filesOpen(page);
+  const nb = page.locator("[data-fl-new]").filter({ visible: true }).first();
+  await nb.click();
+  await page.keyboard.insertText("first.md");
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelector("[data-fl-name]")?.readOnly === true);
+  await nb.click();
+  await page.waitForFunction(() => { const i = document.querySelector("[data-fl-name]"); return i && !i.readOnly && document.activeElement === i; });
+  await page.keyboard.insertText("sec");
+  answer();
+  await page.locator('[data-fl-file="first.md"]').filter({ visible: true }).first().waitFor();
+  await page.waitForTimeout(200);
+  const st = await page.evaluate(() => { const i = document.querySelector("[data-fl-name]"); return { value: i && i.value, focused: !!i && document.activeElement === i }; });
+  assert.deepEqual(st, { value: "sec", focused: true }, "the newer row stays, with what's typed in it");
+  await done(page);
+});
+t("S208: the map's Follow says on and off as it's pressed", async () => {
+  const page = await app();
+  await panelOpen(page);
+  if (await page.locator('[data-ghost="map"]').filter({ visible: true }).count()) await page.locator('[data-ghost="map"]').filter({ visible: true }).first().click();
+  await page.locator("#stage-map-tree").waitFor();
+  await page.evaluate(() => document.querySelector("#stage-map-tree").click());
+  const f = page.locator('[data-dg="follow"]').filter({ visible: true }).first();
+  await f.waitFor();
+  const was = await f.getAttribute("aria-pressed");
+  await f.click();
+  assert.equal(await f.getAttribute("aria-pressed"), String(was !== "true"), "pressed once");
+  await f.click();
+  assert.equal(await f.getAttribute("aria-pressed"), was, "pressed again");
+  await done(page);
+});
+t("S121: a part opened from the folded panel's rail takes focus, on its own fold button", async () => {
+  if (WIDTH < 600) return; // the rail is a desktop's
+  const page = await app({ files: { "a.js": FILE() } });
+  await panelOpen(page);
+  await filesOpen(page);
+  await page.waitForFunction(() => document.body.classList.contains("stage-rail"), null, { timeout: 4000 });
+  const r = page.locator('[data-rail="changes"]').filter({ visible: true }).first();
+  await r.focus();
+  await page.keyboard.press("Enter");
+  assert.match(await active(page), /data-fr-fold=changes/);
+  await done(page);
+});
+const PATCH = (f, a, b) => `diff --git a/${f} b/${f}\n--- a/${f}\n+++ b/${f}\n@@ -1,3 +1,3 @@\n-${a}\n+${b}\n two\n three\n`;
+t("C085/C086: another changed file picked: the last diff goes at once; Open in Files opens the one picked", async () => {
+  let answer;
+  const page = await app({ files: { "a.js": FILE(), "b.js": FILE() }, changesGate: new Promise((ok) => (answer = ok)), changes: [
+    { path: "a.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: PATCH("a.js", "one", "ONE") },
+    { path: "b.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: null, patch_omitted: "response_budget", full: PATCH("b.js", "one", "UNO") }] });
+  await panelOpen(page);
+  if (await page.locator('[data-ghost="changes"]').filter({ visible: true }).count()) await page.locator('[data-ghost="changes"]').filter({ visible: true }).first().click();
+  await page.locator('[data-cx="a.js"]').filter({ visible: true }).first().click();
+  // a.js's diff is drawn
+  await page.waitForFunction(() => { const d = document.querySelector(".cx-pd"); return d && !d.hidden && d.childElementCount > 0; });
+  await page.locator('[data-cx="b.js"]').filter({ visible: true }).first().click();
+  const st = await page.evaluate(() => ({ diff: document.querySelector(".cx-pd").hidden, note: document.querySelector(".cx-note").hidden ? null : document.querySelector(".cx-note").textContent, head: document.querySelector(".cx-pp").textContent }));
+  assert.deepEqual(st, { diff: true, note: "Reading its change…", head: "b.js" }, "a.js's diff gone while b.js is read");
+  await page.locator("[data-cx-open]").filter({ visible: true }).first().click();
+  await page.waitForFunction(() => window.__t.VW.file);
+  assert.equal(await page.evaluate(() => window.__t.VW.file.rel || window.__t.VW.file.path), "b.js", "Open in Files opens b.js, the file picked");
+  answer();
+  await done(page);
+});
+const MADE = () => [
+  { id: "mk1", name: "notes.md", path: "notes.md", relative_path: "notes.md", project_id: "demo", mime: "text/markdown", bytes: 10, created_at: NOW, updated_at: NOW },
+  { id: "mk2", kind: "link", url: "https://example.com/report", name: "report", created_at: NOW, updated_at: NOW },
+];
+t("C065: Artifacts' kinds: arrows choose, one Tab stop, focus stays on the kind chosen", async () => {
+  const page = await app({ made: MADE() });
+  await page.evaluate(() => window.__t.go("artifacts"));
+  const on = page.locator('#arts-f [role=radio][aria-checked="true"]');
+  await page.locator('#arts-f [data-arts-kind="link"]').waitFor();
+  await on.focus();
+  await page.keyboard.press("ArrowRight");
+  await page.waitForTimeout(200);
+  assert.match(await active(page), /data-arts-kind=(?!all)/, "on the next kind");
+  assert.equal(await page.evaluate(() => document.activeElement.getAttribute("aria-checked")), "true", "and it's chosen");
+  assert.equal(await page.locator('#arts-f [role=radio]:not([tabindex="-1"])').count(), 1, "one Tab stop");
+  await done(page);
+});
+t("H13: pinning a card in Artifacts moves it to Pinned once, with focus on its pin", async () => {
+  const page = await app({ made: MADE() });
+  await page.evaluate(() => window.__t.go("artifacts"));
+  const pin = page.locator('#arts-body .md-it[data-k="mk1"] .md-pin');
+  await pin.waitFor();
+  await pin.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelector('#arts-body .md-it[data-k="mk1"] .md-pin')?.getAttribute("aria-pressed") === "true");
+  await page.waitForTimeout(300);
+  assert.equal(await page.locator('#arts-body .md-it[data-k="mk1"]').count(), 1, "one card, no stale copy left in Today");
+  assert.match(await active(page), /md-pin/);
+  assert.equal(await page.evaluate(() => document.activeElement.closest(".md-it")?.dataset.k), "mk1");
+  await done(page);
+});
+t("H20/S144: a refused clone Stop keeps focus on Stop, ready to try again", async () => {
+  const page = await app({ cloneStopMode: "503" });
+  await openCreate(page);
+  await page.locator('#cp-mode [data-mode="clone"]').click();
+  await page.locator("#cp-repo").fill("owner/repo");
+  await page.locator("#cp-name").fill("cloned");
+  await page.locator("#cp-submit").click();
+  const st = page.locator("#cp-stop");
+  await st.waitFor({ state: "visible" });
+  await st.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelector("#cp-stop").getAttribute("aria-busy") !== "true" && /Couldn't stop it/.test(document.querySelector("#create-dlg").textContent));
+  assert.match(await active(page), /id=cp-stop/);
+  assert.equal(await st.getAttribute("aria-disabled"), null, "usable again");
+  assert.equal(page.W.cloneStops, 1);
+  await done(page);
+});
+
 t("C029: on a phone, Back to chat from a file shows the chat, not the panel again", async () => {
   if (WIDTH > 760) return; // beside the chat on a desktop, the panel coming back is the design
   const page = await app({ files: { "a.js": FILE() } });

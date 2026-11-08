@@ -22,6 +22,8 @@
 // the panel's Made tab (made: mount, show, count); `panel` is set to the panel once it exists.
 
 import { syncList, fadeImage, setHtml, setText } from "./motion.js";
+import { redraw } from "./redraw.js";
+import { radioKeys, rovingTab } from "./keynav.js";
 import * as R from "./record.js";
 import { api } from "./api.js";
 import { esc } from "./util.js";
@@ -390,7 +392,8 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
     const th = el.querySelector(".md-th"), th2 = nx.querySelector(".md-th");
     if (th && th2) { th.className = th2.className; if (setHtml(th, th2.innerHTML)) fadeImage(th.querySelector("img")); }
     setHtml(el.querySelector(".md-meta b"), nx.querySelector(".md-meta b").innerHTML); // a name cut in the middle is two spans
-    setText(el.querySelector(".md-meta span"), nx.querySelector(".md-meta span").textContent);
+    // the meta's own line (its age), not a span inside a name cut in the middle (Astra H12: the age went stale)
+    setText(el.querySelector(".md-meta > span"), nx.querySelector(".md-meta > span").textContent);
     const fr = el.querySelector(".md-from span"), fr2 = nx.querySelector(".md-from span");
     if (fr && fr2) setText(fr, fr2.textContent);
     for (const sel of [".md-open", ".md-pin"]) {
@@ -419,9 +422,11 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
     h.querySelector("#made-h").textContent = pid ? PROJ(pid) : "All projects";
     const kept = items.some((m) => m.server);
     h.querySelector("#made-sub").textContent = `${items.length} ${kept ? (items.length === 1 ? "thing" : "things") : (items.length === 1 ? "file" : "files")}, newest first`;
-    const f = R.KINDS.filter(([k]) => k === "all" || counts[k]).map(([k, w]) => `<button type="button" role="radio" data-made-kind="${k}" aria-checked="${M.kind === k}">${w}<span>${counts[k]}</span></button>`).join("");
+    // one Tab stop (the chosen kind), arrows between them (radioKeys), drawn in place so the focused one stays
+    const f = R.KINDS.filter(([k]) => k === "all" || counts[k]).map(([k, w]) => `<button type="button" role="radio" data-made-kind="${k}" aria-checked="${M.kind === k}"${rovingTab(M.kind === k)}>${w}<span>${counts[k]}</span></button>`).join("");
     const fe = h.querySelector("#made-f");
-    if (fe._h !== f) { fe.innerHTML = f; fe._h = f; }
+    if (fe._h !== f) { redraw(fe, f); fe._h = f; }
+    if (!fe._keys) { fe._keys = true; radioKeys(fe); }
     const be = h.querySelector("#made-body");
     // a new scope starts still (nothing "arrives" when you switch project or filter); within one, arrivals move
     const scope = `${pid}|${M.kind}|${M.q}`;
@@ -555,8 +560,13 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
     const top = box.scrollTop - be.offsetTop, H = box.clientHeight;
     const want = R.linesIn(A.lines, top - H, top + 2 * H);
     const keep = new Set(want.map((l) => l.key));
-    // the card you're on stays, wherever the scroll goes
-    const focus = document.activeElement && be.contains(document.activeElement) ? document.activeElement.closest(".ar-line") : null;
+    // the card you're on stays, wherever the scroll goes; but a card that moved (pinned or unpinned to another
+    // group) is drawn where it went, and the line it left goes with the rest (Astra H13: a stale copy stayed
+    // under the new one), its control taking focus there
+    const ae = document.activeElement && be.contains(document.activeElement) ? document.activeElement : null;
+    const fCard = ae && ae.closest(".md-it"), fKey = fCard && fCard.dataset.k, fCtl = ae && (ae.matches(".md-pin") ? ".md-pin" : ae.matches(".md-from") ? ".md-from" : ".md-open");
+    const moved = !!fKey && want.some((l) => l.kind === "row" && l.g.items.slice(l.start, l.start + l.n).some((it) => it.key === fKey) && !(A.els.get(l.key) && A.els.get(l.key).contains(fCard)));
+    const focus = ae && !moved ? ae.closest(".ar-line") : null;
     for (const [k, el] of A.els) {
       if (keep.has(k) || el === focus) continue;
       if (A.tio) for (const c of el.querySelectorAll(".md-it")) A.tio.unobserve(c);
@@ -587,6 +597,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
       if (at !== el) be.insertBefore(el, at);
       prev = el;
     }
+    if (moved) be.querySelector(`.md-it[data-k="${CSS.escape(fKey)}"] ${fCtl}`)?.focus({ preventScroll: true });
     A.arrive = false;
   }
   function artsWatch(box) {
@@ -630,7 +641,11 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
     const pids = projectsMade().filter((p) => made.has(p.id));
     const opts = `<option value="">All projects</option>` + pids.map((p) => `<option value="${esc(p.id)}"${A.pid === p.id ? " selected" : ""}>${esc(p.name || p.id)}</option>`).join("");
     setHtml(box.querySelector("#arts-pj"), opts);
-    setHtml(box.querySelector("#arts-f"), R.KINDS.filter(([k]) => k === "all" || v.counts[k]).map(([k, w]) => `<button type="button" role="radio" data-arts-kind="${k}" aria-checked="${A.kind === k}">${w}<span>${pending ? "" : v.counts[k]}</span></button>`).join(""));
+    // the kinds: one Tab stop (the chosen one), arrows choose (radioKeys), drawn in place so the focused one stays
+    // (Astra C065/H5: arrows did nothing, and Space dropped focus as the strip was redrawn)
+    const kf = box.querySelector("#arts-f"), kh = R.KINDS.filter(([k]) => k === "all" || v.counts[k]).map(([k, w]) => `<button type="button" role="radio" data-arts-kind="${k}" aria-checked="${A.kind === k}"${rovingTab(A.kind === k)}>${w}<span>${pending ? "" : v.counts[k]}</span></button>`).join("");
+    if (kf._h !== kh) { redraw(kf, kh); kf._h = kh; }
+    if (!kf._keys) { kf._keys = true; radioKeys(kf); }
     const be = box.querySelector("#arts-body");
     // a new filter is a new list: drawn afresh, still
     const scope = `${A.pid}|${A.kind}|${A.q}|${pending ? "…" : ""}`;

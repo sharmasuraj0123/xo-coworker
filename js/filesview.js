@@ -17,6 +17,7 @@
 //
 // app.js calls: open, close, minimise, restore, escape, sync (every render), isOpen, docked, putAway, owns.
 
+import { redraw } from "./redraw.js";
 import { ICON, $ } from "./ui.js";
 import { esc } from "./util.js";
 import { ready as diffsReady } from "./diffview.js";
@@ -218,7 +219,9 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
   function paint() {
     if (!F.open) return;
     const h = headHtml();
-    if (h !== F.head) { el.querySelector(".fv-h").innerHTML = h; F.head = h; }
+    // in place: the head's buttons (the tree toggle, Back to chat …) stay the same nodes, so the one you pressed
+    // keeps focus (Astra C036)
+    if (h !== F.head) { redraw(el.querySelector(".fv-h"), h); F.head = h; }
   }
 
   /** Shown: the file's classes on the page (a put-away file keeps its place, hidden, scroll and all). */

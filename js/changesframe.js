@@ -218,6 +218,9 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
     if (!live) { draw(s.key, { ...f, binary: false, patch_omitted: null }, null); note.textContent = "Being written now…"; return true; }
     const shown = D.key === s.key && D.path === f.path;
     if (shown && !st.follow && D.patch && prevSel === st.sel) return true; // never redraw under you
+    // another file picked: the last one's diff goes at once, and it says it's reading (Astra C085: the old diff
+    // stayed under the new header for as long as the read took)
+    if (!shown) { pd.hidden = true; note.hidden = false; note.textContent = "Reading its change…"; }
     changes.patch(v, f.path).then((patch) => {
       if (stOf(s.key).sel !== f.path || changes.scope(view())?.key !== s.key) return;
       const line = shown && st.follow && D.patch && patch !== D.patch ? newestHunkLine(D.patch, patch) : null;
@@ -242,7 +245,8 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
     const r = t.closest("[data-cx]");
     if (r) { const s = changes.scope(view()); if (!s) return; const st = stOf(s.key); st.follow = false; st.sig = changes.activity(view()).sig; st.sel = r.dataset.cx; if (st.pill === st.sel) st.pill = null; onChange && onChange(); return; }
     if (t.closest("[data-cx-show]")) { const s = changes.scope(view()); if (!s) return; const st = stOf(s.key); st.sel = pill.dataset.cxShow || st.sel; st.pill = null; D.patch = null; D.pend = null; onChange && onChange(); return; }
-    if (t.closest("[data-cx-open]")) { const s = changes.scope(view()); if (s && D.path) openFile(s, D.path, t.closest("[data-cx-open]")); }
+    // the file picked (whose header this button is in), not the last diff drawn (Astra C086)
+    if (t.closest("[data-cx-open]")) { const s = changes.scope(view()); const p = s && (stOf(s.key).sel || D.path); if (p) openFile(s, p, t.closest("[data-cx-open]")); }
   });
   // touching the diff (a scroll, a press, a key) is reading it: following pauses there
   for (const ev of ["wheel", "pointerdown", "keydown"]) pd.addEventListener(ev, pause, { passive: true });
