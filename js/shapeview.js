@@ -34,7 +34,8 @@ function inOrder(els) {
 
 export function createShapeView({ shape, announce = () => {} }) {
   // draft: the JSON as typed, not saved yet; saveErr: why the last Save of it was refused
-  const V = { confirm: null, err: null, draft: null, saveErr: null, built: false };
+  // pickErr: why the last preset choice was refused (said where it was asked: in the question, or under the cards)
+  const V = { confirm: null, err: null, pickErr: null, draft: null, saveErr: null, built: false };
   const page = document.querySelector('[data-page="shape"]');
   const box = page && page.querySelector(".shp");
   const nav = document.querySelector("#settings .set-nav");
@@ -96,7 +97,9 @@ export function createShapeView({ shape, announce = () => {} }) {
     const c = V.confirm;
     return `<section class="set-sec" aria-labelledby="shp-h-p"><h3 id="shp-h-p">What you mostly do here</h3>` +
       `<div class="set-choices" role="radiogroup" aria-labelledby="shp-h-p">${cardsOf().map((p) => `<button type="button" class="set-choice${p.id === id ? " is-on" : ""}" role="radio" aria-checked="${p.id === id}" data-shp-preset="${esc(p.id)}"${rovingTab(p.id === id)}${busyAttrs(SHAPING)}><span class="sc-dot" aria-hidden="true"></span><span class="sc-b"><b>${esc(p.name)}</b><span>${esc(p.summary)}</span></span></button>`).join("")}</div>` +
-      (c ? `<div class="shp-confirm" role="alertdialog" aria-labelledby="shp-cf"><p id="shp-cf"><b>Switch to ${esc(nameOf(c))}?</b> Your own changes are cleared. What you set on this device stays.</p><div class="set-fa"><button type="button" class="btn" data-shp-keep>Keep mine</button><button type="button" class="btn btn-pri" data-shp-switch="${esc(c)}"${busyAttrs(SHAPING)}>Switch</button></div></div>` : "") +
+      // once Switch is pressed the choice is on its way (its preset may still be reading): Keep mine waits with it
+      (c ? `<div class="shp-confirm" role="alertdialog" aria-labelledby="shp-cf"><p id="shp-cf"><b>Switch to ${esc(nameOf(c))}?</b> Your own changes are cleared. What you set on this device stays.</p>${V.pickErr ? `<p class="set-err" role="alert">${esc(V.pickErr)}</p>` : ""}<div class="set-fa"><button type="button" class="btn" data-shp-keep${isPending(SHAPING) ? ' aria-disabled="true"' : ""}>Keep mine</button><button type="button" class="btn btn-pri" data-shp-switch="${esc(c)}"${busyAttrs(SHAPING)}>Switch</button></div></div>`
+        : V.pickErr ? `<p class="set-err" role="alert">${esc(V.pickErr)}</p>` : "") +
       (shape.presetError(id) ? `<p class="set-err" role="alert">${esc(nameOf(id))} couldn't be read (${esc(shape.presetError(id))}). XO shows everything until it can.</p>` : "") +
       `</section>` +
       `<section class="set-sec" aria-labelledby="shp-h-d"><h3 id="shp-h-d">What it changes</h3>` +
@@ -172,13 +175,17 @@ export function createShapeView({ shape, announce = () => {} }) {
   }
   const chosenCard = () => box.querySelector('[data-shp-preset][aria-checked="true"]');
   async function choose(id, from) {
+    V.pickErr = null;
     const p = once(SHAPING, async () => {
       const r = await shape.choose(id);
+      // refused: the question (or the cards) stays, with the reason beside it, and the keyboard stays where it was
+      // (on Switch, to try again, or the card)
+      if (r && r.error) { V.pickErr = r.error; render(); return; }
+      // chosen: the question (if one was asked) goes, and in the same step the keyboard goes to the card now chosen
       const d = describeShape(createShape([]), shape.presetShape(id));
-      // chosen: the question (if one was asked) goes, and in the same step the keyboard goes to the card now
-      // chosen; refused, the question stays with the reason, to switch again or keep yours
-      if (!(r && r.error)) V.confirm = null;
-      said(r, `${nameOf(id)}. ${d.length ? d[0] : "Every part of XO, as it is today."}`);
+      V.confirm = null; V.err = null;
+      announce(`${nameOf(id)}. ${d.length ? d[0] : "Every part of XO, as it is today."}`);
+      render();
       landOn(chosenCard(), from);
     });
     render(); // the choices say they're waiting (a preset's file may be read first)
@@ -197,7 +204,7 @@ export function createShapeView({ shape, announce = () => {} }) {
         if (shape.ownKeys().length && id !== V.confirm) { V.confirm = id; render(); box.querySelector("[data-shp-switch]")?.focus({ preventScroll: true }); return; }
         choose(id, p); return;
       }
-      if (t.closest("[data-shp-keep]")) { V.confirm = null; render(); chosenCard()?.focus({ preventScroll: true }); return; }
+      if (t.closest("[data-shp-keep]")) { if (isPending(SHAPING)) return; V.confirm = null; V.pickErr = null; render(); chosenCard()?.focus({ preventScroll: true }); return; }
       const sw = t.closest("[data-shp-switch]");
       if (sw) { choose(sw.dataset.shpSwitch, sw); return; }
       // Reset disables itself (there's nothing left to reset): the keyboard goes to the preset it's back to

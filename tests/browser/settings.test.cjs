@@ -30,7 +30,8 @@ let chromium;
 try { ({ chromium } = require(PW)); } catch { console.error(`not run: Playwright core isn't at ${PW} (set PLAYWRIGHT_CORE)`); process.exit(2); }
 const { serve, NOW, CHATS, openApp, launch } = require("./harness.cjs");
 
-const CONTEXTS = (process.env.CONTEXTS || "1440-dark,1440-light,390-dark,390-light").split(",").map((c) => { const [w, theme] = c.split("-"); return { width: +w, theme }; });
+// a context: width-theme, and "-motion" for full motion (the default is reduced motion, as the harness opens it)
+const CONTEXTS = (process.env.CONTEXTS || "1440-dark,1440-light,390-dark,390-light").split(",").map((c) => { const [w, theme, m] = c.split("-"); return { width: +w, theme, motion: m === "motion" }; });
 let browser, server, BASE, passed = 0, failed = 0;
 const tests = [];
 const t = (name, fn) => tests.push({ name, fn });
@@ -107,8 +108,8 @@ function settingsApi(W) {
  * The app from the harness (its mock world, and its record of every time focus fell to the page), then this
  * world's Settings routes and the theme, and a reload so the app starts with both.
  */
-async function open(W, { width, theme }, { firstRun = false, device = null } = {}) {
-  const page = await openApp(browser, BASE, W, { width, height: width < 600 ? 844 : 900 });
+async function open(W, { width, theme, motion = false }, { firstRun = false, device = null } = {}) {
+  const page = await openApp(browser, BASE, W, { width, height: width < 600 ? 844 : 900, motion });
   await page.route("**/api/**", settingsApi(W));
   await page.evaluate(({ theme, firstRun, device }) => {
     localStorage.setItem("cv-theme", theme);
@@ -677,6 +678,100 @@ t("C104 S118 S119 Shape presets: arrows move, Enter chooses in place; Reset → 
   assert.equal(await focused(page), `button${card("engineering")}`, "Switch → the card now chosen");
   await done(page);
 });
+t("C104 S119 Switch while its preset is still reading: Keep mine waits with it (it can't take it back), then the card", async (ctx) => {
+  const page = await open(world(), ctx);
+  let release;
+  const gate = new Promise((ok) => (release = ok));
+  await page.route("**/presets/marketing.json", async (r) => { await gate; await r.fallback(); });
+  await settings(page, "shape");
+  await keyFocus(page, "[data-shp-all]");
+  await page.keyboard.press("Enter"); // own changes on top, so a switch asks first
+  await page.waitForFunction(() => !document.querySelector("[data-shp-reset]").disabled);
+  await keyFocus(page, '[data-shp-preset="marketing"]');
+  await page.keyboard.press("Enter");
+  assert.equal(await focused(page), 'button[data-shp-switch="marketing"]');
+  await page.keyboard.press("Enter"); // Switch: the preset is still reading
+  await settle(page, 80);
+  assert.equal(await busy(page, "[data-shp-switch]"), "true");
+  assert.equal(await page.locator("[data-shp-keep]").getAttribute("aria-disabled"), "true", "Keep mine says it can't now");
+  await page.locator("[data-shp-keep]").click({ force: true });
+  assert.equal(await page.locator(".shp-confirm").count(), 1, "the question stays while its answer is on its way");
+  release();
+  await page.waitForFunction(() => document.querySelector('[data-shp-preset="marketing"]').getAttribute("aria-checked") === "true" && !document.querySelector(".shp-confirm"));
+  assert.equal(await focused(page), 'button[data-shp-preset="marketing"]');
+  await done(page);
+});
+t("C104 S119 a refused Switch keeps its question and the keyboard, with the reason in it", async (ctx) => {
+  const newer = { shape: 99, preset: "everything", surfaces: { "xo:thread/hops": { on: true } } };
+  const page = await open(world({ shape: { shape: newer, version: "v99" } }), ctx);
+  await page.evaluate((d) => localStorage.setItem("cv-shape-mine", JSON.stringify(d)), newer);
+  await page.reload();
+  await page.waitForSelector('[data-go="p:demo"]', { state: "attached" });
+  await settings(page, "shape");
+  await keyFocus(page, '[data-shp-preset="marketing"]');
+  await page.keyboard.press("Enter");
+  assert.equal(await focused(page), 'button[data-shp-switch="marketing"]');
+  await page.keyboard.press("Enter");
+  await page.waitForSelector(".shp-confirm .set-err[role=alert]");
+  assert.match(await page.locator(".shp-confirm .set-err").innerText(), /newer XO/);
+  assert.equal(await focused(page), 'button[data-shp-switch="marketing"]', "the keyboard stays on Switch, beside the reason");
+  assert.equal(await page.locator('[data-shp-preset="everything"]').getAttribute("aria-checked"), "true", "nothing changed");
+  await keyFocus(page, "[data-shp-keep]");
+  await page.keyboard.press("Enter");
+  assert.equal(await page.locator(".shp-confirm").count(), 0);
+  assert.equal(await page.locator('[data-page="shape"] .set-err').count(), 0, "the reason goes with its question");
+  await done(page);
+});
+t("C116 S103 S104 Keep waits while Revoke is on its way: it can't take it back", async (ctx) => {
+  const page = await open(world({ delay: 400 }), ctx);
+  await settings(page, "rules");
+  await page.locator('[data-rule-off="r1"]').click();
+  await keyFocus(page, '[data-rule-yes="r1"]');
+  await page.keyboard.press("Enter");
+  await settle(page, 60);
+  assert.equal(await page.locator("[data-rule-no]").getAttribute("aria-disabled"), "true");
+  await page.locator("[data-rule-no]").click({ force: true });
+  assert.equal(await page.locator('[data-rule-yes="r1"]').count(), 1, "the question stays while Revoke is out");
+  await page.waitForFunction(() => !document.querySelector('[data-key="rule:r1"]'));
+  assert.equal(await focused(page), 'button[data-rule-off="r2"]');
+  await done(page);
+});
+t("C107 C108 Edit as JSON: Tab from its summary reaches the text and Shift+Tab comes back (a phone's Settings is a sheet)", async (ctx) => {
+  const page = await open(world(), ctx);
+  await settings(page, "shape");
+  await page.locator(".shp-json summary").click();
+  await keyFocus(page, ".shp-json summary");
+  await page.keyboard.press("Tab");
+  assert.equal(await focused(page), "textarea[data-shp-json]");
+  await page.keyboard.press("Shift+Tab");
+  assert.equal(await page.evaluate(() => document.activeElement.tagName), "SUMMARY");
+  // on a phone Settings covers the screen, and its ends turn round: before its first control is its last
+  if (ctx.width < 600) {
+    await keyFocus(page, "#set-x");
+    await page.keyboard.press("Shift+Tab");
+    assert.equal(await page.evaluate(() => !!document.activeElement.closest("#settings")), true, "Shift+Tab from the first stays in Settings");
+  }
+  await done(page);
+});
+t("S104 S108 S112 a danger button answers a held press with a change of its own, not its hover", async (ctx) => {
+  const page = await open(world(), ctx);
+  await settings(page, "rules");
+  await page.locator('[data-rule-off="r1"]').click();
+  const yes = page.locator('[data-rule-yes="r1"]');
+  const paint = () => yes.evaluate((e) => { const c = getComputedStyle(e); return `${c.backgroundColor}|${c.borderColor}|${c.backgroundImage}|${c.transform}`; });
+  await yes.hover();
+  await page.waitForTimeout(250);
+  const hover = await paint();
+  await page.mouse.down();
+  await page.waitForTimeout(150);
+  const press = await paint();
+  assert.equal(await yes.evaluate((e) => e.matches(":active")), true);
+  assert.notEqual(press, hover, "held, it looks pressed");
+  await page.mouse.move(2, 2); // away first, so letting go isn't a click
+  await page.mouse.up();
+  assert.equal(writes(page, "revoke"), 0, "nothing was revoked");
+  await done(page);
+});
 t("S116 S117 the first-run question keeps Tab and Shift+Tab inside it", async (ctx) => {
   const W = world({ shape: { shape: null, version: "new" } });
   const page = await open(W, ctx, { firstRun: true });
@@ -725,7 +820,7 @@ t("C012 C013 Home: Handled and a Recently made file keep focus through Home's re
   for (const c of tests) {
     if (process.env.ONLY && !new RegExp(process.env.ONLY).test(c.name)) continue;
     for (const ctx of CONTEXTS) {
-      const name = `${c.name} [${ctx.width} ${ctx.theme}]`;
+      const name = `${c.name} [${ctx.width} ${ctx.theme}${ctx.motion ? " motion" : ""}]`;
       try { await c.fn(ctx); passed++; console.log("  ok  " + name); }
       catch (e) { failed++; console.error("  FAIL " + name + "\n" + (e.stack || e.message).split("\n").slice(0, 6).join("\n")); }
     }

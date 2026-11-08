@@ -23,6 +23,8 @@ const pcts = (v) => (PCT.some((p) => Math.abs(p - v) < 0.001) || !(v >= 0 && v <
 const when = (iso) => { const d = new Date(iso); return Number.isNaN(+d) ? "" : d.toLocaleDateString(undefined, { month: "short", day: "numeric" }); };
 const sel = (attr, v) => `[${attr}="${CSS.escape(v)}"]`;
 const errHtml = (text) => (text ? `<p class="set-err" role="alert">${esc(text)}</p>` : "");
+/** A question's other button (Keep, Cancel) while its answer is on its way: it waits with it, and can't take it back. */
+const waits = (key) => (isPending(key) ? ' aria-disabled="true"' : "");
 // one router setting: a choice and its confidence are sent one at a time
 const ROUTER = "router";
 
@@ -119,10 +121,10 @@ export function createSettings({ world, announce, PROJ, onChange }) {
       (f ? `<form class="set-form" data-dm-form="${esc(m.id)}" autocomplete="off"><label class="field"><span>API key</span><input type="password" name="key" required autocomplete="new-password" spellcheck="false" placeholder="Paste the key"></label>` +
         `<label class="field"><span>Model <em>optional</em></span><input name="model" placeholder="${esc(m.model || "")}" spellcheck="false"></label>` +
         errHtml(R.err.dm) +
-        `<div class="set-fa"><button type="button" class="btn" data-dm-cancel>Cancel</button><button type="submit" class="btn btn-pri" data-dm-submit${busyAttrs(`dm-on:${m.id}`)}>Connect</button></div></form>` : "") +
+        `<div class="set-fa"><button type="button" class="btn" data-dm-cancel${waits(`dm-on:${m.id}`)}>Cancel</button><button type="submit" class="btn btn-pri" data-dm-submit${busyAttrs(`dm-on:${m.id}`)}>Connect</button></div></form>` : "") +
       (c ? `<div class="set-confirm" role="alertdialog" aria-labelledby="dmc-${esc(m.id)}"><p id="dmc-${esc(m.id)}"><b>Disconnect ${esc(m.label)}?</b> Its key is removed from this machine.${r.mode === "decision" && r.decision_model === m.id ? " Routing goes back to the coordinator." : ""}${n ? ` ${n} ${n === 1 ? "chat routes" : "chats route"} with it (${c.chats.map((x) => esc(PROJ(x))).join(", ")}); they go back to the Space's routing too.` : ""}</p>` +
         errHtml(R.err.dmOff) +
-        `<div class="set-fa"><button type="button" class="btn" data-dm-no>Keep it</button><button type="button" class="btn btn-danger" data-dm-yes="${esc(m.id)}"${busyAttrs(`dm-off:${m.id}`)}>Disconnect</button></div></div>` : "");
+        `<div class="set-fa"><button type="button" class="btn" data-dm-no${waits(`dm-off:${m.id}`)}>Keep it</button><button type="button" class="btn btn-danger" data-dm-yes="${esc(m.id)}"${busyAttrs(`dm-off:${m.id}`)}>Disconnect</button></div></div>` : "");
   }
   // what the Routing page shows, so a change from the stream (another tab, a chat's own routing) re-renders it
   let routeSig = "";
@@ -226,7 +228,7 @@ export function createSettings({ world, announce, PROJ, onChange }) {
       `<span class="rl-m">${def ? "XO's default" : `${esc(scopeWord(r))}${r.tier ? ` · ${esc(r.tier)}` : ""}${r.uses ? ` · answered ${r.uses} ${r.uses === 1 ? "ask" : "asks"}` : ""}${r.created_at ? ` · since ${esc(when(r.created_at))}` : ""}`}</span>` +
       (R.err.rule && R.err.rule.id === r.id ? errHtml(R.err.rule.text) : "") + `</div>` +
       (R.confirm && R.confirm.rule === r.id
-        ? `<span class="rl-c"><span>${def ? "A default can't be brought back." : "Agents will ask again."}</span><button type="button" class="btn" data-rule-no>Keep</button><button type="button" class="btn btn-danger" data-rule-yes="${esc(r.id)}"${busyAttrs(`rule:${r.id}`)}>Revoke</button></span>`
+        ? `<span class="rl-c"><span>${def ? "A default can't be brought back." : "Agents will ask again."}</span><button type="button" class="btn" data-rule-no${waits(`rule:${r.id}`)}>Keep</button><button type="button" class="btn btn-danger" data-rule-yes="${esc(r.id)}"${busyAttrs(`rule:${r.id}`)}>Revoke</button></span>`
         : `<button type="button" class="btn" data-rule-off="${esc(r.id)}">Revoke</button>`) + `</li>`;
     const mine = R.rules.filter((r) => !r.revoked_at);
     const defs = R.defaults.filter((d) => !d.revoked_at);
@@ -298,8 +300,8 @@ export function createSettings({ world, announce, PROJ, onChange }) {
         return `<li class="wt-row" data-key="wt:${esc(key)}"><div class="wt-main"><b>${esc(title(w))}</b><code>${esc(w.branch || w.path)}</code><span class="wt-s${w.would_lose ? " is-warn" : ""}">${esc(state)}${w.thread_state ? ` · thread ${esc(String(w.thread_state).replace("_", " "))}` : ""}</span>${c ? "" : err}</div>` +
           (c || !(can || busy) ? "" : `<button type="button" class="btn" data-wt="${esc(key)}"${busy ? " disabled" : busyAttrs(pk)}>Remove</button>`) +
           (c ? `<div class="wt-confirm" role="alertdialog" aria-label="Remove this worktree">${c.lose
-            ? lossHtml(c.lose) + `<p class="wt-q">Removing it deletes that work. It can't be undone.</p>${err}<div class="set-fa"><button type="button" class="btn" data-wt-no>Keep it</button><button type="button" class="b b-hold wt-hold" data-wt-hold="${esc(key)}" aria-pressed="false"${hold ? ' style="--p:1"' : ""}${busyAttrs(pk)}><span class="hold-fill" aria-hidden="true"></span><span class="b-l"><span class="hold-ic">${ICON.lock}</span><span class="hold-txt"><span class="ht-a">Hold to remove</span><span class="ht-b" aria-hidden="true">Keep holding…</span></span></span></button></div>`
-            : `<p class="wt-q">Remove this checkout? Nothing would be lost.</p>${err}<div class="set-fa"><button type="button" class="btn" data-wt-no>Keep it</button><button type="button" class="btn btn-danger" data-wt-yes="${esc(key)}"${busyAttrs(pk)}>Remove</button></div>`}</div>` : "") + `</li>`;
+            ? lossHtml(c.lose) + `<p class="wt-q">Removing it deletes that work. It can't be undone.</p>${err}<div class="set-fa"><button type="button" class="btn" data-wt-no${waits(pk)}>Keep it</button><button type="button" class="b b-hold wt-hold" data-wt-hold="${esc(key)}" aria-pressed="false"${hold ? ' style="--p:1"' : ""}${busyAttrs(pk)}><span class="hold-fill" aria-hidden="true"></span><span class="b-l"><span class="hold-ic">${ICON.lock}</span><span class="hold-txt"><span class="ht-a">Hold to remove</span><span class="ht-b" aria-hidden="true">Keep holding…</span></span></span></button></div>`
+            : `<p class="wt-q">Remove this checkout? Nothing would be lost.</p>${err}<div class="set-fa"><button type="button" class="btn" data-wt-no${waits(pk)}>Keep it</button><button type="button" class="btn btn-danger" data-wt-yes="${esc(key)}"${busyAttrs(pk)}>Remove</button></div>`}</div>` : "") + `</li>`;
       }).join("")}</ul></section>`).join("") : `<p class="set-note">No worktrees right now.</p>`) +
       (R.reported.length ? `<section class="set-sec" data-key="wt-reported"><h3>Made by an agent's own tool</h3><p class="set-lead">XO didn't create these, so it never removes them.</p><ul class="wt-list">${R.reported.map((w) => `<li class="wt-row" data-key="rep:${esc(w.path)}"><div class="wt-main"><code>${esc(w.path)}</code><span class="wt-s">reported ${esc(when(w.reported_at))}</span></div></li>`).join("")}</ul></section>` : "");
   }
@@ -350,6 +352,8 @@ export function createSettings({ world, announce, PROJ, onChange }) {
     if (rt && !rt.disabled) { setRoute(rt.dataset.route, rt.dataset.dm || null); return; }
     const on = t.closest("[data-dm-on]");
     if (on) { R.form = on.dataset.dmOn; R.err.dm = null; renderRouting(); focusTo("routing", `${sel("data-dm-form", R.form)} input[name="key"]`); return; }
+    // Keep and Cancel wait while their question's answer is on its way: it can't be taken back by closing the question
+    if (t.closest('[aria-disabled="true"]')) return;
     if (t.closest("[data-dm-cancel]")) { const id = R.form; R.form = null; R.err.dm = null; renderRouting(); focusTo("routing", sel("data-dm-on", id)); return; }
     const off = t.closest("[data-dm-off]");
     if (off) { R.err.dmOff = null; R.confirm = { dm: off.dataset.dmOff, chats: world.state.projects.filter((p) => p.routing && p.routing.decision_model === off.dataset.dmOff).map((p) => p.id) }; renderRouting(); focusTo("routing", "[data-dm-no]"); return; }
