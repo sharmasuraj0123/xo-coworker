@@ -730,6 +730,31 @@ t("H29: with Settings open, a file dragged over the page isn't taken by the hidd
   assert.equal(await page.locator("#att-tray > *").count(), 0, "nothing was attached to the hidden message");
   await done(page);
 });
+t("C052: a code block's Copy answered out of order: only the newest says Copied, and its own timer resets it", async () => {
+  const page = await app({ messages: MSG("Here is the command:\n\n```sh\nnpm test\n```\n") });
+  await page.evaluate(() => { window.__cp = []; navigator.clipboard.writeText = () => new Promise((ok, no) => window.__cp.push({ ok, no })); document.execCommand = () => false; });
+  await toDemo(page);
+  const code = page.locator("#msgs [data-copy]").first();
+  await code.waitFor();
+  await code.focus();
+  await page.keyboard.press("Enter"); // the first Copy, held
+  await page.waitForTimeout(700);
+  await page.keyboard.press("Enter"); // the second, held
+  await page.waitForFunction(() => window.__cp.length === 2);
+  await page.evaluate(() => window.__cp[1].ok()); // the newer answers first
+  await page.waitForFunction(() => document.querySelector("#msgs [data-copy]").textContent === "Copied");
+  await page.evaluate(() => window.__cp[0].ok()); // then the older, late: it says nothing
+  await page.waitForTimeout(900); // past the older one's 1400 ms, inside the newer one's
+  assert.equal(await code.innerText(), "Copied", "the newer acknowledgement stands");
+  await page.waitForFunction(() => document.querySelector("#msgs [data-copy]").textContent === "Copy", null, { timeout: 3000 });
+  // a refusal clears the check at once
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => window.__cp.length === 3);
+  await page.evaluate(() => window.__cp[2].no(new Error("denied")));
+  await page.waitForTimeout(200);
+  assert.equal(await code.innerText(), "Copy");
+  await done(page);
+});
 t("DEC-NOTE-LOSS/S167: a Send back that failed keeps its note for the next try", async () => {
   const page = await decisions("approval", 1);
   await page.evaluate(() => { const no = async () => { throw Object.assign(new Error("Fixture unavailable"), { status: 503, code: "unavailable" }); }; window.d.world.act.decide = no; window.d.world.act.reply = no; });

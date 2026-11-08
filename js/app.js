@@ -3035,7 +3035,19 @@ document.addEventListener("click", (e) => {
   if (fb) { e.preventDefault(); openSharedFile(fb); return; }
   const cp = t.closest("[data-copy]");
   // "Copied" only once it's on the clipboard; refused, said so, and focus stays on the button
-  if (cp) { copyText(cp.closest(".md-code")?.querySelector("code")?.textContent || "").then((ok) => { if (!ok) { announce(COPY_REFUSED); return; } cp.textContent = "Copied"; announce("Copied the code."); setTimeout(() => { cp.textContent = "Copy"; }, 1400); }); }
+  // each Copy owns its answer: only the newest on this button says "Copied" and only its own timer puts "Copy" back;
+  // an older one answering late says nothing; a refusal clears the check (Astra C052: an older reset wiped a newer
+  // acknowledgement)
+  if (cp) {
+    const my = (cp._copyN = (cp._copyN || 0) + 1);
+    copyText(cp.closest(".md-code")?.querySelector("code")?.textContent || "").then((ok) => {
+      if (cp._copyN !== my) return;
+      clearTimeout(cp._copyT);
+      if (!ok) { cp.textContent = "Copy"; announce(COPY_REFUSED); return; }
+      cp.textContent = "Copied"; announce("Copied the code.");
+      cp._copyT = setTimeout(() => { if (cp._copyN === my) cp.textContent = "Copy"; }, 1400);
+    });
+  }
 });
 $("#home").addEventListener("keydown", (e) => {
   if (e.target.id === "nx-note-in") {
