@@ -2275,28 +2275,29 @@ function render() {
   STAGE.sync();
   const nd = needs.filter((n) => n.admitted && !n.later).length;
   document.title = Kit.titleFor(nd, "XO Space");
-  faviconRender(world.state.threads.filter(isBusy).sort((a, b) => b.lastAt - a.lastAt)[0] || null);
+  faviconRender(world.state.threads.filter(isBusy).sort((a, b) => b.lastAt - a.lastAt)[0] || null, nd > 0);
 }
 /**
  * The progress line, XO's one motif, in the browser tab too. While an agent works, the mark carries the
  * latest working thread's own steps along its foot (green done, blue the step it's on, grey to do), the
  * same line as in its header; with no checklist, one blue line. When nothing works, the plain mark.
- * A line, never a dot.
+ * While something truly needs you (the same count the title says), the line is one amber line instead: that
+ * is what a glance at the tab is for. A line, never a dot, never a badge that counts up.
  */
 const FAVICON = { key: null, plain: null };
-function faviconRender(t) {
-  const c = t && t.checklist;
+function faviconRender(t, need = false) {
+  const c = !need && t && t.checklist;
   const n = c && c.total ? Math.min(c.total, 6) : 0;
   const done = n ? Math.min(n, Math.round((c.done / c.total) * n)) : 0;
-  const key = t ? `${n}:${done}` : "";
+  const key = need ? "need" : t ? `${n}:${done}` : "";
   if (FAVICON.key === key) return;
   FAVICON.key = key;
   const link = document.querySelector('link[rel="icon"]');
   if (!link) return;
   if (FAVICON.plain == null) FAVICON.plain = link.getAttribute("href");
-  if (!t) { link.setAttribute("href", FAVICON.plain); return; }
+  if (!t && !need) { link.setAttribute("href", FAVICON.plain); return; }
   const W = 360, X = 70, GAP = 14, k = n || 1, w = (W - GAP * (k - 1)) / k;
-  const fill = (i) => (!n ? "#75ADF1" : i < done ? "#83D63A" : i === done ? "#75ADF1" : "#4A4A4A");
+  const fill = (i) => (need ? "#F5A623" : !n ? "#75ADF1" : i < done ? "#83D63A" : i === done ? "#75ADF1" : "#4A4A4A");
   const seg = Array.from({ length: k }, (_, i) => `<rect x="${(X + i * (w + GAP)).toFixed(1)}" y="418" width="${w.toFixed(1)}" height="30" rx="4" fill="${fill(i)}"/>`).join("");
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500"><rect width="500" height="500" rx="110" fill="#151515"/><g transform="translate(250 215) scale(0.8) translate(-246.5 -250)" fill="none" stroke-width="34"><polyline stroke="#E1E1E1" points="36.99 165.84 118.47 247.31 31.16 334.61"/><polyline stroke="#E1E1E1" points="244.91 165.84 163.44 247.31 250.74 334.61"/><polyline stroke="#83D63A" points="328.12 165.06 246.65 246.53 333.95 333.84"/><polyline stroke="#83D63A" points="380.51 165.06 461.99 246.53 374.68 333.84"/></g>${seg}</svg>`;
   link.setAttribute("href", `data:image/svg+xml,${encodeURIComponent(svg)}`);

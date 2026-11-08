@@ -248,4 +248,5 @@ export function createAnnouncer(region, { quietMs = 2000 } = {}) {
 }
 
 /** Honest tab title: the number of asks waiting, never inflated. */
-export const titleFor = (n, base) => (n ? `◆ ${n} · ` : "") + base;
+/** The tab says "Needs you" only while it is true; it never counts upward to pull you back (the favicon turns amber). */
+export const titleFor = (n, base) => (n ? "Needs you · " : "") + base;
