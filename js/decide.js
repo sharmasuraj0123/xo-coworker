@@ -685,7 +685,7 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
       if (n.group === "stopped") { go({ text: "Please try again from the failing step." }, "allow"); return; }
       if (n.ask.item) {
         if (n.ask.item.kind === "question") { hint(el, "Pick an answer, or answer in words."); return; }
-        if (n.risk === "notable" && !ready()) { hint(el, "A beat to read it first."); return; }
+        if (!ready()) { if (n.risk === "notable") hint(el, "A beat to read it first."); return; }
         if (itemParts(n.ask.item).hold) { hint(el, "This one needs a press and hold."); return; }
         el.querySelector('[data-act="allow"]')?.classList.add("pressed");
         const nameIn = el.querySelector("[data-name]");
@@ -693,7 +693,8 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
         return;
       }
       if (!Kit.isBinary(n.ask)) { hint(el, "Pick an answer, reply in words, or send it back."); return; }
-      if (n.risk === "notable" && !ready()) { hint(el, "A beat to read it first."); return; }
+      // every card re-arms when it arrives: a second click or key meant for the card before can't allow this one
+      if (!ready()) { if (n.risk === "notable") hint(el, "A beat to read it first."); return; }
       el.querySelector('[data-act="allow"]')?.classList.add("pressed");
       go("allow", "allow");
     };

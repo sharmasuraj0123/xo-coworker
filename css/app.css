@@ -251,7 +251,8 @@ button:disabled{cursor:default}
 .next.in-undo{animation:in-undo var(--d-long) var(--ease) both,nx-orbit 7s linear infinite}
 .next.r-destructive.in-next{animation:in-next var(--d-long) var(--ease) both}
 .next.r-destructive.in-undo{animation:in-undo var(--d-long) var(--ease) both}
-@keyframes in-next{from{opacity:0;transform:translateY(18px) scale(.985)}}
+/* the next decision arrives in place: a fade, no rise, so its buttons never travel under a waiting pointer */
+@keyframes in-next{from{opacity:0}}
 @keyframes in-undo{from{opacity:0;transform:translateX(-24px)}}
 .next.st-allow .nx-in{animation:nx-out var(--d-in) var(--ease) forwards}
 .next.st-back .nx-in{animation:nx-back var(--d-sheet) var(--ease) forwards}
