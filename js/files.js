@@ -19,6 +19,7 @@
 
 import { esc, copyText, COPY_REFUSED } from "./util.js";
 import { ICON } from "./ui.js";
+import { redraw } from "./redraw.js";
 import { api } from "./api.js";
 import { activityOf, folderOf } from "./map.js";
 import { fileIcon, folderIcon } from "./fileicons.js";
@@ -111,7 +112,8 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     const k = dkey(s, local);
     const had = F.dirs.get(k);
     if (had && (had.state === "loading" || (had.state === "ok" && !again))) return had;
-    F.dirs.set(k, { ...(had || {}), state: had && had.state === "ok" ? "ok" : "loading", v: ++VER });
+    // a Try again reads with its note still there, saying it's reading again (its button stays, busy)
+    F.dirs.set(k, { ...(had || {}), state: had && had.state === "ok" ? "ok" : "loading", retry: !!(had && had.state === "error"), v: ++VER });
     try {
       const d = await api.projectTree(s.project, apiRel(s, local));
       const strip = (e) => { let p = String(e.relative_path || e.name); if (s.base && p.startsWith(s.base + "/")) p = p.slice(s.base.length + 1); return { name: e.name, path: p, bytes: e.size_bytes ?? null, at: Date.parse(e.modified_at) || 0 }; };
@@ -175,6 +177,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
    *  group: empty, for sync to fill, or with inner(path)'s rows when the whole tree is drawn at once. */
   function rowsHtml(s, local, d, marks, q, inner = null) {
     const depth = local ? local.split("/").length : 0;
+    if (d && d.state === "loading" && d.retry) return `<p class="fl-note is-err is-pending" style="--d:${depth}" role="status"><i class="spin" aria-hidden="true"></i>Reading again… <button type="button" class="fl-link" data-fl-retry="${esc(local)}" aria-busy="true" aria-disabled="true">Try again</button></p>`;
     if (!d || (d.state === "loading" && !d.dirs)) return `<p class="fl-note" style="--d:${depth}"><i class="spin" aria-hidden="true"></i>Reading…</p>`;
     if (d.state === "error") return `<p class="fl-note is-err" style="--d:${depth}">${esc(d.error)} <button type="button" class="fl-link" data-fl-retry="${esc(local)}">Try again</button></p>`;
     const open = setOf(s.key);
@@ -239,7 +242,9 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     const sig = sigOf(d, local, ctx);
     if (g.sig !== sig) {
       const a = document.activeElement, had = a && g.el.contains(a) ? a : null;
-      g.el.innerHTML = rowsHtml(s, local, d, ctx.marks, ctx.q);
+      const html = rowsHtml(s, local, d, ctx.marks, ctx.q);
+      if (html.startsWith("<p class=\"fl-note") && g.el.firstElementChild?.matches?.("p.fl-note")) redraw(g.el, html); // a note to a note: in place
+      else g.el.innerHTML = html;
       g.sig = sig; g.open.clear();
       for (const ph of g.el.querySelectorAll(":scope > .fl-g")) {
         const c = T.groups.get(ph.dataset.flG);
@@ -350,7 +355,9 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     const bar = F.host.querySelector(".fl-bar");
     const bh = has && !F.wide ? `<button type="button" class="fl-back" data-fl-back>${BACK}<span>${esc(s.key === "all" ? "Projects" : s.label || "Files")}</span></button>` : "";
     if (bar._h !== bh) { bar.innerHTML = bh; bar._h = bh; }
-    if (retryOf != null && !a.isConnected) (F.host.querySelector(`[data-fl-retry="${CSS.escape(retryOf)}"]`) || (retryOf && rowOf(retryOf)) || F.host.querySelector(".fl-tree .fl-r"))?.focus({ preventScroll: true });
+    // S061's named destinations once the read settles: Try again again if it failed again; a folder that read,
+    // its own row; the project's top that read (even empty), its New file
+    if (retryOf != null && !a.isConnected) (F.host.querySelector(`[data-fl-retry="${CSS.escape(retryOf)}"]`) || (retryOf ? rowOf(retryOf) : F.host.querySelector("[data-fl-new]")))?.focus({ preventScroll: true });
   }
   /** Where focus goes when the place itself changes (a project picked, or left): its contract. */
   function landIn(sel) { (sel && F.host.querySelector(sel)) ? F.host.querySelector(sel).focus({ preventScroll: true }) : F.host.querySelector(".fl-tree [data-fl-unpick], .fl-tree .fl-r")?.focus({ preventScroll: true }); }
@@ -616,9 +623,9 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       if (t.closest("[data-fl-unpick]")) { const was = F.pick; F.pick = null; F.follow = null; viewer.close({ restore: false }); setScope(F.view); paint(); landIn(was ? `[data-fl-pick="${CSS.escape(was)}"]` : null); return; }
       const rt = t.closest("[data-fl-retry]");
       if (rt) {
-        // the note with its Try again is redrawn as it reads: focus stays in the tree (the button again if it
-        // failed again, else its folder, else the first row), never the page (Astra S061)
+        if (rt.getAttribute("aria-busy") === "true") return; // already reading again
         load(F.scope, rt.dataset.flRetry, { again: true });
+        paint(); // "Reading again…" the moment it's pressed, in place, not when the answer comes (Astra S061)
         return;
       }
       if (t.closest("[data-fl-back]")) { F.fileView = false; if (!F.wide) viewer.close({ restore: false }); paint(); host.querySelector(".fl-r.is-on, .fl-r")?.focus({ preventScroll: true }); }

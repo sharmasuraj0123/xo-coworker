@@ -22,6 +22,7 @@ import { renderMarkdown, renderInline, excerptMarkdown } from "./markdown.js";
 import { highlight } from "./highlight.js";
 import { itemParts, itemBody, questionsOf, evidenceOf, itemEffort, isNo, VERB, holdWords as holdWordsOf } from "./review.js";
 import { clientId as newKey } from "./api.js";
+import { radioKeys } from "./keynav.js";
 import { resetWords, rtName } from "./runtimes.js";
 
 export const riskLabel = (r) => ({ destructive: "Destructive", notable: "Notable", routine: "Routine", stopped: "Stopped" })[r] || "Notable";
@@ -189,6 +190,8 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
     decisions: () => log.filter((d) => d.status !== "failed" && d.status !== "gone"),
     /** Decisions XO refused because the item had already left, with why (for the conversation). */
     notSent: () => log.filter((d) => d.status === "gone"),
+    /** The note of the newest decision on this ask that failed to send (its words are kept for the retry). */
+    failedNote: (key) => { const e = log.find((d) => d.key === key); return e && e.status === "failed" && e.note ? e.note : ""; }, // only while that failure is the latest word on it
     isOpen: () => F.open,
     current: () => (F.open && !F.done && !F.vig ? F.cur : null),
     open, close, sync, undo, decide, decideNow, laterNow, bringIn,
@@ -351,8 +354,10 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
   function laterNow(key) { later.add(key); announce("Planned for later today. It won't come up as your next move until then."); render(); }
   function bringIn(key) { P.bringIn(key); announce("Brought in. It's in today's list now."); render(); }
 
-  function allowAllRoutine() {
-    const batch = F.order.filter(pending).map((k) => F.items.get(k)).filter((n) => n && n.group === "routine" && Kit.isBinary(n.ask));
+  /** keys: exactly the asks the question listed ("Allow 2" allows those 2): an ask that arrives while it's open
+   *  isn't swept in (Astra: it confirmed 3). Each must still be pending and routine. */
+  function allowAllRoutine(keys) {
+    const batch = keys.filter(pending).map((k) => F.items.get(k)).filter((n) => n && n.group === "routine" && Kit.isBinary(n.ask));
     if (!batch.length) return;
     const parts = batch.map((n) => {
       const entry = { id: ++logN, key: n.key, verb: "Allowed", choice: "allow", label: n.ask.title, project: n.t.project, thread: n.t.title, tid: n.t.id, at: Date.now(), status: "queued", risk: n.risk, batch: true, lev: n.lev, doneAt: n.t.checklist.done, secs: 3 };
@@ -954,7 +959,7 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
       const b = e.target.closest("[data-cf]");
       if (!b) return;
       el.remove();
-      if (b.dataset.cf === "yes") allowAllRoutine(); else $("#card")?.focus();
+      if (b.dataset.cf === "yes") allowAllRoutine(batch.map((n) => n.key)); else $("#card")?.focus();
     });
   }
 
@@ -1044,6 +1049,7 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
   }
   api.cardKeys = cardKeys;
 
+  radioKeys(panel);
   panel.addEventListener("keydown", (e) => {
     if (!F.open) return;
     const card = $("#card");
@@ -1055,6 +1061,9 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
     }
     if (e.target.matches?.("textarea, input") || e.metaKey || e.ctrlKey || e.altKey) return;
     if (F.done || F.busy || F.vig || stage.querySelector(".confirm")) return;
+    // inside a choice of options (a rule's scope), the arrows move between its options (radioKeys), not to the
+    // next ask (Astra: ArrowRight on the scope went to the next ask)
+    if (/^Arrow/.test(e.key) && e.target.closest?.('[role="radiogroup"]')) return;
     const n = F.items.get(F.cur);
     if (!card || !n) return;
     const k = e.key;

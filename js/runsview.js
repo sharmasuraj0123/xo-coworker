@@ -45,7 +45,10 @@ function rowHtml(r, { canStop, depth = 0 }) {
 }
 
 /** The list: working now first, then the log. */
-export function runsListHtml(tree, counts, { canStop, title }) {
+/** stops: stops of this thread's runs still in their Undo window [{key, what}] (the sheet's own Undo, since the
+ *  page behind the sheet can't be reached while it's open); state: "loading" | "error" | "ok". */
+export function runsListHtml(tree, counts, { canStop, title, stops = [], state = "ok", error = "" }) {
+  tree = tree || [];
   const live = tree.filter((r) => LIVE.has(r.state));
   const done = tree.filter((r) => !LIVE.has(r.state));
   const c = counts || {};
@@ -53,10 +56,18 @@ export function runsListHtml(tree, counts, { canStop, title }) {
   return `<header class="rn-h"><div><h2 id="runs-h">Sub-agents</h2><p>${esc(title)}${sum ? ` · ${esc(sum)}` : ""}</p></div>` +
     (canStop && live.length > 1 ? `<button type="button" class="rn-stopall" data-runs-stop title="Stop every sub-agent; the thread's own agent keeps working">Stop all ${live.length}</button>` : "") +
     `<button type="button" class="x" data-close aria-label="Close"></button></header>` +
-    `<div class="rn-body">` +
+    `<div class="rn-body">` + stopsHtml(stops) +
     (live.length ? `<h3 class="rn-k">Working now</h3><ul class="rn-list">${live.map((r) => rowHtml(r, { canStop })).join("")}</ul>` : "") +
     (done.length ? `<h3 class="rn-k">${live.length ? "Earlier" : "What they did"}</h3><ul class="rn-list">${done.map((r) => rowHtml(r, { canStop })).join("")}</ul>` : "") +
-    (!tree.length ? `<p class="rn-none">No sub-agents yet.</p>` : "") + `</div>`;
+    // "none" only when a read said so: while it reads, it says so; a failed read says what failed, with a retry
+    (!tree.length ? (state === "loading" ? `<p class="rn-none" role="status">Reading its sub-agents…</p>`
+      : state === "error" ? `<p class="rn-none" role="alert">Couldn't read its sub-agents: ${esc(error)} <button type="button" class="fl-link" data-runs-retry>Try again</button></p>`
+      : `<p class="rn-none">No sub-agents yet.</p>`) : "") + `</div>`;
+}
+/** Stops still in their 3 s Undo, inside the sheet: each with its own Undo. */
+export function stopsHtml(stops) {
+  if (!stops || !stops.length) return "";
+  return `<ul class="rn-stops" aria-label="Stopping">${stops.map((s) => `<li class="rn-stopping" data-key="stop:${esc(s.key)}"><span>Stopping ${esc(s.what)}</span><button type="button" class="t-undo" data-runs-undo="${esc(s.key)}">Undo</button></li>`).join("")}</ul>`;
 }
 
 /** Workspace › Project › Thread › Sub-agent, from the run's ancestry. */
@@ -96,7 +107,7 @@ export function transcriptHtml(items, { open = {} } = {}) {
 }
 
 /** The whole run view: path, state, Stop, its transcript, its own sub-agents. */
-export function runViewHtml(run, { anc, items, children = [], canStop, gone = null, error = null, loading = false, open = {} }) {
+export function runViewHtml(run, { anc, items, children = [], canStop, gone = null, error = null, loading = false, open = {}, stops = [] }) {
   const live = LIVE.has(run.state);
   const head = `<header class="rn-h is-run"><button type="button" class="rn-back" data-runs-back title="Back to the list">${ICON.back}<span>Sub-agents</span></button>` +
     `<button type="button" class="x" data-close aria-label="Close"></button></header>` +
@@ -109,5 +120,5 @@ export function runViewHtml(run, { anc, items, children = [], canStop, gone = nu
   else body = transcriptHtml(items, { open }) || `<p class="rn-none">Nothing recorded yet.</p>`;
   const kids = children.length ? `<h3 class="rn-k">Its sub-agents</h3><ul class="rn-list">${children.map((c) => rowHtml(c, { canStop })).join("")}</ul>` : "";
   const summary = run.summary && !live ? `<p class="rn-sum">${esc(run.summary)}</p>` : "";
-  return `${head}<div class="rn-body rn-run">${summary}${body}${kids}<p class="rn-foot">Messaging a sub-agent isn't possible; talk to its thread instead.</p></div>`;
+  return `${head}<div class="rn-body rn-run">${stopsHtml(stops)}${summary}${body}${kids}<p class="rn-foot">Messaging a sub-agent isn't possible; talk to its thread instead.</p></div>`;
 }

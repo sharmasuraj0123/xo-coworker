@@ -426,7 +426,10 @@ t("S061: while Try again is reading, focus stays in the tree", async () => {
   await retry.waitFor();
   await retry.focus();
   await page.keyboard.press("Enter");
-  await page.waitForTimeout(400); // the read is out, unanswered; the app redraws meanwhile (Files with it)
+  await page.waitForTimeout(150);
+  assert.match(await page.locator(".fl-tree").innerText(), /Reading again/, "it says it's reading again at once");
+  assert.equal(await page.locator('[data-fl-retry="bad"]').first().getAttribute("aria-busy"), "true");
+  await page.waitForTimeout(250); // the read is out, unanswered; the app redraws meanwhile (Files with it)
   await page.evaluate(() => window.__t.render());
   await page.waitForTimeout(200);
   const pending = await active(page);
@@ -435,6 +438,24 @@ t("S061: while Try again is reading, focus stays in the tree", async () => {
   await page.locator('[data-fl-file="bad/inside.md"]').first().waitFor();
   const after = await active(page);
   assert.ok(after && !/^BODY/.test(after), `after: ${after}`);
+  await done(page);
+});
+
+t("S061: the project's top failing, then reading empty: Try again lands on New file", async () => {
+  let answer;
+  const page = await app({ files: {}, rootFails: 1 });
+  await panelOpen(page);
+  await filesOpen(page);
+  const retry = page.locator('[data-fl-retry=""]').first();
+  await retry.waitFor();
+  page.W.rootEmpty = true; page.W.rootGate = new Promise((ok) => (answer = ok));
+  await retry.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(150);
+  assert.match(await page.locator(".fl-tree").innerText(), /Reading again/);
+  answer();
+  await page.waitForTimeout(400);
+  assert.match(await active(page), /data-fl-new/);
   await done(page);
 });
 
@@ -629,6 +650,20 @@ t("H6: Connect GitHub starts once, keeps focus, and lands on Try again when it f
   assert.match(await page.locator("#cp-gh").innerText(), /Try again/);
   await done(page);
 });
+t("Jump: Enter with nothing found keeps Jump open on what you typed; a composing Enter does nothing", async () => {
+  const page = await app();
+  await page.keyboard.press("Control+k");
+  await page.locator("#jump-q").fill("zzzz nothing like this");
+  await page.keyboard.press("Enter");
+  assert.ok(await page.locator("#jump").isVisible(), "still open");
+  assert.match(await active(page), /id=jump-q/);
+  await page.locator("#jump-q").fill("New project");
+  await page.locator("#jump-q").dispatchEvent("keydown", { key: "Enter", code: "Enter", isComposing: true, bubbles: true });
+  await page.waitForTimeout(200);
+  assert.ok(!(await page.locator("#cp-name").isVisible()), "a composing Enter didn't open Create");
+  assert.ok(await page.locator("#jump").isVisible());
+  await done(page);
+});
 t("H8: Jump to Artifacts puts focus in Artifacts", async () => {
   const page = await app();
   await page.keyboard.press("Control+k");
@@ -636,6 +671,54 @@ t("H8: Jump to Artifacts puts focus in Artifacts", async () => {
   await page.keyboard.press("Enter");
   await page.waitForTimeout(400);
   assert.match(await active(page), /id=arts/);
+  await done(page);
+});
+
+// ── Runs (a thread's sub-agents) ──
+const run = (id, title, state = "running") => ({ id, title, state, agent_type: "general", started_at: NOW, can_stop: true });
+t("Runs: a late list for a thread you left never shows under the one you opened", async () => {
+  let releaseA;
+  const W = { runsGate: { "ses-a": new Promise((ok) => (releaseA = ok)) }, runs: { "ses-a": { runs: [run("ra", "Alpha's helper")], counts: { running: 1 } }, "ses-b": { runs: [run("rb", "Beta's helper")], counts: { running: 1 } } } };
+  const page = await app(W);
+  await page.evaluate(() => window.__t.openRuns({ sessionId: "ses-a", title: "Thread A" }));
+  assert.match(await page.locator("#runs").innerText(), /Reading its sub-agents/, "it says it's reading, not that there are none");
+  await page.keyboard.press("Escape");
+  await page.evaluate(() => window.__t.openRuns({ sessionId: "ses-b", title: "Thread B" }));
+  await page.waitForFunction(() => /Beta's helper/.test(document.querySelector("#runs").innerText));
+  releaseA();
+  await page.waitForTimeout(300);
+  const text = await page.locator("#runs").innerText();
+  assert.match(text, /Beta's helper/);
+  assert.doesNotMatch(text, /Alpha's helper/);
+  await done(page);
+});
+t("Runs: a failed read says so, with Try again", async () => {
+  const W = { runsFail: { "ses-a": true } };
+  const page = await app(W);
+  await page.evaluate(() => window.__t.openRuns({ sessionId: "ses-a", title: "Thread A" }));
+  await page.locator("[data-runs-retry]").waitFor();
+  assert.match(await page.locator("#runs").innerText(), /Couldn't read its sub-agents: Fixture offline/);
+  W.runsFail = null; W.runs = { "ses-a": { runs: [run("ra", "Alpha's helper")], counts: { running: 1 } } };
+  await page.locator("[data-runs-retry]").focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => /Alpha's helper/.test(document.querySelector("#runs").innerText));
+  await done(page);
+});
+t("Runs: Stop's Undo is in the sheet; Undo keeps it running and focus goes back to Stop; a second Stop adds nothing", async () => {
+  const W = { runs: { "ses-a": { runs: [run("ra", "Alpha's helper")], counts: { running: 1 } } } };
+  const page = await app(W);
+  await page.evaluate(() => { window.__t.world.act.feature = () => true; return window.__t.openRuns({ sessionId: "ses-a", title: "Thread A" }); });
+  const stop = page.locator('#runs [data-run-stop="ra"]');
+  await stop.waitFor();
+  await stop.focus();
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("Enter"); // again, while it waits
+  assert.equal(await page.locator("#runs [data-runs-undo]").count(), 1, "one stop waiting, its Undo in the sheet");
+  await page.locator("#runs [data-runs-undo]").focus();
+  await page.keyboard.press("Enter");
+  assert.match(await active(page), /data-run-stop=ra/);
+  await page.waitForTimeout(3300);
+  assert.equal(W.runStops || 0, 0, "nothing was stopped");
   await done(page);
 });
 

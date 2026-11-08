@@ -684,7 +684,13 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
   document.addEventListener("click", (e) => {
     const t = e.target;
     const got = t.closest("[data-rec-got]");
-    if (got) { const p = got.dataset.recGot; done.add(p); markPlace(p); announce("Caught up"); schedule(); return; }
+    if (got) {
+      const p = got.dataset.recGot;
+      // the line goes with its button: focus moves on first, to the place it was read in (Home, or the
+      // conversation), never the page (Astra: dismissing left focus on BODY)
+      if (got.contains(document.activeElement)) document.getElementById(p === "home" ? "home" : "scroller")?.focus({ preventScroll: true });
+      done.add(p); markPlace(p); announce("Caught up"); schedule(); return;
+    }
     const mr = t.closest("[data-rec-more]");
     if (mr) { more.add(mr.dataset.recMore); schedule(); return; }
     const mo = t.closest("[data-made-open]");

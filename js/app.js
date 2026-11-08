@@ -10,6 +10,7 @@
 // composer. Light and dark.
 import { createWorld, esc, WAITING } from "./world.js";
 import { copyText, COPY_REFUSED } from "./util.js";
+import { redraw } from "./redraw.js";
 import "./dropdown.js"; // <xo-select>: the one dropdown, in place of the browser's <select>
 import { renderMarkdown, renderInline, setThreadInfo, setWebImages } from "./markdown.js";
 import * as Kit from "./kit.js";
@@ -18,7 +19,7 @@ import { createDecisions } from "./decide.js";
 import { createPacing } from "./pacing.js";
 import { createIntel } from "./intel.js";
 import { EFFORT, estLine, evidenceFor } from "./content.js";
-import { keepTurning, ICON, XO, NEXT_GLYPH, $, $$, RM, clock, dayOf, short, elapsed, reconcile, sound, wait, dial, morph, expand } from "./ui.js";
+import { keepTurning, ICON, XO, NEXT_GLYPH, $, $$, RM, clock, dayOf, short, elapsed, reconcile, sound, wait, hold, dial, morph, expand } from "./ui.js";
 import { uiMsg, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn } from "./turnview.js";
 import { nameWith } from "./comms.js";
@@ -505,7 +506,9 @@ function nextActHtml(n) {
     html += `<div class="nx-btns one"><button type="button" class="b b-go" data-fid="go" data-decide="${esc(n.key)}"><span class="b-l">${verb}${ICON.arrow}</span></button>` +
       (n.effort === "think" ? `<button type="button" class="b b-ghost" data-fid="later" data-later="${esc(n.key)}" title="Park it until later today"><span class="b-l">${ICON.clock}Later today</span></button>` : "") + `</div>`;
   }
-  html += `<div class="c-note nx-note" hidden><label for="nx-note-in" class="c-note-l">What should it do instead? (optional)</label><textarea id="nx-note-in" rows="2" placeholder="e.g. what it should try instead"></textarea>` +
+  // a Send back that didn't go comes back with its note, open, to send again (Astra S031: the words were lost)
+  const kept = D.failedNote(n.key);
+  html += `<div class="c-note nx-note"${kept ? "" : " hidden"}>${kept ? `<p class="c-hint show stay" role="status">That didn't send. Your note is still here: Send back tries again.</p>` : ""}<label for="nx-note-in" class="c-note-l">What should it do instead? (optional)</label><textarea id="nx-note-in" rows="2" placeholder="e.g. what it should try instead">${esc(kept)}</textarea>` +
     `<div class="c-note-row"><button type="button" class="b b-sm b-go" data-nx-send>${ICON.rewind}Send back</button><button type="button" class="b b-sm b-ghost" data-nx-cancel>Cancel</button></div></div>`;
   return html;
 }
@@ -530,7 +533,7 @@ const NEXT_SEEN = new Map(); // Home's next ask → when it last became the curr
 function nextCardHtml(n) {
   const t = n.t, E = EFFORT[n.effort];
   const { head, cmd } = nextHead(n);
-  return `<article class="next r-${n.risk} e-${n.effort}" data-key="${esc(n.key)}" data-fid="nextcard" tabindex="-1" aria-label="Your next move: ${esc(n.ask.title)}">` +
+  return `<article class="next r-${n.risk} e-${n.effort}${D.failedNote(n.key) ? " noting" : ""}" data-key="${esc(n.key)}" data-fid="nextcard" tabindex="-1" aria-label="Your next move: ${esc(n.ask.title)}">` +
     `<div class="stamp stamp-allow" aria-hidden="true"><svg viewBox="0 0 52 52"><circle class="sc" cx="26" cy="26" r="23"/><path class="sk" d="M15 27l7.5 7.5L38 19"/></svg></div>` +
     `<div class="nx-in">` +
     `<div class="nx-meta"><span class="eff e-${n.effort}">${dial(n.effort)}<b>${E.label}</b><span>${E.time}</span></span>` +
@@ -594,9 +597,13 @@ function homeRender(needs) {
     // the headline already says "Nothing needs you." (say it once): one quiet line under it
     else patch(nb, `<p class="calm-line">${w ? `${num(w)} ${noun(plural(w, "thread"))} working. ${w === 1 ? "It'll" : "They'll"} ask when it's worth it.` : "Start something below, or enjoy the quiet."}</p>`);
   }
-  // the card you were on is gone (its ask decided, nothing next): focus stays with the next move's place, which
-  // says what's left, rather than falling to the page (found by the suite's drop check)
-  if (nextHad && !nb.contains(document.activeElement)) { nb.tabIndex = -1; nb.focus({ preventScroll: true }); }
+  // the card you were on is gone (its ask decided, nothing next), or you put one off or brought one back: focus is
+  // the next move's, its card if there is one, else its place, which says what's left (never the page)
+  if (S.homeFocusNext || (nextHad && !nb.contains(document.activeElement))) {
+    S.homeFocusNext = false;
+    const nc = nb.querySelector(".next");
+    if (nc) nc.focus({ preventScroll: true }); else { nb.tabIndex = -1; nb.focus({ preventScroll: true }); }
+  }
   landed(nb);
 
   // then… at most two more
@@ -1334,16 +1341,20 @@ function runsStrip(t) {
 const runsEl = $("#runs"), runsCard = $("#runs-card");
 const RS = { gen: 0, open: false, session: null, title: "", view: "list", tree: [], counts: null, runId: null, run: null, anc: null, items: [], cursor: null, children: [], loading: false, error: null, gone: null, pollT: null, returnTo: null };
 const canStopRuns = () => !!(RS.session && world.act.feature && world.act.feature(RS.session, "runs.stop"));
+// this sheet's own stops still in their Undo: the page behind it is inert while it's open (Astra: Stop's only
+// Undo was out of reach)
+const sheetStops = () => pendingStops.filter((j) => !j.cancelled && !j.sent && j.session === RS.session).map((j) => ({ key: j.key, what: j.what }));
 function runsRender() {
   if (!RS.open) return;
   const html = RS.view === "list"
-    ? runsListHtml(RS.tree, RS.counts, { canStop: canStopRuns(), title: RS.title })
-    : runViewHtml(RS.run || { id: RS.runId, title: "Sub-agent", state: "running" }, { anc: RS.anc, items: RS.items, children: RS.children, canStop: canStopRuns(), gone: RS.gone, error: RS.error, loading: RS.loading, open: S.tbOpen });
+    ? runsListHtml(RS.tree, RS.counts, { canStop: canStopRuns(), title: RS.title, stops: sheetStops(), state: RS.listState, error: RS.listErr })
+    : runViewHtml(RS.run || { id: RS.runId, title: "Sub-agent", state: "running" }, { anc: RS.anc, items: RS.items, children: RS.children, canStop: canStopRuns(), gone: RS.gone, error: RS.error, loading: RS.loading, stops: sheetStops(), open: S.tbOpen });
   if (runsCard._h !== html) {
     const body = runsCard.querySelector(".rn-body");
     const keep = body ? body.scrollTop : 0;
-    runsCard.innerHTML = html; runsCard._h = html;
-    for (const x of runsCard.querySelectorAll("[data-close]")) x.innerHTML = ICON.close;
+    // in place: the control with focus (a Stop that gains its Undo line, a row) stays the same node
+    redraw(runsCard, html); runsCard._h = html;
+    for (const x of runsCard.querySelectorAll("[data-close]")) if (!x.firstChild) x.innerHTML = ICON.close;
     const nb = runsCard.querySelector(".rn-body");
     if (nb && RS.keepScroll) nb.scrollTop = keep;
     // a re-render must not drop focus out of the sheet (Escape, Tab stay inside it)
@@ -1354,14 +1365,26 @@ function runsEscape() { if (RS.view === "run") { RS.gen++; RS.view = "list"; RS.
 async function openRuns(t, runId = null) {
   if (!t || !t.sessionId) return;
   if (!RS.open) RS.returnTo = document.activeElement;
-  Object.assign(RS, { open: true, session: t.sessionId, title: t.title, view: runId ? "run" : "list", runId, keepScroll: false });
+  // a new thread's list starts empty and reading: never the last thread's rows, never "none" before a read says so
+  if (RS.session !== t.sessionId) { RS.tree = []; RS.counts = null; }
+  Object.assign(RS, { open: true, session: t.sessionId, title: t.title, view: runId ? "run" : "list", runId, keepScroll: false, listState: "loading", listErr: "" });
   runsEl.hidden = false;
   runsRender();
-  try {
-    const d = await world.act.listRuns(t.sessionId);
-    RS.tree = d.runs || []; RS.counts = d.counts || null;
-  } catch (err) { RS.error = err.message; }
+  await readRunsList(t.sessionId);
+  if (!RS.open || RS.session !== t.sessionId) return;
   if (runId) openRun(runId); else { runsRender(); runsCard.querySelector(".rn-open, [data-close]")?.focus(); }
+}
+/** The list for one thread; an answer for a thread that isn't the one open any more is dropped (Astra: a late
+ *  list for A showed under B). */
+async function readRunsList(sid) {
+  try {
+    const d = await world.act.listRuns(sid);
+    if (!RS.open || RS.session !== sid) return;
+    RS.tree = d.runs || []; RS.counts = d.counts || null; RS.listState = "ok"; RS.listErr = "";
+  } catch (err) {
+    if (!RS.open || RS.session !== sid) return;
+    RS.listState = "error"; RS.listErr = err.message;
+  }
 }
 async function openRun(id) {
   clearTimeout(RS.pollT);
@@ -1417,10 +1440,14 @@ function closeRuns() {
 /** Stop one sub-agent, or all of a session's, after a 3 s Undo. */
 // Stops waiting out their Undo. One herald shows them all, so a second stop never hides the first's Undo.
 const pendingStops = [];
-function stopRunsUndo(what, fn) {
-  const job = { what, until: Date.now() + Kit.COMMIT_MS, cancelled: false, sent: false };
+const stopsOut = new Set(); // stop requests sent and not yet answered, by key
+function stopRunsUndo(what, fn, key = what, session = RS.session) {
+  // a second Stop for the same run(s) while the first waits or is out does nothing (Astra: duplicate stops)
+  if (pendingStops.some((j) => j.key === key && !j.cancelled) || stopsOut.has(key)) return;
+  const job = { what, key, session, until: Date.now() + Kit.COMMIT_MS, cancelled: false, sent: false };
   pendingStops.push(job);
   stopsHerald();
+  runsRender();
   announce(`Stopping ${what} in 3 seconds. Undo to keep it.`);
   setTimeout(async () => {
     const i = pendingStops.indexOf(job);
@@ -1428,7 +1455,8 @@ function stopRunsUndo(what, fn) {
     if (job.cancelled) return;
     job.sent = true;
     stopsHerald(); // its Undo is over: the line keeps only the stops still waiting
-
+    runsRender();
+    stopsOut.add(key);
     try {
       const r = await fn();
       // 202: a stop was sent (its run.finished confirms it); 200 with nothing to stop: it had ended
@@ -1437,10 +1465,12 @@ function stopRunsUndo(what, fn) {
       heraldShow({ kind: "halt", text: none ? "It had already finished" : "Stopping", sub: none ? what : n > 1 ? `${n} sub-agents · what they did is kept` : `${what} · what it did is kept` }, 3600);
       announce(none ? `${what} had already finished.` : `Stopping ${what}. What it did is kept.`);
     } catch (err) {
-      if (err.code === "run_not_live") heraldShow({ kind: "halt", text: "It had already finished", sub: what }, 3600);
-      else heraldShow({ kind: "stopped", text: "Couldn't stop it", sub: err.status === 501 ? "this agent can't stop a sub-agent; stop the thread instead" : err.message }, 6000);
-    }
-    if (RS.open && RS.session) { try { const d = await world.act.listRuns(RS.session); RS.tree = d.runs || []; RS.counts = d.counts || null; } catch { /* the stream says it too */ } runsRender(); }
+      // run_not_live: XO's record still says it's running, but nothing is running it that could be stopped. It
+      // didn't "finish": say what's true (Astra RUN-6, from storm/runs/operations.py)
+      if (err.code === "run_not_live") { heraldShow({ kind: "stopped", text: "Couldn't stop it", sub: `${what}: nothing is running it any more, though XO's record still says it's running` }, 6000); announce(`Couldn't stop ${what}: nothing is running it any more, though XO's record still says it's running.`); }
+      else { heraldShow({ kind: "stopped", text: "Couldn't stop it", sub: err.status === 501 ? "this agent can't stop a sub-agent; stop the thread instead" : err.message }, 6000); announce(`Couldn't stop ${what}.`); }
+    } finally { stopsOut.delete(key); }
+    if (RS.open && RS.session === session) { await readRunsList(session); runsRender(); }
   }, Kit.COMMIT_MS);
 }
 runsEl.addEventListener("click", (e) => {
@@ -1449,8 +1479,19 @@ runsEl.addEventListener("click", (e) => {
   if (tb) { S.tbOpen[tb.dataset.tb] = !S.tbOpen[tb.dataset.tb]; RS.keepScroll = true; runsRender(); return; }
   if (e.target.closest("[data-runs-back]")) { RS.gen++; clearTimeout(RS.pollT); RS.view = "list"; RS.runId = null; RS.keepScroll = false; runsRender(); return; }
   const st = e.target.closest("[data-run-stop]");
-  if (st) { const r = world.state.runs.get(st.dataset.runStop) || { title: "this sub-agent" }; stopRunsUndo(r.title, () => world.act.stopRun(st.dataset.runStop)); return; }
-  if (e.target.closest("[data-runs-stop]")) { const sid = RS.session; stopRunsUndo("every sub-agent of this thread", () => world.act.stopRuns(sid)); return; }
+  if (st) { const r = world.state.runs.get(st.dataset.runStop) || { title: "this sub-agent" }; stopRunsUndo(r.title, () => world.act.stopRun(st.dataset.runStop), `run:${st.dataset.runStop}`); return; }
+  if (e.target.closest("[data-runs-stop]")) { const sid = RS.session; stopRunsUndo("every sub-agent of this thread", () => world.act.stopRuns(sid), `all:${sid}`); return; }
+  // the sheet's own Undo for a stop still waiting: it keeps working; focus goes back to the Stop it undid
+  const un = e.target.closest("[data-runs-undo]");
+  if (un) {
+    const job = pendingStops.find((j) => j.key === un.dataset.runsUndo && !j.cancelled && !j.sent);
+    if (job) { job.cancelled = true; pendingStops.splice(pendingStops.indexOf(job), 1); stopsHerald(); announce(`Not stopped. ${job.what} keeps working.`); }
+    const back = job && job.key.startsWith("run:") ? `[data-run-stop="${CSS.escape(job.key.slice(4))}"]` : "[data-runs-stop]";
+    runsRender();
+    (runsCard.querySelector(back) || runsCard.querySelector(".rn-open, [data-close]"))?.focus({ preventScroll: true });
+    return;
+  }
+  if (e.target.closest("[data-runs-retry]")) { const sid = RS.session; RS.listState = "loading"; runsRender(); readRunsList(sid).then(() => { runsRender(); runsCard.querySelector(".rn-open, [data-runs-retry], [data-close]")?.focus({ preventScroll: true }); }); return; }
   const op = e.target.closest("[data-run]");
   if (op) openRun(op.dataset.run);
 });
@@ -1560,8 +1601,9 @@ function dockRender(needs) {
         const e = D.decisions()[0];
         const verb = e && e.verb === "Answered" ? `Answered “${e.said}”` : e ? e.verb : "Done";
         morph(frame, () => { frame.className = "card is-dock r-done"; frame.innerHTML = `<p class="tp-done${how === "back" ? " is-back" : ""}" role="status"><span class="tp-done-ic">${how === "back" ? ICON.rewind : ICON.check}</span><span><b>${esc(verb)}.</b> ${how === "back" ? "It's taking another route." : "It's back at work."}</span><button type="button" class="tp-done-u" data-dock-undo>Undo</button></p>`; }, { duration: 300 });
-        // the only Undo for this decision now: it stays for the whole 3 s window
-        await wait(RM.matches ? 3000 : 2700);
+        // the only Undo for this decision now: it stays for the whole 3 s window, in real time (hold, not wait:
+        // reduced motion cuts the stamp's animation, never the time to Undo)
+        await hold(RM.matches ? 3000 : 2700);
       }
       TD.busy = false;
       TD.key = "__settling";
@@ -2852,11 +2894,12 @@ document.addEventListener("click", (e) => {
   if (t.closest("[data-open-all]")) { D.open(homeParts().next?.key); return; }
   if (t.closest("[data-glances]")) { D.open(null, { only: "glance" }); return; }
   const l = t.closest("[data-later]");
-  if (l) { D.laterNow(l.dataset.later); S.pin = null; return; }
-  if (t.closest("[data-bring]")) { S.later.clear(); announce("Brought back. They're in today's list again."); schedule(); return; }
+  // Later, Bring back, Bring in change what's next: focus goes to the next move as Home redraws (Astra S029/S035/S036)
+  if (l) { S.homeFocusNext = true; D.laterNow(l.dataset.later); S.pin = null; return; }
+  if (t.closest("[data-bring]")) { S.homeFocusNext = true; S.later.clear(); announce("Brought back. They're in today's list again."); schedule(); return; }
   if (t.closest("[data-handled]")) { setHandled(!S.handledOpen); return; }
   const bi = t.closest("[data-bring-in]");
-  if (bi) { D.bringIn(bi.dataset.bringIn); return; }
+  if (bi) { S.homeFocusNext = true; D.bringIn(bi.dataset.bringIn); return; }
   const ru = t.closest("[data-rec-undo]");
   if (ru) { undoRecord(ru.dataset.recUndo); return; }
   if (t.closest("[data-herald-undo]")) { const u = S.herald?.undo; if (typeof u === "function") { S.herald.until = 0; u(); heraldNext(); } else if (u) undoRecord(u); return; }
@@ -3155,7 +3198,10 @@ function closeJump({ restore = true } = {}) { if (jump.hidden) return; jump.hidd
 jq.addEventListener("input", () => { jsel = 0; jumpRender(); });
 jq.addEventListener("keydown", (e) => {
   if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); jsel = (jsel + (e.key === "ArrowDown" ? 1 : jitems.length - 1)) % Math.max(1, jitems.length); jumpRender(); }
-  if (e.key === "Enter") { e.preventDefault(); const x = jitems[jsel]; closeJump({ restore: !!(x && x.run) }); if (x) (x.run ? x.run() : go(x.v)); }
+  // Enter while a word is being composed (an IME) finishes the word; with nothing found, Jump stays open on what
+  // you typed (it never closes onto nothing: Astra, e20231c)
+  if (e.key === "Enter" && (e.isComposing || e.keyCode === 229)) return;
+  if (e.key === "Enter") { e.preventDefault(); const x = jitems[jsel]; if (!x) { announce("Nothing matches. Change what you typed, or Esc to close."); return; } closeJump({ restore: !!x.run }); x.run ? x.run() : go(x.v); }
   if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeJump(); }
 });
 // the row under a moving pointer becomes the selection, as the arrows make it (only on a real move: a list

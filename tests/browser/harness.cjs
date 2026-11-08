@@ -79,6 +79,9 @@ function mockApi(W) {
     if (/^\/api\/xo-projects\/[^/]+\/changes$/.test(p)) return json({ project_id: "demo", worktree: null, root: "/demo", base_ref: "HEAD", base_commit: "c0", base_source: "head", head_commit: "c0", computed_at: NOW, truncated: false, total_files: 0, files: [] });
     if (/^\/api\/xo-projects\/[^/]+\/tree$/.test(p)) {
       const rel = u.searchParams.get("relative_path") || "";
+      if (!rel && W.rootFails) { W.rootFails--; return json({ detail: { code: "unavailable", message: "Fixture offline" } }, 503); }
+      if (!rel && W.rootGate) await W.rootGate;
+      if (!rel && W.rootEmpty) return json({ dirs: [], files: [] });
       if (rel === "bad" && W.treeFails) { W.treeFails--; return json({ detail: { code: "unavailable", message: "Fixture offline" } }, 503); }
       if (rel === "bad" && W.treeGate) await W.treeGate; // the test says when the second read answers
       if (rel === "bad") return json({ dirs: [], files: [{ name: "inside.md", relative_path: "bad/inside.md", size_bytes: 9 }] });
@@ -108,6 +111,13 @@ function mockApi(W) {
       W.undos = (W.undos || 0) + 1;
       return W.undoMode === "503" ? json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503) : json({ undone: true });
     }
+    if ((k = /^\/api\/chat\/sessions\/([^/]+)\/runs$/.exec(p))) {
+      const sid = decodeURIComponent(k[1]);
+      if (W.runsGate && W.runsGate[sid]) await W.runsGate[sid];
+      if (W.runsFail && W.runsFail[sid]) return json({ detail: { code: "unavailable", message: "Fixture offline" } }, 503);
+      return json((W.runs && W.runs[sid]) || { runs: [], counts: {} });
+    }
+    if ((k = /^\/api\/chat\/runs\/([^/]+)\/stop$/.exec(p)) && m === "POST") { W.runStops = (W.runStops || 0) + 1; return json({ stopping: [k[1]] }); }
     if (p === "/api/config/workspace") return json({ roots: { home: "/home/test" }, default: "home" });
     if (p === "/api/files/mkdir" && m === "POST") {
       W.creates = (W.creates || 0) + 1;
@@ -130,7 +140,7 @@ function mockApi(W) {
 
 // test hooks, added to the served modules in the page only (the files on disk are untouched)
 async function hooks(page) {
-  await page.route("**/js/app.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()) + "\nwindow.__t={VW,S,world,go,typingRender,lrefRender,render,D};" }); });
+  await page.route("**/js/app.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()) + "\nwindow.__t={VW,S,world,go,typingRender,lrefRender,render,D,openRuns};" }); });
   await page.route("**/js/viewer.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()).replace("function startEdit() {", "function startEdit() { window.__ED=ED; window.__V=V;") }); });
   await page.route("**/js/storm.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()).replace("  boot();", "  window.__storm={apply,stop:()=>{stream?.close();clearTimeout(statusT);clearTimeout(runtimesT);clearTimeout(recoverT);}};\n  boot();") }); });
 }

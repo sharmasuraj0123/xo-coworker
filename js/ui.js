@@ -191,7 +191,11 @@ export function waited(ms) {
 export const $ = (s, el = document) => el.querySelector(s);
 export const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 export const RM = matchMedia("(prefers-reduced-motion: reduce)");
+/** An animation's time: none under reduced motion. Never for time a person needs to act (see hold). */
 export const wait = (ms) => new Promise((r) => setTimeout(r, RM.matches ? 0 : ms));
+/** Time a person has to act (an Undo window, a moment to read): real time, reduced motion or not. Reduced motion
+ *  cuts animations, never the time to act (Astra S014: the dock's Undo vanished in ~20 ms). */
+export const hold = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // one formatter each, made once: toLocale*String with options builds a new one per call (25 ms per redraw
 // of a 400-row conversation; QA C5)
