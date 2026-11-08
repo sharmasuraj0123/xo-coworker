@@ -71,7 +71,7 @@ body.files-open .mx-down{display:none}
 @keyframes mx-flash{0%,30%{background:var(--hover-fill);box-shadow:0 0 0 8px var(--hover-fill)}100%{background:transparent;box-shadow:0 0 0 8px transparent}}
 
 /* select words: reply to exactly them */
-.mx-qpop{position:fixed;z-index:60;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px 0 10px;border:1px solid var(--line);border-radius:var(--r-pill);background:color-mix(in srgb,var(--fill-1) 82%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:var(--e2);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink);animation:mx-up var(--d-in) var(--ease)}
+.mx-qpop{position:fixed;z-index:var(--z-overlay);display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px 0 10px;border:1px solid var(--line);border-radius:var(--r-pill);background:color-mix(in srgb,var(--fill-1) 82%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:var(--e2);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink);animation:mx-up var(--d-in) var(--ease)}
 .mx-qpop[hidden]{display:none}
 .mx-qpop svg{width:16px;height:16px;color:var(--ink-3)}
 

@@ -74,7 +74,7 @@ a.lbx-btn{text-decoration:none}
 }
 
 /* ── the lightbox: over everything, on a dark scrim in both themes (a picture reads best on dark) ── */
-.lbx{position:fixed;inset:0;z-index:100;color-scheme:dark;outline:none;overscroll-behavior:contain;touch-action:none;
+.lbx{position:fixed;inset:0;z-index:var(--z-toast);color-scheme:dark;outline:none;overscroll-behavior:contain;touch-action:none;
   --lbx-ink:rgb(255 255 255 / .92);--lbx-ink-3:rgb(255 255 255 / .62);--lbx-ink-4:rgb(255 255 255 / .5);--lbx-fill:rgb(255 255 255 / .08);--lbx-fill-hover:rgb(255 255 255 / .14)}
 .lbx-scrim{position:absolute;inset:0;background:rgb(12 12 12 / .94);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px)}
 .lbx-stage{position:absolute;inset:0}

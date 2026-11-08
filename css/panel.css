@@ -86,7 +86,7 @@ body.stage-over .stage{box-shadow:var(--e2)}
 .fl-more{position:absolute;right:8px;z-index:1;display:grid;place-items:center;width:24px;height:24px;margin-top:2px;border-radius:var(--r-sm);color:var(--ink-3)}
 .fl-more:hover,.fl-more[aria-expanded="true"]{background:var(--fill-3);color:var(--ink)}
 .fl-r.has-more{padding-right:36px}
-.fl-menu{position:fixed;z-index:80;display:flex;flex-direction:column;min-width:168px;padding:4px;border-radius:var(--r-lg);border:1px solid var(--line-soft);background:var(--float);box-shadow:var(--e2);animation:msg-in var(--d-out) var(--ease)}
+.fl-menu{position:fixed;z-index:var(--z-popover);display:flex;flex-direction:column;min-width:168px;padding:4px;border-radius:var(--r-lg);border:1px solid var(--line-soft);background:var(--float);box-shadow:var(--e2);animation:msg-in var(--d-out) var(--ease)}
 .fl-menu[hidden]{display:none}
 .fl-menu button{display:flex;align-items:center;gap:8px;height:32px;padding:0 8px;border-radius:var(--r-sm);text-align:left;font:400 var(--fs-base)/20px var(--sans);color:var(--ink-2)}
 .fl-menu button:hover,.fl-menu button:focus-visible{background:var(--fill-2);color:var(--ink);outline:none}

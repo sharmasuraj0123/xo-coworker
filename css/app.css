@@ -867,7 +867,7 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .c-note-row{display:flex;gap:8px;margin-top:10px}
 
 /* ── the global decision panel: Next's size and place (#21), sized to its content ── */
-.panel{position:absolute;z-index:20;top:14px;right:14px;max-height:calc(100% - 28px);width:var(--pw);display:flex;flex-direction:column;border-radius:var(--r-2xl);background:var(--surface);border:1px solid var(--line-soft);box-shadow:var(--e2);outline:none}
+.panel{position:absolute;z-index:var(--z-panel);top:14px;right:14px;max-height:calc(100% - 28px);width:var(--pw);display:flex;flex-direction:column;border-radius:var(--r-2xl);background:var(--surface);border:1px solid var(--line-soft);box-shadow:var(--e2);outline:none}
 .panel.is-in{animation:sheet-in var(--d-move) var(--ease) both}
 .panel.is-out{animation:sheet-out var(--d-sheet) var(--ease) forwards}
 .pn-top{display:flex;align-items:center;gap:10px;padding:16px 12px 6px 22px}
@@ -1095,7 +1095,7 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 
 /* ── toast (Undo, 3 s) ───────────────────────────────────────────────────── */
 .app[data-view="home"] .toast-wrap{bottom:96px}
-.toast-wrap{position:absolute;left:0;right:0;bottom:calc(var(--dock-h) + 14px);z-index:30;display:flex;justify-content:center;padding:0 16px;pointer-events:none;transition:right var(--d-in) var(--ease)}
+.toast-wrap{position:absolute;left:0;right:0;bottom:calc(var(--dock-h) + 14px);z-index:calc(var(--z-panel) + 10);display:flex;justify-content:center;padding:0 16px;pointer-events:none;transition:right var(--d-in) var(--ease)}
 body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 .toast{pointer-events:auto;display:flex;align-items:center;gap:12px;max-width:min(520px,100%);min-height:44px;padding:5px 5px 5px 13px;border-radius:var(--r-lg);background:var(--toast-bg);border:1px solid var(--line-strong);box-shadow:var(--e2);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);animation:sheet-in var(--d-move) var(--ease)}
 .toast.bye{animation:sheet-out var(--dur-base) var(--ease) forwards}
@@ -1264,7 +1264,7 @@ button.tp-done-u:hover{color:var(--ink)}
 .dlg .btn{height:var(--h-lg);padding:0 18px;border-radius:var(--r);font-size:var(--fs-md)}
 .btn .spin{width:12px;height:12px}
 
-.sheet{position:fixed;inset:0;z-index:80;display:flex;justify-content:center;align-items:flex-start;padding:12vh 16px 16px;background:rgb(0 0 0 / calc(.55 * var(--sha)));animation:fade var(--dur-base) var(--ease)}
+.sheet{position:fixed;inset:0;z-index:var(--z-popover);display:flex;justify-content:center;align-items:flex-start;padding:12vh 16px 16px;background:rgb(0 0 0 / calc(.55 * var(--sha)));animation:fade var(--dur-base) var(--ease)}
 @keyframes fade{from{opacity:0}}
 .sheet-card{width:min(600px,100%);max-height:76vh;display:flex;flex-direction:column;border-radius:var(--r-2xl);background:var(--surface);border:1px solid var(--line);box-shadow:var(--e2);overflow:hidden;animation:sheet-in var(--d-sheet) var(--ease)}
 /* a sheet is 22: its close button sits 16 px from the corner's two edges (15 + the 1 px edge), so its 6 px
@@ -1339,7 +1339,7 @@ button.tp-done-u:hover{color:var(--ink)}
 /* ── settings: a page over the main area (General, Appearance, Night mode, Sounds, Keyboard) ── */
 .help.gear svg{width:15px;height:15px}
 .help.is-on{color:var(--ink);border-color:var(--line-hover);background:var(--fill-2)}
-.settings{position:absolute;inset:0;z-index:40;display:flex;flex-direction:column;background:var(--canvas);outline:none;animation:fade var(--dur-base) var(--ease)}
+.settings{position:absolute;inset:0;z-index:calc(var(--z-panel) + 20);display:flex;flex-direction:column;background:var(--canvas);outline:none;animation:fade var(--dur-base) var(--ease)}
 .set-top{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:66px;padding:14px 20px 12px 28px;border-bottom:1px solid var(--line-faint)}
 .set-top h1{font:600 var(--fs-2xl)/28px var(--sans);letter-spacing:-.01em;color:var(--ink)}
 .set-body{flex:1;min-height:0;display:grid;grid-template-columns:212px minmax(0,760px);justify-content:center;align-content:start;gap:48px;padding:28px 28px 48px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
@@ -1422,11 +1422,11 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 @media (max-width:760px){
   :root{--pw:100%}
   .app{grid-template-columns:minmax(0,1fr)}
-  .side{position:fixed;z-index:60;top:0;bottom:0;left:0;width:min(300px,84vw);transform:translateX(-102%);transition:transform var(--d-in) var(--ease),box-shadow var(--d-in) var(--ease);box-shadow:none}
+  .side{position:fixed;z-index:var(--z-overlay);top:0;bottom:0;left:0;width:min(300px,84vw);transform:translateX(-102%);transition:transform var(--d-in) var(--ease),box-shadow var(--d-in) var(--ease);box-shadow:none}
   .app.drawer .side{transform:none;box-shadow:30px 0 80px rgb(0 0 0 / calc(.5 * var(--sha)))}
   .side-x{display:grid;place-items:center;width:32px;height:32px;border-radius:10px;color:var(--ink-3)}
   .side-x svg{width:16px;height:16px}
-  .side-scrim{position:fixed;inset:0;z-index:55;background:rgb(0 0 0 / calc(.5 * var(--sha)));animation:fade var(--dur-base)}
+  .side-scrim{position:fixed;inset:0;z-index:calc(var(--z-overlay) - 5);background:rgb(0 0 0 / calc(.5 * var(--sha)));animation:fade var(--dur-base)}
   .main{grid-column:1}
   .phonebar{position:relative;z-index:6;flex:none;display:flex;align-items:center;gap:8px;height:52px;padding:0 12px 0 6px;background:var(--canvas);border-bottom:1px solid var(--line-faint)}
   .pb-menu{display:grid;place-items:center;width:40px;height:40px;border-radius:var(--r-lg);color:var(--ink-2)}
@@ -1501,13 +1501,13 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .card.is-dock .dock-hide{margin-right:-6px;border-radius:calc(var(--r-2xl) - 11px)}
   .card.is-dock .dt,.dt{grid-template-columns:1fr}
   .conv{--hg:16px}
-  body.panel-open .main::after,body:has(#iq-pop.is-sheet:not([hidden])) .main::after,body:has(#cs-pop.is-sheet:not([hidden])) .main::after{content:"";position:absolute;inset:0;z-index:15;background:rgb(0 0 0 / calc(.45 * var(--sha)));-webkit-backdrop-filter:blur(1.5px);backdrop-filter:blur(1.5px);animation:fade var(--dur-base)}
+  body.panel-open .main::after,body:has(#iq-pop.is-sheet:not([hidden])) .main::after,body:has(#cs-pop.is-sheet:not([hidden])) .main::after{content:"";position:absolute;inset:0;z-index:calc(var(--z-panel) - 5);background:rgb(0 0 0 / calc(.45 * var(--sha)));-webkit-backdrop-filter:blur(1.5px);backdrop-filter:blur(1.5px);animation:fade var(--dur-base)}
   .panel{position:fixed;top:auto;left:0;right:0;bottom:0;max-height:91dvh;width:auto;border-radius:var(--r-2xl) var(--r-2xl) 0 0;border-bottom:0;padding-bottom:max(44px,env(safe-area-inset-bottom))}
   .panel.is-in{animation:sheet-up var(--d-move) var(--ease) both}
   .panel.is-out{animation:sheet-down var(--d-sheet) var(--ease) forwards}
   @keyframes sheet-up{from{transform:translateY(40%);opacity:0}}
   @keyframes sheet-down{to{transform:translateY(30%);opacity:0}}
-  body.panel-open .app[data-view] .toast-wrap{position:fixed;left:0;right:0;width:auto;bottom:116px;z-index:70}
+  body.panel-open .app[data-view] .toast-wrap{position:fixed;left:0;right:0;width:auto;bottom:116px;z-index:calc(var(--z-overlay) + 10)}
   .pn-top{padding:14px 10px 4px 18px}
   .pn-rail{padding:0 18px}
   .pn-stage{padding:0 8px}
@@ -1702,7 +1702,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 .tw-act:hover{background:var(--hover-fill);border-color:var(--line-strong);color:var(--ink)}
 .tw-act:active{transform:scale(.97)}
 .tw-more{width:var(--h-ctl);padding:0;justify-content:center}
-.tw-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;display:flex;flex-direction:column;min-width:180px;padding:6px;border-radius:var(--r-lg);border:1px solid var(--line-soft);background:var(--float);box-shadow:var(--e2);animation:msg-in var(--d-out) var(--ease)}
+.tw-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:var(--z-panel);display:flex;flex-direction:column;min-width:180px;padding:6px;border-radius:var(--r-lg);border:1px solid var(--line-soft);background:var(--float);box-shadow:var(--e2);animation:msg-in var(--d-out) var(--ease)}
 .tw-menu button{height:36px;padding:0 10px;border-radius:var(--r-sm);text-align:left;font-size:var(--fs-base);color:var(--ink-2)}
 .tw-menu button:hover,.tw-menu button:focus-visible{background:var(--fill-2);color:var(--ink)}
 .tw-in{flex:1;min-width:0;height:34px;padding:0 10px;border-radius:var(--r-sm);border:1px solid var(--line-strong);background:var(--surface);font:600 var(--fs-2xl)/28px var(--sans);color:var(--ink)}
@@ -1930,7 +1930,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 :root{--vw:clamp(460px,46vw,780px)
 }
 body.viewer-open .tdock{display:none}
-.viewer{position:absolute;z-index:22;top:14px;right:14px;bottom:14px;width:var(--vw);display:flex;flex-direction:column;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);box-shadow:var(--e2);outline:none;overflow:hidden}
+.viewer{position:absolute;z-index:calc(var(--z-panel) + 2);top:14px;right:14px;bottom:14px;width:var(--vw);display:flex;flex-direction:column;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);box-shadow:var(--e2);outline:none;overflow:hidden}
 .viewer.is-in{animation:sheet-in var(--d-move) var(--ease) both}
 .vw-top{flex:none;display:flex;align-items:center;gap:12px;padding:14px 12px 12px 16px;border-bottom:1px solid var(--line-faint)}
 .vw-ic{flex:none;display:grid;place-items:center;width:36px;height:36px;border-radius:var(--r-sm);background:var(--fill-2);color:var(--ink-2)}
@@ -1982,7 +1982,7 @@ body.viewer-open .tdock{display:none}
 :root[data-theme="light"] .vw-code{background:var(--fill-1)}
 @media (max-width:1180px) and (min-width:761px){:root{--vw:min(560px,58vw)}}
 @media (max-width:760px){
-  .viewer{position:fixed;inset:0;width:auto;z-index:80;border-radius:0;border:0}
+  .viewer{position:fixed;inset:0;width:auto;z-index:var(--z-popover);border-radius:0;border:0}
   .viewer.is-in{animation:sheet-up var(--d-move) var(--ease) both}
   .vw-top{padding:max(10px,env(safe-area-inset-top)) 8px 10px 12px}
   .vw-btn span{display:none}
@@ -2082,7 +2082,7 @@ button.att-ic:hover img{opacity:.85}
 /* the line under the text ("Reply in this thread"): its icon sat on the baseline, 2.5 px above the row's
    centre line; every glyph in the row centres on it */
 .target>span:has(>svg){display:inline-flex;align-items:center}
-.drop-veil{position:absolute;inset:10px;z-index:30;display:grid;place-items:center;border-radius:var(--r-2xl);border:2px dashed rgba(var(--accent-rgb),.6);background:rgb(0 0 0 / .32);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);pointer-events:none;animation:msg-in var(--d-out) var(--ease)}
+.drop-veil{position:absolute;inset:10px;z-index:calc(var(--z-panel) + 10);display:grid;place-items:center;border-radius:var(--r-2xl);border:2px dashed rgba(var(--accent-rgb),.6);background:rgb(0 0 0 / .32);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);pointer-events:none;animation:msg-in var(--d-out) var(--ease)}
 .drop-veil p{display:inline-flex;align-items:center;gap:10px;padding:12px 18px;border-radius:999px;background:var(--herald-bg);border:1px solid var(--line-soft);font-size:var(--fs-md);color:var(--ink)}
 .drop-veil svg{width:18px;height:18px;color:var(--accent)}
 :root[data-theme="light"] .drop-veil{background:rgb(255 255 255 / .55)}
@@ -2190,7 +2190,7 @@ a.vw-btn{text-decoration:none}
 @media (max-width:760px){
   .side{grid-row:auto}
   .main{grid-column:1}
-  .shd{position:fixed;inset:0;z-index:70;height:auto;border-top:0;padding-bottom:env(safe-area-inset-bottom)}
+  .shd{position:fixed;inset:0;z-index:calc(var(--z-overlay) + 10);height:auto;border-top:0;padding-bottom:env(safe-area-inset-bottom)}
   .shd.is-min{display:none}
   .shd-grip{display:none}
   .shd-bar{min-height:52px;padding-top:env(safe-area-inset-top)}
@@ -2207,7 +2207,7 @@ a.vw-btn{text-decoration:none}
    left shows what letting go will do. */
 .conv.is-swiped{background:var(--canvas);box-shadow:var(--e2)}
 .main:has(.conv.is-swiped){background:var(--sunken)}
-.lp-menu{position:fixed;z-index:95;display:flex;gap:2px;padding:4px;border-radius:var(--r-lg);background:var(--float);border:1px solid var(--line-soft);box-shadow:var(--e2);animation:float-in var(--d-out) var(--ease)}
+.lp-menu{position:fixed;z-index:calc(var(--z-toast) - 5);display:flex;gap:2px;padding:4px;border-radius:var(--r-lg);background:var(--float);border:1px solid var(--line-soft);box-shadow:var(--e2);animation:float-in var(--d-out) var(--ease)}
 .lp-menu button{min-height:40px;padding:0 14px;border-radius:var(--r-sm);font:500 var(--fs-lg)/24px var(--sans);color:var(--ink)}
 .lp-menu button:active,.lp-menu button:focus-visible{background:var(--fill-2)}
 .ar-list li{position:relative;border-radius:var(--r-sm)}
@@ -2372,12 +2372,12 @@ i.t-amber{background:var(--warn)}i.t-blue{background:var(--info)}i.t-red{backgro
 .map-btn.is-on{background:var(--fill-2);border-color:var(--line-strong);color:var(--ink)}
 
 body.panel-open .map{display:none}
-.map{position:absolute;z-index:19;top:14px;right:14px;bottom:14px;width:var(--mw);display:flex;flex-direction:column;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);box-shadow:var(--e2);outline:none;overflow:hidden;transition:width var(--d-move) var(--ease)}
+.map{position:absolute;z-index:calc(var(--z-panel) - 1);top:14px;right:14px;bottom:14px;width:var(--mw);display:flex;flex-direction:column;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);box-shadow:var(--e2);outline:none;overflow:hidden;transition:width var(--d-move) var(--ease)}
 .map[hidden]{display:none}
 .map.is-in{animation:sheet-in var(--d-move) var(--ease) both}
 :root[data-theme="light"] .map{background:var(--surface)}
 /* full size: the drawing takes the main area; the conversation waits behind it */
-body.map-full .map{left:14px;width:auto;z-index:21}
+body.map-full .map{left:14px;width:auto;z-index:calc(var(--z-panel) + 1)}
 body.map-full .dock,body.map-full .tdock{visibility:hidden}
 
 .mp-head{flex:none}
@@ -2562,7 +2562,7 @@ button.dg-n:hover{border-color:var(--line-strong);color:var(--ink)}
 @media (max-width:1040px) and (min-width:761px){
 }
 @media (max-width:760px){
-  .map,body.map-full .map{position:fixed;inset:0;width:auto;z-index:79;border-radius:0;border:0}
+  .map,body.map-full .map{position:fixed;inset:0;width:auto;z-index:calc(var(--z-popover) - 1);border-radius:0;border:0}
   .map.is-in{animation:sheet-up var(--d-move) var(--ease) both}
   .mp-top{padding:max(10px,env(safe-area-inset-top)) 8px 8px 12px}
   .mp-x{width:40px;height:40px}
@@ -2580,11 +2580,11 @@ button.dg-n:hover{border-color:var(--line-strong);color:var(--ink)}
    every tab (the Map's --mw), so switching tabs never moves the conversation. ───────────────────── */
 body.stage-open{--vw:var(--mw)}
 body.panel-open .stage{display:none}
-.stage{position:absolute;z-index:20;top:14px;right:14px;bottom:14px;width:var(--mw);display:flex;flex-direction:column;border-radius:var(--r-2xl);background:var(--surface);border:1px solid var(--line-soft);box-shadow:var(--e2);overflow:hidden;outline:none}
+.stage{position:absolute;z-index:var(--z-panel);top:14px;right:14px;bottom:14px;width:var(--mw);display:flex;flex-direction:column;border-radius:var(--r-2xl);background:var(--surface);border:1px solid var(--line-soft);box-shadow:var(--e2);overflow:hidden;outline:none}
 .stage[hidden]{display:none}
 .stage.is-in{animation:sheet-in var(--d-move) var(--ease) both}
 :root[data-theme="light"] .stage{background:var(--surface)}
-body.stage-full .stage{left:14px;width:auto;z-index:21}
+body.stage-full .stage{left:14px;width:auto;z-index:calc(var(--z-panel) + 1)}
 body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .stg-bar{flex:none;display:flex;align-items:center;gap:8px;padding:10px 10px 10px 10px;border-bottom:1px solid var(--line-faint)}
 .stg-tabs{flex:1;min-width:0;display:flex;align-items:center;gap:2px;overflow-x:auto;scrollbar-width:none}
@@ -2647,7 +2647,7 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .sheet.is-drop .all-list{padding:4px 5px 5px}
 .sheet.is-drop .sheet-h h2{font-size:var(--fs-lg)}
 @media (max-width:760px){
-  .stage,body.stage-full .stage{position:fixed;inset:0;width:auto;z-index:79;border-radius:0;border:0}
+  .stage,body.stage-full .stage{position:fixed;inset:0;width:auto;z-index:calc(var(--z-popover) - 1);border-radius:0;border:0}
   .stg-bar{padding-top:max(10px,env(safe-area-inset-top))}
 }
 /* the header is the project's name and one button now: the name keeps its room; the Now strip gives way */

@@ -16,7 +16,7 @@
 @media (min-width:761px){.stage:not([hidden]),.panel:not([hidden]){animation:panel-in var(--d-sheet) var(--ease)}}
 @keyframes panel-in{from{opacity:0;transform:translateX(12px)}}
 :root[data-theme="light"] :is(.stage,.panel){border-color:rgba(0,0,0,.08);box-shadow:none}
-.stage{width:var(--sw);z-index:20}
+.stage{width:var(--sw);z-index:var(--z-panel)}
 .panel{max-height:none;height:100%}
 body.stage-full .stage{left:0}
 body.stage-open{--mw:var(--sw);--vw:var(--sw)}
