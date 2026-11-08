@@ -30,7 +30,14 @@ const t = (name, fn) => tests.push({ name, fn });
 // the project's own page, as its row in the sidebar opens it (on a phone the sidebar is a drawer)
 const toDemo = (page) => page.evaluate(() => window.__t.go("p:demo"));
 const app = (W = {}, { width = WIDTH, motion = false } = {}) => openApp(browser, BASE, W, { width, motion });
-const done = async (page) => { const errs = page.errors; await page.context().close(); assert.deepEqual(errs, [], "page errors"); };
+// a test ends with no page errors and with focus never having fallen to the page (harness.cjs records each drop)
+const done = async (page) => {
+  const errs = page.errors;
+  const drops = await page.evaluate(() => window.__focusDrops || []).catch(() => []);
+  await page.context().close();
+  assert.deepEqual(errs, [], "page errors");
+  if (!process.env.ALLOW_FOCUS_DROPS) assert.deepEqual(drops, [], "focus fell to the page when its control went");
+};
 
 // ── the viewer's editor ───────────────────────────────────────────────────
 const FILE = () => ({ content: "one\ntwo\nthree\n", version: "sha256:A" });
@@ -241,6 +248,34 @@ t("Copy allowed: both say copied, and the text is what was shown", async () => {
   await done(r.page);
 });
 
+// ── redraw in place (js/redraw.js): the focused control, a typed value and a caret survive a redraw ──
+t("redraw: a region redrawn keeps the focused control, what's typed, and applies everything else", async () => {
+  const page = await app();
+  const r = await page.evaluate(async () => {
+    const { redraw } = await import("./js/redraw.js");
+    const box = document.createElement("div"); document.body.append(box);
+    box.innerHTML = `<p>Old words</p><button type="button" data-rule-off="a">Revoke a</button><button type="button" data-rule-off="b">Revoke b</button><input id="rd-in" value="saved">`;
+    const b = box.querySelector('[data-rule-off="b"]'); b.focus();
+    redraw(box, `<p>New words</p><button type="button" data-rule-off="b" aria-busy="true">Revoking b…</button><input id="rd-in" value="server">`);
+    const kept = document.activeElement === b && b.isConnected, text = b.textContent, busy = b.getAttribute("aria-busy"), gone = !box.querySelector('[data-rule-off="a"]'), p = box.querySelector("p").textContent;
+    const input = box.querySelector("#rd-in"); input.focus(); input.value = "typing on"; input.setSelectionRange(3, 3);
+    redraw(box, `<p>Newer</p><input id="rd-in" value="server again" class="is-bad">`);
+    const field = { same: document.activeElement === input, value: input.value, caret: input.selectionStart, cls: input.className };
+    input.blur();
+    redraw(box, `<p>Newer</p><input id="rd-in" value="server again">`);
+    const later = input.value;
+    // a focused checkbox takes the new HTML's checked (a refused toggle shows the saved state again)
+    box.innerHTML = `<label><input type="checkbox" data-rtd-allowed="codex" checked> Codex</label>`;
+    const cb = box.querySelector("input"); cb.focus(); cb.checked = false; // Space unticked it; the save was refused
+    redraw(box, `<label><input type="checkbox" data-rtd-allowed="codex" checked> Codex</label><p role="alert">Not saved</p>`);
+    const box2 = { same: document.activeElement === cb, checked: cb.checked };
+    box.remove();
+    return { kept, text, busy, gone, p, field, later, box2 };
+  });
+  assert.deepEqual(r, { kept: true, text: "Revoking b…", busy: "true", gone: true, p: "New words", field: { same: true, value: "typing on", caret: 3, cls: "is-bad" }, later: "server again", box2: { same: true, checked: true } });
+  await done(page);
+});
+
 // ── Jump: the pointer selects as the arrows do ──
 t("Jump: the row under a moving pointer is the selection, and Enter goes there", async () => {
   const page = await app();
@@ -338,7 +373,7 @@ t("C033: opening a file from Files with the keyboard puts focus on the file", as
   await filesOpen(page);
   const row = page.locator('[data-fl-file="a.js"]').filter({ visible: true }).first();
   await row.focus();
-  if (process.env.DEBUG) await page.evaluate(() => { window.__fl = []; document.addEventListener("focusout", (e) => window.__fl.push("out " + e.target.tagName + "." + e.target.className + " -> " + (e.relatedTarget ? e.relatedTarget.tagName : "null")), true); document.addEventListener("focusin", (e) => window.__fl.push("in " + e.target.tagName + "#" + e.target.id), true); });
+  if (process.env.DEBUG) await page.evaluate(() => { window.__fl = []; document.addEventListener("focusout", (e) => window.__fl.push("out " + e.target.tagName + "." + e.target.className + " -> " + (e.relatedTarget ? e.relatedTarget.tagName : "null") + " conn=" + e.target.isConnected + " rects=" + e.target.getClientRects().length + " " + (new Error().stack.split("\n").slice(2, 6).join(" | "))), true); document.addEventListener("focusin", (e) => window.__fl.push("in " + e.target.tagName + "#" + e.target.id + "." + e.target.className), true); new MutationObserver((ms) => { for (const m of ms) for (const r of m.removedNodes) if (r.nodeType === 1 && r.matches && (r.matches("[data-fl-file]") || r.querySelector?.("[data-fl-file]"))) window.__fl.push("removed row " + new Error().stack.split("\n").slice(1, 3).join(" | ")); }).observe(document.body, { childList: true, subtree: true }); });
   await page.keyboard.press("Enter");
   await page.waitForTimeout(300);
   if (process.env.DEBUG) console.log(await page.evaluate(() => window.__fl));
