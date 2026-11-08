@@ -673,7 +673,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
   return {
     placeOf, leave, projectSince, homeSinceHtml, homeMade, madeCount, jumpItems,
     /** The newest file a thread made (not a branch): what its finished card offers to open. */
-    latestOf: (tid, project) => madeOf(project || null).find((x) => x.tid === tid && x.kind !== "branch" && x.exists !== false) || null,
+    latestOf: (tid, project) => madeOf(project || null).find((x) => x.tid === tid && x.kind !== "branch" && x.kind !== "link" && x.exists !== false) || null,
     /** The Artifacts page (a sidebar place): render() draws it; count() is what the sidebar shows. */
     artifacts: { render: artsRender, count: () => (madePending(null) ? 0 : madeOf(null).length) },
     /** The panel's Made tab. */

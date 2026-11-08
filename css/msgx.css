@@ -331,7 +331,11 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-them .tc-open{gap:8px;padding:0 16px 12px;border-radius:var(--r-xl)}
 /* a finished thread's next step (the newest file it made) takes Open's place at the foot: one action, the real one */
 :root[data-msgx] .m-them .tcard.has-next .tc-go{visibility:hidden}
-:root[data-msgx] .m-them .tc-next{position:absolute;right:12px;bottom:10px;display:inline-flex;align-items:center;gap:6px;max-width:calc(100% - 160px);height:28px;padding:0 10px;border-radius:calc(var(--r-xl) - 12px);background:var(--hover-fill);color:var(--ink);font:500 var(--fs-sm)/16px var(--sans)}
+/* its own row at the card's foot, 12 px in on every side, so its corner is concentric with the card's (20 − 12)
+   and a real file name has the card's width to read in */
+:root[data-msgx] .m-them .tcard.has-next{flex-direction:column}
+:root[data-msgx] .m-them .tc-next{position:relative;display:flex;align-items:center;gap:8px;height:var(--h-ctl);margin:0 12px 12px;padding:0 10px;border-radius:calc(var(--r-xl) - 12px);background:var(--hover-fill);color:var(--ink);font:500 var(--fs-base)/20px var(--sans);text-align:left}
+@media (pointer:coarse){:root[data-msgx] .m-them .tc-next::after{content:"";position:absolute;inset:-6px 0}}
 :root[data-msgx] .m-them .tc-next span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 :root[data-msgx] .m-them .tc-next svg{flex:none;width:14px;height:14px;color:var(--accent)}
 :root[data-msgx] .m-them .tc-next:hover{background:var(--press-fill)}
