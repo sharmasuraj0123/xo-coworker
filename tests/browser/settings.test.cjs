@@ -711,7 +711,11 @@ t("C114 a refused usual runtime: the saved one stays chosen, the reason shows un
   assert.equal(await page.locator('[data-rtd-default="claude_code"]').getAttribute("aria-checked"), "true", "the saved one is");
   assert.equal(await focused(page), `button${codex}`);
   await page.keyboard.press("Enter");
-  await page.waitForFunction((s) => document.querySelector(s).getAttribute("aria-checked") === "true" && !document.querySelector(".rt-ferr"), codex);
+  // while the retry is out the choice shows, said as "Saving…", never as saved; "Saved" only once XO has answered
+  await page.waitForSelector(".rt-saved.is-saving");
+  assert.equal(await busy(page, codex), "true");
+  assert.notEqual(page.W.policy.default, "codex", "not saved yet");
+  await page.waitForFunction((s) => document.querySelector(s).getAttribute("aria-checked") === "true" && !document.querySelector(s).hasAttribute("aria-busy") && document.querySelector(".rt-saved:not(.is-saving)"), codex);
   assert.equal(page.W.policy.default, "codex");
   assert.equal(await focused(page), `button${codex}`);
   await done(page);
@@ -756,11 +760,14 @@ t("C112 a decision model's \"about it\" link opens its page in a new tab, by Ent
   // the new tab's request is answered here and goes nowhere: what's checked is that a new tab asked for that page
   await page.context().route("https://example.invalid/**", (r) => r.fulfill({ status: 200, contentType: "text/html", body: "<title>about</title>" }));
   for (const how of ["Enter", "click"]) {
-    const req = page.context().waitForEvent("request", (r) => r.url() === "https://example.invalid/quill");
+    // the new tab itself (the context's new page), then the address it lands on: a request's frame isn't there yet
+    // for a new tab's first navigation, so the tab is what's awaited
+    const opened = page.context().waitForEvent("page");
     if (how === "click") await a.click(); else { await keyFocus(page, '[data-key="dm:quill"] a'); await page.keyboard.press("Enter"); }
-    const r = await req;
-    const tab = r.frame().page();
+    const tab = await opened;
+    await tab.waitForURL("https://example.invalid/quill");
     assert.notEqual(tab, page, `${how}: a new tab, not this one`);
+    assert.equal(page.url().startsWith(BASE), true, `${how}: this tab stays where it was`);
     await tab.close();
   }
   await done(page);
@@ -782,7 +789,7 @@ t("S098 a refused preference keeps what was typed, with the reason under it", as
   // leaving it again saves it
   await page.locator("#rtd-pref").focus();
   await page.keyboard.press("Tab");
-  await page.waitForFunction(() => document.querySelector(".rt-saved"));
+  await page.waitForFunction(() => document.querySelector(".rt-saved:not(.is-saving)"));
   assert.equal(page.W.policy.preferences, "Keep this unsaved preference after an error.");
   assert.equal(await page.locator("#rtd-pref").inputValue(), "Keep this unsaved preference after an error.");
   await done(page);
