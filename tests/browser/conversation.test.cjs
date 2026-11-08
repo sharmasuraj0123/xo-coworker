@@ -731,7 +731,7 @@ t("H31/H32 S145: ↓ from the search reaches the first thread, ↑ returns to th
   await page.keyboard.press("ArrowUp");
   assert.equal(await page.evaluate(() => document.activeElement.id), "all-q");
   await page.keyboard.type("docs");
-  for (const init of [{ key: "Enter", isComposing: true }, { key: "Enter", keyCode: 229 }]) await page.evaluate((init) => document.querySelector("#all-q").dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, cancelable: true, ...init })), init);
+  for (const init of [{ key: "Enter", isComposing: true }, { key: "Enter", keyCode: 229 }, { key: "Escape", isComposing: true }]) await page.evaluate((init) => document.querySelector("#all-q").dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, cancelable: true, ...init })), init);
   await settle(page);
   assert.equal(await page.locator("#all").isHidden(), false, "still in the switcher");
   assert.equal(await page.evaluate(() => window.__t.S.view), "p:demo");
@@ -761,17 +761,20 @@ t("H24 C053/C058: Escape, or nothing matching, closes the @ list and says so: no
   assert.equal(st.open, true, "typing again after the @ opens it again"); assert.equal(st.expanded, "true");
   await done(page);
 });
-t("H25: an IME's composing Enter or arrow never chooses a recipient or sends", async () => {
+t("H25: an IME's composing Enter, arrow or Escape never chooses a recipient, sends, or leaves the thread", async () => {
   const page = await app();
+  await openThread(page, "t_login");
   await page.locator("#say").focus();
   await page.keyboard.type("@");
-  for (const init of [{ key: "Enter", isComposing: true }, { key: "Enter", keyCode: 229 }, { key: "ArrowDown", isComposing: true }]) {
+  for (const init of [{ key: "Enter", isComposing: true }, { key: "Enter", keyCode: 229 }, { key: "ArrowDown", isComposing: true }, { key: "Escape", isComposing: true }, { key: "Escape", keyCode: 229 }]) {
     await page.evaluate((init) => document.querySelector("#say").dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, cancelable: true, ...init })), init);
   }
   const st = await sayState(page);
   assert.equal(st.value, "@", "nothing chosen");
   assert.equal(st.selected, "demo", "the active option didn't move");
   assert.equal(page.W.posts.length, 0);
+  assert.equal(await page.evaluate(() => window.__t.S.view), "t:t_login", "still in the thread");
+  assert.equal(st.open, true, "the list still open: the IME's Escape wasn't the list's");
   await done(page);
 });
 t("H26 C055: Aim at a project opens the chooser on the @recipient already in the draft, the rest kept", async () => {
@@ -1146,8 +1149,10 @@ async function liveTurn() {
 }
 t("DET-1 S002: a running step's output arriving keeps focus on its open disclosure", async () => {
   const page = await liveTurn();
-  // open the turn's work, then the step (its command shows; its output is still to come)
+  // open the turn's work, its block of steps, then the step (its command shows; its output is still to come)
   await page.evaluate(() => { const w = document.querySelector("#msgs .mx-work"); if (w && w.getClientRects().length) w.click(); });
+  await settle(page, 300);
+  await page.locator(`#msgs [data-tb="${TURN}:g0"]`).click();
   await settle(page, 300);
   const row = page.locator('#msgs [data-tb="row:call-det"]');
   await row.focus();

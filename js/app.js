@@ -2040,9 +2040,10 @@ function loadDraft() { say.value = S.drafts[S.view] || ""; atList._sel = 0; upda
 say.addEventListener("input", () => { atList._sel = 0; updateComposer(); saveDraft(); });
 say.addEventListener("click", updateComposer);
 say.addEventListener("keydown", (e) => {
-  // an IME composing (its Enter commits the words, its arrows walk its candidates) owns every key: neither the @
-  // list nor Send takes them (Astra H25: a composing Enter chose a recipient)
-  if (e.isComposing || e.keyCode === 229) return;
+  // an IME composing (its Enter commits the words, its arrows walk its candidates, its Escape cancels them) owns
+  // every key: neither the @ list, nor Send, nor the page's own keys take them (Astra H25: a composing Enter chose
+  // a recipient; a composing Escape would have left the thread)
+  if (e.isComposing || e.keyCode === 229) { e.stopPropagation(); return; }
   if (!atList.hidden) {
     const n = atList.children.length;
     if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); atList._sel = (atList._sel + (e.key === "ArrowDown" ? 1 : n - 1)) % n; updateComposer(); return; }
@@ -2949,7 +2950,8 @@ $("#top").addEventListener("click", (e) => {
 $("#top").addEventListener("keydown", (e) => {
   const inp = e.target.closest?.("[data-tedit]");
   if (inp) {
-    if (e.isComposing || e.keyCode === 229) return; // an IME composing owns Enter and Escape (they commit or cancel its words)
+    // an IME composing owns Enter and Escape (they commit or cancel its words): not the rename's, nor the page's
+    if (e.isComposing || e.keyCode === 229) { e.stopPropagation(); return; }
     if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); if (S.tEdit) saveThreadField(S.tEdit.tid, inp.dataset.tedit, inp.value); }
     else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); if (S.tEdit && !S.tEdit.busy) endThreadEdit(S.tEdit); }
     return;
@@ -3213,7 +3215,8 @@ $("#all-q").addEventListener("input", allRender);
 // search, ↓ goes to the first thread and Enter opens it; on the list, ↓ ↑ walk it and ↑ from the first is the
 // search again. An IME composing in the search owns its keys (H32: its Enter opened a thread).
 allEl.addEventListener("keydown", (e) => {
-  if (e.isComposing || e.keyCode === 229 || e.altKey || e.ctrlKey || e.metaKey) return;
+  if (e.isComposing || e.keyCode === 229) { e.stopPropagation(); return; } // the IME's keys, not the switcher's or the page's
+  if (e.altKey || e.ctrlKey || e.metaKey) return;
   const inSearch = e.target === $("#all-q");
   if (e.key !== "ArrowDown" && e.key !== "ArrowUp" && !(inSearch && e.key === "Enter")) return;
   const rows = [...allEl.querySelectorAll(".all-list [data-go]")].filter((b) => b.offsetParent);
