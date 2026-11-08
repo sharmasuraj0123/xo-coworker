@@ -330,6 +330,8 @@ function working(el) {
     w.title = "See every step";
     w.innerHTML = `<span class="mx-wt"></span><span class="mx-we"></span>`;
     w.addEventListener("click", () => {
+      // pressed from the keyboard (or a click that focused it), focus follows to the header it opens ("redrawn")
+      if (w.contains(document.activeElement)) toHeader = el.dataset.k;
       el.querySelector(".turn .tb-h")?.click();
       // you press it to see what the agent is doing now: its card opens with its latest step in view (the
       // live turn is drawn last, so that's the latest; pinned there, the card grows into view; QA #8)
@@ -493,6 +495,26 @@ function tick() {
 setInterval(tick, 1000);
 
 new MutationObserver(decorate).observe(msgs, { childList: true });
+// A row brought to new HTML in place (ui.js reconcile does that to the row holding focus) has lost what this file
+// adds to it: put it back now, in the same task. Then, if the control that had focus is one this file's CSS now
+// hides (a live turn's work folding back to its working line), focus goes to what stands in for it; and a
+// working line pressed open hands focus to the work's header it opened (Astra DET-2).
+let toHeader = null;
+msgs.addEventListener("redrawn", (e) => {
+  const el = e.target;
+  if (!el.classList || !el.classList.contains("m")) return;
+  el._mx = false; el._mxe = undefined;
+  for (const b of el.querySelectorAll(".bubble")) b._mxq = false;
+  decorate();
+  const a = document.activeElement;
+  const shown = (x) => !!x && x.getClientRects().length > 0;
+  if (toHeader === el.dataset.k) {
+    toHeader = null;
+    const h = el.querySelector(".turn .tb-work > .tb-h, .turn .tb-h");
+    if (shown(h)) { h.focus({ preventScroll: true }); return; }
+  }
+  if (el.contains(a) && !shown(a)) { const w = el.querySelector(":scope > .mb > .mx-work"); if (shown(w)) w.focus({ preventScroll: true }); }
+});
 
 // ── replying ────────────────────────────────────────────────────────────────
 const composer = $("#composer"), sayEl = $("#say");

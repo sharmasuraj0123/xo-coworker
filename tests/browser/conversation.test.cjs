@@ -65,6 +65,20 @@ function convApi(W) {
         return json(row);
       }
     }
+    // older pages, read on demand (DET-3): the first page names a cursor; the read below it can be held or fail
+    const older = (o) => async () => {
+      W.olderReads = (W.olderReads || 0) + 1;
+      if (W.olderGate) await W.olderGate;
+      if (W.olderFail) return fail(r, "unavailable", "Fixture: earlier messages didn't come", 500);
+      return json({ messages: o.msgs || [], next_after_seq: null, next_before_seq: null });
+    };
+    if (p === "/api/chat/chats/chat_demo/messages" && m === "GET") {
+      const ts = u.searchParams.get("thread"), before = u.searchParams.get("before_seq");
+      const o = ts ? W.threadOlder && W.threadOlder.ts === ts && W.threadOlder : W.projOlder;
+      if (o && before === String(o.before)) return older(o)();
+      if (!ts && W.projMsgs) return json({ messages: W.projMsgs, next_after_seq: null, next_before_seq: o ? o.before : null });
+      if (ts && o) return json({ messages: W.threadMsgs[ts] || [], next_after_seq: null, next_before_seq: o.before });
+    }
     if (p === "/api/chat/chats/chat_demo/messages" && m === "GET" && u.searchParams.get("thread")) {
       // null: nothing older (a 0 would read as another page, and the history would be asked for again and again)
       return json({ messages: W.threadMsgs[u.searchParams.get("thread")] || [], next_after_seq: null, next_before_seq: null });
@@ -945,6 +959,80 @@ t("S150: the notice for this thread's own decision unfolds its folded card and f
   await settle(page, 200);
   assert.equal(await page.locator("#tdock [data-unfold]").count(), 0, "unfolded");
   assert.equal(await page.evaluate(() => !!document.activeElement.closest("#tdock .card")), true, `focus on the card, not ${await focusIs(page)}`);
+  await done(page);
+});
+
+// ── DET-3 · S003: Try again on a failed history read ────────────────────────
+for (const where of ["project", "thread"]) {
+  t(`DET-3 S003: Try again on earlier messages (${where}) keeps focus on the conversation while it reads, then on Try again`, async () => {
+    const W = { olderFail: true };
+    if (where === "project") { W.projMsgs = MSGS(null, 4).map((x, i) => ({ ...x, id: `p-${i}`, seq: 200 + i, thread_ts: null })); W.projOlder = { before: 100 }; }
+    else { W.threadMsgs = { t_login: MSGS("t_login", 4).map((x, i) => ({ ...x, seq: 200 + i })) }; W.threadOlder = { ts: "t_login", before: 100 }; }
+    const page = await app(W);
+    if (where === "project") await page.evaluate(() => window.__t.go("p:demo")); else await openThread(page, "t_login");
+    await page.waitForSelector("#msgs [data-older]", { timeout: 8000 }); // the first automatic read failed: Try again
+    let release;
+    page.W.olderGate = new Promise((ok) => (release = ok));
+    await page.locator("#msgs [data-older]").focus();
+    await page.keyboard.press("Enter");
+    await page.waitForSelector("#msgs .hist-skel");
+    assert.equal(await page.evaluate(() => document.activeElement.id), "scroller", "while it reads: the conversation");
+    release();
+    await page.waitForSelector("#msgs [data-older]");
+    await settle(page, 150);
+    assert.match(await focusIs(page), /\[data-older\]/, "failed again: on Try again");
+    await done(page);
+  });
+}
+
+// ── DET-1 · S002 and DET-2 · C121/C050: a live turn's output and its working line ──
+const SID = "cse_th1", TURN = "turn_det1";
+const env = (type, data, x = {}) => ({ type, envelope: { type, id: null, seq: null, ts: new Date().toISOString(), chat_id: "chat_demo", session_id: SID, thread_ts: "t_live", turn_id: TURN, run_id: null, data, ...x } });
+const ROW = (x) => ({ call_id: "call-det", kind: "command", tool: "Bash", line: "Run the tests", status: "running", target: "npm test", summary: null, ...x });
+async function liveTurn() {
+  const threads = [...THREADS(), TH("t_live", "A thread at work", "working", { session_id: SID })];
+  const page = await app({ threads, threadMsgs: { t_live: MSGS("t_live", 2) } });
+  await openThread(page, "t_live");
+  await page.evaluate(([a, b, c]) => { for (const f of [a, b, c]) window.__storm.apply(f); }, [
+    env("session", { status: "running", role: "thread", agent: "claude_code" }, { turn_id: null }),
+    env("turn.started", { origin: "person", wakes: [] }),
+    env("block.started", { block: { id: `${TURN}:g0`, type: "activity", index: 0, header: "Running the tests", rows: [ROW()] } }),
+  ]);
+  await page.waitForSelector(`#msgs .m-turn`);
+  await settle(page, 300);
+  return page;
+}
+t("DET-1 S002: a running step's output arriving keeps focus on its open disclosure", async () => {
+  const page = await liveTurn();
+  // open the turn's work, then the step (its command shows; its output is still to come)
+  await page.evaluate(() => { const w = document.querySelector("#msgs .mx-work"); if (w && w.getClientRects().length) w.click(); });
+  await settle(page, 300);
+  const row = page.locator('#msgs [data-tb="row:call-det"]');
+  await row.focus();
+  await page.keyboard.press("Enter");
+  await settle(page, 300);
+  assert.equal(await row.getAttribute("aria-expanded"), "true");
+  await page.evaluate(() => { window.__row = document.querySelector('#msgs [data-tb="row:call-det"]'); window.__row.focus(); });
+  await page.evaluate((f) => window.__storm.apply(f), env("block.updated", { block_id: `${TURN}:g0`, type: "activity", rows: [ROW({ status: "ok", line: "Run the tests · done", output: "12 passed" })], header: "Ran the tests" }));
+  await page.waitForFunction(() => /12 passed/.test(document.querySelector("#msgs").innerText));
+  await settle(page, 200);
+  assert.equal(await page.evaluate(() => document.activeElement === window.__row), true, `focus on the same disclosure, not ${await focusIs(page)}`);
+  assert.equal(await page.locator('#msgs [data-tb="row:call-det"]').getAttribute("aria-expanded"), "true");
+  await done(page);
+});
+t("DET-2 C121/C050: the working line opens the work with focus on its header; folding it hands focus back to the line", async () => {
+  const page = await liveTurn();
+  const w = page.locator("#msgs .mx-work");
+  await w.waitFor({ state: "visible" });
+  await w.focus();
+  await page.keyboard.press("Enter");
+  await settle(page, 400);
+  const f = await focusIs(page);
+  assert.match(f, /\[data-tb=/, `on the work's header, not ${f}`);
+  assert.equal(await page.evaluate(() => document.activeElement.getAttribute("aria-expanded")), "true");
+  await page.keyboard.press("Space");
+  await settle(page, 400);
+  assert.equal(await page.evaluate(() => document.activeElement.classList.contains("mx-work")), true, `folded: on the working line, not ${await focusIs(page)}`);
   await done(page);
 });
 

@@ -2433,10 +2433,24 @@ function loadAhead() {
   if (h && h.loaded && !h.all && !h.loading && !h.olderError) world.act.loadOlder(c);
 }
 /** "Earlier messages" (or "Try again"), pressed: the conversation's next older page. */
+/**
+ * Earlier messages, or Try again after a failed read. The button gives way to the shapes of the messages it reads,
+ * so focus, if it was on it, waits on the conversation itself meanwhile; when the read is over it goes to the
+ * button that's there again (Try again after another failure, Earlier messages when there's more), and stays on
+ * the conversation at its beginning (Astra DET-3: it fell to the page).
+ */
 function loadOlderNow() {
+  const from = document.activeElement?.closest?.("[data-older]") ? S.view : null;
+  if (from) scroller.focus({ preventScroll: true });
+  let read = null;
   const t = convThread(S.view);
-  if (t) { const th = world.state.threadHist?.[t.id]; if (th && th.olderError) th.olderError = null; if (world.act.loadOlderThread) world.act.loadOlderThread(t.id); return; }
-  const c = chatOf(S.view); if (c) world.act.loadOlder(c);
+  if (t) { const th = world.state.threadHist?.[t.id]; if (th && th.olderError) th.olderError = null; if (world.act.loadOlderThread) read = world.act.loadOlderThread(t.id); }
+  else { const c = chatOf(S.view); if (c) read = world.act.loadOlder(c); }
+  if (from) Promise.resolve(read).finally(() => {
+    if (S.view !== from || document.activeElement !== scroller) return;
+    render();
+    msgsEl.querySelector("[data-older]")?.focus({ preventScroll: true });
+  });
 }
 
 // ── what you're reading stays put; the agent's work moves, never jumps ─────────────────────────────
