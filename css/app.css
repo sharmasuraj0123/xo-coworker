@@ -1757,7 +1757,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 /* ── sub-agents (U2, ch 14 §11): working now under the checklist; the list and each run in a sheet ── */
 .rn-strip{display:flex;gap:6px;margin-top:8px;overflow-x:auto;scrollbar-width:none}
 .rn-strip::-webkit-scrollbar{display:none}
-.rn-chip{flex:none;display:inline-flex;align-items:center;gap:7px;height:30px;max-width:280px;padding:0 11px 0 10px;border-radius:999px;border:1px solid color-mix(in srgb,var(--info) 28%,var(--line-soft));background:color-mix(in srgb,var(--info) 6%,transparent);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease)}
+.rn-chip{flex:none;display:inline-flex;align-items:center;gap:8px;height:28px;max-width:280px;padding:0 10px;border-radius:var(--r-sm);border:1px solid color-mix(in srgb,var(--info) 28%,var(--line-soft));background:color-mix(in srgb,var(--info) 6%,transparent);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease)}
 .rn-chip span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rn-chip em{flex:none;font-style:normal;color:var(--warn)}
 .rn-chip.st-waiting{border-color:color-mix(in srgb,var(--warn) 34%,var(--line-soft));background:color-mix(in srgb,var(--warn) 7%,transparent)}
