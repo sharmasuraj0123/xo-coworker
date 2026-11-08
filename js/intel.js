@@ -618,9 +618,11 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     if (sm) {
       if (sm.getAttribute("aria-disabled") === "true" || sm.getAttribute("aria-checked") === "true") return;
       const s = P.session;
-      if (sm.dataset.lsimple === "auto") { close(); toAuto(s); return; }
+      // every change of this setting goes through the one ordered save (save()): a Done still out for this
+      // conversation goes first, so it can't land after this newer choice (Astra SRC-IQ-QUEUE-1)
+      if (sm.dataset.lsimple === "auto") { save(s, { auto: true }, P.gen); close({ apply: false }); return; }
       const d = deepPick(s);
-      if (d) { close(); pin(s, d.model, d.effort); }
+      if (d) { save(s, { auto: false, model: d.model, effort: d.effort }, P.gen); close({ apply: false }); }
       return;
     }
     if (e.target.closest("[data-lfull]")) { P.full = true; render(); pop.focus({ preventScroll: true }); return; }
@@ -640,7 +642,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     if (mvm && P.mv) { if (waiting || P.mv.busy) return; pickMove(mvm.dataset.mvm); pop.querySelector(`[data-mvm="${CSS.escape(mvm.dataset.mvm)}"]`)?.focus({ preventScroll: true }); return; }
     const r = e.target.closest("[data-lroute]");
     if (r) { if (waiting) return; const s = P.session; close(); route(s, r.dataset.lroute); return; }
-    if (e.target.closest("[data-lauto]")) { const s = P.session; P.draft = null; close({ apply: false }); toAuto(s); return; }
+    if (e.target.closest("[data-lauto]")) { const s = P.session; P.draft = null; save(s, { auto: true }, P.gen); close({ apply: false }); return; }
     if (e.target.closest("[data-ldone]")) { done(); return; }
     if (e.target.closest("[data-lmore]")) { P.more = !P.more; render(); pop.querySelector("[data-lmore]")?.focus({ preventScroll: true }); return; }
     const dm = e.target.closest("[data-dmodel]");
@@ -693,7 +695,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       return;
     }
     else if (e.key === "Enter" && !P.mv && !e.target.closest("button:not([role=radio])")) { e.preventDefault(); done(); return; }
-    else if (K.is(e, "auto") && !e.target.closest("input,textarea")) { e.preventDefault(); if (threadOf(P.session)) { const s = P.session; close({ apply: false }); toAuto(s); } else pickModel(""); return; }
+    else if (K.is(e, "auto") && !e.target.closest("input,textarea")) { e.preventDefault(); if (threadOf(P.session)) { const s = P.session; save(s, { auto: true }, P.gen); close({ apply: false }); } else pickModel(""); return; }
     if (e.key !== "Escape") return;
     e.preventDefault(); e.stopPropagation();
     // Esc steps back out of continuing elsewhere first, then closes

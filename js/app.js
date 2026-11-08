@@ -1340,7 +1340,7 @@ function runsStrip(t) {
   return runsStripHtml(live, total);
 }
 const runsEl = $("#runs"), runsCard = $("#runs-card");
-const RS = { gen: 0, open: false, session: null, title: "", view: "list", tree: [], counts: null, runId: null, run: null, anc: null, items: [], cursor: null, children: [], loading: false, error: null, gone: null, pollT: null, returnTo: null };
+const RS = { gen: 0, opening: 0, open: false, session: null, title: "", view: "list", tree: [], counts: null, runId: null, run: null, anc: null, items: [], cursor: null, children: [], loading: false, error: null, gone: null, pollT: null, returnTo: null };
 const canStopRuns = () => !!(RS.session && world.act.feature && world.act.feature(RS.session, "runs.stop"));
 // this sheet's own stops still in their Undo: the page behind it is inert while it's open (Astra: Stop's only
 // Undo was out of reach)
@@ -1368,24 +1368,29 @@ async function openRuns(t, runId = null) {
   if (!RS.open) RS.returnTo = document.activeElement;
   // a new thread's list starts empty and reading: never the last thread's rows, never "none" before a read says so
   if (RS.session !== t.sessionId) { RS.tree = []; RS.counts = null; }
+  // each opening (and each Try again) is its own: a list, or a run to open, asked for by an earlier opening of the
+  // same thread never lands in this one (Astra SRC-MAIN-RUN-1: close, reopen, and the old answer won)
+  const my = ++RS.opening;
   Object.assign(RS, { open: true, session: t.sessionId, title: t.title, view: runId ? "run" : "list", runId, keepScroll: false, listState: "loading", listErr: "" });
   runsEl.hidden = false;
   runsRender();
-  await readRunsList(t.sessionId);
-  if (!RS.open || RS.session !== t.sessionId) return;
+  await readRunsList(t.sessionId, my);
+  if (!RS.open || RS.session !== t.sessionId || RS.opening !== my) return;
   if (runId) openRun(runId); else { runsRender(); runsCard.querySelector(".rn-open, [data-close]")?.focus(); }
 }
-/** The list for one thread; an answer for a thread that isn't the one open any more is dropped (Astra: a late
- *  list for A showed under B). */
-async function readRunsList(sid) {
+/** The list for one thread, for one opening; an answer for a thread, or an opening, that isn't the one open any
+ *  more is dropped (Astra: a late list for A showed under B; and under A opened again). true when it landed. */
+async function readRunsList(sid, my = RS.opening) {
+  const mine = () => RS.open && RS.session === sid && RS.opening === my;
   try {
     const d = await world.act.listRuns(sid);
-    if (!RS.open || RS.session !== sid) return;
+    if (!mine()) return false;
     RS.tree = d.runs || []; RS.counts = d.counts || null; RS.listState = "ok"; RS.listErr = "";
   } catch (err) {
-    if (!RS.open || RS.session !== sid) return;
+    if (!mine()) return false;
     RS.listState = "error"; RS.listErr = err.message;
   }
+  return true;
 }
 async function openRun(id) {
   clearTimeout(RS.pollT);
@@ -1497,7 +1502,7 @@ runsEl.addEventListener("click", (e) => {
     (runsCard.querySelector(back) || runsCard.querySelector(".rn-open, [data-close]"))?.focus({ preventScroll: true });
     return;
   }
-  if (e.target.closest("[data-runs-retry]")) { const sid = RS.session; RS.listState = "loading"; runsRender(); readRunsList(sid).then(() => { runsRender(); runsCard.querySelector(".rn-open, [data-runs-retry], [data-close]")?.focus({ preventScroll: true }); }); return; }
+  if (e.target.closest("[data-runs-retry]")) { const sid = RS.session, my = ++RS.opening; RS.listState = "loading"; runsRender(); readRunsList(sid, my).then((landed) => { if (!landed) return; runsRender(); runsCard.querySelector(".rn-open, [data-runs-retry], [data-close]")?.focus({ preventScroll: true }); }); return; }
   const op = e.target.closest("[data-run]");
   if (op) openRun(op.dataset.run);
 });
@@ -3056,6 +3061,7 @@ document.addEventListener("click", (e) => {
 });
 $("#home").addEventListener("keydown", (e) => {
   if (e.target.id === "nx-note-in") {
+    if (e.isComposing || e.keyCode === 229) return; // a word being composed owns its keys: Enter and Escape too
     // Enter while a word is still being composed (an IME) finishes the word; it never sends (Astra DEC-HOME-IME)
     if (e.key === "Enter" && !e.shiftKey && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); e.stopPropagation(); nextDecide("deny", e.target.value); }
     if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); $("[data-nx-cancel]").click(); }
@@ -3250,11 +3256,12 @@ function openJump() { jumpReturn = document.activeElement; jump.hidden = false; 
 function closeJump({ restore = true } = {}) { if (jump.hidden) return; jump.hidden = true; syncInert(); if (restore && jumpReturn && jumpReturn.isConnected && jumpReturn.offsetParent) jumpReturn.focus({ preventScroll: true }); }
 jq.addEventListener("input", () => { jsel = 0; jumpRender(); });
 jq.addEventListener("keydown", (e) => {
+  // every key of a word being composed (an IME) is the word's: its arrows move among the candidates, Escape
+  // cancels it, Enter finishes it; none of them moves the selection or closes Jump (Astra SRC-MAIN-IME-1)
+  if (e.isComposing || e.keyCode === 229) return;
   if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); jsel = (jsel + (e.key === "ArrowDown" ? 1 : jitems.length - 1)) % Math.max(1, jitems.length); jumpRender(); }
   // Enter while a word is being composed (an IME) finishes the word; with nothing found, Jump stays open on what
   // you typed (it never closes onto nothing: Astra, e20231c)
-  // and every key of a word being composed is the word's: Escape cancels it, arrows move among its candidates
-  if (e.isComposing || e.keyCode === 229) return;
   if (e.key === "Enter") { e.preventDefault(); const x = jitems[jsel]; if (!x) { announce("Nothing matches. Change what you typed, or Esc to close."); return; } closeJump({ restore: !!x.run }); x.run ? x.run() : go(x.v); }
   if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeJump(); }
 });

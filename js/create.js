@@ -194,6 +194,9 @@ export function initCreate(ctx) {
     // Following the clone shows how it ended: stopped, or done or failed when Stop came too late
     // (once Space has published the project, a cancel ends the job "done" and the project opens).
     try { await api.cancelClone(id); } catch (err) {
+      // the answer is this clone's: if it has ended and another started meanwhile, its refusal says nothing to
+      // the new one's Stop (Astra SRC-MAIN-CREATE-1: an old refusal cleared the new Stop's busy state)
+      if (busy?.cloneId !== id) return;
       if (err.code === "clone_finished" || err.status === 404) return;
       st.removeAttribute("aria-disabled"); st.removeAttribute("aria-busy");
       error(`Couldn't stop it: ${err.message}`);

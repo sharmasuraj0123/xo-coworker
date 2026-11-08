@@ -42,12 +42,17 @@ const app = async (W = {}, { width = WIDTH, motion = false, theme = "dark" } = {
   return page;
 };
 // a test ends with no page errors and with focus never having fallen to the page (harness.cjs records each drop)
+// strict, as Settings' (a821fe1): a record that's missing or can't be read fails the case, never reads as clean
+// (Astra on 453de55: a failed read counted as no drops, and an environment flag could skip the check)
 const done = async (page) => {
   const errs = page.errors;
-  const drops = await page.evaluate(() => window.__focusDrops || []).catch(() => []);
+  let drops, unread = null;
+  try { drops = await page.evaluate(() => window.__focusDrops); } catch (e) { unread = e; }
   await page.context().close();
+  if (unread) throw new Error(`the focus-drop record couldn't be read: ${unread.message}`);
   assert.deepEqual(errs, [], "page errors");
-  if (!process.env.ALLOW_FOCUS_DROPS) assert.deepEqual(drops, [], "focus fell to the page when its control went");
+  assert.ok(Array.isArray(drops), "the harness's focus-drop record is there (window.__focusDrops)");
+  assert.deepEqual(drops, [], "focus fell to the page when its control went");
 };
 
 // ── the viewer's editor ───────────────────────────────────────────────────
@@ -932,6 +937,14 @@ t("S201/S202: the lightbox's end arrow keeps focus at the end", async () => {
   assert.match(await page.locator(".lbx-count").first().innerText(), /3 of 3/);
   await page.keyboard.press("ArrowLeft");
   assert.match(await page.locator(".lbx-count").first().innerText(), /2 of 3/);
+  // and the other end: Previous, pressed to the first picture, keeps focus there
+  const prev = page.locator('[data-lbx="prev"]').filter({ visible: true }).first();
+  await prev.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelector('[data-lbx="prev"]')?.getAttribute("aria-disabled") === "true");
+  assert.match(await active(page), /data-lbx=prev/, "still on Previous at the first picture");
+  await page.keyboard.press("Enter");
+  assert.match(await page.locator(".lbx-count").first().innerText(), /1 of 3/);
   await done(page);
 });
 t("S063: a changed file opened from Files' Changed takes focus", async () => {
@@ -1330,6 +1343,178 @@ t("IME: a key of a word being composed is the field's: a composing Escape closes
   assert.equal(await page.locator("#jump").isVisible(), true, "Jump stays open on a composing Escape");
   await page.keyboard.press("Escape"); // a plain one closes it
   await page.waitForFunction(() => document.querySelector("#jump").hidden);
+  await done(page);
+});
+
+t("SRC-MAIN-CREATE-1: an earlier clone's late Stop refusal leaves a later clone's Stop as it is", async () => {
+  let openA, openB;
+  const W = { cloneStopMode: "503", cloneDone: new Set(), cloneStopGates: {} };
+  const page = await app(W);
+  const clone = async (repo, name) => {
+    await openCreate(page);
+    await page.locator('#cp-mode [data-mode="clone"]').click();
+    await page.locator("#cp-repo").fill(repo);
+    await page.locator("#cp-name").fill(name);
+    await page.locator("#cp-submit").click();
+    await page.locator("#cp-stop").waitFor({ state: "visible" });
+  };
+  await clone("owner/aaa", "clone-a");
+  W.cloneStopGates["clone-1"] = new Promise((ok) => (openA = ok));
+  await page.locator("#cp-stop").focus();
+  await page.keyboard.press("Enter"); // A's Stop, held
+  W.cloneDone.add("clone-1"); // A finishes meanwhile
+  await page.waitForFunction(() => !document.querySelector("#create-dlg").open, null, { timeout: 8000 });
+  await clone("owner/bbb", "clone-b");
+  W.cloneStopGates["clone-2"] = new Promise((ok) => (openB = ok));
+  await page.locator("#cp-stop").focus();
+  await page.keyboard.press("Enter"); // B's Stop, held
+  await page.waitForFunction(() => document.querySelector("#cp-stop").getAttribute("aria-busy") === "true");
+  openA(); // A's refusal arrives late
+  await page.waitForTimeout(400);
+  assert.equal(await page.locator("#cp-stop").getAttribute("aria-busy"), "true", "B's Stop still says it's asking");
+  assert.doesNotMatch(await page.locator("#create-dlg").innerText(), /clone-1/, "A's error isn't shown under B");
+  openB();
+  await page.waitForFunction(() => /Couldn't stop it/.test(document.querySelector("#create-dlg").textContent));
+  await done(page);
+});
+t("SRC-MAIN-RUN-1/2: Runs opened again in the same thread: the old opening's list and run never land; cached rows say a refused read", async () => {
+  let oldList, newList;
+  const W = { runsGate: {}, runs: { "ses-a": { runs: [run("cur", "Current helper")], counts: { running: 1 } } } };
+  const page = await app(W);
+  W.runsGate["ses-a"] = new Promise((ok) => (oldList = ok));
+  await page.evaluate(() => { window.__t.openRuns({ sessionId: "ses-a", title: "Thread A" }, "old-run"); });
+  await page.waitForFunction(() => !document.querySelector("#runs").hidden);
+  await page.keyboard.press("Escape");
+  W.runsGate["ses-a"] = new Promise((ok) => (newList = ok));
+  await page.evaluate(() => { window.__t.openRuns({ sessionId: "ses-a", title: "Thread A" }); });
+  newList();
+  await page.waitForFunction(() => /Current helper/.test(document.querySelector("#runs").innerText));
+  W.runs["ses-a"] = { runs: [run("old-run", "Old helper")], counts: { running: 1 } };
+  oldList(); // the old opening's list, late
+  await page.waitForTimeout(500);
+  const txt = await page.locator("#runs").innerText();
+  assert.match(txt, /Current helper/, "this opening's rows");
+  assert.doesNotMatch(txt, /Old helper/, "never the old opening's");
+  assert.equal(await page.locator("#runs .rn-h #runs-h").count(), 1, "the list, not the old opening's run");
+  // closed and opened again with a read that fails: the rows from before stay, and say the read failed
+  await page.keyboard.press("Escape");
+  W.runsGate = {}; W.runsFail = { "ses-a": true };
+  await page.evaluate(() => { window.__t.openRuns({ sessionId: "ses-a", title: "Thread A" }); });
+  await page.locator("#runs [data-runs-retry]").waitFor();
+  assert.match(await page.locator("#runs").innerText(), /Couldn't read its sub-agents again/);
+  await done(page);
+});
+t("S101: Stop all says what it does: all of them stop in 3 s, Undo in the sheet; Undo keeps them and focus goes back", async () => {
+  const W = { runs: { "ses-a": { runs: [run("ra", "Alpha's helper"), run("rb", "Beta's helper")], counts: { running: 2 } } } };
+  const page = await app(W);
+  await page.evaluate(() => { window.__t.world.act.feature = () => true; return window.__t.openRuns({ sessionId: "ses-a", title: "Thread A" }); });
+  const all = page.locator("#runs [data-runs-stop]");
+  await all.waitFor();
+  await all.focus();
+  await page.keyboard.press("Enter");
+  const undo = page.locator("#runs [data-runs-undo]").first();
+  await undo.waitFor();
+  assert.match(await page.locator("#runs .rn-stopping").first().innerText(), /every sub-agent/);
+  await undo.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(3600);
+  assert.equal(W.runStops || 0, 0, "nothing was stopped");
+  assert.match(await active(page), /data-runs-stop/, "back on Stop all");
+  await done(page);
+});
+t("IME: a composing key in Jump, the Home note or a decision's note changes and closes nothing", async () => {
+  const page = await app();
+  await toDemo(page);
+  const key = (sel, k) => page.evaluate(({ sel, k }) => document.querySelector(sel).dispatchEvent(new KeyboardEvent("keydown", { key: k, isComposing: k !== "Enter", keyCode: 229, bubbles: true, cancelable: true })), { sel, k });
+  await page.keyboard.press("ControlOrMeta+k");
+  await page.locator("#jump").waitFor();
+  const sel0 = await page.evaluate(() => document.querySelector("#jump-list [aria-selected=\"true\"]")?.textContent);
+  await key("#jump-q", "ArrowDown");
+  assert.equal(await page.evaluate(() => document.querySelector("#jump-list [aria-selected=\"true\"]")?.textContent), sel0, "the selection didn't move");
+  await key("#jump-q", "Escape");
+  assert.equal(await page.locator("#jump").isVisible(), true, "Jump stays open");
+  await page.keyboard.press("Escape");
+  await done(page);
+});
+t("IME: a decision note's composing Enter (keyCode 229 only) and Escape neither send nor close", async () => {
+  const page = await decisions("approval", 1);
+  await page.waitForTimeout(400);
+  await page.locator("[data-act=back]").first().click();
+  const n = page.locator(".c-note-in").first();
+  await n.waitFor();
+  await n.fill("half a wor");
+  for (const k of ["Enter", "Escape"]) await page.evaluate((k) => document.querySelector(".c-note-in").dispatchEvent(new KeyboardEvent("keydown", { key: k, keyCode: 229, isComposing: k === "Escape", bubbles: true, cancelable: true })), k);
+  await page.waitForTimeout(300);
+  assert.deepEqual(await page.evaluate(() => window.d.decided()), [], "nothing was sent back");
+  assert.equal(await page.evaluate(() => !document.querySelector(".c-note").hidden && window.d.D.isOpen()), true, "the note and the panel stay");
+  await ctxDone(page);
+});
+
+t("SRC-IQ-QUEUE-1: a newer Auto, chosen while an earlier Done is still saving, goes after it, never before", async () => {
+  let answer;
+  const W = {};
+  const page = await app(W);
+  await page.evaluate(() => localStorage.setItem("cv-shape-device", JSON.stringify({ shape: 1, surfaces: { "xo:composer/intel": { mode: "simple" } } })));
+  await page.reload();
+  await page.waitForSelector('[data-go="p:demo"]', { state: "attached", timeout: 30000 });
+  await toDemo(page);
+  const chip = page.locator("#iq").filter({ visible: true }).first();
+  // Deep first (so Auto is a change), then More options: Sonnet · low, Done, held
+  await chip.click();
+  await page.locator('#iq-pop [data-lsimple="deep"]:not([aria-disabled="true"])').click();
+  await page.waitForFunction(() => document.querySelector("#iq-pop").hidden || document.querySelector("#iq-pop").classList.contains("is-out"));
+  const p0 = W.patches || 0;
+  await chip.click();
+  await page.locator("#iq-pop [data-lfull]").click();
+  await page.locator('#iq-pop [data-dmodel="sonnet"]').click();
+  await page.locator('#iq-pop [data-deffort="low"]').click();
+  W.patchGate = new Promise((ok) => (answer = ok));
+  await page.locator("#iq-pop [data-ldone]").click();
+  for (let i = 0; i < 60 && (W.patches || 0) <= p0; i++) await page.waitForTimeout(50); // Done's request is out
+  await page.keyboard.press("Escape");
+  await chip.click();
+  await page.locator('#iq-pop [data-lsimple="auto"]').click(); // newer: Auto
+  await page.waitForTimeout(300);
+  assert.equal(W.patches, p0 + 1, "Auto waits for the Done still out");
+  W.patchGate = null; answer();
+  for (let i = 0; i < 60 && W.patches < p0 + 2; i++) await page.waitForTimeout(50);
+  const last2 = W.patchBodies.slice(-2);
+  assert.equal(last2[0].model, "sonnet", "Done's choice first");
+  assert.ok(!last2[1].model, `then Auto: ${JSON.stringify(last2[1])}`);
+  await done(page);
+});
+t("H13: on a long phone list, pinning a card far below moves it to Pinned and focus goes with it", async () => {
+  if (WIDTH >= 600) skip("the phone list (Astra's 100-row fixture)");
+  const made = Array.from({ length: 100 }, (_, i) => ({ id: `k${i}`, name: `note-${String(i).padStart(3, "0")}.md`, path: `n${i}.md`, relative_path: `n${i}.md`, project_id: "demo", mime: "text/markdown", bytes: 10, created_at: new Date(Date.now() - i * 60e3).toISOString(), updated_at: new Date(Date.now() - i * 60e3).toISOString() }));
+  const page = await app({ made });
+  await page.evaluate(() => window.__t.go("artifacts"));
+  await page.locator('#arts-body .md-it[data-k="k0"]').waitFor();
+  await page.evaluate(() => { const b = document.querySelector("#arts"), it = [...document.querySelectorAll("#arts-body .md-it")]; b.scrollTop = 5250; });
+  await page.waitForTimeout(400);
+  const pin = page.locator('#arts-body .md-it[data-k="k50"] .md-pin');
+  await pin.waitFor();
+  await pin.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelector('#arts-body .md-it[data-k="k50"] .md-pin')?.getAttribute("aria-pressed") === "true");
+  await page.waitForTimeout(400);
+  assert.equal(await page.evaluate(() => document.activeElement.closest(".md-it")?.dataset.k), "k50", "focus on its pin, in Pinned");
+  assert.equal(await page.locator('#arts-body .md-it[data-k="k50"]').count(), 1);
+  await done(page);
+});
+t("C065: Images chosen, then a project with no images: the kinds still have one choice checked and one Tab stop", async () => {
+  const made = [
+    { id: "d1", name: "notes.md", path: "notes.md", relative_path: "notes.md", project_id: "demo", mime: "text/markdown", bytes: 10, created_at: NOW, updated_at: NOW },
+    { id: "i1", name: "shot.png", path: "shot.png", relative_path: "shot.png", project_id: "research", mime: "image/png", bytes: 10, created_at: NOW, updated_at: NOW },
+  ];
+  const page = await app({ madeBy: { chat_demo: [made[0]], chat_research: [made[1]] }, extraChats: [H.chat("chat_research", "project", "research")] });
+  await page.evaluate(() => window.__t.go("artifacts"));
+  await page.locator('#arts-f [data-arts-kind="image"]').click();
+  await page.evaluate(() => { const s = document.querySelector("#arts-pj"); s.value = "demo"; s.dispatchEvent(new Event("change", { bubbles: true })); });
+  await page.waitForTimeout(300);
+  const st = await page.evaluate(() => { const r = [...document.querySelectorAll("#arts-f [role=radio]")]; return { checked: r.filter((x) => x.getAttribute("aria-checked") === "true").map((x) => x.dataset.artsKind), stops: r.filter((x) => x.getAttribute("tabindex") !== "-1").length, empty: document.querySelector("#arts-body .ar-none")?.textContent }; });
+  assert.deepEqual(st.checked, ["image"], "Images stays chosen");
+  assert.equal(st.stops, 1, "one Tab stop");
+  assert.match(st.empty || "", /No images in this project/);
   await done(page);
 });
 

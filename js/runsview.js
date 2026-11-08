@@ -53,16 +53,19 @@ export function runsListHtml(tree, counts, { canStop, title, stops = [], state =
   const done = tree.filter((r) => !LIVE.has(r.state));
   const c = counts || {};
   const sum = [c.running && `${c.running} working`, c.waiting && `${c.waiting} waiting on you`, c.done && `${c.done} done`, c.failed && `${c.failed} failed`, c.stopped && `${c.stopped} stopped`].filter(Boolean).join(" · ");
+  // "none" only when a read said so: while it reads, it says so; a failed read says what failed, with a retry.
+  // Rows already shown from before stay, and say the same above them: reading again, or that the read failed
+  // (Astra SRC-MAIN-RUN-2: cached rows hid the reading, the refusal and Try again)
+  const said = state === "loading" ? `<p class="rn-none" role="status">${tree.length ? "Reading its sub-agents again…" : "Reading its sub-agents…"}</p>`
+    : state === "error" ? `<p class="rn-none" role="alert">Couldn't read its sub-agents${tree.length ? " again" : ""}: ${esc(error)} <button type="button" class="fl-link" data-runs-retry>Try again</button></p>`
+    : !tree.length ? `<p class="rn-none">No sub-agents yet.</p>` : "";
   return `<header class="rn-h"><div><h2 id="runs-h">Sub-agents</h2><p>${esc(title)}${sum ? ` · ${esc(sum)}` : ""}</p></div>` +
     (canStop && live.length > 1 ? `<button type="button" class="rn-stopall" data-runs-stop title="Stop every sub-agent; the thread's own agent keeps working">Stop all ${live.length}</button>` : "") +
     `<button type="button" class="x" data-close aria-label="Close"></button></header>` +
-    `<div class="rn-body">` + stopsHtml(stops) +
+    `<div class="rn-body">` + stopsHtml(stops) + (tree.length ? said : "") +
     (live.length ? `<h3 class="rn-k">Working now</h3><ul class="rn-list">${live.map((r) => rowHtml(r, { canStop })).join("")}</ul>` : "") +
     (done.length ? `<h3 class="rn-k">${live.length ? "Earlier" : "What they did"}</h3><ul class="rn-list">${done.map((r) => rowHtml(r, { canStop })).join("")}</ul>` : "") +
-    // "none" only when a read said so: while it reads, it says so; a failed read says what failed, with a retry
-    (!tree.length ? (state === "loading" ? `<p class="rn-none" role="status">Reading its sub-agents…</p>`
-      : state === "error" ? `<p class="rn-none" role="alert">Couldn't read its sub-agents: ${esc(error)} <button type="button" class="fl-link" data-runs-retry>Try again</button></p>`
-      : `<p class="rn-none">No sub-agents yet.</p>`) : "") + `</div>`;
+    (!tree.length ? said : "") + `</div>`;
 }
 /** Stops still in their 3 s Undo, inside the sheet: each with its own Undo. */
 export function stopsHtml(stops) {

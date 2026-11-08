@@ -565,7 +565,11 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
     // under the new one), its control taking focus there
     const ae = document.activeElement && be.contains(document.activeElement) ? document.activeElement : null;
     const fCard = ae && ae.closest(".md-it"), fKey = fCard && fCard.dataset.k, fCtl = ae && (ae.matches(".md-pin") ? ".md-pin" : ae.matches(".md-from") ? ".md-from" : ".md-open");
-    const moved = !!fKey && want.some((l) => l.kind === "row" && l.g.items.slice(l.start, l.start + l.n).some((it) => it.key === fKey) && !(A.els.get(l.key) && A.els.get(l.key).contains(fCard)));
+    // where that card is now, in the whole layout (not only the lines near the screen: pinned, it can move far
+    // above them; Astra on 453de55); moved, its new line is drawn too, wherever it is, and focus lands there
+    const at = fKey ? A.lines.find((l) => l.kind === "row" && l.g.items.slice(l.start, l.start + l.n).some((it) => it.key === fKey)) : null;
+    const moved = !!at && !(A.els.get(at.key) && A.els.get(at.key).contains(fCard));
+    if (moved && !keep.has(at.key)) { want.push(at); want.sort((x, y) => x.y - y.y); keep.add(at.key); }
     const focus = ae && !moved ? ae.closest(".ar-line") : null;
     for (const [k, el] of A.els) {
       if (keep.has(k) || el === focus) continue;
@@ -597,7 +601,8 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
       if (at !== el) be.insertBefore(el, at);
       prev = el;
     }
-    if (moved) be.querySelector(`.md-it[data-k="${CSS.escape(fKey)}"] ${fCtl}`)?.focus({ preventScroll: true });
+    // landed where it went, brought into view (the page doesn't jump to it otherwise: it stays anchored)
+    if (moved) be.querySelector(`.md-it[data-k="${CSS.escape(fKey)}"] ${fCtl}`)?.focus();
     A.arrive = false;
   }
   function artsWatch(box) {
@@ -643,7 +648,9 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
     setHtml(box.querySelector("#arts-pj"), opts);
     // the kinds: one Tab stop (the chosen one), arrows choose (radioKeys), drawn in place so the focused one stays
     // (Astra C065/H5: arrows did nothing, and Space dropped focus as the strip was redrawn)
-    const kf = box.querySelector("#arts-f"), kh = R.KINDS.filter(([k]) => k === "all" || v.counts[k]).map(([k, w]) => `<button type="button" role="radio" data-arts-kind="${k}" aria-checked="${A.kind === k}"${rovingTab(A.kind === k)}>${w}<span>${pending ? "" : v.counts[k]}</span></button>`).join("");
+    // the kind you chose stays in the strip even where it has nothing (another project): one choice checked and
+    // one Tab stop, always (Astra C065 on 453de55: Images, then a project with only Docs, left neither)
+    const kf = box.querySelector("#arts-f"), kh = R.KINDS.filter(([k]) => k === "all" || v.counts[k] || k === A.kind).map(([k, w]) => `<button type="button" role="radio" data-arts-kind="${k}" aria-checked="${A.kind === k}"${rovingTab(A.kind === k)}>${w}<span>${pending ? "" : v.counts[k] || 0}</span></button>`).join("");
     if (kf._h !== kh) { redraw(kf, kh); kf._h = kh; }
     if (!kf._keys) { kf._keys = true; radioKeys(kf); }
     // Images is the one filter shown as pictures on a phone; everything else is a list of rows (css/artifacts.css)
@@ -659,7 +666,9 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
     if (pending || !v.groups.length) {
       // still reading: a screen of stand-ins in the gallery's own shape; or nothing to show
       const html = pending ? `<section class="ar-g" aria-hidden="true"><h2 class="ar-gh">${skBar("64px")}</h2><ul class="md-grid ar-grid">${Array.from({ length: 12 }, (_, i) => skTile("page", i)).join("")}</ul></section>`
-        : `<p class="ar-none">${all.length ? `Nothing matches “${esc(A.q || "")}”.` : "<b>Nothing made yet.</b> Files, pages and pictures your threads share land here, newest first."}</p>`;
+        : `<p class="ar-none">${!all.length ? "<b>Nothing made yet.</b> Files, pages and pictures your threads share land here, newest first."
+          : A.q ? `Nothing matches “${esc(A.q)}”.`
+          : `No ${esc(((R.KINDS.find(([k]) => k === A.kind) || [])[1] || "things").toLowerCase())} ${A.pid ? "in this project" : "yet"}.`}</p>`;
       if (be._h !== html) { be.innerHTML = html; be._h = html; be.style.height = ""; A.els = new Map(); A.lines = null; }
       return;
     }

@@ -700,7 +700,10 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
       else { go("deny", "back", v); }
     };
     noteIn.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); e.stopPropagation(); sendNote(); }
+      // a word being composed (an IME) owns its keys: its Enter finishes the word (never sends: some browsers
+      // only say keyCode 229), its Escape cancels it (never closes the note) (Astra SRC-MAIN-IME-1)
+      if (e.isComposing || e.keyCode === 229) return;
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); e.stopPropagation(); sendNote(); }
       if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeNote(); }
     });
     frame._openNote = openNote; frame._closeNote = closeNote; frame._noting = () => !note.hidden;
@@ -1002,6 +1005,7 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
 
   // ── keys on a card (panel or dock) ────────────────────────────────────────
   function cardKeys(e, card, { onEsc, inPanel }) {
+    if (e.isComposing || e.keyCode === 229) return false; // a word being composed owns every key, Escape too
     const inField = e.target.matches?.("textarea, input");
     if (e.key === "Escape") {
       if (card && card._quietOff && card._quietOff()) { e.preventDefault(); e.stopPropagation(); return true; }
@@ -1060,7 +1064,7 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
 
   radioKeys(panel);
   panel.addEventListener("keydown", (e) => {
-    if (!F.open) return;
+    if (!F.open || e.isComposing || e.keyCode === 229) return; // a composing word's keys close nothing
     const card = $("#card");
     if (e.key === "Escape") {
       const cf = stage.querySelector(".confirm");

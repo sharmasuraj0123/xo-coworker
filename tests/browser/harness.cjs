@@ -90,9 +90,17 @@ function mockApi(W) {
       return json({ ...head, total_files: all.length, files: all.map(({ full, ...f }) => f) });
     }
     // a clone Space runs: started at once, running until stopped; W.cloneStopMode "503" refuses the stop
-    if (p === "/api/xo-projects" && m === "POST") return json({ clone_id: "clone-1" }, 202);
+    // each clone its own id (clone-1, clone-2 …); W.cloneDone: ids that have finished; W.cloneStopGates[id]: a held
+    // Stop for that clone
+    if (p === "/api/xo-projects" && m === "POST") { W.cloneN = (W.cloneN || 0) + 1; return json({ clone_id: `clone-${W.cloneN}` }, 202); }
     if ((k = /^\/api\/xo-projects\/clones\/([^/]+)$/.exec(p))) {
-      if (m === "DELETE") { W.cloneStops = (W.cloneStops || 0) + 1; return W.cloneStopMode === "503" ? json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503) : json({ cancelled: true }); }
+      const id = decodeURIComponent(k[1]);
+      if (m === "DELETE") {
+        W.cloneStops = (W.cloneStops || 0) + 1;
+        if (W.cloneStopGates && W.cloneStopGates[id]) await W.cloneStopGates[id];
+        return W.cloneStopMode === "503" ? json({ detail: { code: "unavailable", message: `Fixture unavailable (${id})` } }, 503) : json({ cancelled: true });
+      }
+      if (W.cloneDone && W.cloneDone.has(id)) return json({ state: "done", phase: "done", percent: 100, received_bytes: 2048, idle_seconds: 0 });
       return json({ state: "running", phase: "receiving", percent: 12, received_bytes: 1024, idle_seconds: 0 });
     }
     if (/^\/api\/xo-projects\/[^/]+\/tree$/.test(p)) {
