@@ -30,7 +30,14 @@ const tests = [];
 const t = (name, fn) => tests.push({ name, fn });
 // the project's own page, as its row in the sidebar opens it (on a phone the sidebar is a drawer)
 const toDemo = (page) => page.evaluate(() => window.__t.go("p:demo"));
-const app = (W = {}, { width = WIDTH, motion = false } = {}) => openApp(browser, BASE, W, { width, motion });
+// theme: "dark" (the harness default) or "light" (Files/Map grader on 453de55: it was dropped here, so the light
+// cases ran dark); every case that names a theme checks below that it got it
+const app = async (W = {}, { width = WIDTH, motion = false, theme = "dark" } = {}) => {
+  const page = await openApp(browser, BASE, W, { width, motion, theme });
+  const got = await page.evaluate(() => document.documentElement.dataset.theme || "dark");
+  assert.equal(got, theme, `the page is in the ${theme} theme`);
+  return page;
+};
 // a test ends with no page errors and with focus never having fallen to the page (harness.cjs records each drop)
 const done = async (page) => {
   const errs = page.errors;
@@ -1140,18 +1147,44 @@ t("C023: a panel covering the page keeps Tab out of what it covers; the open pan
   }
   await done(page);
 });
-t("S224: a file entry without a size opens without \"NaN\", and the file takes focus", async () => {
-  const page = await app({ files: { "a.js": FILE() } });
-  await toDemo(page);
-  await page.evaluate(() => { const b = document.createElement("button"); b.type = "button"; b.dataset.file = "a.js"; b.dataset.fileName = "a.js"; b.textContent = "a.js"; document.body.appendChild(b); b.focus(); });
-  await page.keyboard.press("Enter");
-  await page.waitForFunction(() => window.__t.VW.isOpen);
-  await page.waitForTimeout(250);
-  assert.doesNotMatch(await page.locator("#viewer .vw-top").first().innerText(), /NaN/);
-  assert.match(await active(page), /id=viewer/);
-  await done(page);
-});
-
+// the real turn chip: a finished turn's "Files changed" chip, drawn by js/turnview.js (no size on it), opened
+// with the keyboard by the page's own handler, through the conversation's route; read held, read refused
+async function turnChip(page) {
+  await page.evaluate(async () => {
+    const { turnHtml } = await import("./js/turnview.js");
+    const html = turnHtml({ id: "tu1", status: "done", at: new Date().toISOString() }, [{ id: "b1", type: "activity", done: true, rows: [{ kind: "edit_file", status: "ok", target: "a.js", id: "c1" }] }]);
+    const box = document.createElement("div"); box.id = "t-turn"; box.innerHTML = html;
+    document.querySelector("#scroller").appendChild(box);
+  });
+  const chip = page.locator("#t-turn .tb-cf[data-file]").first();
+  await chip.waitFor();
+  assert.equal(await chip.getAttribute("data-file-bytes"), null, "the real chip has no size");
+  return chip;
+}
+for (const variant of ["read", "held", "refused"]) {
+  t(`S224: a turn's file chip opens with the keyboard (${variant}): no "NaN", and the file takes focus`, async () => {
+    let answer;
+    const W = { files: variant === "refused" ? {} : { "a.js": FILE() } };
+    if (variant === "held") W.fileGate = new Promise((ok) => (answer = ok));
+    const page = await app(W);
+    await toDemo(page);
+    const chip = await turnChip(page);
+    await chip.focus();
+    await page.keyboard.press("Enter");
+    await page.waitForFunction(() => window.__t.VW.isOpen);
+    await page.waitForTimeout(300);
+    assert.match(await active(page), /id=viewer/, "on the file while it's read, or says it couldn't be");
+    assert.doesNotMatch(await page.locator("#viewer .vw-top").first().innerText(), /NaN/);
+    if (variant === "held") {
+      answer();
+      await page.waitForTimeout(400);
+      assert.match(await active(page), /id=viewer/, "still on the file once it's read");
+      assert.doesNotMatch(await page.locator("#viewer .vw-top").first().innerText(), /NaN/);
+    }
+    if (variant === "refused") assert.match(await page.locator("#viewer").innerText(), /No such file|couldn't|can't/i, "it says so");
+    await done(page);
+  });
+}
 t("S207: the map's Fit shows every box, and a box far out still takes a pointer", async () => {
   const dirs = Array.from({ length: 40 }, (_, i) => `folder-${String(i).padStart(2, "0")}`);
   const page = await app({ files: { "a.js": FILE() }, dirs });

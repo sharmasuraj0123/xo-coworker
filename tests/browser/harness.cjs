@@ -109,6 +109,7 @@ function mockApi(W) {
     }
     if (/^\/api\/xo-projects\/[^/]+\/file$/.test(p) && m === "GET") {
       const rel = u.searchParams.get("relative_path"), f = W.files[rel];
+      if (W.fileGate && !u.searchParams.get("purpose")) await W.fileGate; // the test says when a read answers
       if (!f) return json({ detail: { code: "not_found", message: "No such file" } }, 404);
       // Edit's own read (the whole file, its version): held by W.editGate, refused W.editReadFails times
       if (u.searchParams.get("purpose") === "edit") {
