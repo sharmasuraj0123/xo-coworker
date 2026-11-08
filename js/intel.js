@@ -96,18 +96,21 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       only fills what the session doesn't report), a chat's pin, else nothing (Auto). */
   function shownSetting(s) {
     const c = current(s), r = running(s);
-    if (r) return { model: r.model || c.model || null, effort: r.effort || c.effort || null };
-    return c.pinned ? { model: c.model, effort: c.effort } : { model: null, effort: null };
+    // a thread says only what its session reports; when that's nothing, a waiting pin is said as what comes
+    // next, never as what runs
+    if (r) return r.model ? { model: r.model, effort: r.effort || null, next: false } : c.pinned ? { model: c.model, effort: c.effort, next: true } : { model: null, effort: null, next: false };
+    return c.pinned ? { model: c.model, effort: c.effort, next: false } : { model: null, effort: null, next: false };
   }
   function chipHtml(s, phone) {
     warm(s);
     const c = current(s);
     if (simple() && !phone && !threadOf(s)) { const w = simpleOf(s, c); return `<span class="iq-l"><span class="${w === "auto" ? "iq-a" : "iq-t"}">${esc(w === "auto" ? "Auto" : w === "deep" ? "Deep" : nameOf(c.model) || "Pinned")}</span></span>`; }
-    const { model, effort } = shownSetting(s);
+    const { model, effort, next } = shownSetting(s);
     const rtn = runtimeOf(s), main = (mainRuntime(world.state.runtimes) || {}).name;
     const rt = manyRuntimes(world.state.runtimes) && rtn && rtn !== main && !phone ? rtName(rtn) : null;
     const words = [];
     if (rt) words.push(`<span class="iq-a">${esc(rt)}</span>`);
+    if (next) words.push(`<span class="iq-a">Next turn</span>`);
     words.push(model ? `<span class="iq-t">${esc(nameOf(model))}</span>` : `<span class="iq-a">Auto</span>`);
     if (effort) words.push(`<span class="iq-e">${esc(effortWord(effort))}</span>`);
     return `<span class="iq-l">${words.join(`<span class="iq-sep" aria-hidden="true">·</span>`)}</span>`;
@@ -124,10 +127,12 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
   function chipTitle(s) {
     const c = current(s);
     if (kindOf(s) === "thread") {
-      const r = running(s), { model, effort } = shownSetting(s);
+      const r = running(s), { model, effort, next } = shownSetting(s);
       const what = `${model ? nameOf(model) : "its default model"}${effort ? ` · ${effortWord(effort)}` : ""}`;
-      const pending = c.pinned && r && r.model && c.model && c.model !== r.model ? `, ${nameOf(c.model)} from its next turn` : "";
-      return `${r && r.working ? "Running" : "Runs"} ${what}${pending}. Change it${K.hint("intel")}`;
+      if (next) return `Its session hasn't reported which model it runs. From its next turn: ${what}. Change it${K.hint("intel")}`;
+      if (r && !r.model) return `Its session hasn't reported which model it runs. Change it${K.hint("intel")}`;
+      const pending = c.pinned && c.model && c.model !== r.model ? `, ${nameOf(c.model)} from its next turn` : "";
+      return `${r.working ? "Running" : "Runs"} ${what}${pending}. Change it${K.hint("intel")}`;
     }
     const r = c.routing || {};
     return `${c.pinned ? `Its coordinator runs ${nameOf(c.model)}${c.effort ? ` · ${effortWord(c.effort)}` : ""}` : "Auto: its coordinator runs its default model"}; ${r.mode === "off" ? "routing is off" : r.mode === "decision" ? `${cap(r.decision_model)} routes new messages` : "the coordinator routes new messages"}. Change it${K.hint("intel")}`;

@@ -16,6 +16,7 @@ import { tasksOf } from "./model.js";
 import { uiMsg, mergeRows, addReaction, updateMessage, stormAsks, mapLimit, currentPools, threadState, askingState, mainRuntime, BUSY_STATES, readSub, sessionRead, sessionBusy, pageAfter, canPageOlder, framesShort } from "./timeline.js";
 import { hostOf, askedBy } from "./review.js";
 import { isLimitItem, limitItem } from "./runtimes.js";
+import { commsLine, commsHeader } from "./comms.js";
 
 const STATUS_MS = 30000;          // the engine's status (pools, review counts); frames carry the rest
 const STATUS_RETRY_MS = 8000;
@@ -975,7 +976,10 @@ export function stormSource(state, emit, event) {
         if (!t) return null;
         const bl = state.turns.blocksOf(t);
         const last = bl[bl.length - 1];
-        return last ? (last.header || (last.type === "text" ? "Writing" : null)) : null;
+        if (!last) return null;
+        // a step that reaches another agent is said as what it is (js/comms.js), not as the tool's name
+        if (last.type === "activity") { const rows = last.rows || []; const run = rows.filter((r) => r.status === "running").pop(); const said = run ? commsLine(run) : commsHeader(rows); if (said) return said; }
+        return last.header || (last.type === "text" ? "Writing" : null);
       },
       /** A session's runs as a tree (the live list and the log), with counts (UI-reference §2.6). */
       listRuns: async (session) => {

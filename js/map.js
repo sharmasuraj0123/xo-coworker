@@ -20,6 +20,7 @@ import { ICON, $, elapsed } from "./ui.js";
 import { api } from "./api.js";
 import { renderInline } from "./markdown.js";
 import { isImagePath } from "./util.js";
+import { commsLine } from "./comms.js";
 import { fileIcon, folderIcon, fileColor } from "./fileicons.js";
 
 const KEY = "cv-map";
@@ -272,7 +273,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
   // ── words ──────────────────────────────────────────────────────────────────
   /** What an agent is doing, in one line: its running step, else what its turn is on. */
   function doingLine(ag) {
-    if (ag.now) return renderInline(ag.now.line || ag.now.tool || "Working", true);
+    if (ag.now) { const said = commsLine(ag.now); return said ? esc(said) : renderInline(ag.now.line || ag.now.tool || "Working", true); }
     if (ag.act.running) {
       const bl = turns().blocksOf(ag.act.running);
       const last = bl[bl.length - 1];
@@ -286,6 +287,8 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     if (!ag.busy) return "idle";
     if (ag.liveFile) return (ag.liveFile.verb || "working").toLowerCase();
     const k = ag.now && ag.now.kind;
+    const said = ag.now && commsLine(ag.now);
+    if (said) return said.replace(/…$/, "").replace(/^\w/, (c) => c.toLowerCase());
     return k === "command" ? "running a command" : k === "search" || k === "list" ? "looking around" : k === "web_search" || k === "web_fetch" ? "on the web" : k === "subagent" ? "with a sub-agent" : ingOf(ag.now) || (ag.act.running ? "thinking" : "working");
   }
   /** A running step's own verb ("Writing… · 12 KB" → "writing"), when its line starts with one. */
