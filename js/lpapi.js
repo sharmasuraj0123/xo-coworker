@@ -36,7 +36,7 @@ export function nextStep(action) { return OUTSIDE.has(action) ? null : NEXT[acti
  *  (the form keeps that as you type): the form is redrawn exactly when this changes. Leaving one out kept a stale
  *  form, e.g. "Connect GitHub" after GitHub had connected (Astra, 3920c92). */
 export function formKey(c, extra = {}) {
-  return JSON.stringify([c.state, c.repo, c.github, c.portFrom, c.portSure, c.env, c.blockers, c.warnings, c.app && c.app.id, extra]);
+  return JSON.stringify([c.state, c.repo, c.github, c.portFrom, c.portSure, c.env, c.blockers, c.warnings, c.app && [c.app.id, c.app.size, c.app.storage], c.sizes, c.size, c.storage, extra]);
 }
 
 const NODE = { check: "repo", credentials: "repo", repo: "repo", app: "repo", prepare: "repo", push: "repo", create: "repo", env: "repo", build: "build", release: "release", url: "live" };
@@ -51,6 +51,24 @@ const XO_ORIGIN = "https://dev.xo.builders";
 export const launchpadUrl = (id) => (id ? `${XO_ORIGIN}/launchpad/${encodeURIComponent(id)}` : "");
 
 const hostOf = (url) => { try { return new URL(url).host; } catch { return url || ""; } };
+/** A disk's size in GB, from Launchpad's "2Gi" or launchpad.json's 2. */
+const gbOf = (v) => { const n = parseFloat(v); return Number.isFinite(n) && n > 0 ? n : null; };
+/** A size's words: "Medium · 1 CPU, 4 GB memory" from a tier, or from Launchpad's own label
+ *  ("xo.medium, 1 CPU and 4 GB memory"), or its name as it is. */
+export const sizeWords = (t, label = "") => {
+  if (t && t.label) return `${t.label} · ${t.cpu} CPU, ${t.memory_gb} GB memory`;
+  const m = /^xo\.(\w+),\s*(.+)$/.exec(label || "");
+  if (m) return `${m[1][0].toUpperCase()}${m[1].slice(1)} · ${m[2].replace(" and ", ", ")}`;
+  return label || (typeof t === "string" ? t : "");
+};
+/** What the size picker offers: the template's allowed tiers, in the catalog's order, and its default (none
+ *  when Space fell back to flow.json's table: source says so). Null when Space says nothing of sizes. */
+function sizesOf(z) {
+  if (!z || !Array.isArray(z.tiers)) return null;
+  const allowed = new Set(z.allowed || z.tiers.map((t) => t.name));
+  const tiers = z.tiers.filter((t) => t && allowed.has(t.name)).map((t) => ({ name: t.name, label: t.label || t.name, cpu: t.cpu, memory_gb: t.memory_gb }));
+  return tiers.length ? { tiers, def: tiers.some((t) => t.name === z.default) ? z.default : "", source: z.source || "", error: z.error || "", fixed: z.fixed_after_create !== false } : null;
+}
 
 /** check (and, once it's in, preflight) as the section's model. */
 export function model(c, pre = null) {
@@ -68,7 +86,14 @@ export function model(c, pre = null) {
       create: f.repo?.new_repo_name || c.project, why: repo.reason || "", taken: !!repo.exists,
     },
     github: { connected: pre ? !!pre.github?.connected : !!c.prerequisites?.github_connected, workflow: pre ? pre.github?.workflow_scope !== false : true, login: pre?.github?.login || "", source: pre?.github?.source || c.prerequisites?.github_source || null, fix: pre?.github?.fix || "" },
-    app: cfg?.app_id ? { id: cfg.app_id, name: cfg.name, url: cfg.url, host: hostOf(cfg.url), status: app?.status || "", release: app?.release || null, at: app?.last_deploy_at ? Date.parse(app.last_deploy_at) : null, ready: app?.ready, of: app?.desired, gone: app?.exists === false, commit: (c.git?.deployed_head || "").slice(0, 7) } : null,
+    // the address is Launchpad's: preflight's live url (a custom domain once there is one), else launchpad.json's
+    app: cfg?.app_id ? { id: cfg.app_id, name: cfg.name, url: app?.url || cfg.url, host: hostOf(app?.url || cfg.url), status: app?.status || "", release: app?.release || null, at: app?.last_deploy_at ? Date.parse(app.last_deploy_at) : null, ready: app?.ready, of: app?.desired, gone: app?.exists === false, commit: (c.git?.deployed_head || "").slice(0, 7),
+      // its size and disk, fixed when it was created (the disk can grow): preflight's, else launchpad.json's
+      size: app?.size || cfg.size || "", sizeLabel: app?.size_label || "",
+      storage: app && "storage" in app ? (app.storage ? { path: app.storage.path, gb: gbOf(app.storage.size) } : null) : cfg.storage ? { path: cfg.storage.path, gb: gbOf(cfg.storage.size_gb) } : app?.size ? null : undefined } : null,
+    // a new app's size and disk: launchpad.json's (null: the template's default, no disk), and what Launchpad offers
+    size: f.size?.value || "", storage: f.storage?.value ? { path: f.storage.value.path || "", gb: gbOf(f.storage.value.size_gb) } : null,
+    sizes: sizesOf(pre?.launchpad?.sizes),
     nameFree: pre?.launchpad?.name_free !== false, sameName: pre?.launchpad?.same_name || null,
     missing: (c.reasons || []).map((r) => ({ what: typeof r === "string" ? r : r.what || r.message || "", why: typeof r === "string" ? "" : r.why || "", ok: false })),
     reason: c.summary || "", blockers: c.blockers || [], warnings: c.warnings || [],
