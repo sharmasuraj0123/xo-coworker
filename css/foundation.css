@@ -12,6 +12,9 @@
 
 /* ── 7 · the side panels: flush to the window, one hairline, no float, no shadow ─────────────────── */
 .stage,.panel,body.stage-full .stage{top:0;right:0;bottom:0;border-radius:0;border:0;border-left:1px solid var(--line-faint);box-shadow:none;animation:none}
+/* a side panel arrives from the edge it lives on: 12 px and a fade, 240 ms; the conversation re-wraps once, at the start */
+@media (min-width:761px){.stage:not([hidden]),.panel:not([hidden]){animation:panel-in var(--d-sheet) var(--ease)}}
+@keyframes panel-in{from{opacity:0;transform:translateX(12px)}}
 :root[data-theme="light"] :is(.stage,.panel){border-color:rgba(0,0,0,.08);box-shadow:none}
 .stage{width:var(--sw);z-index:20}
 .panel{max-height:none;height:100%}

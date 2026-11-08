@@ -352,6 +352,8 @@ function pings(needs) {
     if (S.seen.has(n.key)) continue;
     S.seen.add(n.key);
     if (n.group === "stopped" || n.ask.stopByYou || !P.mayPing(n)) continue;
+    // never the same ask twice on one screen: Home lists it, and its own thread shows it above the composer
+    if (S.view === "home" || S.view === `t:${n.t.id}`) continue;
     heraldShow({ kind: "ping", text: `${PROJ(n.t.project)} · worth a look`, sub: askShort(n), decide: n.key }, 7000);
   }
 }
@@ -2966,11 +2968,11 @@ $("#side-scrim").addEventListener("click", () => setDrawer(false));
 // ── jump (⌘K) ───────────────────────────────────────────────────────────────
 const jump = $("#jump"), jq = $("#jump-q"), jl = $("#jump-list");
 let jsel = 0, jitems = [];
-/** A thread's icon in ⌘K: the thread mark, its state as a dot on its corner (blue and glowing while it works). */
+/** A thread's icon in ⌘K: its state glyph, the one every list uses (the blue working arc while it works, amber
+    when it needs you); no dot on a corner (the owner: no blue dots anywhere). */
 function threadIc(t) {
   const n = D.needItems().some((x) => x.t.id === t.id && x.admitted);
-  const st = n ? "needs" : t.state === "failed" ? "stopped" : isBusy(t) ? "busy" : t.state === "done" || t.state === "resolved" ? "done" : "idle";
-  return `<span class="j-th st-${st}">${ICON.threadOne}<i aria-hidden="true"></i></span>`;
+  return `<span class="j-th"><i class="g g-${n ? "needs_reply" : glyphOf(t)}" aria-hidden="true"></i></span>`;
 }
 function jumpRender() {
   const q = jq.value.trim().toLowerCase();
@@ -3031,8 +3033,9 @@ addEventListener("keydown", (e) => {
 const keys = $("#keys");
 function soundRender() { $("#sound-tog").setAttribute("aria-checked", String(sound.on)); }
 $("#sound-tog").addEventListener("click", () => { sound.on = !sound.on; soundRender(); sound.play("allow"); });
-function hopsRender() { const b = $("#hops-tog"); b.setAttribute("aria-checked", String(!!S.showHops)); if (!b.querySelector(".th-knob svg")) b.querySelector(".th-knob").innerHTML = ICON.router; }
-function webpicsRender() { const b = $("#webpics-tog"); b.setAttribute("aria-checked", String(SHAPE.on(WEBPICS))); if (!b.querySelector(".th-knob svg")) b.querySelector(".th-knob").innerHTML = ICON.image; }
+// a switch says on or off; its label says what (no glyph in the knob)
+function hopsRender() { $("#hops-tog").setAttribute("aria-checked", String(!!S.showHops)); }
+function webpicsRender() { $("#webpics-tog").setAttribute("aria-checked", String(SHAPE.on(WEBPICS))); }
 $("#webpics-tog").addEventListener("click", () => {
   // this device's layer of the shape: a picture's site learns someone looked, so each device decides
   const on = !SHAPE.on(WEBPICS);

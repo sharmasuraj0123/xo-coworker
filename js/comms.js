@@ -14,6 +14,7 @@ let names = { thread: () => null, project: () => null, here: () => null };
 export function nameWith(fns) { names = { ...names, ...fns }; }
 
 const COMMS = /^(?:mcp__)?xo_comms(?:__|\/)([\w-]+)$/;
+const SENDS = new Set(["message_thread", "message_coordinator", "forward_to_project", "ask_workspace", "post_message", "reply"]);
 /** The comms tool a step calls, or null. */
 export function commsTool(row) {
   const m = COMMS.exec(String((row && (row.tool || row.target)) || ""));
@@ -22,19 +23,20 @@ export function commsTool(row) {
 const parse = (s) => { if (!s || typeof s !== "string" || s[0] !== "{") return {}; try { return JSON.parse(s) || {}; } catch { return {}; } };
 const q = (t) => (t ? `“${t}”` : "");
 
-/** [running words, done words] for a comms call; done words may name what the result returned. */
-function words(tool, res) {
+/** [in flight, done, failed] for a comms call; done words may name what the result returned. ctx.project: the
+    project the calling agent works in (the Map shows several), else the open conversation's. */
+function words(tool, res, ctx = {}) {
   const thread = res.thread_id ? names.thread(res.thread_id) : null;
   const t = thread ? q(thread) : "a thread";
-  const here = names.here();
+  const here = ctx.project || names.here();
   const coord = here ? `the ${here} coordinator` : "its coordinator";
   const proj = res.project || (res.chat_id && names.project(res.chat_id)) || null;
   switch (tool) {
-    case "message_thread": return ["Talking to a thread", res.delivery === "steer" || res.turn_running ? `Sent to ${t} while it works` : `Sent to ${t}`, `Couldn't reach ${t}`];
+    case "message_thread": return ["Writing to a thread", res.delivery === "steer" || res.turn_running ? `Sent to ${t} while it works` : `Sent to ${t}`, `Couldn't reach ${t}`];
     case "start_thread_session": return ["Starting a thread", `Started ${t}`, res.error === "thread_exists" ? `${thread ? t : "That thread"} was already started` : "Couldn't start a thread"];
-    case "message_coordinator": return [`Talking to ${coord}`, `Sent to ${coord}`, `Couldn't reach ${coord}`];
+    case "message_coordinator": return [`Writing to ${coord}`, `Sent to ${coord}`, `Couldn't reach ${coord}`];
     case "ask_workspace": return ["Talking to the Workspace coordinator", "Asked the Workspace coordinator", "Couldn't reach the Workspace coordinator"];
-    case "forward_to_project": return [`Talking to ${proj ? `the ${proj}` : "a project's"} coordinator`, `Sent to ${proj ? `the ${proj}` : "a project's"} coordinator`, `Couldn't reach ${proj ? `the ${proj}` : "that project's"} coordinator`];
+    case "forward_to_project": return [`Handing it to ${proj ? `the ${proj}` : "a project's"} coordinator`, `Sent to ${proj ? `the ${proj}` : "a project's"} coordinator`, `Couldn't reach ${proj ? `the ${proj}` : "that project's"} coordinator`];
     case "ask_owner": return ["Asking you", "Asked you"];
     case "post_message": case "reply": return ["Writing to you", "Wrote to you"];
     case "no_reply_needed": return ["Deciding there's nothing to add", "Nothing to add"];
@@ -64,11 +66,11 @@ function words(tool, res) {
 /** A step's line in words (markdown-safe plain text), or null when it isn't a comms call we know.
     "Sent" means the call says it was delivered: a refused, cancelled or failed call, or a result that says
     it wasn't (ok:false, delivered:false, an error), says that instead. */
-export function commsLine(row) {
+export function commsLine(row, ctx) {
   const tool = commsTool(row);
   if (!tool) return null;
   const res = parse(row.summary);
-  const w = words(tool, res);
+  const w = words(tool, res, ctx);
   if (!w) return null;
   const lower = (x) => x.charAt(0).toLowerCase() + x.slice(1);
   if (row.status === "running") return `${w[0]}…`;
@@ -76,13 +78,15 @@ export function commsLine(row) {
   if (row.status === "cancelled") return `Stopped: ${lower(w[0])}`;
   const failed = row.status === "error" || res.ok === false || res.delivered === false || !!res.error;
   if (failed) return w[2] || `Didn't finish: ${lower(w[0])}`;
+  // a message tool's success is its receipt: without one, it says the result wasn't reported, not "Sent"
+  if (SENDS.has(tool) && res.delivered !== true && res.ok !== true) return `${w[0]}: no receipt reported`;
   return w[1];
 }
 
 /** A group header for steps that are all comms calls: what they did, the last two in order. */
-export function commsHeader(rows) {
+export function commsHeader(rows, ctx) {
   if (!rows || !rows.length || !rows.every((r) => commsTool(r))) return null;
-  const said = rows.map(commsLine).filter(Boolean).filter((l) => l !== "Nothing to add");
+  const said = rows.map((r) => commsLine(r, ctx)).filter(Boolean).filter((l) => l !== "Nothing to add");
   if (!said.length) return null;
   // side by side, not "then": two calls may have run at once
   return said.slice(-2).join(" · ");

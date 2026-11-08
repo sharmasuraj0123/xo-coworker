@@ -14,9 +14,10 @@
   --lh-15:var(--lh-14); --lh-read:var(--lh-14);
 }
 [data-density="compact"] :is(.prose,.bubble,.b-opt,.o-l){line-height:var(--lh-read)}
-[data-density="compact"] :is(.attach,.iq,.stg-btn,.all-btn,.target){height:var(--h-ctl)}
-[data-density="compact"] .attach{width:var(--h-ctl)}
-[data-density="compact"] .send{width:var(--h-row);height:var(--h-row)}
+[data-density="compact"] :is(.iq,.stg-btn,.all-btn,.target){height:var(--h-ctl)}
+/* the composer's two circles stay concentric with its 28 px corner: both 32 (r 16), 12 px in (1 + 11), 16 + 12 = 28 */
+[data-density="compact"] :is(.attach,.send){width:var(--h-row);height:var(--h-row)}
+[data-density="compact"] .composer{padding:12px 11px 11px}
 [data-density="compact"] :is(.ck-tog,.nw,.ag-r,.set-nav button){height:var(--h-row)}
 [data-density="compact"] :is(.hd-r,.ar){min-height:var(--h-row)}
 [data-density="compact"] .tb-h{min-height:var(--h-ctl)}

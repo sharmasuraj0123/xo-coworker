@@ -103,8 +103,9 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     if (r) return r.model ? { model: r.model, effort: r.effort || null, next: false } : c.pinned ? { model: c.model, effort: c.effort, next: true } : { model: null, effort: null, next: false };
     return c.pinned ? { model: c.model, effort: c.effort, next: false } : { model: null, effort: null, next: false };
   }
+  const live = (s) => !!kindOf(s) && (kindOf(s) !== "thread" || !!threadOf(s));
   function chipHtml(s, phone) {
-    if (!kindOf(s)) return "";
+    if (!live(s)) return "";
     warm(s);
     const c = current(s);
     if (simple() && !phone && !threadOf(s)) { const w = simpleOf(s, c); return `<span class="iq-l"><span class="${w === "auto" ? "iq-a" : "iq-t"}">${esc(w === "auto" ? "Auto" : w === "deep" ? "Deep" : nameOf(c.model) || "Pinned")}</span></span>`; }
@@ -128,7 +129,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       : { dot: false, words: [AUTO, `<span class="iq-t">${esc(who)}</span>`], effort: null };
   }
   function chipTitle(s) {
-    if (!kindOf(s)) return "";
+    if (!live(s)) return "";
     const c = current(s);
     if (kindOf(s) === "thread") {
       const r = running(s), { model, effort, next } = shownSetting(s);
@@ -195,7 +196,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
   }
   function depthHtml(efs, sel, attr) {
     if (!efs.length) return "";
-    return `<p class="iq-lab">Thinking</p><div class="iq-route iq-depth" role="radiogroup" aria-label="Thinking">${efs.map((e) => `<button type="button" role="radio" aria-checked="${sel === e}" tabindex="${sel === e ? 0 : -1}" ${attr}="${esc(e)}">${esc(effortWord(e))}</button>`).join("")}</div><p class="iq-rl">${esc(EFFORT_HINT[sel] || "")}</p>`;
+    return `<p class="iq-lab">Thinking</p><div class="iq-route iq-depth" role="radiogroup" aria-label="Thinking">${efs.map((e, i) => `<button type="button" role="radio" aria-checked="${sel === e}" tabindex="${sel === e || (i === 0 && !efs.includes(sel)) ? 0 : -1}" ${attr}="${esc(e)}">${esc(effortWord(e))}</button>`).join("")}</div><p class="iq-rl">${esc(EFFORT_HINT[sel] || "")}</p>`;
   }
   // one row per family's default (claude: opus, fable, sonnet, haiku), then models in no family
   const shown = (models) => (models || []).filter((m) => !m.is_default && (m.family_default || !m.family));
@@ -276,7 +277,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       const efs = d.auto ? [] : effortsOf(modelOf(d.model), s).filter((e) => PIPS[e]);
       if (efs.length) {
         html += `<p class="iq-lab" id="iq-e-l">Thinking</p><div class="iq-route iq-depth" role="radiogroup" aria-labelledby="iq-e-l">` +
-          efs.map((e) => `<button type="button" role="radio" aria-checked="${d.effort === e}" tabindex="${d.effort === e ? 0 : -1}" data-deffort="${esc(e)}">${esc(effortWord(e))}</button>`).join("") +
+          efs.map((e, i) => `<button type="button" role="radio" aria-checked="${d.effort === e}" tabindex="${d.effort === e || (i === 0 && !efs.includes(d.effort)) ? 0 : -1}" data-deffort="${esc(e)}">${esc(effortWord(e))}</button>`).join("") +
           `</div><p class="iq-rl">${esc(EFFORT_HINT[d.effort] || "")}</p>`;
       }
     }
@@ -382,7 +383,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
   }
   /** opts.rt: open a thread's picker looking at continuing on that runtime (the thread menu's way in). */
   async function open(s, anchor, opts = {}) {
-    if (!kindOf(s)) return;
+    if (!live(s)) return;
     P.open = true; P.session = s; P.anchor = anchor; P.returnTo = document.activeElement; P.err = null; P.models = null; P.busy = false; P.rt = null; P.mv = null; P.full = false; P.draft = null; P.more = false;
     pop.hidden = false; pop.classList.remove("is-out");
     if (opts.rt) lookAt(opts.rt); else render();
@@ -394,6 +395,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
   function close({ restore = true, apply = true } = {}) {
     if (!P.open) return;
     if (apply && !P.mv) commit(P.session); else P.draft = null;
+    P.req = (P.req || 0) + 1; // a read still in flight belongs to this opening only
     P.rt = null; P.mv = null;
     P.open = false;
     P.anchor?.setAttribute("aria-expanded", "false");
@@ -434,7 +436,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     const before = current(s);
     const kind = kindOf(s);
     const body = kind === "thread" ? { model, ...(effort ? { effort } : {}) } : { model, effort: effort || null };
-    change(s, body, restoreBody(s, before), `${kind === "thread" ? "This thread" : cap(scopeWord(s))} now runs ${nameOf(model)}${effort ? ` · ${EFFORT_WORD[effort] || effort}` : ""}, from its next turn`);
+    change(s, body, restoreBody(s, before), `${kind === "thread" ? "This thread" : cap(scopeWord(s))}, next turn: ${nameOf(model)}${effort ? ` · ${EFFORT_WORD[effort] || effort}` : ""}`);
   }
   function toAuto(s) {
     const before = current(s);
