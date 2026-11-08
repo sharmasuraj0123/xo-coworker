@@ -1766,6 +1766,10 @@ function heraldRender(needs) {
     html = ""; // what needs you is said once: the sidebar's Home row, then Home
   }
   const was = box._h;
+  // the line with the control you're on goes (its Undo's window ended, or it was used): focus goes on first, to
+  // the place's own region, never the page (Astra RUN-5: Undo went and left focus on BODY)
+  const fa = document.activeElement;
+  if (fa && fa !== box && box.contains(fa) && !(h && fa.closest(`[data-hn="${h.n}"]`))) placeRegion()?.focus({ preventScroll: true });
   if (patch(box, html) && was != null && html) box.firstElementChild?.classList.add("is-in");
 }
 
@@ -2377,7 +2381,15 @@ function render() {
   const nd = needs.filter((n) => n.admitted && !n.later).length;
   document.title = Kit.titleFor(nd, "XO Space");
   faviconRender(world.state.threads.filter(isBusy).sort((a, b) => b.lastAt - a.lastAt)[0] || null, nd > 0);
+  // a control that asked for focus to land on what this draw makes (Interrupt → its Undo, Undo → Interrupt
+  // again): its named destination, once, in the same step as the draw that took the control away
+  if (S.focusNext) { const to = S.focusNext.map((sel) => $(sel)).find(usableEl); S.focusNext = null; to?.focus({ preventScroll: true }); }
 }
+/** Shown and in reach: drawn, not inside anything hidden or inert. */
+const usableEl = (el) => !!el && el.isConnected && !el.closest("[inert], [hidden]") && el.getClientRects().length > 0;
+/** Where you carry on when the control you were on goes and nothing more particular is named: the place's own
+ *  region (Home, Artifacts, else the conversation). */
+const placeRegion = () => (S.view === "home" ? $("#home") : S.view === "artifacts" ? $("#arts") : scroller);
 /**
  * The progress line, XO's one motif, in the browser tab too. While an agent works, the mark carries the
  * latest working thread's own steps along its foot (green done, blue the step it's on, grey to do), the
@@ -2916,7 +2928,8 @@ document.addEventListener("click", (e) => {
   if (bi) { S.homeFocusNext = true; D.bringIn(bi.dataset.bringIn); return; }
   const ru = t.closest("[data-rec-undo]");
   if (ru) { undoRecord(ru.dataset.recUndo); return; }
-  if (t.closest("[data-herald-undo]")) { const u = S.herald?.undo; if (typeof u === "function") { S.herald.until = 0; u(); heraldNext(); } else if (u) undoRecord(u); return; }
+  // a Stop's Undo puts back what it stopped: focus goes back to Interrupt (or Stop) where it's drawn again
+  if (t.closest("[data-herald-undo]")) { const u = S.herald?.undo; if (typeof u === "function") { if (S.herald.tag === "stops") S.focusNext = ["[data-interrupt]", "[data-chat-stop]", "#send"]; S.herald.until = 0; u(); heraldNext(); } else if (u) undoRecord(u); return; }
   // Chats: "send now" would stop background tasks; a failed prompt
   const chc = t.closest("[data-chc]");
   if (chc) { CH.resolveConfirm(S.view, chc.dataset.chc); return; }
@@ -2983,7 +2996,8 @@ document.addEventListener("click", (e) => {
   if (t.closest("[data-nx-cancel]")) { const card = $("#hm-next .next"); morph(card, () => { card.classList.remove("noting"); card.querySelector(".nx-note").hidden = true; }, { duration: 260 }); card.focus({ preventScroll: true }); return; }
   const r = t.closest("[data-retry]");
   if (r) { retry(r.dataset.retry); return; }
-  if (t.closest("[data-interrupt]")) { interruptRun(); return; }
+  // Interrupt goes as its turn stops: focus lands on its Undo (3 s), drawn in the same step (Astra RUN-5)
+  if (t.closest("[data-interrupt]")) { S.focusNext = ["#herald [data-herald-undo]"]; interruptRun(); return; }
   const ed = t.closest("[data-edit]");
   if (ed) { editFailed(ed.dataset.edit); return; }
   const mx = t.closest("[data-mx]");
@@ -3318,10 +3332,16 @@ async function decideLimit(id, decision) {
 /** Pick a continued thread back up (F4): it un-freezes; sending a message in it does the same. */
 async function unfreeze(tid, btn) {
   const th = world.thread(tid);
-  if (!th) return;
-  if (btn) btn.disabled = true;
-  try { await world.act.editThread(th.id, { paused: false }); announce("Picked back up. Its agent can carry on here."); }
-  catch (err) { announce(`Couldn't pick it back up: ${err.message}`); if (btn) btn.disabled = false; }
+  if (!th || btn?.getAttribute("aria-busy") === "true") return;
+  // aria-disabled while it asks (a disabled button drops focus to the page); picked up, its button goes with the
+  // frozen state: focus goes to the message box, to write to it; refused, it stays on the button (Astra RUN-5)
+  if (btn) { btn.setAttribute("aria-disabled", "true"); btn.setAttribute("aria-busy", "true"); }
+  try {
+    await world.act.editThread(th.id, { paused: false });
+    if (btn && btn.isConnected && btn === document.activeElement) S.focusNext = ["#say", "#scroller"];
+    announce("Picked back up. Its agent can carry on here.");
+    schedule();
+  } catch (err) { announce(`Couldn't pick it back up: ${err.message}`); if (btn) { btn.removeAttribute("aria-disabled"); btn.removeAttribute("aria-busy"); } }
 }
 function setPage(id) {
   for (const b of $$("[data-set]")) b.setAttribute("aria-selected", String(b.dataset.set === id));

@@ -1014,6 +1014,19 @@ t("MIG-3: a cancelled read of the same runtime's models doesn't replace a newer 
   await done(page);
 });
 
+t("RUN-5: a notice's Undo you're on, when its time is up, hands focus to the place, never the page", async () => {
+  const page = await app();
+  await toDemo(page);
+  await page.evaluate(() => window.__t.heraldShow({ kind: "halt", tag: "test", text: "Stopping", sub: "A local test", undo: () => {} }, 1200));
+  const u = page.locator("#herald [data-herald-undo]");
+  await u.waitFor();
+  await u.focus();
+  await page.waitForFunction(() => !document.querySelector("#herald [data-herald-undo]"), null, { timeout: 5000 });
+  await page.waitForTimeout(100);
+  assert.match(await active(page), /id=scroller/, "on the conversation");
+  await done(page);
+});
+
 t("C029: on a phone, Back to chat from a file shows the chat, not the panel again", async () => {
   if (WIDTH > 760) return; // beside the chat on a desktop, the panel coming back is the design
   const page = await app({ files: { "a.js": FILE() } });
