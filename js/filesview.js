@@ -362,6 +362,8 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
 
   return {
     get isOpen() { return F.open; },
+    /** put away to its chip ("Back to chat"), not closed */
+    get isMin() { return !!F.min; },
     /** The file beside the chat (a desktop conversation). */
     get docked() { return F.open && F.docked; },
     /** The file put away: {file} for its chip in the thread's header, or null. */

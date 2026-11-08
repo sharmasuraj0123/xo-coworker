@@ -22,124 +22,22 @@ const assert = require("assert/strict");
 const PW = process.env.PLAYWRIGHT_CORE || "/tmp/pw/node_modules/playwright-core";
 let chromium;
 try { ({ chromium } = require(PW)); } catch { console.error(`not run: Playwright core isn't at ${PW} (set PLAYWRIGHT_CORE)`); process.exit(2); }
-const { install: installLaunchpad, SCENARIOS: LP } = require("../../design-research/2026-11-vision/launchpad/tools/mockspace.cjs");
-
-const ROOT = path.resolve(__dirname, "..", "..");
-const TYPES = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".json": "application/json", ".woff2": "font/woff2", ".wasm": "application/wasm", ".ico": "image/x-icon", ".webmanifest": "application/manifest+json" };
-// a stream the test writes to as it goes (Launchpad's /watch, routed here): SSE.push(event, end)
-const SSE = { clients: [], head: [], push(ev, end = false) { for (const c of this.clients) { c.write(`data: ${JSON.stringify(ev)}\n\n`); if (end) c.end(); } if (end) this.clients = []; } };
-function serve() {
-  const server = http.createServer((q, s) => {
-    let p = decodeURIComponent(new URL(q.url, "http://x").pathname);
-    if (p === "/__sse") {
-      s.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-store" });
-      for (const ev of SSE.head) s.write(`data: ${JSON.stringify(ev)}\n\n`);
-      SSE.clients.push(s); q.on("close", () => { SSE.clients = SSE.clients.filter((c) => c !== s); });
-      return;
-    }
-    if (p === "/") p = "/index.html";
-    const f = path.join(ROOT, p);
-    if (!f.startsWith(ROOT + path.sep) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { s.writeHead(404); s.end(); return; }
-    s.writeHead(200, { "Content-Type": TYPES[path.extname(f)] || "application/octet-stream", "Cache-Control": "no-store" });
-    fs.createReadStream(f).pipe(s);
-  });
-  return new Promise((ok) => server.listen(0, "127.0.0.1", () => ok(server)));
-}
-
-// ── the mock world: a Workspace, one project ("demo"), no threads; files and saves per test ──
-const NOW = new Date().toISOString();
-const chat = (id, kind, project) => ({ id, kind, project, project_pid: project ? `pid_${project}` : null, created_at: NOW, settings: {}, retired_at: null, routing: null, pin: { agent: null, model: null, effort: null }, seen: null });
-const CHATS = [chat("chat_ws", "workspace", null), chat("chat_demo", "project", "demo")];
-const policy = { allowed: null, default: null, preferences: null, fallback: null };
-const STATIC = {
-  "/api/chat/chats": { chats: CHATS },
-  "/api/chat/status": { sessions: { by_state: { cold: 0, running: 0, warm: 0 }, live: 0, warm: 0, released: 0, parked: 0, held_back: [], paused: {}, store_failed: [], backing_off: {}, waiting_for_decision: {} }, queue: { by_priority: { now: 0, next: 0, later: 0 }, by_pool: {}, waiting: {} }, pools: [] },
-  "/api/chat/shape": { shape: { shape: 1, preset: "everything" }, version: "test", updated_at: NOW },
-  "/api/terminal/status": { enabled: false, reason: "off in tests", max_sessions: 0, detached_ttl_seconds: 0, running: 0, attached: 0 },
-  "/api/terminal/sessions": { terminals: [] },
-  "/api/chat/sessions": { sessions: [], next_after_seq: null },
-  "/api/chat/review": { items: [], next_after_seq: null },
-  "/api/chat/runtimes": { runtimes: [] },
-  "/api/chat/runtime-policy": { space: policy, effective: { ...policy, fallback: false } },
-  "/api/chat/router": { mode: "agent", decision_model: null, abstain_below: 0.5 },
-};
-function mockApi(W) {
-  return async (r) => {
-    const req = r.request(), u = new URL(req.url()), m = req.method(), p = u.pathname;
-    if (u.origin !== W.base) return r.abort();
-    if (!p.startsWith("/api/")) return r.fallback();
-    const json = (o, status = 200) => r.fulfill({ status, contentType: "application/json", body: JSON.stringify(o) });
-    if (p.startsWith("/api/deploy/")) return W.launchpad ? (W.onDeploy ? W.onDeploy(r, m, p) : r.fallback()) : json({ detail: { code: "not_found", message: "no deploys in tests" } }, 404);
-    if (p === "/api/chat/stream") return r.fulfill({ status: 200, contentType: "text/event-stream", body: "retry: 600000\n\n" });
-    if (STATIC[p]) return json(STATIC[p]);
-    let k;
-    if ((k = /^\/api\/chat\/chats\/([^/]+)\/(threads|messages|hops|made|runtime-policy)$/.exec(p))) {
-      if (k[2] === "threads") return json({ threads: [] });
-      if (k[2] === "messages") return json({ messages: k[1] === "chat_demo" && W.messages ? W.messages : [], next_after_seq: 0, next_before_seq: 0 });
-      if (k[2] === "made") return json({ made: [], next_before: null });
-      if (k[2] === "runtime-policy") return json({ space: policy, project: policy, effective: { ...policy, fallback: false } });
-      if (W.hops) return W.hops(r, k[1], json);
-      return json({ hops: [], next_after_seq: null, next_before_seq: null });
-    }
-    if (/^\/api\/chat\/runtimes\/[^/]+\/models$/.test(p)) return json({ name: "claude_code", models: [] });
-    if (/^\/api\/xo-projects\/[^/]+\/changes$/.test(p)) return json({ project_id: "demo", worktree: null, root: "/demo", base_ref: "HEAD", base_commit: "c0", base_source: "head", head_commit: "c0", computed_at: NOW, truncated: false, total_files: 0, files: [] });
-    if (/^\/api\/xo-projects\/[^/]+\/file$/.test(p) && m === "GET") {
-      const rel = u.searchParams.get("relative_path"), f = W.files[rel];
-      if (!f) return json({ detail: { code: "not_found", message: "No such file" } }, 404);
-      return json({ kind: "code", name: rel, content: f.content, version: f.version, editable: true, size_bytes: f.content.length, place: "ordinary" });
-    }
-    if (/^\/api\/xo-projects\/[^/]+\/file$/.test(p) && m === "PUT") {
-      const b = JSON.parse(req.postData() || "{}");
-      W.saves.push(b);
-      if (W.saveDelay) await new Promise((ok) => setTimeout(ok, W.saveDelay));
-      if (W.saveGate) await W.saveGate; // the test says when the answer comes (no race with a slow machine)
-      const f = W.files[b.relative_path];
-      if (W.saveMode === "503") return json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503);
-      if (W.saveMode === "overlap" && !W.clashed) {
-        W.clashed = true; f.content = "agent\ntwo\nthree\n"; f.version = "sha256:B";
-        return json({ detail: { code: "file_changed", message: "changed", current: { content: f.content, version: f.version } } }, 409);
-      }
-      f.content = b.content; f.version = `sha256:saved${W.saves.length}`;
-      return json({ version: f.version, edit_id: `edit-${W.saves.length}`, saved_at: new Date().toISOString() });
-    }
-    if (/^\/api\/xo-projects\/[^/]+\/edits\/[^/]+\/undo$/.test(p) && m === "POST") {
-      W.undos = (W.undos || 0) + 1;
-      return W.undoMode === "503" ? json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503) : json({ undone: true });
-    }
-    if (m !== "GET") return r.abort(); // a write this world doesn't know: never sent
-    return json({ detail: { code: "not_found", message: "not in the test world" } }, 404);
-  };
-}
-
-// test hooks, added to the served modules in the page only (the files on disk are untouched)
-async function hooks(page) {
-  await page.route("**/js/app.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()) + "\nwindow.__t={VW,S,world,go,typingRender,lrefRender};" }); });
-  await page.route("**/js/viewer.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()).replace("function startEdit() {", "function startEdit() { window.__ED=ED; window.__V=V;") }); });
-  await page.route("**/js/storm.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()).replace("  boot();", "  window.__storm={apply,stop:()=>{stream?.close();clearTimeout(statusT);clearTimeout(runtimesT);clearTimeout(recoverT);}};\n  boot();") }); });
-}
+const { SSE, serve, NOW, openApp, launch, LP } = require("./harness.cjs");
 
 let browser, server, BASE, WIDTH = 1440, passed = 0, failed = 0;
 const tests = [];
 const t = (name, fn) => tests.push({ name, fn });
 // the project's own page, as its row in the sidebar opens it (on a phone the sidebar is a drawer)
 const toDemo = (page) => page.evaluate(() => window.__t.go("p:demo"));
-async function app(W = {}, { width = WIDTH } = {}) {
-  Object.assign(W, { base: BASE, files: W.files || {}, saves: [] });
-  const ctx = await browser.newContext({ viewport: { width, height: 900 }, reducedMotion: "reduce" });
-  const page = await ctx.newPage();
-  page.setDefaultTimeout(8000);
-  const errors = [];
-  page.on("pageerror", (e) => errors.push(e.message));
-  if (W.launchpad) await installLaunchpad(page, W.launchpad);
-  await page.route("**/*", mockApi(W));
-  await hooks(page);
-  await page.goto(BASE + "/");
-  await page.waitForSelector('[data-go="p:demo"]');
-  page.errors = errors;
-  page.W = W;
-  return page;
-}
-const done = async (page) => { const errs = page.errors; await page.context().close(); assert.deepEqual(errs, [], "page errors"); };
+const app = (W = {}, { width = WIDTH, motion = false } = {}) => openApp(browser, BASE, W, { width, motion });
+// a test ends with no page errors and with focus never having fallen to the page (harness.cjs records each drop)
+const done = async (page) => {
+  const errs = page.errors;
+  const drops = await page.evaluate(() => window.__focusDrops || []).catch(() => []);
+  await page.context().close();
+  assert.deepEqual(errs, [], "page errors");
+  if (!process.env.ALLOW_FOCUS_DROPS) assert.deepEqual(drops, [], "focus fell to the page when its control went");
+};
 
 // ── the viewer's editor ───────────────────────────────────────────────────
 const FILE = () => ({ content: "one\ntwo\nthree\n", version: "sha256:A" });
@@ -244,6 +142,27 @@ t("Save while typing: words typed during a save stay, unsaved, against the versi
   await done(page);
 });
 
+t("G9: a late conflict while you type puts focus on what happened, and typing on can't choose", async () => {
+  let answer;
+  const page = await app({ files: { "a.js": FILE() }, saveMode: "overlap", saveGate: new Promise((ok) => (answer = ok)) });
+  await editing(page);
+  await typeAll(page, "mine\ntwo\nthree\n");
+  await page.locator("[data-vw-saveit]").click();
+  await page.locator("#viewer [contenteditable=true]").first().click();
+  await page.keyboard.press("ControlOrMeta+End");
+  await page.keyboard.insertText("more");
+  answer(); // the 409 arrives while the editor has focus
+  await page.waitForFunction(() => window.__ED.conflict && window.__ED.conflict.left >= 1);
+  await page.waitForTimeout(300);
+  assert.equal(await page.evaluate(() => document.activeElement.className), "xd-bar", "focus on the explanation, not BODY");
+  const left = await page.evaluate(() => window.__ED.conflict.left);
+  await page.keyboard.type("ab ");
+  await page.keyboard.press("Enter");
+  assert.equal(await page.evaluate(() => window.__ED.conflict.left), left, "no choice made by the keys");
+  assert.equal(page.W.saves.length, 1, "nothing saved");
+  await done(page);
+});
+
 t("G7: a failed Undo returns focus to the file's head", async () => {
   const page = await app({ files: { "a.js": FILE() }, undoMode: "503" });
   await editing(page);
@@ -329,6 +248,34 @@ t("Copy allowed: both say copied, and the text is what was shown", async () => {
   await done(r.page);
 });
 
+// ── redraw in place (js/redraw.js): the focused control, a typed value and a caret survive a redraw ──
+t("redraw: a region redrawn keeps the focused control, what's typed, and applies everything else", async () => {
+  const page = await app();
+  const r = await page.evaluate(async () => {
+    const { redraw } = await import("./js/redraw.js");
+    const box = document.createElement("div"); document.body.append(box);
+    box.innerHTML = `<p>Old words</p><button type="button" data-rule-off="a">Revoke a</button><button type="button" data-rule-off="b">Revoke b</button><input id="rd-in" value="saved">`;
+    const b = box.querySelector('[data-rule-off="b"]'); b.focus();
+    redraw(box, `<p>New words</p><button type="button" data-rule-off="b" aria-busy="true">Revoking b…</button><input id="rd-in" value="server">`);
+    const kept = document.activeElement === b && b.isConnected, text = b.textContent, busy = b.getAttribute("aria-busy"), gone = !box.querySelector('[data-rule-off="a"]'), p = box.querySelector("p").textContent;
+    const input = box.querySelector("#rd-in"); input.focus(); input.value = "typing on"; input.setSelectionRange(3, 3);
+    redraw(box, `<p>Newer</p><input id="rd-in" value="server again" class="is-bad">`);
+    const field = { same: document.activeElement === input, value: input.value, caret: input.selectionStart, cls: input.className };
+    input.blur();
+    redraw(box, `<p>Newer</p><input id="rd-in" value="server again">`);
+    const later = input.value;
+    // a focused checkbox takes the new HTML's checked (a refused toggle shows the saved state again)
+    box.innerHTML = `<label><input type="checkbox" data-rtd-allowed="codex" checked> Codex</label>`;
+    const cb = box.querySelector("input"); cb.focus(); cb.checked = false; // Space unticked it; the save was refused
+    redraw(box, `<label><input type="checkbox" data-rtd-allowed="codex" checked> Codex</label><p role="alert">Not saved</p>`);
+    const box2 = { same: document.activeElement === cb, checked: cb.checked };
+    box.remove();
+    return { kept, text, busy, gone, p, field, later, box2 };
+  });
+  assert.deepEqual(r, { kept: true, text: "Revoking b…", busy: "true", gone: true, p: "New words", field: { same: true, value: "typing on", caret: 3, cls: "is-bad" }, later: "server again", box2: { same: true, checked: true } });
+  await done(page);
+});
+
 // ── Jump: the pointer selects as the arrows do ──
 t("Jump: the row under a moving pointer is the selection, and Enter goes there", async () => {
   const page = await app();
@@ -349,6 +296,156 @@ t("Jump: the row under a moving pointer is the selection, and Enter goes there",
   await page.waitForTimeout(200);
   assert.ok(await page.locator("#jump").isHidden(), "Jump closed");
   assert.ok(name.length > 0);
+  await done(page);
+});
+
+// ── focus never falls to the page when a control it was on goes ──
+const active = (page) => page.evaluate(() => { const a = document.activeElement; return a ? a.tagName + [...a.attributes].filter((x) => x.name.startsWith("data-") || x.name === "id" || x.name === "class").map((x) => ` ${x.name}=${x.value}`).join("") : null; });
+t("S138: dismissing the Saved notice hands focus to the file's Edit", async () => {
+  const page = await app({ files: { "a.js": FILE() } });
+  await editing(page);
+  await typeAll(page, "mine\n");
+  await page.keyboard.press("ControlOrMeta+s");
+  await page.waitForFunction(() => !window.__ED.on);
+  await page.locator("[data-vw-toastx]").focus();
+  await page.keyboard.press("Enter");
+  assert.match(await active(page), /data-vw-edit/);
+  await done(page);
+});
+async function panelOpen(page) {
+  await toDemo(page);
+  // from the keyboard, as a person would
+  // (the head redraws as the project's data lands; patch() keeps focus on the toggle through it, so one Enter does)
+  await page.locator("[data-stage-toggle]").filter({ visible: true }).first().focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => !document.querySelector("#stage").hidden, null, { timeout: 4000 });
+}
+t("C069: closing the panel puts focus back on its toggle", async () => {
+  const page = await app();
+  await panelOpen(page);
+  await page.locator("[data-stg-close]").filter({ visible: true }).first().focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelector("#stage").hidden);
+  assert.match(await active(page), /data-stage-toggle/);
+  await done(page);
+});
+t("C080/C081: the map's tabs: arrows move between Diagram and Graph and stay on the tabs", async () => {
+  const page = await app();
+  await panelOpen(page);
+  if (await page.locator('[data-ghost="map"]').filter({ visible: true }).count()) await page.locator('[data-ghost="map"]').filter({ visible: true }).first().click();
+  const tree = page.locator("#stage-map-tree");
+  await tree.waitFor();
+  await page.evaluate(() => document.querySelector("#stage-map-tree").click());
+  await tree.focus();
+  await page.keyboard.press("ArrowRight");
+  assert.match(await active(page), /id=stage-map-graph/, "focus on Graph's tab, not the drawing");
+  await page.keyboard.press("ArrowLeft");
+  assert.match(await active(page), /id=stage-map-tree/, "back to Diagram's tab");
+  assert.equal(await tree.getAttribute("aria-selected"), "true");
+  await done(page);
+});
+t("S061: Files' Try again, then a good read: focus stays in the tree", async () => {
+  const page = await app({ files: { "a.js": FILE() }, treeFails: 1 });
+  await panelOpen(page);
+  if (await page.locator('[data-ghost="changes"]').filter({ visible: true }).count()) await page.locator('[data-ghost="changes"]').filter({ visible: true }).first().click();
+  await page.locator("[data-open-files]").filter({ visible: true }).first().click();
+  const step = (w) => process.env.DEBUG && console.log("   step", w);
+  step("files open");
+  await page.locator('[data-fl-dir="bad"]').filter({ visible: true }).first().click();
+  step("folder clicked");
+  const retry = page.locator('[data-fl-retry="bad"]').first();
+  await retry.waitFor();
+  await retry.focus();
+  await page.keyboard.press("Enter");
+  await page.locator('[data-fl-file="bad/inside.md"]').first().waitFor();
+  const a = await active(page);
+  assert.ok(a && !/^BODY/.test(a), `focus in the tree, not the page: ${a}`);
+  await done(page);
+});
+
+async function filesOpen(page) {
+  if (await page.locator('[data-ghost="changes"]').filter({ visible: true }).count()) await page.locator('[data-ghost="changes"]').filter({ visible: true }).first().click();
+  await page.locator("[data-open-files]").filter({ visible: true }).first().click();
+}
+t("C033: opening a file from Files with the keyboard puts focus on the file", async () => {
+  const page = await app({ files: { "a.js": FILE() } });
+  await panelOpen(page);
+  await filesOpen(page);
+  const row = page.locator('[data-fl-file="a.js"]').filter({ visible: true }).first();
+  await row.focus();
+  if (process.env.DEBUG) await page.evaluate(() => { window.__fl = []; document.addEventListener("focusout", (e) => window.__fl.push("out " + e.target.tagName + "." + e.target.className + " -> " + (e.relatedTarget ? e.relatedTarget.tagName : "null") + " conn=" + e.target.isConnected + " rects=" + e.target.getClientRects().length + " " + (new Error().stack.split("\n").slice(2, 6).join(" | "))), true); document.addEventListener("focusin", (e) => window.__fl.push("in " + e.target.tagName + "#" + e.target.id + "." + e.target.className), true); new MutationObserver((ms) => { for (const m of ms) for (const r of m.removedNodes) if (r.nodeType === 1 && r.matches && (r.matches("[data-fl-file]") || r.querySelector?.("[data-fl-file]"))) window.__fl.push("removed row " + new Error().stack.split("\n").slice(1, 3).join(" | ")); }).observe(document.body, { childList: true, subtree: true }); });
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(300);
+  if (process.env.DEBUG) console.log(await page.evaluate(() => window.__fl));
+  assert.match(await active(page), /^SECTION (class=[^ ]+ )*id=viewer|^SECTION.*id=viewer/);
+  await done(page);
+});
+t("S065/S062: picking a project in Files, and going back, keep focus in Files", async () => {
+  const page = await app({ files: { "a.js": FILE() } });
+  await page.evaluate(() => window.__t.go("ws"));
+  await page.locator("[data-stage-toggle]").filter({ visible: true }).first().click();
+  await page.waitForFunction(() => !document.querySelector("#stage").hidden);
+  await filesOpen(page);
+  const pick = page.locator('[data-fl-pick="demo"]').filter({ visible: true }).first();
+  await pick.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(300);
+  const a1 = await active(page);
+  assert.ok(a1 && !/^BODY/.test(a1) && /data-fl-/.test(a1), `after picking: ${a1}`);
+  await page.locator("[data-fl-unpick]").filter({ visible: true }).first().focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(300);
+  assert.match(await active(page), /data-fl-pick=demo/, "back on the project it came from");
+  await done(page);
+});
+t("S061: while Try again is reading, focus stays in the tree", async () => {
+  let answer;
+  const page = await app({ files: { "a.js": FILE() }, treeFails: 1, treeGate: new Promise((ok) => (answer = ok)) });
+  await panelOpen(page);
+  await filesOpen(page);
+  await page.locator('[data-fl-dir="bad"]').filter({ visible: true }).first().click();
+  const retry = page.locator('[data-fl-retry="bad"]').first();
+  await retry.waitFor();
+  await retry.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(400); // the read is out, unanswered; the app redraws meanwhile (Files with it)
+  await page.evaluate(() => window.__t.render());
+  await page.waitForTimeout(200);
+  const pending = await active(page);
+  assert.ok(pending && !/^BODY/.test(pending), `pending: ${pending}`);
+  answer();
+  await page.locator('[data-fl-file="bad/inside.md"]').first().waitFor();
+  const after = await active(page);
+  assert.ok(after && !/^BODY/.test(after), `after: ${after}`);
+  await done(page);
+});
+
+t("C029: on a phone, Back to chat from a file shows the chat, not the panel again", async () => {
+  if (WIDTH > 760) return; // beside the chat on a desktop, the panel coming back is the design
+  const page = await app({ files: { "a.js": FILE() } });
+  await panelOpen(page);
+  if (await page.locator('[data-ghost="changes"]').filter({ visible: true }).count()) await page.locator('[data-ghost="changes"]').filter({ visible: true }).first().click();
+  await page.locator("[data-open-files]").filter({ visible: true }).first().click();
+  await page.locator('[data-fl-file="a.js"]').filter({ visible: true }).first().click();
+  await page.locator("[data-fv-min]").filter({ visible: true }).first().click();
+  await page.waitForTimeout(400);
+  assert.ok(await page.evaluate(() => document.querySelector("#stage").hidden), "the panel stays closed");
+  assert.ok(await page.locator("#say").isVisible(), "the chat's box is there to type in");
+  await done(page);
+});
+
+// ── overlays: one opening while Create (a native modal) is still closing gets the focus ──
+t("C020: Create, Esc, Ctrl+K at once: Jump's field has focus", async () => {
+  const page = await app({}, { motion: true });
+  await page.locator(".create, [data-create]").filter({ visible: true }).first().click();
+  await page.locator("#cp-desc").focus();
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Control+k");
+  await page.waitForTimeout(500);
+  assert.ok(await page.locator("#jump").isVisible(), "Jump is open");
+  assert.equal(await page.evaluate(() => document.activeElement && document.activeElement.id), "jump-q");
+  await page.keyboard.type("dem");
+  assert.equal(await page.locator("#jump-q").inputValue(), "dem", "typing lands in Jump");
   await done(page);
 });
 
@@ -508,8 +605,8 @@ async function ctxDone(page) { const errs = page.errors; await page.context().cl
 (async () => {
   server = await serve();
   BASE = `http://127.0.0.1:${server.address().port}`;
-  try { browser = await chromium.launch(); }
-  catch (e) { console.error(`not run: Chromium didn't start (${e.message.split("\n")[0]})`); server.close(); process.exit(2); }
+  browser = await launch(chromium);
+  if (!browser) { console.error("not run: no Chromium would start"); server.close(); process.exit(2); }
   const only = process.argv[2] ? new RegExp(process.argv[2]) : null;
   // the app's flows at a desktop and a phone width; the decision module's on its own once
   for (const width of [1440, 390]) {

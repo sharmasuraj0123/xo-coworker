@@ -11,6 +11,8 @@ const fs = require('fs'), path = require('path');
 const DIR = path.join(__dirname, '..'), ROOT = path.join(DIR, '..', '..');
 const readJson = (f, d = null) => (fs.existsSync(path.join(DIR, f)) ? JSON.parse(fs.readFileSync(path.join(DIR, f), 'utf8')) : d);
 const desk = readJson('inventory-dark-1440.json'), phone = readJson('inventory-dark-390.json');
+// the states only some controls show, opened in the browser suite's mock world (tools/inventory-states.cjs)
+const mock = readJson('inventory-states-1440.json');
 const status = readJson('controls-status.json', {});
 // --dry: write the list and the registry to /tmp (to look before committing a registry)
 const DRY = process.argv.includes('--dry');
@@ -19,7 +21,7 @@ const reg = readJson('controls-ids.json', { note: 'Canonical key → row ID. App
 
 // ── one canonical key for a kind, the same whether it was rendered or read from a template ──
 // values that name what a control does stay in its key; the rest (a project, a file, a row's id) make one kind
-const KEEP = new Set(['data-mode', 'data-vw-mode', 'data-fl-rail', 'data-route', 'data-lp', 'data-shp-preset', 'data-to', 'data-fr-fold', 'data-ghost', 'data-map-mode', 'data-act', 'data-vig', 'data-dg', 'data-lbx', 'data-cp', 'data-csmode']);
+const KEEP = new Set(['data-cs', 'data-mode', 'data-vw-mode', 'data-fl-rail', 'data-route', 'data-lp', 'data-shp-preset', 'data-to', 'data-fr-fold', 'data-ghost', 'data-map-mode', 'data-act', 'data-vig', 'data-dg', 'data-lbx', 'data-cp', 'data-csmode']);
 const SKIP = new Set(['data-w', 'data-k', 'data-fid', 'data-fl-bytes', 'data-file-name', 'data-i', 'data-v', 'data-id', 'data-key', 'data-tip', 'data-ref-a', 'data-ref-b', 'data-inv', 'data-inv-now', 'data-lid', 'data-n', 'data-pid', 'data-change-project', 'data-limit-d']);
 function canon(tag, id, attrs, cls) {
   if (id) return '#' + id.replace(/-\d+$/, '-N');
@@ -46,6 +48,9 @@ function seedFrom3a9cdca() {
     m = /^\| (S\d+) \| `([^`]+)` \| (\w+) \|/.exec(l); if (m) legacy[m[1]] = { kind: 'S', key: m[2].startsWith('#') ? m[2] : `${m[3]}[${m[2]}]` };
   }
   reg.legacy = legacy; // the 3a9cdca keys, kept as aliases
+  // every 3a9cdca row keeps its ID from the start, under its 3a9cdca key; a new key for the same kind is added
+  // as an alias when it's matched (so no row, and no grade, is ever dropped)
+  for (const [lid, le] of Object.entries(legacy)) reg.ids[lid] = { key: le.key, aliases: [] };
   reg.next = { C: Math.max(0, ...Object.keys(legacy).filter((k) => k[0] === 'C').map((k) => +k.slice(1))) + 1, S: Math.max(0, ...Object.keys(legacy).filter((k) => k[0] === 'S').map((k) => +k.slice(1))) + 1 };
 }
 seedFrom3a9cdca();
@@ -65,15 +70,30 @@ function legacyKey(x) {
 }
 const byKey = new Map(Object.entries(reg.ids).map(([id, e]) => [e.key, id]));
 for (const [id, e] of Object.entries(reg.ids)) for (const a of e.aliases || []) byKey.set(a, id);
+// one ID, one row: an ID claimed by a key in this run isn't given to another (a 3a9cdca kind now split by its
+// action, data-act=allow / =back …, keeps its ID on the general key; each action gets its own)
+const claimed = new Map();
+const claim = (id, key) => { claimed.set(id, key); return id; };
+const exactId = (key) => { const id = byKey.get(key); return id && (!claimed.has(id) || claimed.get(id) === key) ? claim(id, key) : null; };
+// the ID a key already has (in the registry, or in 3a9cdca), recorded under this key too; null if none
+function existingId(key, legacyKeys = []) {
+  const ex = exactId(key); if (ex) return ex;
+  for (const lk of legacyKeys) for (const [lid, le] of Object.entries(reg.legacy || {})) {
+    if (le.key !== lk || (claimed.has(lid) && claimed.get(lid) !== key)) continue;
+    claim(lid, key);
+    if (!reg.ids[lid]) reg.ids[lid] = { key, aliases: [lk] };
+    else reg.ids[lid].aliases = [...new Set([...(reg.ids[lid].aliases || []), key])];
+    byKey.set(key, lid);
+    return lid;
+  }
+  return null;
+}
 function idFor(key, kind, legacyKeys = []) {
-  if (byKey.has(key)) return byKey.get(key);
-  // a kind that had an ID in 3a9cdca keeps it
-  for (const lk of legacyKeys) for (const [lid, le] of Object.entries(reg.legacy || {})) if (le.key === lk && !reg.ids[lid]) { reg.ids[lid] = { key, aliases: [lk] }; byKey.set(key, lid); return lid; }
-  for (const lk of legacyKeys) for (const [lid, le] of Object.entries(reg.legacy || {})) if (le.key === lk && reg.ids[lid]) { reg.ids[lid].aliases = [...new Set([...(reg.ids[lid].aliases || []), key])]; byKey.set(key, lid); return lid; }
+  const ex = existingId(key, legacyKeys); if (ex) return ex;
   const id = kind + String(reg.next[kind]++).padStart(3, '0');
   reg.ids[id] = { key, aliases: [] };
   byKey.set(key, id);
-  return id;
+  return claim(id, key);
 }
 
 // ── what each kind does, by exact hook (attribute=value, attribute, or #id); each checked against its handler ──
@@ -152,12 +172,38 @@ const DOES = {
   'data-lp=retry': 'Launchpad: deploys again.',
   'data-lp=again': 'Launchpad: deploys again with the same settings.',
   'data-lp=hide': 'Launchpad: hides the section; the deploy carries on.',
+  'data-lp=copy': 'Launchpad: copies the app\'s address.',
+  'data-lp=edit': 'Launchpad: opens the live app\'s settings to change.',
+  'data-lp=edit-cancel': 'Launchpad: leaves the settings as they were.',
+  'data-lp=cmd-copy': 'Launchpad: copies the command shown.',
+  'data-lp=recheck-gh': 'Launchpad: checks GitHub again.',
+  'data-lp=recheck': 'Launchpad: checks the project again.',
+  'data-lp=env-all': 'Launchpad: shows every environment value, not only the ones to fill.',
+  'data-lp=reconnect': 'Launchpad: connects GitHub again (a device code).',
+  'data-lp=pick': 'Launchpad: picks an app on Launchpad to link.',
+  'data-lp=pick-cancel': 'Launchpad: back from picking an app.',
+  'data-lp=link': 'Launchpad: links that app.',
+  'data-lp=machine-open': 'Launchpad: shows the machine settings (size, disk).',
+  'data-lp=disk-add': 'Launchpad: adds a disk.',
+  'data-lp=disk-remove': 'Launchpad: removes the disk.',
+  'data-lp=use-name': 'Launchpad: uses the suggested name.',
+  'data-lp=rewatch': 'Launchpad: follows the running deploy again.',
+  'data-lp=unlink': 'Launchpad: unlinks the app (3 s to Undo; the app keeps running).',
+  'data-lp=menu': 'Launchpad: the app\'s menu.',
+  'data-lp=code-copy': 'Launchpad: copies the GitHub device code.',
+  'data-lp=device-cancel': 'Launchpad: stops connecting GitHub.',
   'data-lp': 'Launchpad: the step its label names.',
   'data-open-files': 'Opens Files: the project\'s whole tree beside the conversation.',
   '#stage-map-tree': 'Map as a diagram.',
   '#stage-map-graph': 'Map as a graph.',
   'data-map-mode': 'Map: diagram or graph.',
-  'data-dg': 'The map: drag to move around, Ctrl/Cmd+scroll zooms; its buttons switch the drawing and zoom.',
+  'data-dg=in': 'Map: zooms in.',
+  'data-dg=out': 'Map: zooms out.',
+  'data-dg=fit': 'Map: fits everything in view.',
+  'data-dg=follow': 'Map: follows the working agent, or stops following.',
+  'data-dg=tree': 'Map: draws it as a diagram.',
+  'data-dg=graph': 'Map: draws it as a graph.',
+  'data-dg': 'The map: drag to move around, Ctrl/Cmd+scroll zooms.',
   'data-chat-fold': 'Beside a file: folds the chat away.',
   'data-fv-min': 'Minimises Files back to the chat.',
   'data-fv-restore': 'Brings minimised Files back.',
@@ -202,7 +248,7 @@ const DOES = {
   'data-vw-undo': 'Undoes the save; focus goes to Edit, whether it went or not.',
   'data-vw-tell': 'Tells the agent you edited it, so it reads it again.',
   'data-vw-toastx': 'Closes the Saved notice.',
-  'data-vw-retry': 'Reads the file again.',
+  'data-vw-retry': 'Draws the file again after its view failed to show it.',
   '#top-back': 'Back to the thread\'s project.',
   'data-resolve': 'Marks the thread resolved (or open again).',
   'data-tmenu': 'Thread menu: rename, label and more.',
@@ -222,7 +268,7 @@ const DOES = {
   'data-follow': 'Changes: follows the newest change, or stops following.',
   'data-cx-open': 'Opens the changed file in Files.',
   'data-cx': 'Shows that change\'s diff.',
-  'data-cx-all': 'Changes: shows every changed file.',
+  'data-cx-all': 'Changes: shows the rest of the changed files (it says how many more).',
   'data-cx-show': 'Changes: shows the change the pill names.',
   'data-change': 'Panel: opens that changed file in the viewer.',
   'data-rail': 'Panel rail: opens that part of the panel.',
@@ -351,7 +397,11 @@ const DOES = {
   '#all-q': 'The All list of threads: finds a thread by name as you type.',
   '#tw-edit': 'The thread\'s title, being renamed in place: Enter keeps, Esc cancels.',
   '#rtd-pref': 'Runtimes: how coordinators choose, in your words; saved when you leave the field.',
-  'data-cs': 'Chats: a setting for this chat (agent, model or folder), as its label says.',
+  'data-cs=cwd': 'Chats: the folder this chat\'s agent works in.',
+  'data-cs=agent': 'Chats: which agent (runtime) this chat runs.',
+  'data-cs=model': 'Chats: the model it runs.',
+  'data-cs=effort': 'Chats: how hard it thinks.',
+  'data-cs': 'Chats: a setting for this chat, as its label says.',
   'data-abstain': 'Routing: how sure the decision model must be before it routes; below that it asks.',
   'data-sh-tab': 'Shells: switches to that shell.',
   'data-sh-detach': 'Shells: detaches that shell; it keeps running.',
@@ -378,9 +428,14 @@ const DOES = {
   'div.vw-body.vw-file': 'The file: scrolls with the keys once focused.',
   'summary.': 'Opens or folds the section under it.',
   'a.': 'A link in the text; it opens in a new tab.',
+  'button.mx-down': 'Back to the latest message, when you\'ve scrolled up.',
+  'button.dis-h': 'Opens or folds the details under it.',
+  '#c-note-N': 'Decision card: the note sent back with it; Enter sends, Esc closes it.',
 };
 // a kind's words: its most specific hook first (attribute=value, then attribute, then #id)
+const MANUAL_DOES = () => Object.fromEntries((typeof MANUAL !== 'undefined' ? MANUAL : []).map((m) => [m.key, m.does]));
 function doesOf(k) {
+  const md = MANUAL_DOES(); if (md[k]) return md[k];
   const toks = tokensOf(k);
   for (const t of toks) if (t.includes('=') && DOES[t]) return DOES[t];
   for (const t of toks) { const n = t.split('=')[0]; if (DOES[n]) return DOES[n]; }
@@ -389,7 +444,7 @@ function doesOf(k) {
 }
 // my read of a "no" that is the design, checked by hand (Astra grades it all the same)
 const NOTES = {
-  '#pf-in': 'text', '#cp-name': 'text', '#cp-desc': 'text', '#arts-q': 'text', '#say': 'text', 'data-fl-q': 'text', '#jump-q': 'jump',
+  '#pf-in': 'text', '#cp-name': 'text', '#c-note-N': 'text', '#cp-desc': 'text', '#arts-q': 'text', '#say': 'text', 'data-fl-q': 'text', '#jump-q': 'jump',
   'data-route=decision': 'Disabled until its model is connected: no hover or press by design.',
   'data-shp-reset': 'Disabled while Shape is the preset as it comes.',
   '#stage-map-tree': 'sel', 'data-vw-mode=preview': 'sel', 'data-mode=empty': 'sel',
@@ -422,9 +477,10 @@ function handler(k) {
 
 // ── the rendered kinds ──
 const groups = new Map();
-for (const [src, data] of [['desk', desk], ['phone', phone]]) {
+for (const [src, data, tag] of [['desk', desk, ''], ['phone', phone, ''], ['desk', mock, 'mock: ']]) {
   if (!data) continue;
-  for (const x of data.controls) {
+  for (const x0 of data.controls) {
+    const x = tag ? { ...x0, state: tag + x0.state } : x0;
     const k = renderedKey(x);
     if (!groups.has(k)) groups.set(k, { k, first: x, states: new Set(), n: 0, desk: [], phone: [], legacy: new Set() });
     const g = groups.get(k);
@@ -443,12 +499,23 @@ for (const [f, lines] of SRC) lines.forEach((L, i) => {
     if (!id && !attrs.some(([n]) => !SKIP.has(n))) continue; // nothing to name it by
     if (m[1] === 'a' && !/href=/.test(m[2])) continue;
     const key = canon(m[1], id, attrs, (/class="([^"]*)"/.exec(m[2]) || [])[1]);
-    if (!sourceKinds.has(key)) sourceKinds.set(key, { key, tag: m[1], at: `${f}:${i + 1}`, text: ((/>([^<]{2,40})</.exec(L.slice(m.index)) || [])[1] || '').replace(/\$\{[^}]*\}/g, '…').trim() });
+    if (!sourceKinds.has(key)) sourceKinds.set(key, { key, tag: m[1], firstData: (attrs.find(([n]) => !SKIP.has(n)) || [])[0] || '', at: `${f}:${i + 1}`, text: ((/>([^<]{2,40})</.exec(L.slice(m.index)) || [])[1] || '').replace(/\$\{[^}]*\}/g, '…').trim() });
   }
 });
+const MANUAL = [
+  { key: '#mx-return', tag: 'button', at: 'js/app.js:2503', text: 'Back to where you were', does: 'Back to where you were: brings the message you left from into view, and focus to it.' },
+  { key: 'button.mx-r-x', tag: 'button', at: 'js/msgx.js:482', text: '×', does: 'Takes the reply off the message you\'re writing (Esc too).' },
+  { key: 'button.mx-qpop', tag: 'button', at: 'js/msgx.js:549', text: 'Reply to this', does: 'Reply to this: quotes the words you selected in a message.' },
+  { key: 'xo-select .dd-btn', tag: 'button', at: 'js/dropdown.js:59', text: '', does: 'A dropdown: opens its list; arrows and typing pick, Enter keeps, Esc closes.' },
+  { key: 'xo-select .dd-row', tag: 'div', at: 'js/dropdown.js:139', text: '', does: 'A dropdown\'s option: the pointer and the arrows move to it; Enter or a click picks it.' },
+  { key: 'diffs-container [contenteditable]', tag: 'div', at: 'js/viewer.js:308', text: '', does: 'The file\'s text in Edit (the diff library\'s editor): where you type.' },
+  { key: 'button.xd-mbtn', tag: 'button', at: 'js/diffview.js:164', text: 'Keep yours / Take the agent\'s / Keep both', does: 'A merge: keeps yours, the agent\'s, or both, for that place.' },
+];
+for (const m of MANUAL) if (!sourceKinds.has(m.key)) sourceKinds.set(m.key, { ...m });
 // a code kind is reached when a rendered kind of the same tag carries all its hooks (with the same value where it has one)
 const reached = (sk) => {
   if (groups.has(sk.key)) return groups.get(sk.key);
+  if (sk.key.startsWith('button.') && groups.has(sk.key)) return groups.get(sk.key);
   if (sk.key.startsWith('#')) return null;
   const t = tokensOf(sk.key);
   for (const g of groups.values()) {
@@ -460,12 +527,20 @@ const reached = (sk) => {
 };
 
 // ── IDs, then the file ──
-for (const g of [...groups.values()]) g.id = idFor(g.k, 'C', [...g.legacy]);
+// IDs: a rendered kind keeps the ID it had; one without, reached from a code kind that had an S-ID in 3a9cdca,
+// takes that S-ID (a code-only row that became rendered keeps its grade); only then are new IDs appended
+// a code kind's 3a9cdca key was its tag and first data- hook (or its #id)
+const legacySrc = (sk) => [sk.key.startsWith('#') ? sk.key : `${sk.tag}[${tokensOf(sk.key)[0].split('=')[0]}]`, sk.firstData ? `${sk.tag}[${sk.firstData}]` : ''].filter(Boolean);
+// exact keys first (so a general key keeps its ID before any split one asks), then the 3a9cdca aliases
+for (const g of groups.values()) g.id = exactId(g.k);
+for (const sk of sourceKinds.values()) if (!reached(sk)) sk.id = exactId(sk.key);
+for (const g of groups.values()) if (!g.id) g.id = existingId(g.k, [...g.legacy]);
+for (const sk of sourceKinds.values()) { const g = reached(sk); if (g && !g.id) g.id = existingId(sk.key, legacySrc(sk)); }
+for (const g of groups.values()) if (!g.id) g.id = idFor(g.k, 'C', []);
 const codeOnly = [];
 for (const sk of sourceKinds.values()) {
   if (reached(sk)) continue;
-  const hook = sk.key.startsWith('#') ? sk.key : tokensOf(sk.key)[0].split('=')[0];
-  sk.id = idFor(sk.key, 'S', [sk.key.startsWith('#') ? sk.key : `${sk.tag}[${hook}]`]);
+  if (!sk.id) sk.id = idFor(sk.key, 'S', legacySrc(sk));
   codeOnly.push(sk);
 }
 fs.writeFileSync(REG_FILE, JSON.stringify(reg, null, 1) + '\n');
@@ -505,6 +580,13 @@ for (const sk of codeOnly.sort((a, b) => a.id.localeCompare(b.id))) {
   const does = doesOf(sk.key); if (!does) noWords.push(sk.id + ' ' + sk.key);
   body.push(`| ${sk.id} | \`${sk.key.replace(/\|/g, '/')}\` | ${sk.tag} | ${sk.at} | ${sk.text.replace(/\|/g, '/')} | ${does || '**?**'} | ${status[sk.id] || 'Unchecked'} |`);
 }
+const emitted = new Set([...groups.values()].map((g) => g.id).concat(codeOnly.map((sk) => sk.id)));
+const unseen = Object.entries(reg.ids).filter(([id]) => !emitted.has(id)).sort((a, b) => a[0].localeCompare(b[0]));
+let rowsGone = 0;
+if (unseen.length) {
+  body.push('', '## Rows from before that this crawl and scan didn\'t show', '', 'Kinds with an ID that neither this crawl nor the template scan produced this time: a control that shows only in some states (an agent working, a scrolled-up chat), or one now listed under a more exact row. Their IDs and grades stay; each still needs checking where it shows.', '', '| ID | Key | Does | Status |', '|---|---|---|---|');
+  for (const [id, e] of unseen) { rowsGone++; body.push(`| ${id} | \`${e.key.replace(/\|/g, '/')}\` | ${doesOf(e.key) || doesOf((e.aliases || [])[0] || '') || '**?**'} | ${status[id] || 'Unchecked'} |`); }
+}
 body.push('', '## Flows (timing, focus, truth)', '', '| ID | Flow | Does | Locked by | Status |', '|---|---|---|---|---|');
 const FLOWS = [
   ['F-G1', 'A decision\'s first 300 ms; a held key', 'Every Allow / Try again / Done / option / answer waits out the re-arm; a key repeat never decides', 'tests/browser/flows.test.cjs G1 (4 cases)'],
@@ -516,17 +598,18 @@ const FLOWS = [
   ['F-G6', 'Launchpad Stop', 'Stopped only on {stopped:true} or the stream\'s cancelled; refused or unconfirmed: says so, with Stop again; the stream\'s end wins', 'flows.test.cjs G6 (3 cases) at 1440 and 390'],
   ['F-G7', 'Focus after an editor outcome', 'Edit after a save or discard; Save through Saving… and a failure; Keep editing for Cancel\'s question; Edit after Undo, failed or not', 'flows.test.cjs G7 (2 cases) at 1440 and 390'],
   ['F-G8', 'The file capsule\'s ×', 'Named for the file; a line range keeps its line words', 'flows.test.cjs G8 at 1440 and 390'],
+  ['F-G9', 'A late conflict while you type', 'The editor goes; focus goes to the explanation (only if you were in the editor), and keys you go on typing can\'t choose an answer', 'flows.test.cjs G9 at 1440 and 390'],
 ];
 for (const [id, f, d, l] of FLOWS) { rowsF++; body.push(`| ${id} | ${f} | ${d} | ${l} | ${status[id] || 'Failing until Astra passes it'} |`); }
 
-const obsD = desk ? desk.controls.length : 0, obsP = phone ? phone.controls.length : 0;
+const obsD = desk ? desk.controls.length : 0, obsP = phone ? phone.controls.length : 0, obsM = mock ? mock.controls.length : 0;
 const failedPlaces = (d) => (d ? d.states.filter((s) => s.error).map((s) => s.state) : []);
-const fd = failedPlaces(desk), fp = failedPlaces(phone);
+const fd = failedPlaces(desk).concat(failedPlaces(mock).map((s) => 'mock: ' + s)), fp = failedPlaces(phone);
 out.push('# Every control, and how it answers', '');
 out.push('**Not complete yet.** Astra grades every row on its own; a row counts as done only once Astra has passed it.', '');
 out.push(`Built from the rendered app and the code, not from memory: \`tools/inventory.cjs\` crawls the real app read-only (${desk ? `${desk.states.length} places at 1440 px, crawled ${desk.at}` : 'no 1440 crawl'}${phone ? `; ${phone.states.length} at 390 px, crawled ${phone.at}` : ''}), and \`tools/controls-md.cjs\` groups what it saw into kinds, words each kind, points at its handler and adds the kinds only the code shows. Regenerate: \`node tools/inventory.cjs dark 1440 && node tools/inventory.cjs dark 390 && node tools/controls-md.cjs\`.`, '');
-out.push(`**In this file:** ${rowsC} rendered kinds (C rows), ${rowsS} kinds only in the code (S rows), ${rowsF} flow rows (F rows); ${obsD + obsP} observations behind the C rows (${obsD} at 1440, ${obsP} at 390).`, '');
+out.push(`**In this file:** ${rowsC} rendered kinds, ${rowsS} kinds only in the code, ${rowsGone} kinds from before not shown this time, ${rowsF} flow rows (${rowsC + rowsS + rowsGone + rowsF} rows); ${obsD + obsP + obsM} observations behind the rendered rows (${obsD} in the real app at 1440, ${obsP} at 390, and ${obsM} in ${mock ? mock.states.length : 0} states opened in the test suite's mock world at 1440, marked "mock:" where they show).`, '');
 out.push(fd.length || fp.length ? `**Places the crawl couldn't reach**, so their controls aren't measured here: ${[fd.length ? `1440: ${fd.join(', ')}` : '', fp.length ? `390: ${fp.join(', ')}` : ''].filter(Boolean).join('; ')}.` : '**Every place in the crawl was reached** at both widths.', '');
 out.push('Row IDs come from `controls-ids.json`, a committed registry from each kind\'s canonical key to its ID: IDs are only appended, never renumbered, so a grade stays on its control. **Hover**, **Press** and **Focus ring** say whether the control (or its box, its parts, its pseudo-elements) visibly changes when the pointer is over it, while pressed, and when the keyboard focuses it: `no` was measured on the attached control; `–` was not measured (not focusable, or it never took focus there). Hover and press are measured at 1440 only (390 is touch). **Handler** is the first line in js/ that names the hook in an event path: a pointer to check, not proof. **Status** is Astra\'s.', '');
 fs.writeFileSync(DRY ? '/tmp/CONTROLS.dry.md' : path.join(DIR, 'CONTROLS.md'), out.concat(body).join('\n') + '\n');
-console.log(`C ${rowsC}, S ${rowsS}, F ${rowsF}, observations ${obsD + obsP} (${obsD}+${obsP}); places not reached: ${fd.length}+${fp.length}; without words: ${noWords.length}`, noWords.slice(0, 60));
+console.log(`C ${rowsC}, S ${rowsS}, kept ${rowsGone}, F ${rowsF}, observations ${obsD + obsP + obsM} (${obsD}+${obsP}+${obsM}); places not reached: ${fd.length}+${fp.length}; without words: ${noWords.length}`, noWords.slice(0, 60));

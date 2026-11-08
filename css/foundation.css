@@ -59,6 +59,9 @@ body.stage-full .stg-grip{display:none}
 :where(button,[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],summary,.rt-check):where(:not(:disabled,[aria-disabled="true"],.send,.b,.b-hold,.theme,.switch,.lp-go,.lk-in,.tw-act.lp-btn,.prow,.nrow,.create,.btn,.iq,.iq-row,.iq-done,.gear,.side-plus,.lp-menu button)):where(:active){background-image:linear-gradient(var(--press-fill),var(--press-fill))!important}
 :where(.theme,.switch):where(:not(:disabled,[aria-disabled="true"])):where(:active) .th-knob{scale:.88}
 :where(a[href]:not([class])):where(:active){opacity:.7}
+/* a control whose request is out (js/pending.js): it keeps focus and its place, says it's waiting, and doesn't press */
+[aria-busy="true"]{cursor:progress}
+:where([aria-busy="true"]):where(:active){background-image:none!important;transform:none}
 .md-it:has(.md-open:active){transform:none}
 
 /* ── 6 · whole pixels: integer line heights, so 1 px borders land on whole pixels ────────────────── */

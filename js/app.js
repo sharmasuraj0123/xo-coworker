@@ -454,12 +454,22 @@ function landed(el, parts = el ? [...el.children] : []) {
   el._sk = false;
   parts.forEach((c, i) => c && arrive(c, { delay: i * 40 }));
 }
+/**
+ * Redraw a region when its HTML changed. A control in it that had focus keeps it: the same control drawn again,
+ * found by its data-fid, else its id, else its data- hooks (the head's panel toggle, Deploy …), so a redraw as
+ * data lands never drops the keyboard to the page under someone's Enter.
+ */
 function patch(el, html) {
   if (el._h === html) return false;
   const a = document.activeElement;
-  const fid = a && el.contains(a) ? a.dataset.fid : null;
+  let sel = null;
+  if (a && a !== el && el.contains(a)) {
+    if (a.dataset.fid) sel = `[data-fid="${CSS.escape(a.dataset.fid)}"]`;
+    else if (a.id) sel = `#${CSS.escape(a.id)}`;
+    else { const d = [...a.attributes].filter((x) => x.name.startsWith("data-")); if (d.length) sel = a.tagName.toLowerCase() + d.map((x) => (x.value ? `[${x.name}="${CSS.escape(x.value)}"]` : `[${x.name}]`)).join(""); }
+  }
   el.innerHTML = html; el._h = html;
-  if (fid) el.querySelector(`[data-fid="${CSS.escape(fid)}"]`)?.focus({ preventScroll: true });
+  if (sel) el.querySelector(sel)?.focus({ preventScroll: true });
   return true;
 }
 function homeParts(needs = D.needItems()) {
@@ -3111,7 +3121,17 @@ function jumpRender() {
   jl.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: "nearest" });
 }
 let jumpReturn = null;
-function openJump() { jumpReturn = document.activeElement; jump.hidden = false; jq.value = ""; jsel = 0; jumpRender(); jq.focus(); }
+/**
+ * Focus an overlay that is opening. A native modal still closing (Create's 160 ms) holds focus until it lets go,
+ * and then hands it back to whatever opened it: the overlay takes it now if it can, and again once the modal has
+ * closed, so the person's keys land where they now look (Astra C020: Create, Esc, Ctrl+K at once).
+ */
+function focusOverlay(target) {
+  target.focus({ preventScroll: true });
+  const modal = [...document.querySelectorAll("dialog[open]")].find((d) => d.matches(":modal"));
+  if (modal) modal.addEventListener("close", () => { if (target.isConnected && !target.closest("[hidden]")) target.focus({ preventScroll: true }); }, { once: true });
+}
+function openJump() { jumpReturn = document.activeElement; jump.hidden = false; jq.value = ""; jsel = 0; jumpRender(); focusOverlay(jq); }
 function closeJump({ restore = true } = {}) { if (jump.hidden) return; jump.hidden = true; syncInert(); if (restore && jumpReturn && jumpReturn.isConnected && jumpReturn.offsetParent) jumpReturn.focus({ preventScroll: true }); }
 jq.addEventListener("input", () => { jsel = 0; jumpRender(); });
 jq.addEventListener("keydown", (e) => {
@@ -3183,7 +3203,7 @@ $("#hops-tog").addEventListener("click", () => {
 hopsRender();
 keys.addEventListener("click", (e) => { if (e.target === keys || e.target.closest("[data-close]")) closeKeys(); });
 let keysReturn = null;
-function openKeys() { keysSheetRender(); keysReturn = document.activeElement; keys.hidden = false; keys.querySelector("[data-close]").focus(); }
+function openKeys() { keysSheetRender(); keysReturn = document.activeElement; keys.hidden = false; focusOverlay(keys.querySelector("[data-close]")); }
 function closeKeys() { keys.hidden = true; syncInert(); keysReturn?.focus?.({ preventScroll: true }); }
 
 // ── settings: a page over the main area; closing it returns exactly where you were ──
@@ -3240,7 +3260,8 @@ function openSettings() {
   setEl.hidden = false;
   $("#set-side").classList.add("is-on");
   $("#set-side").setAttribute("aria-expanded", "true");
-  setEl.querySelector('[aria-selected="true"]')?.focus({ preventScroll: true });
+  const first = setEl.querySelector('[aria-selected="true"]');
+  if (first) focusOverlay(first);
 }
 function closeSettings({ restore = true } = {}) {
   if (setEl.hidden) return;
