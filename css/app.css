@@ -2398,7 +2398,9 @@ i.t-amber{background:var(--warn)}i.t-blue{background:var(--info)}i.t-red{backgro
 .md-it.is-gone .md-th,.md-it.is-gone .md-meta b{opacity:.55}
 .md-meta{display:flex;flex-direction:column;gap:4px;padding:10px 12px 4px;min-width:0}
 .md-meta b{font:500 var(--fs-base)/20px var(--sans);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.md-meta span{font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* the meta line only: a name cut in the middle is two spans inside the name, and keeps the name's own look (the
+   Artifacts screenshots: a long name read as grey, small meta) */
+.md-meta > span{font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .md-from{display:flex;align-items:center;gap:5px;margin:0 6px 7px;padding:4px 6px;border-radius:var(--r-sm);min-width:0;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-3);text-align:left}
 .md-from:hover{background:var(--fill-2);color:var(--ink)}
 .md-from svg{flex:none;width:12px;height:12px}

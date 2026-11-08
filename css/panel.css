@@ -155,7 +155,7 @@ body.stage-over .stage{box-shadow:var(--e2)}
 .md-pane .md-meta{gap:4px;padding:12px 12px 4px}
 .md-pane .md-from{gap:4px;margin:0 4px 8px;padding:4px 8px;border-radius:var(--r-sm);font:400 var(--fs-sm)/16px var(--sans)}
 .md-pane .md-meta b{font:500 var(--fs-base)/20px var(--sans)}
-.md-pane .md-meta span{font:400 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums}
+.md-pane .md-meta > span{font:400 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums}
 @container made (max-width:519px){
   .md-pane .md-body{padding:0 6px 12px}
   .md-pane .md-gh{padding-left:6px}

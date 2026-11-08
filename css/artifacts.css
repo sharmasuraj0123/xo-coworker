@@ -46,7 +46,7 @@
 .ar-grid .md-ic svg,.ar-grid .md-ic svg.fi{width:28px;height:28px}
 .ar-grid .md-meta{gap:4px;padding:12px 12px 4px}
 .ar-grid .md-meta b{font:600 var(--fs-md)/20px var(--sans)}
-.ar-grid .md-meta span{font:400 var(--fs-base)/20px var(--sans)}
+.ar-grid .md-meta > span{font:400 var(--fs-base)/20px var(--sans)}
 .ar-grid .md-from{margin:0 4px 8px;padding:4px 8px;font:400 var(--fs-sm)/16px var(--sans)}
 /* at any size (js/recordview.js): the gallery keeps its whole height and only the lines near the screen are
    drawn, each in its place; a card without a thread keeps an empty "from" line, so every card is one height */
@@ -71,8 +71,10 @@
      the pin is its own 44 px target beside the row, never over the file. One height, so the page still draws only
      what's near the screen. Pictures keep their big previews under Images. */
   .arts:not(.is-pics) .ar-grid{grid-template-columns:minmax(0,1fr);gap:8px}
-  .arts:not(.is-pics) .ar-grid .md-it{display:grid;grid-template-columns:minmax(0,1fr) 44px;grid-template-rows:minmax(0,1fr) auto;height:108px}
-  .arts:not(.is-pics) .ar-grid .md-open{grid-column:1;grid-row:1;flex-direction:row;align-items:center;gap:12px;min-height:0;padding:12px 0 0 12px}
+  .arts:not(.is-pics) .ar-grid .md-it{display:grid;grid-template-columns:minmax(0,1fr) 44px;grid-template-rows:1fr auto auto 1fr;height:108px}
+  /* the name, its line and the thread it came from sit together in the middle of the row (one height for every
+     row, so a one-line name with no thread doesn't sit at the top of an empty row) */
+  .arts:not(.is-pics) .ar-grid .md-open{grid-column:1;grid-row:2;flex-direction:row;align-items:center;gap:12px;min-height:0;padding:0 0 0 12px}
   .arts:not(.is-pics) .ar-grid .md-th{flex:none;width:36px;height:36px;gap:0;border:1px solid var(--line-soft);border-radius:var(--r)}
   .arts:not(.is-pics) .ar-grid .md-th .md-ic{width:auto;height:auto;border:0;background:none}
   .arts:not(.is-pics) .ar-grid .md-th .md-ic svg{width:20px;height:20px}
@@ -82,8 +84,9 @@
   .arts:not(.is-pics) .ar-grid .md-meta b .mx-mid{display:inline}
   .arts:not(.is-pics) .ar-grid .md-meta b :is(.mx-mh,.mx-mt){white-space:normal}
   .arts:not(.is-pics) .ar-grid .md-meta > span{font:400 var(--fs-base)/18px var(--sans)}
-  .arts:not(.is-pics) .ar-grid .md-from{grid-column:1;grid-row:2;margin:4px 0 8px 54px;font:400 var(--fs-base)/18px var(--sans)}
-  .arts:not(.is-pics) .ar-grid .md-pin{position:static;grid-column:2;grid-row:1 / span 2;width:44px;height:auto;align-self:stretch;border-radius:0;background:none;color:var(--ink-4);opacity:1}
+  .arts:not(.is-pics) .ar-grid .md-from{grid-column:1;grid-row:3;margin:2px 0 0 54px;font:400 var(--fs-base)/18px var(--sans)}
+  .arts:not(.is-pics) .ar-grid .md-from.is-none{display:none}
+  .arts:not(.is-pics) .ar-grid .md-pin{position:static;grid-column:2;grid-row:1 / -1;width:44px;height:auto;align-self:stretch;border-radius:0;background:none;color:var(--ink-4);opacity:1}
   .arts:not(.is-pics) .ar-grid .md-it.is-pin .md-pin{color:var(--accent)}
   .arts:not(.is-pics) .ar-grid .md-pin svg{width:16px;height:16px}
 }
