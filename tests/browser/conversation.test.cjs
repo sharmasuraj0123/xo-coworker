@@ -1192,8 +1192,10 @@ t("DET: when the reply finishes in place, nothing of msgx's is left over: the wo
   await page.keyboard.press("Enter");
   await settle(page, 300);
   await page.evaluate((fs) => { for (const f of fs) window.__storm.apply(f); }, [
+    // as the stream ends a reply: its words stream as a text block, then that block finishes as the turn's answer
     env("block.started", { block: { id: `${TURN}:t1`, type: "text", index: null, text: "The tests pass." } }),
     env("block.finished", { block: { id: `${TURN}:g0`, type: "activity", index: 0, header: "Ran the tests", rows: [ROW({ status: "ok", output: "12 passed" })] } }),
+    env("block.finished", { block: { id: `${TURN}:t1`, type: "answer", index: 1, text: "The tests pass." } }),
     env("turn.finished", { status: "finished", stop_reason: "completed", error_class: null, error: null, wakes: [] }),
     env("session", { status: "warm", reason: "turn_done" }, { turn_id: null }),
   ]);
