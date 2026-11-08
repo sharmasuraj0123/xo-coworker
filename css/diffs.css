@@ -191,6 +191,7 @@ diffs-container{
 /* the file changed while you edited: said in words above the merge view */
 .xd-bar{flex:none;margin:0;padding:10px 16px;border-bottom:1px solid var(--line-faint);background:color-mix(in srgb,var(--warn) 7%,var(--canvas));font:400 var(--fs-md)/20px var(--sans);color:var(--ink-2)}
 .xd-bar b{color:var(--ink);font-weight:600}
+.xd-bar:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 /* each place you both changed: your three choices, drawn by us in Pierre's slot */
 .xd-merge{display:flex;align-items:center;gap:4px;padding:4px 0;font-family:var(--sans)}
 .xd-mbtn{height:24px;padding:0 10px;border-radius:var(--r-pill);border:1px solid var(--line);background:var(--surface);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}

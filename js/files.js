@@ -602,7 +602,14 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       if (pk) { F.pick = pk.dataset.flPick; F.follow = null; setScope(F.view); paint(); frontPage(); return; }
       if (t.closest("[data-fl-unpick]")) { F.pick = null; F.follow = null; viewer.close({ restore: false }); setScope(F.view); paint(); return; }
       const rt = t.closest("[data-fl-retry]");
-      if (rt) { load(F.scope, rt.dataset.flRetry, { again: true }); return; }
+      if (rt) {
+        // the note with its Try again is redrawn as it reads: focus stays in the tree (the button again if it
+        // failed again, else its folder, else the first row), never the page (Astra S061)
+        const dir = rt.dataset.flRetry;
+        const keep = () => { const a = document.activeElement; if (a && a !== document.body && a.isConnected && host.contains(a)) return; (host.querySelector(`[data-fl-retry="${CSS.escape(dir)}"]`) || (dir && rowOf(dir)) || host.querySelector(".fl-r"))?.focus({ preventScroll: true }); };
+        load(F.scope, dir, { again: true }).then(keep); keep();
+        return;
+      }
       if (t.closest("[data-fl-back]")) { F.fileView = false; if (!F.wide) viewer.close({ restore: false }); paint(); host.querySelector(".fl-r.is-on, .fl-r")?.focus({ preventScroll: true }); }
     });
     host.addEventListener("input", (e) => {

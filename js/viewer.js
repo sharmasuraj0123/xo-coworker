@@ -419,14 +419,18 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   async function clash(mine, current) {
     const m = merge3(ED.base, mine, current.content);
     if (!m.conflicts) { ED.conflict = { view: null, version: current.version, left: 0, text: m.text }; return save(); }
+    // the editor goes; if you were in it (typing on while the save was out), focus goes to the words that say
+    // what happened, not to the page, and not to a choice: a key you were still typing can't pick an answer
+    const hadFocus = el.contains(document.activeElement);
     if (ED.ed) { ED.ed.stop(); ED.ed = null; }
     const host = fileBody();
     if (FL.handle) { FL.handle.destroy(); FL.handle = null; FL.key = null; FL.pend = null; }
     host.replaceChildren();
     ED.conflict = { view: null, version: current.version, left: m.conflicts, text: m.text };
     el.querySelector(".xd-bar")?.remove();
-    host.insertAdjacentHTML("beforebegin", `<p class="xd-bar"><b>The agent changed ${esc(V.file.name)} while you were editing.</b> Where you both changed the same lines, choose what to keep, then save.</p>`);
+    host.insertAdjacentHTML("beforebegin", `<p class="xd-bar" tabindex="-1"><b>The agent changed ${esc(V.file.name)} while you were editing.</b> Where you both changed the same lines, choose what to keep, then save.</p>`);
     paintHead();
+    if (hadFocus) el.querySelector(".xd-bar")?.focus({ preventScroll: true });
     const my = edGen, mine3 = ED.conflict;
     const view = await DV.conflict(host, m.text, {
       path: V.file.name,
@@ -642,7 +646,26 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (ask.send(V.file, FL.asking.a, FL.asking.b, t)) { closeAsk(); FL.sel = null; FL.handle?.select(null); askCapsule(); }
   }
 
+  /**
+   * Redraw. A control of the viewer's that had focus keeps it (the same control drawn again: Changes after
+   * pressing Changes), else the file's Edit, else the viewer itself: a redraw never drops focus to the page
+   * (Astra S127). Focus inside the file's own body is left alone (that body isn't redrawn).
+   */
   function render() {
+    const ae = document.activeElement;
+    let was = null;
+    if (ae && ae !== el && el.contains(ae)) {
+      const a = [...ae.attributes].find((x) => x.name.startsWith("data-vw-"));
+      was = a ? (a.value ? `[${a.name}="${CSS.escape(a.value)}"]` : `[${a.name}]`) : "";
+    }
+    renderNow();
+    if (was == null || !V.open) return;
+    const now = document.activeElement;
+    if (now && now !== document.body && now.isConnected) return;
+    const to = (was && el.querySelector(was)) || el.querySelector(".vw-top [data-vw-edit]") || el;
+    to.focus({ preventScroll: true });
+  }
+  function renderNow() {
     if (!V.open) return;
     if (showsFile()) {
       // the head redraws; the file's body (Pierre's drawing, where you are, a question you're writing) stays
@@ -829,7 +852,8 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (e.target.closest("[data-vw-noconfirm]")) { ED.confirm = false; paintHead(); ED.ed?.focus(); return; }
     if (e.target.closest("[data-vw-undo]")) { undoSave(); return; }
     if (e.target.closest("[data-vw-tell]")) { const s = saved; saved = null; toastPaint(); if (s && edits.tell(V.file, s)) announce("Told the agent."); return; }
-    if (e.target.closest("[data-vw-toastx]")) { saved = null; toastPaint(); return; }
+    // the notice goes with its ×: focus goes to the file's head, not the page (Astra S138)
+    if (e.target.closest("[data-vw-toastx]")) { const back = focusHere(); saved = null; toastPaint(); if (back) headFocus(); return; }
     if (e.target.closest("[data-vw-retry]")) { FL.pend = null; drawFile(); return; }
     if (e.target.closest("[data-vw-split]")) { V.split = !V.split; if (DF.handle) DF.handle.split(V.split); render(); return; }
     const m = e.target.closest("[data-vw-mode]");

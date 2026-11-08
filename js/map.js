@@ -538,7 +538,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     });
   }
 
-  function tool(what) {
+  function tool(what, { focus = true } = {}) {
     const c = camOf(M.scope), v = view();
     if (!v) return;
     if (what === "in" || what === "out") zoomAt(c, what === "in" ? 1.25 : 0.8, v.clientWidth / 2, v.clientHeight / 2);
@@ -551,7 +551,9 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       try { localStorage.setItem(MODE_KEY, what); } catch { /* private mode */ }
       el.dataset.scope = "";
       paint();
-      view()?.focus({ preventScroll: true });
+      // from the map's own buttons, the keys go to the drawing; from the panel's tabs they stay on the tabs, so
+      // the next arrow moves between tabs instead of panning (Astra C080/C081)
+      if (focus) view()?.focus({ preventScroll: true });
       announce(what === "graph" ? "Graph view." : "Diagram view.");
     }
     else if (what === "follow") {
@@ -959,7 +961,13 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
         nodes.innerHTML = nodesHtml;
         M.layoutKey = key;
         if (old) holdStill(scope, old, L);
-        if (fid != null) nodes.querySelector(`[data-node="${CSS.escape(fid)}"]`)?.focus({ preventScroll: true });
+        // the focused node again; if it's gone (a folder's "Try again" becomes the folder once it reads), the
+        // nearest node above it, else the drawing: never the page (Astra S082)
+        if (fid != null) {
+          let id = fid, to = null;
+          while (!to && id) { to = nodes.querySelector(`[data-node="${CSS.escape(id)}"]`); id = id.includes("/") ? id.replace(/\/[^/]*$/, "") : ""; }
+          (to || view())?.focus({ preventScroll: true });
+        }
       }
       cursors(ags, (id) => {
         const n = byId.get(id);
@@ -1169,7 +1177,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     },
     /** The drawing: "tree" (the diagram) or "graph". */
     get mode() { return M.mode; },
-    setMode: (m) => tool(m),
+    setMode: (m) => tool(m, { focus: false }),
     liveIn: (v) => liveIn(v),
 
     // ── standalone (#map), until the panel lands ──

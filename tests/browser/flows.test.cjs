@@ -83,6 +83,12 @@ function mockApi(W) {
     }
     if (/^\/api\/chat\/runtimes\/[^/]+\/models$/.test(p)) return json({ name: "claude_code", models: [] });
     if (/^\/api\/xo-projects\/[^/]+\/changes$/.test(p)) return json({ project_id: "demo", worktree: null, root: "/demo", base_ref: "HEAD", base_commit: "c0", base_source: "head", head_commit: "c0", computed_at: NOW, truncated: false, total_files: 0, files: [] });
+    if (/^\/api\/xo-projects\/[^/]+\/tree$/.test(p)) {
+      const rel = u.searchParams.get("relative_path") || "";
+      if (rel === "bad" && W.treeFails) { W.treeFails--; return json({ detail: { code: "unavailable", message: "Fixture offline" } }, 503); }
+      if (rel === "bad") return json({ dirs: [], files: [{ name: "inside.md", relative_path: "bad/inside.md", size_bytes: 9 }] });
+      return json({ dirs: [{ name: "bad", relative_path: "bad" }], files: Object.keys(W.files).filter((f) => !f.includes("/")).map((f) => ({ name: f, relative_path: f, size_bytes: W.files[f].content.length })) });
+    }
     if (/^\/api\/xo-projects\/[^/]+\/file$/.test(p) && m === "GET") {
       const rel = u.searchParams.get("relative_path"), f = W.files[rel];
       if (!f) return json({ detail: { code: "not_found", message: "No such file" } }, 404);
@@ -123,9 +129,9 @@ const tests = [];
 const t = (name, fn) => tests.push({ name, fn });
 // the project's own page, as its row in the sidebar opens it (on a phone the sidebar is a drawer)
 const toDemo = (page) => page.evaluate(() => window.__t.go("p:demo"));
-async function app(W = {}, { width = WIDTH } = {}) {
+async function app(W = {}, { width = WIDTH, motion = false } = {}) {
   Object.assign(W, { base: BASE, files: W.files || {}, saves: [] });
-  const ctx = await browser.newContext({ viewport: { width, height: 900 }, reducedMotion: "reduce" });
+  const ctx = await browser.newContext({ viewport: { width, height: 900 }, reducedMotion: motion ? "no-preference" : "reduce" });
   const page = await ctx.newPage();
   page.setDefaultTimeout(8000);
   const errors = [];
@@ -244,6 +250,27 @@ t("Save while typing: words typed during a save stay, unsaved, against the versi
   await done(page);
 });
 
+t("G9: a late conflict while you type puts focus on what happened, and typing on can't choose", async () => {
+  let answer;
+  const page = await app({ files: { "a.js": FILE() }, saveMode: "overlap", saveGate: new Promise((ok) => (answer = ok)) });
+  await editing(page);
+  await typeAll(page, "mine\ntwo\nthree\n");
+  await page.locator("[data-vw-saveit]").click();
+  await page.locator("#viewer [contenteditable=true]").first().click();
+  await page.keyboard.press("ControlOrMeta+End");
+  await page.keyboard.insertText("more");
+  answer(); // the 409 arrives while the editor has focus
+  await page.waitForFunction(() => window.__ED.conflict && window.__ED.conflict.left >= 1);
+  await page.waitForTimeout(300);
+  assert.equal(await page.evaluate(() => document.activeElement.className), "xd-bar", "focus on the explanation, not BODY");
+  const left = await page.evaluate(() => window.__ED.conflict.left);
+  await page.keyboard.type("ab ");
+  await page.keyboard.press("Enter");
+  assert.equal(await page.evaluate(() => window.__ED.conflict.left), left, "no choice made by the keys");
+  assert.equal(page.W.saves.length, 1, "nothing saved");
+  await done(page);
+});
+
 t("G7: a failed Undo returns focus to the file's head", async () => {
   const page = await app({ files: { "a.js": FILE() }, undoMode: "503" });
   await editing(page);
@@ -349,6 +376,97 @@ t("Jump: the row under a moving pointer is the selection, and Enter goes there",
   await page.waitForTimeout(200);
   assert.ok(await page.locator("#jump").isHidden(), "Jump closed");
   assert.ok(name.length > 0);
+  await done(page);
+});
+
+// ── focus never falls to the page when a control it was on goes ──
+const active = (page) => page.evaluate(() => { const a = document.activeElement; return a ? a.tagName + [...a.attributes].filter((x) => x.name.startsWith("data-") || x.name === "id" || x.name === "class").map((x) => ` ${x.name}=${x.value}`).join("") : null; });
+t("S138: dismissing the Saved notice hands focus to the file's Edit", async () => {
+  const page = await app({ files: { "a.js": FILE() } });
+  await editing(page);
+  await typeAll(page, "mine\n");
+  await page.keyboard.press("ControlOrMeta+s");
+  await page.waitForFunction(() => !window.__ED.on);
+  await page.locator("[data-vw-toastx]").focus();
+  await page.keyboard.press("Enter");
+  assert.match(await active(page), /data-vw-edit/);
+  await done(page);
+});
+async function panelOpen(page) {
+  await toDemo(page);
+  await page.locator("[data-stage-toggle]").filter({ visible: true }).first().focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => !document.querySelector("#stage").hidden);
+}
+t("C069: closing the panel puts focus back on its toggle", async () => {
+  const page = await app();
+  await panelOpen(page);
+  await page.locator("[data-stg-close]").filter({ visible: true }).first().focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelector("#stage").hidden);
+  assert.match(await active(page), /data-stage-toggle/);
+  await done(page);
+});
+t("C080/C081: the map's tabs: arrows move between Diagram and Graph and stay on the tabs", async () => {
+  const page = await app();
+  await panelOpen(page);
+  if (await page.locator('[data-ghost="map"]').filter({ visible: true }).count()) await page.locator('[data-ghost="map"]').filter({ visible: true }).first().click();
+  const tree = page.locator("#stage-map-tree");
+  await tree.waitFor();
+  await page.evaluate(() => document.querySelector("#stage-map-tree").click());
+  await tree.focus();
+  await page.keyboard.press("ArrowRight");
+  assert.match(await active(page), /id=stage-map-graph/, "focus on Graph's tab, not the drawing");
+  await page.keyboard.press("ArrowLeft");
+  assert.match(await active(page), /id=stage-map-tree/, "back to Diagram's tab");
+  assert.equal(await tree.getAttribute("aria-selected"), "true");
+  await done(page);
+});
+t("S061: Files' Try again, then a good read: focus stays in the tree", async () => {
+  const page = await app({ files: { "a.js": FILE() }, treeFails: 1 });
+  await panelOpen(page);
+  if (await page.locator('[data-ghost="changes"]').filter({ visible: true }).count()) await page.locator('[data-ghost="changes"]').filter({ visible: true }).first().click();
+  await page.locator("[data-open-files]").filter({ visible: true }).first().click();
+  const step = (w) => process.env.DEBUG && console.log("   step", w);
+  step("files open");
+  await page.locator('[data-fl-dir="bad"]').filter({ visible: true }).first().click();
+  step("folder clicked");
+  const retry = page.locator('[data-fl-retry="bad"]').first();
+  await retry.waitFor();
+  await retry.focus();
+  await page.keyboard.press("Enter");
+  await page.locator('[data-fl-file="bad/inside.md"]').first().waitFor();
+  const a = await active(page);
+  assert.ok(a && !/^BODY/.test(a), `focus in the tree, not the page: ${a}`);
+  await done(page);
+});
+
+t("C029: on a phone, Back to chat from a file shows the chat, not the panel again", async () => {
+  if (WIDTH > 760) return; // beside the chat on a desktop, the panel coming back is the design
+  const page = await app({ files: { "a.js": FILE() } });
+  await panelOpen(page);
+  if (await page.locator('[data-ghost="changes"]').filter({ visible: true }).count()) await page.locator('[data-ghost="changes"]').filter({ visible: true }).first().click();
+  await page.locator("[data-open-files]").filter({ visible: true }).first().click();
+  await page.locator('[data-fl-file="a.js"]').filter({ visible: true }).first().click();
+  await page.locator("[data-fv-min]").filter({ visible: true }).first().click();
+  await page.waitForTimeout(400);
+  assert.ok(await page.evaluate(() => document.querySelector("#stage").hidden), "the panel stays closed");
+  assert.ok(await page.locator("#say").isVisible(), "the chat's box is there to type in");
+  await done(page);
+});
+
+// ── overlays: one opening while Create (a native modal) is still closing gets the focus ──
+t("C020: Create, Esc, Ctrl+K at once: Jump's field has focus", async () => {
+  const page = await app({}, { motion: true });
+  await page.locator(".create, [data-create]").filter({ visible: true }).first().click();
+  await page.locator("#cp-desc").focus();
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Control+k");
+  await page.waitForTimeout(500);
+  assert.ok(await page.locator("#jump").isVisible(), "Jump is open");
+  assert.equal(await page.evaluate(() => document.activeElement && document.activeElement.id), "jump-q");
+  await page.keyboard.type("dem");
+  assert.equal(await page.locator("#jump-q").inputValue(), "dem", "typing lands in Jump");
   await done(page);
 });
 
@@ -508,8 +626,11 @@ async function ctxDone(page) { const errs = page.errors; await page.context().cl
 (async () => {
   server = await serve();
   BASE = `http://127.0.0.1:${server.address().port}`;
-  try { browser = await chromium.launch(); }
-  catch (e) { console.error(`not run: Chromium didn't start (${e.message.split("\n")[0]})`); server.close(); process.exit(2); }
+  // Playwright's own browser, else any headless shell already downloaded (CHROMIUM_PATH names one)
+  const shells = () => { const d = path.join(require("os").homedir(), ".cache/ms-playwright"); try { return fs.readdirSync(d).filter((x) => x.startsWith("chromium_headless_shell-")).sort().reverse().map((x) => path.join(d, x, "chrome-headless-shell-linux64/chrome-headless-shell")).filter((f) => fs.existsSync(f)); } catch { return []; } };
+  try { browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}); }
+  catch (e) { const alt = shells()[0]; if (!alt) { console.error(`not run: Chromium didn't start (${e.message.split("\n")[0]})`); server.close(); process.exit(2); } browser = await chromium.launch({ executablePath: alt }).catch(() => null); }
+  if (!browser) { console.error("not run: no Chromium would start"); server.close(); process.exit(2); }
   const only = process.argv[2] ? new RegExp(process.argv[2]) : null;
   // the app's flows at a desktop and a phone width; the decision module's on its own once
   for (const width of [1440, 390]) {

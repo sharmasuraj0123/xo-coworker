@@ -283,9 +283,14 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     pressDeploy();
     map.hide();
     persist();
-    const back = S.returnTo || document.querySelector("[data-stage-toggle]");
+    // back to what opened it, or, if that was redrawn meanwhile (the head's toggle is), to the toggle on screen now:
+    // never to the page (Astra C069)
+    const usable = (b) => b && b.isConnected && !b.closest("[inert], [hidden]") && b.getClientRects().length;
+    const back = [S.returnTo, ...document.querySelectorAll("[data-stage-toggle]")].find(usable);
     S.returnTo = null;
-    if (restore && back && back.isConnected) back.focus({ preventScroll: true });
+    if (restore && back) back.focus({ preventScroll: true });
+    // the head is redrawn after this (its toggle with it): once it has been, focus is on the toggle drawn now
+    if (restore) requestAnimationFrame(() => requestAnimationFrame(() => { const a = document.activeElement; if (!a || a === document.body || !a.isConnected) [...document.querySelectorAll("[data-stage-toggle]")].find(usable)?.focus({ preventScroll: true }); }));
     if (!quiet) announce("Panel closed.");
     onChange && onChange();
   }
@@ -322,7 +327,9 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     if (aside !== S.aside) {
       S.aside = aside;
       if (aside && S.open) { S.yielded = true; close({ restore: false, quiet: true }); return; }
-      if (!aside && S.yielded) { S.yielded = false; if (!S.open) open({ focus: innerWidth <= 760 }); }
+      // it comes back as it was when the file goes; but on a phone, "Back to chat" (Files put away to its chip)
+      // means the chat: a panel brought back would cover it again (Astra C029). It opens from its button.
+      if (!aside && S.yielded) { S.yielded = false; if (!S.open && !(innerWidth <= 760 && filesView.isMin)) open({ focus: innerWidth <= 760 }); }
     }
     if (!S.open) return;
     fitRail();
