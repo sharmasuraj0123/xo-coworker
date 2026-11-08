@@ -711,6 +711,74 @@ body.panel-open .tdock{display:none}
 .app.has-tdock-card:not([data-view="home"]) .main::before{content:"";position:absolute;inset:0;z-index:4;background:rgb(0 0 0 / calc(.16 * var(--sha)));pointer-events:none;animation:fade .25s}
 body.panel-open .app.has-tdock-card .main::before{display:none}
 
+/* ── Intelligence: the chip says what it runs on; the popover changes it, one decision at a time ────────
+   The chip: a thread's model and depth as its session runs them now (a working thread shows the setting it
+   works in), a chat's pin, else Auto; another runtime than the Space's is named first. The popover: what it
+   runs on (true now), the models as one list, how long it thinks as one labelled control, then runtime and
+   routing folded away. What you pick shows at once and applies when it closes, as one change with Undo.
+   Geometry: a 12 px float with 6 px padding, so its 6 px rows are concentric with it (12 − 6). */
+.iq{flex:none;display:inline-flex;align-items:center;min-width:0;max-width:min(320px,46%);height:var(--h-ctl);padding:0 10px;border-radius:var(--r-sm);color:var(--ink-3);font:500 var(--fs-base)/20px var(--sans);white-space:nowrap;font-variant-numeric:tabular-nums}
+.iq:hover,.iq[aria-expanded="true"]{background:var(--hover-fill);color:var(--ink-2)}
+.iq:active{background:var(--press-fill)}
+.iq-l{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.iq-t{color:var(--ink-2)}
+.iq-a{color:var(--ink-4)}
+.iq-e{color:var(--ink-3)}
+.iq-sep{margin:0 6px;color:var(--ink-5)}
+.iq-pop{position:fixed;z-index:var(--z-popover);display:flex;flex-direction:column;padding:6px;border-radius:var(--r-lg);background:var(--float);border:1px solid var(--line-soft);box-shadow:var(--e2);outline:none;transform-origin:100% 100%;animation:float-in var(--d-pop) var(--ease)}
+.iq-pop.is-out{animation:float-out var(--d-pop-out) var(--ease) forwards}
+.iq-h{display:flex;align-items:center;gap:10px;padding:8px 10px 2px}
+.iq-h h2{flex:1;min-width:0;font:600 var(--fs-base)/20px var(--sans);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.iq-h h2 span{font-weight:400;color:var(--ink-3)}
+.iq-truth{margin:0 0 4px;padding:0 10px 10px;border-bottom:1px solid var(--line-soft);font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-3);text-wrap:pretty}
+.iq-truth b{font-weight:500;color:var(--ink)}
+.iq-truth .g{display:inline-block;width:10px;height:10px;margin:0 6px -1px 0}
+.iq-now{padding:0 10px;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
+.iq-now b{color:var(--ink-2);font-weight:500}
+.iq-lab{padding:10px 10px 4px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.iq-list{display:flex;flex-direction:column;max-height:min(296px,40vh);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.iq-row{flex:none;display:flex;align-items:center;gap:10px;min-width:0;height:var(--h-row);padding:0 10px;border-radius:var(--r-sm);cursor:pointer;outline:none}
+.iq-row:hover{background:var(--hover-fill)}
+.iq-row:active{background:var(--press-fill)}
+.iq-row:focus-visible{box-shadow:inset 0 0 0 2px var(--focus)}
+.iq-n{flex:none;font:500 var(--fs-base)/20px var(--sans);color:var(--ink-2)}
+.iq-tr{flex:1;min-width:0;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.iq-ck{flex:none;width:14px;height:14px;margin-left:auto;color:var(--accent);opacity:0;transform:scale(.6);transition:opacity var(--d-hover) var(--ease),transform var(--d-hover) var(--ease)}
+.iq-row.is-sel .iq-n{color:var(--ink)}
+.iq-row.is-sel .iq-ck{opacity:1;transform:none}
+/* a segmented choice (thinking, runtime, routing): an 8 px track, its 6 px segments 2 px in (8 − 2) */
+.iq-route{display:flex;gap:2px;margin:0 4px;padding:2px;border-radius:var(--r);background:var(--fill-2)}
+.iq-route button{flex:1;min-width:0;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:28px;padding:0 6px;border-radius:var(--r-sm);color:var(--ink-3);font:500 var(--fs-sm)/16px var(--sans);white-space:nowrap}
+.iq-route button:hover:not([aria-checked="true"]):not([aria-disabled="true"]){color:var(--ink);background:var(--hover-fill)}
+.iq-route button[aria-checked="true"]{background:var(--float);color:var(--ink);box-shadow:0 0 0 1px var(--line-soft),0 1px 2px rgb(0 0 0 / calc(.18 * var(--sha)))}
+.iq-route button[aria-disabled="true"]{color:var(--ink-5);cursor:default}
+.iq-route button svg{width:13px;height:13px}
+.iq-rl{padding:6px 10px 0;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.iq-rl.is-why{color:var(--ink-4)}
+.iq-sec{margin-top:4px}
+.iq-more{position:relative;display:flex;align-items:center;gap:8px;width:100%;height:var(--h-row);margin-top:9px;padding:0 10px;border-radius:var(--r-sm);color:var(--ink-2);font:500 var(--fs-base)/20px var(--sans);text-align:left}
+.iq-more::before{content:"";position:absolute;left:4px;right:4px;top:-5px;height:1px;background:var(--line-soft)}
+.iq-more:hover{background:var(--hover-fill)}
+.iq-more-k{flex:none;white-space:nowrap}
+.iq-more-v{min-width:0;margin-left:auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.iq-more svg{flex:none;width:14px;height:14px;color:var(--ink-4);transition:transform var(--d-hover) var(--ease)}
+.iq-more[aria-expanded="true"] svg{transform:rotate(180deg)}
+.iq-moreb{padding-bottom:4px;animation:float-in var(--d-pop) var(--ease)}
+.iq-f{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:8px;padding:8px 10px 4px;border-top:1px solid var(--line-soft);font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.iq-back{margin-left:auto;height:28px;padding:0 8px;border-radius:var(--r-sm);color:var(--ink-2);font:500 var(--fs-sm)/16px var(--sans);white-space:nowrap}
+.iq-back:hover{background:var(--hover-fill);color:var(--ink)}
+.iq-err{padding:6px 10px 0;font:400 var(--fs-sm)/16px var(--sans);color:var(--err-ink)}
+.iq-mv ul{display:flex;flex-direction:column;gap:4px;margin:0;padding:4px 10px 0 28px;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-2)}
+.iq-mv li::marker{color:var(--ink-4)}
+.iq-mv-acts{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:12px;padding:0 4px 4px}
+.iq-mv-acts .iq-rl{margin:0 auto 0 0;padding:0;display:inline-flex;align-items:center;gap:6px}
+.iq-pop.is-sheet{left:0;right:0;bottom:0;top:auto;width:auto;border-radius:var(--r-2xl) var(--r-2xl) 0 0;padding:14px 10px max(22px,env(safe-area-inset-bottom));transform-origin:50% 100%;animation:sheet-up var(--d-sheet) var(--ease)}
+.iq-pop.is-sheet .iq-row{height:44px}
+/* One appear for everything that floats (menus, popovers, pickers): a 4 px rise from where it was called,
+   in 180 ms; it leaves in 140. */
+@keyframes float-in{from{opacity:0;transform:translateY(4px) scale(.98)}}
+@keyframes float-out{to{opacity:0;transform:translateY(2px) scale(.99)}}
+
 /* ── buttons ─────────────────────────────────────────────────────────────── */
 .b{position:relative;display:flex;align-items:center;justify-content:center;gap:10px;height:46px;padding:0 16px;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--float);color:var(--ink);font:600 var(--fs-lg)/1 var(--sans);overflow:hidden;user-select:none;-webkit-user-select:none;
   transition:transform 80ms var(--ease),background-color var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease)}
@@ -1091,63 +1159,7 @@ button.tp-done-u:hover{color:var(--ink)}
 .hr-ic.k-ping .hr-dot{width:6px;height:6px}
 
 /* ── intelligence: the chip (quietest thing in the composer) and its popover ── */
-.iq{flex:none;display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 8px;border-radius:var(--r-sm);color:var(--ink-4);font:500 var(--fs-base)/20px var(--sans);white-space:nowrap;font-variant-numeric:tabular-nums;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.iq:hover,.iq[aria-expanded="true"]{background:var(--fill-2);color:var(--ink-3)}
-.iq.is-pinned{color:var(--ink-3)}
-.iq-a{color:var(--ink-4)}
-.iq-p{font:inherit;letter-spacing:.5px}
-.iq-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--ink-2)}
-.iq-g{display:inline-grid;place-items:center;width:12px;font-size:var(--fs-sm)}
-.iq-mn{min-width:0;max-width:72px;overflow:hidden;text-overflow:ellipsis;color:var(--ink-3)}
-/* concentric: 20 outside, its 6 px controls 14 px from every edge (13 + the 1 px edge) */
-.iq-pop{position:fixed;z-index:46;display:flex;flex-direction:column;padding:13px;border-radius:var(--r-xl);background:var(--float);border:1px solid var(--line-soft);box-shadow:var(--e2);outline:none;animation:pop-in .18s var(--ease)}
-.iq-pop.is-out{animation:pop-out .14s ease-in forwards}
-@keyframes pop-in{from{opacity:0;transform:translateY(6px) scale(.985)}}
-@keyframes pop-out{to{opacity:0;transform:translateY(4px)}}
-.iq-h{display:flex;align-items:center;gap:10px}
-.iq-h h2{flex:1;min-width:0;font:600 var(--fs-md)/20px var(--sans);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.iq-h h2 span{font-weight:500;color:var(--ink-3)}
-.iq-auto{display:inline-flex;align-items:center;gap:8px;height:30px;padding:0 4px 0 10px;border-radius:var(--r-sm);color:var(--ink-3);font:500 var(--fs-sm)/1 var(--sans)}
-.iq-auto:hover{background:var(--fill-2);color:var(--ink)}
-.iq-auto[aria-checked="true"] .sw{background:color-mix(in srgb,var(--ink-3) 55%,var(--fill-3))}
-.iq-auto[aria-checked="true"] .sw::after{transform:translateX(11px);background:var(--ink)}
-.iq-now{display:block;margin-top:8px;font-size:var(--fs-sm);line-height:16px;color:var(--ink-3)}
-.iq-now b{color:var(--ink-2);font-weight:600}
-.iq-now .iq-dot{margin:0 6px 1px 0;vertical-align:middle}
-.iq-sec{margin-top:12px;padding-top:12px;border-top:1px solid var(--line-soft)}
-.iq-route{display:flex;padding:3px;border-radius:var(--r-sm);background:var(--fill-2)}
-.iq-route button{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:30px;border-radius:calc(var(--r-sm) - 3px);color:var(--ink-3);font:500 var(--fs-base)/1 var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.iq-route button svg{width:13px;height:13px}
-.iq-route button small{font-weight:500;font-size:var(--fs-sm);color:var(--ink-4)}
-.iq-route button[aria-checked="true"]{background:var(--float);color:var(--ink);box-shadow:0 0 0 1px var(--line-soft)}
-.iq-route button.no-key{color:var(--ink-4);opacity:.75}
-.iq-route button:hover:not([aria-checked="true"]){color:var(--ink)}
-.iq-rl{margin-top:7px;font-size:var(--fs-sm);color:var(--ink-4)}
-.iq-lh{display:flex;justify-content:space-between;padding:0 8px 6px 28px;font-size:var(--fs-sm);color:var(--ink-4)}
-.iq-lh span:last-child{width:102px;text-align:center}
-.iq-list{display:grid;grid-template-columns:minmax(0,1fr);gap:2px}
 /* a row never grows past the list (hub #20): its description gives way, the depth pips keep their box */
-.iq-row{min-width:0}
-.iq-row{display:flex;align-items:center;gap:8px;min-height:38px;padding:0 4px 0 8px;border-radius:var(--r-sm);cursor:pointer;transition:background var(--d-hover) var(--ease)}
-.iq-row:hover,.iq-row.is-cur{background:var(--fill-2)}
-.iq-mk{flex:none;display:grid;place-items:center;width:12px}
-.iq-n{flex:none;font:500 var(--fs-md)/1 var(--sans);color:var(--ink)}
-.iq-tr{flex:1;min-width:0;font-size:var(--fs-sm);color:var(--ink-4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.iq-d{flex:none;display:flex;gap:2px;width:102px}
-.iq-pip{flex:1;display:grid;place-items:center;height:28px;border-radius:var(--r-sm);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.iq-pip:hover:not(:disabled){background:var(--fill-3);color:var(--ink)}
-.iq-pip:disabled{color:var(--ink-4);opacity:.3}
-.iq-pip.is-cur{box-shadow:inset 0 0 0 1px var(--line-hover);color:var(--ink)}
-.iq-pip.is-sel{background:var(--ink);color:var(--on-ink)}
-.iq-none{padding:10px 8px;font-size:var(--fs-base);color:var(--ink-4)}
-.iq-q{display:flex;align-items:center;gap:8px;height:34px;margin-top:6px;padding:0 8px;border-radius:var(--r-sm);color:var(--ink-4)}
-.iq-q:focus-within{background:var(--fill-2)}
-.iq-q svg{flex:none;width:14px;height:14px}
-.iq-q input{flex:1;min-width:0;height:100%;border:0;background:transparent;outline:none;font-size:var(--fs-base)}
-.iq-q input::placeholder{color:var(--ink-4)}
-.iq-f{display:flex;align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid var(--line-soft);font-size:var(--fs-sm);color:var(--ink-4)}
-.iq-back{margin-left:auto;height:28px;padding:0 10px;border-radius:var(--r-sm);color:var(--ink-2);font:500 var(--fs-sm)/1 var(--sans)}
-.iq-back:hover{background:var(--fill-2);color:var(--ink)}
 .iq-pop.is-sheet{left:0;right:0;bottom:0;top:auto;width:auto;border-radius:var(--r-2xl) var(--r-2xl) 0 0;padding:16px 16px max(22px,env(safe-area-inset-bottom));animation:sheet-up .26s var(--ease)}
 
 /* ── dialogs and sheets ──────────────────────────────────────────────────── */
@@ -1818,18 +1830,8 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 .wt-hold{height:38px;min-width:170px}
 
 /* the live intelligence popover (R6): models with storm's own descriptions */
-.iq-lab{margin-bottom:8px;font:500 var(--fs-sm)/1 var(--sans);color:var(--ink-4)}
-.iq-err{margin-top:8px;font-size:var(--fs-sm);color:var(--err-ink)}
-.iq-row.lv .iq-n{flex:none}
-.iq-row.lv .iq-tr{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.iq-pip.is-flat{width:auto;padding:0 8px;font-size:var(--fs-sm);color:var(--ink-3)}
 /* live: a model's efforts come from the catalog (up to five); each pip is one effort */
-.iq-row.lv .iq-d{width:auto}
-.iq-row.lv .iq-pip{flex:none;width:auto;min-width:30px;padding:0 6px}
 @media (max-width:760px){
-  .iq-row.lv{flex-wrap:wrap;row-gap:2px;padding-top:6px;padding-bottom:6px}
-  .iq-row.lv .iq-d{flex-basis:100%;padding-left:24px}
-  .iq-row.lv .iq-pip{width:44px;height:36px}
 }
 
 /* ── Chats: plain chats with one agent (U1) ───────────────────────────────── */
@@ -2793,15 +2795,7 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .ev-ctl.is-stop .ev-t{color:var(--ink-2)}
 
 /* ── the picker's first choice: the runtime (mixed runtimes), then model, then effort ─────────────── */
-.iq-rts .iq-route button[aria-disabled="true"]{color:var(--ink-4);opacity:.6;cursor:default}
-.iq-rl.is-why{color:var(--ink-4)}
-.iq-mv ul{display:flex;flex-direction:column;gap:4px;margin:0;padding-left:18px;font-size:var(--fs-sm);line-height:16px;color:var(--ink-2)}
-.iq-mv li::marker{color:var(--ink-4)}
-.iq-mv-acts{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:12px}
-.iq-mv-acts .iq-rl{margin:0 auto 0 0;display:inline-flex;align-items:center;gap:6px}
-.iq-mv-acts .btn{height:32px;padding:0 12px;border-radius:var(--r-sm);font-size:var(--fs-base)}
 /* a long catalog scrolls inside the picker; what the choice means stays on screen */
-.iq-pop .iq-list{max-height:min(304px,38vh);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
 
 /* Settings › Runtimes: the defaults, four plain rows that save as they change */
 .rt-defs{display:flex;flex-direction:column}

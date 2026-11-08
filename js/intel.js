@@ -20,12 +20,14 @@ import { rtName, usable, allowedOf, moveTargets, findRt, healthOf, manyRuntimes 
 
 const EFFORT_WORD = { low: "Quick", medium: "Balanced", high: "Deep", xhigh: "Deeper", max: "Deepest" };
 const PIPS = { low: 1, medium: 2, high: 3, xhigh: 4, max: 5 };
-const dots = (e) => (e ? "·".repeat(Math.min(3, PIPS[e] || 2)) + (PIPS[e] > 3 ? "+" : "") : "");
+// what each depth means, said once under the control (the words are the setting; there are no dot codes)
+const EFFORT_HINT = { low: "Answers fast. For quick, simple asks.", medium: "A sensible default for most work.", high: "Thinks longer before it acts. For hard problems.", xhigh: "Thinks much longer. Slower, for the hardest work.", max: "Thinks as long as it needs. The slowest and most thorough." };
+const effortWord = (e) => (e ? EFFORT_WORD[e] || e : "");
 
 // simple(): the person's shape asks for the simple choice (xo:composer/intel "simple"): the chip opens
 // Auto · Deep first, and "More options" shows everything below, unchanged.
 export function createIntel({ world, PROJ, onChange, record, onMoved, simple = () => false }) {
-  const P = { open: false, session: null, anchor: null, returnTo: null, models: null, err: null, busy: false, rt: null, mv: null, full: false };
+  const P = { open: false, session: null, anchor: null, returnTo: null, models: null, err: null, busy: false, rt: null, mv: null, full: false, draft: null, more: false };
   const movedHere = new Set(); // threads this tab continued elsewhere (their stream frame needs no second word)
   const catalogs = new Map(); // runtime → models
   const pop = document.getElementById("iq-pop");
@@ -85,19 +87,25 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     return { pinned: !!(pin.model || pin.effort), model: pin.model || null, effort: pin.effort || null, routing: r, ownRouting: !!own, by: r.mode === "decision" ? r.decision_model : "coordinator" };
   }
 
+  /** What a thread's session is running right now (the router's choice or a pin it already took). */
+  const running = (s) => { const t = threadOf(s); const se = (t && t.session) || {}; return t ? { model: se.model || null, effort: se.effort || null, working: t.state === "working" } : null; };
+  /** The chip says what the conversation runs on, in words: a thread's model and depth as its session runs
+      them now (so a working thread shows the setting it is working in), a chat's pin, else Auto. A runtime
+      other than the Space's own is named first. No codes: no pin dot, no effort dots. */
   function chipHtml(s, phone) {
     warm(s);
     const c = current(s);
     if (simple() && !phone) { const w = simpleOf(s, c); return `<span class="iq-l"><span class="${w === "auto" ? "iq-a" : "iq-t"}">${esc(w === "auto" ? "Auto" : w === "deep" ? "Deep" : nameOf(c.model) || "Pinned")}</span></span>`; }
-    // on a phone too, which model runs is said, short (QA #13): its name when pinned, else Auto
-    if (phone) return `<span class="iq-g" aria-hidden="true">${c.pinned ? `<i class="iq-dot"></i>` : "◇"}</span><span class="iq-mn">${esc(c.pinned && c.model ? nameOf(c.model) : "Auto")}</span><span class="iq-p">${esc(dots(c.effort))}</span>`;
-    // three parts, each one flex item: the pin's dot, one label (its separators inside it), the effort
-    const { dot, words, effort } = chipParts(s, c);
-    // a runtime other than the server's own is named first, in place of "Auto", when there are several
+    const r = running(s);
+    const model = r ? r.model || c.model : c.pinned ? c.model : null;
+    const effort = r ? r.effort || c.effort : c.pinned ? c.effort : null;
     const rtn = runtimeOf(s), main = (mainRuntime(world.state.runtimes) || {}).name;
-    const rt = manyRuntimes(world.state.runtimes) && rtn && rtn !== main ? rtName(rtn) : null;
-    const label = rt ? [`<span class="iq-a">${esc(rt)}</span>`, ...words.filter((w) => w !== AUTO)] : words;
-    return `${dot ? `<i class="iq-dot" aria-hidden="true"></i>` : ""}<span class="iq-l">${label.join(" · ")}</span>${effort ? `<span class="iq-p">${esc(dots(effort))}</span>` : ""}`;
+    const rt = manyRuntimes(world.state.runtimes) && rtn && rtn !== main && !phone ? rtName(rtn) : null;
+    const words = [];
+    if (rt) words.push(`<span class="iq-a">${esc(rt)}</span>`);
+    words.push(model ? `<span class="iq-t">${esc(nameOf(model))}</span>` : `<span class="iq-a">Auto</span>`);
+    if (effort && !phone) words.push(`<span class="iq-e">${esc(effortWord(effort))}</span>`);
+    return `<span class="iq-l">${words.join(`<span class="iq-sep" aria-hidden="true">·</span>`)}</span>`;
   }
   const AUTO = `<span class="iq-a">Auto</span>`;
   /** {dot: pinned, words: the label's parts (HTML), effort} */
@@ -164,10 +172,11 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
 
   // ── the popover ───────────────────────────────────────────────────────────
   function modelRow(m, s, name, sel, selEffort, attrs) {
-    const efforts = effortsOf(m, s, name);
-    return `<div class="iq-row lv${sel ? " is-sel" : ""}" role="option" aria-selected="${sel}" ${attrs.row}="${esc(m.id)}">` +
-      `<span class="iq-mk" aria-hidden="true">${sel ? `<i class="iq-dot"></i>` : ""}</span><span class="iq-nt"><span class="iq-n">${esc(m.name)}</span>${m.description ? `<span class="iq-tr">${esc(m.description)}</span>` : ""}</span>` +
-      `<span class="iq-d">${efforts.length ? efforts.filter((e) => PIPS[e]).map((e) => `<button type="button" class="iq-pip${sel && selEffort === e ? " is-sel" : ""}" ${attrs.pip}="${esc(m.id)}|${esc(e)}" aria-label="${esc(m.name)}, ${esc(EFFORT_WORD[e] || e)}" title="${esc(EFFORT_WORD[e] || e)}"><span class="pd">${"<i></i>".repeat(PIPS[e])}</span></button>`).join("") : `<button type="button" class="iq-pip is-flat" ${attrs.pip}="${esc(m.id)}|" title="This model has no effort setting">Pick</button>`}</span></div>`;
+    return `<div class="iq-row${sel ? " is-sel" : ""}" role="radio" aria-checked="${sel}" tabindex="${sel ? 0 : -1}" ${attrs.row}="${esc(m.id)}" title="${esc(m.description || "")}"><span class="iq-n">${esc(m.name)}</span>${m.description ? `<span class="iq-tr">${esc(m.description)}</span>` : ""}${CHECK}</div>`;
+  }
+  function depthHtml(efs, sel, attr) {
+    if (!efs.length) return "";
+    return `<p class="iq-lab">Thinking</p><div class="iq-route iq-depth" role="radiogroup" aria-label="Thinking">${efs.map((e) => `<button type="button" role="radio" aria-checked="${sel === e}" tabindex="${sel === e ? 0 : -1}" ${attr}="${esc(e)}">${esc(effortWord(e))}</button>`).join("")}</div><p class="iq-rl">${esc(EFFORT_HINT[sel] || "")}</p>`;
   }
   // one row per family's default (claude: opus, fable, sonnet, haiku), then models in no family
   const shown = (models) => (models || []).filter((m) => !m.is_default && (m.family_default || !m.family));
@@ -209,14 +218,14 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     const s = P.session, kind = kindOf(s), c = current(s);
     const models = P.models;
     let html = `<header class="iq-h"><h2 id="iq-hh">Intelligence <span>for ${esc(scopeWord(s))}</span></h2></header>`;
-    html += runtimeHtml(s);
     if (moving(s)) {
+      html += runtimeHtml(s);
       // continuing elsewhere: its model and effort there (its default unless chosen), then what happens
       const to = rtName(P.rt), mv = P.mv || {};
       html += `<div class="iq-sec"><p class="iq-now">${mv.model ? `On ${esc(to)} it will use <b>${esc(nameOf(mv.model))}${mv.effort ? ` · ${esc(EFFORT_WORD[mv.effort] || mv.effort)}` : ""}</b>.` : `On ${esc(to)} it will use its default model, unless you pick one.`}</p>`;
       if (mv.modelsErr) html += `<p class="iq-err">${esc(mv.modelsErr)}</p>`;
       else if (!mv.models) html += `<p class="iq-rl"><i class="spin" aria-hidden="true"></i> Reading ${esc(to)}'s models…</p>`;
-      else html += `<div class="iq-list" role="listbox" aria-label="${esc(to)}'s models">${shown(mv.models).map((m) => modelRow(m, s, P.rt, mv.model === m.id, mv.effort, { row: "data-mvm", pip: "data-mvp" })).join("")}</div>`;
+      else html += `<div class="iq-list" role="radiogroup" aria-label="${esc(to)}'s models">${shown(mv.models).map((m) => modelRow(m, s, P.rt, mv.model === m.id, mv.effort, { row: "data-mvm" })).join("")}</div>` + (mv.model ? depthHtml(effortsOf((mv.models || []).find((x) => x.id === mv.model), s, P.rt).filter((e) => PIPS[e]), mv.effort, "data-mvp") : "");
       html += `</div><div class="iq-sec iq-mv" id="iq-mv-cons"><p class="iq-lab">Continuing on ${esc(to)}</p><ul>` +
         `<li>Its messages and work go to ${esc(to)}.</li><li>The new agent starts from a summary and the code, and re-reads files.</li>` +
         `<li>Earlier approvals don't carry over.</li><li>This thread is frozen; write in it to pick it back up.</li></ul>` +
@@ -226,36 +235,90 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       place();
       return;
     }
-    const lead = kind === "thread"
-      ? `<p class="iq-now">${c.pinned ? `<i class="iq-dot"></i>Pinned: <b>${esc(nameOf(c.model) || "the default")}${c.effort ? ` · ${esc(EFFORT_WORD[c.effort] || c.effort)}` : ""}</b>.` : `The router chose <b>${esc(c.model ? nameOf(c.model) : "the default model")}${c.effort ? ` · ${esc(EFFORT_WORD[c.effort] || c.effort)}` : ""}</b> for it.`}</p>`
-      : `<p class="iq-now">${c.pinned ? `<i class="iq-dot"></i>Its coordinator runs <b>${esc(nameOf(c.model) || "the default")}${c.effort ? ` · ${esc(EFFORT_WORD[c.effort] || c.effort)}` : ""}</b>.` : "Its coordinator runs on its default model."} New threads get their own from the router.</p>`;
-    html += `<div class="iq-sec">${lead}`;
+    // ── one decision at a time: what it runs on (true now), the model, how long it thinks, then the rest ──
+    const r = running(s);
+    const d = draftOf(s);
+    const nowWords = (m, e) => `<b>${esc(m ? nameOf(m) : "its default model")}${e ? ` · ${esc(effortWord(e))}` : ""}</b>`;
+    let truth;
+    if (kind === "thread") {
+      const rtw = esc(rtName(runtimeOf(s)) || "");
+      truth = `${r && r.working ? `<i class="g g-working" aria-hidden="true"></i>Running` : "Runs"} ${nowWords(r && r.model || c.model, r && r.effort || c.effort)}${rtw ? ` on ${rtw}` : ""}.`;
+      if (c.pinned && r && (c.model && r.model && c.model !== r.model || c.effort && r.effort && c.effort !== r.effort)) truth += ` From its next turn: ${nowWords(c.model, c.effort)}.`;
+    } else truth = c.pinned ? `Its coordinator runs ${nowWords(c.model, c.effort)}. New threads get their own from the router.` : "Its coordinator runs its default model. New threads get their own from the router.";
+    html += `<p class="iq-truth">${truth}</p>`;
     if (P.err) html += `<p class="iq-err">${esc(P.err)}</p>`;
     else if (!models) html += `<p class="iq-rl"><i class="spin" aria-hidden="true"></i> Reading the models…</p>`;
-    else html += `<div class="iq-list" role="listbox" aria-label="Models">${shown(models).map((m) => modelRow(m, s, runtimeOf(s), c.pinned && c.model === m.id, c.effort, { row: "data-lmodel", pip: "data-lpin" })).join("")}</div>`;
-    html += `</div>`;
-    if (kind !== "thread") {
-      const space = world.state.router || { mode: "agent" };
-      const dms = (P.dms || []).filter((m) => m.connected);
-      const opts = [
-        { id: "space", label: "The Space's", on: !c.ownRouting, line: space.mode === "decision" ? `${cap(space.decision_model)} routes, as set in Settings.` : space.mode === "off" ? "Routing is off for the whole Space." : "The coordinator routes, as set in Settings." },
-        { id: "agent", label: "Coordinator", on: c.ownRouting && c.routing.mode === "agent", line: "This chat's coordinator reads each message and decides." },
-        ...dms.map((m) => ({ id: `dm:${m.id}`, label: m.label.replace(/^\S+ /, ""), on: c.ownRouting && c.routing.mode === "decision" && c.routing.decision_model === m.id, line: `${m.label} routes this chat's messages; the coordinator decides when it isn't sure.` })),
-        { id: "off", label: "Off", on: c.ownRouting && c.routing.mode === "off", line: "New messages to this chat are refused. Its threads still take your replies." },
-      ];
-      const on = opts.find((o) => o.on) || opts[0];
-      html += `<div class="iq-sec"><p class="iq-lab" id="iq-ro-l">Who routes a new message</p><div class="iq-route" role="radiogroup" aria-labelledby="iq-ro-l">${opts.map((o) => `<button type="button" role="radio" data-lroute="${esc(o.id)}" aria-checked="${o.on}">${o.id === "agent" ? ICON.router : ""}${esc(o.label)}</button>`).join("")}</div><p class="iq-rl">${esc(on.line)}</p></div>`;
+    else {
+      const rows = shown(models);
+      const autoRow = kind !== "thread" ? `<div class="iq-row${d.auto ? " is-sel" : ""}" role="radio" aria-checked="${d.auto}" tabindex="${d.auto ? 0 : -1}" data-dmodel=""><span class="iq-n">Auto</span><span class="iq-tr">Its default, and the router's pick for each thread</span>${CHECK}</div>` : "";
+      html += `<p class="iq-lab" id="iq-m-l">Model</p><div class="iq-list" role="radiogroup" aria-labelledby="iq-m-l">${autoRow}` +
+        rows.map((m) => { const on = !d.auto && d.model === m.id; return `<div class="iq-row${on ? " is-sel" : ""}" role="radio" aria-checked="${on}" tabindex="${on ? 0 : -1}" data-dmodel="${esc(m.id)}" title="${esc(m.description || "")}"><span class="iq-n">${esc(m.name)}</span>${m.description ? `<span class="iq-tr">${esc(m.description)}</span>` : ""}${CHECK}</div>`; }).join("") + `</div>`;
+      const efs = d.auto ? [] : effortsOf(modelOf(d.model), s).filter((e) => PIPS[e]);
+      if (efs.length) {
+        html += `<p class="iq-lab" id="iq-e-l">Thinking</p><div class="iq-route iq-depth" role="radiogroup" aria-labelledby="iq-e-l">` +
+          efs.map((e) => `<button type="button" role="radio" aria-checked="${d.effort === e}" tabindex="${d.effort === e ? 0 : -1}" data-deffort="${esc(e)}">${esc(effortWord(e))}</button>`).join("") +
+          `</div><p class="iq-rl">${esc(EFFORT_HINT[d.effort] || "")}</p>`;
+      }
     }
-    html += `<footer class="iq-f"><span>Applies to ${esc(scopeWord(s))} from its next turn.</span>${c.pinned ? `<button type="button" class="iq-back" data-lauto>Back to the default model</button>` : ""}</footer>`;
+    const more = runtimeHtml(s) + (kind !== "thread" ? routingHtml(s, c) : "");
+    if (more) {
+      const sum = [rtName(runtimeChoice(s).on === "auto" ? "" : runtimeChoice(s).on) || (runtimeChoice(s).on === "auto" ? "Auto runtime" : ""), kind !== "thread" ? routeWord(c) : ""].filter(Boolean).join(" · ");
+      html += `<button type="button" class="iq-more" data-lmore aria-expanded="${P.more}"><span class="iq-more-k">${kind !== "thread" ? "Runtime, routing" : "Runtime"}</span><span class="iq-more-v">${esc(sum)}</span>${ICON.chevron || ""}</button>`;
+      if (P.more) html += `<div class="iq-moreb">${more}</div>`;
+    }
+    const changed = draftChanged(s);
+    html += `<footer class="iq-f"><span>${changed ? "Applies when this closes, from the next turn." : "Applies from the next turn."}</span>${kind === "thread" && c.pinned ? `<button type="button" class="iq-back" data-lauto>Default model</button>` : ""}</footer>`;
     pop.innerHTML = html;
     place();
+  }
+  const CHECK = `<svg class="iq-ck" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`;
+  const routeWord = (c) => { const r = c.routing || {}; return !c.ownRouting ? "the Space's routing" : r.mode === "off" ? "routing off" : r.mode === "decision" ? `${cap(r.decision_model)} routes` : "its coordinator routes"; };
+  function routingHtml(s, c) {
+    const space = world.state.router || { mode: "agent" };
+    const dms = (P.dms || []).filter((m) => m.connected);
+    const opts = [
+      { id: "space", label: "The Space's", on: !c.ownRouting, line: space.mode === "decision" ? `${cap(space.decision_model)} routes, as set in Settings.` : space.mode === "off" ? "Routing is off for the whole Space." : "The coordinator routes, as set in Settings." },
+      { id: "agent", label: "Coordinator", on: c.ownRouting && c.routing.mode === "agent", line: "This chat's coordinator reads each message and decides." },
+      ...dms.map((m) => ({ id: `dm:${m.id}`, label: m.label.replace(/^\S+ /, ""), on: c.ownRouting && c.routing.mode === "decision" && c.routing.decision_model === m.id, line: `${m.label} routes this chat's messages; the coordinator decides when it isn't sure.` })),
+      { id: "off", label: "Off", on: c.ownRouting && c.routing.mode === "off", line: "New messages to this chat are refused. Its threads still take your replies." },
+    ];
+    const on = opts.find((o) => o.on) || opts[0];
+    return `<div class="iq-sec"><p class="iq-lab" id="iq-ro-l">Who routes a new message</p><div class="iq-route" role="radiogroup" aria-labelledby="iq-ro-l">${opts.map((o) => `<button type="button" role="radio" data-lroute="${esc(o.id)}" aria-checked="${o.on}">${esc(o.label)}</button>`).join("")}</div><p class="iq-rl">${esc(on.line)}</p></div>`;
+  }
+  /** The choice on screen: what you picked while it's open, else what it runs on. {auto, model, effort} */
+  function draftOf(s) {
+    if (P.draft) return P.draft;
+    const c = current(s), r = running(s);
+    if (threadOf(s)) return { auto: false, model: c.model || (r && r.model) || defaultId(), effort: c.effort || (r && r.effort) || null };
+    return c.pinned ? { auto: false, model: c.model, effort: c.effort } : { auto: true, model: null, effort: null };
+  }
+  function draftChanged(s) {
+    if (!P.draft) return false;
+    const c = current(s), d = P.draft;
+    if (!threadOf(s) && d.auto) return c.pinned;
+    return d.model !== c.model || (d.effort || null) !== (c.effort || null) || (!threadOf(s) && !c.pinned);
+  }
+  /** Pick a model: it keeps the depth you had when it can, else takes its own default. */
+  function pickModel(id) {
+    const s = P.session;
+    if (!id) { P.draft = { auto: true, model: null, effort: null }; render(); return; }
+    const m = modelOf(id), efs = effortsOf(m, s), was = draftOf(s).effort;
+    P.draft = { auto: false, model: id, effort: !efs.length ? null : efs.includes(was) ? was : m.default_effort && efs.includes(m.default_effort) ? m.default_effort : efs[Math.floor((efs.length - 1) / 2)] };
+    render();
+  }
+  function pickEffort(e) { const d = draftOf(P.session); P.draft = { ...d, auto: false, effort: e }; render(); }
+  /** Closing applies what is on screen (one change, one record line with Undo). */
+  function commit(s) {
+    if (!draftChanged(s)) { P.draft = null; return; }
+    const d = P.draft; P.draft = null;
+    if (d.auto) toAuto(s); else pin(s, d.model, d.effort);
   }
   function place() {
     if (!P.anchor) return;
     if (matchMedia("(max-width: 760px)").matches) { pop.style.left = pop.style.top = pop.style.width = ""; pop.classList.add("is-sheet"); return; }
     pop.classList.remove("is-sheet");
     const r = P.anchor.getBoundingClientRect();
-    const w = Math.min(420, innerWidth - 24);
+    const w = Math.min(360, innerWidth - 24);
     pop.style.width = `${w}px`;
     pop.style.left = `${Math.max(12, Math.min(r.right - w + 10, innerWidth - w - 12))}px`;
     pop.style.top = `${Math.max(12, r.top - pop.offsetHeight - 10)}px`;
@@ -285,7 +348,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
   }
   /** opts.rt: open a thread's picker looking at continuing on that runtime (the thread menu's way in). */
   async function open(s, anchor, opts = {}) {
-    P.open = true; P.session = s; P.anchor = anchor; P.returnTo = document.activeElement; P.err = null; P.models = null; P.busy = false; P.rt = null; P.mv = null; P.full = false;
+    P.open = true; P.session = s; P.anchor = anchor; P.returnTo = document.activeElement; P.err = null; P.models = null; P.busy = false; P.rt = null; P.mv = null; P.full = false; P.draft = null; P.more = false;
     pop.hidden = false; pop.classList.remove("is-out");
     if (opts.rt) lookAt(opts.rt); else render();
     anchor?.setAttribute("aria-expanded", "true");
@@ -293,8 +356,9 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     else pop.focus({ preventScroll: true });
     await loadModels(s);
   }
-  function close({ restore = true } = {}) {
+  function close({ restore = true, apply = true } = {}) {
     if (!P.open) return;
+    if (apply && !P.mv) commit(P.session); else P.draft = null;
     P.rt = null; P.mv = null;
     P.open = false;
     P.anchor?.setAttribute("aria-expanded", "false");
@@ -422,7 +486,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     if (e.target.closest("[data-mv-cancel]")) { lookAt(null); pop.querySelector(`[data-lrt][aria-checked="true"]`)?.focus(); return; }
     if (e.target.closest("[data-mv-go]")) { moveGo(); return; }
     const mvp = e.target.closest("[data-mvp]");
-    if (mvp && P.mv) { const [m, ef] = mvp.dataset.mvp.split("|"); P.mv.model = m; P.mv.effort = ef || null; render(); return; }
+    if (mvp && P.mv) { P.mv.effort = mvp.dataset.mvp || null; render(); return; }
     const mvm = e.target.closest("[data-mvm]");
     if (mvm && P.mv) {
       const m = (P.mv.models || []).find((x) => x.id === mvm.dataset.mvm);
@@ -432,19 +496,32 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     }
     const r = e.target.closest("[data-lroute]");
     if (r) { const s = P.session; close(); route(s, r.dataset.lroute); return; }
-    const p = e.target.closest("[data-lpin]");
-    if (p) { const [m, ef] = p.dataset.lpin.split("|"); const s = P.session; close(); pin(s, m, ef || null); return; }
-    if (e.target.closest("[data-lauto]")) { const s = P.session; close(); toAuto(s); return; }
-    const row = e.target.closest("[data-lmodel]");
-    if (row) {
-      const m = (P.models || []).find((x) => x.id === row.dataset.lmodel);
-      const s = P.session; close();
-      // the model's own default effort, or the effort it runs at now when the model takes it
-      const efs = effortsOf(m, s), now = current(s).effort;
-      pin(s, row.dataset.lmodel, !efs.length ? null : m.default_effort && efs.includes(m.default_effort) ? m.default_effort : efs.includes(now) ? now : efs[Math.floor((efs.length - 1) / 2)]);
-    }
+    if (e.target.closest("[data-lauto]")) { const s = P.session; P.draft = null; close({ apply: false }); toAuto(s); return; }
+    if (e.target.closest("[data-lmore]")) { P.more = !P.more; render(); pop.querySelector("[data-lmore]")?.focus({ preventScroll: true }); return; }
+    const dm = e.target.closest("[data-dmodel]");
+    if (dm) { pickModel(dm.dataset.dmodel); pop.querySelector(`[data-dmodel="${CSS.escape(dm.dataset.dmodel)}"]`)?.focus({ preventScroll: true }); return; }
+    const de = e.target.closest("[data-deffort]");
+    if (de) { pickEffort(de.dataset.deffort); pop.querySelector(`[data-deffort="${CSS.escape(de.dataset.deffort)}"]`)?.focus({ preventScroll: true }); }
   });
   pop.addEventListener("keydown", (e) => {
+    if (P.mv || P.busy) { if (e.key !== "Escape") return; }
+    else if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "ArrowLeft" || e.key === "ArrowRight") {
+      if (e.target.closest(".iq-route:not(.iq-depth), .iq-moreb")) return;   // runtime and routing keep the browser's own keys
+      const vertical = e.key === "ArrowDown" || e.key === "ArrowUp";
+      const group = e.target.closest(".iq-depth") || (vertical ? pop.querySelector(".iq-list") : pop.querySelector(".iq-depth"));
+      if (!group) return;
+      const items = [...group.querySelectorAll("[role=radio]")];
+      const cur = Math.max(0, items.findIndex((x) => x.getAttribute("aria-checked") === "true"));
+      const step = e.key === "ArrowDown" || e.key === "ArrowRight" ? 1 : -1;
+      const next = items[Math.max(0, Math.min(items.length - 1, cur + step))];
+      if (!next) return;
+      e.preventDefault();
+      if (next.dataset.deffort != null) { pickEffort(next.dataset.deffort); pop.querySelector(`[data-deffort="${CSS.escape(next.dataset.deffort)}"]`)?.focus({ preventScroll: true }); }
+      else if (next.dataset.dmodel != null) { pickModel(next.dataset.dmodel); pop.querySelector(`[data-dmodel="${CSS.escape(next.dataset.dmodel)}"]`)?.focus({ preventScroll: true }); }
+      return;
+    }
+    else if (e.key === "Enter" && !e.target.closest("button:not([role=radio])")) { e.preventDefault(); close(); return; }
+    else if (K.is(e, "auto") && !e.target.closest("input,textarea")) { e.preventDefault(); if (threadOf(P.session)) { const s = P.session; close({ apply: false }); toAuto(s); } else pickModel(""); return; }
     if (e.key !== "Escape") return;
     e.preventDefault(); e.stopPropagation();
     // Esc steps back out of continuing elsewhere first, then closes

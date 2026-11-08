@@ -45,7 +45,7 @@ export const ACTIONS = [
   { id: "undo", scope: "decision", label: "Undo the last decision (3 s)", def: "u" },
   { id: "allowAll", scope: "decision", label: "Allow all routine together", def: "shift+a" },
   { id: "auto", scope: "intel", label: "Back to Auto", def: "a" },
-  { id: "intelNav", scope: "intel", label: "Model · depth · pin it", fixed: "↑ ↓ · ← → · ↵" },
+  { id: "intelNav", scope: "intel", label: "Model · thinking · done", fixed: "↑ ↓ · ← → · ↵" },
   // the lightbox (js/lightbox.js) keeps these itself; they're listed so the keys sheet tells the truth
   { id: "picOpen", scope: "picture", label: "Open a picture in the conversation", fixed: "click · ↵" },
   { id: "picStep", scope: "picture", label: "The previous or next picture in this conversation", fixed: "← →" },

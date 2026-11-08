@@ -123,16 +123,6 @@ body.stage-full .stg-grip{display:none}
 .shd-dot.d-wait{animation:none}
 
 /* ── the worst three ─────────────────────────────────────────────────────────────────────────────── */
-/* the model picker: a model's name, then all of its description under it; the dot on the name's line */
-.iq-row,.iq-row.lv{align-items:flex-start;min-height:0;padding:4px 4px 4px 8px}
-/* the effort pips (28 tall) centre on the name's line (20 tall, 4 down): one centre for the row's first line */
-.iq-mk{height:28px}
-.iq-nt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;padding:4px 0}
-.iq-n,.iq-row.lv .iq-n{font:500 var(--fs-md)/20px var(--sans)}
-.iq-tr,.iq-row.lv .iq-tr{white-space:normal;overflow:visible;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
-.iq-d,.iq-row.lv .iq-d{align-self:flex-start}
-.iq-back{height:auto;min-height:28px;padding:6px 10px;white-space:nowrap}
-.iq-f{flex-wrap:wrap;gap:8px}
 /* Settings: the selected page is its own fill; no detached bar on a rail 11 px away */
 .set-nav{border-left:0;padding-left:0}
 .set-nav button::before{display:none}
