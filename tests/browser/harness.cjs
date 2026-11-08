@@ -40,7 +40,7 @@ const STATIC = {
   "/api/terminal/sessions": { terminals: [] },
   "/api/chat/sessions": { sessions: [], next_after_seq: null },
   "/api/chat/review": { items: [], next_after_seq: null },
-  "/api/chat/runtimes": { runtimes: [] },
+  "/api/chat/runtimes": { runtimes: [{ name: "claude_code", default: true, health: { agent: "claude_code", usable: true, why_not: null, installed: true, logged_in: true, account: "acct-test", cli_version: "1.0", pool: "claude_code:acct-test", limit: "open", resets_at: null, windows: {}, error: null, checked_at: NOW }, cli: { version: "1.0", logged_in: true, account: "acct-test", limits: {} }, features: { agent: "claude_code", cli_version: "1.0", contract_version: "1.0", features: { model: { support: "native", values: [] }, effort: { support: "native", values: [] } } } }] },
   "/api/chat/runtime-policy": { space: policy, effective: { ...policy, fallback: false } },
   "/api/chat/router": { mode: "agent", decision_model: null, abstain_below: 0.5 },
 };
@@ -62,7 +62,19 @@ function mockApi(W) {
       if (W.hops) return W.hops(r, k[1], json);
       return json({ hops: [], next_after_seq: null, next_before_seq: null });
     }
-    if (/^\/api\/chat\/runtimes\/[^/]+\/models$/.test(p)) return json({ name: "claude_code", models: [] });
+    if (/^\/api\/chat\/runtimes\/[^/]+\/models$/.test(p)) {
+      if (W.modelsGate) await W.modelsGate; // the test says when the catalog answers
+      return json({ name: "claude_code", models: W.models || [
+        { id: "default", name: "Default", efforts: ["low", "medium", "high"], default_effort: null, context_window: null, is_default: true, takes_effort: true, family: null, family_default: false, description: "The CLI's own choice" },
+        { id: "opus", name: "Opus", efforts: ["low", "medium", "high"], default_effort: null, context_window: null, is_default: false, takes_effort: true, family: "opus", family_default: true, description: "For complex work" },
+        { id: "sonnet", name: "Sonnet", efforts: ["low", "medium", "high"], default_effort: null, context_window: null, is_default: false, takes_effort: true, family: "sonnet", family_default: true, description: "Efficient" } ] });
+    }
+    if (/^\/api\/chat\/chats\/[^/]+$/.test(p) && m === "PATCH") {
+      W.patches = (W.patches || 0) + 1;
+      if (W.patchGate) await W.patchGate;
+      if (W.patchMode === "503") return json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503);
+      return json({});
+    }
     if (/^\/api\/xo-projects\/[^/]+\/changes$/.test(p)) return json({ project_id: "demo", worktree: null, root: "/demo", base_ref: "HEAD", base_commit: "c0", base_source: "head", head_commit: "c0", computed_at: NOW, truncated: false, total_files: 0, files: [] });
     if (/^\/api\/xo-projects\/[^/]+\/tree$/.test(p)) {
       const rel = u.searchParams.get("relative_path") || "";
@@ -119,8 +131,10 @@ async function openApp(browser, BASE, W = {}, { width = 1440, height = 900, moti
     const name = (e) => `${e.tagName.toLowerCase()}${e.id ? "#" + e.id : ""}${[...e.attributes].filter((a) => a.name.startsWith("data-")).map((a) => `[${a.name}${a.value ? "=" + a.value : ""}]`).join("")} "${(e.getAttribute("aria-label") || e.textContent || "").trim().slice(0, 30)}"`;
     addEventListener("DOMContentLoaded", () => {
       document.addEventListener("focusin", (e) => { if (e.target !== document.body) last = e.target; }, true);
-      // a blur on purpose (a click on the page, el.blur()) leaves the control where it was: not a drop
-      document.addEventListener("focusout", (e) => { const t = e.target; if (last === t && t.isConnected && t.getClientRects().length) last = null; }, true);
+      // a blur on purpose (a click on the page, el.blur()) leaves the control where it was: not a drop. Judged a
+      // microtask later: Chrome fires focusout for a removed node while it's still connected (Launchpad & Shell
+      // thread's finding: judged at once, every removal looked like a deliberate blur and no drop was recorded)
+      document.addEventListener("focusout", (e) => { const t = e.target; queueMicrotask(() => { if (last === t && t.isConnected && t.getClientRects().length) last = null; }); }, true);
       const check = () => {
         const a = document.activeElement;
         if ((!a || a === document.body) && last && (!last.isConnected || !last.getClientRects().length)) { window.__focusDrops.push(name(last)); last = null; }

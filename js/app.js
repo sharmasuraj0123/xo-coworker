@@ -570,6 +570,7 @@ function homeRender(needs) {
   // the next move (stays put until it's done)
   const nb = $("#hm-next");
   const card0 = nb.querySelector(".next");
+  const nextHad = nb.contains(document.activeElement);
   const inPanel = P0.next && D.current() === P0.next.key;
   if (card0 && (card0.classList.contains("noting") || card0._busy) && P0.next && card0.dataset.key === P0.next.key) { /* don't disturb a note in progress */ }
   else if (P0.next && inPanel) {
@@ -592,6 +593,9 @@ function homeRender(needs) {
     // the headline already says "Nothing needs you." (say it once): one quiet line under it
     else patch(nb, `<p class="calm-line">${w ? `${num(w)} ${noun(plural(w, "thread"))} working. ${w === 1 ? "It'll" : "They'll"} ask when it's worth it.` : "Start something below, or enjoy the quiet."}</p>`);
   }
+  // the card you were on is gone (its ask decided, nothing next): focus stays with the next move's place, which
+  // says what's left, rather than falling to the page (found by the suite's drop check)
+  if (nextHad && !nb.contains(document.activeElement)) { nb.tabIndex = -1; nb.focus({ preventScroll: true }); }
   landed(nb);
 
   // then… at most two more
