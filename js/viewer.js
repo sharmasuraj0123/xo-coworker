@@ -628,17 +628,21 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       V.error = err.status === 404 ? "This file isn't there any more." : err.status === 403 && err.code === "outside_project" ? "This file is outside the project: a link leads out of it." : err.message || "Couldn't read this file.";
     }
     V.loading = false;
-    V.seenSig = sigNow(); V.updated = false;
+    // the version that came with what was loaded (a content hash), never one read afterwards
+    V.seenSig = V.data && typeof V.data.version === "string" ? V.data.version : null; V.updated = false;
     render();
     if (V.fresh) { V.fresh = false; if (canEdit()) startEdit(); }
   }
   // Stable inspection (Astra I6): what you're reading never changes under you. When an agent changes the file after
   // it was read, the head says "Updated" and you take the new version when you choose (Show), not mid-sentence.
-  const sigNow = () => { const c = V.file && V.file.project && V.file.rel && changes ? changes.at(V.file.project, V.file.rel) : null; return c ? `${c.file.additions}|${c.file.deletions}|${c.file.status || ""}` : ""; };
+  // the project's changes carry each changed file's content hash (version, the same as /file's): a different hash is
+  // a newer version; a file the changes don't list, or list without a hash, is never claimed to have moved
+  const sigNow = () => { const c = V.file && V.file.project && V.file.rel && changes ? changes.at(V.file.project, V.file.rel) : null; return c && typeof c.file.version === "string" ? c.file.version : null; };
   /** Called on every app render: a newer version since this one was read lights "Updated". */
   function notice() {
     if (!V.open || V.parked || V.loading || !V.data || V.seenSig == null || ED.on || V.updated) return;
-    if (sigNow() !== V.seenSig) { V.updated = true; paintHead(); }
+    const now = sigNow();
+    if (now && now !== V.seenSig) { V.updated = true; paintHead(); }
   }
 
   /**
