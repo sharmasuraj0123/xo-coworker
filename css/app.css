@@ -10,7 +10,7 @@
 :root[data-theme="light"] body{background:var(--sunken)}
 :root[data-theme="light"] .toast,:root[data-theme="light"] .toast .t-m b{color:#F2F2F2}
 :root[data-theme="light"] .toast .t-m{color:#BDBDBD}
-:root[data-theme="light"] .t-undo{background:#3A3A3A;color:#fff}
+:root[data-theme="light"] .t-undo{background-color:#3A3A3A;color:#fff}
 :root[data-theme="light"] .t-ring circle{stroke:#BDBDBD}
 :root[data-theme="light"] .send:not(:disabled):not(.is-stop){color:#141414}
 :root[data-theme="light"] .next{--nx-arc:rgba(72,118,32,.75);background:linear-gradient(#fff,#fff) padding-box,conic-gradient(from var(--nx-a),transparent 0deg,var(--nx-arc) 50deg,transparent 110deg) border-box,linear-gradient(170deg,rgba(72,118,32,.55),#DCDCD8 34%,#E2E2DF) border-box;box-shadow:var(--e2)}

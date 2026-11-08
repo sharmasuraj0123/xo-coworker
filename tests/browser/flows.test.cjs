@@ -319,6 +319,22 @@ t("Jump: the row under a moving pointer is the selection, and Enter goes there",
 
 // ── focus never falls to the page when a control it was on goes ──
 const active = (page) => page.evaluate(() => { const a = document.activeElement; return a ? a.tagName + [...a.attributes].filter((x) => x.name.startsWith("data-") || x.name === "id" || x.name === "class").map((x) => ` ${x.name}=${x.value}`).join("") : null; });
+t("S136/S137: in the light theme the Saved notice's Undo and Tell answer the pointer", async () => {
+  const page = await app({ files: { "a.js": FILE() } }, { theme: "light" });
+  await editing(page);
+  await typeAll(page, "mine\n");
+  await page.keyboard.press("ControlOrMeta+s");
+  await page.waitForFunction(() => !window.__ED.on);
+  for (const sel of ["[data-vw-undo]", "[data-vw-tell]"]) {
+    const b = page.locator(sel).first();
+    const rest = await b.evaluate((e) => getComputedStyle(e).backgroundImage + getComputedStyle(e).backgroundColor);
+    await b.hover();
+    const over = await b.evaluate((e) => getComputedStyle(e).backgroundImage + getComputedStyle(e).backgroundColor);
+    assert.notEqual(over, rest, `${sel} answers hover`);
+  }
+  await page.mouse.move(2, 2);
+  await done(page);
+});
 t("S138: dismissing the Saved notice hands focus to the file's Edit", async () => {
   const page = await app({ files: { "a.js": FILE() } });
   await editing(page);
@@ -721,6 +737,57 @@ t("Runs: Stop's Undo is in the sheet; Undo keeps it running and focus goes back 
   assert.equal(W.runStops || 0, 0, "nothing was stopped");
   await done(page);
 });
+
+// ── xo-select ──
+async function select(page, html) {
+  return page.evaluate(async (html) => {
+    await import("./js/dropdown.js");
+    const box = document.createElement("div"); box.style.cssText = "position:fixed;left:40px;top:40px;z-index:9999"; box.innerHTML = html; document.body.append(box);
+    await new Promise((ok) => requestAnimationFrame(ok));
+    return true;
+  }, html);
+}
+t("xo-select: a choice survives the select being disabled and enabled (S229)", async () => {
+  const page = await app();
+  await select(page, `<xo-select id="t-sel" aria-label="Test"><option value="a" selected>Alpha</option><option value="b">Bravo</option><option value="c">Charlie</option></xo-select>`);
+  await page.locator("#t-sel .dd-btn").click();
+  await page.locator("#t-sel .dd-row", { hasText: "Charlie" }).click();
+  assert.equal(await page.evaluate(() => document.querySelector("#t-sel").value), "c");
+  await page.evaluate(() => { const s = document.querySelector("#t-sel"); s.setAttribute("disabled", ""); });
+  await page.waitForTimeout(50);
+  await page.evaluate(() => document.querySelector("#t-sel").removeAttribute("disabled"));
+  await page.waitForTimeout(50);
+  assert.equal(await page.evaluate(() => document.querySelector("#t-sel").value), "c");
+  await done(page);
+});
+t("xo-select: PageDown never rests on a disabled option, and rows nest in the menu's corner (S230, H11)", async () => {
+  const page = await app();
+  const opts = Array.from({ length: 6 }, (_, i) => `<option value="${i}"${i >= 4 ? " disabled" : ""}${i === 0 ? " selected" : ""}>Option ${i}</option>`).join("");
+  await select(page, `<xo-select id="t-sel" aria-label="Test">${opts}</xo-select>`);
+  await page.locator("#t-sel .dd-btn").focus();
+  await page.keyboard.press("Enter");
+  await page.locator("#t-sel .dd-row").first().waitFor();
+  await page.keyboard.press("PageDown");
+  const cur = await page.evaluate(() => [...document.querySelectorAll("#t-sel .dd-row")].findIndex((r) => r.classList.contains("is-cur")));
+  assert.equal(cur, 3, "the last option that can be chosen");
+  const r = await page.evaluate(() => { const m = document.querySelector("#t-sel .dd-menu"), row = m.querySelector(".dd-row"); const mc = getComputedStyle(m), rc = getComputedStyle(row); return { outer: parseFloat(mc.borderTopLeftRadius), border: parseFloat(mc.borderTopWidth), pad: parseFloat(mc.paddingTop), inner: parseFloat(rc.borderTopLeftRadius) }; });
+  assert.equal(r.inner, r.outer - r.border - r.pad, `concentric: ${JSON.stringify(r)}`);
+  await page.keyboard.press("Escape");
+  await done(page);
+});
+// ── light theme: the search fields show focus ──
+for (const [name, sel, place] of [["C007 project search", "#pf-in", "home"], ["C063 artifact search", "#arts-q", "artifacts"]]) {
+  t(`${name}: in the light theme its box changes when it has focus`, async () => {
+    const page = await app({}, { theme: "light" });
+    if (WIDTH < 600 && sel === "#pf-in") { await done(page); return; } // the phone's sidebar is a drawer: the desktop case covers the rule
+    await page.evaluate((v) => window.__t.go(v), place);
+    const box = await page.evaluate((sel) => { const e = document.querySelector(sel); const b = e.parentElement; return { rest: getComputedStyle(b).borderColor }; }, sel);
+    await page.locator(sel).focus();
+    const on = await page.evaluate((sel) => getComputedStyle(document.querySelector(sel).parentElement).borderColor, sel);
+    assert.notEqual(on, box.rest, "the box's border changes on focus");
+    await done(page);
+  });
+}
 
 // ── the Intelligence picker ──
 async function picker(page) {

@@ -18,6 +18,7 @@ xo-select>option{display:none}
 .dd-btn:disabled{opacity:.5;cursor:default}
 .dd-btn:disabled:hover{border-color:var(--line-soft);color:var(--ink-2)}
 
+/* a row nests in the menu: its corner is the menu's, less the menu's 1 px border and 4 px padding (Astra H11) */
 .dd-menu{position:fixed;left:0;top:0;z-index:var(--z-top);box-sizing:border-box;width:max-content;max-width:400px;padding:4px;border-radius:var(--r-lg);background:var(--float);border:1px solid var(--line-soft);box-shadow:var(--e2);overflow-y:auto;overscroll-behavior:contain;outline:none;scrollbar-width:thin;scrollbar-color:var(--line) transparent;transform-origin:50% 0}
 .dd-menu.is-up{transform-origin:50% 100%}
 .dd-menu.is-in{animation:float-in-down var(--dur-base) var(--ease)}
@@ -25,7 +26,7 @@ xo-select>option{display:none}
 .dd-menu.is-out{animation:float-out-up var(--d-out) var(--ease) forwards;pointer-events:none}
 .dd-menu.is-up.is-out{animation-name:float-out}
 
-.dd-row{display:flex;align-items:baseline;gap:8px;box-sizing:border-box;height:32px;padding:6px 8px;border-radius:var(--r-sm);color:var(--ink-2);font:500 var(--fs-md)/20px var(--sans);white-space:nowrap;cursor:pointer;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.dd-row{display:flex;align-items:baseline;gap:8px;box-sizing:border-box;height:32px;padding:6px 8px;border-radius:calc(var(--r-lg) - 5px);color:var(--ink-2);font:500 var(--fs-md)/20px var(--sans);white-space:nowrap;cursor:pointer;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .dd-row.is-cur{background:var(--fill-2);color:var(--ink)}
 .dd-row[aria-selected="true"]{color:var(--ink)}
 .dd-row[aria-disabled="true"]{opacity:.45;cursor:default}

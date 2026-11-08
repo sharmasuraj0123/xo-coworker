@@ -146,11 +146,12 @@ async function hooks(page) {
 }
 
 /** The app in a new browser context, against the mock world W (files, saves, messages, hops …). */
-async function openApp(browser, BASE, W = {}, { width = 1440, height = 900, motion = false } = {}) {
+async function openApp(browser, BASE, W = {}, { width = 1440, height = 900, motion = false, theme = "dark" } = {}) {
   Object.assign(W, { base: BASE, files: W.files || {}, saves: [] });
   const ctx = await browser.newContext({ viewport: { width, height }, reducedMotion: motion ? "no-preference" : "reduce" });
   // test-time only: every time focus falls to the page because the control that had it was removed or hidden,
   // it's recorded; done() fails the test on any (the app itself has no runtime focus restorer: this finds the bugs)
+  await ctx.addInitScript((theme) => { try { localStorage.setItem("cv-theme", theme); } catch { /* none */ } }, theme);
   await ctx.addInitScript(() => {
     window.__focusDrops = [];
     let last = null;

@@ -55,7 +55,7 @@
 .ar-probe{position:absolute;top:0;left:0;right:0;visibility:hidden;pointer-events:none}
 .md-from.is-none{visibility:hidden}
 
-:root[data-theme="light"] .ar-q{background-color:#fff;border-color:rgba(0,0,0,.12)}
+:root[data-theme="light"] .ar-q:not(:focus-within){background-color:#fff;border-color:rgba(0,0,0,.12)}
 :root[data-theme="light"] .ar-kinds button[aria-checked="true"]{background:rgba(0,0,0,.06)}
 
 @media (max-width:760px){
