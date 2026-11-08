@@ -124,11 +124,15 @@ async function open(W, { width, theme, motion = false }, { firstRun = false, dev
   return page;
 }
 // a test ends with no page errors and with focus never having fallen to the page (the harness records each drop)
+// The record must be there and readable: a missing record or a failed read fails the case, never passes it.
 const done = async (page) => {
   const errs = page.errors;
-  const drops = await page.evaluate(() => window.__focusDrops || []).catch(() => []);
+  let drops, unread = null;
+  try { drops = await page.evaluate(() => window.__focusDrops); } catch (e) { unread = e; }
   await page.context().close();
+  if (unread) throw new Error(`the focus-drop record couldn't be read: ${unread.message}`);
   assert.deepEqual(errs, [], "page errors");
+  assert.ok(Array.isArray(drops), "the harness's focus-drop record is there (window.__focusDrops)");
   assert.deepEqual(drops, [], "focus fell to the page when its control went");
 };
 /** Settings, on one page. The opener is the rail's Settings, or on a phone the top bar's. */
@@ -722,6 +726,43 @@ t("C104 S119 a refused Switch keeps its question and the keyboard, with the reas
   assert.equal(await page.locator('[data-page="shape"] .set-err').count(), 0, "the reason goes with its question");
   await done(page);
 });
+t("C113 S110 S111 S106 Cancel and Keep it wait while Connect, Disconnect and Remove are on their way", async (ctx) => {
+  const page = await open(world({ delay: 500 }), ctx);
+  await settings(page, "routing");
+  // Connect: Cancel waits
+  await page.locator('[data-dm-on="quill"]').click();
+  await page.keyboard.type("sk-fixture-key");
+  await page.keyboard.press("Enter");
+  await settle(page, 60);
+  assert.equal(await page.locator("[data-dm-cancel]").getAttribute("aria-disabled"), "true");
+  await page.locator("[data-dm-cancel]").click({ force: true });
+  assert.equal(await page.locator("[data-dm-form]").count(), 1, "the form stays while Connect is out");
+  await page.waitForSelector('[data-dm-off="quill"]');
+  assert.equal(await focused(page), 'button[data-dm-off="quill"]');
+  // Disconnect: Keep it waits
+  await page.locator('[data-dm-off="levanto"]').click();
+  await keyFocus(page, '[data-dm-yes="levanto"]');
+  await page.keyboard.press("Enter");
+  await settle(page, 60);
+  assert.equal(await page.locator("[data-dm-no]").getAttribute("aria-disabled"), "true");
+  await page.locator("[data-dm-no]").click({ force: true });
+  assert.equal(await page.locator('[data-dm-yes="levanto"]').count(), 1, "the question stays while Disconnect is out");
+  await page.waitForSelector('[data-dm-on="levanto"]');
+  assert.equal(await focused(page), 'button[data-dm-on="levanto"]');
+  // Remove: Keep it waits
+  await page.locator('[data-set="worktrees"]').click();
+  await page.locator('[data-wt="chat_demo/t-clean"]').click();
+  await keyFocus(page, '[data-wt-yes="chat_demo/t-clean"]');
+  await page.keyboard.press("Enter");
+  await settle(page, 60);
+  assert.equal(await page.locator("[data-wt-no]").getAttribute("aria-disabled"), "true");
+  await page.locator("[data-wt-no]").click({ force: true });
+  assert.equal(await page.locator('[data-wt-yes="chat_demo/t-clean"]').count(), 1, "the question stays while Remove is out");
+  await page.waitForFunction(() => !document.querySelector('[data-key="wt:chat_demo/t-clean"]'));
+  assert.equal(await focused(page), 'button[data-wt="chat_demo/t-dirty"]');
+  assert.deepEqual([writes(page, "connect"), writes(page, "disconnect"), writes(page, "remove")], [1, 1, 1]);
+  await done(page);
+});
 t("C116 S103 S104 Keep waits while Revoke is on its way: it can't take it back", async (ctx) => {
   const page = await open(world({ delay: 400 }), ctx);
   await settings(page, "rules");
@@ -730,6 +771,7 @@ t("C116 S103 S104 Keep waits while Revoke is on its way: it can't take it back",
   await page.keyboard.press("Enter");
   await settle(page, 60);
   assert.equal(await page.locator("[data-rule-no]").getAttribute("aria-disabled"), "true");
+  assert.ok(+(await page.locator("[data-rule-no]").evaluate((e) => getComputedStyle(e).opacity)) < 1, "and it looks it");
   await page.locator("[data-rule-no]").click({ force: true });
   assert.equal(await page.locator('[data-rule-yes="r1"]').count(), 1, "the question stays while Revoke is out");
   await page.waitForFunction(() => !document.querySelector('[data-key="rule:r1"]'));
@@ -745,6 +787,20 @@ t("C107 C108 Edit as JSON: Tab from its summary reaches the text and Shift+Tab c
   assert.equal(await focused(page), "textarea[data-shp-json]");
   await page.keyboard.press("Shift+Tab");
   assert.equal(await page.evaluate(() => document.activeElement.tagName), "SUMMARY");
+  // Tab in the text (unchanged, so Revert and Save are off and it's the sheet's last stop) indents and stays
+  const ta = page.locator("[data-shp-json]");
+  assert.equal(await page.locator("[data-shp-save]").isDisabled(), true);
+  await ta.focus();
+  await ta.evaluate((e) => e.setSelectionRange(0, 0));
+  const before = await ta.inputValue();
+  // the editor takes its Tab first: the keyboard never leaves it, not even for a moment (no blur, no trip to Close)
+  await ta.evaluate((e) => { window.__taBlurs = 0; e.addEventListener("blur", () => window.__taBlurs++); });
+  await page.keyboard.press("Tab");
+  assert.equal(await focused(page), "textarea[data-shp-json]", "Tab stays in the text");
+  assert.equal(await ta.inputValue(), "  " + before, "it wrote two spaces");
+  assert.equal(await page.evaluate(() => window.__taBlurs), 0, "the text kept the keyboard throughout");
+  await page.keyboard.press("Shift+Tab");
+  assert.equal(await page.evaluate(() => document.activeElement.tagName), "SUMMARY", "Shift+Tab still leaves");
   // on a phone Settings covers the screen, and its ends turn round: before its first control is its last
   if (ctx.width < 600) {
     await keyFocus(page, "#set-x");
@@ -753,23 +809,34 @@ t("C107 C108 Edit as JSON: Tab from its summary reaches the text and Shift+Tab c
   }
   await done(page);
 });
-t("S104 S108 S112 a danger button answers a held press with a change of its own, not its hover", async (ctx) => {
+t("S104 S108 S112 Revoke, Remove and Disconnect each answer a held press with a change of their own, not their hover", async (ctx) => {
   const page = await open(world(), ctx);
+  /** Held on the button: does it look different from its hover? Let go away from it, so it isn't a click. */
+  const held = async (sel) => {
+    const b = page.locator(sel);
+    const paint = () => b.evaluate((e) => { const c = getComputedStyle(e); return `${c.backgroundColor}|${c.borderColor}|${c.backgroundImage}|${c.transform}`; });
+    await b.hover();
+    await page.waitForTimeout(250);
+    const hover = await paint();
+    await page.mouse.down();
+    await page.waitForTimeout(150);
+    const press = await paint();
+    const active = await b.evaluate((e) => e.matches(":active"));
+    await page.mouse.move(2, 2);
+    await page.mouse.up();
+    assert.equal(active, true, `${sel} is held`);
+    assert.notEqual(press, hover, `${sel}, held, looks pressed`);
+  };
   await settings(page, "rules");
   await page.locator('[data-rule-off="r1"]').click();
-  const yes = page.locator('[data-rule-yes="r1"]');
-  const paint = () => yes.evaluate((e) => { const c = getComputedStyle(e); return `${c.backgroundColor}|${c.borderColor}|${c.backgroundImage}|${c.transform}`; });
-  await yes.hover();
-  await page.waitForTimeout(250);
-  const hover = await paint();
-  await page.mouse.down();
-  await page.waitForTimeout(150);
-  const press = await paint();
-  assert.equal(await yes.evaluate((e) => e.matches(":active")), true);
-  assert.notEqual(press, hover, "held, it looks pressed");
-  await page.mouse.move(2, 2); // away first, so letting go isn't a click
-  await page.mouse.up();
-  assert.equal(writes(page, "revoke"), 0, "nothing was revoked");
+  await held('[data-rule-yes="r1"]');
+  await page.locator('[data-set="worktrees"]').click();
+  await page.locator('[data-wt="chat_demo/t-clean"]').click();
+  await held('[data-wt-yes="chat_demo/t-clean"]');
+  await page.locator('[data-set="routing"]').click();
+  await page.locator('[data-dm-off="levanto"]').click();
+  await held('[data-dm-yes="levanto"]');
+  assert.deepEqual([writes(page, "revoke"), writes(page, "remove"), writes(page, "disconnect")], [0, 0, 0], "nothing was done");
   await done(page);
 });
 t("S116 S117 the first-run question keeps Tab and Shift+Tab inside it", async (ctx) => {

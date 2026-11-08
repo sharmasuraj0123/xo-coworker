@@ -3185,9 +3185,11 @@ function syncInert() {
   hold($("#main"), PHONE.matches && drawer);
 }
 queueMicrotask(() => { PHONE.addEventListener("change", syncInert); const mo = new MutationObserver(syncInert); for (const el of [jump, keys, allEl, runsEl, setEl]) mo.observe(el, { attributes: true, attributeFilter: ["hidden"] }); syncInert(); });
-// Tab and Shift+Tab go round the open sheet: past its last control is its first, never the page behind it
+// Tab and Shift+Tab go round the open sheet: past its last control is its first, never the page behind it.
+// It listens as the event bubbles, after the control the keys are in: a control that takes Tab for itself (Edit as
+// JSON indents with it) claims it with preventDefault, and the sheet only turns round a Tab nobody claimed.
 addEventListener("keydown", (e) => {
-  if (e.key !== "Tab") return;
+  if (e.key !== "Tab" || e.defaultPrevented) return;
   // a sheet; on a phone, Settings too (it covers the whole screen there)
   const top = [runsEl, keys, allEl, jump].find((el) => !el.hidden) || (PHONE.matches && !setEl.hidden ? setEl : null);
   if (!top) return;
@@ -3199,7 +3201,7 @@ addEventListener("keydown", (e) => {
   const after = inside && f.some((x) => x !== a && a.compareDocumentPosition(x) & Node.DOCUMENT_POSITION_FOLLOWING);
   const before = inside && f.some((x) => x !== a && x.compareDocumentPosition(a) & Node.DOCUMENT_POSITION_FOLLOWING);
   if (e.shiftKey ? !before : !after) { e.preventDefault(); (e.shiftKey ? f[f.length - 1] : f[0]).focus(); }
-}, true);
+});
 
 // ── keys sheet ──────────────────────────────────────────────────────────────
 const keys = $("#keys");
