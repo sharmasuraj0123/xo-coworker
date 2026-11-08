@@ -710,6 +710,26 @@ t("RUN-7/S102: Runs Close goes back to its opener even when that was drawn again
   assert.match(await active(page), /data-run=ra/, "on the opener drawn now, not the page");
   await done(page);
 });
+t("H29: with Settings open, a file dragged over the page isn't taken by the hidden composer", async () => {
+  const page = await app();
+  await toDemo(page);
+  const drag = (sel, end) => page.evaluate(({ sel, end }) => {
+    const dt = new DataTransfer(); dt.items.add(new File(["hello"], "audit.txt", { type: "text/plain" }));
+    const at = document.querySelector(sel);
+    at.dispatchEvent(new DragEvent("dragenter", { bubbles: true, cancelable: true, dataTransfer: dt }));
+    const veil = !document.querySelector("#drop-veil").hidden;
+    at.dispatchEvent(new DragEvent(end, { bubbles: true, cancelable: true, dataTransfer: dt }));
+    return veil;
+  }, { sel, end });
+  // in reach, the composer takes it (the veil says so); a drag that ends goes nowhere
+  assert.equal(await drag("#main", "dragend"), true, "the composer in reach takes a drag");
+  await page.evaluate(() => document.querySelector("#set-side").click());
+  await page.waitForFunction(() => !document.querySelector("#settings").hidden);
+  assert.equal(await drag("#settings", "drop"), false, "no veil over Settings");
+  await page.waitForTimeout(200);
+  assert.equal(await page.locator("#att-tray > *").count(), 0, "nothing was attached to the hidden message");
+  await done(page);
+});
 t("DEC-NOTE-LOSS/S167: a Send back that failed keeps its note for the next try", async () => {
   const page = await decisions("approval", 1);
   await page.evaluate(() => { const no = async () => { throw Object.assign(new Error("Fixture unavailable"), { status: 503, code: "unavailable" }); }; window.d.world.act.decide = no; window.d.world.act.reply = no; });

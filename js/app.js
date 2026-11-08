@@ -1933,10 +1933,13 @@ say.addEventListener("paste", (e) => {
   let depth = 0;
   const hasFiles = (e) => [...(e.dataTransfer?.types || [])].includes("Files");
   const hide = () => { depth = 0; veil.hidden = true; };
-  addEventListener("dragenter", (e) => { if (!hasFiles(e)) return; e.preventDefault(); if (canAttach(S.view) && !document.querySelector(".sheet:not([hidden]), dialog[open]")) { depth++; veil.hidden = false; } });
+  // only where the message being written can take it: on screen and in reach, under no open layer (Settings,
+  // a sheet, a dialog, the phone's drawer make it inert): never into a composer that's hidden (Astra H29)
+  const takes = () => { const say = $("#say"); return canAttach(S.view) && !!say && say.getClientRects().length > 0 && !say.closest("[inert]") && !document.querySelector(".sheet:not([hidden]), dialog[open]"); };
+  addEventListener("dragenter", (e) => { if (!hasFiles(e)) return; e.preventDefault(); if (takes()) { depth++; veil.hidden = false; } });
   addEventListener("dragover", (e) => { if (!hasFiles(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = veil.hidden ? "none" : "copy"; });
   addEventListener("dragleave", (e) => { if (hasFiles(e) && --depth <= 0) hide(); });
-  addEventListener("drop", (e) => { if (!hasFiles(e)) return; e.preventDefault(); const on = !veil.hidden; hide(); if (on) addFiles(e.dataTransfer.files); });
+  addEventListener("drop", (e) => { if (!hasFiles(e)) return; e.preventDefault(); const on = !veil.hidden; hide(); if (on && takes()) addFiles(e.dataTransfer.files); });
   addEventListener("dragend", hide);
 }
 function growSay() {
