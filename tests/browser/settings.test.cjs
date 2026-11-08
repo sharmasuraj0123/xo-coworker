@@ -124,19 +124,15 @@ async function open(W, { width, theme, motion = false }, { firstRun = false, dev
   await page.waitForSelector('[data-go="p:demo"]', { state: "attached", timeout: 30000 });
   assert.equal(await page.evaluate(() => document.documentElement.dataset.theme || "dark"), theme);
   page.width = width; page.theme = theme;
-  opened.add(page.context());
   return page;
 }
 // a test ends with no page errors and with focus never having fallen to the page (the harness records each drop)
 // The record must be there and readable: a missing record or a failed read fails the case, never passes it.
-// every context a case opens, so the runner closes what a failing case left open (one browser's memory, not many)
-const opened = new Set();
 const done = async (page) => {
   const errs = page.errors;
   let drops, unread = null;
   try { drops = await page.evaluate(() => window.__focusDrops); } catch (e) { unread = e; }
   await page.context().close();
-  opened.delete(page.context());
   if (unread) throw new Error(`the focus-drop record couldn't be read: ${unread.message}`);
   assert.deepEqual(errs, [], "page errors");
   assert.ok(Array.isArray(drops), "the harness's focus-drop record is there (window.__focusDrops)");
@@ -734,7 +730,9 @@ t("C106 Compact: the switch stays the same node and says its state; its knob tra
   await page.keyboard.press("Space");
   await page.waitForFunction(() => document.documentElement.dataset.density !== "compact");
   assert.equal(await page.locator(sw).getAttribute("aria-checked"), "false");
-  // the knob's x, every frame for 450 ms after a press: with motion it passes through the middle, reduced it doesn't
+  // the knob's x, every frame for 450 ms after a press: with motion it passes through the middle, reduced it doesn't.
+  // First it settles at the off end, so the trace can't catch the previous press's travel reversing.
+  await page.waitForFunction((sel) => Math.abs(new DOMMatrix(getComputedStyle(document.querySelector(`${sel} .th-knob`)).transform).m41) < 0.5, sw);
   const xs = await page.evaluate(async (sel) => {
     const b = document.querySelector(sel), k = b.querySelector(".th-knob"), xs = [], t0 = performance.now();
     b.click();
@@ -1085,7 +1083,9 @@ t("H1 C012 C013 Home: Handled and a Recently made file keep focus through Home's
       const name = `${c.name} [${ctx.width} ${ctx.theme}${ctx.motion ? " motion" : ""}]`;
       try { await c.fn(ctx); passed++; console.log("  ok  " + name); }
       catch (e) { failed++; console.error("  FAIL " + name + "\n" + (e.stack || e.message).split("\n").slice(0, 6).join("\n")); }
-      finally { for (const x of opened) await x.close().catch(() => {}); opened.clear(); } // what a case that threw before done() left open
+      // whatever a case left open, however early it threw (in the harness's boot, a reload, a wait): the browser's own
+      // list of contexts, so nothing has to have been registered first (one browser's memory, not many)
+      finally { for (const x of browser.contexts()) await x.close().catch(() => {}); }
     }
   }
   await browser.close(); server.close();

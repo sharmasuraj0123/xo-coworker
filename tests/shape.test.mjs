@@ -803,7 +803,21 @@ t("refused, with this browser keeping the note but not mine: after a reload the 
   await again.S.settled();
   assert.equal(again.S.get("density"), "compact");
   assert.equal(again.S.held.why, "refused");
+  assert.equal(again.S.held.kept, true, "kept here is claimed only with the change actually here");
   assert.deepEqual(F.stored, { shape: 1, preset: "marketing" }, "nothing sent by itself");
+});
+t("a note from an earlier build (the changes, no mine) over an older copy of mine: the changes are put back, never claimed while missing", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const st = mem({
+    [KEYS.mine]: JSON.stringify({ shape: 1, preset: "marketing" }),
+    [KEYS.unsynced]: JSON.stringify({ changes: [{ path: ["density"], value: "compact" }], known: { shape: 1, preset: "marketing" }, why: "refused", text: "XO refused it." }),
+  });
+  const { S } = store({ storage: st, remote: F });
+  assert.equal(S.get("density"), "compact", "the held change is there");
+  await S.ready;
+  await S.settled();
+  assert.deepEqual(S.held, { why: "refused", text: "XO refused it.", kept: true });
+  assert.equal(S.get("density"), "compact");
 });
 
 await Promise.all(pending);

@@ -430,8 +430,10 @@ export function createShapeStore({ storage = defaultStorage(), load = fetchPrese
     if (un && Array.isArray(un.changes) && un.changes.length) {
       R.held = [un.changes]; R.known = isObj(un.known) ? un.known : null; R.why = un.why === "refused" ? "refused" : "unreachable"; R.text = typeof un.text === "string" ? un.text : "";
       // the note carries mine as you left it: what's sent again (and shown) even if this browser's copy of mine
-      // couldn't be written at the time and is older
+      // couldn't be written at the time and is older. A note without it (an earlier build's) has the changes: they're
+      // put on top of this browser's copy, so what's held is never claimed while it's missing.
       if (isObj(un.mine) || un.mine === null) mine = un.mine;
+      else mine = applyChanges(mine, un.changes);
     }
     else if (!remote) { try { storage.removeItem(KEYS.unsynced); } catch { /* nothing kept */ } }
   }
