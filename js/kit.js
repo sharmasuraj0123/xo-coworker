@@ -149,6 +149,33 @@ export function createCommitQueue({ delay = COMMIT_MS, exec, onChange }) {
  * focused button. Releasing early does nothing. A click alone does nothing.
  * ready() returns true or a reason string (shown by onRefuse).
  */
+/**
+ * The one hold-to-confirm button (allow a destructive ask, remove a worktree), built on holdToConfirm: a solid
+ * danger fill that grows with the time held, linearly, so the first moment already moves; a label slot that
+ * holds both of its words, so nothing shifts when "Keep holding…" takes over; a calm return when it's let go
+ * early. Nothing overshoots. The fill is a transform; the progress is one custom property (--p).
+ */
+export function holdButton(btn, { ready, onConfirm, onRefuse, onRelease, holding = "Keep holding…" }) {
+  const txt = btn.querySelector(".hold-txt");
+  if (txt && !txt.querySelector(".ht-a")) {
+    const a = document.createElement("span"); a.className = "ht-a"; a.textContent = txt.textContent;
+    const b = document.createElement("span"); b.className = "ht-b"; b.setAttribute("aria-hidden", "true"); b.textContent = holding;
+    txt.replaceChildren(a, b);
+  }
+  let back = 0;
+  return holdToConfirm(btn, {
+    ready,
+    onProgress: (p) => { btn.style.setProperty("--p", String(p)); btn.classList.toggle("tense", p > 0.8 && p < 1); },
+    onConfirm: () => { btn.classList.remove("tense"); onConfirm(); },
+    onRefuse,
+    onRelease: () => {
+      btn.classList.remove("tense"); btn.classList.add("is-releasing");
+      clearTimeout(back); back = setTimeout(() => btn.classList.remove("is-releasing"), 260);
+      onRelease && onRelease();
+    },
+  });
+}
+
 export function holdToConfirm(btn, { ms = HOLD_MS, ready, onProgress, onConfirm, onRefuse, onRelease }) {
   let t0 = 0, raf = 0, via = null;
   const stop = (early) => {

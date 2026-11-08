@@ -181,8 +181,8 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
   }
 
   // ── the popover ───────────────────────────────────────────────────────────
-  function modelRow(m, s, name, sel, selEffort, attrs) {
-    return `<div class="iq-row${sel ? " is-sel" : ""}" role="radio" aria-checked="${sel}" tabindex="${sel ? 0 : -1}" ${attrs.row}="${esc(m.id)}" title="${esc(m.description || "")}"><span class="iq-n">${esc(m.name)}</span>${m.description ? `<span class="iq-tr">${esc(m.description)}</span>` : ""}${CHECK}</div>`;
+  function modelRow(m, s, name, sel, selEffort, attrs, first = false) {
+    return `<div class="iq-row${sel ? " is-sel" : ""}" role="radio" aria-checked="${sel}" tabindex="${sel || first ? 0 : -1}" ${attrs.row}="${esc(m.id)}" title="${esc(m.description || "")}"><span class="iq-n">${esc(m.name)}</span>${m.description ? `<span class="iq-tr">${esc(m.description)}</span>` : ""}${CHECK}</div>`;
   }
   function depthHtml(efs, sel, attr) {
     if (!efs.length) return "";
@@ -235,7 +235,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       html += `<div class="iq-sec"><p class="iq-now">${mv.model ? `On ${esc(to)} it will use <b>${esc(nameOf(mv.model))}${mv.effort ? ` · ${esc(EFFORT_WORD[mv.effort] || mv.effort)}` : ""}</b>.` : `On ${esc(to)} it will use its default model, unless you pick one.`}</p>`;
       if (mv.modelsErr) html += `<p class="iq-err">${esc(mv.modelsErr)}</p>`;
       else if (!mv.models) html += `<p class="iq-rl"><i class="spin" aria-hidden="true"></i> Reading ${esc(to)}'s models…</p>`;
-      else html += `<div class="iq-list" role="radiogroup" aria-label="${esc(to)}'s models">${shown(mv.models).map((m) => modelRow(m, s, P.rt, mv.model === m.id, mv.effort, { row: "data-mvm" })).join("")}</div>` + (mv.model ? depthHtml(effortsOf((mv.models || []).find((x) => x.id === mv.model), s, P.rt).filter((e) => PIPS[e]), mv.effort, "data-mvp") : "");
+      else html += `<div class="iq-list" role="radiogroup" aria-label="${esc(to)}'s models">${shown(mv.models).map((m, i) => modelRow(m, s, P.rt, mv.model === m.id, mv.effort, { row: "data-mvm" }, !mv.model && i === 0)).join("")}</div>` + (mv.model ? depthHtml(effortsOf((mv.models || []).find((x) => x.id === mv.model), s, P.rt).filter((e) => PIPS[e]), mv.effort, "data-mvp") : "");
       html += `</div><div class="iq-sec iq-mv" id="iq-mv-cons"><p class="iq-lab">Continuing on ${esc(to)}</p><ul>` +
         `<li>Its messages and work go to ${esc(to)}.</li><li>The new agent starts from a summary and the code, and re-reads files.</li>` +
         `<li>Earlier approvals don't carry over.</li><li>This thread is frozen; write in it to pick it back up.</li></ul>` +
@@ -252,7 +252,8 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     let truth;
     if (kind === "thread") {
       const rtw = esc(rtName(runtimeOf(s)) || "");
-      truth = `${r && r.working ? `<i class="g g-working" aria-hidden="true"></i>Running` : "Runs"} ${nowWords(r && r.model, r && r.effort)}${rtw ? ` on ${rtw}` : ""}.`;
+      const verb = r && r.working ? `<i class="g g-working" aria-hidden="true"></i>Running` : "Runs";
+      truth = r && r.model ? `${verb} ${nowWords(r.model, r.effort)}${rtw ? ` on ${rtw}` : ""}.` : `${verb}${rtw ? ` on ${rtw}` : ""}; its session hasn't said which model yet.`;
       if (c.pinned && (c.model && c.model !== (r && r.model) || c.effort && c.effort !== (r && r.effort))) truth += ` From its next turn: ${nowWords(c.model, c.effort)}.`;
     } else truth = c.pinned ? `Its coordinator runs ${nowWords(c.model, c.effort)}. New threads get their own from the router.` : "Its coordinator runs its default model. New threads get their own from the router.";
     html += `<p class="iq-truth">${truth}</p>`;
@@ -314,6 +315,13 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     if (!id) { P.draft = { auto: true, model: null, effort: null }; render(); return; }
     const m = modelOf(id), efs = effortsOf(m, s), was = draftOf(s).effort;
     P.draft = { auto: false, model: id, effort: !efs.length ? null : efs.includes(was) ? was : m.default_effort && efs.includes(m.default_effort) ? m.default_effort : efs[Math.floor((efs.length - 1) / 2)] };
+    render();
+  }
+  /** Continuing elsewhere: a model there, at its own default depth. */
+  function pickMove(id) {
+    const m = (P.mv.models || []).find((x) => x.id === id);
+    const efs = effortsOf(m, P.session, P.rt);
+    P.mv.model = id; P.mv.effort = efs.length ? (m.default_effort && efs.includes(m.default_effort) ? m.default_effort : efs[Math.floor((efs.length - 1) / 2)]) : null;
     render();
   }
   function pickEffort(e) { const d = draftOf(P.session); P.draft = { ...d, auto: false, effort: e }; render(); }
@@ -500,12 +508,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     const mvp = e.target.closest("[data-mvp]");
     if (mvp && P.mv) { P.mv.effort = mvp.dataset.mvp || null; render(); return; }
     const mvm = e.target.closest("[data-mvm]");
-    if (mvm && P.mv) {
-      const m = (P.mv.models || []).find((x) => x.id === mvm.dataset.mvm);
-      const efs = effortsOf(m, P.session, P.rt);
-      P.mv.model = mvm.dataset.mvm; P.mv.effort = efs.length ? (m.default_effort && efs.includes(m.default_effort) ? m.default_effort : efs[Math.floor((efs.length - 1) / 2)]) : null;
-      render(); return;
-    }
+    if (mvm && P.mv) { pickMove(mvm.dataset.mvm); pop.querySelector(`[data-mvm="${CSS.escape(mvm.dataset.mvm)}"]`)?.focus({ preventScroll: true }); return; }
     const r = e.target.closest("[data-lroute]");
     if (r) { const s = P.session; close(); route(s, r.dataset.lroute); return; }
     if (e.target.closest("[data-lauto]")) { const s = P.session; P.draft = null; close({ apply: false }); toAuto(s); return; }
@@ -516,7 +519,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     if (de) { pickEffort(de.dataset.deffort); pop.querySelector(`[data-deffort="${CSS.escape(de.dataset.deffort)}"]`)?.focus({ preventScroll: true }); }
   });
   pop.addEventListener("keydown", (e) => {
-    if (P.mv || P.busy) { if (e.key !== "Escape") return; }
+    if (P.busy || (P.mv && P.mv.busy)) { if (e.key !== "Escape") return; }
     else if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "ArrowLeft" || e.key === "ArrowRight") {
       if (e.target.closest(".iq-route:not(.iq-depth), .iq-moreb")) return;   // runtime and routing keep the browser's own keys
       const vertical = e.key === "ArrowDown" || e.key === "ArrowUp";
@@ -528,11 +531,13 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       const next = items[Math.max(0, Math.min(items.length - 1, cur + step))];
       if (!next) return;
       e.preventDefault();
-      if (next.dataset.deffort != null) { pickEffort(next.dataset.deffort); pop.querySelector(`[data-deffort="${CSS.escape(next.dataset.deffort)}"]`)?.focus({ preventScroll: true }); }
+      if (next.dataset.mvm != null) { pickMove(next.dataset.mvm); pop.querySelector(`[data-mvm="${CSS.escape(next.dataset.mvm)}"]`)?.focus({ preventScroll: true }); }
+      else if (next.dataset.mvp != null) { P.mv.effort = next.dataset.mvp || null; render(); pop.querySelector(`[data-mvp="${CSS.escape(next.dataset.mvp)}"]`)?.focus({ preventScroll: true }); }
+      else if (next.dataset.deffort != null) { pickEffort(next.dataset.deffort); pop.querySelector(`[data-deffort="${CSS.escape(next.dataset.deffort)}"]`)?.focus({ preventScroll: true }); }
       else if (next.dataset.dmodel != null) { pickModel(next.dataset.dmodel); pop.querySelector(`[data-dmodel="${CSS.escape(next.dataset.dmodel)}"]`)?.focus({ preventScroll: true }); }
       return;
     }
-    else if (e.key === "Enter" && !e.target.closest("button:not([role=radio])")) { e.preventDefault(); close(); return; }
+    else if (e.key === "Enter" && !P.mv && !e.target.closest("button:not([role=radio])")) { e.preventDefault(); close(); return; }
     else if (K.is(e, "auto") && !e.target.closest("input,textarea")) { e.preventDefault(); if (threadOf(P.session)) { const s = P.session; close({ apply: false }); toAuto(s); } else pickModel(""); return; }
     if (e.key !== "Escape") return;
     e.preventDefault(); e.stopPropagation();

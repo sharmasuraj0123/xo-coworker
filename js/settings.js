@@ -7,7 +7,7 @@ import { api } from "./api.js";
 import { esc } from "./world.js";
 import { ICON } from "./ui.js";
 import { renderInline } from "./markdown.js";
-import { holdToConfirm } from "./kit.js";
+import { holdButton } from "./kit.js";
 
 const PCT = [0.5, 0.6, 0.7, 0.8, 0.9];
 /** The confidence choices, always including the server's own value (set elsewhere, e.g. 0.75). */
@@ -171,12 +171,9 @@ export function createSettings({ world, announce, PROJ, onChange }) {
       (R.err.wt ? `<p class="set-err" role="alert">${esc(R.err.wt)}</p>` : "");
     const hb = el.querySelector("[data-wt-hold]");
     if (hb) {
-      const fill = hb.querySelector(".hold-fill");
-      holdToConfirm(hb, {
+      holdButton(hb, {
         ready: () => true,
-        onProgress: (p) => { fill.style.transition = "none"; fill.style.transform = `scaleX(${Math.pow(p, 1.7)})`; hb.querySelector(".hold-txt").textContent = p > 0 ? "Keep holding…" : "Hold to remove"; },
         onConfirm: () => removeTree(hb.dataset.wtHold, R.confirm && R.confirm.token),
-        onRelease: () => { fill.style.transition = "transform .42s cubic-bezier(.34,1.56,.64,1)"; fill.style.transform = "scaleX(0)"; },
       });
     }
   }

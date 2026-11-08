@@ -810,18 +810,9 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
     const hold = q('[data-act="hold"]');
     let holder = null;
     if (hold) {
-      const fill = hold.querySelector(".hold-fill");
-      holder = Kit.holdToConfirm(hold, {
+      holder = Kit.holdButton(hold, {
         ready: () => (!ready() ? "Read it first: the hold starts after a moment." : qform && !formChoice(true) ? "Answer every question first." : true),
-        onProgress: (p) => {
-          fill.style.transition = "none";
-          fill.style.transform = `scaleX(${Math.pow(p, 1.7)})`;
-          hold.classList.toggle("tense", p > 0.72 && p < 1);
-          const ht = hold.querySelector(".hold-txt");
-          ht.textContent = p > 0 ? "Keep holding…" : ht.dataset.label || "Hold to allow";
-        },
         onConfirm: () => {
-          hold.classList.remove("tense");
           hold.classList.add("locked");
           hold.querySelector(".hold-txt").textContent = n.ask.item ? (VERB[(itemParts(n.ask.item).primary || {}).decision] || "Done") : "Allowed";
           sound.play("lock");
@@ -830,11 +821,7 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
           setTimeout(() => { if (c) go(c, "allow"); }, RM.matches ? 0 : 220);
         },
         onRefuse: (why) => { hint(el, why); hold.classList.remove("nope"); void hold.offsetWidth; hold.classList.add("nope"); },
-        onRelease: () => {
-          fill.style.transition = "transform .42s cubic-bezier(.34,1.56,.64,1)";
-          fill.style.transform = "scaleX(0)";
-          hint(el, "Released early. Nothing was sent.");
-        },
+        onRelease: () => hint(el, "Released early. Nothing was sent."),
       });
     }
     if (ctx.surface === "panel") F.hold = holder;

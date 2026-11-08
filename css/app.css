@@ -811,21 +811,30 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .b-opt:not(.has-pv){justify-content:center;align-items:center;text-align:center}
 .c-btns.one{grid-template-columns:1fr}
 .b-sm{height:var(--h-ctl);border-radius:var(--r-sm);font-size:var(--fs-base);padding:0 12px;flex:none}
-.b-hold{background:color-mix(in srgb,var(--err) 13%,var(--float));border-color:color-mix(in srgb,var(--err-ink) 48%,var(--line));touch-action:none}
-.b-hold:hover{background:color-mix(in srgb,var(--err) 18%,var(--float));border-color:color-mix(in srgb,var(--err-ink) 68%,var(--line))}
-.b-hold:active{transform:scale(.985)}
-.b-hold:focus-visible{outline-color:rgb(230 131 136 / .8)}
-.hold-fill{position:absolute;inset:0;transform:scaleX(0);transform-origin:left;background:linear-gradient(90deg,rgb(215 55 63 / .4),rgb(230 131 136 / .62))}
+/* Hold to confirm (owner's attachment, 2026-11-08): a solid danger fill that grows linearly with the time held
+   (--p, 0 → 1, set by kit.js holdButton), clipped by the button's own corners; the label slot holds both words
+   so "Keep holding…" never shifts it; let go early and it drains back in 240 ms. Near the end the ring deepens;
+   confirmed, it settles once. Nothing shakes while you hold and nothing overshoots. */
+.b-hold{background:color-mix(in srgb,var(--err) 12%,var(--float));border-color:color-mix(in srgb,var(--err-ink) 45%,var(--line));touch-action:none}
+.b-hold:hover{background:color-mix(in srgb,var(--err) 17%,var(--float));border-color:color-mix(in srgb,var(--err-ink) 65%,var(--line))}
+.b-hold:active{transform:none}
+.b-hold:focus-visible{outline-color:color-mix(in srgb,var(--err-ink) 80%,transparent)}
+.hold-fill{position:absolute;inset:0;transform:scaleX(var(--p,0));transform-origin:left;background:color-mix(in srgb,var(--err) 38%,var(--float));will-change:transform}
+.b-hold.is-releasing .hold-fill{transition:transform var(--d-sheet) var(--ease)}
 .hold-ic{display:inline-grid}
 .hold-ic svg{color:var(--err-ink)}
-.b-hold.is-holding{box-shadow:0 0 0 4px rgb(215 55 63 / .16)}
-.b-hold.tense{animation:tense .09s linear infinite;box-shadow:0 0 0 6px rgb(215 55 63 / .24)}
-@keyframes tense{0%,100%{transform:translateX(0) scale(.985)}25%{transform:translateX(-.7px) scale(.985)}75%{transform:translateX(.7px) scale(.985)}}
-.b-hold.locked{animation:lock .32s var(--ease);background:color-mix(in srgb,var(--err) 42%,var(--float));border-color:var(--err-ink)}
-.b-hold.locked .hold-fill{transform:scaleX(1)!important}
-.b-hold.locked .hold-ic svg{color:#fff}
-@keyframes lock{0%{transform:scale(.97)}55%{transform:scale(1.025)}100%{transform:none}}
-.b-hold.nope{animation:nope .32s ease}
+.hold-txt{display:inline-grid}
+.hold-txt>span{grid-area:1/1}
+.b-hold .ht-b,.b-hold.is-holding .ht-a{visibility:hidden}
+.b-hold.is-holding .ht-b{visibility:visible}
+.b-hold.is-holding{box-shadow:0 0 0 3px var(--danger-tint)}
+.b-hold.tense{box-shadow:0 0 0 3px color-mix(in srgb,var(--err) 26%,transparent)}
+.b-hold.locked{animation:settle var(--d-in) var(--ease);background:color-mix(in srgb,var(--err) 42%,var(--float));border-color:var(--err-ink)}
+.b-hold.locked .hold-fill{transform:scaleX(1)}
+.b-hold.locked :is(.hold-ic svg,.hold-txt){color:var(--ink-hi)}
+@keyframes settle{from{transform:scale(.98)}}
+/* refused (read it first, answer first): the macOS "no" — a short shake that settles */
+.b-hold.nope{animation:nope var(--d-in) var(--ease)}
 @keyframes nope{20%{transform:translateX(-4px)}40%{transform:translateX(4px)}60%{transform:translateX(-2px)}80%{transform:translateX(2px)}}
 
 .c-note-l{display:block;margin-bottom:8px;font-size:var(--fs-base);color:var(--ink-3)}

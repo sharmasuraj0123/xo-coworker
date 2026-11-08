@@ -48,7 +48,6 @@ body.stage-full .stg-grip{display:none}
    A card with two destinations (Made: the picture, and its source) presses only the one under you. */
 :is(.help,.create,.then-i,.hm-quiet,.top-back,.all-btn,.nw,.wsh-next,.tc-open,.tc-dec,button.hr,.t-undo,.dock-hide,.dock-fold,.btn,.set-nav button,button.kr-k,.tb-cf,.tw-act,.tw-rt,.tb-fb,.syl-got,.map-btn,.stg-btn,.fl-r,.stg-tab,.ar,.syl-ln,.jump-list li,.iq-row,.hd,.hd-r,.fl-back,.stg-ic,.md-open,.md-from):active,.pn-nav:active:not(:disabled){transform:none;box-shadow:inset 0 0 0 100vmax var(--press-fill)}
 .md-it:has(.md-open:active){transform:none}
-.b-hold:active{transform:none}
 
 /* ── 6 · whole pixels: integer line heights, so 1 px borders land on whole pixels ────────────────── */
 .tw-t h1{line-height:28px}
