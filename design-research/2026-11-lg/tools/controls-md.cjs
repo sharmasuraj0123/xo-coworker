@@ -14,12 +14,13 @@ const desk = readJson('inventory-dark-1440.json'), phone = readJson('inventory-d
 // the states only some controls show, opened in the browser suite's mock world (tools/inventory-states.cjs)
 const mock = readJson('inventory-states-1440.json');
 // my side of a row (what changed since Astra last saw it): controls-status.json. Astra's verdicts come from its own
-// ledgers, read-only: the main grader's reconciled ledger (ASTRA_LEDGER, default opus-row-verdicts-d1c7cb9.json),
+// ledgers, read-only: the main grader's consolidated ledger (ASTRA_LEDGER, default consolidated-verdicts.json: every
+// grader's rows in one count, each at its own evidence revision),
 // and the Files/editor/diffs/Map grader's latest (FILES_LEDGER, default its newest *-verdicts.json), which wins for
 // the rows it grades. Each verdict names the revision its evidence is from. Without them, "Unchecked".
 const myNotes = readJson('controls-status.json', {});
 const WT = path.join(ROOT, '..');
-const LEDGER = process.env.ASTRA_LEDGER || path.join(WT, 'thread-cmsg_942e352acb4d4ba2', 'ui-mockups', 'lg-audit', 'opus-row-verdicts-d1c7cb9.json');
+const LEDGER = process.env.ASTRA_LEDGER || path.join(WT, 'thread-cmsg_942e352acb4d4ba2', 'ui-mockups', 'lg-audit', 'consolidated-verdicts.json');
 const FILES_DIR = path.join(WT, 'thread-cmsg_e3415cae12ea4e70', 'audit-files');
 const FILES_LEDGER = process.env.FILES_LEDGER || (() => { try { return fs.readdirSync(FILES_DIR).filter((f) => /-verdicts\.json$/.test(f)).map((f) => path.join(FILES_DIR, f)).sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs)[0]; } catch { return null; } })();
 let astra = {}, filesV = {}, ledgerRev = '', filesRev = '';
@@ -42,13 +43,26 @@ const verdictOf = (id) => {
   const mine = myNotes[id] && !closed ? ` · ${myNotes[id]}, awaiting Astra` : '';
   if (!v) return `Unchecked${mine}`;
   const words = Array.isArray(why) ? why.map((w) => (typeof w === 'string' ? w : w && (w.id || w.result) || '')).filter(Boolean).join(', ') : typeof why === 'object' && why ? JSON.stringify(why) : String(why || '');
-  return `Astra${f ? ' (Files grader)' : ''} ${v}${rev ? ` at ${String(rev).slice(0, 7)}` : ''}${words ? `: ${words.replace(/\|/g, '/').replace(/\s+/g, ' ').slice(0, 120)}` : ''}${mine}`;
+  return `Astra${f ? ' (Files grader)' : ''} ${v}${/^[0-9a-f]{7,40}$/i.test(String(rev)) ? ` at ${String(rev).slice(0, 7)}` : ''}${words ? `: ${words.replace(/\|/g, '/').replace(/\s+/g, ' ').slice(0, 120)}` : ''}${mine}`;
 };
 const status = new Proxy({}, { get: (_, id) => verdictOf(String(id)) });
 // --dry: write the list and the registry to /tmp (to look before committing a registry)
 const DRY = process.argv.includes('--dry');
 const REG_FILE = DRY ? '/tmp/controls-ids.dry.json' : path.join(DIR, 'controls-ids.json');
 const reg = readJson('controls-ids.json', { note: 'Canonical key → row ID. Append-only: never renumber, never reuse.', next: { C: 1, S: 1 }, ids: {} });
+// rows a grader added under its own IDs (EDITOR-…, M-…): the same control here, found by its key (a gesture, by
+// name), so its grade lands on this list's row; my notes may use either ID
+const GRADER_ALIAS = { 'M-ATT-DROP': 'gesture: drop files', 'M-INT-MODEL': 'div[data-mvm]', 'M-INT-EFFORT': 'button[data-mvp]' };
+{
+  const byKey = new Map();
+  for (const [id, e] of Object.entries(reg.ids)) { byKey.set(e.key, id); for (const al of e.aliases || []) byKey.set(al, id); }
+  for (const [src, field] of [[astra, 'key'], [filesV, 'selector']]) for (const [gid, r] of Object.entries({ ...src })) {
+    if (reg.ids[gid]) continue;
+    const id = byKey.get(GRADER_ALIAS[gid] || r[field]);
+    if (id && !src[id]) src[id] = r;
+    if (id && myNotes[gid] && !myNotes[id]) myNotes[id] = myNotes[gid];
+  }
+}
 
 // ── one canonical key for a kind, the same whether it was rendered or read from a template ──
 // values that name what a control does stay in its key; the rest (a project, a file, a row's id) make one kind
@@ -551,7 +565,10 @@ for (const [f, lines] of SRC) lines.forEach((L, i) => {
 });
 const MANUAL = [
   { key: 'button[data-unfold]', tag: 'button', at: 'js/app.js:1503', text: 'Open the decision', does: 'A folded decision in the dock: opens it again.' },
-  { key: 'gesture: drop files', tag: 'drop', at: 'js/app.js:1866', text: '', does: 'Dropping files on the conversation attaches them to the message (only where a message box is showing).' },
+  { key: 'gesture: drop files', tag: 'drop', at: 'js/app.js:1923', text: '', does: 'Dropping files on the conversation attaches them to the message (only where that message box is in reach: not under Settings, a sheet or a dialog).' },
+  // the move picker's choices: their hooks are passed in (modelRow's attrs.row, depthHtml's attr), so the scan can't see them
+  { key: 'div[data-mvm]', tag: 'div', at: 'js/intel.js:279', text: '', does: 'Picker, moving a thread: the model it continues on there.' },
+  { key: 'button[data-mvp]', tag: 'button', at: 'js/intel.js:279', text: '', does: 'Picker, moving a thread: how hard it thinks there.' },
   { key: 'diffs-container input[data-search]', tag: 'input', at: 'js/vendor/pierre-diffs/edit.js:46', text: 'Find', does: 'Editor search (Ctrl/Cmd+F): finds as you type and counts the matches.' },
   { key: 'diffs-container button[aria-label="Match Case"]', tag: 'button', at: 'js/vendor/pierre-diffs/edit.js:46', text: 'Match Case', does: 'Editor search: match case on or off.' },
   { key: 'diffs-container button[aria-label="Whole Word"]', tag: 'button', at: 'js/vendor/pierre-diffs/edit.js:46', text: 'Whole Word', does: 'Editor search: whole words only, on or off.' },

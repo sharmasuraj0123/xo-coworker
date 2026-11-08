@@ -2,7 +2,7 @@
  "note": "Canonical key → row ID. Append-only: never renumber, never reuse.",
  "next": {
   "C": 127,
-  "S": 254
+  "S": 256
  },
  "ids": {
   "C001": {
@@ -1537,6 +1537,14 @@
   },
   "S253": {
    "key": "button[data-vw-diff-retry]",
+   "aliases": []
+  },
+  "S254": {
+   "key": "div[data-mvm]",
+   "aliases": []
+  },
+  "S255": {
+   "key": "button[data-mvp]",
    "aliases": []
   }
  },
