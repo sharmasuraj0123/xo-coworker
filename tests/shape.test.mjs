@@ -537,12 +537,13 @@ t("a write Storm refuses (413, 400) or can't take stays on this device, said qui
   assert.equal(S.get("density"), "compact");
   assert.equal(JSON.parse(st.getItem(KEYS.mine)).density, "compact");
   assert.deepEqual(F.stored, { shape: 1, preset: "marketing" });
-  assert.equal(notes[0].text, "Your shape is saved on this device only");
-  assert.match(notes[0].sub, /64 KB/);
+  assert.equal(notes[0].text, "XO refused your shape change", "a refusal says so plainly, never that it's saved");
+  assert.match(notes[0].sub, /64 KB, and this one is larger\. It's kept on this device only/);
+  assert.deepEqual(S.held, { why: "refused", text: "XO keeps a shape of up to 64 KB, and this one is larger.", kept: true });
   F.next.put.push(() => { throw Object.assign(new Error("The shape nests deeper than 12 levels."), { status: 400, code: "bad_shape" }); });
   await S.setMine({ shape: 1, preset: "marketing", density: "comfortable" });
   await S.settled();
-  assert.match(notes[1].sub, /deeper than 12 levels\. So your other devices/);
+  assert.match(notes[1].sub, /deeper than 12 levels\. It's kept on this device only: your other devices/);
   // the next change tries again, with everything here
   await S.setMine({ shape: 1, preset: "engineering", density: "comfortable" });
   await S.settled();
@@ -576,6 +577,346 @@ t("no load ever writes: whatever Storm and this browser hold, a page load is one
     await S.settled();
     assert.deepEqual(F.calls, [["GET"]], JSON.stringify({ theirs, local, route }));
   }
+});
+
+// ── what outlives a reload (owner, 2026-11-08: apply it and say it won't survive a reload; queue failed saves and retry) ──
+/** A browser storage that refuses writes to the shape's keys (full, or switched off), and reads as usual. */
+const refusing = (init = {}) => { const m = mem(init); return { ...m, setItem: (k, v) => { if (String(k).startsWith("cv-shape")) throw Object.assign(new Error("QuotaExceededError"), { name: "QuotaExceededError" }); m.setItem(k, v); } }; };
+t("a change this browser can't keep still applies, and says so (kept: false); with Storm keeping mine, mine is kept", async () => {
+  const st = refusing({ [KEYS.mine]: JSON.stringify({ shape: 1, preset: "everything" }) });
+  const { S } = store({ storage: st });
+  const r = S.setDevice({ density: "compact" });
+  assert.deepEqual(r, { ok: true, kept: false });
+  assert.equal(S.get("density"), "compact", "it applies now");
+  assert.equal(st.getItem(KEYS.device), null, "and nothing was stored");
+  assert.deepEqual(await S.choose("marketing"), { ok: true, kept: false }, "no Storm: mine can't outlive a reload either");
+  assert.deepEqual(S.resetToPreset(), { ok: true, kept: false });
+  assert.deepEqual(S.showEverything(), { ok: true, kept: false });
+  // where Storm keeps mine, a change of mine is kept there (the device layer still isn't)
+  const F = fakeStorm({ doc: { shape: 1, preset: "everything" } });
+  const on = store({ storage: refusing(), remote: F }).S;
+  await on.ready;
+  assert.deepEqual(await on.choose("marketing"), { ok: true, kept: true });
+  assert.deepEqual(on.setDevice({ density: "compact" }), { ok: true, kept: false });
+  await on.settled();
+  assert.equal(F.stored.preset, "marketing");
+  // a storage that takes it: kept
+  assert.deepEqual(store({ storage: mem() }).S.setDevice({ density: "compact" }), { ok: true, kept: true });
+});
+t("a write XO couldn't take (503) is held here, so a reload doesn't read Storm's older shape over it; it's sent again", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const st = mem();
+  const first = store({ storage: st, remote: F });
+  await first.S.ready;
+  F.next.put.push(() => { throw F.err(503, "unavailable"); });
+  await first.S.setMine({ shape: 1, preset: "marketing", density: "compact" });
+  await first.S.settled();
+  assert.deepEqual(first.S.held, { why: "unreachable", text: "XO couldn't be reached.", kept: true });
+  assert.deepEqual(F.stored, { shape: 1, preset: "marketing" }, "Storm still has the old one");
+  assert.match(first.notes[0].sub, /sent again when XO answers/);
+  assert.ok(st.getItem(KEYS.unsynced), "held where a reload finds it");
+  // the reload: Storm's older shape is read, not taken over the change; the change goes again, once
+  const again = store({ storage: st, remote: F });
+  assert.equal(again.S.get("density"), "compact", "the first paint keeps it");
+  await again.S.ready;
+  await again.S.settled();
+  assert.equal(again.S.get("density"), "compact", "and the read didn't take it away");
+  assert.deepEqual(F.stored, { shape: 1, preset: "marketing", density: "compact" }, "it reached Storm");
+  assert.equal(st.getItem(KEYS.unsynced), null, "nothing held any more");
+  assert.equal(again.S.held, null);
+  assert.equal(again.notes.at(-1).text, "Your shape is saved");
+});
+t("held, then another device saved first: the reload's read is a conflict (one key goes back on top), never a silent loss", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const st = mem();
+  const first = store({ storage: st, remote: F });
+  await first.S.ready;
+  F.next.put.push(() => { throw F.err(0, "network"); });
+  await first.S.setMine({ shape: 1, preset: "marketing", density: "compact" });
+  await first.S.settled();
+  F.set({ shape: 1, preset: "engineering" }); // the phone switched preset meanwhile
+  const again = store({ storage: st, remote: F });
+  await again.S.ready;
+  await again.S.settled();
+  assert.deepEqual(F.stored, { shape: 1, preset: "engineering", density: "compact" }, "the phone's, with this change on top");
+  assert.equal(again.S.presetId, "engineering");
+  assert.equal(again.S.get("density"), "compact");
+  assert.match(again.notes[0].sub, /kept on top/);
+  assert.equal(st.getItem(KEYS.unsynced), null);
+});
+t("a write XO refused (413) stays on this device across a reload: the load only reads, and the next change sends it all", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const st = mem();
+  const first = store({ storage: st, remote: F });
+  await first.S.ready;
+  F.next.put.push(() => { throw F.err(413, "shape_too_large"); });
+  await first.S.setMine({ shape: 1, preset: "marketing", density: "compact" });
+  await first.S.settled();
+  assert.equal(first.S.held.why, "refused");
+  const calls = F.calls.length;
+  const again = store({ storage: st, remote: F });
+  await again.S.ready;
+  await again.S.settled();
+  assert.deepEqual(F.calls.slice(calls).map((c) => c[0]), ["GET"], "a refused change isn't sent again by itself");
+  assert.deepEqual(again.S.held, { why: "refused", text: "XO keeps a shape of up to 64 KB, and this one is larger.", kept: true }, "and after a reload it still says why");
+  assert.equal(again.S.get("density"), "compact", "and the read didn't take it away");
+  await again.S.setMine({ shape: 1, preset: "engineering", density: "compact" });
+  await again.S.settled();
+  assert.deepEqual(F.stored, { shape: 1, preset: "engineering", density: "compact" });
+  assert.equal(st.getItem(KEYS.unsynced), null);
+});
+t("held while the page stays open: the next read that reaches Storm (a stream event) sends it again", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const { S, notes } = store({ storage: mem(), remote: F });
+  await S.ready;
+  F.next.put.push(() => { throw F.err(502, "bad_gateway"); });
+  await S.setMine({ shape: 1, preset: "marketing", density: "compact" });
+  await S.settled();
+  assert.equal(S.held.why, "unreachable");
+  S.heard({ doc: { shape: 1, preset: "marketing" } }); // XO is back: an event, then a read
+  await S.settled();
+  await S.settled();
+  assert.deepEqual(F.stored, { shape: 1, preset: "marketing", density: "compact" });
+  assert.equal(S.held, null);
+  assert.equal(notes.at(-1).text, "Your shape is saved");
+});
+t("neither kept here nor taken by XO: it says so plainly, never \"saved on this device\"", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const { S, notes } = store({ storage: refusing(), remote: F });
+  await S.ready;
+  F.next.put.push(() => { throw F.err(503, "unavailable"); });
+  await S.setMine({ shape: 1, preset: "marketing", density: "compact" });
+  await S.settled();
+  assert.equal(notes[0].text, "Your shape isn't saved");
+  assert.match(notes[0].sub, /won't keep it after a reload, and XO couldn't be reached/);
+});
+
+// ── Astra on a63139f: held changes across an offline reload, an unkept note, both refusing, a replacement in flight ──
+t("a reload while XO can't be reached, with a change held: the retry is scheduled, and it lands once XO answers", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const st = mem();
+  const first = store({ storage: st, remote: F });
+  await first.S.ready;
+  F.next.put.push(() => { throw F.err(503, "unavailable"); });
+  await first.S.setMine({ shape: 1, preset: "marketing", density: "compact" });
+  await first.S.settled();
+  // the reload's read fails too (offline): nothing else will come along to send it, so its own timer must
+  F.next.get.push(() => { throw F.err(0, "network"); });
+  const again = store({ storage: st, remote: F, retryMs: [20] });
+  await again.S.ready;
+  await again.S.settled();
+  assert.equal(again.S.held.why, "unreachable");
+  for (let i = 0; i < 50 && F.stored.density !== "compact"; i++) await new Promise((r) => setTimeout(r, 10));
+  await again.S.settled();
+  assert.deepEqual(F.stored, { shape: 1, preset: "marketing", density: "compact" }, "sent again by itself");
+  assert.equal(again.S.held, null);
+});
+t("held, but this browser couldn't keep the note of it: never \"kept on this device\", it says a reload loses it", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const base = mem();
+  const st = { ...base, setItem: (k, v) => { if (k === KEYS.unsynced) throw new Error("QuotaExceededError"); base.setItem(k, v); } };
+  const { S, notes } = store({ storage: st, remote: F });
+  await S.ready;
+  F.next.put.push(() => { throw F.err(503, "unavailable"); });
+  await S.setMine({ shape: 1, preset: "marketing", density: "compact" });
+  await S.settled();
+  assert.deepEqual(S.held, { why: "unreachable", text: "XO couldn't be reached.", kept: false });
+  assert.equal(notes[0].text, "Your shape isn't saved");
+  assert.match(notes[0].sub, /won't keep it after a reload/);
+});
+t("XO refused it and this browser couldn't keep it either: what's held says so (kept: false), as the notice does", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const refusingAll = { ...mem(), setItem: (k) => { if (String(k).startsWith("cv-shape")) throw new Error("QuotaExceededError"); } };
+  const { S, notes } = store({ storage: refusingAll, remote: F });
+  await S.ready;
+  F.next.put.push(() => { throw F.err(413, "shape_too_large"); });
+  await S.setMine({ shape: 1, preset: "marketing", density: "compact" });
+  await S.settled();
+  assert.equal(S.held.why, "refused");
+  assert.equal(S.held.kept, false, "not on this device either");
+  assert.equal(notes[0].text, "Your shape isn't saved");
+});
+t("a change sent while another is held doesn't hide that it's held until XO has them; then it's gone", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const { S } = store({ storage: mem(), remote: F });
+  await S.ready;
+  F.next.put.push(() => { throw F.err(413, "shape_too_large"); });
+  await S.setMine({ shape: 1, preset: "marketing", density: "compact" });
+  await S.settled();
+  assert.equal(S.held.why, "refused");
+  let answer;
+  F.next.put.push(() => new Promise((r) => (answer = r)));
+  const next = S.setMine({ shape: 1, preset: "engineering", density: "compact" });
+  await new Promise((r) => setTimeout(r, 10));
+  assert.equal(S.held && S.held.why, "refused", "still said while the new PUT is out");
+  answer();
+  await next;
+  await S.settled();
+  assert.equal(S.held, null);
+  assert.equal(F.stored.preset, "engineering");
+});
+
+t("no browser storage at all (its getter throws, as some private modes do): a change applies, and says it won't outlive a reload", async () => {
+  const had = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+  Object.defineProperty(globalThis, "localStorage", { configurable: true, get() { throw new Error("SecurityError: storage is disabled"); } });
+  try {
+    const S = createShapeStore({ load: async (id) => preset(id) });
+    assert.deepEqual(S.setDevice({ density: "compact" }), { ok: true, kept: false });
+    assert.equal(S.get("density"), "compact", "it applies for this page");
+    assert.deepEqual(await S.choose("marketing"), { ok: true, kept: false });
+  } finally {
+    if (had) Object.defineProperty(globalThis, "localStorage", had); else delete globalThis.localStorage;
+  }
+});
+
+t("this browser kept the note but not mine itself: a reload restores the change from the note and sends that, not the older copy", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const base = mem({ [KEYS.mine]: JSON.stringify({ shape: 1, preset: "marketing" }) });
+  let refuseMine = true;
+  const st = { ...base, setItem: (k, v) => { if (k === KEYS.mine && refuseMine) throw new Error("QuotaExceededError"); base.setItem(k, v); } };
+  const first = store({ storage: st, remote: F });
+  await first.S.ready;
+  F.next.put.push(() => { throw F.err(503, "unavailable"); });
+  await first.S.setMine({ shape: 1, preset: "marketing", density: "compact" });
+  await first.S.settled();
+  assert.equal(JSON.parse(base.getItem(KEYS.mine)).density, undefined, "mine itself wasn't written");
+  assert.equal(first.S.held.kept, true, "the note keeps it");
+  refuseMine = false;
+  const again = store({ storage: st, remote: F });
+  assert.equal(again.S.get("density"), "compact", "the first paint is the change, from the note");
+  await again.S.ready;
+  await again.S.settled();
+  assert.deepEqual(F.stored, { shape: 1, preset: "marketing", density: "compact" }, "what's sent again is the change");
+  assert.equal(again.notes.at(-1).text, "Your shape is saved");
+});
+t("refused, with this browser keeping the note but not mine: after a reload the change is still what shows, and still refused", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const base = mem({ [KEYS.mine]: JSON.stringify({ shape: 1, preset: "marketing" }) });
+  const st = { ...base, setItem: (k, v) => { if (k === KEYS.mine) throw new Error("QuotaExceededError"); base.setItem(k, v); } };
+  const first = store({ storage: st, remote: F });
+  await first.S.ready;
+  F.next.put.push(() => { throw F.err(413, "shape_too_large"); });
+  await first.S.setMine({ shape: 1, preset: "marketing", density: "compact" });
+  await first.S.settled();
+  const again = store({ storage: st, remote: F });
+  await again.S.ready;
+  await again.S.settled();
+  assert.equal(again.S.get("density"), "compact");
+  assert.equal(again.S.held.why, "refused");
+  assert.equal(again.S.held.kept, true, "kept here is claimed only with the change actually here");
+  assert.deepEqual(F.stored, { shape: 1, preset: "marketing" }, "nothing sent by itself");
+});
+t("a note from an earlier build (the changes, no mine) over an older copy of mine: the changes are put back, never claimed while missing", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const st = mem({
+    [KEYS.mine]: JSON.stringify({ shape: 1, preset: "marketing" }),
+    [KEYS.unsynced]: JSON.stringify({ changes: [{ path: ["density"], value: "compact" }], known: { shape: 1, preset: "marketing" }, why: "refused", text: "XO refused it." }),
+  });
+  const { S } = store({ storage: st, remote: F });
+  assert.equal(S.get("density"), "compact", "the held change is there");
+  await S.ready;
+  await S.settled();
+  assert.deepEqual(S.held, { why: "refused", text: "XO refused it.", kept: true });
+  assert.equal(S.get("density"), "compact");
+});
+
+t("refused, then a newer change written here while its PUT is out: a reload keeps the newer one (the note follows mine)", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const st = mem();
+  const first = store({ storage: st, remote: F });
+  await first.S.ready;
+  F.next.put.push(() => { throw F.err(413, "shape_too_large"); });
+  await first.S.setMine({ shape: 1, preset: "marketing", density: "compact" });
+  await first.S.settled();
+  F.next.put.push(() => new Promise(() => {})); // the newer change's PUT never answers: the page goes before it does
+  first.S.setMine({ shape: 1, preset: "marketing", density: "comfortable" });
+  await new Promise((r) => setTimeout(r, 10));
+  assert.equal(JSON.parse(st.getItem(KEYS.mine)).density, "comfortable", "written here");
+  const again = store({ storage: st, remote: F });
+  assert.equal(again.S.get("density"), "comfortable", "the reload keeps the newer change");
+  assert.equal(again.S.held.why, "refused", "and still says what's held");
+});
+t("…and when the note couldn't follow (its write failed), this browser's newer copy of mine still wins over it", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const base = mem();
+  let refuseNote = false;
+  const st = { ...base, setItem: (k, v) => { if (k === KEYS.unsynced && refuseNote) throw new Error("QuotaExceededError"); base.setItem(k, v); } };
+  const first = store({ storage: st, remote: F });
+  await first.S.ready;
+  F.next.put.push(() => { throw F.err(413, "shape_too_large"); });
+  await first.S.setMine({ shape: 1, preset: "marketing", density: "compact" });
+  await first.S.settled();
+  refuseNote = true;
+  F.next.put.push(() => new Promise(() => {}));
+  first.S.setMine({ shape: 1, preset: "marketing", density: "comfortable" });
+  await new Promise((r) => setTimeout(r, 10));
+  assert.equal(JSON.parse(base.getItem(KEYS.unsynced)).mine.density, "compact", "the note is the older one");
+  const again = store({ storage: st, remote: F });
+  assert.equal(again.S.get("density"), "comfortable", "this browser's newer copy wins");
+});
+
+t("a stale note, a newer copy of mine, and another device's change meanwhile: the conflict is about the newer change, not the stale delta", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const base = mem();
+  let refuseNote = false;
+  const st = { ...base, setItem: (k, v) => { if (k === KEYS.unsynced && refuseNote) throw new Error("QuotaExceededError"); base.setItem(k, v); } };
+  const first = store({ storage: st, remote: F });
+  await first.S.ready;
+  F.next.put.push(() => { throw F.err(413, "shape_too_large"); });
+  await first.S.setMine({ shape: 1, preset: "marketing", density: "compact" });
+  await first.S.settled();
+  refuseNote = true; // the note can't follow the newer change
+  F.next.put.push(() => new Promise(() => {}));
+  first.S.setMine({ shape: 1, preset: "marketing", density: "comfortable", words: { thread: "task" } });
+  await new Promise((r) => setTimeout(r, 10));
+  F.set({ shape: 1, preset: "everything" }); // another device, meanwhile (a preset without a density of its own)
+  const again = store({ storage: st, remote: F });
+  await again.S.ready;
+  await again.S.settled();
+  assert.notEqual(F.stored.density, "compact", "the stale compact isn't replayed onto Storm");
+  assert.notEqual(again.S.get("density"), "compact", "nor shown here");
+  // the newer change is two keys (density, a word): Storm's stays, and it's said that this change wasn't kept
+  assert.deepEqual(F.stored, { shape: 1, preset: "everything" });
+  assert.deepEqual(again.S.mine, { shape: 1, preset: "everything" });
+  assert.match(again.notes.at(-1).sub, /wasn't kept/);
+});
+t("a note whose newer copy of mine is what Storm already has: nothing is held, and nothing claimed", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const st = mem({
+    [KEYS.mine]: JSON.stringify({ shape: 1, preset: "marketing" }),
+    [KEYS.unsynced]: JSON.stringify({ changes: [{ path: ["density"], value: "compact" }], known: { shape: 1, preset: "marketing" }, why: "refused", text: "XO refused it.", mine: { shape: 1, preset: "marketing", density: "compact" }, stored: { shape: 1, preset: "marketing", density: "compact" } }),
+  });
+  const { S } = store({ storage: st, remote: F });
+  await S.ready;
+  await S.settled();
+  assert.equal(S.held, null);
+  assert.equal(S.get("density"), "comfortable");
+  assert.equal(st.getItem(KEYS.unsynced), null);
+});
+
+t("SRC-SET-QUEUE-7 as Astra ran it: the stale note, a newer comfortable + word change, a project word changed elsewhere: no stale replay", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const base = mem();
+  let refuseNote = false;
+  const st = { ...base, setItem: (k, v) => { if (k === KEYS.unsynced && refuseNote) throw new Error("QuotaExceededError"); base.setItem(k, v); } };
+  const first = store({ storage: st, remote: F });
+  await first.S.ready;
+  F.next.put.push(() => { throw F.err(413, "shape_too_large"); });
+  await first.S.setMine({ shape: 1, preset: "marketing", density: "compact" });
+  await first.S.settled();
+  refuseNote = true;
+  F.next.put.push(() => new Promise(() => {}));
+  first.S.setMine({ shape: 1, preset: "marketing", density: "comfortable", words: { thread: "task" } });
+  await new Promise((r) => setTimeout(r, 10));
+  F.set({ shape: 1, preset: "marketing", words: { project: "client" } }); // the project word, changed on another device
+  const again = store({ storage: st, remote: F });
+  assert.equal(again.S.get("density"), "comfortable", "first paint: the newer change");
+  await again.S.ready;
+  await again.S.settled();
+  assert.notEqual(F.stored.density, "compact", "the stale compact delta isn't replayed");
+  assert.equal(again.S.mine.density === "compact", false);
+  assert.match(again.notes.at(-1).sub, /wasn't kept/, "two keys over another device's change: said, as every conflict is");
+  assert.equal(again.S.held, null);
 });
 
 await Promise.all(pending);

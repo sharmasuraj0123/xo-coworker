@@ -98,7 +98,7 @@ function settingsApi(W) {
     if (p === "/api/chat/runtime-policy" && m === "GET") return json({ space: W.policy, effective: { ...W.policy, fallback: !!W.policy.fallback } });
     if (p === "/api/chat/runtime-policy" && m === "PUT") { const b = q.postDataJSON(); if ((failed = await write("policy", b))) return failed; W.policy = b; return json({ space: W.policy, effective: { ...W.policy } }); }
     if (p === "/api/chat/shape" && m === "GET") return json(W.shape);
-    if (p === "/api/chat/shape" && m === "PUT") { const b = q.postDataJSON(); W.writes.push({ kind: "shape", body: b }); W.shape = { shape: b.shape, version: `v${W.writes.length}` }; return json(W.shape); }
+    if (p === "/api/chat/shape" && m === "PUT") { const b = q.postDataJSON(); if ((failed = await write("shape", b))) return failed; W.shape = { shape: b.shape, version: `v${W.writes.length}` }; return json(W.shape); }
     if ((k = /^\/api\/chat\/chats\/([^/]+)\/made$/.exec(p))) return json({ made: k[1] === "chat_demo" ? W.made : [], next_before: null });
     return r.fallback();
   };
@@ -108,9 +108,12 @@ function settingsApi(W) {
  * The app from the harness (its mock world, and its record of every time focus fell to the page), then this
  * world's Settings routes and the theme, and a reload so the app starts with both.
  */
-async function open(W, { width, theme, motion = false }, { firstRun = false, device = null } = {}) {
+async function open(W, { width, theme, motion = false }, { firstRun = false, device = null, fullStorage = false } = {}) {
   const page = await openApp(browser, BASE, W, { width, height: width < 600 ? 844 : 900, motion });
   await page.route("**/api/**", settingsApi(W));
+  // a browser whose storage refuses the shape's keys (full, or switched off), from the reload on
+  // (fullStorage: "unsynced" refuses only the note of a held change)
+  if (fullStorage) await page.context().addInitScript((only) => { const set = Storage.prototype.setItem; Storage.prototype.setItem = function (k, v) { if (only ? k === only : String(k).startsWith("cv-shape")) throw new DOMException("The quota has been exceeded.", "QuotaExceededError"); return set.call(this, k, v); }; }, fullStorage === "unsynced" ? "cv-shape-unsynced" : null);
   await page.evaluate(({ theme, firstRun, device }) => {
     localStorage.setItem("cv-theme", theme);
     if (firstRun) for (const k of ["cv-shape-mine", "cv-shape-device", "cv-shape-preset"]) localStorage.removeItem(k);
@@ -588,6 +591,112 @@ t("C115 a refused box shows what's saved again, says why, and Space tries again"
   assert.equal(writes(page, "policy"), 2);
   await done(page);
 });
+t("C106 C099 a change this browser can't keep applies and says so, under its switch, instead of claiming it's done", async (ctx) => {
+  const page = await open(world(), ctx, { fullStorage: true });
+  await settings(page, "shape");
+  await keyFocus(page, "[data-shp-dense]");
+  await page.keyboard.press("Space");
+  await page.waitForFunction(() => document.documentElement.dataset.density === "compact");
+  await page.waitForSelector('[data-page="shape"] .set-err[role="alert"]');
+  assert.match(await page.locator('[data-page="shape"] .set-err').innerText(), /won't keep it after a reload/);
+  await page.waitForTimeout(150);
+  assert.doesNotMatch(await page.locator("#live").innerText(), /Compact on this device/, "no claim that it's done");
+  assert.equal(await focused(page), "button[data-shp-dense]");
+  await page.locator('[data-set="general"]').click();
+  await keyFocus(page, "#hops-tog");
+  await page.keyboard.press("Enter");
+  assert.equal(await page.locator("#hops-tog").getAttribute("aria-checked"), "true", "it applies");
+  await page.waitForSelector('[data-page="general"] .set-err[role="alert"]');
+  assert.match(await page.locator('[data-page="general"] .set-err').innerText(), /won't keep it after a reload/);
+  await page.waitForTimeout(150);
+  assert.doesNotMatch(await page.locator("#live").innerText(), /Showing how messages travel/);
+  await keyFocus(page, "#webpics-tog");
+  await page.keyboard.press("Enter");
+  assert.equal(await page.locator("#webpics-tog").getAttribute("aria-checked"), "false", "pictures off: it applies");
+  assert.match(await page.locator("#webpics-tog").locator("xpath=ancestor::div[contains(@class,'set-row')]").locator(".set-err").innerText(), /won't keep it after a reload/);
+  assert.doesNotMatch(await page.locator("#live").innerText(), /Pictures from the web show as links/);
+  await shot(page, "unkept");
+  await done(page);
+});
+t("S115 C101 a save XO couldn't take is held: a reload keeps it on screen, and it's sent again", async (ctx) => {
+  const W = world();
+  W.fail.shape = [err("unavailable", "Shape fixture unavailable")];
+  const page = await open(W, ctx);
+  await settings(page, "shape");
+  await keyFocus(page, '[data-shp-preset="marketing"]');
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelector('[data-shp-preset="marketing"]').getAttribute("aria-checked") === "true");
+  await page.waitForFunction(() => !!localStorage.getItem("cv-shape-unsynced"), null, { timeout: 8000 });
+  assert.equal(writes(page, "shape"), 1, "one PUT, refused with a 503");
+  assert.equal(W.shape.shape.preset, "everything", "XO still has the old one");
+  // the reload reads XO's older shape, and doesn't take it over the change: it sends the change again
+  await page.reload();
+  await page.waitForSelector('[data-go="p:demo"]', { state: "attached" });
+  await page.waitForFunction(() => !localStorage.getItem("cv-shape-unsynced"), null, { timeout: 8000 });
+  assert.equal(W.shape.shape.preset, "marketing", "it reached XO");
+  await settings(page, "shape");
+  assert.equal(await page.locator('[data-shp-preset="marketing"]').getAttribute("aria-checked"), "true", "and the page still shows it");
+  await done(page);
+});
+t("S115 C101 a save XO refused (413) says so plainly and why, on the Shape page and after a reload; never saved, never quietly pending", async (ctx) => {
+  const W = world();
+  W.fail.shape = [{ status: 413, body: { detail: { code: "shape_too_large", message: "Too large" } } }];
+  const page = await open(W, ctx);
+  await settings(page, "shape");
+  await keyFocus(page, '[data-shp-preset="marketing"]');
+  await page.keyboard.press("Enter");
+  const said = '[data-page="shape"] .set-err[role="alert"]';
+  await page.waitForSelector(said);
+  assert.match(await page.locator(said).innerText(), /XO refused your last shape change\. XO keeps a shape of up to 64 KB, and this one is larger\. It's kept on this device only/);
+  assert.equal(await page.locator('[data-shp-preset="marketing"]').getAttribute("aria-checked"), "true", "it applies here");
+  assert.equal(await focused(page), 'button[data-shp-preset="marketing"]');
+  await shot(page, "shape-refused");
+  // a reload: only a read (a refusal isn't sent again by itself), and it still says so
+  const before = writes(page, "shape");
+  await page.reload();
+  await page.waitForSelector('[data-go="p:demo"]', { state: "attached" });
+  await settings(page, "shape");
+  await page.waitForSelector(said);
+  assert.match(await page.locator(said).innerText(), /XO refused your last shape change/);
+  assert.equal(writes(page, "shape"), before, "nothing sent on the reload");
+  // the next change goes, with it: the line stays while that PUT is out, and goes when XO has it
+  W.delay = 600;
+  await keyFocus(page, '[data-shp-preset="engineering"]');
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(200);
+  assert.equal(writes(page, "shape"), before + 1, "the replacement PUT is out");
+  assert.equal(W.shape.shape.preset, "everything", "and not answered yet");
+  assert.match(await page.locator(said).innerText(), /XO refused your last shape change/, "still said while it's out");
+  await page.waitForFunction(() => !document.querySelector('[data-page="shape"] .set-err'));
+  assert.equal(W.shape.shape.preset, "engineering");
+  await done(page);
+});
+t("S115 C101 XO couldn't be reached and this browser couldn't keep the note of it: the Shape page says a reload loses it", async (ctx) => {
+  const W = world();
+  W.fail.shape = [err("unavailable", "Shape fixture unavailable")];
+  const page = await open(W, ctx, { fullStorage: "unsynced" });
+  await settings(page, "shape");
+  await keyFocus(page, '[data-shp-preset="marketing"]');
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => /Not saved yet/.test(document.querySelector('[data-page="shape"]').innerText));
+  const text = await page.locator('[data-page="shape"] .shp-top').innerText();
+  assert.match(text, /XO couldn't be reached, and this browser can't keep it after a reload/);
+  assert.doesNotMatch(text, /kept on this device/);
+  await done(page);
+});
+t("S115 C101 refused by XO and not kept by this browser either: the Shape page never says \"kept on this device\"", async (ctx) => {
+  const W = world();
+  W.fail.shape = [{ status: 413, body: { detail: { code: "shape_too_large", message: "Too large" } } }];
+  const page = await open(W, ctx, { fullStorage: true });
+  await settings(page, "shape");
+  await keyFocus(page, '[data-shp-preset="marketing"]');
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => /XO refused your last shape change/.test(document.querySelector('[data-page="shape"]').innerText));
+  const text = await page.locator('[data-page="shape"] .shp-top').innerText();
+  assert.match(text, /This browser can't keep it after a reload either: it lasts only while this page is open/);
+  assert.doesNotMatch(text, /kept on this device only/);
+  await done(page);
+});
 t("C114 a refused usual runtime: the saved one stays chosen, the reason shows under it, the keyboard stays, and Enter tries again", async (ctx) => {
   const W = world({ delay: 300 });
   W.fail.policy = [err("unavailable", "Policy fixture unavailable")];
@@ -607,7 +716,7 @@ t("C114 a refused usual runtime: the saved one stays chosen, the reason shows un
   assert.equal(await focused(page), `button${codex}`);
   await done(page);
 });
-t("C106 Compact: the switch stays the same node (its knob slides), says its state and sets the density", async (ctx) => {
+t("C106 Compact: the switch stays the same node and says its state; its knob travels (full motion) or lands at once (reduced)", async (ctx) => {
   const page = await open(world(), ctx);
   await settings(page, "shape");
   const sw = "[data-shp-dense]";
@@ -621,6 +730,19 @@ t("C106 Compact: the switch stays the same node (its knob slides), says its stat
   await page.keyboard.press("Space");
   await page.waitForFunction(() => document.documentElement.dataset.density !== "compact");
   assert.equal(await page.locator(sw).getAttribute("aria-checked"), "false");
+  // the knob's x, every frame for 450 ms after a press: with motion it passes through the middle, reduced it doesn't.
+  // First it settles at the off end, so the trace can't catch the previous press's travel reversing.
+  await page.waitForFunction((sel) => Math.abs(new DOMMatrix(getComputedStyle(document.querySelector(`${sel} .th-knob`)).transform).m41) < 0.5, sw);
+  const xs = await page.evaluate(async (sel) => {
+    const b = document.querySelector(sel), k = b.querySelector(".th-knob"), xs = [], t0 = performance.now();
+    b.click();
+    while (performance.now() - t0 < 450) { await new Promise((r) => requestAnimationFrame(r)); xs.push(new DOMMatrix(getComputedStyle(k).transform).m41); }
+    return xs;
+  }, sw);
+  assert.ok(Math.abs(xs[xs.length - 1] - 18) < 0.5, `it ends on: ${xs[xs.length - 1]}`);
+  const between = xs.filter((x) => x > 1 && x < 17);
+  if (ctx.motion) assert.ok(between.length >= 2, `it travels: ${xs.map((x) => x.toFixed(1)).join(" ")}`);
+  else assert.equal(between.length, 0, `reduced motion: no travel (${xs.map((x) => x.toFixed(1)).join(" ")})`);
   await done(page);
 });
 t("C112 a decision model's \"about it\" link opens its page in a new tab, by Enter as by a click", async (ctx) => {
@@ -961,6 +1083,9 @@ t("H1 C012 C013 Home: Handled and a Recently made file keep focus through Home's
       const name = `${c.name} [${ctx.width} ${ctx.theme}${ctx.motion ? " motion" : ""}]`;
       try { await c.fn(ctx); passed++; console.log("  ok  " + name); }
       catch (e) { failed++; console.error("  FAIL " + name + "\n" + (e.stack || e.message).split("\n").slice(0, 6).join("\n")); }
+      // whatever a case left open, however early it threw (in the harness's boot, a reload, a wait): the browser's own
+      // list of contexts, so nothing has to have been registered first (one browser's memory, not many)
+      finally { for (const x of browser.contexts()) await x.close().catch(() => {}); }
     }
   }
   await browser.close(); server.close();

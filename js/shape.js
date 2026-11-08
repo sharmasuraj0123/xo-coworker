@@ -338,8 +338,12 @@ export function applyChanges(doc, changes) {
 /** Is this one clear change, a single key (however often it was set)? Only that is put back over another device's. */
 export const oneKey = (changes) => new Set((changes || []).map((c) => JSON.stringify(c.path))).size === 1;
 
-export const KEYS = { mine: "cv-shape-mine", device: "cv-shape-device", preset: "cv-shape-preset" };
-const memory = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; };
+// unsynced: your change Storm hasn't taken yet (a failed write), kept so a reload neither loses it nor reads over it
+export const KEYS = { mine: "cv-shape-mine", device: "cv-shape-device", preset: "cv-shape-preset", unsynced: "cv-shape-unsynced" };
+/** How long a write XO couldn't take waits before it's sent again: 30 s, then doubling, at most 5 minutes. */
+const RETRY_MS = [30000, 60000, 120000, 300000];
+// in memory only (no browser storage could be had): it holds for the page, and says it outlives nothing (ephemeral)
+const memory = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k), ephemeral: true }; };
 const defaultStorage = () => { try { return globalThis.localStorage || memory(); } catch { return memory(); } };
 /** A preset file, served next to the UI (GET only). */
 const fetchPreset = async (id) => {
@@ -366,9 +370,11 @@ const fetchPreset = async (id) => {
  * remote: {get(), put({shape, if_version})}, both → {shape, version, updated_at} (api.js's in the app;
  * none in node tests, which is the localStorage behaviour). notice({text, sub}): the app's quiet line.
  */
-export function createShapeStore({ storage = defaultStorage(), load = fetchPreset, caps = null, remote = null, notice = () => {} } = {}) {
+export function createShapeStore({ storage = defaultStorage(), load = fetchPreset, caps = null, remote = null, notice = () => {}, retryMs = RETRY_MS } = {}) {
   const read = (k) => { try { const s = storage.getItem(k); return s ? JSON.parse(s) : null; } catch { return null; } };
-  const write = (k, v) => { try { storage.setItem(k, JSON.stringify(v)); } catch { /* private mode */ } };
+  // a write says whether this browser kept it (a full or switched-off storage refuses): the change still applies,
+  // and the caller is told it won't survive a reload, never that it was saved
+  const write = (k, v) => { try { storage.setItem(k, JSON.stringify(v)); return !storage.ephemeral; } catch { return false; } };
   let mine = read(KEYS.mine);
   let device = read(KEYS.device);
   if (device == null) { device = migrateDevice(storage); write(KEYS.device, device); }
@@ -412,10 +418,60 @@ export function createShapeStore({ storage = defaultStorage(), load = fetchPrese
   // holds at `version` (knows: it has been read at all); pend: your changes not stored yet (lists from
   // changesOf); known: what Storm held when they began, so a read that finds otherwise is a conflict; busy:
   // the PUT on its way; heard: a ui.shape heard on the stream while one was.
-  const R = { mode: remote ? "reading" : "off", version: null, synced: null, knows: false, known: null, pend: [], busy: null, heard: undefined, retried: false, read: Promise.resolve() };
+  // held: your changes a write couldn't land (why: "unreachable", sent again by itself; "refused", sent with your
+  // next change), kept here and in KEYS.unsynced so no read takes Storm's older shape over them. why/text stay set
+  // until Storm has them (a change sent again with them doesn't hide that they're not there yet). kept: whether this
+  // browser kept both mine and that note of it, so a reload finds them; localOk: whether it kept mine at its last write.
+  const R = { mode: remote ? "reading" : "off", version: null, synced: null, knows: false, known: null, pend: [], busy: null, heard: undefined, retried: false, read: Promise.resolve(), held: [], why: null, text: "", kept: true, tries: 0, timer: null, localOk: true };
+  const heldSubs = new Set(); // Settings › Shape: what's held, and why, shown while it is
+  const heldSaid = () => { for (const f of heldSubs) f(); };
+  {
+    const un = remote ? read(KEYS.unsynced) : null;
+    if (un && Array.isArray(un.changes) && un.changes.length) {
+      R.held = [un.changes]; R.known = isObj(un.known) ? un.known : null; R.why = un.why === "refused" ? "refused" : "unreachable"; R.text = typeof un.text === "string" ? un.text : "";
+      // the note carries mine as you left it, and what this browser's copy of mine was when it was written (stored).
+      // Copy unchanged since: the note's mine is the newer (that copy's write had failed), and it's what shows and is
+      // sent again. Copy written since (a later change landed here while its PUT was out): the copy is newer and
+      // stays; a stale note never rolls it back. A note without mine (an earlier build's) has the changes: they're
+      // put on top of this browser's copy, so what's held is never claimed while it's missing.
+      if (isObj(un.mine) || un.mine === null) { if (!("stored" in un) || sameDoc(mine, un.stored)) mine = un.mine; }
+      else mine = applyChanges(mine, un.changes);
+      // one coherent revision: the document wanted (mine, chosen above), what Storm held when it began (known), and
+      // what's held is the difference between the two, never a delta left over from an older note (a conflict
+      // replays exactly this). Nothing left between them: nothing is held.
+      if ("known" in un) {
+        const delta = changesOf(R.known, mine);
+        if (delta.length) R.held = [delta];
+        else { R.held = []; R.why = null; R.text = ""; try { storage.removeItem(KEYS.unsynced); } catch { /* nothing kept */ } }
+      }
+    }
+    else if (!remote) { try { storage.removeItem(KEYS.unsynced); } catch { /* nothing kept */ } }
+  }
+  /** Keep the held changes (and why) where a reload finds them; or let them go, once Storm has them or can't. */
+  // kept: the note (with mine in it) is what a reload restores and sends, so it's kept here exactly when the note is
+  // what's held and what's on its way with it, mine as it is now, and this browser's copy of mine as stored right now
+  function hold(why, text) { R.why = why; R.text = text; R.kept = write(KEYS.unsynced, { changes: [...R.held, ...R.pend].flat(), known: R.known, why, text, mine, stored: read(KEYS.mine) }); heldSaid(); }
+  function unhold() { const was = !!R.why; R.held = []; R.why = null; R.text = ""; R.kept = true; R.tries = 0; clearTimeout(R.timer); try { storage.removeItem(KEYS.unsynced); } catch { /* nothing kept */ } if (was) heldSaid(); }
+  /** A write XO couldn't take goes again by itself: after a while, or as soon as a read reaches Storm. */
+  function later() {
+    clearTimeout(R.timer);
+    R.timer = setTimeout(resend, retryMs[Math.min(R.tries++, retryMs.length - 1)]);
+    R.timer.unref?.(); // never keeps a node test (or a closing page) alive
+  }
+  function resend() {
+    if (!R.held.length || R.busy || R.why !== "unreachable") return;
+    R.pend.push(...R.held.splice(0));
+    push();
+  }
+  /** A read reached Storm with your changes held: another device's since means a conflict; else they go again. */
+  function settleHeld() {
+    if (!R.held.length || R.busy || R.mode !== "on") return;
+    if (!sameDoc(R.synced, R.known)) { const pend = R.held.splice(0); unhold(); conflict({ shape: R.synced, version: R.version }, pend); push(); return; }
+    resend();
+  }
   const isView = (v) => isObj(v) && typeof v.version === "string" && (v.shape === null || isObj(v.shape));
   const gone = (err) => !!err && (err.status === 404 || err.status === 405);
-  const setMine = (doc) => { mine = doc; write(KEYS.mine, doc); }; // the copy here follows (null too: Storm has none)
+  const setMine = (doc) => { mine = doc; R.localOk = write(KEYS.mine, doc); return R.localOk; }; // the copy here follows (null too: Storm has none)
   /** What Storm holds, from a GET or PUT answer (or a conflict's `current`). adopt: it becomes mine here too. */
   function took(view, { adopt }) {
     R.mode = "on";
@@ -435,21 +491,38 @@ export function createShapeStore({ storage = defaultStorage(), load = fetchPrese
         const v = await remote.get();
         if (!isView(v)) { R.mode = "off"; return; } // not Storm's shape route: this browser's copy, as before
         // Storm without a shape doesn't take this browser's away: it goes up with your first change
-        if (took(v, { adopt: adopt && isObj(v.shape) && !R.pend.length && !R.busy })) { ensurePreset(); emit(); }
-      } catch (err) { R.mode = gone(err) ? "off" : R.mode === "on" ? "on" : "unknown"; }
+        if (took(v, { adopt: adopt && isObj(v.shape) && !R.pend.length && !R.busy && !R.held.length })) { ensurePreset(); emit(); }
+        settleHeld();
+      } catch (err) {
+        R.mode = gone(err) ? "off" : R.mode === "on" ? "on" : "unknown";
+        if (R.mode === "off") unhold();
+        else if (R.held.length && R.why === "unreachable") later(); // still can't reach it: try again in a while
+      }
     })();
     return R.read;
   }
   const NOT_THERE = "your other devices don't have this change";
-  /** A write that didn't land. Only a conflict changes what you see; the rest is said, and stays here. */
+  /**
+   * A write that didn't land. Only a conflict changes what you see. The rest is held, here and across a reload,
+   * so no read takes Storm's older shape over it: XO couldn't be reached → it's sent again by itself; XO refused
+   * it → it goes with your next change. Said quietly, and truthfully when this browser couldn't keep it either.
+   */
   function failed(err, pend) {
-    if (gone(err)) { R.mode = "off"; return; } // no route after all (an older backend again): this browser's, quietly
-    if (err && err.status === 409 && err.code === "shape_changed" && isView(err.current)) { conflict(err.current, pend); return; }
-    const why = err && err.status === 413 ? `XO keeps a shape of up to 64 KB, so ${NOT_THERE}.`
-      : err && err.status === 400 ? `${String(err.message || "XO refused it.").replace(/\s*$/, "")} So ${NOT_THERE}.`
-        : err && err.status >= 400 && err.status < 500 ? `XO refused it, so ${NOT_THERE}.`
-          : `XO couldn't be reached, so ${NOT_THERE} yet.`;
-    notice({ text: "Your shape is saved on this device only", sub: why });
+    if (gone(err)) { R.mode = "off"; unhold(); return; } // no route after all (an older backend again): this browser's, quietly
+    if (err && err.status === 409 && err.code === "shape_changed" && isView(err.current)) { const all = [...R.held.splice(0), ...pend]; unhold(); conflict(err.current, all); return; }
+    const refused = !!err && err.status >= 400 && err.status < 500;
+    // why, in a sentence of its own: shown in the notice now, and in Settings › Shape while it's held
+    const reason = !refused ? "XO couldn't be reached."
+      : err.status === 413 ? "XO keeps a shape of up to 64 KB, and this one is larger."
+        : err.status === 400 && err.message ? String(err.message).replace(/\s*$/, "").replace(/([^.!?])$/, "$1.")
+          : "XO refused it.";
+    R.held.push(...pend);
+    hold(refused ? "refused" : "unreachable", reason);
+    if (!refused) later();
+    // kept here (mine and the note of it) or not: said the same way now and in Settings › Shape after
+    if (!R.kept) notice({ text: "Your shape isn't saved", sub: `This browser won't keep it after a reload, and ${refused ? `XO refused it: ${reason}` : "XO couldn't be reached. It's sent again while this page is open."}` });
+    else if (refused) notice({ text: "XO refused your shape change", sub: `${reason} It's kept on this device only: ${NOT_THERE}.` });
+    else notice({ text: "Your shape is saved on this device only", sub: `XO couldn't be reached, so ${NOT_THERE} yet. It's sent again when XO answers.` });
   }
   /**
    * Another device saved first: Storm's (current) is taken here. Your change goes back on top when it's
@@ -487,17 +560,19 @@ export function createShapeStore({ storage = defaultStorage(), load = fetchPrese
       try {
         await R.read; // the load's GET (or a re-read) settles first
         if (R.mode === "unknown") await reread({ adopt: false }); // it failed: read once more before writing over anything
-        if (R.mode === "off") { R.pend = []; return; }
-        if (R.mode !== "on") { R.pend = []; notice({ text: "Your shape is saved on this device only", sub: `XO couldn't be reached, so ${NOT_THERE} yet.` }); return; }
+        if (R.mode === "off") { R.pend = []; unhold(); return; }
+        if (R.mode !== "on") { failed(null, R.pend.splice(0)); return; } // couldn't be reached: held, and sent again
         // a read since your change began found another device's shape there: the same as a conflict
         if (R.synced && !sameDoc(R.synced, R.known)) { conflict({ shape: R.synced, version: R.version }, R.pend.splice(0)); return; }
-        const n = R.pend.length, sent = copy(mine);
+        const n = R.pend.length, sent = copy(mine), wasHeld = !!R.why;
         let v;
         try { v = await remote.put({ shape: sent, if_version: R.version || "new" }); } catch (err) { failed(err, R.pend.splice(0)); return; }
         R.pend.splice(0, n);
         R.retried = false;
         if (isView(v)) took(v, { adopt: false }); else { R.synced = sent; R.version = null; }
         R.known = R.synced; // what changes made meanwhile go on top of
+        // it's on Storm now: nothing is held any more, and a change that waited says it got there
+        if (wasHeld && !R.held.length) { unhold(); notice({ text: "Your shape is saved", sub: "Your other devices have your change now." }); }
       } finally {
         R.busy = null;
         if (R.pend.length) push();
@@ -506,17 +581,24 @@ export function createShapeStore({ storage = defaultStorage(), load = fetchPrese
     })();
     return R.busy;
   }
-  /** Your change to mine: kept here at once, and on Storm when it keeps shapes. */
+  /**
+   * Your change to mine: kept here at once, and on Storm when it keeps shapes (with any change still held: the
+   * PUT is the whole of mine). True when it outlives a reload as far as is known now: this browser kept it, or
+   * Storm is there to.
+   */
   const saveMine = (doc) => {
     const before = mine;
-    setMine(doc);
-    if (R.mode === "off") return;
+    const here = setMine(doc);
+    if (R.mode === "off") return here;
     const ch = changesOf(before, doc);
-    if (!ch.length) return;
+    if (!ch.length) return here || R.mode === "on";
     // what Storm held as this change began (never read yet: this browser's copy is the best guess of it)
-    if (!R.pend.length && !R.busy) R.known = R.knows ? R.synced : before;
-    R.pend.push(ch);
+    if (!R.pend.length && !R.busy && !R.held.length) R.known = R.knows ? R.synced : before;
+    R.pend.push(...R.held.splice(0), ch);
+    // something is held: its note follows mine at once, so a reload while this PUT is out restores this, not the older
+    if (R.why) hold(R.why, R.text);
     push();
+    return here || R.mode === "on";
   };
   /**
    * A ui.shape `settings` event ({doc, updated_at}, or null when cleared): another device changed it, or
@@ -528,6 +610,7 @@ export function createShapeStore({ storage = defaultStorage(), load = fetchPrese
     if (R.mode === "reading") { R.read.then(() => heard(value)); return; }
     if (R.mode !== "on") { reread(); return; } // Storm keeps shapes after all (a restart while this page was open)
     if (R.busy || R.pend.length) { R.heard = doc; return; } // our write settles first (a conflict says so)
+    if (R.held.length) { reread(); return; } // a change of yours is held: the read decides (a conflict, or it goes again)
     if (sameDoc(doc, R.synced)) return; // what Storm holds already: our own write's echo
     R.synced = doc;
     R.version = null; // the next read says which (and takes anything newer still)
@@ -573,6 +656,10 @@ export function createShapeStore({ storage = defaultStorage(), load = fetchPrese
     heard,
     /** Settles when every change so far has been written (or refused); for tests and a page about to go. */
     settled: async () => { while (R.busy || R.pend.length) { await (R.busy || push()); } await R.read; },
+    /** Changes of yours a write couldn't land yet: {why: "unreachable" (sent again by itself) or "refused" (with your next), text: why, in a sentence}, else null. */
+    get held() { return R.why ? { why: R.why, text: R.text, kept: R.kept } : null; },
+    /** Called when what's held changes (held, or landed). */
+    onHeld(fn) { heldSubs.add(fn); return () => heldSubs.delete(fn); },
     ownKeys, ready, loadPreset,
     presetFile: (id) => files.get(id) || null,
     presetError: (id) => loadErr.get(id) || null,
@@ -583,9 +670,9 @@ export function createShapeStore({ storage = defaultStorage(), load = fetchPrese
       if (newer("mine")) return { error: "Your shape was saved by a newer XO; it isn't changed here." };
       await loadPreset(id);
       remember(id);
-      saveMine({ shape: SHAPE_VERSION, preset: id });
+      const kept = saveMine({ shape: SHAPE_VERSION, preset: id });
       emit();
-      return { ok: true };
+      return { ok: true, kept };
     },
     /** Edit as JSON: mine replaced by your document (a preset named in it is read first). */
     async setMine(doc) {
@@ -593,35 +680,35 @@ export function createShapeStore({ storage = defaultStorage(), load = fetchPrese
       if (newer("mine")) return { error: "Your shape was saved by a newer XO; it isn't changed here." };
       const id = typeof doc.preset === "string" && PRESET_ID.test(doc.preset) ? doc.preset : null;
       if (id) { await loadPreset(id); remember(id); }
-      saveMine({ shape: SHAPE_VERSION, ...doc });
+      const kept = saveMine({ shape: SHAPE_VERSION, ...doc });
       emit();
-      return { ok: true };
+      return { ok: true, kept };
     },
     /** A change on this device only (a merge patch into its layer), e.g. a switch in Settings. */
     setDevice(patch) {
       if (newer("device")) return { error: "This device's shape was saved by a newer XO; it isn't changed here." };
       device = { ...merge(device || {}, patch), shape: SHAPE_VERSION };
-      write(KEYS.device, device);
+      const kept = write(KEYS.device, device);
       emit();
-      return { ok: true };
+      return { ok: true, kept };
     },
     /** Back to exactly what the preset says: your changes and this device's are cleared. */
     resetToPreset() {
       if (newer("mine") || newer("device")) return { error: "Your shape was saved by a newer XO; it isn't changed here." };
-      saveMine({ shape: SHAPE_VERSION, preset: presetId() || "everything" });
+      const mineKept = saveMine({ shape: SHAPE_VERSION, preset: presetId() || "everything" });
       device = { shape: SHAPE_VERSION }; // the marker stays, so cv-hops is never folded in twice
-      write(KEYS.device, device);
+      const kept = write(KEYS.device, device) && mineKept;
       emit();
-      return { ok: true };
+      return { ok: true, kept };
     },
     /** Every surface on, on top of the preset (Reset to preset takes it back). */
     showEverything() {
       if (newer("mine") || newer("device")) return { error: "Your shape was saved by a newer XO; it isn't changed here." };
-      saveMine(everythingLayer(presetId() || "everything"));
+      const mineKept = saveMine(everythingLayer(presetId() || "everything"));
       device = { shape: SHAPE_VERSION, ...(device && device.density ? { density: device.density } : {}) };
-      write(KEYS.device, device);
+      const kept = write(KEYS.device, device) && mineKept;
       emit();
-      return { ok: true };
+      return { ok: true, kept };
     },
     onChange(fn) { subs.add(fn); return () => subs.delete(fn); },
   };
