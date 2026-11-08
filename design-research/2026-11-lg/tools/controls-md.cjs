@@ -312,6 +312,7 @@ const DOES = {
   'data-run': 'Opens that run.',
   'data-runs': 'The thread\'s sub-agent runs: opens their list.',
   'data-runs-back': 'Runs: back to the list.',
+  'data-dm-submit': 'Settings › Routing: sends the pasted API key to connect a decision model; once while it asks.',
   'data-runs-stop': 'Runs: stops all of its sub-agents in 3 s, with Undo in the sheet until then (no question first); the thread\'s own agent keeps working.',
   'data-run-stop': 'Runs: stops that run.',
   'data-run-call': 'Opens a run\'s call in full.',
