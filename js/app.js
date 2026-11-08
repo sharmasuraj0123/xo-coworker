@@ -3251,7 +3251,8 @@ jq.addEventListener("keydown", (e) => {
   if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); jsel = (jsel + (e.key === "ArrowDown" ? 1 : jitems.length - 1)) % Math.max(1, jitems.length); jumpRender(); }
   // Enter while a word is being composed (an IME) finishes the word; with nothing found, Jump stays open on what
   // you typed (it never closes onto nothing: Astra, e20231c)
-  if (e.key === "Enter" && (e.isComposing || e.keyCode === 229)) return;
+  // and every key of a word being composed is the word's: Escape cancels it, arrows move among its candidates
+  if (e.isComposing || e.keyCode === 229) return;
   if (e.key === "Enter") { e.preventDefault(); const x = jitems[jsel]; if (!x) { announce("Nothing matches. Change what you typed, or Esc to close."); return; } closeJump({ restore: !!x.run }); x.run ? x.run() : go(x.v); }
   if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeJump(); }
 });
@@ -3482,6 +3483,9 @@ const GLOBAL = {
 };
 addEventListener("keydown", (e) => {
   if (S.recording) return; // Settings › Keyboard is listening for a new key
+  // a key that's part of a word being composed (an IME: its Escape cancels the word, its arrows move in the
+  // candidates) is the field's, never a page key (Conversation's finding: a composing Escape reached it)
+  if (e.isComposing || e.keyCode === 229) return;
   // inside a shell every key is the shell's (Esc for vim, Ctrl+K for bash), but the shells' own toggle
   if (SH.owns(e)) { if (K.hasMod("shells") && K.is(e, "shells")) { e.preventDefault(); GLOBAL.shells(); } return; }
   // ⌘/Ctrl keys work everywhere, even while typing

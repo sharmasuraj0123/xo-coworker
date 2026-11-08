@@ -1190,6 +1190,19 @@ t("H12: a made thing's age updates in place, and a name cut in the middle stays 
   await done(page);
 });
 
+t("IME: a key of a word being composed is the field's: a composing Escape closes nothing, page-wide or in Jump", async () => {
+  const page = await app();
+  await toDemo(page);
+  const esc = (sel) => page.evaluate((sel) => document.querySelector(sel).dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", isComposing: true, keyCode: 229, bubbles: true, cancelable: true })), sel);
+  await page.keyboard.press("ControlOrMeta+k");
+  await page.locator("#jump").waitFor();
+  await esc("#jump-q");
+  assert.equal(await page.locator("#jump").isVisible(), true, "Jump stays open on a composing Escape");
+  await page.keyboard.press("Escape"); // a plain one closes it
+  await page.waitForFunction(() => document.querySelector("#jump").hidden);
+  await done(page);
+});
+
 t("C029: on a phone, Back to chat from a file shows the chat, not the panel again", async () => {
   if (WIDTH > 760) return; // beside the chat on a desktop, the panel coming back is the design
   const page = await app({ files: { "a.js": FILE() } });
