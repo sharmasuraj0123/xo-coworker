@@ -425,11 +425,10 @@ t("LP1A: an older check refused after a newer GitHub check answered: the screen 
   await page.waitForFunction(() => /has the workflow permission now/.test(document.querySelector("#live")?.innerText || ""));
   held.open(); // the older read is refused now
   await page.waitForTimeout(400);
-  const st = await page.evaluate(() => window.__t.LP.inspect("p:demo"));
+  // what a person sees: the same setup screen with Deploy, never Couldn't check
+  const st = await page.evaluate(() => ({ screen: document.querySelector(".lp")?.dataset.screen, deploy: !!document.querySelector('[data-lp="deploy"]'), recheck: !!document.querySelector('[data-lp="recheck"]') }));
   assert.equal(checks, 1);
-  assert.notEqual(st.screen, "check-failed", "the old refusal doesn't flip the screen");
-  assert.equal(st.err, null);
-  assert.equal(st.workflow, true, "the newer answer stands");
+  assert.deepEqual(st, { screen: "setup", deploy: true, recheck: false }, "the old refusal doesn't flip the screen to Couldn't check");
   await done(page);
 });
 t("LP1A: an older GitHub check refused after a newer read answered: no stale 'Couldn't check GitHub'", async () => {
@@ -447,12 +446,13 @@ t("LP1A: an older GitHub check refused after a newer read answered: no stale 'Co
   await page.evaluate(() => window.__lp.load("demo", true)); // a newer read (check + GitHub), answered
   await page.waitForTimeout(500);
   held.open(); // the older GitHub check is refused now
-  await page.waitForFunction(() => /still doesn't have the workflow permission/.test(document.querySelector("#live")?.innerText || ""));
-  const st = await page.evaluate(() => window.__t.LP.inspect("p:demo"));
+  await page.waitForFunction(() => /still doesn't have the workflow permission|Couldn't check GitHub/.test(document.querySelector("#live")?.innerText || ""), null, { timeout: 6000 });
+  await page.waitForTimeout(300);
+  // what a person sees and hears: no stale failure under the button, none in the live region
   assert.equal(pres, 1);
-  assert.equal(st.ghErr, null, "no stale failure under the button");
-  assert.equal(await page.locator(".lp-gh-err").count(), 0);
+  assert.equal(await page.locator(".lp-gh-err").count(), 0, "no stale failure under the button");
   assert.doesNotMatch(await live(page), /Couldn't check GitHub/);
+  assert.match(await live(page), /still doesn't have the workflow permission/, "the newer read's answer is the one said");
   await done(page);
 });
 
