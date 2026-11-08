@@ -575,7 +575,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
     const box = A.box || (A.box = document.getElementById("arts"));
     if (!box || box.hidden) return; // nothing is measured or drawn unseen
     if (!box._built) {
-      box.innerHTML = `<div class="ar-wrap"><header class="ar-head"><h1 id="arts-h">Artifacts</h1><p class="ar-sub" id="arts-sub"></p></header>` +
+      box.innerHTML = `<header class="ar-head"><span class="tw-ic" aria-hidden="true">${ICON.stack}</span><span class="tw-t"><h1 id="arts-h">Artifacts</h1><p class="pj-s ar-sub" id="arts-sub"></p></span></header><div class="ar-wrap">` +
         `<div class="ar-tools"><label class="ar-q">${ICON.search}<span class="sr-only">Find an artifact</span><input id="arts-q" placeholder="Find an artifact" autocomplete="off" spellcheck="false"></label>` +
         `<label class="ar-pj"><span class="sr-only">Project</span><xo-select id="arts-pj"></xo-select></label></div>` +
         `<div class="ar-kinds" id="arts-f" role="radiogroup" aria-label="Show"></div><div class="ar-body" id="arts-body"></div></div>`;

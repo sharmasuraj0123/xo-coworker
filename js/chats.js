@@ -172,7 +172,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     return items;
   }
   function headHtml(v) {
-    if (v === "chats") return `<span class="tw-t"><h1 id="conv-title">Chats</h1><span class="pj-s">One agent, one folder, outside your projects' coordinators</span></span>`;
+    if (v === "chats") return `<span class="tw-ic" aria-hidden="true">${ICON.thread}</span><span class="tw-t"><h1 id="conv-title">Chats</h1><span class="pj-s">One agent, one folder, outside your projects' coordinators</span></span>`;
     const s = session(v.slice(2));
     if (!s) return `<span class="tw-t"><h1 id="conv-title">Chat</h1></span>`;
     const busy = BUSY.has(s.state), wait = waiting(s);

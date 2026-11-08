@@ -10,10 +10,12 @@
 .app[data-view="artifacts"] .dock{display:none}
 .arts{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;outline:none;background:var(--canvas);scrollbar-width:thin;scrollbar-color:var(--line) transparent}
 .arts[hidden]{display:none}
-.ar-wrap{width:100%;max-width:1120px;margin:0 auto;padding:48px 32px 64px}
-.ar-head h1{font:600 var(--fs-3xl)/36px var(--sans);letter-spacing:-.02em;color:var(--ink)}
-.ar-sub{margin-top:4px;font:400 var(--fs-md)/20px var(--sans);color:var(--ink-3)}
-.ar-tools{display:flex;align-items:center;gap:8px;margin-top:24px}
+/* its header is every place's header (Workspace, Chats, a project): the place's icon, a 20 px title on the
+   28 px edge, one quiet line under it, one seam below; the library under it shares that edge */
+.ar-head{position:sticky;top:0;z-index:var(--z-sticky);display:flex;align-items:center;gap:12px;min-height:66px;padding:14px 28px;border-bottom:1px solid var(--line-faint);background:var(--canvas)}
+.ar-wrap{width:100%;padding:12px 28px 64px}
+.ar-sub{margin:0}
+.ar-tools{display:flex;align-items:center;gap:8px;margin-top:8px}
 .ar-q{flex:1;min-width:0;max-width:420px;display:flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft);color:var(--ink-4);transition:border-color var(--d-hover) var(--ease)}
 .ar-q:focus-within{border-color:var(--line-strong)}
 .ar-q svg{flex:none;width:16px;height:16px}
@@ -26,7 +28,7 @@
 .ar-kinds button[aria-checked="true"]{background:var(--fill-2);border-color:var(--line-strong);color:var(--ink)}
 .ar-kinds button[aria-checked="true"] span{color:var(--ink-3)}
 .ar-body{margin-top:8px}
-.ar-gh{padding:24px 0 12px;font:600 var(--fs-sm)/16px var(--sans);letter-spacing:.04em;text-transform:uppercase;color:var(--ink-4)}
+.ar-gh{padding:24px 0 12px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
 .ar-none{padding:48px 0;font:400 var(--fs-md)/20px var(--sans);color:var(--ink-3)}
 .ar-none b{display:block;margin-bottom:4px;color:var(--ink-2);font-weight:600}
 

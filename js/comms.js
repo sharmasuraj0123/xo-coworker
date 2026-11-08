@@ -26,14 +26,15 @@ const q = (t) => (t ? `“${t}”` : "");
 function words(tool, res) {
   const thread = res.thread_id ? names.thread(res.thread_id) : null;
   const t = thread ? q(thread) : "a thread";
-  const here = names.here() || "its project";
+  const here = names.here();
+  const coord = here ? `the ${here} coordinator` : "its coordinator";
   const proj = res.project || (res.chat_id && names.project(res.chat_id)) || null;
   switch (tool) {
-    case "message_thread": return ["Talking to a thread", res.delivery === "steer" || res.turn_running ? `Sent to ${t} while it works` : `Sent to ${t}`];
-    case "start_thread_session": return ["Starting a thread", res.ok === false && res.error === "thread_exists" ? `${t} was already running` : `Started ${t}`];
-    case "message_coordinator": return [`Talking to the ${here} coordinator`, `Sent to the ${here} coordinator`];
-    case "ask_workspace": return ["Talking to the Workspace coordinator", "Asked the Workspace coordinator"];
-    case "forward_to_project": return [`Talking to ${proj ? `the ${proj}` : "a project's"} coordinator`, `Sent to ${proj ? `the ${proj}` : "a project's"} coordinator`];
+    case "message_thread": return ["Talking to a thread", res.delivery === "steer" || res.turn_running ? `Sent to ${t} while it works` : `Sent to ${t}`, `Couldn't reach ${t}`];
+    case "start_thread_session": return ["Starting a thread", `Started ${t}`, res.error === "thread_exists" ? `${thread ? t : "That thread"} was already started` : "Couldn't start a thread"];
+    case "message_coordinator": return [`Talking to ${coord}`, `Sent to ${coord}`, `Couldn't reach ${coord}`];
+    case "ask_workspace": return ["Talking to the Workspace coordinator", "Asked the Workspace coordinator", "Couldn't reach the Workspace coordinator"];
+    case "forward_to_project": return [`Talking to ${proj ? `the ${proj}` : "a project's"} coordinator`, `Sent to ${proj ? `the ${proj}` : "a project's"} coordinator`, `Couldn't reach ${proj ? `the ${proj}` : "that project's"} coordinator`];
     case "ask_owner": return ["Asking you", "Asked you"];
     case "post_message": case "reply": return ["Writing to you", "Wrote to you"];
     case "no_reply_needed": return ["Deciding there's nothing to add", "Nothing to add"];
@@ -60,15 +61,21 @@ function words(tool, res) {
   }
 }
 
-/** A step's line in words (markdown-safe plain text), or null when it isn't a comms call we know. */
+/** A step's line in words (markdown-safe plain text), or null when it isn't a comms call we know.
+    "Sent" means the call says it was delivered: a refused, cancelled or failed call, or a result that says
+    it wasn't (ok:false, delivered:false, an error), says that instead. */
 export function commsLine(row) {
   const tool = commsTool(row);
   if (!tool) return null;
   const res = parse(row.summary);
-  const w = words(tool, { ...res, ok: row.status === "error" ? false : res.ok });
+  const w = words(tool, res);
   if (!w) return null;
+  const lower = (x) => x.charAt(0).toLowerCase() + x.slice(1);
   if (row.status === "running") return `${w[0]}…`;
-  if (row.status === "error") return `Couldn't: ${w[0].charAt(0).toLowerCase()}${w[0].slice(1)}`;
+  if (row.status === "denied") return `Not allowed: ${lower(w[0])}`;
+  if (row.status === "cancelled") return `Stopped: ${lower(w[0])}`;
+  const failed = row.status === "error" || res.ok === false || res.delivered === false || !!res.error;
+  if (failed) return w[2] || `Didn't finish: ${lower(w[0])}`;
   return w[1];
 }
 
@@ -77,6 +84,6 @@ export function commsHeader(rows) {
   if (!rows || !rows.length || !rows.every((r) => commsTool(r))) return null;
   const said = rows.map(commsLine).filter(Boolean).filter((l) => l !== "Nothing to add");
   if (!said.length) return null;
-  const last = said.slice(-2);
-  return last.length === 2 ? `${last[0]}, then ${last[1].charAt(0).toLowerCase()}${last[1].slice(1)}` : last[0];
+  // side by side, not "then": two calls may have run at once
+  return said.slice(-2).join(" · ");
 }

@@ -1177,6 +1177,23 @@ function nowRender(needs) {
 function nowEdges() {
   const now = $("#now-wrap .now");
   if (!now) return;
+  // with a pointer, the strip shows whole chips only, and what doesn't fit is one "+N" that opens the
+  // project's threads (a chip cut mid-word read as broken); a touch screen keeps the swipe and the fades
+  if (matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    const chips = [...now.querySelectorAll(".nw:not(.nw-more)")];
+    for (const c of chips) c.hidden = false;
+    now.querySelector(".nw-more")?.remove();
+    now.classList.remove("fade-l", "fade-r");
+    if (now.scrollWidth - now.clientWidth <= 2) return;
+    const room = now.clientWidth - 56;
+    let used = 0, fit = 0;
+    for (const c of chips) { used += c.offsetWidth + (fit ? 6 : 0); if (used <= room) fit++; else break; }
+    fit = Math.max(1, fit);
+    for (const c of chips.slice(fit)) c.hidden = true;
+    const n = chips.length - fit;
+    if (n > 0) now.insertAdjacentHTML("beforeend", `<button type="button" class="nw nw-more" data-switch aria-haspopup="dialog" title="${n} more in progress: every thread in this project">+${n}</button>`);
+    return;
+  }
   const more = now.scrollWidth - now.clientWidth > 2;
   now.classList.toggle("fade-l", more && now.scrollLeft > 2);
   now.classList.toggle("fade-r", more && now.scrollLeft < now.scrollWidth - now.clientWidth - 2);
@@ -1330,6 +1347,7 @@ function closeRuns() {
   if (!RS.open) return;
   clearTimeout(RS.pollT);
   RS.gen++; RS.open = false; runsEl.hidden = true; runsCard.innerHTML = ""; runsCard._h = "";
+  syncInert();
   RS.returnTo?.focus?.({ preventScroll: true });
 }
 /** Stop one sub-agent, or all of a session's, after a 3 s Undo. */
@@ -2870,7 +2888,7 @@ function openAll(anchor = null) {
   $("#all-q").focus();
   schedule();
 }
-function closeAll() { if (allEl.hidden) return; allEl.hidden = true; allReturn?.focus?.({ preventScroll: true }); schedule(); }
+function closeAll() { if (allEl.hidden) return; allEl.hidden = true; syncInert(); allReturn?.focus?.({ preventScroll: true }); schedule(); }
 $("#all-q").addEventListener("input", allRender);
 // the switcher's keys: ↓ ↑ walk the list, Enter opens the first (or the one you walked to)
 $("#all-q").addEventListener("keydown", (e) => {
@@ -2948,7 +2966,7 @@ function jumpRender() {
 }
 let jumpReturn = null;
 function openJump() { jumpReturn = document.activeElement; jump.hidden = false; jq.value = ""; jsel = 0; jumpRender(); jq.focus(); }
-function closeJump({ restore = true } = {}) { if (jump.hidden) return; jump.hidden = true; if (restore && jumpReturn && jumpReturn.isConnected && jumpReturn.offsetParent) jumpReturn.focus({ preventScroll: true }); }
+function closeJump({ restore = true } = {}) { if (jump.hidden) return; jump.hidden = true; syncInert(); if (restore && jumpReturn && jumpReturn.isConnected && jumpReturn.offsetParent) jumpReturn.focus({ preventScroll: true }); }
 jq.addEventListener("input", () => { jsel = 0; jumpRender(); });
 jq.addEventListener("keydown", (e) => {
   if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); jsel = (jsel + (e.key === "ArrowDown" ? 1 : jitems.length - 1)) % Math.max(1, jitems.length); jumpRender(); }
@@ -2964,10 +2982,11 @@ jump.addEventListener("mousedown", (e) => { if (e.target === jump) closeJump(); 
 // main area's other parts go inert, and the sidebar stays a way out. One observer keeps it true however a
 // layer opens or closes.
 function syncInert() {
-  const sheet = [jump, keys, allEl, runsEl].some((el) => !el.hidden);
-  $("#app").inert = sheet;
+  // only what this set inert is released here: Files keeps its own inert parts (a railed or folded chat)
+  const hold = (el, on) => { if (on && !el.inert) { el.inert = true; el.dataset.layerInert = ""; } else if (!on && "layerInert" in el.dataset) { el.inert = false; delete el.dataset.layerInert; } };
+  hold($("#app"), [jump, keys, allEl, runsEl].some((el) => !el.hidden));
   const settings = !setEl.hidden;
-  for (const el of $("#main").children) if (el !== setEl && !el.classList.contains("toast-wrap")) el.inert = settings;
+  for (const el of $("#main").children) if (el !== setEl && !el.classList.contains("toast-wrap")) hold(el, settings);
 }
 queueMicrotask(() => { const mo = new MutationObserver(syncInert); for (const el of [jump, keys, allEl, runsEl, setEl]) mo.observe(el, { attributes: true, attributeFilter: ["hidden"] }); syncInert(); });
 // Tab and Shift+Tab go round the open sheet: past its last control is its first, never the page behind it
@@ -3004,7 +3023,7 @@ hopsRender();
 keys.addEventListener("click", (e) => { if (e.target === keys || e.target.closest("[data-close]")) closeKeys(); });
 let keysReturn = null;
 function openKeys() { keysSheetRender(); keysReturn = document.activeElement; keys.hidden = false; keys.querySelector("[data-close]").focus(); }
-function closeKeys() { keys.hidden = true; keysReturn?.focus?.({ preventScroll: true }); }
+function closeKeys() { keys.hidden = true; syncInert(); keysReturn?.focus?.({ preventScroll: true }); }
 
 // ── settings: a page over the main area; closing it returns exactly where you were ──
 const setEl = $("#settings");
@@ -3066,6 +3085,7 @@ function closeSettings({ restore = true } = {}) {
   if (setEl.hidden) return;
   if (S.recording) { S.recording = null; keysPageRender(); }
   setEl.hidden = true;
+  syncInert();
   $("#set-side").classList.remove("is-on");
   $("#set-side").setAttribute("aria-expanded", "false");
   // back where you were; an opener that's gone or hidden (Jump's box) gives way to the composer

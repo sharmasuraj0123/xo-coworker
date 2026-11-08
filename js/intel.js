@@ -130,7 +130,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       const r = running(s), { model, effort, next } = shownSetting(s);
       const what = `${model ? nameOf(model) : "its default model"}${effort ? ` · ${effortWord(effort)}` : ""}`;
       if (next) return `Its session hasn't reported which model it runs. From its next turn: ${what}. Change it${K.hint("intel")}`;
-      if (r && !r.model) return `Its session hasn't reported which model it runs. Change it${K.hint("intel")}`;
+      if (!r || !r.model) return `Its session hasn't reported which model it runs. Change it${K.hint("intel")}`;
       const pending = c.pinned && c.model && c.model !== r.model ? `, ${nameOf(c.model)} from its next turn` : "";
       return `${r.working ? "Running" : "Runs"} ${what}${pending}. Change it${K.hint("intel")}`;
     }

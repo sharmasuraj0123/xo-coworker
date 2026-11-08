@@ -297,7 +297,7 @@ body.stage-vsizing{cursor:row-resize;user-select:none}
 :root[data-theme="light"] .ag-r:hover{background:rgba(0,0,0,.03)}
 
 /* Changes: the tree's grid (icon on the edge, the name on the name column), its mark at the end */
-.ch-list{padding:4px 6px 8px}
+:is(.panel,.stage) .ch-list{padding:4px 6px 8px}
 .ch-r{box-sizing:border-box;display:flex;align-items:center;gap:8px;width:100%;height:28px;padding:0 6px;border-radius:var(--r-sm);text-align:left;font:400 var(--fs-base)/20px var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease)}
 .ch-r:hover{background:var(--surface);color:var(--ink)}
 .ch-i{flex:none;display:grid;place-items:center;width:16px;height:16px}

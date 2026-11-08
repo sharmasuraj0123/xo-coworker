@@ -165,7 +165,10 @@ export function holdButton(btn, { ready, onConfirm, onRefuse, onRelease, holding
   let back = 0;
   return holdToConfirm(btn, {
     ready,
-    onProgress: (p) => { btn.style.setProperty("--p", String(p)); btn.classList.toggle("tense", p > 0.8 && p < 1); },
+    onProgress: (p) => {
+      if (p > 0 && btn.classList.contains("is-releasing")) { clearTimeout(back); btn.classList.remove("is-releasing"); } // held again mid-drain: the fill follows the hand
+      btn.style.setProperty("--p", String(p)); btn.classList.toggle("tense", p > 0.8 && p < 1);
+    },
     onConfirm: () => { btn.classList.remove("tense"); onConfirm(); },
     onRefuse,
     onRelease: () => {

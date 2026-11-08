@@ -366,6 +366,16 @@ button:disabled{cursor:default}
 /* the Now shelf: at most three, needs-you first, never grows */
 .now-wrap{flex:1;min-width:0;display:flex;align-items:center}
 .now{display:flex;gap:6px;min-width:0;overflow-x:auto;scrollbar-width:none;padding:2px 1px;overscroll-behavior-x:contain}
+.nw-more{justify-content:center;min-width:44px;padding:0 10px;color:var(--ink-3);font:500 var(--fs-base)/20px var(--sans);font-variant-numeric:tabular-nums}
+.nw-more:hover{color:var(--ink)}
+/* A thread's header keeps its title: when the row is short (a panel open, a narrow window) the actions give
+   way first and become their icons; the runtime's name goes (it is in the composer's chip). */
+.top[data-kind="thread"]{container:top / inline-size}
+@container top (max-width:820px){
+  .top .tw-act:not(.tw-more){width:var(--h-ctl);padding:0;justify-content:center}
+  .top .tw-act:not(.tw-more)>span{display:none}
+  .top .tw-rt{display:none}
+}
 .now::-webkit-scrollbar{display:none}
 .now.fade-r{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 48px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 48px),transparent)}
 .now.fade-l{-webkit-mask-image:linear-gradient(90deg,transparent,#000 48px);mask-image:linear-gradient(90deg,transparent,#000 48px)}
@@ -831,8 +841,9 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .hold-ic svg{color:var(--err-ink)}
 .hold-txt{display:inline-grid}
 .hold-txt>span{grid-area:1/1}
-.b-hold .ht-b,.b-hold.is-holding .ht-a{visibility:hidden}
-.b-hold.is-holding .ht-b{visibility:visible}
+/* the first words stay the button's name (opacity keeps them in the accessibility tree); the second only show */
+.b-hold .ht-b,.b-hold.is-holding .ht-a{opacity:0}
+.b-hold.is-holding .ht-b{opacity:1}
 .b-hold.is-holding{box-shadow:0 0 0 3px var(--danger-tint)}
 .b-hold.tense{box-shadow:0 0 0 3px color-mix(in srgb,var(--err) 26%,transparent)}
 .b-hold.locked{animation:settle var(--d-in) var(--ease);background:color-mix(in srgb,var(--err) 42%,var(--float));border-color:var(--err-ink)}
@@ -2286,7 +2297,7 @@ i.t-amber{background:var(--warn)}i.t-blue{background:var(--info)}i.t-red{backgro
 .md-ic{display:grid;place-items:center;width:36px;height:36px;border-radius:var(--r-sm);background:var(--fill-2);border:1px solid var(--line)}
 .md-ic svg{width:17px;height:17px}
 .md-th.k-image .md-ic{color:var(--violet)}.md-th.k-page .md-ic{color:var(--info)}.md-th.k-doc .md-ic{color:var(--ink-2)}.md-th.k-code .md-ic{color:var(--accent)}.md-th.k-data .md-ic{color:var(--warn)}
-.md-ext{font:500 var(--fs-sm)/1 var(--mono);color:var(--ink-4);text-transform:uppercase;letter-spacing:.04em}
+.md-ext{font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
 .md-ext.is-word{max-width:90%;text-transform:none;letter-spacing:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .md-th.k-link .md-ic{color:var(--info)}.md-th.k-branch .md-ic{color:var(--violet)}
 .md-it.is-gone .md-th,.md-it.is-gone .md-meta b{opacity:.55}
