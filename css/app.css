@@ -490,7 +490,8 @@ button:disabled{cursor:default}
 .meta{display:flex;align-items:center;gap:7px;margin-top:5px;padding-right:4px;font-size:var(--fs-sm);color:var(--ink-4);font-variant-numeric:tabular-nums}
 .meta.is-err{color:var(--err-ink);font-weight:500}
 .meta.is-warn{color:var(--warn)}
-.sent{display:inline-flex;align-items:center;gap:3px;color:var(--ink-3)}
+.sent{display:inline-flex;align-items:center;gap:4px;color:var(--ink-3);animation:rise-in var(--d-in) var(--ease)}
+.sent b{font-weight:500;color:var(--ink-2)}
 .sent svg{width:13px;height:13px;color:var(--accent)}
 .tk{stroke-dasharray:24;stroke-dashoffset:24;animation:draw var(--d-move) var(--ease) var(--d-press) forwards}
 @keyframes draw{to{stroke-dashoffset:0}}

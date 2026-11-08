@@ -896,6 +896,16 @@ function moveBannerHtml(m, here) {
 const HS_THEM = (n) => `<div class="hs-them" aria-hidden="true"><i class="hs-av"></i><div class="hs-b"><i class="hs-bar hs-name"></i>${"<i class=\"hs-bar\"></i>".repeat(n)}</div></div>`;
 const HIST_SKEL = `<div class="hist-skel" role="status"><span class="sr-only">Loading earlier messages</span>${HS_THEM(2)}` +
   `<div class="hs-you" aria-hidden="true"><i class="hs-bub"><i class="hs-bar"></i></i></div>${HS_THEM(1)}</div>`;
+/** Has anyone answered after your message (the coordinator, an agent, a turn)? Then its receipt has done its job. */
+const answeredAfter = (list, m) => { const i = list.indexOf(m); return i >= 0 && list.slice(i + 1).some((x) => x.who === "coord" || x.who === "agent" || x.who === "turn"); };
+/** The thread a hop handed your message to, by the hop's own message ids; null when no hop names it. */
+function passedTo(m) {
+  if (!m.id || !world.state.hops) return null;
+  for (const h of world.state.hops.values()) {
+    if ((h.kind === "relay" || h.kind === "brief") && h.to_role === "thread" && (h.message_ids || []).includes(m.id) && h.thread_ts) return world.thread(h.thread_ts)?.title || "a thread";
+  }
+  return null;
+}
 function msgItems(conv, needs) {
   if (CH.isChats(conv)) return CH.items(conv);
   const list = messagesOf(conv);
@@ -919,7 +929,12 @@ function msgItems(conv, needs) {
       if (m.status === "sending") meta = `<div class="meta"><i class="spin" aria-hidden="true"></i>Sending</div>`;
       else if (m.status === "failed") meta = `<div class="meta is-err"><span${m.err ? ` title="${esc(m.err.text)}"` : ""}>${m.err ? esc(m.err.title) : "Not sent"}</span><button type="button" class="meta-btn" data-retry="${esc(m.id)}">${ICON.retry}Retry</button><button type="button" class="meta-btn" data-edit="${esc(m.id)}">${ICON.edit}Edit</button></div>`;
       else if (m === lastQueued) meta = queuedMeta(conv);
-      else if (m === lastYou && (m.status === "sent" || m.sent)) meta = `<div class="meta"><time>${clock(m.at)}</time><span class="sent">Sent ${ICON.check}</span></div>`;
+      else if (m === lastYou && (m.status === "sent" || m.sent) && !answeredAfter(list, m)) {
+        // a receipt that follows the message only as far as the record proves: received by XO, then handed to a
+        // thread (a relay or brief hop that names this message); it goes once an answer is on screen
+        const to = passedTo(m);
+        meta = `<div class="meta"><time>${clock(m.at)}</time><span class="sent">${to ? `Passed to <b>${esc(to)}</b>` : "Received by XO"} ${ICON.check}</span></div>`;
+      }
       let route = "";
       if (m.waiting) route = `<div class="route-row"><i class="dash" aria-hidden="true"></i>Sent to <b>${esc(m.target === "workspace" ? "the coordinator" : PROJ(m.target))}</b> · waiting for a thread</div>`;
       else if (m.relay) {
