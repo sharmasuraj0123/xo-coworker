@@ -397,7 +397,7 @@ button:disabled{cursor:default}
    bar's own corners (the toggle's own fill used to stop 6 px short of the right edge) */
 .ck-row{display:flex;align-items:center;gap:6px;padding-right:6px;transition:background-color var(--d-hover) var(--ease)}
 .ck-row:has(.ck-tog:hover){background:var(--hover-fill)}
-.ck-tog{flex:1;min-width:0;display:flex;align-items:center;gap:12px;height:38px;padding:0 10px 0 12px;border-radius:0;text-align:left;font-size:var(--fs-base);color:var(--ink-3)}
+.ck-tog{flex:1;min-width:0;display:flex;align-items:center;gap:12px;height:var(--h-lg);padding:0 10px 0 12px;border-radius:0;text-align:left;font-size:var(--fs-base);color:var(--ink-3)}
 .ck-tog:hover{color:var(--ink-2)}
 .ck-segs{flex:none;display:flex;gap:3px}
 .sg{display:block;width:16px;height:4px;border-radius:2px;background:var(--fill-3);transition:background var(--d-in) var(--ease)}
@@ -1346,7 +1346,7 @@ button.tp-done-u:hover{color:var(--ink)}
 /* Settings (hub #18/#19): a rail of sections, each with its icon; the open one carries a short
    accent marker on its left edge (light that means "here"), not a filled pill. */
 .set-nav{position:sticky;top:0;z-index:1;align-self:start;display:flex;flex-direction:column;gap:2px;padding-left:10px;border-left:1px solid var(--line-faint)}
-.set-nav button{position:relative;display:flex;align-items:center;gap:11px;height:38px;padding:0 12px 0 10px;border-radius:var(--r-sm);text-align:left;color:var(--ink-3);font:500 var(--fs-md)/20px var(--sans);white-space:nowrap;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
+.set-nav button{position:relative;display:flex;align-items:center;gap:12px;height:var(--h-row);padding:0 12px 0 10px;border-radius:var(--r-sm);text-align:left;color:var(--ink-3);font:500 var(--fs-md)/20px var(--sans);white-space:nowrap;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
 .set-nav button::before{content:"";position:absolute;left:-11px;top:10px;bottom:10px;width:2px;border-radius:2px;background:transparent;transition:background var(--d-hover) var(--ease)}
 .set-nav button[aria-selected="true"]::before{background:var(--accent-fill)}
 .sn-ic{flex:none;display:grid;place-items:center;width:18px;height:18px;color:var(--ink-4);transition:color var(--d-hover) var(--ease)}
