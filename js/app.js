@@ -28,7 +28,7 @@ import { runsStripHtml, runsListHtml, runViewHtml } from "./runsview.js";
 import { createSettings } from "./settings.js";
 import { createRuntimeSettings } from "./rtsettings.js";
 import { createChats } from "./chats.js";
-import { initFollow, toLatest, unpin, isPinned, fromTop } from "./follow.js";
+import { initFollow, toLatest, unpin, isPinned, fromTop, toRow } from "./follow.js";
 import { createViewer } from "./viewer.js";
 import { createMap, MAP_ICON } from "./map.js";
 import { createStage } from "./stage.js";
@@ -2500,7 +2500,11 @@ function returnPill(target) {
       $("#conv").append(pill);
       pill.addEventListener("click", () => {
         const t = pill._t; pill.hidden = true;
-        if (t && t.isConnected) { t.scrollIntoView({ block: "center", behavior: RM.matches ? "auto" : "smooth" }); t.focus({ preventScroll: true }); }
+        if (t && t.isConnected) {
+          const row = t.closest("#msgs > [data-k]") || t;
+          toRow(row, true); t.focus({ preventScroll: true });
+          row.classList.remove("is-flash"); void row.offsetWidth; row.classList.add("is-flash"); setTimeout(() => row.classList.remove("is-flash"), 1800);
+        }
       });
       scroller.addEventListener("scroll", () => { const t = pill._t; if (!pill.hidden && t && t.isConnected) { const a = t.getBoundingClientRect(), b = scroller.getBoundingClientRect(); if (a.bottom > b.top + 40 && a.top < b.bottom) pill.hidden = true; } }, { passive: true });
     }
@@ -2577,7 +2581,7 @@ function showMsg(id) {
   const look = () => {
     const el = msgsEl.querySelector(`[data-k="${CSS.escape(S.alias.get(id) || id)}"]`);
     if (!el) { if (++tries < 20) setTimeout(look, 100); return; }
-    el.scrollIntoView({ block: "center", behavior: RM.matches ? "auto" : "smooth" });
+    toRow(el, true); // through follow.js: following stops, then the row is centred (never scrollIntoView)
     el.classList.remove("is-flash"); void el.offsetWidth; el.classList.add("is-flash");
     setTimeout(() => el.classList.remove("is-flash"), 1800);
   };
@@ -2699,6 +2703,7 @@ function askAboutFile(f) {
   if (!at) { announce("This file isn't in a project XO can ask about."); return false; }
   const ref = { path: at.path, a: null, b: null, name: f.name || at.path.split("/").pop() };
   if (at.conv !== S.view) { VW.close({ restore: false }); go(at.conv); }
+  else if (FILESV.docked || FILESV.sheet) FILESV.chat(true); // beside the file it unfolds; on a phone the sheet comes up
   S.lref[at.conv] = ref;
   lrefRender();
   say.focus({ preventScroll: true });

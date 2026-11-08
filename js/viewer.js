@@ -632,7 +632,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     }
     V.loading = false;
     // the version that came with what was loaded (a content hash), never one read afterwards
-    V.seenSig = V.data && typeof V.data.version === "string" ? V.data.version : null; V.updated = false;
+    V.seenSig = V.data && typeof V.data.version === "string" ? V.data.version : null; V.updated = false; V.checkedSig = null;
     render();
     if (V.fresh) { V.fresh = false; if (canEdit()) startEdit(); }
   }
@@ -645,7 +645,15 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   function notice() {
     if (!V.open || V.parked || V.loading || !V.data || V.seenSig == null || ED.on || V.updated) return;
     const now = sigNow();
-    if (now && now !== V.seenSig) { V.updated = true; paintHead(); }
+    // a different hash in the changes isn't proof of a newer file (the changes can be older than what was loaded):
+    // it's confirmed against the file's own version, read once per hash, and only a different one says Updated
+    if (!now || now === V.seenSig || now === V.checkedSig || !V.file.project || !V.file.rel || V.file.image) return;
+    V.checkedSig = now;
+    const my = V.gen, seen = V.seenSig;
+    api.projectFile(V.file.project, V.file.rel).then((d) => {
+      if (my !== V.gen || !V.open || ED.on || V.seenSig !== seen) return;
+      if (d && typeof d.version === "string" && d.version !== seen) { V.updated = true; paintHead(); }
+    }, () => { /* unreadable now: nothing is claimed */ });
   }
 
   /**

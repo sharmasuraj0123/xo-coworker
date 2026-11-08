@@ -44,6 +44,24 @@ export function unpin(row) {
   else notePlace();
 }
 
+/** A jump to a message (one of the four writers): you've chosen to read there, so following stops first, then the
+ *  row is centred in what you can see of the conversation (above the dock that floats over its foot). Only this
+ *  scroller moves: scrollIntoView would also scroll its ancestors (a phone's sheet), and could race the growth
+ *  that keeps a pinned view at the latest. */
+export function toRow(el, smooth = false) {
+  const s = sc();
+  if (!el || !s.contains(el)) return;
+  pinned = false; held = false;
+  const dock = document.getElementById("dock");
+  const over = dock ? Math.max(0, s.getBoundingClientRect().bottom - dock.getBoundingClientRect().top) : 0;
+  const view = Math.max(80, s.clientHeight - over);
+  const r = el.getBoundingClientRect(), sr = s.getBoundingClientRect();
+  const top = Math.max(0, Math.min(s.scrollHeight - s.clientHeight, s.scrollTop + (r.top - sr.top) - Math.max(0, (view - r.height) / 2)));
+  // a glide only over a short way: a long one (a phone 10,000 px up took 2 s) jumps, and the row's flash says where
+  if (smooth && !reduced() && Math.abs(top - s.scrollTop) <= s.clientHeight * 1.5) s.scrollTo({ top, behavior: "smooth" });
+  else { s.scrollTop = top; lastTop = s.scrollTop; notePlace(); }
+}
+
 /** The row at the centre of the view (where you're reading) and where it stands, found from the last one (a
  *  few rows' rects, read when the layout is clean: after a scroll, or as the view's size changes). The centre,
  *  not the top: when the column narrows, text between the top and where you read re-wraps, and holding the
