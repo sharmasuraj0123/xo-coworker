@@ -952,6 +952,37 @@ t("C052/RPL-1: Copy keeps your own message's lines and indents, and a code block
   assert.ok(b.includes("fn  x\n\n\n  y  "), "spaces and blank lines in the code kept");
   await done(page);
 }, { only: (c) => c.width >= 760 });
+t("C052: each Copy owns its acknowledgement: an earlier Copy's timer or late answer never undoes a newer one's check", async () => {
+  const page = await replyPage("Copy me twice.");
+  // the clipboard answers the first Copy late (after the second), the second at once
+  await page.evaluate(() => {
+    let n = 0;
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: (t) => { const i = ++n; return new Promise((ok) => setTimeout(ok, i === 1 ? 900 : 0)); } } });
+  });
+  const m = page.locator('#msgs [data-k="t_login-md"]');
+  await m.hover();
+  const b = m.locator("[data-mx-copy]").first();
+  const checked = () => b.evaluate((el) => !!el.querySelector('path[d^="m5 12.5"]'));
+  await b.focus();
+  await page.keyboard.press("Enter");          // the first: answered at ~900 ms
+  await page.waitForTimeout(500);
+  await page.keyboard.press("Enter");          // the second: answered at once, its check holds 1200 ms
+  await page.waitForTimeout(100);
+  assert.equal(await checked(), true, "the second Copy's check");
+  await page.waitForTimeout(700);              // the first answers meanwhile (~900 ms): it must not take over
+  assert.equal(await checked(), true, "still the second's check after the first answered");
+  await page.waitForTimeout(500);              // ~1300 ms after the second: its own timer has put Copy back
+  assert.equal(await checked(), false, "back to Copy on the second's own timer");
+  // the plain repeat Astra probed: Copy at 0 and 1000 ms, inspected at 1201 ms
+  await page.evaluate(() => Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async () => {} } }));
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(1000);
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(201);
+  assert.equal(await checked(), true, "the second Copy's check isn't wiped by the first's timer");
+  assert.match(await focusIs(page), /\[data-mx-copy\]/);
+  await done(page);
+}, { only: (c) => c.width >= 760 });
 t("RPL-3 S228: a long selection is quoted whole in what's sent; the chip only previews it", async () => {
   const words = Array.from({ length: 70 }, (_, i) => `word${i}`).join(" ");
   const page = await replyPage(`Intro line.\n\n${words}\n\nOutro.`);

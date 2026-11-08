@@ -592,12 +592,17 @@ msgs.addEventListener("click", async (e) => {
   if (r) { startReply(r.closest(".m")); return; }
   const c = e.target.closest("[data-mx-copy]");
   if (c) {
-    // the check (and "Copied" said) only once it's on the clipboard; refused, said so, and focus stays here
+    // the check (and "Copied" said) only once it's on the clipboard; refused, said so, and focus stays here. The
+    // newest Copy owns the button's acknowledgement: an earlier one settling late says nothing, and only the
+    // newest one's timer puts the icon back (Astra SRC-CONV-4: the first Copy's timer wiped the second's check)
+    const gen = (c._copyGen = (c._copyGen || 0) + 1);
     const ok = await copyText(textOf(c.closest(".m")));
+    if (c._copyGen !== gen) return;
     const live = document.getElementById("live");
     const say = (w) => { if (live) { live.textContent = ""; setTimeout(() => { live.textContent = w; }, 40); } };
-    if (ok) { c.innerHTML = IC.check; say("Copied the message."); setTimeout(() => { c.innerHTML = IC.copy; }, 1200); }
-    else say(COPY_REFUSED);
+    clearTimeout(c._copyT);
+    if (ok) { c.innerHTML = IC.check; say("Copied the message."); c._copyT = setTimeout(() => { if (c._copyGen === gen) c.innerHTML = IC.copy; }, 1200); }
+    else { c.innerHTML = IC.copy; say(COPY_REFUSED); }
     return;
   }
   const q = e.target.closest("[data-mx-jump]");
