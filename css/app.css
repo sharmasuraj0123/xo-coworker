@@ -2264,6 +2264,12 @@ a.vw-btn{text-decoration:none}
   .shd-bar{min-height:52px;padding-top:env(safe-area-inset-top)}
   .shd-where,.shd-act>span{display:none}
   .shd-act{width:var(--h-lg);height:var(--h-lg);padding:0;justify-content:center}
+  /* Close shell keeps a word on a phone ("× Close"): a bare × beside − and ↓ read as one more way to put the dock away */
+  .shd-act.is-danger{width:auto;padding:0 12px 0 10px}
+  .shd-act.is-danger>span{display:inline}
+  .shd-long{display:none}
+  /* on a phone a minimised dock is put away (.shd.is-min hides it), so − and ↓ did the same: ↓ alone stays, and the tab keeps its name */
+  .shd-acts [data-sh-min]{display:none}
   .shl-row{flex-wrap:wrap}
   .shl-acts{width:100%;justify-content:flex-end}
   .shd-tx{width:var(--h-ctl);height:var(--h-ctl)}

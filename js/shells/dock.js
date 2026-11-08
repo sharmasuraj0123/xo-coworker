@@ -400,7 +400,7 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
       const closing = R.busy.has(id);
       html += `<span class="shd-where" title="${esc(t?.cwd || "")}">${esc(sub)}</span>` +
         `<button type="button" class="shd-act" data-sh-rename="${esc(id)}" title="Rename"${R.edit === id ? ' aria-disabled="true"' : ""}>${ICON.edit}<span>Rename</span></button>` +
-        `<button type="button" class="shd-act is-danger" data-sh-close="${esc(id)}"${closing ? ' aria-disabled="true"' : ""} title="Close the shell and everything running in it">${closing ? '<span class="spin" aria-hidden="true"></span><span>Closing…</span>' : `${ICON.close}<span>Close shell</span>`}</button>`;
+        `<button type="button" class="shd-act is-danger" data-sh-close="${esc(id)}"${closing ? ' aria-disabled="true"' : ""} title="Close the shell and everything running in it">${closing ? '<span class="spin" aria-hidden="true"></span><span>Closing…</span>' : `${ICON.close}<span>Close<span class="shd-long"> shell</span></span>`}</button>`;
     }
     // − folds the dock to its bar, and minimised a chevron points up, the way it comes back; ↓ puts it away
     html += `<button type="button" class="shd-act shd-ic${R.min ? " is-up" : ""}" data-sh-min aria-label="${R.min ? "Show shells" : "Minimise shells"}" title="${R.min ? "Show" : "Minimise"} (${esc(K.label("shells"))})">${R.min ? ICON.chevron : ICON.minimize}</button>` +

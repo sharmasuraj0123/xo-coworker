@@ -1,7 +1,8 @@
 // Browser tests for Launchpad and the Shells dock: how each control answers, in the app itself.
 // The rows they lock are listed in design-research/2026-11-lg/LAUNCHPAD-SHELL.md.
-//   Launchpad: errors are whole · name taken · undo · stop window · copy is truthful · menu keys · ask pending
-//   Shells: toggle · tab keys · rename in the tab · close asks in its row · new shell pending · retry counts ·
+//   Launchpad: errors are whole · name taken · size dropdown · undo · stop window · copy is truthful · menu keys ·
+//              ask pending
+//   Shells: toggle · close says so · tab keys · rename in the tab · close asks in its row · new shell pending · retry counts ·
 //           ended · terminal copy
 //
 // Self-contained: the app is served from this folder, every /api request is answered in the page by
@@ -185,6 +186,36 @@ t("LP40: Ask an agent waits for Space (one thread per ask); a failure is said in
   await done(page);
 });
 
+// a Space that offers sizes: preflight carries the template's tiers
+const PRE = { state: "ready", github: { connected: true, login: "octo", scopes: ["repo", "workflow"], scopes_known: true, workflow_scope: true }, repo: { branch: "main", origin: "o/demo", is_admin: true, default_branch: "main", mode: "origin", full_name: "o/demo" },
+  launchpad: { key: true, cli: true, name_free: true, sizes: { tiers: [{ name: "xo.small", label: "Small", cpu: 1, memory_gb: 2 }, { name: "xo.medium", label: "Medium", cpu: 2, memory_gb: 4 }], default: "xo.small", source: "template" } } };
+t("LP15: Size is the app's dropdown (xo-select), by keyboard, and the deploy carries the choice", async () => {
+  let body = null;
+  const page = await open({ launchpad: "ready", onDeploy: (r, m, p) => {
+    if (/\/preflight$/.test(p)) return json(r, PRE);
+    if (/\/api\/deploy\/[^/]+$/.test(p) && m === "POST") body = JSON.parse(r.request().postData() || "{}");
+    return r.fallback();
+  } });
+  await W.openLaunchpad(page);
+  await page.locator('[data-lp="machine-open"]').click();
+  await page.waitForSelector('xo-select[data-lp-f="size"]');
+  await page.waitForTimeout(100);
+  assert.equal(await page.locator(".fr-lp select").count(), 0, "no native select");
+  assert.ok(await page.evaluate(() => !!document.activeElement.closest('xo-select[data-lp-f="size"]')), "focus on Size");
+  assert.equal(await page.evaluate(() => document.querySelector('xo-select[data-lp-f="size"] .dd-btn').getAttribute("aria-describedby")), "lp-h-size", "the hint describes it");
+  await page.keyboard.press("ArrowDown");
+  await page.waitForSelector('xo-select[data-lp-f="size"] .dd-menu:not([hidden])');
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(100);
+  assert.equal(await page.evaluate(() => document.querySelector('xo-select[data-lp-f="size"]').value), "xo.medium");
+  assert.match(await page.locator("#lp-h-size").innerText(), /Fixed once it's created/);
+  await page.locator('[data-lp="deploy"]').click();
+  await page.waitForTimeout(3500);
+  assert.equal(body?.size, "xo.medium");
+  await done(page);
+});
+
 // ── Shells ──
 // the sidebar's Shells: on a phone, from the drawer the menu button opens (it steps aside for the sheet)
 const dock = async (o = {}) => {
@@ -200,6 +231,15 @@ t("SH01: the sidebar's Shells shows the dock and says so", async () => {
   const page = await dock();
   assert.equal(await page.locator("#nv-shells").getAttribute("aria-pressed"), "true");
   assert.match(await page.locator("#nv-shells").getAttribute("aria-label"), /Shells, 3 running/);
+  await done(page);
+});
+
+t("SH07: Close shell says so at every width (on a phone: × Close, with ↓ alone beside it)", async () => {
+  const page = await dock();
+  await attach(page, "sh_1");
+  const words = (await page.locator('.shd-acts [data-sh-close="sh_1"]').innerText()).trim();
+  assert.equal(words, WIDTH > 760 ? "Close shell" : "Close");
+  assert.equal(await page.locator(".shd-acts [data-sh-min]").isVisible(), WIDTH > 760, "a phone has one way to put it away");
   await done(page);
 });
 

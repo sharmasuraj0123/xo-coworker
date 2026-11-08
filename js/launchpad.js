@@ -392,9 +392,11 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       const t = z.tiers.find((x) => x.name === at);
       return row("Machine", `<span class="lp-v is-row"><span class="lp-ro">${esc(t ? `${t.label} · ${t.cpu} CPU, ${t.memory_gb} GB` : "Launchpad's default")}${f.disk ? ` · ${esc(f.diskGb)} GB disk` : ""}</span><button type="button" class="lp-a lp-chg" data-lp="machine-open" aria-label="Change the machine">Change</button></span>`);
     }
-    return (z ? row("Size", `<span class="lp-v"><span class="lp-selw"><select class="lp-in lp-sel" data-lp-f="size" aria-label="Size" ${ids("size")}>${z.def ? "" : `<option value=""${at ? "" : " selected"}>Launchpad's default</option>`}` +
-        z.tiers.map((t) => `<option value="${esc(t.name)}"${at === t.name ? " selected" : ""}>${esc(`${t.label} · ${t.cpu} CPU, ${t.memory_gb} GB`)}</option>`).join("") +
-        `</select>${ICON.chevron}</span>${hint("size", e.size || sizeHint(c, f))}</span>`, !!e.size, "label") : "") +
+    // the app's one dropdown (<xo-select>, js/dropdown.js), never the browser's own <select> (the owner's decision);
+    // its row is a div, not a label, so a click on the word Size doesn't open the list
+    return (z ? row("Size", `<span class="lp-v"><xo-select class="lp-xs" data-lp-f="size" aria-label="Size" ${ids("size")}>${z.def ? "" : `<option value=""${at ? "" : " selected"}>Launchpad's default</option>`}` +
+        z.tiers.map((t) => `<option value="${esc(t.name)}"${at === t.name ? " selected" : ""}${t.name === z.def ? ' data-desc="Default"' : ""}>${esc(`${t.label} · ${t.cpu} CPU, ${t.memory_gb} GB`)}</option>`).join("") +
+        `</xo-select>${hint("size", e.size || sizeHint(c, f))}</span>`, !!e.size) : "") +
       (f.disk
         ? row("Disk", `<span class="lp-v"><span class="lp-pair"><input class="lp-in lp-mono" data-lp-f="diskPath" value="${esc(f.diskPath)}" placeholder="/data" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Where the disk is mounted" ${ids("disk")}><input class="lp-in is-gb" data-lp-f="diskGb" value="${esc(f.diskGb)}" inputmode="numeric" autocomplete="off" aria-label="Disk size in GB" ${ids("disk")}><span class="lp-u">GB</span><button type="button" class="lp-ib" data-lp="disk-remove" title="No disk" aria-label="No disk">${ICON.close}</button></span>${hint("disk", e.disk || "Grows later, never shrinks.")}</span>`, !!e.disk)
         : row("Disk", `<span class="lp-v is-row"><button type="button" class="lp-a lp-add" data-lp="disk-add">${ICON.plus}<span>Add a disk</span></button>${hint("disk", "Only at creation")}</span>`));
@@ -555,7 +557,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     // a clock's figures aren't a change (the app's ticker moves them); a new screen arrives, the same one doesn't
     const same = b.html.replace(/(<span class="elapsed" data-since="\d+">)[^<]*/g, "$1").replace(/(class="lp-count"[^>]*>)\d+/g, "$1");
     if (S.key !== b.key || S.html !== same) {
-      const ae = document.activeElement && S.body.contains(document.activeElement) ? document.activeElement : null;
+      const ae = document.activeElement && S.body.contains(document.activeElement) ? (document.activeElement.closest("xo-select") || document.activeElement) : null;
       const focus = ae ? (ae.dataset.lpF ? `[data-lp-f="${ae.dataset.lpF}"]` : ae.dataset.lpEnv ? `[data-lp-env="${ae.dataset.lpEnv}"]` : ae.dataset.lp ? `[data-lp="${ae.dataset.lp}"]` : null) : null;
       const caret = ae && ae.matches("input") ? [ae.selectionStart, ae.selectionEnd] : null;
       const fresh = S.key.split("|").slice(0, 2).join("|") !== b.key.split("|").slice(0, 2).join("|");
@@ -563,6 +565,8 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       // typed environment values go back into their inputs as properties, never into the markup (no value
       // attribute, nothing in outerHTML), so a redraw leaves no copy of a secret behind (Astra on 4026444)
       if (b.form) { const env = proj(p).form?.env || {}; for (const n of S.body.querySelectorAll("[data-lp-env]")) if (env[n.dataset.lpEnv]) n.value = env[n.dataset.lpEnv]; }
+      // a dropdown's combobox is its inner button: it carries the field's hint and its invalid state
+      for (const x of S.body.querySelectorAll("xo-select[data-lp-f]")) { const btn = x.querySelector(".dd-btn"); if (!btn) continue; for (const a of ["aria-describedby", "aria-invalid"]) if (x.hasAttribute(a)) btn.setAttribute(a, x.getAttribute(a)); }
       if (fresh) S.body.scrollTop = 0;
       S.key = b.key; S.html = same;
       requestAnimationFrame(over);
@@ -573,7 +577,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   function syncPreview(p) {
     const f = proj(p).form, view = S.body.querySelector('.lpv[data-mode="preview"]');
     const sh = S.body.querySelector("#lp-h-size");
-    if (sh && !f.errs?.size && sh.closest("label")?.querySelector("select")) sh.textContent = sizeHint(proj(p).check, f);
+    if (sh && !f.errs?.size && sh.closest(".lp-f")?.querySelector("xo-select")) sh.textContent = sizeHint(proj(p).check, f);
     if (!view) return;
     const set = (sel, html) => { const n = S.body.querySelector(sel); if (n && n.innerHTML !== html) n.innerHTML = html; };
     set(".lpm .lpm-app b", esc(f.name || nameOf(p)));
@@ -610,7 +614,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     if (gh && !(gh.connected && gh.workflow)) { github(p); return; }
     if (!validate(p)) {
       S.key = ""; changed();
-      requestAnimationFrame(() => S.body?.querySelector('[aria-invalid="true"], .is-bad input, .is-bad select')?.focus());
+      requestAnimationFrame(() => S.body?.querySelector('[aria-invalid="true"], .is-bad input, .is-bad xo-select')?.focus());
       return;
     }
     s.run = newRun(); s.run.undo = Date.now() + 3e3; s.run.edit = edit; s.editing = false;
@@ -871,7 +875,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     });
     section.addEventListener("input", (e) => {
       const p = projectOf(S.v), t = e.target;
-      if (!p || !t.matches("input, select")) return;
+      if (!p || !t.matches("input, xo-select")) return;
       const f = proj(p).form;
       if (t.dataset.lpF) f[t.dataset.lpF] = t.dataset.lpF === "name" || t.dataset.lpF === "repo" ? t.value.toLowerCase() : t.value.trim();
       if (t.dataset.lpEnv) f.env[t.dataset.lpEnv] = t.value;
