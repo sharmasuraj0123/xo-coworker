@@ -269,6 +269,196 @@ t("LP15: Size is the app's dropdown (xo-select), by keyboard, and the deploy car
   await done(page);
 });
 
+// ── Astra on 10f2580 ──
+const sse = (r, events) => r.fulfill({ status: 200, contentType: "text/event-stream", body: events.map((e) => `data: ${JSON.stringify(e)}\n\n`).join("") });
+t("LP15: Esc in the open Size list closes the list, not the panel; focus stays on Size", async () => {
+  const page = await open({ launchpad: "ready", onDeploy: (r, m, p) => (/\/preflight$/.test(p) ? json(r, PRE) : r.fallback()) });
+  await W.openLaunchpad(page);
+  await page.locator('[data-lp="machine-open"]').click();
+  await page.waitForSelector('xo-select[data-lp-f="size"]');
+  await page.keyboard.press(" ");
+  await page.waitForSelector('xo-select[data-lp-f="size"].is-open');
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(200);
+  assert.equal(await page.locator('xo-select[data-lp-f="size"].is-open').count(), 0, "the list closed");
+  assert.equal(await page.locator(".fr-lp .lp").isVisible(), true, "the panel stays");
+  assert.ok(await page.evaluate(() => !!document.activeElement.closest('xo-select[data-lp-f="size"]')), "focus on Size");
+  // on a phone every field is 40, Size with them; on a desktop 32
+  const hs = await page.evaluate(() => [...document.querySelectorAll(".lp .lp-in, .lp xo-select .dd-btn")].filter((n) => n.offsetParent).map((n) => Math.round(n.getBoundingClientRect().height)));
+  assert.ok(hs.length && hs.every((h) => h === (WIDTH > 760 ? 32 : 40)), `field heights ${[...new Set(hs)]}`);
+  await done(page);
+});
+
+for (const theme of ["dark", "light"]) {
+  t(`LP15: a size Launchpad refuses is red (${theme}); choosing another drops the invalid state on the combobox`, async () => {
+    const page = await open({ theme, launchpad: "ready", onDeploy: (r, m, p) => {
+      if (/\/preflight$/.test(p)) return json(r, PRE);
+      if (/\/api\/deploy\/[^/]+$/.test(p) && m === "POST") { const ts = new Date().toISOString(); return sse(r, [{ type: "run", ts, run_id: "r9", kind: "deploy", attached: false, started_at: ts }, { type: "error", ts, step: "app", code: "size_not_allowed", message: "Size not allowed", fix: "", data: {} }]); }
+      return r.fallback();
+    } });
+    await W.openLaunchpad(page);
+    await page.locator('[data-lp="machine-open"]').click();
+    await page.locator('[data-lp="deploy"]').click();
+    await page.waitForFunction(() => document.querySelector('xo-select[data-lp-f="size"] .dd-btn')?.getAttribute("aria-invalid") === "true", null, { timeout: 9000 });
+    const edge = await page.evaluate(() => { const v = getComputedStyle(document.querySelector('xo-select[data-lp-f="size"] .dd-btn')).borderTopColor; const c = v.match(/[\d.]+/g).map(Number); const k = /^color\(/.test(v) ? 255 : 1; return (c[0] - Math.max(c[1], c[2])) * k; });
+    assert.ok(edge > 40, `the invalid edge is red (${edge})`);
+    assert.ok(await page.evaluate(() => !!document.activeElement.closest('xo-select[data-lp-f="size"]')), "focus on Size");
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("End");
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(150);
+    assert.equal(await page.evaluate(() => document.querySelector('xo-select[data-lp-f="size"] .dd-btn').hasAttribute("aria-invalid")), false, "the combobox is valid again");
+    await done(page);
+  });
+}
+
+const GHPRE = { ...PRE, github: { connected: true, login: "octo", scopes: ["repo"], scopes_known: true, workflow_scope: false, source: "gh", fix: "Run `gh auth refresh -h github.com -s workflow`, then check again." } };
+t("LP1A: I ran it: check again says when the check fails; a second Copy keeps its own 1.5 s", async () => {
+  let fail = true, armed = false;
+  const page = await open({ launchpad: "ready", onDeploy: (r, m, p) => (/\/preflight$/.test(p) ? (fail && armed ? json(r, { detail: { code: "unavailable", message: "Fixture offline" } }, 503) : json(r, GHPRE)) : r.fallback()) });
+  await W.openLaunchpad(page);
+  await page.waitForSelector('[data-lp="recheck-gh"]');
+  armed = true;
+  await page.locator('[data-lp="recheck-gh"]').click();
+  await page.waitForSelector(".lp-gh-err");
+  assert.match(await page.locator(".lp-gh-err").innerText(), /Couldn't check GitHub: Fixture offline/);
+  assert.match(await live(page), /Couldn't check GitHub/);
+  assert.equal(await focused(page), "recheck-gh");
+  fail = false;
+  await page.locator('[data-lp="recheck-gh"]').click();
+  await page.waitForFunction(() => !document.querySelector(".lp-gh-err"));
+  // the live region says it once the check is back (it first says Checking GitHub again)
+  await page.waitForFunction(() => /still doesn't have the workflow permission/.test(document.querySelector("#live")?.innerText || ""));
+  // Copy twice, 950 ms apart: 650 ms after the second it still says Copied
+  const cp = page.locator('[data-lp="cmd-copy"]');
+  await cp.click(); await page.waitForTimeout(950); await cp.click(); await page.waitForTimeout(650);
+  assert.equal(await cp.getAttribute("title"), "Copied");
+  // and it does come back (a loaded machine may run the timer late: wait for it, don't race it)
+  await page.waitForFunction(() => document.querySelector('[data-lp="cmd-copy"]')?.title === "Copy the command", null, { timeout: 4000 });
+  await done(page);
+});
+
+t("LP44: a cancelled GitHub code's late answer doesn't clear the newer code", async () => {
+  let n = 0, cancelled = 0;
+  const page = await open({ launchpad: "scope", api: async (r, m, p, answer) => {
+    if (p.endsWith("/connectors/github/cli/start")) { n++; return answer({ session_id: `s${n}`, user_code: `CODE-${n}`, verification_uri: "https://github.com/login/device", expires_in: 900 }); }
+    if (p.endsWith("/connectors/github/cli/poll")) { const id = JSON.parse(r.request().postData() || "{}").session_id; if (id === "s1") { await new Promise((ok) => setTimeout(ok, 2500)); return answer({ status: "failed", error: "expired" }); } return answer({ status: "pending" }); }
+    if (p.endsWith("/connectors/github/cli/cancel")) { cancelled++; return answer({}); }
+    return undefined;
+  } });
+  await W.openLaunchpad(page);
+  await page.locator('[data-lp="reconnect"]').click();
+  await page.waitForFunction(() => /CODE-1/.test(document.querySelector(".lp-code")?.innerText || ""));
+  await page.waitForTimeout(2700); // its first poll is out (it answers 2.5 s later, failed)
+  await page.locator('[data-lp="device-cancel"]').click();
+  await page.locator('[data-lp="reconnect"]').click();
+  await page.waitForFunction(() => /CODE-2/.test(document.querySelector(".lp-code")?.innerText || ""));
+  await page.waitForTimeout(3000); // the old poll's failure arrives
+  assert.match(await page.locator(".lp-code").innerText(), /CODE-2/, "the newer code stays");
+  assert.equal(cancelled, 1);
+  await done(page);
+});
+
+t("LP21: the notice's Undo for Stop puts focus back on Stop; no stop is asked for", async () => {
+  const calls = [];
+  const page = await open({ launchpad: "building", onDeploy: (r, m, p) => { if (/\/api\/deploy\/[^/]+$/.test(p) && m === "DELETE") { calls.push(m); return json(r, { stopped: true }); } return r.fallback(); } });
+  await W.openLaunchpad(page);
+  await page.waitForFunction(() => document.querySelector(".lp")?.dataset.screen === "run");
+  await page.locator('[data-lp="stop"]').click();
+  await page.locator("[data-herald-undo]").focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(3300);
+  assert.deepEqual(calls, []);
+  assert.equal(await focused(page), "stop", "focus on Stop");
+  await done(page);
+});
+
+t("LP36: Unlink's Undo, and a refused Unlink, put focus back on More", async () => {
+  let refuse = false;
+  const page = await open({ launchpad: "live", onDeploy: (r, m, p) => (/\/link$/.test(p) && m === "DELETE" && refuse ? json(r, { detail: { code: "unavailable", message: "Fixture offline" } }, 503) : r.fallback()) });
+  await W.openLaunchpad(page);
+  await page.waitForFunction(() => document.querySelector(".lp")?.dataset.screen === "live");
+  await page.locator('[data-lp="menu"]').click();
+  await page.locator('.lp-mn [data-lp="unlink"]').click();
+  await page.locator("[data-herald-undo]").focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelector(".lp")?.dataset.screen === "live");
+  await page.waitForTimeout(150);
+  assert.equal(await focused(page), "menu", "Undo: back on More");
+  refuse = true;
+  await page.locator('[data-lp="menu"]').click();
+  await page.locator('.lp-mn [data-lp="unlink"]').focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(3700);
+  await page.waitForFunction(() => document.querySelector(".lp")?.dataset.screen === "live");
+  await page.waitForTimeout(150);
+  assert.equal(await focused(page), "menu", "refused: back on More");
+  assert.match(await live(page), /Couldn't unlink: Fixture offline/);
+  await done(page);
+});
+
+t("LP37: Undo after Create it again goes back to Create it again", async () => {
+  const gone = JSON.parse(JSON.stringify(W.SCENARIOS.live.pre)); gone.launchpad.app.exists = false;
+  const page = await open({ launchpad: "live", onDeploy: (r, m, p) => (/\/preflight$/.test(p) ? json(r, gone) : r.fallback()) });
+  await W.openLaunchpad(page);
+  await page.waitForSelector('[data-lp="recreate"]');
+  await page.locator('[data-lp="recreate"]').first().click();
+  await page.waitForSelector('[data-lp="undo"]');
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(200);
+  assert.equal(await focused(page), "recreate");
+  await done(page);
+});
+
+t("LP40: Ask an agent to fix it shows its thread, with focus on it", async () => {
+  const page = await open({ launchpad: "failed-build" });
+  await W.openLaunchpad(page);
+  await page.waitForFunction(() => document.querySelector(".lp")?.dataset.screen === "failed");
+  await page.locator('[data-lp="ask-fix"]').click();
+  await page.waitForSelector('[data-lp="thread"]');
+  await page.waitForTimeout(150);
+  assert.equal(await focused(page), "thread");
+  assert.match(await page.locator(".lp-asked").innerText(), /An agent is fixing it/);
+  await done(page);
+});
+
+// ── Shells ──
+t("SH08/SH09/SH20/SH22/SH33: Minimise keeps focus on its button; Hide goes to the work; Show every shell and a refused New shell keep focus", async () => {
+  // the dock as a reload finds it: open on the list, filtered to the project
+  const page = await open({ terms: "some", createFail: "Fixture: too many shells", shellsSession: { tabs: [], active: "list", open: true, filter: "demo" } });
+  await page.waitForSelector("[data-sh-filter]");
+  await page.locator("[data-sh-filter]").focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(100);
+  assert.equal(await page.evaluate(() => document.activeElement.hasAttribute("data-sh-new")), true, "Show every shell → New shell");
+  await page.keyboard.press("Enter"); // New shell, refused
+  await page.waitForTimeout(400);
+  assert.equal(await page.evaluate(() => document.activeElement.hasAttribute("data-sh-new")), true, "refused: still on New shell");
+  if (WIDTH > 760) {
+    await page.locator("[data-sh-min]").focus();
+    await page.keyboard.press("Enter");
+    assert.equal(await page.evaluate(() => document.activeElement.hasAttribute("data-sh-min")), true, "minimised: focus on Show");
+    await page.keyboard.press("Enter");
+    assert.equal(await page.evaluate(() => document.activeElement.hasAttribute("data-sh-min")), true, "shown again: still there");
+  }
+  await page.locator("[data-sh-hide]").focus();
+  await page.keyboard.press("Enter");
+  assert.ok(await page.evaluate(() => document.activeElement && document.activeElement !== document.body), "hidden: focus on the work, not the page");
+  await done(page);
+});
+
+t("SH31: Retry now hands focus to the shell", async () => {
+  let drops = 0;
+  const page = await dock({ ws: (ws) => { if (drops++ < 1) { ws.close({ code: 1011, reason: "" }); return false; } } });
+  await page.locator('[data-sh-open="sh_1"]').click();
+  await page.waitForSelector(".shd-note [data-sh-retry]", { timeout: 9000 });
+  await page.locator(".shd-note [data-sh-retry]").focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(400);
+  assert.ok(await page.evaluate(() => !!document.activeElement.closest("#shd .xterm")), "focus in the shell");
+  await done(page);
+});
+
 // ── Shells ──
 // the sidebar's Shells: on a phone, from the drawer the menu button opens (it steps aside for the sheet)
 const dock = async (o = {}) => {

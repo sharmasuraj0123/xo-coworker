@@ -104,7 +104,17 @@
 .lp-v.is-row .lp-hint{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lp-in{box-sizing:border-box;width:100%;height:var(--h-ctl);padding:0 8px;border-radius:var(--r-sm);border:1px solid var(--line-soft);background:var(--surface);font:400 var(--fs-base)/20px var(--sans);color:var(--ink);outline:none;transition:border-color var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease)}
 .lp-in.is-short{flex:none;width:64px;font-variant-numeric:tabular-nums}
-@media (max-width:760px){.lp-in.is-short{width:80px}} /* a phone's 16 px figures: five of them fit */
+/* On a phone every field is a form field, 40 (tokens: "40 form fields"), Size with them (dropdown.css's phone 36
+   is off the scale): one height down the form, and a finger's target. The labels centre on it. */
+@media (max-width:760px){
+  .lp-in.is-short{width:80px} /* a phone's 16 px figures: five of them fit */
+  .lp-in,.lp-v>xo-select .dd-btn,.lp-pair .lp-ib{height:var(--h-lg)}
+  .lp-pair .lp-ib{width:var(--h-lg)}
+  .lp-l,.lp-ro{padding:10px 0}
+}
+/* the thread an Ask started, where the failure was */
+.lp-asked .lp-note{padding-top:0;padding-bottom:8px}
+.lp-asked .lp-ag{margin-bottom:12px}
 .lp-in::placeholder{color:var(--ink-4)}
 .lp-in:hover{border-color:var(--line-strong)}
 /* the focus every other field has (.field): the strongest edge and a quiet accent halo */
@@ -116,7 +126,8 @@
 /* the machine: a size from what Launchpad allows, a disk's path and GB, what a linked app was made with */
 /* Size is the app's one dropdown (<xo-select>, css/dropdown.css), the field's whole width */
 .lp-v>xo-select{display:flex;width:100%}
-.lp-f.is-bad .dd-btn{border-color:color-mix(in srgb,var(--danger) 70%,transparent)}
+/* invalid: red at rest and on hover, in both themes (dropdown.css's light rules outranked it) */
+.lp-f.is-bad .dd-btn,.lp-f.is-bad .dd-btn:hover,:root[data-theme="light"] .lp-f.is-bad .dd-btn,:root[data-theme="light"] .lp-f.is-bad .dd-btn:hover{border-color:color-mix(in srgb,var(--danger) 70%,transparent)}
 .lp-pair{display:flex;align-items:center;gap:6px;min-width:0}
 .lp-pair .lp-in{flex:1 1 auto;min-width:0}
 .lp-pair .lp-in.is-gb{flex:none;width:48px;text-align:right;font-variant-numeric:tabular-nums}
