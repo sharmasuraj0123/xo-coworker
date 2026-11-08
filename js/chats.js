@@ -32,7 +32,7 @@ const ago = (iso) => { const s = (Date.now() - Date.parse(iso)) / 1000; if (!Num
 
 export function createChats({ world, announce, heraldShow, go, schedule, view, restore }) {
   // confirm: one "send now" question per chat (session id → {local, count}), shown only in that chat
-  const C = { list: null, loading: false, err: null, titles: new Map(), hist: new Map(), local: new Map(), prefs: { ...store.get() }, models: new Map(), read: new Set(), failed: new Set(), pop: { open: false }, confirm: new Map() };
+  const C = { list: null, loading: false, err: null, titles: new Map(), hist: new Map(), local: new Map(), prefs: { ...store.get() }, models: new Map(), read: new Set(), failed: new Map(), pop: { open: false }, confirm: new Map() };
 
   const sessions = () => Object.values(world.state.sessions || {}).filter((s) => s.role === "plain" && !s.retired_at);
   const session = (sid) => (world.state.sessions || {})[sid] || null;
@@ -225,7 +225,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     if (again && C.failed.has(agent)) { C.failed.delete(agent); C.models.delete(agent); }
     if (C.models.has(agent)) return;
     C.models.set(agent, []);
-    try { C.models.set(agent, (await api.models(agent)).models || []); C.read.add(agent); } catch { C.failed.add(agent); /* the agent's default only, said so */ }
+    try { C.models.set(agent, (await api.models(agent)).models || []); C.read.add(agent); } catch (err) { C.failed.set(agent, err.message || "no answer"); /* the agent's default only, said so */ }
     renderSetup(); schedule();
   }
   function targetHtml(v) {
@@ -289,8 +289,10 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     // What it may do: a radio group (keynav.js's keys); only the chosen mode is in the Tab order
     const html = `<header class="iq-h"><h2>New chat</h2></header>` +
       `<div class="iq-sec">${field("cwd", "Folder")}${field("agent", "Agent")}${field("model", "Model")}` +
+      // why the list holds only the default, whenever it does: gone, unread (with the reason), or still checking
       (st.gone ? `<p class="iq-rl" role="status">“${esc(st.gone)}” isn't offered by ${esc(cliName(st.agent))} any more, so a new chat uses its default model.</p>`
-        : st.unsure ? `<p class="iq-rl" role="status">${st.unsure.failed ? `Couldn't read ${esc(cliName(st.agent))}'s models, so “${esc(st.unsure.model)}” isn't confirmed and a new chat uses its default. Open this again to try again.` : `Checking that “${esc(st.unsure.model)}” is still offered… until then a new chat uses its default.`}</p>` : "") +
+        : C.failed.has(st.agent) ? `<p class="iq-rl" role="status">Couldn't read ${esc(cliName(st.agent))}'s models: ${esc(C.failed.get(st.agent).replace(/[.\s]+$/, ""))}. ${st.unsure ? `“${esc(st.unsure.model)}” isn't confirmed, so a` : "A"} new chat uses its default model. Open this again to try again.</p>`
+        : st.unsure ? `<p class="iq-rl" role="status">Checking that “${esc(st.unsure.model)}” is still offered… until then a new chat uses its default.</p>` : "") +
       `${field("effort", "Effort")}</div>` +
       (!modes.length ? `<div class="iq-sec"><p class="iq-rl">This agent doesn't say what it may do on its own; it uses its default.</p></div>` : `<div class="iq-sec"><p class="iq-lab">What it may do</p><div class="cs-modes" role="radiogroup" aria-label="What it may do">${modes.map((m, i) => `<button type="button" role="radio" class="set-choice${m === st.mode ? " is-on" : ""}" aria-checked="${m === st.mode}"${rovingTab(m === st.mode, i === 0 && !modes.includes(st.mode))} data-csmode="${esc(m)}"><span class="sc-dot" aria-hidden="true"></span><span class="sc-b"><b>${esc((MODE_WORDS[m] || [m])[0])}</b><span>${esc((MODE_WORDS[m] || ["", ""])[1])}</span></span></button>`).join("")}</div></div>`) +
       `<footer class="iq-f"><span>Used for your next new chat.</span><button type="button" class="iq-back" data-cs-done>Done</button></footer>`;

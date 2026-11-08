@@ -903,6 +903,17 @@ t("S153: a catalog that fails to load leaves the saved model unconfirmed (never 
   await done(page);
 });
 
+t("S153: a catalog that can't be read says so, with why, even with no saved model", async () => {
+  const page = await app({ runtimes: [RT2("claude_code")], catalogs: { claude_code: [MODEL("opus", "Opus")] }, catalogFail: true, storage: { "cv-chat-prefs": JSON.stringify({ agent: "claude_code" }) } });
+  await page.evaluate(() => window.__t.go("chats"));
+  await page.waitForFunction(() => window.__t.world.state.runtimes.length === 1);
+  await page.locator("#target").click();
+  await page.waitForFunction(() => /Couldn't read Claude's models/.test(document.querySelector("#cs-pop").innerText));
+  assert.match(await page.locator("#cs-pop").innerText(), /Couldn't read Claude's models: Fixture: the catalog didn't come\. A new chat uses its default model\. Open this again to try again\./);
+  assert.match(await page.locator("#target").innerText(), /its default model/);
+  await done(page);
+});
+
 // ── replies (Astra RPL-1, -2, -3, -5) ───────────────────────────────────────
 const AGENT_MD = (ts, text) => ({ id: `${ts}-md`, seq: 50, chat_id: "chat_demo", thread_ts: ts, author_kind: "agent", author_id: "agent", author_session_id: null, text, reply_to: null, extra: {}, created_at: NOW });
 async function replyPage(text) {
@@ -981,6 +992,21 @@ t("C052: each Copy owns its acknowledgement: an earlier Copy's timer or late ans
   await page.waitForTimeout(201);
   assert.equal(await checked(), true, "the second Copy's check isn't wiped by the first's timer");
   assert.match(await focusIs(page), /\[data-mx-copy\]/);
+  await done(page);
+}, { only: (c) => c.width >= 760 });
+t("C052: a code block or your own text at a message's very start or end is copied literally, blank lines and spaces too", async () => {
+  const mine = { id: "t_login-edge", seq: 61, chat_id: "chat_demo", thread_ts: "t_login", author_kind: "owner", author_id: "owner", author_session_id: null, text: "\n  starts with a blank line, ends with spaces  ", reply_to: null, extra: {}, created_at: NOW };
+  const code = AGENT_MD("t_login", "```\n\n\n  first  \nlast   \n```");
+  const page = await app({ threadMsgs: { t_login: [code, mine] } });
+  await openThread(page, "t_login");
+  await page.waitForSelector('#msgs [data-k="t_login-edge"] .bubble');
+  await page.evaluate(() => { window.__copied = []; Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async (t) => { window.__copied.push(t); } } }); });
+  for (const k of ["t_login-md", "t_login-edge"]) { const m = page.locator(`#msgs [data-k="${k}"]`); await m.hover(); await m.locator("[data-mx-copy]").first().focus(); await page.keyboard.press("Enter"); await settle(page, 150); }
+  const [a, b] = await page.evaluate(() => window.__copied);
+  const raw = await page.evaluate(() => document.querySelector('#msgs [data-k="t_login-md"] pre code').textContent);
+  assert.ok(/^\n/.test(raw) && /last {3}/.test(raw), `fixture: the code block starts blank and ends with spaces (${JSON.stringify(raw)})`);
+  assert.equal(a, raw, "the code block, exactly");
+  assert.equal(b, "\n  starts with a blank line, ends with spaces  ", "your message, exactly");
   await done(page);
 }, { only: (c) => c.width >= 760 });
 t("RPL-3 S228: a long selection is quoted whole in what's sent; the chip only previews it", async () => {
