@@ -173,3 +173,10 @@
   :root:root body.stage-open .home{padding-right:16px}
   :root:root body.stage-open :is(.dock,.toast-wrap){right:0}
 }
+/* the composer's target on a phone: just where it goes (the arrow or the thread mark says "to"); the words
+   around it gave way to an ellipsis before the name did */
+@media (max-width:760px){
+  :root:root .target :is(.tg-w,.muted){display:none}
+  :root:root .iq{padding:0 6px}
+  :root:root .iq-sep{margin:0 4px}
+}

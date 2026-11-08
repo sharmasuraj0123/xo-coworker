@@ -315,10 +315,10 @@ const sendWhileRunning = (t) => {
 const movable = (t) => !!(world.act.storm && world.act.policyFor && t && !t.movedTo && agentOf(t) && world.act.policyFor(t.project) && canMove(agentOf(t), world.act.policyFor(t.project), world.state.runtimes));
 /** The composer's target line in a thread; while its agent works, where your words land. */
 function threadTargetHtml(t) {
-  if (t.frozen) return `<span class="tg-t">${ICON.thread}</span><span>Reply in <b>this ${noun("thread")}</b></span><span class="muted">· sending picks it back up</span>`;
+  if (t.frozen) return `<span class="tg-t">${ICON.thread}</span><span><span class="tg-w">Reply in </span><b>this ${noun("thread")}</b></span><span class="muted">· sending picks it back up</span>`;
   const how = isBusy(t) && t.state !== "resolved" ? sendWhileRunning(t) : null;
   const tail = how === "steered" ? `<span class="muted">· sent into the current turn</span>` : how === "queued" ? `<span class="muted">· queued for the next turn</span>` : "";
-  return `<span class="tg-t">${ICON.thread}</span><span>Reply in <b>this ${noun("thread")}</b></span>${tail}`;
+  return `<span class="tg-t">${ICON.thread}</span><span><span class="tg-w">Reply in </span><b>this ${noun("thread")}</b></span>${tail}`;
 }
 const doneToday = () => world.state.threads.filter((t) => t.state === "done" && new Date(t.lastAt).toDateString() === new Date().toDateString());
 
@@ -1901,11 +1901,11 @@ function targetLineRender() {
   let html;
   if (block) html = `<span class="tg-warn">${ICON.pause}</span><span>Sending is paused · ${esc(block)}</span>`;
   else if (tg && tg.unknown && !/(^|\s)@[\w.-]*$/.test(say.value.slice(0, say.selectionStart))) html = `<span class="tg-warn">${ICON.close}</span><span>No project called <b>${esc(tg.unknown)}</b></span>`;
-  else if (pid === "workspace") html = `${ICON.arrow}<span>To the <b>Workspace</b> coordinator</span>`;
+  else if (pid === "workspace") html = `${ICON.arrow}<span><span class="tg-w">To the </span><b>Workspace</b><span class="tg-w"> coordinator</span></span>`;
   else if (pid) html = `${ICON.arrow}<span>New work for <b>${esc(PROJ(pid))}</b></span>`;
   else if (t) html = threadTargetHtml(t);
-  else if (S.view === "ws" || S.view === "home") html = `${ICON.arrow}<span>To the <b>Workspace</b> coordinator</span><span class="muted">· @ to aim at a project</span>`;
-  else html = `${ICON.arrow}<span>To the <b>${esc(PROJ(convProject(S.view)))}</b> coordinator</span>`;
+  else if (S.view === "ws" || S.view === "home") html = `${ICON.arrow}<span><span class="tg-w">To the </span><b>Workspace</b><span class="tg-w"> coordinator</span></span><span class="muted">· @ to aim at a project</span>`;
+  else html = `${ICON.arrow}<span><span class="tg-w">To the </span><b>${esc(PROJ(convProject(S.view)))}</b><span class="tg-w"> coordinator</span></span>`;
   if ($("#target")._h !== html) { $("#target").innerHTML = html; $("#target")._h = html; }
 }
 function updateComposer() {
