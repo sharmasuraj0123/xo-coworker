@@ -811,6 +811,25 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 /* content that arrives in place (a line, a card, a column): a 4 px rise */
 @keyframes rise-in{from{opacity:0;transform:translateY(4px)}}
 
+/* ── since you were away: one quiet line (the owner removed the card, 2026-11-04) ─────────────────────────── */
+.since .sl{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;margin:0;font:400 var(--fs-base)/20px var(--sans);color:var(--ink-3);animation:rise-in var(--d-in) var(--ease)}
+.since .sl>svg{flex:none;width:14px;height:14px;color:var(--ink-4)}
+.sl-k{color:var(--ink-3)}
+.sl-part{height:24px;padding:0 8px;border-radius:var(--r-sm);color:var(--ink-2);font:500 var(--fs-base)/20px var(--sans);font-variant-numeric:tabular-nums}
+.sl-part:hover{background:var(--hover-fill);color:var(--ink)}
+.sl-part.t-amber{color:var(--warn)}
+.sl-part.t-red{color:var(--err-ink)}
+.sl-sep{color:var(--ink-5)}
+.sl-x{display:grid;place-items:center;width:24px;height:24px;margin-left:auto;border-radius:var(--r-sm);color:var(--ink-4)}
+.sl-x:hover{background:var(--hover-fill);color:var(--ink)}
+.sl-x svg{width:14px;height:14px}
+.sl-home{display:flex;flex-direction:column;gap:2px;margin:0 0 24px;animation:rise-in var(--d-in) var(--ease)}
+.sl-home .sl-k{display:flex;align-items:center;gap:8px;margin-bottom:4px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
+.sl-home .sl-k svg{width:14px;height:14px;color:var(--ink-4)}
+.sl.is-home{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;margin:0;font:400 var(--fs-base)/20px var(--sans);color:var(--ink-3)}
+.sl-p{height:24px;padding:0 8px 0 0;color:var(--ink);font:500 var(--fs-base)/20px var(--sans)}
+.sl-p:hover{color:var(--accent)}
+
 /* ── buttons ─────────────────────────────────────────────────────────────── */
 .b{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;height:var(--h-lg);padding:0 16px;border-radius:var(--r);border:1px solid var(--line);background:var(--float);color:var(--ink);font:500 var(--fs-md)/20px var(--sans);overflow:hidden;user-select:none;-webkit-user-select:none;
   transition:transform var(--dur-fast) var(--ease),background-color var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease)}

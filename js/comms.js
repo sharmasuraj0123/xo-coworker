@@ -41,11 +41,11 @@ function words(tool, res, ctx = {}) {
   const coord = here ? `the ${here} coordinator` : "its coordinator";
   const proj = res.project || (res.chat_id && names.project(res.chat_id)) || null;
   switch (tool) {
-    case "message_thread": return ["Writing to a thread", res.delivery === "steer" || res.turn_running ? `Sent to ${t} while it works` : `Sent to ${t}`, `Couldn't reach ${t}`, `Wrote to ${t}`];
+    case "message_thread": return ["Writing to a thread", res.delivery === "steer" || res.turn_running ? `Sent to ${t} while it works` : `Sent to ${t}`, `Couldn't reach ${t}`, `Message to ${t}`];
     case "start_thread_session": return ["Starting a thread", `Started ${t}`, res.error === "thread_exists" ? `${thread ? t : "That thread"} was already started` : "Couldn't start a thread"];
-    case "message_coordinator": return [`Writing to ${coord}`, `Sent to ${coord}`, `Couldn't reach ${coord}`, `Wrote to ${coord}`];
-    case "ask_workspace": return ["Talking to the Workspace coordinator", "Asked the Workspace coordinator", "Couldn't reach the Workspace coordinator", "Wrote to the Workspace coordinator"];
-    case "forward_to_project": return [`Handing it to ${proj ? `the ${proj}` : "a project's"} coordinator`, `Sent to ${proj ? `the ${proj}` : "a project's"} coordinator`, `Couldn't reach ${proj ? `the ${proj}` : "that project's"} coordinator`, `Wrote to ${proj ? `the ${proj}` : "a project's"} coordinator`];
+    case "message_coordinator": return [`Writing to ${coord}`, `Sent to ${coord}`, `Couldn't reach ${coord}`, `Message to ${coord}`];
+    case "ask_workspace": return ["Talking to the Workspace coordinator", "Asked the Workspace coordinator", "Couldn't reach the Workspace coordinator", "Question to the Workspace coordinator"];
+    case "forward_to_project": return [`Handing it to ${proj ? `the ${proj}` : "a project's"} coordinator`, `Sent to ${proj ? `the ${proj}` : "a project's"} coordinator`, `Couldn't reach ${proj ? `the ${proj}` : "that project's"} coordinator`, `Message to ${proj ? `the ${proj}` : "a project's"} coordinator`];
     case "ask_owner": return ["Asking you", "Asked you"];
     case "post_message": case "reply": return ["Writing to you", "Wrote to you"];
     case "no_reply_needed": return ["Deciding there's nothing to add", "Nothing to add"];
@@ -87,7 +87,8 @@ export function commsLine(row, ctx) {
   if (row.status === "cancelled") return `Stopped: ${lower(w[0])}`;
   const failed = row.status === "error" || res.ok === false || res.delivered === false || !!res.error;
   if (failed) return w[2] || `Didn't finish: ${lower(w[0])}`;
-  // a message tool's success is its own receipt; without one it was written, not (provably) sent
+  // a message tool's success is its own receipt; without one (Codex drops the result body) it's said neutrally,
+  // "Message to …", which claims neither delivery nor failure
   if (RECEIPT[tool] && !RECEIPT[tool](res)) return w[3] || w[1];
   return w[1];
 }

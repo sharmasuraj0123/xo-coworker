@@ -173,6 +173,40 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
     if (box._h !== html) { box.innerHTML = html; box._h = html; }
   }
 
+  /** The quiet form (the owner removed the card on 2026-11-04; this replaces it, pending their word): after
+      AWAY_MS away, one line under a project's header, "Since Friday · 3 finished · 1 not pushed · 1 needs you",
+      each part opening its newest thread, and a dismiss. Home: the same line per project that moved. */
+  function partsHtml(cu) {
+    return cu.groups.map((g) => { const t = g.items[0].t; return `<button type="button" class="sl-part t-${g.tone}" data-go="t:${esc(t.id)}" title="${esc(g.items.map((x) => x.t.title).join(" · "))}">${g.items.length} ${esc(g.label.toLowerCase())}</button>`; }).join(`<span class="sl-sep" aria-hidden="true">·</span>`);
+  }
+  function sinceLine(pid, needs) {
+    const box = $("#since");
+    if (!box) return;
+    const place = pid ? "p:" + pid : null;
+    const s = place ? arrive(place) : null;
+    const off = () => { box.hidden = true; if (box._h) { box.innerHTML = ""; box._h = ""; } };
+    if (!place || s == null || done.has(place)) return off();
+    const p = world.project(pid);
+    const cu = R.catchUp(threadsIn(pid), { since: s, needing: needingSet(needs), trees: p && p.chatId ? treesFor(p.chatId) : new Map() });
+    if (!cu.total) return off();
+    const html = `<p class="sl" role="status">${ICON.clock}<span class="sl-k">Since ${esc(R.sinceWord(s))}</span>${partsHtml(cu)}<button type="button" class="sl-x" data-rec-got="${esc(place)}" aria-label="Got it" title="Got it">${ICON.close}</button></p>`;
+    box.hidden = false;
+    if (box._h !== html) { box.innerHTML = html; box._h = html; }
+  }
+  function homeSinceLines(needs) {
+    const s = arrive("home");
+    if (s == null || done.has("home")) return "";
+    const map = treesFor(""), needing = needingSet(needs), rows = [];
+    for (const p of world.state.projects || []) {
+      if (!p || p.id === "workspace") continue;
+      const cu = R.catchUp(threadsIn(p.id), { since: s, needing, trees: map });
+      if (cu.total) rows.push({ at: Math.max(...cu.groups.flatMap((g) => g.items.map((x) => x.t.lastAt))), html: `<p class="sl is-home"><button type="button" class="sl-p" data-go="p:${esc(p.id)}">${esc(p.name || p.id)}</button>${partsHtml(cu)}</p>` });
+    }
+    if (!rows.length) return "";
+    rows.sort((a, b) => b.at - a.at);
+    return `<section class="sl-home" aria-label="Since you were away"><p class="sl-k">${ICON.clock}Since ${esc(R.sinceWord(s))}<button type="button" class="sl-x" data-rec-got="home" aria-label="Got it" title="Got it">${ICON.close}</button></p>${rows.slice(0, 5).map((r) => r.html).join("")}</section>`;
+  }
+
   /** Home's card: one line per project that moved, its groups as counts. "" when there's nothing to say. */
   function homeSinceHtml(needs) {
     const s = arrive("home");
@@ -671,7 +705,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
   });
 
   return {
-    placeOf, leave, projectSince, homeSinceHtml, homeMade, madeCount, jumpItems,
+    placeOf, leave, projectSince, homeSinceHtml, sinceLine, homeSinceLines, homeMade, madeCount, jumpItems,
     /** The newest file a thread made (not a branch): what its finished card offers to open. */
     latestOf: (tid, project) => madeOf(project || null).find((x) => x.tid === tid && x.kind !== "branch" && x.kind !== "link" && x.exists !== false) || null,
     /** The Artifacts page (a sidebar place): render() draws it; count() is what the sidebar shows. */

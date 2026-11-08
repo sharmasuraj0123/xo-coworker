@@ -534,7 +534,7 @@ function nextCardHtml(n) {
 function homeRender(needs) {
   const box = $("#home");
   if (!box._built) {
-    box.innerHTML = `<div class="hm"><div id="hm-head"></div><div class="hm-body" id="hm-body"><div id="hm-next"></div><div id="hm-then"></div><div id="hm-end"></div><div id="hm-made"></div></div></div>`;
+    box.innerHTML = `<div class="hm"><div id="hm-head"></div><div class="hm-body" id="hm-body"><div id="hm-since"></div><div id="hm-next"></div><div id="hm-then"></div><div id="hm-end"></div><div id="hm-made"></div></div></div>`;
     box._built = true;
   }
   const P0 = homeParts(needs);
@@ -598,7 +598,8 @@ function homeRender(needs) {
   } else if (P0.later.length) then = `<div class="then-foot solo"><button type="button" class="hm-quiet is-later" data-fid="bring" data-bring>${ICON.clock}${P0.later.length} later today <span>bring back</span></button></div>`;
   patch($("#hm-then"), then);
   landed($("#hm-then"));
-  // after Handled, the newest things made (Since you left was removed: the owner didn't want it, 2026-11-04)
+  // since you were away: one quiet line per project that moved (the 2026-11-04 card stays removed), then made
+  patch($("#hm-since"), REC.homeSinceLines(needs));
   REC.homeMade($("#hm-made"));
 
   endRender(P0, working);
@@ -1183,6 +1184,7 @@ function topRender(needs) {
   LP.ensure(v);
   nowRender(needs);
   checklistRender(needs);
+  REC.sinceLine(v.startsWith("p:") ? v.slice(2) : null, needs);
 }
 
 /** The Now strip, in the header row: every thread in progress as one slim chip (its state, its
