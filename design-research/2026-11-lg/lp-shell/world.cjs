@@ -190,6 +190,8 @@ async function open(browser, base, opts = {}) {
   await page.route("**/*", mockApi(W));
   await mockSockets(page, W);
   await page.route("**/js/app.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()) + "\nwindow.__t={S,world,go,LP};" }); });
+  // test hook, in the page only (the file on disk is untouched): Launchpad's reads, to drive their completion order
+  await page.route("**/js/launchpad.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()).replace("\n  return {\n    mount, paint,", "\n  window.__lp = { load, preflight };\n  return {\n    mount, paint,") }); });
   await page.goto(base + "/");
   await page.waitForSelector('[data-go="p:demo"]');
   page.errors = errors;

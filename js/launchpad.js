@@ -83,6 +83,11 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
    *  has applied already, so an older answer never overwrites a newer one (Astra: two rechecks, the older won). */
   const ticket = (s) => (s.seq = (s.seq || 0) + 1);
   const current = (s, n) => { if (n <= (s.applied || 0)) return false; s.applied = n; return true; };
+  /** A later read's answer has already applied: this one's outcome, success or refusal, changes nothing. */
+  const stale = (s, n) => n <= (s.applied || 0);
+  /** A recheck asked for (loud) says what the project's current check says about GitHub: the read that answers
+   *  last may be a newer one than the recheck's own, and that newer one asked GitHub too (load does, once asked). */
+  const sayGitHub = (s) => { s.loud = false; s.ghErr = null; announce(s.check.github?.workflow ? "GitHub has the workflow permission now." : "GitHub still doesn't have the workflow permission."); };
   async function load(p, force = false) {
     const s = proj(p);
     if (s.loading || (!force && s.at && Date.now() - s.at < (s.err ? ERR_MS : AGAIN_MS))) return;
@@ -91,15 +96,21 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     try {
       // once preflight has answered, a refresh asks it again on the fresh check: check alone would put its guesses
       // (origin usable, GitHub able, the app Live) back over what GitHub and Launchpad said
+      // (also while a preflight is out: this read's answer then never carries guesses over what that one asks)
       let c = await api.check(p);
-      if (s.pre === 2 && api.preflight) c = await api.preflight(p, s.form?.name);
+      if (s.pre && api.preflight) c = await api.preflight(p, s.form?.name);
       if (!current(s, n)) { s.loading = false; return; } // a newer answer is already here
-      s.check = c; s.at = Date.now();
+      s.check = c; s.at = Date.now(); s.err = null;
       if (!s.form) s.form = { name: slug(c.name || p), port: c.port ? String(c.port) : "", repo: c.repo?.create || slug(p), env: {}, errs: {}, size: c.size || "", disk: !!c.storage, diskPath: c.storage?.path || "", diskGb: String(c.storage?.gb || 2) };
       if (c.running && !s.run && c.running !== s.ended) watch(p); // never the run Space just said was over
       cached[p] = c.state;
       try { localStorage.setItem(CACHE, JSON.stringify(cached)); } catch { /* private mode */ }
-    } catch (e) { s.err = e; s.at = Date.now(); }
+    } catch (e) {
+      // refused, but a newer read has answered since: that answer stands (an old refusal never flips a working
+      // screen to Couldn't check)
+      if (stale(s, n)) { s.loading = false; changed(); return; }
+      s.err = e; s.at = Date.now();
+    }
     s.loading = false;
     changed();
   }
@@ -147,13 +158,15 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     try {
       const c = await api.preflight(p, s.form?.name);
       s.pre = 2;
-      if (current(s, n) && c) s.check = c;
+      if (current(s, n) && c) { s.check = c; s.err = null; }
       // asked for (I ran it: check again): what GitHub says now, in words
-      if (s.loud) { s.loud = false; s.ghErr = null; announce(s.check.github?.workflow ? "GitHub has the workflow permission now." : "GitHub still doesn't have the workflow permission."); }
+      if (s.loud) sayGitHub(s);
     } catch (e) {
       s.pre = 2; // a deploy still says what's wrong, step by step
+      // refused, but a newer read has answered since: the recheck's question has that answer, never this refusal
+      if (stale(s, n)) { if (s.loud) sayGitHub(s); }
       // asked for: its failure is said, under the button that asked, and in the live region
-      if (s.loud) { s.loud = false; s.ghErr = e?.message || "XO Space didn't answer"; announce(`Couldn't check GitHub: ${s.ghErr}.`); }
+      else if (s.loud) { s.loud = false; s.ghErr = e?.message || "XO Space didn't answer"; announce(`Couldn't check GitHub: ${s.ghErr}.`); }
     }
     changed();
   }
@@ -392,7 +405,8 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       (editing ? "" : field("name", "Name", f.name, { hint: e.name || "It can't change later.", bad: !!e.name, fix: e.nameFix })) +
       field("port", "Port", f.port, { hint: e.port || (c.portFrom ? `${c.portSure === false ? "A guess from" : "From"} ${esc(where(c.portFrom))}` : "Where the app listens"), bad: !!e.port, mode: "numeric", short: true }) +
       machineRows(s, c, f, e, editing) +
-      (e.repo ? field("repo", "Repository", f.repo, { hint: e.repo, bad: true }) : "") +
+      // once a repository name had to be chosen, its field stays while you change it (a fixed error mustn't make it vanish)
+      (e.repo || f.repoChosen ? field("repo", "Repository", f.repo, { hint: e.repo || hintFor("repo", p), bad: !!e.repo }) : "") +
       `</div>` +
       (env.length ? `<fieldset class="lp-env"><legend><span>Environment</span>${from ? `<small>from ${esc(from)}</small>` : ""}</legend>` +
         mine.map((x) => `<label class="lp-f lp-ev"><span class="lp-l lp-mono" title="${esc(x.name)}">${esc(x.name)}</span><input class="lp-in" data-lp-env="${esc(x.name)}" type="${x.sensitive ? "password" : "text"}" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${esc(editing && x.set ? "Set · leave to keep" : x.default || "Not set")}" aria-label="${esc(x.name)}"></label>`).join("") +
@@ -440,6 +454,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     if (k === "port") return c.portFrom ? `${c.portSure === false ? "A guess from" : "From"} ${where(c.portFrom)}` : "Where the app listens";
     if (k === "size") return sizeHint(c, f);
     if (k === "disk") return editing ? "Grows, never shrinks." : "Grows later, never shrinks.";
+    if (k === "repo") return "A new repository on your GitHub.";
     return "";
   }
   const sizeHint = (c, f) => (c.sizes?.def && (f.size || c.sizes.def) === c.sizes.def ? "The default; fixed once created." : "Fixed once it's created.");
@@ -520,7 +535,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
    *  (and its arc, and its clock) only when its agent is at work; never a guess (Astra: idle or unreported threads
    *  were drawn Working). */
   function askState(p, g) {
-    const t = findThread(p), mine = t && g && t.thread === g.thread ? t : null;
+    const t = g && g.thread ? findThread(p, g.thread) : null, mine = t && t.thread === g.thread ? t : null;
     if (!mine) return { k: "unknown", word: "Started · its status isn't reported yet" };
     if (mine.done) return { k: "done", word: "Done: merge its work, then deploy" };
     if (mine.busy) return { k: "work", word: "Working" };
@@ -1046,6 +1061,8 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       return (s?.check ? s.check.state : cached[p]) !== "not-deployable";
     },
     tone(v) { const p = projectOf(v); return p ? summary(p).tone : ""; },
+    /** Read-only, for tests: the screen a view's project shows, and its error words. */
+    inspect(v) { const p = projectOf(v); if (!p) return null; const s = proj(p); return { screen: screen(p), err: s.err ? String(s.err.message || s.err) : null, ghErr: s.ghErr || null, workflow: s.check?.github?.workflow ?? null, pre: s.pre }; },
     /** Redraws that took the focused control away with no place named for focus (each one is a bug). */
     lostFocus: () => S.lost.slice(),
     /** Read what Space says about the view's project, once in a while. */

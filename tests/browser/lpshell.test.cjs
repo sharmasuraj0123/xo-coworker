@@ -388,6 +388,92 @@ t("LP15: a size changed after a refusal stays valid through a redraw (the model 
   await done(page);
 });
 
+t("LP10: a repository name to choose keeps its field while you fix it, through a redraw", async () => {
+  const page = await open({ launchpad: "ready", onDeploy: (r, m, p) => {
+    if (/\/api\/deploy\/[^/]+$/.test(p) && m === "POST") { const ts = new Date().toISOString(); return sse(r, [{ type: "run", ts, run_id: "r8", kind: "deploy", attached: false, started_at: ts }, { type: "needs", ts, step: "repo", code: "repo_name_taken", message: "That name is taken on your GitHub.", fix: "", options: [], data: { suggestion: "xo-coworker-2" } }]); }
+    return r.fallback();
+  } });
+  await W.openLaunchpad(page);
+  await page.locator('[data-lp="deploy"]').click();
+  await page.waitForSelector('[data-lp-f="repo"]', { timeout: 9000 });
+  assert.equal(await page.locator('[data-lp-f="repo"]').getAttribute("aria-invalid"), "true");
+  await page.locator('[data-lp-f="repo"]').fill("my-billing-repo");
+  assert.equal(await page.locator("#lp-h-repo").innerText(), "A new repository on your GitHub.");
+  await page.locator('[data-lp="env-all"]').click(); // a redraw of the form
+  await page.waitForTimeout(200);
+  const st = await page.evaluate(() => ({ v: document.querySelector('[data-lp-f="repo"]')?.value, bad: document.querySelectorAll(".lp-f.is-bad").length }));
+  assert.deepEqual(st, { v: "my-billing-repo", bad: 0 }, "the field stays, valid, with what was typed");
+  await done(page);
+});
+
+// Astra on 6d0a428 (LP-READ-ERROR-OWNERSHIP): an older read's refusal never beats a newer answer
+const gate = () => { let open; const p = new Promise((ok) => (open = ok)); return { p, open }; };
+t("LP1A: an older check refused after a newer GitHub check answered: the screen stays, nothing says Couldn't check", async () => {
+  const held = gate(); let holdCheck = false, checks = 0, armedOk = false;
+  const okPre = { ...GHPRE, github: { ...GHPRE.github, workflow_scope: true } };
+  const page = await open({ launchpad: "ready", onDeploy: async (r, m, p) => {
+    if (/\/check$/.test(p) && holdCheck) { checks++; holdCheck = false; await held.p; return json(r, { detail: { code: "unavailable", message: "Old read refused" } }, 503); }
+    if (/\/preflight$/.test(p)) return json(r, armedOk ? okPre : GHPRE);
+    return r.fallback();
+  } });
+  await W.openLaunchpad(page);
+  await page.waitForSelector('[data-lp="recheck-gh"]');
+  holdCheck = true;
+  await page.evaluate(() => { window.__lp.load("demo", true); }); // an older read, out and held
+  armedOk = true;
+  await page.locator('[data-lp="recheck-gh"]').click(); // the newer read, answered: workflow now granted
+  await page.waitForFunction(() => /has the workflow permission now/.test(document.querySelector("#live")?.innerText || ""));
+  held.open(); // the older read is refused now
+  await page.waitForTimeout(400);
+  const st = await page.evaluate(() => window.__t.LP.inspect("p:demo"));
+  assert.equal(checks, 1);
+  assert.notEqual(st.screen, "check-failed", "the old refusal doesn't flip the screen");
+  assert.equal(st.err, null);
+  assert.equal(st.workflow, true, "the newer answer stands");
+  await done(page);
+});
+t("LP1A: an older GitHub check refused after a newer read answered: no stale 'Couldn't check GitHub'", async () => {
+  const held = gate(); let holdPre = false, pres = 0;
+  const page = await open({ launchpad: "ready", onDeploy: async (r, m, p) => {
+    if (/\/preflight$/.test(p) && holdPre) { pres++; holdPre = false; await held.p; return json(r, { detail: { code: "unavailable", message: "Old GitHub check refused" } }, 503); }
+    if (/\/preflight$/.test(p)) return json(r, GHPRE);
+    return r.fallback();
+  } });
+  await W.openLaunchpad(page);
+  await page.waitForSelector('[data-lp="recheck-gh"]');
+  holdPre = true;
+  await page.locator('[data-lp="recheck-gh"]').click(); // the recheck's own read, out and held
+  await page.waitForFunction(() => document.querySelector('[data-lp="recheck-gh"]')?.getAttribute("aria-disabled") === "true");
+  await page.evaluate(() => window.__lp.load("demo", true)); // a newer read (check + GitHub), answered
+  await page.waitForTimeout(500);
+  held.open(); // the older GitHub check is refused now
+  await page.waitForFunction(() => /still doesn't have the workflow permission/.test(document.querySelector("#live")?.innerText || ""));
+  const st = await page.evaluate(() => window.__t.LP.inspect("p:demo"));
+  assert.equal(pres, 1);
+  assert.equal(st.ghErr, null, "no stale failure under the button");
+  assert.equal(await page.locator(".lp-gh-err").count(), 0);
+  assert.doesNotMatch(await live(page), /Couldn't check GitHub/);
+  await done(page);
+});
+
+// Astra on 6d0a428 (LP-ASK-EXACT-THREAD): the asked thread by its id, whatever its title, past older same-title ones
+for (const kase of ["older same-title thread", "renamed", "resolved"]) {
+  t(`LP40: the asked thread's state comes from that exact thread (${kase})`, async () => {
+    const at = new Date().toISOString();
+    const older = { ts: "t_old", chat_id: "chat_demo", title: "Deploy to Launchpad", state: "active", created_at: at, updated_at: at, status_md: "" };
+    const asked = { ts: "t_ready", chat_id: "chat_demo", title: kase === "renamed" ? "Fix the npm ci peer conflict" : "Deploy to Launchpad", state: kase === "resolved" ? "resolved" : "done", created_at: at, updated_at: at, status_md: "" };
+    const page = await open({ launchpad: "failed-build", threads: kase === "older same-title thread" ? [older, asked] : [asked] });
+    await W.openLaunchpad(page);
+    await page.waitForFunction(() => document.querySelector(".lp")?.dataset.screen === "failed");
+    await page.locator('[data-lp="ask-fix"]').click();
+    await page.waitForSelector('[data-lp="thread"]');
+    const text = await page.locator(".lp-asked").innerText();
+    assert.match(text, /Done: merge its work, then deploy/, "its own state, found by id");
+    assert.doesNotMatch(text, /isn't reported/);
+    await done(page);
+  });
+}
+
 t("LP44: a cancelled GitHub code's late answer doesn't clear the newer code", async () => {
   let n = 0, cancelled = 0;
   const page = await open({ launchpad: "scope", api: async (r, m, p, answer) => {
