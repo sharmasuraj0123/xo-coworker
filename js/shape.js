@@ -427,11 +427,17 @@ export function createShapeStore({ storage = defaultStorage(), load = fetchPrese
   const heldSaid = () => { for (const f of heldSubs) f(); };
   {
     const un = remote ? read(KEYS.unsynced) : null;
-    if (un && Array.isArray(un.changes) && un.changes.length) { R.held = [un.changes]; R.known = isObj(un.known) ? un.known : null; R.why = un.why === "refused" ? "refused" : "unreachable"; R.text = typeof un.text === "string" ? un.text : ""; }
+    if (un && Array.isArray(un.changes) && un.changes.length) {
+      R.held = [un.changes]; R.known = isObj(un.known) ? un.known : null; R.why = un.why === "refused" ? "refused" : "unreachable"; R.text = typeof un.text === "string" ? un.text : "";
+      // the note carries mine as you left it: what's sent again (and shown) even if this browser's copy of mine
+      // couldn't be written at the time and is older
+      if (isObj(un.mine) || un.mine === null) mine = un.mine;
+    }
     else if (!remote) { try { storage.removeItem(KEYS.unsynced); } catch { /* nothing kept */ } }
   }
   /** Keep the held changes (and why) where a reload finds them; or let them go, once Storm has them or can't. */
-  function hold(why, text) { R.why = why; R.text = text; R.kept = write(KEYS.unsynced, { changes: R.held.flat(), known: R.known, why, text }) && R.localOk; heldSaid(); }
+  // kept: the note (with mine in it) is what a reload restores and sends, so it's kept here exactly when the note is
+  function hold(why, text) { R.why = why; R.text = text; R.kept = write(KEYS.unsynced, { changes: R.held.flat(), known: R.known, why, text, mine }); heldSaid(); }
   function unhold() { const was = !!R.why; R.held = []; R.why = null; R.text = ""; R.kept = true; R.tries = 0; clearTimeout(R.timer); try { storage.removeItem(KEYS.unsynced); } catch { /* nothing kept */ } if (was) heldSaid(); }
   /** A write XO couldn't take goes again by itself: after a while, or as soon as a read reaches Storm. */
   function later() {

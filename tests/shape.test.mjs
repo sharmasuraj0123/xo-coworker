@@ -769,5 +769,42 @@ t("no browser storage at all (its getter throws, as some private modes do): a ch
   }
 });
 
+t("this browser kept the note but not mine itself: a reload restores the change from the note and sends that, not the older copy", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const base = mem({ [KEYS.mine]: JSON.stringify({ shape: 1, preset: "marketing" }) });
+  let refuseMine = true;
+  const st = { ...base, setItem: (k, v) => { if (k === KEYS.mine && refuseMine) throw new Error("QuotaExceededError"); base.setItem(k, v); } };
+  const first = store({ storage: st, remote: F });
+  await first.S.ready;
+  F.next.put.push(() => { throw F.err(503, "unavailable"); });
+  await first.S.setMine({ shape: 1, preset: "marketing", density: "compact" });
+  await first.S.settled();
+  assert.equal(JSON.parse(base.getItem(KEYS.mine)).density, undefined, "mine itself wasn't written");
+  assert.equal(first.S.held.kept, true, "the note keeps it");
+  refuseMine = false;
+  const again = store({ storage: st, remote: F });
+  assert.equal(again.S.get("density"), "compact", "the first paint is the change, from the note");
+  await again.S.ready;
+  await again.S.settled();
+  assert.deepEqual(F.stored, { shape: 1, preset: "marketing", density: "compact" }, "what's sent again is the change");
+  assert.equal(again.notes.at(-1).text, "Your shape is saved");
+});
+t("refused, with this browser keeping the note but not mine: after a reload the change is still what shows, and still refused", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const base = mem({ [KEYS.mine]: JSON.stringify({ shape: 1, preset: "marketing" }) });
+  const st = { ...base, setItem: (k, v) => { if (k === KEYS.mine) throw new Error("QuotaExceededError"); base.setItem(k, v); } };
+  const first = store({ storage: st, remote: F });
+  await first.S.ready;
+  F.next.put.push(() => { throw F.err(413, "shape_too_large"); });
+  await first.S.setMine({ shape: 1, preset: "marketing", density: "compact" });
+  await first.S.settled();
+  const again = store({ storage: st, remote: F });
+  await again.S.ready;
+  await again.S.settled();
+  assert.equal(again.S.get("density"), "compact");
+  assert.equal(again.S.held.why, "refused");
+  assert.deepEqual(F.stored, { shape: 1, preset: "marketing" }, "nothing sent by itself");
+});
+
 await Promise.all(pending);
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
