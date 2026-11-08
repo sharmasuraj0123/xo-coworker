@@ -812,10 +812,6 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .iq-done:active{transform:scale(var(--press-scale))}
 .iq-done[aria-busy="true"]{cursor:progress}
 .iq-done[aria-busy="true"]:is(:hover,:active){background:var(--ink);transform:none}
-.iq-mv-acts .btn[aria-disabled="true"]{opacity:.55;cursor:default;transform:none}
-.iq-mv-acts .btn[aria-disabled="true"]:hover{background:none;border-color:var(--line);color:var(--ink-2)}
-.iq-mv-acts .btn-pri[aria-disabled="true"]:hover{background:var(--accent-fill);border-color:var(--accent-fill);color:var(--accent-ink)}
-.iq-mv-acts .btn[aria-busy="true"]{cursor:progress}
 .iq-err{padding:6px 10px 0;font:400 var(--fs-sm)/16px var(--sans);color:var(--err-ink)}
 .iq-mv ul{display:flex;flex-direction:column;gap:4px;margin:0;padding:4px 10px 0 28px;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-2)}
 .iq-mv li::marker{color:var(--ink-4)}
@@ -1321,12 +1317,16 @@ button.tp-done-u:hover{color:var(--ink)}
 .dlg-err{padding:10px 12px;border-radius:var(--r-sm);background:var(--err-subtle);color:var(--err-ink);font-size:var(--fs-base);line-height:20px}
 .dlg-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:2px}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:var(--h-ctl);padding:0 14px;border-radius:var(--r-sm);border:1px solid var(--line);color:var(--ink-2);font:500 var(--fs-base)/20px var(--sans);white-space:nowrap}
-.btn:hover{background:var(--hover-fill);border-color:var(--line-strong);color:var(--ink)}
-.btn:active{background:var(--press-fill);transform:scale(var(--press-scale))}
+/* hover and press only for a button that can act now: not disabled, not aria-disabled, not busy (Settings & Home:
+   a disabled .btn still painted hover and press, a busy one its press fill); in :where, so the specificity is as
+   before and a variant's own hover (.btn-danger …) still wins */
+.btn:hover:where(:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background:var(--hover-fill);border-color:var(--line-strong);color:var(--ink)}
+.btn:active:where(:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background:var(--press-fill);transform:scale(var(--press-scale))}
 .btn-pri{background:var(--accent-fill);border-color:var(--accent-fill);color:var(--accent-ink)}
-.btn-pri:hover{background:var(--accent-hover);border-color:var(--accent-hover);color:var(--accent-ink)}
-.btn-pri:active{background:var(--accent-press);border-color:var(--accent-press)}
-.btn:disabled{opacity:.55;cursor:default;transform:none}
+.btn-pri:hover:where(:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background:var(--accent-hover);border-color:var(--accent-hover);color:var(--accent-ink)}
+.btn-pri:active:where(:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background:var(--accent-press);border-color:var(--accent-press)}
+.btn:disabled,.btn[aria-disabled="true"]{opacity:.55;cursor:default;transform:none}
+.btn[aria-busy="true"]{cursor:progress}
 .dlg .btn{height:var(--h-lg);padding:0 18px;border-radius:var(--r);font-size:var(--fs-md)}
 .btn .spin{width:12px;height:12px}
 
@@ -1421,6 +1421,8 @@ button.tp-done-u:hover{color:var(--ink)}
 .set-nav button:hover{background:var(--row-hover);color:var(--ink)}
 .set-nav button:active{transform:scale(.985)}
 .set-nav button[aria-selected="true"]{background:var(--row-bg);color:var(--ink)}
+/* the page you're on still answers the pointer: its row one step brighter (it came after :hover and hid it) */
+.set-nav button[aria-selected="true"]:hover{background:var(--row-bg-hover)}
 .set-page{animation:rise-in var(--d-sheet) var(--ease)}
 .set-page h2{font:600 var(--fs-2xl)/28px var(--sans);letter-spacing:-.01em;color:var(--ink)}
 .set-ph{margin:2px 0 22px;padding-bottom:16px;border-bottom:1px solid var(--line-faint)}
@@ -1915,7 +1917,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 .set-confirm,.wt-confirm{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border-radius:var(--r-lg);background:color-mix(in srgb,var(--err) 6%,var(--surface));border:1px solid color-mix(in srgb,var(--err-ink) 26%,var(--line-soft));font-size:var(--fs-base);line-height:20px;color:var(--ink-2)}
 .set-confirm b{color:var(--ink)}
 .btn-danger{border-color:color-mix(in srgb,var(--err-ink) 45%,var(--line));color:var(--err-ink)}
-.btn-danger:hover{background:var(--danger-tint);border-color:color-mix(in srgb,var(--err-ink) 60%,var(--line))}
+.btn-danger:hover:where(:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background:var(--danger-tint);border-color:color-mix(in srgb,var(--err-ink) 60%,var(--line))}
 /* a list reads as one instrument panel (hub #18/#19): one card, hairlines between its rows */
 /* each rule carries a small status light: green allows, red refuses, none once revoked */
 .wt-main b{font:500 var(--fs-md)/20px var(--sans);color:var(--ink)}
@@ -2711,6 +2713,8 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .stg-btn:hover{background:var(--hover-fill);border-color:var(--line-strong);color:var(--ink)}
 .stg-btn:active{transform:scale(.95)}
 .stg-btn.is-on{background:var(--fill-2);border-color:var(--line-strong);color:var(--ink)}
+/* the open panel's opener still answers the pointer: one step deeper (Astra C023: is-on hid its hover) */
+.stg-btn.is-on:hover{background:var(--fill-3)}
 /* Made, as a tab */
 .md-pane{display:flex;flex-direction:column;min-height:0;height:100%}
 .md-pane .md-h{padding:16px 18px 2px}

@@ -28,7 +28,7 @@ import { merge3 } from "./merge.js";
 import { draftKey, getDraft, putDraft, dropDraft } from "./drafts.js";
 import { isImageChange, drawImageChange } from "./imagechange.js";
 
-const size = (n) => (n == null ? "" : n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(1)} MB`);
+const size = (n) => (n == null || !Number.isFinite(n) ? "" : n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(1)} MB`);
 const bytes = (s) => new TextEncoder().encode(s).length;
 const extOf = (name) => (/\.([\w-]+)$/.exec(String(name || "")) || [])[1] || "";
 const KIND_WORD = { markdown: "Markdown", html: "HTML", text: "Text", code: "Code", json: "JSON" };
@@ -960,7 +960,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
 
   return {
     open, close, park, unpark, refresh, notice,
-    get isOpen() { return V.open && !V.parked; }, get hasFile() { return V.open; }, get isParked() { return V.open && V.parked; }, get file() { return V.file; },
+    get isOpen() { return V.open && !V.parked; }, get hasFile() { return V.open; }, get isParked() { return V.open && V.parked; }, get file() { return V.file; }, get opener() { return V.open ? V.returnTo : null; },
     /** Unsaved edits on screen (leaving asks first). */
     get editing() { return ED.on && (ED.dirty || !!ED.conflict); },
     /** You're leaving (another place, back to the conversation): with unsaved edits, the head asks first;

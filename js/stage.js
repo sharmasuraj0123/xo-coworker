@@ -251,6 +251,18 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     fb.title = S.full ? "Back beside the conversation" : "Full size";
   }
 
+  /** While the panel covers the page (full size, or any size on a phone) what's under it is out of reach: inert,
+   *  so Tab never lands on a control you can't see (Astra C023: Tab reached the opener under a phone's panel).
+   *  Only what this set inert is released; the toast stays reachable above it. */
+  function coverSync() {
+    const on = S.open && !el.hidden && (S.full || innerWidth <= 760);
+    for (const sib of el.parentElement ? el.parentElement.children : []) {
+      if (sib === el || sib.classList.contains("toast-wrap")) continue;
+      if (on && !sib.inert) { sib.inert = true; sib.dataset.stageInert = ""; }
+      else if (!on && "stageInert" in sib.dataset) { sib.inert = false; delete sib.dataset.stageInert; }
+    }
+  }
+
   function open({ focus = true } = {}) {
     // asked for while a file sits beside the chat: the right column is the panel's again, the file waits
     if (filesView.docked) { filesView.minimise({ chip: false }); S.aside = false; }
@@ -266,6 +278,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     fitRail();
     layout();
     paint();
+    coverSync();
     persist();
     if (focus) el.focus({ preventScroll: true });
     onChange && onChange();
@@ -277,6 +290,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     if (!quiet) S.lp = false; // closed by you: Launchpad is a head again next time; stepping aside (quiet) keeps it as it was
     if (S.full) setFull(false);
     el.hidden = true;
+    coverSync(); // what it covered is in reach again before focus goes back to it
     document.body.classList.remove("stage-open", "stage-rail");
     S.rail = false;
     launch && launch.away && launch.away(); // typed secrets don't stay behind in a closed panel (Astra)
@@ -315,6 +329,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     S.full = on;
     document.body.classList.toggle("stage-full", on);
     paint();
+    coverSync();
   }
 
   function toggle() { if (S.open && !S.rail) close(); else open(); }
@@ -534,7 +549,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     apply();
   }
   setW(wSaved);
-  addEventListener("resize", () => { fitRail(); if (S.open) capAgents(); });
+  addEventListener("resize", () => { fitRail(); coverSync(); if (S.open) capAgents(); });
   const grip = el.querySelector(".stg-grip");
   grip.addEventListener("pointerdown", (e) => {
     if (e.button !== 0 || S.full || S.rail) return;

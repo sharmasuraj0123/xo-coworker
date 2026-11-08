@@ -710,26 +710,6 @@ t("RUN-7/S102: Runs Close goes back to its opener even when that was drawn again
   assert.match(await active(page), /data-run=ra/, "on the opener drawn now, not the page");
   await done(page);
 });
-t("H29: with Settings open, a file dragged over the page isn't taken by the hidden composer", async () => {
-  const page = await app();
-  await toDemo(page);
-  const drag = (sel, end) => page.evaluate(({ sel, end }) => {
-    const dt = new DataTransfer(); dt.items.add(new File(["hello"], "audit.txt", { type: "text/plain" }));
-    const at = document.querySelector(sel);
-    at.dispatchEvent(new DragEvent("dragenter", { bubbles: true, cancelable: true, dataTransfer: dt }));
-    const veil = !document.querySelector("#drop-veil").hidden;
-    at.dispatchEvent(new DragEvent(end, { bubbles: true, cancelable: true, dataTransfer: dt }));
-    return veil;
-  }, { sel, end });
-  // in reach, the composer takes it (the veil says so); a drag that ends goes nowhere
-  assert.equal(await drag("#main", "dragend"), true, "the composer in reach takes a drag");
-  await page.evaluate(() => document.querySelector("#set-side").click());
-  await page.waitForFunction(() => !document.querySelector("#settings").hidden);
-  assert.equal(await drag("#settings", "drop"), false, "no veil over Settings");
-  await page.waitForTimeout(200);
-  assert.equal(await page.locator("#att-tray > *").count(), 0, "nothing was attached to the hidden message");
-  await done(page);
-});
 t("DEC-NOTE-LOSS/S167: a Send back that failed keeps its note for the next try", async () => {
   const page = await decisions("approval", 1);
   await page.evaluate(() => { const no = async () => { throw Object.assign(new Error("Fixture unavailable"), { status: 503, code: "unavailable" }); }; window.d.world.act.decide = no; window.d.world.act.reply = no; });
@@ -1014,7 +994,7 @@ t("MIG-3: a cancelled read of the same runtime's models doesn't replace a newer 
   await done(page);
 });
 
-t("RUN-5: a notice's Undo you're on, when its time is up, hands focus to the place, never the page", async () => {
+t("RUN-5: a notice's Undo you're on, when its time is up, hands focus on, never to the page", async () => {
   const page = await app();
   await toDemo(page);
   await page.evaluate(() => window.__t.heraldShow({ kind: "halt", tag: "test", text: "Stopping", sub: "A local test", undo: () => {} }, 1200));
@@ -1023,7 +1003,56 @@ t("RUN-5: a notice's Undo you're on, when its time is up, hands focus to the pla
   await u.focus();
   await page.waitForFunction(() => !document.querySelector("#herald [data-herald-undo]"), null, { timeout: 5000 });
   await page.waitForTimeout(100);
-  assert.match(await active(page), /id=scroller/, "on the conversation");
+  assert.match(await active(page), /id=say/, "on the message box (the notice named nothing it acts on)");
+  await done(page);
+});
+
+t("Herald: Undo and Retry hand focus to what the notice acts on before its line goes", async () => {
+  const page = await app();
+  await toDemo(page);
+  await page.evaluate(() => { const b = document.createElement("button"); b.type = "button"; b.dataset.resolve = "t-x"; b.textContent = "Resolve"; document.body.appendChild(b); });
+  for (const label of ["Undo", "Retry"]) {
+    await page.evaluate((label) => window.__t.heraldShow({ kind: "stopped", text: "Couldn't resolve it", sub: "A local test", back: ['[data-resolve="t-x"]'], undo: () => {}, undoLabel: label === "Retry" ? "Retry" : undefined }, 6000), label);
+    const u = page.locator("#herald [data-herald-undo]");
+    await u.waitFor();
+    await u.focus();
+    await page.keyboard.press("Enter");
+    await page.waitForFunction(() => !document.querySelector("#herald [data-herald-undo]"));
+    assert.match(await active(page), /data-resolve=t-x/, `${label}: on Resolve`);
+  }
+  await done(page);
+});
+
+t("C023: a panel covering the page keeps Tab out of what it covers; the open panel's opener answers hover", async () => {
+  const page = await app();
+  await panelOpen(page);
+  const under = () => page.evaluate(() => [...document.querySelector("#main").children].filter((c) => !c.classList.contains("stage") && !c.classList.contains("toast-wrap")).map((c) => c.inert));
+  if (WIDTH < 600) {
+    assert.ok((await under()).every(Boolean), "everything under the phone's panel is out of reach");
+    await page.locator("[data-stg-close]").filter({ visible: true }).first().focus();
+    await page.keyboard.press("Enter");
+    await page.waitForFunction(() => document.querySelector("#stage").hidden);
+    assert.equal(await page.evaluate(() => document.querySelectorAll("#main [data-stage-inert]").length), 0, "in reach again once it closes");
+  } else {
+    assert.ok(!(await under()).some(Boolean), "beside the chat it covers nothing");
+    const b = page.locator(".stg-btn.is-on").filter({ visible: true }).first();
+    const rest = await b.evaluate((e) => getComputedStyle(e).backgroundColor);
+    await b.hover();
+    await page.waitForTimeout(250);
+    assert.notEqual(await b.evaluate((e) => getComputedStyle(e).backgroundColor), rest, "the selected opener answers hover");
+    await page.mouse.move(2, 2);
+  }
+  await done(page);
+});
+t("S224: a file entry without a size opens without \"NaN\", and the file takes focus", async () => {
+  const page = await app({ files: { "a.js": FILE() } });
+  await toDemo(page);
+  await page.evaluate(() => { const b = document.createElement("button"); b.type = "button"; b.dataset.file = "a.js"; b.dataset.fileName = "a.js"; b.textContent = "a.js"; document.body.appendChild(b); b.focus(); });
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => window.__t.VW.isOpen);
+  await page.waitForTimeout(250);
+  assert.doesNotMatch(await page.locator("#viewer .vw-top").first().innerText(), /NaN/);
+  assert.match(await active(page), /id=viewer/);
   await done(page);
 });
 

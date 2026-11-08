@@ -1766,12 +1766,16 @@ function heraldRender(needs) {
     html = ""; // what needs you is said once: the sidebar's Home row, then Home
   }
   const was = box._h;
-  // the line with the control you're on goes (its Undo's window ended, or it was used): focus goes on first, to
-  // the place's own region, never the page (Astra RUN-5: Undo went and left focus on BODY)
+  // the line with the control you're on goes (its Undo's window ended): focus goes on first, to what it acted on,
+  // else the message box, never the page (Astra RUN-5)
   const fa = document.activeElement;
-  if (fa && fa !== box && box.contains(fa) && !(h && fa.closest(`[data-hn="${h.n}"]`))) placeRegion()?.focus({ preventScroll: true });
+  if (fa && fa !== box && box.contains(fa) && !(h && fa.closest(`[data-hn="${h.n}"]`))) heraldBack(box._line)?.focus({ preventScroll: true });
   if (patch(box, html) && was != null && html) box.firstElementChild?.classList.add("is-in");
+  box._line = h;
 }
+/** Where focus goes when a notice's line goes from under it: the control the notice acts on (h.back: selectors,
+ *  e.g. the thread's Resolve, or Interrupt), else the message box, else the place's own region. */
+function heraldBack(h) { return [...((h && h.back) || []).map((sel) => $(sel)), $("#say")].find(usableEl) || placeRegion(); }
 
 // ── intelligence: the record line and the chip ─────────────────────────────
 function recordLine(session, rec) {
@@ -1929,13 +1933,10 @@ say.addEventListener("paste", (e) => {
   let depth = 0;
   const hasFiles = (e) => [...(e.dataTransfer?.types || [])].includes("Files");
   const hide = () => { depth = 0; veil.hidden = true; };
-  // only where the message being written can take it: on screen and in reach, under no open layer (Settings,
-  // a sheet, a dialog, the phone's drawer make it inert): never into a composer that's hidden (Astra H29)
-  const takes = () => { const say = $("#say"); return canAttach(S.view) && !!say && say.getClientRects().length > 0 && !say.closest("[inert]") && !document.querySelector(".sheet:not([hidden]), dialog[open]"); };
-  addEventListener("dragenter", (e) => { if (!hasFiles(e)) return; e.preventDefault(); if (takes()) { depth++; veil.hidden = false; } });
+  addEventListener("dragenter", (e) => { if (!hasFiles(e)) return; e.preventDefault(); if (canAttach(S.view) && !document.querySelector(".sheet:not([hidden]), dialog[open]")) { depth++; veil.hidden = false; } });
   addEventListener("dragover", (e) => { if (!hasFiles(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = veil.hidden ? "none" : "copy"; });
   addEventListener("dragleave", (e) => { if (hasFiles(e) && --depth <= 0) hide(); });
-  addEventListener("drop", (e) => { if (!hasFiles(e)) return; e.preventDefault(); const on = !veil.hidden; hide(); if (on && takes()) addFiles(e.dataTransfer.files); });
+  addEventListener("drop", (e) => { if (!hasFiles(e)) return; e.preventDefault(); const on = !veil.hidden; hide(); if (on) addFiles(e.dataTransfer.files); });
   addEventListener("dragend", hide);
 }
 function growSay() {
@@ -2146,7 +2147,7 @@ function stopLive(run, { interrupt = false, runs = 0 } = {}) {
       }
     } catch (err) {
       // Retry stops the same session, wherever you are when you press it
-      heraldShow({ kind: "stopped", text: interrupt ? "Couldn't interrupt it" : "Couldn't stop it", sub: `${what} · ${err.message}`, undo: () => stopLive(run, { interrupt, runs }), undoLabel: "Retry" }, 7000);
+      heraldShow({ kind: "stopped", text: interrupt ? "Couldn't interrupt it" : "Couldn't stop it", sub: `${what} · ${err.message}`, undo: () => stopLive(run, { interrupt, runs }), undoLabel: "Retry", back: interrupt ? ["[data-interrupt]", "#send"] : ["[data-chat-stop]", "#send"] }, 7000);
     } finally {
       if (S.stops.get(token.session) === token) S.stops.delete(token.session);
       schedule();
@@ -2163,7 +2164,7 @@ function stopsHerald() {
   const all = [...turns, ...runs];
   if (!all.length) { if (S.herald && S.herald.tag === "stops") { S.herald.until = 0; heraldNext(); } return; }
   const last = Math.max(...all.map((x) => x.until));
-  heraldShow({ kind: "halt", tag: "stops", text: all.every((x) => x.interrupt) ? "Interrupting" : "Stopping", sub: all.map((x) => x.what).join(", "), undo: () => {
+  heraldShow({ kind: "halt", tag: "stops", text: all.every((x) => x.interrupt) ? "Interrupting" : "Stopping", sub: all.map((x) => x.what).join(", "), back: all.every((x) => x.interrupt) ? ["[data-interrupt]", "#send"] : ["[data-chat-stop]", "#send"], undo: () => {
     for (const x of turns) { x.cancelled = true; if (S.stops.get(x.session) === x) S.stops.delete(x.session); }
     for (const j of runs) { j.cancelled = true; const i = pendingStops.indexOf(j); if (i >= 0) pendingStops.splice(i, 1); }
     announce(all.length > 1 ? "Not stopped. They keep working." : "Not stopped. It keeps working.");
@@ -2668,14 +2669,8 @@ function decideKey(key, opts) {
   if (t && n && n.t.id === t.id && !D.isOpen() && !opts) {
     if (n.later) S.later.delete(key);
     if (n.held) D.bringIn(key);
-    // its card is in this thread's dock: unfolded if you'd folded it (Astra DEC-HERALD-FOLDED), and focus goes to
-    // it in the step it's drawn; one still being admitted takes focus once it's there
-    delete S.dockFold[key];
-    dockRender(D.needItems());
-    const card = tdock.querySelector(".card");
-    card?.focus({ preventScroll: true });
     schedule();
-    if (!card) requestAnimationFrame(() => requestAnimationFrame(() => tdock.querySelector(".card")?.focus({ preventScroll: true })));
+    requestAnimationFrame(() => requestAnimationFrame(() => tdock.querySelector(".card")?.focus({ preventScroll: true })));
     return;
   }
   D.open(key, opts);
@@ -2747,7 +2742,9 @@ function fileRoute(path) {
   return pid && rel && !rel.startsWith("/") && !rel.split("/").some((x) => x === ".." || x === "") ? { project: pid, rel } : sharedFileRoute(t, path);
 }
 function openSharedFile(btn) {
-  const f = { path: btn.dataset.file, name: btn.dataset.fileName, type: btn.dataset.fileType, bytes: btn.dataset.fileBytes === "" ? null : Number(btn.dataset.fileBytes) };
+  // a size only when the entry says one: an entry without data-file-bytes has none (Astra S224: "NaN MB")
+  const raw = btn.dataset.fileBytes, n = raw == null || raw === "" ? NaN : Number(raw);
+  const f = { path: btn.dataset.file, name: btn.dataset.fileName, type: btn.dataset.fileType, bytes: Number.isFinite(n) ? n : null };
   VW.open({ ...f, ...fileRoute(f.path) }, btn);
 }
 
@@ -2849,9 +2846,9 @@ async function resolveThread(tid, resolved, { undo = true } = {}) {
     await world.act.resolve(tid, resolved);
     announce(resolved ? `Resolved ${name}.` : `Reopened ${name}.`);
     // Undo is the same call the other way (the route is idempotent); it never starts or stops a turn
-    if (undo) heraldShow({ kind: "done", text: resolved ? "Resolved" : "Reopened", sub: name, undo: () => resolveThread(tid, !resolved, { undo: false }) }, 6000);
+    if (undo) heraldShow({ kind: "done", text: resolved ? "Resolved" : "Reopened", sub: name, back: [`[data-resolve="${CSS.escape(tid)}"]`], undo: () => resolveThread(tid, !resolved, { undo: false }) }, 6000);
   } catch (err) {
-    heraldShow({ kind: "stopped", text: resolved ? "Couldn't resolve it" : "Couldn't reopen it", sub: err.message, undo: () => resolveThread(tid, resolved, { undo }), undoLabel: "Retry" }, 8000);
+    heraldShow({ kind: "stopped", text: resolved ? "Couldn't resolve it" : "Couldn't reopen it", sub: err.message, back: [`[data-resolve="${CSS.escape(tid)}"]`], undo: () => resolveThread(tid, resolved, { undo }), undoLabel: "Retry" }, 8000);
   }
 }
 function startThreadEdit(tid, field) {
@@ -2928,8 +2925,16 @@ document.addEventListener("click", (e) => {
   if (bi) { S.homeFocusNext = true; D.bringIn(bi.dataset.bringIn); return; }
   const ru = t.closest("[data-rec-undo]");
   if (ru) { undoRecord(ru.dataset.recUndo); return; }
-  // a Stop's Undo puts back what it stopped: focus goes back to Interrupt (or Stop) where it's drawn again
-  if (t.closest("[data-herald-undo]")) { const u = S.herald?.undo; if (typeof u === "function") { if (S.herald.tag === "stops") S.focusNext = ["[data-interrupt]", "[data-chat-stop]", "#send"]; S.herald.until = 0; u(); heraldNext(); } else if (u) undoRecord(u); return; }
+  // a notice's Undo or Retry: its line goes once it's used, so focus goes first to the control it acts on (Resolve,
+  // Interrupt, Stop), else the message box, and lands there again after the draw that follows, where that control
+  // may be drawn anew (Astra: Undo and Retry left focus on BODY)
+  if (t.closest("[data-herald-undo]")) {
+    const h = S.herald, u = h?.undo;
+    heraldBack(h)?.focus({ preventScroll: true });
+    S.focusNext = [...((h && h.back) || []), "#say"];
+    if (typeof u === "function") { h.until = 0; u(); heraldNext(); } else if (u) undoRecord(u);
+    return;
+  }
   // Chats: "send now" would stop background tasks; a failed prompt
   const chc = t.closest("[data-chc]");
   if (chc) { CH.resolveConfirm(S.view, chc.dataset.chc); return; }
