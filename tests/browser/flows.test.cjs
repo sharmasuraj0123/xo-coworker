@@ -75,7 +75,7 @@ function mockApi(W) {
     let k;
     if ((k = /^\/api\/chat\/chats\/([^/]+)\/(threads|messages|hops|made|runtime-policy)$/.exec(p))) {
       if (k[2] === "threads") return json({ threads: [] });
-      if (k[2] === "messages") return json({ messages: [], next_after_seq: 0, next_before_seq: 0 });
+      if (k[2] === "messages") return json({ messages: k[1] === "chat_demo" && W.messages ? W.messages : [], next_after_seq: 0, next_before_seq: 0 });
       if (k[2] === "made") return json({ made: [], next_before: null });
       if (k[2] === "runtime-policy") return json({ space: policy, project: policy, effective: { ...policy, fallback: false } });
       if (W.hops) return W.hops(r, k[1], json);
@@ -92,6 +92,7 @@ function mockApi(W) {
       const b = JSON.parse(req.postData() || "{}");
       W.saves.push(b);
       if (W.saveDelay) await new Promise((ok) => setTimeout(ok, W.saveDelay));
+      if (W.saveGate) await W.saveGate; // the test says when the answer comes (no race with a slow machine)
       const f = W.files[b.relative_path];
       if (W.saveMode === "503") return json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503);
       if (W.saveMode === "overlap" && !W.clashed) {
@@ -173,12 +174,15 @@ t("G3: Ctrl/Cmd+S on a merge with a place still to choose saves nothing", async 
 });
 
 t("G4: a save that finishes after another file opened lands only on its own file", async () => {
-  const page = await app({ files: { "a.js": FILE(), "b.js": { content: "SECOND FILE\n", version: "sha256:Z" } }, saveDelay: 500 });
+  let answer;
+  const page = await app({ files: { "a.js": FILE(), "b.js": { content: "SECOND FILE\n", version: "sha256:Z" } }, saveGate: new Promise((ok) => (answer = ok)) });
   await editing(page);
   await typeAll(page, "first file saved slowly\n");
   await page.locator("[data-vw-saveit]").click();
   await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "b.js", path: "b.js", name: "b.js" }));
-  await page.waitForTimeout(800);
+  await page.waitForFunction(() => window.__V.data && window.__V.data.content === "SECOND FILE\n");
+  answer(); // a.js's save answers only now, with b.js open
+  await page.waitForTimeout(300);
   assert.equal(page.W.files["a.js"].content, "first file saved slowly\n", "a.js saved");
   assert.equal(await page.evaluate(() => window.__V.file.name), "b.js");
   assert.equal(await page.evaluate(() => window.__V.data.content), "SECOND FILE\n", "b.js shows its own text");
@@ -211,14 +215,17 @@ t("G7: focus after a keyboard save goes to Edit; a failed clicked save keeps Sav
 });
 
 t("Save while typing: words typed during a save stay, unsaved, against the version it saved", async () => {
-  const page = await app({ files: { "a.js": FILE() }, saveDelay: 700 });
+  let answer;
+  const page = await app({ files: { "a.js": FILE() }, saveGate: new Promise((ok) => (answer = ok)) });
   await editing(page);
   await typeAll(page, "saved portion\n");
   await page.locator("[data-vw-saveit]").click();
   await page.locator("#viewer [contenteditable=true]").first().click(); // back into the text, which stays editable
   await page.keyboard.press("ControlOrMeta+End");
   await page.keyboard.insertText("TYPED WHILE SAVING");
-  await page.waitForTimeout(900);
+  answer(); // the save's answer arrives now, with the words already typed
+  await page.waitForFunction(() => !window.__ED.saving);
+  await page.waitForTimeout(100);
   assert.equal(page.W.files["a.js"].content, "saved portion\n", "the save sent what was there at Save");
   const st = await page.evaluate(() => ({ on: window.__ED.on, dirty: window.__ED.dirty, text: window.__ED.ed && window.__ED.ed.text(), base: window.__ED.base, version: window.__ED.version }));
   assert.equal(st.on, true, "still editing");
@@ -228,7 +235,7 @@ t("Save while typing: words typed during a save stay, unsaved, against the versi
   assert.equal(st.version, page.W.files["a.js"].version, "against the version just saved");
   assert.ok(!(await page.locator("#viewer").innerText()).includes("Saved a.js"), "no Saved toast while unsaved words remain");
   // Save again sends the rest, against that version
-  page.W.saveDelay = 0;
+  page.W.saveGate = null;
   const v = st.version;
   await page.keyboard.press("ControlOrMeta+s");
   await page.waitForFunction(() => !window.__ED.on);
@@ -264,6 +271,62 @@ t("G8: the whole-file capsule's × is named for the file", async () => {
   await page.evaluate(() => window.__t.lrefRender());
   assert.equal(await page.locator("#cref .cref-x").getAttribute("aria-label"), "Take the lines out of this message");
   await done(page);
+});
+
+// ── Copy: "Copied" only once it's on the clipboard ──
+const MSG = (text) => [{ id: "m1", seq: 1, chat_id: "chat_demo", thread_ts: null, author_kind: "agent", author_id: "project-coordinator", author_session_id: null, text, reply_to: null, extra: {}, created_at: NOW }];
+async function copyCase(refuse) {
+  const page = await app({ messages: MSG("Here is the command:\n\n```sh\nnpm test\n```\n") });
+  await page.evaluate((refuse) => {
+    window.__copied = [];
+    navigator.clipboard.writeText = (t) => (refuse ? Promise.reject(new Error("denied")) : (window.__copied.push(t), Promise.resolve()));
+    document.execCommand = () => false; // the old way refused too
+  }, refuse);
+  await toDemo(page);
+  const code = page.locator("#msgs [data-copy]").first();
+  await code.waitFor();
+  await code.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(150);
+  const codeWords = (await code.innerText()).trim();
+  const live1 = await page.locator("#live").innerText();
+  const focus1 = await page.evaluate(() => document.activeElement.hasAttribute("data-copy"));
+  const m = page.locator("#msgs .m").first();
+  await m.hover();
+  const msgCopy = m.locator("[data-mx-copy]").filter({ visible: true }).first();
+  // a phone has no hover, so the message's Copy isn't offered there (the code block's is)
+  if (!(await m.locator("[data-mx-copy]").filter({ visible: true }).count())) return { page, codeWords, live1, focus1, phone: true, copied: await page.evaluate(() => window.__copied) };
+  const before = await msgCopy.innerHTML();
+  await msgCopy.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(150);
+  const after = await msgCopy.innerHTML();
+  const live2 = await page.locator("#live").innerText();
+  const focus2 = await page.evaluate(() => document.activeElement.hasAttribute("data-mx-copy"));
+  const copied = await page.evaluate(() => window.__copied);
+  return { page, codeWords, live1, focus1, before, after, live2, focus2, copied };
+}
+t("Copy refused: neither the code block nor the message says copied; it says why, and focus stays", async () => {
+  const r = await copyCase(true);
+  assert.equal(r.codeWords, "Copy", "the code button still says Copy");
+  assert.match(r.live1, /Couldn't copy/);
+  assert.ok(r.focus1, "focus stays on the code block's Copy");
+  if (r.phone) return done(r.page);
+  assert.equal(r.after, r.before, "the message's Copy icon doesn't change to a check");
+  assert.match(r.live2, /Couldn't copy/);
+  assert.ok(r.focus2, "focus stays on the message's Copy");
+  await done(r.page);
+});
+t("Copy allowed: both say copied, and the text is what was shown", async () => {
+  const r = await copyCase(false);
+  assert.equal(r.codeWords, "Copied");
+  assert.match(r.live1, /Copied the code/);
+  assert.equal(r.copied[0].trim(), "npm test");
+  if (r.phone) return done(r.page);
+  assert.notEqual(r.after, r.before, "the message's Copy shows its check");
+  assert.match(r.live2, /Copied the message/);
+  assert.match(r.copied[1], /Here is the command/);
+  await done(r.page);
 });
 
 // ── Jump: the pointer selects as the arrows do ──

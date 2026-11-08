@@ -14,6 +14,7 @@
 
 import { elapsed } from "./ui.js";
 import { toLatest, fromLatest } from "./follow.js";
+import { copyText, COPY_REFUSED } from "./util.js";
 
 const $ = (s, r = document) => r.querySelector(s);
 const root = document.documentElement;
@@ -527,7 +528,12 @@ msgs.addEventListener("click", async (e) => {
   if (r) { startReply(r.closest(".m")); return; }
   const c = e.target.closest("[data-mx-copy]");
   if (c) {
-    try { await navigator.clipboard.writeText(textOf(c.closest(".m"))); c.innerHTML = IC.check; setTimeout(() => { c.innerHTML = IC.copy; }, 1200); } catch { /* no clipboard here */ }
+    // the check (and "Copied" said) only once it's on the clipboard; refused, said so, and focus stays here
+    const ok = await copyText(textOf(c.closest(".m")));
+    const live = document.getElementById("live");
+    const say = (w) => { if (live) { live.textContent = ""; setTimeout(() => { live.textContent = w; }, 40); } };
+    if (ok) { c.innerHTML = IC.check; say("Copied the message."); setTimeout(() => { c.innerHTML = IC.copy; }, 1200); }
+    else say(COPY_REFUSED);
     return;
   }
   const q = e.target.closest("[data-mx-jump]");

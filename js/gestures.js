@@ -8,7 +8,7 @@
 // mind halfway. Touch events (not pointer events) because only a cancelable touchmove can stop the
 // browser's own scroll once a direction is picked.
 
-import { copyText } from "./util.js";
+import { copyText, COPY_REFUSED } from "./util.js";
 const LOCK = 10;     // px before a touch picks its direction
 const SLOPE = 1.7;   // the picked axis must lead the other by this much: within ~30° of it
 export const FLICK = 0.45; // px/ms: a quick flick commits whatever the distance
@@ -413,7 +413,8 @@ function longPress(A) {
     menu.addEventListener("click", (e) => {
       const b = e.target.closest("[data-lp]");
       if (!b) return;
-      if (b.dataset.lp === "copy") { copyText((el.innerText || el.textContent || "").trim()); A.toast?.("Copied"); }
+      // "Copied" only once it's on the clipboard; refused, said so
+      if (b.dataset.lp === "copy") { copyText((el.innerText || el.textContent || "").trim()).then((ok) => A.toast?.(ok ? "Copied" : COPY_REFUSED)); }
       else {
         el.classList.add("is-selecting");
         const s = getSelection();

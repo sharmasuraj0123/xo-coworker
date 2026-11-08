@@ -12,7 +12,9 @@ const DIR = path.join(__dirname, '..'), ROOT = path.join(DIR, '..', '..');
 const readJson = (f, d = null) => (fs.existsSync(path.join(DIR, f)) ? JSON.parse(fs.readFileSync(path.join(DIR, f), 'utf8')) : d);
 const desk = readJson('inventory-dark-1440.json'), phone = readJson('inventory-dark-390.json');
 const status = readJson('controls-status.json', {});
-const REG_FILE = path.join(DIR, 'controls-ids.json');
+// --dry: write the list and the registry to /tmp (to look before committing a registry)
+const DRY = process.argv.includes('--dry');
+const REG_FILE = DRY ? '/tmp/controls-ids.dry.json' : path.join(DIR, 'controls-ids.json');
 const reg = readJson('controls-ids.json', { note: 'Canonical key → row ID. Append-only: never renumber, never reuse.', next: { C: 1, S: 1 }, ids: {} });
 
 // ── one canonical key for a kind, the same whether it was rendered or read from a template ──
@@ -24,7 +26,7 @@ function canon(tag, id, attrs, cls) {
   const parts = [];
   for (const [n, v] of attrs) {
     if (SKIP.has(n)) continue;
-    if (n === 'data-go') { parts.push(n + '=' + String(v).replace(/^(p|t|c):.*/, '$1:…')); continue; }
+    if (n === 'data-go') { parts.push(n + '=' + (/\$\{/.test(v) || !v ? '…' : String(v).replace(/^(p|t|c):.*/, '$1:…'))); continue; }
     parts.push(KEEP.has(n) && v && !/\$\{/.test(v) ? `${n}=${v}` : n);
   }
   if (parts.length) return `${tag}[${[...new Set(parts)].sort().join(',')}]`;
@@ -35,10 +37,11 @@ const tokensOf = (k) => { if (k.startsWith('#')) return [k]; const m = /\[([^\]]
 
 // ── IDs: the registry, seeded once from the list as committed in 3a9cdca (so grades given there stay on their rows) ──
 function seedFrom3a9cdca() {
-  const md = path.join('/tmp', 'controls-3a9cdca.md');
-  if (Object.keys(reg.ids).length || !fs.existsSync(md)) return;
+  if (Object.keys(reg.ids).length) return;
+  let text = '';
+  try { text = require('child_process').execSync('git show 3a9cdca:design-research/2026-11-lg/CONTROLS.md', { cwd: ROOT, encoding: 'utf8' }); } catch { return; }
   const legacy = {};
-  for (const l of fs.readFileSync(md, 'utf8').split('\n')) {
+  for (const l of text.split('\n')) {
     let m = /^\| (C\d+) \| .*?<br>`([^`]+)`/.exec(l); if (m) { legacy[m[1]] = { kind: 'C', key: m[2] }; continue; }
     m = /^\| (S\d+) \| `([^`]+)` \| (\w+) \|/.exec(l); if (m) legacy[m[1]] = { kind: 'S', key: m[2].startsWith('#') ? m[2] : `${m[3]}[${m[2]}]` };
   }
@@ -335,6 +338,46 @@ const DOES = {
   'data-copy': 'Copies the code block; says copied only once it is.',
   'data-rec-got': 'Since you were away: got it; the line goes.',
   'data-rec-more': 'Shows more of what was made.',
+  'data-go=…': 'Opens the place it names.',
+  'data-hn': 'A notice: opens what it is about (or the decision it asks for).',
+  '#side-x': 'Phone: closes the drawer.',
+  'data-fl-more': 'Files: the folder\'s menu (new file, copy the path).',
+  'data-content': 'The file\'s text in the viewer (drawn by the diff library): scrolls; in Edit, where you type.',
+  '#att-input': 'Add files: the file picker the + opens.',
+  '#send-now': 'Chats: send now, rather than after the running turn (it toggles).',
+  '#pn-x': 'Closes the decisions panel.',
+  '#cp-repo': 'Create from GitHub: the repository to clone.',
+  '#cp-stop': 'Create: stops making the project.',
+  '#all-q': 'The All list of threads: finds a thread by name as you type.',
+  '#tw-edit': 'The thread\'s title, being renamed in place: Enter keeps, Esc cancels.',
+  '#rtd-pref': 'Runtimes: how coordinators choose, in your words; saved when you leave the field.',
+  'data-cs': 'Chats: a setting for this chat (agent, model or folder), as its label says.',
+  'data-abstain': 'Routing: how sure the decision model must be before it routes; below that it asks.',
+  'data-sh-tab': 'Shells: switches to that shell.',
+  'data-sh-detach': 'Shells: detaches that shell; it keeps running.',
+  'data-sh-name': 'Shells: the shell\'s name; Enter keeps it.',
+  'data-sh-rename': 'Shells: renames that shell.',
+  'data-sh-close': 'Shells: asks to close that shell.',
+  'data-sh-min': 'Shells: minimises or restores the dock.',
+  'data-sh-hide': 'Shells: hides the dock; the shells keep running.',
+  'data-sh-no': 'Shells: keeps it open.',
+  'data-sh-yes': 'Shells: closes it (or the detached ones).',
+  'data-sh-retry': 'Shells: connects that shell again.',
+  'data-sh-filter': 'Shells: shows the shells of one place.',
+  'data-sh-closedet': 'Shells: asks to close the detached shells.',
+  'data-sh-new': 'Shells: a new shell here.',
+  'data-sh-open': 'Shells: opens a detached shell again.',
+  'data-vw-mode=actual': 'A picture at its actual size, and back to fit.',
+  'div.fl-split': 'Drag (or arrow keys) to resize the file tree.',
+  'div.fv-cgrip': 'Drag to resize the conversation beside Files.',
+  'div.stg-grip': 'Drag (or arrow keys) to resize the panel; double-click resets it.',
+  'button.mx-work.mx-tail': 'The working line: what the agent is doing now; opens its steps at the latest.',
+  'button.mx-work': 'The working line: what the agent is doing now; opens its steps at the latest.',
+  'div.cx-pd': 'The diff: scrolls with the keys once focused; J and K move between changes.',
+  'div.vw-body': 'The file: scrolls with the keys once focused.',
+  'div.vw-body.vw-file': 'The file: scrolls with the keys once focused.',
+  'summary.': 'Opens or folds the section under it.',
+  'a.': 'A link in the text; it opens in a new tab.',
 };
 // a kind's words: its most specific hook first (attribute=value, then attribute, then #id)
 function doesOf(k) {
@@ -485,5 +528,5 @@ out.push(`Built from the rendered app and the code, not from memory: \`tools/inv
 out.push(`**In this file:** ${rowsC} rendered kinds (C rows), ${rowsS} kinds only in the code (S rows), ${rowsF} flow rows (F rows); ${obsD + obsP} observations behind the C rows (${obsD} at 1440, ${obsP} at 390).`, '');
 out.push(fd.length || fp.length ? `**Places the crawl couldn't reach**, so their controls aren't measured here: ${[fd.length ? `1440: ${fd.join(', ')}` : '', fp.length ? `390: ${fp.join(', ')}` : ''].filter(Boolean).join('; ')}.` : '**Every place in the crawl was reached** at both widths.', '');
 out.push('Row IDs come from `controls-ids.json`, a committed registry from each kind\'s canonical key to its ID: IDs are only appended, never renumbered, so a grade stays on its control. **Hover**, **Press** and **Focus ring** say whether the control (or its box, its parts, its pseudo-elements) visibly changes when the pointer is over it, while pressed, and when the keyboard focuses it: `no` was measured on the attached control; `–` was not measured (not focusable, or it never took focus there). Hover and press are measured at 1440 only (390 is touch). **Handler** is the first line in js/ that names the hook in an event path: a pointer to check, not proof. **Status** is Astra\'s.', '');
-fs.writeFileSync(path.join(DIR, 'CONTROLS.md'), out.concat(body).join('\n') + '\n');
+fs.writeFileSync(DRY ? '/tmp/CONTROLS.dry.md' : path.join(DIR, 'CONTROLS.md'), out.concat(body).join('\n') + '\n');
 console.log(`C ${rowsC}, S ${rowsS}, F ${rowsF}, observations ${obsD + obsP} (${obsD}+${obsP}); places not reached: ${fd.length}+${fp.length}; without words: ${noWords.length}`, noWords.slice(0, 60));

@@ -17,7 +17,7 @@
 //
 // stage.js calls: mount, show, hide, render, reveal, count.
 
-import { esc, copyText } from "./util.js";
+import { esc, copyText, COPY_REFUSED } from "./util.js";
 import { ICON } from "./ui.js";
 import { api } from "./api.js";
 import { activityOf, folderOf } from "./map.js";
@@ -467,7 +467,8 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     m.addEventListener("click", (e) => {
       if (e.target.closest("[data-fl-mk]")) { closeMenu(); startNew(M.dir); return; }
       const cp = e.target.closest("[data-fl-cp]");
-      if (cp) { copyText(M.dir); cp.innerHTML = `${ICON.check}<span>Copied</span>`; setTimeout(() => closeMenu(true), 600); }
+      // "Copied" only once the path is on the clipboard; refused, the item says so and the menu stays
+      if (cp) { copyText(M.dir).then((ok) => { if (ok) { cp.innerHTML = `${ICON.check}<span>Copied</span>`; setTimeout(() => closeMenu(true), 600); } else { cp.innerHTML = `<span>Couldn't copy here</span>`; cp.title = COPY_REFUSED; } }); }
     });
     m.addEventListener("keydown", (e) => {
       const items = [...m.querySelectorAll("button")], i = items.indexOf(document.activeElement);

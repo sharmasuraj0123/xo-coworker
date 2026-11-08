@@ -9,6 +9,7 @@
 // of deciding. Stop while anything runs. Intelligence per session in the
 // composer. Light and dark.
 import { createWorld, esc, WAITING } from "./world.js";
+import { copyText, COPY_REFUSED } from "./util.js";
 import "./dropdown.js"; // <xo-select>: the one dropdown, in place of the browser's <select>
 import { renderMarkdown, renderInline, setThreadInfo, setWebImages } from "./markdown.js";
 import * as Kit from "./kit.js";
@@ -2928,7 +2929,8 @@ document.addEventListener("click", (e) => {
   const fb = t.closest("[data-file]");
   if (fb) { e.preventDefault(); openSharedFile(fb); return; }
   const cp = t.closest("[data-copy]");
-  if (cp) { navigator.clipboard?.writeText(cp.closest(".md-code")?.querySelector("code")?.textContent || "").catch(() => {}); cp.textContent = "Copied"; setTimeout(() => { cp.textContent = "Copy"; }, 1400); }
+  // "Copied" only once it's on the clipboard; refused, said so, and focus stays on the button
+  if (cp) { copyText(cp.closest(".md-code")?.querySelector("code")?.textContent || "").then((ok) => { if (!ok) { announce(COPY_REFUSED); return; } cp.textContent = "Copied"; announce("Copied the code."); setTimeout(() => { cp.textContent = "Copy"; }, 1400); }); }
 });
 $("#home").addEventListener("keydown", (e) => {
   if (e.target.id === "nx-note-in") {

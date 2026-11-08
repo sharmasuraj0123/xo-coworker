@@ -6,6 +6,7 @@ import { esc } from "./world.js";
 import { ICON, $, RM } from "./ui.js";
 import { api } from "./api.js";
 import { fmtSize } from "./attach.js";
+import { copyText, COPY_REFUSED } from "./util.js";
 
 const PHASE = { counting: "Counting files in", receiving: "Downloading", resolving: "Unpacking", checkout: "Checking out", finishing: "Adding plan and memory to" };
 
@@ -293,7 +294,8 @@ export function initCreate(ctx) {
     const a = e.target.closest("[data-cp]");
     if (!a) return;
     if (a.dataset.cp === "connect") { e.preventDefault(); connect(); }
-    if (a.dataset.cp === "copy") navigator.clipboard?.writeText(gh.code).catch(() => {});
+    // the device code: said copied only once it is; refused, said so (the code stays on screen to type)
+    if (a.dataset.cp === "copy") copyText(gh.code).then((ok) => ctx.announce(ok ? "Copied the code." : COPY_REFUSED));
   });
   repo.addEventListener("input", () => {
     error("");
