@@ -129,8 +129,11 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     // a change waiting for the next turn stays in sight until the session runs it (Astra I3: a durable receipt,
     // not only a 3-second Undo): "Opus 5.5 · Deep → Fable 5.1 · Deeper"
     const p = !next ? pendingOf(s) : null;
-    const tail = p ? `<span class="iq-next"><span aria-hidden="true">→</span> ${esc(p.words)}</span>` : "";
-    return `<span class="iq-l">${words.join(`<span class="iq-sep" aria-hidden="true">·</span>`)}${tail}</span>`;
+    const now = words.join(`<span class="iq-sep" aria-hidden="true">·</span>`);
+    // pending: the next setting has its own box that never gives way, so it's in sight at any width; on a phone it
+    // takes the chip alone ("Next · …"), and the title, the name and the picker carry both
+    if (p) return `<span class="iq-l is-pending"><span class="iq-cur">${now}</span><span class="iq-next"><span class="iq-nk">Next</span><span class="iq-nw">${esc(p.words)}</span></span></span>`;
+    return `<span class="iq-l">${now}</span>`;
   }
   const AUTO = `<span class="iq-a">Auto</span>`;
   /** {dot: pinned, words: the label's parts (HTML), effort} */
