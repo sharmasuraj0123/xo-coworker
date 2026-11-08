@@ -436,6 +436,14 @@ export function createShapeStore({ storage = defaultStorage(), load = fetchPrese
       // put on top of this browser's copy, so what's held is never claimed while it's missing.
       if (isObj(un.mine) || un.mine === null) { if (!("stored" in un) || sameDoc(mine, un.stored)) mine = un.mine; }
       else mine = applyChanges(mine, un.changes);
+      // one coherent revision: the document wanted (mine, chosen above), what Storm held when it began (known), and
+      // what's held is the difference between the two, never a delta left over from an older note (a conflict
+      // replays exactly this). Nothing left between them: nothing is held.
+      if ("known" in un) {
+        const delta = changesOf(R.known, mine);
+        if (delta.length) R.held = [delta];
+        else { R.held = []; R.why = null; R.text = ""; try { storage.removeItem(KEYS.unsynced); } catch { /* nothing kept */ } }
+      }
     }
     else if (!remote) { try { storage.removeItem(KEYS.unsynced); } catch { /* nothing kept */ } }
   }

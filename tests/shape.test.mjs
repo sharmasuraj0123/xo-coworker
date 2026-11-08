@@ -855,5 +855,44 @@ t("…and when the note couldn't follow (its write failed), this browser's newer
   assert.equal(again.S.get("density"), "comfortable", "this browser's newer copy wins");
 });
 
+t("a stale note, a newer copy of mine, and another device's change meanwhile: the conflict is about the newer change, not the stale delta", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const base = mem();
+  let refuseNote = false;
+  const st = { ...base, setItem: (k, v) => { if (k === KEYS.unsynced && refuseNote) throw new Error("QuotaExceededError"); base.setItem(k, v); } };
+  const first = store({ storage: st, remote: F });
+  await first.S.ready;
+  F.next.put.push(() => { throw F.err(413, "shape_too_large"); });
+  await first.S.setMine({ shape: 1, preset: "marketing", density: "compact" });
+  await first.S.settled();
+  refuseNote = true; // the note can't follow the newer change
+  F.next.put.push(() => new Promise(() => {}));
+  first.S.setMine({ shape: 1, preset: "marketing", density: "comfortable", words: { thread: "task" } });
+  await new Promise((r) => setTimeout(r, 10));
+  F.set({ shape: 1, preset: "everything" }); // another device, meanwhile (a preset without a density of its own)
+  const again = store({ storage: st, remote: F });
+  await again.S.ready;
+  await again.S.settled();
+  assert.notEqual(F.stored.density, "compact", "the stale compact isn't replayed onto Storm");
+  assert.notEqual(again.S.get("density"), "compact", "nor shown here");
+  // the newer change is two keys (density, a word): Storm's stays, and it's said that this change wasn't kept
+  assert.deepEqual(F.stored, { shape: 1, preset: "everything" });
+  assert.deepEqual(again.S.mine, { shape: 1, preset: "everything" });
+  assert.match(again.notes.at(-1).sub, /wasn't kept/);
+});
+t("a note whose newer copy of mine is what Storm already has: nothing is held, and nothing claimed", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const st = mem({
+    [KEYS.mine]: JSON.stringify({ shape: 1, preset: "marketing" }),
+    [KEYS.unsynced]: JSON.stringify({ changes: [{ path: ["density"], value: "compact" }], known: { shape: 1, preset: "marketing" }, why: "refused", text: "XO refused it.", mine: { shape: 1, preset: "marketing", density: "compact" }, stored: { shape: 1, preset: "marketing", density: "compact" } }),
+  });
+  const { S } = store({ storage: st, remote: F });
+  await S.ready;
+  await S.settled();
+  assert.equal(S.held, null);
+  assert.equal(S.get("density"), "comfortable");
+  assert.equal(st.getItem(KEYS.unsynced), null);
+});
+
 await Promise.all(pending);
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
