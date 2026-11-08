@@ -218,6 +218,15 @@ export function holdToConfirm(btn, { ms = HOLD_MS, ready, onProgress, onConfirm,
   });
   btn.addEventListener("keyup", (e) => { if ((e.key === "Enter" || e.key === " ") && via === "key") stop(true); });
   btn.addEventListener("blur", () => stop(true));
+  // a safety control: the hold ends when the window loses focus or the page hides, and when the pointer leaves
+  // the button (pointer capture keeps the events coming, so it's checked by position, 8 px of give)
+  addEventListener("blur", () => stop(true));
+  document.addEventListener("visibilitychange", () => { if (document.hidden) stop(true); });
+  btn.addEventListener("pointermove", (e) => {
+    if (via !== "pointer") return;
+    const r = btn.getBoundingClientRect();
+    if (e.clientX < r.left - 8 || e.clientX > r.right + 8 || e.clientY < r.top - 8 || e.clientY > r.bottom + 8) stop(true);
+  });
   btn.addEventListener("click", (e) => e.preventDefault());
   btn.addEventListener("contextmenu", (e) => e.preventDefault());
   return { cancel: () => stop(true) };

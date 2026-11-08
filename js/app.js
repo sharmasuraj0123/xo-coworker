@@ -921,6 +921,13 @@ function passedTo(m) {
 }
 function msgItems(conv, needs) {
   if (CH.isChats(conv)) return CH.items(conv);
+  if (conv.startsWith("t:") && !convThread(conv)) {
+    // a link to a thread that isn't here (removed, or from before a reset): said plainly, never an empty page
+    const known = projects().length > 0;
+    return [{ key: "gone", html: known
+      ? `<div class="calm"><div class="calm-mark">${ICON.thread}</div><h2>This thread isn't here.</h2><p>It may have been removed, or the link is older than this Space. Everything else is where you left it.</p><div class="calm-act"><button type="button" class="btn" data-go="home">Go to Home</button></div></div>`
+      : `<div class="calm"><div class="calm-mark">${ICON.thread}</div><h2>Looking for this thread…</h2></div>` }];
+  }
   const list = messagesOf(conv);
   const items = [];
   let day = "", prev = null;
@@ -3042,10 +3049,10 @@ function closeJump({ restore = true } = {}) { if (jump.hidden) return; jump.hidd
 jq.addEventListener("input", () => { jsel = 0; jumpRender(); });
 jq.addEventListener("keydown", (e) => {
   if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); jsel = (jsel + (e.key === "ArrowDown" ? 1 : jitems.length - 1)) % Math.max(1, jitems.length); jumpRender(); }
-  if (e.key === "Enter") { e.preventDefault(); const x = jitems[jsel]; closeJump({ restore: false }); if (x) (x.run ? x.run() : go(x.v)); }
+  if (e.key === "Enter") { e.preventDefault(); const x = jitems[jsel]; closeJump({ restore: !!(x && x.run) }); if (x) (x.run ? x.run() : go(x.v)); }
   if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeJump(); }
 });
-jl.addEventListener("click", (e) => { const li = e.target.closest("[data-i]"); if (li) { const x = jitems[+li.dataset.i]; closeJump({ restore: false }); if (x.run) x.run(); else go(x.v); } });
+jl.addEventListener("click", (e) => { const li = e.target.closest("[data-i]"); if (li) { const x = jitems[+li.dataset.i]; closeJump({ restore: !!x.run }); if (x.run) x.run(); else go(x.v); } });
 jump.addEventListener("mousedown", (e) => { if (e.target === jump) closeJump(); });
 
 // ── one layer on top ──────────────────────────────────────────────────────────
