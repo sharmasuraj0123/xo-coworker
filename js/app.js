@@ -3294,18 +3294,23 @@ function syncInert() {
   hold($("#main"), PHONE.matches && drawer);
 }
 queueMicrotask(() => { PHONE.addEventListener("change", syncInert); const mo = new MutationObserver(syncInert); for (const el of [jump, keys, allEl, runsEl, setEl]) mo.observe(el, { attributes: true, attributeFilter: ["hidden"] }); syncInert(); });
-// Tab and Shift+Tab go round the open sheet: past its last control is its first, never the page behind it
+// Tab and Shift+Tab go round the open sheet: past its last control is its first, never the page behind it.
+// It listens as the event bubbles, after the control the keys are in: a control that takes Tab for itself (Edit as
+// JSON indents with it) claims it with preventDefault, and the sheet only turns round a Tab nobody claimed.
 addEventListener("keydown", (e) => {
-  if (e.key !== "Tab") return;
+  if (e.key !== "Tab" || e.defaultPrevented) return;
   // a sheet; on a phone, Settings too (it covers the whole screen there)
   const top = [runsEl, keys, allEl, jump].find((el) => !el.hidden) || (PHONE.matches && !setEl.hidden ? setEl : null);
   if (!top) return;
-  const f = [...top.querySelectorAll('button:not([disabled]),[href],input:not([disabled]):not([type=hidden]),textarea,select,[tabindex]:not([tabindex="-1"])')].filter((x) => x.offsetParent || x === document.activeElement);
+  // what Tab itself would visit: anything in the tab order (a summary, a field, a link, a roving group's one stop),
+  // drawn and usable; the browser moves between them, and this only turns it round at the sheet's two ends
+  const f = [...top.querySelectorAll("*")].filter((x) => x.tabIndex >= 0 && !x.disabled && !x.closest("[inert]") && x.getClientRects().length > 0);
   if (!f.length) return;
-  const i = f.indexOf(document.activeElement);
-  if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
-  else if (!e.shiftKey && (i === -1 || i === f.length - 1)) { e.preventDefault(); f[0].focus(); }
-}, true);
+  const a = document.activeElement, inside = top.contains(a);
+  const after = inside && f.some((x) => x !== a && a.compareDocumentPosition(x) & Node.DOCUMENT_POSITION_FOLLOWING);
+  const before = inside && f.some((x) => x !== a && x.compareDocumentPosition(a) & Node.DOCUMENT_POSITION_FOLLOWING);
+  if (e.shiftKey ? !before : !after) { e.preventDefault(); (e.shiftKey ? f[f.length - 1] : f[0]).focus(); }
+});
 
 // ── keys sheet ──────────────────────────────────────────────────────────────
 const keys = $("#keys");
@@ -3314,17 +3319,30 @@ $("#sound-tog").addEventListener("click", () => { sound.on = !sound.on; soundRen
 // a switch says on or off; its label says what (no glyph in the knob)
 function hopsRender() { $("#hops-tog").setAttribute("aria-checked", String(!!S.showHops)); }
 function webpicsRender() { $("#webpics-tog").setAttribute("aria-checked", String(SHAPE.on(WEBPICS))); }
-$("#webpics-tog").addEventListener("click", () => {
+/**
+ * What a General switch's change did, said truthfully: done, it's announced; refused (a newer XO saved this
+ * device's layer, which this one won't overwrite), the switch stays as it was and the reason shows under its words.
+ */
+function deviceSaid(tog, r, done) {
+  const l = tog.closest(".set-row").querySelector(".set-l");
+  let why = l.querySelector(".set-err");
+  if (r && r.error) {
+    if (!why) { why = document.createElement("p"); why.className = "set-err"; why.setAttribute("role", "alert"); l.append(why); }
+    why.textContent = r.error;
+    return;
+  }
+  why?.remove();
+  announce(done);
+}
+$("#webpics-tog").addEventListener("click", (e) => {
   // this device's layer of the shape: a picture's site learns someone looked, so each device decides
   const on = !SHAPE.on(WEBPICS);
-  SHAPE.setDevice({ surfaces: { [WEBPICS]: { on } } });
-  announce(on ? "Pictures from the web show in the conversation." : "Pictures from the web show as links.");
+  deviceSaid(e.currentTarget, SHAPE.setDevice({ surfaces: { [WEBPICS]: { on } } }), on ? "Pictures from the web show in the conversation." : "Pictures from the web show as links.");
 });
-$("#hops-tog").addEventListener("click", () => {
+$("#hops-tog").addEventListener("click", (e) => {
   // this device's layer of the shape (xo:thread/hops), where cv-hops was folded in; the shape's change redraws
   const on = !S.showHops;
-  SHAPE.setDevice({ surfaces: { "xo:thread/hops": { on } } });
-  announce(on ? "Showing how messages travel." : "Hiding how messages travel.");
+  deviceSaid(e.currentTarget, SHAPE.setDevice({ surfaces: { "xo:thread/hops": { on } } }), on ? "Showing how messages travel." : "Hiding how messages travel.");
 });
 hopsRender();
 keys.addEventListener("click", (e) => { if (e.target === keys || e.target.closest("[data-close]")) closeKeys(); });
@@ -3377,7 +3395,8 @@ async function unfreeze(tid, btn) {
   } catch (err) { announce(`Couldn't pick it back up: ${err.message}`); if (btn) { btn.removeAttribute("aria-disabled"); btn.removeAttribute("aria-busy"); } }
 }
 function setPage(id) {
-  for (const b of $$("[data-set]")) b.setAttribute("aria-selected", String(b.dataset.set === id));
+  // the rail is a tablist: only the chosen tab is in the Tab order (arrows move between them), Tab goes on into its page
+  for (const b of $$("[data-set]")) { const on = b.dataset.set === id; b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1; }
   for (const p of $$("[data-page]")) p.hidden = p.dataset.page !== id;
   SETS.open(id);
   if (id === "runtimes") RTSET.open();
@@ -3385,10 +3404,12 @@ function setPage(id) {
 }
 function openSettings() {
   if (!setEl.hidden) return;
-  setReturn = document.activeElement;
+  // the layers Settings takes the place of close first (a phone's drawer hands the keyboard back to its menu):
+  // where the keyboard is then is where closing Settings returns it
   setDrawer(false);
   if (D.isOpen()) D.close();
   IQ.close({ restore: false });
+  setReturn = document.activeElement;
   setEl.hidden = false;
   $("#set-side").classList.add("is-on");
   $("#set-side").setAttribute("aria-expanded", "true");
@@ -3402,8 +3423,9 @@ function closeSettings({ restore = true } = {}) {
   syncInert();
   $("#set-side").classList.remove("is-on");
   $("#set-side").setAttribute("aria-expanded", "false");
-  // back where you were; an opener that's gone or hidden (Jump's box) gives way to the composer
-  if (restore) (setReturn && setReturn.isConnected && setReturn.offsetParent ? setReturn : say)?.focus?.({ preventScroll: true });
+  // back where you were, if it can take the keyboard (there, drawn, not inert, not disabled); else the composer
+  const takes = (el) => !!el && el !== document.body && el.isConnected && el.getClientRects().length > 0 && !el.closest("[inert]") && !el.disabled;
+  if (restore) [setReturn, say].find(takes)?.focus({ preventScroll: true });
 }
 $("#set-side").addEventListener("click", () => (setEl.hidden ? openSettings() : closeSettings()));
 $("#set-phone").addEventListener("click", openSettings);
@@ -3418,10 +3440,11 @@ function keysSheetRender() {
     K.ACTIONS.filter((a) => a.scope === g).map((a) => `<dt><kbd>${esc(K.label(a.id))}</kbd></dt><dd>${esc(a.label)}</dd>`).join("")).join("")}</dl>`;
   $("#keys-cols").innerHTML = col(["global", "picture"]) + col(["decision", "intel"]);
 }
+/** The Keyboard page, drawn in place: the key under the keyboard stays the same node as it records, cancels or changes. */
 function keysPageRender() {
   const box = $("#set-keys-list");
   const rec = S.recording, err = S.keyErr;
-  box.innerHTML = `<p class="kp-t">Click a key to change it. Keys that work anywhere need ⌘ or Ctrl, or a symbol like / or ?, so typing never sets them off. Your keys are kept in this browser.</p>` +
+  redraw(box, `<p class="kp-t">Click a key to change it. Keys that work anywhere need ⌘ or Ctrl, or a symbol like / or ?, so typing never sets them off. Your keys are kept in this browser.</p>` +
     K.GROUPS.map((g) => `<section class="kg" aria-labelledby="kg-${g.id}"><h3 id="kg-${g.id}">${esc(g.name)}</h3><div class="kl">` +
       K.ACTIONS.filter((a) => a.scope === g.id).map((a) => {
         const key = a.fixed
@@ -3431,15 +3454,16 @@ function keysPageRender() {
         return `<div class="kr${K.changed(a.id) ? " is-changed" : ""}${a.fixed ? " is-fixed" : ""}"><span class="kr-l">${esc(a.label)}</span>${key}${reset}</div>` +
           (err && err.id === a.id ? `<p class="kr-err" role="alert">${esc(err.msg)}</p>` : "");
       }).join("") + `</div></section>`).join("") +
-    `<div class="kp-f"><button type="button" class="btn" id="keys-reset-all"${K.anyChanged() ? "" : " disabled"}>${ICON.retry}Reset all to defaults</button></div>`;
-  if (rec) box.querySelector(`[data-rebind="${rec}"]`)?.focus({ preventScroll: true });
+    `<div class="kp-f"><button type="button" class="btn" id="keys-reset-all"${K.anyChanged() ? "" : " disabled"}>${ICON.retry}Reset all to defaults</button></div>`);
 }
 $("#set-keys-list").addEventListener("click", (e) => {
   const rb = e.target.closest("[data-rebind]");
   if (rb) { S.keyErr = null; S.recording = S.recording === rb.dataset.rebind ? null : rb.dataset.rebind; keysPageRender(); return; }
+  // a reset takes its own button away (nothing left to reset): the keyboard goes to the key it reset,
+  // and after Reset all, which disables itself, to the first key in the list
   const rs = e.target.closest("[data-kreset]");
-  if (rs) { S.keyErr = null; K.reset(rs.dataset.kreset); return; }
-  if (e.target.closest("#keys-reset-all")) { S.keyErr = null; S.recording = null; K.resetAll(); }
+  if (rs) { const id = rs.dataset.kreset; S.keyErr = null; K.reset(id); $(`[data-rebind="${id}"]`)?.focus({ preventScroll: true }); return; }
+  if (e.target.closest("#keys-reset-all")) { S.keyErr = null; S.recording = null; K.resetAll(); $("#set-keys-list [data-rebind]")?.focus({ preventScroll: true }); }
 });
 document.addEventListener("pointerdown", (e) => {
   // a click anywhere but a key chip cancels a recording
@@ -3456,19 +3480,25 @@ addEventListener("keydown", (e) => {
   S.recording = null;
   S.keyErr = r.error ? { id, msg: r.error } : null;
   keysPageRender();
-  $(`[data-rebind="${id}"]`)?.focus({ preventScroll: true });
   if (r.ok) announce(`${K.ACTIONS.find((a) => a.id === id).label}: ${K.label(id)}`);
 }, true);
 K.onChange(() => { keysPageRender(); if (!keys.hidden) keysSheetRender(); schedule(); });
 keysPageRender();
+// the rail's keys (WAI-ARIA tabs, chosen as they're reached): down/right the next, up/left the previous, wrapping; Home, End
 setEl.querySelector(".set-nav").addEventListener("keydown", (e) => {
-  if (e.key !== "ArrowDown" && e.key !== "ArrowUp" && e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
-  e.preventDefault();
+  if (e.altKey || e.ctrlKey || e.metaKey) return;
   const tabs = $$("[data-set]");
   const i = tabs.indexOf(document.activeElement);
-  const nx = tabs[(i + (e.key === "ArrowDown" || e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
-  nx.focus(); setPage(nx.dataset.set);
+  if (i < 0) return;
+  const j = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1
+    : e.key === "ArrowDown" || e.key === "ArrowRight" ? (i + 1) % tabs.length
+    : e.key === "ArrowUp" || e.key === "ArrowLeft" ? (i + tabs.length - 1) % tabs.length : -1;
+  if (j < 0) return;
+  e.preventDefault();
+  tabs[j].focus(); setPage(tabs[j].dataset.set);
 });
+// a column of tabs at the side; on a phone, a row across the top
+{ const nav = setEl.querySelector(".set-nav"), orient = () => nav.setAttribute("aria-orientation", PHONE.matches ? "horizontal" : "vertical"); orient(); PHONE.addEventListener("change", orient); }
 
 // ── theme toggle ────────────────────────────────────────────────────────────
 $("#theme").addEventListener("click", () => {

@@ -1918,16 +1918,43 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 .set-confirm b{color:var(--ink)}
 .btn-danger{border-color:color-mix(in srgb,var(--err-ink) 45%,var(--line));color:var(--err-ink)}
 .btn-danger:hover:where(:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background:var(--danger-tint);border-color:color-mix(in srgb,var(--err-ink) 60%,var(--line))}
-/* a list reads as one instrument panel (hub #18/#19): one card, hairlines between its rows */
-/* each rule carries a small status light: green allows, red refuses, none once revoked */
+/* a press answers on a danger button too: a deeper tint and edge (its hover would otherwise cover .btn's press) */
+.btn-danger:active{background:color-mix(in srgb,var(--err) 24%,transparent);border-color:color-mix(in srgb,var(--err-ink) 80%,var(--line))}
+.btn-danger[aria-busy="true"]:active{background:var(--danger-tint);border-color:color-mix(in srgb,var(--err-ink) 60%,var(--line))}
+/* a question's other button while its answer is on its way (Keep mine during a Switch): unavailable, and it says the wait */
+:is(.set-fa,.rl-c) .btn[aria-disabled="true"]:not([aria-busy="true"]),:is(.set-fa,.rl-c) .btn[aria-disabled="true"]:not([aria-busy="true"]):is(:hover,:active){opacity:.55;cursor:progress;background:none;border-color:var(--line);color:var(--ink-2);transform:none}
+/* a list reads as one instrument panel (hub #18/#19), as Keyboard's does: one card, hairlines between its rows.
+   A row is what it says (a column: title, then its details, each on its own line) and its action at the right;
+   a question about it opens across the row's full width, under it. */
+.rl-list,.wt-list{list-style:none;display:flex;flex-direction:column;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);box-shadow:var(--hairline);overflow:hidden}
+.rl-row,.wt-row{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s-2) var(--s-4);min-height:var(--s-12);padding:var(--s-3) var(--s-3) var(--s-3) var(--s-4);border-top:1px solid var(--line-faint)}
+.rl-row:first-child,.wt-row:first-child{border-top:0}
+.rl-main,.wt-main{flex:1 1 160px;min-width:0;display:flex;flex-direction:column;gap:var(--s-1)}
+.rl-row>.btn,.wt-row>.btn{margin-left:auto}
+.rl-main .set-err,.wt-main .set-err{margin-top:var(--s-1)}
+/* each rule carries a small status light: green allows, red refuses, an empty ring once revoked */
+.rl-row{position:relative;padding-left:calc(var(--s-4) + var(--s-3))}
+.rl-row::before{content:"";position:absolute;left:var(--s-4);top:calc(var(--s-3) + 7px);width:6px;height:6px;border-radius:2px;background:var(--go)}
+.rl-row.is-deny::before{background:var(--err-ink)}
+.rl-row.is-revoked::before{background:transparent;box-shadow:inset 0 0 0 1px var(--ink-4)}
+.rl-s{quotes:none;font:400 var(--fs-base)/20px var(--mono);color:var(--ink);overflow-wrap:anywhere}
+.rl-s code{font:inherit;color:inherit}
+.rl-m,.wt-s{font-size:var(--fs-sm);line-height:16px;color:var(--ink-3)}
+.rl-row.is-deny .rl-s{color:var(--err-ink)}
+.rl-gone-h{margin:var(--s-5) 0 var(--s-2) 2px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.rl-list.is-gone{background:transparent;border-style:dashed;box-shadow:none}
+.rl-row.is-revoked .rl-s{color:var(--ink-3);text-decoration:line-through;text-decoration-color:var(--line-strong)}
+/* Revoke's question, in the row: what happens, then Keep and Revoke */
+.rl-c{display:flex;align-items:center;justify-content:flex-end;gap:var(--s-2);flex-wrap:wrap;margin-left:auto;font-size:var(--fs-sm);line-height:16px;color:var(--ink-3)}
 .wt-main b{font:500 var(--fs-md)/20px var(--sans);color:var(--ink)}
-.wt-main code{font-size:var(--fs-sm);color:var(--ink-3);overflow-wrap:anywhere}
+.wt-main code{font-size:var(--fs-sm);line-height:16px;color:var(--ink-3);overflow-wrap:anywhere}
 .wt-s.is-warn{color:var(--warn)}
 .wt-confirm{flex-basis:100%}
 .wt-loss p{margin-bottom:4px}
 .wt-loss b{color:var(--ink)}
 .wt-q{color:var(--ink)}
-.wt-hold{height:38px;min-width:170px}
+/* the hold sits beside Keep it, the same height */
+.wt-hold{height:var(--h-ctl);min-width:170px;border-radius:var(--r-sm);font-size:var(--fs-base)}
 
 /* the live intelligence popover (R6): models with storm's own descriptions */
 /* live: a model's efforts come from the catalog (up to five); each pip is one effort */
