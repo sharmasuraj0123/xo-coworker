@@ -581,9 +581,23 @@ t("S208: the map's Follow says on and off as it's pressed", async () => {
   assert.equal(await f.getAttribute("aria-pressed"), was, "pressed again");
   await done(page);
 });
-// S121 (a part opened from the folded panel's rail takes focus): not reachable in this test world. Opening Files
-// from the panel docks it beside the conversation, and the panel steps aside instead of folding to its rail, at
-// 1440, 1180, 1000 and 900 (checked in the browser, 8 Nov). The fix (js/stage.js, the rail's click) is code only.
+t("S121: a part opened from the folded panel's rail takes focus, on its own fold button", async () => {
+  if (WIDTH < 600) skip("the rail is a desktop's");
+  // the rail shows where the panel shares the screen with Files beside no conversation: opened in a project,
+  // carried to Home, Files opened from it, at a width where the reader would get under 520 px
+  const page = await app({ files: { "a.js": FILE() } });
+  await page.setViewportSize({ width: 1180, height: 900 });
+  await panelOpen(page);
+  await page.evaluate(() => window.__t.go("home"));
+  await filesOpen(page);
+  await page.waitForFunction(() => document.body.classList.contains("stage-rail"), null, { timeout: 4000 });
+  const r = page.locator('[data-rail="changes"]').filter({ visible: true }).first();
+  await r.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => !document.body.classList.contains("stage-rail"));
+  assert.match(await active(page), /data-fr-fold=changes/, "on the part's own fold button, not the page");
+  await done(page);
+});
 const PATCH = (f, a, b) => `diff --git a/${f} b/${f}\n--- a/${f}\n+++ b/${f}\n@@ -1,3 +1,3 @@\n-${a}\n+${b}\n two\n three\n`;
 t("C085/C086: another changed file picked: the last diff goes at once; Open in Files opens the one picked", async () => {
   let answer;
@@ -1238,28 +1252,38 @@ t("C023: a panel covering the page keeps Tab out of what it covers; the open pan
   }
   await done(page);
 });
-// the real turn chip, through the real conversation: a thread with a session, its finished turn fed to the app's
-// own turn store as the stream feeds it (turn.started, block.finished, turn.finished), drawn in #msgs by the
-// conversation (and redrawn by it, chosen); opened with the keyboard by the page's own handler, through the
-// thread's route (Files/Map grader: mounted outside #msgs, the redraw wasn't part of the case)
+// a thread as the server lists it (its row survives the world's own refreshes, and its page loads as a thread's does)
+const serverThread = (ts, sid, extra = {}) => ({ ts, chat_id: "chat_demo", title: "A local task", session_id: sid, cwd: "/home/test/demo", state: "idle", created_at: NOW, updated_at: NOW, ...extra });
+/** A turn fed to the app's own turn store as the stream feeds it; finished unless running. */
+const feedTurn = (page, { id, sid, rows, running = false, n = 1 }) => page.evaluate(({ id, sid, rows, running, n }) => {
+  const at = new Date().toISOString(), tid = `tu-${id}-${n}`, s0 = n * 10;
+  const f = (type, seq, data) => ({ type, envelope: { type, turn_id: tid, session_id: sid, chat_id: "chat_demo", thread_ts: id, seq, ts: at, data } });
+  window.__storm.apply(f("turn.started", s0 + 1, {}));
+  window.__storm.apply(f("block.finished", s0 + 2, { block: { id: `b-${tid}`, type: "activity", rows } }));
+  if (!running) window.__storm.apply(f("turn.finished", s0 + 3, { status: "finished" }));
+  window.__t.render();
+}, { id, sid, rows, running, n });
+/** Go to a listed thread and wait for its page to be in (a thread draws nothing before it is). */
+async function toThread(page, ts) {
+  await page.waitForFunction((ts) => window.__t.world.state.threads.some((x) => x.id === ts), ts, { timeout: 15000 });
+  await page.evaluate((ts) => window.__t.go(`t:${ts}`), ts);
+  await page.waitForFunction((ts) => window.__t.world.state.threads.find((x) => x.id === ts)?.loaded, ts, { timeout: 15000 });
+}
+// the real turn chip, through the real conversation: the thread as the server lists it, its finished turn fed to
+// the app's own turn store as the stream feeds it, drawn in #msgs by the conversation (and redrawn by it, chosen);
+// opened with the keyboard by the page's own handler, through the thread's route (Files/Map grader: mounted
+// outside #msgs, the redraw wasn't part of the case). W needs TT (below) among its threads.
+const TT = () => ({ chat_demo: [serverThread("tt1", "ses-tt")] });
 async function turnChip(page) {
-  await page.evaluate(() => {
-    const t = window.__t;
-    t.world.state.threads = [{ id: "tt1", chatId: "chat_demo", sessionId: "ses-tt", title: "A local task", project: "demo", live: false, busy: false, state: "idle", messages: [], happened: "Test only", lastAt: Date.now(), createdAt: Date.now() - 60e3, checklist: { total: 0, done: 0, items: [] }, asks: [] }];
-    const at = new Date().toISOString();
-    const f = (type, seq, data) => ({ type, envelope: { type, turn_id: "tu-tt", session_id: "ses-tt", chat_id: "chat_demo", thread_ts: "tt1", seq, ts: at, data } });
-    window.__storm.apply(f("turn.started", 1, {}));
-    window.__storm.apply(f("block.finished", 2, { block: { id: "b1", type: "activity", rows: [{ call_id: "c1", kind: "edit_file", status: "ok", target: "a.js" }] } }));
-    window.__storm.apply(f("turn.finished", 3, { status: "finished" }));
-    t.go("t:tt1"); t.render();
-  });
+  await toThread(page, "tt1");
+  await feedTurn(page, { id: "tt1", sid: "ses-tt", rows: [{ call_id: "c1", kind: "edit_file", status: "ok", target: "a.js" }] });
   const chip = page.locator('#msgs .tb-cf[data-file="a.js"]').first();
   await chip.waitFor({ timeout: 15000 });
   assert.equal(await chip.getAttribute("data-file-bytes"), null, "the real chip has no size");
   return chip;
 }
 t("S224: a turn's file chip whose file changed opens its diff (the panel's Changes; Files on a phone), focus on it", async () => {
-  const page = await app({ files: { "a.js": FILE() }, changes: [{ path: "a.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: PATCH("a.js", "one", "ONE") }] });
+  const page = await app({ files: { "a.js": FILE() }, threadsBy: TT(), changes: [{ path: "a.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: PATCH("a.js", "one", "ONE") }] });
   await toDemo(page);
   const chip = await turnChip(page);
   await page.waitForTimeout(400); // the place's changes are read
@@ -1272,7 +1296,7 @@ t("S224: a turn's file chip whose file changed opens its diff (the panel's Chang
 for (const variant of ["read", "held", "refused"]) {
   t(`S224: a turn's file chip opens with the keyboard (${variant}): no "NaN", and the file takes focus`, async () => {
     let answer;
-    const W = { files: variant === "refused" ? {} : { "a.js": FILE() } };
+    const W = { files: variant === "refused" ? {} : { "a.js": FILE() }, threadsBy: TT() };
     if (variant === "held") W.fileGate = new Promise((ok) => (answer = ok));
     const page = await app(W);
     await toDemo(page);
@@ -1289,7 +1313,7 @@ for (const variant of ["read", "held", "refused"]) {
       assert.match(await active(page), /id=viewer/, "still on the file once it's read");
       assert.doesNotMatch(await page.locator("#viewer .vw-top").first().innerText(), /NaN/);
     }
-    if (variant === "refused") assert.match(await page.locator("#viewer").innerText(), /No such file|couldn't|can't/i, "it says so");
+    if (variant === "refused") assert.match(await page.locator("#viewer").innerText(), /isn't there any more/, "it says so");
     await done(page);
   });
 }
@@ -1509,8 +1533,8 @@ t("SRC-IQ-QUEUE-1: a newer Auto, chosen while an earlier Done is still saving, g
   W.patchGate = null; answer();
   for (let i = 0; i < 60 && W.patches < p0 + 2; i++) await page.waitForTimeout(50);
   const last2 = W.patchBodies.slice(-2);
-  assert.equal(last2[0].model, "sonnet", "Done's choice first");
-  assert.ok(!last2[1].model, `then Auto: ${JSON.stringify(last2[1])}`);
+  assert.equal(last2[0].model, "sonnet", `Done's choice first: ${JSON.stringify(W.patchBodies)}`);
+  assert.deepEqual(last2[1], { model: "default", effort: null }, "then Auto (the default model, its own effort)");
   await done(page);
 });
 t("H13: on a long phone list, pinning a card far below moves it to Pinned and focus goes with it", async () => {
@@ -1547,6 +1571,81 @@ t("C065: Images chosen, then a project with no images: the kinds still have one 
   assert.match(st.empty || "", /No images in this project/);
   await done(page);
 });
+
+// ── threads with agents at work, as the server lists them and the stream feeds them ──
+t("S064: Files' Touched by agents (Space can't list changes here): a touched file opens with the keyboard and takes focus", async () => {
+  const page = await app({ files: { "a.js": FILE() }, changesUnsupported: true, threadsBy: { chat_demo: [serverThread("tw1", "ses-tw")] } });
+  await toDemo(page);
+  await page.waitForFunction(() => window.__t.world.state.threads.some((x) => x.id === "tw1"), null, { timeout: 15000 });
+  await feedTurn(page, { id: "tw1", sid: "ses-tw", rows: [{ call_id: "c1", kind: "edit_file", status: "ok", target: "a.js" }] });
+  await panelOpen(page);
+  await filesOpen(page);
+  const row = page.locator('[data-fl-touch="a.js"]').filter({ visible: true }).first();
+  await row.waitFor();
+  await row.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => window.__t.VW.isOpen);
+  await page.waitForTimeout(300);
+  assert.match(await active(page), /id=viewer/);
+  await done(page);
+});
+t("S042: Changes paused on a file; an agent edits another: Show takes you there, focus on its row", async () => {
+  const page = await app({ files: { "a.js": FILE(), "b.js": FILE() }, threadsBy: { chat_demo: [serverThread("tc1", "ses-tc")] }, changes: [
+    { path: "a.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: PATCH("a.js", "one", "ONE") },
+    { path: "b.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: PATCH("b.js", "one", "UNO") }] });
+  await panelOpen(page);
+  if (await page.locator('[data-ghost="changes"]').filter({ visible: true }).count()) await page.locator('[data-ghost="changes"]').filter({ visible: true }).first().click();
+  await page.locator('[data-cx="a.js"]').filter({ visible: true }).first().click(); // your pick: following pauses
+  await page.waitForFunction(() => document.querySelector(".cx-pp")?.textContent === "a.js");
+  await page.waitForFunction(() => window.__t.world.state.threads.some((x) => x.id === "tc1"), null, { timeout: 15000 });
+  await feedTurn(page, { id: "tc1", sid: "ses-tc", rows: [{ call_id: "c1", kind: "edit_file", status: "ok", target: "b.js" }] });
+  const pill = page.locator(".cx-pill[data-cx-show]").filter({ visible: true }).first();
+  await pill.waitFor({ timeout: 10000 });
+  await pill.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelector(".cx-pp")?.textContent === "b.js");
+  await page.waitForTimeout(200);
+  assert.match(await active(page), /data-cx=b\.js/, "on b.js's row, not the page");
+  await done(page);
+});
+t("S037: Interrupt under your waiting message: focus goes to its Undo, and Undo puts it back on Interrupt", async () => {
+  // a working thread (its session busy on a running turn) with your message after the turn began
+  const page = await app();
+  await toDemo(page);
+  await page.evaluate(() => {
+    const t = window.__t;
+    t.world.act.stop = async () => ({ stopped: true });
+    t.world.state.threads = [{ id: "ti1", chatId: "chat_demo", sessionId: "ses-ti", title: "A local task", project: "demo", cwd: "/home/test/demo", loaded: true, live: true, busy: true, state: "working", messages: [{ id: "m-you", who: "you", seq: 15, text: "Also check the docs", at: Date.now() }], happened: "Test only", lastAt: Date.now(), createdAt: Date.now() - 60e3, checklist: { total: 0, done: 0, items: [] }, asks: [] }];
+  });
+  await feedTurn(page, { id: "ti1", sid: "ses-ti", running: true, rows: [{ call_id: "c1", kind: "command", status: "running", target: "npm test" }] });
+  await page.evaluate(() => { window.__t.go("t:ti1"); window.__t.render(); });
+  const intr = page.locator("[data-interrupt]").first();
+  await intr.waitFor({ timeout: 10000 });
+  await intr.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.activeElement?.hasAttribute("data-herald-undo"), null, { timeout: 3000 });
+  await page.keyboard.press("Enter"); // Undo
+  await page.waitForFunction(() => document.activeElement?.hasAttribute("data-interrupt"), null, { timeout: 3000 });
+  await done(page);
+});
+for (const refused of [false, true]) {
+  t(`S038: Pick this thread back up${refused ? ", refused" : ""}: focus ${refused ? "stays on it, usable again" : "goes to the message box"}`, async () => {
+    const page = await app({ threadsBy: { chat_demo: [serverThread("tf1", "ses-tf", { state: "paused", continued_in: "tf2" }), serverThread("tf2", "ses-tf2", { title: "Its continuation" })] } });
+    await toDemo(page);
+    await page.evaluate((refused) => { window.__t.world.act.editThread = refused ? async () => { throw Object.assign(new Error("Fixture unavailable"), { status: 503 }); } : async () => ({}); }, refused);
+    await toThread(page, "tf1");
+    const b = page.locator('[data-unfreeze="tf1"]').first();
+    await b.waitFor({ timeout: 10000 });
+    await b.focus();
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(400);
+    if (refused) {
+      assert.match(await active(page), /data-unfreeze=tf1/);
+      assert.equal(await b.getAttribute("aria-busy"), null, "usable again");
+    } else assert.match(await active(page), /id=say/);
+    await done(page);
+  });
+}
 
 t("C029: on a phone, Back to chat from a file shows the chat, not the panel again", async () => {
   if (WIDTH > 760) return; // beside the chat on a desktop, the panel coming back is the design

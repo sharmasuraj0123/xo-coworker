@@ -2,7 +2,7 @@
  "note": "Canonical key → row ID. Append-only: never renumber, never reuse.",
  "next": {
   "C": 127,
-  "S": 257
+  "S": 258
  },
  "ids": {
   "C001": {
@@ -1549,6 +1549,10 @@
   },
   "S256": {
    "key": "button[data-dm-submit]",
+   "aliases": []
+  },
+  "S257": {
+   "key": "xo-select[data-cs]",
    "aliases": []
   }
  },

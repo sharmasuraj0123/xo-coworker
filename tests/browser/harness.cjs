@@ -52,12 +52,15 @@ function mockApi(W) {
     const json = (o, status = 200) => r.fulfill({ status, contentType: "application/json", body: JSON.stringify(o) });
     if (p.startsWith("/api/deploy/")) return W.launchpad ? (W.onDeploy ? W.onDeploy(r, m, p) : r.fallback()) : json({ detail: { code: "not_found", message: "no deploys in tests" } }, 404);
     if (p === "/api/chat/stream") return r.fulfill({ status: 200, contentType: "text/event-stream", body: "retry: 600000\n\n" });
-    if (p === "/api/chat/chats") return json({ chats: CHATS.concat(W.extraChats || []) });
+    // W.pins: what a chat's PATCH saved (model, effort), so the world's refresh reads it back as the server would
+    if (p === "/api/chat/chats") return json({ chats: CHATS.concat(W.extraChats || []).map((c) => (W.pins && W.pins[c.id] ? { ...c, pin: { ...c.pin, ...W.pins[c.id] } } : c)) });
     if (p === "/api/chat/runtimes" && W.runtimes) return json({ runtimes: W.runtimes });
     if (STATIC[p]) return json(STATIC[p]);
     let k;
     if ((k = /^\/api\/chat\/chats\/([^/]+)\/(threads|messages|hops|made|runtime-policy)$/.exec(p))) {
-      if (k[2] === "threads") return json({ threads: [] });
+      if (k[2] === "threads") return json({ threads: (W.threadsBy && W.threadsBy[k[1]]) || [] }); // W.threadsBy: server rows
+      // a thread's own page (?thread=ts): W.threadMsgs[ts]; the conversation's: W.messages
+      if (k[2] === "messages" && u.searchParams.get("thread")) return json({ messages: (W.threadMsgs && W.threadMsgs[u.searchParams.get("thread")]) || [], next_after_seq: 0, next_before_seq: 0 });
       if (k[2] === "messages") return json({ messages: k[1] === "chat_demo" && W.messages ? W.messages : [], next_after_seq: 0, next_before_seq: 0 });
       if (k[2] === "made") return json({ made: (W.madeBy && W.madeBy[k[1]]) || (k[1] === "chat_demo" && W.made) || [], next_before: null });
       if (k[2] === "runtime-policy") return json({ space: policy, project: policy, effective: { ...policy, fallback: false } });
@@ -76,11 +79,16 @@ function mockApi(W) {
     }
     if (/^\/api\/chat\/chats\/[^/]+$/.test(p) && m === "PATCH") {
       W.patches = (W.patches || 0) + 1;
-      W.patchBodies = (W.patchBodies || []).concat([JSON.parse(req.postData() || "{}")]);
+      const body = JSON.parse(req.postData() || "{}");
+      W.patchBodies = (W.patchBodies || []).concat([body]);
       if (W.patchGate) await W.patchGate;
       if (W.patchMode === "503") return json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503);
+      const id = decodeURIComponent(p.split("/").pop());
+      if ("model" in body || "effort" in body) { W.pins = W.pins || {}; W.pins[id] = { ...(W.pins[id] || {}), ...("model" in body ? { model: body.model === "default" ? null : body.model } : {}), ...("effort" in body ? { effort: body.effort } : {}) }; }
       return json({});
     }
+    // W.changesUnsupported: Space can't say what changed here (not a git repository): the turns' list stands in
+    if (W.changesUnsupported && /^\/api\/xo-projects\/[^/]+\/changes$/.test(p)) return json({ detail: { code: "not_a_repository", message: "Not a git repository" } }, 404);
     if (/^\/api\/xo-projects\/[^/]+\/changes$/.test(p)) {
       // W.changes: [{path, status, additions, deletions, patch | patch_omitted: "response_budget" + full}]; a file
       // sent without its patch is read on its own (?path=), held by W.changesGate when the test says
@@ -195,12 +203,14 @@ async function hooks(page) {
 }
 
 /** The app in a new browser context, against the mock world W (files, saves, messages, hops …). */
-async function openApp(browser, BASE, W = {}, { width = 1440, height = 900, motion = false, theme = "dark" } = {}) {
+// theme: set on every load only when asked for; otherwise the page keeps what's stored (a suite that stores its own
+// theme and reloads, as Settings' does, keeps it: an always-on default put dark back on each reload)
+async function openApp(browser, BASE, W = {}, { width = 1440, height = 900, motion = false, theme = null } = {}) {
   Object.assign(W, { base: BASE, files: W.files || {}, saves: [] });
   const ctx = await browser.newContext({ viewport: { width, height }, reducedMotion: motion ? "no-preference" : "reduce" });
   // test-time only: every time focus falls to the page because the control that had it was removed or hidden,
   // it's recorded; done() fails the test on any (the app itself has no runtime focus restorer: this finds the bugs)
-  await ctx.addInitScript((theme) => { try { localStorage.setItem("cv-theme", theme); } catch { /* none */ } }, theme);
+  if (theme) await ctx.addInitScript((theme) => { try { localStorage.setItem("cv-theme", theme); } catch { /* none */ } }, theme);
   await ctx.addInitScript(() => {
     window.__focusDrops = [];
     let last = null;

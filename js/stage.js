@@ -314,8 +314,12 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     S.lp = true;
     S.lpOpened = !S.open; // pressed again, Deploy puts things back as they were: the panel closed, or Launchpad folded
     if (!S.open || S.rail) open({ focus: false }); else { layout(); paint(); }
-    // focus goes into the section, so Esc closes the panel rather than leaving the thread (Astra on 761119f)
-    requestAnimationFrame(() => LPF.querySelector(".fr-b")?.focus?.({ preventScroll: true }));
+    // focus goes into the section, so Esc closes the panel rather than leaving the thread (Astra on 761119f); in
+    // the same step the panel opens, since on a phone it covers Deploy and puts it out of reach (the browser run:
+    // a frame later, focus had already fallen to the page); once more next frame if it wasn't drawn yet
+    const into = () => LPF.querySelector(".fr-b")?.focus?.({ preventScroll: true });
+    into();
+    if (!LPF.contains(document.activeElement)) requestAnimationFrame(into);
   }
 
   /** The header's Deploy shows Launchpad open as pressed. Set here, where it changes, rather than by redrawing the
