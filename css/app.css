@@ -1707,7 +1707,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 .tw-menu button:hover,.tw-menu button:focus-visible{background:var(--fill-2);color:var(--ink)}
 .tw-in{flex:1;min-width:0;height:34px;padding:0 10px;border-radius:var(--r-sm);border:1px solid var(--line-strong);background:var(--surface);font:600 var(--fs-2xl)/28px var(--sans);color:var(--ink)}
 .tw-in-l{flex:0 1 200px;font:500 var(--fs-base)/20px var(--sans)}
-.tw-in:focus{outline:2px solid rgba(var(--accent-rgb),.75);outline-offset:1px}
+.tw-in:focus{outline:2px solid var(--focus);outline-offset:1px}
 .ar-l{flex:none;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 7px;height:20px;line-height:16px;border-radius:var(--r-sm);background:var(--fill-2);font-size:var(--fs-sm);color:var(--ink-3)}
 .hr-conn.k-wait .hr-t{color:var(--warn)}
 @media (max-width:760px){
@@ -1740,7 +1740,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 .c-q-o b{font:500 var(--fs-md)/20px var(--sans);color:var(--ink)}
 .c-q-o em{font-style:normal;font-size:var(--fs-sm);line-height:16px;color:var(--ink-3)}
 .c-q-in,.c-name-in{height:40px;padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line-strong);background:var(--surface);font:400 var(--fs-md)/20px var(--sans);color:var(--ink)}
-.c-q-in:focus,.c-name-in:focus{outline:2px solid rgba(var(--accent-rgb),.75);outline-offset:1px}
+.c-q-in:focus,.c-name-in:focus{outline:2px solid var(--focus);outline-offset:1px}
 .c-q-s{font-size:var(--fs-sm);color:var(--ink-4)}
 .c-name{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;font-size:var(--fs-sm);color:var(--ink-3)}
 .c-iwhy{display:flex;align-items:flex-start;gap:8px;margin-top:10px;font-size:var(--fs-sm);line-height:16px;color:var(--ink-3)}
@@ -2435,7 +2435,7 @@ body.map-full .dock,body.map-full .tdock{visibility:hidden}
 button.dg-n{cursor:pointer}
 button.dg-n:hover{border-color:var(--line-strong);color:var(--ink)}
 :root[data-theme="light"] button.dg-n:hover{border-color:#A9A9A6}
-.dg-n:focus-visible{outline:2px solid rgba(var(--accent-rgb),.7);outline-offset:2px}
+.dg-n:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .dg-ic{flex:none;display:grid;place-items:center;width:15px;color:var(--ink-4)}
 .dg-ic svg{width:14px;height:14px}
 .dg-t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -2776,7 +2776,7 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .rt-check{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 12px 0 10px;border-radius:var(--r-sm);border:1px solid var(--line);font-size:var(--fs-base);color:var(--ink-2);cursor:pointer}
 .rt-check:has(input:checked){border-color:color-mix(in srgb,var(--accent-fill) 55%,var(--line));color:var(--ink)}
 .rt-check input{accent-color:var(--accent-fill)}
-.rt-check:has(input:focus-visible){outline:2px solid rgba(var(--accent-rgb),.75);outline-offset:1px}
+.rt-check:has(input:focus-visible){outline:2px solid var(--focus);outline-offset:1px}
 @media (max-width:760px){
   .rt-w{grid-template-columns:96px minmax(60px,1fr) auto}
   .rt-def{flex-direction:column;align-items:stretch}

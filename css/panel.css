@@ -381,7 +381,7 @@ body.viewer-open .fv~.dock{display:none}
 .stage .fr-gut{background:transparent}
 .stage .fr-gut::before{content:"";position:absolute;inset:0 12px;background:var(--panel-line);transition:background var(--d-hover) var(--ease)}
 .stage .fr-gut:hover::before,.stage .fr-gut:focus-visible::before,body.stage-vsizing .stage .fr-gut::before{background:var(--line-hover)}
-.stage .fr-gut:focus-visible{outline:2px solid var(--accent);outline-offset:-1px}
+.stage .fr-gut:focus-visible{outline:2px solid var(--focus);outline-offset:-1px}
 .stage .fr-none{padding:8px 20px 12px;margin:0;line-height:20px}
 
 /* A thread's coloured glyph is its map identity; its tile carries the shared corner working arc.
@@ -463,5 +463,5 @@ body.viewer-open .fv~.dock{display:none}
 :root[data-theme="light"] .stage .map-host .dg-cur:not(.is-idle) .dg-arrow path{stroke:color-mix(in srgb,var(--c) 62%,#000);stroke-width:1}
 .stage .map-host .gn-l{text-shadow:0 0 3px var(--panel-canvas),0 0 3px var(--panel-canvas)}
 
-.stage :is(.ag-r,.ch-r,.fr-t,.fr-ib,.stg-ic):focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.stage :is(.ag-r,.ch-r,.fr-t,.fr-ib,.stg-ic):focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 @media (prefers-reduced-motion:reduce){.stage :is(.fr-t,.fr-gut::before,.ag-r,.ch-r){transition:none}}

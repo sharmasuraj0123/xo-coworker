@@ -121,4 +121,11 @@ t("scripts use the one curve and the loop curve", () => {
   assert.deepEqual(odd, [], `curves in js/: ${odd.join(" | ")}`);
 });
 
+// One focus ring: 2 px of --focus following the element's radius. Two deliberate exceptions: white on a
+// picture (the lightbox), and the plum of "← Back to chat" (its own colour, the owner's pick).
+t("one focus ring", () => {
+  const bad = D.filter((d) => d.prop === "outline" && /^2px solid/.test(d.value) && !/var\(--focus\)|rgb\(255 255 255|var\(--ret-ink\)/.test(d.value));
+  assert.equal(bad.length, 0, `other rings:\n    ${where((d) => bad.includes(d))}`);
+});
+
 console.log(`\n${passed} passed`);

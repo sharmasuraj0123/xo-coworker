@@ -365,7 +365,7 @@ body.files-open .mx-down{display:none}
    caption's 16 px text column. Keep its words and the band as the two readable state cues. */
 :root[data-msgx] .m-them .tc-top>.g{display:none}
 /* The base card's focus shadow loses to the bubble shadow above. Draw an explicit outer focus ring. */
-:root[data-msgx] .m-them .tcard:has(.tc-open:focus-visible){outline:2px solid var(--accent);outline-offset:3px}
+:root[data-msgx] .m-them .tcard:has(.tc-open:focus-visible){outline:2px solid var(--focus);outline-offset:3px}
 @media (max-width:760px){
   /* Give the title its own line on a phone; a fixed-width status must not consume half its width.
      Long titles can wrap, and branch names cannot push Open past the card's right text edge. */
