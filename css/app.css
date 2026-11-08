@@ -831,6 +831,8 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .sl-p{height:24px;padding:0 8px 0 0;color:var(--ink);font:500 var(--fs-base)/20px var(--sans)}
 .sl-p:hover{color:var(--accent)}
 
+.vw-upd{color:var(--ink);border-color:var(--line-strong);animation:rise-in var(--d-in) var(--ease)}
+
 /* ── buttons ─────────────────────────────────────────────────────────────── */
 .b{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;height:var(--h-lg);padding:0 16px;border-radius:var(--r);border:1px solid var(--line);background:var(--float);color:var(--ink);font:500 var(--fs-md)/20px var(--sans);overflow:hidden;user-select:none;-webkit-user-select:none;
   transition:transform var(--dur-fast) var(--ease),background-color var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease)}

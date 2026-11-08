@@ -215,8 +215,9 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       : diffing && V.draft ? `<button type="button" class="xd-btn xd-draft" data-vw-show="file" title="Your unsaved edits to this file are kept: see them in File"><i></i>Your draft</button>`
       : !diffing && canEdit() && V.draft && !ED.opening ? `<span class="xd-state" title="Your unsaved edits, kept in this browser"><i></i>Your draft</span><button type="button" class="xd-btn" data-vw-draftx title="Let your draft go">Discard</button><button type="button" class="xd-edit" data-vw-edit title="Continue editing (E)" aria-label="Continue your draft">${EDIT_IC}<span>Continue</span></button>`
       : !diffing && canEdit() ? `<button type="button" class="xd-edit" data-vw-edit title="Edit (E)" aria-label="Edit"${ED.opening ? " disabled" : ""}>${EDIT_IC}<span>${ED.opening ? "Opening…" : "Edit"}</span></button>` : "";
+    const upd = V.updated && !diffing ? `<button type="button" class="xd-btn vw-upd" data-vw-update title="An agent changed this file after you opened it: show the new version">Updated · Show</button>` : "";
     return `<header class="vw-top">${name}` +
-      `<div class="vw-acts">${runs}${show}${toggle}${edit}${more}` +
+      `<div class="vw-acts">${upd}${runs}${show}${toggle}${edit}${more}` +
       `<button type="button" class="vw-x" data-vw-close aria-label="Close the file" title="Close (Esc)">${ICON.close}</button></div></header>`;
   }
 
@@ -627,8 +628,17 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       V.error = err.status === 404 ? "This file isn't there any more." : err.status === 403 && err.code === "outside_project" ? "This file is outside the project: a link leads out of it." : err.message || "Couldn't read this file.";
     }
     V.loading = false;
+    V.seenSig = sigNow(); V.updated = false;
     render();
     if (V.fresh) { V.fresh = false; if (canEdit()) startEdit(); }
+  }
+  // Stable inspection (Astra I6): what you're reading never changes under you. When an agent changes the file after
+  // it was read, the head says "Updated" and you take the new version when you choose (Show), not mid-sentence.
+  const sigNow = () => { const c = V.file && V.file.project && V.file.rel && changes ? changes.at(V.file.project, V.file.rel) : null; return c ? `${c.file.additions}|${c.file.deletions}|${c.file.status || ""}` : ""; };
+  /** Called on every app render: a newer version since this one was read lights "Updated". */
+  function notice() {
+    if (!V.open || V.parked || V.loading || !V.data || V.seenSig == null || ED.on || V.updated) return;
+    if (sigNow() !== V.seenSig) { V.updated = true; paintHead(); }
   }
 
   /**
@@ -728,7 +738,9 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (e.target.closest(".vw-img img")) { V.mode = V.mode === "actual" ? "preview" : "actual"; render(); return; }
     if (e.target.closest("[data-vw-copy]")) { copy(String(V.data.content)); return; }
     if (e.target.closest("[data-vw-copy-path]")) { copy(V.file.rel ? localPath() : V.file.path); return; }
-    if (e.target.closest("[data-vw-download]")) download();
+    // the new version, at the place you were reading
+    if (e.target.closest("[data-vw-update]")) { const top = el.querySelector(".vw-body")?.scrollTop || 0; load().then(() => { const b = el.querySelector(".vw-body"); if (b) b.scrollTop = top; }); return; }
+        if (e.target.closest("[data-vw-download]")) download();
   });
   // an image's size shows in the header once it has decoded; one that won't decode says so
   el.addEventListener("load", (e) => {
@@ -800,7 +812,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   function refresh() { if (V.open && !V.parked) { V.keepScroll = true; render(); } }
 
   return {
-    open, close, park, unpark, refresh,
+    open, close, park, unpark, refresh, notice,
     get isOpen() { return V.open && !V.parked; }, get hasFile() { return V.open; }, get isParked() { return V.open && V.parked; }, get file() { return V.file; },
     /** Unsaved edits on screen (leaving asks first). */
     get editing() { return ED.on && (ED.dirty || !!ED.conflict); },

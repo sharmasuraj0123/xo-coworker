@@ -2297,6 +2297,7 @@ function render() {
   D.sync();
   MAP.render(v);
   FILESV.sync();
+  VW.notice();
   STAGE.sync();
   const nd = needs.filter((n) => n.admitted && !n.later).length;
   document.title = Kit.titleFor(nd, "XO Space");
