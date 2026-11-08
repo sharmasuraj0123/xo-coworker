@@ -784,6 +784,29 @@ t("C052: a code block's Copy answered out of order: only the newest says Copied,
   assert.equal(await code.innerText(), "Copy");
   await done(page);
 });
+t("C052: what a code block's Copy says is its own: a success then a newer refusal never says Copied after it", async () => {
+  const page = await app({ messages: MSG("Here is the command:\n\n```sh\nnpm test\n```\n") });
+  await toDemo(page);
+  await page.locator("#msgs [data-copy]").first().waitFor();
+  const seen = await page.evaluate(async () => {
+    const b = document.querySelector("#msgs [data-copy]"), live = document.querySelector("#live"), q = [];
+    navigator.clipboard.writeText = () => new Promise((ok, no) => q.push({ ok, no }));
+    document.execCommand = () => false;
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms)), t0 = performance.now(), at = (ms) => wait(Math.max(0, t0 + ms - performance.now()));
+    b.click(); q[0].ok();             // the first Copy: success at 0
+    await at(5); b.click();           // a second Copy
+    await at(20); q[1].no(new Error("denied")); // refused at 20
+    const out = [];
+    await at(40); out.push(live.textContent);
+    await at(60); out.push(live.textContent);
+    await at(120); out.push(live.textContent, b.textContent);
+    return out;
+  });
+  assert.ok(!seen.slice(0, 3).includes("Copied the code."), `never "Copied" after the newer refusal: ${JSON.stringify(seen)}`);
+  assert.match(seen[2], /^Couldn't copy/, "the refusal is what's said");
+  assert.equal(seen[3], "Copy", "and the check is cleared");
+  await done(page);
+});
 t("DEC-NOTE-LOSS/S167: a Send back that failed keeps its note for the next try", async () => {
   const page = await decisions("approval", 1);
   await page.evaluate(() => { const no = async () => { throw Object.assign(new Error("Fixture unavailable"), { status: 503, code: "unavailable" }); }; window.d.world.act.decide = no; window.d.world.act.reply = no; });

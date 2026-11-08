@@ -132,7 +132,8 @@ const S = {
 };
 const waitSince = new Map();
 const live = $("#live");
-function announce(text) { live.textContent = ""; setTimeout(() => { live.textContent = text; }, 40); }
+// still(): asked again when the words go in, 40 ms later; false (a newer action answered meanwhile), nothing is said
+function announce(text, still = null) { live.textContent = ""; setTimeout(() => { if (!still || still()) live.textContent = text; }, 40); }
 
 // ── the parts ───────────────────────────────────────────────────────────────
 const P = createPacing({ params });
@@ -3043,8 +3044,10 @@ document.addEventListener("click", (e) => {
     copyText(cp.closest(".md-code")?.querySelector("code")?.textContent || "").then((ok) => {
       if (cp._copyN !== my) return;
       clearTimeout(cp._copyT);
-      if (!ok) { cp.textContent = "Copy"; announce(COPY_REFUSED); return; }
-      cp.textContent = "Copied"; announce("Copied the code.");
+      // what's said is this Copy's too: a newer one answering within the live region's 40 ms keeps it unsaid
+      const mine = () => cp._copyN === my;
+      if (!ok) { cp.textContent = "Copy"; announce(COPY_REFUSED, mine); return; }
+      cp.textContent = "Copied"; announce("Copied the code.", mine);
       cp._copyT = setTimeout(() => { if (cp._copyN === my) cp.textContent = "Copy"; }, 1400);
     });
   }
