@@ -24,13 +24,15 @@ const QUIET = 250; // ms: edits that finish together are read once
  * a blank line, then the question. {path, a, b, rest} for such a message, else null. Pure.
  */
 /**
- * A question about a whole file (Ask about this): "path\n\nquestion", where the path has a folder or an
- * extension and no spaces ("README.md", "js/app.js"), so an ordinary first line ("e.g.", "Hello") never reads as one.
- * {path, rest} or null. lineRef is tried first.
+ * A question about a whole file (Ask about this): "File: path\n\nquestion". The marker is written by Ask about this
+ * and read here, never guessed from the path's shape, so Makefile, LICENSE and "my notes.md" keep their capsule and an
+ * ordinary first line ("e.g.", "Hello", even "README.md") never becomes one. The agent reads it as plain words.
+ * {path, rest} or null.
  */
+export const FILE_MARK = "File: ";
 export function fileRef(text) {
-  const m = /^((?:[^\s:/]+\/)*[^\s:/]+\.[A-Za-z0-9]{1,8}|(?:[^\s:/]+\/)+[^\s:/]+)\n\n([\s\S]+)$/.exec(String(text || ""));
-  return m ? { path: m[1], rest: m[2] } : null;
+  const m = /^File: ([^\n]+)\n\n([\s\S]+)$/.exec(String(text || ""));
+  return m && m[1].trim() ? { path: m[1].trim(), rest: m[2] } : null;
 }
 export function lineRef(text) {
   const m = /^([^\s:]+\.[^\s:]*|[^\s:]*\/[^\s:]+|[A-Za-z][\w.-]*):(\d+)(?:-(\d+))?\n\n([\s\S]*)$/.exec(String(text || ""));

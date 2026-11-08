@@ -199,12 +199,14 @@ await t("a question about lines: \"path:a-b\", a blank line, the question; nothi
   assert.deepEqual(lineRef("Makefile:7\n\nwhat runs here?\nand here"), { path: "Makefile", a: 7, b: 7, rest: "what runs here?\nand here" });
   assert.equal(lineRef("js/a.js:9-3\n\nbackwards"), null);
   assert.equal(lineRef("js/a.js:36-43 no blank line"), null);
-  // a whole file (Ask about this): a path with a folder or an extension, never an ordinary first line
-  assert.deepEqual(fileRef("README.md\n\nwhat is this for?"), { path: "README.md", rest: "what is this for?" });
-  assert.deepEqual(fileRef("js/app.js\n\nwhy so long?"), { path: "js/app.js", rest: "why so long?" });
+  // a whole file (Ask about this): its own marker, whatever the path looks like; never guessed from a first line
+  assert.deepEqual(fileRef("File: README.md\n\nwhat is this for?"), { path: "README.md", rest: "what is this for?" });
+  assert.deepEqual(fileRef("File: Makefile\n\nwhat runs?"), { path: "Makefile", rest: "what runs?" });
+  assert.deepEqual(fileRef("File: LICENSE\n\nwhich one?"), { path: "LICENSE", rest: "which one?" });
+  assert.deepEqual(fileRef("File: docs/my notes.md\n\nspaces too"), { path: "docs/my notes.md", rest: "spaces too" });
+  assert.equal(fileRef("README.md\n\nno marker, no capsule"), null);
   assert.equal(fileRef("e.g.\n\nthis"), null);
   assert.equal(fileRef("Hello\n\nthere"), null);
-  assert.equal(fileRef("two words.md\n\nno"), null);
   assert.equal(lineRef("Note: 12 things\n\nhi"), null);
   assert.equal(lineRef("see js/a.js:3\n\nmid-sentence"), null);
   assert.equal(lineRef(""), null);

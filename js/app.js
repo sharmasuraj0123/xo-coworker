@@ -2138,7 +2138,7 @@ function sendLive(raw) {
   const here = conv === S.view;
   // the lines a message is about (a file beside the chat): "path:a-b", then the words, as Ask about lines sends
   const ref = here && S.lref[conv];
-  if (ref && text) { text = `${ref.path}${ref.a ? `:${ref.a}${ref.b > ref.a ? `-${ref.b}` : ""}` : ""}\n\n${text}`; delete S.lref[conv]; }
+  if (ref && text) { text = `${ref.a ? `${ref.path}:${ref.a}${ref.b > ref.a ? `-${ref.b}` : ""}` : `File: ${ref.path}`}\n\n${text}`; delete S.lref[conv]; }
   const from = say.getBoundingClientRect();
   // client_id: a retry of this exact message is the same request, so the server stores it once (UI-reference §0.7)
   const m = { id: `l${++S.n}_${Date.now().toString(36)}`, conv, at: Date.now(), who: "you", text, status: "sending", target: thread ? null : chat, cid: `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}` };
