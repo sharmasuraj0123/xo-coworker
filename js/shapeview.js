@@ -8,15 +8,33 @@
 import { esc } from "./util.js";
 import { ICON } from "./ui.js";
 import { PRESETS, createShape, describeShape } from "./shape.js";
+import { once, isPending, busyAttrs } from "./pending.js";
+import { redraw } from "./redraw.js";
+import { rovingTab } from "./keynav.js";
 
 /** Settings' rail icon for Shape: a window and its parts. */
 export const SHAPE_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M9.5 4.5v15M9.5 11h11"/></svg>';
 
 /** Home's parts by surface: Your next move (and the asks after it), Handled, Recently made. */
 const HOME = { "xo:home/next": ["hm-next", "hm-then"], "xo:home/handled": ["hm-end"], "xo:home/recent": ["hm-made"] };
+// a preset chosen, or your JSON saved: each may read a preset file first, so one goes at a time
+const SHAPING = "shape";
+
+/**
+ * Put els in this order, side by side, among their parent's other children, without ever moving the one that holds
+ * the keyboard (moving a node takes focus off it): it's the anchor, and the rest are placed before and after it.
+ * When they're already in order nothing moves at all.
+ */
+function inOrder(els) {
+  const a = document.activeElement;
+  const k = Math.max(0, els.findIndex((el) => el.contains(a)));
+  for (let i = k - 1; i >= 0; i--) if (els[i].nextElementSibling !== els[i + 1]) els[i + 1].before(els[i]);
+  for (let i = k + 1; i < els.length; i++) if (els[i].previousElementSibling !== els[i - 1]) els[i - 1].after(els[i]);
+}
 
 export function createShapeView({ shape, announce = () => {} }) {
-  const V = { confirm: null, err: null, draft: null, built: false };
+  // draft: the JSON as typed, not saved yet; saveErr: why the last Save of it was refused
+  const V = { confirm: null, err: null, draft: null, saveErr: null, built: false };
   const page = document.querySelector('[data-page="shape"]');
   const box = page && page.querySelector(".shp");
   const nav = document.querySelector("#settings .set-nav");
@@ -46,16 +64,18 @@ export function createShapeView({ shape, announce = () => {} }) {
     const cur = [...nav.children];
     if (want.length !== cur.length || want.some((el, i) => cur[i] !== el)) for (const el of want) nav.appendChild(el);
   }
-  /** Home's parts in the shape's order; a part it doesn't keep is hidden. Moved only when the order changed. */
+  /**
+   * Home's parts in the shape's order; a part it doesn't keep is hidden. Only the parts the shape orders are
+   * compared and moved: Home's other lines (the quiet "since you were away" one) stay where they are, and a part
+   * already in its place is never touched, so a control in it keeps the keyboard through every render.
+   */
   function homeOrder(body) {
     if (!body) return;
     const list = shape.list("home").map((s) => s.id);
     const on = new Set(list);
     const order = [...list, ...Object.keys(HOME).filter((id) => !on.has(id))];
-    const want = order.flatMap((id) => HOME[id].map((x) => body.querySelector(`#${x}`))).filter(Boolean);
-    for (const [id, parts] of Object.entries(HOME)) for (const x of parts) { const el = body.querySelector(`#${x}`); if (el) el.hidden = !on.has(id); }
-    const cur = [...body.children];
-    if (want.some((el, i) => cur[i] !== el)) for (const el of want) body.appendChild(el);
+    for (const [id, parts] of Object.entries(HOME)) for (const x of parts) { const el = body.querySelector(`#${x}`), hide = !on.has(id); if (el && el.hidden !== hide) el.hidden = hide; }
+    inOrder(order.flatMap((id) => HOME[id].map((x) => body.querySelector(`:scope > #${x}`))).filter(Boolean));
   }
 
   // ── Settings › Shape ────────────────────────────────────────────────────────
@@ -75,8 +95,8 @@ export function createShapeView({ shape, announce = () => {} }) {
     const dense = shape.get("density") === "compact";
     const c = V.confirm;
     return `<section class="set-sec" aria-labelledby="shp-h-p"><h3 id="shp-h-p">What you mostly do here</h3>` +
-      `<div class="set-choices" role="radiogroup" aria-labelledby="shp-h-p">${cardsOf().map((p) => `<button type="button" class="set-choice${p.id === id ? " is-on" : ""}" role="radio" aria-checked="${p.id === id}" data-shp-preset="${esc(p.id)}"><span class="sc-dot" aria-hidden="true"></span><span class="sc-b"><b>${esc(p.name)}</b><span>${esc(p.summary)}</span></span></button>`).join("")}</div>` +
-      (c ? `<div class="shp-confirm" role="alertdialog" aria-labelledby="shp-cf"><p id="shp-cf"><b>Switch to ${esc(nameOf(c))}?</b> Your own changes are cleared. What you set on this device stays.</p><div class="set-fa"><button type="button" class="btn" data-shp-keep>Keep mine</button><button type="button" class="btn btn-pri" data-shp-switch="${esc(c)}">Switch</button></div></div>` : "") +
+      `<div class="set-choices" role="radiogroup" aria-labelledby="shp-h-p">${cardsOf().map((p) => `<button type="button" class="set-choice${p.id === id ? " is-on" : ""}" role="radio" aria-checked="${p.id === id}" data-shp-preset="${esc(p.id)}"${rovingTab(p.id === id)}${busyAttrs(SHAPING)}><span class="sc-dot" aria-hidden="true"></span><span class="sc-b"><b>${esc(p.name)}</b><span>${esc(p.summary)}</span></span></button>`).join("")}</div>` +
+      (c ? `<div class="shp-confirm" role="alertdialog" aria-labelledby="shp-cf"><p id="shp-cf"><b>Switch to ${esc(nameOf(c))}?</b> Your own changes are cleared. What you set on this device stays.</p><div class="set-fa"><button type="button" class="btn" data-shp-keep>Keep mine</button><button type="button" class="btn btn-pri" data-shp-switch="${esc(c)}"${busyAttrs(SHAPING)}>Switch</button></div></div>` : "") +
       (shape.presetError(id) ? `<p class="set-err" role="alert">${esc(nameOf(id))} couldn't be read (${esc(shape.presetError(id))}). XO shows everything until it can.</p>` : "") +
       `</section>` +
       `<section class="set-sec" aria-labelledby="shp-h-d"><h3 id="shp-h-d">What it changes</h3>` +
@@ -86,7 +106,7 @@ export function createShapeView({ shape, announce = () => {} }) {
       `<div class="set-fa shp-acts"><button type="button" class="btn" data-shp-reset${own.length ? "" : " disabled"}>Reset to preset</button><button type="button" class="btn" data-shp-all>Show everything</button></div></section>` +
       `<section class="set-sec" aria-labelledby="shp-h-v"><h3 id="shp-h-v">On this device</h3>` +
       `<div class="set-row"><div class="set-l"><b id="shp-dense-l">Compact</b><span>Tighter rows and controls, and 14 px reading text. Only here: your other devices keep their own.</span></div>` +
-      `<button type="button" class="switch" role="switch" aria-checked="${dense}" aria-labelledby="shp-dense-l" data-shp-dense><span class="th-track" aria-hidden="true"><span class="th-knob"></span></span></button></div></section>`;
+      `<button type="button" class="switch" role="switch" aria-checked="${dense}" aria-labelledby="shp-dense-l" data-shp-dense><span class="th-track" aria-hidden="true"><span class="th-knob">${ICON.list}</span></span></button></div></section>`;
   }
   /** Edit as JSON: built once, so typing is never redrawn under you; checked as you type. */
   function jsonBuild() {
@@ -122,9 +142,14 @@ export function createShapeView({ shape, announce = () => {} }) {
     pl.hidden = !probs.length;
     d.querySelector("[data-shp-probs]").innerHTML = probs.map((p) => `<li><span class="shp-where">${esc(p.from === "mine" ? "Yours" : p.from === "device" ? "This device" : p.from === "preset" ? "The preset" : p.from)}</span><span class="shp-sep" aria-hidden="true">·</span><code>${esc(p.path || "the layer")}</code> ${esc(p.text)}.</li>`).join("");
     d.querySelector("[data-shp-n]").textContent = probs.length ? `${probs.length} ${probs.length === 1 ? "problem" : "problems"}` : "";
-    d.querySelector(".shp-status").textContent = r.error || (V.draft == null ? "" : probs.length ? "It can be saved: XO uses what it understands, as the list below says." : "Looks right.");
-    d.querySelector(".shp-status").classList.toggle("is-err", !!r.error);
-    d.querySelector("[data-shp-save]").disabled = V.draft == null || !!r.error;
+    // a refused save is said here, beside the text it was for (the text stays, to fix and save again)
+    const bad = V.saveErr || r.error;
+    d.querySelector(".shp-status").textContent = bad || (V.draft == null ? "" : probs.length ? "It can be saved: XO uses what it understands, as the list below says." : "Looks right.");
+    d.querySelector(".shp-status").classList.toggle("is-err", !!bad);
+    // saving: Save says it's waiting and keeps the keyboard (aria-disabled, not disabled); a repeat joins it
+    const save = d.querySelector("[data-shp-save]"), busy = isPending(SHAPING);
+    save.disabled = !busy && (V.draft == null || !!r.error);
+    for (const a of ["aria-busy", "aria-disabled"]) if (busy) save.setAttribute(a, "true"); else save.removeAttribute(a);
     d.querySelector("[data-shp-revert]").disabled = V.draft == null;
   }
   function render() {
@@ -134,25 +159,30 @@ export function createShapeView({ shape, announce = () => {} }) {
       box.appendChild(jsonBuild());
       V.built = true;
     }
-    const top = box.querySelector(".shp-top");
-    // a redraw keeps the keyboard where it was (by the control's data-* key), never on <body>
-    const a = document.activeElement;
-    const key = a && top.contains(a) ? [...a.attributes].find((x) => x.name.startsWith("data-shp")) : null;
-    const html = topHtml();
-    if (top._h !== html) { top.innerHTML = html; top._h = html; for (const k of top.querySelectorAll(".th-knob")) k.innerHTML = ICON.list; }
-    if (key && !top.contains(document.activeElement)) {
-      // the same control again; if it's gone or now disabled (Reset, once there's nothing to reset), the chosen card
-      const same = top.querySelector(`[${key.name}${key.value ? `="${CSS.escape(key.value)}"` : ""}]`);
-      (same && !same.disabled ? same : top.querySelector(`[data-shp-preset][aria-checked="true"]`))?.focus({ preventScroll: true });
-    }
+    // in place: the control under the keyboard stays the same node
+    redraw(box.querySelector(".shp-top"), topHtml());
     jsonRender();
   }
   const said = (r, ok) => { V.err = r && r.error ? r.error : null; if (!V.err) announce(ok); render(); };
-  async function choose(id) {
-    V.confirm = null;
-    const r = await shape.choose(id);
-    const d = describeShape(createShape([]), shape.presetShape(id));
-    said(r, `${nameOf(id)}. ${d.length ? d[0] : "Every part of XO, as it is today."}`);
+  /** Where an action that takes its own control away (or disables it) leaves the keyboard: el, unless it moved on. */
+  function landOn(el, from) {
+    const a = document.activeElement;
+    if (a && a !== document.body && a !== from && a.isConnected && !a.disabled) return;
+    el?.focus({ preventScroll: true });
+  }
+  const chosenCard = () => box.querySelector('[data-shp-preset][aria-checked="true"]');
+  async function choose(id, from) {
+    const p = once(SHAPING, async () => {
+      V.confirm = null;
+      const r = await shape.choose(id);
+      const d = describeShape(createShape([]), shape.presetShape(id));
+      said(r, `${nameOf(id)}. ${d.length ? d[0] : "Every part of XO, as it is today."}`);
+    });
+    render(); // the choices say they're waiting (a preset's file may be read first)
+    await p;
+    render();
+    // from Switch (the question is gone): the card now chosen
+    landOn(chosenCard(), from);
   }
 
   if (box) {
@@ -161,27 +191,29 @@ export function createShapeView({ shape, announce = () => {} }) {
       const p = t.closest("[data-shp-preset]");
       if (p) {
         const id = p.dataset.shpPreset;
-        if (id === (shape.presetId || "everything") && !V.confirm) return;
+        if (isPending(SHAPING) || (id === (shape.presetId || "everything") && !V.confirm)) return;
         // your own changes are cleared by a switch: asked first, in place
         if (shape.ownKeys().length && id !== V.confirm) { V.confirm = id; render(); box.querySelector("[data-shp-switch]")?.focus({ preventScroll: true }); return; }
-        choose(id); return;
+        choose(id, p); return;
       }
-      if (t.closest("[data-shp-keep]")) { V.confirm = null; render(); box.querySelector(`[data-shp-preset][aria-checked="true"]`)?.focus({ preventScroll: true }); return; }
+      if (t.closest("[data-shp-keep]")) { V.confirm = null; render(); chosenCard()?.focus({ preventScroll: true }); return; }
       const sw = t.closest("[data-shp-switch]");
-      if (sw) { choose(sw.dataset.shpSwitch); return; }
-      if (t.closest("[data-shp-reset]")) { V.draft = null; said(shape.resetToPreset(), `Back to ${nameOf(shape.presetId || "everything")}, as it comes.`); return; }
+      if (sw) { choose(sw.dataset.shpSwitch, sw); return; }
+      // Reset disables itself (there's nothing left to reset): the keyboard goes to the preset it's back to
+      if (t.closest("[data-shp-reset]")) { const b = t.closest("[data-shp-reset]"); V.draft = null; said(shape.resetToPreset(), `Back to ${nameOf(shape.presetId || "everything")}, as it comes.`); landOn(chosenCard(), b); return; }
       if (t.closest("[data-shp-all]")) { V.draft = null; said(shape.showEverything(), "Everything shows. Reset to preset takes it back."); return; }
       if (t.closest("[data-shp-dense]")) { const on = shape.get("density") !== "compact"; said(shape.setDevice({ density: on ? "compact" : "comfortable" }), on ? "Compact on this device." : "Comfortable on this device."); return; }
-      if (t.closest("[data-shp-revert]")) { V.draft = null; jsonRender(); announce("Back to what's saved."); return; }
-      if (t.closest("[data-shp-save]")) {
-        const r = check(V.draft ?? "");
-        if (r.error) { jsonRender(); return; }
-        shape.setMine(r.doc).then((res) => { if (!res.error) V.draft = null; said(res, "Saved. Your shape is applied."); });
-      }
+      // Revert and Save leave nothing to revert or save (both disable): the keyboard goes back to the text
+      const ta = () => box.querySelector("[data-shp-json]");
+      const rv = t.closest("[data-shp-revert]");
+      if (rv) { V.draft = null; V.saveErr = null; jsonRender(); landOn(ta(), rv); announce("Back to what's saved."); return; }
+      const sv = t.closest("[data-shp-save]");
+      if (sv) { save(sv); return; }
     });
     box.addEventListener("input", (e) => {
       if (!e.target.matches("[data-shp-json]")) return;
       V.draft = e.target.value === mineText() ? null : e.target.value;
+      V.saveErr = null;
       jsonRender();
     });
     // Tab in the JSON writes two spaces (Shift+Tab and Esc still move on)
@@ -190,6 +222,26 @@ export function createShapeView({ shape, announce = () => {} }) {
       e.preventDefault();
       document.execCommand("insertText", false, "  ");
     });
+  }
+
+  /** Edit as JSON › Save: one save at a time; a refusal keeps the text and says why beside it. */
+  async function save(from) {
+    if (isPending(SHAPING)) return;
+    const r = check(V.draft ?? "");
+    if (r.error) { jsonRender(); return; }
+    const sent = V.draft;
+    V.saveErr = null;
+    const p = once(SHAPING, async () => {
+      const res = await shape.setMine(r.doc);
+      if (res.error) { V.saveErr = res.error; return false; }
+      if (V.draft === sent) V.draft = null; // typed on while it saved: that's still a draft
+      V.err = null; announce("Saved. Your shape is applied.");
+      return true;
+    });
+    jsonRender();
+    const ok = await p;
+    render();
+    if (ok && V.draft == null) landOn(box.querySelector("[data-shp-json]"), from);
   }
 
   // ── the first run: one question, never again once answered ──────────────────
@@ -242,14 +294,15 @@ export function createShapeView({ shape, announce = () => {} }) {
         return;
       }
       if (e.key !== "Tab") return;
-      // the keyboard stays in the sheet until it's answered
-      const f = [...el.querySelectorAll("[data-shf]"), el.querySelector("[data-shf-close]")];
+      // the keyboard stays in the sheet until it's answered: its controls in the order they're drawn (Not now,
+      // then the choices), past the last is the first and before the first is the last, never the page behind
+      const f = [...el.querySelectorAll("button")];
       const i = f.indexOf(document.activeElement);
       if (i < 0) { e.preventDefault(); (e.shiftKey ? f[f.length - 1] : f[0]).focus(); return; }
-      if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
+      if (e.shiftKey && i === 0) { e.preventDefault(); f[f.length - 1].focus(); }
       else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
     });
-    // the sheet itself takes focus, so no choice looks made before you make it; Tab reaches the first
+    // the sheet itself takes focus, so no choice looks made before you make it; Tab goes on from there
     el.querySelector(".shp-first").focus({ preventScroll: true });
   }
 
