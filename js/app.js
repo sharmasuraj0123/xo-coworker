@@ -2490,25 +2490,36 @@ function go(v, { from, focus = false, carry = false } = {}) {
     rule), and when the message you left from is above, a quiet pill offers the way back to it, deliberately. */
 function returnPill(target) {
   let pill = $("#mx-return");
-  if (!target) { if (pill) pill.hidden = true; return; }
+  // the message is held by its key, never its node: a redraw replaces nodes, and the key finds the one now drawn
+  const row = target && target.closest ? target.closest("#msgs > [data-k]") : null;
+  const key = row ? row.dataset.k : null;
+  if (!key) { if (pill) pill.hidden = true; return; }
+  const find = () => msgsEl.querySelector(`:scope > [data-k="${CSS.escape(key)}"]`);
+  const inSight = (el) => { const a = el.getBoundingClientRect(), b = scroller.getBoundingClientRect(); return a.bottom > b.top + 40 && a.top < b.bottom - 120; };
   requestAnimationFrame(() => {
-    const r = target.getBoundingClientRect(), sr = scroller.getBoundingClientRect();
-    if (r.bottom > sr.top + 40 && r.top < sr.bottom - 120) return; // already in sight
+    const el = find();
+    if (!el || inSight(el)) { if (pill) pill.hidden = true; return; }
     if (!pill) {
       pill = document.createElement("button");
       pill.type = "button"; pill.id = "mx-return"; pill.className = "mx-return";
       $("#conv").append(pill);
       pill.addEventListener("click", () => {
-        const t = pill._t; pill.hidden = true;
-        if (t && t.isConnected) {
-          const row = t.closest("#msgs > [data-k]") || t;
-          toRow(row, true); t.focus({ preventScroll: true });
-          row.classList.remove("is-flash"); void row.offsetWidth; row.classList.add("is-flash"); setTimeout(() => row.classList.remove("is-flash"), 1800);
-        }
+        pill.hidden = true;
+        const el = pill._find && pill._find();
+        if (!el) return; // it isn't drawn any more: nothing to go back to
+        toRow(el, true);
+        // the control you left from (the card or link that opened the thread), else the first one in the message
+        const back = el.querySelector("[data-go]") || [...el.querySelectorAll("button, a[href]")].find((b) => b.offsetParent);
+        back?.focus({ preventScroll: true });
+        el.classList.remove("is-flash"); void el.offsetWidth; el.classList.add("is-flash"); setTimeout(() => el.classList.remove("is-flash"), 1800);
       });
-      scroller.addEventListener("scroll", () => { const t = pill._t; if (!pill.hidden && t && t.isConnected) { const a = t.getBoundingClientRect(), b = scroller.getBoundingClientRect(); if (a.bottom > b.top + 40 && a.top < b.bottom) pill.hidden = true; } }, { passive: true });
+      scroller.addEventListener("scroll", () => {
+        if (pill.hidden || !pill._find) return;
+        const el = pill._find();
+        if (!el || pill._seen(el)) pill.hidden = true; // gone, or you've reached it
+      }, { passive: true });
     }
-    pill._t = target;
+    pill._find = find; pill._seen = inSight;
     pill.style.top = `${scroller.offsetTop + 12}px`; // just under the header, whatever its height
     pill.innerHTML = `${ICON.arrow}<span>Back to where you were</span>`;
     pill.hidden = false;
