@@ -131,12 +131,19 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
 
   /** Space's network answers (admin on origin, the workflow scope, the linked app's state), once the section
    *  is open: they can change the repository row and the lit button, so Deploy waits for them. */
-  async function preflight(p) {
+  async function preflight(p, loud = false) {
     const s = proj(p);
     if (!api.preflight || s.pre || !s.check || s.check.state === "not-deployable" || s.check.state === "needs-agent") return;
     s.pre = 1;
-    try { const c = await api.preflight(p, s.form?.name); if (c) { s.check = c; s.pre = 2; } else s.pre = 2; }
-    catch { s.pre = 2; } // a deploy still says what's wrong, step by step
+    try {
+      const c = await api.preflight(p, s.form?.name); if (c) s.check = c; s.pre = 2;
+      // asked for (I ran it: check again): what GitHub says now, in words
+      if (loud) { s.ghErr = null; announce(s.check.github?.workflow ? "GitHub has the workflow permission now." : "GitHub still doesn't have the workflow permission."); }
+    } catch (e) {
+      s.pre = 2; // a deploy still says what's wrong, step by step
+      // asked for: its failure is said, under the button that asked, and in the live region
+      if (loud) { s.ghErr = e?.message || "XO Space didn't answer"; announce(`Couldn't check GitHub: ${s.ghErr}.`); }
+    }
     changed();
   }
 
@@ -364,10 +371,11 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     const editing = !!(s.editing && c.app);
     return (editing ? head(`${esc(nameOf(p))}'s settings`, `Change what you need; ${c.behind ? `it deploys again with them, and with ${esc(c.repo.branch || "main")}'s commits since the live release` : "the live commit is built again with them"}. Values left empty stay as they are on Launchpad.`)
       : head(`Put ${esc(nameOf(p))} on the web`, guessed ? "Found these in the project. Check them, then deploy." : "Launchpad builds it on every push and runs it.")) +
+      askedHtml(p) +
       (nd ? `<div class="lp-rec lp-ask"><div class="lp-rec-c"><span class="lp-rec-k">${ICON.spark}One thing first</span><b>${esc(nd.message || "")}</b>${nd.fix ? `<p>${esc(nd.fix)}</p>` : ""}</div>${lit(nd) ? `<button type="button" class="lp-go" data-lp="${lit(nd)[1]}"><span>${lit(nd)[0]}</span></button>` : ""}</div>` : "") +
       (c.blockers.length ? `<p class="lp-note t-need">Deploy would stop here: ${esc(c.blockers.join("; "))}.</p>` : "") +
       (editing ? "" : system(p, "preview")) +
-      (c.github.source === "gh" && c.github.connected && !c.github.workflow && ghCmd(c.github.fix) ? `<div class="lp-gh"><p class="lp-note">Or grant it to this machine's gh login, then check again:</p>${cmdHtml(ghCmd(c.github.fix), s)}<div class="lp-alt lp-left"><button type="button" class="lp-a" data-lp="recheck-gh">${ICON.retry}<span>I ran it: check again</span></button></div></div>` : "") +
+      (c.github.source === "gh" && c.github.connected && !c.github.workflow && ghCmd(c.github.fix) ? `<div class="lp-gh"><p class="lp-note">Or grant it to this machine's gh login, then check again:</p>${cmdHtml(ghCmd(c.github.fix), s)}<div class="lp-alt lp-left"><button type="button" class="lp-a" data-lp="recheck-gh"${s.pre === 1 ? ' aria-disabled="true"' : ""}>${s.pre === 1 ? '<i class="lp-arc" aria-hidden="true"></i><span>Checking GitHub…</span>' : `${ICON.retry}<span>I ran it: check again</span>`}</button></div>${s.ghErr ? `<p class="lp-err lp-gh-err" role="status">Couldn't check GitHub: ${esc(s.ghErr)}.</p>` : ""}</div>` : "") +
       (S.v && S.v.startsWith("t:") ? `<p class="lp-note lp-src" title="This thread's work goes out once it's merged into ${esc(c.repo.branch || "main")}">${ICON.branch}<span>Deploys <b>${esc(c.repo.branch || "main")}</b>, not this thread's branch.</span></p>` : "") +
       `<div class="lp-set">` +
       (editing ? "" : field("name", "Name", f.name, { hint: e.name || "It can't change later.", bad: !!e.name, fix: e.nameFix })) +
@@ -463,7 +471,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     const sentence = tone === "go"
       ? `${rel ? `Release #${rel}` : name} has served${a.at ? ` for ${span(Date.now() - a.at)}` : ""} on ${ready} of ${of} instance${of > 1 ? "s" : ""}.`
       : tone === "work" ? `A new release is rolling out${rel ? `; release #${rel} keeps serving until it's healthy` : ""}.` : tone === "stop" ? "Its instances aren't answering. Deploying again, or the logs in Launchpad, say why." : `${name} isn't serving.`;
-    return hero(tone === "go" ? "Live" : words, sentence, tone) +
+    return hero(tone === "go" ? "Live" : words, sentence, tone) + askedHtml(p) +
       system(p, "live") + (s.run?.live ? warnHtml(s) : "") +
       `<div class="lp-acts"><button type="button" class="lp-b" data-lp="again">${LP_ICON.rocket}<span>Deploy again</span></button>${appUrl ? `<a class="lp-b" href="${esc(appUrl)}" target="_blank" rel="noopener"><span>Open in Launchpad</span>${LP_ICON.out}</a>` : ""}` +
       `<span class="lp-mw"><button type="button" class="lp-ib" data-lp="menu" aria-haspopup="menu" aria-expanded="${s.menu}" aria-controls="lp-mn" title="More" aria-label="More">${LP_ICON.more}</button>${s.menu ? `<span class="lp-mn" id="lp-mn" role="menu" aria-label="More"><button type="button" role="menuitem" tabindex="-1" data-lp="unlink">Unlink from Launchpad</button></span>` : ""}</span></div>`;
@@ -481,11 +489,20 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       `<div class="lp-or"><span>Or</span><button type="button" class="lp-b" data-lp="retry">${ICON.retry}<span>Try again</span></button></div>`;
     if (NEEDS_YOU.has(e.code)) return hero(e.code === "github_workflow_scope" ? "GitHub needs one more permission" : "GitHub isn't connected", e.code === "github_workflow_scope" ? "Launchpad adds a build workflow to the repository, which takes GitHub's <code>workflow</code> permission. Nothing else changes." : esc(e.message || ""), "need") +
       system(p, "run") + (e.source === "gh" && ghCmd(e.fix)
-        ? `<div class="lp-rec"><div class="lp-rec-c"><span class="lp-rec-k">${ICON.spark}Recommended</span><b>Grant it to this machine's gh login</b><p>Run this, then check again.</p></div>${cmdHtml(ghCmd(e.fix), s)}<button type="button" class="lp-go" data-lp="recheck-gh">${ICON.retry}<span>I ran it: check again</span></button></div>` +
+        ? `<div class="lp-rec"><div class="lp-rec-c"><span class="lp-rec-k">${ICON.spark}Recommended</span><b>Grant it to this machine's gh login</b><p>Run this, then check again.</p></div>${cmdHtml(ghCmd(e.fix), s)}<button type="button" class="lp-go" data-lp="recheck-gh">${ICON.retry}<span>I ran it: check again</span></button>${s.ghErr ? `<p class="lp-err" role="status">Couldn't check GitHub: ${esc(s.ghErr)}.</p>` : ""}</div>` +
           `<div class="lp-or"><span>Or</span><button type="button" class="lp-b" data-lp="reconnect">${LP_ICON.github}<span>Reconnect GitHub here</span></button></div>`
         : rec("Reconnect GitHub", "Grant it once; then deploy again.", "reconnect", e.code === "github_workflow_scope" ? "Reconnect GitHub" : "Connect GitHub", LP_ICON.github));
     return hero(`${name} didn't deploy`, esc(e.message || e.text || "Something went wrong on the way."), "stop") + system(p, "run") +
       fixOf(e) + actionHtml(e);
+  }
+
+  /** The thread an Ask (from a failed deploy) started: its row, lit, with what to do once it's done. */
+  function askedHtml(p) {
+    const s = proj(p), g = s.asked;
+    if (!g || s.check?.state === "needs-agent") return "";
+    const t = findThread(p), done = !!(t && t.thread === g.thread && t.done);
+    return `<div class="lp-asked"><p class="lp-note">An agent is fixing it. Deploy again here once its work is merged.</p>` +
+      `<ul class="lp-ag"><li><button type="button" class="lp-agr" data-lp="thread" data-go="t:${esc(g.thread)}" title="Open the thread"><span class="lp-t">${ICON.threadOne}${done ? "" : '<i class="arc"></i>'}</span><span class="lp-c"><b>${esc(g.title)}</b><span>${done ? "Done: merge its work, then deploy" : "Working"}</span></span><span class="lp-m">${done ? "" : `<span class="lp-tm">${since(g.since)}</span>`}</span></button></li></ul></div>`;
   }
 
   function needsHtml(p) {
@@ -530,7 +547,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     const sc = screen(p);
     const s = proj(p), c = s.check;
     return {
-      key: `${p}|${sc}` + (sc === "setup" ? `|${formKey(c, { pre: s.pre, needs: s.needs && [s.needs.code, s.needs.message, s.needs.fix, s.needs.action], errs: s.form.errs || {}, envAll: !!s.envAll, editing: !!s.editing, machine: !!s.machine, disk: !!s.form.disk, thread: !!S.v?.startsWith("t:") })}` : ""),
+      key: `${p}|${sc}` + (sc === "setup" ? `|${formKey(c, { pre: s.pre, needs: s.needs && [s.needs.code, s.needs.message, s.needs.fix, s.needs.action], errs: s.form.errs || {}, envAll: !!s.envAll, editing: !!s.editing, machine: !!s.machine, disk: !!s.form.disk, thread: !!S.v?.startsWith("t:"), ghErr: s.ghErr || "", asked: !!s.asked })}` : ""),
       html: sc === "checking" ? checkingHtml(p) : sc === "check-failed" ? head("Couldn't check this project", esc(proj(p).err?.message || "XO Space didn't answer.")) + `<div class="lp-acts"><button type="button" class="lp-b" data-lp="recheck">${ICON.retry}<span>Try again</span></button></div>`
         : sc === "setup" ? setupHtml(p) : sc === "undo" || sc === "run" ? runHtml(p) : sc === "lost" ? lostHtml(p) : sc === "live" ? liveHtml(p) : sc === "failed" ? failedHtml(p)
         : sc === "needs" ? needsHtml(p) : sc === "getting" ? gettingHtml(p) : sc === "device" ? deviceHtml(p) : sc === "pick" ? pickHtml(p) : "",
@@ -679,20 +696,24 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   /** Reconnect GitHub with the workflow scope: Space's device flow, polled until it's granted. */
   async function github(p) {
     const s = proj(p);
-    s.device = { code: "", url: "", copied: false };
+    // this call owns one code: Cancel, or a newer Reconnect, makes it someone else's, and from then on this call's
+    // answers (a late start, a poll that fails or succeeds) change nothing (Astra: an old poll cleared a newer code)
+    let cur = s.device = { code: "", url: "", copied: false };
+    const ours = () => s.device === cur;
     land('[data-lp="code-copy"], [data-lp="device-cancel"]'); // Connecting… has nothing to press: the section holds focus till the code comes
     changed();
     try {
       const gh = s.check.github;
       const d = await api.githubStart(gh.connected && gh.source === "connections");
-      if (!s.device) return; // cancelled meanwhile
+      if (!ours()) return; // cancelled or started again meanwhile
       if (d.connected) { s.device = null; s.pre = 0; land(AFTER + ', [data-lp="retry"]'); if (NEEDS_YOU.has(s.run?.error?.code)) s.run = null; announce(`GitHub is connected${d.username ? ` as ${d.username}` : ""}${d.imported ? ", from this machine's gh login" : ""}.`); changed(); preflight(p); return; }
-      s.device = { ...d, copied: false };
+      cur = s.device = { ...d, copied: false };
       changed();
-      while (s.device && s.device.id === d.id && (!d.until || Date.now() < d.until)) {
+      while (ours() && (!d.until || Date.now() < d.until)) {
         await new Promise((r) => setTimeout(r, 2500));
-        if (!s.device || s.device.id !== d.id) return;
+        if (!ours()) return;
         const r = await api.githubPoll(d.id);
+        if (!ours()) return; // its answer came after a Cancel or a new code: not this screen's any more
         if (r?.failed) throw new Error(r.failed);
         if (r?.done) {
           s.device = null; s.pre = 0; land(AFTER + ', [data-lp="retry"]');
@@ -702,8 +723,8 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
           return;
         }
       }
-      if (s.device) { s.device = null; land('[data-lp="reconnect"]'); notify && notify("GitHub's code ran out. Reconnect again."); changed(); }
-    } catch (e) { s.device = null; land('[data-lp="reconnect"]'); notify && notify(`GitHub didn't connect: ${e.message}`); changed(); }
+      if (ours()) { s.device = null; land('[data-lp="reconnect"]'); notify && notify("GitHub's code ran out. Reconnect again."); changed(); }
+    } catch (e) { if (!ours()) return; s.device = null; land('[data-lp="reconnect"]'); notify && notify(`GitHub didn't connect: ${e.message}`); changed(); }
   }
 
   async function startPick(p) {
@@ -778,6 +799,14 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     load(p, true); changed();
   }
 
+  /** A notice's Undo was pressed: focus moves into the section (onto sel), or onto the header's Deploy when the
+   *  section isn't on screen, before the notice takes its button away; the redraw then names the final place. */
+  function fromNotice(sel) {
+    const n = S.body?.querySelector(sel);
+    if (n && n.getClientRects().length) n.focus({ preventScroll: true });
+    else document.querySelector("[data-lp-open]")?.focus({ preventScroll: true });
+  }
+
   /** The ⋯ menu: opens with focus on its first item; closes back onto More (when focus was in it). */
   function menu(p, open, focusIn = false) {
     const s = proj(p);
@@ -793,7 +822,8 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   async function copied(text, what, mark) {
     const ok = await copyText(String(text || ""));
     if (!ok) { announce(COPY_REFUSED); notify && notify(COPY_REFUSED); return; }
-    mark(); announce(`Copied ${what}.`); changed(); setTimeout(changed, 1600);
+    mark(); announce(`Copied ${what}.`); changed();
+    clearTimeout(S.copiedT); S.copiedT = setTimeout(changed, 1600); // the latest Copy's 1.5 s, not the first's
   }
 
   function act(name, el) {
@@ -803,7 +833,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     switch (name) {
       case "open": onOpen && onOpen(); return;
       case "deploy": deploy(p); return;
-      case "undo": if (s.run) { s.run = null; land('[data-lp="deploy"], [data-lp="again"]'); announce("Deploy undone. Nothing changed."); changed(); } return;
+      case "undo": if (s.run) { s.run = null; land('[data-lp="deploy"], [data-lp="again"], [data-lp="recreate"]'); announce("Deploy undone. Nothing changed."); changed(); } return;
       case "hide": { const here = S.body?.contains(document.activeElement); onHide && onHide(); if (here) S.el.querySelector('[data-fr-fold="launch"]')?.focus({ preventScroll: true }); return; } // folded: focus on its head's fold
       case "stop": {
         if (!s.run || s.run.stopping || s.run.stopSent) return;
@@ -819,7 +849,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
           const n = S.body?.querySelector('.lp-q .lp-count');
           if (n) n.textContent = String(Math.max(1, Math.ceil((run.stopAt - Date.now()) / 1000)));
         }, 200);
-        notify && notify(`Stopping the deploy of ${s.form.name}`, () => keep(p, run));
+        notify && notify(`Stopping the deploy of ${s.form.name}`, () => { fromNotice('[data-lp="stop-undo"]'); keep(p, run); });
         land('[data-lp="stop-undo"]'); changed();
         announce(`Stopping the deploy in 3 seconds. Keep deploying to take it back.`);
         return;
@@ -828,9 +858,9 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       case "cmd-copy": copied(el.dataset.v, "the command", () => {
         s.cmdCopied = Date.now() + 1500;
         // the setup form isn't redrawn under the person's fingers: its button shows the check itself
-        if (el.isConnected) { el.innerHTML = ICON.check; el.title = "Copied"; setTimeout(() => { if (el.isConnected) { el.innerHTML = ICON.copy; el.title = "Copy the command"; } }, 1500); }
+        if (el.isConnected) { el.innerHTML = ICON.check; el.title = "Copied"; clearTimeout(el._copied); el._copied = setTimeout(() => { if (el.isConnected) { el.innerHTML = ICON.copy; el.title = "Copy the command"; } }, 1500); }
       }); return;
-      case "recheck-gh": land('[data-lp="recheck-gh"], [data-lp="deploy"], [data-lp="reconnect"]'); s.pre = 0; if (NEEDS_YOU.has(s.run?.error?.code)) s.run = null; announce("Checking GitHub again."); changed(); preflight(p); return;
+      case "recheck-gh": land('[data-lp="recheck-gh"], [data-lp="deploy"], [data-lp="reconnect"]'); s.pre = 0; s.ghErr = null; if (NEEDS_YOU.has(s.run?.error?.code)) s.run = null; announce("Checking GitHub again."); changed(); preflight(p, true); return;
       case "rewatch": s.run = null; watch(p); land('[data-lp="stop"]'); changed(); return;
       case "settings": s.run = null; s.needs = null; S.key = ""; land(s.form.errs?.size ? '[data-lp-f="size"]' : '[data-lp-f="name"]'); changed(); requestAnimationFrame(() => S.body?.querySelector(s.form.errs?.size ? '[data-lp-f="size"]' : '[data-lp-f="name"]')?.focus()); return;
       case "machine-open": s.machine = true; S.key = ""; land('[data-lp-f="size"]'); changed(); requestAnimationFrame(() => S.body?.querySelector('[data-lp-f="size"]')?.focus()); return;
@@ -854,8 +884,9 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
         s.menu = false; s.needs = null;
         const was = s.check, run = s.run;
         s.check = { ...was, app: null, state: "ready" }; s.run = null; land('[data-lp="deploy"], [data-lp="reconnect"]'); changed();
-        const t = setTimeout(() => api.unlink(p).then(() => load(p, true)).catch((e) => { s.check = was; notify && notify(`Couldn't unlink: ${e.message}`); changed(); }), 3200);
-        notify && notify("Unlinked from Launchpad", () => { clearTimeout(t); s.check = was; s.run = run; changed(); });
+        // refused, or undone: the app is back, and focus with it on More, where Unlink was
+        const t = setTimeout(() => api.unlink(p).then(() => load(p, true)).catch((e) => { s.check = was; land('[data-lp="menu"]'); notify && notify(`Couldn't unlink: ${e.message}`); announce(`Couldn't unlink: ${e.message}. It's still linked.`); changed(); }), 3200);
+        notify && notify("Unlinked from Launchpad", () => { fromNotice('[data-lp="deploy"], [data-lp="reconnect"]'); clearTimeout(t); s.check = was; s.run = run; land('[data-lp="menu"]'); changed(); });
         return;
       }
       case "pick": startPick(p); return;
@@ -912,7 +943,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       const f = proj(p).form;
       if (t.dataset.lpF) f[t.dataset.lpF] = t.dataset.lpF === "name" || t.dataset.lpF === "repo" ? t.value.toLowerCase() : t.value.trim();
       if (t.dataset.lpEnv) f.env[t.dataset.lpEnv] = t.value;
-      if (f.errs && Object.keys(f.errs).length) { const l = t.closest(".lp-f"); l?.classList.remove("is-bad"); t.removeAttribute("aria-invalid"); }
+      if (f.errs && Object.keys(f.errs).length) { const l = t.closest(".lp-f"); l?.classList.remove("is-bad"); t.removeAttribute("aria-invalid"); t.querySelector?.(".dd-btn")?.removeAttribute("aria-invalid"); }
       syncPreview(p);
     });
     section.addEventListener("keydown", (e) => {
@@ -933,7 +964,10 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     // Esc in the ⋯ menu closes the menu, not the panel: heard before the panel's own Esc (stage.js listens in its
     // capture phase), so only from the document's
     document.addEventListener("keydown", (e) => {
-      if (e.key !== "Escape" || !S.body || !e.target.closest?.(".fr-lp .lp-mw")) return;
+      if (e.key !== "Escape" || !S.body) return;
+      const x = e.target.closest?.(".fr-lp xo-select.is-open");
+      if (x) { e.preventDefault(); e.stopPropagation(); x.close(true); return; } // the list closes, focus stays on Size
+      if (!e.target.closest?.(".fr-lp .lp-mw")) return;
       const p = projectOf(S.v);
       if (!p || !proj(p).menu) return;
       e.preventDefault(); e.stopPropagation();

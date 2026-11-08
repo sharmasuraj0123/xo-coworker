@@ -65,6 +65,14 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
   const grip = root.querySelector(".shd-grip");
 
   const byId = (id) => R.list.find((t) => t.id === id) || null;
+  /** The dock put away (Hide, Esc, a phone's Back) with focus in it: focus goes to the page's work (the
+   *  conversation, or Home), whichever is on screen; failing that, to the way back to the dock: the sidebar's
+   *  Shells, or on a phone (its sidebar a closed drawer) the menu button that opens it. */
+  const shown = (el) => !!(el && el.getClientRects().length && !el.closest("[inert]"));
+  function away() {
+    const to = ["scroller", "home", "nv-shells", "pb-menu", "top-menu"].map((id) => document.getElementById(id)).find(shown);
+    to?.focus({ preventScroll: true });
+  }
   const nameOf = (id) => byId(id)?.name || R.tabs.get(id)?.name || "Shell";
   const listShown = () => R.open && !R.min && R.active === LIST && !document.hidden;
 
@@ -199,7 +207,9 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
       attach(d.terminal.id, { ticket: d.ticket });
       announce(`Shell open in ${where}`);
     } catch (err) {
+      const had = root.contains(document.activeElement) || document.activeElement === document.body;
       R.opening = false; render();
+      if (had && !root.contains(document.activeElement)) listEl.querySelector("[data-sh-new]")?.focus(); // refused: back on New shell
       notify({ kind: "stopped", text: "Couldn't open a shell", sub: err.message });
       announce(`Couldn't open a shell: ${err.message}`);
       if (err.code === "terminal_disabled") refresh({ status: true });
@@ -239,10 +249,13 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
   function toggle() {
     if (!R.enabled || !wanted()) return;
     if (!R.open) { activate(R.active); return; }
+    // minimised from its own button: focus stays on that button (now Show, kept in place); from inside the dock
+    // (the toggle key in a shell): the page's work
+    const onMin = !!document.activeElement?.closest?.("[data-sh-min]");
     R.min = !R.min;
     changed();
-    if (!R.min) activate(R.active);
-    else if (root.contains(document.activeElement)) document.getElementById("scroller")?.focus({ preventScroll: true });
+    if (!R.min) activate(R.active, { focus: !onMin });
+    else if (!onMin && root.contains(document.activeElement)) away();
   }
 
   // ── closing ───────────────────────────────────────────────────────────────
@@ -538,15 +551,17 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
     const cl = t.closest("[data-sh-close]");
     if (cl) { askClose(cl.dataset.shClose, !!cl.closest(".shl-row")); return; }
     const rt = t.closest("[data-sh-retry]");
-    if (rt) { R.tabs.get(rt.dataset.shRetry)?.handle.reconnect(); return; }
+    // Retry now / Try again: the note goes as it reconnects; the shell itself has focus, under it
+    if (rt) { const tab = R.tabs.get(rt.dataset.shRetry); tab?.handle.reconnect(); tab?.handle.focus(); return; }
     if (t.closest("[data-sh-new]")) { const f = R.filter; if (f && f !== "workspace") openProject(f, { fresh: true }); else openWorkspace({ fresh: true }); return; }
     if (t.closest("[data-sh-closedet]")) { askCloseDetached(); return; }
     const fl = t.closest("[data-sh-filter]");
-    if (fl) { R.filter = fl.dataset.shFilter || null; changed(); return; }
+    // Show every shell: the button goes with the filter; focus on New shell (the same control, now for the workspace)
+    if (fl) { R.filter = fl.dataset.shFilter || null; changed(); listEl.querySelector("[data-sh-new]")?.focus(); return; }
     if (t.closest("[data-sh-no]")) { keepIt(); return; }
     if (t.closest("[data-sh-yes]")) { const c = R.confirm; if (c?.kind === "close") closeShell(c.id); else if (c) closeDetached(c.ids); return; }
     if (t.closest("[data-sh-min]")) { toggle(); return; }
-    if (t.closest("[data-sh-hide]")) { R.open = false; changed(); document.getElementById("scroller")?.focus({ preventScroll: true }); return; }
+    if (t.closest("[data-sh-hide]")) { R.open = false; changed(); away(); return; }
     // a click on the minimised bar opens it again
     if (R.min && t.closest(".shd-bar")) { R.min = false; activate(R.active); }
   });
@@ -562,7 +577,7 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
       e.preventDefault(); e.stopPropagation();
       if (R.confirm) { keepIt(); return; }
       R.min = true; changed();
-      document.getElementById("scroller")?.focus({ preventScroll: true });
+      away();
       return;
     }
     // ← → between tabs; Home and End to the ends
@@ -626,7 +641,7 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
       if (to === "away") {
         await glide(root, `translateY(${H - root.offsetTop}px)`, { ms: 180 });
         R.min = true; R.half = false; unstyle(root); changed();
-        document.getElementById("scroller")?.focus({ preventScroll: true });
+        away();
         return;
       }
       const target = to === "half" ? Math.round(H * 0.45) : 0;
@@ -678,7 +693,7 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
       if (!(PHONE.matches && R.open && !R.min)) return false;
       if (!R.half) { R.half = true; render(); refit(); return true; }
       R.min = true; R.half = false; changed();
-      document.getElementById("scroller")?.focus({ preventScroll: true });
+      away();
       return true;
     },
   };
