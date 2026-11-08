@@ -1183,6 +1183,52 @@ t("DET: Copy on an answer that's still streaming keeps focus through every updat
   assert.equal(await page.evaluate(() => document.activeElement === window.__cp), true, `focus on the same Copy, not ${await focusIs(page)}`);
   await done(page);
 }, { only: (c) => c.width >= 760 });
+t("DET: when the reply finishes in place, nothing of msgx's is left over: the working line goes, one Reply/Copy stays", async () => {
+  const page = await liveTurn();
+  // focus inside the turn (its work's header, opened from the working line), so its row is redrawn in place
+  const w = page.locator("#msgs .mx-work");
+  await w.waitFor({ state: "visible" });
+  await w.focus();
+  await page.keyboard.press("Enter");
+  await settle(page, 300);
+  await page.evaluate((fs) => { for (const f of fs) window.__storm.apply(f); }, [
+    env("block.started", { block: { id: `${TURN}:t1`, type: "text", index: null, text: "The tests pass." } }),
+    env("block.finished", { block: { id: `${TURN}:g0`, type: "activity", index: 0, header: "Ran the tests", rows: [ROW({ status: "ok", output: "12 passed" })] } }),
+    env("turn.finished", { status: "finished", stop_reason: "completed", error_class: null, error: null, wakes: [] }),
+    env("session", { status: "warm", reason: "turn_done" }, { turn_id: null }),
+  ]);
+  await settle(page, 1200);
+  const row = await page.evaluate((T) => {
+    const el = document.querySelector(`#msgs [data-k^="turn:${T}"]`);
+    const own = [...el.querySelectorAll("[data-own]")].map((n) => n.className.split(" ")[0] + (n.classList.contains("is-foot") ? ".is-foot" : ""));
+    return { live: el.classList.contains("is-live"), own, inRow: el.contains(document.activeElement) };
+  }, TURN);
+  assert.equal(row.live, false, "the turn has ended");
+  assert.ok(!row.own.includes("mx-work"), `no working line left: ${row.own}`);
+  assert.deepEqual(row.own.filter((x) => x === "mx-acts").length, 1, `one Reply/Copy on the answer: ${row.own}`);
+  assert.ok(row.own.every((x) => ["mx-acts", "mx-acts.is-foot", "mx-swipe"].includes(x)), `only what a finished answer has: ${row.own}`);
+  assert.equal(row.inRow, true, `focus still in the row, not ${await focusIs(page)}`);
+  await done(page);
+});
+t("DET: a quote card goes when its message's quote is gone, focus moving to that message's Reply", async () => {
+  const page = await app();
+  await openThread(page, "t_login");
+  await page.evaluate(() => {
+    const S = window.__t.S;
+    (S.local["t:t_login"] = S.local["t:t_login"] || []).push({ id: "lq1", conv: "t:t_login", at: Date.now(), who: "you", text: "> **The agent**\n> The tests pass.\n\nGreat, ship it.", status: "sent", target: null, cid: "ui_lq1" });
+    window.__t.render();
+  });
+  const card = page.locator('#msgs [data-k="lq1"] .mx-qc');
+  await card.waitFor({ state: "attached" });
+  await card.focus();
+  await page.evaluate(() => { window.__t.S.local["t:t_login"].find((m) => m.id === "lq1").text = "Great, ship it."; window.__t.render(); });
+  await settle(page, 200);
+  assert.equal(await page.locator('#msgs [data-k="lq1"] .mx-qc').count(), 0, "the card is gone with its quote");
+  assert.equal(await page.locator('#msgs [data-k="lq1"] .bubble').evaluate((b) => [...b.childNodes].filter((n) => n.nodeType === 3).map((n) => n.nodeValue).join("")), "Great, ship it.");
+  assert.match(await focusIs(page), /\[data-mx-reply\]/, "focus on the message's Reply");
+  assert.equal(await page.evaluate(() => !!document.activeElement.closest('[data-k="lq1"]')), true);
+  await done(page);
+}, { only: (c) => c.width >= 760 });
 t("DET-2 C121/C050: the working line opens the work with focus on its header; folding it hands focus back to the line", async () => {
   const page = await liveTurn();
   const w = page.locator("#msgs .mx-work");

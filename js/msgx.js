@@ -111,8 +111,15 @@ function quoteCard(m) {
   const b = m.querySelector(".bubble");
   if (!b || b._mxq) return;
   b._mxq = true;
+  // read once per drawing: the first time, and again after the bubble is drawn again in place ("redrawn" clears
+  // _mxq), when its text node holds the message's text as the app drew it
   const tn = [...b.childNodes].find((n) => n.nodeType === 3);
-  if (!tn || tn.nodeValue === b._mxRest || !/^> /.test(tn.nodeValue)) return;
+  if (!tn || !/^> /.test(tn.nodeValue)) {
+    // no quote (now): a card left from before goes, focus on it moving first to this message's Reply
+    const old = b.querySelector(":scope > .mx-qc");
+    if (old) { if (old.contains(document.activeElement)) b.querySelector("[data-mx-reply]")?.focus({ preventScroll: true }); old.remove(); }
+    return;
+  }
   const lines = tn.nodeValue.split("\n");
   let i = 0; const q = [];
   while (i < lines.length && /^>/.test(lines[i])) q.push(lines[i++].replace(/^>\s?/, ""));
@@ -128,7 +135,7 @@ function quoteCard(m) {
   card.dataset.mxJump = said;
   card.querySelector("b").textContent = who || "Quote";
   card.querySelector("span").textContent = said;
-  tn.nodeValue = rest; b._mxRest = rest;
+  tn.nodeValue = rest;
   b.insertBefore(card, tn);
 }
 
@@ -150,6 +157,15 @@ function decorate() {
     // Reply and Copy sit beside the bubble itself; a message with no words (a card, pictures) has neither
     const bub = bubbleOf(el), mb = el.querySelector(":scope > .mb");
     if (bub && !bub.querySelector(":scope > .mx-acts")) bub.append(acts);
+    // Reply and Copy left on a bubble that isn't the message's now (a turn's answer moved on to a later block)
+    // go; focus on one moves to the same button on the bubble that is
+    for (const a of el.querySelectorAll(".mx-acts:not(.is-foot)")) {
+      if (a.parentElement === bub) continue;
+      const f = a.querySelector(":focus");
+      if (f) (bub && bub.querySelector(`:scope > .mx-acts > [${f.hasAttribute("data-mx-copy") ? "data-mx-copy" : "data-mx-reply"}]`))?.focus({ preventScroll: true });
+      a.remove();
+    }
+    if (!bub && !el.querySelector(".mx-stack, .tb-files")) mb?.querySelector(":scope > .mx-acts.is-foot")?.remove();
     if (bub && !el.classList.contains("m-you")) {
       if (mb && !mb.querySelector(":scope > .mx-acts.is-foot")) { const foot = acts.cloneNode(true); foot.classList.add("is-foot"); mb.append(foot); }
     } else if (!bub && el.querySelector(".mx-stack, .tb-files")) {
@@ -304,6 +320,13 @@ function working(el) {
   // its mark centres on a 44 px row when that comes first: an open work card, an answer, a block pressed open
   el.classList.toggle("mx-av-row", !!el.querySelector(':scope > .mb > .turn > :is(.tb-work.is-open, .tb-answer, .tb-text, .tb.is-unfolded):first-child'));
   if (!live || !mb) {
+    // The working line is this file's (data-own: a row drawn again in place keeps it), so it goes here, when the
+    // turn is no longer working. Focus on it moves first, to the finished work's own line (else the answer's Copy).
+    const stale = mb && mb.querySelector(":scope > .mx-work");
+    if (stale) {
+      if (stale.contains(document.activeElement)) [...el.querySelectorAll(".turn .tb-work > .tb-h, .turn .tb-h, [data-mx-copy]")].find((x) => x.getClientRects().length)?.focus({ preventScroll: true });
+      stale.remove();
+    }
     // it just ended: it stays drawn where it was, after what arrived while it worked, so nothing jumps
     if (WORKING.has(key)) {
       const last = [...msgs.children].filter((c) => c !== el && c.dataset.k).pop();
