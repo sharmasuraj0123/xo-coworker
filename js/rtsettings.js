@@ -26,7 +26,8 @@ const POLICY = "runtime-policy";
 export function createRuntimeSettings({ world, announce, PROJ }) {
   // pref: what's typed in "How coordinators choose" and not saved yet (kept through a failed save);
   // next: the policy a save has out, shown (as waiting) until the server answers
-  const R = { timer: null, err: null, saved: null, pref: null, next: null };
+  // saving: the field whose save is out (said "Saving…" beside it until XO answers, never as saved before)
+  const R = { timer: null, err: null, saved: null, saving: null, pref: null, next: null };
   const page = () => document.querySelector('[data-page="runtimes"]');
   const live = () => page()?.querySelector(".set-live");
   const onScreen = () => { const p = page(); return !!p && !p.hidden && !document.querySelector("#settings").hidden; };
@@ -73,11 +74,11 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
     if (isPending(POLICY)) return false; // the one already out is answered first; this press joins nothing new
     const next = { ...space(), ...patch };
     if (next.preferences != null && !String(next.preferences).trim()) next.preferences = null;
-    R.err = null; R.next = next;
+    R.err = null; R.next = next; R.saving = field; R.saved = null;
     const p = once(POLICY, async () => {
       try { await world.act.setPolicy(null, next); }
       catch (err) { R.err = { field: errorField(err) === "form" ? field : errorField(err), text: err.message }; return false; }
-      finally { R.next = null; } // saved: the server's own answer shows; refused: what was there before
+      finally { R.next = null; R.saving = null; } // saved: the server's own answer shows; refused: what was there before
       R.saved = field; announce(words);
       setTimeout(() => { if (R.saved === field) { R.saved = null; if (onScreen()) draw(); } }, 1600);
       return true;
@@ -94,7 +95,11 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
     const serverOwn = defaultOf({ default: null }, rts());
     const allowed = allowedOf(p, rts());
     const usual = p.default || serverOwn;
-    const note = (f) => (R.err && R.err.field === f ? `<p class="rt-ferr" role="alert">${esc(R.err.text)}</p>` : R.saved === f ? `<span class="rt-saved" role="status">Saved</span>` : "");
+    // beside each default: its refusal, "Saving…" while its save is out (the choice shows, said as not yet saved),
+    // then "Saved" only once XO has answered
+    const note = (f) => (R.err && R.err.field === f ? `<p class="rt-ferr" role="alert">${esc(R.err.text)}</p>`
+      : R.saving === f ? `<span class="rt-saved is-saving" role="status">Saving…</span>`
+        : R.saved === f ? `<span class="rt-saved" role="status">Saved</span>` : "");
     const busy = busyAttrs(POLICY);
     const row = (f, label, sub, ctl) => `<div class="set-row rt-def"><div class="set-l"><b id="rtd-${f}">${label}</b><span>${sub}</span>${note(f)}</div>${ctl}</div>`;
     return `<section class="set-sec" aria-labelledby="rtsp-h"><h3 id="rtsp-h">Defaults</h3>` +
