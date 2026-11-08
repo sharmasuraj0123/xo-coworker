@@ -702,7 +702,7 @@ function messagesOf(conv) {
   const turn = t && t.busy && t.sessionId && st.turns ? st.turns.running(t.sessionId) : null;
   for (const m of rows) {
     const key = S.alias.get(m.id) || m.id;
-    const base = { key, at: m.at, seq: m.seq, text: m.text, sent: S.alias.has(m.id), files: m.files, chatId: m.chatId, reactions: m.reactions };
+    const base = { key, sid: m.id, at: m.at, seq: m.seq, text: m.text, sent: S.alias.has(m.id), files: m.files, chatId: m.chatId, reactions: m.reactions };
     if (m.who === "you") {
       out.push({ ...base, who: "you", fwd: conv !== "ws" && m.fwd ? m.fwd : null, routed: conv === "ws" ? st.routed[m.id] || null : null, queued: waitsForTurn(m, turn) });
       if (alone.has(m.id)) out.push({ key: `${m.id}:card`, at: m.at, who: "card", thread: m.id });
@@ -899,15 +899,21 @@ function moveBannerHtml(m, here) {
 const HS_THEM = (n) => `<div class="hs-them" aria-hidden="true"><i class="hs-av"></i><div class="hs-b"><i class="hs-bar hs-name"></i>${"<i class=\"hs-bar\"></i>".repeat(n)}</div></div>`;
 const HIST_SKEL = `<div class="hist-skel" role="status"><span class="sr-only">Loading earlier messages</span>${HS_THEM(2)}` +
   `<div class="hs-you" aria-hidden="true"><i class="hs-bub"><i class="hs-bar"></i></i></div>${HS_THEM(1)}</div>`;
-/** Has anyone answered after your message (the coordinator, an agent, a turn)? Then its receipt has done its job. */
-const answeredAfter = (list, m) => { const i = list.indexOf(m); return i >= 0 && list.slice(i + 1).some((x) => x.who === "coord" || x.who === "agent" || x.who === "turn"); };
+/** Has anyone answered after your message? A message from the coordinator or an agent, or a finished turn that
+    said something (a running turn, or one that only used tools, hasn't answered yet). Then its receipt is done. */
+const answeredAfter = (list, m) => {
+  const i = list.indexOf(m);
+  return i >= 0 && list.slice(i + 1).some((x) => x.who === "coord" || x.who === "agent" ||
+    (x.who === "turn" && x.turn && x.turn.status !== "running" && Array.from(x.blocks || []).some((b) => b && (b.type === "answer" || b.type === "text") && String(b.text || "").trim())));
+};
 /** The thread a hop handed your message to, by the hop's own message ids; null when no hop names it. */
 function passedTo(m) {
-  if (!m.id || !world.state.hops) return null;
-  // the message as the server knows it: a bubble you sent here keeps its local id, and S.alias maps the
-  // server's id to it once the row is back
-  const ids = new Set([m.id]);
-  for (const [sid, lid] of S.alias) if (lid === m.id) ids.add(sid);
+  if (!world.state.hops) return null;
+  // the message as the server knows it: a row carries its server id (sid); a bubble you sent here keeps its
+  // local id (id, key), and S.alias maps the server's id to it once the row is back
+  const ids = new Set([m.sid, m.id, m.key].filter(Boolean));
+  for (const [sid, lid] of S.alias) if (ids.has(lid)) ids.add(sid);
+  if (!ids.size) return null;
   for (const h of world.state.hops.values()) {
     if ((h.kind === "relay" || h.kind === "brief") && h.to_role === "thread" && h.thread_ts && (h.message_ids || []).some((x) => ids.has(x))) return world.thread(h.thread_ts)?.title || "a thread";
   }
