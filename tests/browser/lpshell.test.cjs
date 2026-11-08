@@ -69,7 +69,9 @@ t("LP17/LP20: Deploy starts a 3 s Undo, focused; Undo sends nothing", async () =
   await page.waitForTimeout(100);
   assert.equal(await focused(page), "undo");
   await page.keyboard.press("Enter");
-  await page.waitForTimeout(3300);
+  await page.waitForTimeout(200);
+  assert.equal(await focused(page), "deploy", "focus back on Deploy, not the page");
+  await page.waitForTimeout(3100);
   assert.equal(posts, 0, "nothing was sent");
   assert.equal(await page.locator(".lp").getAttribute("data-screen"), "setup");
   assert.match(await live(page), /Deploy undone/);
@@ -102,6 +104,45 @@ t("LP21/LP22: Stop's 3 s are taken back in place (Keep deploying); then a stop w
   await page.waitForFunction(() => document.querySelector(".lp")?.dataset.screen !== "run");
   assert.match(await live(page), /Deploy stopped/);
   await done(page);
+});
+
+for (const answer of ["503", "{}"]) {
+  t(`LP21: a stop that is ${answer === "503" ? "refused" : "never confirmed"} keeps focus on Stop (Stopping…, then Stop again)`, async () => {
+    const page = await open({ launchpad: "building", onDeploy: (r, m, p) => (/\/api\/deploy\/[^/]+$/.test(p) && m === "DELETE" ? (answer === "503" ? json(r, { detail: { code: "fixture_offline", message: "Fixture offline" } }, 503) : json(r, {})) : r.fallback()) });
+    await W.openLaunchpad(page);
+    await page.waitForFunction(() => document.querySelector(".lp")?.dataset.screen === "run");
+    await page.locator('[data-lp="stop"]').focus();
+    await page.keyboard.press("Enter");
+    await page.waitForSelector('[data-lp="stop-undo"]');
+    await page.waitForTimeout(3150);
+    assert.equal(await focused(page), "stop", "the window ends: focus on Stop (Stopping…)");
+    await page.waitForFunction(() => /Stop again/.test(document.querySelector('[data-lp="stop"]')?.innerText || ""));
+    assert.equal(await focused(page), "stop", "Stop again has focus");
+    assert.ok(await page.evaluate(() => document.activeElement !== document.body));
+    await done(page);
+  });
+}
+
+t("LP focus: Cancel (settings) goes back to Change; Cancel (GitHub's code) back to Reconnect; never the page", async () => {
+  const page = await open({ launchpad: "live" });
+  await W.openLaunchpad(page);
+  await page.waitForFunction(() => document.querySelector(".lp")?.dataset.screen === "live");
+  await page.locator('.lpm-env [data-lp="edit"], [data-lp="edit"]').first().click();
+  await page.waitForSelector('[data-lp="edit-cancel"]');
+  await page.locator('[data-lp="edit-cancel"]').focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(200);
+  assert.equal(await focused(page), "edit", "back on Change");
+  await page.context().close();
+  const p2 = await open({ launchpad: "device" });
+  await W.openLaunchpad(p2);
+  await p2.locator('[data-lp="reconnect"]').click();
+  await p2.waitForSelector('[data-lp="device-cancel"]');
+  await p2.locator('[data-lp="device-cancel"]').focus();
+  await p2.keyboard.press("Enter");
+  await p2.waitForTimeout(200);
+  assert.equal(await focused(p2), "reconnect", "back on Reconnect GitHub");
+  await done(p2);
 });
 
 for (const mode of ["ok", "deny"]) {
@@ -207,8 +248,12 @@ t("LP15: Size is the app's dropdown (xo-select), by keyboard, and the deploy car
   await page.waitForSelector('xo-select[data-lp-f="size"] .dd-menu:not([hidden])');
   await page.keyboard.press("ArrowDown");
   await page.keyboard.press("Enter");
-  await page.waitForTimeout(100);
+  await page.waitForTimeout(300);
   assert.equal(await page.evaluate(() => document.querySelector('xo-select[data-lp-f="size"]').value), "xo.medium");
+  // Enter chose a size, and only that: no deploy started (the native select's Enter did start one)
+  assert.equal(await page.locator(".lp").getAttribute("data-screen"), "setup");
+  assert.equal(await page.locator('[data-lp="undo"]').count(), 0, "no deploy Undo");
+  assert.ok(await page.evaluate(() => !!document.activeElement.closest('xo-select[data-lp-f="size"]')), "focus stays on Size");
   assert.match(await page.locator("#lp-h-size").innerText(), /Fixed once it's created/);
   await page.locator('[data-lp="deploy"]').click();
   await page.waitForTimeout(3500);
@@ -258,7 +303,7 @@ t("SH04: ← → move between tabs, Home and End go to the ends", async () => {
   await done(page);
 });
 
-t("SH06: a shell is renamed in its tab: Enter keeps, Esc cancels, a failure keeps the old name", async () => {
+t("SH06: a shell is renamed in its tab: Enter keeps, Esc cancels, a refusal keeps what was typed in the field", async () => {
   const W2 = {};
   const page = await dock({ api: (r, m, p, answer) => (W2.fail && m === "PATCH" ? answer({ detail: { code: "unavailable", message: "Fixture offline" } }, 503) : undefined) });
   await attach(page, "sh_1");
@@ -277,9 +322,12 @@ t("SH06: a shell is renamed in its tab: Enter keeps, Esc cancels, a failure keep
   await page.locator('.shd-acts [data-sh-rename="sh_1"]').click();
   await page.keyboard.type("web");
   await page.keyboard.press("Enter");
-  await page.waitForTimeout(300);
-  assert.equal((await page.locator('[data-sh-tab="sh_1"]').innerText()).trim(), "api", "the old name stays");
+  await page.waitForTimeout(400);
+  // refused: the field is back, holding what was typed, focused; nothing typed is lost
+  assert.equal(await page.evaluate(() => document.activeElement?.dataset.shName && document.activeElement.value), "web");
   assert.match(await live(page), /Couldn't rename the shell/);
+  await page.keyboard.press("Escape");
+  assert.equal((await page.locator('[data-sh-tab="sh_1"]').innerText()).trim(), "api", "Esc keeps the old name");
   await done(page);
 });
 
@@ -298,6 +346,39 @@ t("SH25/SH26: Close on a busy row asks in that row; Esc keeps it and goes back t
   await page.waitForFunction(() => !document.querySelector('.shl-row [data-sh-close="sh_1"]'));
   assert.deepEqual(page.W.closed, ["sh_1"]);
   assert.ok(await page.evaluate(() => document.querySelector("#shd").contains(document.activeElement)), "focus stays in the dock");
+  await done(page);
+});
+
+t("SH07/SH26: the bar's Close asks every time (Keep it, then Close again: the question is whole, not empty)", async () => {
+  const page = await dock();
+  await attach(page, "sh_1"); // npm runs in it: Close asks
+  for (let i = 0; i < 2; i++) {
+    await page.locator('.shd-acts [data-sh-close="sh_1"]').click();
+    await page.waitForSelector(".shd-confirm:not([hidden])");
+    assert.match(await page.locator(".shd-confirm").innerText(), /npm is running in demo/, `asked whole, time ${i + 1}`);
+    assert.equal(await page.evaluate(() => document.activeElement.hasAttribute("data-sh-no")), true, "Keep it focused");
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(150);
+    assert.equal(await page.locator(".shd-confirm").isHidden(), true);
+    assert.equal(await focused(page), "sh_1", "back on Close shell");
+  }
+  assert.deepEqual(page.W.closed, []);
+  await done(page);
+});
+
+t("SH07/SH25: a refused close keeps the shell: its tab, its socket, its row; focus back on Close", async () => {
+  const page = await dock({ closeFail: "Fixture offline" });
+  await attach(page, "sh_2"); // bash: closes without asking
+  await page.locator('.shd-acts [data-sh-close="sh_2"]').focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(500);
+  assert.deepEqual(page.W.closed, []);
+  assert.equal(await page.locator('.shd-term[data-pane="sh_2"]:not(.is-ended) .xterm').count(), 1, "the tab and its terminal stay");
+  assert.equal(await page.locator('[data-sh-tab="sh_2"]').count(), 1);
+  assert.equal(await focused(page), "sh_2", "focus back on Close shell");
+  assert.match(await live(page), /Couldn't close .*still running/);
+  await page.locator('[data-sh-tab="list"]').click();
+  assert.equal(await page.locator('.shl-row [data-sh-close="sh_2"]').count(), 1, "its row stays");
   await done(page);
 });
 

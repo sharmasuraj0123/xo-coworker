@@ -76,6 +76,7 @@ function mockApi(W) {
     const json = (o, status = 200) => r.fulfill({ status, contentType: "application/json", body: JSON.stringify(o) });
     // a test's own answer first: it answers through the json it's handed (then nothing else does), or returns
     if (W.api) { let took = false; await W.api(r, m, p, (o, status) => { took = true; return json(o, status); }, u); if (took) return; }
+    if (p.startsWith("/api/connectors/github/") && W.launchpad) return r.fallback(); // GitHub's device flow: mockspace answers
     if (p.startsWith("/api/deploy/")) return W.launchpad ? (W.onDeploy ? W.onDeploy(r, m, p) : r.fallback()) : json({ detail: { code: "not_found", message: "no deploys here" } }, 404);
     if (p === "/api/chat/stream") return new Promise(() => {}); // held open: a live stream with nothing to say
     // shells

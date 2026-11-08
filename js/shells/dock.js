@@ -264,18 +264,26 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
       await api.closeTerminal(id);
       announce(`${name} closed`);
     } catch (err) {
-      if (err.code !== "terminal_not_found") notify({ kind: "stopped", text: `Couldn't close ${name}`, sub: err.message });
-    } finally {
-      R.busy.delete(id);
-      detach(id, { quiet: true });
-      R.list = R.list.filter((t) => t.id !== id);
-      changed();
-      refreshSoon();
-      // its row or tab went with it: focus lands on what's in front now, never on the page
-      if (had && (!root.contains(document.activeElement) || document.activeElement === document.body)) {
-        const t = R.tabs.get(R.active);
-        if (t) t.handle.focus(); else (listEl.querySelector("[data-sh-open], [data-sh-close]") || listEl.querySelector("[data-sh-new]"))?.focus();
+      // refused: the shell still runs, so its tab, its socket and its row stay, and focus goes back to Close
+      // (only a shell the backend no longer has is tidied away)
+      if (err.code !== "terminal_not_found") {
+        R.busy.delete(id);
+        notify({ kind: "stopped", text: `Couldn't close ${name}`, sub: err.message });
+        announce(`Couldn't close ${name}: ${err.message}. It's still running.`);
+        changed();
+        if (had) root.querySelector(`${R.active === LIST ? ".shl-row" : ".shd-acts"} [data-sh-close="${CSS.escape(id)}"]`)?.focus();
+        return;
       }
+    }
+    R.busy.delete(id);
+    detach(id, { quiet: true });
+    R.list = R.list.filter((t) => t.id !== id);
+    changed();
+    refreshSoon();
+    // its row or tab went with it: focus lands on what's in front now, never on the page
+    if (had && (!root.contains(document.activeElement) || document.activeElement === document.body)) {
+      const t = R.tabs.get(R.active);
+      if (t) t.handle.focus(); else (listEl.querySelector("[data-sh-open], [data-sh-close]") || listEl.querySelector("[data-sh-new]"))?.focus();
     }
   }
   function askCloseDetached() {
@@ -291,9 +299,10 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
     render();
     const failed = [];
     for (const id of ids) {
-      try { await api.closeTerminal(id); } catch (err) { if (err.code !== "terminal_not_found") failed.push(err.message); }
+      let gone = true;
+      try { await api.closeTerminal(id); } catch (err) { if (err.code !== "terminal_not_found") { failed.push(err.message); gone = false; } }
       R.busy.delete(id);
-      R.list = R.list.filter((t) => t.id !== id);
+      if (gone) R.list = R.list.filter((t) => t.id !== id); // a refused one still runs: its row stays
     }
     if (failed.length) notify({ kind: "stopped", text: `Couldn't close ${failed.length} of ${ids.length}`, sub: failed[0] });
     else announce(`${ids.length} detached shell${ids.length === 1 ? "" : "s"} closed`);
@@ -316,6 +325,7 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
     const name = cleanName(value);
     if (!name || name === nameOf(id)) { render(); if (refocus) root.querySelector(back)?.focus(); return; }
     R.busy.add(id); render();
+    let failed = false;
     try {
       const d = await api.renameTerminal(id, name);
       upsert(d.terminal);
@@ -323,12 +333,18 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
       if (tab) tab.name = d.terminal.name;
       announce(`Renamed it ${d.terminal.name}.`);
     } catch (err) {
+      failed = true;
       notify({ kind: "stopped", text: "Couldn't rename the shell", sub: err.message });
-      announce(`Couldn't rename the shell: ${err.message}. It keeps its name.`);
+      announce(`Couldn't rename the shell: ${err.message}. What you typed is still there: Enter tries again, Esc keeps the old name.`);
     } finally {
       R.busy.delete(id);
+      // refused: the field comes back holding what was typed, the caret at its end (nothing typed is lost)
+      if (failed) R.edit = id;
       changed();
-      if (refocus) root.querySelector(back)?.focus();
+      if (failed) {
+        const inp = root.querySelector(`[data-sh-name="${CSS.escape(id)}"]`);
+        if (inp) { inp.value = name; if (refocus) { inp.focus(); inp.setSelectionRange(name.length, name.length); } }
+      } else if (refocus) root.querySelector(back)?.focus();
     }
   }
 

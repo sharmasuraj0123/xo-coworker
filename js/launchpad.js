@@ -63,7 +63,10 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   const P = new Map();
   let cached = {};
   try { cached = JSON.parse(localStorage.getItem(CACHE) || "{}") || {}; } catch { /* private mode */ }
-  const S = { el: null, hs: null, ha: null, body: null, key: "", html: "", v: null, shown: null };
+  // want: where focus goes when the control that had it is gone after a redraw (Cancel → Change, Undo → Deploy …);
+  // with no such place, the screen's first control, never the page (Astra: focus fell to BODY)
+  const S = { el: null, hs: null, ha: null, body: null, key: "", html: "", v: null, shown: null, want: "" };
+  const FALLBACK = '.lp-foot .lp-go, .lp-acts button, .lp-rec .lp-go, [data-lp]';
 
   const proj = (p) => {
     if (!P.has(p)) P.set(p, { check: null, at: 0, pre: 0, loading: false, err: null, run: null, form: null, device: null, picking: null, asked: null, asking: false, askErr: null, needs: null, warn: null, menu: false, copied: 0, cmdCopied: 0 });
@@ -570,7 +573,11 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       if (fresh) S.body.scrollTop = 0;
       S.key = b.key; S.html = same;
       requestAnimationFrame(over);
-      if (focus) { const n = S.body.querySelector(focus); if (n) { n.focus({ preventScroll: true }); if (caret && n.setSelectionRange) try { n.setSelectionRange(...caret); } catch { /* a number field */ } } }
+      // focus that was in the section stays in it: on the same control, else where the action said, else the
+      // screen's first control (the redraw took the old node away)
+      const n = ae && ((focus && S.body.querySelector(focus)) || (S.want && S.body.querySelector(S.want)) || S.body.querySelector(FALLBACK) || S.body);
+      S.want = "";
+      if (n) { n.focus({ preventScroll: true }); if (caret && n.setSelectionRange) try { n.setSelectionRange(...caret); } catch { /* a number field */ } }
     }
   }
   /** As you type: the card's name, address and port follow the fields, and nothing else redraws. */
@@ -772,7 +779,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     switch (name) {
       case "open": onOpen && onOpen(); return;
       case "deploy": deploy(p); return;
-      case "undo": if (s.run) { s.run = null; announce("Deploy undone. Nothing changed."); changed(); } return;
+      case "undo": if (s.run) { s.run = null; S.want = '[data-lp="deploy"], [data-lp="again"]'; announce("Deploy undone. Nothing changed."); changed(); } return;
       case "hide": onHide && onHide(); return;
       case "stop": {
         if (!s.run || s.run.stopping || s.run.stopSent) return;
@@ -781,7 +788,8 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
         // Undo for 3 s (Keep deploying, here, or the notice's Undo), then the stop is asked for; the run stays
         // followed until Space confirms it
         run.stopAt = Date.now() + 3000;
-        run.stopping = setTimeout(() => { run.stopping = 0; stopNow(p, run); }, 3000);
+        // the window ends: Keep deploying goes, and focus that was on it moves to Stop (Stopping…, then Stop again)
+        run.stopping = setTimeout(() => { run.stopping = 0; S.want = '[data-lp="stop"]'; stopNow(p, run); }, 3000);
         const tick = setInterval(() => {
           if (!run.stopping) { clearInterval(tick); return; }
           const n = S.body?.querySelector('.lp-q .lp-count');
@@ -810,7 +818,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       case "env-all": s.envAll = true; S.key = ""; changed(); requestAnimationFrame(() => S.body?.querySelectorAll(".lp-ev input")[mine0(p)]?.focus()); return;
       case "recreate": s.form.recreate = true; s.run = null; deploy(p, true); return;
       case "edit": s.editing = true; s.form.diskGb = String(s.check.app?.storage?.gb || ""); s.form.errs = {}; s.menu = false; S.key = ""; changed(); requestAnimationFrame(() => S.body?.querySelector(".lp-ev input, [data-lp-f]")?.focus()); return;
-      case "edit-cancel": s.editing = false; s.form.env = {}; S.key = ""; changed(); return;
+      case "edit-cancel": s.editing = false; s.form.env = {}; S.key = ""; S.want = '[data-lp="edit"]'; changed(); return;
       case "again": s.run = null; s.form.errs = {}; deploy(p, true); return; // the linked app, the same settings: 3 s, then it goes
       case "retry": s.run = null; deploy(p); return;
       case "copy": copied((s.run?.live || s.check.app).url, "the address", () => { s.copied = Date.now() + 1500; }); return;
@@ -829,7 +837,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       case "link": link(p, el.dataset.id); return;
       case "reconnect": github(p); return;
       case "code-copy": { const d = s.device; copied(d.code, "the code", () => { if (s.device === d) d.copied = true; }); return; }
-      case "device-cancel": if (s.device?.id && api.githubCancel) api.githubCancel(s.device.id); s.device = null; changed(); return;
+      case "device-cancel": if (s.device?.id && api.githubCancel) api.githubCancel(s.device.id); s.device = null; S.want = '[data-lp="reconnect"], [data-lp="deploy"]'; changed(); return;
       case "ask": case "ask-fix": {
         if (s.asking) return; // one thread per ask: a second click while Space answers starts nothing
         const e = s.run?.error;
