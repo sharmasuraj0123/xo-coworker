@@ -3191,11 +3191,14 @@ addEventListener("keydown", (e) => {
   // a sheet; on a phone, Settings too (it covers the whole screen there)
   const top = [runsEl, keys, allEl, jump].find((el) => !el.hidden) || (PHONE.matches && !setEl.hidden ? setEl : null);
   if (!top) return;
-  const f = [...top.querySelectorAll('button:not([disabled]),[href],input:not([disabled]):not([type=hidden]),textarea,select,[tabindex]:not([tabindex="-1"])')].filter((x) => x.offsetParent || x === document.activeElement);
+  // what Tab itself would visit: anything in the tab order (a summary, a field, a link, a roving group's one stop),
+  // drawn and usable; the browser moves between them, and this only turns it round at the sheet's two ends
+  const f = [...top.querySelectorAll("*")].filter((x) => x.tabIndex >= 0 && !x.disabled && !x.closest("[inert]") && x.getClientRects().length > 0);
   if (!f.length) return;
-  const i = f.indexOf(document.activeElement);
-  if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
-  else if (!e.shiftKey && (i === -1 || i === f.length - 1)) { e.preventDefault(); f[0].focus(); }
+  const a = document.activeElement, inside = top.contains(a);
+  const after = inside && f.some((x) => x !== a && a.compareDocumentPosition(x) & Node.DOCUMENT_POSITION_FOLLOWING);
+  const before = inside && f.some((x) => x !== a && x.compareDocumentPosition(a) & Node.DOCUMENT_POSITION_FOLLOWING);
+  if (e.shiftKey ? !before : !after) { e.preventDefault(); (e.shiftKey ? f[f.length - 1] : f[0]).focus(); }
 }, true);
 
 // ── keys sheet ──────────────────────────────────────────────────────────────
