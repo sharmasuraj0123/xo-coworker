@@ -32,16 +32,20 @@ function keyOf(n) {
 }
 const same = (a, b) => a.nodeType === b.nodeType && (a.nodeType !== 1 || (a.tagName === b.tagName && keyOf(a) === keyOf(b)));
 
+// A node the page's own script added (it carries data-own: a decorator's buttons, say) isn't drawn from the HTML:
+// it stays where it is, is never matched, moved or removed, and what is drawn goes around it.
+const own = (n) => n.nodeType === 1 && n.hasAttribute("data-own");
 function syncChildren(from, to, focus) {
   let changed = false;
   let cur = from.firstChild;
+  while (cur && own(cur)) cur = cur.nextSibling; // own nodes at the start stay first
   for (const want of [...to.childNodes]) {
     let match = null;
-    for (let c = cur; c; c = c.nextSibling) if (same(c, want)) { match = c; break; }
+    for (let c = cur; c; c = c.nextSibling) if (!own(c) && same(c, want)) { match = c; break; }
     if (match) {
       // bring it to this place without moving it when it holds focus: move what's in between instead
       if (match !== cur) {
-        if (focus && match.contains(focus)) { while (cur && cur !== match) { const next = cur.nextSibling; from.appendChild(cur); cur = next; } changed = true; }
+        if (focus && match.contains(focus)) { while (cur && cur !== match) { const next = cur.nextSibling; if (!own(cur)) from.appendChild(cur); cur = next; } changed = true; }
         else { from.insertBefore(match, cur); changed = true; }
       }
       if (syncNode(match, want, focus)) changed = true;
@@ -51,8 +55,8 @@ function syncChildren(from, to, focus) {
       changed = true;
     }
   }
-  // what's left wasn't in the new HTML
-  while (cur) { const next = cur.nextSibling; from.removeChild(cur); cur = next; changed = true; }
+  // what's left wasn't in the new HTML (but what the page's own script added stays)
+  while (cur) { const next = cur.nextSibling; if (!own(cur)) { from.removeChild(cur); changed = true; } cur = next; }
   return changed;
 }
 

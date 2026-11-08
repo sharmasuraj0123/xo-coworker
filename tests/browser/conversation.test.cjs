@@ -1138,12 +1138,14 @@ async function liveTurn() {
   const threads = [...THREADS(), TH("t_live", "A thread at work", "working", { session_id: SID })];
   const page = await app({ threads, threadMsgs: { t_live: MSGS("t_live", 2) } });
   await openThread(page, "t_live");
+  // the turn's frames carry seqs after the thread's messages, as the stream's do (a frame without one would sit
+  // before them and split the turn oddly)
   await page.evaluate(([a, b, c]) => { for (const f of [a, b, c]) window.__storm.apply(f); }, [
-    env("session", { status: "running", role: "thread", agent: "claude_code" }, { turn_id: null }),
-    env("turn.started", { origin: "person", wakes: [] }),
-    env("block.started", { block: { id: `${TURN}:g0`, type: "activity", index: 0, header: "Running the tests", rows: [ROW()] } }),
+    env("session", { status: "running", role: "thread", agent: "claude_code" }, { turn_id: null, seq: 9001 }),
+    env("turn.started", { origin: "person", wakes: [] }, { seq: 9002 }),
+    env("block.started", { block: { id: `${TURN}:g0`, type: "activity", index: 0, header: "Running the tests", rows: [ROW()] } }, { seq: 9003 }),
   ]);
-  await page.waitForSelector(`#msgs .m-turn`);
+  await page.waitForSelector(`#msgs .m-turn.is-live`);
   await settle(page, 300);
   return page;
 }
@@ -1152,8 +1154,8 @@ t("DET-1 S002: a running step's output arriving keeps focus on its open disclosu
   // open the turn's work, its block of steps, then the step (its command shows; its output is still to come)
   await page.evaluate(() => { const w = document.querySelector("#msgs .mx-work"); if (w && w.getClientRects().length) w.click(); });
   await settle(page, 300);
-  await page.locator(`#msgs [data-tb="${TURN}:g0"]`).click();
-  await settle(page, 300);
+  const block = page.locator(`#msgs [data-tb="${TURN}:g0"]`);
+  if ((await block.getAttribute("aria-expanded")) !== "true") { await block.click(); await settle(page, 300); }
   const row = page.locator('#msgs [data-tb="row:call-det"]');
   await row.focus();
   await page.keyboard.press("Enter");
@@ -1167,6 +1169,70 @@ t("DET-1 S002: a running step's output arriving keeps focus on its open disclosu
   assert.equal(await page.locator('#msgs [data-tb="row:call-det"]').getAttribute("aria-expanded"), "true");
   await done(page);
 });
+t("DET: Copy on an answer that's still streaming keeps focus through every update (the row's own controls stay)", async () => {
+  const page = await liveTurn();
+  await page.evaluate((f) => window.__storm.apply(f), env("block.started", { block: { id: `${TURN}:t1`, type: "text", index: null, text: "First words of the answer." } }));
+  const copy = page.locator(`#msgs [data-k^="turn:${TURN}"] .tb-text [data-mx-copy]`).first();
+  await copy.waitFor({ state: "attached" });
+  await page.locator(`#msgs [data-k^="turn:${TURN}"] .tb-text`).first().hover();
+  await copy.focus();
+  await page.evaluate(() => { window.__cp = document.activeElement; });
+  for (let i = 1; i <= 4; i++) {
+    await page.evaluate((f) => window.__storm.apply(f), env("block.updated", { block_id: `${TURN}:t1`, type: "text", append: ` More words, part ${i}.` }));
+    await settle(page, 150);
+  }
+  assert.match(await page.locator(`#msgs [data-k^="turn:${TURN}"] .tb-text`).first().innerText(), /part 4/, "the answer streamed in");
+  assert.equal(await page.evaluate(() => document.activeElement === window.__cp), true, `focus on the same Copy, not ${await focusIs(page)}`);
+  await done(page);
+}, { only: (c) => c.width >= 760 });
+t("DET: when the reply finishes in place, nothing of msgx's is left over: the working line goes, one Reply/Copy stays", async () => {
+  const page = await liveTurn();
+  // focus inside the turn (its work's header, opened from the working line), so its row is redrawn in place
+  const w = page.locator("#msgs .mx-work");
+  await w.waitFor({ state: "visible" });
+  await w.focus();
+  await page.keyboard.press("Enter");
+  await settle(page, 300);
+  await page.evaluate((fs) => { for (const f of fs) window.__storm.apply(f); }, [
+    // as the stream ends a reply: its words stream as a text block, then that block finishes as the turn's answer
+    env("block.started", { block: { id: `${TURN}:t1`, type: "text", index: null, text: "The tests pass." } }),
+    env("block.finished", { block: { id: `${TURN}:g0`, type: "activity", index: 0, header: "Ran the tests", rows: [ROW({ status: "ok", output: "12 passed" })] } }),
+    env("block.finished", { block: { id: `${TURN}:t1`, type: "answer", index: 1, text: "The tests pass." } }),
+    env("turn.finished", { status: "finished", stop_reason: "completed", error_class: null, error: null, wakes: [] }),
+    env("session", { status: "warm", reason: "turn_done" }, { turn_id: null }),
+  ]);
+  await settle(page, 1200);
+  const row = await page.evaluate((T) => {
+    const el = document.querySelector(`#msgs [data-k^="turn:${T}"]`);
+    const own = [...el.querySelectorAll("[data-own]")].map((n) => n.className.split(" ")[0] + (n.classList.contains("is-foot") ? ".is-foot" : ""));
+    return { live: el.classList.contains("is-live"), own, inRow: el.contains(document.activeElement) };
+  }, TURN);
+  assert.equal(row.live, false, "the turn has ended");
+  assert.ok(!row.own.includes("mx-work"), `no working line left: ${row.own}`);
+  assert.deepEqual(row.own.filter((x) => x === "mx-acts").length, 1, `one Reply/Copy on the answer: ${row.own}`);
+  assert.ok(row.own.every((x) => ["mx-acts", "mx-acts.is-foot", "mx-swipe"].includes(x)), `only what a finished answer has: ${row.own}`);
+  assert.equal(row.inRow, true, `focus still in the row, not ${await focusIs(page)}`);
+  await done(page);
+});
+t("DET: a quote card goes when its message's quote is gone, focus moving to that message's Reply", async () => {
+  const page = await app();
+  await openThread(page, "t_login");
+  await page.evaluate(() => {
+    const S = window.__t.S;
+    (S.local["t:t_login"] = S.local["t:t_login"] || []).push({ id: "lq1", conv: "t:t_login", at: Date.now(), who: "you", text: "> **The agent**\n> The tests pass.\n\nGreat, ship it.", status: "sent", target: null, cid: "ui_lq1" });
+    window.__t.render();
+  });
+  const card = page.locator('#msgs [data-k="lq1"] .mx-qc');
+  await card.waitFor({ state: "attached" });
+  await card.focus();
+  await page.evaluate(() => { window.__t.S.local["t:t_login"].find((m) => m.id === "lq1").text = "Great, ship it."; window.__t.render(); });
+  await settle(page, 200);
+  assert.equal(await page.locator('#msgs [data-k="lq1"] .mx-qc').count(), 0, "the card is gone with its quote");
+  assert.equal(await page.locator('#msgs [data-k="lq1"] .bubble').evaluate((b) => [...b.childNodes].filter((n) => n.nodeType === 3).map((n) => n.nodeValue).join("")), "Great, ship it.");
+  assert.match(await focusIs(page), /\[data-mx-reply\]/, "focus on the message's Reply");
+  assert.equal(await page.evaluate(() => !!document.activeElement.closest('[data-k="lq1"]')), true);
+  await done(page);
+}, { only: (c) => c.width >= 760 });
 t("DET-2 C121/C050: the working line opens the work with focus on its header; folding it hands focus back to the line", async () => {
   const page = await liveTurn();
   const w = page.locator("#msgs .mx-work");
@@ -1184,8 +1250,8 @@ t("DET-2 C121/C050: the working line opens the work with focus on its header; fo
 });
 
 // ── DET: no bumps from rows updated in place (bumps.cjs's frame analysis, on a long paged fixture thread) ──
-// Wheel up through older pages while a live turn keeps updating with focus held inside it (so its row takes
-// reconcile's in-place path on every frame); what you're reading may move only by your own wheel. At 1× and 4× CPU.
+// Wheel up through older pages (until two have landed) while a live turn keeps updating with focus held inside it (so
+// its row takes reconcile's in-place path on every update); what you're reading may move only by your own wheel. 1×, 4×.
 for (const cpu of [1, 4]) {
   t(`DET bumps: older pages landing while a focused live row updates in place move nothing you read (CPU ${cpu}×)`, async () => {
     const all = Array.from({ length: 240 }, (_, i) => ({ id: `t_live-h${i}`, seq: i + 1, chat_id: "chat_demo", thread_ts: "t_live", author_kind: i % 3 ? "agent" : "owner", author_id: i % 3 ? "agent" : "owner", author_session_id: null, text: `${i % 3 ? "Agent" : "My"} message ${i}. ${"Words that make the bubble wrap onto a few lines, as real replies do. ".repeat(1 + (i % 4))}`, reply_to: null, extra: {}, created_at: new Date(Date.now() - (240 - i) * 60000).toISOString() }));
@@ -1233,9 +1299,20 @@ for (const cpu of [1, 4]) {
     });
     const STEP = 60;
     const box = await page.locator("#scroller").boundingBox();
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    // the wheel goes over the conversation's messages (its upper part), where a person reading older ones has it
+    const at = { x: box.x + box.width / 2, y: box.y + Math.min(box.height * 0.3, 260) };
+    await page.mouse.move(at.x, at.y);
+    const under = await page.evaluate(({ x, y }) => { const e = document.elementFromPoint(x, y); return e ? `${e.tagName.toLowerCase()}.${String(e.className).split(" ")[0]} in #${e.closest("[id]")?.id}` : "nothing"; }, at);
+    // up until two older pages have landed (a phone's narrower column makes the same messages far taller, so it
+    // takes longer to reach the top where they load), at most 30 s; then a little more reading
+    const rows0 = await page.evaluate(() => document.getElementById("msgs").children.length);
     const t0 = Date.now();
-    while (Date.now() - t0 < 9000) { await page.mouse.wheel(0, -STEP); await page.waitForTimeout(16); }
+    let landed = 0;
+    for (let i = 0; Date.now() - t0 < 30000; i++) {
+      await page.mouse.wheel(0, -STEP); await page.waitForTimeout(16);
+      if (i % 25 === 0 && (await page.evaluate(() => document.getElementById("msgs").children.length)) >= rows0 + 50) { landed = Date.now(); break; }
+    }
+    for (let i = 0; landed && Date.now() - landed < 1500; i++) { await page.mouse.wheel(0, -STEP); await page.waitForTimeout(16); }
     await settle(page, 1200);
     const F = await page.evaluate(() => { clearInterval(window.__tick); return window.__b.f; });
     await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
@@ -1251,12 +1328,35 @@ for (const cpu of [1, 4]) {
       if (Math.abs(moved - expect) > 8 && Math.abs(moved - (expect + STEP)) > 8 && Math.abs(moved - Math.max(0, expect - STEP)) > 8) bumps.push({ moved: Math.round(moved), wheel: Math.round(wheel), n: `${a.n}→${c.n}` });
     }
     console.log(`    CPU ${cpu}×: ${F.length} frames, ${pages} list changes, rows ${F[0].n}→${F[F.length - 1].n}, bumps ${bumps.length}`);
-    assert.ok(pages > 0 && F[F.length - 1].n > F[0].n, "older pages landed during the wheel");
+    assert.ok(pages > 0 && F[F.length - 1].n > F[0].n, `older pages landed during the wheel (wheel over ${under}; scrollTop ${Math.round(F[0].ft)}→${Math.round(F[F.length - 1].ft)}, height ${F[0].sh}→${F[F.length - 1].sh}, wheel total ${Math.round(F[F.length - 1].wheel)})`);
     assert.deepEqual(bumps, [], "nothing you read moved but by your wheel");
     assert.ok(await page.evaluate(() => !!document.activeElement.closest("#msgs .m-turn")), "focus still inside the live turn");
     await done(page);
   }, { only: (c) => c.theme === "dark" });
 }
+
+// ── js/redraw.js's data-own rule, on its own ────────────────────────────────
+t("redraw: data-own nodes stay where they are (first stays first, last stays last, a focused one keeps focus); the rest follows the HTML", async () => {
+  const page = await app();
+  const got = await page.evaluate(async () => {
+    const { redraw } = await import("/js/redraw.js");
+    const box = document.createElement("div");
+    document.body.append(box);
+    box.innerHTML = `<span class="name" data-own>Name</span>old text<b data-x="1">bold</b><i data-x="2">gone</i><div class="acts" data-own><button class="copy">Copy</button></div>`;
+    const name = box.querySelector(".name"), acts = box.querySelector(".acts"), copy = box.querySelector(".copy"), bold = box.querySelector("b");
+    copy.focus();
+    redraw(box, `new text<b data-x="1">bolder</b><em>added</em>`);
+    const out = { order: [...box.childNodes].map((n) => (n.nodeType === 3 ? `#${n.nodeValue}` : `${n.tagName.toLowerCase()}${n.hasAttribute("data-own") ? "*" : ""}`)), sameName: box.firstChild === name, sameActs: box.lastChild === acts, sameBold: box.querySelector("b") === bold, focus: document.activeElement === copy, bold: bold.textContent };
+    copy.blur(); await new Promise((ok) => setTimeout(ok, 0)); // let go of the probe's button on purpose, then take it away
+    box.remove();
+    return out;
+  });
+  assert.deepEqual(got.order, ["span*", "#new text", "b", "em", "div*"]);
+  assert.equal(got.sameName, true); assert.equal(got.sameActs, true); assert.equal(got.sameBold, true);
+  assert.equal(got.focus, true, "the focused own button kept focus");
+  assert.equal(got.bold, "bolder");
+  await done(page);
+}, { only: (c) => c.width >= 760 && c.theme === "dark" });
 
 // ── run ─────────────────────────────────────────────────────────────────────
 (async () => {
