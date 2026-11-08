@@ -173,7 +173,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
     if (box._h !== html) { box.innerHTML = html; box._h = html; }
   }
 
-  /** The quiet form (the owner removed the card on 2026-11-04; this replaces it, pending their word): after
+  /** The quiet form (the owner removed the card on 2026-11-04 and chose this one line on 2026-11-08): after
       AWAY_MS away, one line under a project's header, "Since Friday · 3 finished · 1 not pushed · 1 needs you",
       each part opening its newest thread, and a dismiss. Home: the same line per project that moved. */
   function partsHtml(cu) {
