@@ -596,12 +596,14 @@ msgs.addEventListener("click", async (e) => {
   if (c) {
     // the check (and "Copied" said) only once it's on the clipboard; refused, said so, and focus stays here. The
     // newest Copy owns the button's acknowledgement: an earlier one settling late says nothing, and only the
-    // newest one's timer puts the icon back (Astra SRC-CONV-4: the first Copy's timer wiped the second's check)
+    // newest one's timer puts the icon back (Astra SRC-CONV-4: the first Copy's timer wiped the second's check),
+    // and only the newest is announced (SRC-CONV-6: an earlier success said "Copied" after a newer refusal)
     const gen = (c._copyGen = (c._copyGen || 0) + 1);
     const ok = await copyText(textOf(c.closest(".m")));
     if (c._copyGen !== gen) return;
     const live = document.getElementById("live");
-    const say = (w) => { if (live) { live.textContent = ""; setTimeout(() => { live.textContent = w; }, 40); } };
+    // said a moment after the region empties (so a repeat is announced), and only if it's still the newest Copy
+    const say = (w) => { if (live) { live.textContent = ""; setTimeout(() => { if (c._copyGen === gen) live.textContent = w; }, 40); } };
     clearTimeout(c._copyT);
     if (ok) { c.innerHTML = IC.check; say("Copied the message."); c._copyT = setTimeout(() => { if (c._copyGen === gen) c.innerHTML = IC.copy; }, 1200); }
     else { c.innerHTML = IC.copy; say(COPY_REFUSED); }

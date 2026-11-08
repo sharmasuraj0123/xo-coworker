@@ -992,6 +992,21 @@ t("C052: each Copy owns its acknowledgement: an earlier Copy's timer or late ans
   await page.waitForTimeout(201);
   assert.equal(await checked(), true, "the second Copy's check isn't wiped by the first's timer");
   assert.match(await focusIs(page), /\[data-mx-copy\]/);
+  // SRC-CONV-6: a success, then 20 ms later a refusal: only the refusal is announced (the success's "Copied" was
+  // still due at 40 ms)
+  const said = await page.evaluate(async () => {
+    let n = 0;
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async () => { if (++n === 2) throw new DOMException("No", "NotAllowedError"); } } });
+    document.execCommand = () => false;
+    const live = document.getElementById("live"), seen = [];
+    new MutationObserver(() => { if (live.textContent) seen.push(live.textContent); }).observe(live, { childList: true, characterData: true, subtree: true });
+    const b = document.querySelector('#msgs [data-k="t_login-md"] [data-mx-copy]');
+    b.click(); await new Promise((ok) => setTimeout(ok, 20)); b.click();
+    await new Promise((ok) => setTimeout(ok, 300));
+    return seen;
+  });
+  assert.equal(said.length, 1, `one announcement: ${JSON.stringify(said)}`);
+  assert.match(said[0], /Couldn't copy/);
   await done(page);
 }, { only: (c) => c.width >= 760 });
 t("C052: a code block or your own text at a message's very start or end is copied literally, blank lines and spaces too", async () => {
