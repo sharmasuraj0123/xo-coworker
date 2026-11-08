@@ -52,6 +52,7 @@ function mockApi(W) {
     const json = (o, status = 200) => r.fulfill({ status, contentType: "application/json", body: JSON.stringify(o) });
     if (p.startsWith("/api/deploy/")) return W.launchpad ? (W.onDeploy ? W.onDeploy(r, m, p) : r.fallback()) : json({ detail: { code: "not_found", message: "no deploys in tests" } }, 404);
     if (p === "/api/chat/stream") return r.fulfill({ status: 200, contentType: "text/event-stream", body: "retry: 600000\n\n" });
+    if (p === "/api/chat/chats") return json({ chats: CHATS.concat(W.extraChats || []) });
     if (STATIC[p]) return json(STATIC[p]);
     let k;
     if ((k = /^\/api\/chat\/chats\/([^/]+)\/(threads|messages|hops|made|runtime-policy)$/.exec(p))) {
@@ -106,6 +107,21 @@ function mockApi(W) {
     if (/^\/api\/xo-projects\/[^/]+\/edits\/[^/]+\/undo$/.test(p) && m === "POST") {
       W.undos = (W.undos || 0) + 1;
       return W.undoMode === "503" ? json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503) : json({ undone: true });
+    }
+    if (p === "/api/config/workspace") return json({ roots: { home: "/home/test" }, default: "home" });
+    if (p === "/api/files/mkdir" && m === "POST") {
+      W.creates = (W.creates || 0) + 1;
+      if (W.createGate) await W.createGate;
+      if (W.createMode === "503") return json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503);
+      const b = JSON.parse(req.postData() || "{}"), id = String(b.path || "").split("/").pop();
+      W.extraChats = (W.extraChats || []).concat(chat(`chat_${id}`, "project", id)); // this test's world only
+      return json({ created: true, path: b.path });
+    }
+    if (p === "/api/connectors/github/status") return json({ status: "needs_auth" });
+    if (p === "/api/connectors/github/cli/start" && m === "POST") {
+      W.ghStarts = (W.ghStarts || 0) + 1;
+      if (W.ghGate) await W.ghGate;
+      return W.ghMode === "connected" ? json({ status: "connected", username: "tester" }) : json({ detail: { code: "unavailable", message: "GitHub didn't answer" } }, 503);
     }
     if (m !== "GET") return r.abort(); // a write this world doesn't know: never sent
     return json({ detail: { code: "not_found", message: "not in the test world" } }, 404);
@@ -162,4 +178,4 @@ async function launch(chromium) {
   try { return await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}); }
   catch { const alt = shells()[0]; return alt ? chromium.launch({ executablePath: alt }).catch(() => null) : null; }
 }
-module.exports = { ROOT, SSE, serve, NOW, CHATS, STATIC, mockApi, hooks, openApp, launch, LP };
+module.exports = { ROOT, SSE, serve, NOW, CHATS, STATIC, mockApi, hooks, openApp, launch, LP, chat };

@@ -526,12 +526,10 @@ function nextHead(n) {
   if (n.group === "stopped") return { head: `<span class="h-verb">Stopped at</span> ${esc((t.checklist.items.find((i) => i.state !== "done") || t).text || t.title)}`, cmd: "" };
   return { head: esc(n.risk === "destructive" ? n.ask.title.replace(/:\s.*$/, "") : n.ask.title), cmd: "" };
 }
-const NEXT_SEEN = new Map(); // Home's next ask → when it first showed (its re-arm runs from then)
+const NEXT_SEEN = new Map(); // Home's next ask → when it last became the current card (its re-arm runs from then)
 function nextCardHtml(n) {
   const t = n.t, E = EFFORT[n.effort];
   const { head, cmd } = nextHead(n);
-  // when this ask first showed here: its 300 ms re-arm runs from then, as a decision card's does (Astra DEC-HOME-READ)
-  if (!NEXT_SEEN.has(n.key)) NEXT_SEEN.set(n.key, performance.now());
   return `<article class="next r-${n.risk} e-${n.effort}" data-key="${esc(n.key)}" data-fid="nextcard" tabindex="-1" aria-label="Your next move: ${esc(n.ask.title)}">` +
     `<div class="stamp stamp-allow" aria-hidden="true"><svg viewBox="0 0 52 52"><circle class="sc" cx="26" cy="26" r="23"/><path class="sk" d="M15 27l7.5 7.5L38 19"/></svg></div>` +
     `<div class="nx-in">` +
@@ -579,6 +577,9 @@ function homeRender(needs) {
   } else if (P0.next) {
     const key = P0.next.key;
     const changed = nb._key !== key;
+    // each time an ask becomes the card shown here (first, or back after an Undo, or back from the panel), its
+    // 300 ms re-arm starts again: a press meant for the card before can't land on it (Astra, fa6d783 Undo path)
+    if (changed) NEXT_SEEN.set(key, performance.now());
     const html = `<p class="hm-lbl"><span class="nx-glyph">${NEXT_GLYPH}</span>Your next move</p>` + nextCardHtml(P0.next);
     if (patch(nb, html) && changed) {
       const card = nb.querySelector(".next");
@@ -2507,7 +2508,9 @@ function go(v, { from, focus = false, carry = false } = {}) {
   const target = k ? ($("#msgs").querySelector(`[data-k="${CSS.escape(k)}"] [data-go]`) || $("#now-wrap").querySelector(`[data-go="${CSS.escape(k)}"]`)) : null;
   if (focus) say.focus({ preventScroll: true });
   else if (back && target) target.focus({ preventScroll: true });
-  else if (!$("#panel").contains(document.activeElement)) (v === "home" ? $("#home") : scroller).focus({ preventScroll: true });
+  // the place's own reading region: Home's, Artifacts' (the conversation's scroller is hidden there), else the
+  // conversation; never a hidden one (Astra H8: Jump → Artifacts landed on the page)
+  else if (!$("#panel").contains(document.activeElement)) (v === "home" ? $("#home") : v === "artifacts" ? $("#arts") : scroller).focus({ preventScroll: true });
   returnPill(back && target && !focus ? target : null);
 }
 /** Return to where you were (Astra's I1): coming back to a conversation still lands at its latest (the owner's

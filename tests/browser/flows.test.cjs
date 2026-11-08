@@ -557,6 +557,88 @@ t("G6: a run that goes live while its stop is pending stays live; the late refus
   await done(page);
 });
 
+// ── Create, and Jump's places ──
+const openCreate = async (page) => { await page.evaluate(() => window.__t.go("home")); const c = page.locator("#home .create, #home [data-create]").filter({ visible: true }).first(); await c.focus(); await page.keyboard.press("Enter"); await page.locator("#cp-name").waitFor(); };
+t("H2: a project made from Create opens with focus in its message box", async () => {
+  const page = await app({}, { motion: true });
+  await openCreate(page);
+  await page.locator("#cp-name").fill("Made here");
+  await page.locator("#cp-name").focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.activeElement && document.activeElement.id === "say", null, { timeout: 4000 }).catch(() => {});
+  await page.waitForTimeout(400);
+  assert.equal(await page.evaluate(() => document.activeElement.id), "say");
+  await done(page);
+});
+t("H3: Create keeps focus while it works, and on a plain failure stays on Create", async () => {
+  let answer;
+  const W = { createMode: "503", createGate: new Promise((ok) => (answer = ok)) };
+  const page = await app(W);
+  await openCreate(page);
+  await page.locator("#cp-name").fill("Not today");
+  await page.locator("#cp-submit").focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(150);
+  assert.equal(await page.evaluate(() => document.activeElement.id), "cp-submit", "focus stays on Create while it works");
+  await page.keyboard.press("Enter"); // a second press while it works
+  answer();
+  await page.waitForTimeout(400);
+  assert.equal(W.creates, 1, "one request");
+  assert.equal(await page.evaluate(() => document.activeElement.id), "cp-submit", "after the failure");
+  assert.equal(await page.locator("#cp-name").inputValue(), "Not today", "the name is kept");
+  await done(page);
+});
+t("H4: Cancel puts focus back on what opened Create", async () => {
+  const page = await app();
+  await openCreate(page);
+  await page.locator("#cp-cancel").click();
+  await page.waitForTimeout(300);
+  assert.match(await active(page), /class=create|data-create/);
+  await done(page);
+});
+t("C021: Jump → New project → Escape goes back to the message box Jump was opened from", async () => {
+  const page = await app();
+  await toDemo(page);
+  await page.locator("#say").focus();
+  await page.keyboard.press("Control+k");
+  await page.locator("#jump-q").fill("New project");
+  await page.keyboard.press("Enter");
+  await page.locator("#cp-name").waitFor();
+  await page.waitForTimeout(200);
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(400);
+  assert.match(await active(page), /id=say/);
+  await done(page);
+});
+t("H6: Connect GitHub starts once, keeps focus, and lands on Try again when it fails", async () => {
+  let answer;
+  const W = { ghGate: new Promise((ok) => (answer = ok)) };
+  const page = await app(W);
+  await openCreate(page);
+  await page.locator('#cp-mode [data-mode="clone"]').click();
+  const connect = page.locator('#cp-gh [data-cp="connect"]');
+  await connect.waitFor();
+  await connect.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(100);
+  await page.keyboard.press("Enter");
+  answer();
+  await page.waitForTimeout(400);
+  assert.equal(W.ghStarts, 1, "one start for two presses");
+  assert.match(await active(page), /data-cp=connect/, "on Try again");
+  assert.match(await page.locator("#cp-gh").innerText(), /Try again/);
+  await done(page);
+});
+t("H8: Jump to Artifacts puts focus in Artifacts", async () => {
+  const page = await app();
+  await page.keyboard.press("Control+k");
+  await page.locator("#jump-q").fill("Artifacts");
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(400);
+  assert.match(await active(page), /id=arts/);
+  await done(page);
+});
+
 // ── the Intelligence picker ──
 async function picker(page) {
   await toDemo(page);
@@ -619,14 +701,38 @@ t("Home: Allow and an option can't decide in the ask's first 300 ms; after, they
   for (const q of [false, true]) {
     const page = await app();
     await homeAsk(page, q);
-    await page.evaluate((q) => document.querySelector(q ? "[data-nx-opt]" : "[data-nx-allow]").click(), q);
-    assert.deepEqual(await homeDecided(page), [], "nothing at once");
+    // drawn and pressed in one step (a loaded machine can't stretch "at once" past 300 ms between two calls)
+    const atOnce = await page.evaluate((q) => { const t = window.__t; t.S.pin = null; document.querySelector("#hm-next").replaceChildren(); document.querySelector("#hm-next")._key = null; document.querySelector("#hm-next")._h = null; t.render(); document.querySelector(q ? "[data-nx-opt]" : "[data-nx-allow]").click(); return t.D.decisions().map((d) => d.choice); }, q);
+    assert.deepEqual(atOnce, [], "nothing at once");
     await page.waitForTimeout(350);
     await page.evaluate((q) => document.querySelector(q ? "[data-nx-opt]" : "[data-nx-allow]").click(), q);
     assert.equal((await homeDecided(page)).length, 1, "decided once read");
     await page.evaluate(() => window.__t.D.undo());
     await done(page);
   }
+});
+t("Home: a card that comes back (Undo) waits its 300 ms again", async () => {
+  const page = await app();
+  await page.evaluate(() => {
+    const t = window.__t;
+    for (const name of ["reply", "decide", "decideItem", "resolve"]) t.world.act[name] = async () => ({});
+    const th = (i) => ({ id: "home-" + i, title: "Task " + i, project: "demo", live: false, busy: false, state: "needs_approval", messages: [], happened: "Test only", lastAt: Date.now() - i, checklist: { total: 1, done: 0, items: [{ text: "Step", state: "todo" }] }, asks: [{ id: "ask-" + i, title: "Choice " + i, kind: "approval", risk: "routine", detail: "Test only" }] });
+    t.world.state.threads = [th(0), th(1)];
+    t.go("home"); t.render();
+  });
+  await page.locator("#hm-next .next").waitFor();
+  await page.waitForTimeout(350);
+  const first = await page.locator("#hm-next .next").getAttribute("data-key");
+  await page.evaluate(() => document.querySelector("[data-nx-allow]").click());
+  await page.waitForFunction((k) => document.querySelector("#hm-next .next")?.dataset.key !== k, first);
+  // Undo brings it back, and it's pressed at once, in one step
+  const atOnce = await page.evaluate((k) => { const t = window.__t; t.D.undo(); t.render(); const card = document.querySelector("#hm-next .next"); if (!card || card.dataset.key !== k) return "not back"; document.querySelector("[data-nx-allow]").click(); return t.D.decisions().map((d) => d.choice); }, first);
+  assert.deepEqual(atOnce, [], "nothing at once after it came back");
+  await page.waitForTimeout(350);
+  await page.evaluate(() => document.querySelector("[data-nx-allow]").click());
+  assert.equal((await homeDecided(page)).length, 1, "decided once read again");
+  await page.evaluate(() => window.__t.D.undo());
+  await done(page);
 });
 t("Home: a held key (repeat) never decides", async () => {
   for (const q of [false, true]) {

@@ -6,6 +6,7 @@ import { esc } from "./world.js";
 import { ICON, $, RM } from "./ui.js";
 import { api } from "./api.js";
 import { fmtSize } from "./attach.js";
+import { redraw } from "./redraw.js";
 import { copyText, COPY_REFUSED } from "./util.js";
 
 const PHASE = { counting: "Counting files in", receiving: "Downloading", resolving: "Unpacking", checkout: "Checking out", finishing: "Adding plan and memory to" };
@@ -64,16 +65,19 @@ export function initCreate(ctx) {
   }
   function renderGh() {
     const el = $("#cp-gh"), r = parseRepo(repo.value), off = busy ? " disabled" : ""; // no new login mid-clone
+    // in place: Connect becomes "Connecting…" and then Try again as the same button, so it keeps focus
+    const put = (html) => redraw(el, html);
     delete el.dataset.tone;
-    if (r && !r.github) { el.innerHTML = `${ICON.key}<span>Cloned with this server's own Git access.</span>`; return; }
-    if (gh.status === "connected") { el.innerHTML = `${ICON.check}<span>Connected as <b>@${esc(gh.username || "you")}</b>. Private repos work too.</span>`; el.dataset.tone = "ok"; return; }
-    if (gh.status === "unknown") { el.innerHTML = `<i class="spin" aria-hidden="true"></i><span>Checking GitHub…</span>`; return; }
+    if (r && !r.github) { put(`${ICON.key}<span>Cloned with this server's own Git access.</span>`); return; }
+    if (gh.status === "connected") { put(`${ICON.check}<span>Connected as <b>@${esc(gh.username || "you")}</b>. Private repos work too.</span>`); el.dataset.tone = "ok"; return; }
+    if (gh.status === "unknown") { put(`<i class="spin" aria-hidden="true"></i><span>Checking GitHub…</span>`); return; }
+    if (gh.status === "starting") { put(`${ICON.lock}<span><button type="button" class="cp-link" data-cp="connect" aria-busy="true" aria-disabled="true">Connecting GitHub…</button></span>`); return; }
     if (gh.status === "code") {
-      el.innerHTML = `${ICON.key}<span>Enter <b class="cp-code">${esc(gh.code)}</b> on GitHub. <a class="cp-link" href="${esc(gh.uri)}" target="_blank" rel="noopener" data-cp="copy">Copy code and open GitHub</a></span>`;
+      put(`${ICON.key}<span>Enter <b class="cp-code">${esc(gh.code)}</b> on GitHub. <a class="cp-link" href="${esc(gh.uri)}" target="_blank" rel="noopener" data-cp="copy">Copy code and open GitHub</a></span>`);
       return;
     }
-    if (gh.status === "failed") { el.innerHTML = `${ICON.lock}<span>${esc(gh.error || "GitHub didn't connect.")} <button type="button" class="cp-link" data-cp="connect"${off}>Try again</button></span>`; return; }
-    el.innerHTML = `${ICON.lock}<span><button type="button" class="cp-link" data-cp="connect"${off}>Connect GitHub</button> to clone private repos.</span>`;
+    if (gh.status === "failed") { put(`${ICON.lock}<span>${esc(gh.error || "GitHub didn't connect.")} <button type="button" class="cp-link" data-cp="connect"${off}>Try again</button></span>`); return; }
+    put(`${ICON.lock}<span><button type="button" class="cp-link" data-cp="connect"${off}>Connect GitHub</button> to clone private repos.</span>`);
   }
 
   async function readGh() {
@@ -85,17 +89,25 @@ export function initCreate(ctx) {
    *  login. A code keeps being polled with the dialog closed: Space allows one login at a time, so dropping it
    *  would leave the next Connect refused until the code expires. */
   async function connect() {
+    if (gh.status === "starting") return; // a second Connect while the first is starting joins it (Astra H6)
     clearTimeout(login);
+    gh = { status: "starting" }; renderGh();
     const settle = (next) => {
+      const inGh = $("#cp-gh").contains(document.activeElement);
       gh = next;
       renderGh();
       if (gh.status === "connected") { error(""); ctx.announce(`GitHub connected as ${gh.username}${gh.imported ? ", from this machine's gh login" : ""}.`); }
+      // focus that was on Connect goes to what's next: Try again if it failed, the repository if it worked
+      // Try again is the same button (it kept focus); connected, focus that was on it goes to the repository
+      if (inGh && !$("#cp-gh").contains(document.activeElement)) (gh.status === "code" ? $("#cp-gh [data-cp=copy]") : repo)?.focus({ preventScroll: true });
     };
     let s;
     try { s = await api.githubConnect(); } catch (err) { settle({ status: "failed", error: err.message }); return; }
     if (s.status === "connected") { settle(s); return; }
+    const inGh = $("#cp-gh").contains(document.activeElement);
     gh = { status: "code", code: s.user_code, uri: s.verification_uri, session: s.session_id };
     renderGh();
+    if (inGh) $("#cp-gh [data-cp=copy]")?.focus({ preventScroll: true });
     const poll = async () => {
       let r;
       // Space's 502 carries its words in a field ApiError doesn't read; 404 is a code that expired
@@ -124,7 +136,9 @@ export function initCreate(ctx) {
     busy = on ? { t0: Date.now(), label: repoOf?.label, host: repoOf && (repoOf.github ? "GitHub" : repoOf.label.split(/[/:]/)[0]) } : null;
     for (const el of [name, desc, repo]) el.disabled = on;
     for (const b of $("#cp-mode").children) b.disabled = on;
-    submit.disabled = on;
+    // aria-disabled, not disabled: a pressed Create keeps focus while it works, and a failure leaves it there to
+    // try again (a disabled button drops focus to the page: Astra H3)
+    submit.toggleAttribute("aria-disabled", on); if (on) submit.setAttribute("aria-busy", "true"); else submit.removeAttribute("aria-busy");
     submit.innerHTML = on ? `<i class="spin" aria-hidden="true"></i>${mode === "clone" ? "Cloning…" : "Creating…"}` : (mode === "clone" ? "Clone project" : "Create project");
     cancel.textContent = on && mode === "clone" ? "Close" : "Cancel";
     $("#cp-prog").hidden = !(on && mode === "clone");
@@ -205,7 +219,10 @@ export function initCreate(ctx) {
     return [err.detail ? `${err.message} (${err.detail})` : err.message, null];
   }
 
+  let opener = null; // what opened Create: focus goes back there when it closes (Astra H4)
   async function open() {
+    const a = document.activeElement;
+    if (a && a !== document.body && !dlg.contains(a)) opener = a;
     ctx.setDrawer(false);
     if (busy) { dlg.showModal(); return; } // a clone still running: show it again as it is
     form.reset();
@@ -225,12 +242,22 @@ export function initCreate(ctx) {
     return (rootP ||= api.workspaceConfig().then((cfg) => { root = cfg.roots?.[cfg.default] || null; renderWhere(); return root; },
       (err) => { rootP = null; error(`Can't read where projects live: ${err.message}`); return null; }));
   }
-  function close() {
+  /**
+   * Close. Back to what opened it (Home's Create, the composer Jump came from …), or, on a phone, the menu when
+   * that opener was inside the drawer and is gone. now: no closing animation, so the native modal lets go at once
+   * and the place the person is taken to can take focus (a project just made: Astra H2).
+   */
+  function close({ now = false, restore = true } = {}) {
     if (!dlg.open) return;
-    ctx.onPhoneClose();
-    if (RM.matches) { dlg.close(); return; }
+    const back = opener; opener = null;
+    const land = () => {
+      if (!restore) return;
+      if (back && back.isConnected && back.getClientRects().length && !back.closest("[inert], [hidden]")) back.focus({ preventScroll: true });
+      else ctx.onPhoneClose();
+    };
+    if (now || RM.matches) { dlg.close(); land(); return; }
     dlg.classList.add("is-closing");
-    setTimeout(() => { dlg.classList.remove("is-closing"); dlg.close(); }, 160);
+    setTimeout(() => { dlg.classList.remove("is-closing"); dlg.close(); land(); }, 160);
   }
 
   /** warning: Space's word on what didn't stick (the project is made either way). */
@@ -241,7 +268,7 @@ export function initCreate(ctx) {
     ctx.S.local["p:" + id] = [{ id: `l${++ctx.S.n}_hello`, conv: "p:" + id, at: Date.now(), who: "event", tone: "ok", text: `${title} ${line}${description ? ` · ${description.replace(/[.\s]+$/, "")}` : ""}` }];
     const shown = dlg.open;
     setBusy(false);
-    if (shown) { close(); ctx.go("p:" + id, { focus: true }); }
+    if (shown) { close({ now: true, restore: false }); ctx.go("p:" + id, { focus: true }); }
     // Taken there already: the project's own first line says it's ready, so only a warning needs the herald
     if (!shown || warning) ctx.heraldShow({ kind: "ready", text: `${title} is ready`, sub: warning || `${root}/${id}`, ...(shown ? {} : { open: "p:" + id }) }, 5200);
     ctx.announce(`${title} is ready.`);
@@ -279,7 +306,8 @@ export function initCreate(ctx) {
       const [text, action, field] = r ? cloneError(err, r, id) : [err.status === 409 ? `There's already a project called “${id}”. Pick another name.` : err.message, null, err.status === 409 ? name : null];
       if (!dlg.open) ctx.heraldShow({ kind: "stopped", text: `${title} didn't ${r ? "clone" : "get created"}`, sub: text }, 6000);
       error(text, action);
-      field?.focus();
+      if (field) field.focus();
+      else if (!dlg.contains(document.activeElement)) submit.focus(); // nothing to fix by hand: Create again
     }
   }
 
