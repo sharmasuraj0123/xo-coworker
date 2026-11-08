@@ -172,7 +172,9 @@ diffs-container{
 .xd-btn.is-pri{background:var(--accent-fill);border-color:var(--accent-fill);color:var(--accent-ink)}
 .xd-btn.is-pri:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
 .xd-btn.is-warn{border-color:color-mix(in srgb,var(--err) 45%,var(--line));color:var(--err-ink)}
-.xd-btn:disabled{opacity:.45;cursor:default}
+.xd-btn:is(:disabled,[aria-disabled="true"]){opacity:.45;cursor:default}
+.xd-btn[aria-disabled="true"]:hover{border-color:var(--line);color:var(--ink-2)}
+.xd-btn.is-pri[aria-disabled="true"]:hover{background:var(--accent-fill);border-color:var(--accent-fill);color:var(--accent-ink)}
 .xd-btn kbd{all:unset;font:500 var(--fs-sm)/16px var(--sans);opacity:.6}
 .xd-ro{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 8px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3);white-space:nowrap}
 .xd-ro svg{width:14px;height:14px}

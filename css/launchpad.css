@@ -159,6 +159,8 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .lp-acts{display:flex;align-items:center;gap:8px;padding:16px 12px 0}
 .lp-acts .lp-go{flex:1}
 .lp-q{flex:1;min-width:0;margin:0;padding-left:8px;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.lp-q.t-need{color:var(--need)}
+.lp-b[aria-disabled="true"]{color:var(--ink-4);border-color:var(--line-faint);background:none;cursor:default}
 .lp-or{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:12px 20px 0}
 .lp-or>span{font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
 

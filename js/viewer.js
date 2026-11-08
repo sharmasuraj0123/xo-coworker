@@ -105,6 +105,9 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   //   discard (asking to discard), conflict: {view, version, left, text}}; saved: the last save's toast
   //   {path, editId, name}
   const ED = { on: false };
+  // an edit's generation: opening a file, closing, and each new edit move it on, so a save (or a merge view)
+  // that finishes late only ever lands on the file and the edit that started it
+  let edGen = 0;
   // drafts (js/drafts.js): your unsaved edits, kept in this browser when you leave the file
   const store = (() => { try { return localStorage; } catch { return null; } })();
   const dkey = () => (V.file && V.file.project && V.file.rel ? draftKey(V.file.project, V.file.rel) : null);
@@ -235,18 +238,39 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   const MODS = /Mac|iPhone|iPad/.test(navigator.platform || "") ? "⌘" : "Ctrl ";
   function editActs() {
     if (ED.discard) return `<span class="xd-state">Discard your edits?</span><button type="button" class="xd-btn" data-vw-keep>Keep editing</button><button type="button" class="xd-btn is-warn" data-vw-discard>Discard</button>`;
-    if (ED.conflict) return `<span class="xd-state">${ED.conflict.left ? `${ED.conflict.left} ${ED.conflict.left === 1 ? "place" : "places"} to choose` : "All chosen"}</span><span class="xd-vsep"></span><button type="button" class="xd-btn" data-vw-cancel>Cancel</button><button type="button" class="xd-btn is-pri" data-vw-saveit${ED.conflict.left || ED.saving ? " disabled" : ""}>Save <kbd>${MODS}S</kbd></button>`;
+    if (ED.conflict) return `<span class="xd-state">${ED.conflict.left ? `${ED.conflict.left} ${ED.conflict.left === 1 ? "place" : "places"} to choose` : "All chosen"}</span><span class="xd-vsep"></span><button type="button" class="xd-btn" data-vw-cancel>Cancel</button><button type="button" class="xd-btn is-pri" data-vw-saveit${ED.conflict.left || ED.saving ? ' aria-disabled="true"' : ""}>Save <kbd>${MODS}S</kbd></button>`;
     return (ED.moved ? `<span class="xd-state" title="It changed since you left it: Save merges your edits with those changes">Changed since your draft</span>` : ED.dirty || ED.err ? `<span class="xd-state"><i></i>Edited</span>` : "") +
-      `<span class="xd-vsep"></span><button type="button" class="xd-btn" data-vw-cancel>Cancel</button><button type="button" class="xd-btn is-pri" data-vw-saveit${ED.saving ? " disabled" : ""}>${ED.saving ? "Saving…" : `Save <kbd>${MODS}S</kbd>`}</button>`;
+      `<span class="xd-vsep"></span><button type="button" class="xd-btn" data-vw-cancel>Cancel</button><button type="button" class="xd-btn is-pri" data-vw-saveit${ED.saving ? ' aria-disabled="true"' : ""}>${ED.saving ? "Saving…" : `Save <kbd>${MODS}S</kbd>`}</button>`;
   }
   const confirmPop = () => `<div class="xd-pop" role="dialog" aria-label="Save a file that runs code"><p><b>Git or an agent runs what this file says.</b> A slip here runs on the next commit or the next agent turn. Save anyway?</p><div class="xd-pop-a"><button type="button" class="xd-btn" data-vw-noconfirm>Cancel</button><button type="button" class="xd-btn is-pri" data-vw-confirm>Save</button></div></div>`;
-  /** Redraw only the head: the editor below keeps its focus and caret. */
+  /**
+   * Redraw only the head: the editor below keeps its focus and caret. A control in the head that had focus
+   * keeps it across the redraw (Save stays focused through Saving… and a failed save), and Cancel's question
+   * takes it to Keep editing, the answer that loses nothing.
+   */
   function paintHead() {
     const top = el.querySelector(".vw-top");
     if (!top) return;
+    const ae = document.activeElement;
+    const had = ae && top.contains(ae) ? [...ae.attributes].find((a) => a.name.startsWith("data-vw-"))?.name : null;
     top.outerHTML = head();
     errPaint();
+    if (!had) return;
+    const now = el.querySelector(".vw-top");
+    const to = (ED.on && ED.discard && now.querySelector("[data-vw-keep]")) || now.querySelector(`[${had}]`) || (ED.on && ED.ed) || headFocus(false);
+    if (to && to !== document.activeElement) to.focus({ preventScroll: true });
   }
+  /**
+   * After an edit ends here (saved, cancelled, discarded), focus goes to the file's head, Edit first, so the
+   * keyboard isn't dropped to the page. go=false: only say where it would go.
+   */
+  function headFocus(go = true) {
+    const to = el.querySelector(".vw-top [data-vw-edit]") || el;
+    if (go) to.focus({ preventScroll: true });
+    return to;
+  }
+  // focus was on the viewer (or dropped to the page when its control went): it may be put back after a redraw
+  const focusHere = () => { const a = document.activeElement; return !a || a === document.body || el.contains(a); };
   /** A save that didn't go, in words, on its own line under the head: never pushing Cancel and Save away. */
   function errPaint() {
     let line = el.querySelector(":scope > .xd-errline");
@@ -259,6 +283,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   async function startEdit() {
     const f = V.file, my = V.gen;
     if (!canEdit() || ED.on || ED.opening) return;
+    edGen++;
     Object.assign(ED, { opening: true, ed: null, base: null, version: null, dirty: false, saving: false, err: null, confirm: false, discard: false, conflict: null, real: null, moved: false, from: false });
     V.saveError = null; V.menu = false;
     if (!(saved && saved.created)) { saved = null; toastPaint(); }
@@ -307,28 +332,42 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   }
   function cancelEdit() {
     if (ED.dirty && !ED.discard && !ED.conflict) { ED.discard = true; paintHead(); return; }
+    const back = focusHere();
     letDraftGo();
     stopEdit();
+    if (back) headFocus();
   }
   async function save(confirm = null) {
     if (!ED.on || ED.saving) return;
     const f = V.file, conflict = ED.conflict;
+    // the one gate for every way to save (the button, Ctrl/Cmd+S): a merge with a place still to choose never
+    // saves, or the conflict markers would be written into the file
+    if (conflict && conflict.left !== 0) {
+      const n = conflict.left;
+      announce(n ? `Choose what to keep in ${n} ${n === 1 ? "place" : "places"} first.` : "Choose what to keep first.");
+      return;
+    }
     const text = conflict ? conflict.text : ED.ed && ED.ed.text();
     if (text == null) return;
-    if (!conflict && text === ED.base) { stopEdit({ keep: true }); return; }
+    if (!conflict && text === ED.base) { const back = focusHere(); stopEdit({ keep: true }); if (back) headFocus(); return; }
     ED.saving = true; ED.err = null; ED.confirm = false; paintHead();
+    const my = edGen, key = dkey();
     try {
       const r = await api.saveProjectFile(f.project, f.rel, text, conflict ? conflict.version : ED.version, confirm || (ED.confirmed ? "runs_code" : null));
+      if (my !== edGen) { savedAway(f, key, text, r); return; }
       V.data = { ...V.data, content: text, version: r.version, size_bytes: new TextEncoder().encode(text).length, modified_at: r.saved_at || V.data.modified_at };
       ED.saving = false;
       letDraftGo();
       ED.real = null;
+      const back = focusHere();
       stopEdit({ keep: !conflict });
+      if (back) headFocus();
       saved = { path: localPath(), name: f.name, editId: r.edit_id, merged: !!conflict, unchanged: !!r.unchanged };
       toastPaint();
       announce(`Saved ${f.name}.`);
       edits && edits.saved && edits.saved(f, saved);
     } catch (err) {
+      if (my !== edGen) { failedAway(f, key, err); return; }
       ED.saving = false;
       const o = saveOutcome(err);
       if (o.kind === "confirm") { ED.confirm = true; paintHead(); el.querySelector("[data-vw-confirm]")?.focus(); return; }
@@ -337,6 +376,24 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       ED.err = o.words; // your edit stays in the editor: nothing is lost
       paintHead();
     }
+  }
+  /**
+   * A save that finished after you moved to another file (or closed it): the file you're on now is left as it
+   * is. The saved file's draft (opening the other file kept your edits as one) goes if it holds what was
+   * saved; text typed after Save stays, now against the saved version.
+   */
+  function savedAway(f, key, text, r) {
+    const d = key && getDraft(store, key);
+    if (d && d.text === text) dropDraft(store, key);
+    else if (d) putDraft(store, key, { ...d, base: text, version: r.version, at: Date.now() });
+    if (V.open && dkey() === key) V.draft = getDraft(store, key);
+    announce(`Saved ${f.name}.`);
+    edits && edits.saved && edits.saved(f, { path: f.rel, name: f.name, editId: r.edit_id });
+  }
+  /** A save that failed after you moved on: nothing lands here; your edits wait as that file's draft. */
+  function failedAway(f, key, err) {
+    const kept = key && getDraft(store, key);
+    announce(`Couldn't save ${f.name}${err && err.message ? `: ${err.message}` : ""}.${kept ? " Your edits wait as its draft." : ""}`);
   }
   /**
    * The file changed while you edited (409): yours and the agent's, merged against where you started. With
@@ -353,11 +410,15 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     el.querySelector(".xd-bar")?.remove();
     host.insertAdjacentHTML("beforebegin", `<p class="xd-bar"><b>The agent changed ${esc(V.file.name)} while you were editing.</b> Where you both changed the same lines, choose what to keep, then save.</p>`);
     paintHead();
-    ED.conflict.view = await DV.conflict(host, m.text, {
+    const my = edGen, mine3 = ED.conflict;
+    const view = await DV.conflict(host, m.text, {
       path: V.file.name,
       labels: { current: "Keep yours", incoming: "Take the agent's", both: "Keep both" },
-      onResolve: (text, left) => { if (!ED.conflict) return; ED.conflict.text = text; ED.conflict.left = left; paintHead(); },
+      onResolve: (text, left) => { if (!ED.conflict || ED.conflict !== mine3) return; ED.conflict.text = text; ED.conflict.left = left; paintHead(); },
     });
+    // the file was left while the merge view was drawing: it isn't this file's any more
+    if (my !== edGen || ED.conflict !== mine3) { view && view.destroy && view.destroy(); return; }
+    ED.conflict.view = view;
   }
   /** "Saved · Undo · Tell the agent", at the foot of the file, for the last save. */
   function toastPaint() {
@@ -662,6 +723,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
    */
   function open(f, from) {
     const was = V.open;
+    edGen++;
     // the file you were editing, before this one takes its place: your edits wait as its draft
     if (ED.on && ED.dirty) keepDraft();
     if (ED.on) { if (ED.ed) ED.ed.stop(); if (ED.conflict && ED.conflict.view) ED.conflict.view.destroy(); ED.on = false; ED.conflict = null; ED.real = null; ED.moved = false; }
@@ -689,7 +751,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
 
   function close({ restore = true } = {}) {
     if (!V.open) return;
-    V.open = false; V.parked = false; V.gen++;
+    V.open = false; V.parked = false; V.gen++; edGen++;
     if (ED.on && ED.dirty) keepDraft(); // closed while editing: your edits wait as its draft
     if (ED.on) { if (ED.ed) ED.ed.stop(); if (ED.conflict && ED.conflict.view) ED.conflict.view.destroy(); ED.on = false; ED.conflict = null; ED.real = null; ED.moved = false; }
     V.draft = null;
@@ -739,7 +801,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (e.target.closest("[data-vw-saveit]")) { save(); return; }
     if (e.target.closest("[data-vw-cancel]")) { cancelEdit(); return; }
     if (e.target.closest("[data-vw-keep]")) { ED.discard = false; ED.then = null; paintHead(); ED.ed?.focus(); return; }
-    if (e.target.closest("[data-vw-discard]")) { const then = ED.then; ED.then = null; letDraftGo(); stopEdit(); if (then) then(); return; }
+    if (e.target.closest("[data-vw-discard]")) { const then = ED.then; ED.then = null; letDraftGo(); stopEdit(); if (then) then(); else headFocus(); return; }
     if (e.target.closest("[data-vw-draftx]")) { letDraftGo(); paintHead(); el.querySelector("[data-vw-edit]")?.focus(); announce("Your draft is gone."); return; }
     if (e.target.closest("[data-vw-confirm]")) { ED.confirmed = true; save("runs_code"); return; }
     if (e.target.closest("[data-vw-noconfirm]")) { ED.confirm = false; paintHead(); ED.ed?.focus(); return; }

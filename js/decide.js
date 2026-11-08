@@ -591,6 +591,11 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
     if (!n) return;
     F.vig = false;
     const my = ++F.swap;
+    // words being typed on this card (a note, an answer) when it goes without the person deciding it (withdrawn,
+    // answered elsewhere): the card that takes its place starts with its letter keys paused, or the next letter
+    // typed would decide it. Sending a note (Enter, Send back) is deciding: the next card's keys stay on.
+    const ae = document.activeElement, cur = $("#card");
+    const typing = how !== "allow" && how !== "back" && !!(cur && ae && cur.contains(ae) && ae.matches("textarea, input, [contenteditable]"));
     clearTimeout(F.autoT);
     F.hold && F.hold.cancel();
     let frame = $("#card");
@@ -620,6 +625,7 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
     frame.setAttribute("aria-labelledby", inner.querySelector(".c-h").id);
     const why = inner.querySelector(".c-line");
     if (why) frame.setAttribute("aria-describedby", why.id); else frame.removeAttribute("aria-describedby");
+    if (typing) { frame._quiet = true; frame._quietWhy = "The ask you were writing to went away; this is the next one."; }
     wireCard(frame, inner, fresh, { surface: "panel", after: (h) => advance(h) });
     F.busy = false;
     // focus the card itself: never an answer, never the suggestion
@@ -654,7 +660,12 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
     const secs = () => Math.max(2, Math.round((performance.now() - shownAt) / 1000));
     // decide, then move on: only when a decision was queued (a repeat press or a refused choice stays put)
     // the thread's own card says what it did, with its own Undo, in place: no second box (the toast) for it
-    const go = (choice, how, note = "") => { const entry = decide(n, choice, note, { secs: secs(), inline: ctx.surface === "dock" }); if (entry) ctx.after(how); return entry; };
+    // every decision this card makes goes through here, so the 300 ms re-arm covers them all: Allow, a stopped
+    // card's Try again, Done, an option or an answer, Send back now (a hold takes 1.2 s, a note is typed)
+    const go = (choice, how, note = "") => {
+      if (!ready()) { if (n.risk === "notable") hint(el, "A beat to read it first."); return null; }
+      const entry = decide(n, choice, note, { secs: secs(), inline: ctx.surface === "dock" }); if (entry) ctx.after(how); return entry;
+    };
     let noteMode = null;
     const body = frame;
     const step = ctx.onStep || null;
@@ -682,9 +693,6 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
 
     const tryAllow = () => {
       if (n.risk === "destructive") { hint(el, "Destructive asks are never one key: press and hold the button."); return; }
-      // every card re-arms when it arrives, on every Allow path (a stopped card's retry too): a second click or key
-      // meant for the card before can't act on this one
-      if (!ready()) { if (n.risk === "notable") hint(el, "A beat to read it first."); return; }
       if (n.group === "stopped") { go({ text: "Please try again from the failing step." }, "allow"); return; }
       if (n.ask.item) {
         if (n.ask.item.kind === "question") { hint(el, "Pick an answer, or answer in words."); return; }
@@ -724,7 +732,8 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
       frame.addEventListener("pointerdown", () => frame._quietOff && frame._quietOff());
       frame.addEventListener("focusout", (e) => { if (!frame.contains(e.relatedTarget) && frame._quietOff) frame._quietOff(); });
     }
-    if (carried) frame._quietOn("A new ask took this one's place.");
+    if (carried) frame._quietOn(frame._quietWhy || "A new ask took this one's place.");
+    frame._quietWhy = null;
     frame._n = n;
 
     const qform = el.querySelector("[data-qform]");
@@ -988,6 +997,8 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
     }
     if (inField || e.metaKey || e.ctrlKey || e.altKey) return false;
     if (e.target.closest?.(".b-hold") && (e.key === "Enter" || e.key === " ")) return false;
+    // a key held down repeats: a repeat never decides anything (holding A must not approve card after card)
+    if (e.repeat && card && card._n) { e.preventDefault(); e.stopPropagation(); return true; }
     const n = card && card._n;
     if (!n) return false;
     const k = e.key;

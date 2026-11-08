@@ -17,6 +17,7 @@ import { uiMsg, mergeRows, addReaction, updateMessage, stormAsks, mapLimit, curr
 import { hostOf, askedBy } from "./review.js";
 import { isLimitItem, limitItem } from "./runtimes.js";
 import { commsLine, commsHeader } from "./comms.js";
+import { hopRank, mergeHop } from "./hopstate.js";
 
 const STATUS_MS = 30000;          // the engine's status (pools, review counts); frames carry the rest
 const STATUS_RETRY_MS = 8000;
@@ -632,7 +633,9 @@ export function stormSource(state, emit, event) {
       case "hop": {
         // creation: the hop without its note; a state move: {id, state}
         const old = state.hops.get(d.id);
-        if (old || d.kind) { state.hops.set(d.id, { ...(old || {}), ...d, seq: (old && old.seq) ?? env.seq ?? null, at: (old && old.at) || env.ts }); emitSoon(); }
+        if (old || d.kind) { putHop(d, { seq: (old && old.seq) ?? env.seq ?? null, at: (old && old.at) || env.ts }); emitSoon(); }
+        // a move for a hop not read yet (a cold load, its history still on the way) is held for it
+        else if (d.id && d.state) holdMove(d.id, d.state);
         // the open thread shows what its hops say: read the new one's note
         if (d.kind && d.thread_ts && d.thread_ts === watched.thread) hopsSoon(d.thread_ts);
         break;
@@ -795,11 +798,24 @@ export function stormSource(state, emit, event) {
   async function loadThreadHops(ts) {
     const r = rawThreads.get(ts);
     if (!r) return;
-    try { const d = await api.hops(r.chat_id, { thread: ts, before_seq: NEWEST, limit: 200 }); for (const h of d.hops || []) state.hops.set(h.id, { ...(state.hops.get(h.id) || {}), ...h, at: h.created_at }); emitSoon(); } catch { /* the stream's hops still arrive */ }
+    try { const d = await api.hops(r.chat_id, { thread: ts, before_seq: NEWEST, limit: 200 }); for (const h of d.hops || []) putHop(h, { at: h.created_at }); emitSoon(); } catch { /* the stream's hops still arrive */ }
   }
   // a burst of hops (a relay and its state moves) is one read
   let hopsT = 0;
   const hopsSoon = (ts) => { clearTimeout(hopsT); hopsT = setTimeout(() => loadThreadHops(ts), 400); };
+  // A hop only moves on, sent → delivered → answered and never back (rows.set_hop_state), so a history read
+  // that left before a receipt can't put it back: whichever comes last, the further state stays. A receipt
+  // for a hop not known yet is held until the hop arrives, so a cold load never shows a wait that ended.
+  const heldMoves = new Map(); // hop id → the furthest state a receipt gave before the hop was read
+  function holdMove(id, st) {
+    if (hopRank(st) <= hopRank(heldMoves.get(id))) return;
+    heldMoves.delete(id); heldMoves.set(id, st);
+    if (heldMoves.size > 500) heldMoves.delete(heldMoves.keys().next().value);
+  }
+  function putHop(h, extra) {
+    state.hops.set(h.id, mergeHop(state.hops.get(h.id), h, extra, heldMoves.get(h.id)));
+    heldMoves.delete(h.id);
+  }
   const sought = new Set(); // findRows: "project|id@hint" already looked for
   const hopsRead = new Set(); // loadChatHops: the chats whose hops were read
   // a thread's hops, read once (the stream keeps them current after); its first page waits for that read
@@ -1033,7 +1049,7 @@ export function stormSource(state, emit, event) {
         const chat = chatIdOf(project);
         if (!chat || hopsRead.has(chat)) return;
         hopsRead.add(chat);
-        try { const d = await api.hops(chat, { before_seq: NEWEST, limit: 500 }); for (const h of d.hops || []) state.hops.set(h.id, { ...(state.hops.get(h.id) || {}), ...h, at: h.created_at }); emitSoon(); } catch { hopsRead.delete(chat); }
+        try { const d = await api.hops(chat, { before_seq: NEWEST, limit: 500 }); for (const h of d.hops || []) putHop(h, { at: h.created_at }); emitSoon(); } catch { hopsRead.delete(chat); }
       },
       /** The chat id of a project ("workspace" for the Workspace), for its attachments. */
       chatId: (project) => chatIdOf(project),

@@ -163,6 +163,8 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       return;
     }
     if (e.state === "doing" || e.state === "done" || e.state === "failed") f.env = {}; // under way: the values have gone with the request
+    // the stop we asked for, confirmed by the run itself
+    if (e.state === "failed" && e.error?.code === "cancelled" && (s.run.stopSent || s.run.stopErr)) { stopped(p, s.run); return; }
     if (e.state === "failed" && e.error?.code === "size_not_allowed") {
       s.run = null; f.errs = { size: "Launchpad doesn't allow this size for this app. Pick another." }; S.key = "";
       announce("Launchpad doesn't allow that size for this app. Pick another."); changed();
@@ -409,8 +411,11 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     const sentence = on === "release" && rel.of
       ? `${rel.ready} of ${rel.of} new instance${rel.of > 1 ? "s" : ""} ${rel.of > 1 ? "are" : "is"} ready.${s.check.app?.release ? ` Release #${s.check.app.release} keeps serving until the new one is healthy.` : ""}`
       : `${{ repo: `Pushing ${esc(s.check.repo.branch || "main")} to GitHub`, build: "GitHub Actions is building the image", release: "Launchpad is starting the new release", live: "Going live" }[on]} · ${since(r.startedAt)} in all`;
+    const halting = !!(r.stopping || r.stopSent);
+    const q = r.stopErr ? `<p class="lp-q t-need" role="status">Couldn't stop it: ${esc(r.stopErr)}. It's still deploying.</p>`
+      : r.stopSent ? `<p class="lp-q" role="status">Stopping… it stops once Space confirms.</p>` : `<p class="lp-q">Carries on if you close this.</p>`;
     return hero(word, sentence, "work") + system(p, "run") + warnHtml(s) +
-      `<div class="lp-acts"><p class="lp-q">Carries on if you close this.</p><button type="button" class="lp-b" data-lp="stop"><span>Stop</span></button><button type="button" class="lp-b" data-lp="hide"><span>Hide</span></button></div>`;
+      `<div class="lp-acts">${q}<button type="button" class="lp-b" data-lp="stop"${halting ? ' aria-disabled="true"' : ""}><span>${halting ? "Stopping…" : r.stopErr ? "Stop again" : "Stop"}</span></button><button type="button" class="lp-b" data-lp="hide"><span>Hide</span></button></div>`;
   }
 
   /** The stream dropped and couldn't be picked up: the deploy carries on in Space, nothing here spins */
@@ -672,6 +677,40 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       .finally(() => { s.linking = false; changed(); });
   }
 
+  /**
+   * Ask Space to stop the run, and say it stopped only once Space says so: DELETE answers {stopped: true} once the
+   * deploy has ended (or the stream's own `error cancelled` comes first). Refused (offline, an error), the run is
+   * still followed, the card says it couldn't stop, and Stop is there again. Nothing to stop: it had already ended,
+   * and the stream's last event says how.
+   */
+  function stopNow(p, run) {
+    const s = proj(p);
+    if (s.run !== run) return;
+    if (!api.stop) { stopped(p, run); return; }
+    run.stopSent = true; run.stopErr = null; changed();
+    api.stop(p).then((r) => {
+      run.stopSent = false;
+      if (s.run !== run) return; // the stream said first (cancelled, or how it ended)
+      if (r && r.stopped === false) { announce("It had already finished."); changed(); return; }
+      stopped(p, run);
+    }, (e) => {
+      run.stopSent = false;
+      if (s.run !== run) return;
+      run.stopErr = (e && e.message) || "Space didn't answer";
+      announce(`Couldn't stop the deploy: ${run.stopErr}. It's still running.`);
+      changed();
+    });
+  }
+  /** The stop is confirmed: the run is over; the project as it now is. */
+  function stopped(p, run) {
+    const s = proj(p);
+    if (s.run !== run) return;
+    run.stop && run.stop.stop();
+    s.run = null; s.pre = 0;
+    announce("Deploy stopped.");
+    load(p, true); changed();
+  }
+
   function act(name, el) {
     const p = projectOf(S.v);
     if (!p) return;
@@ -682,9 +721,11 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       case "undo": if (s.run) { s.run = null; announce("Deploy undone. Nothing changed."); changed(); } return;
       case "hide": onHide && onHide(); return;
       case "stop": {
-        if (!s.run || s.run.stopping) return;
+        if (!s.run || s.run.stopping || s.run.stopSent) return;
         const run = s.run;
-        run.stopping = setTimeout(() => { run.stop && run.stop.stop(); if (api.stop) api.stop(p).catch(() => {}); if (s.run === run) s.run = null; announce("Deploy stopped."); changed(); }, 3000);
+        run.stopErr = null;
+        // Undo for 3 s, then the stop is asked for; the run stays followed until Space confirms it
+        run.stopping = setTimeout(() => { run.stopping = 0; stopNow(p, run); }, 3000);
         notify && notify(`Stopping the deploy of ${s.form.name}`, () => { clearTimeout(run.stopping); run.stopping = 0; changed(); });
         changed();
         return;
