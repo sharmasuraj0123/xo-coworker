@@ -17,6 +17,7 @@
 //
 // app.js calls: open, close, minimise, restore, escape, sync (every render), isOpen, docked, putAway, owns.
 
+import { redraw } from "./redraw.js";
 import { ICON, $ } from "./ui.js";
 import { esc } from "./util.js";
 import { ready as diffsReady } from "./diffview.js";
@@ -218,7 +219,9 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
   function paint() {
     if (!F.open) return;
     const h = headHtml();
-    if (h !== F.head) { el.querySelector(".fv-h").innerHTML = h; F.head = h; }
+    // in place: the head's buttons (the tree toggle, Back to chat …) stay the same nodes, so the one you pressed
+    // keeps focus (Astra C036)
+    if (h !== F.head) { redraw(el.querySelector(".fv-h"), h); F.head = h; }
   }
 
   /** Shown: the file's classes on the page (a put-away file keeps its place, hidden, scroll and all). */
@@ -288,7 +291,8 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
     onChange && onChange();
   }
   /** Focus on the file (the viewer), else on Files. */
-  const toFile = () => { const v = document.getElementById("viewer"); (v && !v.hidden && el.contains(v) ? v : el).focus({ preventScroll: true }); };
+  // the file where it's drawn, else Files itself
+  const toFile = () => { const v = document.getElementById("viewer"); (v && !v.hidden && el.contains(v) && v.getClientRects().length ? v : el).focus({ preventScroll: true }); };
   /** Esc: beside the chat, the file is put away (from the chat, an empty composer goes back to the file);
    *  covering the conversation, Files closes. True when it did something. */
   function escape(target) {
@@ -308,8 +312,13 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
     const f = viewer.hasFile ? viewer.file : null;
     if (f && f !== F.seen) {
       F.seen = f;
-      // beside the chat, the file you opened has focus (Esc puts it away); covering the conversation, as before
-      if (!F.open) open({ fileOnly: !files.auto, focus: modeNow() === "docked" });
+      // beside the chat, the file you opened has focus (Esc puts it away); covering the conversation too when you
+      // opened it yourself and are still on what you opened it from (a file entry in a message, a node in the
+      // panel's map: what you were on is covered, or steps aside on a phone): never the page (Astra S082, S224)
+      const a = document.activeElement, asked = !!a && a !== document.body && (a === viewer.opener || !!a.closest?.(".stage"));
+      // focus goes once the file is laid out (below): on a phone the tree gives way to it only after reveal and
+      // paint, and a viewer not yet drawn can't take focus (the browser run, S224)
+      if (!F.open) { open({ fileOnly: !files.auto, focus: false }); F.focusFile = modeNow() === "docked" || asked; }
       if (!files.auto) files.reveal(f);
     } else if (!f && F.seen) {
       F.seen = null;
@@ -320,6 +329,7 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
     if (F.open && modeNow() !== modeOf()) { setDocked(dockable()); fit(); }
     if (F.open && viewer.hasFile !== F.had) { F.had = viewer.hasFile; fit(); }
     if (F.open) { files.render(view()); paint(); }
+    if (F.focusFile) { F.focusFile = false; if (F.open) toFile(); }
     // focus that was on the file goes to its chip once the header has drawn it
     if (F.toChip) { const c = [...document.querySelectorAll("[data-fv-restore]")].find((x) => x.offsetParent); if (c) { F.toChip = false; c.focus({ preventScroll: true }); } }
   }

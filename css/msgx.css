@@ -74,6 +74,11 @@ body.files-open .mx-down{display:none}
 .mx-qpop{position:fixed;z-index:var(--z-overlay);display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px 0 10px;border:1px solid var(--line);border-radius:var(--r-pill);background:color-mix(in srgb,var(--fill-1) 82%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:var(--e2);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink);animation:mx-up var(--d-in) var(--ease)}
 .mx-qpop[hidden]{display:none}
 .mx-qpop svg{width:16px;height:16px;color:var(--ink-3)}
+/* it answers the pointer like every other button: a step brighter, its icon with it, pressed in (RPL-4) */
+.mx-qpop{transition:background-color var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease)}
+.mx-qpop:hover{background:color-mix(in srgb,var(--fill-2) 90%,transparent);border-color:var(--line-strong);transition-duration:var(--d-hover-in)}
+.mx-qpop:hover svg{color:var(--ink-2)}
+.mx-qpop:active{background:color-mix(in srgb,var(--fill-3) 92%,transparent)}
 
 /* swipe right on a message: it follows, an arrow grows in, and past the line it's a reply */
 #msgs>.m>*{transition:transform var(--d-move) var(--ease)}

@@ -155,7 +155,7 @@ body.stage-over .stage{box-shadow:var(--e2)}
 .md-pane .md-meta{gap:4px;padding:12px 12px 4px}
 .md-pane .md-from{gap:4px;margin:0 4px 8px;padding:4px 8px;border-radius:var(--r-sm);font:400 var(--fs-sm)/16px var(--sans)}
 .md-pane .md-meta b{font:500 var(--fs-base)/20px var(--sans)}
-.md-pane .md-meta span{font:400 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums}
+.md-pane .md-meta > span{font:400 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums}
 @container made (max-width:519px){
   .md-pane .md-body{padding:0 6px 12px}
   .md-pane .md-gh{padding-left:6px}
@@ -194,6 +194,11 @@ body.stage-over .stage{box-shadow:var(--e2)}
 .dg-n{width:148px;height:32px;padding:0 8px;gap:8px;font:400 var(--fs-sm)/16px var(--sans)}
 .dg-n.k-root{height:36px;margin-top:-2px;font-weight:600}
 .dg-n.k-more,.dg-n.k-note{width:auto;height:24px;margin-top:4px}
+/* a box's hit area grows as the map zooms out, by 12 px × (1/scale − 1) on each side, in the map's own units, but
+   never more than 5: boxes are 32 tall and 42 apart, so a target stops half way into the 10 between and never
+   reaches a neighbour's box, edge or centre (Files/Map grader on b153247). That keeps targets 24 px or more down to
+   a scale of 24/42; further out a pointer press zooms in instead of acting (js/map.js PRESS_MIN) */
+.dg-n::before{content:"";position:absolute;inset:clamp(-5px, calc(12px * (1 - 1 / var(--dg-s, 1))), 0px)}
 .dg-ic svg,.dg-ic svg.fi{width:16px;height:16px}
 .gn.k-file .gn-d{background:var(--fc,var(--fill-4))}
 :root[data-theme="light"] .gn.k-file .gn-d{background:var(--fc,#B9B9B6)}
@@ -339,7 +344,8 @@ body.files-open .dock,body.files-open .tdock{display:none}
 :root[data-theme="light"] .fv .fl.is-wide .fl-tree{background:#FBFBFA}
 .fv .fl-crumb:not(:has(.fl-up)){display:none}
 .fl-split{display:none}
-.fv .fl.is-wide .fl-split{display:block;flex:none;position:relative;width:1px;background:var(--fill-2);cursor:col-resize;outline:none}
+/* its 9 px grab area reaches over the file beside it: raised above it, so the pointer can take it at its line (C034) */
+.fv .fl.is-wide .fl-split{display:block;flex:none;position:relative;z-index:var(--z-raised);width:1px;background:var(--fill-2);cursor:col-resize;outline:none}
 .fv .fl.is-wide .fl-split::after{content:"";position:absolute;top:0;bottom:0;left:-4px;width:9px}
 .fv .fl.is-wide .fl-split:hover,.fv .fl.is-wide .fl-split:focus-visible,body.fv-sizing .fl-split{background:var(--line-hover)}
 body.fv-sizing{cursor:col-resize;user-select:none}

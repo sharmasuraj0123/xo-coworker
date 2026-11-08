@@ -422,6 +422,13 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     wire(el.querySelector("[data-dg]"));
   }
   const view = () => el.querySelector("[data-dg]");
+  /** After a redraw, the node that had focus, by its id; if it's gone (a folder's Try again becomes the folder
+   *  once it reads), the nearest node above it; else the drawing. Both drawings (Diagram, Graph). (S082) */
+  function focusNode(nodes, fid) {
+    let id = fid, to = null;
+    while (!to && id) { to = nodes.querySelector(`[data-node="${CSS.escape(id)}"]`); id = id.includes("/") ? id.replace(/\/[^/]*$/, "") : ""; }
+    (to || view())?.focus({ preventScroll: true });
+  }
   const world$ = () => el.querySelector(".dg-world");
 
   function camOf(scope) {
@@ -434,11 +441,16 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     if (!w) return;
     w.classList.toggle("is-glide", !!glide);
     w.style.transform = `translate(${c.x}px,${c.y}px) scale(${c.s})`;
+    w.style.setProperty("--dg-s", String(c.s));
     w.classList.toggle("is-near", c.s >= 1.15); // close enough to read every name
     const f = el.querySelector('[data-dg="follow"]');
     if (f) f.setAttribute("aria-pressed", String(!!c.follow));
   }
   const READABLE = 0.8; // the smallest scale for a partial view (all = false): labels stay readable (≈10px)
+  // the smallest scale a box can be pressed surely at: boxes are 32 tall, 42 apart, so a box's target may grow 5
+  // into the 10 between (css: .dg-n::before), 42 in all; 42 × this = 24 px. Further out, a pointer press brings the
+  // map in to the box instead of acting on it (the keyboard acts at any size) (Files/Map grader on b153247)
+  const PRESS_MIN = 24 / 42;
   /** Frame the drawing. The Map shows it all, fitted to whatever size its frame is (the owner, 4 Nov:
    *  "I asked for the map to fit it all"), by itself and with Fit; all = false is the old readable
    *  partial view, kept for callers that want it. */
@@ -447,7 +459,9 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     if (!v || !B || !v.clientWidth) return;
     const W = B.x1 - B.x0, H = B.y1 - B.y0, vh = v.clientHeight - 44, cw = v.clientWidth - 24, ch = vh - 24;
     const s = Math.min(cw / W, ch / H);
-    c.s = clamp(s, all ? 0.3 : READABLE, 1.1);
+    // Fit shows it all, whatever it takes (S207: a 0.3 floor left 16 of 32 folders outside); a small scale keeps
+    // the controls' hit areas (css: .dg-n::before, from --dg-s)
+    c.s = clamp(s, all ? 0.05 : READABLE, 1.1);
     if (!all && s < READABLE) {
       // too tall to read whole: as wide as reads (all of it across), starting at the top box
       c.s = clamp(cw / W, READABLE, 1.1);
@@ -559,6 +573,8 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     else if (what === "follow") {
       c.follow = !c.follow; c.user = false;
       if (c.follow && M.lead) { c.target = M.lead.key; centerOn(c, M.lead.pt, true); }
+      // the button says it at once, not on the next camera move (Astra S208: it stayed pressed after turning off)
+      el.querySelector('[data-dg="follow"]')?.setAttribute("aria-pressed", String(!!c.follow));
       announce(c.follow ? "Following the agent." : "Not following.");
     }
   }
@@ -737,7 +753,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       M.layoutKey = html;
       // the first layout settles from scratch; later dots join gently without shaking the rest
       if (shape !== M.gkey) { M.alpha = Math.max(M.alpha, M.gkey ? 0.25 : 0.9); M.gkey = shape; }
-      if (fid != null) nodes.querySelector(`[data-node="${CSS.escape(fid)}"]`)?.focus({ preventScroll: true });
+      if (fid != null) focusNode(nodes, fid);
     }
     M.gags = ags;
     gdraw();
@@ -963,11 +979,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
         if (old) holdStill(scope, old, L);
         // the focused node again; if it's gone (a folder's "Try again" becomes the folder once it reads), the
         // nearest node above it, else the drawing: never the page (Astra S082)
-        if (fid != null) {
-          let id = fid, to = null;
-          while (!to && id) { to = nodes.querySelector(`[data-node="${CSS.escape(id)}"]`); id = id.includes("/") ? id.replace(/\/[^/]*$/, "") : ""; }
-          (to || view())?.focus({ preventScroll: true });
-        }
+        if (fid != null) focusNode(nodes, fid);
       }
       cursors(ags, (id) => {
         const n = byId.get(id);
@@ -1069,6 +1081,14 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     if (!nb || M.dragged) return;
     const r = M.refs.get(nb.dataset.node);
     if (!r) return;
+    const cz = camOf(M.scope);
+    if (e.detail > 0 && cz.s < PRESS_MIN) {
+      // a pointer press far out: in to that box, readable, where its targets are full size; it doesn't act yet
+      cz.user = true; cz.follow = false; cz.fitAll = false;
+      centerOn(cz, { x: nb.offsetLeft + nb.offsetWidth / 2 - tagW() / 2, y: nb.offsetTop + nb.offsetHeight / 2 }, true, READABLE);
+      announce(`Closer to ${nb.textContent.trim() || "it"}: press it again to open it.`);
+      return;
+    }
     const key = M.scope.key;
     if (r.toggle != null || r.more != null) {
       // unfold in place: the box you clicked stays under your pointer, at the same size

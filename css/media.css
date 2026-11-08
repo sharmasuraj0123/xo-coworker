@@ -97,8 +97,8 @@ a.lbx-btn{text-decoration:none}
 .lbx-x{width:28px;padding:0;justify-content:center}
 .lbx-arrow{position:absolute;top:calc(50% - 20px);display:grid;place-items:center;width:40px;height:40px;border-radius:var(--r-lg);background:var(--lbx-fill);color:var(--lbx-ink);
   transition:background-color var(--d-hover) var(--ease),opacity var(--d-hover) var(--ease)}
-.lbx-arrow:hover{background:var(--lbx-fill-hover)}
-.lbx-arrow:disabled{opacity:.32;cursor:default}
+.lbx-arrow:hover:not([aria-disabled="true"]){background:var(--lbx-fill-hover)}
+.lbx-arrow[aria-disabled="true"]{opacity:.32;cursor:default}
 .lbx-arrow.is-prev{left:8px}
 .lbx-arrow.is-next{right:8px}
 .lbx-count{position:absolute;left:0;right:0;bottom:24px;text-align:center;font:400 var(--fs-xs)/var(--lh-12) var(--sans);letter-spacing:var(--tr-12);color:var(--lbx-ink-3);font-variant-numeric:tabular-nums;pointer-events:none}

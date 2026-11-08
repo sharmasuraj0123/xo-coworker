@@ -254,7 +254,9 @@ export function catchUp(threads, { since, needing = new Set(), trees = new Map()
     let g;
     if (needs) g = "needs";
     else if (t.state === "failed") g = "stopped";
-    else if (OPEN.has(t.state)) g = "going";
+    // work still running is "still going", a resolved thread's too (its turn or sub-agents can outlive the
+    // resolve): the same truth as the sidebar's busy count (Astra: it was counted as finished)
+    else if (OPEN.has(t.state) || t.busy === true) g = "going";
     else if (git.group === "unsaved" || git.group === "unpushed" || git.group === "unmerged" || git.group === "shipped") g = git.group;
     else g = "finished";
     by.get(g).push({ t, line: didLine(t), git });

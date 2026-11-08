@@ -251,6 +251,18 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     fb.title = S.full ? "Back beside the conversation" : "Full size";
   }
 
+  /** While the panel covers the page (full size, or any size on a phone) what's under it is out of reach: inert,
+   *  so Tab never lands on a control you can't see (Astra C023: Tab reached the opener under a phone's panel).
+   *  Only what this set inert is released; the toast stays reachable above it. */
+  function coverSync() {
+    const on = S.open && !el.hidden && (S.full || innerWidth <= 760);
+    for (const sib of el.parentElement ? el.parentElement.children : []) {
+      if (sib === el || sib.classList.contains("toast-wrap")) continue;
+      if (on && !sib.inert) { sib.inert = true; sib.dataset.stageInert = ""; }
+      else if (!on && "stageInert" in sib.dataset) { sib.inert = false; delete sib.dataset.stageInert; }
+    }
+  }
+
   function open({ focus = true } = {}) {
     // asked for while a file sits beside the chat: the right column is the panel's again, the file waits
     if (filesView.docked) { filesView.minimise({ chip: false }); S.aside = false; }
@@ -266,6 +278,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     fitRail();
     layout();
     paint();
+    coverSync();
     persist();
     if (focus) el.focus({ preventScroll: true });
     onChange && onChange();
@@ -277,6 +290,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     if (!quiet) S.lp = false; // closed by you: Launchpad is a head again next time; stepping aside (quiet) keeps it as it was
     if (S.full) setFull(false);
     el.hidden = true;
+    coverSync(); // what it covered is in reach again before focus goes back to it
     document.body.classList.remove("stage-open", "stage-rail");
     S.rail = false;
     launch && launch.away && launch.away(); // typed secrets don't stay behind in a closed panel (Astra)
@@ -315,6 +329,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     S.full = on;
     document.body.classList.toggle("stage-full", on);
     paint();
+    coverSync();
   }
 
   function toggle() { if (S.open && !S.rail) close(); else open(); }
@@ -326,7 +341,15 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     const aside = filesView.isOpen && (innerWidth <= 760 || filesView.docked);
     if (aside !== S.aside) {
       S.aside = aside;
-      if (aside && S.open) { S.yielded = true; close({ restore: false, quiet: true }); return; }
+      // stepping aside for a file you opened from the panel: what you were on goes with it, so focus goes to the
+      // file (Files couldn't take it a moment ago: the panel covering a phone kept it out of reach) (Astra S082)
+      if (aside && S.open) {
+        S.yielded = true;
+        const had = el.contains(document.activeElement) || document.activeElement === document.body;
+        close({ restore: false, quiet: true });
+        if (had) { const v = document.getElementById("viewer"), fv = document.getElementById("fv"); (v && !v.hidden && v.getClientRects().length ? v : fv)?.focus({ preventScroll: true }); }
+        return;
+      }
       // it comes back as it was when the file goes; but on a phone, "Back to chat" (Files put away to its chip)
       // means the chat: a panel brought back would cover it again (Astra C029). It opens from its button.
       if (!aside && S.yielded) { S.yielded = false; if (!S.open && !(innerWidth <= 760 && filesView.isMin)) open({ focus: innerWidth <= 760 }); }
@@ -343,7 +366,9 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     if (t.closest("[data-stg-close]")) { close(); return; }
     if (t.closest("[data-stg-full]")) { setFull(!S.full); return; }
     const rl = t.closest("[data-rail]");
-    if (rl) { S.railOff = true; if (rl.dataset.rail === "launch") S.lp = true; else { S.lp = false; fr[rl.dataset.rail].folded = false; } fitRail(); layout(); paint(); persist(); return; }
+    // the rail goes as the part you asked for opens: focus goes to that part's own fold button, in its title row,
+    // which now says it's open (Astra S121)
+    if (rl) { const id = rl.dataset.rail; S.railOff = true; if (id === "launch") S.lp = true; else { S.lp = false; fr[id].folded = false; } fitRail(); layout(); paint(); persist(); (el.querySelector(`[data-fr-fold="${CSS.escape(id)}"]`) || body(id))?.focus({ preventScroll: true }); return; }
     const fo = t.closest("[data-fr-fold]");
     if (fo) {
       const id = fo.dataset.frFold;
@@ -532,7 +557,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     apply();
   }
   setW(wSaved);
-  addEventListener("resize", () => { fitRail(); if (S.open) capAgents(); });
+  addEventListener("resize", () => { fitRail(); coverSync(); if (S.open) capAgents(); });
   const grip = el.querySelector(".stg-grip");
   grip.addEventListener("pointerdown", (e) => {
     if (e.button !== 0 || S.full || S.rail) return;

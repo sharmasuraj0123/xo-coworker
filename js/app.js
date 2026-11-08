@@ -10,6 +10,7 @@
 // composer. Light and dark.
 import { createWorld, esc, WAITING } from "./world.js";
 import { copyText, COPY_REFUSED } from "./util.js";
+import { redraw } from "./redraw.js";
 import "./dropdown.js"; // <xo-select>: the one dropdown, in place of the browser's <select>
 import { renderMarkdown, renderInline, setThreadInfo, setWebImages } from "./markdown.js";
 import * as Kit from "./kit.js";
@@ -18,7 +19,7 @@ import { createDecisions } from "./decide.js";
 import { createPacing } from "./pacing.js";
 import { createIntel } from "./intel.js";
 import { EFFORT, estLine, evidenceFor } from "./content.js";
-import { keepTurning, ICON, XO, NEXT_GLYPH, $, $$, RM, clock, dayOf, short, elapsed, reconcile, sound, wait, dial, morph, expand } from "./ui.js";
+import { keepTurning, ICON, XO, NEXT_GLYPH, $, $$, RM, clock, dayOf, short, elapsed, reconcile, sound, wait, hold, dial, morph, expand } from "./ui.js";
 import { uiMsg, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn } from "./turnview.js";
 import { nameWith } from "./comms.js";
@@ -56,7 +57,6 @@ import { createShapeStore } from "./shape.js";
 import { createShapeView, SHAPE_IC } from "./shapeview.js";
 import { setWorkMode } from "./turnview.js";
 import { once, busyAttrs } from "./pending.js";
-import { redraw } from "./redraw.js";
 import { radioKeys, menuKeys } from "./keynav.js";
 
 const world = createWorld();
@@ -134,7 +134,8 @@ const S = {
 };
 const waitSince = new Map();
 const live = $("#live");
-function announce(text) { live.textContent = ""; setTimeout(() => { live.textContent = text; }, 40); }
+// still(): asked again when the words go in, 40 ms later; false (a newer action answered meanwhile), nothing is said
+function announce(text, still = null) { live.textContent = ""; setTimeout(() => { if (!still || still()) live.textContent = text; }, 40); }
 
 // ── the parts ───────────────────────────────────────────────────────────────
 const P = createPacing({ params });
@@ -506,7 +507,9 @@ function nextActHtml(n) {
     html += `<div class="nx-btns one"><button type="button" class="b b-go" data-fid="go" data-decide="${esc(n.key)}"><span class="b-l">${verb}${ICON.arrow}</span></button>` +
       (n.effort === "think" ? `<button type="button" class="b b-ghost" data-fid="later" data-later="${esc(n.key)}" title="Park it until later today"><span class="b-l">${ICON.clock}Later today</span></button>` : "") + `</div>`;
   }
-  html += `<div class="c-note nx-note" hidden><label for="nx-note-in" class="c-note-l">What should it do instead? (optional)</label><textarea id="nx-note-in" rows="2" placeholder="e.g. what it should try instead"></textarea>` +
+  // a Send back that didn't go comes back with its note, open, to send again (Astra S031: the words were lost)
+  const kept = D.failedNote(n.key);
+  html += `<div class="c-note nx-note"${kept ? "" : " hidden"}>${kept ? `<p class="c-hint show stay" role="status">That didn't send. Your note is still here: Send back tries again.</p>` : ""}<label for="nx-note-in" class="c-note-l">What should it do instead? (optional)</label><textarea id="nx-note-in" rows="2" placeholder="e.g. what it should try instead">${esc(kept)}</textarea>` +
     `<div class="c-note-row"><button type="button" class="b b-sm b-go" data-nx-send>${ICON.rewind}Send back</button><button type="button" class="b b-sm b-ghost" data-nx-cancel>Cancel</button></div></div>`;
   return html;
 }
@@ -527,13 +530,11 @@ function nextHead(n) {
   if (n.group === "stopped") return { head: `<span class="h-verb">Stopped at</span> ${esc((t.checklist.items.find((i) => i.state !== "done") || t).text || t.title)}`, cmd: "" };
   return { head: esc(n.risk === "destructive" ? n.ask.title.replace(/:\s.*$/, "") : n.ask.title), cmd: "" };
 }
-const NEXT_SEEN = new Map(); // Home's next ask → when it first showed (its re-arm runs from then)
+const NEXT_SEEN = new Map(); // Home's next ask → when it last became the current card (its re-arm runs from then)
 function nextCardHtml(n) {
   const t = n.t, E = EFFORT[n.effort];
   const { head, cmd } = nextHead(n);
-  // when this ask first showed here: its 300 ms re-arm runs from then, as a decision card's does (Astra DEC-HOME-READ)
-  if (!NEXT_SEEN.has(n.key)) NEXT_SEEN.set(n.key, performance.now());
-  return `<article class="next r-${n.risk} e-${n.effort}" data-key="${esc(n.key)}" data-fid="nextcard" tabindex="-1" aria-label="Your next move: ${esc(n.ask.title)}">` +
+  return `<article class="next r-${n.risk} e-${n.effort}${D.failedNote(n.key) ? " noting" : ""}" data-key="${esc(n.key)}" data-fid="nextcard" tabindex="-1" aria-label="Your next move: ${esc(n.ask.title)}">` +
     `<div class="stamp stamp-allow" aria-hidden="true"><svg viewBox="0 0 52 52"><circle class="sc" cx="26" cy="26" r="23"/><path class="sk" d="M15 27l7.5 7.5L38 19"/></svg></div>` +
     `<div class="nx-in">` +
     `<div class="nx-meta"><span class="eff e-${n.effort}">${dial(n.effort)}<b>${E.label}</b><span>${E.time}</span></span>` +
@@ -580,6 +581,9 @@ function homeRender(needs) {
   } else if (P0.next) {
     const key = P0.next.key;
     const changed = nb._key !== key;
+    // each time an ask becomes the card shown here (first, or back after an Undo, or back from the panel), its
+    // 300 ms re-arm starts again: a press meant for the card before can't land on it (Astra, fa6d783 Undo path)
+    if (changed) NEXT_SEEN.set(key, performance.now());
     const html = `<p class="hm-lbl"><span class="nx-glyph">${NEXT_GLYPH}</span>Your next move</p>` + nextCardHtml(P0.next);
     if (patch(nb, html) && changed) {
       const card = nb.querySelector(".next");
@@ -594,9 +598,13 @@ function homeRender(needs) {
     // the headline already says "Nothing needs you." (say it once): one quiet line under it
     else patch(nb, `<p class="calm-line">${w ? `${num(w)} ${noun(plural(w, "thread"))} working. ${w === 1 ? "It'll" : "They'll"} ask when it's worth it.` : "Start something below, or enjoy the quiet."}</p>`);
   }
-  // the card you were on is gone (its ask decided, nothing next): focus stays with the next move's place, which
-  // says what's left, rather than falling to the page (found by the suite's drop check)
-  if (nextHad && !nb.contains(document.activeElement)) { nb.tabIndex = -1; nb.focus({ preventScroll: true }); }
+  // the card you were on is gone (its ask decided, nothing next), or you put one off or brought one back: focus is
+  // the next move's, its card if there is one, else its place, which says what's left (never the page)
+  if (S.homeFocusNext || (nextHad && !nb.contains(document.activeElement))) {
+    S.homeFocusNext = false;
+    const nc = nb.querySelector(".next");
+    if (nc) nc.focus({ preventScroll: true }); else { nb.tabIndex = -1; nb.focus({ preventScroll: true }); }
+  }
   landed(nb);
 
   // then… at most two more
@@ -1350,18 +1358,22 @@ function runsStrip(t) {
   return runsStripHtml(live, total);
 }
 const runsEl = $("#runs"), runsCard = $("#runs-card");
-const RS = { gen: 0, open: false, session: null, title: "", view: "list", tree: [], counts: null, runId: null, run: null, anc: null, items: [], cursor: null, children: [], loading: false, error: null, gone: null, pollT: null, returnTo: null };
+const RS = { gen: 0, opening: 0, open: false, session: null, title: "", view: "list", tree: [], counts: null, runId: null, run: null, anc: null, items: [], cursor: null, children: [], loading: false, error: null, gone: null, pollT: null, returnTo: null };
 const canStopRuns = () => !!(RS.session && world.act.feature && world.act.feature(RS.session, "runs.stop"));
+// this sheet's own stops still in their Undo: the page behind it is inert while it's open (Astra: Stop's only
+// Undo was out of reach)
+const sheetStops = () => pendingStops.filter((j) => !j.cancelled && !j.sent && j.session === RS.session).map((j) => ({ key: j.key, what: j.what }));
 function runsRender() {
   if (!RS.open) return;
   const html = RS.view === "list"
-    ? runsListHtml(RS.tree, RS.counts, { canStop: canStopRuns(), title: RS.title })
-    : runViewHtml(RS.run || { id: RS.runId, title: "Sub-agent", state: "running" }, { anc: RS.anc, items: RS.items, children: RS.children, canStop: canStopRuns(), gone: RS.gone, error: RS.error, loading: RS.loading, open: S.tbOpen });
+    ? runsListHtml(RS.tree, RS.counts, { canStop: canStopRuns(), title: RS.title, stops: sheetStops(), state: RS.listState, error: RS.listErr })
+    : runViewHtml(RS.run || { id: RS.runId, title: "Sub-agent", state: "running" }, { anc: RS.anc, items: RS.items, children: RS.children, canStop: canStopRuns(), gone: RS.gone, error: RS.error, loading: RS.loading, stops: sheetStops(), open: S.tbOpen });
   if (runsCard._h !== html) {
     const body = runsCard.querySelector(".rn-body");
     const keep = body ? body.scrollTop : 0;
-    runsCard.innerHTML = html; runsCard._h = html;
-    for (const x of runsCard.querySelectorAll("[data-close]")) x.innerHTML = ICON.close;
+    // in place: the control with focus (a Stop that gains its Undo line, a row) stays the same node
+    redraw(runsCard, html); runsCard._h = html;
+    for (const x of runsCard.querySelectorAll("[data-close]")) if (!x.firstChild) x.innerHTML = ICON.close;
     const nb = runsCard.querySelector(".rn-body");
     if (nb && RS.keepScroll) nb.scrollTop = keep;
     // a re-render must not drop focus out of the sheet (Escape, Tab stay inside it)
@@ -1372,14 +1384,31 @@ function runsEscape() { if (RS.view === "run") { RS.gen++; RS.view = "list"; RS.
 async function openRuns(t, runId = null) {
   if (!t || !t.sessionId) return;
   if (!RS.open) RS.returnTo = document.activeElement;
-  Object.assign(RS, { open: true, session: t.sessionId, title: t.title, view: runId ? "run" : "list", runId, keepScroll: false });
+  // a new thread's list starts empty and reading: never the last thread's rows, never "none" before a read says so
+  if (RS.session !== t.sessionId) { RS.tree = []; RS.counts = null; }
+  // each opening (and each Try again) is its own: a list, or a run to open, asked for by an earlier opening of the
+  // same thread never lands in this one (Astra SRC-MAIN-RUN-1: close, reopen, and the old answer won)
+  const my = ++RS.opening;
+  Object.assign(RS, { open: true, session: t.sessionId, title: t.title, view: runId ? "run" : "list", runId, keepScroll: false, listState: "loading", listErr: "" });
   runsEl.hidden = false;
   runsRender();
-  try {
-    const d = await world.act.listRuns(t.sessionId);
-    RS.tree = d.runs || []; RS.counts = d.counts || null;
-  } catch (err) { RS.error = err.message; }
+  await readRunsList(t.sessionId, my);
+  if (!RS.open || RS.session !== t.sessionId || RS.opening !== my) return;
   if (runId) openRun(runId); else { runsRender(); runsCard.querySelector(".rn-open, [data-close]")?.focus(); }
+}
+/** The list for one thread, for one opening; an answer for a thread, or an opening, that isn't the one open any
+ *  more is dropped (Astra: a late list for A showed under B; and under A opened again). true when it landed. */
+async function readRunsList(sid, my = RS.opening) {
+  const mine = () => RS.open && RS.session === sid && RS.opening === my;
+  try {
+    const d = await world.act.listRuns(sid);
+    if (!mine()) return false;
+    RS.tree = d.runs || []; RS.counts = d.counts || null; RS.listState = "ok"; RS.listErr = "";
+  } catch (err) {
+    if (!mine()) return false;
+    RS.listState = "error"; RS.listErr = err.message;
+  }
+  return true;
 }
 async function openRun(id) {
   clearTimeout(RS.pollT);
@@ -1430,15 +1459,24 @@ function closeRuns() {
   clearTimeout(RS.pollT);
   RS.gen++; RS.open = false; runsEl.hidden = true; runsCard.innerHTML = ""; runsCard._h = "";
   syncInert();
-  RS.returnTo?.focus?.({ preventScroll: true });
+  // back to what opened it; if that was redrawn while Runs was open (the thread's head redraws as its checklist
+  // moves), to the same control drawn now, else the conversation: never the page (Astra RUN-7/S102)
+  const was = RS.returnTo, usable = (b) => b && b.isConnected && !b.closest("[inert], [hidden]") && b.getClientRects().length > 0;
+  const like = (el) => { if (!el || !el.getAttribute) return null; for (const a of ["data-run-call", "data-run"]) if (el.hasAttribute(a)) return document.querySelector(`[${a}="${CSS.escape(el.getAttribute(a))}"]`); return el.hasAttribute("data-runs") ? $("#thead [data-runs]") : null; };
+  RS.returnTo = null;
+  [was, like(was), $("#thead [data-runs]"), scroller].find(usable)?.focus({ preventScroll: true });
 }
 /** Stop one sub-agent, or all of a session's, after a 3 s Undo. */
 // Stops waiting out their Undo. One herald shows them all, so a second stop never hides the first's Undo.
 const pendingStops = [];
-function stopRunsUndo(what, fn) {
-  const job = { what, until: Date.now() + Kit.COMMIT_MS, cancelled: false, sent: false };
+const stopsOut = new Set(); // stop requests sent and not yet answered, by key
+function stopRunsUndo(what, fn, key = what, session = RS.session) {
+  // a second Stop for the same run(s) while the first waits or is out does nothing (Astra: duplicate stops)
+  if (pendingStops.some((j) => j.key === key && !j.cancelled) || stopsOut.has(key)) return;
+  const job = { what, key, session, until: Date.now() + Kit.COMMIT_MS, cancelled: false, sent: false };
   pendingStops.push(job);
   stopsHerald();
+  runsRender();
   announce(`Stopping ${what} in 3 seconds. Undo to keep it.`);
   setTimeout(async () => {
     const i = pendingStops.indexOf(job);
@@ -1446,7 +1484,8 @@ function stopRunsUndo(what, fn) {
     if (job.cancelled) return;
     job.sent = true;
     stopsHerald(); // its Undo is over: the line keeps only the stops still waiting
-
+    runsRender();
+    stopsOut.add(key);
     try {
       const r = await fn();
       // 202: a stop was sent (its run.finished confirms it); 200 with nothing to stop: it had ended
@@ -1455,10 +1494,12 @@ function stopRunsUndo(what, fn) {
       heraldShow({ kind: "halt", text: none ? "It had already finished" : "Stopping", sub: none ? what : n > 1 ? `${n} sub-agents · what they did is kept` : `${what} · what it did is kept` }, 3600);
       announce(none ? `${what} had already finished.` : `Stopping ${what}. What it did is kept.`);
     } catch (err) {
-      if (err.code === "run_not_live") heraldShow({ kind: "halt", text: "It had already finished", sub: what }, 3600);
-      else heraldShow({ kind: "stopped", text: "Couldn't stop it", sub: err.status === 501 ? "this agent can't stop a sub-agent; stop the thread instead" : err.message }, 6000);
-    }
-    if (RS.open && RS.session) { try { const d = await world.act.listRuns(RS.session); RS.tree = d.runs || []; RS.counts = d.counts || null; } catch { /* the stream says it too */ } runsRender(); }
+      // run_not_live: XO's record still says it's running, but nothing is running it that could be stopped. It
+      // didn't "finish": say what's true (Astra RUN-6, from storm/runs/operations.py)
+      if (err.code === "run_not_live") { heraldShow({ kind: "stopped", text: "Couldn't stop it", sub: `${what}: nothing is running it any more, though XO's record still says it's running` }, 6000); announce(`Couldn't stop ${what}: nothing is running it any more, though XO's record still says it's running.`); }
+      else { heraldShow({ kind: "stopped", text: "Couldn't stop it", sub: err.status === 501 ? "this agent can't stop a sub-agent; stop the thread instead" : err.message }, 6000); announce(`Couldn't stop ${what}.`); }
+    } finally { stopsOut.delete(key); }
+    if (RS.open && RS.session === session) { await readRunsList(session); runsRender(); }
   }, Kit.COMMIT_MS);
 }
 runsEl.addEventListener("click", (e) => {
@@ -1467,8 +1508,19 @@ runsEl.addEventListener("click", (e) => {
   if (tb) { S.tbOpen[tb.dataset.tb] = !S.tbOpen[tb.dataset.tb]; RS.keepScroll = true; runsRender(); return; }
   if (e.target.closest("[data-runs-back]")) { RS.gen++; clearTimeout(RS.pollT); RS.view = "list"; RS.runId = null; RS.keepScroll = false; runsRender(); return; }
   const st = e.target.closest("[data-run-stop]");
-  if (st) { const r = world.state.runs.get(st.dataset.runStop) || { title: "this sub-agent" }; stopRunsUndo(r.title, () => world.act.stopRun(st.dataset.runStop)); return; }
-  if (e.target.closest("[data-runs-stop]")) { const sid = RS.session; stopRunsUndo("every sub-agent of this thread", () => world.act.stopRuns(sid)); return; }
+  if (st) { const r = world.state.runs.get(st.dataset.runStop) || { title: "this sub-agent" }; stopRunsUndo(r.title, () => world.act.stopRun(st.dataset.runStop), `run:${st.dataset.runStop}`); return; }
+  if (e.target.closest("[data-runs-stop]")) { const sid = RS.session; stopRunsUndo("every sub-agent of this thread", () => world.act.stopRuns(sid), `all:${sid}`); return; }
+  // the sheet's own Undo for a stop still waiting: it keeps working; focus goes back to the Stop it undid
+  const un = e.target.closest("[data-runs-undo]");
+  if (un) {
+    const job = pendingStops.find((j) => j.key === un.dataset.runsUndo && !j.cancelled && !j.sent);
+    if (job) { job.cancelled = true; pendingStops.splice(pendingStops.indexOf(job), 1); stopsHerald(); announce(`Not stopped. ${job.what} keeps working.`); }
+    const back = job && job.key.startsWith("run:") ? `[data-run-stop="${CSS.escape(job.key.slice(4))}"]` : "[data-runs-stop]";
+    runsRender();
+    (runsCard.querySelector(back) || runsCard.querySelector(".rn-open, [data-close]"))?.focus({ preventScroll: true });
+    return;
+  }
+  if (e.target.closest("[data-runs-retry]")) { const sid = RS.session, my = ++RS.opening; RS.listState = "loading"; runsRender(); readRunsList(sid, my).then((landed) => { if (!landed) return; runsRender(); runsCard.querySelector(".rn-open, [data-runs-retry], [data-close]")?.focus({ preventScroll: true }); }); return; }
   const op = e.target.closest("[data-run]");
   if (op) openRun(op.dataset.run);
 });
@@ -1578,8 +1630,9 @@ function dockRender(needs) {
         const e = D.decisions()[0];
         const verb = e && e.verb === "Answered" ? `Answered “${e.said}”` : e ? e.verb : "Done";
         morph(frame, () => { frame.className = "card is-dock r-done"; frame.innerHTML = `<p class="tp-done${how === "back" ? " is-back" : ""}" role="status"><span class="tp-done-ic">${how === "back" ? ICON.rewind : ICON.check}</span><span><b>${esc(verb)}.</b> ${how === "back" ? "It's taking another route." : "It's back at work."}</span><button type="button" class="tp-done-u" data-dock-undo>Undo</button></p>`; }, { duration: 300 });
-        // the only Undo for this decision now: it stays for the whole 3 s window
-        await wait(RM.matches ? 3000 : 2700);
+        // the only Undo for this decision now: it stays for the whole 3 s window, in real time (hold, not wait:
+        // reduced motion cuts the stamp's animation, never the time to Undo)
+        await hold(RM.matches ? 3000 : 2700);
       }
       TD.busy = false;
       TD.key = "__settling";
@@ -1737,8 +1790,16 @@ function heraldRender(needs) {
     html = ""; // what needs you is said once: the sidebar's Home row, then Home
   }
   const was = box._h;
+  // the line with the control you're on goes (its Undo's window ended): focus goes on first, to what it acted on,
+  // else the message box, never the page (Astra RUN-5)
+  const fa = document.activeElement;
+  if (fa && fa !== box && box.contains(fa) && !(h && fa.closest(`[data-hn="${h.n}"]`))) heraldBack(box._line)?.focus({ preventScroll: true });
   if (patch(box, html) && was != null && html) box.firstElementChild?.classList.add("is-in");
+  box._line = h;
 }
+/** Where focus goes when a notice's line goes from under it: the control the notice acts on (h.back: selectors,
+ *  e.g. the thread's Resolve, or Interrupt), else the message box, else the place's own region. */
+function heraldBack(h) { return [...((h && h.back) || []).map((sel) => $(sel)), $("#say")].find(usableEl) || placeRegion(); }
 
 // ── intelligence: the record line and the chip ─────────────────────────────
 function recordLine(session, rec) {
@@ -1904,10 +1965,13 @@ say.addEventListener("paste", (e) => {
   let depth = 0;
   const hasFiles = (e) => [...(e.dataTransfer?.types || [])].includes("Files");
   const hide = () => { depth = 0; veil.hidden = true; };
-  addEventListener("dragenter", (e) => { if (!hasFiles(e)) return; e.preventDefault(); if (canAttach(S.view) && !document.querySelector(".sheet:not([hidden]), dialog[open]")) { depth++; veil.hidden = false; } });
+  // only where the message being written can take it: on screen and in reach, under no open layer (Settings,
+  // a sheet, a dialog, the phone's drawer make it inert): never into a composer that's hidden (Astra H29)
+  const takes = () => { const say = $("#say"); return canAttach(S.view) && !!say && say.getClientRects().length > 0 && !say.closest("[inert]") && !document.querySelector(".sheet:not([hidden]), dialog[open]"); };
+  addEventListener("dragenter", (e) => { if (!hasFiles(e)) return; e.preventDefault(); if (takes()) { depth++; veil.hidden = false; } });
   addEventListener("dragover", (e) => { if (!hasFiles(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = veil.hidden ? "none" : "copy"; });
   addEventListener("dragleave", (e) => { if (hasFiles(e) && --depth <= 0) hide(); });
-  addEventListener("drop", (e) => { if (!hasFiles(e)) return; e.preventDefault(); const on = !veil.hidden; hide(); if (on) addFiles(e.dataTransfer.files); });
+  addEventListener("drop", (e) => { if (!hasFiles(e)) return; e.preventDefault(); const on = !veil.hidden; hide(); if (on && takes()) addFiles(e.dataTransfer.files); });
   addEventListener("dragend", hide);
 }
 function growSay() {
@@ -2141,7 +2205,7 @@ function stopLive(run, { interrupt = false, runs = 0 } = {}) {
       }
     } catch (err) {
       // Retry stops the same session, wherever you are when you press it
-      heraldShow({ kind: "stopped", text: interrupt ? "Couldn't interrupt it" : "Couldn't stop it", sub: `${what} · ${err.message}`, undo: () => stopLive(run, { interrupt, runs }), undoLabel: "Retry" }, 7000);
+      heraldShow({ kind: "stopped", text: interrupt ? "Couldn't interrupt it" : "Couldn't stop it", sub: `${what} · ${err.message}`, undo: () => stopLive(run, { interrupt, runs }), undoLabel: "Retry", back: interrupt ? ["[data-interrupt]", "#send"] : ["[data-chat-stop]", "#send"] }, 7000);
     } finally {
       if (S.stops.get(token.session) === token) S.stops.delete(token.session);
       schedule();
@@ -2158,7 +2222,7 @@ function stopsHerald() {
   const all = [...turns, ...runs];
   if (!all.length) { if (S.herald && S.herald.tag === "stops") { S.herald.until = 0; heraldNext(); } return; }
   const last = Math.max(...all.map((x) => x.until));
-  heraldShow({ kind: "halt", tag: "stops", text: all.every((x) => x.interrupt) ? "Interrupting" : "Stopping", sub: all.map((x) => x.what).join(", "), undo: () => {
+  heraldShow({ kind: "halt", tag: "stops", text: all.every((x) => x.interrupt) ? "Interrupting" : "Stopping", sub: all.map((x) => x.what).join(", "), back: all.every((x) => x.interrupt) ? ["[data-interrupt]", "#send"] : ["[data-chat-stop]", "#send"], undo: () => {
     for (const x of turns) { x.cancelled = true; if (S.stops.get(x.session) === x) S.stops.delete(x.session); }
     for (const j of runs) { j.cancelled = true; const i = pendingStops.indexOf(j); if (i >= 0) pendingStops.splice(i, 1); }
     announce(all.length > 1 ? "Not stopped. They keep working." : "Not stopped. It keeps working.");
@@ -2396,7 +2460,15 @@ function render() {
   const nd = needs.filter((n) => n.admitted && !n.later).length;
   document.title = Kit.titleFor(nd, "XO Space");
   faviconRender(world.state.threads.filter(isBusy).sort((a, b) => b.lastAt - a.lastAt)[0] || null, nd > 0);
+  // a control that asked for focus to land on what this draw makes (Interrupt → its Undo, Undo → Interrupt
+  // again): its named destination, once, in the same step as the draw that took the control away
+  if (S.focusNext) { const to = S.focusNext.map((sel) => $(sel)).find(usableEl); S.focusNext = null; to?.focus({ preventScroll: true }); }
 }
+/** Shown and in reach: drawn, not inside anything hidden or inert. */
+const usableEl = (el) => !!el && el.isConnected && !el.closest("[inert], [hidden]") && el.getClientRects().length > 0;
+/** Where you carry on when the control you were on goes and nothing more particular is named: the place's own
+ *  region (Home, Artifacts, else the conversation). */
+const placeRegion = () => (S.view === "home" ? $("#home") : S.view === "artifacts" ? $("#arts") : scroller);
 /**
  * The progress line, XO's one motif, in the browser tab too. While an agent works, the mark carries the
  * latest working thread's own steps along its foot (green done, blue the step it's on, grey to do), the
@@ -2591,7 +2663,9 @@ function go(v, { from, focus = false, carry = false } = {}) {
   const target = k ? ($("#msgs").querySelector(`[data-k="${CSS.escape(k)}"] [data-go]`) || $("#now-wrap").querySelector(`[data-go="${CSS.escape(k)}"]`)) : null;
   if (focus) say.focus({ preventScroll: true });
   else if (back && target) target.focus({ preventScroll: true });
-  else if (!$("#panel").contains(document.activeElement)) (v === "home" ? $("#home") : scroller).focus({ preventScroll: true });
+  // the place's own reading region: Home's, Artifacts' (the conversation's scroller is hidden there), else the
+  // conversation; never a hidden one (Astra H8: Jump → Artifacts landed on the page)
+  else if (!$("#panel").contains(document.activeElement)) (v === "home" ? $("#home") : v === "artifacts" ? $("#arts") : scroller).focus({ preventScroll: true });
   returnPill(back && target && !focus ? target : null);
 }
 /** Return to where you were (Astra's I1): coming back to a conversation still lands at its latest (the owner's
@@ -2762,7 +2836,9 @@ function fileRoute(path) {
   return pid && rel && !rel.startsWith("/") && !rel.split("/").some((x) => x === ".." || x === "") ? { project: pid, rel } : sharedFileRoute(t, path);
 }
 function openSharedFile(btn) {
-  const f = { path: btn.dataset.file, name: btn.dataset.fileName, type: btn.dataset.fileType, bytes: btn.dataset.fileBytes === "" ? null : Number(btn.dataset.fileBytes) };
+  // a size only when the entry says one: an entry without data-file-bytes has none (Astra S224: "NaN MB")
+  const raw = btn.dataset.fileBytes, n = raw == null || raw === "" ? NaN : Number(raw);
+  const f = { path: btn.dataset.file, name: btn.dataset.fileName, type: btn.dataset.fileType, bytes: Number.isFinite(n) ? n : null };
   VW.open({ ...f, ...fileRoute(f.path) }, btn);
 }
 
@@ -2872,12 +2948,12 @@ function resolveThread(tid, resolved, { undo = true, sayFail = true } = {}) {
       await world.act.resolve(tid, resolved);
     } catch (err) {
       announce(`${resolved ? "Couldn't resolve" : "Couldn't reopen"} ${name}. ${err.message}`);
-      if (sayFail) heraldShow({ kind: "stopped", text: resolved ? "Couldn't resolve it" : "Couldn't reopen it", sub: err.message, undo: () => resolveThread(tid, resolved, { undo }), undoLabel: "Retry" }, 8000);
+      if (sayFail) heraldShow({ kind: "stopped", text: resolved ? "Couldn't resolve it" : "Couldn't reopen it", sub: err.message, back: [`[data-resolve="${CSS.escape(tid)}"]`], undo: () => resolveThread(tid, resolved, { undo }), undoLabel: "Retry" }, 8000);
       return { ok: false, why: err.message };
     }
     announce(resolved ? `Resolved ${name}.` : `Reopened ${name}.`);
     // Undo is the same call the other way (the route is idempotent); it never starts or stops a turn
-    if (undo) heraldShow({ kind: "done", text: resolved ? "Resolved" : "Reopened", sub: name, undo: () => resolveThread(tid, !resolved, { undo: false }) }, 6000);
+    if (undo) heraldShow({ kind: "done", text: resolved ? "Resolved" : "Reopened", sub: name, back: [`[data-resolve="${CSS.escape(tid)}"]`], undo: () => resolveThread(tid, !resolved, { undo: false }) }, 6000);
     return { ok: true };
   });
   p.finally(schedule); // drawn again once the request is no longer out
@@ -2987,14 +3063,24 @@ document.addEventListener("click", (e) => {
   if (t.closest("[data-open-all]")) { D.open(homeParts().next?.key); return; }
   if (t.closest("[data-glances]")) { D.open(null, { only: "glance" }); return; }
   const l = t.closest("[data-later]");
-  if (l) { D.laterNow(l.dataset.later); S.pin = null; return; }
-  if (t.closest("[data-bring]")) { S.later.clear(); announce("Brought back. They're in today's list again."); schedule(); return; }
+  // Later, Bring back, Bring in change what's next: focus goes to the next move as Home redraws (Astra S029/S035/S036)
+  if (l) { S.homeFocusNext = true; D.laterNow(l.dataset.later); S.pin = null; return; }
+  if (t.closest("[data-bring]")) { S.homeFocusNext = true; S.later.clear(); announce("Brought back. They're in today's list again."); schedule(); return; }
   if (t.closest("[data-handled]")) { setHandled(!S.handledOpen); return; }
   const bi = t.closest("[data-bring-in]");
-  if (bi) { D.bringIn(bi.dataset.bringIn); return; }
+  if (bi) { S.homeFocusNext = true; D.bringIn(bi.dataset.bringIn); return; }
   const ru = t.closest("[data-rec-undo]");
   if (ru) { undoRecord(ru.dataset.recUndo); return; }
-  if (t.closest("[data-herald-undo]")) { const u = S.herald?.undo; if (typeof u === "function") { S.herald.until = 0; u(); heraldNext(); } else if (u) undoRecord(u); return; }
+  // a notice's Undo or Retry: its line goes once it's used, so focus goes first to the control it acts on (Resolve,
+  // Interrupt, Stop), else the message box, and lands there again after the draw that follows, where that control
+  // may be drawn anew (Astra: Undo and Retry left focus on BODY)
+  if (t.closest("[data-herald-undo]")) {
+    const h = S.herald, u = h?.undo;
+    heraldBack(h)?.focus({ preventScroll: true });
+    S.focusNext = [...((h && h.back) || []), "#say"];
+    if (typeof u === "function") { h.until = 0; u(); heraldNext(); } else if (u) undoRecord(u);
+    return;
+  }
   // Chats: "send now" would stop background tasks; a failed prompt
   // both leave with the question or the failed line they're on: the composer is where you are next
   const chc = t.closest("[data-chc]");
@@ -3063,7 +3149,8 @@ document.addEventListener("click", (e) => {
   if (t.closest("[data-nx-cancel]")) { const card = $("#hm-next .next"); morph(card, () => { card.classList.remove("noting"); card.querySelector(".nx-note").hidden = true; }, { duration: 260 }); card.focus({ preventScroll: true }); return; }
   const r = t.closest("[data-retry]");
   if (r) { retry(r.dataset.retry); return; }
-  if (t.closest("[data-interrupt]")) { interruptRun(); return; }
+  // Interrupt goes as its turn stops: focus lands on its Undo (3 s), drawn in the same step (Astra RUN-5)
+  if (t.closest("[data-interrupt]")) { S.focusNext = ["#herald [data-herald-undo]"]; interruptRun(); return; }
   const ed = t.closest("[data-edit]");
   if (ed) { editFailed(ed.dataset.edit); return; }
   const mx = t.closest("[data-mx]");
@@ -3084,7 +3171,9 @@ document.addEventListener("click", (e) => {
       // beside a file (the chat docked, a phone's sheet), or ⌘/Ctrl-click: its diff in Files, in the middle, in
       // place of the one shown; on a phone the sheet folds so the file shows
       if (s && (FILESV.docked || FILESV.sheet || e.metaKey || e.ctrlKey)) { const sheet = FILESV.sheet; inFiles(); if (sheet) FILESV.chat(false); return; }
-      if (STAGE.showChange(c.path)) { schedule(); return; }
+      // its diff in the panel's Changes: focus goes to its row there, in the draw that shows it (the chip you
+      // pressed is redrawn as chosen, and on a phone the panel covers it) (Files/Map grader on S224)
+      if (STAGE.showChange(c.path)) { S.focusNext = [`#stage [data-cx="${CSS.escape(c.path)}"]`, "#stage .cx-pd"]; schedule(); return; }
       // a shape without the panel's Changes (Make content): its diff in Files instead
       if (s) { inFiles(); return; }
     }
@@ -3093,10 +3182,25 @@ document.addEventListener("click", (e) => {
   if (fb) { e.preventDefault(); openSharedFile(fb); return; }
   const cp = t.closest("[data-copy]");
   // "Copied" only once it's on the clipboard; refused, said so, and focus stays on the button
-  if (cp) { copyText(cp.closest(".md-code")?.querySelector("code")?.textContent || "").then((ok) => { if (!ok) { announce(COPY_REFUSED); return; } cp.textContent = "Copied"; announce("Copied the code."); setTimeout(() => { cp.textContent = "Copy"; }, 1400); }); }
+  // each Copy owns its answer: only the newest on this button says "Copied" and only its own timer puts "Copy" back;
+  // an older one answering late says nothing; a refusal clears the check (Astra C052: an older reset wiped a newer
+  // acknowledgement)
+  if (cp) {
+    const my = (cp._copyN = (cp._copyN || 0) + 1);
+    copyText(cp.closest(".md-code")?.querySelector("code")?.textContent || "").then((ok) => {
+      if (cp._copyN !== my) return;
+      clearTimeout(cp._copyT);
+      // what's said is this Copy's too: a newer one answering within the live region's 40 ms keeps it unsaid
+      const mine = () => cp._copyN === my;
+      if (!ok) { cp.textContent = "Copy"; announce(COPY_REFUSED, mine); return; }
+      cp.textContent = "Copied"; announce("Copied the code.", mine);
+      cp._copyT = setTimeout(() => { if (cp._copyN === my) cp.textContent = "Copy"; }, 1400);
+    });
+  }
 });
 $("#home").addEventListener("keydown", (e) => {
   if (e.target.id === "nx-note-in") {
+    if (e.isComposing || e.keyCode === 229) return; // a word being composed owns its keys: Enter and Escape too
     // Enter while a word is still being composed (an IME) finishes the word; it never sends (Astra DEC-HOME-IME)
     if (e.key === "Enter" && !e.shiftKey && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); e.stopPropagation(); nextDecide("deny", e.target.value); }
     if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); $("[data-nx-cancel]").click(); }
@@ -3324,8 +3428,13 @@ function openJump() { jumpReturn = document.activeElement; jump.hidden = false; 
 function closeJump({ restore = true } = {}) { if (jump.hidden) return; jump.hidden = true; syncInert(); if (restore && jumpReturn && jumpReturn.isConnected && jumpReturn.offsetParent) jumpReturn.focus({ preventScroll: true }); }
 jq.addEventListener("input", () => { jsel = 0; jumpRender(); });
 jq.addEventListener("keydown", (e) => {
+  // every key of a word being composed (an IME) is the word's: its arrows move among the candidates, Escape
+  // cancels it, Enter finishes it; none of them moves the selection or closes Jump (Astra SRC-MAIN-IME-1)
+  if (e.isComposing || e.keyCode === 229) return;
   if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); jsel = (jsel + (e.key === "ArrowDown" ? 1 : jitems.length - 1)) % Math.max(1, jitems.length); jumpRender(); }
-  if (e.key === "Enter") { e.preventDefault(); const x = jitems[jsel]; closeJump({ restore: !!(x && x.run) }); if (x) (x.run ? x.run() : go(x.v)); }
+  // Enter while a word is being composed (an IME) finishes the word; with nothing found, Jump stays open on what
+  // you typed (it never closes onto nothing: Astra, e20231c)
+  if (e.key === "Enter") { e.preventDefault(); const x = jitems[jsel]; if (!x) { announce("Nothing matches. Change what you typed, or Esc to close."); return; } closeJump({ restore: !!x.run }); x.run ? x.run() : go(x.v); }
   if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeJump(); }
 });
 // the row under a moving pointer becomes the selection, as the arrows make it (only on a real move: a list
@@ -3357,18 +3466,23 @@ function syncInert() {
   hold($("#main"), PHONE.matches && drawer);
 }
 queueMicrotask(() => { PHONE.addEventListener("change", syncInert); const mo = new MutationObserver(syncInert); for (const el of [jump, keys, allEl, runsEl, setEl]) mo.observe(el, { attributes: true, attributeFilter: ["hidden"] }); syncInert(); });
-// Tab and Shift+Tab go round the open sheet: past its last control is its first, never the page behind it
+// Tab and Shift+Tab go round the open sheet: past its last control is its first, never the page behind it.
+// It listens as the event bubbles, after the control the keys are in: a control that takes Tab for itself (Edit as
+// JSON indents with it) claims it with preventDefault, and the sheet only turns round a Tab nobody claimed.
 addEventListener("keydown", (e) => {
-  if (e.key !== "Tab") return;
+  if (e.key !== "Tab" || e.defaultPrevented) return;
   // a sheet; on a phone, Settings too (it covers the whole screen there)
   const top = [runsEl, keys, allEl, jump].find((el) => !el.hidden) || (PHONE.matches && !setEl.hidden ? setEl : null);
   if (!top) return;
-  const f = [...top.querySelectorAll('button:not([disabled]),[href],input:not([disabled]):not([type=hidden]),textarea,select,[tabindex]:not([tabindex="-1"])')].filter((x) => x.offsetParent || x === document.activeElement);
+  // what Tab itself would visit: anything in the tab order (a summary, a field, a link, a roving group's one stop),
+  // drawn and usable; the browser moves between them, and this only turns it round at the sheet's two ends
+  const f = [...top.querySelectorAll("*")].filter((x) => x.tabIndex >= 0 && !x.disabled && !x.closest("[inert]") && x.getClientRects().length > 0);
   if (!f.length) return;
-  const i = f.indexOf(document.activeElement);
-  if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
-  else if (!e.shiftKey && (i === -1 || i === f.length - 1)) { e.preventDefault(); f[0].focus(); }
-}, true);
+  const a = document.activeElement, inside = top.contains(a);
+  const after = inside && f.some((x) => x !== a && a.compareDocumentPosition(x) & Node.DOCUMENT_POSITION_FOLLOWING);
+  const before = inside && f.some((x) => x !== a && x.compareDocumentPosition(a) & Node.DOCUMENT_POSITION_FOLLOWING);
+  if (e.shiftKey ? !before : !after) { e.preventDefault(); (e.shiftKey ? f[f.length - 1] : f[0]).focus(); }
+});
 
 // ── keys sheet ──────────────────────────────────────────────────────────────
 const keys = $("#keys");
@@ -3377,17 +3491,30 @@ $("#sound-tog").addEventListener("click", () => { sound.on = !sound.on; soundRen
 // a switch says on or off; its label says what (no glyph in the knob)
 function hopsRender() { $("#hops-tog").setAttribute("aria-checked", String(!!S.showHops)); }
 function webpicsRender() { $("#webpics-tog").setAttribute("aria-checked", String(SHAPE.on(WEBPICS))); }
-$("#webpics-tog").addEventListener("click", () => {
+/**
+ * What a General switch's change did, said truthfully: done, it's announced; refused (a newer XO saved this
+ * device's layer, which this one won't overwrite), the switch stays as it was and the reason shows under its words.
+ */
+function deviceSaid(tog, r, done) {
+  const l = tog.closest(".set-row").querySelector(".set-l");
+  let why = l.querySelector(".set-err");
+  if (r && r.error) {
+    if (!why) { why = document.createElement("p"); why.className = "set-err"; why.setAttribute("role", "alert"); l.append(why); }
+    why.textContent = r.error;
+    return;
+  }
+  why?.remove();
+  announce(done);
+}
+$("#webpics-tog").addEventListener("click", (e) => {
   // this device's layer of the shape: a picture's site learns someone looked, so each device decides
   const on = !SHAPE.on(WEBPICS);
-  SHAPE.setDevice({ surfaces: { [WEBPICS]: { on } } });
-  announce(on ? "Pictures from the web show in the conversation." : "Pictures from the web show as links.");
+  deviceSaid(e.currentTarget, SHAPE.setDevice({ surfaces: { [WEBPICS]: { on } } }), on ? "Pictures from the web show in the conversation." : "Pictures from the web show as links.");
 });
-$("#hops-tog").addEventListener("click", () => {
+$("#hops-tog").addEventListener("click", (e) => {
   // this device's layer of the shape (xo:thread/hops), where cv-hops was folded in; the shape's change redraws
   const on = !S.showHops;
-  SHAPE.setDevice({ surfaces: { "xo:thread/hops": { on } } });
-  announce(on ? "Showing how messages travel." : "Hiding how messages travel.");
+  deviceSaid(e.currentTarget, SHAPE.setDevice({ surfaces: { "xo:thread/hops": { on } } }), on ? "Showing how messages travel." : "Hiding how messages travel.");
 });
 hopsRender();
 keys.addEventListener("click", (e) => { if (e.target === keys || e.target.closest("[data-close]")) closeKeys(); });
@@ -3428,13 +3555,20 @@ async function decideLimit(id, decision) {
 /** Pick a continued thread back up (F4): it un-freezes; sending a message in it does the same. */
 async function unfreeze(tid, btn) {
   const th = world.thread(tid);
-  if (!th) return;
-  if (btn) btn.disabled = true;
-  try { await world.act.editThread(th.id, { paused: false }); announce("Picked back up. Its agent can carry on here."); }
-  catch (err) { announce(`Couldn't pick it back up: ${err.message}`); if (btn) btn.disabled = false; }
+  if (!th || btn?.getAttribute("aria-busy") === "true") return;
+  // aria-disabled while it asks (a disabled button drops focus to the page); picked up, its button goes with the
+  // frozen state: focus goes to the message box, to write to it; refused, it stays on the button (Astra RUN-5)
+  if (btn) { btn.setAttribute("aria-disabled", "true"); btn.setAttribute("aria-busy", "true"); }
+  try {
+    await world.act.editThread(th.id, { paused: false });
+    if (btn && btn.isConnected && btn === document.activeElement) S.focusNext = ["#say", "#scroller"];
+    announce("Picked back up. Its agent can carry on here.");
+    schedule();
+  } catch (err) { announce(`Couldn't pick it back up: ${err.message}`); if (btn) { btn.removeAttribute("aria-disabled"); btn.removeAttribute("aria-busy"); } }
 }
 function setPage(id) {
-  for (const b of $$("[data-set]")) b.setAttribute("aria-selected", String(b.dataset.set === id));
+  // the rail is a tablist: only the chosen tab is in the Tab order (arrows move between them), Tab goes on into its page
+  for (const b of $$("[data-set]")) { const on = b.dataset.set === id; b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1; }
   for (const p of $$("[data-page]")) p.hidden = p.dataset.page !== id;
   SETS.open(id);
   if (id === "runtimes") RTSET.open();
@@ -3442,10 +3576,12 @@ function setPage(id) {
 }
 function openSettings() {
   if (!setEl.hidden) return;
-  setReturn = document.activeElement;
+  // the layers Settings takes the place of close first (a phone's drawer hands the keyboard back to its menu):
+  // where the keyboard is then is where closing Settings returns it
   setDrawer(false);
   if (D.isOpen()) D.close();
   IQ.close({ restore: false });
+  setReturn = document.activeElement;
   setEl.hidden = false;
   $("#set-side").classList.add("is-on");
   $("#set-side").setAttribute("aria-expanded", "true");
@@ -3459,8 +3595,9 @@ function closeSettings({ restore = true } = {}) {
   syncInert();
   $("#set-side").classList.remove("is-on");
   $("#set-side").setAttribute("aria-expanded", "false");
-  // back where you were; an opener that's gone or hidden (Jump's box) gives way to the composer
-  if (restore) (setReturn && setReturn.isConnected && setReturn.offsetParent ? setReturn : say)?.focus?.({ preventScroll: true });
+  // back where you were, if it can take the keyboard (there, drawn, not inert, not disabled); else the composer
+  const takes = (el) => !!el && el !== document.body && el.isConnected && el.getClientRects().length > 0 && !el.closest("[inert]") && !el.disabled;
+  if (restore) [setReturn, say].find(takes)?.focus({ preventScroll: true });
 }
 $("#set-side").addEventListener("click", () => (setEl.hidden ? openSettings() : closeSettings()));
 $("#set-phone").addEventListener("click", openSettings);
@@ -3475,10 +3612,11 @@ function keysSheetRender() {
     K.ACTIONS.filter((a) => a.scope === g).map((a) => `<dt><kbd>${esc(K.label(a.id))}</kbd></dt><dd>${esc(a.label)}</dd>`).join("")).join("")}</dl>`;
   $("#keys-cols").innerHTML = col(["global", "picture"]) + col(["decision", "intel"]);
 }
+/** The Keyboard page, drawn in place: the key under the keyboard stays the same node as it records, cancels or changes. */
 function keysPageRender() {
   const box = $("#set-keys-list");
   const rec = S.recording, err = S.keyErr;
-  box.innerHTML = `<p class="kp-t">Click a key to change it. Keys that work anywhere need ⌘ or Ctrl, or a symbol like / or ?, so typing never sets them off. Your keys are kept in this browser.</p>` +
+  redraw(box, `<p class="kp-t">Click a key to change it. Keys that work anywhere need ⌘ or Ctrl, or a symbol like / or ?, so typing never sets them off. Your keys are kept in this browser.</p>` +
     K.GROUPS.map((g) => `<section class="kg" aria-labelledby="kg-${g.id}"><h3 id="kg-${g.id}">${esc(g.name)}</h3><div class="kl">` +
       K.ACTIONS.filter((a) => a.scope === g.id).map((a) => {
         const key = a.fixed
@@ -3488,15 +3626,16 @@ function keysPageRender() {
         return `<div class="kr${K.changed(a.id) ? " is-changed" : ""}${a.fixed ? " is-fixed" : ""}"><span class="kr-l">${esc(a.label)}</span>${key}${reset}</div>` +
           (err && err.id === a.id ? `<p class="kr-err" role="alert">${esc(err.msg)}</p>` : "");
       }).join("") + `</div></section>`).join("") +
-    `<div class="kp-f"><button type="button" class="btn" id="keys-reset-all"${K.anyChanged() ? "" : " disabled"}>${ICON.retry}Reset all to defaults</button></div>`;
-  if (rec) box.querySelector(`[data-rebind="${rec}"]`)?.focus({ preventScroll: true });
+    `<div class="kp-f"><button type="button" class="btn" id="keys-reset-all"${K.anyChanged() ? "" : " disabled"}>${ICON.retry}Reset all to defaults</button></div>`);
 }
 $("#set-keys-list").addEventListener("click", (e) => {
   const rb = e.target.closest("[data-rebind]");
   if (rb) { S.keyErr = null; S.recording = S.recording === rb.dataset.rebind ? null : rb.dataset.rebind; keysPageRender(); return; }
+  // a reset takes its own button away (nothing left to reset): the keyboard goes to the key it reset,
+  // and after Reset all, which disables itself, to the first key in the list
   const rs = e.target.closest("[data-kreset]");
-  if (rs) { S.keyErr = null; K.reset(rs.dataset.kreset); return; }
-  if (e.target.closest("#keys-reset-all")) { S.keyErr = null; S.recording = null; K.resetAll(); }
+  if (rs) { const id = rs.dataset.kreset; S.keyErr = null; K.reset(id); $(`[data-rebind="${id}"]`)?.focus({ preventScroll: true }); return; }
+  if (e.target.closest("#keys-reset-all")) { S.keyErr = null; S.recording = null; K.resetAll(); $("#set-keys-list [data-rebind]")?.focus({ preventScroll: true }); }
 });
 document.addEventListener("pointerdown", (e) => {
   // a click anywhere but a key chip cancels a recording
@@ -3513,19 +3652,25 @@ addEventListener("keydown", (e) => {
   S.recording = null;
   S.keyErr = r.error ? { id, msg: r.error } : null;
   keysPageRender();
-  $(`[data-rebind="${id}"]`)?.focus({ preventScroll: true });
   if (r.ok) announce(`${K.ACTIONS.find((a) => a.id === id).label}: ${K.label(id)}`);
 }, true);
 K.onChange(() => { keysPageRender(); if (!keys.hidden) keysSheetRender(); schedule(); });
 keysPageRender();
+// the rail's keys (WAI-ARIA tabs, chosen as they're reached): down/right the next, up/left the previous, wrapping; Home, End
 setEl.querySelector(".set-nav").addEventListener("keydown", (e) => {
-  if (e.key !== "ArrowDown" && e.key !== "ArrowUp" && e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
-  e.preventDefault();
+  if (e.altKey || e.ctrlKey || e.metaKey) return;
   const tabs = $$("[data-set]");
   const i = tabs.indexOf(document.activeElement);
-  const nx = tabs[(i + (e.key === "ArrowDown" || e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
-  nx.focus(); setPage(nx.dataset.set);
+  if (i < 0) return;
+  const j = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1
+    : e.key === "ArrowDown" || e.key === "ArrowRight" ? (i + 1) % tabs.length
+    : e.key === "ArrowUp" || e.key === "ArrowLeft" ? (i + tabs.length - 1) % tabs.length : -1;
+  if (j < 0) return;
+  e.preventDefault();
+  tabs[j].focus(); setPage(tabs[j].dataset.set);
 });
+// a column of tabs at the side; on a phone, a row across the top
+{ const nav = setEl.querySelector(".set-nav"), orient = () => nav.setAttribute("aria-orientation", PHONE.matches ? "horizontal" : "vertical"); orient(); PHONE.addEventListener("change", orient); }
 
 // ── theme toggle ────────────────────────────────────────────────────────────
 $("#theme").addEventListener("click", () => {
@@ -3549,6 +3694,9 @@ const GLOBAL = {
 };
 addEventListener("keydown", (e) => {
   if (S.recording) return; // Settings › Keyboard is listening for a new key
+  // a key that's part of a word being composed (an IME: its Escape cancels the word, its arrows move in the
+  // candidates) is the field's, never a page key (Conversation's finding: a composing Escape reached it)
+  if (e.isComposing || e.keyCode === 229) return;
   // inside a shell every key is the shell's (Esc for vim, Ctrl+K for bash), but the shells' own toggle
   if (SH.owns(e)) { if (K.hasMod("shells") && K.is(e, "shells")) { e.preventDefault(); GLOBAL.shells(); } return; }
   // ⌘/Ctrl keys work everywhere, even while typing

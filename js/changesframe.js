@@ -87,6 +87,12 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
   // what's drawn: {key, path, patch, ver (an image's version: a new one is read again), handle, img (an image
   // change's drawing)}
   const D = { key: null, path: null, patch: null, ver: null, handle: null, img: null, gen: 0, failed: false };
+  /** What's drawn, shown: the diff, or an image's change, and no "Reading" note over it. */
+  const showDrawn = (f = null) => {
+    if (D.img) { im.hidden = false; pd.hidden = true; note.hidden = true; }
+    else if (D.handle && D.patch) { pd.hidden = false; note.hidden = true; }
+    else if (f && !D.failed) { pd.hidden = true; note.hidden = false; note.textContent = noPatchWords(f); } // binary, too large…
+  };
   const dropImg = () => { if (D.img) { D.img.drop(); D.img = null; } im.hidden = true; im.replaceChildren(); };
   let H = { list: "", ph: "", pill: "", none: "" };
 
@@ -114,7 +120,7 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
   async function draw(key, f, patch, { scrollTo = null } = {}) {
     const ver = patch ? null : f.version ?? null;
     const same = D.key === key && D.path === f.path;
-    if (same && D.patch === patch && D.ver === ver && !D.failed) return;
+    if (same && D.patch === patch && D.ver === ver && !D.failed) { showDrawn(f); return; } // drawn: shown (it may have been hidden for another pick)
     // one draw per version: renders that come while it's on its way don't start it again
     if (D.pend && D.pend.key === key && D.pend.path === f.path && D.pend.patch === patch && D.pend.ver === ver) return;
     D.pend = { key, path: f.path, patch, ver };
@@ -217,12 +223,23 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
     const live = f.live ? null : f;
     if (!live) { draw(s.key, { ...f, binary: false, patch_omitted: null }, null); note.textContent = "Being written now…"; return true; }
     const shown = D.key === s.key && D.path === f.path;
-    if (shown && !st.follow && D.patch && prevSel === st.sel) return true; // never redraw under you
+    // never redraw under you; but what's drawn is shown again if picking another file hid it (A, then B while it
+    // was read, then A again: Files/Map grader on C085)
+    if (shown && !st.follow && D.patch && prevSel === st.sel) { showDrawn(f); return true; }
+    // another file picked: the last one's diff goes at once, and it says it's reading (Astra C085: the old diff
+    // stayed under the new header for as long as the read took)
+    // (not while this file's own draw is on its way: a render meanwhile would hide what that draw then shows)
+    const coming = D.pend && D.pend.key === s.key && D.pend.path === f.path;
+    if (!shown && !coming) { pd.hidden = true; im.hidden = true; note.hidden = false; note.textContent = "Reading its change…"; }
     changes.patch(v, f.path).then((patch) => {
       if (stOf(s.key).sel !== f.path || changes.scope(view())?.key !== s.key) return;
       const line = shown && st.follow && D.patch && patch !== D.patch ? newestHunkLine(D.patch, patch) : null;
       draw(s.key, f, patch, { scrollTo: line });
-    }).catch(() => { note.hidden = false; pd.hidden = true; note.textContent = "Couldn't read this file's change."; });
+    }).catch(() => {
+      // a failure for a file that isn't the pick any more says nothing (a late B failing hid a newer C)
+      if (stOf(s.key).sel !== f.path || changes.scope(view())?.key !== s.key) return;
+      note.hidden = false; pd.hidden = true; im.hidden = true; note.textContent = "Couldn't read this file's change.";
+    });
     return true;
   }
 
@@ -241,8 +258,14 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
     if (t.closest("[data-cx-all]")) { const s = changes.scope(view()); if (s) { stOf(s.key).all = true; onChange && onChange(); } return; }
     const r = t.closest("[data-cx]");
     if (r) { const s = changes.scope(view()); if (!s) return; const st = stOf(s.key); st.follow = false; st.sig = changes.activity(view()).sig; st.sel = r.dataset.cx; if (st.pill === st.sel) st.pill = null; onChange && onChange(); return; }
-    if (t.closest("[data-cx-show]")) { const s = changes.scope(view()); if (!s) return; const st = stOf(s.key); st.sel = pill.dataset.cxShow || st.sel; st.pill = null; D.patch = null; D.pend = null; onChange && onChange(); return; }
-    if (t.closest("[data-cx-open]")) { const s = changes.scope(view()); if (s && D.path) openFile(s, D.path, t.closest("[data-cx-open]")); }
+    if (t.closest("[data-cx-show]")) {
+      const s = changes.scope(view()); if (!s) return; const st = stOf(s.key); st.sel = pill.dataset.cxShow || st.sel; st.pill = null; D.patch = null; D.pend = null;
+      // the pill goes once it's answered: focus goes to the file it showed, in the list, before it goes (Astra S042)
+      (list.querySelector(`[data-cx="${CSS.escape(st.sel || "")}"]`) || pd).focus({ preventScroll: true });
+      onChange && onChange(); return;
+    }
+    // the file picked (whose header this button is in), not the last diff drawn (Astra C086)
+    if (t.closest("[data-cx-open]")) { const s = changes.scope(view()); const p = s && (stOf(s.key).sel || D.path); if (p) openFile(s, p, t.closest("[data-cx-open]")); }
   });
   // touching the diff (a scroll, a press, a key) is reading it: following pauses there
   for (const ev of ["wheel", "pointerdown", "keydown"]) pd.addEventListener(ev, pause, { passive: true });

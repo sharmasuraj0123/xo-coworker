@@ -161,8 +161,12 @@ export function createLightbox({ openFile = null, announce = () => {} } = {}) {
     el.querySelector(".lbx-count").textContent = n > 1 ? `${L.i + 1} of ${n}` : "";
     el.querySelector('[data-lbx="prev"]').hidden = n < 2;
     el.querySelector('[data-lbx="next"]').hidden = n < 2;
-    el.querySelector('[data-lbx="prev"]').disabled = L.i === 0;
-    el.querySelector('[data-lbx="next"]').disabled = L.i === n - 1;
+    // at either end its arrow says there's no more (aria-disabled, not disabled: an arrow that took you to the end
+    // keeps focus there, where ← or the other arrow goes back; Astra S201/S202). step() goes no further.
+    for (const [k, end] of [["prev", L.i === 0], ["next", L.i === n - 1]]) {
+      const b = el.querySelector(`[data-lbx="${k}"]`);
+      if (end) b.setAttribute("aria-disabled", "true"); else b.removeAttribute("aria-disabled");
+    }
     el.querySelector('[data-lbx="files"]').hidden = !openFile || !(it.att || (it.project && it.rel));
     // a picture from the web: its original, on its own site; no Download (another site's file isn't ours to save as)
     const orig = el.querySelector('[data-lbx="orig"]');

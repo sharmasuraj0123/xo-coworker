@@ -91,12 +91,15 @@ class XoSelect extends HTMLElement {
     // the options are the source: re-rendered options (innerHTML) bring the button and list back
     this._mo = new MutationObserver((recs) => {
       if (recs.every((r) => this._menu.contains(r.target) || this._btn.contains(r.target))) return;
-      this._sync();
+      this._sync(recs);
     });
     this._mo.observe(this, { childList: true, subtree: true, attributes: true, characterData: true, attributeFilter: ["selected", "disabled", "value", "label", "data-desc"] });
   }
 
-  _sync() {
+  /** recs: the changes that brought it here. The current choice changes only when the options themselves or what
+   *  they say is selected change; a change of availability (disabled) or of a description keeps it (Astra S229:
+   *  disabling the select quietly put the first value back). */
+  _sync(recs = null) {
     let back = false;
     if (this._btn.parentNode !== this) { this.append(this._btn); back = true; }
     if (this._menu.parentNode !== this) this.append(this._menu);
@@ -104,8 +107,12 @@ class XoSelect extends HTMLElement {
     this._mo.takeRecords();
     const opts = this.options;
     const marked = opts.find((o) => o.hasAttribute("selected"));
-    if (marked) this._v = marked.value;
-    else if (this._v == null || !opts.some((o) => o.value === this._v)) this._v = opts[0]?.value ?? null;
+    // only the options' own changes count: its button and menu are redrawn by _paint, and those records (in the
+    // same subtree) aren't a new choice (the browser run: disabling repainted the button and put "a" back)
+    const ours = (n) => !!n && (n === this._btn || n === this._menu || this._btn.contains(n) || this._menu.contains(n));
+    const adopt = !recs || recs.some((r) => !ours(r.target) && (r.type === "childList" ? [...r.addedNodes, ...r.removedNodes].some((n) => !ours(n)) : r.attributeName === "selected" || r.attributeName === "value"));
+    if (marked && adopt) this._v = marked.value;
+    else if (this._v == null || !opts.some((o) => o.value === this._v)) this._v = (marked || opts[0])?.value ?? null;
     this._paint();
     if (this._open) this._rows();
   }
@@ -250,6 +257,16 @@ class XoSelect extends HTMLElement {
     return from;
   }
   _edge(end) { return end ? this._step(this.options.length, -1) : this._step(-1, 1); }
+  /** PageDown / PageUp: ten rows on (or to the end), then the nearest choosable option in that direction, else
+   *  the nearest one back; the cursor never rests on a disabled option. */
+  _page(from, d) {
+    const n = this.options.length;
+    const at = Math.max(0, Math.min(n - 1, from + 10 * d));
+    const ok = (j) => j >= 0 && j < n && !this.options[j].disabled;
+    for (let j = at; j >= 0 && j < n; j += d) if (ok(j)) return j;
+    for (let j = at - d; j >= 0 && j < n; j -= d) if (ok(j)) return j;
+    return from;
+  }
 
   _key(e) {
     const k = e.key, open = this._open;
@@ -267,8 +284,9 @@ class XoSelect extends HTMLElement {
       case "ArrowUp": take(); if (e.altKey) this._choose(i); else this._activate(this._step(i, -1)); return;
       case "Home": take(); this._activate(this._edge(false)); return;
       case "End": take(); this._activate(this._edge(true)); return;
-      case "PageDown": take(); this._activate(Math.min(this.options.length - 1, i + 10)); return;
-      case "PageUp": take(); this._activate(Math.max(0, i - 10)); return;
+      // ten rows on, then on to the nearest option that can be chosen (never a disabled one: Astra S230)
+      case "PageDown": take(); this._activate(this._page(i, 1)); return;
+      case "PageUp": take(); this._activate(this._page(i, -1)); return;
       case "Enter": take(); this._choose(i); return;
       case "Escape": take(); this.close(true); return;
       case "Tab": this._choose(i); return; // chooses, and lets focus move on

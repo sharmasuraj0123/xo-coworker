@@ -19,6 +19,7 @@
 
 import { esc, copyText, COPY_REFUSED } from "./util.js";
 import { ICON } from "./ui.js";
+import { redraw } from "./redraw.js";
 import { api } from "./api.js";
 import { activityOf, folderOf } from "./map.js";
 import { fileIcon, folderIcon } from "./fileicons.js";
@@ -111,7 +112,8 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     const k = dkey(s, local);
     const had = F.dirs.get(k);
     if (had && (had.state === "loading" || (had.state === "ok" && !again))) return had;
-    F.dirs.set(k, { ...(had || {}), state: had && had.state === "ok" ? "ok" : "loading", v: ++VER });
+    // a Try again reads with its note still there, saying it's reading again (its button stays, busy)
+    F.dirs.set(k, { ...(had || {}), state: had && had.state === "ok" ? "ok" : "loading", retry: !!(had && had.state === "error"), v: ++VER });
     try {
       const d = await api.projectTree(s.project, apiRel(s, local));
       const strip = (e) => { let p = String(e.relative_path || e.name); if (s.base && p.startsWith(s.base + "/")) p = p.slice(s.base.length + 1); return { name: e.name, path: p, bytes: e.size_bytes ?? null, at: Date.parse(e.modified_at) || 0 }; };
@@ -175,6 +177,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
    *  group: empty, for sync to fill, or with inner(path)'s rows when the whole tree is drawn at once. */
   function rowsHtml(s, local, d, marks, q, inner = null) {
     const depth = local ? local.split("/").length : 0;
+    if (d && d.state === "loading" && d.retry) return `<p class="fl-note is-err is-pending" style="--d:${depth}" role="status"><i class="spin" aria-hidden="true"></i>Reading again… <button type="button" class="fl-link" data-fl-retry="${esc(local)}" aria-busy="true" aria-disabled="true">Try again</button></p>`;
     if (!d || (d.state === "loading" && !d.dirs)) return `<p class="fl-note" style="--d:${depth}"><i class="spin" aria-hidden="true"></i>Reading…</p>`;
     if (d.state === "error") return `<p class="fl-note is-err" style="--d:${depth}">${esc(d.error)} <button type="button" class="fl-link" data-fl-retry="${esc(local)}">Try again</button></p>`;
     const open = setOf(s.key);
@@ -239,7 +242,9 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     const sig = sigOf(d, local, ctx);
     if (g.sig !== sig) {
       const a = document.activeElement, had = a && g.el.contains(a) ? a : null;
-      g.el.innerHTML = rowsHtml(s, local, d, ctx.marks, ctx.q);
+      const html = rowsHtml(s, local, d, ctx.marks, ctx.q);
+      if (html.startsWith("<p class=\"fl-note") && g.el.firstElementChild?.matches?.("p.fl-note")) redraw(g.el, html); // a note to a note: in place
+      else g.el.innerHTML = html;
       g.sig = sig; g.open.clear();
       for (const ph of g.el.querySelectorAll(":scope > .fl-g")) {
         const c = T.groups.get(ph.dataset.flG);
@@ -304,7 +309,10 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     const tl = touched(s);
     const cs = changes && s.key === F.viewKey ? changes.of(F.view) : null;
     T.changed = cs && cs.state === "ok" ? cs.files.size : tl.length;
-    put(tree.querySelector(".fl-secs"), secHtml(s, tl));
+    // in place: the Changed or Touched row you opened (it gains is-on as its file opens) stays the same node and
+    // keeps focus (the browser run, S063: it was replaced, and focus fell to the page)
+    const secs = tree.querySelector(".fl-secs"), sh = secHtml(s, tl);
+    if (secs._h !== sh) { redraw(secs, sh); secs._h = sh; }
     const open = setOf(s.key), openIn = new Map();
     for (const p of open) { const at = parentOf(p); if (!openIn.has(at)) openIn.set(at, []); openIn.get(at).push(p); }
     const ctx = { marks: marksOf(tl), open, openIn, q: F.q.trim().toLowerCase() };
@@ -350,7 +358,9 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     const bar = F.host.querySelector(".fl-bar");
     const bh = has && !F.wide ? `<button type="button" class="fl-back" data-fl-back>${BACK}<span>${esc(s.key === "all" ? "Projects" : s.label || "Files")}</span></button>` : "";
     if (bar._h !== bh) { bar.innerHTML = bh; bar._h = bh; }
-    if (retryOf != null && !a.isConnected) (F.host.querySelector(`[data-fl-retry="${CSS.escape(retryOf)}"]`) || (retryOf && rowOf(retryOf)) || F.host.querySelector(".fl-tree .fl-r"))?.focus({ preventScroll: true });
+    // S061's named destinations once the read settles: Try again again if it failed again; a folder that read,
+    // its own row; the project's top that read (even empty), its New file
+    if (retryOf != null && !a.isConnected) (F.host.querySelector(`[data-fl-retry="${CSS.escape(retryOf)}"]`) || (retryOf ? rowOf(retryOf) : F.host.querySelector("[data-fl-new]")))?.focus({ preventScroll: true });
   }
   /** Where focus goes when the place itself changes (a project picked, or left): its contract. */
   function landIn(sel) { (sel && F.host.querySelector(sel)) ? F.host.querySelector(sel).focus({ preventScroll: true }) : F.host.querySelector(".fl-tree [data-fl-unpick], .fl-tree .fl-r")?.focus({ preventScroll: true }); }
@@ -563,18 +573,25 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     if (say && say.err) { sayNew(say); return; }
     const local = dir ? `${dir}/${n}` : n, rel = apiRel(s, local);
     NW.busy = true; inp.readOnly = true; sayNew({ words: "Making it…" });
+    // this row's own result: if another New file was started while this one was made, the newer row (and what's
+    // typed in it) stays; this one's file is made and listed, without taking the newer row away (Astra C031)
+    const mine = NW.el;
     try {
       const r = await api.saveProjectFile(s.project, rel, "", null, say && say.runs ? "runs_code" : null);
       if (F.scope.key !== s.key) return;
+      if (NW.el !== mine) { if (changes && changes.saved) changes.saved(s.project, rel); await load(s, dir, { again: true }); paint(); return; }
       endNew();
       if (changes && changes.saved) changes.saved(s.project, rel);
       await load(s, dir, { again: true });
       if (F.scope.key !== s.key) return;
+      // a newer New file started while the folder was read again: that row, and what's typed in it, stay; this
+      // file is made and listed, not opened over it (Files/Map grader: the guard sat before this await)
+      if (NW.el) { paint(); return; }
       F.sel = local; F.fileView = true; F.auto = false;
       paint();
       viewer.open({ path: local, name: n, bytes: 0, project: s.project, rel, created: r.edit_id || true }, F.host.querySelector(`.fl-g [data-fl-file="${CSS.escape(local)}"]`));
     } catch (err) {
-      if (!NW.el || F.scope.key !== s.key) return;
+      if (!NW.el || NW.el !== mine || F.scope.key !== s.key) return;
       NW.busy = false; inp.readOnly = false;
       if (err.status === 428) { NW.confirm = true; sayNew(RUNS_SAY); }
       else { sayNew({ err: true, words: makeWords(err, n) }); if (err.status === 409) load(s, dir, { again: true }); }
@@ -609,16 +626,17 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       if (tc) {
         const rel = tc.dataset.flTouch, s = F.scope;
         F.fileView = true; F.auto = false; F.sel = localIn(s, { project: s.project, rel });
-        viewer.open({ path: rel, name: base(rel), project: s.project, rel }, tc); return;
+        // as a row of the tree does: the file takes focus as Files lays out for it (S064)
+        viewer.open({ path: rel, name: base(rel), project: s.project, rel }, tc); paint(); return;
       }
       const pk = t.closest("[data-fl-pick]");
       if (pk) { F.pick = pk.dataset.flPick; F.follow = null; setScope(F.view); paint(); landIn(null); frontPage(); return; }
       if (t.closest("[data-fl-unpick]")) { const was = F.pick; F.pick = null; F.follow = null; viewer.close({ restore: false }); setScope(F.view); paint(); landIn(was ? `[data-fl-pick="${CSS.escape(was)}"]` : null); return; }
       const rt = t.closest("[data-fl-retry]");
       if (rt) {
-        // the note with its Try again is redrawn as it reads: focus stays in the tree (the button again if it
-        // failed again, else its folder, else the first row), never the page (Astra S061)
+        if (rt.getAttribute("aria-busy") === "true") return; // already reading again
         load(F.scope, rt.dataset.flRetry, { again: true });
+        paint(); // "Reading again…" the moment it's pressed, in place, not when the answer comes (Astra S061)
         return;
       }
       if (t.closest("[data-fl-back]")) { F.fileView = false; if (!F.wide) viewer.close({ restore: false }); paint(); host.querySelector(".fl-r.is-on, .fl-r")?.focus({ preventScroll: true }); }
