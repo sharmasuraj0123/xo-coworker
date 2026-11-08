@@ -309,7 +309,10 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     const tl = touched(s);
     const cs = changes && s.key === F.viewKey ? changes.of(F.view) : null;
     T.changed = cs && cs.state === "ok" ? cs.files.size : tl.length;
-    put(tree.querySelector(".fl-secs"), secHtml(s, tl));
+    // in place: the Changed or Touched row you opened (it gains is-on as its file opens) stays the same node and
+    // keeps focus (the browser run, S063: it was replaced, and focus fell to the page)
+    const secs = tree.querySelector(".fl-secs"), sh = secHtml(s, tl);
+    if (secs._h !== sh) { redraw(secs, sh); secs._h = sh; }
     const open = setOf(s.key), openIn = new Map();
     for (const p of open) { const at = parentOf(p); if (!openIn.has(at)) openIn.set(at, []); openIn.get(at).push(p); }
     const ctx = { marks: marksOf(tl), open, openIn, q: F.q.trim().toLowerCase() };

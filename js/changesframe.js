@@ -220,7 +220,9 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
     if (shown && !st.follow && D.patch && prevSel === st.sel) return true; // never redraw under you
     // another file picked: the last one's diff goes at once, and it says it's reading (Astra C085: the old diff
     // stayed under the new header for as long as the read took)
-    if (!shown) { pd.hidden = true; note.hidden = false; note.textContent = "Reading its change…"; }
+    // (not while this file's own draw is on its way: a render meanwhile would hide what that draw then shows)
+    const coming = D.pend && D.pend.key === s.key && D.pend.path === f.path;
+    if (!shown && !coming) { pd.hidden = true; note.hidden = false; note.textContent = "Reading its change…"; }
     changes.patch(v, f.path).then((patch) => {
       if (stOf(s.key).sel !== f.path || changes.scope(view())?.key !== s.key) return;
       const line = shown && st.follow && D.patch && patch !== D.patch ? newestHunkLine(D.patch, patch) : null;

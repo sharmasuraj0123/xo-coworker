@@ -59,7 +59,7 @@ function mockApi(W) {
     if ((k = /^\/api\/chat\/chats\/([^/]+)\/(threads|messages|hops|made|runtime-policy)$/.exec(p))) {
       if (k[2] === "threads") return json({ threads: [] });
       if (k[2] === "messages") return json({ messages: k[1] === "chat_demo" && W.messages ? W.messages : [], next_after_seq: 0, next_before_seq: 0 });
-      if (k[2] === "made") return json({ made: (k[1] === "chat_demo" && W.made) || [], next_before: null });
+      if (k[2] === "made") return json({ made: (W.madeBy && W.madeBy[k[1]]) || (k[1] === "chat_demo" && W.made) || [], next_before: null });
       if (k[2] === "runtime-policy") return json({ space: policy, project: policy, effective: { ...policy, fallback: false } });
       if (W.hops) return W.hops(r, k[1], json);
       return json({ hops: [], next_after_seq: null, next_before_seq: null });
@@ -133,6 +133,8 @@ function mockApi(W) {
       f.content = b.content; f.version = `sha256:saved${W.saves.length}`;
       return json({ version: f.version, edit_id: `edit-${W.saves.length}`, saved_at: new Date().toISOString() });
     }
+    // a picture a thread made: the app's own mark stands in for it (W.pictures: answer image reads)
+    if (W.pictures && /^\/api\/xo-projects\/[^/]+\/image$/.test(p)) return r.fulfill({ status: 200, contentType: "image/svg+xml", body: W.pictures });
     if (/^\/api\/xo-projects\/[^/]+\/download$/.test(p)) {
       const f = W.files[u.searchParams.get("relative_path")];
       W.downloads = (W.downloads || 0) + 1;

@@ -462,7 +462,11 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     const s = P.session;
     P.rt = name;
     P.mv = moving(s) ? { model: null, effort: null, models: catalogs.get(name) || null } : null;
+    const had = pop.contains(document.activeElement);
     render();
+    // the move view takes the runtime choice's place: focus goes to its first choice (a model, or Cancel while
+    // they're read), in the same step, never the page (the suite's drop check: the runtime button went with focus)
+    if (had && P.mv && !pop.contains(document.activeElement)) (pop.querySelector('[data-mvm][tabindex="0"]') || pop.querySelector("[data-mv-cancel]") || pop).focus({ preventScroll: true });
     if (!P.mv || P.mv.models) return;
     // the read belongs to this look: a look cancelled (or another opening) drops its answer (Astra MIG-3)
     const mv = P.mv, mine = () => P.open && P.mv === mv;

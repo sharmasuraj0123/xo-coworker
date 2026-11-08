@@ -161,6 +161,8 @@ export async function conflict(host, text, o = {}) {
       const bar = document.createElement("div");
       bar.className = "xd-merge";
       bar.setAttribute("role", "group"); bar.setAttribute("aria-label", "Choose what to keep here"); bar.tabIndex = -1;
+      bar.dataset.place = String(action.conflictIndex);
+      bar.addEventListener("focusin", (e) => { on = { place: action.conflictIndex, b: [...bar.querySelectorAll("button")].indexOf(e.target) }; });
       for (const res of ["current", "incoming", "both"]) {
         const b = document.createElement("button");
         b.type = "button"; b.className = `xd-mbtn${res === "current" ? " is-mine" : ""}`; b.textContent = L[res];
@@ -168,6 +170,7 @@ export async function conflict(host, text, o = {}) {
           // the choice goes with its place: focus waits on the file's body while the view redraws (never the
           // page), then goes on to the next place still to choose, else to o.onDone (Astra S232)
           const had = bar.contains(document.activeElement), y = bar.getBoundingClientRect().top;
+          on = null;
           if (had) host.focus({ preventScroll: true });
           inst.resolveConflictAndRender(action.conflictIndex, res);
           if (had) requestAnimationFrame(() => { if (document.activeElement === host) onward(bar, y); });
@@ -178,6 +181,18 @@ export async function conflict(host, text, o = {}) {
     },
     onMergeConflictResolve: (file) => o.onResolve && o.onResolve(file.contents, left(file.contents)),
   }, workers(P));
+  // Pierre draws the choice bars again when the file's colours arrive from its worker (new nodes, the same places):
+  // the place you're on is still the place you're on, so focus goes to it as drawn now, in the same step; only
+  // while focus would otherwise be nowhere (the browser run: focus reached the next place, then fell to the page)
+  let on = null;
+  host.addEventListener("focusout", (e) => { if (e.relatedTarget && !host.contains(e.relatedTarget)) on = null; });
+  const keep = new MutationObserver(() => {
+    const a = document.activeElement;
+    if (!on || (a && a !== document.body)) return;
+    const bar = host.querySelector(`.xd-merge[data-place="${on.place}"]`);
+    if (bar) (bar.querySelectorAll("button")[on.b] || bar).focus({ preventScroll: true });
+  });
+  keep.observe(host, { childList: true, subtree: true });
   /** The next place to choose after the one at y (the place itself, not a choice in it: one Tab more chooses, so
    *  a held Enter can't choose for every place), else the first left; none left: o.onDone. */
   function onward(gone, y) {
@@ -189,7 +204,7 @@ export async function conflict(host, text, o = {}) {
   }
   v.render({ file: { name: String(o.path || "").split("/").pop(), contents: text, lang: langOf(o.path) }, containerWrapper: host });
   live.add(v);
-  return { destroy() { live.delete(v); v.cleanUp(); host.replaceChildren(); } };
+  return { destroy() { keep.disconnect(); on = null; live.delete(v); v.cleanUp(); host.replaceChildren(); } };
 }
 
 /**

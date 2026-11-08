@@ -107,7 +107,10 @@ class XoSelect extends HTMLElement {
     this._mo.takeRecords();
     const opts = this.options;
     const marked = opts.find((o) => o.hasAttribute("selected"));
-    const adopt = !recs || recs.some((r) => r.type === "childList" || r.attributeName === "selected" || r.attributeName === "value");
+    // only the options' own changes count: its button and menu are redrawn by _paint, and those records (in the
+    // same subtree) aren't a new choice (the browser run: disabling repainted the button and put "a" back)
+    const ours = (n) => !!n && (n === this._btn || n === this._menu || this._btn.contains(n) || this._menu.contains(n));
+    const adopt = !recs || recs.some((r) => !ours(r.target) && (r.type === "childList" ? [...r.addedNodes, ...r.removedNodes].some((n) => !ours(n)) : r.attributeName === "selected" || r.attributeName === "value"));
     if (marked && adopt) this._v = marked.value;
     else if (this._v == null || !opts.some((o) => o.value === this._v)) this._v = (marked || opts[0])?.value ?? null;
     this._paint();
