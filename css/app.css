@@ -81,7 +81,7 @@ button:disabled{cursor:default}
 /* #28 a slide toggle for light mode */
 .theme{flex:none;display:grid;place-items:center;width:46px;height:36px;border-radius:999px}
 .th-track{position:relative;display:block;width:40px;height:22px;border-radius:999px;background:var(--sb-bg-3);box-shadow:inset 0 0 0 1px var(--sb-line);transition:background var(--d-hover)}
-.th-knob{position:absolute;left:2px;top:2px;display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--ink-2);color:var(--sb-side);transition:transform var(--d-in) var(--ease),background var(--d-hover)}
+.th-knob{position:absolute;left:2px;top:2px;display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--ink-2);color:var(--sb-side);transition:transform var(--d-in) var(--ease),background var(--d-hover),scale var(--d-press) var(--ease)}
 .th-knob svg{position:absolute;width:12px;height:12px;stroke-width:2;transition:opacity var(--dur-base)}
 .th-knob svg:first-child{opacity:0}
 .theme[aria-checked="true"] .th-track{background:color-mix(in srgb,var(--accent-fill) 55%,var(--sb-bg-3))}
@@ -1315,6 +1315,7 @@ button.tp-done-u:hover{color:var(--ink)}
 .btn:active{background:var(--press-fill);transform:scale(var(--press-scale))}
 .btn-pri{background:var(--accent-fill);border-color:var(--accent-fill);color:var(--accent-ink)}
 .btn-pri:hover{background:var(--accent-hover);border-color:var(--accent-hover);color:var(--accent-ink)}
+.btn-pri:active{background:var(--accent-press);border-color:var(--accent-press)}
 .btn:disabled{opacity:.55;cursor:default;transform:none}
 .dlg .btn{height:var(--h-lg);padding:0 18px;border-radius:var(--r);font-size:var(--fs-md)}
 .btn .spin{width:12px;height:12px}
@@ -2006,6 +2007,7 @@ body.viewer-open .tdock{display:none}
 .vw-seg{display:flex;padding:2px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft)}
 .vw-seg button{height:26px;padding:0 10px;border-radius:var(--r-sm);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
 .vw-seg button[aria-pressed="true"]{background:var(--fill-3);color:var(--ink)}
+.vw-seg button:not([aria-pressed="true"]):hover{background:var(--hover-fill);color:var(--ink-2)}
 .vw-body{flex:1;min-height:0;overflow:auto;outline:none}
 .vw-body.is-frame{display:flex;flex-direction:column;overflow:hidden}
 .vw-md{padding:20px 28px 40px;max-width:72ch}
@@ -2473,7 +2475,7 @@ body.map-full .dock,body.map-full .tdock{visibility:hidden}
 .dg{position:relative;flex:1;min-height:0;margin:0 12px 12px;border-radius:var(--r-sm);overflow:hidden;cursor:grab;touch-action:none;outline:none;
   background-color:var(--fill-1);background-image:radial-gradient(circle,var(--fill-3) 1px,transparent 1.2px);background-size:20px 20px;border:1px solid var(--line-faint)}
 :root[data-theme="light"] .dg{background-color:#FBFBFA;background-image:radial-gradient(circle,#DEDEDC 1px,transparent 1.2px);border-color:#E6E6E6}
-.dg:focus-visible{box-shadow:inset 0 0 0 2px rgba(var(--accent-rgb),.5)}
+.dg:focus-visible{box-shadow:inset 0 0 0 2px var(--focus)}
 .dg.is-drag{cursor:grabbing}
 .dg-world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
 .dg-world.is-glide{transition:transform var(--d-land) var(--ease)}
@@ -2829,6 +2831,7 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .rt-seg button[aria-checked="true"]{background:var(--fill-3);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
 .rt-checks{display:flex;flex-wrap:wrap;gap:8px}
 .rt-check{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 12px 0 10px;border-radius:var(--r-sm);border:1px solid var(--line);font-size:var(--fs-base);color:var(--ink-2);cursor:pointer}
+.rt-check:hover,.rt-check:has(input:checked):hover{border-color:var(--line-hover);transition-duration:var(--d-hover-in)}
 .rt-check:has(input:checked){border-color:color-mix(in srgb,var(--accent-fill) 55%,var(--line));color:var(--ink)}
 .rt-check input{accent-color:var(--accent-fill)}
 .rt-check:has(input:focus-visible){outline:2px solid var(--focus);outline-offset:1px}

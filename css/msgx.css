@@ -228,7 +228,7 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .mx-work.mx-under .mx-we{display:none}
 .mx-work{display:none}
 :root[data-msgx] .m-turn.is-live.is-folded .mx-work{position:relative;display:flex;align-items:center;gap:12px;max-width:min(88%,560px);height:44px;padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-md);line-height:20px;text-align:left;overflow:visible;transition:width var(--d-move) var(--ease),background var(--d-hover) var(--ease)}
-:root[data-msgx] .mx-work:hover{background:var(--mx-them-top)}
+:root[data-msgx] .mx-work:hover,:root[data-msgx] .m-turn.is-live.is-folded .mx-work:hover{background:var(--mx-them-top)}
 .mx-wt{position:relative;flex:1 1 auto;min-width:0;height:20px;overflow:hidden}
 .mx-wl{position:absolute;inset:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* the working bubble's line wears the same shimmer (the wave on the words, the crossfade on the line) */

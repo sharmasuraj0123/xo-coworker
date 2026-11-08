@@ -434,7 +434,9 @@ body.viewer-open .fv~.dock{display:none}
   background-size:24px 24px;
   box-shadow:none;
 }
-.stage .fr[data-fr="map"] .dg:focus-visible{box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--accent) 70%,transparent)}
+.stage .fr[data-fr="map"] .dg:focus-visible{box-shadow:inset 0 0 0 2px var(--focus)}
+/* a region you scroll with the keys (a file, a diff) says when the keyboard is in it, with the one ring */
+:is(.vw-body,.cx-pd):focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .stage .map-host .dg-n,.stage .map-host .dg-n.k-dir{border-radius:var(--r);border-color:transparent;background:transparent}
 .stage .map-host .dg-n.k-root{background:var(--panel-surface);border-color:var(--panel-line);box-shadow:var(--panel-lift)}
 .stage .map-host button.dg-n:hover{border-color:var(--panel-line);background:var(--panel-hover)}

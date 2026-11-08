@@ -266,6 +266,29 @@ t("G8: the whole-file capsule's × is named for the file", async () => {
   await done(page);
 });
 
+// ── Jump: the pointer selects as the arrows do ──
+t("Jump: the row under a moving pointer is the selection, and Enter goes there", async () => {
+  const page = await app();
+  await page.keyboard.press("Control+k");
+  await page.waitForSelector("#jump:not([hidden]) #j-2");
+  const third = page.locator("#j-2");
+  const name = (await third.locator(".j-n").innerText()).trim();
+  await third.hover();
+  await page.mouse.move(...(await third.boundingBox().then((b) => [b.x + b.width / 2 + 4, b.y + b.height / 2])));
+  assert.equal(await third.getAttribute("aria-selected"), "true");
+  assert.equal(await page.locator('#jump-list [aria-selected="true"]').count(), 1, "one selection");
+  assert.equal(await page.locator("#jump-q").getAttribute("aria-activedescendant"), "j-2");
+  // the arrows carry on from there
+  await page.keyboard.press("ArrowDown");
+  assert.equal(await page.locator("#j-3").getAttribute("aria-selected"), "true");
+  await page.keyboard.press("ArrowUp");
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(200);
+  assert.ok(await page.locator("#jump").isHidden(), "Jump closed");
+  assert.ok(name.length > 0);
+  await done(page);
+});
+
 // ── hops: the Workspace coordinator's receipt and the chat's history read, in either order ──
 async function hopRace(receiptFirst) {
   let release;

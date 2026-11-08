@@ -105,6 +105,7 @@ diffs-container{
 .stage .xd-follow[hidden]{display:none}
 .stage .xd-follow:hover{background:var(--panel-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
 .stage .xd-follow.is-on{background:color-mix(in srgb,var(--info) 14%,transparent);color:color-mix(in srgb,var(--info) 75%,var(--ink))}
+.stage .xd-follow.is-on:hover{background:color-mix(in srgb,var(--info) 22%,transparent)}
 .stage .xd-follow:focus-visible,.stage .cx-r:focus-visible,.stage .cx-more:focus-visible,.stage .cx-ofi:focus-visible,.stage .cx-pill:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .xd-arc{position:relative;width:10px;height:10px}
 .xd-arc::before{content:"";position:absolute;inset:0;border-radius:50%;border:1.5px solid color-mix(in srgb,currentColor 25%,transparent);border-top-color:currentColor;animation:arc-turn 1.6s linear infinite}

@@ -48,8 +48,17 @@ body.stage-full .stg-grip{display:none}
    A toolbar or navigation control, a row and a card keep their place and edges when pressed: they go
    one step deeper (an inset fill, so it works on any surface and follows the corners), in 60 ms. Only
    the commit gestures keep a small give: Send, and the decision kit's Allow / Send back / hold (07 §4.4).
-   A card with two destinations (Made: the picture, and its source) presses only the one under you. */
-:is(.help,.create,.then-i,.hm-quiet,.top-back,.all-btn,.nw,.wsh-next,.tc-open,.tc-dec,button.hr,.t-undo,.dock-hide,.dock-fold,.btn,.set-nav button,button.kr-k,.tb-cf,.tw-act,.tw-rt,.tb-fb,.syl-got,.map-btn,.stg-btn,.fl-r,.stg-tab,.ar,.syl-ln,.jump-list li,.iq-row,.hd,.hd-r,.fl-back,.stg-ic,.md-open,.md-from):active,.pn-nav:active:not(:disabled){transform:none;box-shadow:inset 0 0 0 100vmax var(--press-fill)}
+   A card with two destinations (Made: the picture, and its source) presses only the one under you.
+   Every other control answers a press the same way (the controls list, CONTROLS.md, found 55 kinds that
+   didn't): the fill is a background layer, so a control's own edges, rings and colour stay under it. It is
+   !important on a zero-specificity selector so it reaches every control whatever its own background rule,
+   and the controls with a press of their own are named out of it: Send, the decision kit and holds, the
+   switches (their knob gives), Launchpad's lit button, a link in text (it dims), the sidebar's rows, and
+   the few that fill or give already (Create, .btn, the picker's rows and chip, the gear, +). */
+:is(.help,.create,.then-i,.hm-quiet,.top-back,.all-btn,.nw,.wsh-next,.tc-open,.tc-dec,button.hr,.t-undo,.dock-hide,.dock-fold,.btn,.set-nav button,button.kr-k,.tb-cf,.tw-act,.tw-rt,.tb-fb,.syl-got,.map-btn,.stg-btn,.fl-r,.stg-tab,.ar,.syl-ln,.jump-list li,.iq-row,.hd,.hd-r,.fl-back,.stg-ic,.md-open,.md-from):active,.pn-nav:active:not(:disabled){transform:none}
+:where(button,[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],summary,.rt-check):where(:not(:disabled,[aria-disabled="true"],.send,.b,.b-hold,.theme,.switch,.lp-go,.lk-in,.tw-act.lp-btn,.prow,.nrow,.create,.btn,.iq,.iq-row,.iq-done,.gear,.side-plus,.lp-menu button)):where(:active){background-image:linear-gradient(var(--press-fill),var(--press-fill))!important}
+:where(.theme,.switch):where(:not(:disabled,[aria-disabled="true"])):where(:active) .th-knob{scale:.88}
+:where(a[href]:not([class])):where(:active){opacity:.7}
 .md-it:has(.md-open:active){transform:none}
 
 /* ── 6 · whole pixels: integer line heights, so 1 px borders land on whole pixels ────────────────── */

@@ -3117,6 +3117,15 @@ jq.addEventListener("keydown", (e) => {
   if (e.key === "Enter") { e.preventDefault(); const x = jitems[jsel]; closeJump({ restore: !!(x && x.run) }); if (x) (x.run ? x.run() : go(x.v)); }
   if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeJump(); }
 });
+// the row under a moving pointer becomes the selection, as the arrows make it (only on a real move: a list
+// scrolling under a still pointer never steals the keyboard's row)
+jl.addEventListener("pointermove", (e) => {
+  const li = e.target.closest("[data-i]");
+  if (!li || +li.dataset.i === jsel) return;
+  jl.querySelector('[aria-selected="true"]')?.setAttribute("aria-selected", "false");
+  jsel = +li.dataset.i; li.setAttribute("aria-selected", "true");
+  jq.setAttribute("aria-activedescendant", li.id);
+});
 jl.addEventListener("click", (e) => { const li = e.target.closest("[data-i]"); if (li) { const x = jitems[+li.dataset.i]; closeJump({ restore: !!x.run }); if (x.run) x.run(); else go(x.v); } });
 jump.addEventListener("mousedown", (e) => { if (e.target === jump) closeJump(); });
 
