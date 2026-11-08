@@ -177,6 +177,13 @@
    around it gave way to an ellipsis before the name did */
 @media (max-width:760px){
   :root:root .target :is(.tg-w,.muted){display:none}
-  :root:root .iq{padding:0 6px}
+  /* the field's placeholder already says where it goes ('Reply to the agent…', 'Message xo-coworker…'), so on a phone
+     the target is its mark alone and the model and thinking the thread runs keep their room */
+  :root:root .target b{display:none}
+  :root:root .target{flex:none}
+  :root:root .iq{flex:0 1 auto;min-width:0;padding:0 6px;max-width:none;font-size:var(--fs-sm)}
   :root:root .iq-sep{margin:0 4px}
 }
+/* the narrowest phones (≤ 340): the field's placeholder says where a message goes, so the target steps aside and
+   the model and thinking the thread runs stay whole */
+@media (max-width:340px){ :root:root .target{display:none} :root:root .iq{margin-left:auto} }

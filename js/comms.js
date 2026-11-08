@@ -47,7 +47,7 @@ function words(tool, res, ctx = {}) {
     case "ask_workspace": return ["Talking to the Workspace coordinator", "Asked the Workspace coordinator", "Couldn't reach the Workspace coordinator", "Question to the Workspace coordinator"];
     case "forward_to_project": return [`Handing it to ${proj ? `the ${proj}` : "a project's"} coordinator`, `Sent to ${proj ? `the ${proj}` : "a project's"} coordinator`, `Couldn't reach ${proj ? `the ${proj}` : "that project's"} coordinator`, `Message to ${proj ? `the ${proj}` : "a project's"} coordinator`];
     case "ask_owner": return ["Asking you", "Asked you"];
-    case "post_message": case "reply": return ["Writing to you", "Wrote to you"];
+    case "post_message": case "reply": return ["Writing to you", "Wrote to you", "Couldn't post to you", "Message to you"];
     case "no_reply_needed": return ["Deciding there's nothing to add", "Nothing to add"];
     case "update_status": return ["Updating its checklist", "Updated its checklist"];
     case "list_projects": return ["Looking over your projects", "Looked over your projects"];

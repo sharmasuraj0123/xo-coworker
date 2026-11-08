@@ -2484,6 +2484,31 @@ function go(v, { from, focus = false, carry = false } = {}) {
   if (focus) say.focus({ preventScroll: true });
   else if (back && target) target.focus({ preventScroll: true });
   else if (!$("#panel").contains(document.activeElement)) (v === "home" ? $("#home") : scroller).focus({ preventScroll: true });
+  returnPill(back && target && !focus ? target : null);
+}
+/** Return to where you were (Astra's I1): coming back to a conversation still lands at its latest (the owner's
+    rule), and when the message you left from is above, a quiet pill offers the way back to it, deliberately. */
+function returnPill(target) {
+  let pill = $("#mx-return");
+  if (!target) { if (pill) pill.hidden = true; return; }
+  requestAnimationFrame(() => {
+    const r = target.getBoundingClientRect(), sr = scroller.getBoundingClientRect();
+    if (r.bottom > sr.top + 40 && r.top < sr.bottom - 120) return; // already in sight
+    if (!pill) {
+      pill = document.createElement("button");
+      pill.type = "button"; pill.id = "mx-return"; pill.className = "mx-return";
+      $("#conv").append(pill);
+      pill.addEventListener("click", () => {
+        const t = pill._t; pill.hidden = true;
+        if (t && t.isConnected) { t.scrollIntoView({ block: "center", behavior: RM.matches ? "auto" : "smooth" }); t.focus({ preventScroll: true }); }
+      });
+      scroller.addEventListener("scroll", () => { const t = pill._t; if (!pill.hidden && t && t.isConnected) { const a = t.getBoundingClientRect(), b = scroller.getBoundingClientRect(); if (a.bottom > b.top + 40 && a.top < b.bottom) pill.hidden = true; } }, { passive: true });
+    }
+    pill._t = target;
+    pill.style.top = `${scroller.offsetTop + 12}px`; // just under the header, whatever its height
+    pill.innerHTML = `${ICON.arrow}<span>Back to where you were</span>`;
+    pill.hidden = false;
+  });
 }
 /** Has this conversation's real content arrived (timeline or thread detail)? */
 function liveReady(v) {

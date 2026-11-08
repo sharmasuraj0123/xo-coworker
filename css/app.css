@@ -744,9 +744,13 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .iq-nk::before{content:"→ "}
 .iq-nw{min-width:0;overflow:hidden;text-overflow:ellipsis}
 @media (max-width:760px){
+  .iq-l.is-pending{gap:6px}
   .iq-l.is-pending .iq-cur{flex:0 1 auto;min-width:0}
   .iq-l.is-pending .iq-next{flex:none}
   .iq-l.is-pending .iq-nw{display:none}
+  /* on a phone the mark is the arrow alone: the running model and effort keep the room */
+  .iq-l.is-pending .iq-nk{font-size:0}
+  .iq-l.is-pending .iq-nk::before{font-size:var(--fs-base);content:"→"}
 }
 .iq-pop{position:fixed;z-index:var(--z-popover);display:flex;flex-direction:column;padding:5px;border-radius:var(--r-lg);background:var(--float);border:1px solid var(--line-soft);box-shadow:var(--e2);outline:none;transform-origin:100% 100%;animation:float-in var(--d-pop) var(--ease)}
 .iq-pop.is-out{animation:float-out var(--d-pop-out) var(--ease) forwards}
@@ -835,6 +839,12 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .sl-p:hover{color:var(--accent)}
 
 .vw-upd{color:var(--ink);border-color:var(--line-strong);animation:rise-in var(--d-in) var(--ease)}
+
+/* return to where you were: a quiet pill at the top of the conversation, pointing up to the message you left from */
+.mx-return{position:absolute;z-index:var(--z-sticky);left:0;right:0;width:max-content;margin:0 auto;display:flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 12px 0 10px;border-radius:var(--r-pill);border:1px solid var(--line);background:var(--float);box-shadow:var(--e2);color:var(--ink-2);font:500 var(--fs-base)/20px var(--sans);animation:float-in-down var(--d-pop) var(--ease)}
+.mx-return svg{width:14px;height:14px;transform:rotate(-90deg);color:var(--ink-3)}
+.mx-return:hover{color:var(--ink);border-color:var(--line-strong)}
+.mx-return[hidden]{display:none}
 
 /* ── buttons ─────────────────────────────────────────────────────────────── */
 .b{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;height:var(--h-lg);padding:0 16px;border-radius:var(--r);border:1px solid var(--line);background:var(--float);color:var(--ink);font:500 var(--fs-md)/20px var(--sans);overflow:hidden;user-select:none;-webkit-user-select:none;
