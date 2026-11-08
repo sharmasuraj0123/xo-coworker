@@ -539,6 +539,56 @@ t("G6: a run that goes live while its stop is pending stays live; the late refus
   await done(page);
 });
 
+// ── Home's next move: the same protection as a decision card ──
+async function homeAsk(page, question = false) {
+  await page.evaluate((question) => {
+    const t = window.__t;
+    for (const name of ["reply", "decide", "decideItem", "resolve"]) t.world.act[name] = async () => ({});
+    t.world.state.threads = [{ id: "home-local", title: "A local task", project: "demo", live: false, busy: false, state: "needs_approval", messages: [], happened: "Test only", lastAt: Date.now(), checklist: { total: 1, done: 0, items: [{ text: "Step", state: "todo" }] },
+      asks: [{ id: "home-ask", title: "A local choice", kind: question ? "question" : "approval", risk: "routine", detail: "Test only", ...(question ? { options: ["First", "Second"] } : {}) }] }];
+    t.go("home"); t.render();
+  }, question);
+  await page.locator("#hm-next .next").waitFor();
+}
+const homeDecided = (page) => page.evaluate(() => window.__t.D.decisions().map((d) => d.choice));
+t("Home: Allow and an option can't decide in the ask's first 300 ms; after, they do", async () => {
+  for (const q of [false, true]) {
+    const page = await app();
+    await homeAsk(page, q);
+    await page.evaluate((q) => document.querySelector(q ? "[data-nx-opt]" : "[data-nx-allow]").click(), q);
+    assert.deepEqual(await homeDecided(page), [], "nothing at once");
+    await page.waitForTimeout(350);
+    await page.evaluate((q) => document.querySelector(q ? "[data-nx-opt]" : "[data-nx-allow]").click(), q);
+    assert.equal((await homeDecided(page)).length, 1, "decided once read");
+    await page.evaluate(() => window.__t.D.undo());
+    await done(page);
+  }
+});
+t("Home: a held key (repeat) never decides", async () => {
+  for (const q of [false, true]) {
+    const page = await app();
+    await homeAsk(page, q);
+    await page.waitForTimeout(350);
+    await page.locator("#hm-next .next").focus();
+    await page.evaluate((q) => document.querySelector("#hm-next .next").dispatchEvent(new KeyboardEvent("keydown", { key: q ? "1" : "a", repeat: true, bubbles: true, cancelable: true })), q);
+    assert.deepEqual(await homeDecided(page), [], "a repeat decided nothing");
+    await done(page);
+  }
+});
+t("Home: Enter while a word is being composed in the note doesn't send it back", async () => {
+  const page = await app();
+  await homeAsk(page);
+  await page.waitForTimeout(350);
+  await page.locator("[data-nx-back]").click();
+  await page.locator("#nx-note-in").fill("unfinished compos");
+  await page.locator("#nx-note-in").dispatchEvent("keydown", { key: "Enter", code: "Enter", isComposing: true, bubbles: true });
+  assert.deepEqual(await homeDecided(page), [], "composition Enter decided nothing");
+  await page.locator("#nx-note-in").press("Enter");
+  assert.deepEqual(await homeDecided(page), ["deny"], "a real Enter sends it back");
+  await page.evaluate(() => window.__t.D.undo());
+  await done(page);
+});
+
 // ── decisions (js/decide.js on its own, with a local world: no app, no API) ──
 async function decisions(kind = "approval", count = 1) {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });

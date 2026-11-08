@@ -526,9 +526,12 @@ function nextHead(n) {
   if (n.group === "stopped") return { head: `<span class="h-verb">Stopped at</span> ${esc((t.checklist.items.find((i) => i.state !== "done") || t).text || t.title)}`, cmd: "" };
   return { head: esc(n.risk === "destructive" ? n.ask.title.replace(/:\s.*$/, "") : n.ask.title), cmd: "" };
 }
+const NEXT_SEEN = new Map(); // Home's next ask → when it first showed (its re-arm runs from then)
 function nextCardHtml(n) {
   const t = n.t, E = EFFORT[n.effort];
   const { head, cmd } = nextHead(n);
+  // when this ask first showed here: its 300 ms re-arm runs from then, as a decision card's does (Astra DEC-HOME-READ)
+  if (!NEXT_SEEN.has(n.key)) NEXT_SEEN.set(n.key, performance.now());
   return `<article class="next r-${n.risk} e-${n.effort}" data-key="${esc(n.key)}" data-fid="nextcard" tabindex="-1" aria-label="Your next move: ${esc(n.ask.title)}">` +
     `<div class="stamp stamp-allow" aria-hidden="true"><svg viewBox="0 0 52 52"><circle class="sc" cx="26" cy="26" r="23"/><path class="sk" d="M15 27l7.5 7.5L38 19"/></svg></div>` +
     `<div class="nx-in">` +
@@ -639,11 +642,17 @@ function handledListHtml(P0, working) {
   return (rows ? `<ul class="hd-ul">${rows}</ul>` : "") + (wait ? `<h3 class="hd-k">Can wait</h3><ul class="cw-ul">${wait}</ul>` : "");
 }
 
-/** Decide straight from the Home card (Glance asks). The card stamps, then the next rises; focus lands on the new card. */
+/**
+ * Decide straight from the Home card (Glance asks). The card stamps, then the next rises; focus lands on the new
+ * card. Like a decision card, an ask can't be decided in its first 300 ms on screen: a click or key meant for the
+ * one before can't land on it (Astra DEC-HOME-READ).
+ */
 async function nextDecide(choice, note) {
   const card = $("#hm-next .next");
   if (!card || card._busy) return;
   const key = card.dataset.key;
+  const seen = NEXT_SEEN.get(key);
+  if (seen == null || performance.now() - seen < Kit.READ_MS) { if (card.classList.contains("r-notable")) announce("A beat to read it first."); return; }
   card._busy = true;
   card.focus({ preventScroll: true });
   if (!D.decideNow(key, choice, note)) { card._busy = false; return; }
@@ -2944,13 +2953,16 @@ document.addEventListener("click", (e) => {
 });
 $("#home").addEventListener("keydown", (e) => {
   if (e.target.id === "nx-note-in") {
-    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); e.stopPropagation(); nextDecide("deny", e.target.value); }
+    // Enter while a word is still being composed (an IME) finishes the word; it never sends (Astra DEC-HOME-IME)
+    if (e.key === "Enter" && !e.shiftKey && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); e.stopPropagation(); nextDecide("deny", e.target.value); }
     if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); $("[data-nx-cancel]").click(); }
     return;
   }
   // on the focused Home card: 1–9 answer, A allows a routine glance, D sends back, E details
   const card = e.target.closest?.(".next");
   if (!card || e.target !== card || e.metaKey || e.ctrlKey || e.altKey) return;
+  // a key held down repeats: a repeat never decides anything, here as on a decision card (Astra DEC-HOME-REPEAT)
+  if (e.repeat) { e.preventDefault(); e.stopPropagation(); return; }
   const n = homeParts().next;
   if (!n || n.key !== card.dataset.key) return;
   if (/^[1-9]$/.test(e.key) && Array.isArray(n.ask.options) && !Kit.isBinary(n.ask) && n.effort === "glance") { const o = n.ask.options[+e.key - 1]; if (o != null) { e.preventDefault(); e.stopPropagation(); nextDecide({ option: o }); } }
