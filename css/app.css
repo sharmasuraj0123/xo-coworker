@@ -1135,7 +1135,9 @@ body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 .hd-r{display:grid;grid-template-columns:110px minmax(0,1fr) minmax(0,.9fr) 44px;align-items:center;gap:12px;width:100%;min-height:38px;padding:4px 12px;border-radius:var(--r-sm);text-align:left;font-size:var(--fs-base);transition:background var(--d-hover) var(--ease)}
 .hd-r:hover{background:var(--fill-1)}
 .hd-p{color:var(--ink-4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hd-tt{display:flex;align-items:center;gap:6px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* a block, so a long title ends in an ellipsis (a flex box cut it mid-letter); its glyph sits inline */
+.hd-tt{display:block;min-width:0;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hd-tt>:is(i,svg){display:inline-block;margin-right:6px;vertical-align:-2px}
 .hd-now{color:var(--ink-4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mini{display:block;height:3px;border-radius:3px;background:var(--fill-3);overflow:hidden}
 .mini i{display:block;height:100%;border-radius:3px;background:var(--info);transform-origin:left;transform:scaleX(var(--p));transition:transform var(--d-land) var(--ease)}
