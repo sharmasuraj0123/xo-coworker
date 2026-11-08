@@ -9,7 +9,7 @@
    A 40 px glass circle 12 px above what's docked (the composer, or a decision card docked over it: its real
    top, tracked in msgx.js), its right edge on the composer's right edge. It rises in
    when you've read up more than half a screen; new messages since are counted on it in a quiet ink pill. */
-.mx-down{position:absolute;z-index:4;right:calc(var(--gut) + var(--rp));bottom:calc(var(--dock-h) + 12px);display:grid;place-items:center;width:40px;height:40px;border:1px solid var(--line);border-radius:50%;background:color-mix(in srgb,var(--fill-1) 90%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);box-shadow:var(--e2),var(--hairline);color:var(--ink-2);opacity:0;transform:translateY(8px) scale(.92);pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease),color var(--d-hover) var(--ease)}
+.mx-down{position:absolute;z-index:4;right:var(--col-x);bottom:calc(var(--dock-h) + 12px);display:grid;place-items:center;width:40px;height:40px;border:1px solid var(--line);border-radius:50%;background:color-mix(in srgb,var(--fill-1) 90%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);box-shadow:var(--e2),var(--hairline);color:var(--ink-2);opacity:0;transform:translateY(8px) scale(.92);pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease),color var(--d-hover) var(--ease)}
 .mx-down.is-on{opacity:1;transform:none;pointer-events:auto;transition-duration:var(--d-in)}
 /* hidden, it's out of the keyboard order and unread by screen readers (it faded only: QA #12); visibility
    waits for the fade out, and comes back at once */
@@ -87,7 +87,7 @@ body.files-open .mx-down{display:none}
 .mx-armed .mx-swipe{background:var(--ink);color:var(--canvas)}
 
 /* swipe left anywhere: the times slide in at the right edge, as in Messages */
-#msgs>.m::after{content:attr(data-mx-time);position:absolute;top:10px;right:0;font:400 var(--fs-xs)/20px var(--mono);color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none;opacity:0;transform:translateX(64px);transition:opacity var(--d-move) var(--ease),transform var(--d-move) var(--ease)}
+#msgs>.m::after{content:attr(data-mx-time);position:absolute;top:10px;right:0;font:400 var(--fs-xs)/20px var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none;opacity:0;transform:translateX(64px);transition:opacity var(--d-move) var(--ease),transform var(--d-move) var(--ease)}
 #msgs.mx-pulling>.m::after{opacity:calc(var(--mx-pull,0) / 64);transform:translateX(calc((64 - var(--mx-pull,0)) * 1px));transition:none}
 #msgs.mx-pulling>.m>*{transform:translateX(calc(var(--mx-pull,0) * -1px));transition:none}
 

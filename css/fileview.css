@@ -48,7 +48,8 @@ body.chat-docked .fv-h{padding:0 4px 0 16px}
 @media (hover:none){.fv-tip{display:none}}
 
 /* the chat: the same conversation, in a column on the right */
-body.chat-docked .conv{left:auto;width:var(--cw);--rp:0px;--gut:16px;--hg:16px}
+body.chat-docked .conv{left:auto;right:0;width:var(--cw);--hg:16px}
+body.chat-docked :is(.conv,.dock){--gut-min:16px}
 body.chat-docked .conv>.top{display:none}
 body.chat-docked .chead{display:flex;align-items:center;gap:8px;flex:none;box-sizing:border-box;height:40px;padding:0 4px 0 16px;border-bottom:1px solid var(--line-faint);background:var(--canvas)}
 :root[data-theme="light"] body.chat-docked .chead{border-bottom-color:rgba(0,0,0,.06)}
@@ -65,15 +66,14 @@ body.chat-docked .thead .rn-log::after{content:attr(data-n);font:500 var(--fs-sm
 body.chat-docked .thead .rn-live{flex:none;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 13px 0 12px;border-radius:var(--r-lg);border:1px solid color-mix(in srgb,var(--info) 28%,var(--line-soft));background:color-mix(in srgb,var(--info) 6%,transparent);color:var(--ink-2)}
 body.chat-docked .thead .rn-live:has(.g-needs_reply){border-color:color-mix(in srgb,var(--warn) 34%,var(--line-soft));background:color-mix(in srgb,var(--warn) 7%,transparent)}
 body.chat-docked .thead .rn-live .rn-n{font:500 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums}
-body.chat-docked .scroller{padding-left:16px;padding-right:16px}
 body.files-open.chat-docked .mx-down{display:grid}
 /* agent bubbles stop 72 px short of the column's edge, so their hover Reply and Copy fit inside it */
 :root[data-msgx] body.chat-docked :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text):not(.has-table){max-width:calc(100% - 72px)}
 
 /* the dock: the composer and the thread's own ask, on the column's 16 px edges */
-body.files-open.chat-docked .dock{display:block;left:auto;right:0;width:var(--cw);padding:0 16px}
+body.files-open.chat-docked .dock{display:block;left:auto;right:0;width:var(--cw)}
 body.files-open.chat-docked .tdock{display:block}
-body.chat-docked .cbar{margin:0 -16px;padding:22px 16px 12px;background:linear-gradient(to bottom,transparent,var(--canvas) 26px)}
+body.chat-docked .cbar{padding:22px 0 12px;background:linear-gradient(to bottom,transparent,var(--canvas) 26px)}
 body.chat-docked #target>span:last-child{display:none}
 
 /* a file put away: it keeps its place and its scroll, unseen (js/filesview.js minimise) */
@@ -191,7 +191,7 @@ body.chat-docked.chat-over .conv{background:var(--canvas)}
   :root:root body.chat-sheet .crail-m{display:none}
   /* the put-away file's chip: above the composer, where there's room for its name and counts */
   :root:root .top .fchip{display:none}
-  :root:root .fdock:not(:empty){display:flex;max-width:720px;margin:0 auto 8px;pointer-events:auto}
+  :root:root .fdock:not(:empty){display:flex;width:var(--col-w);margin:0 0 8px var(--col-x);pointer-events:auto}
   :root:root .fdock .fchip{max-width:100%;height:32px;background:var(--surface);box-shadow:var(--e1),inset 0 0 0 1px var(--line-soft)}
   :root[data-theme="light"]:root .fdock .fchip{background:var(--surface);box-shadow:var(--e1),inset 0 0 0 1px var(--panel-line)}
   :root:root .fdock :is(.fchip-b,.fchip-x){height:32px}

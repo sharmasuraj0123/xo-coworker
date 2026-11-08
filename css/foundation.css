@@ -17,14 +17,6 @@
 .panel{max-height:none;height:100%}
 body.stage-full .stage{left:0}
 body.stage-open{--mw:var(--sw);--vw:var(--sw)}
-body.stage-open:not(.panel-open):not(.stage-full) .conv{--rp:var(--sw)}
-body.stage-open:not(.panel-open):not(.stage-full) .scroller,body.stage-open:not(.panel-open):not(.stage-full) .home{padding-right:var(--sw)}
-body.stage-open:not(.panel-open):not(.stage-full) .dock{right:var(--sw)}
-body.stage-open:not(.panel-open):not(.stage-full) .toast-wrap{right:var(--sw)}
-body.panel-open .conv{--rp:var(--pw)}
-body.panel-open .scroller,body.panel-open .home{padding-right:var(--pw)}
-body.panel-open .dock{right:var(--pw)}
-body.panel-open .app[data-view] .toast-wrap{right:var(--pw)}
 /* its left edge is the handle: 320–640 px, double-click for 360 */
 .stg-grip{position:absolute;z-index:3;top:0;bottom:0;left:-3px;width:6px;cursor:col-resize;outline:none}
 .stg-grip::after{content:"";position:absolute;top:0;bottom:0;left:2px;width:2px;background:transparent;transition:background var(--d-hover) var(--ease)}

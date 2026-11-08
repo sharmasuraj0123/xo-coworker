@@ -31,10 +31,7 @@
 @container stage (max-width:359px){.stg-n{display:none}}
 
 /* ── when the conversation beside it would get too narrow, the panel floats over it ───────────────── */
-body.stage-open.stage-over:not(.panel-open):not(.stage-full) .conv{--rp:0px}
-body.stage-open.stage-over:not(.panel-open):not(.stage-full) .scroller{padding-right:28px}
 body.stage-open.stage-over:not(.panel-open):not(.stage-full) .home{padding-right:0}
-body.stage-open.stage-over:not(.panel-open):not(.stage-full) .dock,body.stage-open.stage-over:not(.panel-open):not(.stage-full) .toast-wrap{right:0}
 body.stage-over .stage{box-shadow:var(--e2)}
 :root[data-theme="light"] body.stage-over .stage{box-shadow:var(--e2)}
 

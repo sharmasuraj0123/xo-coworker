@@ -8,9 +8,8 @@
 
 /* the page: a library, so no composer under it */
 .app[data-view="artifacts"] .dock{display:none}
-.arts{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;outline:none;background:var(--canvas);scrollbar-width:thin;scrollbar-color:var(--line) transparent;transition:padding-right .3s var(--ease)}
+.arts{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;outline:none;background:var(--canvas);scrollbar-width:thin;scrollbar-color:var(--line) transparent}
 .arts[hidden]{display:none}
-body.stage-open:not(.panel-open):not(.stage-full) .arts{padding-right:var(--sw)}
 .ar-wrap{width:100%;max-width:1120px;margin:0 auto;padding:48px 32px 64px}
 .ar-head h1{font:600 var(--fs-3xl)/36px var(--sans);letter-spacing:-.02em;color:var(--ink)}
 .ar-sub{margin-top:4px;font:400 var(--fs-md)/20px var(--sans);color:var(--ink-3)}

@@ -187,11 +187,27 @@ button:disabled{cursor:default}
 
 /* ── main ────────────────────────────────────────────────────────────────── */
 .main{position:relative;display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--canvas);overflow:hidden}
+/* ── One geometry for the main area (design-research/2026-11-lg, P0-1) ──────────────────────────────────
+   A side panel (the Agentic Control Pane, Needs you, the Map, the viewer) reserves --rp on the right, and
+   every view ends where it begins: Home, the conversation, Artifacts, the dock, the toasts. Inside each, the
+   reading column is placed from that view's own width (each is an inline-size container), never centred in
+   a scrollbox: a scrollbar can't move it, and the composer below shares both of its edges with the messages
+   above. 720 wide at most, never closer than --gut-min to an edge. */
+.main{--rp:0px;--gut-min:28px;--col-max:720px}
+:is(.home,.conv,.arts,.dock){container-type:inline-size;--col-w:min(var(--col-max),100cqw - 2 * var(--gut-min));--col-x:calc((100cqw - var(--col-w)) / 2)}
+.main :is(.home,.conv,.arts,.dock,.toast-wrap){right:var(--rp)}
+@media (min-width:761px){
+  body.panel-open .main{--rp:var(--pw)}
+  body.stage-open:not(.panel-open):not(.stage-full):not(.stage-over) .main{--rp:var(--sw)}
+  body.viewer-open .main{--rp:var(--vw)}
+}
+@media (min-width:1041px){body.map-open:not(.panel-open):not(.viewer-open):not(.map-full) .main{--rp:var(--mw)}}
+@media (max-width:760px){.main{--gut-min:16px}}
 .phonebar{display:none}
 
 /* ── Home ────────────────────────────────────────────────────────────────── */
-.home{position:absolute;inset:0;scroll-padding-bottom:calc(var(--dock-h) + 20px);overflow-y:auto;overflow-x:hidden;outline:none;scrollbar-width:thin;scrollbar-color:var(--line) transparent;transition:padding-right .3s var(--ease)}
-.hm{width:100%;max-width:660px;margin:0 auto;padding:clamp(30px,6vh,64px) 28px calc(var(--dock-h) + 48px)}
+.home{position:absolute;inset:0;scroll-padding-bottom:calc(var(--dock-h) + 20px);overflow-y:auto;overflow-x:hidden;outline:none;scrollbar-width:thin;scrollbar-color:var(--line) transparent;}
+.hm{width:var(--col-w);margin-left:var(--col-x);padding:clamp(32px,6vh,64px) 0 calc(var(--dock-h) + 48px)}
 .home.enter{animation:col-in .28s var(--ease)}
 .home.enter-l{animation:col-l .3s var(--ease)}
 .hm-top{display:flex;align-items:flex-start;justify-content:space-between;gap:24px}
@@ -304,17 +320,16 @@ button:disabled{cursor:default}
 
 /* ── conversation ────────────────────────────────────────────────────────── */
 .conv{position:absolute;inset:0;display:flex;flex-direction:column;min-height:0}
-.conv{--rp:0px;--gut:max(28px,calc((100% - var(--rp) - 720px) / 2));--hg:28px}
-body.panel-open .conv{--rp:calc(var(--pw) + 28px)}
-.top{position:relative;z-index:3;flex:none;display:flex;align-items:center;gap:12px;min-height:66px;padding:14px calc(var(--gut) + var(--rp)) 10px var(--gut);background:var(--canvas);transition:padding-right .3s var(--ease)}
+.conv{--hg:28px}
+.top{position:relative;z-index:3;flex:none;display:flex;align-items:center;gap:12px;min-height:66px;padding:14px var(--col-x) 10px;background:var(--canvas)}
 /* A project's header is one full-width row: the title on the left, the threads in progress
    as a thin strip in the middle, All threads on the right. */
-.top[data-kind="project"]{gap:20px;padding:14px calc(var(--hg) + var(--rp)) 14px var(--hg);border-bottom:1px solid var(--line-faint)}
+.top[data-kind="project"]{gap:20px;padding:14px var(--hg);border-bottom:1px solid var(--line-faint)}
 .top[data-kind="project"] .top-who{flex:0 1 auto;min-width:120px;max-width:min(calc(34% + 46px),426px)}
 .app[data-view="ws"] .top .top-who{flex:1;max-width:none} /* no Now strip beside it: its line can run */
 .top-end{flex:none;display:flex;align-items:center;margin-left:auto}
 .top-end:empty{display:none}
-.top[data-kind="thread"]{flex-direction:column;align-items:stretch;gap:3px;padding:12px calc(var(--hg) + var(--rp)) 8px var(--hg)}
+.top[data-kind="thread"]{flex-direction:column;align-items:stretch;gap:3px;padding:12px var(--hg) 8px}
 .top-back{align-self:flex-start;display:inline-flex;align-items:center;gap:3px;height:24px;padding:0 6px 0 0;margin-left:-3px;border-radius:var(--r-sm);color:var(--ink-4);font-size:var(--fs-sm);transition:color var(--d-hover) var(--ease),transform 90ms var(--ease)}
 .top-back:hover{color:var(--ink)}
 .top-back:active{transform:scale(.96)}
@@ -364,7 +379,7 @@ body.panel-open .conv{--rp:calc(var(--pw) + 28px)}
 .nw b{min-width:0;font:500 var(--fs-base)/1 var(--sans);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nw-segs{flex:none;display:flex;gap:2px;width:40px}
 .nw-segs .sg{flex:1;width:auto;height:3px}
-.thead{flex:none;padding:0 calc(var(--hg) + var(--rp)) 10px var(--hg);border-bottom:1px solid var(--line-faint);transition:padding-right .3s var(--ease)}
+.thead{flex:none;padding:0 var(--hg) 10px;border-bottom:1px solid var(--line-faint)}
 .ckbar{border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-faint);overflow:hidden;transition:border-color .3s var(--ease),background .3s var(--ease)}
 .ckbar.m-needs{border-color:rgb(245 166 35 / .24)}
 .ckbar.m-fresh{border-color:rgba(var(--accent-rgb),.32);background:color-mix(in srgb,var(--accent-fill) 4%,var(--surface))}
@@ -409,11 +424,11 @@ body.panel-open .conv{--rp:calc(var(--pw) + 28px)}
 .ck-doing{color:var(--ink)}.ck-doing .ck-m{color:var(--info)}
 .ck-todo .ck-m{color:var(--ink-4);font-weight:400}
 
-.scroller{position:relative;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:28px 28px calc(var(--dock-h) + 48px);scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.scroller{position:relative;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:28px 0 calc(var(--dock-h) + 48px);scrollbar-width:thin;scrollbar-color:var(--line) transparent}
 /* (no transition on its padding: a panel taking room re-wraps the conversation once, not a step a frame, and
    follow.js keeps the row you're reading where it was; a moving padding stops the browser's own anchoring) */
 .scroller:focus{outline:none}
-.column{width:100%;max-width:720px;margin:0 auto}
+.column{width:var(--col-w);margin-left:var(--col-x)}
 /* text that scrolls under the header dissolves over 24 px instead of being sliced mid-glyph (audit I2);
    at rest the column's own 28 px top padding sits under the fade, so nothing is dimmed */
 .scroller{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 24px);mask-image:linear-gradient(to bottom,transparent 0,#000 24px)}
@@ -598,9 +613,9 @@ code.hl{color:var(--code-ink)}
 .ev-ic{flex:none;display:grid;place-items:center;width:22px;height:22px;margin:0 4px;border-radius:50%;background:rgba(var(--accent-rgb),.12);color:var(--accent)}
 .ev-ic svg{width:13px;height:13px}
 .ev-back .ev-ic{background:var(--fill-2);color:var(--ink-3)}
-.ev-stop .ev-ic{background:rgb(215 55 63 / .14);color:var(--err-ink)}
+.ev-stop .ev-ic{background:var(--danger-tint);color:var(--err-ink)}
 .ev-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ev time{flex:none;margin-left:auto;font:400 var(--fs-sm)/1 var(--mono);color:var(--ink-4);font-variant-numeric:tabular-nums}
+.ev time{flex:none;margin-left:auto;font:400 var(--fs-sm)/20px var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums}
 
 .typing{display:grid;grid-template-columns:32px minmax(0,1fr);gap:12px;align-items:center;padding-bottom:8px;animation:msg-in .3s var(--ease)}
 .av-w{position:relative}
@@ -611,18 +626,18 @@ code.hl{color:var(--code-ink)}
 .dots{display:inline-flex;gap:3px;flex:none}
 .dots i{width:4px;height:4px;border-radius:50%;background:var(--ink-3);animation:bounce 1.2s ease-in-out infinite}
 .dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
-.elapsed{flex:none;font:500 var(--fs-sm)/1 var(--mono);color:var(--ink-4);font-variant-numeric:tabular-nums}
+.elapsed{flex:none;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums}
 @keyframes shimmer{from{background-position:100% 0}to{background-position:-150% 0}}
 @keyframes bounce{0%,60%,100%{opacity:.35}30%{opacity:1}}
 @keyframes breathe{0%,100%{opacity:.15;transform:scale(.94)}50%{opacity:1;transform:scale(1)}}
 
 
 /* ── the dock: one calm labelled line + (in a thread) its decision + the hero composer ── */
-.dock{position:absolute;left:0;right:0;bottom:0;z-index:5;padding:0 28px;pointer-events:none;transition:right .3s var(--ease)}
+.dock{position:absolute;left:0;bottom:0;z-index:5;pointer-events:none}
 /* #25 the composer sits on a full-width glass bar with a soft horizontal shadow */
-.cbar{position:relative;margin:0 -28px;padding:30px 28px 18px;background:linear-gradient(to bottom,transparent,var(--canvas) 34px)}
+.cbar{position:relative;padding:30px 0 18px;background:linear-gradient(to bottom,transparent,var(--canvas) 34px)}
 .dock>*{position:relative;pointer-events:auto}
-.herald{position:absolute;left:28px;right:28px;bottom:calc(100% - 20px);display:flex;justify-content:center;max-width:720px;margin:0 auto;pointer-events:none}
+.herald{position:absolute;left:var(--col-x);right:var(--col-x);bottom:calc(100% - 20px);display:flex;justify-content:center;pointer-events:none}
 .hr{pointer-events:auto;position:relative;display:inline-flex;align-items:center;gap:9px;max-width:100%;height:34px;padding:0 14px 0 12px;border-radius:999px;background:var(--herald-bg);border:1px solid var(--line-soft);color:var(--ink-3);font-size:var(--fs-base);white-space:nowrap;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 10px 28px rgb(0 0 0 / calc(.3 * var(--sha)))}
 button.hr{transition:border-color var(--d-hover) var(--ease),transform 110ms var(--ease),background var(--d-hover) var(--ease)}
 button.hr:hover{border-color:var(--line-strong);background:var(--herald-bg-hi)}
@@ -651,7 +666,7 @@ button.hr:active{transform:scale(.97)}
 .hr-ev.k-ping{border-color:rgba(var(--accent-rgb),.28)}
 .hr-ev.k-sent .hr-t{color:var(--ink-2)}
 
-.composer{position:relative;display:grid;grid-template-columns:minmax(0,1fr);max-width:720px;margin:0 auto;padding:12px 9px 9px 9px;border:1px solid var(--line);border-radius:var(--r-3xl);background:var(--comp-bg);box-shadow:0 8px 24px var(--comp-shadow),0 1px 0 var(--comp-hi) inset}
+.composer{position:relative;display:grid;grid-template-columns:minmax(0,1fr);width:var(--col-w);margin-left:var(--col-x);padding:12px 9px 9px 9px;border:1px solid var(--line);border-radius:var(--r-3xl);background:var(--comp-bg);box-shadow:0 8px 24px var(--comp-shadow),0 1px 0 var(--comp-hi) inset}
 .composer:hover{border-color:var(--line-strong)}
 .composer:focus-within{border-color:var(--line-strong);box-shadow:0 8px 24px var(--comp-shadow),0 1px 0 var(--comp-hi) inset}
 /* the composer's corners hold two circles, attach and Send, 36 px and 10 px in from its edge, so the
@@ -690,7 +705,7 @@ button.hr:active{transform:scale(.97)}
 .at-list li[aria-selected="true"] .at-ic,.at-list li:hover .at-ic{color:var(--ink-3)}
 
 /* the thread's own decision, docked above the composer */
-.tdock{max-width:720px;margin:0 auto}
+.tdock{width:var(--col-w);margin-left:var(--col-x)}
 .tdock:not(:empty){margin-bottom:12px}
 body.panel-open .tdock{display:none}
 .app.has-tdock-card:not([data-view="home"]) .main::before{content:"";position:absolute;inset:0;z-index:4;background:rgb(0 0 0 / calc(.16 * var(--sha)));pointer-events:none;animation:fade .25s}
@@ -752,8 +767,6 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .c-note-row{display:flex;gap:8px;margin-top:10px}
 
 /* ── the global decision panel: Next's size and place (#21), sized to its content ── */
-body.panel-open .scroller,body.panel-open .home{padding-right:calc(var(--pw) + 40px)}
-body.panel-open .dock{right:calc(var(--pw) + 24px)}
 .panel{position:absolute;z-index:20;top:14px;right:14px;max-height:calc(100% - 28px);width:var(--pw);display:flex;flex-direction:column;border-radius:var(--r-2xl);background:var(--surface);border:1px solid var(--line-soft);box-shadow:var(--e2);outline:none}
 .panel.is-in{animation:pn-in .32s var(--ease) both}
 .panel.is-out{animation:pn-out .22s ease-in forwards}
@@ -985,7 +998,6 @@ body.panel-open .dock{right:calc(var(--pw) + 24px)}
 /* ── toast (Undo, 3 s) ───────────────────────────────────────────────────── */
 .app[data-view="home"] .toast-wrap{bottom:96px}
 .toast-wrap{position:absolute;left:0;right:0;bottom:calc(var(--dock-h) + 14px);z-index:30;display:flex;justify-content:center;padding:0 16px;pointer-events:none;transition:right .3s var(--ease)}
-body.panel-open .app[data-view] .toast-wrap{right:calc(var(--pw) + 28px)}
 body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 .toast{pointer-events:auto;display:flex;align-items:center;gap:12px;max-width:min(520px,100%);min-height:44px;padding:5px 5px 5px 13px;border-radius:var(--r-lg);background:var(--toast-bg);border:1px solid var(--line-strong);box-shadow:var(--e2);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);animation:toast-in .34s var(--ease)}
 .toast.bye{animation:toast-out .2s ease-in forwards}
@@ -1070,7 +1082,7 @@ button.tp-done-u:hover{color:var(--ink)}
 
 /* records of intelligence changes, in the conversation */
 .ev-rec .ev-ic{background:var(--fill-2);color:var(--ink-3)}
-.ev-rec.is-refused .ev-ic{background:rgb(215 55 63 / .12);color:var(--err-ink)}
+.ev-rec.is-refused .ev-ic{background:var(--danger-tint);color:var(--err-ink)}
 .ev-undo{flex:none;height:26px;padding:0 10px;border-radius:var(--r-sm);border:1px solid var(--line);color:var(--ink-2);font:500 var(--fs-sm)/1 var(--sans)}
 .ev-undo:hover{background:var(--fill-2);color:var(--ink)}
 .m-iq{margin-left:auto;font-size:var(--fs-sm);color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -1360,10 +1372,8 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 /* ── laptop ──────────────────────────────────────────────────────────────── */
 @media (max-width:1320px){
   :root{--side-w:248px}
-  .hm{padding-left:24px;padding-right:24px}
 }
 @media (max-width:1180px) and (min-width:761px){
-  body.panel-open .scroller,body.panel-open .home{padding-right:calc(var(--pw) + 28px)}
   .then-i{grid-template-columns:86px minmax(0,1fr) auto 16px}
   .ti-p{display:none}
   .card.is-dock .dt{grid-template-columns:1fr}
@@ -1385,7 +1395,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .pb-t{flex:1;min-width:0;font:600 var(--fs-lg)/1 var(--sans);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .pb-t .xo-mark{display:block;width:32px;height:13px}
   .home,.conv{top:52px}
-  .hm{padding:24px 16px 230px}
+  .hm{padding:24px 0 230px}
   .hm-top{flex-direction:column;align-items:stretch;gap:16px}
   .hm-h{font-size:var(--fs-2xl)}
   /* Give the date and action a real row, with 12px of air before the greeting.
@@ -1426,7 +1436,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .ck-tog{gap:9px;padding:0 8px 0 10px}
   .ck-segs .sg{width:10px}
   .ck-br{display:none}
-  .scroller{padding:20px 16px calc(var(--dock-h) + 40px)}
+  .scroller{padding:20px 0 calc(var(--dock-h) + 40px)}
   .ws-head{padding-top:28px}
   .wsh-h{font-size:var(--fs-3xl)}
   .wsh-stats{flex-wrap:wrap}
@@ -1435,8 +1445,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .wsh-stats>div:nth-child(n+3){border-top:1px solid var(--line-faint)}
   .wsh-stats dd{font-size:var(--fs-2xl)}
   .wsh-stats>div+div{padding-left:12px}
-  .dock{padding:0 16px}
-  .cbar{margin:0 -16px;padding:22px 16px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(to bottom,transparent,var(--canvas) 26px)}
+  .cbar{padding:22px 0 calc(12px + env(safe-area-inset-bottom));background:linear-gradient(to bottom,transparent,var(--canvas) 26px)}
   .herald{left:10px;right:10px;bottom:calc(100% - 14px)}
   .composer{box-shadow:0 2px 10px var(--comp-shadow),0 1px 0 var(--comp-hi) inset}
   .dock>.herald,.dock>.tdock{margin-left:0;margin-right:0}
@@ -1454,9 +1463,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .card.is-dock .c-act:not(:has(.c-low)) .c-btns .b{border-radius:calc(var(--r-2xl) - 13px)}
   .card.is-dock .dock-hide{margin-right:-6px;border-radius:calc(var(--r-2xl) - 11px)}
   .card.is-dock .dt,.dt{grid-template-columns:1fr}
-  body.panel-open .scroller,body.panel-open .home{padding-right:16px}
-  .conv,body.panel-open .conv{--rp:0px;--gut:16px;--hg:16px}
-  body.panel-open .dock{right:0}
+  .conv{--hg:16px}
   body.panel-open .main::after,body:has(#iq-pop.is-sheet:not([hidden])) .main::after,body:has(#cs-pop.is-sheet:not([hidden])) .main::after{content:"";position:absolute;inset:0;z-index:15;background:rgb(0 0 0 / calc(.45 * var(--sha)));-webkit-backdrop-filter:blur(1.5px);backdrop-filter:blur(1.5px);animation:fade .2s}
   .panel{position:fixed;top:auto;left:0;right:0;bottom:0;max-height:91dvh;width:auto;border-radius:var(--r-2xl) var(--r-2xl) 0 0;border-bottom:0;padding-bottom:max(44px,env(safe-area-inset-bottom))}
   .panel.is-in{animation:sheet-up .32s var(--ease) both}
@@ -1557,7 +1564,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 .tb-ht{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tb-ht code,.tb-rl code{font:400 var(--fs-sm)/1 var(--mono);letter-spacing:-.01em;color:var(--ink-2)}
 /* the count (hub #21): a small mono chip, centred on the label's line, never a loose digit */
-.tb-n{flex:none;display:inline-grid;place-items:center;min-width:20px;height:18px;padding:0 5px;border-radius:var(--r-sm);background:var(--fill-2);font:500 var(--fs-sm)/1 var(--mono);color:var(--ink-3);font-variant-numeric:tabular-nums}
+.tb-n{flex:none;display:inline-grid;place-items:center;min-width:20px;height:18px;padding:0 5px;border-radius:var(--r-sm);background:var(--fill-2);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3);font-variant-numeric:tabular-nums}
 .tb-chev{flex:none;display:grid;place-items:center;color:var(--ink-4);transition:transform var(--dur-base) var(--ease)}
 .tb-chev svg{width:13px;height:13px}
 .tb-h[aria-expanded="true"] .tb-chev{transform:rotate(180deg)}
@@ -1572,7 +1579,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 .tb-ri{flex:none;display:grid;place-items:center;width:16px;height:16px;color:var(--ink-4)}
 .tb-ri svg{width:15px;height:15px}
 .tb-rl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tb-rp{flex:none;font:400 var(--fs-sm)/1 var(--mono);color:var(--ink-4);font-variant-numeric:tabular-nums}
+.tb-rp{flex:none;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums}
 .tb-m{flex:none;display:grid;place-items:center;width:16px;height:16px;font-size:9px}
 .tb-m svg{width:13px;height:13px}
 .tb-m.is-ok{color:var(--ink-4)}
@@ -1610,7 +1617,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 .tb-work.is-live .tb-wh .tb-ht{color:var(--ink-2)}
 .tb-work.is-waiting .tb-wh .tb-ht{color:var(--warn)}
 .tb-work .elapsed{font-variant-numeric:tabular-nums}
-.tb-wn{flex:none;font:400 var(--fs-sm)/1 var(--mono);color:var(--ink-4);font-variant-numeric:tabular-nums}
+.tb-wn{flex:none;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums}
 .tb-wn::before{content:"·";margin-right:7px;color:var(--ink-4)}
 .tb-work>.tb:not(.tb-work){margin-left:24px}
 .tb-work>.tb-narr{font-size:var(--fs-base);color:var(--ink-3)}
@@ -1776,7 +1783,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 /* a section's title runs into a hairline, like an instrument's label */
 .set-sec h3{display:flex;align-items:center;gap:10px;font:600 var(--fs-md)/20px var(--sans);color:var(--ink)}
 .set-sec h3::after{content:"";flex:1;height:1px;background:var(--fill-2)}
-.set-sec h3 span{font:500 var(--fs-sm)/1 var(--mono);padding:3px 6px;border-radius:var(--r-sm);background:var(--fill-2);color:var(--ink-3);font-variant-numeric:tabular-nums}
+.set-sec h3 span{font:500 var(--fs-sm)/16px var(--sans);padding:1px 6px;border-radius:var(--r-sm);background:var(--fill-2);color:var(--ink-3);font-variant-numeric:tabular-nums}
 .set-lead{font-size:var(--fs-base);line-height:20px;color:var(--ink-3);max-width:60ch}
 .set-note{display:flex;align-items:center;gap:8px;font-size:var(--fs-base);color:var(--ink-3)}
 .set-err{padding:10px 12px;border-radius:var(--r-lg);background:rgb(215 55 63 / .1);color:var(--err-ink);font-size:var(--fs-base)}
@@ -1892,9 +1899,6 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 
 :root{--vw:clamp(460px,46vw,780px)
 }
-body.viewer-open .conv{--rp:calc(var(--vw) + 28px)}
-body.viewer-open .scroller,body.viewer-open .home{padding-right:calc(var(--vw) + 40px)}
-body.viewer-open .dock{right:calc(var(--vw) + 24px)}
 body.viewer-open .tdock{display:none}
 .viewer{position:absolute;z-index:22;top:14px;right:14px;bottom:14px;width:var(--vw);display:flex;flex-direction:column;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);box-shadow:var(--e2);outline:none;overflow:hidden}
 .viewer.is-in{animation:pn-in .32s var(--ease) both}
@@ -1905,7 +1909,7 @@ body.viewer-open .tdock{display:none}
 .vw-t h2{font:600 var(--fs-lg)/24px var(--sans);letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .vw-sub{display:flex;align-items:center;gap:8px;margin-top:3px;min-width:0;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
 .vw-sub code{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 var(--fs-sm)/16px var(--mono);color:var(--ink-3)}
-.vw-sub span{flex:none;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.vw-sub span{flex:none;font-family:var(--sans);font-variant-numeric:tabular-nums}
 .vw-sub span::before{content:"·";margin-right:8px;color:var(--ink-4)}
 .vw-acts{flex:none;display:flex;align-items:center;gap:6px}
 .vw-btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 11px 0 9px;border-radius:var(--r-sm);border:1px solid var(--line);font:500 var(--fs-sm)/1 var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
@@ -1948,9 +1952,6 @@ body.viewer-open .tdock{display:none}
 :root[data-theme="light"] .vw-code{background:var(--fill-1)}
 @media (max-width:1180px) and (min-width:761px){:root{--vw:min(560px,58vw)}}
 @media (max-width:760px){
-  body.viewer-open .scroller,body.viewer-open .home{padding-right:16px}
-  body.viewer-open .conv{--rp:0px}
-  body.viewer-open .dock{right:0}
   .viewer{position:fixed;inset:0;width:auto;z-index:80;border-radius:0;border:0}
   .viewer.is-in{animation:sheet-up .32s var(--ease) both}
   .vw-top{padding:max(10px,env(safe-area-inset-top)) 8px 10px 12px}
@@ -1988,7 +1989,7 @@ body.viewer-open .tdock{display:none}
 .card.r-done::before,.card.r-vig::before{display:none}
 
 /* …and a thread's header: amber needs you, blue working (one slow sweep), green done, red stopped */
-.top[data-kind="thread"]::before{content:"";position:absolute;top:0;left:var(--hg);right:calc(var(--hg) + var(--rp));height:2px;border-radius:0 0 2px 2px;pointer-events:none;opacity:0;transition:opacity var(--dur-slow) var(--ease)}
+.top[data-kind="thread"]::before{content:"";position:absolute;top:0;left:var(--hg);right:var(--hg);height:2px;border-radius:0 0 2px 2px;pointer-events:none;opacity:0;transition:opacity var(--dur-slow) var(--ease)}
 .top[data-state="need"]::before{opacity:.8;background:linear-gradient(90deg,transparent,var(--warn) 20%,var(--warn) 80%,transparent)}
 .top[data-state="stop"]::before{opacity:.8;background:linear-gradient(90deg,transparent,var(--err-ink) 20%,var(--err-ink) 80%,transparent)}
 .top[data-state="done"]::before{opacity:.55;background:linear-gradient(90deg,transparent,var(--accent-fill) 20%,var(--accent-fill) 80%,transparent)}
@@ -1999,7 +2000,8 @@ body.viewer-open .tdock{display:none}
 /* instrument surfaces and type */
 .md-code{background:var(--term-bg)}
 .vw-code{background:var(--term-bg)}
-.ck-n,.pn-count,.tc-st,.nr-n,.pr-w{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.ck-n,.pn-count,.tc-st{font-family:var(--sans);font-variant-numeric:tabular-nums}
+.nr-n,.pr-w{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}   /* the sidebar's, as it is */
 .settings .set-top{background:transparent}
 
 /* ── files on a message (hub #30): the paperclip, the chips on the unsent message, the drop veil,
@@ -2018,7 +2020,7 @@ button.att-ic{cursor:zoom-in}
 button.att-ic:hover img{opacity:.85}
 .att-t{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
 .att-n{font:500 var(--fs-sm)/16px var(--sans);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.att-m{font:400 var(--fs-sm)/16px var(--mono);color:var(--ink-4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.att-m{font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
 .att-err{color:var(--err-ink)}
 .att-b{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:var(--r-sm);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .att-b:hover{background:var(--fill-2);color:var(--ink)}
@@ -2207,7 +2209,7 @@ a.vw-btn{text-decoration:none}
 /* ── a project's record (js/recordview.js, design-research/12) ───────────────
    Since you left: one card under a project's header after you've been away, and on Home.
    Made: a sheet of what its threads shared, and Recently made on Home. */
-.since{flex:none;padding:12px calc(var(--hg) + var(--rp)) 12px var(--hg);border-bottom:1px solid var(--line-faint);transition:padding-right .3s var(--ease)}
+.since{flex:none;padding:12px var(--hg);border-bottom:1px solid var(--line-faint)}
 .since .syl{max-width:760px;margin:0 auto}
 .syl{border-radius:var(--r-xl);border:1px solid var(--line);background:var(--surface);box-shadow:var(--hairline);overflow:hidden;animation:dlg-in .3s var(--ease)}
 .syl-hd{display:flex;align-items:flex-start;gap:12px;padding:16px 16px 10px 20px}
@@ -2340,10 +2342,6 @@ i.t-amber{background:var(--warn)}i.t-blue{background:var(--info)}i.t-red{backgro
 .map-btn:active{transform:scale(.97)}
 .map-btn.is-on{background:var(--fill-2);border-color:var(--line-strong);color:var(--ink)}
 
-body.map-open:not(.panel-open):not(.viewer-open):not(.map-full) .conv{--rp:calc(var(--mw) + 28px)}
-body.map-open:not(.panel-open):not(.viewer-open):not(.map-full) .scroller,body.map-open:not(.panel-open):not(.viewer-open):not(.map-full) .home{padding-right:calc(var(--mw) + 40px)}
-body.map-open:not(.panel-open):not(.viewer-open):not(.map-full) .dock{right:calc(var(--mw) + 24px)}
-body.map-open:not(.panel-open):not(.viewer-open):not(.map-full) .toast-wrap{right:calc(var(--mw) + 28px)}
 body.panel-open .map{display:none}
 .map{position:absolute;z-index:19;top:14px;right:14px;bottom:14px;width:var(--mw);display:flex;flex-direction:column;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);box-shadow:var(--e2);outline:none;overflow:hidden;transition:width .32s var(--ease)}
 .map[hidden]{display:none}
@@ -2378,7 +2376,7 @@ body.map-full .dock,body.map-full .tdock{visibility:hidden}
 .mp-now.st-wait::before{background:var(--warn)}
 .mp-nl{min-width:0;font:500 var(--fs-base)/20px var(--sans);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mp-nl code{font:400 .92em/1 var(--mono);padding:1px 4px;border-radius:var(--r-sm);background:var(--fill-2)}
-.mp-now .elapsed{font:400 var(--fs-sm)/1 var(--mono);color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap}
+.mp-now .elapsed{font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap}
 
 /* the agents at work (a project, everyone): a chip each, in its cursor's colour */
 .mp-legend{list-style:none;display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0 12px 10px;max-height:80px;overflow-y:auto;scrollbar-width:none}
@@ -2533,14 +2531,8 @@ button.dg-n:hover{border-color:var(--line-strong);color:var(--ink)}
 @media (max-width:1180px) and (min-width:761px){:root{--mw:min(460px,48vw)}}
 /* too narrow to sit beside the conversation: it floats over it */
 @media (max-width:1040px) and (min-width:761px){
-  body.map-open:not(.panel-open):not(.viewer-open) .conv{--rp:0px}
-  body.map-open:not(.panel-open):not(.viewer-open) .scroller,body.map-open:not(.panel-open):not(.viewer-open) .home{padding-right:0}
-  body.map-open:not(.panel-open):not(.viewer-open) .dock,body.map-open:not(.panel-open):not(.viewer-open) .toast-wrap{right:0}
 }
 @media (max-width:760px){
-  body.map-open:not(.panel-open):not(.viewer-open) .conv{--rp:0px}
-  body.map-open:not(.panel-open):not(.viewer-open) .scroller,body.map-open:not(.panel-open):not(.viewer-open) .home{padding-right:16px}
-  body.map-open:not(.panel-open):not(.viewer-open) .dock,body.map-open:not(.panel-open):not(.viewer-open) .toast-wrap{right:0}
   .map,body.map-full .map{position:fixed;inset:0;width:auto;z-index:79;border-radius:0;border:0}
   .map.is-in{animation:sheet-up .32s var(--ease) both}
   .mp-top{padding:max(10px,env(safe-area-inset-top)) 8px 8px 12px}
@@ -2558,10 +2550,6 @@ button.dg-n:hover{border-color:var(--line-strong);color:var(--ink)}
    the Needs you panel, which takes the right side while it's open and gives it back. One width for
    every tab (the Map's --mw), so switching tabs never moves the conversation. ───────────────────── */
 body.stage-open{--vw:var(--mw)}
-body.stage-open:not(.panel-open):not(.stage-full) .conv{--rp:calc(var(--mw) + 28px)}
-body.stage-open:not(.panel-open):not(.stage-full) .scroller,body.stage-open:not(.panel-open):not(.stage-full) .home{padding-right:calc(var(--mw) + 40px)}
-body.stage-open:not(.panel-open):not(.stage-full) .dock{right:calc(var(--mw) + 24px)}
-body.stage-open:not(.panel-open):not(.stage-full) .toast-wrap{right:calc(var(--mw) + 28px)}
 body.panel-open .stage{display:none}
 .stage{position:absolute;z-index:20;top:14px;right:14px;bottom:14px;width:var(--mw);display:flex;flex-direction:column;border-radius:var(--r-2xl);background:var(--surface);border:1px solid var(--line-soft);box-shadow:var(--e2);overflow:hidden;outline:none}
 .stage[hidden]{display:none}
@@ -2577,7 +2565,7 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .stg-tab:hover{background:var(--fill-2);color:var(--ink)}
 .stg-tab.is-on{background:var(--fill-2);color:var(--ink);box-shadow:var(--hairline)}
 .stg-tab:focus-visible{outline-offset:-2px}
-.stg-n{font:500 var(--fs-sm)/1 var(--mono);color:var(--ink-4);font-variant-numeric:tabular-nums}
+.stg-n{font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums}
 .stg-tab.is-on .stg-n{color:var(--ink-3)}
 .stg-filew{flex:0 1 auto;min-width:0;display:inline-flex;align-items:center;border-radius:var(--r-sm);transition:background var(--d-hover) var(--ease)}
 .stg-filew:hover{background:var(--fill-2)}
@@ -2621,7 +2609,7 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .pj-title svg{flex:none;width:14px;height:14px;color:var(--ink-4);transition:transform .2s var(--ease),color var(--d-hover) var(--ease)}
 .pj-title:hover svg{color:var(--ink-2)}
 .pj-title[aria-expanded="true"] svg{transform:rotate(180deg)}
-.pj-n{flex:none;padding:2px 6px;border-radius:var(--r-sm);background:var(--fill-2);font:500 var(--fs-sm)/16px var(--mono);color:var(--ink-3);letter-spacing:.01em;font-variant-numeric:tabular-nums}
+.pj-n{flex:none;padding:2px 6px;border-radius:var(--r-sm);background:var(--fill-2);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3);font-variant-numeric:tabular-nums}
 .sheet.is-drop{display:block;padding:0;background:transparent;animation:none;-webkit-backdrop-filter:none;backdrop-filter:none}
 .sheet.is-drop .all-card{position:absolute;left:var(--dx);top:var(--dy);width:min(480px,calc(100vw - var(--dx) - 16px));max-height:min(70vh,580px);border-radius:var(--r-lg);box-shadow:var(--e2);animation:drop-in .16s var(--ease) both;transform-origin:top left}
 /* dropped from its button it's 12: the same rules at 6 px (5 + 1); one text column 16 px in */
@@ -2633,9 +2621,6 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 @media (max-width:760px){
   .stage,body.stage-full .stage{position:fixed;inset:0;width:auto;z-index:79;border-radius:0;border:0}
   .stg-bar{padding-top:max(10px,env(safe-area-inset-top))}
-  body.stage-open:not(.panel-open) .conv{--rp:0px}
-  body.stage-open:not(.panel-open) .scroller,body.stage-open:not(.panel-open) .home{padding-right:16px}
-  body.stage-open:not(.panel-open) .dock,body.stage-open:not(.panel-open) .toast-wrap{right:0}
 }
 /* the header is the project's name and one button now: the name keeps its room; the Now strip gives way */
 .top[data-kind="project"] .top-who{flex:0 0 auto;max-width:min(52%,426px)}
@@ -2720,7 +2705,7 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .fl-r.is-dir .fl-i{color:var(--ink-3)}
 .fl-n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fl-r.is-touch .fl-n{font-family:var(--mono);font-size:var(--fs-sm)}
-.fl-sz{flex:none;font:400 var(--fs-sm)/1 var(--mono);color:var(--ink-4);font-variant-numeric:tabular-nums}
+.fl-sz{flex:none;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums}
 .fl-who{flex:none;display:inline-flex;align-items:center;gap:5px;font:500 var(--fs-sm)/1 var(--sans);color:var(--ink-3)}
 .fl-who i{width:7px;height:7px;border-radius:50%;background:var(--ink-4)}
 .fl-who.w-live{color:var(--info)}
@@ -2778,15 +2763,13 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 }
 
 /* ── a move to another runtime (mixed runtimes F4) ──────────────────────────── */
-.mv-ban{display:flex;align-items:center;gap:10px;margin:6px 0;padding:10px 12px 10px 10px;border-radius:var(--r-lg);background:var(--fill-1);border:1px solid var(--line-soft);font-size:var(--fs-base);color:var(--ink-2)}
-.mv-ban .ev-ic{flex:none;display:grid;place-items:center;width:22px;height:22px;color:var(--ink-3)}
-.mv-ban .ev-ic svg{width:15px;height:15px}
-.mv-ban .ev-t{flex:1;min-width:0;line-height:1.45}
-.mv-ban .ev-t b{color:var(--ink)}
-.mv-ban time{flex:none;font-size:var(--fs-sm);color:var(--ink-4)}
-@media (max-width:760px){ .mv-ban{flex-wrap:wrap} }
-.mv-ban .ev-t{white-space:normal;overflow:visible;text-overflow:clip}
-.mv-ban .ev-ic{background:none;border:0}
+/* A continuation is an event line like every other (icon in the avatar column, words on the text edge, time
+   on the column's right edge), not a box of its own; its reason may wrap to a second line. */
+.ev.mv-ban{align-items:flex-start;margin:4px 0 16px}
+.mv-ban .ev-ic{background:var(--fill-2);color:var(--ink-3)}
+.mv-ban .ev-t{flex:1;white-space:normal;overflow:visible;text-overflow:clip;text-wrap:pretty}
+.mv-ban .ev-t b{color:var(--ink-2);font-weight:500}
+.mv-ban .ev-t a{color:var(--ink-2)}
 
 /* ── a usage limit (mixed runtimes F5): on the card in Needs you, and at the end of each waiting thread ── */
 .lim{display:flex;flex-direction:column;gap:8px;margin:2px 0 4px}
