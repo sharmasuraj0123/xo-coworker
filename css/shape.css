@@ -30,7 +30,7 @@
 /* ── Settings › Shape ─────────────────────────────────────────────────────────────────────────── */
 .shp,.shp-top{display:flex;flex-direction:column;gap:32px}
 /* what a preset changes, read as one panel: a line per change */
-.shp-diff{list-style:none;display:flex;flex-direction:column;gap:4px;padding:12px 16px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--hair);font:400 var(--fs-base)/var(--lh-13) var(--sans);color:var(--ink-2)}
+.shp-diff{list-style:none;display:flex;flex-direction:column;gap:4px;padding:12px 16px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);font:400 var(--fs-base)/var(--lh-13) var(--sans);color:var(--ink-2)}
 .shp-diff li{display:flex;gap:8px}
 .shp-diff li::before{content:"–";flex:none;color:var(--ink-4)}
 .shp-own{margin-top:8px;color:var(--ink-2)}
@@ -57,7 +57,7 @@
 .shp-status.is-err{color:var(--need)}
 .shp-probs{display:flex;flex-direction:column;gap:8px}
 .shp-probs h4{font:500 var(--fs-base)/var(--lh-13) var(--sans);color:var(--ink)}
-.shp-probs ul{list-style:none;display:flex;flex-direction:column;gap:4px;padding:12px 16px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--hair);font:400 var(--fs-base)/var(--lh-13) var(--sans);color:var(--ink-2)}
+.shp-probs ul{list-style:none;display:flex;flex-direction:column;gap:4px;padding:12px 16px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);font:400 var(--fs-base)/var(--lh-13) var(--sans);color:var(--ink-2)}
 .shp-where{font-weight:500;color:var(--ink)}
 .shp-sep{margin:0 8px;color:var(--ink-4)}
 .shp-probs code{margin-right:4px;font:400 var(--fs-xs)/var(--lh-12) var(--mono);color:var(--ink-3)}

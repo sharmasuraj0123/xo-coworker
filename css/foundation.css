@@ -8,10 +8,10 @@
    Its numbers now come from Plan F in css/tokens.css (4 px steps; radii 6 · 12 · 20 · 22; controls 32;
    rows 36); this file never defines a scale of its own (tests/design-budget.test.mjs). */
 
-:root{--sw:360px;--edge:16px;--row-h:36px;--press:.97}
+:root{--sw:360px;--edge:16px;--row-h:36px}
 
 /* ── 7 · the side panels: flush to the window, one hairline, no float, no shadow ─────────────────── */
-.stage,.panel,body.stage-full .stage{top:0;right:0;bottom:0;border-radius:0;border:0;border-left:1px solid var(--g1F);box-shadow:none;animation:none}
+.stage,.panel,body.stage-full .stage{top:0;right:0;bottom:0;border-radius:0;border:0;border-left:1px solid var(--line-faint);box-shadow:none;animation:none}
 :root[data-theme="light"] :is(.stage,.panel){border-color:rgba(0,0,0,.08);box-shadow:none}
 .stage{width:var(--sw);z-index:20}
 .panel{max-height:none;height:100%}
@@ -124,10 +124,10 @@ body.stage-full .stg-grip{display:none}
 
 /* ── 8 · nothing loops unless an agent works ─────────────────────────────────────────────────────── */
 .next,.next.in-next,.next.in-undo{animation:none}
-.next:not(.r-destructive){background:var(--surface);border:1px solid color-mix(in srgb,var(--accent-fill) 32%,var(--g2A))}
+.next:not(.r-destructive){background:var(--surface);border:1px solid color-mix(in srgb,var(--accent-fill) 32%,var(--line))}
 :root[data-theme="light"] .next:not(.r-destructive){background:#fff;border-color:color-mix(in srgb,var(--accent-fill) 40%,rgba(0,0,0,.1))}
-.next.in-next{animation:in-next .42s var(--spring-soft) both}
-.next.in-undo{animation:in-undo .4s var(--glide) both}
+.next.in-next{animation:in-next .42s var(--ease) both}
+.next.in-undo{animation:in-undo .4s var(--ease) both}
 .shd-dot.d-wait{animation:none}
 
 /* ── the worst three ─────────────────────────────────────────────────────────────────────────────── */

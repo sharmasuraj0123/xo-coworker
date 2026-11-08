@@ -49,7 +49,7 @@
   :root:root .app:is([data-view="thread"],[data-view="project"],[data-view="ws"]) .conv{top:0}
   :root:root .top{
     flex-direction:row;flex-wrap:wrap;align-items:center;align-content:flex-start;column-gap:4px;row-gap:0;
-    min-height:52px;padding:calc(6px + env(safe-area-inset-top)) 16px 5px 6px;border-bottom:1px solid var(--g1E)}
+    min-height:52px;padding:calc(6px + env(safe-area-inset-top)) 16px 5px 6px;border-bottom:1px solid var(--line-faint)}
   :root:root .top-menu,
   :root:root .top-back{flex:none;display:grid;place-items:center;width:40px;height:40px;min-height:40px;margin:0;padding:0;border-radius:var(--r-lg);color:var(--ink-2)}
   :root:root .top-back[hidden]{display:none}
@@ -121,14 +121,14 @@
   :root:root .top[data-kind="thread"]{border-bottom:0;padding-bottom:4px}
   :root:root .thead .ckbar{flex:1;min-width:0}
   /* finished sub-agents: their count alone ("≡ 9"), read from data-n; the words stay for VoiceOver */
-  :root:root .thead .rn-log{flex:none;height:40px;margin:0;padding:0 12px 0 10px;border-radius:var(--r-lg);border:1px solid var(--g22);gap:6px}
+  :root:root .thead .rn-log{flex:none;height:40px;margin:0;padding:0 12px 0 10px;border-radius:var(--r-lg);border:1px solid var(--line-faint);gap:6px}
   :root:root .thead .rn-log span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
   :root:root .thead .rn-log::after{content:attr(data-n);font:500 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums}
   /* sub-agents working now: one count beside the checklist (its arc, or ◆ when one waits on you), the
      same 40 px box as the finished count; it opens the list, where each one is named */
   :root:root .thead .rn-strip{display:none}
-  :root:root .thead .rn-live{flex:none;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 13px 0 12px;border-radius:var(--r-lg);border:1px solid color-mix(in srgb,var(--info) 28%,var(--g26));background:color-mix(in srgb,var(--info) 6%,transparent);color:var(--ink-2)}
-  :root:root .thead .rn-live:has(.g-needs_reply){border-color:color-mix(in srgb,var(--warn) 34%,var(--g26));background:color-mix(in srgb,var(--warn) 7%,transparent)}
+  :root:root .thead .rn-live{flex:none;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 13px 0 12px;border-radius:var(--r-lg);border:1px solid color-mix(in srgb,var(--info) 28%,var(--line-soft));background:color-mix(in srgb,var(--info) 6%,transparent);color:var(--ink-2)}
+  :root:root .thead .rn-live:has(.g-needs_reply){border-color:color-mix(in srgb,var(--warn) 34%,var(--line-soft));background:color-mix(in srgb,var(--warn) 7%,transparent)}
   :root:root .thead .rn-live .rn-n{font:500 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums}
   :root:root .thead .rn-live:active{transform:scale(.96)}
 

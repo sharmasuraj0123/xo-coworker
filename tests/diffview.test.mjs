@@ -50,8 +50,8 @@ await t("js/diffthemes.js matches the code tokens (else: node tools/diffview/the
 
 await t("the theme resolver follows the cascade: light overrides dark, color-mix is worked out", () => {
   const p = rootProps(ROOT);
-  assert.equal(p.dark["--code-bg"], "#1B1B1B");
-  assert.equal(p.light["--code-bg"], "#F5F5F5");
+  assert.equal(color("var(--code-bg)", p.dark).map(Math.round).join(), "23,23,23");
+  assert.equal(color("var(--code-bg)", p.light).map(Math.round).join(), "245,245,245");
   assert.deepEqual(color("color-mix(in srgb,#000000 25%,#FFFFFF)", {}).map(Math.round), [191, 191, 191]);
   assert.deepEqual(color("var(--a)", { "--a": "var(--b)", "--b": "#102030" }), [16, 32, 48]);
   const c = codeColors(ROOT);

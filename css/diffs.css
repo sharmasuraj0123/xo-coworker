@@ -12,24 +12,24 @@ diffs-container{
   --diffs-header-font-family:var(--sans);
   --diffs-font-size:13px; --diffs-line-height:20px; --diffs-tab-size:2;
   --diffs-font-features:"liga" 0,"calt" 0;   /* => reads as two characters, as in the viewer */
-  --diffs-bg-context-override:var(--code-bg);
-  --diffs-bg-buffer-override:var(--code-bg);
+  --diffs-bg-context-override:var(--fill-1);
+  --diffs-bg-buffer-override:var(--fill-1);
   /* a change: a low tint of green or red per line, one step stronger on the words that changed */
-  --diffs-bg-addition-override:color-mix(in srgb,var(--accent-fill) 9%,var(--code-bg));
-  --diffs-bg-addition-emphasis-override:color-mix(in srgb,var(--accent-fill) 24%,var(--code-bg));
-  --diffs-bg-addition-number-override:color-mix(in srgb,var(--accent-fill) 12%,var(--code-bg));
-  --diffs-bg-deletion-override:color-mix(in srgb,var(--err) 9%,var(--code-bg));
-  --diffs-bg-deletion-emphasis-override:color-mix(in srgb,var(--err) 24%,var(--code-bg));
-  --diffs-bg-deletion-number-override:color-mix(in srgb,var(--err) 12%,var(--code-bg));
+  --diffs-bg-addition-override:color-mix(in srgb,var(--accent-fill) 9%,var(--fill-1));
+  --diffs-bg-addition-emphasis-override:color-mix(in srgb,var(--accent-fill) 24%,var(--fill-1));
+  --diffs-bg-addition-number-override:color-mix(in srgb,var(--accent-fill) 12%,var(--fill-1));
+  --diffs-bg-deletion-override:color-mix(in srgb,var(--err) 9%,var(--fill-1));
+  --diffs-bg-deletion-emphasis-override:color-mix(in srgb,var(--err) 24%,var(--fill-1));
+  --diffs-bg-deletion-number-override:color-mix(in srgb,var(--err) 12%,var(--fill-1));
   --diffs-addition-color-override:var(--accent);
   --diffs-deletion-color-override:var(--err-ink);
   --diffs-modified-color-override:var(--info);
   --diffs-fg-number-override:var(--ink-4);
   /* "13 unmodified lines", hover, and the lines you select */
-  --diffs-bg-separator-override:color-mix(in srgb,var(--ink) 5%,var(--code-bg));
-  --diffs-bg-hover-override:color-mix(in srgb,var(--ink) 5%,var(--code-bg));
-  --diffs-bg-selection-override:color-mix(in srgb,var(--info) 16%,var(--code-bg));
-  --diffs-bg-selection-number-override:color-mix(in srgb,var(--info) 24%,var(--code-bg));
+  --diffs-bg-separator-override:color-mix(in srgb,var(--ink) 5%,var(--fill-1));
+  --diffs-bg-hover-override:color-mix(in srgb,var(--ink) 5%,var(--fill-1));
+  --diffs-bg-selection-override:color-mix(in srgb,var(--info) 16%,var(--fill-1));
+  --diffs-bg-selection-number-override:color-mix(in srgb,var(--info) 24%,var(--fill-1));
   --diffs-selection-number-fg:var(--ink);
 }
 
@@ -41,7 +41,7 @@ diffs-container{
 
 /* ── a turn's changed files in chat: the chip carries its counts; the one the panel shows reads as chosen ── */
 .tb-cf .xd-n{margin-left:2px}
-.tb-cf.is-on{background:color-mix(in srgb,var(--ink) 9%,var(--g1A));border-color:var(--g40);color:var(--ink)}
+.tb-cf.is-on{background:color-mix(in srgb,var(--ink) 9%,var(--surface));border-color:var(--line-strong);color:var(--ink)}
 
 /* ── the panel's Changes (js/changesframe.js): the list, then the chosen file's diff ──
    Rows are 32 px on the panel's 12 px side margins. Measured from the card's outer edge (its 1 px border
@@ -64,18 +64,18 @@ diffs-container{
 .stage .cx-more:disabled{color:var(--ink-4)}
 .stage .cx-r{box-sizing:border-box;display:grid;grid-template-columns:16px minmax(0,1fr) auto;column-gap:8px;align-items:center;width:100%;height:32px;padding:0 8px;border-radius:var(--r);text-align:left;color:var(--ink-2);transition:background var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease)}
 .stage .cx-r:hover{background:var(--panel-hover);transition-duration:var(--d-hover-in)}
-.stage .cx-r.is-on{background:color-mix(in srgb,var(--ink) 8%,var(--side));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 11%,transparent),var(--panel-lift)}
+.stage .cx-r.is-on{background:color-mix(in srgb,var(--ink) 8%,var(--sunken));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 11%,transparent),var(--panel-lift)}
 :root[data-theme="light"] .stage .cx-r.is-on{background:var(--surface);box-shadow:inset 0 0 0 1px var(--panel-line),var(--panel-lift)}
 .stage .cx-i{position:relative;display:grid;place-items:center;width:16px;height:16px}
 .stage .cx-i svg.fi{width:16px;height:16px}
-.stage .cx-i .arc{right:-6px;bottom:-6px;background:var(--side)}
-.stage .cx-r.is-on .cx-i .arc{background:color-mix(in srgb,var(--ink) 8%,var(--side))}
+.stage .cx-i .arc{right:-6px;bottom:-6px;background:var(--sunken)}
+.stage .cx-r.is-on .cx-i .arc{background:color-mix(in srgb,var(--ink) 8%,var(--sunken))}
 :root[data-theme="light"] .stage .cx-r.is-on .cx-i .arc{background:var(--surface)}
 .stage .cx-t{display:flex;align-items:baseline;gap:8px;min-width:0;overflow:hidden;white-space:nowrap}
 .stage .cx-n{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:500 var(--fs-base)/20px var(--sans)}
 .stage .cx-d{flex:0 100 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
 .stage .cx-r:hover .cx-n,.stage .cx-r.is-on .cx-n{color:var(--ink)}
-.stage .cx-pane{position:relative;flex:1 1 0;min-height:120px;display:flex;flex-direction:column;margin:0 12px 12px;border-radius:var(--r-lg);border:1px solid var(--panel-line);background:var(--code-bg);overflow:hidden}
+.stage .cx-pane{position:relative;flex:1 1 0;min-height:120px;display:flex;flex-direction:column;margin:0 12px 12px;border-radius:var(--r-lg);border:1px solid var(--panel-line);background:var(--fill-1);overflow:hidden}
 .stage .cx-pane[hidden]{display:none}
 .stage .cx-ph{flex:none;box-sizing:border-box;display:flex;align-items:center;gap:8px;height:35px;padding:0 3px 0 11px;border-bottom:1px solid var(--panel-line)}
 .stage .cx-pp{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 var(--fs-sm)/16px var(--mono);color:var(--ink-2)}
@@ -114,7 +114,7 @@ diffs-container{
 .vw-diff{background:var(--canvas)}
 .vw-diff diffs-container{--code-bg:var(--canvas)}
 .vw-t .xd-n{align-self:baseline}
-.vw-btn.is-on{background:var(--g24);color:var(--ink)}
+.vw-btn.is-on{background:var(--fill-2);color:var(--ink)}
 @container flpv (max-width:1099px){.vw-split{display:none}}
 .fl-r .xd-n{margin-left:4px}
 
@@ -123,7 +123,7 @@ diffs-container{
 .vw-file diffs-container{--code-bg:var(--canvas)}
 
 /* "Ask about lines 36–43 ⌘L": under the selection's last line, at the code's right edge */
-.xd-ask{position:absolute;z-index:3;right:16px;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px 0 8px;border-radius:var(--r-pill);background:var(--surface);border:1px solid var(--g30);box-shadow:var(--e2);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink);white-space:nowrap;animation:xd-in var(--d-in) var(--ease)}
+.xd-ask{position:absolute;z-index:3;right:16px;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px 0 8px;border-radius:var(--r-pill);background:var(--surface);border:1px solid var(--line);box-shadow:var(--e2);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink);white-space:nowrap;animation:xd-in var(--d-in) var(--ease)}
 .xd-ask:hover{border-color:var(--line-hover)}
 .xd-ask svg{width:14px;height:14px;color:var(--ink-3)}
 .xd-ask kbd{all:unset;margin-left:2px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
@@ -133,7 +133,7 @@ diffs-container{
 /* the composer under those lines: a row of the file (Pierre makes room; nothing is covered). Its corner is
    concentric with Send's, measured from its outer edge (1 px border + 7 px): a 28 px circle 8 px in,
    14 + 8 = 22. Send never shrinks: a long thread name is cut instead (Astra F3). */
-.xd-q{box-sizing:border-box;max-width:600px;margin:8px 16px 12px;padding:7px 7px 7px 15px;border-radius:var(--r-2xl);background:var(--surface);border:1px solid var(--g30);box-shadow:var(--e2);font-family:var(--sans);white-space:normal;animation:xd-in var(--d-in) var(--ease)}
+.xd-q{box-sizing:border-box;max-width:600px;margin:8px 16px 12px;padding:7px 7px 7px 15px;border-radius:var(--r-2xl);background:var(--surface);border:1px solid var(--line);box-shadow:var(--e2);font-family:var(--sans);white-space:normal;animation:xd-in var(--d-in) var(--ease)}
 :root[data-theme="light"] .xd-q{background:#fff}
 .xd-q .xd-ref{display:flex;align-items:center;gap:6px;margin:4px 0 4px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
 .xd-q .xd-ref svg{width:14px;height:14px}
@@ -160,18 +160,18 @@ diffs-container{
 /* ── Files › Edit (js/viewer.js): the head while you edit, read-only places, files that run code ──
    Head controls are 28 px, as the viewer's icon buttons; Save is the one green thing on the screen. */
 .xd-edit{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px 0 8px;border-radius:var(--r-sm);font:500 var(--fs-base)/20px var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.xd-edit:hover{background:var(--g1F);color:var(--ink);transition-duration:var(--d-hover-in)}
+.xd-edit:hover{background:var(--fill-2);color:var(--ink);transition-duration:var(--d-hover-in)}
 .xd-edit:disabled{opacity:.6;cursor:progress}
 .xd-edit svg{width:16px;height:16px}
 .xd-state{display:inline-flex;align-items:center;gap:6px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3);white-space:nowrap}
 .xd-state i,.xd-draft i{flex:none;width:6px;height:6px;border-radius:50%;background:var(--warn)}
 .xd-errline{color:var(--err-ink)}
-.xd-vsep{flex:none;width:1px;height:16px;margin:0 4px;background:var(--g26)}
-.xd-btn{flex:none;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--g30);font:500 var(--fs-base)/20px var(--sans);color:var(--ink-2);white-space:nowrap;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.xd-vsep{flex:none;width:1px;height:16px;margin:0 4px;background:var(--fill-3)}
+.xd-btn{flex:none;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line);font:500 var(--fs-base)/20px var(--sans);color:var(--ink-2);white-space:nowrap;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .xd-btn:hover{border-color:var(--line-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
 .xd-btn.is-pri{background:var(--accent-fill);border-color:var(--accent-fill);color:var(--accent-ink)}
 .xd-btn.is-pri:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
-.xd-btn.is-warn{border-color:color-mix(in srgb,var(--err) 45%,var(--g30));color:var(--err-ink)}
+.xd-btn.is-warn{border-color:color-mix(in srgb,var(--err) 45%,var(--line));color:var(--err-ink)}
 .xd-btn:disabled{opacity:.45;cursor:default}
 .xd-btn kbd{all:unset;font:500 var(--fs-sm)/16px var(--sans);opacity:.6}
 .xd-ro{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 8px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3);white-space:nowrap}
@@ -180,19 +180,19 @@ diffs-container{
 .xd-runs svg{width:14px;height:14px}
 /* the run-code question, under Save */
 .vw-top{position:relative;z-index:3} /* above the file below it: the run-code question opens over the code */
-.xd-pop{position:absolute;z-index:20;top:calc(100% + 8px);right:8px;width:320px;padding:12px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--g30);box-shadow:var(--e2);font:400 var(--fs-md)/20px var(--sans);color:var(--ink-2);animation:xd-in var(--d-in) var(--ease)}
+.xd-pop{position:absolute;z-index:20;top:calc(100% + 8px);right:8px;width:320px;padding:12px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line);box-shadow:var(--e2);font:400 var(--fs-md)/20px var(--sans);color:var(--ink-2);animation:xd-in var(--d-in) var(--ease)}
 :root[data-theme="light"] .xd-pop{background:#fff}
 .xd-pop p{margin:0}
 .xd-pop b{color:var(--ink);font-weight:600}
 .xd-pop-a{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
 /* the file changed while you edited: said in words above the merge view */
-.xd-bar{flex:none;margin:0;padding:10px 16px;border-bottom:1px solid var(--g22);background:color-mix(in srgb,var(--warn) 7%,var(--canvas));font:400 var(--fs-md)/20px var(--sans);color:var(--ink-2)}
+.xd-bar{flex:none;margin:0;padding:10px 16px;border-bottom:1px solid var(--line-faint);background:color-mix(in srgb,var(--warn) 7%,var(--canvas));font:400 var(--fs-md)/20px var(--sans);color:var(--ink-2)}
 .xd-bar b{color:var(--ink);font-weight:600}
 /* each place you both changed: your three choices, drawn by us in Pierre's slot */
 .xd-merge{display:flex;align-items:center;gap:4px;padding:4px 0;font-family:var(--sans)}
-.xd-mbtn{height:24px;padding:0 10px;border-radius:var(--r-pill);border:1px solid var(--g30);background:var(--surface);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.xd-mbtn{height:24px;padding:0 10px;border-radius:var(--r-pill);border:1px solid var(--line);background:var(--surface);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .xd-mbtn:hover{border-color:var(--line-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
-.xd-mbtn.is-mine{border-color:color-mix(in srgb,var(--accent) 45%,var(--g30));color:var(--ink)}
+.xd-mbtn.is-mine{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));color:var(--ink)}
 .xd-mbtn:focus-visible,.xd-btn:focus-visible,.xd-edit:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 /* "Saved · Undo · Tell the agent", at the foot of the file (the app's toast, here) */
 .xd-toast{position:absolute;z-index:8;left:0;right:0;bottom:16px;display:flex;justify-content:center;padding:0 16px;pointer-events:none}
@@ -201,7 +201,7 @@ diffs-container{
 .xd-toast .t-m{min-width:0}
 .xd-tacts{display:contents}
 .xd-tx{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:var(--r-sm);color:var(--ink-3)}
-.xd-tx:hover{background:var(--g24);color:var(--ink)}
+.xd-tx:hover{background:var(--fill-2);color:var(--ink)}
 .xd-tx svg{width:14px;height:14px}
 @media (prefers-reduced-motion:reduce){.xd-pop{animation:none}.xd-btn,.xd-edit,.xd-mbtn{transition:none}}
 @media (max-width:600px){
@@ -221,9 +221,9 @@ diffs-container{
 .vw-more:is(.is-done,.is-busy) span{display:inline;font:500 var(--fs-sm)/16px var(--sans)}
 .vw-more.is-done{color:var(--go)}
 .vw-more .spin{width:12px;height:12px}
-.vw-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;display:flex;flex-direction:column;min-width:176px;padding:4px;border-radius:var(--r-lg);border:1px solid var(--pop-line);background:var(--pop-bg);box-shadow:var(--e2);animation:msg-in .16s var(--glide)}
+.vw-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;display:flex;flex-direction:column;min-width:176px;padding:4px;border-radius:var(--r-lg);border:1px solid var(--line-soft);background:var(--float);box-shadow:var(--e2);animation:msg-in .16s var(--ease)}
 .vw-menu [role=menuitem]{display:flex;align-items:center;gap:8px;height:32px;padding:0 8px;border-radius:var(--r-sm);text-align:left;text-decoration:none;font:400 var(--fs-base)/20px var(--sans);color:var(--ink-2);white-space:nowrap}
-.vw-menu [role=menuitem]:hover,.vw-menu [role=menuitem]:focus-visible{background:var(--g24);color:var(--ink);outline:none}
+.vw-menu [role=menuitem]:hover,.vw-menu [role=menuitem]:focus-visible{background:var(--fill-2);color:var(--ink);outline:none}
 .vw-menu svg{flex:none;width:15px;height:15px;color:var(--ink-3)}
 :root[data-theme="light"] .vw-menu{box-shadow:var(--lift-3)}
 @media (prefers-reduced-motion:reduce){.vw-menu{animation:none}}
@@ -235,11 +235,11 @@ diffs-container{
 .stage .cx-im[hidden]{display:none}
 .ximg{flex:1 1 0;min-height:0;height:100%;display:flex;flex-direction:column;margin:0}
 .ximg-row{flex:1 1 0;min-height:0;display:flex;gap:1px;background:var(--panel-line)}
-.ximg-c{--ck:color-mix(in srgb,var(--ink) 5%,transparent);position:relative;flex:1 1 0;min-width:0;min-height:0;display:grid;grid-template:minmax(0,1fr)/minmax(0,1fr);place-items:center;padding:12px;overflow:hidden;background:conic-gradient(var(--ck) 25%,transparent 0 50%,var(--ck) 0 75%,transparent 0) 0 0/16px 16px,var(--code-bg)}
+.ximg-c{--ck:color-mix(in srgb,var(--ink) 5%,transparent);position:relative;flex:1 1 0;min-width:0;min-height:0;display:grid;grid-template:minmax(0,1fr)/minmax(0,1fr);place-items:center;padding:12px;overflow:hidden;background:conic-gradient(var(--ck) 25%,transparent 0 50%,var(--ck) 0 75%,transparent 0) 0 0/16px 16px,var(--fill-1)}
 .ximg-c img{display:block;max-width:100%;max-height:100%;object-fit:contain;box-shadow:0 0 0 1px var(--panel-line)}
 .ximg-open{width:100%;height:100%;min-height:0;display:grid;grid-template:minmax(0,1fr)/minmax(0,1fr);place-items:center;padding:0;border-radius:var(--r-sm);cursor:zoom-in}
 .ximg-open:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
-.ximg-say{display:flex;align-items:center;gap:8px;margin:0;padding:4px 8px;border-radius:var(--r-sm);background:var(--code-bg);font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.ximg-say{display:flex;align-items:center;gap:8px;margin:0;padding:4px 8px;border-radius:var(--r-sm);background:var(--fill-1);font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
 .ximg-say .spin{width:10px;height:10px}
 .ximg-cap{flex:none;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;padding:8px 12px;border-top:1px solid var(--panel-line);font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
 .ximg-cap b{font-weight:500;color:var(--ink-2)}
@@ -248,4 +248,4 @@ diffs-container{
 .ximg-n[hidden]{display:none}
 /* Before and Now: each picture says which it is, in its corner, above the picture (never over it) */
 .ximg.is-two .ximg-c{padding-top:32px}
-.ximg-tag{position:absolute;top:8px;left:8px;z-index:1;padding:2px 6px;border-radius:var(--r-sm);background:color-mix(in srgb,var(--code-bg) 88%,transparent);box-shadow:0 0 0 1px var(--panel-line);font:500 var(--fs-xs)/14px var(--sans);color:var(--ink-2);pointer-events:none}
+.ximg-tag{position:absolute;top:8px;left:8px;z-index:1;padding:2px 6px;border-radius:var(--r-sm);background:color-mix(in srgb,var(--fill-1) 88%,transparent);box-shadow:0 0 0 1px var(--panel-line);font:500 var(--fs-xs)/14px var(--sans);color:var(--ink-2);pointer-events:none}

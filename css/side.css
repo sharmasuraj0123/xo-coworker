@@ -1,3 +1,13 @@
+/* The left sidebar's own palette, frozen at the values it had on 2026-11-08 (the owner: keep it exactly as
+   it is, and ask before any change). The rest of the product moved to the role tokens in css/tokens.css;
+   the sidebar reads these copies so that move can't restyle it. */
+:root{--sb-side:#111111; --sb-hair:#232323; --sb-line:#323232; --sb-line-hover:#565656; --sb-bg-3:#252525;
+  --sb-g17:#171717; --sb-g1A:#1A1A1A; --sb-g1C:#1C1C1C; --sb-g1F:#1F1F1F; --sb-g22:#222222; --sb-g26:#262626; --sb-g2A:#2A2A2A; --sb-g45:#454545}
+:root[data-theme="light"]{--sb-side:#F2F2F2; --sb-hair:#E8E8E8; --sb-line:#DCDCDC; --sb-line-hover:#BDBDBD; --sb-bg-3:#EEEEEE;
+  --sb-g17:#FFFFFF; --sb-g1A:#FFFFFF; --sb-g1C:#FFFFFF; --sb-g1F:#ECECEC; --sb-g22:#EDEDED; --sb-g26:#E3E3E3; --sb-g2A:#DBDBDB; --sb-g45:#ABABAB;
+  --sb-lift-1:0 1px 2px rgba(0,0,0,.04),0 1px 1px rgba(0,0,0,.02); --sb-lift-2:0 1px 2px rgba(0,0,0,.04),0 4px 12px -4px rgba(0,0,0,.08)}
+@media (prefers-contrast: more){:root,:root[data-theme="light"]{--sb-line:var(--line); --sb-line-hover:var(--line-hover)}}
+
 /* ── The left sidebar: one corner system, one left edge, and which project is open (thread-28ea9d).
    The owner, 2026-11-04: idle projects shouldn't look like buttons, the open one should be obvious at a
    glance ("Card + Tile", chosen from five variants in design-research/2026-11-vision/sidebar-open), and
@@ -35,19 +45,19 @@
 .prow.is-on .pr-name{font-weight:600}
 
 /* the open project: the one raised card */
-.prow.is-on{background:color-mix(in srgb,var(--ink) 8%,var(--side));border-color:color-mix(in srgb,var(--ink) 11%,transparent);box-shadow:inset 0 1px 0 color-mix(in srgb,var(--ink) 7%,transparent),0 6px 14px -10px rgb(0 0 0 / .7),0 1px 2px rgb(0 0 0 / .3)}
-.prow.is-on.busy{background:color-mix(in srgb,var(--info) 12%,color-mix(in srgb,var(--ink) 7%,var(--side)));border-color:color-mix(in srgb,var(--info) 50%,transparent)}
-.prow.is-on.needs{background:color-mix(in srgb,var(--warn) 13%,color-mix(in srgb,var(--ink) 7%,var(--side)));border-color:color-mix(in srgb,var(--warn) 52%,transparent)}
-:root[data-theme="light"] .prow.is-on{background:#FFFFFF;border-color:rgba(0,0,0,.07);box-shadow:var(--lift-2)}
+.prow.is-on{background:color-mix(in srgb,var(--ink) 8%,var(--sb-side));border-color:color-mix(in srgb,var(--ink) 11%,transparent);box-shadow:inset 0 1px 0 color-mix(in srgb,var(--ink) 7%,transparent),0 6px 14px -10px rgb(0 0 0 / .7),0 1px 2px rgb(0 0 0 / .3)}
+.prow.is-on.busy{background:color-mix(in srgb,var(--info) 12%,color-mix(in srgb,var(--ink) 7%,var(--sb-side)));border-color:color-mix(in srgb,var(--info) 50%,transparent)}
+.prow.is-on.needs{background:color-mix(in srgb,var(--warn) 13%,color-mix(in srgb,var(--ink) 7%,var(--sb-side)));border-color:color-mix(in srgb,var(--warn) 52%,transparent)}
+:root[data-theme="light"] .prow.is-on{background:#FFFFFF;border-color:rgba(0,0,0,.07);box-shadow:var(--sb-lift-2)}
 :root[data-theme="light"] .prow.is-on.busy{background:color-mix(in srgb,var(--info) 6%,#FFFFFF);border-color:color-mix(in srgb,var(--info) 30%,transparent)}
 :root[data-theme="light"] .prow.is-on.needs{background:color-mix(in srgb,var(--warn) 7%,#FFFFFF);border-color:color-mix(in srgb,var(--warn) 32%,transparent)}
 
 /* its tile: solid, in the row's colour (.side: above light.css's white tile for the open row) */
-.side .prow.is-on:not(.busy) .pr-ic{background:var(--ink);border-color:var(--ink);color:var(--side)}
-.side .prow.is-on.needs .pr-ic{background:var(--warn);border-color:var(--warn);color:var(--side)}
+.side .prow.is-on:not(.busy) .pr-ic{background:var(--ink);border-color:var(--ink);color:var(--sb-side)}
+.side .prow.is-on.needs .pr-ic{background:var(--warn);border-color:var(--warn);color:var(--sb-side)}
 .side .prow.is-on.needs.k-red .pr-ic{background:var(--err-ink);border-color:var(--err-ink)}
 /* a working tile keeps its orbit; open, it fills with a deeper blue under it */
-.side .prow.is-on.busy .pr-ic{background:linear-gradient(color-mix(in srgb,var(--info) 34%,var(--side)),color-mix(in srgb,var(--info) 34%,var(--side))) padding-box,conic-gradient(from var(--pr-a),transparent 0deg,color-mix(in srgb,var(--info) 95%,transparent) 70deg,transparent 140deg) border-box,linear-gradient(color-mix(in srgb,var(--info) 50%,var(--g26)),color-mix(in srgb,var(--info) 50%,var(--g26))) border-box;color:var(--ink)}
+.side .prow.is-on.busy .pr-ic{background:linear-gradient(color-mix(in srgb,var(--info) 34%,var(--sb-side)),color-mix(in srgb,var(--info) 34%,var(--sb-side))) padding-box,conic-gradient(from var(--pr-a),transparent 0deg,color-mix(in srgb,var(--info) 95%,transparent) 70deg,transparent 140deg) border-box,linear-gradient(color-mix(in srgb,var(--info) 50%,var(--sb-g26)),color-mix(in srgb,var(--info) 50%,var(--sb-g26))) border-box;color:var(--ink)}
 
 /* and its glow: an 8px halo pulled in 2px, so it reaches ~6px past the tile, at low strength, no ring */
 .side .prow.is-on:not(.busy) .pr-ic{box-shadow:0 0 8px -2px color-mix(in srgb,var(--ink) 22%,transparent)}

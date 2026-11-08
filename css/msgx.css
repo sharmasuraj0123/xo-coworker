@@ -9,14 +9,14 @@
    A 40 px glass circle 12 px above what's docked (the composer, or a decision card docked over it: its real
    top, tracked in msgx.js), its right edge on the composer's right edge. It rises in
    when you've read up more than half a screen; new messages since are counted on it in a quiet ink pill. */
-.mx-down{position:absolute;z-index:4;right:calc(var(--gut) + var(--rp));bottom:calc(var(--dock-h) + 12px);display:grid;place-items:center;width:40px;height:40px;border:1px solid var(--line);border-radius:50%;background:color-mix(in srgb,var(--bg-2) 90%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);box-shadow:var(--e2),var(--hairline);color:var(--ink-2);opacity:0;transform:translateY(8px) scale(.92);pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease),color var(--d-hover) var(--ease)}
+.mx-down{position:absolute;z-index:4;right:calc(var(--gut) + var(--rp));bottom:calc(var(--dock-h) + 12px);display:grid;place-items:center;width:40px;height:40px;border:1px solid var(--line);border-radius:50%;background:color-mix(in srgb,var(--fill-1) 90%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);box-shadow:var(--e2),var(--hairline);color:var(--ink-2);opacity:0;transform:translateY(8px) scale(.92);pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease),color var(--d-hover) var(--ease)}
 .mx-down.is-on{opacity:1;transform:none;pointer-events:auto;transition-duration:var(--d-in)}
 /* hidden, it's out of the keyboard order and unread by screen readers (it faded only: QA #12); visibility
    waits for the fade out, and comes back at once */
 .mx-down:not(.is-on){visibility:hidden;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease),visibility 0s linear var(--d-out)}
 .mx-down:hover{color:var(--ink)}
 .mx-down svg{width:20px;height:20px}
-.mx-down-n{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 6px;border-radius:var(--r-pill);background:var(--ink);color:var(--bg);font:600 var(--fs-xs)/20px var(--sans);font-variant-numeric:tabular-nums;text-align:center}
+.mx-down-n{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 6px;border-radius:var(--r-pill);background:var(--ink);color:var(--canvas);font:600 var(--fs-xs)/20px var(--sans);font-variant-numeric:tabular-nums;text-align:center}
 .mx-down-n[hidden]{display:none}
 body.files-open .mx-down{display:none}
 @media (max-width:760px){.mx-down{right:16px}}
@@ -71,20 +71,20 @@ body.files-open .mx-down{display:none}
 @keyframes mx-flash{0%,30%{background:var(--hover-fill);box-shadow:0 0 0 8px var(--hover-fill)}100%{background:transparent;box-shadow:0 0 0 8px transparent}}
 
 /* select words: reply to exactly them */
-.mx-qpop{position:fixed;z-index:60;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px 0 10px;border:1px solid var(--line);border-radius:var(--r-pill);background:color-mix(in srgb,var(--bg-2) 82%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:var(--e2);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink);animation:mx-up var(--d-in) var(--ease)}
+.mx-qpop{position:fixed;z-index:60;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px 0 10px;border:1px solid var(--line);border-radius:var(--r-pill);background:color-mix(in srgb,var(--fill-1) 82%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:var(--e2);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink);animation:mx-up var(--d-in) var(--ease)}
 .mx-qpop[hidden]{display:none}
 .mx-qpop svg{width:16px;height:16px;color:var(--ink-3)}
 
 /* swipe right on a message: it follows, an arrow grows in, and past the line it's a reply */
 #msgs>.m>*{transition:transform var(--d-move) var(--ease)}
 #msgs>.m.mx-dragging>*:not(.mx-swipe){transform:translateX(calc(var(--mx-drag,0) * 1px));transition:none}
-.mx-swipe{position:absolute;left:12px;top:0;display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--g23);color:var(--ink-3);opacity:0;transform:scale(.6);pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease),background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.mx-swipe{position:absolute;left:12px;top:0;display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--float);color:var(--ink-3);opacity:0;transform:scale(.6);pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease),background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .mx-swipe svg{width:16px;height:16px}
 .bubble{position:relative}
 .bubble>.mx-swipe{left:-44px;top:calc(50% - 16px)}
 .mx-dragging .mx-swipe{opacity:calc(var(--mx-drag,0) / 56);transform:scale(calc(.6 + min(var(--mx-drag,0),56) / 140));transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .mx-dragging .bubble>.mx-swipe{transform:translateX(calc(var(--mx-drag,0) * -1px)) scale(calc(.6 + min(var(--mx-drag,0),56) / 140))}
-.mx-armed .mx-swipe{background:var(--ink);color:var(--bg)}
+.mx-armed .mx-swipe{background:var(--ink);color:var(--canvas)}
 
 /* swipe left anywhere: the times slide in at the right edge, as in Messages */
 #msgs>.m::after{content:attr(data-mx-time);position:absolute;top:10px;right:0;font:400 var(--fs-xs)/20px var(--mono);color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none;opacity:0;transform:translateX(64px);transition:opacity var(--d-move) var(--ease),transform var(--d-move) var(--ease)}
@@ -140,7 +140,7 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-you .bubble{border:0;border-radius:var(--r-xl);background:var(--mx-you);box-shadow:var(--mx-you-hi);color:var(--mx-you-ink)}
 :root[data-msgx] .m-you.mx-next-cont .bubble{border-bottom-right-radius:var(--r-sm)}
 :root[data-msgx] .m-you.cont .bubble{border-top-right-radius:var(--r-sm)}
-:root[data-msgx] .m-you.is-relay .bubble{border:1px dashed var(--g3C);background:transparent;box-shadow:none}
+:root[data-msgx] .m-you.is-relay .bubble{border:1px dashed var(--line-strong);background:transparent;box-shadow:none}
 /* sending: your bubble rises from the composer and settles, calmly */
 :root[data-msgx] .m-you.is-new .bubble{transform-origin:100% 100%;animation:mx-send var(--d-in) var(--ease)}
 @keyframes mx-send{from{opacity:0;transform:translateY(6px) scale(.98)}}
@@ -352,7 +352,7 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-them .tc-segs .sg.mx-seg-done{position:relative;overflow:hidden;background:var(--info);animation:none}
 :root[data-msgx] .m-them .tc-segs .sg.mx-seg-done::after{content:"";position:absolute;inset:0;background:var(--accent-fill);transform-origin:left center;animation:seg-fill var(--d-land) var(--ease) both}
 :root[data-msgx] .m-them .tc-segs .sg.mx-seg-next{position:relative;overflow:hidden}
-:root[data-msgx] .m-them .tc-segs .sg.mx-seg-next::after{content:"";position:absolute;inset:0;background:var(--g2C);transform-origin:right center;animation:mx-seg-light var(--d-land) var(--ease) var(--d-out) both}
+:root[data-msgx] .m-them .tc-segs .sg.mx-seg-next::after{content:"";position:absolute;inset:0;background:var(--fill-3);transform-origin:right center;animation:mx-seg-light var(--d-land) var(--ease) var(--d-out) both}
 @keyframes mx-seg-light{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 @media (prefers-reduced-motion:reduce){:root[data-msgx] .m-them .tc-segs :is(.sg.s-doing,.sg.mx-seg-done::after,.sg.mx-seg-next::after),:root[data-msgx] .m-them .tc-segs.is-empty::before{animation:none}}
 /* The band already carries progress. A second state glyph indents only the title, breaking the

@@ -86,4 +86,20 @@ t("no malformed var() (a broken value drops its whole declaration without a word
   assert.equal(bad.length, 0, `malformed var():\n    ${where((d) => bad.includes(d))}`);
 });
 
+
+// The theme is css/tokens.css's two blocks. Surfaces, lines and ink are named by role (canvas, surface, float,
+// fill-1…4, line-faint … line-hover, ink … ink-5); no stylesheet keeps a palette of its own, and nothing is
+// named after its hex (the old --g14 … --g72 ramp). The left sidebar's frozen copies (--sb-*) are the one
+// exception, until the owner decides otherwise.
+const ROLE = /^--(?:canvas|sunken|surface|float|fill-\d|line(?:-faint|-soft|-strong|-hover)?|ink(?:-\d)?|accent(?:-[\w]+)?|err(?:-ink)?|warn|info|violet|bg(?:-\d|-head)?|hair|raised|side|pop-(?:bg|line)|comp-line(?:-hi)?)$/;
+t("the palette lives in tokens.css alone", () => {
+  const all = [];
+  for (const f of readdirSync(DIR).filter((n) => n.endsWith(".css") && n !== "tokens.css")) {
+    const css = readFileSync(new URL(f, DIR), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+    for (const m of css.matchAll(/(--[\w-]+)\s*:/g)) if (ROLE.test(m[1]) || /^--g[0-9A-F]{2}$/.test(m[1])) all.push(`${f}: ${m[1]}`);
+    for (const m of css.matchAll(/var\(--g[0-9A-F]{2}\)/g)) all.push(`${f}: ${m[0]}`);
+  }
+  assert.deepEqual(all, [], `palette defined outside tokens.css:\n    ${all.slice(0, 8).join("\n    ")}`);
+});
+
 console.log(`\n${passed} passed`);

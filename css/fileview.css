@@ -14,14 +14,14 @@ body.dock-switch :is(.top,.thead,.since,.dock){transition:none!important}
 /* the file: the middle; the line it shares with the chat is dragged (360–560) */
 body.chat-docked .fv{right:var(--cw)}
 body.chat-docked .fv-cgrip{display:block;position:absolute;z-index:2;top:0;bottom:0;right:-5px;width:9px;cursor:col-resize;outline:none}
-body.chat-docked .fv-cgrip::before{content:"";position:absolute;top:0;bottom:0;left:4px;width:1px;background:var(--g1C);transition:background var(--d-hover) var(--ease)}
+body.chat-docked .fv-cgrip::before{content:"";position:absolute;top:0;bottom:0;left:4px;width:1px;background:var(--surface);transition:background var(--d-hover) var(--ease)}
 :root[data-theme="light"] body.chat-docked .fv-cgrip::before{background:rgba(0,0,0,.08)}
 body.chat-docked .fv-cgrip:hover::before,body.chat-docked .fv-cgrip:focus-visible::before,body.fv-sizing .fv-cgrip::before{background:var(--line-hover)}
 /* the file's head beside the chat: where it is, then put it away (32 × 32, 4 px in from the 40 px head) */
 body.chat-docked .fv-h{padding:0 4px 0 16px}
 .fv-sp{flex:1}
 .fv-ib{flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:var(--r);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.fv-ib:hover{background:var(--g1F);color:var(--ink)}
+.fv-ib:hover{background:var(--fill-2);color:var(--ink)}
 .fv-ib svg{width:16px;height:16px}
 .fv-ib:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 /* the way back to the chat (js/filesview.js, Codex Astra's design-research/files-return): first in the head, in
@@ -38,7 +38,7 @@ body.chat-docked .fv-h{padding:0 4px 0 16px}
    only the room the name leaves (a basis of 0, growing up to its own width), so the name is cut only when it
    alone doesn't fit; shrinking both, the name lost a fraction of a pixel and showed "xo-cowork…" */
 .fv-h .fv-s{flex:1 1 0;min-width:0;max-width:max-content;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.fv-tip{position:absolute;top:calc(100% + 8px);left:0;z-index:30;display:flex;flex-direction:column;gap:2px;min-width:208px;padding:10px 12px;border-radius:var(--r-lg);background:var(--g1C);box-shadow:var(--e2),inset 0 0 0 1px var(--g33);font:500 var(--fs-base)/20px var(--sans);color:var(--ink);text-align:left;white-space:nowrap;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .12s var(--ease),visibility 0s linear .12s}
+.fv-tip{position:absolute;top:calc(100% + 8px);left:0;z-index:30;display:flex;flex-direction:column;gap:2px;min-width:208px;padding:10px 12px;border-radius:var(--r-lg);background:var(--surface);box-shadow:var(--e2),inset 0 0 0 1px var(--line-strong);font:500 var(--fs-base)/20px var(--sans);color:var(--ink);text-align:left;white-space:nowrap;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .12s var(--ease),visibility 0s linear .12s}
 :root[data-theme="light"] .fv-tip{background:var(--surface);box-shadow:var(--e2),inset 0 0 0 1px var(--panel-line)}
 .fv-tip-t{display:flex;align-items:center;justify-content:space-between;gap:24px}
 .fv-tip kbd{font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
@@ -50,7 +50,7 @@ body.chat-docked .fv-h{padding:0 4px 0 16px}
 /* the chat: the same conversation, in a column on the right */
 body.chat-docked .conv{left:auto;width:var(--cw);--rp:0px;--gut:16px;--hg:16px}
 body.chat-docked .conv>.top{display:none}
-body.chat-docked .chead{display:flex;align-items:center;gap:8px;flex:none;box-sizing:border-box;height:40px;padding:0 4px 0 16px;border-bottom:1px solid var(--g1C);background:var(--canvas)}
+body.chat-docked .chead{display:flex;align-items:center;gap:8px;flex:none;box-sizing:border-box;height:40px;padding:0 4px 0 16px;border-bottom:1px solid var(--line-faint);background:var(--canvas)}
 :root[data-theme="light"] body.chat-docked .chead{border-bottom-color:rgba(0,0,0,.06)}
 .chead-t{min-width:0;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 var(--fs-base)/20px var(--sans);color:var(--ink)}
 .chead .badge{height:20px;padding:0 8px;gap:6px}
@@ -59,11 +59,11 @@ body.chat-docked .chead{display:flex;align-items:center;gap:8px;flex:none;box-si
 body.chat-docked .thead{display:flex;align-items:flex-start;gap:8px;padding:8px 16px}
 body.chat-docked .thead .ckbar{flex:1;min-width:0}
 body.chat-docked .thead .rn-strip{display:none}
-body.chat-docked .thead .rn-log{flex:none;height:40px;margin:0;padding:0 12px 0 10px;border-radius:var(--r-lg);border:1px solid var(--g22);gap:6px}
+body.chat-docked .thead .rn-log{flex:none;height:40px;margin:0;padding:0 12px 0 10px;border-radius:var(--r-lg);border:1px solid var(--line-faint);gap:6px}
 body.chat-docked .thead .rn-log span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 body.chat-docked .thead .rn-log::after{content:attr(data-n);font:500 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums}
-body.chat-docked .thead .rn-live{flex:none;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 13px 0 12px;border-radius:var(--r-lg);border:1px solid color-mix(in srgb,var(--info) 28%,var(--g26));background:color-mix(in srgb,var(--info) 6%,transparent);color:var(--ink-2)}
-body.chat-docked .thead .rn-live:has(.g-needs_reply){border-color:color-mix(in srgb,var(--warn) 34%,var(--g26));background:color-mix(in srgb,var(--warn) 7%,transparent)}
+body.chat-docked .thead .rn-live{flex:none;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 13px 0 12px;border-radius:var(--r-lg);border:1px solid color-mix(in srgb,var(--info) 28%,var(--line-soft));background:color-mix(in srgb,var(--info) 6%,transparent);color:var(--ink-2)}
+body.chat-docked .thead .rn-live:has(.g-needs_reply){border-color:color-mix(in srgb,var(--warn) 34%,var(--line-soft));background:color-mix(in srgb,var(--warn) 7%,transparent)}
 body.chat-docked .thead .rn-live .rn-n{font:500 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums}
 body.chat-docked .scroller{padding-left:16px;padding-right:16px}
 body.files-open.chat-docked .mx-down{display:grid}
@@ -80,7 +80,7 @@ body.chat-docked #target>span:last-child{display:none}
 body.fv-min .fv{visibility:hidden;pointer-events:none;right:var(--cw)}
 
 /* its chip in the header: the file's own icon, its name and counts; × closes it */
-.fchip{flex:none;display:inline-flex;align-items:center;height:28px;border-radius:var(--r);background:var(--g1C);box-shadow:inset 0 0 0 1px var(--g26)}
+.fchip{flex:none;display:inline-flex;align-items:center;height:28px;border-radius:var(--r);background:var(--surface);box-shadow:inset 0 0 0 1px var(--line-soft)}
 :root[data-theme="light"] .fchip{background:var(--surface);box-shadow:inset 0 0 0 1px var(--panel-line)}
 .fchip-b{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 4px 0 8px;border-radius:var(--r) 0 0 var(--r);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-2)}
 .fchip-i{display:grid;place-items:center;width:16px;height:16px}
@@ -88,7 +88,7 @@ body.fv-min .fv{visibility:hidden;pointer-events:none;right:var(--cw)}
 .fchip-n{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--mono)}
 .fchip-x{display:grid;place-items:center;width:28px;height:28px;border-radius:0 var(--r) var(--r) 0;color:var(--ink-4)}
 .fchip-x svg{width:14px;height:14px}
-.fchip-b:hover,.fchip-x:hover{background:var(--g1F);color:var(--ink)}
+.fchip-b:hover,.fchip-x:hover{background:var(--fill-2);color:var(--ink)}
 :root[data-theme="light"] :is(.fchip-b,.fchip-x):hover{background:rgba(0,0,0,.05)}
 :is(.fchip-b,.fchip-x):focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 
@@ -101,11 +101,11 @@ body.fv-min .fv{visibility:hidden;pointer-events:none;right:var(--cw)}
    A mark on a rail button is a 6 px dot clear of its 16 px glyph (glyph 8–24, dot 25–31). */
 /* the tree, folded: Changed (a dot when this place changed something), All files, Find */
 .fl-rail{display:none}
-.fv .fl.is-wide.is-folded .fl-rail{display:flex;flex:none;flex-direction:column;align-items:center;gap:4px;width:44px;padding:6px 0;background:var(--g16);box-shadow:inset -1px 0 var(--g1C)}
+.fv .fl.is-wide.is-folded .fl-rail{display:flex;flex:none;flex-direction:column;align-items:center;gap:4px;width:44px;padding:6px 0;background:var(--fill-1);box-shadow:inset -1px 0 var(--line-faint)}
 :root[data-theme="light"] .fv .fl.is-wide.is-folded .fl-rail{background:#FBFBFA;box-shadow:inset -1px 0 rgba(0,0,0,.06)}
 .fv .fl.is-wide.is-folded :is(.fl-tree,.fl-split){display:none}
 .fl-rb{position:relative;display:grid;place-items:center;width:32px;height:32px;border-radius:var(--r);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.fl-rb:hover{background:var(--g1F);color:var(--ink)}
+.fl-rb:hover{background:var(--fill-2);color:var(--ink)}
 .fl-rb svg{width:16px;height:16px}
 .fl-rb em{position:absolute;top:3px;right:1px;width:6px;height:6px;border-radius:50%;background:var(--ink-3)} /* a mark, not news: blue is the chat's new messages */
 .fl-rb:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
@@ -118,16 +118,16 @@ body.chat-docked.chat-railed :is(.conv,.dock){visibility:hidden}
 body.chat-docked.chat-railed .fv{right:44px}
 body.chat-docked.chat-railed .fv-cgrip{display:none}
 .crail{display:none}
-body.chat-docked.chat-railed .crail{display:flex;position:absolute;z-index:6;top:0;right:0;bottom:0;width:44px;padding:0;background:var(--canvas);box-shadow:inset 1px 0 var(--g1C)}
+body.chat-docked.chat-railed .crail{display:flex;position:absolute;z-index:6;top:0;right:0;bottom:0;width:44px;padding:0;background:var(--canvas);box-shadow:inset 1px 0 var(--line-faint)}
 :root[data-theme="light"] body.chat-docked.chat-railed .crail{box-shadow:inset 1px 0 rgba(0,0,0,.08)}
 .crail-b{position:relative;display:flex;flex-direction:column;align-items:center;gap:12px;width:44px;padding:3.5px 0 12px;border-radius:0;color:var(--ink-3)} /* its tile on the heads' controls' line (y 3.5) */
-.crail-b:hover{background:var(--g1C);color:var(--ink)}
+.crail-b:hover{background:var(--surface);color:var(--ink)}
 .crail-b:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
-.crail-ic{position:relative;display:grid;place-items:center;width:32px;height:32px;border-radius:var(--r);background:var(--g1C);box-shadow:inset 0 0 0 1px var(--g26);color:var(--ink-2)}
+.crail-ic{position:relative;display:grid;place-items:center;width:32px;height:32px;border-radius:var(--r);background:var(--surface);box-shadow:inset 0 0 0 1px var(--line-soft);color:var(--ink-2)}
 :root[data-theme="light"] .crail-ic{background:var(--surface);box-shadow:inset 0 0 0 1px var(--panel-line)}
 .crail-ic svg{width:16px;height:16px}
 .crail-m{position:absolute;top:0;right:2px;font-style:normal} /* on the tile's corner, inside the 44 px rail */
-.crail-m.is-new{display:grid;place-items:center;min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;border-radius:999px;background:var(--g33);color:var(--ink);font:600 10px/1 var(--sans);font-variant-numeric:tabular-nums} /* a count, never a blue dot */
+.crail-m.is-new{display:grid;place-items:center;min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;border-radius:999px;background:var(--fill-4);color:var(--ink);font:600 10px/1 var(--sans);font-variant-numeric:tabular-nums} /* a count, never a blue dot */
 :root[data-theme="light"] .crail-m.is-new{background:var(--ink-2);color:var(--surface)}
 .crail-m.is-ask{display:grid;place-items:center;width:14px;height:14px;border-radius:50%;background:var(--warn);color:#1A1200;font:600 10px/1 var(--sans)}
 .crail-t{writing-mode:vertical-rl;transform:rotate(180deg);max-height:min(320px,60vh);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 var(--fs-sm)/16px var(--sans)}
@@ -141,7 +141,7 @@ body.chat-docked.chat-over .conv{background:var(--canvas)}
 .cref[hidden]{display:none}
 .cref .lk{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cref-x{flex:none;display:grid;place-items:center;width:24px;height:24px;border-radius:var(--r-sm);color:var(--ink-4)}
-.cref-x:hover{background:var(--g1F);color:var(--ink)}
+.cref-x:hover{background:var(--fill-2);color:var(--ink)}
 .cref-x svg{width:14px;height:14px}
 .cref-x:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 
@@ -161,17 +161,17 @@ body.chat-docked.chat-over .conv{background:var(--canvas)}
   :root:root body.chat-sheet .conv>.top{display:none}
   :root:root body.chat-sheet .fv .fl-bar{display:none} /* the head's ◧ swaps the list in and out */
   :root:root body.chat-sheet .thead .rn-strip{display:none}
-  :root:root body.chat-sheet :is(.conv,.dock){z-index:8;transition:transform .24s var(--glide),visibility 0s linear .24s}
+  :root:root body.chat-sheet :is(.conv,.dock){z-index:8;transition:transform .24s var(--ease),visibility 0s linear .24s}
   :root:root body.chat-sheet:not(.sheet-up) :is(.conv,.dock){transform:translateY(100%);visibility:hidden;pointer-events:none}
-  :root:root body.chat-sheet.sheet-up :is(.conv,.dock){transition:transform .24s var(--glide)}
-  :root:root body.chat-sheet .app .conv{top:30%;border-radius:var(--r-2xl) var(--r-2xl) 0 0;background:var(--canvas);box-shadow:var(--e2),inset 0 1px 0 var(--g26)}
+  :root:root body.chat-sheet.sheet-up :is(.conv,.dock){transition:transform .24s var(--ease)}
+  :root:root body.chat-sheet .app .conv{top:30%;border-radius:var(--r-2xl) var(--r-2xl) 0 0;background:var(--canvas);box-shadow:var(--e2),inset 0 1px 0 var(--line-soft)}
   :root:root body.chat-sheet .dock{z-index:9}
   /* its head: a grabber over the name, its state and ⌄ */
-  :root:root body.chat-sheet .chead{display:flex;align-items:center;gap:8px;flex:none;position:relative;box-sizing:border-box;height:52px;padding:8px 4px 0 16px;border-bottom:1px solid var(--g1C);border-radius:var(--r-2xl) var(--r-2xl) 0 0;background:var(--canvas);touch-action:none}
-  :root:root body.chat-sheet .chead::before{content:"";position:absolute;top:6px;left:50%;width:36px;height:4px;margin-left:-18px;border-radius:2px;background:var(--g33)}
+  :root:root body.chat-sheet .chead{display:flex;align-items:center;gap:8px;flex:none;position:relative;box-sizing:border-box;height:52px;padding:8px 4px 0 16px;border-bottom:1px solid var(--line-faint);border-radius:var(--r-2xl) var(--r-2xl) 0 0;background:var(--canvas);touch-action:none}
+  :root:root body.chat-sheet .chead::before{content:"";position:absolute;top:6px;left:50%;width:36px;height:4px;margin-left:-18px;border-radius:2px;background:var(--fill-4)}
   :root:root body.chat-sheet .chead .fv-ib{width:40px;height:40px}
   /* the bar: folded, one line over the file's foot */
-  :root:root body.chat-sheet.files-open:not(.sheet-up) .crail{display:flex;position:fixed;z-index:8;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));height:56px;padding:0;border-radius:var(--r-xl);background:var(--g17);box-shadow:var(--e2),inset 0 0 0 1px var(--g26);touch-action:none}
+  :root:root body.chat-sheet.files-open:not(.sheet-up) .crail{display:flex;position:fixed;z-index:8;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));height:56px;padding:0;border-radius:var(--r-xl);background:var(--surface);box-shadow:var(--e2),inset 0 0 0 1px var(--line-soft);touch-action:none}
   :root[data-theme="light"]:root body.chat-sheet.files-open:not(.sheet-up) .crail{background:var(--surface);box-shadow:var(--e2),inset 0 0 0 1px var(--panel-line)}
   :root:root body.chat-sheet .crail-b{flex:1;width:auto;height:56px;padding:0 8px 0 12px;border-radius:var(--r-xl);text-align:left;display:grid;grid-template-columns:32px minmax(0,1fr) auto;grid-template-rows:20px 16px;column-gap:12px;row-gap:0;align-content:center}
   :root:root body.chat-sheet .crail-ic{grid-row:1/3}
@@ -181,7 +181,7 @@ body.chat-docked.chat-over .conv{background:var(--canvas)}
   :root:root body.chat-sheet .crail-up{display:grid;place-items:center;width:32px;height:32px;color:var(--ink-3);transform:rotate(180deg)}
   :root:root body.chat-sheet .crail-up svg{width:16px;height:16px}
   :root:root body.chat-sheet .crail-b:has(.crail-n) .crail-up{display:none}
-  :root:root body.chat-sheet .crail-n{display:grid;place-items:center;min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:999px;background:var(--g33);color:var(--ink);font:600 var(--fs-sm)/1 var(--sans);font-variant-numeric:tabular-nums}
+  :root:root body.chat-sheet .crail-n{display:grid;place-items:center;min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:999px;background:var(--fill-4);color:var(--ink);font:600 var(--fs-sm)/1 var(--sans);font-variant-numeric:tabular-nums}
   :root[data-theme="light"]:root body.chat-sheet .crail-n{background:var(--ink-2);color:var(--surface)}
   /* the file's segment buttons keep the segment's 22 px on a phone (a legacy 40 px min-height pushed them out) */
   :root:root .fv .vw-seg button{min-height:0}
@@ -192,7 +192,7 @@ body.chat-docked.chat-over .conv{background:var(--canvas)}
   /* the put-away file's chip: above the composer, where there's room for its name and counts */
   :root:root .top .fchip{display:none}
   :root:root .fdock:not(:empty){display:flex;max-width:720px;margin:0 auto 8px;pointer-events:auto}
-  :root:root .fdock .fchip{max-width:100%;height:32px;background:var(--g17);box-shadow:var(--e1),inset 0 0 0 1px var(--g26)}
+  :root:root .fdock .fchip{max-width:100%;height:32px;background:var(--surface);box-shadow:var(--e1),inset 0 0 0 1px var(--line-soft)}
   :root[data-theme="light"]:root .fdock .fchip{background:var(--surface);box-shadow:var(--e1),inset 0 0 0 1px var(--panel-line)}
   :root:root .fdock :is(.fchip-b,.fchip-x){height:32px}
   :root:root .fdock .fchip-b{min-width:0}
