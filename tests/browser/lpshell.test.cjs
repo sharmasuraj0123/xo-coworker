@@ -192,7 +192,8 @@ t("LP35: the ⋯ menu answers the keyboard: focus in, Esc back to More, Tab out 
   assert.equal(await focused(page), "unlink", "focus on its first item");
   assert.equal(await page.locator('[data-lp="menu"]').getAttribute("aria-expanded"), "true");
   // not the long-press menu's look (app.css .lp-menu): a 32 px item at 13 px
-  const item = await page.evaluate(() => { const b = document.querySelector('.lp-mn [role="menuitem"]'); const cs = getComputedStyle(b); return { h: b.getBoundingClientRect().height, fs: cs.fontSize, pos: getComputedStyle(b.parentElement).position }; });
+  // its laid-out height (offsetHeight): with motion on, the menu is still floating in (scale .98 → 1) when measured
+  const item = await page.evaluate(() => { const b = document.querySelector('.lp-mn [role="menuitem"]'); const cs = getComputedStyle(b); return { h: b.offsetHeight, fs: cs.fontSize, pos: getComputedStyle(b.parentElement).position }; });
   assert.deepEqual(item, { h: 32, fs: "13px", pos: "absolute" });
   await page.keyboard.press("Escape");
   await page.waitForTimeout(80);
