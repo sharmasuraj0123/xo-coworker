@@ -102,25 +102,34 @@ function wordsOf(root) {
 }
 const textOf = (m) => { const b = m.querySelector(".bubble, .mb > .prose, .tb-answer"); return b ? wordsOf(b) : ""; };
 
-/** A sent reply starts with "> " lines: show them as a card at the top of your bubble. */
+/**
+ * A sent reply starts with "> " lines: show them as a card at the top of your bubble. Read from the bubble's text;
+ * when the bubble is drawn again in place (it hears "redrawn"), its text is read again and the same card, if it's
+ * still there, takes the new words (a focused card stays focused).
+ */
 function quoteCard(m) {
   const b = m.querySelector(".bubble");
-  if (!b || b._mxq || !/^> /.test(b.textContent)) return;
+  if (!b || b._mxq) return;
   b._mxq = true;
-  const lines = b.textContent.split("\n");
+  const tn = [...b.childNodes].find((n) => n.nodeType === 3);
+  if (!tn || tn.nodeValue === b._mxRest || !/^> /.test(tn.nodeValue)) return;
+  const lines = tn.nodeValue.split("\n");
   let i = 0; const q = [];
   while (i < lines.length && /^>/.test(lines[i])) q.push(lines[i++].replace(/^>\s?/, ""));
   const rest = lines.slice(i).join("\n").replace(/^\n+/, "");
   const who = (q[0].match(/^\*\*(.+?)\*\*$/) || [])[1];
   const said = (who ? q.slice(1) : q).join(" ").replace(/\s+/g, " ").trim().replace(/^[“"]|[”"]$/g, "");
-  b.textContent = "";
-  const card = document.createElement("button");
-  card.type = "button"; card.className = "mx-qc"; card.dataset.mxJump = said;
-  card.title = "Go to the message";
-  card.innerHTML = `<b></b><span></span>`;
+  let card = b.querySelector(":scope > .mx-qc");
+  if (!card) {
+    card = document.createElement("button");
+    card.type = "button"; card.className = "mx-qc"; card.title = "Go to the message"; card.dataset.own = "";
+    card.innerHTML = `<b></b><span></span>`;
+  }
+  card.dataset.mxJump = said;
   card.querySelector("b").textContent = who || "Quote";
   card.querySelector("span").textContent = said;
-  b.append(card, document.createTextNode(rest));
+  tn.nodeValue = rest; b._mxRest = rest;
+  b.insertBefore(card, tn);
 }
 
 function decorate() {
@@ -132,27 +141,30 @@ function decorate() {
     if (!el.classList.contains("m") || el._mx) return;
     el._mx = true;
     el.dataset.noswipe = ""; // a swipe on a message is a reply here; the page's back-swipe starts elsewhere
+    // What this file adds to a row carries data-own: drawn again in place, the row keeps it (js/redraw.js), so
+    // a focused Reply or Copy stays focused; each is added only where it isn't already
     const acts = document.createElement("div");
-    acts.className = "mx-acts";
+    acts.className = "mx-acts"; acts.dataset.own = "";
     acts.innerHTML = `<button type="button" data-mx-reply title="Reply" aria-label="Reply">${IC.reply}</button><button type="button" data-mx-copy title="Copy" aria-label="Copy">${IC.copy}</button>`;
-    const arrow = document.createElement("span");
-    arrow.className = "mx-swipe"; arrow.innerHTML = IC.reply; arrow.setAttribute("aria-hidden", "true");
     quoteCard(el);
     // Reply and Copy sit beside the bubble itself; a message with no words (a card, pictures) has neither
-    const bub = bubbleOf(el);
-    if (bub) bub.append(acts);
+    const bub = bubbleOf(el), mb = el.querySelector(":scope > .mb");
+    if (bub && !bub.querySelector(":scope > .mx-acts")) bub.append(acts);
     if (bub && !el.classList.contains("m-you")) {
-      const foot = acts.cloneNode(true); foot.classList.add("is-foot");
-      el.querySelector(":scope > .mb")?.append(foot);
+      if (mb && !mb.querySelector(":scope > .mx-acts.is-foot")) { const foot = acts.cloneNode(true); foot.classList.add("is-foot"); mb.append(foot); }
     } else if (!bub && el.querySelector(".mx-stack, .tb-files")) {
       // pictures with no words still take a reply: beside the last picture, at its foot
-      const foot = acts.cloneNode(true); foot.classList.add("is-foot");
-      foot.querySelector("[data-mx-copy]")?.remove();
       el.classList.add("mx-nobub");
-      (el.querySelector(":scope > .mb") || el).append(foot);
+      const at = mb || el;
+      if (!at.querySelector(":scope > .mx-acts.is-foot")) { const foot = acts.cloneNode(true); foot.classList.add("is-foot"); foot.querySelector("[data-mx-copy]")?.remove(); at.append(foot); }
     }
     // the swipe's arrow: beside your bubble, or in the gap a reply leaves on the left
-    (el.classList.contains("m-you") && el.querySelector(".bubble") || el).append(arrow);
+    const host = (el.classList.contains("m-you") && el.querySelector(".bubble")) || el;
+    if (!host.querySelector(":scope > .mx-swipe")) {
+      const arrow = document.createElement("span");
+      arrow.className = "mx-swipe"; arrow.innerHTML = IC.reply; arrow.setAttribute("aria-hidden", "true"); arrow.dataset.own = "";
+      host.append(arrow);
+    }
   });
   // a few emoji and nothing else are the message itself: large, without a bubble
   for (const el of kids) {
@@ -195,7 +207,7 @@ function decorate() {
     const b = el.querySelector(":scope > .mb > .prose");
     const nm = b && b.querySelector(":scope > .mx-name");
     const want = other && !el.classList.contains("cont") && b;
-    if (want && !nm) b.insertAdjacentHTML("afterbegin", `<span class="mx-name"></span>`);
+    if (want && !nm) b.insertAdjacentHTML("afterbegin", `<span class="mx-name" data-own></span>`);
     if (want) b.querySelector(":scope > .mx-name").textContent = el._mxWho;
     else if (nm) nm.remove();
   }
@@ -337,7 +349,7 @@ function working(el) {
   const since = +(el.querySelector(".elapsed[data-since]")?.dataset.since || 0) || was?.since || Date.now();
   if (!w) {
     w = document.createElement("button");
-    w.type = "button"; w.className = "mx-work";
+    w.type = "button"; w.className = "mx-work"; w.dataset.own = "";
     w.title = "See every step";
     w.innerHTML = `<span class="mx-wt"></span><span class="mx-we"></span>`;
     w.addEventListener("click", () => {

@@ -1167,6 +1167,22 @@ t("DET-1 S002: a running step's output arriving keeps focus on its open disclosu
   assert.equal(await page.locator('#msgs [data-tb="row:call-det"]').getAttribute("aria-expanded"), "true");
   await done(page);
 });
+t("DET: Copy on an answer that's still streaming keeps focus through every update (the row's own controls stay)", async () => {
+  const page = await liveTurn();
+  await page.evaluate((f) => window.__storm.apply(f), env("block.started", { block: { id: `${TURN}:t1`, type: "text", index: null, text: "First words of the answer." } }));
+  const copy = page.locator(`#msgs [data-k^="turn:${TURN}"] .tb-text [data-mx-copy]`).first();
+  await copy.waitFor({ state: "attached" });
+  await page.locator(`#msgs [data-k^="turn:${TURN}"] .tb-text`).first().hover();
+  await copy.focus();
+  await page.evaluate(() => { window.__cp = document.activeElement; });
+  for (let i = 1; i <= 4; i++) {
+    await page.evaluate((f) => window.__storm.apply(f), env("block.updated", { block_id: `${TURN}:t1`, type: "text", append: ` More words, part ${i}.` }));
+    await settle(page, 150);
+  }
+  assert.match(await page.locator(`#msgs [data-k^="turn:${TURN}"] .tb-text`).first().innerText(), /part 4/, "the answer streamed in");
+  assert.equal(await page.evaluate(() => document.activeElement === window.__cp), true, `focus on the same Copy, not ${await focusIs(page)}`);
+  await done(page);
+}, { only: (c) => c.width >= 760 });
 t("DET-2 C121/C050: the working line opens the work with focus on its header; folding it hands focus back to the line", async () => {
   const page = await liveTurn();
   const w = page.locator("#msgs .mx-work");
