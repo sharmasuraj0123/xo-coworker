@@ -278,7 +278,9 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       if (P.more) html += `<div class="iq-moreb">${more}</div>`;
     }
     const changed = draftChanged(s);
-    html += `<footer class="iq-f"><span>${changed ? "Applies when this closes, from the next turn." : "Applies from the next turn."}</span>${kind === "thread" && c.pinned ? `<button type="button" class="iq-back" data-lauto>Default model</button>` : ""}</footer>`;
+    html += changed
+      ? `<footer class="iq-f"><span>From the next turn · Esc cancels</span><button type="button" class="iq-done" data-ldone>Done</button></footer>`
+      : `<footer class="iq-f"><span>Applies from the next turn.</span>${kind === "thread" && c.pinned ? `<button type="button" class="iq-back" data-lauto>Default model</button>` : ""}</footer>`;
     pop.innerHTML = html;
     place();
   }
@@ -329,6 +331,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
   function commit(s) {
     if (!draftChanged(s)) { P.draft = null; return; }
     const d = P.draft; P.draft = null;
+    if (!d.auto && !(P.models || []).some((m) => m.id === d.model)) return; // picked in another runtime's list
     if (d.auto) toAuto(s); else pin(s, d.model, d.effort);
   }
   function place() {
@@ -512,6 +515,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     const r = e.target.closest("[data-lroute]");
     if (r) { const s = P.session; close(); route(s, r.dataset.lroute); return; }
     if (e.target.closest("[data-lauto]")) { const s = P.session; P.draft = null; close({ apply: false }); toAuto(s); return; }
+    if (e.target.closest("[data-ldone]")) { close(); return; }
     if (e.target.closest("[data-lmore]")) { P.more = !P.more; render(); pop.querySelector("[data-lmore]")?.focus({ preventScroll: true }); return; }
     const dm = e.target.closest("[data-dmodel]");
     if (dm) { pickModel(dm.dataset.dmodel); pop.querySelector(`[data-dmodel="${CSS.escape(dm.dataset.dmodel)}"]`)?.focus({ preventScroll: true }); return; }
@@ -519,6 +523,28 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     if (de) { pickEffort(de.dataset.deffort); pop.querySelector(`[data-deffort="${CSS.escape(de.dataset.deffort)}"]`)?.focus({ preventScroll: true }); }
   });
   pop.addEventListener("keydown", (e) => {
+    if (e.key === "Tab") {
+      const f = [...pop.querySelectorAll('button:not([disabled]),[tabindex="0"]')].filter((x) => x.offsetParent);
+      const i = f.indexOf(document.activeElement);
+      if (f.length && e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
+      else if (f.length && !e.shiftKey && (i === -1 || i === f.length - 1)) { e.preventDefault(); f[0].focus(); }
+      return;
+    }
+    const row = e.target.closest("[data-dmodel],[data-mvm]");
+    if (row && (e.key === " " || (e.key === "Enter" && row.getAttribute("aria-checked") !== "true"))) {
+      e.preventDefault();
+      if (row.dataset.mvm != null) { pickMove(row.dataset.mvm); pop.querySelector(`[data-mvm="${CSS.escape(row.dataset.mvm)}"]`)?.focus({ preventScroll: true }); }
+      else { pickModel(row.dataset.dmodel); pop.querySelector(`[data-dmodel="${CSS.escape(row.dataset.dmodel)}"]`)?.focus({ preventScroll: true }); }
+      return;
+    }
+    const seg = e.target.closest(".iq-route:not(.iq-depth) button");
+    if (seg && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+      e.preventDefault();
+      const all = [...seg.parentElement.querySelectorAll("button:not([disabled])")];
+      all[Math.max(0, Math.min(all.length - 1, all.indexOf(seg) + (e.key === "ArrowRight" ? 1 : -1)))]?.focus();
+      return;
+    }
+    if (seg && (e.key === "Enter" || e.key === " ")) return; // the segment's own click
     if (P.busy || (P.mv && P.mv.busy)) { if (e.key !== "Escape") return; }
     else if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "ArrowLeft" || e.key === "ArrowRight") {
       if (e.target.closest(".iq-route:not(.iq-depth), .iq-moreb")) return;   // runtime and routing keep the browser's own keys

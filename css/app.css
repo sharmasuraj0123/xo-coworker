@@ -715,7 +715,8 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
    works in), a chat's pin, else Auto; another runtime than the Space's is named first. The popover: what it
    runs on (true now), the models as one list, how long it thinks as one labelled control, then runtime and
    routing folded away. What you pick shows at once and applies when it closes, as one change with Undo.
-   Geometry: a 12 px float with 6 px padding, so its 6 px rows are concentric with it (12 − 6). */
+   Geometry: a 12 px float whose rows sit 6 px in (its 1 px line and 5 px of padding), so their 6 px corners
+   are concentric with it (12 − 6); the phone sheet: 22, rows 16 in, 6. */
 .iq{flex:none;display:inline-flex;align-items:center;min-width:0;max-width:min(320px,46%);height:var(--h-ctl);padding:0 10px;border-radius:var(--r-sm);color:var(--ink-3);font:500 var(--fs-base)/20px var(--sans);white-space:nowrap;font-variant-numeric:tabular-nums}
 .iq:hover,.iq[aria-expanded="true"]{background:var(--hover-fill);color:var(--ink-2)}
 .iq:active{background:var(--press-fill)}
@@ -724,7 +725,7 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .iq-a{color:var(--ink-4)}
 .iq-e{color:var(--ink-3)}
 .iq-sep{margin:0 6px;color:var(--ink-5)}
-.iq-pop{position:fixed;z-index:var(--z-popover);display:flex;flex-direction:column;padding:6px;border-radius:var(--r-lg);background:var(--float);border:1px solid var(--line-soft);box-shadow:var(--e2);outline:none;transform-origin:100% 100%;animation:float-in var(--d-pop) var(--ease)}
+.iq-pop{position:fixed;z-index:var(--z-popover);display:flex;flex-direction:column;padding:5px;border-radius:var(--r-lg);background:var(--float);border:1px solid var(--line-soft);box-shadow:var(--e2);outline:none;transform-origin:100% 100%;animation:float-in var(--d-pop) var(--ease)}
 .iq-pop.is-out{animation:float-out var(--d-pop-out) var(--ease) forwards}
 .iq-h{display:flex;align-items:center;gap:10px;padding:8px 10px 2px}
 .iq-h h2{flex:1;min-width:0;font:600 var(--fs-base)/20px var(--sans);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -766,13 +767,18 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .iq-f{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:8px;padding:8px 10px 4px;border-top:1px solid var(--line-soft);font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
 .iq-back{margin-left:auto;height:28px;padding:0 8px;border-radius:var(--r-sm);color:var(--ink-2);font:500 var(--fs-sm)/16px var(--sans);white-space:nowrap}
 .iq-back:hover{background:var(--hover-fill);color:var(--ink)}
+.iq-done{margin-left:auto;height:28px;padding:0 12px;border-radius:var(--r-sm);background:var(--ink);color:var(--on-ink);font:500 var(--fs-sm)/16px var(--sans)}
+.iq-done:hover{background:var(--ink-hi)}
+.iq-done:active{transform:scale(var(--press-scale))}
 .iq-err{padding:6px 10px 0;font:400 var(--fs-sm)/16px var(--sans);color:var(--err-ink)}
 .iq-mv ul{display:flex;flex-direction:column;gap:4px;margin:0;padding:4px 10px 0 28px;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-2)}
 .iq-mv li::marker{color:var(--ink-4)}
 .iq-mv-acts{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:12px;padding:0 4px 4px}
 .iq-mv-acts .iq-rl{margin:0 auto 0 0;padding:0;display:inline-flex;align-items:center;gap:6px}
-.iq-pop.is-sheet{left:0;right:0;bottom:0;top:auto;width:auto;border-radius:var(--r-2xl) var(--r-2xl) 0 0;padding:14px 10px max(22px,env(safe-area-inset-bottom));transform-origin:50% 100%;animation:sheet-up var(--d-sheet) var(--ease)}
+.iq-pop.is-sheet{left:0;right:0;bottom:0;top:auto;width:auto;border-radius:var(--r-2xl) var(--r-2xl) 0 0;padding:15px 15px max(22px,env(safe-area-inset-bottom));transform-origin:50% 100%;animation:sheet-up var(--d-sheet) var(--ease)}
 .iq-pop.is-sheet .iq-row{height:44px}
+.iq-pop.is-sheet .iq-route{margin:0}
+.iq-pop.is-sheet .iq-route button{flex:1 1 auto;height:var(--h-lg);padding:0 6px}
 /* One appear for everything that floats (menus, popovers, pickers): a 4 px rise from where it was called,
    in 180 ms; it leaves in 140. */
 @keyframes float-in{from{opacity:0;transform:translateY(4px) scale(.98)}}
@@ -1167,8 +1173,6 @@ button.tp-done-u:hover{color:var(--ink)}
 .hr-ic.k-ping .hr-dot{width:6px;height:6px}
 
 /* ── intelligence: the chip (quietest thing in the composer) and its popover ── */
-/* a row never grows past the list (hub #20): its description gives way, the depth pips keep their box */
-.iq-pop.is-sheet{left:0;right:0;bottom:0;top:auto;width:auto;border-radius:var(--r-2xl) var(--r-2xl) 0 0;padding:16px 16px max(22px,env(safe-area-inset-bottom));animation:sheet-up .26s var(--ease)}
 
 /* ── dialogs and sheets ──────────────────────────────────────────────────── */
 .dlg{position:fixed;inset:0;margin:auto;width:min(480px,calc(100vw - 32px));max-height:calc(100dvh - 48px);padding:0;border:1px solid var(--line);border-radius:var(--r-2xl);background:var(--surface);color:var(--ink);box-shadow:var(--e2);overflow:auto}
