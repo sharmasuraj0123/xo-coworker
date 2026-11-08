@@ -111,6 +111,23 @@ async function hooks(page) {
 async function openApp(browser, BASE, W = {}, { width = 1440, height = 900, motion = false } = {}) {
   Object.assign(W, { base: BASE, files: W.files || {}, saves: [] });
   const ctx = await browser.newContext({ viewport: { width, height }, reducedMotion: motion ? "no-preference" : "reduce" });
+  // test-time only: every time focus falls to the page because the control that had it was removed or hidden,
+  // it's recorded; done() fails the test on any (the app itself has no runtime focus restorer: this finds the bugs)
+  await ctx.addInitScript(() => {
+    window.__focusDrops = [];
+    let last = null;
+    const name = (e) => `${e.tagName.toLowerCase()}${e.id ? "#" + e.id : ""}${[...e.attributes].filter((a) => a.name.startsWith("data-")).map((a) => `[${a.name}${a.value ? "=" + a.value : ""}]`).join("")} "${(e.getAttribute("aria-label") || e.textContent || "").trim().slice(0, 30)}"`;
+    addEventListener("DOMContentLoaded", () => {
+      document.addEventListener("focusin", (e) => { if (e.target !== document.body) last = e.target; }, true);
+      // a blur on purpose (a click on the page, el.blur()) leaves the control where it was: not a drop
+      document.addEventListener("focusout", (e) => { const t = e.target; if (last === t && t.isConnected && t.getClientRects().length) last = null; }, true);
+      const check = () => {
+        const a = document.activeElement;
+        if ((!a || a === document.body) && last && (!last.isConnected || !last.getClientRects().length)) { window.__focusDrops.push(name(last)); last = null; }
+      };
+      new MutationObserver(() => queueMicrotask(check)).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden", "class", "inert", "style"] });
+    });
+  });
   const page = await ctx.newPage();
   page.setDefaultTimeout(8000);
   const errors = [];

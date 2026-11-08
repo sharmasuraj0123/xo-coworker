@@ -327,16 +327,14 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
   function paint() {
     if (!F.host || !F.shown) return;
     const s = F.scope;
-    // a row (or a Try again) that had focus keeps it through the redraw: the same control drawn again, else the
-    // folder a Try again belonged to, else the tree's first row; never the page (Astra S061, S062, S065)
-    const a = document.activeElement, inTree = a && a !== document.body && F.host.contains(a);
-    const hooks = inTree ? [...a.attributes].filter((x) => x.name.startsWith("data-fl-") && x.name !== "data-fl-bytes") : [];
-    const sel = hooks.length ? hooks.map((x) => `[${x.name}="${CSS.escape(x.value)}"]`).join("") : null;
-    const retryOf = inTree ? a.dataset.flRetry : undefined;
+    // a Try again replaced by its folder's reading (or its rows) hands focus to that folder: its contract
+    // (Astra S061); rows themselves keep focus through a redraw in sync() (refocus)
+    const a = document.activeElement, retryOf = a && F.host.contains(a) ? a.dataset.flRetry : undefined;
     paintTree(s, F.host.querySelector(".fl-tree"));
     const has = viewer.hasFile;
     const lay = F.host.querySelector(".fl");
     lay.classList.toggle("is-wide", F.wide);
+    const treeFocus = lay.querySelector(".fl-tree")?.contains(document.activeElement) ? document.activeElement : null;
     lay.classList.toggle("is-folded", F.folded && F.wide && has);
     // the folded tree's Changed: a mark when this place changed something; how many is in its title
     const n = s.key === "all" ? 0 : T.changed;
@@ -344,37 +342,25 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     rb.title = n ? `Changed ${s.base ? "in this thread" : "here"}: ${n.toLocaleString()} file${n === 1 ? "" : "s"}` : "Changed here: nothing yet";
     rb.querySelector("em").hidden = !n;
     lay.classList.toggle("is-file", !F.wide && has && F.fileView);
+    // the file takes the tree's place (narrow), or the tree folds beside it (wide): a row that had focus is hidden
+    // with the tree, so the file, shown now, takes focus in the same step and focus never passes through the page
+    // (Astra C033)
+    if (treeFocus && !treeFocus.getClientRects().length) { const v = document.getElementById("viewer"); if (v && !v.hidden && v.getClientRects().length) v.focus({ preventScroll: true }); }
     lay.classList.toggle("has-file", has);
     const bar = F.host.querySelector(".fl-bar");
     const bh = has && !F.wide ? `<button type="button" class="fl-back" data-fl-back>${BACK}<span>${esc(s.key === "all" ? "Projects" : s.label || "Files")}</span></button>` : "";
     if (bar._h !== bh) { bar.innerHTML = bh; bar._h = bh; }
-    if (inTree) keepFocus(sel, retryOf);
+    if (retryOf != null && !a.isConnected) (F.host.querySelector(`[data-fl-retry="${CSS.escape(retryOf)}"]`) || (retryOf && rowOf(retryOf)) || F.host.querySelector(".fl-tree .fl-r"))?.focus({ preventScroll: true });
   }
-  function keepFocus(sel, retryOf) {
-    const now = document.activeElement;
-    if (now && now !== document.body && now.isConnected) return;
-    const to = (sel && F.host.querySelector(sel)) || (retryOf != null && (F.host.querySelector(`[data-fl-retry="${CSS.escape(retryOf)}"]`) || (retryOf && rowOf(retryOf)))) || F.host.querySelector(".fl-tree [data-fl-unpick], .fl-tree .fl-r");
-    to?.focus({ preventScroll: true });
-  }
+  /** Where focus goes when the place itself changes (a project picked, or left): its contract. */
+  function landIn(sel) { (sel && F.host.querySelector(sel)) ? F.host.querySelector(sel).focus({ preventScroll: true }) : F.host.querySelector(".fl-tree [data-fl-unpick], .fl-tree .fl-r")?.focus({ preventScroll: true }); }
 
   // ── opening ───────────────────────────────────────────────────────────────
   function openFile(s, local, from, bytes = null) {
     F.sel = local; F.fileView = true; F.auto = false;
     viewer.open({ path: local, name: base(local), bytes, project: s.project, rel: apiRel(s, local) }, from);
-    // the viewer can only take focus once Files has laid out for a file (it shows its file pane then): if focus
-    // didn't land, it goes to the viewer after that, not to the page (Astra C033)
+    // the viewer takes focus as Files lays out for the file (paint: the tree folds or gives way to it)
     paint();
-    // on a phone the file's pane shows only once the file has been read: wait for it (a second at most), and
-    // stop as soon as focus is somewhere real again (the viewer, or wherever the person went)
-    const v = document.getElementById("viewer");
-    let n = 0;
-    const land = () => {
-      const a = document.activeElement, lost = !a || a === document.body || !a.isConnected;
-      if (!v || (!lost && a !== from)) return;
-      if (lost && !v.hidden && v.getClientRects().length) { v.focus({ preventScroll: true }); if (document.activeElement === v) return; }
-      if (++n < 60) requestAnimationFrame(land);
-    };
-    requestAnimationFrame(land);
   }
   /** Wide, nothing chosen: the README is the front page, as GitHub shows one. */
   async function frontPage() {
@@ -626,15 +612,13 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
         viewer.open({ path: rel, name: base(rel), project: s.project, rel }, tc); return;
       }
       const pk = t.closest("[data-fl-pick]");
-      if (pk) { F.pick = pk.dataset.flPick; F.follow = null; setScope(F.view); paint(); keepFocus(null); frontPage(); return; }
-      if (t.closest("[data-fl-unpick]")) { const was = F.pick; F.pick = null; F.follow = null; viewer.close({ restore: false }); setScope(F.view); paint(); keepFocus(was ? `[data-fl-pick="${CSS.escape(was)}"]` : null); return; }
+      if (pk) { F.pick = pk.dataset.flPick; F.follow = null; setScope(F.view); paint(); landIn(null); frontPage(); return; }
+      if (t.closest("[data-fl-unpick]")) { const was = F.pick; F.pick = null; F.follow = null; viewer.close({ restore: false }); setScope(F.view); paint(); landIn(was ? `[data-fl-pick="${CSS.escape(was)}"]` : null); return; }
       const rt = t.closest("[data-fl-retry]");
       if (rt) {
         // the note with its Try again is redrawn as it reads: focus stays in the tree (the button again if it
         // failed again, else its folder, else the first row), never the page (Astra S061)
-        const dir = rt.dataset.flRetry;
-        const keep = () => { const a = document.activeElement; if (a && a !== document.body && a.isConnected && host.contains(a)) return; (host.querySelector(`[data-fl-retry="${CSS.escape(dir)}"]`) || (dir && rowOf(dir)) || host.querySelector(".fl-r"))?.focus({ preventScroll: true }); };
-        load(F.scope, dir, { again: true }).then(keep); keep();
+        load(F.scope, rt.dataset.flRetry, { again: true });
         return;
       }
       if (t.closest("[data-fl-back]")) { F.fileView = false; if (!F.wide) viewer.close({ restore: false }); paint(); host.querySelector(".fl-r.is-on, .fl-r")?.focus({ preventScroll: true }); }
