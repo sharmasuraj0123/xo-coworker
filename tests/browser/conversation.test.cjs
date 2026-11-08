@@ -1246,8 +1246,8 @@ t("DET-2 C121/C050: the working line opens the work with focus on its header; fo
 });
 
 // ── DET: no bumps from rows updated in place (bumps.cjs's frame analysis, on a long paged fixture thread) ──
-// Wheel up through older pages while a live turn keeps updating with focus held inside it (so its row takes
-// reconcile's in-place path on every frame); what you're reading may move only by your own wheel. At 1× and 4× CPU.
+// Wheel up through older pages (until two have landed) while a live turn keeps updating with focus held inside it (so
+// its row takes reconcile's in-place path on every update); what you're reading may move only by your own wheel. 1×, 4×.
 for (const cpu of [1, 4]) {
   t(`DET bumps: older pages landing while a focused live row updates in place move nothing you read (CPU ${cpu}×)`, async () => {
     const all = Array.from({ length: 240 }, (_, i) => ({ id: `t_live-h${i}`, seq: i + 1, chat_id: "chat_demo", thread_ts: "t_live", author_kind: i % 3 ? "agent" : "owner", author_id: i % 3 ? "agent" : "owner", author_session_id: null, text: `${i % 3 ? "Agent" : "My"} message ${i}. ${"Words that make the bubble wrap onto a few lines, as real replies do. ".repeat(1 + (i % 4))}`, reply_to: null, extra: {}, created_at: new Date(Date.now() - (240 - i) * 60000).toISOString() }));
@@ -1295,9 +1295,20 @@ for (const cpu of [1, 4]) {
     });
     const STEP = 60;
     const box = await page.locator("#scroller").boundingBox();
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    // the wheel goes over the conversation's messages (its upper part), where a person reading older ones has it
+    const at = { x: box.x + box.width / 2, y: box.y + Math.min(box.height * 0.3, 260) };
+    await page.mouse.move(at.x, at.y);
+    const under = await page.evaluate(({ x, y }) => { const e = document.elementFromPoint(x, y); return e ? `${e.tagName.toLowerCase()}.${String(e.className).split(" ")[0]} in #${e.closest("[id]")?.id}` : "nothing"; }, at);
+    // up until two older pages have landed (a phone's narrower column makes the same messages far taller, so it
+    // takes longer to reach the top where they load), at most 30 s; then a little more reading
+    const rows0 = await page.evaluate(() => document.getElementById("msgs").children.length);
     const t0 = Date.now();
-    while (Date.now() - t0 < 9000) { await page.mouse.wheel(0, -STEP); await page.waitForTimeout(16); }
+    let landed = 0;
+    for (let i = 0; Date.now() - t0 < 30000; i++) {
+      await page.mouse.wheel(0, -STEP); await page.waitForTimeout(16);
+      if (i % 25 === 0 && (await page.evaluate(() => document.getElementById("msgs").children.length)) >= rows0 + 50) { landed = Date.now(); break; }
+    }
+    for (let i = 0; landed && Date.now() - landed < 1500; i++) { await page.mouse.wheel(0, -STEP); await page.waitForTimeout(16); }
     await settle(page, 1200);
     const F = await page.evaluate(() => { clearInterval(window.__tick); return window.__b.f; });
     await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
@@ -1313,7 +1324,7 @@ for (const cpu of [1, 4]) {
       if (Math.abs(moved - expect) > 8 && Math.abs(moved - (expect + STEP)) > 8 && Math.abs(moved - Math.max(0, expect - STEP)) > 8) bumps.push({ moved: Math.round(moved), wheel: Math.round(wheel), n: `${a.n}→${c.n}` });
     }
     console.log(`    CPU ${cpu}×: ${F.length} frames, ${pages} list changes, rows ${F[0].n}→${F[F.length - 1].n}, bumps ${bumps.length}`);
-    assert.ok(pages > 0 && F[F.length - 1].n > F[0].n, "older pages landed during the wheel");
+    assert.ok(pages > 0 && F[F.length - 1].n > F[0].n, `older pages landed during the wheel (wheel over ${under}; scrollTop ${Math.round(F[0].ft)}→${Math.round(F[F.length - 1].ft)}, height ${F[0].sh}→${F[F.length - 1].sh}, wheel total ${Math.round(F[F.length - 1].wheel)})`);
     assert.deepEqual(bumps, [], "nothing you read moved but by your wheel");
     assert.ok(await page.evaluate(() => !!document.activeElement.closest("#msgs .m-turn")), "focus still inside the live turn");
     await done(page);
