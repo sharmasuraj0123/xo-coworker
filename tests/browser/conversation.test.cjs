@@ -1138,12 +1138,14 @@ async function liveTurn() {
   const threads = [...THREADS(), TH("t_live", "A thread at work", "working", { session_id: SID })];
   const page = await app({ threads, threadMsgs: { t_live: MSGS("t_live", 2) } });
   await openThread(page, "t_live");
+  // the turn's frames carry seqs after the thread's messages, as the stream's do (a frame without one would sit
+  // before them and split the turn oddly)
   await page.evaluate(([a, b, c]) => { for (const f of [a, b, c]) window.__storm.apply(f); }, [
-    env("session", { status: "running", role: "thread", agent: "claude_code" }, { turn_id: null }),
-    env("turn.started", { origin: "person", wakes: [] }),
-    env("block.started", { block: { id: `${TURN}:g0`, type: "activity", index: 0, header: "Running the tests", rows: [ROW()] } }),
+    env("session", { status: "running", role: "thread", agent: "claude_code" }, { turn_id: null, seq: 9001 }),
+    env("turn.started", { origin: "person", wakes: [] }, { seq: 9002 }),
+    env("block.started", { block: { id: `${TURN}:g0`, type: "activity", index: 0, header: "Running the tests", rows: [ROW()] } }, { seq: 9003 }),
   ]);
-  await page.waitForSelector(`#msgs .m-turn`);
+  await page.waitForSelector(`#msgs .m-turn.is-live`);
   await settle(page, 300);
   return page;
 }
@@ -1152,8 +1154,8 @@ t("DET-1 S002: a running step's output arriving keeps focus on its open disclosu
   // open the turn's work, its block of steps, then the step (its command shows; its output is still to come)
   await page.evaluate(() => { const w = document.querySelector("#msgs .mx-work"); if (w && w.getClientRects().length) w.click(); });
   await settle(page, 300);
-  await page.locator(`#msgs [data-tb="${TURN}:g0"]`).click();
-  await settle(page, 300);
+  const block = page.locator(`#msgs [data-tb="${TURN}:g0"]`);
+  if ((await block.getAttribute("aria-expanded")) !== "true") { await block.click(); await settle(page, 300); }
   const row = page.locator('#msgs [data-tb="row:call-det"]');
   await row.focus();
   await page.keyboard.press("Enter");
