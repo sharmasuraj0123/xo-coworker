@@ -264,15 +264,33 @@ t("redraw: a region redrawn keeps the focused control, what's typed, and applies
     input.blur();
     redraw(box, `<p>Newer</p><input id="rd-in" value="server again">`);
     const later = input.value;
+    await new Promise((ok) => setTimeout(ok, 0)); // the blur is judged (deliberate) before anything is removed
     // a focused checkbox takes the new HTML's checked (a refused toggle shows the saved state again)
     box.innerHTML = `<label><input type="checkbox" data-rtd-allowed="codex" checked> Codex</label>`;
     const cb = box.querySelector("input"); cb.focus(); cb.checked = false; // Space unticked it; the save was refused
     redraw(box, `<label><input type="checkbox" data-rtd-allowed="codex" checked> Codex</label><p role="alert">Not saved</p>`);
     const box2 = { same: document.activeElement === cb, checked: cb.checked };
+    cb.blur(); await new Promise((ok) => setTimeout(ok, 0));
     box.remove();
     return { kept, text, busy, gone, p, field, later, box2 };
   });
   assert.deepEqual(r, { kept: true, text: "Revoking b…", busy: "true", gone: true, p: "New words", field: { same: true, value: "typing on", caret: 3, cls: "is-bad" }, later: "server again", box2: { same: true, checked: true } });
+  await done(page);
+});
+
+t("the test-time check records a focused control that's removed (and not one blurred on purpose)", async () => {
+  const page = await app();
+  const drops = await page.evaluate(async () => {
+    const b = document.createElement("button"); b.textContent = "Gone"; b.setAttribute("data-probe", "x"); document.body.append(b);
+    b.focus(); b.remove();
+    await new Promise((ok) => setTimeout(ok, 50));
+    const c = document.createElement("button"); c.textContent = "Kept"; document.body.append(c);
+    c.focus(); c.blur(); await new Promise((ok) => setTimeout(ok, 0)); c.remove();
+    await new Promise((ok) => setTimeout(ok, 50));
+    const d = window.__focusDrops.slice(); window.__focusDrops.length = 0; return d;
+  });
+  assert.equal(drops.length, 1);
+  assert.match(drops[0], /data-probe=x/);
   await done(page);
 });
 
@@ -536,6 +554,102 @@ t("G6: a run that goes live while its stop is pending stays live; the late refus
   assert.equal(await page.locator(".lp").getAttribute("data-screen"), "live");
   assert.doesNotMatch(await page.locator("#live").innerText(), /Couldn't stop|still running|Deploy stopped/);
   SSE.head = [];
+  await done(page);
+});
+
+// ── the Intelligence picker ──
+async function picker(page) {
+  await toDemo(page);
+  await page.locator("#iq").filter({ visible: true }).first().click();
+  await page.locator('#iq-pop [data-dmodel="opus"]').waitFor();
+}
+t("INT-1: the catalog arriving while you're on a model keeps you on it", async () => {
+  let answer;
+  const W = {};
+  const page = await app(W);
+  await picker(page); // first opening: the catalog is cached
+  await page.keyboard.press("Escape");
+  W.modelsGate = new Promise((ok) => (answer = ok)); // the fresh read on the next opening waits
+  await page.locator("#iq").filter({ visible: true }).first().click();
+  await page.locator('#iq-pop [data-dmodel="opus"]').waitFor();
+  await page.locator('#iq-pop [data-dmodel="opus"]').focus();
+  answer();
+  await page.waitForTimeout(400);
+  assert.match(await active(page), /data-dmodel=opus/);
+  await done(page);
+});
+t("INT-2: Done saves, then closes; refused, the picker stays on your choice and Done tries again", async () => {
+  let answer;
+  const W = { patchMode: "503" };
+  const page = await app(W);
+  await picker(page);
+  await page.locator('#iq-pop [data-dmodel="sonnet"]').click();
+  W.patchGate = new Promise((ok) => (answer = ok));
+  await page.locator("#iq-pop [data-ldone]").click();
+  await page.locator("#iq-pop [data-ldone]").click(); // a second Done while the first is out
+  assert.equal(await page.locator("#iq-pop [data-ldone]").getAttribute("aria-busy"), "true", "Done says it's saving");
+  answer();
+  await page.waitForTimeout(300);
+  assert.equal(W.patches, 1, "one request for two Dones");
+  assert.ok(await page.locator("#iq-pop").isVisible(), "still open");
+  if (process.env.DEBUG) console.log(await page.locator("#iq-pop").innerText(), await page.evaluate(() => document.querySelector("#iq-pop").innerHTML.slice(0, 600)));
+  assert.equal(await page.locator('#iq-pop [data-dmodel="sonnet"]').getAttribute("aria-checked"), "true", "the choice is kept");
+  assert.match(await page.locator("#iq-pop").innerText(), /didn't save/);
+  W.patchGate = null; W.patchMode = "ok";
+  await page.locator("#iq-pop [data-ldone]").click();
+  await page.waitForTimeout(300);
+  assert.equal(W.patches, 2, "Done tried again");
+  assert.ok(!(await page.locator("#iq-pop").isVisible()), "closed once saved");
+  await done(page);
+});
+
+// ── Home's next move: the same protection as a decision card ──
+async function homeAsk(page, question = false) {
+  await page.evaluate((question) => {
+    const t = window.__t;
+    for (const name of ["reply", "decide", "decideItem", "resolve"]) t.world.act[name] = async () => ({});
+    t.world.state.threads = [{ id: "home-local", title: "A local task", project: "demo", live: false, busy: false, state: "needs_approval", messages: [], happened: "Test only", lastAt: Date.now(), checklist: { total: 1, done: 0, items: [{ text: "Step", state: "todo" }] },
+      asks: [{ id: "home-ask", title: "A local choice", kind: question ? "question" : "approval", risk: "routine", detail: "Test only", ...(question ? { options: ["First", "Second"] } : {}) }] }];
+    t.go("home"); t.render();
+  }, question);
+  await page.locator("#hm-next .next").waitFor();
+}
+const homeDecided = (page) => page.evaluate(() => window.__t.D.decisions().map((d) => d.choice));
+t("Home: Allow and an option can't decide in the ask's first 300 ms; after, they do", async () => {
+  for (const q of [false, true]) {
+    const page = await app();
+    await homeAsk(page, q);
+    await page.evaluate((q) => document.querySelector(q ? "[data-nx-opt]" : "[data-nx-allow]").click(), q);
+    assert.deepEqual(await homeDecided(page), [], "nothing at once");
+    await page.waitForTimeout(350);
+    await page.evaluate((q) => document.querySelector(q ? "[data-nx-opt]" : "[data-nx-allow]").click(), q);
+    assert.equal((await homeDecided(page)).length, 1, "decided once read");
+    await page.evaluate(() => window.__t.D.undo());
+    await done(page);
+  }
+});
+t("Home: a held key (repeat) never decides", async () => {
+  for (const q of [false, true]) {
+    const page = await app();
+    await homeAsk(page, q);
+    await page.waitForTimeout(350);
+    await page.locator("#hm-next .next").focus();
+    await page.evaluate((q) => document.querySelector("#hm-next .next").dispatchEvent(new KeyboardEvent("keydown", { key: q ? "1" : "a", repeat: true, bubbles: true, cancelable: true })), q);
+    assert.deepEqual(await homeDecided(page), [], "a repeat decided nothing");
+    await done(page);
+  }
+});
+t("Home: Enter while a word is being composed in the note doesn't send it back", async () => {
+  const page = await app();
+  await homeAsk(page);
+  await page.waitForTimeout(350);
+  await page.locator("[data-nx-back]").click();
+  await page.locator("#nx-note-in").fill("unfinished compos");
+  await page.locator("#nx-note-in").dispatchEvent("keydown", { key: "Enter", code: "Enter", isComposing: true, bubbles: true });
+  assert.deepEqual(await homeDecided(page), [], "composition Enter decided nothing");
+  await page.locator("#nx-note-in").press("Enter");
+  assert.deepEqual(await homeDecided(page), ["deny"], "a real Enter sends it back");
+  await page.evaluate(() => window.__t.D.undo());
   await done(page);
 });
 

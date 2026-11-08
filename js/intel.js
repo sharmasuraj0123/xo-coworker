@@ -13,6 +13,8 @@
 
 import * as K from "./keys.js";
 import { esc } from "./world.js";
+import { redraw } from "./redraw.js";
+import { once, busyAttrs } from "./pending.js";
 import { ICON, RM } from "./ui.js";
 import { api } from "./api.js";
 import { mainRuntime } from "./timeline.js";
@@ -194,7 +196,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     if (!ch.multi) return "";
     const kind = kindOf(s);
     const sel = kind === "thread" ? P.rt || ch.on : ch.on;
-    const btns = ch.list.map((o) => `<button type="button" role="radio" data-lrt="${esc(o.id)}" aria-checked="${sel === o.id}"${o.usable ? "" : ` aria-disabled="true" title="${esc(o.why)}"`}${P.busy ? " disabled" : ""}>${esc(o.label)}</button>`).join("");
+    const btns = ch.list.map((o) => `<button type="button" role="radio" data-lrt="${esc(o.id)}" aria-checked="${sel === o.id}"${o.usable ? "" : ` aria-disabled="true" title="${esc(o.why)}"`}${P.busy ? " disabled" : P.mv && P.mv.busy ? ' aria-disabled="true"' : ""}>${esc(o.label)}</button>`).join("");
     const off = ch.list.filter((o) => !o.usable);
     let line;
     if (kind === "thread") line = moving(s) ? "" : `This thread runs on ${esc(rtName(ch.on))} for its whole life.${ch.list.some((o) => o.id !== ch.on && o.usable) ? " Choose another to continue it there." : ""}`;
@@ -307,9 +309,10 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     }
     const changed = draftChanged(s);
     html += changed
-      ? `<footer class="iq-f"><span>From the next turn · Esc cancels</span><button type="button" class="iq-done" data-ldone>Done</button></footer>`
+      ? (P.saveErr ? `<p class="iq-err" role="alert">${esc(P.saveErr)}</p>` : "") + `<footer class="iq-f"><span>${P.saving ? "Saving…" : "From the next turn · Esc cancels"}</span><button type="button" class="iq-done" data-ldone${busyAttrs(`iq:${s}`)}>${P.saving ? "Saving…" : "Done"}</button></footer>`
       : `<footer class="iq-f"><span>Applies from the next turn.</span>${kind === "thread" && c.pinned ? `<button type="button" class="iq-back" data-lauto>Default model</button>` : ""}</footer>`;
-    pop.innerHTML = html;
+    // in place: the catalog arriving (or any change) never replaces the row you're on (Astra INT-1)
+    redraw(pop, html);
     place();
   }
   const CHECK = `<svg class="iq-ck" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`;
@@ -360,7 +363,28 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     if (!draftChanged(s)) { P.draft = null; return; }
     const d = P.draft; P.draft = null;
     if (!d.auto && !(P.models || []).some((m) => m.id === d.model)) return; // picked in another runtime's list
-    if (d.auto) toAuto(s); else pin(s, d.model, d.effort);
+    // closed by a click outside: it applies as it closes; refused, the choice waits for the next opening
+    once(`iq:${s}`, () => (d.auto ? toAuto(s) : pin(s, d.model, d.effort))).then((ok) => { if (!ok) failed.set(s, d); });
+  }
+  const failed = new Map(); // session → the choice a refused save left behind (the picker reopens on it)
+  /**
+   * Done: the choice is saved, and the picker closes once it has been. While it saves, Done says so and a second
+   * Done joins the first; refused, the picker stays open on your choice with what went wrong, and Done tries
+   * again (Astra INT-2).
+   */
+  async function done() {
+    const s = P.session;
+    if (!draftChanged(s)) { close(); return; }
+    const d = P.draft;
+    if (!d.auto && !(P.models || []).some((m) => m.id === d.model)) { close(); return; }
+    P.saving = true; P.saveErr = null; render();
+    const ok = await once(`iq:${s}`, () => (d.auto ? toAuto(s) : pin(s, d.model, d.effort)));
+    P.saving = false;
+    if (!P.open || P.session !== s) { if (!ok) failed.set(s, d); return; } // closed meanwhile: it waits for the next opening
+    if (ok) { failed.delete(s); P.draft = null; close({ apply: false }); return; }
+    P.saveErr = "That didn't save, so nothing changed. Your choice is still here: Done tries again.";
+    render();
+    pop.querySelector("[data-ldone]")?.focus({ preventScroll: true });
   }
   function place() {
     if (!P.anchor) return;
@@ -389,6 +413,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
   }
   /** A thread looks at continuing on `name`: its models there, read with a deadline (Default never waits). */
   function lookAt(name) {
+    if (P.mv && P.mv.busy) return; // a move in flight owns the runtime choice until it settles (Astra INT-3)
     P.draft = null;
     const s = P.session;
     P.rt = name;
@@ -403,6 +428,9 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
   async function open(s, anchor, opts = {}) {
     if (!live(s)) return;
     P.open = true; P.session = s; P.anchor = anchor; P.returnTo = document.activeElement; P.err = null; P.models = null; P.busy = false; P.rt = null; P.mv = null; P.full = false; P.draft = null; P.more = false;
+    P.saving = false;
+    P.saveErr = null;
+    if (failed.has(s)) { P.draft = failed.get(s); failed.delete(s); P.saveErr = "Your last choice here didn't save. It's still chosen: Done tries again."; }
     pop.hidden = false; pop.classList.remove("is-out");
     if (opts.rt) lookAt(opts.rt); else render();
     anchor?.setAttribute("aria-expanded", "true");
@@ -412,7 +440,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
   }
   function close({ restore = true, apply = true } = {}) {
     if (!P.open) return;
-    if (apply && !P.mv) commit(P.session); else P.draft = null;
+    if (apply && !P.mv && !P.saving) commit(P.session); else P.draft = null;
     P.req = (P.req || 0) + 1; // a read still in flight belongs to this opening only
     P.rt = null; P.mv = null;
     P.open = false;
@@ -435,8 +463,10 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       await world.act.refresh?.();
       onChange();
       record(s, { text, undo: undoBody ? async () => { try { await patch(s, undoBody); await world.act.refresh?.(); onChange(); } catch (err) { record(s, { text: `Couldn't undo: ${err.message}`, refused: true }); } } : null });
+      return true;
     } catch (err) {
       record(s, { text: `Nothing changed: ${err.message}`, refused: true });
+      return false;
     }
   }
   // The catalog's "no override" model. Storm stores and runs it as no override, and unlike null it
@@ -454,7 +484,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     const before = current(s);
     const kind = kindOf(s);
     const body = kind === "thread" ? { model, ...(effort ? { effort } : {}) } : { model, effort: effort || null };
-    change(s, body, restoreBody(s, before), `${kind === "thread" ? "This thread" : cap(scopeWord(s))}, next turn: ${nameOf(model)}${effort ? ` · ${EFFORT_WORD[effort] || effort}` : ""}`);
+    return change(s, body, restoreBody(s, before), `${kind === "thread" ? "This thread" : cap(scopeWord(s))}, next turn: ${nameOf(model)}${effort ? ` · ${EFFORT_WORD[effort] || effort}` : ""}`);
   }
   function toAuto(s) {
     const before = current(s);
@@ -462,8 +492,9 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       // the closest a thread can come to "no pin": the CLI's own model at its own effort
       const d = modelOf(defaultId());
       const ef = d && d.takes_effort ? d.default_effort || null : null;
-      change(s, { model: defaultId(), ...(ef ? { effort: ef } : {}) }, restoreBody(s, before), "This thread is back on the CLI's default model");
-    } else change(s, { model: defaultId(), effort: null }, restoreBody(s, before), `${cap(scopeWord(s))} is back on its default`);
+      return change(s, { model: defaultId(), ...(ef ? { effort: ef } : {}) }, restoreBody(s, before), "This thread is back on the CLI's default model");
+    }
+    return change(s, { model: defaultId(), effort: null }, restoreBody(s, before), `${cap(scopeWord(s))} is back on its default`);
   }
   function route(s, id) {
     const c = chatOfSession(s);
@@ -505,20 +536,21 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
   async function moveGo() {
     const s = P.session, t = threadOf(s), mv = P.mv;
     if (!t || !mv || mv.busy) return;
-    mv.busy = true; mv.err = null; render();
+    mv.busy = true; mv.err = null; mv.rt = P.rt; render();
     movedHere.add(t.id);
     try {
       const r = await api.continueThread(t.chatId, t.id, { agent: P.rt, model: mv.model || null, effort: mv.effort || null });
       const next = r && r.thread_id ? await world.act.fetchThread(t.chatId, r.thread_id).catch(() => null) : null;
       mv.busy = false;
-      close({ restore: false });
-      onMoved && onMoved(next, r.agent || P.rt);
+      // its result closes only the picker that started it, still open on it (another opening isn't this one's)
+      if (P.open && P.session === s && P.mv === mv) close({ restore: false });
+      onMoved && onMoved(next, r.agent || mv.rt || P.rt);
     } catch (err) {
       mv.busy = false;
       mv.retry = err.code === "still_busy" || err.code === "timeout" || err.status === 0;
       mv.err = err.code === "still_busy" ? "The thread didn't stop in time. Nothing moved; try again." : err.message;
-      render();
-      pop.querySelector("[data-mv-go]")?.focus();
+      // its failure is said in the picker that started it, if that picker is still open on it
+      if (P.open && P.session === s && P.mv === mv) { render(); pop.querySelector("[data-mv-go]")?.focus(); }
     }
   }
 
@@ -548,7 +580,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     const r = e.target.closest("[data-lroute]");
     if (r) { const s = P.session; close(); route(s, r.dataset.lroute); return; }
     if (e.target.closest("[data-lauto]")) { const s = P.session; P.draft = null; close({ apply: false }); toAuto(s); return; }
-    if (e.target.closest("[data-ldone]")) { close(); return; }
+    if (e.target.closest("[data-ldone]")) { done(); return; }
     if (e.target.closest("[data-lmore]")) { P.more = !P.more; render(); pop.querySelector("[data-lmore]")?.focus({ preventScroll: true }); return; }
     const dm = e.target.closest("[data-dmodel]");
     if (dm) { pickModel(dm.dataset.dmodel); pop.querySelector(`[data-dmodel="${CSS.escape(dm.dataset.dmodel)}"]`)?.focus({ preventScroll: true }); return; }
@@ -596,7 +628,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       else if (next.dataset.dmodel != null) { pickModel(next.dataset.dmodel); pop.querySelector(`[data-dmodel="${CSS.escape(next.dataset.dmodel)}"]`)?.focus({ preventScroll: true }); }
       return;
     }
-    else if (e.key === "Enter" && !P.mv && !e.target.closest("button:not([role=radio])")) { e.preventDefault(); close(); return; }
+    else if (e.key === "Enter" && !P.mv && !e.target.closest("button:not([role=radio])")) { e.preventDefault(); done(); return; }
     else if (K.is(e, "auto") && !e.target.closest("input,textarea")) { e.preventDefault(); if (threadOf(P.session)) { const s = P.session; close({ apply: false }); toAuto(s); } else pickModel(""); return; }
     if (e.key !== "Escape") return;
     e.preventDefault(); e.stopPropagation();
