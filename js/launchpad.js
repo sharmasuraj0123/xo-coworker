@@ -845,17 +845,29 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     load(p, true); changed();
   }
 
-  /** A notice's Undo was pressed for project p: focus moves before the notice takes its button away. Where it goes
-   *  depends on what is on screen. If p's section is open, onto sel in it (the redraw then names the final place).
-   *  If p is on screen with its section put away, onto the header's Deploy for p. If another place is on screen
-   *  (another project, Home), onto that page's work: the notice isn't about it, so its Deploy is never the place. */
+  /** A notice's Undo was pressed for project p: focus moves before the notice takes its button away, onto what the
+   *  Undo brought back, and only onto a control a person can reach. In order:
+   *    1. p's section, open: sel in it (the redraw then names the final place);
+   *    2. p's section in the open panel, folded: its head's fold (the run Undo kept is in there);
+   *    3. p on screen with the panel closed: the header's Deploy for p;
+   *    4. another place on screen: that page's work (the notice isn't about it: never another project's Deploy);
+   *    5. on a phone the open panel covers the page: the panel's own way back to it (Close the panel).
+   *  A control under the covering panel (a phone) is out of reach even where it isn't inert. */
   function fromNotice(p, sel) {
-    const drawn = (el) => !!(el && el.getClientRects().length && !el.closest("[inert]"));
+    const covered = document.body.classList.contains("stage-open") && matchMedia("(max-width: 760px)").matches;
+    const reach = (el) => !!(el && el.getClientRects().length && !el.closest("[inert]") && !(covered && !el.closest("#stage")));
+    const go = (el) => { el.focus({ preventScroll: true }); return true; };
     const n = visible(p) && S.body.querySelector(sel);
-    if (drawn(n)) { n.focus({ preventScroll: true }); return; }
-    const d = projectOf(S.v) === p && [...document.querySelectorAll("[data-lp-open]")].find(drawn);
-    if (d) { d.focus({ preventScroll: true }); return; }
-    ["scroller", "home"].map((id) => document.getElementById(id)).find(drawn)?.focus({ preventScroll: true });
+    if (reach(n)) return go(n);
+    const fold = S.el && !S.el.hidden && projectOf(S.v) === p && document.body.classList.contains("stage-open") && S.el.querySelector('[data-fr-fold="launch"]');
+    if (reach(fold)) return go(fold);
+    const d = projectOf(S.v) === p && [...document.querySelectorAll("[data-lp-open]")].find(reach);
+    if (d) return go(d);
+    const w = ["scroller", "home"].map((id) => document.getElementById(id)).find(reach);
+    if (w) return go(w);
+    const close = document.querySelector("#stage [data-stg-close]");
+    if (reach(close)) return go(close);
+    return false;
   }
 
   /** The ⋯ menu: opens with focus on its first item; closes back onto More (when focus was in it). */

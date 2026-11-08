@@ -510,7 +510,7 @@ t("LP21: the notice's Undo for Stop puts focus back on Stop; no stop is asked fo
 });
 
 for (const where of ["section put away", "another place on screen"]) {
-  t(`LP21: Stop's notice Undo with the ${where}: focus goes to ${where === "section put away" ? "the header's Deploy for this project" : "that page's work"}; no stop`, async () => {
+  t(`LP21: Stop's notice Undo with the ${where}: focus goes to ${where === "section put away" ? "Launchpad's own head in the panel" : "that page's work, or on a phone the panel's Close"}; no stop`, async () => {
     const calls = [];
     const page = await open({ launchpad: "building", onDeploy: (r, m, p) => { if (/\/api\/deploy\/[^/]+$/.test(p) && m === "DELETE") { calls.push(m); return json(r, { stopped: true }); } return r.fallback(); } });
     await W.openLaunchpad(page);
@@ -522,9 +522,12 @@ for (const where of ["section put away", "another place on screen"]) {
     await page.keyboard.press("Enter");
     await page.waitForTimeout(3300);
     assert.deepEqual(calls, [], "no stop was asked for");
-    const at = await page.evaluate(() => ({ lpOpen: document.activeElement.hasAttribute("data-lp-open"), id: document.activeElement.id }));
-    if (where === "section put away") assert.equal(at.lpOpen, true, "the header's Deploy");
-    else assert.equal(at.id, "scroller", "the Workspace's conversation");
+    // what Undo kept is the run, in Launchpad's section: its head (folded, in the panel) has focus. With another place on
+    // screen: that page's work, unless the open panel covers the page (a phone): then the panel's own Close
+    const at = await page.evaluate(() => { const a = document.activeElement; return { fold: a.getAttribute("data-fr-fold"), close: a.hasAttribute("data-stg-close"), id: a.id, inPanel: !!a.closest("#stage"), drawn: a.getClientRects().length > 0 }; });
+    if (where === "section put away") assert.deepEqual([at.fold, at.inPanel, at.drawn], ["launch", true, true], "Launchpad's head, in the panel");
+    else if (WIDTH > 760) assert.equal(at.id, "scroller", "the Workspace's conversation");
+    else assert.deepEqual([at.close, at.drawn], [true, true], "the covering panel's Close");
     await done(page);
   });
 }
