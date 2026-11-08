@@ -173,29 +173,33 @@ export async function conflict(host, text, o = {}) {
           on = null;
           if (had) host.focus({ preventScroll: true });
           inst.resolveConflictAndRender(action.conflictIndex, res);
-          if (had) requestAnimationFrame(() => { if (document.activeElement === host) onward(bar, y); });
+          // on, unless you went somewhere yourself meanwhile (focus still on the file's body, or nowhere)
+          if (had) requestAnimationFrame(() => { const a = document.activeElement; if (!a || a === host || a === document.body) onward(bar, y); });
         });
         bar.appendChild(b);
       }
       return bar;
     },
-    onMergeConflictResolve: (file) => o.onResolve && o.onResolve(file.contents, left(file.contents)),
+    onMergeConflictResolve: (file) => { places = left(file.contents); if (o.onResolve) o.onResolve(file.contents, places); },
   }, workers(P));
   // Pierre draws the choice bars again when the file's colours arrive from its worker (new nodes, the same places):
   // the place you're on is still the place you're on, so focus goes to it as drawn now, in the same step; only
   // while focus would otherwise be nowhere (the browser run: focus reached the next place, then fell to the page)
-  let on = null;
+  let on = null, places = left(text); // places: how many are still to choose (a bar left over from a redraw isn't one)
   host.addEventListener("focusout", (e) => { if (e.relatedTarget && !host.contains(e.relatedTarget)) on = null; });
   const keep = new MutationObserver(() => {
     const a = document.activeElement;
     if (!on || (a && a !== document.body)) return;
-    const bar = host.querySelector(`.xd-merge[data-place="${on.place}"]`);
+    const bar = places ? host.querySelector(`.xd-merge[data-place="${on.place}"]`) : null;
     if (bar) (bar.querySelectorAll("button")[on.b] || bar).focus({ preventScroll: true });
+    else { on = null; if (!places && o.onDone) o.onDone(); else host.focus({ preventScroll: true }); }
   });
   keep.observe(host, { childList: true, subtree: true });
   /** The next place to choose after the one at y (the place itself, not a choice in it: one Tab more chooses, so
    *  a held Enter can't choose for every place), else the first left; none left: o.onDone. */
   function onward(gone, y) {
+    // none left: Pierre leaves the last bar drawn until its next redraw, and that bar isn't a place any more
+    if (!places) { if (o.onDone) o.onDone(); return; }
     const bars = [...host.querySelectorAll(".xd-merge")].filter((x) => x !== gone && x.isConnected && x.getClientRects().length)
       .map((x) => [x, x.getBoundingClientRect().top]).sort((a, b) => a[1] - b[1]);
     const to = (bars.find(([, t]) => t >= y - 1) || bars[0])?.[0];

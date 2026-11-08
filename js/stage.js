@@ -341,7 +341,15 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     const aside = filesView.isOpen && (innerWidth <= 760 || filesView.docked);
     if (aside !== S.aside) {
       S.aside = aside;
-      if (aside && S.open) { S.yielded = true; close({ restore: false, quiet: true }); return; }
+      // stepping aside for a file you opened from the panel: what you were on goes with it, so focus goes to the
+      // file (Files couldn't take it a moment ago: the panel covering a phone kept it out of reach) (Astra S082)
+      if (aside && S.open) {
+        S.yielded = true;
+        const had = el.contains(document.activeElement) || document.activeElement === document.body;
+        close({ restore: false, quiet: true });
+        if (had) { const v = document.getElementById("viewer"), fv = document.getElementById("fv"); (v && !v.hidden && v.getClientRects().length ? v : fv)?.focus({ preventScroll: true }); }
+        return;
+      }
       // it comes back as it was when the file goes; but on a phone, "Back to chat" (Files put away to its chip)
       // means the chat: a panel brought back would cover it again (Astra C029). It opens from its button.
       if (!aside && S.yielded) { S.yielded = false; if (!S.open && !(innerWidth <= 760 && filesView.isMin)) open({ focus: innerWidth <= 760 }); }

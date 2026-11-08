@@ -291,7 +291,8 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
     onChange && onChange();
   }
   /** Focus on the file (the viewer), else on Files. */
-  const toFile = () => { const v = document.getElementById("viewer"); (v && !v.hidden && el.contains(v) ? v : el).focus({ preventScroll: true }); };
+  // the file where it's drawn, else Files itself
+  const toFile = () => { const v = document.getElementById("viewer"); (v && !v.hidden && el.contains(v) && v.getClientRects().length ? v : el).focus({ preventScroll: true }); };
   /** Esc: beside the chat, the file is put away (from the chat, an empty composer goes back to the file);
    *  covering the conversation, Files closes. True when it did something. */
   function escape(target) {
@@ -315,7 +316,9 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
       // opened it yourself and are still on what you opened it from (a file entry in a message, a node in the
       // panel's map: what you were on is covered, or steps aside on a phone): never the page (Astra S082, S224)
       const a = document.activeElement, asked = !!a && a !== document.body && (a === viewer.opener || !!a.closest?.(".stage"));
-      if (!F.open) open({ fileOnly: !files.auto, focus: modeNow() === "docked" || asked });
+      // focus goes once the file is laid out (below): on a phone the tree gives way to it only after reveal and
+      // paint, and a viewer not yet drawn can't take focus (the browser run, S224)
+      if (!F.open) { open({ fileOnly: !files.auto, focus: false }); F.focusFile = modeNow() === "docked" || asked; }
       if (!files.auto) files.reveal(f);
     } else if (!f && F.seen) {
       F.seen = null;
@@ -326,6 +329,7 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
     if (F.open && modeNow() !== modeOf()) { setDocked(dockable()); fit(); }
     if (F.open && viewer.hasFile !== F.had) { F.had = viewer.hasFile; fit(); }
     if (F.open) { files.render(view()); paint(); }
+    if (F.focusFile) { F.focusFile = false; if (F.open) toFile(); }
     // focus that was on the file goes to its chip once the header has drawn it
     if (F.toChip) { const c = [...document.querySelectorAll("[data-fv-restore]")].find((x) => x.offsetParent); if (c) { F.toChip = false; c.focus({ preventScroll: true }); } }
   }

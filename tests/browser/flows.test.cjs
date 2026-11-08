@@ -501,6 +501,9 @@ t("C034: Files' divider takes the pointer at its line, over the file beside it t
   await panelOpen(page);
   await filesOpen(page);
   await page.locator('[data-fl-file="a.js"]').filter({ visible: true }).first().click();
+  // beside the chat the tree may fold for the file: unfolded, the divider is between them
+  await page.waitForTimeout(300);
+  if (await page.locator(".fv .fl.is-folded").count()) await page.locator("[data-fv-tree]").filter({ visible: true }).first().click();
   const sp = page.locator(".fv .fl.is-wide .fl-split").first();
   await sp.waitFor();
   const hit = await sp.evaluate((e) => { const r = e.getBoundingClientRect(), y = r.top + r.height / 2; return [-3, 3].map((dx) => document.elementFromPoint(r.left + dx, y) === e); });
@@ -545,6 +548,7 @@ t("S208: the map's Follow says on and off as it's pressed", async () => {
 // S121 (a part opened from the folded panel's rail takes focus): not reachable in this test world. Opening Files
 // from the panel docks it beside the conversation, and the panel steps aside instead of folding to its rail, at
 // 1440, 1180, 1000 and 900 (checked in the browser, 8 Nov). The fix (js/stage.js, the rail's click) is code only.
+const PATCH = (f, a, b) => `diff --git a/${f} b/${f}\n--- a/${f}\n+++ b/${f}\n@@ -1,3 +1,3 @@\n-${a}\n+${b}\n two\n three\n`;
 t("C085/C086: another changed file picked: the last diff goes at once; Open in Files opens the one picked", async () => {
   let answer;
   const page = await app({ files: { "a.js": FILE(), "b.js": FILE() }, changesGate: new Promise((ok) => (answer = ok)), changes: [
@@ -1495,8 +1499,8 @@ for (const [name, sel, place] of [["C007 project search", "#pf-in", "home"], ["C
     const W = sel === "#pf-in" ? { extraChats: Array.from({ length: 12 }, (_, i) => H.chat(`chat_p${i}`, "project", `proj-${i}`)) } : {};
     const page = await app(W, { theme: "light" });
     if (WIDTH < 600 && sel === "#pf-in") { await done(page); return; } // the phone's sidebar is a drawer: the desktop case covers the rule
-    await page.locator(sel).waitFor({ state: "attached" });
     await page.evaluate((v) => window.__t.go(v), place);
+    await page.locator(sel).waitFor({ state: "attached", timeout: 20000 }); // the place's own field, once it's drawn
     const box = await page.evaluate((sel) => { const e = document.querySelector(sel); const b = e.parentElement; return { rest: getComputedStyle(b).borderColor }; }, sel);
     await page.locator(sel).focus();
     await page.waitForTimeout(300); // its border eases over --d-hover
