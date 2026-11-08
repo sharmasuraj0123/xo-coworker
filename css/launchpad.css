@@ -59,12 +59,14 @@
 /* ── the body ──────────────────────────────────────────────────────────────────────────────── */
 .lp{padding:0 0 16px}
 .lp.is-new{animation:rise-in var(--d-in) var(--ease)}
-.lp-hd{padding:4px 20px 12px}
-.lp-h{margin:0;font:600 var(--fs-lg)/24px var(--sans);letter-spacing:0;color:var(--ink);overflow-wrap:anywhere}
+/* One title on every screen, 20/28 in the same place: from Deploy to Starting to Building to Live only its words and
+   its tone change (the setup screens' 15 px and the run's 28 px made it jump between screens) */
+.lp-hd,.lpv-hero{padding:4px 20px 12px}
+.lp-h{margin:0;font:600 var(--fs-2xl)/28px var(--sans);letter-spacing:var(--tr-20);color:var(--ink);overflow-wrap:anywhere}
 .lp-h.t-go{color:var(--accent)}
 .lp-h.t-stop{color:var(--err-ink)}
 .lp-h.t-need{color:var(--need)}
-.lp-p{margin:2px 0 0;font:400 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
+.lp-p{margin:4px 0 0;font:400 var(--fs-base)/20px var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-3)}
 .lp :is(.lp-p,.lp-note,.lp-rec p) code{padding:0 4px;border-radius:calc(var(--r-xs) - 2px);background:var(--fill-2);font:400 var(--fs-sm)/16px var(--mono);color:var(--ink-3)}
 .lp-mono{font-family:var(--mono)}
 
@@ -96,22 +98,25 @@
 .lp-src svg{flex:none;width:14px;height:14px;margin-top:1px;color:var(--ink-4)}
 .lp-set{padding:12px 12px 0}
 .lp-f{display:grid;grid-template-columns:104px minmax(0,1fr);column-gap:8px;align-items:start;padding:6px 8px}
-.lp-l{padding:5px 0;font:500 var(--fs-base)/20px var(--sans);color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lp-l{padding:6px 0;font:500 var(--fs-base)/20px var(--sans);color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lp-v{display:flex;flex-direction:column;gap:4px;min-width:0}
 .lp-v.is-row{flex-direction:row;align-items:center;gap:8px}
 .lp-v.is-row .lp-hint{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lp-in{box-sizing:border-box;width:100%;height:30px;padding:0 8px;border-radius:var(--r-sm);border:1px solid var(--line-soft);background:var(--surface);font:400 var(--fs-base)/20px var(--sans);color:var(--ink);outline:none;transition:border-color var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease)}
+.lp-in{box-sizing:border-box;width:100%;height:var(--h-ctl);padding:0 8px;border-radius:var(--r-sm);border:1px solid var(--line-soft);background:var(--surface);font:400 var(--fs-base)/20px var(--sans);color:var(--ink);outline:none;transition:border-color var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease)}
 .lp-in.is-short{flex:none;width:64px;font-variant-numeric:tabular-nums}
+@media (max-width:760px){.lp-in.is-short{width:80px}} /* a phone's 16 px figures: five of them fit */
 .lp-in::placeholder{color:var(--ink-4)}
 .lp-in:hover{border-color:var(--line-strong)}
-.lp-in:focus{border-color:color-mix(in srgb,var(--accent) 70%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
+/* the focus every other field has (.field): the strongest edge and a quiet accent halo */
+.lp-in:focus{border-color:var(--line-hover);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent-fill) 16%,transparent)}
 .lp-hint{font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
 .lp-f.is-bad .lp-in{border-color:color-mix(in srgb,var(--danger) 70%,transparent)}
+.lp-f.is-bad .lp-in:focus{box-shadow:0 0 0 3px var(--danger-tint)} /* invalid and typed in: red, never a green halo round a red edge */
 .lp-f.is-bad .lp-hint{color:var(--err-ink)}
 /* the machine: a size from what Launchpad allows, a disk's path and GB, what a linked app was made with */
 .lp-selw{position:relative;display:block}
 .lp-sel{appearance:none;-webkit-appearance:none;padding-right:28px;cursor:pointer;text-overflow:ellipsis}
-.lp-selw svg{position:absolute;right:8px;top:8px;width:14px;height:14px;color:var(--ink-4);pointer-events:none}
+.lp-selw svg{position:absolute;right:8px;top:9px;width:14px;height:14px;color:var(--ink-4);pointer-events:none}
 .lp-f.is-bad .lp-sel{border-color:color-mix(in srgb,var(--danger) 70%,transparent)}
 .lp-pair{display:flex;align-items:center;gap:6px;min-width:0}
 .lp-pair .lp-in{flex:1 1 auto;min-width:0}
@@ -121,13 +126,13 @@
 .lp-at code{font:inherit;font-family:var(--mono);color:var(--ink-3);overflow-wrap:anywhere}
 /* Tab never lands on a field hidden behind the sticky Deploy: the scroll keeps room for the foot (Astra on b33d3eb) */
 #fr-body-launch{scroll-padding-bottom:120px}
-.lp-pair .lp-ib{width:28px;height:28px}
-.lp-ro{padding:5px 0;font:400 var(--fs-base)/20px var(--sans);color:var(--ink-2)}
+.lp-pair .lp-ib{width:var(--h-ctl);height:var(--h-ctl)}
+.lp-ro{padding:6px 0;font:400 var(--fs-base)/20px var(--sans);color:var(--ink-2)}
 .lp-hint code{font:400 var(--fs-sm)/16px var(--mono);color:var(--ink-3);background:none;padding:0}
 .lp-add{flex:none;margin-left:-8px}
 .lp-chg{flex:none;margin-left:auto}
 .lp-v.is-row .lp-ro{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lp-fix{display:inline;height:auto;padding:0;color:var(--ink-2);text-decoration:underline;text-underline-offset:3px}
+.lp-b.lp-fix{align-self:flex-start;height:var(--h-sm);padding:0 8px;border-radius:var(--r-sm);font:500 var(--fs-sm)/16px var(--sans)}
 .lp-env{margin:8px 12px 0;padding:0;border:0;min-width:0}
 .lp-env legend{display:flex;align-items:baseline;gap:8px;width:100%;padding:8px 8px 2px;font:600 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
 .lp-env legend small{font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
@@ -137,19 +142,23 @@
 .lp-lock svg{flex:none;width:14px;height:14px}
 
 /* ── buttons: lit (the one thing to do), quiet (an alternative), a word (a way out) ───────────────── */
-.lp-go{display:flex;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;height:36px;padding:0 16px;border-radius:var(--r-lg);border:0;background:var(--lit);color:var(--accent-ink);font:600 var(--fs-base)/20px var(--sans);text-decoration:none;white-space:nowrap;box-shadow:var(--lit-edge);transition:background var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
+.lp-go{display:flex;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;height:var(--h-lg);padding:0 16px;border-radius:var(--r-lg);border:0;background:var(--lit);color:var(--accent-ink);font:600 var(--fs-base)/20px var(--sans);text-decoration:none;white-space:nowrap;box-shadow:var(--lit-edge);transition:background var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
 .lp-go span{overflow:hidden;text-overflow:ellipsis}
 .lp-go svg{flex:none;width:16px;height:16px}
 .lp-go:hover{background:var(--lit-hover);transition-duration:var(--d-hover-in)}
 .lp-go:active{transform:scale(.98);background:var(--lit-press);box-shadow:var(--lit-edge),inset 0 1px 2px rgb(0 0 0 / .2)}
 .lp-go:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+/* waiting on Space (Starting a thread…): it keeps its colour and shows the arc; no hover, no press */
+.lp-go[aria-disabled="true"]{cursor:default}
+.lp-go[aria-disabled="true"]:is(:hover,:active){background:var(--lit);transform:none;box-shadow:var(--lit-edge)}
+.lp-go .lp-arc,.lp-b .lp-arc{color:currentColor}
 .lp-wide{width:calc(100% - 24px);margin:16px 12px 0}
 .lp-b{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px 0 10px;border-radius:var(--r);border:1px solid var(--line-soft);background:none;color:var(--ink-2);font:500 var(--fs-base)/20px var(--sans);text-decoration:none;white-space:nowrap;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .lp-b svg{flex:none;width:16px;height:16px}
 a.lp-b{padding:0 10px 0 12px}
 a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .lp-b:hover{background:var(--panel-hover);border-color:var(--line-strong);color:var(--ink);transition-duration:var(--d-hover-in)}
-.lp-a{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 8px;border-radius:var(--r);border:0;background:none;color:var(--ink-3);font:500 var(--fs-sm)/16px var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.lp-a{display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 8px;border-radius:var(--r);border:0;background:none;color:var(--ink-3);font:500 var(--fs-sm)/16px var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .lp-a svg{width:14px;height:14px}
 .lp-a:hover{background:var(--panel-hover);color:var(--ink)}
 .lp-ib{display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:var(--r);border:0;background:none;color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
@@ -161,6 +170,7 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .lp-q{flex:1;min-width:0;margin:0;padding-left:8px;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
 .lp-q.t-need{color:var(--need)}
 .lp-b[aria-disabled="true"]{color:var(--ink-4);border-color:var(--line-faint);background:none;cursor:default}
+.lp-err{margin:8px 8px 0;font:400 var(--fs-sm)/16px var(--sans);color:var(--err-ink)}
 .lp-or{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:12px 20px 0}
 .lp-or>span{font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
 
@@ -175,9 +185,10 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .lp-log{margin:12px 12px 0;padding:8px 12px;border-radius:var(--r);background:var(--fill-1);box-shadow:inset 0 0 0 1px var(--panel-line);font:400 var(--fs-sm)/16px var(--mono);color:var(--ink-3);white-space:pre-wrap;overflow-wrap:anywhere}
 
 .lp-mw{position:relative;margin-left:auto}
-.lp-menu{position:absolute;z-index:3;right:0;bottom:calc(100% + 4px);display:flex;flex-direction:column;min-width:200px;padding:4px;border-radius:var(--r-lg);background:var(--surface);box-shadow:inset 0 0 0 1px var(--panel-line),var(--e2)}
-.lp-menu button{height:32px;padding:0 8px;border-radius:var(--r);text-align:left;font:500 var(--fs-base)/20px var(--sans);color:var(--ink-2)}
-.lp-menu button:hover{background:var(--panel-hover);color:var(--ink)}
+.lp-mn{position:absolute;z-index:3;right:0;bottom:calc(100% + 4px);display:flex;flex-direction:column;min-width:200px;padding:4px;border-radius:var(--r-lg);background:var(--float);box-shadow:inset 0 0 0 1px var(--panel-line),var(--e2);transform-origin:100% 100%;animation:float-in var(--d-pop) var(--ease)}
+.lp-mn button{height:var(--h-ctl);padding:0 8px;border-radius:var(--r);text-align:left;font:500 var(--fs-base)/20px var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.lp-mn button:is(:hover,:focus-visible){background:var(--panel-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
+.lp-mn button:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 
 /* not ready: what's missing */
 .lp-check{grid-template-columns:none}
@@ -244,8 +255,8 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .top-end .lp-btn,#top-end .lp-btn{flex:none;align-self:center}
 
 /* light */
-:root[data-theme="light"] .lp-in{background:#fff;border-color:rgba(0,0,0,.12)}
-:root[data-theme="light"] .lp-in:hover{border-color:rgba(0,0,0,.2)}
+/* (light's own .lp-in border and hover, rgba literals, outranked the invalid edge and the focus: an invalid port
+   showed no red in light. The tokens already make light's field white with its own grey edge.) */
 :root[data-theme="light"] .lp-t{background:var(--surface);box-shadow:inset 0 0 0 1px var(--panel-line)}
 :root[data-theme="light"] .lp-agr{background:var(--surface);box-shadow:inset 0 0 0 1px var(--panel-line),var(--panel-lift)}
 :root[data-theme="light"] .lp-agr .arc{background:var(--surface)}
@@ -257,9 +268,6 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
    rolls out, red dashes where it broke, grey dashes for what isn't there yet. Stacked in the panel; side by side
    when the panel is wide (full size). A live part has a soft halo of its colour, as in the demo; nothing else
    glows. */
-.lpv-hero{padding:4px 20px 12px}
-.lpv-hero .lp-h{font:600 var(--fs-3xl)/36px var(--sans);letter-spacing:var(--tr-28)}
-.lpv-hero .lp-p{margin-top:4px;font:400 var(--fs-base)/20px var(--sans);color:var(--ink-3)}
 .lpv{--halo:transparent;display:flex;flex-direction:column;align-items:stretch;margin:0 12px}
 .lpv-vis{display:flex;flex-direction:column;align-items:center;gap:6px}
 .lpv-orb{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;color:var(--ink-4);background:radial-gradient(circle at 35% 30%,color-mix(in srgb,var(--ink) 9%,transparent),transparent 60%),var(--panel-surface);box-shadow:inset 0 0 0 1px var(--panel-line)}
@@ -283,7 +291,7 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .lpv-h>svg{flex:none;width:14px;height:14px}
 .lpv-h .lp-tm,.lpv-acts{margin-left:auto}
 .lpv-acts{display:flex;gap:2px;margin:-6px -8px -6px auto}
-.lpv-acts .lp-ib{width:28px;height:28px;border-radius:var(--r)}
+.lpv-acts .lp-ib{width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r)}
 .lpv-host{display:flex;flex-direction:column;min-width:0}
 .lpv-host b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 var(--fs-base)/20px var(--mono);letter-spacing:-.01em;color:var(--ink)}
 .lpv-host span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 var(--fs-sm)/16px var(--mono);color:var(--ink-4)}
@@ -344,9 +352,12 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .lpm-meta{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;margin:0;padding:8px 8px 0;font:400 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
 .lpm-meta+.lpm-meta{padding-top:4px}
 .lpm-meta code{font:400 var(--fs-sm)/16px var(--mono);color:var(--ink-2);background:none;padding:0}
-.lpm-k{min-width:52px;color:var(--ink-3);font-weight:500}
+.lpm-meta:has(>.lpm-k){position:relative;padding-left:120px}
+.lpm-k{position:absolute;left:8px;width:104px;color:var(--ink-3);font-weight:500}
+/* the setup form's own line (where the image comes from) reads like the fields round it: 13/20 */
+.lpm[data-mode="preview"] .lpm-meta{padding-top:6px;padding-bottom:6px;font-size:var(--fs-base);line-height:20px}
 .lpm-env{margin:0 12px;padding-top:4px}
-.lpm-env .lp-a{height:20px;margin-left:auto;padding:0 6px}
+.lpm-env .lp-a{height:var(--h-sm);margin:-4px 0 -4px auto;padding:0 8px}
 .lpm-meta .lpv-need{color:var(--need)}
 .lpv{display:none}
 :root[data-theme="light"] .lpm-t,:root[data-theme="light"] .lpm-addr{background:var(--surface)}
@@ -373,7 +384,7 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 :root[data-theme="light"] .lpv-tag{background:rgba(0,0,0,.05)}
 
 @media (prefers-reduced-motion:reduce){
-  .stage .fr-lp::before,.lpv-link::after,.lpm-l::after,.lp,.lp-arc::before,.lpv.is-skel *,.lpm.is-skel *{animation:none!important}
+  .stage .fr-lp::before,.lpv-link::after,.lpm-l::after,.lp,.lp-arc::before,.lpv.is-skel *,.lpm.is-skel *,.lp-mn{animation:none!important}
 }
 
 /* Open, Launchpad is drawn over the panel's other frames instead of folding them: its head stays in the stack (so
