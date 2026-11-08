@@ -15,6 +15,9 @@ import { rovingTab } from "./keynav.js";
 /** Settings' rail icon for Shape: a window and its parts. */
 export const SHAPE_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M9.5 4.5v15M9.5 11h11"/></svg>';
 
+/** Said when a change applied but this browser won't keep it (the shape store's kept: false). */
+export const UNKEPT = "Applied for now: this browser won't keep it after a reload (its storage is full or switched off).";
+
 /** Home's parts by surface: Your next move (and the asks after it), Handled, Recently made. */
 const HOME = { "xo:home/next": ["hm-next", "hm-then"], "xo:home/handled": ["hm-end"], "xo:home/recent": ["hm-made"] };
 // a preset chosen, or your JSON saved: each may read a preset file first, so one goes at a time
@@ -35,7 +38,8 @@ function inOrder(els) {
 export function createShapeView({ shape, announce = () => {} }) {
   // draft: the JSON as typed, not saved yet; saveErr: why the last Save of it was refused
   // pickErr: why the last preset choice was refused (said where it was asked: in the question, or under the cards)
-  const V = { confirm: null, err: null, pickErr: null, draft: null, saveErr: null, built: false };
+  // unkept: the last change applied but this browser won't keep it after a reload (its storage refused it)
+  const V = { confirm: null, err: null, pickErr: null, draft: null, saveErr: null, unkept: false, built: false };
   const page = document.querySelector('[data-page="shape"]');
   const box = page && page.querySelector(".shp");
   const nav = document.querySelector("#settings .set-nav");
@@ -95,7 +99,8 @@ export function createShapeView({ shape, announce = () => {} }) {
     const own = describeShape(pre, shape.shape);
     const dense = shape.get("density") === "compact";
     const c = V.confirm;
-    return `<section class="set-sec" aria-labelledby="shp-h-p"><h3 id="shp-h-p">What you mostly do here</h3>` +
+    return (V.unkept ? `<p class="set-err" role="alert">${esc(UNKEPT)}</p>` : "") +
+      `<section class="set-sec" aria-labelledby="shp-h-p"><h3 id="shp-h-p">What you mostly do here</h3>` +
       `<div class="set-choices" role="radiogroup" aria-labelledby="shp-h-p">${cardsOf().map((p) => `<button type="button" class="set-choice${p.id === id ? " is-on" : ""}" role="radio" aria-checked="${p.id === id}" data-shp-preset="${esc(p.id)}"${rovingTab(p.id === id)}${busyAttrs(SHAPING)}><span class="sc-dot" aria-hidden="true"></span><span class="sc-b"><b>${esc(p.name)}</b><span>${esc(p.summary)}</span></span></button>`).join("")}</div>` +
       // once Switch is pressed the choice is on its way (its preset may still be reading): Keep mine waits with it
       (c ? `<div class="shp-confirm" role="alertdialog" aria-labelledby="shp-cf"><p id="shp-cf"><b>Switch to ${esc(nameOf(c))}?</b> Your own changes are cleared. What you set on this device stays.</p>${V.pickErr ? `<p class="set-err" role="alert">${esc(V.pickErr)}</p>` : ""}<div class="set-fa"><button type="button" class="btn" data-shp-keep${isPending(SHAPING) ? ' aria-disabled="true"' : ""}>Keep mine</button><button type="button" class="btn btn-pri" data-shp-switch="${esc(c)}"${busyAttrs(SHAPING)}>Switch</button></div></div>`
@@ -166,7 +171,12 @@ export function createShapeView({ shape, announce = () => {} }) {
     redraw(box.querySelector(".shp-top"), topHtml());
     jsonRender();
   }
-  const said = (r, ok) => { V.err = r && r.error ? r.error : null; if (!V.err) announce(ok); render(); };
+  /** What a change did, said truthfully: refused, why; applied but not kept by this browser, that (instead of "done"). */
+  const said = (r, ok) => {
+    V.err = r && r.error ? r.error : null;
+    if (!V.err) { V.unkept = r.kept === false; if (!V.unkept) announce(ok); }
+    render();
+  };
   /** Where an action that takes its own control away (or disables it) leaves the keyboard: el, unless it moved on. */
   function landOn(el, from) {
     const a = document.activeElement;
@@ -183,8 +193,8 @@ export function createShapeView({ shape, announce = () => {} }) {
       if (r && r.error) { V.pickErr = r.error; render(); return; }
       // chosen: the question (if one was asked) goes, and in the same step the keyboard goes to the card now chosen
       const d = describeShape(createShape([]), shape.presetShape(id));
-      V.confirm = null; V.err = null;
-      announce(`${nameOf(id)}. ${d.length ? d[0] : "Every part of XO, as it is today."}`);
+      V.confirm = null; V.err = null; V.unkept = r.kept === false;
+      if (!V.unkept) announce(`${nameOf(id)}. ${d.length ? d[0] : "Every part of XO, as it is today."}`);
       render();
       landOn(chosenCard(), from);
     });
@@ -243,7 +253,8 @@ export function createShapeView({ shape, announce = () => {} }) {
       const res = await shape.setMine(r.doc);
       if (res.error) { V.saveErr = res.error; return false; }
       if (V.draft === sent) V.draft = null; // typed on while it saved: that's still a draft
-      V.err = null; announce("Saved. Your shape is applied.");
+      V.err = null; V.unkept = res.kept === false;
+      if (!V.unkept) announce("Saved. Your shape is applied.");
       return true;
     });
     jsonRender();
@@ -280,9 +291,9 @@ export function createShapeView({ shape, announce = () => {} }) {
     const done = async (id) => {
       if (el._done) return;
       el._done = true;
-      await shape.choose(id);
+      const r = await shape.choose(id);
       leave();
-      announce(id === "everything" ? "Everything shows. Settings › Shape changes it any time." : `${nameOf(id)}. Settings › Shape changes it any time.`);
+      announce((id === "everything" ? "Everything shows." : `${nameOf(id)}.`) + (r && r.kept === false ? ` ${UNKEPT}` : " Settings › Shape changes it any time."));
     };
     // answered elsewhere meanwhile: nothing is chosen here, the sheet just goes
     el._dismiss = () => { if (el._done) return; el._done = true; leave(); announce("Your shape came from your other device."); };

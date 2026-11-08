@@ -98,7 +98,7 @@ function settingsApi(W) {
     if (p === "/api/chat/runtime-policy" && m === "GET") return json({ space: W.policy, effective: { ...W.policy, fallback: !!W.policy.fallback } });
     if (p === "/api/chat/runtime-policy" && m === "PUT") { const b = q.postDataJSON(); if ((failed = await write("policy", b))) return failed; W.policy = b; return json({ space: W.policy, effective: { ...W.policy } }); }
     if (p === "/api/chat/shape" && m === "GET") return json(W.shape);
-    if (p === "/api/chat/shape" && m === "PUT") { const b = q.postDataJSON(); W.writes.push({ kind: "shape", body: b }); W.shape = { shape: b.shape, version: `v${W.writes.length}` }; return json(W.shape); }
+    if (p === "/api/chat/shape" && m === "PUT") { const b = q.postDataJSON(); if ((failed = await write("shape", b))) return failed; W.shape = { shape: b.shape, version: `v${W.writes.length}` }; return json(W.shape); }
     if ((k = /^\/api\/chat\/chats\/([^/]+)\/made$/.exec(p))) return json({ made: k[1] === "chat_demo" ? W.made : [], next_before: null });
     return r.fallback();
   };
@@ -108,9 +108,11 @@ function settingsApi(W) {
  * The app from the harness (its mock world, and its record of every time focus fell to the page), then this
  * world's Settings routes and the theme, and a reload so the app starts with both.
  */
-async function open(W, { width, theme, motion = false }, { firstRun = false, device = null } = {}) {
+async function open(W, { width, theme, motion = false }, { firstRun = false, device = null, fullStorage = false } = {}) {
   const page = await openApp(browser, BASE, W, { width, height: width < 600 ? 844 : 900, motion });
   await page.route("**/api/**", settingsApi(W));
+  // a browser whose storage refuses the shape's keys (full, or switched off), from the reload on
+  if (fullStorage) await page.context().addInitScript(() => { const set = Storage.prototype.setItem; Storage.prototype.setItem = function (k, v) { if (String(k).startsWith("cv-shape")) throw new DOMException("The quota has been exceeded.", "QuotaExceededError"); return set.call(this, k, v); }; });
   await page.evaluate(({ theme, firstRun, device }) => {
     localStorage.setItem("cv-theme", theme);
     if (firstRun) for (const k of ["cv-shape-mine", "cv-shape-device", "cv-shape-preset"]) localStorage.removeItem(k);
@@ -586,6 +588,48 @@ t("C115 a refused box shows what's saved again, says why, and Space tries again"
   await page.waitForFunction((s) => !document.querySelector(s).checked && !document.querySelector(s).hasAttribute("aria-busy") && !document.querySelector(".rt-ferr"), box);
   assert.deepEqual(page.W.policy.allowed, ["claude_code"]);
   assert.equal(writes(page, "policy"), 2);
+  await done(page);
+});
+t("C106 C099 a change this browser can't keep applies and says so, under its switch, instead of claiming it's done", async (ctx) => {
+  const page = await open(world(), ctx, { fullStorage: true });
+  await settings(page, "shape");
+  await keyFocus(page, "[data-shp-dense]");
+  await page.keyboard.press("Space");
+  await page.waitForFunction(() => document.documentElement.dataset.density === "compact");
+  await page.waitForSelector('[data-page="shape"] .set-err[role="alert"]');
+  assert.match(await page.locator('[data-page="shape"] .set-err').innerText(), /won't keep it after a reload/);
+  await page.waitForTimeout(150);
+  assert.doesNotMatch(await page.locator("#live").innerText(), /Compact on this device/, "no claim that it's done");
+  assert.equal(await focused(page), "button[data-shp-dense]");
+  await page.locator('[data-set="general"]').click();
+  await keyFocus(page, "#hops-tog");
+  await page.keyboard.press("Enter");
+  assert.equal(await page.locator("#hops-tog").getAttribute("aria-checked"), "true", "it applies");
+  await page.waitForSelector('[data-page="general"] .set-err[role="alert"]');
+  assert.match(await page.locator('[data-page="general"] .set-err').innerText(), /won't keep it after a reload/);
+  await page.waitForTimeout(150);
+  assert.doesNotMatch(await page.locator("#live").innerText(), /Showing how messages travel/);
+  await shot(page, "unkept");
+  await done(page);
+});
+t("S115 C101 a save XO couldn't take is held: a reload keeps it on screen, and it's sent again", async (ctx) => {
+  const W = world();
+  W.fail.shape = [err("unavailable", "Shape fixture unavailable")];
+  const page = await open(W, ctx);
+  await settings(page, "shape");
+  await keyFocus(page, '[data-shp-preset="marketing"]');
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelector('[data-shp-preset="marketing"]').getAttribute("aria-checked") === "true");
+  await page.waitForFunction(() => !!localStorage.getItem("cv-shape-unsynced"), null, { timeout: 8000 });
+  assert.equal(writes(page, "shape"), 1, "one PUT, refused with a 503");
+  assert.equal(W.shape.shape.preset, "everything", "XO still has the old one");
+  // the reload reads XO's older shape, and doesn't take it over the change: it sends the change again
+  await page.reload();
+  await page.waitForSelector('[data-go="p:demo"]', { state: "attached" });
+  await page.waitForFunction(() => !localStorage.getItem("cv-shape-unsynced"), null, { timeout: 8000 });
+  assert.equal(W.shape.shape.preset, "marketing", "it reached XO");
+  await settings(page, "shape");
+  assert.equal(await page.locator('[data-shp-preset="marketing"]').getAttribute("aria-checked"), "true", "and the page still shows it");
   await done(page);
 });
 t("C114 a refused usual runtime: the saved one stays chosen, the reason shows under it, the keyboard stays, and Enter tries again", async (ctx) => {

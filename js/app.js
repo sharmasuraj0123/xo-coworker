@@ -53,7 +53,7 @@ import { wireGestures } from "./gestures.js";
 import { rtName, manyRuntimes, findRt, healthOf, canMove, clockWords, untilWords } from "./runtimes.js";
 // the UI's shape per person: which surfaces show, in what order, how dense, in which words (js/shape.js)
 import { createShapeStore } from "./shape.js";
-import { createShapeView, SHAPE_IC } from "./shapeview.js";
+import { createShapeView, SHAPE_IC, UNKEPT } from "./shapeview.js";
 import { redraw } from "./redraw.js";
 import { setWorkMode } from "./turnview.js";
 
@@ -3212,14 +3212,16 @@ function hopsRender() { $("#hops-tog").setAttribute("aria-checked", String(!!S.s
 function webpicsRender() { $("#webpics-tog").setAttribute("aria-checked", String(SHAPE.on(WEBPICS))); }
 /**
  * What a General switch's change did, said truthfully: done, it's announced; refused (a newer XO saved this
- * device's layer, which this one won't overwrite), the switch stays as it was and the reason shows under its words.
+ * device's layer, which this one won't overwrite), the switch stays as it was and the reason shows under its words;
+ * applied but not kept (this browser's storage refused it), it says that under its words instead of "done".
  */
 function deviceSaid(tog, r, done) {
   const l = tog.closest(".set-row").querySelector(".set-l");
   let why = l.querySelector(".set-err");
-  if (r && r.error) {
+  const say = r && r.error ? r.error : r && r.kept === false ? UNKEPT : null;
+  if (say) {
     if (!why) { why = document.createElement("p"); why.className = "set-err"; why.setAttribute("role", "alert"); l.append(why); }
-    why.textContent = r.error;
+    why.textContent = say;
     return;
   }
   why?.remove();
