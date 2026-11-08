@@ -621,6 +621,80 @@ t("H20/S144: a refused clone Stop keeps focus on Stop, ready to try again", asyn
   await done(page);
 });
 
+t("C091: an Edit that couldn't open says it was opening, then hands focus back to Edit", async () => {
+  let answer;
+  const page = await app({ files: { "a.js": FILE() }, editReadFails: 1, editGate: new Promise((ok) => (answer = ok)) });
+  await toDemo(page);
+  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
+  const ed = page.locator("[data-vw-edit]");
+  await ed.waitFor();
+  await ed.focus();
+  await page.keyboard.press("Enter");
+  // it says it's opening at every width (a phone shows the icon only: the spinner takes the pencil's place)
+  await page.waitForFunction(() => { const b = document.querySelector("[data-vw-edit]"); return b && b.getAttribute("aria-label") === "Opening for editing" && b.querySelector(".spin")?.getClientRects().length; });
+  answer();
+  await page.waitForFunction(() => { const b = document.querySelector("[data-vw-edit]"); return b && !b.disabled; });
+  await page.waitForTimeout(150);
+  assert.match(await active(page), /data-vw-edit/, "back on Edit, to try again");
+  await done(page);
+});
+t("C092/S126: Download from ⋯ keeps focus on ⋯ while it downloads and once it's done", async () => {
+  let answer;
+  const page = await app({ files: { "a.js": FILE() }, downloadGate: new Promise((ok) => (answer = ok)) });
+  await toDemo(page);
+  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
+  const more = page.locator("[data-vw-more]");
+  await more.waitFor();
+  await more.focus();
+  await page.keyboard.press("Enter");
+  await page.locator(".vw-menu [data-vw-download]").focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelector("[data-vw-more]")?.getAttribute("aria-busy") === "true");
+  assert.match(await active(page), /data-vw-more/, "on ⋯ while it downloads");
+  await page.keyboard.press("Enter"); // pressed again meanwhile: nothing opens, nothing is asked twice
+  assert.equal(await page.locator(".vw-menu").count(), 0);
+  answer();
+  await page.waitForFunction(() => { const b = document.querySelector("[data-vw-more]"); return b && !b.hasAttribute("aria-busy"); });
+  assert.match(await active(page), /data-vw-more/, "and once it's done");
+  assert.equal(page.W.downloads, 1);
+  await done(page);
+});
+t("S232: a merge choice hands focus to the next place to choose, then to Save", async () => {
+  const base = "one\ntwo\nthree\nfour\nfive\nsix\nseven\n";
+  const page = await app({ files: { "a.js": { content: base, version: "sha256:A" } }, saveMode: "overlap", agentText: "AGENT1\ntwo\nthree\nfour\nfive\nsix\nAGENT7\n" });
+  await editing(page);
+  await typeAll(page, "MINE1\ntwo\nthree\nfour\nfive\nsix\nMINE7\n");
+  await page.locator("[data-vw-saveit]").click();
+  await page.waitForFunction(() => window.__ED.conflict && window.__ED.conflict.left === 2);
+  const first = page.locator(".xd-mbtn").first();
+  await first.waitFor();
+  await first.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => window.__ED.conflict.left === 1);
+  await page.waitForFunction(() => document.activeElement?.classList.contains("xd-merge"), null, { timeout: 3000 });
+  await page.keyboard.press("Tab"); // the place's choices are one Tab in
+  assert.match(await page.evaluate(() => document.activeElement.className), /xd-mbtn/);
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => window.__ED.conflict.left === 0);
+  await page.waitForFunction(() => document.activeElement?.hasAttribute("data-vw-saveit"), null, { timeout: 3000 });
+  await done(page);
+});
+t("S082: a file opened from the map takes focus (on a phone the panel steps aside for it)", async () => {
+  const page = await app({ files: { "a.js": FILE() } });
+  await panelOpen(page);
+  if (await page.locator('[data-ghost="map"]').filter({ visible: true }).count()) await page.locator('[data-ghost="map"]').filter({ visible: true }).first().click();
+  await page.locator("#stage-map-tree").waitFor();
+  await page.evaluate(() => document.querySelector("#stage-map-tree").click());
+  const n = page.locator('[data-node="a.js"]').filter({ visible: true }).first();
+  await n.waitFor();
+  await n.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => window.__t.VW.isOpen);
+  await page.waitForTimeout(250);
+  assert.match(await active(page), /id=viewer/);
+  await done(page);
+});
+
 t("C029: on a phone, Back to chat from a file shows the chat, not the panel again", async () => {
   if (WIDTH > 760) return; // beside the chat on a desktop, the panel coming back is the design
   const page = await app({ files: { "a.js": FILE() } });

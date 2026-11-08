@@ -145,7 +145,8 @@ export async function diff(host, patch, o = {}) {
 /**
  * A file with conflict markers (js/merge.js), in Pierre's merge view: each marked place offers three
  * choices, drawn here (o.labels: {current, incoming, both}: the words for yours, theirs, both). o.onResolve
- * (text, left) after each choice: the file as it now reads, and how many places are still to choose.
+ * (text, left) after each choice: the file as it now reads, and how many places are still to choose; o.onDone()
+ * once a choice made from the keyboard leaves none (where focus goes next: the viewer's Save).
  * Resolves to {destroy()}.
  */
 export async function conflict(host, text, o = {}) {
@@ -159,16 +160,33 @@ export async function conflict(host, text, o = {}) {
     mergeConflictActionsType: (action, inst) => {
       const bar = document.createElement("div");
       bar.className = "xd-merge";
+      bar.setAttribute("role", "group"); bar.setAttribute("aria-label", "Choose what to keep here"); bar.tabIndex = -1;
       for (const res of ["current", "incoming", "both"]) {
         const b = document.createElement("button");
         b.type = "button"; b.className = `xd-mbtn${res === "current" ? " is-mine" : ""}`; b.textContent = L[res];
-        b.addEventListener("click", () => inst.resolveConflictAndRender(action.conflictIndex, res));
+        b.addEventListener("click", () => {
+          // the choice goes with its place: focus waits on the file's body while the view redraws (never the
+          // page), then goes on to the next place still to choose, else to o.onDone (Astra S232)
+          const had = bar.contains(document.activeElement), y = bar.getBoundingClientRect().top;
+          if (had) host.focus({ preventScroll: true });
+          inst.resolveConflictAndRender(action.conflictIndex, res);
+          if (had) requestAnimationFrame(() => { if (document.activeElement === host) onward(bar, y); });
+        });
         bar.appendChild(b);
       }
       return bar;
     },
     onMergeConflictResolve: (file) => o.onResolve && o.onResolve(file.contents, left(file.contents)),
   }, workers(P));
+  /** The next place to choose after the one at y (the place itself, not a choice in it: one Tab more chooses, so
+   *  a held Enter can't choose for every place), else the first left; none left: o.onDone. */
+  function onward(gone, y) {
+    const bars = [...host.querySelectorAll(".xd-merge")].filter((x) => x !== gone && x.isConnected && x.getClientRects().length)
+      .map((x) => [x, x.getBoundingClientRect().top]).sort((a, b) => a[1] - b[1]);
+    const to = (bars.find(([, t]) => t >= y - 1) || bars[0])?.[0];
+    if (to) to.focus(); // brought into view if it's out of it
+    else if (o.onDone) o.onDone();
+  }
   v.render({ file: { name: String(o.path || "").split("/").pop(), contents: text, lang: langOf(o.path) }, containerWrapper: host });
   live.add(v);
   return { destroy() { live.delete(v); v.cleanUp(); host.replaceChildren(); } };

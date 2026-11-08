@@ -175,7 +175,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     ].filter(Boolean);
     if (!items.length) return "";
     const done = V.copied, busy = V.saving, word = done ? "Copied" : busy ? "Downloading…" : "";
-    return `<span class="vw-mw"><button type="button" class="vw-btn vw-more${done ? " is-done" : busy ? " is-busy" : ""}" data-vw-more aria-haspopup="menu" aria-expanded="${!!V.menu}" title="${word || "Copy, download"}" aria-label="${word || "More: copy, download"}"${busy ? " disabled" : ""}>` +
+    return `<span class="vw-mw"><button type="button" class="vw-btn vw-more${done ? " is-done" : busy ? " is-busy" : ""}" data-vw-more aria-haspopup="menu" aria-expanded="${!!V.menu}" title="${word || "Copy, download"}" aria-label="${word || "More: copy, download"}"${busy ? ' aria-disabled="true" aria-busy="true"' : ""}>` +
       `${done ? ICON.check : busy ? `<i class="spin" aria-hidden="true"></i>` : MORE_IC}${word ? `<span>${word}</span>` : ""}</button>` +
       (V.menu ? `<span class="vw-menu" role="menu" aria-label="${esc(f.name || "This file")}">${items.join("")}</span>` : "") + `</span>`;
   }
@@ -217,7 +217,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     const edit = why ? `<span class="xd-ro" title="${d.not_editable_reason === "read_only_place" ? "XO keeps this file: change it from its own screen" : esc(why)}">${d.not_editable_reason === "read_only_place" ? LOCK_IC : ""}<span>${esc(why)}</span></span>`
       : diffing && V.draft ? `<button type="button" class="xd-btn xd-draft" data-vw-show="file" title="Your unsaved edits to this file are kept: see them in File"><i></i>Your draft</button>`
       : !diffing && canEdit() && V.draft && !ED.opening ? `<span class="xd-state" title="Your unsaved edits, kept in this browser"><i></i>Your draft</span><button type="button" class="xd-btn" data-vw-draftx title="Let your draft go">Discard</button><button type="button" class="xd-edit" data-vw-edit title="Continue editing (E)" aria-label="Continue your draft">${EDIT_IC}<span>Continue</span></button>`
-      : !diffing && canEdit() ? `<button type="button" class="xd-edit" data-vw-edit title="Edit (E)" aria-label="Edit"${ED.opening ? " disabled" : ""}>${EDIT_IC}<span>${ED.opening ? "Opening…" : "Edit"}</span></button>` : "";
+      : !diffing && canEdit() ? `<button type="button" class="xd-edit" data-vw-edit title="${ED.opening ? "Opening it for editing…" : "Edit (E)"}" aria-label="${ED.opening ? "Opening for editing" : "Edit"}"${ED.opening ? " disabled" : ""}>${ED.opening ? '<i class="spin" aria-hidden="true"></i>' : EDIT_IC}<span>${ED.opening ? "Opening…" : "Edit"}</span></button>` : "";
     // Ask about this: the whole file, into its conversation's composer (lines have their own "Ask about lines")
     const askT = ask && ask.file && f.project && f.rel && ask.target(f);
     const askB = askT && !diffing ? `<button type="button" class="xd-btn vw-ask" data-vw-askfile title="Ask ${esc(askT)} about this file">Ask about this</button>` : "";
@@ -292,7 +292,8 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (el.contains(document.activeElement) && document.activeElement !== el) el.focus({ preventScroll: true });
     // a document (Markdown, HTML) is edited as its source
     if (!showsFile()) { V.mode = "source"; V.textMode = "source"; render(); } else paintHead();
-    const fail = (why) => { ED.opening = false; if (my !== V.gen) return; if (why) V.saveError = why; render(); };
+    // it didn't open: focus goes back to Edit (to try again), or the head when there's no Edit now (Astra C091)
+    const fail = (why) => { ED.opening = false; if (my !== V.gen) return; if (why) V.saveError = why; const back = focusHere(); render(); if (back) headFocus(); };
     try {
       // the whole file and its current version (a preview can stop at 256 KB; an edit reads up to 1 MB)
       const d = await api.projectFile(f.project, f.rel, null, { purpose: "edit" });
@@ -439,6 +440,8 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       path: V.file.name,
       labels: { current: "Keep yours", incoming: "Take the agent's", both: "Keep both" },
       onResolve: (text, left) => { if (!ED.conflict || ED.conflict !== mine3) return; ED.conflict.text = text; ED.conflict.left = left; paintHead(); },
+      // every place chosen: Save is next (S232)
+      onDone: () => { if (ED.conflict === mine3) el.querySelector("[data-vw-saveit]")?.focus({ preventScroll: true }); },
     });
     // the file was left while the merge view was drawing: it isn't this file's any more
     if (my !== edGen || ED.conflict !== mine3) { view && view.destroy && view.destroy(); return; }
@@ -488,7 +491,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     }
     if (d.kind === "pdf") return `<iframe class="vw-frame vw-pdf" src="${esc(d.url)}" title="${esc(V.file.name || "PDF")}" referrerpolicy="no-referrer"></iframe>`;
     const text = String(d.content ?? "");
-    const cut = d.truncated ? `<p class="vw-cut">${ICON.clock}<span>Showing the first ${esc(size(bytes(text)))} of ${esc(size(d.size_bytes))}. The rest isn't previewed.</span>${canSave() ? `<button type="button" class="vw-cut-dl" data-vw-download${V.saving ? " disabled" : ""}>Download the whole file</button>` : ""}</p>` : "";
+    const cut = d.truncated ? `<p class="vw-cut">${ICON.clock}<span>Showing the first ${esc(size(bytes(text)))} of ${esc(size(d.size_bytes))}. The rest isn't previewed.</span>${canSave() ? `<button type="button" class="vw-cut-dl" data-vw-download${V.saving ? ' aria-disabled="true" aria-busy="true"' : ""}>Download the whole file</button>` : ""}</p>` : "";
     let main;
     if (d.kind === "markdown" && V.mode !== "source") main = `<article class="prose vw-md">${renderMarkdown(text)}</article>`;
     else if (d.kind === "html" && V.mode === "preview") main = `<iframe class="vw-frame" sandbox="allow-scripts" referrerpolicy="no-referrer" title="${esc(V.file.name || "HTML preview")}" srcdoc="${esc(text)}"></iframe>`;
@@ -681,7 +684,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       // the head redraws; the file's body (Pierre's drawing, where you are, a question you're writing) stays
       const host = fileBody(), top = host.scrollTop, d = V.data;
       if (DF.handle || DF.key) dropDiff();
-      const cut = d.truncated ? `<p class="vw-cut">${ICON.clock}<span>Showing the first ${esc(size(bytes(d.content)))} of ${esc(size(d.size_bytes))}. The rest isn't previewed.</span>${canSave() ? `<button type="button" class="vw-cut-dl" data-vw-download${V.saving ? " disabled" : ""}>Download the whole file</button>` : ""}</p>` : "";
+      const cut = d.truncated ? `<p class="vw-cut">${ICON.clock}<span>Showing the first ${esc(size(bytes(d.content)))} of ${esc(size(d.size_bytes))}. The rest isn't previewed.</span>${canSave() ? `<button type="button" class="vw-cut-dl" data-vw-download${V.saving ? ' aria-disabled="true" aria-busy="true"' : ""}>Download the whole file</button>` : ""}</p>` : "";
       const bar = el.querySelector(":scope > .xd-bar");
       const failed = V.saveError ? `<p class="vw-cut" role="alert">${ICON.clock}<span>${esc(V.saveError)}</span></p>` : "";
       el.innerHTML = (tabs ? tabs() : "") + head() + failed + cut + `<i data-vw-file hidden></i>`;
@@ -841,6 +844,9 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
 
   el.addEventListener("click", (e) => {
     if (e.target.closest("[data-vw-more]")) {
+      // while it downloads it says so and keeps focus, but doesn't open (aria-disabled, not disabled: a disabled
+      // button drops focus to the page, and it never came back when the download ended: Astra C092/S126)
+      if (V.saving) return;
       V.menu = !V.menu; paintHead();
       (V.menu ? el.querySelector(".vw-menu [role=menuitem]") : el.querySelector("[data-vw-more]"))?.focus({ preventScroll: true });
       return;

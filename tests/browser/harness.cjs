@@ -104,6 +104,11 @@ function mockApi(W) {
     if (/^\/api\/xo-projects\/[^/]+\/file$/.test(p) && m === "GET") {
       const rel = u.searchParams.get("relative_path"), f = W.files[rel];
       if (!f) return json({ detail: { code: "not_found", message: "No such file" } }, 404);
+      // Edit's own read (the whole file, its version): held by W.editGate, refused W.editReadFails times
+      if (u.searchParams.get("purpose") === "edit") {
+        if (W.editGate) await W.editGate;
+        if (W.editReadFails) { W.editReadFails--; return json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503); }
+      }
       return json({ kind: "code", name: rel, content: f.content, version: f.version, editable: true, size_bytes: f.content.length, place: "ordinary" });
     }
     if (/^\/api\/xo-projects\/[^/]+\/file$/.test(p) && m === "PUT") {
@@ -116,11 +121,17 @@ function mockApi(W) {
       if (W.saveMode === "503") return json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503);
       if (W.saveMode === "confirm" && b.confirm !== "runs_code") return json({ detail: { code: "confirm_required", message: "This file runs code" } }, 428);
       if (W.saveMode === "overlap" && !W.clashed) {
-        W.clashed = true; f.content = "agent\ntwo\nthree\n"; f.version = "sha256:B";
+        W.clashed = true; f.content = W.agentText || "agent\ntwo\nthree\n"; f.version = "sha256:B";
         return json({ detail: { code: "file_changed", message: "changed", current: { content: f.content, version: f.version } } }, 409);
       }
       f.content = b.content; f.version = `sha256:saved${W.saves.length}`;
       return json({ version: f.version, edit_id: `edit-${W.saves.length}`, saved_at: new Date().toISOString() });
+    }
+    if (/^\/api\/xo-projects\/[^/]+\/download$/.test(p)) {
+      const f = W.files[u.searchParams.get("relative_path")];
+      W.downloads = (W.downloads || 0) + 1;
+      if (W.downloadGate) await W.downloadGate;
+      return f ? r.fulfill({ status: 200, contentType: "application/octet-stream", body: f.content }) : json({ detail: { code: "not_found", message: "No such file" } }, 404);
     }
     if (/^\/api\/xo-projects\/[^/]+\/edits\/[^/]+\/undo$/.test(p) && m === "POST") {
       W.undos = (W.undos || 0) + 1;

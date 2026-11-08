@@ -311,8 +311,11 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
     const f = viewer.hasFile ? viewer.file : null;
     if (f && f !== F.seen) {
       F.seen = f;
-      // beside the chat, the file you opened has focus (Esc puts it away); covering the conversation, as before
-      if (!F.open) open({ fileOnly: !files.auto, focus: modeNow() === "docked" });
+      // beside the chat, the file you opened has focus (Esc puts it away); covering the conversation, as before,
+      // unless it was opened from the panel: on a phone the panel steps aside for Files, and what you were on
+      // goes with it, so the file takes focus (Astra S082: a map's file node opened left focus on the page)
+      const fromPanel = !!document.activeElement?.closest?.(".stage");
+      if (!F.open) open({ fileOnly: !files.auto, focus: modeNow() === "docked" || fromPanel });
       if (!files.auto) files.reveal(f);
     } else if (!f && F.seen) {
       F.seen = null;
