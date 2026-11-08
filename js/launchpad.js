@@ -79,15 +79,21 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   const changed = () => { onChange && onChange(); };
 
   // ── what Space says about the project ──────────────────────────────────────
+  /** A read that will write the project's check takes a ticket; its answer applies only if no later read's answer
+   *  has applied already, so an older answer never overwrites a newer one (Astra: two rechecks, the older won). */
+  const ticket = (s) => (s.seq = (s.seq || 0) + 1);
+  const current = (s, n) => { if (n <= (s.applied || 0)) return false; s.applied = n; return true; };
   async function load(p, force = false) {
     const s = proj(p);
     if (s.loading || (!force && s.at && Date.now() - s.at < (s.err ? ERR_MS : AGAIN_MS))) return;
     s.loading = true; s.err = null;
+    const n = ticket(s);
     try {
       // once preflight has answered, a refresh asks it again on the fresh check: check alone would put its guesses
       // (origin usable, GitHub able, the app Live) back over what GitHub and Launchpad said
       let c = await api.check(p);
       if (s.pre === 2 && api.preflight) c = await api.preflight(p, s.form?.name);
+      if (!current(s, n)) { s.loading = false; return; } // a newer answer is already here
       s.check = c; s.at = Date.now();
       if (!s.form) s.form = { name: slug(c.name || p), port: c.port ? String(c.port) : "", repo: c.repo?.create || slug(p), env: {}, errs: {}, size: c.size || "", disk: !!c.storage, diskPath: c.storage?.path || "", diskGb: String(c.storage?.gb || 2) };
       if (c.running && !s.run && c.running !== s.ended) watch(p); // never the run Space just said was over
@@ -131,18 +137,23 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
 
   /** Space's network answers (admin on origin, the workflow scope, the linked app's state), once the section
    *  is open: they can change the repository row and the lit button, so Deploy waits for them. */
-  async function preflight(p, loud = false) {
+  /** Space's network answers. One at a time: while one is out (s.pre 1) another isn't sent; a recheck asked for
+   *  meanwhile joins it (s.loud), and the one answer says how it went. */
+  async function preflight(p) {
     const s = proj(p);
     if (!api.preflight || s.pre || !s.check || s.check.state === "not-deployable" || s.check.state === "needs-agent") return;
     s.pre = 1;
+    const n = ticket(s);
     try {
-      const c = await api.preflight(p, s.form?.name); if (c) s.check = c; s.pre = 2;
+      const c = await api.preflight(p, s.form?.name);
+      s.pre = 2;
+      if (current(s, n) && c) s.check = c;
       // asked for (I ran it: check again): what GitHub says now, in words
-      if (loud) { s.ghErr = null; announce(s.check.github?.workflow ? "GitHub has the workflow permission now." : "GitHub still doesn't have the workflow permission."); }
+      if (s.loud) { s.loud = false; s.ghErr = null; announce(s.check.github?.workflow ? "GitHub has the workflow permission now." : "GitHub still doesn't have the workflow permission."); }
     } catch (e) {
       s.pre = 2; // a deploy still says what's wrong, step by step
       // asked for: its failure is said, under the button that asked, and in the live region
-      if (loud) { s.ghErr = e?.message || "XO Space didn't answer"; announce(`Couldn't check GitHub: ${s.ghErr}.`); }
+      if (s.loud) { s.loud = false; s.ghErr = e?.message || "XO Space didn't answer"; announce(`Couldn't check GitHub: ${s.ghErr}.`); }
     }
     changed();
   }
@@ -224,7 +235,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       case "check-failed": return { tone: "", words: "Couldn't check" };
       case "setup": case "pick": return { tone: "", words: "Not deployed", cta: true };
       case "needs": return { tone: "", words: "Not ready yet", cta: true };
-      case "getting": return { tone: "work", words: "Getting ready", at: (s.check.getting || s.asked || findThread(p)).since };
+      case "getting": { const g = s.check.getting || findThread(p) || s.asked, st = askState(p, g); return st.k === "work" ? { tone: "work", words: "Getting ready", at: g.since } : { tone: "", words: st.k === "done" ? "Ready to merge" : "Thread started" }; }
       case "device": return { tone: "need", words: "Waiting for GitHub" };
       case "undo": return { tone: "work", words: "Starting" };
       case "lost": return { tone: "", words: "Lost touch" };
@@ -422,6 +433,15 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
         ? row("Disk", `<span class="lp-v"><span class="lp-pair"><input class="lp-in lp-mono" data-lp-f="diskPath" value="${esc(f.diskPath)}" placeholder="/data" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Where the disk is mounted" ${ids("disk")}><input class="lp-in is-gb" data-lp-f="diskGb" value="${esc(f.diskGb)}" inputmode="numeric" autocomplete="off" aria-label="Disk size in GB" ${ids("disk")}><span class="lp-u">GB</span><button type="button" class="lp-ib" data-lp="disk-remove" title="No disk" aria-label="No disk">${ICON.close}</button></span>${hint("disk", e.disk || "Grows later, never shrinks.")}</span>`, !!e.disk)
         : row("Disk", `<span class="lp-v is-row"><button type="button" class="lp-a lp-add" data-lp="disk-add">${ICON.plus}<span>Add a disk</span></button>${hint("disk", "Only at creation")}</span>`));
   }
+  /** A field's hint while its value is valid (what setupHtml and machineRows show without an error). */
+  function hintFor(k, p) {
+    const s = proj(p), c = s.check, f = s.form, editing = !!(s.editing && c.app);
+    if (k === "name") return "It can't change later.";
+    if (k === "port") return c.portFrom ? `${c.portSure === false ? "A guess from" : "From"} ${where(c.portFrom)}` : "Where the app listens";
+    if (k === "size") return sizeHint(c, f);
+    if (k === "disk") return editing ? "Grows, never shrinks." : "Grows later, never shrinks.";
+    return "";
+  }
   const sizeHint = (c, f) => (c.sizes?.def && (f.size || c.sizes.def) === c.sizes.def ? "The default; fixed once created." : "Fixed once it's created.");
   function field(id, label, value, { hint = "", bad = false, mode = "text", short = false, fix = "" } = {}) {
     // every hint and error sits under its field, whole (a short field's hint beside it was cut: "A port from 1 to 6553…");
@@ -496,13 +516,24 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       fixOf(e) + actionHtml(e);
   }
 
-  /** The thread an Ask (from a failed deploy) started: its row, lit, with what to do once it's done. */
+  /** What the app reports about the thread an Ask started: that exact thread (by id), else nothing known. Working
+   *  (and its arc, and its clock) only when its agent is at work; never a guess (Astra: idle or unreported threads
+   *  were drawn Working). */
+  function askState(p, g) {
+    const t = findThread(p), mine = t && g && t.thread === g.thread ? t : null;
+    if (!mine) return { k: "unknown", word: "Started · its status isn't reported yet" };
+    if (mine.done) return { k: "done", word: "Done: merge its work, then deploy" };
+    if (mine.busy) return { k: "work", word: "Working" };
+    return { k: "idle", word: "Not working right now" };
+  }
+  const askRow = (g, st) => `<ul class="lp-ag"><li><button type="button" class="lp-agr" data-lp="thread" data-go="t:${esc(g.thread)}" title="Open the thread"><span class="lp-t">${ICON.threadOne}${st.k === "work" ? '<i class="arc"></i>' : ""}</span><span class="lp-c"><b>${esc(g.title)}</b><span>${esc(st.word)}</span></span><span class="lp-m">${st.k === "work" ? `<span class="lp-tm">${since(g.since)}</span>` : ""}</span></button></li></ul>`;
+  /** The thread an Ask (from a failed deploy) started: its row, with what it means for deploying. */
   function askedHtml(p) {
     const s = proj(p), g = s.asked;
     if (!g || s.check?.state === "needs-agent") return "";
-    const t = findThread(p), done = !!(t && t.thread === g.thread && t.done);
-    return `<div class="lp-asked"><p class="lp-note">An agent is fixing it. Deploy again here once its work is merged.</p>` +
-      `<ul class="lp-ag"><li><button type="button" class="lp-agr" data-lp="thread" data-go="t:${esc(g.thread)}" title="Open the thread"><span class="lp-t">${ICON.threadOne}${done ? "" : '<i class="arc"></i>'}</span><span class="lp-c"><b>${esc(g.title)}</b><span>${done ? "Done: merge its work, then deploy" : "Working"}</span></span><span class="lp-m">${done ? "" : `<span class="lp-tm">${since(g.since)}</span>`}</span></button></li></ul></div>`;
+    const st = askState(p, g);
+    const line = st.k === "done" ? "Its agent says it's done. Merge its work, then deploy again here." : st.k === "work" ? "An agent is fixing it. Deploy again here once its work is merged." : "A thread was started to fix it. Deploy again here once its work is merged.";
+    return `<div class="lp-asked"><p class="lp-note">${line}</p>${askRow(g, st)}</div>`;
   }
 
   function needsHtml(p) {
@@ -513,9 +544,9 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   }
 
   function gettingHtml(p) {
-    const s = proj(p), g = s.check.getting || findThread(p) || s.asked;
-    return head(`Getting ${esc(nameOf(p))} ready`, "An agent is adding what Launchpad needs. Once its work is merged, Deploy is ready here.") +
-      `<ul class="lp-ag"><li><button type="button" class="lp-agr" data-lp="thread" data-go="t:${esc(g.thread)}" title="Open the thread"><span class="lp-t">${ICON.threadOne}${g.done ? "" : '<i class="arc"></i>'}</span><span class="lp-c"><b>${esc(g.title)}</b><span>${g.done ? "Done: merge its work, then deploy" : "Working"}</span></span><span class="lp-m">${g.done ? "" : `<span class="lp-tm">${since(g.since)}</span>`}</span></button></li></ul>` +
+    const s = proj(p), g = s.check.getting || findThread(p) || s.asked, st = askState(p, g);
+    const line = st.k === "done" ? "Its agent says it's done. Once its work is merged, Deploy is ready here." : st.k === "work" ? "An agent is adding what Launchpad needs. Once its work is merged, Deploy is ready here." : "A thread was started to add what Launchpad needs. Once its work is merged, Deploy is ready here.";
+    return head(`Getting ${esc(nameOf(p))} ready`, line) + askRow(g, st) +
       system(p, "preview");
   }
 
@@ -799,12 +830,17 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     load(p, true); changed();
   }
 
-  /** A notice's Undo was pressed: focus moves into the section (onto sel), or onto the header's Deploy when the
-   *  section isn't on screen, before the notice takes its button away; the redraw then names the final place. */
-  function fromNotice(sel) {
-    const n = S.body?.querySelector(sel);
-    if (n && n.getClientRects().length) n.focus({ preventScroll: true });
-    else document.querySelector("[data-lp-open]")?.focus({ preventScroll: true });
+  /** A notice's Undo was pressed for project p: focus moves before the notice takes its button away. Where it goes
+   *  depends on what is on screen. If p's section is open, onto sel in it (the redraw then names the final place).
+   *  If p is on screen with its section put away, onto the header's Deploy for p. If another place is on screen
+   *  (another project, Home), onto that page's work: the notice isn't about it, so its Deploy is never the place. */
+  function fromNotice(p, sel) {
+    const drawn = (el) => !!(el && el.getClientRects().length && !el.closest("[inert]"));
+    const n = visible(p) && S.body.querySelector(sel);
+    if (drawn(n)) { n.focus({ preventScroll: true }); return; }
+    const d = projectOf(S.v) === p && [...document.querySelectorAll("[data-lp-open]")].find(drawn);
+    if (d) { d.focus({ preventScroll: true }); return; }
+    ["scroller", "home"].map((id) => document.getElementById(id)).find(drawn)?.focus({ preventScroll: true });
   }
 
   /** The ⋯ menu: opens with focus on its first item; closes back onto More (when focus was in it). */
@@ -849,7 +885,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
           const n = S.body?.querySelector('.lp-q .lp-count');
           if (n) n.textContent = String(Math.max(1, Math.ceil((run.stopAt - Date.now()) / 1000)));
         }, 200);
-        notify && notify(`Stopping the deploy of ${s.form.name}`, () => { fromNotice('[data-lp="stop-undo"]'); keep(p, run); });
+        notify && notify(`Stopping the deploy of ${s.form.name}`, () => { fromNotice(p, '[data-lp="stop-undo"]'); keep(p, run); });
         land('[data-lp="stop-undo"]'); changed();
         announce(`Stopping the deploy in 3 seconds. Keep deploying to take it back.`);
         return;
@@ -860,7 +896,13 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
         // the setup form isn't redrawn under the person's fingers: its button shows the check itself
         if (el.isConnected) { el.innerHTML = ICON.check; el.title = "Copied"; clearTimeout(el._copied); el._copied = setTimeout(() => { if (el.isConnected) { el.innerHTML = ICON.copy; el.title = "Copy the command"; } }, 1500); }
       }); return;
-      case "recheck-gh": land('[data-lp="recheck-gh"], [data-lp="deploy"], [data-lp="reconnect"]'); s.pre = 0; s.ghErr = null; if (NEEDS_YOU.has(s.run?.error?.code)) s.run = null; announce("Checking GitHub again."); changed(); preflight(p, true); return;
+      case "recheck-gh": {
+        // one check at a time: pressed again while one is out, it joins that one (which then says how it went)
+        s.loud = true; s.ghErr = null;
+        if (s.pre === 1) return;
+        land('[data-lp="recheck-gh"], [data-lp="deploy"], [data-lp="reconnect"]'); s.pre = 0; if (NEEDS_YOU.has(s.run?.error?.code)) s.run = null;
+        announce("Checking GitHub again."); changed(); preflight(p); return;
+      }
       case "rewatch": s.run = null; watch(p); land('[data-lp="stop"]'); changed(); return;
       case "settings": s.run = null; s.needs = null; S.key = ""; land(s.form.errs?.size ? '[data-lp-f="size"]' : '[data-lp-f="name"]'); changed(); requestAnimationFrame(() => S.body?.querySelector(s.form.errs?.size ? '[data-lp-f="size"]' : '[data-lp-f="name"]')?.focus()); return;
       case "machine-open": s.machine = true; S.key = ""; land('[data-lp-f="size"]'); changed(); requestAnimationFrame(() => S.body?.querySelector('[data-lp-f="size"]')?.focus()); return;
@@ -886,7 +928,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
         s.check = { ...was, app: null, state: "ready" }; s.run = null; land('[data-lp="deploy"], [data-lp="reconnect"]'); changed();
         // refused, or undone: the app is back, and focus with it on More, where Unlink was
         const t = setTimeout(() => api.unlink(p).then(() => load(p, true)).catch((e) => { s.check = was; land('[data-lp="menu"]'); notify && notify(`Couldn't unlink: ${e.message}`); announce(`Couldn't unlink: ${e.message}. It's still linked.`); changed(); }), 3200);
-        notify && notify("Unlinked from Launchpad", () => { fromNotice('[data-lp="deploy"], [data-lp="reconnect"]'); clearTimeout(t); s.check = was; s.run = run; land('[data-lp="menu"]'); changed(); });
+        notify && notify("Unlinked from Launchpad", () => { fromNotice(p, '[data-lp="deploy"], [data-lp="reconnect"]'); clearTimeout(t); s.check = was; s.run = run; land('[data-lp="menu"]'); changed(); });
         return;
       }
       case "pick": startPick(p); return;
@@ -943,7 +985,16 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       const f = proj(p).form;
       if (t.dataset.lpF) f[t.dataset.lpF] = t.dataset.lpF === "name" || t.dataset.lpF === "repo" ? t.value.toLowerCase() : t.value.trim();
       if (t.dataset.lpEnv) f.env[t.dataset.lpEnv] = t.value;
-      if (f.errs && Object.keys(f.errs).length) { const l = t.closest(".lp-f"); l?.classList.remove("is-bad"); t.removeAttribute("aria-invalid"); t.querySelector?.(".dd-btn")?.removeAttribute("aria-invalid"); }
+      const k = t.dataset.lpF === "diskPath" || t.dataset.lpF === "diskGb" ? "disk" : t.dataset.lpF;
+      if (k && f.errs && f.errs[k]) {
+        delete f.errs[k]; if (k === "name") delete f.errs.nameFix;
+        const l = t.closest(".lp-f"); l?.classList.remove("is-bad");
+        for (const n of l ? l.querySelectorAll("[aria-invalid]") : []) n.removeAttribute("aria-invalid");
+        t.removeAttribute("aria-invalid"); t.querySelector?.(".dd-btn")?.removeAttribute("aria-invalid");
+        l?.querySelector(".lp-fix")?.remove();
+        const h = S.body.querySelector(`#lp-h-${k}`); if (h) h.textContent = hintFor(k, p);
+        S.key = bodyHtml(p).key; // the form as it now stands: the next paint has nothing to redraw
+      }
       syncPreview(p);
     });
     section.addEventListener("keydown", (e) => {

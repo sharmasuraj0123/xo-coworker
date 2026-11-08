@@ -16,15 +16,18 @@ const assert = require("assert/strict");
 let W;
 try { W = require("../../design-research/2026-11-lg/lp-shell/world.cjs"); } catch (e) { console.error(`not run: ${e.message.split("\n")[0]}`); process.exit(2); }
 
-let env, WIDTH = 1440, passed = 0, failed = 0;
+let env, WIDTH = 1440, THEME = "dark", MOTION = "reduce", passed = 0, failed = 0;
 const tests = [];
 const t = (name, fn) => tests.push({ name, fn });
-const open = (o = {}) => W.open(env.browser, env.base, { width: WIDTH, height: WIDTH > 760 ? 900 : 844, motion: "reduce", ...o });
+const open = (o = {}) => W.open(env.browser, env.base, { width: WIDTH, height: WIDTH > 760 ? 900 : 844, theme: THEME, motion: MOTION, ...o });
 // every case ends with both focus checks: Launchpad's own (a redraw with no place named) and the main build's
 // (window.__focusDrops: focus fell to the page because its control was removed or hidden)
+// Missing instrumentation fails the check: it never reads as "no drops" (Astra on 93b99ca).
 async function done(page) {
-  const { lost, drops } = await page.evaluate(() => ({ lost: window.__t?.LP?.lostFocus?.() || [], drops: window.__focusDrops || [] })).catch(() => ({ lost: [], drops: [] }));
+  const { lost, drops } = await page.evaluate(() => ({ lost: typeof window.__t?.LP?.lostFocus === "function" ? window.__t.LP.lostFocus() : null, drops: Array.isArray(window.__focusDrops) ? window.__focusDrops : null }));
   const errs = page.errors; await page.context().close();
+  assert.ok(Array.isArray(lost), "Launchpad's focus record is there (LP.lostFocus)");
+  assert.ok(Array.isArray(drops), "the BODY-drop check is installed (window.__focusDrops)");
   assert.deepEqual(errs, [], "page errors");
   assert.deepEqual(lost, [], "focus lost to the page by a redraw with no place named");
   assert.deepEqual(drops, [], "focus fell to the page: its control was removed or hidden (the main build's check)");
@@ -322,7 +325,8 @@ t("LP1A: I ran it: check again says when the check fails; a second Copy keeps it
   await page.locator('[data-lp="recheck-gh"]').click();
   await page.waitForSelector(".lp-gh-err");
   assert.match(await page.locator(".lp-gh-err").innerText(), /Couldn't check GitHub: Fixture offline/);
-  assert.match(await live(page), /Couldn't check GitHub/);
+  // announce() clears the live region and fills it 40 ms later: wait for the words, don't race them
+  await page.waitForFunction(() => /Couldn't check GitHub/.test(document.querySelector("#live")?.innerText || ""));
   assert.equal(await focused(page), "recheck-gh");
   fail = false;
   await page.locator('[data-lp="recheck-gh"]').click();
@@ -335,6 +339,51 @@ t("LP1A: I ran it: check again says when the check fails; a second Copy keeps it
   assert.equal(await cp.getAttribute("title"), "Copied");
   // and it does come back (a loaded machine may run the timer late: wait for it, don't race it)
   await page.waitForFunction(() => document.querySelector('[data-lp="cmd-copy"]')?.title === "Copy the command", null, { timeout: 4000 });
+  await done(page);
+});
+
+t("LP1A: a recheck pressed again while one is out joins it: one request, and its answer is the one said", async () => {
+  let reqs = 0, release, armed = false;
+  const okPre = { ...GHPRE, github: { ...GHPRE.github, workflow_scope: true } };
+  const page = await open({ launchpad: "ready", onDeploy: async (r, m, p) => {
+    if (!/\/preflight$/.test(p)) return r.fallback();
+    if (!armed) return json(r, GHPRE);
+    reqs++; await new Promise((ok) => (release = ok)); return json(r, okPre);
+  } });
+  await W.openLaunchpad(page);
+  await page.waitForSelector('[data-lp="recheck-gh"]');
+  armed = true;
+  await page.locator('[data-lp="recheck-gh"]').click();
+  await page.waitForFunction(() => document.querySelector('[data-lp="recheck-gh"]')?.getAttribute("aria-disabled") === "true");
+  assert.match(await page.locator('[data-lp="recheck-gh"]').innerText(), /Checking GitHub…/);
+  await page.evaluate(() => document.querySelector('[data-lp="recheck-gh"]').click()); // pressed again, pending
+  await page.waitForTimeout(300);
+  assert.equal(reqs, 1, "one request");
+  release();
+  await page.waitForFunction(() => /has the workflow permission now/.test(document.querySelector("#live")?.innerText || ""));
+  await page.waitForSelector('[data-lp="deploy"]');
+  assert.equal(reqs, 1);
+  await done(page);
+});
+
+t("LP15: a size changed after a refusal stays valid through a redraw (the model forgets the old rejection)", async () => {
+  const page = await open({ launchpad: "ready", onDeploy: (r, m, p) => {
+    if (/\/preflight$/.test(p)) return json(r, PRE);
+    if (/\/api\/deploy\/[^/]+$/.test(p) && m === "POST") { const ts = new Date().toISOString(); return sse(r, [{ type: "run", ts, run_id: "r9", kind: "deploy", attached: false, started_at: ts }, { type: "error", ts, step: "app", code: "size_not_allowed", message: "Size not allowed", fix: "", data: {} }]); }
+    return r.fallback();
+  } });
+  await W.openLaunchpad(page);
+  await page.locator('[data-lp="machine-open"]').click();
+  await page.locator('[data-lp="deploy"]').click();
+  await page.waitForFunction(() => document.querySelector('xo-select[data-lp-f="size"]')?.getAttribute("aria-invalid") === "true", null, { timeout: 9000 });
+  await page.keyboard.press("ArrowDown"); await page.keyboard.press("End"); await page.keyboard.press("Enter");
+  await page.waitForTimeout(150);
+  assert.match(await page.locator("#lp-h-size").innerText(), /Fixed once it's created\./, "the hint says what it says for a valid size");
+  // a redraw (Add a disk redraws the form) must not bring the old rejection back
+  await page.locator('[data-lp="disk-add"]').click();
+  await page.waitForSelector('[data-lp-f="diskPath"]');
+  const st = await page.evaluate(() => ({ bad: document.querySelectorAll(".lp-f.is-bad").length, inv: document.querySelectorAll('.fr-lp [aria-invalid="true"]').length, hint: document.querySelector("#lp-h-size")?.innerText, value: document.querySelector('xo-select[data-lp-f="size"]').value }));
+  assert.deepEqual(st, { bad: 0, inv: 0, hint: "Fixed once it's created.", value: "xo.medium" });
   await done(page);
 });
 
@@ -373,6 +422,26 @@ t("LP21: the notice's Undo for Stop puts focus back on Stop; no stop is asked fo
   await done(page);
 });
 
+for (const where of ["section put away", "another place on screen"]) {
+  t(`LP21: Stop's notice Undo with the ${where}: focus goes to ${where === "section put away" ? "the header's Deploy for this project" : "that page's work"}; no stop`, async () => {
+    const calls = [];
+    const page = await open({ launchpad: "building", onDeploy: (r, m, p) => { if (/\/api\/deploy\/[^/]+$/.test(p) && m === "DELETE") { calls.push(m); return json(r, { stopped: true }); } return r.fallback(); } });
+    await W.openLaunchpad(page);
+    await page.waitForFunction(() => document.querySelector(".lp")?.dataset.screen === "run");
+    await page.locator('[data-lp="stop"]').click();
+    if (where === "section put away") await page.locator('[data-lp="hide"]').click();
+    else { await page.evaluate(() => window.__t.go("ws")); await page.waitForTimeout(400); }
+    await page.locator("[data-herald-undo]").focus();
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(3300);
+    assert.deepEqual(calls, [], "no stop was asked for");
+    const at = await page.evaluate(() => ({ lpOpen: document.activeElement.hasAttribute("data-lp-open"), id: document.activeElement.id }));
+    if (where === "section put away") assert.equal(at.lpOpen, true, "the header's Deploy");
+    else assert.equal(at.id, "scroller", "the Workspace's conversation");
+    await done(page);
+  });
+}
+
 t("LP36: Unlink's Undo, and a refused Unlink, put focus back on More", async () => {
   let refuse = false;
   const page = await open({ launchpad: "live", onDeploy: (r, m, p) => (/\/link$/.test(p) && m === "DELETE" && refuse ? json(r, { detail: { code: "unavailable", message: "Fixture offline" } }, 503) : r.fallback()) });
@@ -410,17 +479,30 @@ t("LP37: Undo after Create it again goes back to Create it again", async () => {
   await done(page);
 });
 
-t("LP40: Ask an agent to fix it shows its thread, with focus on it", async () => {
-  const page = await open({ launchpad: "failed-build" });
-  await W.openLaunchpad(page);
-  await page.waitForFunction(() => document.querySelector(".lp")?.dataset.screen === "failed");
-  await page.locator('[data-lp="ask-fix"]').click();
-  await page.waitForSelector('[data-lp="thread"]');
-  await page.waitForTimeout(150);
-  assert.equal(await focused(page), "thread");
-  assert.match(await page.locator(".lp-asked").innerText(), /An agent is fixing it/);
-  await done(page);
-});
+for (const reported of ["none", "done"]) {
+  t(`LP40: Ask an agent to fix it shows its thread, saying only what's reported about it (${reported === "none" ? "nothing yet" : "done"})`, async () => {
+    // xo-space answers the ask with thread t_ready; "done": the app's list has that very thread, done
+    const page = await open({ launchpad: "failed-build", threads: reported === "done" ? [{ ts: "t_ready", chat_id: "chat_demo", title: "Deploy to Launchpad", state: "done", created_at: new Date().toISOString(), updated_at: new Date().toISOString(), status_md: "" }] : [] });
+    await W.openLaunchpad(page);
+    await page.waitForFunction(() => document.querySelector(".lp")?.dataset.screen === "failed");
+    await page.locator('[data-lp="ask-fix"]').click();
+    await page.waitForSelector('[data-lp="thread"]');
+    await page.waitForTimeout(150);
+    assert.equal(await focused(page), "thread");
+    const row = await page.evaluate(() => ({ text: document.querySelector(".lp-asked").innerText, arc: !!document.querySelector(".lp-asked .arc"), clock: !!document.querySelector(".lp-asked .lp-tm") }));
+    if (reported === "none") {
+      assert.match(row.text, /A thread was started to fix it/);
+      assert.match(row.text, /its status isn't reported yet/);
+      assert.doesNotMatch(row.text, /Working|is fixing it/);
+    } else {
+      assert.match(row.text, /Its agent says it's done/);
+      assert.match(row.text, /Done: merge its work, then deploy/);
+      assert.doesNotMatch(row.text, /Working|is fixing it/);
+    }
+    assert.deepEqual([row.arc, row.clock], [false, false], "no arc or clock for a thread not reported at work");
+    await done(page);
+  });
+}
 
 // ── Shells ──
 t("SH08/SH09/SH20/SH22/SH33: Minimise keeps focus on its button; Hide goes to the work; Show every shell and a refused New shell keep focus", async () => {
@@ -443,7 +525,8 @@ t("SH08/SH09/SH20/SH22/SH33: Minimise keeps focus on its button; Hide goes to th
   }
   await page.locator("[data-sh-hide]").focus();
   await page.keyboard.press("Enter");
-  assert.ok(await page.evaluate(() => document.activeElement && document.activeElement !== document.body), "hidden: focus on the work, not the page");
+  // put away on Home: Home itself (the page's work), drawn and focused
+  assert.deepEqual(await page.evaluate(() => ({ id: document.activeElement.id, drawn: document.activeElement.getClientRects().length > 0 })), { id: "home", drawn: true });
   await done(page);
 });
 
@@ -603,9 +686,13 @@ t("SH21/SH08/SH09: Close all detached asks and answers; minimise, show and hide 
     await page.keyboard.press("Enter");
     assert.equal(await page.evaluate(() => document.querySelector("#shd").classList.contains("is-min")), false);
   }
+  await page.evaluate(() => window.__t.go("p:demo")); // the dock stays across places
+  await page.waitForTimeout(300);
   await page.locator("[data-sh-hide]").focus();
   await page.keyboard.press("Enter");
   assert.equal(await page.locator("#shd").isHidden(), true);
+  // put away on a project: its conversation, drawn and focused
+  assert.deepEqual(await page.evaluate(() => ({ id: document.activeElement.id, drawn: document.activeElement.getClientRects().length > 0 })), { id: "scroller", drawn: true });
   await done(page);
 });
 
@@ -669,11 +756,14 @@ for (const mode of ["ok", "deny"]) {
   try { env = await W.start(); }
   catch (e) { console.error(`not run: Chromium didn't start (${e.message.split("\n")[0]})`); process.exit(2); }
   const only = process.argv[2] ? new RegExp(process.argv[2]) : null;
-  for (const width of [1440, 390]) {
-    WIDTH = width;
+  // every width in both themes and both motion settings: 1440 dark reduced, 1440 light full motion, 390 dark full
+  // motion, 390 light reduced (a case that names its own theme keeps it)
+  const MATRIX = [[1440, "dark", "reduce"], [1440, "light", "no-preference"], [390, "dark", "no-preference"], [390, "light", "reduce"]];
+  for (const [width, theme, motion] of MATRIX) {
+    WIDTH = width; THEME = theme; MOTION = motion;
     for (const { name, fn } of tests) {
       if (only && !only.test(name)) continue;
-      const label = `${name} [${width}]`;
+      const label = `${name} [${width} ${theme} ${motion === "reduce" ? "reduced" : "motion"}]`;
       try { await fn(); passed++; console.log("  ok  " + label); }
       catch (e) { failed++; console.error("  FAIL " + label + "\n" + (e.stack || e)); }
     }

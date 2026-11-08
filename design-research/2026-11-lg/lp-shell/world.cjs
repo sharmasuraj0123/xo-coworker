@@ -100,7 +100,7 @@ function mockApi(W) {
     }
     if (STATIC[p]) return json(STATIC[p]);
     if ((k = /^\/api\/chat\/chats\/([^/]+)\/(threads|messages|hops|made|runtime-policy|worktrees)$/.exec(p))) {
-      if (k[2] === "threads") return json({ threads: k[1] === "chat_demo" && W.thread !== false ? [THREAD] : [] });
+      if (k[2] === "threads") return json({ threads: k[1] === "chat_demo" && W.thread !== false ? [THREAD, ...(W.threads || [])] : [] });
       if (k[2] === "messages") return json({ messages: [], next_after_seq: 0, next_before_seq: 0 });
       if (k[2] === "made") return json({ made: [], next_before: null });
       if (k[2] === "worktrees") return json({ worktrees: [{ thread_ts: THREAD.ts, path: THREAD.worktree_path, exists: true }] });
