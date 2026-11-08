@@ -820,5 +820,40 @@ t("a note from an earlier build (the changes, no mine) over an older copy of min
   assert.equal(S.get("density"), "compact");
 });
 
+t("refused, then a newer change written here while its PUT is out: a reload keeps the newer one (the note follows mine)", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const st = mem();
+  const first = store({ storage: st, remote: F });
+  await first.S.ready;
+  F.next.put.push(() => { throw F.err(413, "shape_too_large"); });
+  await first.S.setMine({ shape: 1, preset: "marketing", density: "compact" });
+  await first.S.settled();
+  F.next.put.push(() => new Promise(() => {})); // the newer change's PUT never answers: the page goes before it does
+  first.S.setMine({ shape: 1, preset: "marketing", density: "comfortable" });
+  await new Promise((r) => setTimeout(r, 10));
+  assert.equal(JSON.parse(st.getItem(KEYS.mine)).density, "comfortable", "written here");
+  const again = store({ storage: st, remote: F });
+  assert.equal(again.S.get("density"), "comfortable", "the reload keeps the newer change");
+  assert.equal(again.S.held.why, "refused", "and still says what's held");
+});
+t("…and when the note couldn't follow (its write failed), this browser's newer copy of mine still wins over it", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const base = mem();
+  let refuseNote = false;
+  const st = { ...base, setItem: (k, v) => { if (k === KEYS.unsynced && refuseNote) throw new Error("QuotaExceededError"); base.setItem(k, v); } };
+  const first = store({ storage: st, remote: F });
+  await first.S.ready;
+  F.next.put.push(() => { throw F.err(413, "shape_too_large"); });
+  await first.S.setMine({ shape: 1, preset: "marketing", density: "compact" });
+  await first.S.settled();
+  refuseNote = true;
+  F.next.put.push(() => new Promise(() => {}));
+  first.S.setMine({ shape: 1, preset: "marketing", density: "comfortable" });
+  await new Promise((r) => setTimeout(r, 10));
+  assert.equal(JSON.parse(base.getItem(KEYS.unsynced)).mine.density, "compact", "the note is the older one");
+  const again = store({ storage: st, remote: F });
+  assert.equal(again.S.get("density"), "comfortable", "this browser's newer copy wins");
+});
+
 await Promise.all(pending);
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
