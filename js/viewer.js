@@ -287,6 +287,9 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     Object.assign(ED, { opening: true, ed: null, base: null, version: null, dirty: false, saving: false, err: null, confirm: false, discard: false, conflict: null, real: null, moved: false, from: false });
     V.saveError = null; V.menu = false;
     if (!(saved && saved.created)) { saved = null; toastPaint(); }
+    // Edit becomes Cancel · Save before the editor is ready: while it opens, focus waits on the viewer itself (the
+    // editor takes it when it's there), so it never passes through the page (found by the suite's drop check)
+    if (el.contains(document.activeElement) && document.activeElement !== el) el.focus({ preventScroll: true });
     // a document (Markdown, HTML) is edited as its source
     if (!showsFile()) { V.mode = "source"; V.textMode = "source"; render(); } else paintHead();
     const fail = (why) => { ED.opening = false; if (my !== V.gen) return; if (why) V.saveError = why; render(); };

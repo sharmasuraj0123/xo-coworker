@@ -13,7 +13,21 @@ const readJson = (f, d = null) => (fs.existsSync(path.join(DIR, f)) ? JSON.parse
 const desk = readJson('inventory-dark-1440.json'), phone = readJson('inventory-dark-390.json');
 // the states only some controls show, opened in the browser suite's mock world (tools/inventory-states.cjs)
 const mock = readJson('inventory-states-1440.json');
-const status = readJson('controls-status.json', {});
+// my side of a row (what changed since Astra last saw it): controls-status.json. Astra's verdicts come from its own
+// ledger, read-only (ASTRA_LEDGER, default its worktree's opus-row-verdicts-current.json); without it, "Unchecked".
+const myNotes = readJson('controls-status.json', {});
+const LEDGER = process.env.ASTRA_LEDGER || path.join(ROOT, '..', 'thread-cmsg_942e352acb4d4ba2', 'ui-mockups', 'lg-audit', 'opus-row-verdicts-current.json');
+let astra = {};
+try { for (const r of JSON.parse(fs.readFileSync(LEDGER, 'utf8')).rows) astra[r.opusId] = r; } catch { astra = {}; }
+const verdictOf = (id) => {
+  const r = astra[id];
+  const mine = myNotes[id] && !(r && /CLOSED/.test(r.reason || '')) ? ` · ${myNotes[id]}, awaiting Astra` : '';
+  if (!r) return `Unchecked${mine}`;
+  const v = r.behaviorVerdict === 'FAIL' || r.inventoryVerdict === 'FAIL' ? 'FAIL' : r.behaviorVerdict === 'PASS' ? 'PASS (scoped)' : 'Unverified';
+  const why = v === 'Unverified' && !/CLOSED/.test(r.reason || '') ? '' : `: ${String(r.reason || '').replace(/\|/g, '/').slice(0, 110)}`;
+  return `Astra ${v}${why}${mine}`;
+};
+const status = new Proxy({}, { get: (_, id) => verdictOf(String(id)) });
 // --dry: write the list and the registry to /tmp (to look before committing a registry)
 const DRY = process.argv.includes('--dry');
 const REG_FILE = DRY ? '/tmp/controls-ids.dry.json' : path.join(DIR, 'controls-ids.json');
@@ -448,7 +462,7 @@ const NOTES = {
   'data-route=decision': 'Disabled until its model is connected: no hover or press by design.',
   'data-shp-reset': 'Disabled while Shape is the preset as it comes.',
   '#stage-map-tree': 'sel', 'data-vw-mode=preview': 'sel', 'data-mode=empty': 'sel',
-  'data-dg': 'region', 'data-rtd-allowed': 'The 13 px box sits in a 34 px chip (its label) that answers hover and shows the ring; the chip is the target.',
+  'data-dg': 'region', 'data-content': 'region', 'data-rtd-allowed': 'The 13 px box sits in a 34 px chip (its label) that answers hover and shows the ring; the chip is the target.',
 };
 const NOTE_WORDS = { text: 'A text field: no hover by design; focus shows on its box.', jump: 'Jump\'s field is the dialog\'s only control and always has focus.', sel: 'The selected segment doesn\'t answer hover; the other one does.', region: 'A region you drag or scroll, not a button: no hover by design.' };
 function noteOf(k, cls) {
