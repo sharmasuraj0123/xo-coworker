@@ -173,16 +173,17 @@ export function createShapeView({ shape, announce = () => {} }) {
   const chosenCard = () => box.querySelector('[data-shp-preset][aria-checked="true"]');
   async function choose(id, from) {
     const p = once(SHAPING, async () => {
-      V.confirm = null;
       const r = await shape.choose(id);
       const d = describeShape(createShape([]), shape.presetShape(id));
+      // chosen: the question (if one was asked) goes, and in the same step the keyboard goes to the card now
+      // chosen; refused, the question stays with the reason, to switch again or keep yours
+      if (!(r && r.error)) V.confirm = null;
       said(r, `${nameOf(id)}. ${d.length ? d[0] : "Every part of XO, as it is today."}`);
+      landOn(chosenCard(), from);
     });
     render(); // the choices say they're waiting (a preset's file may be read first)
     await p;
     render();
-    // from Switch (the question is gone): the card now chosen
-    landOn(chosenCard(), from);
   }
 
   if (box) {

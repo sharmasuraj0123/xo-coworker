@@ -3205,17 +3205,30 @@ $("#sound-tog").addEventListener("click", () => { sound.on = !sound.on; soundRen
 // a switch says on or off; its label says what (no glyph in the knob)
 function hopsRender() { $("#hops-tog").setAttribute("aria-checked", String(!!S.showHops)); }
 function webpicsRender() { $("#webpics-tog").setAttribute("aria-checked", String(SHAPE.on(WEBPICS))); }
-$("#webpics-tog").addEventListener("click", () => {
+/**
+ * What a General switch's change did, said truthfully: done, it's announced; refused (a newer XO saved this
+ * device's layer, which this one won't overwrite), the switch stays as it was and the reason shows under its words.
+ */
+function deviceSaid(tog, r, done) {
+  const l = tog.closest(".set-row").querySelector(".set-l");
+  let why = l.querySelector(".set-err");
+  if (r && r.error) {
+    if (!why) { why = document.createElement("p"); why.className = "set-err"; why.setAttribute("role", "alert"); l.append(why); }
+    why.textContent = r.error;
+    return;
+  }
+  why?.remove();
+  announce(done);
+}
+$("#webpics-tog").addEventListener("click", (e) => {
   // this device's layer of the shape: a picture's site learns someone looked, so each device decides
   const on = !SHAPE.on(WEBPICS);
-  SHAPE.setDevice({ surfaces: { [WEBPICS]: { on } } });
-  announce(on ? "Pictures from the web show in the conversation." : "Pictures from the web show as links.");
+  deviceSaid(e.currentTarget, SHAPE.setDevice({ surfaces: { [WEBPICS]: { on } } }), on ? "Pictures from the web show in the conversation." : "Pictures from the web show as links.");
 });
-$("#hops-tog").addEventListener("click", () => {
+$("#hops-tog").addEventListener("click", (e) => {
   // this device's layer of the shape (xo:thread/hops), where cv-hops was folded in; the shape's change redraws
   const on = !S.showHops;
-  SHAPE.setDevice({ surfaces: { "xo:thread/hops": { on } } });
-  announce(on ? "Showing how messages travel." : "Hiding how messages travel.");
+  deviceSaid(e.currentTarget, SHAPE.setDevice({ surfaces: { "xo:thread/hops": { on } } }), on ? "Showing how messages travel." : "Hiding how messages travel.");
 });
 hopsRender();
 keys.addEventListener("click", (e) => { if (e.target === keys || e.target.closest("[data-close]")) closeKeys(); });
@@ -3271,10 +3284,12 @@ function setPage(id) {
 }
 function openSettings() {
   if (!setEl.hidden) return;
-  setReturn = document.activeElement;
+  // the layers Settings takes the place of close first (a phone's drawer hands the keyboard back to its menu):
+  // where the keyboard is then is where closing Settings returns it
   setDrawer(false);
   if (D.isOpen()) D.close();
   IQ.close({ restore: false });
+  setReturn = document.activeElement;
   setEl.hidden = false;
   $("#set-side").classList.add("is-on");
   $("#set-side").setAttribute("aria-expanded", "true");
@@ -3288,8 +3303,9 @@ function closeSettings({ restore = true } = {}) {
   syncInert();
   $("#set-side").classList.remove("is-on");
   $("#set-side").setAttribute("aria-expanded", "false");
-  // back where you were; an opener that's gone or hidden (Jump's box) gives way to the composer
-  if (restore) (setReturn && setReturn.isConnected && setReturn.offsetParent ? setReturn : say)?.focus?.({ preventScroll: true });
+  // back where you were, if it can take the keyboard (there, drawn, not inert, not disabled); else the composer
+  const takes = (el) => !!el && el !== document.body && el.isConnected && el.getClientRects().length > 0 && !el.closest("[inert]") && !el.disabled;
+  if (restore) [setReturn, say].find(takes)?.focus({ preventScroll: true });
 }
 $("#set-side").addEventListener("click", () => (setEl.hidden ? openSettings() : closeSettings()));
 $("#set-phone").addEventListener("click", openSettings);

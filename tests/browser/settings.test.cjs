@@ -12,6 +12,8 @@
 //   C114 C115 S097 S098  Runtimes: focus stays on the default, the boxes and the switch through a save; one PUT;
 //                  a refused preference keeps what was typed
 //   C118 S022 S023 Keyboard: Esc keeps the key focused; a reset → its key; Reset all → the first key
+//   H17 C010      Esc from Settings opened from a phone's drawer returns to the menu, not the inert sidebar
+//   C099 C100      a General switch the shape refuses says why and never claims it changed
 //   S114 S115      Shape JSON: Revert and Save → the text
 //   S116 S117      the first-run question keeps Tab and Shift+Tab inside it
 //   C012 C013      Home: a control in Handled or Recently made keeps focus through Home's redraws
@@ -39,7 +41,8 @@ const err = (code, message, extra = {}) => ({ status: code === "would_lose_work"
 function world(over = {}) {
   return {
     router: { mode: "agent", decision_model: null, abstain_below: 0.5 },
-    models: [{ id: "levanto", label: "Levanto Sage", connected: true, model: "sage-1", docs_url: null }, { id: "quill", label: "Quill Route", connected: false, model: "q-2", docs_url: null }],
+    // the router's decision models (W.models is the harness's runtime catalog)
+    dms: [{ id: "levanto", label: "Levanto Sage", connected: true, model: "sage-1", docs_url: null }, { id: "quill", label: "Quill Route", connected: false, model: "q-2", docs_url: null }],
     rules: [
       { id: "r1", sentence: "Run `npm test` in this project", scope: "project", project_pid: "pid_demo", effect: "allow", uses: 3, created_at: NOW },
       { id: "r2", sentence: "Read files outside the project", scope: "space", effect: "allow", uses: 1, created_at: NOW },
@@ -75,9 +78,9 @@ function settingsApi(W) {
     let k, failed;
     if (p === "/api/chat/router" && m === "GET") return json(W.router);
     if (p === "/api/chat/router" && m === "PUT") { const b = q.postDataJSON(); if ((failed = await write("router", b))) return failed; W.router = { ...b, decision_model: b.decision_model || null }; return json(W.router); }
-    if (p === "/api/chat/router/models" && m === "GET") return json({ models: W.models });
-    if (p === "/api/chat/router/models" && m === "POST") { const b = q.postDataJSON(); if ((failed = await write("connect", b))) return failed; W.models = W.models.map((x) => (x.id === b.provider ? { ...x, connected: true } : x)); return json({ models: W.models }); }
-    if ((k = /^\/api\/chat\/router\/models\/([^/]+)$/.exec(p)) && m === "DELETE") { if ((failed = await write("disconnect"))) return failed; W.models = W.models.map((x) => (x.id === k[1] ? { ...x, connected: false } : x)); if (W.router.decision_model === k[1]) W.router = { ...W.router, mode: "agent", decision_model: null }; return json({ models: W.models }); }
+    if (p === "/api/chat/router/models" && m === "GET") return json({ models: W.dms });
+    if (p === "/api/chat/router/models" && m === "POST") { const b = q.postDataJSON(); if ((failed = await write("connect", b))) return failed; W.dms = W.dms.map((x) => (x.id === b.provider ? { ...x, connected: true } : x)); return json({ models: W.dms }); }
+    if ((k = /^\/api\/chat\/router\/models\/([^/]+)$/.exec(p)) && m === "DELETE") { if ((failed = await write("disconnect"))) return failed; W.dms = W.dms.map((x) => (x.id === k[1] ? { ...x, connected: false } : x)); if (W.router.decision_model === k[1]) W.router = { ...W.router, mode: "agent", decision_model: null }; return json({ models: W.dms }); }
     if (p === "/api/chat/chats" && m === "GET" && W.chats) return json({ chats: W.chats });
     if ((k = /^\/api\/chat\/chats\/([^/]+)$/.exec(p)) && m === "PATCH") { const b = q.postDataJSON(); if ((failed = await write("patch", b))) return failed; const c = (W.chats || CHATS).find((x) => x.id === k[1]); if (c) c.routing = b.routing; return json({ ...c, routing: b.routing }); }
     if (p === "/api/chat/rules" && m === "GET") return json({ rules: W.rules, defaults: W.defaults, next_after_seq: null });
@@ -104,13 +107,14 @@ function settingsApi(W) {
  * The app from the harness (its mock world, and its record of every time focus fell to the page), then this
  * world's Settings routes and the theme, and a reload so the app starts with both.
  */
-async function open(W, { width, theme }, { firstRun = false } = {}) {
+async function open(W, { width, theme }, { firstRun = false, device = null } = {}) {
   const page = await openApp(browser, BASE, W, { width, height: width < 600 ? 844 : 900 });
   await page.route("**/api/**", settingsApi(W));
-  await page.evaluate(({ theme, firstRun }) => {
+  await page.evaluate(({ theme, firstRun, device }) => {
     localStorage.setItem("cv-theme", theme);
     if (firstRun) for (const k of ["cv-shape-mine", "cv-shape-device", "cv-shape-preset"]) localStorage.removeItem(k);
-  }, { theme, firstRun });
+    if (device) localStorage.setItem("cv-shape-device", JSON.stringify(device));
+  }, { theme, firstRun, device });
   W.writes.length = 0;
   await page.reload({ timeout: 30000 });
   await page.waitForSelector('[data-go="p:demo"]', { state: "attached", timeout: 30000 });
@@ -146,6 +150,48 @@ async function keyFocus(page, sel) { await page.keyboard.press("Shift"); await p
 const busy = (page, sel) => page.locator(sel).getAttribute("aria-busy");
 /** A picture of the state just reached (DPR 1, so the glass renders whole): /tmp/settings-work/shots. */
 const shot = (page, name) => page.screenshot({ path: `/tmp/settings-work/shots/${page.width}-${page.theme}-${name}.png` });
+
+// ── closing Settings, and General's switches ─────────────────────────────────────────────────
+t("H17 C010 Esc from Settings returns the keyboard to what opened it: the menu, when it came from a phone's drawer", async (ctx) => {
+  const page = await open(world(), ctx);
+  let opener;
+  if (ctx.width < 600) {
+    opener = await page.evaluate(() => { const m = [...document.querySelectorAll("#pb-menu, #top-menu")].find((b) => b.getClientRects().length); return m && `#${m.id}`; });
+    assert.ok(opener, "a phone shows a menu");
+    await keyFocus(page, opener);
+    await page.keyboard.press("Enter");
+    await page.waitForFunction(() => document.querySelector("#app").classList.contains("drawer"));
+    await keyFocus(page, "#set-side");
+    await page.keyboard.press("Enter");
+  } else {
+    opener = "#set-side";
+    await keyFocus(page, opener);
+    await page.keyboard.press("Enter");
+  }
+  await page.waitForSelector("#settings:not([hidden])");
+  await page.keyboard.press("Escape");
+  await page.waitForSelector("#settings", { state: "hidden" });
+  assert.equal(await page.evaluate(() => { const a = document.activeElement; return a && a.id ? `#${a.id}` : a.tagName; }), opener);
+  assert.equal(await page.evaluate(() => document.activeElement.matches(":focus-visible")), true, "with its ring");
+  await done(page);
+});
+for (const [row, tog, words] of [["C099", "#hops-tog", /Showing how messages travel/], ["C100", "#webpics-tog", /Pictures from the web show in the conversation/]]) {
+  t(`${row} ${tog}: refused (a newer XO saved this device's layer), it stays as it was and says why, never that it changed`, async (ctx) => {
+    const page = await open(world(), ctx, { device: { shape: 99, surfaces: { "xo:thread/hops": { on: false }, "xo:conversation/webpics": { on: false } } } });
+    await settings(page);
+    await keyFocus(page, tog);
+    assert.equal(await page.locator(tog).getAttribute("aria-checked"), "false");
+    await page.keyboard.press("Enter");
+    await page.waitForSelector('[data-page="general"] .set-err[role="alert"]');
+    assert.equal(await page.locator(tog).getAttribute("aria-checked"), "false", "it didn't change");
+    assert.match(await page.locator(tog).locator("xpath=ancestor::div[contains(@class,'set-row')]").locator(".set-err").innerText(), /newer XO/);
+    await page.waitForTimeout(150);
+    assert.doesNotMatch(await page.locator("#live").innerText(), words, "no claim that it changed");
+    assert.equal(await focused(page), `button${tog}`);
+    await shot(page, `${row}-refused`);
+    await done(page);
+  });
+}
 
 // ── C098: the rail is a tablist ───────────────────────────────────────────────────────────
 t("C098 tabs: one in the Tab order, arrows and Home/End choose, each tab names its panel and back", async (ctx) => {

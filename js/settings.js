@@ -45,11 +45,17 @@ export function createSettings({ world, announce, PROJ, onChange }) {
     if (a && a !== document.body && a !== from && a.isConnected) return;
     focusTo(id, to);
   }
-  /** A request from a control: drawn as waiting while it's out (a repeat press joins it), drawn again once it settles. */
-  async function pend(key, render, work) {
+  /**
+   * A request from a control: drawn as waiting while it's out (a repeat press joins it), and drawn again once it
+   * settles in the same step as the keyboard goes where the outcome leads (work's { to }), so focus never rests on
+   * the page between the redraw that took its control away and its landing. Without { to } it stays where it is.
+   */
+  async function pend(key, page, render, work, from) {
     const p = once(key, work);
     render();
-    try { return await p; } finally { render(); }
+    let r;
+    try { r = await p; return r; }
+    finally { render(); if (r && "to" in r) land(page, r.to, from); }
   }
   /** Where focus goes when this row leaves: the nearest row after it in its list with that control, else before it. */
   function neighbour(from, row, attr) {
@@ -126,7 +132,7 @@ export function createSettings({ world, announce, PROJ, onChange }) {
     // choosing what is already chosen changes nothing (the PUT is a full replace)
     if (abstain == null && r.mode === mode && (mode !== "decision" || r.decision_model === dm)) return;
     if (!isPending(ROUTER)) R.err.route = null;
-    await pend(ROUTER, renderRouting, async () => {
+    await pend(ROUTER, "routing", renderRouting, async () => {
       try {
         // a full replace: abstain_below is sent every time, or it resets (UI-reference §2.3)
         R.router = await api.setRouter({ mode, ...(mode === "decision" ? { decision_model: dm } : {}), abstain_below: abstain ?? r.abstain_below ?? 0.5 });
@@ -141,29 +147,27 @@ export function createSettings({ world, announce, PROJ, onChange }) {
     if (isPending(`dm-on:${id}`)) return;
     if (!key) { R.err.dm = "Paste the key first."; renderRouting(); f.key.focus(); return; }
     R.err.dm = null;
-    const ok = await pend(`dm-on:${id}`, renderRouting, async () => {
+    await pend(`dm-on:${id}`, "routing", renderRouting, async () => {
       try { R.models = (await api.connectRouterModel({ provider: id, ...(model ? { model } : {}), api_key: key })).models || R.models; }
       catch (err) {
-        // a key the server calls malformed goes (paste the right one); after any other failure it stays for the retry
-        if (err.code === "invalid_key") { R.err.dm = "That doesn't look like a key: no spaces, not blank."; f.key.value = ""; }
-        else R.err.dm = err.message;
-        return false;
+        // a key the server calls malformed goes, and the keyboard with it (paste the right one); after any other
+        // failure the key stays for the retry, and so does the keyboard
+        if (err.code === "invalid_key") { R.err.dm = "That doesn't look like a key: no spaces, not blank."; f.key.value = ""; return { to: `${sel("data-dm-form", id)} input[name="key"]` }; }
+        R.err.dm = err.message;
+        return {};
       }
-      R.form = null; // the form, and the key typed in it, leave the page
       announce("Connected. Its key is saved and won't be shown again.");
       onChange();
-      return true;
-    });
-    if (ok) land("routing", sel("data-dm-off", id), from);
-    else if (!f.key.value && f.isConnected) land("routing", `${sel("data-dm-form", id)} input[name="key"]`, from);
+      R.form = null; // the form, and the key typed in it, leave the page: the keyboard goes to its Disconnect
+      return { to: sel("data-dm-off", id) };
+    }, from);
   }
   async function disconnect(id, from) {
     R.err.dmOff = null;
-    const ok = await pend(`dm-off:${id}`, renderRouting, async () => {
+    await pend(`dm-off:${id}`, "routing", renderRouting, async () => {
       const chats = R.confirm && R.confirm.dm === id ? R.confirm.chats : [];
       try { R.models = (await api.disconnectRouterModel(id)).models || R.models; }
-      catch (err) { R.err.dmOff = err.message; return false; }
-      R.confirm = null;
+      catch (err) { R.err.dmOff = err.message; return {}; }
       // the server resets only the Space setting; chats that named it are cleared here (UI-reference §4.8)
       const left = [];
       for (const c of chats) {
@@ -176,25 +180,24 @@ export function createSettings({ world, announce, PROJ, onChange }) {
       R.err.route = left.length ? `Disconnected. ${left.join(", ")} still ${left.length === 1 ? "names" : "name"} it: use the Space's routing for ${left.length === 1 ? "it" : "them"} below.` : null;
       announce("Disconnected. Its key is removed.");
       onChange();
-      return true;
-    });
-    if (ok) land("routing", sel("data-dm-on", id), from);
+      R.confirm = null; // the question goes: the keyboard goes to the model's Connect
+      return { to: sel("data-dm-on", id) };
+    }, from);
   }
   async function clearOverride(chat, from) {
     const next = neighbour(from, ".set-row", "data-ov-clear");
     if (!isPending(`ov:${chat}`)) R.err.ov = null;
-    const ok = await pend(`ov:${chat}`, renderRouting, async () => {
+    await pend(`ov:${chat}`, "routing", renderRouting, async () => {
       try {
         const c = await api.patchChat(chat, { routing: null });
         const p = world.state.projects.find((x) => x.chatId === chat);
         if (p) p.routing = (c && c.routing) || null;
         announce("It uses the Space's routing again.");
         onChange();
-        return true;
-      } catch (err) { R.err.ov = { chat, text: err.message }; return false; }
-    });
-    // the next chat's button, else the Space's own choice
-    if (ok) land("routing", next ? sel("data-ov-clear", next) : '[data-route][aria-checked="true"]', from);
+        // its row goes: the next chat's button, else the Space's own choice
+        return { to: next ? sel("data-ov-clear", next) : '[data-route][aria-checked="true"]' };
+      } catch (err) { R.err.ov = { chat, text: err.message }; return {}; }
+    }, from);
   }
 
   // ── Rules (R2) ──────────────────────────────────────────────────────────
@@ -237,18 +240,17 @@ export function createSettings({ world, announce, PROJ, onChange }) {
   async function revoke(id, from) {
     const next = neighbour(from, ".rl-row", "data-rule-off");
     if (!isPending(`rule:${id}`)) R.err.rule = null;
-    const ok = await pend(`rule:${id}`, renderRules, async () => {
+    await pend(`rule:${id}`, "rules", renderRules, async () => {
       try { await api.revokeRule(id); }
-      catch (err) { R.err.rule = { id, text: err.message }; return false; }
-      // revoked: it leaves its list now; the read after brings the server's own record of it
+      catch (err) { R.err.rule = { id, text: err.message }; return {}; }
+      // revoked: it leaves its list now (the keyboard to the next rule's Revoke); the read after brings the server's own record
       const at = new Date().toISOString();
       for (const r of [...R.rules, ...R.defaults]) if (r.id === id) r.revoked_at = r.revoked_at || at;
       R.confirm = null;
       announce("Revoked. Agents will ask again.");
       loadRules();
-      return true;
-    });
-    if (ok) land("rules", next && sel("data-rule-off", next), from);
+      return { to: next && sel("data-rule-off", next) };
+    }, from);
   }
 
   // ── Worktrees ───────────────────────────────────────────────────────────
@@ -312,23 +314,21 @@ export function createSettings({ world, announce, PROJ, onChange }) {
     const [chat, ts] = key.split("/");
     const next = neighbour(from, ".wt-row", "data-wt");
     if (!isPending(`wt:${key}`)) R.err.wt = null;
-    const r = await pend(`wt:${key}`, renderTrees, async () => {
+    await pend(`wt:${key}`, "worktrees", renderTrees, async () => {
       try {
         const res = await api.removeWorktree(chat, ts, confirm);
         R.confirm = null;
         R.trees = R.trees.filter((w) => treeKey(w) !== key);
         announce(res && res.forced ? "Removed. The work in it is gone." : "Removed. Nothing was lost.");
         loadTrees();
-        return "gone";
+        return { to: next && sel("data-wt", next) }; // its row goes: the next row's Remove
       } catch (err) {
-        // it would lose work: the server's list of it, and the hold (asked in place of the Remove button)
-        if (err.code === "would_lose_work") { R.confirm = { wt: key, lose: err.what, token: err.confirm }; return "ask"; }
+        // it would lose work: the server's list of it, and the hold, asked in place of the Remove button, on Keep it
+        if (err.code === "would_lose_work") { R.confirm = { wt: key, lose: err.what, token: err.confirm }; return { to: "[data-wt-no]" }; }
         R.err.wt = { key, text: err.code === "session_busy" ? "Its agent is still using it. Stop the thread, or try again once it has gone quiet." : err.message };
-        return "error";
+        return {};
       }
-    });
-    if (r === "gone") land("worktrees", next && sel("data-wt", next), from);
-    else if (r === "ask") land("worktrees", "[data-wt-no]", from);
+    }, from);
   }
 
   // while the Routing page is open, show what the stream changed (never mid-form or mid-question)
