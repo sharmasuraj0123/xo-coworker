@@ -2277,6 +2277,10 @@ a.vw-btn{text-decoration:none}
 .ar-undo svg{flex:none;width:14px;height:14px;color:var(--accent-fill)}
 .ar-undo b{color:var(--ink);font-weight:600}
 .ar-undo button{flex:none;min-height:36px;padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line);font-weight:600;color:var(--ink)}
+/* waiting on Space (the spinner in the line's own ink), and refused: the mark in the error ink, never the accent */
+.ar-undo[aria-busy="true"] b{color:var(--ink-2)}
+.ar-undo .spin{flex:none;width:12px;height:12px}
+.ar-undo.is-err svg{color:var(--err-ink)}
 @media (pointer:coarse){
   /* a long-press opens Copy · Select text (the browser's own selection comes back with Select text) */
   .m-you .bubble,.m-them>.mb>.prose,.m-turn .tb-answer{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}

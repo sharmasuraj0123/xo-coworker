@@ -9,6 +9,7 @@
 // browser's own scroll once a direction is picked.
 
 import { copyText, COPY_REFUSED } from "./util.js";
+import { menuKeys } from "./keynav.js";
 const LOCK = 10;     // px before a touch picks its direction
 const SLOPE = 1.7;   // the picked axis must lead the other by this much: within ~30° of it
 export const FLICK = 0.45; // px/ms: a quick flick commits whatever the distance
@@ -362,14 +363,21 @@ export function wireGestures(A) {
 }
 
 // ── long-press a message: Copy, Select text ─────────────────────────────────
+// The menu is opened from a message, so that's where focus goes back when it closes with focus in it (Copy,
+// Select text, Escape, Tab, a scroll): the message itself takes focus (tabindex -1: reachable this way, not in
+// the Tab order), never the page. A touch elsewhere goes on to whatever it lands on.
 const HOLD = 480;
 function longPress(A) {
   const msgs = document.getElementById("msgs");
-  let timer = 0, at = null, menu = null, fired = false;
+  let timer = 0, at = null, menu = null, from = null, fired = false;
   const WHAT = ".m-you .bubble, .m-them:not(.m-turn):not(.m-card) > .mb > .prose, .m-turn .tb-answer";
   const shut = () => {
     if (!menu) return;
-    menu.remove(); menu = null;
+    if (menu.contains(document.activeElement) && from && from.isConnected) {
+      if (!from.hasAttribute("tabindex")) from.tabIndex = -1;
+      from.focus({ preventScroll: true });
+    }
+    menu.remove(); menu = null; from = null;
     document.removeEventListener("touchstart", outside, true);
     document.removeEventListener("keydown", esc, true);
   };
@@ -401,10 +409,13 @@ function longPress(A) {
 
   function open(el, p) {
     shut();
+    from = el;
     menu = document.createElement("div");
     menu.className = "lp-menu";
     menu.setAttribute("role", "menu");
+    menu.setAttribute("aria-label", "Message");
     menu.innerHTML = `<button type="button" role="menuitem" data-lp="copy">Copy</button><button type="button" role="menuitem" data-lp="select">Select text</button>`;
+    menuKeys(menu, { close: shut }); // ↓ ↑ Home End; Tab closes it back to the message (Escape: esc below)
     document.body.appendChild(menu);
     const r = menu.getBoundingClientRect();
     const x = Math.max(10, Math.min(innerWidth - r.width - 10, p.x - r.width / 2));
@@ -416,10 +427,13 @@ function longPress(A) {
       // "Copied" only once it's on the clipboard; refused, said so
       if (b.dataset.lp === "copy") { copyText((el.innerText || el.textContent || "").trim()).then((ok) => A.toast?.(ok ? "Copied" : COPY_REFUSED)); }
       else {
+        // focus goes to the message first (shut), then its words are selected: the selection stays
+        shut();
         el.classList.add("is-selecting");
         const s = getSelection();
         s.removeAllRanges();
         s.selectAllChildren(el);
+        return;
       }
       shut();
     });

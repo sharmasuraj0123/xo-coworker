@@ -11,6 +11,9 @@ import { ICON } from "./ui.js";
 import { renderMarkdown } from "./markdown.js";
 import { turnHtml, turnAv } from "./turnview.js";
 import { cliName, mainRuntime, chatOrder, sessionRead } from "./timeline.js";
+import { redraw } from "./redraw.js";
+import { rovingTab } from "./keynav.js";
+import { once } from "./pending.js";
 
 const MODE_WORDS = {
   auto: ["Auto", "Its own safety check decides; most actions run unasked."],
@@ -29,7 +32,7 @@ const ago = (iso) => { const s = (Date.now() - Date.parse(iso)) / 1000; if (!Num
 
 export function createChats({ world, announce, heraldShow, go, schedule, view, restore }) {
   // confirm: one "send now" question per chat (session id → {local, count}), shown only in that chat
-  const C = { list: null, loading: false, err: null, titles: new Map(), hist: new Map(), local: new Map(), prefs: { ...store.get() }, models: new Map(), pop: { open: false }, confirm: new Map() };
+  const C = { list: null, loading: false, err: null, titles: new Map(), hist: new Map(), local: new Map(), prefs: { ...store.get() }, models: new Map(), read: new Set(), pop: { open: false }, confirm: new Map() };
 
   const sessions = () => Object.values(world.state.sessions || {}).filter((s) => s.role === "plain" && !s.retired_at);
   const session = (sid) => (world.state.sessions || {})[sid] || null;
@@ -188,10 +191,18 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   function setup() {
     const p = C.prefs;
     const rt = runtime(p.agent) || runtime(null);
+    const agent = rt ? rt.name : null;
     const modes = modesOf(rt);
     const mode = modes.includes(p.mode) ? p.mode : modes.includes("auto") ? "auto" : modes[0] || null;
-    return { rt, agent: rt ? rt.name : null, model: p.model || null, effort: p.effort || null, mode, modes, cwd: p.cwd || "" };
+    // One model, everywhere: what the picker shows, what the line above the composer names and what Send sends
+    // all come from here. A saved model the agent's catalog no longer offers is gone, said so, and never sent
+    // (Astra S153: the picker said default while Send still sent it); until the catalog is read, the saved one stands.
+    let model = p.model || null, gone = null;
+    if (model && C.read.has(agent) && !offered(agent).some((m) => m.id === model)) { gone = model; model = null; }
+    return { rt, agent, model, gone, effort: p.effort || null, mode, modes, cwd: p.cwd || "" };
   }
+  /** The models the picker offers for an agent: its catalog's families (each family's default) and loose models. */
+  const offered = (agent) => (C.models.get(agent) || []).filter((m) => !m.is_default && (m.family_default || !m.family));
   /** The efforts for a model (or the agent's default model): its own list, else the runtime's (§2.7). */
   function effortsFor(st) {
     const list = C.models.get(st.agent) || [];
@@ -204,7 +215,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   async function ensureModels(agent) {
     if (!agent || C.models.has(agent)) return;
     C.models.set(agent, []);
-    try { C.models.set(agent, (await api.models(agent)).models || []); } catch { /* the agent's default only */ }
+    try { C.models.set(agent, (await api.models(agent)).models || []); C.read.add(agent); } catch { /* the agent's default only */ }
     renderSetup(); schedule();
   }
   function targetHtml(v) {
@@ -212,7 +223,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       const st = setup();
       if (!st.agent) return `<span class="tg-warn">${ICON.pause}</span><span>No agent can chat here yet</span>`;
       ensureModels(st.agent);
-      return `<span class="tg-t">${ICON.thread}</span><span>New chat in <b>${esc(st.cwd ? (world.project(st.cwd) || {}).name || st.cwd : "your projects folder")}</b> · ${esc(cliName(st.agent))} · ${esc(st.model ? modelWord(st.agent, st.model) : "its default model")}${st.mode ? ` · ${esc(MODE_WORDS[st.mode] ? MODE_WORDS[st.mode][0] : st.mode)}` : ""}</span><span class="tg-ch">Change</span>`;
+      return `<span class="tg-t">${ICON.thread}</span><span>New chat in <b>${esc(st.cwd ? (world.project(st.cwd) || {}).name || st.cwd : "your projects folder")}</b> · ${esc(cliName(st.agent))} · ${esc(st.model ? modelWord(st.agent, st.model) : st.gone ? `its default model (${st.gone} is gone)` : "its default model")}${st.mode ? ` · ${esc(MODE_WORDS[st.mode] ? MODE_WORDS[st.mode][0] : st.mode)}` : ""}</span><span class="tg-ch">Change</span>`;
     }
     const s = session(v.slice(2));
     if (!s) return "";
@@ -251,17 +262,41 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     if (!C.pop.open) return;
     const st = setup();
     const rts = world.state.runtimes || [];
-    const models = (C.models.get(st.agent) || []).filter((m) => !m.is_default && (m.family_default || !m.family));
+    const models = offered(st.agent);
+    // the saved model before the catalog is read: shown by its id, so the picker says what Send will send
+    const early = st.model && !models.some((m) => m.id === st.model) ? `<option value="${esc(st.model)}" selected>${esc(st.model)}</option>` : "";
     const efforts = effortsFor(st);
     const modes = st.modes;
     const folders = [{ id: "", name: "Your projects folder" }, ...world.state.projects.filter((p) => p.kind === "project").map((p) => ({ id: p.id, name: p.name }))];
-    pop.innerHTML = `<header class="iq-h"><h2>New chat</h2></header>` +
-      `<div class="iq-sec"><label class="cs-f"><span>Folder</span><xo-select data-cs="cwd">${folders.map((f) => `<option value="${esc(f.id)}"${f.id === st.cwd ? " selected" : ""}>${esc(f.name)}</option>`).join("")}</xo-select></label>` +
-      (rts.length > 1 ? `<label class="cs-f"><span>Agent</span><xo-select data-cs="agent">${rts.map((r) => `<option value="${esc(r.name)}"${r.name === st.agent ? " selected" : ""}>${esc(cliName(r.name))}</option>`).join("")}</xo-select></label>` : "") +
-      `<label class="cs-f"><span>Model</span><xo-select data-cs="model"><option value="">The agent's default</option>${models.map((m) => `<option value="${esc(m.id)}"${m.id === st.model ? " selected" : ""}${m.description ? ` data-desc="${esc(m.description)}"` : ""}>${esc(m.name)}</option>`).join("")}</xo-select></label>` +
-      (efforts.length ? `<label class="cs-f"><span>Effort</span><xo-select data-cs="effort"><option value="">Default</option>${efforts.map((e) => `<option value="${esc(e)}"${e === st.effort ? " selected" : ""}>${esc(EFFORT_WORD[e] || e)}</option>`).join("")}</xo-select></label>` : "") +
-      `</div>` + (!modes.length ? `<div class="iq-sec"><p class="iq-rl">This agent doesn't say what it may do on its own; it uses its default.</p></div>` : `<div class="iq-sec"><p class="iq-lab">What it may do</p><div class="cs-modes" role="radiogroup" aria-label="What it may do">${modes.map((m) => `<button type="button" role="radio" class="set-choice${m === st.mode ? " is-on" : ""}" aria-checked="${m === st.mode}" data-csmode="${esc(m)}"><span class="sc-dot" aria-hidden="true"></span><span class="sc-b"><b>${esc((MODE_WORDS[m] || [m])[0])}</b><span>${esc((MODE_WORDS[m] || ["", ""])[1])}</span></span></button>`).join("")}</div></div>`) +
+    // each picker's options, by its field: a picker draws its own insides (redraw.js leaves them to it), so new
+    // options (another agent's catalog arriving) are handed to it below, through its own re-render path
+    const opts = {
+      cwd: folders.map((f) => `<option value="${esc(f.id)}"${f.id === st.cwd ? " selected" : ""}>${esc(f.name)}</option>`).join(""),
+      agent: rts.length > 1 ? rts.map((r) => `<option value="${esc(r.name)}"${r.name === st.agent ? " selected" : ""}>${esc(cliName(r.name))}</option>`).join("") : null,
+      model: `<option value="">The agent's default</option>${early}${models.map((m) => `<option value="${esc(m.id)}"${m.id === st.model ? " selected" : ""}${m.description ? ` data-desc="${esc(m.description)}"` : ""}>${esc(m.name)}</option>`).join("")}`,
+      effort: efforts.length ? `<option value="">Default</option>${efforts.map((e) => `<option value="${esc(e)}"${e === st.effort ? " selected" : ""}>${esc(EFFORT_WORD[e] || e)}</option>`).join("")}` : null,
+    };
+    const field = (k, word) => (opts[k] == null ? "" : `<label class="cs-f"><span>${word}</span><xo-select data-cs="${k}">${opts[k]}</xo-select></label>`);
+    // What it may do: a radio group (keynav.js's keys); only the chosen mode is in the Tab order
+    const html = `<header class="iq-h"><h2>New chat</h2></header>` +
+      `<div class="iq-sec">${field("cwd", "Folder")}${field("agent", "Agent")}${field("model", "Model")}` +
+      (st.gone ? `<p class="iq-rl" role="status">“${esc(st.gone)}” isn't offered by ${esc(cliName(st.agent))} any more, so a new chat uses its default model.</p>` : "") +
+      `${field("effort", "Effort")}</div>` +
+      (!modes.length ? `<div class="iq-sec"><p class="iq-rl">This agent doesn't say what it may do on its own; it uses its default.</p></div>` : `<div class="iq-sec"><p class="iq-lab">What it may do</p><div class="cs-modes" role="radiogroup" aria-label="What it may do">${modes.map((m, i) => `<button type="button" role="radio" class="set-choice${m === st.mode ? " is-on" : ""}" aria-checked="${m === st.mode}"${rovingTab(m === st.mode, i === 0 && !modes.includes(st.mode))} data-csmode="${esc(m)}"><span class="sc-dot" aria-hidden="true"></span><span class="sc-b"><b>${esc((MODE_WORDS[m] || [m])[0])}</b><span>${esc((MODE_WORDS[m] || ["", ""])[1])}</span></span></button>`).join("")}</div></div>`) +
       `<footer class="iq-f"><span>Used for your next new chat.</span><button type="button" class="iq-back" data-cs-done>Done</button></footer>`;
+    // in place (js/redraw.js): a mode chosen, a catalog arriving, keep the control you're on
+    redraw(pop, html);
+    for (const x of pop.querySelectorAll("xo-select[data-cs]")) {
+      const want = opts[x.dataset.cs];
+      if (x._opts === undefined) x._opts = want; // drawn just now, with these options
+      else if (want != null && x._opts !== want) {
+        // only its <option>s change: its button (focused or not) and list stay, so focus never leaves it (S152)
+        x._opts = want;
+        const t = document.createElement("template"); t.innerHTML = want;
+        for (const o of [...x.children]) if (o.tagName === "OPTION") o.remove();
+        x.append(t.content);
+      }
+    }
     const a = C.pop.anchor;
     if (a && !matchMedia("(max-width: 760px)").matches) {
       // anchored by its bottom edge just above the line: it grows upwards and never leaves the screen
@@ -301,7 +336,10 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     }
     await deliver(local, sid);
   }
-  async function deliver(local, sid) {
+  /** One request at a time per message (its client_id): a Retry pressed again, or the would-stop question answered
+   *  twice, joins the one that's out (js/pending.js). */
+  function deliver(local, sid) { return once(`chat-send:${local.cid}`, () => post(local, sid)); }
+  async function post(local, sid) {
     local.status = "sending";
     try {
       const r = await api.prompt(local.body);

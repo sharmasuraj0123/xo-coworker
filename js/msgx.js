@@ -66,7 +66,30 @@ function bubbleOf(m) {
   if (m.classList.contains("m-turn")) return [...m.querySelectorAll(".turn > .tb-answer, .turn > .tb-text")].pop() || null;
   return m.querySelector(":scope > .mb > .prose");
 }
-const textOf = (m) => { const b = m.querySelector(".bubble, .mb > .prose, .tb-answer"); if (!b) return ""; const c = b.cloneNode(true); c.querySelector(".mx-name")?.remove(); return (c.innerText || c.textContent || "").trim(); };
+/**
+ * A message's words as they read: paragraphs apart, list items and rows on their own lines (a detached copy's
+ * innerText has no layout, so blocks ran together, "First paragraph.Second…": Astra RPL-1). What the app adds to
+ * a bubble (the sender's name, Reply and Copy, a sent quote's card, a code block's Copy, icons) isn't its words.
+ */
+const BLOCK = { P: 2, BLOCKQUOTE: 2, PRE: 2, H1: 2, H2: 2, H3: 2, H4: 2, H5: 2, H6: 2, TABLE: 2, UL: 1, OL: 1, LI: 1, DIV: 1, TR: 1, HR: 1, FIGURE: 1, DETAILS: 1, SUMMARY: 1, DL: 1, DT: 1, DD: 1 };
+const NOT_WORDS = ".mx-name, .mx-acts, .mx-swipe, .mx-qc, button, svg, [aria-hidden='true'], .sr-only";
+function wordsOf(root) {
+  let out = "";
+  const brk = (n) => { if (!out) return; const have = out.length - out.replace(/\n+$/, "").length; if (have < n) out += "\n".repeat(n - have); };
+  (function walk(el, pre) {
+    for (const c of el.childNodes) {
+      if (c.nodeType === 3) { let t = pre ? c.nodeValue : c.nodeValue.replace(/\s+/g, " "); if (!pre && (!out || out.endsWith("\n"))) t = t.replace(/^ /, ""); out += t; continue; }
+      if (c.nodeType !== 1 || c.matches(NOT_WORDS)) continue;
+      if (c.tagName === "BR") { out += "\n"; continue; }
+      const b = BLOCK[c.tagName] || 0;
+      if (b) brk(b);
+      walk(c, pre || c.tagName === "PRE");
+      if (b) brk(b); else if (c.tagName === "TD" || c.tagName === "TH") out += " ";
+    }
+  })(root, false);
+  return out.replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+const textOf = (m) => { const b = m.querySelector(".bubble, .mb > .prose, .tb-answer"); return b ? wordsOf(b) : ""; };
 
 /** A sent reply starts with "> " lines: show them as a card at the top of your bubble. */
 function quoteCard(m) {
@@ -78,7 +101,7 @@ function quoteCard(m) {
   while (i < lines.length && /^>/.test(lines[i])) q.push(lines[i++].replace(/^>\s?/, ""));
   const rest = lines.slice(i).join("\n").replace(/^\n+/, "");
   const who = (q[0].match(/^\*\*(.+?)\*\*$/) || [])[1];
-  const said = (who ? q.slice(1) : q).join(" ").replace(/^[“"]|[”"]$/g, "");
+  const said = (who ? q.slice(1) : q).join(" ").replace(/\s+/g, " ").trim().replace(/^[“"]|[”"]$/g, "");
   b.textContent = "";
   const card = document.createElement("button");
   card.type = "button"; card.className = "mx-qc"; card.dataset.mxJump = said;
@@ -490,13 +513,20 @@ function showReply(r, animate) {
   chip.hidden = !r;
   if (!r) return;
   chip.querySelector("b").textContent = r.who === "You" ? "Yourself" : r.who;
-  chip.querySelector(".mx-r-t>span").textContent = r.text;
+  // the chip previews the quote on one line; what's sent is the whole of it (title: all of it)
+  const t = chip.querySelector(".mx-r-t>span");
+  t.textContent = clip(r.text); t.title = r.text.length > 220 ? r.text : "";
   chip.classList.remove("is-in");
   if (animate) { void chip.offsetWidth; chip.classList.add("is-in"); }
 }
+/**
+ * Reply to a message: with the words you selected, the quote is exactly those, however long (Astra RPL-3: a
+ * 503-character selection was sent as 217); with the whole message, its opening, shortened visibly ("…"), since
+ * the agent has the rest.
+ */
 function startReply(m, text) {
   const who = nameIn(m);
-  const r = { who, text: clip(text || textOf(m) || (m.querySelector(".mx-stack, .tb-files") ? "A picture" : "")), conv: convNow() };
+  const r = { who, text: text ? text.trim() : clip(textOf(m) || (m.querySelector(".mx-stack, .tb-files") ? "A picture" : "")), conv: convNow() };
   replies.set(r.conv, r);
   showReply(r, true);
   m.classList.remove("mx-flash"); void m.offsetWidth; m.classList.add("mx-flash");
@@ -512,13 +542,16 @@ chip.querySelector(".mx-r-x").addEventListener("click", () => { endReply(); sayE
 function withQuote() {
   if (!reply || reply.conv !== convNow() || !sayEl.value.trim()) return;
   const before = sayEl.value;
-  const prefix = `> **${reply.who}**\n> ${reply.text}\n\n`;
+  // every line of the quote is quoted (a selection across paragraphs stays one quote)
+  const prefix = `> **${reply.who}**\n${reply.text.split("\n").map((l) => `> ${l}`.trimEnd()).join("\n")}\n\n`;
   sayEl.value = prefix + before;
   setTimeout(() => { if (sayEl.value === prefix + before) sayEl.value = before; else endReply(); }, 0);
 }
 document.addEventListener("keydown", (e) => {
+  // Escape on the quote's own × removes it too, as its title says (Astra RPL-2: only the composer's Escape did)
+  if (e.key === "Escape" && reply && chip.contains(e.target)) { e.preventDefault(); e.stopImmediatePropagation(); endReply(); sayEl.focus(); return; }
   if (e.target !== sayEl || !reply) return;
-  if (e.key === "Enter" && !e.shiftKey && !e.isComposing && $("#at-list").hidden) withQuote();
+  if (e.key === "Enter" && !e.shiftKey && !e.isComposing && e.keyCode !== 229 && $("#at-list").hidden) withQuote();
   if (e.key === "Escape" && $("#at-list").hidden) { e.preventDefault(); e.stopImmediatePropagation(); endReply(); }
 }, true);
 document.addEventListener("submit", (e) => { if (e.target === composer && $("#send").dataset.mode !== "stop") withQuote(); }, true);
@@ -585,13 +618,14 @@ function gMove(dx) {
     msgs.style.setProperty("--mx-pull", band(g.raw, TIME_MAX).toFixed(1));
   }
 }
-function gEnd() {
+/** The swipe ends. Released armed, it replies; cancelled (the system took the touch), it never does (RPL-5). */
+function gEnd(commit = true) {
   if (!g) return;
   const { kind, m } = g;
   if (kind === "reply") {
     const armed = m.classList.contains("mx-armed");
     m.classList.remove("mx-dragging", "mx-armed"); m.style.removeProperty("--mx-drag");
-    if (armed) startReply(m);
+    if (armed && commit) startReply(m);
   } else {
     msgs.classList.remove("mx-pulling"); msgs.style.removeProperty("--mx-pull");
   }
@@ -642,7 +676,9 @@ msgs.addEventListener("pointermove", (e) => {
   gMove(g.kind === "reply" ? e.clientX - touch.last : touch.last - e.clientX);
   touch.last = e.clientX;
 });
-for (const t of ["pointerup", "pointercancel"]) msgs.addEventListener(t, () => { if (touch && touch.on) gEnd(); touch = null; });
+msgs.addEventListener("pointerup", () => { if (touch && touch.on) gEnd(); touch = null; });
+// a message takes only sideways moves (touch-action: pan-y), so a cancel is the system's, not a scroll: no reply
+msgs.addEventListener("pointercancel", () => { if (touch && touch.on) gEnd(false); touch = null; });
 
 decorate();
 
@@ -658,13 +694,20 @@ conv.append(down);
 let unseen = 0;
 const away = fromLatest;
 /** The top of what's docked above the conversation: a decision card docked over the composer when there is
- *  one (its real top, whatever its height on this screen), else the composer itself. */
-const tdock = $("#tdock");
+ *  one (its real top, whatever its height on this screen), else the composer itself; and the notice line just
+ *  above the composer wherever it reaches under the button (a long one on a phone spans the width), so the
+ *  button is never under it (Astra CONV-9: a refusal's line took the button's presses). */
+const tdock = $("#tdock"), herald = $("#herald");
 function dockTop() {
   let top = composer.getBoundingClientRect().top;
   for (const el of tdock.querySelectorAll(":scope > *, :scope > * > *")) {
     const r = el.getBoundingClientRect();
     if (r.height > 0 && r.width > 0 && getComputedStyle(el).visibility !== "hidden") top = Math.min(top, r.top);
+  }
+  const d = down.getBoundingClientRect();
+  for (const el of herald.children) {
+    const r = el.getBoundingClientRect();
+    if (r.height > 0 && r.right > d.left && r.left < d.right) top = Math.min(top, r.top);
   }
   return top;
 }
@@ -704,7 +747,7 @@ new MutationObserver((ms) => {
   requestAnimationFrame(downSync);
 }).observe(msgs, { childList: true });
 const downRO = new ResizeObserver(() => downSync());
-downRO.observe(scroller); downRO.observe($("#dock")); downRO.observe(tdock);
+downRO.observe(scroller); downRO.observe($("#dock")); downRO.observe(tdock); downRO.observe(herald);
 // a card docking or leaving (and its own glide in or out) moves the button with it, frame by frame
 let downRaf = 0;
 const followDock = (until) => { cancelAnimationFrame(downRaf); const step = () => { downSync(); if (performance.now() < until) downRaf = requestAnimationFrame(step); }; step(); };
@@ -715,6 +758,8 @@ new MutationObserver(() => {
   a.classList.toggle("has-tdock-card", !!tdock.querySelector(":scope > .card"));
   followDock(performance.now() + 700);
 }).observe(tdock, { childList: true, subtree: true });
+// a notice arriving or leaving (and its float in) moves the button with it too
+new MutationObserver(() => followDock(performance.now() + 700)).observe(herald, { childList: true });
 
 // Following the latest, keeping your place and opening at the latest belong to js/follow.js now. Nothing
 // here moves the view except the back-to-latest button and pressing the working bubble (both toLatest).
