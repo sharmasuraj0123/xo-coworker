@@ -1320,6 +1320,29 @@ for (const cpu of [1, 4]) {
   }, { only: (c) => c.theme === "dark" });
 }
 
+// ── js/redraw.js's data-own rule, on its own ────────────────────────────────
+t("redraw: data-own nodes stay where they are (first stays first, last stays last, a focused one keeps focus); the rest follows the HTML", async () => {
+  const page = await app();
+  const got = await page.evaluate(async () => {
+    const { redraw } = await import("/js/redraw.js");
+    const box = document.createElement("div");
+    document.body.append(box);
+    box.innerHTML = `<span class="name" data-own>Name</span>old text<b data-x="1">bold</b><i data-x="2">gone</i><div class="acts" data-own><button class="copy">Copy</button></div>`;
+    const name = box.querySelector(".name"), acts = box.querySelector(".acts"), copy = box.querySelector(".copy"), bold = box.querySelector("b");
+    copy.focus();
+    redraw(box, `new text<b data-x="1">bolder</b><em>added</em>`);
+    const out = { order: [...box.childNodes].map((n) => (n.nodeType === 3 ? `#${n.nodeValue}` : `${n.tagName.toLowerCase()}${n.hasAttribute("data-own") ? "*" : ""}`)), sameName: box.firstChild === name, sameActs: box.lastChild === acts, sameBold: box.querySelector("b") === bold, focus: document.activeElement === copy, bold: bold.textContent };
+    copy.blur(); await new Promise((ok) => setTimeout(ok, 0)); // let go of the probe's button on purpose, then take it away
+    box.remove();
+    return out;
+  });
+  assert.deepEqual(got.order, ["span*", "#new text", "b", "em", "div*"]);
+  assert.equal(got.sameName, true); assert.equal(got.sameActs, true); assert.equal(got.sameBold, true);
+  assert.equal(got.focus, true, "the focused own button kept focus");
+  assert.equal(got.bold, "bolder");
+  await done(page);
+}, { only: (c) => c.width >= 760 && c.theme === "dark" });
+
 // ── run ─────────────────────────────────────────────────────────────────────
 (async () => {
   server = await serve();
