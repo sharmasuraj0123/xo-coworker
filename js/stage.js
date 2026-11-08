@@ -256,11 +256,22 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
    *  Only what this set inert is released; the toast stays reachable above it. */
   function coverSync() {
     const on = S.open && !el.hidden && (S.full || innerWidth <= 760);
-    for (const sib of el.parentElement ? el.parentElement.children : []) {
-      if (sib === el || sib.classList.contains("toast-wrap")) continue;
-      if (on && !sib.inert) { sib.inert = true; sib.dataset.stageInert = ""; }
-      else if (!on && "stageInert" in sib.dataset) { sib.inert = false; delete sib.dataset.stageInert; }
-    }
+    // notices stay in reach above it (a Stop's Undo, Launchpad's own): the herald, and the toast, are kept out of the
+    // inert part, and drawn above the panel while it covers (css: body.stage-covers .herald)
+    const keep = [document.getElementById("herald")].filter(Boolean);
+    const mark = (n) => {
+      if (on && !n.inert) { n.inert = true; n.dataset.stageInert = ""; }
+      else if (!on && "stageInert" in n.dataset) { n.inert = false; delete n.dataset.stageInert; }
+    };
+    const walk = (root) => {
+      for (const c of root.children) {
+        if (c === el || c.classList.contains("toast-wrap") || keep.includes(c)) continue;
+        if (keep.some((k) => c.contains(k))) { if ("stageInert" in c.dataset) { c.inert = false; delete c.dataset.stageInert; } walk(c); }
+        else mark(c);
+      }
+    };
+    if (el.parentElement) walk(el.parentElement);
+    document.body.classList.toggle("stage-covers", on);
   }
 
   function open({ focus = true } = {}) {

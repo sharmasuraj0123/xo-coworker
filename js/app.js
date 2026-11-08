@@ -266,7 +266,8 @@ const lpProject = (v) => (v && v.startsWith("p:") ? v.slice(2) : v && v.startsWi
 // the thread "Ask an agent" started (xo-space names it "Deploy to Launchpad"), while it's open
 const lpThread = (p) => { const t = world.state.threads.find((x) => x.project === p && /^deploy to launchpad/i.test(x.title || "") && x.state !== "resolved"); return t ? { thread: t.id, title: t.title, since: t.createdAt, busy: isBusy(t), done: t.state === "done" } : null; };
 const LP = createLaunchpad({ api: createLpApi(), projectOf: lpProject, nameOf: (p) => PROJ(p), findThread: lpThread, go: (v) => go(v), announce, onChange: () => schedule(),
-  notify: (text, undo) => heraldShow({ kind: "done", text, ...(undo ? { undo, undoUntil: Date.now() + 3000 } : {}) }, undo ? 3200 : 4200) });
+  // Launchpad's own Undo names where focus goes (Stop, the header's Deploy, the page's work): ownFocus
+  notify: (text, undo) => heraldShow({ kind: "done", text, ...(undo ? { undo, undoUntil: Date.now() + 3000, ownFocus: true } : {}) }, undo ? 3200 : 4200) });
 const STAGE = createStage({ map: MAP, mapIcon: MAP_ICON, files: FILES, changes: CHG, filesView: FILESV, viewer: VW, view: () => S.view, go: (v) => go(v), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP });
 // the place beside the panel's name: a thread's project (its title is the conversation's own head), a project
 STAGE.names = (v) => {
@@ -1465,7 +1466,7 @@ function closeRuns() {
   const was = RS.returnTo, usable = (b) => b && b !== document.body && b.isConnected && !b.closest("[inert], [hidden]") && b.getClientRects().length > 0;
   const like = (el) => { if (!el || !el.getAttribute) return null; for (const a of ["data-run-call", "data-run"]) if (el.hasAttribute(a)) return document.querySelector(`[${a}="${CSS.escape(el.getAttribute(a))}"]`); return el.hasAttribute("data-runs") ? $("#thead [data-runs]") : null; };
   RS.returnTo = null;
-  [was, like(was), $("#thead [data-runs]"), scroller].find(usable)?.focus({ preventScroll: true });
+  [was, like(was), $("#thead [data-runs]"), placeRegion()].find(usable)?.focus({ preventScroll: true }); // the place's own region (Home, Artifacts, the conversation)
 }
 /** Stop one sub-agent, or all of a session's, after a 3 s Undo. */
 // Stops waiting out their Undo. One herald shows them all, so a second stop never hides the first's Undo.
@@ -3077,8 +3078,8 @@ document.addEventListener("click", (e) => {
   // may be drawn anew (Astra: Undo and Retry left focus on BODY)
   if (t.closest("[data-herald-undo]")) {
     const h = S.herald, u = h?.undo;
-    heraldBack(h)?.focus({ preventScroll: true });
-    S.focusNext = [...((h && h.back) || []), "#say"];
+    // a notice whose Undo names its own destination (Launchpad's) is left to it (lpshell LP21/LP36)
+    if (!h?.ownFocus) { heraldBack(h)?.focus({ preventScroll: true }); S.focusNext = [...((h && h.back) || []), "#say"]; }
     if (typeof u === "function") { h.until = 0; u(); heraldNext(); } else if (u) undoRecord(u);
     return;
   }

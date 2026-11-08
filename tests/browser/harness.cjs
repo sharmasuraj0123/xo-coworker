@@ -59,8 +59,9 @@ function mockApi(W) {
     let k;
     if ((k = /^\/api\/chat\/chats\/([^/]+)\/(threads|messages|hops|made|runtime-policy)$/.exec(p))) {
       if (k[2] === "threads") return json({ threads: (W.threadsBy && W.threadsBy[k[1]]) || [] }); // W.threadsBy: server rows
-      // a thread's own page (?thread=ts): W.threadMsgs[ts]; the conversation's: W.messages
-      if (k[2] === "messages" && u.searchParams.get("thread")) return json({ messages: (W.threadMsgs && W.threadMsgs[u.searchParams.get("thread")]) || [], next_after_seq: 0, next_before_seq: 0 });
+      // a thread's own page (?thread=ts): W.threadPages[ts] when a case gives it (the name W.threadMsgs is
+      // Conversation's own suite's); else as before
+      if (k[2] === "messages" && W.threadPages && u.searchParams.get("thread")) return json({ messages: W.threadPages[u.searchParams.get("thread")] || [], next_after_seq: 0, next_before_seq: 0 });
       if (k[2] === "messages") return json({ messages: k[1] === "chat_demo" && W.messages ? W.messages : [], next_after_seq: 0, next_before_seq: 0 });
       if (k[2] === "made") return json({ made: (W.madeBy && W.madeBy[k[1]]) || (k[1] === "chat_demo" && W.made) || [], next_before: null });
       if (k[2] === "runtime-policy") return json({ space: policy, project: policy, effective: { ...policy, fallback: false } });

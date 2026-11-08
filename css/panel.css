@@ -473,3 +473,8 @@ body.viewer-open .fv~.dock{display:none}
 
 .stage :is(.ag-r,.ch-r,.fr-t,.fr-ib,.stg-ic):focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 @media (prefers-reduced-motion:reduce){.stage :is(.fr-t,.fr-gut::before,.ag-r,.ch-r){transition:none}}
+
+/* while the panel covers the page (a phone, or full size), a notice (a Stop's Undo, Launchpad's own) is drawn above
+   it, at the foot, where its Undo can be seen and pressed (js/stage.js coverSync keeps it out of the inert part) */
+body.stage-covers .dock{z-index:auto} /* no stacking context of its own, so the notice can rise above the panel */
+body.stage-covers .herald{position:fixed;left:16px;right:16px;bottom:max(16px, env(safe-area-inset-bottom));z-index:var(--z-popover);visibility:visible}

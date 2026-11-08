@@ -1234,9 +1234,11 @@ t("Herald: Undo and Retry hand focus to what the notice acts on before its line 
 t("C023: a panel covering the page keeps Tab out of what it covers; the open panel's opener answers hover", async () => {
   const page = await app();
   await panelOpen(page);
-  const under = () => page.evaluate(() => [...document.querySelector("#main").children].filter((c) => !c.classList.contains("stage") && !c.classList.contains("toast-wrap")).map((c) => c.inert));
+  // every control on the page outside the panel and the notices (the herald, the toast) is inert or not: true each
+  const under = () => page.evaluate(() => [...document.querySelectorAll("#main button, #main [href], #main input, #main textarea, #main [tabindex]")]
+    .filter((c) => !c.closest(".stage, .toast-wrap, #herald")).map((c) => !!c.closest("[inert]")));
   if (WIDTH < 600) {
-    assert.ok((await under()).every(Boolean), "everything under the phone's panel is out of reach");
+    assert.ok((await under()).every(Boolean), "everything under the phone's panel is out of reach (only notices stay)");
     await page.locator("[data-stg-close]").filter({ visible: true }).first().focus();
     await page.keyboard.press("Enter");
     await page.waitForFunction(() => document.querySelector("#stage").hidden);
