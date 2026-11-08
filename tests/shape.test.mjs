@@ -537,12 +537,13 @@ t("a write Storm refuses (413, 400) or can't take stays on this device, said qui
   assert.equal(S.get("density"), "compact");
   assert.equal(JSON.parse(st.getItem(KEYS.mine)).density, "compact");
   assert.deepEqual(F.stored, { shape: 1, preset: "marketing" });
-  assert.equal(notes[0].text, "Your shape is saved on this device only");
-  assert.match(notes[0].sub, /64 KB/);
+  assert.equal(notes[0].text, "XO refused your shape change", "a refusal says so plainly, never that it's saved");
+  assert.match(notes[0].sub, /64 KB, and this one is larger\. It's kept on this device only/);
+  assert.deepEqual(S.held, { why: "refused", text: "XO keeps a shape of up to 64 KB, and this one is larger." });
   F.next.put.push(() => { throw Object.assign(new Error("The shape nests deeper than 12 levels."), { status: 400, code: "bad_shape" }); });
   await S.setMine({ shape: 1, preset: "marketing", density: "comfortable" });
   await S.settled();
-  assert.match(notes[1].sub, /deeper than 12 levels\. So your other devices/);
+  assert.match(notes[1].sub, /deeper than 12 levels\. It's kept on this device only: your other devices/);
   // the next change tries again, with everything here
   await S.setMine({ shape: 1, preset: "engineering", density: "comfortable" });
   await S.settled();
@@ -610,7 +611,7 @@ t("a write XO couldn't take (503) is held here, so a reload doesn't read Storm's
   F.next.put.push(() => { throw F.err(503, "unavailable"); });
   await first.S.setMine({ shape: 1, preset: "marketing", density: "compact" });
   await first.S.settled();
-  assert.equal(first.S.held, "unreachable");
+  assert.deepEqual(first.S.held, { why: "unreachable", text: "XO couldn't be reached." });
   assert.deepEqual(F.stored, { shape: 1, preset: "marketing" }, "Storm still has the old one");
   assert.match(first.notes[0].sub, /sent again when XO answers/);
   assert.ok(st.getItem(KEYS.unsynced), "held where a reload finds it");
@@ -651,12 +652,13 @@ t("a write XO refused (413) stays on this device across a reload: the load only 
   F.next.put.push(() => { throw F.err(413, "shape_too_large"); });
   await first.S.setMine({ shape: 1, preset: "marketing", density: "compact" });
   await first.S.settled();
-  assert.equal(first.S.held, "refused");
+  assert.equal(first.S.held.why, "refused");
   const calls = F.calls.length;
   const again = store({ storage: st, remote: F });
   await again.S.ready;
   await again.S.settled();
   assert.deepEqual(F.calls.slice(calls).map((c) => c[0]), ["GET"], "a refused change isn't sent again by itself");
+  assert.deepEqual(again.S.held, { why: "refused", text: "XO keeps a shape of up to 64 KB, and this one is larger." }, "and after a reload it still says why");
   assert.equal(again.S.get("density"), "compact", "and the read didn't take it away");
   await again.S.setMine({ shape: 1, preset: "engineering", density: "compact" });
   await again.S.settled();
@@ -670,7 +672,7 @@ t("held while the page stays open: the next read that reaches Storm (a stream ev
   F.next.put.push(() => { throw F.err(502, "bad_gateway"); });
   await S.setMine({ shape: 1, preset: "marketing", density: "compact" });
   await S.settled();
-  assert.equal(S.held, "unreachable");
+  assert.equal(S.held.why, "unreachable");
   S.heard({ doc: { shape: 1, preset: "marketing" } }); // XO is back: an event, then a read
   await S.settled();
   await S.settled();

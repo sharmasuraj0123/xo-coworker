@@ -632,6 +632,34 @@ t("S115 C101 a save XO couldn't take is held: a reload keeps it on screen, and i
   assert.equal(await page.locator('[data-shp-preset="marketing"]').getAttribute("aria-checked"), "true", "and the page still shows it");
   await done(page);
 });
+t("S115 C101 a save XO refused (413) says so plainly and why, on the Shape page and after a reload; never saved, never quietly pending", async (ctx) => {
+  const W = world();
+  W.fail.shape = [{ status: 413, body: { detail: { code: "shape_too_large", message: "Too large" } } }];
+  const page = await open(W, ctx);
+  await settings(page, "shape");
+  await keyFocus(page, '[data-shp-preset="marketing"]');
+  await page.keyboard.press("Enter");
+  const said = '[data-page="shape"] .set-err[role="alert"]';
+  await page.waitForSelector(said);
+  assert.match(await page.locator(said).innerText(), /XO refused your last shape change\. XO keeps a shape of up to 64 KB, and this one is larger\. It's kept on this device only/);
+  assert.equal(await page.locator('[data-shp-preset="marketing"]').getAttribute("aria-checked"), "true", "it applies here");
+  assert.equal(await focused(page), 'button[data-shp-preset="marketing"]');
+  await shot(page, "shape-refused");
+  // a reload: only a read (a refusal isn't sent again by itself), and it still says so
+  const before = writes(page, "shape");
+  await page.reload();
+  await page.waitForSelector('[data-go="p:demo"]', { state: "attached" });
+  await settings(page, "shape");
+  await page.waitForSelector(said);
+  assert.match(await page.locator(said).innerText(), /XO refused your last shape change/);
+  assert.equal(writes(page, "shape"), before, "nothing sent on the reload");
+  // the next change goes, with it: the line goes when XO has it
+  await keyFocus(page, '[data-shp-preset="engineering"]');
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => !document.querySelector('[data-page="shape"] .set-err'));
+  assert.equal(W.shape.shape.preset, "engineering");
+  await done(page);
+});
 t("C114 a refused usual runtime: the saved one stays chosen, the reason shows under it, the keyboard stays, and Enter tries again", async (ctx) => {
   const W = world({ delay: 300 });
   W.fail.policy = [err("unavailable", "Policy fixture unavailable")];

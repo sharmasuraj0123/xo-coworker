@@ -420,15 +420,17 @@ export function createShapeStore({ storage = defaultStorage(), load = fetchPrese
   // held: your changes a write couldn't land (why: "unreachable", sent again by itself; "refused", sent with your
   // next change), kept here and in KEYS.unsynced so no read takes Storm's older shape over them; localOk: whether
   // this browser kept mine at its last write.
-  const R = { mode: remote ? "reading" : "off", version: null, synced: null, knows: false, known: null, pend: [], busy: null, heard: undefined, retried: false, read: Promise.resolve(), held: [], why: null, tries: 0, timer: null, localOk: true };
+  const R = { mode: remote ? "reading" : "off", version: null, synced: null, knows: false, known: null, pend: [], busy: null, heard: undefined, retried: false, read: Promise.resolve(), held: [], why: null, text: "", tries: 0, timer: null, localOk: true };
+  const heldSubs = new Set(); // Settings › Shape: what's held, and why, shown while it is
+  const heldSaid = () => { for (const f of heldSubs) f(); };
   {
     const un = remote ? read(KEYS.unsynced) : null;
-    if (un && Array.isArray(un.changes) && un.changes.length) { R.held = [un.changes]; R.known = isObj(un.known) ? un.known : null; R.why = un.why === "refused" ? "refused" : "unreachable"; }
+    if (un && Array.isArray(un.changes) && un.changes.length) { R.held = [un.changes]; R.known = isObj(un.known) ? un.known : null; R.why = un.why === "refused" ? "refused" : "unreachable"; R.text = typeof un.text === "string" ? un.text : ""; }
     else if (!remote) { try { storage.removeItem(KEYS.unsynced); } catch { /* nothing kept */ } }
   }
   /** Keep the held changes (and why) where a reload finds them; or let them go, once Storm has them or can't. */
-  function hold(why) { R.why = why; write(KEYS.unsynced, { changes: R.held.flat(), known: R.known, why }); }
-  function unhold() { R.held = []; R.why = null; R.tries = 0; clearTimeout(R.timer); try { storage.removeItem(KEYS.unsynced); } catch { /* nothing kept */ } }
+  function hold(why, text) { R.why = why; R.text = text; write(KEYS.unsynced, { changes: R.held.flat(), known: R.known, why, text }); heldSaid(); }
+  function unhold() { const was = !!R.why; R.held = []; R.why = null; R.text = ""; R.tries = 0; clearTimeout(R.timer); try { storage.removeItem(KEYS.unsynced); } catch { /* nothing kept */ } if (was) heldSaid(); }
   /** A write XO couldn't take goes again by itself: after a while, or as soon as a read reaches Storm. */
   function later() {
     clearTimeout(R.timer);
@@ -484,15 +486,17 @@ export function createShapeStore({ storage = defaultStorage(), load = fetchPrese
     if (gone(err)) { R.mode = "off"; unhold(); return; } // no route after all (an older backend again): this browser's, quietly
     if (err && err.status === 409 && err.code === "shape_changed" && isView(err.current)) { const all = [...R.held.splice(0), ...pend]; unhold(); conflict(err.current, all); return; }
     const refused = !!err && err.status >= 400 && err.status < 500;
+    // why, in a sentence of its own: shown in the notice now, and in Settings › Shape while it's held
+    const reason = !refused ? "XO couldn't be reached."
+      : err.status === 413 ? "XO keeps a shape of up to 64 KB, and this one is larger."
+        : err.status === 400 && err.message ? String(err.message).replace(/\s*$/, "").replace(/([^.!?])$/, "$1.")
+          : "XO refused it.";
     R.held.push(...pend);
-    hold(refused ? "refused" : "unreachable");
+    hold(refused ? "refused" : "unreachable", reason);
     if (!refused) later();
-    const why = err && err.status === 413 ? `XO keeps a shape of up to 64 KB, so ${NOT_THERE}.`
-      : err && err.status === 400 ? `${String(err.message || "XO refused it.").replace(/\s*$/, "")} So ${NOT_THERE}.`
-        : refused ? `XO refused it, so ${NOT_THERE}.`
-          : `XO couldn't be reached, so ${NOT_THERE} yet. It's sent again when XO answers.`;
-    if (!R.localOk) notice({ text: "Your shape isn't saved", sub: `This browser won't keep it after a reload, and ${refused ? "XO refused it" : "XO couldn't be reached"}.` });
-    else notice({ text: "Your shape is saved on this device only", sub: why });
+    if (!R.localOk) notice({ text: "Your shape isn't saved", sub: `This browser won't keep it after a reload, and ${refused ? `XO refused it: ${reason}` : "XO couldn't be reached."}` });
+    else if (refused) notice({ text: "XO refused your shape change", sub: `${reason} It's kept on this device only: ${NOT_THERE}.` });
+    else notice({ text: "Your shape is saved on this device only", sub: `XO couldn't be reached, so ${NOT_THERE} yet. It's sent again when XO answers.` });
   }
   /**
    * Another device saved first: Storm's (current) is taken here. Your change goes back on top when it's
@@ -624,8 +628,10 @@ export function createShapeStore({ storage = defaultStorage(), load = fetchPrese
     heard,
     /** Settles when every change so far has been written (or refused); for tests and a page about to go. */
     settled: async () => { while (R.busy || R.pend.length) { await (R.busy || push()); } await R.read; },
-    /** Changes of yours a write couldn't land yet ("unreachable": sent again by itself; "refused": with your next). */
-    get held() { return R.held.length ? R.why : null; },
+    /** Changes of yours a write couldn't land yet: {why: "unreachable" (sent again by itself) or "refused" (with your next), text: why, in a sentence}, else null. */
+    get held() { return R.held.length ? { why: R.why, text: R.text } : null; },
+    /** Called when what's held changes (held, or landed). */
+    onHeld(fn) { heldSubs.add(fn); return () => heldSubs.delete(fn); },
     ownKeys, ready, loadPreset,
     presetFile: (id) => files.get(id) || null,
     presetError: (id) => loadErr.get(id) || null,
