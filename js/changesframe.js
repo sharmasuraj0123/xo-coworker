@@ -235,7 +235,11 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
       if (stOf(s.key).sel !== f.path || changes.scope(view())?.key !== s.key) return;
       const line = shown && st.follow && D.patch && patch !== D.patch ? newestHunkLine(D.patch, patch) : null;
       draw(s.key, f, patch, { scrollTo: line });
-    }).catch(() => { note.hidden = false; pd.hidden = true; note.textContent = "Couldn't read this file's change."; });
+    }).catch(() => {
+      // a failure for a file that isn't the pick any more says nothing (a late B failing hid a newer C)
+      if (stOf(s.key).sel !== f.path || changes.scope(view())?.key !== s.key) return;
+      note.hidden = false; pd.hidden = true; im.hidden = true; note.textContent = "Couldn't read this file's change.";
+    });
     return true;
   }
 

@@ -447,6 +447,10 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     if (f) f.setAttribute("aria-pressed", String(!!c.follow));
   }
   const READABLE = 0.8; // the smallest scale for a partial view (all = false): labels stay readable (≈10px)
+  // the smallest scale a box can be pressed surely at: boxes are 32 tall, 42 apart, so a box's target may grow 5
+  // into the 10 between (css: .dg-n::before), 42 in all; 42 × this = 24 px. Further out, a pointer press brings the
+  // map in to the box instead of acting on it (the keyboard acts at any size) (Files/Map grader on b153247)
+  const PRESS_MIN = 24 / 42;
   /** Frame the drawing. The Map shows it all, fitted to whatever size its frame is (the owner, 4 Nov:
    *  "I asked for the map to fit it all"), by itself and with Fit; all = false is the old readable
    *  partial view, kept for callers that want it. */
@@ -1077,6 +1081,14 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     if (!nb || M.dragged) return;
     const r = M.refs.get(nb.dataset.node);
     if (!r) return;
+    const cz = camOf(M.scope);
+    if (e.detail > 0 && cz.s < PRESS_MIN) {
+      // a pointer press far out: in to that box, readable, where its targets are full size; it doesn't act yet
+      cz.user = true; cz.follow = false; cz.fitAll = false;
+      centerOn(cz, { x: nb.offsetLeft + nb.offsetWidth / 2 - tagW() / 2, y: nb.offsetTop + nb.offsetHeight / 2 }, true, READABLE);
+      announce(`Closer to ${nb.textContent.trim() || "it"}: press it again to open it.`);
+      return;
+    }
     const key = M.scope.key;
     if (r.toggle != null || r.more != null) {
       // unfold in place: the box you clicked stays under your pointer, at the same size

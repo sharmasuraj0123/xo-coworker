@@ -1238,25 +1238,31 @@ t("C023: a panel covering the page keeps Tab out of what it covers; the open pan
   }
   await done(page);
 });
-// the real turn chip: a finished turn's "Files changed" chip, drawn by js/turnview.js (no size on it), opened
-// with the keyboard by the page's own handler, through the conversation's route; read held, read refused
+// the real turn chip, through the real conversation: a thread with a session, its finished turn fed to the app's
+// own turn store as the stream feeds it (turn.started, block.finished, turn.finished), drawn in #msgs by the
+// conversation (and redrawn by it, chosen); opened with the keyboard by the page's own handler, through the
+// thread's route (Files/Map grader: mounted outside #msgs, the redraw wasn't part of the case)
 async function turnChip(page) {
-  await page.evaluate(async () => {
-    const { turnHtml } = await import("./js/turnview.js");
-    const html = turnHtml({ id: "tu1", status: "done", at: new Date().toISOString() }, [{ id: "b1", type: "activity", done: true, rows: [{ kind: "edit_file", status: "ok", target: "a.js", id: "c1" }] }]);
-    const box = document.createElement("div"); box.id = "t-turn"; box.innerHTML = html;
-    document.querySelector("#scroller").appendChild(box);
+  await page.evaluate(() => {
+    const t = window.__t;
+    t.world.state.threads = [{ id: "tt1", chatId: "chat_demo", sessionId: "ses-tt", title: "A local task", project: "demo", live: false, busy: false, state: "idle", messages: [], happened: "Test only", lastAt: Date.now(), createdAt: Date.now() - 60e3, checklist: { total: 0, done: 0, items: [] }, asks: [] }];
+    const at = new Date().toISOString();
+    const f = (type, seq, data) => ({ type, envelope: { type, turn_id: "tu-tt", session_id: "ses-tt", chat_id: "chat_demo", thread_ts: "tt1", seq, ts: at, data } });
+    window.__storm.apply(f("turn.started", 1, {}));
+    window.__storm.apply(f("block.finished", 2, { block: { id: "b1", type: "activity", rows: [{ call_id: "c1", kind: "edit_file", status: "ok", target: "a.js" }] } }));
+    window.__storm.apply(f("turn.finished", 3, { status: "finished" }));
+    t.go("t:tt1"); t.render();
   });
-  const chip = page.locator("#t-turn .tb-cf[data-file]").first();
-  await chip.waitFor();
+  const chip = page.locator('#msgs .tb-cf[data-file="a.js"]').first();
+  await chip.waitFor({ timeout: 15000 });
   assert.equal(await chip.getAttribute("data-file-bytes"), null, "the real chip has no size");
   return chip;
 }
 t("S224: a turn's file chip whose file changed opens its diff (the panel's Changes; Files on a phone), focus on it", async () => {
   const page = await app({ files: { "a.js": FILE() }, changes: [{ path: "a.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: PATCH("a.js", "one", "ONE") }] });
   await toDemo(page);
-  await page.waitForTimeout(400); // the place's changes are read
   const chip = await turnChip(page);
+  await page.waitForTimeout(400); // the place's changes are read
   await chip.focus();
   await page.keyboard.press("Enter");
   await page.waitForTimeout(500);
@@ -1287,7 +1293,7 @@ for (const variant of ["read", "held", "refused"]) {
     await done(page);
   });
 }
-t("S207: Fit shows every box, even with a folder's More opened; each box's middle is its own, never a neighbour's", async () => {
+t("S207/S082: Fit shows every box; no box's target reaches a neighbour's box (edges too); far out a press zooms in", async () => {
   const dirs = Array.from({ length: 40 }, (_, i) => `folder-${String(i).padStart(2, "0")}`);
   const page = await app({ files: { "a.js": FILE() }, dirs });
   await panelOpen(page);
@@ -1295,28 +1301,44 @@ t("S207: Fit shows every box, even with a folder's More opened; each box's middl
   await page.locator("#stage-map-tree").waitFor();
   await page.evaluate(() => document.querySelector("#stage-map-tree").click());
   await page.locator(".dg-world [data-node]").first().waitFor();
-  // the top folder shows 14 and "N more": open them all
+  // the top folder shows 14 and "N more": open them all (with the keyboard: it acts at any size)
   const more = page.locator(".dg-world .dg-n.k-more").first();
-  if (await more.count()) { await more.click(); await page.waitForTimeout(300); }
+  if (await more.count()) { await more.focus(); await page.keyboard.press("Enter"); await page.waitForTimeout(300); }
   await page.locator('[data-dg="fit"]').filter({ visible: true }).first().click();
   await page.waitForTimeout(500);
-  const r = await page.evaluate(() => {
+  const probe = () => page.evaluate(() => {
     const box = document.querySelector(".dg-world").parentElement.getBoundingClientRect();
     const nodes = [...document.querySelectorAll(".dg-world [data-node]")];
     const out = [], stolen = [];
     for (const n of nodes) {
       const b = n.getBoundingClientRect();
       if (b.left < box.left - 1 || b.right > box.right + 1 || b.top < box.top - 1 || b.bottom > box.bottom + 1) out.push(n.dataset.node);
-      const hit = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
-      const owner = hit && hit.closest("[data-node]");
-      if (owner !== n) stolen.push(`${n.dataset.node} → ${owner ? owner.dataset.node : hit && hit.tagName}`);
+      // its middle and a point just inside each edge are its own, never a neighbour's target
+      const pts = [[b.left + b.width / 2, b.top + b.height / 2], [b.left + b.width / 2, b.top + 0.5], [b.left + b.width / 2, b.bottom - 0.5], [b.left + 0.5, b.top + b.height / 2], [b.right - 0.5, b.top + b.height / 2]];
+      for (const [x, y] of pts) {
+        if (y < box.top || y > box.bottom - 44 || x < box.left || x > box.right) continue; // under the map's tools
+        const hit = document.elementFromPoint(x, y), owner = hit && hit.closest("[data-node]");
+        if (owner && owner !== n) { stolen.push(`${n.dataset.node} → ${owner.dataset.node}`); break; }
+      }
     }
-    const s = parseFloat(document.querySelector(".dg-world").style.getPropertyValue("--dg-s")) || 1;
-    return { n: nodes.length, out, stolen, s };
+    return { n: nodes.length, out, stolen, s: parseFloat(document.querySelector(".dg-world").style.getPropertyValue("--dg-s")) || 1 };
   });
+  const r = await probe();
   assert.ok(r.n >= 40, `every folder drawn (${r.n})`);
   assert.deepEqual(r.out, [], "every box inside the view after Fit");
-  assert.deepEqual(r.stolen, [], `at scale ${r.s.toFixed(3)} each box's middle is its own`);
+  assert.deepEqual(r.stolen, [], `at scale ${r.s.toFixed(3)} no target reaches a neighbour's box`);
+  if (r.s < 24 / 42) {
+    // too far out to press a box surely: a pointer press brings the map in to it, and doesn't act
+    const n = page.locator('.dg-world [data-node="folder-20"]');
+    const was = await n.getAttribute("class");
+    await n.click();
+    await page.waitForTimeout(500);
+    const s2 = await page.evaluate(() => parseFloat(document.querySelector(".dg-world").style.getPropertyValue("--dg-s")) || 1);
+    assert.ok(s2 >= 24 / 42, `zoomed in to a pressable size (${s2})`);
+    assert.equal(await n.getAttribute("class"), was, "the folder didn't open on that press");
+    const r2 = await probe();
+    assert.deepEqual(r2.stolen, [], `at scale ${r2.s.toFixed(3)} no target reaches a neighbour's box`);
+  }
   await done(page);
 });
 t("H12: a made thing's age updates in place, and a name cut in the middle stays whole", async () => {

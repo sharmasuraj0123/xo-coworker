@@ -194,11 +194,11 @@ body.stage-over .stage{box-shadow:var(--e2)}
 .dg-n{width:148px;height:32px;padding:0 8px;gap:8px;font:400 var(--fs-sm)/16px var(--sans)}
 .dg-n.k-root{height:36px;margin-top:-2px;font-weight:600}
 .dg-n.k-more,.dg-n.k-note{width:auto;height:24px;margin-top:4px}
-/* a node's hit area stays ~24 px on screen as the map zooms out: an invisible margin, in the map's own units, of
-   12 px × (1/scale − 1) on each side (Astra: More measured 25.8 × 7.2 px after Fit), never more than 20 px: boxes
-   sit 42 px apart, so a grown target (16 + 20 from its centre) never reaches a neighbour's centre (Files/Map grader:
-   below a scale of 0.316 it did); never less than none when zoomed in */
-.dg-n::before{content:"";position:absolute;inset:clamp(-20px, calc(12px * (1 - 1 / var(--dg-s, 1))), 0px)}
+/* a box's hit area grows as the map zooms out, by 12 px × (1/scale − 1) on each side, in the map's own units, but
+   never more than 5: boxes are 32 tall and 42 apart, so a target stops half way into the 10 between and never
+   reaches a neighbour's box, edge or centre (Files/Map grader on b153247). That keeps targets 24 px or more down to
+   a scale of 24/42; further out a pointer press zooms in instead of acting (js/map.js PRESS_MIN) */
+.dg-n::before{content:"";position:absolute;inset:clamp(-5px, calc(12px * (1 - 1 / var(--dg-s, 1))), 0px)}
 .dg-ic svg,.dg-ic svg.fi{width:16px;height:16px}
 .gn.k-file .gn-d{background:var(--fc,var(--fill-4))}
 :root[data-theme="light"] .gn.k-file .gn-d{background:var(--fc,#B9B9B6)}
