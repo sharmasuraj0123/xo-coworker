@@ -894,5 +894,30 @@ t("a note whose newer copy of mine is what Storm already has: nothing is held, a
   assert.equal(st.getItem(KEYS.unsynced), null);
 });
 
+t("SRC-SET-QUEUE-7 as Astra ran it: the stale note, a newer comfortable + word change, a project word changed elsewhere: no stale replay", async () => {
+  const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
+  const base = mem();
+  let refuseNote = false;
+  const st = { ...base, setItem: (k, v) => { if (k === KEYS.unsynced && refuseNote) throw new Error("QuotaExceededError"); base.setItem(k, v); } };
+  const first = store({ storage: st, remote: F });
+  await first.S.ready;
+  F.next.put.push(() => { throw F.err(413, "shape_too_large"); });
+  await first.S.setMine({ shape: 1, preset: "marketing", density: "compact" });
+  await first.S.settled();
+  refuseNote = true;
+  F.next.put.push(() => new Promise(() => {}));
+  first.S.setMine({ shape: 1, preset: "marketing", density: "comfortable", words: { thread: "task" } });
+  await new Promise((r) => setTimeout(r, 10));
+  F.set({ shape: 1, preset: "marketing", words: { project: "client" } }); // the project word, changed on another device
+  const again = store({ storage: st, remote: F });
+  assert.equal(again.S.get("density"), "comfortable", "first paint: the newer change");
+  await again.S.ready;
+  await again.S.settled();
+  assert.notEqual(F.stored.density, "compact", "the stale compact delta isn't replayed");
+  assert.equal(again.S.mine.density === "compact", false);
+  assert.match(again.notes.at(-1).sub, /wasn't kept/, "two keys over another device's change: said, as every conflict is");
+  assert.equal(again.S.held, null);
+});
+
 await Promise.all(pending);
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
