@@ -646,6 +646,8 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
     const kf = box.querySelector("#arts-f"), kh = R.KINDS.filter(([k]) => k === "all" || v.counts[k]).map(([k, w]) => `<button type="button" role="radio" data-arts-kind="${k}" aria-checked="${A.kind === k}"${rovingTab(A.kind === k)}>${w}<span>${pending ? "" : v.counts[k]}</span></button>`).join("");
     if (kf._h !== kh) { redraw(kf, kh); kf._h = kh; }
     if (!kf._keys) { kf._keys = true; radioKeys(kf); }
+    // Images is the one filter shown as pictures on a phone; everything else is a list of rows (css/artifacts.css)
+    box.classList.toggle("is-pics", A.kind === "image");
     const be = box.querySelector("#arts-body");
     // a new filter is a new list: drawn afresh, still
     const scope = `${A.pid}|${A.kind}|${A.q}|${pending ? "…" : ""}`;

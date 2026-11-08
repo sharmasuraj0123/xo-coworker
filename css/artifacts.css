@@ -64,4 +64,26 @@
   .ar-q{max-width:none;flex-basis:100%}
   .ar-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
   .ar-grid .md-th{height:120px}
+
+  /* a phone, everything but the Images filter: one row per thing, content first (Astra's proposal, C013). The
+     name gets the width a 120 px decorative well took (234 px, up to two lines, not 147 px); a real preview or the
+     file's coloured icon leads at 36 px; under the name its project, kind and age, then the thread it came from;
+     the pin is its own 44 px target beside the row, never over the file. One height, so the page still draws only
+     what's near the screen. Pictures keep their big previews under Images. */
+  .arts:not(.is-pics) .ar-grid{grid-template-columns:minmax(0,1fr);gap:8px}
+  .arts:not(.is-pics) .ar-grid .md-it{display:grid;grid-template-columns:minmax(0,1fr) 44px;grid-template-rows:minmax(0,1fr) auto;height:108px}
+  .arts:not(.is-pics) .ar-grid .md-open{grid-column:1;grid-row:1;flex-direction:row;align-items:center;gap:12px;min-height:0;padding:12px 0 0 12px}
+  .arts:not(.is-pics) .ar-grid .md-th{flex:none;width:36px;height:36px;gap:0;border:1px solid var(--line-soft);border-radius:var(--r)}
+  .arts:not(.is-pics) .ar-grid .md-th .md-ic{width:auto;height:auto;border:0;background:none}
+  .arts:not(.is-pics) .ar-grid .md-th .md-ic svg{width:20px;height:20px}
+  .arts:not(.is-pics) .ar-grid .md-ext{display:none}
+  .arts:not(.is-pics) .ar-grid .md-meta{flex:1;gap:2px;padding:0}
+  .arts:not(.is-pics) .ar-grid .md-meta b{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;white-space:normal;overflow-wrap:anywhere;font:500 var(--fs-md)/20px var(--sans)}
+  .arts:not(.is-pics) .ar-grid .md-meta b .mx-mid{display:inline}
+  .arts:not(.is-pics) .ar-grid .md-meta b :is(.mx-mh,.mx-mt){white-space:normal}
+  .arts:not(.is-pics) .ar-grid .md-meta > span{font:400 var(--fs-base)/18px var(--sans)}
+  .arts:not(.is-pics) .ar-grid .md-from{grid-column:1;grid-row:2;margin:4px 0 8px 54px;font:400 var(--fs-base)/18px var(--sans)}
+  .arts:not(.is-pics) .ar-grid .md-pin{position:static;grid-column:2;grid-row:1 / span 2;width:44px;height:auto;align-self:stretch;border-radius:0;background:none;color:var(--ink-4);opacity:1}
+  .arts:not(.is-pics) .ar-grid .md-it.is-pin .md-pin{color:var(--accent)}
+  .arts:not(.is-pics) .ar-grid .md-pin svg{width:16px;height:16px}
 }

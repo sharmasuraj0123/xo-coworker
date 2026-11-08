@@ -576,6 +576,35 @@ const MADE = () => [
   { id: "mk1", name: "notes.md", path: "notes.md", relative_path: "notes.md", project_id: "demo", mime: "text/markdown", bytes: 10, created_at: NOW, updated_at: NOW },
   { id: "mk2", kind: "link", url: "https://example.com/report", name: "report", created_at: NOW, updated_at: NOW },
 ];
+t("C013: on a phone, Artifacts is a list of rows (the name gets the width), pictures stay pictures under Images", async () => {
+  if (WIDTH >= 600) return; // a phone's layout
+  const long = "quarterly-research-findings-for-the-board-final-draft.md";
+  const made = [
+    { id: "r1", name: long, path: long, relative_path: long, project_id: "demo", mime: "text/markdown", bytes: 10, created_at: NOW, updated_at: NOW },
+    { id: "r2", name: "notes.md", path: "notes.md", relative_path: "notes.md", project_id: "demo", mime: "text/markdown", bytes: 10, created_at: NOW, updated_at: NOW },
+    { id: "r3", name: "shot.png", path: "shot.png", relative_path: "shot.png", project_id: "demo", mime: "image/png", bytes: 10, created_at: NOW, updated_at: NOW },
+  ];
+  const page = await app({ made });
+  await page.evaluate(() => window.__t.go("artifacts"));
+  await page.locator('#arts-body .md-it[data-k="r1"]').waitFor();
+  const m = await page.evaluate(() => {
+    const it = (k) => document.querySelector(`#arts-body .md-it[data-k="${k}"]`);
+    const r = (e) => e.getBoundingClientRect();
+    const a = it("r1"), b = it("r2");
+    return { w: r(a).width, h: [r(a).height, r(b).height], name: r(a.querySelector(".md-meta b")).width, nameLines: Math.round(r(a.querySelector(".md-meta b")).height / 20), pin: r(a.querySelector(".md-pin")).width, pinOverOpen: r(a.querySelector(".md-pin")).left < r(a.querySelector(".md-open")).right - 1, over: document.documentElement.scrollWidth > innerWidth };
+  });
+  assert.ok(m.w > 300, `one row across (${m.w})`);
+  assert.equal(m.h[0], m.h[1], "every row one height");
+  assert.ok(m.name >= 220, `the name has the width (${m.name})`);
+  assert.ok(m.nameLines <= 2);
+  assert.equal(m.pin, 44, "the pin is its own 44 px target");
+  assert.equal(m.pinOverOpen, false, "the pin never covers the file's button");
+  assert.equal(m.over, false, "nothing overflows");
+  await page.locator('#arts-f [data-arts-kind="image"]').click();
+  await page.waitForFunction(() => document.querySelector("#arts").classList.contains("is-pics"));
+  assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector("#arts-body .ar-grid")).gridTemplateColumns.split(" ").length), 2, "pictures as pictures");
+  await done(page);
+});
 t("C065: Artifacts' kinds: arrows choose, one Tab stop, focus stays on the kind chosen", async () => {
   const page = await app({ made: MADE() });
   await page.evaluate(() => window.__t.go("artifacts"));
