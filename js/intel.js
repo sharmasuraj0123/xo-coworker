@@ -92,19 +92,24 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
   /** The chip says what the conversation runs on, in words: a thread's model and depth as its session runs
       them now (so a working thread shows the setting it is working in), a chat's pin, else Auto. A runtime
       other than the Space's own is named first. No codes: no pin dot, no effort dots. */
+  /** {model, effort} the chip names: a thread's session (what it runs now; a pin waiting for the next turn
+      only fills what the session doesn't report), a chat's pin, else nothing (Auto). */
+  function shownSetting(s) {
+    const c = current(s), r = running(s);
+    if (r) return { model: r.model || c.model || null, effort: r.effort || c.effort || null };
+    return c.pinned ? { model: c.model, effort: c.effort } : { model: null, effort: null };
+  }
   function chipHtml(s, phone) {
     warm(s);
     const c = current(s);
-    if (simple() && !phone) { const w = simpleOf(s, c); return `<span class="iq-l"><span class="${w === "auto" ? "iq-a" : "iq-t"}">${esc(w === "auto" ? "Auto" : w === "deep" ? "Deep" : nameOf(c.model) || "Pinned")}</span></span>`; }
-    const r = running(s);
-    const model = r ? r.model || c.model : c.pinned ? c.model : null;
-    const effort = r ? r.effort || c.effort : c.pinned ? c.effort : null;
+    if (simple() && !phone && !threadOf(s)) { const w = simpleOf(s, c); return `<span class="iq-l"><span class="${w === "auto" ? "iq-a" : "iq-t"}">${esc(w === "auto" ? "Auto" : w === "deep" ? "Deep" : nameOf(c.model) || "Pinned")}</span></span>`; }
+    const { model, effort } = shownSetting(s);
     const rtn = runtimeOf(s), main = (mainRuntime(world.state.runtimes) || {}).name;
     const rt = manyRuntimes(world.state.runtimes) && rtn && rtn !== main && !phone ? rtName(rtn) : null;
     const words = [];
     if (rt) words.push(`<span class="iq-a">${esc(rt)}</span>`);
     words.push(model ? `<span class="iq-t">${esc(nameOf(model))}</span>` : `<span class="iq-a">Auto</span>`);
-    if (effort && !phone) words.push(`<span class="iq-e">${esc(effortWord(effort))}</span>`);
+    if (effort) words.push(`<span class="iq-e">${esc(effortWord(effort))}</span>`);
     return `<span class="iq-l">${words.join(`<span class="iq-sep" aria-hidden="true">·</span>`)}</span>`;
   }
   const AUTO = `<span class="iq-a">Auto</span>`;
@@ -118,9 +123,14 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
   }
   function chipTitle(s) {
     const c = current(s);
-    if (kindOf(s) === "thread") return `${c.pinned ? "Pinned" : "Chosen by the router"}: ${c.model ? nameOf(c.model) : "the default model"}${c.effort ? ` · ${EFFORT_WORD[c.effort] || c.effort}` : ""}. Click to change${K.hint("intel")}`;
+    if (kindOf(s) === "thread") {
+      const r = running(s), { model, effort } = shownSetting(s);
+      const what = `${model ? nameOf(model) : "its default model"}${effort ? ` · ${effortWord(effort)}` : ""}`;
+      const pending = c.pinned && r && r.model && c.model && c.model !== r.model ? `, ${nameOf(c.model)} from its next turn` : "";
+      return `${r && r.working ? "Running" : "Runs"} ${what}${pending}. Change it${K.hint("intel")}`;
+    }
     const r = c.routing || {};
-    return `${r.mode === "off" ? "Routing is off" : r.mode === "decision" ? `${cap(r.decision_model)} routes new messages` : "The coordinator routes new messages"}${c.pinned ? ` · its coordinator runs ${nameOf(c.model)}` : ""}. Click to change${K.hint("intel")}`;
+    return `${c.pinned ? `Its coordinator runs ${nameOf(c.model)}${c.effort ? ` · ${effortWord(c.effort)}` : ""}` : "Auto: its coordinator runs its default model"}; ${r.mode === "off" ? "routing is off" : r.mode === "decision" ? `${cap(r.decision_model)} routes new messages` : "the coordinator routes new messages"}. Change it${K.hint("intel")}`;
   }
   const cap = (x) => String(x || "").replace(/^\w/, (m) => m.toUpperCase());
 
@@ -242,8 +252,8 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     let truth;
     if (kind === "thread") {
       const rtw = esc(rtName(runtimeOf(s)) || "");
-      truth = `${r && r.working ? `<i class="g g-working" aria-hidden="true"></i>Running` : "Runs"} ${nowWords(r && r.model || c.model, r && r.effort || c.effort)}${rtw ? ` on ${rtw}` : ""}.`;
-      if (c.pinned && r && (c.model && r.model && c.model !== r.model || c.effort && r.effort && c.effort !== r.effort)) truth += ` From its next turn: ${nowWords(c.model, c.effort)}.`;
+      truth = `${r && r.working ? `<i class="g g-working" aria-hidden="true"></i>Running` : "Runs"} ${nowWords(r && r.model, r && r.effort)}${rtw ? ` on ${rtw}` : ""}.`;
+      if (c.pinned && (c.model && c.model !== (r && r.model) || c.effort && c.effort !== (r && r.effort))) truth += ` From its next turn: ${nowWords(c.model, c.effort)}.`;
     } else truth = c.pinned ? `Its coordinator runs ${nowWords(c.model, c.effort)}. New threads get their own from the router.` : "Its coordinator runs its default model. New threads get their own from the router.";
     html += `<p class="iq-truth">${truth}</p>`;
     if (P.err) html += `<p class="iq-err">${esc(P.err)}</p>`;
@@ -337,6 +347,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
   }
   /** A thread looks at continuing on `name`: its models there, read with a deadline (Default never waits). */
   function lookAt(name) {
+    P.draft = null;
     const s = P.session;
     P.rt = name;
     P.mv = moving(s) ? { model: null, effort: null, models: catalogs.get(name) || null } : null;
@@ -421,6 +432,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
   const blankPolicy = { allowed: null, default: null, preferences: null, fallback: null };
   /** A project's or the Workspace's runtime: its coordinator (from its next pause) and, for a project, its new threads. */
   async function setRuntime(s, id) {
+    P.draft = null;
     const c = chatOfSession(s), kind = kindOf(s);
     if (!c || P.busy || id === runtimeChoice(s).on) return;
     const pin0 = { agent: (c.pin && c.pin.agent) || null, model: (c.pin && c.pin.model) || null, effort: (c.pin && c.pin.effort) || null };
@@ -525,7 +537,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     if (e.key !== "Escape") return;
     e.preventDefault(); e.stopPropagation();
     // Esc steps back out of continuing elsewhere first, then closes
-    if (P.mv && !P.mv.busy) { lookAt(null); pop.querySelector(`[data-lrt][aria-checked="true"]`)?.focus(); } else if (!(P.mv && P.mv.busy)) close();
+    if (P.mv && !P.mv.busy) { lookAt(null); pop.querySelector(`[data-lrt][aria-checked="true"]`)?.focus(); } else if (!(P.mv && P.mv.busy)) close({ apply: false });
   });
   document.addEventListener("pointerdown", (e) => { if (P.open && !(P.mv && P.mv.busy) && !pop.contains(e.target) && !e.target.closest("#iq")) close({ restore: false }); });
   addEventListener("resize", () => { if (P.open) place(); });

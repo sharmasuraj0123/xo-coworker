@@ -2939,16 +2939,41 @@ function jumpRender() {
   jq.setAttribute("aria-activedescendant", jitems.length ? `j-${jsel}` : "");
   jl.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: "nearest" });
 }
-function openJump() { jump.hidden = false; jq.value = ""; jsel = 0; jumpRender(); jq.focus(); }
-function closeJump() { jump.hidden = true; }
+let jumpReturn = null;
+function openJump() { jumpReturn = document.activeElement; jump.hidden = false; jq.value = ""; jsel = 0; jumpRender(); jq.focus(); }
+function closeJump({ restore = true } = {}) { if (jump.hidden) return; jump.hidden = true; if (restore && jumpReturn && jumpReturn.isConnected && jumpReturn.offsetParent) jumpReturn.focus({ preventScroll: true }); }
 jq.addEventListener("input", () => { jsel = 0; jumpRender(); });
 jq.addEventListener("keydown", (e) => {
   if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); jsel = (jsel + (e.key === "ArrowDown" ? 1 : jitems.length - 1)) % Math.max(1, jitems.length); jumpRender(); }
-  if (e.key === "Enter") { e.preventDefault(); const x = jitems[jsel]; closeJump(); if (x) (x.run ? x.run() : go(x.v)); }
+  if (e.key === "Enter") { e.preventDefault(); const x = jitems[jsel]; closeJump({ restore: false }); if (x) (x.run ? x.run() : go(x.v)); }
   if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeJump(); }
 });
-jl.addEventListener("click", (e) => { const li = e.target.closest("[data-i]"); if (li) { const x = jitems[+li.dataset.i]; closeJump(); if (x.run) x.run(); else go(x.v); } });
+jl.addEventListener("click", (e) => { const li = e.target.closest("[data-i]"); if (li) { const x = jitems[+li.dataset.i]; closeJump({ restore: false }); if (x.run) x.run(); else go(x.v); } });
 jump.addEventListener("mousedown", (e) => { if (e.target === jump) closeJump(); });
+
+// ── one layer on top ──────────────────────────────────────────────────────────
+// A sheet (Jump, Keys, All threads, Runs) is modal: everything under it is inert, so Tab and Shift+Tab stay in
+// it and a key can't reach a control it covers. Settings covers the main area but not the sidebar: only the
+// main area's other parts go inert, and the sidebar stays a way out. One observer keeps it true however a
+// layer opens or closes.
+function syncInert() {
+  const sheet = [jump, keys, allEl, runsEl].some((el) => !el.hidden);
+  $("#app").inert = sheet;
+  const settings = !setEl.hidden;
+  for (const el of $("#main").children) if (el !== setEl && !el.classList.contains("toast-wrap")) el.inert = settings;
+}
+queueMicrotask(() => { const mo = new MutationObserver(syncInert); for (const el of [jump, keys, allEl, runsEl, setEl]) mo.observe(el, { attributes: true, attributeFilter: ["hidden"] }); syncInert(); });
+// Tab and Shift+Tab go round the open sheet: past its last control is its first, never the page behind it
+addEventListener("keydown", (e) => {
+  if (e.key !== "Tab") return;
+  const top = [runsEl, keys, allEl, jump].find((el) => !el.hidden);
+  if (!top) return;
+  const f = [...top.querySelectorAll('button:not([disabled]),[href],input:not([disabled]):not([type=hidden]),textarea,select,[tabindex]:not([tabindex="-1"])')].filter((x) => x.offsetParent || x === document.activeElement);
+  if (!f.length) return;
+  const i = f.indexOf(document.activeElement);
+  if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
+  else if (!e.shiftKey && (i === -1 || i === f.length - 1)) { e.preventDefault(); f[0].focus(); }
+}, true);
 
 // ── keys sheet ──────────────────────────────────────────────────────────────
 const keys = $("#keys");
@@ -3133,16 +3158,19 @@ addEventListener("keydown", (e) => {
   // beside a file: ⌘J the chat, ⌘B the files' tree; elsewhere these keys are the browser's
   if (K.is(e, "chatFold") && FILESV.chatKey()) { e.preventDefault(); return; }
   if (K.is(e, "treeFold") && FILESV.toggleTree()) { e.preventDefault(); return; }
-  if (!jump.hidden || CREATE.isOpen() || IQ.isOpen) return;
+  if (!jump.hidden) { if (e.key === "Escape") { e.preventDefault(); closeJump(); } return; }
+  if (IQ.isOpen) { if (e.key === "Escape") { e.preventDefault(); IQ.close(); } return; }
+  if (CREATE.isOpen()) return;
   if (e.key === "Escape") {
+    // the layer on top goes first: a sheet, then Settings (it covers the main area), then what it covers
     if (RS.open) { runsEscape(); return; }
+    if (!keys.hidden) { closeKeys(); return; }
+    if (!allEl.hidden) { closeAll(); return; }
+    if (!setEl.hidden) { closeSettings(); return; }
     // a file beside the chat: Esc puts it away (or, from an empty composer, goes back to it)
     if (FILESV.docked || FILESV.sheet) { FILESV.escape(e.target); return; }
     if (VW.isOpen) { VW.close(); return; }
     if (FILESV.isOpen) { FILESV.close(); return; }
-    if (!keys.hidden) { closeKeys(); return; }
-    if (!setEl.hidden) { closeSettings(); return; }
-    if (!allEl.hidden) { closeAll(); return; }
     if ($("#app").classList.contains("drawer")) { setDrawer(false); return; }
     if (D.isOpen()) { D.close(); return; }
     if (CH.setupOpen) { CH.closeSetup(); return; }

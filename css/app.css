@@ -1496,8 +1496,11 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .tc-foot>span{white-space:nowrap}
   .keys-cols{grid-template-columns:1fr}
   .set-top{padding:12px 10px 10px 16px;min-height:56px}
-  .set-body{grid-template-columns:minmax(0,1fr);gap:18px;padding:14px 16px 32px}
-  .set-nav{top:-14px;flex-direction:row;overflow-x:auto;scrollbar-width:none;margin:-14px -16px 0;padding:14px 16px 8px;background:var(--canvas)}
+  /* the tab rail keeps its own height above the page; only the page scrolls, so a heading can never sit under
+     the rail (it was 18 px under it on every page but General) */
+  .set-body{display:flex;flex-direction:column;gap:0;padding:0;overflow:hidden}
+  .set-nav{position:static;flex:none;flex-direction:row;overflow-x:auto;scrollbar-width:none;margin:0;padding:12px 16px 8px;border-bottom:1px solid var(--line-faint);background:var(--canvas)}
+  .set-page{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:16px 16px 32px}
   .set-nav button{flex:none}
   .set-nav{border-left:0}
   .set-nav button::before{left:12px;right:12px;top:auto;bottom:0;width:auto;height:2px}
