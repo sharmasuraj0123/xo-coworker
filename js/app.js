@@ -263,8 +263,9 @@ const FILES = createFiles({ world, viewer: VW, isBusy, PROJ, go: (v) => go(v), c
 const FILESV = createFilesView({ files: FILES, viewer: VW, view: () => S.view, PROJ, world, announce, onChange: () => schedule(), onDock: () => STAGE.sync() });
 // Launchpad (js/launchpad.js): Deploy in the header row of a project and a thread; its section tops the panel
 const lpProject = (v) => (v && v.startsWith("p:") ? v.slice(2) : v && v.startsWith("t:") ? world.thread(v.slice(2))?.project || null : null);
-// the thread "Ask an agent" started (xo-space names it "Deploy to Launchpad"), while it's open
-const lpThread = (p) => { const t = world.state.threads.find((x) => x.project === p && /^deploy to launchpad/i.test(x.title || "") && x.state !== "resolved"); return t ? { thread: t.id, title: t.title, since: t.createdAt, busy: isBusy(t), done: t.state === "done" } : null; };
+// the thread "Ask an agent" started: by its id when Launchpad has it (whatever its title, past older threads of the
+// same title; resolved reads as done); without one, discovered by xo-space's title "Deploy to Launchpad", while open
+const lpThread = (p, id) => { const t = id ? world.thread(id) : world.state.threads.find((x) => x.project === p && /^deploy to launchpad/i.test(x.title || "") && x.state !== "resolved"); return t && t.project === p ? { thread: t.id, title: t.title, since: t.createdAt, busy: isBusy(t), done: t.state === "done" || t.state === "resolved" } : null; };
 const LP = createLaunchpad({ api: createLpApi(), projectOf: lpProject, nameOf: (p) => PROJ(p), findThread: lpThread, go: (v) => go(v), announce, onChange: () => schedule(),
   notify: (text, undo) => heraldShow({ kind: "done", text, ...(undo ? { undo, undoUntil: Date.now() + 3000 } : {}) }, undo ? 3200 : 4200) });
 const STAGE = createStage({ map: MAP, mapIcon: MAP_ICON, files: FILES, changes: CHG, filesView: FILESV, viewer: VW, view: () => S.view, go: (v) => go(v), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP });
