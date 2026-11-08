@@ -3027,7 +3027,9 @@ document.addEventListener("click", (e) => {
       // beside a file (the chat docked, a phone's sheet), or ⌘/Ctrl-click: its diff in Files, in the middle, in
       // place of the one shown; on a phone the sheet folds so the file shows
       if (s && (FILESV.docked || FILESV.sheet || e.metaKey || e.ctrlKey)) { const sheet = FILESV.sheet; inFiles(); if (sheet) FILESV.chat(false); return; }
-      if (STAGE.showChange(c.path)) { schedule(); return; }
+      // its diff in the panel's Changes: focus goes to its row there, in the draw that shows it (the chip you
+      // pressed is redrawn as chosen, and on a phone the panel covers it) (Files/Map grader on S224)
+      if (STAGE.showChange(c.path)) { S.focusNext = [`#stage [data-cx="${CSS.escape(c.path)}"]`, "#stage .cx-pd"]; schedule(); return; }
       // a shape without the panel's Changes (Make content): its diff in Files instead
       if (s) { inFiles(); return; }
     }

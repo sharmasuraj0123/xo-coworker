@@ -581,6 +581,9 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       });
       if (my !== FL.gen) { h.destroy(); return; }
       FL.handle = h; FL.key = key;
+      // the renderer that failed said so in this same body; drawn now, that notice and its Try again go (they
+      // stayed beside the file: Files/Map grader on S139)
+      for (const x of host.querySelectorAll(":scope > .vw-empty")) x.remove();
       if (f.lines) { const [a, b] = f.lines; h.select({ start: a, end: b }); requestAnimationFrame(() => { h.reveal(a); select({ start: a, end: b }); }); }
     } catch {
       if (my !== FL.gen) return;

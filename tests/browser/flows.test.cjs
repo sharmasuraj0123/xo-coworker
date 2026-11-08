@@ -600,6 +600,60 @@ t("C085/C086: another changed file picked: the last diff goes at once; Open in F
   answer();
   await done(page);
 });
+t("C085: A, then B while it's read, then A again: A's diff shows again", async () => {
+  let answer;
+  const page = await app({ files: { "a.js": FILE(), "b.js": FILE() }, changesGate: new Promise((ok) => (answer = ok)), changes: [
+    { path: "a.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: PATCH("a.js", "one", "ONE") },
+    { path: "b.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: null, patch_omitted: "response_budget", full: PATCH("b.js", "one", "UNO") }] });
+  await panelOpen(page);
+  if (await page.locator('[data-ghost="changes"]').filter({ visible: true }).count()) await page.locator('[data-ghost="changes"]').filter({ visible: true }).first().click();
+  await page.locator('[data-cx="a.js"]').filter({ visible: true }).first().click();
+  await page.waitForFunction(() => { const d = document.querySelector(".cx-pd"); return d && !d.hidden && d.childElementCount > 0; });
+  await page.locator('[data-cx="b.js"]').filter({ visible: true }).first().click();
+  await page.waitForFunction(() => document.querySelector(".cx-pp")?.textContent === "b.js");
+  await page.locator('[data-cx="a.js"]').filter({ visible: true }).first().click();
+  await page.waitForFunction(() => document.querySelector(".cx-pp")?.textContent === "a.js");
+  await page.waitForTimeout(200);
+  const st = await page.evaluate(() => ({ diff: !document.querySelector(".cx-pd").hidden, note: document.querySelector(".cx-note").hidden ? null : document.querySelector(".cx-note").textContent }));
+  assert.deepEqual(st, { diff: true, note: null }, "a.js's diff is back, no Reading note");
+  answer();
+  await done(page);
+});
+t("C085: an image's change, then another file while it's read: the image goes at once", async () => {
+  let answer;
+  const svg = require("fs").readFileSync(require("path").join(__dirname, "..", "..", "favicon.svg"), "utf8");
+  const page = await app({ files: { "b.js": FILE() }, pictures: svg, changesGate: new Promise((ok) => (answer = ok)), changes: [
+    { path: "pic.png", status: "modified", additions: 0, deletions: 0, binary: true, version: "sha256:P", patch: null, patch_omitted: "binary" },
+    { path: "b.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: null, patch_omitted: "response_budget", full: PATCH("b.js", "one", "UNO") }] });
+  await panelOpen(page);
+  if (await page.locator('[data-ghost="changes"]').filter({ visible: true }).count()) await page.locator('[data-ghost="changes"]').filter({ visible: true }).first().click();
+  await page.locator('[data-cx="pic.png"]').filter({ visible: true }).first().click();
+  await page.waitForFunction(() => { const m = document.querySelector(".cx-im"); return m && !m.hidden; });
+  await page.locator('[data-cx="b.js"]').filter({ visible: true }).first().click();
+  await page.waitForFunction(() => document.querySelector(".cx-pp")?.textContent === "b.js");
+  assert.equal(await page.evaluate(() => document.querySelector(".cx-im").hidden), true, "the image went with its pick");
+  await page.locator('[data-cx="pic.png"]').filter({ visible: true }).first().click();
+  await page.waitForFunction(() => document.querySelector(".cx-pp")?.textContent === "pic.png");
+  await page.waitForFunction(() => !document.querySelector(".cx-im").hidden, null, { timeout: 3000 });
+  answer();
+  await done(page);
+});
+t("S139: a file whose renderer failed, tried again, shows the file and not the old error beside it", async () => {
+  let once = true;
+  const page = await app({ files: { "a.js": FILE() } });
+  // the renderer's library fails to load once (a dropped connection), then loads
+  await page.route("**/js/vendor/pierre-diffs/diffs.js", (r) => { if (once) { once = false; return r.abort(); } return r.fallback(); });
+  await toDemo(page);
+  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
+  const retry = page.locator("#viewer [data-vw-retry]");
+  await retry.waitFor();
+  await retry.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelector("#viewer .vw-file diffs-container"), null, { timeout: 15000 });
+  await page.waitForTimeout(200);
+  assert.equal(await page.locator("#viewer .vw-file .vw-empty").count(), 0, "the old error and its Try again went");
+  await done(page);
+});
 const MADE = () => [
   { id: "mk1", name: "notes.md", path: "notes.md", relative_path: "notes.md", project_id: "demo", mime: "text/markdown", bytes: 10, created_at: NOW, updated_at: NOW },
   { id: "mk2", kind: "link", url: "https://example.com/report", name: "report", created_at: NOW, updated_at: NOW },
@@ -1185,6 +1239,17 @@ async function turnChip(page) {
   assert.equal(await chip.getAttribute("data-file-bytes"), null, "the real chip has no size");
   return chip;
 }
+t("S224: a turn's file chip whose file changed opens its diff (the panel's Changes; Files on a phone), focus on it", async () => {
+  const page = await app({ files: { "a.js": FILE() }, changes: [{ path: "a.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: PATCH("a.js", "one", "ONE") }] });
+  await toDemo(page);
+  await page.waitForTimeout(400); // the place's changes are read
+  const chip = await turnChip(page);
+  await chip.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(500);
+  assert.match(await active(page), /data-cx=a\.js|id=viewer/, "on the change: its row in the panel, or the file on a phone");
+  await done(page);
+});
 for (const variant of ["read", "held", "refused"]) {
   t(`S224: a turn's file chip opens with the keyboard (${variant}): no "NaN", and the file takes focus`, async () => {
     let answer;
