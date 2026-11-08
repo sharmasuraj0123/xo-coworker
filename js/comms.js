@@ -14,7 +14,16 @@ let names = { thread: () => null, project: () => null, here: () => null };
 export function nameWith(fns) { names = { ...names, ...fns }; }
 
 const COMMS = /^(?:mcp__)?xo_comms(?:__|\/)([\w-]+)$/;
-const SENDS = new Set(["message_thread", "message_coordinator", "forward_to_project", "ask_workspace", "post_message", "reply"]);
+// What each sending tool returns when it worked (read from live results, 2026-11-08): its receipt. A result
+// without one (a runtime that reports no result body, say) is said as written, never as sent.
+const RECEIPT = {
+  message_thread: (r) => r.delivered === true,
+  message_coordinator: (r) => r.delivered === true || r.ok === true || !!r.hop_id,
+  ask_workspace: (r) => r.asked === true || !!r.hop_id,
+  forward_to_project: (r) => !!r.hop_id || !!r.project,
+  post_message: (r) => !!r.message_id,
+  reply: (r) => !!r.message_id,
+};
 /** The comms tool a step calls, or null. */
 export function commsTool(row) {
   const m = COMMS.exec(String((row && (row.tool || row.target)) || ""));
@@ -32,11 +41,11 @@ function words(tool, res, ctx = {}) {
   const coord = here ? `the ${here} coordinator` : "its coordinator";
   const proj = res.project || (res.chat_id && names.project(res.chat_id)) || null;
   switch (tool) {
-    case "message_thread": return ["Writing to a thread", res.delivery === "steer" || res.turn_running ? `Sent to ${t} while it works` : `Sent to ${t}`, `Couldn't reach ${t}`];
+    case "message_thread": return ["Writing to a thread", res.delivery === "steer" || res.turn_running ? `Sent to ${t} while it works` : `Sent to ${t}`, `Couldn't reach ${t}`, `Wrote to ${t}`];
     case "start_thread_session": return ["Starting a thread", `Started ${t}`, res.error === "thread_exists" ? `${thread ? t : "That thread"} was already started` : "Couldn't start a thread"];
-    case "message_coordinator": return [`Writing to ${coord}`, `Sent to ${coord}`, `Couldn't reach ${coord}`];
-    case "ask_workspace": return ["Talking to the Workspace coordinator", "Asked the Workspace coordinator", "Couldn't reach the Workspace coordinator"];
-    case "forward_to_project": return [`Handing it to ${proj ? `the ${proj}` : "a project's"} coordinator`, `Sent to ${proj ? `the ${proj}` : "a project's"} coordinator`, `Couldn't reach ${proj ? `the ${proj}` : "that project's"} coordinator`];
+    case "message_coordinator": return [`Writing to ${coord}`, `Sent to ${coord}`, `Couldn't reach ${coord}`, `Wrote to ${coord}`];
+    case "ask_workspace": return ["Talking to the Workspace coordinator", "Asked the Workspace coordinator", "Couldn't reach the Workspace coordinator", "Wrote to the Workspace coordinator"];
+    case "forward_to_project": return [`Handing it to ${proj ? `the ${proj}` : "a project's"} coordinator`, `Sent to ${proj ? `the ${proj}` : "a project's"} coordinator`, `Couldn't reach ${proj ? `the ${proj}` : "that project's"} coordinator`, `Wrote to ${proj ? `the ${proj}` : "a project's"} coordinator`];
     case "ask_owner": return ["Asking you", "Asked you"];
     case "post_message": case "reply": return ["Writing to you", "Wrote to you"];
     case "no_reply_needed": return ["Deciding there's nothing to add", "Nothing to add"];
@@ -78,8 +87,8 @@ export function commsLine(row, ctx) {
   if (row.status === "cancelled") return `Stopped: ${lower(w[0])}`;
   const failed = row.status === "error" || res.ok === false || res.delivered === false || !!res.error;
   if (failed) return w[2] || `Didn't finish: ${lower(w[0])}`;
-  // a message tool's success is its receipt: without one, it says the result wasn't reported, not "Sent"
-  if (SENDS.has(tool) && res.delivered !== true && res.ok !== true) return `${w[0]}: no receipt reported`;
+  // a message tool's success is its own receipt; without one it was written, not (provably) sent
+  if (RECEIPT[tool] && !RECEIPT[tool](res)) return w[3] || w[1];
   return w[1];
 }
 

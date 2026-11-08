@@ -904,8 +904,12 @@ const answeredAfter = (list, m) => { const i = list.indexOf(m); return i >= 0 &&
 /** The thread a hop handed your message to, by the hop's own message ids; null when no hop names it. */
 function passedTo(m) {
   if (!m.id || !world.state.hops) return null;
+  // the message as the server knows it: a bubble you sent here keeps its local id, and S.alias maps the
+  // server's id to it once the row is back
+  const ids = new Set([m.id]);
+  for (const [sid, lid] of S.alias) if (lid === m.id) ids.add(sid);
   for (const h of world.state.hops.values()) {
-    if ((h.kind === "relay" || h.kind === "brief") && h.to_role === "thread" && (h.message_ids || []).includes(m.id) && h.thread_ts) return world.thread(h.thread_ts)?.title || "a thread";
+    if ((h.kind === "relay" || h.kind === "brief") && h.to_role === "thread" && h.thread_ts && (h.message_ids || []).some((x) => ids.has(x))) return world.thread(h.thread_ts)?.title || "a thread";
   }
   return null;
 }
