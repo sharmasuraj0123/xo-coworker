@@ -1192,14 +1192,20 @@ for (const cpu of [1, 4]) {
     const threads = [...THREADS(), TH("t_live", "A thread at work", "working", { session_id: SID })];
     const page = await app({ threads, history: { ts: "t_live", all, delay: 120 } });
     await openThread(page, "t_live");
+    // the turn's frames carry seqs after the history's (as the stream's would), so the turn is the newest thing
+    // in the thread and draws live at its end
     await page.evaluate(([a, b, c]) => { for (const f of [a, b, c]) window.__storm.apply(f); }, [
-      env("session", { status: "running", role: "thread", agent: "claude_code" }, { turn_id: null }),
-      env("turn.started", { origin: "person", wakes: [] }),
-      env("block.started", { block: { id: `${TURN}:g0`, type: "activity", index: 0, header: "Running the tests", rows: [ROW()] } }),
+      env("session", { status: "running", role: "thread", agent: "claude_code" }, { turn_id: null, seq: 9001 }),
+      env("turn.started", { origin: "person", wakes: [] }, { seq: 9002 }),
+      env("block.started", { block: { id: `${TURN}:g0`, type: "activity", index: 0, header: "Running the tests", rows: [ROW()] } }, { seq: 9003 }),
     ]);
+    await page.waitForSelector("#msgs .m-turn.is-live");
     await settle(page, 600);
     // focus inside the live turn: its work's header (opened from the working line), then keep the turn updating
-    await page.evaluate(() => { const w = document.querySelector("#msgs .mx-work"); if (w && w.getClientRects().length) { w.focus(); w.click(); } });
+    const w = page.locator("#msgs .mx-work");
+    await w.waitFor({ state: "visible" });
+    await w.focus();
+    await page.keyboard.press("Enter");
     await settle(page, 400);
     assert.ok(await page.evaluate(() => !!document.activeElement.closest("#msgs .m-turn")), `focus inside the live turn, not ${await focusIs(page)}`);
     await page.evaluate(([TURN, ROWX]) => {
