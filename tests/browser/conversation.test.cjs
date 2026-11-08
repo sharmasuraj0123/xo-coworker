@@ -72,6 +72,13 @@ function convApi(W) {
       if (W.olderFail) return fail(r, "unavailable", "Fixture: earlier messages didn't come", 500);
       return json({ messages: o.msgs || [], next_after_seq: null, next_before_seq: null });
     };
+    // a long history, paged as storm pages it (newest first, `limit` at a time, a cursor while there's more)
+    if (W.history && p === "/api/chat/chats/chat_demo/messages" && m === "GET" && u.searchParams.get("thread") === W.history.ts) {
+      const before = +u.searchParams.get("before_seq"), limit = +u.searchParams.get("limit") || 40;
+      const older = W.history.all.filter((x) => x.seq < before), page = older.slice(-limit);
+      if (before < 1e15 && W.history.delay) await new Promise((ok) => setTimeout(ok, W.history.delay));
+      return json({ messages: page, next_after_seq: null, next_before_seq: older.length > page.length ? page[0].seq : null });
+    }
     if (p === "/api/chat/chats/chat_demo/messages" && m === "GET") {
       const ts = u.searchParams.get("thread"), before = u.searchParams.get("before_seq");
       const o = ts ? W.threadOlder && W.threadOlder.ts === ts && W.threadOlder : W.projOlder;
@@ -1035,6 +1042,75 @@ t("DET-2 C121/C050: the working line opens the work with focus on its header; fo
   assert.equal(await page.evaluate(() => document.activeElement.classList.contains("mx-work")), true, `folded: on the working line, not ${await focusIs(page)}`);
   await done(page);
 });
+
+// ── DET: no bumps from rows updated in place (bumps.cjs's frame analysis, on a long paged fixture thread) ──
+// Wheel up through older pages while a live turn keeps updating with focus held inside it (so its row takes
+// reconcile's in-place path on every frame); what you're reading may move only by your own wheel. At 1× and 4× CPU.
+for (const cpu of [1, 4]) {
+  t(`DET bumps: older pages landing while a focused live row updates in place move nothing you read (CPU ${cpu}×)`, async () => {
+    const all = Array.from({ length: 240 }, (_, i) => ({ id: `t_live-h${i}`, seq: i + 1, chat_id: "chat_demo", thread_ts: "t_live", author_kind: i % 3 ? "agent" : "owner", author_id: i % 3 ? "agent" : "owner", author_session_id: null, text: `${i % 3 ? "Agent" : "My"} message ${i}. ${"Words that make the bubble wrap onto a few lines, as real replies do. ".repeat(1 + (i % 4))}`, reply_to: null, extra: {}, created_at: new Date(Date.now() - (240 - i) * 60000).toISOString() }));
+    const threads = [...THREADS(), TH("t_live", "A thread at work", "working", { session_id: SID })];
+    const page = await app({ threads, history: { ts: "t_live", all, delay: 120 } });
+    await openThread(page, "t_live");
+    await page.evaluate(([a, b, c]) => { for (const f of [a, b, c]) window.__storm.apply(f); }, [
+      env("session", { status: "running", role: "thread", agent: "claude_code" }, { turn_id: null }),
+      env("turn.started", { origin: "person", wakes: [] }),
+      env("block.started", { block: { id: `${TURN}:g0`, type: "activity", index: 0, header: "Running the tests", rows: [ROW()] } }),
+    ]);
+    await settle(page, 600);
+    // focus inside the live turn: its work's header (opened from the working line), then keep the turn updating
+    await page.evaluate(() => { const w = document.querySelector("#msgs .mx-work"); if (w && w.getClientRects().length) { w.focus(); w.click(); } });
+    await settle(page, 400);
+    assert.ok(await page.evaluate(() => !!document.activeElement.closest("#msgs .m-turn")), `focus inside the live turn, not ${await focusIs(page)}`);
+    await page.evaluate(([TURN, ROWX]) => {
+      let n = 0;
+      window.__tick = setInterval(() => { n++; window.__storm.apply({ type: "block.updated", envelope: { type: "block.updated", id: null, seq: null, ts: new Date().toISOString(), chat_id: "chat_demo", session_id: "cse_th1", thread_ts: "t_live", turn_id: TURN, run_id: null, data: { block_id: `${TURN}:g0`, type: "activity", rows: [{ ...ROWX, line: `Run the tests · ${n} so far` }], header: "Running the tests" } } }); }, 250);
+    }, [TURN, ROW()]);
+    const cdp = await page.context().newCDPSession(page);
+    if (cpu > 1) await cdp.send("Emulation.setCPUThrottlingRate", { rate: cpu });
+    // the sampler: the row nearest the middle each frame, and where it is the next frame (bumps.cjs)
+    await page.evaluate(() => {
+      const sc = document.getElementById("scroller"), ms = document.getElementById("msgs");
+      const R = (window.__b = { f: [], wheel: 0 });
+      sc.addEventListener("wheel", (e) => { R.wheel += e.deltaY; }, { passive: true });
+      let prev = null;
+      const f = () => {
+        const box = sc.getBoundingClientRect(), mid = box.top + sc.clientHeight / 2;
+        let pick = null, best = 1e9;
+        for (const el of ms.children) { if (!el.dataset.k) continue; const r = el.getBoundingClientRect(); if (!r.height) continue; const d = Math.abs(r.top - mid); if (d < best) { best = d; pick = { k: el.dataset.k, top: r.top }; } }
+        const now = { t: performance.now(), ft: sc.scrollTop, sh: sc.scrollHeight, n: ms.children.length, wheel: R.wheel, pick };
+        if (prev && prev.pick && pick) { const el = [...ms.children].find((e) => e.dataset.k === prev.pick.k); now.prevTopNow = el ? el.getBoundingClientRect().top : null; }
+        R.f.push(now); prev = now;
+        if (R.f.length < 3000) requestAnimationFrame(f);
+      };
+      requestAnimationFrame(f);
+    });
+    const STEP = 60;
+    const box = await page.locator("#scroller").boundingBox();
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    const t0 = Date.now();
+    while (Date.now() - t0 < 9000) { await page.mouse.wheel(0, -STEP); await page.waitForTimeout(16); }
+    await settle(page, 1200);
+    const F = await page.evaluate(() => { clearInterval(window.__tick); return window.__b.f; });
+    await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
+    let bumps = [], pages = 0;
+    for (let i = 1; i < F.length; i++) {
+      const a = F[i - 1], c = F[i];
+      if (c.n !== a.n) pages++;
+      if (!a.pick || c.prevTopNow == null) continue;
+      const moved = c.prevTopNow - a.pick.top, wheel = -(c.wheel - a.wheel);
+      const atTop = c.ft <= 1 && a.ft <= 1, expect = atTop ? 0 : wheel;
+      const topClamp = c.ft <= 1 && c.sh === a.sh && Math.abs(moved - a.ft) <= 8 && a.ft <= STEP;
+      if (topClamp) continue;
+      if (Math.abs(moved - expect) > 8 && Math.abs(moved - (expect + STEP)) > 8 && Math.abs(moved - Math.max(0, expect - STEP)) > 8) bumps.push({ moved: Math.round(moved), wheel: Math.round(wheel), n: `${a.n}→${c.n}` });
+    }
+    console.log(`    CPU ${cpu}×: ${F.length} frames, ${pages} list changes, rows ${F[0].n}→${F[F.length - 1].n}, bumps ${bumps.length}`);
+    assert.ok(pages > 0 && F[F.length - 1].n > F[0].n, "older pages landed during the wheel");
+    assert.deepEqual(bumps, [], "nothing you read moved but by your wheel");
+    assert.ok(await page.evaluate(() => !!document.activeElement.closest("#msgs .m-turn")), "focus still inside the live turn");
+    await done(page);
+  }, { only: (c) => c.theme === "dark" });
+}
 
 // ── run ─────────────────────────────────────────────────────────────────────
 (async () => {
