@@ -352,11 +352,26 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (!conflict && text === ED.base) { const back = focusHere(); stopEdit({ keep: true }); if (back) headFocus(); return; }
     ED.saving = true; ED.err = null; ED.confirm = false; paintHead();
     const my = edGen, key = dkey();
+    // a merge saves the choices as they were when Save was pressed: they can't move while it saves
+    const merge = conflict && fileBody();
+    if (merge) merge.inert = true;
     try {
       const r = await api.saveProjectFile(f.project, f.rel, text, conflict ? conflict.version : ED.version, confirm || (ED.confirmed ? "runs_code" : null));
       if (my !== edGen) { savedAway(f, key, text, r); return; }
+      if (merge) merge.inert = false;
       V.data = { ...V.data, content: text, version: r.version, size_bytes: new TextEncoder().encode(text).length, modified_at: r.saved_at || V.data.modified_at };
       ED.saving = false;
+      // you typed on while it saved: what was sent is saved, and what you typed since stays in the editor,
+      // unsaved, against the version just saved (its draft too): Save again sends it
+      const now = !conflict && ED.ed ? ED.ed.text() : text;
+      if (now !== text) {
+        Object.assign(ED, { base: text, version: r.version, real: null, dirty: true, from: true });
+        keepDraft();
+        paintHead();
+        announce(`Saved ${f.name} as it was when you pressed Save. What you typed since isn't saved yet.`);
+        edits && edits.saved && edits.saved(f, { path: localPath(), name: f.name, editId: r.edit_id });
+        return;
+      }
       letDraftGo();
       ED.real = null;
       const back = focusHere();
@@ -369,9 +384,11 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     } catch (err) {
       if (my !== edGen) { failedAway(f, key, err); return; }
       ED.saving = false;
+      if (merge) merge.inert = false;
       const o = saveOutcome(err);
       if (o.kind === "confirm") { ED.confirm = true; paintHead(); el.querySelector("[data-vw-confirm]")?.focus(); return; }
-      if (o.kind === "conflict") { clash(text, err.current); return; }
+      // merged with the editor as it is now, words typed while it was saving included
+      if (o.kind === "conflict") { clash(!conflict && ED.ed ? ED.ed.text() : text, err.current); return; }
       if (o.kind === "readonly") V.data = { ...V.data, editable: false, not_editable_reason: "read_only_place" };
       ED.err = o.words; // your edit stays in the editor: nothing is lost
       paintHead();
@@ -432,11 +449,15 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   async function undoSave() {
     const f = V.file, s = saved;
     if (!s || !s.editId) return;
+    // Undo's button goes with its toast: focus waits on the viewer, then goes to the file's head
+    const back = focusHere();
     saved = null; toastPaint();
+    if (back) el.focus({ preventScroll: true });
+    const settle = () => { if (back && V.file === f && V.open && (document.activeElement === el || document.activeElement === document.body)) headFocus(); };
     if (s.created) { // the file goes: what you typed in it since goes with it
       if (ED.on) { letDraftGo(); stopEdit(); }
       try { await api.undoProjectEdit(f.project, s.editId); }
-      catch (err) { if (V.file === f) { V.saveError = err.status === 409 ? `${s.name} changed since it was made: it stays` : err.message || "Couldn't undo it."; render(); } return; }
+      catch (err) { if (V.file === f) { V.saveError = err.status === 409 ? `${s.name} changed since it was made: it stays` : err.message || "Couldn't undo it."; render(); settle(); } return; }
       announce(`${s.name} is gone.`);
       if (V.file === f) close();
       if (edits && edits.removed) edits.removed(f);
@@ -445,7 +466,8 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     try { await api.undoProjectEdit(f.project, s.editId); announce(`${s.name} is back as it was.`); }
     catch (err) { V.saveError = err.status === 410 ? "That save can't be undone any more: the version before it is gone" : err.status === 404 ? "That save isn't in XO's log any more" : err.message || "Couldn't undo the save."; }
     if (V.file !== f) return;
-    dropFile(); load();
+    dropFile(); await load();
+    settle();
   }
 
   function body() {

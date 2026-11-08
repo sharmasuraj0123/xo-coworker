@@ -26,9 +26,17 @@ const { install: installLaunchpad, SCENARIOS: LP } = require("../../design-resea
 
 const ROOT = path.resolve(__dirname, "..", "..");
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".json": "application/json", ".woff2": "font/woff2", ".wasm": "application/wasm", ".ico": "image/x-icon", ".webmanifest": "application/manifest+json" };
+// a stream the test writes to as it goes (Launchpad's /watch, routed here): SSE.push(event, end)
+const SSE = { clients: [], head: [], push(ev, end = false) { for (const c of this.clients) { c.write(`data: ${JSON.stringify(ev)}\n\n`); if (end) c.end(); } if (end) this.clients = []; } };
 function serve() {
   const server = http.createServer((q, s) => {
     let p = decodeURIComponent(new URL(q.url, "http://x").pathname);
+    if (p === "/__sse") {
+      s.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-store" });
+      for (const ev of SSE.head) s.write(`data: ${JSON.stringify(ev)}\n\n`);
+      SSE.clients.push(s); q.on("close", () => { SSE.clients = SSE.clients.filter((c) => c !== s); });
+      return;
+    }
     if (p === "/") p = "/index.html";
     const f = path.join(ROOT, p);
     if (!f.startsWith(ROOT + path.sep) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { s.writeHead(404); s.end(); return; }
@@ -92,6 +100,10 @@ function mockApi(W) {
       }
       f.content = b.content; f.version = `sha256:saved${W.saves.length}`;
       return json({ version: f.version, edit_id: `edit-${W.saves.length}`, saved_at: new Date().toISOString() });
+    }
+    if (/^\/api\/xo-projects\/[^/]+\/edits\/[^/]+\/undo$/.test(p) && m === "POST") {
+      W.undos = (W.undos || 0) + 1;
+      return W.undoMode === "503" ? json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503) : json({ undone: true });
     }
     if (m !== "GET") return r.abort(); // a write this world doesn't know: never sent
     return json({ detail: { code: "not_found", message: "not in the test world" } }, 404);
@@ -198,6 +210,48 @@ t("G7: focus after a keyboard save goes to Edit; a failed clicked save keeps Sav
   await done(page);
 });
 
+t("Save while typing: words typed during a save stay, unsaved, against the version it saved", async () => {
+  const page = await app({ files: { "a.js": FILE() }, saveDelay: 700 });
+  await editing(page);
+  await typeAll(page, "saved portion\n");
+  await page.locator("[data-vw-saveit]").click();
+  await page.locator("#viewer [contenteditable=true]").first().click(); // back into the text, which stays editable
+  await page.keyboard.press("ControlOrMeta+End");
+  await page.keyboard.insertText("TYPED WHILE SAVING");
+  await page.waitForTimeout(900);
+  assert.equal(page.W.files["a.js"].content, "saved portion\n", "the save sent what was there at Save");
+  const st = await page.evaluate(() => ({ on: window.__ED.on, dirty: window.__ED.dirty, text: window.__ED.ed && window.__ED.ed.text(), base: window.__ED.base, version: window.__ED.version }));
+  assert.equal(st.on, true, "still editing");
+  assert.equal(st.text, "saved portion\nTYPED WHILE SAVING", "what was typed is still there");
+  assert.equal(st.dirty, true, "and unsaved");
+  assert.equal(st.base, "saved portion\n");
+  assert.equal(st.version, page.W.files["a.js"].version, "against the version just saved");
+  assert.ok(!(await page.locator("#viewer").innerText()).includes("Saved a.js"), "no Saved toast while unsaved words remain");
+  // Save again sends the rest, against that version
+  page.W.saveDelay = 0;
+  const v = st.version;
+  await page.keyboard.press("ControlOrMeta+s");
+  await page.waitForFunction(() => !window.__ED.on);
+  assert.equal(page.W.saves.at(-1).base_version, v);
+  assert.equal(page.W.files["a.js"].content, "saved portion\nTYPED WHILE SAVING");
+  await done(page);
+});
+
+t("G7: a failed Undo returns focus to the file's head", async () => {
+  const page = await app({ files: { "a.js": FILE() }, undoMode: "503" });
+  await editing(page);
+  await typeAll(page, "mine\ntwo\nthree\n");
+  await page.keyboard.press("ControlOrMeta+s");
+  await page.waitForFunction(() => !window.__ED.on);
+  await page.locator("[data-vw-undo]").focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(500);
+  assert.equal(page.W.undos, 1);
+  assert.equal(await focusOf(page), "BUTTON data-vw-edit");
+  assert.match(await page.locator("#viewer").innerText(), /Fixture unavailable/);
+  await done(page);
+});
+
 t("G8: the whole-file capsule's × is named for the file", async () => {
   const page = await app({ files: { "notes.md": { content: "# Notes\n", version: "sha256:N" } } });
   await toDemo(page);
@@ -260,6 +314,45 @@ t("G6: a refused stop keeps the run, says why and offers Stop again; a confirmed
   assert.deepEqual(calls, ["DELETE", "DELETE"]);
   assert.notEqual(await page.locator(".lp").getAttribute("data-screen"), "run", "the run is over");
   assert.match(await page.locator("#live").innerText(), /Deploy stopped/);
+  await done(page);
+});
+
+const lpJson = (r, o, status = 200) => r.fulfill({ status, contentType: "application/json", body: JSON.stringify(o) });
+t("G6: a stop answered 200 without stopped:true is not a stop", async () => {
+  const W = { launchpad: "building", onDeploy: (r, m, p) => (/\/api\/deploy\/[^/]+$/.test(p) && m === "DELETE" ? lpJson(r, {}) : r.fallback()) };
+  const page = await app(W);
+  await toDemo(page);
+  await page.locator("[data-lp-open]").click();
+  await page.locator("[data-lp=stop]").click();
+  await page.waitForTimeout(3400);
+  assert.equal(await page.locator(".lp").getAttribute("data-screen"), "run");
+  assert.doesNotMatch(await page.locator("#live").innerText(), /Deploy stopped/);
+  assert.match(await page.locator(".lp").innerText(), /Couldn't stop it: Space didn't confirm it/);
+  await done(page);
+});
+t("G6: a run that goes live while its stop is pending stays live; the late refusal says nothing", async () => {
+  let answer;
+  const late = new Promise((ok) => (answer = ok));
+  const at = new Date().toISOString();
+  SSE.head = [{ type: "run", ts: at, run_id: "r1", kind: "deploy", attached: true, started_at: at }, { type: "step", ts: at, step: "push", title: "push", status: "done", message: "", elapsed: 3 }, { type: "step", ts: at, step: "build", title: "build", status: "running", message: "Building on GitHub Actions", elapsed: 0 }];
+  const W = { launchpad: "building", onDeploy: async (r, m, p) => {
+    if (/\/api\/deploy\/[^/]+\/watch$/.test(p)) return r.continue({ url: BASE + "/__sse" });
+    if (/\/api\/deploy\/[^/]+$/.test(p) && m === "DELETE") { await late; return lpJson(r, { detail: { code: "fixture_offline", message: "Fixture offline" } }, 503); }
+    return r.fallback();
+  } };
+  const page = await app(W);
+  await toDemo(page);
+  await page.locator("[data-lp-open]").click();
+  await page.waitForFunction(() => document.querySelector(".lp")?.dataset.screen === "run");
+  await page.locator("[data-lp=stop]").click();
+  await page.waitForTimeout(3300); // the DELETE is out, unanswered
+  SSE.push({ type: "done", ts: new Date().toISOString(), url: "https://demo.example", http_status: 200, app: { id: "app_7f3a", name: "demo", slug: "demo" }, repo: "o/demo", branch: "main", commit: "cd6096efbe28", release: 4, created: false }, true);
+  await page.waitForFunction(() => document.querySelector(".lp")?.dataset.screen === "live");
+  answer();
+  await page.waitForTimeout(300);
+  assert.equal(await page.locator(".lp").getAttribute("data-screen"), "live");
+  assert.doesNotMatch(await page.locator("#live").innerText(), /Couldn't stop|still running|Deploy stopped/);
+  SSE.head = [];
   await done(page);
 });
 

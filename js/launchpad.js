@@ -683,28 +683,37 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
    * still followed, the card says it couldn't stop, and Stop is there again. Nothing to stop: it had already ended,
    * and the stream's last event says how.
    */
+  // the run reached its end on the stream (live, failed, or stopped): that is what it did, whatever a stop
+  // request answers later
+  const runOver = (run) => !!(run.live || run.error || run.ended);
   function stopNow(p, run) {
     const s = proj(p);
-    if (s.run !== run) return;
-    if (!api.stop) { stopped(p, run); return; }
+    if (s.run !== run || runOver(run)) return;
+    if (!api.stop) return;
     run.stopSent = true; run.stopErr = null; changed();
+    // only an explicit receipt says it stopped: {stopped: true}, or the stream's own `error cancelled`
+    const refused = (why) => {
+      run.stopErr = why;
+      announce(`Couldn't stop the deploy: ${why}. It's still running.`);
+      changed();
+    };
     api.stop(p).then((r) => {
       run.stopSent = false;
-      if (s.run !== run) return; // the stream said first (cancelled, or how it ended)
-      if (r && r.stopped === false) { announce("It had already finished."); changed(); return; }
-      stopped(p, run);
+      if (s.run !== run || runOver(run)) { changed(); return; }
+      if (r && r.stopped === true) { stopped(p, run); return; }
+      if (r && r.stopped === false) { announce("Nothing was running to stop: the stream says how it ended."); changed(); return; }
+      refused("Space didn't confirm it");
     }, (e) => {
       run.stopSent = false;
-      if (s.run !== run) return;
-      run.stopErr = (e && e.message) || "Space didn't answer";
-      announce(`Couldn't stop the deploy: ${run.stopErr}. It's still running.`);
-      changed();
+      if (s.run !== run || runOver(run)) { changed(); return; }
+      refused((e && e.message) || "Space didn't answer");
     });
   }
   /** The stop is confirmed: the run is over; the project as it now is. */
   function stopped(p, run) {
     const s = proj(p);
     if (s.run !== run) return;
+    run.ended = true;
     run.stop && run.stop.stop();
     s.run = null; s.pre = 0;
     announce("Deploy stopped.");
