@@ -342,7 +342,8 @@ export const oneKey = (changes) => new Set((changes || []).map((c) => JSON.strin
 export const KEYS = { mine: "cv-shape-mine", device: "cv-shape-device", preset: "cv-shape-preset", unsynced: "cv-shape-unsynced" };
 /** How long a write XO couldn't take waits before it's sent again: 30 s, then doubling, at most 5 minutes. */
 const RETRY_MS = [30000, 60000, 120000, 300000];
-const memory = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; };
+// in memory only (no browser storage could be had): it holds for the page, and says it outlives nothing (ephemeral)
+const memory = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k), ephemeral: true }; };
 const defaultStorage = () => { try { return globalThis.localStorage || memory(); } catch { return memory(); } };
 /** A preset file, served next to the UI (GET only). */
 const fetchPreset = async (id) => {
@@ -373,7 +374,7 @@ export function createShapeStore({ storage = defaultStorage(), load = fetchPrese
   const read = (k) => { try { const s = storage.getItem(k); return s ? JSON.parse(s) : null; } catch { return null; } };
   // a write says whether this browser kept it (a full or switched-off storage refuses): the change still applies,
   // and the caller is told it won't survive a reload, never that it was saved
-  const write = (k, v) => { try { storage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } };
+  const write = (k, v) => { try { storage.setItem(k, JSON.stringify(v)); return !storage.ephemeral; } catch { return false; } };
   let mine = read(KEYS.mine);
   let device = read(KEYS.device);
   if (device == null) { device = migrateDevice(storage); write(KEYS.device, device); }

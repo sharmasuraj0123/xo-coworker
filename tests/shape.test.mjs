@@ -756,5 +756,18 @@ t("a change sent while another is held doesn't hide that it's held until XO has 
   assert.equal(F.stored.preset, "engineering");
 });
 
+t("no browser storage at all (its getter throws, as some private modes do): a change applies, and says it won't outlive a reload", async () => {
+  const had = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+  Object.defineProperty(globalThis, "localStorage", { configurable: true, get() { throw new Error("SecurityError: storage is disabled"); } });
+  try {
+    const S = createShapeStore({ load: async (id) => preset(id) });
+    assert.deepEqual(S.setDevice({ density: "compact" }), { ok: true, kept: false });
+    assert.equal(S.get("density"), "compact", "it applies for this page");
+    assert.deepEqual(await S.choose("marketing"), { ok: true, kept: false });
+  } finally {
+    if (had) Object.defineProperty(globalThis, "localStorage", had); else delete globalThis.localStorage;
+  }
+});
+
 await Promise.all(pending);
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

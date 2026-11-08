@@ -112,7 +112,8 @@ async function open(W, { width, theme, motion = false }, { firstRun = false, dev
   const page = await openApp(browser, BASE, W, { width, height: width < 600 ? 844 : 900, motion });
   await page.route("**/api/**", settingsApi(W));
   // a browser whose storage refuses the shape's keys (full, or switched off), from the reload on
-  if (fullStorage) await page.context().addInitScript(() => { const set = Storage.prototype.setItem; Storage.prototype.setItem = function (k, v) { if (String(k).startsWith("cv-shape")) throw new DOMException("The quota has been exceeded.", "QuotaExceededError"); return set.call(this, k, v); }; });
+  // (fullStorage: "unsynced" refuses only the note of a held change)
+  if (fullStorage) await page.context().addInitScript((only) => { const set = Storage.prototype.setItem; Storage.prototype.setItem = function (k, v) { if (only ? k === only : String(k).startsWith("cv-shape")) throw new DOMException("The quota has been exceeded.", "QuotaExceededError"); return set.call(this, k, v); }; }, fullStorage === "unsynced" ? "cv-shape-unsynced" : null);
   await page.evaluate(({ theme, firstRun, device }) => {
     localStorage.setItem("cv-theme", theme);
     if (firstRun) for (const k of ["cv-shape-mine", "cv-shape-device", "cv-shape-preset"]) localStorage.removeItem(k);
@@ -123,15 +124,19 @@ async function open(W, { width, theme, motion = false }, { firstRun = false, dev
   await page.waitForSelector('[data-go="p:demo"]', { state: "attached", timeout: 30000 });
   assert.equal(await page.evaluate(() => document.documentElement.dataset.theme || "dark"), theme);
   page.width = width; page.theme = theme;
+  opened.add(page.context());
   return page;
 }
 // a test ends with no page errors and with focus never having fallen to the page (the harness records each drop)
 // The record must be there and readable: a missing record or a failed read fails the case, never passes it.
+// every context a case opens, so the runner closes what a failing case left open (one browser's memory, not many)
+const opened = new Set();
 const done = async (page) => {
   const errs = page.errors;
   let drops, unread = null;
   try { drops = await page.evaluate(() => window.__focusDrops); } catch (e) { unread = e; }
   await page.context().close();
+  opened.delete(page.context());
   if (unread) throw new Error(`the focus-drop record couldn't be read: ${unread.message}`);
   assert.deepEqual(errs, [], "page errors");
   assert.ok(Array.isArray(drops), "the harness's focus-drop record is there (window.__focusDrops)");
@@ -609,6 +614,11 @@ t("C106 C099 a change this browser can't keep applies and says so, under its swi
   assert.match(await page.locator('[data-page="general"] .set-err').innerText(), /won't keep it after a reload/);
   await page.waitForTimeout(150);
   assert.doesNotMatch(await page.locator("#live").innerText(), /Showing how messages travel/);
+  await keyFocus(page, "#webpics-tog");
+  await page.keyboard.press("Enter");
+  assert.equal(await page.locator("#webpics-tog").getAttribute("aria-checked"), "false", "pictures off: it applies");
+  assert.match(await page.locator("#webpics-tog").locator("xpath=ancestor::div[contains(@class,'set-row')]").locator(".set-err").innerText(), /won't keep it after a reload/);
+  assert.doesNotMatch(await page.locator("#live").innerText(), /Pictures from the web show as links/);
   await shot(page, "unkept");
   await done(page);
 });
@@ -653,11 +663,29 @@ t("S115 C101 a save XO refused (413) says so plainly and why, on the Shape page 
   await page.waitForSelector(said);
   assert.match(await page.locator(said).innerText(), /XO refused your last shape change/);
   assert.equal(writes(page, "shape"), before, "nothing sent on the reload");
-  // the next change goes, with it: the line goes when XO has it
+  // the next change goes, with it: the line stays while that PUT is out, and goes when XO has it
+  W.delay = 600;
   await keyFocus(page, '[data-shp-preset="engineering"]');
   await page.keyboard.press("Enter");
+  await page.waitForTimeout(200);
+  assert.equal(writes(page, "shape"), before + 1, "the replacement PUT is out");
+  assert.equal(W.shape.shape.preset, "everything", "and not answered yet");
+  assert.match(await page.locator(said).innerText(), /XO refused your last shape change/, "still said while it's out");
   await page.waitForFunction(() => !document.querySelector('[data-page="shape"] .set-err'));
   assert.equal(W.shape.shape.preset, "engineering");
+  await done(page);
+});
+t("S115 C101 XO couldn't be reached and this browser couldn't keep the note of it: the Shape page says a reload loses it", async (ctx) => {
+  const W = world();
+  W.fail.shape = [err("unavailable", "Shape fixture unavailable")];
+  const page = await open(W, ctx, { fullStorage: "unsynced" });
+  await settings(page, "shape");
+  await keyFocus(page, '[data-shp-preset="marketing"]');
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => /Not saved yet/.test(document.querySelector('[data-page="shape"]').innerText));
+  const text = await page.locator('[data-page="shape"] .shp-top').innerText();
+  assert.match(text, /XO couldn't be reached, and this browser can't keep it after a reload/);
+  assert.doesNotMatch(text, /kept on this device/);
   await done(page);
 });
 t("S115 C101 refused by XO and not kept by this browser either: the Shape page never says \"kept on this device\"", async (ctx) => {
@@ -692,7 +720,7 @@ t("C114 a refused usual runtime: the saved one stays chosen, the reason shows un
   assert.equal(await focused(page), `button${codex}`);
   await done(page);
 });
-t("C106 Compact: the switch stays the same node (its knob slides), says its state and sets the density", async (ctx) => {
+t("C106 Compact: the switch stays the same node and says its state; its knob travels (full motion) or lands at once (reduced)", async (ctx) => {
   const page = await open(world(), ctx);
   await settings(page, "shape");
   const sw = "[data-shp-dense]";
@@ -706,6 +734,17 @@ t("C106 Compact: the switch stays the same node (its knob slides), says its stat
   await page.keyboard.press("Space");
   await page.waitForFunction(() => document.documentElement.dataset.density !== "compact");
   assert.equal(await page.locator(sw).getAttribute("aria-checked"), "false");
+  // the knob's x, every frame for 450 ms after a press: with motion it passes through the middle, reduced it doesn't
+  const xs = await page.evaluate(async (sel) => {
+    const b = document.querySelector(sel), k = b.querySelector(".th-knob"), xs = [], t0 = performance.now();
+    b.click();
+    while (performance.now() - t0 < 450) { await new Promise((r) => requestAnimationFrame(r)); xs.push(new DOMMatrix(getComputedStyle(k).transform).m41); }
+    return xs;
+  }, sw);
+  assert.ok(Math.abs(xs[xs.length - 1] - 18) < 0.5, `it ends on: ${xs[xs.length - 1]}`);
+  const between = xs.filter((x) => x > 1 && x < 17);
+  if (ctx.motion) assert.ok(between.length >= 2, `it travels: ${xs.map((x) => x.toFixed(1)).join(" ")}`);
+  else assert.equal(between.length, 0, `reduced motion: no travel (${xs.map((x) => x.toFixed(1)).join(" ")})`);
   await done(page);
 });
 t("C112 a decision model's \"about it\" link opens its page in a new tab, by Enter as by a click", async (ctx) => {
@@ -1046,6 +1085,7 @@ t("H1 C012 C013 Home: Handled and a Recently made file keep focus through Home's
       const name = `${c.name} [${ctx.width} ${ctx.theme}${ctx.motion ? " motion" : ""}]`;
       try { await c.fn(ctx); passed++; console.log("  ok  " + name); }
       catch (e) { failed++; console.error("  FAIL " + name + "\n" + (e.stack || e.message).split("\n").slice(0, 6).join("\n")); }
+      finally { for (const x of opened) await x.close().catch(() => {}); opened.clear(); } // what a case that threw before done() left open
     }
   }
   await browser.close(); server.close();
