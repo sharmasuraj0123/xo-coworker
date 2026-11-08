@@ -1056,6 +1056,44 @@ t("S224: a file entry without a size opens without \"NaN\", and the file takes f
   await done(page);
 });
 
+t("S207: the map's Fit shows every box, and a box far out still takes a pointer", async () => {
+  const dirs = Array.from({ length: 40 }, (_, i) => `folder-${String(i).padStart(2, "0")}`);
+  const page = await app({ files: { "a.js": FILE() }, dirs });
+  await panelOpen(page);
+  if (await page.locator('[data-ghost="map"]').filter({ visible: true }).count()) await page.locator('[data-ghost="map"]').filter({ visible: true }).first().click();
+  await page.locator("#stage-map-tree").waitFor();
+  await page.evaluate(() => document.querySelector("#stage-map-tree").click());
+  await page.locator('[data-node="folder-39"], .dg-n.k-more').first().waitFor();
+  await page.locator('[data-dg="fit"]').filter({ visible: true }).first().click();
+  await page.waitForTimeout(400);
+  const r = await page.evaluate(() => {
+    const box = document.querySelector(".dg-world").parentElement.getBoundingClientRect(); // the map's view
+    const nodes = [...document.querySelectorAll(".dg-world [data-node]")];
+    const out = nodes.filter((n) => { const b = n.getBoundingClientRect(); return b.left < box.left - 1 || b.right > box.right + 1 || b.top < box.top - 1 || b.bottom > box.bottom + 1; }).map((n) => n.dataset.node);
+    // the smallest box: 12 px above its middle is still the box (its hit area doesn't shrink with the map)
+    const n = nodes.sort((a, b) => a.getBoundingClientRect().height - b.getBoundingClientRect().height)[0];
+    const b = n.getBoundingClientRect(), hit = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2 - 10);
+    return { n: nodes.length, out, h: b.height, hits: !!hit && n.contains(hit) };
+  });
+  assert.ok(r.n > 14, `the map draws the folders (${r.n})`);
+  assert.deepEqual(r.out, [], "every box inside the view after Fit");
+  if (r.h < 20) assert.ok(r.hits, `a ${r.h.toFixed(1)} px box still takes the pointer 10 px above its middle`);
+  await done(page);
+});
+t("H12: a made thing's age updates in place, and a name cut in the middle stays whole", async () => {
+  const long = "a-very-long-report-name-that-is-cut-in-the-middle-final.md";
+  const page = await app({ made: [{ id: "mk9", name: long, path: long, relative_path: long, project_id: "demo", mime: "text/markdown", bytes: 10, created_at: NOW, updated_at: NOW }] });
+  await page.evaluate(() => window.__t.go("home"));
+  const card = page.locator('#hm-made .md-it[data-k="mk9"]');
+  await card.waitFor();
+  const name0 = await card.locator(".md-meta b").innerText();
+  await page.evaluate(() => { const real = Date.now; Date.now = () => real() + 2 * 3600e3; window.__t.render(); });
+  await page.waitForTimeout(200);
+  assert.match(await card.locator(".md-meta > span").innerText(), /2h ago/, "its age moved on");
+  assert.equal(await card.locator(".md-meta b").innerText(), name0, "its name is as it was");
+  await done(page);
+});
+
 t("C029: on a phone, Back to chat from a file shows the chat, not the panel again", async () => {
   if (WIDTH > 760) return; // beside the chat on a desktop, the panel coming back is the design
   const page = await app({ files: { "a.js": FILE() } });

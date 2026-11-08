@@ -103,7 +103,9 @@ function mockApi(W) {
       if (rel === "bad" && W.treeFails) { W.treeFails--; return json({ detail: { code: "unavailable", message: "Fixture offline" } }, 503); }
       if (rel === "bad" && W.treeGate) await W.treeGate; // the test says when the second read answers
       if (rel === "bad") return json({ dirs: [], files: [{ name: "inside.md", relative_path: "bad/inside.md", size_bytes: 9 }] });
-      return json({ dirs: [{ name: "bad", relative_path: "bad" }], files: Object.keys(W.files).filter((f) => !f.includes("/")).map((f) => ({ name: f, relative_path: f, size_bytes: W.files[f].content.length })) });
+      // W.dirs: more folders at the top (a wide map), each empty
+      if (W.dirs && W.dirs.includes(rel)) return json({ dirs: [], files: [] });
+      return json({ dirs: [{ name: "bad", relative_path: "bad" }, ...(W.dirs || []).map((d) => ({ name: d, relative_path: d }))], files: Object.keys(W.files).filter((f) => !f.includes("/")).map((f) => ({ name: f, relative_path: f, size_bytes: W.files[f].content.length })) });
     }
     if (/^\/api\/xo-projects\/[^/]+\/file$/.test(p) && m === "GET") {
       const rel = u.searchParams.get("relative_path"), f = W.files[rel];
