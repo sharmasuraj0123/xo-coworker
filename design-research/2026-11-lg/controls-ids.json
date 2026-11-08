@@ -2,7 +2,7 @@
  "note": "Canonical key → row ID. Append-only: never renumber, never reuse.",
  "next": {
   "C": 127,
-  "S": 233
+  "S": 253
  },
  "ids": {
   "C001": {
@@ -325,11 +325,15 @@
   },
   "C080": {
    "key": "#stage-map-tree",
-   "aliases": []
+   "aliases": [
+    "button[data-map-mode=tree]"
+   ]
   },
   "C081": {
    "key": "#stage-map-graph",
-   "aliases": []
+   "aliases": [
+    "button[data-map-mode=graph]"
+   ]
   },
   "C082": {
    "key": "button[data-fr-fold=map]",
@@ -769,7 +773,9 @@
   },
   "S072": {
    "key": "button[data-lsimple]",
-   "aliases": []
+   "aliases": [
+    "button[data-lsimple=auto]"
+   ]
   },
   "S073": {
    "key": "button[data-lfull]",
@@ -1447,6 +1453,86 @@
   },
   "C126": {
    "key": "#c-note-N",
+   "aliases": []
+  },
+  "S233": {
+   "key": "button[data-a=view]",
+   "aliases": []
+  },
+  "S234": {
+   "key": "button[data-a=inline]",
+   "aliases": []
+  },
+  "S235": {
+   "key": "button[data-lsimple=deep]",
+   "aliases": []
+  },
+  "S236": {
+   "key": "xo-select[data-lp-f]",
+   "aliases": []
+  },
+  "S237": {
+   "key": "button[data-lp=stop-undo]",
+   "aliases": []
+  },
+  "S238": {
+   "key": "button[data-runs-retry]",
+   "aliases": []
+  },
+  "S239": {
+   "key": "button[data-runs-undo]",
+   "aliases": []
+  },
+  "S240": {
+   "key": "button[data-unfold]",
+   "aliases": []
+  },
+  "S241": {
+   "key": "gesture: drop files",
+   "aliases": []
+  },
+  "S242": {
+   "key": "diffs-container input[data-search]",
+   "aliases": []
+  },
+  "S243": {
+   "key": "diffs-container button[aria-label=\"Match Case\"]",
+   "aliases": []
+  },
+  "S244": {
+   "key": "diffs-container button[aria-label=\"Whole Word\"]",
+   "aliases": []
+  },
+  "S245": {
+   "key": "diffs-container button[aria-label=\"Regexp\"]",
+   "aliases": []
+  },
+  "S246": {
+   "key": "diffs-container button[aria-label=\"Next\"]",
+   "aliases": []
+  },
+  "S247": {
+   "key": "diffs-container button[aria-label=\"Previous\"]",
+   "aliases": []
+  },
+  "S248": {
+   "key": "diffs-container button[data-replace-toggle]",
+   "aliases": []
+  },
+  "S249": {
+   "key": "diffs-container input[data-replace]",
+   "aliases": []
+  },
+  "S250": {
+   "key": "diffs-container button[aria-label=\"Replace\"]",
+   "aliases": []
+  },
+  "S251": {
+   "key": "diffs-container button[aria-label=\"Replace All\"]",
+   "aliases": []
+  },
+  "S252": {
+   "key": "diffs-container button[data-search-close]",
    "aliases": []
   }
  },

@@ -14,18 +14,35 @@ const desk = readJson('inventory-dark-1440.json'), phone = readJson('inventory-d
 // the states only some controls show, opened in the browser suite's mock world (tools/inventory-states.cjs)
 const mock = readJson('inventory-states-1440.json');
 // my side of a row (what changed since Astra last saw it): controls-status.json. Astra's verdicts come from its own
-// ledger, read-only (ASTRA_LEDGER, default its worktree's opus-row-verdicts-current.json); without it, "Unchecked".
+// ledgers, read-only: the main grader's reconciled ledger (ASTRA_LEDGER, default opus-row-verdicts-d1c7cb9.json),
+// and the Files/editor/diffs/Map grader's latest (FILES_LEDGER, default its newest *-verdicts.json), which wins for
+// the rows it grades. Each verdict names the revision its evidence is from. Without them, "Unchecked".
 const myNotes = readJson('controls-status.json', {});
-const LEDGER = process.env.ASTRA_LEDGER || path.join(ROOT, '..', 'thread-cmsg_942e352acb4d4ba2', 'ui-mockups', 'lg-audit', 'opus-row-verdicts-current.json');
-let astra = {};
-try { for (const r of JSON.parse(fs.readFileSync(LEDGER, 'utf8')).rows) astra[r.opusId] = r; } catch { astra = {}; }
+const WT = path.join(ROOT, '..');
+const LEDGER = process.env.ASTRA_LEDGER || path.join(WT, 'thread-cmsg_942e352acb4d4ba2', 'ui-mockups', 'lg-audit', 'opus-row-verdicts-d1c7cb9.json');
+const FILES_DIR = path.join(WT, 'thread-cmsg_e3415cae12ea4e70', 'audit-files');
+const FILES_LEDGER = process.env.FILES_LEDGER || (() => { try { return fs.readdirSync(FILES_DIR).filter((f) => /-verdicts\.json$/.test(f)).map((f) => path.join(FILES_DIR, f)).sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs)[0]; } catch { return null; } })();
+let astra = {}, filesV = {}, ledgerRev = '', filesRev = '';
+try { const d = JSON.parse(fs.readFileSync(LEDGER, 'utf8')); ledgerRev = d.inventoryRevision || ''; for (const r of d.rows) astra[r.opusId] = r; } catch { astra = {}; }
+try { const d = JSON.parse(fs.readFileSync(FILES_LEDGER, 'utf8')); filesRev = String(d.latestRevision || '').slice(0, 7); for (const r of d.rows) filesV[r.id] = r; } catch { filesV = {}; }
+const RETIRED = {}; // rows a grader found retired or unreachable: kept, marked
+for (const [id, r] of Object.entries(filesV)) if (/retired|not.?applicable|n\/a|unreachable/i.test(String(r.status))) RETIRED[id] = r.reason || r.status;
 const verdictOf = (id) => {
-  const r = astra[id];
-  const mine = myNotes[id] && !(r && /CLOSED/.test(r.reason || '')) ? ` · ${myNotes[id]}, awaiting Astra` : '';
-  if (!r) return `Unchecked${mine}`;
-  const v = r.behaviorVerdict === 'FAIL' || r.inventoryVerdict === 'FAIL' ? 'FAIL' : r.behaviorVerdict === 'PASS' ? 'PASS (scoped)' : 'Unverified';
-  const why = v === 'Unverified' && !/CLOSED/.test(r.reason || '') ? '' : `: ${String(r.reason || '').replace(/\|/g, '/').slice(0, 110)}`;
-  return `Astra ${v}${why}${mine}`;
+  const f = filesV[id], r = astra[id];
+  let v, why = '', rev = '';
+  if (f) {
+    v = /retired|not.?applicable|n\/a|unreachable/i.test(String(f.status)) ? 'Retired' : String(f.status).toUpperCase();
+    rev = f.evidenceRevision || filesRev; why = f.reason || '';
+  } else if (r) {
+    v = r.behaviorVerdict === 'FAIL' || r.inventoryVerdict === 'FAIL' ? 'FAIL' : r.behaviorVerdict === 'PASS' ? 'PASS (scoped)' : 'Unverified';
+    rev = r.inventoryRevision || ledgerRev; why = v === 'Unverified' && !/CLOSED/.test(r.reason || '') ? '' : r.reason || '';
+    if (v === 'PASS (scoped)' && r.acceptanceScope) why = `scope: ${r.acceptanceScope}`;
+  }
+  const closed = (r && /CLOSED/.test(r.reason || '')) || (f && /PASS/i.test(f.status));
+  const mine = myNotes[id] && !closed ? ` · ${myNotes[id]}, awaiting Astra` : '';
+  if (!v) return `Unchecked${mine}`;
+  const words = Array.isArray(why) ? why.map((w) => (typeof w === 'string' ? w : w && (w.id || w.result) || '')).filter(Boolean).join(', ') : typeof why === 'object' && why ? JSON.stringify(why) : String(why || '');
+  return `Astra${f ? ' (Files grader)' : ''} ${v}${rev ? ` at ${String(rev).slice(0, 7)}` : ''}${words ? `: ${words.replace(/\|/g, '/').replace(/\s+/g, ' ').slice(0, 120)}` : ''}${mine}`;
 };
 const status = new Proxy({}, { get: (_, id) => verdictOf(String(id)) });
 // --dry: write the list and the registry to /tmp (to look before committing a registry)
@@ -35,10 +52,13 @@ const reg = readJson('controls-ids.json', { note: 'Canonical key → row ID. App
 
 // ── one canonical key for a kind, the same whether it was rendered or read from a template ──
 // values that name what a control does stay in its key; the rest (a project, a file, a row's id) make one kind
-const KEEP = new Set(['data-cs', 'data-mode', 'data-vw-mode', 'data-fl-rail', 'data-route', 'data-lp', 'data-shp-preset', 'data-to', 'data-fr-fold', 'data-ghost', 'data-map-mode', 'data-act', 'data-vig', 'data-dg', 'data-lbx', 'data-cp', 'data-csmode']);
+const KEEP = new Set(['data-a', 'data-lsimple', 'data-cs', 'data-mode', 'data-vw-mode', 'data-fl-rail', 'data-route', 'data-lp', 'data-shp-preset', 'data-to', 'data-fr-fold', 'data-ghost', 'data-map-mode', 'data-act', 'data-vig', 'data-dg', 'data-lbx', 'data-cp', 'data-csmode']);
 const SKIP = new Set(['data-w', 'data-k', 'data-fid', 'data-fl-bytes', 'data-file-name', 'data-i', 'data-v', 'data-id', 'data-key', 'data-tip', 'data-ref-a', 'data-ref-b', 'data-inv', 'data-inv-now', 'data-lid', 'data-n', 'data-pid', 'data-change-project', 'data-limit-d']);
-function canon(tag, id, attrs, cls) {
-  if (id) return '#' + id.replace(/-\d+$/, '-N');
+const FAMILY = /^(tab|radio|option|menuitem|menuitemradio|menuitemcheckbox)$/;
+function canon(tag, id, attrs, cls, role = '') {
+  // a tab, a radio, an option or a menu item that carries its family's data- hook is keyed by that hook, not by
+  // its id: an id given for ARIA (aria-controls …) never splits one kind into one row per member (C098)
+  if (id && !(FAMILY.test(role) && attrs.some(([n]) => !SKIP.has(n)))) return '#' + id.replace(/-\d+$/, '-N');
   const parts = [];
   for (const [n, v] of attrs) {
     if (SKIP.has(n)) continue;
@@ -48,7 +68,7 @@ function canon(tag, id, attrs, cls) {
   if (parts.length) return `${tag}[${[...new Set(parts)].sort().join(',')}]`;
   return `${tag}.${(cls || '').split(/[.\s]/).filter((c) => c && !/^is-/.test(c)).slice(0, 2).join('.')}`;
 }
-const renderedKey = (x) => canon(x.tag, x.id, x.data.map((a) => { const i = a.indexOf('='); return i < 0 ? [a, ''] : [a.slice(0, i), a.slice(i + 1)]; }), x.cls);
+const renderedKey = (x) => canon(x.tag, x.id, x.data.map((a) => { const i = a.indexOf('='); return i < 0 ? [a, ''] : [a.slice(0, i), a.slice(i + 1)]; }), x.cls, x.role);
 const tokensOf = (k) => { if (k.startsWith('#')) return [k]; const m = /\[([^\]]+)\]/.exec(k); return m ? m[1].split(',') : [k]; };
 
 // ── IDs: the registry, seeded once from the list as committed in 3a9cdca (so grades given there stay on their rows) ──
@@ -161,7 +181,9 @@ const DOES = {
   'data-lmore': 'Picker: shows or hides the runtime and routing rows.',
   'data-lauto': 'Picker: back to the default model.',
   'data-lrt': 'Picker: chooses the runtime.',
-  'data-lsimple': 'Picker: back to the simple view.',
+  'data-lsimple=auto': 'Picker, simple view: Auto, the router\'s pick (it applies at once and closes).',
+  'data-lsimple=deep': 'Picker, simple view: Think deeper, the strongest model it has at a deeper effort (it applies at once and closes).',
+  'data-lsimple': 'Picker, simple view: Auto or Think deeper (it applies at once and closes).',
   'data-lfull': 'Picker: more options.',
   'data-mv-cancel': 'Picker: cancels moving the thread to another runtime.',
   'data-mv-go': 'Picker: moves the thread to that runtime.',
@@ -232,10 +254,10 @@ const DOES = {
   'data-fl-rail=all': 'Files rail: all files.',
   'data-fl-rail=find': 'Files rail: find a file.',
   'data-fl-retry': 'Files: reads the folder again.',
-  'data-fl-unpick': 'Files: leaves the picked change and closes its file.',
+  'data-fl-unpick': 'Files: from the project you picked, back to the list of projects.',
   'data-fl-change': 'Files: opens a changed file.',
   'data-fl-touch': 'Files: opens a file an agent touched.',
-  'data-fl-pick': 'Files: picks that change to follow.',
+  'data-fl-pick': 'Files: opens that project\'s files.',
   'data-fl-back': 'Files: back from the file to the tree.',
   'data-fl-mk': 'Files menu: new file in this folder.',
   'data-fl-cp': 'Files menu: copies the path.',
@@ -251,7 +273,7 @@ const DOES = {
   'data-vw-copy': 'Copies the file.',
   'data-vw-download': 'Downloads the file.',
   'data-vw-show': 'Shows the file, or its changes.',
-  'data-vw-split': 'The file and its changes side by side.',
+  'data-vw-split': 'Changes: side by side (before and after), or in one column.',
   'data-vw-draftx': 'Discards the draft you left.',
   'data-vw-update': 'Updated · Show: reads the newer file in, keeping your place.',
   'data-vw-close': 'Closes the file; focus goes back where it came from.',
@@ -303,13 +325,13 @@ const DOES = {
   'data-shp-json': 'Shape as JSON, for editing by hand.',
   'data-shp-revert': 'Shape JSON: back to what was saved.',
   'data-shp-save': 'Shape JSON: saves it.',
-  'data-shp-keep': 'Shape: keeps yours when another device changed it.',
-  'data-shp-switch': 'Shape: switches to the other device\'s.',
+  'data-shp-keep': 'Shape: you picked a preset over your own changes; Keep mine keeps your shape as it is.',
+  'data-shp-switch': 'Shape: you picked a preset over your own changes; Switch applies that preset.',
   'data-shf-close': 'Shape, first run: closes the question (everything shows).',
   'data-shf': 'Shape, first run: what you\'ll use XO for.',
   'data-route=agent': 'Routing: the coordinator reads each message and decides.',
   'data-route=decision': 'Routing: a decision model routes messages.',
-  'data-route=off': 'Routing off: messages stay where you send them.',
+  'data-route=off': 'Routing off: new messages to the Workspace and projects are refused until it\'s on again.',
   'data-dm-on': 'Connects that decision model.',
   'data-dm-off': 'Asks to disconnect the decision model.',
   'data-dm-cancel': 'Cancels connecting it.',
@@ -334,7 +356,11 @@ const DOES = {
   'data-older': 'Loads older messages again after a failed read.',
   'data-rec-undo': 'Undoes a record change within its window.',
   'data-herald-undo': 'Undo in a notice, within its window.',
-  'data-a': 'A notice\'s own action, as its label says.',
+  'data-a=view': 'An attachment: previews it.',
+  'data-a=retry': 'An attachment that failed to upload: uploads it again.',
+  'data-a=x': 'An attachment: takes it off the message.',
+  'data-a=inline': 'Pasted text kept as an attachment: puts it back in the message as text.',
+  'data-a': 'An attachment\'s action (Preview, Retry, Remove, As text), as its label says.',
   'data-dock-open': 'Opens the dock it names.',
   'data-crail': 'Beside a file: unfolds the folded chat.',
   'data-fold': 'Folds the docked decision away to read the thread first.',
@@ -442,6 +468,10 @@ const DOES = {
   'div.vw-body.vw-file': 'The file: scrolls with the keys once focused.',
   'summary.': 'Opens or folds the section under it.',
   'a.': 'A link in the text; it opens in a new tab.',
+  'data-mvm': 'Picker, moving a thread: the model it continues on there.',
+  'data-runs-retry': 'Runs: reads the list of sub-agents again after a failed read.',
+  'data-runs-undo': 'Runs: undoes a stop still in its 3 s window; it keeps working.',
+  'data-mvp': 'Picker, moving a thread: how hard it thinks there.',
   'button.mx-down': 'Back to the latest message, when you\'ve scrolled up.',
   'button.dis-h': 'Opens or folds the details under it.',
   '#c-note-N': 'Decision card: the note sent back with it; Enter sends, Esc closes it.',
@@ -506,17 +536,32 @@ for (const [src, data, tag] of [['desk', desk, ''], ['phone', phone, ''], ['desk
 const SRC = [['index.html', fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8').split('\n')], ...JS];
 const sourceKinds = new Map();
 for (const [f, lines] of SRC) lines.forEach((L, i) => {
-  for (const m of L.matchAll(/<(button|a|input|textarea|select|summary|xo-select)\b([^>]*)>/g)) {
+  for (const m of L.matchAll(/<(button|a|input|textarea|select|summary|xo-select|div|span|li|label)\b([^>]*)>/g)) {
+    const role = (/\brole="([\w-]+)"/.exec(m[2]) || [])[1] || '';
+    if (/^(div|span|li|label)$/.test(m[1]) && !/^(button|radio|tab|option|menuitem|menuitemradio|menuitemcheckbox|switch|checkbox|link)$/.test(role)) continue;
     const attrs = [...m[2].matchAll(/\b(data-[\w-]+)(?:="([^"]*)")?/g)].map((x) => [x[1], x[2] || '']);
     const idm = /\bid="([\w-]+)"/.exec(m[2]);
     const id = idm && !/\$\{/.test(idm[1]) ? idm[1] : '';
     if (!id && !attrs.some(([n]) => !SKIP.has(n))) continue; // nothing to name it by
     if (m[1] === 'a' && !/href=/.test(m[2])) continue;
-    const key = canon(m[1], id, attrs, (/class="([^"]*)"/.exec(m[2]) || [])[1]);
+    const key = canon(m[1], id, attrs, (/class="([^"]*)"/.exec(m[2]) || [])[1], role);
     if (!sourceKinds.has(key)) sourceKinds.set(key, { key, tag: m[1], firstData: (attrs.find(([n]) => !SKIP.has(n)) || [])[0] || '', at: `${f}:${i + 1}`, text: ((/>([^<]{2,40})</.exec(L.slice(m.index)) || [])[1] || '').replace(/\$\{[^}]*\}/g, '…').trim() });
   }
 });
 const MANUAL = [
+  { key: 'button[data-unfold]', tag: 'button', at: 'js/app.js:1503', text: 'Open the decision', does: 'A folded decision in the dock: opens it again.' },
+  { key: 'gesture: drop files', tag: 'drop', at: 'js/app.js:1866', text: '', does: 'Dropping files on the conversation attaches them to the message (only where a message box is showing).' },
+  { key: 'diffs-container input[data-search]', tag: 'input', at: 'js/vendor/pierre-diffs/edit.js:46', text: 'Find', does: 'Editor search (Ctrl/Cmd+F): finds as you type and counts the matches.' },
+  { key: 'diffs-container button[aria-label="Match Case"]', tag: 'button', at: 'js/vendor/pierre-diffs/edit.js:46', text: 'Match Case', does: 'Editor search: match case on or off.' },
+  { key: 'diffs-container button[aria-label="Whole Word"]', tag: 'button', at: 'js/vendor/pierre-diffs/edit.js:46', text: 'Whole Word', does: 'Editor search: whole words only, on or off.' },
+  { key: 'diffs-container button[aria-label="Regexp"]', tag: 'button', at: 'js/vendor/pierre-diffs/edit.js:46', text: 'Regexp', does: 'Editor search: the query as a regular expression, on or off.' },
+  { key: 'diffs-container button[aria-label="Next"]', tag: 'button', at: 'js/vendor/pierre-diffs/edit.js:46', text: 'Next', does: 'Editor search: the next match.' },
+  { key: 'diffs-container button[aria-label="Previous"]', tag: 'button', at: 'js/vendor/pierre-diffs/edit.js:46', text: 'Previous', does: 'Editor search: the previous match.' },
+  { key: 'diffs-container button[data-replace-toggle]', tag: 'button', at: 'js/vendor/pierre-diffs/edit.js:46', text: 'Replace', does: 'Editor search: shows or hides Replace.' },
+  { key: 'diffs-container input[data-replace]', tag: 'input', at: 'js/vendor/pierre-diffs/edit.js:46', text: 'Replace with', does: 'Editor search: what replaces each match.' },
+  { key: 'diffs-container button[aria-label="Replace"]', tag: 'button', at: 'js/vendor/pierre-diffs/edit.js:46', text: 'Replace', does: 'Editor search: replaces the current match.' },
+  { key: 'diffs-container button[aria-label="Replace All"]', tag: 'button', at: 'js/vendor/pierre-diffs/edit.js:46', text: 'Replace All', does: 'Editor search: replaces every match.' },
+  { key: 'diffs-container button[data-search-close]', tag: 'button', at: 'js/vendor/pierre-diffs/edit.js:46', text: 'Close', does: 'Editor search: closes it; focus goes back to the text.' },
   { key: '#mx-return', tag: 'button', at: 'js/app.js:2503', text: 'Back to where you were', does: 'Back to where you were: brings the message you left from into view, and focus to it.' },
   { key: 'button.mx-r-x', tag: 'button', at: 'js/msgx.js:482', text: '×', does: 'Takes the reply off the message you\'re writing (Esc too).' },
   { key: 'button.mx-qpop', tag: 'button', at: 'js/msgx.js:549', text: 'Reply to this', does: 'Reply to this: quotes the words you selected in a message.' },
