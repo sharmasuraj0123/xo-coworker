@@ -1435,7 +1435,12 @@ function closeRuns() {
   clearTimeout(RS.pollT);
   RS.gen++; RS.open = false; runsEl.hidden = true; runsCard.innerHTML = ""; runsCard._h = "";
   syncInert();
-  RS.returnTo?.focus?.({ preventScroll: true });
+  // back to what opened it; if that was redrawn while Runs was open (the thread's head redraws as its checklist
+  // moves), to the same control drawn now, else the conversation: never the page (Astra RUN-7/S102)
+  const was = RS.returnTo, usable = (b) => b && b.isConnected && !b.closest("[inert], [hidden]") && b.getClientRects().length > 0;
+  const like = (el) => { if (!el || !el.getAttribute) return null; for (const a of ["data-run-call", "data-run"]) if (el.hasAttribute(a)) return document.querySelector(`[${a}="${CSS.escape(el.getAttribute(a))}"]`); return el.hasAttribute("data-runs") ? $("#thead [data-runs]") : null; };
+  RS.returnTo = null;
+  [was, like(was), $("#thead [data-runs]"), scroller].find(usable)?.focus({ preventScroll: true });
 }
 /** Stop one sub-agent, or all of a session's, after a 3 s Undo. */
 // Stops waiting out their Undo. One herald shows them all, so a second stop never hides the first's Undo.
@@ -1920,10 +1925,13 @@ say.addEventListener("paste", (e) => {
   let depth = 0;
   const hasFiles = (e) => [...(e.dataTransfer?.types || [])].includes("Files");
   const hide = () => { depth = 0; veil.hidden = true; };
-  addEventListener("dragenter", (e) => { if (!hasFiles(e)) return; e.preventDefault(); if (canAttach(S.view) && !document.querySelector(".sheet:not([hidden]), dialog[open]")) { depth++; veil.hidden = false; } });
+  // only where the message being written can take it: on screen and in reach, under no open layer (Settings,
+  // a sheet, a dialog, the phone's drawer make it inert): never into a composer that's hidden (Astra H29)
+  const takes = () => { const say = $("#say"); return canAttach(S.view) && !!say && say.getClientRects().length > 0 && !say.closest("[inert]") && !document.querySelector(".sheet:not([hidden]), dialog[open]"); };
+  addEventListener("dragenter", (e) => { if (!hasFiles(e)) return; e.preventDefault(); if (takes()) { depth++; veil.hidden = false; } });
   addEventListener("dragover", (e) => { if (!hasFiles(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = veil.hidden ? "none" : "copy"; });
   addEventListener("dragleave", (e) => { if (hasFiles(e) && --depth <= 0) hide(); });
-  addEventListener("drop", (e) => { if (!hasFiles(e)) return; e.preventDefault(); const on = !veil.hidden; hide(); if (on) addFiles(e.dataTransfer.files); });
+  addEventListener("drop", (e) => { if (!hasFiles(e)) return; e.preventDefault(); const on = !veil.hidden; hide(); if (on && takes()) addFiles(e.dataTransfer.files); });
   addEventListener("dragend", hide);
 }
 function growSay() {
@@ -2648,8 +2656,14 @@ function decideKey(key, opts) {
   if (t && n && n.t.id === t.id && !D.isOpen() && !opts) {
     if (n.later) S.later.delete(key);
     if (n.held) D.bringIn(key);
+    // its card is in this thread's dock: unfolded if you'd folded it (Astra DEC-HERALD-FOLDED), and focus goes to
+    // it in the step it's drawn; one still being admitted takes focus once it's there
+    delete S.dockFold[key];
+    dockRender(D.needItems());
+    const card = tdock.querySelector(".card");
+    card?.focus({ preventScroll: true });
     schedule();
-    requestAnimationFrame(() => requestAnimationFrame(() => tdock.querySelector(".card")?.focus({ preventScroll: true })));
+    if (!card) requestAnimationFrame(() => requestAnimationFrame(() => tdock.querySelector(".card")?.focus({ preventScroll: true })));
     return;
   }
   D.open(key, opts);

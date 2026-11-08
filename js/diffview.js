@@ -245,6 +245,21 @@ export async function file(scroller, contents, o = {}) {
       const E = await import(EDIT);
       const ed = new E.Editor("file", { onChange: () => onChange && onChange() });
       const detach = ed.edit(v);
+      // Pierre's find bar, from outside it (the library is pinned): its Close and its Escape put you back at your
+      // caret before the bar goes (it left focus nowhere, and the Escape went on to leave the editor: Astra
+      // EDITOR-close); a pattern that isn't a valid regexp says so, where it said "No results" (EDITOR-regex)
+      const along = (e, key) => e.composedPath().find((n) => n.dataset && key in n.dataset);
+      const back = (e) => { if ((e.type === "keydown" ? e.key === "Escape" && !e.isComposing && along(e, "searchGrid") : along(e, "searchClose"))) ed.focus(); };
+      const pattern = (e) => {
+        const g = along(e, "searchGrid"), inp = g && g.querySelector("[data-search]"), re = g && g.querySelector('[aria-label="Regexp"]'), n = g && g.querySelector("[data-matches]");
+        if (!inp || !re) return;
+        let bad = false;
+        if (re.getAttribute("aria-pressed") === "true" && inp.value) { try { new RegExp(inp.value); } catch { bad = true; } }
+        inp.setAttribute("aria-invalid", String(bad));
+        if (bad && n) n.textContent = "Not a valid pattern";
+      };
+      for (const [t, f, c] of [["keydown", back, true], ["click", back, true], ["input", pattern, false], ["click", pattern, false]]) host.addEventListener(t, f, c);
+      const unwire = () => { for (const [t, f, c] of [["keydown", back, true], ["click", back, true], ["input", pattern, false], ["click", pattern, false]]) host.removeEventListener(t, f, c); };
       // the document arrives a frame or two after attaching
       for (let i = 0; i < 60 && contents && !ed.getText(); i++) await new Promise((r) => requestAnimationFrame(r));
       return {
@@ -260,7 +275,7 @@ export async function file(scroller, contents, o = {}) {
             await new Promise((r) => requestAnimationFrame(r));
           }
         },
-        stop() { detach(); ed.cleanUp("discard"); },
+        stop() { unwire(); detach(); ed.cleanUp("discard"); },
       };
     },
     destroy() { live.delete(v); v.cleanUp(); VZ.cleanUp(); host.remove(); },

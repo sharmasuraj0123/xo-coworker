@@ -244,7 +244,12 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
     if (t.closest("[data-cx-all]")) { const s = changes.scope(view()); if (s) { stOf(s.key).all = true; onChange && onChange(); } return; }
     const r = t.closest("[data-cx]");
     if (r) { const s = changes.scope(view()); if (!s) return; const st = stOf(s.key); st.follow = false; st.sig = changes.activity(view()).sig; st.sel = r.dataset.cx; if (st.pill === st.sel) st.pill = null; onChange && onChange(); return; }
-    if (t.closest("[data-cx-show]")) { const s = changes.scope(view()); if (!s) return; const st = stOf(s.key); st.sel = pill.dataset.cxShow || st.sel; st.pill = null; D.patch = null; D.pend = null; onChange && onChange(); return; }
+    if (t.closest("[data-cx-show]")) {
+      const s = changes.scope(view()); if (!s) return; const st = stOf(s.key); st.sel = pill.dataset.cxShow || st.sel; st.pill = null; D.patch = null; D.pend = null;
+      // the pill goes once it's answered: focus goes to the file it showed, in the list, before it goes (Astra S042)
+      (list.querySelector(`[data-cx="${CSS.escape(st.sel || "")}"]`) || pd).focus({ preventScroll: true });
+      onChange && onChange(); return;
+    }
     // the file picked (whose header this button is in), not the last diff drawn (Astra C086)
     if (t.closest("[data-cx-open]")) { const s = changes.scope(view()); const p = s && (stOf(s.key).sel || D.path); if (p) openFile(s, p, t.closest("[data-cx-open]")); }
   });

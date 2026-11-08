@@ -695,6 +695,136 @@ t("S082: a file opened from the map takes focus (on a phone the panel steps asid
   await done(page);
 });
 
+t("RUN-7/S102: Runs Close goes back to its opener even when that was drawn again meanwhile", async () => {
+  const W = { runs: { "ses-a": { runs: [run("ra", "Alpha's helper")], counts: { running: 1 } } } };
+  const page = await app(W);
+  await toDemo(page);
+  // an opener, as a run's line in a message is; it's focused when Runs opens from it
+  await page.evaluate(() => { const b = document.createElement("button"); b.type = "button"; b.dataset.run = "ra"; b.textContent = "Alpha's helper"; document.body.appendChild(b); b.focus(); return window.__t.openRuns({ sessionId: "ses-a", title: "Thread A" }); });
+  await page.locator("#runs [data-close]").first().waitFor();
+  // while Runs is open, the conversation is drawn again: the opener is a new node with the same hook
+  await page.evaluate(() => { const old = document.querySelector('body > [data-run="ra"]'); old.replaceWith(old.cloneNode(true)); });
+  await page.locator("#runs [data-close]").first().focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelector("#runs").hidden);
+  assert.match(await active(page), /data-run=ra/, "on the opener drawn now, not the page");
+  await done(page);
+});
+t("H29: with Settings open, a file dragged over the page isn't taken by the hidden composer", async () => {
+  const page = await app();
+  await toDemo(page);
+  const drag = (sel, end) => page.evaluate(({ sel, end }) => {
+    const dt = new DataTransfer(); dt.items.add(new File(["hello"], "audit.txt", { type: "text/plain" }));
+    const at = document.querySelector(sel);
+    at.dispatchEvent(new DragEvent("dragenter", { bubbles: true, cancelable: true, dataTransfer: dt }));
+    const veil = !document.querySelector("#drop-veil").hidden;
+    at.dispatchEvent(new DragEvent(end, { bubbles: true, cancelable: true, dataTransfer: dt }));
+    return veil;
+  }, { sel, end });
+  // in reach, the composer takes it (the veil says so); a drag that ends goes nowhere
+  assert.equal(await drag("#main", "dragend"), true, "the composer in reach takes a drag");
+  await page.evaluate(() => document.querySelector("#set-side").click());
+  await page.waitForFunction(() => !document.querySelector("#settings").hidden);
+  assert.equal(await drag("#settings", "drop"), false, "no veil over Settings");
+  await page.waitForTimeout(200);
+  assert.equal(await page.locator("#att-tray > *").count(), 0, "nothing was attached to the hidden message");
+  await done(page);
+});
+t("DEC-NOTE-LOSS/S167: a Send back that failed keeps its note for the next try", async () => {
+  const page = await decisions("approval", 1);
+  await page.evaluate(() => { const no = async () => { throw Object.assign(new Error("Fixture unavailable"), { status: 503, code: "unavailable" }); }; window.d.world.act.decide = no; window.d.world.act.reply = no; });
+  await page.waitForTimeout(400); // the card's read beat
+  await page.locator("[data-act=back]").first().click();
+  const n = page.locator(".c-note-in").first();
+  await n.waitFor();
+  await n.fill("Do not lose these local words");
+  await n.press("Enter");
+  // the commit window, then the refusal: the ask comes back to decide again
+  await page.waitForFunction(() => window.d.decided().length === 1); // queued, its Undo window open
+  await page.waitForFunction(() => window.d.decided().length === 0, null, { timeout: 9000 }); // sent, refused
+  await page.locator("[data-act=back]").first().waitFor();
+  await page.waitForTimeout(400); // the card's read beat again
+  await page.locator("[data-act=back]").first().click();
+  await n.waitFor();
+  assert.equal(await page.locator(".c-note-in").first().inputValue(), "Do not lose these local words");
+  await ctxDone(page);
+});
+t("S201/S202: the lightbox's end arrow keeps focus at the end", async () => {
+  const page = await app();
+  await toDemo(page);
+  await page.evaluate(async () => {
+    const { mediaItem, mediaHtml } = await import("./js/media.js");
+    const { createLightbox } = await import("./js/lightbox.js");
+    const items = ["a", "b", "c"].map((k) => mediaItem({ key: "t:" + k, name: k + ".svg", type: "image/svg+xml", src: "/favicon.svg", w: 64, h: 64 }));
+    const root = document.createElement("div"); root.id = "lbx-test"; root.innerHTML = mediaHtml(items); document.body.appendChild(root);
+    const LB = createLightbox({});
+    LB.open("t:a", root.querySelector('[data-mx="t:a"]'), root);
+  });
+  const next = page.locator('[data-lbx="next"]').filter({ visible: true }).first();
+  await next.waitFor();
+  await next.focus();
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("Enter"); // the last picture
+  await page.waitForFunction(() => document.querySelector('[data-lbx="next"]')?.getAttribute("aria-disabled") === "true");
+  assert.match(await active(page), /data-lbx=next/, "still on the arrow");
+  await page.keyboard.press("Enter"); // no further
+  assert.match(await page.locator(".lbx-count").first().innerText(), /3 of 3/);
+  await page.keyboard.press("ArrowLeft");
+  assert.match(await page.locator(".lbx-count").first().innerText(), /2 of 3/);
+  await done(page);
+});
+t("S063: a changed file opened from Files' Changed takes focus", async () => {
+  const page = await app({ files: { "a.js": FILE() }, changes: [{ path: "a.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: PATCH("a.js", "one", "ONE") }] });
+  await panelOpen(page);
+  await filesOpen(page);
+  const row = page.locator('[data-fl-change="a.js"]').filter({ visible: true }).first();
+  await row.waitFor();
+  await row.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => window.__t.VW.isOpen);
+  await page.waitForTimeout(250);
+  assert.match(await active(page), /id=viewer/);
+  await done(page);
+});
+const deepActive = (page) => page.evaluate(() => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return { editable: !!a?.isContentEditable, inViewer: !!document.activeElement?.closest?.("#viewer") }; });
+t("EDITOR-close: the find bar's Escape and Close put you back at your caret, still editing", async () => {
+  const page = await app({ files: { "a.js": FILE() } });
+  await editing(page);
+  await page.locator("#viewer [contenteditable=true]").first().click();
+  for (const how of ["Escape", "Close"]) {
+    await page.keyboard.press("ControlOrMeta+f");
+    const q = page.locator("[data-search-grid] [data-search]").first();
+    await q.waitFor();
+    await q.focus();
+    await page.keyboard.insertText("two");
+    if (how === "Escape") await page.keyboard.press("Escape");
+    else { await page.locator("[data-search-close]").first().focus(); await page.keyboard.press("Enter"); }
+    await page.waitForTimeout(200);
+    assert.equal(await page.evaluate(() => !!(window.__ED && window.__ED.on)), true, `${how}: still editing`);
+    assert.deepEqual(await deepActive(page), { editable: true, inViewer: true }, `${how}: back at the caret`);
+  }
+  await done(page);
+});
+t("EDITOR-regex: a pattern that isn't a valid regexp says so", async () => {
+  const page = await app({ files: { "a.js": FILE() } });
+  await editing(page);
+  await page.locator("#viewer [contenteditable=true]").first().click();
+  await page.keyboard.press("ControlOrMeta+f");
+  const q = page.locator("[data-search-grid] [data-search]").first();
+  await q.waitFor();
+  await page.locator('[data-search-grid] [aria-label="Regexp"]').first().click();
+  await q.focus();
+  await page.keyboard.insertText("[");
+  await page.waitForTimeout(150);
+  assert.equal(await page.locator("[data-search-grid] [data-matches]").first().innerText(), "Not a valid pattern");
+  assert.equal(await q.getAttribute("aria-invalid"), "true");
+  await page.keyboard.press("Backspace");
+  await page.keyboard.insertText("t.o");
+  await page.waitForTimeout(150);
+  assert.equal(await q.getAttribute("aria-invalid"), "false", "a valid one is fine again");
+  await done(page);
+});
+
 t("C029: on a phone, Back to chat from a file shows the chat, not the panel again", async () => {
   if (WIDTH > 760) return; // beside the chat on a desktop, the panel coming back is the design
   const page = await app({ files: { "a.js": FILE() } });

@@ -916,6 +916,9 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     const mod = (e.metaKey || e.ctrlKey) && !e.altKey;
     if (ED.on) {
       if (mod && e.key.toLowerCase() === "s") { e.preventDefault(); if (ED.confirm) { ED.confirmed = true; save("runs_code"); } else save(); return; }
+      // an Escape the editor already used (its find bar closing, a suggestion going) isn't the viewer's: you stay
+      // editing (Astra EDITOR-close: it closed the find bar and left the editor too)
+      if (e.key === "Escape" && e.defaultPrevented) return;
       if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); if (ED.confirm) { ED.confirm = false; paintHead(); ED.ed?.focus(); } else cancelEdit(); return; }
       return;
     }

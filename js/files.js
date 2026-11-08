@@ -620,7 +620,8 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       if (tc) {
         const rel = tc.dataset.flTouch, s = F.scope;
         F.fileView = true; F.auto = false; F.sel = localIn(s, { project: s.project, rel });
-        viewer.open({ path: rel, name: base(rel), project: s.project, rel }, tc); return;
+        // as a row of the tree does: the file takes focus as Files lays out for it (S064)
+        viewer.open({ path: rel, name: base(rel), project: s.project, rel }, tc); paint(); return;
       }
       const pk = t.closest("[data-fl-pick]");
       if (pk) { F.pick = pk.dataset.flPick; F.follow = null; setScope(F.view); paint(); landIn(null); frontPage(); return; }

@@ -185,13 +185,20 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
 
   // ── panel state ───────────────────────────────────────────────────────────
   const F = { open: false, order: [], items: new Map(), status: new Map(), cur: null, done: false, hold: null, mode: "all", returnTo: null, swap: 0, open0: {}, vig: false };
+  /** The words of the newest try on this ask that failed to send, kept for the next try: a Send back's note, or
+   *  (mode "reply") an answer you typed; "" once something newer happened to it. */
+  function failedWords(key, mode = "back") {
+    const e = log.find((d) => d.key === key);
+    if (!e || e.status !== "failed") return "";
+    return mode === "reply" ? (e.typed ? e.said || "" : "") : e.note || "";
+  }
   const api = {
     needItems,
     decisions: () => log.filter((d) => d.status !== "failed" && d.status !== "gone"),
     /** Decisions XO refused because the item had already left, with why (for the conversation). */
     notSent: () => log.filter((d) => d.status === "gone"),
     /** The note of the newest decision on this ask that failed to send (its words are kept for the retry). */
-    failedNote: (key) => { const e = log.find((d) => d.key === key); return e && e.status === "failed" && e.note ? e.note : ""; }, // only while that failure is the latest word on it
+    failedNote: (key, mode) => failedWords(key, mode), // only while that failure is the latest word on it
     isOpen: () => F.open,
     current: () => (F.open && !F.done && !F.vig ? F.cur : null),
     open, close, sync, undo, decide, decideNow, laterNow, bringIn,
@@ -307,7 +314,7 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
     const verb = done ? "Done" : choice === "allow" ? "Allowed" : choice === "deny" ? "Sent back" : stopped ? "Asked to retry" : "Answered";
     const said = typeof choice === "object" && !done ? choice.option || choice.text : "";
     const fromSug = !!(n.sug && said && said === n.sug.label) || (choice === "allow" && n.sug && n.sug.label === "Allow");
-    const entry = { id: ++logN, key: n.key, verb, choice: choice === "allow" || choice === "deny" ? choice : "answer", label: n.ask.title, said, note, taught, fromSug, project: n.t.project, thread: n.t.title, tid: n.t.id, at: Date.now(), status: "queued", risk: n.risk, lev: n.lev, doneAt: n.t.checklist.done, secs: secs ?? (n.effort === "glance" ? 5 : 40) };
+    const entry = { id: ++logN, key: n.key, verb, choice: choice === "allow" || choice === "deny" ? choice : "answer", label: n.ask.title, said, typed: !done && typeof choice === "object" && !!choice && choice.text != null, note, taught, fromSug, project: n.t.project, thread: n.t.title, tid: n.t.id, at: Date.now(), status: "queued", risk: n.risk, lev: n.lev, doneAt: n.t.checklist.done, secs: secs ?? (n.effort === "glance" ? 5 : 40) };
     log.unshift(entry);
     teach.delete(n.key);
     if (F.open) F.status.set(n.key, choice === "deny" ? "back" : "allow");
@@ -680,6 +687,8 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
       const no = n.ask.item ? itemParts(n.ask.item).back : null;
       q('[data-act="note-send"]').innerHTML = mode === "reply" ? "Send" : `${ICON.rewind}${esc((no && no.label) || "Send back")}`;
       noteIn.placeholder = mode === "reply" ? (n.group === "stopped" ? "e.g. use the read replica for this step" : "Type your answer") : "e.g. what it should try instead";
+      // a try that failed to send keeps its words for this one (Astra DEC-NOTE-LOSS/S167)
+      if (!noteIn.value) noteIn.value = failedWords(n.key, mode);
       morph(body, () => { note.hidden = false; el.classList.add("noting"); }, { duration: 280, fade: note });
       if (step) step();
       noteIn.focus({ preventScroll: true });
