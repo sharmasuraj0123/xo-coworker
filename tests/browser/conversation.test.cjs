@@ -105,7 +105,9 @@ function convApi(W) {
     }
     if (/^\/api\/chat\/runtimes\/[^/]+\/models$/.test(p) && W.catalogs) {
       const agent = p.split("/")[4];
+      W.modelReads = (W.modelReads || 0) + 1;
       if (W.modelsGate) await W.modelsGate;
+      if (W.catalogFail) return fail(r, "unavailable", "Fixture: the catalog didn't come");
       return json({ name: agent, models: W.catalogs[agent] || [] });
     }
     if (p === "/api/chat/runtimes" && W.runtimes) return json({ runtimes: W.runtimes });
@@ -247,6 +249,24 @@ t("CONV-1 S009: Escape puts the name back and focus on ⋯", async () => {
   assert.match(await focusIs(page), /^button\[data-tmenu/);
   assert.equal(page.W.patches.length, 0);
   assert.equal(await page.evaluate(() => window.__t.S.view), "t:t_login", "Escape didn't also leave the thread");
+  await done(page);
+});
+
+t("CONV-1 S009: an IME's composing Enter or Escape in the rename field neither saves nor cancels", async () => {
+  const page = await app();
+  await openThread(page, "t_login");
+  await renameTo(page, "名前の候補");
+  for (const init of [{ key: "Enter", isComposing: true }, { key: "Enter", keyCode: 229 }, { key: "Escape", isComposing: true }, { key: "Escape", keyCode: 229 }]) {
+    await page.evaluate((init) => document.querySelector("#tw-edit").dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, cancelable: true, ...init })), init);
+  }
+  await settle(page);
+  assert.equal(page.W.patches.length, 0, "nothing saved");
+  assert.equal(await page.locator("#tw-edit").inputValue(), "名前の候補", "the field is still open, as typed");
+  assert.match(await focusIs(page), /^input\[id=tw-edit\]/);
+  await page.keyboard.press("Enter");
+  await settle(page, 400);
+  assert.equal(page.W.patches.length, 1);
+  assert.equal(await page.locator("#conv-title").innerText(), "名前の候補");
   await done(page);
 });
 
@@ -855,6 +875,34 @@ t("S153: a saved model the agent no longer offers is said to be gone, shown as t
   await done(page);
 });
 
+t("S153: a catalog that fails to load leaves the saved model unconfirmed (never sent); opening setup again reads it again", async () => {
+  const page = await app({ runtimes: [RT2("claude_code")], catalogs: { claude_code: [MODEL("opus", "Opus")] }, catalogFail: true, storage: { "cv-chat-prefs": JSON.stringify({ agent: "claude_code", model: "opus" }) } });
+  await page.evaluate(() => window.__t.go("chats"));
+  await page.waitForFunction(() => window.__t.world.state.runtimes.length === 1);
+  await page.locator("#target").click();
+  await page.waitForFunction(() => /Couldn't read Claude's models/.test(document.querySelector("#cs-pop").innerText));
+  assert.match(await page.locator("#target").innerText(), /its default model \(opus unconfirmed\)/);
+  await page.locator("[data-cs-done]").click();
+  await page.locator("#say").fill("Unconfirmed: the default");
+  await page.keyboard.press("Enter");
+  await settle(page, 300);
+  assert.equal("model" in page.W.prompts[0], false, "the unchecked model isn't sent");
+  // setup again: the catalog is read again, confirms opus, and from then on it's what the line names and Send sends
+  page.W.catalogFail = false;
+  const reads = page.W.modelReads;
+  await page.evaluate(() => window.__t.go("chats"));
+  await settle(page);
+  await page.locator("#target").click();
+  await page.waitForFunction(() => /Opus/.test(document.querySelector("#target").innerText));
+  assert.ok(page.W.modelReads > reads, "read again");
+  await page.locator("[data-cs-done]").click();
+  await page.locator("#say").fill("Confirmed: opus");
+  await page.keyboard.press("Enter");
+  await settle(page, 300);
+  assert.equal(page.W.prompts[1].model, "opus");
+  await done(page);
+});
+
 // ── replies (Astra RPL-1, -2, -3, -5) ───────────────────────────────────────
 const AGENT_MD = (ts, text) => ({ id: `${ts}-md`, seq: 50, chat_id: "chat_demo", thread_ts: ts, author_kind: "agent", author_id: "agent", author_session_id: null, text, reply_to: null, extra: {}, created_at: NOW });
 async function replyPage(text) {
@@ -887,6 +935,21 @@ t("C052: desktop Copy keeps a message's paragraphs and list items apart, as they
   await settle(page, 200);
   assert.deepEqual(await page.evaluate(() => window.__copied), ["First paragraph.\n\nSecond bold paragraph.\n\nRed item\nBlue item"]);
   assert.match(await focusIs(page), /\[data-mx-copy\]/, "focus stays on Copy");
+  await done(page);
+}, { only: (c) => c.width >= 760 });
+t("C052/RPL-1: Copy keeps your own message's lines and indents, and a code block exactly as written", async () => {
+  const mine = { id: "t_login-mine", seq: 60, chat_id: "chat_demo", thread_ts: "t_login", author_kind: "owner", author_id: "owner", author_session_id: null, text: "Line one\n  indented line\n\nLine three", reply_to: null, extra: {}, created_at: NOW };
+  const code = AGENT_MD("t_login", "Intro.\n\n```\nfn  x\n\n\n  y  \n```\n\nOutro.");
+  const page = await app({ threadMsgs: { t_login: [code, mine] } });
+  await openThread(page, "t_login");
+  await page.waitForSelector('#msgs [data-k="t_login-mine"] .bubble');
+  await page.evaluate(() => { window.__copied = []; Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async (t) => { window.__copied.push(t); } } }); });
+  for (const k of ["t_login-mine", "t_login-md"]) { const m = page.locator(`#msgs [data-k="${k}"]`); await m.hover(); await m.locator("[data-mx-copy]").first().focus(); await page.keyboard.press("Enter"); await settle(page, 150); }
+  const [a, b] = await page.evaluate(() => window.__copied);
+  assert.equal(a, "Line one\n  indented line\n\nLine three", "your message as you wrote it");
+  const raw = await page.evaluate(() => document.querySelector('#msgs [data-k="t_login-md"] pre code').textContent);
+  assert.equal(b, `Intro.\n\n${raw.replace(/\n$/, "")}\n\nOutro.`, "the code block verbatim, no label, no Copy");
+  assert.ok(b.includes("fn  x\n\n\n  y  "), "spaces and blank lines in the code kept");
   await done(page);
 }, { only: (c) => c.width >= 760 });
 t("RPL-3 S228: a long selection is quoted whole in what's sent; the chip only previews it", async () => {

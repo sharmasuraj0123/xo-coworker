@@ -2949,6 +2949,7 @@ $("#top").addEventListener("click", (e) => {
 $("#top").addEventListener("keydown", (e) => {
   const inp = e.target.closest?.("[data-tedit]");
   if (inp) {
+    if (e.isComposing || e.keyCode === 229) return; // an IME composing owns Enter and Escape (they commit or cancel its words)
     if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); if (S.tEdit) saveThreadField(S.tEdit.tid, inp.dataset.tedit, inp.value); }
     else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); if (S.tEdit && !S.tEdit.busy) endThreadEdit(S.tEdit); }
     return;

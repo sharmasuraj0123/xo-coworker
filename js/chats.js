@@ -32,7 +32,7 @@ const ago = (iso) => { const s = (Date.now() - Date.parse(iso)) / 1000; if (!Num
 
 export function createChats({ world, announce, heraldShow, go, schedule, view, restore }) {
   // confirm: one "send now" question per chat (session id → {local, count}), shown only in that chat
-  const C = { list: null, loading: false, err: null, titles: new Map(), hist: new Map(), local: new Map(), prefs: { ...store.get() }, models: new Map(), read: new Set(), pop: { open: false }, confirm: new Map() };
+  const C = { list: null, loading: false, err: null, titles: new Map(), hist: new Map(), local: new Map(), prefs: { ...store.get() }, models: new Map(), read: new Set(), failed: new Set(), pop: { open: false }, confirm: new Map() };
 
   const sessions = () => Object.values(world.state.sessions || {}).filter((s) => s.role === "plain" && !s.retired_at);
   const session = (sid) => (world.state.sessions || {})[sid] || null;
@@ -195,11 +195,15 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     const modes = modesOf(rt);
     const mode = modes.includes(p.mode) ? p.mode : modes.includes("auto") ? "auto" : modes[0] || null;
     // One model, everywhere: what the picker shows, what the line above the composer names and what Send sends
-    // all come from here. A saved model the agent's catalog no longer offers is gone, said so, and never sent
-    // (Astra S153: the picker said default while Send still sent it); until the catalog is read, the saved one stands.
-    let model = p.model || null, gone = null;
-    if (model && C.read.has(agent) && !offered(agent).some((m) => m.id === model)) { gone = model; model = null; }
-    return { rt, agent, model, gone, effort: p.effort || null, mode, modes, cwd: p.cwd || "" };
+    // all come from here, and a saved model counts only once the agent's catalog confirms it (Astra S153/H19).
+    // Not offered any more: gone, said so, never sent. Not confirmed yet (the catalog on its way, or unread):
+    // the agent's default meanwhile, said so, never the unchecked one.
+    let model = p.model || null, gone = null, unsure = null;
+    if (model && !(C.read.has(agent) && offered(agent).some((m) => m.id === model))) {
+      if (C.read.has(agent)) gone = model; else unsure = { model, failed: C.failed.has(agent) };
+      model = null;
+    }
+    return { rt, agent, model, gone, unsure, effort: p.effort || null, mode, modes, cwd: p.cwd || "" };
   }
   /** The models the picker offers for an agent: its catalog's families (each family's default) and loose models. */
   const offered = (agent) => (C.models.get(agent) || []).filter((m) => !m.is_default && (m.family_default || !m.family));
@@ -212,10 +216,16 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     const f = feature(st.rt, "effort");
     return f && f.support !== "unsupported" ? f.values || [] : [];
   }
-  async function ensureModels(agent) {
-    if (!agent || C.models.has(agent)) return;
+  /**
+   * An agent's catalog, read once. A read that failed is remembered as failed (so the many redraws don't ask again
+   * and again) until the setup opens again, which tries it afresh (again: true; Astra: a failure was kept for good).
+   */
+  async function ensureModels(agent, { again = false } = {}) {
+    if (!agent) return;
+    if (again && C.failed.has(agent)) { C.failed.delete(agent); C.models.delete(agent); }
+    if (C.models.has(agent)) return;
     C.models.set(agent, []);
-    try { C.models.set(agent, (await api.models(agent)).models || []); C.read.add(agent); } catch { /* the agent's default only */ }
+    try { C.models.set(agent, (await api.models(agent)).models || []); C.read.add(agent); } catch { C.failed.add(agent); /* the agent's default only, said so */ }
     renderSetup(); schedule();
   }
   function targetHtml(v) {
@@ -223,7 +233,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       const st = setup();
       if (!st.agent) return `<span class="tg-warn">${ICON.pause}</span><span>No agent can chat here yet</span>`;
       ensureModels(st.agent);
-      return `<span class="tg-t">${ICON.thread}</span><span>New chat in <b>${esc(st.cwd ? (world.project(st.cwd) || {}).name || st.cwd : "your projects folder")}</b> · ${esc(cliName(st.agent))} · ${esc(st.model ? modelWord(st.agent, st.model) : st.gone ? `its default model (${st.gone} is gone)` : "its default model")}${st.mode ? ` · ${esc(MODE_WORDS[st.mode] ? MODE_WORDS[st.mode][0] : st.mode)}` : ""}</span><span class="tg-ch">Change</span>`;
+      return `<span class="tg-t">${ICON.thread}</span><span>New chat in <b>${esc(st.cwd ? (world.project(st.cwd) || {}).name || st.cwd : "your projects folder")}</b> · ${esc(cliName(st.agent))} · ${esc(st.model ? modelWord(st.agent, st.model) : st.gone ? `its default model (${st.gone} is gone)` : st.unsure ? `its default model (${st.unsure.model} ${st.unsure.failed ? "unconfirmed" : "being checked"})` : "its default model")}${st.mode ? ` · ${esc(MODE_WORDS[st.mode] ? MODE_WORDS[st.mode][0] : st.mode)}` : ""}</span><span class="tg-ch">Change</span>`;
     }
     const s = session(v.slice(2));
     if (!s) return "";
@@ -255,7 +265,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     pop.style.visibility = "";
     pop.focus({ preventScroll: true });
     const st = setup();
-    if (st.agent && !C.models.has(st.agent)) await ensureModels(st.agent);
+    if (st.agent) await ensureModels(st.agent, { again: true });
   }
   function renderSetup() {
     const pop = document.getElementById("cs-pop");
@@ -263,8 +273,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     const st = setup();
     const rts = world.state.runtimes || [];
     const models = offered(st.agent);
-    // the saved model before the catalog is read: shown by its id, so the picker says what Send will send
-    const early = st.model && !models.some((m) => m.id === st.model) ? `<option value="${esc(st.model)}" selected>${esc(st.model)}</option>` : "";
+
     const efforts = effortsFor(st);
     const modes = st.modes;
     const folders = [{ id: "", name: "Your projects folder" }, ...world.state.projects.filter((p) => p.kind === "project").map((p) => ({ id: p.id, name: p.name }))];
@@ -273,14 +282,15 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     const opts = {
       cwd: folders.map((f) => `<option value="${esc(f.id)}"${f.id === st.cwd ? " selected" : ""}>${esc(f.name)}</option>`).join(""),
       agent: rts.length > 1 ? rts.map((r) => `<option value="${esc(r.name)}"${r.name === st.agent ? " selected" : ""}>${esc(cliName(r.name))}</option>`).join("") : null,
-      model: `<option value="">The agent's default</option>${early}${models.map((m) => `<option value="${esc(m.id)}"${m.id === st.model ? " selected" : ""}${m.description ? ` data-desc="${esc(m.description)}"` : ""}>${esc(m.name)}</option>`).join("")}`,
+      model: `<option value="">The agent's default</option>${models.map((m) => `<option value="${esc(m.id)}"${m.id === st.model ? " selected" : ""}${m.description ? ` data-desc="${esc(m.description)}"` : ""}>${esc(m.name)}</option>`).join("")}`,
       effort: efforts.length ? `<option value="">Default</option>${efforts.map((e) => `<option value="${esc(e)}"${e === st.effort ? " selected" : ""}>${esc(EFFORT_WORD[e] || e)}</option>`).join("")}` : null,
     };
     const field = (k, word) => (opts[k] == null ? "" : `<label class="cs-f"><span>${word}</span><xo-select data-cs="${k}">${opts[k]}</xo-select></label>`);
     // What it may do: a radio group (keynav.js's keys); only the chosen mode is in the Tab order
     const html = `<header class="iq-h"><h2>New chat</h2></header>` +
       `<div class="iq-sec">${field("cwd", "Folder")}${field("agent", "Agent")}${field("model", "Model")}` +
-      (st.gone ? `<p class="iq-rl" role="status">“${esc(st.gone)}” isn't offered by ${esc(cliName(st.agent))} any more, so a new chat uses its default model.</p>` : "") +
+      (st.gone ? `<p class="iq-rl" role="status">“${esc(st.gone)}” isn't offered by ${esc(cliName(st.agent))} any more, so a new chat uses its default model.</p>`
+        : st.unsure ? `<p class="iq-rl" role="status">${st.unsure.failed ? `Couldn't read ${esc(cliName(st.agent))}'s models, so “${esc(st.unsure.model)}” isn't confirmed and a new chat uses its default. Open this again to try again.` : `Checking that “${esc(st.unsure.model)}” is still offered… until then a new chat uses its default.`}</p>` : "") +
       `${field("effort", "Effort")}</div>` +
       (!modes.length ? `<div class="iq-sec"><p class="iq-rl">This agent doesn't say what it may do on its own; it uses its default.</p></div>` : `<div class="iq-sec"><p class="iq-lab">What it may do</p><div class="cs-modes" role="radiogroup" aria-label="What it may do">${modes.map((m, i) => `<button type="button" role="radio" class="set-choice${m === st.mode ? " is-on" : ""}" aria-checked="${m === st.mode}"${rovingTab(m === st.mode, i === 0 && !modes.includes(st.mode))} data-csmode="${esc(m)}"><span class="sc-dot" aria-hidden="true"></span><span class="sc-b"><b>${esc((MODE_WORDS[m] || [m])[0])}</b><span>${esc((MODE_WORDS[m] || ["", ""])[1])}</span></span></button>`).join("")}</div></div>`) +
       `<footer class="iq-f"><span>Used for your next new chat.</span><button type="button" class="iq-back" data-cs-done>Done</button></footer>`;
