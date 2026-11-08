@@ -128,4 +128,27 @@ t("one focus ring", () => {
   assert.equal(bad.length, 0, `other rings:\n    ${where((d) => bad.includes(d))}`);
 });
 
+// What ships in @keyframes is motion too, and the curve rule can't see it: nothing grows past its own size
+// (no scale above 1 — a pop or a bounce) and nothing shakes (a translate that reverses direction in one animation).
+t("keyframes neither overshoot nor shake", () => {
+  const bad = [];
+  for (const f of readdirSync(DIR).filter((n) => n.endsWith(".css"))) {
+    const css = readFileSync(new URL(f, DIR), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+    for (const m of css.matchAll(/@keyframes\s+([\w-]+)\s*\{((?:[^{}]|\{[^{}]*\})*)\}/g)) {
+      const [, name, body] = m;
+      const scales = [...body.matchAll(/scale[XY]?\(\s*([\d.]+)/g)].map((x) => +x[1]);
+      if (scales.some((v) => v > 1)) bad.push(`${f}: @keyframes ${name} scales to ${Math.max(...scales)}`);
+      for (const axis of ["X", "Y"]) {
+        const tr = [...body.matchAll(new RegExp(`translate${axis}\\(\\s*(-?[\\d.]+)`, "g"))].map((x) => +x[1]);
+        const tr2 = axis === "X" ? [...body.matchAll(/translate\(\s*(-?[\d.]+)px/g)].map((x) => +x[1]) : [];
+        // a shake reverses direction; a sweep (an indeterminate bar) only ever moves one way
+        const seq = [...tr, ...tr2];
+        const d = seq.slice(1).map((v, i) => Math.sign(v - seq[i])).filter(Boolean);
+        if (d.some((x, i) => i && x !== d[i - 1])) bad.push(`${f}: @keyframes ${name} swings both ways on ${axis}`);
+      }
+    }
+  }
+  assert.deepEqual(bad, [], bad.join("\n    "));
+});
+
 console.log(`\n${passed} passed`);

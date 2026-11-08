@@ -181,10 +181,12 @@ export function holdButton(btn, { ready, onConfirm, onRefuse, onRelease, holding
 
 export function holdToConfirm(btn, { ms = HOLD_MS, ready, onProgress, onConfirm, onRefuse, onRelease }) {
   let t0 = 0, raf = 0, via = null;
+  const onAway = (e) => { if (e.type === "blur" || document.hidden) stop(true); };
   const stop = (early) => {
     if (!t0) return;
     cancelAnimationFrame(raf);
     t0 = 0; via = null;
+    removeEventListener("blur", onAway); document.removeEventListener("visibilitychange", onAway);
     btn.classList.remove("is-holding");
     btn.setAttribute("aria-pressed", "false");
     if (early) { onProgress(0); onRelease && onRelease(); }
@@ -199,6 +201,7 @@ export function holdToConfirm(btn, { ms = HOLD_MS, ready, onProgress, onConfirm,
     const r = ready();
     if (r !== true) { onRefuse && onRefuse(r); return; }
     via = src; t0 = performance.now();
+    addEventListener("blur", onAway); document.addEventListener("visibilitychange", onAway);
     btn.classList.add("is-holding");
     btn.setAttribute("aria-pressed", "true");
     raf = requestAnimationFrame(tick);
@@ -218,10 +221,9 @@ export function holdToConfirm(btn, { ms = HOLD_MS, ready, onProgress, onConfirm,
   });
   btn.addEventListener("keyup", (e) => { if ((e.key === "Enter" || e.key === " ") && via === "key") stop(true); });
   btn.addEventListener("blur", () => stop(true));
-  // a safety control: the hold ends when the window loses focus or the page hides, and when the pointer leaves
-  // the button (pointer capture keeps the events coming, so it's checked by position, 8 px of give)
-  addEventListener("blur", () => stop(true));
-  document.addEventListener("visibilitychange", () => { if (document.hidden) stop(true); });
+  // a safety control: the hold ends when the window loses focus or the page hides (listened to only while a hold
+  // runs, so a removed card leaves nothing behind), and when the pointer leaves the button (pointer capture keeps
+  // the events coming, so it's checked by position, 8 px of give)
   btn.addEventListener("pointermove", (e) => {
     if (via !== "pointer") return;
     const r = btn.getBoundingClientRect();

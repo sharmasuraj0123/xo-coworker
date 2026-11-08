@@ -256,7 +256,7 @@ button:disabled{cursor:default}
 .next.st-allow .nx-in{animation:nx-out var(--d-in) var(--ease) forwards}
 .next.st-back .nx-in{animation:nx-back var(--d-sheet) var(--ease) forwards}
 @keyframes nx-out{0%{opacity:1}100%{opacity:0;transform:translateY(-8px)}}
-@keyframes nx-back{0%{transform:translateX(6px)}100%{opacity:0;transform:translateX(-18px)}}
+@keyframes nx-back{to{opacity:0;transform:translateX(-18px)}}   /* sent back: it leaves the way it goes, with no wind-up */
 .next .stamp{position:absolute;left:50%;top:50%;width:84px;height:84px;margin:-42px 0 0 -42px;opacity:0;pointer-events:none}
 .next.st-allow .stamp{animation:stamp var(--d-long) var(--ease) forwards}
 .next.st-allow .stamp .sk{animation:draw var(--d-in) var(--ease) var(--d-press) forwards}
@@ -408,7 +408,8 @@ button:disabled{cursor:default}
 .sg.s-done.is-pop{position:relative;overflow:hidden;background:var(--fill-3);animation:none}
 .sg.s-done.is-pop::after{content:"";position:absolute;inset:0;background:var(--accent-fill);transform-origin:left center;animation:seg-fill var(--d-land) var(--ease) both}
 @keyframes seg-fill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
-@keyframes seg-pop{40%{transform:scaleY(2.2)}}
+/* a step allowed: its segment lights up (a brightening, not a bounce past its own size) */
+@keyframes seg-pop{from{opacity:.35}}
 .ck-n{flex:none;font-weight:600;color:var(--ink-2);font-variant-numeric:tabular-nums}
 .ck-now{flex:1;min-width:0;display:flex;align-items:center;gap:8px;color:var(--ink-2);animation:rise-in var(--d-in) var(--ease)}
 .ck-now>span:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -857,9 +858,10 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .b-hold.locked .hold-fill{transform:scaleX(1)}
 .b-hold.locked :is(.hold-ic svg,.hold-txt){color:var(--ink-hi)}
 @keyframes settle{from{transform:scale(.98)}}
-/* refused (read it first, answer first): the macOS "no" — a short shake that settles */
+/* refused (read it first, answer first): its ring flares once and fades. The hint beside it says why; the button
+   doesn't move (a shake is a second, louder message for the same thing) */
 .b-hold.nope{animation:nope var(--d-in) var(--ease)}
-@keyframes nope{20%{transform:translateX(-4px)}40%{transform:translateX(4px)}60%{transform:translateX(-2px)}80%{transform:translateX(2px)}}
+@keyframes nope{from{box-shadow:0 0 0 3px color-mix(in srgb,var(--err) 34%,transparent)}}
 
 .c-note-l{display:block;margin-bottom:8px;font-size:var(--fs-base);color:var(--ink-3)}
 .c-note textarea{display:block;width:100%;resize:none;padding:11px 14px;border-radius:var(--r-sm);border:1px solid var(--line-strong);background:var(--fill-1);font-size:var(--fs-lg);line-height:24px;outline:none;scrollbar-width:none}

@@ -104,6 +104,15 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     return c.pinned ? { model: c.model, effort: c.effort, next: false } : { model: null, effort: null, next: false };
   }
   const live = (s) => !!kindOf(s) && (kindOf(s) !== "thread" || !!threadOf(s));
+  /** A thread's change waiting for its next turn, said one way everywhere (the chip, its title, its name):
+      {model, effort, words} with the next turn's whole setting, or null when nothing is waiting. */
+  function pendingOf(s) {
+    const c = current(s), r = running(s);
+    if (!r || !r.model || !c.pinned) return null;
+    const model = c.model || r.model, effort = c.effort || r.effort || null;
+    if (model === r.model && (effort || null) === (r.effort || null)) return null;
+    return { model, effort, words: `${nameOf(model)}${effort ? ` · ${effortWord(effort)}` : ""}` };
+  }
   function chipHtml(s, phone) {
     if (!live(s)) return "";
     warm(s);
@@ -119,9 +128,8 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     if (effort) words.push(`<span class="iq-e">${esc(effortWord(effort))}</span>`);
     // a change waiting for the next turn stays in sight until the session runs it (Astra I3: a durable receipt,
     // not only a 3-second Undo): "Opus 5.5 · Deep → Fable 5.1 · Deeper"
-    const c2 = current(s), r2 = running(s);
-    const pending = !next && r2 && r2.model && c2.pinned && ((c2.model && c2.model !== r2.model) || (c2.effort && c2.effort !== r2.effort));
-    const tail = pending ? `<span class="iq-next"><span aria-hidden="true">→</span> ${esc(nameOf(c2.model || r2.model))}${c2.effort ? ` · ${esc(effortWord(c2.effort))}` : ""}</span>` : "";
+    const p = !next ? pendingOf(s) : null;
+    const tail = p ? `<span class="iq-next"><span aria-hidden="true">→</span> ${esc(p.words)}</span>` : "";
     return `<span class="iq-l">${words.join(`<span class="iq-sep" aria-hidden="true">·</span>`)}${tail}</span>`;
   }
   const AUTO = `<span class="iq-a">Auto</span>`;
@@ -141,8 +149,8 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       const what = `${model ? nameOf(model) : "its default model"}${effort ? ` · ${effortWord(effort)}` : ""}`;
       if (next) return `Its session hasn't reported which model it runs. From its next turn: ${what}. Change it${K.hint("intel")}`;
       if (!r.model) return `Its session hasn't reported which model it runs. Change it${K.hint("intel")}`;
-      const pending = c.pinned && c.model && c.model !== r.model ? `, ${nameOf(c.model)} from its next turn` : "";
-      return `${r.working ? "Running" : "Runs"} ${what}${pending}. Change it${K.hint("intel")}`;
+      const p = pendingOf(s);
+      return `${r.working ? "Running" : "Runs"} ${what}${p ? `; next turn: ${p.words}` : ""}. Change it${K.hint("intel")}`;
     }
     const r = c.routing || {};
     return `${c.pinned ? `Its coordinator runs ${nameOf(c.model)}${c.effort ? ` · ${effortWord(c.effort)}` : ""}` : "Auto: its coordinator runs its default model"}; ${r.mode === "off" ? "routing is off" : r.mode === "decision" ? `${cap(r.decision_model)} routes new messages` : "the coordinator routes new messages"}. Change it${K.hint("intel")}`;
@@ -269,7 +277,9 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       const rtw = esc(rtName(runtimeOf(s)) || "");
       const verb = r && r.working ? `<i class="g g-working" aria-hidden="true"></i>Running` : "Runs";
       truth = r && r.model ? `${verb} ${nowWords(r.model, r.effort)}${rtw ? ` on ${rtw}` : ""}.` : `${verb}${rtw ? ` on ${rtw}` : ""}; its session hasn't said which model yet.`;
-      if (c.pinned && (c.model && c.model !== (r && r.model) || c.effort && c.effort !== (r && r.effort))) truth += ` From its next turn: ${nowWords(c.model, c.effort)}.`;
+      const p = pendingOf(s);
+      if (p) truth += ` Next turn: <b>${esc(p.words)}</b>.`;
+      else if (c.pinned && r && !r.model && c.model) truth += ` Next turn: ${nowWords(c.model, c.effort)}.`;
     } else truth = c.pinned ? `Its coordinator runs ${nowWords(c.model, c.effort)}. New threads get their own from the router.` : "Its coordinator runs its default model. New threads get their own from the router.";
     html += `<p class="iq-truth">${truth}</p>`;
     if (P.err) html += `<p class="iq-err">${esc(P.err)}</p>`;
