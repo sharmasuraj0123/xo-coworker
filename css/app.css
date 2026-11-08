@@ -1429,7 +1429,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .pb-menu svg{width:20px;height:20px}
   .pb-t{flex:1;min-width:0;font:600 var(--fs-lg)/24px var(--sans);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .pb-t .xo-mark{display:block;width:32px;height:13px}
-  .home,.conv{top:52px}
+  .home,.conv,.arts{top:52px}
   .hm{padding:24px 0 230px}
   .hm-top{flex-direction:column;align-items:stretch;gap:16px}
   .hm-h{font-size:var(--fs-2xl)}

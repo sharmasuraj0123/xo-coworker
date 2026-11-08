@@ -149,7 +149,9 @@
 /* A finger needs about 44 px: on touch, the small controls keep their look and get a larger hit area
    around it (QA #22: New project 60×24, Artifacts' filters 28 tall, pins 28×28, "Show all of it" 20 tall) */
 @media (pointer:coarse){
-  :root:root :is(.side-plus,.md-pin,[data-arts-kind],.ev-asked>.ev-t){position:relative}
+  /* the pin is already absolute (and so anchors its own hit area): made relative it joined the card's flow and
+     grew it 28 px past the height the virtual grid measures, so rows overlapped (Astra) */
+  :root:root :is(.side-plus,[data-arts-kind],.ev-asked>.ev-t){position:relative}
   :root:root :is(.side-plus,.md-pin,[data-arts-kind])::after{content:"";position:absolute;inset:-8px}
   :root:root .ev-asked>.ev-t::after{content:"";position:absolute;inset:-12px 0}
   /* a finger's menus: the file's ⋯ and a folder's ⋯ (44 px items), and the folder's ⋯ itself (32 px) */

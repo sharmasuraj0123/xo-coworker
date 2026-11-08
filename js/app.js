@@ -842,13 +842,16 @@ function threadCardHtml(tid, needs) {
   const segs = c.items.map((i) => `<i class="sg s-${i.state}"></i>`).join("");
   const st = n ? `Needs you · ${EFFORT[n.effort].time}` : isBusy(t) ? `Working${c.total ? ` · ${c.done} of ${c.total}` : ""}` : t.state === "done" ? `Done${c.total ? ` · ${c.total} of ${c.total}` : ""}` : wordOf(t);
   const now = n ? `◆ ${askTitle(n)}` : isBusy(t) && cur ? `✱ ${esc(cur.text)}` : t.state === "failed" ? esc(String(t.happened || "").replace(/^Stopped:\s*/i, "")) : t.state === "done" ? esc(t.happened || "Finished.") : "";
-  return `<div class="tcard st-${n ? "needs" : t.state}">` +
+  // a finished thread offers its real next step: the newest file it made, one click away (no file, no offer)
+  const made = !n && t.state === "done" && REC.latestOf ? REC.latestOf(t.id, t.project) : null;
+  return `<div class="tcard st-${n ? "needs" : t.state}${made ? " has-next" : ""}">` +
     `<button type="button" class="tc-open" data-go="t:${esc(t.id)}" aria-label="Open thread: ${esc(t.title)}, ${esc(st)}">` +
     `<span class="tc-top"><i class="g g-${n ? "needs_reply" : glyphOf(t)}" aria-hidden="true"></i><b>${esc(t.title)}</b><span class="tc-st">${esc(st)}</span></span>` +
     `<span class="tc-segs${segs ? "" : " is-empty"}" aria-hidden="true">${segs}</span>` +
     (now ? `<span class="tc-now">${now}</span>` : "") +
     `<span class="tc-foot">${t.branch && SHAPE.on("xo:thread/branch") ? `<code>${esc(t.branch)}</code>` : `<span>${noun("thread")}</span>`}${heldN ? `<span class="tc-cw">a small ask can wait</span>` : ""}<span>${short(t.lastAt) === "now" ? "just now" : short(t.lastAt) + " ago"}</span><span class="tc-go">Open ${ICON.arrow}</span></span></button>` +
-    (n ? `<button type="button" class="tc-dec" data-decide="${esc(n.key)}">Decide</button>` : "") + `</div>`;
+    (n ? `<button type="button" class="tc-dec" data-decide="${esc(n.key)}">Decide</button>` : "") +
+    (made ? `<button type="button" class="tc-next" data-made-file="${esc(made.key)}" title="${esc(made.path)}">${ICON.doc}<span>Open ${esc(made.title || made.name)}</span></button>` : "") + `</div>`;
 }
 
 /** Under your message that waits for the agent's turn to end: what happens to it, and Interrupt. */
@@ -1574,6 +1577,9 @@ function typingRender() {
     // its coordinator asked the Workspace and the answer hasn't come: said only while that hop is open
     const ask = openAsk(chat);
     spec = { key: `ask:${ask.id}`, cls: "av-w", icon: XO, text: `${PROJ(chat)} coordinator · Waiting for the Workspace coordinator to reply`, since: null };
+    // the line goes when its 20 minutes are up, not at the next render that happens to come along
+    clearTimeout(S.askT);
+    S.askT = setTimeout(schedule, Math.max(0, (Date.parse(ask.created_at || ask.at || "") || Date.now()) + 20 * 60e3 - Date.now()) + 50);
   } else if (S.view.startsWith("c:")) {
     const sid = S.view.slice(2), tu = world.state.turns && world.state.turns.running(sid);
     if (CH.working(S.view) && !(tu && world.state.turns.blocksOf(tu).length)) spec = { key: `c:${sid}`, cls: "av-live", icon: ICON.thread, text: "Working", since: null };
