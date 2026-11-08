@@ -1309,10 +1309,16 @@ t("S207/S082: Fit shows every box; no box's target reaches a neighbour's box (ed
   const probe = () => page.evaluate(() => {
     const box = document.querySelector(".dg-world").parentElement.getBoundingClientRect();
     const nodes = [...document.querySelectorAll(".dg-world [data-node]")];
-    const out = [], stolen = [];
+    const out = [], stolen = [], grown = [];
+    const s = parseFloat(document.querySelector(".dg-world").style.getPropertyValue("--dg-s")) || 1;
     for (const n of nodes) {
       const b = n.getBoundingClientRect();
       if (b.left < box.left - 1 || b.right > box.right + 1 || b.top < box.top - 1 || b.bottom > box.bottom + 1) out.push(n.dataset.node);
+      // the target's own reach, in the map's units: never more than 5 past the box (half the 10 between boxes), at
+      // any scale; this holds exactly where a pixel probe can't (far out a box is 2 px and probes snap to pixels)
+      const be = getComputedStyle(n, "::before");
+      if (parseFloat(be.top) < -5.01 || parseFloat(be.bottom) < -5.01) grown.push(`${n.dataset.node} ${be.top}`);
+      if (b.height < 8) continue; // below that, the pixel probe is meaningless (it snaps)
       // its middle and a point just inside each edge are its own, never a neighbour's target
       const pts = [[b.left + b.width / 2, b.top + b.height / 2], [b.left + b.width / 2, b.top + 0.5], [b.left + b.width / 2, b.bottom - 0.5], [b.left + 0.5, b.top + b.height / 2], [b.right - 0.5, b.top + b.height / 2]];
       for (const [x, y] of pts) {
@@ -1321,11 +1327,12 @@ t("S207/S082: Fit shows every box; no box's target reaches a neighbour's box (ed
         if (owner && owner !== n) { stolen.push(`${n.dataset.node} → ${owner.dataset.node}`); break; }
       }
     }
-    return { n: nodes.length, out, stolen, s: parseFloat(document.querySelector(".dg-world").style.getPropertyValue("--dg-s")) || 1 };
+    return { n: nodes.length, out, stolen, grown, s };
   });
   const r = await probe();
   assert.ok(r.n >= 40, `every folder drawn (${r.n})`);
   assert.deepEqual(r.out, [], "every box inside the view after Fit");
+  assert.deepEqual(r.grown, [], `at scale ${r.s.toFixed(3)} no target reaches more than half way to a neighbour`);
   assert.deepEqual(r.stolen, [], `at scale ${r.s.toFixed(3)} no target reaches a neighbour's box`);
   if (r.s < 24 / 42) {
     // too far out to press a box surely: a pointer press brings the map in to it, and doesn't act
@@ -1337,7 +1344,8 @@ t("S207/S082: Fit shows every box; no box's target reaches a neighbour's box (ed
     assert.ok(s2 >= 24 / 42, `zoomed in to a pressable size (${s2})`);
     assert.equal(await n.getAttribute("class"), was, "the folder didn't open on that press");
     const r2 = await probe();
-    assert.deepEqual(r2.stolen, [], `at scale ${r2.s.toFixed(3)} no target reaches a neighbour's box`);
+    assert.deepEqual(r2.grown, [], `at scale ${r2.s.toFixed(3)} no target reaches more than half way to a neighbour`);
+    assert.deepEqual(r2.stolen, [], `at scale ${r2.s.toFixed(3)} no target reaches a neighbour's box (edges probed)`);
   }
   await done(page);
 });

@@ -580,7 +580,9 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       const r = await api.saveProjectFile(s.project, rel, "", null, say && say.runs ? "runs_code" : null);
       if (F.scope.key !== s.key) return;
       if (NW.el !== mine) { if (changes && changes.saved) changes.saved(s.project, rel); await load(s, dir, { again: true }); paint(); return; }
-      endNew();
+      // the row you typed in goes now: focus waits on its folder (or New file) while the folder is read again, then
+      // goes to the file (the browser run: it fell to the page in between)
+      endNew({ focus: true });
       if (changes && changes.saved) changes.saved(s.project, rel);
       await load(s, dir, { again: true });
       if (F.scope.key !== s.key) return;

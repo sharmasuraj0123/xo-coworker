@@ -1443,7 +1443,8 @@ function closeRuns() {
   syncInert();
   // back to what opened it; if that was redrawn while Runs was open (the thread's head redraws as its checklist
   // moves), to the same control drawn now, else the conversation: never the page (Astra RUN-7/S102)
-  const was = RS.returnTo, usable = (b) => b && b.isConnected && !b.closest("[inert], [hidden]") && b.getClientRects().length > 0;
+  // (the page itself is never a place to go back to: opened from nowhere in particular, the conversation)
+  const was = RS.returnTo, usable = (b) => b && b !== document.body && b.isConnected && !b.closest("[inert], [hidden]") && b.getClientRects().length > 0;
   const like = (el) => { if (!el || !el.getAttribute) return null; for (const a of ["data-run-call", "data-run"]) if (el.hasAttribute(a)) return document.querySelector(`[${a}="${CSS.escape(el.getAttribute(a))}"]`); return el.hasAttribute("data-runs") ? $("#thead [data-runs]") : null; };
   RS.returnTo = null;
   [was, like(was), $("#thead [data-runs]"), scroller].find(usable)?.focus({ preventScroll: true });
