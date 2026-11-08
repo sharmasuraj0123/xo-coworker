@@ -170,7 +170,7 @@ async function open(browser, base, opts = {}) {
   if (W.launchpad) await installLaunchpad(page, W.launchpad);
   await page.route("**/*", mockApi(W));
   await mockSockets(page, W);
-  await page.route("**/js/app.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()) + "\nwindow.__t={S,world,go};" }); });
+  await page.route("**/js/app.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()) + "\nwindow.__t={S,world,go,LP};" }); });
   await page.goto(base + "/");
   await page.waitForSelector('[data-go="p:demo"]');
   page.errors = errors;

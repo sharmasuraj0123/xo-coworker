@@ -63,10 +63,14 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   const P = new Map();
   let cached = {};
   try { cached = JSON.parse(localStorage.getItem(CACHE) || "{}") || {}; } catch { /* private mode */ }
-  // want: where focus goes when the control that had it is gone after a redraw (Cancel → Change, Undo → Deploy …);
-  // with no such place, the screen's first control, never the page (Astra: focus fell to BODY)
-  const S = { el: null, hs: null, ha: null, body: null, key: "", html: "", v: null, shown: null, want: "" };
-  const FALLBACK = '.lp-foot .lp-go, .lp-acts button, .lp-rec .lp-go, [data-lp]';
+  // want: where focus goes when a redraw takes away the control that had it. Every action and stream event that
+  // can do that names its place (Cancel → Change, Undo → Deploy, Stop's window → Stop …); there is no general
+  // fallback. A redraw that finds neither the same control nor a named place leaves focus where the browser puts
+  // it and records the path in lost (lostFocus(); the browser tests fail on any), so a missing place is a bug
+  // that shows, never one that's quietly covered.
+  const S = { el: null, hs: null, ha: null, body: null, key: "", html: "", v: null, shown: null, want: "", lost: [] };
+  /** Name where focus goes next, if a redraw takes the focused control away. */
+  const land = (sel) => { S.want = sel; };
 
   const proj = (p) => {
     if (!P.has(p)) P.set(p, { check: null, at: 0, pre: 0, loading: false, err: null, run: null, form: null, device: null, picking: null, asked: null, asking: false, askErr: null, needs: null, warn: null, menu: false, copied: 0, cmdCopied: 0 });
@@ -94,6 +98,8 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     changed();
   }
 
+  /** Where focus goes when a run is over (stopped, ended): the screen's way on, whichever screen that is. */
+  const AFTER = '[data-lp="deploy"], [data-lp="again"], [data-lp="reconnect"], [data-lp="ask"], [data-lp="recheck"]';
   const newRun = (at = Date.now()) => ({ startedAt: at, steps: {}, error: null, live: null, undo: 0, stop: null });
 
   /** One event off the deploy stream: its step's state and words; an error stops the run where it is. */
@@ -147,13 +153,13 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     if (!s.run) return;
     if (e.type === "warning") { if (e.message && !(s.warn || []).includes(e.message)) s.warn = [...(s.warn || []), e.message]; changed(); return; }
     if (e.type === "app") { s.run.appId = e.id; return; } // Space created the app: its id, for Open in Launchpad
-    if (e.type === "replaced") { s.run.stop?.stop(); watch(p); changed(); return; } // a deploy started elsewhere: follow it
+    if (e.type === "replaced") { s.run.stop?.stop(); watch(p); land('[data-lp="stop"]'); changed(); return; } // a deploy started elsewhere: follow it
     if (e.type === "lost") { // the stream couldn't be picked up again: what was moving stops moving, and it's said
       s.run.lost = true;
       for (const st of Object.values(s.run.steps)) if (st.state === "doing") st.state = "paused";
-      changed(); return;
+      land('[data-lp="rewatch"]'); changed(); return;
     }
-    if (e.type === "ended") { s.ended = e.run; s.run = null; s.pre = 0; load(p, true); changed(); return; } // the run is over: show where it left things
+    if (e.type === "ended") { s.ended = e.run; s.run = null; s.pre = 0; land(AFTER); load(p, true); changed(); return; } // the run is over: show where it left things
     if (e.type === "needs") {
       s.run = null;
       if (e.code === "name_taken") f.errs = { name: "Taken on Launchpad.", nameFix: e.data.suggestion };
@@ -161,6 +167,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       else if (e.code === "repo_name_taken") { f.repo = e.data.suggestion || f.repo; f.repoChosen = true; f.errs = { repo: "That name holds other code on your GitHub." }; }
       else if (e.code === "create_repo") s.check = { ...s.check, repo: { ...s.check.repo, admin: false, why: e.data.reason || s.check.repo.why } };
       else s.needs = e; // repo_name_taken, link_existing, app_missing: a decision, lit, above the form
+      land(f.errs.name ? '[data-lp-f="name"]' : f.errs.port ? '[data-lp-f="port"]' : f.errs.repo ? '[data-lp-f="repo"]' : '.lp-ask .lp-go, [data-lp="deploy"], [data-lp="reconnect"]');
       S.key = ""; changed();
       if (f.errs.name || f.errs.port) requestAnimationFrame(() => S.body?.querySelector(`[data-lp-f="${f.errs.name ? "name" : "port"}"]`)?.focus());
       return;
@@ -169,12 +176,15 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     // the stop we asked for, confirmed by the run itself
     if (e.state === "failed" && e.error?.code === "cancelled" && (s.run.stopSent || s.run.stopErr)) { stopped(p, s.run); return; }
     if (e.state === "failed" && e.error?.code === "size_not_allowed") {
-      s.run = null; f.errs = { size: "Launchpad doesn't allow this size for this app. Pick another." }; S.key = "";
+      s.run = null; f.errs = { size: "Launchpad doesn't allow this size for this app. Pick another." }; S.key = ""; land('[data-lp-f="size"]');
       announce("Launchpad doesn't allow that size for this app. Pick another."); changed();
       requestAnimationFrame(() => S.body?.querySelector('[data-lp-f="size"]')?.focus());
       return;
     }
     take(p, e);
+    // the run's end moves focus off Stop and Hide: to Deploy again when it went live, to the fix when it failed
+    if (e.step === "live" && e.state === "done") land('[data-lp="again"]');
+    if (e.state === "failed") land('.lp-rec .lp-go, .lp-acts .lp-go, [data-lp="retry"], [data-lp="recheck-gh"]');
     const name = f.name || nameOf(p);
     if (e.step === "live" && e.state === "done") { announce(`${name} is live.`); if (!visible(p)) notify && notify(`${name} is live`); }
     if (e.state === "failed") { announce(`${name} didn't deploy: ${failWords(s.run.error)}.`); if (!visible(p)) notify && notify(`${name}: ${failWords(s.run.error).toLowerCase()}`); }
@@ -561,7 +571,8 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     const same = b.html.replace(/(<span class="elapsed" data-since="\d+">)[^<]*/g, "$1").replace(/(class="lp-count"[^>]*>)\d+/g, "$1");
     if (S.key !== b.key || S.html !== same) {
       const ae = document.activeElement && S.body.contains(document.activeElement) ? (document.activeElement.closest("xo-select") || document.activeElement) : null;
-      const focus = ae ? (ae.dataset.lpF ? `[data-lp-f="${ae.dataset.lpF}"]` : ae.dataset.lpEnv ? `[data-lp-env="${ae.dataset.lpEnv}"]` : ae.dataset.lp ? `[data-lp="${ae.dataset.lp}"]` : null) : null;
+      // the focused control by what it is, and which of its kind (Copy shows twice: the panel's line, the wide card)
+      const [focus, nth] = ae && ae !== S.body ? keyOf(ae) : [null, 0];
       const caret = ae && ae.matches("input") ? [ae.selectionStart, ae.selectionEnd] : null;
       const fresh = S.key.split("|").slice(0, 2).join("|") !== b.key.split("|").slice(0, 2).join("|");
       S.body.innerHTML = `<div class="lp${fresh ? " is-new" : ""}" data-screen="${b.key.split("|")[1]}">${b.html}</div>`;
@@ -573,12 +584,23 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       if (fresh) S.body.scrollTop = 0;
       S.key = b.key; S.html = same;
       requestAnimationFrame(over);
-      // focus that was in the section stays in it: on the same control, else where the action said, else the
-      // screen's first control (the redraw took the old node away)
-      const n = ae && ((focus && S.body.querySelector(focus)) || (S.want && S.body.querySelector(S.want)) || S.body.querySelector(FALLBACK) || S.body);
-      S.want = "";
+      // focus that was in the section stays in it: on the same control, else on the place the action named. A
+      // named place not drawn yet (Checking…, Connecting…) holds focus on the section until it is
+      const named = () => { const m = S.want && S.body.querySelector(S.want); if (m) S.want = ""; return m; };
+      const n = !ae ? null : ae === S.body ? named() : (focus && (S.body.querySelectorAll(focus)[nth] || S.body.querySelector(focus))) || named();
+      if (!ae) S.want = "";
       if (n) { n.focus({ preventScroll: true }); if (caret && n.setSelectionRange) try { n.setSelectionRange(...caret); } catch { /* a number field */ } }
+      else if (ae && ae !== S.body) {
+        if (S.want) S.body.focus({ preventScroll: true });
+        else S.lost.push(`${b.key.split("|")[1]}: ${focus || ae.tagName.toLowerCase()}`); // no place named: a bug, and tests say so
+      }
     }
+  }
+  /** A control's key across a redraw: its field, its action (data-lp), or a link's address; and its place among its kind. */
+  function keyOf(el) {
+    const sel = el.dataset.lpF ? `[data-lp-f="${el.dataset.lpF}"]` : el.dataset.lpEnv ? `[data-lp-env="${CSS.escape(el.dataset.lpEnv)}"]`
+      : el.dataset.lp ? `[data-lp="${el.dataset.lp}"]` : el.matches("a[href]") ? `a[href="${CSS.escape(el.getAttribute("href"))}"]` : null;
+    return sel ? [sel, Math.max(0, [...S.body.querySelectorAll(sel)].indexOf(el))] : [null, 0];
   }
   /** As you type: the card's name, address and port follow the fields, and nothing else redraws. */
   function syncPreview(p) {
@@ -620,7 +642,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     again = again || edit;
     if (gh && !(gh.connected && gh.workflow)) { github(p); return; }
     if (!validate(p)) {
-      S.key = ""; changed();
+      S.key = ""; land('[aria-invalid="true"], .is-bad input, .is-bad xo-select'); changed();
       requestAnimationFrame(() => S.body?.querySelector('[aria-invalid="true"], .is-bad input, .is-bad xo-select')?.focus());
       return;
     }
@@ -632,7 +654,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       if (n) n.textContent = String(Math.max(1, Math.ceil(left / 1000)));
       if (left <= 0) { clearInterval(t); begin(p, again); }
     }, 200);
-    changed();
+    land('[data-lp="undo"]'); changed();
     announce(`Deploying ${s.form.name} in 3 seconds. Undo to stop it.`);
     requestAnimationFrame(() => S.body?.querySelector('[data-lp="undo"]')?.focus({ preventScroll: true }));
   }
@@ -649,6 +671,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     s.needs = null; s.warn = null; f.recreate = false; // recreate is asked once, not for every deploy after
     s.run.stop = api.deploy(p, body, (e) => event(p, e));
     if (S.shown !== p) f.env = {}; // sent with the section put away: nothing here to keep them for
+    land('[data-lp="stop"]'); // Undo's time is up: it goes, Stop takes its place
     changed();
   }
   const visible = (p) => S.el && !S.el.classList.contains("is-folded") && !S.el.hidden && S.v && projectOf(S.v) === p && document.body.classList.contains("stage-open");
@@ -657,12 +680,13 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   async function github(p) {
     const s = proj(p);
     s.device = { code: "", url: "", copied: false };
+    land('[data-lp="code-copy"], [data-lp="device-cancel"]'); // Connecting… has nothing to press: the section holds focus till the code comes
     changed();
     try {
       const gh = s.check.github;
       const d = await api.githubStart(gh.connected && gh.source === "connections");
       if (!s.device) return; // cancelled meanwhile
-      if (d.connected) { s.device = null; s.pre = 0; if (NEEDS_YOU.has(s.run?.error?.code)) s.run = null; announce(`GitHub is connected${d.username ? ` as ${d.username}` : ""}${d.imported ? ", from this machine's gh login" : ""}.`); changed(); preflight(p); return; }
+      if (d.connected) { s.device = null; s.pre = 0; land(AFTER + ', [data-lp="retry"]'); if (NEEDS_YOU.has(s.run?.error?.code)) s.run = null; announce(`GitHub is connected${d.username ? ` as ${d.username}` : ""}${d.imported ? ", from this machine's gh login" : ""}.`); changed(); preflight(p); return; }
       s.device = { ...d, copied: false };
       changed();
       while (s.device && s.device.id === d.id && (!d.until || Date.now() < d.until)) {
@@ -671,23 +695,24 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
         const r = await api.githubPoll(d.id);
         if (r?.failed) throw new Error(r.failed);
         if (r?.done) {
-          s.device = null; s.pre = 0;
+          s.device = null; s.pre = 0; land(AFTER + ', [data-lp="retry"]');
           if (NEEDS_YOU.has(s.run?.error?.code)) s.run = null;
           announce("GitHub is connected.");
           changed(); preflight(p);
           return;
         }
       }
-      if (s.device) { s.device = null; notify && notify("GitHub's code ran out. Reconnect again."); changed(); }
-    } catch (e) { s.device = null; notify && notify(`GitHub didn't connect: ${e.message}`); changed(); }
+      if (s.device) { s.device = null; land('[data-lp="reconnect"]'); notify && notify("GitHub's code ran out. Reconnect again."); changed(); }
+    } catch (e) { s.device = null; land('[data-lp="reconnect"]'); notify && notify(`GitHub didn't connect: ${e.message}`); changed(); }
   }
 
   async function startPick(p) {
     const s = proj(p);
     s.picking = { apps: null };
+    land('[data-lp="pick-cancel"]'); // Back, while it reads; the list arrives under it
     changed();
     try { const apps = await api.apps(p); if (s.picking) s.picking.apps = apps; } // Back meanwhile: nothing to fill
-    catch (e) { s.picking = null; notify && notify(`Couldn't read your Launchpad apps: ${e.message}`); }
+    catch (e) { s.picking = null; land('[data-lp="pick"]'); notify && notify(`Couldn't read your Launchpad apps: ${e.message}`); }
     changed();
   }
 
@@ -695,10 +720,10 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
    *  doesn't know the link yet, and link answers before Launchpad has a status. */
   function link(p, id) {
     const s = proj(p);
-    s.picking = null; s.linking = true; changed();
+    s.picking = null; s.linking = true; land('[data-lp="pick-cancel"]'); changed();
     api.link(p, id)
-      .then((a) => { s.check = { ...s.check, state: "linked", app: a }; s.run = null; load(p, true); })
-      .catch((e) => notify && notify(`Couldn't link it: ${e.message}`))
+      .then((a) => { s.check = { ...s.check, state: "linked", app: a }; s.run = null; land('[data-lp="again"]'); load(p, true); })
+      .catch((e) => { land('[data-lp="pick"]'); notify && notify(`Couldn't link it: ${e.message}`); })
       .finally(() => { s.linking = false; changed(); });
   }
 
@@ -738,10 +763,9 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   function keep(p, run) {
     if (!run.stopping) return;
     clearTimeout(run.stopping); run.stopping = 0;
-    const here = S.body?.contains(document.activeElement);
+    land('[data-lp="stop"]'); // Keep deploying goes; focus that was on it goes back to Stop
     announce("The deploy carries on.");
     changed();
-    if (here) requestAnimationFrame(() => S.body?.querySelector('[data-lp="stop"]')?.focus({ preventScroll: true }));
   }
   /** The stop is confirmed: the run is over; the project as it now is. */
   function stopped(p, run) {
@@ -749,7 +773,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     if (s.run !== run) return;
     run.ended = true;
     run.stop && run.stop.stop();
-    s.run = null; s.pre = 0;
+    s.run = null; s.pre = 0; land(AFTER);
     announce("Deploy stopped.");
     load(p, true); changed();
   }
@@ -759,9 +783,9 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     const s = proj(p);
     if (s.menu === open) return;
     const inside = !open && !!S.body?.querySelector(".lp-mn")?.contains(document.activeElement);
+    if (inside) land('[data-lp="menu"]'); // its item goes with it: focus back on More
     s.menu = open; changed();
     if (open && focusIn) requestAnimationFrame(() => S.body?.querySelector('.lp-mn [role="menuitem"]')?.focus({ preventScroll: true }));
-    if (inside) requestAnimationFrame(() => S.body?.querySelector('[data-lp="menu"]')?.focus({ preventScroll: true }));
   }
 
   /** A copy that says "Copied" only once the text is on the clipboard (util.copyText); refused, it says why and
@@ -779,8 +803,8 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     switch (name) {
       case "open": onOpen && onOpen(); return;
       case "deploy": deploy(p); return;
-      case "undo": if (s.run) { s.run = null; S.want = '[data-lp="deploy"], [data-lp="again"]'; announce("Deploy undone. Nothing changed."); changed(); } return;
-      case "hide": onHide && onHide(); return;
+      case "undo": if (s.run) { s.run = null; land('[data-lp="deploy"], [data-lp="again"]'); announce("Deploy undone. Nothing changed."); changed(); } return;
+      case "hide": { const here = S.body?.contains(document.activeElement); onHide && onHide(); if (here) S.el.querySelector('[data-fr-fold="launch"]')?.focus({ preventScroll: true }); return; } // folded: focus on its head's fold
       case "stop": {
         if (!s.run || s.run.stopping || s.run.stopSent) return;
         const run = s.run;
@@ -789,16 +813,15 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
         // followed until Space confirms it
         run.stopAt = Date.now() + 3000;
         // the window ends: Keep deploying goes, and focus that was on it moves to Stop (Stopping…, then Stop again)
-        run.stopping = setTimeout(() => { run.stopping = 0; S.want = '[data-lp="stop"]'; stopNow(p, run); }, 3000);
+        run.stopping = setTimeout(() => { run.stopping = 0; land('[data-lp="stop"]'); stopNow(p, run); }, 3000);
         const tick = setInterval(() => {
           if (!run.stopping) { clearInterval(tick); return; }
           const n = S.body?.querySelector('.lp-q .lp-count');
           if (n) n.textContent = String(Math.max(1, Math.ceil((run.stopAt - Date.now()) / 1000)));
         }, 200);
         notify && notify(`Stopping the deploy of ${s.form.name}`, () => keep(p, run));
-        changed();
+        land('[data-lp="stop-undo"]'); changed();
         announce(`Stopping the deploy in 3 seconds. Keep deploying to take it back.`);
-        requestAnimationFrame(() => S.body?.querySelector('[data-lp="stop-undo"]')?.focus({ preventScroll: true }));
         return;
       }
       case "stop-undo": if (s.run) keep(p, s.run); return;
@@ -807,18 +830,21 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
         // the setup form isn't redrawn under the person's fingers: its button shows the check itself
         if (el.isConnected) { el.innerHTML = ICON.check; el.title = "Copied"; setTimeout(() => { if (el.isConnected) { el.innerHTML = ICON.copy; el.title = "Copy the command"; } }, 1500); }
       }); return;
-      case "recheck-gh": s.pre = 0; if (NEEDS_YOU.has(s.run?.error?.code)) s.run = null; announce("Checking GitHub again."); changed(); preflight(p); return;
-      case "rewatch": s.run = null; watch(p); changed(); return;
-      case "settings": s.run = null; s.needs = null; S.key = ""; changed(); requestAnimationFrame(() => S.body?.querySelector(s.form.errs?.size ? '[data-lp-f="size"]' : '[data-lp-f="name"]')?.focus()); return;
-      case "machine-open": s.machine = true; S.key = ""; changed(); requestAnimationFrame(() => S.body?.querySelector('[data-lp-f="size"]')?.focus()); return;
-      case "disk-add": s.form.disk = true; s.form.errs = { ...s.form.errs, disk: "" }; S.key = ""; changed(); requestAnimationFrame(() => S.body?.querySelector('[data-lp-f="diskPath"]')?.focus()); return;
-      case "disk-remove": s.form.disk = false; s.form.errs = { ...s.form.errs, disk: "" }; S.key = ""; changed(); requestAnimationFrame(() => S.body?.querySelector('[data-lp="disk-add"]')?.focus()); return;
+      case "recheck-gh": land('[data-lp="recheck-gh"], [data-lp="deploy"], [data-lp="reconnect"]'); s.pre = 0; if (NEEDS_YOU.has(s.run?.error?.code)) s.run = null; announce("Checking GitHub again."); changed(); preflight(p); return;
+      case "rewatch": s.run = null; watch(p); land('[data-lp="stop"]'); changed(); return;
+      case "settings": s.run = null; s.needs = null; S.key = ""; land(s.form.errs?.size ? '[data-lp-f="size"]' : '[data-lp-f="name"]'); changed(); requestAnimationFrame(() => S.body?.querySelector(s.form.errs?.size ? '[data-lp-f="size"]' : '[data-lp-f="name"]')?.focus()); return;
+      case "machine-open": s.machine = true; S.key = ""; land('[data-lp-f="size"]'); changed(); requestAnimationFrame(() => S.body?.querySelector('[data-lp-f="size"]')?.focus()); return;
+      case "disk-add": s.form.disk = true; s.form.errs = { ...s.form.errs, disk: "" }; S.key = ""; land('[data-lp-f="diskPath"]'); changed(); requestAnimationFrame(() => S.body?.querySelector('[data-lp-f="diskPath"]')?.focus()); return;
+      case "disk-remove": s.form.disk = false; s.form.errs = { ...s.form.errs, disk: "" }; S.key = ""; land('[data-lp="disk-add"]'); changed(); requestAnimationFrame(() => S.body?.querySelector('[data-lp="disk-add"]')?.focus()); return;
       case "create-repo": s.check = { ...s.check, repo: { ...s.check.repo, admin: false } }; s.needs = null; s.run = null; deploy(p); return;
-      case "link-same": { const id = s.needs?.data?.app?.id || s.run?.error?.app?.id; s.needs = null; s.run = null; if (id) api.link(p, id).then((a) => { s.check = { ...s.check, state: "linked", app: a }; deploy(p, true); }).catch((err) => notify && notify(`Couldn't link it: ${err.message}`)); changed(); return; }
-      case "env-all": s.envAll = true; S.key = ""; changed(); requestAnimationFrame(() => S.body?.querySelectorAll(".lp-ev input")[mine0(p)]?.focus()); return;
+      case "link-same": { const id = s.needs?.data?.app?.id || s.run?.error?.app?.id; s.needs = null; s.run = null; land('[data-lp="deploy"], [data-lp="reconnect"]'); if (id) api.link(p, id).then((a) => { s.check = { ...s.check, state: "linked", app: a }; deploy(p, true); }).catch((err) => notify && notify(`Couldn't link it: ${err.message}`)); changed(); return; }
+      case "env-all": { // the first of the names it shows, by name (an index into the list could miss when they interleave)
+        const f = s.form, first = (s.check.env || []).find((x) => !(x.sensitive || !x.default || f.env[x.name]));
+        s.envAll = true; S.key = ""; land(first ? `[data-lp-env="${CSS.escape(first.name)}"]` : ".lp-ev input"); changed(); return;
+      }
       case "recreate": s.form.recreate = true; s.run = null; deploy(p, true); return;
-      case "edit": s.editing = true; s.form.diskGb = String(s.check.app?.storage?.gb || ""); s.form.errs = {}; s.menu = false; S.key = ""; changed(); requestAnimationFrame(() => S.body?.querySelector(".lp-ev input, [data-lp-f]")?.focus()); return;
-      case "edit-cancel": s.editing = false; s.form.env = {}; S.key = ""; S.want = '[data-lp="edit"]'; changed(); return;
+      case "edit": s.editing = true; s.form.diskGb = String(s.check.app?.storage?.gb || ""); s.form.errs = {}; s.menu = false; S.key = ""; land("[data-lp-f], .lp-ev input"); changed(); requestAnimationFrame(() => S.body?.querySelector(".lp-ev input, [data-lp-f]")?.focus()); return;
+      case "edit-cancel": s.editing = false; s.form.env = {}; S.key = ""; land('[data-lp="edit"]'); changed(); return;
       case "again": s.run = null; s.form.errs = {}; deploy(p, true); return; // the linked app, the same settings: 3 s, then it goes
       case "retry": s.run = null; deploy(p); return;
       case "copy": copied((s.run?.live || s.check.app).url, "the address", () => { s.copied = Date.now() + 1500; }); return;
@@ -827,23 +853,23 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
         // Undo is real: Space unlinks (and commits launchpad.json) only once its 3 s are up
         s.menu = false; s.needs = null;
         const was = s.check, run = s.run;
-        s.check = { ...was, app: null, state: "ready" }; s.run = null; changed();
+        s.check = { ...was, app: null, state: "ready" }; s.run = null; land('[data-lp="deploy"], [data-lp="reconnect"]'); changed();
         const t = setTimeout(() => api.unlink(p).then(() => load(p, true)).catch((e) => { s.check = was; notify && notify(`Couldn't unlink: ${e.message}`); changed(); }), 3200);
         notify && notify("Unlinked from Launchpad", () => { clearTimeout(t); s.check = was; s.run = run; changed(); });
         return;
       }
       case "pick": startPick(p); return;
-      case "pick-cancel": s.picking = null; changed(); return;
+      case "pick-cancel": s.picking = null; land('[data-lp="pick"]'); changed(); return;
       case "link": link(p, el.dataset.id); return;
       case "reconnect": github(p); return;
       case "code-copy": { const d = s.device; copied(d.code, "the code", () => { if (s.device === d) d.copied = true; }); return; }
-      case "device-cancel": if (s.device?.id && api.githubCancel) api.githubCancel(s.device.id); s.device = null; S.want = '[data-lp="reconnect"], [data-lp="deploy"]'; changed(); return;
+      case "device-cancel": if (s.device?.id && api.githubCancel) api.githubCancel(s.device.id); s.device = null; land('[data-lp="reconnect"], [data-lp="deploy"]'); changed(); return;
       case "ask": case "ask-fix": {
         if (s.asking) return; // one thread per ask: a second click while Space answers starts nothing
         const e = s.run?.error;
         const note = name === "ask-fix" && e ? `The deploy failed: ${e.message || e.text || e.code}${e.step ? ` (in ${e.step})` : ""}. Fix the cause so it deploys.` : "";
         s.asking = true; s.askErr = null; changed();
-        api.askAgent(p, note).then((g) => { s.asking = false; s.asked = { thread: g.thread_ts || g.thread, title: g.title || "Deploy to Launchpad", since: Date.now() }; s.run = null; announce("A thread is getting it ready."); changed(); })
+        api.askAgent(p, note).then((g) => { s.asking = false; s.asked = { thread: g.thread_ts || g.thread, title: g.title || "Deploy to Launchpad", since: Date.now() }; s.run = null; land('[data-lp="thread"]'); announce("A thread is getting it ready."); changed(); })
           .catch((err) => {
             s.asking = false; s.askErr = err?.message || "XO Space didn't answer";
             announce(`Couldn't start the thread: ${s.askErr}.`); changed();
@@ -853,13 +879,12 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       }
       case "thread": go && go(el.dataset.go); return;
       case "fix-port": s.form.port = String(s.run.error.declared); s.run = null; deploy(p); return;
-      case "use-name": s.form.name = el.dataset.v; s.form.errs = {}; S.key = ""; changed(); return;
-      case "recheck": s.err = null; load(p, true); changed(); return;
+      case "use-name": s.form.name = el.dataset.v; s.form.errs = {}; S.key = ""; land('[data-lp-f="name"]'); changed(); return;
+      case "recheck": s.err = null; land(AFTER); load(p, true); changed(); return; // Checking… has nothing to press: the section holds focus
     }
   }
   let onOpen = null, onHide = null;
 
-  const mine0 = (p) => { const s = proj(p), f = s.form; return (s.check.env || []).filter((x) => x.sensitive || !x.default || f.env[x.name]).length; };
 
   /** More below than the section shows: its foot fades rather than ending on a cut row. */
   function over() {
@@ -936,6 +961,8 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       return (s?.check ? s.check.state : cached[p]) !== "not-deployable";
     },
     tone(v) { const p = projectOf(v); return p ? summary(p).tone : ""; },
+    /** Redraws that took the focused control away with no place named for focus (each one is a bug). */
+    lostFocus: () => S.lost.slice(),
     /** Read what Space says about the view's project, once in a while. */
     ensure(v) { const p = projectOf(v); if (p) load(p); },
     /** The header's Deploy: what the project's deploy is doing, at a glance; it opens the panel's section. */

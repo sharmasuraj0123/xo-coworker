@@ -20,7 +20,13 @@ let env, WIDTH = 1440, passed = 0, failed = 0;
 const tests = [];
 const t = (name, fn) => tests.push({ name, fn });
 const open = (o = {}) => W.open(env.browser, env.base, { width: WIDTH, height: WIDTH > 760 ? 900 : 844, motion: "reduce", ...o });
-async function done(page) { const errs = page.errors; await page.context().close(); assert.deepEqual(errs, [], "page errors"); }
+// every case ends by asking Launchpad whether any redraw took focus away with no place named for it (a bug either way)
+async function done(page) {
+  const lost = await page.evaluate(() => window.__t?.LP?.lostFocus?.() || []).catch(() => []);
+  const errs = page.errors; await page.context().close();
+  assert.deepEqual(errs, [], "page errors");
+  assert.deepEqual(lost, [], "focus lost to the page by a redraw with no place named");
+}
 const live = (page) => page.locator("#live").innerText();
 const json = (r, o, status = 200) => r.fulfill({ status, contentType: "application/json", body: JSON.stringify(o) });
 const focused = (page) => page.evaluate(() => { const a = document.activeElement; return a ? (a.dataset.lp || a.dataset.shName || a.dataset.shTab || a.dataset.shClose || a.dataset.shRename || a.getAttribute("role") || a.tagName) : null; });
@@ -342,10 +348,11 @@ t("SH25/SH26: Close on a busy row asks in that row; Esc keeps it and goes back t
   assert.equal(await page.locator(".shl-row.is-asking").count(), 0);
   assert.equal(await focused(page), "sh_1", "back on the row's Close");
   await page.locator('.shl-row [data-sh-close="sh_1"]').click();
-  await page.locator(".shl-row [data-sh-yes]").click();
+  await page.locator(".shl-row [data-sh-yes]").focus();
+  await page.keyboard.press("Enter");
   await page.waitForFunction(() => !document.querySelector('.shl-row [data-sh-close="sh_1"]'));
   assert.deepEqual(page.W.closed, ["sh_1"]);
-  assert.ok(await page.evaluate(() => document.querySelector("#shd").contains(document.activeElement)), "focus stays in the dock");
+  assert.equal(await focused(page), "sh_2", "focus on the × of the row that took its place");
   await done(page);
 });
 

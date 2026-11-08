@@ -257,6 +257,7 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
   }
   async function closeShell(id) {
     const had = root.contains(document.activeElement);
+    const at = [...listEl.querySelectorAll(".shl-row [data-sh-close]")].findIndex((b) => b.dataset.shClose === id); // its place in the list
     R.confirm = null;
     R.busy.add(id); render();
     const name = nameOf(id);
@@ -280,10 +281,12 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
     R.list = R.list.filter((t) => t.id !== id);
     changed();
     refreshSoon();
-    // its row or tab went with it: focus lands on what's in front now, never on the page
+    // its row or tab went with it. A tab: the tab now in front has focus (detach chose its neighbour). A row: the
+    // × of the row that took its place (the next one, else the one before), else New shell when none is left
     if (had && (!root.contains(document.activeElement) || document.activeElement === document.body)) {
       const t = R.tabs.get(R.active);
-      if (t) t.handle.focus(); else (listEl.querySelector("[data-sh-open], [data-sh-close]") || listEl.querySelector("[data-sh-new]"))?.focus();
+      if (t) t.handle.focus();
+      else { const xs = [...listEl.querySelectorAll(".shl-row [data-sh-close]")]; (xs[Math.min(Math.max(at, 0), xs.length - 1)] || listEl.querySelector("[data-sh-new]"))?.focus(); }
     }
   }
   function askCloseDetached() {
