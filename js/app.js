@@ -36,7 +36,7 @@ import { createLaunchpad } from "./launchpad.js";
 import { createLpApi } from "./lpapi.js";
 import { createFiles, fileScope, localIn } from "./files.js";
 import { createFilesView } from "./filesview.js";
-import { createChanges, lineRef } from "./changes.js";
+import { createChanges, lineRef, fileRef } from "./changes.js";
 import { fileIcon } from "./fileicons.js";
 import { countsHtml } from "./changesframe.js";
 import { setTheme as setDiffTheme } from "./diffview.js";
@@ -182,7 +182,7 @@ world.ui = { tbOpen: S.tbOpen }; // turn blocks open or folded, shared with the 
 const CHG = createChanges({ world, onChange: () => schedule() });
 const VW = createViewer({
   announce, onChange: () => schedule(), changes: CHG,
-  ask: { target: (f) => askPlace(f)?.name || null, send: askAboutLines, compose: (f, a, b) => composeAbout(f, a, b) },
+  ask: { target: (f) => askPlace(f)?.name || null, send: askAboutLines, compose: (f, a, b) => composeAbout(f, a, b), file: (f) => askAboutFile(f) },
   // a save (Files › Edit): its place's changes are read again; Tell the agent is a message to its thread
   edits: { saved: (f) => CHG.saved(f.project, f.rel), removed: (f) => { CHG.saved(f.project, f.rel); FILES.reread(f); }, tell: (f, s) => sendAbout(f, `I edited ${s.path}. Read it again before you change it.`) },
   away: () => { if (FILESV.sheet) return FILESV.escape(document.activeElement); if (!FILESV.docked) return false; FILESV.minimise(); return true; },
@@ -2138,7 +2138,7 @@ function sendLive(raw) {
   const here = conv === S.view;
   // the lines a message is about (a file beside the chat): "path:a-b", then the words, as Ask about lines sends
   const ref = here && S.lref[conv];
-  if (ref && text) { text = `${ref.path}:${ref.a}${ref.b > ref.a ? `-${ref.b}` : ""}\n\n${text}`; delete S.lref[conv]; }
+  if (ref && text) { text = `${ref.path}${ref.a ? `:${ref.a}${ref.b > ref.a ? `-${ref.b}` : ""}` : ""}\n\n${text}`; delete S.lref[conv]; }
   const from = say.getBoundingClientRect();
   // client_id: a retry of this exact message is the same request, so the server stores it once (UI-reference §0.7)
   const m = { id: `l${++S.n}_${Date.now().toString(36)}`, conv, at: Date.now(), who: "you", text, status: "sending", target: thread ? null : chat, cid: `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}` };
@@ -2645,7 +2645,12 @@ function openSharedFile(btn) {
 /** Your words; a question about lines leads with them as an in-app capsule that opens Files there. */
 function youText(text) {
   const r = lineRef(text);
-  if (!r) return esc(text);
+  if (!r) {
+    // a question about a whole file: its capsule, then your words
+    const f = fileRef(text);
+    if (!f) return esc(text);
+    return `<a href="#${esc(f.path)}" class="lk lk-in lk-file" data-ref="${esc(f.path)}" title="${esc(f.path)}"><span class="lk-ic">${fileIcon(f.path.split("/").pop())}</span><span class="lk-t">${esc(f.path.split("/").pop())}</span></a>\n${esc(f.rest)}`;
+  }
   const name = r.path.split("/").pop(), lines = r.a === r.b ? `${r.a}` : `${r.a}–${r.b}`;
   return `<a href="#${esc(r.path)}" class="lk lk-in lk-file" data-ref="${esc(r.path)}" data-ref-a="${r.a}" data-ref-b="${r.b}" title="${esc(`${r.path}, ${r.a === r.b ? "line" : "lines"} ${lines}`)}"><span class="lk-ic">${fileIcon(name)}</span><span class="lk-t">${esc(name)} · ${lines}</span></a>\n${esc(r.rest)}`;
 }
@@ -2653,7 +2658,8 @@ function youText(text) {
 function openLineRef(a) {
   const s = CHG.scope(S.view), path = a.dataset.ref;
   if (!s) return;
-  VW.open({ path, name: path.split("/").pop(), project: s.project, rel: s.worktree ? `.xo/worktrees/${s.worktree}/${path}` : path, lines: [+a.dataset.refA, +a.dataset.refB] }, a);
+  const lines = a.dataset.refA ? [+a.dataset.refA, +a.dataset.refB] : null;
+  VW.open({ path, name: path.split("/").pop(), project: s.project, rel: s.worktree ? `.xo/worktrees/${s.worktree}/${path}` : path, ...(lines ? { lines } : {}) }, a);
 }
 /** Where a question about a project file goes: {conv, thread, chat, name, path (in its place)}, or null. */
 function askPlace(f) {
@@ -2685,10 +2691,25 @@ function composeAbout(f, a, b) {
   announce(`Lines ${a}${b > a ? ` to ${b}` : ""} of ${S.lref[S.view].name} are in your message. Write your question.`);
   return true;
 }
+/** Ask about this (Astra's I7): the whole file, as a capsule in the composer of the conversation it belongs to (that
+    conversation opens if it isn't this one); the line above the field already names who receives it. Nothing is
+    sent until you write and send; × takes it out. */
+function askAboutFile(f) {
+  const at = askPlace(f);
+  if (!at) { announce("This file isn't in a project XO can ask about."); return false; }
+  const ref = { path: at.path, a: null, b: null, name: f.name || at.path.split("/").pop() };
+  if (at.conv !== S.view) { VW.close({ restore: false }); go(at.conv); }
+  S.lref[at.conv] = ref;
+  lrefRender();
+  say.focus({ preventScroll: true });
+  announce(`${ref.name} is in your message to ${at.name}. Write your question.`);
+  return true;
+}
 /** The capsule above the composer's field: the file and its lines (opens them), and × to take it out. */
 function lrefRender() {
   const r = S.lref[S.view], el = $("#cref");
-  const html = r ? `<a href="#${esc(r.path)}" class="lk lk-in lk-file" data-ref="${esc(r.path)}" data-ref-a="${r.a}" data-ref-b="${r.b}" title="${esc(`${r.path}, ${r.a === r.b ? "line" : "lines"} ${r.a}${r.b > r.a ? `–${r.b}` : ""}`)}"><span class="lk-ic">${fileIcon(r.name)}</span><span class="lk-t">${esc(r.name)} · ${r.a}${r.b > r.a ? `–${r.b}` : ""}</span></a>` +
+  const lines = r && r.a ? ` · ${r.a}${r.b > r.a ? `–${r.b}` : ""}` : "";
+  const html = r ? `<a href="#${esc(r.path)}" class="lk lk-in lk-file" data-ref="${esc(r.path)}"${r.a ? ` data-ref-a="${r.a}" data-ref-b="${r.b}"` : ""} title="${esc(r.a ? `${r.path}, ${r.a === r.b ? "line" : "lines"} ${r.a}${r.b > r.a ? `–${r.b}` : ""}` : r.path)}"><span class="lk-ic">${fileIcon(r.name)}</span><span class="lk-t">${esc(r.name)}${lines}</span></a>` +
     `<button type="button" class="cref-x" data-lref-x aria-label="Take the lines out of this message" title="Take them out">${ICON.close}</button>` : "";
   el.hidden = !r;
   if (el._h !== html) { el.innerHTML = html; el._h = html; }

@@ -215,9 +215,12 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       : diffing && V.draft ? `<button type="button" class="xd-btn xd-draft" data-vw-show="file" title="Your unsaved edits to this file are kept: see them in File"><i></i>Your draft</button>`
       : !diffing && canEdit() && V.draft && !ED.opening ? `<span class="xd-state" title="Your unsaved edits, kept in this browser"><i></i>Your draft</span><button type="button" class="xd-btn" data-vw-draftx title="Let your draft go">Discard</button><button type="button" class="xd-edit" data-vw-edit title="Continue editing (E)" aria-label="Continue your draft">${EDIT_IC}<span>Continue</span></button>`
       : !diffing && canEdit() ? `<button type="button" class="xd-edit" data-vw-edit title="Edit (E)" aria-label="Edit"${ED.opening ? " disabled" : ""}>${EDIT_IC}<span>${ED.opening ? "Opening…" : "Edit"}</span></button>` : "";
+    // Ask about this: the whole file, into its conversation's composer (lines have their own "Ask about lines")
+    const askT = ask && ask.file && f.project && f.rel && ask.target(f);
+    const askB = askT && !diffing ? `<button type="button" class="xd-btn vw-ask" data-vw-askfile title="Ask ${esc(askT)} about this file">Ask about this</button>` : "";
     const upd = V.updated && !diffing ? `<button type="button" class="xd-btn vw-upd" data-vw-update title="An agent changed this file after you opened it: show the new version">Updated · Show</button>` : "";
     return `<header class="vw-top">${name}` +
-      `<div class="vw-acts">${upd}${runs}${show}${toggle}${edit}${more}` +
+      `<div class="vw-acts">${upd}${askB}${runs}${show}${toggle}${edit}${more}` +
       `<button type="button" class="vw-x" data-vw-close aria-label="Close the file" title="Close (Esc)">${ICON.close}</button></div></header>`;
   }
 
@@ -742,6 +745,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (e.target.closest(".vw-img img")) { V.mode = V.mode === "actual" ? "preview" : "actual"; render(); return; }
     if (e.target.closest("[data-vw-copy]")) { copy(String(V.data.content)); return; }
     if (e.target.closest("[data-vw-copy-path]")) { copy(V.file.rel ? localPath() : V.file.path); return; }
+    if (e.target.closest("[data-vw-askfile]")) { ask.file(V.file); return; }
     // the new version, at the place you were reading
     if (e.target.closest("[data-vw-update]")) { const top = el.querySelector(".vw-body")?.scrollTop || 0; load().then(() => { const b = el.querySelector(".vw-body"); if (b) b.scrollTop = top; }); return; }
         if (e.target.closest("[data-vw-download]")) download();

@@ -23,6 +23,15 @@ const QUIET = 250; // ms: edits that finish together are read once
  * A question about lines (Files' "Ask about these lines"): your message starts "path:a-b" (or "path:a") and
  * a blank line, then the question. {path, a, b, rest} for such a message, else null. Pure.
  */
+/**
+ * A question about a whole file (Ask about this): "path\n\nquestion", where the path has a folder or an
+ * extension and no spaces ("README.md", "js/app.js"), so an ordinary first line ("e.g.", "Hello") never reads as one.
+ * {path, rest} or null. lineRef is tried first.
+ */
+export function fileRef(text) {
+  const m = /^((?:[^\s:/]+\/)*[^\s:/]+\.[A-Za-z0-9]{1,8}|(?:[^\s:/]+\/)+[^\s:/]+)\n\n([\s\S]+)$/.exec(String(text || ""));
+  return m ? { path: m[1], rest: m[2] } : null;
+}
 export function lineRef(text) {
   const m = /^([^\s:]+\.[^\s:]*|[^\s:]*\/[^\s:]+|[A-Za-z][\w.-]*):(\d+)(?:-(\d+))?\n\n([\s\S]*)$/.exec(String(text || ""));
   if (!m) return null;

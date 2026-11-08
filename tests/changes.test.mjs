@@ -15,7 +15,7 @@ globalThis.fetch = async (url) => {
   const r = reply(u);
   return { ok: r.status < 300, status: r.status, statusText: "", type: "basic", text: async () => JSON.stringify(r.body) };
 };
-const { scopeOf, activityIn, createChanges, lineRef } = await import("../js/changes.js");
+const { scopeOf, activityIn, createChanges, lineRef, fileRef } = await import("../js/changes.js");
 const { choose, newestHunkLine, countsHtml } = await import("../js/changesframe.js");
 const { createTurns } = await import("../js/blocks.js");
 
@@ -199,6 +199,12 @@ await t("a question about lines: \"path:a-b\", a blank line, the question; nothi
   assert.deepEqual(lineRef("Makefile:7\n\nwhat runs here?\nand here"), { path: "Makefile", a: 7, b: 7, rest: "what runs here?\nand here" });
   assert.equal(lineRef("js/a.js:9-3\n\nbackwards"), null);
   assert.equal(lineRef("js/a.js:36-43 no blank line"), null);
+  // a whole file (Ask about this): a path with a folder or an extension, never an ordinary first line
+  assert.deepEqual(fileRef("README.md\n\nwhat is this for?"), { path: "README.md", rest: "what is this for?" });
+  assert.deepEqual(fileRef("js/app.js\n\nwhy so long?"), { path: "js/app.js", rest: "why so long?" });
+  assert.equal(fileRef("e.g.\n\nthis"), null);
+  assert.equal(fileRef("Hello\n\nthere"), null);
+  assert.equal(fileRef("two words.md\n\nno"), null);
   assert.equal(lineRef("Note: 12 things\n\nhi"), null);
   assert.equal(lineRef("see js/a.js:3\n\nmid-sentence"), null);
   assert.equal(lineRef(""), null);
