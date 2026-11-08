@@ -32,7 +32,9 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
   const catalogs = new Map(); // runtime → models
   const pop = document.getElementById("iq-pop");
 
-  const kindOf = (s) => (s === "ws" ? "workspace" : s.startsWith("p:") ? "project" : "thread");
+  // only three things have intelligence: the Workspace, a project's coordinator and a thread. Artifacts, Chats
+  // and a plain chat (c:…) aren't any of them (a plain chat's runtime lives in its own chip, js/chats.js)
+  const kindOf = (s) => (s === "ws" ? "workspace" : String(s || "").startsWith("p:") ? "project" : String(s || "").startsWith("t:") ? "thread" : null);
   const scopeWord = (s) => (s === "ws" ? "the Workspace" : s.startsWith("p:") ? `${PROJ(s.slice(2))}'s coordinator` : "this thread");
   const chatOfSession = (s) => world.project(s === "ws" ? "workspace" : s.slice(2));
   const threadOf = (s) => (s.startsWith("t:") ? world.thread(s.slice(2)) : null);
@@ -102,6 +104,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     return c.pinned ? { model: c.model, effort: c.effort, next: false } : { model: null, effort: null, next: false };
   }
   function chipHtml(s, phone) {
+    if (!kindOf(s)) return "";
     warm(s);
     const c = current(s);
     if (simple() && !phone && !threadOf(s)) { const w = simpleOf(s, c); return `<span class="iq-l"><span class="${w === "auto" ? "iq-a" : "iq-t"}">${esc(w === "auto" ? "Auto" : w === "deep" ? "Deep" : nameOf(c.model) || "Pinned")}</span></span>`; }
@@ -125,12 +128,13 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       : { dot: false, words: [AUTO, `<span class="iq-t">${esc(who)}</span>`], effort: null };
   }
   function chipTitle(s) {
+    if (!kindOf(s)) return "";
     const c = current(s);
     if (kindOf(s) === "thread") {
       const r = running(s), { model, effort, next } = shownSetting(s);
       const what = `${model ? nameOf(model) : "its default model"}${effort ? ` · ${effortWord(effort)}` : ""}`;
       if (next) return `Its session hasn't reported which model it runs. From its next turn: ${what}. Change it${K.hint("intel")}`;
-      if (!r || !r.model) return `Its session hasn't reported which model it runs. Change it${K.hint("intel")}`;
+      if (!r.model) return `Its session hasn't reported which model it runs. Change it${K.hint("intel")}`;
       const pending = c.pinned && c.model && c.model !== r.model ? `, ${nameOf(c.model)} from its next turn` : "";
       return `${r.working ? "Running" : "Runs"} ${what}${pending}. Change it${K.hint("intel")}`;
     }
@@ -268,7 +272,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       const rows = shown(models);
       const autoRow = kind !== "thread" ? `<div class="iq-row${d.auto ? " is-sel" : ""}" role="radio" aria-checked="${d.auto}" tabindex="${d.auto ? 0 : -1}" data-dmodel=""><span class="iq-n">Auto</span><span class="iq-tr">Its default, and the router's pick for each thread</span>${CHECK}</div>` : "";
       html += `<p class="iq-lab" id="iq-m-l">Model</p><div class="iq-list" role="radiogroup" aria-labelledby="iq-m-l">${autoRow}` +
-        rows.map((m) => { const on = !d.auto && d.model === m.id; return `<div class="iq-row${on ? " is-sel" : ""}" role="radio" aria-checked="${on}" tabindex="${on ? 0 : -1}" data-dmodel="${esc(m.id)}" title="${esc(m.description || "")}"><span class="iq-n">${esc(m.name)}</span>${m.description ? `<span class="iq-tr">${esc(m.description)}</span>` : ""}${CHECK}</div>`; }).join("") + `</div>`;
+        rows.map((m, i) => { const on = !d.auto && d.model === m.id; const tab = on || (i === 0 && !d.auto && !rows.some((x) => x.id === d.model)); return `<div class="iq-row${on ? " is-sel" : ""}" role="radio" aria-checked="${on}" tabindex="${tab ? 0 : -1}" data-dmodel="${esc(m.id)}" title="${esc(m.description || "")}"><span class="iq-n">${esc(m.name)}</span>${m.description ? `<span class="iq-tr">${esc(m.description)}</span>` : ""}${CHECK}</div>`; }).join("") + `</div>`;
       const efs = d.auto ? [] : effortsOf(modelOf(d.model), s).filter((e) => PIPS[e]);
       if (efs.length) {
         html += `<p class="iq-lab" id="iq-e-l">Thinking</p><div class="iq-route iq-depth" role="radiogroup" aria-labelledby="iq-e-l">` +
@@ -352,13 +356,16 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
   /** Read the models the list shows (the runtime it runs on now). */
   async function loadModels(s) {
     P.err = null;
+    // each read knows what it was for: a late answer for another runtime (or an older read) is dropped
+    const req = (P.req = (P.req || 0) + 1);
+    const name = runtimeOf(s);
+    const stale = () => !P.open || P.session !== s || P.req !== req || runtimeOf(s) !== name;
     try {
-      const name = runtimeOf(s);
       if (catalogs.has(name)) { P.models = catalogs.get(name); render(); }
       const [models, dms] = await Promise.all([catalog(name, { fresh: true }), kindOf(s) === "thread" ? null : api.routerModels().then((d) => d.models || []).catch(() => [])]);
-      if (!P.open || P.session !== s) return;
+      if (stale()) return;
       P.models = models; if (dms) P.dms = dms;
-    } catch (err) { P.err = err.status === 503 ? "The models can't be read right now." : err.message; }
+    } catch (err) { if (stale()) return; P.err = err.status === 503 ? "The models can't be read right now." : err.message; }
     render();
   }
   /** A thread looks at continuing on `name`: its models there, read with a deadline (Default never waits). */
@@ -375,6 +382,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
   }
   /** opts.rt: open a thread's picker looking at continuing on that runtime (the thread menu's way in). */
   async function open(s, anchor, opts = {}) {
+    if (!kindOf(s)) return;
     P.open = true; P.session = s; P.anchor = anchor; P.returnTo = document.activeElement; P.err = null; P.models = null; P.busy = false; P.rt = null; P.mv = null; P.full = false; P.draft = null; P.more = false;
     pop.hidden = false; pop.classList.remove("is-out");
     if (opts.rt) lookAt(opts.rt); else render();

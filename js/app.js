@@ -1527,6 +1527,21 @@ tdock.addEventListener("keydown", (e) => {
  * corner, then plain words and the time so far. The element stays put while the agent works; only its
  * words change, so neither the arc nor the words' soft wave (the shimmer) restarts or stutters. No bouncing dots.
  */
+/** An ask this project's coordinator sent to the Workspace that isn't answered yet. xo-space publishes the hop
+    when the call happens ("sent"), marks it "delivered" when the Workspace's turn takes it and "answered" when
+    the answer is made. Only an ask waits for a reply (a relay or a forward doesn't), and only for 20 minutes:
+    an ask nobody answers mustn't hold the line for ever. */
+function openAsk(project) {
+  const chatId = world.project(project)?.chatId;
+  if (!chatId || !world.state.hops) return null;
+  let best = null, at = 0;
+  for (const h of world.state.hops.values()) {
+    if (h.chat_id !== chatId || h.kind !== "ask" || h.from_role !== "project-coordinator" || !(h.state === "sent" || h.state === "delivered")) continue;
+    const t = Date.parse(h.created_at || h.at || "") || 0;
+    if (t && Date.now() - t < 20 * 60e3 && t > at) { best = h; at = t; }
+  }
+  return best;
+}
 function typingRender() {
   const box = $("#typing");
   const t = convThread(S.view);
@@ -1538,6 +1553,10 @@ function typingRender() {
     const who = S.view === "ws" ? "The coordinator" : `${PROJ(chat)} coordinator`;
     const doing = world.act.doing ? world.act.doing(chat) : null;
     spec = { key: `co:${chat}`, cls: "av-w", icon: XO, text: doing ? `${who} · ${doing.replace(/`/g, "")}` : `${who} is ${aw ? "replying" : "working"}`, since: aw ? aw.at : null };
+  } else if (chat && chat !== "workspace" && openAsk(chat)) {
+    // its coordinator asked the Workspace and the answer hasn't come: said only while that hop is open
+    const ask = openAsk(chat);
+    spec = { key: `ask:${ask.id}`, cls: "av-w", icon: XO, text: `${PROJ(chat)} coordinator · Waiting for the Workspace coordinator to reply`, since: null };
   } else if (S.view.startsWith("c:")) {
     const sid = S.view.slice(2), tu = world.state.turns && world.state.turns.running(sid);
     if (CH.working(S.view) && !(tu && world.state.turns.blocksOf(tu).length)) spec = { key: `c:${sid}`, cls: "av-live", icon: ICON.thread, text: "Working", since: null };
@@ -1662,9 +1681,9 @@ function undoRecord(id) {
 function chipRender(fade = false) {
   const chip = $("#iq");
   // a chat's agent, model and mode are set in the line above the composer, not by the router
-  chip.hidden = CH.isChats(S.view);
-  if (chip.hidden) return;
   const s = sessionOf(S.view);
+  chip.hidden = CH.isChats(S.view) || !IQ.kindOf(s);
+  if (chip.hidden) return;
   const html = IQ.chipHtml(s, PHONE.matches);
   chip.title = IQ.chipTitle(s);
   chip.setAttribute("aria-label", `Intelligence: ${IQ.chipTitle(s).replace(/ \([^)]*\)$/, "")}`);
@@ -2935,7 +2954,9 @@ function setDrawer(open) {
   $("#side-scrim").hidden = !open;
   $("#pb-menu").setAttribute("aria-expanded", String(!!open));
   $("#top-menu").setAttribute("aria-expanded", String(!!open));
+  syncInert();
   if (open) $("#nv-home").focus();
+  else if ($("#side").contains(document.activeElement)) (PHONE.matches ? $("#pb-menu") : null)?.focus({ preventScroll: true });
 }
 $("#pb-menu").addEventListener("click", () => setDrawer(true));
 $("#top-menu").addEventListener("click", () => setDrawer(true));
@@ -2987,12 +3008,17 @@ function syncInert() {
   hold($("#app"), [jump, keys, allEl, runsEl].some((el) => !el.hidden));
   const settings = !setEl.hidden;
   for (const el of $("#main").children) if (el !== setEl && !el.classList.contains("toast-wrap")) hold(el, settings);
+  // a phone: the sidebar is a drawer; closed, it is off screen and out of reach; open, it covers the main area
+  const drawer = $("#app").classList.contains("drawer");
+  hold($("#side"), PHONE.matches && !drawer);
+  hold($("#main"), PHONE.matches && drawer);
 }
-queueMicrotask(() => { const mo = new MutationObserver(syncInert); for (const el of [jump, keys, allEl, runsEl, setEl]) mo.observe(el, { attributes: true, attributeFilter: ["hidden"] }); syncInert(); });
+queueMicrotask(() => { PHONE.addEventListener("change", syncInert); const mo = new MutationObserver(syncInert); for (const el of [jump, keys, allEl, runsEl, setEl]) mo.observe(el, { attributes: true, attributeFilter: ["hidden"] }); syncInert(); });
 // Tab and Shift+Tab go round the open sheet: past its last control is its first, never the page behind it
 addEventListener("keydown", (e) => {
   if (e.key !== "Tab") return;
-  const top = [runsEl, keys, allEl, jump].find((el) => !el.hidden);
+  // a sheet; on a phone, Settings too (it covers the whole screen there)
+  const top = [runsEl, keys, allEl, jump].find((el) => !el.hidden) || (PHONE.matches && !setEl.hidden ? setEl : null);
   if (!top) return;
   const f = [...top.querySelectorAll('button:not([disabled]),[href],input:not([disabled]):not([type=hidden]),textarea,select,[tabindex]:not([tabindex="-1"])')].filter((x) => x.offsetParent || x === document.activeElement);
   if (!f.length) return;
