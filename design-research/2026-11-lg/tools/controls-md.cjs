@@ -11,6 +11,8 @@ const fs = require('fs'), path = require('path');
 const DIR = path.join(__dirname, '..'), ROOT = path.join(DIR, '..', '..');
 const readJson = (f, d = null) => (fs.existsSync(path.join(DIR, f)) ? JSON.parse(fs.readFileSync(path.join(DIR, f), 'utf8')) : d);
 const desk = readJson('inventory-dark-1440.json'), phone = readJson('inventory-dark-390.json');
+// the states only some controls show, opened in the browser suite's mock world (tools/inventory-states.cjs)
+const mock = readJson('inventory-states-1440.json');
 const status = readJson('controls-status.json', {});
 // --dry: write the list and the registry to /tmp (to look before committing a registry)
 const DRY = process.argv.includes('--dry');
@@ -428,6 +430,7 @@ const DOES = {
   'a.': 'A link in the text; it opens in a new tab.',
   'button.mx-down': 'Back to the latest message, when you\'ve scrolled up.',
   'button.dis-h': 'Opens or folds the details under it.',
+  '#c-note-N': 'Decision card: the note sent back with it; Enter sends, Esc closes it.',
 };
 // a kind's words: its most specific hook first (attribute=value, then attribute, then #id)
 const MANUAL_DOES = () => Object.fromEntries((typeof MANUAL !== 'undefined' ? MANUAL : []).map((m) => [m.key, m.does]));
@@ -441,7 +444,7 @@ function doesOf(k) {
 }
 // my read of a "no" that is the design, checked by hand (Astra grades it all the same)
 const NOTES = {
-  '#pf-in': 'text', '#cp-name': 'text', '#cp-desc': 'text', '#arts-q': 'text', '#say': 'text', 'data-fl-q': 'text', '#jump-q': 'jump',
+  '#pf-in': 'text', '#cp-name': 'text', '#c-note-N': 'text', '#cp-desc': 'text', '#arts-q': 'text', '#say': 'text', 'data-fl-q': 'text', '#jump-q': 'jump',
   'data-route=decision': 'Disabled until its model is connected: no hover or press by design.',
   'data-shp-reset': 'Disabled while Shape is the preset as it comes.',
   '#stage-map-tree': 'sel', 'data-vw-mode=preview': 'sel', 'data-mode=empty': 'sel',
@@ -474,9 +477,10 @@ function handler(k) {
 
 // ── the rendered kinds ──
 const groups = new Map();
-for (const [src, data] of [['desk', desk], ['phone', phone]]) {
+for (const [src, data, tag] of [['desk', desk, ''], ['phone', phone, ''], ['desk', mock, 'mock: ']]) {
   if (!data) continue;
-  for (const x of data.controls) {
+  for (const x0 of data.controls) {
+    const x = tag ? { ...x0, state: tag + x0.state } : x0;
     const k = renderedKey(x);
     if (!groups.has(k)) groups.set(k, { k, first: x, states: new Set(), n: 0, desk: [], phone: [], legacy: new Set() });
     const g = groups.get(k);
@@ -598,14 +602,14 @@ const FLOWS = [
 ];
 for (const [id, f, d, l] of FLOWS) { rowsF++; body.push(`| ${id} | ${f} | ${d} | ${l} | ${status[id] || 'Failing until Astra passes it'} |`); }
 
-const obsD = desk ? desk.controls.length : 0, obsP = phone ? phone.controls.length : 0;
+const obsD = desk ? desk.controls.length : 0, obsP = phone ? phone.controls.length : 0, obsM = mock ? mock.controls.length : 0;
 const failedPlaces = (d) => (d ? d.states.filter((s) => s.error).map((s) => s.state) : []);
-const fd = failedPlaces(desk), fp = failedPlaces(phone);
+const fd = failedPlaces(desk).concat(failedPlaces(mock).map((s) => 'mock: ' + s)), fp = failedPlaces(phone);
 out.push('# Every control, and how it answers', '');
 out.push('**Not complete yet.** Astra grades every row on its own; a row counts as done only once Astra has passed it.', '');
 out.push(`Built from the rendered app and the code, not from memory: \`tools/inventory.cjs\` crawls the real app read-only (${desk ? `${desk.states.length} places at 1440 px, crawled ${desk.at}` : 'no 1440 crawl'}${phone ? `; ${phone.states.length} at 390 px, crawled ${phone.at}` : ''}), and \`tools/controls-md.cjs\` groups what it saw into kinds, words each kind, points at its handler and adds the kinds only the code shows. Regenerate: \`node tools/inventory.cjs dark 1440 && node tools/inventory.cjs dark 390 && node tools/controls-md.cjs\`.`, '');
-out.push(`**In this file:** ${rowsC} rendered kinds, ${rowsS} kinds only in the code, ${rowsGone} kinds from before not shown this time, ${rowsF} flow rows (${rowsC + rowsS + rowsGone + rowsF} rows); ${obsD + obsP} observations behind the C rows (${obsD} at 1440, ${obsP} at 390).`, '');
+out.push(`**In this file:** ${rowsC} rendered kinds, ${rowsS} kinds only in the code, ${rowsGone} kinds from before not shown this time, ${rowsF} flow rows (${rowsC + rowsS + rowsGone + rowsF} rows); ${obsD + obsP + obsM} observations behind the rendered rows (${obsD} in the real app at 1440, ${obsP} at 390, and ${obsM} in ${mock ? mock.states.length : 0} states opened in the test suite's mock world at 1440, marked "mock:" where they show).`, '');
 out.push(fd.length || fp.length ? `**Places the crawl couldn't reach**, so their controls aren't measured here: ${[fd.length ? `1440: ${fd.join(', ')}` : '', fp.length ? `390: ${fp.join(', ')}` : ''].filter(Boolean).join('; ')}.` : '**Every place in the crawl was reached** at both widths.', '');
 out.push('Row IDs come from `controls-ids.json`, a committed registry from each kind\'s canonical key to its ID: IDs are only appended, never renumbered, so a grade stays on its control. **Hover**, **Press** and **Focus ring** say whether the control (or its box, its parts, its pseudo-elements) visibly changes when the pointer is over it, while pressed, and when the keyboard focuses it: `no` was measured on the attached control; `–` was not measured (not focusable, or it never took focus there). Hover and press are measured at 1440 only (390 is touch). **Handler** is the first line in js/ that names the hook in an event path: a pointer to check, not proof. **Status** is Astra\'s.', '');
 fs.writeFileSync(DRY ? '/tmp/CONTROLS.dry.md' : path.join(DIR, 'CONTROLS.md'), out.concat(body).join('\n') + '\n');
-console.log(`C ${rowsC}, S ${rowsS}, kept ${rowsGone}, F ${rowsF}, observations ${obsD + obsP} (${obsD}+${obsP}); places not reached: ${fd.length}+${fp.length}; without words: ${noWords.length}`, noWords.slice(0, 60));
+console.log(`C ${rowsC}, S ${rowsS}, kept ${rowsGone}, F ${rowsF}, observations ${obsD + obsP + obsM} (${obsD}+${obsP}+${obsM}); places not reached: ${fd.length}+${fp.length}; without words: ${noWords.length}`, noWords.slice(0, 60));

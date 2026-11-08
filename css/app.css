@@ -1160,7 +1160,7 @@ body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 .t-m{min-width:0;font-size:var(--fs-md);color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .t-m b{color:var(--ink);font-weight:600}
 .t-undo{flex:none;display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 12px 0 10px;border-radius:var(--r-sm);background:var(--fill-4);color:var(--ink);font-weight:600;font-size:var(--fs-base);transition:transform var(--dur-fast) var(--ease),background var(--d-hover) var(--ease)}
-.t-undo:hover{background:var(--fill-4)}
+.t-undo:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
 .t-undo:active{transform:scale(.95)}
 .t-ring{width:16px;height:16px;transform:rotate(-90deg)}
 .t-ring circle{fill:none;stroke:var(--ink-3);stroke-width:2.2;stroke-linecap:round;stroke-dasharray:50.3;stroke-dashoffset:0;animation:ring 3s linear forwards}
@@ -1895,7 +1895,8 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 .sc-b span{font-size:var(--fs-base);line-height:1.5;color:var(--ink-3)}
 .set-row.is-sub{margin-top:4px}
 .set-row.dm.is-on{border-color:color-mix(in srgb,var(--accent-fill) 35%,var(--line-soft))}
-.set-row a{color:var(--ink-2);text-decoration:underline;text-underline-offset:2px}
+.set-row a{color:var(--ink-2);text-decoration:underline;text-underline-offset:2px;text-decoration-color:var(--line-strong)}
+.set-row a:hover{color:var(--ink);text-decoration-color:currentColor}
 .set-form{display:flex;flex-direction:column;gap:12px;padding:16px 18px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft)}
 .set-fa{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
 .set-confirm,.wt-confirm{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border-radius:var(--r-lg);background:color-mix(in srgb,var(--err) 6%,var(--surface));border:1px solid color-mix(in srgb,var(--err-ink) 26%,var(--line-soft));font-size:var(--fs-base);line-height:20px;color:var(--ink-2)}
@@ -2792,7 +2793,8 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .fl-who.w-deleted i{background:var(--err)}
 .fl-note{display:flex;align-items:center;gap:8px;min-height:28px;padding:0 10px 0 calc(32px + var(--d,0) * 16px);font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
 .fl-note.is-err{color:var(--err-ink)}
-.fl-link{color:var(--ink-2);text-decoration:underline;text-underline-offset:2px}
+.fl-link{color:var(--ink-2);text-decoration:underline;text-underline-offset:2px;text-decoration-color:var(--line-strong)}
+.fl-link:hover{color:var(--ink);text-decoration-color:currentColor}
 
 /* ── Settings › Runtimes (mixed runtimes F2, F3) ─────────────────────────────
    A runtime is identity, not status: its name is plain ink. Colour belongs to its pill and meters,

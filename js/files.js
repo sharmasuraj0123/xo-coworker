@@ -327,6 +327,12 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
   function paint() {
     if (!F.host || !F.shown) return;
     const s = F.scope;
+    // a row (or a Try again) that had focus keeps it through the redraw: the same control drawn again, else the
+    // folder a Try again belonged to, else the tree's first row; never the page (Astra S061, S062, S065)
+    const a = document.activeElement, inTree = a && a !== document.body && F.host.contains(a);
+    const hooks = inTree ? [...a.attributes].filter((x) => x.name.startsWith("data-fl-") && x.name !== "data-fl-bytes") : [];
+    const sel = hooks.length ? hooks.map((x) => `[${x.name}="${CSS.escape(x.value)}"]`).join("") : null;
+    const retryOf = inTree ? a.dataset.flRetry : undefined;
     paintTree(s, F.host.querySelector(".fl-tree"));
     const has = viewer.hasFile;
     const lay = F.host.querySelector(".fl");
@@ -342,12 +348,33 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     const bar = F.host.querySelector(".fl-bar");
     const bh = has && !F.wide ? `<button type="button" class="fl-back" data-fl-back>${BACK}<span>${esc(s.key === "all" ? "Projects" : s.label || "Files")}</span></button>` : "";
     if (bar._h !== bh) { bar.innerHTML = bh; bar._h = bh; }
+    if (inTree) keepFocus(sel, retryOf);
+  }
+  function keepFocus(sel, retryOf) {
+    const now = document.activeElement;
+    if (now && now !== document.body && now.isConnected) return;
+    const to = (sel && F.host.querySelector(sel)) || (retryOf != null && (F.host.querySelector(`[data-fl-retry="${CSS.escape(retryOf)}"]`) || (retryOf && rowOf(retryOf)))) || F.host.querySelector(".fl-tree [data-fl-unpick], .fl-tree .fl-r");
+    to?.focus({ preventScroll: true });
   }
 
   // ── opening ───────────────────────────────────────────────────────────────
   function openFile(s, local, from, bytes = null) {
     F.sel = local; F.fileView = true; F.auto = false;
     viewer.open({ path: local, name: base(local), bytes, project: s.project, rel: apiRel(s, local) }, from);
+    // the viewer can only take focus once Files has laid out for a file (it shows its file pane then): if focus
+    // didn't land, it goes to the viewer after that, not to the page (Astra C033)
+    paint();
+    // on a phone the file's pane shows only once the file has been read: wait for it (a second at most), and
+    // stop as soon as focus is somewhere real again (the viewer, or wherever the person went)
+    const v = document.getElementById("viewer");
+    let n = 0;
+    const land = () => {
+      const a = document.activeElement, lost = !a || a === document.body || !a.isConnected;
+      if (!v || (!lost && a !== from)) return;
+      if (lost && !v.hidden && v.getClientRects().length) { v.focus({ preventScroll: true }); if (document.activeElement === v) return; }
+      if (++n < 60) requestAnimationFrame(land);
+    };
+    requestAnimationFrame(land);
   }
   /** Wide, nothing chosen: the README is the front page, as GitHub shows one. */
   async function frontPage() {
@@ -599,8 +626,8 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
         viewer.open({ path: rel, name: base(rel), project: s.project, rel }, tc); return;
       }
       const pk = t.closest("[data-fl-pick]");
-      if (pk) { F.pick = pk.dataset.flPick; F.follow = null; setScope(F.view); paint(); frontPage(); return; }
-      if (t.closest("[data-fl-unpick]")) { F.pick = null; F.follow = null; viewer.close({ restore: false }); setScope(F.view); paint(); return; }
+      if (pk) { F.pick = pk.dataset.flPick; F.follow = null; setScope(F.view); paint(); keepFocus(null); frontPage(); return; }
+      if (t.closest("[data-fl-unpick]")) { const was = F.pick; F.pick = null; F.follow = null; viewer.close({ restore: false }); setScope(F.view); paint(); keepFocus(was ? `[data-fl-pick="${CSS.escape(was)}"]` : null); return; }
       const rt = t.closest("[data-fl-retry]");
       if (rt) {
         // the note with its Try again is redrawn as it reads: focus stays in the tree (the button again if it

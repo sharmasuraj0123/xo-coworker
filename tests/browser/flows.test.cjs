@@ -328,6 +328,63 @@ t("S061: Files' Try again, then a good read: focus stays in the tree", async () 
   await done(page);
 });
 
+async function filesOpen(page) {
+  if (await page.locator('[data-ghost="changes"]').filter({ visible: true }).count()) await page.locator('[data-ghost="changes"]').filter({ visible: true }).first().click();
+  await page.locator("[data-open-files]").filter({ visible: true }).first().click();
+}
+t("C033: opening a file from Files with the keyboard puts focus on the file", async () => {
+  const page = await app({ files: { "a.js": FILE() } });
+  await panelOpen(page);
+  await filesOpen(page);
+  const row = page.locator('[data-fl-file="a.js"]').filter({ visible: true }).first();
+  await row.focus();
+  if (process.env.DEBUG) await page.evaluate(() => { window.__fl = []; document.addEventListener("focusout", (e) => window.__fl.push("out " + e.target.tagName + "." + e.target.className + " -> " + (e.relatedTarget ? e.relatedTarget.tagName : "null")), true); document.addEventListener("focusin", (e) => window.__fl.push("in " + e.target.tagName + "#" + e.target.id), true); });
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(300);
+  if (process.env.DEBUG) console.log(await page.evaluate(() => window.__fl));
+  assert.match(await active(page), /^SECTION (class=[^ ]+ )*id=viewer|^SECTION.*id=viewer/);
+  await done(page);
+});
+t("S065/S062: picking a project in Files, and going back, keep focus in Files", async () => {
+  const page = await app({ files: { "a.js": FILE() } });
+  await page.evaluate(() => window.__t.go("ws"));
+  await page.locator("[data-stage-toggle]").filter({ visible: true }).first().click();
+  await page.waitForFunction(() => !document.querySelector("#stage").hidden);
+  await filesOpen(page);
+  const pick = page.locator('[data-fl-pick="demo"]').filter({ visible: true }).first();
+  await pick.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(300);
+  const a1 = await active(page);
+  assert.ok(a1 && !/^BODY/.test(a1) && /data-fl-/.test(a1), `after picking: ${a1}`);
+  await page.locator("[data-fl-unpick]").filter({ visible: true }).first().focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(300);
+  assert.match(await active(page), /data-fl-pick=demo/, "back on the project it came from");
+  await done(page);
+});
+t("S061: while Try again is reading, focus stays in the tree", async () => {
+  let answer;
+  const page = await app({ files: { "a.js": FILE() }, treeFails: 1, treeGate: new Promise((ok) => (answer = ok)) });
+  await panelOpen(page);
+  await filesOpen(page);
+  await page.locator('[data-fl-dir="bad"]').filter({ visible: true }).first().click();
+  const retry = page.locator('[data-fl-retry="bad"]').first();
+  await retry.waitFor();
+  await retry.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(400); // the read is out, unanswered; the app redraws meanwhile (Files with it)
+  await page.evaluate(() => window.__t.render());
+  await page.waitForTimeout(200);
+  const pending = await active(page);
+  assert.ok(pending && !/^BODY/.test(pending), `pending: ${pending}`);
+  answer();
+  await page.locator('[data-fl-file="bad/inside.md"]').first().waitFor();
+  const after = await active(page);
+  assert.ok(after && !/^BODY/.test(after), `after: ${after}`);
+  await done(page);
+});
+
 t("C029: on a phone, Back to chat from a file shows the chat, not the panel again", async () => {
   if (WIDTH > 760) return; // beside the chat on a desktop, the panel coming back is the design
   const page = await app({ files: { "a.js": FILE() } });

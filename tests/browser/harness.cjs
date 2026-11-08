@@ -67,6 +67,7 @@ function mockApi(W) {
     if (/^\/api\/xo-projects\/[^/]+\/tree$/.test(p)) {
       const rel = u.searchParams.get("relative_path") || "";
       if (rel === "bad" && W.treeFails) { W.treeFails--; return json({ detail: { code: "unavailable", message: "Fixture offline" } }, 503); }
+      if (rel === "bad" && W.treeGate) await W.treeGate; // the test says when the second read answers
       if (rel === "bad") return json({ dirs: [], files: [{ name: "inside.md", relative_path: "bad/inside.md", size_bytes: 9 }] });
       return json({ dirs: [{ name: "bad", relative_path: "bad" }], files: Object.keys(W.files).filter((f) => !f.includes("/")).map((f) => ({ name: f, relative_path: f, size_bytes: W.files[f].content.length })) });
     }
@@ -82,6 +83,7 @@ function mockApi(W) {
       if (W.saveGate) await W.saveGate; // the test says when the answer comes (no race with a slow machine)
       const f = W.files[b.relative_path];
       if (W.saveMode === "503") return json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503);
+      if (W.saveMode === "confirm" && b.confirm !== "runs_code") return json({ detail: { code: "confirm_required", message: "This file runs code" } }, 428);
       if (W.saveMode === "overlap" && !W.clashed) {
         W.clashed = true; f.content = "agent\ntwo\nthree\n"; f.version = "sha256:B";
         return json({ detail: { code: "file_changed", message: "changed", current: { content: f.content, version: f.version } } }, 409);
@@ -100,7 +102,7 @@ function mockApi(W) {
 
 // test hooks, added to the served modules in the page only (the files on disk are untouched)
 async function hooks(page) {
-  await page.route("**/js/app.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()) + "\nwindow.__t={VW,S,world,go,typingRender,lrefRender};" }); });
+  await page.route("**/js/app.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()) + "\nwindow.__t={VW,S,world,go,typingRender,lrefRender,render};" }); });
   await page.route("**/js/viewer.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()).replace("function startEdit() {", "function startEdit() { window.__ED=ED; window.__V=V;") }); });
   await page.route("**/js/storm.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()).replace("  boot();", "  window.__storm={apply,stop:()=>{stream?.close();clearTimeout(statusT);clearTimeout(runtimesT);clearTimeout(recoverT);}};\n  boot();") }); });
 }

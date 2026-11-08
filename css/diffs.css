@@ -173,6 +173,7 @@ diffs-container{
 .xd-btn.is-pri{background:var(--accent-fill);border-color:var(--accent-fill);color:var(--accent-ink)}
 .xd-btn.is-pri:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
 .xd-btn.is-warn{border-color:color-mix(in srgb,var(--err) 45%,var(--line));color:var(--err-ink)}
+.xd-btn.is-warn:hover{border-color:color-mix(in srgb,var(--err) 70%,var(--line));background:color-mix(in srgb,var(--err) 10%,transparent);color:var(--err-ink)}
 .xd-btn:is(:disabled,[aria-disabled="true"]){opacity:.45;cursor:default}
 .xd-btn[aria-disabled="true"]:hover{border-color:var(--line);color:var(--ink-2)}
 .xd-btn.is-pri[aria-disabled="true"]:hover{background:var(--accent-fill);border-color:var(--accent-fill);color:var(--accent-ink)}
