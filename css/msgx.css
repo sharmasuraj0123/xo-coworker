@@ -145,8 +145,7 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-you.is-new .bubble{transform-origin:100% 100%;animation:mx-send var(--d-in) var(--ease)}
 @keyframes mx-send{from{opacity:0;transform:translateY(6px) scale(.98)}}
 /* arriving: a short, small settle (180 ms, 4 px); only a message that is really new, never a redraw */
-:root[data-msgx] #msgs>.m-them.is-new{animation:mx-arrive var(--dur-base) var(--ease)}
-@keyframes mx-arrive{from{opacity:0;transform:translateY(4px)}}
+:root[data-msgx] #msgs>.m-them.is-new{animation:rise-in var(--dur-base) var(--ease)}
 @media (prefers-reduced-motion:reduce){:root[data-msgx] .m-you.is-new .bubble,:root[data-msgx] #msgs>.m-them.is-new{animation:none}}
 
 /* theirs: a round avatar and stone bubbles. Like a one-to-one chat, whoever you're mainly talking to goes

@@ -116,8 +116,8 @@ body.stage-full .stg-grip{display:none}
 .next,.next.in-next,.next.in-undo{animation:none}
 .next:not(.r-destructive){background:var(--surface);border:1px solid color-mix(in srgb,var(--accent-fill) 32%,var(--line))}
 :root[data-theme="light"] .next:not(.r-destructive){background:#fff;border-color:color-mix(in srgb,var(--accent-fill) 40%,rgba(0,0,0,.1))}
-.next.in-next{animation:in-next .42s var(--ease) both}
-.next.in-undo{animation:in-undo .4s var(--ease) both}
+.next.in-next{animation:in-next var(--d-long) var(--ease) both}
+.next.in-undo{animation:in-undo var(--d-long) var(--ease) both}
 .shd-dot.d-wait{animation:none}
 
 /* ── the worst three ─────────────────────────────────────────────────────────────────────────────── */

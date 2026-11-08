@@ -2068,7 +2068,7 @@ function lift(el, from) {
   const b = el && el.querySelector(".bubble");
   if (!b || !from || RM.matches) return;
   const to = b.getBoundingClientRect();
-  b.animate([{ transform: `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(.98)`, opacity: 0.55 }, { transform: "none", opacity: 1 }], { duration: 320, easing: "cubic-bezier(.2,.9,.25,1.06)" });
+  b.animate([{ transform: `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(.98)`, opacity: 0.55 }, { transform: "none", opacity: 1 }], { duration: 320, easing: "cubic-bezier(.2,.8,.2,1)" });
 }
 
 /** Why sending is paused right now, or "" (classic composerBlock, in plain words). */

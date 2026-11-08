@@ -102,4 +102,23 @@ t("the palette lives in tokens.css alone", () => {
   assert.deepEqual(all, [], `palette defined outside tokens.css:\n    ${all.slice(0, 8).join("\n    ")}`);
 });
 
+// Motion: every transition and animation reads the motion tokens. A literal under a second (a hover, a press,
+// an arrival) is off the scale; ambient loops of a second or more keep their period. The keyword curves
+// (ease, ease-in, ease-out, ease-in-out) are a second motion system; linear stays for progress and spin.
+t("motion timings come from the tokens", () => {
+  const bad = D.filter((d) => /^(?:transition|animation)(?:-duration|-delay|-timing-function)?$/.test(d.prop) &&
+    ([...d.value.matchAll(/(?:^|[\s,(])(\d*\.?\d+)(ms|s)\b/g)].some((m) => { const ms = m[2] === "s" ? +m[1] * 1000 : +m[1]; return ms > 0.02 && ms < 1000; }) ||
+     /(?:^|[\s,])ease(?:-in|-out|-in-out)?(?=[\s,]|$)/.test(d.value)));
+  assert.equal(bad.length, 0, `literal timings:\n    ${where((d) => bad.includes(d))}`);
+});
+
+// A curve set from script escapes the stylesheet's budget: the scripts may name only the two curves.
+t("scripts use the one curve and the loop curve", () => {
+  const JS = new URL("../js/", import.meta.url);
+  const curves = new Set();
+  for (const f of readdirSync(JS).filter((n) => n.endsWith(".js"))) for (const m of readFileSync(new URL(f, JS), "utf8").matchAll(/cubic-bezier\(([^)]*)\)/g)) curves.add(m[1].replace(/\s/g, ""));
+  const odd = [...curves].filter((c) => c !== ".2,.8,.2,1" && c !== ".45,0,.55,1");
+  assert.deepEqual(odd, [], `curves in js/: ${odd.join(" | ")}`);
+});
+
 console.log(`\n${passed} passed`);

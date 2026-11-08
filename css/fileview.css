@@ -38,12 +38,12 @@ body.chat-docked .fv-h{padding:0 4px 0 16px}
    only the room the name leaves (a basis of 0, growing up to its own width), so the name is cut only when it
    alone doesn't fit; shrinking both, the name lost a fraction of a pixel and showed "xo-cowork…" */
 .fv-h .fv-s{flex:1 1 0;min-width:0;max-width:max-content;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.fv-tip{position:absolute;top:calc(100% + 8px);left:0;z-index:30;display:flex;flex-direction:column;gap:2px;min-width:208px;padding:10px 12px;border-radius:var(--r-lg);background:var(--surface);box-shadow:var(--e2),inset 0 0 0 1px var(--line-strong);font:500 var(--fs-base)/20px var(--sans);color:var(--ink);text-align:left;white-space:nowrap;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .12s var(--ease),visibility 0s linear .12s}
+.fv-tip{position:absolute;top:calc(100% + 8px);left:0;z-index:30;display:flex;flex-direction:column;gap:2px;min-width:208px;padding:10px 12px;border-radius:var(--r-lg);background:var(--surface);box-shadow:var(--e2),inset 0 0 0 1px var(--line-strong);font:500 var(--fs-base)/20px var(--sans);color:var(--ink);text-align:left;white-space:nowrap;pointer-events:none;opacity:0;visibility:hidden;transition:opacity var(--dur-fast) var(--ease),visibility 0s linear var(--dur-fast)}
 :root[data-theme="light"] .fv-tip{background:var(--surface);box-shadow:var(--e2),inset 0 0 0 1px var(--panel-line)}
 .fv-tip-t{display:flex;align-items:center;justify-content:space-between;gap:24px}
 .fv-tip kbd{font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
 .fv-tip-s{font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
-.fv-ret:hover .fv-tip{opacity:1;visibility:visible;transition-delay:.4s,.4s}
+.fv-ret:hover .fv-tip{opacity:1;visibility:visible;transition-delay:var(--d-long),var(--d-long)}
 .fv-ret:focus-visible .fv-tip{opacity:1;visibility:visible;transition-delay:0s,0s}
 @media (hover:none){.fv-tip{display:none}}
 
@@ -112,7 +112,7 @@ body.fv-min .fv{visibility:hidden;pointer-events:none;right:var(--cw)}
 
 /* the chat, folded: the column slides out on transform (it keeps its width, nothing in it reflows, its scroll
    stays), inert; the file widens once it's out (chat-railed). Opening: the file narrows, the column slides in */
-body.chat-docked :is(.conv,.dock){transition:transform .2s var(--ease)}
+body.chat-docked :is(.conv,.dock){transition:transform var(--dur-base) var(--ease)}
 body.chat-docked.chat-min :is(.conv,.dock){transform:translateX(100%);pointer-events:none}
 body.chat-docked.chat-railed :is(.conv,.dock){visibility:hidden}
 body.chat-docked.chat-railed .fv{right:44px}
@@ -161,9 +161,9 @@ body.chat-docked.chat-over .conv{background:var(--canvas)}
   :root:root body.chat-sheet .conv>.top{display:none}
   :root:root body.chat-sheet .fv .fl-bar{display:none} /* the head's ◧ swaps the list in and out */
   :root:root body.chat-sheet .thead .rn-strip{display:none}
-  :root:root body.chat-sheet :is(.conv,.dock){z-index:8;transition:transform .24s var(--ease),visibility 0s linear .24s}
+  :root:root body.chat-sheet :is(.conv,.dock){z-index:8;transition:transform var(--d-sheet) var(--ease),visibility 0s linear var(--d-sheet)}
   :root:root body.chat-sheet:not(.sheet-up) :is(.conv,.dock){transform:translateY(100%);visibility:hidden;pointer-events:none}
-  :root:root body.chat-sheet.sheet-up :is(.conv,.dock){transition:transform .24s var(--ease)}
+  :root:root body.chat-sheet.sheet-up :is(.conv,.dock){transition:transform var(--d-sheet) var(--ease)}
   :root:root body.chat-sheet .app .conv{top:30%;border-radius:var(--r-2xl) var(--r-2xl) 0 0;background:var(--canvas);box-shadow:var(--e2),inset 0 1px 0 var(--line-soft)}
   :root:root body.chat-sheet .dock{z-index:9}
   /* its head: a grabber over the name, its state and ⌄ */

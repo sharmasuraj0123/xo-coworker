@@ -109,11 +109,11 @@ export function morph(el, mutate, { duration = 320, fade = null } = {}) {
     const a = el.animate([{ height: `${h0}px`, overflow: "hidden" }, { height: `${h1}px`, overflow: "hidden" }], { duration, easing: EASE });
     a.id = "morph";
   }
-  if (fade) fade.animate([{ opacity: 0 }, { opacity: 1 }], { duration: Math.round(duration * 0.8), easing: "ease-out", delay: Math.round(duration * 0.15), fill: "backwards" });
+  if (fade) fade.animate([{ opacity: 0 }, { opacity: 1 }], { duration: Math.round(duration * 0.8), easing: EASE, delay: Math.round(duration * 0.15), fill: "backwards" });
 }
 
 /** One easing for every size change: continuous, no front-loaded jump (a frame never moves more than ~40 px). */
-export const EASE = "cubic-bezier(.3,.6,.25,1)";
+export const EASE = "cubic-bezier(.2,.8,.2,1)"; // the one curve (css/tokens.css --ease)
 export const EXPAND_MS = 320;
 
 /**
@@ -141,13 +141,13 @@ export function expand(box, body, open, { onStep = null, frame = null } = {}) {
     const a = body.animate([{ height: `${h0}px` }, { height: `${h1}px` }], { duration: EXPAND_MS, easing: EASE });
     body.style.overflow = "hidden";
     a.onfinish = a.oncancel = () => { body.style.overflow = ""; };
-    if (inner) inner.animate([{ opacity: 0, transform: "translateY(-3px)" }, { opacity: 1, transform: "none" }], { duration: 220, delay: 60, easing: "ease-out", fill: "backwards" });
+    if (inner) inner.animate([{ opacity: 0, transform: "translateY(-3px)" }, { opacity: 1, transform: "none" }], { duration: 220, delay: 60, easing: EASE, fill: "backwards" });
   } else {
     box.classList.remove("is-open");
     if (rm || !h0) { body.hidden = true; return; }
     body._closing = true;
     body.style.overflow = "hidden";
-    if (inner) inner.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, easing: "ease-in", fill: "forwards" });
+    if (inner) inner.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, easing: EASE, fill: "forwards" });
     const a = body.animate([{ height: `${h0}px` }, { height: "0px" }], { duration: EXPAND_MS - 40, easing: EASE });
     a.onfinish = () => { if (body._closing) { body.hidden = true; body._closing = false; } body.style.overflow = ""; inner?.getAnimations?.().forEach((x) => x.cancel()); };
   }
@@ -172,7 +172,7 @@ function expandFrame(box, body, open, frame, onStep) {
   frame.style.overflow = "hidden";
   const a = frame.animate([{ height: `${h0}px` }, { height: `${h1}px` }], { duration: EXPAND_MS, easing: EASE });
   a.id = "xf";
-  if (open && inner) inner.animate([{ opacity: 0, transform: "translateY(-3px)" }, { opacity: 1, transform: "none" }], { duration: 220, delay: 60, easing: "ease-out", fill: "backwards" });
+  if (open && inner) inner.animate([{ opacity: 0, transform: "translateY(-3px)" }, { opacity: 1, transform: "none" }], { duration: 220, delay: 60, easing: EASE, fill: "backwards" });
   if (!open && inner) inner.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, fill: "forwards" });
   a.onfinish = a.oncancel = () => { frame.style.overflow = ""; if (!box.classList.contains("is-open")) body.hidden = true; inner?.getAnimations?.().forEach((x) => x.cancel()); };
   if (onStep) { const t0 = performance.now(); const f = () => { onStep(); if (performance.now() - t0 < EXPAND_MS + 40) requestAnimationFrame(f); }; requestAnimationFrame(f); }

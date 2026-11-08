@@ -104,7 +104,7 @@
   --ease-out:var(--ease);
   --dur-fast:120ms; --dur-base:180ms; --dur-slow:280ms;
   --d-hover:200ms; --d-hover-in:120ms; --d-press:60ms; --d-pop:180ms; --d-pop-out:140ms; --d-sheet:240ms;
-  --d-in:280ms; --d-move:320ms; --d-out:160ms; --d-land:600ms; --d-loop:2.4s;
+  --d-in:280ms; --d-move:320ms; --d-long:480ms; --d-out:160ms; --d-land:600ms; --d-loop:2.4s;
   --press-scale:.97;
 }
 

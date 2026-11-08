@@ -221,7 +221,7 @@ diffs-container{
 .vw-more:is(.is-done,.is-busy) span{display:inline;font:500 var(--fs-sm)/16px var(--sans)}
 .vw-more.is-done{color:var(--go)}
 .vw-more .spin{width:12px;height:12px}
-.vw-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;display:flex;flex-direction:column;min-width:176px;padding:4px;border-radius:var(--r-lg);border:1px solid var(--line-soft);background:var(--float);box-shadow:var(--e2);animation:msg-in .16s var(--ease)}
+.vw-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;display:flex;flex-direction:column;min-width:176px;padding:4px;border-radius:var(--r-lg);border:1px solid var(--line-soft);background:var(--float);box-shadow:var(--e2);animation:msg-in var(--d-out) var(--ease)}
 .vw-menu [role=menuitem]{display:flex;align-items:center;gap:8px;height:32px;padding:0 8px;border-radius:var(--r-sm);text-align:left;text-decoration:none;font:400 var(--fs-base)/20px var(--sans);color:var(--ink-2);white-space:nowrap}
 .vw-menu [role=menuitem]:hover,.vw-menu [role=menuitem]:focus-visible{background:var(--fill-2);color:var(--ink);outline:none}
 .vw-menu svg{flex:none;width:15px;height:15px;color:var(--ink-3)}

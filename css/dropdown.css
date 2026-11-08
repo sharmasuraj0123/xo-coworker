@@ -20,14 +20,10 @@ xo-select>option{display:none}
 
 .dd-menu{position:fixed;left:0;top:0;z-index:120;box-sizing:border-box;width:max-content;max-width:400px;padding:4px;border-radius:var(--r-lg);background:var(--float);border:1px solid var(--line-soft);box-shadow:var(--e2);overflow-y:auto;overscroll-behavior:contain;outline:none;scrollbar-width:thin;scrollbar-color:var(--line) transparent;transform-origin:50% 0}
 .dd-menu.is-up{transform-origin:50% 100%}
-.dd-menu.is-in{animation:dd-in .18s var(--ease)}
-.dd-menu.is-up.is-in{animation-name:dd-in-up}
-.dd-menu.is-out{animation:dd-out .14s ease-in forwards;pointer-events:none}
-.dd-menu.is-up.is-out{animation-name:dd-out-up}
-@keyframes dd-in{from{opacity:0;transform:translateY(-6px) scale(.985)}}
-@keyframes dd-in-up{from{opacity:0;transform:translateY(6px) scale(.985)}}
-@keyframes dd-out{to{opacity:0;transform:translateY(-4px)}}
-@keyframes dd-out-up{to{opacity:0;transform:translateY(4px)}}
+.dd-menu.is-in{animation:float-in-down var(--dur-base) var(--ease)}
+.dd-menu.is-up.is-in{animation-name:float-in}
+.dd-menu.is-out{animation:float-out-up var(--d-out) var(--ease) forwards;pointer-events:none}
+.dd-menu.is-up.is-out{animation-name:float-out}
 
 .dd-row{display:flex;align-items:baseline;gap:8px;box-sizing:border-box;height:32px;padding:6px 8px;border-radius:var(--r-sm);color:var(--ink-2);font:500 var(--fs-md)/20px var(--sans);white-space:nowrap;cursor:pointer;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .dd-row.is-cur{background:var(--fill-2);color:var(--ink)}
