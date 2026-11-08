@@ -454,12 +454,22 @@ function landed(el, parts = el ? [...el.children] : []) {
   el._sk = false;
   parts.forEach((c, i) => c && arrive(c, { delay: i * 40 }));
 }
+/**
+ * Redraw a region when its HTML changed. A control in it that had focus keeps it: the same control drawn again,
+ * found by its data-fid, else its id, else its data- hooks (the head's panel toggle, Deploy …), so a redraw as
+ * data lands never drops the keyboard to the page under someone's Enter.
+ */
 function patch(el, html) {
   if (el._h === html) return false;
   const a = document.activeElement;
-  const fid = a && el.contains(a) ? a.dataset.fid : null;
+  let sel = null;
+  if (a && a !== el && el.contains(a)) {
+    if (a.dataset.fid) sel = `[data-fid="${CSS.escape(a.dataset.fid)}"]`;
+    else if (a.id) sel = `#${CSS.escape(a.id)}`;
+    else { const d = [...a.attributes].filter((x) => x.name.startsWith("data-")); if (d.length) sel = a.tagName.toLowerCase() + d.map((x) => (x.value ? `[${x.name}="${CSS.escape(x.value)}"]` : `[${x.name}]`)).join(""); }
+  }
   el.innerHTML = html; el._h = html;
-  if (fid) el.querySelector(`[data-fid="${CSS.escape(fid)}"]`)?.focus({ preventScroll: true });
+  if (sel) el.querySelector(sel)?.focus({ preventScroll: true });
   return true;
 }
 function homeParts(needs = D.needItems()) {
