@@ -14,6 +14,7 @@
 // wide. It reads js/changes.js; "Open in Files" goes through openFile.
 
 import { esc } from "./util.js";
+import { redraw } from "./redraw.js";
 import { fileIcon } from "./fileicons.js";
 import * as DV from "./diffview.js";
 import * as K from "./keys.js";
@@ -96,7 +97,8 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
   const dropImg = () => { if (D.img) { D.img.drop(); D.img = null; } im.hidden = true; im.replaceChildren(); };
   let H = { list: "", ph: "", pill: "", none: "" };
 
-  const set = (k, node, html) => { if (H[k] !== html) { node.innerHTML = html; H[k] = html; } };
+  // drawn in place (js/redraw.js): the row or button you're on stays itself as the list moves live
+  const set = (k, node, html) => { if (H[k] !== html) { redraw(node, html); H[k] = html; } };
   /** The picked row marked, the one before unmarked: after a redraw of the list too (its rows come unmarked). */
   function markPick(path) {
     const was = list.querySelector(".cx-r.is-on");
@@ -212,6 +214,13 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
     set("list", list, rows.map((f) => rowHtml(f, act.live)).join("") +
       (more > 0 ? `<li role="presentation"><button type="button" class="cx-more"${rows.length < files.length ? " data-cx-all" : " disabled"}>${rows.length < files.length ? `${(files.length - rows.length).toLocaleString()} more files · Show them` : `${more.toLocaleString()} more files, too many to list here`}</button></li>` : ""));
     markPick(st.sel);
+    // "Show them" pressed: it goes with the rows it reveals, so focus goes on to the first of them, where the list
+    // goes on (the Files grader: Show them replaced, focus to BODY; S041)
+    if (st.reveal) {
+      const was = st.reveal, a = document.activeElement; st.reveal = null;
+      const first = [...list.querySelectorAll("[data-cx]")].find((r) => !was.has(r.dataset.cx));
+      if (first && (!a || a === document.body || !a.isConnected || list.contains(a))) first.focus({ preventScroll: true });
+    }
     const f = files.find((x) => x.path === st.sel);
     set("ph", ph, `<span class="cx-pp" title="${esc(f.path)}">${esc(f.path)}</span>${countsHtml(f)}<span class="cx-sp"></span><button type="button" class="cx-ofi" data-cx-open title="Open in Files: the whole file, side by side" aria-label="Open in Files">${OPEN_IC}</button>`);
     pane.hidden = false;
@@ -255,7 +264,11 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
   // ── you, in the panel ────────────────────────────────────────────────────────
   host.addEventListener("click", (e) => {
     const t = e.target;
-    if (t.closest("[data-cx-all]")) { const s = changes.scope(view()); if (s) { stOf(s.key).all = true; onChange && onChange(); } return; }
+    if (t.closest("[data-cx-all]")) {
+      const s = changes.scope(view());
+      if (s) { const st = stOf(s.key); st.all = true; st.reveal = new Set([...list.querySelectorAll("[data-cx]")].map((r) => r.dataset.cx)); onChange && onChange(); }
+      return;
+    }
     const r = t.closest("[data-cx]");
     if (r) { const s = changes.scope(view()); if (!s) return; const st = stOf(s.key); st.follow = false; st.sig = changes.activity(view()).sig; st.sel = r.dataset.cx; if (st.pill === st.sel) st.pill = null; onChange && onChange(); return; }
     if (t.closest("[data-cx-show]")) {

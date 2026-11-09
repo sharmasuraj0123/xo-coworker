@@ -1988,6 +1988,36 @@ t("C092: Copy by the keyboard in the file's head: the Copied control's ring is w
   assert.equal(g.cut, 0, `the ring is whole (${JSON.stringify(g)})`);
   await done(page);
 });
+// "Show them" on a long Changes list reveals the rest and goes with them: focus goes on to the first revealed row, in
+// sight (the Files grader: 105 files, the first 100 shown; Show them by Enter, and focus fell to BODY; S041). And the
+// list is drawn in place: a live change to it keeps the row you're on.
+t("S041: Show them on a long Changes list: focus goes to the first revealed row, in sight; a live change keeps it", async () => {
+  const many = Array.from({ length: 105 }, (_, i) => ({ path: `f${String(i).padStart(3, "0")}.js`, status: "modified", additions: 1, deletions: 1, binary: false, version: `sha256:${i}`, patch: PATCH(`f${String(i).padStart(3, "0")}.js`, "one", "ONE") }));
+  const page = await app({ files: { "a.js": FILE() }, changes: many });
+  await panelOpen(page);
+  if (await page.locator('[data-ghost="changes"]').filter({ visible: true }).count()) await page.locator('[data-ghost="changes"]').filter({ visible: true }).first().click();
+  const all = page.locator("[data-cx-all]").filter({ visible: true }).first();
+  await all.waitFor({ timeout: 15000 });
+  await page.keyboard.press("Shift");
+  await all.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(400);
+  const st = await page.evaluate(() => {
+    const a = document.activeElement, r = a && a.getBoundingClientRect();
+    let sc = a && a.parentElement; for (; sc && sc !== document.body; sc = sc.parentElement) { const o = getComputedStyle(sc).overflowY; if (/(auto|scroll)/.test(o) && sc.scrollHeight > sc.clientHeight + 1) break; }
+    const v = sc && sc !== document.body ? sc.getBoundingClientRect() : { top: 0, bottom: innerHeight };
+    return { on: a && a.dataset ? a.dataset.cx || a.tagName : null, rows: document.querySelectorAll("[data-cx]").length, inSight: !!r && r.top >= v.top - 1 && r.bottom <= v.bottom + 1 };
+  });
+  assert.equal(st.rows >= 105, true, `every row shown (${st.rows})`);
+  assert.equal(st.on, "f100.js", "focus on the first revealed row");
+  assert.equal(st.inSight, true, "and it's in sight");
+  // a live change to the list: the row you're on stays itself, with focus
+  const was = await page.evaluate(() => document.activeElement);
+  await page.evaluate(() => window.__t.render());
+  await page.waitForTimeout(200);
+  assert.equal(await page.evaluate((w) => document.activeElement === w, was), true, "a redraw keeps the row you're on");
+  await done(page);
+});
 t("S126: Download refused in the Changes view says why, under the head, and keeps saying it", async () => {
   let answer;
   const page = await app({ files: { "archive.bin": FILE() }, downloadGate: new Promise((ok) => (answer = ok)), downloadFails: 1, changes: [
