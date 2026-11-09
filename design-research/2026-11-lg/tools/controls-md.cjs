@@ -29,9 +29,25 @@ let astra = {}, filesV = {}, ledgerRev = '', filesRev = '';
 let merged = false;
 try { const d = JSON.parse(fs.readFileSync(LEDGER, 'utf8')); merged = !!d.schemaVersion; ledgerRev = String(d.targetRevision || d.inventoryRevision || '').slice(0, 7); for (const r of d.rows) astra[r.opusId] = r; } catch { astra = {}; }
 try { const d = JSON.parse(fs.readFileSync(FILES_LEDGER, 'utf8')); filesRev = String(d.latestRevision || '').slice(0, 7); for (const r of d.rows) filesV[r.id] = r; } catch { filesV = {}; }
+// the controls grader's family rechecks (audit-files/recheck-<revision>/verdicts.json, RECHECK_LEDGERS to name them):
+// each newer than the merged ledger, so a row one grades takes its verdict, the newest last. A whole-row PASS closes
+// the row; a scoped PASS stays scoped; FAIL and UNVERIFIED say why, with what they found resolved
+const RECHECKS = process.env.RECHECK_LEDGERS ? process.env.RECHECK_LEDGERS.split(':') : (() => { try { return fs.readdirSync(FILES_DIR).filter((d) => /^recheck-/.test(d)).map((d) => path.join(FILES_DIR, d, 'verdicts.json')).filter((f) => fs.existsSync(f)).sort((a, b) => fs.statSync(a).mtimeMs - fs.statSync(b).mtimeMs); } catch { return []; } })();
+const recheck = {};
+for (const f of RECHECKS) { try { const d = JSON.parse(fs.readFileSync(f, 'utf8')); for (const r of d.rows || []) recheck[r.id] = { ...r, rev: String(d.revision || '').slice(0, 7) }; } catch { /* unreadable: the ledgers stand */ } }
 const RETIRED = {}; // rows a grader found retired or unreachable: kept, marked
 for (const [id, r] of Object.entries(filesV)) if (/retired|not.?applicable|n\/a|unreachable/i.test(String(r.status))) RETIRED[id] = r.reason || r.status;
+const recheckOf = (id) => {
+  const k = recheck[id];
+  const said = (x) => (Array.isArray(x) ? x.join(' ') : String(x || ''));
+  const v = k.verdict === 'PASS' && k.wholeRowAccepted ? 'PASS' : k.verdict === 'FAIL' ? 'FAIL' : k.scopedVerdict === 'PASS' ? 'PASS (scoped)' : k.verdict === 'PASS' ? 'PASS (scoped)' : 'Unverified';
+  const why = v === 'FAIL' ? said(k.cause || k.reason) : v === 'Unverified' ? (k.openFindings ? `open: ${said(k.openFindings)}` : said(k.reason)) : v === 'PASS (scoped)' ? `scope: ${said(k.reason)}` : said(k.reason);
+  const done = k.resolvedFindings && k.resolvedFindings.length ? ` Resolved: ${said(k.resolvedFindings)}` : '';
+  const mine = myNotes[id] && v !== 'PASS' ? ` · ${myNotes[id]}, awaiting Astra` : '';
+  return `Astra (controls recheck) ${v} at ${k.rev}: ${(why + done).replace(/\|/g, '/').replace(/\s+/g, ' ').slice(0, 220)}${mine}`;
+};
 const verdictOf = (id) => {
+  if (recheck[id]) return recheckOf(id);
   const r = astra[id], f = merged && r && r.verdict ? null : filesV[id];
   let v, why = '', rev = '';
   if (f) {
