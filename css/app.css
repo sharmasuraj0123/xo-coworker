@@ -2635,7 +2635,7 @@ button.dg-n:hover{border-color:var(--line-strong);color:var(--ink)}
 .dg-cur.is-new,.dg-cur.is-gone{opacity:0}
 .dg-arrow{position:absolute;left:-1.6px;top:-1.4px;overflow:visible;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.35))}
 .dg-arrow path{fill:var(--c);stroke:#fff;stroke-width:1.2;stroke-linejoin:round}
-.dg-tag{pointer-events:auto;position:absolute;left:15px;top:-2px;display:inline-flex;align-items:center;gap:6px;max-width:250px;height:22px;padding:0 8px;border-radius:var(--r-sm);background:var(--c);color:#fff;font:600 var(--fs-sm)/16px var(--sans);white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.22);cursor:pointer;transition:filter var(--dur-fast)}
+.dg-tag{pointer-events:auto;position:absolute;left:15px;top:-2px;display:inline-flex;align-items:center;gap:6px;max-width:250px;height:22px;padding:0 8px;border-radius:var(--r-sm);background:var(--c);color:var(--on-agent);font:600 var(--fs-sm)/16px var(--sans);white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.22);cursor:pointer;transition:filter var(--dur-fast)}
 .dg-tag:hover{filter:brightness(1.08)}
 .dg-tag b{min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis}
 .dg-tag span{flex:none;font-weight:400;opacity:.85}

@@ -2409,6 +2409,64 @@ t("S082 (Graph focus): a folded folder's, an open folder's and a file's dot show
   await done(page);
 });
 
+// an agent's tag on the Map shrinks with the drawing like a box (the controls grader on e55c2d8, S083: 43 × 14.8 px
+// after Fit, opened on the first tap, white on the agent's blue 3.20:1): a pointer press on it too small to press
+// surely brings the map in to it and doesn't open; pressed again, it opens the thread (the owner's Map choice, 9 Nov
+// 18:02). Its words read on its colour (4.5:1 at the least). Tree and Graph.
+t("S083 (tag): far out, a press on an agent's tag brings the map in to it and doesn't open; pressed again, it opens; its words read", async () => {
+  const dirs = Array.from({ length: 24 }, (_, i) => `folder-${String(i).padStart(2, "0")}`);
+  for (const mode of ["tree", "graph"]) {
+    const page = await app({ files: { "a.js": FILE() }, dirs, threadsBy: { chat_demo: [serverThread("lt1", "ses-lt1")] } });
+    await page.evaluate(() => window.__t.go("p:demo"));
+    await panelOpen(page);
+    if (await page.locator('[data-ghost="map"]').filter({ visible: true }).count()) await page.locator('[data-ghost="map"]').filter({ visible: true }).first().click();
+    await page.locator(`#stage-map-${mode}`).filter({ visible: true }).first().click();
+    await page.waitForFunction(() => window.__t.world.state.threads.some((x) => x.id === "lt1"), null, { timeout: 15000 });
+    // the agent starts working on a.js, as the stream says it
+    await page.evaluate(() => window.__storm.apply({ type: "session", envelope: { type: "session", session_id: "ses-lt1", chat_id: "chat_demo", thread_ts: "lt1", seq: 801, ts: new Date().toISOString(), data: { status: "running", reason: "started" } } }));
+    await feedTurn(page, { id: "lt1", sid: "ses-lt1", rows: [{ call_id: "c1", kind: "edit_file", status: "running", target: "a.js" }], running: true });
+    const tag = page.locator(".dg-cur:not(.is-stacked) [data-mp-go]").first();
+    await tag.waitFor({ state: "attached", timeout: 8000 });
+    if (mode === "graph") await graphStill(page);
+    await page.waitForTimeout(1800); // the first look settles
+    await page.locator('[data-dg="fit"]').filter({ visible: true }).first().click();
+    await page.waitForTimeout(500);
+    const was = await page.evaluate(() => window.__t.S.view);
+    const press = async () => {
+      await page.locator(".dg-cur:not(.is-stacked) .dg-arrow").first().hover(); // the tag shows on its cursor's hover
+      await page.waitForTimeout(250);
+      const b = await tag.boundingBox();
+      await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+      await page.mouse.down(); await page.mouse.up();
+      await page.waitForTimeout(600);
+      return b;
+    };
+    const b1 = await press();
+    if (b1.height < 24) {
+      assert.equal(await page.evaluate(() => window.__t.S.view), was, `${mode}: a ${b1.height.toFixed(1)} px tag doesn't open on the first press`);
+      const b2 = await tag.boundingBox();
+      assert.ok(b2.height >= 24 - 0.01, `${mode}: the map came in until the tag is pressable (${b2.height.toFixed(2)} px)`);
+      await press();
+    }
+    assert.equal(await page.evaluate(() => window.__t.S.view), "t:lt1", `${mode}: pressed when pressable, it opens the thread`);
+    await done(page);
+  }
+});
+// the tag's words on every agent colour: the token, against the palette the Map draws from
+t("S083 (tag words): an agent tag's words read on every agent colour (4.5:1 at the least)", async () => {
+  if (WIDTH < 600 || THEME !== "dark") skip("the palette and the token are the same in every cell: once");
+  const page = await app();
+  const worst = await page.evaluate(async () => {
+    const src = await (await fetch("./js/map.js")).text();
+    const pal = JSON.parse(src.match(/const PALETTE = (\[[^\]]+\]);/)[1]);
+    const ink = getComputedStyle(document.documentElement).getPropertyValue("--on-agent").trim();
+    const lum = (h) => { const n = h.replace("#", ""), c = [0, 2, 4].map((i) => parseInt(n.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+    const cr = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+    return { ink, worst: Math.min(...pal.map((c) => cr(ink, c))) };
+  });
+  assert.ok(worst.worst >= 4.5, `the tag's ink on the least of the agent colours: ${JSON.stringify(worst)}`);
+  await done(page);
+});
 t("S207: far out, a press on a Graph node brings the map in to that node, in the middle, and doesn't act; pressed again, it acts", async () => {
   const page = await bigMap();
   await page.evaluate(() => document.querySelector("#stage-map-graph").click()); // the panel's Graph tab

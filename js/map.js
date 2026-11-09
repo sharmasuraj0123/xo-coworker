@@ -1107,7 +1107,20 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     const tl = t.closest("[data-dg]");
     if (tl && tl.dataset.dg) { tool(tl.dataset.dg); return; }
     const g = t.closest("[data-mp-go]");
-    if (g) { go(g.dataset.mpGo); return; }
+    if (g) {
+      // the agent's tag shrinks with the drawing like a box: a pointer press on it too small to press surely brings
+      // the map in to it, and doesn't act; pressed again, it opens (the owner's Map choice, 9 Nov 18:02; the controls
+      // grader on e55c2d8, S083: 43 × 14.8 px, and it opened on the first tap). The keyboard acts at any size
+      const cg = camOf(M.scope), cur = g.closest(".dg-cur");
+      const m = cur && /translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(cur.style.transform);
+      if (e.detail > 0 && m && pressPx(g, cg.s) < PRESS_PX) {
+        cg.user = true; cg.follow = false; cg.fitAll = false;
+        centerOn(cg, { x: +m[1], y: +m[2] }, true, Math.min(2.4, Math.max(READABLE, cg.s, PRESS_PX / Math.max(1, g.offsetHeight))));
+        announce(`Closer to ${g.textContent.trim() || "it"}: press it again to open it.`);
+        return;
+      }
+      go(g.dataset.mpGo); return;
+    }
     const fc = t.closest("[data-mp-focus]");
     if (fc) {
       const c = camOf(M.scope), cur = M.curs.get(fc.dataset.mpFocus);
