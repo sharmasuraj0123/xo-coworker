@@ -58,16 +58,21 @@ export function radioKeys(root, { follow = true } = {}) {
 }
 
 /** The pointer and the keyboard share one active item, as a macOS menu does: a mouse moving onto a menu's usable
- *  item, while focus is in that menu, focuses it, so hover never paints a second item Enter won't choose, and the
- *  arrows carry on from it. A touch moving, or focus elsewhere, moves nothing (Astra C058 on 517af1c: two items
- *  looked active). menuKeys brings it; a menu with keys of its own calls it. */
+ *  item, while focus is in that menu (or on its open button, or nowhere), focuses it; the menus paint their active
+ *  item by :focus and never by :hover, so one item looks active, Enter chooses it, and the arrows carry on from it. A
+ *  touch moving, or focus elsewhere, moves nothing (Astra C058 on 517af1c, and on e1f8666: mouse, then ↓). menuKeys
+ *  brings it; a menu with keys of its own calls it. */
 export function pointerFollows(root, sel = ITEM) {
   root.addEventListener("pointermove", (e) => {
     if (e.pointerType && e.pointerType !== "mouse" && e.pointerType !== "pen") return;
     const it = e.target && e.target.closest ? e.target.closest(sel) : null, menu = it && it.closest('[role="menu"]');
     if (!it || !menu || !root.contains(it) || !usable(it)) return;
     const a = typeof document !== "undefined" ? document.activeElement : null;
-    if (a === it || !a || !menu.contains(a)) return;
+    if (a === it) return;
+    // focus in the menu, on what opened it (a menu opened with the mouse keeps focus on its button), or nowhere: the
+    // menu is the one being used; focus anywhere else is left where it is
+    const opener = !!a && a.getAttribute && a.getAttribute("aria-haspopup") === "menu" && a.getAttribute("aria-expanded") === "true";
+    if (a && a.tagName !== "BODY" && !menu.contains(a) && !opener) return;
     it.focus({ preventScroll: true });
   });
 }

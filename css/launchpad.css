@@ -196,7 +196,9 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .lp-mw{position:relative;margin-left:auto}
 .lp-mn{position:absolute;z-index:3;right:0;bottom:calc(100% + 4px);display:flex;flex-direction:column;min-width:200px;padding:4px;border-radius:var(--r-lg);background:var(--float);box-shadow:inset 0 0 0 1px var(--panel-line),var(--e2);transform-origin:100% 100%;animation:float-in var(--d-pop) var(--ease)}
 .lp-mn button{height:var(--h-ctl);padding:0 8px;border-radius:var(--r);text-align:left;font:500 var(--fs-base)/20px var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.lp-mn button:is(:hover,:focus-visible){background:var(--panel-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
+/* one active item: the focused one, whichever hand moved it (the mouse moves focus: keynav.js pointerFollows); :hover
+   never paints a second (Astra on e1f8666: mouse onto an item, then ↓, left two looking active) */
+.lp-mn button:focus{background:var(--panel-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
 .lp-mn button:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 
 /* not ready: what's missing */

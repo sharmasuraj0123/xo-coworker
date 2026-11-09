@@ -166,6 +166,10 @@ t("pointerFollows: a mouse moving onto a menu's item, while focus is in that men
   const out = new El("input", {}); doc.activeElement = out;
   move(root, a);
   assert.equal(doc.activeElement, out, "focus elsewhere (not in the menu) stays where it is");
+  // a menu opened with the mouse keeps focus on its button: the item under the pointer takes it
+  const opener = new El("button", { "aria-haspopup": "menu", "aria-expanded": "true" }); doc.activeElement = opener;
+  move(root, a);
+  assert.equal(doc.activeElement, a, "from the menu's open button, the pointed-at item takes focus");
 });
 t("menuKeys brings pointerFollows with it: every menu that walks with the keys follows the pointer", () => {
   const a = new El("button", { role: "menuitem" }, [], "One"), b = new El("button", { role: "menuitem" }, [], "Two");

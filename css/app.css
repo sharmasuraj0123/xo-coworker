@@ -1771,7 +1771,9 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 .tw-more{width:var(--h-ctl);padding:0;justify-content:center}
 .tw-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:var(--z-panel);display:flex;flex-direction:column;min-width:180px;padding:6px;border-radius:var(--r-lg);border:1px solid var(--line-soft);background:var(--float);box-shadow:var(--e2);animation:msg-in var(--d-out) var(--ease)}
 .tw-menu button{height:36px;padding:0 10px;border-radius:var(--r-sm);text-align:left;font-size:var(--fs-base);color:var(--ink-2)}
-.tw-menu button:hover,.tw-menu button:focus-visible{background:var(--fill-2);color:var(--ink)}
+/* one active item: the focused one, whichever hand moved it (the mouse moves focus: keynav.js pointerFollows); :hover
+   never paints a second (Astra on e1f8666: mouse onto an item, then ↓, left two looking active) */
+.tw-menu button:focus{background:var(--fill-2);color:var(--ink)}
 .tw-in{flex:1;min-width:0;height:34px;padding:0 10px;border-radius:var(--r-sm);border:1px solid var(--line-strong);background:var(--surface);font:600 var(--fs-2xl)/28px var(--sans);color:var(--ink)}
 .tw-in-l{flex:0 1 200px;font:500 var(--fs-base)/20px var(--sans)}
 .tw-in:focus{outline:2px solid var(--focus);outline-offset:1px}
