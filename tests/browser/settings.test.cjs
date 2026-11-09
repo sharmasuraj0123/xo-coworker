@@ -72,6 +72,8 @@ function settingsApi(W) {
     const write = async (kind, body = null) => {
       W.writes.push({ kind, path: p, body, query: u.search });
       if (W.delay) await wait(W.delay);
+      // W.gates[kind]: each write of that kind waits for the next promise in the list (held until the case lets go)
+      if (W.gates && W.gates[kind] && W.gates[kind].length) await W.gates[kind].shift();
       const f = W.fail[kind];
       if (f && f.length) { const e = f.shift(); if (e) { await json(e.body, e.status); return true; } }
       return null;
@@ -815,6 +817,42 @@ t("S098 a refused preference keeps what was typed, with the reason under it", as
   await page.waitForFunction(() => document.querySelector(".rt-saved:not(.is-saving)"));
   assert.equal(page.W.policy.preferences, "Keep this unsaved preference after an error.");
   assert.equal(await page.locator("#rtd-pref").inputValue(), "Keep this unsaved preference after an error.");
+  await done(page);
+});
+t("S098 a newer preference typed while one saves: Saved only beside what XO holds; the newer one saves in its turn", async (ctx) => {
+  // the create-project/Launchpad grader on 9d1f71b: A saving, B typed, Runtimes left and opened again, A lands:
+  // "Saved" stood beside B while XO held A
+  const W = world();
+  const rel = [];
+  W.gates = { policy: [0, 1].map(() => new Promise((ok) => rel.push(ok))) };
+  const page = await open(W, ctx);
+  await settings(page, "runtimes");
+  await page.waitForSelector("#rtd-pref");
+  const pref = page.locator("#rtd-pref");
+  await pref.click();
+  await page.keyboard.press("ControlOrMeta+a");
+  await page.keyboard.type("Preference A");
+  await page.keyboard.press("Tab"); // A goes, and is held
+  await page.waitForSelector(".rt-saved.is-saving");
+  await pref.focus();
+  await page.keyboard.press("ControlOrMeta+a");
+  await page.keyboard.type("Preference B");
+  // Runtimes left, and opened again
+  await page.locator('[data-set="keys"]').filter({ visible: true }).first().click();
+  await page.waitForSelector('[data-page="keys"]:not([hidden])');
+  await page.locator('[data-set="runtimes"]').filter({ visible: true }).first().click();
+  await page.waitForSelector("#rtd-pref");
+  assert.equal(await pref.inputValue(), "Preference B", "B is kept");
+  rel[0](); // A lands
+  await page.waitForTimeout(400); // A's answer arrives and is drawn
+  assert.equal(page.W.policy.preferences, "Preference A", "XO holds A");
+  const mid = await page.evaluate(() => [...document.querySelectorAll(".rt-saved")].map((x) => x.textContent));
+  assert.ok(!mid.includes("Saved"), `no "Saved" beside B while XO holds A (${JSON.stringify(mid)})`);
+  assert.equal(page.W.writes.filter((w) => w.kind === "policy").length, 2, "B goes in its turn, once A has landed (it was left while A was out)");
+  rel[1](); // B lands
+  await page.waitForFunction(() => [...document.querySelectorAll(".rt-saved")].some((x) => x.textContent === "Saved"));
+  assert.equal(page.W.policy.preferences, "Preference B", "XO holds B");
+  assert.equal(await pref.inputValue(), "Preference B", "and the field shows it: Saved is true");
   await done(page);
 });
 
