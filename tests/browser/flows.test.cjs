@@ -690,7 +690,7 @@ t("S208 (zoom): Follow keeps the zoom you chose through live updates, and Follow
   }, ++seq);
   const world = () => page.evaluate(() => document.querySelector(".dg-world").style.transform);
   for (const mode of ["tree", "graph"]) {
-    await page.evaluate((m) => document.querySelector(`#stage-map-${m}`).click(), mode);
+    await page.locator(`#stage-map-${mode}`).filter({ visible: true }).first().click(); // the panel's tab, by the pointer: focus goes to it
     await page.locator(`.dg-world.k-${mode} [data-node]`).first().waitFor();
     if (mode === "graph") await graphStill(page);
     await page.waitForTimeout(1800); // the first look settles
@@ -1122,8 +1122,8 @@ t("C072-C074: a frame's head under Launchpad, focused, stays focused as a live a
   await head.focus();
   const was = await head.elementHandle();
   for (const i of [1, 2, 3, 4]) {
-    // agent i starts working, as the stream says it (a thread frame), and works on a file
-    await page.evaluate((i) => { const ts = new Date().toISOString(); window.__storm.apply({ type: "thread", envelope: { type: "thread", chat_id: "chat_demo", thread_ts: `lt${i}`, seq: 700 + i, ts, data: { ts: `lt${i}`, chat_id: "chat_demo", state: "working", updated_at: ts } } }); }, i);
+    // agent i starts working, as the stream says it (its session running), and works on a file
+    await page.evaluate((i) => window.__storm.apply({ type: "session", envelope: { type: "session", session_id: `ses-lt${i}`, chat_id: "chat_demo", thread_ts: `lt${i}`, seq: 700 + i, ts: new Date().toISOString(), data: { status: "running", reason: "started" } } }), i);
     await feedTurn(page, { id: `lt${i}`, sid: `ses-lt${i}`, rows: [{ call_id: `c${i}`, kind: "edit_file", status: "ok", target: "a.js" }], running: true });
     await page.waitForTimeout(250);
     const st = await page.evaluate((b) => ({ same: document.activeElement === b, connected: b.isConnected, tag: document.activeElement.tagName, label: b.getAttribute("aria-label") }), was);
