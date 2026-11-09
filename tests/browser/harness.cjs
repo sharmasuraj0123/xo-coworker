@@ -170,6 +170,7 @@ function mockApi(W) {
     }
     if ((k = /^\/api\/chat\/sessions\/([^/]+)\/runs$/.exec(p))) {
       const sid = decodeURIComponent(k[1]);
+      W.runsReads = (W.runsReads || 0) + 1; // how many times a list was asked for
       if (W.runsGate && W.runsGate[sid]) await W.runsGate[sid];
       if (W.runsFail && W.runsFail[sid]) return json({ detail: { code: "unavailable", message: "Fixture offline" } }, 503);
       return json((W.runs && W.runs[sid]) || { runs: [], counts: {} });

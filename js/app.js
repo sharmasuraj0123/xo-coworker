@@ -1398,7 +1398,14 @@ async function openRuns(t, runId = null) {
   runsRender();
   await readRunsList(t.sessionId, my);
   if (!RS.open || RS.session !== t.sessionId || RS.opening !== my) return;
-  if (runId) openRun(runId); else { runsRender(); runsCard.querySelector(".rn-open, [data-close]")?.focus(); }
+  if (runId) openRun(runId); else { runsRender(); runsLand()?.focus(); }
+}
+/** Where focus lands in Runs once its list is drawn: Try again after a refusal, else the first run, else Close, in
+ *  that order. (One comma selector matches in document order, and Close comes first in it: after a second refused
+ *  read focus went to × instead of staying on Try again: Astra S238.) */
+function runsLand(...first) {
+  const order = [...first, RS.listState === "error" ? "[data-runs-retry]" : null, ".rn-open", "[data-runs-retry]", "[data-close]"];
+  return order.filter(Boolean).map((sel) => runsCard.querySelector(sel)).find(usableEl) || null;
 }
 /** The list for one thread, for one opening; an answer for a thread, or an opening, that isn't the one open any
  *  more is dropped (Astra: a late list for A showed under B; and under A opened again). true when it landed. */
@@ -1522,10 +1529,10 @@ runsEl.addEventListener("click", (e) => {
     if (job) { job.cancelled = true; pendingStops.splice(pendingStops.indexOf(job), 1); stopsHerald(); announce(`Not stopped. ${job.what} keeps working.`); }
     const back = job && job.key.startsWith("run:") ? `[data-run-stop="${CSS.escape(job.key.slice(4))}"]` : "[data-runs-stop]";
     runsRender();
-    (runsCard.querySelector(back) || runsCard.querySelector(".rn-open, [data-close]"))?.focus({ preventScroll: true });
+    runsLand(back)?.focus({ preventScroll: true });
     return;
   }
-  if (e.target.closest("[data-runs-retry]")) { const sid = RS.session, my = ++RS.opening; RS.listState = "loading"; runsRender(); readRunsList(sid, my).then((landed) => { if (!landed) return; runsRender(); runsCard.querySelector(".rn-open, [data-runs-retry], [data-close]")?.focus({ preventScroll: true }); }); return; }
+  if (e.target.closest("[data-runs-retry]")) { const sid = RS.session, my = ++RS.opening; RS.listState = "loading"; runsRender(); readRunsList(sid, my).then((landed) => { if (!landed) return; runsRender(); runsLand()?.focus({ preventScroll: true }); }); return; }
   const op = e.target.closest("[data-run]");
   if (op) openRun(op.dataset.run);
 });

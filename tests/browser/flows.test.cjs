@@ -2197,6 +2197,33 @@ t("Runs: a failed read says so, with Try again", async () => {
   await page.waitForFunction(() => /Alpha's helper/.test(document.querySelector("#runs").innerText));
   await done(page);
 });
+t("S238: Runs read once, then refused twice: Try again keeps focus; once it reads, focus goes to the first run", async () => {
+  const W = { runs: { "ses-a": { runs: [run("ra", "Alpha's helper")], counts: { running: 1 } } } };
+  const page = await app(W);
+  await page.evaluate(() => window.__t.openRuns({ sessionId: "ses-a", title: "Thread A" }));
+  await page.waitForFunction(() => /Alpha's helper/.test(document.querySelector("#runs")?.innerText || ""));
+  assert.match(await active(page), /rn-open/, "opened and read: on the first run");
+  await page.keyboard.press("Escape");
+  await page.waitForFunction(() => document.querySelector("#runs").hidden);
+  // opened again, its list refused: the rows from before stay, with the refusal and Try again above them
+  W.runsFail = { "ses-a": true };
+  await page.evaluate(() => window.__t.openRuns({ sessionId: "ses-a", title: "Thread A" }));
+  await page.locator("#runs [data-runs-retry]").waitFor();
+  await page.waitForFunction(() => document.activeElement?.hasAttribute("data-runs-retry"), null, { timeout: 3000 });
+  // Try again, refused again: focus stays on Try again (Astra S238: it went to the sheet's ×)
+  const asked = W.runsReads;
+  await page.keyboard.press("Enter");
+  for (let i = 0; i < 50 && W.runsReads === asked; i++) await page.waitForTimeout(100);
+  assert.equal(W.runsReads, asked + 1, "read again");
+  await page.waitForFunction(() => /Couldn't read its sub-agents again/.test(document.querySelector("#runs").innerText) && document.querySelector("#runs [data-runs-retry]"), null, { timeout: 5000 });
+  await page.waitForTimeout(300); // its answer drawn
+  assert.match(await active(page), /data-runs-retry/, "refused again: still on Try again");
+  // and once it reads: on the first run
+  W.runsFail = null;
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.activeElement?.classList.contains("rn-open"), null, { timeout: 5000 });
+  await done(page);
+});
 t("Runs: Stop's Undo is in the sheet; Undo keeps it running and focus goes back to Stop; a second Stop adds nothing", async () => {
   const W = { runs: { "ses-a": { runs: [run("ra", "Alpha's helper")], counts: { running: 1 } } } };
   const page = await app(W);
