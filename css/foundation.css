@@ -177,6 +177,7 @@ body.stage-full .stg-grip{display:none}
 
 /* a resize grip the keyboard is on shows the one ring round its grab area, as every control shows focus: its 1 px line
    brightening was the only cue, 1.5–2.5:1 (the controls grader on 9d1f71b, C034 Files' divider, C035 the chat's; the
-   panel's grip is the same kind). Files' divider is a 1 px line with a 9 px grab area drawn after it: the ring is there */
-:is(.fv-cgrip,.stg-grip):focus-visible{outline:2px solid var(--focus);outline-offset:-2px;border-radius:3px}
+   panel's grip is the same kind). Files' divider is a 1 px line with a 9 px grab area drawn after it: the ring is there.
+   Each as specific as the rule that takes its outline away (body.chat-docked .fv-cgrip{outline:none} outweighed it) */
+body.chat-docked .fv-cgrip:focus-visible,.stg-grip:focus-visible{outline:2px solid var(--focus);outline-offset:-2px;border-radius:3px}
 .fv .fl.is-wide .fl-split:focus-visible::after{box-shadow:inset 0 0 0 2px var(--focus);border-radius:3px}

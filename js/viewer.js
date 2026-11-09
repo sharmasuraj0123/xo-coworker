@@ -971,8 +971,16 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     // before the server answers (the controls grader on dfe1491: "Told the agent." while it still said Sending)
     if (e.target.closest("[data-vw-tell]")) { const s = saved; if (!s || !edits.tell(V.file, s)) return; const back = focusHere(); saved = null; toastPaint(); if (back) headFocus(); return; }
     // the notice goes with its ×: focus goes to the file's head, not the page (Astra S138)
-    // (focus goes on before the notice goes: the editor takes it a frame late, and in between it fell to the page)
-    if (e.target.closest("[data-vw-toastx]")) { const back = focusHere(); saved = null; if (back) headFocus(); toastPaint(); return; }
+    // focus goes on before the notice goes; the editor takes it a frame or two late (its document arriving), so the
+    // notice waits for it (in between, focus fell to the page: S138 Created)
+    if (e.target.closest("[data-vw-toastx]")) {
+      const back = focusHere(), was = saved;
+      const go = () => { if (saved === was) { saved = null; toastPaint(); } };
+      if (!back) { go(); return; }
+      const to = headFocus(false);
+      if (to === ED.ed) { Promise.resolve(ED.ed.focus({ preventScroll: true })).then(go, go); return; }
+      to.focus({ preventScroll: true }); go(); return;
+    }
     // a change that failed to read: read it again; focus waits on the diff's body, where the change appears
     if (e.target.closest("[data-vw-diff-retry]")) { const c = chg(); if (!c) return; diffBody().focus({ preventScroll: true }); drawDiff(c, { again: true }); return; }
     // the renderer's Try again goes as the file draws: focus waits on the file's body, where the file appears (S139)

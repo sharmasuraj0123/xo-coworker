@@ -20,6 +20,10 @@ t("headFocus: the editor while editing; Edit where it shows; the head's first sh
   assert.ok(/getClientRects\(\)\.length && !x\.closest\("\[inert\]"\)/.test(b), "a control that shows, and can take focus");
 });
 t("the Created notice's Close hands focus there", () => {
-  assert.ok(/if \(e\.target\.closest\("\[data-vw-toastx\]"\)\) \{ const back = focusHere\(\); saved = null; if \(back\) headFocus\(\); toastPaint\(\); return; \}/.test(src), "focus goes on before the notice goes");
+  const i = src.indexOf('if (e.target.closest("[data-vw-toastx]")) {'), h = src.slice(i, i + 600);
+  assert.ok(i > 0, "the Close handler");
+  assert.ok(/const to = headFocus\(false\);/.test(h), "where focus goes, from headFocus");
+  assert.ok(/if \(to === ED\.ed\) \{ Promise\.resolve\(ED\.ed\.focus\(\{ preventScroll: true \}\)\)\.then\(go, go\); return; \}/.test(h), "the notice waits for the editor to have focus");
+  assert.ok(/to\.focus\(\{ preventScroll: true \}\); go\(\);/.test(h), "else focus first, then the notice goes");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

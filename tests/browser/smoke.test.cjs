@@ -52,10 +52,12 @@ const steps = [
     await page.evaluate(() => window.__t.go("p:demo"));
     await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "note.md", path: "note.md", name: "note.md" }));
     await page.waitForFunction(() => document.body.classList.contains("chat-docked") || document.body.classList.contains("chat-sheet"), null, { timeout: 8000 });
-    await page.keyboard.press("ControlOrMeta+j");
-    await page.waitForTimeout(400);
-    await page.keyboard.press("ControlOrMeta+j");
-    await page.waitForTimeout(400);
+    // fold and unfold from however it starts (a desktop's chat starts open beside the file, a phone's sheet folded),
+    // and end with it open, to type in
+    const open = () => page.evaluate(() => { const c = document.body.classList; return c.contains("chat-sheet") ? c.contains("sheet-up") : !c.contains("chat-min"); });
+    const flip = async () => { const was = await open(); await page.keyboard.press("ControlOrMeta+j"); await page.waitForFunction((was) => { const c = document.body.classList; return (c.contains("chat-sheet") ? c.contains("sheet-up") : !c.contains("chat-min")) !== was; }, was); };
+    await flip(); await flip();
+    if (!(await open())) await flip();
     await typeAndSend(page, "smoke: beside a file");
   }],
   ["a phone: a file from the panel, Back to chat, and type", async (page) => {

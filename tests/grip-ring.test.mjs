@@ -15,7 +15,9 @@ t("every focusable separator has the ring on its grab area", () => {
   const grips = [...src.matchAll(/class="([\w-]+)" role="separator"[^>]*tabindex="0"/g)].map((m) => m[1]).sort();
   assert.deepEqual(grips, ["fl-split", "fr-gut", "fv-cgrip", "stg-grip"], "the grips the templates make");
   assert.ok(/\.stage \.fr-gut:focus-visible\{outline:2px solid var\(--focus\)/.test(css), "the panel's frames' gutter: its ring already");
-  assert.ok(/:is\(\.fv-cgrip,\.stg-grip\):focus-visible\{outline:2px solid var\(--focus\);outline-offset:-2px;border-radius:3px\}/.test(css), "the chat's grip and the panel's: on themselves");
+  assert.ok(/body\.chat-docked \.fv-cgrip:focus-visible,\.stg-grip:focus-visible\{outline:2px solid var\(--focus\);outline-offset:-2px;border-radius:3px\}/.test(css), "the chat's grip and the panel's: on themselves");
+  // as specific as the rules that take their outline away (the browser pass found body.chat-docked .fv-cgrip's won)
+  assert.ok(/body\.chat-docked \.fv-cgrip\{[^}]*outline:none/.test(css) && /\.stg-grip\{[^}]*outline:none/.test(css), "the rules it must outweigh");
   assert.ok(/\.fv \.fl\.is-wide \.fl-split:focus-visible::after\{box-shadow:inset 0 0 0 2px var\(--focus\);border-radius:3px\}/.test(css), "Files' divider: on its 9 px grab area");
   assert.ok(/\.fv \.fl\.is-wide \.fl-split::after\{content:"";position:absolute;top:0;bottom:0;left:-4px;width:9px\}/.test(css), "which is there, 9 px wide");
 });
