@@ -154,7 +154,7 @@ diffs-container{
 /* Changes | File is words, not icons: it never folds to 28 px icon squares or hides in a narrow pane (the
    rules for Preview · Source), and on a phone it stays inside its 40 px head (Astra F2) */
 .vw-seg.is-words{flex:none}
-.vw-seg.is-words button{width:auto;min-height:0;height:22px;padding:0 8px}
+.vw-seg.is-words button{width:auto;height:26px;padding:0 8px} /* the segment's 26 (36 on a phone: phone.css) */
 @container flpv (max-width:520px){.vw-seg.is-words button{width:auto;padding:0 8px}}
 @container flpv (max-width:360px){.vw-seg.is-words{display:flex}.vw-seg.is-words button{padding:0 6px}}
 

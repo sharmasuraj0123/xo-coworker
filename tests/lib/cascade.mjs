@@ -168,3 +168,80 @@ export function losers(root) {
   }
   return out;
 }
+
+
+// ── sizes and targets under a modifier or a context (Astra on 0689984: .vw-seg.is-words button kept 22 px on a phone,
+// over phone.css's .vw-seg button at 36): a rule that styles a subset of a phone rule's elements (the same chain
+// with more on a compound, or more context before it) and makes a size or target smaller there undoes the phone's
+// floor for them, unless a phone rule answers it for that subset ──
+/** a selector as its compounds, right to left: [{simple: Set, comb}] (comb: the combinator before this compound) */
+export function chain(sel) {
+  const out = []; let cur = "", depth = 0, comb = " ";
+  const push = (c) => { if (cur.trim()) out.push({ simple: simples(cur.trim()), comb }); cur = ""; comb = c; };
+  for (const ch of sel) {
+    if (ch === "(" || ch === "[") depth++;
+    if (ch === ")" || ch === "]") depth--;
+    if (!depth && (ch === " " || ch === ">" || ch === "+" || ch === "~")) { if (cur.trim()) push(ch); else if (ch !== " ") comb = ch; continue; }
+    cur += ch;
+  }
+  push(" ");
+  return out.reverse();
+}
+function simples(c) {
+  const out = new Set(); let m;
+  const re = /(\.[\w-]+|#[\w-]+|\[[^\]]*\]|::?[\w-]+(?:\((?:[^()]|\([^()]*\))*\))?|^[a-zA-Z*][\w-]*)/g;
+  while ((m = re.exec(c))) out.add(m[1]);
+  return out;
+}
+/** X styles every element B styles: X's compounds, right-aligned, are each within B's (X may have less context) */
+export function covers(x, b) {
+  const X = chain(x), B = chain(b);
+  if (X.length > B.length) return false;
+  for (let i = 0; i < X.length; i++) {
+    for (const s of X[i].simple) if (s !== "*" && !B[i].simple.has(s)) return false;
+    if (i < X.length - 1 && X[i].comb === ">" && B[i].comb !== ">") return false;
+  }
+  return true;
+}
+const SIZE = /^(width|height|min-width|min-height)$/;
+/** a length in px, from px, a token, or a calc of them; null when it isn't one */
+export function px(v, tokens) {
+  const t = String(v).trim().replace(/var\((--[\w-]+)\)/g, (_, k) => (k in tokens ? `${tokens[k]}px` : "NaN"));
+  if (/^\d+(\.\d+)?px$/.test(t)) return parseFloat(t);
+  const c = /^calc\((.+)\)$/.exec(t);
+  if (c && /^[\d.\spx+\-]+$/.test(c[1])) { try { return Function(`return (${c[1].replace(/px/g, "")})`)(); } catch { return null; } }
+  if (t === "0") return 0;
+  return null;
+}
+/** phone sizes and targets made smaller for a subset of their elements, with no phone rule answering it */
+export function shrunk(root, tokens) {
+  const all = rules(root);
+  const live = all.map((r) => ({ r, c: context(r, 390), s: spec(r.sel), phone: isPhone(r) })).filter((x) => x.c.active);
+  const out = [];
+  for (const A of live.filter((x) => x.phone)) for (const da of decls(A.r.d).filter((d) => SIZE.test(d.p))) {
+    const want = px(da.v, tokens);
+    if (want == null) continue;
+    for (const M of live) {
+      if (M === A || M.phone || M.c.cond !== A.c.cond || !covers(A.r.sel, M.r.sel) || M.r.sel === A.r.sel) continue;
+      const dm = decls(M.r.d).find((d) => d.p === da.p);
+      if (!dm) continue;
+      // the winner for M's elements, among every rule that styles all of them (A, M, phone rules for that subset)
+      let win = null;
+      for (const X of live) {
+        if (X.c.cond !== A.c.cond || !covers(X.r.sel, M.r.sel)) continue;
+        for (const dx of decls(X.r.d)) {
+          if (dx.p !== da.p) continue;
+          if (!win || (dx.imp !== win.d.imp ? dx.imp : cmp(X.s, win.x.s) > 0 || (cmp(X.s, win.x.s) === 0 && X.r.n > win.x.r.n))) win = { x: X, d: dx };
+        }
+      }
+      if (!win || win.x.phone) continue;
+      const got = px(win.d.v, tokens);
+      // a width left to its words (auto) is as wide as they are, never under a target's floor
+      if (got == null && /^(width|min-width)$/.test(da.p) && /^(auto|max-content|fit-content)$/.test(win.d.v)) continue;
+      if (got == null || got < want) out.push({ A: A.r, da, B: win.x.r, db: win.d });
+    }
+  }
+  // one line per phone declaration and the rule that shrinks it
+  const seen = new Set();
+  return out.filter((x) => { const k = `${x.A.n}|${x.da.p}|${x.B.n}|${x.B.sel}`; if (seen.has(k)) return false; seen.add(k); return true; });
+}

@@ -6,7 +6,9 @@
 // drawer, a docked chat, a density, the light theme's own colours) is a deliberate variant, not counted. No browser.
 //   node tests/phone-cascade.test.mjs
 import assert from "node:assert/strict";
-import { lost } from "./lib/cascade.mjs";
+import { lost, shrunk } from "./lib/cascade.mjs";
+import { readFileSync } from "node:fs";
+const tokens = Object.fromEntries([...readFileSync(new URL("../css/tokens.css", import.meta.url), "utf8").matchAll(/(--[\w-]+):\s*(\d+(?:\.\d+)?)px/g)].map((m) => [m[1], +m[2]]));
 
 const L = lost(new URL("./lib/x.mjs", import.meta.url)).filter((x) => x.how === "all");
 const lines = L.map((x) => `${x.A.f} ${x.A.sel} { ${x.da.p}: ${x.da.v} }  ← ${x.B.f} ${x.B.sel} { ${x.db.p}: ${x.db.v} }`);
@@ -15,4 +17,11 @@ try {
   assert.deepEqual(lines, [], `phone declarations undone at 390:\n  ${lines.join("\n  ")}`);
   passed++; console.log("  ok  every phone declaration wins at 390 (none undone by a later or stronger rule)");
 } catch (e) { console.error("  FAIL every phone declaration wins at 390\n" + e.message); process.exitCode = 1; }
+// sizes and targets under a modifier or a context: smaller than the phone's, with no phone rule for that subset
+const S = shrunk(new URL("./lib/x.mjs", import.meta.url), tokens);
+const sl = S.map((x) => `${x.A.f} ${x.A.sel} { ${x.da.p}: ${x.da.v} }  ← ${x.B.f} ${x.B.sel} { ${x.db.p}: ${x.db.v} }`);
+try {
+  assert.deepEqual(sl, [], `phone sizes and targets made smaller under a modifier or a context at 390:\n  ${sl.join("\n  ")}`);
+  passed++; console.log("  ok  no modifier or context makes a phone size or target smaller without a phone rule for it");
+} catch (e) { console.error("  FAIL no modifier or context makes a phone size or target smaller\n" + e.message.split("\n+ actual")[0]); process.exitCode = 1; }
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

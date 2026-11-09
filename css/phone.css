@@ -216,3 +216,18 @@
   .lp-pair .lp-ib{width:var(--h-lg);height:var(--h-lg)}
   .lp-ro{padding:10px 0}
 }
+
+/* ── sizes a modifier or a context made smaller than the phone's floor, answered here for that subset
+   (tests/phone-cascade.test.mjs; Astra on 0689984: the Changes · File words kept 22 px) ── */
+@media (max-width:760px){
+  /* Changes · File: words in the 40 px segment, at the phone's 36 like Preview · Source */
+  .vw-seg.is-words button{height:36px}
+  /* a sub-agent's own Stop (its view's pill): 36 tall, a round icon */
+  .rn-st .rn-stop{height:36px;width:36px;padding:0}
+  /* a turn's rows (msgx's 28 and 32, compact density's 32) at the phone's floor */
+  :root[data-msgx] .m-turn .turn>.tb>.tb-h,
+  :root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>.tb-h,
+  [data-density="compact"] .tb-h{min-height:36px}
+  /* and the line the avatar centres on with them (compact density's 32 outranked the phone's 36) */
+  [data-density="compact"] .m-turn{--tb-line:36px}
+}
