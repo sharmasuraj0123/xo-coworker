@@ -19,7 +19,7 @@ function standIn(top, { size = 36, scrolls = true } = {}) {
   const scroller = { parentElement: doc.body, ownerDocument: doc, scrollHeight: scrolls ? 3000 : 600, clientHeight: 600, scrollWidth: 390, clientWidth: 390, getBoundingClientRect: () => box, scrollTop: 2000, scrollLeft: 0, own: false, closest: (sel) => (sel === "[data-own-scroll]" && scroller.own ? scroller : null) };
   const el = { parentElement: scroller, ownerDocument: doc, getClientRects: () => [1], getBoundingClientRect: () => ({ top, bottom: top + size, left: 16, right: 16 + Math.max(size, 1), width: Math.max(size, 1), height: size }), dispatchEvent: (ev) => calls.push(ev.detail) };
   let now = 1000;
-  const win = { innerHeight: 844, innerWidth: 390, CustomEvent: class { constructor(type, o) { this.type = type; this.detail = o.detail; } }, performance: { now: () => now }, tick: (ms) => (now += ms), requestAnimationFrame: (f) => raf.push(f), getComputedStyle: (n) => (n === scroller ? { overflowY: "auto", overflowX: "hidden" } : { overflowY: "visible", overflowX: "visible" }) };
+  const win = { innerHeight: 844, innerWidth: 390, CustomEvent: class { constructor(type, o) { this.type = type; this.detail = o.detail; } }, performance: { now: () => now }, tick: (ms) => (now += ms), requestAnimationFrame: (f) => raf.push(f), getComputedStyle: (n) => (n === scroller ? { overflowY: "auto", overflowX: "hidden" } : { overflowY: "visible", overflowX: "visible", clip: n.clip || "auto" }) };
   return { doc, win, el, scroller, calls, L, focus() { doc.activeElement = el; L.focusin({ target: el }); }, flush() { while (raf.length) raf.shift()(); } };
 }
 
@@ -46,6 +46,10 @@ t("in view, partly in view, visually hidden (1 px), or no longer focused: left a
     const P = standIn(top, o); F.keepFocusInView(P.doc, P.win); P.focus(); P.flush();
     assert.equal(P.calls.length, 0, why);
   }
+  // .sr-only on a phone: the 36 px floor makes it 1 × 36, and it's clipped: still hidden, still left
+  const S = standIn(-500); S.el.getBoundingClientRect = () => ({ top: -500, bottom: -464, left: 16, right: 17, width: 1, height: 36 }); S.el.clip = "rect(0px, 0px, 0px, 0px)";
+  F.keepFocusInView(S.doc, S.win); S.focus(); S.flush();
+  assert.equal(S.calls.length, 0, "1 × 36, clipped (a phone's .sr-only button)");
   const P = standIn(-972); F.keepFocusInView(P.doc, P.win); P.focus(); P.doc.activeElement = null; P.flush();
   assert.equal(P.calls.length, 0, "focus moved on before the check");
 });

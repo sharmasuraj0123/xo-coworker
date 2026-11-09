@@ -8,7 +8,7 @@
 //   · only the nearest scroller moves, never its ancestors (scrollIntoView also scrolls clipped boxes and a phone's
 //     sheet), and a scroller that owns its scroll (data-own-scroll: the conversation, whose reading place follow.js
 //     keeps) is left to its owner;
-//   · a 1 px or smaller control (visually hidden) is left.
+//   · a visually hidden control (.sr-only: 1 px wide, clipped) is left.
 export const outside = (r, v) => r.bottom <= v.top || r.top >= v.bottom || r.right <= v.left || r.left >= v.right;
 
 /** The nearest ancestor that scrolls (and has something to scroll), or null for none. */
@@ -26,7 +26,8 @@ export function scrollerOf(el, win = window) {
 export function bring(el, win = window) {
   if (!el || !el.getClientRects || !el.getClientRects().length) return null;
   const r = el.getBoundingClientRect();
-  if (r.width <= 1 && r.height <= 1) return null;
+  // visually hidden (.sr-only: 1 px wide and clipped; on a phone the 36 px floor makes it 1 × 36): nothing to show
+  if (r.width <= 1 || r.height <= 1 || /rect\(0(px)?,? 0(px)?,? 0(px)?,? 0(px)?\)/.test(win.getComputedStyle(el).clip || "")) return null;
   const sc = scrollerOf(el, win);
   if (!sc || (sc.closest && sc.closest("[data-own-scroll]"))) return null;
   const v = sc.getBoundingClientRect();

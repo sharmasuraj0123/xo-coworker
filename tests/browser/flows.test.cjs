@@ -872,16 +872,22 @@ t("EDITOR-exit: after Created, Tab indents; Escape then Shift+Tab, or Escape the
   await done(page);
 });
 async function window_focusEditor(page) { await page.evaluate(() => window.__ED.ed.focus()); await page.waitForTimeout(150); }
+// Settings › Keyboard, opened as a person would: the sidebar's gear on a desktop; on a phone Home's bar has it (a
+// project's page has its own head there)
+async function keysPage(page) {
+  if (WIDTH < 600) { await page.evaluate(() => window.__t.go("home")); await page.waitForTimeout(200); }
+  await page.locator(WIDTH < 600 ? "#set-phone" : "#set-side").filter({ visible: true }).first().click();
+  await page.waitForSelector("#settings:not([hidden])");
+  await page.locator('[data-set="keys"]').filter({ visible: true }).first().click();
+  await page.waitForSelector('[data-page="keys"]:not([hidden])');
+}
 // ── a key Settings takes for an Anywhere action is one the page answers (the create-project/Launchpad grader's C118 on
 // c055e74: Ctrl+Shift+J for All shortcuts was taken, stored and announced, and pressing it opened nothing). Set in
 // Settings › Keyboard by the keyboard, then pressed: on the page, and while typing in the composer.
 t("C118: Ctrl+Shift+J set for All shortcuts in Settings opens the sheet, on the page and while typing", async () => {
   const page = await app();
   await toDemo(page);
-  await page.locator(WIDTH < 600 ? "#set-phone" : "#set-side").filter({ visible: true }).first().click();
-  await page.waitForSelector("#settings:not([hidden])");
-  await page.locator('[data-set="keys"]').filter({ visible: true }).first().click();
-  await page.waitForSelector('[data-page="keys"]:not([hidden])');
+  await keysPage(page);
   const chip = page.locator('[data-rebind="keys"]');
   await chip.focus();
   await page.keyboard.press("Enter");
@@ -890,6 +896,8 @@ t("C118: Ctrl+Shift+J set for All shortcuts in Settings opens the sheet, on the 
   assert.equal(await page.evaluate(() => localStorage.getItem("cv-keys")), JSON.stringify({ keys: "mod+shift+j" }), "taken and kept");
   await page.keyboard.press("Escape"); // Settings closes
   await page.waitForSelector("#settings", { state: "hidden" });
+  await toDemo(page);
+  await page.waitForTimeout(200);
   await page.keyboard.press("ControlOrMeta+Shift+KeyJ");
   await page.waitForSelector("#keys:not([hidden])", { timeout: 3000 });
   await page.keyboard.press("Escape");
@@ -917,10 +925,7 @@ const inSight = (page) => page.evaluate(() => {
 t("S023: after Reset all (by the keyboard, from the foot of the list), the first shortcut has focus and is in sight", async () => {
   const page = await app();
   await toDemo(page);
-  await page.locator(WIDTH < 600 ? "#set-phone" : "#set-side").filter({ visible: true }).first().click();
-  await page.waitForSelector("#settings:not([hidden])");
-  await page.locator('[data-set="keys"]').filter({ visible: true }).first().click();
-  await page.waitForSelector('[data-page="keys"]:not([hidden])');
+  await keysPage(page);
   // a key changed, so there's something to reset
   await page.locator('[data-rebind="map"]').focus();
   await page.keyboard.press("Enter");
@@ -1011,8 +1016,8 @@ t("FOCUS-RULE: a Tab's and a press's focus aren't even checked; the conversation
   await page.evaluate(() => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(ok))));
   const real = await page.evaluate(() => { const b = document.getElementById("rule-box"), r = document.getElementById("rule-real").getBoundingClientRect(), v = b.getBoundingClientRect(); return { brought: window.__rule.brought, seen: r.top >= v.top - 1 && r.bottom <= v.bottom + 1 }; });
   assert.deepEqual(real, { brought: 1, seen: true }, "a real one, out of its scroller's view, is brought in");
+  await page.locator("#say").focus(); // focus moves on before the test's box goes
   await page.evaluate(() => document.getElementById("rule-box").remove());
-  await page.locator("#say").focus();
   await done(page);
 });
 // ── the phone's drawer keeps Tab inside it (the same grader: Tab past Settings landed on BODY)
