@@ -120,19 +120,20 @@ const common = (o) => ({
  *     Close keeps its small round look inside its 36 px box;
  *   · its words take the role tokens, which read on every surface: the match count and "No results" the secondary
  *     ink (they were 50% and 35% mixes, 2.6–2.9:1 and 1.9–2.0:1), the fields' placeholder the tertiary.
- * Doubled attributes outrank the bar's own rules, whichever style comes later in the shadow root.
+ * The library puts this stylesheet in its last cascade layer (unsafe), and the bar's own rules are unlayered, so they
+ * win any property both set whatever the selectors' weight (the browser pass found the count still the library's mix):
+ * those declarations are !important, the one way a layered rule outranks an unlayered one.
  */
 const FIND_CSS = `
-[data-matches][data-matches][data-matches],[data-matches][data-matches][data-no-matches]{color:var(--ink-2)}
-[data-search-grid] [data-input-box][data-input-box] input::placeholder{color:var(--ink-3);opacity:1}
+[data-matches]{color:var(--ink-2)!important}
+[data-input-box] input::placeholder{color:var(--ink-3)!important;opacity:1!important}
 @media (max-width:760px){
-  [data-search-grid] [data-input-box][data-input-box] input{min-height:36px}
-  [data-search-grid] [data-input-box][data-find] input{padding-inline-end:116px}
-  [data-search-panel] [data-search-icon][data-search-icon]{width:36px;height:36px;min-width:36px;min-height:36px}
-  [data-search-panel] [data-search-close][data-search-close]{background:transparent;top:-8px;right:-8px;transform:none;isolation:isolate}
-  [data-search-panel] [data-search-close][data-search-close]::before{content:"";position:absolute;inset:8px;z-index:-1;border-radius:50%;background:color-mix(in lab, var(--diffs-widget-fg) 50%, var(--diffs-bg))}
-  [data-search-panel] [data-search-close][data-search-close]:not(:disabled):hover{background:transparent}
-  [data-search-panel] [data-search-close][data-search-close]:not(:disabled):hover::before{background:var(--diffs-widget-fg)}
+  [data-input-box] input{min-height:36px}
+  [data-input-box][data-find] input{padding-inline-end:116px!important}
+  [data-search-panel] [data-search-icon]{width:36px!important;height:36px!important;min-width:36px;min-height:36px}
+  [data-search-panel] [data-search-close]{background:transparent!important;top:-8px!important;right:-8px!important;transform:none!important;isolation:isolate}
+  [data-search-panel] [data-search-close]::before{content:"";position:absolute;inset:8px;z-index:-1;border-radius:50%;background:color-mix(in lab, var(--diffs-widget-fg) 50%, var(--diffs-bg))}
+  [data-search-panel] [data-search-close]:not(:disabled):hover::before{background:var(--diffs-widget-fg)}
 }`;
 
 /** One file's diff out of git's patch for it (its whole `diff --git` block). */
