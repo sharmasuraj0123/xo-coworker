@@ -234,3 +234,17 @@
   /* and the line the avatar centres on with them (compact density's 32 outranked the phone's 36) */
   [data-density="compact"] .m-turn{--tb-line:36px}
 }
+
+/* ── every control at least 36 px tall on a phone: one rule (the owner's choice, 9 Nov). :where keeps it weightless,
+   so a control's own height still shapes it (a min-height outranks a height); a control's own smaller min-height is
+   answered just below; tests/phone-floor.test.mjs holds it, with its written exceptions (the Map's boxes and nodes
+   scale with its zoom; an Artifacts row is its 108 px row; the phone bar's quiet path line, put to the owner) ── */
+@media (max-width:760px){
+  :where(button,[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],[role=menuitemcheckbox],[role=switch],summary,select):where(:not(.dg-n,.gn,.dg-tag,.pj-s *,.tw-rt)){min-height:36px}
+  /* the square icon buttons stay square at the floor */
+  :where(.x,.vw-x,.vw-btn,.fr-ib,.st-x,.stg-x,.fv-ib,.xd-tx,.lbx-btn,.fchip-x,.cref-x,.side-x,.sl-x,.md-pin,.shd-tx,.mx-r-x,.lp-ib,.fl-up,.stg-ic,.fl-back,.fv-back){min-width:36px}
+  /* controls whose own min-height was smaller: Files' rows, a turn's step rows, a stop's notice with its Undo */
+  .fl-r,.tb-rh,.hr-ev.k-stopped.has-undo{min-height:36px}
+  :root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-rows>.tb-row>.tb-rh,
+  :root[data-msgx] .m-turn .turn>.tb.tb-act.is-unfolded>.tb-rows>.tb-row>.tb-rh{min-height:36px}
+}
