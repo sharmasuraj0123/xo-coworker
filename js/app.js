@@ -58,7 +58,7 @@ import { createShapeView, SHAPE_IC, UNKEPT } from "./shapeview.js";
 import { setWorkMode } from "./turnview.js";
 import { once, busyAttrs } from "./pending.js";
 import { radioKeys, menuKeys } from "./keynav.js";
-import { createHerald, noticeFor } from "./herald.js";
+import { createHerald, noticeFor, refusedNotice } from "./herald.js";
 import { regionRings } from "./ring.js";
 
 const world = createWorld();
@@ -2262,6 +2262,13 @@ function liveBlock() {
 function blockFor(dest) {
   return sendBlock(world.state, { timeline: !dest.thread, pid: dest.thread ? null : dest.pid || "workspace" });
 }
+/** A send the gate refused, before it went: said, and shown where the person is, as a message that didn't go
+ *  (js/herald.js refusedNotice). Every refused path comes here: the composer, Chats, a Retry, a file's Tell and Ask
+ *  about this (the controls grader on d79d37e, S137: the refusal was only read out; the screen didn't change). */
+function refuse(block, kept = "your words are kept") {
+  announce(`Not sent: ${block}. ${kept[0].toUpperCase()}${kept.slice(1)}.`);
+  heraldShow(refusedNotice(block, kept), 6000);
+}
 /** The line above the composer asks what the gate asks (connLine and blockFor: one rule) */
 function connDest() { const d = composerDest(); return d.thread ? { thread: true } : { pid: d.pid }; }
 /** Where the composer's draft goes, as sendLive sends it: this thread, unless it names a project; else the named
@@ -2274,7 +2281,7 @@ function composerDest() {
 
 function sendLive(raw) {
   const block = liveBlock();
-  if (block) { announce(`Not sent: ${block}. Your text is kept.`); return; }
+  if (block) { refuse(block, "your text is kept"); return; }
   const tg = targetOf(raw, world.state.projects);
   if (tg.unknown) { heraldShow({ kind: "stopped", text: `No project called “${tg.unknown}”`, sub: "pick one from the @ list" }, 4600); announce(`There's no project called ${tg.unknown}. Nothing was sent.`); return; }
   let text = stripTarget(raw, tg.token);
@@ -2366,7 +2373,9 @@ function send() {
   const fromSend = document.activeElement === $("#send");
   if (CH.isChats(S.view)) {
     const text = raw.trim();
-    if (!text || liveBlock()) return;
+    if (!text) return;
+    const block = liveBlock();
+    if (block) { refuse(block, "your text is kept"); return; }
     say.value = ""; saveDraft(); updateComposer();
     sound.play("send");
     CH.send(S.view, text);
@@ -2382,7 +2391,7 @@ function retry(id) {
     if (m) {
       // the message's own destination, never the composer's newer draft: its chat, or its thread
       const block = blockFor(m.target ? { pid: m.target } : { thread: true });
-      if (block) { announce(`Not sent: ${block}.`); return; }
+      if (block) { refuse(block, "the message stays, to retry"); return; }
       const had = !!document.activeElement?.closest?.(`[data-retry="${CSS.escape(id)}"]`);
       deliverLive(m, convThread(m.conv) && !m.target ? convThread(m.conv) : null);
       schedule();
@@ -2947,7 +2956,7 @@ function sendAbout(f, text) {
   if (!at) return false;
   // the file's own place decides (its thread, or its project's chat), never the chat or draft on screen
   const block = blockFor(at.thread ? { thread: true } : { pid: at.chat });
-  if (block) { announce(`Not sent: ${block}. Your words are kept.`); return false; }
+  if (block) { refuse(block); return false; }
   const m = { id: `l${++S.n}_${Date.now().toString(36)}`, conv: at.conv, at: Date.now(), who: "you", text, status: "sending", target: at.thread ? null : at.chat, to: at.name, cid: `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}` };
   (S.local[at.conv] = S.local[at.conv] || []).push(m);
   sound.play("send");
@@ -3113,7 +3122,12 @@ document.addEventListener("click", (e) => {
   const chc = t.closest("[data-chc]");
   if (chc) { const had = chc.contains(document.activeElement); CH.resolveConfirm(S.view, chc.dataset.chc); if (had) say.focus({ preventScroll: true }); return; }
   const chr = t.closest("[data-chat-retry]");
-  if (chr) { const had = chr.contains(document.activeElement); CH.retry(chr.dataset.chatRetry); if (had) say.focus({ preventScroll: true }); return; }
+  if (chr) {
+    // a Chat's Retry passes the same gate as its composer (an ended chat, XO out of reach, a limit)
+    const block = liveBlock();
+    if (block) { refuse(block, "the message stays, to retry"); return; }
+    const had = chr.contains(document.activeElement); CH.retry(chr.dataset.chatRetry); if (had) say.focus({ preventScroll: true }); return;
+  }
   const che = t.closest("[data-chat-edit]");
   if (che) { const text = CH.edit(che.dataset.chatEdit); if (text != null) putBack(text); return; }
   if (e.target.closest("[data-chat-stop]")) { stopRun(); return; }

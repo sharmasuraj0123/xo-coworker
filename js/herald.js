@@ -78,6 +78,13 @@ export function noticeFor(m, phase) {
   return { kind: "sent", text: `Sending to ${to}…`, sub: "open to follow it", open: m.conv, mid: m.id };
 }
 
+/** A send the gate refused before it went (routing Off, XO out of reach, a limit): shown as a message that didn't go
+ *  is, forced (it never yields to a passing line), with what was kept. Every refused path shows it, not only says it
+ *  (the controls grader on d79d37e, S137: a Tell refused under routing Off spoke "Not sent" and painted nothing). */
+export function refusedNotice(block, kept = "your words are kept") {
+  return { kind: "stopped", text: `Not sent: ${block}`, sub: kept, force: true };
+}
+
 /** Where the line is drawn. While Files has the chat folded away (a phone's sheet down to its bar, or the chat in its
  *  rail), the chat's dock is inert and out of sight, and a line in it showed nothing (a Tell refused in Files: the
  *  controls grader on cb7afe7, S137 and V22). So the line leaves the dock for the page, drawn above Files as over a
