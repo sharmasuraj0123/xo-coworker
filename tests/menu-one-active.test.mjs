@@ -29,7 +29,7 @@ function paints(menu, item) {
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
-for (const [name, menu, item] of [["the file's More", ".vw-menu", "[role=menuitem]"], ["Files' folder menu", ".fl-menu", "button"], ["the thread menu", ".tw-menu", "button"], ["Launchpad's ⋯", ".lp-mn", "button"]]) {
+for (const [name, menu, item] of [["the file's More", ".vw-menu", "[role=menuitem]"], ["Files' folder menu", ".fl-menu", "button"], ["the thread menu", ".tw-menu", "button"], ["Launchpad's ⋯", ".lp-mn", "button"], ["the long-press menu", ".lp-menu", "button"]]) {
   t(`${name}: mouse onto an item, then ↓: one painted item (the focused one)`, () => {
     const p = paints(menu, item);
     assert.ok(p.size, `${menu} ${item} has a highlight`);

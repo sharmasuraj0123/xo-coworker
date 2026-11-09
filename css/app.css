@@ -2330,7 +2330,9 @@ a.vw-btn{text-decoration:none}
 .main:has(.conv.is-swiped){background:var(--sunken)}
 .lp-menu{position:fixed;z-index:calc(var(--z-toast) - 5);display:flex;gap:2px;padding:4px;border-radius:var(--r-lg);background:var(--float);border:1px solid var(--line-soft);box-shadow:var(--e2);animation:float-in var(--d-out) var(--ease)}
 .lp-menu button{min-height:40px;padding:0 14px;border-radius:var(--r-sm);font:500 var(--fs-lg)/24px var(--sans);color:var(--ink)}
-.lp-menu button:active,.lp-menu button:focus-visible{background:var(--fill-2)}
+/* its active item is the focused one, however focus got there (opened by a touch, it starts on Copy): painted by
+   :focus, as every menu's (Launchpad grader on 23c726e, S170/S171: a touch-moved focus showed nothing) */
+.lp-menu button:active,.lp-menu button:focus{background:var(--fill-2)}
 .ar-list li{position:relative;border-radius:var(--r-sm)}
 .ar-list li.is-swiping::before{content:attr(data-act);position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;padding-right:18px;border-radius:var(--r-sm);background:var(--float);color:var(--ink-3);font:600 var(--fs-md)/20px var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .ar-list li.is-armed::before{background:color-mix(in srgb,var(--accent-fill) 26%,var(--float));color:var(--ink)}

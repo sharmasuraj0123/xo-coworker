@@ -2403,6 +2403,31 @@ t("C058: the @ list has one active row: the mouse moves it, Enter picks it, the 
   assert.match(await page.locator("#say").inputValue(), new RegExp(`^@${pid} `), `Enter picked @${pid}, the highlighted row`);
   await done(page);
 });
+t("C058 menus: the file's More, opened with the mouse; the mouse onto Copy path, then ↓: one item looks active, the focused one", async () => {
+  const page = await app({ files: { "a.js": FILE() } });
+  await toDemo(page);
+  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
+  const more = page.locator("#viewer [data-vw-more]").filter({ visible: true }).first();
+  await more.waitFor();
+  await more.click();
+  const items = page.locator("#viewer .vw-menu [role=menuitem]");
+  await items.nth(1).waitFor();
+  const n = await items.count();
+  assert.ok(n >= 2, `More has items (${n})`);
+  const b = await items.nth(1).boundingBox();
+  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 3 });
+  await page.waitForTimeout(150);
+  const look = () => page.evaluate(() => { const its = [...document.querySelectorAll("#viewer .vw-menu [role=menuitem]")]; const bg = its.map((x) => getComputedStyle(x).backgroundColor); const rest = getComputedStyle(document.querySelector("#viewer .vw-menu")).backgroundColor; return { focus: its.indexOf(document.activeElement), lit: bg.map((c, i) => (c !== rest && c !== "rgba(0, 0, 0, 0)" ? i : -1)).filter((i) => i >= 0) }; });
+  let st = await look();
+  assert.deepEqual(st, { focus: 1, lit: [1] }, "the item under the mouse is the active one, and the only one lit");
+  await page.keyboard.press("ArrowDown");
+  await page.waitForTimeout(150);
+  st = await look();
+  const next = n > 2 ? 2 : 0;
+  assert.deepEqual(st, { focus: next, lit: [next] }, "↓ moves it on; the item still under the mouse isn't lit (Astra on e1f8666: both were)");
+  await page.keyboard.press("Escape");
+  await done(page);
+});
 // ── the Intelligence picker ──
 async function picker(page) {
   await toDemo(page);
