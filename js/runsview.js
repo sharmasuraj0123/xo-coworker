@@ -115,7 +115,7 @@ export function runViewHtml(run, { anc, items, children = [], canStop, gone = nu
   const head = `<header class="rn-h is-run"><button type="button" class="rn-back" data-runs-back title="Back to the list">${ICON.back}<span>Sub-agents</span></button>` +
     `<button type="button" class="x" data-close aria-label="Close"></button></header>` +
     `<div class="rn-top">${pathHtml(anc, run)}<div class="rn-st"><span class="badge st-${esc(glyph(run.state))}"><i class="g g-${glyph(run.state)}" aria-hidden="true"></i>${esc(STATE_WORD[run.state] || run.state)}</span>` +
-    (canStop && live && run.can_stop !== false ? `<button type="button" class="rn-stop" data-run-stop="${esc(run.id)}">${ICON.stop}<span>Stop</span></button>` : "") + `</div></div>`;
+    (canStop && live && run.can_stop !== false ? `<button type="button" class="rn-stop" data-run-stop="${esc(run.id)}" title="Stop this sub-agent (Undo for 3 s)">${ICON.stop}<span>Stop</span></button>` : "") + `</div></div>`;
   let body;
   if (gone) body = `<p class="rn-none">Its transcript is gone. ${esc(gone)}</p>`;
   else if (error) body = `<p class="rn-none">Couldn't read its work: ${esc(error)}</p>`;

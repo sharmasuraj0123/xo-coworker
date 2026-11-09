@@ -2224,6 +2224,22 @@ t("S238: Runs read once, then refused twice: Try again keeps focus; once it read
   await page.waitForFunction(() => document.activeElement?.classList.contains("rn-open"), null, { timeout: 5000 });
   await done(page);
 });
+t("S100: Runs' Stop is named Stop in every layout, a run's own view too (on a phone it shows as its icon)", async () => {
+  const W = { runs: { "ses-a": { runs: [run("ra", "Alpha's helper")], counts: { running: 1 } } } };
+  const page = await app(W);
+  await page.evaluate(() => { window.__t.world.act.feature = () => true; return window.__t.openRuns({ sessionId: "ses-a", title: "Thread A" }); });
+  await page.locator('#runs [data-run-stop="ra"]').waitFor();
+  const named = (scope) => page.locator(scope).getByRole("button", { name: "Stop", exact: true }).count();
+  assert.equal(await named("#runs .rn-list"), 1, "the row's Stop, by its name");
+  // the run's own view: its Stop in the head
+  await page.locator('#runs .rn-open[data-run="ra"]').click();
+  await page.locator('#runs .rn-top [data-run-stop="ra"]').waitFor();
+  assert.equal(await named("#runs .rn-top"), 1, "the run view's Stop, by its name (Astra S100: none at 390)");
+  const look = await page.locator('#runs .rn-top [data-run-stop="ra"]').evaluate((b) => { const i = b.querySelector("svg").getBoundingClientRect(), w = b.querySelector("span").getBoundingClientRect(); return { icon: i.width > 0 && i.height > 0, word: w.width > 2 }; });
+  assert.equal(look.icon, true, "its icon shows");
+  assert.equal(look.word, WIDTH >= 600, WIDTH >= 600 ? "its word shows beside it" : "on a phone the word is only its name, not shown");
+  await done(page);
+});
 t("Runs: Stop's Undo is in the sheet; Undo keeps it running and focus goes back to Stop; a second Stop adds nothing", async () => {
   const W = { runs: { "ses-a": { runs: [run("ra", "Alpha's helper")], counts: { running: 1 } } } };
   const page = await app(W);

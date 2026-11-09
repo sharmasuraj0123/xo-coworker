@@ -1884,8 +1884,9 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .runs-card{max-height:92vh}
   .rn-h{padding:16px 10px 6px 16px}
   .rn-top{padding:6px 16px 12px}
-  .rn-stop span{display:none}
-  .rn-stop{width:36px;height:36px;padding:0;justify-content:center}
+  /* the word goes from sight, never from the button's name: Stop is still what it says (Astra S100: no name at 390) */
+  .rn-stop span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  .rn-stop{position:relative;width:36px;height:36px;padding:0;justify-content:center}
 }
 
 /* ── Settings for storm (U2): routing, rules, worktrees ───────────────────── */
