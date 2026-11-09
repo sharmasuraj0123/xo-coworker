@@ -1481,7 +1481,7 @@ for (const how of ["Enter", "Space", "click"]) {
     await done(page);
   });
 }
-t("S224: the file closed after its turn went on: focus goes back to a.js's chip (or the one drawn in its place), never the page", async () => {
+t("S224: the file put away after its turn went on: focus goes to what brings it back, or to a.js's chip, never the page", async () => {
   const page = await app({ files: { "a.js": FILE() }, threadsBy: TT() });
   await toDemo(page);
   const chip = await turnChip(page);
@@ -1493,13 +1493,13 @@ t("S224: the file closed after its turn went on: focus goes back to a.js's chip 
   await feedTurn(page, { id: "tt1", sid: "ses-tt", rows: [{ call_id: "c3", kind: "read_file", status: "ok", target: "c.js" }], n: 2 });
   await page.waitForTimeout(300);
   assert.match(await active(page), /id=viewer/, "still on the file");
-  // closed with its own Close (Escape puts a file beside the chat away instead; its chip then has focus)
-  await page.locator("#viewer [data-vw-close]").filter({ visible: true }).first().click();
-  await page.waitForFunction(() => !window.__t.VW.isOpen);
+  // Escape, as a person leaves it: beside the chat the file is put away (its own chip brings it back); on a phone
+  // the sheet steps back to the chat
+  await page.keyboard.press("Escape");
   await page.waitForTimeout(400);
-  const st = await page.evaluate(() => { const a = document.activeElement; return { usable: !!a && a !== document.body && a.isConnected && a.getClientRects().length > 0 && !a.closest("[inert], [hidden]"), chip: !!a?.matches?.('#msgs .tb-cf[data-file="a.js"]'), at: a ? a.tagName + (a.id ? "#" + a.id : "") + (a.className ? "." + String(a.className).split(" ").join(".") : "") : null }; });
+  const st = await page.evaluate(() => { const a = document.activeElement; return { usable: !!a && a !== document.body && a.isConnected && a.getClientRects().length > 0 && !a.closest("[inert], [hidden]"), chip: !!a?.matches?.('#msgs .tb-cf[data-file="a.js"], [data-fv-restore]'), at: a ? a.tagName + (a.id ? "#" + a.id : "") + (a.className ? "." + String(a.className).split(" ").join(".") : "") : null }; });
   assert.ok(st.usable, `focus on something you can use, never the page (${st.at})`);
-  if (WIDTH >= 600) assert.ok(st.chip, `on a.js's chip (${st.at})`);
+  if (WIDTH >= 600) assert.ok(st.chip, `on what brings a.js back, or a.js's chip in the turn (${st.at})`);
   await done(page);
 });
 for (const variant of ["read", "held", "refused"]) {
