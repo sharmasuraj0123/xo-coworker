@@ -504,3 +504,7 @@ body.viewer-open .fv~.dock{display:none}
    it, at the foot, where its Undo can be seen and pressed (js/stage.js coverSync keeps it out of the inert part) */
 body.stage-covers .dock{z-index:auto} /* no stacking context of its own, so the notice can rise above the panel */
 body.stage-covers .herald{position:fixed;left:16px;right:16px;bottom:max(16px, env(safe-area-inset-bottom));z-index:var(--z-popover);visibility:visible}
+/* away from the composer (over a covering panel, or out of Files' folded chat), only notices come: the composer's own
+   line (Off, can't reach XO) says where a draft can't go and stays with it. Over the panel it hid the map's zoom
+   buttons on a phone (the phone floor's browser pass, 320 and 390) */
+:is(body.stage-covers .herald,.herald.is-out) .hr-conn{display:none}

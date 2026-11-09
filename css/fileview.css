@@ -203,6 +203,4 @@ body.chat-docked.chat-over .conv{background:var(--canvas)}
    on a phone, above the folded chat's bar (12 px off the foot, 56 tall) with 8 between */
 .herald.is-out{position:fixed;left:16px;right:16px;bottom:max(16px, env(safe-area-inset-bottom));z-index:var(--z-popover);visibility:visible}
 @media (max-width:760px){:root:root body.chat-sheet.files-open:not(.sheet-up) .herald.is-out{bottom:calc(76px + env(safe-area-inset-bottom))}}
-/* only the notices come out: the line that says where a draft can't go (Off, can't reach XO) belongs to the composer,
-   folded away with it, and never sits over the file */
-.herald.is-out .hr-conn{display:none}
+/* only the notices come out: the composer's own line stays folded with it (css/panel.css, with the covering panel's) */

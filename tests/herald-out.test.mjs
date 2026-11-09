@@ -90,6 +90,7 @@ t("drawn above Files at the page's foot; on a phone above the folded chat's bar;
   const lift = /body\.chat-sheet\.files-open:not\(\.sheet-up\) \.herald\.is-out\{bottom:calc\((\d+)px \+ env\(safe-area-inset-bottom\)\)\}/.exec(css);
   assert.ok(lift, "on a phone, lifted over the bar");
   assert.equal(+lift[1], bb + bh + 8, `the bar's top (${bb + bh}) and 8 between`);
-  has(css, /\.herald\.is-out \.hr-conn\{display:none\}/, "the composer's own line (Off, can't reach) stays folded with it");
+  const panel = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  has(panel, /:is\(body\.stage-covers \.herald,\.herald\.is-out\) \.hr-conn\{display:none\}/, "the composer's own line (Off, can't reach) stays with the composer, here and over a covering panel (where it hid the map's zoom on a phone)");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
