@@ -1108,12 +1108,15 @@ for (const how of ["Enter", "pointer"]) t(`S138 (Created): ${how === "Enter" ? "
 // ── a frame's head under Launchpad keeps focus while its count moves live (the controls grader on 9d1f71b, C072–C074,
 // all four cells: a live agent moved Agents 1 → 2 → 3 → 4, the focused head was replaced and focus fell to BODY).
 // Agents start working one by one, as the stream says; focus stays on the same head, and it says the new count.
+// (The heads show only under an open Launchpad, so the project must be one that deploys: until 9 Nov 19:40 this case
+// ran without Launchpad and skipped in every cell, never checking the row.)
 t("C072-C074: a frame's head under Launchpad, focused, stays focused as a live agent moves its count", async () => {
-  const page = await app({ threadsBy: { chat_demo: [1, 2, 3, 4].map((i) => serverThread(`lt${i}`, `ses-lt${i}`)) } });
-  await panelOpen(page);
+  const page = await app({ launchpad: "ready", threadsBy: { chat_demo: [1, 2, 3, 4].map((i) => serverThread(`lt${i}`, `ses-lt${i}`)) } });
+  await toDemo(page);
+  await page.locator("[data-lp-open]").filter({ visible: true }).first().click(); // the header's Deploy: the panel, Launchpad open on top
   await page.waitForFunction(() => window.__t.world.state.threads.filter((x) => /^lt/.test(x.id)).length === 4, null, { timeout: 15000 });
   const head = page.locator('[data-ghost="agents"]').filter({ visible: true }).first();
-  if (!(await head.count())) skip("no Agents head under Launchpad here");
+  await head.waitFor({ timeout: 5000 }); // never a skip: no head here is the case failing
   await page.keyboard.press("Shift"); // the keyboard's
   await head.focus();
   const was = await head.elementHandle();
