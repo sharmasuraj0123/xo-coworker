@@ -28,7 +28,10 @@ t("the editor search's invalid-pattern words: the error's ink, the field's error
   const check = /const check = \(g\) => \{([\s\S]*?)\n      \};/.exec(dv);
   assert.ok(check, "the pattern check");
   const b = check[1];
-  assert.match(b, /var\(--err-ink\)/, "in the error's ink (the library's 35% count style read ~1.9:1)");
+  assert.match(b, /setAttribute\("data-invalid", ""\)/, "marked invalid (its colour is the find bar's sheet's, from one place)");
+  assert.match(b, /removeAttribute\("data-invalid"\)/, "and unmarked when it's valid again");
+  assert.doesNotMatch(b, /style\.color/, "no inline colour to fight the sheet (the controls grader on dead20c, S245: it lost)");
+  assert.match(dv, /\[data-matches\]\[data-invalid\]\{color:var\(--err-ink\)!important\}/, "in the error's ink (the library's 35% count style read ~1.9:1)");
   assert.match(b, /aria-errormessage/, "the field names it as its error");
   assert.match(b, /aria-describedby/, "and its description");
   assert.match(b, /role", "status"|"role", "status"|setAttribute\("role", "status"\)/, "said once, as a status");

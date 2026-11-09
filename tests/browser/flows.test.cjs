@@ -1807,6 +1807,9 @@ t("EDITOR-regex: a pattern that isn't a valid regexp says so", async () => {
   await page.waitForTimeout(150);
   assert.equal(await page.locator("[data-search-grid] [data-matches]").first().innerText(), "Not a valid pattern");
   assert.equal(await q.getAttribute("aria-invalid"), "true");
+  // in the error's ink (the controls grader on dead20c, S245: the find bar's sheet painted it the plain ink)
+  const ink = await page.evaluate(() => { const m = [...document.querySelectorAll("#viewer *")].map((n) => n.shadowRoot).filter(Boolean).map((r) => r.querySelector("[data-matches]")).find(Boolean); const p = document.createElement("i"); p.style.color = "var(--err-ink)"; document.body.append(p); const want = getComputedStyle(p).color; p.remove(); return { got: getComputedStyle(m).color, want }; });
+  assert.equal(ink.got, ink.want, `"Not a valid pattern" in the error's ink (${JSON.stringify(ink)})`);
   await page.keyboard.press("Backspace");
   await page.keyboard.insertText("t.o");
   await page.waitForTimeout(150);

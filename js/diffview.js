@@ -122,10 +122,13 @@ const common = (o) => ({
  *     ink (they were 50% and 35% mixes, 2.6–2.9:1 and 1.9–2.0:1), the fields' placeholder the tertiary.
  * The library puts this stylesheet in its last cascade layer (unsafe), and the bar's own rules are unlayered, so they
  * win any property both set whatever the selectors' weight (the browser pass found the count still the library's mix):
- * those declarations are !important, the one way a layered rule outranks an unlayered one.
+ * those declarations are !important, the one way a layered rule outranks an unlayered one. The count's states are all
+ * coloured here, from one place: a pattern that isn't a valid regexp is the error's ink, by its data-invalid (an
+ * inline colour lost to this sheet's !important: the controls grader on dead20c, S245).
  */
 const FIND_CSS = `
 [data-matches]{color:var(--ink-2)!important}
+[data-matches][data-invalid]{color:var(--err-ink)!important}
 [data-input-box] input::placeholder{color:var(--ink-3)!important;opacity:1!important}
 @media (max-width:760px){
   [data-input-box] input{min-height:36px}
@@ -347,11 +350,11 @@ export async function file(scroller, contents, o = {}) {
         if (n && !n.id) n.id = `xd-find-msg-${++findN}`;
         if (bad && n) {
           if (n.getAttribute("role") !== "status") n.setAttribute("role", "status");
-          if (n.style.color !== "var(--err-ink)") n.style.color = "var(--err-ink)";
+          if (!n.hasAttribute("data-invalid")) n.setAttribute("data-invalid", ""); // FIND_CSS colours it: one place
           if (n.textContent !== "Not a valid pattern") n.textContent = "Not a valid pattern";
           if (inp.getAttribute("aria-errormessage") !== n.id) { inp.setAttribute("aria-errormessage", n.id); inp.setAttribute("aria-describedby", n.id); }
         } else if (n && inp.hasAttribute("aria-errormessage")) {
-          n.removeAttribute("role"); n.style.color = "";
+          n.removeAttribute("role"); n.removeAttribute("data-invalid");
           inp.removeAttribute("aria-errormessage"); inp.removeAttribute("aria-describedby");
         }
       };
