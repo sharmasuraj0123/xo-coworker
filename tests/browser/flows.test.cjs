@@ -483,10 +483,21 @@ t("S061: while Try again is reading, focus stays in the tree", async () => {
   await page.locator('[data-fl-dir="bad"]').filter({ visible: true }).first().click();
   const retry = page.locator('[data-fl-retry="bad"]').first();
   await retry.waitFor();
+  // a whole target, its words on one line, refused or reading (Astra S061 on 2354917: 54 × 16 px at 390)
+  const size = () => retry.evaluate((b) => { const r = b.getBoundingClientRect(), g = document.createRange(); g.selectNodeContents(b); return { w: r.width, h: r.height, lines: new Set([...g.getClientRects()].map((x) => Math.round(x.top))).size }; });
+  const want = WIDTH < 600 ? 36 : 32;
+  let sz = await size();
+  assert.ok(sz.lines === 1 && sz.h >= want && sz.w >= 44, `Try again, refused: ${JSON.stringify(sz)} (at least 44 × ${want}, one line)`);
+  const errInk = await page.evaluate(() => { const p = document.createElement("p"); p.style.color = "var(--err-ink)"; document.body.appendChild(p); const c = getComputedStyle(p).color; p.remove(); return c; });
   await retry.focus();
   await page.keyboard.press("Enter");
   await page.waitForTimeout(150);
   assert.match(await page.locator(".fl-tree").innerText(), /Reading again/, "it says it's reading again at once");
+  // reading again is a status, not the error: the line isn't in the error's colour (Astra S061: it stayed red)
+  const line = await page.locator(".fl-tree .fl-note.is-pending").first().evaluate((n) => ({ cls: n.className, color: getComputedStyle(n).color }));
+  assert.ok(!/\bis-err\b/.test(line.cls) && line.color !== errInk, `the pending line: ${JSON.stringify(line)} (error ink ${errInk})`);
+  sz = await size();
+  assert.ok(sz.lines === 1 && sz.h >= want && sz.w >= 44, `Try again, reading: ${JSON.stringify(sz)}`);
   assert.equal(await page.locator('[data-fl-retry="bad"]').first().getAttribute("aria-busy"), "true");
   await page.waitForTimeout(250); // the read is out, unanswered; the app redraws meanwhile (Files with it)
   await page.evaluate(() => window.__t.render());

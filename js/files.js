@@ -177,7 +177,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
    *  group: empty, for sync to fill, or with inner(path)'s rows when the whole tree is drawn at once. */
   function rowsHtml(s, local, d, marks, q, inner = null) {
     const depth = local ? local.split("/").length : 0;
-    if (d && d.state === "loading" && d.retry) return `<p class="fl-note is-err is-pending" style="--d:${depth}" role="status"><i class="spin" aria-hidden="true"></i>Reading again… <button type="button" class="fl-link" data-fl-retry="${esc(local)}" aria-busy="true" aria-disabled="true">Try again</button></p>`;
+    if (d && d.state === "loading" && d.retry) return `<p class="fl-note is-pending" style="--d:${depth}" role="status"><i class="spin" aria-hidden="true"></i>Reading again… <button type="button" class="fl-link" data-fl-retry="${esc(local)}" aria-busy="true" aria-disabled="true">Try again</button></p>`;
     if (!d || (d.state === "loading" && !d.dirs)) return `<p class="fl-note" style="--d:${depth}"><i class="spin" aria-hidden="true"></i>Reading…</p>`;
     if (d.state === "error") return `<p class="fl-note is-err" style="--d:${depth}">${esc(d.error)} <button type="button" class="fl-link" data-fl-retry="${esc(local)}">Try again</button></p>`;
     const open = setOf(s.key);
