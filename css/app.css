@@ -1910,7 +1910,8 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 .sc-b span{font-size:var(--fs-base);line-height:1.5;color:var(--ink-3)}
 .set-row.is-sub{margin-top:4px}
 .set-row.dm.is-on{border-color:color-mix(in srgb,var(--accent-fill) 35%,var(--line-soft))}
-.set-row a{color:var(--ink-2);text-decoration:underline;text-underline-offset:2px;text-decoration-color:var(--line-strong)}
+/* a link in a row's words (a model's "about it") is one short action: it stays on one line while the words around it wrap */
+.set-row a{color:var(--ink-2);text-decoration:underline;text-underline-offset:2px;text-decoration-color:var(--line-strong);white-space:nowrap}
 .set-row a:hover{color:var(--ink);text-decoration-color:currentColor}
 .set-form{display:flex;flex-direction:column;gap:12px;padding:16px 18px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft)}
 .set-fa{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}

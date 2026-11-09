@@ -751,9 +751,15 @@ t("C106 Compact: the switch stays the same node and says its state; its knob tra
 });
 t("C112 a decision model's \"about it\" link opens its page in a new tab, by Enter as by a click", async (ctx) => {
   const W = world();
-  W.dms = W.dms.map((m) => (m.id === "quill" ? { ...m, docs_url: "https://example.invalid/quill" } : m));
+  W.dms = W.dms.map((m) => ({ ...m, docs_url: `https://example.invalid/${m.id}` }));
   const page = await open(W, ctx);
   await settings(page, "routing");
+  // each one is a single piece of text, on one line, however its row's words wrap (a phone's connected model's
+  // "Connected · model … · about it" wrapped it into "about" and "it" a line apart)
+  for (const id of ["levanto", "quill"]) {
+    const rects = await page.locator(`[data-key="dm:${id}"] a`).evaluate((e) => e.getClientRects().length);
+    assert.equal(rects, 1, `${id}'s "about it" is on one line`);
+  }
   const a = page.locator('[data-key="dm:quill"] a');
   assert.equal(await a.getAttribute("target"), "_blank");
   assert.match(await a.getAttribute("rel"), /noopener/);
