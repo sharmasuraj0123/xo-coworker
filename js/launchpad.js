@@ -569,7 +569,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     const d = proj(p).device;
     if (!d.code) return head("Connecting GitHub…", "A GitHub login this machine already has is used as it is.", "need") + `<p class="lp-wait"><i class="lp-arc" aria-hidden="true"></i><span>Asking Space.</span></p>`;
     return head("Connect GitHub", "Enter this code on GitHub. It grants the <code>workflow</code> permission Launchpad needs.", "need") +
-      `<div class="lp-code"><code aria-label="The code">${esc(d.code)}</code><button type="button" class="lp-b" data-lp="code-copy">${d.copied ? ICON.check : ICON.copy}<span>${d.copied ? "Copied" : "Copy"}</span></button></div>` +
+      `<div class="lp-code"><code aria-label="The code">${esc(d.code)}</code><button type="button" class="lp-b" data-lp="code-copy">${d.copiedUntil > Date.now() ? ICON.check : ICON.copy}<span>${d.copiedUntil > Date.now() ? "Copied" : "Copy"}</span></button></div>` +
       `<a class="lp-go lp-wide" href="${esc(d.url)}" target="_blank" rel="noopener">${LP_ICON.github}<span>Open GitHub</span>${LP_ICON.out}</a>` +
       `<p class="lp-wait"><i class="lp-arc" aria-hidden="true"></i><span>Waiting for GitHub. This carries on by itself.</span></p>` +
       `<div class="lp-alt"><button type="button" class="lp-a" data-lp="device-cancel"><span>Cancel</span></button></div>`;
@@ -744,7 +744,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     const s = proj(p);
     // this call owns one code: Cancel, or a newer Reconnect, makes it someone else's, and from then on this call's
     // answers (a late start, a poll that fails or succeeds) change nothing (Astra: an old poll cleared a newer code)
-    let cur = s.device = { code: "", url: "", copied: false };
+    let cur = s.device = { code: "", url: "", copiedUntil: 0 };
     const ours = () => s.device === cur;
     land('[data-lp="code-copy"], [data-lp="device-cancel"]'); // Connecting… has nothing to press: the section holds focus till the code comes
     changed();
@@ -753,7 +753,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       const d = await api.githubStart(gh.connected && gh.source === "connections");
       if (!ours()) return; // cancelled or started again meanwhile
       if (d.connected) { s.device = null; s.pre = 0; land(AFTER + ', [data-lp="retry"]'); if (NEEDS_YOU.has(s.run?.error?.code)) s.run = null; announce(`GitHub is connected${d.username ? ` as ${d.username}` : ""}${d.imported ? ", from this machine's gh login" : ""}.`); changed(); preflight(p); return; }
-      cur = s.device = { ...d, copied: false };
+      cur = s.device = { ...d, copiedUntil: 0 };
       changed();
       while (ours() && (!d.until || Date.now() < d.until)) {
         await new Promise((r) => setTimeout(r, 2500));
@@ -880,11 +880,12 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     if (open && focusIn) requestAnimationFrame(() => S.body?.querySelector('.lp-mn [role="menuitem"]')?.focus({ preventScroll: true }));
   }
 
-  /** A copy that says "Copied" only once the text is on the clipboard (util.copyText); refused, it says why and
-   *  focus stays on the button. mark() sets what the button shows; a 1.6 s redraw takes it back. */
-  async function copied(text, what, mark) {
+  /** A copy that says "Copied" only once the text is on the clipboard (util.copyText), and only for 1.5 s from that
+   *  copy (each button's receipt is a time, never a lasting flag). Refused, it says why, focus stays on the button,
+   *  and unmark() takes back what an earlier success still shows: a refusal never wears the last copy's "Copied". */
+  async function copied(text, what, mark, unmark) {
     const ok = await copyText(String(text || ""));
-    if (!ok) { announce(COPY_REFUSED); notify && notify(COPY_REFUSED); return; }
+    if (!ok) { unmark && unmark(); changed(); announce(COPY_REFUSED); notify && notify(COPY_REFUSED); return; }
     mark(); announce(`Copied ${what}.`); changed();
     clearTimeout(S.copiedT); S.copiedT = setTimeout(changed, 1600); // the latest Copy's 1.5 s, not the first's
   }
@@ -922,7 +923,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
         s.cmdCopied = Date.now() + 1500;
         // the setup form isn't redrawn under the person's fingers: its button shows the check itself
         if (el.isConnected) { el.innerHTML = ICON.check; el.title = "Copied"; clearTimeout(el._copied); el._copied = setTimeout(() => { if (el.isConnected) { el.innerHTML = ICON.copy; el.title = "Copy the command"; } }, 1500); }
-      }); return;
+      }, () => { s.cmdCopied = 0; clearTimeout(el._copied); if (el.isConnected) { el.innerHTML = ICON.copy; el.title = "Copy the command"; } }); return;
       case "recheck-gh": {
         // one check at a time: pressed again while one is out, it joins that one (which then says how it went)
         s.loud = true; s.ghErr = null;
@@ -946,7 +947,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       case "edit-cancel": s.editing = false; s.form.env = {}; S.key = ""; land('[data-lp="edit"]'); changed(); return;
       case "again": s.run = null; s.form.errs = {}; deploy(p, true); return; // the linked app, the same settings: 3 s, then it goes
       case "retry": s.run = null; deploy(p); return;
-      case "copy": copied((s.run?.live || s.check.app).url, "the address", () => { s.copied = Date.now() + 1500; }); return;
+      case "copy": copied((s.run?.live || s.check.app).url, "the address", () => { s.copied = Date.now() + 1500; }, () => { s.copied = 0; }); return;
       case "menu": menu(p, !s.menu, !s.menu); return;
       case "unlink": {
         // Undo is real: Space unlinks (and commits launchpad.json) only once its 3 s are up
@@ -962,7 +963,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       case "pick-cancel": s.picking = null; land('[data-lp="pick"]'); changed(); return;
       case "link": link(p, el.dataset.id); return;
       case "reconnect": github(p); return;
-      case "code-copy": { const d = s.device; copied(d.code, "the code", () => { if (s.device === d) d.copied = true; }); return; }
+      case "code-copy": { const d = s.device; copied(d.code, "the code", () => { if (s.device === d) d.copiedUntil = Date.now() + 1500; }, () => { d.copiedUntil = 0; }); return; }
       case "device-cancel": if (s.device?.id && api.githubCancel) api.githubCancel(s.device.id); s.device = null; land('[data-lp="reconnect"], [data-lp="deploy"]'); changed(); return;
       case "ask": case "ask-fix": {
         if (s.asking) return; // one thread per ask: a second click while Space answers starts nothing

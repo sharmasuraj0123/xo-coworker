@@ -474,6 +474,31 @@ for (const kase of ["older same-title thread", "renamed", "resolved"]) {
   });
 }
 
+t("LP44: the code's Copy says Copied for 1.5 s, then Copy; a refused copy right after never keeps the earlier Copied", async () => {
+  const page = await open({ launchpad: "device" });
+  await W.openLaunchpad(page);
+  await page.locator('[data-lp="reconnect"]').click();
+  await page.waitForSelector('[data-lp="code-copy"]');
+  const words = () => page.evaluate(() => document.querySelector('[data-lp="code-copy"]')?.innerText.trim());
+  await page.locator('[data-lp="code-copy"]').focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelector('[data-lp="code-copy"]')?.innerText.trim() === "Copied");
+  await page.waitForTimeout(600);
+  assert.equal(await words(), "Copied", "still Copied within its 1.5 s");
+  await page.waitForFunction(() => document.querySelector('[data-lp="code-copy"]')?.innerText.trim() === "Copy", null, { timeout: 4000 });
+  // a success, then at once a refusal: the refusal is said, and the button doesn't keep the success's Copied
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelector('[data-lp="code-copy"]')?.innerText.trim() === "Copied");
+  await page.evaluate(() => { navigator.clipboard.writeText = () => Promise.reject(new DOMException("Write permission denied.", "NotAllowedError")); document.execCommand = () => false; });
+  await page.locator('[data-lp="code-copy"]').focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => /Couldn't copy/.test(document.querySelector("#live")?.innerText || ""));
+  await page.waitForTimeout(100);
+  assert.equal(await words(), "Copy", "refused: no Copied left over from the copy before");
+  assert.equal(await focused(page), "code-copy", "focus stays on Copy");
+  await done(page);
+});
+
 t("LP44: a cancelled GitHub code's late answer doesn't clear the newer code", async () => {
   let n = 0, cancelled = 0;
   const page = await open({ launchpad: "scope", api: async (r, m, p, answer) => {
@@ -645,6 +670,14 @@ const dock = async (o = {}) => {
   return page;
 };
 const attach = async (page, id = "sh_1") => { await page.locator(`[data-sh-open="${id}"]`).click(); await page.waitForSelector(`.shd-term[data-pane="${id}"] .xterm`); await page.waitForTimeout(300); };
+
+t("SH27: a detached shell's dot is never blue, in either theme (no blue dots)", async () => {
+  const page = await dock();
+  const dots = await page.evaluate(() => [...document.querySelectorAll(".shl-row .shd-dot, .shd-tab .shd-dot")].map((d) => { const c = getComputedStyle(d).backgroundColor.match(/[\d.]+/g)?.map(Number) || [0, 0, 0, 0]; const k = /^color\(/.test(getComputedStyle(d).backgroundColor) ? 255 : 1; const [r, g, b, a = 1] = c; return { cls: d.className, blue: a > 0 && b * k - Math.max(r, g) * k > 30 }; }));
+  assert.ok(dots.some((d) => /d-away/.test(d.cls)), "a detached shell's dot is drawn");
+  assert.deepEqual(dots.filter((d) => d.blue).map((d) => d.cls), [], "no blue dot");
+  await done(page);
+});
 
 t("SH01: the sidebar's Shells shows the dock and says so", async () => {
   const page = await dock();
