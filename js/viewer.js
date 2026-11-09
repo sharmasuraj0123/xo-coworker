@@ -1051,7 +1051,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     const img = e.target;
     if (!(img instanceof HTMLImageElement) || !V.data || V.data.kind !== "image" || V.dims) return;
     V.dims = { w: img.naturalWidth, h: img.naturalHeight };
-    el.querySelector(".vw-top").outerHTML = head();
+    paintHead(); // the one head redraw: a head control that had focus keeps it (C092 v1: More lost it to BODY here)
   }, true);
   el.addEventListener("error", (e) => {
     if (!(e.target instanceof HTMLImageElement) || !V.data || V.data.kind !== "image") return;
