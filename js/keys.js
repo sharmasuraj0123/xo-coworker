@@ -115,6 +115,21 @@ export function is(e, id) {
 }
 export const hasMod = (id) => parse(binding(id) || "").mod;
 
+/**
+ * The key that works anywhere (scope "global") this keydown sets off, or null: one rule for every such action, and
+ * the same rule set() checks a new key against, so Settings never takes a key the page won't answer (the controls
+ * grader's C118: Settings took Ctrl+Shift+J for All shortcuts, and the page answered only four actions' ⌘/Ctrl keys).
+ * With ⌘/Ctrl it works everywhere, even while you type; without (a symbol: / ?) only when you aren't typing.
+ */
+export function globalFor(e, { typing: t = typing(e) } = {}) {
+  for (const a of ACTIONS) {
+    if (a.scope !== "global" || a.fixed || !is(e, a.id)) continue;
+    if (!hasMod(a.id) && t) continue;
+    return a.id;
+  }
+  return null;
+}
+
 /** How a key reads on screen: ⌘K on a Mac, Ctrl K elsewhere; letters in capitals. */
 export function show(s) {
   if (!s) return "";
@@ -142,6 +157,8 @@ export function set(id, combo) {
   if (c.mod && RESERVED_MOD.has(c.key)) return { error: `Your browser keeps ${show(combo)}. Pick another key.` };
   if (a.scope === "global" && !c.mod && (isLetter(c.key) || isDigit(c.key)))
     return { error: "Keys that work anywhere need ⌘ or Ctrl, or a symbol like / or ?, so typing never sets them off." };
+  // ⌥ alone types another character (on a Mac ⌥/ is ÷), so the page would never see the key you chose
+  if (a.scope === "global" && c.alt && !c.mod) return { error: `${show(combo)} types a character of its own on some keyboards. Add ⌘ or Ctrl, or pick a symbol like / or ?.` };
   if (a.scope !== "global" && (c.mod || c.alt)) return { error: "Decision keys are single keys (⇧ is fine). ⌘ and Ctrl stay with the browser." };
   if (a.scope === "decision" && isDigit(c.key)) return { error: "1–9 pick an answer. Pick another key." };
   const clash = ACTIONS.find((x) => x.id !== id && !x.fixed && overlaps(x.scope, a.scope) && binding(x.id) === str(c));

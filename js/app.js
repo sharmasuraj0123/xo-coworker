@@ -3742,11 +3742,11 @@ addEventListener("keydown", (e) => {
   if (e.isComposing || e.keyCode === 229) return;
   // inside a shell every key is the shell's (Esc for vim, Ctrl+K for bash), but the shells' own toggle
   if (SH.owns(e)) { if (K.hasMod("shells") && K.is(e, "shells")) { e.preventDefault(); GLOBAL.shells(); } return; }
-  // ⌘/Ctrl keys work everywhere, even while typing
-  for (const id of ["jump", "intel", "shells", "map"]) if (K.hasMod(id) && K.is(e, id)) { e.preventDefault(); GLOBAL[id](); return; }
-  // beside a file: ⌘J the chat, ⌘B the files' tree; elsewhere these keys are the browser's
-  if (K.is(e, "chatFold") && FILESV.chatKey()) { e.preventDefault(); return; }
-  if (K.is(e, "treeFold") && FILESV.toggleTree()) { e.preventDefault(); return; }
+  // a key that works anywhere, by one rule (js/keys.js globalFor: the one Settings checks a key against): with ⌘/Ctrl
+  // it works everywhere, even while typing (C118: only four actions' were answered here, so a ⌘/Ctrl key Settings
+  // took for All shortcuts or Write did nothing)
+  const g = K.globalFor(e);
+  if (g && K.hasMod(g) && runGlobal(g)) { e.preventDefault(); return; }
   if (!jump.hidden) { if (e.key === "Escape") { e.preventDefault(); closeJump(); } return; }
   if (IQ.isOpen) { if (e.key === "Escape") { e.preventDefault(); IQ.close(); } return; }
   if (CREATE.isOpen()) return;
@@ -3771,8 +3771,18 @@ addEventListener("keydown", (e) => {
   if (!keys.hidden || !allEl.hidden) return;
   // Only keys that can't be hit by accident: no single letters (a stray keystroke must never
   // navigate or open something). Decision keys live on a focused decision card only.
-  for (const id of Object.keys(GLOBAL)) if (K.is(e, id)) { e.preventDefault(); GLOBAL[id](); return; }
+  const s = K.globalFor(e, { typing: false });
+  if (s && !K.hasMod(s) && runGlobal(s)) e.preventDefault();
 });
+/** Run a key that works anywhere; false when it has nothing to do here (the chat's and the tree's folds, away from a
+ *  file: the key stays the browser's). */
+function runGlobal(id) {
+  if (id === "chatFold") return FILESV.chatKey();
+  if (id === "treeFold") return FILESV.toggleTree();
+  if (!GLOBAL[id]) return false;
+  GLOBAL[id]();
+  return true;
+}
 
 // ── the phone's own Back (Android's back gesture, Safari's edge swipe) ──────
 // The app keeps one history entry of its own while there is somewhere to go back to. Back then does
