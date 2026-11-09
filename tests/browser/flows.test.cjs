@@ -575,8 +575,8 @@ t("C034/C035: the resize grips beside a file show the one ring when the keyboard
   await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
   await page.waitForFunction(() => document.body.classList.contains("chat-docked"), null, { timeout: 8000 });
   await page.keyboard.press("Shift");
-  // read once settled (a control just focused reads the browser's own 3 px for a moment)
-  const ring = (sel, pseudo) => page.evaluate(([sel, pseudo]) => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(() => { const e = document.querySelector(sel); if (!e || !e.getClientRects().length) return ok(null); const s = getComputedStyle(e, pseudo); ok(pseudo ? s.boxShadow : `${s.outlineStyle} ${s.outlineWidth}`); }))), [sel, pseudo]);
+  // read once settled (a control just focused reads the browser's own 3 px for a moment: two frames weren't enough)
+  const ring = (sel, pseudo) => page.evaluate(([sel, pseudo]) => new Promise((ok) => setTimeout(() => requestAnimationFrame(() => { const e = document.querySelector(sel); if (!e || !e.getClientRects().length) return ok(null); const s = getComputedStyle(e, pseudo); ok(pseudo ? s.boxShadow : `${s.outlineStyle} ${s.outlineWidth}`); }), 400)), [sel, pseudo]);
   await page.locator(".fv-cgrip").focus();
   assert.equal(await ring(".fv-cgrip", null), "solid 2px", "the chat's grip");
   const split = page.locator(".fv .fl.is-wide .fl-split");
@@ -1008,7 +1008,7 @@ t("S139 (waiting): the file's Try again says it's trying while the renderer load
   await page.keyboard.press("Enter"); // pressed again while it's trying: nothing more
   // and pressed with the pointer while it's trying: focus is on it when the file draws over the notice (the controls
   // grader on aa2e4f9, S139: focus fell to BODY); it goes to the drawn file
-  await page.locator("#viewer [data-vw-retry]").click();
+  await page.locator("#viewer [data-vw-retry]").click({ force: true }); // (it's aria-disabled: a person can still press it)
   assert.equal(await page.evaluate(() => document.activeElement && document.activeElement.hasAttribute("data-vw-retry")), true, "focus on the busy Try again");
   release();
   await page.waitForFunction(() => !document.querySelector("#viewer [data-vw-retry]") && !!document.querySelector("#viewer .vw-file diffs-container"), null, { timeout: 15000 });
