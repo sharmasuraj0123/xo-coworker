@@ -19,7 +19,7 @@ function standIn(top, { size = 36, scrolls = true } = {}) {
   const scroller = { parentElement: doc.body, ownerDocument: doc, scrollHeight: scrolls ? 3000 : 600, clientHeight: 600, scrollWidth: 390, clientWidth: 390, getBoundingClientRect: () => box, scrollTop: 2000, scrollLeft: 0, own: false, closest: (sel) => (sel === "[data-own-scroll]" && scroller.own ? scroller : null) };
   const el = { parentElement: scroller, ownerDocument: doc, getClientRects: () => [1], getBoundingClientRect: () => ({ top, bottom: top + size, left: 16, right: 16 + Math.max(size, 1), width: Math.max(size, 1), height: size }), dispatchEvent: (ev) => calls.push(ev.detail) };
   let now = 1000;
-  const win = { innerHeight: 844, innerWidth: 390, CustomEvent: class { constructor(type, o) { this.type = type; this.detail = o.detail; } }, performance: { now: () => now }, tick: (ms) => (now += ms), requestAnimationFrame: (f) => raf.push(f), getComputedStyle: (n) => (n === scroller ? { overflowY: "auto", overflowX: "hidden" } : { overflowY: "visible", overflowX: "visible", clip: n.clip || "auto" }) };
+  const win = { addEventListener: (t, f) => (L["win:" + t] = f), innerHeight: 844, innerWidth: 390, CustomEvent: class { constructor(type, o) { this.type = type; this.detail = o.detail; } }, performance: { now: () => now }, tick: (ms) => (now += ms), requestAnimationFrame: (f) => raf.push(f), getComputedStyle: (n) => (n === scroller ? { overflowY: "auto", overflowX: "hidden" } : { overflowY: "visible", overflowX: "visible", clip: n.clip || "auto" }) };
   return { doc, win, el, scroller, calls, L, focus() { doc.activeElement = el; L.focusin({ target: el }); }, flush() { while (raf.length) raf.shift()(); } };
 }
 
@@ -60,15 +60,19 @@ t("out of view is judged against the box it scrolls in; with none, nothing moves
   const Q = standIn(-972, { scrolls: false });
   assert.equal(F.lost(Q.el, Q.win), false, "no box to scroll (a box with nothing to scroll isn't one): nothing it can do, nothing moves");
 });
-t("focus the browser moves itself (a Tab, a press) isn't checked: only a script's", () => {
+t("the browser's own focus isn't checked (a Tab no script took over, the control pressed); a script's is, even after a press (S138)", () => {
   assert.equal(typeof F.keepFocusInView, "function");
   const P = standIn(-972); F.keepFocusInView(P.doc, P.win);
-  P.L.keydown({ key: "Tab" }); P.focus(); P.flush();
-  assert.equal(P.calls.length, 0, "a Tab's focus: the browser's own");
-  P.win.tick(200); P.L.pointerdown({}); P.focus(); P.flush();
-  assert.equal(P.calls.length, 0, "a press's focus");
-  P.win.tick(200); P.L.keydown({ key: "Enter" }); P.focus(); P.flush();
-  assert.equal(P.calls.length, 1, "Enter on Reset all, then the script's focus: checked");
+  P.L["win:keydown"]({ key: "Tab", defaultPrevented: false }); P.focus(); P.flush();
+  assert.equal(P.calls.length, 0, "a Tab's own move: the browser's");
+  P.win.tick(200); P.L["win:keydown"]({ key: "Tab", defaultPrevented: true }); P.focus(); P.flush();
+  assert.equal(P.calls.length, 1, "Tab taken over by a script (a sheet's wrap): the script's focus is checked");
+  P.win.tick(200); P.L.pointerdown({ target: P.el }); P.focus(); P.flush();
+  assert.equal(P.calls.length, 1, "the control pressed takes focus: the browser's");
+  P.win.tick(200); P.L.pointerdown({ target: { other: true } }); P.focus(); P.flush();
+  assert.equal(P.calls.length, 2, "a press on Close, then a script hands focus to the editor out of sight: checked (S138 on a phone)");
+  P.win.tick(200); P.L.keydown && P.L.keydown({ key: "Enter" }); P.focus(); P.flush();
+  assert.equal(P.calls.length, 3, "Enter, then a script's focus: checked");
 });
 t("content that grows above the control under the keyboard: it was in sight, so its scroller brings it back (C115)", () => {
   assert.equal(typeof F.inSight, "function", "inSight");

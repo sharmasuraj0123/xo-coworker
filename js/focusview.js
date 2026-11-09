@@ -58,14 +58,22 @@ export function bringWhole(el, win = window) {
 }
 
 export function keepFocusInView(doc = document, win = window) {
-  // focus the browser moves itself (Tab, a press) it has already brought into view: only a script's is checked
-  let own = -1;
-  const mine = () => { own = win.performance.now(); };
-  doc.addEventListener("pointerdown", mine, true);
-  doc.addEventListener("keydown", (e) => { if (e.key === "Tab") mine(); }, true);
+  // focus the browser moves itself it has already brought into view, so it isn't checked: a Tab's own move (one no
+  // script took over: Tab's wrap in a sheet is a script's), and a press's own focus (the control pressed, or the
+  // nearest focusable around it). A script's focus is checked even when a press or a key led to it: Close on the
+  // Created notice, pressed, handed focus to the editor out of sight, and the old "within 50 ms of any press"
+  // skipped it (the controls grader on aa2e4f9, S138 on a phone)
+  let tab = -1, press = null;
+  win.addEventListener("keydown", (e) => { if (e.key === "Tab" && !e.defaultPrevented) tab = win.performance.now(); }); // last, after any script's
+  doc.addEventListener("pointerdown", (e) => { press = { at: win.performance.now(), t: e.target }; }, true);
+  const browsers = (el) => {
+    const now = win.performance.now();
+    if (now - tab < 50) return true;
+    return !!press && now - press.at < 400 && !!press.t && (el === press.t || (el.contains && el.contains(press.t)));
+  };
   doc.addEventListener("focusin", (e) => {
-    if (win.performance.now() - own < 50) return;
     const el = e.target;
+    if (browsers(el)) return;
     // once the moment's layout has settled (a redraw that put it there, a sheet opening around it)
     win.requestAnimationFrame(() => {
       if (doc.activeElement !== el) return;
