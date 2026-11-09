@@ -135,6 +135,10 @@ const FIND_CSS = `
   [data-input-box][data-find] input{padding-inline-end:116px!important}
   [data-search-panel] [data-search-icon]{width:36px!important;height:36px!important;min-width:36px;min-height:36px}
   [data-search-panel] [data-search-close]{background:transparent!important;top:-8px!important;right:-8px!important;transform:none!important;isolation:isolate}
+  /* the bar keeps Close's corner to itself: Close (36, from the corner's 8 px out) reaches 28 px in, so the bar's own
+     controls end 36 px from its right edge, never under Close (a tap meant for Regexp closed Find: the controls
+     grader on 76a53c1, 390, the two targets overlapping 14 × 18 px) */
+  [data-search-panel] [data-editor-widget]{padding-right:36px!important}
   [data-search-panel] [data-search-close]::before{content:"";position:absolute;inset:8px;z-index:-1;border-radius:50%;background:color-mix(in lab, var(--diffs-widget-fg) 50%, var(--diffs-bg))}
   [data-search-panel] [data-search-close]:not(:disabled):hover::before{background:var(--diffs-widget-fg)}
 }`;

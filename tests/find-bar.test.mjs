@@ -29,4 +29,9 @@ t("its words take the role tokens, and outrank the bar's own rules (the library 
   // every property the bar's own rules also set is !important here (else the unlayered rule wins)
   for (const prop of ["padding-inline-end", "width:36px", "height:36px", "background:transparent", "top:-8px", "right:-8px", "transform:none"]) assert.ok(new RegExp(prop.replace(/[-:]/g, (c) => c) + "[^;}]*!important").test(css), prop);
 });
+t("on a phone the bar keeps Close's corner to itself: its own controls end clear of Close (no overlapping targets)", () => {
+  const m = css.match(/@media \(max-width:760px\)\{([\s\S]*)\}$/);
+  assert.match(m[1], /\[data-search-close\]\{[^}]*top:-8px!important;right:-8px!important/, "Close: 36 px, 8 px out from the corner, so 28 px in");
+  assert.match(m[1], /\[data-search-panel\] \[data-editor-widget\]\{padding-right:36px!important\}/, "the bar's controls end 36 px from its edge: clear of Close's 28");
+});
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

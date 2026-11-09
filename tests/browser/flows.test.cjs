@@ -1742,6 +1742,23 @@ t("S242–S252 (find bar): on a phone every control is a 36 px target; its count
     const small = a.sizes.filter((x) => x.h < 36 - 0.01 || (!x.input && x.w < 36 - 0.01));
     assert.deepEqual(small, [], `every control a 36 px target on a phone: ${JSON.stringify(a.sizes)}`);
   }
+  // no two targets overlap: a tap meant for one never lands on another (the controls grader on 76a53c1, 390: Close and
+  // Regexp overlapped 14 × 18 px, and a tap on Regexp closed Find). Checked as drawn, every cell
+  const overlaps = await page.evaluate(() => {
+    const g = [...document.querySelectorAll("#viewer *")].map((n) => n.shadowRoot).filter(Boolean).map((r) => r.querySelector("[data-search-panel]")).find(Boolean);
+    const ctl = [...g.querySelectorAll("button, input")].filter((x) => x.getClientRects().length && getComputedStyle(x).visibility !== "hidden");
+    const out = [];
+    for (let i = 0; i < ctl.length; i++) for (let j = i + 1; j < ctl.length; j++) {
+      const a = ctl[i].getBoundingClientRect(), b = ctl[j].getBoundingClientRect();
+      if (ctl[i].contains(ctl[j]) || ctl[j].contains(ctl[i])) continue;
+      const w = Math.min(a.right, b.right) - Math.max(a.left, b.left), h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+      const name = (x) => x.getAttribute("aria-label") || x.getAttribute("placeholder") || x.tagName;
+      // the field and its own toggles sit inside it by design: the toggles are its children's targets, not neighbours
+      if (w > 0.5 && h > 0.5 && !(ctl[i].tagName === "INPUT" || ctl[j].tagName === "INPUT")) out.push(`${name(ctl[i])} × ${name(ctl[j])}: ${w.toFixed(1)} × ${h.toFixed(1)}`);
+    }
+    return out;
+  });
+  assert.deepEqual(overlaps, [], "no two of the bar's buttons overlap");
   await done(page);
 });
 // Find opens with focus after a jump to a line not drawn yet (the controls grader on e55c2d8, S242: in a 180-line
