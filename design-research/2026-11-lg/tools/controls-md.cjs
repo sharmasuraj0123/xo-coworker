@@ -70,7 +70,17 @@ const verdictOf = (id) => {
   const words = Array.isArray(why) ? why.map((w) => (typeof w === 'string' ? w : w && (w.id || w.result) || '')).filter(Boolean).join(', ') : typeof why === 'object' && why ? JSON.stringify(why) : String(why || '');
   return `Astra${f ? ' (Files grader)' : ''} ${v}${/^[0-9a-f]{7,40}$/i.test(String(rev)) ? ` at ${String(rev).slice(0, 7)}` : ''}${words ? `: ${words.replace(/\|/g, '/').replace(/\s+/g, ' ').slice(0, 120)}` : ''}${mine}`;
 };
-const status = new Proxy({}, { get: (_, id) => verdictOf(String(id)) });
+// a change to a row's paint since a grader passed it: a pass at a revision without the change is never shown as
+// standing; it says it needs a recheck on the head (the coordinator, 9 Nov: no stale pass for the eight buttons that
+// read as links, whose hover and press became one shared state in a4faed2, S139)
+const SINCE = [{ commit: 'a4faed2', what: 'its hover and press became the shared link state', ids: ['S139', 'S253', 'S126', 'C022', 'S049', 'S155', 'S156', 'S061', 'S266', 'S220', 'S014'] }];
+const hasCommit = (rev, c) => { try { require('child_process').execSync(`git merge-base --is-ancestor ${c} ${rev}`, { cwd: ROOT, stdio: 'ignore' }); return true; } catch { return false; } };
+const verdictNow = (id) => {
+  const v = verdictOf(id), m = /^(Astra(?: \([^)]*\))?) PASS( \(scoped\))? at ([0-9a-f]{7,40})/.exec(v);
+  const s = m && SINCE.find((x) => x.ids.includes(id) && !hasCommit(m[3], x.commit));
+  return s ? v.replace(m[0], `${m[1]} Recheck at ${m[3]} (it passed${m[2] || ''} there; ${s.what} in ${s.commit}, after it)`) : v;
+};
+const status = new Proxy({}, { get: (_, id) => verdictNow(String(id)) });
 // --dry: write the list and the registry to /tmp (to look before committing a registry)
 const DRY = process.argv.includes('--dry');
 const REG_FILE = DRY ? '/tmp/controls-ids.dry.json' : path.join(DIR, 'controls-ids.json');
