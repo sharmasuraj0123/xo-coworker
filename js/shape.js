@@ -403,7 +403,12 @@ export function createShapeStore({ storage = defaultStorage(), load = fetchPrese
     try {
       const doc = await load(id);
       if (!isObj(doc)) throw new Error("it isn't a JSON object");
+      const was = files.has(id) && !loadErr.has(id) ? JSON.stringify(files.get(id)) : null;
       files.set(id, doc); loadErr.delete(id);
+      // the active preset's file read at last (after a failure) or anew: it applies as a choice of it does, kept and
+      // emitted, so its effects show at once, not after a reload (the create-project grader on dead20c, C101/C102/
+      // S119: its read refused, then allowed, and Shape cleared its error while XO stayed as Everything)
+      if (id === presetId() && was !== JSON.stringify(doc)) { remember(id); emit(); }
       return doc;
     } catch (err) { loadErr.set(id, err.message || String(err)); return files.get(id) || null; }
   }

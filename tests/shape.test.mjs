@@ -297,6 +297,25 @@ function test_store_more() {
     assert.equal(S.on("xo:thread/runtime"), true, "no file: the built-in defaults");
     assert.match(S.problems[0].text, /couldn't be read/);
   });
+  t("store: the chosen preset's file read at last applies at once, as a choice of it does (C101/C102/S119)", async () => {
+    // the create-project grader on dead20c: the preset's read refused, the preset chosen (XO shows everything), the
+    // read allowed and Shape opened again: its error cleared, but XO stayed as Everything until a reload
+    const st = mem();
+    let refuse = true;
+    const S = createShapeStore({ storage: st, load: async (id) => { if (refuse) throw new Error("Preset fixture unavailable"); return preset(id); } });
+    await S.choose("marketing");
+    assert.equal(S.presetId, "marketing");
+    assert.equal(S.on("xo:thread/runtime"), true, "unread: everything, as it says");
+    assert.match(S.problems[0].text, /couldn't be read/);
+    let heard = 0; S.onChange(() => heard++);
+    refuse = false;
+    await S.loadPreset("marketing"); // Shape opened again reads the presets
+    assert.equal(S.presetError("marketing"), null, "the error clears");
+    assert.equal(S.on("xo:thread/runtime"), false, "and the preset applies, at once");
+    assert.ok(heard >= 1, "the page hears of it, as of a choice");
+    assert.equal(S.problems.length, 0);
+    assert.equal(JSON.parse(st.getItem(KEYS.preset)).id, "marketing", "kept for the next load");
+  });
   t("store: a newer XO's document is never written over", async () => {
     const st = mem({ [KEYS.mine]: JSON.stringify({ shape: 7, preset: "engineering", density: "compact" }) });
     const S = createShapeStore({ storage: st, load: async (id) => preset(id) });
