@@ -2,7 +2,7 @@
  "note": "Canonical key → row ID. Append-only: never renumber, never reuse.",
  "next": {
   "C": 127,
-  "S": 259
+  "S": 270
  },
  "ids": {
   "C001": {
@@ -1558,6 +1558,87 @@
   "S258": {
    "key": "button.lp-ib[data-lp=copy]",
    "aliases": []
+  },
+  "S259": {
+   "key": "button[data-lp=settings]",
+   "aliases": [
+    "LPX01-settings"
+   ]
+  },
+  "S260": {
+   "key": "button[data-lp=create-repo]",
+   "aliases": [
+    "LPX02-create-repo"
+   ]
+  },
+  "S261": {
+   "key": "button[data-lp=link-same]",
+   "aliases": [
+    "LPX03-link-same"
+   ]
+  },
+  "S262": {
+   "key": "button[data-lp=ask-fix]",
+   "aliases": [
+    "LPX04-ask-fix"
+   ]
+  },
+  "S263": {
+   "key": "button[data-lp=recreate]",
+   "aliases": [
+    "LPX05-recreate"
+   ]
+  },
+  "S264": {
+   "key": "button[data-lp=fix-port]",
+   "aliases": [
+    "LPX06-fix-port"
+   ]
+  },
+  "S265": {
+   "key": "a.lpm-host",
+   "aliases": [
+    "LPX10-open-host",
+    "a.lp-hh",
+    "LPX07-folded-host",
+    ".lpm-addr a.lp-ib",
+    "LPX09-open-icon",
+    ".lp-ha a.fr-ib",
+    "LPX13-head-open-icon",
+    ".lpv-addr a.lp-ib",
+    "LPX14-wide-open-icon"
+   ]
+  },
+  "S266": {
+   "key": "a.lp-ln",
+   "aliases": [
+    ".lpm a.lp-ln",
+    "LPX08-build-log",
+    ".lpv a.lp-ln",
+    "LPX17-wide-build-log",
+    ".lp-or a.lp-b",
+    "LPX16-failed-build-log",
+    ".lp-acts a.lp-go"
+   ]
+  },
+  "S267": {
+   "key": ".lp-acts a.lp-b",
+   "aliases": [
+    "LPX11-launchpad-link"
+   ]
+  },
+  "S268": {
+   "key": "a.lp-go.lp-wide",
+   "aliases": [
+    "LPX12-device-link"
+   ]
+  },
+  "S269": {
+   "key": "div.shd-grip",
+   "aliases": [
+    ".shd-grip",
+    "LPX15-shell-resize"
+   ]
   }
  },
  "legacy": {

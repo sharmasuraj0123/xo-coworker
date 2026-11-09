@@ -596,6 +596,21 @@ const MANUAL = [
   { key: 'xo-select .dd-row', tag: 'div', at: 'js/dropdown.js:139', text: '', does: 'A dropdown\'s option: the pointer and the arrows move to it; Enter or a click picks it.' },
   { key: 'diffs-container [contenteditable]', tag: 'div', at: 'js/viewer.js:308', text: '', does: 'The file\'s text in Edit (the diff library\'s editor): where you type.' },
   { key: 'button.xd-mbtn', tag: 'button', at: 'js/diffview.js:164', text: 'Keep yours / Take the agent\'s / Keep both', does: 'A merge: keeps yours, the agent\'s, or both, for that place.' },
+  // Launchpad's next steps, drawn from Space's action (data-lp="${…}" in actionHtml and rec(), so the scan sees only
+  // the hook), and the links out of the panel (no data- hook to name them by), and the Shells grip (a separator):
+  // the 11 families Astra's inventory check on 43f400e found missing (its LPX01–LPX17). aliases: each family's
+  // other drawings, under the selectors Astra's cases use
+  { key: 'button[data-lp=settings]', tag: 'button', at: 'js/launchpad.js:373', text: 'Change the settings / Pick another name', does: 'Launchpad, a deploy\'s next step: back to its settings, focus on the field to change (the name, or the size).', aliases: ['LPX01-settings'] },
+  { key: 'button[data-lp=create-repo]', tag: 'button', at: 'js/launchpad.js:373', text: 'Create the private repo', does: 'Launchpad, a deploy\'s next step: deploys again, creating the private repository on GitHub (3 s to Undo first).', aliases: ['LPX02-create-repo'] },
+  { key: 'button[data-lp=link-same]', tag: 'button', at: 'js/launchpad.js:373', text: 'Link it', does: 'Launchpad, a deploy\'s next step: links the app Launchpad already has under this name; Deploy is next.', aliases: ['LPX03-link-same'] },
+  { key: 'button[data-lp=ask-fix]', tag: 'button', at: 'js/launchpad.js:519', text: 'Ask an agent', does: 'Launchpad, a failed deploy: starts a new thread where an agent reads the log and fixes the cause (one thread per ask).', aliases: ['LPX04-ask-fix'] },
+  { key: 'button[data-lp=recreate]', tag: 'button', at: 'js/launchpad.js:502', text: 'Create it again', does: 'Launchpad: creates the app again from the same repository with the same settings (3 s to Undo first).', aliases: ['LPX05-recreate'] },
+  { key: 'button[data-lp=fix-port]', tag: 'button', at: 'js/launchpad.js:523', text: 'Use port …', does: 'Launchpad, a failed deploy: deploys again on the port the image listens on (3 s to Undo first).', aliases: ['LPX06-fix-port'] },
+  { key: 'a.lpm-host', tag: 'a', at: 'js/launchpad.js:337', text: 'the app\'s address', does: 'Launchpad: opens the live app in a new tab (its address, or its Open it icon, wherever the panel shows it).', aliases: ['LPX10-open-host', 'a.lp-hh', 'LPX07-folded-host', '.lpm-addr a.lp-ib', 'LPX09-open-icon', '.lp-ha a.fr-ib', 'LPX13-head-open-icon', '.lpv-addr a.lp-ib', 'LPX14-wide-open-icon'] },
+  { key: 'a.lp-ln', tag: 'a', at: 'js/launchpad.js:294', text: 'Logs', does: 'Launchpad: opens the build\'s log in a new tab (Logs, Logs on GitHub, Open the build log).', aliases: ['.lpm a.lp-ln', 'LPX08-build-log', '.lpv a.lp-ln', 'LPX17-wide-build-log', '.lp-or a.lp-b', 'LPX16-failed-build-log', '.lp-acts a.lp-go'] },
+  { key: '.lp-acts a.lp-b', tag: 'a', at: 'js/launchpad.js:511', text: 'Open in Launchpad', does: 'Launchpad: opens the app on Launchpad itself in a new tab.', aliases: ['LPX11-launchpad-link'] },
+  { key: 'a.lp-go.lp-wide', tag: 'a', at: 'js/launchpad.js:573', text: 'Open GitHub', does: 'Launchpad, connecting GitHub: opens GitHub\'s device page in a new tab, where the code goes.', aliases: ['LPX12-device-link'] },
+  { key: 'div.shd-grip', tag: 'div', at: 'js/shells/dock.js:57', text: '', does: 'Shells: resizes the shells panel (drag it, or ↑ ↓ on it).', aliases: ['.shd-grip', 'LPX15-shell-resize'] },
 ];
 for (const m of MANUAL) if (!sourceKinds.has(m.key)) sourceKinds.set(m.key, { ...m });
 // a code kind is reached when a rendered kind of the same tag carries all its hooks (with the same value where it has one)
@@ -629,6 +644,8 @@ for (const sk of sourceKinds.values()) {
   if (!sk.id) sk.id = idFor(sk.key, 'S', legacySrc(sk));
   codeOnly.push(sk);
 }
+// a manual kind's other drawings, recorded as aliases of its ID (append-only, like the IDs)
+for (const m of MANUAL) if (m.aliases) { const id = byKey.get(m.key); if (id && reg.ids[id]) reg.ids[id].aliases = [...new Set([...(reg.ids[id].aliases || []), ...m.aliases])]; }
 fs.writeFileSync(REG_FILE, JSON.stringify(reg, null, 1) + '\n');
 
 const yes = (v) => (v === true ? 'yes' : v === false ? '**no**' : '–');
