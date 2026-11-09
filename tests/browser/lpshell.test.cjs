@@ -646,6 +646,14 @@ const dock = async (o = {}) => {
 };
 const attach = async (page, id = "sh_1") => { await page.locator(`[data-sh-open="${id}"]`).click(); await page.waitForSelector(`.shd-term[data-pane="${id}"] .xterm`); await page.waitForTimeout(300); };
 
+t("SH27: a detached shell's dot is never blue, in either theme (no blue dots)", async () => {
+  const page = await dock();
+  const dots = await page.evaluate(() => [...document.querySelectorAll(".shl-row .shd-dot, .shd-tab .shd-dot")].map((d) => { const c = getComputedStyle(d).backgroundColor.match(/[\d.]+/g)?.map(Number) || [0, 0, 0, 0]; const k = /^color\(/.test(getComputedStyle(d).backgroundColor) ? 255 : 1; const [r, g, b, a = 1] = c; return { cls: d.className, blue: a > 0 && b * k - Math.max(r, g) * k > 30 }; }));
+  assert.ok(dots.some((d) => /d-away/.test(d.cls)), "a detached shell's dot is drawn");
+  assert.deepEqual(dots.filter((d) => d.blue).map((d) => d.cls), [], "no blue dot");
+  await done(page);
+});
+
 t("SH01: the sidebar's Shells shows the dock and says so", async () => {
   const page = await dock();
   assert.equal(await page.locator("#nv-shells").getAttribute("aria-pressed"), "true");
