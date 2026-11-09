@@ -882,7 +882,7 @@ t("S209 a dropdown busy saving keeps focus but takes no new choice; when the sav
   await page.keyboard.press("Enter");
   await page.waitForSelector("xo-select[data-abstain].is-open");
   const pick = await page.evaluate(() => [...document.querySelectorAll("xo-select[data-abstain] option")].findIndex((o) => o.textContent.startsWith("70%")));
-  for (let i = 0; i < 9 && (await page.evaluate(() => document.querySelector("xo-select[data-abstain] .dd-row.is-active")?.textContent || "")).indexOf("70%") < 0; i++) await page.keyboard.press("ArrowDown");
+  for (let i = 0; i < 9 && (await page.evaluate(() => document.querySelector("xo-select[data-abstain] .dd-row.is-cur")?.textContent || "")).indexOf("70%") < 0; i++) await page.keyboard.press("ArrowDown");
   await page.keyboard.press("Enter"); // 70% goes, and is held
   await page.waitForFunction(() => document.querySelector("xo-select[data-abstain]")?.getAttribute("aria-busy") === "true");
   assert.equal(writes(page, "router"), 1, "70% sent");
@@ -891,7 +891,7 @@ t("S209 a dropdown busy saving keeps focus but takes no new choice; when the sav
   await page.keyboard.press("Enter");
   await page.waitForTimeout(200);
   const mid = await page.evaluate(() => { const x = document.querySelector("xo-select[data-abstain]"); return { open: x.classList.contains("is-open"), shown: x.querySelector(".dd-v").textContent, focus: document.activeElement === x.querySelector(".dd-btn"), busy: x.querySelector(".dd-btn").getAttribute("aria-busy") }; });
-  assert.deepEqual(mid, { open: false, shown: "70% sure", focus: true, busy: "true" }, "held: no list, no new choice, focus kept, said busy on the button");
+  assert.deepEqual(mid, { open: false, shown: "70% sure", focus: true, busy: "true" }, `held: no list, no new choice, focus kept, said busy on the button (${JSON.stringify(mid)})`);
   assert.equal(writes(page, "router"), 1, "nothing more sent");
   rel[0](); // 70% lands
   await page.waitForFunction(() => document.querySelector("xo-select[data-abstain]")?.getAttribute("aria-busy") !== "true");

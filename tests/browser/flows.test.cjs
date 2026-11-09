@@ -575,7 +575,8 @@ t("C034/C035: the resize grips beside a file show the one ring when the keyboard
   await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
   await page.waitForFunction(() => document.body.classList.contains("chat-docked"), null, { timeout: 8000 });
   await page.keyboard.press("Shift");
-  const ring = (sel, pseudo) => page.evaluate(([sel, pseudo]) => { const e = document.querySelector(sel); if (!e || !e.getClientRects().length) return null; const s = getComputedStyle(e, pseudo); return pseudo ? s.boxShadow : `${s.outlineStyle} ${s.outlineWidth}`; }, [sel, pseudo]);
+  // read once settled (a control just focused reads the browser's own 3 px for a moment)
+  const ring = (sel, pseudo) => page.evaluate(([sel, pseudo]) => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(() => { const e = document.querySelector(sel); if (!e || !e.getClientRects().length) return ok(null); const s = getComputedStyle(e, pseudo); ok(pseudo ? s.boxShadow : `${s.outlineStyle} ${s.outlineWidth}`); }))), [sel, pseudo]);
   await page.locator(".fv-cgrip").focus();
   assert.equal(await ring(".fv-cgrip", null), "solid 2px", "the chat's grip");
   const split = page.locator(".fv .fl.is-wide .fl-split");
