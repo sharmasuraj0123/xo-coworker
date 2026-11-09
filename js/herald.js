@@ -43,13 +43,16 @@ export function createHerald({ state, schedule = () => {}, now = () => Date.now(
     timer = setTimer(next, ms + 40);
     schedule();
   }
-  /** The line on screen ended (or was cleared): the next waiting line, Undo lines first, in order; of those
-   *  without one only the newest shows (each was already announced). */
+  /** The line on screen ended (or was cleared): the next waiting line. Undo lines first, in order; then forced
+   *  lines (a message that didn't go), each in its turn, oldest first, never merged away; of the rest only the newest
+   *  shows (each was already announced). Astra on dfe1491 (C111-SEND-NOTICE-QUEUE-1): a failure queued behind an
+   *  Undo was cleared with the passing receipts when the Undo ended. */
   function next() {
     if (state.herald && state.herald.until > now() && state.herald.undo) return;
-    const iu = HQ.findIndex((x) => x.h.undo);
+    const iu = HQ.findIndex((x) => x.h.undo), fi = HQ.findIndex((x) => x.h.force);
     let nx = null;
     if (iu >= 0) nx = HQ.splice(iu, 1)[0];
+    else if (fi >= 0) nx = HQ.splice(fi, 1)[0];
     else if (HQ.length) { nx = HQ[HQ.length - 1]; HQ.length = 0; }
     if (!nx) { schedule(); return; }
     let { h, ms } = nx;

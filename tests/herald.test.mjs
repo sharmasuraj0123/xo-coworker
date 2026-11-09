@@ -50,4 +50,16 @@ await t("a failure never yields to a passing line; a passing line yields to it",
   her.show({ kind: "done", text: "A passing line" }, 4000);
   assert.equal(state.herald.text, "Not sent: Message not sent");
 });
+await t("a failure queued behind an Undo survives the queue draining: shown in its turn, never merged with a passing receipt", () => {
+  const { c, state, her } = make();
+  const a = { id: "lA", conv: "p:alpha", to: "alpha", err: { title: "Message not sent" } }, b = { id: "lB", conv: "p:beta", to: "beta" };
+  her.show({ kind: "halt", text: "Stopping", undo: () => {}, undoUntil: c.now() + 3000 }, 3200);
+  her.show(H.noticeFor(a, "failed"), 6000); // A failed: forced, it waits behind the Undo
+  her.show(H.noticeFor(b, "sent"), 9000);   // B went: its receipt waits too
+  assert.equal(state.herald.text, "Stopping");
+  c.tick(3300);
+  assert.equal(state.herald.text, "Not sent: Message not sent", "A's failure first, not lost with the queue");
+  c.tick(6100);
+  assert.equal(state.herald.text, "Sent to beta", "then B's receipt");
+});
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
