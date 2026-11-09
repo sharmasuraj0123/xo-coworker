@@ -937,7 +937,11 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     // Space, a tap, or More opened again stacked four clipboard calls: the controls grader on 76a53c1, S124/S125),
     // and says it's copying once it outlasts a moment; a refusal or success ends it
     if (V.busy) return;
-    const busy = V.busy = { kind: "copy", shown: false };
+    // the copy's own token: its result is said only on the file it started on, by the copy that's still the one on
+    // its way (another file opened meanwhile resets V.busy): a late Copied or refusal painted onto the next file and
+    // took focus to its More, and the old 1400 ms timer cleared the new copy's Copied (the controls grader on
+    // 76a53c1, S124 / C81)
+    const busy = V.busy = { kind: "copy", shown: false }, file = V.file;
     const slow = setTimeout(() => { if (V.busy === busy) { busy.shown = true; redrawKeep(); } }, COPY_SAYS_MS);
     let ok = false;
     try { await navigator.clipboard.writeText(text); ok = true; } catch {
@@ -948,12 +952,14 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       try { ok = document.execCommand("copy"); } catch { ok = false; }
       ta.remove(); back && back.focus && back.focus({ preventScroll: true });
     }
-    clearTimeout(slow); if (V.busy === busy) V.busy = null;
+    clearTimeout(slow);
+    if (V.busy !== busy || V.file !== file) return; // settled after its file went: nothing to say here
+    V.busy = null;
     if (!ok) { V.saveError = "Couldn't copy: the browser didn't allow it here. Select the text and copy it, or download the file."; redrawKeep(); announce("Couldn't copy."); return; }
-    V.copied = true; V.saveError = null;
+    V.copied = busy; V.saveError = null; // this copy's Copied, cleared by this copy's timer only
     redrawKeep();
     announce("Copied.");
-    setTimeout(() => { if (V.copied) { V.copied = false; redrawKeep(); } }, 1400);
+    setTimeout(() => { if (V.copied === busy) { V.copied = false; redrawKeep(); } }, 1400);
   }
 
   // a choice from ⋯'s menu: it acts, then the menu goes and focus is on something that shows: where the action put

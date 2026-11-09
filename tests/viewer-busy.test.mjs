@@ -18,9 +18,9 @@ t("one state for both: no separate download flag left", () => {
 t("a copy on its way takes no repeat, says so past a moment, and ends on success or refusal", () => {
   const b = body("copy");
   assert.match(b, /if \(V\.busy\) return;/, "a repeat (or a copy during a download) is ignored");
-  assert.match(b, /const busy = V\.busy = \{ kind: "copy", shown: false \};/);
+  assert.match(b, /const busy = V\.busy = \{ kind: "copy", shown: false \}/);
   assert.match(b, /setTimeout\(\(\) => \{ if \(V\.busy === busy\) \{ busy\.shown = true; redrawKeep\(\); \} \}, COPY_SAYS_MS\)/, "says it's copying once it outlasts COPY_SAYS_MS");
-  assert.match(b, /clearTimeout\(slow\); if \(V\.busy === busy\) V\.busy = null;/, "ends before Copied or the refusal is said");
+  assert.match(b, /clearTimeout\(slow\);\n\s*if \(V\.busy !== busy \|\| V\.file !== file\) return;[^\n]*\n\s*V\.busy = null;/, "ends before Copied or the refusal is said");
   const ms = +(src.match(/const COPY_SAYS_MS = (\d+);/) || [])[1];
   assert.ok(ms > 0 && ms < 250, `before 250 ms (${ms})`);
 });
@@ -30,5 +30,12 @@ t("the download is the same state, and More stays shut while either is on its wa
   const i = src.indexOf('if (e.target.closest("[data-vw-more]")) {'), a = src.slice(i, i + 600);
   assert.match(a, /if \(V\.busy\) return;/, "More: one guard, for both");
   assert.match(src, /word = done \? "Copied" : busy \? \(V\.busy\.kind === "copy" \? "Copying…" : "Downloading…"\) : ""/, "the ⋯ says which");
+});
+t("a copy's result belongs to it and its file: settled after the file went, it says nothing; its Copied is cleared by its own timer only", () => {
+  const b = body("copy");
+  assert.match(b, /const busy = V\.busy = \{ kind: "copy", shown: false \}, file = V\.file;/, "its token and its file");
+  assert.match(b, /if \(V\.busy !== busy \|\| V\.file !== file\) return;/, "another file opened meanwhile (it resets V.busy): nothing said, no focus moved");
+  assert.match(b, /V\.copied = busy;/, "this copy's Copied");
+  assert.match(b, /setTimeout\(\(\) => \{ if \(V\.copied === busy\) \{ V\.copied = false; redrawKeep\(\); \} \}, 1400\)/, "cleared only by this copy's timer (the old one cleared the new Copied: C81)");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

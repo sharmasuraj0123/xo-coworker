@@ -33,5 +33,6 @@ t("on a phone the bar keeps Close's corner to itself: its own controls end clear
   const m = css.match(/@media \(max-width:760px\)\{([\s\S]*)\}$/);
   assert.match(m[1], /\[data-search-close\]\{[^}]*top:-8px!important;right:-8px!important/, "Close: 36 px, 8 px out from the corner, so 28 px in");
   assert.match(m[1], /\[data-search-panel\] \[data-editor-widget\]\{padding-right:36px!important\}/, "the bar's controls end 36 px from its edge: clear of Close's 28");
+  assert.match(css, /\n\[data-search-panel\] \[data-editor-widget\]\{padding-right:16px!important\}\n@media/, "and on a desktop, 16 px: clear of Close's 10");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

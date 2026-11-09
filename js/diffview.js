@@ -130,6 +130,9 @@ const FIND_CSS = `
 [data-matches]{color:var(--ink-2)!important}
 [data-matches][data-invalid]{color:var(--err-ink)!important}
 [data-input-box] input::placeholder{color:var(--ink-3)!important;opacity:1!important}
+/* the bar keeps Close's corner to itself: Close (20 px, half out of the corner) reaches 10 px in, so the bar's own
+   controls end 16 px from its right edge, never under it (the flows case found Next and Close overlapping 6 × 4 px) */
+[data-search-panel] [data-editor-widget]{padding-right:16px!important}
 @media (max-width:760px){
   [data-input-box] input{min-height:36px}
   [data-input-box][data-find] input{padding-inline-end:116px!important}

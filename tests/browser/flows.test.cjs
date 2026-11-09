@@ -2083,7 +2083,8 @@ t("S124/S125 (pending): a held Copy says Copying… by 250 ms, takes no repeat a
   assert.match(await more.innerText(), /Copying/, "by 250 ms the ⋯ says it's copying");
   // repeats: Enter and Space on the ⋯, a tap on it: none opens More or copies again
   await more.focus(); await page.keyboard.press("Enter"); await page.keyboard.press("Space");
-  await more.click();
+  const mb = await more.boundingBox(); // a tap where it is: it's aria-disabled while busy, which a locator's click won't press
+  await page.mouse.click(mb.x + mb.width / 2, mb.y + mb.height / 2);
   await page.waitForTimeout(300);
   assert.equal(await page.locator("#viewer .vw-menu").count(), 0, "More stays shut while the copy is on its way");
   assert.equal(await page.evaluate(() => window.__cpq.length), 1, "one clipboard call, never stacked");
@@ -2091,6 +2092,38 @@ t("S124/S125 (pending): a held Copy says Copying… by 250 ms, takes no repeat a
   await page.evaluate(() => window.__cpq[0].ok());
   await page.waitForTimeout(150);
   assert.match(await more.innerText(), /Copied/, "once it lands: Copied");
+  await done(page);
+});
+// a copy that settles after its file has gone says nothing on the next file (the controls grader on 76a53c1, S124 /
+// C81: a held Copy, other.txt opened, its More's Copy path focused, then the old copy settles: the old Copied or
+// refusal painted on other.txt and focus jumped to More; the old 1400 ms timer cleared the new copy's Copied)
+t("S124 (stale): a copy that settles after another file is open says nothing there, moves no focus, and leaves its Copied alone", async () => {
+  const page = await app({ files: { "a.js": FILE(), "other.txt": FILE() } });
+  await page.evaluate(() => { window.__cpq = []; navigator.clipboard.writeText = () => new Promise((ok, no) => window.__cpq.push({ ok, no })); });
+  await toDemo(page);
+  for (const late of ["ok", "no"]) {
+    await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
+    const more = page.locator("#viewer [data-vw-more]").filter({ visible: true }).first();
+    await more.waitFor({ timeout: 15000 });
+    await page.keyboard.press("Shift");
+    await more.focus(); await page.keyboard.press("Enter");
+    const c = page.locator("#viewer .vw-menu [data-vw-copy]").first(); await c.waitFor(); await c.focus();
+    await page.keyboard.press("Enter"); // a.js's copy, held
+    await page.waitForFunction(() => window.__cpq.length >= 1);
+    const held = await page.evaluate(() => window.__cpq.length - 1);
+    // another file, its More open on Copy path
+    await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "other.txt", path: "other.txt", name: "other.txt" }));
+    await page.waitForFunction(() => (document.querySelector("#vw-h")?.textContent || "").includes("other.txt"), null, { timeout: 15000 });
+    const m2 = page.locator("#viewer [data-vw-more]").filter({ visible: true }).first();
+    await m2.focus(); await page.keyboard.press("Enter");
+    const cp = page.locator("#viewer .vw-menu [data-vw-copy-path]").first(); await cp.waitFor(); await cp.focus();
+    // the old copy settles now
+    await page.evaluate(({ i, late }) => (late === "ok" ? window.__cpq[i].ok() : window.__cpq[i].no(new Error("denied"))), { i: held, late });
+    await page.waitForTimeout(250);
+    const st = await page.evaluate(() => ({ alert: !!document.querySelector("#viewer .vw-cut[role=alert]"), more: document.querySelector("#viewer [data-vw-more]")?.textContent.trim(), on: document.activeElement?.hasAttribute("data-vw-copy-path") }));
+    assert.deepEqual(st, { alert: false, more: "", on: true }, `${late}: nothing said on other.txt, focus stays on Copy path (${JSON.stringify(st)})`);
+    await page.keyboard.press("Escape");
+  }
   await done(page);
 });
 t("S126: Download refused in the Changes view says why, under the head, and keeps saying it", async () => {
