@@ -591,7 +591,8 @@ t("C030/S069: Files' Find and the new file's name show the one ring when the key
   const page = await app({ files: { "a.js": FILE() } });
   await panelOpen(page);
   await filesOpen(page);
-  const ring = (sel) => page.evaluate((sel) => { const e = document.querySelector(sel), s = getComputedStyle(e); return { style: s.outlineStyle, width: s.outlineWidth, color: s.outlineColor }; }, sel);
+  // read once the field has settled (a field just made and focused reads the browser's own 3 px for a moment)
+  const ring = (sel) => page.evaluate((sel) => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(() => { const e = document.querySelector(sel), s = getComputedStyle(e); ok({ style: s.outlineStyle, width: s.outlineWidth, color: s.outlineColor }); }))), sel);
   const q = page.locator("[data-fl-q]").filter({ visible: true }).first();
   await page.keyboard.press("Shift");
   await q.focus();
@@ -1071,7 +1072,8 @@ t("FOCUS-RULE: a Tab's and a press's focus aren't even checked; the conversation
   // Tab through the page, and press a few controls with the pointer
   for (let i = 0; i < 25; i++) await page.keyboard.press("Tab");
   // presses on controls that take focus themselves (the composer, Jump's and the menu's openers are scripts' work: not here)
-  for (const sel of ["#say", "#iq", "#say"]) { const l = page.locator(sel).filter({ visible: true }).first(); if (await l.count()) { await l.click(); await page.keyboard.press("Escape"); } }
+  // (a press that opens something whose own script then hands focus on, a picker, is a script's focus: not here)
+  for (let i = 0; i < 3; i++) { await page.locator("#say").click(); await page.keyboard.press("Escape"); }
   let w = await page.evaluate(() => window.__rule);
   assert.deepEqual(w, { checks: 0, brought: 0 }, "Tab and presses: nothing checked, nothing moved");
   // the conversation, read in the middle; a script hands focus to a row far above

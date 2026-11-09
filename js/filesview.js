@@ -161,7 +161,8 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
     if (F.sheet) {
       setChat(open ? "open" : "min");
       // up, focus goes to the sheet's head, unless it's already in the chat (Ask about lines puts it in the composer)
-      if (open && focus) requestAnimationFrame(() => { const a = document.activeElement; if (!(a && a.closest && a.closest("#conv, #dock"))) $("#chead")?.focus({ preventScroll: true }); });
+      // at once: the bar you tapped goes as the sheet comes up, and focus left on it a frame fell to the page
+      if (open && focus) { const a = document.activeElement; if (!(a && a.closest && a.closest("#conv, #dock"))) $("#chead")?.focus({ preventScroll: true }); }
       return;
     }
     if (!F.docked) return;
