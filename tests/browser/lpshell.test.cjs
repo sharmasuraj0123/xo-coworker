@@ -517,7 +517,10 @@ for (const where of ["section put away", "another place on screen"]) {
     await page.waitForFunction(() => document.querySelector(".lp")?.dataset.screen === "run");
     await page.locator('[data-lp="stop"]').click();
     if (where === "section put away") await page.locator('[data-lp="hide"]').click();
-    else { await page.evaluate(() => window.__t.go("ws")); await page.waitForTimeout(400); }
+    // another place: the page changes by script (window.__t.go). A person changes place by pressing something, which
+    // takes focus off Launchpad first, so the case lets go of it deliberately before the script moves the page (a
+    // navigation by script with focus left in a section it hides is the test's own move, not a person's path)
+    else { await page.evaluate(() => document.activeElement?.blur()); await page.waitForTimeout(50); await page.evaluate(() => window.__t.go("ws")); await page.waitForTimeout(400); }
     await page.locator("[data-herald-undo]").focus();
     await page.keyboard.press("Enter");
     await page.waitForTimeout(3300);
