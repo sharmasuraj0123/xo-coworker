@@ -19,18 +19,26 @@ t("each search box it names holds a field whose own outline is taken away (so th
   for (const box of ["fl-q", "all-q", "ar-q"]) assert.ok(new RegExp(`\\.${box} input\\{[^}]*outline:none`).test(all), `.${box} input has outline:none`);
   assert.ok(/\.fl-new-r input\{[^}]*outline:none/.test(all), ".fl-new-r input has outline:none");
 });
-// the form fields (.field: Shape's JSON, a model's key and name, Routing's preference, Create XO Project's): the base
-// ring, never taken away; their focus was a 1 px edge of 2.4–2.5:1 and a halo fainter still (the create-project grader
-// on 4d33649, C108, all four cells). The ring (2 px of the focus colour, 3.2:1 on white, 6.1:1 on #171717) changes no
-// layout; the edge still darkens; no halo beside the ring
-t("a form field (.field) keeps the base ring: nothing takes its outline away, and no halo stands beside it", () => {
-  const rules = [...all.matchAll(/([^{}]*\.field\b[^{}]*)\{([^{}]*)\}/g)].map((m) => ({ sel: m[1].trim(), body: m[2] }));
-  const fields = rules.filter((r) => /\.field (input|textarea)/.test(r.sel));
-  assert.ok(fields.length >= 3, "the field rules are found");
-  const away = fields.filter((r) => /outline:\s*(none|0)/.test(r.body)).map((r) => r.sel);
-  assert.deepEqual(away, [], "rules that take a field's outline away");
-  const halo = fields.filter((r) => /:focus/.test(r.sel) && /box-shadow:/.test(r.body)).map((r) => r.sel);
-  assert.deepEqual(halo, [], "focus rules that draw a halo beside the ring");
-  assert.ok(fields.some((r) => /:focus\b/.test(r.sel) && /border-color:/.test(r.body)), "the edge still answers focus");
+// the boxed text fields (a form's .field: Shape's JSON, a model's key and name, Routing's preference, Create XO
+// Project's; Launchpad's .lp-in; a shell's name .shd-in; a note to the agent, .c-note textarea): the base ring, never
+// taken away. Their focus was a 1 px edge of 2.4–2.5:1 and a halo fainter still (the create-project grader on 4d33649,
+// C108, all four cells; the same rule in the other three). The ring (2 px of the focus colour, 3.2:1 on white, 6.1:1 on
+// #171717) changes no layout. One shared rule darkens the edge when typed in; no halo beside the ring
+const FIELDS = [".field input", ".field textarea", ".lp-in", ".shd-in", ".c-note textarea"];
+const rules = [...all.matchAll(/([^{}]*)\{([^{}]*)\}/g)].map((m) => ({ sel: m[1].trim(), body: m[2] }));
+const names = (r, f) => r.sel.split(",").some((x) => { const y = x.replace(/:root\[data-theme="light"\]\s*/, "").replace(/^:is\(|\)$/g, "").trim(); return y === f || y.startsWith(f + ":") || y.startsWith(f + "::") || y.startsWith(f + ".") || y.endsWith(" " + f) || y.includes(" " + f + ":") || new RegExp(`:is\\([^)]*${f.replace(/[.]/g, "\\.")}`).test(x); });
+t("a boxed text field keeps the base ring: nothing takes its outline away", () => {
+  for (const f of FIELDS) {
+    const mine = rules.filter((r) => names(r, f));
+    assert.ok(mine.length, `${f}: its rules are found`);
+    assert.deepEqual(mine.filter((r) => /outline:\s*(none|0)\b/.test(r.body)).map((r) => r.sel), [], `${f}: rules that take its outline away`);
+  }
+});
+t("no halo stands beside the ring: no field's focus draws a box-shadow", () => {
+  for (const f of FIELDS) assert.deepEqual(rules.filter((r) => names(r, f) && /:focus/.test(r.sel) && /box-shadow:/.test(r.body)).map((r) => r.sel), [], `${f}: focus rules with a halo`);
+});
+t("one shared rule darkens the edge when any of them is typed in", () => {
+  assert.ok(rules.some((r) => r.sel === ":is(.field input,.field textarea,.lp-in,.shd-in,.c-note textarea):focus" && /border-color:var\(--line-hover\)/.test(r.body)), "the shared focus rule");
+  for (const f of FIELDS) assert.deepEqual(rules.filter((r) => names(r, f) && /:focus\b/.test(r.sel) && !r.sel.startsWith(":is(") && !r.sel.startsWith(":root") && !/is-bad/.test(r.sel)).map((r) => r.sel), [], `${f}: a focus rule of its own`);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

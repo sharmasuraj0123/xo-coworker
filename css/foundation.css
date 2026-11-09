@@ -181,3 +181,9 @@ body.stage-full .stg-grip{display:none}
    Each as specific as the rule that takes its outline away (body.chat-docked .fv-cgrip{outline:none} outweighed it) */
 body.chat-docked .fv-cgrip:focus-visible,.stg-grip:focus-visible{outline:2px solid var(--focus);outline-offset:-2px;border-radius:3px}
 .fv .fl.is-wide .fl-split:focus-visible::after{box-shadow:inset 0 0 0 2px var(--focus);border-radius:3px}
+
+/* a boxed text field (a form's .field, Launchpad's, a shell's name, a note to the agent): the keyboard's focus is the base
+   ring every control has (base.css: 2 px of the focus colour, 2 px out; 3.24:1 on white, 6.07:1 on #171717), never
+   taken away and with no halo beside it; typed in, its edge darkens (an invalid one stays red). Each took its outline
+   away for a faint halo, which left a 2.4–2.5:1 edge (the create-project grader on 4d33649, C108, Shape's JSON) */
+:is(.field input,.field textarea,.lp-in,.shd-in,.c-note textarea):focus{border-color:var(--line-hover)}

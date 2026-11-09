@@ -102,7 +102,7 @@
 .lp-v{display:flex;flex-direction:column;gap:4px;min-width:0}
 .lp-v.is-row{flex-direction:row;align-items:center;gap:8px}
 .lp-v.is-row .lp-hint{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lp-in{box-sizing:border-box;width:100%;height:var(--h-ctl);padding:0 8px;border-radius:var(--r-sm);border:1px solid var(--line-soft);background:var(--surface);font:400 var(--fs-base)/20px var(--sans);color:var(--ink);outline:none;transition:border-color var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease)}
+.lp-in{box-sizing:border-box;width:100%;height:var(--h-ctl);padding:0 8px;border-radius:var(--r-sm);border:1px solid var(--line-soft);background:var(--surface);font:400 var(--fs-base)/20px var(--sans);color:var(--ink);transition:border-color var(--d-hover) var(--ease)}
 .lp-in.is-short{flex:none;width:64px;font-variant-numeric:tabular-nums}
 /* On a phone every field is a form field, 40 (tokens: "40 form fields"), Size with them (dropdown.css's phone 36
    is off the scale): one height down the form, and a finger's target. The labels centre on it. */
@@ -116,11 +116,10 @@
 .lp-asked .lp-ag{margin-bottom:12px}
 .lp-in::placeholder{color:var(--ink-4)}
 .lp-in:hover{border-color:var(--line-strong)}
-/* the focus every other field has (.field): the strongest edge and a quiet accent halo */
-.lp-in:focus{border-color:var(--line-hover);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent-fill) 16%,transparent)}
+/* typed in: the focus every boxed field has (foundation.css: the edge darkens, the base ring) */
 .lp-hint{font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
 .lp-f.is-bad .lp-in{border-color:color-mix(in srgb,var(--danger) 70%,transparent)}
-.lp-f.is-bad .lp-in:focus{box-shadow:0 0 0 3px var(--danger-tint)} /* invalid and typed in: red, never a green halo round a red edge */
+/* invalid: the edge stays red when typed in too (it outranks the shared focus edge); the keyboard's ring is the one ring */
 .lp-f.is-bad .lp-hint{color:var(--err-ink)}
 /* the machine: a size from what Launchpad allows, a disk's path and GB, what a linked app was made with */
 /* Size is the app's one dropdown (<xo-select>, css/dropdown.css), the field's whole width */

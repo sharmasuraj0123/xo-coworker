@@ -923,8 +923,7 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 @keyframes nope{from{box-shadow:0 0 0 3px color-mix(in srgb,var(--err) 34%,transparent)}}
 
 .c-note-l{display:block;margin-bottom:8px;font-size:var(--fs-base);color:var(--ink-3)}
-.c-note textarea{display:block;width:100%;resize:none;padding:11px 14px;border-radius:var(--r-sm);border:1px solid var(--line-strong);background:var(--fill-1);font-size:var(--fs-lg);line-height:24px;outline:none;scrollbar-width:none}
-.c-note textarea:focus{border-color:var(--line-hover);box-shadow:0 0 0 4px rgba(var(--accent-rgb),.07)}
+.c-note textarea{display:block;width:100%;resize:none;padding:11px 14px;border-radius:var(--r-sm);border:1px solid var(--line-strong);background:var(--fill-1);font-size:var(--fs-lg);line-height:24px;scrollbar-width:none}
 .c-note-row{display:flex;gap:8px;margin-top:10px}
 
 /* ── the global decision panel: Next's size and place (#21), sized to its content ── */
@@ -1268,10 +1267,6 @@ button.tp-done-u:hover{color:var(--ink)}
 .field input,.field textarea{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--fill-1);font-size:var(--fs-md);line-height:20px;resize:vertical;transition:border-color var(--d-hover) var(--ease)}
 .field input{height:var(--h-lg)}
 .field input::placeholder,.field textarea::placeholder{color:var(--ink-5)}
-/* typed in: the edge darkens, and the keyboard's focus is the base ring every control has (2 px of the focus colour,
-   base.css), never taken away: an edge and a halo alone read 2.4–2.5:1 and fainter (the create-project grader on 4d33649,
-   C108, Shape's JSON, all four cells) */
-.field input:focus,.field textarea:focus{border-color:var(--line-hover)}
 /* A note under a field: one icon, then one line of words (an action inside reads as a link) */
 .cp-note{display:flex;align-items:flex-start;gap:7px;min-height:16px;font-size:var(--fs-sm);line-height:16px;color:var(--ink-4)}
 .cp-note>svg,.cp-note>.spin{flex:none;width:13px;height:13px;margin-top:1.5px}
@@ -2260,8 +2255,7 @@ a.vw-btn{text-decoration:none}
 .shd-act svg{width:14px;height:14px;transition:transform var(--d-move) var(--ease)}
 .shd-act.is-up svg{transform:rotate(180deg)} /* minimised: the chevron points the way the dock comes back */
 .shd-ic{width:var(--h-ctl);padding:0;justify-content:center}
-.shd-in{height:var(--h-ctl);width:220px;padding:0 10px;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--fill-1);font:500 var(--fs-base)/20px var(--sans);color:var(--ink);outline:none;transition:border-color var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease)}
-.shd-in:focus{border-color:var(--line-hover);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent-fill) 16%,transparent)}
+.shd-in{height:var(--h-ctl);width:220px;padding:0 10px;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--fill-1);font:500 var(--fs-base)/20px var(--sans);color:var(--ink);transition:border-color var(--d-hover) var(--ease)}
 .shd-body{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
 .shd-confirm{flex:none;display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:10px 14px;background:var(--err-subtle);border-bottom:1px solid color-mix(in srgb,var(--err) 30%,var(--line-soft));font-size:var(--fs-base);color:var(--ink-2)}
 .shd-confirm p{flex:1;min-width:220px}
