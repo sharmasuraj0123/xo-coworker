@@ -60,7 +60,6 @@
   --focus:rgba(var(--accent-rgb),.75);
   /* the room the ring takes outside a control (its 2 px past a 2 px gap), and 2 px of air: kept clear wherever focus
      scrolls a control into view (base.css) */
-  --ring-reach:4px; /* how far the one ring reaches past a control: its 2 px past a 2 px gap (base.css) */
   --ring-room:6px;
   /* words on an agent's own colour (its Map tag): the colours are bright, so dark ink reads on every one of them,
      6.0:1 at the least (#4C8DFF) where white read 1.7–3.3:1 (the controls grader on e55c2d8, S083) */
