@@ -294,8 +294,11 @@ export async function file(scroller, contents, o = {}) {
   scroller.appendChild(host);
   const VZ = new P.Virtualizer();
   VZ.setup(scroller, host);
+  // the file view's own signal that a render has finished (onPostRender: after it has synced its editor's view)
+  const rendered = [];
   const v = new P.VirtualizedFile({
     ...common(o), unsafeCSS: FIND_CSS,
+    onPostRender: () => { for (const f of rendered.splice(0)) f(); },
     ...(o.onSelect ? { enableLineSelection: true, onLineSelectionEnd: (r) => o.onSelect(r), onLineSelected: (r) => { if (!r) o.onSelect(null); } } : {}),
     ...(o.note ? { renderAnnotation: (a) => o.note(a.lineNumber) } : {}),
   }, VZ, undefined, lang !== "text" ? workers(P) : undefined);
@@ -314,6 +317,12 @@ export async function file(scroller, contents, o = {}) {
     async edit({ onChange } = {}) {
       const E = await import(EDIT);
       const ed = new E.Editor("file", { onChange: () => onChange && onChange() });
+      // ready when the file view has rendered with the editor attached: its post-render signal (asked for before
+      // attaching, so a render during the attach itself counts). Focus is handed over once, then, as Pierre's own
+      // focus needs its document and lines (an empty file's editor took longer than the ten frames this used to
+      // retry for: the controls grader's S242–S252 contract on dead20c). A second without any render at all would be
+      // a broken view: edit() goes on then rather than hang
+      const ready = new Promise((ok) => { rendered.push(ok); setTimeout(ok, 1000); });
       const detach = ed.edit(v);
       // Pierre's find bar, from outside it (the library is pinned): its Close and its Escape put you back at your
       // caret before the bar goes (it left focus nowhere, and the Escape went on to leave the editor: Astra
@@ -373,27 +382,13 @@ export async function file(scroller, contents, o = {}) {
       const keepFind = (e) => { if (!e.isComposing && findKey(e) && typeof ed.__captureFocusForDOMReplacement === "function") ed.__captureFocusForDOMReplacement(); };
       for (const [t, f, c] of [["keydown", keepFind, true], ["keydown", leave, true], ["focusout", leave, true], ["keydown", back, true], ["click", back, true], ["input", pattern, false], ["click", pattern, false]]) host.addEventListener(t, f, c);
       const unwire = () => { watch?.disconnect(); watch = null; grid = null; for (const [t, f, c] of [["keydown", keepFind, true], ["keydown", leave, true], ["focusout", leave, true], ["keydown", back, true], ["click", back, true], ["input", pattern, false], ["click", pattern, false]]) host.removeEventListener(t, f, c); };
-      // the document arrives a frame or two after attaching
-      for (let i = 0; i < 60 && contents && !ed.getText(); i++) await new Promise((r) => requestAnimationFrame(r));
+      await ready;
       return {
         text: () => ed.getText(),
         dirty: () => ed.canUndo,
         undo: () => ed.undo(),
-        // Pierre's focus does nothing until its document has arrived and it's active (an empty file's can take
-        // longer than a few frames: the controls grader's S242–S252 contract, Edit on an empty file left focus on the
-        // viewer in three cells of four). It's asked again each frame until the caret holds focus, the moment it can
-        // (a second at the most), never by a count of frames that a slow arrival outlasts
-        async focus(o) {
-          const caret = () => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return !!a && host.contains(a.getRootNode().host || a) && a.isContentEditable; };
-          const from = document.activeElement; // focus moved on meanwhile (you, or a script): it's left there
-          for (let i = 0; i < 60; i++) {
-            if (document.activeElement !== from && !host.contains(document.activeElement)) return;
-            ed.focus(o);
-            if (caret()) return;
-            await new Promise((r) => requestAnimationFrame(r));
-            if (caret()) return; // its own focus lands in a frame callback
-          }
-        },
+        // once: edit() resolved after the view rendered with the editor, so Pierre's focus has its document and lines
+        focus(o) { ed.focus(o); },
         stop() { unwire(); detach(); ed.cleanUp("discard"); },
       };
     },

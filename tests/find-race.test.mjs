@@ -27,12 +27,12 @@ t("the pinned editor's rule it relies on: a landing with focus kept focuses only
   assert.match(lib, /this\.#S!==void 0\?this\.#oe\(a\):this\.#D\(a\)/, "a pending landing takes the kept path");
   assert.match(lib, /if\(n==null\|\|!this\.#xe\(n\)\)\{this\.#S=void 0,this\.#k=!1;return\}/, "which focuses nothing when the editor doesn't hold focus");
 });
-t("the wrapper asks for focus until the caret holds it (an empty file's editor can be ready late), not for ten frames", () => {
-  const i = src.indexOf("async focus(o) {"), b = src.slice(i, src.indexOf("\n        },", i));
-  assert.ok(i > 0, "focus()");
-  assert.match(b, /for \(let i = 0; i < 60; i\+\+\) \{/, "up to a second");
-  assert.match(b, /if \(caret\(\)\) return;/, "until the caret holds focus");
-  assert.match(b, /if \(document\.activeElement !== from && !host\.contains\(document\.activeElement\)\) return;/, "and never after focus has moved on elsewhere");
-  assert.doesNotMatch(b, /i < 10\b/, "not ten frames");
+t("the editor is handed focus once, when the file view says it has rendered with it (its post-render signal), never by a frame count", () => {
+  assert.match(src, /onPostRender: \(\) => \{ for \(const f of rendered\.splice\(0\)\) f\(\); \},/, "the file view's own signal");
+  assert.match(src, /const ready = new Promise\(\(ok\) => \{ rendered\.push\(ok\); setTimeout\(ok, 1000\); \}\);\n\s*const detach = ed\.edit\(v\);/, "asked for before attaching (a render during the attach counts); a second without any render: a broken view, edit() goes on");
+  assert.match(src, /await ready;/, "edit() resolves once it's ready");
+  assert.match(src, /focus\(o\) \{ ed\.focus\(o\); \},/, "then focus once");
+  assert.doesNotMatch(src, /for \(let i = 0; i < (10|60); i\+\+\) \{\n\s*(ed\.focus|if \(document\.activeElement)/, "no retry loop");
+  assert.doesNotMatch(src, /!ed\.getText\(\); i\+\+\) await/, "no frame count for the document either");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
