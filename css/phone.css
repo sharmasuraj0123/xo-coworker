@@ -241,8 +241,9 @@
    scale with its zoom; an Artifacts row is its 108 px row; the phone bar's quiet path line, put to the owner) ── */
 @media (max-width:760px){
   :where(button,[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],[role=menuitemcheckbox],[role=switch],summary,select):where(:not(.dg-n,.gn,.dg-tag,.pj-s *,.tw-rt)){min-height:36px}
-  /* the square icon buttons stay square at the floor */
-  :where(.x,.vw-x,.vw-btn,.fr-ib,.st-x,.stg-x,.fv-ib,.xd-tx,.lbx-btn,.fchip-x,.cref-x,.side-x,.sl-x,.md-pin,.shd-tx,.mx-r-x,.lp-ib,.fl-up,.stg-ic,.fl-back,.fv-back){min-width:36px}
+  /* the square icon buttons stay square at the floor, and so do those whose words hide on a phone (Edit, Runs code,
+     the header's and the map's actions): the browser pass at 320/390 found Edit 28 wide, Open in Files 28, New file 32 */
+  :where(.x,.vw-x,.vw-btn,.fr-ib,.st-x,.stg-x,.fv-ib,.xd-tx,.lbx-btn,.fchip-x,.cref-x,.side-x,.sl-x,.md-pin,.shd-tx,.mx-r-x,.lp-ib,.fl-up,.stg-ic,.fl-back,.fv-back,.xd-edit,.xd-runs,.cx-ofi,.fl-add,.tw-act,.map-btn){min-width:36px}
   /* controls whose own min-height was smaller: Files' rows, a turn's step rows, a stop's notice with its Undo */
   .fl-r,.tb-rh,.hr-ev.k-stopped.has-undo{min-height:36px}
   :root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-rows>.tb-row>.tb-rh,

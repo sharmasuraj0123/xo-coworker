@@ -49,4 +49,36 @@ t("no control's own min-height or max-height holds it under 36 px on a phone, un
   }
   assert.deepEqual(bad, [], `controls held under 36 px on a phone:\n  ${bad.join("\n  ")}`);
 });
+t("a control whose words hide to leave its icon is 36 px wide on a phone too (the browser pass at 320/390 found Edit 28)", () => {
+  // the controls whose label (a span) is hidden somewhere: on a phone they're icon buttons
+  const css = readdirSync(new URL("css/", ROOT)).filter((f) => f.endsWith(".css")).map((f) => readFileSync(new URL(`css/${f}`, ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
+  const iconed = new Set();
+  for (const m of css.matchAll(/([^{}]+)\{display:none\}/g)) for (const sel of m[1].split(",")) {
+    const k = /\.([\w-]+)(?:[.:][\w-]+(?:\([^)]*\))?)*(?: |>)span$/.exec(sel.trim());
+    if (k) iconed.add(k[1]);
+  }
+  const phone = readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  const wide = /:where\(([^)]*)\)\{min-width:36px\}/.exec(phone);
+  assert.ok(wide, "phone.css's square-at-the-floor list");
+  const listed = new Set(wide[1].split(",").map((x) => x.trim().replace(/^\./, "")));
+  // the ones that are 36 or more wide on a phone by their own rule
+  const OWN = {
+    "top-back": [/\.top-back\{[^}]*width:40px/, phone, "40 square in the phone's bar"],
+    "dock-hide": [/\.dock-hide\{height:36px;min-width:36px\}/, css, "its own 36 at the phone"],
+    "shd-act": [/\.shd-act\{width:var\(--h-lg\);height:var\(--h-lg\)/, css, "40 square at the phone"],
+  };
+  const short = [];
+  for (const k of [...iconed].sort()) {
+    if (listed.has(k)) continue;
+    if (OWN[k]) { assert.match(OWN[k][1], OWN[k][0], `${k}: ${OWN[k][2]}`); continue; }
+    short.push(k);
+  }
+  assert.deepEqual(short, [], `icon buttons on a phone without the 36 px width: ${short.join(", ")}`);
+  for (const k of ["xd-edit", "xd-runs", "tw-act", "map-btn", "lbx-btn", "vw-btn"]) assert.ok(iconed.has(k), `found: ${k}`);
+});
+t("the icon buttons the browser pass found narrow are on the list: Open in Files (28), New file (32)", () => {
+  const phone = readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  const listed = /:where\(([^)]*)\)\{min-width:36px\}/.exec(phone)[1].split(",").map((x) => x.trim());
+  for (const k of [".cx-ofi", ".fl-add"]) assert.ok(listed.includes(k), `${k} is 36 wide on a phone`);
+});
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
