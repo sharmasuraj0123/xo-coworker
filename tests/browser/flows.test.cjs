@@ -1040,7 +1040,11 @@ for (const how of ["Enter", "pointer"]) t(`S138 (Created): ${how === "Enter" ? "
   const x = page.locator("#viewer .xd-toast [data-vw-toastx]");
   await x.waitFor();
   if (how === "Enter") { await page.keyboard.press("Shift"); await x.focus(); await page.keyboard.press("Enter"); } // the keyboard's
-  else await x.click();
+  else {
+    // a person's press, at Close's own coordinates (locator.click scrolls its target into view by itself first)
+    const at = await x.evaluate((e) => { const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+    await page.mouse.click(at.x, at.y);
+  }
   await page.waitForFunction(() => !document.querySelector("#viewer .xd-toast"), null, { timeout: 3000 });
   await page.waitForTimeout(150);
   const where = await page.evaluate(() => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return { editor: !!(a && a.closest && a.closest("[contenteditable]")), tag: a ? a.tagName + (a.id ? "#" + a.id : "") : null }; });
