@@ -904,6 +904,22 @@ t("C118: Ctrl+Shift+J set for All shortcuts in Settings opens the sheet, on the 
   await page.evaluate(() => localStorage.removeItem("cv-keys"));
   await done(page);
 });
+// ── the phone's drawer keeps Tab inside it (the same grader: Tab past Settings landed on BODY)
+t("phone drawer: Tab past its last control comes round to its first, Shift+Tab the other way; never the page", async () => {
+  if (WIDTH >= 600) skip("the sidebar is a drawer only on a phone");
+  const page = await app();
+  await toDemo(page);
+  await page.locator("#top-menu, #pb-menu").filter({ visible: true }).first().click();
+  await page.waitForFunction(() => document.querySelector("#app").classList.contains("drawer") && document.activeElement && document.activeElement.closest("#side"));
+  const where = () => page.evaluate(() => { const a = document.activeElement; return a === document.body ? "BODY" : a.closest("#side") ? "side" : "page"; });
+  const n = await page.evaluate(() => [...document.querySelectorAll("#side *")].filter((x) => x.tabIndex >= 0 && !x.disabled && x.getClientRects().length).length);
+  const first = await page.evaluate(() => document.activeElement.id || document.activeElement.className);
+  for (let i = 0; i < n + 2; i++) { await page.keyboard.press("Tab"); assert.equal(await where(), "side", `Tab ${i + 1} of ${n + 2}: in the drawer`); }
+  for (let i = 0; i < n + 2; i++) { await page.keyboard.press("Shift+Tab"); assert.equal(await where(), "side", `Shift+Tab ${i + 1}: in the drawer`); }
+  assert.ok(first, "it started on the drawer's first stop");
+  await page.keyboard.press("Escape");
+  await done(page);
+});
 // ── a send the gate refused is shown, not only said (the controls grader on d79d37e, S137 in all four cells: under
 // routing Off, Tell the agent read "Not sent" in #live and the screen stayed Saved · Undo · Tell). The file's Tell and
 // the composer's Enter, each refused: Not sent on screen, why, nothing posted, the words or the notice kept.
