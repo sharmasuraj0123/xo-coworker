@@ -137,6 +137,8 @@ function mockApi(W) {
       const rel = u.searchParams.get("relative_path"), f = W.files[rel];
       if (W.fileGate && !u.searchParams.get("purpose")) await W.fileGate; // the test says when a read answers
       if (!f) return json({ detail: { code: "not_found", message: "No such file" } }, 404);
+      // W.fileReadFails: the next plain reads (not Edit's) refused, that many times (a reread that fails)
+      if (!u.searchParams.get("purpose") && W.fileReadFails) { W.fileReadFails--; return json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503); }
       // Edit's own read (the whole file, its version): held by W.editGate, refused W.editReadFails times
       if (u.searchParams.get("purpose") === "edit") {
         if (W.editGate) await W.editGate;

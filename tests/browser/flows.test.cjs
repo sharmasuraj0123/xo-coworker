@@ -762,7 +762,7 @@ async function choose(page, attr) {
   await page.keyboard.press("Enter");
   return "more";
 }
-t("S130: Updated · Show, and Copy path, chosen where they are (the head, or More), leave focus on something that shows", async () => {
+for (const reread of ["read", "refused"]) t(`S130: Updated · Show (its reread ${reread === "read" ? "read" : "refused, 503"}), and Copy path, chosen where they are (the head, or More), leave focus on something that shows`, async () => {
   const page = await app({ files: { "a.js": FILE() }, changes: [{ path: "a.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: PATCH("a.js", "one", "ONE") }] });
   await toDemo(page);
   await page.waitForFunction(() => !!window.__t.CHG.at("demo", "a.js"), null, { timeout: 15000 });
@@ -773,11 +773,19 @@ t("S130: Updated · Show, and Copy path, chosen where they are (the head, or Mor
   page.W.changes[0].version = "sha256:B";
   await page.evaluate(() => window.__t.CHG.saved("demo", "a.js"));
   await page.waitForFunction(() => { window.__t.render(); return !!document.querySelector("#viewer .vw-top [data-vw-update]"); }, null, { timeout: 8000, polling: 200 });
+  if (reread === "refused") page.W.fileReadFails = 1; // the new version's read is refused (the grader's edge)
   const where = await choose(page, "data-vw-update");
-  await page.waitForFunction(() => /four, the new line/.test(document.querySelector("#viewer .vw-body")?.textContent || ""), null, { timeout: 8000 });
-  await page.waitForTimeout(300);
+  // the grader's moments after the choice (250 and 500 ms), then once the reread has settled
+  for (const ms of [250, 500]) {
+    await page.waitForTimeout(250);
+    const f = await focusShows(page);
+    assert.ok(f.inViewer && f.drawn, `${ms} ms after Updated · Show (${where}, ${reread}): focus on something drawn in the viewer, not ${f.tag} ${f.what}`);
+  }
+  if (reread === "read") await page.waitForFunction(() => /four, the new line/.test(document.querySelector("#viewer .vw-body")?.textContent || ""), null, { timeout: 8000 });
+  else await page.waitForTimeout(1000);
   let f = await focusShows(page);
-  assert.ok(f.inViewer && f.drawn, `after Updated · Show (${where}): focus on something drawn in the viewer, not ${f.tag} ${f.what}`);
+  assert.ok(f.inViewer && f.drawn, `once the reread ${reread === "read" ? "read" : "was refused"} (${where}): focus on something drawn in the viewer, not ${f.tag} ${f.what}`);
+  if (reread === "refused" && !(await page.locator("#viewer [data-vw-more]").isVisible().catch(() => false))) { await done(page); return; } // nothing to copy from a file that didn't read
   const where2 = await choose(page, "data-vw-copy-path");
   await page.waitForTimeout(300);
   f = await focusShows(page);
@@ -785,6 +793,46 @@ t("S130: Updated · Show, and Copy path, chosen where they are (the head, or Mor
   if (WIDTH < 600) assert.equal(where, "more", "on a phone it's in More (the owner's choice)");
   await done(page);
 });
+// ── the keyboard can always leave the code editor (the controls grader on d79d37e, all four cells: after Created the
+// editor opens; Tab indents and Escape only eases the selection, so Created's Undo couldn't be reached by keyboard).
+// Tab alone still indents; Escape, then Tab or Shift+Tab, moves focus on, and Created's Undo is reached by keys.
+const inEditor = (page) => page.evaluate(() => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return !!(a && a.closest && a.closest("[contenteditable]")); });
+t("EDITOR-exit: after Created, Tab indents; Escape then Shift+Tab, or Escape then Tab, leaves the editor; Created's Undo is reached by keys", async () => {
+  const page = await app({ files: { "a.js": FILE() } });
+  await panelOpen(page);
+  await filesOpen(page);
+  await page.locator("[data-fl-new]").filter({ visible: true }).first().click();
+  await page.keyboard.insertText("made.md");
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => window.__ED && window.__ED.on && window.__ED.ed, null, { timeout: 10000 });
+  await page.locator("#viewer [data-vw-undo]").first().waitFor({ state: "attached", timeout: 8000 });
+  await window_focusEditor(page);
+  assert.equal(await inEditor(page), true, "the editor has focus");
+  // Tab alone indents: focus stays, the text takes it
+  await page.keyboard.press("Tab");
+  assert.equal(await inEditor(page), true, "Tab alone stays in the editor");
+  await page.waitForFunction(() => /^(\t| {2})/.test(window.__ED.ed.text()), null, { timeout: 2000 });
+  // Escape, then Shift+Tab: out, backwards; still editing
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Shift+Tab");
+  assert.equal(await inEditor(page), false, "Escape, then Shift+Tab: out of the editor");
+  assert.equal(await page.evaluate(() => !!(window.__ED && window.__ED.on)), true, "still editing (nothing was cancelled)");
+  // Tab, back into it (moving in doesn't indent)
+  for (let i = 0; i < 20 && !(await inEditor(page)); i++) await page.keyboard.press("Tab");
+  assert.equal(await inEditor(page), true, "Tab comes back into the editor");
+  // Escape, then Tab: out, forwards; on to Created's Undo
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Tab");
+  assert.equal(await inEditor(page), false, "Escape, then Tab: out of the editor");
+  let reached = false;
+  for (let i = 0; i < 10 && !reached; i++) {
+    reached = await page.evaluate(() => !!document.activeElement && document.activeElement.hasAttribute("data-vw-undo"));
+    if (!reached) await page.keyboard.press("Tab");
+  }
+  assert.ok(reached, "Created's Undo reached by keys");
+  await done(page);
+});
+async function window_focusEditor(page) { await page.evaluate(() => window.__ED.ed.focus()); await page.waitForTimeout(150); }
 // ── a send the gate refused is shown, not only said (the controls grader on d79d37e, S137 in all four cells: under
 // routing Off, Tell the agent read "Not sent" in #live and the screen stayed Saved · Undo · Tell). The file's Tell and
 // the composer's Enter, each refused: Not sent on screen, why, nothing posted, the words or the notice kept.
