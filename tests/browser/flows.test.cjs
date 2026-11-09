@@ -781,7 +781,8 @@ for (const reread of ["read", "refused"]) t(`S130: Updated · Show (its reread $
     const f = await focusShows(page);
     assert.ok(f.inViewer && f.drawn, `${ms} ms after Updated · Show (${where}, ${reread}): focus on something drawn in the viewer, not ${f.tag} ${f.what}`);
   }
-  if (reread === "read") await page.waitForFunction(() => /four, the new line/.test(document.querySelector("#viewer .vw-body")?.textContent || ""), null, { timeout: 8000 });
+  // the file is drawn in the renderer's shadow root: its words are read through it
+  if (reread === "read") await page.waitForFunction(() => { const deep = (n) => (n.shadowRoot ? deep(n.shadowRoot) : "") + [...n.childNodes].map((c) => (c.nodeType === 3 ? c.textContent : c.nodeType === 1 ? deep(c) : "")).join(""); const b = document.querySelector("#viewer .vw-body"); return !!b && /four, the new line/.test(deep(b)); }, null, { timeout: 8000 });
   else await page.waitForTimeout(1000);
   let f = await focusShows(page);
   assert.ok(f.inViewer && f.drawn, `once the reread ${reread === "read" ? "read" : "was refused"} (${where}): focus on something drawn in the viewer, not ${f.tag} ${f.what}`);
@@ -922,7 +923,8 @@ t("S137 (refused): under routing Off, a draft to the Workspace sent with Enter s
 });
 // ── the notices' queue, as drawn (7c1b87b; Astra C111-SEND-NOTICE-QUEUE-1 on dfe1491): with an Undo on screen, a
 // message that didn't go waits for it and then shows in its turn; a later message's receipt waits after it, never
-// merging it away. The line on screen is read every 50 ms.
+// merging it away. Both are aimed elsewhere (@workspace from the project's chat): a message to the conversation on
+// screen has its bubble, not a notice. The line on screen is read every 50 ms.
 t("C111-SEND-NOTICE-QUEUE-1: behind an Undo, a message that didn't go shows in its turn, then a later one's receipt", async () => {
   const page = await app({ postFail: true });
   await toDemo(page);
@@ -937,19 +939,23 @@ t("C111-SEND-NOTICE-QUEUE-1: behind an Undo, a message that didn't go shows in i
   await page.evaluate(() => window.__t.heraldShow({ kind: "rec", text: "Moved it", undo: () => {}, undoLabel: "Undo" }, 3000));
   await page.waitForFunction(() => window.__seen.includes("Moved it"));
   const mine = (text) => page.waitForFunction((text) => Object.values(window.__t.S.local || {}).flat().find((m) => m.text === text)?.status || null, text, { timeout: 8000 }).then((h) => h.jsonValue());
-  await page.locator("#say").fill("Message A");
+  await reachable(page);
+  await page.locator("#say").fill("@workspace Message A");
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => Object.values(window.__t.S.local || {}).flat().some((m) => m.text === "Message A" && m.status === "failed"), null, { timeout: 8000 });
   page.W.postFail = false;
-  await page.locator("#say").fill("Message B");
+  await reachable(page);
+  await page.locator("#say").fill("@workspace Message B");
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => Object.values(window.__t.S.local || {}).flat().some((m) => m.text === "Message B" && m.status === "sent"), null, { timeout: 8000 });
   assert.equal(await mine("Message A"), "failed", "A didn't go (refused, 503)");
+  if (process.env.QDEBUG) console.log("QUEUE", await page.evaluate(() => JSON.stringify({ on: window.__t.S.herald && { text: window.__t.S.herald.text, undo: !!window.__t.S.herald.undo, left: window.__t.S.herald.until - Date.now() }, q: (window.__t.S._her && window.__t.S._her.HQ || []).map((x) => [x.h.text, x.h.force, x.ms]) })));
   const undoStill = await page.evaluate(() => window.__seen[window.__seen.length - 1]);
   assert.equal(undoStill, "Moved it", "both waited behind the Undo, which is still on screen");
   // the Undo ends (3 s), A's failure shows (6 s), then B's receipt
-  await page.waitForFunction(() => window.__seen.some((t) => /^Sent to /.test(t)), null, { timeout: 15000 });
+  const gotReceipt = await page.waitForFunction(() => window.__seen.some((t) => /^Sent to /.test(t)), null, { timeout: 15000 }).then(() => true, () => false);
   const seen = await page.evaluate(() => { clearInterval(window.__look); return window.__seen.filter(Boolean); });
+  assert.ok(gotReceipt, `B's receipt shows in its turn: ${JSON.stringify(seen)}`);
   const iU = seen.indexOf("Moved it"), iF = seen.findIndex((t) => /^Not sent/.test(t)), iS = seen.findIndex((t) => /^Sent to /.test(t));
   assert.ok(iU >= 0, `the Undo was on screen: ${JSON.stringify(seen)}`);
   assert.ok(iF > iU, `A's failure shows after the Undo, in its turn: ${JSON.stringify(seen)}`);
