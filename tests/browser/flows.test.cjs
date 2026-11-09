@@ -1767,6 +1767,33 @@ t("S242 (race): Ctrl+End then Ctrl+F at once in a long file: Find's field has fo
   assert.equal(await page.evaluate(() => document.getElementById("main").scrollTop), 0, "the page itself never scrolls");
   await done(page);
 });
+// Edit on an empty file puts the caret in it (the controls grader's S242–S252 contract on dead20c, three cells of four:
+// after a long file's Find and Close, Edit on an empty file left focus on the viewer, not the editor: our wrapper asked
+// Pierre for focus for ten frames, and an empty file's editor can be ready later). The case's own order: the long file
+// first, then the empty one, by Files.
+t("S231/C120: Edit on an empty file, right after a long file's Find and Close: the caret is in it, and typing goes in", async () => {
+  const LONG = Array.from({ length: 180 }, (_, i) => `${i === 174 ? "one " : ""}line ${i}`).join("\n") + "\n";
+  const page = await app({ files: { "long.js": { content: LONG, version: "sha256:L" }, "empty.js": { content: "", version: "sha256:E" } } });
+  await editing(page, "long.js");
+  await page.locator("#viewer [contenteditable=true]").first().click();
+  await page.keyboard.press("ControlOrMeta+End");
+  await page.keyboard.press("ControlOrMeta+f");
+  await page.locator("[data-search-grid] [data-search]").first().waitFor();
+  await page.keyboard.insertText("one");
+  await page.locator("[data-search-close]").first().focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(200);
+  // the empty file, as a person opens it: leave this one, open the other, Edit
+  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "empty.js", path: "empty.js", name: "empty.js" }));
+  await page.locator("[data-vw-edit]").filter({ visible: true }).first().waitFor({ timeout: 15000 });
+  await page.keyboard.press("Shift");
+  await page.locator("[data-vw-edit]").filter({ visible: true }).first().focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return !!a && a.isContentEditable; }, null, { timeout: 4500 });
+  await page.keyboard.type("EMPTY NOW TYPED");
+  await page.waitForFunction(() => window.__ED && window.__ED.ed && window.__ED.ed.text().includes("EMPTY NOW TYPED"), null, { timeout: 3000 });
+  await done(page);
+});
 t("EDITOR-regex: a pattern that isn't a valid regexp says so", async () => {
   const page = await app({ files: { "a.js": FILE() } });
   await editing(page);

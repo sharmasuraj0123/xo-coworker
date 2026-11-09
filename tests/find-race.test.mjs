@@ -27,4 +27,12 @@ t("the pinned editor's rule it relies on: a landing with focus kept focuses only
   assert.match(lib, /this\.#S!==void 0\?this\.#oe\(a\):this\.#D\(a\)/, "a pending landing takes the kept path");
   assert.match(lib, /if\(n==null\|\|!this\.#xe\(n\)\)\{this\.#S=void 0,this\.#k=!1;return\}/, "which focuses nothing when the editor doesn't hold focus");
 });
+t("the wrapper asks for focus until the caret holds it (an empty file's editor can be ready late), not for ten frames", () => {
+  const i = src.indexOf("async focus(o) {"), b = src.slice(i, src.indexOf("\n        },", i));
+  assert.ok(i > 0, "focus()");
+  assert.match(b, /for \(let i = 0; i < 60; i\+\+\) \{/, "up to a second");
+  assert.match(b, /if \(caret\(\)\) return;/, "until the caret holds focus");
+  assert.match(b, /if \(document\.activeElement !== from && !host\.contains\(document\.activeElement\)\) return;/, "and never after focus has moved on elsewhere");
+  assert.doesNotMatch(b, /i < 10\b/, "not ten frames");
+});
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

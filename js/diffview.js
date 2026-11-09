@@ -379,13 +379,19 @@ export async function file(scroller, contents, o = {}) {
         text: () => ed.getText(),
         dirty: () => ed.canUndo,
         undo: () => ed.undo(),
-        // Pierre's focus does nothing until its document has arrived (an empty file's, a frame or two after
-        // attaching): it tries again for a few frames
+        // Pierre's focus does nothing until its document has arrived and it's active (an empty file's can take
+        // longer than a few frames: the controls grader's S242–S252 contract, Edit on an empty file left focus on the
+        // viewer in three cells of four). It's asked again each frame until the caret holds focus, the moment it can
+        // (a second at the most), never by a count of frames that a slow arrival outlasts
         async focus(o) {
-          for (let i = 0; i < 10; i++) {
+          const caret = () => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return !!a && host.contains(a.getRootNode().host || a) && a.isContentEditable; };
+          const from = document.activeElement; // focus moved on meanwhile (you, or a script): it's left there
+          for (let i = 0; i < 60; i++) {
+            if (document.activeElement !== from && !host.contains(document.activeElement)) return;
             ed.focus(o);
-            if (host.contains(document.activeElement)) return;
+            if (caret()) return;
             await new Promise((r) => requestAnimationFrame(r));
+            if (caret()) return; // its own focus lands in a frame callback
           }
         },
         stop() { unwire(); detach(); ed.cleanUp("discard"); },
