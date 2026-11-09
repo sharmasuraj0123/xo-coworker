@@ -672,6 +672,53 @@ t("S208: the map's Follow says on and off as it's pressed", async () => {
   assert.equal(await f.getAttribute("aria-pressed"), was, "pressed again");
   await done(page);
 });
+// Follow keeps the zoom you chose (the controls grader on 65e84b7, S208, all four cells: zoomed in to 2.4, Follow
+// on, and the next live thread updates Fit it back out, the Tree to 0.67, the Graph to 0.63): Follow pans, never
+// zooms, and turning it on or off leaves "you chose this view" alone. Then Follow off holds the view still through
+// more updates. Both drawings; the updates come as the stream brings them.
+t("S208 (zoom): Follow keeps the zoom you chose through live updates, and Follow off holds the view, Tree and Graph", async () => {
+  const dirs = Array.from({ length: 12 }, (_, i) => `folder-${String(i).padStart(2, "0")}`);
+  const page = await app({ files: { "a.js": FILE() }, dirs, threadsBy: { chat_demo: [{ ts: "t-live", chat_id: "chat_demo", title: "A live task", session_id: "s-live", cwd: "/home/test/demo", state: "working", created_at: NOW, updated_at: NOW }] } });
+  await panelOpen(page);
+  if (await page.locator('[data-ghost="map"]').filter({ visible: true }).count()) await page.locator('[data-ghost="map"]').filter({ visible: true }).first().click();
+  await page.locator("#stage-map-tree").waitFor();
+  let seq = 900;
+  const update = () => page.evaluate((seq) => {
+    const ts = new Date().toISOString();
+    window.__storm.apply({ type: "thread", envelope: { type: "thread", chat_id: "chat_demo", thread_ts: "t-live", seq, ts, data: { ts: "t-live", chat_id: "chat_demo", title: "A live task", state: "working", session_id: "s-live", cwd: "/home/test/demo", updated_at: ts } } });
+    window.__t.render();
+  }, ++seq);
+  const world = () => page.evaluate(() => document.querySelector(".dg-world").style.transform);
+  for (const mode of ["tree", "graph"]) {
+    await page.evaluate((m) => document.querySelector(`#stage-map-${m}`).click(), mode);
+    await page.locator(`.dg-world.k-${mode} [data-node]`).first().waitFor();
+    if (mode === "graph") await graphStill(page);
+    await page.waitForTimeout(1800); // the first look settles
+    await page.locator('[data-dg="fit"]').filter({ visible: true }).first().click();
+    for (let i = 0; i < 6; i++) await page.locator('[data-dg="in"]').filter({ visible: true }).first().click();
+    await page.waitForTimeout(300);
+    const zoomed = await mapScale(page);
+    assert.ok(zoomed > 2, `${mode}: zoomed in (${zoomed})`);
+    const follow = page.locator('[data-dg="follow"]').filter({ visible: true }).first();
+    if ((await follow.getAttribute("aria-pressed")) === "true") { await follow.click(); await page.waitForTimeout(100); } // start from off
+    await follow.focus();
+    await page.keyboard.press("Enter");
+    for (const ms of [100, 700, 1800]) {
+      await update();
+      await page.waitForTimeout(ms);
+      assert.equal(await follow.getAttribute("aria-pressed"), "true", `${mode}: Follow on`);
+      const s = await mapScale(page);
+      assert.ok(Math.abs(s - zoomed) < 1e-5, `${mode}: ${ms} ms after an update, still your zoom (${s} vs ${zoomed})`);
+    }
+    await follow.click();
+    await page.waitForTimeout(100);
+    const off = await world();
+    for (let i = 0; i < 3; i++) { await update(); await page.waitForTimeout(800); }
+    assert.equal(await follow.getAttribute("aria-pressed"), "false", `${mode}: Follow off`);
+    assert.equal(await world(), off, `${mode}: Follow off, the view holds through updates`);
+  }
+  await done(page);
+});
 t("S121: a part opened from the folded panel's rail takes focus, on its own fold button", async () => {
   if (WIDTH < 600) skip("the rail is a desktop's");
   // the rail shows where the panel shares the screen with Files beside no conversation: opened in a project,

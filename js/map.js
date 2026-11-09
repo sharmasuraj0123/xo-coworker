@@ -607,7 +607,12 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       announce(what === "graph" ? "Graph view." : "Diagram view.");
     }
     else if (what === "follow") {
-      c.follow = !c.follow; c.user = false;
+      // Follow is where the camera points, never how near: it pans to keep the agent in view at the zoom you chose.
+      // Turning it on or off leaves "you chose this view" as it was, so no update refits under it (Astra S208: it
+      // was cleared here, and the next live update Fit away a zoom of 2.4). Following replaces "all of it": Fit
+      // again to see it all.
+      c.follow = !c.follow;
+      if (c.follow) c.fitAll = false;
       if (c.follow && M.lead) { c.target = M.lead.key; centerOn(c, M.lead.pt, true); }
       // the button says it at once, not on the next camera move (Astra S208: it stayed pressed after turning off)
       el.querySelector('[data-dg="follow"]')?.setAttribute("aria-pressed", String(!!c.follow));
