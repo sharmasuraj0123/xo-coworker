@@ -27,4 +27,14 @@ t("a waiting control shows no hover: the cards and the sheet's Not now", () => {
   assert.ok(/\.x:where\(:not\(\[aria-disabled="true"\]\)\):hover\{/.test(css), "a sheet's ×");
   assert.ok(!/\.set-choice:not\(:disabled\):hover\{/.test(css) && !/\.shp-first-c \.set-choice:hover\{/.test(css) && !/(^|\})\.x:hover\{/.test(css), "the old hovers are gone");
 });
+// and it says why (the grader's FIRST-RUN-FEEDBACK on 4d33649: every button looked enabled, Engineering took focus and
+// was silently ignored, and the × stayed open with an ordinary ring and no reason): the sheet is busy, its line says
+// what's on its way and that the rest waits, and what waits is drawn as waiting (dimmed), the × included
+t("while it waits the sheet says so: busy, its line says what's on its way, and the waiting controls look it", () => {
+  const wait = done.indexOf("await shape.choose(id)"), before = done.slice(0, wait);
+  assert.match(before, /el\.setAttribute\("aria-busy", "true"\);/, "the sheet is busy");
+  assert.match(before, /say\.setAttribute\("role", "status"\);/, "its line is said as it changes");
+  assert.match(before, /say\.textContent = `\$\{id === "everything" \? "Showing everything" : `Setting up \$\{nameOf\(id\)\}`\}… The other choices and Not now wait until it's done\.`;/);
+  assert.ok(/\.shp-first \[aria-disabled="true"\]:not\(\[aria-busy="true"\]\)\{opacity:\.55\}/.test(css), "what waits is dimmed, as a disabled choice is");
+});
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

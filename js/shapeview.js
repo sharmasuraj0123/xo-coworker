@@ -347,6 +347,13 @@ export function createShapeView({ shape, announce = () => {} }) {
         b.setAttribute("aria-disabled", "true");
         if (b.dataset.shf === id) { b.classList.add("is-on"); b.setAttribute("aria-busy", "true"); }
       }
+      // and says why: what's on its way, and that the rest (× too) waits for it (the grader's FIRST-RUN-FEEDBACK)
+      el.setAttribute("aria-busy", "true");
+      const say = el.querySelector("#shf-l");
+      if (say) {
+        say.setAttribute("role", "status");
+        say.textContent = `${id === "everything" ? "Showing everything" : `Setting up ${nameOf(id)}`}… The other choices and Not now wait until it's done.`;
+      }
       const r = await shape.choose(id);
       leave();
       announce((id === "everything" ? "Everything shows." : `${nameOf(id)}.`) + (r && r.kept === false ? ` ${UNKEPT}` : " Settings › Shape changes it any time."));

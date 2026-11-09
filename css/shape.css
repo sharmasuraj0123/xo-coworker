@@ -72,6 +72,8 @@
 .shp-first-c{margin:0;padding:16px 16px 20px}
 .shp-first-c .set-choice{width:100%}
 .shp-first-c .set-choice:where(:not([aria-disabled="true"])):hover{background:var(--hover-fill);transition-duration:var(--d-hover-in)}
+/* a choice on its way: what waits for it (the other cards, the ×) is drawn waiting, as a disabled choice is */
+.shp-first [aria-disabled="true"]:not([aria-busy="true"]){opacity:.55}
 .shp-sheet.is-out{opacity:0;transition:opacity var(--d-out) var(--ease)}
 
 /* ── The simple model choice (xo:composer/intel "simple") ───────────────────────────────────────── */
