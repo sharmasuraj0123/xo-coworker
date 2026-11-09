@@ -2389,7 +2389,7 @@ t("S082 (Graph focus): a folded folder's, an open folder's and a file's dot show
   await page.locator('.dg-world [data-node="bad"]').focus();
   await page.keyboard.press("Enter"); // open "bad": an open folder, with its file
   await page.locator('.dg-world [data-node="bad/inside.md"]').waitFor();
-  await page.evaluate(() => document.querySelector("#stage-map-graph").click());
+  await page.locator("#stage-map-graph").filter({ visible: true }).first().click(); // the panel's tab, by the pointer: focus goes to it
   await page.locator('.dg-world.k-graph button.gn[data-node="bad/inside.md"]').waitFor();
   await graphStill(page);
   for (const [what, id] of [["folded folder", "src"], ["open folder", "bad"], ["file", "bad/inside.md"]]) {
