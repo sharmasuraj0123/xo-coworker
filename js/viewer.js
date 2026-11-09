@@ -191,6 +191,10 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     paintHead();
     if (back) el.querySelector("[data-vw-more]")?.focus({ preventScroll: true });
   }
+  /** The first of these that shows: a control folded into ⋯ is drawn twice, in the head (hidden while the head is
+   *  narrow) and in the menu, and focus put on the hidden one falls to the page (the controls grader on d79d37e, S130:
+   *  Updated · Show from More left focus on BODY at 390). */
+  const shown = (root, sel) => [...root.querySelectorAll(sel)].find((x) => x.getClientRects().length > 0) || null;
   /** The ⋯ menu's items that show (a fold shows only while the head is narrow) */
   const menuItems = () => [...el.querySelectorAll(".vw-menu :is([role=menuitem],[role=menuitemradio])")].filter((x) => x.getClientRects().length > 0);
   const inMore = () => !!(document.activeElement && document.activeElement.closest && document.activeElement.closest(".vw-mw"));
@@ -273,11 +277,13 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (!top) return;
     const ae = document.activeElement;
     const had = ae && top.contains(ae) ? [...ae.attributes].find((a) => a.name.startsWith("data-vw-"))?.name : null;
+    const fromMenu = !!(ae && ae.closest && ae.closest(".vw-menu"));
     top.outerHTML = head();
     errPaint();
     if (!had) return;
     const now = el.querySelector(".vw-top");
-    const to = (ED.on && ED.discard && now.querySelector("[data-vw-keep]")) || now.querySelector(`[${had}]`) || (ED.on && ED.ed) || headFocus(false);
+    // the same control where it shows; one chosen from ⋯'s menu, else the ⋯ itself (focus goes back to what opened it)
+    const to = (ED.on && ED.discard && now.querySelector("[data-vw-keep]")) || shown(now, `[${had}]`) || (fromMenu && shown(now, "[data-vw-more]")) || (ED.on && ED.ed) || headFocus(false);
     if (to && to !== document.activeElement) to.focus({ preventScroll: true });
   }
   /**
@@ -712,6 +718,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   function render() {
     const ae = document.activeElement;
     let was = null;
+    const fromMenu = !!(ae && ae.closest && ae.closest(".vw-menu"));
     if (ae && ae !== el && el.contains(ae)) {
       const a = [...ae.attributes].find((x) => x.name.startsWith("data-vw-"));
       was = a ? (a.value ? `[${a.name}="${CSS.escape(a.value)}"]` : `[${a.name}]`) : "";
@@ -719,8 +726,9 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     renderNow();
     if (was == null || !V.open) return;
     const now = document.activeElement;
-    if (now && now !== document.body && now.isConnected) return;
-    const to = (was && el.querySelector(was)) || el.querySelector(".vw-top [data-vw-edit]") || el;
+    if (now && now !== document.body && now.isConnected && now.getClientRects().length) return;
+    // the same control where it shows (never its hidden twin in a narrow head); one from ⋯'s menu, the ⋯
+    const to = (was && shown(el, was)) || (fromMenu && shown(el, "[data-vw-more]")) || shown(el, ".vw-top [data-vw-edit]") || el;
     to.focus({ preventScroll: true });
   }
   function renderNow() {
@@ -905,7 +913,17 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     setTimeout(() => { if (V.copied) { V.copied = false; redrawKeep(); } }, 1400);
   }
 
+  // a choice from ⋯'s menu: it acts, then the menu goes and focus is on something that shows: where the action put
+  // it, else the same control where it shows, else the ⋯ (S130 on d79d37e: Updated · Show from More left BODY)
   el.addEventListener("click", (e) => {
+    const fromMenu = V.menu && !!e.target.closest(".vw-menu") && !e.target.closest(".vw-menu a");
+    act(e);
+    if (!fromMenu || !V.open) return;
+    if (el.querySelector(".vw-menu") && !V.menu) paintHead(); // nothing redrew the head: the menu goes now
+    const a = document.activeElement;
+    if (!a || a === document.body || (el.contains(a) && !a.getClientRects().length)) (shown(el, "[data-vw-more]") || headFocus(false)).focus({ preventScroll: true });
+  });
+  function act(e) {
     if (e.target.closest("[data-vw-more]")) {
       // while it downloads it says so and keeps focus, but doesn't open (aria-disabled, not disabled: a disabled
       // button drops focus to the page, and it never came back when the download ended: Astra C092/S126)
@@ -952,7 +970,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     // the new version, at the place you were reading
     if (e.target.closest("[data-vw-update]")) { const top = el.querySelector(".vw-body")?.scrollTop || 0; load().then(() => { const b = el.querySelector(".vw-body"); if (b) b.scrollTop = top; }); return; }
         if (e.target.closest("[data-vw-download]")) download();
-  });
+  }
   // an image's size shows in the header once it has decoded; one that won't decode says so
   el.addEventListener("load", (e) => {
     const img = e.target;
