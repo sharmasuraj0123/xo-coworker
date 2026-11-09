@@ -560,7 +560,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       if (DF.handle) { DF.handle.destroy(); DF.handle = null; }
       if (DF.img) { DF.img.drop(); DF.img = null; }
       DF.key = null; DF.pend = null;
-      host.innerHTML = `<p class="vw-empty" role="status"><i class="spin" aria-hidden="true"></i> Reading the change…</p>`;
+      inRegion(host, () => { host.innerHTML = `<p class="vw-empty" role="status"><i class="spin" aria-hidden="true"></i> Reading the change…</p>`; });
       DF.reading = at;
     }
     // a read that failed is said as a failure, never as "too large" (Astra: a failed fetch read "Too large to show")
@@ -583,12 +583,12 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
         return;
       }
       if (readErr) {
-        host.innerHTML = `<div class="vw-empty" role="alert"><p>Couldn't read this change${readErr.message ? `: ${esc(readErr.message)}` : ""}.</p><p><button type="button" class="vw-cut-dl" data-vw-diff-retry>Try again</button></p></div>`;
+        inRegion(host, () => { host.innerHTML = `<div class="vw-empty" role="alert"><p>Couldn't read this change${readErr.message ? `: ${esc(readErr.message)}` : ""}.</p><p><button type="button" class="vw-cut-dl" data-vw-diff-retry>Try again</button></p></div>`; });
         DF.key = key;
         return;
       }
       const why = c.file.binary || c.file.patch_omitted === "binary" ? "Binary file" : c.file.patch_omitted === "submodule" ? "A submodule" : "Too large to show here";
-      host.innerHTML = `<div class="vw-empty"><p>${esc(why)}.</p>${canSave() ? `<p><button type="button" class="vw-cut-dl" data-vw-download>Download</button></p>` : ""}</div>`;
+      inRegion(host, () => { host.innerHTML = `<div class="vw-empty"><p>${esc(why)}.</p>${canSave() ? `<p><button type="button" class="vw-cut-dl" data-vw-download>Download</button></p>` : ""}</div>`; });
       DF.key = key;
       return;
     }
@@ -597,7 +597,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       if (DF.handle && DF.key && DF.key.startsWith(`${c.scope.key}|${c.path}|`)) DF.handle.update(patch);
       else {
         if (DF.handle) { DF.handle.destroy(); DF.handle = null; }
-        host.replaceChildren();
+        inRegion(host, () => host.replaceChildren());
         const h = await DV.diff(host, patch, { path: c.path, wrap: true, split: V.split, loadFiles: (fd) => bothSides(c, fd) });
         if (my !== DF.gen) { h.destroy(); return; }
         DF.handle = h;
@@ -606,8 +606,23 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     } catch {
       if (my !== DF.gen) return;
       dropDiff(); // (clears pend: Try again draws afresh)
-      host.innerHTML = `<div class="vw-empty"><p>Couldn't draw this diff.</p><p><button type="button" class="vw-cut-dl" data-vw-show="changes">Try again</button></p></div>`;
+      inRegion(host, () => { host.innerHTML = `<div class="vw-empty"><p>Couldn't draw this diff.</p><p><button type="button" class="vw-cut-dl" data-vw-show="changes">Try again</button></p></div>`; });
     }
+  }
+
+  /** A file's or a change's region drawn anew (its notice gone, its words replaced, the drawing in): focus that was
+   *  on something in it stays in it, on the same control drawn again (by its hook), else on the region itself, never
+   *  the page (the controls grader on aa2e4f9, S139: a busy Try again pressed, then the file drew over its notice, and
+   *  focus fell to BODY). Every place the viewer replaces a region's content goes through here. */
+  function inRegion(host, change) {
+    const a = document.activeElement, inside = !!a && a !== host && host.contains(a);
+    const hook = inside ? [...a.attributes].find((x) => x.name.startsWith("data-vw-")) : null;
+    change();
+    if (!inside) return;
+    const now = document.activeElement;
+    if (now && now !== document.body && host.contains(now) && now.getClientRects().length) return;
+    const same = hook && host.querySelector(hook.value ? `[${hook.name}="${CSS.escape(hook.value)}"]` : `[${hook.name}]`);
+    (same && same.getClientRects().length && !same.matches('[aria-busy="true"]') ? same : host).focus({ preventScroll: true });
   }
 
   // ── the whole file, through Pierre ──────────────────────────────────────────────────────────────
@@ -647,12 +662,12 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       FL.handle = h; FL.key = key;
       // the renderer that failed said so in this same body; drawn now, that notice and its Try again go (they
       // stayed beside the file: Files/Map grader on S139)
-      for (const x of host.querySelectorAll(":scope > .vw-empty")) x.remove();
+      inRegion(host, () => { for (const x of host.querySelectorAll(":scope > .vw-empty")) x.remove(); });
       if (f.lines) { const [a, b] = f.lines; h.select({ start: a, end: b }); requestAnimationFrame(() => { h.reveal(a); select({ start: a, end: b }); }); }
     } catch {
       if (my !== FL.gen) return;
       FL.pend = null;
-      host.innerHTML = `<div class="vw-empty"><p>Couldn't show this file.</p><p><button type="button" class="vw-cut-dl" data-vw-retry>Try again</button></p></div>`;
+      inRegion(host, () => { host.innerHTML = `<div class="vw-empty"><p>Couldn't show this file.</p><p><button type="button" class="vw-cut-dl" data-vw-retry>Try again</button></p></div>`; });
     }
   }
   /** A selection ended (or cleared): "Ask about lines a–b" under its last line. */

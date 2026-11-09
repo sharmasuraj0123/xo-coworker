@@ -1006,8 +1006,14 @@ t("S139 (waiting): the file's Try again says it's trying while the renderer load
     assert.deepEqual(s, { words: "Drawing this file…", busy: "true", label: "Trying again…", role: "status" }, `${ms} ms after Try again: it says it's trying`);
   }
   await page.keyboard.press("Enter"); // pressed again while it's trying: nothing more
+  // and pressed with the pointer while it's trying: focus is on it when the file draws over the notice (the controls
+  // grader on aa2e4f9, S139: focus fell to BODY); it goes to the drawn file
+  await page.locator("#viewer [data-vw-retry]").click();
+  assert.equal(await page.evaluate(() => document.activeElement && document.activeElement.hasAttribute("data-vw-retry")), true, "focus on the busy Try again");
   release();
   await page.waitForFunction(() => !document.querySelector("#viewer [data-vw-retry]") && !!document.querySelector("#viewer .vw-file diffs-container"), null, { timeout: 15000 });
+  await page.waitForTimeout(150);
+  assert.equal(await page.evaluate(() => { const a = document.activeElement; return !!a && a !== document.body && !!a.closest("#viewer .vw-file, #viewer .vw-body"); }), true, "focus on the drawn file, not the page");
   await done(page);
 });
 // ── closing the Created notice by the keyboard while its file is being edited (the controls grader on 9d1f71b, S138,
