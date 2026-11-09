@@ -1757,6 +1757,15 @@ function heraldShow(h, ms = 4200) {
   if (!h.force && !h.undo && !stops && cur && OWN.has(cur.kind) && !OWN.has(h.kind)) return;
   heraldPut(h, ms);
 }
+/** A message's own notice, changed in place: on screen, or still waiting in the queue. make(h) gives the new one;
+ *  ms its time (on screen: what's left, at least 4 s). False when this message has no notice now. */
+function heraldFor(mid, make, ms = null) {
+  const now = Date.now();
+  if (S.herald && S.herald.mid === mid && S.herald.until > now) { heraldPut(make(S.herald), ms ?? Math.max(4000, S.herald.until - now)); return true; }
+  const q = HQ.find((q) => q.h.mid === mid);
+  if (q) { q.h = make(q.h); if (ms) q.ms = ms; return true; }
+  return false;
+}
 function heraldPut(h, ms) {
   S.herald = { ...h, until: Date.now() + ms, n: (S.herald?.n || 0) + 1 };
   clearTimeout(heraldShow.t);
@@ -2330,7 +2339,8 @@ function sendLive(raw) {
   // @project's): the bubble rises out of the composer into place, and Back returns to Home. From a
   // conversation, a message aimed elsewhere leaves you where you are and says where it went.
   if (!here && S.view === "home") { go(conv, { carry: true }); toLatest(false); lift(msgsEl.querySelector(`[data-k="${m.id}"]`), from); }
-  else if (!here) heraldShow({ kind: "sent", text: `Sent to ${chat === "workspace" ? "the coordinator" : PROJ(chat)}`, sub: "open to follow the reply", open: conv }, 9000);
+  // while it's out it says so; the server's answer turns this same notice into Sent, or the failure (postLive)
+  else if (!here) heraldShow({ kind: "sent", text: `Sending to ${chat === "workspace" ? "the coordinator" : PROJ(chat)}…`, sub: "open to follow it", open: conv, mid: m.id }, 9000);
   else { render(); toLatest(false); lift(msgsEl.querySelector(`[data-k="${m.id}"]`), from); }
   // handing the work back to the agent: the panel's Changes follows it again (the owner's D6)
   if (thread) STAGE.resumeFollow(conv);
@@ -2346,12 +2356,19 @@ async function postLive(m, thread) {
     const row = await postWithFiles(m, thread);
     if (row && row.id) { S.alias.set(row.id, m.id); m.merged = true; }
     m.status = "sent";
-    announce(thread ? "Sent to the thread." : `Sent to ${m.target === "workspace" ? "the coordinator" : PROJ(m.target)}.`);
+    const where = thread ? "the thread" : m.target === "workspace" ? "the coordinator" : PROJ(m.target);
+    announce(`Sent to ${where}.`);
+    // its "Sending to …" notice says it went, in place (only this message's own notice)
+    heraldFor(m.id, (h) => ({ ...h, text: h.text.replace(/^Sending to (.*)…$/, "Sent to $1"), sub: "open to follow the reply" }));
   } catch (err) {
     m.status = "failed";
     m.err = { title: err.fileErr ? `A file didn't upload: ${uploadErrorText(err)}` : err.code === "unknown_attachment" ? "A file is no longer on the server" : sendErrorTitle(err), text: err.message || "" };
     announce(`${m.err.title}. ${m.err.text} Your message is kept; retry or edit it.`);
-    if (S.view !== m.conv) heraldShow({ kind: "stopped", text: m.err.title, sub: "open the conversation to retry", open: m.conv }, 6000);
+    // the failure takes the place of its own "Sending to …" notice; else, away from its conversation, it's said
+    // anew. Forced: it never yields to a passing notice (behind an Undo it waits its turn). Astra on 83929bb:
+    // "Sent to demo" stood over a 503
+    const fail = { kind: "stopped", text: `Not sent: ${m.err.title}`, sub: "open the conversation to retry", open: m.conv, mid: m.id, force: true };
+    if (!heraldFor(m.id, () => fail, 6000) && S.view !== m.conv) heraldShow(fail, 6000);
   }
   schedule();
 }
@@ -2969,7 +2986,7 @@ function sendAbout(f, text) {
   const m = { id: `l${++S.n}_${Date.now().toString(36)}`, conv: at.conv, at: Date.now(), who: "you", text, status: "sending", target: at.thread ? null : at.chat, cid: `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}` };
   (S.local[at.conv] = S.local[at.conv] || []).push(m);
   sound.play("send");
-  heraldShow({ kind: "sent", text: `Sent to ${at.name}`, sub: "open to follow the reply", open: at.conv }, 9000);
+  heraldShow({ kind: "sent", text: `Sending to ${at.name}…`, sub: "open to follow it", open: at.conv, mid: m.id }, 9000);
   if (at.thread) STAGE.resumeFollow(at.conv);
   deliverLive(m, at.thread);
   schedule();
