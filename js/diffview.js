@@ -149,6 +149,7 @@ export async function diff(host, patch, o = {}) {
  * once a choice made from the keyboard leaves none (where focus goes next: the viewer's Save).
  * Resolves to {destroy()}.
  */
+let findN = 0; // the editor search's message ids (aria-errormessage)
 export async function conflict(host, text, o = {}) {
   const P = await load();
   const L = { current: "Keep current", incoming: "Take incoming", both: "Keep both", ...(o.labels || {}) };
@@ -298,7 +299,18 @@ export async function file(scroller, contents, o = {}) {
         let bad = false;
         if (re.getAttribute("aria-pressed") === "true" && inp.value) { try { new RegExp(inp.value); } catch { bad = true; } }
         if (inp.getAttribute("aria-invalid") !== String(bad)) inp.setAttribute("aria-invalid", String(bad));
-        if (bad && n && n.textContent !== "Not a valid pattern") n.textContent = "Not a valid pattern";
+        // the words read in the error's ink (the library's count style is 35% ink: ~1.9:1), the field names them as
+        // its error and description, and they're said once, as a status (Astra on dd15034: unlinked, faint)
+        if (n && !n.id) n.id = `xd-find-msg-${++findN}`;
+        if (bad && n) {
+          if (n.getAttribute("role") !== "status") n.setAttribute("role", "status");
+          if (n.style.color !== "var(--err-ink)") n.style.color = "var(--err-ink)";
+          if (n.textContent !== "Not a valid pattern") n.textContent = "Not a valid pattern";
+          if (inp.getAttribute("aria-errormessage") !== n.id) { inp.setAttribute("aria-errormessage", n.id); inp.setAttribute("aria-describedby", n.id); }
+        } else if (n && inp.hasAttribute("aria-errormessage")) {
+          n.removeAttribute("role"); n.style.color = "";
+          inp.removeAttribute("aria-errormessage"); inp.removeAttribute("aria-describedby");
+        }
       };
       const pattern = (e) => {
         const g = along(e, "searchGrid");

@@ -445,6 +445,10 @@ body.viewer-open .fv~.dock{display:none}
 .stage .fr[data-fr="map"] .dg:focus-visible{box-shadow:inset 0 0 0 2px var(--focus)}
 /* a region you scroll with the keys (a file, a diff) says when the keyboard is in it, with the one ring */
 :is(.vw-body,.cx-pd):focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+/* the diff region's ring is a layer above the diff, over its area: the outline sat under the diff's own painted layers
+   and showed only at its bottom corners (Astra C087 on dd15034). Below the pane's 35 px head, its radius inside */
+.stage .cx-pane:has(>.cx-pd:focus-visible)::after{content:"";position:absolute;top:35px;left:0;right:0;bottom:0;border-radius:0 0 calc(var(--r-lg) - 1px) calc(var(--r-lg) - 1px);box-shadow:inset 0 0 0 2px var(--focus);pointer-events:none;z-index:var(--z-raised)}
+.stage .cx-pane:has(>.cx-pd:focus-visible)>.cx-pd:focus-visible{outline:none}
 .stage .map-host .dg-n,.stage .map-host .dg-n.k-dir{border-radius:var(--r);border-color:transparent;background:transparent}
 .stage .map-host .dg-n.k-root{background:var(--panel-surface);border-color:var(--panel-line);box-shadow:var(--panel-lift)}
 .stage .map-host button.dg-n:hover{border-color:var(--panel-line);background:var(--panel-hover)}
