@@ -72,8 +72,12 @@ const verdictOf = (id) => {
 };
 // a change to a row's paint since a grader passed it: a pass at a revision without the change is never shown as
 // standing; it says it needs a recheck on the head (the coordinator, 9 Nov: no stale pass for the eight buttons that
-// read as links, whose hover and press became one shared state in a4faed2, S139)
-const SINCE = [{ commit: 'a4faed2', what: 'its hover and press became the shared link state', ids: ['S139', 'S253', 'S126', 'C022', 'S049', 'S155', 'S156', 'S061', 'S266', 'S220', 'S014'] }];
+// read as links, whose hover and press became one shared state in a4faed2, S139). The rows are every control the
+// shared selectors reach (.vw-cut-dl .wsh-home .cp-link .tg-ch .fl-link .lp-ln .shl-all .tp-done-u in the templates):
+// tests/stale-pass.test.mjs finds them again from the code, so a new one can't be missed (the controls grader: S238,
+// Runs' Try again, is .fl-link too; S127's diff Try again is .vw-cut-dl)
+const LINK_ROWS = ['S139', 'S253', 'S126', 'S127', 'C022', 'S049', 'S155', 'S156', 'S061', 'S238', 'S266', 'S220', 'S014'];
+const SINCE = [{ commit: 'a4faed2', what: 'its hover and press became the shared link state', ids: LINK_ROWS }];
 const hasCommit = (rev, c) => { try { require('child_process').execSync(`git merge-base --is-ancestor ${c} ${rev}`, { cwd: ROOT, stdio: 'ignore' }); return true; } catch { return false; } };
 const verdictNow = (id) => {
   const v = verdictOf(id), m = /^(Astra(?: \([^)]*\))?) PASS( \(scoped\))? at ([0-9a-f]{7,40})/.exec(v);
