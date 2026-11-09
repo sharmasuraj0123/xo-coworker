@@ -58,6 +58,9 @@
   --hover-fill:rgba(255,255,255,.06); --press-fill:rgba(255,255,255,.09);
   /* The one focus ring: 2 px of the accent, following the element's own radius. */
   --focus:rgba(var(--accent-rgb),.75);
+  /* the room the ring takes outside a control (its 2 px past a 2 px gap), and 2 px of air: kept clear wherever focus
+     scrolls a control into view (base.css) */
+  --ring-room:6px;
 
   /* Who speaks: the coordinator in violet, a decision in ink, a glance in green. */
   --e-glance:var(--accent); --e-decide:#D6D6D6; --e-think:var(--violet); --coord:var(--violet);

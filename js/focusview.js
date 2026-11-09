@@ -26,9 +26,19 @@ export function scrollerOf(el, win = window) {
  *  Codex's label 11 px under the screen's foot with its box in view). */
 export const seen = (el) => (el && el.matches && el.matches('input[type="checkbox"], input[type="radio"]') && el.closest && el.closest("label")) || el;
 
+/** The room a control keeps clear round it when it's brought into view: its scroll-margin, which is the ring's room
+ *  (base.css, --ring-room), as the browser's own scrollIntoView keeps it (the create-project grader on 65e84b7,
+ *  S111/S112: brought flush with the scroller's foot, the ring was cut off). */
+export function room(el, win = window) {
+  const cs = el && el.nodeType !== 3 ? win.getComputedStyle(el) : null, n = (x) => parseFloat(x) || 0;
+  return cs ? { t: n(cs.scrollMarginTop), r: n(cs.scrollMarginRight), b: n(cs.scrollMarginBottom), l: n(cs.scrollMarginLeft) } : { t: 0, r: 0, b: 0, l: 0 };
+}
+
 /** How far the focused element's scroller must move to show it, or null: in view (even partly), visually hidden,
- *  not in a scroller, or in one that owns its scroll. {sc, dx, dy}: the least distance (the nearest edge). */
+ *  not in a scroller, or in one that owns its scroll. {sc, dx, dy}: the least distance (the nearest edge), with the
+ *  control's room (its ring) clear of the edge. */
 export function bring(el, win = window) {
+  const m = room(el, win);
   el = seen(el);
   if (!el || !el.getClientRects || !el.getClientRects().length) return null;
   const r = el.getBoundingClientRect();
@@ -38,8 +48,9 @@ export function bring(el, win = window) {
   if (!sc || (sc.closest && sc.closest("[data-own-scroll]"))) return null;
   const v = sc.getBoundingClientRect();
   if (!outside(r, v)) return null;
-  const dy = r.top < v.top ? r.top - v.top : r.bottom > v.bottom ? Math.min(r.bottom - v.bottom, r.top - v.top) : 0;
-  const dx = r.left < v.left ? r.left - v.left : r.right > v.right ? Math.min(r.right - v.right, r.left - v.left) : 0;
+  const top = r.top - m.t, bottom = r.bottom + m.b, left = r.left - m.l, right = r.right + m.r;
+  const dy = top < v.top ? top - v.top : bottom > v.bottom ? Math.min(bottom - v.bottom, top - v.top) : 0;
+  const dx = left < v.left ? left - v.left : right > v.right ? Math.min(right - v.right, left - v.left) : 0;
   return { sc, dx, dy };
 }
 export const lost = (el, win = window) => !!bring(el, win);
@@ -56,12 +67,14 @@ export function inSight(el, win = window) {
 }
 /** Bring it wholly into sight: its scroller only, the least distance (an element taller than the box: its top). */
 export function bringWhole(el, win = window) {
+  const m = room(el, win);
   el = seen(el);
   const sc = scrollerOf(el, win);
   if (!sc || (sc.closest && sc.closest("[data-own-scroll]"))) return;
-  const r = el.getBoundingClientRect(), v = sc.getBoundingClientRect();
-  const dy = r.top < v.top || r.height > v.height ? r.top - v.top : r.bottom > v.bottom ? r.bottom - v.bottom : 0;
-  const dx = r.left < v.left || r.width > v.width ? r.left - v.left : r.right > v.right ? r.right - v.right : 0;
+  const b = el.getBoundingClientRect(), v = sc.getBoundingClientRect();
+  const r = { top: b.top - m.t, bottom: b.bottom + m.b, left: b.left - m.l, right: b.right + m.r }; // with its ring's room
+  const dy = r.top < v.top || r.bottom - r.top > v.height ? r.top - v.top : r.bottom > v.bottom ? r.bottom - v.bottom : 0;
+  const dx = r.left < v.left || r.right - r.left > v.width ? r.left - v.left : r.right > v.right ? r.right - v.right : 0;
   sc.scrollTop += dy; sc.scrollLeft += dx;
 }
 

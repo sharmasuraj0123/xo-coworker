@@ -103,4 +103,23 @@ t("the app starts it once", () => {
   assert.match(app, /import \{ keepFocusInView \} from "\.\/focusview\.js";/);
   assert.equal((app.match(/\bkeepFocusInView\(\)/g) || []).length, 1);
 });
+// the ring has room (the create-project grader on 65e84b7, S111/S112: brought flush with its scroller's foot, the
+// ring's 2 px past its 2 px gap was cut off): a control is brought in with its scroll-margin (base.css: the ring's
+// room) clear of the edge, as the browser's own scrollIntoView keeps it; above or below
+t("a control is brought in with its ring's room (its scroll-margin) clear of the scroller's edge", () => {
+  assert.equal(typeof F.keepFocusInView, "function");
+  for (const [top, want, why] of [[1400, 2000 + (1400 + 36 - 600) + 6, "below: its foot 6 px above the box's foot"], [-972, 2000 - 972 - 6, "above: its top 6 px below the box's top"]]) {
+    const P = standIn(top);
+    const cs = P.win.getComputedStyle;
+    P.win.getComputedStyle = (n) => (n === P.el ? { ...cs(n), scrollMarginTop: "6px", scrollMarginRight: "6px", scrollMarginBottom: "6px", scrollMarginLeft: "6px" } : cs(n));
+    F.keepFocusInView(P.doc, P.win); P.focus(); P.flush();
+    assert.equal(P.scroller.scrollTop, want, why);
+  }
+  assert.equal(typeof F.bringWhole, "function");
+  const Q = standIn(580); // partly in view, its foot under the box's: a redraw's bringWhole brings it whole, with room
+  const cq = Q.win.getComputedStyle;
+  Q.win.getComputedStyle = (n) => (n === Q.el ? { ...cq(n), scrollMarginTop: "6px", scrollMarginBottom: "6px" } : cq(n));
+  F.bringWhole(Q.el, Q.win);
+  assert.equal(Q.scroller.scrollTop, 2000 + (580 + 36 - 600) + 6, "whole, its foot 6 px above the box's foot");
+});
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

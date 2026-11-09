@@ -9,6 +9,11 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 input,textarea{font:inherit;color:inherit}
 [hidden]{display:none!important}
 :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+/* the ring has room wherever focus scrolls a control into view, by a Tab or a script's scrollIntoView: the browser
+   brings a control only as far as its own edge, so at a scroller's foot the ring was cut off (the create-project
+   grader on 65e84b7, S111/S112: Settings › Routing's Keep it and Disconnect flush with the foot, 3.56 px of the ring
+   cut). Layout, not a smaller ring; zero specificity, and on controls only (a snapping list snaps its rows) */
+:where(a[href],button,input,select,textarea,summary,xo-select,[tabindex]:not([tabindex="-1"]),[contenteditable="true"]){scroll-margin:var(--ring-room)}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 kbd{font:500 var(--fs-sm)/16px var(--sans);padding:2px 5px;border:1px solid var(--line);border-bottom-width:2px;border-radius:var(--r-sm);color:var(--ink-3)}
 /* ── Plan F · every control answers (design-research/2026-11-vision/direction) ──────────────────────
