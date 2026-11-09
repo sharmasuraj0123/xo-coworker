@@ -457,6 +457,18 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
   // 24 px "More" below 24/34, a Graph node (16 px, nothing around it) anywhere below the readable scale (the
   // grader on 44e429d: one scale, 24/42, was a 32 px box's, and "More" at 0.6 was 20.4 px and still acted)
   const PRESS_PX = 24;
+  // on a phone the floor is 36 px, the app's (css/phone.css, 760 px): a box opens on one tap only from 36 px on screen;
+  // below that the first tap brings the map in and the second opens, at any scale (the owner, 9 Nov,
+  // rv_49d00670fa4c48c9). A desktop keeps 24 px with a pointer
+  const PHONE = typeof matchMedia === "function" ? matchMedia("(max-width:760px)") : null;
+  const onPhone = () => !!(PHONE && PHONE.matches);
+  const pressMin = () => (onPhone() ? 36 : PRESS_PX);
+  /** Too small to press surely at scale s: on a phone under 36 px; on a desktop under 24, below the readable scale for
+   *  a box or a node (a Graph node's 16 px acts above it, as before), at any scale for an agent's tag. */
+  const tooSmall = (b, s, anyScale = false) => (onPhone() ? pressPx(b, s) < 36 : (anyScale || s < READABLE) && pressPx(b, s) < PRESS_PX);
+  /** The scale such a press brings the map in to: readable, and where the target's own size alone reaches the floor
+   *  (its grown hit area only adds to that); a desktop's box or node keeps the readable scale, as before. */
+  const pressScale = (b, s, anyScale = false) => Math.min(2.4, Math.max(READABLE, ...(onPhone() || anyScale ? [s, pressMin() / Math.max(1, Math.min(b.offsetWidth, b.offsetHeight))] : [])));
   /** How big a box's press target is on screen at scale s: the box, and what its ::before adds around it. */
   function pressPx(nb, s) {
     const b = getComputedStyle(nb, "::before"), hit = b.content !== "none" && b.position === "absolute";
@@ -1113,9 +1125,9 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       // grader on e55c2d8, S083: 43 × 14.8 px, and it opened on the first tap). The keyboard acts at any size
       const cg = camOf(M.scope), cur = g.closest(".dg-cur");
       const m = cur && /translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(cur.style.transform);
-      if (e.detail > 0 && m && pressPx(g, cg.s) < PRESS_PX) {
+      if (e.detail > 0 && m && tooSmall(g, cg.s, true)) {
         cg.user = true; cg.follow = false; cg.fitAll = false;
-        centerOn(cg, { x: +m[1], y: +m[2] }, true, Math.min(2.4, Math.max(READABLE, cg.s, PRESS_PX / Math.max(1, g.offsetHeight))));
+        centerOn(cg, { x: +m[1], y: +m[2] }, true, pressScale(g, cg.s, true));
         announce(`Closer to ${g.textContent.trim() || "it"}: press it again to open it.`);
         return;
       }
@@ -1136,12 +1148,12 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     const r = M.refs.get(nb.dataset.node);
     if (!r) return;
     const cz = camOf(M.scope);
-    if (e.detail > 0 && cz.s < READABLE && pressPx(nb, cz.s) < PRESS_PX) {
+    if (e.detail > 0 && tooSmall(nb, cz.s)) {
       // a pointer press far out on a target too small to press surely: in to that box, readable, where its target
-      // is full size; it doesn't act yet
+      // is full size (on a phone, 36 px); it doesn't act yet
       cz.user = true; cz.follow = false; cz.fitAll = false;
       const pt = nodePt(nb);
-      centerOn(cz, { x: pt.x - tagW() / 2, y: pt.y }, true, READABLE);
+      centerOn(cz, { x: pt.x - tagW() / 2, y: pt.y }, true, pressScale(nb, cz.s));
       announce(`Closer to ${nb.textContent.trim() || "it"}: press it again to open it.`);
       return;
     }

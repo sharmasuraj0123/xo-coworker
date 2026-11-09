@@ -2339,6 +2339,9 @@ async function bigMap() {
   return page;
 }
 const mapScale = (page) => page.evaluate(() => parseFloat(document.querySelector(".dg-world").style.getPropertyValue("--dg-s")) || 1);
+// the Map's press floor: a phone's 36 px (the owner, 9 Nov, rv_49d00670fa4c48c9: one tap opens only from 36 px; below,
+// the first brings the map in), a desktop's 24 with a pointer
+const FLOOR = () => (WIDTH < 600 ? 36 : 24);
 /** ⌘-scroll, as a person zooms, at a box's middle (it stays under the pointer), to scale `to`. */
 const zoomOn = (page, id, to) => page.evaluate(({ id, to }) => {
   const n = document.querySelector(`.dg-world [data-node="${CSS.escape(id)}"]`), v = document.querySelector(".dg-world").parentElement;
@@ -2395,14 +2398,14 @@ t("S207/S082: Fit shows every box; no box's target reaches a neighbour's box (ed
   assert.deepEqual(r.out, [], "every box inside the view after Fit");
   assert.deepEqual(r.grown, [], `at scale ${r.s.toFixed(3)} no target reaches more than half way to a neighbour`);
   assert.deepEqual(r.stolen, [], `at scale ${r.s.toFixed(3)} no target reaches a neighbour's box`);
-  if (r.s < 24 / 42) {
+  if (r.s < FLOOR() / 42) {
     // too far out to press a box surely: a pointer press brings the map in to it, and doesn't act
     const n = page.locator('.dg-world [data-node="folder-20"]');
     const was = await n.getAttribute("class");
     await n.click();
     await page.waitForTimeout(500);
     const s2 = await mapScale(page);
-    assert.ok(s2 >= 24 / 42, `zoomed in to a pressable size (${s2})`);
+    assert.ok(s2 >= (WIDTH < 600 ? 36 / 32 : 24 / 42) - 1e-6, `zoomed in to a pressable size (${s2})`);
     assert.equal(await n.getAttribute("class"), was, "the folder didn't open on that press");
     const off = await offCentre(page, "folder-20");
     assert.ok(Math.abs(off.dx) <= 3 && Math.abs(off.dy) <= 3, `in to that folder, in the middle (${off.dx.toFixed(1)}, ${off.dy.toFixed(1)})`);
@@ -2505,10 +2508,10 @@ t("S083 (tag): far out, a press on an agent's tag brings the map in to it and do
       return b;
     };
     const b1 = await press();
-    assert.ok(b1.height < 24, `${mode}: far out, the tag is under 24 px (${b1.height.toFixed(2)}), or this case proves nothing`);
+    assert.ok(b1.height < FLOOR(), `${mode}: far out, the tag is under ${FLOOR()} px (${b1.height.toFixed(2)}), or this case proves nothing`);
     assert.equal(await page.evaluate(() => window.__t.S.view), was, `${mode}: a ${b1.height.toFixed(1)} px tag doesn't open on the first press`);
     const b2 = await tag.boundingBox();
-    assert.ok(b2.height >= 24 - 0.01, `${mode}: the map came in until the tag is pressable (${b2.height.toFixed(2)} px)`);
+    assert.ok(b2.height >= FLOOR() - 0.01, `${mode}: the map came in until the tag is pressable, ${FLOOR()} px (${b2.height.toFixed(2)} px)`);
     await press();
     assert.equal(await page.evaluate(() => window.__t.S.view), "t:lt1", `${mode}: pressed when pressable, it opens the thread`);
     await done(page);
@@ -2554,7 +2557,9 @@ t("S207: far out, a press on a Graph node brings the map in to that node, in the
   const b = await page.locator(`.dg-world [data-node="${id}"]`).boundingBox();
   await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2);
   await page.waitForTimeout(400);
-  assert.ok(Math.abs((await mapScale(page)) - 0.8) < 1e-6, "in to the readable scale");
+  // in to the readable scale; on a phone, where the 16 px node is 36 (36 / 16)
+  const want = WIDTH < 600 ? 36 / 16 : 0.8;
+  assert.ok(Math.abs((await mapScale(page)) - want) < 1e-6, `in to ${want} (${await mapScale(page)})`);
   const off = await offCentre(page, id);
   assert.ok(Math.abs(off.dx) <= 3 && Math.abs(off.dy) <= 3, `in to that node, in the middle (${off.dx.toFixed(1)}, ${off.dy.toFixed(1)})`);
   assert.equal(await boxState(page, id), before, "that press didn't act");
@@ -2564,25 +2569,28 @@ t("S207: far out, a press on a Graph node brings the map in to that node, in the
   await page.waitForFunction(({ id, before }) => { const n = document.querySelector(`.dg-world [data-node="${CSS.escape(id)}"]`); return !n || `${n.className}|${n.getAttribute("aria-label")}|${document.querySelectorAll(".dg-world [data-node]").length}` !== before; }, { id, before }, { timeout: 5000 });
   await done(page);
 });
-t("S207: each box by its own target: at 0.6 a 24 px \"More\" brings the map in first, a 32 px folder acts", async () => {
+t("S207: each box by its own target: at 0.6 a 24 px \"More\" brings the map in first; a 32 px folder acts on a desktop, and on a phone (36 px) brings it in first too", async () => {
   const page = await bigMap();
   await page.locator('[data-dg="fit"]').filter({ visible: true }).first().click();
   await page.waitForTimeout(400);
   const more = await page.locator(".dg-world .dg-n.k-more[data-node]").first().getAttribute("data-node");
   assert.ok(more, "the top folder shows \"N more\"");
-  // at 0.6 "More"'s target is (24 + 5 + 5) × 0.6 = 20.4 px: under 24, so a press brings the map in to it first
+  // at 0.6 "More"'s target is (24 + 5 + 5) × 0.6 = 20.4 px: under the floor, so a press brings the map in to it first:
+  // to the readable scale on a desktop; on a phone to where its own 24 px is 36 (1.5)
   await zoomOn(page, more, 0.6);
   assert.ok(Math.abs((await mapScale(page)) - 0.6) < 1e-3, "at 0.6");
   const before = await boxState(page, more);
   let b = await page.locator(`.dg-world [data-node="${more}"]`).boundingBox();
   await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2);
   await page.waitForTimeout(400);
-  assert.ok(Math.abs((await mapScale(page)) - 0.8) < 1e-6, "\"More\" brought the map in to the readable scale");
+  const inMore = WIDTH < 600 ? 36 / 24 : 0.8;
+  assert.ok(Math.abs((await mapScale(page)) - inMore) < 1e-6, `"More" brought the map in to ${inMore} (${await mapScale(page)})`);
   assert.equal(await boxState(page, more), before, "and didn't act on that press");
   const off = await offCentre(page, more);
   assert.ok(Math.abs(off.dx) <= 3 && Math.abs(off.dy) <= 3, `in to it, in the middle (${off.dx.toFixed(1)}, ${off.dy.toFixed(1)})`);
-  // a folder at 0.6: (32 + 5 + 5) × 0.6 = 25.2 px, pressable, so the press acts at once, and the scale holds.
-  // Fit again (every box in view), then in at the folder, as a person zooms at what they mean to press
+  // a folder at 0.6: (32 + 5 + 5) × 0.6 = 25.2 px. On a desktop that's pressable: the press acts at once and the scale
+  // holds. On a phone it's under 36: the press brings the map in to where the folder's 32 px is 36 (1.125), and the
+  // next press acts. Fit again (every box in view), then in at the folder, as a person zooms at what they mean to press
   await page.locator('[data-dg="fit"]').filter({ visible: true }).first().click();
   await page.waitForTimeout(400);
   const dir = await page.locator(".dg-world button.dg-n.k-dir[data-node]").first().getAttribute("data-node");
@@ -2592,8 +2600,16 @@ t("S207: each box by its own target: at 0.6 a 24 px \"More\" brings the map in f
   const was = await boxState(page, dir);
   b = await page.locator(`.dg-world [data-node="${dir}"]`).boundingBox();
   await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2);
-  await page.waitForFunction(({ id, was }) => { const n = document.querySelector(`.dg-world [data-node="${CSS.escape(id)}"]`); return !n || `${n.className}|${n.getAttribute("aria-label")}|${document.querySelectorAll(".dg-world [data-node]").length}` !== was; }, { id: dir, was }, { timeout: 5000 });
-  assert.ok(Math.abs((await mapScale(page)) - 0.6) < 1e-3, "the folder acted where it was; the map didn't move in");
+  if (WIDTH < 600) {
+    await page.waitForTimeout(400);
+    assert.ok(Math.abs((await mapScale(page)) - 36 / 32) < 1e-6, `a phone: the folder brought the map in to 1.125 (${await mapScale(page)})`);
+    assert.equal(await boxState(page, dir), was, "and didn't act on that press");
+    b = await page.locator(`.dg-world [data-node="${dir}"]`).boundingBox();
+    assert.ok(Math.min(b.width, b.height) >= 36 - 0.01, `now 36 px (${b.height.toFixed(2)})`);
+    await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2);
+  }
+  await page.waitForFunction(({ id, was }) => { const n = document.querySelector(`.dg-world [data-node="${CSS.escape(id)}"]`); return !n || `${n.className}|${n.getAttribute("aria-label")}|${document.querySelectorAll(".dg-world [data-node]").length}` !== was; }, { id: dir, was }, { timeout: 3000 });
+  if (WIDTH >= 600) assert.ok(Math.abs((await mapScale(page)) - 0.6) < 1e-3, "the folder acted where it was; the map didn't move in");
   await done(page);
 });
 t("H12: a made thing's age updates in place, and a name cut in the middle stays whole", async () => {
