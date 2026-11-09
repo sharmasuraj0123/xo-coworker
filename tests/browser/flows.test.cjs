@@ -1029,7 +1029,7 @@ t("S139 (waiting): the file's Try again says it's trying while the renderer load
 // ── closing the Created notice by the keyboard while its file is being edited (the controls grader on 9d1f71b, S138,
 // all four cells): focus went to the viewer's own section, which shows no ring (Edit isn't in the head while
 // editing). It goes back to the caret.
-t("S138 (Created): Enter on the Created notice's Close, while editing the new file, puts focus back in the editor", async () => {
+for (const how of ["Enter", "pointer"]) t(`S138 (Created): ${how === "Enter" ? "Enter on" : "a press on"} the Created notice's Close, while editing the new file, puts focus back in the editor, in sight`, async () => {
   const page = await app({ files: { "a.js": FILE() } });
   await panelOpen(page);
   await filesOpen(page);
@@ -1039,13 +1039,18 @@ t("S138 (Created): Enter on the Created notice's Close, while editing the new fi
   await page.waitForFunction(() => window.__ED && window.__ED.on && window.__ED.ed, null, { timeout: 10000 });
   const x = page.locator("#viewer .xd-toast [data-vw-toastx]");
   await x.waitFor();
-  await page.keyboard.press("Shift"); // the keyboard's
-  await x.focus();
-  await page.keyboard.press("Enter");
+  if (how === "Enter") { await page.keyboard.press("Shift"); await x.focus(); await page.keyboard.press("Enter"); } // the keyboard's
+  else await x.click();
   await page.waitForFunction(() => !document.querySelector("#viewer .xd-toast"), null, { timeout: 3000 });
   await page.waitForTimeout(150);
   const where = await page.evaluate(() => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return { editor: !!(a && a.closest && a.closest("[contenteditable]")), tag: a ? a.tagName + (a.id ? "#" + a.id : "") : null }; });
   assert.equal(where.editor, true, `back in the editor, not ${where.tag}`);
+  // and in sight: nothing scrolled the page's main area (the controls grader on 65e84b7, S138 on a phone: the editor's
+  // own scrollIntoView took MAIN#main to 262 and the file out of sight)
+  await page.waitForTimeout(300);
+  const sight = await page.evaluate(() => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; const r = a.getBoundingClientRect(), fv = document.getElementById("fv"); return { main: document.getElementById("main").scrollTop, top: Math.round(r.top), bottom: Math.round(r.bottom), fvTop: fv ? Math.round(fv.getBoundingClientRect().top) : null, vh: innerHeight }; });
+  assert.equal(sight.main, 0, `the main area isn't scrolled (${JSON.stringify(sight)})`);
+  assert.ok(sight.bottom > 0 && sight.top < sight.vh, `the editor is on screen (${JSON.stringify(sight)})`);
   assert.equal(await page.evaluate(() => !!(window.__ED && window.__ED.on)), true, "still editing");
   await done(page);
 });

@@ -181,7 +181,10 @@ button:disabled{cursor:default}
 @keyframes wash{0%{opacity:0}14%{opacity:1}100%{opacity:0}}
 
 /* ── main ────────────────────────────────────────────────────────────────── */
-.main{position:relative;display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--canvas);overflow:hidden}
+.main{position:relative;display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--canvas);overflow:clip}
+/* clip, not hidden: a hidden box can still be scrolled by a script, and the editor's own scrollIntoView (Pierre, after a
+   focus) scrolled the page's main area 262 px up and the file out of sight on a phone (the controls grader on 65e84b7,
+   S138: MAIN#main scrollTop 262, every other ancestor 0). A clipped box isn't a scroll container: nothing scrolls it */
 /* ── One geometry for the main area (design-research/2026-11-lg, P0-1) ──────────────────────────────────
    A side panel (the Agentic Control Pane, Needs you, the Map, the viewer) reserves --rp on the right, and
    every view ends where it begins: Home, the conversation, Artifacts, the dock, the toasts. Inside each, the
