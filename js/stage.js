@@ -263,21 +263,25 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     // notices stay in reach above it (a Stop's Undo, Launchpad's own): the herald, and the toast, are kept out of the
     // inert part, and drawn above the panel while it covers (css: body.stage-covers .herald)
     const keep = [document.getElementById("herald")].filter(Boolean);
-    const mark = (n) => {
-      if (on && !n.inert) { n.inert = true; n.dataset.stageInert = ""; }
-      else if (!on && "stageInert" in n.dataset) { n.inert = false; delete n.dataset.stageInert; }
-    };
+    // what should be inert now, worked out whole each time; then whatever this marked before and shouldn't be is
+    // released, wherever it is. The release followed the herald's path, and the herald moves (out of the folded chat
+    // in Files, js/herald.js): the panel closed, the composer and the file's chip stayed inert under a path the walk no
+    // longer took, and the message box couldn't be typed in (the controls grader on 9d1f71b, a phone, F08/F14, C029)
+    const want = new Set();
     const walk = (root) => {
       for (const c of root.children) {
         if (c === el || c.classList.contains("toast-wrap") || keep.includes(c)) continue;
-        if (keep.some((k) => c.contains(k))) { if ("stageInert" in c.dataset) { c.inert = false; delete c.dataset.stageInert; } walk(c); }
-        else mark(c);
+        if (keep.some((k) => c.contains(k))) walk(c);
+        else want.add(c);
       }
     };
     // focus on what's about to be covered (the panel's own opener, when the window narrows to a phone's) goes into
     // the panel, never to the page (Files/Map grader on 875a2ab, C023: a resize to 390 left it on BODY)
     const a = document.activeElement, outside = !!a && a !== document.body && !el.contains(a) && !keep.some((k) => k.contains(a)) && !a.closest(".toast-wrap");
-    if (el.parentElement) walk(el.parentElement);
+    if (on && el.parentElement) walk(el.parentElement);
+    for (const n of document.querySelectorAll("[data-stage-inert]")) if (!want.has(n)) { n.inert = false; delete n.dataset.stageInert; }
+    // only what isn't inert already is marked (another owner's inert, a folded chat's, stays its own)
+    for (const n of want) if (!n.inert) { n.inert = true; n.dataset.stageInert = ""; }
     document.body.classList.toggle("stage-covers", on);
     if (on && (outside || document.activeElement === document.body) && (!a || a === document.body || !!a.closest("[inert]") || !a.isConnected)) el.focus({ preventScroll: true });
   }
@@ -359,6 +363,8 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
 
   /** Every render: the frames follow the view; the rail follows Files. */
   function sync() {
+    // what the cover holds inert follows the page as it changes (the herald moving in or out of the folded chat)
+    if (S.open || document.querySelector("[data-stage-inert]")) coverSync();
     // the panel steps aside while Files covers a phone, and while a file sits beside the chat (the right
     // column holds one thing: the chat); it comes back as it was when the file goes
     const aside = filesView.isOpen && (innerWidth <= 760 || filesView.docked);

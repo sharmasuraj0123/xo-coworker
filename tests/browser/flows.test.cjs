@@ -2588,6 +2588,33 @@ t("C029: on a phone, Back to chat from a file shows the chat, not the panel agai
   await done(page);
 });
 
+t("C029/F08: on a phone, the chat unfolded and folded beside a file opened from the panel, then Back to chat: nothing left inert, the box takes typing", async () => {
+  // the controls grader on 9d1f71b (phone, both themes): #fdock and #composer kept the panel's inert after it had
+  // closed (its release followed the notices' line, which had moved out of the folded chat), and nothing could be typed
+  if (WIDTH > 760) skip("a phone's sheet");
+  const page = await app({ files: { "note.md": { content: "# Note\n", version: "sha256:N" } } });
+  await panelOpen(page);
+  if (await page.locator('[data-ghost="changes"]').filter({ visible: true }).count()) await page.locator('[data-ghost="changes"]').filter({ visible: true }).first().click();
+  await page.locator("[data-open-files]").filter({ visible: true }).first().click();
+  await page.locator('[data-fl-file="note.md"]').filter({ visible: true }).first().click();
+  await page.waitForFunction(() => document.body.classList.contains("chat-sheet"));
+  // the chat unfolded, then folded again (its bar, then its head's fold), by the pointer
+  await page.locator("[data-crail]").filter({ visible: true }).first().click();
+  await page.waitForFunction(() => document.body.classList.contains("sheet-up"));
+  await page.keyboard.press("ControlOrMeta+j");
+  await page.waitForFunction(() => !document.body.classList.contains("sheet-up"));
+  await page.locator("[data-fv-min]").filter({ visible: true }).first().click();
+  await page.waitForTimeout(400);
+  const st = await page.evaluate(() => ({ stageHidden: document.querySelector("#stage").hidden, inert: [...document.querySelectorAll("[data-stage-inert]")].map((n) => n.id || n.className), inertBox: !!document.querySelector("#say").closest("[inert]") }));
+  assert.equal(st.stageHidden, true, "the panel is closed");
+  assert.deepEqual(st.inert, [], "nothing the panel made inert is left");
+  assert.equal(st.inertBox, false, "the message box is in reach");
+  await page.locator("#say").click();
+  await page.keyboard.type("hi");
+  assert.equal(await page.locator("#say").inputValue(), "hi", "it takes typing");
+  await page.locator("#say").fill("");
+  await done(page);
+});
 // ── overlays: one opening while Create (a native modal) is still closing gets the focus ──
 t("C020: Create, Esc, Ctrl+K at once: Jump's field has focus", async () => {
   const page = await app({}, { motion: true });
