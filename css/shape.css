@@ -71,7 +71,7 @@
 .shp-first-l{padding:4px 22px 0;font:400 var(--fs-md)/var(--lh-14) var(--sans);color:var(--ink-3)}
 .shp-first-c{margin:0;padding:16px 16px 20px}
 .shp-first-c .set-choice{width:100%}
-.shp-first-c .set-choice:hover{background:var(--hover-fill);transition-duration:var(--d-hover-in)}
+.shp-first-c .set-choice:where(:not([aria-disabled="true"])):hover{background:var(--hover-fill);transition-duration:var(--d-hover-in)}
 .shp-sheet.is-out{opacity:0;transition:opacity var(--d-out) var(--ease)}
 
 /* ── The simple model choice (xo:composer/intel "simple") ───────────────────────────────────────── */

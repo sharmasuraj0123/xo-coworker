@@ -1336,7 +1336,7 @@ button.tp-done-u:hover{color:var(--ink)}
 .sheet-h{display:flex;align-items:center;justify-content:space-between;padding:15px 15px 6px 25px}
 .sheet-h h2{font:600 var(--fs-2xl)/28px var(--sans);letter-spacing:-.01em}
 .x{display:grid;place-items:center;width:32px;height:32px;border-radius:var(--r-sm);color:var(--ink-3)}
-.x:hover{background:var(--fill-2);color:var(--ink)}
+.x:where(:not([aria-disabled="true"])):hover{background:var(--fill-2);color:var(--ink)}
 .x svg{width:16px;height:16px}
 
 /* All threads: searchable, filtered, finished ones folded into one line */
@@ -1900,7 +1900,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 .set-err{padding:10px 12px;border-radius:var(--r-lg);background:rgb(215 55 63 / .1);color:var(--err-ink);font-size:var(--fs-base)}
 .set-choices{display:flex;flex-direction:column;gap:8px;margin-top:4px}
 .set-choice{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);text-align:left;transition:border-color var(--d-hover) var(--ease),background var(--d-hover) var(--ease)}
-.set-choice:not(:disabled):hover{border-color:var(--line-hover)}
+.set-choice:not(:disabled,[aria-disabled="true"]):hover{border-color:var(--line-hover)}
 .set-choice:disabled{opacity:.55;cursor:default}
 .set-choice.is-on{border-color:color-mix(in srgb,var(--accent-fill) 55%,var(--line-soft));background:color-mix(in srgb,var(--accent-fill) 5%,var(--surface))}
 .sc-dot{flex:none;width:16px;height:16px;margin-top:2px;border-radius:50%;border:1.5px solid var(--sb-g45)}

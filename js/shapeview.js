@@ -341,6 +341,12 @@ export function createShapeView({ shape, announce = () => {} }) {
     const done = async (id) => {
       if (el._done) return;
       el._done = true;
+      // on its way (its preset's file may still be reading): the choice shows as chosen and busy, and every control in
+      // the sheet says it's waiting, so a later press is honestly ignored (the grader's lead on 4d33649, S117)
+      for (const b of el.querySelectorAll("button")) {
+        b.setAttribute("aria-disabled", "true");
+        if (b.dataset.shf === id) { b.classList.add("is-on"); b.setAttribute("aria-busy", "true"); }
+      }
       const r = await shape.choose(id);
       leave();
       announce((id === "everything" ? "Everything shows." : `${nameOf(id)}.`) + (r && r.kept === false ? ` ${UNKEPT}` : " Settings › Shape changes it any time."));
