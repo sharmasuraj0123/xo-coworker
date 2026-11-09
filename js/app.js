@@ -58,6 +58,7 @@ import { createShapeView, SHAPE_IC, UNKEPT } from "./shapeview.js";
 import { setWorkMode } from "./turnview.js";
 import { once, busyAttrs } from "./pending.js";
 import { radioKeys, menuKeys } from "./keynav.js";
+import { createHerald, noticeFor } from "./herald.js";
 
 const world = createWorld();
 // what the backend can do, asked each time (a surface that needs a missing one stays away); filled in below
@@ -1740,55 +1741,14 @@ function tickElapsed() { for (const el of $$(".elapsed[data-since]")) { const t 
 setInterval(tickElapsed, 1000);
 
 // ── the dock line: one calm labelled line (no glow on the composer, ever) ───
-const OWN = new Set(["sent", "started", "ready", "clear", "rec", "halt"]);
-// Lines waiting for an Undo on screen to end: an Undo is never pushed out of reach by a newer line.
-const HQ = [];
-function heraldShow(h, ms = 4200) {
-  const now = Date.now();
-  const cur = S.herald && S.herald.until > now ? S.herald : null;
-  const stops = h.tag === "stops";
-  if (cur && cur.undo && !(stops && cur.tag === "stops")) {
-    if (stops) {
-      // a Stop's own Undo shows at once (its 3 s are already running); the line it covers comes back after
-      HQ.unshift({ h: cur, ms: Math.max(3000, cur.until - now) });
-    } else if (h.undo || h.force || OWN.has(h.kind)) { HQ.push({ h, ms }); return; }
-    else return; // a passing notice yields to an Undo
-  }
-  if (!h.force && !h.undo && !stops && cur && OWN.has(cur.kind) && !OWN.has(h.kind)) return;
-  heraldPut(h, ms);
-}
-/** A message's own notice, changed in place: on screen, or still waiting in the queue. make(h) gives the new one;
- *  ms its time (on screen: what's left, at least 4 s). False when this message has no notice now. */
-function heraldFor(mid, make, ms = null) {
-  const now = Date.now();
-  if (S.herald && S.herald.mid === mid && S.herald.until > now) { heraldPut(make(S.herald), ms ?? Math.max(4000, S.herald.until - now)); return true; }
-  const q = HQ.find((q) => q.h.mid === mid);
-  if (q) { q.h = make(q.h); if (ms) q.ms = ms; return true; }
-  return false;
-}
-function heraldPut(h, ms) {
-  S.herald = { ...h, until: Date.now() + ms, n: (S.herald?.n || 0) + 1 };
-  clearTimeout(heraldShow.t);
-  heraldShow.t = setTimeout(heraldNext, ms + 40);
-  schedule();
-}
-/** The line on screen ended (or was cleared): the next waiting line, Undo lines first, in order; of those
- *  without one only the newest shows (each was already announced). */
-function heraldNext() {
-  if (S.herald && S.herald.until > Date.now() && S.herald.undo) return;
-  const iu = HQ.findIndex((x) => x.h.undo);
-  let next = null;
-  if (iu >= 0) next = HQ.splice(iu, 1)[0];
-  else if (HQ.length) { next = HQ[HQ.length - 1]; HQ.length = 0; }
-  if (!next) { schedule(); return; }
-  let { h, ms } = next;
-  // a line whose Undo has a deadline (h.undoUntil) comes back only for what is left of it, or without its Undo
-  if (h.undo && h.undoUntil) {
-    const left = h.undoUntil - Date.now();
-    if (left < 600) { h = { ...h, undo: null, undoUntil: 0 }; ms = Math.min(ms, 2400); } else ms = Math.min(ms, left);
-  }
-  heraldPut(h, ms);
-}
+// the herald's lines (js/herald.js): made on first use (S is the app's state), so a line asked for while the app is
+// still starting has it
+function HER() { return S._her || (S._her = createHerald({ state: S, schedule: () => schedule() })); }
+function heraldShow(h, ms) { return HER().show(h, ms); }
+/** A message's own notice, set in place (on screen, or still waiting): see js/herald.js */
+function heraldFor(mid, make, ms) { return HER().forMsg(mid, make, ms); }
+function heraldPut(h, ms) { return HER().put(h, ms); }
+function heraldNext() { return HER().next(); }
 function heraldRender(needs) {
   const box = $("#herald");
   const h = S.herald && S.herald.until > Date.now() ? S.herald : null;
@@ -2305,6 +2265,7 @@ function connDest() { const d = composerDest(); return d.thread ? { thread: true
 /** Where the composer's draft goes, as sendLive sends it: this thread, unless it names a project; else the named
  *  project's chat, or this place's. */
 function composerDest() {
+  if (CH.isChats(S.view)) return { thread: true }; // a plain chat's message is never routed (as liveBlock sends it)
   const tg = targetOf(say.value, world.state.projects), t = convThread(S.view);
   return t && !tg.pid ? { thread: true } : { pid: tg.pid || chatOf(S.view) || "workspace" };
 }
@@ -2329,7 +2290,7 @@ function sendLive(raw) {
   if (ref && text) { text = `${ref.a ? `${ref.path}:${ref.a}${ref.b > ref.a ? `-${ref.b}` : ""}` : `File: ${ref.path}`}\n\n${text}`; delete S.lref[conv]; }
   const from = say.getBoundingClientRect();
   // client_id: a retry of this exact message is the same request, so the server stores it once (UI-reference §0.7)
-  const m = { id: `l${++S.n}_${Date.now().toString(36)}`, conv, at: Date.now(), who: "you", text, status: "sending", target: thread ? null : chat, cid: `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}` };
+  const m = { id: `l${++S.n}_${Date.now().toString(36)}`, conv, at: Date.now(), who: "you", text, status: "sending", target: thread ? null : chat, to: thread ? t.title || "the thread" : chat === "workspace" ? "the coordinator" : PROJ(chat), cid: `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}` };
   if (files.count) { m.files = tray.take(S.view); m.files.forEach(dropThumb); }
   (S.local[conv] = S.local[conv] || []).push(m);
   say.value = ""; saveDraft(); updateComposer();
@@ -2339,8 +2300,8 @@ function sendLive(raw) {
   // @project's): the bubble rises out of the composer into place, and Back returns to Home. From a
   // conversation, a message aimed elsewhere leaves you where you are and says where it went.
   if (!here && S.view === "home") { go(conv, { carry: true }); toLatest(false); lift(msgsEl.querySelector(`[data-k="${m.id}"]`), from); }
-  // while it's out it says so; the server's answer turns this same notice into Sent, or the failure (postLive)
-  else if (!here) heraldShow({ kind: "sent", text: `Sending to ${chat === "workspace" ? "the coordinator" : PROJ(chat)}…`, sub: "open to follow it", open: conv, mid: m.id }, 9000);
+  // while it's out it says so; each answer sets this same notice whole (postLive: sent, or not sent; a Retry: out)
+  else if (!here) heraldShow(noticeFor(m, "out"), 9000);
   else { render(); toLatest(false); lift(msgsEl.querySelector(`[data-k="${m.id}"]`), from); }
   // handing the work back to the agent: the panel's Changes follows it again (the owner's D6)
   if (thread) STAGE.resumeFollow(conv);
@@ -2352,14 +2313,16 @@ function sendLive(raw) {
 function deliverLive(m, thread) { return once(`send:${m.cid}`, () => postLive(m, thread)); }
 async function postLive(m, thread) {
   m.status = "sending"; delete m.err;
+  // a Retry's attempt: its notice (still "Not sent", on screen or waiting) says it's out again
+  heraldFor(m.id, () => noticeFor(m, "out"));
   try {
     const row = await postWithFiles(m, thread);
     if (row && row.id) { S.alias.set(row.id, m.id); m.merged = true; }
     m.status = "sent";
     const where = thread ? "the thread" : m.target === "workspace" ? "the coordinator" : PROJ(m.target);
     announce(`Sent to ${where}.`);
-    // its "Sending to …" notice says it went, in place (only this message's own notice)
-    heraldFor(m.id, (h) => ({ ...h, text: h.text.replace(/^Sending to (.*)…$/, "Sent to $1"), sub: "open to follow the reply" }));
+    // its own notice says it went: set whole, whatever it said before ("Sending", or "Not sent" before a Retry)
+    heraldFor(m.id, () => noticeFor(m, "sent"));
   } catch (err) {
     m.status = "failed";
     m.err = { title: err.fileErr ? `A file didn't upload: ${uploadErrorText(err)}` : err.code === "unknown_attachment" ? "A file is no longer on the server" : sendErrorTitle(err), text: err.message || "" };
@@ -2367,7 +2330,7 @@ async function postLive(m, thread) {
     // the failure takes the place of its own "Sending to …" notice; else, away from its conversation, it's said
     // anew. Forced: it never yields to a passing notice (behind an Undo it waits its turn). Astra on 83929bb:
     // "Sent to demo" stood over a 503
-    const fail = { kind: "stopped", text: `Not sent: ${m.err.title}`, sub: "open the conversation to retry", open: m.conv, mid: m.id, force: true };
+    const fail = noticeFor(m, "failed");
     if (!heraldFor(m.id, () => fail, 6000) && S.view !== m.conv) heraldShow(fail, 6000);
   }
   schedule();
@@ -2983,10 +2946,10 @@ function sendAbout(f, text) {
   // the file's own place decides (its thread, or its project's chat), never the chat or draft on screen
   const block = blockFor(at.thread ? { thread: true } : { pid: at.chat });
   if (block) { announce(`Not sent: ${block}. Your words are kept.`); return false; }
-  const m = { id: `l${++S.n}_${Date.now().toString(36)}`, conv: at.conv, at: Date.now(), who: "you", text, status: "sending", target: at.thread ? null : at.chat, cid: `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}` };
+  const m = { id: `l${++S.n}_${Date.now().toString(36)}`, conv: at.conv, at: Date.now(), who: "you", text, status: "sending", target: at.thread ? null : at.chat, to: at.name, cid: `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}` };
   (S.local[at.conv] = S.local[at.conv] || []).push(m);
   sound.play("send");
-  heraldShow({ kind: "sent", text: `Sending to ${at.name}…`, sub: "open to follow it", open: at.conv, mid: m.id }, 9000);
+  heraldShow(noticeFor(m, "out"), 9000);
   if (at.thread) STAGE.resumeFollow(at.conv);
   deliverLive(m, at.thread);
   schedule();

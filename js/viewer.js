@@ -914,7 +914,9 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     // the notice goes once you've told the agent: focus goes to the file's head, not the page (Astra S137)
     // told only once it went: refused (its place's routing off, XO unreachable: the app says why), the notice and its
     // Tell stay, to try again (the controls grader on 945eecb: the notice went first, and the retry with it)
-    if (e.target.closest("[data-vw-tell]")) { const s = saved; if (!s || !edits.tell(V.file, s)) return; const back = focusHere(); saved = null; toastPaint(); if (back) headFocus(); announce("Told the agent."); return; }
+    // what became of the message is its own notice's to say (Sending, then Sent or Not sent): nothing is announced here
+    // before the server answers (the controls grader on dfe1491: "Told the agent." while it still said Sending)
+    if (e.target.closest("[data-vw-tell]")) { const s = saved; if (!s || !edits.tell(V.file, s)) return; const back = focusHere(); saved = null; toastPaint(); if (back) headFocus(); return; }
     // the notice goes with its ×: focus goes to the file's head, not the page (Astra S138)
     if (e.target.closest("[data-vw-toastx]")) { const back = focusHere(); saved = null; toastPaint(); if (back) headFocus(); return; }
     // a change that failed to read: read it again; focus waits on the diff's body, where the change appears
