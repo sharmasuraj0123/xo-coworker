@@ -1957,8 +1957,13 @@ for (const [name, sel, place] of [["C007 project search", "#pf-in", "home"], ["C
     // the project search shows once the list is long: enough projects for it
     const W = sel === "#pf-in" ? { extraChats: Array.from({ length: 12 }, (_, i) => H.chat(`chat_p${i}`, "project", `proj-${i}`)) } : {};
     const page = await app(W, { theme: "light" });
-    if (WIDTH < 600 && sel === "#pf-in") { await done(page); skip("the phone's sidebar is a drawer: the desktop case covers the rule"); }
     await page.evaluate((v) => window.__t.go(v), place);
+    if (WIDTH < 600 && sel === "#pf-in") {
+      // on a phone the project list is in the drawer: opened as a person opens it, with the menu button
+      await page.locator("#pb-menu, #top-menu").filter({ visible: true }).first().click();
+      await page.waitForFunction(() => document.querySelector("#app").classList.contains("drawer"));
+      await page.waitForTimeout(300); // the drawer done sliding in
+    }
     await page.locator(sel).waitFor({ state: "attached", timeout: 20000 }); // the place's own field, once it's drawn
     const box = await page.evaluate((sel) => { const e = document.querySelector(sel); const b = e.parentElement; return { rest: getComputedStyle(b).borderColor }; }, sel);
     await page.locator(sel).focus();
@@ -2090,9 +2095,73 @@ t("Home: Enter while a word is being composed in the note doesn't send it back",
   await done(page);
 });
 
+t("S031: a Send back from Home that didn't go comes back open with its note, and sends it on the next try", async () => {
+  const page = await app();
+  await homeAsk(page);
+  const NOTE = "Keep these words: try the smaller fix first";
+  // Space refuses whatever this card sends (both ways a note can go)
+  await page.evaluate(() => { const no = async () => { throw Object.assign(new Error("Fixture unavailable"), { status: 503, code: "unavailable" }); }; window.__t.world.act.decide = no; window.__t.world.act.reply = no; });
+  await page.waitForTimeout(350); // the card's read beat
+  await page.locator("[data-nx-back]").first().click();
+  await page.locator("#nx-note-in").fill(NOTE);
+  await page.locator("#nx-note-in").press("Enter");
+  assert.deepEqual(await homeDecided(page), ["deny"], "queued, its Undo window open");
+  // the window runs out, it's sent, Space refuses: the card is back on Home, open on the words
+  await page.waitForFunction(() => window.__t.D.decisions().length === 0, null, { timeout: 15000 });
+  await page.waitForFunction(() => document.querySelector("#hm-next .next.noting #nx-note-in")?.getClientRects().length > 0, null, { timeout: 5000 });
+  assert.equal(await page.locator("#nx-note-in").inputValue(), NOTE, "the note is still there");
+  assert.match(await page.locator("#hm-next .nx-note [role=status]").innerText(), /didn't send/, "it says it didn't send");
+  // the next try goes, with the same words
+  await page.evaluate(() => { for (const name of ["reply", "decide", "decideItem", "resolve"]) window.__t.world.act[name] = async () => ({}); });
+  await page.waitForTimeout(350); // the card's read beat, as it came back
+  await page.locator("#nx-note-in").focus();
+  await page.keyboard.press("Enter");
+  const sent = await page.evaluate(() => window.__t.D.decisions().map((d) => ({ choice: d.choice, note: d.note })));
+  assert.deepEqual(sent, [{ choice: "deny", note: NOTE }], "sent back again, with the note");
+  await page.evaluate(() => window.__t.D.undo());
+  await done(page);
+});
+// an agent's message as the server pages it, for the selection's Reply to this
+const AGENT_MSG = (ts, text) => ({ id: `${ts}-md`, seq: 50, chat_id: "chat_demo", thread_ts: ts, author_kind: "agent", author_id: "agent", author_session_id: null, text, reply_to: null, extra: {}, created_at: NOW });
+for (const theme of ["dark", "light"]) {
+  t(`S228/RPL-4: Reply to this (words selected in a message) answers the pointer in the ${theme} theme: hover a step brighter, press another; it quotes them`, async () => {
+    const page = await app({ threadsBy: { chat_demo: [serverThread("rp1", "ses-rp")] }, threadPages: { rp1: [AGENT_MSG("rp1", "Words to answer, chosen on purpose.")] } }, { theme });
+    await toDemo(page);
+    await toThread(page, "rp1");
+    await page.locator('#msgs [data-k="rp1-md"] p').first().waitFor({ timeout: 15000 });
+    await page.evaluate(() => {
+      const p = document.querySelector('#msgs [data-k="rp1-md"] p');
+      const r = document.createRange(); r.selectNodeContents(p);
+      getSelection().removeAllRanges(); getSelection().addRange(r);
+      document.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
+    });
+    const q = page.locator(".mx-qpop:not([hidden])");
+    await q.waitFor();
+    const look = () => q.evaluate((b) => { const c = getComputedStyle(b), i = getComputedStyle(b.querySelector("svg")); return { bg: c.backgroundColor, line: c.borderTopColor, icon: i.color }; });
+    const rest = await look();
+    const box = await q.boundingBox();
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.waitForTimeout(300); // its colours ease over --d-hover
+    const hover = await look();
+    assert.notEqual(hover.bg, rest.bg, `hover changes its background (${rest.bg} → ${hover.bg})`);
+    assert.notEqual(hover.line, rest.line, "and its edge");
+    assert.notEqual(hover.icon, rest.icon, "and its icon");
+    await page.mouse.down();
+    await page.waitForTimeout(200);
+    const pressed = await look();
+    assert.notEqual(pressed.bg, hover.bg, `pressed is another step (${hover.bg} → ${pressed.bg})`);
+    await page.mouse.up(); // the click: it replies with the words
+    await page.locator(".mx-reply").first().waitFor();
+    assert.match(await page.locator(".mx-reply .mx-r-t > span").first().textContent(), /Words to answer, chosen on purpose\./, "the selected words are the quote");
+    assert.match(await active(page), /id=say/, "focus goes to the message box");
+    await done(page);
+  });
+}
+
 // ── decisions (js/decide.js on its own, with a local world: no app, no API) ──
 async function decisions(kind = "approval", count = 1) {
-  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
+  // at the run's width: the 300 ms rule holds on a phone's cards too (it used to run at 1440 only, skipped at 390)
+  const ctx = await browser.newContext({ viewport: { width: WIDTH, height: WIDTH < 600 ? 844 : 900 }, reducedMotion: "reduce" });
   const page = await ctx.newPage();
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
@@ -2159,13 +2228,12 @@ async function ctxDone(page) { const errs = page.errors; await page.context().cl
   browser = await launch(chromium);
   if (!browser) { console.error("not run: no Chromium would start"); server.close(); process.exit(2); }
   const only = process.argv[2] ? new RegExp(process.argv[2]) : null;
-  // the app's flows at a desktop and a phone width; the decision module's on its own once
+  // the app's flows at a desktop and a phone width; the decision module's on its own, at both widths too
   for (const width of [1440, 390]) {
     WIDTH = width;
     for (const { name, fn } of tests) {
       if (only && !only.test(name)) continue;
       const label = `${name} [${width}]`;
-      if (width !== 1440 && /^G[12]:/.test(name)) { skipped++; console.log(`  skip ${label} (a desktop case)`); continue; }
       try { await fn(); passed++; console.log("  ok  " + label); }
       catch (e) {
         if (e instanceof Skip) { skipped++; console.log(`  skip ${label} (${e.message})`); continue; }
