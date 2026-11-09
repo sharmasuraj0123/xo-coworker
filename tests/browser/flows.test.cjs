@@ -567,6 +567,24 @@ t("C034: Files' divider takes the pointer at its line, over the file beside it t
   assert.deepEqual(hit, [true, true], "3 px either side of the line is the divider's");
   await done(page);
 });
+t("C030/S069: Files' Find and the new file's name show the one ring when the keyboard is in them", async () => {
+  // the controls grader on 9d1f71b, all four cells: only a darker edge, no ring
+  const page = await app({ files: { "a.js": FILE() } });
+  await panelOpen(page);
+  await filesOpen(page);
+  const ring = (sel) => page.evaluate((sel) => { const e = document.querySelector(sel), s = getComputedStyle(e); return { style: s.outlineStyle, width: s.outlineWidth, color: s.outlineColor }; }, sel);
+  const q = page.locator("[data-fl-q]").filter({ visible: true }).first();
+  await page.keyboard.press("Shift");
+  await q.focus();
+  let r = await ring(".fl-q:has(input:focus)");
+  assert.deepEqual([r.style, r.width], ["solid", "2px"], `Find: the ring on its box (${JSON.stringify(r)})`);
+  await page.locator("[data-fl-new]").filter({ visible: true }).first().click();
+  await page.waitForFunction(() => document.activeElement && document.activeElement.matches("[data-fl-name]"));
+  r = await ring("[data-fl-name]");
+  assert.deepEqual([r.style, r.width], ["solid", "2px"], `the new file's name: the ring (${JSON.stringify(r)})`);
+  await page.keyboard.press("Escape");
+  await done(page);
+});
 t("C031: a New file started while the last one is being made keeps its row, what's typed in it, and focus", async () => {
   let answer;
   const page = await app({ files: { "a.js": FILE() }, saveGate: new Promise((ok) => (answer = ok)) });

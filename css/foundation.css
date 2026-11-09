@@ -169,3 +169,8 @@ body.stage-full .stg-grip{display:none}
 
 /* ── the sidebar: no blue dot (the owner, again, 2026-11-04); nothing else there changes ─────────── */
 .pr-busy{display:none}
+
+/* a field the keyboard is in shows the one ring (2 px of the focus colour): a box that holds a borderless search field
+   draws it on the box, the new file's name on itself. They showed only a darker edge, which isn't a ring (the controls
+   grader on 9d1f71b, C030 Find a loaded file, S069 the new file's name: no ring in any cell) */
+:is(.fl-q,.all-q,.ar-q):has(input:focus-visible),.fl-new-r input:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
