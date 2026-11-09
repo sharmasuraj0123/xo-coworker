@@ -39,7 +39,10 @@ const verdictOf = (id) => {
     rev = r.inventoryRevision || ledgerRev; why = v === 'Unverified' && !/CLOSED/.test(r.reason || '') ? '' : r.reason || '';
     if (v === 'PASS (scoped)' && r.acceptanceScope) why = `scope: ${r.acceptanceScope}`;
   }
-  const closed = (r && /CLOSED/.test(r.reason || '')) || (f && /PASS/i.test(f.status));
+  // a pass is closed, unless a grader has since failed it (my note names that FAIL, newer than the ledger's PASS:
+  // Astra S062 at 2354917 under a Files PASS at 69f8f2a): then the row shows the note, never a stale PASS alone
+  const reopened = !!myNotes[id] && /FAIL at /.test(myNotes[id]);
+  const closed = !reopened && ((r && /CLOSED/.test(r.reason || '')) || (f && /PASS/i.test(f.status)));
   const mine = myNotes[id] && !closed ? ` · ${myNotes[id]}, awaiting Astra` : '';
   if (!v) return `Unchecked${mine}`;
   const words = Array.isArray(why) ? why.map((w) => (typeof w === 'string' ? w : w && (w.id || w.result) || '')).filter(Boolean).join(', ') : typeof why === 'object' && why ? JSON.stringify(why) : String(why || '');

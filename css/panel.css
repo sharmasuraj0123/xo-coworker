@@ -37,10 +37,10 @@ body.stage-over .stage{box-shadow:var(--e2)}
 
 /* ── the scope line and the field under it: the same in Files, Made and the Map ─────────────────────── */
 .fl-head{gap:8px;padding:12px var(--pe) 8px}
-.fl-crumb{gap:8px;height:20px;padding:0}
+.fl-crumb{gap:8px;min-height:24px;padding:0}
 .fl-crumb b{font:600 var(--fs-base)/20px var(--sans)}
 .fl-crumb small{max-width:60%;padding:0;border-radius:0;background:none;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
-.fl-up{width:20px;height:20px;margin:0 -4px 0 -4px;border-radius:var(--r-sm)}
+.fl-up{margin:0 -4px;border-radius:var(--r-sm)} /* its size is app.css's, on the scale (S062) */
 .fl-up svg{width:14px;height:14px}
 .fl-q,.md-pane .md-tools .all-q{box-sizing:border-box;height:32px;padding:0 8px;gap:8px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft)}
 .fl-q svg,.md-pane .md-tools .all-q svg{width:16px;height:16px}
@@ -114,8 +114,8 @@ body.stage-over .stage{box-shadow:var(--e2)}
 .vw-btn span{display:none}
 .vw-btn svg{width:16px;height:16px}
 .vw-btn:hover{background:var(--fill-2);border:0;color:var(--ink)}
-.vw-seg{height:28px;padding:2px;gap:2px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft)}
-.vw-seg button{height:22px;padding:0 8px;border-radius:var(--r-sm);font:500 var(--fs-sm)/16px var(--sans)}
+.vw-seg{height:var(--h-ctl);padding:2px;gap:2px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft)}
+.vw-seg button{height:26px;padding:0 8px;border-radius:var(--r-sm);font:500 var(--fs-sm)/16px var(--sans)}
 .vw-x{width:28px;height:28px;border-radius:var(--r-sm)}
 /* the name and its kind and size always read whole: in a narrow pane Preview · Source fold to their icons first */
 .vw-seg button{display:inline-flex;align-items:center;gap:4px}

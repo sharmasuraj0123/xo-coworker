@@ -1995,6 +1995,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .hr.hr-need{min-height:36px}
   .rn-chip,.rn-log,.rn-stopall{height:36px}
   .fl-link{min-height:36px}
+  .fl-up{width:36px;height:36px}
   #say{min-height:36px}
   .kr-k{min-height:36px}
 }
@@ -2832,7 +2833,9 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .fl-crumb{display:flex;align-items:center;gap:8px;min-width:0;padding:0 4px}
 .fl-crumb b{min-width:0;font:600 var(--fs-md)/20px var(--sans);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fl-crumb small{flex:none;max-width:55%;padding:3px 7px;border-radius:var(--r-sm);background:var(--fill-2);font:500 var(--fs-sm)/16px var(--mono);color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.fl-up{display:grid;place-items:center;width:26px;height:26px;margin-left:-6px;border-radius:var(--r-sm);color:var(--ink-3)}
+/* back to the projects: on the scale (24; 36 on a phone, as the phone's other icon controls), in every sheet
+   (Astra S062 on 2354917: the panel's sheet made it 20 × 20) */
+.fl-up{display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);margin-left:-4px;border-radius:var(--r-sm);color:var(--ink-3)}
 .fl-up:hover{background:var(--fill-2);color:var(--ink)}
 .fl-up svg{width:15px;height:15px}
 .fl-q{display:flex;align-items:center;gap:8px;height:32px;padding:0 10px;border-radius:var(--r-sm);background:var(--fill-1);border:1px solid var(--line);color:var(--ink-4);transition:border-color var(--d-hover) var(--ease)}
