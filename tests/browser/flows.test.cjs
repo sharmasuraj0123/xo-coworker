@@ -12,7 +12,9 @@
 // Self-contained: the app is served from this folder by a small static server, and every /api request is
 // answered in the page from a mock world (the Launchpad routes by design-research's mockspace). Nothing
 // reaches a Space; nothing is written anywhere.
-//   node tests/browser/flows.test.cjs
+//   node tests/browser/flows.test.cjs [name-pattern]
+// Every case runs in four cells: dark and light, at 1440×900 and 390×844. A case that can't apply in a cell (the
+// control isn't there at that width) says why and counts as skipped, never as passed.
 // Needs Playwright's core and a Chromium: PLAYWRIGHT_CORE (default /tmp/pw/node_modules/playwright-core).
 // Without them it says so and exits 2: not run is not passed.
 "use strict";
@@ -25,7 +27,7 @@ try { ({ chromium } = require(PW)); } catch { console.error(`not run: Playwright
 const H = require("./harness.cjs");
 const { SSE, serve, NOW, openApp, launch, LP } = H;
 
-let browser, server, BASE, WIDTH = 1440, passed = 0, failed = 0, skipped = 0;
+let browser, server, BASE, WIDTH = 1440, THEME = "dark", passed = 0, failed = 0, skipped = 0;
 const tests = [];
 const t = (name, fn) => tests.push({ name, fn });
 // a case that doesn't apply at this width says so, and is counted as skipped, never as passed (Files/Map grader)
@@ -33,10 +35,11 @@ class Skip extends Error {}
 const skip = (why) => { throw new Skip(why); };
 // the project's own page, as its row in the sidebar opens it (on a phone the sidebar is a drawer)
 const toDemo = (page) => page.evaluate(() => window.__t.go("p:demo"));
-// theme: "dark" (the harness default) or "light" (Files/Map grader on 453de55: it was dropped here, so the light
-// cases ran dark); every case that names a theme checks below that it got it
-const app = async (W = {}, { width = WIDTH, motion = false, theme = "dark" } = {}) => {
-  const page = await openApp(browser, BASE, W, { width, motion, theme });
+// every case runs in four cells: dark and light, at 1440×900 and 390×844 (the owner's bar: every row in both themes at
+// every width, never a light pass inferred from a dark one); the page is checked to be in the cell's theme (Files/Map
+// grader on 453de55: a light case once ran dark)
+const app = async (W = {}, { width = WIDTH, motion = false, theme = THEME } = {}) => {
+  const page = await openApp(browser, BASE, W, { width, height: width < 600 ? 844 : 900, motion, theme });
   const got = await page.evaluate(() => document.documentElement.dataset.theme || "dark");
   assert.equal(got, theme, `the page is in the ${theme} theme`);
   return page;
@@ -335,8 +338,8 @@ t("Jump: the row under a moving pointer is the selection, and Enter goes there",
 
 // ── focus never falls to the page when a control it was on goes ──
 const active = (page) => page.evaluate(() => { const a = document.activeElement; return a ? a.tagName + [...a.attributes].filter((x) => x.name.startsWith("data-") || x.name === "id" || x.name === "class").map((x) => ` ${x.name}=${x.value}`).join("") : null; });
-t("S136/S137: in the light theme the Saved notice's Undo and Tell answer the pointer", async () => {
-  const page = await app({ files: { "a.js": FILE() } }, { theme: "light" });
+t("S136/S137: the Saved notice's Undo and Tell answer the pointer", async () => {
+  const page = await app({ files: { "a.js": FILE() } });
   await editing(page);
   await typeAll(page, "mine\n");
   await page.keyboard.press("ControlOrMeta+s");
@@ -2249,12 +2252,12 @@ t("xo-select: PageDown never rests on a disabled option, and rows nest in the me
   await page.keyboard.press("Escape");
   await done(page);
 });
-// ── light theme: the search fields show focus ──
+// ── the search fields show focus (a light-theme finding; every cell checks it) ──
 for (const [name, sel, place] of [["C007 project search", "#pf-in", "home"], ["C063 artifact search", "#arts-q", "artifacts"]]) {
-  t(`${name}: in the light theme its box changes when it has focus`, async () => {
+  t(`${name}: its box changes when it has focus`, async () => {
     // the project search shows once the list is long: enough projects for it
     const W = sel === "#pf-in" ? { extraChats: Array.from({ length: 12 }, (_, i) => H.chat(`chat_p${i}`, "project", `proj-${i}`)) } : {};
-    const page = await app(W, { theme: "light" });
+    const page = await app(W);
     await page.evaluate((v) => window.__t.go(v), place);
     if (WIDTH < 600 && sel === "#pf-in") {
       // on a phone the project list is in the drawer: opened as a person opens it, with the menu button
@@ -2421,9 +2424,9 @@ t("S031: a Send back from Home that didn't go comes back open with its note, and
 });
 // an agent's message as the server pages it, for the selection's Reply to this
 const AGENT_MSG = (ts, text) => ({ id: `${ts}-md`, seq: 50, chat_id: "chat_demo", thread_ts: ts, author_kind: "agent", author_id: "agent", author_session_id: null, text, reply_to: null, extra: {}, created_at: NOW });
-for (const theme of ["dark", "light"]) {
-  t(`S228/RPL-4: Reply to this (words selected in a message) answers the pointer in the ${theme} theme: hover a step brighter, press another; it quotes them`, async () => {
-    const page = await app({ threadsBy: { chat_demo: [serverThread("rp1", "ses-rp")] }, threadPages: { rp1: [AGENT_MSG("rp1", "Words to answer, chosen on purpose.")] } }, { theme });
+{
+  t("S228/RPL-4: Reply to this (words selected in a message) answers the pointer: hover a step brighter, press another; it quotes them", async () => {
+    const page = await app({ threadsBy: { chat_demo: [serverThread("rp1", "ses-rp")] }, threadPages: { rp1: [AGENT_MSG("rp1", "Words to answer, chosen on purpose.")] } });
     await toDemo(page);
     await toThread(page, "rp1");
     await page.locator('#msgs [data-k="rp1-md"] p').first().waitFor({ timeout: 15000 });
@@ -2460,6 +2463,7 @@ for (const theme of ["dark", "light"]) {
 async function decisions(kind = "approval", count = 1) {
   // at the run's width: the 300 ms rule holds on a phone's cards too (it used to run at 1440 only, skipped at 390)
   const ctx = await browser.newContext({ viewport: { width: WIDTH, height: WIDTH < 600 ? 844 : 900 }, reducedMotion: "reduce" });
+  await ctx.addInitScript((theme) => { try { localStorage.setItem("cv-theme", theme); } catch { /* none */ } }, THEME); // the cell's theme
   const page = await ctx.newPage();
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
@@ -2527,11 +2531,14 @@ async function ctxDone(page) { const errs = page.errors; await page.context().cl
   if (!browser) { console.error("not run: no Chromium would start"); server.close(); process.exit(2); }
   const only = process.argv[2] ? new RegExp(process.argv[2]) : null;
   // the app's flows at a desktop and a phone width; the decision module's on its own, at both widths too
-  for (const width of [1440, 390]) {
-    WIDTH = width;
+  // the four cells; FLOWS_CELLS="390 light,1440 dark" runs only those (a rerun of what failed, never the record)
+  const cells = [[1440, "dark"], [1440, "light"], [390, "dark"], [390, "light"]]
+    .filter(([w, th]) => !process.env.FLOWS_CELLS || process.env.FLOWS_CELLS.split(",").map((x) => x.trim()).includes(`${w} ${th}`));
+  for (const [width, theme] of cells) {
+    WIDTH = width; THEME = theme;
     for (const { name, fn } of tests) {
       if (only && !only.test(name)) continue;
-      const label = `${name} [${width}]`;
+      const label = `${name} [${width} ${theme}]`;
       try { await fn(); passed++; console.log("  ok  " + label); }
       catch (e) {
         if (e instanceof Skip) { skipped++; console.log(`  skip ${label} (${e.message})`); continue; }
