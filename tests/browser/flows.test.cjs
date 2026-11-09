@@ -936,6 +936,55 @@ t("S023: after Reset all (by the keyboard, from the foot of the list), the first
   await page.evaluate(() => localStorage.removeItem("cv-keys"));
   await done(page);
 });
+// ── the focus rule, checked properly (the owner's choice, 9 Nov, "but check it properly"): it does nothing on a Tab's
+// or a press's focus (not even a check); it leaves the conversation's scroll to follow.js; it leaves a 1 px visually
+// hidden control alone; and on a script's focus out of sight in a scroller it brings it in (focusbrought).
+const MANY = () => Array.from({ length: 120 }, (_, i) => ({ id: `m${i + 1}`, seq: i + 1, chat_id: "chat_demo", thread_ts: null, author_kind: i % 2 ? "agent" : "owner", author_id: i % 2 ? "project-coordinator" : "owner", author_session_id: null, text: `Message ${i + 1}: ${"a line of words that wraps ".repeat(3)}`, reply_to: null, extra: {}, created_at: NOW }));
+const ruleWatch = (page) => page.evaluate(() => {
+  // the rule's own checks: its frame callbacks (they call bring), and what it moved (focusbrought)
+  window.__rule = { checks: 0, brought: 0 };
+  const raf = window.requestAnimationFrame.bind(window);
+  window.requestAnimationFrame = (f) => { if (String(f).includes("bring(el, win)")) window.__rule.checks++; return raf(f); };
+  document.addEventListener("focusbrought", () => window.__rule.brought++, true);
+});
+t("FOCUS-RULE: a Tab's and a press's focus aren't even checked; the conversation's scroll is follow.js's; 1 px controls are left", async () => {
+  const page = await app({ messages: MANY() });
+  await toDemo(page);
+  await page.waitForFunction(() => document.querySelectorAll("#msgs > [data-k]").length > 60, null, { timeout: 15000 });
+  await ruleWatch(page);
+  // Tab through the page, and press a few controls with the pointer
+  for (let i = 0; i < 25; i++) await page.keyboard.press("Tab");
+  // presses on controls that take focus themselves (the composer, Jump's and the menu's openers are scripts' work: not here)
+  for (const sel of ["#say", "#iq", "#say"]) { const l = page.locator(sel).filter({ visible: true }).first(); if (await l.count()) { await l.click(); await page.keyboard.press("Escape"); } }
+  let w = await page.evaluate(() => window.__rule);
+  assert.deepEqual(w, { checks: 0, brought: 0 }, "Tab and presses: nothing checked, nothing moved");
+  // the conversation, read in the middle; a script hands focus to a row far above
+  const before = await page.evaluate(() => { const s = document.getElementById("scroller"); s.scrollTop = Math.round(s.scrollHeight / 2); return s.scrollTop; });
+  await page.waitForTimeout(200);
+  const at = await page.evaluate(() => document.getElementById("scroller").scrollTop);
+  await page.evaluate(() => { const r = document.querySelector("#msgs > [data-k]"); r.tabIndex = -1; r.focus({ preventScroll: true }); });
+  await page.evaluate(() => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(ok)))));
+  w = await page.evaluate(() => window.__rule);
+  assert.equal(w.brought, 0, "the conversation's rows are left to follow.js");
+  assert.equal(await page.evaluate(() => document.getElementById("scroller").scrollTop), at, `its scroll is where you read (${before})`);
+  // in a scroller of its own (not the conversation's), below its view: a 1 px visually hidden control (the app's .sr-only)
+  // is left; a real control is brought in
+  await page.evaluate(() => {
+    const box = document.createElement("div"); box.id = "rule-box"; box.style.cssText = "position:fixed;left:0;top:0;width:200px;height:120px;overflow:auto;z-index:1";
+    box.innerHTML = '<div style="height:900px"></div><button class="sr-only" id="rule-sr">hidden</button><button id="rule-real">real</button>';
+    document.body.appendChild(box);
+    document.getElementById("rule-sr").focus({ preventScroll: true });
+  });
+  await page.evaluate(() => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(ok))));
+  assert.deepEqual(await page.evaluate(() => [window.__rule.brought, document.getElementById("rule-box").scrollTop]), [0, 0], "a 1 px control isn't brought");
+  await page.evaluate(() => document.getElementById("rule-real").focus({ preventScroll: true }));
+  await page.evaluate(() => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(ok))));
+  const real = await page.evaluate(() => { const b = document.getElementById("rule-box"), r = document.getElementById("rule-real").getBoundingClientRect(), v = b.getBoundingClientRect(); return { brought: window.__rule.brought, seen: r.top >= v.top - 1 && r.bottom <= v.bottom + 1 }; });
+  assert.deepEqual(real, { brought: 1, seen: true }, "a real one, out of its scroller's view, is brought in");
+  await page.evaluate(() => document.getElementById("rule-box").remove());
+  await page.locator("#say").focus();
+  await done(page);
+});
 // ── the phone's drawer keeps Tab inside it (the same grader: Tab past Settings landed on BODY)
 t("phone drawer: Tab past its last control comes round to its first, Shift+Tab the other way; never the page", async () => {
   if (WIDTH >= 600) skip("the sidebar is a drawer only on a phone");
