@@ -621,6 +621,17 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (FL.handle) dropFile();
     FL.pend = key;
     const my = ++FL.gen, host = fileBody();
+    // drawing again after a failure says so while it's out: the failure's words become what's happening and its Try
+    // again shows it's busy, in place (a second press does nothing more). They stood as they were while the renderer
+    // loaded (the controls grader on 9d1f71b, S139: "Couldn't show this file" at 150 and 800 ms, Try again looking
+    // ready). Drawn, the notice goes; failed again, it says so again.
+    const again = host.querySelector(":scope > .vw-empty [data-vw-retry]");
+    if (again) {
+      const box = again.closest(".vw-empty"), words = box.querySelector("p");
+      box.setAttribute("role", "status");
+      if (words) words.textContent = "Drawing this file…";
+      again.setAttribute("aria-busy", "true"); again.setAttribute("aria-disabled", "true"); again.textContent = "Trying again…";
+    }
     try {
       const h = await DV.file(host, d.content, {
         path: f.name || f.path, wrap: true, key,
@@ -959,6 +970,8 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     // a change that failed to read: read it again; focus waits on the diff's body, where the change appears
     if (e.target.closest("[data-vw-diff-retry]")) { const c = chg(); if (!c) return; diffBody().focus({ preventScroll: true }); drawDiff(c, { again: true }); return; }
     // the renderer's Try again goes as the file draws: focus waits on the file's body, where the file appears (S139)
+    // (pressed again while it's trying: nothing more; it's already on its way)
+    if (e.target.closest('[data-vw-retry][aria-busy="true"]')) return;
     if (e.target.closest("[data-vw-retry]")) { const back = focusHere(); FL.pend = null; drawFile(); if (back) (fileBody() || el).focus({ preventScroll: true }); return; }
     if (e.target.closest("[data-vw-split]")) { V.split = !V.split; if (DF.handle) DF.handle.split(V.split); render(); return; }
     const m = e.target.closest("[data-vw-mode]");
