@@ -24,16 +24,22 @@ const LEDGER = process.env.ASTRA_LEDGER || path.join(WT, 'thread-cmsg_942e352acb
 const FILES_DIR = path.join(WT, 'thread-cmsg_e3415cae12ea4e70', 'audit-files');
 const FILES_LEDGER = process.env.FILES_LEDGER || (() => { try { return fs.readdirSync(FILES_DIR).filter((f) => /-verdicts\.json$/.test(f)).map((f) => path.join(FILES_DIR, f)).sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs)[0]; } catch { return null; } })();
 let astra = {}, filesV = {}, ledgerRev = '', filesRev = '';
-try { const d = JSON.parse(fs.readFileSync(LEDGER, 'utf8')); ledgerRev = d.inventoryRevision || ''; for (const r of d.rows) astra[r.opusId] = r; } catch { astra = {}; }
+// merged: the ledger Astra reconciled on 9 Nov (schemaVersion; one verdict per row, both graders' evidence in it):
+// its verdict is the row's, over the Files grader's own older file
+let merged = false;
+try { const d = JSON.parse(fs.readFileSync(LEDGER, 'utf8')); merged = !!d.schemaVersion; ledgerRev = String(d.targetRevision || d.inventoryRevision || '').slice(0, 7); for (const r of d.rows) astra[r.opusId] = r; } catch { astra = {}; }
 try { const d = JSON.parse(fs.readFileSync(FILES_LEDGER, 'utf8')); filesRev = String(d.latestRevision || '').slice(0, 7); for (const r of d.rows) filesV[r.id] = r; } catch { filesV = {}; }
 const RETIRED = {}; // rows a grader found retired or unreachable: kept, marked
 for (const [id, r] of Object.entries(filesV)) if (/retired|not.?applicable|n\/a|unreachable/i.test(String(r.status))) RETIRED[id] = r.reason || r.status;
 const verdictOf = (id) => {
-  const f = filesV[id], r = astra[id];
+  const r = astra[id], f = merged && r && r.verdict ? null : filesV[id];
   let v, why = '', rev = '';
   if (f) {
     v = /retired|not.?applicable|n\/a|unreachable/i.test(String(f.status)) ? 'Retired' : String(f.status).toUpperCase();
     rev = f.evidenceRevision || filesRev; why = f.reason || '';
+  } else if (r && merged && r.verdict) {
+    v = r.verdict === 'RETIRED' ? 'Retired' : r.verdict === 'PASS' ? 'PASS' : r.verdict === 'FAIL' ? 'FAIL' : 'Unverified';
+    rev = String(r.lastAdjudicationRevision || ledgerRev).slice(0, 7); why = v === 'Unverified' ? '' : r.reason || '';
   } else if (r) {
     v = r.behaviorVerdict === 'FAIL' || r.inventoryVerdict === 'FAIL' ? 'FAIL' : r.behaviorVerdict === 'PASS' ? 'PASS (scoped)' : 'Unverified';
     rev = r.inventoryRevision || ledgerRev; why = v === 'Unverified' && !/CLOSED/.test(r.reason || '') ? '' : r.reason || '';
@@ -42,7 +48,7 @@ const verdictOf = (id) => {
   // a pass is closed, unless a grader has since failed it (my note names that FAIL, newer than the ledger's PASS:
   // Astra S062 at 2354917 under a Files PASS at 69f8f2a): then the row shows the note, never a stale PASS alone
   const reopened = !!myNotes[id] && /FAIL at /.test(myNotes[id]);
-  const closed = !reopened && ((r && /CLOSED/.test(r.reason || '')) || (f && /PASS/i.test(f.status)));
+  const closed = !reopened && ((r && /CLOSED/.test(r.reason || '')) || (r && merged && r.verdict === 'PASS') || (f && /PASS/i.test(f.status)));
   const mine = myNotes[id] && !closed ? ` · ${myNotes[id]}, awaiting Astra` : '';
   if (!v) return `Unchecked${mine}`;
   const words = Array.isArray(why) ? why.map((w) => (typeof w === 'string' ? w : w && (w.id || w.result) || '')).filter(Boolean).join(', ') : typeof why === 'object' && why ? JSON.stringify(why) : String(why || '');
