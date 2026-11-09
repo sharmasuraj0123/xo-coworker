@@ -2469,6 +2469,27 @@ t("nothing scrolls sideways: a thread with messages and a finished turn, at this
   assert.ok(w.doc[1] <= w.doc[0] + 1, `the page: ${w.doc[1]} wide in ${w.doc[0]}`);
   await done(page);
 });
+t("C111: routing Off, a reply in a thread: Send is on and no Off line shows beside it; a draft naming the Workspace shows it", async () => {
+  const page = await app({ router: { mode: "off", decision_model: null, abstain_below: 0.5 }, threadsBy: { chat_demo: [serverThread("rt1", "ses-rt")] }, threadPages: { rt1: [AGENT_MSG("rt1", "Something to reply to.")] } });
+  await toDemo(page);
+  await toThread(page, "rt1");
+  await page.waitForFunction(() => window.__t.world.state.router && window.__t.world.state.router.mode === "off", null, { timeout: 15000 });
+  await page.locator("#say").focus();
+  await page.keyboard.type("A reply in the thread");
+  await page.waitForTimeout(300);
+  const st = () => page.evaluate(() => { const hc = document.querySelector("#herald .hr-conn"); return { line: hc ? hc.innerText.replace(/\s+/g, " ").trim() : null, send: !document.querySelector("#send").disabled, paused: /Sending is paused/.test(document.querySelector("#composer")?.innerText || "") }; });
+  let s = await st();
+  assert.equal(s.send, true, "Send is on: a thread's reply is never routed");
+  assert.ok(!s.line || !/off/i.test(s.line), `no Off line beside it (Astra C111-PHONE-CONTEXT-1): ${s.line}`);
+  // the same draft, now naming the Workspace (whose routing, the Space's, is off): the line and the paused Send agree
+  await page.locator("#say").fill("@workspace A new message");
+  await page.waitForTimeout(400);
+  s = await st();
+  assert.equal(s.send, false, "Send waits");
+  assert.ok(s.line && /router is off/i.test(s.line), `the line says so: ${s.line}`);
+  await page.locator("#say").fill("");
+  await done(page);
+});
 // ── the Intelligence picker ──
 async function picker(page) {
   await toDemo(page);

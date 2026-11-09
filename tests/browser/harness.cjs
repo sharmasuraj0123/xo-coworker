@@ -55,6 +55,8 @@ function mockApi(W) {
     // W.pins: what a chat's PATCH saved (model, effort), so the world's refresh reads it back as the server would
     if (p === "/api/chat/chats") return json({ chats: CHATS.concat(W.extraChats || []).map((c) => (W.pins && W.pins[c.id] ? { ...c, pin: { ...c.pin, ...W.pins[c.id] } } : c)) });
     if (p === "/api/chat/runtimes" && W.runtimes) return json({ runtimes: W.runtimes });
+    // W.router: the Space's routing as the test sets it (Off, …); else the usual
+    if (p === "/api/chat/router" && m === "GET" && W.router) return json(W.router);
     if (STATIC[p]) return json(STATIC[p]);
     let k;
     if ((k = /^\/api\/chat\/chats\/([^/]+)\/(threads|messages|hops|made|runtime-policy)$/.exec(p))) {
