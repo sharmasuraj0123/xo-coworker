@@ -2279,11 +2279,20 @@ function lift(el, from) {
 /** Why sending is paused right now, or "" (classic composerBlock, in plain words). */
 function liveBlock() {
   if (CH.isChats(S.view)) return CH.blocked(S.view) || sendBlock(world.state, { timeline: false });
-  const t = convThread(S.view);
-  const toThread = !!t && !/(^|\s)@[\w.-]+/.test(say.value);
-  // a new message goes to the @-named project's chat, else this place's: refused only if that chat's routing is off
-  const pid = targetOf(say.value, world.state.projects).pid || chatOf(S.view);
-  return sendBlock(world.state, { timeline: !toThread, pid });
+  return blockFor(composerDest());
+}
+/** The one send gate: why a message to this destination can't go right now, or "". dest: { thread: true } (a reply
+ *  in a thread, which xo-space never routes) or { pid } (a new message to that chat's timeline: refused when its
+ *  routing is off). Every send path names where its message actually goes (Launchpad grader on 652ed3d: Retry and
+ *  the file actions asked about the composer's draft instead). */
+function blockFor(dest) {
+  return sendBlock(world.state, { timeline: !dest.thread, pid: dest.thread ? null : dest.pid || "workspace" });
+}
+/** Where the composer's draft goes, as sendLive sends it: this thread, unless it names a project; else the named
+ *  project's chat, or this place's. */
+function composerDest() {
+  const tg = targetOf(say.value, world.state.projects), t = convThread(S.view);
+  return t && !tg.pid ? { thread: true } : { pid: tg.pid || chatOf(S.view) || "workspace" };
 }
 
 function sendLive(raw) {
@@ -2384,7 +2393,9 @@ function retry(id) {
   for (const list of Object.values(S.local)) {
     const m = list.find((x) => x.id === id);
     if (m) {
-      if (liveBlock()) { announce(`Not sent: ${liveBlock()}.`); return; }
+      // the message's own destination, never the composer's newer draft: its chat, or its thread
+      const block = blockFor(m.target ? { pid: m.target } : { thread: true });
+      if (block) { announce(`Not sent: ${block}.`); return; }
       const had = !!document.activeElement?.closest?.(`[data-retry="${CSS.escape(id)}"]`);
       deliverLive(m, convThread(m.conv) && !m.target ? convThread(m.conv) : null);
       schedule();
@@ -2945,8 +2956,10 @@ function lrefRender() {
 }
 /** A message about a project file, as yours, in its thread (or its project's chat). True when it went. */
 function sendAbout(f, text) {
-  const at = askPlace(f), block = liveBlock();
+  const at = askPlace(f);
   if (!at) return false;
+  // the file's own place decides (its thread, or its project's chat), never the chat or draft on screen
+  const block = blockFor(at.thread ? { thread: true } : { pid: at.chat });
   if (block) { announce(`Not sent: ${block}. Your words are kept.`); return false; }
   const m = { id: `l${++S.n}_${Date.now().toString(36)}`, conv: at.conv, at: Date.now(), who: "you", text, status: "sending", target: at.thread ? null : at.chat, cid: `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}` };
   (S.local[at.conv] = S.local[at.conv] || []).push(m);
