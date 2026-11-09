@@ -1046,8 +1046,10 @@ t("EDITOR-regex: a pattern that isn't a valid regexp still says so after an edit
   await page.keyboard.insertText("[");
   await page.waitForTimeout(150);
   assert.equal(await page.locator("[data-search-grid] [data-matches]").first().innerText(), "Not a valid pattern");
-  // an edit to the document while the bar is open: the editor counts its matches again
-  await page.locator("#viewer [contenteditable=true]").first().click();
+  // an edit to the document while the bar is open: the editor counts its matches again (back at the caret the way
+  // the bar's own Close puts you there; the bar covers the first lines, so a click there lands on the bar)
+  await page.evaluate(() => window.__ED.ed.focus());
+  await page.waitForFunction(() => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return !!a?.isContentEditable; });
   await page.keyboard.insertText("x");
   await page.waitForTimeout(300);
   assert.equal(await page.locator("[data-search-grid] [data-matches]").first().innerText(), "Not a valid pattern", "its words after the edit");
@@ -1479,7 +1481,7 @@ for (const how of ["Enter", "Space", "click"]) {
     await done(page);
   });
 }
-t("S224: the file put away after its turn went on: focus goes back to a.js's chip (or the one drawn in its place), never the page", async () => {
+t("S224: the file closed after its turn went on: focus goes back to a.js's chip (or the one drawn in its place), never the page", async () => {
   const page = await app({ files: { "a.js": FILE() }, threadsBy: TT() });
   await toDemo(page);
   const chip = await turnChip(page);
@@ -1491,7 +1493,9 @@ t("S224: the file put away after its turn went on: focus goes back to a.js's chi
   await feedTurn(page, { id: "tt1", sid: "ses-tt", rows: [{ call_id: "c3", kind: "read_file", status: "ok", target: "c.js" }], n: 2 });
   await page.waitForTimeout(300);
   assert.match(await active(page), /id=viewer/, "still on the file");
-  await page.keyboard.press("Escape");
+  // closed with its own Close (Escape puts a file beside the chat away instead; its chip then has focus)
+  await page.locator("#viewer [data-vw-close]").filter({ visible: true }).first().click();
+  await page.waitForFunction(() => !window.__t.VW.isOpen);
   await page.waitForTimeout(400);
   const st = await page.evaluate(() => { const a = document.activeElement; return { usable: !!a && a !== document.body && a.isConnected && a.getClientRects().length > 0 && !a.closest("[inert], [hidden]"), chip: !!a?.matches?.('#msgs .tb-cf[data-file="a.js"]'), at: a ? a.tagName + (a.id ? "#" + a.id : "") + (a.className ? "." + String(a.className).split(" ").join(".") : "") : null }; });
   assert.ok(st.usable, `focus on something you can use, never the page (${st.at})`);
@@ -1610,7 +1614,7 @@ t("S207/S082: Fit shows every box; no box's target reaches a neighbour's box (ed
 });
 t("S207: far out, a press on a Graph node brings the map in to that node, in the middle, and doesn't act; pressed again, it acts", async () => {
   const page = await bigMap();
-  await page.locator('[data-dg="graph"]').filter({ visible: true }).first().click();
+  await page.evaluate(() => document.querySelector("#stage-map-graph").click()); // the panel's Graph tab
   await page.locator(".dg-world.k-graph button.gn[data-node]").first().waitFor();
   await graphStill(page);
   await page.locator('[data-dg="fit"]').filter({ visible: true }).first().click();
@@ -1660,13 +1664,12 @@ t("S207: each box by its own target: at 0.6 a 24 px \"More\" brings the map in f
   assert.equal(await boxState(page, more), before, "and didn't act on that press");
   const off = await offCentre(page, more);
   assert.ok(Math.abs(off.dx) <= 3 && Math.abs(off.dy) <= 3, `in to it, in the middle (${off.dx.toFixed(1)}, ${off.dy.toFixed(1)})`);
-  // a folder at 0.6: (32 + 5 + 5) × 0.6 = 25.2 px, pressable, so the press acts at once, and the scale holds
-  const dir = await page.evaluate(() => {
-    const v = document.querySelector(".dg-world").parentElement.getBoundingClientRect();
-    const n = [...document.querySelectorAll(".dg-world button.dg-n.k-dir[data-node]")].find((n) => { const b = n.getBoundingClientRect(); return b.left > v.left + 8 && b.right < v.right - 8 && b.top > v.top + 8 && b.bottom < v.bottom - 60; });
-    return n && n.dataset.node;
-  });
-  assert.ok(dir, "a folder in view");
+  // a folder at 0.6: (32 + 5 + 5) × 0.6 = 25.2 px, pressable, so the press acts at once, and the scale holds.
+  // Fit again (every box in view), then in at the folder, as a person zooms at what they mean to press
+  await page.locator('[data-dg="fit"]').filter({ visible: true }).first().click();
+  await page.waitForTimeout(400);
+  const dir = await page.locator(".dg-world button.dg-n.k-dir[data-node]").first().getAttribute("data-node");
+  assert.ok(dir, "a folder");
   await zoomOn(page, dir, 0.6);
   assert.ok(Math.abs((await mapScale(page)) - 0.6) < 1e-3, "at 0.6 again");
   const was = await boxState(page, dir);
@@ -1678,7 +1681,9 @@ t("S207: each box by its own target: at 0.6 a 24 px \"More\" brings the map in f
 });
 t("H12: a made thing's age updates in place, and a name cut in the middle stays whole", async () => {
   const long = "a-very-long-report-name-that-is-cut-in-the-middle-final.md";
-  const page = await app({ made: [{ id: "mk9", name: long, path: long, relative_path: long, project_id: "demo", mime: "text/markdown", bytes: 10, created_at: NOW, updated_at: NOW }] });
+  // made just now (NOW is when the suite started: 45 minutes into a four-cell run, "2 h later" read as 3h)
+  const at = new Date().toISOString();
+  const page = await app({ made: [{ id: "mk9", name: long, path: long, relative_path: long, project_id: "demo", mime: "text/markdown", bytes: 10, created_at: at, updated_at: at }] });
   await page.evaluate(() => window.__t.go("home"));
   const card = page.locator('#hm-made .md-it[data-k="mk9"]');
   await card.waitFor();
