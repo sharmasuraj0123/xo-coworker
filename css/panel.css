@@ -104,7 +104,24 @@ body.stage-over .stage{box-shadow:var(--e2)}
 
 /* ── the file viewer's header: one 40 px row on the grid. Icon at the edge, the name on the name column,
    then its kind and size as one quiet run on the same baseline; actions are 28 px icon buttons ───── */
-.vw-top{height:40px;padding:0 8px 0 var(--pe);gap:8px;align-items:center;border-bottom:1px solid var(--line-faint)}
+.vw-top{height:40px;padding:0 8px 0 var(--pe);gap:8px;align-items:center;border-bottom:1px solid var(--line-faint);container:vwtop / inline-size}
+/* a narrow head keeps one row (the owner's choice, 9 Nov): the name keeps a readable width; the view switch, Edit (or
+   Cancel · Save), ⋯ and × stay; Ask about this, Updated · Show, Your draft · Discard and Runs code fold into ⋯ below
+   560 px, and with both switches in one head the file's own (Preview · Source, Fit · Actual size) folds below 400 */
+.vw-t{min-width:64px}
+.vw-top .vw-menu .vw-fold,.vw-top .vw-mw.only-folds{display:none} /* (over the menu's own display:flex for its items) */
+.vw-menu .vw-fold[aria-disabled="true"]{color:var(--ink-3);cursor:default}
+.vw-menu .vw-fold[role=menuitemradio][aria-checked="true"]{color:var(--ink);font-weight:500}
+@container vwtop (max-width:560px){
+  .vw-acts :is(.vw-ask,.vw-upd,.xd-runs,[data-vw-draftx],.xd-state){display:none}
+  .vw-top .vw-menu .vw-fold.f-wide{display:flex}
+  .vw-top .vw-mw.only-folds.fw{display:inline-flex}
+}
+@container vwtop (max-width:400px){
+  .vw-acts:has(.vw-seg.is-words) .vw-seg:not(.is-words){display:none}
+  .vw-top .vw-menu .vw-fold.f-narrow{display:flex}
+  .vw-top .vw-mw.only-folds.fn{display:inline-flex}
+}
 .vw-ic{width:16px;height:20px;border-radius:0;background:none;color:var(--ink-3);display:grid;place-items:center}
 .vw-ic svg,.vw-ic svg.fi{width:16px;height:16px}
 .vw-t{display:flex;align-items:baseline;gap:8px;min-width:0}
@@ -123,7 +140,7 @@ body.stage-over .stage{box-shadow:var(--e2)}
 .vw-seg button{display:inline-flex;align-items:center;gap:4px}
 .vw-seg button svg{display:none;width:16px;height:16px}
 @container flpv (max-width:520px){.vw-seg button{width:28px;padding:0;justify-content:center}.vw-seg button svg{display:block}.vw-seg button span{display:none}}
-@container flpv (max-width:360px){.vw-seg{display:none}}
+/* (a narrow pane no longer hides the file's switch: a narrow head folds it into ⋯ instead, below) */
 .fl-pv{container:flpv / inline-size}
 :root[data-theme="light"] .vw-seg{background:#f4f4f4;border-color:rgba(0,0,0,.08)}
 

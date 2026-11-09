@@ -163,7 +163,9 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
    * ⋯ in the head: Copy, Copy path, Download (an attachment: Download, or Open in a new tab), in a menu. While
    * a copy or a download lasts, the ⋯ itself says so ("Copied", "Downloading…"): the menu has closed by then.
    */
-  function moreHtml(f, canCopy) {
+  /** The ⋯ menu: its own items, and the folds (what leaves a narrow head for it: the owner's choice, 9 Nov). A fold
+   *  shows only while its head is narrow (css: @container vwtop); f-wide below 560 px, f-narrow below 400. */
+  function moreHtml(f, canCopy, folds = []) {
     const url = f.att ? esc(attachmentUrl(f.att.chat, f.att.id)) : "";
     const items = [
       canCopy && `<button type="button" role="menuitem" data-vw-copy>${ICON.copy}<span>Copy</span></button>`,
@@ -174,11 +176,13 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
         : `<a role="menuitem" href="${url}" target="_blank" rel="noopener noreferrer">${ICON.arrow}<span>Open in a new tab</span></a>`)
         : canSave() && `<button type="button" role="menuitem" data-vw-download>${ICON.down}<span>Download</span></button>`,
     ].filter(Boolean);
-    if (!items.length) return "";
+    if (!items.length && !folds.length) return "";
     const done = V.copied, busy = V.saving, word = done ? "Copied" : busy ? "Downloading…" : "";
-    return `<span class="vw-mw"><button type="button" class="vw-btn vw-more${done ? " is-done" : busy ? " is-busy" : ""}" data-vw-more aria-haspopup="menu" aria-expanded="${!!V.menu}" title="${word || "Copy, download"}" aria-label="${word || "More: copy, download"}"${busy ? ' aria-disabled="true" aria-busy="true"' : ""}>` +
+    // with only folds in it, ⋯ shows only while one of them does
+    const only = items.length ? "" : ` only-folds${folds.some((x) => x.includes("f-wide")) ? " fw" : ""}${folds.some((x) => x.includes("f-narrow")) ? " fn" : ""}`;
+    return `<span class="vw-mw${only}"><button type="button" class="vw-btn vw-more${done ? " is-done" : busy ? " is-busy" : ""}" data-vw-more aria-haspopup="menu" aria-expanded="${!!V.menu}" title="${word || "Copy, download"}" aria-label="${word || "More: copy, download"}"${busy ? ' aria-disabled="true" aria-busy="true"' : ""}>` +
       `${done ? ICON.check : busy ? `<i class="spin" aria-hidden="true"></i>` : MORE_IC}${word ? `<span>${word}</span>` : ""}</button>` +
-      (V.menu ? `<span class="vw-menu" role="menu" aria-label="${esc(f.name || "This file")}">${items.join("")}</span>` : "") + `</span>`;
+      (V.menu ? `<span class="vw-menu" role="menu" aria-label="${esc(f.name || "This file")}">${folds.join("")}${items.join("")}</span>` : "") + `</span>`;
   }
   /** Close the ⋯'s menu; back: focus the ⋯ again (Esc, Tab, or after what you chose). */
   function menuOff(back = false) {
@@ -187,6 +191,8 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     paintHead();
     if (back) el.querySelector("[data-vw-more]")?.focus({ preventScroll: true });
   }
+  /** The ⋯ menu's items that show (a fold shows only while the head is narrow) */
+  const menuItems = () => [...el.querySelectorAll(".vw-menu :is([role=menuitem],[role=menuitemradio])")].filter((x) => x.getClientRects().length > 0);
   const inMore = () => !!(document.activeElement && document.activeElement.closest && document.activeElement.closest(".vw-mw"));
   /** Redraw for a copy or a download, with focus kept on the ⋯ when it was there or in its menu. */
   function redrawKeep() {
@@ -201,7 +207,6 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     const c = chg(), diffing = showsDiff();
     const meta = diffing ? [] : [kind, V.dims && `${V.dims.w} × ${V.dims.h}`, size(d ? d.size_bytes : f.bytes)].filter(Boolean);
     const canCopy = !diffing && !!(d && typeof d.content === "string");
-    const more = moreHtml(f, canCopy);
     // a changed file: what changed, or the whole file (the design's head: name, counts, the switch)
     const show = c ? `<div class="vw-seg is-words" role="group" aria-label="Show"><button type="button" data-vw-show="changes" aria-pressed="${diffing}">Changes</button><button type="button" data-vw-show="file" aria-pressed="${!diffing}">File</button></div>` +
       (diffing ? `<button type="button" class="vw-btn vw-split${V.split ? " is-on" : ""}" data-vw-split aria-pressed="${V.split}" title="${V.split ? "One column" : "Side by side"}" aria-label="Side by side">${SPLIT_IC}</button>` : "") : "";
@@ -223,6 +228,20 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     const askT = ask && ask.file && f.project && f.rel && ask.target(f);
     const askB = askT && !diffing ? `<button type="button" class="xd-btn vw-ask" data-vw-askfile title="Ask ${esc(askT)} about this file">Ask about this</button>` : "";
     const upd = V.updated && !diffing ? `<button type="button" class="xd-btn vw-upd" data-vw-update title="An agent changed this file after you opened it: show the new version">Updated · Show</button>` : "";
+    // a narrow head keeps one row: the view switch, Edit (or Cancel · Save), ⋯ and × stay; these fold into ⋯ (the
+    // owner's choice, 9 Nov: at 320 px More was pushed off and the name went to nothing)
+    const fold = (cls, attrs, label, role = "menuitem") => `<button type="button" role="${role}" class="vw-fold ${cls}" ${attrs}><span>${label}</span></button>`;
+    const folds = [
+      askB && fold("f-wide", `data-vw-askfile title="Ask ${esc(askT)} about this file"`, "Ask about this"),
+      upd && fold("f-wide", "data-vw-update", "Updated · Show the new version"),
+      !diffing && canEdit() && V.draft && !ED.opening && fold("f-wide", "data-vw-draftx", "Discard your draft"),
+      runs && fold("f-wide", `aria-disabled="true" title="Git or an agent runs what this file says"`, "Runs code"),
+      // both switches in one head: the file's own (Preview · Source, Fit · Actual size) folds, Changes · File stays
+      show && toggle && (d.kind === "image"
+        ? fold("f-narrow", `data-vw-mode="preview" aria-checked="${V.mode === "preview"}"`, "Fit", "menuitemradio") + fold("f-narrow", `data-vw-mode="actual" aria-checked="${V.mode === "actual"}"`, "Actual size", "menuitemradio")
+        : fold("f-narrow", `data-vw-mode="preview" aria-checked="${V.mode === "preview"}"`, "Preview", "menuitemradio") + fold("f-narrow", `data-vw-mode="source" aria-checked="${V.mode === "source"}"`, "Source", "menuitemradio")),
+    ].filter(Boolean);
+    const more = moreHtml(f, canCopy, folds);
     return `<header class="vw-top">${name}` +
       `<div class="vw-acts">${upd}${askB}${runs}${show}${toggle}${edit}${more}` +
       `<button type="button" class="vw-x" data-vw-close aria-label="Close the file" title="Close (Esc)">${ICON.close}</button></div></header>`;
@@ -892,7 +911,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       // button drops focus to the page, and it never came back when the download ended: Astra C092/S126)
       if (V.saving) return;
       V.menu = !V.menu; paintHead();
-      (V.menu ? el.querySelector(".vw-menu [role=menuitem]") : el.querySelector("[data-vw-more]"))?.focus({ preventScroll: true });
+      (V.menu ? menuItems()[0] : el.querySelector("[data-vw-more]"))?.focus({ preventScroll: true });
       return;
     }
     // a menu item: the menu closes, then it acts (a link is left to the browser, so its close waits a turn)
@@ -956,7 +975,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   pointerFollows(el); // the More menu: the item under the mouse is the active one (C058)
   el.addEventListener("keydown", (e) => {
     if (V.menu && e.target.closest(".vw-mw")) {
-      const items = [...el.querySelectorAll(".vw-menu [role=menuitem]")], i = items.indexOf(document.activeElement);
+      const items = menuItems(), i = items.indexOf(document.activeElement);
       if (e.key === "Escape" || e.key === "Tab") { e.preventDefault(); e.stopPropagation(); menuOff(true); return; }
       const to = e.key === "ArrowDown" ? i + 1 : e.key === "ArrowUp" ? (i < 0 ? -1 : i - 1) : e.key === "Home" ? 0 : e.key === "End" ? items.length - 1 : null;
       if (to != null && items.length) { e.preventDefault(); items[(to + items.length) % items.length].focus(); }

@@ -2492,6 +2492,34 @@ t("C111: routing Off, a reply in a thread: Send is on and no Off line shows besi
   await page.locator("#say").fill("");
   await done(page);
 });
+for (const w of [320, 390]) {
+  t(`viewer head at ${w} px (the owner's choice): one row, the name readable, More on screen; Ask about this folds into More`, async () => {
+    if (WIDTH >= 600) skip("a phone's widths (320 and 390)");
+    const page = await app({ files: { "a-much-longer-file-name.js": FILE() }, changes: [{ path: "a-much-longer-file-name.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: PATCH("a-much-longer-file-name.js", "one", "ONE") }] }, { width: w });
+    await toDemo(page);
+    await page.waitForFunction(() => !!window.__t.CHG.at("demo", "a-much-longer-file-name.js"), null, { timeout: 15000 });
+    // a changed, editable text file, showing File: Ask about this, Changes · File, Edit and More in its head
+    await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a-much-longer-file-name.js", path: "a-much-longer-file-name.js", name: "a-much-longer-file-name.js" }));
+    await page.locator("#viewer .vw-top [data-vw-edit]").waitFor();
+    const g = await page.evaluate(() => {
+      const top = document.querySelector("#viewer .vw-top"), r = top.getBoundingClientRect(), vw = innerWidth;
+      const box = (sel) => { const e = top.querySelector(sel); if (!e || !e.getClientRects().length) return null; const b = e.getBoundingClientRect(); return { l: Math.round(b.left), r: Math.round(b.right), w: Math.round(b.width), h: Math.round(b.height) }; };
+      return { vw, top: { h: Math.round(r.height) }, name: box("#vw-h"), more: box("[data-vw-more]"), edit: box("[data-vw-edit]"), seg: box(".vw-seg.is-words"), ask: box(".vw-acts .vw-ask"), rows: new Set([...top.querySelectorAll(".vw-acts > *")].filter((e) => e.getClientRects().length).map((e) => Math.round(e.getBoundingClientRect().top))).size };
+    });
+    assert.ok(g.more && g.more.r <= g.vw, `More on screen: ${JSON.stringify(g.more)} in ${g.vw}`);
+    assert.ok(g.name && g.name.w >= 56, `the name readable (a long one, cut with …): ${JSON.stringify(g.name)}`);
+    assert.equal(g.ask, null, "Ask about this isn't in the narrow row");
+    assert.ok(g.seg && g.edit, "the view switch and Edit stay");
+    assert.equal(g.rows, 1, "one row");
+    // Ask about this is in More
+    await page.locator("#viewer [data-vw-more]").click();
+    const ask = page.locator("#viewer .vw-menu [data-vw-askfile]");
+    await ask.waitFor();
+    assert.ok(await ask.isVisible(), "Ask about this in More");
+    await page.keyboard.press("Escape");
+    await done(page);
+  });
+}
 // ── the Intelligence picker ──
 async function picker(page) {
   await toDemo(page);
