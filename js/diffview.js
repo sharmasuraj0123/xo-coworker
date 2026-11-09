@@ -112,6 +112,29 @@ const common = (o) => ({
   disableFileHeader: true, overflow: o.wrap ? "wrap" : "scroll", tokenizeMaxLineLength: 1000,
 });
 
+/**
+ * The editor's find bar, from outside it (Pierre's, in the file's shadow root, where the page's rules can't reach; the
+ * library is pinned), as one family (the controls grader on e55c2d8, S242–S252):
+ *   · on a phone every one of its controls is a real 36 px target, the app's floor (css/phone.css): the fields 36 tall,
+ *     the in-field toggles, the arrows, Replace and Replace all, the replace toggle and Close 36 × 36 (they were 16–28);
+ *     Close keeps its small round look inside its 36 px box;
+ *   · its words take the role tokens, which read on every surface: the match count and "No results" the secondary
+ *     ink (they were 50% and 35% mixes, 2.6–2.9:1 and 1.9–2.0:1), the fields' placeholder the tertiary.
+ * Doubled attributes outrank the bar's own rules, whichever style comes later in the shadow root.
+ */
+const FIND_CSS = `
+[data-search-grid] [data-matches][data-matches],[data-search-grid] [data-matches][data-no-matches]{color:var(--ink-2)}
+[data-search-grid] [data-input-box][data-input-box] input::placeholder{color:var(--ink-3);opacity:1}
+@media (max-width:760px){
+  [data-search-grid] [data-input-box][data-input-box] input{min-height:36px}
+  [data-search-grid] [data-input-box][data-find] input{padding-inline-end:116px}
+  [data-search-panel] [data-search-icon][data-search-icon]{width:36px;height:36px;min-width:36px;min-height:36px}
+  [data-search-panel] [data-search-close][data-search-close]{background:transparent;top:-8px;right:-8px;transform:none;isolation:isolate}
+  [data-search-panel] [data-search-close][data-search-close]::before{content:"";position:absolute;inset:8px;z-index:-1;border-radius:50%;background:color-mix(in lab, var(--diffs-widget-fg) 50%, var(--diffs-bg))}
+  [data-search-panel] [data-search-close][data-search-close]:not(:disabled):hover{background:transparent}
+  [data-search-panel] [data-search-close][data-search-close]:not(:disabled):hover::before{background:var(--diffs-widget-fg)}
+}`;
+
 /** One file's diff out of git's patch for it (its whole `diff --git` block). */
 function parse(P, patch, path, key) {
   const fd = P.parsePatchFiles(patch, key ? { cacheKeyPrefix: key } : undefined)[0]?.files[0];
@@ -271,7 +294,7 @@ export async function file(scroller, contents, o = {}) {
   const VZ = new P.Virtualizer();
   VZ.setup(scroller, host);
   const v = new P.VirtualizedFile({
-    ...common(o),
+    ...common(o), unsafeCSS: FIND_CSS,
     ...(o.onSelect ? { enableLineSelection: true, onLineSelectionEnd: (r) => o.onSelect(r), onLineSelected: (r) => { if (!r) o.onSelect(null); } } : {}),
     ...(o.note ? { renderAnnotation: (a) => o.note(a.lineNumber) } : {}),
   }, VZ, undefined, lang !== "text" ? workers(P) : undefined);

@@ -1704,6 +1704,45 @@ t("EDITOR-close: the find bar's Escape and Close put you back at your caret, sti
   }
   await done(page);
 });
+// the editor's find bar as one family (the controls grader on e55c2d8, S242–S252, and the contrast review): on a
+// phone every control in it is a real 36 px target (fields 36 tall; toggles, arrows, Replace, Replace all, the
+// replace toggle and Close 36 × 36; they were 16–28); its match count and "No results" read 4.5:1 on its surface.
+t("S242–S252 (find bar): on a phone every control is a 36 px target; its count and No results read 4.5:1", async () => {
+  const page = await app({ files: { "a.js": FILE() } });
+  await editing(page);
+  await page.locator("#viewer [contenteditable=true]").first().click();
+  await page.keyboard.press("ControlOrMeta+f");
+  const q = page.locator("[data-search-grid] [data-search]").first();
+  await q.waitFor();
+  await page.locator("[data-search-grid] [data-replace-toggle]").first().click(); // the replace row too
+  await page.waitForTimeout(150);
+  const read = () => page.evaluate(() => {
+    const g = [...document.querySelectorAll("#viewer *")].map((n) => n.shadowRoot).filter(Boolean).map((r) => r.querySelector("[data-search-grid]")).find(Boolean);
+    const panel = g.closest("[data-search-panel]") || g.getRootNode().querySelector("[data-search-panel]");
+    const ctl = [...panel.querySelectorAll("button, input")].filter((x) => x.getClientRects().length && getComputedStyle(x).visibility !== "hidden");
+    const sizes = ctl.map((x) => { const r = x.getBoundingClientRect(); return { who: x.getAttribute("aria-label") || x.getAttribute("placeholder") || x.tagName, w: +r.width.toFixed(1), h: +r.height.toFixed(1), input: x.tagName === "INPUT" }; });
+    const rgb = (c) => { const m = c.match(/[\d.]+/g).map(Number); return { r: m[0], g: m[1], b: m[2], a: m.length > 3 ? m[3] : 1 }; };
+    const toRGB = (c) => { const p = document.createElement("i"); p.style.color = c; document.body.append(p); const v = getComputedStyle(p).color; p.remove(); return rgb(v); };
+    const bgOf = (n) => { for (let e = n; e; e = e.parentElement || (e.getRootNode() && e.getRootNode().host)) { const c = getComputedStyle(e).backgroundColor; const v = toRGB(c); if (v.a > 0.99) return v; } return toRGB(getComputedStyle(document.body).backgroundColor); };
+    const lum = ({ r, g, b }) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
+    const cr = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+    const m = g.querySelector("[data-matches]"), fg = toRGB(getComputedStyle(m).color), bg = bgOf(m);
+    return { sizes, matches: m.textContent.trim(), contrast: +cr(fg, bg).toFixed(2) };
+  });
+  // a query with matches, then one with none
+  await q.focus(); await page.keyboard.insertText("o"); await page.waitForTimeout(200);
+  const a = await read();
+  await page.keyboard.press("ControlOrMeta+a"); await page.keyboard.insertText("zzzz-nothing"); await page.waitForTimeout(200);
+  const b = await read();
+  assert.ok(a.contrast >= 4.5, `the match count reads 4.5:1 at the least (${a.matches}: ${a.contrast})`);
+  assert.match(b.matches, /No results/i);
+  assert.ok(b.contrast >= 4.5, `"No results" reads 4.5:1 at the least (${b.contrast})`);
+  if (WIDTH < 600) {
+    const small = a.sizes.filter((x) => x.h < 36 - 0.01 || (!x.input && x.w < 36 - 0.01));
+    assert.deepEqual(small, [], `every control a 36 px target on a phone: ${JSON.stringify(a.sizes)}`);
+  }
+  await done(page);
+});
 t("EDITOR-regex: a pattern that isn't a valid regexp says so", async () => {
   const page = await app({ files: { "a.js": FILE() } });
   await editing(page);
