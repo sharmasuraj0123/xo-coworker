@@ -1946,6 +1946,52 @@ t("S126: Download refused in the Changes view says why, under the head, and keep
   assert.equal(page.W.downloads, 1, "one request");
   await done(page);
 });
+// Copy refused in the Changes view is said as in the File view (the controls grader on e55c2d8, S125: Copy path in
+// Changes failed silently, for a normal patch and an omitted one; S124: a held Copy started in File, then Changes,
+// then the clipboard refused: the error was lost). The same cause as S126: the Changes branch drew no error line.
+const refuseCopy = (page, held = false) => page.evaluate((held) => {
+  window.__cpq = [];
+  navigator.clipboard.writeText = () => (held ? new Promise((ok, no) => window.__cpq.push({ ok, no })) : Promise.reject(new Error("denied")));
+  document.execCommand = () => false;
+}, held);
+const menuChoose = async (page, sel) => {
+  await page.locator("#viewer [data-vw-more]").filter({ visible: true }).first().click();
+  await page.locator(`#viewer .vw-menu ${sel}`).first().click();
+};
+t("S125: Copy path refused in the Changes view says why, for a normal patch and an omitted one", async () => {
+  const page = await app({ files: { "b.js": FILE(), "pic.png": FILE() }, changes: [
+    { path: "b.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:B", patch: PATCH("b.js", "one", "BRAVO") },
+    { path: "pic.png", status: "modified", additions: 0, deletions: 0, binary: true, version: "sha256:P", patch: null, patch_omitted: "binary" }] });
+  await toDemo(page);
+  for (const rel of ["b.js", "pic.png"]) {
+    await diffOpen(page, rel);
+    await page.locator("#viewer [data-vw-more]").filter({ visible: true }).first().waitFor({ timeout: 15000 });
+    await refuseCopy(page);
+    await menuChoose(page, "[data-vw-copy-path]");
+    await page.waitForSelector("#viewer .vw-cut[role=alert]", { timeout: 5000 });
+    assert.match(await page.locator("#viewer .vw-cut[role=alert]").innerText(), /Couldn't copy/, `${rel}: it says why`);
+    assert.equal(await page.evaluate(() => !!document.querySelector("#viewer .vw-diff")), true, `${rel}: still the Changes view`);
+    await page.evaluate(() => window.__t.VW.close({ restore: false }));
+  }
+  await done(page);
+});
+t("S124: a Copy held in File, then Changes, then refused: the Changes view says why", async () => {
+  const page = await app({ files: { "b.js": FILE() }, changes: [
+    { path: "b.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:B", patch: PATCH("b.js", "one", "BRAVO") }] });
+  await toDemo(page);
+  await page.waitForFunction(() => !!window.__t.CHG.at("demo", "b.js"), null, { timeout: 15000 });
+  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "b.js", path: "b.js", name: "b.js", show: "file" }));
+  await page.locator("#viewer [data-vw-more]").filter({ visible: true }).first().waitFor({ timeout: 15000 });
+  await refuseCopy(page, true);
+  await menuChoose(page, "[data-vw-copy]"); // the file's words, held
+  await page.waitForFunction(() => window.__cpq.length === 1);
+  await page.locator('#viewer [data-vw-show="changes"]').filter({ visible: true }).first().click();
+  await page.waitForFunction(() => !!document.querySelector("#viewer .vw-diff"), null, { timeout: 15000 });
+  await page.evaluate(() => window.__cpq[0].no(new Error("denied"))); // now the clipboard refuses
+  await page.waitForSelector("#viewer .vw-cut[role=alert]", { timeout: 5000 });
+  assert.match(await page.locator("#viewer .vw-cut[role=alert]").innerText(), /Couldn't copy/, "the Changes view says why");
+  await done(page);
+});
 t("VW-DIFF-ERR: a change that couldn't be read says so and stays said; Try again reads it again, focus in the diff", async () => {
   const page = await app({ files: { "b.js": FILE() }, changesFailFor: { "b.js": 1 }, changes: [
     { path: "b.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:B", patch: null, patch_omitted: "response_budget", full: PATCH("b.js", "one", "BRAVO") }] });
