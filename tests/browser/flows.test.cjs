@@ -567,6 +567,25 @@ t("C034: Files' divider takes the pointer at its line, over the file beside it t
   assert.deepEqual(hit, [true, true], "3 px either side of the line is the divider's");
   await done(page);
 });
+t("C034/C035: the resize grips beside a file show the one ring when the keyboard is on them", async () => {
+  // the controls grader on 9d1f71b, desktop: only their 1 px line brightened (1.5–2.5:1)
+  if (WIDTH < 600) skip("the grips are a desktop's (a phone has none)");
+  const page = await app({ files: { "a.js": FILE() } });
+  await toDemo(page);
+  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
+  await page.waitForFunction(() => document.body.classList.contains("chat-docked"), null, { timeout: 8000 });
+  await page.keyboard.press("Shift");
+  const ring = (sel, pseudo) => page.evaluate(([sel, pseudo]) => { const e = document.querySelector(sel); if (!e || !e.getClientRects().length) return null; const s = getComputedStyle(e, pseudo); return pseudo ? s.boxShadow : `${s.outlineStyle} ${s.outlineWidth}`; }, [sel, pseudo]);
+  await page.locator(".fv-cgrip").focus();
+  assert.equal(await ring(".fv-cgrip", null), "solid 2px", "the chat's grip");
+  const split = page.locator(".fv .fl.is-wide .fl-split");
+  if (await split.count()) {
+    await split.focus();
+    assert.match(String(await ring(".fv .fl.is-wide .fl-split", "::after")), /inset/, "Files' divider: the ring on its grab area");
+  }
+  await page.locator("#say").focus();
+  await done(page);
+});
 t("C030/S069: Files' Find and the new file's name show the one ring when the keyboard is in them", async () => {
   // the controls grader on 9d1f71b, all four cells: only a darker edge, no ring
   const page = await app({ files: { "a.js": FILE() } });
