@@ -270,7 +270,9 @@ const lpProject = (v) => (v && v.startsWith("p:") ? v.slice(2) : v && v.startsWi
 const lpThread = (p, id) => { const t = id ? world.thread(id) : world.state.threads.find((x) => x.project === p && /^deploy to launchpad/i.test(x.title || "") && x.state !== "resolved"); return t && t.project === p ? { thread: t.id, title: t.title, since: t.createdAt, busy: isBusy(t), done: t.state === "done" || t.state === "resolved" } : null; };
 const LP = createLaunchpad({ api: createLpApi(), projectOf: lpProject, nameOf: (p) => PROJ(p), findThread: lpThread, go: (v) => go(v), announce, onChange: () => schedule(),
   // Launchpad's own Undo names where focus goes (Stop, the header's Deploy, the page's work): ownFocus
-  notify: (text, undo) => heraldShow({ kind: "done", text, ...(undo ? { undo, undoUntil: Date.now() + 3000, ownFocus: true } : {}) }, undo ? 3200 : 4200) });
+  // and its kind: a failure ("err") reads as every failure notice here does (kind "stopped": the error's mark and
+  // ink), never with the success check (Launchpad grader on 842a6d1: "Couldn't unlink" showed a green check)
+  notify: (text, undo, kind = "done") => heraldShow({ kind: kind === "err" ? "stopped" : kind, text, ...(undo ? { undo, undoUntil: Date.now() + 3000, ownFocus: true } : {}) }, undo ? 3200 : kind === "err" ? 6000 : 4200) });
 const STAGE = createStage({ map: MAP, mapIcon: MAP_ICON, files: FILES, changes: CHG, filesView: FILESV, viewer: VW, view: () => S.view, go: (v) => go(v), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP });
 // the place beside the panel's name: a thread's project (its title is the conversation's own head), a project
 STAGE.names = (v) => {

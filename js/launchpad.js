@@ -57,7 +57,8 @@ const slug = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9-]+/g, "-").r
 /**
  * api: js/lpapi.js (or the preview's stand-in): check, deploy, apps, link, unlink, githubStart, githubPoll,
  * askAgent. projectOf(v): the project a view belongs to, or null. nameOf(p): its name. go(v): navigate.
- * notify(text): a line in the herald (a deploy finishing while its section is out of sight). onChange():
+ * notify(text, undo, kind): a line in the herald (a deploy finishing while its section is out of sight); kind says
+ * what news it is: "done" (the default), "err" for anything that failed, "halt" for a stop on its way. onChange():
  * the app re-renders (the header button, the panel).
  */
 export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread = () => null, go, announce, notify, onChange }) {
@@ -219,7 +220,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     if (e.state === "failed") land('.lp-rec .lp-go, .lp-acts .lp-go, [data-lp="retry"], [data-lp="recheck-gh"]');
     const name = f.name || nameOf(p);
     if (e.step === "live" && e.state === "done") { announce(`${name} is live.`); if (!visible(p)) notify && notify(`${name} is live`); }
-    if (e.state === "failed") { announce(`${name} didn't deploy: ${failWords(s.run.error)}.`); if (!visible(p)) notify && notify(`${name}: ${failWords(s.run.error).toLowerCase()}`); }
+    if (e.state === "failed") { announce(`${name} didn't deploy: ${failWords(s.run.error)}.`); if (!visible(p)) notify && notify(`${name}: ${failWords(s.run.error).toLowerCase()}`, null, "err"); }
     changed();
   }
 
@@ -770,8 +771,8 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
           return;
         }
       }
-      if (ours()) { s.device = null; land('[data-lp="reconnect"]'); notify && notify("GitHub's code ran out. Reconnect again."); changed(); }
-    } catch (e) { if (!ours()) return; s.device = null; land('[data-lp="reconnect"]'); notify && notify(`GitHub didn't connect: ${e.message}`); changed(); }
+      if (ours()) { s.device = null; land('[data-lp="reconnect"]'); notify && notify("GitHub's code ran out. Reconnect again.", null, "err"); changed(); }
+    } catch (e) { if (!ours()) return; s.device = null; land('[data-lp="reconnect"]'); notify && notify(`GitHub didn't connect: ${e.message}`, null, "err"); changed(); }
   }
 
   async function startPick(p) {
@@ -780,7 +781,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     land('[data-lp="pick-cancel"]'); // Back, while it reads; the list arrives under it
     changed();
     try { const apps = await api.apps(p); if (s.picking) s.picking.apps = apps; } // Back meanwhile: nothing to fill
-    catch (e) { s.picking = null; land('[data-lp="pick"]'); notify && notify(`Couldn't read your Launchpad apps: ${e.message}`); }
+    catch (e) { s.picking = null; land('[data-lp="pick"]'); notify && notify(`Couldn't read your Launchpad apps: ${e.message}`, null, "err"); }
     changed();
   }
 
@@ -791,7 +792,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     s.picking = null; s.linking = true; land('[data-lp="pick-cancel"]'); changed();
     api.link(p, id)
       .then((a) => { s.check = { ...s.check, state: "linked", app: a }; s.run = null; land('[data-lp="again"]'); load(p, true); })
-      .catch((e) => { land('[data-lp="pick"]'); notify && notify(`Couldn't link it: ${e.message}`); })
+      .catch((e) => { land('[data-lp="pick"]'); notify && notify(`Couldn't link it: ${e.message}`, null, "err"); })
       .finally(() => { s.linking = false; changed(); });
   }
 
@@ -886,7 +887,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
    *  and unmark() takes back what an earlier success still shows: a refusal never wears the last copy's "Copied". */
   async function copied(text, what, mark, unmark) {
     const ok = await copyText(String(text || ""));
-    if (!ok) { unmark && unmark(); changed(); announce(COPY_REFUSED); notify && notify(COPY_REFUSED); return; }
+    if (!ok) { unmark && unmark(); changed(); announce(COPY_REFUSED); notify && notify(COPY_REFUSED, null, "err"); return; }
     mark(); announce(`Copied ${what}.`); changed();
     clearTimeout(S.copiedT); S.copiedT = setTimeout(changed, 1600); // the latest Copy's 1.5 s, not the first's
   }
@@ -914,7 +915,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
           const n = S.body?.querySelector('.lp-q .lp-count');
           if (n) n.textContent = String(Math.max(1, Math.ceil((run.stopAt - Date.now()) / 1000)));
         }, 200);
-        notify && notify(`Stopping the deploy of ${s.form.name}`, () => { fromNotice(p, '[data-lp="stop-undo"]'); keep(p, run); });
+        notify && notify(`Stopping the deploy of ${s.form.name}`, () => { fromNotice(p, '[data-lp="stop-undo"]'); keep(p, run); }, "halt");
         land('[data-lp="stop-undo"]'); changed();
         announce(`Stopping the deploy in 3 seconds. Keep deploying to take it back.`);
         return;
@@ -938,7 +939,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       case "disk-add": s.form.disk = true; s.form.errs = { ...s.form.errs, disk: "" }; S.key = ""; land('[data-lp-f="diskPath"]'); changed(); requestAnimationFrame(() => S.body?.querySelector('[data-lp-f="diskPath"]')?.focus()); return;
       case "disk-remove": s.form.disk = false; s.form.errs = { ...s.form.errs, disk: "" }; S.key = ""; land('[data-lp="disk-add"]'); changed(); requestAnimationFrame(() => S.body?.querySelector('[data-lp="disk-add"]')?.focus()); return;
       case "create-repo": s.check = { ...s.check, repo: { ...s.check.repo, admin: false } }; s.needs = null; s.run = null; deploy(p); return;
-      case "link-same": { const id = s.needs?.data?.app?.id || s.run?.error?.app?.id; s.needs = null; s.run = null; land('[data-lp="deploy"], [data-lp="reconnect"]'); if (id) api.link(p, id).then((a) => { s.check = { ...s.check, state: "linked", app: a }; deploy(p, true); }).catch((err) => notify && notify(`Couldn't link it: ${err.message}`)); changed(); return; }
+      case "link-same": { const id = s.needs?.data?.app?.id || s.run?.error?.app?.id; s.needs = null; s.run = null; land('[data-lp="deploy"], [data-lp="reconnect"]'); if (id) api.link(p, id).then((a) => { s.check = { ...s.check, state: "linked", app: a }; deploy(p, true); }).catch((err) => notify && notify(`Couldn't link it: ${err.message}`, null, "err")); changed(); return; }
       case "env-all": { // the first of the names it shows, by name (an index into the list could miss when they interleave)
         const f = s.form, first = (s.check.env || []).find((x) => !(x.sensitive || !x.default || f.env[x.name]));
         s.envAll = true; S.key = ""; land(first ? `[data-lp-env="${CSS.escape(first.name)}"]` : ".lp-ev input"); changed(); return;
@@ -956,7 +957,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
         const was = s.check, run = s.run;
         s.check = { ...was, app: null, state: "ready" }; s.run = null; land('[data-lp="deploy"], [data-lp="reconnect"]'); changed();
         // refused, or undone: the app is back, and focus with it on More, where Unlink was
-        const t = setTimeout(() => api.unlink(p).then(() => load(p, true)).catch((e) => { s.check = was; land('[data-lp="menu"]'); notify && notify(`Couldn't unlink: ${e.message}`); announce(`Couldn't unlink: ${e.message}. It's still linked.`); changed(); }), 3200);
+        const t = setTimeout(() => api.unlink(p).then(() => load(p, true)).catch((e) => { s.check = was; land('[data-lp="menu"]'); notify && notify(`Couldn't unlink: ${e.message}`, null, "err"); announce(`Couldn't unlink: ${e.message}. It's still linked.`); changed(); }), 3200);
         notify && notify("Unlinked from Launchpad", () => { fromNotice(p, '[data-lp="deploy"], [data-lp="reconnect"]'); clearTimeout(t); s.check = was; s.run = run; land('[data-lp="menu"]'); changed(); });
         return;
       }
