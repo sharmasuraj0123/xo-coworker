@@ -148,7 +148,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   async function download() {
     if (V.busy) return; // one thing at a time from the ⋯: a copy or a download already on its way
     const f = V.file;
-    V.busy = { kind: "download", shown: true }; V.saveError = null; redrawKeep();
+    V.busy = { kind: "download", shown: true }; V.copied = false; V.saveError = null; redrawKeep(); // a new action: the last one's Copied is over
     try {
       const url = URL.createObjectURL(await api.projectDownload(f.project, f.rel));
       const a = Object.assign(document.createElement("a"), { href: url, download: f.name || "file" });
@@ -179,7 +179,9 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
         : canSave() && `<button type="button" role="menuitem" data-vw-download>${ICON.down}<span>Download</span></button>`,
     ].filter(Boolean);
     if (!items.length && !folds.length) return "";
-    const done = V.copied, busy = !!(V.busy && V.busy.shown), word = done ? "Copied" : busy ? (V.busy.kind === "copy" ? "Copying…" : "Downloading…") : "";
+    // what's on its way says so before what's done: the newest action's state (a Download right after Copy said
+    // "Copied" all through the download: the controls grader on 8a4ed16, S126 / V52)
+    const busy = !!(V.busy && V.busy.shown), done = !busy && V.copied, word = busy ? (V.busy.kind === "copy" ? "Copying…" : "Downloading…") : done ? "Copied" : "";
     // with only folds in it, ⋯ shows only while one of them does
     const only = items.length ? "" : ` only-folds${folds.some((x) => x.includes("f-wide")) ? " fw" : ""}${folds.some((x) => x.includes("f-narrow")) ? " fn" : ""}`;
     return `<span class="vw-mw${only}"><button type="button" class="vw-btn vw-more${done ? " is-done" : busy ? " is-busy" : ""}" data-vw-more aria-haspopup="menu" aria-expanded="${!!V.menu}" title="${word || "Copy, download"}" aria-label="${word || "More: copy, download"}"${busy ? ' aria-disabled="true" aria-busy="true"' : ""}>` +
@@ -942,6 +944,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     // took focus to its More, and the old 1400 ms timer cleared the new copy's Copied (the controls grader on
     // 76a53c1, S124 / C81)
     const busy = V.busy = { kind: "copy", shown: false }, file = V.file;
+    V.copied = false; // a new copy: the last one's Copied is over
     const slow = setTimeout(() => { if (V.busy === busy) { busy.shown = true; redrawKeep(); } }, COPY_SAYS_MS);
     let ok = false;
     try { await navigator.clipboard.writeText(text); ok = true; } catch {

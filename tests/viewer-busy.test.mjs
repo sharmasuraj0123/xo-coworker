@@ -29,7 +29,9 @@ t("the download is the same state, and More stays shut while either is on its wa
   assert.match(body("download"), /V\.busy = \{ kind: "download", shown: true \};/);
   const i = src.indexOf('if (e.target.closest("[data-vw-more]")) {'), a = src.slice(i, i + 600);
   assert.match(a, /if \(V\.busy\) return;/, "More: one guard, for both");
-  assert.match(src, /word = done \? "Copied" : busy \? \(V\.busy\.kind === "copy" \? "Copying…" : "Downloading…"\) : ""/, "the ⋯ says which");
+  assert.match(src, /const busy = !!\(V\.busy && V\.busy\.shown\), done = !busy && V\.copied, word = busy \? \(V\.busy\.kind === "copy" \? "Copying…" : "Downloading…"\) : done \? "Copied" : "";/, "the ⋯ says which: what's on its way before what's done (S126 / V52)");
+  assert.match(body("download"), /V\.busy = \{ kind: "download", shown: true \}; V\.copied = false;/, "a download ends the last Copied");
+  assert.match(body("copy"), /V\.copied = false; \/\/ a new copy/, "and so does a new copy");
 });
 t("a copy's result belongs to it and its file: settled after the file went, it says nothing; its Copied is cleared by its own timer only", () => {
   const b = body("copy");

@@ -2097,6 +2097,31 @@ t("S124/S125 (pending): a held Copy says Copying… by 250 ms, takes no repeat a
 // a copy that settles after its file has gone says nothing on the next file (the controls grader on 76a53c1, S124 /
 // C81: a held Copy, other.txt opened, its More's Copy path focused, then the old copy settles: the old Copied or
 // refusal painted on other.txt and focus jumped to More; the old 1400 ms timer cleared the new copy's Copied)
+// Copy path, then Download at once: the ⋯ says Downloading…, not the last Copied, for as long as the download is held
+// (the controls grader on 8a4ed16, S126 / V52: "Copied" stood through the whole held download)
+t("S126 (status): Copy path then Download at once: the ⋯ says Downloading… through the held download, then neither", async () => {
+  let answer;
+  const page = await app({ files: { "a.js": FILE() }, downloadGate: new Promise((ok) => (answer = ok)) });
+  await page.evaluate(() => { navigator.clipboard.writeText = () => Promise.resolve(); });
+  await toDemo(page);
+  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
+  const more = page.locator("#viewer [data-vw-more]").filter({ visible: true }).first();
+  await more.waitFor({ timeout: 15000 });
+  await page.keyboard.press("Shift");
+  await more.focus(); await page.keyboard.press("Enter");
+  let it = page.locator("#viewer .vw-menu [data-vw-copy-path]").first(); await it.waitFor(); await it.focus(); await page.keyboard.press("Enter");
+  await page.waitForFunction(() => /Copied/.test(document.querySelector("#viewer [data-vw-more]")?.textContent || ""));
+  await more.focus(); await page.keyboard.press("Enter");
+  it = page.locator("#viewer .vw-menu [data-vw-download]").first(); await it.waitFor(); await it.focus(); await page.keyboard.press("Enter"); // held
+  for (const ms of [150, 650]) {
+    await page.waitForTimeout(ms);
+    assert.match(await more.innerText(), /Downloading/, `${ms === 150 ? 150 : 800} ms: Downloading…, not the last Copied`);
+  }
+  answer();
+  await page.waitForTimeout(300);
+  assert.doesNotMatch(await more.innerText(), /Copied|Downloading/, "done: neither");
+  await done(page);
+});
 t("S124 (stale): a copy that settles after another file is open says nothing there, moves no focus, and leaves its Copied alone", async () => {
   const page = await app({ files: { "a.js": FILE(), "other.txt": FILE() } });
   await page.evaluate(() => { window.__cpq = []; navigator.clipboard.writeText = () => new Promise((ok, no) => window.__cpq.push({ ok, no })); });
