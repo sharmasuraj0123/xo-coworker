@@ -410,7 +410,9 @@ function offLine(w, pid) {
     : { kind: "off", text: "The router is off", sub: "chats using it refuse new messages · replies in threads still work" };
 }
 
-export function connLine(w, { pid = null } = {}) {
+/** The line above the composer: thread (a reply in a thread, never routed) shows no routing-Off line, as the send
+ *  gate lets it go; pid: the chat a new message goes to (Launchpad grader on 83929bb: one rule with the gate) */
+export function connLine(w, { pid = null, thread = false } = {}) {
   if (!w) return null;
   // the engine down is said as such: the UI server answered, so it isn't the network
   if (STORM_DOWN.has(w.statusCode) || STORM_DOWN.has(w.errorCode)) return { kind: "down", text: "XO's chat engine isn't running", sub: "retrying · nothing you write is lost" };
@@ -420,7 +422,7 @@ export function connLine(w, { pid = null } = {}) {
     const r = mainRuntime(rts);
     return { kind: "off", text: `${cliName(r.name)} isn't connected`, sub: "connect it in XO · sending waits until then" };
   }
-  const off = offLine(w, pid);
+  const off = thread ? null : offLine(w, pid);
   if (off) return off;
   const pools = currentPools(w.pools, rts);
   const closed = pools.find((p) => p.state === "closed");

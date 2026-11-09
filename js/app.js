@@ -1791,10 +1791,10 @@ function heraldRender(needs) {
       : h.decide ? `<button type="button" class="hr hr-ev k-${h.kind}" data-decide="${esc(h.decide)}" data-hn="${h.n}">${inner}</button>`
       : h.undo ? `<div class="hr hr-ev has-undo k-${h.kind}" data-hn="${h.n}">${inner}<button type="button" class="hr-undo" data-herald-undo>${esc(h.undoLabel || "Undo")}</button></div>`
       : `<div class="hr hr-ev k-${h.kind}" data-hn="${h.n}">${inner}</div>`;
-  } else if (connLine(world.state, { pid: chatOf(S.view) })) {
+  } else if (connLine(world.state, connDest())) {
     // an honest, persistent line when XO can't be reached, can't run, or waits on a limit (P0-8); routing Off only
-    // where it applies to this place's chat (its own routing, else the Space's)
-    const c = connLine(world.state, { pid: chatOf(S.view) });
+    // for where the composer's draft goes, the send gate's own destination: never beside a thread's reply
+    const c = connLine(world.state, connDest());
     html = `<div class="hr hr-conn k-${c.kind}" role="status"><span class="hr-ic ${c.kind === "down" ? "k-stopped" : "k-calm"}">${c.kind === "down" ? ICON.retry : ICON.pause}</span><span class="hr-t">${esc(c.text)}</span><span class="hr-s">${esc(c.sub)}</span></div>`;
   } else if (S.view === "home" || convThread(S.view)) html = "";
   else {
@@ -2063,6 +2063,9 @@ function updateComposer() {
     return;
   }
   targetLineRender();
+  // the line above the composer follows where the draft goes (an @ typed in a thread, or taken away): drawn again
+  // with the next render when that changes, so it says what the gate does
+  { const dk = JSON.stringify(connDest()); if (dk !== updateComposer.dk) { updateComposer.dk = dk; schedule(); } }
   syncPlaceholder();
   $("#composer").classList.toggle("has-text", !!say.value);
   sendRender();
@@ -2288,6 +2291,8 @@ function liveBlock() {
 function blockFor(dest) {
   return sendBlock(world.state, { timeline: !dest.thread, pid: dest.thread ? null : dest.pid || "workspace" });
 }
+/** The line above the composer asks what the gate asks (connLine and blockFor: one rule) */
+function connDest() { const d = composerDest(); return d.thread ? { thread: true } : { pid: d.pid }; }
 /** Where the composer's draft goes, as sendLive sends it: this thread, unless it names a project; else the named
  *  project's chat, or this place's. */
 function composerDest() {
