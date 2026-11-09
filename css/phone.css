@@ -184,6 +184,9 @@
      an ellipsis (routing Off's paused words pushed both out of the row: the create-project grader on 9d1f71b, C111;
      the whole of them shows above the composer) */
   :root:root .target{flex:0 100 auto;min-width:0;overflow:hidden}
+  /* paused (routing Off, can't reach XO …): only its mark here; its words are the banner right above, and the model
+     chip keeps its whole word ("Au…" beside 202 px of the same words: the create-project grader on 65e84b7, C111) */
+  :root:root .target:has(> .tg-warn) > span:not(.tg-warn){display:none}
   :root:root .iq{flex:0 1 auto;min-width:0;padding:0 6px;max-width:none;font-size:var(--fs-sm)}
   :root:root .iq-sep{margin:0 4px}
 }

@@ -21,5 +21,6 @@ t("on a phone the target shrinks first, to nothing if it must, and cuts its word
   assert.ok(!/:root:root \.target\{flex:none\}/.test(phone), "never rigid");
   assert.ok(/\.target>span:not\(\.tg-t\):not\(\.tg-warn\):not\(\.tg-end\):not\(\.tg-ch\)\{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\}/.test(app), "its words end in an ellipsis");
   assert.ok(/\.send\{flex:none;/.test(app), "Send keeps its size");
+  assert.ok(/:root:root \.target:has\(> \.tg-warn\) > span:not\(\.tg-warn\)\{display:none\}/.test(phone), "paused, only its mark: the words are the banner above, the chip keeps its whole word");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

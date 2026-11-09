@@ -3161,6 +3161,8 @@ t("C111: routing Off, a reply in a thread: Send is on and no Off line shows besi
   const row = await page.evaluate(() => { const vw = innerWidth, box = (id) => { const e = document.getElementById(id); if (!e || !e.getClientRects().length) return null; const b = e.getBoundingClientRect(); return { l: Math.round(b.left), r: Math.round(b.right), w: Math.round(b.width) }; }; return { vw, send: box("send"), iq: box("iq"), target: box("target") }; });
   assert.ok(row.send && row.send.r <= row.vw && row.send.w >= 30, `Send whole on screen: ${JSON.stringify(row)}`);
   assert.ok(!row.iq || (row.iq.r <= row.send.l && row.iq.w >= 24), `the model chip whole, before Send: ${JSON.stringify(row)}`);
+  // and the chip says its whole word (never "Au…"), the paused words being the banner above
+  assert.equal(await page.evaluate(() => { const q = document.getElementById("iq"); return !q || q.scrollWidth <= q.clientWidth + 1; }), true, "the model chip isn't cut");
   await page.locator("#say").fill("");
   await done(page);
 });
