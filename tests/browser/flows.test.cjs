@@ -745,6 +745,46 @@ t("C087/C096: a change's diff region, focused by the keyboard, shows the same ri
   ringOk(await ringSides(page, "#stage .cx-pd"), "the diff");
   await done(page);
 });
+// ── a choice from the viewer's ⋯ menu leaves focus on something that shows (the controls grader on d79d37e, S130 at
+// 390 in both themes: Updated · Show, folded into More by the narrow head, loaded the new text and left focus on BODY,
+// put back on the head's hidden twin). Updated · Show, then Copy path, each chosen by the keyboard where it is: in
+// the head on a desktop, in More on a phone. Focus after each: in the viewer, on something drawn.
+const focusShows = (page) => page.evaluate(() => { const a = document.activeElement; return { tag: a ? a.tagName : null, inViewer: !!a && !!a.closest("#viewer"), drawn: !!a && a.getClientRects().length > 0, what: a ? [...a.attributes].filter((x) => x.name.startsWith("data-vw-")).map((x) => x.name).join(" ") : "" }; });
+async function choose(page, attr) {
+  // the head's own, where it shows; else from ⋯'s menu
+  const inHead = page.locator(`#viewer .vw-top [${attr}]:not(.vw-fold)`).first();
+  if (await inHead.isVisible().catch(() => false)) { await inHead.focus(); await page.keyboard.press("Enter"); return "head"; }
+  await page.locator("#viewer [data-vw-more]").focus();
+  await page.keyboard.press("Enter");
+  const item = page.locator(`#viewer .vw-menu [${attr}]`).first();
+  await item.waitFor({ state: "visible" });
+  await item.focus();
+  await page.keyboard.press("Enter");
+  return "more";
+}
+t("S130: Updated · Show, and Copy path, chosen where they are (the head, or More), leave focus on something that shows", async () => {
+  const page = await app({ files: { "a.js": FILE() }, changes: [{ path: "a.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: PATCH("a.js", "one", "ONE") }] });
+  await toDemo(page);
+  await page.waitForFunction(() => !!window.__t.CHG.at("demo", "a.js"), null, { timeout: 15000 });
+  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
+  await page.locator("#viewer .vw-top [data-vw-edit]").waitFor();
+  // an agent changes the file: its changes and the file itself carry the new version
+  page.W.files["a.js"] = { content: "one\ntwo\nthree\nfour, the new line\n", version: "sha256:B" };
+  page.W.changes[0].version = "sha256:B";
+  await page.evaluate(() => window.__t.CHG.saved("demo", "a.js"));
+  await page.waitForFunction(() => { window.__t.render(); return !!document.querySelector("#viewer .vw-top [data-vw-update]"); }, null, { timeout: 8000, polling: 200 });
+  const where = await choose(page, "data-vw-update");
+  await page.waitForFunction(() => /four, the new line/.test(document.querySelector("#viewer .vw-body")?.textContent || ""), null, { timeout: 8000 });
+  await page.waitForTimeout(300);
+  let f = await focusShows(page);
+  assert.ok(f.inViewer && f.drawn, `after Updated · Show (${where}): focus on something drawn in the viewer, not ${f.tag} ${f.what}`);
+  const where2 = await choose(page, "data-vw-copy-path");
+  await page.waitForTimeout(300);
+  f = await focusShows(page);
+  assert.ok(f.inViewer && f.drawn, `after Copy path (${where2}): focus on something drawn in the viewer, not ${f.tag} ${f.what}`);
+  if (WIDTH < 600) assert.equal(where, "more", "on a phone it's in More (the owner's choice)");
+  await done(page);
+});
 // ── a send the gate refused is shown, not only said (the controls grader on d79d37e, S137 in all four cells: under
 // routing Off, Tell the agent read "Not sent" in #live and the screen stayed Saved · Undo · Tell). The file's Tell and
 // the composer's Enter, each refused: Not sent on screen, why, nothing posted, the words or the notice kept.
