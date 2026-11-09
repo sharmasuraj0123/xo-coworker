@@ -994,6 +994,27 @@ t("S138 (Created): Enter on the Created notice's Close, while editing the new fi
   assert.equal(await page.evaluate(() => !!(window.__ED && window.__ED.on)), true, "still editing");
   await done(page);
 });
+// ── a frame's head under Launchpad keeps focus while its count moves live (the controls grader on 9d1f71b, C072–C074,
+// all four cells: a live agent moved Agents 1 → 2 → 3 → 4, the focused head was replaced and focus fell to BODY).
+// Agents start working one by one, as the stream says; focus stays on the same head, and it says the new count.
+t("C072-C074: a frame's head under Launchpad, focused, stays focused as a live agent moves its count", async () => {
+  const page = await app({ threadsBy: { chat_demo: [1, 2, 3, 4].map((i) => serverThread(`lt${i}`, `ses-lt${i}`)) } });
+  await panelOpen(page);
+  await page.waitForFunction(() => window.__t.world.state.threads.filter((x) => /^lt/.test(x.id)).length === 4, null, { timeout: 15000 });
+  const head = page.locator('[data-ghost="agents"]').filter({ visible: true }).first();
+  if (!(await head.count())) skip("no Agents head under Launchpad here");
+  await page.keyboard.press("Shift"); // the keyboard's
+  await head.focus();
+  const was = await head.elementHandle();
+  for (const i of [1, 2, 3, 4]) {
+    await feedTurn(page, { id: `lt${i}`, sid: `ses-lt${i}`, rows: [{ call_id: `c${i}`, kind: "edit_file", status: "ok", target: "a.js" }], running: true });
+    await page.waitForTimeout(250);
+    const st = await page.evaluate((b) => ({ same: document.activeElement === b, connected: b.isConnected, tag: document.activeElement.tagName, label: b.getAttribute("aria-label") }), was);
+    assert.equal(st.connected && st.same, true, `after agent ${i}: focus on the same head (it's on ${st.tag})`);
+  }
+  assert.match(await page.evaluate((b) => b.getAttribute("aria-label"), was), /Open Agents, \d/, "it says the count");
+  await done(page);
+});
 // ── the focus rule, checked properly (the owner's choice, 9 Nov, "but check it properly"): it does nothing on a Tab's
 // or a press's focus (not even a check); it leaves the conversation's scroll to follow.js; it leaves a 1 px visually
 // hidden control alone; and on a script's focus out of sight in a scroller it brings it in (focusbrought).

@@ -24,6 +24,7 @@
 
 import { ICON, $ } from "./ui.js";
 import { esc } from "./util.js";
+import { redraw } from "./redraw.js";
 import { fileIcon } from "./fileicons.js";
 import { createChangesFrame, countsHtml } from "./changesframe.js";
 import { setTheme as diffTheme } from "./diffview.js";
@@ -185,7 +186,9 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
         .replace(/<(\/?)(button|h2)\b/g, "<$1span").replace(/ (id|aria-[a-z]+|title|role|tabindex|type|data-[a-z-]+)="[^"]*"/g, "");
       return `<button type="button" class="fr-ghost" data-ghost="${id}" aria-label="Open ${NAME[id]}${n ? `, ${esc(n)}` : ""}"><span class="fr-ghost-v" aria-hidden="true">${look}</span></button>`;
     }).join("");
-    if (g._h !== html) { g.innerHTML = html; g._h = html; LPF.style.setProperty("--ghosts", `${g.children.length * HEAD}px`); }
+    // drawn in place (js/redraw.js): a frame's head button you're on stays the same button as its count moves (a live
+    // agent 1 → 2 → 3 replaced it, and focus fell to the page: the controls grader on 9d1f71b, C072–C074)
+    if (g._h !== html) { redraw(g, html); g._h = html; LPF.style.setProperty("--ghosts", `${g.children.length * HEAD}px`); }
   }
 
   // ── what the frames say ─────────────────────────────────────────────────────
@@ -216,7 +219,8 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     const ag = map.agents(v);
     // a clock's figures aren't a change (the app's ticker moves them each second): without this the Agents list was
     // rewritten every paint, and every rewrite re-added its arcs for ui.js to put back in step
-    const set = (k, node, html) => { const same = html.replace(/(<span class="elapsed" data-since="\d+">)[^<]*/g, "$1"); if (S.h[k] !== same) { node.innerHTML = html; S.h[k] = same; } };
+    // drawn in place (js/redraw.js), so the row you're on in Agents or Changes stays itself as the list moves live
+    const set = (k, node, html) => { const same = html.replace(/(<span class="elapsed" data-since="\d+">)[^<]*/g, "$1"); if (S.h[k] !== same) { redraw(node, html); S.h[k] = same; } };
     set("head", el.querySelector(".stg-t"), titleHtml());
     if (launch && !LPF.hidden) launch.paint(v, S.lp && !S.rail);
     if (!S.lp) set("agents", body("agents"), agentsHtml(ag)); // under Launchpad Agents is a head: its list waits
