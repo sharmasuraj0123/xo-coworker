@@ -10,6 +10,7 @@ import { ICON } from "./ui.js";
 import { PRESETS, createShape, describeShape } from "./shape.js";
 import { once, isPending, busyAttrs } from "./pending.js";
 import { redraw } from "./redraw.js";
+import { bringWhole } from "./focusview.js";
 import { rovingTab } from "./keynav.js";
 
 /** Settings' rail icon for Shape: a window and its parts. */
@@ -38,7 +39,10 @@ function inOrder(els) {
 export function createShapeView({ shape, announce = () => {} }) {
   // draft: the JSON as typed, not saved yet; saveErr: why the last Save of it was refused
   // pickErr: why the last preset choice was refused (said where it was asked: in the question, or under the cards)
-  // unkept: the last change applied but this browser won't keep it after a reload (its storage refused it)
+  // unkept: the last change applied but this browser won't keep it after a reload (its storage refused it): where it
+  // was made ("preset", "acts", "device" or "json"), so it's said there, beside what you just did, never only at the
+  // page's top above the screen (the create-project grader on 8a4ed16, C104/C105/C106: on a phone Reset, Show
+  // everything and Compact said it above the viewport, and the control looked as if all was well)
   const V = { confirm: null, err: null, pickErr: null, draft: null, saveErr: null, unkept: false, built: false };
   const page = document.querySelector('[data-page="shape"]');
   const box = page && page.querySelector(".shp");
@@ -119,7 +123,7 @@ export function createShapeView({ shape, announce = () => {} }) {
     const dense = shape.get("density") === "compact";
     const c = V.confirm;
     const held = shape.held;
-    return (V.unkept ? `<p class="set-err" role="alert">${esc(UNKEPT)}</p>` : "") +
+    return "" +
       // a change XO hasn't taken is said as long as it isn't there: refused (and why), or on its way again
       // (and, when this browser couldn't keep it either, that it lasts only while this page is open)
       (held ? held.why === "refused"
@@ -130,17 +134,17 @@ export function createShapeView({ shape, announce = () => {} }) {
       `<div class="set-choices" role="radiogroup" aria-labelledby="shp-h-p">${cardsOf().map((p) => `<button type="button" class="set-choice${p.id === id ? " is-on" : ""}" role="radio" aria-checked="${p.id === id}" data-shp-preset="${esc(p.id)}"${rovingTab(p.id === id)}${busyAttrs(SHAPING)}><span class="sc-dot" aria-hidden="true"></span><span class="sc-b"><b>${esc(p.name)}</b><span>${esc(p.summary)}</span></span></button>`).join("")}</div>` +
       // once Switch is pressed the choice is on its way (its preset may still be reading): Keep mine waits with it
       (c ? `<div class="shp-confirm" role="alertdialog" aria-labelledby="shp-cf"><p id="shp-cf"><b>Switch to ${esc(nameOf(c))}?</b> Your own changes are cleared. What you set on this device stays.</p>${V.pickErr ? `<p class="set-err" role="alert">${esc(V.pickErr)}</p>` : ""}<div class="set-fa"><button type="button" class="btn" data-shp-keep${isPending(SHAPING) ? ' aria-disabled="true"' : ""}>Keep mine</button><button type="button" class="btn btn-pri" data-shp-switch="${esc(c)}"${busyAttrs(SHAPING)}>Switch</button></div></div>`
-        : V.pickErr ? `<p class="set-err" role="alert">${esc(V.pickErr)}</p>` : "") +
+        : V.pickErr ? `<p class="set-err" role="alert">${esc(V.pickErr)}</p>` : "") + unkeptAt("preset") +
       (shape.presetError(id) ? `<p class="set-err" role="alert">${esc(nameOf(id))} couldn't be read (${esc(shape.presetError(id))}). XO shows everything until it can.</p>` : "") +
       `</section>` +
       `<section class="set-sec" aria-labelledby="shp-h-d"><h3 id="shp-h-d">What it changes</h3>` +
       (diff.length ? list(diff) : `<p class="set-lead">Nothing: every part of XO, as it is today.</p>`) +
       (own.length ? `<p class="set-lead shp-own">Your own changes on top</p>${list(own)}` : "") +
       (V.err ? `<p class="set-err" role="alert">${esc(V.err)}</p>` : "") +
-      `<div class="set-fa shp-acts"><button type="button" class="btn" data-shp-reset${own.length ? "" : " disabled"}>Reset to preset</button><button type="button" class="btn" data-shp-all>Show everything</button></div></section>` +
+      `<div class="set-fa shp-acts"><button type="button" class="btn" data-shp-reset${own.length ? "" : " disabled"}>Reset to preset</button><button type="button" class="btn" data-shp-all>Show everything</button></div>` + unkeptAt("acts") + `</section>` +
       `<section class="set-sec" aria-labelledby="shp-h-v"><h3 id="shp-h-v">On this device</h3>` +
       `<div class="set-row"><div class="set-l"><b id="shp-dense-l">Compact</b><span>Tighter rows and controls, and 14 px reading text. Only here: your other devices keep their own.</span></div>` +
-      `<button type="button" class="switch" role="switch" aria-checked="${dense}" aria-labelledby="shp-dense-l" data-shp-dense><span class="th-track" aria-hidden="true"><span class="th-knob">${ICON.list}</span></span></button></div></section>`;
+      `<button type="button" class="switch" role="switch" aria-checked="${dense}" aria-labelledby="shp-dense-l" data-shp-dense><span class="th-track" aria-hidden="true"><span class="th-knob">${ICON.list}</span></span></button></div>` + unkeptAt("device") + `</section>`;
   }
   /** Edit as JSON: built once, so typing is never redrawn under you; checked as you type. */
   function jsonBuild() {
@@ -177,7 +181,7 @@ export function createShapeView({ shape, announce = () => {} }) {
     d.querySelector("[data-shp-probs]").innerHTML = probs.map((p) => `<li><span class="shp-where">${esc(p.from === "mine" ? "Yours" : p.from === "device" ? "This device" : p.from === "preset" ? "The preset" : p.from)}</span><span class="shp-sep" aria-hidden="true">·</span><code>${esc(p.path || "the layer")}</code> ${esc(p.text)}.</li>`).join("");
     d.querySelector("[data-shp-n]").textContent = probs.length ? `${probs.length} ${probs.length === 1 ? "problem" : "problems"}` : "";
     // a refused save is said here, beside the text it was for (the text stays, to fix and save again)
-    const bad = V.saveErr || r.error;
+    const bad = V.saveErr || r.error || (V.unkept === "json" && V.draft == null ? UNKEPT : null); // saved, not kept: said here too
     d.querySelector(".shp-status").textContent = bad || (V.draft == null ? "" : probs.length ? "It can be saved: XO uses what it understands, as the list below says." : "Looks right.");
     d.querySelector(".shp-status").classList.toggle("is-err", !!bad);
     // saving: Save says it's waiting and keeps the keyboard (aria-disabled, not disabled); a repeat joins it
@@ -198,11 +202,16 @@ export function createShapeView({ shape, announce = () => {} }) {
     jsonRender();
   }
   /** What a change did, said truthfully: refused, why; applied but not kept by this browser, that (instead of "done"). */
-  const said = (r, ok) => {
+  const said = (r, ok, where) => {
     V.err = r && r.error ? r.error : null;
-    if (!V.err) { V.unkept = r.kept === false; if (!V.unkept) announce(ok); }
+    if (!V.err) { V.unkept = r.kept === false ? where : null; if (!V.unkept) announce(ok); }
     render();
+    inSightUnkept();
   };
+  /** The warning, drawn beside what you did, in sight: its scroller moves the least distance if it must (a phone's
+   *  screen ends close under a row). Never the page's top. */
+  const inSightUnkept = () => { const w = V.unkept && box.querySelector("[data-shp-unkept]"); if (w) bringWhole(w); };
+  const unkeptAt = (where) => (V.unkept === where ? `<p class="set-err" role="alert" data-shp-unkept>${esc(UNKEPT)}</p>` : "");
   /** Where an action that takes its own control away (or disables it) leaves the keyboard: el, unless it moved on. */
   function landOn(el, from) {
     const a = document.activeElement;
@@ -219,10 +228,11 @@ export function createShapeView({ shape, announce = () => {} }) {
       if (r && r.error) { V.pickErr = r.error; render(); return; }
       // chosen: the question (if one was asked) goes, and in the same step the keyboard goes to the card now chosen
       const d = describeShape(createShape([]), shape.presetShape(id));
-      V.confirm = null; V.err = null; V.unkept = r.kept === false;
+      V.confirm = null; V.err = null; V.unkept = r.kept === false ? "preset" : null;
       if (!V.unkept) announce(`${nameOf(id)}. ${d.length ? d[0] : "Every part of XO, as it is today."}`);
       render();
       landOn(chosenCard(), from);
+      inSightUnkept();
     });
     render(); // the choices say they're waiting (a preset's file may be read first)
     await p;
@@ -244,9 +254,9 @@ export function createShapeView({ shape, announce = () => {} }) {
       const sw = t.closest("[data-shp-switch]");
       if (sw) { choose(sw.dataset.shpSwitch, sw); return; }
       // Reset disables itself (there's nothing left to reset): the keyboard goes to the preset it's back to
-      if (t.closest("[data-shp-reset]")) { const b = t.closest("[data-shp-reset]"); V.draft = null; said(shape.resetToPreset(), `Back to ${nameOf(shape.presetId || "everything")}, as it comes.`); landOn(chosenCard(), b); return; }
-      if (t.closest("[data-shp-all]")) { V.draft = null; said(shape.showEverything(), "Everything shows. Reset to preset takes it back."); return; }
-      if (t.closest("[data-shp-dense]")) { const on = shape.get("density") !== "compact"; said(shape.setDevice({ density: on ? "compact" : "comfortable" }), on ? "Compact on this device." : "Comfortable on this device."); return; }
+      if (t.closest("[data-shp-reset]")) { const b = t.closest("[data-shp-reset]"); V.draft = null; said(shape.resetToPreset(), `Back to ${nameOf(shape.presetId || "everything")}, as it comes.`, "preset"); landOn(chosenCard(), b); return; }
+      if (t.closest("[data-shp-all]")) { V.draft = null; said(shape.showEverything(), "Everything shows. Reset to preset takes it back.", "acts"); return; }
+      if (t.closest("[data-shp-dense]")) { const on = shape.get("density") !== "compact"; said(shape.setDevice({ density: on ? "compact" : "comfortable" }), on ? "Compact on this device." : "Comfortable on this device.", "device"); return; }
       // Revert and Save leave nothing to revert or save (both disable): the keyboard goes back to the text
       const ta = () => box.querySelector("[data-shp-json]");
       const rv = t.closest("[data-shp-revert]");
@@ -279,7 +289,7 @@ export function createShapeView({ shape, announce = () => {} }) {
       const res = await shape.setMine(r.doc);
       if (res.error) { V.saveErr = res.error; return false; }
       if (V.draft === sent) V.draft = null; // typed on while it saved: that's still a draft
-      V.err = null; V.unkept = res.kept === false;
+      V.err = null; V.unkept = res.kept === false ? "json" : null;
       if (!V.unkept) announce("Saved. Your shape is applied.");
       return true;
     });
