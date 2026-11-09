@@ -287,11 +287,16 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (to && to !== document.activeElement) to.focus({ preventScroll: true });
   }
   /**
-   * After an edit ends here (saved, cancelled, discarded), focus goes to the file's head, Edit first, so the
-   * keyboard isn't dropped to the page. go=false: only say where it would go.
+   * Where focus goes when what had it goes (an edit ended, a notice closed): never the page, never somewhere that
+   * shows no ring. While editing, back to the caret (the head has Save and Cancel then, no Edit: closing the Created
+   * notice put focus on the viewer's own section, which shows no ring: the controls grader on 9d1f71b, S138); else
+   * the file's Edit; else the head's first control that shows (Close is always there); the viewer itself only with
+   * none. go=false: only say where it would go.
    */
   function headFocus(go = true) {
-    const to = el.querySelector(".vw-top [data-vw-edit]") || el;
+    const head = el.querySelector(".vw-top");
+    const to = (ED.on && ED.ed) || shown(el, ".vw-top [data-vw-edit]")
+      || (head && [...head.querySelectorAll('button:not(:disabled), [tabindex="0"]')].find((x) => x.getClientRects().length && !x.closest("[inert]"))) || el;
     if (go) to.focus({ preventScroll: true });
     return to;
   }

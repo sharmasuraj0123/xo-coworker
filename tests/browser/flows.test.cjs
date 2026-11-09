@@ -971,6 +971,29 @@ t("S139 (waiting): the file's Try again says it's trying while the renderer load
   await page.waitForFunction(() => !document.querySelector("#viewer [data-vw-retry]") && !!document.querySelector("#viewer .vw-file diffs-container"), null, { timeout: 15000 });
   await done(page);
 });
+// ── closing the Created notice by the keyboard while its file is being edited (the controls grader on 9d1f71b, S138,
+// all four cells): focus went to the viewer's own section, which shows no ring (Edit isn't in the head while
+// editing). It goes back to the caret.
+t("S138 (Created): Enter on the Created notice's Close, while editing the new file, puts focus back in the editor", async () => {
+  const page = await app({ files: { "a.js": FILE() } });
+  await panelOpen(page);
+  await filesOpen(page);
+  await page.locator("[data-fl-new]").filter({ visible: true }).first().click();
+  await page.keyboard.insertText("made.md");
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => window.__ED && window.__ED.on && window.__ED.ed, null, { timeout: 10000 });
+  const x = page.locator("#viewer .xd-toast [data-vw-toastx]");
+  await x.waitFor();
+  await page.keyboard.press("Shift"); // the keyboard's
+  await x.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => !document.querySelector("#viewer .xd-toast"), null, { timeout: 3000 });
+  await page.waitForTimeout(150);
+  const where = await page.evaluate(() => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return { editor: !!(a && a.closest && a.closest("[contenteditable]")), tag: a ? a.tagName + (a.id ? "#" + a.id : "") : null }; });
+  assert.equal(where.editor, true, `back in the editor, not ${where.tag}`);
+  assert.equal(await page.evaluate(() => !!(window.__ED && window.__ED.on)), true, "still editing");
+  await done(page);
+});
 // ── the focus rule, checked properly (the owner's choice, 9 Nov, "but check it properly"): it does nothing on a Tab's
 // or a press's focus (not even a check); it leaves the conversation's scroll to follow.js; it leaves a 1 px visually
 // hidden control alone; and on a script's focus out of sight in a scroller it brings it in (focusbrought).
