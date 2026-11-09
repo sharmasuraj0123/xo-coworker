@@ -904,6 +904,38 @@ t("C118: Ctrl+Shift+J set for All shortcuts in Settings opens the sheet, on the 
   await page.evaluate(() => localStorage.removeItem("cv-keys"));
   await done(page);
 });
+// ── focus a script hands on is never left out of sight (the create-project/Launchpad grader on c055e74, S023: after
+// Reset all, focus went to the first shortcut, 972 px above the screen; 1097 on a phone). By the keyboard: a key
+// changed, the page scrolled to Reset all, Reset all pressed; the first shortcut has focus, inside its scroller.
+const inSight = (page) => page.evaluate(() => {
+  const a = document.activeElement; if (!a) return null;
+  const r = a.getBoundingClientRect();
+  let sc = a.parentElement; while (sc && sc !== document.body) { const cs = getComputedStyle(sc); if (/(auto|scroll)/.test(cs.overflowY) && sc.scrollHeight > sc.clientHeight + 1) break; sc = sc.parentElement; }
+  const v = sc && sc !== document.body ? sc.getBoundingClientRect() : { top: 0, bottom: innerHeight, left: 0, right: innerWidth };
+  return { what: [...a.attributes].filter((x) => x.name.startsWith("data-")).map((x) => `${x.name}=${x.value}`).join(" "), top: Math.round(r.top), bottom: Math.round(r.bottom), seen: r.bottom > v.top && r.top < v.bottom && r.right > v.left && r.left < v.right };
+});
+t("S023: after Reset all (by the keyboard, from the foot of the list), the first shortcut has focus and is in sight", async () => {
+  const page = await app();
+  await toDemo(page);
+  await page.locator(WIDTH < 600 ? "#set-phone" : "#set-side").filter({ visible: true }).first().click();
+  await page.waitForSelector("#settings:not([hidden])");
+  await page.locator('[data-set="keys"]').filter({ visible: true }).first().click();
+  await page.waitForSelector('[data-page="keys"]:not([hidden])');
+  // a key changed, so there's something to reset
+  await page.locator('[data-rebind="map"]').focus();
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("ControlOrMeta+Shift+KeyU");
+  const reset = page.locator("#keys-reset-all");
+  await reset.focus(); // the foot of the list: the page scrolls to it
+  await page.waitForTimeout(150);
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(400);
+  const f = await inSight(page);
+  assert.match(f.what, /data-rebind=jump/, `the first shortcut has focus (${f.what})`);
+  assert.equal(f.seen, true, `and is in sight (its top at ${f.top})`);
+  await page.evaluate(() => localStorage.removeItem("cv-keys"));
+  await done(page);
+});
 // ── the phone's drawer keeps Tab inside it (the same grader: Tab past Settings landed on BODY)
 t("phone drawer: Tab past its last control comes round to its first, Shift+Tab the other way; never the page", async () => {
   if (WIDTH >= 600) skip("the sidebar is a drawer only on a phone");

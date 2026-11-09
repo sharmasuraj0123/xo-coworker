@@ -60,6 +60,7 @@ import { once, busyAttrs } from "./pending.js";
 import { radioKeys, menuKeys } from "./keynav.js";
 import { createHerald, noticeFor, refusedNotice } from "./herald.js";
 import { regionRings } from "./ring.js";
+import { keepFocusInView } from "./focusview.js";
 
 const world = createWorld();
 // what the backend can do, asked each time (a surface that needs a missing one stays away); filled in below
@@ -1746,6 +1747,7 @@ setInterval(tickElapsed, 1000);
 // still starting has it
 function HER() { return S._her || (S._her = createHerald({ state: S, schedule: () => schedule() })); }
 regionRings(); // the keyboard's ring over a file's or a change's region (js/ring.js)
+keepFocusInView(); // focus a script hands on is never left out of sight (js/focusview.js)
 function heraldShow(h, ms) { return HER().show(h, ms); }
 /** A message's own notice, set in place (on screen, or still waiting): see js/herald.js */
 function heraldFor(mid, make, ms) { return HER().forMsg(mid, make, ms); }
