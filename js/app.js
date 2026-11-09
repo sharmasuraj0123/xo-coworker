@@ -189,6 +189,8 @@ const VW = createViewer({
   // a save (Files › Edit): its place's changes are read again; Tell the agent is a message to its thread
   edits: { saved: (f) => CHG.saved(f.project, f.rel), removed: (f) => { CHG.saved(f.project, f.rel); FILES.reread(f); }, tell: (f, s) => sendAbout(f, `I edited ${s.path}. Read it again before you change it.`) },
   away: () => { if (FILESV.sheet) return FILESV.escape(document.activeElement); if (!FILESV.docked) return false; FILESV.minimise(); return true; },
+  // closed, with what opened it gone and nothing drawn in its place: where you'd carry on
+  home: () => [$("#say"), placeRegion()].find(usableEl) || null,
 }); // a file, in Files (js/filesview.js)
 // a picture opens over the conversation (js/lightbox.js); Open in Files hands it to the viewer, which brings Files up
 const LB = createLightbox({ openFile: (it, from) => VW.open(viewerFile(it), from), announce });

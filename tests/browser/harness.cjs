@@ -95,7 +95,9 @@ function mockApi(W) {
       // sent without its patch is read on its own (?path=), held by W.changesGate when the test says
       const all = W.changes || [], one = u.searchParams.get("path");
       const head = { project_id: "demo", worktree: null, root: "/demo", base_ref: "HEAD", base_commit: "c0", base_source: "head", head_commit: "c0", computed_at: NOW, truncated: false };
-      if (one) { if (W.changesGate) await W.changesGate; return json({ ...head, total_files: 1, files: all.filter((f) => f.path === one).map(({ full, ...f }) => ({ ...f, patch: full || f.patch, patch_omitted: null })) }); }
+      // W.changesGateFor[path]: one file's own read held (the test says when it answers)
+      // W.changeReads[path]: how many times one file's change was read; W.changesFailFor[path]: refused that many times
+      if (one) { W.changeReads = W.changeReads || {}; W.changeReads[one] = (W.changeReads[one] || 0) + 1; if (W.changesGate) await W.changesGate; if (W.changesGateFor && W.changesGateFor[one]) await W.changesGateFor[one]; if (W.changesFailFor && W.changesFailFor[one] > 0) { W.changesFailFor[one]--; return json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503); } return json({ ...head, total_files: 1, files: all.filter((f) => f.path === one).map(({ full, ...f }) => ({ ...f, patch: full || f.patch, patch_omitted: null })) }); }
       return json({ ...head, total_files: all.length, files: all.map(({ full, ...f }) => f) });
     }
     // a clone Space runs: started at once, running until stopped; W.cloneStopMode "503" refuses the stop
@@ -131,6 +133,9 @@ function mockApi(W) {
       // Edit's own read (the whole file, its version): held by W.editGate, refused W.editReadFails times
       if (u.searchParams.get("purpose") === "edit") {
         if (W.editGate) await W.editGate;
+        // per file: W.editGateFor[rel] holds that file's edit read; W.editStatusFor[rel] answers it with that status
+        if (W.editGateFor && W.editGateFor[rel]) await W.editGateFor[rel];
+        if (W.editStatusFor && W.editStatusFor[rel]) return json({ detail: { code: W.editStatusFor[rel] === 413 ? "too_large" : "unavailable", message: "Fixture" } }, W.editStatusFor[rel]);
         if (W.editReadFails) { W.editReadFails--; return json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503); }
       }
       return json({ kind: "code", name: rel, content: f.content, version: f.version, editable: true, size_bytes: f.content.length, place: "ordinary" });
@@ -198,7 +203,7 @@ function mockApi(W) {
 
 // test hooks, added to the served modules in the page only (the files on disk are untouched)
 async function hooks(page) {
-  await page.route("**/js/app.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()) + "\nwindow.__t={VW,S,world,go,typingRender,lrefRender,render,D,openRuns,IQ,heraldShow};" }); });
+  await page.route("**/js/app.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()) + "\nwindow.__t={VW,S,world,go,typingRender,lrefRender,render,D,openRuns,IQ,heraldShow,CHG};" }); });
   await page.route("**/js/viewer.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()).replace("function startEdit() {", "function startEdit() { window.__ED=ED; window.__V=V;") }); });
   await page.route("**/js/storm.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()).replace("  boot();", "  window.__storm={apply,stop:()=>{stream?.close();clearTimeout(statusT);clearTimeout(runtimesT);clearTimeout(recoverT);}};\n  boot();") }); });
 }

@@ -89,12 +89,12 @@ export function saveOutcome(err) {
  * removed(f) when a new file's Undo took it away}. A file just made (Files › New file, open's f.created: its
  * edit id) opens being edited, with "Created · Undo" at its foot.
  */
-export function createViewer({ announce, onChange, tabs, changes = null, ask = null, edits = null, away = null }) {
+export function createViewer({ announce, onChange, tabs, changes = null, ask = null, edits = null, away = null, home = null }) {
   const el = $("#viewer");
   const V = { open: false, parked: false, file: null, data: null, error: null, loading: false, mode: "preview", returnTo: null, gen: 0, copied: false, dims: null, saving: false, saveError: null, show: "file", split: false, draft: null, menu: false };
   // the diff, kept across redraws of the head (Pierre's element moves with its body): {el, handle, img (an image
   // change's drawing, js/imagechange.js), key, gen}
-  const DF = { el: null, handle: null, img: null, key: null, gen: 0 };
+  const DF = { el: null, handle: null, img: null, key: null, gen: 0, ask: 0, reading: null };
   /** This file in its place's changes ({scope, path, file, base}), or null. */
   const chg = () => (changes && V.file && V.file.project && V.file.rel ? changes.at(V.file.project, V.file.rel) : null);
   const showsDiff = () => V.show === "changes" && !!chg();
@@ -283,8 +283,10 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   async function startEdit() {
     const f = V.file, my = V.gen;
     if (!canEdit() || ED.on || ED.opening) return;
-    edGen++;
-    Object.assign(ED, { opening: true, ed: null, base: null, version: null, dirty: false, saving: false, err: null, confirm: false, discard: false, conflict: null, real: null, moved: false, from: false });
+    // this opening's own mark: an answer for a file you've since left clears only its own "Opening…" (grader on
+    // 44e429d: a late answer for the last file cleared, or set, the next file's)
+    const me = ++edGen;
+    Object.assign(ED, { opening: me, ed: null, base: null, version: null, dirty: false, saving: false, err: null, confirm: false, discard: false, conflict: null, real: null, moved: false, from: false });
     V.saveError = null; V.menu = false;
     if (!(saved && saved.created)) { saved = null; toastPaint(); }
     // Edit becomes Cancel · Save before the editor is ready: while it opens, focus waits on the viewer itself (the
@@ -293,7 +295,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     // a document (Markdown, HTML) is edited as its source
     if (!showsFile()) { V.mode = "source"; V.textMode = "source"; render(); } else paintHead();
     // it didn't open: focus goes back to Edit (to try again), or the head when there's no Edit now (Astra C091)
-    const fail = (why) => { ED.opening = false; if (my !== V.gen) return; if (why) V.saveError = why; const back = focusHere(); render(); if (back) headFocus(); };
+    const fail = (why) => { const was = ED.opening === me; if (was) ED.opening = false; if (my !== V.gen) { if (was && V.open) paintHead(); return; } if (why) V.saveError = why; const back = focusHere(); render(); if (back) headFocus(); };
     try {
       // the whole file and its current version (a preview can stop at 256 KB; an edit reads up to 1 MB)
       const d = await api.projectFile(f.project, f.rel, null, { purpose: "edit" });
@@ -317,6 +319,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       ed.focus({ lineNumber: f.lines ? f.lines[0] : "first-visible" });
       announce(`Editing ${f.name}. ${MODS}S saves, Esc leaves.`);
     } catch (err) {
+      if (my !== V.gen) return fail(); // the last file's answer: nothing of it lands on this one
       if (err.status === 413) { V.data = { ...V.data, editable: false, not_editable_reason: "too_large" }; return fail(); }
       fail(err.message || "Couldn't open this file for editing.");
     }
@@ -441,7 +444,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       labels: { current: "Keep yours", incoming: "Take the agent's", both: "Keep both" },
       onResolve: (text, left) => { if (!ED.conflict || ED.conflict !== mine3) return; ED.conflict.text = text; ED.conflict.left = left; paintHead(); },
       // every place chosen: Save is next (S232)
-      onDone: () => { if (ED.conflict === mine3) el.querySelector("[data-vw-saveit]")?.focus({ preventScroll: true }); },
+      onDone: () => { if (ED.conflict === mine3 && !mine3.left) el.querySelector("[data-vw-saveit]")?.focus({ preventScroll: true }); }, // (only with none left)
     });
     // the file was left while the merge view was drawing: it isn't this file's any more
     if (my !== edGen || ED.conflict !== mine3) { view && view.destroy && view.destroy(); return; }
@@ -504,7 +507,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (!DF.el) { DF.el = document.createElement("div"); DF.el.className = "vw-body vw-diff"; DF.el.tabIndex = 0; }
     return DF.el;
   }
-  function dropDiff() { DF.gen++; if (DF.handle) { DF.handle.destroy(); DF.handle = null; } if (DF.img) { DF.img.drop(); DF.img = null; } DF.key = null; DF.pend = null; }
+  function dropDiff() { DF.gen++; if (DF.handle) { DF.handle.destroy(); DF.handle = null; } if (DF.img) { DF.img.drop(); DF.img = null; } DF.key = null; DF.pend = null; DF.reading = null; }
   /** Both whole versions, for "N unmodified lines" (read only when you unfold them). */
   async function bothSides(c, fd) {
     const f = V.file, oldRel = (c.scope.base ? `${c.scope.base}/` : "") + (c.file.old_path || c.path);
@@ -515,14 +518,30 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if ((o && o.truncated) || (n && n.truncated)) throw new Error("too large to unfold");
     return { oldFile: o ? { name: fd.prevName || fd.name, contents: o.content } : null, newFile: n ? { name: fd.name, contents: n.content } : null };
   }
-  async function drawDiff(c) {
-    const host = diffBody();
+  async function drawDiff(c, { again = false } = {}) {
+    const host = diffBody(), at = `${c.scope.key}|${c.path}|`, ask = ++DF.ask;
+    const ours = (k) => !!k && k.startsWith(at);
+    // a read that failed stays said until you ask again (Try again), rather than being read again on every redraw
+    if (!again && DF.key === `${at}none:error:${c.file.version || ""}`) return; // (a newer version is read afresh)
+    // while this change is read, its body says so: never blank, never the last change's drawing or words (Files/Map
+    // grader on 44e429d: a held read left them showing)
+    if ((again || (!ours(DF.key) && !ours(DF.pend))) && DF.reading !== at) {
+      if (DF.handle) { DF.handle.destroy(); DF.handle = null; }
+      if (DF.img) { DF.img.drop(); DF.img = null; }
+      DF.key = null; DF.pend = null;
+      host.innerHTML = `<p class="vw-empty" role="status"><i class="spin" aria-hidden="true"></i> Reading the change…</p>`;
+      DF.reading = at;
+    }
     // a read that failed is said as a failure, never as "too large" (Astra: a failed fetch read "Too large to show")
     let readErr = null;
     const patch = await changes.patchAt(c).catch((err) => { readErr = err; return null; });
-    const key = `${c.scope.key}|${c.path}|${patch ? patch.length + ":" + patch.slice(-64) : `none:${readErr ? "error" : c.file.version || ""}`}`;
-    if ((DF.key === key && (DF.handle || DF.img)) || DF.pend === key) return; // drawn, or on its way
-    DF.pend = key;
+    // only the newest read, and only while it's still the change on show: an answer for the file you left, or an
+    // older read of this one, never draws over what's there now
+    const now = V.open && showsDiff() ? chg() : null;
+    if (ask !== DF.ask || !now || `${now.scope.key}|${now.path}|` !== at) return;
+    const key = `${at}${patch ? patch.length + ":" + patch.slice(-64) : `none:${readErr ? `error:${c.file.version || ""}` : c.file.version || ""}`}`;
+    if (DF.key === key || DF.pend === key) return; // drawn (a drawing, or its words), or on its way
+    DF.pend = key; DF.reading = null;
     const my = ++DF.gen;
     if (!patch) {
       dropDiff();
@@ -534,7 +553,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       }
       if (readErr) {
         host.innerHTML = `<div class="vw-empty" role="alert"><p>Couldn't read this change${readErr.message ? `: ${esc(readErr.message)}` : ""}.</p><p><button type="button" class="vw-cut-dl" data-vw-diff-retry>Try again</button></p></div>`;
-        DF.key = null; DF.pend = null;
+        DF.key = key;
         return;
       }
       const why = c.file.binary || c.file.patch_omitted === "binary" ? "Binary file" : c.file.patch_omitted === "submodule" ? "A submodule" : "Too large to show here";
@@ -784,7 +803,8 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
    */
   function open(f, from) {
     const was = V.open;
-    edGen++;
+    edGen++; V.gen++; ED.opening = false; // what was on its way for the last file is the last file's
+
     // the file you were editing, before this one takes its place: your edits wait as its draft
     if (ED.on && ED.dirty) keepDraft();
     if (ED.on) { if (ED.ed) ED.ed.stop(); if (ED.conflict && ED.conflict.view) ED.conflict.view.destroy(); ED.on = false; ED.conflict = null; ED.real = null; ED.moved = false; }
@@ -813,6 +833,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   function close({ restore = true } = {}) {
     if (!V.open) return;
     V.open = false; V.parked = false; V.gen++; edGen++;
+    const a = document.activeElement, lost = !a || a === document.body || el.contains(a); // focus goes with the viewer
     if (ED.on && ED.dirty) keepDraft(); // closed while editing: your edits wait as its draft
     if (ED.on) { if (ED.ed) ED.ed.stop(); if (ED.conflict && ED.conflict.view) ED.conflict.view.destroy(); ED.on = false; ED.conflict = null; ED.real = null; ED.moved = false; }
     V.draft = null;
@@ -822,8 +843,24 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     document.body.classList.remove("viewer-open");
     const back = V.returnTo;
     V.returnTo = null;
-    if (restore && back && back.isConnected) back.focus({ preventScroll: true });
+    if (restore) {
+      // back to what opened it; if that was drawn again meanwhile (a message redrawn as its turn went on), to the
+      // one drawn in its place; else, when focus would fall to the page, where you'd carry on (Files/Map grader on
+      // 44e429d: only a still-connected opener was restored)
+      const to = [back, likeOf(back)].find(usable) || (lost && home ? home() : null);
+      to?.focus({ preventScroll: true });
+    }
     onChange && onChange();
+  }
+  const usable = (b) => !!b && b !== document.body && b.isConnected && !b.closest("[inert], [hidden]") && b.getClientRects().length > 0;
+  /** The control drawn in place of one that's gone: the same kind, saying the same thing (its file, change, box). */
+  function likeOf(b) {
+    if (!b || !b.getAttribute || b.isConnected) return null;
+    for (const at of ["data-file", "data-cx", "data-node", "data-made-file", "data-k"]) {
+      const v = b.getAttribute(at);
+      if (v != null) return [...document.querySelectorAll(`${b.tagName}[${at}="${CSS.escape(v)}"]`)].find(usable) || null;
+    }
+    return b.id ? document.getElementById(b.id) : null;
   }
 
   /** Copy, and say so on the button. Where the browser has no clipboard API (a page not served over https or
@@ -875,7 +912,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     // the notice goes with its ×: focus goes to the file's head, not the page (Astra S138)
     if (e.target.closest("[data-vw-toastx]")) { const back = focusHere(); saved = null; toastPaint(); if (back) headFocus(); return; }
     // a change that failed to read: read it again; focus waits on the diff's body, where the change appears
-    if (e.target.closest("[data-vw-diff-retry]")) { const c = chg(); if (!c) return; diffBody().focus({ preventScroll: true }); drawDiff(c); return; }
+    if (e.target.closest("[data-vw-diff-retry]")) { const c = chg(); if (!c) return; diffBody().focus({ preventScroll: true }); drawDiff(c, { again: true }); return; }
     // the renderer's Try again goes as the file draws: focus waits on the file's body, where the file appears (S139)
     if (e.target.closest("[data-vw-retry]")) { const back = focusHere(); FL.pend = null; drawFile(); if (back) (fileBody() || el).focus({ preventScroll: true }); return; }
     if (e.target.closest("[data-vw-split]")) { V.split = !V.split; if (DF.handle) DF.handle.split(V.split); render(); return; }

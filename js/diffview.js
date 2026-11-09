@@ -186,9 +186,13 @@ export async function conflict(host, text, o = {}) {
   // the place you're on is still the place you're on, so focus goes to it as drawn now, in the same step; only
   // while focus would otherwise be nowhere (the browser run: focus reached the next place, then fell to the page)
   let on = null, places = left(text); // places: how many are still to choose (a bar left over from a redraw isn't one)
-  host.addEventListener("focusout", (e) => { if (e.relatedTarget && !host.contains(e.relatedTarget)) on = null; });
+  // want: where the place just chosen was, while the next place to choose isn't drawn yet (focus waits on the file)
+  let want = null;
+  const out = (e) => { if (e.relatedTarget && !host.contains(e.relatedTarget)) on = null; if (e.relatedTarget && e.relatedTarget !== host) want = null; };
+  host.addEventListener("focusout", out);
   const keep = new MutationObserver(() => {
     const a = document.activeElement;
+    if (want != null && (!a || a === document.body || a === host)) { const y = want; want = null; onward(null, y); return; }
     if (!on || (a && a !== document.body)) return;
     const bar = places ? host.querySelector(`.xd-merge[data-place="${on.place}"]`) : null;
     if (bar) (bar.querySelectorAll("button")[on.b] || bar).focus({ preventScroll: true });
@@ -199,16 +203,19 @@ export async function conflict(host, text, o = {}) {
    *  a held Enter can't choose for every place), else the first left; none left: o.onDone. */
   function onward(gone, y) {
     // none left: Pierre leaves the last bar drawn until its next redraw, and that bar isn't a place any more
-    if (!places) { if (o.onDone) o.onDone(); return; }
+    if (!places) { want = null; if (o.onDone) o.onDone(); return; }
     const bars = [...host.querySelectorAll(".xd-merge")].filter((x) => x !== gone && x.isConnected && x.getClientRects().length)
       .map((x) => [x, x.getBoundingClientRect().top]).sort((a, b) => a[1] - b[1]);
     const to = (bars.find(([, t]) => t >= y - 1) || bars[0])?.[0];
-    if (to) to.focus(); // brought into view if it's out of it
-    else if (o.onDone) o.onDone();
+    if (to) { want = null; to.focus(); return; } // brought into view if it's out of it
+    // places are left, and none is drawn yet (Pierre draws them again): focus waits on the file's body and goes on
+    // to the next place once it's there; never to Save while a place is left (Files/Map grader on 44e429d)
+    want = y;
+    if (!host.contains(document.activeElement)) host.focus({ preventScroll: true });
   }
   v.render({ file: { name: String(o.path || "").split("/").pop(), contents: text, lang: langOf(o.path) }, containerWrapper: host });
   live.add(v);
-  return { destroy() { keep.disconnect(); on = null; live.delete(v); v.cleanUp(); host.replaceChildren(); } };
+  return { destroy() { keep.disconnect(); host.removeEventListener("focusout", out); on = null; want = null; live.delete(v); v.cleanUp(); host.replaceChildren(); } };
 }
 
 /**
@@ -268,17 +275,39 @@ export async function file(scroller, contents, o = {}) {
       // caret before the bar goes (it left focus nowhere, and the Escape went on to leave the editor: Astra
       // EDITOR-close); a pattern that isn't a valid regexp says so, where it said "No results" (EDITOR-regex)
       const along = (e, key) => e.composedPath().find((n) => n.dataset && key in n.dataset);
-      const back = (e) => { if ((e.type === "keydown" ? e.key === "Escape" && !e.isComposing && along(e, "searchGrid") : along(e, "searchClose"))) ed.focus(); };
-      const pattern = (e) => {
-        const g = along(e, "searchGrid"), inp = g && g.querySelector("[data-search]"), re = g && g.querySelector('[aria-label="Regexp"]'), n = g && g.querySelector("[data-matches]");
+      const back = (e) => {
+        if (e.type !== "keydown") { if (along(e, "searchClose")) ed.focus(); return; }
+        const g = e.key === "Escape" && !e.isComposing && along(e, "searchGrid");
+        if (!g) return;
+        // Escape from one of the bar's buttons (its arrows, Regexp, Match case): Pierre's own Escape is its field's
+        // only, so this one closes the bar here and goes no further (it went on to leave the editor: Files/Map
+        // grader on 44e429d)
+        const t = e.composedPath()[0];
+        if (!(t && t.matches && t.matches("input, textarea"))) {
+          e.preventDefault(); e.stopPropagation();
+          (g.querySelector("[data-search-close]") || g.getRootNode().querySelector?.("[data-search-close]"))?.click();
+        }
+        ed.focus();
+      };
+      // what the bar says about a pattern that isn't a valid regexp stays said: Pierre writes its count again as the
+      // document changes (an edit while the bar is open), so its words are watched, not only your typing (grader)
+      let grid = null, watch = null;
+      const check = (g) => {
+        const inp = g && g.querySelector("[data-search]"), re = g && g.querySelector('[aria-label="Regexp"]'), n = g && g.querySelector("[data-matches]");
         if (!inp || !re) return;
         let bad = false;
         if (re.getAttribute("aria-pressed") === "true" && inp.value) { try { new RegExp(inp.value); } catch { bad = true; } }
-        inp.setAttribute("aria-invalid", String(bad));
-        if (bad && n) n.textContent = "Not a valid pattern";
+        if (inp.getAttribute("aria-invalid") !== String(bad)) inp.setAttribute("aria-invalid", String(bad));
+        if (bad && n && n.textContent !== "Not a valid pattern") n.textContent = "Not a valid pattern";
+      };
+      const pattern = (e) => {
+        const g = along(e, "searchGrid");
+        if (!g) return;
+        if (g !== grid) { watch?.disconnect(); grid = g; watch = new MutationObserver(() => check(grid)); watch.observe(g, { childList: true, characterData: true, subtree: true }); }
+        check(g);
       };
       for (const [t, f, c] of [["keydown", back, true], ["click", back, true], ["input", pattern, false], ["click", pattern, false]]) host.addEventListener(t, f, c);
-      const unwire = () => { for (const [t, f, c] of [["keydown", back, true], ["click", back, true], ["input", pattern, false], ["click", pattern, false]]) host.removeEventListener(t, f, c); };
+      const unwire = () => { watch?.disconnect(); watch = null; grid = null; for (const [t, f, c] of [["keydown", back, true], ["click", back, true], ["input", pattern, false], ["click", pattern, false]]) host.removeEventListener(t, f, c); };
       // the document arrives a frame or two after attaching
       for (let i = 0; i < 60 && contents && !ed.getText(); i++) await new Promise((r) => requestAnimationFrame(r));
       return {

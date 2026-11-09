@@ -1013,6 +1013,170 @@ t("EDITOR-regex: a pattern that isn't a valid regexp says so", async () => {
   await done(page);
 });
 
+t("EDITOR-close: Escape on one of the find bar's buttons closes the bar and puts you back at your caret, still editing", async () => {
+  const page = await app({ files: { "a.js": FILE() } });
+  await editing(page);
+  await page.locator("#viewer [contenteditable=true]").first().click();
+  await page.keyboard.press("ControlOrMeta+f");
+  const q = page.locator("[data-search-grid] [data-search]").first();
+  await q.waitFor();
+  await q.focus();
+  await page.keyboard.insertText("two");
+  // from the field to one of the bar's own buttons, as Tab takes you
+  await page.locator('[data-search-grid] [aria-label="Regexp"]').first().focus();
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(200);
+  assert.equal(await page.evaluate(() => !!(window.__ED && window.__ED.on)), true, "still editing");
+  assert.deepEqual(await deepActive(page), { editable: true, inViewer: true }, "back at the caret");
+  assert.equal(await page.locator("[data-search-grid] [data-search]").filter({ visible: true }).count(), 0, "the bar closed");
+  await done(page);
+});
+t("EDITOR-regex: a pattern that isn't a valid regexp still says so after an edit to the document", async () => {
+  const page = await app({ files: { "a.js": FILE() } });
+  await editing(page);
+  await page.locator("#viewer [contenteditable=true]").first().click();
+  await page.keyboard.press("ControlOrMeta+f");
+  const q = page.locator("[data-search-grid] [data-search]").first();
+  await q.waitFor();
+  await page.locator('[data-search-grid] [aria-label="Regexp"]').first().click();
+  await q.focus();
+  await page.keyboard.insertText("[");
+  await page.waitForTimeout(150);
+  assert.equal(await page.locator("[data-search-grid] [data-matches]").first().innerText(), "Not a valid pattern");
+  // an edit to the document while the bar is open: the editor counts its matches again
+  await page.locator("#viewer [contenteditable=true]").first().click();
+  await page.keyboard.insertText("x");
+  await page.waitForTimeout(300);
+  assert.equal(await page.locator("[data-search-grid] [data-matches]").first().innerText(), "Not a valid pattern", "its words after the edit");
+  assert.equal(await q.getAttribute("aria-invalid"), "true", "and the field says so too");
+  await done(page);
+});
+t("S232: a merge choice hands focus to the next place even far below, never to Save while a place is left", async () => {
+  const lines = Array.from({ length: 400 }, (_, i) => `line ${i + 1}`);
+  const of = (a, z) => [a, ...lines.slice(1, 399), z].join("\n") + "\n";
+  const page = await app({ files: { "a.js": { content: of("line 1", "line 400"), version: "sha256:A" } }, saveMode: "overlap", agentText: of("AGENT first", "AGENT last") });
+  await editing(page);
+  await typeAll(page, of("MINE first", "MINE last"));
+  await page.locator("[data-vw-saveit]").click();
+  await page.waitForFunction(() => window.__ED.conflict && window.__ED.conflict.left === 2);
+  const first = page.locator(".xd-mbtn").first();
+  await first.waitFor();
+  await first.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => window.__ED.conflict.left === 1);
+  // where focus goes in the next moments: a place to choose, never Save
+  const seen = await page.evaluate(() => new Promise((ok) => {
+    const out = [], t0 = performance.now();
+    const look = () => { const a = document.activeElement; out.push(a?.classList.contains("xd-merge") ? "place" : a?.hasAttribute("data-vw-saveit") ? "save" : a?.id === "viewer" || a?.classList.contains("vw-file") ? "file" : a === document.body ? "page" : a?.tagName || "none"); if (performance.now() - t0 < 1500 && out[out.length - 1] !== "place") requestAnimationFrame(look); else ok(out); };
+    look();
+  }));
+  assert.ok(!seen.includes("save"), `never Save with a place left (${[...new Set(seen)].join(", ")})`);
+  assert.equal(seen[seen.length - 1], "place", `it reaches the next place (${[...new Set(seen)].join(", ")})`);
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => window.__ED.conflict.left === 0);
+  await page.waitForFunction(() => document.activeElement?.hasAttribute("data-vw-saveit"), null, { timeout: 3000 });
+  await done(page);
+});
+for (const how of ["Enter", "click"]) {
+  t(`S137: Tell the agent (${how}) tells it once, and the notice hands focus to the file's Edit`, async () => {
+    const page = await app({ files: { "a.js": FILE() } });
+    await editing(page);
+    await typeAll(page, "mine\n");
+    await page.keyboard.press("ControlOrMeta+s");
+    await page.waitForFunction(() => !window.__ED.on);
+    const tell = page.locator("[data-vw-tell]").first();
+    if (how === "click") await tell.click(); else { await tell.focus(); await page.keyboard.press("Enter"); }
+    assert.match(await active(page), /data-vw-edit/, "focus on the file's Edit");
+    assert.equal(await page.locator("[data-vw-tell]").count(), 0, "the notice went");
+    const said = await page.evaluate(() => Object.values(window.__t.S.local || {}).flat().filter((m) => /^I edited a\.js\. Read it again/.test(m.text || "")).length);
+    assert.equal(said, 1, "the agent is told, once");
+    await done(page);
+  });
+}
+// ── the viewer: what's shown is the file's or change's you're on, never the last one's ──
+for (const how of [413, "late"]) {
+  t(`VW-STALE-EDIT: an Edit read for the file you left never lands on the next one (${how === 413 ? "too large" : "answered late"})`, async () => {
+    let answerA;
+    const page = await app({ files: { "a.js": FILE(), "b.js": { content: "bee\nbuzz\n", version: "sha256:B" } }, editGateFor: { "a.js": new Promise((ok) => (answerA = ok)) }, editStatusFor: how === 413 ? { "a.js": 413 } : {} });
+    await toDemo(page);
+    const edit = () => page.evaluate(() => document.querySelector("#viewer .vw-top [data-vw-edit]")?.getAttribute("aria-label") || null);
+    await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
+    await page.waitForFunction(() => document.querySelector("#viewer .vw-top [data-vw-edit]")?.getAttribute("aria-label") === "Edit");
+    await page.locator("#viewer .vw-top [data-vw-edit]").click();
+    await page.waitForFunction(() => document.querySelector("#viewer .vw-top [data-vw-edit]")?.getAttribute("aria-label") === "Opening for editing");
+    await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "b.js", path: "b.js", name: "b.js" }));
+    await page.waitForFunction(() => window.__t.VW.file?.rel === "b.js" && document.querySelector("#viewer .vw-top [data-vw-edit]"));
+    assert.equal(await edit(), "Edit", "b.js has its own Edit, not a.js's Opening…");
+    answerA();
+    await page.waitForTimeout(400);
+    assert.equal(await edit(), "Edit", "a.js's answer changed nothing on b.js");
+    assert.equal(await page.evaluate(() => !!(window.__ED && window.__ED.on)), false, "not editing b.js on a.js's answer");
+    await page.locator("#viewer .vw-top [data-vw-edit]").click();
+    await page.waitForFunction(() => window.__ED && window.__ED.on && window.__ED.ed);
+    assert.equal(await page.evaluate(() => window.__ED.ed.text()), "bee\nbuzz\n", "b.js opens for editing on its own words");
+    await done(page);
+  });
+}
+const viewerDiff = (page) => page.evaluate(() => { const d = document.querySelector("#viewer .vw-diff"); if (!d) return ""; const c = d.querySelector("diffs-container"); return d.textContent + (c && c.shadowRoot ? c.shadowRoot.textContent : ""); });
+async function diffOpen(page, rel) {
+  await page.waitForFunction((rel) => !!window.__t.CHG.at("demo", rel), rel, { timeout: 15000 }); // the project's changes are read
+  await page.evaluate((rel) => window.__t.VW.open({ project: "demo", rel, path: rel, name: rel, show: "changes" }), rel);
+}
+t("VW-DIFF-HELD: a change whose read is held says so, never the last change's diff", async () => {
+  let answerB;
+  const page = await app({ files: { "a.js": FILE(), "b.js": FILE() }, changesGateFor: { "b.js": new Promise((ok) => (answerB = ok)) }, changes: [
+    { path: "a.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: PATCH("a.js", "one", "ALPHA") },
+    { path: "b.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:B", patch: null, patch_omitted: "response_budget", full: PATCH("b.js", "one", "BRAVO") }] });
+  await toDemo(page);
+  await diffOpen(page, "a.js");
+  await page.waitForFunction(() => { const d = document.querySelector("#viewer .vw-diff diffs-container"); return d && d.shadowRoot && d.shadowRoot.textContent.includes("ALPHA"); }, null, { timeout: 15000 });
+  await diffOpen(page, "b.js");
+  await page.waitForTimeout(250);
+  const held = await viewerDiff(page);
+  assert.ok(!held.includes("ALPHA"), "a.js's diff went at once");
+  assert.match(held, /Reading the change/, "it says b.js's change is being read");
+  answerB();
+  await page.waitForFunction(() => { const d = document.querySelector("#viewer .vw-diff diffs-container"); return d && d.shadowRoot && d.shadowRoot.textContent.includes("BRAVO"); }, null, { timeout: 15000 });
+  assert.doesNotMatch(await viewerDiff(page), /Reading the change/, "and once it's there, only it");
+  await done(page);
+});
+t("VW-DIFF-ERR: a change that couldn't be read says so and stays said; Try again reads it again, focus in the diff", async () => {
+  const page = await app({ files: { "b.js": FILE() }, changesFailFor: { "b.js": 1 }, changes: [
+    { path: "b.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:B", patch: null, patch_omitted: "response_budget", full: PATCH("b.js", "one", "BRAVO") }] });
+  await toDemo(page);
+  await diffOpen(page, "b.js");
+  await page.waitForFunction(() => /Couldn't read this change/.test(document.querySelector("#viewer .vw-diff")?.textContent || ""), null, { timeout: 15000 });
+  const reads = page.W.changeReads["b.js"];
+  // the app draws again (as it does all the time): the failure stays said, and isn't read again behind your back
+  await page.evaluate(() => { for (let i = 0; i < 5; i++) window.__t.render(); });
+  await page.waitForTimeout(300);
+  assert.match(await viewerDiff(page), /Couldn't read this change/, "still says so");
+  assert.equal(page.W.changeReads["b.js"], reads, "not read again until you ask");
+  await page.locator("#viewer [data-vw-diff-retry]").focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => { const d = document.querySelector("#viewer .vw-diff diffs-container"); return d && d.shadowRoot && d.shadowRoot.textContent.includes("BRAVO"); }, null, { timeout: 15000 });
+  assert.equal(page.W.changeReads["b.js"], reads + 1, "read once more");
+  assert.match(await active(page), /vw-diff/, "focus waited in the diff's body, where the change appeared");
+  await done(page);
+});
+t("VW-DIFF-LATE: the last file's change, read late, never draws over the one you're on", async () => {
+  let answerA;
+  const page = await app({ files: { "a.js": FILE(), "b.js": FILE() }, changesGateFor: { "a.js": new Promise((ok) => (answerA = ok)) }, changes: [
+    { path: "a.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: null, patch_omitted: "response_budget", full: PATCH("a.js", "one", "ALPHA") },
+    { path: "b.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:B", patch: PATCH("b.js", "one", "BRAVO") }] });
+  await toDemo(page);
+  await diffOpen(page, "a.js");
+  await page.waitForFunction(() => /Reading the change/.test(document.querySelector("#viewer .vw-diff")?.textContent || ""));
+  await diffOpen(page, "b.js");
+  await page.waitForFunction(() => { const d = document.querySelector("#viewer .vw-diff diffs-container"); return d && d.shadowRoot && d.shadowRoot.textContent.includes("BRAVO"); }, null, { timeout: 15000 });
+  answerA();
+  await page.waitForTimeout(600);
+  const now = await viewerDiff(page);
+  assert.ok(now.includes("BRAVO") && !now.includes("ALPHA"), "still b.js's change only");
+  await done(page);
+});
+
 // ── the picker: Astra's d88441d findings (D884-SAVE-1..3, D884-SIMPLE-1, MIG-1..3) ──
 t("D884-SAVE-3: the first Done says it's saving at once: busy, its words, focus kept", async () => {
   let answer;
@@ -1284,15 +1448,51 @@ async function turnChip(page) {
   assert.equal(await chip.getAttribute("data-file-bytes"), null, "the real chip has no size");
   return chip;
 }
-t("S224: a turn's file chip whose file changed opens its diff (the panel's Changes; Files on a phone), focus on it", async () => {
-  const page = await app({ files: { "a.js": FILE() }, threadsBy: TT(), changes: [{ path: "a.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: PATCH("a.js", "one", "ONE") }] });
+for (const how of ["Enter", "Space", "click"]) {
+  t(`S224: a turn's file chip whose file changed (${how}) opens its diff, focus on exactly what shows it`, async () => {
+    const page = await app({ files: { "a.js": FILE() }, threadsBy: TT(), changes: [{ path: "a.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: PATCH("a.js", "one", "ONE") }] });
+    await toDemo(page);
+    const chip = await turnChip(page);
+    await page.waitForFunction(() => !!window.__t.CHG.at("demo", "a.js"), null, { timeout: 15000 }); // the place's changes are read
+    // fresh: nothing of a.js's change is shown yet
+    assert.equal(await page.evaluate(() => !!window.__t.VW.isOpen || !!document.querySelector("#stage:not([hidden]) .cx-pd:not([hidden])")), false, "nothing shown before the press");
+    if (how === "click") await chip.click(); else { await chip.focus(); await page.keyboard.press(how); }
+    await page.waitForTimeout(500);
+    const st = await page.evaluate(() => {
+      const a = document.activeElement, usable = !!a && a !== document.body && a.isConnected && a.getClientRects().length > 0 && !a.closest("[inert], [hidden]");
+      const pd = document.querySelector("#stage .cx-pd"), panel = !!pd && !pd.hidden && pd.getClientRects().length > 0 && pd.childElementCount > 0;
+      const vd = document.querySelector("#viewer .vw-diff"), viewer = !!window.__t.VW.isOpen && !!vd && vd.getClientRects().length > 0;
+      return { usable, onRow: !!a?.matches?.('#stage [data-cx="a.js"]'), onViewer: a?.id === "viewer", panel, viewer, rel: window.__t.VW.file?.rel || null };
+    });
+    assert.ok(st.usable, "focus on something you can see and use");
+    if (WIDTH >= 600) {
+      // beside the conversation: the panel's Changes, on a.js's row, its diff showing
+      assert.deepEqual({ onRow: st.onRow, panel: st.panel }, { onRow: true, panel: true }, "on a.js's row in the panel's Changes, its diff shown");
+    } else if (st.viewer) {
+      assert.deepEqual({ onViewer: st.onViewer, rel: st.rel }, { onViewer: true, rel: "a.js" }, "on a.js's diff in Files");
+    } else {
+      assert.deepEqual({ onRow: st.onRow, panel: st.panel }, { onRow: true, panel: true }, "on a.js's row in the panel's Changes (covering the chat), its diff shown");
+    }
+    await done(page);
+  });
+}
+t("S224: the file put away after its turn went on: focus goes back to a.js's chip (or the one drawn in its place), never the page", async () => {
+  const page = await app({ files: { "a.js": FILE() }, threadsBy: TT() });
   await toDemo(page);
   const chip = await turnChip(page);
-  await page.waitForTimeout(400); // the place's changes are read
   await chip.focus();
   await page.keyboard.press("Enter");
-  await page.waitForTimeout(500);
-  assert.match(await active(page), /data-cx=a\.js|id=viewer/, "on the change: its row in the panel, or the file on a phone");
+  await page.waitForFunction(() => window.__t.VW.isOpen);
+  await page.waitForTimeout(300);
+  // the thread goes on while the file is open: its next turn comes in and the conversation draws again
+  await feedTurn(page, { id: "tt1", sid: "ses-tt", rows: [{ call_id: "c3", kind: "read_file", status: "ok", target: "c.js" }], n: 2 });
+  await page.waitForTimeout(300);
+  assert.match(await active(page), /id=viewer/, "still on the file");
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(400);
+  const st = await page.evaluate(() => { const a = document.activeElement; return { usable: !!a && a !== document.body && a.isConnected && a.getClientRects().length > 0 && !a.closest("[inert], [hidden]"), chip: !!a?.matches?.('#msgs .tb-cf[data-file="a.js"]'), at: a ? a.tagName + (a.id ? "#" + a.id : "") + (a.className ? "." + String(a.className).split(" ").join(".") : "") : null }; });
+  assert.ok(st.usable, `focus on something you can use, never the page (${st.at})`);
+  if (WIDTH >= 600) assert.ok(st.chip, `on a.js's chip (${st.at})`);
   await done(page);
 });
 for (const variant of ["read", "held", "refused"]) {
