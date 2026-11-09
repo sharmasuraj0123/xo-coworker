@@ -12,11 +12,19 @@
 // radio always takes `checked` from the new HTML, focused or not: it has no draft to keep.
 // Returns true if anything changed.
 
+import { inSight, bringWhole } from "./focusview.js";
+
 export function redraw(el, html) {
   const tpl = document.createElement("template");
   tpl.innerHTML = html;
   const focus = deepActive();
-  return syncChildren(el, tpl.content, focus);
+  // what's drawn above the control under the keyboard can grow and push it out of sight, focus never having moved
+  // (the create-project/Launchpad grader's C115: a refusal said above Runtimes' focused checkbox pushed it below a
+  // phone's screen). It was wholly in sight, so it stays so: its scroller moves the least distance (js/focusview.js)
+  const seen = !!focus && el.contains(focus) && inSight(focus);
+  const changed = syncChildren(el, tpl.content, focus);
+  if (changed && seen && focus.isConnected && !inSight(focus)) bringWhole(focus);
+  return changed;
 }
 
 const VOLATILE = /^data-(inv|inv-now)$/;

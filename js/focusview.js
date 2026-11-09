@@ -38,6 +38,25 @@ export function bring(el, win = window) {
 }
 export const lost = (el, win = window) => !!bring(el, win);
 
+/** Is the element wholly in sight in the box it scrolls in? (with no box it can be scrolled in, or one that owns its
+ *  scroll, or visually hidden: nothing to keep, so yes) */
+export function inSight(el, win = window) {
+  if (!el || !el.getClientRects || !el.getClientRects().length) return true;
+  const sc = scrollerOf(el, win);
+  if (!sc || (sc.closest && sc.closest("[data-own-scroll]"))) return true;
+  const r = el.getBoundingClientRect(), v = sc.getBoundingClientRect();
+  return r.top >= v.top - 1 && r.bottom <= v.bottom + 1 && r.left >= v.left - 1 && r.right <= v.right + 1;
+}
+/** Bring it wholly into sight: its scroller only, the least distance (an element taller than the box: its top). */
+export function bringWhole(el, win = window) {
+  const sc = scrollerOf(el, win);
+  if (!sc || (sc.closest && sc.closest("[data-own-scroll]"))) return;
+  const r = el.getBoundingClientRect(), v = sc.getBoundingClientRect();
+  const dy = r.top < v.top || r.height > v.height ? r.top - v.top : r.bottom > v.bottom ? r.bottom - v.bottom : 0;
+  const dx = r.left < v.left || r.width > v.width ? r.left - v.left : r.right > v.right ? r.right - v.right : 0;
+  sc.scrollTop += dy; sc.scrollLeft += dx;
+}
+
 export function keepFocusInView(doc = document, win = window) {
   // focus the browser moves itself (Tab, a press) it has already brought into view: only a script's is checked
   let own = -1;

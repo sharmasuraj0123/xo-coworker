@@ -13,8 +13,10 @@ const tokens = Object.fromEntries([...readFileSync(new URL("css/tokens.css", ROO
 // what's a control: the classes the templates put on button, summary and select, and on the button/tab/option/menu
 // item/switch roles
 const src = [readFileSync(new URL("index.html", ROOT), "utf8"), ...readdirSync(new URL("js/", ROOT)).filter((f) => f.endsWith(".js")).map((f) => readFileSync(new URL(`js/${f}`, ROOT), "utf8")), ...readdirSync(new URL("js/shells/", ROOT)).filter((f) => f.endsWith(".js")).map((f) => readFileSync(new URL(`js/shells/${f}`, ROOT), "utf8"))].join("\n");
-const ctl = new Set();
+const ctl = new Set(), labels = new Set();
 for (const m of src.matchAll(/<(button|summary|select)\b([^>]*)>/g)) { const c = /class="([^"$]*)/.exec(m[2]); if (c) for (const k of c[1].trim().split(/\s+/)) if (k && !/^(is|st|k|m|t|r|e)-/.test(k)) ctl.add("." + k); }
+// a label that holds a checkbox or radio is the control you press (C115: Runtimes' allow/deny, missed by this census)
+for (const m of src.matchAll(/<label\b([^>]*)>(?:\s|\$\{[^}]*\})*<input\b[^>]*type="(?:checkbox|radio)"/g)) { const c = /class="([^"$]*)/.exec(m[1]); if (c) for (const k of c[1].trim().split(/\s+/)) if (k && !/^is-/.test(k)) labels.add("." + k); }
 for (const m of src.matchAll(/<(div|span|li|a)\b([^>]*role="(button|tab|option|menuitem|menuitemradio|switch)"[^>]*)>/g)) { const c = /class="([^"$]*)/.exec(m[2]); if (c) for (const k of c[1].trim().split(/\s+/)) if (k && !/^is-/.test(k)) ctl.add("." + k); }
 // the written exceptions, each with its reason
 const EXCEPT = [
@@ -29,7 +31,8 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
 
 t("phone.css holds one weightless floor: every control at least 36 px tall on a phone", () => {
   const phone = readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-  assert.match(phone, /@media \(max-width:760px\)\{\s*:where\(button,\[role=button\],\[role=tab\],\[role=option\],\[role=menuitem\],\[role=menuitemradio\],\[role=menuitemcheckbox\],\[role=switch\],summary,select\)[^{]*\{min-height:36px\}/);
+  const re = /@media \(max-width:760px\)\{\s*:where\(button,\[role=button\],\[role=tab\],\[role=option\],\[role=menuitem\],\[role=menuitemradio\],\[role=menuitemcheckbox\],\[role=switch\],summary,select,label:has\(>input\[type=checkbox\],>input\[type=radio\]\)\)[^{]*\{min-height:36px\}/;
+  assert.ok(re.test(phone), `the floor rule (${re})`);
 });
 t("no control's own min-height or max-height holds it under 36 px on a phone, unless a phone rule answers it or it's a written exception", () => {
   const bad = [];
@@ -80,5 +83,14 @@ t("the icon buttons the browser pass found narrow are on the list: Open in Files
   const phone = readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
   const listed = /:where\(([^)]*)\)\{min-width:36px\}/.exec(phone)[1].split(",").map((x) => x.trim());
   for (const k of [".cx-ofi", ".fl-add"]) assert.ok(listed.includes(k), `${k} is 36 wide on a phone`);
+});
+t("the floor reaches every kind of control the templates make, a label holding a checkbox or radio included (C115)", () => {
+  const phone = readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  const floor = /:where\(([^{]*?)\):where\(:not\([^)]*\)\)\{min-height:36px\}/.exec(phone);
+  assert.ok(floor, "the floor rule");
+  assert.ok(floor[1].includes("label:has(>input[type=checkbox],>input[type=radio])"), "labels that hold a checkbox or radio");
+  assert.ok(labels.has(".rt-check"), "the census finds Runtimes' allow/deny (.rt-check)");
+  // and none of them is held under 36 by a max-height (a height alone gives way to the floor's min-height)
+  for (const k of labels) assert.ok(!new RegExp(`\\${k}\\{[^}]*max-height:(\\d+)px`).test(phone), `${k} has no max-height under the floor`);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

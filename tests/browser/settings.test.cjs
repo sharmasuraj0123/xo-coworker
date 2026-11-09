@@ -587,6 +587,17 @@ t("C115 a refused box shows what's saved again, says why, and Space tries again"
   await page.waitForSelector('.rt-ferr[role="alert"]');
   assert.equal(await page.locator(box).isChecked(), true, "refused: the saved state again");
   assert.equal(await focused(page), `input${box.slice(5)}`);
+  // the refusal, said above it, never pushes the box you're on out of sight; and on a phone its label is 36 tall
+  // (the create-project/Launchpad grader on 9d1f71b, C115: below the screen, 34 px)
+  await settle(page, 60);
+  const g = await page.evaluate((s) => {
+    const lab = document.querySelector(s).closest("label"), r = lab.getBoundingClientRect();
+    let sc = lab.parentElement; while (sc && sc !== document.body) { const cs = getComputedStyle(sc); if (/(auto|scroll)/.test(cs.overflowY) && sc.scrollHeight > sc.clientHeight + 1) break; sc = sc.parentElement; }
+    const v = sc && sc !== document.body ? sc.getBoundingClientRect() : { top: 0, bottom: innerHeight };
+    return { top: Math.round(r.top), bottom: Math.round(r.bottom), vt: Math.round(v.top), vb: Math.round(Math.min(v.bottom, innerHeight)), h: Math.round(r.height) };
+  }, box);
+  assert.ok(g.top >= g.vt - 1 && g.bottom <= g.vb + 1, `the box's label in sight after the refusal (${g.top}–${g.bottom} in ${g.vt}–${g.vb})`);
+  if (ctx.width < 600) assert.ok(g.h >= 36, `on a phone, 36 tall at least (${g.h})`);
   await page.keyboard.press("Space");
   await page.waitForFunction((s) => !document.querySelector(s).checked && !document.querySelector(s).hasAttribute("aria-busy") && !document.querySelector(".rt-ferr"), box);
   assert.deepEqual(page.W.policy.allowed, ["claude_code"]);

@@ -70,6 +70,17 @@ t("focus the browser moves itself (a Tab, a press) isn't checked: only a script'
   P.win.tick(200); P.L.keydown({ key: "Enter" }); P.focus(); P.flush();
   assert.equal(P.calls.length, 1, "Enter on Reset all, then the script's focus: checked");
 });
+t("content that grows above the control under the keyboard: it was in sight, so its scroller brings it back (C115)", () => {
+  assert.equal(typeof F.inSight, "function", "inSight");
+  const P = standIn(560); // its foot at 596, in a 600 px box
+  assert.equal(F.inSight(P.el, P.win), true);
+  P.el.getBoundingClientRect = () => ({ top: 640, bottom: 676, left: 16, right: 52, width: 36, height: 36 }); // a refusal said above it
+  assert.equal(F.inSight(P.el, P.win), false);
+  F.bringWhole(P.el, P.win);
+  assert.equal(P.scroller.scrollTop, 2000 + 76, "the least distance: its foot to the box's foot");
+  const red = readFileSync(new URL("../js/redraw.js", import.meta.url), "utf8");
+  assert.ok(/const seen = !!focus && el\.contains\(focus\) && inSight\(focus\);\s*const changed = syncChildren\(el, tpl\.content, focus\);\s*if \(changed && seen && focus\.isConnected && !inSight\(focus\)\) bringWhole\(focus\);/.test(red), "redraw keeps it: in sight before, so in sight after");
+});
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 t("the app starts it once", () => {
   assert.match(app, /import \{ keepFocusInView \} from "\.\/focusview\.js";/);
