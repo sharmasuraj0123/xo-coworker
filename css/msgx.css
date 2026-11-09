@@ -92,7 +92,10 @@ body.files-open .mx-down{display:none}
 .mx-armed .mx-swipe{background:var(--ink);color:var(--canvas)}
 
 /* swipe left anywhere: the times slide in at the right edge, as in Messages */
-#msgs>.m::after{content:attr(data-mx-time);position:absolute;top:10px;right:0;font:400 var(--fs-xs)/20px var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none;opacity:0;transform:translateX(64px);transition:opacity var(--d-move) var(--ease),transform var(--d-move) var(--ease)}
+/* at rest the label waits in place, unseen: parked 64 px past the edge it still widened the scroller's scrollable
+   width on every row (438 of 390 px on a phone: Conversation's check on dd15034); it starts 64 px out only while a
+   swipe pulls it in, and fades where it is when the swipe lets go */
+#msgs>.m::after{content:attr(data-mx-time);position:absolute;top:10px;right:0;font:400 var(--fs-xs)/20px var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity var(--d-move) var(--ease)}
 #msgs.mx-pulling>.m::after{opacity:calc(var(--mx-pull,0) / 64);transform:translateX(calc((64 - var(--mx-pull,0)) * 1px));transition:none}
 #msgs.mx-pulling>.m>*{transform:translateX(calc(var(--mx-pull,0) * -1px));transition:none}
 
