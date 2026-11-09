@@ -447,10 +447,26 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     if (f) f.setAttribute("aria-pressed", String(!!c.follow));
   }
   const READABLE = 0.8; // the smallest scale for a partial view (all = false): labels stay readable (≈10px)
-  // the smallest scale a box can be pressed surely at: boxes are 32 tall, 42 apart, so a box's target may grow 5
-  // into the 10 between (css: .dg-n::before), 42 in all; 42 × this = 24 px. Further out, a pointer press brings the
-  // map in to the box instead of acting on it (the keyboard acts at any size) (Files/Map grader on b153247)
-  const PRESS_MIN = 24 / 42;
+  // the smallest a press target may be on screen and still be pressed surely. Below the readable scale, a pointer
+  // press on a box whose target is smaller than this brings the map in to the box instead of acting on it (the
+  // keyboard acts at any size) (Files/Map grader on b153247). Each box by its own target, never one scale for
+  // all: a 32 px box (its target grows 5 into the gap each side, css: .dg-n::before) is under it below 24/42, a
+  // 24 px "More" below 24/34, a Graph node (16 px, nothing around it) anywhere below the readable scale (the
+  // grader on 44e429d: one scale, 24/42, was a 32 px box's, and "More" at 0.6 was 20.4 px and still acted)
+  const PRESS_PX = 24;
+  /** How big a box's press target is on screen at scale s: the box, and what its ::before adds around it. */
+  function pressPx(nb, s) {
+    const b = getComputedStyle(nb, "::before"), hit = b.content !== "none" && b.position === "absolute";
+    const grow = (v) => (hit ? Math.max(0, -parseFloat(v) || 0) : 0);
+    return Math.min(nb.offsetWidth + 2 * grow(b.left), nb.offsetHeight + 2 * grow(b.top)) * s;
+  }
+  /** A box's centre in the drawing's own units (the camera's): a Diagram box by its place; a Graph node sits at
+   *  0,0 and moves by its transform, so by that (the grader on 44e429d: a far Graph press zoomed in on 0,0). */
+  function nodePt(nb) {
+    let tx = 0, ty = 0;
+    try { if (nb.style.transform) { const m = new DOMMatrixReadOnly(nb.style.transform); tx = m.e; ty = m.f; } } catch { /* no move */ }
+    return { x: tx + nb.offsetLeft + nb.offsetWidth / 2, y: ty + nb.offsetTop + nb.offsetHeight / 2 };
+  }
   /** Frame the drawing. The Map shows it all, fitted to whatever size its frame is (the owner, 4 Nov:
    *  "I asked for the map to fit it all"), by itself and with Fit; all = false is the old readable
    *  partial view, kept for callers that want it. */
@@ -1082,10 +1098,12 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     const r = M.refs.get(nb.dataset.node);
     if (!r) return;
     const cz = camOf(M.scope);
-    if (e.detail > 0 && cz.s < PRESS_MIN) {
-      // a pointer press far out: in to that box, readable, where its targets are full size; it doesn't act yet
+    if (e.detail > 0 && cz.s < READABLE && pressPx(nb, cz.s) < PRESS_PX) {
+      // a pointer press far out on a target too small to press surely: in to that box, readable, where its target
+      // is full size; it doesn't act yet
       cz.user = true; cz.follow = false; cz.fitAll = false;
-      centerOn(cz, { x: nb.offsetLeft + nb.offsetWidth / 2 - tagW() / 2, y: nb.offsetTop + nb.offsetHeight / 2 }, true, READABLE);
+      const pt = nodePt(nb);
+      centerOn(cz, { x: pt.x - tagW() / 2, y: pt.y }, true, READABLE);
       announce(`Closer to ${nb.textContent.trim() || "it"}: press it again to open it.`);
       return;
     }

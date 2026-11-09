@@ -1319,7 +1319,9 @@ for (const variant of ["read", "held", "refused"]) {
     await done(page);
   });
 }
-t("S207/S082: Fit shows every box; no box's target reaches a neighbour's box (edges too); far out a press zooms in", async () => {
+// ── the Map far out: what a pointer press does ──
+/** The project's Map in the panel, 40 folders at the top (the top folder shows 14 and "N more"). */
+async function bigMap() {
   const dirs = Array.from({ length: 40 }, (_, i) => `folder-${String(i).padStart(2, "0")}`);
   const page = await app({ files: { "a.js": FILE() }, dirs });
   await panelOpen(page);
@@ -1327,6 +1329,32 @@ t("S207/S082: Fit shows every box; no box's target reaches a neighbour's box (ed
   await page.locator("#stage-map-tree").waitFor();
   await page.evaluate(() => document.querySelector("#stage-map-tree").click());
   await page.locator(".dg-world [data-node]").first().waitFor();
+  return page;
+}
+const mapScale = (page) => page.evaluate(() => parseFloat(document.querySelector(".dg-world").style.getPropertyValue("--dg-s")) || 1);
+/** ⌘-scroll, as a person zooms, at a box's middle (it stays under the pointer), to scale `to`. */
+const zoomOn = (page, id, to) => page.evaluate(({ id, to }) => {
+  const n = document.querySelector(`.dg-world [data-node="${CSS.escape(id)}"]`), v = document.querySelector(".dg-world").parentElement;
+  const s = parseFloat(document.querySelector(".dg-world").style.getPropertyValue("--dg-s")) || 1, b = n.getBoundingClientRect();
+  v.dispatchEvent(new WheelEvent("wheel", { ctrlKey: true, deltaY: -Math.log(to / s) / 0.0022, clientX: b.left + b.width / 2, clientY: b.top + b.height / 2, bubbles: true, cancelable: true }));
+}, { id, to });
+/** How far a box's middle is from the middle of the drawing's view (above its tools), in px. */
+const offCentre = (page, id) => page.evaluate((id) => {
+  const n = document.querySelector(`.dg-world [data-node="${CSS.escape(id)}"]`), v = document.querySelector(".dg-world").parentElement;
+  const b = n.getBoundingClientRect(), r = v.getBoundingClientRect();
+  return { dx: b.left + b.width / 2 - (r.left + v.clientLeft + v.clientWidth / 2), dy: b.top + b.height / 2 - (r.top + v.clientTop + (v.clientHeight - 44) / 2) };
+}, id);
+/** What a box says it is: a press that acts changes it (a folder opens, "More" shows the rest). */
+const boxState = (page, id) => page.evaluate((id) => { const n = document.querySelector(`.dg-world [data-node="${CSS.escape(id)}"]`); return n ? `${n.className}|${n.getAttribute("aria-label")}|${document.querySelectorAll(".dg-world [data-node]").length}` : "gone"; }, id);
+/** The Graph settles by itself: wait until no node moves for 300 ms. */
+async function graphStill(page) {
+  const at = () => page.evaluate(() => [...document.querySelectorAll(".dg-world .gn")].map((n) => n.style.transform).join());
+  let was = await at();
+  for (let i = 0; i < 40; i++) { await page.waitForTimeout(300); const now = await at(); if (now === was) return; was = now; }
+  throw new Error("the Graph never settled");
+}
+t("S207/S082: Fit shows every box; no box's target reaches a neighbour's box (edges too); far out a press zooms in", async () => {
+  const page = await bigMap();
   // the top folder shows 14 and "N more": open them all (with the keyboard: it acts at any size)
   const more = page.locator(".dg-world .dg-n.k-more").first();
   if (await more.count()) { await more.focus(); await page.keyboard.press("Enter"); await page.waitForTimeout(300); }
@@ -1366,13 +1394,83 @@ t("S207/S082: Fit shows every box; no box's target reaches a neighbour's box (ed
     const was = await n.getAttribute("class");
     await n.click();
     await page.waitForTimeout(500);
-    const s2 = await page.evaluate(() => parseFloat(document.querySelector(".dg-world").style.getPropertyValue("--dg-s")) || 1);
+    const s2 = await mapScale(page);
     assert.ok(s2 >= 24 / 42, `zoomed in to a pressable size (${s2})`);
     assert.equal(await n.getAttribute("class"), was, "the folder didn't open on that press");
+    const off = await offCentre(page, "folder-20");
+    assert.ok(Math.abs(off.dx) <= 3 && Math.abs(off.dy) <= 3, `in to that folder, in the middle (${off.dx.toFixed(1)}, ${off.dy.toFixed(1)})`);
     const r2 = await probe();
     assert.deepEqual(r2.grown, [], `at scale ${r2.s.toFixed(3)} no target reaches more than half way to a neighbour`);
     assert.deepEqual(r2.stolen, [], `at scale ${r2.s.toFixed(3)} no target reaches a neighbour's box (edges probed)`);
   }
+  await done(page);
+});
+t("S207: far out, a press on a Graph node brings the map in to that node, in the middle, and doesn't act; pressed again, it acts", async () => {
+  const page = await bigMap();
+  await page.locator('[data-dg="graph"]').filter({ visible: true }).first().click();
+  await page.locator(".dg-world.k-graph button.gn[data-node]").first().waitFor();
+  await graphStill(page);
+  await page.locator('[data-dg="fit"]').filter({ visible: true }).first().click();
+  await page.waitForTimeout(300);
+  await graphStill(page);
+  const s = await mapScale(page);
+  assert.ok(s < 0.8, `Fit is far out here (${s.toFixed(3)}), below the readable scale`);
+  // the folder farthest from the drawing's corner (0,0): a Graph node sits there and moves by its transform, which
+  // is where the press used to zoom in (grader on 44e429d)
+  const id = await page.evaluate(() => {
+    let best = null, far = -1;
+    for (const n of document.querySelectorAll(".dg-world.k-graph button.gn.k-dir[data-node]")) {
+      const m = new DOMMatrixReadOnly(n.style.transform || undefined), d = Math.hypot(m.e, m.f);
+      if (d > far) { far = d; best = n.dataset.node; }
+    }
+    return best;
+  });
+  assert.ok(id, "a folder in the Graph");
+  const before = await boxState(page, id);
+  const b = await page.locator(`.dg-world [data-node="${id}"]`).boundingBox();
+  await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2);
+  await page.waitForTimeout(400);
+  assert.ok(Math.abs((await mapScale(page)) - 0.8) < 1e-6, "in to the readable scale");
+  const off = await offCentre(page, id);
+  assert.ok(Math.abs(off.dx) <= 3 && Math.abs(off.dy) <= 3, `in to that node, in the middle (${off.dx.toFixed(1)}, ${off.dy.toFixed(1)})`);
+  assert.equal(await boxState(page, id), before, "that press didn't act");
+  // the next press acts (it's readable now)
+  const b2 = await page.locator(`.dg-world [data-node="${id}"]`).boundingBox();
+  await page.mouse.click(b2.x + b2.width / 2, b2.y + b2.height / 2);
+  await page.waitForFunction(({ id, before }) => { const n = document.querySelector(`.dg-world [data-node="${CSS.escape(id)}"]`); return !n || `${n.className}|${n.getAttribute("aria-label")}|${document.querySelectorAll(".dg-world [data-node]").length}` !== before; }, { id, before }, { timeout: 5000 });
+  await done(page);
+});
+t("S207: each box by its own target: at 0.6 a 24 px \"More\" brings the map in first, a 32 px folder acts", async () => {
+  const page = await bigMap();
+  await page.locator('[data-dg="fit"]').filter({ visible: true }).first().click();
+  await page.waitForTimeout(400);
+  const more = await page.locator(".dg-world .dg-n.k-more[data-node]").first().getAttribute("data-node");
+  assert.ok(more, "the top folder shows \"N more\"");
+  // at 0.6 "More"'s target is (24 + 5 + 5) × 0.6 = 20.4 px: under 24, so a press brings the map in to it first
+  await zoomOn(page, more, 0.6);
+  assert.ok(Math.abs((await mapScale(page)) - 0.6) < 1e-3, "at 0.6");
+  const before = await boxState(page, more);
+  let b = await page.locator(`.dg-world [data-node="${more}"]`).boundingBox();
+  await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2);
+  await page.waitForTimeout(400);
+  assert.ok(Math.abs((await mapScale(page)) - 0.8) < 1e-6, "\"More\" brought the map in to the readable scale");
+  assert.equal(await boxState(page, more), before, "and didn't act on that press");
+  const off = await offCentre(page, more);
+  assert.ok(Math.abs(off.dx) <= 3 && Math.abs(off.dy) <= 3, `in to it, in the middle (${off.dx.toFixed(1)}, ${off.dy.toFixed(1)})`);
+  // a folder at 0.6: (32 + 5 + 5) × 0.6 = 25.2 px, pressable, so the press acts at once, and the scale holds
+  const dir = await page.evaluate(() => {
+    const v = document.querySelector(".dg-world").parentElement.getBoundingClientRect();
+    const n = [...document.querySelectorAll(".dg-world button.dg-n.k-dir[data-node]")].find((n) => { const b = n.getBoundingClientRect(); return b.left > v.left + 8 && b.right < v.right - 8 && b.top > v.top + 8 && b.bottom < v.bottom - 60; });
+    return n && n.dataset.node;
+  });
+  assert.ok(dir, "a folder in view");
+  await zoomOn(page, dir, 0.6);
+  assert.ok(Math.abs((await mapScale(page)) - 0.6) < 1e-3, "at 0.6 again");
+  const was = await boxState(page, dir);
+  b = await page.locator(`.dg-world [data-node="${dir}"]`).boundingBox();
+  await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2);
+  await page.waitForFunction(({ id, was }) => { const n = document.querySelector(`.dg-world [data-node="${CSS.escape(id)}"]`); return !n || `${n.className}|${n.getAttribute("aria-label")}|${document.querySelectorAll(".dg-world [data-node]").length}` !== was; }, { id: dir, was }, { timeout: 5000 });
+  assert.ok(Math.abs((await mapScale(page)) - 0.6) < 1e-3, "the folder acted where it was; the map didn't move in");
   await done(page);
 });
 t("H12: a made thing's age updates in place, and a name cut in the middle stays whole", async () => {
