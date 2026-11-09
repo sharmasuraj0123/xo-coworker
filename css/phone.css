@@ -222,6 +222,9 @@
 @media (max-width:760px){
   /* Changes · File: words in the 40 px segment, at the phone's 36 like Preview · Source */
   .vw-seg.is-words button{height:36px}
+  /* Runs' Back to the list (the run view's head, a run inside a run too): the phone's 36 (Launchpad grader on 23c726e,
+     S099: 30 px, a desktop height with no phone rule, so no guard could see it undone) */
+  .rn-back{height:36px}
   /* a sub-agent's own Stop (its view's pill): 36 tall, a round icon */
   .rn-st .rn-stop{height:36px;width:36px;padding:0}
   /* a turn's rows (msgx's 28 and 32, compact density's 32) at the phone's floor */
