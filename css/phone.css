@@ -180,7 +180,10 @@
   /* the field's placeholder already says where it goes ('Reply to the agent…', 'Message xo-coworker…'), so on a phone
      the target is its mark alone and the model and thinking the thread runs keep their room */
   :root:root .target b{display:none}
-  :root:root .target{flex:none}
+  /* the target is bounded: it gives way before the model chip and Send, whatever it says, its words cut short with
+     an ellipsis (routing Off's paused words pushed both out of the row: the create-project grader on 9d1f71b, C111;
+     the whole of them shows above the composer) */
+  :root:root .target{flex:0 100 auto;min-width:0;overflow:hidden}
   :root:root .iq{flex:0 1 auto;min-width:0;padding:0 6px;max-width:none;font-size:var(--fs-sm)}
   :root:root .iq-sep{margin:0 4px}
 }

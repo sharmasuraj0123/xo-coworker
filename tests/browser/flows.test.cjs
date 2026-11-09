@@ -3139,6 +3139,11 @@ t("C111: routing Off, a reply in a thread: Send is on and no Off line shows besi
   s = await st();
   assert.equal(s.send, false, "Send waits");
   assert.ok(s.line && /router is off/i.test(s.line), `the line says so: ${s.line}`);
+  // the composer's row stays whole: the paused target gives way, the model chip and Send stay on screen (the
+  // create-project grader on 9d1f71b, C111 at 390: the target's words pushed both out of the row)
+  const row = await page.evaluate(() => { const vw = innerWidth, box = (id) => { const e = document.getElementById(id); if (!e || !e.getClientRects().length) return null; const b = e.getBoundingClientRect(); return { l: Math.round(b.left), r: Math.round(b.right), w: Math.round(b.width) }; }; return { vw, send: box("send"), iq: box("iq"), target: box("target") }; });
+  assert.ok(row.send && row.send.r <= row.vw && row.send.w >= 30, `Send whole on screen: ${JSON.stringify(row)}`);
+  assert.ok(!row.iq || (row.iq.r <= row.send.l && row.iq.w >= 24), `the model chip whole, before Send: ${JSON.stringify(row)}`);
   await page.locator("#say").fill("");
   await done(page);
 });
