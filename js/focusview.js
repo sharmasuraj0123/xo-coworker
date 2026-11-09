@@ -38,23 +38,28 @@ export function room(el, win = window) {
   return cs ? { t: n(cs.scrollMarginTop), r: n(cs.scrollMarginRight), b: n(cs.scrollMarginBottom), l: n(cs.scrollMarginLeft) } : { t: 0, r: 0, b: 0, l: 0 };
 }
 
-/** The element that draws a control's focus ring, and how far the ring reaches past it: the control itself, or the
- *  box that draws the ring for it (a checkbox's label, a search field's box: `:has(input:focus-visible)`), up to three
- *  levels out. None drawn: the control as it's seen, and nothing past it. */
-export function ringOf(el, win = window) {
+/** The rings drawn for a control, and how far each reaches past its element: the control's own, and any box that draws
+ *  one for it (a checkbox's label, a search field's box: `:has(input:focus-visible)`), up to three levels out. All of
+ *  them, never the first only (the create-project grader's C115: a checkbox and its label each drew one). */
+export function ringsOf(el, win = window) {
+  const out = [];
   for (let n = el, i = 0; n && n.nodeType === 1 && i < 4; n = n.parentElement, i++) {
     const cs = win.getComputedStyle(n), w = parseFloat(cs.outlineWidth) || 0;
-    if (cs.outlineStyle && cs.outlineStyle !== "none" && w > 0) return { el: n, ext: w + Math.max(0, parseFloat(cs.outlineOffset) || 0) };
+    if (cs.outlineStyle && cs.outlineStyle !== "none" && w > 0) out.push({ el: n, ext: w + Math.max(0, parseFloat(cs.outlineOffset) || 0) });
   }
-  return { el: seen(el), ext: 0 };
+  return out;
 }
-/** All that focus draws for a control, in the viewport's px: the control as it's seen (a checkbox's label), the ring
- *  past whichever element draws it, and the control's room (its scroll-margin). One measure for every control, never
+/** All that focus draws for a control, in the viewport's px: the control as it's seen (a checkbox's label), every ring
+ *  drawn for it past its element, and the control's room (its scroll-margin). One measure for every control, never
  *  one border box at a time (the create-project grader on e55c2d8, C115). */
 export function decoration(el, win = window) {
-  const s = seen(el), m = room(el, win), g = ringOf(el, win), e = g.ext;
-  const a = el.getBoundingClientRect(), b = s === el ? a : s.getBoundingClientRect(), c = g.el === el ? a : g.el === s ? b : g.el.getBoundingClientRect();
-  return { top: Math.min(a.top - m.t, b.top, c.top - e), bottom: Math.max(a.bottom + m.b, b.bottom, c.bottom + e), left: Math.min(a.left - m.l, b.left, c.left - e), right: Math.max(a.right + m.r, b.right, c.right + e) };
+  const s = seen(el), m = room(el, win), a = el.getBoundingClientRect(), b = s === el ? a : s.getBoundingClientRect();
+  const d = { top: Math.min(a.top - m.t, b.top), bottom: Math.max(a.bottom + m.b, b.bottom), left: Math.min(a.left - m.l, b.left), right: Math.max(a.right + m.r, b.right) };
+  for (const g of ringsOf(el, win)) {
+    const c = g.el === el ? a : g.el === s ? b : g.el.getBoundingClientRect(), e = g.ext;
+    d.top = Math.min(d.top, c.top - e); d.bottom = Math.max(d.bottom, c.bottom + e); d.left = Math.min(d.left, c.left - e); d.right = Math.max(d.right, c.right + e);
+  }
+  return d;
 }
 /** The least move of box v that shows decoration d whole; on an axis it can't fit (a long field, the code editor),
  *  only a control r wholly out of the box moves, to its nearest edge. */

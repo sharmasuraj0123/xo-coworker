@@ -2,7 +2,7 @@
 // Settings › Routing's Keep it and Disconnect brought flush with the scroller's foot, by Tab and when focus landed by
 // itself, and 3.56 px of the ring cut off). Layout, not a smaller ring: every control keeps the ring's room clear as
 // its scroll-margin, which the browser's own scrollIntoView (a Tab, Settings' focusOn) keeps, and so does the focus
-// rule (js/focusview.js: room(), ringOf(), decoration(): a checkbox's label and its ring too, C115). Checked from the
+// rule (js/focusview.js: room(), ringsOf(), decoration(): a checkbox's label and its ring too, C115). Checked from the
 // source; the drawn ring is the settings case "S111 S112 the ring has room at the foot".
 //   node tests/ring-room.test.mjs
 import assert from "node:assert/strict";
@@ -26,9 +26,10 @@ t("every control keeps it clear as its scroll-margin (zero specificity, controls
 });
 t("the focus rule keeps it too, measuring all that focus draws: the control as seen, its room, the ring past whoever draws it", () => {
   assert.match(fv, /export function room\(el, win = window\)/, "room(): the control's scroll-margin");
-  assert.match(fv, /export function ringOf\(el, win = window\)/, "ringOf(): the control's own ring, or its label's or field box's");
+  assert.match(fv, /export function ringsOf\(el, win = window\)/, "ringsOf(): the control's own ring and its label's or field box's, every one");
   const d = fv.slice(fv.indexOf("export function decoration("), fv.indexOf("\n}\n", fv.indexOf("export function decoration(")));
-  assert.match(d, /const s = seen\(el\), m = room\(el, win\), g = ringOf\(el, win\), e = g\.ext;/, "decoration(): seen, room and ring");
+  assert.match(d, /const s = seen\(el\), m = room\(el, win\)/, "decoration(): the control as seen, its room");
+  assert.match(d, /for \(const g of ringsOf\(el, win\)\)/, "and every ring drawn for it");
   const b = fv.slice(fv.indexOf("export function bring("), fv.indexOf("\n}\n", fv.indexOf("export function bring(")));
   assert.match(b, /shift\(sc\.getBoundingClientRect\(\), decoration\(el, win\), r\)/, "bring() shows the whole decoration");
   assert.match(fv, /export function bringWhole\(el, win = window\) \{\n  const b = bring\(el, win\);/, "bringWhole() is bring()");

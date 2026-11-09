@@ -2915,6 +2915,7 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .rt-check:has(input:checked){border-color:color-mix(in srgb,var(--accent-fill) 55%,var(--line));color:var(--ink)}
 .rt-check input{accent-color:var(--accent-fill)}
 .rt-check:has(input:focus-visible){outline:2px solid var(--focus);outline-offset:1px}
+.rt-check input:focus-visible{outline:none} /* the label draws the one ring for its box: never two (C115) */
 @media (max-width:760px){
   .rt-w{grid-template-columns:96px minmax(60px,1fr) auto}
   .rt-def{flex-direction:column;align-items:stretch}

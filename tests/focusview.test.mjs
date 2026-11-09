@@ -138,4 +138,14 @@ t("a label that draws its checkbox's ring is brought in with the ring whole (C11
   F.keepFocusInView(P.doc, P.win); P.focus(); P.flush();
   assert.deepEqual(P.calls, [{ dx: 0, dy: 3 }], "brought up 3 px: the ring whole");
 });
+t("a checkbox and its label both drawing a ring: the label's ring is the one measured whole (every ring counts)", () => {
+  const P = standIn(580, { size: 13 });
+  const label = { nodeType: 1, getClientRects: () => [1], getBoundingClientRect: () => ({ top: 568, bottom: 600, left: 10, right: 200, width: 190, height: 32 }), parentElement: P.scroller, ownerDocument: P.doc, closest: () => null };
+  P.el.nodeType = 1; P.el.parentElement = label;
+  P.el.matches = (sel) => sel.includes('input[type="checkbox"]');
+  P.el.closest = (sel) => (sel === "label" ? label : null);
+  const cs = P.win.getComputedStyle;
+  P.win.getComputedStyle = (n) => (n === label ? { ...cs(n), outlineStyle: "solid", outlineWidth: "2px", outlineOffset: "1px" } : n === P.el ? { ...cs(n), outlineStyle: "solid", outlineWidth: "2px", outlineOffset: "2px" } : cs(n));
+  assert.equal(F.decoration(P.el, P.win).bottom, 603, "the label's foot and its ring's 3 px, though the box draws one too");
+});
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
