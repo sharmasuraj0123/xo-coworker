@@ -201,7 +201,11 @@ t("G8: the whole-file capsule's × is named for the file", async () => {
   const page = await app({ files: { "notes.md": { content: "# Notes\n", version: "sha256:N" } } });
   await toDemo(page);
   await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "notes.md", path: "notes.md", name: "notes.md" }));
-  await page.locator("[data-vw-askfile]").click();
+  // Ask about this: in the head, or (a phone's narrow head, the owner's choice) in its ⋯ More
+  // (the head settles its width as Files lays out: the head's own Ask shows within moments on a desktop, never on a phone)
+  const inHead = page.locator("#viewer .vw-acts .vw-ask").first();
+  if (await inHead.waitFor({ state: "visible", timeout: 2000 }).then(() => true, () => false)) await inHead.click();
+  else { await page.locator("#viewer [data-vw-more]").click(); await page.locator("#viewer .vw-menu [data-vw-askfile]").click(); }
   await page.waitForSelector("#cref:not([hidden]) .cref-x");
   assert.equal(await page.locator("#cref .cref-x").getAttribute("aria-label"), "Take notes.md out of this message");
   // a line range keeps its line words
@@ -2628,13 +2632,18 @@ for (const w of [320, 390]) {
     const g = await page.evaluate(() => {
       const top = document.querySelector("#viewer .vw-top"), r = top.getBoundingClientRect(), vw = innerWidth;
       const box = (sel) => { const e = top.querySelector(sel); if (!e || !e.getClientRects().length) return null; const b = e.getBoundingClientRect(); return { l: Math.round(b.left), r: Math.round(b.right), w: Math.round(b.width), h: Math.round(b.height) }; };
-      return { vw, top: { h: Math.round(r.height) }, name: box("#vw-h"), more: box("[data-vw-more]"), edit: box("[data-vw-edit]"), seg: box(".vw-seg.is-words"), ask: box(".vw-acts .vw-ask"), rows: new Set([...top.querySelectorAll(".vw-acts > *")].filter((e) => e.getClientRects().length).map((e) => Math.round(e.getBoundingClientRect().top))).size };
+      return { vw, top: { h: Math.round(r.height) }, name: box("#vw-h"), more: box("[data-vw-more]"), edit: box("[data-vw-edit]"), seg: box(".vw-seg.is-words"), ask: box(".vw-acts .vw-ask"), rows: (() => {
+        // rows by their middles: a 36 px control sits 2 px lower than a 40 px one in the same row (the phone floor)
+        const mids = [...top.querySelectorAll(".vw-acts > *")].filter((e) => e.getClientRects().length).map((e) => { const b = e.getBoundingClientRect(); return (b.top + b.bottom) / 2; }).sort((a, b) => a - b);
+        return mids.length ? 1 + mids.slice(1).filter((m, i) => m - mids[i] > 4).length : 0;
+      })() };
     });
     assert.ok(g.more && g.more.r <= g.vw, `More on screen: ${JSON.stringify(g.more)} in ${g.vw}`);
     assert.ok(g.name && g.name.w >= 56, `the name readable (a long one, cut with …): ${JSON.stringify(g.name)}`);
     assert.equal(g.ask, null, "Ask about this isn't in the narrow row");
     assert.ok(g.seg && g.edit, "the view switch and Edit stay");
     assert.equal(g.rows, 1, "one row");
+    assert.ok(g.top.h <= 48, `the head is one row tall: ${g.top.h}`);
     // Ask about this is in More
     await page.locator("#viewer [data-vw-more]").click();
     const ask = page.locator("#viewer .vw-menu [data-vw-askfile]");
