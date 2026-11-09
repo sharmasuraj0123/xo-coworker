@@ -395,7 +395,22 @@ export function currentPools(pools, runtimes) {
  * The one honest line about the connection and what can run, or null when all is well.
  * w: {error, conn, statusError, statusCode, runtimes, router, pools, loaded}
  */
-export function connLine(w) {
+/** What routes a chat: its own routing when it has one, else the Space's (xo-space's chats/router.py effective()).
+ *  pid: the chat's project id ("workspace" for the Workspace); without one, the Space's. */
+export function routingOf(w, pid = null) {
+  const own = pid && (w && w.projects || []).find((p) => p.id === pid)?.routing;
+  return own && own.mode ? own : (w && w.router) || null;
+}
+/** Off, in words true to the server: only a new message to a chat whose routing is off is refused (delivery.py checks
+ *  the chat's effective routing on the timeline, never in a thread). Astra C111 on dd15034. */
+function offLine(w, pid) {
+  const r = routingOf(w, pid), own = pid && (w.projects || []).find((p) => p.id === pid)?.routing;
+  if (!r || r.mode !== "off") return null;
+  return own && own.mode ? { kind: "off", text: "Routing is off for this chat", sub: "new messages here are refused · replies in threads still work" }
+    : { kind: "off", text: "The router is off", sub: "chats using it refuse new messages · replies in threads still work" };
+}
+
+export function connLine(w, { pid = null } = {}) {
   if (!w) return null;
   // the engine down is said as such: the UI server answered, so it isn't the network
   if (STORM_DOWN.has(w.statusCode) || STORM_DOWN.has(w.errorCode)) return { kind: "down", text: "XO's chat engine isn't running", sub: "retrying · nothing you write is lost" };
@@ -405,7 +420,8 @@ export function connLine(w) {
     const r = mainRuntime(rts);
     return { kind: "off", text: `${cliName(r.name)} isn't connected`, sub: "connect it in XO · sending waits until then" };
   }
-  if (w.router && w.router.mode === "off") return { kind: "off", text: "The router is off", sub: "new messages to the Workspace and projects are refused · threads still take replies" };
+  const off = offLine(w, pid);
+  if (off) return off;
   const pools = currentPools(w.pools, rts);
   const closed = pools.find((p) => p.state === "closed");
   if (closed) return { kind: "wait", text: `Paused until ${hhmm(closed.resets_at)}`, sub: "usage limit · running work finishes, new work waits" };
@@ -415,14 +431,15 @@ export function connLine(w) {
 }
 
 /** Why sending is paused right now ("" when it isn't), for the composer. timeline: posting to a chat's timeline. */
-export function sendBlock(w, { timeline = true } = {}) {
+export function sendBlock(w, { timeline = true, pid = null } = {}) {
   if (!w) return "";
   if (STORM_DOWN.has(w.statusCode) || STORM_DOWN.has(w.errorCode)) return "XO's chat engine isn't running";
   if (w.error && !(w.projects && w.projects.length)) return "Can't reach XO right now";
   if (!w.loaded) return "Connecting to XO…";
   const rts = w.runtimes || [];
   if (rts.length && rts.every((r) => !r.cli || r.cli.logged_in === false || r.error)) return `${cliName(mainRuntime(rts).name)} isn't connected`;
-  if (timeline && w.router && w.router.mode === "off") return "The router is off";
+  // a new message to a chat whose routing is off (its own, or the Space's when it has none); a thread's reply never
+  if (timeline) { const off = offLine(w, pid); if (off) return off.text; }
   return "";
 }
 

@@ -1791,9 +1791,10 @@ function heraldRender(needs) {
       : h.decide ? `<button type="button" class="hr hr-ev k-${h.kind}" data-decide="${esc(h.decide)}" data-hn="${h.n}">${inner}</button>`
       : h.undo ? `<div class="hr hr-ev has-undo k-${h.kind}" data-hn="${h.n}">${inner}<button type="button" class="hr-undo" data-herald-undo>${esc(h.undoLabel || "Undo")}</button></div>`
       : `<div class="hr hr-ev k-${h.kind}" data-hn="${h.n}">${inner}</div>`;
-  } else if (connLine(world.state)) {
-    // an honest, persistent line when XO can't be reached, can't run, or waits on a limit (P0-8)
-    const c = connLine(world.state);
+  } else if (connLine(world.state, { pid: chatOf(S.view) })) {
+    // an honest, persistent line when XO can't be reached, can't run, or waits on a limit (P0-8); routing Off only
+    // where it applies to this place's chat (its own routing, else the Space's)
+    const c = connLine(world.state, { pid: chatOf(S.view) });
     html = `<div class="hr hr-conn k-${c.kind}" role="status"><span class="hr-ic ${c.kind === "down" ? "k-stopped" : "k-calm"}">${c.kind === "down" ? ICON.retry : ICON.pause}</span><span class="hr-t">${esc(c.text)}</span><span class="hr-s">${esc(c.sub)}</span></div>`;
   } else if (S.view === "home" || convThread(S.view)) html = "";
   else {
@@ -2280,7 +2281,9 @@ function liveBlock() {
   if (CH.isChats(S.view)) return CH.blocked(S.view) || sendBlock(world.state, { timeline: false });
   const t = convThread(S.view);
   const toThread = !!t && !/(^|\s)@[\w.-]+/.test(say.value);
-  return sendBlock(world.state, { timeline: !toThread });
+  // a new message goes to the @-named project's chat, else this place's: refused only if that chat's routing is off
+  const pid = targetOf(say.value, world.state.projects).pid || chatOf(S.view);
+  return sendBlock(world.state, { timeline: !toThread, pid });
 }
 
 function sendLive(raw) {

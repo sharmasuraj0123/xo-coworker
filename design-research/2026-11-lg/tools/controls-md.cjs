@@ -355,7 +355,7 @@ const DOES = {
   'data-shf': 'Shape, first run: what you\'ll use XO for.',
   'data-route=agent': 'Routing: the coordinator reads each message and decides.',
   'data-route=decision': 'Routing: a decision model routes messages.',
-  'data-route=off': 'Routing off: new messages to the Workspace and projects are refused; threads still take your replies.',
+  'data-route=off': 'Routing off: chats using this setting refuse new messages (one with its own routing keeps it); replies inside threads still work.',
   'data-dm-on': 'Connects that decision model.',
   'data-dm-off': 'Asks to disconnect the decision model.',
   'data-dm-cancel': 'Cancels connecting it.',

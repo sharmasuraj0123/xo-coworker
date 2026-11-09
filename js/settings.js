@@ -103,7 +103,7 @@ export function createSettings({ world, announce, PROJ, onChange }) {
       `<div class="set-choices" role="radiogroup" aria-labelledby="rt-h">` +
       opt("agent", null, "The coordinator", "Reads your message and decides itself: answer, forward, or start a thread.") +
       R.models.map((m) => opt("decision", m.id, m.label, m.connected ? `A decision model routes it; when it isn't sure, the coordinator decides.` : "Connect it below to use it.", !m.connected)).join("") +
-      opt("off", null, "Off", "New messages to the Workspace and projects are refused. Threads still take your replies.") +
+      opt("off", null, "Off", "Chats using this setting refuse new messages; one with its own routing keeps it. Replies inside threads still work.") +
       `</div>` +
       (r.mode === "decision" ? `<div class="set-row is-sub"><div class="set-l"><b>When it isn't sure</b><span>Below this confidence, the coordinator decides instead.</span></div><xo-select class="set-sel" data-abstain aria-label="Confidence needed"${busy}>${pcts(ab).map((p) => `<option value="${p}"${Math.abs(ab - p) < 0.001 ? " selected" : ""}>${Math.round(p * 100)}% sure</option>`).join("")}</xo-select></div>` : "") +
       errHtml(R.err.route) + `</section>` +
