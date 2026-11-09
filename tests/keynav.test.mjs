@@ -2,7 +2,7 @@
 // The real DOM, and each control that uses them, are in the browser suite.
 //   node tests/keynav.test.mjs
 import assert from "node:assert/strict";
-import { step, usable, rovingTab, radioKeys, menuKeys } from "../js/keynav.js";
+import { step, usable, rovingTab, radioKeys, menuKeys, pointerFollows } from "../js/keynav.js";
 
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
@@ -147,4 +147,35 @@ t("menu: Escape and Tab call close(menu, key); Escape stops there, Tab goes on; 
   assert.equal(e.prevented, false); assert.equal(e.stopped, false);
 });
 
-console.log(`${passed} passed`);
+// ── the pointer and the keyboard: one active item (Astra C058 on 517af1c: hover painted a second item like the
+// keyboard's, and Enter chose the one not pointed at) ──
+globalThis.document = doc;
+const move = (root, target, pointerType = "mouse") => { for (const fn of root.on.pointermove || []) fn({ target, pointerType }); };
+t("pointerFollows: a mouse moving onto a menu's item, while focus is in that menu, focuses it (Enter and the arrows go on from there)", () => {
+  assert.equal(typeof pointerFollows, "function", "keynav.js has pointerFollows");
+  const a = new El("button", { role: "menuitem" }, [], "Copy"), b = new El("button", { role: "menuitem" }, [], "Download"), c = new El("button", { role: "menuitem", "aria-disabled": "true" }, [], "Gone");
+  const menu = new El("div", { role: "menu" }, [a, b, c]), root = new El("div", {}, [menu]);
+  pointerFollows(root);
+  a.focus();
+  move(root, b);
+  assert.equal(doc.activeElement, b, "the pointed-at item is the active one");
+  move(root, c);
+  assert.equal(doc.activeElement, b, "not an item that can't be chosen");
+  move(root, a, "touch");
+  assert.equal(doc.activeElement, b, "a touch moving doesn't move focus");
+  const out = new El("input", {}); doc.activeElement = out;
+  move(root, a);
+  assert.equal(doc.activeElement, out, "focus elsewhere (not in the menu) stays where it is");
+});
+t("menuKeys brings pointerFollows with it: every menu that walks with the keys follows the pointer", () => {
+  const a = new El("button", { role: "menuitem" }, [], "One"), b = new El("button", { role: "menuitem" }, [], "Two");
+  const menu = new El("div", { role: "menu" }, [a, b]), root = new El("div", {}, [menu]);
+  menuKeys(root);
+  a.focus();
+  move(root, b);
+  assert.equal(doc.activeElement, b, "the pointer made Two the active item");
+  key(root, b, "ArrowDown");
+  assert.equal(doc.activeElement, a, "the arrows carry on from the pointed-at item (wrapping)");
+});
+
+console.log(`${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

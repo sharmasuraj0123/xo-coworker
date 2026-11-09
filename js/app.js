@@ -2131,6 +2131,16 @@ say.addEventListener("keydown", (e) => {
   if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); say.blur(); }
 });
 atList.addEventListener("mousedown", (e) => { const li = e.target.closest("li"); if (li) { e.preventDefault(); pickAt(li.dataset.pid); } });
+// the row under a moving mouse is the active one, as the arrows make it (Jump's model): one row looks active, Enter
+// picks it and the arrows go on from it (Astra C058 on 517af1c: hover painted a second row; Enter took the first)
+atList.addEventListener("pointermove", (e) => {
+  if (e.pointerType && e.pointerType !== "mouse" && e.pointerType !== "pen") return;
+  const li = e.target.closest("li[role=option]"), i = li ? [...atList.children].indexOf(li) : -1;
+  if (i < 0 || i === atList._sel) return;
+  atList.querySelector('[aria-selected="true"]')?.setAttribute("aria-selected", "false");
+  atList._sel = i; li.setAttribute("aria-selected", "true");
+  say.setAttribute("aria-activedescendant", li.id);
+});
 // On Home an empty composer shrinks when it loses focus, which drops the dock (and the herald just above it)
 // 45 px under the pointer, so the click lands on nothing. Keep its shape from the press until the click.
 {

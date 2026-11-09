@@ -25,6 +25,7 @@ import { activityOf, folderOf } from "./map.js";
 import { fileIcon, folderIcon } from "./fileicons.js";
 import { countsHtml } from "./changesframe.js";
 import { RUNS } from "./viewer.js";
+import { pointerFollows } from "./keynav.js";
 
 const WIDE = 600;       // the panel's width from which tree and file sit side by side (the panel goes to 720)
 const TOUCHED = 6;      // "Touched by agents" shows at most this many
@@ -723,6 +724,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       M.menu.className = "fl-menu"; M.menu.setAttribute("role", "menu"); M.menu.hidden = true;
       document.body.appendChild(M.menu);
       wireMenu(M.menu);
+      pointerFollows(M.menu); // the item under the mouse is the active one (C058)
       wire(host);
     },
     show(view) {

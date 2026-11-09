@@ -57,7 +57,23 @@ export function radioKeys(root, { follow = true } = {}) {
   });
 }
 
+/** The pointer and the keyboard share one active item, as a macOS menu does: a mouse moving onto a menu's usable
+ *  item, while focus is in that menu, focuses it, so hover never paints a second item Enter won't choose, and the
+ *  arrows carry on from it. A touch moving, or focus elsewhere, moves nothing (Astra C058 on 517af1c: two items
+ *  looked active). menuKeys brings it; a menu with keys of its own calls it. */
+export function pointerFollows(root, sel = ITEM) {
+  root.addEventListener("pointermove", (e) => {
+    if (e.pointerType && e.pointerType !== "mouse" && e.pointerType !== "pen") return;
+    const it = e.target && e.target.closest ? e.target.closest(sel) : null, menu = it && it.closest('[role="menu"]');
+    if (!it || !menu || !root.contains(it) || !usable(it)) return;
+    const a = typeof document !== "undefined" ? document.activeElement : null;
+    if (a === it || !a || !menu.contains(a)) return;
+    it.focus({ preventScroll: true });
+  });
+}
+
 export function menuKeys(root, { close } = {}) {
+  pointerFollows(root);
   root.addEventListener("keydown", (e) => {
     if (!plain(e) || e.isComposing) return;
     const menu = e.target.closest?.('[role="menu"]');

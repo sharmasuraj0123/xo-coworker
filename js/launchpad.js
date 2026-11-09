@@ -20,6 +20,7 @@
 import { ICON } from "./ui.js";
 import { appState, nextStep, formKey, launchpadUrl, sizeWords } from "./lpapi.js";
 import { esc, copyText, COPY_REFUSED } from "./util.js";
+import { pointerFollows } from "./keynav.js";
 
 const I = (d) => `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 export const LP_ICON = {
@@ -999,6 +1000,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   function mount(section, { open, hide }) {
     S.el = section; S.hs = section.querySelector(".lp-hs"); S.ha = section.querySelector(".lp-ha"); S.body = section.querySelector(".fr-b");
     S.body.addEventListener("scroll", over, { passive: true });
+    pointerFollows(S.body); // the ⋯ menu: the item under the mouse is the active one (C058)
     addEventListener("resize", over);
     onOpen = open; onHide = hide;
     section.addEventListener("click", (e) => {

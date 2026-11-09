@@ -2379,6 +2379,30 @@ for (const [name, sel, place] of [["C007 project search", "#pf-in", "home"], ["C
   });
 }
 
+t("C058: the @ list has one active row: the mouse moves it, Enter picks it, the arrows go on from it", async () => {
+  const page = await app({ extraChats: Array.from({ length: 3 }, (_, i) => H.chat(`chat_r${i}`, "project", `rcpt-${i}`)) });
+  await page.locator("#say").focus();
+  await page.keyboard.type("@");
+  const rows = page.locator("#at-list li[role=option]");
+  await rows.nth(1).waitFor();
+  const st = () => page.evaluate(() => { const l = document.querySelector("#at-list"), li = [...l.querySelectorAll("li[role=option]")]; return { active: document.querySelector("#say").getAttribute("aria-activedescendant"), on: li.filter((x) => x.getAttribute("aria-selected") === "true").map((x) => x.id), paint: li.map((x) => getComputedStyle(x).backgroundColor) }; });
+  const before = await st();
+  assert.deepEqual([before.active, before.on], ["at-0", ["at-0"]], "the first row is the active one");
+  // the mouse onto the second row: it becomes the active one, and only it looks it (Astra C058: two rows did)
+  const b = await rows.nth(1).boundingBox();
+  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 3 });
+  await page.waitForTimeout(150);
+  const over = await st();
+  assert.deepEqual([over.active, over.on], ["at-1", ["at-1"]], "the row under the mouse is the active one");
+  assert.equal(over.paint.filter((c) => c === over.paint[1]).length, 1, `one row painted active: ${JSON.stringify(over.paint)}`);
+  // the arrows carry on from it; Enter picks what's highlighted
+  await page.keyboard.press("ArrowDown");
+  const pid = await rows.nth(2).getAttribute("data-pid");
+  assert.equal((await st()).active, "at-2", "↓ from the pointed-at row");
+  await page.keyboard.press("Enter");
+  assert.match(await page.locator("#say").inputValue(), new RegExp(`^@${pid} `), `Enter picked @${pid}, the highlighted row`);
+  await done(page);
+});
 // ── the Intelligence picker ──
 async function picker(page) {
   await toDemo(page);

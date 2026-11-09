@@ -718,8 +718,9 @@ button.hr:active{transform:scale(.97)}
 .at-ic{flex:none;display:grid;place-items:center;color:var(--ink-4)}
 .at-ic svg{width:15px;height:15px}
 .at-s{margin-left:auto;font:400 var(--fs-sm) var(--sans);color:var(--ink-4)}
-.at-list li[aria-selected="true"],.at-list li:hover{background:var(--fill-2);color:var(--ink)}
-.at-list li[aria-selected="true"] .at-ic,.at-list li:hover .at-ic{color:var(--ink-3)}
+/* one active row: the keyboard's, which the mouse moves too (app.js); hover never paints a second one (C058) */
+.at-list li[aria-selected="true"]{background:var(--fill-2);color:var(--ink)}
+.at-list li[aria-selected="true"] .at-ic{color:var(--ink-3)}
 
 /* the thread's own decision, docked above the composer */
 .tdock{width:var(--col-w);margin-left:var(--col-x)}

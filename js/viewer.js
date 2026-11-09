@@ -23,6 +23,7 @@ import { api, attachmentUrl, attachmentText } from "./api.js";
 import { kindOf, typeWord } from "./attach.js";
 import * as DV from "./diffview.js";
 import * as K from "./keys.js";
+import { pointerFollows } from "./keynav.js";
 import { countsHtml } from "./changesframe.js";
 import { merge3 } from "./merge.js";
 import { draftKey, getDraft, putDraft, dropDraft } from "./drafts.js";
@@ -945,6 +946,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   document.addEventListener("pointerdown", (e) => { if (V.menu && !(e.target.closest && e.target.closest(".vw-mw"))) menuOff(); }, true);
   // a tab put away (a phone may close it later): the draft is kept now
   document.addEventListener("visibilitychange", () => { if (document.hidden && ED.on && ED.dirty) keepDraft(); });
+  pointerFollows(el); // the More menu: the item under the mouse is the active one (C058)
   el.addEventListener("keydown", (e) => {
     if (V.menu && e.target.closest(".vw-mw")) {
       const items = [...el.querySelectorAll(".vw-menu [role=menuitem]")], i = items.indexOf(document.activeElement);
