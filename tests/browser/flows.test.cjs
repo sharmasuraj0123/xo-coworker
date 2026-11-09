@@ -1143,7 +1143,7 @@ const ruleWatch = (page) => page.evaluate(() => {
   window.requestAnimationFrame = (f) => { if (String(f).includes("bring(el, win)")) window.__rule.checks++; return raf(f); };
   document.addEventListener("focusbrought", () => window.__rule.brought++, true);
 });
-t("FOCUS-RULE: a Tab's and a press's focus aren't even checked; the conversation's scroll is follow.js's; 1 px controls are left", async () => {
+t("FOCUS-RULE: a press's focus isn't checked; a Tab's is, and moves nothing the browser already showed whole; the conversation's scroll is follow.js's; 1 px controls are left", async () => {
   const page = await app({ messages: MANY() });
   await toDemo(page);
   await page.waitForFunction(() => document.querySelectorAll("#msgs > [data-k]").length > 60, null, { timeout: 15000 });
@@ -1154,7 +1154,8 @@ t("FOCUS-RULE: a Tab's and a press's focus aren't even checked; the conversation
   // (a press that opens something whose own script then hands focus on, a picker, is a script's focus: not here)
   for (let i = 0; i < 3; i++) { await page.locator("#say").click(); await page.keyboard.press("Escape"); }
   let w = await page.evaluate(() => window.__rule);
-  assert.deepEqual(w, { checks: 0, brought: 0 }, "Tab and presses: nothing checked, nothing moved");
+  assert.equal(w.brought, 0, `Tab and presses: nothing moved, every control the browser brought was whole, ring and all (${JSON.stringify(w)})`);
+  assert.ok(w.checks >= 20, `a Tab's focus is checked (C115: the browser shows the control, not its label's ring) (${JSON.stringify(w)})`);
   // the conversation, read in the middle; a script hands focus to a row far above
   const before = await page.evaluate(() => { const s = document.getElementById("scroller"); s.scrollTop = Math.round(s.scrollHeight / 2); return s.scrollTop; });
   await page.waitForTimeout(200);

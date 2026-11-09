@@ -40,9 +40,13 @@ t("a scroller that owns its scroll (the conversation's, follow.js) is left to it
   F.keepFocusInView(P.doc, P.win); P.focus(); P.flush();
   assert.deepEqual([P.calls.length, P.scroller.scrollTop], [0, 2000]);
 });
-t("in view, partly in view, visually hidden (1 px), or no longer focused: left alone", () => {
+t("partly in view: brought whole, the least distance (what focus draws is never cut by its scroller's edge)", () => {
+  const P = standIn(580); F.keepFocusInView(P.doc, P.win); P.focus(); P.flush();
+  assert.deepEqual(P.calls, [{ dx: 0, dy: 16 }], "its foot (616) to the box's foot (600)");
+});
+t("in view, visually hidden (1 px), or no longer focused: left alone", () => {
   assert.equal(typeof F.keepFocusInView, "function");
-  for (const [top, o, why] of [[100, {}, "in view"], [580, {}, "partly in view"], [-500, { size: 1 }, "1 px (sr-only)"]]) {
+  for (const [top, o, why] of [[100, {}, "in view"], [-500, { size: 1 }, "1 px (sr-only)"]]) {
     const P = standIn(top, o); F.keepFocusInView(P.doc, P.win); P.focus(); P.flush();
     assert.equal(P.calls.length, 0, why);
   }
@@ -60,23 +64,18 @@ t("out of view is judged against the box it scrolls in; with none, nothing moves
   const Q = standIn(-972, { scrolls: false });
   assert.equal(F.lost(Q.el, Q.win), false, "no box to scroll (a box with nothing to scroll isn't one): nothing it can do, nothing moves");
 });
-t("the browser's own focus isn't checked (a Tab's one destination, the control pressed); a script's is, whatever led to it", () => {
+t("a press's own focus isn't checked; a script's is, whatever led to it, and so is a Tab's (its label's ring, C115)", () => {
   assert.equal(typeof F.keepFocusInView, "function");
   const P = standIn(-972); F.keepFocusInView(P.doc, P.win);
-  const tab = (prevented = false) => { P.L.keydown({ key: "Tab" }); P.L["win:keydown"]({ key: "Tab", defaultPrevented: prevented }); };
-  tab(); P.focus(); P.flush();
-  assert.equal(P.calls.length, 0, "a Tab's own move: the browser's");
-  tab(true); P.focus(); P.flush();
-  assert.equal(P.calls.length, 1, "Tab taken over by a script (a sheet's wrap): the script's focus is checked");
+  P.focus(); P.flush();
+  assert.equal(P.calls.length, 1, "a Tab's (or a script's) focus out of view: checked, and brought in");
+  P.scroller.scrollTop = 2000;
   P.L.pointerdown({ target: P.el }); P.focus(); P.flush();
-  assert.equal(P.calls.length, 1, "the control pressed takes focus: the browser's");
+  assert.equal(P.calls.length, 1, "the control pressed takes focus: the pointer is on it, not checked");
   P.win.tick(200); P.L.pointerdown({ target: { other: true } }); P.focus(); P.flush();
   assert.equal(P.calls.length, 2, "a press on Close, then a script hands focus to the editor out of sight: checked (S138 on a phone)");
-  // S023 on a phone: a Tab reaches Reset all (its own move, skipped), Enter at once, the script's focus 1097 px up: checked
-  tab(); P.focus(); P.flush();
-  assert.equal(P.calls.length, 2, "the Tab's destination");
-  P.L.keydown({ key: "Enter" }); P.focus(); P.flush();
-  assert.equal(P.calls.length, 3, "Enter right after the Tab, then a script's focus: checked (only the Tab's own destination was skipped)");
+  const Q = standIn(100); F.keepFocusInView(Q.doc, Q.win); Q.focus(); Q.flush();
+  assert.equal(Q.calls.length, 0, "in view, ring and all: checked, nothing moves");
 });
 t("a checkbox inside its label is seen as the label: the label must be on screen (C115 on a phone)", () => {
   assert.equal(typeof F.seen, "function", "seen(el)");
@@ -121,5 +120,22 @@ t("a control is brought in with its ring's room (its scroll-margin) clear of the
   Q.win.getComputedStyle = (n) => (n === Q.el ? { ...cq(n), scrollMarginTop: "6px", scrollMarginBottom: "6px" } : cq(n));
   F.bringWhole(Q.el, Q.win);
   assert.equal(Q.scroller.scrollTop, 2000 + (580 + 36 - 600) + 6, "whole, its foot 6 px above the box's foot");
+});
+// what focus draws, whoever draws it (the create-project grader on e55c2d8, C115 on a phone: the allow/deny label flush
+// with the screen's foot, its ring, 2 px at a 1 px gap, 3 px cut): a checkbox's label that draws the ring is measured
+// with the ring, and brought in until it's whole, by a Tab's focus as by a script's
+t("a label that draws its checkbox's ring is brought in with the ring whole (C115), by a Tab's focus too", () => {
+  assert.equal(typeof F.decoration, "function", "decoration(el)");
+  const P = standIn(580, { size: 13 }); // the native box, 13 px, its foot at 593 in a 600 px box
+  const label = { nodeType: 1, getClientRects: () => [1], getBoundingClientRect: () => ({ top: 568, bottom: 600, left: 10, right: 200, width: 190, height: 32 }), parentElement: P.scroller, ownerDocument: P.doc, closest: () => null };
+  P.el.nodeType = 1; P.el.parentElement = label;
+  P.el.matches = (sel) => sel.includes('input[type="checkbox"]');
+  P.el.closest = (sel) => (sel === "label" ? label : null);
+  const cs = P.win.getComputedStyle;
+  P.win.getComputedStyle = (n) => (n === label ? { ...cs(n), outlineStyle: "solid", outlineWidth: "2px", outlineOffset: "1px" } : n === P.el ? { ...cs(n), outlineStyle: "none", outlineWidth: "0px" } : cs(n));
+  const d = F.decoration(P.el, P.win);
+  assert.equal(d.bottom, 603, "the label's foot (600) and its ring's 3 px");
+  F.keepFocusInView(P.doc, P.win); P.focus(); P.flush();
+  assert.deepEqual(P.calls, [{ dx: 0, dy: 3 }], "brought up 3 px: the ring whole");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

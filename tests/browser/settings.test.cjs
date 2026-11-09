@@ -400,13 +400,16 @@ t("S111 S112 Disconnect: Keep it first and back; two Enters → one DELETE; fail
 // Keep it and Disconnect brought flush with Settings' foot, 3.56 px of the ring cut, by Tab and when focus landed by
 // itself). Disconnect is put just under the foot; Tab reaches it (the browser brings it), Enter opens the question
 // (focus lands on Keep it by itself), Tab to its Disconnect: each time the whole ring is inside the box it scrolls in.
+// the ring as drawn: by the focused control, or by the box that draws it for it (a checkbox's label: C115)
 const ringRoom = (page) => page.evaluate(() => {
-  const a = document.activeElement, cs = getComputedStyle(a), ext = parseFloat(cs.outlineWidth) + Math.max(0, parseFloat(cs.outlineOffset));
+  const a = document.activeElement;
+  let o = a, ext = 0;
+  for (let n = a, i = 0; n && i < 4; n = n.parentElement, i++) { const cs = getComputedStyle(n); if (cs.outlineStyle !== "none" && parseFloat(cs.outlineWidth) > 0) { o = n; ext = parseFloat(cs.outlineWidth) + Math.max(0, parseFloat(cs.outlineOffset)); break; } }
   let sc = a.parentElement;
-  for (; sc && sc !== document.body; sc = sc.parentElement) { const o = getComputedStyle(sc).overflowY; if (/(auto|scroll)/.test(o) && sc.scrollHeight > sc.clientHeight + 1) break; }
-  const r = a.getBoundingClientRect(), v = (sc && sc !== document.body ? sc : document.documentElement).getBoundingClientRect();
+  for (; sc && sc !== document.body; sc = sc.parentElement) { const ov = getComputedStyle(sc).overflowY; if (/(auto|scroll)/.test(ov) && sc.scrollHeight > sc.clientHeight + 1) break; }
+  const r = o.getBoundingClientRect(), v = (sc && sc !== document.body ? sc : document.documentElement).getBoundingClientRect();
   const bottom = Math.min(v.bottom, innerHeight), top = Math.max(v.top, 0);
-  return { who: a.textContent.trim(), ext, cut: +Math.max(top - (r.top - ext), (r.bottom + ext) - bottom, 0).toFixed(2) };
+  return { who: (o.textContent || "").trim().slice(0, 40), drawnBy: o === a ? "itself" : o.tagName.toLowerCase(), ext, cut: +Math.max(top - (r.top - ext), (r.bottom + ext) - bottom, 0).toFixed(2) };
 });
 t("S111 S112 the ring has room at the foot: Disconnect by Tab, Keep it landed on, the question's Disconnect by Tab", async (ctx) => {
   const W = world();
@@ -441,6 +444,45 @@ t("S111 S112 the ring has room at the foot: Disconnect by Tab, Keep it landed on
   assert.equal(await focused(page), 'button[data-dm-yes="levanto"]');
   g = await ringRoom(page);
   assert.equal(g.cut, 0, `the question's Disconnect by Tab: its whole ring inside (${JSON.stringify(g)})`);
+  await done(page);
+});
+
+// the allow/deny box's ring is drawn by its label (2 px at a 1 px gap): whole at the foot too (the create-project
+// grader on e55c2d8, C115 on a phone: the label flush with the screen's foot, 3 px of its ring cut). The label just
+// under the foot; Tab reaches its box (the browser brings the box, the focus rule the label's ring); then a refused
+// save keeps focus there and the ring stays whole.
+t("C115 the allow/deny label's ring is whole at the foot: by Tab, and through a refused save", async (ctx) => {
+  const W = world({ delay: 200 });
+  W.fail.policy = [err("unavailable", "Policy fixture unavailable")];
+  const page = await open(W, ctx);
+  await settings(page, "runtimes");
+  const box = page.locator(".rt-check input").first();
+  await box.waitFor();
+  const prev = await page.evaluate(() => {
+    const b = document.querySelector(".rt-check input"), l = b.closest("label");
+    let sc = b.parentElement;
+    for (; sc && sc !== document.body; sc = sc.parentElement) { const o = getComputedStyle(sc).overflowY; if (/(auto|scroll)/.test(o) && sc.scrollHeight > sc.clientHeight + 1) break; }
+    const v = sc.getBoundingClientRect(), r = l.getBoundingClientRect();
+    sc.scrollTop += r.top - Math.min(v.bottom, innerHeight) + 2;
+    const all = [...document.querySelectorAll('#settings [data-page="runtimes"] :is(a[href],button,input,select,textarea,xo-select,[tabindex="0"]):not([disabled])')].filter((x) => x.getClientRects().length && x.tabIndex >= 0);
+    const i = all.indexOf(b);
+    all[i - 1].setAttribute("data-ring-prev", "");
+    return i > 0;
+  });
+  assert.ok(prev, "a control before the box");
+  await page.keyboard.press("Shift");
+  await page.evaluate(() => document.querySelector("[data-ring-prev]").focus({ preventScroll: true }));
+  await page.keyboard.press("Tab");
+  await page.evaluate(() => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(ok))));
+  assert.equal(await page.evaluate(() => document.activeElement === document.querySelector(".rt-check input")), true, "Tab reaches the box");
+  let g = await ringRoom(page);
+  assert.equal(g.drawnBy, "label", `its label draws the ring (${JSON.stringify(g)})`);
+  assert.equal(g.cut, 0, `by Tab: the label's whole ring inside (${JSON.stringify(g)})`);
+  await page.keyboard.press("Space"); // a save, refused
+  await page.waitForSelector(".rt-ferr[role=alert]");
+  await page.evaluate(() => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(ok))));
+  g = await ringRoom(page);
+  assert.equal(g.cut, 0, `refused: the label's whole ring still inside (${JSON.stringify(g)})`);
   await done(page);
 });
 
