@@ -1690,15 +1690,20 @@ t("EDITOR-close: the find bar's Escape and Close put you back at your caret, sti
   const page = await app({ files: { "a.js": FILE() } });
   await editing(page);
   await page.locator("#viewer [contenteditable=true]").first().click();
+  // the bar's field takes focus in the bar's first frame (Pierre: requestAnimationFrame → select(), which focuses it);
+  // the case types once it has, as a person does. It used to force focus there at once and move on to Close inside
+  // that same frame, so the bar's frame took focus back to its field, Enter went to the field (next match) and the bar
+  // stayed: the intermittent "Close: back at the caret" (1 of 40 runs on 905ea5c; moving focus within the first frame
+  // is taken back 6 of 6 times, after two frames 0 of 6), never Close's own path
+  const fieldHasFocus = () => page.waitForFunction(() => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return !!a && !!a.matches && a.matches("[data-search-grid] [data-search]"); });
   for (const how of ["Escape", "Close"]) {
     await page.keyboard.press("ControlOrMeta+f");
-    const q = page.locator("[data-search-grid] [data-search]").first();
-    await q.waitFor();
-    await q.focus();
+    await fieldHasFocus();
     await page.keyboard.insertText("two");
     if (how === "Escape") await page.keyboard.press("Escape");
     else { await page.locator("[data-search-close]").first().focus(); await page.keyboard.press("Enter"); }
     await page.waitForTimeout(200);
+    assert.equal(await page.evaluate(() => !document.querySelector("#viewer diffs-container")?.shadowRoot?.querySelector("[data-search-panel]")), true, `${how}: the bar is gone`);
     assert.equal(await page.evaluate(() => !!(window.__ED && window.__ED.on)), true, `${how}: still editing`);
     assert.deepEqual(await deepActive(page), { editable: true, inViewer: true }, `${how}: back at the caret`);
   }
