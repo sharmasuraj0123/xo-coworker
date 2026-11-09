@@ -2428,6 +2428,30 @@ t("C058 menus: the file's More, opened with the mouse; the mouse onto Copy path,
   await page.keyboard.press("Escape");
   await done(page);
 });
+t("S170: the long-press Copy copies a message's words: a code block's label and Copy aren't among them", async () => {
+  const text = "Run this:\n\n```js\nconst a = 1;\n```\n\nThen check it.";
+  const page = await app({ threadsBy: { chat_demo: [serverThread("lp1", "ses-lp")] }, threadPages: { lp1: [AGENT_MSG("lp1", text)] } });
+  await page.evaluate(() => { window.__copied = []; Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async (t) => { window.__copied.push(t); } } }); });
+  await toDemo(page);
+  await toThread(page, "lp1");
+  const prose = page.locator('#msgs [data-k="lp1-md"] .prose').first();
+  await prose.waitFor({ timeout: 15000 });
+  await page.waitForTimeout(600); // the view done moving: a scroll closes the menu, by design
+  // a long press with a finger, on the words (not the code block, which keeps its own Copy)
+  const b = await prose.locator("p").first().boundingBox();
+  const cdp = await page.context().newCDPSession(page);
+  const pt = { x: b.x + Math.min(24, b.width / 3), y: b.y + Math.min(10, b.height / 2) };
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [pt] });
+  await page.waitForTimeout(650);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await cdp.detach();
+  await page.locator(".lp-menu [data-lp=copy]").waitFor();
+  await page.locator(".lp-menu [data-lp=copy]").click();
+  await page.waitForFunction(() => window.__copied.length === 1);
+  const got = await page.evaluate(() => window.__copied[0]);
+  assert.equal(got, "Run this:\n\nconst a = 1;\n\nThen check it.", `copied: ${JSON.stringify(got)}`);
+  await done(page);
+});
 // ── the Intelligence picker ──
 async function picker(page) {
   await toDemo(page);

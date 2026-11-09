@@ -10,6 +10,7 @@
 
 import { copyText, COPY_REFUSED } from "./util.js";
 import { menuKeys } from "./keynav.js";
+import { wordsOf } from "./words.js";
 const LOCK = 10;     // px before a touch picks its direction
 const SLOPE = 1.7;   // the picked axis must lead the other by this much: within ~30° of it
 export const FLICK = 0.45; // px/ms: a quick flick commits whatever the distance
@@ -425,7 +426,7 @@ function longPress(A) {
       const b = e.target.closest("[data-lp]");
       if (!b) return;
       // "Copied" only once it's on the clipboard; refused, said so
-      if (b.dataset.lp === "copy") { copyText((el.innerText || el.textContent || "").trim()).then((ok) => A.toast?.(ok ? "Copied" : COPY_REFUSED)); }
+      if (b.dataset.lp === "copy") { copyText(wordsOf(el)).then((ok) => A.toast?.(ok ? "Copied" : COPY_REFUSED)); } // its words, as the desktop's Copy reads them
       else {
         // focus goes to the message first (shut), then its words are selected: the selection stays
         shut();
