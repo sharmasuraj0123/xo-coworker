@@ -58,6 +58,11 @@ function mockApi(W) {
     // W.router: the Space's routing as the test sets it (Off, …); else the usual
     if (p === "/api/chat/router" && m === "GET" && W.router) return json(W.router);
     if (STATIC[p]) return json(STATIC[p]);
+    // W.postFail: a message's POST refused (503), a Space that can't take it; W.posts: the paths posted to
+    if (m === "POST" && /^\/api\/chat\/chats\/[^/]+\/messages$/.test(p)) {
+      (W.posts = W.posts || []).push(p);
+      if (W.postFail) return json({ detail: { code: "unavailable", message: "Fixture: the message wasn't taken" } }, 503);
+    }
     let k;
     if ((k = /^\/api\/chat\/chats\/([^/]+)\/(threads|messages|hops|made|runtime-policy)$/.exec(p))) {
       if (k[2] === "threads") return json({ threads: (W.threadsBy && W.threadsBy[k[1]]) || [] }); // W.threadsBy: server rows

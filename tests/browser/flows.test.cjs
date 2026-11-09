@@ -657,6 +657,130 @@ t("C085/C086: another changed file picked: the last diff goes at once; Open in F
   answer();
   await done(page);
 });
+// ── the keyboard's ring on a region you scroll with the keys, as drawn (Astra C087 on dd15034, the diff; C096 on
+// cb7afe7, the file: focused and unfocused were pixel-identical). The region's edges are shot unfocused, twice (the
+// drawing has settled: the two agree), then with the keyboard's focus. Along each side, past the corners, the 2 px
+// band must be the ring's colour (read from the ring), and most of it must have changed: a diff's own green mark at
+// the left edge is already near the ring's colour, so "changed" alone can't be asked of every pixel. The shots are
+// read by the page's own decoder (createImageBitmap), nothing installed.
+async function ringSides(page, sel) {
+  const clip = await page.evaluate((sel) => { const r = document.querySelector(sel).getBoundingClientRect(); return { x: Math.round(r.left), y: Math.round(r.top), width: Math.round(r.width), height: Math.round(r.height) }; }, sel);
+  const shot = async () => (await page.screenshot({ clip })).toString("base64");
+  const a1 = await shot();
+  await page.waitForTimeout(250);
+  const a2 = await shot();
+  await page.keyboard.press("Shift"); // the keyboard's: a script's focus after a key shows the ring (:focus-visible)
+  await page.evaluate((sel) => document.querySelector(sel).focus({ preventScroll: true }), sel);
+  await page.evaluate(() => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(ok))));
+  const shown = await page.evaluate((sel) => { const el = document.querySelector(sel), rings = document.querySelectorAll(".region-ring"), ring = rings[0]; const a = el.getBoundingClientRect(), b = ring ? ring.getBoundingClientRect() : null; const probe = document.createElement("i"); probe.style.color = "var(--focus)"; document.body.appendChild(probe); const fc = getComputedStyle(probe).color; probe.remove(); const c = /rgba?\((\d+), (\d+), (\d+)(?:, ([\d.]+))?/.exec(ring ? getComputedStyle(ring).boxShadow : fc); return { fv: document.activeElement === el && el.matches(":focus-visible"), rings: rings.length, after: !!ring && el.nextElementSibling === ring, off: b ? Math.max(Math.abs(a.left - b.left), Math.abs(a.top - b.top), Math.abs(a.right - b.right), Math.abs(a.bottom - b.bottom)) : null, rgb: c ? [+c[1], +c[2], +c[3], c[4] == null ? 1 : +c[4]] : null }; }, sel);
+  const b = await shot();
+  if (process.env.RING_SHOTS) for (const [n, x] of [["before", a1], ["focused", b]]) fs.writeFileSync(path.join(process.env.RING_SHOTS, `${sel.replace(/[^a-z]+/gi, "-")}-${WIDTH}-${THEME}-${n}.png`), Buffer.from(x, "base64"));
+  const sides = await page.evaluate(async ([a1, a2, b, cw, rgb]) => {
+    const load = async (s) => { const bin = Uint8Array.from(atob(s), (c) => c.charCodeAt(0)); const bm = await createImageBitmap(new Blob([bin], { type: "image/png" })); const c = new OffscreenCanvas(bm.width, bm.height), x = c.getContext("2d"); x.drawImage(bm, 0, 0); return { w: bm.width, h: bm.height, d: x.getImageData(0, 0, bm.width, bm.height).data }; };
+    const [P, Q, R] = [await load(a1), await load(a2), await load(b)];
+    const k = P.w / cw, band = Math.ceil(3 * k), skip = Math.ceil(16 * k); // 2 px and a pixel of rounding; past the corners
+    const differs = (X, Y, x, y) => { const i = (y * X.w + x) * 4; return Math.abs(X.d[i] - Y.d[i]) + Math.abs(X.d[i + 1] - Y.d[i + 1]) + Math.abs(X.d[i + 2] - Y.d[i + 2]) > 30; };
+    // the ring's colour over what was there (the focus colour is translucent: --focus is the accent at .75)
+    const ringy = (X, x, y) => { if (!rgb) return false; const i = (y * X.w + x) * 4, a = rgb[3], e = (j) => a * rgb[j] + (1 - a) * P.d[i + j]; return Math.abs(X.d[i] - e(0)) + Math.abs(X.d[i + 1] - e(1)) + Math.abs(X.d[i + 2] - e(2)) <= 30; };
+    // along a side: the share where the band changed (X against Y), where it's the ring's colour (in Y), and where
+    // it isn't (CSS px from the side's start)
+    const side = (X, Y, name) => {
+      let changed = 0, coloured = 0, n = 0, miss = [];
+      const along = name === "top" || name === "bottom" ? X.w : X.h;
+      for (let t = skip; t < along - skip; t++) {
+        n++;
+        let ch = false, co = false;
+        for (let d = 0; d < band; d++) {
+          const [x, y] = name === "top" ? [t, d] : name === "bottom" ? [t, X.h - 1 - d] : name === "left" ? [d, t] : [X.w - 1 - d, t];
+          ch = ch || differs(X, Y, x, y); co = co || ringy(Y, x, y);
+        }
+        if (ch) changed++;
+        if (co) coloured++;
+        else { const c = Math.round(t / k), m = miss[miss.length - 1]; if (m && c - m[1] <= 1) m[1] = c; else miss.push([c, c]); }
+      }
+      return { changed: n ? changed / n : 0, coloured: n ? coloured / n : 0, miss: miss.slice(0, 6).map(([a, b]) => (a === b ? `${a}` : `${a}–${b}`)).join(", ") };
+    };
+    const out = {};
+    for (const s of ["top", "right", "bottom", "left"]) { const q = side(P, Q, s), r = side(P, R, s); out[s] = { settled: 1 - q.changed, changed: r.changed, ring: r.coloured, miss: r.miss }; }
+    return out;
+  }, [a1, a2, b, clip.width, shown.rgb]);
+  return { shown, sides };
+}
+// what's seen first (the ring drawn along every side), then how (one ring layer, just after the region, over its box)
+const ringOk = (r, what) => {
+  assert.equal(r.shown.fv, true, `${what}: the keyboard's focus is on it`);
+  assert.ok(r.shown.rgb, `${what}: the ring's colour is read (from the ring, else the focus token)`);
+  for (const [s, v] of Object.entries(r.sides)) {
+    assert.ok(v.settled >= 0.98, `${what}: its ${s} edge was still being drawn before focus (${v.settled.toFixed(2)} the same)`);
+    assert.ok(v.ring >= 0.99, `${what}: the ring's colour along its ${s} edge (${(v.ring * 100).toFixed(1)}%; not at ${v.miss} px)`);
+    assert.ok(v.changed >= 0.8, `${what}: and it's the ring that drew it: the ${s} edge changed (${(v.changed * 100).toFixed(1)}%)`);
+  }
+  assert.equal(r.shown.rings, 1, `${what}: one ring`);
+  assert.equal(r.shown.after, true, `${what}: drawn just after it`);
+  assert.ok(r.shown.off <= 1, `${what}: over its box (${r.shown.off} px off)`);
+};
+t("C096: a file's region, focused by the keyboard, shows the ring on every side (it was pixel-identical)", async () => {
+  const page = await app({ files: { "a.js": { content: Array.from({ length: 80 }, (_, i) => `const line${i} = ${i}; // a line long enough to reach across the file's region`).join("\n") + "\n", version: "sha256:A" } } });
+  await toDemo(page);
+  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
+  await page.waitForFunction(() => { const b = document.querySelector("#viewer .vw-body.vw-file"); return b && b.getClientRects().length && b.childElementCount > 0 && b.scrollHeight > b.clientHeight; });
+  await page.waitForTimeout(400);
+  ringOk(await ringSides(page, "#viewer .vw-body.vw-file"), "the file");
+  // focus leaves: the ring goes
+  await page.keyboard.press("Shift+Tab");
+  await page.waitForFunction(() => !document.querySelector(".region-ring"));
+  await done(page);
+});
+t("C087/C096: a change's diff region, focused by the keyboard, shows the same ring on every side", async () => {
+  const page = await app({ files: { "a.js": FILE() }, changes: [{ path: "a.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: PATCH("a.js", "one", "ONE") }] });
+  await panelOpen(page);
+  if (await page.locator('[data-ghost="changes"]').filter({ visible: true }).count()) await page.locator('[data-ghost="changes"]').filter({ visible: true }).first().click();
+  await page.locator('[data-cx="a.js"]').filter({ visible: true }).first().click();
+  await page.waitForFunction(() => { const d = document.querySelector("#stage .cx-pd"); return d && !d.hidden && d.childElementCount > 0 && d.getClientRects().length; });
+  await page.waitForTimeout(400);
+  ringOk(await ringSides(page, "#stage .cx-pd"), "the diff");
+  await done(page);
+});
+// ── a notice while Files has the chat folded away (the controls grader on cb7afe7, S137 and V22): the line sat in the
+// folded chat's dock, inert and out of sight, so a Tell that failed showed nothing on a phone. It must be on screen,
+// above the file (and on a phone above the folded chat's bar), not covered, and back in its place when the chat opens.
+t("S137/V22: in Files with the chat folded, a Tell that fails says Not sent on screen, above the file", async () => {
+  const page = await app({ files: { "a.js": FILE() }, postFail: true });
+  await editing(page);
+  await typeAll(page, "mine\n");
+  await page.keyboard.press("ControlOrMeta+s");
+  await page.waitForFunction(() => !window.__ED.on);
+  const folded = () => page.evaluate(() => { const c = document.body.classList; return c.contains("chat-sheet") ? !c.contains("sheet-up") : c.contains("chat-docked") ? c.contains("chat-min") : null; });
+  assert.notEqual(await folded(), null, "the file is beside a conversation (docked, or a phone's sheet)");
+  if (!(await folded())) { await page.keyboard.press("ControlOrMeta+j"); await page.waitForFunction(() => { const c = document.body.classList; return c.contains("chat-sheet") ? !c.contains("sheet-up") : c.contains("chat-railed"); }); }
+  if (await page.evaluate(() => document.body.classList.contains("chat-docked"))) await page.waitForFunction(() => document.body.classList.contains("chat-railed"));
+  await page.locator("[data-vw-tell]").first().click();
+  await page.waitForFunction(() => /Not sent/.test(document.getElementById("herald")?.textContent || ""), null, { timeout: 5000 });
+  assert.ok((page.W.posts || []).length >= 1, "it was sent, and refused");
+  const seen = await page.evaluate(() => {
+    const h = document.getElementById("herald"), line = h.querySelector(".hr"), r = line.getBoundingClientRect();
+    const at = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    const bar = document.querySelector(".crail"), br = bar && bar.getClientRects().length ? bar.getBoundingClientRect() : null;
+    return { out: h.classList.contains("is-out"), onPage: h.parentNode === document.body, inert: !!h.closest("[inert]"), vis: getComputedStyle(h).visibility, w: r.width, h: r.height,
+      inView: r.top >= 0 && r.bottom <= innerHeight && r.left >= 0 && r.right <= innerWidth, hit: !!at && h.contains(at), barTop: br && getComputedStyle(bar).display !== "none" ? br.top : null, bottom: r.bottom, text: line.textContent };
+  });
+  // what's seen first (on screen, uncovered, saying so), then how (out of the dock, nothing inert holding it)
+  assert.match(seen.text, /Not sent/);
+  assert.equal(seen.vis, "visible", "visible");
+  assert.ok(seen.w > 40 && seen.h >= 24, `it has a size (${seen.w}×${seen.h})`);
+  assert.ok(seen.inView, "on screen");
+  assert.ok(seen.hit, "nothing covers it");
+  assert.equal(seen.inert, false, "nothing inert holds it");
+  assert.equal(seen.onPage && seen.out, true, "out of the folded chat's dock, on the page");
+  if (await page.evaluate(() => document.body.classList.contains("chat-sheet"))) {
+    assert.ok(seen.barTop != null, "a phone's folded chat shows its bar");
+    assert.ok(seen.bottom <= seen.barTop - 4, `above the folded chat's bar (line ends ${seen.bottom}, bar starts ${seen.barTop})`);
+  }
+  // the chat opens: the line goes back above the composer
+  await page.keyboard.press("ControlOrMeta+j");
+  await page.waitForFunction(() => { const h = document.getElementById("herald"); return !h.classList.contains("is-out") && !!h.closest("#dock"); });
+  await done(page);
+});
 t("C085: A, then B while it's read, then A again: A's diff shows again", async () => {
   let answer;
   const page = await app({ files: { "a.js": FILE(), "b.js": FILE() }, changesGate: new Promise((ok) => (answer = ok)), changes: [
