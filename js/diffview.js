@@ -238,6 +238,25 @@ export function jump(scroller, dir) {
 }
 
 /**
+ * The keyboard can always leave a code editor that keeps Tab for indenting: Escape, then Tab or Shift+Tab, moves focus
+ * on, as code editors do; Tab alone indents. The next key after Escape that isn't Tab, or focus leaving, ends it.
+ * Every editor here is diffview's file().edit (the controls grader on d79d37e: Tab indented and Escape only eased the
+ * selection, so the Created notice's Undo couldn't be reached by keyboard). within: the editor's element. Returns one
+ * handler, for keydown and focusout, listened to in capture on within, before the editor's own.
+ */
+export function exitKeys(within) {
+  let leaving = false;
+  return (e) => {
+    if (e.type === "focusout") { if (!within.contains(e.relatedTarget)) leaving = false; return; }
+    if (e.isComposing) return;
+    if (e.key === "Escape") { leaving = true; return; }
+    // the browser's own Tab, which the editor never sees: focus moves on
+    if (e.key === "Tab" && leaving && !e.ctrlKey && !e.metaKey && !e.altKey) { leaving = false; e.stopPropagation(); return; }
+    if (!["Shift", "Control", "Alt", "Meta"].includes(e.key)) leaving = false;
+  };
+}
+
+/**
  * A whole file, drawn into scroller (the element that scrolls it): virtualised, so only the rows on screen
  * are drawn (a 3,155-line file's rows in ≈4 ms) and the worker colours them. o: {path, wrap, key,
  * onSelect(range | null) when a selection ends or clears, note(lineNumber) → the element to show under that
@@ -318,8 +337,10 @@ export async function file(scroller, contents, o = {}) {
         if (g !== grid) { watch?.disconnect(); grid = g; watch = new MutationObserver(() => check(grid)); watch.observe(g, { childList: true, characterData: true, subtree: true }); }
         check(g);
       };
-      for (const [t, f, c] of [["keydown", back, true], ["click", back, true], ["input", pattern, false], ["click", pattern, false]]) host.addEventListener(t, f, c);
-      const unwire = () => { watch?.disconnect(); watch = null; grid = null; for (const [t, f, c] of [["keydown", back, true], ["click", back, true], ["input", pattern, false], ["click", pattern, false]]) host.removeEventListener(t, f, c); };
+      // the keyboard can always leave: Escape, then Tab or Shift+Tab (exitKeys)
+      const leave = exitKeys(host);
+      for (const [t, f, c] of [["keydown", leave, true], ["focusout", leave, true], ["keydown", back, true], ["click", back, true], ["input", pattern, false], ["click", pattern, false]]) host.addEventListener(t, f, c);
+      const unwire = () => { watch?.disconnect(); watch = null; grid = null; for (const [t, f, c] of [["keydown", leave, true], ["focusout", leave, true], ["keydown", back, true], ["click", back, true], ["input", pattern, false], ["click", pattern, false]]) host.removeEventListener(t, f, c); };
       // the document arrives a frame or two after attaching
       for (let i = 0; i < 60 && contents && !ed.getText(); i++) await new Promise((r) => requestAnimationFrame(r));
       return {
