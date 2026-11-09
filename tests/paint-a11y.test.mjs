@@ -1,6 +1,7 @@
 // Two paint and meaning findings (Astra's controls grader on dd15034, all four cells), checked from the source:
 // - C087: the diff region's keyboard ring barely painted (its 2 px inset outline sat under the diff's own painted
-//   layers: 36 px differed, at the bottom corners). The ring is drawn on a layer above the diff, over its area.
+//   layers: 36 px differed, at the bottom corners). The ring is drawn on a layer above the diff, over its area
+//   (one rule with the file's region since C096: js/ring.js).
 // - The editor search's "Not a valid pattern" read at ~1.9:1 (the library's count style, 35% ink) and was tied to
 //   nothing: it's in the error's ink, the field names it as its error and description, and it's said once (status).
 // No browser: the rendered ring and contrast are the grader's.
@@ -14,13 +15,14 @@ let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
 t("C087: the diff region's ring is a layer above the diff (not an outline its content can cover)", () => {
-  const m = /\.stage \.cx-pane:has\(>\.cx-pd:focus-visible\)::after\{([^}]*)\}/.exec(panel);
-  assert.ok(m, "a ring layer on the pane while its diff region has keyboard focus");
+  // since C096 (the file's region, the same fault) one rule draws it for both: js/ring.js and tests/ring.test.mjs
+  const m = /(?:^|[}\s])\.region-ring\{([^}]*)\}/.exec(panel);
+  assert.ok(m, "the one ring layer, drawn over a region with keyboard focus");
   assert.match(m[1], /position:absolute/);
   assert.match(m[1], /box-shadow:inset 0 0 0 2px var\(--focus\)/, "the one ring: 2 px of the focus colour, inset");
   assert.match(m[1], /pointer-events:none/, "it never takes the pointer");
   assert.match(m[1], /z-index:/, "above the diff's own layers");
-  assert.match(m[1], /top:35px/, "over the diff's area, below the pane's 35 px head");
+  assert.match(panel, /:is\(\.vw-body,\.cx-pd\)\{isolation:isolate\}/, "which stay inside the diff's region");
 });
 t("the editor search's invalid-pattern words: the error's ink, the field's error and description, said once", () => {
   const check = /const check = \(g\) => \{([\s\S]*?)\n      \};/.exec(dv);

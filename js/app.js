@@ -59,6 +59,7 @@ import { setWorkMode } from "./turnview.js";
 import { once, busyAttrs } from "./pending.js";
 import { radioKeys, menuKeys } from "./keynav.js";
 import { createHerald, noticeFor } from "./herald.js";
+import { regionRings } from "./ring.js";
 
 const world = createWorld();
 // what the backend can do, asked each time (a surface that needs a missing one stays away); filled in below
@@ -1744,6 +1745,7 @@ setInterval(tickElapsed, 1000);
 // the herald's lines (js/herald.js): made on first use (S is the app's state), so a line asked for while the app is
 // still starting has it
 function HER() { return S._her || (S._her = createHerald({ state: S, schedule: () => schedule() })); }
+regionRings(); // the keyboard's ring over a file's or a change's region (js/ring.js)
 function heraldShow(h, ms) { return HER().show(h, ms); }
 /** A message's own notice, set in place (on screen, or still waiting): see js/herald.js */
 function heraldFor(mid, make, ms) { return HER().forMsg(mid, make, ms); }
