@@ -111,7 +111,12 @@ export function createSettings({ world, announce, PROJ, onChange }) {
       `</div>` +
       (r.mode === "decision" ? `<div class="set-row is-sub"><div class="set-l"><b>When it isn't sure</b><span>Below this confidence, the coordinator decides instead.</span></div><xo-select class="set-sel" data-abstain aria-label="Confidence needed"${busy}>${pcts(ab).map((p) => `<option value="${p}"${Math.abs(ab - p) < 0.001 ? " selected" : ""}>${Math.round(p * 100)}% sure</option>`).join("")}</xo-select></div>` : "") +
       errHtml(R.err.route) +
-      (orphans.length ? `<p class="set-err" data-orphans>${esc(orphans.map((p) => p.name).join(", "))} still ${orphans.length === 1 ? "names" : "name"} a decision model that isn't connected: use the Space's routing for ${orphans.length === 1 ? "it" : "them"} below.</p>` : "") +
+      // said per model: "Levanto Sage isn't connected, and demo still names it: use the Space's routing for it below"
+      [...new Set(orphans.map((p) => p.routing.decision_model))].map((id) => {
+        const chats = orphans.filter((p) => p.routing.decision_model === id).map((p) => p.name), one = chats.length === 1;
+        const label = (R.models.find((m) => m.id === id) || {}).label || id;
+        return `<p class="set-err" data-orphans>${esc(label)} isn't connected, and ${esc(chats.length > 1 ? chats.slice(0, -1).join(", ") + " and " + chats.at(-1) : chats[0])} still ${one ? "names" : "name"} it: use the Space's routing for ${one ? "it" : "them"} below.</p>`;
+      }).join("") +
       `</section>` +
       `<section class="set-sec" aria-labelledby="dm-h"><h3 id="dm-h">Decision models</h3>` +
       `<p class="set-lead">A small model that routes quickly. Its key is saved on this machine and never shown again.</p>` +

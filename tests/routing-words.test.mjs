@@ -14,7 +14,9 @@ const body = (name) => { const i = src.indexOf(`function ${name}(`); assert.ok(i
 t("the page says which chats name a model that isn't connected, from their routing, each time it's drawn", () => {
   const b = body("routingHtml");
   assert.match(b, /const orphans = overrides\.filter\(\(p\) => p\.routing\.mode === "decision" && !\(R\.models\.find\(\(m\) => m\.id === p\.routing\.decision_model\) \|\| \{\}\)\.connected\);/);
-  assert.match(b, /orphans\.length \? `<p class="set-err" data-orphans>/);
+  assert.match(b, /\[\.\.\.new Set\(orphans\.map\(\(p\) => p\.routing\.decision_model\)\)\]\.map\(\(id\) => \{/, "said per model");
+  assert.match(b, /`<p class="set-err" data-orphans>\$\{esc\(label\)\} isn't connected, and \$\{esc\(/, "naming the model, then the chats");
+  assert.match(b, /still \$\{one \? "names" : "name"\} it: use the Space's routing for \$\{one \? "it" : "them"\} below\./, "in the words the page has always used (\"demo still names it\")");
 });
 t("Disconnect keeps no words of its own about chats: it says it once, aloud", () => {
   const b = body("disconnect");
