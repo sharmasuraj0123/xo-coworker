@@ -23,7 +23,7 @@ t("on a phone (the app's floor, 760 px) every control is a real 36 px target, as
   assert.match(m[1], /\[data-find\] input\{padding-inline-end:116px\}/, "the find field's words clear its three 36 px toggles");
 });
 t("its words take the role tokens", () => {
-  assert.match(css, /\[data-matches\]\[data-matches\],\[data-search-grid\] \[data-matches\]\[data-no-matches\]\{color:var\(--ink-2\)\}/, "the count and No results");
+  assert.match(css, /\[data-matches\]\[data-matches\]\[data-matches\],\[data-matches\]\[data-matches\]\[data-no-matches\]\{color:var\(--ink-2\)\}/, "the count and No results (wherever the bar puts them: the browser found them outside its grid)");
   assert.match(css, /input::placeholder\{color:var\(--ink-3\);opacity:1\}/, "the placeholder");
   assert.doesNotMatch(css, /color-mix\(in lab, var\(--diffs-fg\) (35|50)%/, "never the faint mixes");
 });

@@ -123,7 +123,7 @@ const common = (o) => ({
  * Doubled attributes outrank the bar's own rules, whichever style comes later in the shadow root.
  */
 const FIND_CSS = `
-[data-search-grid] [data-matches][data-matches],[data-search-grid] [data-matches][data-no-matches]{color:var(--ink-2)}
+[data-matches][data-matches][data-matches],[data-matches][data-matches][data-no-matches]{color:var(--ink-2)}
 [data-search-grid] [data-input-box][data-input-box] input::placeholder{color:var(--ink-3);opacity:1}
 @media (max-width:760px){
   [data-search-grid] [data-input-box][data-input-box] input{min-height:36px}

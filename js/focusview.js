@@ -45,7 +45,7 @@ export function ringsOf(el, win = window) {
   const out = [];
   for (let n = el, i = 0; n && n.nodeType === 1 && i < 4; n = n.parentElement, i++) {
     const cs = win.getComputedStyle(n), w = parseFloat(cs.outlineWidth) || 0;
-    if (cs.outlineStyle && cs.outlineStyle !== "none" && w > 0) out.push({ el: n, ext: w + Math.max(0, parseFloat(cs.outlineOffset) || 0) });
+    if (cs.outlineStyle && cs.outlineStyle !== "none" && w > 0) out.push({ el: n, ext: Math.max(0, w + (parseFloat(cs.outlineOffset) || 0)) }); // how far it reaches outside: an inset ring, none
   }
   return out;
 }

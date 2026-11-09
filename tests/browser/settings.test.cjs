@@ -404,7 +404,7 @@ t("S111 S112 Disconnect: Keep it first and back; two Enters → one DELETE; fail
 const ringRoom = (page) => page.evaluate(() => {
   const a = document.activeElement;
   let o = a, ext = 0;
-  for (let n = a, i = 0; n && i < 4; n = n.parentElement, i++) { const cs = getComputedStyle(n); if (cs.outlineStyle !== "none" && parseFloat(cs.outlineWidth) > 0) { o = n; ext = parseFloat(cs.outlineWidth) + Math.max(0, parseFloat(cs.outlineOffset)); break; } }
+  for (let n = a, i = 0; n && i < 4; n = n.parentElement, i++) { const cs = getComputedStyle(n); if (cs.outlineStyle !== "none" && parseFloat(cs.outlineWidth) > 0) { o = n; ext = Math.max(0, parseFloat(cs.outlineWidth) + parseFloat(cs.outlineOffset)); break; } }
   let sc = a.parentElement;
   for (; sc && sc !== document.body; sc = sc.parentElement) { const ov = getComputedStyle(sc).overflowY; if (/(auto|scroll)/.test(ov) && sc.scrollHeight > sc.clientHeight + 1) break; }
   const r = o.getBoundingClientRect(), v = (sc && sc !== document.body ? sc : document.documentElement).getBoundingClientRect();
