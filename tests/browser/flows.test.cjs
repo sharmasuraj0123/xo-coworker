@@ -2039,7 +2039,7 @@ t("S041: Show them on a long Changes list: focus goes to the first revealed row,
   assert.equal(st.on, "f100.js", "focus on the first revealed row");
   assert.equal(st.inSight, true, "and it's in sight");
   // a live change to the list: the row you're on stays itself, with focus
-  const was = await page.evaluate(() => document.activeElement);
+  const was = await page.evaluateHandle(() => document.activeElement); // the element itself, not a copy of it
   await page.evaluate(() => window.__t.render());
   await page.waitForTimeout(200);
   assert.equal(await page.evaluate((w) => document.activeElement === w, was), true, "a redraw keeps the row you're on");
