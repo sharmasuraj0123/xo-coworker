@@ -24,6 +24,19 @@ const pct = (u) => `${Math.round(u * 100)}%`;
 const POLICY = "runtime-policy";
 
 /**
+ * The runtime new work actually goes to when its coordinator doesn't choose, as XO itself picks it (xo-space
+ * runtime_policy.choose, d2eaedf): the policy's default if it's allowed, else XO's own runtime if allowed, else the
+ * first allowed runtime that's installed, in XO's order. XO keeps default:null in the policy and decides this itself,
+ * so Settings works it out the same way to show what applies (a default that's excluded is never shown chosen).
+ */
+export function usualOf(policy, rts) {
+  const list = rts || [];
+  const permits = (a) => !!a && !(policy && Array.isArray(policy.allowed) && !policy.allowed.includes(a));
+  const own = defaultOf({ default: null }, list);
+  return [policy && policy.default, own].find(permits) || (list.find((r) => permits(r.name) && isInstalled(r)) || {}).name || null;
+}
+
+/**
  * "Saved", said beside a field for a while (ms): each receipt clears only itself, never a newer one on the same
  * field (a timer keyed by the field alone cut a second save's "Saved" short). onClear redraws.
  */
@@ -111,9 +124,8 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
     if (!world.state.policy) return "";
     const p = shown(), names = installed().map((r) => r.name);
     if (names.length < 2 && !p.allowed) return ""; // one runtime: nothing to choose
-    const serverOwn = defaultOf({ default: null }, rts());
     const allowed = allowedOf(p, rts());
-    const usual = p.default || serverOwn;
+    const usual = usualOf(p, rts()); // what XO actually uses, even with default:null and its own runtime excluded
     // beside each default: its refusal, "Saving…" while its save is out (the choice shows, said as not yet saved),
     // then "Saved" only once XO has answered
     const note = (f) => (R.err && R.err.field === f ? `<p class="rt-ferr" role="alert">${esc(R.err.text)}</p>`
@@ -158,7 +170,8 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
     // a box can't change while a save is out (aria-disabled doesn't stop a checkbox by itself)
     if (e.target.matches?.("[data-rtd-allowed]") && isPending(POLICY)) { e.preventDefault(); return; }
     const d = e.target.closest("[data-rtd-default]");
-    if (d && !isPending(POLICY)) { const n = d.dataset.rtdDefault; if (n !== (space().default || defaultOf({ default: null }, rts()))) put({ default: n === defaultOf({ default: null }, rts()) ? null : n }, "default", `New work runs on ${rtName(n)} unless its coordinator chooses.`); return; }
+    // choosing what already applies changes nothing; choosing XO's own runtime (when it's allowed) stores null, as XO does
+    if (d && !isPending(POLICY)) { const n = d.dataset.rtdDefault; if (n !== usualOf(space(), rts())) put({ default: n === defaultOf({ default: null }, rts()) ? null : n }, "default", `New work runs on ${rtName(n)} unless its coordinator chooses.`); return; }
     const f = e.target.closest("[data-rtd-fallback]");
     if (f && !isPending(POLICY)) { const on = !space().fallback; put({ fallback: on }, "fallback", on ? "A new thread may start on another runtime at a limit." : "A new thread waits for its runtime at a limit."); }
   });

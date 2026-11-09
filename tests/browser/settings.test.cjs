@@ -697,6 +697,23 @@ t("S115 C101 refused by XO and not kept by this browser either: the Shape page n
   assert.doesNotMatch(text, /kept on this device only/);
   await done(page);
 });
+t("C114 default:null with XO's own runtime turned off: the usual runtime shows the one XO uses, chosen and the group's Tab stop", async (ctx) => {
+  const W = world();
+  W.policy = { allowed: ["codex"], default: null, preferences: null, fallback: false };
+  const page = await open(W, ctx);
+  await settings(page, "runtimes");
+  const codex = '[data-rtd-default="codex"]';
+  await page.waitForSelector(codex);
+  assert.equal(await page.locator(codex).getAttribute("aria-checked"), "true", "XO uses Codex: it's shown chosen");
+  assert.equal(await page.locator(codex).getAttribute("tabindex"), null, "and it's where Tab enters the group");
+  assert.equal(await page.locator('[data-rtd-default="claude_code"]').count(), 0, "the excluded one isn't offered");
+  // pressing it changes nothing: it's already what applies
+  await keyFocus(page, codex);
+  await page.keyboard.press("Enter");
+  await settle(page, 150);
+  assert.equal(writes(page, "policy"), 0);
+  await done(page);
+});
 t("C114 a refused usual runtime: the saved one stays chosen, the reason shows under it, the keyboard stays, and Enter tries again", async (ctx) => {
   const W = world({ delay: 300 });
   W.fail.policy = [err("unavailable", "Policy fixture unavailable")];
