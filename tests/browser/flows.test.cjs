@@ -1923,6 +1923,29 @@ t("S139 (paint): the viewer's Try again looks different hovered and pressed than
   assert.ok(!pressShot.equals(hoverShot) && !pressShot.equals(restShot), "pressed, it looks different again");
   await done(page);
 });
+// a refused Download said in the Changes view as in every other (the controls grader on e55c2d8, S126: an omitted
+// binary change, Download held then refused 503, and the screen went back to "Binary file · Download" saying nothing:
+// the diff's branch drew no error line). Held, then refused: the reason shows under the head and stays through redraws.
+t("S126: Download refused in the Changes view says why, under the head, and keeps saying it", async () => {
+  let answer;
+  const page = await app({ files: { "pic.png": FILE() }, downloadGate: new Promise((ok) => (answer = ok)), downloadFails: 1, changes: [
+    { path: "pic.png", status: "modified", additions: 0, deletions: 0, binary: true, version: "sha256:P", patch: null, patch_omitted: "binary" }] });
+  await toDemo(page);
+  await diffOpen(page, "pic.png");
+  const dl = page.locator("#viewer [data-vw-download]").filter({ visible: true }).first();
+  await dl.waitFor({ timeout: 15000 });
+  await dl.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(150);
+  answer(); // refused
+  await page.waitForSelector("#viewer .vw-cut[role=alert]", { timeout: 5000 });
+  assert.match(await page.locator("#viewer .vw-cut[role=alert]").innerText(), /Download fixture unavailable/, "it says why");
+  await page.evaluate(() => { for (let i = 0; i < 5; i++) window.__t.render(); });
+  await page.waitForTimeout(300);
+  assert.equal(await page.locator("#viewer .vw-cut[role=alert]").count(), 1, "and keeps saying it as the app draws");
+  assert.equal(page.W.downloads, 1, "one request");
+  await done(page);
+});
 t("VW-DIFF-ERR: a change that couldn't be read says so and stays said; Try again reads it again, focus in the diff", async () => {
   const page = await app({ files: { "b.js": FILE() }, changesFailFor: { "b.js": 1 }, changes: [
     { path: "b.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:B", patch: null, patch_omitted: "response_budget", full: PATCH("b.js", "one", "BRAVO") }] });

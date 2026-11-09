@@ -762,6 +762,11 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     const to = (was && shown(el, was)) || (fromMenu && shown(el, "[data-vw-more]")) || shown(el, ".vw-top [data-vw-edit]") || el;
     to.focus({ preventScroll: true });
   }
+  /** What every view of the viewer draws above its body, the same way in each: its tabs, its head, and a save,
+   *  download, copy or undo that failed (V.saveError), said under the head. One place for every branch, so none can
+   *  leave it out (the controls grader on e55c2d8, S126: the diff's branch did, and a refused Download in Changes went
+   *  back to "Binary file · Download" saying nothing) */
+  const above = () => (tabs ? tabs() : "") + head() + (V.saveError ? `<p class="vw-cut" role="alert">${ICON.clock}<span>${esc(V.saveError)}</span></p>` : "");
   function renderNow() {
     if (!V.open) return;
     if (showsFile()) {
@@ -770,8 +775,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       if (DF.handle || DF.key) dropDiff();
       const cut = d.truncated ? `<p class="vw-cut">${ICON.clock}<span>Showing the first ${esc(size(bytes(d.content)))} of ${esc(size(d.size_bytes))}. The rest isn't previewed.</span>${canSave() ? `<button type="button" class="vw-cut-dl" data-vw-download${V.saving ? ' aria-disabled="true" aria-busy="true"' : ""}>Download the whole file</button>` : ""}</p>` : "";
       const bar = el.querySelector(":scope > .xd-bar");
-      const failed = V.saveError ? `<p class="vw-cut" role="alert">${ICON.clock}<span>${esc(V.saveError)}</span></p>` : "";
-      el.innerHTML = (tabs ? tabs() : "") + head() + failed + cut + `<i data-vw-file hidden></i>`;
+      el.innerHTML = above() + cut + `<i data-vw-file hidden></i>`;
       el.querySelector("[data-vw-file]").replaceWith(host);
       if (bar && ED.conflict) host.before(bar);
       host.scrollTop = top;
@@ -784,7 +788,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (showsDiff()) {
       // the head redraws; the diff's body (and where you are in it) stays
       const host = diffBody(), top = host.scrollTop;
-      el.innerHTML = (tabs ? tabs() : "") + head() + `<i data-vw-diff hidden></i>`;
+      el.innerHTML = above() + `<i data-vw-diff hidden></i>`;
       el.querySelector("[data-vw-diff]").replaceWith(host);
       host.scrollTop = top;
       drawDiff(chg());
@@ -793,8 +797,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (DF.handle || DF.key) dropDiff();
     const keep = el.querySelector(".vw-body")?.scrollTop || 0;
     const framed = V.data && ((V.data.kind === "html" && V.mode === "preview") || V.data.kind === "pdf");
-    const failed = V.saveError ? `<p class="vw-cut" role="alert">${ICON.clock}<span>${esc(V.saveError)}</span></p>` : "";
-    el.innerHTML = (tabs ? tabs() : "") + head() + `<div class="vw-body${framed ? " is-frame" : ""}" tabindex="0">${failed}${body()}</div>`;
+    el.innerHTML = above() + `<div class="vw-body${framed ? " is-frame" : ""}" tabindex="0">${body()}</div>`;
     if (V.keepScroll) el.querySelector(".vw-body").scrollTop = keep;
     V.keepScroll = false;
   }

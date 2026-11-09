@@ -171,6 +171,7 @@ function mockApi(W) {
       const f = W.files[u.searchParams.get("relative_path")];
       W.downloads = (W.downloads || 0) + 1;
       if (W.downloadGate) await W.downloadGate;
+      if (W.downloadFails) { W.downloadFails--; return json({ detail: { code: "unavailable", message: "Download fixture unavailable" } }, 503); } // W.downloadFails: the next downloads refused
       return f ? r.fulfill({ status: 200, contentType: "application/octet-stream", body: f.content }) : json({ detail: { code: "not_found", message: "No such file" } }, 404);
     }
     if (/^\/api\/xo-projects\/[^/]+\/edits\/[^/]+\/undo$/.test(p) && m === "POST") {
