@@ -1,11 +1,17 @@
 // Focus is never somewhere you can't see it. A control a script hands focus to with preventScroll (so a page that's
 // already where it should be doesn't jump) can be scrolled out of its own scroller: Settings › Keyboard's Reset all
-// put focus on the first shortcut, 972 px above the screen (the create-project/Launchpad grader on c055e74, S023). So
-// whatever takes focus, once it has, is checked against the box it scrolls in; wholly outside it, it's brought in,
-// the least distance (nearest). A Tab or a click already lands on something in view, so this answers only a script.
+// put focus on the first shortcut, 972 px above the screen (the create-project/Launchpad grader on c055e74, S023).
+// 175 script focus calls in 20 files hand focus on like that; one rule covers them (the owner's choice, 9 Nov):
+// whatever a script focuses, once the moment's layout has settled, is checked against the box it scrolls in, and if
+// it's wholly outside, that one box is scrolled the least distance to show it. Never more:
+//   · a Tab's or a press's focus isn't checked: the browser has already brought it into view;
+//   · only the nearest scroller moves, never its ancestors (scrollIntoView also scrolls clipped boxes and a phone's
+//     sheet), and a scroller that owns its scroll (data-own-scroll: the conversation, whose reading place follow.js
+//     keeps) is left to its owner;
+//   · a 1 px or smaller control (visually hidden) is left.
 export const outside = (r, v) => r.bottom <= v.top || r.top >= v.bottom || r.right <= v.left || r.left >= v.right;
 
-/** The nearest ancestor that scrolls (and has something to scroll), or null for the page itself. */
+/** The nearest ancestor that scrolls (and has something to scroll), or null for none. */
 export function scrollerOf(el, win = window) {
   for (let n = el.parentElement; n && n !== el.ownerDocument.body && n !== el.ownerDocument.documentElement; n = n.parentElement) {
     const cs = win.getComputedStyle(n);
@@ -15,15 +21,21 @@ export function scrollerOf(el, win = window) {
   return null;
 }
 
-/** Is this focused element wholly out of the box it scrolls in? (a 1 px or smaller one, visually hidden, is left) */
-export function lost(el, win = window) {
-  if (!el || !el.getClientRects || !el.getClientRects().length) return false;
+/** How far the focused element's scroller must move to show it, or null: in view (even partly), visually hidden,
+ *  not in a scroller, or in one that owns its scroll. {sc, dx, dy}: the least distance (the nearest edge). */
+export function bring(el, win = window) {
+  if (!el || !el.getClientRects || !el.getClientRects().length) return null;
   const r = el.getBoundingClientRect();
-  if (r.width <= 1 && r.height <= 1) return false;
+  if (r.width <= 1 && r.height <= 1) return null;
   const sc = scrollerOf(el, win);
-  const v = sc ? sc.getBoundingClientRect() : { top: 0, left: 0, bottom: win.innerHeight, right: win.innerWidth };
-  return outside(r, v);
+  if (!sc || (sc.closest && sc.closest("[data-own-scroll]"))) return null;
+  const v = sc.getBoundingClientRect();
+  if (!outside(r, v)) return null;
+  const dy = r.top < v.top ? r.top - v.top : r.bottom > v.bottom ? Math.min(r.bottom - v.bottom, r.top - v.top) : 0;
+  const dx = r.left < v.left ? r.left - v.left : r.right > v.right ? Math.min(r.right - v.right, r.left - v.left) : 0;
+  return { sc, dx, dy };
 }
+export const lost = (el, win = window) => !!bring(el, win);
 
 export function keepFocusInView(doc = document, win = window) {
   // focus the browser moves itself (Tab, a press) it has already brought into view: only a script's is checked
@@ -35,6 +47,12 @@ export function keepFocusInView(doc = document, win = window) {
     if (win.performance.now() - own < 50) return;
     const el = e.target;
     // once the moment's layout has settled (a redraw that put it there, a sheet opening around it)
-    win.requestAnimationFrame(() => { if (doc.activeElement === el && lost(el, win)) el.scrollIntoView({ block: "nearest", inline: "nearest" }); });
+    win.requestAnimationFrame(() => {
+      if (doc.activeElement !== el) return;
+      const b = bring(el, win);
+      if (!b) return;
+      b.sc.scrollTop += b.dy; b.sc.scrollLeft += b.dx;
+      el.dispatchEvent(new win.CustomEvent("focusbrought", { bubbles: true, detail: { dx: b.dx, dy: b.dy } }));
+    });
   });
 }

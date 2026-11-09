@@ -16,22 +16,29 @@ function standIn(top, { size = 36, scrolls = true } = {}) {
   const raf = [], L = {}, calls = [];
   const doc = { body: {}, documentElement: {}, addEventListener: (t, f) => (L[t] = f), activeElement: null };
   const box = { top: 0, left: 0, bottom: 600, right: 390 };
-  const scroller = { parentElement: doc.body, ownerDocument: doc, scrollHeight: scrolls ? 3000 : 600, clientHeight: 600, scrollWidth: 390, clientWidth: 390, getBoundingClientRect: () => box, style: "auto" };
-  const el = { parentElement: scroller, ownerDocument: doc, getClientRects: () => [1], getBoundingClientRect: () => ({ top, bottom: top + size, left: 16, right: 16 + Math.max(size, 1), width: Math.max(size, 1), height: size }), scrollIntoView: (o) => calls.push(o) };
+  const scroller = { parentElement: doc.body, ownerDocument: doc, scrollHeight: scrolls ? 3000 : 600, clientHeight: 600, scrollWidth: 390, clientWidth: 390, getBoundingClientRect: () => box, scrollTop: 2000, scrollLeft: 0, own: false, closest: (sel) => (sel === "[data-own-scroll]" && scroller.own ? scroller : null) };
+  const el = { parentElement: scroller, ownerDocument: doc, getClientRects: () => [1], getBoundingClientRect: () => ({ top, bottom: top + size, left: 16, right: 16 + Math.max(size, 1), width: Math.max(size, 1), height: size }), dispatchEvent: (ev) => calls.push(ev.detail) };
   let now = 1000;
-  const win = { innerHeight: 844, innerWidth: 390, performance: { now: () => now }, tick: (ms) => (now += ms), requestAnimationFrame: (f) => raf.push(f), getComputedStyle: (n) => (n === scroller ? { overflowY: "auto", overflowX: "hidden" } : { overflowY: "visible", overflowX: "visible" }) };
-  return { doc, win, el, calls, L, focus() { doc.activeElement = el; L.focusin({ target: el }); }, flush() { while (raf.length) raf.shift()(); } };
+  const win = { innerHeight: 844, innerWidth: 390, CustomEvent: class { constructor(type, o) { this.type = type; this.detail = o.detail; } }, performance: { now: () => now }, tick: (ms) => (now += ms), requestAnimationFrame: (f) => raf.push(f), getComputedStyle: (n) => (n === scroller ? { overflowY: "auto", overflowX: "hidden" } : { overflowY: "visible", overflowX: "visible" }) };
+  return { doc, win, el, scroller, calls, L, focus() { doc.activeElement = el; L.focusin({ target: el }); }, flush() { while (raf.length) raf.shift()(); } };
 }
 
-t("a focused element wholly out of its scroller is brought in, the least distance", () => {
+t("a focused element wholly out of its scroller is brought in: that scroller only, the least distance", () => {
   assert.equal(typeof F.keepFocusInView, "function", "js/focusview.js keepFocusInView(doc, win)");
   const P = standIn(-972); // Reset all's first shortcut, above the box
   F.keepFocusInView(P.doc, P.win);
   P.focus(); P.flush();
-  assert.deepEqual(P.calls, [{ block: "nearest", inline: "nearest" }]);
+  assert.deepEqual(P.calls, [{ dx: 0, dy: -972 }], "it says so (focusbrought)");
+  assert.equal(P.scroller.scrollTop, 2000 - 972, "its top comes to the box's top");
   const Q = standIn(1400); // below it
   F.keepFocusInView(Q.doc, Q.win); Q.focus(); Q.flush();
-  assert.equal(Q.calls.length, 1);
+  assert.equal(Q.scroller.scrollTop, 2000 + (1400 + 36 - 600), "its foot comes to the box's foot");
+});
+t("a scroller that owns its scroll (the conversation's, follow.js) is left to its owner", () => {
+  assert.equal(typeof F.keepFocusInView, "function");
+  const P = standIn(-972); P.scroller.own = true;
+  F.keepFocusInView(P.doc, P.win); P.focus(); P.flush();
+  assert.deepEqual([P.calls.length, P.scroller.scrollTop], [0, 2000]);
 });
 t("in view, partly in view, visually hidden (1 px), or no longer focused: left alone", () => {
   assert.equal(typeof F.keepFocusInView, "function");
@@ -42,12 +49,12 @@ t("in view, partly in view, visually hidden (1 px), or no longer focused: left a
   const P = standIn(-972); F.keepFocusInView(P.doc, P.win); P.focus(); P.doc.activeElement = null; P.flush();
   assert.equal(P.calls.length, 0, "focus moved on before the check");
 });
-t("out of view is judged against the box it scrolls in, else the window", () => {
+t("out of view is judged against the box it scrolls in; with none, nothing moves", () => {
   assert.equal(typeof F.lost, "function");
   const P = standIn(700, { scrolls: true });
   assert.equal(F.lost(P.el, P.win), true, "below its 600 px scroller, though on the 844 px screen");
-  const Q = standIn(700, { scrolls: false });
-  assert.equal(F.lost(Q.el, Q.win), false, "a box with nothing to scroll isn't its scroller: the window is, and 700 is on it");
+  const Q = standIn(-972, { scrolls: false });
+  assert.equal(F.lost(Q.el, Q.win), false, "no box to scroll (a box with nothing to scroll isn't one): nothing it can do, nothing moves");
 });
 t("focus the browser moves itself (a Tab, a press) isn't checked: only a script's", () => {
   assert.equal(typeof F.keepFocusInView, "function");
