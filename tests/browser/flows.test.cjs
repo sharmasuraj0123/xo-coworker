@@ -2048,6 +2048,34 @@ t("S041: Show them on a long Changes list: focus goes to the first revealed row,
   assert.equal(await page.evaluate((w) => document.activeElement === w, was), true, "a redraw keeps the row you're on");
   await done(page);
 });
+// a copy held by the clipboard says it's copying and takes no repeat (the controls grader on 76a53c1, S124/S125: with
+// the clipboard pending, nothing said so at 250 or 800 ms, and Enter, Space, a tap or More opened again stacked four
+// clipboard calls). One pending state for the ⋯'s copy and download.
+t("S124/S125 (pending): a held Copy says Copying… by 250 ms, takes no repeat and keeps More shut; once it lands, Copied", async () => {
+  const page = await app({ files: { "a.js": FILE() } });
+  await page.evaluate(() => { window.__cpq = []; navigator.clipboard.writeText = () => new Promise((ok, no) => window.__cpq.push({ ok, no })); });
+  await toDemo(page);
+  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
+  const more = page.locator("#viewer [data-vw-more]").filter({ visible: true }).first();
+  await more.waitFor({ timeout: 15000 });
+  await page.keyboard.press("Shift");
+  await more.focus(); await page.keyboard.press("Enter");
+  const c = page.locator("#viewer .vw-menu [data-vw-copy]").first(); await c.waitFor(); await c.focus();
+  await page.keyboard.press("Enter"); // the copy, held
+  await page.waitForTimeout(250);
+  assert.match(await more.innerText(), /Copying/, "by 250 ms the ⋯ says it's copying");
+  // repeats: Enter and Space on the ⋯, a tap on it: none opens More or copies again
+  await more.focus(); await page.keyboard.press("Enter"); await page.keyboard.press("Space");
+  await more.click();
+  await page.waitForTimeout(300);
+  assert.equal(await page.locator("#viewer .vw-menu").count(), 0, "More stays shut while the copy is on its way");
+  assert.equal(await page.evaluate(() => window.__cpq.length), 1, "one clipboard call, never stacked");
+  assert.match(await more.innerText(), /Copying/, "and still says so at 800 ms");
+  await page.evaluate(() => window.__cpq[0].ok());
+  await page.waitForTimeout(150);
+  assert.match(await more.innerText(), /Copied/, "once it lands: Copied");
+  await done(page);
+});
 t("S126: Download refused in the Changes view says why, under the head, and keeps saying it", async () => {
   let answer;
   const page = await app({ files: { "archive.bin": FILE() }, downloadGate: new Promise((ok) => (answer = ok)), downloadFails: 1, changes: [

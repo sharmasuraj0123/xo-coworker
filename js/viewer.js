@@ -92,7 +92,9 @@ export function saveOutcome(err) {
  */
 export function createViewer({ announce, onChange, tabs, changes = null, ask = null, edits = null, away = null, home = null }) {
   const el = $("#viewer");
-  const V = { open: false, parked: false, file: null, data: null, error: null, loading: false, mode: "preview", returnTo: null, gen: 0, copied: false, dims: null, saving: false, saveError: null, show: "file", split: false, draft: null, menu: false };
+  // a copy still on its way after this long says so ("Copying…"): quicker, and it only says Copied
+  const COPY_SAYS_MS = 150;
+  const V = { open: false, parked: false, file: null, data: null, error: null, loading: false, mode: "preview", returnTo: null, gen: 0, copied: false, dims: null, busy: null, saveError: null, show: "file", split: false, draft: null, menu: false };
   // the diff, kept across redraws of the head (Pierre's element moves with its body): {el, handle, img (an image
   // change's drawing, js/imagechange.js), key, gen}
   const DF = { el: null, handle: null, img: null, key: null, gen: 0, ask: 0, reading: null };
@@ -144,9 +146,9 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
 
   /** Download the whole file (a project file's own route). Its own name: Edit's save() is another job. */
   async function download() {
-    if (V.saving) return;
+    if (V.busy) return; // one thing at a time from the ⋯: a copy or a download already on its way
     const f = V.file;
-    V.saving = true; V.saveError = null; redrawKeep();
+    V.busy = { kind: "download", shown: true }; V.saveError = null; redrawKeep();
     try {
       const url = URL.createObjectURL(await api.projectDownload(f.project, f.rel));
       const a = Object.assign(document.createElement("a"), { href: url, download: f.name || "file" });
@@ -156,7 +158,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       if (f === V.file) V.saveError = err.message || "Couldn't download this file.";
     }
     if (f !== V.file) return;
-    V.saving = false; redrawKeep();
+    V.busy = null; redrawKeep();
   }
 
   /**
@@ -177,7 +179,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
         : canSave() && `<button type="button" role="menuitem" data-vw-download>${ICON.down}<span>Download</span></button>`,
     ].filter(Boolean);
     if (!items.length && !folds.length) return "";
-    const done = V.copied, busy = V.saving, word = done ? "Copied" : busy ? "Downloading…" : "";
+    const done = V.copied, busy = !!(V.busy && V.busy.shown), word = done ? "Copied" : busy ? (V.busy.kind === "copy" ? "Copying…" : "Downloading…") : "";
     // with only folds in it, ⋯ shows only while one of them does
     const only = items.length ? "" : ` only-folds${folds.some((x) => x.includes("f-wide")) ? " fw" : ""}${folds.some((x) => x.includes("f-narrow")) ? " fn" : ""}`;
     return `<span class="vw-mw${only}"><button type="button" class="vw-btn vw-more${done ? " is-done" : busy ? " is-busy" : ""}" data-vw-more aria-haspopup="menu" aria-expanded="${!!V.menu}" title="${word || "Copy, download"}" aria-label="${word || "More: copy, download"}"${busy ? ' aria-disabled="true" aria-busy="true"' : ""}>` +
@@ -515,7 +517,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   }
 
   function body() {
-    if (V.why) return `<div class="vw-empty"><p>${esc(V.why)}</p><p class="vw-path"><code>${esc(V.file.path)}</code><button type="button" class="vw-btn" data-vw-copy-path>${ICON.copy}<span>${V.copied ? "Copied" : "Copy the path"}</span></button></p></div>`;
+    if (V.why) return `<div class="vw-empty"><p>${esc(V.why)}</p><p class="vw-path"><code>${esc(V.file.path)}</code><button type="button" class="vw-btn" data-vw-copy-path${V.busy ? ` aria-disabled="true"${V.busy.kind === "copy" ? ' aria-busy="true"' : ""}` : ""}>${ICON.copy}<span>${V.copied ? "Copied" : V.busy && V.busy.kind === "copy" && V.busy.shown ? "Copying…" : "Copy the path"}</span></button></p></div>`;
     if (V.loading) return `<p class="vw-empty"><i class="spin" aria-hidden="true"></i> Reading the file…</p>`;
     if (V.error) return `<div class="vw-empty"><p>${esc(V.error)}</p></div>`;
     const d = V.data;
@@ -525,7 +527,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     }
     if (d.kind === "pdf") return `<iframe class="vw-frame vw-pdf" src="${esc(d.url)}" title="${esc(V.file.name || "PDF")}" referrerpolicy="no-referrer"></iframe>`;
     const text = String(d.content ?? "");
-    const cut = d.truncated ? `<p class="vw-cut">${ICON.clock}<span>Showing the first ${esc(size(bytes(text)))} of ${esc(size(d.size_bytes))}. The rest isn't previewed.</span>${canSave() ? `<button type="button" class="vw-cut-dl" data-vw-download${V.saving ? ' aria-disabled="true" aria-busy="true"' : ""}>Download the whole file</button>` : ""}</p>` : "";
+    const cut = d.truncated ? `<p class="vw-cut">${ICON.clock}<span>Showing the first ${esc(size(bytes(text)))} of ${esc(size(d.size_bytes))}. The rest isn't previewed.</span>${canSave() ? `<button type="button" class="vw-cut-dl" data-vw-download${V.busy ? ` aria-disabled="true"${V.busy.kind === "download" ? ' aria-busy="true"' : ""}` : ""}>Download the whole file</button>` : ""}</p>` : "";
     let main;
     if (d.kind === "markdown" && V.mode !== "source") main = `<article class="prose vw-md">${renderMarkdown(text)}</article>`;
     else if (d.kind === "html" && V.mode === "preview") main = `<iframe class="vw-frame" sandbox="allow-scripts" referrerpolicy="no-referrer" title="${esc(V.file.name || "HTML preview")}" srcdoc="${esc(text)}"></iframe>`;
@@ -773,7 +775,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       // the head redraws; the file's body (Pierre's drawing, where you are, a question you're writing) stays
       const host = fileBody(), top = host.scrollTop, d = V.data;
       if (DF.handle || DF.key) dropDiff();
-      const cut = d.truncated ? `<p class="vw-cut">${ICON.clock}<span>Showing the first ${esc(size(bytes(d.content)))} of ${esc(size(d.size_bytes))}. The rest isn't previewed.</span>${canSave() ? `<button type="button" class="vw-cut-dl" data-vw-download${V.saving ? ' aria-disabled="true" aria-busy="true"' : ""}>Download the whole file</button>` : ""}</p>` : "";
+      const cut = d.truncated ? `<p class="vw-cut">${ICON.clock}<span>Showing the first ${esc(size(bytes(d.content)))} of ${esc(size(d.size_bytes))}. The rest isn't previewed.</span>${canSave() ? `<button type="button" class="vw-cut-dl" data-vw-download${V.busy ? ` aria-disabled="true"${V.busy.kind === "download" ? ' aria-busy="true"' : ""}` : ""}>Download the whole file</button>` : ""}</p>` : "";
       const bar = el.querySelector(":scope > .xd-bar");
       el.innerHTML = above() + cut + `<i data-vw-file hidden></i>`;
       el.querySelector("[data-vw-file]").replaceWith(host);
@@ -875,7 +877,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (ED.on) { if (ED.ed) ED.ed.stop(); if (ED.conflict && ED.conflict.view) ED.conflict.view.destroy(); ED.on = false; ED.conflict = null; ED.real = null; ED.moved = false; }
     dropImage();
     if (V.parked) { V.parked = false; el.hidden = false; }
-    Object.assign(V, { open: true, file: { ...f, where: f.rel || f.path || "", image: f.att ? kindOf(f.type || "") === "image" : f.local == null && isImagePath(f.rel || f.path || f.name) }, data: null, dims: null, error: null, why: f.why || null, mode: V.textMode || "preview", copied: false, saving: false, saveError: null, menu: false, returnTo: from || (was ? V.returnTo : document.activeElement) });
+    Object.assign(V, { open: true, file: { ...f, where: f.rel || f.path || "", image: f.att ? kindOf(f.type || "") === "image" : f.local == null && isImagePath(f.rel || f.path || f.name) }, data: null, dims: null, error: null, why: f.why || null, mode: V.textMode || "preview", copied: false, busy: null, saveError: null, menu: false, returnTo: from || (was ? V.returnTo : document.activeElement) });
     if (V.file.image) V.mode = "preview";
     V.draft = getDraft(store, dkey()); // your unsaved edits in this file from before, if any
     // a changed file asked for as a change (the panel's Open in Files, the tree's Changed section) opens on
@@ -931,6 +933,12 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   /** Copy, and say so on the button. Where the browser has no clipboard API (a page not served over https or
    *  from this machine), the selection's own copy; where both refuse, the head says so in words. */
   async function copy(text) {
+    // one pending state for the ⋯'s actions (V.busy, the download's too): a copy on its way takes no repeat (Enter,
+    // Space, a tap, or More opened again stacked four clipboard calls: the controls grader on 76a53c1, S124/S125),
+    // and says it's copying once it outlasts a moment; a refusal or success ends it
+    if (V.busy) return;
+    const busy = V.busy = { kind: "copy", shown: false };
+    const slow = setTimeout(() => { if (V.busy === busy) { busy.shown = true; redrawKeep(); } }, COPY_SAYS_MS);
     let ok = false;
     try { await navigator.clipboard.writeText(text); ok = true; } catch {
       const ta = Object.assign(document.createElement("textarea"), { value: text, readOnly: true });
@@ -940,6 +948,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       try { ok = document.execCommand("copy"); } catch { ok = false; }
       ta.remove(); back && back.focus && back.focus({ preventScroll: true });
     }
+    clearTimeout(slow); if (V.busy === busy) V.busy = null;
     if (!ok) { V.saveError = "Couldn't copy: the browser didn't allow it here. Select the text and copy it, or download the file."; redrawKeep(); announce("Couldn't copy."); return; }
     V.copied = true; V.saveError = null;
     redrawKeep();
@@ -961,7 +970,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (e.target.closest("[data-vw-more]")) {
       // while it downloads it says so and keeps focus, but doesn't open (aria-disabled, not disabled: a disabled
       // button drops focus to the page, and it never came back when the download ended: Astra C092/S126)
-      if (V.saving) return;
+      if (V.busy) return;
       V.menu = !V.menu; paintHead();
       (V.menu ? menuItems()[0] : el.querySelector("[data-vw-more]"))?.focus({ preventScroll: true });
       return;
