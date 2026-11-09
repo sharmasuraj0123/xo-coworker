@@ -867,6 +867,46 @@ t("S098 a newer preference typed while one saves: Saved only beside what XO hold
   await done(page);
 });
 
+t("S209 a dropdown busy saving keeps focus but takes no new choice; when the save lands it shows what XO holds", async (ctx) => {
+  // the create-project grader on 9d1f71b: while 70% saved, the busy threshold still opened, End then Enter showed 90%
+  // and sent nothing, and the 70% answer put it back: the choice thrown away (dropdown.js ignored the host's busy state)
+  const W = world({ router: { mode: "decision", decision_model: "levanto", abstain_below: 0.5 } });
+  const rel = [];
+  W.gates = { router: [0].map(() => new Promise((ok) => rel.push(ok))) };
+  const page = await open(W, ctx);
+  await settings(page, "routing");
+  const sel = page.locator("xo-select[data-abstain]");
+  await sel.waitFor();
+  const btn = sel.locator(".dd-btn");
+  await keyFocus(page, "xo-select[data-abstain] .dd-btn");
+  await page.keyboard.press("Enter");
+  await page.waitForSelector("xo-select[data-abstain].is-open");
+  const pick = await page.evaluate(() => [...document.querySelectorAll("xo-select[data-abstain] option")].findIndex((o) => o.textContent.startsWith("70%")));
+  for (let i = 0; i < 9 && (await page.evaluate(() => document.querySelector("xo-select[data-abstain] .dd-row.is-active")?.textContent || "")).indexOf("70%") < 0; i++) await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Enter"); // 70% goes, and is held
+  await page.waitForFunction(() => document.querySelector("xo-select[data-abstain]")?.getAttribute("aria-busy") === "true");
+  assert.equal(writes(page, "router"), 1, "70% sent");
+  // while it's out: the keys that open and choose do nothing; focus stays on it
+  await page.keyboard.press("End");
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(200);
+  const mid = await page.evaluate(() => { const x = document.querySelector("xo-select[data-abstain]"); return { open: x.classList.contains("is-open"), shown: x.querySelector(".dd-v").textContent, focus: document.activeElement === x.querySelector(".dd-btn"), busy: x.querySelector(".dd-btn").getAttribute("aria-busy") }; });
+  assert.deepEqual(mid, { open: false, shown: "70% sure", focus: true, busy: "true" }, "held: no list, no new choice, focus kept, said busy on the button");
+  assert.equal(writes(page, "router"), 1, "nothing more sent");
+  rel[0](); // 70% lands
+  await page.waitForFunction(() => document.querySelector("xo-select[data-abstain]")?.getAttribute("aria-busy") !== "true");
+  assert.equal(await page.evaluate(() => document.querySelector("xo-select[data-abstain] .dd-v").textContent), "70% sure", "it shows what XO holds");
+  assert.equal(page.W.router.abstain_below, 0.7);
+  assert.ok(pick >= 0, "a 70% choice exists");
+  // and once it's done, a choice goes again
+  await page.keyboard.press("End");
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelector("xo-select[data-abstain]")?.getAttribute("aria-busy") === "true" || false, null, { timeout: 3000 }).catch(() => {});
+  await page.waitForFunction(() => document.querySelector("xo-select[data-abstain]")?.getAttribute("aria-busy") !== "true");
+  assert.equal(writes(page, "router"), 2, "the next choice is sent");
+  await done(page);
+});
+
 // ── Keyboard ─────────────────────────────────────────────────────────────────────────────
 t("C118 S022 S023 Keyboard: Esc keeps the key focused; a new key too; a reset → its key; Reset all → the first key", async (ctx) => {
   const page = await open(world(), ctx);

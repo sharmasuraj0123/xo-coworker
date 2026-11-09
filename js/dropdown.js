@@ -40,11 +40,15 @@ class XoSelect extends HTMLElement {
   get selectedIndex() { return this.options.findIndex((o) => o.value === this.value); }
   get disabled() { return this.hasAttribute("disabled"); }
   set disabled(on) { this.toggleAttribute("disabled", !!on); }
+  /** Held while what it chose is being saved (aria-busy, aria-disabled on the host, js/pending.js busyAttrs): it keeps
+   *  focus and its place, but takes no new choice and doesn't open (the create-project grader on 9d1f71b, S209: a busy
+   *  threshold still opened and took 90%, sent nothing, and the 70% answer put it back: the choice thrown away). */
+  get held() { return this.getAttribute("aria-busy") === "true" || this.getAttribute("aria-disabled") === "true"; }
   focus(opts) { this._btn?.focus(opts); }
   blur() { this._btn?.blur(); }
 
-  static get observedAttributes() { return ["disabled", "aria-label"]; }
-  attributeChangedCallback() { if (this._built) this._paint(); }
+  static get observedAttributes() { return ["disabled", "aria-label", "aria-busy", "aria-disabled"]; }
+  attributeChangedCallback() { if (!this._built) return; if (this._open && (this.disabled || this.held)) this.close(true); this._paint(); }
 
   connectedCallback() {
     if (!this._built) this._build();
@@ -135,6 +139,8 @@ class XoSelect extends HTMLElement {
     if (l.name) { this._btn.setAttribute("aria-label", l.name); this._btn.removeAttribute("aria-labelledby"); this._menu.setAttribute("aria-label", l.name); }
     if (l.by) { this._btn.setAttribute("aria-labelledby", l.by); this._btn.removeAttribute("aria-label"); this._menu.setAttribute("aria-labelledby", l.by); }
     this._btn.disabled = this.disabled;
+    // held: said on the button that has focus (it stays focusable: not disabled)
+    for (const a of ["aria-busy", "aria-disabled"]) { if (this.getAttribute(a) === "true") this._btn.setAttribute(a, "true"); else this._btn.removeAttribute(a); }
     if (this.title) this._btn.title = this.title;
   }
 
@@ -159,7 +165,7 @@ class XoSelect extends HTMLElement {
 
   // ── open, place, close ─────────────────────────────────────────────────────────────────────────
   open() {
-    if (this._open || this.disabled || !this.options.length) return;
+    if (this._open || this.disabled || this.held || !this.options.length) return;
     if (openOne && openOne !== this) openOne.close(false);
     openOne = this; this._open = true;
     this._rows();
@@ -241,6 +247,7 @@ class XoSelect extends HTMLElement {
   _choose(i) {
     const o = this.options[i];
     if (!o || o.disabled) return;
+    if (this.held) { this.close(true); return; } // a choice while the last one saves: none
     const changed = o.value !== this.value;
     this._v = o.value; this._paint();
     this.close(true);
