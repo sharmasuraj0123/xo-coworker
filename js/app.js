@@ -3507,13 +3507,19 @@ function syncInert() {
   hold($("#main"), PHONE.matches && drawer);
 }
 queueMicrotask(() => { PHONE.addEventListener("change", syncInert); const mo = new MutationObserver(syncInert); for (const el of [jump, keys, allEl, runsEl, setEl]) mo.observe(el, { attributes: true, attributeFilter: ["hidden"] }); syncInert(); });
-// Tab and Shift+Tab go round the open sheet: past its last control is its first, never the page behind it.
+/** The layer that holds the keyboard, the page behind it inert (syncInert): a sheet; on a phone, Settings (it covers
+ *  the whole screen there), else the open drawer (the sidebar, over the main area). Null when the page itself does. */
+function keyLayer() {
+  return [runsEl, keys, allEl, jump].find((el) => !el.hidden) || (PHONE.matches && !setEl.hidden ? setEl : null)
+    || (PHONE.matches && $("#app").classList.contains("drawer") ? $("#side") : null);
+}
+// Tab and Shift+Tab go round the open layer: past its last control is its first, never the page behind it (inert,
+// so Tab fell to BODY: the create-project/Launchpad grader on c055e74, the phone's drawer past Settings).
 // It listens as the event bubbles, after the control the keys are in: a control that takes Tab for itself (Edit as
-// JSON indents with it) claims it with preventDefault, and the sheet only turns round a Tab nobody claimed.
+// JSON indents with it) claims it with preventDefault, and the layer only turns round a Tab nobody claimed.
 addEventListener("keydown", (e) => {
   if (e.key !== "Tab" || e.defaultPrevented) return;
-  // a sheet; on a phone, Settings too (it covers the whole screen there)
-  const top = [runsEl, keys, allEl, jump].find((el) => !el.hidden) || (PHONE.matches && !setEl.hidden ? setEl : null);
+  const top = keyLayer();
   if (!top) return;
   // what Tab itself would visit: anything in the tab order (a summary, a field, a link, a roving group's one stop),
   // drawn and usable; the browser moves between them, and this only turns it round at the sheet's two ends
