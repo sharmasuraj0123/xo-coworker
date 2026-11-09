@@ -38,15 +38,21 @@ export function usualOf(policy, rts) {
 
 /**
  * "Saved", said beside a field for a while (ms): each receipt clears only itself, never a newer one on the same
- * field (a timer keyed by the field alone cut a second save's "Saved" short). onClear redraws.
+ * field (a timer keyed by the field alone cut a second save's "Saved" short). onClear redraws. A receipt holds what
+ * the server took (value), and says Saved only while the field still shows exactly that (says): a newer draft typed
+ * while an older save was out is not saved, so it's never said to be (the create-project/Launchpad grader on 9d1f71b,
+ * S098: the server held A and "Saved" stood beside B).
  */
+export const sameValue = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 export function receipts(ms, onClear) {
   let cur = null;
   return {
     /** The field whose "Saved" shows now, or null. */
     get field() { return cur && cur.field; },
-    set(field) {
-      const r = { field };
+    /** Is "Saved" true beside this field, which now shows `now`? */
+    says(field, now) { return !!cur && cur.field === field && sameValue(cur.value, now); },
+    set(field, value) {
+      const r = { field, value };
       cur = r;
       const t = setTimeout(() => { if (cur === r) { cur = null; onClear(); } }, ms);
       t.unref?.();
@@ -60,7 +66,8 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
   // next: the policy a save has out, shown (as waiting) until the server answers
   // saving: the field whose save is out (said "Saving…" beside it until XO answers, never as saved before);
   // saved: the receipt said after XO's answer
-  const R = { timer: null, err: null, saved: receipts(1600, () => { if (onScreen()) draw(); }), saving: null, pref: null, next: null };
+  // later: a draft was left while another save was out; it goes once that one lands
+  const R = { timer: null, err: null, saved: receipts(1600, () => { if (onScreen()) draw(); }), saving: null, pref: null, next: null, later: false };
   const page = () => document.querySelector('[data-page="runtimes"]');
   const live = () => page()?.querySelector(".set-live");
   const onScreen = () => { const p = page(); return !!p && !p.hidden && !document.querySelector("#settings").hidden; };
@@ -112,14 +119,19 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
       try { await world.act.setPolicy(null, next); }
       catch (err) { R.err = { field: errorField(err) === "form" ? field : errorField(err), text: err.message }; return false; }
       finally { R.next = null; R.saving = null; } // saved: the server's own answer shows; refused: what was there before
-      R.saved.set(field); announce(words);
+      R.saved.set(field, next[field]); announce(words);
       return true;
     });
     draw();
     const ok = await p;
     draw();
+    // a draft left while this save was out (it couldn't start then): saved now, in its turn, unless you're back in
+    // the field typing (then leaving it saves it, as ever)
+    if (R.later) { R.later = false; if (!(document.activeElement && document.activeElement.matches && document.activeElement.matches("[data-rtd-pref]"))) savePref(); }
     return ok;
   }
+  /** What a field shows now: the preference's draft while there is one, else the defaults as drawn. */
+  const fieldNow = (f) => (f === "preferences" && R.pref != null ? (R.pref.trim() || null) : shown()[f]);
   function defaultsHtml() {
     if (!world.state.policy) return "";
     const p = shown(), names = installed().map((r) => r.name);
@@ -130,7 +142,7 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
     // then "Saved" only once XO has answered
     const note = (f) => (R.err && R.err.field === f ? `<p class="rt-ferr" role="alert">${esc(R.err.text)}</p>`
       : R.saving === f ? `<span class="rt-saved is-saving" role="status">Saving…</span>`
-        : R.saved.field === f ? `<span class="rt-saved" role="status">Saved</span>` : "");
+        : R.saved.says(f, fieldNow(f)) ? `<span class="rt-saved" role="status">Saved</span>` : "");
     const busy = busyAttrs(POLICY);
     const row = (f, label, sub, ctl) => `<div class="set-row rt-def"><div class="set-l"><b id="rtd-${f}">${label}</b><span>${sub}</span>${note(f)}</div>${ctl}</div>`;
     return `<section class="set-sec" aria-labelledby="rtsp-h"><h3 id="rtsp-h">Defaults</h3>` +
@@ -186,14 +198,17 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
   });
   root.addEventListener("input", (e) => { if (e.target.matches("[data-rtd-pref]")) R.pref = e.target.value; });
   // leaving the field saves it; the draft is kept until the save lands (a refusal keeps it on screen, to try again)
-  root.addEventListener("focusout", async (e) => {
-    if (!e.target.matches("[data-rtd-pref]") || R.pref == null) return;
+  root.addEventListener("focusout", (e) => { if (e.target.matches("[data-rtd-pref]")) savePref(); });
+  async function savePref() {
+    if (R.pref == null) return;
+    // another default's save is out: this draft waits for it, then goes (it was dropped: S098)
+    if (isPending(POLICY)) { R.later = true; return; }
     const v = R.pref;
-    if ((v.trim() || null) === (space().preferences || null)) { R.pref = null; return; }
+    if ((v.trim() || null) === (space().preferences || null)) { R.pref = null; draw(); return; }
     const ok = await put({ preferences: v.trim() || null }, "preferences", "Saved. Coordinators read it when they choose.");
-    // typed on while it saved: that's the new draft, still to save
+    // typed on while it saved: that's the new draft, still to save (Saved isn't said beside it: it isn't the server's)
     if (ok && R.pref === v) { R.pref = null; draw(); }
-  });
+  }
   // a new reading from elsewhere (another tab's save) shows while the page is open, never mid-typing
   if (world.subscribe) {
     let sig = "";
