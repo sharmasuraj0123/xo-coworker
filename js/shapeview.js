@@ -43,7 +43,8 @@ export function createShapeView({ shape, announce = () => {} }) {
   // was made ("preset", "acts", "device" or "json"), so it's said there, beside what you just did, never only at the
   // page's top above the screen (the create-project grader on 8a4ed16, C104/C105/C106: on a phone Reset, Show
   // everything and Compact said it above the viewport, and the control looked as if all was well)
-  const V = { confirm: null, err: null, pickErr: null, draft: null, saveErr: null, unkept: false, built: false };
+  // sharedAt: where the last change XO is sent was made (preset | acts | json): XO's answer comes later, and is said there
+  const V = { confirm: null, err: null, pickErr: null, draft: null, saveErr: null, unkept: false, sharedAt: null, built: false };
   const page = document.querySelector('[data-page="shape"]');
   const box = page && page.querySelector(".shp");
   const nav = document.querySelector("#settings .set-nav");
@@ -104,7 +105,7 @@ export function createShapeView({ shape, announce = () => {} }) {
   }
 
   // what's held changed (a write refused or unreachable, or it landed): the page says so while it shows
-  shape.onHeld?.(() => { if (page && !page.hidden && !document.querySelector("#settings").hidden) render(); });
+  shape.onHeld?.(() => { if (page && !page.hidden && !document.querySelector("#settings").hidden) { render(); inSightHeld(); } });
 
   // ── Settings › Shape ────────────────────────────────────────────────────────
   /** The page was opened: the cards are named from the presets' own files (GET, once a page). */
@@ -122,26 +123,19 @@ export function createShapeView({ shape, announce = () => {} }) {
     const own = describeShape(pre, shape.shape);
     const dense = shape.get("density") === "compact";
     const c = V.confirm;
-    const held = shape.held;
-    return "" +
-      // a change XO hasn't taken is said as long as it isn't there: refused (and why), or on its way again
-      // (and, when this browser couldn't keep it either, that it lasts only while this page is open)
-      (held ? held.why === "refused"
-        ? `<p class="set-err" role="alert">XO refused your last shape change. ${esc(held.text)} ${held.kept ? "It's kept on this device only: your other devices don't have it." : "This browser can't keep it after a reload either: it lasts only while this page is open."} Your next change tries again.</p>`
-        : held.kept ? `<p class="set-note" role="status">Not on your other devices yet: XO couldn't be reached. It's sent again when XO answers.</p>`
-          : `<p class="set-err" role="alert">Not saved yet: XO couldn't be reached, and this browser can't keep it after a reload. It's sent again while this page is open.</p>` : "") +
+    return "" + heldAt(null) +
       `<section class="set-sec" aria-labelledby="shp-h-p"><h3 id="shp-h-p">What you mostly do here</h3>` +
       `<div class="set-choices" role="radiogroup" aria-labelledby="shp-h-p">${cardsOf().map((p) => `<button type="button" class="set-choice${p.id === id ? " is-on" : ""}" role="radio" aria-checked="${p.id === id}" data-shp-preset="${esc(p.id)}"${rovingTab(p.id === id)}${busyAttrs(SHAPING)}><span class="sc-dot" aria-hidden="true"></span><span class="sc-b"><b>${esc(p.name)}</b><span>${esc(p.summary)}</span></span></button>`).join("")}</div>` +
       // once Switch is pressed the choice is on its way (its preset may still be reading): Keep mine waits with it
       (c ? `<div class="shp-confirm" role="alertdialog" aria-labelledby="shp-cf"><p id="shp-cf"><b>Switch to ${esc(nameOf(c))}?</b> Your own changes are cleared. What you set on this device stays.</p>${V.pickErr ? `<p class="set-err" role="alert">${esc(V.pickErr)}</p>` : ""}<div class="set-fa"><button type="button" class="btn" data-shp-keep${isPending(SHAPING) ? ' aria-disabled="true"' : ""}>Keep mine</button><button type="button" class="btn btn-pri" data-shp-switch="${esc(c)}"${busyAttrs(SHAPING)}>Switch</button></div></div>`
-        : V.pickErr ? `<p class="set-err" role="alert">${esc(V.pickErr)}</p>` : "") + unkeptAt("preset") +
+        : V.pickErr ? `<p class="set-err" role="alert">${esc(V.pickErr)}</p>` : "") + unkeptAt("preset") + heldAt("preset") +
       (shape.presetError(id) ? `<p class="set-err" role="alert">${esc(nameOf(id))} couldn't be read (${esc(shape.presetError(id))}). XO shows everything until it can.</p>` : "") +
       `</section>` +
       `<section class="set-sec" aria-labelledby="shp-h-d"><h3 id="shp-h-d">What it changes</h3>` +
       (diff.length ? list(diff) : `<p class="set-lead">Nothing: every part of XO, as it is today.</p>`) +
       (own.length ? `<p class="set-lead shp-own">Your own changes on top</p>${list(own)}` : "") +
       (V.err ? `<p class="set-err" role="alert">${esc(V.err)}</p>` : "") +
-      `<div class="set-fa shp-acts"><button type="button" class="btn" data-shp-reset${own.length ? "" : " disabled"}>Reset to preset</button><button type="button" class="btn" data-shp-all>Show everything</button></div>` + unkeptAt("acts") + `</section>` +
+      `<div class="set-fa shp-acts"><button type="button" class="btn" data-shp-reset${own.length ? "" : " disabled"}>Reset to preset</button><button type="button" class="btn" data-shp-all>Show everything</button></div>` + unkeptAt("acts") + heldAt("acts") + `</section>` +
       `<section class="set-sec" aria-labelledby="shp-h-v"><h3 id="shp-h-v">On this device</h3>` +
       `<div class="set-row"><div class="set-l"><b id="shp-dense-l">Compact</b><span>Tighter rows and controls, and 14 px reading text. Only here: your other devices keep their own.</span></div>` +
       `<button type="button" class="switch" role="switch" aria-checked="${dense}" aria-labelledby="shp-dense-l" data-shp-dense><span class="th-track" aria-hidden="true"><span class="th-knob">${ICON.list}</span></span></button></div>` + unkeptAt("device") + `</section>`;
@@ -153,7 +147,7 @@ export function createShapeView({ shape, announce = () => {} }) {
     d.innerHTML = `<summary><span class="shp-chev" aria-hidden="true">${ICON.chevron}</span>Edit as JSON<span class="shp-n" data-shp-n></span></summary>` +
       `<div class="shp-jb"><p class="set-lead">Your own layer, on top of the preset. Only what you write here differs from it; a key you leave out comes from the preset. An unknown key is ignored, and a bad value falls back to the preset's.</p>` +
       `<label class="field"><span>Mine</span><textarea class="shp-ta" rows="12" spellcheck="false" autocomplete="off" data-shp-json aria-describedby="shp-js"></textarea></label>` +
-      `<p class="shp-status" id="shp-js" role="status"></p>` +
+      `<p class="shp-status" id="shp-js" role="status"></p><div class="shp-held" data-shp-held-json></div>` +
       `<section class="shp-probs" aria-labelledby="shp-h-pr" hidden><h4 id="shp-h-pr">Shape problems</h4><ul data-shp-probs></ul></section>` +
       `<div class="set-fa"><button type="button" class="btn" data-shp-revert disabled>Revert</button><button type="button" class="btn btn-pri" data-shp-save disabled>Save</button></div></div>`;
     return d;
@@ -184,6 +178,10 @@ export function createShapeView({ shape, announce = () => {} }) {
     const bad = V.saveErr || r.error || (V.unkept === "json" && V.draft == null ? UNKEPT : null); // saved, not kept: said here too
     d.querySelector(".shp-status").textContent = bad || (V.draft == null ? "" : probs.length ? "It can be saved: XO uses what it understands, as the list below says." : "Looks right.");
     d.querySelector(".shp-status").classList.toggle("is-err", !!bad);
+    // XO's answer to the last Save, when it refused it or couldn't be reached: here, beside the text (drawn only when
+    // it changes, so the alert is said once)
+    const hj = d.querySelector("[data-shp-held-json]"), hs = heldAt("json");
+    if (hj.innerHTML !== hs) hj.innerHTML = hs;
     // saving: Save says it's waiting and keeps the keyboard (aria-disabled, not disabled); a repeat joins it
     const save = d.querySelector("[data-shp-save]"), busy = isPending(SHAPING);
     save.disabled = !busy && (V.draft == null || !!r.error);
@@ -203,6 +201,7 @@ export function createShapeView({ shape, announce = () => {} }) {
   }
   /** What a change did, said truthfully: refused, why; applied but not kept by this browser, that (instead of "done"). */
   const said = (r, ok, where) => {
+    if (where !== "device") V.sharedAt = where;
     V.err = r && r.error ? r.error : null;
     if (!V.err) { V.unkept = r.kept === false ? where : null; if (!V.unkept) announce(ok); }
     render();
@@ -212,6 +211,19 @@ export function createShapeView({ shape, announce = () => {} }) {
    *  screen ends close under a row). Never the page's top. */
   const inSightUnkept = () => { const w = V.unkept && box.querySelector("[data-shp-unkept]"); if (w) bringWhole(w); };
   const unkeptAt = (where) => (V.unkept === where ? `<p class="set-err" role="alert" data-shp-unkept>${esc(UNKEPT)}</p>` : "");
+  /** A change XO hasn't taken, said as long as it isn't there: refused (and why), or on its way again (and, when this
+   *  browser couldn't keep it either, that it lasts only while this page is open). Said where the last change sent was
+   *  made (V.sharedAt), the answer arriving after it; at the top (null) only for one held from before this page. */
+  const heldAt = (where) => {
+    const held = shape.held;
+    if (!held || (V.sharedAt || null) !== where) return "";
+    return held.why === "refused"
+      ? `<p class="set-err" role="alert" data-shp-held>XO refused your last shape change. ${esc(held.text)} ${held.kept ? "It's kept on this device only: your other devices don't have it." : "This browser can't keep it after a reload either: it lasts only while this page is open."} Your next change tries again.</p>`
+      : held.kept ? `<p class="set-note" role="status" data-shp-held>Not on your other devices yet: XO couldn't be reached. It's sent again when XO answers.</p>`
+        : `<p class="set-err" role="alert" data-shp-held>Not saved yet: XO couldn't be reached, and this browser can't keep it after a reload. It's sent again while this page is open.</p>`;
+  };
+  /** XO's answer, drawn where you acted, in sight (its scroller's least move); focus stays where it is. */
+  const inSightHeld = () => { const w = V.sharedAt && box && box.querySelector("[data-shp-held]"); if (w) bringWhole(w); };
   /** Where an action that takes its own control away (or disables it) leaves the keyboard: el, unless it moved on. */
   function landOn(el, from) {
     const a = document.activeElement;
@@ -221,6 +233,7 @@ export function createShapeView({ shape, announce = () => {} }) {
   const chosenCard = () => box.querySelector('[data-shp-preset][aria-checked="true"]');
   async function choose(id, from) {
     V.pickErr = null;
+    V.sharedAt = "preset";
     const p = once(SHAPING, async () => {
       const r = await shape.choose(id);
       // refused: the question (or the cards) stays, with the reason beside it, and the keyboard stays where it was
@@ -285,6 +298,7 @@ export function createShapeView({ shape, announce = () => {} }) {
     if (r.error) { jsonRender(); return; }
     const sent = V.draft;
     V.saveErr = null;
+    V.sharedAt = "json";
     const p = once(SHAPING, async () => {
       const res = await shape.setMine(r.doc);
       if (res.error) { V.saveErr = res.error; return false; }

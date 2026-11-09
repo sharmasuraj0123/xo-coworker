@@ -54,6 +54,7 @@
 .shp-n{font:400 var(--fs-xs)/var(--lh-12) var(--sans);color:var(--need)}
 .shp-n:empty{display:none}
 .shp-jb{display:flex;flex-direction:column;gap:12px;padding-top:12px}
+.shp-held:empty{display:none} /* XO's answer to the last Save, when there is one: no gap held for it otherwise */
 .shp-jb .shp-ta{font:400 var(--fs-base)/var(--lh-13) var(--mono);tab-size:2;white-space:pre;overflow:auto}
 .shp-status{min-height:var(--lh-12);font:400 var(--fs-xs)/var(--lh-12) var(--sans);color:var(--ink-3)}
 .shp-status.is-err{color:var(--need)}
