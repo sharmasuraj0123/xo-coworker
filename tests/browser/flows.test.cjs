@@ -1926,6 +1926,44 @@ t("S139 (paint): the viewer's Try again looks different hovered and pressed than
 // a refused Download said in the Changes view as in every other (the controls grader on e55c2d8, S126: an omitted
 // binary change, Download held then refused 503, and the screen went back to "Binary file · Download" saying nothing:
 // the diff's branch drew no error line). Held, then refused: the reason shows under the head and stays through redraws.
+/** How much of the focused control's ring any box around it cuts off: its outline (width past its offset) against
+ *  every ancestor that clips (overflow other than visible) and the screen. 0: whole. */
+const ringCut = (page) => page.evaluate(() => {
+  let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement;
+  let o = a, ext = 0;
+  for (let n = a, i = 0; n && n.nodeType === 1 && i < 4; n = n.parentElement, i++) { const cs = getComputedStyle(n); if (cs.outlineStyle !== "none" && parseFloat(cs.outlineWidth) > 0) { o = n; ext = parseFloat(cs.outlineWidth) + Math.max(0, parseFloat(cs.outlineOffset)); break; } }
+  const r = o.getBoundingClientRect(), R = { top: r.top - ext, bottom: r.bottom + ext, left: r.left - ext, right: r.right + ext };
+  let cut = Math.max(0 - R.top, R.bottom - innerHeight, 0 - R.left, R.right - innerWidth, 0), by = cut > 0 ? "the screen" : null;
+  for (let n = o.parentElement || (o.getRootNode() && o.getRootNode().host); n && n !== document.documentElement; n = n.parentElement || (n.getRootNode() && n.getRootNode().host)) {
+    const cs = getComputedStyle(n);
+    if (cs.overflowX === "visible" && cs.overflowY === "visible") continue;
+    const b = n.getBoundingClientRect(), c = Math.max(b.top - R.top, R.bottom - b.bottom, b.left - R.left, R.right - b.right, 0);
+    if (c > cut) { cut = c; by = n.className && typeof n.className === "string" ? "." + n.className.split(" ")[0] : n.tagName; }
+  }
+  return { who: (o.getAttribute("aria-label") || o.textContent || "").trim().slice(0, 30), ext, cut: +cut.toFixed(2), by };
+});
+// the ring of a focused control in the file's head is whole (the controls grader on e55c2d8, C092: on a phone, Enter
+// on Copy, and the ⋯ saying Copied had its ring's top cut by the viewer's edge: 36 px controls in a 40 px head)
+t("C092: Copy by the keyboard in the file's head: the Copied control's ring is whole, every cell", async () => {
+  const page = await app({ files: { "a.js": FILE() } });
+  await page.evaluate(() => { navigator.clipboard.writeText = () => Promise.resolve(); });
+  await toDemo(page);
+  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
+  const more = page.locator("#viewer [data-vw-more]").filter({ visible: true }).first();
+  await more.waitFor({ timeout: 15000 });
+  await page.keyboard.press("Shift");
+  await more.focus();
+  await page.keyboard.press("Enter");
+  const copyItem = page.locator("#viewer .vw-menu [data-vw-copy]").first();
+  await copyItem.waitFor();
+  await copyItem.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(250);
+  const g = await ringCut(page);
+  assert.ok(g.ext > 0, `a ring is drawn on what has focus (${JSON.stringify(g)})`);
+  assert.equal(g.cut, 0, `the ring is whole (${JSON.stringify(g)})`);
+  await done(page);
+});
 t("S126: Download refused in the Changes view says why, under the head, and keeps saying it", async () => {
   let answer;
   const page = await app({ files: { "pic.png": FILE() }, downloadGate: new Promise((ok) => (answer = ok)), downloadFails: 1, changes: [
