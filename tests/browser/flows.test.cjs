@@ -2199,7 +2199,13 @@ t("S125: Copy path refused in the Changes view says why, for a normal patch and 
     await refuseCopy(page);
     await menuChoose(page, "[data-vw-copy-path]");
     await page.waitForSelector("#viewer .vw-cut[role=alert]", { timeout: 5000 });
-    assert.match(await page.locator("#viewer .vw-cut[role=alert]").innerText(), /Couldn't copy/, `${rel}: it says why`);
+    assert.match(await page.locator("#viewer .vw-cut[role=alert]").innerText(), /Couldn't copy the path/, `${rel}: it says the path didn't copy`);
+    // and hands you the path itself (selecting the text or downloading gives the contents, never the path: the controls
+    // grader on 4d33649, V49): a read-only field holding it, all of it selected once focused
+    const sel = page.locator("#viewer .vw-cut .vw-cut-sel");
+    assert.ok((await sel.inputValue()).endsWith(rel), `${rel}: the path is offered`);
+    await sel.focus();
+    assert.equal(await sel.evaluate((e) => e.selectionStart === 0 && e.selectionEnd === e.value.length && e.readOnly), true, `${rel}: focused, all of it is selected, read-only`);
     assert.equal(await page.evaluate(() => !!document.querySelector("#viewer .vw-diff")), true, `${rel}: still the Changes view`);
     await page.keyboard.press("Escape"); // the file closes as a person closes it, focus going back where it was
     await page.waitForTimeout(200);

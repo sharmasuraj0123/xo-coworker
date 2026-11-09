@@ -12,7 +12,7 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
 const i = src.indexOf("function renderNow()"), body = src.slice(i, src.indexOf("\n  }\n", i));
 
 t("one place draws the failure, with the tabs and the head", () => {
-  assert.match(src, /const above = \(\) => \(tabs \? tabs\(\) : ""\) \+ head\(\) \+ \(V\.saveError \? `<p class="vw-cut" role="alert">/);
+  assert.match(src, /const above = \(\) => \{[\s\S]{0,400}?return \(tabs \? tabs\(\) : ""\) \+ head\(\) \+ \(V\.saveError \? `<p class="vw-cut" role="alert">/);
   assert.equal((src.match(/V\.saveError \? `<p class="vw-cut" role="alert">/g) || []).length, 1, "and nowhere else");
 });
 t("every branch of the viewer draws it: the file, the change, the plain view", () => {

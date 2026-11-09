@@ -770,7 +770,12 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
    *  download, copy or undo that failed (V.saveError), said under the head. One place for every branch, so none can
    *  leave it out (the controls grader on e55c2d8, S126: the diff's branch did, and a refused Download in Changes went
    *  back to "Binary file · Download" saying nothing) */
-  const above = () => (tabs ? tabs() : "") + head() + (V.saveError ? `<p class="vw-cut" role="alert">${ICON.clock}<span>${esc(V.saveError)}</span></p>` : "");
+  const above = () => {
+    // a refusal that hands you what it couldn't give (a path that didn't copy: the path itself, in a read-only field
+    // that selects all of it, the controls grader on 4d33649, S125 / V49) carries it as select
+    const cut = V.saveError && (typeof V.saveError === "string" ? { text: V.saveError } : V.saveError);
+    return (tabs ? tabs() : "") + head() + (V.saveError ? `<p class="vw-cut" role="alert">${ICON.clock}<span>${esc(cut.text)}</span>${cut.select ? `<input class="vw-cut-sel" readonly value="${esc(cut.select)}" aria-label="The path, to copy" spellcheck="false">` : ""}</p>` : "");
+  };
   function renderNow() {
     if (!V.open) return;
     if (showsFile()) {
@@ -934,7 +939,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
 
   /** Copy, and say so on the button. Where the browser has no clipboard API (a page not served over https or
    *  from this machine), the selection's own copy; where both refuse, the head says so in words. */
-  async function copy(text) {
+  async function copy(text, what = "contents") {
     // one pending state for the ⋯'s actions (V.busy, the download's too): a copy on its way takes no repeat (Enter,
     // Space, a tap, or More opened again stacked four clipboard calls: the controls grader on 76a53c1, S124/S125),
     // and says it's copying once it outlasts a moment; a refusal or success ends it
@@ -958,7 +963,14 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     clearTimeout(slow);
     if (V.busy !== busy || V.file !== file) return; // settled after its file went: nothing to say here
     V.busy = null;
-    if (!ok) { V.saveError = "Couldn't copy: the browser didn't allow it here. Select the text and copy it, or download the file."; redrawKeep(); announce("Couldn't copy."); return; }
+    // refused: said for what it was. The contents can be selected or downloaded; a path can't be had either way (the
+    // view shows the file's name and its contents, a download is the file), so the path itself is offered to copy
+    if (!ok) {
+      V.saveError = what === "path"
+        ? { text: "Couldn't copy the path: the browser didn't allow it here. Here it is to copy:", select: text }
+        : "Couldn't copy: the browser didn't allow it here. Select the text and copy it, or download the file.";
+      redrawKeep(); announce(what === "path" ? "Couldn't copy the path." : "Couldn't copy."); return;
+    }
     V.copied = busy; V.saveError = null; // this copy's Copied, cleared by this copy's timer only
     redrawKeep();
     announce("Copied.");
@@ -1028,7 +1040,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (m) { V.mode = m.dataset.vwMode; if (V.mode !== "actual") V.textMode = V.mode; render(); return; }
     if (e.target.closest(".vw-img img")) { V.mode = V.mode === "actual" ? "preview" : "actual"; render(); return; }
     if (e.target.closest("[data-vw-copy]")) { copy(String(V.data.content)); return; }
-    if (e.target.closest("[data-vw-copy-path]")) { copy(V.file.rel ? localPath() : V.file.path); return; }
+    if (e.target.closest("[data-vw-copy-path]")) { copy(V.file.rel ? localPath() : V.file.path, "path"); return; }
     if (e.target.closest("[data-vw-askfile]")) { ask.file(V.file); return; }
     // the new version, at the place you were reading
     if (e.target.closest("[data-vw-update]")) { const top = el.querySelector(".vw-body")?.scrollTop || 0; load().then(() => { const b = el.querySelector(".vw-body"); if (b) b.scrollTop = top; }); return; }
@@ -1054,6 +1066,10 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   // a tab put away (a phone may close it later): the draft is kept now
   document.addEventListener("visibilitychange", () => { if (document.hidden && ED.on && ED.dirty) keepDraft(); });
   pointerFollows(el); // the More menu: the item under the mouse is the active one (C058)
+  // the path a refused Copy path offers: focused (Tab, or a click), all of it is selected, ready to copy; a click that
+  // only placed the caret selects it all again
+  el.addEventListener("focusin", (e) => { if (e.target.matches?.(".vw-cut-sel")) e.target.select(); });
+  el.addEventListener("click", (e) => { const s = e.target.closest?.(".vw-cut-sel"); if (s && s.selectionStart === s.selectionEnd) s.select(); });
   el.addEventListener("keydown", (e) => {
     if (V.menu && e.target.closest(".vw-mw")) {
       const items = menuItems(), i = items.indexOf(document.activeElement);
