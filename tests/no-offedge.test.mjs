@@ -23,4 +23,7 @@ t("while a swipe pulls, it slides in from 64 px out, as before", () => {
   assert.ok(pull, "the pulling rule");
   assert.match(pull, /translateX\(calc\(\(64 - var\(--mx-pull,0\)\) \* 1px\)\)/);
 });
+t("where a pointer hovers, a bubble leaves its actions their room beside it (a narrow window: 401 of 390 px)", () => {
+  assert.match(css, /@media \(hover:hover\)\{#msgs \.bubble\{max-width:min\(80%,540px,calc\(100% - 66px\)\)\}\}/);
+});
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

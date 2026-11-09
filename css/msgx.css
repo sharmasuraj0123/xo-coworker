@@ -28,6 +28,10 @@ body.files-open .mx-down{display:none}
    two quiet 28 px circles 8 px off the bubble, no bar around them */
 .mx-acts{position:absolute;z-index:2;top:50%;left:calc(100% + 8px);display:flex;gap:2px;transform:translate(-4px,-50%);opacity:0;pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease)}
 .m-you .mx-acts{left:auto;right:calc(100% + 8px);flex-direction:row-reverse;transform:translate(4px,-50%)}
+/* where a pointer can hover, the actions sit beside the bubble: a bubble leaves them their room (two 28 px buttons,
+   their gap and the 8 px between: 66), so they never reach past the row (a narrow window with a mouse: the scroller
+   was 401 px wide in 390). A phone shows none, and keeps its own width */
+@media (hover:hover){#msgs .bubble{max-width:min(80%,540px,calc(100% - 66px))}}
 .m:hover .mx-acts,.m:focus-within .mx-acts{opacity:1;transform:translate(0,-50%);pointer-events:auto;transition-duration:var(--d-in)}
 .mx-acts button{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .mx-acts button:hover{background:var(--hover-fill);color:var(--ink);transition-duration:var(--d-hover-in)}
