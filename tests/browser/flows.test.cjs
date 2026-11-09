@@ -936,6 +936,36 @@ t("S023: after Reset all (by the keyboard, from the foot of the list), the first
   await page.evaluate(() => localStorage.removeItem("cv-keys"));
   await done(page);
 });
+// ── the file renderer's Try again says it's trying while the renderer loads (the controls grader on 9d1f71b, S139, all
+// four cells: with the renderer's module held, "Couldn't show this file" and a ready-looking Try again stood at 150
+// and 800 ms). The module fails until the case says so, then is held; Try again by the keyboard; 150 and 800 ms on:
+// it says what's happening and Try again is busy; let go: the file draws and the notice goes.
+t("S139 (waiting): the file's Try again says it's trying while the renderer loads, then the file draws", async () => {
+  const ctx = { mode: "fail", gate: null };
+  // the renderer's module, from startup (its prefetch too): refused until the case says, then held
+  const page = await app({ files: { "a.js": FILE() }, beforeLoad: (p) => p.route("**/js/vendor/pierre-diffs/diffs.js", async (r) => {
+    if (ctx.mode === "fail") return r.abort("failed");
+    await ctx.gate;
+    return r.fallback();
+  }) });
+  await toDemo(page);
+  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
+  const retry = page.locator("#viewer [data-vw-retry]");
+  await retry.waitFor({ timeout: 15000 });
+  let release; ctx.gate = new Promise((ok) => (release = ok)); ctx.mode = "hold";
+  await retry.focus();
+  await page.keyboard.press("Enter");
+  const state = () => page.evaluate(() => { const b = document.querySelector("#viewer [data-vw-retry]"), box = b && b.closest(".vw-empty"); return b ? { words: box.querySelector("p").textContent, busy: b.getAttribute("aria-busy"), label: b.textContent, role: box.getAttribute("role") } : null; });
+  for (const ms of [150, 800]) {
+    await page.waitForTimeout(ms === 150 ? 150 : 650);
+    const s = await state();
+    assert.deepEqual(s, { words: "Drawing this file…", busy: "true", label: "Trying again…", role: "status" }, `${ms} ms after Try again: it says it's trying`);
+  }
+  await page.keyboard.press("Enter"); // pressed again while it's trying: nothing more
+  release();
+  await page.waitForFunction(() => !document.querySelector("#viewer [data-vw-retry]") && !!document.querySelector("#viewer .vw-file diffs-container"), null, { timeout: 15000 });
+  await done(page);
+});
 // ── the focus rule, checked properly (the owner's choice, 9 Nov, "but check it properly"): it does nothing on a Tab's
 // or a press's focus (not even a check); it leaves the conversation's scroll to follow.js; it leaves a 1 px visually
 // hidden control alone; and on a script's focus out of sight in a scroller it brings it in (focusbrought).

@@ -251,6 +251,8 @@ async function openApp(browser, BASE, W = {}, { width = 1440, height = 900, moti
   if (W.launchpad) await installLaunchpad(page, W.launchpad);
   await page.route("**/*", mockApi(W));
   await hooks(page);
+  // W.beforeLoad(page): a case's own routes, in place before the first request (a module held from startup)
+  if (W.beforeLoad) await W.beforeLoad(page);
   // a loaded machine (other threads' crawls) can make a first load slow: that isn't what's being tested
   await page.goto(BASE + "/", { timeout: 30000 });
   await page.waitForSelector('[data-go="p:demo"]', { state: "attached", timeout: 30000 });
