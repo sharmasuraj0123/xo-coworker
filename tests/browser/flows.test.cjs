@@ -1527,6 +1527,36 @@ t("VW-DIFF-HELD: a change whose read is held says so, never the last change's di
   assert.doesNotMatch(await viewerDiff(page), /Reading the change/, "and once it's there, only it");
   await done(page);
 });
+// the viewer's Try again answers hover and press (the controls grader on d79d37e, S139, all four cells: the same at
+// rest, hovered and pressed). Shot at rest, under the pointer and held down: each differs from rest; and in the
+// cascade, hover brings the ink up and a press dims it.
+t("S139 (paint): the viewer's Try again looks different hovered and pressed than at rest", async () => {
+  const page = await app({ files: { "b.js": FILE() }, changesFailFor: { "b.js": 1 }, changes: [
+    { path: "b.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:B", patch: null, patch_omitted: "response_budget", full: PATCH("b.js", "one", "BRAVO") }] });
+  await toDemo(page);
+  await diffOpen(page, "b.js");
+  const btn = page.locator("#viewer [data-vw-diff-retry]");
+  await btn.waitFor({ timeout: 15000 });
+  await page.mouse.move(2, 2);
+  await page.waitForTimeout(250);
+  const box = await btn.boundingBox(), clip = { x: Math.floor(box.x) - 2, y: Math.floor(box.y) - 2, width: Math.ceil(box.width) + 4, height: Math.ceil(box.height) + 4 };
+  const look = () => btn.evaluate((b) => { const s = getComputedStyle(b); return { color: s.color, line: s.textDecorationColor, opacity: s.opacity }; });
+  const rest = await look(), restShot = await page.screenshot({ clip });
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.waitForTimeout(300);
+  const hover = await look(), hoverShot = await page.screenshot({ clip });
+  await page.mouse.down();
+  await page.waitForTimeout(150);
+  const press = await look(), pressShot = await page.screenshot({ clip });
+  await page.mouse.move(2, 2); // let go away from it: nothing is read again
+  await page.mouse.up();
+  assert.notEqual(hover.color, rest.color, `hover brings the ink up (${rest.color} → ${hover.color})`);
+  assert.notEqual(hover.line, rest.line, "and the underline");
+  assert.ok(+press.opacity < 1, `a press dims it (${press.opacity})`);
+  assert.ok(!hoverShot.equals(restShot), "hovered, it looks different");
+  assert.ok(!pressShot.equals(hoverShot) && !pressShot.equals(restShot), "pressed, it looks different again");
+  await done(page);
+});
 t("VW-DIFF-ERR: a change that couldn't be read says so and stays said; Try again reads it again, focus in the diff", async () => {
   const page = await app({ files: { "b.js": FILE() }, changesFailFor: { "b.js": 1 }, changes: [
     { path: "b.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:B", patch: null, patch_omitted: "response_budget", full: PATCH("b.js", "one", "BRAVO") }] });
