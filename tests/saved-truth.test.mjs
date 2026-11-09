@@ -32,9 +32,12 @@ t("every field's note asks it with what the field shows; a save's receipt holds 
   assert.ok(/const fieldNow = \(f\) => \(f === "preferences" && R\.pref != null \? \(R\.pref\.trim\(\) \|\| null\) : shown\(\)\[f\]\)/.test(src), "the preference's draft while there is one, else the defaults as drawn");
   assert.ok(/R\.saved\.set\(field, next\[field\]\)/.test(src), "the receipt holds what was sent");
 });
-t("a draft left while another save was out goes in its turn (not while you're typing in it)", () => {
-  assert.ok(/if \(isPending\(POLICY\)\) \{ if \(\(R\.pref\.trim\(\) \|\| null\) !== \(R\.next \? R\.next\.preferences \?\? null : undefined\)\) R\.later = true; return; \}/.test(src), "it waits, unless it's what's being sent already (S098 on 65e84b7: a refusal became a second send)");
-  assert.ok(src.includes('if (R.later) { R.later = false; if (!(document.activeElement && document.activeElement.matches && document.activeElement.matches("[data-rtd-pref]"))) savePref(); }'), "once the save lands, unless you're back in the field");
+t("a draft left while another save was out goes in its turn (not while you're typing in it), decided as that save settles", () => {
+  assert.ok(src.includes("if (isPending(POLICY)) return;"), "while a save is out, a draft waits: no flag set on the way");
+  assert.ok(!/R\.later/.test(src), "no flag that outlives the draft it was about (S098 on e55c2d8: A out, B left, A typed back and left; the flag stayed, and a refused A was sent again)");
+  const i = src.indexOf("async function put("), put = src.slice(i, src.indexOf("\n  }\n", i));
+  assert.ok(put.includes("const draft = R.pref == null ? undefined : (R.pref.trim() || null);"), "the draft as the page holds it, when the save settles");
+  assert.ok(put.includes("if (draft !== undefined && draft !== (next.preferences ?? null) && !typing) savePref();"), "only one that differs from what this save sent, and not while you're typing in it");
   assert.ok(/addEventListener\("focusout", \(e\) => \{ if \(e\.target\.matches\("\[data-rtd-pref\]"\)\) savePref\(\); \}\)/.test(src), "leaving the field saves it");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

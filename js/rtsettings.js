@@ -66,8 +66,7 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
   // next: the policy a save has out, shown (as waiting) until the server answers
   // saving: the field whose save is out (said "Saving…" beside it until XO answers, never as saved before);
   // saved: the receipt said after XO's answer
-  // later: a draft was left while another save was out; it goes once that one lands
-  const R = { timer: null, err: null, saved: receipts(1600, () => { if (onScreen()) draw(); }), saving: null, pref: null, next: null, later: false };
+  const R = { timer: null, err: null, saved: receipts(1600, () => { if (onScreen()) draw(); }), saving: null, pref: null, next: null };
   const page = () => document.querySelector('[data-page="runtimes"]');
   const live = () => page()?.querySelector(".set-live");
   const onScreen = () => { const p = page(); return !!p && !p.hidden && !document.querySelector("#settings").hidden; };
@@ -125,9 +124,13 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
     draw();
     const ok = await p;
     draw();
-    // a draft left while this save was out (it couldn't start then): saved now, in its turn, unless you're back in
-    // the field typing (then leaving it saves it, as ever)
-    if (R.later) { R.later = false; if (!(document.activeElement && document.activeElement.matches && document.activeElement.matches("[data-rtd-pref]"))) savePref(); }
+    // a draft left while this save was out (it couldn't start then) goes now, in its turn: read from what's on the page
+    // as this save settles, never from a flag set on the way (the create-project grader on e55c2d8, S098: A out, B
+    // left, A typed back and left; the flag B set stayed, and a refused A was sent again). Only a draft that differs
+    // from what this save sent, and not while you're back in the field typing (leaving it saves it, as ever)
+    const draft = R.pref == null ? undefined : (R.pref.trim() || null);
+    const typing = document.activeElement && document.activeElement.matches && document.activeElement.matches("[data-rtd-pref]");
+    if (draft !== undefined && draft !== (next.preferences ?? null) && !typing) savePref();
     return ok;
   }
   /** What a field shows now: the preference's draft while there is one, else the defaults as drawn. */
@@ -201,10 +204,8 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
   root.addEventListener("focusout", (e) => { if (e.target.matches("[data-rtd-pref]")) savePref(); });
   async function savePref() {
     if (R.pref == null) return;
-    // another save is out: this draft waits for it, then goes (it was dropped: S098); unless it's what's being sent
-    // already (left again unchanged: queued, a refusal became a second send nobody asked for: the create-project
-    // grader on 65e84b7, S098)
-    if (isPending(POLICY)) { if ((R.pref.trim() || null) !== (R.next ? R.next.preferences ?? null : undefined)) R.later = true; return; }
+    // another save is out: this draft waits for it, and goes as that one settles if it's still a different one (put)
+    if (isPending(POLICY)) return;
     const v = R.pref;
     if ((v.trim() || null) === (space().preferences || null)) { R.pref = null; draw(); return; }
     const ok = await put({ preferences: v.trim() || null }, "preferences", "Saved. Coordinators read it when they choose.");

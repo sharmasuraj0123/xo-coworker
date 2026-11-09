@@ -943,6 +943,29 @@ t("S098 a newer preference typed while one saves: Saved only beside what XO hold
   await done(page);
 });
 
+t("S098 A out, B left, A typed back and left, A refused: nothing is sent again by itself; A stays, with the reason", async (ctx) => {
+  // the create-project grader's sequence on e55c2d8 (from the code): leaving B queued it with a flag; typing A back and
+  // leaving didn't clear it; A's refusal then sent A again, a second send nobody asked for
+  const W = world();
+  let release;
+  W.gates = { policy: [new Promise((ok) => (release = ok))] };
+  W.fail.policy = [err("unavailable", "Policy fixture unavailable")];
+  const page = await open(W, ctx);
+  await settings(page, "runtimes");
+  await page.waitForSelector("#rtd-pref");
+  const pref = page.locator("#rtd-pref");
+  const type = async (words) => { await pref.focus(); await page.keyboard.press("ControlOrMeta+a"); await page.keyboard.type(words); await page.keyboard.press("Tab"); };
+  await type("Preference A"); // A goes, and is held
+  await page.waitForSelector(".rt-saved.is-saving");
+  await type("Preference B"); // B left while A is out
+  await type("Preference A"); // A typed back, and left
+  release(); // A is refused
+  await page.waitForSelector(".rt-ferr[role=alert]");
+  await page.waitForTimeout(800); // time for any send it would make by itself
+  assert.equal(writes(page, "policy"), 1, "one send: A's; nothing sent again by itself");
+  assert.equal(await pref.inputValue(), "Preference A", "A stays in the field, to try again");
+  await done(page);
+});
 t("S209 a dropdown busy saving keeps focus but takes no new choice; when the save lands it shows what XO holds", async (ctx) => {
   // the create-project grader on 9d1f71b: while 70% saved, the busy threshold still opened, End then Enter showed 90%
   // and sent nothing, and the 70% answer put it back: the choice thrown away (dropdown.js ignored the host's busy state)
