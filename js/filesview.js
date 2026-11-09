@@ -20,6 +20,7 @@
 import { redraw } from "./redraw.js";
 import { ICON, $ } from "./ui.js";
 import { esc } from "./util.js";
+import { heraldOut } from "./herald.js"; // the notices' line leaves the folded chat for the page
 import { ready as diffsReady } from "./diffview.js";
 
 const TW_KEY = "xo-files-tree", TW_DEF = 280, TW_MIN = 200, TW_MAX = 480;
@@ -128,6 +129,7 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
       // the phone's sheet: up over the lower 70 %, or down to its bar; the conversation stays as it was
       cls.toggle("sheet-up", !min);
       for (const n of [$("#conv"), $("#dock")]) n && n.toggleAttribute("inert", min);
+      heraldOut(document, min);
       if (min && had && had.closest && had.closest("#conv, #dock")) toFile();
       onChange && onChange();
       return;
@@ -138,10 +140,12 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
       cls.add("chat-min");
       if (still) cls.add("chat-railed"); else slideT = setTimeout(() => cls.add("chat-railed"), SLIDE);
       for (const n of [$("#conv"), $("#dock")]) n && n.setAttribute("inert", "");
+      heraldOut(document, true);
       if (had && had.closest && had.closest("#conv, #dock")) toFile();
     } else {
       cls.remove("chat-railed");
       for (const n of [$("#conv"), $("#dock")]) n && n.removeAttribute("inert");
+      heraldOut(document, false);
       if (still) cls.remove("chat-min"); else requestAnimationFrame(() => cls.remove("chat-min"));
     }
     onChange && onChange();
@@ -149,6 +153,7 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
   function unChat() {
     cls.remove("chat-min", "chat-railed", "chat-over", "sheet-up");
     for (const n of [$("#conv"), $("#dock")]) n && n.removeAttribute("inert");
+    heraldOut(document, false);
     F.chatMin = false; F.chatOver = false;
   }
   /** You folded or opened the chat (›|, the rail, ⌘J): kept, unless the width is what folds it. */

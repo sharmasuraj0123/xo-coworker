@@ -77,3 +77,24 @@ export function noticeFor(m, phase) {
   if (phase === "sent") return { kind: "sent", text: `Sent to ${to}`, sub: "open to follow the reply", open: m.conv, mid: m.id };
   return { kind: "sent", text: `Sending to ${to}…`, sub: "open to follow it", open: m.conv, mid: m.id };
 }
+
+/** Where the line is drawn. While Files has the chat folded away (a phone's sheet down to its bar, or the chat in its
+ *  rail), the chat's dock is inert and out of sight, and a line in it showed nothing (a Tell refused in Files: the
+ *  controls grader on cb7afe7, S137 and V22). So the line leaves the dock for the page, drawn above Files as over a
+ *  covering panel (.herald.is-out), and goes back to its place when the chat opens. Its id stays: the app finds it. */
+const homes = new WeakMap();
+export function heraldOut(doc, out) {
+  const h = doc.getElementById("herald");
+  if (!h) return;
+  if (out) {
+    if (h.parentNode === doc.body) return;
+    homes.set(h, { parent: h.parentNode, next: h.nextSibling });
+    doc.body.appendChild(h);
+    h.classList.add("is-out");
+    return;
+  }
+  if (!h.classList.contains("is-out")) return;
+  h.classList.remove("is-out");
+  const home = homes.get(h);
+  if (home && home.parent && home.parent.isConnected) home.parent.insertBefore(h, home.next && home.next.parentNode === home.parent ? home.next : null);
+}
