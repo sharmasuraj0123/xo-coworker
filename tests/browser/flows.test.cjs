@@ -2212,6 +2212,28 @@ t("S125: Copy path refused in the Changes view says why, for a normal patch and 
   }
   await done(page);
 });
+// a file XO can't show offers its path with a labelled Copy (the controls grader's lead on 1ed50f6, S125 / V97: it took
+// the head's icon-only button class, whose words are hidden: no accessible name, and its Copied never showed)
+t("S125 (inline): a file XO can't show offers its path with a labelled Copy: named by its words, Copying… and Copied seen", async () => {
+  const page = await app({});
+  await toDemo(page);
+  await page.evaluate(() => { window.__cpq = []; navigator.clipboard.writeText = () => new Promise((ok) => window.__cpq.push(ok)); });
+  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "gone.txt", path: "gone.txt", name: "gone.txt", why: "This file isn't in the project any more." }));
+  const b = page.locator("#viewer .vw-empty [data-vw-copy-path]");
+  await b.waitFor();
+  const words = () => b.evaluate((e) => { const s = e.querySelector("span"); return { text: e.textContent.trim(), shown: !!s && s.getClientRects().length > 0 && getComputedStyle(s).display !== "none" }; });
+  assert.deepEqual(await words(), { text: "Copy the path", shown: true }, "its words show");
+  assert.equal(await page.getByRole("button", { name: "Copy the path" }).count(), 1, "and are its accessible name");
+  await b.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(300);
+  assert.deepEqual(await words(), { text: "Copying…", shown: true }, "held: it says so, where you can see it");
+  await page.evaluate(() => window.__cpq[0]());
+  await page.waitForFunction(() => /Copied/.test(document.querySelector("#viewer .vw-empty [data-vw-copy-path]")?.textContent || ""));
+  assert.deepEqual(await words(), { text: "Copied", shown: true }, "done: Copied shows");
+  assert.equal(await page.evaluate(() => !!document.activeElement?.matches?.("[data-vw-copy-path]")), true, "focus stays on it");
+  await done(page);
+});
 t("S124: a Copy held in File, then Changes, then refused: the Changes view says why", async () => {
   const page = await app({ files: { "b.js": FILE() }, changes: [
     { path: "b.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:B", patch: PATCH("b.js", "one", "BRAVO") }] });

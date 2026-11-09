@@ -2082,6 +2082,8 @@ body.viewer-open .tdock{display:none}
 .vw-empty p{max-width:44ch}
 .vw-path{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center}
 .vw-path code{font:400 var(--fs-sm)/16px var(--mono);color:var(--ink-2)}
+/* its Copy: a labelled button, its words its name and its Copying… / Copied (not the head's icon-only .vw-btn) */
+.vw-path-copy svg{width:14px;height:14px}
 :root[data-theme="light"] .viewer{background:var(--surface)}
 :root[data-theme="light"] .vw-code{background:var(--fill-1)}
 @media (max-width:1180px) and (min-width:761px){:root{--vw:min(560px,58vw)}}

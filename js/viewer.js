@@ -519,7 +519,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   }
 
   function body() {
-    if (V.why) return `<div class="vw-empty"><p>${esc(V.why)}</p><p class="vw-path"><code>${esc(V.file.path)}</code><button type="button" class="vw-btn" data-vw-copy-path${V.busy ? ` aria-disabled="true"${V.busy.kind === "copy" ? ' aria-busy="true"' : ""}` : ""}>${ICON.copy}<span>${V.copied ? "Copied" : V.busy && V.busy.kind === "copy" && V.busy.shown ? "Copying…" : "Copy the path"}</span></button></p></div>`;
+    if (V.why) return `<div class="vw-empty"><p>${esc(V.why)}</p><p class="vw-path"><code>${esc(V.file.path)}</code><button type="button" class="btn vw-path-copy" data-vw-copy-path${V.busy ? ` aria-disabled="true"${V.busy.kind === "copy" ? ' aria-busy="true"' : ""}` : ""}>${ICON.copy}<span>${V.copied ? "Copied" : V.busy && V.busy.kind === "copy" && V.busy.shown ? "Copying…" : "Copy the path"}</span></button></p></div>`;
     if (V.loading) return `<p class="vw-empty"><i class="spin" aria-hidden="true"></i> Reading the file…</p>`;
     if (V.error) return `<div class="vw-empty"><p>${esc(V.error)}</p></div>`;
     const d = V.data;
