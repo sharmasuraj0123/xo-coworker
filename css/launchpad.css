@@ -108,9 +108,8 @@
    is off the scale): one height down the form, and a finger's target. The labels centre on it. */
 @media (max-width:760px){
   .lp-in.is-short{width:80px} /* a phone's 16 px figures: five of them fit */
-  .lp-in,.lp-v>xo-select .dd-btn,.lp-pair .lp-ib{height:var(--h-lg)}
-  .lp-pair .lp-ib{width:var(--h-lg)}
-  .lp-l,.lp-ro{padding:10px 0}
+  .lp-in,.lp-v>xo-select .dd-btn{height:var(--h-lg)}
+  .lp-l{padding:10px 0}
 }
 /* the thread an Ask started, where the failure was */
 .lp-asked .lp-note{padding-top:0;padding-bottom:8px}

@@ -200,3 +200,19 @@
   .vw-seg button{height:36px;border-radius:calc(var(--r-sm) - 2px)}
   @container flpv (max-width:520px){.vw-seg button{width:36px}}
 }
+
+/* ── phone declarations a later or stronger rule undid where they were (tests/phone-cascade.test.mjs finds them):
+   here, last, they win by order. Those a later design restyles at every width (foundation's type, panel and grid,
+   msgx's messages) were dropped where they were instead: the phone keeps that design ── */
+@media (max-width:760px){
+  /* the file's buttons at the phone's 40, its title a step up (panel.css drew them 28 and base-size) */
+  .vw-btn{width:40px}
+  .vw-t h2{font-size:var(--fs-lg)}
+  /* a full-screen file and the panel's bar clear a notch: the 40 px head grows by the top inset (none in a browser
+     window, where they're as drawn) */
+  .viewer:not(.stage .viewer) .vw-top{height:calc(40px + env(safe-area-inset-top, 0px));padding-top:env(safe-area-inset-top, 0px)}
+  .stg-bar{height:calc(40px + env(safe-area-inset-top, 0px));padding-top:env(safe-area-inset-top, 0px)}
+  /* Launchpad's field buttons (the eye beside a secret) at the phone's 40, and its read-only rows with the fields' room */
+  .lp-pair .lp-ib{width:var(--h-lg);height:var(--h-lg)}
+  .lp-ro{padding:10px 0}
+}

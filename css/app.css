@@ -1504,7 +1504,6 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .home,.conv,.arts{top:52px}
   .hm{padding:24px 0 230px}
   .hm-top{flex-direction:column;align-items:stretch;gap:16px}
-  .hm-h{font-size:var(--fs-2xl)}
   /* Give the date and action a real row, with 12px of air before the greeting.
      The 24px tile sits 5px from the 34px control's outer edge. */
   .hm-top{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px}
@@ -1541,7 +1540,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .ck-tog{gap:9px;padding:0 8px 0 10px}
   .ck-segs .sg{width:10px}
   .ck-br{display:none}
-  .scroller{padding:20px 0 calc(var(--dock-h) + 40px)}
+  .scroller{padding-top:20px;padding-right:0;padding-left:0} /* its foot is msgx's */
   .ws-head{padding-top:28px}
   .wsh-h{font-size:var(--fs-3xl)}
   .wsh-stats{flex-wrap:wrap}
@@ -1557,7 +1556,6 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .composer{padding:12px 9px 9px 9px;border-radius:var(--r-3xl)}
   .target .muted{display:none}
   .bubble{max-width:86%}
-  .m-them,.typing{grid-template-columns:26px minmax(0,1fr);gap:10px}
   .av{width:26px;height:26px;border-radius:var(--r-sm)}
   .hr-s{display:none}
   .card.is-dock{max-height:52vh}
@@ -1570,7 +1568,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .card.is-dock .dt,.dt{grid-template-columns:1fr}
   .conv{--hg:16px}
   body.panel-open .main::after,body:has(#iq-pop.is-sheet:not([hidden])) .main::after,body:has(#cs-pop.is-sheet:not([hidden])) .main::after{content:"";position:absolute;inset:0;z-index:calc(var(--z-panel) - 5);background:rgb(0 0 0 / calc(.45 * var(--sha)));-webkit-backdrop-filter:blur(1.5px);backdrop-filter:blur(1.5px);animation:fade var(--dur-base)}
-  .panel{position:fixed;top:auto;left:0;right:0;bottom:0;max-height:91dvh;width:auto;border-radius:var(--r-2xl) var(--r-2xl) 0 0;border-bottom:0;padding-bottom:max(44px,env(safe-area-inset-bottom))}
+  .panel{position:fixed;left:0;right:0;bottom:0;width:auto;border-bottom:0;padding-bottom:max(44px,env(safe-area-inset-bottom))}
   .panel.is-in{animation:sheet-up var(--d-move) var(--ease) both}
   .panel.is-out{animation:sheet-down var(--d-sheet) var(--ease) forwards}
   @keyframes sheet-up{from{transform:translateY(40%);opacity:0}}
@@ -1592,7 +1590,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   /* the tab rail keeps its own height above the page; only the page scrolls, so a heading can never sit under
      the rail (it was 18 px under it on every page but General) */
   .set-body{display:flex;flex-direction:column;gap:0;padding:0;overflow:clip}
-  .set-nav{position:static;flex:none;align-self:stretch;min-width:0;max-width:100%;flex-direction:row;overflow-x:auto;scrollbar-width:none;margin:0;padding:12px 16px 8px;border-bottom:1px solid var(--line-faint);background:var(--canvas)}
+  .set-nav{position:static;flex:none;align-self:stretch;min-width:0;max-width:100%;flex-direction:row;overflow-x:auto;scrollbar-width:none;margin:0;padding-top:12px;padding-right:16px;padding-bottom:8px;border-bottom:1px solid var(--line-faint);background:var(--canvas)}
   .set-page{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:16px 16px 32px}
   .set-nav button{flex:none}
   .set-nav{border-left:0}
@@ -2088,9 +2086,8 @@ body.viewer-open .tdock{display:none}
 @media (max-width:760px){
   .viewer{position:fixed;inset:0;width:auto;z-index:var(--z-popover);border-radius:0;border:0}
   .viewer.is-in{animation:sheet-up var(--d-move) var(--ease) both}
-  .vw-top{padding:max(10px,env(safe-area-inset-top)) 8px 10px 12px}
   .vw-btn span{display:none}
-  .vw-btn{width:40px;padding:0;justify-content:center}
+  .vw-btn{padding:0;justify-content:center}
   .vw-x,.vw-btn{min-height:40px}
   .vw-md{padding:16px 18px 40px}
   .vw-sub code{display:none}
@@ -2098,7 +2095,6 @@ body.viewer-open .tdock{display:none}
   .vw-narrow{display:inline}
   .vw-img{padding:12px}
   .vw-sub span:first-of-type::before{content:none}
-  .vw-t h2{font-size:var(--fs-lg)}
 }
 
 /* ── Light, not costume (plan Part C; ideas from launchpad-demo, toned down) ──────────────────
@@ -2479,7 +2475,6 @@ i.t-amber{background:var(--warn)}i.t-blue{background:var(--info)}i.t-red{backgro
   .syl-ln .syl-git{grid-column:1;grid-row:2}
   .syl-ln.is-p{grid-template-columns:minmax(0,1fr) 16px}
   .syl-ln.is-p .syl-chips{grid-column:1}
-  .md-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .md-grid.is-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
   .md-grid.is-strip .md-it:nth-child(n+5){display:none}
 }
@@ -2777,8 +2772,7 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .sheet.is-drop .all-list{padding:4px 5px 5px}
 .sheet.is-drop .sheet-h h2{font-size:var(--fs-lg)}
 @media (max-width:760px){
-  .stage,body.stage-full .stage{position:fixed;inset:0;width:auto;z-index:calc(var(--z-popover) - 1);border-radius:0;border:0}
-  .stg-bar{padding-top:max(10px,env(safe-area-inset-top))}
+  .stage,body.stage-full .stage{position:fixed;inset:0;width:auto;border-radius:0;border:0}
 }
 /* the header is the project's name and one button now: the name keeps its room; the Now strip gives way */
 .top[data-kind="project"] .top-who{flex:0 0 auto;max-width:min(52%,426px)}
