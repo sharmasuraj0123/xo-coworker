@@ -872,6 +872,38 @@ t("EDITOR-exit: after Created, Tab indents; Escape then Shift+Tab, or Escape the
   await done(page);
 });
 async function window_focusEditor(page) { await page.evaluate(() => window.__ED.ed.focus()); await page.waitForTimeout(150); }
+// ── a key Settings takes for an Anywhere action is one the page answers (the create-project/Launchpad grader's C118 on
+// c055e74: Ctrl+Shift+J for All shortcuts was taken, stored and announced, and pressing it opened nothing). Set in
+// Settings › Keyboard by the keyboard, then pressed: on the page, and while typing in the composer.
+t("C118: Ctrl+Shift+J set for All shortcuts in Settings opens the sheet, on the page and while typing", async () => {
+  const page = await app();
+  await toDemo(page);
+  await page.locator(WIDTH < 600 ? "#set-phone" : "#set-side").filter({ visible: true }).first().click();
+  await page.waitForSelector("#settings:not([hidden])");
+  await page.locator('[data-set="keys"]').filter({ visible: true }).first().click();
+  await page.waitForSelector('[data-page="keys"]:not([hidden])');
+  const chip = page.locator('[data-rebind="keys"]');
+  await chip.focus();
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("ControlOrMeta+Shift+KeyJ");
+  await page.waitForFunction(() => /J/.test(document.querySelector('[data-rebind="keys"]')?.textContent || ""));
+  assert.equal(await page.evaluate(() => localStorage.getItem("cv-keys")), JSON.stringify({ keys: "mod+shift+j" }), "taken and kept");
+  await page.keyboard.press("Escape"); // Settings closes
+  await page.waitForSelector("#settings", { state: "hidden" });
+  await page.keyboard.press("ControlOrMeta+Shift+KeyJ");
+  await page.waitForSelector("#keys:not([hidden])", { timeout: 3000 });
+  await page.keyboard.press("Escape");
+  await page.waitForSelector("#keys", { state: "hidden" });
+  // while typing in the composer: a ⌘/Ctrl key works there too
+  await page.locator("#say").focus();
+  await page.keyboard.type("hello");
+  await page.keyboard.press("ControlOrMeta+Shift+KeyJ");
+  await page.waitForSelector("#keys:not([hidden])", { timeout: 3000 });
+  await page.keyboard.press("Escape");
+  await page.waitForSelector("#keys", { state: "hidden" });
+  await page.evaluate(() => localStorage.removeItem("cv-keys"));
+  await done(page);
+});
 // ── a send the gate refused is shown, not only said (the controls grader on d79d37e, S137 in all four cells: under
 // routing Off, Tell the agent read "Not sent" in #live and the screen stayed Saved · Undo · Tell). The file's Tell and
 // the composer's Enter, each refused: Not sent on screen, why, nothing posted, the words or the notice kept.
