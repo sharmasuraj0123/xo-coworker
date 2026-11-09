@@ -214,13 +214,14 @@
   /* the file's buttons at the phone's 40, its title a step up (panel.css drew them 28 and base-size) */
   .vw-btn{width:40px}
   .vw-t h2{font-size:var(--fs-lg)}
-  /* the file's head keeps room for its controls' ring: they're 36 (the floor) and the ring reaches 4 past them (2 px at
-     a 2 px gap), and the viewer clips at its edge, so the head is 36 + 4 + 4 = 44 (it was 40: the top of a focused
-     Copied cut off, the controls grader on e55c2d8, C092). A layout's room, never a smaller ring */
-  .vw-top{height:44px}
+  /* the file's head keeps room for its controls' ring: its buttons are 40 (app.css, the phone's), the ring reaches 4
+     past them, and the viewer clips at its edge; with the head's 1 px rule, 40 + 4 + 4 + 1 = 49 (it was 40: a focused
+     Copied's ring reached 4.5 px above the viewer and was cut, the controls grader on e55c2d8, C092). A layout's room,
+     never a smaller ring */
+  .vw-top{--vw-head:calc(40px + 2 * var(--ring-reach) + 1px);height:var(--vw-head)}
   /* a full-screen file and the panel's bar clear a notch: the head grows by the top inset (none in a browser window,
      where they're as drawn) */
-  .viewer:not(.stage .viewer) .vw-top{height:calc(44px + env(safe-area-inset-top, 0px));padding-top:env(safe-area-inset-top, 0px)}
+  .viewer:not(.stage .viewer) .vw-top{height:calc(var(--vw-head) + env(safe-area-inset-top, 0px));padding-top:env(safe-area-inset-top, 0px)}
   .stg-bar{height:calc(40px + env(safe-area-inset-top, 0px));padding-top:env(safe-area-inset-top, 0px)}
   /* Launchpad's field buttons (the eye beside a secret) at the phone's 40, and its read-only rows with the fields' room */
   .lp-pair .lp-ib{width:var(--h-lg);height:var(--h-lg)}

@@ -36,12 +36,13 @@ t("the focus rule keeps it too, measuring all that focus draws: the control as s
 // a box that clips at its edge can't be scrolled (the focus rule moves scrollers only), so a row of controls at such an
 // edge keeps the ring's room in its own height (the controls grader on e55c2d8, C092: on a phone the file's head was 40
 // with its 36 px controls, and the viewer clips: a focused Copied lost its ring's top)
-t("on a phone the file's head holds its 36 px controls and their whole ring", () => {
-  const phone = read("css/phone.css"), ring = base.match(/(^|\n):focus-visible\{outline:(\d+)px solid var\(--focus\);outline-offset:(\d+)px\}/);
+t("on a phone the file's head holds its controls and their whole ring", () => {
+  const phone = read("css/phone.css"), app = read("css/app.css"), ring = base.match(/(^|\n):focus-visible\{outline:(\d+)px solid var\(--focus\);outline-offset:(\d+)px\}/);
   const reach = +ring[2] + +ring[3];
-  const m = phone.match(/@media \(max-width:760px\)\{[\s\S]*?\n  \.vw-top\{height:(\d+)px\}/);
-  assert.ok(m, "the phone's file head height");
-  assert.ok(+m[1] >= 36 + 2 * reach, `${m[1]} px ≥ 36 + 2 × ${reach}`);
-  assert.match(phone, /\.viewer:not\(\.stage \.viewer\) \.vw-top\{height:calc\(44px \+ env\(safe-area-inset-top, 0px\)\)/, "and a full-screen file's, with the notch");
+  assert.equal(+(tokens.match(/--ring-reach:(\d+)px/) || [])[1], reach, "--ring-reach is the ring's own reach");
+  const btn = +(app.match(/@media \(max-width:760px\)\{[\s\S]*?\.vw-x,\.vw-btn\{min-height:(\d+)px\}/) || [])[1];
+  assert.equal(btn, 40, "the phone's file buttons: 40");
+  assert.match(phone, /\.vw-top\{--vw-head:calc\(40px \+ 2 \* var\(--ring-reach\) \+ 1px\);height:var\(--vw-head\)\}/, "the head: the buttons, the ring each side, its 1 px rule");
+  assert.match(phone, /\.viewer:not\(\.stage \.viewer\) \.vw-top\{height:calc\(var\(--vw-head\) \+ env\(safe-area-inset-top, 0px\)\)/, "and a full-screen file's, with the notch");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
