@@ -79,6 +79,9 @@ function canon(tag, id, attrs, cls, role = '') {
     if (n === 'data-go') { parts.push(n + '=' + (/\$\{/.test(v) || !v ? '…' : String(v).replace(/^(p|t|c):.*/, '$1:…'))); continue; }
     parts.push(KEEP.has(n) && v && !/\$\{/.test(v) ? `${n}=${v}` : n);
   }
+  // data-lp is two hooks: the conversation's long-press menu (role=menuitem: Copy, Select text) and Launchpad's.
+  // Launchpad's address Copy is its own kind, never the menu's Copy (Astra on 0612310: S170 mixed the two)
+  if (role !== 'menuitem' && parts.includes('data-lp=copy') && /\blp-ib\b/.test(cls || '')) return `${tag}.lp-ib[${[...new Set(parts)].sort().join(',')}]`;
   if (parts.length) return `${tag}[${[...new Set(parts)].sort().join(',')}]`;
   return `${tag}.${(cls || '').split(/[.\s]/).filter((c) => c && !/^is-/.test(c)).slice(0, 2).join('.')}`;
 }
@@ -215,14 +218,16 @@ const DOES = {
   'data-ghost': 'Opens a folded part of the panel again.',
   'data-gut': 'Drag (or arrow keys) to share the panel\'s height between two parts.',
   'data-lp=ask': 'Launchpad: asks an agent to make the project deployable.',
-  'data-lp=open': 'Launchpad: opens the app on Launchpad.',
+  'data-lp=open': 'Launchpad (Deploy, in its section\'s head): opens and unfolds the Launchpad section in the panel, focus on its body (it doesn\'t open the app).',
   'data-lp=deploy': 'Launchpad: deploys (3 s to Undo first).',
   'data-lp=stop': 'Launchpad: stops the deploy after 3 s (Undo); says stopped only once Space confirms.',
   'data-lp=undo': 'Launchpad: undoes the deploy before it starts.',
   'data-lp=retry': 'Launchpad: deploys again.',
   'data-lp=again': 'Launchpad: deploys again with the same settings.',
   'data-lp=hide': 'Launchpad: hides the section; the deploy carries on.',
-  'data-lp=copy': 'Launchpad: copies the app\'s address.',
+  'data-lp=copy': 'Conversation, a phone\'s long-press menu on a message: copies its words (says Copied only once they\'re on the clipboard).',
+  'data-lp=select': 'Conversation, a phone\'s long-press menu on a message: selects its words with the browser\'s own selection.',
+  'button.lp-ib[data-lp=copy]': 'Launchpad: copies the app\'s address.',
   'data-lp=edit': 'Launchpad: opens the live app\'s settings to change.',
   'data-lp=edit-cancel': 'Launchpad: leaves the settings as they were.',
   'data-lp=cmd-copy': 'Launchpad: copies the command shown.',
@@ -428,7 +433,9 @@ const DOES = {
   'data-all': 'Decisions: allow all the routine ones (asks to confirm).',
   'data-cf': 'Decisions: confirms Allow all.',
   'data-lp-env': 'Launchpad: an environment value (secret ones are never kept).',
-  'data-lp-f': 'Launchpad: a deploy setting (name, port, size, disk).',
+  'data-lp-f': 'Launchpad: a deploy setting typed in (name, port, disk).',
+  'xo-select[data-lp-f]': 'Launchpad: the app\'s size, from the sizes Launchpad allows (Launchpad\'s default first).',
+  'select[data-lp-f]': 'Launchpad: the app\'s size, as a plain select (before it became the Size xo-select, S236).',
   'data-lbx': 'Picture viewer: the step its label names (previous, next, zoom, close).',
   'data-map-toggle': 'Opens or closes the map.',
   'data-node': 'Map: selects that agent or thread.',
@@ -469,7 +476,7 @@ const DOES = {
   'data-sh-no': 'Shells: keeps it open.',
   'data-sh-yes': 'Shells: closes it (or the detached ones).',
   'data-sh-retry': 'Shells: connects that shell again.',
-  'data-sh-filter': 'Shells: shows the shells of one place.',
+  'data-sh-filter': 'Shells (Show every shell): clears the project filter, every shell shows again.',
   'data-sh-closedet': 'Shells: asks to close the detached shells.',
   'data-sh-new': 'Shells: a new shell here.',
   'data-sh-open': 'Shells: opens a detached shell again.',
@@ -496,6 +503,7 @@ const DOES = {
 const MANUAL_DOES = () => Object.fromEntries((typeof MANUAL !== 'undefined' ? MANUAL : []).map((m) => [m.key, m.does]));
 function doesOf(k) {
   const md = MANUAL_DOES(); if (md[k]) return md[k];
+  if (DOES[k]) return DOES[k]; // a whole key's own words first (two kinds that share a hook, told apart)
   const toks = tokensOf(k);
   for (const t of toks) if (t.includes('=') && DOES[t]) return DOES[t];
   for (const t of toks) { const n = t.split('=')[0]; if (DOES[n]) return DOES[n]; }
@@ -561,7 +569,7 @@ for (const [f, lines] of SRC) lines.forEach((L, i) => {
     if (!id && !attrs.some(([n]) => !SKIP.has(n))) continue; // nothing to name it by
     if (m[1] === 'a' && !/href=/.test(m[2])) continue;
     const key = canon(m[1], id, attrs, (/class="([^"]*)"/.exec(m[2]) || [])[1], role);
-    if (!sourceKinds.has(key)) sourceKinds.set(key, { key, tag: m[1], firstData: (attrs.find(([n]) => !SKIP.has(n)) || [])[0] || '', at: `${f}:${i + 1}`, text: ((/>([^<]{2,40})</.exec(L.slice(m.index)) || [])[1] || '').replace(/\$\{[^}]*\}/g, '…').trim() });
+    if (!sourceKinds.has(key)) sourceKinds.set(key, { key, tag: m[1], firstData: (attrs.find(([n]) => !SKIP.has(n)) || [])[0] || '', at: `${f}:${i + 1}`, text: (((t) => (/\$\{|`|\}/.test(t) ? '' : t))(((/>([^<]{2,40})</.exec(L.slice(m.index)) || [])[1] || '').replace(/\$\{[^}]*\}/g, '…').trim())) });
   }
 });
 const MANUAL = [

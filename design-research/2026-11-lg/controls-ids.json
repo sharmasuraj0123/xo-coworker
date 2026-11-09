@@ -2,7 +2,7 @@
  "note": "Canonical key → row ID. Append-only: never renumber, never reuse.",
  "next": {
   "C": 127,
-  "S": 258
+  "S": 259
  },
  "ids": {
   "C001": {
@@ -1553,6 +1553,10 @@
   },
   "S257": {
    "key": "xo-select[data-cs]",
+   "aliases": []
+  },
+  "S258": {
+   "key": "button.lp-ib[data-lp=copy]",
    "aliases": []
   }
  },
