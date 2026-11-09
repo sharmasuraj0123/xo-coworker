@@ -8,10 +8,6 @@
 :root{--side-w:264px; --pw:clamp(392px,33vw,452px); --dock-h:150px}
 /* The theme (both palettes, every surface, line and ink) lives in css/tokens.css; this file only uses it. */
 :root[data-theme="light"] body{background:var(--sunken)}
-:root[data-theme="light"] .toast,:root[data-theme="light"] .toast .t-m b{color:#F2F2F2}
-:root[data-theme="light"] .toast .t-m{color:#BDBDBD}
-:root[data-theme="light"] .t-undo{background-color:#3A3A3A;color:#fff}
-:root[data-theme="light"] .t-ring circle{stroke:#BDBDBD}
 :root[data-theme="light"] .send:not(:disabled):not(.is-stop){color:#141414}
 :root[data-theme="light"] .next{--nx-arc:rgba(72,118,32,.75);background:linear-gradient(#fff,#fff) padding-box,conic-gradient(from var(--nx-a),transparent 0deg,var(--nx-arc) 50deg,transparent 110deg) border-box,linear-gradient(170deg,rgba(72,118,32,.55),#DCDCD8 34%,#E2E2DF) border-box;box-shadow:var(--e2)}
 :root[data-theme="light"] .next.r-destructive{animation:none;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(170deg,rgba(181,33,40,.6),rgba(181,33,40,.25) 40%,#E2E2DF) border-box}

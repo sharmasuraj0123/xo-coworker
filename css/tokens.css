@@ -141,10 +141,26 @@
   --e-decide:#3B3B3B;
 }
 
+/* An inverse surface: the toast is dark in both themes (--toast-bg), so in light everything on it takes the dark
+   palette's roles: ink, fills, lines, hover and press, the accent's hue and the focus ring. Its words, Undo, Tell and
+   its × read on it as they do in dark (the controls grader on d79d37e, S138: the Saved notice's × took light's
+   --ink-3, #575757, on the dark toast). The values are the dark block's own (tests/inverse-toast.test.mjs). */
+:root[data-theme="light"] .toast{
+  color-scheme:dark; color:var(--ink);
+  --fill-1:#171717; --fill-2:#232323; --fill-3:#2C2C2C; --fill-4:#3A3A3A;
+  --line-faint:#1F1F1F; --line-soft:#262626; --line:#303030; --line-strong:#3C3C3C; --line-hover:#565656;
+  --ink:#E1E1E1; --ink-2:#C1C1C1; --ink-3:#909090; --ink-4:#878787; --ink-5:#727272;
+  --on-ink:#141414; --ink-hi:#FFFFFF;
+  --accent:#83D63A; --accent-rgb:131,214,58; --err-ink:#E68388;
+  --hover-fill:rgba(255,255,255,.06); --press-fill:rgba(255,255,255,.09);
+  --focus:rgba(var(--accent-rgb),.75);
+}
+
 /* High contrast, when the OS asks for it. */
 @media (prefers-contrast: more){
   :root{--ink-3:#B0B0B0; --ink-4:#B0B0B0; --line:#5A5A5A; --line-hover:#8E8E8E}
   :root[data-theme="light"]{--ink-3:#4B4B4B; --ink-4:#4B4B4B; --line:#8E8E8E; --line-hover:#6B6B6B}
+  :root[data-theme="light"] .toast{--ink-3:#B0B0B0; --ink-4:#B0B0B0; --line:#5A5A5A; --line-hover:#8E8E8E}
 }
 
 /* Quiet state tints, mixed (never new hues), so they follow each theme's own status colour. */
