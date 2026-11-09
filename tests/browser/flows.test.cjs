@@ -2474,6 +2474,8 @@ t("C111: routing Off, a reply in a thread: Send is on and no Off line shows besi
   await toDemo(page);
   await toThread(page, "rt1");
   await page.waitForFunction(() => window.__t.world.state.router && window.__t.world.state.router.mode === "off", null, { timeout: 15000 });
+  // the test world's stream is a stub that ends at once ("Can't reach XO" would cover any other line): XO is reachable here
+  await page.evaluate(() => { const st = window.__t.world.state; st.conn = "live"; st.error = null; st.statusError = null; window.__t.render(); });
   await page.locator("#say").focus();
   await page.keyboard.type("A reply in the thread");
   await page.waitForTimeout(300);

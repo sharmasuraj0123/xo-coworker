@@ -26,4 +26,8 @@ t("while a swipe pulls, it slides in from 64 px out, as before", () => {
 t("where a pointer hovers, a bubble leaves its actions their room beside it (a narrow window: 401 of 390 px)", () => {
   assert.match(css, /@media \(hover:hover\)\{#msgs \.bubble\{max-width:min\(80%,540px,calc\(100% - 66px\)\)\}\}/);
 });
+t("where a pointer hovers, an agent's bubble (and a table's) leaves its actions their room too", () => {
+  assert.match(css, /@media \(hover:hover\)\{\s*:root\[data-msgx\] :is\(\.m-them>\.mb>\.prose,\.m-turn \.turn>\.tb-answer,\.m-turn \.turn>\.tb-text\)\{max-width:min\(88%,560px,calc\(100% - 66px\)\)\}/);
+  assert.match(css, /\.has-table\{width:calc\(100% - 66px\);max-width:calc\(100% - 66px\)\}/);
+});
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

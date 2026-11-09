@@ -184,6 +184,12 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text){position:relative;width:fit-content;max-width:min(88%,560px);padding:10px 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi)}
 /* a reply that holds a table takes the whole text column: structured content gets its room (QA #5) */
 :root[data-msgx] :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text).has-table{width:100%;max-width:100%}
+/* where a pointer can hover, an agent's bubble leaves its actions their 66 px beside it too (a table's as well), so
+   they never reach past the row (the browser case at 390 with a mouse: 401 of 390 px) */
+@media (hover:hover){
+  :root[data-msgx] :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text){max-width:min(88%,560px,calc(100% - 66px))}
+  :root[data-msgx] :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text).has-table{width:calc(100% - 66px);max-width:calc(100% - 66px)}
+}
 :root[data-msgx] .m-them.mx-next-cont>.mb>.prose{border-bottom-left-radius:var(--r-sm)}
 :root[data-msgx] .m-them.cont>.mb>.prose{border-top-left-radius:var(--r-sm)}
 :root[data-msgx] #msgs>.m-them>.mx-swipe{left:-2px}
