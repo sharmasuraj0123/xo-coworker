@@ -225,11 +225,14 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     curs: new Map(),     // agent id → its cursor element and where it was
     head: "", layoutKey: "", scope: null, layout: null, dragged: false,
     mode: "tree",        // "tree": the diagram; "graph": a living node graph
-    bounds: null,        // the drawing's extent, for Fit
+    bounds: null,        // the drawing's extent by its layout (bounds() adds the boxes as drawn), for Fit
+    reach: null, reachKey: "", // the drawn boxes' far edges, and the drawing they were measured on
     gpos: new Map(),     // scope key → Map box id → {x, y, vx, vy}: the graph keeps its shape across redraws
     gkey: "", gnodes: [], gedges: [], alpha: 0, raf: 0, gags: [], glit: new Map(),
   };
   try { if (localStorage.getItem(MODE_KEY) === "graph") M.mode = "graph"; } catch { /* private mode */ }
+  // a box's words change width when the font arrives: measure the drawing again
+  if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener("loadingdone", () => { M.reachKey = ""; });
   // a cursor is its arrow: what the agent is doing is said once, in the line above the drawing (a
   // thread) or its chip (a project); the arrow's tag shows on hover. So it needs only the arrow's room.
   const tagW = () => 22;
@@ -417,7 +420,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       `<button type="button" data-dg="fit" title="Fit it all (0)" aria-label="Fit it all">${TOOL.fit}</button>` +
       (scope.kind !== "all" ? `<button type="button" data-dg="follow" title="Follow the agent (F)" aria-label="Follow the agent" aria-pressed="false">${TOOL.follow}</button>` : "") + `</div>` +
       `<div class="dg-key" data-dg-key></div></div>`;
-    M.head = ""; M.layoutKey = ""; M.curs = new Map(); M.gkey = ""; M.gnodes = []; M.gedges = [];
+    M.head = ""; M.layoutKey = ""; M.reachKey = ""; M.curs = new Map(); M.gkey = ""; M.gnodes = []; M.gedges = [];
     el.dataset.scope = scope.key + "|" + M.mode;
     wire(el.querySelector("[data-dg]"));
   }
@@ -467,11 +470,28 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     try { if (nb.style.transform) { const m = new DOMMatrixReadOnly(nb.style.transform); tx = m.e; ty = m.f; } } catch { /* no move */ }
     return { x: tx + nb.offsetLeft + nb.offsetWidth / 2, y: ty + nb.offsetTop + nb.offsetHeight / 2 };
   }
+  /** The drawing's extent, for Fit and the first look: the layout's, out to the edges of the boxes as drawn. A note
+   *  ("Couldn't read it · Try again") or "N more" is as wide as its words, not the 148 the layout gives a box, so the
+   *  layout's extent alone left Try again 4–6 px outside the view after Fit (Astra S207/S082). Measured once per
+   *  drawing, while the view is on screen (hidden, a box has no size); the Graph keeps its own. */
+  function bounds() {
+    const B = M.bounds;
+    if (!B || M.mode !== "tree") return B;
+    if (M.reachKey !== M.layoutKey) {
+      const v = view();
+      if (!v || !v.clientWidth) return B;
+      let rx = 0, ry = 0;
+      for (const b of el.querySelectorAll(".dg-nodes > .dg-n")) { rx = Math.max(rx, b.offsetLeft + b.offsetWidth); ry = Math.max(ry, b.offsetTop + b.offsetHeight); }
+      M.reach = { x: rx + PAD, y: ry + PAD }; M.reachKey = M.layoutKey;
+    }
+    const R = M.reach;
+    return R.x > B.x1 || R.y > B.y1 ? { ...B, x1: Math.max(B.x1, R.x), y1: Math.max(B.y1, R.y) } : B;
+  }
   /** Frame the drawing. The Map shows it all, fitted to whatever size its frame is (the owner, 4 Nov:
    *  "I asked for the map to fit it all"), by itself and with Fit; all = false is the old readable
    *  partial view, kept for callers that want it. */
   function fit(c, glide, all = false) {
-    const v = view(), B = M.bounds;
+    const v = view(), B = bounds();
     if (!v || !B || !v.clientWidth) return;
     const W = B.x1 - B.x0, H = B.y1 - B.y0, vh = v.clientHeight - 44, cw = v.clientWidth - 24, ch = vh - 24;
     const s = Math.min(cw / W, ch / H);
@@ -622,7 +642,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     // unless you've moved the view yourself since your last Fit
     // (a change of 8 px or less is the graph breathing: the view holds still for it, unless the drawing
     // would cross the frame's edge, which it never may)
-    const B = M.bounds, F = c.fitB;
+    const B = bounds(), F = c.fitB;
     const moved = !F || Math.max(Math.abs(B.x0 - F.x0), Math.abs(B.y0 - F.y0), Math.abs(B.x1 - F.x1), Math.abs(B.y1 - F.y1)) > 8;
     const over = B.x0 * c.s + c.x < 0 || B.x1 * c.s + c.x > v.clientWidth || B.y0 * c.s + c.y < 0 || B.y1 * c.s + c.y > v.clientHeight - 44;
     if ((!c.user || c.fitAll) && (moved || over)) { fit(c, true, true); return; }

@@ -2598,8 +2598,12 @@ button.dg-n:hover{border-color:var(--line-strong);color:var(--ink)}
 /* the graph: the same boxes as dots on a living layout */
 .k-graph .gn{position:absolute;left:0;top:0;display:flex;align-items:center;gap:7px;height:16px;margin-top:-8px;padding:0;background:none;border:0;white-space:nowrap;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3);cursor:pointer}
 .k-graph div.gn{cursor:default}
-.gn-d{flex:none;width:calc(var(--r) * 2);height:calc(var(--r) * 2);margin-left:calc(var(--r) * -1);border-radius:50%;background:var(--fill-4);box-shadow:0 0 0 2px var(--canvas);transition:background var(--d-in) var(--ease),box-shadow var(--d-in) var(--ease),transform var(--dur-base)}
-:root[data-theme="light"] .gn-d{background:#B9B9B6;box-shadow:0 0 0 2px #FBFBFA}
+/* the dot's paint is one shadow of four named layers, top first: an inset edge (a folded folder, a pale agent
+   colour), the gap that parts it from the lines, the focus ring, and a halo (an agent is here). A state sets only
+   its own layer, so none can take another's away: focus shows on every dot, whatever else it is (Astra S082: the
+   folded folder's and the panel's whole-shadow rules hid it) */
+.gn-d{flex:none;width:calc(var(--r) * 2);height:calc(var(--r) * 2);margin-left:calc(var(--r) * -1);border-radius:50%;background:var(--fill-4);--gn-gap:var(--canvas);box-shadow:var(--gn-in,inset 0 0 #0000),0 0 0 2px var(--gn-gap),var(--gn-focus,0 0 #0000),var(--gn-halo,0 0 #0000);transition:background var(--d-in) var(--ease),box-shadow var(--d-in) var(--ease),transform var(--dur-base)}
+:root[data-theme="light"] .gn-d{background:#B9B9B6}
 .gn-l{text-shadow:0 0 3px var(--canvas),0 0 3px var(--canvas);transition:opacity var(--d-hover) var(--ease)}
 :root[data-theme="light"] .gn-l{text-shadow:0 0 3px #FBFBFA,0 0 3px #FBFBFA}
 .gn.k-root .gn-d{background:var(--accent)}
@@ -2608,19 +2612,19 @@ button.dg-n:hover{border-color:var(--line-strong);color:var(--ink)}
 .gn.k-project .gn-d{background:var(--ink-3)}
 .gn.k-dir{font-size:var(--fs-sm);font-weight:600;color:var(--ink-2)}
 .gn.k-dir .gn-d{background:var(--ink-3)}
-.gn.k-dir:not(.is-open) .gn-d{background:transparent;box-shadow:inset 0 0 0 1.5px var(--ink-3),0 0 0 2px var(--canvas)}
+.gn.k-dir:not(.is-open) .gn-d{background:transparent;--gn-in:inset 0 0 0 1.5px var(--ink-3)}
 .gn.k-file .gn-l,.gn.k-more .gn-l,.gn.k-note .gn-l{opacity:0}
 .k-graph.is-near .gn .gn-l,.gn:hover .gn-l,.gn:focus-visible .gn-l,.gn.is-here .gn-l,.gn.m-new .gn-l,.gn.m-edited .gn-l{opacity:1}
 .gn:hover .gn-d{transform:scale(1.35)}
 .gn:focus-visible{outline:none}
-.gn:focus-visible .gn-d{box-shadow:0 0 0 2px var(--canvas),0 0 0 4px rgba(var(--accent-rgb),.7)}
+.gn:focus-visible .gn-d{--gn-focus:0 0 0 4px var(--focus)} /* under the 2 px gap: the one ring, 2 px of the focus colour */
 .gn.m-new .gn-d{background:var(--accent)}
 .gn.m-edited .gn-d{background:var(--violet)}
 .gn.m-deleted{opacity:.5}
-.gn.is-here .gn-d{background:var(--c);box-shadow:0 0 0 2px var(--canvas),0 0 0 5px color-mix(in srgb,var(--c) 25%,transparent)}
+.gn.is-here .gn-d{background:var(--c);--gn-halo:0 0 0 5px color-mix(in srgb,var(--c) 25%,transparent)}
 .gn.is-here{color:var(--ink)}
 .gn.is-hit .gn-d{animation:gn-hit 1s var(--ease)}
-@keyframes gn-hit{0%{box-shadow:0 0 0 2px var(--canvas),0 0 0 0 color-mix(in srgb,var(--c,var(--info)) 60%,transparent)}100%{box-shadow:0 0 0 2px var(--canvas),0 0 0 16px transparent}}
+@keyframes gn-hit{0%{box-shadow:var(--gn-in,inset 0 0 #0000),0 0 0 2px var(--gn-gap),var(--gn-focus,0 0 #0000),0 0 0 0 color-mix(in srgb,var(--c,var(--info)) 60%,transparent)}100%{box-shadow:var(--gn-in,inset 0 0 #0000),0 0 0 2px var(--gn-gap),var(--gn-focus,0 0 #0000),0 0 0 16px transparent}}
 .k-graph ~ .dg-key{display:none}
 
 /* the cursors: one per agent, its tip exactly on the place, its name just under it */

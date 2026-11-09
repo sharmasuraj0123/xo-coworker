@@ -74,7 +74,7 @@
 :root[data-theme="light"] .dg-n{background:#FFFFFF;border-color:#DCDCDC}
 :root[data-theme="light"] button.dg-n:hover{border-color:#ABABAB}
 :root[data-theme="light"] .dg-n.k-dir{background:#F7F7F7}
-:root[data-theme="light"] .gn-d{box-shadow:0 0 0 2px #FAFAFA}
+:root[data-theme="light"] .gn-d{--gn-gap:#FAFAFA}
 :root[data-theme="light"] .gn-l{text-shadow:0 0 3px #FAFAFA,0 0 3px #FAFAFA}
 :root[data-theme="light"] .dg-cur.is-idle .dg-tag{background:#E6E6E6;color:#3B3B3B}
 :root[data-theme="light"] .dg-tools,:root[data-theme="light"] .dg-key{background:#FFFFFF;border-color:#DCDCDC}

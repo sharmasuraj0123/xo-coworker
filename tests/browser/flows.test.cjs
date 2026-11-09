@@ -2296,6 +2296,66 @@ t("S207/S082: Fit shows every box; no box's target reaches a neighbour's box (ed
   }
   await done(page);
 });
+// the top's read failing: its note ("Couldn't read it · Try again") is as wide as its words, wider than the 148 the
+// layout gives a box; a pointer Fit framed the layout, and Try again stood past the view's edge (the map grader on
+// 65e84b7, S207/S082, all four cells: 4.40 px at 1440, 5.87 px at 390). Fit by the pointer at Fit's own spot.
+t("S207/S082 (Try again): the top's read failing, a pointer Fit keeps its Try again whole inside the view", async () => {
+  const page = await app({ files: { "a.js": FILE() }, rootFails: 99 });
+  await panelOpen(page);
+  if (await page.locator('[data-ghost="map"]').filter({ visible: true }).count()) await page.locator('[data-ghost="map"]').filter({ visible: true }).first().click();
+  await page.locator("#stage-map-tree").waitFor();
+  await page.evaluate(() => document.querySelector("#stage-map-tree").click());
+  const retry = page.locator('.dg-world [data-node="/!"]');
+  await retry.waitFor();
+  await page.waitForTimeout(2000); // the first look settles
+  const b = await page.locator('[data-dg="fit"]').filter({ visible: true }).first().boundingBox();
+  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+  await page.mouse.down();
+  await page.mouse.up();
+  await page.waitForTimeout(1200);
+  const g = await page.evaluate(() => {
+    const n = document.querySelector('.dg-world [data-node="/!"]'), dg = n.closest(".dg"), r = dg.getBoundingClientRect(), q = n.getBoundingClientRect();
+    return { past: +Math.max(r.left - q.left, q.right - r.right, r.top - q.top, q.bottom - r.bottom).toFixed(2), scrollLeft: dg.scrollLeft, width: +n.offsetWidth.toFixed(1), words: n.textContent.trim() };
+  });
+  assert.match(g.words, /Try again/);
+  assert.ok(g.width > 148, `the note is wider than a box here, or this case proves nothing (${g.width})`);
+  assert.ok(g.past <= 0, `Try again whole inside the view after Fit: ${JSON.stringify(g)}`);
+  assert.equal(g.scrollLeft, 0, "the view itself never scrolls");
+  await done(page);
+});
+
+// a Graph dot the keyboard is on shows the ring, whatever else it is (the map grader on 65e84b7, S082, all four
+// cells: focus-visible, but the dot's paint unchanged on a folded folder, an open one and a file). Reached by Tab.
+t("S082 (Graph focus): a folded folder's, an open folder's and a file's dot show the ring when the keyboard is on them", async () => {
+  const page = await app({ files: { "a.js": FILE() }, dirs: ["src"] });
+  await panelOpen(page);
+  if (await page.locator('[data-ghost="map"]').filter({ visible: true }).count()) await page.locator('[data-ghost="map"]').filter({ visible: true }).first().click();
+  await page.locator("#stage-map-tree").waitFor();
+  await page.evaluate(() => document.querySelector("#stage-map-tree").click());
+  await page.locator('.dg-world [data-node="bad"]').waitFor();
+  await page.locator('.dg-world [data-node="bad"]').focus();
+  await page.keyboard.press("Enter"); // open "bad": an open folder, with its file
+  await page.locator('.dg-world [data-node="bad/inside.md"]').waitFor();
+  await page.evaluate(() => document.querySelector("#stage-map-graph").click());
+  await page.locator('.dg-world.k-graph button.gn[data-node="bad/inside.md"]').waitFor();
+  await graphStill(page);
+  for (const [what, id] of [["folded folder", "src"], ["open folder", "bad"], ["file", "bad/inside.md"]]) {
+    const dot = () => page.evaluate((id) => getComputedStyle(document.querySelector(`.dg-world .gn[data-node="${CSS.escape(id)}"] .gn-d`)).boxShadow, id);
+    await page.mouse.move(1, 1);
+    await page.locator(".dg").filter({ visible: true }).first().focus();
+    const before = await dot();
+    let on = false;
+    for (let i = 0; i < 40 && !on; i++) { await page.keyboard.press("Tab"); on = await page.evaluate((id) => !!document.activeElement && document.activeElement.dataset.node === id && document.activeElement.matches(":focus-visible"), id); }
+    assert.ok(on, `Tab reaches the ${what}`);
+    const after = await dot();
+    assert.notEqual(after, before, `the ${what}'s dot changes when focused`);
+    // the ring is the focus colour, 4 px out (2 px of it past the 2 px gap)
+    const ring = await page.evaluate(() => { const p = document.createElement("i"); p.style.color = "var(--focus)"; document.body.append(p); const c = getComputedStyle(p).color; p.remove(); return c; });
+    assert.ok(after.includes(`${ring} 0px 0px 0px 4px`), `the ${what}'s ring is the focus colour: ${after}`);
+  }
+  await done(page);
+});
+
 t("S207: far out, a press on a Graph node brings the map in to that node, in the middle, and doesn't act; pressed again, it acts", async () => {
   const page = await bigMap();
   await page.evaluate(() => document.querySelector("#stage-map-graph").click()); // the panel's Graph tab
