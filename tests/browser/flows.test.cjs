@@ -2442,12 +2442,11 @@ t("S083 (tag): far out, a press on an agent's tag brings the map in to it and do
       return b;
     };
     const b1 = await press();
-    if (b1.height < 24) {
-      assert.equal(await page.evaluate(() => window.__t.S.view), was, `${mode}: a ${b1.height.toFixed(1)} px tag doesn't open on the first press`);
-      const b2 = await tag.boundingBox();
-      assert.ok(b2.height >= 24 - 0.01, `${mode}: the map came in until the tag is pressable (${b2.height.toFixed(2)} px)`);
-      await press();
-    }
+    assert.ok(b1.height < 24, `${mode}: far out, the tag is under 24 px (${b1.height.toFixed(2)}), or this case proves nothing`);
+    assert.equal(await page.evaluate(() => window.__t.S.view), was, `${mode}: a ${b1.height.toFixed(1)} px tag doesn't open on the first press`);
+    const b2 = await tag.boundingBox();
+    assert.ok(b2.height >= 24 - 0.01, `${mode}: the map came in until the tag is pressable (${b2.height.toFixed(2)} px)`);
+    await press();
     assert.equal(await page.evaluate(() => window.__t.S.view), "t:lt1", `${mode}: pressed when pressable, it opens the thread`);
     await done(page);
   }
