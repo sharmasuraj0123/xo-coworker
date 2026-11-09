@@ -6,7 +6,9 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const css = readFileSync(new URL("../css/app.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+const sheet = (f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+// app.css, then phone.css, which loads last (a phone rule in app.css's own phone block lost to the base rule after it)
+const css = sheet("app.css") + "\n" + sheet("phone.css"), phoneCss = sheet("phone.css");
 const files = readFileSync(new URL("../js/files.js", import.meta.url), "utf8");
 const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 // every block declaring exactly this selector, top level or inside an @media block
@@ -26,6 +28,7 @@ t("S061/S238: .fl-link is a whole target in one rule, wherever it's used (never 
   assert.match(base, /flex:\s*none/, "never squeezed by the words beside it");
   assert.match(base, /display:\s*inline-flex/, "its height is its target's");
   assert.ok(all.some((d) => px(d, "min-height") >= 36), "on a phone, at least 36 px (as the other controls there)");
+  assert.match(phoneCss, /@media\s*\(max-width:\s*760px\)\s*\{[^@]*\.fl-link\{min-height:36px\}/, "and that phone rule is in phone.css, after the base rule, so it wins");
   assert.equal(rules(".rn-none .fl-link").length + rules(".fl-note .fl-link").length, 0, "no second, place-scoped size rule");
 });
 t("S061: the line with Try again wraps rather than squeezing it (Files' note and Runs' line)", () => {

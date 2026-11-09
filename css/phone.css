@@ -187,3 +187,16 @@
 /* the narrowest phones (≤ 340): the field's placeholder says where a message goes, so the target steps aside and
    the model and thinking the thread runs stay whole */
 @media (max-width:340px){ :root:root .target{display:none} :root:root .iq{margin-left:auto} }
+
+/* ── targets on a phone, after every sheet that sizes them ──────────────────────────────────────────────
+   app.css's phone block comes before these controls' own rules, so there they lost (Files' Try again kept 32, its
+   back to the projects 24); here they win. The phone's floor is 36 (Astra S061, S062 on 2354917). */
+@media (max-width:760px){
+  .fl-link{min-height:36px}
+  .fl-up{width:36px;height:36px}
+  /* the file's segment: the scale's top size (40) holding buttons at the phone's floor (36), concentric: 1 px of
+     border and 1 of padding around them, their radius the segment's less those 2 */
+  .vw-seg{height:var(--h-lg);padding:1px}
+  .vw-seg button{height:36px;border-radius:calc(var(--r-sm) - 2px)}
+  @container flpv (max-width:520px){.vw-seg button{width:36px}}
+}

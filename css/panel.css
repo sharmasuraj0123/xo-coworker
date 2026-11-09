@@ -115,7 +115,7 @@ body.stage-over .stage{box-shadow:var(--e2)}
 .vw-btn svg{width:16px;height:16px}
 .vw-btn:hover{background:var(--fill-2);border:0;color:var(--ink)}
 .vw-seg{height:var(--h-ctl);padding:2px;gap:2px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft)}
-.vw-seg button{height:26px;padding:0 8px;border-radius:var(--r-sm);font:500 var(--fs-sm)/16px var(--sans)}
+.vw-seg button{height:26px;padding:0 8px;border-radius:calc(var(--r-sm) - 3px);font:500 var(--fs-sm)/16px var(--sans)}
 .vw-x{width:28px;height:28px;border-radius:var(--r-sm)}
 /* the name and its kind and size always read whole: in a narrow pane Preview · Source fold to their icons first */
 .vw-seg button{display:inline-flex;align-items:center;gap:4px}

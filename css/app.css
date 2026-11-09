@@ -1994,8 +1994,6 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .nw{height:36px}
   .hr.hr-need{min-height:36px}
   .rn-chip,.rn-log,.rn-stopall{height:36px}
-  .fl-link{min-height:36px}
-  .fl-up{width:36px;height:36px}
   #say{min-height:36px}
   .kr-k{min-height:36px}
 }
@@ -2053,7 +2051,7 @@ body.viewer-open .tdock{display:none}
 .vw-x:hover{background:var(--fill-2);color:var(--ink)}
 .vw-x svg{width:16px;height:16px}
 .vw-seg{display:flex;padding:2px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft)}
-.vw-seg button{height:26px;padding:0 10px;border-radius:var(--r-sm);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
+.vw-seg button{height:26px;padding:0 10px;border-radius:calc(var(--r-sm) - 3px);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
 .vw-seg button[aria-pressed="true"]{background:var(--fill-3);color:var(--ink)}
 .vw-seg button:not([aria-pressed="true"]):hover{background:var(--hover-fill);color:var(--ink-2)}
 .vw-body{flex:1;min-height:0;overflow:auto}
@@ -2093,7 +2091,7 @@ body.viewer-open .tdock{display:none}
   .vw-top{padding:max(10px,env(safe-area-inset-top)) 8px 10px 12px}
   .vw-btn span{display:none}
   .vw-btn{width:40px;padding:0;justify-content:center}
-  .vw-x,.vw-btn,.vw-seg button{min-height:40px}
+  .vw-x,.vw-btn{min-height:40px}
   .vw-md{padding:16px 18px 40px}
   .vw-sub code{display:none}
   .vw-wide{display:none}
