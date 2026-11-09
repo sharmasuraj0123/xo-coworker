@@ -1265,10 +1265,13 @@ button.tp-done-u:hover{color:var(--ink)}
 .field{display:flex;flex-direction:column;gap:8px}
 .field>span{font:500 var(--fs-base)/20px var(--sans);color:var(--ink-2)}
 .field em{font-style:normal;font-weight:400;color:var(--ink-4);margin-left:4px}
-.field input,.field textarea{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--fill-1);font-size:var(--fs-md);line-height:20px;outline:none;resize:vertical;transition:border-color var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease)}
+.field input,.field textarea{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--fill-1);font-size:var(--fs-md);line-height:20px;resize:vertical;transition:border-color var(--d-hover) var(--ease)}
 .field input{height:var(--h-lg)}
 .field input::placeholder,.field textarea::placeholder{color:var(--ink-5)}
-.field input:focus,.field textarea:focus{border-color:var(--line-hover);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent-fill) 16%,transparent)}
+/* typed in: the edge darkens, and the keyboard's focus is the base ring every control has (2 px of the focus colour,
+   base.css), never taken away: an edge and a halo alone read 2.4–2.5:1 and fainter (the create-project grader on 4d33649,
+   C108, Shape's JSON, all four cells) */
+.field input:focus,.field textarea:focus{border-color:var(--line-hover)}
 /* A note under a field: one icon, then one line of words (an action inside reads as a link) */
 .cp-note{display:flex;align-items:flex-start;gap:7px;min-height:16px;font-size:var(--fs-sm);line-height:16px;color:var(--ink-4)}
 .cp-note>svg,.cp-note>.spin{flex:none;width:13px;height:13px;margin-top:1.5px}

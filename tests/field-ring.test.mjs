@@ -19,4 +19,18 @@ t("each search box it names holds a field whose own outline is taken away (so th
   for (const box of ["fl-q", "all-q", "ar-q"]) assert.ok(new RegExp(`\\.${box} input\\{[^}]*outline:none`).test(all), `.${box} input has outline:none`);
   assert.ok(/\.fl-new-r input\{[^}]*outline:none/.test(all), ".fl-new-r input has outline:none");
 });
+// the form fields (.field: Shape's JSON, a model's key and name, Routing's preference, Create XO Project's): the base
+// ring, never taken away; their focus was a 1 px edge of 2.4–2.5:1 and a halo fainter still (the create-project grader
+// on 4d33649, C108, all four cells). The ring (2 px of the focus colour, 3.2:1 on white, 6.1:1 on #171717) changes no
+// layout; the edge still darkens; no halo beside the ring
+t("a form field (.field) keeps the base ring: nothing takes its outline away, and no halo stands beside it", () => {
+  const rules = [...all.matchAll(/([^{}]*\.field\b[^{}]*)\{([^{}]*)\}/g)].map((m) => ({ sel: m[1].trim(), body: m[2] }));
+  const fields = rules.filter((r) => /\.field (input|textarea)/.test(r.sel));
+  assert.ok(fields.length >= 3, "the field rules are found");
+  const away = fields.filter((r) => /outline:\s*(none|0)/.test(r.body)).map((r) => r.sel);
+  assert.deepEqual(away, [], "rules that take a field's outline away");
+  const halo = fields.filter((r) => /:focus/.test(r.sel) && /box-shadow:/.test(r.body)).map((r) => r.sel);
+  assert.deepEqual(halo, [], "focus rules that draw a halo beside the ring");
+  assert.ok(fields.some((r) => /:focus\b/.test(r.sel) && /border-color:/.test(r.body)), "the edge still answers focus");
+});
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

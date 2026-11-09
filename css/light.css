@@ -45,9 +45,9 @@
 :root[data-theme="light"] .md-th{background:var(--fill-1);border-bottom-color:var(--line-soft)}
 :root[data-theme="light"] .wsh-mark{box-shadow:var(--lift-2)}
 
-/* fields: white, a quiet edge, a neutral focus ring (no tinted halo) */
+/* fields: white, a quiet edge that darkens when typed in; the keyboard's focus is the base ring (app.css .field) */
 :root[data-theme="light"] :is(.field input,.field textarea){background:#FFFFFF;border-color:#D6D6D6}
-:root[data-theme="light"] :is(.field input,.field textarea):focus{border-color:#A3A3A3;box-shadow:0 0 0 3px rgba(0,0,0,.05)}
+:root[data-theme="light"] :is(.field input,.field textarea):focus{border-color:#A3A3A3}
 
 /* ── conversation ── */
 :root[data-theme="light"] .bubble{background:var(--bubble);border-color:var(--bubble-line)}
