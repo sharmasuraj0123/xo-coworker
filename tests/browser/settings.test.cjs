@@ -458,6 +458,7 @@ t("C115 the allow/deny label's ring is whole at the foot: by Tab, and through a 
   await settings(page, "runtimes");
   const box = page.locator(".rt-check input").first();
   await box.waitFor();
+  await page.keyboard.press("Shift"); // the keyboard's: a script's focus after it shows its ring
   const prev = await page.evaluate(() => {
     const b = document.querySelector(".rt-check input"), l = b.closest("label");
     let sc = b.parentElement;
@@ -466,12 +467,10 @@ t("C115 the allow/deny label's ring is whole at the foot: by Tab, and through a 
     sc.scrollTop += r.top - Math.min(v.bottom, innerHeight) + 2;
     const all = [...document.querySelectorAll('#settings [data-page="runtimes"] :is(a[href],button,input,select,textarea,xo-select,[tabindex="0"]):not([disabled])')].filter((x) => x.getClientRects().length && x.tabIndex >= 0);
     const i = all.indexOf(b);
-    all[i - 1].setAttribute("data-ring-prev", "");
+    if (i > 0) all[i - 1].focus({ preventScroll: true }); // the control before it, now (a redraw may replace a marked one)
     return i > 0;
   });
   assert.ok(prev, "a control before the box");
-  await page.keyboard.press("Shift");
-  await page.evaluate(() => document.querySelector("[data-ring-prev]").focus({ preventScroll: true }));
   await page.keyboard.press("Tab");
   await page.evaluate(() => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(ok))));
   assert.equal(await page.evaluate(() => document.activeElement === document.querySelector(".rt-check input")), true, "Tab reaches the box");

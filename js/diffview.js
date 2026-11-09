@@ -362,8 +362,35 @@ export async function file(scroller, contents, o = {}) {
       };
       // the keyboard can always leave: Escape, then Tab or Shift+Tab (exitKeys)
       const leave = exitKeys(host);
-      for (const [t, f, c] of [["keydown", leave, true], ["focusout", leave, true], ["keydown", back, true], ["click", back, true], ["input", pattern, false], ["click", pattern, false]]) host.addEventListener(t, f, c);
-      const unwire = () => { watch?.disconnect(); watch = null; grid = null; for (const [t, f, c] of [["keydown", leave, true], ["focusout", leave, true], ["keydown", back, true], ["click", back, true], ["input", pattern, false], ["click", pattern, false]]) host.removeEventListener(t, f, c); };
+      // Find opens once the caret has landed. A move to a line not drawn yet (Ctrl+End in a long file) lands frames
+      // later: the editor scrolls, draws the line on its next render, sets the caret there and focuses it in a frame
+      // callback of its own (traced: __syncRenderView → #ae → #D → the caret's focus). Find asked for before that
+      // landing opened first and lost its focus to it (the controls grader on e55c2d8, S242: Ctrl+End then Ctrl+F,
+      // focus in the editor at 0, 250 and 500 ms). So a Find key while the view is still moving from your last key
+      // waits until it's still for two frames and the editor's own frame callbacks have run, then goes to the editor
+      // as you pressed it: the order is fixed, nothing fights, nothing moves focus back
+      let keyTop = null, holding = false;
+      const findKey = (e) => (e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === "f" || e.key === "F" || e.code === "KeyF");
+      const settle = (e) => {
+        if (e.isComposing || !e.isTrusted) return;
+        if (!findKey(e)) { keyTop = scroller.scrollTop; return; }
+        if (holding) { e.preventDefault(); e.stopImmediatePropagation(); return; }
+        if (keyTop == null || scroller.scrollTop === keyTop) return; // nothing moving: Find opens now, as ever
+        e.preventDefault(); e.stopImmediatePropagation();
+        holding = true;
+        const target = e.composedPath()[0], init = { key: e.key, code: e.code, ctrlKey: e.ctrlKey, metaKey: e.metaKey, altKey: e.altKey, shiftKey: e.shiftKey, bubbles: true, composed: true, cancelable: true };
+        let last = scroller.scrollTop, still = 0, n = 0;
+        const frame = () => {
+          const now = scroller.scrollTop;
+          still = now === last ? still + 1 : 0; last = now;
+          if ((still < 2 || n < 3) && ++n < 30) { requestAnimationFrame(frame); return; }
+          holding = false; keyTop = now;
+          if (target && target.isConnected) target.dispatchEvent(new KeyboardEvent("keydown", init));
+        };
+        requestAnimationFrame(frame);
+      };
+      for (const [t, f, c] of [["keydown", settle, true], ["keydown", leave, true], ["focusout", leave, true], ["keydown", back, true], ["click", back, true], ["input", pattern, false], ["click", pattern, false]]) host.addEventListener(t, f, c);
+      const unwire = () => { watch?.disconnect(); watch = null; grid = null; for (const [t, f, c] of [["keydown", settle, true], ["keydown", leave, true], ["focusout", leave, true], ["keydown", back, true], ["click", back, true], ["input", pattern, false], ["click", pattern, false]]) host.removeEventListener(t, f, c); };
       // the document arrives a frame or two after attaching
       for (let i = 0; i < 60 && contents && !ed.getText(); i++) await new Promise((r) => requestAnimationFrame(r));
       return {

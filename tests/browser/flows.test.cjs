@@ -1721,8 +1721,9 @@ t("S242–S252 (find bar): on a phone every control is a 36 px target; its count
     const panel = g.closest("[data-search-panel]") || g.getRootNode().querySelector("[data-search-panel]");
     const ctl = [...panel.querySelectorAll("button, input")].filter((x) => x.getClientRects().length && getComputedStyle(x).visibility !== "hidden");
     const sizes = ctl.map((x) => { const r = x.getBoundingClientRect(); return { who: x.getAttribute("aria-label") || x.getAttribute("placeholder") || x.tagName, w: +r.width.toFixed(1), h: +r.height.toFixed(1), input: x.tagName === "INPUT" }; });
-    const rgb = (c) => { const m = c.match(/[\d.]+/g).map(Number); return { r: m[0], g: m[1], b: m[2], a: m.length > 3 ? m[3] : 1 }; };
-    const toRGB = (c) => { const p = document.createElement("i"); p.style.color = c; document.body.append(p); const v = getComputedStyle(p).color; p.remove(); return rgb(v); };
+    // any CSS colour (the bar's are lab() and color-mix()) to sRGB, as the screen draws it: through a canvas
+    const cv = document.createElement("canvas"); cv.width = cv.height = 1; const cx = cv.getContext("2d", { willReadFrequently: true });
+    const toRGB = (c) => { cx.clearRect(0, 0, 1, 1); cx.fillStyle = "#000"; cx.fillStyle = c; cx.fillRect(0, 0, 1, 1); const [r, g, b, a] = cx.getImageData(0, 0, 1, 1).data; return { r, g, b, a: a / 255 }; };
     const bgOf = (n) => { for (let e = n; e; e = e.parentElement || (e.getRootNode() && e.getRootNode().host)) { const c = getComputedStyle(e).backgroundColor; const v = toRGB(c); if (v.a > 0.99) return v; } return toRGB(getComputedStyle(document.body).backgroundColor); };
     const lum = ({ r, g, b }) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
     const cr = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
@@ -1741,6 +1742,29 @@ t("S242–S252 (find bar): on a phone every control is a 36 px target; its count
     const small = a.sizes.filter((x) => x.h < 36 - 0.01 || (!x.input && x.w < 36 - 0.01));
     assert.deepEqual(small, [], `every control a 36 px target on a phone: ${JSON.stringify(a.sizes)}`);
   }
+  await done(page);
+});
+// Find opens with focus after a jump to a line not drawn yet (the controls grader on e55c2d8, S242: in a 180-line
+// file, Ctrl+End then Ctrl+F at once, and focus stayed in the editor at 0, 250 and 500 ms; traced: the editor's
+// landing of the caret, a render later, focused it after Find's own focus). No delay between the keys, no focus moved
+// by the case: Find's field has focus by 250 ms and keeps it, and the page itself never scrolls.
+t("S242 (race): Ctrl+End then Ctrl+F at once in a long file: Find's field has focus by 250 ms and keeps it", async () => {
+  const LONG = Array.from({ length: 180 }, (_, i) => `export const line${String(i).padStart(3, "0")} = ${i}; // a line of the long file`).join("\n") + "\n";
+  const page = await app({ files: { "long.js": { content: LONG, version: "sha256:L" } } });
+  await editing(page, "long.js");
+  await page.locator("#viewer [contenteditable=true]").first().click();
+  await page.waitForTimeout(300);
+  await page.keyboard.press("ControlOrMeta+End");
+  await page.keyboard.press("ControlOrMeta+f");
+  const inFind = () => page.evaluate(() => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return !!a && a.matches && a.matches("[data-search]"); });
+  await page.waitForTimeout(250);
+  assert.equal(await inFind(), true, "Find's field has focus by 250 ms");
+  await page.waitForTimeout(250);
+  assert.equal(await inFind(), true, "and still at 500 ms");
+  await page.keyboard.insertText("line179");
+  await page.waitForTimeout(200);
+  assert.match(await page.locator("[data-search-grid] [data-matches]").first().innerText(), /1/, "typing goes into Find");
+  assert.equal(await page.evaluate(() => document.getElementById("main").scrollTop), 0, "the page itself never scrolls");
   await done(page);
 });
 t("EDITOR-regex: a pattern that isn't a valid regexp says so", async () => {
@@ -1966,10 +1990,10 @@ t("C092: Copy by the keyboard in the file's head: the Copied control's ring is w
 });
 t("S126: Download refused in the Changes view says why, under the head, and keeps saying it", async () => {
   let answer;
-  const page = await app({ files: { "pic.png": FILE() }, downloadGate: new Promise((ok) => (answer = ok)), downloadFails: 1, changes: [
-    { path: "pic.png", status: "modified", additions: 0, deletions: 0, binary: true, version: "sha256:P", patch: null, patch_omitted: "binary" }] });
+  const page = await app({ files: { "archive.bin": FILE() }, downloadGate: new Promise((ok) => (answer = ok)), downloadFails: 1, changes: [
+    { path: "archive.bin", status: "modified", additions: 0, deletions: 0, binary: true, version: "sha256:P", patch: null, patch_omitted: "binary" }] });
   await toDemo(page);
-  await diffOpen(page, "pic.png");
+  await diffOpen(page, "archive.bin"); // a binary that isn't a picture: "Binary file · Download" (a .png draws as an image)
   const dl = page.locator("#viewer [data-vw-download]").filter({ visible: true }).first();
   await dl.waitFor({ timeout: 15000 });
   await dl.focus();
@@ -1997,11 +2021,11 @@ const menuChoose = async (page, sel) => {
   await page.locator(`#viewer .vw-menu ${sel}`).first().click();
 };
 t("S125: Copy path refused in the Changes view says why, for a normal patch and an omitted one", async () => {
-  const page = await app({ files: { "b.js": FILE(), "pic.png": FILE() }, changes: [
+  const page = await app({ files: { "b.js": FILE(), "archive.bin": FILE() }, changes: [
     { path: "b.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:B", patch: PATCH("b.js", "one", "BRAVO") },
-    { path: "pic.png", status: "modified", additions: 0, deletions: 0, binary: true, version: "sha256:P", patch: null, patch_omitted: "binary" }] });
+    { path: "archive.bin", status: "modified", additions: 0, deletions: 0, binary: true, version: "sha256:P", patch: null, patch_omitted: "binary" }] });
   await toDemo(page);
-  for (const rel of ["b.js", "pic.png"]) {
+  for (const rel of ["b.js", "archive.bin"]) {
     await diffOpen(page, rel);
     await page.locator("#viewer [data-vw-more]").filter({ visible: true }).first().waitFor({ timeout: 15000 });
     await refuseCopy(page);
@@ -2009,7 +2033,8 @@ t("S125: Copy path refused in the Changes view says why, for a normal patch and 
     await page.waitForSelector("#viewer .vw-cut[role=alert]", { timeout: 5000 });
     assert.match(await page.locator("#viewer .vw-cut[role=alert]").innerText(), /Couldn't copy/, `${rel}: it says why`);
     assert.equal(await page.evaluate(() => !!document.querySelector("#viewer .vw-diff")), true, `${rel}: still the Changes view`);
-    await page.evaluate(() => window.__t.VW.close({ restore: false }));
+    await page.keyboard.press("Escape"); // the file closes as a person closes it, focus going back where it was
+    await page.waitForTimeout(200);
   }
   await done(page);
 });
