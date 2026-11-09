@@ -97,6 +97,10 @@ export function createSettings({ world, announce, PROJ, onChange }) {
       return `<button type="button" class="set-choice${on ? " is-on" : ""}" role="radio" aria-checked="${on}" data-route="${mode}"${dm ? ` data-dm="${esc(dm)}"` : ""}${disabled ? " disabled" : `${tab}${busy}`}><span class="sc-dot" aria-hidden="true"></span><span class="sc-b"><b>${esc(title)}</b><span>${esc(sub)}</span></span></button>`;
     };
     const overrides = world.state.projects.filter((p) => p.routing && p.routing.mode);
+    // chats whose own routing names a decision model that isn't connected: said from the routing as it is, so the
+    // words go the moment the last of them uses the Space's routing, whichever way that happened (the create-project
+    // grader on 65e84b7, S113: a Disconnect's own flag outlived the override it was about, after "Use the Space's")
+    const orphans = overrides.filter((p) => p.routing.mode === "decision" && !(R.models.find((m) => m.id === p.routing.decision_model) || {}).connected);
     const ab = r.abstain_below ?? 0.5;
     return `<section class="set-sec" aria-labelledby="rt-h"><h3 id="rt-h">Who routes a new message</h3>` +
       `<p class="set-lead">When you write to the Workspace or a project, this decides where it goes. A reply inside a thread always goes straight to its agent.</p>` +
@@ -106,7 +110,9 @@ export function createSettings({ world, announce, PROJ, onChange }) {
       opt("off", null, "Off", "Chats using this setting refuse new messages; one with its own routing keeps it. Replies inside threads still work.") +
       `</div>` +
       (r.mode === "decision" ? `<div class="set-row is-sub"><div class="set-l"><b>When it isn't sure</b><span>Below this confidence, the coordinator decides instead.</span></div><xo-select class="set-sel" data-abstain aria-label="Confidence needed"${busy}>${pcts(ab).map((p) => `<option value="${p}"${Math.abs(ab - p) < 0.001 ? " selected" : ""}>${Math.round(p * 100)}% sure</option>`).join("")}</xo-select></div>` : "") +
-      errHtml(R.err.route) + `</section>` +
+      errHtml(R.err.route) +
+      (orphans.length ? `<p class="set-err" data-orphans>${esc(orphans.map((p) => p.name).join(", "))} still ${orphans.length === 1 ? "names" : "name"} a decision model that isn't connected: use the Space's routing for ${orphans.length === 1 ? "it" : "them"} below.</p>` : "") +
+      `</section>` +
       `<section class="set-sec" aria-labelledby="dm-h"><h3 id="dm-h">Decision models</h3>` +
       `<p class="set-lead">A small model that routes quickly. Its key is saved on this machine and never shown again.</p>` +
       R.models.map((m) => modelHtml(m, r)).join("") + `</section>` +
@@ -179,8 +185,9 @@ export function createSettings({ world, announce, PROJ, onChange }) {
         catch { left.push(PROJ(c)); }
       }
       try { R.router = await api.router(); world.state.router = R.router; } catch { /* the stream brings it */ }
-      R.err.route = left.length ? `Disconnected. ${left.join(", ")} still ${left.length === 1 ? "names" : "name"} it: use the Space's routing for ${left.length === 1 ? "it" : "them"} below.` : null;
-      announce("Disconnected. Its key is removed.");
+      // a chat whose PATCH failed still names it: the page says so from the routing itself (routingHtml's orphans),
+      // and here, once, aloud
+      announce(`Disconnected. Its key is removed.${left.length ? ` ${left.join(", ")} still ${left.length === 1 ? "names" : "name"} it: use the Space's routing for ${left.length === 1 ? "it" : "them"}.` : ""}`);
       onChange();
       R.confirm = null; // the question goes: the keyboard goes to the model's Connect
       return { to: sel("data-dm-on", id) };

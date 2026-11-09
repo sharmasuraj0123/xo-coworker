@@ -396,6 +396,82 @@ t("S111 S112 Disconnect: Keep it first and back; two Enters → one DELETE; fail
   await done(page);
 });
 
+// the ring has room at a scroller's foot (the create-project grader on 65e84b7, S111/S112, native input: Disconnect's
+// Keep it and Disconnect brought flush with Settings' foot, 3.56 px of the ring cut, by Tab and when focus landed by
+// itself). Disconnect is put just under the foot; Tab reaches it (the browser brings it), Enter opens the question
+// (focus lands on Keep it by itself), Tab to its Disconnect: each time the whole ring is inside the box it scrolls in.
+const ringRoom = (page) => page.evaluate(() => {
+  const a = document.activeElement, cs = getComputedStyle(a), ext = parseFloat(cs.outlineWidth) + Math.max(0, parseFloat(cs.outlineOffset));
+  let sc = a.parentElement;
+  for (; sc && sc !== document.body; sc = sc.parentElement) { const o = getComputedStyle(sc).overflowY; if (/(auto|scroll)/.test(o) && sc.scrollHeight > sc.clientHeight + 1) break; }
+  const r = a.getBoundingClientRect(), v = (sc && sc !== document.body ? sc : document.documentElement).getBoundingClientRect();
+  const bottom = Math.min(v.bottom, innerHeight), top = Math.max(v.top, 0);
+  return { who: a.textContent.trim(), ext, cut: +Math.max(top - (r.top - ext), (r.bottom + ext) - bottom, 0).toFixed(2) };
+});
+t("S111 S112 the ring has room at the foot: Disconnect by Tab, Keep it landed on, the question's Disconnect by Tab", async (ctx) => {
+  const W = world();
+  const page = await open(W, ctx);
+  await settings(page, "routing");
+  const off = '[data-dm-off="levanto"]';
+  await page.waitForSelector(off);
+  // Disconnect just under the foot of the box it scrolls in, and the keyboard on the control before it
+  const prev = await page.evaluate((sel) => {
+    const b = document.querySelector(sel);
+    let sc = b.parentElement;
+    for (; sc && sc !== document.body; sc = sc.parentElement) { const o = getComputedStyle(sc).overflowY; if (/(auto|scroll)/.test(o) && sc.scrollHeight > sc.clientHeight + 1) break; }
+    const v = sc.getBoundingClientRect(), r = b.getBoundingClientRect();
+    sc.scrollTop += r.top - Math.min(v.bottom, innerHeight) + 2;
+    const all = [...document.querySelectorAll('#settings [data-page="routing"] :is(a[href],button,input,select,textarea,xo-select,[tabindex="0"]):not([disabled])')].filter((x) => x.getClientRects().length && x.tabIndex >= 0);
+    const i = all.indexOf(b);
+    all[i - 1].setAttribute("data-ring-prev", "");
+    return i > 0;
+  }, off);
+  assert.ok(prev, "a control before Disconnect");
+  await page.keyboard.press("Shift");
+  await page.evaluate(() => document.querySelector("[data-ring-prev]").focus({ preventScroll: true }));
+  await page.keyboard.press("Tab");
+  assert.equal(await focused(page), `button${off}`, "Tab reaches Disconnect");
+  let g = await ringRoom(page);
+  assert.equal(g.cut, 0, `Disconnect by Tab: its whole ring inside (${JSON.stringify(g)})`);
+  await page.keyboard.press("Enter");
+  assert.equal(await focused(page), "button[data-dm-no]", "the question opens on Keep it");
+  g = await ringRoom(page);
+  assert.equal(g.cut, 0, `Keep it, landed on: its whole ring inside (${JSON.stringify(g)})`);
+  await page.keyboard.press("Tab");
+  assert.equal(await focused(page), 'button[data-dm-yes="levanto"]');
+  g = await ringRoom(page);
+  assert.equal(g.cut, 0, `the question's Disconnect by Tab: its whole ring inside (${JSON.stringify(g)})`);
+  await done(page);
+});
+
+// a Disconnect whose chat cleanup is refused, then "Use the Space's" for that chat: the words about it go with it (the
+// create-project grader on 65e84b7, S113: routing null and the row gone, yet "demo still names it" stayed, a
+// Disconnect's own flag that nothing cleared). The words are the routing's, read from it each time it's drawn.
+t("S113 a refused chat cleanup after Disconnect is said; once that chat uses the Space's routing, it isn't", async (ctx) => {
+  const chats = JSON.parse(JSON.stringify(CHATS));
+  chats.find((c) => c.id === "chat_demo").routing = { mode: "decision", decision_model: "levanto" };
+  const W = world({ chats });
+  W.fail.patch = [err("unavailable", "Patch fixture unavailable")];
+  const page = await open(W, ctx);
+  await settings(page, "routing");
+  await page.waitForSelector('[data-ov-clear="chat_demo"]');
+  await keyFocus(page, '[data-dm-off="levanto"]');
+  await page.keyboard.press("Enter");
+  await keyFocus(page, '[data-dm-yes="levanto"]');
+  await page.keyboard.press("Enter");
+  await page.waitForSelector('[data-dm-on="levanto"]');
+  assert.equal(writes(page, "patch"), 1, "the chat's cleanup was tried, and refused");
+  const said = () => page.evaluate(() => (document.querySelector('[data-page="routing"]').innerText.match(/still names?[^\n.]*/g) || []));
+  assert.equal((await said()).length, 1, `the page says the chat still names it: ${JSON.stringify(await said())}`);
+  await keyFocus(page, '[data-ov-clear="chat_demo"]');
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => !document.querySelector('[data-ov-clear="chat_demo"]'));
+  assert.equal(writes(page, "patch"), 2);
+  assert.deepEqual(await said(), [], "no chat names it now, and the page doesn't say one does");
+  assert.equal(await page.locator('[data-page="routing"] .set-err').count(), 0, "no error left");
+  await done(page);
+});
+
 // ── a chat's own routing ──────────────────────────────────────────────────────────────────
 t("S113 Use the Space's: one PATCH for two Enters; the failure in its row; the retry clears it; focus lands", async (ctx) => {
   const chats = JSON.parse(JSON.stringify(CHATS));
