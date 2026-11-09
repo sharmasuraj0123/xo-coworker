@@ -64,6 +64,21 @@ const steps = [
     if (!(await open())) await flip();
     await typeAndSend(page, "smoke: beside a file");
   }],
+  ["a long page scrolls to its foot (Settings › Keyboard), and the main area itself never scrolls", async (page) => {
+    if (WIDTH < 600) { await page.evaluate(() => window.__t.go("home")); await page.waitForTimeout(200); }
+    await page.locator(WIDTH < 600 ? "#set-phone" : "#set-side").filter({ visible: true }).first().click();
+    await page.waitForSelector("#settings:not([hidden])");
+    await page.locator('[data-set="keys"]').filter({ visible: true }).first().click();
+    await page.waitForSelector('[data-page="keys"]:not([hidden])');
+    // its foot, Reset all, reached by the wheel as a person scrolls, over the page's middle
+    await page.mouse.move(WIDTH / 2, 400);
+    for (let i = 0; i < 12; i++) await page.mouse.wheel(0, 600);
+    await page.waitForTimeout(300);
+    const r = await page.evaluate(() => { const b = document.getElementById("keys-reset-all").getBoundingClientRect(); return { top: b.top, bottom: b.bottom, vh: innerHeight, main: document.getElementById("main").scrollTop }; });
+    assert.ok(r.bottom > 0 && r.top < r.vh, `the foot of a long page is reached by scrolling (${JSON.stringify(r)})`);
+    assert.equal(r.main, 0, "the main area itself didn't scroll");
+    await page.keyboard.press("Escape");
+  }],
   ["a phone: a file from the panel, Back to chat, and type", async (page) => {
     if (WIDTH >= 600) return "skip: a phone's";
     await page.evaluate(() => window.__t.go("p:demo"));
