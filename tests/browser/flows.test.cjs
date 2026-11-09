@@ -793,6 +793,44 @@ for (const reread of ["read", "refused"]) t(`S130: Updated · Show (its reread $
   if (WIDTH < 600) assert.equal(where, "more", "on a phone it's in More (the owner's choice)");
   await done(page);
 });
+// ── the Saved notice reads on its dark toast in both themes (the controls grader on d79d37e, S138: its × took light's
+// --ink-3 on the dark toast, faint at rest and on keyboard focus in 1440-light and 390-light). Computed colours over
+// the toast's own background (composited on the canvas): its words 4.5:1, Undo's and Tell's on their fill 4.5:1, the
+// × 3:1 at rest and with the keyboard's focus, and its focus ring 3:1.
+t("S138 (paint): on the Saved notice, its words, Undo, Tell and its × read on the toast, at rest and on keyboard focus", async () => {
+  const page = await app({ files: { "a.js": FILE() } });
+  await editing(page);
+  await typeAll(page, "mine\n");
+  await page.keyboard.press("ControlOrMeta+s");
+  await page.waitForFunction(() => !window.__ED.on);
+  await page.locator("#viewer .xd-toast [data-vw-toastx]").waitFor();
+  const read = () => page.evaluate(() => {
+    const rgb = (s) => { const m = /rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?/.exec(s); return m ? { c: [+m[1], +m[2], +m[3]], a: m[4] == null ? 1 : +m[4] } : null; };
+    const over = (t, b) => t.c.map((v, i) => v * t.a + b[i] * (1 - t.a));
+    const lum = (c) => { const [r, g, b] = c.map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+    const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return +((x + 0.05) / (y + 0.05)).toFixed(2); };
+    const canvas = rgb(getComputedStyle(document.body).backgroundColor) || { c: [250, 250, 250], a: 1 };
+    const toast = document.querySelector("#viewer .xd-toast .toast"), tb = over(rgb(getComputedStyle(toast).backgroundColor), over(canvas, [255, 255, 255]));
+    const ink = (el) => over(rgb(getComputedStyle(el).color), tb);
+    const x = toast.querySelector("[data-vw-toastx]"), words = toast.querySelector(".t-m"), title = toast.querySelector(".t-m b"), undo = toast.querySelector(".t-undo");
+    const undoBg = undo ? over(rgb(getComputedStyle(undo).backgroundColor), tb) : null;
+    const xs = getComputedStyle(x), ring = xs.outlineStyle !== "none" && parseFloat(xs.outlineWidth) > 0 ? ratio(over(rgb(xs.outlineColor), tb), tb) : null;
+    return { x: ratio(ink(x), tb), words: ratio(ink(words), tb), title: ratio(ink(title), tb), undo: undo ? ratio(over(rgb(getComputedStyle(undo).color), undoBg), undoBg) : null, ring, focused: document.activeElement === x };
+  });
+  const rest = await read();
+  assert.ok(rest.title >= 4.5, `the title ${rest.title}:1`);
+  assert.ok(rest.words >= 4.5, `the words ${rest.words}:1`);
+  assert.ok(rest.undo == null || rest.undo >= 4.5, `Undo and Tell ${rest.undo}:1`);
+  assert.ok(rest.x >= 3, `the × at rest ${rest.x}:1`);
+  await page.locator("#viewer .xd-toast [data-vw-toastx]").focus();
+  await page.keyboard.press("Shift"); // the keyboard's focus
+  await page.locator("#viewer .xd-toast [data-vw-toastx]").focus();
+  const on = await read();
+  assert.equal(on.focused, true);
+  assert.ok(on.x >= 3, `the × on keyboard focus ${on.x}:1`);
+  assert.ok(on.ring != null && on.ring >= 3, `its focus ring ${on.ring}:1`);
+  await done(page);
+});
 // ── the keyboard can always leave the code editor (the controls grader on d79d37e, all four cells: after Created the
 // editor opens; Tab indents and Escape only eases the selection, so Created's Undo couldn't be reached by keyboard).
 // Tab alone still indents; Escape, then Tab or Shift+Tab, moves focus on, and Created's Undo is reached by keys.
