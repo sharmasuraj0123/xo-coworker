@@ -67,7 +67,23 @@ export function createShapeView({ shape, announce = () => {} }) {
     if (!adv.size) head.remove();
     for (const id of navOrder) btn(id)?.toggleAttribute("data-advanced", adv.has(id));
     const cur = [...nav.children];
-    if (want.length !== cur.length || want.some((el, i) => cur[i] !== el)) for (const el of want) nav.appendChild(el);
+    if (want.length !== cur.length || want.some((el, i) => cur[i] !== el)) placeInOrder(want);
+  }
+  /** Put the rail's items in order without ever moving the one with focus (moving a focused element drops its
+   *  focus to the page: a preset applying while you're on Shape's tab rearranged the rail under it, BODY on every
+   *  Marketing path: the create-project grader on 8a4ed16, SHAPE-FOCUS): what's around it moves instead. */
+  function placeInOrder(want) {
+    const focus = document.activeElement;
+    let ref = nav.firstChild;
+    for (const el of want) {
+      if (el === ref) { ref = ref.nextSibling; continue; }
+      if (focus && el.contains(focus)) {
+        // what stands before it goes after it, so it stays where it is
+        while (ref && ref !== el) { const next = ref.nextSibling; nav.appendChild(ref); ref = next; }
+        ref = el.nextSibling; continue;
+      }
+      nav.insertBefore(el, ref);
+    }
   }
   /**
    * Home's parts in the shape's order; a part it doesn't keep is hidden. Only the parts the shape orders are
