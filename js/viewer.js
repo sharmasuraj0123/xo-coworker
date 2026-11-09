@@ -588,7 +588,10 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   function dropFile() { FL.gen++; if (FL.handle) { FL.handle.destroy(); FL.handle = null; } FL.key = null; FL.pend = null; FL.sel = null; FL.asking = false; askCapsule(); }
   async function drawFile() {
     const d = V.data, f = V.file;
-    const key = `${f.project || ""}|${f.rel || f.path || f.name}|${d.size_bytes ?? d.content.length}|${d.modified_at || ""}`;
+    // the drawing's key, also the renderer's cache key: with the file's version (its content hash), so a saved text
+    // never draws as the old one. A save xo-space couldn't log answers no saved_at (modified_at stays), and a
+    // same-length edit kept path, size and time (controls grader's lead on 4f5315a, C095)
+    const key = `${f.project || ""}|${f.rel || f.path || f.name}|${d.version || ""}|${d.size_bytes ?? d.content.length}|${d.modified_at || ""}`;
     if ((FL.key === key && FL.handle) || FL.pend === key) return;
     if (FL.handle) dropFile();
     FL.pend = key;
