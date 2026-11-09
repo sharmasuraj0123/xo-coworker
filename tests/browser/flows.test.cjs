@@ -575,14 +575,23 @@ t("C034/C035: the resize grips beside a file show the one ring when the keyboard
   await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
   await page.waitForFunction(() => document.body.classList.contains("chat-docked"), null, { timeout: 8000 });
   await page.keyboard.press("Shift");
-  // read once settled (a control just focused reads the browser's own 3 px for a moment: two frames weren't enough)
-  const ring = (sel, pseudo) => page.evaluate(([sel, pseudo]) => new Promise((ok) => setTimeout(() => requestAnimationFrame(() => { const e = document.querySelector(sel); if (!e || !e.getClientRects().length) return ok(null); const s = getComputedStyle(e, pseudo); ok(pseudo ? s.boxShadow : `${s.outlineStyle} ${s.outlineWidth}`); }), 400)), [sel, pseudo]);
+  // read once settled: reduced motion turns every property into a 10 µs transition (base.css), and a just-focused
+  // control can read its transition's start (outline:none's 3 px, currentColor; box-shadow none) a while: finish them first
+  const ring = (sel, pseudo) => page.evaluate(([sel, pseudo]) => { for (const a of document.getAnimations()) if (a instanceof CSSTransition) a.finish(); const e = document.querySelector(sel); if (!e || !e.getClientRects().length) return null; const s = getComputedStyle(e, pseudo); return pseudo ? s.boxShadow : `${s.outlineStyle} ${s.outlineWidth}`; }, [sel, pseudo]);
   await page.locator(".fv-cgrip").focus();
   assert.equal(await ring(".fv-cgrip", null), "solid 2px", "the chat's grip");
+  // Files' divider shows with the tree beside the file: the chat folded (room), the tree shown (⌘B) if it isn't
+  await page.keyboard.press("ControlOrMeta+j");
+  await page.waitForTimeout(400);
+  const shown = () => page.evaluate(() => { const e = document.querySelector(".fv .fl.is-wide .fl-split"); return !!e && e.getBoundingClientRect().width > 0; });
+  if (!(await shown())) { await page.keyboard.press("ControlOrMeta+b"); await page.waitForTimeout(400); }
+  assert.equal(await shown(), true, "Files' divider is on screen (the tree beside the file)");
   const split = page.locator(".fv .fl.is-wide .fl-split");
-  if (await split.count()) {
+  {
+    await page.keyboard.press("Shift");
     await split.focus();
-    assert.match(String(await ring(".fv .fl.is-wide .fl-split", "::after")), /inset/, "Files' divider: the ring on its grab area");
+    const st = await page.evaluate(() => { const e = document.querySelector(".fv .fl.is-wide .fl-split"); return { focused: document.activeElement === e, fv: e.matches(":focus-visible"), w: e.getBoundingClientRect().width }; });
+    assert.match(String(await ring(".fv .fl.is-wide .fl-split", "::after")), /inset/, `Files' divider: the ring on its grab area (${JSON.stringify(st)} ${await ring(".fv .fl.is-wide .fl-split", "::after")})`);
   }
   await page.locator("#say").focus();
   await done(page);
@@ -592,8 +601,9 @@ t("C030/S069: Files' Find and the new file's name show the one ring when the key
   const page = await app({ files: { "a.js": FILE() } });
   await panelOpen(page);
   await filesOpen(page);
-  // read once the field has settled (a field just made and focused reads the browser's own 3 px for a moment)
-  const ring = (sel) => page.evaluate((sel) => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(() => { const e = document.querySelector(sel), s = getComputedStyle(e); ok({ style: s.outlineStyle, width: s.outlineWidth, color: s.outlineColor }); }))), sel);
+  // read once settled: reduced motion's 10 µs transitions finished first (a just-focused field can read
+  // outline:none's 3 px, currentColor, as its transition's start)
+  const ring = (sel) => page.evaluate((sel) => { for (const a of document.getAnimations()) if (a instanceof CSSTransition) a.finish(); const e = document.querySelector(sel), s = getComputedStyle(e); return { style: s.outlineStyle, width: s.outlineWidth, color: s.outlineColor }; }, sel);
   const q = page.locator("[data-fl-q]").filter({ visible: true }).first();
   await page.keyboard.press("Shift");
   await q.focus();

@@ -32,5 +32,9 @@ svg[stroke="currentColor"][fill="none"]:not(.side svg){stroke-width:1.5px;stroke
 svg[stroke="currentColor"][fill="none"]:not(.side svg) :is(path,line,polyline,polygon,circle,rect,ellipse){vector-effect:non-scaling-stroke}
 
 @media (prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+  /* nothing moves. Transitions are none, not 0.01 ms: a 0.01 ms one is given to every property of every element (its
+     property list is "all" by default), so for that moment a change hasn't happened: a sheet just shown is still
+     hidden, and focus handed into it is refused (a phone's folded chat bar tapped: its head refused focus, which fell
+     to the page: C029/F08). The two waits on a transition's end have their own time-outs (media.js, dropdown.js). */
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:0s!important;transition-delay:0s!important;scroll-behavior:auto!important}
 }

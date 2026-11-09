@@ -141,7 +141,8 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
       if (still) cls.add("chat-railed"); else slideT = setTimeout(() => cls.add("chat-railed"), SLIDE);
       for (const n of [$("#conv"), $("#dock")]) n && n.setAttribute("inert", "");
       heraldOut(document, true);
-      if (had && had.closest && had.closest("#conv, #dock")) toFile();
+      // (the chat's grip goes with it: focus on it, by the keyboard resizing, goes to the file too)
+      if (had && had.closest && had.closest("#conv, #dock, .fv-cgrip")) toFile();
     } else {
       cls.remove("chat-railed");
       for (const n of [$("#conv"), $("#dock")]) n && n.removeAttribute("inert");
