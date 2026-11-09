@@ -2452,6 +2452,23 @@ t("S170: the long-press Copy copies a message's words: a code block's label and 
   assert.equal(got, "Run this:\n\nconst a = 1;\n\nThen check it.", `copied: ${JSON.stringify(got)}`);
   await done(page);
 });
+t("nothing scrolls sideways: a thread with messages and a finished turn, at this width, with a mouse", async () => {
+  const text = "A reply with a code block:\n\n```js\nconst a = 1;\n```\n\nAnd a long line that wraps at narrow widths so the bubble is as wide as it gets.";
+  const page = await app({ threadsBy: { chat_demo: [serverThread("ow1", "ses-ow")] }, threadPages: { ow1: [AGENT_MSG("ow1", text)] } });
+  await toDemo(page);
+  await toThread(page, "ow1");
+  await page.locator('#msgs [data-k="ow1-md"]').first().waitFor({ timeout: 15000 });
+  await feedTurn(page, { id: "ow1", sid: "ses-ow", rows: [{ call_id: "c1", kind: "edit_file", status: "ok", target: "a.js" }, { call_id: "c2", kind: "read_file", status: "ok", target: "b.js" }] });
+  await page.waitForTimeout(400);
+  // the mouse over the messages: their hover actions show beside the bubbles (where a phone has none)
+  const b = await page.locator('#msgs [data-k="ow1-md"]').first().boundingBox();
+  await page.mouse.move(b.x + b.width / 2, b.y + 10);
+  await page.waitForTimeout(300);
+  const w = await page.evaluate(() => { const sc = document.querySelector("#scroller"), m = document.querySelector("#msgs"); return { sc: [sc.clientWidth, sc.scrollWidth], msgs: [m.clientWidth, m.scrollWidth], doc: [document.documentElement.clientWidth, document.documentElement.scrollWidth] }; });
+  assert.ok(w.sc[1] <= w.sc[0] + 1, `the conversation's scroller: ${w.sc[1]} wide in ${w.sc[0]} (Conversation's check on dd15034: 438 in 390)`);
+  assert.ok(w.doc[1] <= w.doc[0] + 1, `the page: ${w.doc[1]} wide in ${w.doc[0]}`);
+  await done(page);
+});
 // ── the Intelligence picker ──
 async function picker(page) {
   await toDemo(page);
