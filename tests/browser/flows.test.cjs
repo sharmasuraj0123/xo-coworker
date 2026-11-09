@@ -745,6 +745,92 @@ t("C087/C096: a change's diff region, focused by the keyboard, shows the same ri
   ringOk(await ringSides(page, "#stage .cx-pd"), "the diff");
   await done(page);
 });
+// ── a send the gate refused is shown, not only said (the controls grader on d79d37e, S137 in all four cells: under
+// routing Off, Tell the agent read "Not sent" in #live and the screen stayed Saved · Undo · Tell). The file's Tell and
+// the composer's Enter, each refused: Not sent on screen, why, nothing posted, the words or the notice kept.
+const offWorld = (extra = {}) => ({ router: { mode: "off", decision_model: null, abstain_below: 0.5 }, ...extra });
+const reachable = (page) => page.evaluate(() => { const st = window.__t.world.state; st.conn = "live"; st.error = null; st.statusError = null; window.__t.render(); });
+const heraldSeen = (page) => page.evaluate(() => {
+  const h = document.getElementById("herald"), line = h && h.querySelector(".hr-ev");
+  if (!line) return null;
+  const r = line.getBoundingClientRect(), at = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+  return { text: line.querySelector(".hr-t")?.textContent || "", sub: line.querySelector(".hr-s")?.textContent || "", shown: r.width > 0 && r.height > 0 && r.bottom <= innerHeight && r.top >= 0 && !!at && h.contains(at) && getComputedStyle(h).visibility === "visible" };
+});
+t("S137 (refused): under routing Off, Tell the agent shows Not sent on screen, posts nothing and keeps its notice", async () => {
+  const page = await app(offWorld({ files: { "a.js": FILE() } }));
+  await editing(page);
+  await typeAll(page, "mine\n");
+  await page.keyboard.press("ControlOrMeta+s");
+  await page.waitForFunction(() => !window.__ED.on);
+  await page.waitForFunction(() => window.__t.world.state.router && window.__t.world.state.router.mode === "off", null, { timeout: 15000 });
+  await reachable(page);
+  const tell = page.locator("[data-vw-tell]").first();
+  await tell.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => /^Not sent/.test(document.querySelector("#herald .hr-ev .hr-t")?.textContent || ""), null, { timeout: 4000 });
+  const seen = await heraldSeen(page);
+  assert.match(seen.text, /^Not sent: .*off/i, `why, on screen: ${seen.text}`);
+  assert.equal(seen.sub, "your words are kept");
+  assert.equal(seen.shown, true, "on screen and uncovered");
+  assert.equal((page.W.posts || []).length, 0, "nothing posted");
+  assert.equal(await page.locator("[data-vw-tell]").count(), 1, "the Saved notice and its Tell are kept, to try again");
+  await done(page);
+});
+t("S137 (refused): under routing Off, a draft to the Workspace sent with Enter shows Not sent on screen and keeps the text", async () => {
+  const page = await app(offWorld());
+  await toDemo(page);
+  await page.waitForFunction(() => window.__t.world.state.router && window.__t.world.state.router.mode === "off", null, { timeout: 15000 });
+  await reachable(page);
+  await page.locator("#say").fill("@workspace A new message");
+  await page.waitForTimeout(300);
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => /^Not sent/.test(document.querySelector("#herald .hr-ev .hr-t")?.textContent || ""), null, { timeout: 4000 });
+  const seen = await heraldSeen(page);
+  assert.match(seen.text, /^Not sent: /);
+  assert.equal(seen.sub, "your text is kept");
+  assert.equal(seen.shown, true, "on screen and uncovered");
+  assert.equal(await page.locator("#say").inputValue(), "@workspace A new message", "the text is kept");
+  assert.equal((page.W.posts || []).length, 0, "nothing posted");
+  await page.locator("#say").fill("");
+  await done(page);
+});
+// ── the notices' queue, as drawn (7c1b87b; Astra C111-SEND-NOTICE-QUEUE-1 on dfe1491): with an Undo on screen, a
+// message that didn't go waits for it and then shows in its turn; a later message's receipt waits after it, never
+// merging it away. The line on screen is read every 50 ms.
+t("C111-SEND-NOTICE-QUEUE-1: behind an Undo, a message that didn't go shows in its turn, then a later one's receipt", async () => {
+  const page = await app({ postFail: true });
+  await toDemo(page);
+  // the test world's stream is a stub that ends at once ("Can't reach XO" would refuse the send): XO is reachable here
+  await page.evaluate(() => { const st = window.__t.world.state; st.conn = "live"; st.error = null; st.statusError = null; window.__t.render(); });
+  await page.evaluate(() => {
+    window.__seen = [];
+    const look = () => { const t = (document.querySelector("#herald .hr-t")?.textContent || "").trim(); if (window.__seen[window.__seen.length - 1] !== t) window.__seen.push(t); };
+    look(); window.__look = setInterval(look, 50);
+  });
+  // an Undo on screen for 3 s, as a moved card's
+  await page.evaluate(() => window.__t.heraldShow({ kind: "rec", text: "Moved it", undo: () => {}, undoLabel: "Undo" }, 3000));
+  await page.waitForFunction(() => window.__seen.includes("Moved it"));
+  const mine = (text) => page.waitForFunction((text) => Object.values(window.__t.S.local || {}).flat().find((m) => m.text === text)?.status || null, text, { timeout: 8000 }).then((h) => h.jsonValue());
+  await page.locator("#say").fill("Message A");
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => Object.values(window.__t.S.local || {}).flat().some((m) => m.text === "Message A" && m.status === "failed"), null, { timeout: 8000 });
+  page.W.postFail = false;
+  await page.locator("#say").fill("Message B");
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => Object.values(window.__t.S.local || {}).flat().some((m) => m.text === "Message B" && m.status === "sent"), null, { timeout: 8000 });
+  assert.equal(await mine("Message A"), "failed", "A didn't go (refused, 503)");
+  const undoStill = await page.evaluate(() => window.__seen[window.__seen.length - 1]);
+  assert.equal(undoStill, "Moved it", "both waited behind the Undo, which is still on screen");
+  // the Undo ends (3 s), A's failure shows (6 s), then B's receipt
+  await page.waitForFunction(() => window.__seen.some((t) => /^Sent to /.test(t)), null, { timeout: 15000 });
+  const seen = await page.evaluate(() => { clearInterval(window.__look); return window.__seen.filter(Boolean); });
+  const iU = seen.indexOf("Moved it"), iF = seen.findIndex((t) => /^Not sent/.test(t)), iS = seen.findIndex((t) => /^Sent to /.test(t));
+  assert.ok(iU >= 0, `the Undo was on screen: ${JSON.stringify(seen)}`);
+  assert.ok(iF > iU, `A's failure shows after the Undo, in its turn: ${JSON.stringify(seen)}`);
+  assert.ok(iS > iF, `B's receipt only after A's failure: ${JSON.stringify(seen)}`);
+  assert.ok(!seen.slice(iU + 1, iF).some((t) => /^Sent to |^Sending to /.test(t)), `no passing line before the failure: ${JSON.stringify(seen)}`);
+  await done(page);
+});
 // ── a notice while Files has the chat folded away (the controls grader on cb7afe7, S137 and V22): the line sat in the
 // folded chat's dock, inert and out of sight, so a Tell that failed showed nothing on a phone. It must be on screen,
 // above the file (and on a phone above the folded chat's bar), not covered, and back in its place when the chat opens.
