@@ -21,9 +21,15 @@ export function scrollerOf(el, win = window) {
   return null;
 }
 
+/** The control as it's seen: a checkbox or radio inside its label is the label (the native box is small, or hidden,
+ *  and the label is what's pressed and what must be on screen: the create-project grader on 65e84b7, C115 on a phone,
+ *  Codex's label 11 px under the screen's foot with its box in view). */
+export const seen = (el) => (el && el.matches && el.matches('input[type="checkbox"], input[type="radio"]') && el.closest && el.closest("label")) || el;
+
 /** How far the focused element's scroller must move to show it, or null: in view (even partly), visually hidden,
  *  not in a scroller, or in one that owns its scroll. {sc, dx, dy}: the least distance (the nearest edge). */
 export function bring(el, win = window) {
+  el = seen(el);
   if (!el || !el.getClientRects || !el.getClientRects().length) return null;
   const r = el.getBoundingClientRect();
   // visually hidden (.sr-only: 1 px wide and clipped; on a phone the 36 px floor makes it 1 × 36): nothing to show
@@ -41,6 +47,7 @@ export const lost = (el, win = window) => !!bring(el, win);
 /** Is the element wholly in sight in the box it scrolls in? (with no box it can be scrolled in, or one that owns its
  *  scroll, or visually hidden: nothing to keep, so yes) */
 export function inSight(el, win = window) {
+  el = seen(el);
   if (!el || !el.getClientRects || !el.getClientRects().length) return true;
   const sc = scrollerOf(el, win);
   if (!sc || (sc.closest && sc.closest("[data-own-scroll]"))) return true;
@@ -49,6 +56,7 @@ export function inSight(el, win = window) {
 }
 /** Bring it wholly into sight: its scroller only, the least distance (an element taller than the box: its top). */
 export function bringWhole(el, win = window) {
+  el = seen(el);
   const sc = scrollerOf(el, win);
   if (!sc || (sc.closest && sc.closest("[data-own-scroll]"))) return;
   const r = el.getBoundingClientRect(), v = sc.getBoundingClientRect();
@@ -63,13 +71,16 @@ export function keepFocusInView(doc = document, win = window) {
   // nearest focusable around it). A script's focus is checked even when a press or a key led to it: Close on the
   // Created notice, pressed, handed focus to the editor out of sight, and the old "within 50 ms of any press"
   // skipped it (the controls grader on aa2e4f9, S138 on a phone)
-  let tab = -1, press = null;
-  win.addEventListener("keydown", (e) => { if (e.key === "Tab" && !e.defaultPrevented) tab = win.performance.now(); }); // last, after any script's
-  doc.addEventListener("pointerdown", (e) => { press = { at: win.performance.now(), t: e.target }; }, true);
+  // A Tab no script took over moves focus once: that one focus is the browser's, and only that one (a key after it,
+  // Enter on Reset all, and the script's focus it leads to is checked: the create-project grader on 65e84b7, S023 on a
+  // phone, focus handed 1097 px above the screen within 50 ms of the Tab that reached Reset all)
+  let tab = false, press = null;
+  doc.addEventListener("keydown", (e) => { if (e.key !== "Tab") tab = false; }, true);
+  win.addEventListener("keydown", (e) => { if (e.key === "Tab") tab = !e.defaultPrevented; }); // last, after any script's
+  doc.addEventListener("pointerdown", (e) => { tab = false; press = { at: win.performance.now(), t: e.target }; }, true);
   const browsers = (el) => {
-    const now = win.performance.now();
-    if (now - tab < 50) return true;
-    return !!press && now - press.at < 400 && !!press.t && (el === press.t || (el.contains && el.contains(press.t)));
+    if (tab) { tab = false; return true; }
+    return !!press && win.performance.now() - press.at < 400 && !!press.t && (el === press.t || (el.contains && el.contains(press.t)));
   };
   doc.addEventListener("focusin", (e) => {
     const el = e.target;

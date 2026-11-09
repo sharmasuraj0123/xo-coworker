@@ -201,8 +201,10 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
   root.addEventListener("focusout", (e) => { if (e.target.matches("[data-rtd-pref]")) savePref(); });
   async function savePref() {
     if (R.pref == null) return;
-    // another default's save is out: this draft waits for it, then goes (it was dropped: S098)
-    if (isPending(POLICY)) { R.later = true; return; }
+    // another save is out: this draft waits for it, then goes (it was dropped: S098); unless it's what's being sent
+    // already (left again unchanged: queued, a refusal became a second send nobody asked for: the create-project
+    // grader on 65e84b7, S098)
+    if (isPending(POLICY)) { if ((R.pref.trim() || null) !== (R.next ? R.next.preferences ?? null : undefined)) R.later = true; return; }
     const v = R.pref;
     if ((v.trim() || null) === (space().preferences || null)) { R.pref = null; draw(); return; }
     const ok = await put({ preferences: v.trim() || null }, "preferences", "Saved. Coordinators read it when they choose.");

@@ -60,19 +60,32 @@ t("out of view is judged against the box it scrolls in; with none, nothing moves
   const Q = standIn(-972, { scrolls: false });
   assert.equal(F.lost(Q.el, Q.win), false, "no box to scroll (a box with nothing to scroll isn't one): nothing it can do, nothing moves");
 });
-t("the browser's own focus isn't checked (a Tab no script took over, the control pressed); a script's is, even after a press (S138)", () => {
+t("the browser's own focus isn't checked (a Tab's one destination, the control pressed); a script's is, whatever led to it", () => {
   assert.equal(typeof F.keepFocusInView, "function");
   const P = standIn(-972); F.keepFocusInView(P.doc, P.win);
-  P.L["win:keydown"]({ key: "Tab", defaultPrevented: false }); P.focus(); P.flush();
+  const tab = (prevented = false) => { P.L.keydown({ key: "Tab" }); P.L["win:keydown"]({ key: "Tab", defaultPrevented: prevented }); };
+  tab(); P.focus(); P.flush();
   assert.equal(P.calls.length, 0, "a Tab's own move: the browser's");
-  P.win.tick(200); P.L["win:keydown"]({ key: "Tab", defaultPrevented: true }); P.focus(); P.flush();
+  tab(true); P.focus(); P.flush();
   assert.equal(P.calls.length, 1, "Tab taken over by a script (a sheet's wrap): the script's focus is checked");
-  P.win.tick(200); P.L.pointerdown({ target: P.el }); P.focus(); P.flush();
+  P.L.pointerdown({ target: P.el }); P.focus(); P.flush();
   assert.equal(P.calls.length, 1, "the control pressed takes focus: the browser's");
   P.win.tick(200); P.L.pointerdown({ target: { other: true } }); P.focus(); P.flush();
   assert.equal(P.calls.length, 2, "a press on Close, then a script hands focus to the editor out of sight: checked (S138 on a phone)");
-  P.win.tick(200); P.L.keydown && P.L.keydown({ key: "Enter" }); P.focus(); P.flush();
-  assert.equal(P.calls.length, 3, "Enter, then a script's focus: checked");
+  // S023 on a phone: a Tab reaches Reset all (its own move, skipped), Enter at once, the script's focus 1097 px up: checked
+  tab(); P.focus(); P.flush();
+  assert.equal(P.calls.length, 2, "the Tab's destination");
+  P.L.keydown({ key: "Enter" }); P.focus(); P.flush();
+  assert.equal(P.calls.length, 3, "Enter right after the Tab, then a script's focus: checked (only the Tab's own destination was skipped)");
+});
+t("a checkbox inside its label is seen as the label: the label must be on screen (C115 on a phone)", () => {
+  assert.equal(typeof F.seen, "function", "seen(el)");
+  const P = standIn(800, { size: 16 }); // the native box: in its 600 px scroller? no: at 800, but its label reaches further
+  const label = { getClientRects: () => [1], getBoundingClientRect: () => ({ top: 560, bottom: 596 + 40, left: 16, right: 200, width: 184, height: 76 }), parentElement: P.scroller, ownerDocument: P.doc };
+  P.el.matches = (sel) => sel.includes('input[type="checkbox"]');
+  P.el.closest = (sel) => (sel === "label" ? label : null);
+  assert.equal(F.seen(P.el), label);
+  assert.equal(F.inSight(P.el, P.win), false, "the label's foot (636) is under the scroller's (600): not wholly in sight");
 });
 t("content that grows above the control under the keyboard: it was in sight, so its scroller brings it back (C115)", () => {
   assert.equal(typeof F.inSight, "function", "inSight");

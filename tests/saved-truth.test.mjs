@@ -33,7 +33,7 @@ t("every field's note asks it with what the field shows; a save's receipt holds 
   assert.ok(/R\.saved\.set\(field, next\[field\]\)/.test(src), "the receipt holds what was sent");
 });
 t("a draft left while another save was out goes in its turn (not while you're typing in it)", () => {
-  assert.ok(/if \(isPending\(POLICY\)\) \{ R\.later = true; return; \}/.test(src), "it waits");
+  assert.ok(/if \(isPending\(POLICY\)\) \{ if \(\(R\.pref\.trim\(\) \|\| null\) !== \(R\.next \? R\.next\.preferences \?\? null : undefined\)\) R\.later = true; return; \}/.test(src), "it waits, unless it's what's being sent already (S098 on 65e84b7: a refusal became a second send)");
   assert.ok(src.includes('if (R.later) { R.later = false; if (!(document.activeElement && document.activeElement.matches && document.activeElement.matches("[data-rtd-pref]"))) savePref(); }'), "once the save lands, unless you're back in the field");
   assert.ok(/addEventListener\("focusout", \(e\) => \{ if \(e\.target\.matches\("\[data-rtd-pref\]"\)\) savePref\(\); \}\)/.test(src), "leaving the field saves it");
 });
