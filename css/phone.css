@@ -255,6 +255,11 @@
 @media (max-width:760px){
   /* a label that holds a checkbox or a radio is the control you press (Runtimes' allow/deny: 34 px, the grader's C115) */
   :where(button,[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],[role=menuitemcheckbox],[role=switch],summary,select,label:has(>input[type=checkbox],>input[type=radio])):where(:not(.dg-n,.gn,.dg-tag,.pj-s *,.tw-rt)){min-height:36px}
+  /* a text field is a control too (the controls grader on 1ed50f6: a refused path's field was 24 px, and the floor
+     left every text input out): every one at least 36 tall; one that fills its box (a search box) leaves the floor to
+     the box, which takes it; Files' new-name row grows with its field */
+  :where(input:not([type=checkbox],[type=radio],[type=range],[type=hidden],[type=file],[type=color],[type=image],[type=submit],[type=button],[type=reset])):where(:not(:is(.fl-q,.ar-q,.all-q,.side-find,.jump-field) input)){min-height:36px}
+  :where(.fl-q,.ar-q,.all-q,.side-find,.fl-new-r){min-height:36px}
   /* the square icon buttons stay square at the floor, and so do those whose words hide on a phone (Edit, Runs code,
      the header's and the map's actions): the browser pass at 320/390 found Edit 28 wide, Open in Files 28, New file 32 */
   :where(.x,.vw-x,.vw-btn,.fr-ib,.st-x,.stg-x,.fv-ib,.xd-tx,.lbx-btn,.fchip-x,.cref-x,.side-x,.sl-x,.md-pin,.shd-tx,.mx-r-x,.lp-ib,.fl-up,.stg-ic,.fl-back,.fv-back,.xd-edit,.xd-runs,.cx-ofi,.fl-add,.tw-act,.map-btn){min-width:36px}

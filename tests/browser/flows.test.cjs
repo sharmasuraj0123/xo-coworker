@@ -2206,6 +2206,8 @@ t("S125: Copy path refused in the Changes view says why, for a normal patch and 
     assert.ok((await sel.inputValue()).endsWith(rel), `${rel}: the path is offered`);
     await sel.focus();
     assert.equal(await sel.evaluate((e) => e.selectionStart === 0 && e.selectionEnd === e.value.length && e.readOnly), true, `${rel}: focused, all of it is selected, read-only`);
+    // on a phone it's a control at the floor, 36 px tall (the controls grader on feffcf0: it was 24)
+    if (WIDTH < 600) assert.ok(await sel.evaluate((e) => e.getBoundingClientRect().height) >= 35.5, `${rel}: 36 px tall on a phone`);
     assert.equal(await page.evaluate(() => !!document.querySelector("#viewer .vw-diff")), true, `${rel}: still the Changes view`);
     await page.keyboard.press("Escape"); // the file closes as a person closes it, focus going back where it was
     await page.waitForTimeout(200);
@@ -2224,6 +2226,7 @@ t("S125 (inline): a file XO can't show offers its path with a labelled Copy: nam
   const words = () => b.evaluate((e) => { const s = e.querySelector("span"); return { text: e.textContent.trim(), shown: !!s && s.getClientRects().length > 0 && getComputedStyle(s).display !== "none" }; });
   assert.deepEqual(await words(), { text: "Copy the path", shown: true }, "its words show");
   assert.equal(await page.getByRole("button", { name: "Copy the path" }).count(), 1, "and are its accessible name");
+  if (WIDTH < 600) assert.ok(await b.evaluate((e) => e.getBoundingClientRect().height) >= 35.5, "36 px tall on a phone");
   await b.focus();
   await page.keyboard.press("Enter");
   await page.waitForTimeout(300);

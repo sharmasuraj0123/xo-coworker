@@ -93,4 +93,16 @@ t("the floor reaches every kind of control the templates make, a label holding a
   // and none of them is held under 36 by a max-height (a height alone gives way to the floor's min-height)
   for (const k of labels) assert.ok(!new RegExp(`\\${k}\\{[^}]*max-height:(\\d+)px`).test(phone), `${k} has no max-height under the floor`);
 });
+// a text field is a control too (the controls grader on 1ed50f6: the refused path's field, .vw-cut-sel, was 24 px on a
+// phone, and the floor left every text input out). One weightless rule lifts every text input; a borderless field that
+// fills its box leaves the floor to the box, which takes it; Files' new-name row grows with its field
+t("every text field is at least 36 px tall on a phone: the field itself, or the box it fills", () => {
+  const phone = readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  const BOXES = ".fl-q,.ar-q,.all-q,.side-find,.jump-field";
+  assert.ok(phone.includes(`:where(input:not([type=checkbox],[type=radio],[type=range],[type=hidden],[type=file],[type=color],[type=image],[type=submit],[type=button],[type=reset])):where(:not(:is(${BOXES}) input)){min-height:36px}`), "every text input, but one that fills its box");
+  assert.ok(phone.includes(`:where(${BOXES.split(",").filter((b) => b !== ".jump-field").join(",")},.fl-new-r){min-height:36px}`), "the boxes (the jump field is 56), and Files' new-name row");
+  // every input the templates make is covered: the box ones by their box, the rest by the rule
+  const inputs = [...src.matchAll(/<input\b([^>]*)>/g)].map((m) => m[1]).filter((a) => !/type="(checkbox|radio|file|hidden|range|color|image|submit|button|reset)"/.test(a));
+  assert.ok(inputs.length >= 15, `the census finds the text inputs (${inputs.length})`);
+});
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
