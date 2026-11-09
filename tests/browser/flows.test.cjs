@@ -695,10 +695,11 @@ t("S208 (zoom): Follow keeps the zoom you chose through live updates, and Follow
     if (mode === "graph") await graphStill(page);
     await page.waitForTimeout(1800); // the first look settles
     await page.locator('[data-dg="fit"]').filter({ visible: true }).first().click();
-    for (let i = 0; i < 6; i++) await page.locator('[data-dg="in"]').filter({ visible: true }).first().click();
+    // in as far as it goes (2.4), as the grader did: from Fit that's a few presses, more for a wide drawing
+    for (let i = 0; i < 16 && (await mapScale(page)) < 2.399; i++) await page.locator('[data-dg="in"]').filter({ visible: true }).first().click();
     await page.waitForTimeout(300);
     const zoomed = await mapScale(page);
-    assert.ok(zoomed > 2, `${mode}: zoomed in (${zoomed})`);
+    assert.ok(zoomed > 2.39, `${mode}: zoomed in all the way (${zoomed})`);
     const follow = page.locator('[data-dg="follow"]').filter({ visible: true }).first();
     if ((await follow.getAttribute("aria-pressed")) === "true") { await follow.click(); await page.waitForTimeout(100); } // start from off
     await follow.focus();
@@ -1121,12 +1122,14 @@ t("C072-C074: a frame's head under Launchpad, focused, stays focused as a live a
   await head.focus();
   const was = await head.elementHandle();
   for (const i of [1, 2, 3, 4]) {
+    // agent i starts working, as the stream says it (a thread frame), and works on a file
+    await page.evaluate((i) => { const ts = new Date().toISOString(); window.__storm.apply({ type: "thread", envelope: { type: "thread", chat_id: "chat_demo", thread_ts: `lt${i}`, seq: 700 + i, ts, data: { ts: `lt${i}`, chat_id: "chat_demo", state: "working", updated_at: ts } } }); }, i);
     await feedTurn(page, { id: `lt${i}`, sid: `ses-lt${i}`, rows: [{ call_id: `c${i}`, kind: "edit_file", status: "ok", target: "a.js" }], running: true });
     await page.waitForTimeout(250);
     const st = await page.evaluate((b) => ({ same: document.activeElement === b, connected: b.isConnected, tag: document.activeElement.tagName, label: b.getAttribute("aria-label") }), was);
     assert.equal(st.connected && st.same, true, `after agent ${i}: focus on the same head (it's on ${st.tag})`);
+    assert.equal(st.label, `Open Agents, ${i}`, `after agent ${i}: the head says the count moved (or this case proves nothing)`);
   }
-  assert.match(await page.evaluate((b) => b.getAttribute("aria-label"), was), /Open Agents, \d/, "it says the count");
   await done(page);
 });
 // ── the focus rule, checked properly (the owner's choice, 9 Nov, "but check it properly"): it does nothing on a Tab's
