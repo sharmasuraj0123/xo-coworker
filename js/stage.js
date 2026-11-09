@@ -270,8 +270,12 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
         else mark(c);
       }
     };
+    // focus on what's about to be covered (the panel's own opener, when the window narrows to a phone's) goes into
+    // the panel, never to the page (Files/Map grader on 875a2ab, C023: a resize to 390 left it on BODY)
+    const a = document.activeElement, outside = !!a && a !== document.body && !el.contains(a) && !keep.some((k) => k.contains(a)) && !a.closest(".toast-wrap");
     if (el.parentElement) walk(el.parentElement);
     document.body.classList.toggle("stage-covers", on);
+    if (on && (outside || document.activeElement === document.body) && (!a || a === document.body || !!a.closest("[inert]") || !a.isConnected)) el.focus({ preventScroll: true });
   }
 
   function open({ focus = true } = {}) {

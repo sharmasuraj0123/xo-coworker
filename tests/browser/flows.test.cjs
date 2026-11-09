@@ -365,6 +365,30 @@ t("S138: dismissing the Saved notice hands focus to the file's Edit", async () =
   assert.match(await active(page), /data-vw-edit/);
   await done(page);
 });
+t("C023: the window narrows to a phone's (or widens) with focus on the panel's opener: focus goes into the panel, never the page", async () => {
+  const page = await app();
+  await panelOpen(page);
+  // the panel's opener, reached with the keyboard as a person would (Tab from the drawing to the selected opener)
+  const opener = page.locator("[data-stage-toggle]").filter({ visible: true }).first();
+  if (WIDTH >= 600) {
+    await opener.focus();
+    await page.keyboard.press("Shift+Tab"); await page.keyboard.press("Tab"); // natively back onto it
+    assert.match(await active(page), /data-stage-toggle/, "on the panel's opener");
+    // to a phone's width: the panel now covers the page, its opener under it goes out of reach
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForTimeout(400);
+    const st = await page.evaluate(() => { const a = document.activeElement; return { inPanel: !!a && !!a.closest("#stage"), page: a === document.body, inert: !!a?.closest("[inert]") }; });
+    assert.deepEqual(st, { inPanel: true, page: false, inert: false }, "focus went into the covering panel (Files/Map grader on 875a2ab: it fell to BODY)");
+  } else {
+    // on a phone the panel covers the page; widened to a desktop it sits beside the chat, focus stays where it was
+    await page.locator("[data-stg-close]").filter({ visible: true }).first().focus();
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.waitForTimeout(400);
+    const st = await page.evaluate(() => { const a = document.activeElement; return { inPanel: !!a && !!a.closest("#stage"), page: a === document.body, inert: document.querySelectorAll("#main [data-stage-inert]").length }; });
+    assert.deepEqual(st, { inPanel: true, page: false, inert: 0 }, "still in the panel, and nothing under it out of reach any more");
+  }
+  await done(page);
+});
 async function panelOpen(page) {
   await toDemo(page);
   // from the keyboard, as a person would
@@ -2223,6 +2247,11 @@ t("S238: Runs read once, then refused twice: Try again keeps focus; once it read
   await page.waitForFunction(() => /Couldn't read its sub-agents again/.test(document.querySelector("#runs").innerText) && document.querySelector("#runs [data-runs-retry]"), null, { timeout: 5000 });
   await page.waitForTimeout(300); // its answer drawn
   assert.match(await active(page), /data-runs-retry/, "refused again: still on Try again");
+  // Try again is whole: its words on one line, its target at least the size of a row's control, never squeezed by a
+  // long refusal (Astra S238 at 875a2ab: 34.9 × 40 px on two lines at 390)
+  const tr = await page.locator("#runs [data-runs-retry]").evaluate((b) => { const r = b.getBoundingClientRect(), g = document.createRange(); g.selectNodeContents(b); const lines = new Set([...g.getClientRects()].map((x) => Math.round(x.top))).size; return { w: r.width, h: r.height, lines, squeezed: b.scrollWidth > b.clientWidth + 1 }; });
+  assert.equal(tr.lines, 1, `Try again on one line (${JSON.stringify(tr)})`);
+  assert.ok(!tr.squeezed && tr.w >= 44 && tr.h >= 32, `Try again whole: ${JSON.stringify(tr)}`);
   // and once it reads: on the first run
   W.runsFail = null;
   await page.keyboard.press("Enter");

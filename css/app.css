@@ -1861,7 +1861,10 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 .rn-stop{flex:none;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 11px 0 9px;border-radius:var(--r-sm);border:1px solid var(--line);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-2)}
 .rn-stop svg{width:12px;height:12px}
 .rn-stop:hover{border-color:color-mix(in srgb,var(--err-ink) 40%,var(--line));color:var(--err-ink)}
-.rn-none{padding:18px 8px;font-size:var(--fs-base);color:var(--ink-3);display:flex;align-items:center;gap:8px}
+.rn-none{padding:18px 8px;font-size:var(--fs-base);color:var(--ink-3);display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+/* its Try again keeps its words on one line and a whole target: a long refusal wraps the line, never squeezes the
+   button (Astra S238 at 875a2ab: 34.9 px wide, on two lines, at 390) */
+.rn-none .fl-link{flex:none;display:inline-flex;align-items:center;min-height:32px;white-space:nowrap}
 /* a stop still in its 3 s Undo, inside the sheet (the page behind it can't be reached while it's open) */
 .rn-stops{list-style:none;margin:0 0 8px;padding:0;display:grid;gap:6px}
 .rn-stopping{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:var(--h-lg);padding:0 4px 0 12px;border-radius:var(--r-sm);background:var(--fill-2);font-size:var(--fs-base);color:var(--ink-2)}
@@ -1994,6 +1997,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .nw{height:36px}
   .hr.hr-need{min-height:36px}
   .rn-chip,.rn-log,.rn-stopall{height:36px}
+  .rn-none .fl-link{min-height:36px}
   #say{min-height:36px}
   .kr-k{min-height:36px}
 }
