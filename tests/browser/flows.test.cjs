@@ -2224,6 +2224,22 @@ t("S238: Runs read once, then refused twice: Try again keeps focus; once it read
   await page.waitForFunction(() => document.activeElement?.classList.contains("rn-open"), null, { timeout: 5000 });
   await done(page);
 });
+t("C047: the thread head's sub-agents working now are buttons, each in the list's own item; Enter opens one", async () => {
+  if (WIDTH < 600) skip("a phone shows one count in their place (the chips are hidden there by design; the count is the button)");
+  const page = await app({ threadsBy: { chat_demo: [serverThread("rc1", "ses-rc")] }, runs: { "ses-rc": { runs: [run("a1", "Fixture a1")], counts: { running: 1 } } } });
+  await toDemo(page);
+  await toThread(page, "rc1");
+  // a sub-agent working now, as the stream names it
+  await page.evaluate(() => { window.__t.world.state.runs.set("a1", { id: "a1", session: "ses-rc", parent: null, state: "running", title: "Fixture a1", depth: 1 }); window.__t.render(); });
+  const strip = page.locator("#thead .rn-strip").filter({ visible: true }).first();
+  await strip.waitFor();
+  assert.equal(await strip.getByRole("listitem").count(), 1, "one item in the list");
+  assert.equal(await strip.getByRole("listitem").getByRole("button", { name: /Fixture a1/ }).count(), 1, "and in it a button, named for its run (Astra C047: it read as a listitem, not a button)");
+  await strip.getByRole("button", { name: /Fixture a1/ }).focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => !document.querySelector("#runs").hidden);
+  await done(page);
+});
 t("S100: Runs' Stop is named Stop in every layout, a run's own view too (on a phone it shows as its icon)", async () => {
   const W = { runs: { "ses-a": { runs: [run("ra", "Alpha's helper")], counts: { running: 1 } } } };
   const page = await app(W);
