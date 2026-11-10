@@ -40,4 +40,8 @@ t("S016 a file's × is --h-sm, 11 px in (18 − 11 = 7); its thumbnail --h-ctl, 
   assert.match(css, /\.att-ic\{border-radius:calc\(var\(--r-3xl\) - 17px\)\}/);
   assert.match(css, /\.att-b\{border-radius:calc\(var\(--r-3xl\) - 21px\)\}/);
 });
+// and S270, the offered path's field (the controls grader on 05d76ca: 678×28 on a desktop): a field at --h-ctl
+t("S270 the refused Copy path's offered path is a field at --h-ctl", () => {
+  assert.match(rule(".vw-cut-sel"), /height:var\(--h-ctl\);/);
+});
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
