@@ -136,7 +136,7 @@ button:disabled{cursor:default}
 .nr-n{display:inline-flex;align-items:center;gap:6px;font:600 var(--fs-sm)/1 var(--sans);color:var(--warn);font-variant-numeric:tabular-nums}
 .nv-dot{width:6px;height:6px;border-radius:1.5px;background:var(--warn);transform:rotate(45deg)}
 
-.side-label{display:flex;align-items:center;justify-content:space-between;min-height:28px;margin:20px 12px 6px 16px;font:500 var(--fs-sm)/1 var(--sans);color:var(--ink-4)}
+.side-label{display:flex;align-items:center;justify-content:space-between;min-height:28px;margin:20px 12px calc(8px - var(--ring-room)) 16px;font:500 var(--fs-sm)/1 var(--sans);color:var(--ink-4)}
 /* "+ New": a small filled pill, its right edge on the Find field's; the plus in the accent, the word in ink */
 .side-plus{flex:none;display:flex;align-items:center;gap:4px;height:24px;padding:0 10px 0 8px;border-radius:var(--r);background:var(--sb-g22);box-shadow:var(--hairline);color:var(--ink-2);font:500 var(--fs-sm)/1 var(--sans);white-space:nowrap;transition:color var(--d-hover),background var(--d-hover),transform var(--dur-fast) var(--ease)}
 .sp-ic{display:grid;place-items:center;color:var(--accent)}
@@ -145,7 +145,10 @@ button:disabled{cursor:default}
 .side-plus:active{transform:scale(.96)}
 :root[data-theme="light"] .side-plus{background:#FFFFFF;box-shadow:inset 0 0 0 1px rgba(0,0,0,.07)}
 :root[data-theme="light"] .side-plus:hover,:root[data-theme="light"] .side-plus:focus-visible{background:color-mix(in srgb,var(--ink) 4%,#FFFFFF)}
-.projects{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:6px;padding:2px 12px 14px;scrollbar-width:thin;scrollbar-color:var(--sb-g2A) transparent}
+/* a scroll box keeps the ring's room inside it (it clips what's past its padding): 2 px above the first project cut its
+   focused ring's top (the controls grader on 22046ec, C008); the label above gives the 4 px back, so the rows sit where
+   they did */
+.projects{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:6px;padding:var(--ring-room) 12px 14px;scrollbar-width:thin;scrollbar-color:var(--sb-g2A) transparent}
 .pr-ic svg{width:15px;height:15px}
 .prow.is-on .pr-ic{color:var(--ink);background:var(--sb-g26)}
 .pr-busy{position:absolute;right:-3px;bottom:-3px;width:9px;height:9px;border-radius:50%;background:var(--sb-side)}
@@ -2585,7 +2588,7 @@ body.map-full .dock,body.map-full .tdock{visibility:hidden}
 .mp-now .elapsed{font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap}
 
 /* the agents at work (a project, everyone): a chip each, in its cursor's colour */
-.mp-legend{list-style:none;display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0 12px 10px;max-height:80px;overflow-y:auto;scrollbar-width:none}
+.mp-legend{list-style:none;display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:var(--ring-room) 12px 10px;max-height:86px;overflow-y:auto;scrollbar-width:none}
 .mp-who{display:inline-flex;align-items:center;gap:7px;max-width:260px;height:var(--h-ctl);padding:0 10px 0 9px;border-radius:var(--r-sm);background:var(--surface);border:1px solid color-mix(in srgb,var(--c) 45%,var(--line-soft));font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-3);white-space:nowrap;transition:background var(--d-hover) var(--ease)}
 .mp-who:hover{background:color-mix(in srgb,var(--c) 12%,var(--surface))}
 .mp-who i{flex:none;width:8px;height:8px;border-radius:50%;background:var(--c)}
