@@ -26,6 +26,23 @@ const PIPS = { low: 1, medium: 2, high: 3, xhigh: 4, max: 5 };
 const EFFORT_HINT = { low: "Answers fast. For quick, simple asks.", medium: "A sensible default for most work.", high: "Thinks longer before it acts. For hard problems.", xhigh: "Thinks much longer. Slower, for the hardest work.", max: "Thinks as long as it needs. The slowest and most thorough." };
 const effortWord = (e) => (e ? EFFORT_WORD[e] || e : "");
 
+/**
+ * Every write to one conversation's intelligence, in the order it was asked: a write starts once the one before it
+ * for that conversation has settled (succeeded or refused), so the server applies them in that order. A model or
+ * depth (save) and a runtime change (which clears the model) are both writes: neither can land after a newer one.
+ * Conversations don't wait for each other.
+ */
+export function sessionOrder() {
+  const last = new Map(); // conversation → its last write, settled either way
+  return (s, write) => {
+    const p = (last.get(s) || Promise.resolve()).then(() => write());
+    const settled = p.then(() => {}, () => {});
+    last.set(s, settled);
+    settled.then(() => { if (last.get(s) === settled) last.delete(s); });
+    return p;
+  };
+}
+
 // simple(): the person's shape asks for the simple choice (xo:composer/intel "simple"): the chip opens
 // Auto · Deep first, and "More options" shows everything below, unchanged.
 export function createIntel({ world, PROJ, onChange, record, onMoved, simple = () => false }) {
@@ -383,7 +400,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     save(s, d, P.gen);
   }
   const failed = new Map(); // session → the choice a refused save left behind (the picker reopens on it)
-  const queue = new Map(); // session → its last save: a later one is sent once it has settled, never beside it
+  const order = sessionOrder(); // every write to a conversation's intelligence, in the order it was asked
   const asked = new Map(); // session → the number of its latest save: only the latest says what's left behind
   /**
    * Save a choice for a conversation, from one opening (gen). A second Done in the same opening joins the first
@@ -394,11 +411,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     return once(`iq:${s}:${gen}`, () => {
       const n = (asked.get(s) || 0) + 1;
       asked.set(s, n);
-      const prev = queue.get(s);
-      const p = (prev || Promise.resolve()).then(() => (d.auto ? toAuto(s) : pin(s, d.model, d.effort)));
-      queue.set(s, p);
-      return p.then((ok) => {
-        if (queue.get(s) === p) queue.delete(s);
+      return order(s, () => (d.auto ? toAuto(s) : pin(s, d.model, d.effort))).then((ok) => {
         if (asked.get(s) === n) { if (ok) failed.delete(s); else failed.set(s, d); }
         return ok;
       });
@@ -574,9 +587,14 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     const agent = id === "auto" ? null : id;
     P.busy = true; render();
     try {
-      // a model belongs to its runtime: a new runtime starts on its own default model
-      await api.patchChat(c.chatId, { agent, model: null, effort: null });
-      if (pol0) await world.act.setPolicy(c.chatId, { ...pol0, default: agent });
+      // a model belongs to its runtime: a new runtime starts on its own default model. This is a write to the
+      // conversation like a Done's: it waits for one still out, so that one can't land after it and pin the old
+      // runtime's model on the new runtime (Astra 453de55: "setRuntime is another unserialized path")
+      await order(s, async () => {
+        await api.patchChat(c.chatId, { agent, model: null, effort: null });
+        if (pol0) await world.act.setPolicy(c.chatId, { ...pol0, default: agent });
+      });
+      failed.delete(s); // a choice an earlier save left behind was the old runtime's model: it doesn't carry over
       await world.act.refresh?.();
       const who = kind === "project" ? PROJ(s.slice(2)) : "The Workspace";
       record(s, {
