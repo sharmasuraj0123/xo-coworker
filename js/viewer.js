@@ -774,7 +774,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     // a refusal that hands you what it couldn't give (a path that didn't copy: the path itself, in a read-only field
     // that selects all of it, the controls grader on 4d33649, S125 / V49) carries it as select
     const cut = V.saveError && (typeof V.saveError === "string" ? { text: V.saveError } : V.saveError);
-    return (tabs ? tabs() : "") + head() + (V.saveError ? `<p class="vw-cut" role="alert">${ICON.clock}<span>${esc(cut.text)}</span>${cut.select ? `<input class="vw-cut-sel" readonly value="${esc(cut.select)}" aria-label="The path, to copy" spellcheck="false">` : ""}</p>` : "");
+    return (tabs ? tabs() : "") + head() + (V.saveError ? `<p class="vw-cut" role="alert">${ICON.clock}<span>${esc(cut.text)}</span>${cut.select ? `<input class="vw-cut-sel" data-vw-cut-sel readonly value="${esc(cut.select)}" aria-label="The path, to copy" spellcheck="false">` : ""}</p>` : "");
   };
   function renderNow() {
     if (!V.open) return;

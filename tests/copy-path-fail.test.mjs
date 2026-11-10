@@ -23,7 +23,7 @@ t("a refused path copy says the path didn't copy and offers the path; a refused 
 });
 t("the line under the head draws the path in a read-only field that selects all of it", () => {
   assert.match(src, /const cut = V\.saveError && \(typeof V\.saveError === "string" \? \{ text: V\.saveError \} : V\.saveError\);/);
-  assert.match(src, /<input class="vw-cut-sel" readonly value="\$\{esc\(cut\.select\)\}" aria-label="The path, to copy" spellcheck="false">/);
+  assert.match(src, /<input class="vw-cut-sel" data-vw-cut-sel readonly value="\$\{esc\(cut\.select\)\}" aria-label="The path, to copy" spellcheck="false">/);
   assert.match(src, /if \(e\.target\.matches\?\.\("\.vw-cut-sel"\)\) e\.target\.select\(\);/, "focused, it's all selected");
   assert.match(css, /\.vw-cut-sel\{[^}]*font:[^;]*var\(--mono\)/, "the path reads as a path");
 });
@@ -34,5 +34,10 @@ t("the offered path takes its own row under the words, the line's width", () => 
   assert.match(css, /\.vw-cut:has\(\.vw-cut-sel\)\{flex-wrap:wrap\}/, "the line wraps when it offers a path");
   assert.match(css, /\.vw-cut-sel\{flex:1 0 calc\(100% - 22px\);margin-left:22px;/, "its own row, aligned with the words");
   assert.doesNotMatch(css, /\.vw-cut-sel\{[^}]*min-width:0/, "it never shrinks to what the words leave");
+});
+// it has a hook of its own, data-vw-cut-sel: the control list names it by that (its own row), and a redraw of the line
+// gives focus back to it, as to every viewer control with a data-vw- hook (render, paintHead)
+t("the offered field has its own hook, so it has a row and keeps focus across a redraw", () => {
+  assert.match(src, /<input class="vw-cut-sel" data-vw-cut-sel readonly/);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

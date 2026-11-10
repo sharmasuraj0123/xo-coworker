@@ -2,7 +2,7 @@
  "note": "Canonical key → row ID. Append-only: never renumber, never reuse.",
  "next": {
   "C": 127,
-  "S": 270
+  "S": 271
  },
  "ids": {
   "C001": {
@@ -1639,6 +1639,10 @@
     ".shd-grip",
     "LPX15-shell-resize"
    ]
+  },
+  "S270": {
+   "key": "input[data-vw-cut-sel]",
+   "aliases": []
   }
  },
  "legacy": {

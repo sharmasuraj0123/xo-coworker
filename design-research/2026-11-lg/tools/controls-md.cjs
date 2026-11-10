@@ -383,6 +383,7 @@ const DOES = {
   'data-shp-all': 'Shape: show everything.',
   'data-shp-dense': 'Compact or comfortable, on this device.',
   'data-shp-json': 'Shape as JSON, for editing by hand.',
+  'data-vw-cut-sel': "A Copy path the browser refused: the path itself, read-only, to select and copy (all of it selected once focused).",
   'data-shp-revert': 'Shape JSON: back to what was saved.',
   'data-shp-save': 'Shape JSON: saves it.',
   'data-shp-keep': 'Shape, asked before a preset replaces your own changes: Keep mine keeps your shape as it is, and the preset you picked isn\'t applied.',
