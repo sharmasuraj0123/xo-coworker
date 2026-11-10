@@ -94,6 +94,15 @@ t("a control sized by its words and padding is on the scale too: the decision's 
   // the census reads declared heights; one drawn by its padding (3 + 20 + 3) escaped it (the controls grader on f93345a)
   assert.match(readFileSync(new URL("css/app.css", ROOT), "utf8"), /\.c-where\{[^}]*height:var\(--h-sm\);[^}]*padding:0 6px;/);
 });
+t("a button drawn as a link, standing on its own, has the desktop's 24 floor; one in a sentence is words (S014: the docked Undo, 39×20)", () => {
+  const fnd = readFileSync(new URL("css/foundation.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  const links = fnd.match(/:is\(([^)]*)\)\{transition:color var\(--d-hover\)/)[1].split(",");
+  const floor = fnd.match(/:where\(([^)]*)\)\{min-height:var\(--h-sm\)\}/)[1].split(",");
+  // in a sentence: Copy path's (dialog text), Launchpad's lines, Home in the Workspace's sentence
+  const words = [".cp-link", ".lp-ln", ".wsh-home"];
+  assert.deepEqual([...floor, ...words].sort(), [...links].sort(), "every link-like button is placed: the floor, or words in a sentence");
+  assert.match(readFileSync(new URL("js/app.js", ROOT), "utf8"), /<p class="wsh-p">[^<]*<button type="button" class="wsh-home"/, "Home is a word in the Workspace's sentence");
+});
 t("the composer's circles in compact density sit on its corner: no comfortable margin moves them", () => {
   assert.match(readFileSync(new URL("css/shape.css", ROOT), "utf8"), /\[data-density="compact"\] :is\(\.attach,\.send\)\{width:var\(--h-row\);height:var\(--h-row\);margin:0\}/);
 });

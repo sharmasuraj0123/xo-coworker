@@ -3877,6 +3877,9 @@ for (const how of ["Enter", "Space", "pointer"]) {
     await dockPress(page, "#tdock [data-act=allow]", how === "Space" ? " " : how);
     await page.locator("#tdock [data-dock-undo]").waitFor();
     assert.equal(await dockFocus(page), "undo", "after Allow, focus on the line's Undo");
+    // a control on its own: the desktop's 24 floor, a phone's 36 (grader B on 414de0f: 39×20 at 1440)
+    const u = await page.locator("#tdock [data-dock-undo]").boundingBox(), min = WIDTH < 760 ? 36 : 24;
+    assert.ok(u.height >= min - 0.5 && u.width >= min - 0.5, `the Undo is ${Math.round(u.width)}×${Math.round(u.height)}, its floor ${min}`);
     await page.waitForTimeout(360);
     await dockPress(page, "#tdock [data-dock-undo]", how === "Space" ? " " : how);
     // at once, not when the 3 s window would have closed
@@ -3992,7 +3995,7 @@ const ringClips = (page, where) => page.evaluate(async (where) => {
   const clipsOf = (e) => { const s = getComputedStyle(e); return s.overflowX !== "visible" || s.overflowY !== "visible" || /paint|strict|content/.test(s.contain) || (s.clipPath && s.clipPath !== "none"); };
   const inView = (r) => r.width >= 1 && r.height >= 1 && r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth;
   const els = [...document.querySelectorAll(CTL)].filter((e) => e.getClientRects().length && !e.closest("[inert], [hidden], .sr-only") && !e.disabled && inView(e.getBoundingClientRect()));
-  const cut = [], seen = new Set();
+  const cut = [], seen = new Set(), floor = [];
   for (const el of els) {
     if (!el.isConnected) continue;
     el.focus({ preventScroll: false });
@@ -4000,6 +4003,10 @@ const ringClips = (page, where) => page.evaluate(async (where) => {
     await frame();
     const s = getComputedStyle(el), r = el.getBoundingClientRect();
     if (!inView(r)) continue;
+    // and its size: a control standing on its own keeps the floor (24 on a desktop, 36 on a phone); a link in a
+    // sentence, a field, a row inside a list drawn by its own rules are not this sweep's
+    const fl = innerWidth < 760 ? 36 : 24;
+    if (/^(BUTTON|SUMMARY)$/.test(el.tagName) && s.display !== "inline" && !el.matches(".lk,.lp-hh,.lp-ln,.cp-link,.wsh-home,.dg-n,.gn,.dg-tag,.pj-s *,.tw-rt") && (r.height < fl - 0.5 || r.width < fl - 0.5)) floor.push(`${where}: ${name(el)} ${Math.round(r.width)}×${Math.round(r.height)}`);
     const e = s.outlineStyle === "none" ? 0 : parseFloat(s.outlineOffset) + parseFloat(s.outlineWidth);
     if (e <= 0) continue; // a ring drawn inside the control, or none
     const ring = { top: r.top - e, bottom: r.bottom + e, left: r.left - e, right: r.right + e };
@@ -4017,13 +4024,14 @@ const ringClips = (page, where) => page.evaluate(async (where) => {
     }
   }
   document.activeElement?.blur?.();
-  return { n: els.length, cut };
+  return { n: els.length, cut, floor };
 }, where);
 t("RINGCLIP: no clipping box cuts a focused control's ring: Home, a project with a code block, a thread with its decision and checklist, All threads, the panel's Files", async () => {
   const page = await app({ files: { "a.js": FILE() }, messages: MSG("Here is the command:\n\n```sh\nnpm test\n```\n") });
   await page.keyboard.press("Shift"); // a keyboard's focus: the ring is drawn
   const cuts = [], counts = [];
-  const sweep = async (where) => { const r = await ringClips(page, where); counts.push(`${where} ${r.n}`); cuts.push(...r.cut); };
+  const small = [];
+  const sweep = async (where) => { const r = await ringClips(page, where); counts.push(`${where} ${r.n}`); cuts.push(...r.cut); small.push(...r.floor); };
   await page.evaluate(() => { window.__t.go("home"); window.__t.render(); }); await page.waitForTimeout(500);
   await sweep("Home");
   await toDemo(page); await page.locator("#msgs [data-copy]").first().waitFor({ timeout: 4000 }); await page.waitForTimeout(300);
@@ -4046,6 +4054,7 @@ t("RINGCLIP: no clipping box cuts a focused control's ring: Home, a project with
   await page.waitForTimeout(500);
   await sweep("the panel's Files");
   console.log(`  RINGCLIP read ${counts.join(", ")}`);
+  if (small.length) console.log(`  RINGCLIP under the floor (not this case's verdict): ${small.join("; ")}`);
   assert.deepEqual(cuts, [], `rings cut by a clipping box:\n  ${cuts.join("\n  ")}`);
   await done(page);
 });
