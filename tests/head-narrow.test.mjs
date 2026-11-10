@@ -21,4 +21,11 @@ t("the state stays said: the word is ⋯'s name and title, the icon a spinner or
   assert.match(src, /title="\$\{word \|\| "Copy, download"\}" aria-label="\$\{word \|\| "More: copy, download"\}"/);
   assert.match(src, /\$\{done \? ICON\.check : busy \? `<i class="spin" aria-hidden="true"><\/i>` : MORE_IC\}/);
 });
+// where the word steps aside the spinner alone says Copying… / Downloading…, so it's drawn in full ink: the busy ⋯ is
+// never dimmed (the controls grader at 320: the spinner too faint, ink-3 at .6 opacity is 2.8:1 on the dark head)
+t("the busy ⋯ isn't dimmed, and its spinner is drawn in the second ink (9.9:1 dark, 10:1 light)", () => {
+  const app = readFileSync(new URL("../css/app.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  assert.match(app, /:is\(\.vw-cut-dl,\.vw-btn:not\(\.vw-more\)\)\[aria-busy="true"\]\{opacity:\.6;cursor:progress\}/, "the dimming leaves ⋯ out");
+  assert.match(css, /\.vw-more\.is-busy\{color:var\(--ink-2\)\}/, "its spinner in the second ink");
+});
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

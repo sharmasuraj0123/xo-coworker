@@ -2086,7 +2086,8 @@ body.viewer-open .tdock{display:none}
 .vw-cut:has(.vw-cut-sel)>span{flex:1 1 0;min-width:0} /* the words keep their row beside the clock and wrap there: only the field goes under them (S270) */
 .vw-cut-sel{flex:1 0 calc(100% - 22px);margin-left:22px;height:28px;padding:0 6px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--fill-1);font:400 var(--fs-sm)/22px var(--mono);color:var(--ink)}
 .vw-cut-dl{margin-left:auto;flex:none;color:var(--ink-2);font-weight:500;text-decoration:underline;text-decoration-color:var(--line-hover);text-underline-offset:2px}
-.vw-cut-dl:disabled,.vw-btn:disabled,:is(.vw-cut-dl,.vw-btn)[aria-busy="true"]{opacity:.6;cursor:progress}
+.vw-cut-dl:disabled,.vw-btn:disabled,:is(.vw-cut-dl,.vw-btn:not(.vw-more))[aria-busy="true"]{opacity:.6;cursor:progress}
+.vw-more[aria-busy="true"]{cursor:progress} /* the busy ⋯ says its state by its spinner (alone in a narrow head): never dimmed */
 .vw-btn[aria-busy="true"]:hover{background:none}
 .vw-empty{display:grid;gap:12px;place-content:center;justify-items:center;min-height:60%;padding:32px;text-align:center;font-size:var(--fs-md);color:var(--ink-3)}
 .vw-empty p{max-width:44ch}

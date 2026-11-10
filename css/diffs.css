@@ -227,6 +227,7 @@ diffs-container{
 .vw-more:is(.is-done,.is-busy){width:auto;padding:0 10px 0 8px;gap:6px}
 .vw-more:is(.is-done,.is-busy) span{display:inline;font:500 var(--fs-sm)/16px var(--sans)}
 .vw-more.is-done{color:var(--go)}
+.vw-more.is-busy{color:var(--ink-2)} /* its spinner in the second ink: 9.9:1 on the dark head, 10:1 on the light (C092 at 320) */
 .vw-more .spin{width:12px;height:12px}
 .vw-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:var(--z-panel);display:flex;flex-direction:column;min-width:176px;padding:4px;border-radius:var(--r-lg);border:1px solid var(--line-soft);background:var(--float);box-shadow:var(--e2);animation:msg-in var(--d-out) var(--ease)}
 .vw-menu :is([role=menuitem],[role=menuitemradio]){display:flex;align-items:center;gap:8px;height:32px;padding:0 8px;border-radius:var(--r-sm);text-align:left;text-decoration:none;font:400 var(--fs-base)/20px var(--sans);color:var(--ink-2);white-space:nowrap}
