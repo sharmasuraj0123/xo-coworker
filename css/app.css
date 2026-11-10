@@ -507,7 +507,7 @@ button:disabled{cursor:default}
 @keyframes draw{to{stroke-dashoffset:0}}
 .spin{display:inline-block;width:10px;height:10px;border:1.5px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin var(--d-land) linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.meta-btn{display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 10px;border-radius:999px;border:1px solid var(--line);background:var(--fill-1);color:var(--ink-2);font:500 var(--fs-sm)/16px var(--sans)}
+.meta-btn{display:inline-flex;align-items:center;gap:5px;height:var(--h-sm);padding:0 10px;border-radius:999px;border:1px solid var(--line);background:var(--fill-1);color:var(--ink-2);font:500 var(--fs-sm)/16px var(--sans)}
 .meta-btn svg{width:12px;height:12px}
 .route-row{display:flex;align-items:center;gap:8px;margin-top:6px;padding-right:4px;font-size:var(--fs-sm);color:var(--ink-3);animation:msg-in var(--d-in) var(--ease)}
 .route-row b{color:var(--ink-2);font-weight:600}
@@ -704,7 +704,7 @@ button.hr:active{transform:scale(.97)}
 .target svg{flex:none;width:13px;height:13px}
 .target .tg-t svg{color:var(--info)}
 .target .muted{overflow:hidden;text-overflow:ellipsis}
-.send{flex:none;display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--accent-fill);color:var(--accent-ink);transition:transform var(--dur-fast) var(--ease)}
+.send{flex:none;display:grid;place-items:center;width:var(--h-lg);height:var(--h-lg);margin:-2px -2px -2px 0;border-radius:50%;background:var(--accent-fill);color:var(--accent-ink);transition:transform var(--dur-fast) var(--ease)}
 .send svg{width:17px;height:17px}
 .send:hover{background:var(--accent-hover)}
 .send:active{transform:scale(var(--press-scale))}
@@ -808,9 +808,9 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .iq-more[aria-expanded="true"] svg{transform:rotate(180deg)}
 .iq-moreb{padding-bottom:4px;animation:float-in var(--d-pop) var(--ease)}
 .iq-f{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:8px;padding:8px 10px 4px;border-top:1px solid var(--line-soft);font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
-.iq-back{margin-left:auto;height:28px;padding:0 8px;border-radius:var(--r-sm);color:var(--ink-2);font:500 var(--fs-sm)/16px var(--sans);white-space:nowrap}
+.iq-back{margin-left:auto;height:var(--h-ctl);padding:0 8px;border-radius:var(--r-sm);color:var(--ink-2);font:500 var(--fs-sm)/16px var(--sans);white-space:nowrap}
 .iq-back:hover{background:var(--hover-fill);color:var(--ink)}
-.iq-done{margin-left:auto;height:28px;padding:0 12px;border-radius:var(--r-sm);background:var(--ink);color:var(--on-ink);font:500 var(--fs-sm)/16px var(--sans)}
+.iq-done{margin-left:auto;height:var(--h-ctl);padding:0 12px;border-radius:var(--r-sm);background:var(--ink);color:var(--on-ink);font:500 var(--fs-sm)/16px var(--sans)}
 .iq-done:hover{background:var(--ink-hi)}
 .iq-done:active{transform:scale(var(--press-scale))}
 .iq-done[aria-busy="true"]{cursor:progress}
@@ -1218,7 +1218,7 @@ body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 
 /* the thread's own card: after a decision, one calm line, then it folds away */
 /* Read the thread first: the docked ask folds into one slim line; the conversation isn't dimmed */
-.dock-hide{flex:none;display:inline-flex;align-items:center;gap:6px;height:28px;margin:-4px -10px -4px auto;padding:0 10px 0 8px;border-radius:var(--r-sm);color:var(--ink-3);font:500 var(--fs-sm)/16px var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
+.dock-hide{flex:none;display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);margin:-6px -12px -6px auto;padding:0 10px 0 8px;border-radius:calc(var(--r-2xl) - 11px);color:var(--ink-3);font:500 var(--fs-sm)/16px var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
 .dock-hide svg{width:14px;height:14px}
 .dock-hide:hover{background:var(--fill-2);color:var(--ink)}
 .dock-hide:active{transform:scale(.96)}
@@ -2015,7 +2015,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .hr-ev.has-undo{height:auto;min-height:38px;padding-top:1px;padding-bottom:1px}
 }
 /* Send now: its own toggle beside a running chat's line; pressed, it reads as a choice you made */
-.tg-now{flex:none;display:inline-flex;align-items:center;height:30px;padding:0 12px;margin-right:6px;border-radius:999px;border:1px solid var(--line-soft);color:var(--ink-3);font:500 var(--fs-sm)/16px var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease)}
+.tg-now{flex:none;display:inline-flex;align-items:center;height:var(--h-ctl);padding:0 12px;margin-right:6px;border-radius:999px;border:1px solid var(--line-soft);color:var(--ink-3);font:500 var(--fs-sm)/16px var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease)}
 .tg-now:hover{color:var(--ink);border-color:var(--line-strong)}
 .tg-now.is-on{background:var(--ink);border-color:var(--ink);color:var(--canvas)}
 .tg-now-on{color:var(--ink)}
@@ -2154,13 +2154,13 @@ body.viewer-open .tdock{display:none}
 
 /* ── files on a message (hub #30): the paperclip, the chips on the unsent message, the drop veil,
    and the cards under a sent message (the shared-file card, with a thumbnail for an image) ── */
-.attach{flex:none;display:grid;place-items:center;width:36px;height:36px;margin-left:0;border-radius:50%;color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.attach{flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);margin-left:2px;border-radius:50%;color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .attach:hover{background:var(--hover-fill);color:var(--ink-2)}
 .attach svg{width:17px;height:17px}
 .attach:not([hidden])+.target{margin-left:0}
 .att-tray{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px -6px;padding:0;list-style:none}
 .att{position:relative;display:flex;align-items:center;gap:9px;min-width:0;max-width:min(100%,340px);height:46px;padding:0 4px 0 8px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line);overflow:hidden;animation:msg-in var(--dur-base) var(--ease)}
-.att-ic{flex:none;display:grid;place-items:center;width:30px;height:30px;border-radius:var(--r-sm);background:var(--fill-2);color:var(--ink-3)}
+.att-ic{flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);background:var(--fill-2);color:var(--ink-3)}
 .att-ic svg{width:16px;height:16px}
 .att-ic.is-img{padding:0;overflow:hidden;background:var(--fill-2) repeating-conic-gradient(rgb(128 128 128 / .18) 0 25%,transparent 0 50%) 0 0/10px 10px}
 .att-ic img{display:block;width:100%;height:100%;object-fit:cover}
@@ -2170,10 +2170,10 @@ button.att-ic:hover img{opacity:.85}
 .att-n{font:500 var(--fs-sm)/16px var(--sans);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .att-m{font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
 .att-err{color:var(--err-ink)}
-.att-b{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:var(--r-sm);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.att-b{flex:none;display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);border-radius:var(--r-sm);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .att-b:hover{background:var(--fill-2);color:var(--ink)}
 .att-b svg{width:14px;height:14px}
-.att-tx{flex:none;height:26px;padding:0 8px;border-radius:var(--r-sm);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3);border:1px solid var(--line)}
+.att-tx{flex:none;height:var(--h-sm);padding:0 8px;border-radius:var(--r-sm);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3);border:1px solid var(--line)}
 .att-tx:hover{background:var(--fill-2);color:var(--ink)}
 .att-bar{position:absolute;left:0;bottom:0;height:2px;width:calc(var(--p,0) * 100%);background:var(--accent);opacity:0;transition:width var(--dur-base) linear,opacity var(--d-in)}
 .att.st-uploading .att-bar{opacity:1}
@@ -2185,14 +2185,17 @@ button.att-ic:hover img{opacity:.85}
    chatbar looks hideously aligned"; from the message-styles thread, folded in here). The composer is 28 px
    round with its controls 10 px in (1 border + 9 padding) and its text 20 px in.
    · A file sits in the corner 10 px in on both sides (the tray is pulled up 3 px from the 12 px top
-     padding), so its corner is 28 − 10 = 18. Inside it, the picture and the × sit 8 and 9 px in: 10 and 9.
+     padding), so its corner is 28 − 10 = 18. Inside it, the 32 px picture sits 7 px in and the 24 px × 11 px in,
+     each the same on both sides: 11 and 7 (on the 24/32 scale: the controls grader's S016).
    · The note about where files are kept belongs to the files: right under them, on the 20 px text edge. */
 .composer>.att-tray{order:-2;margin:-3px 0 8px 0}
 .composer>.att-note{order:-1;margin:0 0 10px;padding-left:10px}
-.att{padding:0 8px 0 7px;border-radius:calc(var(--r-3xl) - 10px)}
-.att-ic{border-radius:calc(var(--r-3xl) - 18px)}
-.att-b{border-radius:calc(var(--r-3xl) - 19px)}
+.att{padding:0 10px 0 6px;border-radius:calc(var(--r-3xl) - 10px)}
+.att-ic{border-radius:calc(var(--r-3xl) - 17px)}
+.att-b{border-radius:calc(var(--r-3xl) - 21px)}
 @media (max-width:760px){
+  /* Add files at a phone's 36 sits 10 px in, as Send's 18-px circle did (28 − 10 = 18) */
+  .attach{margin-left:0}
   /* the × grows to 36 for a finger, so it sits 5 px in: 18 − 5 = 13 */
   .att{padding-right:4px}
   .att-b{border-radius:calc(var(--r-3xl) - 15px)}
