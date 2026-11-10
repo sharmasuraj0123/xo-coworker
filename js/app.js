@@ -161,7 +161,8 @@ const D = createDecisions({
   // a decision refused after its window: the honest correction replaces "All clear"
   onNotSent: (title, why) => { setTimeout(() => heraldShow({ kind: "stopped", text: "Not sent", sub: `${String(title).replace(/`/g, "").replace(/[.?!]$/, "")} · ${why}`, force: true }, 7000), RM.matches ? 0 : 950); },
   onAllClear: (summary) => { setTimeout(() => heraldShow({ kind: "clear", text: "All clear", sub: summary }, 4600), RM.matches ? 0 : 900); },
-  onUndone: (key) => { if (S.view === "home") { S.pin = key; S.pinAnim = "undo"; } },
+  // a docked decision's own line ("Allowed. Undo") ends the moment its decision is undone, by its Undo or a key
+  onUndone: (key) => { if (S.view === "home") { S.pin = key; S.pinAnim = "undo"; } if (TD.undone && TD.undone.key === key) TD.undone.end(); },
   onBreak: (left) => heraldShow({ kind: "calm", text: "Taking a break", sub: `${left} wait safely` }, 5200),
   onSent: (part) => {
     // "Stop here" after you stopped a thread: it ends there, honestly
@@ -1593,7 +1594,20 @@ runsEl.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventD
 
 // ── the thread's own decision: docked above the composer (Today's card, #20) ──
 const tdock = $("#tdock");
-const TD = { key: null, busy: false };
+const TD = { key: null, busy: false, undone: null };
+/**
+ * The dock's contents change under the keyboard: when focus was on what goes, it goes to what takes its place (the
+ * card, the folded line), else the place, in the same step, so focus is never on the page, not even for a frame
+ * (the create-project grader on 22046ec: S014, the docked Allow and its Undo; S240, Unfold).
+ */
+function dockSwap(fill, to = null, opts = null) {
+  const had = tdock.contains(document.activeElement);
+  const run = () => {
+    fill();
+    if (had && !tdock.contains(document.activeElement)) (to && usable(to) ? to : placeRegion()).focus({ preventScroll: true });
+  };
+  if (opts) morph(tdock, run, opts); else run();
+}
 const keepBottom = () => {}; // pinned at the latest, follow.js keeps the view there as the card changes
 /**
  * The docked card's fit (QA 2026-11-05). Its answers stay pinned under the question while the whole
@@ -1639,9 +1653,9 @@ tdock.addEventListener("scroll", () => { const f = tdock.querySelector(".card.is
 function dockRender(needs) {
   // a chat: its "send now" question first, else its own open decision (the chat's host), as a thread docks one
   const hc = CH.isChats(S.view) ? CH.confirmHtml(S.view) : "";
-  if (hc) { if (tdock._ch !== hc) { tdock.innerHTML = hc; tdock._ch = hc; TD.key = null; } return; }
-  if (tdock._ch) { tdock._ch = ""; tdock.innerHTML = ""; TD.key = null; }
-  if (S.view === "chats") { if (TD.key) { TD.key = null; tdock.innerHTML = ""; } return; }
+  if (hc) { if (tdock._ch !== hc) { dockSwap(() => { tdock.innerHTML = hc; }); tdock._ch = hc; TD.key = null; } return; }
+  if (tdock._ch) { tdock._ch = ""; dockSwap(() => { tdock.innerHTML = ""; }); TD.key = null; }
+  if (S.view === "chats") { if (TD.key) { TD.key = null; dockSwap(() => { tdock.innerHTML = ""; }); } return; }
   const t = convThread(S.view) || convHost(S.view);
   const n = t && !D.isOpen() ? needs.find((x) => x.t.id === t.id && !x.later && (x.admitted || x.held)) : null;
   // Folded: the person chose to read the thread first. The ask waits as one slim line, and the
@@ -1652,8 +1666,8 @@ function dockRender(needs) {
   const prev = TD.key;
   TD.key = key;
   if (!n) {
-    if (!prev) { tdock.innerHTML = ""; return; }
-    morph(tdock, () => { tdock.innerHTML = ""; }, { duration: 300 });
+    if (!prev) { dockSwap(() => { tdock.innerHTML = ""; }); return; }
+    dockSwap(() => { tdock.innerHTML = ""; }, null, { duration: 300 });
     return;
   }
   const head = (() => { const tp = document.createElement("template"); tp.innerHTML = D.cardHtml(n, "dock").trim(); return tp.content.querySelector(".c-h")?.textContent.trim() || askShort(n); })();
@@ -1665,7 +1679,7 @@ function dockRender(needs) {
     bar.dataset.unfold = n.key;
     bar.title = "Open the decision";
     bar.innerHTML = `<i class="g g-${n.group === "stopped" ? "failed" : "needs_reply"}" aria-hidden="true"></i><span class="df-t">${esc(head)}</span><span class="df-e">${esc(E.label)} ${esc(E.time)}</span><span class="df-go">Open ${ICON.chevron}</span>`;
-    morph(tdock, () => { tdock.innerHTML = ""; tdock.appendChild(bar); }, { duration: 300 });
+    dockSwap(() => { tdock.innerHTML = ""; tdock.appendChild(bar); }, bar, { duration: 300 });
     return;
   }
   const frame = document.createElement("article");
@@ -1681,7 +1695,7 @@ function dockRender(needs) {
   const what = t.host ? "chat" : "thread";
   // it sits in the card's own top row, on the effort label's line (hub #27), not floating over it
   (inner.querySelector(".c-top") || frame).insertAdjacentHTML("beforeend", `<button type="button" class="dock-hide" data-fold="${esc(n.key)}" title="Fold it away and read the ${what} first">${ICON.chevron}<span>Read the ${what} first</span></button>`);
-  morph(tdock, () => { tdock.innerHTML = ""; tdock.appendChild(frame); fitDock(frame); }, { duration: prev ? 300 : 360, fade: frame });
+  dockSwap(() => { tdock.innerHTML = ""; tdock.appendChild(frame); fitDock(frame); }, frame, { duration: prev ? 300 : 360, fade: frame });
   dockRO.disconnect();
   for (const el of [frame, frame.querySelector(".c-body"), frame.querySelector(".c-act")]) if (el) dockRO.observe(el);
   D.wireCard(frame, inner, n, {
@@ -1694,14 +1708,23 @@ function dockRender(needs) {
         // one calm line in place of the card, then it folds away
         const e = D.decisions()[0];
         const verb = e && e.verb === "Answered" ? `Answered “${e.said}”` : e ? e.verb : "Done";
-        morph(frame, () => { frame.className = "card is-dock r-done"; frame.innerHTML = `<p class="tp-done${how === "back" ? " is-back" : ""}" role="status"><span class="tp-done-ic">${how === "back" ? ICON.rewind : ICON.check}</span><span><b>${esc(verb)}.</b> ${how === "back" ? "It's taking another route." : "It's back at work."}</span><button type="button" class="tp-done-u" data-dock-undo>Undo</button></p>`; }, { duration: 300 });
+        // the control pressed (Allow, an option, Send) goes with the card: focus goes to this line's Undo, at once
+        const had = frame.contains(document.activeElement);
+        morph(frame, () => {
+          frame.className = "card is-dock r-done"; frame.innerHTML = `<p class="tp-done${how === "back" ? " is-back" : ""}" role="status"><span class="tp-done-ic">${how === "back" ? ICON.rewind : ICON.check}</span><span><b>${esc(verb)}.</b> ${how === "back" ? "It's taking another route." : "It's back at work."}</span><button type="button" class="tp-done-u" data-dock-undo>Undo</button></p>`;
+          if (had && !frame.contains(document.activeElement)) frame.querySelector("[data-dock-undo]").focus({ preventScroll: true });
+        }, { duration: 300 });
         // the only Undo for this decision now: it stays for the whole 3 s window, in real time (hold, not wait:
-        // reduced motion cuts the stamp's animation, never the time to Undo)
-        await hold(RM.matches ? 3000 : 2700);
+        // reduced motion cuts the stamp's animation, never the time to Undo). Undone, the line ends there and then:
+        // the card is back at once, and focus with it if it was on the Undo
+        let undone = false;
+        await new Promise((end) => { TD.undone = { key: n.key, end: () => { undone = true; end(); } }; hold(RM.matches ? 3000 : 2700).then(end); });
+        TD.undone = null;
+        if (undone) { TD.busy = false; TD.key = null; dockRender(D.needItems()); schedule(); return; }
       }
       TD.busy = false;
       TD.key = "__settling";
-      morph(tdock, () => { tdock.innerHTML = ""; }, { duration: 320 });
+      dockSwap(() => { tdock.innerHTML = ""; }, null, { duration: 320 });
       TD.key = null;
       schedule();
     },
@@ -1712,7 +1735,8 @@ tdock.addEventListener("click", (e) => {
   const f = e.target.closest("[data-fold]");
   if (f) { S.dockFold[f.dataset.fold] = true; dockRender(D.needItems()); scroller.focus({ preventScroll: true }); return; }
   const u = e.target.closest("[data-unfold]");
-  if (u) { delete S.dockFold[u.dataset.unfold]; dockRender(D.needItems()); requestAnimationFrame(() => tdock.querySelector(".card")?.focus({ preventScroll: true })); return; }
+  // the card takes focus in the step that draws it, not a frame later: the line pressed is gone by then (S240)
+  if (u) { delete S.dockFold[u.dataset.unfold]; dockRender(D.needItems()); tdock.querySelector(".card")?.focus({ preventScroll: true }); return; }
   if (e.target.closest("[data-dock-undo]")) D.undo();
 });
 tdock.addEventListener("keydown", (e) => {

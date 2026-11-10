@@ -1566,7 +1566,9 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
      instead, the card stands between them and keeps its own room */
   .dock:has(> .fdock:not(:empty)):not(:has(> .tdock:not(:empty))) .herald:not(.is-out){bottom:calc(100% + 8px + 32px + var(--ring-room))}
   .composer{box-shadow:0 2px 10px var(--comp-shadow),0 1px 0 var(--comp-hi) inset}
-  .dock>.herald,.dock>.tdock{margin-left:0;margin-right:0}
+  /* the thread's decision keeps the column's edges on a phone too, the composer's (it sat at the screen's edge, 16 px
+     left of them, and the screen cut its ring there: the create-project grader on 22046ec, S240 at 390) */
+  .dock>.herald{margin-left:0;margin-right:0}
   .composer{padding:12px 9px 9px 9px;border-radius:var(--r-3xl)}
   .target .muted{display:none}
   .bubble{max-width:86%}

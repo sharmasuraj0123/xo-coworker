@@ -3853,6 +3853,65 @@ t("INT-2: Done saves, then closes; refused, the picker stays on your choice and 
   await done(page);
 });
 
+// ── a thread's docked decision: focus never on the page, the card on the column's edges (S014, S240) ──
+// the create-project grader on 22046ec, all four cells and every method: the docked Allow, its Undo and Unfold each
+// put focus on the page (tests/dock-focus.test.mjs reads the rule); at 390 the dock sat 16 px left of the composer
+async function dockAsk(page) {
+  await page.evaluate(() => {
+    const t = window.__t; window.calls = [];
+    for (const name of ["reply", "decide", "decideItem", "resolve"]) t.world.act[name] = async () => { window.calls.push(name); return {}; };
+    for (const name of ["watch", "watchThread", "watchSession", "loadThread", "loadHops", "loadChatHops", "findRows", "listRuns"]) if (t.world.act[name]) t.world.act[name] = async () => {};
+    t.world.state.threads = [{ id: "dk1", project: "demo", title: "A docked task", live: false, loaded: true, busy: false, state: "needs_approval", happened: "Test only", lastAt: Date.now(), messages: [], checklist: { total: 1, done: 0, items: [{ text: "Step", state: "todo" }] },
+      asks: [{ id: "dk-ask", kind: "permission", title: "Run: npm test", risk: "routine" }] }];
+    t.world.state.hosts = []; t.S.pin = null; t.go("t:dk1"); t.render();
+  });
+  await page.locator("#tdock .card [data-act=allow]").waitFor();
+  await page.waitForTimeout(360); // the card's 300 ms re-arm
+}
+const dockFocus = (page) => page.evaluate(() => { const a = document.activeElement; return !a || a === document.body ? "BODY" : a.closest("#tdock .card.is-dock:not(.r-done)") ? "card" : a.matches("#tdock [data-dock-undo]") ? "undo" : a.tagName + (a.id ? "#" + a.id : "") + " " + a.className; });
+const dockPress = async (page, sel, how) => { const l = page.locator(sel); if (how === "pointer") await l.click(); else { await l.focus(); await page.keyboard.press(how); } };
+for (const how of ["Enter", "Space", "pointer"]) {
+  t(`S014: the docked Allow hands focus to its Undo, and Undo brings the card back at once with focus on it (${how})`, async () => {
+    const page = await app();
+    await dockAsk(page);
+    await dockPress(page, "#tdock [data-act=allow]", how === "Space" ? " " : how);
+    await page.locator("#tdock [data-dock-undo]").waitFor();
+    assert.equal(await dockFocus(page), "undo", "after Allow, focus on the line's Undo");
+    await page.waitForTimeout(360);
+    await dockPress(page, "#tdock [data-dock-undo]", how === "Space" ? " " : how);
+    // at once, not when the 3 s window would have closed
+    await page.locator("#tdock .card [data-act=allow]").waitFor({ timeout: 1000 });
+    assert.equal(await dockFocus(page), "card", "after Undo, focus on the card that came back");
+    await page.waitForTimeout(3300);
+    assert.deepEqual(await page.evaluate(() => window.calls), [], "undone: nothing was sent");
+    assert.equal(await dockFocus(page), "card", "and it stays there past the window");
+    await done(page);
+  });
+  t(`S240: Unfold draws the card with focus on it in the same step (${how})`, async () => {
+    const page = await app();
+    await dockAsk(page);
+    await page.locator("#tdock [data-fold]").click();
+    await page.locator("#tdock [data-unfold]").waitFor();
+    await page.waitForTimeout(360);
+    await dockPress(page, "#tdock [data-unfold]", how === "Space" ? " " : how);
+    await page.locator("#tdock .card [data-fold]").waitFor({ timeout: 1000 });
+    assert.equal(await dockFocus(page), "card", "focus on the card");
+    await done(page);
+  });
+}
+t("S240: the docked card and its folded line share the composer's edges, their ring inside the screen", async () => {
+  const page = await app();
+  await dockAsk(page);
+  const edges = (sel) => page.evaluate((sel) => { const r = document.querySelector(sel).getBoundingClientRect(), c = document.querySelector(".composer").getBoundingClientRect(); return { l: Math.round(r.left - c.left), r: Math.round(r.right - c.right), left: r.left, right: innerWidth - r.right }; }, sel);
+  for (const [what, sel] of [["the card", "#tdock .card.is-dock"], ["the folded line", "#tdock [data-unfold]"]]) {
+    if (what === "the folded line") { await page.locator("#tdock [data-fold]").click(); await page.locator(sel).waitFor(); }
+    const e = await edges(sel);
+    assert.deepEqual([e.l, e.r], [0, 0], `${what} on the composer's edges (${JSON.stringify(e)})`);
+    assert.ok(e.left >= 4 && e.right >= 4, `${what}'s ring (4 px out) inside the screen (${JSON.stringify(e)})`);
+  }
+  await done(page);
+});
+
 // ── Home's next move: the same protection as a decision card ──
 async function homeAsk(page, question = false) {
   await page.evaluate((question) => {
