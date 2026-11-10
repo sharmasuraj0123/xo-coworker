@@ -90,6 +90,10 @@ t("rows from the tokens: 40 one line, 48 with an action, 56 a two-line list row;
   assert.match(phone, /\.ch-row\{min-height:58px;padding-top:10px;padding-bottom:10px\}\s*\.ch-main\{gap:4px\}\s*\.ch-m\{line-height:20px\}\s*\.pr-name\{line-height:1\.3\}\s*\.pr-t\{line-height:1\.35\}/);
   assert.match(phone, /\.is-unfolded>\.tb-h\{min-height:44px\}/);
 });
+t("a control sized by its words and padding is on the scale too: the decision's where line, 24 (S157: 104×26)", () => {
+  // the census reads declared heights; one drawn by its padding (3 + 20 + 3) escaped it (the controls grader on f93345a)
+  assert.match(readFileSync(new URL("css/app.css", ROOT), "utf8"), /\.c-where\{[^}]*height:var\(--h-sm\);[^}]*padding:0 6px;/);
+});
 t("the composer's circles in compact density sit on its corner: no comfortable margin moves them", () => {
   assert.match(readFileSync(new URL("css/shape.css", ROOT), "utf8"), /\[data-density="compact"\] :is\(\.attach,\.send\)\{width:var\(--h-row\);height:var\(--h-row\);margin:0\}/);
 });

@@ -147,6 +147,8 @@ diffs-container{
 .xd-q .xd-to{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .xd-q .xd-hint{flex:none}
 .xd-q .xd-send svg{width:16px;height:16px}
+.xd-q .xd-send{transition:background var(--d-hover) var(--ease)}
+.xd-q .xd-send:not(:disabled):hover{background:var(--accent-hover);transition-duration:var(--d-hover-in)}
 .xd-q .xd-send:focus-visible,.xd-ask:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){.xd-ask,.xd-q{animation:none}}
 @media (max-width:600px){.xd-q .xd-hint{display:none}}

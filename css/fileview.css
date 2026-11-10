@@ -64,6 +64,7 @@ body.chat-docked .thead .rn-log{flex:none;height:40px;margin:0;padding:0 12px 0 
 body.chat-docked .thead .rn-log span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 body.chat-docked .thead .rn-log::after{content:attr(data-n);font:500 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums}
 body.chat-docked .thead .rn-live{flex:none;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 13px 0 12px;border-radius:var(--r-lg);border:1px solid color-mix(in srgb,var(--info) 28%,var(--line-soft));background:color-mix(in srgb,var(--info) 6%,transparent);color:var(--ink-2)}
+body.chat-docked .thead .rn-live:hover{background:color-mix(in srgb,var(--info) 11%,transparent);border-color:color-mix(in srgb,var(--info) 42%,var(--line-soft));color:var(--ink)}
 body.chat-docked .thead .rn-live:has(.g-needs_reply){border-color:color-mix(in srgb,var(--warn) 34%,var(--line-soft));background:color-mix(in srgb,var(--warn) 7%,transparent)}
 body.chat-docked .thead .rn-live .rn-n{font:500 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums}
 body.files-open.chat-docked .mx-down{display:grid}
