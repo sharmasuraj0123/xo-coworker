@@ -3586,9 +3586,13 @@ $("#sound-tog").addEventListener("click", async () => {
   const tog = $("#sound-tog");
   if (tog.getAttribute("aria-busy") === "true") return;
   tog.setAttribute("aria-busy", "true");
-  const r = await sound.turn(!sound.on);
+  const want = !sound.on;
+  const r = await sound.turn(want);
   tog.removeAttribute("aria-busy");
-  const said = r.refused ? "This browser won't play sound here, so sounds stay off." : !r.kept ? `Sounds are ${r.on ? "on" : "off"} for now: this browser won't remember it after a reload.` : null;
+  const said = r.refused ? "This browser won't play sound here, so sounds stay off."
+    : r.kept ? null
+    : want ? "This browser won't remember sounds here, so they stay off."
+    : "Sounds are off for now: this browser won't remember it after a reload.";
   soundRender(said);
   if (said) announce(said);
   if (r.on) sound.play("allow");

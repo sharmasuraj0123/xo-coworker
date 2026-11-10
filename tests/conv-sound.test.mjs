@@ -1,5 +1,6 @@
 // Soft sounds (C117, the create-project grader on 7e0db5b): the Sounds switch says what is so.
-//   - a storage that refuses the choice doesn't undo it: the page has it, and says it won't last
+//   - a storage that refuses to keep "on" leaves sounds off, and says why; once it keeps choices again, one press turns
+//     them on; turning off always works on the page, and says when it won't be remembered
 //   - a browser that won't play (no AudioContext, or it refuses) leaves sounds off, and that's said
 //   - a suspended context is woken by the press that turns sounds on; play() never queues notes into a sleeping one
 // No browser: js/ui.js's sound engine, run against stand-ins for localStorage and AudioContext; and the app's switch
@@ -31,15 +32,28 @@ let n = 0;
 const fresh = async () => (await import(new URL(`../js/ui.js?case=${++n}`, import.meta.url))).sound;
 const reset = () => { store.data = {}; store.refuse = false; Object.assign(audio, { start: "running", resumeOk: true, refuseNew: false, made: 0, notes: 0 }); };
 
-await t("a refused storage write doesn't undo turning sounds on: on for this page, and it says it won't be kept", async () => {
-  reset(); store.refuse = true;
+await t("a storage that won't keep \"on\" leaves sounds off (nothing played, nothing saved); once it keeps choices, one press turns them on", async () => {
+  reset(); store.data["cv-sound"] = "off"; store.refuse = true;
   const sound = await fresh();
   assert.equal(typeof sound.turn, "function", "the engine turns sounds on from a press (sound.turn)");
-  const r = await sound.turn(true);
-  assert.deepEqual(r, { on: true, kept: false, refused: false });
-  assert.equal(sound.on, true, "the switch says On");
+  assert.deepEqual(await sound.turn(true), { on: false, kept: false, refused: false });
+  assert.equal(sound.on, false, "the switch says Off");
+  assert.equal(store.data["cv-sound"], "off", "what was saved stays");
   sound.play("allow");
-  assert.ok(audio.notes > 0, "and it plays");
+  assert.equal(audio.notes, 0, "and nothing plays");
+  store.refuse = false;
+  assert.deepEqual(await sound.turn(true), { on: true, kept: true, refused: false }, "storage back: one press");
+  assert.equal(sound.on, true); assert.equal(store.data["cv-sound"], "on");
+});
+
+await t("turning off works on the page even when the browser won't remember it", async () => {
+  reset(); store.data["cv-sound"] = "on";
+  const sound = await fresh();
+  store.refuse = true;
+  assert.deepEqual(await sound.turn(false), { on: false, kept: false, refused: false });
+  assert.equal(sound.on, false);
+  sound.play("allow");
+  assert.equal(audio.notes, 0, "silent now");
 });
 
 await t("a browser that won't make audio leaves sounds off, and says it refused", async () => {
@@ -86,9 +100,10 @@ await t("the app's switch turns sounds through sound.turn and says what it found
   const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
   const h = /\$\("#sound-tog"\)\.addEventListener\("click", async \(\) => \{([\s\S]*?)\n\}\);/.exec(app);
   assert.ok(h, "the switch's handler");
-  assert.match(h[1], /await sound\.turn\(!sound\.on\)/, "it asks the engine, and waits for its answer");
-  assert.match(h[1], /r\.refused/, "a refusal is said");
-  assert.match(h[1], /!r\.kept/, "a choice that won't last is said");
+  assert.match(h[1], /const want = !sound\.on;[\s\S]*await sound\.turn\(want\)/, "it asks the engine, and waits for its answer");
+  assert.match(h[1], /r\.refused \? "This browser won't play sound here, so sounds stay off\."/, "a refusal to play is said");
+  assert.match(h[1], /want \? "This browser won't remember sounds here, so they stay off\."/, "a storage that won't keep \"on\" is said");
+  assert.match(h[1], /"Sounds are off for now: this browser won't remember it after a reload\."/, "an off that won't last is said");
   assert.doesNotMatch(app, /sound\.on = !sound\.on/, "never sets the choice without asking the engine");
 });
 

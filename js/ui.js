@@ -297,9 +297,10 @@ export function reconcile(box, items, { quiet = false, fallback = null } = {}) {
 }
 
 // ── optional soft sounds (OFF by default; the person turns them on) ─────────
-// The choice is this page's from the moment it's made, and the browser's to remember: a storage that refuses it
-// doesn't undo it (the page still has it, and says it won't last). Turning sounds on is a press, so the audio is
-// made or woken right then; where the browser won't play (no audio, or it refuses), they stay off and that's said.
+// Turning sounds on takes a choice the browser will keep (sound that came back after a reload, or didn't, would be a
+// surprise either way): where it won't keep it, they stay off and that's said. Turning them off always works on this
+// page, and says when it won't be remembered. Turning on is a press, so the audio is made or woken right then; where
+// the browser won't play (no audio, or it refuses), they stay off and that's said.
 // (create-project grader on 7e0db5b, C117: a refused write left the switch off, a refused audio left it on with
 // nothing said, and a suspended context was never woken, its notes queueing silently.)
 let actx = null, chosen = null;
@@ -309,17 +310,19 @@ export const sound = {
   get on() { return chosen ?? stored(); },
   /**
    * Turn sounds on or off from a press. Resolves to {on, kept, refused}: on, what the switch now says; kept, whether
-   * the browser will remember it; refused, that the browser won't play sound here (so they're off).
+   * the browser keeps the choice (asked for on and not kept: they stay off); refused, that the browser won't play
+   * sound here (so they're off).
    */
   async turn(want) {
     if (!want) { chosen = false; return { on: false, kept: keep(false), refused: false }; }
+    if (!keep(true)) { chosen = false; return { on: false, kept: false, refused: false }; }
     try {
       actx = actx || new AudioContext();
       if (actx.state === "suspended") await actx.resume();
     } catch { actx = null; }
     if (!actx || actx.state !== "running") { chosen = false; keep(false); return { on: false, kept: true, refused: true }; }
     chosen = true;
-    return { on: true, kept: keep(true), refused: false };
+    return { on: true, kept: true, refused: false };
   },
   play(kind) {
     if (!this.on) return;
