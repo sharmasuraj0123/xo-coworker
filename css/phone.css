@@ -153,6 +153,12 @@
      grew it 28 px past the height the virtual grid measures, so rows overlapped (Astra) */
   :root:root :is(.side-plus,[data-arts-kind],.ev-asked>.ev-t){position:relative}
   :root:root :is(.side-plus,.md-pin,[data-arts-kind])::after{content:"";position:absolute;inset:-8px}
+  /* (where a layout makes one of them static, its ::after would anchor to the card and cover it: the Artifacts list's
+     pin, a full-height 44 px column and so already a target, draws none; a tap on the card's thread pinned it: the
+     create-project grader on c8f4c45, C066) */
+  :root:root .arts:not(.is-pics) .ar-grid .md-pin::after{content:none}
+  /* (the panel's Made list too: its pin is static in its column, at the phone's 36 px floor) */
+  :root:root .md-pane .md-pin::after{content:none}
   :root:root .ev-asked>.ev-t::after{content:"";position:absolute;inset:-12px 0}
   /* a finger's menus: the file's ⋯ and a folder's ⋯ (44 px items), and the folder's ⋯ itself (32 px) */
   :root:root :is(.vw-menu [role=menuitem],.fl-menu button){height:44px}
