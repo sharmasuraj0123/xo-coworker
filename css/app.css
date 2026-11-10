@@ -2650,13 +2650,13 @@ button.dg-n:hover{border-color:var(--line-strong);color:var(--ink)}
 .dg-tag{pointer-events:auto;position:absolute;left:15px;top:-2px;display:inline-flex;align-items:center;gap:6px;max-width:250px;height:22px;padding:0 8px;border-radius:var(--r-sm);background:var(--c);color:var(--on-agent);font:600 var(--fs-sm)/16px var(--sans);white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.22);cursor:pointer;transition:filter var(--dur-fast)}
 .dg-tag:hover{filter:brightness(1.08)}
 .dg-tag b{min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis}
-.dg-tag span{flex:none;font-weight:400;opacity:.85}
+.dg-tag span{flex:none;font-weight:400} /* full ink: dimmed, pressed it fell under 4.5:1 (S083) */
 .dg-cur.is-stacked .dg-tag{display:none}
 .dg-cur.is-left .dg-tag{left:auto;right:4px;border-radius:var(--r-sm)}
 .dg-cur.is-below .dg-tag{left:auto;right:-10px;top:31px;max-width:168px}
 .dg-more{font-style:normal;font-weight:600;padding:2px 5px;margin-right:-3px;border-radius:var(--r-sm);background:rgba(255,255,255,.22)}
 .dg-cur.is-idle .dg-arrow path{fill:var(--ink-5)}
-.dg-cur.is-idle .dg-tag{background:var(--fill-4);color:var(--ink-2)}
+.dg-cur.is-idle .dg-tag{background:var(--fill-4);color:var(--ink)}
 :root[data-theme="light"] .dg-cur.is-idle .dg-tag{background:#E4E4E2;color:#444}
 .dg-cur.is-wait .dg-tag::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--warn);box-shadow:0 0 0 1.5px rgba(255,255,255,.8)}
 .dg-cur.is-ping .dg-tag{animation:dg-ping var(--d-land) var(--ease)}
