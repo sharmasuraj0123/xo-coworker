@@ -27,4 +27,12 @@ t("the line under the head draws the path in a read-only field that selects all 
   assert.match(src, /if \(e\.target\.matches\?\.\("\.vw-cut-sel"\)\) e\.target\.select\(\);/, "focused, it's all selected");
   assert.match(css, /\.vw-cut-sel\{[^}]*font:[^;]*var\(--mono\)/, "the path reads as a path");
 });
+// the offered path is read whole: it takes its own row under the words, as wide as the line, so a path isn't cut
+// sideways (the controls grader on 1ed50f6 at 390 light, V98: the field was 92 × 24, "docs/note.md" clipped; the line
+// kept one row and the field shrank to what the words left); on a phone it's at the 36 px floor (phone.css)
+t("the offered path takes its own row under the words, the line's width", () => {
+  assert.match(css, /\.vw-cut:has\(\.vw-cut-sel\)\{flex-wrap:wrap\}/, "the line wraps when it offers a path");
+  assert.match(css, /\.vw-cut-sel\{flex:1 0 calc\(100% - 22px\);margin-left:22px;/, "its own row, aligned with the words");
+  assert.doesNotMatch(css, /\.vw-cut-sel\{[^}]*min-width:0/, "it never shrinks to what the words leave");
+});
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

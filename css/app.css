@@ -2073,8 +2073,10 @@ body.viewer-open .tdock{display:none}
 .vw-src code{font:inherit;background:none;border:0;padding:0}
 .vw-cut{display:flex;align-items:center;gap:8px;margin:0;padding:9px 16px;border-bottom:1px solid var(--line-faint);background:var(--warn-subtle);font-size:var(--fs-base);color:var(--ink-2)}
 .vw-cut svg{flex:none;width:14px;height:14px;color:var(--warn)}
-/* a refused Copy path: the path itself, read-only, to select and copy (all of it is selected when it's focused) */
-.vw-cut-sel{flex:1 1 160px;min-width:0;height:24px;padding:0 6px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--fill-1);font:400 var(--fs-sm)/22px var(--mono);color:var(--ink)}
+/* a refused Copy path: the path itself, read-only, to select and copy (all of it is selected when it's focused), on its
+   own row under the words and as wide as the line, so the path reads whole (36 tall on a phone: phone.css) */
+.vw-cut:has(.vw-cut-sel){flex-wrap:wrap}
+.vw-cut-sel{flex:1 0 calc(100% - 22px);margin-left:22px;height:28px;padding:0 6px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--fill-1);font:400 var(--fs-sm)/22px var(--mono);color:var(--ink)}
 .vw-cut-dl{margin-left:auto;flex:none;color:var(--ink-2);font-weight:500;text-decoration:underline;text-decoration-color:var(--line-hover);text-underline-offset:2px}
 .vw-cut-dl:disabled,.vw-btn:disabled,:is(.vw-cut-dl,.vw-btn)[aria-busy="true"]{opacity:.6;cursor:progress}
 .vw-btn[aria-busy="true"]:hover{background:none}

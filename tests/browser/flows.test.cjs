@@ -2208,6 +2208,8 @@ t("S125: Copy path refused in the Changes view says why, for a normal patch and 
     assert.equal(await sel.evaluate((e) => e.selectionStart === 0 && e.selectionEnd === e.value.length && e.readOnly), true, `${rel}: focused, all of it is selected, read-only`);
     // on a phone it's a control at the floor, 36 px tall (the controls grader on feffcf0: it was 24)
     if (WIDTH < 600) assert.ok(await sel.evaluate((e) => e.getBoundingClientRect().height) >= 35.5, `${rel}: 36 px tall on a phone`);
+    // and read whole, on its own row (the controls grader on 1ed50f6 at 390, V98: the field shrank and cut the path)
+    assert.equal(await sel.evaluate((e) => e.scrollWidth <= e.clientWidth + 1), true, `${rel}: the path isn't cut`);
     assert.equal(await page.evaluate(() => !!document.querySelector("#viewer .vw-diff")), true, `${rel}: still the Changes view`);
     await page.keyboard.press("Escape"); // the file closes as a person closes it, focus going back where it was
     await page.waitForTimeout(200);
