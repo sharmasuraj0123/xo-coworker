@@ -834,15 +834,18 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
         undo: () => { fromNotice(p, '[data-lp="stop"]'); startStop(p); }, undoLabel: "Stop again" }, 6000);
       changed();
     };
+    // the answer lands after the run ended: what ended it has its say. The stream's cancelled said the outcome in this
+    // notice (run.ended: stopped()), and a late answer, receipt or refusal, leaves it; any other end, the waiting goes
+    const late = () => { if (!run.ended) unsay(run.mid); changed(); };
     api.stop(p).then((r) => {
       run.stopSent = false;
-      if (s.run !== run || runOver(run)) { unsay(run.mid); changed(); return; }
+      if (s.run !== run || runOver(run)) { late(); return; }
       if (r && r.stopped === true) { stopped(p, run); return; }
       if (r && r.stopped === false) { announce("Nothing was running to stop: the stream says how it ended."); say(run.mid, { text: "Nothing was running to stop", kind: "done" }, 4200); changed(); return; }
       refused("Space didn't confirm it");
     }, (e) => {
       run.stopSent = false;
-      if (s.run !== run || runOver(run)) { unsay(run.mid); changed(); return; }
+      if (s.run !== run || runOver(run)) { late(); return; }
       refused((e && e.message) || "Space didn't answer");
     });
   }

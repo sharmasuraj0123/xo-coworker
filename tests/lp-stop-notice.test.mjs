@@ -100,6 +100,20 @@ t("Stop, confirmed: the same notice becomes 'Deploy of demo stopped'", async () 
   assert.equal(l.mid, mid); assert.equal(l.text, "Deploy of demo stopped"); assert.equal(l.undo, undefined);
 });
 
+for (const late of ["{stopped: true}", "a refusal"]) {
+  t(`The stream says it stopped before Space answers: the late answer (${late}) leaves 'Deploy of demo stopped' as it is`, async () => {
+    let answer; const w = await world({ stopAnswer: () => new Promise((ok, no) => (answer = { ok, no })) });
+    w.press("stop"); const mid = w.line().mid;
+    await at(3000); // the stop is out
+    w.stream({ type: "step", step: "build", state: "failed", error: { code: "cancelled" } }); await flush(); // the stream: stopped
+    assert.equal(w.line()?.text, "Deploy of demo stopped");
+    if (late === "a refusal") answer.no(new Error("Fixture offline")); else answer.ok({ stopped: true });
+    await flush();
+    const l = w.line();
+    assert.equal(l?.mid, mid, "the stop's notice is still on screen"); assert.equal(l.text, "Deploy of demo stopped", "its outcome, untouched");
+  });
+}
+
 t("Stop taken back in the panel (Keep deploying): the notice goes with it; no stop is sent", async () => {
   let sent = 0; const w = await world({ stopAnswer: async () => { sent++; return { stopped: true }; } });
   w.press("stop"); assert.ok(w.line());
