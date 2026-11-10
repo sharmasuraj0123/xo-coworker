@@ -2554,7 +2554,7 @@ body.map-full .dock,body.map-full .tdock{visibility:hidden}
 .mp-who b{min-width:0;font-weight:500;color:var(--ink);overflow:hidden;text-overflow:ellipsis}
 
 /* the canvas: a dotted sheet you can drag around and zoom */
-.dg{position:relative;flex:1;min-height:0;margin:0 12px 12px;border-radius:var(--r-sm);overflow:hidden;cursor:grab;touch-action:none;outline:none;
+.dg{position:relative;flex:1;min-height:0;margin:0 12px 12px;border-radius:var(--r-sm);overflow:clip;cursor:grab;touch-action:none;outline:none;
   background-color:var(--fill-1);background-image:radial-gradient(circle,var(--fill-3) 1px,transparent 1.2px);background-size:20px 20px;border:1px solid var(--line-faint)}
 :root[data-theme="light"] .dg{background-color:#FBFBFA;background-image:radial-gradient(circle,#DEDEDC 1px,transparent 1.2px);border-color:#E6E6E6}
 .dg:focus-visible{box-shadow:inset 0 0 0 2px var(--focus)}

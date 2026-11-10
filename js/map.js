@@ -538,10 +538,34 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     applyCam(c, false);
   }
 
+  /** Keyboard focus on something in the drawing that's out of the frame: the camera brings it in, 12 px inside (and
+   *  clear of the tools), at once, so the browser finds it in view and scrolls nothing. The frame clips without
+   *  scrolling (.dg overflow:clip): the camera is the only thing that moves the drawing (the Files/Map grader on
+   *  131d146, S208: Tab back to Follow scrolled the frame by itself, scrollTop 121, and the followed arrow was
+   *  clipped). Follow stays as it was; leaving the drawing brings the camera back to the agent (wire's focusout). */
+  function reveal(t) {
+    const v = view();
+    if (!v || !v.clientWidth) return;
+    const c = camOf(M.scope), b = v.getBoundingClientRect(), r = t.getBoundingClientRect();
+    const m = 12, W = v.clientWidth, H = v.clientHeight - 44;
+    const x0 = r.left - b.left - v.clientLeft, y0 = r.top - b.top - v.clientTop, x1 = x0 + r.width, y1 = y0 + r.height;
+    let dx = 0, dy = 0;
+    if (x0 < m || x1 > W - m) dx = x0 < m || x1 - x0 > W - 2 * m ? m - x0 : W - m - x1;
+    if (y0 < m || y1 > H - m) dy = y0 < m || y1 - y0 > H - 2 * m ? m - y0 : H - m - y1;
+    if (!dx && !dy) return;
+    c.x += dx; c.y += dy; c.user = true; c.fitAll = false; applyCam(c, false);
+  }
   /** Pan with a drag (a pinch zooms), scroll pans, ⌘/Ctrl-scroll zooms; a drag never counts as a click. */
   function wire(v) {
     const pts = new Map();
     let start = null;
+    v.addEventListener("focusin", (e) => { if (e.target !== v && e.target.closest(".dg-world")) reveal(e.target); });
+    v.addEventListener("focusout", (e) => {
+      const to = e.relatedTarget;
+      if (!e.target.closest(".dg-world") || (to && to.closest && to.closest(".dg-world"))) return;
+      const c = camOf(M.scope);
+      if (c.follow && M.lead) keepInView(c, M.lead);
+    });
     v.addEventListener("pointerdown", (e) => {
       if (e.button !== 0 && e.pointerType === "mouse") return;
       if (e.target.closest(".dg-tools, .dg-key, .dg-tag")) return;
