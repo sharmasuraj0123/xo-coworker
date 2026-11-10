@@ -439,7 +439,10 @@ const FIND_AT = 8;
   inp.addEventListener("input", () => set(inp.value));
   inp.addEventListener("keydown", (e) => {
     const list = sideRender.shown || [];
-    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); if (inp.value) { inp.value = ""; set(""); } else inp.blur(); return; }
+    // Escape: a typed filter clears and stays; an empty one goes back to where you are, never to the page (a blur
+    // left focus on BODY: the create-project grader on c8f4c45, C007): a phone's drawer closes (focus to what opened
+    // it), else the place's own region
+    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); if (inp.value) { inp.value = ""; set(""); } else if (PHONE.matches && $("#app").classList.contains("drawer")) setDrawer(false); else placeRegion().focus({ preventScroll: true }); return; }
     if (e.key === "ArrowDown" || e.key === "ArrowUp") {
       e.preventDefault();
       if (!list.length || !S.pfind) return;
