@@ -2674,7 +2674,7 @@ button.dg-n:hover{border-color:var(--line-strong);color:var(--ink)}
 .dg-sep{width:1px;height:18px;margin:0 3px;background:var(--fill-3)}
 :root[data-theme="light"] .dg-tools{background:#FFF;border-color:#DCDCDA}
 :root[data-theme="light"] .dg-sep{background:#E2E2E0}
-.dg-tools button,.dg-mode button{display:grid;place-items:center;width:28px;height:28px;border-radius:var(--r-sm);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.dg-tools button{display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .dg-tools button:hover,.dg-mode button:hover{background:var(--fill-3);color:var(--ink)}
 :root[data-theme="light"] .dg-tools button:hover,:root[data-theme="light"] .dg-mode button:hover{background:#F0F0EE}
 .dg-tools button[aria-pressed="true"]{background:color-mix(in srgb,var(--info) 16%,transparent);color:var(--info)}

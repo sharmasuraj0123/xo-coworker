@@ -44,4 +44,11 @@ t("S016 a file's × is --h-sm, 11 px in (18 − 11 = 7); its thumbnail --h-ctl, 
 t("S270 the refused Copy path's offered path is a field at --h-ctl", () => {
   assert.match(rule(".vw-cut-sel"), /height:var\(--h-ctl\);/);
 });
+// the Map's toolbar (zoom −/+, Fit, Follow: S205–S208, the controls grader on c767cbf: 28×28 on a desktop): the owner's
+// pick, 32 (10 Nov, rv_611c342d8d1545f2); a phone keeps its 36. The .dg-mode buttons it also sized are never drawn
+t("S205–S208 the Map's toolbar buttons are --h-ctl on a desktop (the owner's pick)", () => {
+  assert.match(rule(".dg-tools button"), /width:var\(--h-ctl\);height:var\(--h-ctl\)/);
+  assert.doesNotMatch(css, /\.dg-mode button\{|\.dg-tools button,\.dg-mode button\{/, "no rule for buttons never drawn");
+  assert.match(css, /\.dg-tools button\{width:36px;height:36px\}/, "a phone's 36");
+});
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
