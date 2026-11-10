@@ -109,11 +109,13 @@
 
       <!-- The dock: one calm labelled line, the thread's own decision (in a thread), the composer on a glass bar -->
       <div class="dock" id="dock">
-        <!-- a phone: the put-away file's chip, above the composer (the header has no room for it) -->
+        <!-- what's docked over the composer is one stack, read top to bottom: the notices' line, on top of whatever
+             is docked (on the composer bar's fade when nothing is); the put-away file's chip (a phone: the header
+             has no room for it); the thread's decision; the composer -->
+        <div class="herald" id="herald" aria-live="polite"></div>
         <div class="fdock" id="fdock"></div>
         <div class="tdock" id="tdock"></div>
         <div class="cbar">
-        <div class="herald" id="herald" aria-live="polite"></div>
         <form class="composer" id="composer" autocomplete="off">
           <label class="sr-only" for="say" id="say-label">Message</label>
           <!-- files on this message (hub #30): each uploads as it's added; Send waits for them -->

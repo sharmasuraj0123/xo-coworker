@@ -3912,6 +3912,74 @@ t("S240: the docked card and its folded line share the composer's edges, their r
   await done(page);
 });
 
+// ── what's docked over the composer is one stack, the notices' line on its top (S007; the docked card at 390) ──
+// a census of the stack as drawn: every docked box shown (the put-away file's chip, the decision card, the folded
+// line) keeps its ring's room clear of the line, and the composer is never under it (tests/notice-clear.test.mjs
+// reads the rule). On 86b3f9b the line lay 6 px over the docked card's foot at 390, and met it with no ring room at 1440
+const NOTICE = { kind: "calm", text: "Can't reach XO", sub: "retrying · what you see may be out of date" };
+const notice = (page) => page.evaluate((h) => window.__t.heraldShow(h, 60000), NOTICE).then(() => page.waitForTimeout(400));
+const stackClear = (page) => page.evaluate(() => {
+  const vis = (e) => !!e && e.getClientRects().length > 0 && getComputedStyle(e).visibility !== "hidden";
+  const docked = [...document.querySelectorAll("#fdock .fchip, #tdock > *")].filter(vis).map((e) => ({ name: e.className.split(" ")[0], r: e.getBoundingClientRect(), ring: 4 }));
+  const comp = document.querySelector("#composer");
+  if (vis(comp)) docked.push({ name: "composer", r: comp.getBoundingClientRect(), ring: 0 });
+  const hs = [...document.querySelectorAll("#herald .hr")].filter(vis).map((e) => e.getBoundingClientRect());
+  const over = [];
+  for (const h of hs) for (const { name, r, ring: k } of docked) if (h.left < r.right + k && h.right > r.left - k && h.top < r.bottom + k && h.bottom > r.top - k) over.push(`${name} ${Math.round(r.top)}–${Math.round(r.bottom)} (ring ${k}) under the line ${Math.round(h.top)}–${Math.round(h.bottom)}`);
+  return { notices: hs.length, docked: docked.map((d) => d.name), over, onScreen: hs.every((h) => h.top >= 0), gap: hs.length && vis(comp) ? Math.round(comp.getBoundingClientRect().top - hs[0].bottom) : null };
+});
+const assertClear = (s, what, docked) => {
+  assert.equal(s.notices, 1, `${what}: the notice is up`);
+  assert.deepEqual(s.docked, docked, `${what}: docked over the composer`);
+  assert.deepEqual(s.over, [], `${what}: nothing docked lies under the notices' line`);
+  assert.ok(s.onScreen, `${what}: the line is on the screen`);
+};
+t("STACK: the notices' line clears everything docked over the composer: nothing, the decision, the folded line", async () => {
+  const page = await app();
+  await dockAsk(page);
+  await notice(page);
+  const shot = (name) => process.env.STACK_DIR ? page.screenshot({ path: `${process.env.STACK_DIR}/${name}-${WIDTH}-${THEME}.png` }) : null;
+  await shot("decision");
+  assertClear(await stackClear(page), "the decision docked", ["card", "composer"]);
+  await page.locator("#tdock [data-fold]").click();
+  await page.locator("#tdock [data-unfold]").waitFor();
+  await page.waitForTimeout(400);
+  assertClear(await stackClear(page), "the decision folded", ["dock-fold", "composer"]);
+  await page.evaluate(() => { window.__t.go("p:demo"); window.__t.render(); });
+  await page.waitForTimeout(500);
+  await notice(page);
+  const s = await stackClear(page);
+  assertClear(s, "nothing docked", ["composer"]);
+  // with nothing docked the line keeps its place on the composer bar's fade, as before: 10 px over the composer, 8 on a phone
+  assert.equal(s.gap, WIDTH > 760 ? 10 : 8, "its place with nothing docked is unchanged");
+  await done(page);
+});
+t("STACK: on a phone, the put-away file's chip and the decision stack under the notices' line, alone or together", async () => {
+  if (WIDTH > 760) skip("the put-away file's chip is docked over the composer only on a phone");
+  const page = await app({ files: { "a.js": FILE() } });
+  await dockAsk(page);
+  await panelOpen(page);
+  await filesOpen(page);
+  await page.locator('[data-fl-file="a.js"]').filter({ visible: true }).first().click();
+  await page.locator("[data-fv-min]").filter({ visible: true }).first().click();
+  await page.locator("#fdock .fchip").waitFor({ state: "visible", timeout: 8000 });
+  await notice(page);
+  assertClear(await stackClear(page), "the chip", ["fchip", "composer"]);
+  await page.evaluate(() => { window.__t.go("t:dk1"); window.__t.render(); });
+  await page.locator("#tdock .card").waitFor();
+  await page.waitForTimeout(500);
+  await notice(page);
+  const both = await stackClear(page);
+  if (process.env.STACK_DIR) await page.screenshot({ path: `${process.env.STACK_DIR}/chip-decision-${WIDTH}-${THEME}.png` });
+  if (!both.docked.includes("fchip")) skip("the chip isn't shown in a thread, so it never docks with the decision");
+  assertClear(both, "the chip and the decision", ["fchip", "card", "composer"]);
+  await page.locator("#tdock [data-fold]").click();
+  await page.locator("#tdock [data-unfold]").waitFor();
+  await page.waitForTimeout(400);
+  assertClear(await stackClear(page), "the chip and the folded line", ["fchip", "dock-fold", "composer"]);
+  await done(page);
+});
+
 // ── Home's next move: the same protection as a decision card ──
 async function homeAsk(page, question = false) {
   await page.evaluate((question) => {

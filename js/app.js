@@ -2731,8 +2731,19 @@ scroller.addEventListener("scroll", () => {
   if (scrollRaf) return;
   scrollRaf = requestAnimationFrame(() => { scrollRaf = 0; loadAhead(); $("#top").classList.toggle("is-scrolled", fromTop() > 120); });
 }, { passive: true });
-// the dock's height, for the space under the conversation (pinned at the latest, follow.js keeps you there)
-new ResizeObserver(() => { $("#app").style.setProperty("--dock-h", `${$("#dock").offsetHeight}px`); }).observe($("#dock"));
+// the dock's height, for the space under the conversation (pinned at the latest, follow.js keeps you there).
+// What's docked over the composer is one stack (index.html #dock), and the notices' line sits on its top: whether
+// anything is docked there is measured, not inferred from what's in the dock (the bar's top below the dock's top: a
+// chip shown only on a phone, a decision hidden while a panel covers it, one gliding in or out), in the observer's
+// step, before the frame is painted, so the line never lies on a docked control for a frame (css/app.css .herald)
+{
+  const dock = $("#dock"), bar = dock.querySelector(".cbar");
+  new ResizeObserver(() => {
+    $("#app").style.setProperty("--dock-h", `${dock.offsetHeight}px`);
+    const on = bar.getBoundingClientRect().top - dock.getBoundingClientRect().top > 0.5;
+    if (dock.classList.contains("is-stacked") !== on) dock.classList.toggle("is-stacked", on);
+  }).observe(dock);
+}
 initFollow();
 
 // ── navigation: back always returns exactly where you were ─────────────────
