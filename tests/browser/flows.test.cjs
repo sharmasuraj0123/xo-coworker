@@ -859,6 +859,28 @@ async function choose(page, attr) {
   await page.keyboard.press("Enter");
   return "more";
 }
+// the head redrawn while the selected File has focus keeps it on File, never the first control of its kind, Changes
+// (the controls grader on 2a8d278, S127, 1440 dark: an agent's change lit Updated · Show by paintHead, and focus moved
+// from File, still selected, to Changes, with no input; the same name-only lookup as C092's image-load route, 823c1cc)
+t("S127 (update): File focused when an agent's change lights Updated · Show: focus stays on File", async () => {
+  const page = await app({ files: { "a.js": FILE() }, changes: [{ path: "a.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: PATCH("a.js", "one", "ONE") }] });
+  await toDemo(page);
+  await page.waitForFunction(() => !!window.__t.CHG.at("demo", "a.js"), null, { timeout: 15000 });
+  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js", show: "file" }));
+  const file = page.locator('#viewer .vw-top [data-vw-show="file"]').filter({ visible: true }).first();
+  await file.waitFor({ timeout: 15000 });
+  await page.locator("#viewer .vw-top [data-vw-edit]").waitFor();
+  await file.focus();
+  page.W.files["a.js"] = { content: "one\ntwo\nthree\nfour, the new line\n", version: "sha256:B" };
+  page.W.changes[0].version = "sha256:B";
+  await page.evaluate(() => window.__t.CHG.saved("demo", "a.js"));
+  await page.waitForFunction(() => { window.__t.render(); return !!document.querySelector("#viewer .vw-top [data-vw-update]"); }, null, { timeout: 8000, polling: 200 });
+  for (const ms of [0, 250, 500]) {
+    if (ms) await page.waitForTimeout(250);
+    assert.equal(await page.evaluate(() => document.activeElement?.getAttribute("data-vw-show")), "file", `${ms} ms: focus stays on File`);
+  }
+  await done(page);
+});
 for (const reread of ["read", "refused"]) t(`S130: Updated · Show (its reread ${reread === "read" ? "read" : "refused, 503"}), and Copy path, chosen where they are (the head, or More), leave focus on something that shows`, async () => {
   const page = await app({ files: { "a.js": FILE() }, changes: [{ path: "a.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: PATCH("a.js", "one", "ONE") }] });
   await toDemo(page);
