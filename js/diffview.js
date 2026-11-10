@@ -395,13 +395,22 @@ export async function file(scroller, contents, o = {}) {
         // (a second at the most), never by a count of frames that a slow arrival outlasts
         async focus(o) {
           const caret = () => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return !!a && host.contains(a.getRootNode().host || a) && a.isContentEditable; };
+          // and the editor's own caret: Pierre runs Tab (indent) and its other commands on its selections, and a focus
+          // that finds none leaves them unset until the browser reports a selection, which it never does when the
+          // caret is already where it lands. A Tab then did nothing: its key taken, no indent (EDITOR-exit, 1 in 20
+          // at 1440 light: an "Open on the first line" asked before the new file's document had arrived returned
+          // without a caret, while focus reached the text anyway). So a focus is done when both hold: the text has
+          // focus and the editor has its caret, placed at the first line shown if it had none
+          const placed = () => { try { const v = ed.getViewState(); return !!(v && v.selections && v.selections.length); } catch { return false; } };
+          const FIRST = "first-visible";
+          const at = o && o.lineNumber != null ? o : { ...(o || {}), lineNumber: FIRST };
           const from = document.activeElement; // focus moved on meanwhile (you, or a script): it's left there
           for (let i = 0; i < 60; i++) {
             if (document.activeElement !== from && !host.contains(document.activeElement)) return;
-            ed.focus(o);
-            if (caret()) return;
+            ed.focus(placed() && !(o && o.lineNumber != null) ? o : at);
+            if (caret() && placed()) return;
             await new Promise((r) => requestAnimationFrame(r));
-            if (caret()) return; // its own focus lands in a frame callback
+            if (caret() && placed()) return; // its own focus lands in a frame callback
           }
         },
         stop() { unwire(); detach(); ed.cleanUp("discard"); },

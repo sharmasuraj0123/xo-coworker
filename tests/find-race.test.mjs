@@ -31,7 +31,7 @@ t("the wrapper asks for focus until the caret holds it (an empty file's editor c
   const i = src.indexOf("async focus(o) {"), b = src.slice(i, src.indexOf("\n        },", i));
   assert.ok(i > 0, "focus()");
   assert.match(b, /for \(let i = 0; i < 60; i\+\+\) \{/, "up to a second");
-  assert.match(b, /if \(caret\(\)\) return;/, "until the caret holds focus");
+  assert.match(b, /if \(caret\(\) && placed\(\)\) return;/, "until the caret holds focus, and the editor its caret (tests/editor-caret.test.mjs)");
   assert.match(b, /if \(document\.activeElement !== from && !host\.contains\(document\.activeElement\)\) return;/, "and never after focus has moved on elsewhere");
   assert.doesNotMatch(b, /i < 10\b/, "not ten frames");
 });
