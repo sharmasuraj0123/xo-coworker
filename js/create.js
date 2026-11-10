@@ -92,22 +92,29 @@ export function initCreate(ctx) {
     if (gh.status === "starting") return; // a second Connect while the first is starting joins it (Astra H6)
     clearTimeout(login);
     gh = { status: "starting" }; renderGh();
+    // a Connect can be pressed in two places: GitHub's line (#cp-gh) and a failed clone's message (#cp-err, its
+    // "Connect GitHub"). Focus on either is focus on Connect, and goes where Connect leads (Astra H6: BODY after
+    // success, from the message's Connect, which error("") takes away)
+    const onConnect = () => { const a = document.activeElement; return !!a && ($("#cp-gh").contains(a) || $("#cp-err").contains(a)); };
     const settle = (next) => {
-      const inGh = $("#cp-gh").contains(document.activeElement);
+      const was = onConnect();
       gh = next;
       renderGh();
       if (gh.status === "connected") { error(""); ctx.announce(`GitHub connected as ${gh.username}${gh.imported ? ", from this machine's gh login" : ""}.`); }
-      // focus that was on Connect goes to what's next: Try again if it failed, the repository if it worked
-      // Try again is the same button (it kept focus); connected, focus that was on it goes to the repository
-      if (inGh && !$("#cp-gh").contains(document.activeElement)) (gh.status === "code" ? $("#cp-gh [data-cp=copy]") : repo)?.focus({ preventScroll: true });
+      if (!was) return;
+      // where Connect leads: a failure, a Connect again (the one you're on, else GitHub line's Try again); a code,
+      // its Copy; connected, the repository to clone
+      const a = document.activeElement, still = a && a.isConnected && a.matches?.('[data-cp="connect"]');
+      if (gh.status === "failed") { if (!still) $("#cp-gh [data-cp=connect]")?.focus({ preventScroll: true }); }
+      else (gh.status === "code" ? $("#cp-gh [data-cp=copy]") : repo)?.focus({ preventScroll: true });
     };
     let s;
     try { s = await api.githubConnect(); } catch (err) { settle({ status: "failed", error: err.message }); return; }
     if (s.status === "connected") { settle(s); return; }
-    const inGh = $("#cp-gh").contains(document.activeElement);
+    const was = onConnect();
     gh = { status: "code", code: s.user_code, uri: s.verification_uri, session: s.session_id };
     renderGh();
-    if (inGh) $("#cp-gh [data-cp=copy]")?.focus({ preventScroll: true });
+    if (was) $("#cp-gh [data-cp=copy]")?.focus({ preventScroll: true });
     const poll = async () => {
       let r;
       // Space's 502 carries its words in a field ApiError doesn't read; 404 is a code that expired
