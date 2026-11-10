@@ -144,7 +144,13 @@ export function initCreate(ctx) {
     // a create on its way can't be called back (a clone has its own Stop): the button only closes the dialog, and
     // says so; it said Cancel for an empty project, which was made anyway (the create-project grader's C018)
     cancel.textContent = on ? "Close" : "Cancel";
+    // the progress row (and its Stop) goes when the work ends, however it ends (failed, stopped, done): focus that
+    // was in it lands on Create, the control that starts it again, before the row is hidden. A Stop hidden while it
+    // has focus drops focus to the page: after a refused Stop, a clone that then failed did that (Astra H20/S144).
+    // A caller with a better place (the field to fix, the new project) moves it on from there.
+    const fromProg = !on && $("#cp-prog").contains(document.activeElement);
     $("#cp-prog").hidden = !(on && mode === "clone");
+    if (fromProg) submit.focus({ preventScroll: true });
     delete $("#cp-phase").dataset.v;
     $("#cp-stop").disabled = false; $("#cp-stop").removeAttribute("aria-disabled"); $("#cp-stop").removeAttribute("aria-busy");
     if (mode === "clone") renderGh();
