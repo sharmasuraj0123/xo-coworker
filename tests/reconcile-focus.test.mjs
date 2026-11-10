@@ -23,7 +23,7 @@ t("before it's removed, focus goes to that row's first control that shows, else 
   const r = body.indexOf("for (const el of old.values()) el.remove();");
   const before = body.slice(0, r);
   assert.match(before, /if \(going\) \{/);
-  assert.match(before, /const to = \(near && \[\.\.\.near\.querySelectorAll\(LANDING\)\]\.find\(shows\)\) \|\| \(fallback && fallback\(\)\);/);
+  assert.match(before, /const to = \(near && \[\.\.\.near\.querySelectorAll\(LANDING\)\]\.find\(usable\)\) \|\| \(fallback && fallback\(\)\);/);
   assert.match(before, /if \(to && to\.focus\) to\.focus\(\{ preventScroll: true \}\);/);
 });
 t("the conversation's fallback is its message box", () => {

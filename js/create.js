@@ -7,6 +7,7 @@ import { ICON, $, RM } from "./ui.js";
 import { api } from "./api.js";
 import { fmtSize } from "./attach.js";
 import { redraw } from "./redraw.js";
+import { usable } from "./focusview.js";
 import { copyText, COPY_REFUSED } from "./util.js";
 
 const PHASE = { counting: "Counting files in", receiving: "Downloading", resolving: "Unpacking", checkout: "Checking out", finishing: "Adding plan and memory to" };
@@ -274,7 +275,7 @@ export function initCreate(ctx) {
     const back = opener; opener = null;
     const land = () => {
       if (!restore) return;
-      if (back && back.isConnected && back.getClientRects().length && !back.closest("[inert], [hidden]")) back.focus({ preventScroll: true });
+      if (usable(back)) back.focus({ preventScroll: true });
       else ctx.onPhoneClose();
     };
     if (now || RM.matches) { dlg.close(); land(); return; }

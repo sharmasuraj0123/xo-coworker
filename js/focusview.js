@@ -13,6 +13,18 @@
 //     sheet), and a scroller that owns its scroll (data-own-scroll: the conversation, whose reading place follow.js
 //     keeps) is left to its owner;
 //   · a visually hidden control (.sr-only: 1 px wide, clipped) is left.
+/** A control a person can be on: drawn, here, not inside anything hidden or inert, and not the page itself. The one
+ *  test every hand-back of focus uses (Runs, the decisions panel, the viewer, the stage, a redraw's named landing). */
+export const usable = (el) => !!el && el !== document.body && el.isConnected && !el.closest("[inert], [hidden]") && el.getClientRects().length > 0;
+/** A control's identity as a selector, to find the same control once a redraw has drawn it again: its id, else its tag
+ *  and data- hooks (as js/redraw.js keys a node), a count among them aside (data-n, data-inv: they change as it's
+ *  redrawn, it stays the same control). Null for one with neither. */
+export function hookOf(el) {
+  if (!el || !el.getAttribute) return null;
+  if (el.id) return `#${CSS.escape(el.id)}`;
+  const hooks = [...el.attributes].filter((a) => a.name.startsWith("data-") && !/^data-(n|inv|inv-now)$/.test(a.name));
+  return hooks.length ? el.tagName.toLowerCase() + hooks.map((a) => (a.value ? `[${a.name}="${CSS.escape(a.value)}"]` : `[${a.name}]`)).join("") : null;
+}
 export const outside = (r, v) => r.bottom <= v.top || r.top >= v.bottom || r.right <= v.left || r.left >= v.right;
 
 /** The nearest ancestor that scrolls (and has something to scroll), or null for none. */

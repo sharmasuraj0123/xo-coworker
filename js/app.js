@@ -60,7 +60,7 @@ import { once, busyAttrs } from "./pending.js";
 import { radioKeys, menuKeys } from "./keynav.js";
 import { createHerald, noticeFor, refusedNotice } from "./herald.js";
 import { regionRings } from "./ring.js";
-import { keepFocusInView } from "./focusview.js";
+import { keepFocusInView, usable, hookOf } from "./focusview.js";
 
 const world = createWorld();
 // what the backend can do, asked each time (a surface that needs a missing one stays away); filled in below
@@ -145,6 +145,9 @@ const P = createPacing({ params });
 const D = createDecisions({
   world, P, PROJ, announce, waitSince,
   render: () => schedule(),
+  // the panel closed and what opened it was redrawn while it was open (Home's card gives way to "Open in the panel"):
+  // focus lands on the same control in the draw that brings it back, else on the place (the controls grader, S142)
+  back: (sels) => { S.focusNext = [...sels, placeRegion]; schedule(); },
   later: S.later,
   onOpenThread: (tid) => {
     // an item hosted by a chat (no thread) opens that conversation; one hosted by the account has no page yet
@@ -193,7 +196,7 @@ const VW = createViewer({
   edits: { saved: (f) => CHG.saved(f.project, f.rel), removed: (f) => { CHG.saved(f.project, f.rel); FILES.reread(f); }, tell: (f, s) => sendAbout(f, `I edited ${s.path}. Read it again before you change it.`) },
   away: () => { if (FILESV.sheet) return FILESV.escape(document.activeElement); if (!FILESV.docked) return false; FILESV.minimise(); return true; },
   // closed, with what opened it gone and nothing drawn in its place: where you'd carry on
-  home: () => [$("#say"), placeRegion()].find(usableEl) || null,
+  home: () => [$("#say"), placeRegion()].find(usable) || null,
 }); // a file, in Files (js/filesview.js)
 // a picture opens over the conversation (js/lightbox.js); Open in Files hands it to the viewer, which brings Files up
 const LB = createLightbox({ openFile: (it, from) => VW.open(viewerFile(it), from), announce });
@@ -1408,7 +1411,7 @@ function runsRender() {
     const nb = runsCard.querySelector(".rn-body");
     if (nb && RS.keepScroll) nb.scrollTop = keep;
     // a re-render must not drop focus out of the sheet (Escape, Tab stay inside it): the same control, else the sheet
-    if (!runsEl.contains(document.activeElement)) { const same = hook && runsCard.querySelector(hook); (same && usableEl(same) ? same : runsCard).focus({ preventScroll: true }); }
+    if (!runsEl.contains(document.activeElement)) { const same = hook && runsCard.querySelector(hook); (same && usable(same) ? same : runsCard).focus({ preventScroll: true }); }
   }
 }
 function runsEscape() { if (RS.view === "run") { RS.gen++; RS.view = "list"; RS.runId = null; clearTimeout(RS.pollT); RS.keepScroll = false; runsRender(); } else closeRuns(); }
@@ -1432,7 +1435,7 @@ async function openRuns(t, runId = null) {
  *  read focus went to × instead of staying on Try again: Astra S238.) */
 function runsLand(...first) {
   const order = [...first, RS.listState === "error" ? "[data-runs-retry]" : null, ".rn-open", "[data-runs-retry]", "[data-close]"];
-  return order.filter(Boolean).map((sel) => runsCard.querySelector(sel)).find(usableEl) || null;
+  return order.filter(Boolean).map((sel) => runsCard.querySelector(sel)).find(usable) || null;
 }
 /** The list for one thread, for one opening; an answer for a thread, or an opening, that isn't the one open any
  *  more is dropped (Astra: a late list for A showed under B; and under A opened again). true when it landed. */
@@ -1500,7 +1503,7 @@ function closeRuns() {
   // back to what opened it; if that was redrawn while Runs was open (the thread's head redraws as its checklist
   // moves), to the same control drawn now, else the conversation: never the page (Astra RUN-7/S102)
   // (the page itself is never a place to go back to: opened from nowhere in particular, the conversation)
-  const was = RS.returnTo, usable = (b) => b && b !== document.body && b.isConnected && !b.closest("[inert], [hidden]") && b.getClientRects().length > 0;
+  const was = RS.returnTo;
   const like = (el) => { if (!el || !el.getAttribute) return null; for (const a of ["data-run-call", "data-run"]) if (el.hasAttribute(a)) return document.querySelector(`[${a}="${CSS.escape(el.getAttribute(a))}"]`); return el.hasAttribute("data-runs") ? $("#thead [data-runs]") : null; };
   RS.returnTo = null;
   [was, like(was), $("#thead [data-runs]"), placeRegion()].find(usable)?.focus({ preventScroll: true }); // the place's own region (Home, Artifacts, the conversation)
@@ -1831,7 +1834,7 @@ function heraldRender(needs) {
 }
 /** Where focus goes when a notice's line goes from under it: the control the notice acts on (h.back: selectors,
  *  e.g. the thread's Resolve, or Interrupt), else the message box, else the place's own region. */
-function heraldBack(h) { return [...((h && h.back) || []).map((sel) => $(sel)), $("#say")].find(usableEl) || placeRegion(); }
+function heraldBack(h) { return [...((h && h.back) || []).map((sel) => $(sel)), $("#say")].find(usable) || placeRegion(); }
 
 // ── intelligence: the record line and the chip ─────────────────────────────
 function recordLine(session, rec) {
@@ -2527,7 +2530,7 @@ function render() {
     // went (QA R2: the fill used to count as opening it again and threw you back to the latest)
     if (opening) { rendered = v; toLatest(false); }
     // focus in the composer as it goes with its thread: to Go to Home, else the conversation, never the page
-    if (gone && document.activeElement === say) ([...msgsEl.querySelectorAll('.calm-act [data-go="home"]')].find(usableEl) || placeRegion()).focus({ preventScroll: true });
+    if (gone && document.activeElement === say) ([...msgsEl.querySelectorAll('.calm-act [data-go="home"]')].find(usable) || placeRegion()).focus({ preventScroll: true });
   }
   if (!isHome && !isArts) requestAnimationFrame(loadAhead);
   dockRender(needs);
@@ -2549,10 +2552,8 @@ function render() {
   faviconRender(world.state.threads.filter(isBusy).sort((a, b) => b.lastAt - a.lastAt)[0] || null, nd > 0);
   // a control that asked for focus to land on what this draw makes (Interrupt → its Undo, Undo → Interrupt
   // again): its named destination, once, in the same step as the draw that took the control away
-  if (S.focusNext) { const to = S.focusNext.map((sel) => $(sel)).find(usableEl); S.focusNext = null; to?.focus({ preventScroll: true }); }
+  if (S.focusNext) { const to = S.focusNext.map((sel) => (typeof sel === "function" ? sel() : $(sel))).find(usable); S.focusNext = null; to?.focus({ preventScroll: true }); }
 }
-/** Shown and in reach: drawn, not inside anything hidden or inert. */
-const usableEl = (el) => !!el && el.isConnected && !el.closest("[inert], [hidden]") && el.getClientRects().length > 0;
 /** Where you carry on when the control you were on goes and nothing more particular is named: the place's own
  *  region (Home, Artifacts, else the conversation). */
 const placeRegion = () => (S.view === "home" ? $("#home") : S.view === "artifacts" ? $("#arts") : scroller);

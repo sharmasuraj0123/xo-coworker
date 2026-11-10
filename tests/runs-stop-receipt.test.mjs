@@ -37,7 +37,7 @@ t("a redraw keeps focus on the same control, found by its hook's name and value;
   const r = app.slice(app.indexOf("function runsRender()"), app.indexOf("\n}\n", app.indexOf("function runsRender()")));
   assert.match(r, /const hook = runsHook\(document\.activeElement\);/);
   assert.match(r, /const same = hook && runsCard\.querySelector\(hook\);/);
-  assert.match(r, /\(same && usableEl\(same\) \? same : runsCard\)\.focus\(\{ preventScroll: true \}\);/);
+  assert.match(r, /\(same && usable\(same\) \? same : runsCard\)\.focus\(\{ preventScroll: true \}\);/);
 });
 t("the Undo in its line: an even 2 px inset, and the line's corners its own plus the inset (6 + 2 = 8)", () => {
   assert.match(css, /\.rn-stopping\{[^}]*padding:2px 2px 2px 12px;[^}]*border-radius:var\(--r\);/);

@@ -99,7 +99,7 @@ t("content that grows above the control under the keyboard: it was in sight, so 
 });
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 t("the app starts it once", () => {
-  assert.match(app, /import \{ keepFocusInView \} from "\.\/focusview\.js";/);
+  assert.match(app, /import \{ keepFocusInView(, [\w, ]+)? \} from "\.\/focusview\.js";/);
   assert.equal((app.match(/\bkeepFocusInView\(\)/g) || []).length, 1);
 });
 // the ring has room (the create-project grader on 65e84b7, S111/S112: brought flush with its scroller's foot, the

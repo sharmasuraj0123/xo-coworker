@@ -18,6 +18,7 @@ import * as Kit from "./kit.js";
 import * as K from "./keys.js";
 import { EFFORT, effortOf, rank, evidenceFor, leverageOf, suggestFor, whyLine, estLine } from "./content.js";
 import { ICON, $, RM, clock, sound, dial, wait, morph, expand } from "./ui.js";
+import { usable, hookOf } from "./focusview.js";
 import { renderMarkdown, renderInline, excerptMarkdown } from "./markdown.js";
 import { highlight } from "./highlight.js";
 import { itemParts, itemBody, questionsOf, evidenceOf, itemEffort, isNo, VERB, holdWords as holdWordsOf } from "./review.js";
@@ -34,7 +35,7 @@ const MARK = (s) => (s === "done" ? "✓" : s === "doing" ? "✱" : "○");
 const COMMANDS = new Set(["git", "npm", "npx", "pnpm", "yarn", "bun", "deno", "node", "python", "python3", "pip", "pip3", "uv", "rm", "mv", "cp", "ls", "cd", "cat", "curl", "wget", "docker", "kubectl", "cargo", "rustc", "sudo", "chmod", "chown", "mkdir", "touch", "sed", "awk", "grep", "ssh", "scp", "tar", "brew", "apt", "gh", "terraform"]);
 const cap = (s) => { const t = String(s || "").trim(); const w = (t.match(/^[a-z]+(?= |$)/) || [])[0]; return w && !COMMANDS.has(w) ? t.charAt(0).toUpperCase() + t.slice(1) : t; };
 
-export function createDecisions({ world, P, PROJ, announce, render, later, waitSince, onOpenThread, onAllClear, onUndone, onBreak, onSent, onNotSent }) {
+export function createDecisions({ world, P, PROJ, announce, render, back, later, waitSince, onOpenThread, onAllClear, onUndone, onBreak, onSent, onNotSent }) {
   const panel = $("#panel"), stage = $("#pn-stage");
   const firstSeen = new Map();
   let seq = 0;
@@ -246,9 +247,13 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
     panel.classList.add("is-out");
     document.body.classList.remove("panel-open");
     setTimeout(() => { if (!F.open) { panel.hidden = true; panel.classList.remove("is-out"); stage.innerHTML = ""; } }, RM.matches ? 0 : 240);
+    // back to what opened it. Still here, it takes focus now (a redraw keeps the control it's on). Redrawn while the
+    // panel was open (Home's card shows "Open in the panel" meanwhile, so its Details was taken away), the same control
+    // takes it in the draw that brings it back, else the place: never the page, as the hidden Close leaves it (the
+    // controls grader on 05d76ca, S142: BODY at 450 ms, for Enter, Space and a press, four cells)
     const r = F.returnTo;
     F.returnTo = null;
-    if (restore && r && r.isConnected && r !== document.body) r.focus({ preventScroll: true });
+    if (restore && r) { if (usable(r)) r.focus({ preventScroll: true }); else back && back([hookOf(r)].filter(Boolean)); }
     toastRender();
     render();
   }

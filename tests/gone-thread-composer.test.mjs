@@ -22,7 +22,7 @@ t("a gone thread draws no composer; the line above it stays for what's said", ()
   assert.match(css, /\.app\[data-gone\] \.cbar\{padding:0;background:none\}/);
 });
 t("focus in the composer as it goes: to Go to Home, else the conversation, never the page", () => {
-  assert.match(r, /if \(gone && document\.activeElement === say\) \(\[\.\.\.msgsEl\.querySelectorAll\('\.calm-act \[data-go="home"\]'\)\]\.find\(usableEl\) \|\| placeRegion\(\)\)\.focus\(\{ preventScroll: true \}\);/);
+  assert.match(r, /if \(gone && document\.activeElement === say\) \(\[\.\.\.msgsEl\.querySelectorAll\('\.calm-act \[data-go="home"\]'\)\]\.find\(usable\) \|\| placeRegion\(\)\)\.focus\(\{ preventScroll: true \}\);/);
 });
 t("the placeholder never names a project it doesn't have", () => {
   const f = src.slice(src.indexOf("function syncPlaceholder() {"), src.indexOf("\n}\n", src.indexOf("function syncPlaceholder() {")));

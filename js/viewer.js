@@ -18,6 +18,7 @@
 import { esc, isImagePath } from "./util.js";
 import { fileIcon } from "./fileicons.js";
 import { ICON, $ } from "./ui.js";
+import { usable } from "./focusview.js";
 import { renderMarkdown } from "./markdown.js";
 import { api, attachmentUrl, attachmentText } from "./api.js";
 import { kindOf, typeWord } from "./attach.js";
@@ -954,7 +955,6 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     }
     onChange && onChange();
   }
-  const usable = (b) => !!b && b !== document.body && b.isConnected && !b.closest("[inert], [hidden]") && b.getClientRects().length > 0;
   /** The control drawn in place of one that's gone: the same kind, saying the same thing (its file, change, box). */
   function likeOf(b) {
     if (!b || !b.getAttribute || b.isConnected) return null;

@@ -25,6 +25,7 @@
 import { ICON, $ } from "./ui.js";
 import { esc } from "./util.js";
 import { redraw } from "./redraw.js";
+import { usable } from "./focusview.js";
 import { fileIcon } from "./fileicons.js";
 import { createChangesFrame, countsHtml } from "./changesframe.js";
 import { setTheme as diffTheme } from "./diffview.js";
@@ -322,7 +323,6 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     persist();
     // back to what opened it, or, if that was redrawn meanwhile (the head's toggle is), to the toggle on screen now:
     // never to the page (Astra C069)
-    const usable = (b) => b && b.isConnected && !b.closest("[inert], [hidden]") && b.getClientRects().length;
     const back = [S.returnTo, ...document.querySelectorAll("[data-stage-toggle]")].find(usable);
     S.returnTo = null;
     if (restore && back) back.focus({ preventScroll: true });

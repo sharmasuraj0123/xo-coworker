@@ -2,6 +2,7 @@
 // reduced motion and the optional soft sounds (off by default).
 import { esc } from "./world.js";
 import { redraw } from "./redraw.js";
+import { usable } from "./focusview.js";
 
 // Every glyph is drawn on a 24 grid. Its attributes are the fallback: outside the sidebar, base.css draws
 // every stroke at 1.5 px whatever the size (non-scaling stroke) with square ends (Plan F, design-research/
@@ -241,7 +242,6 @@ export const plain = (md) => String(md || "").replace(/```[\s\S]*?```/g, "[code]
  */
 /** Where focus can land in a row: its controls, in order. */
 const LANDING = 'button:not(:disabled), a[href], input:not([type="hidden"]):not(:disabled), textarea:not(:disabled), [tabindex="0"]';
-const shows = (e) => e.getClientRects().length > 0 && !e.closest("[inert], [hidden]");
 export function reconcile(box, items, { quiet = false, fallback = null } = {}) {
   const old = new Map();
   for (const el of box.children) if (el.dataset.k) old.set(el.dataset.k, el);
@@ -287,7 +287,7 @@ export function reconcile(box, items, { quiet = false, fallback = null } = {}) {
   });
   if (going) {
     near = near && [...box.children].find((el) => el.dataset.k === near);
-    const to = (near && [...near.querySelectorAll(LANDING)].find(shows)) || (fallback && fallback());
+    const to = (near && [...near.querySelectorAll(LANDING)].find(usable)) || (fallback && fallback());
     if (to && to.focus) to.focus({ preventScroll: true });
   }
   for (const el of old.values()) el.remove();
