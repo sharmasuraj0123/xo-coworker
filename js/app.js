@@ -1377,8 +1377,8 @@ const runsHook = (e) => { if (!e || !runsCard.contains(e) || e === runsCard || !
 function runsRender() {
   if (!RS.open) return;
   const html = RS.view === "list"
-    ? runsListHtml(RS.tree, RS.counts, { canStop: canStopRuns(), title: RS.title, stops: sheetStops(), state: RS.listState, error: RS.listErr, saidFor: RS.said, session: RS.session })
-    : runViewHtml(RS.run || { id: RS.runId, title: "Sub-agent", state: "running" }, { anc: RS.anc, items: RS.items, children: RS.children, canStop: canStopRuns(), gone: RS.gone, error: RS.error, loading: RS.loading, stops: sheetStops(), saidFor: RS.said, open: S.tbOpen });
+    ? runsListHtml(RS.tree, RS.counts, { canStop: canStopRuns(), title: RS.title, stops: sheetStops(), state: RS.listState, error: RS.listErr, saidFor: RS.said, session: RS.session, out: [...stopsOut] })
+    : runViewHtml(RS.run || { id: RS.runId, title: "Sub-agent", state: "running" }, { anc: RS.anc, items: RS.items, children: RS.children, canStop: canStopRuns(), gone: RS.gone, error: RS.error, loading: RS.loading, stops: sheetStops(), saidFor: RS.said, out: [...stopsOut], open: S.tbOpen });
   if (runsCard._h !== html) {
     const body = runsCard.querySelector(".rn-body");
     const keep = body ? body.scrollTop : 0;
@@ -1523,8 +1523,11 @@ function stopRunsUndo(what, fn, key = what, session = RS.session) {
     if (job.cancelled) return;
     job.sent = true;
     stopsHerald(); // its Undo is over: the line keeps only the stops still waiting
-    runsRender();
+    // on its way: the sheet says so and its Stop waits, busy, taking no repeat, until the answer is said in its place
+    // (the create-project grader on 8d8b244, request-visible: Stop stayed "Stop", enabled, and nothing was said)
     stopsOut.add(key);
+    RS.said = { key, kind: "halt", text: "Sending the stop…", sub: what };
+    runsRender();
     try {
       const r = await fn();
       // what the answer confirms, and only that (the create-project grader on 2a8d278, S100/S101)

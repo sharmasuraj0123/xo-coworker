@@ -1842,7 +1842,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 .rn-back svg{width:14px;height:14px}
 .rn-back:hover{color:var(--ink)}
 .rn-stopall{flex:none;height:32px;padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-2)}
-.rn-stopall:hover{border-color:var(--line-hover);color:var(--ink)}
+.rn-stopall:where(:not([aria-disabled="true"])):hover{border-color:var(--line-hover);color:var(--ink)}
 .rn-body{flex:1;min-height:0;overflow-y:auto;padding:4px 14px 18px;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
 .rn-k{margin:14px 8px 6px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
 .rn-list{list-style:none;display:flex;flex-direction:column;gap:2px}
@@ -1858,7 +1858,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 .rn-row.st-failed .rn-m,.rn-row.st-lost .rn-m{color:var(--err-ink)}
 .rn-stop{flex:none;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 11px 0 9px;border-radius:var(--r-sm);border:1px solid var(--line);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-2)}
 .rn-stop svg{width:12px;height:12px}
-.rn-stop:hover{border-color:color-mix(in srgb,var(--err-ink) 40%,var(--line));color:var(--err-ink)}
+.rn-stop:where(:not([aria-disabled="true"])):hover{border-color:color-mix(in srgb,var(--err-ink) 40%,var(--line));color:var(--err-ink)}
 .rn-none{padding:18px 8px;font-size:var(--fs-base);color:var(--ink-3);display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
 /* a stop still in its 3 s Undo, inside the sheet (the page behind it can't be reached while it's open) */
 .rn-stops{list-style:none;margin:0 0 8px;padding:0;display:grid;gap:6px}

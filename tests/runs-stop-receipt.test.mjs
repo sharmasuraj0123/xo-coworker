@@ -54,4 +54,15 @@ t("one run's answer is a boolean, Stop all's an array: the other type confirms n
   assert.match(f, /if \(all && r && Array\.isArray\(r\.stopping\) && !r\.stopping\.length\)/, "none went out: Stop all only");
   assert.match(body, /const said = stopReceipt\(r, what, key\.startsWith\("all:"\)\);/, "the endpoint from the stop's key");
 });
+// once the Undo is over and the request is out, the sheet says so and the Stop waits (the create-project grader on
+// 8d8b244, runs-stop-types request-visible: Stop stayed enabled, "Stop", aria-busy null, and nothing was said until
+// the answer)
+t("a stop on its way: its line says it's being sent, and its Stop is busy and takes no repeat", () => {
+  const k = body.indexOf("job.sent = true;"), sent = body.slice(k, body.indexOf("try {", k));
+  assert.match(sent, /stopsOut\.add\(key\);\s*RS\.said = \{ key, kind: "halt", text: "Sending the stop…", sub: what \};\s*runsRender\(\);/, "said, then drawn, once it's out");
+  assert.match(app, /out: \[\.\.\.stopsOut\]/, "the sheet knows what's on its way");
+  assert.match(view, /const busy = out\.includes\(`run:\$\{r\.id\}`\);/);
+  assert.match(view, /\$\{busy \? ' aria-busy="true" aria-disabled="true"' : ""\}>\$\{ICON\.stop\}<span>\$\{busy \? "Stopping…" : "Stop"\}<\/span>/);
+  assert.match(view, /out\.includes\(`all:\$\{session\}`\)/, "Stop all too");
+});
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
