@@ -4019,14 +4019,14 @@ const ringClips = (page, where) => page.evaluate(async (where) => {
   document.activeElement?.blur?.();
   return { n: els.length, cut };
 }, where);
-t("RINGCLIP: no clipping box cuts a focused control's ring: Home, a project, a thread with its decision and a code block, All threads, the panel's Files", async () => {
-  const page = await app({ files: { "a.js": FILE() } });
+t("RINGCLIP: no clipping box cuts a focused control's ring: Home, a project with a code block, a thread with its decision and checklist, All threads, the panel's Files", async () => {
+  const page = await app({ files: { "a.js": FILE() }, messages: MSG("Here is the command:\n\n```sh\nnpm test\n```\n") });
   await page.keyboard.press("Shift"); // a keyboard's focus: the ring is drawn
   const cuts = [], counts = [];
   const sweep = async (where) => { const r = await ringClips(page, where); counts.push(`${where} ${r.n}`); cuts.push(...r.cut); };
   await page.evaluate(() => { window.__t.go("home"); window.__t.render(); }); await page.waitForTimeout(500);
   await sweep("Home");
-  await toDemo(page); await page.waitForTimeout(500);
+  await toDemo(page); await page.locator("#msgs [data-copy]").first().waitFor({ timeout: 4000 }); await page.waitForTimeout(300);
   await sweep("a project");
   await page.evaluate(() => {
     const t = window.__t;
