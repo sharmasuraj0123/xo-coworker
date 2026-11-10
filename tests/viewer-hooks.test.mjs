@@ -26,4 +26,13 @@ t("no two literal viewer controls share a first hook and value", () => {
   // grader on 70375ad, Image-renderer-retry-v2)
   assert.deepEqual([...new Set(dup)].filter((h) => !twins.has(h.split("=")[0]) && !/=\$\{/.test(h)), [], "shared first hooks");
 });
+// pressed, Your draft shows File and isn't drawn there: focus goes to the File segment, the view it chose, never to the
+// head's first control (the controls grader's viewer-your-draft-shortcut on 63b22ad, every cell: after Enter on the
+// shortcut, focus was on Continue, "Exact mode value must retain native focus"; with its own hook, render's lookup no
+// longer found File by the shared one, and fell to headFocus)
+t("a show control gone once its view is drawn hands focus to that view's segment", () => {
+  const r = src.slice(src.indexOf("function render() {"), src.indexOf("\n  }\n", src.indexOf("function render() {")));
+  assert.match(r, /const chose = ae && ae\.dataset && ae\.dataset\.vwShow;/, "the view the focused control chooses");
+  assert.match(r, /\(fromMenu && shown\(el, "\[data-vw-more\]"\)\)\s*\|\| \(chose && chose === V\.show && shown\(el, `\.vw-seg \[data-vw-show="\$\{chose\}"\]`\)\)/, "after the control itself and the menu's ⋯: the chosen view's segment");
+});
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

@@ -776,6 +776,8 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     const ae = document.activeElement;
     let was = null;
     const fromMenu = !!(ae && ae.closest && ae.closest(".vw-menu"));
+    // a control that shows a view (Your draft: File) and isn't drawn in it: focus goes to that view's segment
+    const chose = ae && ae.dataset && ae.dataset.vwShow;
     if (ae && ae !== el && el.contains(ae)) {
       was = hookOf(ae);
     }
@@ -783,10 +785,12 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (was == null || !V.open) return;
     const now = document.activeElement;
     if (now && now !== document.body && now.isConnected && now.getClientRects().length) return;
-    // the same control where it shows (never its hidden twin in a narrow head); one from ⋯'s menu, the ⋯; the offered
-    // path's field gone with its refusal, where Copy path is again; else headFocus's: Edit, else the head's first
+    // the same control where it shows (never its hidden twin in a narrow head); one from ⋯'s menu, the ⋯; one that
+    // showed a view it isn't drawn in (Your draft: File), that view's segment (the controls grader's
+    // viewer-your-draft-shortcut on 63b22ad: Continue took focus, not File); the offered path's field gone with its refusal, where Copy path is again; else headFocus's: Edit, else the head's first
     // control that shows. Never the viewer's own section, which draws no ring (the controls grader on 1ed50f6, S125)
     const to = (was && shown(el, was)) || (fromMenu && shown(el, "[data-vw-more]"))
+      || (chose && chose === V.show && shown(el, `.vw-seg [data-vw-show="${chose}"]`))
       || (was === "[data-vw-cut-sel]" && (shown(el, "[data-vw-copy-path]") || shown(el, "[data-vw-more]"))) || headFocus(false);
     to.focus({ preventScroll: true });
   }
