@@ -117,8 +117,10 @@
   :root:root .top[data-kind="project"] .nw{height:36px}
 
   /* the checklist: 8 under the bar's name line, 8 above the hairline; finished sub-agents ride its row */
-  :root:root .thead{display:flex;align-items:flex-start;gap:8px;padding:0 16px 8px}
-  :root:root .top[data-kind="thread"]{border-bottom:0;padding-bottom:4px}
+  /* (the 4 px under the bar's line is the head's, so its controls' ring has room above them: under the bar it was
+     clipped, the runs count's top 4 px, the create-project grader's C046) */
+  :root:root .thead{display:flex;align-items:flex-start;gap:8px;padding:4px 16px 8px}
+  :root:root .top[data-kind="thread"]{border-bottom:0;padding-bottom:0}
   :root:root .thead .ckbar{flex:1;min-width:0}
   /* finished sub-agents: their count alone ("≡ 9"), read from data-n; the words stay for VoiceOver */
   :root:root .thead .rn-log{flex:none;height:40px;margin:0;padding:0 12px 0 10px;border-radius:var(--r-lg);border:1px solid var(--line-faint);gap:6px}

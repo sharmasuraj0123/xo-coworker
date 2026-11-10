@@ -1350,7 +1350,7 @@ button.tp-done-u:hover{color:var(--ink)}
 .all-q svg{width:16px;height:16px}
 .all-q input{flex:1;height:100%;border:0;background:transparent;outline:none;font-size:var(--fs-md)}
 .all-f{display:flex;flex-wrap:wrap;gap:6px}
-.all-f button{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 11px;border-radius:999px;border:1px solid var(--line);color:var(--ink-3);font-size:var(--fs-base);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.all-f button{display:inline-flex;align-items:center;gap:7px;height:var(--h-ctl);padding:0 11px;border-radius:999px;border:1px solid var(--line);color:var(--ink-3);font-size:var(--fs-base);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .all-f button span{color:var(--ink-4);font-variant-numeric:tabular-nums}
 .all-f button:hover:not(:disabled){color:var(--ink);border-color:var(--line-strong)}
 .all-f button[aria-checked="true"]{background:var(--fill-3);border-color:var(--line-strong);color:var(--ink)}
@@ -1621,7 +1621,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 .m-note{margin:10px 0 26px;color:var(--ink-4);font-size:var(--fs-sm);text-align:center}
 .day.hist{min-height:26px}
 .day.hist span{display:inline-flex;align-items:center;gap:8px}
-.hist-more{height:26px;padding:0 12px;border-radius:999px;border:1px solid var(--line-soft);color:var(--ink-3);font-size:var(--fs-sm);transition:color var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease)}
+.hist-more{height:var(--h-sm);padding:0 12px;border-radius:999px;border:1px solid var(--line-soft);color:var(--ink-3);font-size:var(--fs-sm);transition:color var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease)}
 .hist-more:hover{color:var(--ink);border-color:var(--line-strong)}
 @media (max-width:760px){.day.hist{min-height:36px}.hist-more{height:36px;padding:0 16px}}
 /* older messages loading: three rows shaped like the conversation's own (js/app.js HIST_SKEL), where the
