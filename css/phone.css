@@ -263,7 +263,10 @@
    scale with its zoom; an Artifacts row is its 108 px row; the phone bar's quiet path line, put to the owner) ── */
 @media (max-width:760px){
   /* a label that holds a checkbox or a radio is the control you press (Runtimes' allow/deny: 34 px, the grader's C115) */
-  :where(button,[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],[role=menuitemcheckbox],[role=switch],summary,select,label:has(>input[type=checkbox],>input[type=radio])):where(:not(.dg-n,.gn,.dg-tag,.pj-s *,.tw-rt)){min-height:36px;min-width:36px}
+  /* a link drawn as a control is a control too: every link with a class of its own, but a link in text (a message's
+     file or web link, Launchpad's host line and its links in a sentence, Create's) (grader B on 05d76ca, S267: Open in
+     Launchpad was 161×32 at 390; the lightbox's Open the original 36×28) */
+  :where(button,[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],[role=menuitemcheckbox],[role=switch],summary,select,label:has(>input[type=checkbox],>input[type=radio]),a[class]):where(:not(.dg-n,.gn,.dg-tag,.pj-s *,.tw-rt,.lk,.lp-hh,.lp-ln,.cp-link)){min-height:36px;min-width:36px}
   /* a text field is a control too (the controls grader on 1ed50f6: a refused path's field was 24 px, and the floor
      left every text input out): every one at least 36 tall; one that fills its box (a search box) leaves the floor to
      the box, which takes it; Files' new-name row grows with its field */
@@ -276,4 +279,10 @@
   .fl-r,.tb-rh,.hr-ev.k-stopped.has-undo{min-height:36px}
   :root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-rows>.tb-row>.tb-rh,
   :root[data-msgx] .m-turn .turn>.tb.tb-act.is-unfolded>.tb-rows>.tb-row>.tb-rh{min-height:36px}
+  /* a phone's rows keep the heights they had when the desktop's moved onto 8 px steps (40 · 48 · 56, css/tokens.css):
+     the sidebar's 42, Chats' 58, an open tool disclosure's 44 */
+  .nrow,.prow{min-height:42px;padding-top:6px;padding-bottom:6px}
+  .ch-row{min-height:58px;padding-top:10px;padding-bottom:10px}
+  :root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h,
+  :root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>.tb-h{min-height:44px}
 }

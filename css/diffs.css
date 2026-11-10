@@ -154,13 +154,13 @@ diffs-container{
 /* Changes | File is words, not icons: it never folds to 28 px icon squares or hides in a narrow pane (the
    rules for Preview · Source), and on a phone it stays inside its 40 px head (Astra F2) */
 .vw-seg.is-words{flex:none}
-.vw-seg.is-words button{width:auto;height:26px;padding:0 8px} /* the segment's 26 (36 on a phone: phone.css) */
+.vw-seg.is-words button{width:auto;height:var(--h-sm);padding:0 8px} /* the segment's 26 (36 on a phone: phone.css) */
 @container flpv (max-width:520px){.vw-seg.is-words button{width:auto;padding:0 8px}}
 @container flpv (max-width:360px){.vw-seg.is-words{display:flex}.vw-seg.is-words button{padding:0 6px}}
 
 /* ── Files › Edit (js/viewer.js): the head while you edit, read-only places, files that run code ──
    Head controls are 28 px, as the viewer's icon buttons; Save is the one green thing on the screen. */
-.xd-edit{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px 0 8px;border-radius:var(--r-sm);font:500 var(--fs-base)/20px var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.xd-edit{display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 10px 0 8px;border-radius:var(--r-sm);font:500 var(--fs-base)/20px var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .xd-edit:hover{background:var(--fill-2);color:var(--ink);transition-duration:var(--d-hover-in)}
 .xd-edit:disabled{opacity:.6;cursor:progress}
 .xd-edit svg{width:16px;height:16px}
@@ -169,7 +169,7 @@ diffs-container{
 .xd-state i,.xd-draft i{flex:none;width:6px;height:6px;border-radius:50%;background:var(--warn)}
 .xd-errline{color:var(--err-ink)}
 .xd-vsep{flex:none;width:1px;height:16px;margin:0 4px;background:var(--fill-3)}
-.xd-btn{flex:none;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line);font:500 var(--fs-base)/20px var(--sans);color:var(--ink-2);white-space:nowrap;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.xd-btn{flex:none;display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line);font:500 var(--fs-base)/20px var(--sans);color:var(--ink-2);white-space:nowrap;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .xd-btn:hover{border-color:var(--line-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
 .xd-btn.is-pri{background:var(--accent-fill);border-color:var(--accent-fill);color:var(--accent-ink)}
 .xd-btn.is-pri:hover{background:var(--accent-hover);border-color:var(--accent-hover)}

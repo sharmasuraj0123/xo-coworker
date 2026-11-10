@@ -1,12 +1,13 @@
 // A link drawn as a control is a control: at least 36 px tall on a phone, like every button (the owner's floor, 9 Nov).
-// phone.css's floor reaches buttons and the control roles, not links, so Launchpad's boxed links fell under it. Grader B
+// phone.css's floor reached buttons and the control roles, not links, so Launchpad's boxed links fell under it. Grader B
 // on 05d76ca saw S267: "Open in Launchpad" (a.lp-b, a live app) was 161×32 at 390, in both themes. "Logs on GitHub"
 // shares its rule, and the address card's and the section head's "Open it" were 32 and 24 tall.
 //
 // The census: every <a class=…> in Family 2's files (Launchpad, Create, Shells, the stage, the picker). One drawn as a
 // box (its display a flex, grid or block, not an inline text link in a sentence) must reach 36 px at 390. That comes
-// from its own height or a min-height, by the cascade model of tests/lib/cascade.mjs. The desktop's sizes stay as
-// they are. No browser.
+// from its own height or a min-height, by the cascade model of tests/lib/cascade.mjs, or from phone.css's floor, which
+// now reaches every link with a class but a link in text (the model can't read the floor's :where list, so it's read
+// here). The desktop's sizes stay as they are. No browser.
 //   node tests/lp-phone-links.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
@@ -31,7 +32,15 @@ const win = (live, B, p) => {
   }
   return w;
 };
-const tall = (live, B) => Math.max(px(win(live, B, "height")?.v ?? "", tokens) || 0, px(win(live, B, "min-height")?.v ?? "", tokens) || 0);
+// phone.css's floor: weightless (:where), so any min-height of a link's own outranks it
+const phoneCss = readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+const FLOOR = /:where\(([^{]*?)\):where\(:not\(([^{]*)\)\)\{min-height:36px;min-width:36px\}/.exec(phoneCss);
+const floored = (B) => !!FLOOR && FLOOR[1].split(",").includes("a[class]") && !(B.split(/[\s>]+/).pop().match(/\.[\w-]+/g) || []).some((k) => FLOOR[2].split(",").includes(k));
+const tall = (live, B) => {
+  const own = win(live, B, "min-height");
+  const min = own ? px(own.v, tokens) || 0 : live === P && floored(B) ? 36 : 0;
+  return Math.max(px(win(live, B, "height")?.v ?? "", tokens) || 0, min);
+};
 // where a link borrows another part's class, the place it's drawn into: the section head's Open it is the stage
 // frame's icon button (.fr-ib), drawn into Launchpad's .lp-ha (checked below)
 const PLACE = { "fr-ib": ".lp-ha>" };

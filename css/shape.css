@@ -16,7 +16,7 @@
 [data-density="compact"] :is(.prose,.bubble,.b-opt,.o-l){line-height:var(--lh-read)}
 [data-density="compact"] :is(.iq,.stg-btn,.all-btn,.target){height:var(--h-ctl)}
 /* the composer's two circles stay concentric with its 28 px corner: both 32 (r 16), 12 px in (1 + 11), 16 + 12 = 28 */
-[data-density="compact"] :is(.attach,.send){width:var(--h-row);height:var(--h-row)}
+[data-density="compact"] :is(.attach,.send){width:var(--h-row);height:var(--h-row);margin:0}   /* (the comfortable sizes' own margins, Send's −2 and Add files' 2, would move them off the corner) */
 [data-density="compact"] .composer{padding:12px 11px 11px}
 [data-density="compact"] :is(.attach,.send){align-self:flex-end}   /* a taller row (a phone's 36 px targets) mustn't lift them off the corner */
 [data-density="compact"] :is(.ck-tog,.nw,.ag-r,.set-nav button){height:var(--h-row)}

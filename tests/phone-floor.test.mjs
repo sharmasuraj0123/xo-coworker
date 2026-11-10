@@ -18,6 +18,18 @@ for (const m of src.matchAll(/<(button|summary|select)\b([^>]*)>/g)) { const c =
 // a label that holds a checkbox or radio is the control you press (C115: Runtimes' allow/deny, missed by this census)
 for (const m of src.matchAll(/<label\b([^>]*)>(?:\s|\$\{[^}]*\})*<input\b[^>]*type="(?:checkbox|radio)"/g)) { const c = /class="([^"$]*)/.exec(m[1]); if (c) for (const k of c[1].trim().split(/\s+/)) if (k && !/^is-/.test(k)) labels.add("." + k); }
 for (const m of src.matchAll(/<(div|span|li|a)\b([^>]*role="(button|tab|option|menuitem|menuitemradio|switch)"[^>]*)>/g)) { const c = /class="([^"$]*)/.exec(m[2]); if (c) for (const k of c[1].trim().split(/\s+/)) if (k && !/^is-/.test(k)) ctl.add("." + k); }
+// a link drawn as a control is a control (grader B on 05d76ca, S267: Open in Launchpad was 161×32 at 390, the
+// lightbox's Open the original 36×28): every <a class=…>, but a link in text, which the floor leaves out by its class
+const TEXT_LINKS = [".lk", ".lp-hh", ".lp-ln", ".cp-link"];
+const links = new Set(), textLinks = new Set();
+for (const m of src.matchAll(/<a\b([^>]*)>/g)) {
+  const c = /class="([^"$]*)/.exec(m[1]);
+  if (!c) continue;
+  const ks = c[1].trim().split(/\s+/).filter((k) => k && !/^is-/.test(k)).map((k) => "." + k);
+  const text = ks.filter((k) => TEXT_LINKS.includes(k));
+  if (text.length) { text.forEach((k) => textLinks.add(k)); continue; }
+  for (const k of ks) { links.add(k); ctl.add(k); }
+}
 // the written exceptions, each with its reason
 const EXCEPT = [
   [/\.ar-grid \.md-open$/, "an Artifacts row on a phone: the 108 px row is its target (its own min-height 0 lets the row decide)"],
@@ -32,7 +44,7 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
 // 36 wide too (the controls grader on 1ed50f6 at 320: the Changes · File switch's File was 32 × 36)
 t("phone.css holds one weightless floor: every control at least 36 px tall and wide on a phone", () => {
   const phone = readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-  const re = /@media \(max-width:760px\)\{\s*:where\(button,\[role=button\],\[role=tab\],\[role=option\],\[role=menuitem\],\[role=menuitemradio\],\[role=menuitemcheckbox\],\[role=switch\],summary,select,label:has\(>input\[type=checkbox\],>input\[type=radio\]\)\)[^{]*\{min-height:36px;min-width:36px\}/;
+  const re = /@media \(max-width:760px\)\{\s*:where\(button,\[role=button\],\[role=tab\],\[role=option\],\[role=menuitem\],\[role=menuitemradio\],\[role=menuitemcheckbox\],\[role=switch\],summary,select,label:has\(>input\[type=checkbox\],>input\[type=radio\]\),a\[class\]\)[^{]*\{min-height:36px;min-width:36px\}/;
   assert.ok(re.test(phone), `the floor rule (${re})`);
 });
 t("no control's own min-height or max-height holds it under 36 px on a phone, unless a phone rule answers it or it's a written exception", () => {
@@ -93,6 +105,24 @@ t("the floor reaches every kind of control the templates make, a label holding a
   assert.ok(labels.has(".rt-check"), "the census finds Runtimes' allow/deny (.rt-check)");
   // and none of them is held under 36 by a max-height (a height alone gives way to the floor's min-height)
   for (const k of labels) assert.ok(!new RegExp(`\\${k}\\{[^}]*max-height:(\\d+)px`).test(phone), `${k} has no max-height under the floor`);
+});
+t("the floor reaches a link drawn as a control and leaves a link in text (S267): one rule, no second one for Launchpad", () => {
+  const phone = readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  const floor = /:where\(([^{]*?)\):where\(:not\(([^{]*)\)\)\{min-height:36px;min-width:36px\}/.exec(phone);
+  assert.ok(floor, "the floor rule");
+  assert.ok(floor[1].split(",").includes("a[class]"), "every link with a class of its own");
+  const not = floor[2].split(",").map((x) => x.trim());
+  for (const k of TEXT_LINKS) {
+    assert.ok(not.includes(k), `${k}, a link in text, is left out of the floor`);
+    assert.ok(textLinks.has(k), `${k} is still a link the templates make (no stale exception)`);
+  }
+  for (const k of [".lp-b", ".lp-ib", ".lpm-host", ".fr-ib", ".lp-go", ".lbx-btn"]) {
+    assert.ok(links.has(k), `the census finds the link ${k}`);
+    assert.ok(!not.includes(k), `${k} is under the floor`);
+  }
+  // one rule: no part restates the floor for its own links
+  const css = readdirSync(new URL("css/", ROOT)).filter((f) => f.endsWith(".css") && f !== "phone.css").map((f) => readFileSync(new URL(`css/${f}`, ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
+  assert.doesNotMatch(css, /a\.[\w-]+[^{}]*\{min-height:36px;min-width:36px\}/, "no second floor for links outside phone.css");
 });
 // a text field is a control too (the controls grader on 1ed50f6: the refused path's field, .vw-cut-sel, was 24 px on a
 // phone, and the floor left every text input out). One weightless rule lifts every text input; a borderless field that

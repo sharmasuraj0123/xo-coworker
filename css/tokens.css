@@ -94,7 +94,12 @@
   /* Controls with a body come in three sizes. Hit areas may be larger (44 under a coarse pointer); compact
      density steps one size down. 24 inline · 32 standard (every button, select and toolbar field) · 40 form
      fields and a screen's primary action. */
-  --h-sm:24px; --h-ctl:32px; --h-lg:40px; --h-bar:56px; --h-row:36px;
+  --h-sm:24px; --h-ctl:32px; --h-lg:40px; --h-bar:56px;
+  /* Rows sit on 8 px steps, one grid with the controls: 40 a one-line row (the sidebar's, Settings', a tool
+     disclosure) · 48 a row with an action or a second line (Handled) · 56 a two-line list row (Chats). Compact
+     density steps a one-line row down to 32 (css/shape.css). A phone keeps its rows as they were: one-line rows
+     at its 36 floor, below. */
+  --h-row:40px; --h-row-act:48px; --h-row-list:56px;
   /* Space: a 4 px grid. */
   --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px; --s-6:24px; --s-8:32px; --s-10:40px; --s-12:48px;
 
@@ -180,3 +185,6 @@
   --danger-line:color-mix(in srgb,var(--err-ink) 26%,transparent);
   --danger-tint:color-mix(in srgb,var(--err) 14%,transparent);
 }
+/* a phone's one-line rows stay at its 36 px floor (Settings' and the picker's rows); its taller rows keep their own
+   heights in css/phone.css */
+@media (max-width:760px){:root{--h-row:36px}}

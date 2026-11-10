@@ -172,12 +172,6 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .lp-ib{display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:var(--r);border:0;background:none;color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .lp-ib svg{width:16px;height:16px}
 .lp-ib:hover{background:var(--panel-hover);color:var(--ink)}
-/* a link drawn as a control is a control. phone.css's floor reaches buttons and the control roles, not links, so
-   Launchpad's take the phone's 36 here: Open in Launchpad and Logs on GitHub, the address card's Open it and the address,
-   and the head's Open it (grader B on 05d76ca, S267: Open in Launchpad was 161×32 at 390). tests/lp-phone-links */
-@media (max-width:760px){
-  a.lp-b,a.lp-ib,a.lpm-host,.lp-ha>a.fr-ib{min-height:36px;min-width:36px}
-}
 .lp-alt{display:flex;justify-content:center;padding:8px 12px 0}
 .lp-acts{display:flex;align-items:center;gap:8px;padding:16px 12px 0}
 .lp-acts .lp-go{flex:1}

@@ -13,7 +13,7 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
 const fold = (() => { const m = /@container flpv \(max-width:520px\)\{([\s\S]*?\})\}/.exec(panel); assert.ok(m, "the narrow pane's fold"); return m[1]; })();
 
 t("only a button with an icon folds to it", () => {
-  assert.match(fold, /\.vw-seg button:where\(:has\(svg\)\)\{width:28px;padding:0;justify-content:center\}/, 'at the weight it had: a phone keeps its 36');
+  assert.match(fold, /\.vw-seg button:where\(:has\(svg\)\)\{width:var\(--h-sm\);padding:0;justify-content:center\}/, 'a 24 square, its segment\'s button height (tests/ctl-scale.test.mjs), at the weight it had: a phone keeps its 36');
   assert.match(fold, /\.vw-seg button:where\(:has\(svg\)\) span\{display:none\}/);
   assert.doesNotMatch(fold, /\.vw-seg button span\{display:none\}/, "never every button's words");
 });

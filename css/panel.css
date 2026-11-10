@@ -138,20 +138,20 @@ body.stage-over .stage{box-shadow:var(--e2)}
 .vw-t h2{flex:0 1 auto;min-width:0;font:600 var(--fs-base)/20px var(--sans);letter-spacing:0}
 .vw-meta{flex:0 100 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
 .vw-acts{gap:4px}
-.vw-btn{width:28px;height:28px;padding:0;justify-content:center;border-radius:var(--r-sm);border:0;color:var(--ink-3)}
+.vw-btn{width:var(--h-ctl);height:var(--h-ctl);padding:0;justify-content:center;border-radius:var(--r-sm);border:0;color:var(--ink-3)}
 .vw-btn span{display:none}
 .vw-btn svg{width:16px;height:16px}
 .vw-btn:hover{background:var(--fill-2);border:0;color:var(--ink)}
-.vw-seg{height:var(--h-ctl);padding:2px;gap:2px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft)}
-.vw-seg button{height:26px;padding:0 8px;border-radius:calc(var(--r-sm) - 3px);font:500 var(--fs-sm)/16px var(--sans)}
-.vw-x{width:28px;height:28px;border-radius:var(--r-sm)}
+.vw-seg{height:var(--h-ctl);padding:3px;gap:2px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft)}
+.vw-seg button{height:var(--h-sm);padding:0 8px;border-radius:calc(var(--r-sm) - 4px);font:500 var(--fs-sm)/16px var(--sans)}
+.vw-x{width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm)}
 /* the name and its kind and size always read whole: in a narrow pane Preview · Source fold to their icons first. Only a
    button with an icon folds; one without keeps its words, the short ones (Fit · 1:1). Every button hid its words
    here, so an image's Actual size, words alone, was blank on a phone (the controls grader on 131d146, S225). (:where:
    the weight it had, so a phone's 36 still wins) */
 .vw-seg button{display:inline-flex;align-items:center;gap:4px}
 .vw-seg button svg{display:none;width:16px;height:16px}
-@container flpv (max-width:520px){.vw-seg button:where(:has(svg)){width:28px;padding:0;justify-content:center}.vw-seg button svg{display:block}.vw-seg button:where(:has(svg)) span{display:none}.vw-seg .vw-wide{display:none}.vw-seg .vw-narrow{display:inline}}
+@container flpv (max-width:520px){.vw-seg button:where(:has(svg)){width:var(--h-sm);padding:0;justify-content:center}.vw-seg button svg{display:block}.vw-seg button:where(:has(svg)) span{display:none}.vw-seg .vw-wide{display:none}.vw-seg .vw-narrow{display:inline}}
 /* (a narrow pane no longer hides the file's switch: a narrow head folds it into ⋯ instead, below) */
 .fl-pv{container:flpv / inline-size}
 :root[data-theme="light"] .vw-seg{background:#f4f4f4;border-color:rgba(0,0,0,.08)}
