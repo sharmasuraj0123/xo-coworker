@@ -1,11 +1,18 @@
-// A scroller of controls keeps the focus ring's room inside it (the create-project grader on 427f41c, C047: the runs
-// strip, overflow-x:auto, clipped a focused chip's ring on three sides, only its right 2 px showing). A box that
-// scrolls one way clips the other too, so the ring, 4 px outside a control, is cut unless the control draws its ring
-// inside itself or the scroller pads it with the ring's room (--ring-room). Every horizontal scroller is listed: what
-// it holds, and how the ring stays whole. A new one fails here until it's placed.
+// Every box that clips keeps the focus ring's room inside it, or holds nothing a ring is drawn around at its edges. The
+// rows found one box at a time: the runs strip (C047, overflow-x:auto, a chip's ring cut on three sides), the
+// sidebar's project list (C008, 2 px above its first row), the checklist's bar in a thread's head (C045,
+// overflow:hidden: the toggle fills it, only the ring's right edge showed), and a code block on a phone (S089,
+// overflow:hidden: Copy, 36 tall in a 34 px head, lost its ring's top). A box that clips one way clips the other too.
+// The ring, 4 px outside a control, is cut unless the control draws its ring inside itself or the box pads it with the
+// ring's room (--ring-room). So every clipping box is placed, scroll or not: overflow on either axis, paint
+// containment, a clip path or a mask. A new one fails here until it's placed, with what it holds and how the ring
+// stays whole. What can't hold a control is placed by the rule itself: a line of text that ellipsizes, a picture, a
+// pseudo-element, a control's own overflow (its own ring is drawn outside it). The sweep of the page as drawn, every
+// control focused and every clipping box around it checked, is flows' RINGCLIP.
 //   node tests/scroller-ring.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
+import { rules as cascade, decls } from "./lib/cascade.mjs";
 
 const R = new URL("../", import.meta.url);
 const read = (f) => readFileSync(new URL(f, R), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
@@ -65,6 +72,72 @@ t("each holds the ring as listed: a padded one by at least the ring on every sid
       assert.ok(inset.split(",").map((x) => x.trim()).includes(k) || own || /\.md-it:has\(\.md-open:focus-visible\)::after/.test(all) && k === ".md-from", `${sel} (${what}): ${k} draws its ring inside it`);
     }
   }
+});
+// each other clipping box (overflow:hidden or clip, paint containment, a clip path, a mask), placed the same way, and:
+// "page": the page itself; "decor": it holds no control (a bar, a line, words for a screen reader); "fade": a mask
+// that fades a scroller's cut edge, over controls that draw their ring inside them or sit clear of it
+const CLIPPERS = {
+  "html": ["page", "the page"], "body": ["page", "the page"], ".main": ["inner", "the main area: its views and header pad their controls"],
+  ".sr-only": ["decor", "words for a screen reader"], ".rn-stop span": ["decor", "words for a screen reader"], "body.chat-docked .thead .rn-log span": ["decor", "words for a screen reader"], ":root:root .thead .rn-log span": ["decor", "words for a screen reader"],
+  ".now.fade-r": ["fade", "the Now strip's edge, while more chips lie that way (its chips' ring inset, .nw)"], ".now.fade-l": ["fade", "the same, at its start"], ".now.fade-l.fade-r": ["fade", "the same, both ends"],
+  ".ckbar": ["inset:.ck-tog", "a thread's checklist bar: its toggle fills it (C045)"],
+  ".ck-b>ol": ["text", "the checklist's steps"], ".sg.s-done.is-pop": ["decor", "a step's mark in the progress line"],
+  ".card": ["inner", "a decision card: its body pads 16, its actions 12"], ".chg": ["text", "a change's preview: its caption and text"], ".c-hint": ["text", "a card's hint"],
+  ".card.is-dock :is(.c-body,.card-in).fade-b": ["fade", "the docked card's body at a cut edge: its answers sit below it"], ".card.is-dock :is(.c-body,.card-in).fade-t": ["fade", "the same, at its top"], ".card.is-dock :is(.c-body,.card-in).fade-t.fade-b": ["fade", "the same, both edges"],
+  ".mini": ["decor", "a progress bar"], ".cp-bar": ["decor", "a progress bar"], ".rt-bar": ["decor", "a progress bar"], ".lpv-link": ["decor", "a dashed line"], ".lpm-l": ["decor", "a dashed line"], ".hm-sk": ["decor", "a loading shape"],
+  ".sheet-card": ["inner", "a sheet (All, Jump, Keys, Runs): its head and body pad their controls"], ".ar-di": ["inset:.ar", "All threads' done fold: its rows"],
+  ".kl": ["text", "Settings › Keyboard's keys"], ".rl-list": ["inner", "Settings' rules: each row pads its buttons"], ".wt-list": ["inner", "Settings' checkouts: each row pads its buttons"],
+  ".viewer": ["inner", "the file viewer: its head pads its controls, its body is text"], ".vw-body.is-frame": ["text", "a page in a frame"],
+  ".att": ["inner", "a file on a message: its padding (6–10, 4 at its right) holds its buttons' ring"], ".m-files .tb-fb.is-img .tb-fi": ["decor", "a picture's thumbnail"],
+  ".shd.is-half": ["inner", "a phone's Shells sheet: its tabs and list are placed (.shd-tabs, .shd-list)"], ".syl": ["inner", "a record: its lines are placed (.syl-b)"],
+  ".md-it": ["inner", "a Made card: its ring a layer inside it (C013), its from line and pin inset"], ".md-th": ["decor", "a picture's thumbnail"],
+  ".map": ["inner", "the Map: its head and toolbar pad their controls"], ".mp-sub": ["text", "the Map's sub-line"], ".dg": ["inner", "the diagram: the camera brings what the keyboard reaches into view with room (S208)"],
+  ".stage": ["inner", "the side panel: its frames pad"], ".fr": ["inner", "a frame of the panel: its head pads its controls, its body is placed (.fr-b)"],
+  ".fr[data-fr=\"map\"] .fr-b": ["inner", "the Map's frame: its host pads"], ".stage .fr[data-fr=\"changes\"] .fr-b": ["inner", "the changes frame: its list and pane are placed"],
+  ".stg-t": ["text", "a tab's words"], ".ag-t": ["text", "an agent's name"], ".stage .ag-t": ["text", "an agent's name"], ".stage .cx-t": ["text", "a change's name"], ".stage .ch-copy": ["text", "a change's name and path"],
+  ".stage .cx-pane": ["inset:.cx-pd", "a change's diff: the diff fills it, its ring inside (panel.css)"], ".ximg-c": ["decor", "a picture compared"],
+  ".stage .fr-lp>.fr-b.is-fade": ["fade", "Launchpad's frame at its cut foot"], ".lp-hs": ["text", "Launchpad's head line"],
+  ".mx-album": ["decor", "a message's pictures"], ".lbx-frame": ["decor", "the lightbox's picture"], ".mx-wt": ["text", "the working line"],
+  ":root[data-msgx] .m-them .tcard": ["inner", "a thread card in a message: its ring is drawn around the card itself (msgx.css), not inside it"],
+  ":root[data-msgx] .m-them .tc-segs .sg.mx-seg-done": ["decor", "a step's mark"], ":root[data-msgx] .m-them .tc-segs .sg.mx-seg-next": ["decor", "a step's mark"],
+};
+const CLIPS = (d) => (/^overflow(-[xy])?$/.test(d.p) && /hidden|clip/.test(d.v)) || (d.p === "contain" && /paint|strict|content/.test(d.v)) || (d.p === "clip-path" && d.v !== "none") || (/^(-webkit-)?mask(-image)?$/.test(d.p) && d.v !== "none");
+const srcs = [readFileSync(new URL("index.html", R), "utf8"), ...readdirSync(new URL("js/", R)).filter((f) => f.endsWith(".js")).map((f) => readFileSync(new URL(`js/${f}`, R), "utf8")), ...readdirSync(new URL("js/shells/", R)).filter((f) => f.endsWith(".js")).map((f) => readFileSync(new URL(`js/shells/${f}`, R), "utf8"))].join("\n");
+const controls = new Set();
+for (const m of srcs.matchAll(/<(button|summary|select|a|input|textarea)\b([^>]*)>/g)) { const c = /class="([^"$]*)/.exec(m[2]); if (c) for (const k of c[1].split(/\s+/)) if (k) controls.add(k); }
+for (const m of srcs.matchAll(/<\w+\b([^>]*role="(?:button|tab|option|menuitem|menuitemradio|switch|radio|checkbox)"[^>]*)>/g)) { const c = /class="([^"$]*)/.exec(m[1]); if (c) for (const k of c[1].split(/\s+/)) if (k) controls.add(k); }
+// placed by the rule itself: a line that ellipsizes or clamps, a picture or a frame, a pseudo-element, a control's own
+const byRule = (sel, ds) => { const last = sel.split(/[\s>+~]+/).pop(); return /::/.test(last) ? "a pseudo-element" : ds.some((d) => d.p === "text-overflow" || d.p === "-webkit-line-clamp") ? "a line of text" : /^(img|svg|video|canvas|pre|code|textarea|input|iframe)\b/.test(last) ? "a picture, a frame or a field" : (last.match(/\.[\w-]+/g) || []).some((k) => controls.has(k.slice(1))) || /^(button|summary|a)\b/.test(last) ? "a control's own (its ring is drawn outside it)" : null; };
+t("every other clipping box is placed too: overflow hidden or clip, paint containment, a clip path, a mask", () => {
+  const unplaced = [];
+  for (const r of cascade(new URL("tests/lib/x.mjs", R))) {
+    const ds = decls(r.d);
+    if (!ds.some(CLIPS) || ds.some((d) => /^overflow(-[xy])?$/.test(d.p) && /auto|scroll/.test(d.v))) continue;
+    if (r.sel in SCROLLERS || r.sel in CLIPPERS || byRule(r.sel, ds)) continue;
+    unplaced.push(`${r.f}: ${r.sel}`);
+  }
+  assert.deepEqual([...new Set(unplaced)], [], "clipping boxes to place");
+});
+t("each clipping box listed is still one, and holds the ring as listed", () => {
+  const sels = new Set(cascade(new URL("tests/lib/x.mjs", R)).filter((r) => decls(r.d).some(CLIPS)).map((r) => r.sel));
+  const gone = Object.keys(CLIPPERS).filter((k) => !sels.has(k));
+  assert.deepEqual(gone, [], "listed, but no longer a clipping box: take it off");
+  for (const [sel, [how, what]] of Object.entries(CLIPPERS)) if (how.startsWith("inset:")) {
+    const k = how.slice(6);
+    const own = new RegExp(`${k.replace(/\./g, "\\.")}\\)?:focus-visible\\{outline:2px solid var\\(--focus\\);outline-offset:-2px\\}`).test(all);
+    assert.ok(inset.split(",").map((x) => x.trim()).includes(k) || own, `${sel} (${what}): ${k} draws its ring inside it`);
+  }
+});
+t("C045: the checklist's toggle draws its ring inside it, on the bar's inner corners", () => {
+  assert.ok(inset.split(",").includes(".ck-tog"));
+  assert.match(all, /\.ck-tog\{flex:1;min-width:0;display:flex;align-items:center;gap:12px;height:var\(--h-lg\);padding:0 10px 0 12px;border-radius:calc\(var\(--r-lg\) - 1px\);/);
+  assert.match(all, /\.ckbar\{border-radius:var\(--r-lg\);[^}]*border:1px solid/);
+});
+t("S089: a code block clips nothing (its text clips itself and rounds its own corners), and its head holds its Copy", () => {
+  const code = all.match(/(?:^|\n)\.md-code\{([^}]*)\}/)[1];
+  assert.doesNotMatch(code, /overflow/, "the block itself doesn't clip");
+  assert.match(all, /\.md-code pre\{margin:0;padding:12px 16px;overflow-x:auto;border-radius:0 0 calc\(var\(--r-lg\) - 1px\) calc\(var\(--r-lg\) - 1px\);/);
+  assert.match(all, /\.md-code-head\{display:flex;align-items:center;justify-content:space-between;min-height:34px;/, "a phone's 36 px Copy grows its head");
 });
 t("the runs strip gives the room back in its margin: its chips sit where they did (8 px under the head's line)", () => {
   assert.match(all, /\.rn-strip\{display:flex;gap:6px;margin:calc\(8px - var\(--ring-room\)\) calc\(-1 \* var\(--ring-room\)\) calc\(-1 \* var\(--ring-room\)\);padding:var\(--ring-room\);overflow-x:auto;/);

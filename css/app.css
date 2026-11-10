@@ -409,7 +409,9 @@ button:disabled{cursor:default}
    bar's own corners (the toggle's own fill used to stop 6 px short of the right edge) */
 .ck-row{display:flex;align-items:center;gap:6px;padding-right:6px;transition:background-color var(--d-hover) var(--ease)}
 .ck-row:has(.ck-tog:hover){background:var(--hover-fill)}
-.ck-tog{flex:1;min-width:0;display:flex;align-items:center;gap:12px;height:var(--h-lg);padding:0 10px 0 12px;border-radius:0;text-align:left;font-size:var(--fs-base);color:var(--ink-3)}
+/* the toggle fills its bar edge to edge, and the bar clips to its corners (its row's hover fill), so its ring is drawn
+   inside it, on the bar's inner corners (the controls grader on 414de0f, C045: only the ring's right edge showed) */
+.ck-tog{flex:1;min-width:0;display:flex;align-items:center;gap:12px;height:var(--h-lg);padding:0 10px 0 12px;border-radius:calc(var(--r-lg) - 1px);text-align:left;font-size:var(--fs-base);color:var(--ink-3)}
 .ck-tog:hover{color:var(--ink-2)}
 .ck-segs{flex:none;display:flex;gap:3px}
 .sg{display:block;width:16px;height:4px;border-radius:2px;background:var(--fill-3);transition:background var(--d-in) var(--ease)}
@@ -544,11 +546,14 @@ button:disabled{cursor:default}
 .prose em{color:var(--ink-2)}
 .prose code{font:400 var(--fs-base)/20px var(--mono);background:var(--fill-2);border:1px solid var(--line);border-radius:var(--r-sm);padding:.1em .4em}
 /* links in prose: css/links.css */
-.md-code{border:1px solid var(--line);border-radius:var(--r-lg);background:var(--fill-1);overflow:hidden}
-.md-code-head{display:flex;align-items:center;justify-content:space-between;height:34px;padding:0 6px 0 14px;border-bottom:1px solid var(--line-faint);font:500 var(--fs-sm)/16px var(--mono);color:var(--ink-4)}
+/* the block clips nothing: only its text needs its corners, and the text clips itself (it scrolls sideways), so the
+   head's Copy keeps its whole ring at every width (the controls grader's sweep on 06b997b, S089: on a phone Copy is
+   36 tall in the 34 px head, and the block's clip cut its ring's top) */
+.md-code{border:1px solid var(--line);border-radius:var(--r-lg);background:var(--fill-1)}
+.md-code-head{display:flex;align-items:center;justify-content:space-between;min-height:34px;padding:0 6px 0 14px;border-bottom:1px solid var(--line-faint);font:500 var(--fs-sm)/16px var(--mono);color:var(--ink-4)}
 .md-copy{height:24px;padding:0 10px;border-radius:var(--r-sm);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
 .md-copy:hover{background:var(--fill-2);color:var(--ink)}
-.md-code pre{margin:0;padding:12px 16px;overflow-x:auto;font:400 var(--fs-base)/20px var(--mono)}
+.md-code pre{margin:0;padding:12px 16px;overflow-x:auto;border-radius:0 0 calc(var(--r-lg) - 1px) calc(var(--r-lg) - 1px);font:400 var(--fs-base)/20px var(--mono)}
 .md-code code{background:none;border:0;padding:0;font:inherit}
 /* Tables read on whatever they sit on (the page, an agent's glass bubble, a card): their frame, rules and
    header are mixes of the text colour, not greys made for the page (on the bubble those measured 1.05 : 1
