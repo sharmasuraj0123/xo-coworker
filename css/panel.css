@@ -124,8 +124,9 @@ body.stage-over .stage{box-shadow:var(--e2)}
 }
 /* narrower than the head's controls with ⋯'s word (Copying…, Downloading…, Copied): ⋯ keeps its square and says the
    state by its icon (the spinner, the check), the word its name and title, so the file's name keeps its room (the
-   controls grader on 1ed50f6 at 320, V96S: the name shrank to a 19 px "a…") */
-@container vwtop (max-width:370px){
+   controls grader on 1ed50f6 at 320, V96S: the name shrank to a 19 px "a…"). The head's content box is the viewer's
+   width less 20 px: 370 at a 390 phone, where the word fits and shows; 355 at 375 and 300 at 320, where it doesn't */
+@container vwtop (max-width:360px){
   .vw-top .vw-more:is(.is-done,.is-busy) span{display:none}
   .vw-top .vw-more:is(.is-done,.is-busy){width:36px;padding:0}
 }
