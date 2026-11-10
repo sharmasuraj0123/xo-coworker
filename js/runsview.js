@@ -34,7 +34,7 @@ export function runsStripHtml(live, total) {
 }
 
 /** One row of the list (recursive for children). */
-function rowHtml(r, { canStop, depth = 0 }) {
+function rowHtml(r, { canStop, depth = 0, saidFor = null }) {
   const meta = [KIND_WORD[r.kind] || "", r.tool_calls ? `${r.tool_calls} step${r.tool_calls === 1 ? "" : "s"}` : "", r.tokens ? `${num(r.tokens)} tokens` : "", dur(r.started_at, LIVE.has(r.state) ? null : r.ended_at)].filter(Boolean).join(" · ");
   const stop = canStop && LIVE.has(r.state) && r.can_stop !== false
     ? `<button type="button" class="rn-stop" data-run-stop="${esc(r.id)}" title="Stop this sub-agent (Undo for 3 s)">${ICON.stop}<span>Stop</span></button>` : "";
@@ -42,13 +42,14 @@ function rowHtml(r, { canStop, depth = 0 }) {
     `<button type="button" class="rn-open" data-run="${esc(r.id)}"><i class="g g-${glyph(r.state)}" aria-hidden="true"></i>` +
     `<span class="rn-main"><span class="rn-t">${esc(r.title)}</span><span class="rn-m">${esc(STATE_WORD[r.state] || r.state)}${meta ? ` · ${esc(meta)}` : ""}</span>` +
     (r.summary && !LIVE.has(r.state) ? `<span class="rn-s">${esc(r.summary)}</span>` : "") + `</span>${ICON.right}</button>${stop}</li>` +
-    (r.children || []).map((c) => rowHtml(c, { canStop, depth: depth + 1 })).join("");
+    (saidFor && saidFor.key === `run:${r.id}` ? `<li class="rn-said-row" style="--d:${depth}">${saidHtml(saidFor, `run:${r.id}`)}</li>` : "") +
+    (r.children || []).map((c) => rowHtml(c, { canStop, depth: depth + 1, saidFor })).join("");
 }
 
 /** The list: working now first, then the log. */
 /** stops: stops of this thread's runs still in their Undo window [{key, what}] (the sheet's own Undo, since the
  *  page behind the sheet can't be reached while it's open); state: "loading" | "error" | "ok". */
-export function runsListHtml(tree, counts, { canStop, title, stops = [], state = "ok", error = "" }) {
+export function runsListHtml(tree, counts, { canStop, title, stops = [], state = "ok", error = "", saidFor = null, session = "" }) {
   tree = tree || [];
   const live = tree.filter((r) => LIVE.has(r.state));
   const done = tree.filter((r) => !LIVE.has(r.state));
@@ -63,10 +64,17 @@ export function runsListHtml(tree, counts, { canStop, title, stops = [], state =
   return `<header class="rn-h"><div><h2 id="runs-h">Sub-agents</h2><p>${esc(title)}${sum ? ` · ${esc(sum)}` : ""}</p></div>` +
     (canStop && live.length > 1 ? `<button type="button" class="rn-stopall" data-runs-stop title="Stop every sub-agent; the thread's own agent keeps working">Stop all ${live.length}</button>` : "") +
     `<button type="button" class="x" data-close aria-label="Close"></button></header>` +
-    `<div class="rn-body">` + stopsHtml(stops) + (tree.length ? said : "") +
-    (live.length ? `<h3 class="rn-k">Working now</h3><ul class="rn-list">${live.map((r) => rowHtml(r, { canStop })).join("")}</ul>` : "") +
-    (done.length ? `<h3 class="rn-k">${live.length ? "Earlier" : "What they did"}</h3><ul class="rn-list">${done.map((r) => rowHtml(r, { canStop })).join("")}</ul>` : "") +
+    `<div class="rn-body">` + stopsHtml(stops) + saidHtml(saidFor, `all:${session}`) + (tree.length ? said : "") +
+    (live.length ? `<h3 class="rn-k">Working now</h3><ul class="rn-list">${live.map((r) => rowHtml(r, { canStop, saidFor })).join("")}</ul>` : "") +
+    (done.length ? `<h3 class="rn-k">${live.length ? "Earlier" : "What they did"}</h3><ul class="rn-list">${done.map((r) => rowHtml(r, { canStop, saidFor })).join("")}</ul>` : "") +
     (!tree.length ? said : "") + `</div>`;
+}
+/** What a stop's answer said, in the sheet where you acted (under the run's row, or at the top for Stop all), as well
+ *  as in the notice behind the sheet (the create-project grader on 2a8d278: a refusal was said only there, unseen).
+ *  said: {key, kind, text, sub}; key: the stop it answers ("run:<id>" | "all:<session>"). */
+export function saidHtml(said, key) {
+  if (!said || said.key !== key) return "";
+  return `<p class="rn-said k-${esc(said.kind)}" role="${said.kind === "halt" ? "status" : "alert"}"><b>${esc(said.text)}</b>${said.sub ? `<span>${esc(said.sub)}</span>` : ""}</p>`;
 }
 /** Stops still in their 3 s Undo, inside the sheet: each with its own Undo. */
 export function stopsHtml(stops) {
@@ -111,7 +119,7 @@ export function transcriptHtml(items, { open = {} } = {}) {
 }
 
 /** The whole run view: path, state, Stop, its transcript, its own sub-agents. */
-export function runViewHtml(run, { anc, items, children = [], canStop, gone = null, error = null, loading = false, open = {}, stops = [] }) {
+export function runViewHtml(run, { anc, items, children = [], canStop, gone = null, error = null, loading = false, open = {}, stops = [], saidFor = null }) {
   const live = LIVE.has(run.state);
   const head = `<header class="rn-h is-run"><button type="button" class="rn-back" data-runs-back title="Back to the list">${ICON.back}<span>Sub-agents</span></button>` +
     `<button type="button" class="x" data-close aria-label="Close"></button></header>` +
@@ -124,5 +132,5 @@ export function runViewHtml(run, { anc, items, children = [], canStop, gone = nu
   else body = transcriptHtml(items, { open }) || `<p class="rn-none">Nothing recorded yet.</p>`;
   const kids = children.length ? `<h3 class="rn-k">Its sub-agents</h3><ul class="rn-list">${children.map((c) => rowHtml(c, { canStop })).join("")}</ul>` : "";
   const summary = run.summary && !live ? `<p class="rn-sum">${esc(run.summary)}</p>` : "";
-  return `${head}<div class="rn-body rn-run">${stopsHtml(stops)}${summary}${body}${kids}<p class="rn-foot">Messaging a sub-agent isn't possible; talk to its thread instead.</p></div>`;
+  return `${head}<div class="rn-body rn-run">${stopsHtml(stops)}${saidHtml(saidFor, `run:${run.id}`)}${summary}${body}${kids}<p class="rn-foot">Messaging a sub-agent isn't possible; talk to its thread instead.</p></div>`;
 }

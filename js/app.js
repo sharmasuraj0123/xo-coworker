@@ -1367,26 +1367,31 @@ function runsStrip(t) {
   return runsStripHtml(live, total);
 }
 const runsEl = $("#runs"), runsCard = $("#runs-card");
-const RS = { gen: 0, opening: 0, open: false, session: null, title: "", view: "list", tree: [], counts: null, runId: null, run: null, anc: null, items: [], cursor: null, children: [], loading: false, error: null, gone: null, pollT: null, returnTo: null };
+const RS = { said: null, gen: 0, opening: 0, open: false, session: null, title: "", view: "list", tree: [], counts: null, runId: null, run: null, anc: null, items: [], cursor: null, children: [], loading: false, error: null, gone: null, pollT: null, returnTo: null };
 const canStopRuns = () => !!(RS.session && world.act.feature && world.act.feature(RS.session, "runs.stop"));
 // this sheet's own stops still in their Undo: the page behind it is inert while it's open (Astra: Stop's only
 // Undo was out of reach)
 const sheetStops = () => pendingStops.filter((j) => !j.cancelled && !j.sent && j.session === RS.session).map((j) => ({ key: j.key, what: j.what }));
+/** A control in the Runs sheet as a selector, by its first data- hook's name and value ([data-run-stop="a1"]). */
+const runsHook = (e) => { if (!e || !runsCard.contains(e) || e === runsCard || !e.attributes) return ""; const a = [...e.attributes].find((x) => x.name.startsWith("data-")); return a ? (a.value ? `[${a.name}="${CSS.escape(a.value)}"]` : `[${a.name}]`) : ""; };
 function runsRender() {
   if (!RS.open) return;
   const html = RS.view === "list"
-    ? runsListHtml(RS.tree, RS.counts, { canStop: canStopRuns(), title: RS.title, stops: sheetStops(), state: RS.listState, error: RS.listErr })
-    : runViewHtml(RS.run || { id: RS.runId, title: "Sub-agent", state: "running" }, { anc: RS.anc, items: RS.items, children: RS.children, canStop: canStopRuns(), gone: RS.gone, error: RS.error, loading: RS.loading, stops: sheetStops(), open: S.tbOpen });
+    ? runsListHtml(RS.tree, RS.counts, { canStop: canStopRuns(), title: RS.title, stops: sheetStops(), state: RS.listState, error: RS.listErr, saidFor: RS.said, session: RS.session })
+    : runViewHtml(RS.run || { id: RS.runId, title: "Sub-agent", state: "running" }, { anc: RS.anc, items: RS.items, children: RS.children, canStop: canStopRuns(), gone: RS.gone, error: RS.error, loading: RS.loading, stops: sheetStops(), saidFor: RS.said, open: S.tbOpen });
   if (runsCard._h !== html) {
     const body = runsCard.querySelector(".rn-body");
     const keep = body ? body.scrollTop : 0;
+    // the control with focus, by its hook's name and value: found again if the redraw replaced it (a Stop after its
+    // answer: the create-project grader on 2a8d278, S100, focus went to the sheet with its Stop still there)
+    const hook = runsHook(document.activeElement);
     // in place: the control with focus (a Stop that gains its Undo line, a row) stays the same node
     redraw(runsCard, html); runsCard._h = html;
     for (const x of runsCard.querySelectorAll("[data-close]")) if (!x.firstChild) x.innerHTML = ICON.close;
     const nb = runsCard.querySelector(".rn-body");
     if (nb && RS.keepScroll) nb.scrollTop = keep;
-    // a re-render must not drop focus out of the sheet (Escape, Tab stay inside it)
-    if (!runsEl.contains(document.activeElement)) runsCard.focus({ preventScroll: true });
+    // a re-render must not drop focus out of the sheet (Escape, Tab stay inside it): the same control, else the sheet
+    if (!runsEl.contains(document.activeElement)) { const same = hook && runsCard.querySelector(hook); (same && usableEl(same) ? same : runsCard).focus({ preventScroll: true }); }
   }
 }
 function runsEscape() { if (RS.view === "run") { RS.gen++; RS.view = "list"; RS.runId = null; clearTimeout(RS.pollT); RS.keepScroll = false; runsRender(); } else closeRuns(); }
@@ -1394,7 +1399,7 @@ async function openRuns(t, runId = null) {
   if (!t || !t.sessionId) return;
   if (!RS.open) RS.returnTo = document.activeElement;
   // a new thread's list starts empty and reading: never the last thread's rows, never "none" before a read says so
-  if (RS.session !== t.sessionId) { RS.tree = []; RS.counts = null; }
+  if (RS.session !== t.sessionId) { RS.tree = []; RS.counts = null; RS.said = null; }
   // each opening (and each Try again) is its own: a list, or a run to open, asked for by an earlier opening of the
   // same thread never lands in this one (Astra SRC-MAIN-RUN-1: close, reopen, and the old answer won)
   const my = ++RS.opening;
@@ -1487,10 +1492,25 @@ function closeRuns() {
 // Stops waiting out their Undo. One herald shows them all, so a second stop never hides the first's Undo.
 const pendingStops = [];
 const stopsOut = new Set(); // stop requests sent and not yet answered, by key
+/** What a stop's answer confirms, and only that (the create-project grader on 2a8d278, S100/S101): stop_run answers
+ *  stopping true (sent) or false (it had ended: a record still working is refused, run_not_live); stop_all answers the
+ *  runs a stop went to, and [] when none went (they may have ended, or no live process runs them: never "finished").
+ *  Anything else confirms nothing. {kind, text, sub, say} for the notice, the sheet and the announcement. */
+function stopReceipt(r, what) {
+  const sent = !!r && (r.stopping === true || (Array.isArray(r.stopping) && r.stopping.length > 0));
+  if (sent) {
+    const n = Array.isArray(r.stopping) ? r.stopping.length : 1;
+    return { kind: "halt", text: "Stopping", sub: n > 1 ? `${n} sub-agents · what they did is kept` : `${what} · what it did is kept`, say: `Stopping ${what}. What it did is kept.` };
+  }
+  if (r && r.stopping === false) return { kind: "halt", text: "It had already finished", sub: what, say: `${what} had already finished.` };
+  if (r && Array.isArray(r.stopping) && !r.stopping.length) return { kind: "stopped", text: "No stop went out", sub: `${what}: none of them is running in a live session, though XO's record may still say they're working`, say: `No stop went out for ${what}: none of them is running in a live session.` };
+  return { kind: "stopped", text: "Not confirmed", sub: `${what}: XO didn't confirm a stop was sent. Stop again if it keeps working.`, say: `XO didn't confirm the stop of ${what}.` };
+}
 function stopRunsUndo(what, fn, key = what, session = RS.session) {
   // a second Stop for the same run(s) while the first waits or is out does nothing (Astra: duplicate stops)
   if (pendingStops.some((j) => j.key === key && !j.cancelled) || stopsOut.has(key)) return;
   const job = { what, key, session, until: Date.now() + Kit.COMMIT_MS, cancelled: false, sent: false };
+  if (RS.said && RS.said.key === key) RS.said = null; // a new stop of it: the last answer is over
   pendingStops.push(job);
   stopsHerald();
   runsRender();
@@ -1505,16 +1525,16 @@ function stopRunsUndo(what, fn, key = what, session = RS.session) {
     stopsOut.add(key);
     try {
       const r = await fn();
-      // 202: a stop was sent (its run.finished confirms it); 200 with nothing to stop: it had ended
-      const none = r && (r.stopping === false || (Array.isArray(r.stopping) && !r.stopping.length));
-      const n = r && Array.isArray(r.stopping) ? r.stopping.length : 0;
-      heraldShow({ kind: "halt", text: none ? "It had already finished" : "Stopping", sub: none ? what : n > 1 ? `${n} sub-agents · what they did is kept` : `${what} · what it did is kept` }, 3600);
-      announce(none ? `${what} had already finished.` : `Stopping ${what}. What it did is kept.`);
+      // what the answer confirms, and only that (the create-project grader on 2a8d278, S100/S101)
+      const said = stopReceipt(r, what);
+      heraldShow(said, said.kind === "halt" ? 3600 : 6000);
+      RS.said = { key, ...said };
+      announce(said.say);
     } catch (err) {
       // run_not_live: XO's record still says it's running, but nothing is running it that could be stopped. It
       // didn't "finish": say what's true (Astra RUN-6, from storm/runs/operations.py)
-      if (err.code === "run_not_live") { heraldShow({ kind: "stopped", text: "Couldn't stop it", sub: `${what}: nothing is running it any more, though XO's record still says it's running` }, 6000); announce(`Couldn't stop ${what}: nothing is running it any more, though XO's record still says it's running.`); }
-      else { heraldShow({ kind: "stopped", text: "Couldn't stop it", sub: err.status === 501 ? "this agent can't stop a sub-agent; stop the thread instead" : err.message }, 6000); announce(`Couldn't stop ${what}.`); }
+      if (err.code === "run_not_live") { RS.said = { key, kind: "stopped", text: "Couldn't stop it", sub: `${what}: nothing is running it any more, though XO's record still says it's running` }; heraldShow(RS.said, 6000); announce(`Couldn't stop ${what}: nothing is running it any more, though XO's record still says it's running.`); }
+      else { RS.said = { key, kind: "stopped", text: "Couldn't stop it", sub: err.status === 501 ? "this agent can't stop a sub-agent; stop the thread instead" : err.message }; heraldShow(RS.said, 6000); announce(`Couldn't stop ${what}: ${RS.said.sub}.`); }
     } finally { stopsOut.delete(key); }
     if (RS.open && RS.session === session) { await readRunsList(session); runsRender(); }
   }, Kit.COMMIT_MS);

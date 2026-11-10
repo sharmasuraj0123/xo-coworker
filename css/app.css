@@ -1862,7 +1862,14 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 .rn-none{padding:18px 8px;font-size:var(--fs-base);color:var(--ink-3);display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
 /* a stop still in its 3 s Undo, inside the sheet (the page behind it can't be reached while it's open) */
 .rn-stops{list-style:none;margin:0 0 8px;padding:0;display:grid;gap:6px}
-.rn-stopping{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:var(--h-lg);padding:0 4px 0 12px;border-radius:var(--r-sm);background:var(--fill-2);font-size:var(--fs-base);color:var(--ink-2)}
+.rn-stopping{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:var(--h-lg);padding:2px 2px 2px 12px;border-radius:var(--r);background:var(--fill-2);font-size:var(--fs-base);color:var(--ink-2)}
+.rn-stopping>.t-undo{height:36px} /* an even 2 px inset in its 40 px line: the line's corners are the Undo's plus the inset (6 + 2 = 8), concentric (S239) */
+/* what a stop's answer said, in the sheet where you acted: under its row, or at the top for Stop all (S100, S101) */
+.rn-said{display:flex;flex-wrap:wrap;gap:2px 8px;margin:0 0 8px;padding:8px 12px;border-radius:var(--r);background:var(--fill-2);font-size:var(--fs-base);color:var(--ink-2)}
+.rn-said b{font-weight:600;color:var(--ink)}
+.rn-said.k-stopped{background:var(--warn-subtle)}
+.rn-said-row{list-style:none;padding-left:calc(var(--d,0) * 16px)}
+.rn-said-row .rn-said{margin:4px 0}
 .rn-top{padding:6px 22px 12px;border-bottom:1px solid var(--line-faint)}
 .rn-path{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:var(--fs-sm);color:var(--ink-4)}
 .rn-path i{font-style:normal;color:var(--ink-5)}
