@@ -267,4 +267,46 @@ async function launch(chromium) {
   try { return await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}); }
   catch { const alt = shells()[0]; return alt ? chromium.launch({ executablePath: alt }).catch(() => null) : null; }
 }
-module.exports = { ROOT, SSE, serve, NOW, CHATS, STATIC, mockApi, hooks, openApp, launch, LP, chat };
+/** The ring sweep (RINGCLIP): every control in view, focused as Tab would, its ring read as drawn, and every box
+ *  around it that clips (overflow either axis, paint containment, a clip path) checked; and each button standing on
+ *  its own measured against the floor. { n, cut: [...], floor: [...] }. */
+const ringClips = (page, where) => page.evaluate(async (where) => {
+  const CTL = 'button, a[href], summary, input:not([type=hidden]), select, textarea, xo-select, [tabindex="0"], [role=button], [role=tab], [role=option], [role=radio], [role=switch], [role=checkbox], [role=menuitem], [role=menuitemradio]';
+  const frame = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  const name = (e) => `${e.tagName.toLowerCase()}${e.id ? "#" + e.id : ""}${e.classList.length ? "." + [...e.classList].slice(0, 2).join(".") : ""}${[...e.attributes].filter((a) => /^data-/.test(a.name)).slice(0, 1).map((a) => `[${a.name}]`).join("")}`;
+  const clipsOf = (e) => { const s = getComputedStyle(e); return s.overflowX !== "visible" || s.overflowY !== "visible" || /paint|strict|content/.test(s.contain) || (s.clipPath && s.clipPath !== "none"); };
+  const inView = (r) => r.width >= 1 && r.height >= 1 && r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth;
+  const els = [...document.querySelectorAll(CTL)].filter((e) => e.getClientRects().length && !e.closest("[inert], [hidden], .sr-only") && !e.disabled && inView(e.getBoundingClientRect()));
+  const cut = [], seen = new Set(), floor = [];
+  for (const el of els) {
+    if (!el.isConnected) continue;
+    el.focus({ preventScroll: false });
+    if (document.activeElement !== el) continue;
+    await frame();
+    const s = getComputedStyle(el), r = el.getBoundingClientRect();
+    if (!inView(r)) continue;
+    // and its size: a control standing on its own keeps the floor (24 on a desktop, 36 on a phone); a link in a
+    // sentence, a field, a row inside a list drawn by its own rules are not this sweep's
+    const fl = innerWidth < 760 ? 36 : 24;
+    if (/^(BUTTON|SUMMARY)$/.test(el.tagName) && s.display !== "inline" && !el.matches(".lk,.lp-hh,.lp-ln,.cp-link,.wsh-home,.dg-n,.gn,.dg-tag,.pj-s *,.tw-rt") && (r.height < fl - 0.5 || r.width < fl - 0.5)) floor.push(`${where}: ${name(el)} ${Math.round(r.width)}×${Math.round(r.height)}`);
+    const e = s.outlineStyle === "none" ? 0 : parseFloat(s.outlineOffset) + parseFloat(s.outlineWidth);
+    if (e <= 0) continue; // a ring drawn inside the control, or none
+    const ring = { top: r.top - e, bottom: r.bottom + e, left: r.left - e, right: r.right + e };
+    for (let a = el.parentElement; a && a !== document.documentElement; a = a.parentElement) {
+      if (a === document.body || !clipsOf(a)) continue;
+      const b = a.getBoundingClientRect(), as = getComputedStyle(a);
+      const box = { top: b.top + parseFloat(as.borderTopWidth), bottom: b.bottom - parseFloat(as.borderBottomWidth), left: b.left + parseFloat(as.borderLeftWidth), right: b.right - parseFloat(as.borderRightWidth) };
+      const sides = [];
+      const ox = as.overflowX !== "visible" || as.clipPath !== "none" || /paint|strict|content/.test(as.contain), oy = as.overflowY !== "visible" || as.clipPath !== "none" || /paint|strict|content/.test(as.contain);
+      if (oy && ring.top < box.top - 0.5 && r.top >= box.top - 0.5) sides.push("top");
+      if (oy && ring.bottom > box.bottom + 0.5 && r.bottom <= box.bottom + 0.5) sides.push("bottom");
+      if (ox && ring.left < box.left - 0.5 && r.left >= box.left - 0.5) sides.push("left");
+      if (ox && ring.right > box.right + 0.5 && r.right <= box.right + 0.5) sides.push("right");
+      if (sides.length) { const k = `${name(el)} in ${name(a)}`; if (!seen.has(k)) { seen.add(k); cut.push(`${where}: ${k}: ${sides.join("+")}`); } }
+    }
+  }
+  document.activeElement?.blur?.();
+  return { n: els.length, cut, floor };
+}, where);
+
+module.exports = { ROOT, SSE, serve, NOW, CHATS, STATIC, mockApi, hooks, openApp, launch, LP, chat, ringClips };

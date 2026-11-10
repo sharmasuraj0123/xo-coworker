@@ -513,7 +513,11 @@ body.viewer-open .fv~.dock{display:none}
 :root[data-theme="light"] .stage .map-host .dg-cur:not(.is-idle) .dg-arrow path{stroke:color-mix(in srgb,var(--c) 62%,#000);stroke-width:1}
 .stage .map-host .gn-l{text-shadow:0 0 3px var(--panel-canvas),0 0 3px var(--panel-canvas)}
 
-.stage :is(.ag-r,.ch-r,.fr-t,.fr-ib,.stg-ic):focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+/* every control in the panel's bars (its own bar, a frame's head, a change's head) draws its ring inside it, not a
+   list of the ones known: the frames clip (overflow:hidden), and on a phone the floor makes a head's control 36 tall in
+   its 40 px head, so a ring outside it lost its top and bottom (grader B on 24be023, C076: Launchpad's Deploy, which
+   the list didn't name) */
+.stage :is(.ag-r,.ch-r,.fr-t,.fr-ib,.stg-ic,:is(.stg-bar,.fr-h,.cx-ph) :is(button,a[href],[role=tab])):focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 @media (prefers-reduced-motion:reduce){.stage :is(.fr-t,.fr-gut::before,.ag-r,.ch-r){transition:none}}
 
 /* while the panel covers the page (a phone, or full size), a notice (a Stop's Undo, Launchpad's own) is drawn above

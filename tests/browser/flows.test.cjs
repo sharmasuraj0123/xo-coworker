@@ -3988,44 +3988,7 @@ t("STACK: on a phone, the put-away file's chip and the decision stack under the 
 // read as drawn (outline width and offset), and every box around it that clips (overflow either axis, paint
 // containment, a clip path) is checked: the ring stays inside each. Four rows found one box at a time (the runs strip,
 // the sidebar's list, the checklist's bar, a code block); tests/scroller-ring.test.mjs places every clipping box.
-const ringClips = (page, where) => page.evaluate(async (where) => {
-  const CTL = 'button, a[href], summary, input:not([type=hidden]), select, textarea, xo-select, [tabindex="0"], [role=button], [role=tab], [role=option], [role=radio], [role=switch], [role=checkbox], [role=menuitem], [role=menuitemradio]';
-  const frame = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-  const name = (e) => `${e.tagName.toLowerCase()}${e.id ? "#" + e.id : ""}${e.classList.length ? "." + [...e.classList].slice(0, 2).join(".") : ""}${[...e.attributes].filter((a) => /^data-/.test(a.name)).slice(0, 1).map((a) => `[${a.name}]`).join("")}`;
-  const clipsOf = (e) => { const s = getComputedStyle(e); return s.overflowX !== "visible" || s.overflowY !== "visible" || /paint|strict|content/.test(s.contain) || (s.clipPath && s.clipPath !== "none"); };
-  const inView = (r) => r.width >= 1 && r.height >= 1 && r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth;
-  const els = [...document.querySelectorAll(CTL)].filter((e) => e.getClientRects().length && !e.closest("[inert], [hidden], .sr-only") && !e.disabled && inView(e.getBoundingClientRect()));
-  const cut = [], seen = new Set(), floor = [];
-  for (const el of els) {
-    if (!el.isConnected) continue;
-    el.focus({ preventScroll: false });
-    if (document.activeElement !== el) continue;
-    await frame();
-    const s = getComputedStyle(el), r = el.getBoundingClientRect();
-    if (!inView(r)) continue;
-    // and its size: a control standing on its own keeps the floor (24 on a desktop, 36 on a phone); a link in a
-    // sentence, a field, a row inside a list drawn by its own rules are not this sweep's
-    const fl = innerWidth < 760 ? 36 : 24;
-    if (/^(BUTTON|SUMMARY)$/.test(el.tagName) && s.display !== "inline" && !el.matches(".lk,.lp-hh,.lp-ln,.cp-link,.wsh-home,.dg-n,.gn,.dg-tag,.pj-s *,.tw-rt") && (r.height < fl - 0.5 || r.width < fl - 0.5)) floor.push(`${where}: ${name(el)} ${Math.round(r.width)}×${Math.round(r.height)}`);
-    const e = s.outlineStyle === "none" ? 0 : parseFloat(s.outlineOffset) + parseFloat(s.outlineWidth);
-    if (e <= 0) continue; // a ring drawn inside the control, or none
-    const ring = { top: r.top - e, bottom: r.bottom + e, left: r.left - e, right: r.right + e };
-    for (let a = el.parentElement; a && a !== document.documentElement; a = a.parentElement) {
-      if (a === document.body || !clipsOf(a)) continue;
-      const b = a.getBoundingClientRect(), as = getComputedStyle(a);
-      const box = { top: b.top + parseFloat(as.borderTopWidth), bottom: b.bottom - parseFloat(as.borderBottomWidth), left: b.left + parseFloat(as.borderLeftWidth), right: b.right - parseFloat(as.borderRightWidth) };
-      const sides = [];
-      const ox = as.overflowX !== "visible" || as.clipPath !== "none" || /paint|strict|content/.test(as.contain), oy = as.overflowY !== "visible" || as.clipPath !== "none" || /paint|strict|content/.test(as.contain);
-      if (oy && ring.top < box.top - 0.5 && r.top >= box.top - 0.5) sides.push("top");
-      if (oy && ring.bottom > box.bottom + 0.5 && r.bottom <= box.bottom + 0.5) sides.push("bottom");
-      if (ox && ring.left < box.left - 0.5 && r.left >= box.left - 0.5) sides.push("left");
-      if (ox && ring.right > box.right + 0.5 && r.right <= box.right + 0.5) sides.push("right");
-      if (sides.length) { const k = `${name(el)} in ${name(a)}`; if (!seen.has(k)) { seen.add(k); cut.push(`${where}: ${k}: ${sides.join("+")}`); } }
-    }
-  }
-  document.activeElement?.blur?.();
-  return { n: els.length, cut, floor };
-}, where);
+const { ringClips } = require("./harness.cjs"); // the sweep itself, shared with lpshell (the Launchpad and its folds)
 t("RINGCLIP: no clipping box cuts a focused control's ring: Home, a project with a code block, a thread with its decision and checklist, All threads, the panel's Files", async () => {
   const page = await app({ files: { "a.js": FILE() }, messages: MSG("Here is the command:\n\n```sh\nnpm test\n```\n") });
   await page.keyboard.press("Shift"); // a keyboard's focus: the ring is drawn
@@ -4050,6 +4013,8 @@ t("RINGCLIP: no clipping box cuts a focused control's ring: Home, a project with
   const sw = page.locator("[data-switch]").filter({ visible: true }).first();
   if (await sw.count()) { await sw.focus(); await page.keyboard.press("Enter"); await page.waitForTimeout(500); await sweep("All threads"); await page.keyboard.press("Escape"); await page.waitForTimeout(300); }
   await panelOpen(page);
+  await page.waitForTimeout(400);
+  await sweep("the panel");
   await filesOpen(page);
   await page.waitForTimeout(500);
   await sweep("the panel's Files");

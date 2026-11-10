@@ -661,6 +661,39 @@ t("SH31: Retry now hands focus to the shell", async () => {
   await done(page);
 });
 
+// ── RINGCLIP · C076: no clipping box cuts a focused control's ring in Launchpad and Shells ──
+// grader B on 24be023 (r23), 390 both themes: Launchpad's Deploy in its folded head ([data-lp="open"], 36 tall on a
+// phone in the 40 px head of a frame that clips) showed its ring only left and right. The sweep (harness.cjs
+// ringClips) focuses every control in view and checks every clipping box around it: Launchpad open, its section
+// folded with Deploy in the head and unfolded again, and the Shells dock with a shell open.
+const { ringClips } = require("./harness.cjs");
+t("RINGCLIP C076: no clipping box cuts a focused control's ring: Launchpad open, folded (Deploy) and open again, the Shells dock", async () => {
+  const cuts = [], counts = [], small = [];
+  const sweep = async (page, where) => { const r = await ringClips(page, where); counts.push(`${where} ${r.n}`); cuts.push(...r.cut); small.push(...r.floor); };
+  let page = await open({ launchpad: "ready" });
+  await page.keyboard.press("Shift"); // a keyboard's focus: the ring is drawn
+  await W.openLaunchpad(page);
+  await page.waitForTimeout(400);
+  await sweep(page, "Launchpad open");
+  await page.locator("[data-fr-fold=launch]").first().click();
+  await page.waitForTimeout(400);
+  const deploy = await page.locator('[data-lp="open"]').count();
+  await sweep(page, `Launchpad folded${deploy ? " (Deploy)" : ""}`);
+  await page.locator("[data-fr-fold=launch]").first().click();
+  await page.waitForTimeout(400);
+  await sweep(page, "Launchpad open again");
+  await done(page);
+  page = await dock();
+  await page.keyboard.press("Shift");
+  await attach(page);
+  await sweep(page, "the Shells dock");
+  console.log(`  RINGCLIP read ${counts.join(", ")}`);
+  if (small.length) console.log(`  RINGCLIP under the floor (not this case's verdict): ${small.join("; ")}`);
+  assert.ok(deploy, "Deploy was in the folded head");
+  assert.deepEqual(cuts, [], `rings cut by a clipping box:\n  ${cuts.join("\n  ")}`);
+  await done(page);
+});
+
 // ── Shells ──
 // the sidebar's Shells: on a phone, from the drawer the menu button opens (it steps aside for the sheet)
 const dock = async (o = {}) => {

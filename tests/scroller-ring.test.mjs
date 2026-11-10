@@ -92,10 +92,10 @@ const CLIPPERS = {
   ".shd.is-half": ["inner", "a phone's Shells sheet: its tabs and list are placed (.shd-tabs, .shd-list)"], ".syl": ["inner", "a record: its lines are placed (.syl-b)"],
   ".md-it": ["inner", "a Made card: its ring a layer inside it (C013), its from line and pin inset"], ".md-th": ["decor", "a picture's thumbnail"],
   ".map": ["inner", "the Map: its head and toolbar pad their controls"], ".mp-sub": ["text", "the Map's sub-line"], ".dg": ["inner", "the diagram: the camera brings what the keyboard reaches into view with room (S208)"],
-  ".stage": ["inner", "the side panel: its frames pad"], ".fr": ["inner", "a frame of the panel: its head pads its controls, its body is placed (.fr-b)"],
+  ".stage": ["bars", "the side panel: every control in its bar draws its ring inside (C076)"], ".fr": ["bars", "a frame of the panel: every control in its head draws its ring inside (C076: Deploy, 36 tall in the 40 px head on a phone), its body is placed (.fr-b)"],
   ".fr[data-fr=\"map\"] .fr-b": ["inner", "the Map's frame: its host pads"], ".stage .fr[data-fr=\"changes\"] .fr-b": ["inner", "the changes frame: its list and pane are placed"],
   ".stg-t": ["text", "a tab's words"], ".ag-t": ["text", "an agent's name"], ".stage .ag-t": ["text", "an agent's name"], ".stage .cx-t": ["text", "a change's name"], ".stage .ch-copy": ["text", "a change's name and path"],
-  ".stage .cx-pane": ["inset:.cx-pd", "a change's diff: the diff fills it, its ring inside (panel.css)"], ".ximg-c": ["decor", "a picture compared"],
+  ".stage .cx-pane": ["bars", "a change's pane: its head's controls and the diff (.cx-pd, panel.css) draw their ring inside"], ".ximg-c": ["decor", "a picture compared"],
   ".stage .fr-lp>.fr-b.is-fade": ["fade", "Launchpad's frame at its cut foot"], ".lp-hs": ["text", "Launchpad's head line"],
   ".mx-album": ["decor", "a message's pictures"], ".lbx-frame": ["decor", "the lightbox's picture"], ".mx-wt": ["text", "the working line"],
   ":root[data-msgx] .m-them .tcard": ["inner", "a thread card in a message: its ring is drawn around the card itself (msgx.css), not inside it"],
@@ -127,6 +127,10 @@ t("each clipping box listed is still one, and holds the ring as listed", () => {
     const own = new RegExp(`${k.replace(/\./g, "\\.")}\\)?:focus-visible\\{outline:2px solid var\\(--focus\\);outline-offset:-2px\\}`).test(all);
     assert.ok(inset.split(",").map((x) => x.trim()).includes(k) || own, `${sel} (${what}): ${k} draws its ring inside it`);
   }
+});
+t("C076: every control in the panel's bars (its own, a frame's head, a change's head) draws its ring inside it, by kind, not a list of names", () => {
+  assert.match(all, /\.stage :is\(\.ag-r,\.ch-r,\.fr-t,\.fr-ib,\.stg-ic,:is\(\.stg-bar,\.fr-h,\.cx-ph\) :is\(button,a\[href\],\[role=tab\]\)\):focus-visible\{outline:2px solid var\(--focus\);outline-offset:-2px\}/);
+  for (const [sel, [how]] of Object.entries(CLIPPERS)) if (how === "bars") assert.ok([".stage", ".fr", ".stage .cx-pane"].includes(sel), `${sel}: only the panel's boxes are placed by its bars' rule`);
 });
 t("C045: the checklist's toggle draws its ring inside it, on the bar's inner corners", () => {
   assert.ok(inset.split(",").includes(".ck-tog"));
