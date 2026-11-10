@@ -209,10 +209,12 @@ body.files-open .mx-down{display:none}
   :root[data-msgx] #msgs>.m.mx-nobub .mx-acts.is-foot{display:none}
 }
 
-/* What the agent did before it answered: one quiet pill on the bubbles' text edge, then the bubble */
+/* What the agent did before it answered: one quiet pill on the bubbles' text edge, then the bubble. The pill is a
+   button, so the compact control height, --h-ctl (it was 28, off the scale: the census of 30bd6d0), as the rail's
+   header and rows it opens to; its words keep their 16 px edge and sit centred, 6 px above and below */
 :root[data-msgx] .m-turn>.mb[data-mx-who]::before{content:attr(data-mx-who);display:block;padding:0 0 4px 16px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
 :root[data-msgx] .m-turn .turn{gap:4px;max-width:none}
-:root[data-msgx] .m-turn .turn>.tb>.tb-h{width:fit-content;min-height:28px;margin:0;padding:4px 12px 4px 16px;border-radius:var(--r-pill);font-size:var(--fs-sm);line-height:20px}
+:root[data-msgx] .m-turn .turn>.tb>.tb-h{width:fit-content;min-height:var(--h-ctl);margin:0;padding:4px 12px 4px 16px;border-radius:var(--r-pill);font-size:var(--fs-sm);line-height:20px}
 :root[data-msgx] .m-turn .turn>.tb>.tb-h :is(.tb-ht,.tb-wn){font-size:var(--fs-sm)}
 :root[data-msgx] .m-turn .turn>.tb>.tb-h:hover{background:var(--hover-fill)!important}
 :root[data-msgx] .m-turn .turn>.tb:is(.is-open,.has-rows)>.tb-h{background:var(--hover-fill)!important}
@@ -296,7 +298,7 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h{position:sticky;top:0;z-index:1;border-radius:var(--r-xl) var(--r-xl) 0 0;background:var(--mx-them-top)!important}
 :root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h :is(.tb-ht,.tb-wn){font-size:var(--fs-md);color:var(--ink-2)}
 :root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-rail{gap:0;margin:0;padding:0 8px;border:0}
-:root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>.tb-h{width:100%;min-height:32px;margin:0;padding:6px 8px;border-radius:calc(var(--r-xl) - 8px);font-size:var(--fs-sm);color:var(--ink-3)}
+:root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>.tb-h{width:100%;min-height:var(--h-ctl);margin:0;padding:6px 8px;border-radius:calc(var(--r-xl) - 8px);font-size:var(--fs-sm);color:var(--ink-3)}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>.tb-h:hover{background:var(--hover-fill)!important}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-hi{display:grid;color:var(--ink-4)}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-hi svg{width:16px;height:16px}
@@ -304,7 +306,7 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-rows{margin:0 0 4px 32px}
 /* Tool rows use the same 8 px inset and 12 px hover corners as the fold rows. Retain the nested
    text column, but remove the base row's asymmetric -6 px overhang on its left edge. */
-:root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-rows>.tb-row>.tb-rh{width:calc(100% + 8px);min-height:32px;margin-left:-8px;padding:6px 8px;border-radius:calc(var(--r-xl) - 8px)}
+:root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-rows>.tb-row>.tb-rh{width:calc(100% + 8px);min-height:var(--h-ctl);margin-left:-8px;padding:6px 8px;border-radius:calc(var(--r-xl) - 8px)}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb-narr{margin:4px 8px;padding:0 8px;font-size:var(--fs-sm);color:var(--ink-3)}
 
 /* The same card for any single work block pressed open (early in a turn there's no fold yet, only one
@@ -316,7 +318,7 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>:is(.tb-steps,.tb-rows,.tb-plan-l){margin:0;padding:0 16px;border:0;gap:4px;font-size:var(--fs-sm);line-height:20px;color:var(--ink-3)}
 :root[data-msgx] .m-turn .turn>.tb-think.is-unfolded>.tb-steps>li{padding:4px 0}
 :root[data-msgx] .m-turn .turn>.tb.tb-act.is-unfolded>.tb-rows{padding:0 8px}
-:root[data-msgx] .m-turn .turn>.tb.tb-act.is-unfolded>.tb-rows>.tb-row>.tb-rh{min-height:32px;margin-left:0;padding:6px 8px;border-radius:calc(var(--r-xl) - 8px)}
+:root[data-msgx] .m-turn .turn>.tb.tb-act.is-unfolded>.tb-rows>.tb-row>.tb-rh{min-height:var(--h-ctl);margin-left:0;padding:6px 8px;border-radius:calc(var(--r-xl) - 8px)}
 
 /* a few emoji and nothing else are the message: large, no bubble */
 :root[data-msgx] .mx-emoji :is(.bubble,.prose){padding:0;background:none!important;box-shadow:none;font-size:var(--fs-4xl);line-height:var(--lh-40)}

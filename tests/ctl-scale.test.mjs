@@ -49,12 +49,10 @@ for (const r of all) {
 const EXCEPT = {
   "app.css: .pj-need { height }": "the project head's \"needs you\" words in its path line: a link in a line of text, its line's 20 (the phone bar's quiet line, put to the owner with the floor)",
 };
-// still off the scale, in a file another fixer owns (fix-assignments.md), routed through the coordinator: the
-// Conversation fixer's folded tool pill (msgx.css). (Launchpad's agent-thread and app rows, 44, went to 48 in its
-// fixer's c14fc08.)
-const NOT_YET = {
-  "msgx.css: :root[data-msgx] .m-turn .turn>.tb>.tb-h { min-height }": 28,
-};
+// still off the scale, in a file another fixer owns (fix-assignments.md): none. Launchpad's agent-thread and app rows
+// (44) went to 48 in its fixer's c14fc08; the folded tool pill (28) to 32 in the Conversation fixer's 89f486a. A new
+// entry here needs its owner and the coordinator's word.
+const NOT_YET = {};
 
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };

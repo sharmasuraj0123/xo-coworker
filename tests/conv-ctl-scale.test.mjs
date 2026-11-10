@@ -60,4 +60,20 @@ t("a phone keeps its 36: the quote's × stays at the floor, 4 px in; Reply and C
   assert.match(msgx, /@media \(hover:none\)\{\.mx-acts\{display:none\}\}/);
 });
 
+// The census of 30bd6d0 (tests/ctl-scale.test.mjs) listed one more in this stylesheet: the folded tool pill, 28. It's a
+// button: the compact control height, --h-ctl, as the rail's header and rows it opens to (a literal 32 till now).
+t("the folded tool pill is --h-ctl (it was 28), and so are the rail's header and rows: the token, not a literal 32", () => {
+  for (const sel of [":root[data-msgx] .m-turn .turn>.tb>.tb-h", ":root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>.tb-h",
+    ":root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-rows>.tb-row>.tb-rh", ":root[data-msgx] .m-turn .turn>.tb.tb-act.is-unfolded>.tb-rows>.tb-row>.tb-rh"])
+    assert.equal(px(body(msgx, sel), "min-height"), "var(--h-ctl)", sel);
+  const pill = body(msgx, ":root[data-msgx] .m-turn .turn>.tb>.tb-h");
+  assert.equal(px(pill, "padding"), "4px 12px 4px 16px", "its words keep their 16 px edge");
+  assert.equal(px(pill, "line-height"), "20px", "centred: (32 − 20) / 2 = 6 above and below");
+});
+
+t("a phone keeps the pill and the rail's header and rows at its 36 floor", () => {
+  assert.match(phone, /:root\[data-msgx\] \.m-turn \.turn>\.tb>\.tb-h,\s*:root\[data-msgx\] \.m-turn \.tb-work\.is-open \.tb-rail>\.tb>\.tb-h,\s*\[data-density="compact"\] \.tb-h\{min-height:36px\}/);
+  assert.match(phone, /:root\[data-msgx\] \.m-turn \.tb-work\.is-open \.tb-rail \.tb-rows>\.tb-row>\.tb-rh,\s*:root\[data-msgx\] \.m-turn \.turn>\.tb\.tb-act\.is-unfolded>\.tb-rows>\.tb-row>\.tb-rh\{min-height:36px\}/);
+});
+
 console.log(`${passed} passed`);
