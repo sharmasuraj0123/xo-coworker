@@ -1740,7 +1740,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 .tb-work:not(.is-open)>.tb>.tb-h .tb-hi{display:none}
 .tb-rows.is-cur,.tb-work>:is(.tb-rows,.tb-chg,.tb-wbad),.turn>.tb>:is(.tb-chg,.tb-plan-l){margin-left:0}
 /* the agent's tile beside a running turn centres on the turn's first line (30 px; 36 on a phone) */
-.m-turn{--tb-line:30px;--av-h:32px}
+.m-turn{--tb-line:var(--h-ctl);--av-h:32px}
 [data-density="compact"] .m-turn{--tb-line:var(--h-ctl)}
 .m-turn>.av:not(.av-gap){margin-top:calc((var(--tb-line) - var(--av-h)) / 2)}
 .tb-cf{display:inline-flex;align-items:center;gap:6px;max-width:260px;height:var(--h-ctl);padding:0 10px 0 8px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
