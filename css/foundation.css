@@ -83,11 +83,11 @@ body.stage-full .stg-grip{display:none}
 :is(.vw-cut-dl,.wsh-home,.cp-link,.tg-ch,.fl-link,.lp-ln,.shl-all,.tp-done-u){transition:color var(--d-hover) var(--ease),text-decoration-color var(--d-hover) var(--ease),opacity var(--d-press) var(--ease)}
 :is(.vw-cut-dl,.wsh-home,.cp-link,.tg-ch,.fl-link,.lp-ln,.shl-all,.tp-done-u):where(:hover:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){color:var(--ink);text-decoration-color:currentColor}
 :is(.vw-cut-dl,.wsh-home,.cp-link,.tg-ch,.fl-link,.lp-ln,.shl-all,.tp-done-u):where(:active:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){opacity:.7}
-/* one of them standing on its own, not a word in a sentence, is a control like any other: the desktop's 24 floor, as
-   the phone's floor gives it 36 (the create-project grader on 414de0f, S014: the docked decision's Undo, 39×20). Zero
-   specificity: one with a floor of its own keeps it (Files' links, 32). Links in a sentence are words, exempt from it:
-   Copy path's, Launchpad's, Home in the Workspace's line (tests/ctl-scale.test.mjs places every one) */
-:where(.vw-cut-dl,.tg-ch,.fl-link,.shl-all,.tp-done-u){min-height:var(--h-sm)}
+/* one of them standing on its own, not a word in a sentence, is a control like any other: on a desktop the 24 floor,
+   as the phone's own floor gives it 36 (the create-project grader on 414de0f, S014: the docked decision's Undo,
+   39×20). Zero specificity: one with a floor of its own keeps it (Files' links, 32). Links in a sentence are words,
+   exempt from it: Copy path's, Launchpad's, Home in the Workspace's line (tests/ctl-scale.test.mjs places them all) */
+@media (min-width:761px){:where(.vw-cut-dl,.tg-ch,.fl-link,.shl-all,.tp-done-u){min-height:var(--h-sm)}}
 :where(.theme,.switch):where(:not(:disabled,[aria-disabled="true"])):where(:active) .th-knob{scale:.88}
 :where(a[href]:not([class])):where(:active){opacity:.7}
 /* a control whose request is out (js/pending.js): it keeps focus and its place, says it's waiting, and doesn't press */
