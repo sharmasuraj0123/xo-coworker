@@ -129,6 +129,7 @@ body.stage-over .stage{box-shadow:var(--e2)}
 @container vwtop (max-width:360px){
   .vw-top .vw-more:is(.is-done,.is-busy) span{display:none}
   .vw-top .vw-more:is(.is-done,.is-busy){width:36px;padding:0}
+  .vw-top .vw-more.is-busy .spin{width:16px;height:16px;border-width:2px} /* alone, it says the state: the icons' 16 px */
 }
 .vw-ic{width:16px;height:20px;border-radius:0;background:none;color:var(--ink-3);display:grid;place-items:center}
 .vw-ic svg,.vw-ic svg.fi{width:16px;height:16px}

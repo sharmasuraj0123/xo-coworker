@@ -16,6 +16,7 @@ t("in a head under 360 px, ⋯ with a state keeps its square and shows the state
   assert.ok(q, "the narrow head's query");
   assert.match(q[1], /\.vw-top \.vw-more:is\(\.is-done,\.is-busy\) span\{display:none\}/, "the word steps aside");
   assert.match(q[1], /\.vw-top \.vw-more:is\(\.is-done,\.is-busy\)\{width:36px;padding:0\}/, "the square stays");
+  assert.match(q[1], /\.vw-top \.vw-more\.is-busy \.spin\{width:16px;height:16px;border-width:2px\}/, "the spinner alone at the icons' 16 px, a 2 px stroke");
 });
 t("the state stays said: the word is ⋯'s name and title, the icon a spinner or a check", () => {
   assert.match(src, /title="\$\{word \|\| "Copy, download"\}" aria-label="\$\{word \|\| "More: copy, download"\}"/);
