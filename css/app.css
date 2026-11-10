@@ -1557,6 +1557,11 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .wsh-stats>div+div{padding-left:12px}
   .cbar{padding:22px 0 calc(12px + env(safe-area-inset-bottom));background:linear-gradient(to bottom,transparent,var(--canvas) 26px)}
   .herald{left:10px;right:10px;bottom:calc(100% - 14px)}
+  /* the notices' line rises 18 px above the composer bar (32 tall, 14 into it): with the put-away file's chip sitting
+     there (8 above the bar, 32 tall), it lies above the chip and its ring's room, never on its × (the controls grader
+     on f93345a, S007: the bottom of the ×'s ring under "Can't reach XO" at 390). With the thread's decision card there
+     instead, the card stands between them and keeps its own room */
+  .dock:has(> .fdock:not(:empty)):not(:has(> .tdock:not(:empty))) .herald:not(.is-out){bottom:calc(100% + 8px + 32px + var(--ring-room))}
   .composer{box-shadow:0 2px 10px var(--comp-shadow),0 1px 0 var(--comp-hi) inset}
   .dock>.herald,.dock>.tdock{margin-left:0;margin-right:0}
   .composer{padding:12px 9px 9px 9px;border-radius:var(--r-3xl)}
