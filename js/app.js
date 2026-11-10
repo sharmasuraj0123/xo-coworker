@@ -2088,8 +2088,9 @@ function updateComposer() {
 /** The composer's placeholder follows the view, and a resolved thread says a reply reopens it. */
 function syncPlaceholder() {
   if (CH.isChats(S.view)) { const ph = CH.placeholder(S.view); if (say.placeholder !== ph) { say.placeholder = ph; $("#say-label").textContent = ph; } return; }
-  const t = convThread(S.view);
-  const ph = t ? (t.state === "resolved" ? "Reply to reopen it…" : t.frozen ? "Write here to pick this thread back up…" : "Reply to the agent…") : S.view === "home" ? (PHONE.matches ? "What should get done?" : "What should get done? Use @project to aim it") : S.view === "ws" ? "Ask anything across your projects…" : `Message ${PROJ(convProject(S.view))}…`;
+  const t = convThread(S.view), pid = convProject(S.view);
+  // (a thread that isn't here has no project to name: its composer isn't drawn, and its label says only "Message")
+  const ph = t ? (t.state === "resolved" ? "Reply to reopen it…" : t.frozen ? "Write here to pick this thread back up…" : "Reply to the agent…") : S.view === "home" ? (PHONE.matches ? "What should get done?" : "What should get done? Use @project to aim it") : S.view === "ws" ? "Ask anything across your projects…" : pid ? `Message ${PROJ(pid)}…` : "Message";
   if (say.placeholder !== ph) { say.placeholder = ph; $("#say-label").textContent = ph; }
 }
 /** The @ list closed, and the field's accessible state with it (no longer expanded, no active option): one
@@ -2470,6 +2471,10 @@ function render() {
   const appEl = $("#app"), kind = isHome ? "home" : isArts ? "artifacts" : v === "ws" ? "ws" : v.startsWith("t:") || v.startsWith("c:") ? "thread" : "project";
   if (appEl.dataset.view !== kind) appEl.dataset.view = kind;
   if (appEl.dataset.conv !== v) appEl.dataset.conv = v;
+  // a thread that isn't here (gone with a reset, or a link older than this Space) offers no message box: there's
+  // nothing to write to (the create-project grader on 131d146: its composer stayed, "Message undefined…")
+  const gone = v.startsWith("t:") && !convThread(v);
+  if (appEl.hasAttribute("data-gone") !== gone) appEl.toggleAttribute("data-gone", gone);
   $("#home").hidden = !isHome;
   $("#arts").hidden = !isArts;
   $("#conv").hidden = isHome || isArts;
@@ -2502,6 +2507,8 @@ function render() {
     // while you are (its first real fill included); if you scrolled up while it loaded, you stay where you
     // went (QA R2: the fill used to count as opening it again and threw you back to the latest)
     if (opening) { rendered = v; toLatest(false); }
+    // focus in the composer as it goes with its thread: to Go to Home, else the conversation, never the page
+    if (gone && document.activeElement === say) ([...msgsEl.querySelectorAll('.calm-act [data-go="home"]')].find(usableEl) || placeRegion()).focus({ preventScroll: true });
   }
   if (!isHome && !isArts) requestAnimationFrame(loadAhead);
   dockRender(needs);
