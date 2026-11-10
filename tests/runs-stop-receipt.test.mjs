@@ -17,11 +17,11 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
 const i = app.indexOf("function stopRunsUndo("), body = app.slice(i, app.indexOf("\nrunsEl.addEventListener(\"click\"", i));
 
 t("the answer is read for what it confirms: sent, ended (one run), none sent (all), or unconfirmed", () => {
-  assert.match(body, /const said = stopReceipt\(r, what\);/);
+  assert.match(body, /const said = stopReceipt\(r, what, key\.startsWith\("all:"\)\);/);
   const j = app.indexOf("function stopReceipt("), f = app.slice(j, app.indexOf("\n}\n", j));
-  assert.match(f, /r\.stopping === true \|\| \(Array\.isArray\(r\.stopping\) && r\.stopping\.length > 0\)/, "sent: true, or the runs it went to");
-  assert.match(f, /r\.stopping === false/, "one run that had ended (stop_run refuses a live record with run_not_live)");
-  assert.match(f, /Array\.isArray\(r\.stopping\) && !r\.stopping\.length/, "Stop all's []: no stop went out");
+  assert.match(f, /all \? Array\.isArray\(r\.stopping\) && r\.stopping\.length > 0 : r\.stopping === true/, "sent: true (one run), or the runs it went to (all)");
+  assert.match(f, /!all && r && r\.stopping === false/, "one run that had ended (stop_run refuses a live record with run_not_live)");
+  assert.match(f, /all && r && Array\.isArray\(r\.stopping\) && !r\.stopping\.length/, "Stop all's []: no stop went out");
   assert.doesNotMatch(f.slice(f.indexOf("Array.isArray(r.stopping) && !r.stopping.length")), /^[^\n]*already finished/m, "[] never claims they finished");
   assert.match(f, /didn't confirm/, "anything else: not confirmed");
 });
@@ -42,5 +42,16 @@ t("a redraw keeps focus on the same control, found by its hook's name and value;
 t("the Undo in its line: an even 2 px inset, and the line's corners its own plus the inset (6 + 2 = 8)", () => {
   assert.match(css, /\.rn-stopping\{[^}]*padding:2px 2px 2px 12px;[^}]*border-radius:var\(--r\);/);
   assert.match(css, /\.rn-stopping>\.t-undo\{height:36px\}/);
+});
+// each endpoint's answer is read in its own type (the create-project grader on 8d8b244, runs-stop-types: routers/
+// cowork_agent/storm/runs.py gives stop_run {run, stopping: bool} and stop_all {stopping: [ids]}; a one-run
+// {stopping:['a1']} said it was sent, and a Stop all {stopping:false} said it had finished)
+t("one run's answer is a boolean, Stop all's an array: the other type confirms nothing", () => {
+  const j = app.indexOf("function stopReceipt("), f = app.slice(j, app.indexOf("\n}\n", j));
+  assert.match(f, /function stopReceipt\(r, what, all\)/);
+  assert.match(f, /const sent = !!r && \(all \? Array\.isArray\(r\.stopping\) && r\.stopping\.length > 0 : r\.stopping === true\);/);
+  assert.match(f, /if \(!all && r && r\.stopping === false\)/, "had ended: one run only");
+  assert.match(f, /if \(all && r && Array\.isArray\(r\.stopping\) && !r\.stopping\.length\)/, "none went out: Stop all only");
+  assert.match(body, /const said = stopReceipt\(r, what, key\.startsWith\("all:"\)\);/, "the endpoint from the stop's key");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

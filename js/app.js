@@ -1492,18 +1492,20 @@ function closeRuns() {
 // Stops waiting out their Undo. One herald shows them all, so a second stop never hides the first's Undo.
 const pendingStops = [];
 const stopsOut = new Set(); // stop requests sent and not yet answered, by key
-/** What a stop's answer confirms, and only that (the create-project grader on 2a8d278, S100/S101): stop_run answers
- *  stopping true (sent) or false (it had ended: a record still working is refused, run_not_live); stop_all answers the
+/** What a stop's answer confirms, and only that (the create-project grader on 2a8d278, S100/S101), each endpoint in its
+ *  own type (routers/cowork_agent/storm/runs.py; the grader on 8d8b244, runs-stop-types): stop_run answers stopping
+ *  true (sent) or false (it had ended: a record still working is refused, run_not_live); stop_all (all) answers the
  *  runs a stop went to, and [] when none went (they may have ended, or no live process runs them: never "finished").
- *  Anything else confirms nothing. {kind, text, sub, say} for the notice, the sheet and the announcement. */
-function stopReceipt(r, what) {
-  const sent = !!r && (r.stopping === true || (Array.isArray(r.stopping) && r.stopping.length > 0));
+ *  Anything else, the other endpoint's type included, confirms nothing. {kind, text, sub, say} for the notice, the
+ *  sheet and the announcement. */
+function stopReceipt(r, what, all) {
+  const sent = !!r && (all ? Array.isArray(r.stopping) && r.stopping.length > 0 : r.stopping === true);
   if (sent) {
     const n = Array.isArray(r.stopping) ? r.stopping.length : 1;
     return { kind: "halt", text: "Stopping", sub: n > 1 ? `${n} sub-agents · what they did is kept` : `${what} · what it did is kept`, say: `Stopping ${what}. What it did is kept.` };
   }
-  if (r && r.stopping === false) return { kind: "halt", text: "It had already finished", sub: what, say: `${what} had already finished.` };
-  if (r && Array.isArray(r.stopping) && !r.stopping.length) return { kind: "stopped", text: "No stop went out", sub: `${what}: none of them is running in a live session, though XO's record may still say they're working`, say: `No stop went out for ${what}: none of them is running in a live session.` };
+  if (!all && r && r.stopping === false) return { kind: "halt", text: "It had already finished", sub: what, say: `${what} had already finished.` };
+  if (all && r && Array.isArray(r.stopping) && !r.stopping.length) return { kind: "stopped", text: "No stop went out", sub: `${what}: none of them is running in a live session, though XO's record may still say they're working`, say: `No stop went out for ${what}: none of them is running in a live session.` };
   return { kind: "stopped", text: "Not confirmed", sub: `${what}: XO didn't confirm a stop was sent. Stop again if it keeps working.`, say: `XO didn't confirm the stop of ${what}.` };
 }
 function stopRunsUndo(what, fn, key = what, session = RS.session) {
@@ -1526,7 +1528,7 @@ function stopRunsUndo(what, fn, key = what, session = RS.session) {
     try {
       const r = await fn();
       // what the answer confirms, and only that (the create-project grader on 2a8d278, S100/S101)
-      const said = stopReceipt(r, what);
+      const said = stopReceipt(r, what, key.startsWith("all:"));
       heraldShow(said, said.kind === "halt" ? 3600 : 6000);
       RS.said = { key, ...said };
       announce(said.say);
