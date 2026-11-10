@@ -21,9 +21,9 @@ t("no two literal viewer controls share a first hook and value", () => {
   // the same control drawn in two places (the head and ⋯'s menu, or a branch's twin) is one control
   // (the head while editing has two templates, a conflict's and the ordinary one: never both drawn)
   const twins = new Set(["data-vw-more", "data-vw-copy", "data-vw-copy-path", "data-vw-download", "data-vw-update", "data-vw-edit", "data-vw-mode", "data-vw-x", "data-vw-cancel", "data-vw-saveit"]);
-  // the diff's Try again ([data-vw-show="changes"], a control of S127's kind on the list) lives in the diff's own region
-  // and is put back by inRegion within that region, never searched for in the head
-  const regionOnly = new Set(["data-vw-show=changes"]);
-  assert.deepEqual([...new Set(dup)].filter((h) => !twins.has(h.split("=")[0]) && !regionOnly.has(h) && !/=\$\{/.test(h)), [], "shared first hooks");
+  // (none is exempt for living in its own region: render redraws the whole viewer and looks a hook up across all of
+  // it, so the diff's Try again, once [data-vw-show="changes"] first, gave focus to the head's Changes: the controls
+  // grader on 70375ad, Image-renderer-retry-v2)
+  assert.deepEqual([...new Set(dup)].filter((h) => !twins.has(h.split("=")[0]) && !/=\$\{/.test(h)), [], "shared first hooks");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

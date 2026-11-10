@@ -75,8 +75,9 @@ const verdictOf = (id) => {
 // read as links, whose hover and press became one shared state in a4faed2, S139). The rows are every control the
 // shared selectors reach (.vw-cut-dl .wsh-home .cp-link .tg-ch .fl-link .lp-ln .shl-all .tp-done-u in the templates):
 // tests/stale-pass.test.mjs finds them again from the code, so a new one can't be missed (the controls grader: S238,
-// Runs' Try again, is .fl-link too; S127's diff Try again is .vw-cut-dl)
-const LINK_ROWS = ['S139', 'S253', 'S126', 'S127', 'C022', 'S049', 'S155', 'S156', 'S061', 'S238', 'S266', 'S220', 'S014'];
+// Runs' Try again, is .fl-link too; the diff renderer's Try again, S272, is .vw-cut-dl: it was S127's until it had a
+// hook of its own, the controls grader on 70375ad, Image-renderer-retry-v2)
+const LINK_ROWS = ['S139', 'S253', 'S126', 'S272', 'C022', 'S049', 'S155', 'S156', 'S061', 'S238', 'S266', 'S220', 'S014'];
 const SINCE = [{ commit: 'a4faed2', what: 'its hover and press became the shared link state', ids: LINK_ROWS }];
 const hasCommit = (rev, c) => { try { require('child_process').execSync(`git merge-base --is-ancestor ${c} ${rev}`, { cwd: ROOT, stdio: 'ignore' }); return true; } catch { return false; } };
 const verdictNow = (id) => {
@@ -344,6 +345,8 @@ const DOES = {
   'data-vw-toastx': 'Closes the Saved notice.',
   'data-vw-retry': 'Draws the file again after its view failed to show it.',
   'data-vw-diff-retry': 'Reads a change again after it failed to read.',
+  'button[data-vw-diff-redraw,data-vw-show]': 'Draws a change again after the renderer failed to draw it; busy in place while it tries, focus kept on it.',
+  'button[data-vw-draft-show,data-vw-show]': 'Your draft, in Changes when this browser keeps your unsaved edits to the file: shows File, where they are.',
   '#top-back': 'Back to the thread\'s project.',
   'data-resolve': 'Marks the thread resolved (or open again).',
   'data-tmenu': 'Thread menu: rename, label and more.',

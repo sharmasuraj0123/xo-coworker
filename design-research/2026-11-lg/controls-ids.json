@@ -2,7 +2,7 @@
  "note": "Canonical key → row ID. Append-only: never renumber, never reuse.",
  "next": {
   "C": 127,
-  "S": 271
+  "S": 273
  },
  "ids": {
   "C001": {
@@ -1642,6 +1642,14 @@
   },
   "S270": {
    "key": "input[data-vw-cut-sel]",
+   "aliases": []
+  },
+  "S271": {
+   "key": "button[data-vw-draft-show,data-vw-show]",
+   "aliases": []
+  },
+  "S272": {
+   "key": "button[data-vw-diff-redraw,data-vw-show]",
    "aliases": []
   }
  },

@@ -96,8 +96,9 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   const COPY_SAYS_MS = 150;
   const V = { open: false, parked: false, file: null, data: null, error: null, loading: false, mode: "preview", returnTo: null, gen: 0, copied: false, dims: null, busy: null, saveError: null, show: "file", split: false, draft: null, menu: false };
   // the diff, kept across redraws of the head (Pierre's element moves with its body): {el, handle, img (an image
-  // change's drawing, js/imagechange.js), key, gen}
-  const DF = { el: null, handle: null, img: null, key: null, gen: 0, ask: 0, reading: null };
+  // change's drawing, js/imagechange.js), key, gen, failed (the change the renderer last failed to draw: its notice
+  // turns busy when it's drawn again)}
+  const DF = { el: null, handle: null, img: null, key: null, gen: 0, ask: 0, reading: null, failed: null };
   /** This file in its place's changes ({scope, path, file, base}), or null. */
   const chg = () => (changes && V.file && V.file.project && V.file.rel ? changes.at(V.file.project, V.file.rel) : null);
   const showsDiff = () => V.show === "changes" && !!chg();
@@ -567,7 +568,18 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       if (DF.handle) { DF.handle.destroy(); DF.handle = null; }
       if (DF.img) { DF.img.drop(); DF.img = null; }
       DF.key = null; DF.pend = null;
-      inRegion(host, () => { host.innerHTML = `<p class="vw-empty" role="status"><i class="spin" aria-hidden="true"></i> Reading the change…</p>`; });
+      // drawing again after the renderer failed on this change says so in its notice, in place, its Try again busy (a
+      // second press does nothing more), so focus on it stays on it, as the file's does (S139). Its words were replaced
+      // by "Reading the change…" before render looked for the focused Try again, and the head took focus (the controls
+      // grader on 70375ad, Image-renderer-retry-v2). Otherwise the body says it's reading.
+      const redo = DF.failed === at && host.querySelector(":scope > .vw-empty [data-vw-diff-redraw]");
+      DF.failed = null;
+      if (redo) {
+        const box = redo.closest(".vw-empty"), words = box.querySelector("p");
+        box.setAttribute("role", "status");
+        if (words) words.textContent = "Drawing this diff…";
+        redo.setAttribute("aria-busy", "true"); redo.setAttribute("aria-disabled", "true"); redo.textContent = "Trying again…";
+      } else inRegion(host, () => { host.innerHTML = `<p class="vw-empty" role="status"><i class="spin" aria-hidden="true"></i> Reading the change…</p>`; });
       DF.reading = at;
     }
     // a read that failed is said as a failure, never as "too large" (Astra: a failed fetch read "Too large to show")
@@ -604,16 +616,23 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       if (DF.handle && DF.key && DF.key.startsWith(`${c.scope.key}|${c.path}|`)) DF.handle.update(patch);
       else {
         if (DF.handle) { DF.handle.destroy(); DF.handle = null; }
-        inRegion(host, () => host.replaceChildren());
+        // (the busy notice of a draw after a failure stays until the drawing is in, then goes; focus on its Try again
+        // goes to the diff's body)
+        if (!host.querySelector(':scope > .vw-empty [data-vw-diff-redraw][aria-busy="true"]')) inRegion(host, () => host.replaceChildren());
         const h = await DV.diff(host, patch, { path: c.path, wrap: true, split: V.split, loadFiles: (fd) => bothSides(c, fd) });
         if (my !== DF.gen) { h.destroy(); return; }
         DF.handle = h;
+        inRegion(host, () => { for (const x of host.querySelectorAll(":scope > .vw-empty")) x.remove(); });
       }
       DF.key = key;
     } catch {
       if (my !== DF.gen) return;
       dropDiff(); // (clears pend: Try again draws afresh)
-      inRegion(host, () => { host.innerHTML = `<div class="vw-empty"><p>Couldn't draw this diff.</p><p><button type="button" class="vw-cut-dl" data-vw-show="changes">Try again</button></p></div>`; });
+      DF.failed = at;
+      // its Try again shows the changes again, behind a hook of its own: render finds the focused control again by its
+      // first hook across the whole viewer, and data-vw-show="changes" first found the head's Changes (the controls
+      // grader on 70375ad, Image-renderer-retry-v2)
+      inRegion(host, () => { host.innerHTML = `<div class="vw-empty"><p>Couldn't draw this diff.</p><p><button type="button" class="vw-cut-dl" data-vw-diff-redraw data-vw-show="changes">Try again</button></p></div>`; });
     }
   }
 
@@ -1005,6 +1024,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (V.menu && e.target.closest(".vw-menu a")) { setTimeout(() => menuOff(true)); return; }
     if (V.menu && e.target.closest(".vw-menu")) V.menu = false;
     if (e.target.closest("[data-vw-close]")) { close(); return; }
+    if (e.target.closest('[data-vw-diff-redraw][aria-busy="true"]')) return;
     const sh = e.target.closest("[data-vw-show]");
     if (sh) { V.show = sh.dataset.vwShow; if (V.show === "file" && !V.data && !V.loading) { load(); return; } V.keepScroll = true; render(); return; }
     if (e.target.closest("[data-vw-ask]")) { openAsk(); return; }
