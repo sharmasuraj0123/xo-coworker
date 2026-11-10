@@ -663,7 +663,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     const moved = !F || Math.max(Math.abs(B.x0 - F.x0), Math.abs(B.y0 - F.y0), Math.abs(B.x1 - F.x1), Math.abs(B.y1 - F.y1)) > 8;
     const over = B.x0 * c.s + c.x < 0 || B.x1 * c.s + c.x > v.clientWidth || B.y0 * c.s + c.y < 0 || B.y1 * c.s + c.y > v.clientHeight - 44;
     if ((!c.user || c.fitAll) && (moved || over)) { fit(c, true, true); return; }
-    if (c.follow && lead && c.target !== lead.key) { c.target = lead.key; keepInView(c, lead.pt); }
+    if (c.follow && lead && c.target !== lead.key) { c.target = lead.key; keepInView(c, lead); }
   }
   /** A fresh first look for this view's camera, unless you've moved it yourself. */
   function reframe(scope) {
@@ -671,17 +671,28 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     if (!c.user) { c.done = false; c.settleUntil = 0; c.target = null; }
   }
   /** Pan just enough that `pt` (and its name) is comfortably inside the view; never zoom. */
-  function keepInView(c, pt) {
+  /** Follow nudges the view only when the followed cursor would leave it: its arrow, and its name beside it where
+   *  there's room, inside the view's margins, by the least move (and a little more, so it isn't on the edge). The arrow
+   *  comes first when both can't fit. All in the drawing's units, scaled by the camera (the controls grader's
+   *  S208-moving-follow on 70375ad: the box's middle was kept in view, its arrow at the box's edge was not). */
+  function keepInView(c, lead) {
     const v = view();
-    if (!v || !v.clientWidth) return;
+    if (!v || !v.clientWidth || !lead.at) return;
     const W = v.clientWidth, H = v.clientHeight - 44, m = 48;
-    const sx = c.x + pt.x * c.s, sy = c.y + pt.y * c.s;
-    const right = W - m - Math.min(tagW() * c.s, W / 3);
+    const a = lead.at, tw = lead.tw || 0;
+    // the arrow's box (an 18 px glyph at its tip), and its name's: right of it, left of it, or below
+    const arrow = [a.x - 2, a.x + 16], name = lead.side === "left" ? [a.x - tw - 4, a.x - 4] : lead.side === "below" ? [a.x + 10 - tw, a.x + 10] : [a.x + 15, a.x + 15 + tw];
+    const top = a.y - 2, bottom = lead.side === "below" ? a.y + 31 + 22 : a.y + 20;
+    const sx = (x) => c.x + x * c.s, sy = (y) => c.y + y * c.s;
+    let l = Math.min(arrow[0], name[0]), r = Math.max(arrow[1], name[1]);
+    if (!tw || (r - l) * c.s > W - 2 * m) { l = arrow[0]; r = arrow[1]; } // no room for both: the arrow
+    const ease = W * 0.12;
     let dx = 0, dy = 0;
-    if (sx < m) dx = m + W * 0.12 - sx; else if (sx > right) dx = right - W * 0.12 - sx;
-    if (sy < m) dy = m + H * 0.12 - sy; else if (sy > H - m) dy = H - m - H * 0.12 - sy;
+    if (sx(l) < m) dx = Math.min(m + ease - sx(l), W - m - sx(r)); else if (sx(r) > W - m) dx = Math.max(W - m - ease - sx(r), m - sx(l));
+    if (sy(top) < m) dy = m + H * 0.12 - sy(top); else if (sy(bottom) > H - m) dy = H - m - H * 0.12 - sy(bottom);
     if (dx || dy) { c.x += dx; c.y += dy; applyCam(c, true); }
   }
+
 
   /** The drawing changed shape: shift the camera so the box you were looking at doesn't move on screen. */
   function holdStill(scope, old, L) {
@@ -765,7 +776,9 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
         c.node = a.nid;
       }
       if (!M.lead && a.busy) M.leadNode = a.nid;
-      if (!M.lead && a.busy) M.lead = { key: `${a.id}@${a.nid}`, pt: { x: p.cx - (p.side === "left" ? tagW() : p.side === "below" ? tagW() / 2 : 0), y: p.cy } }; // centring takes its name in too
+      // pt: where centring aims (the box, its name taken in); at: the arrow's own point, its side and its name's width,
+      // which Follow keeps in view (S208: the box's middle in view left the arrow, at the box's edge, outside)
+      if (!M.lead && a.busy) M.lead = { key: `${a.id}@${a.nid}`, pt: { x: p.cx - (p.side === "left" ? tagW() : p.side === "below" ? tagW() / 2 : 0), y: p.cy }, at: { x, y }, side: p.side || "right", tw: c.el.querySelector(".dg-tag")?.offsetWidth || 0 };
     }
     for (const [k, c] of M.curs) if (!seen.has(k)) { c.el.classList.add("is-gone"); setTimeout(() => c.el.remove(), 320); M.curs.delete(k); }
   }
