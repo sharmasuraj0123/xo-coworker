@@ -322,6 +322,21 @@ t("CONV-4 C045: Enter on the checklist opens it and keeps focus on the same togg
   await done(page);
 });
 
+// C045 (the owner's option A, 10 Nov): a thread without a plan has no checklist bar; it comes with the first step
+t("C045: a thread with no steps shows no checklist toggle; with its first step the bar is there", async () => {
+  const page = await app({ threads: [...THREADS(), TH("t_plan", "No plan yet", "working", { status_md: "" }), TH("t_first", "First step", "working", { status_md: "✱ Read the form" })] });
+  await openThread(page, "t_plan");
+  await settle(page, 300);
+  assert.equal(await page.locator("[data-ck]").count(), 0, "no toggle without steps");
+  assert.equal(await page.locator("#thead").evaluate((e) => e.hidden || !e.getClientRects().length), true, "the head holds nothing, so it's hidden");
+  assert.doesNotMatch(await page.locator("#conv").innerText(), /All 0 steps done|0 of 0/);
+  await openThread(page, "t_first");
+  await settle(page, 300);
+  assert.equal(await page.locator("[data-ck]").count(), 1, "the bar, with its first step");
+  assert.match(await page.locator("[data-ck]").innerText(), /0 of 1/);
+  await done(page);
+});
+
 // ── CONV-3 · S020: the All filter ───────────────────────────────────────────
 async function openAllSheet(page) {
   await page.evaluate(() => window.__t.go("p:demo"));

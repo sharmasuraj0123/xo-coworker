@@ -1318,8 +1318,17 @@ function checklistRender(needs) {
   const th = $("#thead");
   const t = convThread(S.view);
   if (!t) { th.hidden = true; th._h = ""; return; }
-  th.hidden = false;
   const c = t.checklist;
+  // no steps, no checklist: a thread without a plan has nothing to disclose and no step to count, so the head holds
+  // only its runs (none: it hides). It painted a 0-of-0 toggle that opened onto nothing and said "All 0 steps done"
+  // (the create-project/Launchpad grader on 70375ad, C045). The bar comes with the agent's first step.
+  if (!c.total) {
+    const all = runsStrip(t);
+    if (th._h !== all) { redraw(th, all); th._h = all; }
+    th.hidden = !all;
+    return;
+  }
+  th.hidden = false;
   const open = !!S.ckOpen[t.id];
   const seen = S.ckSeen[t.id];
   if (seen != null && c.done > seen) {
