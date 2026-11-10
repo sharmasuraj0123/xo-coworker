@@ -49,10 +49,10 @@ for (const r of all) {
 const EXCEPT = {
   "app.css: .pj-need { height }": "the project head's \"needs you\" words in its path line: a link in a line of text, its line's 20 (the phone bar's quiet line, put to the owner with the floor)",
 };
-// still off the scale, in files another fixer owns (fix-assignments.md), routed through the coordinator: the
-// Launchpad fixer's approval rows (launchpad.css) and the Conversation fixer's folded tool pill (msgx.css)
+// still off the scale, in a file another fixer owns (fix-assignments.md), routed through the coordinator: the
+// Conversation fixer's folded tool pill (msgx.css). (Launchpad's agent-thread and app rows, 44, went to 48 in its
+// fixer's c14fc08.)
 const NOT_YET = {
-  "launchpad.css: .lp-agr { height }": 44, "launchpad.css: .lp-appr { height }": 44,
   "msgx.css: :root[data-msgx] .m-turn .turn>.tb>.tb-h { min-height }": 28,
 };
 

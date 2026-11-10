@@ -214,9 +214,10 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .lp-ck svg{width:12px;height:12px}
 .lp-check li.is-ok .lp-c>b{color:var(--ink-3)}
 
-/* getting ready: the agent at it, raised like the panel's chosen row */
+/* getting ready: the agent at it, raised like the panel's chosen row. It and an app to link are rows with a second
+   line, on the rows' scale (48: 6 + its two lines, 20 + 16, + 6), the 28 px tile centred, the words' left edge where it was */
 .lp-ag{list-style:none;margin:0 12px 12px;padding:0}
-.lp-agr,.lp-appr{display:grid;grid-template-columns:28px minmax(0,1fr) auto;column-gap:8px;align-items:center;width:100%;height:44px;padding:4px 8px;border:0;border-radius:var(--r-lg);background:transparent;text-align:left;transition:background var(--d-hover) var(--ease)}
+.lp-agr,.lp-appr{display:grid;grid-template-columns:28px minmax(0,1fr) auto;column-gap:8px;align-items:center;width:100%;height:var(--h-row-act);padding:6px 8px;border:0;border-radius:var(--r-lg);background:transparent;text-align:left;transition:background var(--d-hover) var(--ease)}
 .lp-agr{background:color-mix(in srgb,var(--ink) 8%,var(--sunken));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 11%,transparent),var(--panel-lift)}
 .lp-agr .lp-t{background:color-mix(in srgb,var(--work) 10%,var(--surface));color:var(--work)}
 .lp-agr .arc{background:color-mix(in srgb,var(--ink) 8%,var(--sunken))}
