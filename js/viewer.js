@@ -1101,6 +1101,10 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   // only placed the caret selects it all again
   el.addEventListener("focusin", (e) => { if (e.target.matches?.(".vw-cut-sel")) e.target.select(); });
   el.addEventListener("click", (e) => { const s = e.target.closest?.(".vw-cut-sel"); if (s && s.selectionStart === s.selectionEnd) s.select(); });
+  // a press on the offered path selects all of it: the mouse's own caret placement is kept off it (it came after the
+  // click's select and collapsed it again: the controls grader on c767cbf, S270-manual-reclick-v4); it takes focus and
+  // selects itself here instead. A finger's long-press keeps the platform's own selection
+  el.addEventListener("mousedown", (e) => { const s = e.target.closest?.(".vw-cut-sel"); if (!s || e.button !== 0) return; e.preventDefault(); s.focus({ preventScroll: true }); s.select(); });
   el.addEventListener("keydown", (e) => {
     if (V.menu && e.target.closest(".vw-mw")) {
       const items = menuItems(), i = items.indexOf(document.activeElement);

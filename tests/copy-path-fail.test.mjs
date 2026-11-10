@@ -46,4 +46,11 @@ t("the offered field has its own hook, so it has a row and keeps focus across a 
 t("the words keep their row beside the clock, wrapping inside it; the field alone goes under them", () => {
   assert.match(css, /\.vw-cut:has\(\.vw-cut-sel\)>span\{flex:1 1 0;min-width:0\}/);
 });
+// a click on it selects all of it, however it lands: the mouse's own caret placement is kept off it (the controls
+// grader on c767cbf, S270-manual-reclick-v4, all four cells: Tab selected all, End collapsed it, then one click: the
+// click handler read 0..12 (its guard skipped) and the field settled collapsed at 0..0, the browser's caret placement
+// for that press coming after it). On a mouse press the field takes focus and selects itself; the press places no caret
+t("a press on the offered path selects all of it, and the mouse's caret placement is kept off it", () => {
+  assert.match(src, /el\.addEventListener\("mousedown", \(e\) => \{ const s = e\.target\.closest\?\.\("\.vw-cut-sel"\); if \(!s \|\| e\.button !== 0\) return; e\.preventDefault\(\); s\.focus\(\{ preventScroll: true \}\); s\.select\(\); \}\);/);
+});
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
