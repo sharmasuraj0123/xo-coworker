@@ -52,9 +52,10 @@ t("LP10: every hint and error is whole, under its field; an invalid field takes 
   // each hint sits under its own field
   const under = await page.evaluate(() => ["name", "port"].every((k) => { const i = document.querySelector(`[data-lp-f="${k}"]`).getBoundingClientRect(), h = document.querySelector(`#lp-h-${k}`).getBoundingClientRect(); return h.top >= i.bottom - 1 && Math.abs(h.left - i.left) < 2; }));
   assert.ok(under, "hints under their fields, on their edge");
-  // every field and lit button is on the 24/32/40 scale
+  // every field and lit button is on the 24/32/40 scale; on a phone at least the shared 36 px floor (32fa270, b7cf1ec:
+  // every control and text field on a phone is 36 tall), so 36 or 40
   const sizes = await page.evaluate(() => [...document.querySelectorAll(".lp .lp-in, .lp .lp-go, .lp .lp-b, .lp .lp-a, .lp .lp-ib")].filter((n) => n.offsetParent).map((n) => Math.round(n.getBoundingClientRect().height)));
-  assert.ok(sizes.every((h) => [24, 32, 40].includes(h)), `heights ${[...new Set(sizes)]}`);
+  assert.ok(sizes.every((h) => (WIDTH < 760 ? [36, 40] : [24, 32, 40]).includes(h)), `heights ${[...new Set(sizes)]}`);
   await done(page);
 });
 
@@ -64,7 +65,7 @@ t("LP11: name taken: Launchpad's free name is a button under the hint, and takes
   await page.locator('[data-lp="deploy"]').click();
   await page.waitForSelector('[data-lp="use-name"]', { timeout: 6000 });
   const pos = await page.evaluate(() => { const h = document.querySelector("#lp-h-name").getBoundingClientRect(), b = document.querySelector('[data-lp="use-name"]').getBoundingClientRect(); return { below: b.top >= h.bottom - 1, edge: Math.abs(b.left - h.left), h: b.height }; });
-  assert.ok(pos.below && pos.edge < 2 && pos.h === 24, JSON.stringify(pos));
+  assert.ok(pos.below && pos.edge < 2 && pos.h === (WIDTH < 760 ? 36 : 24), JSON.stringify(pos)); // (a phone's 36 floor)
   await page.locator('[data-lp="use-name"]').click();
   await page.waitForFunction(() => document.querySelector('[data-lp-f="name"]')?.value === "xo-coworker-2");
   assert.equal(await page.locator('[data-lp="use-name"]').count(), 0, "the error and its fix go");
@@ -194,7 +195,7 @@ t("LP35: the ⋯ menu answers the keyboard: focus in, Esc back to More, Tab out 
   // not the long-press menu's look (app.css .lp-menu): a 32 px item at 13 px
   // its laid-out height (offsetHeight): with motion on, the menu is still floating in (scale .98 → 1) when measured
   const item = await page.evaluate(() => { const b = document.querySelector('.lp-mn [role="menuitem"]'); const cs = getComputedStyle(b); return { h: b.offsetHeight, fs: cs.fontSize, pos: getComputedStyle(b.parentElement).position }; });
-  assert.deepEqual(item, { h: 32, fs: "13px", pos: "absolute" });
+  assert.deepEqual(item, { h: WIDTH < 760 ? 36 : 32, fs: "13px", pos: "absolute" }); // (a phone's 36 floor)
   await page.keyboard.press("Escape");
   await page.waitForTimeout(80);
   assert.equal(await page.locator(".lp-mn").count(), 0);
