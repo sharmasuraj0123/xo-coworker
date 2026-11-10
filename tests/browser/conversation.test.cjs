@@ -1160,8 +1160,13 @@ async function chosenAnswer(page, where) {
     await page.mouse.move(1, 1); await settle(page, 220);
     const rest = await look(i);
     const b = await page.locator(`[data-chi="${i}"]`).boundingBox();
+    // evidence on request: the grader's chip at rest and hovered (SH_DIR)
+    const clip = { x: Math.max(0, b.x - 10), y: Math.max(0, b.y - 10), width: b.width + 20, height: b.height + 20 };
+    const shoot = process.env.SH_DIR && /data-af=all/.test(rest.name) ? (k) => page.screenshot({ path: `${process.env.SH_DIR}/S020-${C.width}-${C.theme}-${k}.png`, clip }) : null;
+    if (shoot) await shoot("rest");
     await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2); await settle(page, 260);
     const hover = await look(i);
+    if (shoot) await shoot("hover");
     seen.push(rest.name);
     if (rest.v === hover.v) silent.push(`${where}: ${rest.name}`);
   }
