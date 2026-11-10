@@ -57,6 +57,11 @@ body.stage-full .stg-grip{display:none}
    the few that fill or give already (Create, .btn, the picker's rows and chip, the gear, +). */
 :is(.help,.create,.then-i,.hm-quiet,.top-back,.all-btn,.nw,.wsh-next,.tc-open,.tc-dec,button.hr,.t-undo,.dock-hide,.dock-fold,.btn,.set-nav button,button.kr-k,.tb-cf,.tw-act,.tw-rt,.tb-fb,.syl-got,.map-btn,.stg-btn,.fl-r,.stg-tab,.ar,.syl-ln,.jump-list li,.iq-row,.hd,.hd-r,.fl-back,.stg-ic,.md-open,.md-from):active,.pn-nav:active:not(:disabled){transform:none}
 :where(button,[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],summary,.rt-check):where(:not(:disabled,[aria-disabled="true"],.send,.b,.b-hold,.theme,.switch,.lp-go,.lk-in,.tw-act.lp-btn,.prow,.nrow,.create,.btn,.iq,.iq-row,.iq-done,:is(.vw-cut-dl,.wsh-home,.cp-link,.tg-ch,.fl-link,.lp-ln,.shl-all,.tp-done-u),.gear,.side-plus,.lp-menu button)):where(:active){background-image:linear-gradient(var(--press-fill),var(--press-fill))!important;--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
+/* hovered, a control's secondary words step up to the second ink, as pressed ones do: on the 6% hover fill the meta
+   inks fall under 4.5:1 (--ink-4 3.9–4.1 on dark float and surface and on light sunken, --ink-3 4.37 on dark float);
+   the second keeps 7.8–9.7. One rule for every control, the owner's choice (10 Nov 11:19); the sidebar's rows keep
+   their own look */
+:where(button,[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],summary,.rt-check):where(:hover:not(:disabled,[aria-disabled="true"],.prow,.nrow)){--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
 /* a button that reads as a link in text (Try again, Download, Back to the Workspace, the @ list's change, Files'
    links, …): no box to fill, so it answers as a link does. Hover brings its ink and its underline up to full; a
    press dims it. One state for all of them (the controls grader on d79d37e, S139: the viewer's Try again looked the
