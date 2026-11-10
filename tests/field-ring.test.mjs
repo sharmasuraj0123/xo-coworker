@@ -11,13 +11,14 @@ const all = readdirSync(dir).filter((f) => f.endsWith(".css")).map((f) => readFi
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 t("Files' Find and the new file's name, and the other search boxes, show the one ring", () => {
-  const rule = /:is\(\.fl-q,\.all-q,\.ar-q\):has\(input:focus-visible\),\.fl-new-r input:focus-visible\{outline:2px solid var\(--focus\);outline-offset:1px\}/;
+  const rule = /:is\(\.fl-q,\.all-q,\.ar-q,\.side-find\):has\(input:focus-visible\),\.fl-new-r input:focus-visible\{outline:2px solid var\(--focus\);outline-offset:1px\}/;
   assert.ok(rule.test(all), "the one rule");
   assert.ok(/:focus-visible\{outline:2px solid var\(--focus\);outline-offset:2px\}/.test(all), "the base ring it matches");
 });
 t("each search box it names holds a field whose own outline is taken away (so the box must show it)", () => {
   for (const box of ["fl-q", "all-q", "ar-q"]) assert.ok(new RegExp(`\\.${box} input\\{[^}]*outline:none`).test(all), `.${box} input has outline:none`);
   assert.ok(/\.fl-new-r input\{[^}]*outline:none/.test(all), ".fl-new-r input has outline:none");
+  assert.ok(/#pf-in\{[^}]*outline:none/.test(all), "the sidebar's Find a project (#pf-in, in .side-find) has outline:none (C007)");
 });
 // the boxed text fields (a form's .field: Shape's JSON, a model's key and name, Routing's preference, Create XO
 // Project's; Launchpad's .lp-in; a shell's name .shd-in; a note to the agent, .c-note textarea): the base ring, never

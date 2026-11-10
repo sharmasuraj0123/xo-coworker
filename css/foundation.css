@@ -172,8 +172,9 @@ body.stage-full .stg-grip{display:none}
 
 /* a field the keyboard is in shows the one ring (2 px of the focus colour): a box that holds a borderless search field
    draws it on the box, the new file's name on itself. They showed only a darker edge, which isn't a ring (the controls
-   grader on 9d1f71b, C030 Find a loaded file, S069 the new file's name: no ring in any cell) */
-:is(.fl-q,.all-q,.ar-q):has(input:focus-visible),.fl-new-r input:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+   grader on 9d1f71b, C030 Find a loaded file, S069 the new file's name: no ring in any cell; grader B on c767cbf, C007
+   the sidebar's Find a project: its 1 px edge at 1.7–2.5:1, pixel-identical focused or not at 1440) */
+:is(.fl-q,.all-q,.ar-q,.side-find):has(input:focus-visible),.fl-new-r input:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
 
 /* a resize grip the keyboard is on shows the one ring round its grab area, as every control shows focus: its 1 px line
    brightening was the only cue, 1.5–2.5:1 (the controls grader on 9d1f71b, C034 Files' divider, C035 the chat's; the
