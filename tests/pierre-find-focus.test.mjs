@@ -17,10 +17,14 @@ let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
 t("the bar's field takes focus as the bar opens", () => {
-  assert.match(lib, /n\.before\(this\.#n\);let __xoRoot=this\.#s\.getRootNode\(\),__xoWas=__xoRoot\.activeElement;this\.#s\.focus\(\),this\.#s\.select\(\),requestAnimationFrame\(/);
+  assert.match(lib, /n\.before\(this\.#n\);let __xoRoot=this\.#s\.getRootNode\(\),__xoWas=__xoRoot\.activeElement;this\.#s\.focus\(\),this\.#s\.select\(\);/);
 });
-t("its first frame updates the matches and never takes focus back", () => {
-  assert.match(lib, /requestAnimationFrame\(\(\)=>\{o!==void 0\?u\(\):c\(\[\]\);let __xoNow=__xoRoot\.activeElement;\(__xoNow===this\.#s\|\|__xoNow===__xoWas\)&&this\.#s\.select\(\)\}\)\}/);
+// and never selects what you've typed since it opened (the controls grader's fast-close v3 on b2faa75, 1440 dark and
+// light: "two" typed at once read "o" or "wo": with the field focused at once, the first letters went in before the
+// first frame, whose select() then selected them, and the next letter replaced them)
+t("its first frame updates the matches, never takes focus back, and never selects what's been typed", () => {
+  assert.match(lib, /n\.before\(this\.#n\);let __xoRoot=this\.#s\.getRootNode\(\),__xoWas=__xoRoot\.activeElement;this\.#s\.focus\(\),this\.#s\.select\(\);let __xoVal=this\.#s\.value;requestAnimationFrame\(/);
+  assert.match(lib, /requestAnimationFrame\(\(\)=>\{o!==void 0\?u\(\):c\(\[\]\);let __xoNow=__xoRoot\.activeElement;\(__xoNow===this\.#s&&this\.#s\.value===__xoVal\|\|__xoNow===__xoWas\)&&this\.#s\.select\(\)\}\)\}/);
   assert.doesNotMatch(lib, /requestAnimationFrame\(\(\)=>\{o!==void 0\?u\(\):c\(\[\]\),this\.#s\.select\(\)\}\)/, "the unguarded select is gone");
 });
 t("the change is marked in the file and in manifest.json, whose hash is the patched file's", () => {
