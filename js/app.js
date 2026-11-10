@@ -275,7 +275,11 @@ const LP = createLaunchpad({ api: createLpApi(), projectOf: lpProject, nameOf: (
   // Launchpad's own Undo names where focus goes (Stop, the header's Deploy, the page's work): ownFocus
   // and its kind: a failure ("err") reads as every failure notice here does (kind "stopped": the error's mark and
   // ink), never with the success check (Launchpad grader on 842a6d1: "Couldn't unlink" showed a green check)
-  notify: (text, undo, kind = "done") => heraldShow({ kind: kind === "err" ? "stopped" : kind, text, ...(undo ? { undo, undoUntil: Date.now() + 3000, ownFocus: true } : {}) }, undo ? 3200 : kind === "err" ? 6000 : 4200) });
+  notify: (text, undo, kind = "done") => heraldShow({ kind: kind === "err" ? "stopped" : kind, text, ...(undo ? { undo, undoUntil: Date.now() + 3000, ownFocus: true } : {}) }, undo ? 3200 : kind === "err" ? 6000 : 4200),
+  // one notice per subject (a stop, an unlink: mid), changed in place as it goes on, or taken away (C041's pattern;
+  // the owner's choice B): its Undo's deadline is the action's own (l.until), so it can't outlive what it undoes
+  notice: (mid, l, ms) => { const h = { mid, kind: l.kind === "err" ? "stopped" : l.kind || "done", text: l.text, ...(l.sub ? { sub: l.sub } : {}), ...(l.undo ? { undo: l.undo, undoLabel: l.undoLabel, undoUntil: l.until || 0, ownFocus: true } : {}) }; return heraldFor(mid, () => h, ms) || heraldShow(h, ms); },
+  unnotice: (mid) => heraldDrop(mid) });
 const STAGE = createStage({ map: MAP, mapIcon: MAP_ICON, files: FILES, changes: CHG, filesView: FILESV, viewer: VW, view: () => S.view, go: (v) => go(v), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP });
 // the place beside the panel's name: a thread's project (its title is the conversation's own head), a project
 STAGE.names = (v) => {
@@ -3162,7 +3166,7 @@ document.addEventListener("click", (e) => {
     const h = S.herald, u = h?.undo;
     // a notice whose Undo names its own destination (Launchpad's) is left to it (lpshell LP21/LP36)
     if (!h?.ownFocus) { heraldBack(h)?.focus({ preventScroll: true }); S.focusNext = [...((h && h.back) || []), "#say"]; }
-    if (typeof u === "function") { h.until = 0; u(); heraldNext(); } else if (u) undoRecord(u);
+    if (typeof u === "function") { if (h.undoUntil && Date.now() > h.undoUntil) return; h.until = 0; u(); heraldNext(); } else if (u) undoRecord(u); // past its deadline an Undo undoes nothing: it does nothing
     return;
   }
   // Chats: "send now" would stop background tasks; a failed prompt

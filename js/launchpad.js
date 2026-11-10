@@ -41,6 +41,7 @@ const WORD = { repo: "Pushing", build: "Building", release: "Releasing", live: "
 const SLUG = /^[a-z0-9]([a-z0-9-]{0,23}[a-z0-9])?$/; // Space's NAME_RE: 1–25
 const CACHE = "xo-lp-state"; // project → its last check's state only (no values, no secrets), so the button doesn't flicker
 const AGAIN_MS = 5 * 60e3, ERR_MS = 60e3;
+const STOP_MS = 3000, UNLINK_MS = 3200; // Stop's and Unlink's windows: their notices' Undo lasts exactly as long
 
 const clock = (ms) => { const s = Math.max(0, Math.floor(ms / 1000)); return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, "0")}s`; };
 const ago = (at) => { const m = Math.round((Date.now() - at) / 60e3); return m < 1 ? "just now" : m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} d ago`; };
@@ -58,10 +59,12 @@ const slug = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9-]+/g, "-").r
  * api: js/lpapi.js (or the preview's stand-in): check, deploy, apps, link, unlink, githubStart, githubPoll,
  * askAgent. projectOf(v): the project a view belongs to, or null. nameOf(p): its name. go(v): navigate.
  * notify(text, undo, kind): a line in the herald (a deploy finishing while its section is out of sight); kind says
- * what news it is: "done" (the default), "err" for anything that failed, "halt" for a stop on its way. onChange():
- * the app re-renders (the header button, the panel).
+ * what news it is: "done" (the default), "err" for anything that failed, "halt" for a stop on its way.
+ * notice(mid, line, ms) / unnotice(mid): one line per subject (a stop, an unlink), shown, then changed in place as
+ * the action goes on, or taken away (the herald's mid: C041's pattern, the owner's choice B). line: {text, sub, kind,
+ * undo, undoLabel, until}: until is the Undo's own deadline, the action's. onChange(): the app re-renders.
  */
-export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread = () => null, go, announce, notify, onChange }) {
+export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread = () => null, go, announce, notify, notice, unnotice, onChange }) {
   const P = new Map();
   let cached = {};
   try { cached = JSON.parse(localStorage.getItem(CACHE) || "{}") || {}; } catch { /* private mode */ }
@@ -73,6 +76,13 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   const S = { el: null, hs: null, ha: null, body: null, key: "", html: "", v: null, shown: null, want: "", lost: [] };
   /** Name where focus goes next, if a redraw takes the focused control away. */
   const land = (sel) => { S.want = sel; };
+  /** A subject's one notice (a stop's, an unlink's): shown, or changed in place where it already is; unsay takes it
+   *  away. Without notice() (an older host), a plain line. */
+  const say = (mid, line, ms) => { if (notice) notice(mid, line, ms); else if (notify) notify(line.text, line.undo || null, line.kind); };
+  const unsay = (mid) => { if (mid && unnotice) unnotice(mid); };
+  /** A stop that won't be asked for, or whose answer no longer matters (the run went live, failed, or was replaced):
+   *  its window ends and its notice goes, so nothing on screen offers to stop a run that is over. */
+  const endStop = (run) => { if (!run) return; if (run.stopping) { clearTimeout(run.stopping); run.stopping = 0; } unsay(run.mid); };
 
   const proj = (p) => {
     if (!P.has(p)) P.set(p, { check: null, at: 0, pre: 0, loading: false, err: null, run: null, form: null, device: null, picking: null, asked: null, asking: false, askErr: null, needs: null, warn: null, menu: false, copied: 0, cmdCopied: 0 });
@@ -186,13 +196,13 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     if (!s.run) return;
     if (e.type === "warning") { if (e.message && !(s.warn || []).includes(e.message)) s.warn = [...(s.warn || []), e.message]; changed(); return; }
     if (e.type === "app") { s.run.appId = e.id; return; } // Space created the app: its id, for Open in Launchpad
-    if (e.type === "replaced") { s.run.stop?.stop(); watch(p); land('[data-lp="stop"]'); changed(); return; } // a deploy started elsewhere: follow it
+    if (e.type === "replaced") { endStop(s.run); s.run.stop?.stop(); watch(p); land('[data-lp="stop"]'); changed(); return; } // a deploy started elsewhere: follow it
     if (e.type === "lost") { // the stream couldn't be picked up again: what was moving stops moving, and it's said
       s.run.lost = true;
       for (const st of Object.values(s.run.steps)) if (st.state === "doing") st.state = "paused";
       land('[data-lp="rewatch"]'); changed(); return;
     }
-    if (e.type === "ended") { s.ended = e.run; s.run = null; s.pre = 0; land(AFTER); load(p, true); changed(); return; } // the run is over: show where it left things
+    if (e.type === "ended") { endStop(s.run); s.ended = e.run; s.run = null; s.pre = 0; land(AFTER); load(p, true); changed(); return; } // the run is over: show where it left things
     if (e.type === "needs") {
       s.run = null;
       if (e.code === "name_taken") f.errs = { name: "Taken on Launchpad.", nameFix: e.data.suggestion };
@@ -215,6 +225,8 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       return;
     }
     take(p, e);
+    // the run ended on its own (live, or failed) while a stop was in its window or on its way: that stop's notice goes
+    if ((e.step === "live" && e.state === "done") || e.state === "failed") endStop(s.run);
     // the run's end moves focus off Stop and Hide: to Deploy again when it went live, to the fix when it failed
     if (e.step === "live" && e.state === "done") land('[data-lp="again"]');
     if (e.state === "failed") land('.lp-rec .lp-go, .lp-acts .lp-go, [data-lp="retry"], [data-lp="recheck-gh"]');
@@ -807,24 +819,30 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   const runOver = (run) => !!(run.live || run.error || run.ended);
   function stopNow(p, run) {
     const s = proj(p);
-    if (s.run !== run || runOver(run)) return;
+    if (s.run !== run || runOver(run)) { unsay(run.mid); return; }
     if (!api.stop) return;
     run.stopSent = true; run.stopErr = null; changed();
+    const name = s.form?.name || nameOf(p);
+    // the window has ended and the stop is on its way: the same notice says so, with no Undo (it's no longer one)
+    say(run.mid, { text: `Stopping the deploy of ${name}…`, sub: "Waiting for Space to confirm", kind: "halt" }, 30000);
     // only an explicit receipt says it stopped: {stopped: true}, or the stream's own `error cancelled`
     const refused = (why) => {
       run.stopErr = why;
       announce(`Couldn't stop the deploy: ${why}. It's still running.`);
+      // refused: the same notice says so, with Stop again (it works from there, whatever is on screen)
+      say(run.mid, { text: `Couldn't stop the deploy of ${name}`, sub: `${why}. It's still deploying.`, kind: "err",
+        undo: () => { fromNotice(p, '[data-lp="stop"]'); startStop(p); }, undoLabel: "Stop again" }, 6000);
       changed();
     };
     api.stop(p).then((r) => {
       run.stopSent = false;
-      if (s.run !== run || runOver(run)) { changed(); return; }
+      if (s.run !== run || runOver(run)) { unsay(run.mid); changed(); return; }
       if (r && r.stopped === true) { stopped(p, run); return; }
-      if (r && r.stopped === false) { announce("Nothing was running to stop: the stream says how it ended."); changed(); return; }
+      if (r && r.stopped === false) { announce("Nothing was running to stop: the stream says how it ended."); say(run.mid, { text: "Nothing was running to stop", kind: "done" }, 4200); changed(); return; }
       refused("Space didn't confirm it");
     }, (e) => {
       run.stopSent = false;
-      if (s.run !== run || runOver(run)) { changed(); return; }
+      if (s.run !== run || runOver(run)) { unsay(run.mid); changed(); return; }
       refused((e && e.message) || "Space didn't answer");
     });
   }
@@ -832,9 +850,32 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   function keep(p, run) {
     if (!run.stopping) return;
     clearTimeout(run.stopping); run.stopping = 0;
+    unsay(run.mid); // taken back here (Keep deploying) or in the notice: the notice goes either way
     land('[data-lp="stop"]'); // Keep deploying goes; focus that was on it goes back to Stop
     announce("The deploy carries on.");
     changed();
+  }
+  /** Stop, for project p's run (from its section, or from its notice's Stop again wherever you are): Undo for 3 s
+   *  (Keep deploying, here, or the notice's Undo, whose deadline is this window's), then the stop is asked for; the
+   *  run stays followed until Space confirms it. One notice for this run's stop (mid), changed in place throughout. */
+  function startStop(p) {
+    const s = proj(p), run = s.run;
+    if (!run || run.stopping || run.stopSent || runOver(run)) return;
+    run.stopErr = null;
+    run.mid = `lp-stop:${p}:${run.startedAt}`;
+    run.stopAt = Date.now() + STOP_MS;
+    // the window ends: Keep deploying goes, and focus that was on it moves to Stop (Stopping…, then Stop again)
+    run.stopping = setTimeout(() => { run.stopping = 0; land('[data-lp="stop"]'); stopNow(p, run); }, STOP_MS);
+    const tick = setInterval(() => {
+      if (!run.stopping) { clearInterval(tick); return; }
+      const n = S.body?.querySelector('.lp-q .lp-count');
+      if (n) n.textContent = String(Math.max(1, Math.ceil((run.stopAt - Date.now()) / 1000)));
+    }, 200);
+    // the notice lives a moment past its window; the window's end changes it in place before then
+    say(run.mid, { text: `Stopping the deploy of ${s.form?.name || nameOf(p)}`, kind: "halt", until: run.stopAt,
+      undo: () => { fromNotice(p, '[data-lp="stop-undo"]'); keep(p, run); } }, STOP_MS + 1000);
+    land('[data-lp="stop-undo"]'); changed();
+    announce(`Stopping the deploy in 3 seconds. Keep deploying to take it back.`);
   }
   /** The stop is confirmed: the run is over; the project as it now is. */
   function stopped(p, run) {
@@ -844,6 +885,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     run.stop && run.stop.stop();
     s.run = null; s.pre = 0; land(AFTER);
     announce("Deploy stopped.");
+    say(run.mid, { text: `Deploy of ${s.form?.name || nameOf(p)} stopped`, kind: "done" }, 4200); // the same notice, its outcome
     load(p, true); changed();
   }
 
@@ -901,25 +943,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       case "deploy": deploy(p); return;
       case "undo": if (s.run) { s.run = null; land('[data-lp="deploy"], [data-lp="again"], [data-lp="recreate"]'); announce("Deploy undone. Nothing changed."); changed(); } return;
       case "hide": { const here = S.body?.contains(document.activeElement); onHide && onHide(); if (here) S.el.querySelector('[data-fr-fold="launch"]')?.focus({ preventScroll: true }); return; } // folded: focus on its head's fold
-      case "stop": {
-        if (!s.run || s.run.stopping || s.run.stopSent) return;
-        const run = s.run;
-        run.stopErr = null;
-        // Undo for 3 s (Keep deploying, here, or the notice's Undo), then the stop is asked for; the run stays
-        // followed until Space confirms it
-        run.stopAt = Date.now() + 3000;
-        // the window ends: Keep deploying goes, and focus that was on it moves to Stop (Stopping…, then Stop again)
-        run.stopping = setTimeout(() => { run.stopping = 0; land('[data-lp="stop"]'); stopNow(p, run); }, 3000);
-        const tick = setInterval(() => {
-          if (!run.stopping) { clearInterval(tick); return; }
-          const n = S.body?.querySelector('.lp-q .lp-count');
-          if (n) n.textContent = String(Math.max(1, Math.ceil((run.stopAt - Date.now()) / 1000)));
-        }, 200);
-        notify && notify(`Stopping the deploy of ${s.form.name}`, () => { fromNotice(p, '[data-lp="stop-undo"]'); keep(p, run); }, "halt");
-        land('[data-lp="stop-undo"]'); changed();
-        announce(`Stopping the deploy in 3 seconds. Keep deploying to take it back.`);
-        return;
-      }
+      case "stop": startStop(p); return;
       case "stop-undo": if (s.run) keep(p, s.run); return;
       case "cmd-copy": copied(el.dataset.v, "the command", () => {
         s.cmdCopied = Date.now() + 1500;
@@ -956,9 +980,20 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
         s.menu = false; s.needs = null;
         const was = s.check, run = s.run;
         s.check = { ...was, app: null, state: "ready" }; s.run = null; land('[data-lp="deploy"], [data-lp="reconnect"]'); changed();
-        // refused, or undone: the app is back, and focus with it on More, where Unlink was
-        const t = setTimeout(() => api.unlink(p).then(() => load(p, true)).catch((e) => { s.check = was; land('[data-lp="menu"]'); notify && notify(`Couldn't unlink: ${e.message}`, null, "err"); announce(`Couldn't unlink: ${e.message}. It's still linked.`); changed(); }), 3200);
-        notify && notify("Unlinked from Launchpad", () => { fromNotice(p, '[data-lp="deploy"], [data-lp="reconnect"]'); clearTimeout(t); s.check = was; s.run = run; land('[data-lp="menu"]'); changed(); });
+        // one notice for this unlink: its Undo lasts exactly as long as the unlink waits (one clock); when it's sent,
+        // the same notice loses its Undo; refused, it says so in place. Refused or undone: the app is back, and focus
+        // with it on More, where Unlink was
+        const mid = `lp-unlink:${p}`, until = Date.now() + UNLINK_MS;
+        const t = setTimeout(() => {
+          say(mid, { text: "Unlinked from Launchpad", kind: "done" }, 2400);
+          api.unlink(p).then(() => load(p, true)).catch((e) => {
+            s.check = was; land('[data-lp="menu"]');
+            say(mid, { text: `Couldn't unlink from Launchpad`, sub: `${e.message}. It's still linked.`, kind: "err" }, 6000);
+            announce(`Couldn't unlink: ${e.message}. It's still linked.`); changed();
+          });
+        }, UNLINK_MS);
+        say(mid, { text: "Unlinked from Launchpad", kind: "done", until,
+          undo: () => { fromNotice(p, '[data-lp="deploy"], [data-lp="reconnect"]'); clearTimeout(t); s.check = was; s.run = run; land('[data-lp="menu"]'); changed(); } }, UNLINK_MS + 1000);
         return;
       }
       case "pick": startPick(p); return;
