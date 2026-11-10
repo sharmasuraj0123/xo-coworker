@@ -36,6 +36,8 @@ export const ICON = {
   home: I('<path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/>'),
   right: I('<path d="M9 6l6 6-6 6"/>', ' stroke-width="2"'),
   clock: I('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'),
+  // a refusal or an error said in a line: the clock's circle with a mark in it (a clock there read as "wait")
+  warn: I('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5.2M12 16.4v.1"/>'),
   menu: I('<path d="M4 7h16M4 12h16M4 17h10"/>'),
   eye: I('<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.6"/>'),
   clip: I('<path d="M20.5 11.5 12.6 19.4a5 5 0 0 1-7.1-7.1l8.2-8.2a3.3 3.3 0 0 1 4.7 4.7l-8.2 8.2a1.7 1.7 0 0 1-2.4-2.4l7.5-7.5"/>'),
