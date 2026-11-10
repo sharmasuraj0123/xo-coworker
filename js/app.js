@@ -390,7 +390,8 @@ function sideRender(needs) {
   $("#nv-arts").classList.toggle("is-on", S.view === "artifacts");
   // the Artifacts row's count is quiet: a number, never a signal
   { const n = REC.artifacts.count(); const t = n ? String(n) : ""; if ($("#arts-n").textContent !== t) $("#arts-n").textContent = t; $("#nv-arts").setAttribute("aria-label", n ? `Artifacts, ${n}` : "Artifacts"); }
-  for (const b of [$("#nv-home"), $("#nv-ws"), $("#nv-chats"), $("#nv-arts")]) b.toggleAttribute("aria-current", b.classList.contains("is-on"));
+  // (aria-current="page": an empty aria-current, as toggleAttribute writes it, reads as false)
+  for (const b of [$("#nv-home"), $("#nv-ws"), $("#nv-chats"), $("#nv-arts")]) if (b.classList.contains("is-on")) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
   const now = Date.now();
   // the project filter (hub #16): shown once the list is long; matches keep the ones needing you first
   const all = projects();

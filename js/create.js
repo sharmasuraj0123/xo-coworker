@@ -138,9 +138,12 @@ export function initCreate(ctx) {
     for (const b of $("#cp-mode").children) b.disabled = on;
     // aria-disabled, not disabled: a pressed Create keeps focus while it works, and a failure leaves it there to
     // try again (a disabled button drops focus to the page: Astra H3)
-    submit.toggleAttribute("aria-disabled", on); if (on) submit.setAttribute("aria-busy", "true"); else submit.removeAttribute("aria-busy");
+    // (a value, never a bare attribute: aria-disabled="" reads as not disabled, the create-project grader's C019)
+    if (on) { submit.setAttribute("aria-disabled", "true"); submit.setAttribute("aria-busy", "true"); } else { submit.removeAttribute("aria-disabled"); submit.removeAttribute("aria-busy"); }
     submit.innerHTML = on ? `<i class="spin" aria-hidden="true"></i>${mode === "clone" ? "Cloning…" : "Creating…"}` : (mode === "clone" ? "Clone project" : "Create project");
-    cancel.textContent = on && mode === "clone" ? "Close" : "Cancel";
+    // a create on its way can't be called back (a clone has its own Stop): the button only closes the dialog, and
+    // says so; it said Cancel for an empty project, which was made anyway (the create-project grader's C018)
+    cancel.textContent = on ? "Close" : "Cancel";
     $("#cp-prog").hidden = !(on && mode === "clone");
     delete $("#cp-phase").dataset.v;
     $("#cp-stop").disabled = false; $("#cp-stop").removeAttribute("aria-disabled"); $("#cp-stop").removeAttribute("aria-busy");
