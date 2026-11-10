@@ -153,11 +153,11 @@ button:disabled{cursor:default}
 .prow.is-on .pr-busy{background:var(--sb-g1F)}
 .pr-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .pr-l1{display:flex;align-items:center;gap:8px;min-width:0}
-.pr-name{flex:1;min-width:0;font:550 var(--fs-md)/1.3 var(--sans);color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pr-name{flex:1;min-width:0;font:550 var(--fs-md)/18px var(--sans);color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .prow.is-on .pr-name,.prow:hover .pr-name{color:var(--ink)}
 .pr-w{flex:none;display:inline-flex;align-items:center;gap:6px;font:600 var(--fs-sm)/1 var(--sans);color:var(--warn);font-variant-numeric:tabular-nums}
 .pr-d{width:6px;height:6px;border-radius:1.5px;background:currentColor;transform:rotate(45deg)}
-.pr-t{min-width:0;font-size:12.5px;line-height:1.35;color:var(--ink-4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;animation:rise-in var(--d-move) var(--ease)}
+.pr-t{min-width:0;font-size:12.5px;line-height:16px;color:var(--ink-4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;animation:rise-in var(--d-move) var(--ease)}
 /* a row at work (hub #31): the same accent in blue, quieter than amber */
 .prow.busy{background:color-mix(in srgb,var(--info) 5%,var(--row-bg));border-color:color-mix(in srgb,var(--info) 20%,var(--row-line))}
 .prow.busy .pr-ic{background:color-mix(in srgb,var(--info) 12%,var(--sb-g1C));border-color:color-mix(in srgb,var(--info) 28%,var(--sb-g26));color:var(--info)}
@@ -1974,11 +1974,11 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 
 /* ── Chats: plain chats with one agent (U1) ───────────────────────────────── */
 .ch-list{list-style:none;display:flex;flex-direction:column;gap:6px;margin:6px 0 24px}
-.ch-row{display:flex;align-items:center;gap:12px;width:100%;min-height:var(--h-row-list);padding:9px 14px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);text-align:left;transition:border-color var(--d-hover) var(--ease),background var(--d-hover) var(--ease)}
+.ch-row{display:flex;align-items:center;gap:12px;width:100%;min-height:var(--h-row-list);padding:8px 14px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);text-align:left;transition:border-color var(--d-hover) var(--ease),background var(--d-hover) var(--ease)}
 .ch-row:hover{border-color:var(--line-hover)}
-.ch-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.ch-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .ch-t{font:500 var(--fs-md)/20px var(--sans);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ch-m{font-size:var(--fs-sm);color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ch-m{font-size:var(--fs-sm);line-height:16px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ch-a{flex:none;font-size:var(--fs-sm);color:var(--ink-4);font-variant-numeric:tabular-nums}
 .ch-a.is-need{color:var(--warn);font-weight:600}
 .ch-calm{margin-top:12px}

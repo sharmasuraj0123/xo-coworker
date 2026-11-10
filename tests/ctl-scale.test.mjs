@@ -75,14 +75,19 @@ t("rows from the tokens: 40 one line, 48 with an action, 56 a two-line list row;
   assert.match(readFileSync(new URL("css/shape.css", ROOT), "utf8"), /:root\[data-density="compact"\] :is\(\.main,\.sheet,\.iq-pop\)\{\s*--h-row:32px;/);
   const app = readFileSync(new URL("css/app.css", ROOT), "utf8");
   assert.match(app, /\.nrow,\.prow\{[^}]*min-height:var\(--h-row\);padding:5px 10px 5px 7px;/, "the sidebar's rows 40: 1 + 5 + its 28 px icon + 5 + 1, its left edge where it was");
-  assert.match(app, /\.ch-row\{[^}]*min-height:var\(--h-row-list\);padding:9px 14px;/, "Chats' rows 56, their two lines where they were");
+  // the rows as drawn, not only their floor: the words inside them fill the step exactly (the row measurement on
+  // f93345a: Chats' rows were 64, their two lines 20 + 4 + 20 over a 56 floor; a project's two lines 49.1, 18.2 + 2 +
+  // 16.9 at line heights of 1.3 and 1.35)
+  assert.match(app, /\.ch-row\{[^}]*min-height:var\(--h-row-list\);padding:8px 14px;/, "Chats' rows 56: 1 + 8 + their two lines + 8 + 1");
+  assert.match(app, /\.ch-main\{[^}]*gap:2px\}/); assert.match(app, /\.ch-t\{font:500 var\(--fs-md\)\/20px/); assert.match(app, /\.ch-m\{font-size:var\(--fs-sm\);line-height:16px;/, "20 + 2 + 16 = 38");
+  assert.match(app, /\.pr-main\{[^}]*gap:2px\}/); assert.match(app, /\.pr-name\{[^}]*font:550 var\(--fs-md\)\/18px/); assert.match(app, /\.pr-t\{[^}]*line-height:16px;/, "a project's row with its second line 48: 1 + 5 + 18 + 2 + 16 + 5 + 1");
   assert.match(app, /\.hd\{[^}]*min-height:var\(--h-row-act\);/, "Handled 48");
   const mx = readFileSync(new URL("css/msgx.css", ROOT), "utf8");
   assert.equal((mx.match(/>\.tb-h\{width:100%;min-height:var\(--h-row\);/g) || []).length, 2, "an open tool disclosure 40 (it was 44)");
   // a phone keeps the heights it had
   const phone = readFileSync(new URL("css/phone.css", ROOT), "utf8");
   assert.match(phone, /\.nrow,\.prow\{min-height:42px;padding-top:6px;padding-bottom:6px\}/);
-  assert.match(phone, /\.ch-row\{min-height:58px;padding-top:10px;padding-bottom:10px\}/);
+  assert.match(phone, /\.ch-row\{min-height:58px;padding-top:10px;padding-bottom:10px\}\s*\.ch-main\{gap:4px\}\s*\.ch-m\{line-height:20px\}\s*\.pr-name\{line-height:1\.3\}\s*\.pr-t\{line-height:1\.35\}/);
   assert.match(phone, /\.is-unfolded>\.tb-h\{min-height:44px\}/);
 });
 t("the composer's circles in compact density sit on its corner: no comfortable margin moves them", () => {

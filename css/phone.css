@@ -283,6 +283,10 @@
      the sidebar's 42, Chats' 58, an open tool disclosure's 44 */
   .nrow,.prow{min-height:42px;padding-top:6px;padding-bottom:6px}
   .ch-row{min-height:58px;padding-top:10px;padding-bottom:10px}
+  .ch-main{gap:4px}
+  .ch-m{line-height:20px}
+  .pr-name{line-height:1.3}
+  .pr-t{line-height:1.35}
   .hd-r{min-height:38px}
   :is(.ar,.ar-fold,.ar-undo){min-height:42px}
   .syl-ln{min-height:44px;padding-top:7px;padding-bottom:7px}
