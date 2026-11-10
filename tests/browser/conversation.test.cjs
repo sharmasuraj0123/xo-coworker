@@ -1128,6 +1128,61 @@ t("S150: the notice for this thread's own decision unfolds its folded card and f
   await done(page);
 });
 
+// ── STATEHOVER · S020: every chosen control on the page answers the pointer ──────
+// The controls grader on 414de0f: in All threads the chosen filter chip, "All 5", looked the same at rest and hovered
+// in both desktop themes. A census of the page as drawn: every chosen control in view (checked, selected, pressed,
+// current, on, here) and not named out of the shared layer (foundation.css; tests/state-hover.test.mjs reads it)
+// looks different hovered: its fill, its layer, its ink, its edge or its shadow. Desktop only: a phone has no hover.
+const CHOSEN = '[aria-checked="true"],[aria-selected="true"],[aria-pressed="true"],[aria-current]:not([aria-current="false"]),.is-on,.is-cur,.is-here,.is-sel,.is-active,.is-pinned,.on';
+async function chosenAnswer(page, where) {
+  const n = await page.evaluate((S) => {
+    const ctl = (e) => e.matches("button,a[href],summary,[role=button],[role=tab],[role=radio],[role=switch],[role=checkbox],[role=option],[role=menuitem],[role=menuitemradio],.shd-tabw");
+    const off = (e) => e.matches(':disabled,[aria-disabled="true"],.prow,.nrow,.dd-row,.at-list li,.jump-list li,.shd-tabw > *,.shd-tabw.is-edit') || !!e.closest("[inert]");
+    let i = 0;
+    for (const e of document.querySelectorAll(S)) {
+      delete e.dataset.chi;
+      if (!ctl(e) || off(e) || !e.getClientRects().length) continue;
+      const r = e.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+      if (x < 0 || y < 0 || x >= innerWidth || y >= innerHeight) continue;
+      const hit = document.elementFromPoint(x, y);
+      if (!hit || !(hit === e || e.contains(hit))) continue;
+      e.dataset.chi = String(i++);
+    }
+    return i;
+  }, CHOSEN);
+  const look = (i) => page.evaluate((i) => {
+    const e = document.querySelector(`[data-chi="${i}"]`), s = getComputedStyle(e);
+    const name = `${e.tagName.toLowerCase()}.${[...e.classList].join(".")}${[...e.attributes].filter((a) => /^(data-af|data-go|role|aria-(checked|selected|pressed|current))$/.test(a.name)).map((a) => `[${a.name}=${a.value}]`).join("")} "${(e.innerText || e.getAttribute("aria-label") || "").trim().slice(0, 24)}"`;
+    return { name, v: [s.backgroundColor, s.backgroundImage, s.color, s.borderTopColor, s.boxShadow, s.textDecorationColor].join(" | ") };
+  }, i);
+  const seen = [], silent = [];
+  for (let i = 0; i < n; i++) {
+    await page.mouse.move(1, 1); await settle(page, 220);
+    const rest = await look(i);
+    const b = await page.locator(`[data-chi="${i}"]`).boundingBox();
+    await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2); await settle(page, 260);
+    const hover = await look(i);
+    seen.push(rest.name);
+    if (rest.v === hover.v) silent.push(`${where}: ${rest.name}`);
+  }
+  await page.mouse.move(1, 1);
+  return { seen, silent };
+}
+t("STATEHOVER S020: every chosen control in view answers the pointer: All threads' filter, a thread, Home", async () => {
+  const page = await app();
+  await openAllSheet(page);
+  const all = await chosenAnswer(page, "All threads");
+  assert.ok(all.seen.some((x) => /data-af=all/.test(x)), `the chosen filter chip was read (${all.seen.join("; ")})`);
+  await page.keyboard.press("Escape"); await settle(page, 200);
+  await openThread(page, "t_docs");
+  const th = await chosenAnswer(page, "a thread");
+  await page.evaluate(() => window.__t.go("home")); await settle(page, 400);
+  const home = await chosenAnswer(page, "Home");
+  console.log(`  STATEHOVER read ${all.seen.length + th.seen.length + home.seen.length}: ${[...all.seen, ...th.seen, ...home.seen].join("; ")}`);
+  assert.deepEqual([...all.silent, ...th.silent, ...home.silent], [], "chosen controls that look the same hovered");
+  await done(page);
+}, { only: (c) => c.width >= 760 });
+
 // ── DET-3 · S003: Try again on a failed history read ────────────────────────
 for (const where of ["project", "thread"]) {
   t(`DET-3 S003: Try again on earlier messages (${where}) keeps focus on the conversation while it reads, then on Try again`, async () => {

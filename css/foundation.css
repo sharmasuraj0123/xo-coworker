@@ -44,6 +44,19 @@ body.stage-full .stg-grip{display:none}
 .tb-wh .tb-hi{display:none}
 .tb-work>.tb:not(.tb-work){margin-left:0}
 
+/* ── a chosen control answers the pointer too ─────────────────────────────────────────────────────────
+   A state (checked, selected, pressed, current, on, here) draws its own fill and inks, and a hover drawn as a fill
+   or an ink matched or outranked it, so the chosen control looked the same hovered: the Artifacts pin, the sidebar's
+   rows (C008), the chosen filter chip "All 5" (S020, the controls grader on 414de0f), and more of the same kind: chosen
+   segments, the Map's toggles, the gear, a shell's tab.
+   Hovered, any chosen state takes one layer of its own ink over whatever it draws, as a press takes the press fill:
+   a background layer, !important on a zero-specificity selector, so no state's own background can silence it, on
+   any fill (its ink is the text's: an inverted chip, ink on canvas, darkens). Named out of it: the sidebar's rows
+   (their layer is side.css's, C008's), the lists whose selection the pointer moves (Find a project, Jump, a dropdown:
+   the pointer is the selection, one active row, C058), and a shell's tab inside its wrapper (the wrapper takes it).
+   Before the press, so a press shows the press fill. tests/state-hover.test.mjs is the census. */
+:where(button,a[href],summary,[role=button],[role=tab],[role=radio],[role=switch],[role=checkbox],[role=option],[role=menuitem],[role=menuitemradio],.shd-tabw):where([aria-checked="true"],[aria-selected="true"],[aria-pressed="true"],[aria-current]:not([aria-current="false"]),.is-on,.is-cur,.is-here,.is-sel,.is-active,.is-pinned,.on):where(:hover:not(:disabled,[aria-disabled="true"],.prow,.nrow,.dd-row,.at-list li,.jump-list li,.shd-tabw > *,.shd-tabw.is-edit)){background-image:linear-gradient(color-mix(in srgb,currentColor 8%,transparent),color-mix(in srgb,currentColor 8%,transparent))!important}
+
 /* ── 3 · press (Plan F, with Codex's audit of :3400): the outer box never moves ──────────────────────
    A toolbar or navigation control, a row and a card keep their place and edges when pressed: they go
    one step deeper (an inset fill, so it works on any surface and follows the corners), in 60 ms. Only

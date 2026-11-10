@@ -13,7 +13,8 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
 
 for (const [list, cls, el] of [["the @ recipients", ".at-list", "atList"], ["Jump", ".jump-list", "jl"]]) {
   t(`${list}: :hover doesn't paint a row as active, and a moving mouse makes its row the active one`, () => {
-    const rules = [...css.matchAll(/([^{}]+)\{[^{}]*\}/g)].map((m) => m[1]).filter((s) => s.includes(cls));
+    // a rule that names the list only to leave it out (the chosen state's shared hover layer, foundation.css) paints nothing on it
+    const rules = [...css.matchAll(/([^{}]+)\{[^{}]*\}/g)].map((m) => m[1]).filter((s) => s.replace(/:not\((?:[^()]|\([^()]*\))*\)/g, "").includes(cls));
     const bad = rules.filter((s) => s.split(",").some((x) => /:hover/.test(x)) && s.split(",").some((x) => /aria-selected/.test(x)));
     assert.deepEqual(bad, [], "no rule paints :hover and the active row alike");
     assert.match(app, new RegExp(`${el}\\.addEventListener\\("pointermove"`), `${el} follows the pointer`);
