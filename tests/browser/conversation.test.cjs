@@ -404,6 +404,12 @@ t("CONV-5 C041: a refused Resolve says so, the button is Resolve again with focu
   await settle(page, 400);
   assert.equal(page.W.patches.length, 2);
   assert.match(await page.locator("[data-resolve]").textContent(), /Reopen/);
+  // the resolve went through: the refusal's line is gone, and nothing is left to send it a third time (the controls
+  // grader on 9c3a663, C041, all four cells: "Couldn't resolve it · Retry" stayed, and its Retry sent a third PATCH)
+  assert.doesNotMatch(await page.locator("#herald").innerText(), /Couldn't resolve it/, "the refusal's line goes once it resolved");
+  const retry = page.locator("#herald button").filter({ hasText: /Retry|Try again/ });
+  if (await retry.count()) { await retry.first().click(); await settle(page, 400); }
+  assert.equal(page.W.patches.length, 2, "no third request");
   await done(page);
 });
 
