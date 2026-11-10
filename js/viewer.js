@@ -276,18 +276,21 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
    * keeps it across the redraw (Save stays focused through Saving… and a failed save), and Cancel's question
    * takes it to Keep editing, the answer that loses nothing.
    */
+  /** A viewer control's hook as a selector, its name and value ([data-vw-show="file"], never only [data-vw-show]: that
+   *  finds Changes for File, the controls grader's V99-v3 on 2a8d278): how every redraw finds the focused control again. */
+  const hookOf = (e) => { const a = e && e.attributes && [...e.attributes].find((x) => x.name.startsWith("data-vw-")); return a ? (a.value ? `[${a.name}="${CSS.escape(a.value)}"]` : `[${a.name}]`) : ""; };
   function paintHead() {
     const top = el.querySelector(".vw-top");
     if (!top) return;
     const ae = document.activeElement;
-    const had = ae && top.contains(ae) ? [...ae.attributes].find((a) => a.name.startsWith("data-vw-"))?.name : null;
+    const had = ae && top.contains(ae) ? hookOf(ae) : "";
     const fromMenu = !!(ae && ae.closest && ae.closest(".vw-menu"));
     top.outerHTML = head();
     errPaint();
     if (!had) return;
     const now = el.querySelector(".vw-top");
     // the same control where it shows; one chosen from ⋯'s menu, else the ⋯ itself (focus goes back to what opened it)
-    const to = (ED.on && ED.discard && now.querySelector("[data-vw-keep]")) || shown(now, `[${had}]`) || (fromMenu && shown(now, "[data-vw-more]")) || (ED.on && ED.ed) || headFocus(false);
+    const to = (ED.on && ED.discard && now.querySelector("[data-vw-keep]")) || shown(now, had) || (fromMenu && shown(now, "[data-vw-more]")) || (ED.on && ED.ed) || headFocus(false);
     if (to && to !== document.activeElement) to.focus({ preventScroll: true });
   }
   /**
@@ -620,12 +623,12 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
    *  focus fell to BODY). Every place the viewer replaces a region's content goes through here. */
   function inRegion(host, change) {
     const a = document.activeElement, inside = !!a && a !== host && host.contains(a);
-    const hook = inside ? [...a.attributes].find((x) => x.name.startsWith("data-vw-")) : null;
+    const hook = inside ? hookOf(a) : "";
     change();
     if (!inside) return;
     const now = document.activeElement;
     if (now && now !== document.body && host.contains(now) && now.getClientRects().length) return;
-    const same = hook && host.querySelector(hook.value ? `[${hook.name}="${CSS.escape(hook.value)}"]` : `[${hook.name}]`);
+    const same = hook && host.querySelector(hook);
     (same && same.getClientRects().length && !same.matches('[aria-busy="true"]') ? same : host).focus({ preventScroll: true });
   }
 
@@ -755,8 +758,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     let was = null;
     const fromMenu = !!(ae && ae.closest && ae.closest(".vw-menu"));
     if (ae && ae !== el && el.contains(ae)) {
-      const a = [...ae.attributes].find((x) => x.name.startsWith("data-vw-"));
-      was = a ? (a.value ? `[${a.name}="${CSS.escape(a.value)}"]` : `[${a.name}]`) : "";
+      was = hookOf(ae);
     }
     renderNow();
     if (was == null || !V.open) return;

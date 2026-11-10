@@ -22,4 +22,15 @@ t("an image's size goes into the head by paintHead, so focus in the head stays",
   const body = src.slice(i, src.indexOf("}, true);", i));
   assert.match(body, /V\.dims = \{ w: img\.naturalWidth, h: img\.naturalHeight \};\s*paintHead\(\);/);
 });
+// a control is found again by its hook's name and value, in one helper every redraw uses (the controls grader's V99-v3
+// on 2a8d278 at 390 light, C092/S127: File had focus while an image was read; paintHead remembered only the hook's name,
+// data-vw-show, so after the image decoded focus went to the first such control, Changes, unselected, while File stayed
+// selected)
+t("one helper names a control by its hook's name and value, and every redraw uses it", () => {
+  assert.match(src, /const hookOf = \(e\) => \{ const a = e && e\.attributes && \[\.\.\.e\.attributes\]\.find\(\(x\) => x\.name\.startsWith\("data-vw-"\)\); return a \? \(a\.value \? `\[\$\{a\.name\}="\$\{CSS\.escape\(a\.value\)\}"\]` : `\[\$\{a\.name\}\]`\) : ""; \};/);
+  assert.equal((src.match(/startsWith\("data-vw-"\)/g) || []).length, 1, "nowhere else reads a hook on its own");
+  const ph = src.slice(src.indexOf("function paintHead()"), src.indexOf("function paintHead()") + 1400);
+  assert.match(ph, /const had = ae && top\.contains\(ae\) \? hookOf\(ae\) : "";/, "paintHead: name and value");
+  assert.match(ph, /shown\(now, had\)/, "found again by both");
+});
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

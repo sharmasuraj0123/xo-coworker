@@ -22,7 +22,7 @@ t("a redraw puts focus back on a control that shows; one chosen from the menu, o
   has(r, /\(was && shown\(el, was\)\) \|\| \(fromMenu && shown\(el, "\[data-vw-more\]"\)\)/, "render: the control where it shows, else the ⋯");
   assert.ok(!/el\.querySelector\(was\)/.test(r), "render never takes the first match (the hidden twin)");
   const p = body("paintHead");
-  has(p, /shown\(now, `\[\$\{had\}\]`\) \|\| \(fromMenu && shown\(now, "\[data-vw-more\]"\)\)/, "paintHead: the same");
+  has(p, /shown\(now, had\) \|\| \(fromMenu && shown\(now, "\[data-vw-more\]"\)\)/, "paintHead: the same");
   assert.ok(!/now\.querySelector\(`\[\$\{had\}\]`\)/.test(p), "paintHead never takes the first match");
 });
 t("every choice from the menu ends with the menu gone and focus on something drawn", () => {
