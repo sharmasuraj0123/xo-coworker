@@ -1066,7 +1066,9 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (e.target.closest("[data-vw-retry]")) { const back = focusHere(); FL.pend = null; drawFile(); if (back) (fileBody() || el).focus({ preventScroll: true }); return; }
     if (e.target.closest("[data-vw-split]")) { V.split = !V.split; if (DF.handle) DF.handle.split(V.split); render(); return; }
     const m = e.target.closest("[data-vw-mode]");
-    if (m) { V.mode = m.dataset.vwMode; if (V.mode !== "actual") V.textMode = V.mode; render(); return; }
+    // the documents' mode (Preview or Source) is chosen on a document only: an image's Fit shares the value "preview"
+    // and never sets it (the controls grader on 131d146, I79: Source came back as Preview after an image's Fit)
+    if (m) { V.mode = m.dataset.vwMode; if (!V.file.image && !(V.data && V.data.kind === "image")) V.textMode = V.mode; render(); return; }
     if (e.target.closest(".vw-img img")) { V.mode = V.mode === "actual" ? "preview" : "actual"; render(); return; }
     if (e.target.closest("[data-vw-copy]")) { copy(String(V.data.content)); return; }
     if (e.target.closest("[data-vw-copy-path]")) { copy(V.file.rel ? localPath() : V.file.path, "path"); return; }
