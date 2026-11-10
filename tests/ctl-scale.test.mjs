@@ -6,9 +6,10 @@
 // Grader A found the controls off the scale a few at a time (round 4: eight; on 05d76ca ten more: Decide 28, Pick
 // back up 26, Open the thread 26, File · Changes 26, ⋯ More 28, Ask about this 28, Previous ask 38×36, Allow all 36).
 // The census reads every class the templates put on a control (button, summary, select, the control roles, a link
-// drawn as a control) and every desktop rule that sizes one. What's still off the scale is listed below, each by its
-// rule, until the next sweep moves it: a new control off the scale fails here, and so does a listed one that has moved
-// (the list only shrinks).
+// drawn as a control) and every desktop rule that sizes one; it found 54 more off the scale, all moved in one sweep
+// (buttons 28, 30, 34 and 36 to 32; a tag 22 to 24; rows 38, 42 and 44 to 40, or to 48 with a second line). What's
+// left is a written exception, or in another fixer's file and listed for it: a new control off the scale fails here,
+// and so does a listed one that has moved (the lists only shrink).
 //   node tests/ctl-scale.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
@@ -44,31 +45,15 @@ for (const r of all) {
   }
 }
 
-// still off the scale on 10 Nov, for the next sweep (each: its rule, and what it measures). Their owners: the
-// Conversation fixer's (the turn's steps, the picker, Runs, the composer's files), the Launchpad fixer's (lp-), the
-// rest the integrator's.
+// written exceptions, each with its reason
+const EXCEPT = {
+  "app.css: .pj-need { height }": "the project head's \"needs you\" words in its path line: a link in a line of text, its line's 20 (the phone bar's quiet line, put to the owner with the floor)",
+};
+// still off the scale, in files another fixer owns (fix-assignments.md), routed through the coordinator: the
+// Launchpad fixer's approval rows (launchpad.css) and the Conversation fixer's folded tool pill (msgx.css)
 const NOT_YET = {
-  "app.css: .theme { height }": 36, "app.css: .help { height }": 28, "app.css: .then-i { min-height }": 46,
-  "app.css: .pj-need { height }": 20, "app.css: .iq-route button { height }": 28, "app.css: .b-later { height }": 30,
-  "app.css: .teach-tog { height }": 30, "app.css: .teach-scope button { height }": 28, "app.css: .hd-r { min-height }": 38,
-  "app.css: .cw-in { height }": 34, "app.css: .ar { min-height }": 42, "app.css: .ar-fold { min-height }": 42,
-  "app.css: .kr-k { height }": 34, "app.css: .switch { height }": 36, "app.css: .tb-h { min-height }": 30,
-  "app.css: .tb-rh { min-height }": 28, "app.css: .tb-cf { height }": 28, "app.css: .tw-menu button { height }": 36,
-  "app.css: .teach-scope.is-list button { min-height }": 36, "app.css: .rn-chip { height }": 28,
-  "app.css: .rn-log { height }": 28, "app.css: .rn-back { height }": 30, "app.css: .rn-st .rn-stop { height }": 28,
-  "app.css: .ar-undo button { min-height }": 36, "app.css: .syl-ln { min-height }": 44, "app.css: .syl-more { height }": 28,
-  "app.css: .md-pin { height }": 28, "app.css: .map-btn { height }": 30, "app.css: .mp-x { height }": 30,
-  "app.css: .mp-who { height }": 28, "app.css: .dg-tag { height }": 22, "app.css: .fl-back { height }": 30,
-  "app.css: .fl-r { min-height }": 30, "app.css: .rt-seg button { height }": 30,
-  "panel.css: .stg-ic { height }": 28, "panel.css: .fl-r { height }": 28, "panel.css: .fl-r { min-height }": 28,
-  "panel.css: .fl-back { height }": 28, "panel.css: .ch-r { height }": 28, "panel.css: .fv-back { height }": 28,
-  "panel.css: .stage .ag-r { height }": 44, "panel.css: .stage .ch-r { height }": 44,
-  "diffs.css: .stage .cx-ofi { height }": 28, "diffs.css: .stage .cx-pill { height }": 28,
-  "diffs.css: .xd-q .xd-send { height }": 28, "diffs.css: .xd-tx { height }": 28,
   "launchpad.css: .lp-agr { height }": 44, "launchpad.css: .lp-appr { height }": 44,
-  "artifacts.css: .ar-kinds button { height }": 28, "media.css: .lbx-btn { height }": 28,
   "msgx.css: :root[data-msgx] .m-turn .turn>.tb>.tb-h { min-height }": 28,
-  "fileview.css: .fchip-b { height }": 28, "fileview.css: .fchip-x { height }": 28,
 };
 
 let passed = 0;
@@ -79,11 +64,11 @@ t("the census reads the controls (the graders' ten among them)", () => {
   assert.ok(ctl.size > 150, `${ctl.size} control classes`);
 });
 t("no desktop control is off the 24/32/40 scale, nor a row off its 40/48/56, but those listed for the next sweep", () => {
-  const fresh = [...off].filter(([k]) => !(k in NOT_YET)).map(([k, v]) => `${k} = ${v}`);
+  const fresh = [...off].filter(([k]) => !(k in NOT_YET) && !(k in EXCEPT)).map(([k, v]) => `${k} = ${v}`);
   assert.deepEqual(fresh, [], `off the scale on a desktop:\n  ${fresh.join("\n  ")}`);
 });
-t("the list only shrinks: a control that has moved onto the scale leaves it", () => {
-  const moved = Object.keys(NOT_YET).filter((k) => off.get(k) !== NOT_YET[k]);
+t("the lists only shrink: a control that has moved onto the scale leaves them", () => {
+  const moved = [...Object.keys(NOT_YET).filter((k) => off.get(k) !== NOT_YET[k]), ...Object.keys(EXCEPT).filter((k) => !off.has(k))];
   assert.deepEqual(moved, [], `listed, but no longer off the scale as listed:\n  ${moved.join("\n  ")}`);
 });
 t("rows from the tokens: 40 one line, 48 with an action, 56 a two-line list row; a phone's one-line rows 36, compact 32", () => {

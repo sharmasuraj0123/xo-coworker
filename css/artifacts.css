@@ -29,7 +29,7 @@
 .ar-q input{flex:1;min-width:0;height:100%;border:0;outline:none;background:none;color:var(--ink);font:400 var(--fs-md)/20px var(--sans)}
 .ar-q input::placeholder{color:var(--ink-4)}
 .ar-kinds{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.ar-kinds button{display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 12px;border-radius:999px;border:1px solid var(--line-soft);color:var(--ink-3);font:500 var(--fs-base)/20px var(--sans);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.ar-kinds button{display:inline-flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 12px;border-radius:999px;border:1px solid var(--line-soft);color:var(--ink-3);font:500 var(--fs-base)/20px var(--sans);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .ar-kinds button span{font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums}
 .ar-kinds button:hover{color:var(--ink);border-color:var(--line-strong)}
 .ar-kinds button[aria-checked="true"]{background:var(--fill-2);border-color:var(--line-strong);color:var(--ink)}

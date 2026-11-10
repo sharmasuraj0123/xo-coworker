@@ -80,7 +80,7 @@ diffs-container{
 .stage .cx-ph{flex:none;box-sizing:border-box;display:flex;align-items:center;gap:8px;height:35px;padding:0 3px 0 11px;border-bottom:1px solid var(--panel-line)}
 .stage .cx-pp{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 var(--fs-sm)/16px var(--mono);color:var(--ink-2)}
 .stage .cx-sp{flex:1}
-.stage .cx-ofi{display:grid;place-items:center;width:28px;height:28px;border-radius:calc(var(--r-lg) - 4px);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.stage .cx-ofi{display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:calc(var(--r-lg) - 4px);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .stage .cx-ofi:hover{background:var(--panel-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
 .stage .cx-ofi svg{width:16px;height:16px}
 .stage .cx-pd{flex:1 1 0;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin}
@@ -90,7 +90,7 @@ diffs-container{
 .stage .cx-none{padding:4px 20px 12px}
 .stage .cx-none .spin{display:inline-block;width:10px;height:10px;margin-right:6px;border-radius:50%;vertical-align:-1px}
 /* paused: an edit you aren't looking at, said quietly over the diff, never a jump */
-.stage .cx-pill{position:absolute;z-index:2;top:44px;left:50%;transform:translateX(-50%);display:inline-flex;align-items:center;gap:8px;height:28px;max-width:calc(100% - 48px);padding:0 12px;border-radius:var(--r-pill);background:var(--surface);border:1px solid var(--panel-line);box-shadow:var(--e2);font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-2);white-space:nowrap;animation:cx-pill var(--d-in) var(--ease)}
+.stage .cx-pill{position:absolute;z-index:2;top:44px;left:50%;transform:translateX(-50%);display:inline-flex;align-items:center;gap:8px;height:var(--h-ctl);max-width:calc(100% - 48px);padding:0 12px;border-radius:var(--r-pill);background:var(--surface);border:1px solid var(--panel-line);box-shadow:var(--e2);font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-2);white-space:nowrap;animation:cx-pill var(--d-in) var(--ease)}
 .stage .cx-pill[hidden]{display:none}
 .stage .cx-pill>span:first-of-type{min-width:0;overflow:hidden;text-overflow:ellipsis}
 .stage .cx-pill b{font-weight:500;color:var(--ink)}
@@ -134,7 +134,7 @@ diffs-container{
 /* the composer under those lines: a row of the file (Pierre makes room; nothing is covered). Its corner is
    concentric with Send's, measured from its outer edge (1 px border + 7 px): a 28 px circle 8 px in,
    14 + 8 = 22. Send never shrinks: a long thread name is cut instead (Astra F3). */
-.xd-q{box-sizing:border-box;max-width:600px;margin:8px 16px 12px;padding:7px 7px 7px 15px;border-radius:var(--r-2xl);background:var(--surface);border:1px solid var(--line);box-shadow:var(--e2);font-family:var(--sans);white-space:normal;animation:xd-in var(--d-in) var(--ease)}
+.xd-q{box-sizing:border-box;max-width:600px;margin:8px 16px 12px;padding:5px 5px 5px 15px;border-radius:var(--r-2xl);background:var(--surface);border:1px solid var(--line);box-shadow:var(--e2);font-family:var(--sans);white-space:normal;animation:xd-in var(--d-in) var(--ease)}
 :root[data-theme="light"] .xd-q{background:#fff}
 .xd-q .xd-ref{display:flex;align-items:center;gap:6px;margin:4px 0 4px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
 .xd-q .xd-ref svg{width:14px;height:14px}
@@ -143,7 +143,7 @@ diffs-container{
 .xd-q .xd-row{display:flex;align-items:center;gap:8px;margin-top:4px;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
 .xd-q .xd-row b{font-weight:500;color:var(--ink-2)}
 .xd-q .xd-sp{flex:1}
-.xd-q .xd-send{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--accent-fill);color:var(--accent-ink)}
+.xd-q .xd-send{flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:50%;background:var(--accent-fill);color:var(--accent-ink)}
 .xd-q .xd-to{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .xd-q .xd-hint{flex:none}
 .xd-q .xd-send svg{width:16px;height:16px}
@@ -207,7 +207,7 @@ diffs-container{
 .xd-toast .t-m b{font-weight:600}
 .xd-toast .t-m{min-width:0}
 .xd-tacts{display:contents}
-.xd-tx{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:var(--r-sm);color:var(--ink-3)}
+.xd-tx{flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);color:var(--ink-3)}
 .xd-tx:hover{background:var(--fill-2);color:var(--ink)}
 .xd-tx svg{width:14px;height:14px}
 @media (prefers-reduced-motion:reduce){.xd-pop{animation:none}.xd-btn,.xd-edit,.xd-mbtn{transition:none}}

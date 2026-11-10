@@ -82,11 +82,11 @@ body.fv-min .fv{visibility:hidden;pointer-events:none;right:var(--cw)}
 /* its chip in the header: the file's own icon, its name and counts; × closes it */
 .fchip{flex:none;display:inline-flex;align-items:center;height:28px;border-radius:var(--r);background:var(--surface);box-shadow:inset 0 0 0 1px var(--line-soft)}
 :root[data-theme="light"] .fchip{background:var(--surface);box-shadow:inset 0 0 0 1px var(--panel-line)}
-.fchip-b{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 4px 0 8px;border-radius:var(--r) 0 0 var(--r);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-2)}
+.fchip-b{display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 4px 0 8px;border-radius:var(--r) 0 0 var(--r);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-2)}
 .fchip-i{display:grid;place-items:center;width:16px;height:16px}
 .fchip-i svg{width:16px;height:16px}
 .fchip-n{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--mono)}
-.fchip-x{display:grid;place-items:center;width:28px;height:28px;border-radius:0 var(--r) var(--r) 0;color:var(--ink-4)}
+.fchip-x{display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:0 var(--r) var(--r) 0;color:var(--ink-4)}
 .fchip-x svg{width:14px;height:14px}
 .fchip-b:hover,.fchip-x:hover{background:var(--fill-2);color:var(--ink)}
 :root[data-theme="light"] :is(.fchip-b,.fchip-x):hover{background:rgba(0,0,0,.05)}

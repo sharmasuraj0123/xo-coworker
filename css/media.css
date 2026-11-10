@@ -90,7 +90,7 @@ a.lbx-btn{text-decoration:none}
 .lbx-by:empty{display:none}
 .lbx-meta{flex:none;font:400 var(--fs-xs)/var(--lh-12) var(--sans);color:var(--lbx-ink-4);font-variant-numeric:tabular-nums}
 .lbx-acts{flex:none;display:flex;align-items:center;gap:8px}
-.lbx-btn{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:var(--r);background:var(--lbx-fill);color:var(--lbx-ink);
+.lbx-btn{display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 10px;border-radius:var(--r);background:var(--lbx-fill);color:var(--lbx-ink);
   font:500 var(--fs-base)/var(--lh-13) var(--sans);transition:background-color var(--d-hover) var(--ease)}
 .lbx-btn:hover{background:var(--lbx-fill-hover)}
 .lbx-btn svg{flex:none;width:16px;height:16px}
@@ -105,7 +105,7 @@ a.lbx-btn{text-decoration:none}
 .lbx :focus-visible{outline:2px solid rgb(255 255 255 / .8);outline-offset:2px}
 @media (max-width:760px){
   .lbx-meta,.lbx-btn>span{display:none}
-  .lbx-btn{width:28px;padding:0;justify-content:center}
+  .lbx-btn{width:var(--h-ctl);padding:0;justify-content:center}
   .lbx-count{bottom:16px}
 }
 @media (hover:none){.lbx-arrow{display:none}}

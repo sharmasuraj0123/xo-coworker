@@ -283,6 +283,10 @@
      the sidebar's 42, Chats' 58, an open tool disclosure's 44 */
   .nrow,.prow{min-height:42px;padding-top:6px;padding-bottom:6px}
   .ch-row{min-height:58px;padding-top:10px;padding-bottom:10px}
+  .hd-r{min-height:38px}
+  :is(.ar,.ar-fold,.ar-undo){min-height:42px}
+  .syl-ln{min-height:44px;padding-top:7px;padding-bottom:7px}
+  .stage :is(.ag-r,.ch-r){height:44px;padding-top:4px;padding-bottom:4px}
   :root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h,
   :root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>.tb-h{min-height:44px}
 }

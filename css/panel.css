@@ -25,7 +25,7 @@
 .stg-tab svg{width:16px;height:16px}
 .stg-n{margin-left:-2px;font:400 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
 .stg-acts{gap:4px}
-.stg-ic{width:28px;height:28px;border-radius:var(--r-sm);color:var(--ink-4)}
+.stg-ic{width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);color:var(--ink-4)}
 .stg-ic svg{width:16px;height:16px}
 .stg-ic:hover{background:var(--fill-2);color:var(--ink)}
 @container stage (max-width:359px){.stg-n{display:none}}
@@ -55,7 +55,7 @@ body.stage-over .stage{box-shadow:var(--e2)}
 .fl-list{padding:0 6px}
 .fl-sec{box-sizing:border-box;height:28px;margin:0;padding:8px 6px 4px;font:600 var(--fs-sm)/16px var(--sans);letter-spacing:.01em;color:var(--ink-4)}
 .fl-sec:first-child{padding-top:8px}
-.fl-r{height:28px;min-height:28px;gap:8px;padding:0 6px 0 calc(6px + var(--d) * 16px);border-radius:var(--r-sm);font:400 var(--fs-base)/20px var(--sans);color:var(--ink-2)}
+.fl-r{height:var(--h-ctl);min-height:var(--h-ctl);gap:8px;padding:0 6px 0 calc(6px + var(--d) * 16px);border-radius:var(--r-sm);font:400 var(--fs-base)/20px var(--sans);color:var(--ink-2)}
 .fl-r.is-dir{color:var(--ink-2);font-weight:400}
 .fl-r:hover{background:var(--surface);color:var(--ink)}
 .fl-r.is-on{background:var(--fill-2);color:var(--ink)}
@@ -71,7 +71,7 @@ body.stage-over .stage{box-shadow:var(--e2)}
 .fl-note{min-height:28px;padding-left:calc(var(--pn) - 6px + var(--d,0) * 16px);font:400 var(--fs-sm)/16px var(--sans)}
 .fl-note .spin{width:10px;height:10px}
 .fl-bar{padding:6px 6px 0}
-.fl-back{height:28px;padding:0 8px 0 6px;gap:4px;border-radius:var(--r-sm);font:500 var(--fs-base)/20px var(--sans)}
+.fl-back{height:var(--h-ctl);padding:0 8px 0 6px;gap:4px;border-radius:var(--r-sm);font:500 var(--fs-base)/20px var(--sans)}
 .fl-back svg{width:16px;height:16px}
 :root[data-theme="light"] .fl-r:hover{background:rgba(0,0,0,.04)}
 :root[data-theme="light"] .fl-r.is-on{background:rgba(0,0,0,.07)}
@@ -334,7 +334,7 @@ body.stage-vsizing{cursor:row-resize;user-select:none}
 
 /* Changes: the tree's grid (icon on the edge, the name on the name column), its mark at the end */
 :is(.panel,.stage) .ch-list{padding:4px 6px 8px}
-.ch-r{box-sizing:border-box;display:flex;align-items:center;gap:8px;width:100%;height:28px;padding:0 6px;border-radius:var(--r-sm);text-align:left;font:400 var(--fs-base)/20px var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease)}
+.ch-r{box-sizing:border-box;display:flex;align-items:center;gap:8px;width:100%;height:var(--h-ctl);padding:0 6px;border-radius:var(--r-sm);text-align:left;font:400 var(--fs-base)/20px var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease)}
 .ch-r:hover{background:var(--surface);color:var(--ink)}
 .ch-i{flex:none;display:grid;place-items:center;width:16px;height:16px}
 .ch-n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -364,7 +364,7 @@ body.stage-open:not(.panel-open):not(.stage-full):not(.stage-over) .fv{right:var
 @media (max-width:760px){body.stage-open:not(.panel-open):not(.stage-full):not(.stage-over) .fv{right:0}}
 body.files-open .dock,body.files-open .tdock{display:none}
 .fv-h{flex:none;box-sizing:border-box;height:40px;display:flex;align-items:center;gap:8px;padding:0 12px 0 8px;border-bottom:1px solid var(--line-faint)}
-.fv-back{display:flex;align-items:center;gap:4px;height:28px;padding:0 8px 0 4px;border-radius:var(--r-sm);font:500 var(--fs-base)/20px var(--sans);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.fv-back{display:flex;align-items:center;gap:4px;height:var(--h-ctl);padding:0 8px 0 4px;border-radius:var(--r-sm);font:500 var(--fs-base)/20px var(--sans);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .fv-back:hover{background:var(--fill-2);color:var(--ink)}
 .fv-back svg{width:16px;height:16px}
 .fv-sep{width:1px;height:16px;background:var(--fill-3)}
@@ -425,7 +425,7 @@ body.viewer-open .fv~.dock{display:none}
 /* A thread's coloured glyph is its map identity; its tile carries the shared corner working arc.
    Neither tint nor a persistent card outline is needed on every row. */
 .stage .ag-list,.stage .ch-list{display:flex;flex-direction:column;gap:4px;padding:0 12px 8px}
-.stage .ag-r,.stage .ch-r{display:grid;grid-template-columns:28px minmax(0,1fr) auto;column-gap:8px;align-items:center;width:100%;height:44px;padding:4px 8px;border:0;border-radius:var(--r-lg);background:transparent;transition:background var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease)}
+.stage .ag-r,.stage .ch-r{display:grid;grid-template-columns:28px minmax(0,1fr) auto;column-gap:8px;align-items:center;width:100%;height:var(--h-row-act);padding:6px 8px;border:0;border-radius:var(--r-lg);background:transparent;transition:background var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease)}
 .stage .ag-r:hover,.stage .ch-r:hover{background:var(--panel-hover);transition-duration:var(--d-hover-in)}
 /* Lists show whole rows, never one cut in half (the owner, 5 November). Rows are 44 px with 4 px between,
    so n rows are 48n − 4 px; a longer list's box is exactly that and it scrolls a row at a time, its 8 px
