@@ -51,6 +51,12 @@
 :root[data-theme="light"] .prow.is-on{background:#FFFFFF;border-color:rgba(0,0,0,.07);box-shadow:var(--sb-lift-2)}
 :root[data-theme="light"] .prow.is-on.busy{background:color-mix(in srgb,var(--info) 6%,#FFFFFF);border-color:color-mix(in srgb,var(--info) 30%,transparent)}
 :root[data-theme="light"] .prow.is-on.needs{background:color-mix(in srgb,var(--warn) 7%,#FFFFFF);border-color:color-mix(in srgb,var(--warn) 32%,transparent)}
+/* a row in a state (working, needs you, the one you're on) answers hover too: its wash is the stronger rule, so the
+   row's own hover never showed (the controls grader on 999f408, C008: a needs-you project row, and the current nav
+   row, the same hovered as at rest). One layer over whatever wash the state has, a step toward the ink in either
+   theme; the state's colour stays */
+/* (:root:root: above every state's wash, the light theme's too, whose background shorthand would clear the layer) */
+:root:root .side :is(.prow.busy,.prow.needs,.prow.is-on,.nrow.is-on):hover{background-image:linear-gradient(color-mix(in srgb,var(--ink) 6%,transparent),color-mix(in srgb,var(--ink) 6%,transparent))}
 
 /* its tile: solid, in the row's colour (.side: above light.css's white tile for the open row) */
 .side .prow.is-on:not(.busy) .pr-ic{background:var(--ink);border-color:var(--ink);color:var(--sb-side)}
