@@ -1782,6 +1782,8 @@ function heraldShow(h, ms) { return HER().show(h, ms); }
 function heraldFor(mid, make, ms) { return HER().forMsg(mid, make, ms); }
 function heraldPut(h, ms) { return HER().put(h, ms); }
 function heraldNext() { return HER().next(); }
+/** A subject's notice that's no longer true goes, on screen or waiting (js/herald.js drop). */
+function heraldDrop(mid) { return HER().drop(mid); }
 function heraldRender(needs) {
   const box = $("#herald");
   const h = S.herald && S.herald.until > Date.now() ? S.herald : null;
@@ -3018,16 +3020,24 @@ function resolveThread(tid, resolved, { undo = true, sayFail = true } = {}) {
     if (!t) return { ok: false, why: "That thread isn't loaded." };
     const name = t.title;
     schedule(); // the button, drawn as waiting
+    // This thread's resolve and reopen have one notice between them (mid): the newer word replaces the older, on
+    // screen or waiting, and an outcome with nothing to say takes the older away. A refusal's "Couldn't resolve it ·
+    // Retry" never outlives a later resolve that worked (the controls grader on 1ef7056, C041: it stayed, and its
+    // Retry sent a third PATCH to a resolved thread).
+    const about = `resolve:${tid}`;
+    const say = (h, ms) => { if (!heraldFor(about, () => h, ms)) heraldShow(h, ms); };
     try {
       await world.act.resolve(tid, resolved);
     } catch (err) {
       announce(`${resolved ? "Couldn't resolve" : "Couldn't reopen"} ${name}. ${err.message}`);
-      if (sayFail) heraldShow({ kind: "stopped", text: resolved ? "Couldn't resolve it" : "Couldn't reopen it", sub: err.message, back: [`[data-resolve="${CSS.escape(tid)}"]`], undo: () => resolveThread(tid, resolved, { undo }), undoLabel: "Retry" }, 8000);
+      if (sayFail) say({ kind: "stopped", text: resolved ? "Couldn't resolve it" : "Couldn't reopen it", sub: err.message, mid: about, back: [`[data-resolve="${CSS.escape(tid)}"]`], undo: () => resolveThread(tid, resolved, { undo }), undoLabel: "Retry" }, 8000);
+      else heraldDrop(about);
       return { ok: false, why: err.message };
     }
     announce(resolved ? `Resolved ${name}.` : `Reopened ${name}.`);
     // Undo is the same call the other way (the route is idempotent); it never starts or stops a turn
-    if (undo) heraldShow({ kind: "done", text: resolved ? "Resolved" : "Reopened", sub: name, back: [`[data-resolve="${CSS.escape(tid)}"]`], undo: () => resolveThread(tid, !resolved, { undo: false }) }, 6000);
+    if (undo) say({ kind: "done", text: resolved ? "Resolved" : "Reopened", sub: name, mid: about, back: [`[data-resolve="${CSS.escape(tid)}"]`], undo: () => resolveThread(tid, !resolved, { undo: false }) }, 6000);
+    else heraldDrop(about);
     return { ok: true };
   });
   p.finally(schedule); // drawn again once the request is no longer out

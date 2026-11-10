@@ -37,6 +37,12 @@ export function createHerald({ state, schedule = () => {}, now = () => Date.now(
     if (q) { q.h = make(q.h); if (ms) q.ms = ms; return true; }
     return false;
   }
+  /** A notice that's no longer true goes, on screen or waiting: its subject's newer state has nothing to say (a
+   *  refused resolve, once a later resolve of the same thread went through: the controls grader on 1ef7056, C041). */
+  function drop(mid) {
+    for (let i = HQ.length - 1; i >= 0; i--) if (HQ[i].h.mid === mid) HQ.splice(i, 1);
+    if (state.herald && state.herald.mid === mid && state.herald.until > now()) { state.herald = { ...state.herald, until: 0 }; clearTimer(timer); next(); }
+  }
   function put(h, ms) {
     state.herald = { ...h, until: now() + ms, n: (state.herald?.n || 0) + 1 };
     clearTimer(timer);
@@ -63,7 +69,7 @@ export function createHerald({ state, schedule = () => {}, now = () => Date.now(
     }
     put(h, ms);
   }
-  return { show, forMsg, put, next, HQ };
+  return { show, forMsg, drop, put, next, HQ };
 }
 
 /**
