@@ -2492,7 +2492,7 @@ function render() {
     // the work folds about to be redrawn, measured before anything changes (workMotion glides them)
     const folds = quiet ? null : foldsBefore(items);
     const place = !opening && !isPinned() ? readingPlace() : null;
-    reconcile(msgsEl, items, { quiet });
+    reconcile(msgsEl, items, { quiet, fallback: () => $("#say") });
     hydrateMedia(msgsEl); // new pictures load and fade in; redrawn ones keep their pixels
     if (place) { holdPlace(place); queueMicrotask(() => holdPlace(place)); } // after msgx's decoration too
     if (folds) workMotion(folds);

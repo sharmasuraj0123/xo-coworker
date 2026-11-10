@@ -239,12 +239,25 @@ export const plain = (md) => String(md || "").replace(/```[\s\S]*?```/g, "[code]
  * (bubbling), so whatever decorates rows (js/msgx.js) puts its additions back in the same task. Every other row
  * is replaced as before.
  */
-export function reconcile(box, items, { quiet = false } = {}) {
+/** Where focus can land in a row: its controls, in order. */
+const LANDING = 'button:not(:disabled), a[href], input:not([type="hidden"]):not(:disabled), textarea:not(:disabled), [tabindex="0"]';
+const shows = (e) => e.getClientRects().length > 0 && !e.closest("[inert], [hidden]");
+export function reconcile(box, items, { quiet = false, fallback = null } = {}) {
   const old = new Map();
   for (const el of box.children) if (el.dataset.k) old.set(el.dataset.k, el);
   const added = [];
   const tpl = document.createElement("template");
   const active = document.activeElement, inPlace = [];
+  // a row that's going while it holds focus hands it on first, never to BODY (the create-project/Launchpad grader on
+  // f70ca6b, C050/C121: the working mini, dropped with no finished blocks, took focus with it): the nearest row that
+  // stays, before it, else after it (found now, before anything moves), or the list's fallback
+  const keep = new Set(items.map((it) => it.key));
+  const going = [...box.children].find((el) => el.dataset.k && !keep.has(el.dataset.k) && el.contains(active));
+  let near = null;
+  if (going) {
+    for (let s = going.previousElementSibling; s && !near; s = s.previousElementSibling) if (s.dataset.k && keep.has(s.dataset.k)) near = s.dataset.k;
+    for (let s = going.nextElementSibling; s && !near; s = s.nextElementSibling) if (s.dataset.k && keep.has(s.dataset.k)) near = s.dataset.k;
+  }
   items.forEach((it, i) => {
     let el = old.get(it.key);
     if (el && el._h !== it.html) {
@@ -272,6 +285,11 @@ export function reconcile(box, items, { quiet = false } = {}) {
     const at = box.children[i];
     if (at !== el) box.insertBefore(el, at || null);
   });
+  if (going) {
+    near = near && [...box.children].find((el) => el.dataset.k === near);
+    const to = (near && [...near.querySelectorAll(LANDING)].find(shows)) || (fallback && fallback());
+    if (to && to.focus) to.focus({ preventScroll: true });
+  }
   for (const el of old.values()) el.remove();
   // told once the list is in its final order, so what decorates rows sees their neighbours as they are
   for (const el of inPlace) if (el.isConnected) el.dispatchEvent(new CustomEvent("redrawn", { bubbles: true }));
