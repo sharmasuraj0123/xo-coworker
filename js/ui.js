@@ -297,14 +297,35 @@ export function reconcile(box, items, { quiet = false, fallback = null } = {}) {
 }
 
 // ── optional soft sounds (OFF by default; the person turns them on) ─────────
-let actx = null;
+// The choice is this page's from the moment it's made, and the browser's to remember: a storage that refuses it
+// doesn't undo it (the page still has it, and says it won't last). Turning sounds on is a press, so the audio is
+// made or woken right then; where the browser won't play (no audio, or it refuses), they stay off and that's said.
+// (create-project grader on 7e0db5b, C117: a refused write left the switch off, a refused audio left it on with
+// nothing said, and a suspended context was never woken, its notes queueing silently.)
+let actx = null, chosen = null;
+const stored = () => { try { return localStorage.getItem("cv-sound") === "on"; } catch { return false; } };
+const keep = (v) => { try { localStorage.setItem("cv-sound", v ? "on" : "off"); return localStorage.getItem("cv-sound") === (v ? "on" : "off"); } catch { return false; } };
 export const sound = {
-  get on() { try { return localStorage.getItem("cv-sound") === "on"; } catch { return false; } },
-  set on(v) { try { localStorage.setItem("cv-sound", v ? "on" : "off"); } catch { /* private mode */ } },
+  get on() { return chosen ?? stored(); },
+  /**
+   * Turn sounds on or off from a press. Resolves to {on, kept, refused}: on, what the switch now says; kept, whether
+   * the browser will remember it; refused, that the browser won't play sound here (so they're off).
+   */
+  async turn(want) {
+    if (!want) { chosen = false; return { on: false, kept: keep(false), refused: false }; }
+    try {
+      actx = actx || new AudioContext();
+      if (actx.state === "suspended") await actx.resume();
+    } catch { actx = null; }
+    if (!actx || actx.state !== "running") { chosen = false; keep(false); return { on: false, kept: true, refused: true }; }
+    chosen = true;
+    return { on: true, kept: keep(true), refused: false };
+  },
   play(kind) {
     if (!this.on) return;
     try {
       actx = actx || new AudioContext();
+      if (actx.state !== "running") return; // asleep (a tab in the background): never queue notes for later
       const notes = { allow: [660, 990], back: [520, 390], done: [523, 659, 784], lock: [880], send: [740] }[kind] || [660];
       notes.forEach((f, i) => {
         const o = actx.createOscillator(), g = actx.createGain();
