@@ -1829,7 +1829,10 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 .teach-scope.is-list button{border-radius:var(--r-sm)}
 
 /* ── sub-agents (U2, ch 14 §11): working now under the checklist; the list and each run in a sheet ── */
-.rn-strip{display:flex;gap:6px;margin-top:8px;overflow-x:auto;scrollbar-width:none}
+/* a scroller of controls keeps the ring's room inside it: overflow-x clips the other axis too, so a focused chip's ring
+   (4 px outside it) was cut on three sides, only its right 2 px showing (the create-project grader on 427f41c, C047).
+   The room is padding, given back by the margin, so the chips sit where they did */
+.rn-strip{display:flex;gap:6px;margin:calc(8px - var(--ring-room)) calc(-1 * var(--ring-room)) calc(-1 * var(--ring-room));padding:var(--ring-room);overflow-x:auto;scrollbar-width:none}
 .rn-strip::-webkit-scrollbar{display:none}
 .rn-it{flex:none;display:flex;min-width:0}
 .rn-chip{flex:none;display:inline-flex;align-items:center;gap:8px;height:var(--h-ctl);max-width:280px;padding:0 10px;border-radius:var(--r-sm);border:1px solid color-mix(in srgb,var(--info) 28%,var(--line-soft));background:color-mix(in srgb,var(--info) 6%,transparent);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease)}
