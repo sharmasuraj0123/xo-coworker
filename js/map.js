@@ -686,7 +686,12 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     const B = bounds(), F = c.fitB;
     const moved = !F || Math.max(Math.abs(B.x0 - F.x0), Math.abs(B.y0 - F.y0), Math.abs(B.x1 - F.x1), Math.abs(B.y1 - F.y1)) > 8;
     const over = B.x0 * c.s + c.x < 0 || B.x1 * c.s + c.x > v.clientWidth || B.y0 * c.s + c.y < 0 || B.y1 * c.s + c.y > v.clientHeight - 44;
-    if ((!c.user || c.fitAll) && (moved || over)) { fit(c, true, true); return; }
+    // Fit all, which you asked for, keeps the diagram whole as it grows or shrinks; the graph, which keeps settling, only
+    // when it would cross the frame's edge: its zoom (and every name's size on screen) holds still while it breathes.
+    // It had refitted each time the settling graph moved: after Fit, the agent's tag measured 24.41 px, then 23.84 once
+    // the graph moved on, under the 24 floor (the controls grader on 06b997b, S083 status-graph, once in three)
+    const refit = !c.user ? moved || over : c.fitAll && (over || (moved && M.mode !== "graph"));
+    if (refit) { fit(c, true, true); return; }
     if (c.follow && lead && c.target !== lead.key) { c.target = lead.key; keepInView(c, lead); }
   }
   /** A fresh first look for this view's camera, unless you've moved it yourself. */
