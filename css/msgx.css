@@ -25,15 +25,16 @@ body.files-open .mx-down{display:none}
 /* ── replies: the bar on a message ─────────────────────────────────────────── */
 #msgs>.m{touch-action:pan-y}
 /* Reply and Copy sit beside the bubble, on the open side and centred on it, as in Messenger and iMessage:
-   two quiet 28 px circles 8 px off the bubble, no bar around them */
+   two quiet circles 8 px off the bubble, no bar around them. They're buttons, so they're the standard control
+   height, --h-ctl (32); they were 28, off the 24/32/40 scale (grader A on c767cbf, C052 Copy, at 1440) */
 .mx-acts{position:absolute;z-index:2;top:50%;left:calc(100% + 8px);display:flex;gap:2px;transform:translate(-4px,-50%);opacity:0;pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease)}
 .m-you .mx-acts{left:auto;right:calc(100% + 8px);flex-direction:row-reverse;transform:translate(4px,-50%)}
-/* where a pointer can hover, the actions sit beside the bubble: a bubble leaves them their room (two 28 px buttons,
-   their gap and the 8 px between: 66), so they never reach past the row (a narrow window with a mouse: the scroller
+/* where a pointer can hover, the actions sit beside the bubble: a bubble leaves them their room (two buttons of
+   --h-ctl, their 2 px gap and the 8 px between: 74), so they never reach past the row (a narrow window with a mouse: the scroller
    was 401 px wide in 390). A phone shows none, and keeps its own width */
-@media (hover:hover){#msgs .bubble{max-width:min(80%,540px,calc(100% - 66px))}}
+@media (hover:hover){#msgs .bubble{max-width:min(80%,540px,calc(100% - 2 * var(--h-ctl) - 10px))}}
 .m:hover .mx-acts,.m:focus-within .mx-acts{opacity:1;transform:translate(0,-50%);pointer-events:auto;transition-duration:var(--d-in)}
-.mx-acts button{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.mx-acts button{display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:50%;color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .mx-acts button:hover{background:var(--hover-fill);color:var(--ink);transition-duration:var(--d-hover-in)}
 .mx-acts svg{width:16px;height:16px}
 .prose>.mx-acts,.prose>.mx-swipe{margin:0}
@@ -45,15 +46,15 @@ body.files-open .mx-down{display:none}
 .mx-nobub .mx-acts.is-foot{display:flex;top:calc(100% + 6px);left:10px;transform:translateY(-4px)}
 .m.mx-nobub:hover .mx-acts.is-foot,.m.mx-nobub:focus-within .mx-acts.is-foot{transform:none}
 .m-you.mx-nobub>.mx-acts.is-foot{left:auto;right:8px;flex-direction:row-reverse}
-:root[data-msgx] #msgs>.m.mx-nobub{margin-bottom:54px}
-/* the row under pictures holds its space (6 + 28 + 20), so it shows quietly at rest; full on hover */
+:root[data-msgx] #msgs>.m.mx-nobub{margin-bottom:calc(var(--h-ctl) + 26px)}
+/* the row under pictures holds its space (6 + the buttons' --h-ctl + 20), so it shows quietly at rest; full on hover */
 .m.mx-nobub .mx-acts.is-foot{opacity:.5;pointer-events:auto}
 .m.mx-nobub:hover .mx-acts.is-foot,.m.mx-nobub:focus-within .mx-acts.is-foot{opacity:1}
 .m.mx-dragging .mx-acts,#msgs.mx-pulling .mx-acts{opacity:0;pointer-events:none}
 @media (hover:none){.mx-acts{display:none}}
 
 /* a reply on its way: the quote waits above what you type */
-.mx-reply{display:flex;align-items:center;gap:8px;height:36px;margin:-3px 0 10px;padding:0 4px 0 12px;border-radius:calc(var(--r-3xl) - 10px);background:var(--hover-fill);box-shadow:var(--hairline)}
+.mx-reply{display:flex;align-items:center;gap:8px;height:36px;margin:-3px 0 10px;padding:0 6px 0 12px;border-radius:calc(var(--r-3xl) - 10px);background:var(--hover-fill);box-shadow:var(--hairline)}
 .mx-reply[hidden]{display:none}
 .mx-reply.is-in{animation:mx-up var(--d-in) var(--ease)}
 @keyframes mx-up{from{opacity:0;transform:translateY(6px)}}
@@ -62,9 +63,12 @@ body.files-open .mx-down{display:none}
 .mx-r-t{flex:1;display:flex;gap:6px;min-width:0;font-size:var(--fs-md);line-height:20px;white-space:nowrap}
 .mx-r-t b{flex:none;font-weight:600;color:var(--ink)}
 .mx-r-t span{min-width:0;overflow:hidden;text-overflow:ellipsis;color:var(--ink-3)}
-.mx-r-x{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:50%;color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.mx-r-x{display:grid;place-items:center;flex:none;width:var(--h-sm);height:var(--h-sm);border-radius:50%;color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .mx-r-x:hover{background:var(--hover-fill);color:var(--ink)}
 .mx-r-x svg{width:16px;height:16px}
+/* its × is an inline dismiss, --h-sm (24; it was 28, off the scale, the same cause as C052): 6 px in on every side of
+   the quote's 36, so its circle is concentric with the quote's corner (18 − 6 = 12). A phone keeps its 36 × at 4 px in */
+@media (max-width:760px){.mx-reply{padding-right:4px}}
 
 /* a sent reply: its quote is a card at the top of your bubble; press it to go back to the original */
 .mx-qc{display:flex;flex-direction:column;gap:2px;width:calc(100% + 20px);margin:-4px -10px 8px;padding:6px 10px;border-radius:calc(var(--r-xl) - 6px);background:color-mix(in srgb,currentColor 8%,transparent);color:inherit;text-align:left;white-space:normal;transition:background var(--d-hover) var(--ease)}
@@ -184,11 +188,11 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text){position:relative;width:fit-content;max-width:min(88%,560px);padding:10px 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi)}
 /* a reply that holds a table takes the whole text column: structured content gets its room (QA #5) */
 :root[data-msgx] :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text).has-table{width:100%;max-width:100%}
-/* where a pointer can hover, an agent's bubble leaves its actions their 66 px beside it too (a table's as well), so
+/* where a pointer can hover, an agent's bubble leaves its actions their room beside it too (a table's as well), so
    they never reach past the row (the browser case at 390 with a mouse: 401 of 390 px) */
 @media (hover:hover){
-  :root[data-msgx] :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text){max-width:min(88%,560px,calc(100% - 66px))}
-  :root[data-msgx] :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text).has-table{width:calc(100% - 66px);max-width:calc(100% - 66px)}
+  :root[data-msgx] :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text){max-width:min(88%,560px,calc(100% - 2 * var(--h-ctl) - 10px))}
+  :root[data-msgx] :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text).has-table{width:calc(100% - 2 * var(--h-ctl) - 10px);max-width:calc(100% - 2 * var(--h-ctl) - 10px)}
 }
 :root[data-msgx] .m-them.mx-next-cont>.mb>.prose{border-bottom-left-radius:var(--r-sm)}
 :root[data-msgx] .m-them.cont>.mb>.prose{border-top-left-radius:var(--r-sm)}
