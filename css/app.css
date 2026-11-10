@@ -2245,8 +2245,14 @@ a.vw-btn{text-decoration:none}
 .shd.is-min{height:auto}
 .shd.is-min .shd-body,.shd.is-min .shd-grip{display:none}
 .shd.is-min .shd-bar{cursor:pointer}
-.shd-grip{position:absolute;left:0;right:0;top:-4px;height:8px;z-index:2;cursor:ns-resize;border-radius:0}
-.shd-grip::after{content:"";position:absolute;left:50%;top:2px;width:36px;height:4px;margin-left:-18px;border-radius:2px;background:var(--fill-4);opacity:0;transition:opacity var(--d-hover) var(--ease)}
+/* the separator: a 24 px band to take hold of, centred on the dock's line, which stays the thin line it is (the owner's
+   decision, 10 Nov, S269: an 8 px band was hard to find). Its pill and its ring keep their place on the line: the
+   ring drawn 8 px inside the band, so it's the 12 px it was. The shell bar's controls stand above the band where it
+   overlaps them, so it never takes their clicks; the composer above sits 18 px clear of it */
+.shd-grip{position:absolute;left:0;right:0;top:-12px;height:24px;z-index:2;cursor:ns-resize;border-radius:0}
+.shd-grip:focus-visible{outline-offset:-8px}
+.shd-grip::after{content:"";position:absolute;left:50%;top:10px;width:36px;height:4px;margin-left:-18px;border-radius:2px;background:var(--fill-4);opacity:0;transition:opacity var(--d-hover) var(--ease)}
+.shd-bar :is(button,[role=tab],a,input){position:relative;z-index:3}
 .shd-grip:hover::after,.shd-grip:focus-visible::after,.shd.is-dragging .shd-grip::after{opacity:1}
 .shd.is-dragging{user-select:none}
 .shd-bar{flex:none;display:flex;align-items:center;gap:8px;min-height:40px;padding:0 8px 0 10px;background:var(--sunken);box-shadow:inset 0 -1px 0 var(--line-faint)}  /* its rule inside it: 4 + 32 + 4 (panel.css, .vw-top) */
