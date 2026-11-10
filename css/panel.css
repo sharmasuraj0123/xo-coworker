@@ -335,10 +335,11 @@ body.stage-vsizing{cursor:row-resize;user-select:none}
 .ch-r:hover{background:var(--surface);color:var(--ink)}
 .ch-i{flex:none;display:grid;place-items:center;width:16px;height:16px}
 .ch-n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ch-m{flex:none;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
-.ch-m.m-new{color:var(--accent)}
-.ch-m.m-deleted{color:var(--err)}
-.ch-m.m-live{color:var(--ink-2)}
+/* (the mark of a Changes row: scoped to it, never the Chats list's meta, which shares the class name) */
+.ch-r .ch-m{flex:none;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.ch-r .ch-m.m-new{color:var(--accent)}
+.ch-r .ch-m.m-deleted{color:var(--err)}
+.ch-r .ch-m.m-live{color:var(--ink-2)}
 :root[data-theme="light"] .ch-r:hover{background:rgba(0,0,0,.04)}
 
 /* the Map inside its frame: the frame's tabs choose Diagram or Graph, the Agents frame says who */
@@ -456,7 +457,7 @@ body.viewer-open .fv~.dock{display:none}
 :root[data-theme="light"] .stage .ag-r.is-on :is(.arc,.ag-wait){background:var(--surface)}
 .stage .ag-wait{display:grid;place-items:center;color:var(--warn)}
 .stage .ag-wait svg{width:12px;height:12px}
-.stage .ag-tm,.stage .ch-m{align-self:start;padding-top:0;font:400 var(--fs-sm)/20px var(--sans)}
+.stage .ag-tm,.stage .ch-r .ch-m{align-self:start;padding-top:0;font:400 var(--fs-sm)/20px var(--sans)}
 .stage .ch-r:not(:has(.ch-path)) .ch-m{align-self:center}
 
 /* The map belongs to the same rail. Idle nodes are open rows; only the root and an agent's current

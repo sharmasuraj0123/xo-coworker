@@ -21,7 +21,7 @@ t("one shared state for buttons that read as links", () => {
   const esc = list.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   assert.match(found, new RegExp(`:is\\(${esc}\\):where\\(:hover:not\\(:disabled,\\[aria-disabled="true"\\],\\[aria-busy="true"\\]\\)\\)\\{color:var\\(--ink\\);text-decoration-color:currentColor\\}`), "hover: full ink and underline");
   assert.match(found, new RegExp(`:is\\(${esc}\\):where\\(:active:not\\(:disabled,\\[aria-disabled="true"\\],\\[aria-busy="true"\\]\\)\\)\\{opacity:\\.7\\}`), "press: it dims, as a link does");
-  const press = found.split("\n").find((l) => l.includes("{background-image:linear-gradient(var(--press-fill),var(--press-fill))!important}"));
+  const press = found.split("\n").find((l) => l.includes("{background-image:linear-gradient(var(--press-fill),var(--press-fill))!important"));
   assert.ok(press && press.includes(`:is(${list})`), "out of the shared press fill (no box to fill)");
 });
 t("every button styled as an underlined text link is in it, and none rests at full ink", () => {
