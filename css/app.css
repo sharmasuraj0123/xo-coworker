@@ -2503,6 +2503,8 @@ i.t-amber{background:var(--warn)}i.t-blue{background:var(--info)}i.t-red{backgro
 :root[data-theme="light"] .handled.hm-sk .hd-ic{background:var(--fill-2)}
 :root[data-theme="light"] .md-pin{background:rgb(255 255 255 / .85)}
 :root[data-theme="light"] .md-pin:hover{background:#FFFFFF;box-shadow:0 0 0 1px var(--line)}
+/* (light's --accent-hover is a fill's hover, paler: as ink on white it fell to 2.2:1; a pinned pin's glyph goes a step firmer instead) */
+:root[data-theme="light"] .md-it.is-pin .md-pin:hover{color:color-mix(in srgb,var(--accent) 75%,var(--ink))}
 @media (hover:none){.md-pin{opacity:1}}
 @media (max-width:760px){
   .since{padding:10px 12px}
