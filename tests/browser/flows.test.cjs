@@ -1619,26 +1619,37 @@ t("C052: a code block's Copy answered out of order: only the newest says Copied,
   await done(page);
 });
 t("C052: what a code block's Copy says is its own: a success then a newer refusal never says Copied after it", async () => {
+  // The app's order, not a clock's: a Copy's answer is said 40 ms after it lands, and only while that Copy is still the
+  // newest (app.js: _copyN, announce's still()). This case read the live region at fixed times from its start (40, 60,
+  // 120 ms), so a slow moment before the refusal (the controls grader on 05d76ca, once in 12 at 390 dark) read it
+  // before the app had said it. Now every word the live region says is recorded as it changes, and the case waits for
+  // the refusal to be said; the second run stalls the page for 150 ms right after the refusal, as a slow moment does.
   const page = await app({ messages: MSG("Here is the command:\n\n```sh\nnpm test\n```\n") });
   await toDemo(page);
   await page.locator("#msgs [data-copy]").first().waitFor();
-  const seen = await page.evaluate(async () => {
-    const b = document.querySelector("#msgs [data-copy]"), live = document.querySelector("#live"), q = [];
-    navigator.clipboard.writeText = () => new Promise((ok, no) => q.push({ ok, no }));
-    document.execCommand = () => false;
-    const wait = (ms) => new Promise((r) => setTimeout(r, ms)), t0 = performance.now(), at = (ms) => wait(Math.max(0, t0 + ms - performance.now()));
-    b.click(); q[0].ok();             // the first Copy: success at 0
-    await at(5); b.click();           // a second Copy
-    await at(20); q[1].no(new Error("denied")); // refused at 20
-    const out = [];
-    await at(40); out.push(live.textContent);
-    await at(60); out.push(live.textContent);
-    await at(120); out.push(live.textContent, b.textContent);
-    return out;
-  });
-  assert.ok(!seen.slice(0, 3).includes("Copied the code."), `never "Copied" after the newer refusal: ${JSON.stringify(seen)}`);
-  assert.match(seen[2], /^Couldn't copy/, "the refusal is what's said");
-  assert.equal(seen[3], "Copy", "and the check is cleared");
+  for (const stall of [0, 150]) {
+    const seen = await page.evaluate(async (stall) => {
+      const b = document.querySelector("#msgs [data-copy]"), live = document.querySelector("#live"), q = [], said = [];
+      navigator.clipboard.writeText = () => new Promise((ok, no) => q.push({ ok, no }));
+      document.execCommand = () => false;
+      const rec = new MutationObserver(() => said.push({ at: performance.now(), text: live.textContent }));
+      rec.observe(live, { childList: true, characterData: true, subtree: true });
+      const wait = (ms) => new Promise((r) => setTimeout(r, ms)), t0 = performance.now(), at = (ms) => wait(Math.max(0, t0 + ms - performance.now()));
+      b.click(); q[0].ok();                       // the first Copy: a success at once
+      await at(5); const second = performance.now(); b.click(); // a second Copy, inside the first's 40 ms
+      await at(20); q[1].no(new Error("denied"));  // the second is refused
+      if (stall) { const end = performance.now() + stall; while (performance.now() < end); } // a slow moment
+      // wait for the app to say the refusal (its own event), at most 3 s
+      const refused = () => /^Couldn't copy/.test(live.textContent);
+      await new Promise((r) => { if (refused()) return r(); const o = new MutationObserver(() => { if (refused()) { o.disconnect(); r(); } }); o.observe(live, { childList: true, characterData: true, subtree: true }); setTimeout(() => { o.disconnect(); r(); }, 3000); });
+      await wait(0); rec.disconnect();
+      return { said, second, now: live.textContent, button: b.textContent };
+    }, stall);
+    const after = seen.said.filter((x) => x.at >= seen.second).map((x) => x.text);
+    assert.ok(!after.includes("Copied the code."), `never "Copied" once the newer Copy was pressed (stall ${stall}): ${JSON.stringify(after)}`);
+    assert.match(seen.now, /^Couldn't copy/, `the refusal is what's said (stall ${stall}): ${JSON.stringify(seen.said.map((x) => x.text))}`);
+    assert.equal(seen.button, "Copy", "and the check is cleared"); // (the refusal cleared the first Copy's reset timer)
+  }
   await done(page);
 });
 t("DEC-NOTE-LOSS/S167: a Send back that failed keeps its note for the next try", async () => {
