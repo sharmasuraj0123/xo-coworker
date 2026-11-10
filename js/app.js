@@ -3663,7 +3663,7 @@ let setReturn = null;
 const SETS = createSettings({ world, announce, PROJ, onChange: () => schedule() });
 const RTSET = createRuntimeSettings({ world, announce, PROJ });
 // Settings › Shape, the first-run question, and the page's own reading of the shape (density, work, rail)
-const SV = createShapeView({ shape: SHAPE, announce });
+const SV = createShapeView({ shape: SHAPE, announce, notice: (n) => heraldShow({ kind: "stopped", text: n.text, sub: n.sub, force: true }) });
 /** The shape changed (only ever by the person's choice): everything that reads it is drawn again, now. */
 function shapeApply({ boot = false } = {}) {
   SV.apply();

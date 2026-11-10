@@ -36,7 +36,7 @@ function inOrder(els) {
   for (let i = k + 1; i < els.length; i++) if (els[i].previousElementSibling !== els[i - 1]) els[i - 1].after(els[i]);
 }
 
-export function createShapeView({ shape, announce = () => {} }) {
+export function createShapeView({ shape, announce = () => {}, notice = () => {} }) {
   // draft: the JSON as typed, not saved yet; saveErr: why the last Save of it was refused
   // pickErr: why the last preset choice was refused (said where it was asked: in the question, or under the cards)
   // unkept: the last change applied but this browser won't keep it after a reload (its storage refused it): where it
@@ -356,6 +356,16 @@ export function createShapeView({ shape, announce = () => {} }) {
       }
       const r = await shape.choose(id);
       leave();
+      // its file couldn't be read: the choice is kept (it applies once the file reads, as Settings' own does), but
+      // what shows now is everything, and that's what's said, here and on screen, never "<preset>." as if it were set
+      // up (the create-project grader on 7e0db5b, S117 FIRST-RUN-PRESET-503: a refused preset GET closed the sheet
+      // and announced the preset as done; nothing said otherwise until Settings opened)
+      const why = id !== "everything" && shape.presetError(id);
+      if (why) {
+        announce(`${nameOf(id)} couldn't be read (${why}). XO shows everything until it can; Settings › Shape tries again.`);
+        notice({ text: `${nameOf(id)} couldn't be read`, sub: "XO shows everything until it can · Settings › Shape tries again" });
+        return;
+      }
       announce((id === "everything" ? "Everything shows." : `${nameOf(id)}.`) + (r && r.kept === false ? ` ${UNKEPT}` : " Settings › Shape changes it any time."));
     };
     // answered elsewhere meanwhile: nothing is chosen here, the sheet just goes
