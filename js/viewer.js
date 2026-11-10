@@ -762,8 +762,11 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (was == null || !V.open) return;
     const now = document.activeElement;
     if (now && now !== document.body && now.isConnected && now.getClientRects().length) return;
-    // the same control where it shows (never its hidden twin in a narrow head); one from ⋯'s menu, the ⋯
-    const to = (was && shown(el, was)) || (fromMenu && shown(el, "[data-vw-more]")) || shown(el, ".vw-top [data-vw-edit]") || el;
+    // the same control where it shows (never its hidden twin in a narrow head); one from ⋯'s menu, the ⋯; the offered
+    // path's field gone with its refusal, where Copy path is again; else headFocus's: Edit, else the head's first
+    // control that shows. Never the viewer's own section, which draws no ring (the controls grader on 1ed50f6, S125)
+    const to = (was && shown(el, was)) || (fromMenu && shown(el, "[data-vw-more]"))
+      || (was === "[data-vw-cut-sel]" && (shown(el, "[data-vw-copy-path]") || shown(el, "[data-vw-more]"))) || headFocus(false);
     to.focus({ preventScroll: true });
   }
   /** What every view of the viewer draws above its body, the same way in each: its tabs, its head, and a save,

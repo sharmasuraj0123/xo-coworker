@@ -2210,6 +2210,12 @@ t("S125: Copy path refused in the Changes view says why, for a normal patch and 
     if (WIDTH < 600) assert.ok(await sel.evaluate((e) => e.getBoundingClientRect().height) >= 35.5, `${rel}: 36 px tall on a phone`);
     // and read whole, on its own row (the controls grader on 1ed50f6 at 390, V98: the field shrank and cut the path)
     assert.equal(await sel.evaluate((e) => e.scrollWidth <= e.clientWidth + 1), true, `${rel}: the path isn't cut`);
+    // tried again and it goes through: the refusal and its field go, and focus lands on a control that draws its ring,
+    // never the viewer's own section (the controls grader on 1ed50f6: #viewer, :focus-visible, no ring)
+    await page.evaluate(() => { navigator.clipboard.writeText = () => Promise.resolve(); });
+    await menuChoose(page, "[data-vw-copy-path]");
+    await page.waitForFunction(() => !document.querySelector("#viewer .vw-cut-sel"), null, { timeout: 5000 });
+    assert.equal(await page.evaluate(() => { const a = document.activeElement; return !!a && a.id !== "viewer" && a !== document.body && [...a.attributes].some((x) => x.name.startsWith("data-vw-")); }), true, `${rel}: focus on a control after the copy went through`);
     assert.equal(await page.evaluate(() => !!document.querySelector("#viewer .vw-diff")), true, `${rel}: still the Changes view`);
     await page.keyboard.press("Escape"); // the file closes as a person closes it, focus going back where it was
     await page.waitForTimeout(200);
