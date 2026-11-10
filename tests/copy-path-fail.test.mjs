@@ -40,4 +40,10 @@ t("the offered path takes its own row under the words, the line's width", () => 
 t("the offered field has its own hook, so it has a row and keeps focus across a redraw", () => {
   assert.match(src, /<input class="vw-cut-sel" data-vw-cut-sel readonly/);
 });
+// the words stay beside their clock and wrap there; only the field takes the next row, under the words (the
+// controls grader on 2a8d278, S270, every phone cell: with the line wrapping, the words, as wide as their whole text,
+// took a row of their own, so the clock stood alone, the prose began at the edge and the field sat indented below)
+t("the words keep their row beside the clock, wrapping inside it; the field alone goes under them", () => {
+  assert.match(css, /\.vw-cut:has\(\.vw-cut-sel\)>span\{flex:1 1 0;min-width:0\}/);
+});
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
