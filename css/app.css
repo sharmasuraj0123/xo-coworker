@@ -2010,12 +2010,14 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   #say{min-height:36px}
   .kr-k{min-height:36px}
 }
-@media (max-width:760px){.hr-ev.k-stopped .hr-s{display:block;min-width:0;white-space:nowrap}}
-/* phone: a failure with its own button ("Put my message back", "Retry") keeps its reason, on a second row */
+/* phone: a failure keeps its reason whole, on a second row, with its own button ("Put my message back", "Retry") or
+   without: cut to "XO shows everyt…", a notice hid what it meant (the create-project grader on 366e72d, S117's
+   preset that couldn't be read; the whole of it was only in the live region) */
 @media (max-width:760px){
-  .hr-ev.k-stopped.has-undo{flex-wrap:wrap;row-gap:2px;height:auto;min-height:34px;padding:5px 6px 6px 12px;border-radius:var(--r-xl)}
+  .hr-ev.k-stopped{flex-wrap:wrap;row-gap:2px;height:auto;min-height:36px;padding:5px 14px 6px 12px;border-radius:var(--r-xl)}
+  .hr-ev.k-stopped .hr-s{display:block;order:3;flex:1 1 100%;min-width:0;white-space:normal;overflow:visible}
+  .hr-ev.k-stopped.has-undo{padding-right:6px}
   .hr-ev.k-stopped.has-undo .hr-undo{margin-left:auto}
-  .hr-ev.k-stopped.has-undo .hr-s{order:3;flex:1 1 100%;white-space:normal;overflow:visible}
   /* a 36 px button sits inside its line, never past its edge */
   .hr-ev.has-undo{height:auto;min-height:38px;padding-top:1px;padding-bottom:1px}
 }

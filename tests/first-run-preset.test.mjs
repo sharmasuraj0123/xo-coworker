@@ -23,4 +23,10 @@ t("the app shows it as a notice that stays to be read", () => {
   assert.match(sv, /export function createShapeView\(\{ shape, announce = \(\) => \{\}, notice = \(\) => \{\} \}\)/);
   assert.match(app, /createShapeView\(\{ shape: SHAPE, announce, notice: \(n\) => heraldShow\(\{ kind: "stopped", text: n\.text, sub: n\.sub, force: true \}\) \}\)/);
 });
+t("on a phone a failure notice keeps its reason whole, wrapped to a second row, with an Undo or without", () => {
+  const css = read("css/app.css");
+  assert.match(css, /@media \(max-width:760px\)\{\s*\.hr-ev\.k-stopped\{flex-wrap:wrap;row-gap:2px;height:auto;min-height:36px;/);
+  assert.match(css, /\.hr-ev\.k-stopped \.hr-s\{display:block;order:3;flex:1 1 100%;min-width:0;white-space:normal;overflow:visible\}/);
+  assert.doesNotMatch(css, /\.hr-ev\.k-stopped \.hr-s\{[^}]*white-space:nowrap/, "never cut to one line");
+});
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
