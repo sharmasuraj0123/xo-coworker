@@ -187,3 +187,8 @@ body.chat-docked .fv-cgrip:focus-visible,.stg-grip:focus-visible{outline:2px sol
    taken away and with no halo beside it; typed in, its edge darkens (an invalid one stays red). Each took its outline
    away for a faint halo, which left a 2.4–2.5:1 edge (the create-project grader on 4d33649, C108, Shape's JSON) */
 :is(.field input,.field textarea,.lp-in,.shd-in,.c-note textarea):focus{border-color:var(--line-hover)}
+
+/* a segment the keyboard is on draws its whole ring: it's stacked above its neighbours, 2 px away, so a selected
+   segment's background after it never paints over the ring's outward 2 px (the controls grader on 2a8d278, S127: Changes
+   lost its ring's right edge to File selected) */
+:is(.vw-seg,.rt-seg)>button:focus-visible{position:relative;z-index:1}
