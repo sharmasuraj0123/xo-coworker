@@ -253,7 +253,7 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
     // controls grader on 05d76ca, S142: BODY at 450 ms, for Enter, Space and a press, four cells)
     const r = F.returnTo;
     F.returnTo = null;
-    if (restore && r) { if (usable(r)) r.focus({ preventScroll: true }); else back && back([hookOf(r)].filter(Boolean)); }
+    if (restore) { if (usable(r)) r.focus({ preventScroll: true }); else back && back([hookOf(r)].filter(Boolean)); }
     toastRender();
     render();
   }

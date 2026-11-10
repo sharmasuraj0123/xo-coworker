@@ -145,9 +145,12 @@ const P = createPacing({ params });
 const D = createDecisions({
   world, P, PROJ, announce, waitSince,
   render: () => schedule(),
-  // the panel closed and what opened it was redrawn while it was open (Home's card gives way to "Open in the panel"):
-  // focus lands on the same control in the draw that brings it back, else on the place (the controls grader, S142)
-  back: (sels) => { S.focusNext = [...sels, placeRegion]; schedule(); },
+  // the panel closed and what opened it isn't here: focus goes to the place at once, before the panel goes (its end
+  // card, "That's everything", held focus and was removed with it: the page had it until the next draw, the
+  // create-project grader on fc8dc92, S060/S158/C126/S163/S166), then to the same control in the draw that brings it
+  // back, if one does (Home's card gives way to "Open in the panel" while the panel shows its ask: the controls
+  // grader, S142)
+  back: (sels) => { const here = placeRegion(); if (usable(here)) here.focus({ preventScroll: true }); S.focusNext = [...sels, placeRegion]; schedule(); },
   later: S.later,
   onOpenThread: (tid) => {
     // an item hosted by a chat (no thread) opens that conversation; one hosted by the account has no page yet
