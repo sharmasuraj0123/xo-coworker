@@ -42,7 +42,25 @@ t("on a phone the file's head stays 40, its buttons fill it, and their ring is d
   const btn = +(app.match(/@media \(max-width:760px\)\{[\s\S]*?\.vw-x,\.vw-btn\{min-height:(\d+)px\}/) || [])[1];
   assert.equal(btn, 40, "the phone's file buttons: 40");
   assert.match(phone, /\.viewer:not\(\.stage \.viewer\) \.vw-top\{height:calc\(40px \+ env\(safe-area-inset-top, 0px\)\)/, "the head: 40, on the grid, with the notch");
-  assert.match(phone, /\.vw-top\{border-bottom:0;box-shadow:inset 0 -1px 0 var\(--line-faint\)\}/, "its rule inside it: its content is the whole 40");
+  assert.match(read("css/panel.css"), /\.vw-top\{height:40px;[^}]*border-bottom:0;box-shadow:inset 0 -1px 0 var\(--line-faint\);/, "its rule inside it, at every width: its content is the whole 40");
   assert.match(phone, /\.vw-top :focus-visible\{outline-offset:-2px\}/, "the ring inside its controls: 2 px of the focus colour, inset");
+});
+// on a desktop too: a 40 px bar's controls are 32, so the ring's room above and below them is the bar's 8 px less its
+// rule. A rule drawn as a border took 1 of it, and where the bar meets a box that clips, a focused control's ring lost
+// half a pixel (the controls grader on f93345a and 0f51890, C092 at 1440: Copied's ring cut 0.5 by .viewer)
+t("a 40 px bar holds a 32 px control and its whole ring: 4 + 32 + 4, its rule drawn inside it, never a border", () => {
+  const ring = base.match(/(^|\n):focus-visible\{outline:(\d+)px solid var\(--focus\);outline-offset:(\d+)px\}/);
+  const ext = +ring[2] + +ring[3], ctl = +tokens.match(/--h-ctl:(\d+)px/)[1];
+  assert.ok((40 - ctl) / 2 >= ext, `(40 − ${ctl}) / 2 ≥ the ring's ${ext}`);
+  const css = ["app.css", "panel.css", "fileview.css", "diffs.css", "launchpad.css", "media.css", "msgx.css", "artifacts.css", "shape.css", "side.css", "dropdown.css", "links.css", "foundation.css"].map((f) => [f, read(`css/${f}`)]);
+  const bars = [];
+  // a row that is itself the control (the stage's agent rows, buttons 40 tall) holds no control: its ring is its own
+  const ROWS = new Set([".ag-r"]);
+  for (const [f, c] of css) for (const m of c.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    if (ROWS.has(m[1].trim())) continue;
+    if (/(^|;)\s*(min-)?height:(40px|var\(--h-lg\))/.test(m[2]) && /(^|;)\s*border-(bottom|top):1px/.test(m[2])) bars.push(`${f}: ${m[1].trim()}`);
+  }
+  assert.deepEqual(bars, [], `40 px bars whose rule takes a pixel of their room:\n  ${bars.join("\n  ")}`);
+  for (const sel of ["\\.vw-top", "\\.fv-h", "body\\.chat-docked \\.chead", "\\.shd-bar"]) assert.match(css.map((x) => x[1]).join("\n"), new RegExp(`${sel}\\{[^}]*box-shadow:inset 0 -1px 0 var\\(--line-faint\\)`), `${sel}: its rule inside it`);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

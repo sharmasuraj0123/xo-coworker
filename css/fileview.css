@@ -51,7 +51,7 @@ body.chat-docked .fv-h{padding:0 4px 0 16px}
 body.chat-docked .conv{left:auto;right:0;width:var(--cw);--hg:16px}
 body.chat-docked :is(.conv,.dock){--gut-min:16px}
 body.chat-docked .conv>.top{display:none}
-body.chat-docked .chead{display:flex;align-items:center;gap:8px;flex:none;box-sizing:border-box;height:40px;padding:0 4px 0 16px;border-bottom:1px solid var(--line-faint);background:var(--canvas)}
+body.chat-docked .chead{display:flex;align-items:center;gap:8px;flex:none;box-sizing:border-box;height:40px;padding:0 4px 0 16px;box-shadow:inset 0 -1px 0 var(--line-faint);background:var(--canvas)}  /* its rule inside it: 4 + 32 + 4 (panel.css, .vw-top) */
 :root[data-theme="light"] body.chat-docked .chead{border-bottom-color:rgba(0,0,0,.06)}
 .chead-t{min-width:0;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 var(--fs-base)/20px var(--sans);color:var(--ink)}
 .chead .badge{height:20px;padding:0 8px;gap:6px}

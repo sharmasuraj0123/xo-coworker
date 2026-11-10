@@ -104,7 +104,10 @@ body.stage-over .stage{box-shadow:var(--e2)}
 
 /* ── the file viewer's header: one 40 px row on the grid. Icon at the edge, the name on the name column,
    then its kind and size as one quiet run on the same baseline; actions are 28 px icon buttons ───── */
-.vw-top{height:40px;padding:0 8px 0 var(--pe);gap:8px;align-items:center;border-bottom:1px solid var(--line-faint);container:vwtop / inline-size}
+/* a 40 px bar draws its rule inside it, so its whole 40 holds a 32 px control and the ring's 4 px above and below it
+   (4 + 32 + 4): a 1 px border left 39, and where the bar meets a box that clips (the viewer's top), the ring of a
+   focused control lost half a pixel (the controls grader on f93345a and 0f51890, C092 at 1440: Copied's ring cut 0.5) */
+.vw-top{height:40px;padding:0 8px 0 var(--pe);gap:8px;align-items:center;border-bottom:0;box-shadow:inset 0 -1px 0 var(--line-faint);container:vwtop / inline-size}
 /* a narrow head keeps one row (the owner's choice, 9 Nov): the name keeps a readable width; the view switch, Edit (or
    Cancel · Save), ⋯ and × stay; Ask about this, Updated · Show, Your draft · Discard and Runs code fold into ⋯ below
    560 px, and with both switches in one head the file's own (Preview · Source, Fit · Actual size) folds below 400 */
@@ -363,7 +366,7 @@ body.stage-open:not(.panel-open):not(.stage-full):not(.stage-over) .fv{right:var
 /* a phone: the panel is a sheet over everything, never a column beside Files (stage.js steps it aside) */
 @media (max-width:760px){body.stage-open:not(.panel-open):not(.stage-full):not(.stage-over) .fv{right:0}}
 body.files-open .dock,body.files-open .tdock{display:none}
-.fv-h{flex:none;box-sizing:border-box;height:40px;display:flex;align-items:center;gap:8px;padding:0 12px 0 8px;border-bottom:1px solid var(--line-faint)}
+.fv-h{flex:none;box-sizing:border-box;height:40px;display:flex;align-items:center;gap:8px;padding:0 12px 0 8px;box-shadow:inset 0 -1px 0 var(--line-faint)}
 .fv-back{display:flex;align-items:center;gap:4px;height:var(--h-ctl);padding:0 8px 0 4px;border-radius:var(--r-sm);font:500 var(--fs-base)/20px var(--sans);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .fv-back:hover{background:var(--fill-2);color:var(--ink)}
 .fv-back svg{width:16px;height:16px}
