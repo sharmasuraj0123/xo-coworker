@@ -230,7 +230,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     else line = `The Workspace coordinator runs on ${esc(rtName(ch.on))}.`;
     // a runtime that can't take work says why, in words, not only on hover
     const why = off.length ? off.map((o) => `${esc(o.label)}: ${esc(o.why.replace(/\.$/, ""))}.`).join(" ") : "";
-    return `<div class="iq-sec iq-rts"><p class="iq-lab" id="iq-rt-l">Runtime</p><div class="iq-route" role="radiogroup" aria-labelledby="iq-rt-l">${btns}</div>` +
+    return `<div class="iq-sec iq-rts" data-key="rts"><p class="iq-lab" id="iq-rt-l">Runtime</p><div class="iq-route" role="radiogroup" aria-labelledby="iq-rt-l">${btns}</div>` +
       (line ? `<p class="iq-rl">${line}</p>` : "") + (why ? `<p class="iq-rl is-why">${why}</p>` : "") + `</div>`;
   }
 
@@ -242,7 +242,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
   }
   function depthHtml(efs, sel, attr, wait = false) {
     if (!efs.length) return "";
-    return `<p class="iq-lab">Thinking</p><div class="iq-route iq-depth" role="radiogroup" aria-label="Thinking">${efs.map((e, i) => `<button type="button" role="radio" aria-checked="${sel === e}" tabindex="${sel === e || (i === 0 && !efs.includes(sel)) ? 0 : -1}"${wait ? WAIT : ""} ${attr}="${esc(e)}">${esc(effortWord(e))}</button>`).join("")}</div><p class="iq-rl">${esc(EFFORT_HINT[sel] || "")}</p>`;
+    return `<p class="iq-lab">Thinking</p><div class="iq-route iq-depth" data-key="mv-depth" role="radiogroup" aria-label="Thinking">${efs.map((e, i) => `<button type="button" role="radio" aria-checked="${sel === e}" tabindex="${sel === e || (i === 0 && !efs.includes(sel)) ? 0 : -1}"${wait ? WAIT : ""} ${attr}="${esc(e)}">${esc(effortWord(e))}</button>`).join("")}</div><p class="iq-rl">${esc(EFFORT_HINT[sel] || "")}</p>`;
   }
   // one row per family's default (claude: opus, fable, sonnet, haiku), then models in no family
   const shown = (models) => (models || []).filter((m) => !m.is_default && (m.family_default || !m.family));
@@ -271,7 +271,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     const why = !P.models ? (P.err ? esc(P.err) : `<i class="spin" aria-hidden="true"></i> Reading the models…`) : deep ? "" : "None of these models can think longer.";
     // in place: the catalog arriving never replaces the choice you're on (Astra D884-SIMPLE-1)
     redraw(pop, `<header class="iq-h"><h2 id="iq-hh">Intelligence <span>for ${esc(scopeWord(s))}</span></h2></header>` +
-      `<div class="iq-sec"><div class="iq-route iq-simple" role="radiogroup" aria-labelledby="iq-hh">` +
+      `<div class="iq-sec" data-key="simple"><div class="iq-route iq-simple" role="radiogroup" aria-labelledby="iq-hh">` +
       `<button type="button" role="radio" data-lsimple="auto" aria-checked="${on === "auto"}">Auto</button>` +
       `<button type="button" role="radio" data-lsimple="deep" aria-checked="${on === "deep"}"${deep ? "" : ` aria-disabled="true"`}>Deep</button></div>` +
       `<p class="iq-rl">${line}</p>${why && on !== "deep" ? `<p class="iq-rl is-why">${why}</p>` : ""}</div>` +
@@ -289,11 +289,11 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       html += runtimeHtml(s);
       // continuing elsewhere: its model and effort there (its default unless chosen), then what happens
       const to = rtName(P.rt), mv = P.mv || {};
-      html += `<div class="iq-sec"><p class="iq-now">${mv.model ? `On ${esc(to)} it will use <b>${esc(nameOf(mv.model))}${mv.effort ? ` · ${esc(EFFORT_WORD[mv.effort] || mv.effort)}` : ""}</b>.` : `On ${esc(to)} it will use its default model, unless you pick one.`}</p>`;
+      html += `<div class="iq-sec" data-key="mv"><p class="iq-now">${mv.model ? `On ${esc(to)} it will use <b>${esc(nameOf(mv.model))}${mv.effort ? ` · ${esc(EFFORT_WORD[mv.effort] || mv.effort)}` : ""}</b>.` : `On ${esc(to)} it will use its default model, unless you pick one.`}</p>`;
       if (mv.modelsErr) html += `<p class="iq-err">${esc(mv.modelsErr)}</p>`;
-      else if (!mv.models) html += `<p class="iq-rl"><i class="spin" aria-hidden="true"></i> Reading ${esc(to)}'s models…</p>`;
+      else if (!mv.models) html += `<p class="iq-rl" data-key="mv-reading"><i class="spin" aria-hidden="true"></i> Reading ${esc(to)}'s models…</p>`;
       // while it moves, the model and depth on screen are the ones sent: they don't change (Astra MIG-1)
-      else html += `<div class="iq-list" role="radiogroup" aria-label="${esc(to)}'s models">${shown(mv.models).map((m, i) => modelRow(m, s, P.rt, mv.model === m.id, mv.effort, { row: "data-mvm" }, !mv.model && i === 0, !!mv.busy)).join("")}</div>` + (mv.model ? depthHtml(effortsOf((mv.models || []).find((x) => x.id === mv.model), s, P.rt).filter((e) => PIPS[e]), mv.effort, "data-mvp", !!mv.busy) : "");
+      else html += `<div class="iq-list" data-key="mv-models" role="radiogroup" aria-label="${esc(to)}'s models">${shown(mv.models).map((m, i) => modelRow(m, s, P.rt, mv.model === m.id, mv.effort, { row: "data-mvm" }, !mv.model && i === 0, !!mv.busy)).join("")}</div>` + (mv.model ? depthHtml(effortsOf((mv.models || []).find((x) => x.id === mv.model), s, P.rt).filter((e) => PIPS[e]), mv.effort, "data-mvp", !!mv.busy) : "");
       html += `</div><div class="iq-sec iq-mv" id="iq-mv-cons"><p class="iq-lab">Continuing on ${esc(to)}</p><ul>` +
         `<li>Its messages and work go to ${esc(to)}.</li><li>The new agent starts from a summary and the code, and re-reads files.</li>` +
         `<li>Earlier approvals don't carry over.</li><li>This thread is frozen; write in it to pick it back up.</li></ul>` +
@@ -319,17 +319,17 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     } else truth = c.pinned ? `Its coordinator runs ${nowWords(c.model, c.effort)}. New threads get their own from the router.` : "Its coordinator runs its default model. New threads get their own from the router.";
     html += `<p class="iq-truth">${truth}</p>`;
     if (P.err) html += `<p class="iq-err">${esc(P.err)}</p>`;
-    else if (!models) html += `<p class="iq-rl"><i class="spin" aria-hidden="true"></i> Reading the models…</p>`;
+    else if (!models) html += `<p class="iq-rl" data-key="reading"><i class="spin" aria-hidden="true"></i> Reading the models…</p>`;
     else {
       const rows = shown(models);
       // while Done saves, the choice on screen is the one being saved: it can't change under it (Astra D884-SAVE-1)
       const wait = P.saving ? WAIT : "";
       const autoRow = kind !== "thread" ? `<div class="iq-row${d.auto ? " is-sel" : ""}" role="radio" aria-checked="${d.auto}" tabindex="${d.auto ? 0 : -1}"${wait} data-dmodel=""><span class="iq-n">Auto</span><span class="iq-tr">Its default, and the router's pick for each thread</span>${CHECK}</div>` : "";
-      html += `<p class="iq-lab" id="iq-m-l">Model</p><div class="iq-list" role="radiogroup" aria-labelledby="iq-m-l">${autoRow}` +
+      html += `<p class="iq-lab" id="iq-m-l">Model</p><div class="iq-list" data-key="models" role="radiogroup" aria-labelledby="iq-m-l">${autoRow}` +
         rows.map((m, i) => { const on = !d.auto && d.model === m.id; const tab = on || (i === 0 && !d.auto && !rows.some((x) => x.id === d.model)); return `<div class="iq-row${on ? " is-sel" : ""}" role="radio" aria-checked="${on}" tabindex="${tab ? 0 : -1}"${wait} data-dmodel="${esc(m.id)}" title="${esc(m.description || "")}"><span class="iq-n">${esc(m.name)}</span>${m.description ? `<span class="iq-tr">${esc(m.description)}</span>` : ""}${CHECK}</div>`; }).join("") + `</div>`;
       const efs = d.auto ? [] : effortsOf(modelOf(d.model), s).filter((e) => PIPS[e]);
       if (efs.length) {
-        html += `<p class="iq-lab" id="iq-e-l">Thinking</p><div class="iq-route iq-depth" role="radiogroup" aria-labelledby="iq-e-l">` +
+        html += `<p class="iq-lab" id="iq-e-l">Thinking</p><div class="iq-route iq-depth" data-key="depth" role="radiogroup" aria-labelledby="iq-e-l">` +
           efs.map((e, i) => `<button type="button" role="radio" aria-checked="${d.effort === e}" tabindex="${d.effort === e || (i === 0 && !efs.includes(d.effort)) ? 0 : -1}"${wait} data-deffort="${esc(e)}">${esc(effortWord(e))}</button>`).join("") +
           `</div><p class="iq-rl">${esc(EFFORT_HINT[d.effort] || "")}</p>`;
       }
@@ -338,7 +338,10 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     if (more) {
       const sum = [rtName(runtimeChoice(s).on === "auto" ? "" : runtimeChoice(s).on) || (runtimeChoice(s).on === "auto" ? "Auto runtime" : ""), kind !== "thread" ? routeWord(c) : ""].filter(Boolean).join(" · ");
       html += `<button type="button" class="iq-more" data-lmore aria-expanded="${P.more}"><span class="iq-more-k">${kind !== "thread" ? "Runtime, routing" : "Runtime"}</span><span class="iq-more-v">${esc(sum)}</span>${ICON.chevron || ""}</button>`;
-      if (P.more) html += `<div class="iq-moreb">${more}</div>`;
+      // each part of the picker is keyed, so a redraw keeps it whatever comes and goes before it: when the model list
+      // gave way to "Reading the models…" (a runtime chosen), the redraw matched these unkeyed parts by order, drew the
+      // runtime row anew, and the Claude Code you'd pressed went, with focus (the create-project grader on 0e75a32, S071)
+      if (P.more) html += `<div class="iq-moreb" data-key="more">${more}</div>`;
     }
     const changed = draftChanged(s);
     html += changed
@@ -360,7 +363,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       { id: "off", label: "Off", on: c.ownRouting && c.routing.mode === "off", line: "New messages to this chat are refused. Its threads still take your replies." },
     ];
     const on = opts.find((o) => o.on) || opts[0];
-    return `<div class="iq-sec"><p class="iq-lab" id="iq-ro-l">Who routes a new message</p><div class="iq-route" role="radiogroup" aria-labelledby="iq-ro-l">${opts.map((o) => `<button type="button" role="radio" data-lroute="${esc(o.id)}" aria-checked="${o.on}"${P.saving ? WAIT : ""}>${esc(o.label)}</button>`).join("")}</div><p class="iq-rl">${esc(on.line)}</p></div>`;
+    return `<div class="iq-sec" data-key="route"><p class="iq-lab" id="iq-ro-l">Who routes a new message</p><div class="iq-route" role="radiogroup" aria-labelledby="iq-ro-l">${opts.map((o) => `<button type="button" role="radio" data-lroute="${esc(o.id)}" aria-checked="${o.on}"${P.saving ? WAIT : ""}>${esc(o.label)}</button>`).join("")}</div><p class="iq-rl">${esc(on.line)}</p></div>`;
   }
   /** The choice on screen: what you picked while it's open, else what it runs on. {auto, model, effort} */
   function draftOf(s) {
