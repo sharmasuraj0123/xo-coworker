@@ -122,6 +122,13 @@ body.stage-over .stage{box-shadow:var(--e2)}
   .vw-top .vw-menu .vw-fold.f-narrow{display:flex}
   .vw-top .vw-mw.only-folds.fn{display:inline-flex}
 }
+/* narrower than the head's controls with ⋯'s word (Copying…, Downloading…, Copied): ⋯ keeps its square and says the
+   state by its icon (the spinner, the check), the word its name and title, so the file's name keeps its room (the
+   controls grader on 1ed50f6 at 320, V96S: the name shrank to a 19 px "a…") */
+@container vwtop (max-width:370px){
+  .vw-top .vw-more:is(.is-done,.is-busy) span{display:none}
+  .vw-top .vw-more:is(.is-done,.is-busy){width:36px;padding:0}
+}
 .vw-ic{width:16px;height:20px;border-radius:0;background:none;color:var(--ink-3);display:grid;place-items:center}
 .vw-ic svg,.vw-ic svg.fi{width:16px;height:16px}
 .vw-t{display:flex;align-items:baseline;gap:8px;min-width:0}

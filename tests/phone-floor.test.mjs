@@ -29,9 +29,10 @@ const live = all.map((r) => ({ r, c: context(r, 390), s: spec(r.sel) })).filter(
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
-t("phone.css holds one weightless floor: every control at least 36 px tall on a phone", () => {
+// 36 wide too (the controls grader on 1ed50f6 at 320: the Changes · File switch's File was 32 × 36)
+t("phone.css holds one weightless floor: every control at least 36 px tall and wide on a phone", () => {
   const phone = readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-  const re = /@media \(max-width:760px\)\{\s*:where\(button,\[role=button\],\[role=tab\],\[role=option\],\[role=menuitem\],\[role=menuitemradio\],\[role=menuitemcheckbox\],\[role=switch\],summary,select,label:has\(>input\[type=checkbox\],>input\[type=radio\]\)\)[^{]*\{min-height:36px\}/;
+  const re = /@media \(max-width:760px\)\{\s*:where\(button,\[role=button\],\[role=tab\],\[role=option\],\[role=menuitem\],\[role=menuitemradio\],\[role=menuitemcheckbox\],\[role=switch\],summary,select,label:has\(>input\[type=checkbox\],>input\[type=radio\]\)\)[^{]*\{min-height:36px;min-width:36px\}/;
   assert.ok(re.test(phone), `the floor rule (${re})`);
 });
 t("no control's own min-height or max-height holds it under 36 px on a phone, unless a phone rule answers it or it's a written exception", () => {
@@ -86,7 +87,7 @@ t("the icon buttons the browser pass found narrow are on the list: Open in Files
 });
 t("the floor reaches every kind of control the templates make, a label holding a checkbox or radio included (C115)", () => {
   const phone = readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-  const floor = /:where\(([^{]*?)\):where\(:not\([^)]*\)\)\{min-height:36px\}/.exec(phone);
+  const floor = /:where\(([^{]*?)\):where\(:not\([^)]*\)\)\{min-height:36px;min-width:36px\}/.exec(phone);
   assert.ok(floor, "the floor rule");
   assert.ok(floor[1].includes("label:has(>input[type=checkbox],>input[type=radio])"), "labels that hold a checkbox or radio");
   assert.ok(labels.has(".rt-check"), "the census finds Runtimes' allow/deny (.rt-check)");

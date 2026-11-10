@@ -248,13 +248,14 @@
   [data-density="compact"] .m-turn{--tb-line:36px}
 }
 
-/* ── every control at least 36 px tall on a phone: one rule (the owner's choice, 9 Nov). :where keeps it weightless,
+/* ── every control at least 36 px tall (and 36 wide: a short word's button was 32, the controls grader on 1ed50f6 at
+   320) on a phone: one rule (the owner's choice, 9 Nov). :where keeps it weightless,
    so a control's own height still shapes it (a min-height outranks a height); a control's own smaller min-height is
    answered just below; tests/phone-floor.test.mjs holds it, with its written exceptions (the Map's boxes and nodes
    scale with its zoom; an Artifacts row is its 108 px row; the phone bar's quiet path line, put to the owner) ── */
 @media (max-width:760px){
   /* a label that holds a checkbox or a radio is the control you press (Runtimes' allow/deny: 34 px, the grader's C115) */
-  :where(button,[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],[role=menuitemcheckbox],[role=switch],summary,select,label:has(>input[type=checkbox],>input[type=radio])):where(:not(.dg-n,.gn,.dg-tag,.pj-s *,.tw-rt)){min-height:36px}
+  :where(button,[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],[role=menuitemcheckbox],[role=switch],summary,select,label:has(>input[type=checkbox],>input[type=radio])):where(:not(.dg-n,.gn,.dg-tag,.pj-s *,.tw-rt)){min-height:36px;min-width:36px}
   /* a text field is a control too (the controls grader on 1ed50f6: a refused path's field was 24 px, and the floor
      left every text input out): every one at least 36 tall; one that fills its box (a search box) leaves the floor to
      the box, which takes it; Files' new-name row grows with its field */
