@@ -69,6 +69,8 @@ const OWN = {
   ".send": () => ACCENT.includes(".send:not(.is-stop)") && INK.includes(".send.is-stop"),
   ".btn-pri": () => ACCENT.includes(".btn-pri"), ".xd-btn.is-pri": () => ACCENT.includes(".xd-btn.is-pri"), ".xd-send": () => ACCENT.includes(".xd-send"),
   ".iq-done": () => INK.includes(".iq-done"),
+  // a hold: its own fill grows from the left as it's held, the whole press (no veil over it, no halo: the owner, 11 Nov 08:19Z)
+  ".b-hold": () => /\.hold-fill\{[^}]*transform:scaleX\(var\(--p,0\)\)[^}]*background:color-mix\(in srgb,var\(--err\) 38%/.test(all) && !/\.b-hold\.(is-holding|tense)\{[^}]*box-shadow/.test(all),
   ".theme": () => /:where\(\.theme,\.switch\):where\(:active:not\([^)]*\)\) \.th-track\{background-image:linear-gradient\(color-mix\(in srgb,var\(--ink\) 28%/.test(fnd),
   ".switch": () => /:where\(\.theme,\.switch\):where\(:active:not\([^)]*\)\) \.th-track\{background-image/.test(fnd),
   ".lp-go": () => /\.lp-go:active\{[^}]*background:var\(--lit-press\)/.test(all),
@@ -90,7 +92,7 @@ t("every control named out of the press layer has a press a person sees of its o
 });
 t("the controls whose own press was a give or a step past the hover take the layer over it: Create, .btn, the picker's chip and rows, the decision kit and its hold, the gear and +", () => {
   const out = pressOut();
-  for (const c of [".create", ".btn", ".iq", ".iq-row", ".b", ".b-hold", ".gear", ".side-plus"]) assert.ok(!out.includes(c), `${c} named out`);
+  for (const c of [".create", ".btn", ".iq", ".iq-row", ".b", ".gear", ".side-plus"]) assert.ok(!out.includes(c), `${c} named out`);
   // and a give alone on a control named out is caught: every :active rule that only transforms names no control named out but the owner's rows
   const giveOnly = [...all.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter(([, sel, body]) => /:active/.test(sel) && body.split(";").every((d) => !d.trim() || /^\s*(transform|scale|transition[\w-]*|--[\w-]+)\s*:/.test(d)));
   const hits = [];
@@ -103,5 +105,9 @@ t("the controls whose own press was a give or a step past the hover take the lay
 });
 t("a switch's track says hover and press under its knob: 14% and 28% of the ink", () => {
   assert.match(fnd, /:where\(\.theme,\.switch\):where\(:hover:not\([^)]*\)\) \.th-track\{background-image:linear-gradient\(color-mix\(in srgb,var\(--ink\) 14%/);
+});
+t("a press is one clean fill change: no held state adds a halo or an inner shadow (the owner, 11 Nov 08:19Z)", () => {
+  const bad = [...all.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter(([, sel, body]) => /(:active|\.is-holding|\.tense)/.test(sel) && /box-shadow:[^;}]*(0 0 0 [1-9]|inset 0 1px 2px)/.test(body)).map(([, sel]) => sel.trim().slice(0, 80));
+  assert.deepEqual(bad, []);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

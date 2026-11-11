@@ -960,8 +960,8 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 /* the first words stay the button's name (opacity keeps them in the accessibility tree); the second only show */
 .b-hold .ht-b,.b-hold.is-holding .ht-a{opacity:0}
 .b-hold.is-holding .ht-b{opacity:1}
-.b-hold.is-holding{box-shadow:0 0 0 3px var(--danger-tint)}
-.b-hold.tense{box-shadow:0 0 0 3px color-mix(in srgb,var(--err) 26%,transparent)}
+/* held, the hold says so by its fill alone, growing from the left: no halo round it (a 3 px ring of the danger tint, and
+   the shared press veil over the whole button, read as a shadow and a grey wash: the owner, 11 Nov 08:19Z) */
 .b-hold.locked{animation:settle var(--d-in) var(--ease);background:color-mix(in srgb,var(--err) 42%,var(--float));border-color:var(--err-ink)}
 .b-hold.locked .hold-fill{transform:scaleX(1)}
 .b-hold.locked :is(.hold-ic svg,.hold-txt){color:var(--ink-hi)}
