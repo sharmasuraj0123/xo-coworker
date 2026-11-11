@@ -78,6 +78,9 @@
   transition:text-decoration-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease);
 }
 .lk-out:hover{text-decoration-color:var(--accent)}
+/* held, it dims, as a link in a sentence does (css/foundation.css names it out of the press layer for that): it had no
+   press of its own at all (tests/press-reach.test.mjs) */
+.lk-out:active{opacity:.7}
 .lk-out:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:3px}
 /* the arrow is centred on the middle of the capitals too: .0495em + half of .62em = .3595em */
 .lk-ar{display:inline-block;width:.62em;height:.62em;margin-left:.14em;vertical-align:.0495em;color:var(--accent);transition:transform var(--dur-fast) var(--ease)}

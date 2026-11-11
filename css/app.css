@@ -2207,8 +2207,13 @@ body.viewer-open .tdock{display:none}
 .att-ic svg{width:16px;height:16px}
 .att-ic.is-img{padding:0;overflow:hidden;background:var(--fill-2) repeating-conic-gradient(rgb(128 128 128 / .18) 0 25%,transparent 0 50%) 0 0/10px 10px}
 .att-ic img{display:block;width:100%;height:100%;object-fit:cover}
-button.att-ic{cursor:zoom-in}
-button.att-ic:hover img{opacity:.85}
+button.att-ic{position:relative;cursor:zoom-in}
+/* its face is the picture: the press layer's fill lies under it, so hover and press are a veil over it, as a message's
+   pictures have (css/media.css .mx-one, S090): 10% of the ink, 20% held. The picture's dimming on hover went toward the
+   dark surface in dark, 3% of the box, and held looked as hovered (grader A on 33ee53d, S233) */
+button.att-ic.is-img::after{content:"";position:absolute;inset:0;z-index:1;border-radius:inherit;pointer-events:none;background:transparent;transition:background-color var(--d-hover) var(--ease)}
+button.att-ic.is-img:hover::after{background-color:color-mix(in srgb,var(--ink) 10%,transparent)}
+button.att-ic.is-img:active::after{background-color:color-mix(in srgb,var(--ink) 20%,transparent);transition-duration:0s}
 .att-t{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
 .att-n{font:500 var(--fs-sm)/16px var(--sans);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .att-m{font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}

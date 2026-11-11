@@ -65,13 +65,17 @@ body.stage-full .stg-grip{display:none}
    Every other control answers a press the same way (the controls list, CONTROLS.md, found 55 kinds that
    didn't): the fill is a background layer, so a control's own edges, rings and colour stay under it. It is
    !important on a zero-specificity selector so it reaches every control whatever its own background rule,
-   and the controls with a press of their own are named out of it: Send, the decision kit and holds, the
-   switches (their knob gives), Launchpad's lit button, a link in text (it dims), the sidebar's rows, and
-   the few that fill or give already (Create, .btn, the picker's rows and chip, the gear, +). A link drawn as a control
+   and the controls with a press of their own a person can see are named out of it: the accent's (Send, .btn-pri, the
+   editor's primary and send: --accent-press) and the ink's (the picker's Done, Send as Stop: an ink press), the
+   switches (a veil on their track, under the knob's give), Launchpad's lit buttons, a link in text (it dims), and the
+   sidebar's rows (theirs is the owner's to choose, asked 11 Nov). A give alone (a scale) or a fill one step past the
+   hover fill isn't a press a person sees (grader A's bar: under 30 RGB-sum, or under 10% of the box): Create, .btn,
+   the picker's chip and rows, the decision kit and its hold, the gear and + take the layer over their give (the state
+   sweep by that bar on 7137115: Create and the runtime chip held 0%). tests/press-reach.test.mjs. A link drawn as a control
    takes it too (a file or a thread's capsule in a message: its own 14→18% step went by in its transition, held looked
    as hovered, the controls grader on 8aa58d3, S017/S088); a link in a sentence dims instead. */
 :is(.help,.create,.then-i,.hm-quiet,.top-back,.all-btn,.nw,.wsh-next,.tc-open,.tc-dec,button.hr,.t-undo,.dock-hide,.dock-fold,.btn,.set-nav button,button.kr-k,.tb-cf,.tw-act,.tw-rt,.tb-fb,.syl-got,.map-btn,.stg-btn,.fl-r,.stg-tab,.ar,.syl-ln,.jump-list li,.iq-row,.hd,.hd-r,.fl-back,.stg-ic,.md-open,.md-from):active,.pn-nav:active:not(:disabled){transform:none}
-:where(button,a[href][class],[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],summary,.rt-check):where(:not(:disabled,[aria-disabled="true"],.send,.b,.b-hold,.theme,.switch,.lp-go,.lk:not(.lk-in),.xd-btn.is-pri,.xd-send,.tw-act.lp-btn,.prow,.nrow,.create,.btn,.iq,.iq-row,.iq-done,:is(.vw-cut-dl,.wsh-home,.cp-link,.tg-ch,.fl-link,.lp-ln,.shl-all,.tp-done-u),.gear,.side-plus)):where(:active){background-image:linear-gradient(var(--press-fill),var(--press-fill))!important;--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
+:where(button,a[href][class],[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],summary,.rt-check):where(:not(:disabled,[aria-disabled="true"],.send,.btn-pri,.iq-done,.theme,.switch,.lp-go,.lk:not(.lk-in),.xd-btn.is-pri,.xd-send,.tw-act.lp-btn,.prow,.nrow,:is(.vw-cut-dl,.wsh-home,.cp-link,.tg-ch,.fl-link,.lp-ln,.shl-all,.tp-done-u))):where(:active){background-image:linear-gradient(var(--press-fill),var(--press-fill))!important;--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
 /* a chosen control (on, checked, pressed, current) has a fill of its own, and the press's 9% veil over it read as its
    hover (the controls grader on 5f52deb, C084: Changes' Follow held vs hovered, 18–20 RGB-sum on average): held, it
    goes three veils deep, as an accent control goes to its own press (S135) */
@@ -96,6 +100,11 @@ body.stage-full .stg-grip{display:none}
    that line's own button (tests/ctl-scale.test.mjs places them all) */
 @media (min-width:761px){:where(.vw-cut-dl,.fl-link,.shl-all,.tp-done-u){min-height:var(--h-sm)}}
 :where(.theme,.switch):where(:not(:disabled,[aria-disabled="true"])):where(:active) .th-knob{scale:.88}
+/* a switch's track takes the hover and the press as a veil of the ink, under its knob: its 1 px edge on hover was 9% of
+   the box and the knob's give 9% held (the state sweep by grader A's bar on 7137115: the theme switch). 14% and 28% keep
+   past 30 RGB-sum on the light green of an on switch */
+:where(.theme,.switch):where(:hover:not(:disabled,[aria-disabled="true"])) .th-track{background-image:linear-gradient(color-mix(in srgb,var(--ink) 14%,transparent),color-mix(in srgb,var(--ink) 14%,transparent))!important}
+:where(.theme,.switch):where(:active:not(:disabled,[aria-disabled="true"])) .th-track{background-image:linear-gradient(color-mix(in srgb,var(--ink) 28%,transparent),color-mix(in srgb,var(--ink) 28%,transparent))!important}
 :where(a[href]:not([class])):where(:active){opacity:.7}
 /* a control whose request is out (js/pending.js): it keeps focus and its place, says it's waiting, and doesn't press */
 [aria-busy="true"]{cursor:progress}
@@ -166,7 +175,10 @@ body.stage-full .stg-grip{display:none}
 /* a control on the accent presses deeper, to the accent's own press (--accent-press), as Create and .btn-pri do: the
    shared press fill is a veil of the theme's ink, and in dark it lightened the green, which reads as its hover (the
    controls grader on ba93c9b, S135: the viewer's Save held as hovered in dark, both rgb(150,220,88)) */
-:where(.xd-btn.is-pri,.xd-send):where(:active:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background-color:var(--accent-press)!important;border-color:var(--accent-press)!important}
+:where(.xd-btn.is-pri,.xd-send,.send:not(.is-stop),.btn-pri):where(:active:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background-color:var(--accent-press)!important;border-color:var(--accent-press)!important}
+/* a control filled with the ink (the picker's Done, Send as Stop) presses to the ink a quarter of the way to the canvas:
+   its hover is the ink at its highest, and a veil of the ink over the ink shows nothing */
+:where(.iq-done,.send.is-stop):where(:active:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background-color:color-mix(in srgb,var(--ink) 76%,var(--canvas))!important}
 :is(.fl-r,.nw,.shd-tab,.ar,.stg-tab,.syl-ln,.then-i,.jump-list li,.iq-row,.set-nav button,.tb-h,.md-from,.md-pin,.ck-tog):focus-visible{outline-offset:-2px;outline-color:var(--ring-in,var(--focus))}
 .md-it{overflow:visible}
 .md-th{border-radius:calc(var(--r-lg) - 1px) calc(var(--r-lg) - 1px) 0 0}

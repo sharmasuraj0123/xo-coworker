@@ -364,7 +364,8 @@ async function stateSweep(page, where) {
     let i = 0;
     for (const e of document.querySelectorAll("[data-sts]")) delete e.dataset.sts;
     for (const e of document.querySelectorAll(CTL)) {
-      if (!e.getClientRects().length || e.disabled || e.closest("[inert], [hidden]")) continue;
+      // a control that says it can't be used (the lightbox's Next on its last picture) has no hover or press to show
+      if (!e.getClientRects().length || e.disabled || e.getAttribute("aria-disabled") === "true" || e.closest("[inert], [hidden]")) continue;
       const r = e.getBoundingClientRect();
       if (r.width < 4 || r.height < 4 || r.bottom <= 0 || r.top >= innerHeight || r.right <= 0 || r.left >= innerWidth) continue;
       // one not drawn (out of sight, or waiting for its message's hover) isn't read at rest: a message's actions are
@@ -380,6 +381,8 @@ async function stateSweep(page, where) {
   });
   const look = (i) => page.evaluate((i) => {
     const e = document.querySelector(`[data-sts="${i}"]`); if (!e) return null;
+    // one the sweep's own press made unusable since (a held drag in the lightbox is a swipe to the next picture)
+    if (e.getAttribute("aria-disabled") === "true") return null;
     const sig = (x, p) => { const s = getComputedStyle(x, p); return [s.backgroundColor, s.backgroundImage, s.color, s.borderTopColor, s.boxShadow, s.opacity, s.transform, s.scale, s.textDecorationColor, s.outlineStyle].join("|"); };
     // what's drawn inside it answers too (a switch's knob gives when held, a track's edge lights on hover): its first parts
     const parts = [...e.querySelectorAll("*")].slice(0, 8).map((x) => sig(x)).join(" ¦ ");
@@ -413,4 +416,4 @@ async function stateSweep(page, where) {
   }
   return { n, silent };
 }
-module.exports = { ROOT, SSE, serve, NOW, CHATS, STATIC, mockApi, hooks, openApp, launch, LP, chat, ringClips, stateSweep };
+module.exports = { ROOT, SSE, serve, NOW, CHATS, STATIC, mockApi, hooks, openApp, launch, LP, chat, ringClips, stateSweep, pngPixels, visible };
