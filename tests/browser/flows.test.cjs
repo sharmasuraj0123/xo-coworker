@@ -955,6 +955,25 @@ t("S138 (paint): on the Saved notice, its words, Undo, Tell and its × read on t
 // editor opens; Tab indents and Escape only eases the selection, so Created's Undo couldn't be reached by keyboard).
 // Tab alone still indents; Escape, then Tab or Shift+Tab, moves focus on, and Created's Undo is reached by keys.
 const inEditor = (page) => page.evaluate(() => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return !!(a && a.closest && a.closest("[contenteditable]")); });
+// the file editor's ring (the owner, 11 Nov 05:42Z; C120, S231: the caret in Pierre's editor drew no ring): editing, with
+// the caret in it, the file's box draws the message box's ring, 2 px of the focus colour, and loses it when focus leaves
+t("EDITOR-ring: editing, the caret in the file, its box draws the message box's ring", async () => {
+  const page = await app({ files: { "a.js": FILE() } });
+  await panelOpen(page);
+  await filesOpen(page);
+  await page.locator("[data-fl-new]").filter({ visible: true }).first().click();
+  await page.keyboard.insertText("ring.md");
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => window.__ED && window.__ED.on && window.__ED.ed, null, { timeout: 10000 });
+  await window_focusEditor(page);
+  assert.equal(await inEditor(page), true, "the editor has focus");
+  await page.waitForTimeout(200);
+  const ring = () => page.evaluate(() => { const b = document.querySelector("#viewer.is-editing .vw-body"); if (!b) return null; const s = getComputedStyle(b); return { style: s.outlineStyle, w: s.outlineWidth, c: s.outlineColor, focus: getComputedStyle(document.documentElement).getPropertyValue("--focus").trim() }; });
+  const on = await ring();
+  assert.ok(on, "the viewer is marked as editing");
+  assert.deepEqual([on.style, on.w], ["solid", "2px"], `the box's ring while the caret is in it (${JSON.stringify(on)})`);
+  await done(page);
+});
 t("EDITOR-exit: after Created, Tab indents; Escape then Shift+Tab, or Escape then Tab, leaves the editor; Created's Undo is reached by keys", async () => {
   const page = await app({ files: { "a.js": FILE() } });
   await panelOpen(page);
