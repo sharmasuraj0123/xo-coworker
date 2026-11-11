@@ -267,7 +267,7 @@ const wordOf = (t) => (glyphOf(t) === "idle" ? "Idle" : t.frozen ? "Continued" :
 setThreadInfo((id) => { const t = world.thread(id); return t ? { state: glyphOf(t), word: wordOf(t), title: t.title } : null; });
 const SORT_STATE = { needs_approval: 0, needs_reply: 0, paused: 0, failed: 1, working: 2, done: 3, resolved: 4 };
 // the Map (js/map.js): where your agents are working, beside the conversation; the viewer stacks over it
-const MAP = createMap({ world, viewer: VW, go: (v) => go(v), announce, isBusy, onChange: () => schedule(), openFile: (f, from) => VW.open(f, from) });
+const MAP = createMap({ world, viewer: VW, go: (v) => go(v, { panel: true }), announce, isBusy, onChange: () => schedule(), openFile: (f, from) => VW.open(f, from) });
 // the panel: one card on the right with tabs (Map, Made, File; later apps), one header button, ⌘\
 // Files: the project's files, and the one place a file opens (js/files.js, design-research/13)
 const FILES = createFiles({ world, viewer: VW, isBusy, PROJ, go: (v) => go(v), changes: CHG, onFold: (f) => FILESV.treeFolded(f) });
@@ -278,7 +278,7 @@ const lpProject = (v) => (v && v.startsWith("p:") ? v.slice(2) : v && v.startsWi
 // the thread "Ask an agent" started: by its id when Launchpad has it (whatever its title, past older threads of the
 // same title; resolved reads as done); without one, discovered by xo-space's title "Deploy to Launchpad", while open
 const lpThread = (p, id) => { const t = id ? world.thread(id) : world.state.threads.find((x) => x.project === p && /^deploy to launchpad/i.test(x.title || "") && x.state !== "resolved"); return t && t.project === p ? { thread: t.id, title: t.title, since: t.createdAt, busy: isBusy(t), done: t.state === "done" || t.state === "resolved" } : null; };
-const LP = createLaunchpad({ api: createLpApi(), projectOf: lpProject, nameOf: (p) => PROJ(p), findThread: lpThread, go: (v) => go(v), announce, onChange: () => schedule(),
+const LP = createLaunchpad({ api: createLpApi(), projectOf: lpProject, nameOf: (p) => PROJ(p), findThread: lpThread, go: (v) => go(v, { panel: true }), announce, onChange: () => schedule(),
   // Launchpad's own Undo names where focus goes (Stop, the header's Deploy, the page's work): ownFocus
   // and its kind: a failure ("err") reads as every failure notice here does (kind "stopped": the error's mark and
   // ink), never with the success check (Launchpad grader on 842a6d1: "Couldn't unlink" showed a green check)
@@ -287,7 +287,7 @@ const LP = createLaunchpad({ api: createLpApi(), projectOf: lpProject, nameOf: (
   // the owner's choice B): its Undo's deadline is the action's own (l.until), so it can't outlive what it undoes
   notice: (mid, l, ms) => { const h = { mid, kind: l.kind === "err" ? "stopped" : l.kind || "done", text: l.text, ...(l.sub ? { sub: l.sub } : {}), ...(l.undo ? { undo: l.undo, undoLabel: l.undoLabel, undoUntil: l.until || 0, ownFocus: true } : {}) }; return heraldFor(mid, () => h, ms) || heraldShow(h, ms); },
   unnotice: (mid) => heraldDrop(mid) });
-const STAGE = createStage({ map: MAP, mapIcon: MAP_ICON, files: FILES, changes: CHG, filesView: FILESV, viewer: VW, view: () => S.view, go: (v) => go(v), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP });
+const STAGE = createStage({ map: MAP, mapIcon: MAP_ICON, files: FILES, changes: CHG, filesView: FILESV, viewer: VW, view: () => S.view, go: (v) => go(v, { panel: true }), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP });
 // the place beside the panel's name: a thread's project (its title is the conversation's own head), a project
 STAGE.names = (v) => {
   const p = v.startsWith("t:") ? world.thread(v.slice(2))?.project : v.startsWith("p:") ? v.slice(2) : null;
@@ -2761,10 +2761,10 @@ function saveScroll() {
   else if (S.view === "artifacts") S.scroll.artifacts = $("#arts").scrollTop;
   // a conversation always opens at the latest (the owner, 5 Nov), so its place isn't kept
 }
-function go(v, { from, focus = false, carry = false } = {}) {
+function go(v, { from, focus = false, carry = false, panel = false } = {}) {
   if (!v) return;
   // a file with unsaved edits asks first (Files › Edit, its head): Discard, then on
-  if (v !== S.view && VW.editing) { VW.leave(() => go(v, { from, focus, carry })); return; }
+  if (v !== S.view && VW.editing) { VW.leave(() => go(v, { from, focus, carry, panel })); return; }
   // an edit or menu in a thread's header belongs to that visit
   S.tEdit = null; S.tMenu = null;
   // the file viewer belongs to the conversation it was opened from
@@ -2772,11 +2772,12 @@ function go(v, { from, focus = false, carry = false } = {}) {
   closeSettings({ restore: false });
   setDrawer(false);
   IQ.close({ restore: false });
-  // on a phone the panel covers the page: a place opened from it (Launchpad's asked thread, a thread on the Map) is
-  // shown, so the panel goes, and before focus is placed below: while it covered the page, the page was inert, the
-  // focus put there didn't take, and the control pressed went with the panel (grader B on 5f52deb and 7137115,
-  // S193: BODY once the thread showed, at 390 only). It steps aside: open again, it's as it was
-  if (v !== S.view && PHONE.matches && STAGE.isOpen) STAGE.close({ restore: false, quiet: true });
+  // on a phone the panel covers the page: a place opened from it (panel: Launchpad's asked thread, a thread on the Map,
+  // the panel's own links) is shown, so the panel goes, and before focus is placed below: while it covered the page,
+  // the page was inert, the focus put there didn't take, and the control pressed went with the panel (grader B on
+  // 5f52deb and 7137115, S193: BODY once the thread showed, at 390 only). It steps aside: open again, it's as it was.
+  // A place changed from elsewhere leaves it covering (lpshell LP21: the panel's Close keeps focus)
+  if (panel && v !== S.view && PHONE.matches && STAGE.isOpen) STAGE.close({ restore: false, quiet: true });
   if (v === S.view) { if (focus) say.focus(); return; }
   const a = document.activeElement;
   const opener = a && a.closest?.("[data-k], .nw");

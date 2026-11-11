@@ -15,11 +15,18 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
 
 t("go(): on a phone, the panel steps aside for the place opened, before anything is focused", () => {
   const g = app.slice(app.indexOf("function go(v, {"), app.indexOf("function returnPill("));
-  const close = g.indexOf("if (v !== S.view && PHONE.matches && STAGE.isOpen) STAGE.close({ restore: false, quiet: true });");
+  const close = g.indexOf("if (panel && v !== S.view && PHONE.matches && STAGE.isOpen) STAGE.close({ restore: false, quiet: true });");
   assert.ok(close > 0, "the panel's close in go()");
   for (const later of ["if (v === S.view) { if (focus) say.focus(); return; }", "say.focus({ preventScroll: true })", "scroller).focus({ preventScroll: true })"]) {
     const i = g.indexOf(later); assert.ok(i > close, `before: ${later}`);
   }
+});
+t("only a place opened from the panel: Launchpad, the Map and the panel's own links pass panel; a place changed from elsewhere leaves it covering (lpshell LP21)", () => {
+  for (const m of ["const MAP = createMap(", "const LP = createLaunchpad(", "const STAGE = createStage("]) {
+    const i = app.indexOf(m); assert.ok(i >= 0, m);
+    assert.match(app.slice(i, app.indexOf("\n", i)), /go: \(v\) => go\(v, \{ panel: true \}\)/, `${m} navigates as the panel`);
+  }
+  assert.match(app, /function go\(v, \{ from, focus = false, carry = false, panel = false \} = \{\}\) \{/);
 });
 t("Launchpad's asked-thread row opens the thread and leaves focus to go(): no wait of its own for the conversation", () => {
   assert.match(lp, /case "thread": go && go\(el\.dataset\.go\); return;/);
