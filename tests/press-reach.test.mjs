@@ -16,7 +16,7 @@ t("the long-press menu's items take the shared press layer over their focus fill
 });
 t("a picture's tile says hover and press over its picture: a veil, deeper held (S090)", () => {
   assert.match(media, /\.mx-one::before,\.mx-tile::before\{content:"";position:absolute;inset:0;z-index:2;/);
-  const hov = /\.mx-one:hover::before,\.mx-tile:hover::before\{background-color:color-mix\(in srgb,var\(--ink\) (\d+)%/.exec(media), act = /\.mx-one:active::before,\.mx-tile:active::before\{background-color:color-mix\(in srgb,var\(--ink\) (\d+)%/.exec(media);
+  const hov = /\.mx-one:hover::before,\.mx-tile:hover::before\{background-color:color-mix\(in srgb,var\(--veil\) (\d+)%/.exec(media), act = /\.mx-one:active::before,\.mx-tile:active::before\{background-color:color-mix\(in srgb,var\(--veil\) (\d+)%/.exec(media);
   assert.ok(hov && act && +act[1] > +hov[1], "held deeper than hovered");
 });
 t("a chosen control held goes three veils deep, past its own fill and its hover's layer (C084: Follow on, held vs hovered 18–20 RGB-sum)", () => {
@@ -33,9 +33,19 @@ t("every button whose face is a picture has a veil over it for hover and press, 
   for (const line of js.split("\n")) for (const m of line.matchAll(/<button[^>]*class="([\w-]+)[^"]*"[^>]*>(?:\$\{(?:imgHtml\(|ic\})|<img)/g)) faces.add(m[1]);
   for (const m of js.matchAll(/<button[^>]*class="([\w-]+) is-img"/g)) faces.add(m[1]);
   assert.ok(faces.has("mx-one") && faces.has("mx-tile") && faces.has("att-ic"), `found: ${[...faces]}`);
-  const veil = (c, st) => new RegExp(`\\.${c}(?:\\.is-img)?:${st}::(?:before|after)[^{]*\\{background-color:color-mix\\(in srgb,var\\(--ink\\) (\\d+)%`).exec(all);
+  const veil = (c, st) => new RegExp(`\\.${c}(?:\\.is-img)?:${st}::(?:before|after)[^{]*\\{background-color:color-mix\\(in srgb,var\\(--veil\\) (\\d+)%`).exec(all);
   const bad = [...faces].filter((c) => { const h = veil(c, "hover"), a = veil(c, "active"); return !(h && a && +a[1] > +h[1]); });
   assert.deepEqual(bad, [], "a picture-faced button without a veil, deeper held");
+});
+// the veil is chosen against the picture: in the theme's ink it vanished over a picture of the ink's tone (the
+// controls grader on aba434f, S233: light, a black picture, hover and held identical to rest)
+t("a picture's veil is chosen against the picture: light over a dark one, dark over a light one, read before the hover draws", () => {
+  assert.match(media, /:where\(\.mx-one,\.mx-tile,button\.att-ic\.is-img\)\[data-tone="dark"\]\{--veil:#FFFFFF\}/);
+  assert.match(media, /:where\(\.mx-one,\.mx-tile,button\.att-ic\.is-img\)\[data-tone="light"\]\{--veil:#000000\}/);
+  const mjs = readFileSync(new URL("../js/media.js", import.meta.url), "utf8");
+  assert.match(mjs, /export const PICTURE_FACE = "\.mx-one, \.mx-tile, button\.att-ic\.is-img";/);
+  assert.match(mjs, /document\.addEventListener\("pointerover", \(e\) => \{\s*const face = e\.target && e\.target\.closest && e\.target\.closest\(PICTURE_FACE\);/);
+  assert.match(mjs, /if \(n\) t = sum \/ n < 128 \? "dark" : "light";/);
 });
 // The shared press layer names out the controls with a press of their own. Their own has to be one a person sees by
 // grader A's bar (a pixel past 30 RGB-sum over ≥10% of the box, or ≥50% of the glyphs for words alone): a give alone
@@ -61,9 +71,12 @@ const OWN = {
   ".tw-act.lp-btn": () => /\.tw-act\.lp-btn:active,\.tw-act\.lp-btn\.is-on\{background:color-mix\(in srgb,var\(--accent-fill\) 20%/.test(all),
   ".lk:not(.lk-in)": () => /\.lk-out:active\{opacity:\.7\}/.test(all), // the links in text: .lk-out (.lk-in, a token, takes the layer)
   ":is(.vw-cut-dl,.wsh-home,.cp-link,.tg-ch,.fl-link,.lp-ln,.shl-all,.tp-done-u)": () => DIM === ".vw-cut-dl,.wsh-home,.cp-link,.tg-ch,.fl-link,.lp-ln,.shl-all,.tp-done-u",
+  // the sidebar's rows: the press fill over the hover fill over their wash, a chosen one two press veils deep (side.css)
+  ".prow": () => /:root:root \.side :is\(\.nrow,\.prow\):active\{background-image:linear-gradient\(var\(--press-fill\),var\(--press-fill\)\),linear-gradient\(var\(--hover-fill\)/.test(all) && /:root:root \.side :is\(\.nrow,\.prow\):hover\{background-image:linear-gradient\(var\(--hover-fill\)/.test(all),
+  ".nrow": () => /:root:root \.side :is\(\.prow\.busy,\.prow\.needs,\.prow\.is-on,\.nrow\.is-on\):active\{background-image:linear-gradient\(var\(--press-fill\),var\(--press-fill\)\),linear-gradient\(var\(--press-fill\)/.test(all),
 };
-// the sidebar's rows: their hover and press are the owner's to choose (asked 11 Nov, 05:2xZ), a give alone until then
-const KNOWN_MISSES = [".prow", ".nrow"];
+// none: the sidebar's rows were, until the owner chose their look (11 Nov 05:42Z)
+const KNOWN_MISSES = [];
 t("every control named out of the press layer has a press a person sees of its own; a give alone is never one", () => {
   const out = pressOut();
   const unlisted = out.filter((s) => !(s in OWN) && !KNOWN_MISSES.includes(s));

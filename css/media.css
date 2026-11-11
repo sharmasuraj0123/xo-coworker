@@ -31,8 +31,15 @@
    layer under the image: the controls grader on 03e9b44, S090, 0.5–3.6% of pixels): a veil over the picture says
    both, hover a light one, held a deeper one, in the ink of the theme (the edge still darkens) */
 .mx-one::before,.mx-tile::before{content:"";position:absolute;inset:0;z-index:2;border-radius:inherit;pointer-events:none;background:transparent;transition:background-color var(--d-hover) var(--ease)}
-.mx-one:hover::before,.mx-tile:hover::before{background-color:color-mix(in srgb,var(--ink) 10%,transparent)}
-.mx-one:active::before,.mx-tile:active::before{background-color:color-mix(in srgb,var(--ink) 20%,transparent);transition-duration:0s}
+/* the veil is chosen against the picture (js/media.js reads its tone as the pointer comes over it): a light one over a
+   dark picture, a dark one over a light one. In the theme's ink it vanished over a picture of the ink's own tone (the
+   controls grader on aba434f, S233: light, a black picture, hover and held identical to rest). Unread (a picture from
+   elsewhere, none yet), the ink's. Every control whose face is a picture takes it: an attachment's Preview too */
+:where(.mx-one,.mx-tile,button.att-ic.is-img){--veil:var(--ink)}
+:where(.mx-one,.mx-tile,button.att-ic.is-img)[data-tone="dark"]{--veil:#FFFFFF}
+:where(.mx-one,.mx-tile,button.att-ic.is-img)[data-tone="light"]{--veil:#000000}
+.mx-one:hover::before,.mx-tile:hover::before{background-color:color-mix(in srgb,var(--veil) 10%,transparent)}
+.mx-one:active::before,.mx-tile:active::before{background-color:color-mix(in srgb,var(--veil) 20%,transparent);transition-duration:0s}
 .mx-img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;-webkit-user-drag:element}
 /* a long capture shows its top; a picture of unknown size and a banner are fitted, never upscaled */
 .mx-one.is-long .mx-img{object-position:top}

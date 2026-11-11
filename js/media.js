@@ -490,6 +490,34 @@ if (typeof document !== "undefined") {
     if (it) failed(img, img.closest(".mx-one,.mx-tile"), it);
   }, true);
 }
+// a control whose face is a picture says hover and press with a veil over it (css/media.css), chosen against the
+// picture: its tone is read once per picture (8×8 of it, the mean luminance) as the pointer comes over it, before the
+// hover draws. A veil in the theme's ink vanished over a picture of that tone (the controls grader on aba434f, S233: a
+// black picture in light, hover and held identical to rest). One that can't be read (from elsewhere) keeps the ink's
+export const PICTURE_FACE = ".mx-one, .mx-tile, button.att-ic.is-img";
+const TONE = new Map();
+export function pictureTone(img) {
+  const k = img.currentSrc || img.src;
+  if (!k || !img.complete || !img.naturalWidth) return "";
+  if (TONE.has(k)) return TONE.get(k);
+  let t = "";
+  try {
+    const c = document.createElement("canvas"); c.width = c.height = 8;
+    const g = c.getContext("2d", { willReadFrequently: true }); g.drawImage(img, 0, 0, 8, 8);
+    const d = g.getImageData(0, 0, 8, 8).data; let sum = 0, n = 0;
+    for (let i = 0; i < d.length; i += 4) { if (d[i + 3] < 16) continue; sum += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]; n++; }
+    if (n) t = sum / n < 128 ? "dark" : "light";
+  } catch { /* a picture from elsewhere taints the canvas: the ink's veil */ }
+  TONE.set(k, t); return t;
+}
+if (typeof document !== "undefined") {
+  document.addEventListener("pointerover", (e) => {
+    const face = e.target && e.target.closest && e.target.closest(PICTURE_FACE);
+    if (!face) return;
+    const t = pictureTone(face.querySelector("img") || {});
+    if (t) { if (face.dataset.tone !== t) face.dataset.tone = t; } else if (face.dataset.tone) delete face.dataset.tone;
+  }, true);
+}
 /** Show an <img> once it has decoded (motion.js fadeImage); one already decoded (cached) shows at once. */
 function watch(img, box, it) {
   const key = img.dataset.mxImg;

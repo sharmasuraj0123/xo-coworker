@@ -1810,7 +1810,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 .tw-menu button{height:var(--h-ctl);padding:0 10px;border-radius:var(--r-sm);text-align:left;font-size:var(--fs-base);color:var(--ink-2)}
 /* one active item: the focused one, whichever hand moved it (the mouse moves focus: keynav.js pointerFollows); :hover
    never paints a second (Astra on e1f8666: mouse onto an item, then ↓, left two looking active) */
-.tw-menu button:focus{background:var(--fill-2);color:var(--ink)}
+.tw-menu button:focus{background:var(--menu-focus);color:var(--ink)}
 /* the title being renamed: a field in the head, 32 like the head's controls (34: grader B on ba93c9b, S009) */
 .tw-in{flex:1;min-width:0;height:var(--h-ctl);padding:0 10px;border-radius:var(--r-sm);border:1px solid var(--line-strong);background:var(--surface);font:600 var(--fs-2xl)/28px var(--sans);color:var(--ink)}
 .tw-in-l{flex:0 1 200px;font:500 var(--fs-base)/20px var(--sans)}
@@ -2209,11 +2209,11 @@ body.viewer-open .tdock{display:none}
 .att-ic img{display:block;width:100%;height:100%;object-fit:cover}
 button.att-ic{position:relative;cursor:zoom-in}
 /* its face is the picture: the press layer's fill lies under it, so hover and press are a veil over it, as a message's
-   pictures have (css/media.css .mx-one, S090): 10% of the ink, 20% held. The picture's dimming on hover went toward the
+   pictures have (css/media.css .mx-one, S090): 10% of a veil chosen against the picture, 20% held. The picture's dimming on hover went toward the
    dark surface in dark, 3% of the box, and held looked as hovered (grader A on 33ee53d, S233) */
 button.att-ic.is-img::after{content:"";position:absolute;inset:0;z-index:1;border-radius:inherit;pointer-events:none;background:transparent;transition:background-color var(--d-hover) var(--ease)}
-button.att-ic.is-img:hover::after{background-color:color-mix(in srgb,var(--ink) 10%,transparent)}
-button.att-ic.is-img:active::after{background-color:color-mix(in srgb,var(--ink) 20%,transparent);transition-duration:0s}
+button.att-ic.is-img:hover::after{background-color:color-mix(in srgb,var(--veil) 10%,transparent)}
+button.att-ic.is-img:active::after{background-color:color-mix(in srgb,var(--veil) 20%,transparent);transition-duration:0s}
 .att-t{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
 .att-n{font:500 var(--fs-sm)/16px var(--sans);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .att-m{font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
@@ -2403,7 +2403,7 @@ a.vw-btn{text-decoration:none}
 .lp-menu button{min-height:40px;padding:0 14px;border-radius:var(--r-sm);font:500 var(--fs-lg)/24px var(--sans);color:var(--ink)}
 /* its active item is the focused one, however focus got there (opened by a touch, it starts on Copy): painted by
    :focus, as every menu's (Launchpad grader on 23c726e, S170/S171: a touch-moved focus showed nothing) */
-.lp-menu button:active,.lp-menu button:focus{background:var(--fill-2)}
+.lp-menu button:active,.lp-menu button:focus{background:var(--menu-focus)}
 .ar-list li{position:relative;border-radius:var(--r-sm)}
 .ar-list li.is-swiping::before{content:attr(data-act);position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;padding-right:18px;border-radius:var(--r-sm);background:var(--float);color:var(--ink-3);font:600 var(--fs-md)/20px var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .ar-list li.is-armed::before{background:color-mix(in srgb,var(--accent-fill) 26%,var(--float));color:var(--ink)}
