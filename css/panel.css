@@ -420,7 +420,10 @@ body.viewer-open .fv~.dock{display:none}
 .stage .fr-ib{border-radius:var(--r)}
 .stage :is(.fr-ib,.stg-ic):hover{background:var(--panel-hover)}
 .stage .fr-gut{background:transparent}
-.stage .fr-gut::before{content:"";position:absolute;inset:0 12px;background:var(--panel-line);transition:background var(--d-hover) var(--ease)}
+/* the gutter between frames keeps the ring's room at the panel's sides: its ring (1 px out) was cut left and right by
+   the panel's own clip (the RINGCLIP sweep on 1855692); its line stays 12 px in from the sides */
+.stage .fr-gut{margin:0 var(--ring-room)}
+.stage .fr-gut::before{content:"";position:absolute;inset:0 calc(12px - var(--ring-room));background:var(--panel-line);transition:background var(--d-hover) var(--ease)}
 .stage .fr-gut:hover::before,.stage .fr-gut:focus-visible::before,body.stage-vsizing .stage .fr-gut::before{background:var(--line-hover)}
 .stage .fr-gut:focus-visible{outline:2px solid var(--focus);outline-offset:-1px}
 .stage .fr-none{padding:8px 20px 12px;margin:0;line-height:20px}

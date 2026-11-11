@@ -69,7 +69,7 @@
   :root:root .top .tw-t{display:flex;flex-direction:column;gap:0;min-width:0;padding-left:4px}
   :root:root .top .tw-t h1,
   :root:root .top .tw-h{font:600 var(--fs-lg)/20px var(--sans);letter-spacing:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  :root:root .top .pj-s{display:block;min-width:0;height:16px;margin:0;padding:0;font-size:var(--fs-sm);line-height:16px;color:var(--ink-3);text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  :root:root .top .pj-s{display:block;min-width:0;height:16px;margin:0;padding:0;font-size:var(--fs-sm);line-height:16px;color:var(--ink-3);text-align:left;overflow:clip;overflow-clip-margin:var(--ring-room);text-overflow:ellipsis;white-space:nowrap}
   :root:root .top .pj-s :is(button,.pj-home){min-height:0;height:16px;line-height:16px}
   :root:root .top-end{gap:8px;margin-left:8px}
   /* when its coordinator asks, the quiet line says only that, and the ask's count never hides: past the

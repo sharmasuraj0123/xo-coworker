@@ -3997,8 +3997,12 @@ t("RINGCLIP: no clipping box cuts a focused control's ring: Home, a project with
   const sweep = async (where) => { const r = await ringClips(page, where); counts.push(`${where} ${r.n}`); cuts.push(...r.cut); small.push(...r.floor); };
   await page.evaluate(() => { window.__t.go("home"); window.__t.render(); }); await page.waitForTimeout(500);
   await sweep("Home");
-  await toDemo(page); await page.locator("#msgs [data-copy]").first().waitFor({ timeout: 4000 }); await page.waitForTimeout(300);
-  await sweep("a project");
+  // the project's coordinator asking: "Coordinator needs you" leads its count line (S005)
+  await page.evaluate(() => { const t = window.__t, pr = t.world.project("demo"), chat = pr && pr.chatId; if (!chat) return;
+    t.world.state.hosts = [{ id: "chat:" + chat, host: true, project: "demo", chatId: chat, asker: "coordinator", title: "Coordinator", state: "needs_approval", checklist: { items: [], total: 0, done: 0, doing: 0 }, messages: [], asks: [{ id: "rc-h1", kind: "permission", title: "Run: npm test", detail: "Fixture", risk: "routine" }], live: true, loaded: true, busy: false, createdAt: Date.now(), lastAt: Date.now(), card: {} }]; });
+  await toDemo(page); await page.locator("#msgs [data-copy]").first().waitFor({ timeout: 4000 }); await page.waitForTimeout(500);
+  const asking = await page.locator("[data-dock-open]").filter({ visible: true }).count();
+  await sweep(asking ? "a project (its coordinator asking)" : "a project");
   await page.evaluate(() => {
     const t = window.__t;
     for (const name of ["reply", "decide", "decideItem", "resolve"]) t.world.act[name] = async () => ({});

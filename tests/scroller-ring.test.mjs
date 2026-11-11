@@ -99,6 +99,8 @@ const CLIPPERS = {
   ".stage .fr-lp>.fr-b.is-fade": ["fade", "Launchpad's frame at its cut foot"], ".lp-hs": ["text", "Launchpad's head line"],
   ".mx-album": ["decor", "a message's pictures"], ".lbx-frame": ["decor", "the lightbox's picture"], ".mx-wt": ["text", "the working line"],
   ":root[data-msgx] .m-them .tcard": ["inner", "a thread card in a message: its ring is drawn around the card itself (msgx.css), not inside it"],
+  ".pj-s": ["margin", "a project's count line: \"Coordinator needs you\" leads it (S005)"], ":root:root .top .pj-s": ["margin", "the same line in a phone's bar"],
+  ".ev-t": ["margin", "an event line's words: Passed to a project, Continued in a thread"],
   ":root[data-msgx] .m-them .tc-segs .sg.mx-seg-done": ["decor", "a step's mark"], ":root[data-msgx] .m-them .tc-segs .sg.mx-seg-next": ["decor", "a step's mark"],
 };
 const CLIPS = (d) => (/^overflow(-[xy])?$/.test(d.p) && /hidden|clip/.test(d.v)) || (d.p === "contain" && /paint|strict|content/.test(d.v)) || (d.p === "clip-path" && d.v !== "none") || (/^(-webkit-)?mask(-image)?$/.test(d.p) && d.v !== "none");
@@ -106,8 +108,21 @@ const srcs = [readFileSync(new URL("index.html", R), "utf8"), ...readdirSync(new
 const controls = new Set();
 for (const m of srcs.matchAll(/<(button|summary|select|a|input|textarea)\b([^>]*)>/g)) { const c = /class="([^"$]*)/.exec(m[2]); if (c) for (const k of c[1].split(/\s+/)) if (k) controls.add(k); }
 for (const m of srcs.matchAll(/<\w+\b([^>]*role="(?:button|tab|option|menuitem|menuitemradio|switch|radio|checkbox)"[^>]*)>/g)) { const c = /class="([^"$]*)/.exec(m[1]); if (c) for (const k of c[1].split(/\s+/)) if (k) controls.add(k); }
-// placed by the rule itself: a line that ellipsizes or clamps, a picture or a frame, a pseudo-element, a control's own
-const byRule = (sel, ds) => { const last = sel.split(/[\s>+~]+/).pop(); return /::/.test(last) ? "a pseudo-element" : ds.some((d) => d.p === "text-overflow" || d.p === "-webkit-line-clamp") ? "a line of text" : /^(img|svg|video|canvas|pre|code|textarea|input|iframe)\b/.test(last) ? "a picture, a frame or a field" : (last.match(/\.[\w-]+/g) || []).some((k) => controls.has(k.slice(1))) || /^(button|summary|a)\b/.test(last) ? "a control's own (its ring is drawn outside it)" : null; };
+// a box the CSS draws a control inside (a later compound of some selector names a control): never only words (S005:
+// a project's count line ellipsizes, and "Coordinator needs you" leads it)
+const holders = new Set();
+for (const r of cascade(new URL("tests/lib/x.mjs", R))) {
+  const parts = r.sel.split(/[\s>+~]+/);
+  parts.forEach((c, i) => { if (i < parts.length - 1 && parts.slice(i + 1).some((x) => /^(button|a|summary|select)\b/.test(x) || (x.match(/\.[\w-]+/g) || []).some((k) => controls.has(k.slice(1))))) for (const k of c.match(/\.[\w-]+/g) || []) holders.add(k.slice(1)); });
+}
+const own = (sel) => (sel.split(/[\s>+~]+/).pop().replace(/:not\((?:[^()]|\([^()]*\))*\)/g, "").match(/\.[\w-]+/g) || []).map((k) => k.slice(1));
+const holds = (sel) => own(sel).some((k) => holders.has(k));
+// a class drawn on something that isn't a control too (a count line's span and the Workspace's Home button share .pj-s)
+const elsewhere = new Set();
+for (const m of srcs.matchAll(/<(?!button|summary|select|a\b|input|textarea)(\w+)\b([^>]*)>/g)) { if (/role="(?:button|tab|option|menuitem|menuitemradio|switch|radio|checkbox)"/.test(m[2])) continue; const c = /class="([^"$]*)/.exec(m[2]); if (c) for (const k of c[1].split(/\s+/)) if (k) elsewhere.add(k); }
+// placed by the rule itself: a line that ellipsizes or clamps (holding no control), a picture or a frame, a
+// pseudo-element, a control's own
+const byRule = (sel, ds) => { const last = sel.split(/[\s>+~]+/).pop(); return /::/.test(last) ? "a pseudo-element" : ds.some((d) => d.p === "text-overflow" || d.p === "-webkit-line-clamp") && !holds(sel) ? "a line of text" : /^(img|svg|video|canvas|pre|code|textarea|input|iframe)\b/.test(last) ? "a picture, a frame or a field" : own(sel).some((k) => controls.has(k) && !elsewhere.has(k)) || /^(button|summary|a)\b/.test(last) ? "a control's own (its ring is drawn outside it)" : null; };
 t("every other clipping box is placed too: overflow hidden or clip, paint containment, a clip path, a mask", () => {
   const unplaced = [];
   for (const r of cascade(new URL("tests/lib/x.mjs", R))) {
@@ -122,6 +137,12 @@ t("each clipping box listed is still one, and holds the ring as listed", () => {
   const sels = new Set(cascade(new URL("tests/lib/x.mjs", R)).filter((r) => decls(r.d).some(CLIPS)).map((r) => r.sel));
   const gone = Object.keys(CLIPPERS).filter((k) => !sels.has(k));
   assert.deepEqual(gone, [], "listed, but no longer a clipping box: take it off");
+  // "margin": a line that clips with the ring's room as its clip margin, so a control in it keeps its whole ring
+  for (const [sel, [how, what]] of Object.entries(CLIPPERS)) if (how === "margin") {
+    const r = cascade(new URL("tests/lib/x.mjs", R)).find((x) => x.sel === sel && decls(x.d).some(CLIPS));
+    const ds = decls(r.d);
+    assert.ok(ds.some((d) => /^overflow(-[xy])?$/.test(d.p) && d.v === "clip") && ds.some((d) => d.p === "overflow-clip-margin" && d.v === "var(--ring-room)"), `${sel} (${what}): clips with the ring's room as its margin`);
+  }
   for (const [sel, [how, what]] of Object.entries(CLIPPERS)) if (how.startsWith("inset:")) {
     const k = how.slice(6);
     const own = new RegExp(`${k.replace(/\./g, "\\.")}\\)?:focus-visible\\{outline:2px solid var\\(--focus\\);outline-offset:-2px\\}`).test(all);

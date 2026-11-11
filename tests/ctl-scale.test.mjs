@@ -46,9 +46,9 @@ for (const r of all) {
 }
 
 // written exceptions, each with its reason
-const EXCEPT = {
-  "app.css: .pj-need { height }": "the project head's \"needs you\" words in its path line: a link in a line of text, its line's 20 (the phone bar's quiet line, put to the owner with the floor)",
-};
+// (the project head's "needs you" was one, as a link in a line of text; it leads that line as a control on its own,
+// and is 24 now: the create-project grader on 24be023, S005)
+const EXCEPT = {};
 // still off the scale, in a file another fixer owns (fix-assignments.md): none. Launchpad's agent-thread and app rows
 // (44) went to 48 in its fixer's c14fc08; the folded tool pill (28) to 32 in the Conversation fixer's 89f486a. A new
 // entry here needs its owner and the coordinator's word.

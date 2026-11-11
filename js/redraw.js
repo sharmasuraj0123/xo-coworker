@@ -9,10 +9,11 @@
 // A node's key: its id, else its data-key, else its data- hooks (the control's identity in this codebase);
 // nodes without one match by tag, in order. A custom element (xo-select …) owns its insides: only its attributes
 // are updated. A text field the person is in keeps what they typed: its value isn't overwritten. A checkbox or
-// radio always takes `checked` from the new HTML, focused or not: it has no draft to keep.
+// radio always takes `checked` from the new HTML, focused or not: it has no draft to keep. A focused control the new
+// HTML no longer has hands focus to the nearest place around it that stays (a region that takes focus), never the page.
 // Returns true if anything changed.
 
-import { inSight, bringWhole } from "./focusview.js";
+import { inSight, bringWhole, usable } from "./focusview.js";
 
 export function redraw(el, html) {
   const tpl = document.createElement("template");
@@ -22,8 +23,17 @@ export function redraw(el, html) {
   // (the create-project/Launchpad grader's C115: a refusal said above Runtimes' focused checkbox pushed it below a
   // phone's screen). It was wholly in sight, so it stays so: its scroller moves the least distance (js/focusview.js)
   const seen = !!focus && el.contains(focus) && inSight(focus);
+  // where the control sat: if the new HTML no longer has it, focus goes to the nearest place around it that stays and
+  // can hold focus (the conversation, a list, a panel), in the same step, never to the page (the create-project
+  // grader on 24be023, S004: a record line's Undo, pressed, is no longer drawn, and took focus with it)
+  const around = [];
+  if (focus && el.contains(focus) && focus !== el) for (let p = focus.parentElement; p; p = p.parentElement) around.push(p);
   const changed = syncChildren(el, tpl.content, focus);
-  if (changed && seen && focus.isConnected && !inSight(focus)) bringWhole(focus);
+  if (around.length && !focus.isConnected) {
+    const place = around.find((p) => p.isConnected && p.hasAttribute("tabindex") && usable(p));
+    if (place) place.focus({ preventScroll: true });
+  }
+  else if (changed && seen && focus.isConnected && !inSight(focus)) bringWhole(focus);
   return changed;
 }
 

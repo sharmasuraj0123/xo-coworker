@@ -341,10 +341,13 @@ button:disabled{cursor:default}
 .tw-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
 .tw-t h1{font:600 var(--fs-2xl)/28px var(--sans);letter-spacing:-.01em;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tw-t b{font:600 var(--fs-lg)/24px var(--sans);letter-spacing:0;color:var(--ink)}
-.pj-s{display:block;font-size:var(--fs-base);color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pj-s{display:block;font-size:var(--fs-base);color:var(--ink-3);overflow:clip;overflow-clip-margin:var(--ring-room);text-overflow:ellipsis;white-space:nowrap}
 .pj-s .is-amber{color:var(--warn);font-weight:600}
 /* a chat whose own coordinator asks: "Needs you" leads the count line, in the thread badge's amber and diamond */
-.pj-need{display:inline-flex;align-items:center;gap:6px;height:20px;padding:0;vertical-align:top;font:600 var(--fs-base)/20px var(--sans);color:var(--warn);border-radius:var(--r-sm);white-space:nowrap;transition:color var(--d-hover) var(--ease)}
+/* "Coordinator needs you" leads its count line as a control on its own: 24 on a desktop; its line lets its ring out
+   (.pj-s, the ring's room as its clip margin) (the create-project grader on 24be023, S005: 164×20, its ring cut left,
+   top and bottom) */
+.pj-need{display:inline-flex;align-items:center;gap:6px;height:var(--h-sm);padding:0;vertical-align:top;font:600 var(--fs-base)/20px var(--sans);color:var(--warn);border-radius:var(--r-sm);white-space:nowrap;transition:color var(--d-hover) var(--ease)}
 .pj-need .pj-k{color:inherit;font-weight:600}
 .pj-need:hover{color:color-mix(in srgb,var(--warn) 78%,var(--ink))}
 .pj-home{max-width:100%;padding:0;text-align:left;border-radius:var(--r-sm);transition:color var(--d-hover) var(--ease)}
@@ -643,7 +646,9 @@ code.hl{color:var(--code-ink)}
 .ev-ic svg{width:13px;height:13px}
 .ev-back .ev-ic{background:var(--fill-2);color:var(--ink-3)}
 .ev-stop .ev-ic{background:var(--danger-tint);color:var(--err-ink)}
-.ev-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* a line of words that ellipsizes can hold a control (Passed to a project, Continued in a thread, a project's
+   "Coordinator needs you"): it clips with the ring's room as its margin, so their ring is whole (S005) */
+.ev-t{min-width:0;overflow:clip;overflow-clip-margin:var(--ring-room);text-overflow:ellipsis;white-space:nowrap}
 .ev time{flex:none;margin-left:auto;font:400 var(--fs-sm)/20px var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums}
 
 .typing{display:grid;grid-template-columns:32px minmax(0,1fr);gap:12px;align-items:center;padding-bottom:8px;animation:msg-in var(--d-in) var(--ease)}
