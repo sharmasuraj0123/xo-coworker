@@ -38,8 +38,8 @@
 :where(.mx-one,.mx-tile,button.att-ic.is-img){--veil:var(--ink)}
 :where(.mx-one,.mx-tile,button.att-ic.is-img)[data-tone="dark"]{--veil:#FFFFFF}
 :where(.mx-one,.mx-tile,button.att-ic.is-img)[data-tone="light"]{--veil:#000000}
-.mx-one:hover::before,.mx-tile:hover::before{background-color:color-mix(in srgb,var(--veil) 10%,transparent)}
-.mx-one:active::before,.mx-tile:active::before{background-color:color-mix(in srgb,var(--veil) 20%,transparent);transition-duration:0s}
+.mx-one:hover::before,.mx-tile:hover::before{background-color:color-mix(in srgb,var(--veil) 12%,transparent)}
+.mx-one:active::before,.mx-tile:active::before{background-color:color-mix(in srgb,var(--veil) 24%,transparent);transition-duration:0s}
 .mx-img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;-webkit-user-drag:element}
 /* a long capture shows its top; a picture of unknown size and a banner are fitted, never upscaled */
 .mx-one.is-long .mx-img{object-position:top}

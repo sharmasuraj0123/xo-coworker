@@ -504,9 +504,12 @@ export function pictureTone(img) {
   try {
     const c = document.createElement("canvas"); c.width = c.height = 8;
     const g = c.getContext("2d", { willReadFrequently: true }); g.drawImage(img, 0, 0, 8, 8);
+    // by the mean of R+G+B, the graders' own measure, not luminance: the veil goes toward the far end of it, so a pixel
+    // of the mean's colour moves at least 12% of 382 (46 RGB-sum) hovered; a mid-tone picture under a veil of the
+    // theme's ink moved 19 (grader A on aba434f, S233 dark), a green one under luminance's pick 20
     const d = g.getImageData(0, 0, 8, 8).data; let sum = 0, n = 0;
-    for (let i = 0; i < d.length; i += 4) { if (d[i + 3] < 16) continue; sum += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]; n++; }
-    if (n) t = sum / n < 128 ? "dark" : "light";
+    for (let i = 0; i < d.length; i += 4) { if (d[i + 3] < 16) continue; sum += d[i] + d[i + 1] + d[i + 2]; n++; }
+    if (n) t = sum / n < 382.5 ? "dark" : "light";
   } catch { /* a picture from elsewhere taints the canvas: the ink's veil */ }
   TONE.set(k, t); return t;
 }

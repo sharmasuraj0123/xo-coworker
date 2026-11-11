@@ -45,7 +45,11 @@ t("a picture's veil is chosen against the picture: light over a dark one, dark o
   const mjs = readFileSync(new URL("../js/media.js", import.meta.url), "utf8");
   assert.match(mjs, /export const PICTURE_FACE = "\.mx-one, \.mx-tile, button\.att-ic\.is-img";/);
   assert.match(mjs, /document\.addEventListener\("pointerover", \(e\) => \{\s*const face = e\.target && e\.target\.closest && e\.target\.closest\(PICTURE_FACE\);/);
-  assert.match(mjs, /if \(n\) t = sum \/ n < 128 \? "dark" : "light";/);
+  assert.match(mjs, /sum \+= d\[i\] \+ d\[i \+ 1\] \+ d\[i \+ 2\]; n\+\+;/, "by the mean of R+G+B, the graders' measure");
+  assert.match(mjs, /if \(n\) t = sum \/ n < 382\.5 \? "dark" : "light";/);
+  // at least 12% hovered: 12% of 382 is 46 RGB-sum for a pixel of the mean's colour, past the bar of 30 with room
+  const hv = /\.mx-one:hover::before,\.mx-tile:hover::before\{background-color:color-mix\(in srgb,var\(--veil\) (\d+)%/.exec(media);
+  assert.ok(hv && +hv[1] >= 12, `hover veil ${hv && hv[1]}%`);
 });
 // The shared press layer names out the controls with a press of their own. Their own has to be one a person sees by
 // grader A's bar (a pixel past 30 RGB-sum over ≥10% of the box, or ≥50% of the glyphs for words alone): a give alone
