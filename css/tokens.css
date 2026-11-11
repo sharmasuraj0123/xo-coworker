@@ -156,7 +156,10 @@
    palette's roles: ink, fills, lines, hover and press, the accent's hue and the focus ring. Its words, Undo, Tell and
    its × read on it as they do in dark (the controls grader on d79d37e, S138: the Saved notice's × took light's
    --ink-3, #575757, on the dark toast). The values are the dark block's own (tests/inverse-toast.test.mjs). */
-:root[data-theme="light"] .toast{
+/* the lightbox keeps its dark chrome in both themes too, so it's an inverse surface the same way: its press and hover
+   fills are dark's (the controls grader on 8aa58d3, S080/S201 in light: light's press ink on its dark chrome added
+   nothing, 0.0% of pixels) */
+:root[data-theme="light"] :is(.toast,.lbx){
   color-scheme:dark; color:var(--ink);
   --fill-1:#171717; --fill-2:#232323; --fill-3:#2C2C2C; --fill-4:#3A3A3A;
   --line-faint:#1F1F1F; --line-soft:#262626; --line:#303030; --line-strong:#3C3C3C; --line-hover:#565656;
@@ -171,7 +174,7 @@
 @media (prefers-contrast: more){
   :root{--ink-3:#B0B0B0; --ink-4:#B0B0B0; --line:#5A5A5A; --line-hover:#8E8E8E}
   :root[data-theme="light"]{--ink-3:#4B4B4B; --ink-4:#4B4B4B; --line:#8E8E8E; --line-hover:#6B6B6B}
-  :root[data-theme="light"] .toast{--ink-3:#B0B0B0; --ink-4:#B0B0B0; --line:#5A5A5A; --line-hover:#8E8E8E}
+  :root[data-theme="light"] :is(.toast,.lbx){--ink-3:#B0B0B0; --ink-4:#B0B0B0; --line:#5A5A5A; --line-hover:#8E8E8E}
 }
 
 /* Quiet state tints, mixed (never new hues), so they follow each theme's own status colour. */

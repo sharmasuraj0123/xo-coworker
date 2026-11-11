@@ -4054,6 +4054,17 @@ t("STATES: every control in view answers hover and press: Home, a project with i
     t.go("p:demo"); t.render(); });
   await page.waitForTimeout(700);
   await sweep("a project with a thread needing you");
+  // the lightbox, dark in both themes (S080 Open in Files and Next, S201 Previous: light's press ink on its chrome)
+  await page.evaluate(async () => {
+    const { mediaItem, mediaHtml } = await import("./js/media.js");
+    const { createLightbox } = await import("./js/lightbox.js");
+    const items = ["a", "b", "c"].map((k) => mediaItem({ key: "t:" + k, name: k + ".svg", type: "image/svg+xml", src: "/favicon.svg", w: 64, h: 64 }));
+    const root = document.createElement("div"); root.id = "lbx-states"; root.innerHTML = mediaHtml(items); document.body.appendChild(root);
+    createLightbox({}).open("t:b", root.querySelector('[data-mx="t:b"]'), root);
+  });
+  await page.locator('[data-lbx="next"]').filter({ visible: true }).first().waitFor();
+  await page.waitForTimeout(400);
+  await sweep("the lightbox");
   console.log(`  STATES read ${counts.join(", ")}`);
   for (const x of silent) console.log(`  STATES ${x}`);
   await done(page);

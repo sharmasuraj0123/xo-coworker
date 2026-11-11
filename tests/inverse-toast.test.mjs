@@ -12,10 +12,10 @@ const tokens = css("tokens.css");
 const block = (sel) => { const i = tokens.indexOf(sel + "{"); if (i < 0) return null; const j = tokens.indexOf("}", i); return Object.fromEntries([...tokens.slice(i + sel.length + 1, j).matchAll(/(--[\w-]+):([^;]+);/g)].map((m) => [m[1], m[2].trim()])); };
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-const dark = block(":root"), light = block(':root[data-theme="light"]'), inv = block(':root[data-theme="light"] .toast');
+const dark = block(":root"), light = block(':root[data-theme="light"]'), inv = block(':root[data-theme="light"] :is(.toast,.lbx)'); // the toast and the lightbox: dark in both themes (S080/S201)
 
 t("in light the toast takes the dark palette's roles, the dark block's own values", () => {
-  assert.ok(inv, 'tokens.css :root[data-theme="light"] .toast{…}');
+  assert.ok(inv, 'tokens.css :root[data-theme="light"] :is(.toast,.lbx){…}');
   const roles = Object.keys(inv);
   for (const r of ["--ink", "--ink-2", "--ink-3", "--fill-2", "--fill-4", "--line", "--hover-fill", "--press-fill", "--accent-rgb", "--focus"]) assert.ok(roles.includes(r), `it sets ${r}`);
   for (const r of roles) if (r !== "--focus") assert.equal(inv[r], dark[r], `${r} is dark's`);
@@ -34,7 +34,7 @@ t("every colour role the toast's own rules use is one the inverse sets (or the s
   assert.ok(used.has("--ink-3") && used.has("--fill-4"), "it found the toast's rules (its × and Undo)");
 });
 t("nothing patches the toast's colours by hex in light any more", () => {
-  const patches = all.flatMap(([f, s]) => [...s.matchAll(/(:root\[data-theme="light"\][^{]*\.(?:toast|t-ic|t-m|t-undo|t-ring|t-back|xd-toast|xd-tx)(?![\w-])[^{]*)\{([^}]*)\}/g)].filter((m) => /#[0-9a-f]{3,8}\b/i.test(m[2]) && !/^:root\[data-theme="light"\] \.toast$/.test(m[1].trim())).map((m) => `${f}: ${m[1].trim()}`));
+  const patches = all.flatMap(([f, s]) => [...s.matchAll(/(:root\[data-theme="light"\][^{]*\.(?:toast|t-ic|t-m|t-undo|t-ring|t-back|xd-toast|xd-tx)(?![\w-])[^{]*)\{([^}]*)\}/g)].filter((m) => /#[0-9a-f]{3,8}\b/i.test(m[2]) && !/^:root\[data-theme="light"\] (?:\.toast|:is\(\.toast,\.lbx\))$/.test(m[1].trim())).map((m) => `${f}: ${m[1].trim()}`));
   assert.deepEqual(patches, [], "the toast's light-theme hex patches (app.css) are gone: the roles do it");
 });
 // contrast on the toast: its background over light's canvas, then each role over it
