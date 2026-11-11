@@ -4030,6 +4030,28 @@ t("RINGCLIP: no clipping box cuts a focused control's ring: Home, a project with
   await done(page);
 });
 
+// ── STATES: every control in view has its own rest, hover and held (C024, S002, C052; the controls grader on
+// 8aa58d3): the sweep (harness.cjs stateSweep) hovers and holds each, read as drawn. Desktop only: a phone has no
+// hover. Logged, not yet this case's verdict: the first run sizes what's silent across the views it reads
+const { stateSweep } = require("./harness.cjs");
+t("STATES: every control in view answers hover and press: Home, a project with its Now shelf and a message's Copy, the Workspace, a thread", async () => {
+  if (WIDTH < 760) skip("a phone has no hover");
+  const page = await app({ messages: MSG("Here is the command:\n\n```sh\nnpm test\n```\n") });
+  const silent = [], counts = [];
+  const sweep = async (where) => { const r = await stateSweep(page, where); counts.push(`${where} ${r.n}`); silent.push(...r.silent); };
+  await page.evaluate(() => { window.__t.go("home"); window.__t.render(); }); await page.waitForTimeout(500);
+  await sweep("Home");
+  await toDemo(page); await page.waitForTimeout(600);
+  // a message's actions show when the pointer is over the message: the sweep reads Copy with the message hovered first
+  const m = page.locator("#msgs .m").first(); if (await m.count()) { await m.hover(); await page.waitForTimeout(250); }
+  await sweep("a project");
+  await page.evaluate(() => { window.__t.go("ws"); window.__t.render(); }); await page.waitForTimeout(600);
+  await sweep("the Workspace");
+  console.log(`  STATES read ${counts.join(", ")}`);
+  for (const x of silent) console.log(`  STATES ${x}`);
+  await done(page);
+});
+
 // ── ROWS · S025, S052: an answer is a row: one line 40, with its description line 56 ──
 // the controls grader on 24be023: Home's answers 42 on one line, an item's answers with a description 65
 t("ROWS S025 S052: Home's answers are 40 on one line; an item's answer with a description line is 56, without one 40", async () => {

@@ -350,7 +350,10 @@ button:disabled{cursor:default}
 .pj-need{display:inline-flex;align-items:center;gap:6px;height:var(--h-sm);padding:0;vertical-align:top;font:600 var(--fs-base)/20px var(--sans);color:var(--warn);border-radius:var(--r-sm);white-space:nowrap;transition:color var(--d-hover) var(--ease)}
 .pj-need .pj-k{color:inherit;font-weight:600}
 .pj-need:hover{color:color-mix(in srgb,var(--warn) 78%,var(--ink))}
+/* the Workspace's count line is one control, Home: on a desktop the 24 floor, as the phone gives it 36 (the controls
+   grader on 8aa58d3, C022: 248×20; neither a link drawn in a sentence nor a height the census could read) */
 .pj-home{max-width:100%;padding:0;text-align:left;border-radius:var(--r-sm);transition:color var(--d-hover) var(--ease)}
+@media (min-width:761px){.pj-home{min-height:var(--h-sm)}}
 .pj-home:hover{color:var(--ink)}
 .wsh-home{padding:0;color:var(--ink-2);text-decoration:underline;text-decoration-color:var(--line-strong);text-underline-offset:3px}
 .wsh-home:hover{color:var(--ink);text-decoration-color:currentColor}

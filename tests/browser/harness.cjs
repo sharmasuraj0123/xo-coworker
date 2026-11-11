@@ -323,4 +323,44 @@ const ringClips = (page, where) => page.evaluate(async (where) => {
   return { n: els.length, cut, floor, wrapped };
 }, where);
 
-module.exports = { ROOT, SSE, serve, NOW, CHATS, STATIC, mockApi, hooks, openApp, launch, LP, chat, ringClips };
+/** The states sweep (STATES): every control in view, at rest, under the pointer and held down (released off it, so
+ *  nothing is pressed for real), read as drawn: its fill, layers, ink, edge, shadow, its pseudo-elements and its first
+ *  icon. A control that looks the same hovered as at rest, or held as hovered, is listed, with what lies on top of its
+ *  centre (something covering it can't be hovered). { n, silent: [...] } */
+async function stateSweep(page, where) {
+  const n = await page.evaluate(() => {
+    const CTL = 'button, a[href][class], summary, [role=button], [role=tab], [role=option], [role=radio], [role=switch], [role=menuitem]';
+    let i = 0;
+    for (const e of document.querySelectorAll("[data-sts]")) delete e.dataset.sts;
+    for (const e of document.querySelectorAll(CTL)) {
+      if (!e.getClientRects().length || e.disabled || e.closest("[inert], [hidden]")) continue;
+      const r = e.getBoundingClientRect();
+      if (r.width < 4 || r.height < 4 || r.bottom <= 0 || r.top >= innerHeight || r.right <= 0 || r.left >= innerWidth) continue;
+      e.dataset.sts = String(i++);
+    }
+    return i;
+  });
+  const look = (i) => page.evaluate((i) => {
+    const e = document.querySelector(`[data-sts="${i}"]`); if (!e) return null;
+    const sig = (x, p) => { const s = getComputedStyle(x, p); return [s.backgroundColor, s.backgroundImage, s.color, s.borderTopColor, s.boxShadow, s.opacity, s.transform, s.textDecorationColor, s.outlineStyle].join("|"); };
+    const svg = e.querySelector("svg"), r = e.getBoundingClientRect(), top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    const name = `${e.tagName.toLowerCase()}${e.classList.length ? "." + [...e.classList].slice(0, 3).join(".") : ""}${[...e.attributes].filter((a) => /^data-(?!sts)/.test(a.name)).slice(0, 1).map((a) => `[${a.name}]`).join("")} "${(e.textContent || e.getAttribute("aria-label") || "").trim().replace(/\s+/g, " ").slice(0, 20)}"`;
+    return { name, v: [sig(e), sig(e, "::before"), sig(e, "::after"), svg ? getComputedStyle(svg).color : "", e.parentElement ? getComputedStyle(e.parentElement).backgroundColor : ""].join(" ‖ "), cover: top && top !== e && !e.contains(top) ? `${top.tagName.toLowerCase()}.${[...top.classList].slice(0, 2).join(".")}` : "", x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  }, i);
+  const silent = [];
+  for (let i = 0; i < n; i++) {
+    await page.mouse.move(1, 1); await page.waitForTimeout(200);
+    const rest = await look(i); if (!rest) continue;
+    await page.mouse.move(rest.x, rest.y); await page.waitForTimeout(260);
+    const hover = await look(i); if (!hover) continue;
+    await page.mouse.down(); await page.waitForTimeout(140);
+    const held = await look(i);
+    await page.mouse.move(1, 1); await page.mouse.up(); await page.waitForTimeout(120);
+    const miss = [];
+    if (hover.v === rest.v) miss.push("hover");
+    if (held && held.v === hover.v) miss.push("press");
+    if (miss.length) silent.push(`${where}: ${rest.name} no ${miss.join(", no ")}${rest.cover ? ` (covered by ${rest.cover})` : ""}`);
+  }
+  return { n, silent };
+}
+module.exports = { ROOT, SSE, serve, NOW, CHATS, STATIC, mockApi, hooks, openApp, launch, LP, chat, ringClips, stateSweep };
