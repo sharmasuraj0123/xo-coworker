@@ -452,7 +452,11 @@ button:disabled{cursor:default}
 .ck-b{display:grid;grid-template-rows:0fr;overflow:hidden;transition:grid-template-rows var(--d-in) var(--ease)}
 .ckbar.is-open .ck-b{grid-template-rows:1fr}
 .ck-b>ol{overflow:hidden;min-height:0}
-.ck-list{list-style:none;display:grid;gap:7px;padding:4px 14px 12px;opacity:0;transition:opacity var(--d-in) var(--ease)}
+.ck-list{list-style:none;display:grid;gap:7px;padding:0 14px;opacity:0;transition:opacity var(--d-in) var(--ease)}
+/* its room above and below is its steps' margins, not its padding: a padding is kept by a closed row (0fr still holds
+   it), so the closed bar stood 16 px taller */
+.ck-list>li:first-child{margin-top:4px}
+.ck-list>li:last-child{margin-bottom:12px}
 .ckbar.is-open .ck-list{opacity:1}
 .ck{display:flex;align-items:baseline;gap:10px;font-size:var(--fs-md);color:var(--ink-2)}
 .ck-done{color:var(--ink-3)}.ck-done .ck-m{color:var(--accent)}
