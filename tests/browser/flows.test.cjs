@@ -4093,7 +4093,11 @@ t("STATES: every control in view answers hover and press: Home, a project with i
     // the app's mark, a black, a white, a mid grey and a mid green picture: the veil shows over any picture, in both themes
     // (S233 on aba434f: a mid-tone picture under the ink's veil moved 19 RGB-sum in dark)
     const solid = (c) => "data:image/svg+xml," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" fill="${c}"/></svg>`);
-    const items = [["a", "/favicon.svg"], ["b", "/favicon.svg"], ["c", "/favicon.svg"], ["k", solid("#000")], ["w", solid("#fff")], ["g", solid("#808080")], ["m", solid("#3c9a50")]].map(([k, src]) => mediaItem({ key: "t:" + k, name: k + ".svg", type: "image/svg+xml", src, w: 64, h: 64 }));
+    const pic = ([k, src]) => mediaItem({ key: "t:" + k, name: k + ".svg", type: "image/svg+xml", src, w: 64, h: 64 });
+    const items = [["a", "/favicon.svg"], ["b", "/favicon.svg"], ["c", "/favicon.svg"]].map(pic);
+    // an album shows four tiles at most: the four tones are an album of their own, beside it
+    const tones = document.createElement("div"); tones.id = "lbx-tones"; tones.style.cssText = "position:fixed;left:480px;top:24px;z-index:50;width:420px";
+    tones.innerHTML = mediaHtml([["k", solid("#000")], ["w", solid("#fff")], ["g", solid("#808080")], ["m", solid("#3c9a50")]].map(pic)); document.body.appendChild(tones);
     const root = document.createElement("div"); root.id = "lbx-states"; root.style.cssText = "position:fixed;left:24px;top:24px;z-index:50;width:420px"; root.innerHTML = mediaHtml(items); document.body.appendChild(root);
   });
   await page.waitForTimeout(300);
