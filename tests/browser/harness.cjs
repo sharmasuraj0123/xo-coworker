@@ -277,7 +277,17 @@ const ringClips = (page, where) => page.evaluate(async (where) => {
   const clipsOf = (e) => { const s = getComputedStyle(e); return s.overflowX !== "visible" || s.overflowY !== "visible" || /paint|strict|content/.test(s.contain) || (s.clipPath && s.clipPath !== "none"); };
   const inView = (r) => r.width >= 1 && r.height >= 1 && r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth;
   const els = [...document.querySelectorAll(CTL)].filter((e) => e.getClientRects().length && !e.closest("[inert], [hidden], .sr-only") && !e.disabled && inView(e.getBoundingClientRect()));
-  const cut = [], seen = new Set(), floor = [];
+  const cut = [], seen = new Set(), floor = [], wrapped = [];
+  // a button's label sits on one line (the coordinator's ruling, S045): the lines its words take, a line being the text
+  // boxes that overlap in height (an icon, a count in a smaller size on the same line stay one line)
+  const linesOf = (e) => {
+    const rects = [], rg = document.createRange(), w = document.createTreeWalker(e, NodeFilter.SHOW_TEXT);
+    for (let t = w.nextNode(); t; t = w.nextNode()) { if (!t.nodeValue.trim() || t.parentElement.closest("svg, [hidden], .sr-only")) continue; rg.selectNodeContents(t); for (const q of rg.getClientRects()) if (q.width > 0.5 && q.height > 0.5) rects.push(q); }
+    rects.sort((a, b) => a.top - b.top);
+    let n = 0, bottom = -Infinity;
+    for (const q of rects) { if (q.top >= bottom - 1) { n++; bottom = q.bottom; } else bottom = Math.max(bottom, q.bottom); }
+    return n;
+  };
   for (const el of els) {
     if (!el.isConnected) continue;
     el.focus({ preventScroll: false });
@@ -289,6 +299,8 @@ const ringClips = (page, where) => page.evaluate(async (where) => {
     // sentence, a field, a row inside a list drawn by its own rules are not this sweep's
     const fl = innerWidth < 760 ? 36 : 24;
     if (/^(BUTTON|SUMMARY)$/.test(el.tagName) && s.display !== "inline" && !el.matches(".lk,.lp-hh,.lp-ln,.cp-link,.wsh-home,.dg-n,.gn,.dg-tag,.pj-s *,.tw-rt") && (r.height < fl - 0.5 || r.width < fl - 0.5)) floor.push(`${where}: ${name(el)} ${Math.round(r.width)}×${Math.round(r.height)}`);
+    // a control a line tall (under a two-line row's 48) whose label takes two lines; an answer row may wrap by design
+    if (/^(BUTTON|SUMMARY|A)$/.test(el.tagName) && s.display !== "inline" && r.height < 47.5 && !el.matches(".b-opt") && linesOf(el) > 1) wrapped.push(`${where}: ${name(el)} ${Math.round(r.width)}×${Math.round(r.height)} "${el.textContent.trim().replace(/\s+/g, " ").slice(0, 24)}"`);
     const e = s.outlineStyle === "none" ? 0 : parseFloat(s.outlineOffset) + parseFloat(s.outlineWidth);
     if (e <= 0) continue; // a ring drawn inside the control, or none
     const ring = { top: r.top - e, bottom: r.bottom + e, left: r.left - e, right: r.right + e };
@@ -308,7 +320,7 @@ const ringClips = (page, where) => page.evaluate(async (where) => {
     }
   }
   document.activeElement?.blur?.();
-  return { n: els.length, cut, floor };
+  return { n: els.length, cut, floor, wrapped };
 }, where);
 
 module.exports = { ROOT, SSE, serve, NOW, CHATS, STATIC, mockApi, hooks, openApp, launch, LP, chat, ringClips };

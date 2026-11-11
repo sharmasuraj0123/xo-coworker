@@ -120,6 +120,10 @@ t("a row-type control's one line fits its row: border, padding and line no talle
   }
   assert.deepEqual(over, [], "rows whose one line is taller than their floor");
 });
+t("a button's label sits on one line: the meta line's buttons never wrap or shrink (S045: Stop the turn on a phone)", () => {
+  // the browser sweep (harness.cjs ringClips) checks every one-line control in view for a label on two lines
+  assert.match(readFileSync(new URL("css/app.css", ROOT), "utf8"), /\.meta-btn\{flex:none;white-space:nowrap;display:inline-flex;/);
+});
 t("an answer is a row: one line 40, with its description line 56 (S025, S052)", () => {
   const app = readFileSync(new URL("css/app.css", ROOT), "utf8");
   assert.match(app, /\.b-opt\{flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:0;min-height:var\(--h-lg\);padding:7px 14px;[^}]*line-height:24px;/, "1 + 7 + 24 + 7 + 1 = 40");

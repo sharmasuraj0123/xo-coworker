@@ -515,7 +515,9 @@ button:disabled{cursor:default}
 @keyframes draw{to{stroke-dashoffset:0}}
 .spin{display:inline-block;width:10px;height:10px;border:1.5px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin var(--d-land) linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.meta-btn{display:inline-flex;align-items:center;gap:5px;height:var(--h-sm);padding:0 10px;border-radius:999px;border:1px solid var(--line);background:var(--fill-1);color:var(--ink-2);font:500 var(--fs-sm)/16px var(--sans);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+/* a button's label sits on one line: in a line of words that runs out of room the words wrap, never the button (the
+   coordinator's ruling on 8aa58d3, S045: "Stop the turn" wrapped to two lines inside its 36 px on a phone) */
+.meta-btn{flex:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;height:var(--h-sm);padding:0 10px;border-radius:999px;border:1px solid var(--line);background:var(--fill-1);color:var(--ink-2);font:500 var(--fs-sm)/16px var(--sans);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 /* hovered, it answers as the other quiet bordered buttons do (Pick back up, .ev-undo): the next fill, the hover line,
    the first ink. Its words are the second ink already, so the shared lift of the meta inks had nothing to change
    (the controls grader on f93345a: Interrupt, Retry and Edit looked the same hovered, S037, S039, S040) */

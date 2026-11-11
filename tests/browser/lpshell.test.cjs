@@ -669,7 +669,8 @@ t("SH31: Retry now hands focus to the shell", async () => {
 const { ringClips } = require("./harness.cjs");
 t("RINGCLIP C076: no clipping box cuts a focused control's ring: Launchpad open, folded (Deploy) and open again, the Shells dock", async () => {
   const cuts = [], counts = [], small = [];
-  const sweep = async (page, where) => { const r = await ringClips(page, where); counts.push(`${where} ${r.n}`); cuts.push(...r.cut); small.push(...r.floor); };
+  const wraps = [];
+  const sweep = async (page, where) => { const r = await ringClips(page, where); counts.push(`${where} ${r.n}`); cuts.push(...r.cut); small.push(...r.floor); wraps.push(...r.wrapped); };
   let page = await open({ launchpad: "ready" });
   await page.keyboard.press("Shift"); // a keyboard's focus: the ring is drawn
   await W.openLaunchpad(page);
@@ -691,6 +692,7 @@ t("RINGCLIP C076: no clipping box cuts a focused control's ring: Launchpad open,
   if (small.length) console.log(`  RINGCLIP under the floor (not this case's verdict): ${small.join("; ")}`);
   assert.ok(deploy, "Deploy was in the folded head");
   assert.deepEqual(cuts, [], `rings cut by a clipping box:\n  ${cuts.join("\n  ")}`);
+  assert.deepEqual(wraps, [], `a button's label on two lines (S045's ruling: one line):\n  ${wraps.join("\n  ")}`);
   await done(page);
 });
 

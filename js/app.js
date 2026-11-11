@@ -3270,10 +3270,13 @@ document.addEventListener("click", (e) => {
   if (lb) { decideLimit(lb.dataset.limit, lb.dataset.limitD); return; }
   const tmv = t.closest("[data-tmove]");
   if (tmv) {
-    // the thread menu's way to another runtime: the composer's picker, looking at the first one that can take it
-    S.tMenu = null; $("#top-who")._h = null; schedule();
+    // the thread menu's way to another runtime: the composer's picker, looking at the first one that can take it. The
+    // picker opens first, in this step, and takes focus; only then does the menu go. Never a menu closed, then what it
+    // opens a frame later: focus was on the page between (the create-project grader on 8aa58d3, S012). (The picker
+    // closes on a pointerdown outside it, which this click has already had.)
     const sid = sessionOf(S.view), ch = IQ.runtimeChoice(sid), to = ch.list.find((o) => o.id !== ch.on && o.usable);
-    if (to) requestAnimationFrame(() => IQ.open(sid, $("#iq"), { rt: to.id }));
+    if (to) IQ.open(sid, $("#iq"), { rt: to.id });
+    if (to) { S.tMenu = null; $("#top-who")._h = null; schedule(); } else closeThreadMenu();
     return;
   }
   const unf = t.closest("[data-unfreeze]");

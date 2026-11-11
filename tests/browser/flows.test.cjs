@@ -3994,7 +3994,8 @@ t("RINGCLIP: no clipping box cuts a focused control's ring: Home, a project with
   await page.keyboard.press("Shift"); // a keyboard's focus: the ring is drawn
   const cuts = [], counts = [];
   const small = [];
-  const sweep = async (where) => { const r = await ringClips(page, where); counts.push(`${where} ${r.n}`); cuts.push(...r.cut); small.push(...r.floor); };
+  const wraps = [];
+  const sweep = async (where) => { const r = await ringClips(page, where); counts.push(`${where} ${r.n}`); cuts.push(...r.cut); small.push(...r.floor); wraps.push(...r.wrapped); };
   await page.evaluate(() => { window.__t.go("home"); window.__t.render(); }); await page.waitForTimeout(500);
   await sweep("Home");
   // the project's coordinator asking: "Coordinator needs you" leads its count line (S005)
@@ -4025,6 +4026,7 @@ t("RINGCLIP: no clipping box cuts a focused control's ring: Home, a project with
   console.log(`  RINGCLIP read ${counts.join(", ")}`);
   if (small.length) console.log(`  RINGCLIP under the floor (not this case's verdict): ${small.join("; ")}`);
   assert.deepEqual(cuts, [], `rings cut by a clipping box:\n  ${cuts.join("\n  ")}`);
+  assert.deepEqual(wraps, [], `a button's label on two lines (S045's ruling: one line):\n  ${wraps.join("\n  ")}`);
   await done(page);
 });
 
