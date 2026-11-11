@@ -415,7 +415,9 @@ button:disabled{cursor:default}
 .ckbar.m-failed{border-color:rgb(230 131 136 / .22)}
 /* the checklist line answers the pointer as one row, edge to edge: its fill is the row's, clipped by the
    bar's own corners (the toggle's own fill used to stop 6 px short of the right edge) */
-.ck-row{display:flex;align-items:center;gap:6px;padding-right:6px;transition:background-color var(--d-hover) var(--ease)}
+.ck-row{display:flex;align-items:center;gap:6px;transition:background-color var(--d-hover) var(--ease)}
+/* (no padding at its right: the toggle reaches the bar's right edge, so its press fills the whole bar, as its hover does;
+   it stopped 6 px short: the owner, 11 Nov 07:57Z) */
 .ck-row:has(.ck-tog:hover){background:var(--hover-fill)}
 /* the toggle fills its bar edge to edge, and the bar clips to its corners (its row's hover fill), so its ring is drawn
    inside it, on the bar's inner corners (the controls grader on 414de0f, C045: only the ring's right edge showed) */
@@ -444,11 +446,14 @@ button:disabled{cursor:default}
 .ck-chev{display:grid;place-items:center}
 .ck-chev svg{width:16px;height:16px;color:var(--ink-4);transition:transform var(--dur-base) var(--ease)}
 .ckbar.is-open .ck-chev svg{transform:rotate(180deg)}
-.ck-b{display:grid;grid-template-rows:0fr;transition:grid-template-rows var(--d-in) var(--ease)}
+/* opening, the list grows out from under the line and fades in, one motion: the bar clips it, so its padding never
+   changes (it jumped 16 px as the list's padding switched on at the start, then the height eased after it: the owner,
+   11 Nov 07:57Z, "extremely bad") */
+.ck-b{display:grid;grid-template-rows:0fr;overflow:hidden;transition:grid-template-rows var(--d-in) var(--ease)}
 .ckbar.is-open .ck-b{grid-template-rows:1fr}
 .ck-b>ol{overflow:hidden;min-height:0}
-.ck-list{list-style:none;display:grid;gap:7px;padding:0 14px}
-.ckbar.is-open .ck-list{padding:4px 14px 12px}
+.ck-list{list-style:none;display:grid;gap:7px;padding:4px 14px 12px;opacity:0;transition:opacity var(--d-in) var(--ease)}
+.ckbar.is-open .ck-list{opacity:1}
 .ck{display:flex;align-items:baseline;gap:10px;font-size:var(--fs-md);color:var(--ink-2)}
 .ck-done{color:var(--ink-3)}.ck-done .ck-m{color:var(--accent)}
 .ck-doing{color:var(--ink)}.ck-doing .ck-m{color:var(--info)}

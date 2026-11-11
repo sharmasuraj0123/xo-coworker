@@ -81,7 +81,7 @@ const CLIPPERS = {
   ".sr-only": ["decor", "words for a screen reader"], ".rn-stop span": ["decor", "words for a screen reader"], "body.chat-docked .thead .rn-log span": ["decor", "words for a screen reader"], ":root:root .thead .rn-log span": ["decor", "words for a screen reader"],
   ".now.fade-r": ["fade", "the Now strip's edge, while more chips lie that way (its chips' ring inset, .nw)"], ".now.fade-l": ["fade", "the same, at its start"], ".now.fade-l.fade-r": ["fade", "the same, both ends"],
   ".ckbar": ["inset:.ck-tog", "a thread's checklist bar: its toggle fills it (C045)"],
-  ".ck-b>ol": ["text", "the checklist's steps"], ".sg.s-done.is-pop": ["decor", "a step's mark in the progress line"],
+  ".ck-b>ol": ["text", "the checklist's steps"], ".ck-b": ["text", "the checklist's steps, clipped as they open (words, no controls)"], ".sg.s-done.is-pop": ["decor", "a step's mark in the progress line"],
   ".card": ["inner", "a decision card: its body pads 16, its actions 12"], ".chg": ["text", "a change's preview: its caption and text"], ".c-hint": ["text", "a card's hint"],
   ".card.is-dock :is(.c-body,.card-in).fade-b": ["fade", "the docked card's body at a cut edge: its answers sit below it"], ".card.is-dock :is(.c-body,.card-in).fade-t": ["fade", "the same, at its top"], ".card.is-dock :is(.c-body,.card-in).fade-t.fade-b": ["fade", "the same, both edges"],
   ".mini": ["decor", "a progress bar"], ".cp-bar": ["decor", "a progress bar"], ".rt-bar": ["decor", "a progress bar"], ".lpv-link": ["decor", "a dashed line"], ".lpm-l": ["decor", "a dashed line"], ".hm-sk": ["decor", "a loading shape"],
