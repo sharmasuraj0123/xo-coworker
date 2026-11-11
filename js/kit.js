@@ -206,10 +206,14 @@ export function holdToConfirm(btn, { ms = HOLD_MS, ready, onProgress, onConfirm,
     btn.setAttribute("aria-pressed", "true");
     raf = requestAnimationFrame(tick);
   };
+  btn.addEventListener("keydown", () => btn.classList.remove("by-pointer"));
   btn.addEventListener("pointerdown", (e) => {
     if (e.button !== 0) return;
     e.preventDefault();
-    btn.focus({ preventScroll: true });
+    // held by a pointer, it takes focus without a ring (the default it prevents would have given it focus the same way):
+    // a ring round a button you're pressing read as a border (the owner, 11 Nov 08:19Z); a key on it brings the ring back
+    btn.classList.add("by-pointer");
+    btn.focus({ preventScroll: true, focusVisible: false });
     try { btn.setPointerCapture(e.pointerId); } catch { /* old browsers */ }
     start("pointer");
   });

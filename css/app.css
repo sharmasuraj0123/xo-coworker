@@ -951,6 +951,7 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .b-hold:hover{background:color-mix(in srgb,var(--err) 17%,var(--float));border-color:color-mix(in srgb,var(--err-ink) 65%,var(--line))}
 .b-hold:active{transform:none}
 .b-hold:focus-visible{outline-color:color-mix(in srgb,var(--err-ink) 80%,transparent)}
+.b-hold.by-pointer:focus-visible{outline:none}
 .hold-fill{position:absolute;inset:0;transform:scaleX(var(--p,0));transform-origin:left;background:color-mix(in srgb,var(--err) 38%,var(--float));will-change:transform}
 .b-hold.is-releasing .hold-fill{transition:transform var(--d-sheet) var(--ease)}
 .hold-ic{display:inline-grid}
