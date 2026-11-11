@@ -1190,7 +1190,8 @@ t("STATEHOVER S020: every chosen control in view answers the pointer: All thread
 
 // ── ROWS · C048: a Chats row is 56 at every width (its phone floor of 58 drew 66) ────────────────────────
 t("ROWS C048: every Chats row is 56, on a desktop and on a phone", async () => {
-  const page = await app();
+  // chats to list (the suite's plain chat, and one more with its own title), as the Chats cases draw them
+  const page = await app({ runtimes: [RUNTIME], sessions: [CHAT(), CHAT({ id: "cse_chat2", title: "A second chat", updated_at: NOW })] });
   await page.evaluate(() => window.__t.go("chats"));
   await page.locator(".ch-row").first().waitFor();
   await settle(page, 200);
