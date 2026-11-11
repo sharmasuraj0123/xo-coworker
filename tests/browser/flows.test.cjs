@@ -972,13 +972,22 @@ t("EDITOR-ring: editing, the caret in the file, its box draws the message box's 
   // lines covered the top of a ring on its box)
   const g = await page.evaluate(() => { const b = document.querySelector("#viewer.is-editing .vw-body"); if (!b) return null; const r = b.getBoundingClientRect(), f = getComputedStyle(document.querySelector("#viewer")).getPropertyValue("--focus").trim() || getComputedStyle(document.documentElement).getPropertyValue("--focus").trim(); const c = document.createElement("canvas").getContext("2d"); c.fillStyle = f; c.fillRect(0, 0, 1, 1); return { x: r.x, y: r.y, w: r.width, h: r.height, rgb: [...c.getImageData(0, 0, 1, 1).data].slice(0, 3) }; });
   assert.ok(g, "the viewer is marked as editing");
-  const P = H.pngPixels(await page.screenshot({ clip: { x: g.x, y: g.y, width: g.w, height: g.h } }));
-  const at = (x, y) => { const i = (y * P.w + x) * P.bpp; return [P.data[i], P.data[i + 1], P.data[i + 2]]; };
-  const near = (p) => Math.abs(p[0] - g.rgb[0]) + Math.abs(p[1] - g.rgb[1]) + Math.abs(p[2] - g.rgb[2]) <= 60;
+  // focused, then with focus gone from the file: each side's edge (its two outer pixels) differs past the graders' 30
+  // RGB-sum, and toward the focus colour (a ring, not a shade)
+  const clip = { x: g.x, y: g.y, width: g.w, height: g.h };
+  const P = H.pngPixels(await page.screenshot({ clip }));
+  await page.evaluate(() => document.querySelector("#viewer .vw-top button")?.focus()); await page.waitForTimeout(200);
+  const Q = H.pngPixels(await page.screenshot({ clip }));
+  const at = (I, x, y) => { const i = (y * I.w + x) * I.bpp; return [I.data[i], I.data[i + 1], I.data[i + 2]]; };
+  const d = (p, q) => Math.abs(p[0] - q[0]) + Math.abs(p[1] - q[1]) + Math.abs(p[2] - q[2]);
   const mx = Math.floor(P.w / 2), my = Math.floor(P.h / 2);
-  const sides = { top: at(mx, 0), bottom: at(mx, P.h - 1), left: at(0, my), right: at(P.w - 1, my) };
-  const missing = Object.entries(sides).filter(([, p]) => !near(p)).map(([k, p]) => `${k} ${p}`);
-  assert.deepEqual(missing, [], `the ring in the focus colour ${g.rgb} on every side`);
+  const pts = { top: [[mx, 0], [mx, 1]], bottom: [[mx, P.h - 1], [mx, P.h - 2]], left: [[0, my], [1, my]], right: [[P.w - 1, my], [P.w - 2, my]] };
+  const missing = [];
+  for (const [k, ps] of Object.entries(pts)) {
+    const ok = ps.some(([x, y]) => { const on = at(P, x, y), off = at(Q, x, y); return d(on, off) > 30 && d(on, g.rgb) < d(off, g.rgb); });
+    if (!ok) missing.push(`${k}: focused ${at(P, ...ps[0])} / not ${at(Q, ...ps[0])}`);
+  }
+  assert.deepEqual(missing, [], `the ring drawn on every side, toward the focus colour ${g.rgb}`);
   await done(page);
 });
 // S005 on a phone: the coordinator asking, its 36 px pill under the name answers hover and held by the graders' bar
