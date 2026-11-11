@@ -343,10 +343,21 @@ function pngPixels(buf) {
       out[y * stride + x] = (line[x] + [0, a, b, (a + b) >> 1, pr][f]) & 255; } }
   return { w, h, bpp, data: out };
 }
-// the mean change of a box between two crops, in RGB-sum per pixel (the graders' visible-difference measure)
-const meanDiff = (A, B) => { let s = 0, n = 0; for (let i = 0; i + 2 < A.data.length && i + 2 < B.data.length; i += A.bpp) { s += Math.abs(A.data[i] - B.data[i]) + Math.abs(A.data[i + 1] - B.data[i + 1]) + Math.abs(A.data[i + 2] - B.data[i + 2]); n++; } return n ? s / n : 0; };
-// the bar a change has to clear to be seen: the graders read 18–20 RGB-sum on average as indistinguishable (C084)
-const SEEN = 30;
+// whether a state visibly differs, by grader A's bar (the coordinator, 11 Nov 05:03Z), crops of the same box: a pixel
+// has changed when |ΔR|+|ΔG|+|ΔB| > 30; a fill or an edge passes when ≥10% of the box changed; a hover of the words
+// alone passes when ≥50% of the glyph pixels (those that differ from the box's own background, its commonest colour,
+// by more than 30) changed. Held identical to hovered (0%) always fails
+const px = (P, i) => [P.data[i], P.data[i + 1], P.data[i + 2]];
+const d3 = (a, b) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]);
+function visible(A, B) {
+  const n = Math.min(A.data.length, B.data.length) / A.bpp | 0, count = new Map();
+  for (let k = 0; k < n; k++) { const c = px(A, k * A.bpp).join(","); count.set(c, (count.get(c) || 0) + 1); }
+  const bg = [...count].sort((x, y) => y[1] - x[1])[0][0].split(",").map(Number);
+  let changed = 0, glyphs = 0, glyphsChanged = 0;
+  for (let k = 0; k < n; k++) { const a = px(A, k * A.bpp), b = px(B, k * B.bpp), ch = d3(a, b) > 30; if (ch) changed++; if (d3(a, bg) > 30) { glyphs++; if (ch) glyphsChanged++; } }
+  const box = n ? changed / n : 0, words = glyphs ? glyphsChanged / glyphs : 0;
+  return { ok: box >= 0.1 || (glyphs > 0 && words >= 0.5), box, words };
+}
 async function stateSweep(page, where) {
   const n = await page.evaluate(() => {
     const CTL = 'button, a[href][class], summary, [role=button], [role=tab], [role=option], [role=radio], [role=switch], [role=menuitem]';
@@ -395,9 +406,9 @@ async function stateSweep(page, where) {
     await page.mouse.move(1, 1); await page.mouse.up(); await page.waitForTimeout(120);
     const miss = [];
     if (hover.v === rest.v) miss.push("hover");
-    else if (pRest && pHover && meanDiff(pRest, pHover) < SEEN) miss.push(`hover seen (${meanDiff(pRest, pHover).toFixed(0)} < ${SEEN})`);
+    else if (pRest && pHover) { const v = visible(pRest, pHover); if (!v.ok) miss.push(`hover unseen (${(v.box * 100).toFixed(1)}% of the box, ${(v.words * 100).toFixed(0)}% of its words)`); }
     if (held && held.v === hover.v) miss.push("press");
-    else if (pHover && pHeld && meanDiff(pHover, pHeld) < SEEN) miss.push(`press seen (${meanDiff(pHover, pHeld).toFixed(0)} < ${SEEN})`);
+    else if (pHover && pHeld) { const v = visible(pHover, pHeld); if (!v.ok) miss.push(`press unseen (${(v.box * 100).toFixed(1)}% of the box, ${(v.words * 100).toFixed(0)}% of its words)`); }
     if (miss.length) silent.push(`${where}: ${rest.name} no ${miss.join(", no ")}${rest.cover ? ` (covered by ${rest.cover})` : ""}`);
   }
   return { n, silent };
