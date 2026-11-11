@@ -1399,7 +1399,10 @@ button.tp-done-u:hover{color:var(--ink)}
 /* a title and its label ("merged · on hold") share the title's cell: the label was a sixth item in a five-column row, so the
    runtime ran over the progress bar and the time fell to a line of its own (the owner, 11 Nov 07:52Z) */
 .ar-tl{display:flex;align-items:center;gap:8px;min-width:0}
-.ar-tl>.ar-t{flex:0 1 auto}
+/* in a narrow row the label gives way before the title does: the title keeps 5 em at least (on a phone the label took the
+   whole cell and the title went) */
+.ar-tl>.ar-t{flex:0 1 auto;min-width:5em}
+.ar-tl>.ar-l{flex:0 1 auto;min-width:0}
 .ar-s{font-size:var(--fs-sm);color:var(--ink-4);white-space:nowrap}
 .ar.st-needs .ar-s{color:var(--warn)}
 .ar.st-stopped .ar-s{color:var(--err-ink)}
