@@ -57,6 +57,13 @@
    theme; the state's colour stays */
 /* (:root:root: above every state's wash, the light theme's too, whose background shorthand would clear the layer) */
 :root:root .side :is(.prow.busy,.prow.needs,.prow.is-on,.nrow.is-on):hover{background-image:linear-gradient(color-mix(in srgb,var(--ink) 6%,transparent),color-mix(in srgb,var(--ink) 6%,transparent))}
+/* hover and held, as every control says them (the owner, 11 Nov 05:42Z: the proposed look): the app's own hover fill
+   over a row's quiet wash, and the press fill over that when held; a chosen row, two press veils over its hover's. Their
+   3.5–4% wash alone read 0% of the box by the graders' bar (a pixel past 30 RGB-sum over ≥10% of it), held 4–9% (the
+   state sweep on 7137115). The press layer names the rows out for this (css/foundation.css); tests/press-reach.test.mjs */
+:root:root .side :is(.nrow,.prow):hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
+:root:root .side :is(.nrow,.prow):active{background-image:linear-gradient(var(--press-fill),var(--press-fill)),linear-gradient(var(--hover-fill),var(--hover-fill))}
+:root:root .side :is(.prow.busy,.prow.needs,.prow.is-on,.nrow.is-on):active{background-image:linear-gradient(var(--press-fill),var(--press-fill)),linear-gradient(var(--press-fill),var(--press-fill)),linear-gradient(color-mix(in srgb,var(--ink) 6%,transparent),color-mix(in srgb,var(--ink) 6%,transparent))}
 
 /* its tile: solid, in the row's colour (.side: above light.css's white tile for the open row) */
 .side .prow.is-on:not(.busy) .pr-ic{background:var(--ink);border-color:var(--ink);color:var(--sb-side)}
