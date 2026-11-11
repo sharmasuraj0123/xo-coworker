@@ -108,7 +108,7 @@ button:disabled{cursor:default}
 .gear:hover .gear-ic,.gear.is-on .gear-ic{color:var(--ink)}
 .gear-ic svg{width:16px;height:16px}
 /* the project filter (hub #16) */
-.side-find{display:flex;align-items:center;gap:8px;height:34px;margin:0 12px 8px;padding:0 10px;border-radius:11px;background:var(--sb-g17);border:1px solid var(--sb-g26);transition:border-color var(--d-hover),background var(--d-hover)}
+.side-find{display:flex;align-items:center;gap:8px;height:34px;margin:var(--ring-room) 12px calc(8px - var(--ring-room));padding:0 10px;border-radius:11px;background:var(--sb-g17);border:1px solid var(--sb-g26);transition:border-color var(--d-hover),background var(--d-hover)}
 .side-find:focus-within{border-color:var(--sb-line-hover);background:var(--sb-g1A)}
 .sf-ic{flex:none;display:grid;place-items:center;color:var(--ink-4)}
 .sf-ic svg{width:14px;height:14px}
@@ -148,6 +148,9 @@ button:disabled{cursor:default}
 /* a scroll box keeps the ring's room inside it (it clips what's past its padding): 2 px above the first project cut its
    focused ring's top (the controls grader on 22046ec, C008); the label above gives the 4 px back, so the rows sit where
    they did */
+/* 8 px between Projects and Find a project, and between Find and the first row, as Files has between its title and
+   its Find: the label's 2 px and Find's own 6 above it, Find's 2 and the list's 6 of ring room below it (it was 2 above
+   and 14 below: the owner, 11 Nov 08:02Z). Find hidden, the label's 2 and the list's 6 are 8 too */
 .projects{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:6px;padding:var(--ring-room) 12px 14px;scrollbar-width:thin;scrollbar-color:var(--sb-g2A) transparent}
 .pr-ic svg{width:15px;height:15px}
 .prow.is-on .pr-ic{color:var(--ink);background:var(--sb-g26)}
