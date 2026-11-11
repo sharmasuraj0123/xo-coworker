@@ -295,7 +295,9 @@ const ringClips = (page, where) => page.evaluate(async (where) => {
     for (let a = el.parentElement; a && a !== document.documentElement; a = a.parentElement) {
       if (a === document.body || !clipsOf(a)) continue;
       const b = a.getBoundingClientRect(), as = getComputedStyle(a);
-      const box = { top: b.top + parseFloat(as.borderTopWidth), bottom: b.bottom - parseFloat(as.borderBottomWidth), left: b.left + parseFloat(as.borderLeftWidth), right: b.right - parseFloat(as.borderRightWidth) };
+      // a box that clips (overflow: clip) with a clip margin lets what's inside paint that far out (overflow-clip-margin)
+      const mx = as.overflowX === "clip" ? parseFloat(as.overflowClipMargin) || 0 : 0, my = as.overflowY === "clip" ? parseFloat(as.overflowClipMargin) || 0 : 0;
+      const box = { top: b.top + parseFloat(as.borderTopWidth) - my, bottom: b.bottom - parseFloat(as.borderBottomWidth) + my, left: b.left + parseFloat(as.borderLeftWidth) - mx, right: b.right - parseFloat(as.borderRightWidth) + mx };
       const sides = [];
       const ox = as.overflowX !== "visible" || as.clipPath !== "none" || /paint|strict|content/.test(as.contain), oy = as.overflowY !== "visible" || as.clipPath !== "none" || /paint|strict|content/.test(as.contain);
       if (oy && ring.top < box.top - 0.5 && r.top >= box.top - 0.5) sides.push("top");
