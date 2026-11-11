@@ -202,7 +202,10 @@ body.stage-full .stg-grip{display:none}
    draws it on the box, the new file's name on itself. They showed only a darker edge, which isn't a ring (the controls
    grader on 9d1f71b, C030 Find a loaded file, S069 the new file's name: no ring in any cell; grader B on c767cbf, C007
    the sidebar's Find a project: its 1 px edge at 1.7–2.5:1, pixel-identical focused or not at 1440) */
-:is(.fl-q,.all-q,.ar-q,.side-find):has(input:focus-visible),.fl-new-r input:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+/* (and the message box, Jump's field, a change's question: their field's ring off too, the box's border shift was all
+   there was, too faint to see: the controls grader on 8aa58d3, C053, the composer 48→60 dark. tests/field-ring.test.mjs
+   finds every box whose field turns its ring off) */
+:is(.fl-q,.all-q,.ar-q,.side-find,.composer,.jump-field,.xd-q):has(:is(input,textarea):focus-visible),.fl-new-r input:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
 
 /* a resize grip the keyboard is on shows the one ring round its grab area, as every control shows focus: its 1 px line
    brightening was the only cue, 1.5–2.5:1 (the controls grader on 9d1f71b, C034 Files' divider, C035 the chat's; the

@@ -12,7 +12,7 @@ const dir = new URL("../css/", import.meta.url);
 const css = Object.fromEntries(readdirSync(dir).filter((f) => f.endsWith(".css")).map((f) => [f, readFileSync(new URL(f, dir), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")]));
 // the rule that draws the ring on a box holding a borderless search field
 const ringRule = () => {
-  const m = /:is\(([^)]*)\):has\(input:focus-visible\)[^{]*\{([^}]*)\}/.exec(css["foundation.css"]);
+  const m = /:is\(([^)]*)\):has\(:is\(input,textarea\):focus-visible\)[^{]*\{([^}]*)\}/.exec(css["foundation.css"]);
   assert.ok(m, "foundation.css: the boxed search fields' ring rule");
   return { boxes: m[1].split(",").map((x) => x.trim()), body: m[2] };
 };
