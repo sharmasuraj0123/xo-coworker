@@ -280,13 +280,22 @@ const ringClips = (page, where) => page.evaluate(async (where) => {
   const cut = [], seen = new Set(), floor = [], wrapped = [];
   // a button's label sits on one line (the coordinator's ruling, S045): the lines its words take, a line being the text
   // boxes that overlap in height (an icon, a count in a smaller size on the same line stay one line)
+  // the lines a label wraps onto: counted within each run of words that flows as one (the text under one block, flex or
+  // grid box): a control drawn as two lines on purpose (a name over its meta, each its own block, an Artifacts row on a
+  // phone) hasn't wrapped; one run taking two lines has (Files over Artifacts at 390 on fa49c3c: "a.js" over "demo · Code
+  // · 6m ago", two blocks, was read as a wrap)
   const linesOf = (e) => {
-    const rects = [], rg = document.createRange(), w = document.createTreeWalker(e, NodeFilter.SHOW_TEXT);
-    for (let t = w.nextNode(); t; t = w.nextNode()) { if (!t.nodeValue.trim() || t.parentElement.closest("svg, [hidden], .sr-only, [role=tooltip], kbd") || getComputedStyle(t.parentElement).visibility === "hidden") continue; rg.selectNodeContents(t); for (const q of rg.getClientRects()) if (q.width > 0.5 && q.height > 0.5) rects.push(q); }
-    rects.sort((a, b) => a.top - b.top);
-    let n = 0, bottom = -Infinity;
-    for (const q of rects) { if (q.top >= bottom - 1) { n++; bottom = q.bottom; } else bottom = Math.max(bottom, q.bottom); }
-    return n;
+    const runs = new Map(), rg = document.createRange(), w = document.createTreeWalker(e, NodeFilter.SHOW_TEXT);
+    const boxOf = (n) => { for (let a = n.parentElement; a && a !== e; a = a.parentElement) if (!/^inline/.test(getComputedStyle(a).display) || getComputedStyle(a).display === "inline-block" || getComputedStyle(a).display === "inline-flex" || getComputedStyle(a).display === "inline-grid") return a; return e; };
+    for (let t = w.nextNode(); t; t = w.nextNode()) { if (!t.nodeValue.trim() || t.parentElement.closest("svg, [hidden], .sr-only, [role=tooltip], kbd") || getComputedStyle(t.parentElement).visibility === "hidden") continue; rg.selectNodeContents(t); const box = boxOf(t); if (!runs.has(box)) runs.set(box, []); for (const q of rg.getClientRects()) if (q.width > 0.5 && q.height > 0.5) runs.get(box).push(q); }
+    let most = 0;
+    for (const rects of runs.values()) {
+      rects.sort((a, b) => a.top - b.top);
+      let n = 0, bottom = -Infinity;
+      for (const q of rects) { if (q.top >= bottom - 1) { n++; bottom = q.bottom; } else bottom = Math.max(bottom, q.bottom); }
+      most = Math.max(most, n);
+    }
+    return most;
   };
   for (const el of els) {
     if (!el.isConnected) continue;
