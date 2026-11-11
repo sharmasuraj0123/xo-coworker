@@ -391,7 +391,9 @@ async function stateSweep(page, where) {
       if (!shown) continue;
       // one under something else (a sheet, the lightbox over the page) can't be pointed at: it isn't read
       const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
-      if (!e.closest(".mx-acts") && hit && hit !== e && !e.contains(hit)) continue;
+      // (a message's actions wait for the message's hover: what covers them is the message itself, else they're under
+      // something else, the lightbox, and can't be pointed at either)
+      if (hit && hit !== e && !e.contains(hit) && (!e.closest(".mx-acts") || !(e.closest(".m") || e).contains(hit))) continue;
       e.dataset.sts = String(i++);
     }
     return i;
