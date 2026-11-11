@@ -21,7 +21,6 @@ import { ICON } from "./ui.js";
 import { appState, nextStep, formKey, launchpadUrl, sizeWords } from "./lpapi.js";
 import { esc, copyText, COPY_REFUSED } from "./util.js";
 import { pointerFollows } from "./keynav.js";
-import { usable } from "./focusview.js";
 
 const I = (d) => `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 export const LP_ICON = {
@@ -1019,23 +1018,9 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
           });
         return;
       }
-      // the thread takes the place of what's shown: on a phone the panel goes with it, and the row with focus. The
-      // conversation takes focus once it can: while the panel still covers it, it's inert, so focus waits on the row
-      // (in place, on screen) and moves the frame the conversation is back (grader B on ba93c9b and 5f52deb, S193: BODY
-      // once the thread showed; focusing it at once found it still inert)
-      case "thread": {
-        go && go(el.dataset.go);
-        const sc = () => document.getElementById("scroller");
-        let tries = 0;
-        const land = () => {
-          const a = document.activeElement, lost = !a || a === document.body || !usable(a);
-          if (!lost && a !== el) return; // something else has it already: leave it there
-          if (usable(sc())) { if (lost || innerWidth <= 760 || !usable(el)) sc().focus({ preventScroll: true }); return; }
-          if (tries++ < 30) requestAnimationFrame(land);
-        };
-        land();
-        return;
-      }
+      // the thread takes the place of what's shown, and focus goes to it: go() places it (on a phone, the panel goes
+      // first: app.js go(), S193)
+      case "thread": go && go(el.dataset.go); return;
       case "fix-port": s.form.port = String(s.run.error.declared); s.run = null; deploy(p); return;
       case "use-name": s.form.name = el.dataset.v; s.form.errs = {}; S.key = ""; land('[data-lp-f="name"]'); changed(); return;
       case "recheck": s.err = null; land(AFTER); load(p, true); changed(); return; // Checking… has nothing to press: the section holds focus

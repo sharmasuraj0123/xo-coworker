@@ -2772,6 +2772,11 @@ function go(v, { from, focus = false, carry = false } = {}) {
   closeSettings({ restore: false });
   setDrawer(false);
   IQ.close({ restore: false });
+  // on a phone the panel covers the page: a place opened from it (Launchpad's asked thread, a thread on the Map) is
+  // shown, so the panel goes, and before focus is placed below: while it covered the page, the page was inert, the
+  // focus put there didn't take, and the control pressed went with the panel (grader B on 5f52deb and 7137115,
+  // S193: BODY once the thread showed, at 390 only). It steps aside: open again, it's as it was
+  if (v !== S.view && PHONE.matches && STAGE.isOpen) STAGE.close({ restore: false, quiet: true });
   if (v === S.view) { if (focus) say.focus(); return; }
   const a = document.activeElement;
   const opener = a && a.closest?.("[data-k], .nw");
