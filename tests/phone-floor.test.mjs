@@ -33,7 +33,7 @@ for (const m of src.matchAll(/<a\b([^>]*)>/g)) {
 // the written exceptions, each with its reason
 const EXCEPT = [
   [/\.ar-grid \.md-open$/, "an Artifacts row on a phone: the 108 px row is its target (its own min-height 0 lets the row decide)"],
-  [/\.pj-s (:is\(button,\.pj-home\))?$|\.pj-s>\.pj-need$/, "the project head's quiet path line (the phone bar the owner chose, 5 Nov): kept at 16 px, put to the owner with the floor"],
+  [/\.pj-s (:is\(button,\.pj-home\))?$/, "the project head's quiet path line (the phone bar the owner chose, 5 Nov): kept at 16 px; when the coordinator asks, its opener is 36 (S005, the owner 11 Nov)"],
   [/\.tw-rt$/, "the thread head's quiet line (the same phone bar): kept, put to the owner with the floor"],
 ];
 const all = rules(ROOT.href.endsWith("/") ? new URL("tests/lib/x.mjs", ROOT) : ROOT);

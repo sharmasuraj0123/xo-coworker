@@ -73,6 +73,8 @@ t("rows from the tokens: 40 one line, 48 with an action, 56 a two-line list row;
   assert.equal(tokens["--h-row"], 40); assert.equal(tokens["--h-row-act"], 48); assert.equal(tokens["--h-row-list"], 56);
   assert.match(tokensCss, /@media \(max-width:760px\)\{:root\{--h-row:36px\}\}/);
   assert.match(readFileSync(new URL("css/shape.css", ROOT), "utf8"), /:root\[data-density="compact"\] :is\(\.main,\.sheet,\.iq-pop\)\{\s*--h-row:32px;/);
+  // and its controls on the scale: 24, not 28 (C106, the Compact switch 46×28; the owner, 11 Nov 05:42Z)
+  assert.match(readFileSync(new URL("css/shape.css", ROOT), "utf8"), /:root\[data-density="compact"\] :is\(\.main,\.sheet,\.iq-pop\)\{\s*--h-row:32px; --h-ctl:var\(--h-sm\);/);
   const app = readFileSync(new URL("css/app.css", ROOT), "utf8");
   assert.match(app, /\.nrow,\.prow\{[^}]*min-height:var\(--h-row\);padding:5px 10px 5px 7px;/, "the sidebar's rows 40: 1 + 5 + its 28 px icon + 5 + 1, its left edge where it was");
   // the rows as drawn, not only their floor: the words inside them fill the step exactly (the row measurement on
@@ -84,22 +86,20 @@ t("rows from the tokens: 40 one line, 48 with an action, 56 a two-line list row;
   assert.match(app, /\.hd\{[^}]*min-height:var\(--h-row-act\);/, "Handled 48");
   const mx = readFileSync(new URL("css/msgx.css", ROOT), "utf8");
   assert.equal((mx.match(/>\.tb-h\{width:100%;min-height:var\(--h-row\);/g) || []).length, 2, "an open tool disclosure 40 (it was 44)");
-  // a phone keeps the heights it had
+  // a phone's rows on the steps (the owner, 11 Nov 05:42Z)
   const phone = readFileSync(new URL("css/phone.css", ROOT), "utf8");
-  assert.match(phone, /\.nrow,\.prow\{min-height:42px;padding-top:6px;padding-bottom:6px\}/);
+  assert.match(phone, /\.nrow,\.prow\{min-height:40px;padding-top:5px;padding-bottom:5px\}/);
   // Chats' rows are 56 on a phone too: no phone rule changes them (C048: their phone 58 floor drew 66)
   assert.doesNotMatch(phone.replace(/\/\*[\s\S]*?\*\//g, ""), /\.ch-(row|main|m)\{/, "a phone keeps Chats' rows as a desktop draws them, 56");
   assert.match(phone, /\.pr-name\{line-height:1\.3\}\s*\.pr-t\{line-height:1\.35\}/);
-  assert.match(phone, /\.is-unfolded>\.tb-h\{min-height:44px\}/);
+  assert.match(phone, /\.is-unfolded>\.tb-h\{min-height:48px\}/);
 });
 t("a phone's rows are on its steps (36 one line, 40, 48, 56), but those listed for the coordinator's ruling: the lists only shrink", () => {
   // the row census read a desktop only, and a phone's rows were kept as they were by a rule of their own (30bd6d0):
   // C048, Chats' rows 66 on a phone, wasn't seen. Now a phone's row floors are read too
   const PHONE_STEPS = new Set([36, 40, 48, 56]);
-  const KEPT = { // a phone's rows kept from before the 8 px steps, each the coordinator's to rule (11 Nov, with C048)
-    "phone.css: .nrow,.prow { min-height }": 42, "phone.css: .hd-r { min-height }": 38, "phone.css: :is(.ar,.ar-fold,.ar-undo) { min-height }": 42,
-    "phone.css: .syl-ln { min-height }": 44, "phone.css: .stage :is(.ag-r,.ch-r) { height }": 44, "phone.css: :root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>.tb-h { min-height }": 44,
-  };
+  // none kept: the six a phone had kept from before the 8 px steps moved onto them (the owner, 11 Nov 05:42Z)
+  const KEPT = {};
   const phoneCss = readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
   const rows = /\.(nrow|prow|ch-row|hd-r|ar|ar-fold|ar-undo|syl-ln|ag-r|ch-r|tb-h|b-opt|set-row|iq-row|fl-r|cx-r|kr)\b/;
   const off = [];

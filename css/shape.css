@@ -5,11 +5,12 @@
    one product. The left sidebar is never styled here: a shape may only hide its Shells row. */
 
 /* ── Compact density: one step tighter, in the main column, its sheets and popovers ──────────────
-   Rows 36 → 32, controls 32 → 28, reading 15/24 → 14/20: each the scale's next step down. Comfortable
+   Rows 36 → 32, controls 32 → 24, reading 15/24 → 14/20: each the scale's next step down (controls on the 24 · 32 · 40
+   scale: the owner, 11 Nov 05:42Z, with the coordinator's recommendation; it was 28, off the scale, C106). Comfortable
    is today. The tokens move first, so a part already built on them follows by itself; the parts below
    still carry their own heights from before Plan F, so they're named until they move onto the tokens. */
 :root[data-density="compact"] :is(.main,.sheet,.iq-pop){
-  --h-row:32px; --h-ctl:28px;
+  --h-row:32px; --h-ctl:var(--h-sm);
   --fs-lg:var(--fs-md); --fs-xl:var(--fs-md);
   --lh-15:var(--lh-14); --lh-read:var(--lh-14);
 }
