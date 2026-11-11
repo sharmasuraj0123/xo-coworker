@@ -3989,8 +3989,9 @@ t("STACK: on a phone, the put-away file's chip and the decision stack under the 
 // containment, a clip path) is checked: the ring stays inside each. Four rows found one box at a time (the runs strip,
 // the sidebar's list, the checklist's bar, a code block); tests/scroller-ring.test.mjs places every clipping box.
 const { ringClips } = require("./harness.cjs"); // the sweep itself, shared with lpshell (the Launchpad and its folds)
-t("RINGCLIP: no clipping box cuts a focused control's ring: Home, a project with a code block, a thread with its decision and checklist, All threads, the panel's Files", async () => {
-  const page = await app({ files: { "a.js": FILE() }, messages: MSG("Here is the command:\n\n```sh\nnpm test\n```\n") });
+t("RINGCLIP: no clipping box cuts a focused control's ring: Home, a project with a code block, a thread with its decision and checklist, All threads, Files over Artifacts, the panel's Files", async () => {
+  const made = [{ id: "rcm", name: "a.js", path: "a.js", relative_path: "a.js", project_id: "demo", mime: "text/javascript", bytes: 40, created_at: NOW, updated_at: NOW }];
+  const page = await app({ files: { "a.js": FILE() }, made, messages: MSG("Here is the command:\n\n```sh\nnpm test\n```\n") });
   await page.keyboard.press("Shift"); // a keyboard's focus: the ring is drawn
   const cuts = [], counts = [];
   const small = [];
@@ -4020,6 +4021,14 @@ t("RINGCLIP: no clipping box cuts a focused control's ring: Home, a project with
   // Jump (C020: its field's box ring, clipped by the sheet's card)
   await page.keyboard.press("ControlOrMeta+k"); await page.locator("#jump-q").waitFor({ state: "visible", timeout: 4000 }).catch(() => {});
   if (await page.locator("#jump-q").isVisible()) { await page.waitForTimeout(300); await sweep("Jump"); await page.keyboard.press("Escape"); await page.waitForTimeout(300); }
+  // a made file opened from Artifacts: Files over Artifacts, its Back at the top of a phone's screen (S070)
+  await page.evaluate(() => { window.__t.go("artifacts"); window.__t.render(); });
+  const mo = page.locator('#arts-body .md-it[data-k] .md-open').filter({ visible: true }).first();
+  await mo.waitFor({ timeout: 6000 }); await mo.focus(); await page.keyboard.press("Enter");
+  await page.locator("[data-fv-back]").filter({ visible: true }).first().waitFor({ timeout: 6000 }); await page.waitForTimeout(500);
+  await sweep("Files over Artifacts");
+  await page.locator("[data-fv-back]").filter({ visible: true }).first().click(); await page.waitForTimeout(400);
+  await toDemo(page); await page.waitForTimeout(400);
   await panelOpen(page);
   await page.waitForTimeout(400);
   await sweep("the panel");
@@ -4062,7 +4071,9 @@ t("STATES: every control in view answers hover and press: Home, a project with i
   await page.evaluate(async () => {
     const { mediaItem, mediaHtml } = await import("./js/media.js");
     const { createLightbox } = await import("./js/lightbox.js");
-    const items = ["a", "b", "c"].map((k) => mediaItem({ key: "t:" + k, name: k + ".svg", type: "image/svg+xml", src: "/favicon.svg", w: 64, h: 64 }));
+    // the app's mark, and a black and a white picture: the veil shows over any picture, in both themes (S233 on aba434f)
+    const solid = (c) => "data:image/svg+xml," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" fill="${c}"/></svg>`);
+    const items = [["a", "/favicon.svg"], ["b", "/favicon.svg"], ["c", "/favicon.svg"], ["k", solid("#000")], ["w", solid("#fff")]].map(([k, src]) => mediaItem({ key: "t:" + k, name: k + ".svg", type: "image/svg+xml", src, w: 64, h: 64 }));
     const root = document.createElement("div"); root.id = "lbx-states"; root.style.cssText = "position:fixed;left:24px;top:24px;z-index:50;width:420px"; root.innerHTML = mediaHtml(items); document.body.appendChild(root);
   });
   await page.waitForTimeout(300);
