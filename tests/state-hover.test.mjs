@@ -116,5 +116,12 @@ t("no state's own background is !important: nothing outranks the layer but the p
   const loud = all.filter((r) => (r.sel.match(CHOSEN) || []).length && !/:active|:hover/.test(r.sel) && decls(r.d).some((d) => /^background(-image)?$/.test(d.p) && d.imp)).map((r) => `${r.f}: ${r.sel}`);
   assert.deepEqual(loud, []);
 });
+t("no control's background is the shorthand marked !important: it would take the press layer away (S002: Ran the tests held as hovered)", () => {
+  // background: … !important sets background-image too, above the press layer's zero-specificity !important
+  const ctlAll = new Set([...drawnOn].filter(([, tags]) => [...tags].some((x) => CONTROL_TAG.test(x))).map(([k]) => k));
+  const loud = all.filter((r) => { const last = r.sel.split(/[\s>+~]+/).pop(); return /^button\b/.test(last) || (last.match(/\.[\w-]+/g) || []).some((k) => ctlAll.has(k.slice(1))); })
+    .filter((r) => decls(r.d).some((d) => d.p === "background" && d.imp)).map((r) => `${r.f}: ${r.sel}`);
+  assert.deepEqual(loud, [], "controls whose background shorthand is !important");
+});
 console.log(`  (placed: ${placed.layer.length} by the layer, ${placed.other.length} another way, ${placed.inert.length} not controls, ${placed.undrawn.length} not drawn)`);
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

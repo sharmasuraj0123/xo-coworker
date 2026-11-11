@@ -39,7 +39,7 @@ body.stage-full .stg-grip{display:none}
 .top-back,.tw-rt,.target,.attach{margin-left:0}
 /* 4 · work rows read as text: no fill, the ink brightens and a chevron shows; the text starts on the
    message's own column (the live turn's agent tile sits in the avatar gutter) */
-.tb-h{margin-left:0;padding:4px 0;border-radius:0;background:none!important}
+.tb-h{margin-left:0;padding:4px 0;border-radius:0;background-color:transparent!important}
 .tb-h:hover .tb-ht,.tb-h:focus-visible .tb-ht{color:var(--ink)}
 .tb-wh .tb-hi{display:none}
 .tb-work>.tb:not(.tb-work){margin-left:0}

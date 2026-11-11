@@ -17,7 +17,7 @@
 /* ── the strip: 40 px; quiet tabs, the one in front underlined; under 360 px the counts step aside, the names stay ─ */
 .stg-bar{box-sizing:border-box;min-height:0;height:40px;padding:0 8px 0 4px;gap:4px;border-bottom:0;box-shadow:inset 0 -1px 0 var(--line-faint)}
 .stg-tabs{gap:0;overflow:visible;align-self:stretch}
-.stg-tab{height:39px;padding:0 8px;gap:8px;border-radius:0;background:none!important;box-shadow:none!important;font:500 var(--fs-base)/20px var(--sans);color:var(--ink-3)}
+.stg-tab{height:39px;padding:0 8px;gap:8px;border-radius:0;background-color:transparent!important;box-shadow:none!important;font:500 var(--fs-base)/20px var(--sans);color:var(--ink-3)}
 .stg-tab::after{content:"";position:absolute;left:8px;right:8px;bottom:-1px;height:2px;border-radius:2px 2px 0 0;background:transparent;transition:background var(--d-hover) var(--ease)}
 .stg-tab:hover{color:var(--ink-2)}
 .stg-tab.is-on{color:var(--ink)}
@@ -204,7 +204,7 @@ body.stage-over .stage{box-shadow:var(--e2)}
   .md-pane .md-ic svg,.md-pane .md-ic svg.fi{width:20px;height:20px}
   .md-pane .md-meta{gap:0;padding:0}
   .md-pane .md-meta b{line-height:20px}
-  .md-pane .md-from{grid-column:1;grid-row:2;margin:4px 0 8px calc(6px + var(--th) + var(--tg));padding:0;gap:4px;border-radius:0;background:none!important;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+  .md-pane .md-from{grid-column:1;grid-row:2;margin:4px 0 8px calc(6px + var(--th) + var(--tg));padding:0;gap:4px;border-radius:0;background-color:transparent!important;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
   .md-pane .md-from:hover{color:var(--ink-2)}
   .md-pane .md-from svg{display:none}
   .md-pane .md-from span::before{content:"from "}

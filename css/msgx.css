@@ -216,8 +216,8 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-turn .turn{gap:4px;max-width:none}
 :root[data-msgx] .m-turn .turn>.tb>.tb-h{width:fit-content;min-height:var(--h-ctl);margin:0;padding:4px 12px 4px 16px;border-radius:var(--r-pill);font-size:var(--fs-sm);line-height:20px}
 :root[data-msgx] .m-turn .turn>.tb>.tb-h :is(.tb-ht,.tb-wn){font-size:var(--fs-sm)}
-:root[data-msgx] .m-turn .turn>.tb>.tb-h:hover{background:var(--hover-fill)!important}
-:root[data-msgx] .m-turn .turn>.tb:is(.is-open,.has-rows)>.tb-h{background:var(--hover-fill)!important}
+:root[data-msgx] .m-turn .turn>.tb>.tb-h:hover{background-color:var(--hover-fill)!important}
+:root[data-msgx] .m-turn .turn>.tb:is(.is-open,.has-rows)>.tb-h{background-color:var(--hover-fill)!important}
 :root[data-msgx] .m-turn .turn>.tb:not(.tb-answer):not(.tb-text):not(.is-open)>:not(.tb-h){margin-left:16px}
 :root[data-msgx] #msgs>.m-turn+.m-them:not(.mx-other){margin-top:-12px}
 
@@ -291,15 +291,15 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-turn .mx-row-in{animation:mx-row var(--dur-slow) var(--ease) both}
 @keyframes mx-row{from{opacity:0;transform:translateY(4px)}}
 @media (prefers-reduced-motion:reduce){:root[data-msgx] .m-turn :is(.mx-opening,.mx-row-in){animation:none}}
-:root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h{width:100%;min-height:var(--h-row);margin:0;padding:0 16px;border-radius:var(--r-xl);background:none!important;font-size:var(--fs-md)}
+:root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h{width:100%;min-height:var(--h-row);margin:0;padding:0 16px;border-radius:var(--r-xl);background-color:transparent!important;font-size:var(--fs-md)}
 /* A long turn's open card is taller than the view, and it opens at its latest step: its header (what it's
    doing, the time, the chevron that folds it) stays at the top of the view while you read through it, so
    folding it back is always one press away. On the card's own glass, under the conversation's top fade. */
-:root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h{position:sticky;top:0;z-index:1;border-radius:var(--r-xl) var(--r-xl) 0 0;background:var(--mx-them-top)!important}
+:root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h{position:sticky;top:0;z-index:1;border-radius:var(--r-xl) var(--r-xl) 0 0;background-color:var(--mx-them-top)!important}
 :root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h :is(.tb-ht,.tb-wn){font-size:var(--fs-md);color:var(--ink-2)}
 :root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-rail{gap:0;margin:0;padding:0 8px;border:0}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>.tb-h{width:100%;min-height:var(--h-ctl);margin:0;padding:6px 8px;border-radius:calc(var(--r-xl) - 8px);font-size:var(--fs-sm);color:var(--ink-3)}
-:root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>.tb-h:hover{background:var(--hover-fill)!important}
+:root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>.tb-h:hover{background-color:var(--hover-fill)!important}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-hi{display:grid;color:var(--ink-4)}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-hi svg{width:16px;height:16px}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>:not(.tb-h){margin-left:32px}
@@ -313,7 +313,7 @@ body.files-open .mx-down{display:none}
    "Thinking…" or one tool group, and pressing the bubble opens that block itself): the glass card, a 44 px
    header row, then its lines as quiet rows on the text column, no rail. */
 :root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded{width:min(88%,560px);padding:0 0 8px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi)}
-:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>.tb-h{width:100%;min-height:var(--h-row);margin:0;padding:0 16px;border-radius:var(--r-xl);background:none!important;font-size:var(--fs-md)}
+:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>.tb-h{width:100%;min-height:var(--h-row);margin:0;padding:0 16px;border-radius:var(--r-xl);background-color:transparent!important;font-size:var(--fs-md)}
 :root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>.tb-h :is(.tb-ht,.tb-n){font-size:var(--fs-md);color:var(--ink-2)}
 :root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>:is(.tb-steps,.tb-rows,.tb-plan-l){margin:0;padding:0 16px;border:0;gap:4px;font-size:var(--fs-sm);line-height:20px;color:var(--ink-3)}
 :root[data-msgx] .m-turn .turn>.tb-think.is-unfolded>.tb-steps>li{padding:4px 0}
