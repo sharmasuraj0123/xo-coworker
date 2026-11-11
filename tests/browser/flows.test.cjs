@@ -4047,6 +4047,13 @@ t("STATES: every control in view answers hover and press: Home, a project with i
   await sweep("a project");
   await page.evaluate(() => { window.__t.go("ws"); window.__t.render(); }); await page.waitForTimeout(600);
   await sweep("the Workspace");
+  // the Now shelf with a thread that needs you (C024: its chip's state drew over its hover)
+  await page.evaluate(() => { const t = window.__t;
+    for (const n of ["watch", "watchThread", "watchSession", "loadThread", "loadHops", "loadChatHops", "findRows", "listRuns"]) if (t.world.act[n]) t.world.act[n] = async () => {};
+    t.world.state.threads.push({ id: "st1", project: "demo", title: "Rework the API", live: false, loaded: true, busy: false, state: "needs_approval", happened: "Fixture", lastAt: Date.now(), messages: [], checklist: { total: 3, done: 1, items: [{ text: "a", state: "done" }, { text: "b", state: "doing" }, { text: "c", state: "todo" }] }, asks: [{ id: "st-a", kind: "permission", title: "Run: npm test", risk: "routine" }] });
+    t.go("p:demo"); t.render(); });
+  await page.waitForTimeout(700);
+  await sweep("a project with a thread needing you");
   console.log(`  STATES read ${counts.join(", ")}`);
   for (const x of silent) console.log(`  STATES ${x}`);
   await done(page);

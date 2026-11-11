@@ -336,6 +336,10 @@ async function stateSweep(page, where) {
       if (!e.getClientRects().length || e.disabled || e.closest("[inert], [hidden]")) continue;
       const r = e.getBoundingClientRect();
       if (r.width < 4 || r.height < 4 || r.bottom <= 0 || r.top >= innerHeight || r.right <= 0 || r.left >= innerWidth) continue;
+      // one not drawn (out of sight, or waiting for its message's hover) isn't read at rest: a message's actions are
+      // read with the message hovered, below
+      let shown = true; for (let a = e; a && a !== document.body; a = a.parentElement) { const cs = getComputedStyle(a); if (cs.visibility === "hidden" || (+cs.opacity === 0 && !a.closest(".mx-acts"))) { shown = false; break; } }
+      if (!shown) continue;
       e.dataset.sts = String(i++);
     }
     return i;
@@ -347,13 +351,16 @@ async function stateSweep(page, where) {
     const parts = [...e.querySelectorAll("*")].slice(0, 8).map((x) => sig(x)).join(" ¦ ");
     const svg = e.querySelector("svg"), r = e.getBoundingClientRect(), top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
     const name = `${e.tagName.toLowerCase()}${e.classList.length ? "." + [...e.classList].slice(0, 3).join(".") : ""}${[...e.attributes].filter((a) => /^data-(?!sts)/.test(a.name)).slice(0, 1).map((a) => `[${a.name}]`).join("")} "${(e.textContent || e.getAttribute("aria-label") || "").trim().replace(/\s+/g, " ").slice(0, 20)}"`;
-    return { name, v: [sig(e), sig(e, "::before"), sig(e, "::after"), parts, svg ? getComputedStyle(svg).color : "", e.parentElement ? getComputedStyle(e.parentElement).backgroundColor : ""].join(" ‖ "), cover: top && top !== e && !e.contains(top) ? `${top.tagName.toLowerCase()}.${[...top.classList].slice(0, 2).join(".")}` : "", x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    // a message's actions show while the message is under the pointer: its rest is with the message hovered
+    const msg = e.closest(".mx-acts") && e.closest(".m"), mr = msg && (msg.querySelector(".bubble, .mx-b") || msg).getBoundingClientRect();
+    return { name, v: [sig(e), sig(e, "::before"), sig(e, "::after"), parts, svg ? getComputedStyle(svg).color : "", e.parentElement ? getComputedStyle(e.parentElement).backgroundColor : ""].join(" ‖ "), cover: top && top !== e && !e.contains(top) ? `${top.tagName.toLowerCase()}.${[...top.classList].slice(0, 2).join(".")}` : "", x: r.left + r.width / 2, y: r.top + r.height / 2, via: mr ? { x: mr.left + Math.min(24, mr.width / 2), y: mr.top + mr.height / 2 } : null };
   }, i);
   const silent = [];
   for (let i = 0; i < n; i++) {
     await page.mouse.move(1, 1); await page.waitForTimeout(200);
-    const rest = await look(i); if (!rest) continue;
-    await page.mouse.move(rest.x, rest.y); await page.waitForTimeout(260);
+    let rest = await look(i); if (!rest) continue;
+    if (rest.via) { await page.mouse.move(rest.via.x, rest.via.y); await page.waitForTimeout(300); rest = await look(i); }
+    await page.mouse.move(rest.x, rest.y, { steps: 4 }); await page.waitForTimeout(260);
     const hover = await look(i); if (!hover) continue;
     await page.mouse.down(); await page.waitForTimeout(140);
     const held = await look(i);

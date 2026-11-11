@@ -1188,6 +1188,25 @@ t("STATEHOVER S020: every chosen control in view answers the pointer: All thread
   await done(page);
 }, { only: (c) => c.width >= 760 });
 
+// ── STATES · S002, C052: a finished turn's tool disclosure and a message's Copy answer hover and press ─────
+// logged (the controls grader on 8aa58d3: Ran the tests held as hovered; Copy unchanged under the pointer). Desktop only
+const { stateSweep } = require("./harness.cjs");
+t("STATES S002 C052: a finished turn's controls (its tool disclosure, its Copy and Reply) answer hover and press", async () => {
+  const page = await liveTurn();
+  await page.evaluate((fs) => { for (const f of fs) window.__storm.apply(f); }, [
+    env("block.started", { block: { id: `${TURN}:t1`, type: "text", index: null, text: "The tests pass." } }),
+    env("block.finished", { block: { id: `${TURN}:g0`, type: "activity", index: 0, header: "Ran the tests", rows: [ROW({ status: "ok", output: "12 passed" })] } }),
+    env("block.finished", { block: { id: `${TURN}:t1`, type: "answer", index: 1, text: "The tests pass." } }),
+    env("turn.finished", { status: "finished", stop_reason: "completed", error_class: null, error: null, wakes: [] }),
+    env("session", { status: "warm", reason: "turn_done" }, { turn_id: null }),
+  ]);
+  await settle(page, 1200);
+  const r = await stateSweep(page, "a finished turn");
+  console.log(`  STATES read a finished turn ${r.n}`);
+  for (const x of r.silent) console.log(`  STATES ${x}`);
+  await done(page);
+}, { only: (c) => c.width >= 760 });
+
 // ── DET-3 · S003: Try again on a failed history read ────────────────────────
 for (const where of ["project", "thread"]) {
   t(`DET-3 S003: Try again on earlier messages (${where}) keeps focus on the conversation while it reads, then on Try again`, async () => {

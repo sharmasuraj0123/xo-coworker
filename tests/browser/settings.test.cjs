@@ -867,6 +867,20 @@ t("C114 a refused usual runtime: the saved one stays chosen, the reason shows un
   assert.equal(await focused(page), `button${codex}`);
   await done(page);
 });
+// ── STATES · C106: Settings › Shape's controls answer hover and press, the Compact switch off and on (logged) ──
+const { stateSweep } = require("./harness.cjs");
+t("STATES C106 Shape: every control answers hover and press, Compact off and on", async (ctx) => {
+  if (ctx.width < 760) return; // a phone has no hover
+  const page = await open(world(), ctx);
+  await settings(page, "shape");
+  for (const how of ["off", "on"]) {
+    if (how === "on") { await page.locator("[data-shp-dense]").click(); await page.waitForFunction(() => document.documentElement.dataset.density === "compact"); await page.waitForTimeout(400); }
+    const r = await stateSweep(page, `Shape, Compact ${how}`);
+    console.log(`  STATES read Shape, Compact ${how} ${r.n}`);
+    for (const x of r.silent) console.log(`  STATES ${x}`);
+  }
+  await done(page);
+});
 t("C106 Compact: the switch stays the same node and says its state; its knob travels (full motion) or lands at once (reduced)", async (ctx) => {
   const page = await open(world(), ctx);
   await settings(page, "shape");
