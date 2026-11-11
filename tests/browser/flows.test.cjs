@@ -968,10 +968,38 @@ t("EDITOR-ring: editing, the caret in the file, its box draws the message box's 
   await window_focusEditor(page);
   assert.equal(await inEditor(page), true, "the editor has focus");
   await page.waitForTimeout(200);
-  const ring = () => page.evaluate(() => { const b = document.querySelector("#viewer.is-editing .vw-body"); if (!b) return null; const s = getComputedStyle(b); return { style: s.outlineStyle, w: s.outlineWidth, c: s.outlineColor, focus: getComputedStyle(document.documentElement).getPropertyValue("--focus").trim() }; });
-  const on = await ring();
-  assert.ok(on, "the viewer is marked as editing");
-  assert.deepEqual([on.style, on.w], ["solid", "2px"], `the box's ring while the caret is in it (${JSON.stringify(on)})`);
+  // drawn as seen: the ring's own pixels on all four sides of the file, the top too (C120 S231 on fa49c3c: the file's
+  // lines covered the top of a ring on its box)
+  const g = await page.evaluate(() => { const b = document.querySelector("#viewer.is-editing .vw-body"); if (!b) return null; const r = b.getBoundingClientRect(), f = getComputedStyle(document.querySelector("#viewer")).getPropertyValue("--focus").trim() || getComputedStyle(document.documentElement).getPropertyValue("--focus").trim(); const c = document.createElement("canvas").getContext("2d"); c.fillStyle = f; c.fillRect(0, 0, 1, 1); return { x: r.x, y: r.y, w: r.width, h: r.height, rgb: [...c.getImageData(0, 0, 1, 1).data].slice(0, 3) }; });
+  assert.ok(g, "the viewer is marked as editing");
+  const P = H.pngPixels(await page.screenshot({ clip: { x: g.x, y: g.y, width: g.w, height: g.h } }));
+  const at = (x, y) => { const i = (y * P.w + x) * P.bpp; return [P.data[i], P.data[i + 1], P.data[i + 2]]; };
+  const near = (p) => Math.abs(p[0] - g.rgb[0]) + Math.abs(p[1] - g.rgb[1]) + Math.abs(p[2] - g.rgb[2]) <= 60;
+  const mx = Math.floor(P.w / 2), my = Math.floor(P.h / 2);
+  const sides = { top: at(mx, 0), bottom: at(mx, P.h - 1), left: at(0, my), right: at(P.w - 1, my) };
+  const missing = Object.entries(sides).filter(([, p]) => !near(p)).map(([k, p]) => `${k} ${p}`);
+  assert.deepEqual(missing, [], `the ring in the focus colour ${g.rgb} on every side`);
+  await done(page);
+});
+// S005 on a phone: the coordinator asking, its 36 px pill under the name answers hover and held by the graders' bar
+// (the controls grader on fa49c3c: its words' colour alone moved 6% of the box)
+t("S005-phone: Coordinator needs you, a 36 px pill on a phone, answers hover and held past the bar", async () => {
+  if (WIDTH > 760) skip("the pill is a phone's");
+  const page = await app({ files: { "a.js": FILE() } });
+  await page.evaluate(() => { const t = window.__t, pr = t.world.project("demo"), chat = pr && pr.chatId; if (!chat) return;
+    t.world.state.hosts = [{ id: "chat:" + chat, host: true, project: "demo", chatId: chat, asker: "coordinator", title: "Coordinator", state: "needs_approval", checklist: { items: [], total: 0, done: 0, doing: 0 }, messages: [], asks: [{ id: "s5-h1", kind: "permission", title: "Run: npm test", detail: "Fixture", risk: "routine" }], live: true, loaded: true, busy: false, createdAt: Date.now(), lastAt: Date.now(), card: {} }]; });
+  await toDemo(page); await page.waitForTimeout(600);
+  const pill = page.locator(".top .pj-need[data-dock-open]").filter({ visible: true }).first();
+  await pill.waitFor({ timeout: 5000 });
+  const b = await pill.boundingBox(); assert.ok(b.height >= 35.5, `36 tall (${b.height})`);
+  const clip = { x: b.x, y: b.y, width: b.width, height: b.height };
+  await page.mouse.move(1, 1); await page.waitForTimeout(300); const rest = H.pngPixels(await page.screenshot({ clip }));
+  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 4 }); await page.waitForTimeout(350); const hov = H.pngPixels(await page.screenshot({ clip }));
+  await page.mouse.down(); await page.waitForTimeout(160); const held = H.pngPixels(await page.screenshot({ clip }));
+  await page.mouse.move(1, 1); await page.mouse.up();
+  const v1 = H.visible(rest, hov), v2 = H.visible(hov, held);
+  assert.ok(v1.ok, `hover ${(v1.box * 100).toFixed(1)}% of the box`); assert.ok(v2.ok, `held ${(v2.box * 100).toFixed(1)}% past hovered`);
+  console.log(`  S005-phone: hover ${(v1.box * 100).toFixed(0)}%, held ${(v2.box * 100).toFixed(0)}% of the box`);
   await done(page);
 });
 t("EDITOR-exit: after Created, Tab indents; Escape then Shift+Tab, or Escape then Tab, leaves the editor; Created's Undo is reached by keys", async () => {

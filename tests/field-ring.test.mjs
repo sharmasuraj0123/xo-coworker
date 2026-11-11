@@ -22,8 +22,11 @@ t("every box whose field turns its own ring off is one it reaches (the composer,
 // the file editor (Files › Edit): its caret is in Pierre's shadow, so no field of ours turns a ring on; while editing, the
 // file's box draws the message box's ring with the caret in it (the owner, 11 Nov 05:42Z)
 t("a file being edited draws the message box's ring on its box while the caret is in it", () => {
-  assert.match(css, /\.is-editing \.vw-body:focus-within\{outline:2px solid var\(--ring-in,var\(--focus\)\);outline-offset:-2px\}/);
+  // over the file, from its own top: on the box, the file's lines covered it (C120 S231 on fa49c3c)
+  assert.match(css, /#viewer\.is-editing:has\(\.vw-body:focus-within\)::after\{content:"";position:absolute;left:0;right:0;bottom:0;top:var\(--vw-body-top,40px\);z-index:4;pointer-events:none;[^}]*box-shadow:inset 0 0 0 2px var\(--ring-in,var\(--focus\)\)\}/);
+  assert.doesNotMatch(css, /\.vw-body:focus-within\{outline/, "not on the box the file covers");
   const vw = readFileSync(new URL("../js/viewer.js", import.meta.url), "utf8");
   assert.equal((vw.match(/el\.classList\.toggle\("is-editing", !!ED\.on\);/g) || []).length, 2, "marked as the head is drawn and as the viewer is");
+  assert.match(vw, /el\.style\.setProperty\("--vw-body-top", `\$\{b\.offsetTop\}px`\)/, "the file's top read as focus comes in");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

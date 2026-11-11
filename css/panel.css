@@ -482,8 +482,10 @@ body.viewer-open .fv~.dock{display:none}
 /* a region you scroll with the keys (a file, a diff) says when the keyboard is in it, with the one ring */
 :is(.vw-body,.cx-pd):focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
 /* a file being edited: while the caret is in it, its box draws the message box's ring (2 px of the focus colour), inside
-   its edge as the box fills the viewer (the owner, 11 Nov 05:42Z: the file editor had no ring of its own) */
-.is-editing .vw-body:focus-within{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
+   its edge as the box fills the viewer (the owner, 11 Nov 05:42Z: the file editor had no ring of its own). Drawn over the
+   file, not on its box: the box scrolls, and the file's own lines covered its ring there, all but the sides and below
+   the last line (the controls grader on fa49c3c, C120 S231: the top hidden in all four cells) */
+#viewer.is-editing:has(.vw-body:focus-within)::after{content:"";position:absolute;left:0;right:0;bottom:0;top:var(--vw-body-top,40px);z-index:4;pointer-events:none;border-radius:0 0 var(--r-lg) var(--r-lg);box-shadow:inset 0 0 0 2px var(--ring-in,var(--focus))}
 /* one ring for both regions, above what the renderer paints inside them: js/ring.js draws it just after the region,
    over its box (its own outline sat under the drawing: Astra C087 on dd15034, the diff; C096 on cb7afe7, the file).
    The outline stays as the fallback where the ring can't be placed */
