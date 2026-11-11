@@ -1188,6 +1188,18 @@ t("STATEHOVER S020: every chosen control in view answers the pointer: All thread
   await done(page);
 }, { only: (c) => c.width >= 760 });
 
+// ── ROWS · C048: a Chats row is 56 at every width (its phone floor of 58 drew 66) ────────────────────────
+t("ROWS C048: every Chats row is 56, on a desktop and on a phone", async () => {
+  const page = await app();
+  await page.evaluate(() => window.__t.go("chats"));
+  await page.locator(".ch-row").first().waitFor();
+  await settle(page, 200);
+  const hs = await page.evaluate(() => [...document.querySelectorAll(".ch-row")].filter((r) => r.getClientRects().length).map((r) => Math.round(r.getBoundingClientRect().height)));
+  assert.ok(hs.length > 0, "Chats' rows drawn");
+  assert.deepEqual([...new Set(hs)], [56], `Chats' rows: ${hs.join(", ")}`);
+  await done(page);
+});
+
 // ── STATES · S002, C052: a finished turn's tool disclosure and a message's Copy answer hover and press ─────
 // logged (the controls grader on 8aa58d3: Ran the tests held as hovered; Copy unchanged under the pointer). Desktop only
 const { stateSweep } = require("./harness.cjs");

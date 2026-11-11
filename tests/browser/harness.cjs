@@ -340,6 +340,9 @@ async function stateSweep(page, where) {
       // read with the message hovered, below
       let shown = true; for (let a = e; a && a !== document.body; a = a.parentElement) { const cs = getComputedStyle(a); if (cs.visibility === "hidden" || (+cs.opacity === 0 && !a.closest(".mx-acts"))) { shown = false; break; } }
       if (!shown) continue;
+      // one under something else (a sheet, the lightbox over the page) can't be pointed at: it isn't read
+      const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      if (!e.closest(".mx-acts") && hit && hit !== e && !e.contains(hit)) continue;
       e.dataset.sts = String(i++);
     }
     return i;
