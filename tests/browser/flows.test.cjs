@@ -4063,7 +4063,14 @@ t("STATES: every control in view answers hover and press: Home, a project with i
     const { mediaItem, mediaHtml } = await import("./js/media.js");
     const { createLightbox } = await import("./js/lightbox.js");
     const items = ["a", "b", "c"].map((k) => mediaItem({ key: "t:" + k, name: k + ".svg", type: "image/svg+xml", src: "/favicon.svg", w: 64, h: 64 }));
-    const root = document.createElement("div"); root.id = "lbx-states"; root.innerHTML = mediaHtml(items); document.body.appendChild(root);
+    const root = document.createElement("div"); root.id = "lbx-states"; root.style.cssText = "position:fixed;left:24px;top:24px;z-index:50;width:420px"; root.innerHTML = mediaHtml(items); document.body.appendChild(root);
+  });
+  await page.waitForTimeout(300);
+  // a message's pictures, before the lightbox covers them (S090: hover and press under the picture)
+  await sweep("a message's pictures");
+  await page.evaluate(async () => {
+    const { createLightbox } = await import("./js/lightbox.js");
+    const root = document.getElementById("lbx-states");
     createLightbox({}).open("t:b", root.querySelector('[data-mx="t:b"]'), root);
   });
   await page.locator('[data-lbx="next"]').filter({ visible: true }).first().waitFor();
