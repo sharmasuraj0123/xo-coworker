@@ -18,4 +18,9 @@ t("a picture's tile says hover and press over its picture: a veil, deeper held (
   const hov = /\.mx-one:hover::before,\.mx-tile:hover::before\{background-color:color-mix\(in srgb,var\(--ink\) (\d+)%/.exec(media), act = /\.mx-one:active::before,\.mx-tile:active::before\{background-color:color-mix\(in srgb,var\(--ink\) (\d+)%/.exec(media);
   assert.ok(hov && act && +act[1] > +hov[1], "held deeper than hovered");
 });
+t("a chosen control held goes three veils deep, past its own fill and its hover's layer (C084: Follow on, held vs hovered 18–20 RGB-sum)", () => {
+  assert.match(fnd, /\.is-on\):where\(:active:not\([^)]*\)\)\{background-image:linear-gradient\(var\(--press-fill\),var\(--press-fill\)\),linear-gradient\(var\(--press-fill\),var\(--press-fill\)\),linear-gradient\(var\(--press-fill\),var\(--press-fill\)\)!important\}/);
+  const one = fnd.search(/\{background-image:linear-gradient\(var\(--press-fill\),var\(--press-fill\)\)!important/), three = fnd.search(/\.is-on\):where\(:active/);
+  assert.ok(one >= 0 && three > one, "after the shared press, so it wins on a chosen control");
+});
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

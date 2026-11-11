@@ -330,6 +330,23 @@ const ringClips = (page, where) => page.evaluate(async (where) => {
  *  nothing is pressed for real), read as drawn: its fill, layers, ink, edge, shadow, its pseudo-elements and its first
  *  icon. A control that looks the same hovered as at rest, or held as hovered, is listed, with what lies on top of its
  *  centre (something covering it can't be hovered). { n, silent: [...] } */
+// a PNG's pixels, decoded here (zlib, the five filters): enough to compare two crops of the same box
+function pngPixels(buf) {
+  const zlib = require("zlib");
+  let o = 8, w = 0, h = 0, bpp = 4; const idat = [];
+  while (o < buf.length) { const len = buf.readUInt32BE(o), type = buf.toString("ascii", o + 4, o + 8), d = buf.subarray(o + 8, o + 8 + len);
+    if (type === "IHDR") { w = d.readUInt32BE(0); h = d.readUInt32BE(4); bpp = d[9] === 6 ? 4 : 3; } else if (type === "IDAT") idat.push(d); else if (type === "IEND") break; o += 12 + len; }
+  const raw = zlib.inflateSync(Buffer.concat(idat)), stride = w * bpp, out = Buffer.alloc(h * stride);
+  for (let y = 0; y < h; y++) { const f = raw[y * (stride + 1)], line = raw.subarray(y * (stride + 1) + 1, (y + 1) * (stride + 1));
+    for (let x = 0; x < stride; x++) { const a = x >= bpp ? out[y * stride + x - bpp] : 0, b = y ? out[(y - 1) * stride + x] : 0, c = x >= bpp && y ? out[(y - 1) * stride + x - bpp] : 0;
+      const p = a + b - c, pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c), pr = pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
+      out[y * stride + x] = (line[x] + [0, a, b, (a + b) >> 1, pr][f]) & 255; } }
+  return { w, h, bpp, data: out };
+}
+// the mean change of a box between two crops, in RGB-sum per pixel (the graders' visible-difference measure)
+const meanDiff = (A, B) => { let s = 0, n = 0; for (let i = 0; i + 2 < A.data.length && i + 2 < B.data.length; i += A.bpp) { s += Math.abs(A.data[i] - B.data[i]) + Math.abs(A.data[i + 1] - B.data[i + 1]) + Math.abs(A.data[i + 2] - B.data[i + 2]); n++; } return n ? s / n : 0; };
+// the bar a change has to clear to be seen: the graders read 18–20 RGB-sum on average as indistinguishable (C084)
+const SEEN = 30;
 async function stateSweep(page, where) {
   const n = await page.evaluate(() => {
     const CTL = 'button, a[href][class], summary, [role=button], [role=tab], [role=option], [role=radio], [role=switch], [role=menuitem]';
@@ -366,14 +383,21 @@ async function stateSweep(page, where) {
     await page.mouse.move(1, 1); await page.waitForTimeout(200);
     let rest = await look(i); if (!rest) continue;
     if (rest.via) { await page.mouse.move(rest.via.x, rest.via.y); await page.waitForTimeout(300); rest = await look(i); }
-    await page.mouse.move(rest.x, rest.y, { steps: 4 }); await page.waitForTimeout(260);
+    const box = await page.locator(`[data-sts="${i}"]`).boundingBox().catch(() => null);
+    const shot = async () => box && box.width >= 2 && box.height >= 2 ? pngPixels(await page.screenshot({ clip: { x: box.x, y: box.y, width: box.width, height: box.height } })) : null;
+    const pRest = await shot();
+    await page.mouse.move(rest.x, rest.y, { steps: 4 }); await page.waitForTimeout(300);
     const hover = await look(i); if (!hover) continue;
-    await page.mouse.down(); await page.waitForTimeout(140);
+    const pHover = await shot();
+    await page.mouse.down(); await page.waitForTimeout(160);
     const held = await look(i);
+    const pHeld = await shot();
     await page.mouse.move(1, 1); await page.mouse.up(); await page.waitForTimeout(120);
     const miss = [];
     if (hover.v === rest.v) miss.push("hover");
+    else if (pRest && pHover && meanDiff(pRest, pHover) < SEEN) miss.push(`hover seen (${meanDiff(pRest, pHover).toFixed(0)} < ${SEEN})`);
     if (held && held.v === hover.v) miss.push("press");
+    else if (pHover && pHeld && meanDiff(pHover, pHeld) < SEEN) miss.push(`press seen (${meanDiff(pHover, pHeld).toFixed(0)} < ${SEEN})`);
     if (miss.length) silent.push(`${where}: ${rest.name} no ${miss.join(", no ")}${rest.cover ? ` (covered by ${rest.cover})` : ""}`);
   }
   return { n, silent };
