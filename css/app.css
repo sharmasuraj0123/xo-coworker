@@ -746,7 +746,8 @@ button.hr:active{transform:scale(.97)}
 .send.fired{animation:fire var(--d-move) var(--ease)}
 @keyframes fire{from{transform:scale(.9)}}
 .at-list{position:absolute;left:-8px;bottom:100%;margin-bottom:12px;z-index:6;list-style:none;min-width:260px;padding:6px;border-radius:var(--r-lg);border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow-lg);animation:msg-in var(--d-out) var(--ease)}
-.at-list li{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--r-sm);font:500 var(--fs-md)/20px var(--sans);color:var(--ink-2);cursor:pointer}
+/* a row: 40 on a desktop (10 + its 20 px line + 10; it was 36: grader B on ba93c9b, C058) */
+.at-list li{display:flex;align-items:center;gap:9px;padding:10px 10px;border-radius:var(--r-sm);font:500 var(--fs-md)/20px var(--sans);color:var(--ink-2);cursor:pointer}
 .at-ic{flex:none;display:grid;place-items:center;color:var(--ink-4)}
 .at-ic svg{width:15px;height:15px}
 .at-s{margin-left:auto;font:400 var(--fs-sm) var(--sans);color:var(--ink-4)}
@@ -1810,7 +1811,8 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 /* one active item: the focused one, whichever hand moved it (the mouse moves focus: keynav.js pointerFollows); :hover
    never paints a second (Astra on e1f8666: mouse onto an item, then ↓, left two looking active) */
 .tw-menu button:focus{background:var(--fill-2);color:var(--ink)}
-.tw-in{flex:1;min-width:0;height:34px;padding:0 10px;border-radius:var(--r-sm);border:1px solid var(--line-strong);background:var(--surface);font:600 var(--fs-2xl)/28px var(--sans);color:var(--ink)}
+/* the title being renamed: a field in the head, 32 like the head's controls (34: grader B on ba93c9b, S009) */
+.tw-in{flex:1;min-width:0;height:var(--h-ctl);padding:0 10px;border-radius:var(--r-sm);border:1px solid var(--line-strong);background:var(--surface);font:600 var(--fs-2xl)/28px var(--sans);color:var(--ink)}
 .tw-in-l{flex:0 1 200px;font:500 var(--fs-base)/20px var(--sans)}
 .tw-in:focus{outline:2px solid var(--focus);outline-offset:1px}
 .ar-l{flex:none;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 7px;height:20px;line-height:16px;border-radius:var(--r-sm);background:var(--fill-2);font-size:var(--fs-sm);color:var(--ink-3)}
@@ -2405,7 +2407,9 @@ a.vw-btn{text-decoration:none}
 .ar-undo span{display:inline-flex;align-items:center;gap:8px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ar-undo svg{flex:none;width:14px;height:14px;color:var(--accent-fill)}
 .ar-undo b{color:var(--ink);font-weight:600}
-.ar-undo button{flex:none;height:var(--h-ctl);padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line);font-weight:600;color:var(--ink)}
+.ar-undo button{flex:none;height:var(--h-ctl);padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line);font-weight:600;color:var(--ink);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease)}
+/* its Undo answers the pointer (grader B on ba93c9b, S024: a button with no class of its own, the hover census couldn't name it) */
+.ar-undo button:hover{background:var(--hover-fill);border-color:var(--line-hover)}
 /* waiting on Space (the spinner in the line's own ink), and refused: the mark in the error ink, never the accent */
 .ar-undo[aria-busy="true"] b{color:var(--ink-2)}
 .ar-undo .spin{flex:none;width:12px;height:12px}

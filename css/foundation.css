@@ -212,6 +212,9 @@ body.stage-full .stg-grip{display:none}
    there was, too faint to see: the controls grader on 8aa58d3, C053, the composer 48→60 dark. tests/field-ring.test.mjs
    finds every box whose field turns its ring off) */
 :is(.fl-q,.all-q,.ar-q,.side-find,.composer,.jump-field,.xd-q):has(:is(input,textarea):focus-visible),.fl-new-r input:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+/* Jump's field is its sheet's whole head, edge to edge in a card that clips (.sheet-card): its ring is drawn inside it
+   (grader B on ba93c9b, C020: only the ring's bottom showed) */
+.jump-field:has(:is(input,textarea):focus-visible){outline-offset:-2px;outline-color:var(--ring-in,var(--focus))}
 
 /* a resize grip the keyboard is on shows the one ring round its grab area, as every control shows focus: its 1 px line
    brightening was the only cue, 1.5–2.5:1 (the controls grader on 9d1f71b, C034 Files' divider, C035 the chat's; the

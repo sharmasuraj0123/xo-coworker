@@ -85,7 +85,7 @@ const CLIPPERS = {
   ".card": ["inner", "a decision card: its body pads 16, its actions 12"], ".chg": ["text", "a change's preview: its caption and text"], ".c-hint": ["text", "a card's hint"],
   ".card.is-dock :is(.c-body,.card-in).fade-b": ["fade", "the docked card's body at a cut edge: its answers sit below it"], ".card.is-dock :is(.c-body,.card-in).fade-t": ["fade", "the same, at its top"], ".card.is-dock :is(.c-body,.card-in).fade-t.fade-b": ["fade", "the same, both edges"],
   ".mini": ["decor", "a progress bar"], ".cp-bar": ["decor", "a progress bar"], ".rt-bar": ["decor", "a progress bar"], ".lpv-link": ["decor", "a dashed line"], ".lpm-l": ["decor", "a dashed line"], ".hm-sk": ["decor", "a loading shape"],
-  ".sheet-card": ["inner", "a sheet (All, Jump, Keys, Runs): its head and body pad their controls"], ".ar-di": ["inset:.ar", "All threads' done fold: its rows"],
+  ".sheet-card": ["inner", "a sheet (All, Jump, Keys, Runs): its head and body pad their controls; Jump's field, its whole head, draws its ring inside (C020)"], ".ar-di": ["inset:.ar", "All threads' done fold: its rows"],
   ".kl": ["text", "Settings › Keyboard's keys"], ".rl-list": ["inner", "Settings' rules: each row pads its buttons"], ".wt-list": ["inner", "Settings' checkouts: each row pads its buttons"],
   ".viewer": ["inner", "the file viewer: its head pads its controls, its body is text"], ".vw-body.is-frame": ["text", "a page in a frame"],
   ".att": ["inner", "a file on a message: its padding (6–10, 4 at its right) holds its buttons' ring"], ".m-files .tb-fb.is-img .tb-fi": ["decor", "a picture's thumbnail"],

@@ -4017,6 +4017,9 @@ t("RINGCLIP: no clipping box cuts a focused control's ring: Home, a project with
   await toDemo(page); await page.waitForTimeout(400);
   const sw = page.locator("[data-switch]").filter({ visible: true }).first();
   if (await sw.count()) { await sw.focus(); await page.keyboard.press("Enter"); await page.waitForTimeout(500); await sweep("All threads"); await page.keyboard.press("Escape"); await page.waitForTimeout(300); }
+  // Jump (C020: its field's box ring, clipped by the sheet's card)
+  await page.keyboard.press("ControlOrMeta+k"); await page.locator("#jump-q").waitFor({ state: "visible", timeout: 4000 }).catch(() => {});
+  if (await page.locator("#jump-q").isVisible()) { await page.waitForTimeout(300); await sweep("Jump"); await page.keyboard.press("Escape"); await page.waitForTimeout(300); }
   await panelOpen(page);
   await page.waitForTimeout(400);
   await sweep("the panel");

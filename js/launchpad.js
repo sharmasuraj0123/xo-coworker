@@ -1018,7 +1018,9 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
           });
         return;
       }
-      case "thread": go && go(el.dataset.go); return;
+      // the thread takes the place of what's shown: on a phone the panel goes with it, and the row with focus, so the
+      // conversation takes focus in this step (grader B on ba93c9b, S193: BODY once the thread showed)
+      case "thread": { go && go(el.dataset.go); if (innerWidth <= 760 || !el.isConnected || !el.getClientRects().length) document.getElementById("scroller")?.focus({ preventScroll: true }); return; }
       case "fix-port": s.form.port = String(s.run.error.declared); s.run = null; deploy(p); return;
       case "use-name": s.form.name = el.dataset.v; s.form.errs = {}; S.key = ""; land('[data-lp-f="name"]'); changed(); return;
       case "recheck": s.err = null; land(AFTER); load(p, true); changed(); return; // Checking… has nothing to press: the section holds focus

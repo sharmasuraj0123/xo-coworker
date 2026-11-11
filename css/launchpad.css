@@ -219,6 +219,9 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .lp-ag{list-style:none;margin:0 12px 12px;padding:0}
 .lp-agr,.lp-appr{display:grid;grid-template-columns:28px minmax(0,1fr) auto;column-gap:8px;align-items:center;width:100%;height:var(--h-row-act);padding:6px 8px;border:0;border-radius:var(--r-lg);background:transparent;text-align:left;transition:background var(--d-hover) var(--ease)}
 .lp-agr{background:color-mix(in srgb,var(--ink) 8%,var(--sunken));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 11%,transparent),var(--panel-lift)}
+/* the asked thread's row answers the pointer: a step deeper, in either theme (grader B on ba93c9b, S193) */
+.lp-agr:hover{background:color-mix(in srgb,var(--ink) 13%,var(--sunken))}
+:root[data-theme="light"] .lp-agr:hover{background:color-mix(in srgb,var(--ink) 4%,var(--surface))}
 .lp-agr .lp-t{background:color-mix(in srgb,var(--work) 10%,var(--surface));color:var(--work)}
 .lp-agr .arc{background:color-mix(in srgb,var(--ink) 8%,var(--sunken))}
 .lp-appr:not(:disabled):hover{background:var(--panel-hover);transition-duration:var(--d-hover-in)}

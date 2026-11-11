@@ -293,7 +293,10 @@ const ringClips = (page, where) => page.evaluate(async (where) => {
     el.focus({ preventScroll: false });
     if (document.activeElement !== el) continue;
     await frame();
-    const s = getComputedStyle(el), r = el.getBoundingClientRect();
+    // the ring may be its box's (a field in a box: the box draws the ring while its field has focus, C053/C020)
+    let ringEl = el;
+    if (getComputedStyle(el).outlineStyle === "none") for (let a = el.parentElement, k = 0; a && k < 3; a = a.parentElement, k++) if (getComputedStyle(a).outlineStyle !== "none") { ringEl = a; break; }
+    const s = getComputedStyle(ringEl), r = ringEl.getBoundingClientRect();
     if (!inView(r)) continue;
     // and its size: a control standing on its own keeps the floor (24 on a desktop, 36 on a phone); a link in a
     // sentence, a field, a row inside a list drawn by its own rules are not this sweep's
@@ -304,7 +307,7 @@ const ringClips = (page, where) => page.evaluate(async (where) => {
     const e = s.outlineStyle === "none" ? 0 : parseFloat(s.outlineOffset) + parseFloat(s.outlineWidth);
     if (e <= 0) continue; // a ring drawn inside the control, or none
     const ring = { top: r.top - e, bottom: r.bottom + e, left: r.left - e, right: r.right + e };
-    for (let a = el.parentElement; a && a !== document.documentElement; a = a.parentElement) {
+    for (let a = ringEl.parentElement; a && a !== document.documentElement; a = a.parentElement) {
       if (a === document.body || !clipsOf(a)) continue;
       const b = a.getBoundingClientRect(), as = getComputedStyle(a);
       // a box that clips (overflow: clip) with a clip margin lets what's inside paint that far out (overflow-clip-margin)
@@ -316,7 +319,7 @@ const ringClips = (page, where) => page.evaluate(async (where) => {
       if (oy && ring.bottom > box.bottom + 0.5 && r.bottom <= box.bottom + 0.5) sides.push("bottom");
       if (ox && ring.left < box.left - 0.5 && r.left >= box.left - 0.5) sides.push("left");
       if (ox && ring.right > box.right + 0.5 && r.right <= box.right + 0.5) sides.push("right");
-      if (sides.length) { const k = `${name(el)} in ${name(a)}`; if (!seen.has(k)) { seen.add(k); cut.push(`${where}: ${k}: ${sides.join("+")}`); } }
+      if (sides.length) { const k = `${name(ringEl)}${ringEl !== el ? ` (for ${name(el)})` : ""} in ${name(a)}`; if (!seen.has(k)) { seen.add(k); cut.push(`${where}: ${k}: ${sides.join("+")}`); } }
     }
   }
   document.activeElement?.blur?.();

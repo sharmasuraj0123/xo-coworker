@@ -24,7 +24,6 @@ const OTHER = {
   "side-x": [/\.side-x\{display:none\}/, "the drawer's close: a phone's, never drawn on a desktop"],
   "top-menu": [/\.top-menu\{display:none\}/, "the phone bar's menu: never drawn on a desktop"],
   "pb-menu": [/@media \(max-width:760px\)\{[\s\S]*?\.pb-menu\{display:grid/, "the phone bar's menu: drawn only on a phone"],
-  "lp-agr": [/\.lp-agr\{background:color-mix/, "Launchpad's raised row for the agent at work (launchpad.css, the Launchpad fixer's): routed to it"],
 };
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
@@ -39,6 +38,15 @@ t("every button answers the pointer: its own hover, the meta inks' lift, or a wr
 });
 t("each other way still holds, and none is listed that answers by itself", () => {
   for (const [k, [re, why]] of Object.entries(OTHER)) { assert.match(css, re, `${k}: ${why}`); assert.ok(!answers(k), `${k} answers by itself now: take it off the list`); }
+});
+t("a button with no class of its own, styled by its parent (.ar-undo button), answers hover too (S024: All's Undo)", () => {
+  // the census above names buttons by their first class; one drawn without a class escaped it. Every rule that draws
+  // a classless button a box (a border or a fill) has its :hover
+  const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map((m) => [m[1].trim(), m[2]]);
+  const boxed = rules.filter(([sel, d]) => /(^|[\s>])button$/.test(sel.split(",").pop().trim()) && !/^\.(?:[\w-]+ )*button$/.test("") && /(border:1px|background:var\(--(?:float|fill|surface))/.test(d)).map(([sel]) => sel.split(",").pop().trim());
+  const hovered = new Set(rules.map(([sel]) => sel).join(",").split(",").map((x) => x.trim()).filter((x) => /button:hover/.test(x)).map((x) => x.replace(/:hover.*$/, "")));
+  const silent = [...new Set(boxed)].filter((sel) => !hovered.has(sel) && !/\.lp-menu button|\.vw-seg button|\.dg-mode button|\.dg-tools button|\.rt-seg button|\.cp-mode button|\.iq-route button|\.all-f button|\.ar-kinds button|\.teach-scope button|\.set-nav button/.test(sel));
+  assert.deepEqual(silent, [], `classless buttons with a box and no hover:\n  ${silent.join("\n  ")}`);
 });
 t("Interrupt, Retry and Edit: the next fill, the hover line, the first ink", () => {
   assert.match(css, /\.meta-btn:not\(:disabled\):hover\{background:var\(--fill-2\);border-color:var\(--line-hover\);color:var\(--ink\)/);
