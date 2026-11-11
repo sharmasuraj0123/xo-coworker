@@ -8,7 +8,7 @@ import { readFileSync, readdirSync } from "node:fs";
 const css = readdirSync(new URL("../css/", import.meta.url)).filter((f) => f.endsWith(".css")).map((f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-const shared = /:is\(([^)]*)\):has\(:is\(input,textarea\):focus-visible\),\.fl-new-r input:focus-visible\{outline:2px solid var\(--focus\);outline-offset:1px\}/.exec(css);
+const shared = /:is\(([^)]*)\):has\(:is\(input,textarea\):focus-visible\),\.fl-new-r input:focus-visible\{outline:2px solid var\(--focus\);outline-offset:-1px\}/.exec(css);
 t("one rule draws the ring on a field's box while the field has focus", () => assert.ok(shared, "the shared rule"));
 t("every box whose field turns its own ring off is one it reaches (the composer, Find a project, Artifacts' search, a change's question)", () => {
   const boxes = shared[1].split(",");
@@ -18,6 +18,13 @@ t("every box whose field turns its own ring off is one it reaches (the composer,
     .map((m) => { const sel = m[1].trim(); const id = Object.keys(ID_BOX).find((k) => sel.endsWith(k)); return id ? ID_BOX[id] : sel.replace(/\s+(textarea|input)[^\s]*$/, "").split(/\s+/).pop(); });
   const missing = [...new Set(off)].filter((b) => !boxes.includes(b) && b !== ".fl-new-r"); // Files' new name: its own field takes the ring
   assert.deepEqual(missing, [], `boxes whose field's ring is off, without the box's ring: ${missing.join(", ")}`);
+});
+// the ring is the box's edge, on its border: 1 px out it ran beside the border with a gap of the page between, a double
+// line round the message box (the owner, 11 Nov 07:44Z). No field box draws its ring outside its own edge
+t("a field box's ring lies on its border, one edge, never a second line outside it", () => {
+  assert.ok(shared, "the shared field ring rule, at -1px");
+  const outside = [...css.matchAll(/([^{}]*:has\(:is\(input,textarea\):focus-visible\)[^{}]*)\{([^}]*outline-offset:\s*([0-9.]+)px[^}]*)\}/g)].filter((m) => +m[3] > 0).map((m) => m[1].trim());
+  assert.deepEqual(outside, [], "a field box ringed outside its edge");
 });
 // the file editor (Files › Edit): its caret is in Pierre's shadow, so no field of ours turns a ring on; while editing, the
 // file's box draws the message box's ring with the caret in it (the owner, 11 Nov 05:42Z)

@@ -227,7 +227,10 @@ body.stage-full .stg-grip{display:none}
 /* (and the message box, Jump's field, a change's question: their field's ring off too, the box's border shift was all
    there was, too faint to see: the controls grader on 8aa58d3, C053, the composer 48→60 dark. tests/field-ring.test.mjs
    finds every box whose field turns its ring off) */
-:is(.fl-q,.all-q,.ar-q,.side-find,.composer,.jump-field,.xd-q):has(:is(input,textarea):focus-visible),.fl-new-r input:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+/* the ring is the box's edge, on its border, not a second line outside it: 1 px out, it ran beside the box's own border
+   with a gap of the page between, two lines around the message box (the owner, 11 Nov 07:44Z: "this boundary effect, it
+   doesn't look good"). At −1 px its 2 px cover the 1 px border and one inside: one edge, in the focus colour */
+:is(.fl-q,.all-q,.ar-q,.side-find,.composer,.jump-field,.xd-q):has(:is(input,textarea):focus-visible),.fl-new-r input:focus-visible{outline:2px solid var(--focus);outline-offset:-1px}
 /* Jump's field is its sheet's whole head, edge to edge in a card that clips (.sheet-card): its ring is drawn inside it
    (grader B on ba93c9b, C020: only the ring's bottom showed) */
 .jump-field:has(:is(input,textarea):focus-visible){outline-offset:-2px;outline-color:var(--ring-in,var(--focus))}
