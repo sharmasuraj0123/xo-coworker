@@ -225,6 +225,10 @@ body.stage-full .stg-grip{display:none}
    the message box, Find, All threads' search and the rest since C053/C007/C030). One rule for every such box, so none
    draws one: tests/field-ring.test.mjs */
 :is(.fl-q,.all-q,.ar-q,.side-find,.composer,.jump-field,.xd-q):has(:is(input,textarea):focus-visible),.fl-new-r input:focus-visible{outline:none}
+/* a field with its own border (Create's repository, name and description, Settings' and Launchpad's fields, a select,
+   the dropdown's button) shows focus as one edge, on its border: the base ring stood 2 px outside it, two borders with
+   the page between (the owner, 11 Nov 08:00Z: "like it has 2 borders"). At −1 px its 2 px cover the border and one inside */
+:is(input:not([type=checkbox],[type=radio],[type=range],[type=button],[type=submit],[type=reset],[type=file],[type=color],[type=image]),textarea,select,.dd-btn):focus-visible{outline-offset:-1px}
 
 /* a resize grip the keyboard is on shows the one ring round its grab area, as every control shows focus: its 1 px line
    brightening was the only cue, 1.5–2.5:1 (the controls grader on 9d1f71b, C034 Files' divider, C035 the chat's; the

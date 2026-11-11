@@ -21,6 +21,14 @@ t("every box whose field turns its own ring off is one that rule reaches, and no
   const ringed = [...css.matchAll(/([^{}]*:has\(:is\(input,textarea\):focus-visible\)[^{}]*)\{([^}]*)\}/g)].filter((m) => /outline:\s*[0-9]|outline-color|box-shadow/.test(m[2])).map((m) => m[1].trim());
   assert.deepEqual(ringed, [], "a field's box ringed");
 });
+// a field with its own border shows focus as one edge, on its border: the base ring stood 2 px outside it, two borders
+// with the page between (the owner, 11 Nov 08:00Z, Create XO Project)
+t("every bordered field (text inputs, textareas, selects, the dropdown's button) draws its focus on its own edge, not 2 px out", () => {
+  assert.match(css, /:is\(input:not\(\[type=checkbox\],\[type=radio\],\[type=range\],\[type=button\],\[type=submit\],\[type=reset\],\[type=file\],\[type=color\],\[type=image\]\),textarea,select,\.dd-btn\):focus-visible\{outline-offset:-1px\}/);
+  // and no field rule puts a ring back outside its edge
+  const out = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter(([, sel, body]) => !/:has\(/.test(sel) && /(^|[\s,(>])(input|textarea|select)\b[^,]*:focus/.test(sel) && /outline-offset:\s*[1-9]/.test(body)).map(([, sel]) => sel.trim().slice(0, 80));
+  assert.deepEqual(out, [], "a field ringed outside its edge");
+});
 // the file editor (Files › Edit): its caret is in Pierre's shadow, so no field of ours turns a ring on; while editing, the
 // file's box draws the message box's ring with the caret in it (the owner, 11 Nov 05:42Z)
 t("a file being edited draws the message box's ring on its box while the caret is in it", () => {
