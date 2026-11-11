@@ -123,6 +123,8 @@ export function stormSource(state, emit, event) {
     const read = ok(live) && (!ok(view) || (live.readAt || 0) >= view.readAt) ? live : ok(view) ? view : null;
     return sessionBusy({ id: sid, state: sstate, sub: read ? read.sub : undefined, readAt: read ? read.readAt || 0 : 0 }, { runs: runsBy.get(sid) || [], agg: state.liveRuns[sid] || null });
   }
+  // a thread's title and label are plain text: one that came escaped ("Settings &amp; Home") reads as it was meant
+  const plainText = (v) => (v == null ? v : String(v).replace(/&(amp|lt|gt|quot|#39);/g, (m, e) => ({ amp: "&", lt: "<", gt: ">", quot: '"', "#39": "'" })[e]));
   function uiThread(r, runsBy = runsBySession()) {
     const project = projectOf(r.chat_id);
     const sstate = sessionStateOf(r);
@@ -131,7 +133,7 @@ export function stormSource(state, emit, event) {
     const busy = threadBusy(r, sstate, runsBy);
     const t = {
       id: r.ts, project, chatId: r.chat_id,
-      title: r.title || "Thread", label: r.label || null,
+      title: plainText(r.title) || "Thread", label: plainText(r.label) || null,
       state: threadState(r.state, turn, busy),
       headline: "", happened: card.happened || "", needsYou: "",
       branch: r.branch || null, worktree: r.worktree_path || null, cwd: r.cwd || null,
