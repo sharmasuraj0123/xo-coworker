@@ -909,7 +909,10 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .b-ghost:hover{background:var(--fill-2);color:var(--ink);border-color:transparent}
 .b-ghost svg{width:15px;height:15px}
 .b.b-opt{height:auto}
-.b-opt{flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:4px;min-height:var(--h-lg);padding:8px 14px;font-weight:500;font-size:var(--fs-lg);line-height:24px;text-align:left}
+/* an answer is a row: one line 40 (1 + 7 + its 24 px line + 7 + 1), with its description line 56 (+ 16); only words
+   that wrap grow it, a line at a time (the controls grader on 24be023: S025, Home's answers 42; S052, an item's
+   answers with a description 65) */
+.b-opt{flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:0;min-height:var(--h-lg);padding:7px 14px;font-weight:500;font-size:var(--fs-lg);line-height:24px;text-align:left}
 .b-opt:hover{border-color:color-mix(in srgb,var(--accent-fill) 45%,var(--line))}
 .b-opt{background:transparent;border-color:var(--line-strong)}
 .b-opt:hover{background:var(--fill-2)}
@@ -1820,7 +1823,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 }
 
 /* ── storm review items in the Decision Kit (U2): the server's own answers ──── */
-.o-d{display:block;margin-top:3px;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-3);text-align:left}
+.o-d{display:block;margin-top:0;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-3);text-align:left}
 .b-opt:not(.has-pv):has(.o-d){align-items:flex-start;text-align:left}
 .c-qs{display:flex;flex-direction:column;gap:14px;margin-bottom:4px}
 .c-q{border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:8px;min-width:0}

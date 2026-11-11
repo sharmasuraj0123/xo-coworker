@@ -94,6 +94,38 @@ t("a control sized by its words and padding is on the scale too: the decision's 
   // the census reads declared heights; one drawn by its padding (3 + 20 + 3) escaped it (the controls grader on f93345a)
   assert.match(readFileSync(new URL("css/app.css", ROOT), "utf8"), /\.c-where\{[^}]*height:var\(--h-sm\);[^}]*padding:0 6px;/);
 });
+t("a row-type control's one line fits its row: border, padding and line no taller than its floor, so only words that wrap grow it", () => {
+  // a row's floor (min-height 40/48/56) hides a height its padding and line make: one 2 px over made Home's answers
+  // 42 (S025) and an item's answers with a description 65 (S052). Read from the rules: a control whose min-height is a
+  // row step, with its padding and its line height declared, and a border wherever its classes draw one
+  const steps = { "var(--h-lg)": 40, "var(--h-row)": 40, "var(--h-row-act)": 48, "var(--h-row-list)": 56, "40px": 40, "48px": 48, "56px": 56 };
+  // a class drawn with others (.b-opt is always .b b-opt): a border any of them draws counts
+  const co = new Map();
+  for (const m of src.matchAll(/class="([^"$]*)/g)) { const list = m[1].trim().split(/\s+/).filter(Boolean).map((k) => "." + k); for (const k of list) co.set(k, new Set([...(co.get(k) || []), ...list])); }
+  const withCo = (ks) => [...new Set(ks.flatMap((k) => [k, ...(co.get(k) || [])]))];
+  const bordered = (ks0) => { const ks = withCo(ks0); return all.some((r) => context(r, 1440).active && ks.some((k) => new RegExp(`\\${k}(?![\\w-])`).test(r.sel.split(/[\\s>+~]+/).pop())) && decls(r.d).some((d) => /^border(-width)?$/.test(d.p) && /1px/.test(d.v))); };
+  const over = [];
+  for (const r of all) {
+    const c = context(r, 1440);
+    if (!c.active || c.cond || /data-density/.test(r.sel)) continue;
+    const last = r.sel.split(/[\s>+~]+/).pop(), ks = last.match(/\.[\w-]+/g) || [];
+    if (!ks.some((k) => ctl.has(k)) || /:/.test(last)) continue;
+    const ds = decls(r.d), mh = ds.find((d) => d.p === "min-height"), pad = ds.find((d) => d.p === "padding");
+    const lh = ds.find((d) => d.p === "line-height") || ds.find((d) => d.p === "font" && /\/\d+px/.test(d.v));
+    if (!mh || !(mh.v in steps) || !pad || !lh || ds.some((d) => d.p === "height" && d.v !== "auto")) continue;
+    const pv = pad.v.split(/\s+/).map((x) => (/^(\d+)px$/.test(x) ? +x.slice(0, -2) : x === "0" ? 0 : NaN));
+    const line = +(/(\d+)px/.exec(lh.p === "font" ? lh.v.split("/")[1] : lh.v) || [])[1];
+    const drawn = (bordered(ks) ? 2 : 0) + pv[0] + (pv[2] ?? pv[0]) + line;
+    if (Number.isFinite(drawn) && drawn > steps[mh.v]) over.push(`${r.f}: ${r.sel} = ${drawn} over its ${steps[mh.v]}`);
+  }
+  assert.deepEqual(over, [], "rows whose one line is taller than their floor");
+});
+t("an answer is a row: one line 40, with its description line 56 (S025, S052)", () => {
+  const app = readFileSync(new URL("css/app.css", ROOT), "utf8");
+  assert.match(app, /\.b-opt\{flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:0;min-height:var\(--h-lg\);padding:7px 14px;[^}]*line-height:24px;/, "1 + 7 + 24 + 7 + 1 = 40");
+  assert.match(app, /\.o-l\{font:500 var\(--fs-lg\)\/24px/);
+  assert.match(app, /\.o-d\{display:block;margin-top:0;font:400 var\(--fs-sm\)\/16px/, "+ 16 = 56, no gap between the lines");
+});
 t("a button drawn as a link, standing on its own, has the desktop's 24 floor; one in a sentence is words (S014: the docked Undo, 39×20)", () => {
   const fnd = readFileSync(new URL("css/foundation.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
   const links = fnd.match(/:is\(([^)]*)\)\{transition:color var\(--d-hover\)/)[1].split(",");
