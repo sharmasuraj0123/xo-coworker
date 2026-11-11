@@ -4070,6 +4070,18 @@ t("STATES: every control in view answers hover and press: Home, a project with i
   for (const x of silent) console.log(`  STATES ${x}`);
   await done(page);
 });
+// the panel with a change, Follow on (C084: held looked as hovered, no press layer while held; grader A's setup)
+t("STATES C084: the panel's Changes with Follow on answers hover and press", async () => {
+  if (WIDTH < 760) skip("a phone has no hover");
+  const page = await app({ files: { "a.js": FILE() }, changes: [{ path: "a.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: PATCH("a.js", "one", "ONE") }] });
+  await panelOpen(page);
+  await page.waitForFunction(() => !!(window.__t.CHG && window.__t.CHG.at("demo", "a.js")), null, { timeout: 8000 }).catch(() => {});
+  await page.waitForTimeout(500);
+  const r = await stateSweep(page, "the panel, Follow on");
+  console.log(`  STATES read the panel, Follow on ${r.n}`);
+  for (const x of r.silent) console.log(`  STATES ${x}`);
+  await done(page);
+});
 
 // ── ROWS · S025, S052: an answer is a row: one line 40, with its description line 56 ──
 // the controls grader on 24be023: Home's answers 42 on one line, an item's answers with a description 65
