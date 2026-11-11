@@ -321,6 +321,14 @@ const ringClips = (page, where) => page.evaluate(async (where) => {
       if (ox && ring.right > box.right + 0.5 && r.right <= box.right + 0.5) sides.push("right");
       if (sides.length) { const k = `${name(ringEl)}${ringEl !== el ? ` (for ${name(el)})` : ""} in ${name(a)}`; if (!seen.has(k)) { seen.add(k); cut.push(`${where}: ${k}: ${sides.join("+")}`); } }
     }
+    // the screen's own edges clip too: a control at the very top of a phone's Files (S070: Back at y=2, its ring 4 out)
+    // loses what's past them, whatever box it sits in
+    const vw = document.documentElement.clientWidth, vh = innerHeight, vs = [];
+    if (ring.top < -0.5 && r.top >= -0.5) vs.push("top");
+    if (ring.bottom > vh + 0.5 && r.bottom <= vh + 0.5) vs.push("bottom");
+    if (ring.left < -0.5 && r.left >= -0.5) vs.push("left");
+    if (ring.right > vw + 0.5 && r.right <= vw + 0.5) vs.push("right");
+    if (vs.length) { const k = `${name(ringEl)}${ringEl !== el ? ` (for ${name(el)})` : ""} at the screen's edge`; if (!seen.has(k)) { seen.add(k); cut.push(`${where}: ${k}: ${vs.join("+")}`); } }
   }
   document.activeElement?.blur?.();
   return { n: els.length, cut, floor, wrapped };

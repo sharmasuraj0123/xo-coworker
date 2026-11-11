@@ -24,13 +24,17 @@ body.chat-docked .fv-h{padding:0 4px 0 16px}
 .fv-ib:hover{background:var(--fill-2);color:var(--ink)}
 .fv-ib svg{width:16px;height:16px}
 .fv-ib:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
+/* every control in Files' head draws its ring inside it, as its icon buttons do: the head is the top of the screen when
+   Files covers a phone, and the main column's top edge clips it, so a ring 4 px out lost its top (the controls grader on
+   8aa58d3, S070: Back · Artifacts at y=2, 390 dark and light). The ring sweep reads the screen's edges now */
+.fv-h .fv-back:focus-visible{outline-offset:-2px;outline-color:var(--ring-in,var(--focus))}
 /* the way back to the chat (js/filesview.js, Codex Astra's design-research/files-return): first in the head, in
    words and a muted plum (not red: nothing is lost), 32 px tall in the 40 px head. Hover only strengthens
    its fill and hairline; on hover or keyboard focus a note under it says what it does */
 .fv-ret{--ret-ink:#deb8d6;--ret-fill:#302531;--ret-line:#50394d;--ret-hover:#3b2b3b;--ret-hover-line:#74516c;position:relative;box-sizing:border-box;flex:none;display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:var(--r);font:500 var(--fs-base)/20px var(--sans);white-space:nowrap;color:var(--ret-ink);background:var(--ret-fill);box-shadow:inset 0 0 0 1px var(--ret-line);transition:background var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease)}
 :root[data-theme="light"] .fv-ret{--ret-ink:#773c6d;--ret-fill:#f5ecf3;--ret-line:#dfc9da;--ret-hover:#efdfeb;--ret-hover-line:#ba93b2}
 .fv-ret:hover,.fv-ret:focus-visible{background:var(--ret-hover);box-shadow:inset 0 0 0 1px var(--ret-hover-line);transition-duration:var(--d-hover-in)}
-.fv-ret:focus-visible{outline:2px solid var(--ret-ink);outline-offset:2px}
+.fv-ret:focus-visible{outline:2px solid var(--ret-ink);outline-offset:-2px} /* inside it, as the head's others (S070) */
 .fv-ret>svg{flex:none;width:16px;height:16px}
 .fv-h .fv-sep{flex:none}
 /* a long branch gives way before the project's name, and never pushes the head past the window (Astra, on
