@@ -4028,6 +4028,31 @@ t("RINGCLIP: no clipping box cuts a focused control's ring: Home, a project with
   await done(page);
 });
 
+// ── ROWS · S025, S052: an answer is a row: one line 40, with its description line 56 ──
+// the controls grader on 24be023: Home's answers 42 on one line, an item's answers with a description 65
+t("ROWS S025 S052: Home's answers are 40 on one line; an item's answer with a description line is 56, without one 40", async () => {
+  const page = await app();
+  const setup = (threads) => page.evaluate((threads) => { const t = window.__t;
+    for (const n of ["reply", "decide", "decideItem", "resolve"]) t.world.act[n] = async () => ({});
+    for (const n of ["watch", "watchThread", "watchSession", "loadThread", "loadHops", "loadChatHops", "findRows", "listRuns"]) if (t.world.act[n]) t.world.act[n] = async () => {};
+    t.world.state.threads = threads; t.world.state.hosts = []; t.S.pin = null; t.go("home"); t.render(); }, threads);
+  const T = (id, ask, extra = {}) => ({ id, project: "demo", title: "A task", live: false, loaded: true, busy: false, state: "needs_reply", happened: "Fixture", lastAt: Date.now(), messages: [], checklist: { total: 1, done: 0, items: [{ text: "Step", state: "todo" }] }, asks: [ask], ...extra });
+  await setup([T("o2", { id: "a-o2", kind: "question", title: "Which port?", risk: "routine", options: ["3000", "8080"] })]);
+  await page.locator("#hm-next [data-nx-opt]").first().waitFor();
+  const home = await page.evaluate(() => [...document.querySelectorAll("#hm-next [data-nx-opt]")].map((b) => Math.round(b.getBoundingClientRect().height)));
+  assert.deepEqual(home, [40, 40], "Home's answers, one line each");
+  const it = { id: "rv_q1", kind: "question", state: "open", risk: "notable", title: "Which provider?", why: "Fixture", options: [{ id: "answer", decision: "answer", label: "Answer" }], detail: { questions: [{ id: "answer", question: "Which provider?", options: [{ label: "SES", description: "AWS" }, { label: "Postmark" }] }] } };
+  await setup([T("iq1", { id: it.id, kind: it.kind, title: it.title, detail: it.why, risk: it.risk, riskReasons: [], options: null, blocking: false, item: it, live: true, storm: true }, { state: "needs_approval" })]);
+  await page.evaluate(() => window.__t.D.open()); await page.waitForTimeout(500);
+  await page.locator("[data-iopt]").first().waitFor();
+  const item = await page.evaluate(() => [...document.querySelectorAll("[data-iopt]")].filter((b) => b.getClientRects().length).map((b) => [b.textContent.trim().slice(0, 12), Math.round(b.getBoundingClientRect().height)]));
+  // with its description line 56; without one 40, or 56 beside one that has it (a grid row shares its height)
+  const ses = item.find(([w]) => /^SES/.test(w)), pm = item.find(([w]) => /^Postmark/.test(w));
+  assert.ok(ses && ses[1] === 56, `the answer with a description: ${JSON.stringify(item)}`);
+  assert.ok(pm && [40, 56].includes(pm[1]), `the answer without one: ${JSON.stringify(item)}`);
+  await done(page);
+});
+
 // ── Home's next move: the same protection as a decision card ──
 async function homeAsk(page, question = false) {
   await page.evaluate((question) => {
