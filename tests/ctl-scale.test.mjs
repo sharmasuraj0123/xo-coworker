@@ -87,8 +87,30 @@ t("rows from the tokens: 40 one line, 48 with an action, 56 a two-line list row;
   // a phone keeps the heights it had
   const phone = readFileSync(new URL("css/phone.css", ROOT), "utf8");
   assert.match(phone, /\.nrow,\.prow\{min-height:42px;padding-top:6px;padding-bottom:6px\}/);
-  assert.match(phone, /\.ch-row\{min-height:58px;padding-top:10px;padding-bottom:10px\}\s*\.ch-main\{gap:4px\}\s*\.ch-m\{line-height:20px\}\s*\.pr-name\{line-height:1\.3\}\s*\.pr-t\{line-height:1\.35\}/);
+  // Chats' rows are 56 on a phone too: no phone rule changes them (C048: their phone 58 floor drew 66)
+  assert.doesNotMatch(phone.replace(/\/\*[\s\S]*?\*\//g, ""), /\.ch-(row|main|m)\{/, "a phone keeps Chats' rows as a desktop draws them, 56");
+  assert.match(phone, /\.pr-name\{line-height:1\.3\}\s*\.pr-t\{line-height:1\.35\}/);
   assert.match(phone, /\.is-unfolded>\.tb-h\{min-height:44px\}/);
+});
+t("a phone's rows are on its steps (36 one line, 40, 48, 56), but those listed for the coordinator's ruling: the lists only shrink", () => {
+  // the row census read a desktop only, and a phone's rows were kept as they were by a rule of their own (30bd6d0):
+  // C048, Chats' rows 66 on a phone, wasn't seen. Now a phone's row floors are read too
+  const PHONE_STEPS = new Set([36, 40, 48, 56]);
+  const KEPT = { // a phone's rows kept from before the 8 px steps, each the coordinator's to rule (11 Nov, with C048)
+    "phone.css: .nrow,.prow { min-height }": 42, "phone.css: .hd-r { min-height }": 38, "phone.css: :is(.ar,.ar-fold,.ar-undo) { min-height }": 42,
+    "phone.css: .syl-ln { min-height }": 44, "phone.css: .stage :is(.ag-r,.ch-r) { height }": 44, "phone.css: :root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>.tb-h { min-height }": 44,
+  };
+  const phoneCss = readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  const rows = /\.(nrow|prow|ch-row|hd-r|ar|ar-fold|ar-undo|syl-ln|ag-r|ch-r|tb-h|b-opt|set-row|iq-row|fl-r|cx-r|kr)\b/;
+  const off = [];
+  for (const m of phoneCss.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    const sel = m[1].trim().split("\n").pop().trim(); if (!rows.test(sel)) continue;
+    for (const [, p, v] of m[2].matchAll(/(?:^|;)\s*(min-height|height):(\d+)px/g)) if (!PHONE_STEPS.has(+v) && +v >= 36) off.push([`phone.css: ${sel} { ${p} }`, +v]);
+  }
+  const fresh = off.filter(([k, v]) => KEPT[k] !== v).map(([k, v]) => `${k} = ${v}`);
+  assert.deepEqual(fresh, [], `a phone's rows off its steps:\n  ${fresh.join("\n  ")}`);
+  const moved = Object.keys(KEPT).filter((k) => !off.some(([x, v]) => x === k && v === KEPT[k]));
+  assert.deepEqual(moved, [], "listed, but no longer kept as listed: take it off");
 });
 t("a control sized by its words and padding is on the scale too: the decision's where line, 24 (S157: 104×26)", () => {
   // the census reads declared heights; one drawn by its padding (3 + 20 + 3) escaped it (the controls grader on f93345a)
