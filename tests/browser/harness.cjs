@@ -282,7 +282,7 @@ const ringClips = (page, where) => page.evaluate(async (where) => {
   // boxes that overlap in height (an icon, a count in a smaller size on the same line stay one line)
   const linesOf = (e) => {
     const rects = [], rg = document.createRange(), w = document.createTreeWalker(e, NodeFilter.SHOW_TEXT);
-    for (let t = w.nextNode(); t; t = w.nextNode()) { if (!t.nodeValue.trim() || t.parentElement.closest("svg, [hidden], .sr-only")) continue; rg.selectNodeContents(t); for (const q of rg.getClientRects()) if (q.width > 0.5 && q.height > 0.5) rects.push(q); }
+    for (let t = w.nextNode(); t; t = w.nextNode()) { if (!t.nodeValue.trim() || t.parentElement.closest("svg, [hidden], .sr-only, [role=tooltip], kbd") || getComputedStyle(t.parentElement).visibility === "hidden") continue; rg.selectNodeContents(t); for (const q of rg.getClientRects()) if (q.width > 0.5 && q.height > 0.5) rects.push(q); }
     rects.sort((a, b) => a.top - b.top);
     let n = 0, bottom = -Infinity;
     for (const q of rects) { if (q.top >= bottom - 1) { n++; bottom = q.bottom; } else bottom = Math.max(bottom, q.bottom); }
