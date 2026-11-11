@@ -342,10 +342,12 @@ async function stateSweep(page, where) {
   });
   const look = (i) => page.evaluate((i) => {
     const e = document.querySelector(`[data-sts="${i}"]`); if (!e) return null;
-    const sig = (x, p) => { const s = getComputedStyle(x, p); return [s.backgroundColor, s.backgroundImage, s.color, s.borderTopColor, s.boxShadow, s.opacity, s.transform, s.textDecorationColor, s.outlineStyle].join("|"); };
+    const sig = (x, p) => { const s = getComputedStyle(x, p); return [s.backgroundColor, s.backgroundImage, s.color, s.borderTopColor, s.boxShadow, s.opacity, s.transform, s.scale, s.textDecorationColor, s.outlineStyle].join("|"); };
+    // what's drawn inside it answers too (a switch's knob gives when held, a track's edge lights on hover): its first parts
+    const parts = [...e.querySelectorAll("*")].slice(0, 8).map((x) => sig(x)).join(" ¦ ");
     const svg = e.querySelector("svg"), r = e.getBoundingClientRect(), top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
     const name = `${e.tagName.toLowerCase()}${e.classList.length ? "." + [...e.classList].slice(0, 3).join(".") : ""}${[...e.attributes].filter((a) => /^data-(?!sts)/.test(a.name)).slice(0, 1).map((a) => `[${a.name}]`).join("")} "${(e.textContent || e.getAttribute("aria-label") || "").trim().replace(/\s+/g, " ").slice(0, 20)}"`;
-    return { name, v: [sig(e), sig(e, "::before"), sig(e, "::after"), svg ? getComputedStyle(svg).color : "", e.parentElement ? getComputedStyle(e.parentElement).backgroundColor : ""].join(" ‖ "), cover: top && top !== e && !e.contains(top) ? `${top.tagName.toLowerCase()}.${[...top.classList].slice(0, 2).join(".")}` : "", x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    return { name, v: [sig(e), sig(e, "::before"), sig(e, "::after"), parts, svg ? getComputedStyle(svg).color : "", e.parentElement ? getComputedStyle(e.parentElement).backgroundColor : ""].join(" ‖ "), cover: top && top !== e && !e.contains(top) ? `${top.tagName.toLowerCase()}.${[...top.classList].slice(0, 2).join(".")}` : "", x: r.left + r.width / 2, y: r.top + r.height / 2 };
   }, i);
   const silent = [];
   for (let i = 0; i < n; i++) {
