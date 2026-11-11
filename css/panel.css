@@ -91,7 +91,7 @@ body.stage-over .stage{box-shadow:var(--e2)}
 .fl-menu button{display:flex;align-items:center;gap:8px;height:32px;padding:0 8px;border-radius:var(--r-sm);text-align:left;font:400 var(--fs-base)/20px var(--sans);color:var(--ink-2)}
 /* one active item: the focused one, whichever hand moved it (the mouse moves focus: keynav.js pointerFollows); :hover
    never paints a second (Astra on e1f8666: mouse onto an item, then ↓, left two looking active) */
-.fl-menu button:focus{background:var(--fill-2);color:var(--ink);outline:none}
+.fl-menu button:focus{background:var(--menu-focus);color:var(--ink);outline:none}
 .fl-menu svg{flex:none;width:15px;height:15px;color:var(--ink-3)}
 .fl-new-r{display:flex;align-items:center;gap:8px;height:28px;padding:0 6px 0 calc(6px + var(--d) * 16px)}
 .fl-new-r input{flex:1;min-width:0;height:24px;margin-left:-6px;padding:0 5px;border:1px solid var(--line-strong);border-radius:var(--r-sm);background:var(--fill-1);outline:none;font:400 var(--fs-base)/20px var(--sans);color:var(--ink)}
@@ -481,6 +481,9 @@ body.viewer-open .fv~.dock{display:none}
 .stage .fr[data-fr="map"] .dg:focus-visible{box-shadow:inset 0 0 0 2px var(--focus)}
 /* a region you scroll with the keys (a file, a diff) says when the keyboard is in it, with the one ring */
 :is(.vw-body,.cx-pd):focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
+/* a file being edited: while the caret is in it, its box draws the message box's ring (2 px of the focus colour), inside
+   its edge as the box fills the viewer (the owner, 11 Nov 05:42Z: the file editor had no ring of its own) */
+.is-editing .vw-body:focus-within{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
 /* one ring for both regions, above what the renderer paints inside them: js/ring.js draws it just after the region,
    over its box (its own outline sat under the drawing: Astra C087 on dd15034, the diff; C096 on cb7afe7, the file).
    The outline stays as the fallback where the ring can't be placed */

@@ -282,6 +282,8 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
    *  finds Changes for File, the controls grader's V99-v3 on 2a8d278): how every redraw finds the focused control again. */
   const hookOf = (e) => { const a = e && e.attributes && [...e.attributes].find((x) => x.name.startsWith("data-vw-")); return a ? (a.value ? `[${a.name}="${CSS.escape(a.value)}"]` : `[${a.name}]`) : ""; };
   function paintHead() {
+    // editing, the file's box draws the message box's ring while the caret is in it (the owner, 11 Nov 05:42Z)
+    el.classList.toggle("is-editing", !!ED.on);
     const top = el.querySelector(".vw-top");
     if (!top) return;
     const ae = document.activeElement;
@@ -778,6 +780,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
    * (Astra S127). Focus inside the file's own body is left alone (that body isn't redrawn).
    */
   function render() {
+    el.classList.toggle("is-editing", !!ED.on);
     const ae = document.activeElement;
     let was = null;
     const fromMenu = !!(ae && ae.closest && ae.closest(".vw-menu"));

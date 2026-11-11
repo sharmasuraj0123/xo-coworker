@@ -19,4 +19,11 @@ t("every box whose field turns its own ring off is one it reaches (the composer,
   const missing = [...new Set(off)].filter((b) => !boxes.includes(b) && b !== ".fl-new-r"); // Files' new name: its own field takes the ring
   assert.deepEqual(missing, [], `boxes whose field's ring is off, without the box's ring: ${missing.join(", ")}`);
 });
+// the file editor (Files › Edit): its caret is in Pierre's shadow, so no field of ours turns a ring on; while editing, the
+// file's box draws the message box's ring with the caret in it (the owner, 11 Nov 05:42Z)
+t("a file being edited draws the message box's ring on its box while the caret is in it", () => {
+  assert.match(css, /\.is-editing \.vw-body:focus-within\{outline:2px solid var\(--ring-in,var\(--focus\)\);outline-offset:-2px\}/);
+  const vw = readFileSync(new URL("../js/viewer.js", import.meta.url), "utf8");
+  assert.equal((vw.match(/el\.classList\.toggle\("is-editing", !!ED\.on\);/g) || []).length, 2, "marked as the head is drawn and as the viewer is");
+});
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

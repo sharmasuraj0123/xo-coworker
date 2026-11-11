@@ -20,7 +20,7 @@ const answers = (k) => new RegExp(`\\.${k}(?![\\w-])[^,{]*:hover|:hover[^,{]*\\.
 // those that answer another way, each with how
 const OTHER = {
   "tc-open": [/\.tcard:hover\{/, "a thread card's body: the card itself lights (.tcard:hover)"],
-  "vw-fold": [/\.vw-menu :is\(\[role=menuitem\],\[role=menuitemradio\]\):focus\{background:var\(--fill-2\)/, "an item of the file's ⋯ menu: the pointer moves the menu's focus (keynav pointerFollows), and focus fills it"],
+  "vw-fold": [/\.vw-menu :is\(\[role=menuitem\],\[role=menuitemradio\]\):focus\{background:var\(--menu-focus\)/, "an item of the file's ⋯ menu: the pointer moves the menu's focus (keynav pointerFollows), and focus fills it"],
   "side-x": [/\.side-x\{display:none\}/, "the drawer's close: a phone's, never drawn on a desktop"],
   "top-menu": [/\.top-menu\{display:none\}/, "the phone bar's menu: never drawn on a desktop"],
   "pb-menu": [/@media \(max-width:760px\)\{[\s\S]*?\.pb-menu\{display:grid/, "the phone bar's menu: drawn only on a phone"],

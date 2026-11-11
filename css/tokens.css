@@ -27,6 +27,7 @@
   color-scheme:dark;
   --sunken:#111111; --canvas:#141414; --surface:#1B1B1B; --float:#1E1E1E;
   --fill-1:#171717; --fill-2:#232323; --fill-3:#2C2C2C; --fill-4:#3A3A3A;
+  --menu-focus:#383838;   /* a menu's focused item: its fill is the mark, so it shows on the float (#232323 was 15 RGB-sum off it) */
   --line-faint:#1F1F1F; --line-soft:#262626; --line:#303030; --line-strong:#3C3C3C; --line-hover:#565656;
   --ink:#E1E1E1; --ink-2:#C1C1C1; --ink-3:#909090; --ink-4:#878787; --ink-5:#727272;   /* text, secondary, meta, quiet (4.6:1), placeholder */
   --on-ink:#141414; --ink-hi:#FFFFFF;
@@ -127,6 +128,7 @@
   color-scheme:light;
   --sunken:#F2F2F2; --canvas:#FAFAFA; --surface:#FFFFFF; --float:#FFFFFF;
   --fill-1:#F5F5F5; --fill-2:#EEEEEE; --fill-3:#E5E5E5; --fill-4:#C9C9C9;
+  --menu-focus:#EEEEEE;
   --line-faint:#EEEEEE; --line-soft:#E6E6E6; --line:#DCDCDC; --line-strong:#CCCCCC; --line-hover:#BDBDBD;
   --ink:#1A1A1A; --ink-2:#3B3B3B; --ink-3:#575757; --ink-4:#6B6B6B; --ink-5:#858585;
   --on-ink:#FFFFFF; --ink-hi:#000000;
@@ -162,6 +164,7 @@
 :root[data-theme="light"] :is(.toast,.lbx){
   color-scheme:dark; color:var(--ink);
   --fill-1:#171717; --fill-2:#232323; --fill-3:#2C2C2C; --fill-4:#3A3A3A;
+  --menu-focus:#383838;   /* a menu's focused item: its fill is the mark, so it shows on the float (#232323 was 15 RGB-sum off it) */
   --line-faint:#1F1F1F; --line-soft:#262626; --line:#303030; --line-strong:#3C3C3C; --line-hover:#565656;
   --ink:#E1E1E1; --ink-2:#C1C1C1; --ink-3:#909090; --ink-4:#878787; --ink-5:#727272;
   --on-ink:#141414; --ink-hi:#FFFFFF;
