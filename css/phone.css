@@ -227,7 +227,7 @@
      ring reached 4.5 px above the viewer and was cut). The head's rule is drawn inside it at every width (panel.css),
      and here the ring is drawn inside its controls: the same 2 px of the focus colour, inset, as the grips'
      (foundation.css) */
-  .vw-top :focus-visible{outline-offset:-2px}
+  .vw-top :focus-visible{outline-offset:-2px;outline-color:var(--ring-in,var(--focus))}
   /* a full-screen file and the panel's bar clear a notch: the 40 px head grows by the top inset (none in a browser
      window, where they're as drawn) */
   .viewer:not(.stage .viewer) .vw-top{height:calc(40px + env(safe-area-inset-top, 0px));padding-top:env(safe-area-inset-top, 0px)}

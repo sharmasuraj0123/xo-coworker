@@ -112,7 +112,7 @@ t("one rule draws it for both regions; no copy per region", () => {
   assert.match(b, /z-index:/, "above the region");
   has(panel, /:is\(\.vw-body,\.cx-pd\)\{isolation:isolate\}/, "what the renderer paints stays inside the region, under the ring");
   has(panel, /:is\(\.vw-body,\.cx-pd\)\.has-ring:focus-visible\{outline:none\}/, "the outline stands down only where the ring is");
-  has(panel, /:is\(\.vw-body,\.cx-pd\):focus-visible\{outline:2px solid var\(--focus\);outline-offset:-2px\}/, "and stays as the fallback");
+  has(panel, /:is\(\.vw-body,\.cx-pd\):focus-visible\{outline:2px solid var\(--ring-in,var\(--focus\)\);outline-offset:-2px\}/, "and stays as the fallback");
   assert.ok(!/\.cx-pane:has\(>\.cx-pd:focus-visible\)::after/.test(panel), "the diff's own copy (its 35 px guess at the head) is gone");
 });
 t("the app starts it once", () => {

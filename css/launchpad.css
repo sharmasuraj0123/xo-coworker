@@ -198,7 +198,7 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 /* one active item: the focused one, whichever hand moved it (the mouse moves focus: keynav.js pointerFollows); :hover
    never paints a second (Astra on e1f8666: mouse onto an item, then ↓, left two looking active) */
 .lp-mn button:focus{background:var(--panel-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
-.lp-mn button:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.lp-mn button:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
 
 /* not ready: what's missing */
 .lp-check{grid-template-columns:none}
@@ -416,7 +416,7 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .fr-ghost-v{display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;pointer-events:none}
 .fr-ghost::before{content:"";position:absolute;top:0;left:12px;right:12px;height:1px;background:var(--panel-line)}
 .fr-ghost:hover{background:var(--panel-hover)}
-.fr-ghost:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.fr-ghost:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
 /* the copy's controls are spans: what their buttons had, by look */
 .fr-ghost .fr-fold svg{transform:rotate(-90deg)}
 .fr-ghost .fr-ib,.fr-ghost .fr-t{display:inline-grid;place-items:center}

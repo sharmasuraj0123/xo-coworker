@@ -2798,7 +2798,7 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .stg-tab svg{flex:none;width:15px;height:15px}
 .stg-tab:hover{background:var(--fill-2);color:var(--ink)}
 .stg-tab.is-on{background:var(--fill-2);color:var(--ink);box-shadow:var(--hairline)}
-.stg-tab:focus-visible{outline-offset:-2px}
+.stg-tab:focus-visible{outline-offset:-2px;outline-color:var(--ring-in,var(--focus))}
 .stg-n{font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums}
 .stg-tab.is-on .stg-n{color:var(--ink-3)}
 .stg-filew{flex:0 1 auto;min-width:0;display:inline-flex;align-items:center;border-radius:var(--r-sm);transition:background var(--d-hover) var(--ease)}
@@ -2922,7 +2922,7 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .fl-sec:first-child{padding-top:4px}
 .fl-r{--d:0;display:flex;align-items:center;gap:7px;width:100%;min-height:var(--h-ctl);padding:0 10px 0 calc(6px + var(--d) * 16px);border-radius:var(--r-sm);text-align:left;font:400 var(--fs-base)/20px var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .fl-r:hover{background:var(--fill-2);color:var(--ink)}
-.fl-r:focus-visible{outline-offset:-2px}
+.fl-r:focus-visible{outline-offset:-2px;outline-color:var(--ring-in,var(--focus))}
 .fl-r.is-on{background:var(--fill-2);color:var(--ink)}
 .fl-r.is-dir{color:var(--ink)}
 .fl-c{flex:none;display:grid;place-items:center;width:13px;color:var(--ink-4)}

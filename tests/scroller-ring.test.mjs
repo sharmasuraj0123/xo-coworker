@@ -21,7 +21,7 @@ const all = css.map((x) => x[1]).join("\n");
 const base = read("css/base.css"), fnd = read("css/foundation.css"), tokens = read("css/tokens.css");
 const ring = base.match(/(^|\n):focus-visible\{outline:(\d+)px solid var\(--focus\);outline-offset:(\d+)px\}/);
 const ext = +ring[2] + +ring[3], room = +tokens.match(/--ring-room:(\d+)px/)[1];
-const inset = (fnd.match(/:is\(([^)]*)\):focus-visible\{outline-offset:-2px\}/) || [])[1] || "";
+const inset = (fnd.match(/:is\(([^)]*)\):focus-visible\{outline-offset:-2px;outline-color:var\(--ring-in,var\(--focus\)\)\}/) || [])[1] || "";
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
@@ -145,12 +145,12 @@ t("each clipping box listed is still one, and holds the ring as listed", () => {
   }
   for (const [sel, [how, what]] of Object.entries(CLIPPERS)) if (how.startsWith("inset:")) {
     const k = how.slice(6);
-    const own = new RegExp(`${k.replace(/\./g, "\\.")}\\)?:focus-visible\\{outline:2px solid var\\(--focus\\);outline-offset:-2px\\}`).test(all);
+    const own = new RegExp(`${k.replace(/\./g, "\\.")}\\)?:focus-visible\\{outline:2px solid var\\(--ring-in,var\\(--focus\\)\\);outline-offset:-2px\\}`).test(all);
     assert.ok(inset.split(",").map((x) => x.trim()).includes(k) || own, `${sel} (${what}): ${k} draws its ring inside it`);
   }
 });
 t("C076: every control in the panel's bars (its own, a frame's head, a change's head) draws its ring inside it, by kind, not a list of names", () => {
-  assert.match(all, /\.stage :is\(\.ag-r,\.ch-r,\.fr-t,\.fr-ib,\.stg-ic,:is\(\.stg-bar,\.fr-h,\.cx-ph\) :is\(button,a\[href\],\[role=tab\]\)\):focus-visible\{outline:2px solid var\(--focus\);outline-offset:-2px\}/);
+  assert.match(all, /\.stage :is\(\.ag-r,\.ch-r,\.fr-t,\.fr-ib,\.stg-ic,:is\(\.stg-bar,\.fr-h,\.cx-ph\) :is\(button,a\[href\],\[role=tab\]\)\):focus-visible\{outline:2px solid var\(--ring-in,var\(--focus\)\);outline-offset:-2px\}/);
   for (const [sel, [how]] of Object.entries(CLIPPERS)) if (how === "bars") assert.ok([".stage", ".fr", ".stage .cx-pane"].includes(sel), `${sel}: only the panel's boxes are placed by its bars' rule`);
 });
 t("C045: the checklist's toggle draws its ring inside it, on the bar's inner corners", () => {

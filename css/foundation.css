@@ -153,7 +153,11 @@ body.stage-full .stg-grip{display:none}
 .dlg-head{align-items:flex-start}
 
 /* ── 2 · one focus ring: never clipped, never changes a thing's shape ────────────────────────────── */
-:is(.fl-r,.nw,.shd-tab,.ar,.stg-tab,.syl-ln,.then-i,.jump-list li,.iq-row,.set-nav button,.tb-h,.md-from,.md-pin,.ck-tog):focus-visible{outline-offset:-2px}
+/* a ring drawn inside a control lies on its fill: on the accent's green, the green ring vanished (the controls grader
+   on 8aa58d3, S135: the viewer's Save, inset in its head on a phone, rgba(131,214,58,.75) on #83D63A). Every inset
+   ring takes the colour its fill asks for (--ring-in), and a control on the accent asks for the accent's own ink */
+:where(.btn-pri,.send,.xd-btn.is-pri,.xd-send,.tw-act.lp-btn,.b-allow.pressed,.b-done.pressed){--ring-in:var(--accent-ink)}
+:is(.fl-r,.nw,.shd-tab,.ar,.stg-tab,.syl-ln,.then-i,.jump-list li,.iq-row,.set-nav button,.tb-h,.md-from,.md-pin,.ck-tog):focus-visible{outline-offset:-2px;outline-color:var(--ring-in,var(--focus))}
 .md-it{overflow:visible}
 .md-th{border-radius:calc(var(--r-lg) - 1px) calc(var(--r-lg) - 1px) 0 0}
 .now{padding:3px}
@@ -204,7 +208,7 @@ body.stage-full .stg-grip{display:none}
    brightening was the only cue, 1.5–2.5:1 (the controls grader on 9d1f71b, C034 Files' divider, C035 the chat's; the
    panel's grip is the same kind). Files' divider is a 1 px line with a 9 px grab area drawn after it: the ring is there.
    Each as specific as the rule that takes its outline away (body.chat-docked .fv-cgrip{outline:none} outweighed it) */
-body.chat-docked .fv-cgrip:focus-visible,.stg-grip:focus-visible{outline:2px solid var(--focus);outline-offset:-2px;border-radius:3px}
+body.chat-docked .fv-cgrip:focus-visible,.stg-grip:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px;border-radius:3px}
 .fv .fl.is-wide .fl-split:focus-visible::after{box-shadow:inset 0 0 0 2px var(--focus);border-radius:3px}
 
 /* a boxed text field (a form's .field, Launchpad's, a shell's name, a note to the agent): the keyboard's focus is the base

@@ -106,7 +106,7 @@ diffs-container{
 .stage .xd-follow:hover{background:var(--panel-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
 .stage .xd-follow.is-on{background:color-mix(in srgb,var(--info) 14%,transparent);color:color-mix(in srgb,var(--info) 75%,var(--ink))}
 .stage .xd-follow.is-on:hover{background:color-mix(in srgb,var(--info) 22%,transparent)}
-.stage .xd-follow:focus-visible,.stage .cx-r:focus-visible,.stage .cx-more:focus-visible,.stage .cx-ofi:focus-visible,.stage .cx-pill:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.stage .xd-follow:focus-visible,.stage .cx-r:focus-visible,.stage .cx-more:focus-visible,.stage .cx-ofi:focus-visible,.stage .cx-pill:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
 .xd-arc{position:relative;width:10px;height:10px}
 .xd-arc::before{content:"";position:absolute;inset:0;border-radius:50%;border:1.5px solid color-mix(in srgb,currentColor 25%,transparent);border-top-color:currentColor;animation:arc-turn 1.6s linear infinite}
 @media (prefers-reduced-motion:reduce){.xd-arc::before,.stage .cx-pill{animation:none}.stage :is(.cx-r,.cx-ofi,.xd-follow){transition:none}}
@@ -195,7 +195,7 @@ diffs-container{
 /* the file changed while you edited: said in words above the merge view */
 .xd-bar{flex:none;margin:0;padding:10px 16px;border-bottom:1px solid var(--line-faint);background:color-mix(in srgb,var(--warn) 7%,var(--canvas));font:400 var(--fs-md)/20px var(--sans);color:var(--ink-2)}
 .xd-bar b{color:var(--ink);font-weight:600}
-.xd-bar:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.xd-bar:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
 /* each place you both changed: your three choices, drawn by us in Pierre's slot */
 .xd-merge{display:flex;align-items:center;gap:4px;padding:4px 0;font-family:var(--sans);border-radius:var(--r-sm);outline:none}
 .xd-merge:focus-visible{box-shadow:0 0 0 2px var(--focus)}
@@ -250,7 +250,7 @@ diffs-container{
 .ximg-c{--ck:color-mix(in srgb,var(--ink) 5%,transparent);position:relative;flex:1 1 0;min-width:0;min-height:0;display:grid;grid-template:minmax(0,1fr)/minmax(0,1fr);place-items:center;padding:12px;overflow:hidden;background:conic-gradient(var(--ck) 25%,transparent 0 50%,var(--ck) 0 75%,transparent 0) 0 0/16px 16px,var(--fill-1)}
 .ximg-c img{display:block;max-width:100%;max-height:100%;object-fit:contain;box-shadow:0 0 0 1px var(--panel-line)}
 .ximg-open{width:100%;height:100%;min-height:0;display:grid;grid-template:minmax(0,1fr)/minmax(0,1fr);place-items:center;padding:0;border-radius:var(--r-sm);cursor:zoom-in}
-.ximg-open:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.ximg-open:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
 .ximg-say{display:flex;align-items:center;gap:8px;margin:0;padding:4px 8px;border-radius:var(--r-sm);background:var(--fill-1);font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
 .ximg-say .spin{width:10px;height:10px}
 .ximg-cap{flex:none;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;padding:8px 12px;border-top:1px solid var(--panel-line);font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}

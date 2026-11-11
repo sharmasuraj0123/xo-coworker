@@ -47,7 +47,7 @@
 .shp-json summary{display:flex;align-items:center;gap:8px;width:max-content;max-width:100%;height:var(--h-row);padding:0 12px 0 8px;margin-left:-8px;border-radius:var(--r);list-style:none;cursor:pointer;font:500 var(--fs-md)/var(--lh-14) var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .shp-json summary::-webkit-details-marker{display:none}
 .shp-json summary:hover{background:var(--hover-fill);color:var(--ink);transition-duration:var(--d-hover-in)}
-.shp-json summary:focus-visible{outline-offset:-2px}
+.shp-json summary:focus-visible{outline-offset:-2px;outline-color:var(--ring-in,var(--focus))}
 .shp-chev{display:grid;place-items:center;width:16px;height:16px;color:var(--ink-4)}
 .shp-chev svg{width:16px;height:16px;transform:rotate(-90deg);transition:transform var(--d-in) var(--ease)}
 .shp-json[open] .shp-chev svg{transform:none}

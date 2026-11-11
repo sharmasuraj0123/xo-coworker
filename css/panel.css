@@ -425,7 +425,7 @@ body.viewer-open .fv~.dock{display:none}
 .stage .fr-gut{margin:0 var(--ring-room)}
 .stage .fr-gut::before{content:"";position:absolute;inset:0 calc(12px - var(--ring-room));background:var(--panel-line);transition:background var(--d-hover) var(--ease)}
 .stage .fr-gut:hover::before,.stage .fr-gut:focus-visible::before,body.stage-vsizing .stage .fr-gut::before{background:var(--line-hover)}
-.stage .fr-gut:focus-visible{outline:2px solid var(--focus);outline-offset:-1px}
+.stage .fr-gut:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-1px}
 .stage .fr-none{padding:8px 20px 12px;margin:0;line-height:20px}
 
 /* A thread's coloured glyph is its map identity; its tile carries the shared corner working arc.
@@ -480,7 +480,7 @@ body.viewer-open .fv~.dock{display:none}
 }
 .stage .fr[data-fr="map"] .dg:focus-visible{box-shadow:inset 0 0 0 2px var(--focus)}
 /* a region you scroll with the keys (a file, a diff) says when the keyboard is in it, with the one ring */
-:is(.vw-body,.cx-pd):focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+:is(.vw-body,.cx-pd):focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
 /* one ring for both regions, above what the renderer paints inside them: js/ring.js draws it just after the region,
    over its box (its own outline sat under the drawing: Astra C087 on dd15034, the diff; C096 on cb7afe7, the file).
    The outline stays as the fallback where the ring can't be placed */
@@ -520,7 +520,7 @@ body.viewer-open .fv~.dock{display:none}
    list of the ones known: the frames clip (overflow:hidden), and on a phone the floor makes a head's control 36 tall in
    its 40 px head, so a ring outside it lost its top and bottom (grader B on 24be023, C076: Launchpad's Deploy, which
    the list didn't name) */
-.stage :is(.ag-r,.ch-r,.fr-t,.fr-ib,.stg-ic,:is(.stg-bar,.fr-h,.cx-ph) :is(button,a[href],[role=tab])):focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.stage :is(.ag-r,.ch-r,.fr-t,.fr-ib,.stg-ic,:is(.stg-bar,.fr-h,.cx-ph) :is(button,a[href],[role=tab])):focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
 @media (prefers-reduced-motion:reduce){.stage :is(.fr-t,.fr-gut::before,.ag-r,.ch-r){transition:none}}
 
 /* while the panel covers the page (a phone, or full size), a notice (a Stop's Undo, Launchpad's own) is drawn above

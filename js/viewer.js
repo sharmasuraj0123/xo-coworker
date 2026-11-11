@@ -287,6 +287,10 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     const ae = document.activeElement;
     const had = ae && top.contains(ae) ? hookOf(ae) : "";
     const fromMenu = !!(ae && ae.closest && ae.closest(".vw-menu"));
+    // the head is drawn anew, the control under the keyboard with it: the viewer holds focus first, in this step, and
+    // the same control (or what follows it) takes it back below; the editor may take a moment to (the controls grader
+    // on 8aa58d3: the "file that runs code" question's Cancel and Save, S134/S135, went with the head: BODY, 11/11)
+    if (ae && top.contains(ae)) el.focus({ preventScroll: true });
     top.outerHTML = head();
     errPaint();
     if (!had) return;

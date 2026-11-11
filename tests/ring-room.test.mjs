@@ -43,7 +43,7 @@ t("on a phone the file's head stays 40, its buttons fill it, and their ring is d
   assert.equal(btn, 40, "the phone's file buttons: 40");
   assert.match(phone, /\.viewer:not\(\.stage \.viewer\) \.vw-top\{height:calc\(40px \+ env\(safe-area-inset-top, 0px\)\)/, "the head: 40, on the grid, with the notch");
   assert.match(read("css/panel.css"), /\.vw-top\{height:40px;[^}]*border-bottom:0;box-shadow:inset 0 -1px 0 var\(--line-faint\);/, "its rule inside it, at every width: its content is the whole 40");
-  assert.match(phone, /\.vw-top :focus-visible\{outline-offset:-2px\}/, "the ring inside its controls: 2 px of the focus colour, inset");
+  assert.match(phone, /\.vw-top :focus-visible\{outline-offset:-2px;outline-color:var\(--ring-in,var\(--focus\)\)\}/, "the ring inside its controls: 2 px of the focus colour, inset");
 });
 // on a desktop too: a 40 px bar's controls are 32, so the ring's room above and below them is the bar's 8 px less its
 // rule. A rule drawn as a border took 1 of it, and where the bar meets a box that clips, a focused control's ring lost
