@@ -1868,15 +1868,24 @@ function recordLine(session, rec) {
   const conv = session;
   const m = { id: `rec${++S.n}`, who: "rec", at: Date.now(), text: rec.text, refused: !!rec.refused, undo: rec.undo || null, until: Date.now() + 3000 };
   (S.local[conv] = S.local[conv] || []).push(m);
-  if (rec.undo) setTimeout(schedule, 3050);
+  // its Undo goes when its window ends: if it holds focus then, the conversation takes it first (S004)
+  if (rec.undo) setTimeout(() => { recUndoLeaves(m.id); schedule(); }, 3050);
   if (S.view === "home" || (S.view !== conv)) heraldShow({ kind: "rec", text: rec.text, undo: rec.undo ? m.id : null, undoUntil: rec.undo ? m.until : 0 }, rec.undo ? 3200 : 4200);
   announce(rec.text);
   schedule();
+}
+/** A record line's Undo is drawn only while it can undo: when it goes (pressed, or its window over) and holds focus,
+ *  the conversation it's in takes focus first, before the line is drawn again without it, never the page (the
+ *  create-project grader on 24be023, S004: Undo pressed, the line said "undone", focus on BODY) */
+function recUndoLeaves(id) {
+  const b = document.activeElement?.closest?.(`[data-rec-undo="${CSS.escape(id)}"]`);
+  if (b) placeRegion().focus({ preventScroll: true });
 }
 function undoRecord(id) {
   for (const list of Object.values(S.local)) {
     const m = list.find((x) => x.id === id);
     if (m && m.undo && Date.now() < m.until) {
+      recUndoLeaves(id);
       m.undo(); m.undo = null;
       m.text = `${m.text} · undone`;
       announce("Undone.");

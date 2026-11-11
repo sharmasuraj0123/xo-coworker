@@ -95,8 +95,7 @@ t("content that grows above the control under the keyboard: it was in sight, so 
   F.bringWhole(P.el, P.win);
   assert.equal(P.scroller.scrollTop, 2000 + 76, "the least distance: its foot to the box's foot");
   const red = readFileSync(new URL("../js/redraw.js", import.meta.url), "utf8");
-  // (a control the new HTML no longer has hands focus to the place around it first: S004; else it's brought back)
-  assert.ok(/const seen = !!focus && el\.contains\(focus\) && inSight\(focus\);[^]*?const changed = syncChildren\(el, tpl\.content, focus\);[^]*?else if \(changed && seen && focus\.isConnected && !inSight\(focus\)\) bringWhole\(focus\);/.test(red), "redraw keeps it: in sight before, so in sight after");
+  assert.ok(/const seen = !!focus && el\.contains\(focus\) && inSight\(focus\);[^]*?const changed = syncChildren\(el, tpl\.content, focus\);\s*if \(changed && seen && focus\.isConnected && !inSight\(focus\)\) bringWhole\(focus\);/.test(red), "redraw keeps it: in sight before, so in sight after");
 });
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 t("the app starts it once", () => {
