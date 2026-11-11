@@ -320,6 +320,24 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
     memo.set(pid, { key, titles, threads: world.state.threads, items });
     return items;
   }
+  // the sidebar's count: a project read to its end counts what it has, and keeps that count (this browser, per chat) for
+  // next time; one whose older pages aren't read yet shows the larger of what's read and that kept count. It showed the
+  // newest pages' 348, then 1738 once Artifacts read the rest (the owner, 11 Nov 08:06Z). The Space gives no total
+  const FULL_KEY = (chat) => `xo-made-n:${chat}`;
+  const fullOf = (chat) => { try { return +localStorage.getItem(FULL_KEY(chat)) || 0; } catch { return 0; } };
+  function madeCountAll(pending) {
+    let n = 0;
+    for (const p of projectsMade()) {
+      const e = served.get(p.chatId);
+      if (pending && !(e && e.rows)) { n += fullOf(p.chatId); continue; }
+      const items = madeIn(p.id).length;
+      if (!e || e.off || (e.rows && !e.more)) {
+        if (e && e.rows && fullOf(p.chatId) !== items) { try { localStorage.setItem(FULL_KEY(p.chatId), String(items)); } catch { /* private mode */ } }
+        n += items;
+      } else n += Math.max(items, fullOf(p.chatId));
+    }
+    return n;
+  }
   let allMemo = { parts: [], items: [] };
   function madeOf(pid) {
     if (pid) return madeIn(pid);
@@ -741,7 +759,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
     /** The newest file a thread made (not a branch): what its finished card offers to open. */
     latestOf: (tid, project) => madeOf(project || null).find((x) => x.tid === tid && x.kind !== "branch" && x.kind !== "link" && x.exists !== false) || null,
     /** The Artifacts page (a sidebar place): render() draws it; count() is what the sidebar shows. */
-    artifacts: { render: artsRender, count: () => (madePending(null) ? 0 : madeOf(null).length) },
+    artifacts: { render: artsRender, count: () => madeCountAll(madePending(null)) },
     /** The panel's Made tab. */
     made: { mount, show: showMade, count: (v) => madeOf(pidOf(v)).length },
     set panel(p) { panel = p; },
