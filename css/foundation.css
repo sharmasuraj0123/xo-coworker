@@ -71,7 +71,7 @@ body.stage-full .stg-grip{display:none}
    takes it too (a file or a thread's capsule in a message: its own 14→18% step went by in its transition, held looked
    as hovered, the controls grader on 8aa58d3, S017/S088); a link in a sentence dims instead. */
 :is(.help,.create,.then-i,.hm-quiet,.top-back,.all-btn,.nw,.wsh-next,.tc-open,.tc-dec,button.hr,.t-undo,.dock-hide,.dock-fold,.btn,.set-nav button,button.kr-k,.tb-cf,.tw-act,.tw-rt,.tb-fb,.syl-got,.map-btn,.stg-btn,.fl-r,.stg-tab,.ar,.syl-ln,.jump-list li,.iq-row,.hd,.hd-r,.fl-back,.stg-ic,.md-open,.md-from):active,.pn-nav:active:not(:disabled){transform:none}
-:where(button,a[href][class],[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],summary,.rt-check):where(:not(:disabled,[aria-disabled="true"],.send,.b,.b-hold,.theme,.switch,.lp-go,.lk:not(.lk-in),.tw-act.lp-btn,.prow,.nrow,.create,.btn,.iq,.iq-row,.iq-done,:is(.vw-cut-dl,.wsh-home,.cp-link,.tg-ch,.fl-link,.lp-ln,.shl-all,.tp-done-u),.gear,.side-plus,.lp-menu button)):where(:active){background-image:linear-gradient(var(--press-fill),var(--press-fill))!important;--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
+:where(button,a[href][class],[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],summary,.rt-check):where(:not(:disabled,[aria-disabled="true"],.send,.b,.b-hold,.theme,.switch,.lp-go,.lk:not(.lk-in),.xd-btn.is-pri,.xd-send,.tw-act.lp-btn,.prow,.nrow,.create,.btn,.iq,.iq-row,.iq-done,:is(.vw-cut-dl,.wsh-home,.cp-link,.tg-ch,.fl-link,.lp-ln,.shl-all,.tp-done-u),.gear,.side-plus,.lp-menu button)):where(:active){background-image:linear-gradient(var(--press-fill),var(--press-fill))!important;--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
 /* hovered, a control's secondary words step up to the second ink, as pressed ones do: on the 6% hover fill the meta
    inks fall under 4.5:1 (--ink-4 3.9–4.1 on dark float and surface and on light sunken, --ink-3 4.37 on dark float);
    the second keeps 7.8–9.7. One rule for every control, the owner's choice (10 Nov 11:19); the sidebar's rows keep
@@ -159,6 +159,10 @@ body.stage-full .stg-grip{display:none}
    on 8aa58d3, S135: the viewer's Save, inset in its head on a phone, rgba(131,214,58,.75) on #83D63A). Every inset
    ring takes the colour its fill asks for (--ring-in), and a control on the accent asks for the accent's own ink */
 :where(.btn-pri,.send,.xd-btn.is-pri,.xd-send,.tw-act.lp-btn,.b-allow.pressed,.b-done.pressed){--ring-in:var(--accent-ink)}
+/* a control on the accent presses deeper, to the accent's own press (--accent-press), as Create and .btn-pri do: the
+   shared press fill is a veil of the theme's ink, and in dark it lightened the green, which reads as its hover (the
+   controls grader on ba93c9b, S135: the viewer's Save held as hovered in dark, both rgb(150,220,88)) */
+:where(.xd-btn.is-pri,.xd-send):where(:active:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background-color:var(--accent-press)!important;border-color:var(--accent-press)!important}
 :is(.fl-r,.nw,.shd-tab,.ar,.stg-tab,.syl-ln,.then-i,.jump-list li,.iq-row,.set-nav button,.tb-h,.md-from,.md-pin,.ck-tog):focus-visible{outline-offset:-2px;outline-color:var(--ring-in,var(--focus))}
 .md-it{overflow:visible}
 .md-th{border-radius:calc(var(--r-lg) - 1px) calc(var(--r-lg) - 1px) 0 0}
