@@ -4036,7 +4036,8 @@ t("RINGCLIP: no clipping box cuts a focused control's ring: Home, a project with
 const { stateSweep } = require("./harness.cjs");
 t("STATES: every control in view answers hover and press: Home, a project with its Now shelf and a message's Copy, the Workspace, a thread", async () => {
   if (WIDTH < 760) skip("a phone has no hover");
-  const page = await app({ messages: MSG("Here is the command:\n\n```sh\nnpm test\n```\n") });
+  // the project's message holds a file's capsule too (S088, a[data-file]: held looked as hovered)
+  const page = await app({ messages: MSG("Here is the command, from [package.json](package.json):\n\n```sh\nnpm test\n```\n") });
   const silent = [], counts = [];
   const sweep = async (where) => { const r = await stateSweep(page, where); counts.push(`${where} ${r.n}`); silent.push(...r.silent); };
   await page.evaluate(() => { window.__t.go("home"); window.__t.render(); }); await page.waitForTimeout(500);
