@@ -85,8 +85,13 @@ body.chat-docked #target>span:last-child{display:none}
 body.fv-min .fv{visibility:hidden;pointer-events:none;right:var(--cw)}
 
 /* its chip in the header: the file's own icon, its name and counts; × closes it */
-.fchip{flex:none;display:inline-flex;align-items:center;height:28px;border-radius:var(--r);background:var(--surface);box-shadow:inset 0 0 0 1px var(--line-soft)}
-:root[data-theme="light"] .fchip{background:var(--surface);box-shadow:inset 0 0 0 1px var(--panel-line)}
+/* one chip: as tall as its two halves (--h-ctl; it stayed 28 when they went to 32, so the ×'s hover stood out past it as
+   a button of its own: the owner, 11 Nov 08:12Z), its edge drawn over them, so a half's hover fills inside the edge
+   and reads as the chip's own end */
+.fchip{position:relative;flex:none;display:inline-flex;align-items:stretch;border-radius:var(--r);background:var(--surface)} /* as tall as its halves, whatever they are (32; a phone's 36) */
+.fchip::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px var(--line-soft);pointer-events:none}
+:root[data-theme="light"] .fchip{background:var(--surface)}
+:root[data-theme="light"] .fchip::after{box-shadow:inset 0 0 0 1px var(--panel-line)}
 .fchip-b{display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 4px 0 8px;border-radius:var(--r) 0 0 var(--r);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-2)}
 .fchip-i{display:grid;place-items:center;width:16px;height:16px}
 .fchip-i svg{width:16px;height:16px}
