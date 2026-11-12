@@ -76,6 +76,17 @@ export function stormSource(state, emit, event) {
 
   const projectOf = (chatId) => (chatId ? chatProject.get(chatId) || null : null);
   const chatIdOf = (project) => state.projects.find((p) => p.id === project)?.chatId || null;
+  // Select the current coordinator before checking activity: an older session's queued
+  // status must never make this chat busy or become Stop's target after replacement.
+  const coordinatorOf = (chat) => {
+    if (!chat) return null;
+    let current = null;
+    for (const s of Object.values(state.sessions)) {
+      if (s.chat_id !== chat || !COORD.has(s.role) || s.retired_at) continue;
+      if (!current || (s.seq || 0) > (current.seq || 0)) current = s;
+    }
+    return current;
+  };
 
   // ── normalising ───────────────────────────────────────────────────────────
   function openItemsFor(ts) {
@@ -983,14 +994,13 @@ export function stormSource(state, emit, event) {
         const aw = state.awaiting[project];
         if (aw && Date.now() - aw.at > AWAIT_CAP_MS) delete state.awaiting[project];
         if (state.awaiting[project]) return true;
-        const chat = chatIdOf(project);
-        return Object.values(state.sessions).some((s) => s.chat_id === chat && COORD.has(s.role) && !s.retired_at && BUSY.has(s.state));
+        const s = coordinatorOf(chatIdOf(project));
+        return !!s && BUSY.has(s.state);
       },
       /** What the coordinator is doing now: its running turn's latest block header, for the typing line. */
       doing: (project) => {
-        const chat = chatIdOf(project);
-        const s = Object.values(state.sessions).find((x) => x.chat_id === chat && COORD.has(x.role) && !x.retired_at && BUSY.has(x.state));
-        const t = s && state.turns.running(s.id);
+        const s = coordinatorOf(chatIdOf(project));
+        const t = s && BUSY.has(s.state) && state.turns.running(s.id);
         if (!t) return null;
         const bl = state.turns.blocksOf(t);
         const last = bl[bl.length - 1];
@@ -1030,14 +1040,13 @@ export function stormSource(state, emit, event) {
       },
       /** The agent a chat's coordinator runs on (its newest live session), if known. */
       coordinatorAgent: (chatId) => {
-        const s = Object.values(state.sessions).filter((x) => x.chat_id === chatId && COORD.has(x.role) && !x.retired_at).sort((a, b) => (b.seq || 0) - (a.seq || 0))[0];
+        const s = coordinatorOf(chatId);
         return (s && s.agent) || null;
       },
       /** The coordinator session of a chat that is working now, if any. */
       coordinatorBusy: (project) => {
-        const chat = chatIdOf(project);
-        const s = Object.values(state.sessions).find((x) => x.chat_id === chat && COORD.has(x.role) && !x.retired_at && BUSY.has(x.state));
-        return s ? s.id : null;
+        const s = coordinatorOf(chatIdOf(project));
+        return s && BUSY.has(s.state) ? s.id : null;
       },
       /** A thread's hops (how messages travelled to and from it, and what they said), read when it's opened. */
       // once per thread per page: after that the stream's hops (and hopsSoon's re-read on a relay) keep it current

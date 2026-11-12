@@ -228,7 +228,6 @@ function projectIcon(pid) {
   projIcons.set(pid, { n: ts.length, svg });
   return svg;
 }
-const RUNNING = new Set(["queued", "starting", "running", "stopping"]); // a session on a turn (storm.js BUSY)
 const threadsOf = (pid) => world.state.threads.filter((t) => t.project === pid && t.state !== "resolved");
 const convThread = (v) => (v && v.startsWith("t:") ? world.thread(v.slice(2)) : null);
 // the team, visible (js/comms.js): a comms call names the thread, project or coordinator it reached
@@ -422,7 +421,7 @@ function sideRender(needs) {
     // every thread with work running counts, a resolved one too (its turn or sub-agents can outlive the
     // resolve), and so does the project's coordinator while it's on a turn
     const nBusy = world.state.threads.filter((t) => t.project === p.id && (t.state === "resolved" ? t.busy === true : isBusy(t))).length;
-    const coordBusy = !!p.chatId && Object.values(world.state.sessions || {}).some((x) => x.chat_id === p.chatId && x.role === "project-coordinator" && RUNNING.has(x.state));
+    const coordBusy = !!world.act.coordinatorBusy(p.id);
     const busy = nBusy > 0 || coordBusy;
     const needsMe = asks.length > 0;
     // hub #31: a project at work reads blue at a glance; what needs you (amber, red) still wins the row
