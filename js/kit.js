@@ -169,7 +169,7 @@ export function holdButton(btn, { ready, onConfirm, onRefuse, onRelease, holding
       if (p > 0 && btn.classList.contains("is-releasing")) { clearTimeout(back); btn.classList.remove("is-releasing"); } // held again mid-drain: the fill follows the hand
       btn.style.setProperty("--p", String(p)); btn.classList.toggle("tense", p > 0.8 && p < 1);
     },
-    onConfirm: () => { btn.classList.remove("tense"); onConfirm(); },
+    onConfirm: () => { btn.classList.remove("tense"); try { navigator.vibrate?.(24); } catch { /* not allowed */ } onConfirm(); }, // the one buzz is the hold completing
     onRefuse,
     onRelease: () => {
       btn.classList.remove("tense"); btn.classList.add("is-releasing");
@@ -233,6 +233,9 @@ export function holdToConfirm(btn, { ms = HOLD_MS, ready, onProgress, onConfirm,
     const r = btn.getBoundingClientRect();
     if (e.clientX < r.left - 8 || e.clientX > r.right + 8 || e.clientY < r.top - 8 || e.clientY > r.bottom + 8) stop(true);
   });
+  // touch: the browser's own long-press (Android Chrome buzzes at ~0.5 s, well before the 1.2 s is up) is cancelled at
+  // touchstart, so the only buzz felt is the one when the hold completes
+  btn.addEventListener("touchstart", (e) => { if (e.cancelable) e.preventDefault(); }, { passive: false });
   btn.addEventListener("click", (e) => e.preventDefault());
   btn.addEventListener("contextmenu", (e) => e.preventDefault());
   return { cancel: () => stop(true) };

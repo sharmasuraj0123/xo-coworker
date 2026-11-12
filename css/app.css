@@ -947,7 +947,7 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
    (--p, 0 → 1, set by kit.js holdButton), clipped by the button's own corners; the label slot holds both words
    so "Keep holding…" never shifts it; let go early and it drains back in 240 ms. Near the end the ring deepens;
    confirmed, it settles once. Nothing shakes while you hold and nothing overshoots. */
-.b-hold{background:color-mix(in srgb,var(--err) 12%,var(--float));border-color:color-mix(in srgb,var(--err-ink) 45%,var(--line));touch-action:none}
+.b-hold{background:color-mix(in srgb,var(--err) 12%,var(--float));border-color:color-mix(in srgb,var(--err-ink) 45%,var(--line));touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .b-hold:hover{background:color-mix(in srgb,var(--err) 17%,var(--float));border-color:color-mix(in srgb,var(--err-ink) 65%,var(--line))}
 .b-hold:active{transform:none}
 .b-hold:focus-visible{outline-color:color-mix(in srgb,var(--err-ink) 80%,transparent)}
