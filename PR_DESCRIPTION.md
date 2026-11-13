@@ -46,6 +46,26 @@ A linked app that Launchpad no longer has is reported as deleted or belonging to
 **What.** The first-run sheet that asked new users to pick a shape is gone, along with its view code, CSS and two unit tests. XO starts on the default, *Everything*. Settings › Shape is unchanged and is where anyone picks a shape.
 **Why.** The owner asked for the question to come out of startup (13 Nov, approved 20:40Z). Opening XO goes straight in; the shape remains a setting.
 
+### A message the usage limit holds back says Waiting, not Working (4f12ae2 … 5890c41)
+**Pairs with xo-space PR #296** (its `waiting` field and the engine's queue gate).
+
+**What.** When a gate holds a session's ready message with no process running, Storm queues the session: the usage limit, paid usage, or a reason it doesn't name. The UI now shows that as *Waiting*, saying what holds it and until when. It's no longer *Working*.
+- `queued` is no longer a busy state.
+- The backend's `waiting` (`for`, `until`, `pool`, `why`) is read first, then the pool.
+- A held coordinator isn't "replying".
+- Counts include "waiting".
+
+Reads and statuses also follow the stream's own order (by seq). A read stands where it was sent, a frame no longer rewrites a session's own seq, and only the stream's own runs outlive "queued".
+
+**Tests:**
+- `tests/busy.test.mjs`, extended.
+- Three browser tests: `held-waiting`, `held-contract` and `chat-read-order`.
+- `tests/fixtures/storm-held-contract.json`: xo-space's own payloads for a held coordinator and thread, dumped from its test kit (fake runtime, temp store) at ef4a931 and replayed through this frontend.
+
+**Why.** A thread held by the usage limit said *Working · <step>* with a ticking clock, while its coordinator "is working" sat under *Paused until 06:50* (the owner, 13 Nov 21:51Z). That was both wrong and alarming: nothing was running.
+
+**Not yet on :3000.** This part is pushed to the PR only, without a deploy.
+
 ### Two small layout fixes (13 Nov evening)
 - **Launchpad's *Change* stays on its line (a10c1b5).** On a narrow panel, the Machine and Environment lines dropped *Change* onto a row of its own. Label, value and *Change* now share one grid, so *Change* sits at the end of the line, level with its label, however the value wraps. This includes a phone's taller tap height. A new four-cell case, LP45, covers it, with mock scenarios `live-machine` and `live-machine-noenv` (the owner, 13 Nov 18:01Z).
 - **A short thread or file link stays inside its bubble on a phone (96de17a).** Links were kept on one line whatever the width, so at 390 px a 29-character title ran past the bubble's edge. A link is now at most as wide as the line:
