@@ -252,6 +252,12 @@ export const api = {
   chatRuntimePolicy: (chat) => get(`/chat/chats/${enc(chat)}/runtime-policy`),
   /** Replaces a project's override; a null field follows the Space. */
   setChatRuntimePolicy: (chat, policy) => send("PUT", `/chat/chats/${enc(chat)}/runtime-policy`, policy),
+  /** The Space advisory: each account's plan, usage windows and paid facts (facts only; every one with its source and age). */
+  advisory: () => get("/advisory"),
+  /** {intents: [...]}: the founder's holds and paid modes that hold now (rows: scope, scope_id, key, value, until, cites, set_at). */
+  intents: () => get("/chat/intent"),
+  /** The founder's paid-usage mode: {scope: "space", scope_id: "", value} or {scope: "pool", scope_id: poolId, value | null (null: follow the Space)}. */
+  setPaid: (body) => send("POST", "/chat/intent/paid", body),
   router: () => get("/chat/router"),
   setRouter: (body) => send("PUT", "/chat/router", body),
   routerModels: () => get("/chat/router/models"),

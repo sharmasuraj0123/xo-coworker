@@ -57,6 +57,13 @@ function world(over = {}) {
     ],
     runtimes: [{ name: "claude_code", default: true, health: { installed: true, logged_in: true, cli_version: "2.1" } }, { name: "codex", health: { installed: true, logged_in: true, cli_version: "0.9" } }],
     policy: { allowed: null, default: null, preferences: "Use Codex for the audit fixture.", fallback: false },
+    // paid usage: the advisory's two accounts (Codex can go on to paid usage and is on it now; Claude Code can't) and
+    // the founder's modes as XO holds them (a list of intent rows)
+    advisory: { accounts: [
+      { agent: "claude_code", account: "acct-a", plan: { value: "max", known: true }, paid: { possible: { value: false, known: true }, in_use: { value: false, known: true }, credits: { value: null, known: false }, disabled_reason: { value: "org_level_disabled", known: true } } },
+      { agent: "codex", account: "acct-b", plan: { value: "pro", known: true }, paid: { possible: { value: true, known: true }, in_use: { value: true, known: true }, credits: { value: 7187.56, known: true }, disabled_reason: { value: null, known: false } } },
+    ] },
+    intents: [],
     chats: null, // routing overrides: CHATS with chat_demo routed by its coordinator
     shape: { shape: { shape: 1, preset: "everything" }, version: "test" },
     made: [],
@@ -99,6 +106,14 @@ function settingsApi(W) {
     if (p === "/api/chat/runtimes" && m === "GET") return json({ runtimes: W.runtimes });
     if (p === "/api/chat/runtime-policy" && m === "GET") return json({ space: W.policy, effective: { ...W.policy, fallback: !!W.policy.fallback } });
     if (p === "/api/chat/runtime-policy" && m === "PUT") { const b = q.postDataJSON(); if ((failed = await write("policy", b))) return failed; W.policy = b; return json({ space: W.policy, effective: { ...W.policy } }); }
+    if (p === "/api/advisory" && m === "GET") return json(W.advisory);
+    if (p === "/api/chat/intent" && m === "GET") return json({ intents: W.intents });
+    if (p === "/api/chat/intent/paid" && m === "POST") {
+      const b = q.postDataJSON(); if ((failed = await write("paid", b))) return failed;
+      W.intents = W.intents.filter((i) => !(i.key === "paid" && i.scope === b.scope && i.scope_id === b.scope_id));
+      if (b.value) W.intents.push({ scope: b.scope, scope_id: b.scope_id, key: "paid", value: b.value, until: null, cites: null, set_at: NOW });
+      return json({ intent: b, halted: [] });
+    }
     if (p === "/api/chat/shape" && m === "GET") return json(W.shape);
     if (p === "/api/chat/shape" && m === "PUT") { const b = q.postDataJSON(); if ((failed = await write("shape", b))) return failed; W.shape = { shape: b.shape, version: `v${W.writes.length}` }; return json(W.shape); }
     if ((k = /^\/api\/chat\/chats\/([^/]+)\/made$/.exec(p))) return json({ made: k[1] === "chat_demo" ? W.made : [], next_before: null });
@@ -1340,6 +1355,64 @@ t("H1 C012 C013 Home: Handled and a Recently made file keep focus through Home's
   }
   // and Home's parts keep the shape's order, with the "since" line first
   assert.deepEqual(await page.evaluate(() => [...document.querySelector("#hm-body").children].map((e) => e.id)), ["hm-since", "hm-next", "hm-then", "hm-end", "hm-made"]);
+  await done(page);
+});
+
+// ── paid usage: the Space's mode and each account's, saved at once ─────────────────────────────────────────
+t("Paid usage: never until chosen; each choice is one POST, said Saved, and an account follows the Space or has its own", async (ctx) => {
+  const W = world();
+  const page = await open(W, ctx);
+  await settings(page, "runtimes");
+  await page.waitForSelector("#rtp-h");
+  const checked = (sel) => page.locator(`${sel}[aria-checked="true"]`).evaluate((e) => e.dataset.paidVal);
+  assert.equal(await checked('[data-paid-scope="space"]'), "never", "nothing chosen: never");
+  assert.match(await page.locator("#rtp-space").locator("xpath=..").innerText(), /Work stops before any paid usage, and when XO can’t tell whether it would be paid\./);
+  // Claude Code can't go paid, and says why; Codex is on it, with its credits, and the card says so too
+  const rows = page.locator(".rt-def").filter({ has: page.locator("[data-paid-pool]") });
+  assert.match(await rows.nth(0).innerText(), /Claude Code · Max[\s\S]*Paid usage is turned off for your organisation\./);
+  assert.match(await rows.nth(1).innerText(), /Codex · Pro[\s\S]*On paid usage[\s\S]*7,188 credits left/);
+  assert.equal(await page.locator(".rt-card .rt-paid").count(), 1, "one card carries the badge");
+  assert.equal(await checked('[data-paid-pool="codex:acct-b"]'), "same");
+  await shot(page, "paid-usage");
+  // the Space: Ask me
+  await page.locator('[data-paid-scope="space"][data-paid-val="ask"]').click();
+  await page.waitForFunction(() => document.querySelector('[data-paid-scope="space"][data-paid-val="ask"][aria-checked="true"]'));
+  await page.waitForSelector(".rt-saved:not(.is-saving)");
+  assert.deepEqual(page.W.writes.filter((w) => w.kind === "paid").map((w) => w.body), [{ scope: "space", scope_id: "", value: "ask" }]);
+  assert.match(await page.locator("#rtp-space").locator("xpath=..").innerText(), /goes on only after you allow it/);
+  assert.match(await rows.nth(1).innerText(), /Same as all accounts: Ask me\./, "an account that follows the Space shows the Space's mode");
+  // an account of its own: Always allow, then back to the Space's
+  await page.locator('[data-paid-pool="codex:acct-b"][data-paid-val="always"]').click();
+  await page.waitForFunction(() => document.querySelector('[data-paid-pool="codex:acct-b"][data-paid-val="always"][aria-checked="true"]'));
+  assert.match(await rows.nth(1).innerText(), /Work goes on into paid usage without asking\./);
+  assert.match(await rows.nth(0).innerText(), /Same as all accounts: Ask me\./, "the other account is not touched");
+  await page.locator('[data-paid-pool="codex:acct-b"][data-paid-val="same"]').click();
+  await page.waitForFunction(() => document.querySelector('[data-paid-pool="codex:acct-b"][data-paid-val="same"][aria-checked="true"]'));
+  assert.deepEqual(page.W.writes.filter((w) => w.kind === "paid").map((w) => w.body).slice(1), [{ scope: "pool", scope_id: "codex:acct-b", value: "always" }, { scope: "pool", scope_id: "codex:acct-b", value: null }]);
+  // choosing what already applies sends nothing
+  await page.locator('[data-paid-scope="space"][data-paid-val="ask"]').click();
+  await wait(150);
+  assert.equal(writes(page, "paid"), 3);
+  await done(page);
+});
+t("Paid usage: a refused choice says so in its row and keeps the old mode; a repeat press while it is out is one POST", async (ctx) => {
+  const W = world({ delay: 250 });
+  W.fail.paid = [err("unavailable", "Paid fixture unavailable")];
+  const page = await open(W, ctx);
+  await settings(page, "runtimes");
+  await page.waitForSelector("#rtp-h");
+  const btn = page.locator('[data-paid-scope="space"][data-paid-val="always"]');
+  await btn.focus();
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("Enter");
+  await page.waitForSelector(".rt-ferr[role=alert]");
+  assert.equal(writes(page, "paid"), 1, "two Enters, one POST");
+  assert.match(await page.locator(".rt-ferr").innerText(), /Paid fixture unavailable/);
+  assert.equal(await page.locator('[data-paid-scope="space"][aria-checked="true"]').evaluate((e) => e.dataset.paidVal), "never", "the old mode still shows");
+  assert.equal(await page.evaluate(() => document.activeElement.dataset.paidVal), "always", "focus stays on the choice");
+  await btn.click(); // a retry works
+  await page.waitForFunction(() => document.querySelector('[data-paid-scope="space"][data-paid-val="always"][aria-checked="true"]'));
+  assert.equal(writes(page, "paid"), 2);
   await done(page);
 });
 

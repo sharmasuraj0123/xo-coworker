@@ -16,6 +16,7 @@ import { tasksOf } from "./model.js";
 import { uiMsg, mergeRows, addReaction, updateMessage, stormAsks, mapLimit, currentPools, threadState, askingState, mainRuntime, BUSY_STATES, readSub, sessionRead, sessionBusy, pageAfter, canPageOlder, framesShort } from "./timeline.js";
 import { hostOf, askedBy } from "./review.js";
 import { isLimitItem, limitItem } from "./runtimes.js";
+import { paidBody, paidItem, accountRows, heldModes } from "./paid.js";
 import { commsLine, commsHeader } from "./comms.js";
 import { hopRank, mergeHop } from "./hopstate.js";
 
@@ -39,6 +40,9 @@ export const WAITING_STATES = new Set(["needs_reply", "needs_approval", "paused"
 export function stormSource(state, emit, event) {
   Object.assign(state, {
     status: null, statusError: null, runtimes: null, router: null, pools: {},
+    advisory: null,  // GET /api/advisory: each account's plan, usage and paid facts
+    paidOk: false,   // the intents were read at least once (a server without them shows no Paid usage)
+    paid: [],        // GET /api/chat/intent's rows: the founder's holds and paid modes that hold now
     policy: null,    // {space, effective}: the Space's runtime policy (mixed runtimes §2.2)
     chatPolicy: {},  // chat_… → {space, project, effective}: a project's own runtime policy
     controls: {},    // thread ts → [{action, by, by_session, reason, at, seq}]: thread.control (F6)
@@ -193,6 +197,8 @@ export function stormSource(state, emit, event) {
     // items with no thread (paid usage, a project the workspace proposes, a plain chat's report)
     // still reach Needs you: each is hosted by its chat or by the person's account
     const hosts = new Map();
+    let rows = null;
+    const paidRows = () => rows || (rows = accountRows({ advisory: state.advisory, held: heldModes(state.paid), pools: state.pools }));
     for (const it of state.review.values()) {
       if (it.state !== "open") continue;
       const h = hostOf(it);
@@ -205,7 +211,7 @@ export function stormSource(state, emit, event) {
         state: "needs_approval", checklist: { items: [], total: 0, done: 0, doing: 0 }, messages: [], asks: [], live: true, loaded: true, busy: false,
         createdAt: Date.parse(it.created_at) || Date.now(), lastAt: Date.parse(it.created_at) || Date.now(), card: {} };
       // a usage limit (F5): its words in the owner's terms, and no move a project's policy forbids
-      const shown = isLimitItem(it) ? limitItem(it, state.runtimes, chatPolicyOf) : it;
+      const shown = isLimitItem(it) ? limitItem(it, state.runtimes, chatPolicyOf) : paidItem(it, paidRows());
       if (shown !== it) host.title = "Usage limit";
       host.asks.push(...stormAsks(host, [shown]));
       hosts.set(h.id, host);
@@ -345,12 +351,13 @@ export function stormSource(state, emit, event) {
       state.status = await api.status();
       state.statusError = null; state.statusCode = null;
       const fresh = (state.status.pools || []).some((p) => !(p.id in state.pools));
-      for (const p of state.status.pools || []) state.pools[p.id] = { ...(state.pools[p.id] || {}), pool: p.id, state: p.state, resets_at: p.resets_at, paid_continue_until: p.paid_continue_until };
+      for (const p of state.status.pools || []) state.pools[p.id] = { ...(state.pools[p.id] || {}), pool: p.id, state: p.state, resets_at: p.resets_at, reason: p.reason || null };
       // A pool not seen before is a new account (a re-login), and while something holds work back
       // the account may have changed under it: either way, read which account each runtime is on
       // now rather than up to 5 min later, so an old account's pool stops pausing (if1 #1).
       if (poolsSeen && (fresh || poolHeld())) refreshRuntimes();
       poolsSeen = true;
+      loadPaid();
     } catch (err) {
       state.statusError = err.message; state.statusCode = err.code;
     }
@@ -368,6 +375,19 @@ export function stormSource(state, emit, event) {
     try { state.router = await api.router(); } catch { /* keep what we had */ }
     emit();
     runtimesT = setTimeout(loadRuntimes, RUNTIMES_MS);
+  }
+
+  /** Paid usage: the advisory's facts and the founder's modes. A server without them leaves what was read. */
+  let paidBusy = null;
+  function loadPaid() {
+    if (paidBusy) return paidBusy;
+    paidBusy = (async () => {
+      let changed = false;
+      try { state.advisory = await api.advisory(); changed = true; } catch { /* keep what we had */ }
+      try { state.paid = (await api.intents()).intents || []; state.paidOk = true; changed = true; } catch { /* keep what we had */ }
+      if (changed) { if ([...state.review.values()].some((it) => it.state === "open" && it.kind === "usage")) commit(); emit(); }
+    })().finally(() => { paidBusy = null; });
+    return paidBusy;
   }
 
   /** The runtime policy: the Space's, and each project's (a backend without them leaves both empty). */
@@ -970,6 +990,13 @@ export function stormSource(state, emit, event) {
         return (chat && state.chatPolicy[chat] && state.chatPolicy[chat].effective) || (state.policy && state.policy.effective) || null;
       },
       loadPolicies,
+      loadPaid,
+      /** Set the Space's paid-usage mode (scope "space"), or an account's (scope "pool", id its pool; value null follows the Space). */
+      setPaid: async (scope, id, value) => {
+        const r = await api.setPaid(paidBody(scope, id, value));
+        await loadPaid();
+        return r;
+      },
       /** Read the runtimes again now (Settings › Runtimes asks every 30 s while it is open). */
       loadRuntimes: () => { refreshRuntimes(); return runtimesBusy; },
       /** Replace the Space's runtime policy, or a project's (chat) override; the answer is kept. */

@@ -25,6 +25,7 @@ import { itemParts, itemBody, questionsOf, evidenceOf, itemEffort, isNo, VERB, h
 import { clientId as newKey } from "./api.js";
 import { radioKeys } from "./keynav.js";
 import { resetWords, rtName } from "./runtimes.js";
+import { creditsWords } from "./paid.js";
 
 export const riskLabel = (r) => ({ destructive: "Destructive", notable: "Notable", routine: "Routine", stopped: "Stopped" })[r] || "Notable";
 const BIG_CHECK = `<svg viewBox="0 0 52 52" aria-hidden="true"><circle class="sc" cx="26" cy="26" r="23"/><path class="sk" d="M15 27l7.5 7.5L38 19"/></svg>`;
@@ -535,6 +536,17 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
       `<ul class="lim-ts" aria-label="Waiting threads">${L.threads.map((x) => `<li><button type="button" class="rt-go" data-go="t:${esc(x.ts)}" title="Open “${esc(x.title || "the thread")}”"><b>${esc(x.title || "A thread")}</b></button>${x.stays ? `<span class="lim-stay">stays: its project doesn't allow ${esc(rtName(L.moveTo))}</span>` : ""}</li>`).join("")}</ul></div>`;
   }
 
+  /** A paid-usage question: the account, when its window resets, and its credits. */
+  function paidHtml(it) {
+    const P = it.paid;
+    const when = P.resetsAt ? resetWords(P.resetsAt) : "";
+    const credits = P.credits != null ? creditsWords(P.credits) : "";
+    if (!P.account && !when && !credits) return "";
+    return `<div class="lim">${P.account ? `<p class="lim-acct">${esc(P.account)}</p>` : ""}` +
+      (when ? `<p class="lim-when">${ICON.clock}<span>Its window resets ${esc(when)}</span></p>` : "") +
+      (credits ? `<p class="lim-credits">${esc(credits)} left</p>` : "") + `</div>`;
+  }
+
   /** surface: "panel" | "dock" */
   function cardHtml(n, surface = "panel") {
     const id = ++cardN;
@@ -595,7 +607,7 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
       (destructive ? `<span class="risk r-destructive">${ICON.lock}Destructive</span>` : stopped ? `<span class="risk r-stopped">Stopped</span>` : "") +
       (t.host ? `<button type="button" class="c-where" data-act="thread" title="${t.asker ? (surface === "dock" ? `Its coordinator asks, in this chat` : `Open ${esc(PROJ(t.project))}, where its coordinator asks`) : "Open where it was asked"}">${t.asker ? `${esc(PROJ(t.project))}<span aria-hidden="true">›</span><b>${esc(t.title)}</b>` : esc(t.title)}</button></div>` : `<button type="button" class="c-where" data-act="thread" title="${surface === "dock" ? "Open the thread" : `Open the thread beside this${K.hint("open")}`}">${esc(PROJ(t.project))}<span aria-hidden="true">›</span><b>${esc(t.title)}</b></button></div>`) +
       `<h3 class="c-h" id="card-h-${id}">${headline(n)}</h3>` + (headCmd(n) ? `<p class="nx-cmd"><code>${esc(headCmd(n))}</code></p>` : "") +
-      (line ? `<p class="c-line" id="card-why-${id}">${esc(line)}</p>` : "") + (storm && a.item.limit ? limitHtml(a.item) : "") + facts + est + sug +
+      (line ? `<p class="c-line" id="card-why-${id}">${esc(line)}</p>` : "") + (storm && a.item.limit ? limitHtml(a.item) : storm && a.item.paid ? paidHtml(a.item) : "") + facts + est + sug +
       `<div class="dis${openEv ? " is-open" : ""}" data-dis="ev"><button type="button" class="dis-h" aria-expanded="${openEv}" aria-controls="dt-${id}" title="Details${K.hint("details")}">${ICON.chevron}<span>Details</span></button>` +
       `<div class="dis-b" id="dt-${id}"${openEv ? "" : " hidden"}><div class="dis-in">${storm ? itemDetailsHtml(n) : a.live ? waitingDetailsHtml(n) : detailsHtml(n, ev)}</div></div></div>` +
       `</div>` +

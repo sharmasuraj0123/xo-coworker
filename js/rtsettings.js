@@ -15,6 +15,7 @@ import { clockWords, rtName, isInstalled, healthOf, windowsOf, resetWords, allow
 import { once, isPending, busyAttrs } from "./pending.js";
 import { redraw } from "./redraw.js";
 import { rovingTab } from "./keynav.js";
+import { MODES, MODE_NAME, MODE_SUB, heldModes, effectiveMode, accountRows, onPaid, creditsWords } from "./paid.js";
 
 const REFRESH_MS = 30000;
 const PREF_MAX = 2000;
@@ -67,6 +68,9 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
   // saving: the field whose save is out (said "Saving…" beside it until XO answers, never as saved before);
   // saved: the receipt said after XO's answer
   const R = { timer: null, err: null, saved: receipts(1600, () => { if (onScreen()) draw(); }), saving: null, pref: null, next: null };
+  // Paid usage: its own save per scope (the Space, or one account), each said beside its row
+  const P = { err: null, saving: null, saved: receipts(1600, () => { if (onScreen()) draw(); }) };
+  const paidKey = (k) => `paid:${k}`;
   const page = () => document.querySelector('[data-page="runtimes"]');
   const live = () => page()?.querySelector(".set-live");
   const onScreen = () => { const p = page(); return !!p && !p.hidden && !document.querySelector("#settings").hidden; };
@@ -74,7 +78,7 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
   const installed = () => rts().filter(isInstalled);
 
   // ── the runtimes, as they are now (F2) ────────────────────────────────────
-  function cardHtml(rt) {
+  function cardHtml(rt, paidRows = []) {
     const h = rt.health || {}, hl = healthOf(rt);
     const ver = h.cli_version || (rt.cli && rt.cli.version);
     const acct = h.logged_in ? `Logged in${h.account ? ` as <span class="rt-acct">${esc(h.account)}</span>` : ""}` : "";
@@ -89,7 +93,7 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
     }).join("");
     const trouble = hl.tone === "off" || hl.tone === "bad";
     return `<li class="rt-card${trouble ? " is-down" : ""}">` +
-      `<div class="rt-hd"><b>${esc(rtName(rt.name))}</b>${ver ? `<span class="rt-v">${esc(ver)}</span>` : ""}${rt.default ? `<span class="rt-v">XO's own</span>` : ""}<span class="rt-pill t-${hl.tone}">${esc(hl.word)}</span></div>` +
+      `<div class="rt-hd"><b>${esc(rtName(rt.name))}</b>${ver ? `<span class="rt-v">${esc(ver)}</span>` : ""}${rt.default ? `<span class="rt-v">XO's own</span>` : ""}${onPaid(paidRows, rt.name) ? `<span class="rt-v rt-paid">On paid usage</span>` : ""}<span class="rt-pill t-${hl.tone}">${esc(hl.word)}</span></div>` +
       (acct ? `<p class="rt-sub">${acct}</p>` : "") +
       (hl.why || hl.fix ? `<p class="rt-why">${esc(hl.why)}${hl.fix ? ` <span class="rt-fix">${fixHtml(hl.fix)}</span>` : ""}</p>` : "") +
       (meters ? `<ul class="rt-ws" aria-label="${esc(rtName(rt.name))}'s usage">${meters}</ul>` : "") + `</li>`;
@@ -100,7 +104,8 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
     if (!world.state.runtimes) return `<p class="set-note"><i class="spin" aria-hidden="true"></i> Reading…</p>`;
     if (!rts().length) return `<p class="set-empty"><b>No runtimes.</b> XO didn't list any agent runtime on this server.</p>`;
     const at = rts().map((r) => r.health && r.health.checked_at).filter(Boolean).sort().pop();
-    return `<ul class="rt-list">${rts().map(cardHtml).join("")}</ul>` +
+    const pr = paidRows();
+    return `<ul class="rt-list">${rts().map((r) => cardHtml(r, pr)).join("")}</ul>` +
       `<p class="rt-checked">${at ? `Checked at ${esc(clockWords(at))}. ` : ""}Read again every 30 seconds while this page is open.</p>`;
   }
 
@@ -162,10 +167,61 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
       `</div></section>`;
   }
 
+
+  // ── paid usage: what XO may do when an account's plan runs out ─────────────
+  const held = () => heldModes(world.state.paid);
+  const paidRows = () => accountRows({ advisory: world.state.advisory, held: held(), pools: world.state.pools });
+  /** What a row's choice shows now: the mode itself, or "same" for an account that follows the Space. */
+  const choiceNow = (scope, row) => (scope === "space" ? effectiveMode(held(), "").mode : row.own || "same");
+  function paidHtml() {
+    if (!world.state.paidOk) return ""; // a server without the intents: nothing to say
+    const space = effectiveMode(held(), "").mode, rows = paidRows();
+    const note = (k, now) => (P.err && P.err.key === k ? `<p class="rt-ferr" role="alert">${esc(P.err.text)}</p>`
+      : P.saving === k ? `<span class="rt-saved is-saving" role="status">Saving…</span>`
+        : P.saved.says(k, now) ? `<span class="rt-saved" role="status">Saved</span>` : "");
+    const seg = (k, labelId, scope, pool, now, choices) => `<div class="rt-seg is-paid" role="radiogroup" aria-labelledby="${labelId}">${choices.map(([v, name], i) =>
+      `<button type="button" role="radio" aria-checked="${now === v}" data-paid-scope="${scope}"${pool ? ` data-paid-pool="${esc(pool)}"` : ""} data-paid-val="${v}"${rovingTab(now === v, i === 0 && !choices.some(([x]) => x === now))}${busyAttrs(paidKey(k))}>${esc(name)}</button>`).join("")}</div>`;
+    const modes = MODES.map((m) => [m, MODE_NAME[m]]);
+    const spaceRow = `<div class="set-row rt-def"><div class="set-l"><b id="rtp-space">All accounts</b><span>${esc(MODE_SUB[space])}</span>${note("space", space)}</div>` +
+      seg("space", "rtp-space", "space", "", space, modes) + `</div>`;
+    const acct = rows.map((r, i) => {
+      const id = `rtp-a${i}`, now = choiceNow("pool", r);
+      const facts = [r.possible === false ? (r.why || "It can’t go on to paid usage.") : r.possible === null ? "XO can’t tell whether it can go on to paid usage." : "",
+        r.credits != null && r.possible !== false ? `${creditsWords(r.credits)} left.` : "", r.note].filter(Boolean).join(" ");
+      const mode = r.own ? MODE_SUB[r.mode] : `Same as all accounts: ${MODE_NAME[r.mode]}.`;
+      return `<div class="set-row rt-def"><div class="set-l"><b id="${id}">${esc(r.name)}${r.plan ? ` · ${esc(r.plan)}` : ""}${r.inUse ? ` <span class="rt-v rt-paid">On paid usage</span>` : ""}</b>` +
+        `<span>${esc([facts, mode].filter(Boolean).join(" "))}</span>${note(r.pool, now)}</div>` +
+        seg(r.pool, id, "pool", r.pool, now, [["same", "Same as all"], ...modes]) + `</div>`;
+    }).join("");
+    return `<section class="set-sec" aria-labelledby="rtp-h"><h3 id="rtp-h">Paid usage</h3>` +
+      `<p class="set-lead">When an account’s plan runs out it may go on to paid usage. You choose here whether XO lets work go on, for every account or for one.</p>` +
+      `<div class="rt-defs">${spaceRow}${acct}</div></section>`;
+  }
+  /** Choose a paid mode: saved at once, said beside its row as waiting, then saved. */
+  async function choosePaid(scope, pool, val) {
+    const k = scope === "space" ? "space" : pool, key = paidKey(k);
+    const row = scope === "space" ? null : paidRows().find((r) => r.pool === pool);
+    if (isPending(key) || (scope !== "space" && !row) || val === choiceNow(scope, row)) return;
+    const value = val === "same" ? null : val;
+    P.err = null; P.saving = k; P.saved.clear();
+    const p = once(key, async () => {
+      try { await world.act.setPaid(scope, pool, value); }
+      catch (err) { P.err = { key: k, text: err.message }; return false; }
+      finally { P.saving = null; }
+      P.saved.set(k, val);
+      const who = scope === "space" ? "Paid usage" : `${row.name} paid usage`;
+      announce(value ? `${who}: ${MODE_NAME[value]}. ${MODE_SUB[value]}` : `${who} follows all accounts.`);
+      return true;
+    });
+    draw();
+    await p;
+    draw();
+  }
+
   // ── drawing ───────────────────────────────────────────────────────────────
   function draw() {
     const el = live();
-    if (el) redraw(el, `<section class="set-sec" aria-labelledby="rtl-h"><h3 id="rtl-h">On this machine</h3><div class="rt-live">${listHtml()}</div></section>` + defaultsHtml());
+    if (el) redraw(el, `<section class="set-sec" aria-labelledby="rtl-h"><h3 id="rtl-h">On this machine</h3><div class="rt-live">${listHtml()}</div></section>` + paidHtml() + defaultsHtml());
   }
   /** Only the runtimes' cards: a refresh never touches a default under the person's fingers. */
   function drawList() { const l = live()?.querySelector(".rt-live"); if (l) redraw(l, listHtml()); else draw(); }
@@ -182,6 +238,8 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
   // ── changes: each one saves at once ─────────────────────────────────────────
   const root = document.querySelector("#settings");
   root.addEventListener("click", (e) => {
+    const pd = e.target.closest?.("[data-paid-val]");
+    if (pd) { choosePaid(pd.dataset.paidScope, pd.dataset.paidPool || "", pd.dataset.paidVal); return; }
     // a box can't change while a save is out (aria-disabled doesn't stop a checkbox by itself)
     if (e.target.matches?.("[data-rtd-allowed]") && isPending(POLICY)) { e.preventDefault(); return; }
     const d = e.target.closest("[data-rtd-default]");
@@ -217,7 +275,8 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
     let sig = "";
     world.subscribe(() => {
       if (!onScreen()) return;
-      const next = JSON.stringify(world.state.policy);
+      const st = world.state;
+      const next = JSON.stringify([st.policy, st.paidOk, st.paid, paidRows().map((r) => [r.pool, r.name, r.plan, r.possible, r.inUse, r.credits, r.why, r.state, r.note])]);
       if (next === sig) return;
       sig = next;
       if (!isPending(POLICY) && R.pref == null) draw();
@@ -231,6 +290,7 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
       draw();
       refresh();
       world.act.loadPolicies?.().then(() => { if (onScreen() && R.pref == null) draw(); });
+      world.act.loadPaid?.().then(() => { if (onScreen() && R.pref == null) draw(); });
     },
   };
 }

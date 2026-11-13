@@ -91,6 +91,10 @@ export function itemEffort(item) {
   return "decide";
 }
 
+/** Who an item's own words are from: XO for what XO raised itself (an integrity check, a limit, a paid-usage question: origin
+ *  xo or engine), the agent for what a coordinator or a CLI raised (origin agent or cli). */
+export const fromWords = (item) => (item && (item.origin === "xo" || item.origin === "engine") ? "From XO" : "From the agent");
+
 /**
  * The exact things to show under Details, from the item's own detail (never prose of ours):
  * [{label, lang, text}] blocks plus plain facts.
@@ -105,7 +109,7 @@ export function evidenceOf(item) {
   if (d.url) blocks.push({ label: "Address", lang: "txt", text: String(d.url) });
   if (d.mcp) blocks.push({ label: "Tool", lang: "txt", text: typeof d.mcp === "string" ? d.mcp : `${d.mcp.server || ""}/${d.mcp.tool || ""}` });
   if (d.plan) blocks.push({ label: "The plan", lang: "md", text: String(d.plan) });
-  if (d.text) blocks.push({ label: "From the agent", lang: "md", text: String(d.text) });
+  if (d.text) blocks.push({ label: fromWords(item), lang: "md", text: String(d.text) });
   if (item.kind === "create_project") {
     if (d.purpose) facts.push(`For: ${d.purpose}`);
     if (d.why_new) facts.push(`Why a new project: ${d.why_new}`);

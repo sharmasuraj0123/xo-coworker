@@ -2987,6 +2987,7 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .rt-hd{display:flex;align-items:baseline;gap:10px;min-width:0}
 .rt-hd b{font:600 var(--fs-md)/20px var(--sans);color:var(--ink)}
 .rt-v{font:500 var(--fs-sm)/16px var(--mono);color:var(--ink-4)}
+.rt-v.rt-paid{font-family:var(--sans);font-weight:600;color:var(--warn)} /* informational: the account is on paid usage now */
 .rt-pill{margin-left:auto;align-self:center;flex:none;display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font:600 var(--fs-sm)/16px var(--sans);background:var(--fill-2);color:var(--ink-3)}
 .rt-pill.t-ok{background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent)}
 .rt-pill.t-warn{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn)}
@@ -3014,6 +3015,8 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .rt-seg button{height:var(--h-ctl);padding:0 12px;border-radius:var(--r);font:500 var(--fs-base)/20px var(--sans);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .rt-seg button:hover{color:var(--ink)}
 .rt-seg button[aria-checked="true"]{background:var(--fill-3);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+.rt-seg.is-paid{flex:none;flex-wrap:nowrap;align-self:center} /* the choices stay on one line; the words give way */
+.rt-seg.is-paid button{padding:0 10px;white-space:nowrap}
 .rt-checks{display:flex;flex-wrap:wrap;gap:8px}
 .rt-check{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 12px 0 10px;border-radius:var(--r-sm);border:1px solid var(--line);font-size:var(--fs-base);color:var(--ink-2);cursor:pointer}
 .rt-check:hover,.rt-check:has(input:checked):hover{border-color:var(--line-hover);transition-duration:var(--d-hover-in)}
@@ -3024,6 +3027,7 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 @media (max-width:760px){
   .rt-w{grid-template-columns:96px minmax(60px,1fr) auto}
   .rt-def{flex-direction:column;align-items:stretch}
+  .rt-seg.is-paid{flex-wrap:wrap;align-self:stretch}
 }
 
 /* ── a move to another runtime (mixed runtimes F4) ──────────────────────────── */
@@ -3039,6 +3043,8 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .lim{display:flex;flex-direction:column;gap:8px;margin:2px 0 4px}
 .lim-when{display:flex;align-items:center;gap:7px;font-size:var(--fs-base);color:var(--warn)}
 .lim-when svg{width:14px;height:14px}
+.lim-acct{font-size:var(--fs-base);font-weight:600;color:var(--ink)}
+.lim-credits{font-size:var(--fs-base);color:var(--ink-3);font-variant-numeric:tabular-nums}
 .lim-ts{display:flex;flex-direction:column;gap:3px;padding-left:20px;list-style:disc}
 .lim-ts li{font-size:var(--fs-base);line-height:20px;color:var(--ink-2);text-align:left}
 .lim-ts li::marker{color:var(--ink-4)}
