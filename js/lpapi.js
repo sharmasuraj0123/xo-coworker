@@ -28,9 +28,15 @@ const NEXT = {
   create_repo: ["Create the private repo", "create-repo"], rename_repo: ["Pick another name", "settings"],
   link: ["Link it", "link-same"], recreate_or_unlink: ["Create it again", "recreate"], unlink: ["Unlink", "unlink"], pick_app: ["Pick an app", "pick"],
   open_build_log: ["Open the build log", "log"],
+  confirm_repo: ["Deploy to this repository", "use-repo"], // with the decision's data: "Deploy to <owner/repo>"
 };
 const OUTSIDE = new Set(["manual", "none", "sign_in_xo", "reinstall_space", "pull_changes"]);
-export function nextStep(action) { return OUTSIDE.has(action) ? null : NEXT[action] || NEXT.retry; }
+export function nextStep(action, data) {
+  if (OUTSIDE.has(action)) return null;
+  const n = NEXT[action] || NEXT.retry;
+  // the repository to confirm is named on the button (Space's `data.repo`), so the press says where the code goes
+  return action === "confirm_repo" && typeof data?.repo === "string" && data.repo ? [`Deploy to ${data.repo}`, n[1]] : n;
+}
 
 /** Everything the deploy form draws from the model, and from the panel's own state in `extra`, but not what's typed
  *  (the form keeps that as you type): the form is redrawn exactly when this changes. Leaving one out kept a stale
@@ -84,6 +90,8 @@ export function model(c, pre = null) {
       // until preflight answers, an origin is taken as usable; preflight's "new" says otherwise
       admin: pre ? repo.mode !== "new" : !!(f.repo?.origin || f.repo?.full_name),
       create: f.repo?.new_repo_name || c.project, why: repo.reason || "", taken: !!repo.exists,
+      // whether the repository is the person's own (Space's `own`): preflight's record wins; false (not true, not absent) is foreign
+      own: typeof repo.own === "boolean" ? repo.own : typeof f.repo?.own === "boolean" ? f.repo.own : null,
     },
     github: { connected: pre ? !!pre.github?.connected : !!c.prerequisites?.github_connected, workflow: pre ? pre.github?.workflow_scope !== false : true, login: pre?.github?.login || "", source: pre?.github?.source || c.prerequisites?.github_source || null, fix: pre?.github?.fix || "" },
     // the address is Launchpad's: preflight's live url (a custom domain once there is one), else launchpad.json's

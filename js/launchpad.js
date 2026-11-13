@@ -209,7 +209,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       else if (e.code === "port_missing") f.errs = { port: "Which port does it listen on?" };
       else if (e.code === "repo_name_taken") { f.repo = e.data.suggestion || f.repo; f.repoChosen = true; f.errs = { repo: "That name holds other code on your GitHub." }; }
       else if (e.code === "create_repo") s.check = { ...s.check, repo: { ...s.check.repo, admin: false, why: e.data.reason || s.check.repo.why } };
-      else s.needs = e; // repo_name_taken, link_existing, app_missing: a decision, lit, above the form
+      else { if (e.code === "confirm_repo") f.useRepo = ""; s.needs = e; } // confirm_repo, link_existing, app_missing: a decision, lit, above the form (a confirmed repo Space asks again about is no longer confirmed)
       land(f.errs.name ? '[data-lp-f="name"]' : f.errs.port ? '[data-lp-f="port"]' : f.errs.repo ? '[data-lp-f="repo"]' : '.lp-ask .lp-go, [data-lp="deploy"], [data-lp="reconnect"]');
       S.key = ""; changed();
       if (f.errs.name || f.errs.port) requestAnimationFrame(() => S.body?.querySelector(`[data-lp-f="${f.errs.name ? "name" : "port"}"]`)?.focus());
@@ -377,7 +377,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   const span = (ms) => { const m = Math.max(1, Math.round(ms / 60e3)); return m < 60 ? `${m} min` : m < 1440 ? `${Math.round(m / 60)} h` : `${Math.round(m / 1440)} d`; };
 
   /** A decision's own lit button above the form: not when the form is the answer (settings), nor done outside */
-  const lit = (nd) => { const a = nextStep(nd.action); return a && a[1] !== "settings" && a[1] !== "retry" && a[1] !== "log" ? a : null; };
+  const lit = (nd) => { const a = nextStep(nd.action, nd.data); return a && a[1] !== "settings" && a[1] !== "retry" && a[1] !== "log" ? a : null; };
   const fixOf = (e) => (e.fix ? `<p class="lp-note">${esc(e.fix)}</p>` : "");
   /** Space's next step as the lit button; done outside the panel, only a quiet way back once it's done */
   const actionHtml = (e) => {
@@ -398,6 +398,12 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       (err ? `<p class="lp-err" role="status">Couldn't start the thread: ${esc(err)}.</p>` : "") + `</div>`;
   };
 
+  /** Where launchpad.json sends the code, and where git's origin points: both whole, so the person sees the difference. */
+  const repoFacts = (nd) => {
+    const d = nd.data || {};
+    return `<p>launchpad.json names ${d.repo ? `<code>${esc(d.repo)}</code>` : "a repository"}. ${d.origin ? `This project's git origin is <code>${esc(d.origin)}</code>.` : "This project has no git origin."}</p>`;
+  };
+
   function setupHtml(p) {
     const s = proj(p), c = s.check, f = s.form, e = f.errs || {};
     const scope = c.github && c.github.connected && c.github.workflow;
@@ -410,8 +416,10 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     return (editing ? head(`${esc(nameOf(p))}'s settings`, `Change what you need; ${c.behind ? `it deploys again with them, and with ${esc(c.repo.branch || "main")}'s commits since the live release` : "the live commit is built again with them"}. Values left empty stay as they are on Launchpad.`)
       : head(`Put ${esc(nameOf(p))} on the web`, guessed ? "Found these in the project. Check them, then deploy." : "Launchpad builds it on every push and runs it.")) +
       askedHtml(p) +
-      (nd ? `<div class="lp-rec lp-ask"><div class="lp-rec-c"><span class="lp-rec-k">${ICON.spark}One thing first</span><b>${esc(nd.message || "")}</b>${nd.fix ? `<p>${esc(nd.fix)}</p>` : ""}</div>${lit(nd) ? `<button type="button" class="lp-go" data-lp="${lit(nd)[1]}"><span>${lit(nd)[0]}</span></button>` : ""}</div>` : "") +
+      (nd ? `<div class="lp-rec lp-ask"><div class="lp-rec-c"><span class="lp-rec-k">${ICON.spark}One thing first</span><b>${esc(nd.message || "")}</b>${nd.fix ? `<p>${esc(nd.fix)}</p>` : ""}${nd.code === "confirm_repo" ? repoFacts(nd) : ""}</div>${lit(nd) ? `<button type="button" class="lp-go" data-lp="${lit(nd)[1]}"><span>${esc(lit(nd)[0])}</span></button>` : ""}${nd.code === "confirm_repo" ? `<div class="lp-alt"><button type="button" class="lp-a" data-lp="decline-repo"><span>Not this repository</span></button></div>` : ""}</div>` : "") +
       (c.blockers.length ? `<p class="lp-note t-need">Deploy would stop here: ${esc(c.blockers.join("; "))}.</p>` : "") +
+      // what Space warned of before the button is pressed (a repository that isn't the person's own, uncommitted changes, …)
+      (c.warnings.length ? c.warnings.map((w) => `<p class="lp-note t-need">${esc(w)}</p>`).join("") : "") +
       (editing ? "" : system(p, "preview")) +
       (c.github.source === "gh" && c.github.connected && !c.github.workflow && ghCmd(c.github.fix) ? `<div class="lp-gh"><p class="lp-note">Or grant it to this machine's gh login, then check again:</p>${cmdHtml(ghCmd(c.github.fix), s)}<div class="lp-alt lp-left"><button type="button" class="lp-a" data-lp="recheck-gh"${s.pre === 1 ? ' aria-disabled="true"' : ""}>${s.pre === 1 ? '<i class="lp-arc" aria-hidden="true"></i><span>Checking GitHub…</span>' : `${ICON.retry}<span>I ran it: check again</span>`}</button></div>${s.ghErr ? `<p class="lp-err lp-gh-err" role="status">Couldn't check GitHub: ${esc(s.ghErr)}.</p>` : ""}</div>` : "") +
       (S.v && S.v.startsWith("t:") ? `<p class="lp-note lp-src" title="This thread's work goes out once it's merged into ${esc(c.repo.branch || "main")}">${ICON.branch}<span>Deploys <b>${esc(c.repo.branch || "main")}</b>, not this thread's branch.</span></p>` : "") +
@@ -607,7 +615,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     const sc = screen(p);
     const s = proj(p), c = s.check;
     return {
-      key: `${p}|${sc}` + (sc === "setup" ? `|${formKey(c, { pre: s.pre, needs: s.needs && [s.needs.code, s.needs.message, s.needs.fix, s.needs.action], errs: s.form.errs || {}, envAll: !!s.envAll, editing: !!s.editing, machine: !!s.machine, disk: !!s.form.disk, thread: !!S.v?.startsWith("t:"), ghErr: s.ghErr || "", asked: !!s.asked })}` : ""),
+      key: `${p}|${sc}` + (sc === "setup" ? `|${formKey(c, { pre: s.pre, needs: s.needs && [s.needs.code, s.needs.message, s.needs.fix, s.needs.action, s.needs.data?.repo, s.needs.data?.origin], errs: s.form.errs || {}, envAll: !!s.envAll, editing: !!s.editing, machine: !!s.machine, disk: !!s.form.disk, thread: !!S.v?.startsWith("t:"), ghErr: s.ghErr || "", asked: !!s.asked })}` : ""),
       html: sc === "checking" ? checkingHtml(p) : sc === "check-failed" ? head("Couldn't check this project", esc(proj(p).err?.message || "XO Space didn't answer.")) + `<div class="lp-acts"><button type="button" class="lp-b" data-lp="recheck">${ICON.retry}<span>Try again</span></button></div>`
         : sc === "setup" ? setupHtml(p) : sc === "undo" || sc === "run" ? runHtml(p) : sc === "lost" ? lostHtml(p) : sc === "live" ? liveHtml(p) : sc === "failed" ? failedHtml(p)
         : sc === "needs" ? needsHtml(p) : sc === "getting" ? gettingHtml(p) : sc === "device" ? deviceHtml(p) : sc === "pick" ? pickHtml(p) : "",
@@ -743,7 +751,8 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     const machine = creating ? { ...(c.sizes && f.size ? { size: f.size } : {}), ...(f.disk ? { storage_path: f.diskPath, storage_size: gb } : {}) }
       : s.run.edit && was && gb > was.gb ? { storage_path: was.path, storage_size: gb } : {};
     s.run.made = creating ? { size: (c.sizes && (f.size || c.sizes.def)) || c.size || "", storage: f.disk ? { path: f.diskPath, gb } : null } : machine.storage_size ? { storage: { path: was.path, gb } } : {};
-    const body = { name: f.name, port: Number(f.port), ...machine, ...(c.repo.admin ? {} : { create_repo: true, repo_name: f.repoChosen ? f.repo : f.name }), ...(c.app && again && !f.recreate && (s.run.edit || !c.behind) ? { rebuild: true } : {}), ...(f.recreate ? { recreate: true } : {}), env, sensitive: (c.env || []).filter((x) => x.sensitive).map((x) => x.name) };
+    s.sent = { again, recreate: !!f.recreate, edit: !!s.run.edit }; // what a decision's answer deploys again with
+    const body = { name: f.name, port: Number(f.port), ...machine, ...(f.useRepo ? { use_repo: f.useRepo } : {}), ...(c.repo.admin ? {} : { create_repo: true, repo_name: f.repoChosen ? f.repo : f.name }), ...(c.app && again && !f.recreate && (s.run.edit || !c.behind) ? { rebuild: true } : {}), ...(f.recreate ? { recreate: true } : {}), env, sensitive: (c.env || []).filter((x) => x.sensitive).map((x) => x.name) };
     s.run.undo = 0; s.run.startedAt = Date.now(); s.run.sent = Object.keys(env); // names only: what goes live with this release
     s.needs = null; s.warn = null; f.recreate = false; // recreate is asked once, not for every deploy after
     s.run.stop = api.deploy(p, body, (e) => event(p, e));
@@ -965,6 +974,13 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       case "machine-open": s.machine = true; S.key = ""; land('[data-lp-f="size"]'); changed(); requestAnimationFrame(() => S.body?.querySelector('[data-lp-f="size"]')?.focus()); return;
       case "disk-add": s.form.disk = true; s.form.errs = { ...s.form.errs, disk: "" }; S.key = ""; land('[data-lp-f="diskPath"]'); changed(); requestAnimationFrame(() => S.body?.querySelector('[data-lp-f="diskPath"]')?.focus()); return;
       case "disk-remove": s.form.disk = false; s.form.errs = { ...s.form.errs, disk: "" }; S.key = ""; land('[data-lp="disk-add"]'); changed(); requestAnimationFrame(() => S.body?.querySelector('[data-lp="disk-add"]')?.focus()); return;
+      case "use-repo": { // the repository Space asked about, confirmed: the same deploy again, with it named exactly
+        const repo = s.needs?.data?.repo, was = s.sent || {};
+        if (!repo) return;
+        s.form.useRepo = repo; s.form.recreate = !!was.recreate; s.editing = !!(was.edit && s.check?.app);
+        s.needs = null; s.run = null; deploy(p, !!was.again); return;
+      }
+      case "decline-repo": s.needs = null; s.form.useRepo = ""; s.run = null; S.key = ""; land('[data-lp="deploy"], [data-lp="reconnect"]'); announce("Not deploying to that repository. Nothing changed."); changed(); return;
       case "create-repo": s.check = { ...s.check, repo: { ...s.check.repo, admin: false } }; s.needs = null; s.run = null; deploy(p); return;
       case "link-same": { const id = s.needs?.data?.app?.id || s.run?.error?.app?.id; s.needs = null; s.run = null; land('[data-lp="deploy"], [data-lp="reconnect"]'); if (id) api.link(p, id).then((a) => { s.check = { ...s.check, state: "linked", app: a }; deploy(p, true); }).catch((err) => notify && notify(`Couldn't link it: ${err.message}`, null, "err")); changed(); return; }
       case "env-all": { // the first of the names it shows, by name (an index into the list could miss when they interleave)

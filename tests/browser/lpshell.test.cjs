@@ -72,6 +72,34 @@ t("LP11: name taken: Launchpad's free name is a button under the hint, and takes
   await done(page);
 });
 
+t("LP11: confirm repo: warning before Deploy; the decision names repo and origin; Deploy to <repo> redeploys with use_repo exactly; Not this repository closes it", async () => {
+  for (const decline of [false, true]) {
+    const page = await open({ launchpad: "confirm-repo" });
+    await W.openLaunchpad(page);
+    assert.match(await page.locator(".lp-note.t-need").first().innerText(), /Pushes to someone-else\/xo-coworker/, "Space's warning is read before Deploy is pressed");
+    await page.locator('[data-lp="deploy"]').click();
+    await page.waitForSelector('[data-lp="use-repo"]', { timeout: 9000 });
+    const card = await page.locator(".lp-ask").innerText();
+    assert.match(card, /launchpad\.json names someone-else\/xo-coworker/);
+    assert.match(card, /git origin is [^.]*\//);
+    assert.equal((await page.locator('[data-lp="use-repo"]').innerText()).trim(), "Deploy to someone-else/xo-coworker");
+    if (decline) {
+      await page.locator('[data-lp="decline-repo"]').click();
+      await page.waitForSelector('[data-lp="use-repo"]', { state: "detached" });
+      assert.equal(await page.locator('[data-lp="deploy"]').count(), 1, "Deploy is still there");
+      assert.equal((page.__sent || []).length, 1, "nothing was sent again");
+    } else {
+      await page.locator('[data-lp="use-repo"]').click();
+      for (let i = 0; i < 60 && (page.__sent || []).length < 2; i++) await page.waitForTimeout(150);
+      const sent = page.__sent;
+      assert.equal(sent[0].use_repo, undefined);
+      assert.equal(sent[1].use_repo, "someone-else/xo-coworker");
+      assert.equal(sent[1].name, sent[0].name);
+    }
+    await done(page);
+  }
+});
+
 t("LP17/LP20: Deploy starts a 3 s Undo, focused; Undo sends nothing", async () => {
   let posts = 0;
   const page = await open({ launchpad: "ready", onDeploy: (r, m, p) => { if (/\/api\/deploy\/[^/]+$/.test(p) && m === "POST") posts++; return r.fallback(); } });

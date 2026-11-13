@@ -140,6 +140,13 @@ t("nextStep: what's done outside the panel offers no lit button; the rest map to
   assert.deepEqual(nextStep(undefined), ["Try again", "retry"]);
 });
 
+t("nextStep: confirm_repo is the lit 'Deploy to <repo>' button when Space names the repo, and a plain one when it doesn't", () => {
+  assert.deepEqual(nextStep("confirm_repo", { repo: "o/r", origin: null }), ["Deploy to o/r", "use-repo"]);
+  assert.deepEqual(nextStep("confirm_repo", {}), ["Deploy to this repository", "use-repo"]);
+  assert.deepEqual(nextStep("confirm_repo"), ["Deploy to this repository", "use-repo"]);
+  assert.deepEqual(nextStep("retry", { repo: "o/r" }), ["Try again", "retry"], "other actions ignore the data");
+});
+
 // ── check and preflight ────────────────────────────────────────────────────
 const check = (o = {}) => ({
   project: "p", state: "ready", summary: "Ready.", reasons: [], blockers: [], warnings: [], config: null,
@@ -165,6 +172,18 @@ t("model: preflight's answers win: a new private repo, GitHub without workflow, 
   assert.equal(m.app.host, "p-xo-abc.apps.example.nl");
   assert.equal(m.app.status, "unhealthy");
   assert.equal(appState(m.app.status)[0], "stop");
+});
+t("model: whether the repository is the person's own: preflight's record over check's; absent stays unknown; warnings come through", () => {
+  const fields = (own) => ({ ...check().fields, repo: { ...check().fields.repo, ...(own === undefined ? {} : { own }) } });
+  assert.equal(model(check()).repo.own, null, "an older Space says nothing");
+  assert.equal(model(check({ fields: fields(false) })).repo.own, false);
+  assert.equal(model(check({ fields: fields(false) }), { github: { connected: true }, repo: { mode: "origin", own: true }, launchpad: {} }).repo.own, true, "preflight's wins");
+  assert.deepEqual(model(check({ warnings: ["Pushes to a/b, which isn't your repository."] })).warnings, ["Pushes to a/b, which isn't your repository."]);
+});
+t("rows: a confirm_repo needs reaches the panel whole, with the repo and origin", () => {
+  const out = play([{ type: "needs", step: "repo", code: "confirm_repo", action: "confirm_repo", message: "m", fix: "f", options: [{ id: "use_repo", label: "Deploy to a/b" }], data: { repo: "a/b", origin: null }, ts: ts(1) }]);
+  const n = out.at(-1);
+  assert.deepEqual([n.type, n.code, n.action, n.options[0].id, n.data.repo, n.data.origin], ["needs", "confirm_repo", "confirm_repo", "use_repo", "a/b", null]);
 });
 t("model: GitHub not connected (Space's preflight today) and Space's reasons as plain sentences", () => {
   const m = model(check({ state: "needs-agent", reasons: ["index.html sits beside server code (serve.py)"] }), { github: { connected: false }, repo: { mode: "new" }, launchpad: {} });

@@ -44,7 +44,7 @@ const STEPS = [
   [251, "progress", "release", { release: 4, rollout: "ready", ready: 1, desired: 1 }, "Release #4 · 1 of 1 ready"], [252, "step", "release", "done", "Release #4 is serving"],
   [252, "step", "url", "running"], [254, "done"],
 ];
-const UPTO = { "size-refused": 8, "name-taken": 8, "repo-taken": 6, "link-existing": 8, "gh-scope-run": 4, pull: 11, pushing: 12, building: 19, releasing: 22, "failed-build": 19, "failed-health": 22, live: STEPS.length };
+const UPTO = { "size-refused": 8, "name-taken": 8, "repo-taken": 6, "confirm-repo": 6, "link-existing": 8, "gh-scope-run": 4, pull: 11, pushing: 12, building: 19, releasing: 22, "failed-build": 19, "failed-health": 22, live: STEPS.length };
 const ev = (row, start) => {
   const [t, type, step, a, b] = row, ts = new Date(start + t * 1000).toISOString();
   if (type === "run") return { type, ts, run_id: "r1", kind: "deploy", attached: false, started_at: new Date(start).toISOString() };
@@ -56,6 +56,7 @@ const GH_FIX = "Run `gh auth refresh -h github.com -s workflow` on this machine,
 const ENDS = {
   "gh-scope-run": (ts) => ({ type: "error", ts, step: "credentials", code: "github_workflow_scope", action: "reconnect_github", message: "This machine's gh login can't write workflow files, which Launchpad needs.", fix: GH_FIX, data: { source: "gh", scopes: ["repo"] } }),
   "repo-taken": (ts) => ({ type: "needs", ts, step: "repo", code: "repo_name_taken", action: "rename_repo", message: "A repo named xo-coworker already holds other code on your GitHub.", fix: "Pick another name.", options: [], data: { suggestion: "xo-coworker-app" } }),
+  "confirm-repo": (ts) => ({ type: "needs", ts, step: "repo", code: "confirm_repo", action: "confirm_repo", message: "launchpad.json deploys to someone-else/xo-coworker, which isn't this project's origin.", fix: "Confirm that repository, or stop here.", options: [{ id: "use_repo", label: "Deploy to someone-else/xo-coworker" }], data: { repo: "someone-else/xo-coworker", origin: REPO } }),
   "link-existing": (ts) => ({ type: "needs", ts, step: "app", code: "link_existing", action: "link", message: "An app named xo-coworker already deploys this repo.", fix: "Link it, then deploy.", options: [], data: { app: { id: "app_1", name: "xo-coworker" } } }),
   "pull": (ts) => ({ type: "error", ts, step: "push", code: "remote_ahead", action: "pull_changes", message: "GitHub has commits this folder doesn't.", fix: "Pull them into the project folder, then deploy again.", data: {} }),
 
@@ -103,6 +104,8 @@ const SCENARIOS = {
   "gh-import": { check: check({ prerequisites: { github_connected: false, github_source: null, launchpad_key: true, launchpad_cli: true } }), pre: pre({ github: { connected: false, source: null } }), imports: true, click: ['[data-lp="reconnect"]'] },
   "repo-taken": { check: check(), pre: pre({ repo: { is_admin: false, mode: "new", full_name: "me/xo-coworker" } }), deploy: "repo-taken" },
   "link-existing": { check: check(), deploy: "link-existing" },
+  // Space 5897204/7608315: the repo launchpad.json names isn't the person's own; check warns, the deploy asks, use_repo answers
+  "confirm-repo": { check: check({ summary: "Ready to deploy as xo-coworker on port 3000, pushing to someone-else/xo-coworker.", warnings: ["Pushes to someone-else/xo-coworker, which isn't your repository."], fields: { ...check().fields, repo: { ...check().fields.repo, full_name: "someone-else/xo-coworker", own: false } } }), deploy: "confirm-repo" },
   pull: { check: check({ running: { run_id: "r1", kind: "deploy" } }), watch: ["pull", 0] },
   lost: { check: check({ running: { run_id: "r1", kind: "deploy" } }), watch: ["building", 56], lose: true },
   "play-build": { check: check(), deploy: "failed-build" },
@@ -148,7 +151,7 @@ exports.install = async (page, name) => {
     if (/\/api\/deploy\/[^/]+\/apps$/.test(path)) return json(r, { apps: APPS, linked: null, name: "xo-coworker" });
     if (/\/api\/deploy\/[^/]+\/link$/.test(path)) return m === "DELETE" ? json(r, { unlinked: { app_id: "app_7f3a" }, forgot: false }) : json(r, { config: { ...linked, app_id: "app_1", name: "storefront", url: APPS[0].url }, app: APPS[0] });
     if (/\/api\/deploy\/[^/]+\/agent$/.test(path)) return json(r, { chat_id: "chat_9460bc3363914c18", thread_ts: "t_ready", already: false, state: "needs-agent" });
-    if (/\/api\/deploy\/[^/]+$/.test(path) && m === "POST") { (page.__sent ||= []).push(JSON.parse(r.request().postData() || "{}")); return sse(r, body(sc.deploy || "live", 0)); } // what the deploy asked for, for the smoke
+    if (/\/api\/deploy\/[^/]+$/.test(path) && m === "POST") { (page.__sent ||= []).push(JSON.parse(r.request().postData() || "{}")); return sse(r, body(sc.deploy === "confirm-repo" && page.__sent.at(-1).use_repo === "someone-else/xo-coworker" ? "live" : sc.deploy || "live", 0)); } // what the deploy asked for, for the smoke
     if (/\/api\/deploy\/[^/]+$/.test(path) && m === "DELETE") return json(r, { stopped: true });
     if (path.endsWith("/connectors/github/cli/start") && sc.imports) imported = true;
     if (path.endsWith("/connectors/github/cli/start")) return json(r, sc.imports ? { status: "connected", imported: true, username: "sharmasuraj0123", user_code: "", session_id: "s1" } : { session_id: "s1", user_code: "WDJB-MJHT", verification_uri: "https://github.com/login/device", expires_in: 900 });
