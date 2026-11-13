@@ -209,12 +209,21 @@ Four small files stay tracked because the tests load them:
 
 **Run on this branch (13 Nov), from a fresh clone:**
 - **Unit tests:** all 139 `tests/*.test.mjs` files exit 0, as does `tests/serve.test.py`.
-- **Browser suites,** four cells each, against the build that is live on :3000:
-  - smoke: 22 passed, exit 0.
-  - coordinator-busy: passed, exit 0.
-  - lpshell, the whole Launchpad shell including repository confirmation: 204 passed, 0 failed, exit 0.
-  - settings, full run: 141 cases passed with no failed assertion. The other 71 cases never ran because headless Chromium was closed underneath them: a second browser suite ran on the shared machine at the same time. They are queued to run again.
-  - _Still running when this PR was opened: flows (stop, runs, turns, receipts, STATES), settings (paid usage, Runtimes, and the cases above), and conversation in full. This section is updated when they finish._
+- **Browser suites:** every suite ran in all four cells (dark and light, at 1440×900 and 390×844), against the build that is live on :3000.
+
+  | Suite | Result |
+  |---|---|
+  | smoke | 22 passed, exit 0 |
+  | coordinator-busy | passed, exit 0 |
+  | conversation | 193 passed, 0 failed, exit 0 |
+  | lpshell (the whole Launchpad shell, including repository confirmation) | 204 passed, 0 failed, exit 0 |
+  | settings | every case passed |
+  | flows | every case passed except C030/S069, which fails the same way on `main` |
+
+  - **settings** ran in three parts: the full run (141 passed), the paid usage and Runtimes save cases (48 passed), and a re-run of the 71 cases that lost their headless browser in the full run (72 passed). No assertion failed in any part.
+  - **flows:** 1440 cells, 371 passed and 33 skipped; 390 dark, 183 passed and 9 skipped; 390 light, 183 passed and 9 skipped.
+  - **C030/S069 is not a regression.** It fails identically on the base this branch was cut from (local main, aea856f). The Files Find box draws no outline ring while you type, which is the owner's 11 Nov ruling for search boxes. The test still expects a solid 2 px ring. It is left as a follow-up to reconcile, not changed here.
+  - **Not covered by any browser test:** the phone hold buzz. It needs a check on a real phone.
 - **Against the real Space:** 583a933 (paid usage, Launchpad) and the stray-text fix were each checked read-only against the real Space on :5002 by the threads that built them.
 
 ## 5. Not in this PR
