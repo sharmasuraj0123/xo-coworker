@@ -6,8 +6,8 @@
 // the Map said nothing about the cooperation they were watching. This turns a step into what it is,
 // from the call itself and nothing else: while it runs, what it is doing ("Talking to xo-space's
 // coordinator"); once done, what it did ("Sent to “Experimental LG UI”", from the result the call returned).
-// A target the call didn't name yet is said generally ("a thread"), never guessed. Unknown tools keep the
-// server's own line.
+// A target the call didn't name yet is said generally ("a thread"), never guessed. A comms tool this file
+// doesn't know yet is said generally too ("Working with XO"): the tool's name is never the line.
 
 let names = { thread: () => null, project: () => null, here: () => null };
 /** app.js tells it how to name things: a thread's title by id, a project by chat id, the open conversation's project. */
@@ -68,7 +68,31 @@ function words(tool, res, ctx = {}) {
     case "list_jobs": return ["Looking over the jobs", "Looked over the jobs"];
     case "cancel_job": return ["Turning a job off", "Turned a job off"];
     case "message_coordinator_reply": return ["Answering", "Answered"];
-    default: return null;
+    // the tools XO added since (storm comms/tools.py, read 2026-11-13): every one has words, so the server's
+    // "`ask` on `xo_comms`" never reaches the conversation, the typing line or the Map
+    case "ask": {
+      const done = res.review_id ? "Asked you" : res.to === "workspace" ? "Asked the Workspace coordinator" : res.to === "coordinator" ? `Asked ${coord}` : res.hop_id ? "Passed a question on" : "Asked a question";
+      return ["Asking a question", done];
+    }
+    case "report": return ["Reporting its progress", "Reported its progress"];
+    case "submit_result": return ["Handing in its result", "Handed in its result"];
+    case "create_task": return ["Starting a thread", `Started ${t}`, "Couldn't start a thread"];
+    case "continue_thread": return [`Continuing ${t}`, `Continued ${t}`, `Couldn't continue ${t}`];
+    case "stop_thread": return [`Stopping ${t}`, `Stopped ${t}`, `Couldn't stop ${t}`];
+    case "list_thread_sessions": return ["Looking over its threads", "Looked over its threads"];
+    case "set_goal": return ["Setting a goal", "Set a goal"];
+    case "read_state": return ["Checking where things stand", "Checked where things stand"];
+    case "handoff_note": return ["Writing a handoff note", "Wrote a handoff note"];
+    case "wake_me": return ["Setting a reminder", "Set a reminder"];
+    case "cancel_wake": return ["Cancelling a reminder", "Cancelled a reminder"];
+    case "lease": { const r = res.resource ? `the ${res.resource}` : "a shared resource"; return [`Reserving ${r}`, `Reserved ${r}`, `Couldn't reserve ${r}`]; }
+    case "release": { const r = res.resource ? `the ${res.resource}` : "a shared resource"; return [`Freeing ${r}`, `Freed ${r}`]; }
+    case "fetch_project_card": return ["Reading a project's card", "Read a project's card"];
+    case "no_such_project": return ["Saying there's no such project", "Said there's no such project"];
+    case "list_review": return ["Looking over what waits on you", "Looked over what waits on you"];
+    case "annotate_review": return ["Adding a note to a question", "Added a note to a question"];
+    // one XO adds later: said generally, never as the tool's name
+    default: return ["Working with XO", "Used an XO tool"];
   }
 }
 
@@ -85,7 +109,9 @@ export function commsLine(row, ctx) {
   if (row.status === "running") return `${w[0]}…`;
   if (row.status === "denied") return `Not allowed: ${lower(w[0])}`;
   if (row.status === "cancelled") return `Stopped: ${lower(w[0])}`;
-  const failed = row.status === "error" || res.ok === false || res.delivered === false || !!res.error;
+  // a call made after the agent ended its turn did nothing (XO refuses it: "This turn is closed, …")
+  const refused = typeof row.summary === "string" && /^This turn is closed\b/.test(row.summary);
+  const failed = row.status === "error" || refused || res.ok === false || res.delivered === false || !!res.error;
   if (failed) return w[2] || `Didn't finish: ${lower(w[0])}`;
   // a message tool's success is its own receipt; without one (Codex drops the result body) it's said neutrally,
   // "Message to …", which claims neither delivery nor failure
@@ -96,8 +122,21 @@ export function commsLine(row, ctx) {
 /** A group header for steps that are all comms calls: what they did, the last two in order. */
 export function commsHeader(rows, ctx) {
   if (!rows || !rows.length || !rows.every((r) => commsTool(r))) return null;
-  const said = rows.map((r) => commsLine(r, ctx)).filter(Boolean).filter((l) => l !== "Nothing to add");
-  if (!said.length) return null;
+  const all = rows.map((r) => commsLine(r, ctx)).filter(Boolean);
+  const said = all.filter((l) => l !== "Nothing to add");
+  // a group that only ended the turn says so, not the server's "Used a tool"
+  if (!said.length) return all.length ? all[all.length - 1] : null;
   // side by side, not "then": two calls may have run at once
   return said.slice(-2).join(" · ");
+}
+
+const STEP = /(?:call )?`([\w-]+)` on `xo_comms`/g;
+/** A server line with an XO comms call in it ("`ask` on `xo_comms`", a group header or a stopped turn's last
+    step) in words: each call becomes what it was doing ("Asking a question"). Anything else stays as it is. */
+export function commsText(s, ctx) {
+  if (!s || typeof s !== "string" || !s.includes("xo_comms")) return s;
+  return s.replace(STEP, (_, tool, at) => {
+    const w = words(tool, {}, ctx)[0];
+    return at === 0 ? w : w.charAt(0).toLowerCase() + w.slice(1);
+  });
 }

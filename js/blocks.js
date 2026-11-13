@@ -84,6 +84,7 @@ export function createTurns() {
         const t = turnOf(env);
         if (!t) return null;
         t.status = d.status || "finished";
+        if (t.status === "stopped" && t.selfEnded) t.status = "finished";
         t.end = d;
         if (Array.isArray(d.wakes)) t.wakes = [...new Set([...t.wakes, ...d.wakes])];
         dropOpen(t); // rule 5
@@ -92,6 +93,14 @@ export function createTurns() {
       case "turn.stopped": {
         const t = turnOf(env);
         if (!t) return null;
+        // the agent ended its own turn (no_reply_needed) and XO cut off what it went on with: XO reads that
+        // as finished (storm lifecycle), and so does this. No "Stopped after …" line for a turn nobody stopped.
+        if (d.by === "turn_ended") {
+          t.selfEnded = true;
+          t.stopped = null;
+          if (t.status === "stopped") t.status = "finished";
+          return t.id;
+        }
         t.stopped = d;
         return t.id;
       }

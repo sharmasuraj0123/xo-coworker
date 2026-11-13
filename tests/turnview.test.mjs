@@ -154,4 +154,65 @@ t("tool rows keep call identity across progress, output and row-control changes"
   assert.deepEqual(ids(render([{ ...first, kind: "subagent" }])), ["read:&quot;one"]);
 });
 
+// The owner, 13 Nov 14:36Z: "no reply needed" "xo_comms" showed as text in a thread. An agent called
+// no_reply_needed, wrote on, and XO cut its turn: turn.stopped {by: "turn_ended", last_step: "`no_reply_needed`
+// on `xo_comms`"} (the frames below are :5002's own, 14:08:54-57Z, shortened).
+const cutTurn = (stoppedFirst) => {
+  const T = createTurns();
+  const env = (type, seq, data) => ({ type, envelope: { type, seq, ts: "2026-11-13T14:08:54Z", chat_id: "c", session_id: "s", turn_id: "tu", data } });
+  const nr = { call_id: "toolu_1", kind: "mcp", tool: "mcp__xo_comms__no_reply_needed", line: "`no_reply_needed` on `xo_comms`", target: "xo_comms/no_reply_needed", summary: null };
+  T.apply(env("turn.started", 250053, { origin: "wake" }));
+  T.apply(env("block.started", 250063, { block: { id: "tu:g0", type: "activity", index: 0, header: "`no_reply_needed` on `xo_comms`", rows: [{ ...nr, status: "running" }] } }));
+  T.apply(env("block.finished", 250086, { block: { id: "tu:g0", type: "activity", index: 0, header: "Used a tool", rows: [{ ...nr, status: "ok" }] } }));
+  T.apply(env("block.finished", 250087, { block: { id: "tu:a", type: "answer", index: 1, text: "The coordinator pass" } }));
+  const fin = env("turn.finished", 250087, { status: "stopped", stop_reason: "interrupted", wall_ms: 3000 });
+  const stop = env("turn.stopped", 250088, { by: "turn_ended", last_step: "`no_reply_needed` on `xo_comms`" });
+  for (const f of stoppedFirst ? [stop, fin] : [fin, stop]) T.apply(f);
+  return T;
+};
+
+t("a turn the agent ended itself (no_reply_needed) reads as finished: no Stopped line, no cut-off words, no tool name", () => {
+  for (const order of [false, true]) {
+    const T = cutTurn(order);
+    const tu = T.get("tu");
+    assert.equal(tu.status, "finished");
+    assert.equal(tu.stopped, null);
+    const html = turnHtml(tu, T.blocksOf(tu));
+    assert.doesNotMatch(html, /tb-end|Stopped/);
+    assert.doesNotMatch(html, /coordinator pass/);
+    assert.doesNotMatch(html, /xo_comms|no_reply_needed/);
+    assert.match(html, /Nothing to add/);
+  }
+});
+
+t("while it runs, what the agent writes after choosing to say nothing doesn't show", () => {
+  const nr = { call_id: "n", kind: "mcp", tool: "xo_comms/no_reply_needed", target: "xo_comms/no_reply_needed", line: "`no_reply_needed` on `xo_comms`", status: "ok" };
+  const before = { id: "n0", type: "narration", text: "Checking the thread first." };
+  const html = turnHtml(turn("running"), [before, { id: "g", type: "activity", rows: [nr], header: "Used a tool" }, { id: "x", type: "text", text: "The coordinator pass" }], { open: { "work:t1": true } });
+  assert.match(html, /Checking the thread first/);
+  assert.doesNotMatch(html, /coordinator pass/);
+  // a call XO refused leaves the words alone
+  const denied = turnHtml(turn(), [{ id: "g", type: "activity", done: true, rows: [{ ...nr, status: "denied" }], header: "1 step denied" }, answer]);
+  assert.match(denied, /Done\./);
+});
+
+t("a turn someone stopped says where, in words: an XO call as what it was doing, other steps as code", () => {
+  const stopped = (last_step) => turnHtml({ ...turn("stopped"), stopped: { by: "founder", last_step } }, [answer]);
+  assert.match(stopped("`ask` on `xo_comms`"), /■ Stopped while asking a question</);
+  assert.doesNotMatch(stopped("`ask` on `xo_comms`"), /xo_comms|`/);
+  assert.match(stopped("Run `npm test`"), /Stopped after “Run <code[^>]*>npm test<\/code>”/);
+  assert.match(stopped(null), /■ Stopped</);
+});
+
+t("no XO tool's name reaches a row or a header: unknown ones are said generally", () => {
+  const ask = { call_id: "q", kind: "mcp", tool: "mcp__xo_comms__ask", target: "xo_comms/ask", line: "`ask` on `xo_comms`", status: "running" };
+  const odd = { call_id: "o", kind: "mcp", tool: "mcp__xo_comms__frobnicate", target: "xo_comms/frobnicate", line: "`frobnicate` on `xo_comms`", status: "ok" };
+  const note = { call_id: "w", kind: "notice", line: "Retrying", status: "ok" };
+  // a group that isn't all XO calls keeps the server's header: its XO call is put in words there too
+  const html = turnHtml(turn("running"), [{ id: "g", type: "activity", rows: [ask, odd, note], header: "`ask` on `xo_comms`" }], { open: { g: true } });
+  assert.doesNotMatch(html, /xo_comms|frobnicate|`/);
+  assert.match(html, /Asking a question/);
+  assert.match(html, /Used an XO tool/);
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

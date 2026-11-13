@@ -10,7 +10,7 @@ import { fileIcon } from "./fileicons.js";
 import { ICON, elapsed } from "./ui.js";
 import { renderMarkdown, renderInline } from "./markdown.js";
 import { mediaHtml, fromSharedFile, dedupeByMade } from "./media.js";
-import { commsLine, commsHeader } from "./comms.js";
+import { commsLine, commsHeader, commsText, commsTool } from "./comms.js";
 
 const KIND_ICON = {
   create_file: "doc", edit_file: "edit", delete_file: "close", read: "eye", search: "search", list: "search",
@@ -40,7 +40,7 @@ function rowHtml(r, open) {
   const out = r.output != null && r.output !== "" ? r.output : null;
   const canOpen = !!(out || (r.kind === "command" && r.target));
   const said = commsLine(r);
-  const head = `<span class="tb-ri">${icon(said ? "ask" : r.kind || "other")}</span><span class="tb-rl">${said ? esc(said) : renderInline(r.line || "", true)}</span>` +
+  const head = `<span class="tb-ri">${icon(said ? "ask" : r.kind || "other")}</span><span class="tb-rl">${said ? esc(said) : renderInline(commsText(r.line) || "", true)}</span>` +
     (prog ? `<span class="tb-rp">${esc(prog)}</span>` : "") + rowMark(r);
   // data-r: the row's own key, so a step that starts while you watch can arrive (js/app.js workMotion)
   // a step keeps its identity (data-call-id, which msgx reads) when its label, status, duration or output changes
@@ -75,7 +75,7 @@ function blockHtml(b, open, live, now, media = {}, tail = "") {
       const cur = running ? rows.filter((r) => r.status === "running") : [];
       const waiting = rows.some((r) => r.waiting);
       return `<div class="tb tb-act${running ? " is-live" : ""}${waiting ? " is-waiting" : ""}${isOpen ? " is-unfolded" : ""}${isOpen || cur.length ? " has-rows" : ""}" data-b="${esc(b.id)}"><button type="button" class="tb-h" data-tb="${esc(b.id)}" aria-expanded="${isOpen}">` +
-        `<span class="tb-hi">${running ? `<i class="tb-live" aria-hidden="true"></i>` : ICON.list}</span><span class="tb-ht">${commsHeader(rows) ? esc(commsHeader(rows)) : renderInline(b.header || "Working", true)}</span>` +
+        `<span class="tb-hi">${running ? `<i class="tb-live" aria-hidden="true"></i>` : ICON.list}</span><span class="tb-ht">${commsHeader(rows) ? esc(commsHeader(rows)) : renderInline(commsText(b.header) || "Working", true)}</span>` +
         `<span class="tb-n">${rows.length}</span><span class="tb-chev">${ICON.chevron}</span></button>` +
         (isOpen ? `<ul class="tb-rows">${rows.map((r) => rowHtml(r, open)).join("")}</ul>` : cur.length ? `<ul class="tb-rows is-cur">${cur.map((r) => rowHtml(r, open)).join("")}</ul>` : "") + tail + `</div>`;
     }
@@ -219,6 +219,28 @@ function withoutWireNotices(b) {
 }
 
 /**
+ * A turn's blocks without what the agent wrote after it chose to say nothing (no_reply_needed): XO ends the
+ * turn at that call and cuts off whatever the model goes on with, so those words reach no one and stop
+ * mid-sentence ("The coordinator pass"). Its words before the call, and its work, stay.
+ */
+const WORDS_BLOCKS = new Set(["text", "answer", "narration"]);
+function afterSilence(blocks) {
+  let cut = -1;
+  blocks.forEach((b, i) => { if (b.type === "activity" && (b.rows || []).some((r) => commsTool(r) === "no_reply_needed" && r.status !== "error" && r.status !== "denied")) cut = i; });
+  return cut < 0 ? blocks : blocks.filter((b, i) => i <= cut || !WORDS_BLOCKS.has(b.type));
+}
+
+/** A stopped turn's line: where it stopped, in words. An XO call is said as what it was doing ("Stopped
+    while asking a question"), never as the server's "`ask` on `xo_comms`"; any other step is the runtime's
+    own title, its code drawn as code. */
+function stoppedAt(step) {
+  if (!step) return "Stopped";
+  const said = commsText(step);
+  if (said !== step && !said.includes("`")) return `Stopped while ${said.charAt(0).toLowerCase()}${said.slice(1)}`;
+  return `Stopped after “${renderInline(said, true)}”`;
+}
+
+/**
  * A turn's blocks as HTML. opts: {open, hideAnswer, now, carried, route, by}. A turn that ended with no
  * blocks (the CLI said nothing) renders nothing; a stopped or failed turn says so in one quiet line.
  * Two or more work blocks fold into one line where the first of them was (hub #29).
@@ -228,7 +250,7 @@ function withoutWireNotices(b) {
 export function turnHtml(turn, blocks, { open = {}, hideAnswer = false, now = Date.now(), carried = [], route = null, by = "", working = false, changed = null } = {}) {
   const media = { carried, route, by, at: Date.parse(turn.at) || null, changed };
   const live = turn.status === "running";
-  const shown = blocks.filter((b) => !(hideAnswer && b.type === "answer")).map(withoutWireNotices).filter(Boolean);
+  const shown = afterSilence(blocks).filter((b) => !(hideAnswer && b.type === "answer")).map(withoutWireNotices).filter(Boolean);
   const work = shown.filter((b) => WORK.has(b.type));
   const fold = work.length >= 2 || (WORDS && work.some((b) => b.type === "activity"));
   const parts = [];
@@ -245,7 +267,7 @@ export function turnHtml(turn, blocks, { open = {}, hideAnswer = false, now = Da
   const html = parts.filter(Boolean);
   const end = turn.end || {};
   let foot = "";
-  if (turn.status === "stopped" || turn.stopped) foot = `<p class="tb-end is-stop">■ Stopped${turn.stopped && turn.stopped.last_step ? ` after “${esc(turn.stopped.last_step)}”` : ""}</p>`;
+  if (turn.status === "stopped" || turn.stopped) foot = `<p class="tb-end is-stop">■ ${stoppedAt(turn.stopped && turn.stopped.last_step)}</p>`;
   else if (turn.status === "failed") foot = `<p class="tb-end is-err">${ICON.close}<span>This turn failed${end.error ? `: ${esc(String(end.error).slice(0, 240))}` : ""}</span></p>`;
   else if (turn.status === "interrupted") foot = `<p class="tb-end">Interrupted${end.reason === "restart" ? " by a restart; it picks up again" : ""}</p>`;
   if (!html.length && !foot) return "";
