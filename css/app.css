@@ -1676,6 +1676,21 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 .route-row>svg{flex:none;width:12px;height:12px;color:var(--ink-4)}
 .m-card .tcard{margin-top:0}
 .m-note{margin:10px 0 26px;color:var(--ink-4);font-size:var(--fs-sm);text-align:center}
+/* an empty project chat: what its coordinator can start, in the middle of the room the chat has (js/app.js
+   startHtml). The scroller, column and list stretch to that room only while it shows, so it sits midway
+   between the header and the composer; a few rows of plain words, the house's 40 px row, nothing else */
+.scroller:has(.m-start){display:flex;flex-direction:column}
+.column:has(.m-start),.msgs:has(> .m-start){display:flex;flex:1 0 auto;flex-direction:column}
+.m-start{display:flex;flex-direction:column;align-items:center;gap:16px;margin:auto 0;padding-bottom:var(--h-lg)}
+.st-h{font:600 var(--fs-2xl)/var(--lh-20) var(--sans);letter-spacing:-.01em;color:var(--ink);text-align:center;text-wrap:balance;overflow-wrap:anywhere}
+.st-list{list-style:none;display:grid;width:max-content;max-width:100%;transition:opacity var(--d-hover) var(--ease),visibility 0s linear var(--d-hover)}
+/* once you write, the draft is yours: the starts step aside (they never add to a draft) */
+body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden}
+.st-o{display:flex;align-items:center;gap:12px;width:100%;min-height:var(--h-lg);padding:0 12px;border-radius:var(--r-lg);color:var(--ink-2);font-size:var(--fs-md);line-height:var(--lh-14);text-align:left;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.st-ic{display:grid;place-items:center;flex:none;color:var(--ink-4);transition:color var(--d-hover) var(--ease)}
+.st-ic svg{width:16px;height:16px}
+.st-o:hover{background:var(--hover-fill);color:var(--ink);transition-duration:var(--dur-fast)}
+.st-o:hover .st-ic{color:var(--ink-2);transition-duration:var(--dur-fast)}
 .day.hist{min-height:26px}
 .day.hist span{display:inline-flex;align-items:center;gap:8px}
 .hist-more{height:var(--h-sm);padding:0 12px;border-radius:999px;border:1px solid var(--line-soft);color:var(--ink-3);font-size:var(--fs-sm);transition:color var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease)}

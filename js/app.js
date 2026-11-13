@@ -871,7 +871,8 @@ function messagesOf(conv) {
   const fail = !t && chat ? st.failed && st.failed[chat] : null;
   if (fail) out.push({ key: `fail:${fail.id}`, at: fail.at, who: "event", tone: "stop", text: `The coordinator couldn't answer: ${fail.error}` });
   if (!rows.length && !locals.length && !(h && (h.loading || h.error))) {
-    out.push({ key: "empty", at: -Infinity, who: "note", text: t ? "No messages in this thread yet." : conv === "ws" ? "No messages yet. Ask the coordinator anything below." : "No messages yet. Tell this project's coordinator what you'd like done." });
+    // a project's empty chat opens on what its coordinator can start for you (startHtml)
+    out.push(t || conv === "ws" ? { key: "empty", at: -Infinity, who: "note", text: t ? "No messages in this thread yet." : "No messages yet. Ask the coordinator anything below." } : { key: "empty", at: -Infinity, who: "start", pid: convProject(conv) });
   }
   out.push(...locals.filter((m) => !m.merged).map((m) => ({ ...m, key: m.id })));
   // storm's seq orders what the server stored; the rest (your unsent rows, notes, events) is
@@ -986,6 +987,28 @@ function passedTo(m) {
   }
   return null;
 }
+/** An empty project chat: what its coordinator really does when asked, as the start of a message. A press
+ *  puts that start in the composer for you to finish; nothing is sent for you. Each is something XO does
+ *  for a project: a thread with its own agent and branch, a fix, a read of the project's own files, and
+ *  a job on a schedule (the owner allows it first). Typing hides them (css: .st-list). */
+const STARTS = [
+  { ic: "plus", label: "Make something new", say: () => `Start a ${SHAPE.word("thread")} to make ` },
+  { ic: "edit", label: "Fix or change something", say: () => "Fix " },
+  { ic: "search", label: "Explain how this project works", say: () => "Read through this project and explain how it works." },
+  { ic: "clock", label: "Do something on a schedule", say: () => "Every weekday at 9:00, " },
+];
+function startHtml(pid) {
+  return `<div class="m-start"><h2 class="st-h">What should get done in ${esc(PROJ(pid))}?</h2><ul class="st-list">${STARTS.map((o, i) =>
+    `<li><button type="button" class="st-o" data-start="${i}"><span class="st-ic" aria-hidden="true">${ICON[o.ic]}</span>${esc(o.label)}</button></li>`).join("")}</ul></div>`;
+}
+function startDraft(i) {
+  const o = STARTS[i];
+  if (!o || say.value.trim()) return;
+  say.value = o.say();
+  growSay(); saveDraft(); updateComposer(); say.focus();
+  say.setSelectionRange(say.value.length, say.value.length);
+}
+
 function msgItems(conv, needs) {
   if (CH.isChats(conv)) return CH.items(conv);
   if (conv.startsWith("t:") && !convThread(conv)) {
@@ -1087,6 +1110,8 @@ function msgItems(conv, needs) {
       html = `<div class="ev ev-sys" title="${esc(m.text)}"><span class="ev-ic">${ICON.router}</span><span class="ev-t">${esc(m.text)}</span><time>${clock(m.at)}</time></div>`;
     } else if (m.who === "note") {
       html = `<p class="m-note">${esc(m.text)}</p>`;
+    } else if (m.who === "start") {
+      html = startHtml(m.pid);
     } else if (m.who === "hist") {
       const h = m.h;
       // older messages on their way: the shapes of messages where they will land, never a spinner
@@ -3212,6 +3237,8 @@ document.addEventListener("click", (e) => {
   const tl = t.closest("a[data-thread]");
   if (tl) { e.preventDefault(); if (world.thread(tl.dataset.thread)) go("t:" + tl.dataset.thread); else heraldShow({ kind: "calm", text: "That thread isn't loaded", sub: "it may be in another project" }, 3200); return; }
   if (t.closest("[data-older]")) { loadOlderNow(); return; }
+  const so = t.closest("[data-start]");
+  if (so) { startDraft(+so.dataset.start); return; }
   const d = t.closest("[data-decide]");
   if (d) { decideKey(d.dataset.decide); return; }
   if (t.closest("[data-next]")) { openNext(); return; }
