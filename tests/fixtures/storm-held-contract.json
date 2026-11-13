@@ -1,0 +1,307 @@
+{
+ "_about": "Real xo-space payloads for a coordinator and a thread held by the usage limit, dumped from xo-space's own test kit (fake runtime, temp store) at commit 718da21 (branch xo/thread-db1062): GET /api/chat/sessions, /chats/{id}/threads, and the stream's session and thread events. Ids mapped to the browser harness's world; __RESET__ is the closed pool's reset, set by the test. tests/browser/held-contract.test.cjs replays it.",
+ "thread_ts": "cmsg_4c945d08e2c8472a",
+ "thread_session": "cse_356d28302062413d",
+ "coordinator": "cse_65edd58278db4920",
+ "threads": [
+  {
+   "chat_id": "chat_demo",
+   "ts": "cmsg_4c945d08e2c8472a",
+   "title": "Research the telemetry",
+   "label": null,
+   "resolved_at": null,
+   "session_id": "cse_356d28302062413d",
+   "cwd": "/home/test/demo",
+   "branch": null,
+   "worktree_path": null,
+   "base_commit": null,
+   "status_md": null,
+   "outputs": [],
+   "created_at": "2026-11-13T22:49:44Z",
+   "updated_at": "2026-11-13T22:49:44Z",
+   "summary": null,
+   "summary_at": null,
+   "state": "working",
+   "activity": "waiting",
+   "wait_reason": "usage limit reached",
+   "waiting_until": "__RESET__",
+   "card": null,
+   "agent_ms": 0,
+   "continued_in": null,
+   "continued_from": null,
+   "git": null,
+   "pin": {
+    "agent": "claude_code",
+    "model": "haiku",
+    "effort": "low"
+   },
+   "runs": {
+    "running": 0,
+    "waiting": 0,
+    "done": 0,
+    "failed": 0,
+    "stopped": 0,
+    "lost": 0,
+    "total": 0,
+    "tokens": 0
+   },
+   "busy": false,
+   "session": {
+    "state": "queued",
+    "agent": "claude_code",
+    "model": "haiku",
+    "effort": "low",
+    "live_runs": 0,
+    "paused": null,
+    "busy": false,
+    "waiting": {
+     "for": "limit",
+     "until": "__RESET__",
+     "pool": "claude_code:default",
+     "why": "usage limit reached"
+    }
+   }
+  }
+ ],
+ "sessions": [
+  {
+   "id": "cse_65edd58278db4920",
+   "seq": 2,
+   "chat_id": "chat_demo",
+   "thread_ts": null,
+   "role": "project-coordinator",
+   "preset": "project_coordinator",
+   "agent": "claude_code",
+   "pool": "claude_code:default",
+   "model": null,
+   "effort": "low",
+   "permission_mode": "deny_unasked",
+   "cwd": "/home/test/demo",
+   "native_id": null,
+   "state": "queued",
+   "epoch": 0,
+   "recycle_pending": false,
+   "paused": null,
+   "retired_at": null,
+   "created_at": "2026-11-13T22:49:44Z",
+   "updated_at": "2026-11-13T22:49:44Z",
+   "current_turn": null,
+   "live_runs": 0,
+   "busy": false,
+   "waiting": {
+    "for": "limit",
+    "until": "__RESET__",
+    "pool": "claude_code:default",
+    "why": "usage limit reached"
+   },
+   "held": 0,
+   "held_items": [],
+   "waiting_for_decision": null,
+   "replaced_when_full": true
+  },
+  {
+   "id": "cse_356d28302062413d",
+   "seq": 4,
+   "chat_id": "chat_demo",
+   "thread_ts": "cmsg_4c945d08e2c8472a",
+   "role": "thread",
+   "preset": "thread",
+   "agent": "claude_code",
+   "pool": "claude_code:default",
+   "model": "haiku",
+   "effort": "low",
+   "permission_mode": "auto",
+   "cwd": "/home/test/demo",
+   "native_id": null,
+   "state": "queued",
+   "epoch": 0,
+   "recycle_pending": false,
+   "paused": null,
+   "retired_at": null,
+   "created_at": "2026-11-13T22:49:44Z",
+   "updated_at": "2026-11-13T22:49:44Z",
+   "current_turn": null,
+   "live_runs": 0,
+   "busy": false,
+   "waiting": {
+    "for": "limit",
+    "until": "__RESET__",
+    "pool": "claude_code:default",
+    "why": "usage limit reached"
+   },
+   "held": 0,
+   "held_items": [],
+   "waiting_for_decision": null,
+   "replaced_when_full": null
+  }
+ ],
+ "events": [
+  {
+   "type": "session",
+   "session_id": "cse_65edd58278db4920",
+   "chat_id": "chat_demo",
+   "thread_ts": null,
+   "seq": 2,
+   "data": {
+    "status": "cold",
+    "reason": "created",
+    "agent": "claude_code",
+    "role": "project-coordinator",
+    "preset": "project_coordinator"
+   }
+  },
+  {
+   "type": "session",
+   "session_id": "cse_356d28302062413d",
+   "chat_id": "chat_demo",
+   "thread_ts": "cmsg_4c945d08e2c8472a",
+   "seq": 4,
+   "data": {
+    "status": "cold",
+    "reason": "created",
+    "agent": "claude_code",
+    "role": "thread",
+    "preset": "thread"
+   }
+  },
+  {
+   "type": "thread",
+   "session_id": "cse_356d28302062413d",
+   "chat_id": "chat_demo",
+   "thread_ts": "cmsg_4c945d08e2c8472a",
+   "seq": 5,
+   "data": {
+    "chat_id": "chat_demo",
+    "ts": "cmsg_4c945d08e2c8472a",
+    "title": "Research the telemetry",
+    "label": null,
+    "resolved_at": null,
+    "session_id": "cse_356d28302062413d",
+    "cwd": "/home/test/demo",
+    "branch": null,
+    "worktree_path": null,
+    "base_commit": null,
+    "status_md": null,
+    "outputs": [],
+    "created_at": "2026-11-13T22:49:44Z",
+    "updated_at": "2026-11-13T22:49:44Z",
+    "summary": null,
+    "summary_at": null,
+    "state": "working",
+    "activity": "stalled",
+    "wait_reason": "no running turn or pending wake",
+    "waiting_until": null
+   }
+  },
+  {
+   "type": "thread",
+   "session_id": "cse_356d28302062413d",
+   "chat_id": "chat_demo",
+   "thread_ts": "cmsg_4c945d08e2c8472a",
+   "seq": 10,
+   "data": {
+    "ts": "cmsg_4c945d08e2c8472a",
+    "state": "working",
+    "activity": "waiting",
+    "wait_reason": "queued input",
+    "waiting_until": null
+   }
+  },
+  {
+   "type": "session",
+   "session_id": "cse_356d28302062413d",
+   "chat_id": "chat_demo",
+   "thread_ts": "cmsg_4c945d08e2c8472a",
+   "seq": 11,
+   "data": {
+    "status": "queued",
+    "reason": "waiting for memory",
+    "waiting": {
+     "for": "memory",
+     "until": null,
+     "pool": null,
+     "why": "waiting for memory to free up"
+    }
+   }
+  },
+  {
+   "type": "thread",
+   "session_id": "cse_356d28302062413d",
+   "chat_id": "chat_demo",
+   "thread_ts": "cmsg_4c945d08e2c8472a",
+   "seq": 12,
+   "data": {
+    "ts": "cmsg_4c945d08e2c8472a",
+    "state": "working",
+    "activity": "waiting",
+    "wait_reason": "waiting for memory to free up",
+    "waiting_until": null
+   }
+  },
+  {
+   "type": "session",
+   "session_id": "cse_65edd58278db4920",
+   "chat_id": "chat_demo",
+   "thread_ts": null,
+   "seq": 13,
+   "data": {
+    "status": "queued",
+    "reason": "waiting for memory",
+    "waiting": {
+     "for": "memory",
+     "until": null,
+     "pool": null,
+     "why": "waiting for memory to free up"
+    }
+   }
+  },
+  {
+   "type": "session",
+   "session_id": "cse_65edd58278db4920",
+   "chat_id": "chat_demo",
+   "thread_ts": null,
+   "seq": 14,
+   "data": {
+    "status": "queued",
+    "reason": "pool closed until __RESET__",
+    "waiting": {
+     "for": "limit",
+     "until": "__RESET__",
+     "pool": "claude_code:default",
+     "why": "usage limit reached"
+    }
+   }
+  },
+  {
+   "type": "session",
+   "session_id": "cse_356d28302062413d",
+   "chat_id": "chat_demo",
+   "thread_ts": "cmsg_4c945d08e2c8472a",
+   "seq": 15,
+   "data": {
+    "status": "queued",
+    "reason": "pool closed until __RESET__",
+    "waiting": {
+     "for": "limit",
+     "until": "__RESET__",
+     "pool": "claude_code:default",
+     "why": "usage limit reached"
+    }
+   }
+  },
+  {
+   "type": "thread",
+   "session_id": "cse_356d28302062413d",
+   "chat_id": "chat_demo",
+   "thread_ts": "cmsg_4c945d08e2c8472a",
+   "seq": 16,
+   "data": {
+    "ts": "cmsg_4c945d08e2c8472a",
+    "state": "working",
+    "activity": "waiting",
+    "wait_reason": "usage limit reached",
+    "waiting_until": "__RESET__"
+   }
+  }
+ ]
+}

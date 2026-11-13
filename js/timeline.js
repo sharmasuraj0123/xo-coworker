@@ -250,6 +250,16 @@ export function sessionRead(view, now = Date.now()) {
 }
 
 /**
+ * A status from `b` stands later than one from `a` (each {statusAt, statusSeq}): by the stream's order when both
+ * have a seq (a frame: its own; an HTTP read: the newest seen when it was SENT, never when it came back, so a read
+ * sent before a frame and answered after it doesn't override it), a tie or no seq by the moment.
+ */
+export function statusLater(b, a) {
+  if (b.statusSeq != null && a.statusSeq != null && b.statusSeq !== a.statusSeq) return b.statusSeq > a.statusSeq;
+  return (b.statusAt || 0) > (a.statusAt || 0);
+}
+
+/**
  * A session whose status says queued, yet work is seen after that status came: a turn the stream
  * started after it (turn: its running turn, {seq}; s.statusSeq: the event seq when the status was set),
  * a sub-agent the stream named after it (runs' `seen` against s.statusAt, ms), or `runs` counts above none

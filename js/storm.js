@@ -13,7 +13,7 @@ import { api, clientId as newClientId, NEWEST, coderHeaders, STORM_DOWN } from "
 import { SSEStream } from "./sse.js";
 import { createTurns } from "./blocks.js";
 import { tasksOf } from "./model.js";
-import { uiMsg, mergeRows, addReaction, updateMessage, stormAsks, mapLimit, currentPools, threadState, askingState, mainRuntime, BUSY_STATES, heldOf, queuedButWorking, readSub, sessionRead, sessionBusy, pageAfter, canPageOlder, framesShort } from "./timeline.js";
+import { uiMsg, mergeRows, addReaction, updateMessage, stormAsks, mapLimit, currentPools, threadState, askingState, mainRuntime, BUSY_STATES, heldOf, queuedButWorking, statusLater, readSub, sessionRead, sessionBusy, pageAfter, canPageOlder, framesShort } from "./timeline.js";
 import { hostOf, askedBy } from "./review.js";
 import { isLimitItem, limitItem } from "./runtimes.js";
 import { paidBody, paidItem, accountRows, heldModes } from "./paid.js";
@@ -105,12 +105,19 @@ export function stormSource(state, emit, event) {
    * came: statusAt (ms) and statusSeq (the newest event seq seen then), so work seen after it can outlive a
    * stale "queued" (timeline.js queuedButWorking).
    */
-  // a thread read that carried its `session`: when, and the newest event seq seen by then (sessionNow)
-  const sessRead = (x) => (x && x.session && typeof x.session === "object" ? { _sessAt: Date.now(), _seqAt: state.lastSeq } : {});
+  /**
+   * Where a read or a frame stands in the stream's order, for which status is newest (sessionNow, noteSession):
+   * a frame at its own event seq; an HTTP read at the newest seq seen when it was SENT, never when it came back
+   * (a read sent before a frame and answered after it says nothing newer than that frame). at: ms, the same moment.
+   */
+  const sentAt = () => ({ at: Date.now(), seq: state.lastSeq ?? null });
+  const later = statusLater; // timeline.js: by the stream's order, then by moment
+  // a thread read (or frame) that carried its `session`: where it stands (sent: sentAt() before the request; a frame's own seq)
+  const sessRead = (x, sent) => (x && x.session && typeof x.session === "object" ? { _sessAt: sent.at, _seqAt: sent.seq } : {});
   function sessionNow(sid, r = null) {
     const live = sid ? state.sessions[sid] : null;
     const view = r && r.session && r.session.state ? { ...r.session, id: sid, statusAt: r._sessAt || 0, statusSeq: r._seqAt ?? null } : null;
-    if (live && live.state && (!view || (live.statusAt || 0) >= view.statusAt)) return live;
+    if (live && live.state && (!view || !later(view, live))) return live;
     return view ? { ...(live || {}), ...view } : live || null;
   }
   function sessionStateOf(r) {
@@ -318,11 +325,11 @@ export function stormSource(state, emit, event) {
   }
   const maybeChats = () => { if (Date.now() - chatsAt > CHATS_MIN_MS) loadChats(); };
   async function loadThreads(p) {
-    const asked = Date.now();
+    const asked = Date.now(), sent = sentAt();
     try {
       const { threads } = await api.threads(p.chatId);
       const seen = new Set();
-      for (const r of threads || []) { seen.add(r.ts); rawThreads.set(r.ts, { ...(rawThreads.get(r.ts) || {}), ...r, _at: Date.now(), _readAt: Date.now(), ...sessRead(r) }); }
+      for (const r of threads || []) { seen.add(r.ts); rawThreads.set(r.ts, { ...(rawThreads.get(r.ts) || {}), ...r, _at: Date.now(), _readAt: Date.now(), ...sessRead(r, sent) }); }
       // gone from the listing, unless a frame made it after the listing was read
       for (const [ts, r] of rawThreads) if (r.chat_id === p.chatId && !seen.has(ts) && (r._at || 0) < asked) rawThreads.delete(ts);
     } catch { /* keep the last good threads for this project */ }
@@ -332,21 +339,25 @@ export function stormSource(state, emit, event) {
     try {
       let after = 0;
       for (let i = 0; i < 10; i++) {
+        const sent = sentAt();
         const d = await api.sessions({ after_seq: after, limit: 500 });
-        for (const s of d.sessions || []) noteSession(s);
+        for (const s of d.sessions || []) noteSession(s, sent);
         if (!d.next_after_seq) break;
         after = d.next_after_seq;
       }
     } catch { /* the stream's session frames fill in */ }
   }
-  function noteSession(s) {
+  function noteSession(s, sent = sentAt()) {
     const old = state.sessions[s.id];
     if (old && old.seq != null && s.seq != null && old.seq > s.seq) return;
     // the whole Session (a plain chat needs its native_id, cwd and permission_mode), and what its `busy`
     // says beyond the status (a sub-agent working on after the turn), with when it was read
-    state.sessions[s.id] = { ...(old || {}), ...s, paused: s.paused || null, retired_at: s.retired_at || null, seq: s.seq ?? null, ...sessionRead(s),
-      // when its status came, for work seen after it (timeline.js queuedButWorking)
-      ...(s.state ? { statusAt: Date.now(), statusSeq: state.lastSeq } : {}) };
+    const next = { ...(old || {}), ...s, paused: s.paused || null, retired_at: s.retired_at || null, seq: s.seq ?? null, ...sessionRead(s),
+      // where its status stands (the read's sending), for which status is newest and work seen after it
+      ...(s.state ? { statusAt: sent.at, statusSeq: sent.seq } : {}) };
+    // a status frame that came after this read was sent is newer than what the read says: it stands
+    if (old && old.state && s.state && later(old, next)) Object.assign(next, { state: old.state, waiting: old.waiting ?? null, statusAt: old.statusAt, statusSeq: old.statusSeq });
+    state.sessions[s.id] = next;
   }
   async function loadReview() {
     try {
@@ -653,7 +664,7 @@ export function stormSource(state, emit, event) {
         if (!ts) break;
         const old = rawThreads.get(ts);
         if (!old && !d.chat_id) { refetchThread(env.chat_id, ts); break; }
-        rawThreads.set(ts, { ...(old || {}), ...d, _at: Date.now(), ...("busy" in d ? { _readAt: Date.now() } : {}), ...sessRead(d), chat_id: d.chat_id || (old && old.chat_id) || env.chat_id, updated_at: d.updated_at || env.ts || (old && old.updated_at) });
+        rawThreads.set(ts, { ...(old || {}), ...d, _at: Date.now(), ...("busy" in d ? { _readAt: Date.now() } : {}), ...sessRead(d, { at: Date.now(), seq: env.seq ?? state.lastSeq }), chat_id: d.chat_id || (old && old.chat_id) || env.chat_id, updated_at: d.updated_at || env.ts || (old && old.updated_at) });
         soon();
         break;
       }
@@ -811,7 +822,8 @@ export function stormSource(state, emit, event) {
   async function refetchThread(chatId, ts) {
     if (!chatId || refetchBusy.has(ts)) return;
     refetchBusy.add(ts);
-    try { const x = await api.thread(chatId, ts); rawThreads.set(ts, { ...x, _readAt: Date.now(), ...sessRead(x) }); soon(); } catch { /* the next full frame fills it */ }
+    const sent = sentAt();
+    try { const x = await api.thread(chatId, ts); rawThreads.set(ts, { ...x, _readAt: Date.now(), ...sessRead(x, sent) }); soon(); } catch { /* the next full frame fills it */ }
     refetchBusy.delete(ts);
   }
   function settleAwaiting(chatId) {
@@ -996,9 +1008,10 @@ export function stormSource(state, emit, event) {
         const before = { state: r.state, resolved_at: r.resolved_at };
         rawThreads.set(threadId, { ...r, state: resolved ? "resolved" : "working", resolved_at: resolved ? new Date().toISOString() : null });
         soon();
+        const sent = sentAt();
         try {
           const t = await api.patchThread(r.chat_id, threadId, { resolved });
-          rawThreads.set(threadId, { ...rawThreads.get(threadId), ...t, ...(t && "busy" in t ? { _readAt: Date.now() } : {}), ...sessRead(t) });
+          rawThreads.set(threadId, { ...rawThreads.get(threadId), ...t, ...(t && "busy" in t ? { _readAt: Date.now() } : {}), ...sessRead(t, sent) });
           soon();
           return t;
         } catch (err) {
@@ -1011,8 +1024,9 @@ export function stormSource(state, emit, event) {
       editThread: async (threadId, change) => {
         const r = threadOf(threadId);
         if (!r) throw new Error("Unknown thread");
+        const sent = sentAt();
         const t = await api.patchThread(r.chat_id, threadId, change);
-        rawThreads.set(threadId, { ...rawThreads.get(threadId), ...t, ...(t && "busy" in t ? { _readAt: Date.now() } : {}), ...sessRead(t) });
+        rawThreads.set(threadId, { ...rawThreads.get(threadId), ...t, ...(t && "busy" in t ? { _readAt: Date.now() } : {}), ...sessRead(t, sent) });
         soon();
         return t;
       },

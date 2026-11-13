@@ -6,7 +6,7 @@
 // sent anywhere, and nothing but GETs is asked.
 //   node tests/busy.test.mjs
 import assert from "node:assert/strict";
-import { BUSY_STATES, readSub, sessionRead, sessionBusy, runWorks, heldOf, heldWords, heldShort, heldClock, heldBadge, soonestHeld, queuedButWorking, threadState } from "../js/timeline.js";
+import { BUSY_STATES, readSub, sessionRead, sessionBusy, runWorks, heldOf, heldWords, heldShort, heldClock, heldBadge, soonestHeld, queuedButWorking, threadState, statusLater } from "../js/timeline.js";
 const sp = (x) => String(x).replace(/\u00a0/g, " "); // the time is one phrase (no-break spaces); read as plain spaces
 
 let passed = 0;
@@ -48,6 +48,14 @@ t("work seen after a session said queued outlives it: a turn started, a sub-agen
   // a status with no seq known (a local guess): any running turn the stream holds is evidence
   assert.equal(queuedButWorking({ id: "s", state: "queued", statusAt: 10 }, { turn: { status: "running", seq: 3 } }), true);
   assert.equal(queuedButWorking({ id: "s", state: "warm" }, { turn: { status: "running", seq: 99 } }), false, "only a queued status is overruled");
+});
+t("which status is newest: the stream's order (a read stands where it was sent), then the moment", () => {
+  // a read sent at seq 10 and answered after a frame at seq 12: the frame stands
+  assert.equal(statusLater({ statusSeq: 10, statusAt: 900 }, { statusSeq: 12, statusAt: 500 }), false);
+  assert.equal(statusLater({ statusSeq: 12, statusAt: 500 }, { statusSeq: 10, statusAt: 900 }), true);
+  // a read sent after the frame at seq 12 was seen (both at 12): the later moment, the read
+  assert.equal(statusLater({ statusSeq: 12, statusAt: 600 }, { statusSeq: 12, statusAt: 500 }), true);
+  assert.equal(statusLater({ statusAt: 7 }, { statusSeq: 3, statusAt: 5 }), true, "no seq: by moment");
 });
 t("held is one shown state: a done, stopped or needs-reply thread whose next input waits is on its way again", () => {
   for (const st of ["done", "failed", "needs_reply"]) assert.equal(threadState(st, null, false, true), "working", st);
@@ -186,7 +194,7 @@ function fakeBackend(routes) {
       } }) } };
     }
     const body = routes[path];
-    return new Response(JSON.stringify(body === undefined ? { detail: "Not Found" } : typeof body === "function" ? body() : body), { status: body === undefined ? 404 : 200, headers: { "Content-Type": "application/json" } });
+    return new Response(JSON.stringify(body === undefined ? { detail: "Not Found" } : typeof body === "function" ? await body() : body), { status: body === undefined ? 404 : 200, headers: { "Content-Type": "application/json" } });
   };
   return { asked, push };
 }
@@ -379,6 +387,46 @@ t("storm.js: held is one shown state, and work seen after a stale queued wins (a
   await settle();
   assert.equal(world.thread("read").busy, false);
   assert.equal(world.thread("read").held.for, "limit");
+  assert.ok(be.asked.every((a) => a.startsWith("GET ")), "only GETs");
+});
+
+t("storm.js: a read sent before a status frame and answered after it doesn't undo that frame (it stands where it was sent)", async () => {
+  const at = "2026-11-13T21:00:00Z";
+  let release;
+  const gate = new Promise((r) => { release = r; });
+  const queuedView = { state: "queued", busy: false, waiting: { for: "limit", until: null, pool: "p", why: "usage limit reached" } };
+  const be = fakeBackend({
+    "/chat/chats": { chats: [{ id: "chat_ws", kind: "workspace" }, { id: "chat_p", kind: "project", project: "demo" }] },
+    "/chat/chats/chat_p/threads": { threads: [] },
+    "/chat/sessions": { sessions: [{ id: "cse_2", seq: 1, chat_id: "chat_p", thread_ts: "t2", role: "thread", agent: "claude_code", pool: "p", state: "queued", busy: false, waiting: queuedView.waiting }] },
+    // the thread is read while its session is still queued; the answer is held back until after the frame
+    "/chat/chats/chat_p/threads/t2": async () => { await gate; return { ts: "t2", chat_id: "chat_p", title: "t2", state: "working", session_id: "cse_2", created_at: at, updated_at: at, busy: false, session: queuedView }; },
+    "/chat/review": { items: [] },
+    "/chat/chats/chat_ws/hops": { hops: [] },
+    "/chat/status": { pools: [] },
+    "/chat/runtimes": { runtimes: [] },
+    "/chat/router": { mode: "auto" },
+  });
+  const { createWorld } = await import("../js/world.js");
+  const world = createWorld();
+  be.push("snapshot", { data: { seq: 5, turns: [] } });
+  await until(() => world.state.loaded);
+  // a thread this tab doesn't know yet: it's read
+  be.push("thread", { chat_id: "chat_p", seq: 20, data: { ts: "t2" } });
+  await until(() => be.asked.includes("GET /chat/chats/chat_p/threads/t2"));
+  // the wait ends on the stream while the read is out
+  be.push("session", { session_id: "cse_2", seq: 40, data: { status: "running" } });
+  await until(() => world.state.sessions.cse_2.state === "running");
+  release();
+  await until(() => world.thread("t2"));
+  await settle();
+  assert.equal(world.thread("t2").busy, true, "the frame stands: Working");
+  assert.equal(world.thread("t2").held, null);
+  // a read sent after it says queued again: that one stands
+  be.push("session", { session_id: "cse_2", seq: 41, data: { status: "queued", waiting: queuedView.waiting } });
+  await settle();
+  assert.equal(world.thread("t2").busy, false);
+  assert.equal(world.thread("t2").held.for, "limit");
   assert.ok(be.asked.every((a) => a.startsWith("GET ")), "only GETs");
 });
 
