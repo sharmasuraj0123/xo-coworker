@@ -96,6 +96,11 @@ function hostOf(u) {
   return m ? m[1].replace(/^www\./i, "").replace(/^[^@]*@/, "") : "";
 }
 
+/** A short capsule kept whole: it moves to the next line as one piece rather than split between
+ *  words, and wraps inside its own box only when it is wider than the whole line (a phone's bubble),
+ *  so it never runs out of the bubble (css/links.css .lk-fit). A long one flows with the text as it is. */
+function fit(a, short) { return short ? `<span class="lk-fit">${a}</span>` : a; }
+
 /** A link's HTML, or null when the target is not allowed. `label` is rendered HTML, or null for a bare URL. */
 function linkHtml(href, label) {
   const h = String(href || "").trim();
@@ -108,8 +113,9 @@ function linkHtml(href, label) {
     const tip = info ? [info.word, "thread"].filter(Boolean).join(" · ") : "Thread";
     // a short title stays one capsule; a long one may wrap (each line keeps its capsule)
     const text = label != null ? label.replace(/<[^>]*>/g, "") : String(info?.title || "");
-    return `<a href="#${esc(id)}" class="lk lk-in lk-thread${info ? "" : " is-unknown"}${text.length > 36 ? " is-long" : ""}" data-thread="${esc(id)}" title="${esc(tip)}">` +
-      `<span class="lk-ic">${g}</span><span class="lk-t">${label ?? esc(info?.title || "a thread")}</span></a>`;
+    const long = text.length > 36;
+    return fit(`<a href="#${esc(id)}" class="lk lk-in lk-thread${info ? "" : " is-unknown"}${long ? " is-long" : ""}" data-thread="${esc(id)}" title="${esc(tip)}">` +
+      `<span class="lk-ic">${g}</span><span class="lk-t">${label ?? esc(info?.title || "a thread")}</span></a>`, !long);
   }
   if (HTTP_HREF.test(h)) {
     const host = hostOf(h);
@@ -121,8 +127,9 @@ function linkHtml(href, label) {
   if (f && label != null) {
     const path = f[1], name = path.split("/").pop();
     // an <a> like a thread's, so both capsules are the same inline box (a button would be an inline-block)
-    return `<a href="#${esc(path)}" class="lk lk-in lk-file" data-file="${esc(path)}" data-file-name="${esc(name)}" data-file-type="" data-file-bytes="" title="${esc(path)}">` +
-      `<span class="lk-ic">${fileIcon(name)}</span><span class="lk-t">${label}</span></a>`;
+    const long = label.replace(/<[^>]*>/g, "").length > 36;
+    return fit(`<a href="#${esc(path)}" class="lk lk-in lk-file${long ? " is-long" : ""}" data-file="${esc(path)}" data-file-name="${esc(name)}" data-file-type="" data-file-bytes="" title="${esc(path)}">` +
+      `<span class="lk-ic">${fileIcon(name)}</span><span class="lk-t">${label}</span></a>`, !long);
   }
   return null;
 }

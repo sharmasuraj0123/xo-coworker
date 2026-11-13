@@ -42,7 +42,13 @@
   transition:background-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease);
 }
 /* a long title may wrap between words; each line keeps a whole capsule */
-.lk-in.is-long{white-space:normal}
+.lk-in.is-long{white-space:normal;overflow-wrap:break-word}
+/* a short one is kept whole by an atomic box around it (js/markdown.js fit): the box is as wide as the
+   capsule on one line and moves to the next line whole, but never wider than the line itself; when the
+   capsule is wider than that (a 390 px bubble), it wraps between words inside the box, each line a
+   whole capsule, and a word longer than the line (a file's name) breaks rather than spill out. */
+.lk-fit{display:inline-block;max-width:100%;vertical-align:baseline;text-indent:0}
+.lk-fit>.lk-in{white-space:normal;overflow-wrap:break-word}
 /* hover is one step deeper (≥ 1.15:1 against rest in both themes), press one more; nothing moves */
 .lk-in:hover{background:color-mix(in srgb,var(--ink) 14%,transparent)}
 .lk-in:active{background:color-mix(in srgb,var(--ink) 18%,transparent)}
