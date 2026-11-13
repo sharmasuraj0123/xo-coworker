@@ -31,6 +31,13 @@ A press starts the message in the composer for you to finish; it never sends. On
 
 **A project just made or cloned opens on its starts too (5500c4e).** Before this fix, XO's own first line in a new project (for example "fabric-chat cloned from quirq-ai/fabric-chat · plan and memory added") counted as a conversation. So a cloned or newly created project never showed the starting view. Now a chat counts as empty until someone has said something: a stored message, or your own on its way. The starts sit after XO's lines, in the room between them and the composer. A new browser case, START, covers a clone and a new project in all four cells (the owner, 13 Nov 17:40Z).
 
+### Two small layout fixes (13 Nov evening)
+- **Launchpad's *Change* stays on its line (a10c1b5).** On a narrow panel, the Machine and Environment lines dropped *Change* onto a row of its own. Label, value and *Change* now share one grid, so *Change* sits at the end of the line, level with its label, however the value wraps. This includes a phone's taller tap height. A new four-cell case, LP45, covers it, with mock scenarios `live-machine` and `live-machine-noenv` (the owner, 13 Nov 18:01Z).
+- **A short thread or file link stays inside its bubble on a phone (96de17a).** Links were kept on one line whatever the width, so at 390 px a 29-character title ran past the bubble's edge. A link is now at most as wide as the line:
+  - it moves to the next line whole;
+  - only when it is wider than the line does it wrap between words, each line a whole capsule;
+  - a file name longer than the line breaks rather than spilling out (the owner, 13 Nov 18:03Z).
+
 ### Paid usage: Never / Ask me / Always allow (8b95b64, 583a933)
 **What.** Settings › Runtimes gains a *Paid usage* section. It has one mode for the Space and one row per agent account: *Same as all*, *Never*, *Ask me* or *Always allow*. A change saves at once and shows Saving, Saved, or the refusal beside the row. The runtime card and the account row show an *On paid usage* badge while paid usage is actually being spent.
 
