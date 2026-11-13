@@ -100,6 +100,23 @@ t("LP11: confirm repo: warning before Deploy; the decision names repo and origin
   }
 });
 
+for (const sc of ["live-machine", "live-machine-noenv"]) t(`LP45: Change sits on its line's first row, at the line's end, level with its label (${sc})`, async () => {
+  const page = await open({ launchpad: sc });
+  await W.openLaunchpad(page);
+  await page.waitForSelector(".lpm-env .lp-a", { state: "attached", timeout: 9000 });
+  const rows = await page.evaluate(() => [...document.querySelectorAll(".lpm-env")].filter((n) => n.offsetParent && n.querySelector(".lp-a")).map((n) => {
+    const q = (s) => n.querySelector(s).getBoundingClientRect(), b = q(".lp-a"), k = q(".lpm-k"), v = q(".lpm-v");
+    return { rowRight: n.getBoundingClientRect().right, bCenter: (b.top + b.bottom) / 2, kCenter: (k.top + k.bottom) / 2, bLeft: b.left, bRight: b.right, vRight: v.right, vLeft: v.left };
+  }));
+  assert.ok(rows.length, "a line with Change is drawn");
+  for (const r of rows) {
+    assert.ok(Math.abs(r.bCenter - r.kCenter) <= 1, `Change is level with its label's line ${JSON.stringify(r)}`);
+    assert.ok(r.bLeft >= r.vRight - 1, `Change doesn't sit over its value ${JSON.stringify(r)}`);
+    if (WIDTH < 760) assert.ok(r.rowRight - r.bRight <= 12, `Change ends the line (not a row of its own) ${JSON.stringify(r)}`);
+  }
+  await done(page);
+});
+
 t("LP17/LP20: Deploy starts a 3 s Undo, focused; Undo sends nothing", async () => {
   let posts = 0;
   const page = await open({ launchpad: "ready", onDeploy: (r, m, p) => { if (/\/api\/deploy\/[^/]+$/.test(p) && m === "POST") posts++; return r.fallback(); } });

@@ -101,6 +101,10 @@ for (const [k, st] of [["live-stopped", "stopped"], ["live-failed", "failed"], [
   const p = pre({ launchpad: { app: { ...SCENARIOS.live.pre.launchpad.app, status: st } } });
   SCENARIOS[k] = { check: SCENARIOS.live.check, pre: p };
 }
+// a linked app with its machine known (size and disk), with and without declared environment: the Machine line's Change
+{ const a = SCENARIOS.live.pre.launchpad.app, m = { ...a, size: "xo.mini", size_label: "xo.mini, 0.5 CPU and 1 GB memory", storage: { path: "/data", size: "2Gi" } };
+  SCENARIOS["live-machine"] = { check: SCENARIOS.live.check, pre: pre({ launchpad: { app: m, env_set: { XO_API: true } } }) };
+  SCENARIOS["live-machine-noenv"] = { check: { ...SCENARIOS.live.check, fields: { ...SCENARIOS.live.check.fields, env: [] } }, pre: pre({ launchpad: { app: { ...m, storage: null } } }) }; }
 exports.SCENARIOS = SCENARIOS;
 exports.install = async (page, name) => {
   const sc = SCENARIOS[name] || SCENARIOS.ready;

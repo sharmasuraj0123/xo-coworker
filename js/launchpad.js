@@ -367,8 +367,8 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     // the settings (Change) hang off the last line they cover: the environment's, else the machine's, so an app with
     // a disk and no environment can still grow it (Astra on b33d3eb)
     const hasEnv = !!(mode === "live" && real && c.env?.length), change = `<button type="button" class="lp-a" data-lp="edit">Change</button>`;
-    const ca = c.app, machine = mode === "live" && real && ca && (ca.size || ca.sizeLabel) ? `<p class="lpm-meta lpm-env"><span class="lpm-k">Machine</span><span>${esc(sizeText(c, ca.size, ca.sizeLabel))}</span>${ca.storage ? `<span>${esc(String(ca.storage.gb))} GB disk at <code>${esc(ca.storage.path)}</code></span>` : ""}${hasEnv ? "" : change}</p>` : "";
-    const env = machine + (hasEnv ? `<p class="lpm-meta lpm-env"><span class="lpm-k">Environment</span><span>${c.env.filter((x) => x.set).length} of ${c.env.length} set</span><button type="button" class="lp-a" data-lp="edit">Change</button></p>` : "");
+    const ca = c.app, machine = mode === "live" && real && ca && (ca.size || ca.sizeLabel) ? `<p class="lpm-meta lpm-env"><span class="lpm-k">Machine</span><span class="lpm-v"><span>${esc(sizeText(c, ca.size, ca.sizeLabel))}</span>${ca.storage ? `<span>${esc(String(ca.storage.gb))} GB disk at <code>${esc(ca.storage.path)}</code></span>` : ""}</span>${hasEnv ? "" : change}</p>` : "";
+    const env = machine + (hasEnv ? `<p class="lpm-meta lpm-env"><span class="lpm-k">Environment</span><span class="lpm-v"><span>${c.env.filter((x) => x.set).length} of ${c.env.length} set</span></span><button type="button" class="lp-a" data-lp="edit">Change</button></p>` : "");
     return mini + cards + env;
   }
 

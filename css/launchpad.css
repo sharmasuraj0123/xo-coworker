@@ -370,8 +370,14 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .lpm-k{position:absolute;left:8px;width:104px;color:var(--ink-3);font-weight:500}
 /* the setup form's own line (where the image comes from) reads like the fields round it: 13/20 */
 .lpm[data-mode="preview"] .lpm-meta{padding-top:6px;padding-bottom:6px;font-size:var(--fs-base);line-height:20px}
-.lpm-env{margin:0 12px;padding-top:4px}
-.lpm-env .lp-a{height:var(--h-sm);margin:-4px 0 -4px auto;padding:0 8px}
+/* a line with a button (Machine, Environment): label | value | Change, on one grid, so the button sits on the line's
+   first row at its end however the value wraps (it used to drop to a row of its own on a narrow panel) */
+.lpm-meta.lpm-env{display:grid;grid-template-columns:104px minmax(0,1fr) auto;grid-template-rows:16px auto;align-items:start;gap:0 8px;margin:0 12px;padding-top:4px;padding-left:8px}
+.lpm-meta.lpm-env .lpm-k{position:static;width:auto;grid-area:1/1}
+.lpm-env .lpm-v{grid-area:1/2/3/3;display:flex;flex-wrap:wrap;gap:2px 10px;min-width:0;overflow-wrap:anywhere}
+/* centred on the line's first row (the grid's 16 px row, the value wrapping on below it) whatever its own height is
+   (24, or the phone's taller floor): its margins are negative enough that only the text sets the row */
+.lpm-env .lp-a{grid-area:1/3;height:var(--h-sm);align-self:center;margin:-20px -8px;padding:0 8px;justify-self:end}
 .lpm-meta .lpv-need{color:var(--need)}
 .lpv{display:none}
 :root[data-theme="light"] .lpm-t,:root[data-theme="light"] .lpm-addr{background:var(--surface)}
@@ -386,8 +392,8 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
   .lpm{display:none}
   .lpv{display:flex;flex-direction:row;align-items:center}
   .lpv>.lpv-card{flex:1 1 0}
-  .lpm-env{padding-top:12px}
-  .lpm-env .lp-a{margin-left:0}
+  .lpm-meta.lpm-env{padding-top:12px;grid-template-columns:104px auto 1fr}
+  .lpm-env .lp-a{justify-self:start;margin-left:0}
   .lpv-vis{flex:none;width:72px}
   .lpv-link{width:32px;height:2px;margin:0 2px;background:repeating-linear-gradient(to right,var(--fill-4) 0 3px,transparent 3px 6px)}
   .lpv-link.err{background:repeating-linear-gradient(to right,var(--danger) 0 3px,transparent 3px 6px)}
