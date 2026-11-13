@@ -42,6 +42,10 @@ A linked app that Launchpad no longer has is reported as deleted or belonging to
 
 **Why.** Several Launchpad apps can deploy from the same repository and branch. A push for one app would quietly redeploy the others, so the owner now confirms that first.
 
+### No "What will you mostly do here?" question on startup (7f0ad4d)
+**What.** The first-run sheet that asked new users to pick a shape is gone, along with its view code, CSS and two unit tests. XO starts on the default, *Everything*. Settings › Shape is unchanged and is where anyone picks a shape.
+**Why.** The owner decided the question shouldn't block the first open: a person can start working at once and change the shape later if they want.
+
 ### Two small layout fixes (13 Nov evening)
 - **Launchpad's *Change* stays on its line (a10c1b5).** On a narrow panel, the Machine and Environment lines dropped *Change* onto a row of its own. Label, value and *Change* now share one grid, so *Change* sits at the end of the line, level with its label, however the value wraps. This includes a phone's taller tap height. A new four-cell case, LP45, covers it, with mock scenarios `live-machine` and `live-machine-noenv` (the owner, 13 Nov 18:01Z).
 - **A short thread or file link stays inside its bubble on a phone (96de17a).** Links were kept on one line whatever the width, so at 390 px a 29-character title ran past the bubble's edge. A link is now at most as wide as the line:
@@ -198,7 +202,7 @@ Four small files stay tracked because the tests load them:
 - **Artifacts** is a sidebar page of everything threads made, with search and filters (56c5947).
 - **Home is separate from Workspace.** A message sent from Home takes you to its conversation (0caf409).
 - **`<xo-select>`** replaces every native `<select>`, as an ARIA select-only combobox (e761a20).
-- **Presets / Shape.** The UI adapts per person (Build software, Make content, Everything), stored on Storm (0bc803a).
+- **Presets / Shape.** The UI adapts per person (Build software, Make content, Everything), stored on Storm (0bc803a). There is no first-run question: XO starts on *Everything*, and anyone can pick a shape in Settings › Shape (7f0ad4d).
 - **Runtimes.**
   - A thread names its runtime.
   - Settings › Runtimes shows each runtime's health and usage.
@@ -228,7 +232,7 @@ Four small files stay tracked because the tests load them:
   - Sweeps include STATES (rest, hover and held for every control), RINGCLIP (clipped focus rings) and ROWS (row heights).
 
 **Run on this branch (13 Nov), from a fresh clone:**
-- **Unit tests:** all 139 `tests/*.test.mjs` files exit 0, as does `tests/serve.test.py`.
+- **Unit tests:** all `tests/*.test.mjs` files exit 0 (139 at the first run; 137 after 7f0ad4d removed two), as does `tests/serve.test.py`.
 - **Browser suites:** every suite ran in all four cells (dark and light, at 1440×900 and 390×844), against the build that is live on :3000.
 
   | Suite | Result |
