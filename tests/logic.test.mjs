@@ -361,7 +361,7 @@ t("a message relayed into a thread shows there, as yours (if1 #7)", () => {
     { id: "cmsg_co", seq: 1793, author_kind: "agent", author_id: "project-coordinator", text: "On it.", created_at: "2026-10-22T12:04:31Z" },
   ];
   const hops = [
-    { id: "h1", kind: "relay", to_role: "thread", thread_ts: "cmsg_t", seq: 1803, message_ids: ["cmsg_fwd"] },
+    { id: "h1", kind: "relay", to_role: "thread", thread_ts: "cmsg_t", seq: 1803, created_at: "2026-10-22T12:07:00Z", message_ids: ["cmsg_fwd"] },
     { id: "h2", kind: "answer", to_role: "thread", thread_ts: "cmsg_t", seq: 722, message_ids: ["cmsg_old"] },
     { id: "h3", kind: "relay", to_role: "thread", thread_ts: "cmsg_other", seq: 9, message_ids: ["cmsg_fwd"] },
     { id: "h4", kind: "status", to_role: "project-coordinator", thread_ts: "cmsg_t", seq: 2000, message_ids: ["cmsg_co"] },
@@ -371,6 +371,7 @@ t("a message relayed into a thread shows there, as yours (if1 #7)", () => {
   const { shown, missing } = relayedInto(th, hops, tl);
   assert.deepEqual(shown.map((m) => m.id), ["cmsg_fwd"], "once, only the owner's words");
   assert.equal(shown[0].who, "you"); assert.equal(shown[0].seq, 1792); assert.equal(shown[0].fwd.id, "cmsg_ws");
+  assert.deepEqual(shown[0].hop, { id: "h1", seq: 1803, at: Date.parse("2026-10-22T12:07:00Z") }, "placed where the hop delivered it, not where it was written");
   assert.deepEqual(missing, [{ ids: ["cmsg_old"], seq: 722 }], "not loaded: paged back from the hop's seq");
   assert.equal(relayedInto(th, hops, tl, new Set(["cmsg_fwd"])).shown.length, 0, "never twice in the thread");
 });

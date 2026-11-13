@@ -824,7 +824,10 @@ function messagesOf(conv) {
   // hops setting, marked as passed on, linking back to where you wrote them
   if (t && st.hops) {
     const { shown, missing } = relayedInto(t, st.hops.values(), st.timeline[t.project] || [], new Set(rows.map((m) => m.id)), st.found?.[t.project]);
-    for (const m of shown) out.push({ key: `relay:${m.id}`, at: m.at, seq: m.seq, who: "you", text: m.text, files: m.files, chatId: m.chatId, relay: { project: t.project, id: m.id, fwd: m.fwd } });
+    // placed where the hop delivered it (its seq and time), not where you wrote it: written in the project's
+    // chat at 12:15 and passed on at 12:18, it sits below what you wrote here at 12:16. Its own time stays
+    // in `wrote`, for its tooltip.
+    for (const m of shown) out.push({ key: `relay:${m.id}`, at: m.hop.at || m.at, seq: m.hop.seq ?? m.seq, who: "you", text: m.text, files: m.files, chatId: m.chatId, wrote: m.at, relay: { project: t.project, id: m.id, fwd: m.fwd, at: m.hop.at || 0 } });
     if (world.act.findRows) for (const x of missing) world.act.findRows(t.project, x.ids, x.seq);
   }
   // what the coordinators and this thread wrote each other: storm keeps it as hops (their note), never
@@ -1017,9 +1020,10 @@ function msgItems(conv, needs) {
       else if (m.relay) {
         // passed on into this thread: say from where, and go back there (to the message itself)
         const r = m.relay, P = PROJ(r.project);
+        const when = r.at ? ` at ${clock(r.at)}` : "";
         route = r.fwd
-          ? `<div class="route-row">${ICON.arrow}<span>You, in the <button type="button" class="rt-go" data-go="ws" data-go-msg="${esc(r.fwd.id)}" title="Where you wrote it"><b>Workspace</b></button> · passed on by ${esc(P)}'s coordinator</span></div>`
-          : `<div class="route-row">${ICON.arrow}<span>You, in <button type="button" class="rt-go" data-go="p:${esc(r.project)}" data-go-msg="${esc(r.id)}" title="Where you wrote it"><b>${esc(P)}'s chat</b></button> · passed on by the coordinator</span></div>`;
+          ? `<div class="route-row">${ICON.arrow}<span>You, in the <button type="button" class="rt-go" data-go="ws" data-go-msg="${esc(r.fwd.id)}" title="Where you wrote it"><b>Workspace</b></button> · passed on${when} by ${esc(P)}'s coordinator</span></div>`
+          : `<div class="route-row">${ICON.arrow}<span>You, in <button type="button" class="rt-go" data-go="p:${esc(r.project)}" data-go-msg="${esc(r.id)}" title="Where you wrote it"><b>${esc(P)}'s chat</b></button> · passed on${when} by the coordinator</span></div>`;
       }
       else if (m.fwd) {
         // work one project handed another: "from sys via the Workspace", back to where you wrote it
@@ -1031,7 +1035,7 @@ function msgItems(conv, needs) {
       else if (m.routed && m.routed.length) route = `<div class="route-row">${ICON.arrow}<span>Routed to ${[...new Set(m.routed.map((r) => r.chat))].map((c) => `<button type="button" class="rt-go" data-go="p:${esc(c)}"><b>${esc(PROJ(c))}</b></button>`).join(", ")}</span></div>`;
       // your pictures sit above your words, right-aligned (js/media.js); other files as cards
       const files = m.files && m.files.length ? mediaHtml(m.files.map((f) => fromAttachment(f, { chat: m.chatId, by: "You", at: m.at })), { side: "you" }) : "";
-      html = `<div class="m m-you${cont ? " cont" : ""}${m.relay ? " is-relay" : ""}${m.status === "failed" ? " is-failed" : ""}${m.status === "sending" ? " is-pending" : ""}">${files}${m.text ? `<div class="bubble" title="${esc(clock(m.at))}">${youText(m.text)}</div>` : ""}${reactionsHtml(m.reactions)}${meta}${route}</div>`;
+      html = `<div class="m m-you${cont ? " cont" : ""}${m.relay ? " is-relay" : ""}${m.status === "failed" ? " is-failed" : ""}${m.status === "sending" ? " is-pending" : ""}">${files}${m.text ? `<div class="bubble" title="${esc(clock(m.wrote ?? m.at))}">${youText(m.text)}</div>` : ""}${reactionsHtml(m.reactions)}${meta}${route}</div>`;
     } else if (m.who === "coord" || m.who === "agent") {
       const [name, role] = m.name ? [m.name, m.role || ""] : nameOf(conv, m.who);
       const av = m.who === "coord" ? `<div class="av">${XO}</div>` : `<div class="av av-t">${ICON.thread}</div>`;
