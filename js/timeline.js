@@ -428,7 +428,10 @@ export function connLine(w, { pid = null, thread = false } = {}) {
   const closed = pools.find((p) => p.state === "closed");
   if (closed) return { kind: "wait", text: `Paused until ${hhmm(closed.resets_at)}`, sub: "usage limit · running work finishes, new work waits" };
   const paid = pools.find((p) => p.state === "paid");
-  if (paid) return { kind: "wait", text: "Paused for your choice", sub: "your subscription moved onto paid usage · it's in Needs you" };
+  // state "paid" is HELD, not spending: under Ask me the question is in Needs you; under Never nothing is asked and work waits
+  if (paid) return paid.reason === "paid_asked" || paid.reason == null
+    ? { kind: "wait", text: "Paused for your choice", sub: "before paid usage · it's in Needs you" }
+    : { kind: "wait", text: "Paused before paid usage", sub: "paid usage is set to Never · change it in Settings › Runtimes" };
   return null;
 }
 
@@ -571,11 +574,13 @@ export function hopNotes(thread, hops) {
 }
 
 /**
- * Your messages relayed into a thread (if1 #7). Storm doesn't copy a relayed message into the thread:
- * the hop into it (a relay, a brief, an answer: any hop to the thread) names the message, which stays on the project's timeline. Returns
- * {shown: [ui message, each with `hop` {id, seq, at}: when it was passed on], missing: [{ids, seq}]}: the owner's own messages found on the loaded
- * timeline (each once, never one the thread already has), and per hop the ids not loaded yet,
- * with the hop's seq as the upper bound to page back from. Someone else's words are never shown as yours.
+ * The messages relayed into a thread (if1 #7). Storm doesn't copy a relayed message into the thread:
+ * the hop into it (a relay, a brief, an answer: any hop to the thread) names the message, which stays on the project's timeline. A hop
+ * may cite any message of its scope: yours, the agent's it answered (a bare "yes" travels with its proposal), or XO's. Returns
+ * {shown: [ui message, each with `hop` {id, seq, at}: when it was passed on], missing: [{ids, seq}]}: those found on the loaded
+ * timeline, each as the row's own author says it (who: you | coord | agent | system; never one's words as another's), each
+ * once and never one the thread already has, and per hop the ids not loaded yet, with the hop's seq as the upper bound to
+ * page back from.
  */
 export function relayedInto(thread, hops, timeline, have = new Set(), found = null) {
   const shown = [], missing = [], seen = new Set(have);
@@ -587,10 +592,9 @@ export function relayedInto(thread, hops, timeline, have = new Set(), found = nu
       const row = timeline.find((r) => r.id === id) || (found && found.get(id));
       if (!row) { lost.push(id); continue; }
       seen.add(id);
-      const m = uiMsg(row);
       // `hop`: when and where in the thread it was passed on, which is where it belongs there (the hop's
       // seq and time, as hopNotes does), not where you wrote it (m.seq / m.at stay the original)
-      if (m.who === "you") shown.push({ ...m, hop: { id: hp.id, seq: hp.seq ?? null, at: Date.parse(hp.created_at || hp.at) || 0 } });
+      shown.push({ ...uiMsg(row), hop: { id: hp.id, seq: hp.seq ?? null, at: Date.parse(hp.created_at || hp.at) || 0 } });
     }
     if (lost.length) missing.push({ ids: lost, seq: hp.seq ?? null });
   }

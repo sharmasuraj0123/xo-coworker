@@ -170,7 +170,7 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
 
   // ── paid usage: what XO may do when an account's plan runs out ─────────────
   const held = () => heldModes(world.state.paid);
-  const paidRows = () => accountRows({ advisory: world.state.advisory, held: held(), pools: world.state.pools });
+  const paidRows = () => accountRows({ advisory: world.state.advisory, held: held(), pools: world.state.pools, served: world.state.paidPools });
   /** What a row's choice shows now: the mode itself, or "same" for an account that follows the Space. */
   const choiceNow = (scope, row) => (scope === "space" ? effectiveMode(held(), "").mode : row.own || "same");
   function paidHtml() {
@@ -276,7 +276,7 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
     world.subscribe(() => {
       if (!onScreen()) return;
       const st = world.state;
-      const next = JSON.stringify([st.policy, st.paidOk, st.paid, paidRows().map((r) => [r.pool, r.name, r.plan, r.possible, r.inUse, r.credits, r.why, r.state, r.note])]);
+      const next = JSON.stringify([st.policy, st.paidOk, st.paid, st.paidPools, paidRows().map((r) => [r.pool, r.name, r.plan, r.possible, r.inUse, r.credits, r.why, r.state, r.note])]);
       if (next === sig) return;
       sig = next;
       if (!isPending(POLICY) && R.pref == null) draw();

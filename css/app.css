@@ -3043,6 +3043,7 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .lim{display:flex;flex-direction:column;gap:8px;margin:2px 0 4px}
 .lim-when{display:flex;align-items:center;gap:7px;font-size:var(--fs-base);color:var(--warn)}
 .lim-when svg{width:14px;height:14px}
+.next .lim,.c-body .lim{margin:10px 0 12px}
 .lim-acct{font-size:var(--fs-base);font-weight:600;color:var(--ink)}
 .lim-credits{font-size:var(--fs-base);color:var(--ink-3);font-variant-numeric:tabular-nums}
 .lim-ts{display:flex;flex-direction:column;gap:3px;padding-left:20px;list-style:disc}

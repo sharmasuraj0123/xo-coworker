@@ -11,6 +11,8 @@
 //
 // The wire is read in this one place: a field renamed on the server changes here and nowhere else.
 
+import { humanize } from "./runtimes.js";
+
 export const MODES = ["never", "ask", "always"];
 export const MODE_NAME = { never: "Never", ask: "Ask me", always: "Always allow" };
 export const MODE_SUB = {
@@ -68,7 +70,7 @@ export function poolWords(pool) {
     case "paid_asked": return "Waiting for your answer before it goes on to paid usage.";
     case "paid_threshold": return "Held before paid usage.";
     case "paid_unknown": return "Held: XO can’t tell whether its next use would be paid.";
-    case "paid_in_use": return "On paid usage now.";
+    case "paid_in_use": return "Held: it is already on paid usage.";
     default: return "";
   }
 }
@@ -80,15 +82,21 @@ export const creditsWords = (n) => (typeof n === "number" && Number.isFinite(n) 
 /**
  * One row per agent account, from the advisory: [{pool, agent, name, account, plan, possible (true|false|null),
  * inUse (true|false|null), credits (number|null), why, own (this account's mode or null), mode, source, state, note}].
- * pools: GET /api/chat/status pools, by id.
+ * served: GET /api/chat/intent's pools, XO's own word on each account's effective mode (and source), its state and why;
+ * where it has none for an account, the mode is worked out from the modes that hold (the same rule). pools: GET
+ * /api/chat/status pools, by id, for the state when XO gave none. State "paid" is a hold, never spending: only the
+ * advisory's in_use says an account is on paid usage.
  */
-export function accountRows({ advisory, held, pools }) {
+export function accountRows({ advisory, held, pools, served }) {
   const byId = pools || {};
+  const sv = new Map((served || []).filter((x) => x && x.pool).map((x) => [x.pool, x]));
   return ((advisory && advisory.accounts) || []).filter((a) => a && a.agent).map((a) => {
     const pool = poolId(a.agent, a.account);
     const paid = a.paid || {};
     const possible = known(paid.possible);
-    const st = byId[pool] || null;
+    const sp = sv.get(pool) || null;
+    const st = sp ? { state: sp.state, reason: sp.reason } : byId[pool] || null;
+    const eff = sp && MODES.includes(sp.mode) ? { mode: sp.mode, source: sp.source || "default" } : effectiveMode(held, pool);
     return {
       pool, agent: a.agent, name: agentName(a.agent), account: a.account || "",
       plan: planWords(known(a.plan)),
@@ -97,7 +105,7 @@ export function accountRows({ advisory, held, pools }) {
       credits: known(paid.credits),
       why: possible === false ? reasonWords(known(paid.disabled_reason)) : "",
       own: (held && held.pools && held.pools[pool]) || null,
-      ...effectiveMode(held, pool),
+      ...eff,
       state: st ? st.state : null,
       note: poolWords(st),
     };
@@ -119,13 +127,26 @@ export function paidBody(scope, id, value) {
 }
 
 /**
- * A paid-usage question (a usage item that isn't a closed limit), ready to show: which account it is about, when its
- * window resets and the account's credit balance now, from the advisory. The question's own words, options and times
- * stay the server's.
+ * A paid-usage question (a usage item that isn't a closed limit), ready to show, from the item's own detail
+ * ({pool, agent, resets_at, cause: paid_threshold | paid_in_use | paid_unknown, used (0 to 1 or null), credits, login:
+ * subscription | api_key}): which account it is about, when its window resets, its credits, and how far Continue
+ * reaches. The question's own words and options stay the server's. rows: the account rows, for the plan.
  */
 export function paidItem(item, rows) {
   const d = (item && item.detail) || {};
   if (!item || item.kind !== "usage" || d.limit === "closed" || !d.pool) return item;
   const r = (rows || []).find((x) => x.pool === d.pool);
-  return { ...item, paid: { account: r ? `${r.name}${r.plan ? ` · ${r.plan}` : ""}` : "", resetsAt: d.resets_at || null, credits: r ? r.credits : null } };
+  const apiKey = d.login === "api_key";
+  const name = d.agent ? agentName(d.agent) : r ? r.name : "";
+  // the server's sentence in the owner's terms: its times in their clock
+  return { ...item, title: humanize(item.title), paid: {
+    account: name ? `${name}${r && r.plan ? ` · ${r.plan}` : ""}${apiKey ? " · API key" : ""}` : "",
+    resetsAt: d.resets_at || null,
+    credits: typeof d.credits === "number" ? d.credits : null,
+    used: typeof d.used === "number" ? d.used : null,
+    apiKey,
+    cause: d.cause || null,
+    // Continue goes on paying only for this stretch, and the mode stays Ask me: asked again after it
+    reach: apiKey ? "Continue pays for the next 24 hours, then asks again." : d.resets_at ? "Continue pays until the window resets, then asks again." : "Continue pays for now, then asks again.",
+  } };
 }

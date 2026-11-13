@@ -31,7 +31,7 @@ t("a row per account: plan, whether it can go paid, credits, and the mode it run
   assert.equal(rows.length, 2);
   assert.deepEqual([rows[0].pool, rows[0].name, rows[0].plan, rows[0].possible, rows[0].credits, rows[0].mode, rows[0].own], ["claude_code:acct-a", "Claude Code", "Max", false, null, "ask", null]);
   assert.equal(rows[0].why, "Paid usage is turned off for your organisation.");
-  assert.deepEqual([rows[1].possible, rows[1].inUse, rows[1].credits, rows[1].state, rows[1].note], [true, true, 7187.56, "paid", "On paid usage now."]);
+  assert.deepEqual([rows[1].possible, rows[1].inUse, rows[1].credits, rows[1].state, rows[1].note], [true, true, 7187.56, "paid", "Held: it is already on paid usage."]);
   assert.ok(onPaid(rows, "codex") && !onPaid(rows, "claude_code"));
 });
 t("an unknown fact is not read as a value", () => {
@@ -54,12 +54,24 @@ t("the words: modes as the owner chose them; credits whole; a held pool says why
   assert.match(poolWords({ reason: "paid_asked" }), /Waiting for your answer/);
   assert.equal(poolWords({ reason: "limit" }), "");
 });
-t("a paid question shows its account, reset and credits; a closed limit and other items are left alone", () => {
+t("XO's own word on an account's mode, source and state wins; state paid is a hold, not spending", () => {
+  const served = [{ pool: "codex:acct-b", agent: "codex", mode: "always", source: "pool", state: "open", reason: null, resets_at: null, asking: null },
+    { pool: "claude_code:acct-a", agent: "claude_code", mode: "ask", source: "space", state: "paid", reason: "paid_asked", resets_at: "2026-11-19T23:00:00Z", asking: "paid:claude_code:acct-a:x" }];
+  const rows = accountRows({ advisory: adv, held: heldModes([]), pools: {}, served });
+  assert.deepEqual([rows[0].mode, rows[0].source, rows[0].state, rows[0].note], ["ask", "space", "paid", "Waiting for your answer before it goes on to paid usage."]);
+  assert.deepEqual([rows[1].mode, rows[1].source, rows[1].state, rows[1].note], ["always", "pool", "open", ""]);
+  assert.equal(rows[1].inUse, true, "the badge is the advisory's, never the pool's state");
+  assert.equal(accountRows({ advisory: adv, held: heldModes([]), pools: {}, served: [] })[0].mode, "never", "a server without pools: worked out from the modes");
+});
+t("a paid question shows its account, window used, reset, credits and how far Continue reaches", () => {
   const rows = accountRows({ advisory: adv, held: heldModes([]), pools: {} });
-  const q = paidItem({ kind: "usage", detail: { pool: "codex:acct-b", resets_at: "2026-11-17T09:32:00Z" } }, rows);
-  assert.deepEqual(q.paid, { account: "Codex · Pro", resetsAt: "2026-11-17T09:32:00Z", credits: 7187.56 });
-  const lim = { kind: "usage", detail: { pool: "codex:acct-b", limit: "closed" } };
-  assert.equal(paidItem(lim, rows), lim);
+  const q = paidItem({ kind: "usage", origin: "engine", title: "Continue until 2026-11-17T09:32:00Z, or wait?", detail: { pool: "codex:acct-b", agent: "codex", resets_at: "2026-11-17T09:32:00Z", cause: "paid_threshold", used: 0.96, credits: 7000.2, login: "subscription" } }, rows);
+  assert.deepEqual(q.paid, { account: "Codex · Pro", resetsAt: "2026-11-17T09:32:00Z", credits: 7000.2, used: 0.96, apiKey: false, cause: "paid_threshold", reach: "Continue pays until the window resets, then asks again." });
+  assert.doesNotMatch(q.title, /2026-11-17T/, "its time is said in the owner's clock");
+  const key = paidItem({ kind: "usage", detail: { pool: "codex:k", agent: "codex", resets_at: null, cause: "paid_in_use", used: null, credits: null, login: "api_key" } }, rows);
+  assert.deepEqual([key.paid.account, key.paid.apiKey, key.paid.reach, key.paid.used, key.paid.credits], ["Codex · API key", true, "Continue pays for the next 24 hours, then asks again.", null, null]);
+  const lim = { kind: "usage", origin: "xo", detail: { pool: "codex:acct-b", limit: "closed" } };
+  assert.equal(paidItem(lim, rows), lim, "a closed limit is the limit card");
   const other = { kind: "permission", detail: {} };
   assert.equal(paidItem(other, rows), other);
 });

@@ -106,8 +106,14 @@ function settingsApi(W) {
     if (p === "/api/chat/runtimes" && m === "GET") return json({ runtimes: W.runtimes });
     if (p === "/api/chat/runtime-policy" && m === "GET") return json({ space: W.policy, effective: { ...W.policy, fallback: !!W.policy.fallback } });
     if (p === "/api/chat/runtime-policy" && m === "PUT") { const b = q.postDataJSON(); if ((failed = await write("policy", b))) return failed; W.policy = b; return json({ space: W.policy, effective: { ...W.policy } }); }
+    if (p === "/api/chat/review" && m === "GET" && W.review) return json({ items: W.review, next_after_seq: null });
     if (p === "/api/advisory" && m === "GET") return json(W.advisory);
-    if (p === "/api/chat/intent" && m === "GET") return json({ intents: W.intents });
+    if (p === "/api/chat/intent" && m === "GET") {
+      // XO's pools: each account's effective mode, from the rows, as the server works it out
+      const own = (id) => W.intents.find((i) => i.key === "paid" && i.scope === "pool" && i.scope_id === id), sp = W.intents.find((i) => i.key === "paid" && i.scope === "space");
+      const pools = W.advisory.accounts.map((a) => { const id = `${a.agent}:${a.account}`, i = own(id) || sp; return { pool: id, agent: a.agent, mode: i ? i.value : "never", source: own(id) ? "pool" : sp ? "space" : "default", state: "open", reason: null, resets_at: null, asking: null }; });
+      return json({ intents: W.intents, pools });
+    }
     if (p === "/api/chat/intent/paid" && m === "POST") {
       const b = q.postDataJSON(); if ((failed = await write("paid", b))) return failed;
       W.intents = W.intents.filter((i) => !(i.key === "paid" && i.scope === b.scope && i.scope_id === b.scope_id));
@@ -1413,6 +1419,31 @@ t("Paid usage: a refused choice says so in its row and keeps the old mode; a rep
   await btn.click(); // a retry works
   await page.waitForFunction(() => document.querySelector('[data-paid-scope="space"][data-paid-val="always"][aria-checked="true"]'));
   assert.equal(writes(page, "paid"), 2);
+  await done(page);
+});
+
+// the question XO asks under Ask me: its account, window used, reset, credits and how far Continue reaches
+t("Paid usage: the question shows its account, window used, credits and how far Continue reaches", async (ctx) => {
+  const item = (id, detail, title) => ({ id, kind: "usage", origin: "engine", state: "open", blocking: true, risk: "notable", title, why: "", created_at: NOW, seq: 5,
+    options: [{ id: "continue", decision: "continue", label: "Continue" }, { id: "wait", decision: "wait", label: "Wait" }], detail });
+  const W = world({ review: [item("rv_sub", { pool: "codex:acct-b", agent: "codex", resets_at: "2026-11-17T09:32:00Z", cause: "paid_threshold", used: 0.96, credits: 7187.56, login: "subscription" }, "Your codex account has used 96% of a usage window and can go on to paid usage. Continue, paying as it goes, until 2026-11-17T09:32:00Z, or wait?")] });
+  const page = await open(W, ctx);
+  await page.waitForSelector(".lim-acct", { timeout: 15000 });
+  const text = await page.locator(".lim").first().innerText();
+  assert.match(text, /Codex · Pro/); assert.match(text, /96% of its window used/); assert.match(text, /7,188 credits left/);
+  assert.match(text, /Continue pays until the window resets, then asks again\./);
+  assert.match(await page.locator(".next").first().innerText(), /Continue/);
+  await shot(page, "paid-question");
+  await done(page);
+});
+t("Paid usage: an API-key account's question says Continue pays for 24 hours", async (ctx) => {
+  const W = world({ review: [{ id: "rv_key", kind: "usage", origin: "engine", state: "open", blocking: true, risk: "notable", title: "Your codex account bills every token (an API key, with no usage window). Continue, paying as it goes, for now, or wait?", why: "", created_at: NOW, seq: 6,
+    options: [{ id: "continue", decision: "continue", label: "Continue" }, { id: "wait", decision: "wait", label: "Wait" }], detail: { pool: "codex:key", agent: "codex", resets_at: null, cause: "paid_in_use", used: null, credits: null, login: "api_key" } }] });
+  const page = await open(W, ctx);
+  await page.waitForSelector(".lim-acct", { timeout: 15000 });
+  const text = await page.locator(".lim").first().innerText();
+  assert.match(text, /Codex · API key/); assert.match(text, /Continue pays for the next 24 hours, then asks again\./);
+  assert.doesNotMatch(text, /window resets/);
   await done(page);
 });
 

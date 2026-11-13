@@ -42,6 +42,7 @@ export function stormSource(state, emit, event) {
     status: null, statusError: null, runtimes: null, router: null, pools: {},
     advisory: null,  // GET /api/advisory: each account's plan, usage and paid facts
     paidOk: false,   // the intents were read at least once (a server without them shows no Paid usage)
+    paidPools: [],   // GET /api/chat/intent's pools: each account's effective paid mode, its source and what it is doing now
     paid: [],        // GET /api/chat/intent's rows: the founder's holds and paid modes that hold now
     policy: null,    // {space, effective}: the Space's runtime policy (mixed runtimes §2.2)
     chatPolicy: {},  // chat_… → {space, project, effective}: a project's own runtime policy
@@ -198,7 +199,7 @@ export function stormSource(state, emit, event) {
     // still reach Needs you: each is hosted by its chat or by the person's account
     const hosts = new Map();
     let rows = null;
-    const paidRows = () => rows || (rows = accountRows({ advisory: state.advisory, held: heldModes(state.paid), pools: state.pools }));
+    const paidRows = () => rows || (rows = accountRows({ advisory: state.advisory, held: heldModes(state.paid), pools: state.pools, served: state.paidPools }));
     for (const it of state.review.values()) {
       if (it.state !== "open") continue;
       const h = hostOf(it);
@@ -212,7 +213,7 @@ export function stormSource(state, emit, event) {
         createdAt: Date.parse(it.created_at) || Date.now(), lastAt: Date.parse(it.created_at) || Date.now(), card: {} };
       // a usage limit (F5): its words in the owner's terms, and no move a project's policy forbids
       const shown = isLimitItem(it) ? limitItem(it, state.runtimes, chatPolicyOf) : paidItem(it, paidRows());
-      if (shown !== it) host.title = "Usage limit";
+      if (shown !== it && isLimitItem(it)) host.title = "Usage limit";
       host.asks.push(...stormAsks(host, [shown]));
       hosts.set(h.id, host);
     }
@@ -384,7 +385,9 @@ export function stormSource(state, emit, event) {
     paidBusy = (async () => {
       let changed = false;
       try { state.advisory = await api.advisory(); changed = true; } catch { /* keep what we had */ }
-      try { state.paid = (await api.intents()).intents || []; state.paidOk = true; changed = true; } catch { /* keep what we had */ }
+      try { const r = await api.intents(); state.paid = r.intents || []; state.paidPools = r.pools || []; state.paidOk = true;
+        // what XO says each pool is doing, as of now: a change of mode shows in the composer's line at once, not at the next status read
+        for (const p of state.paidPools) if (p && p.pool && state.pools[p.pool]) state.pools[p.pool] = { ...state.pools[p.pool], state: p.state, resets_at: p.resets_at, reason: p.reason || null }; changed = true; } catch { /* keep what we had */ }
       if (changed) { if ([...state.review.values()].some((it) => it.state === "open" && it.kind === "usage")) commit(); emit(); }
     })().finally(() => { paidBusy = null; });
     return paidBusy;

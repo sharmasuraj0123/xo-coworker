@@ -296,6 +296,10 @@ t("an old account's closed pool pauses nothing after a re-login (if1 #1)", () =>
   assert.equal(connLine({ ...base, runtimes: rt("acct-new"), pools }), null, "an account with no pool row yet counts as open");
   const paid = { "claude_code:acct-old": { pool: "claude_code:acct-old", state: "paid" } };
   assert.equal(connLine({ ...base, runtimes: rt("acct-new"), pools: paid }), null, "paid on an old account: no line");
+  const held = (reason) => connLine({ ...base, runtimes: rt("acct-new"), pools: { "claude_code:acct-new": { pool: "claude_code:acct-new", state: "paid", reason } } });
+  assert.match(held("paid_asked").sub, /Needs you/, "held for a question: it is in Needs you");
+  assert.equal(held("paid_threshold").text, "Paused before paid usage", "held by Never: nothing is asked, and it says so");
+  assert.match(held("paid_threshold").sub, /Never/);
   assert.equal(currentPools(pools, rt("acct-70c53cc54fd1")).length, 1);
   assert.equal(currentPools({ p: { state: "closed" } }, rt("x")).length, 1, "an id that isn't runtime:account still counts");
 });
@@ -354,7 +358,7 @@ t("a shared file maps to its project route, or says there's none (if1 #2)", () =
   assert.ok(sharedFileRoute(null, "a.md").why, "a plain chat has no route");
 });
 
-t("a message relayed into a thread shows there, as yours (if1 #7)", () => {
+t("a message relayed into a thread shows there under its true author: yours as yours, an agent's as the agent's", () => {
   const th = { id: "cmsg_t" };
   const tl = [
     { id: "cmsg_fwd", seq: 1792, author_kind: "owner", text: "remove the implications section", created_at: "2026-10-22T12:04:30Z", extra: { forwarded_from: { chat_id: "chat_ws", message_id: "cmsg_ws" } } },
@@ -369,11 +373,12 @@ t("a message relayed into a thread shows there, as yours (if1 #7)", () => {
     { id: "h6", kind: "ask", to_role: "workspace-coordinator", thread_ts: "cmsg_t", seq: 1811, message_ids: ["cmsg_up"] },
   ];
   const { shown, missing } = relayedInto(th, hops, tl);
-  assert.deepEqual(shown.map((m) => m.id), ["cmsg_fwd"], "once, only the owner's words");
+  assert.deepEqual(shown.map((m) => m.id), ["cmsg_fwd", "cmsg_co"], "each once, in the hops' order");
   assert.equal(shown[0].who, "you"); assert.equal(shown[0].seq, 1792); assert.equal(shown[0].fwd.id, "cmsg_ws");
   assert.deepEqual(shown[0].hop, { id: "h1", seq: 1803, at: Date.parse("2026-10-22T12:07:00Z") }, "placed where the hop delivered it, not where it was written");
+  assert.deepEqual([shown[1].who, shown[1].role], ["coord", "project-coordinator"], "a coordinator's message is never shown as yours");
   assert.deepEqual(missing, [{ ids: ["cmsg_old"], seq: 722 }], "not loaded: paged back from the hop's seq");
-  assert.equal(relayedInto(th, hops, tl, new Set(["cmsg_fwd"])).shown.length, 0, "never twice in the thread");
+  assert.equal(relayedInto(th, hops, tl, new Set(["cmsg_fwd", "cmsg_co"])).shown.length, 0, "never twice in the thread");
 });
 
 t("a thread message sent during a turn waits for it (Interrupt)", () => {

@@ -20,6 +20,7 @@ import { createPacing } from "./pacing.js";
 import { createIntel } from "./intel.js";
 import { EFFORT, estLine, evidenceFor } from "./content.js";
 import { keepTurning, ICON, XO, NEXT_GLYPH, $, $$, RM, clock, dayOf, short, elapsed, reconcile, sound, wait, hold, dial, morph, expand } from "./ui.js";
+import { paidHtml } from "./paidview.js";
 import { uiMsg, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn } from "./turnview.js";
 import { nameWith } from "./comms.js";
@@ -565,6 +566,7 @@ function nextCardHtml(n) {
     (t.host ? `<button type="button" class="nx-where" data-fid="where"${t.chatId ? ` data-go="${esc(convOfChat(t.project))}"` : t.plainSession ? ` data-go="c:${esc(t.plainSession)}"` : ""} title="${t.asker ? `Open ${esc(PROJ(t.project))}, where its coordinator asks` : "Where it was asked"}">${t.asker ? `${esc(PROJ(t.project))}<span aria-hidden="true">›</span>${esc(t.title)}` : esc(t.title)}</button></div>` : `<button type="button" class="nx-where" data-fid="where" data-go="t:${esc(t.id)}" title="Open the thread">${esc(PROJ(t.project))}<span aria-hidden="true">›</span>${esc(t.title)}</button></div>`) +
     `<h2 class="nx-h" id="nx-h">${head}</h2>` +
     (cmd ? `<p class="nx-cmd"><code>${esc(cmd)}</code></p>` : "") +
+    (n.ask.item && n.ask.item.paid ? paidHtml(n.ask.item) : "") +
     (estLine(n) ? `<p class="nx-est" title="${n.t.live ? "From its checklist: the steps not done yet." : "An estimate: the steps left that wait on this answer × a typical step time."}">${ICON.hourglass}${esc(estLine(n))}</p>` : "") +
     (n.sug ? `<p class="c-sug" title="${esc(n.sug.why)}">${ICON.spark}<span>Suggests <b>${esc(n.sug.label)}</b></span><em>${esc(n.sug.sure)}</em></p>` : "") +
     nextActHtml(n) + `</div></article>`;
@@ -824,10 +826,15 @@ function messagesOf(conv) {
   // hops setting, marked as passed on, linking back to where you wrote them
   if (t && st.hops) {
     const { shown, missing } = relayedInto(t, st.hops.values(), st.timeline[t.project] || [], new Set(rows.map((m) => m.id)), st.found?.[t.project]);
-    // placed where the hop delivered it (its seq and time), not where you wrote it: written in the project's
-    // chat at 12:15 and passed on at 12:18, it sits below what you wrote here at 12:16. Its own time stays
-    // in `wrote`, for its tooltip.
-    for (const m of shown) out.push({ key: `relay:${m.id}`, at: m.hop.at || m.at, seq: m.hop.seq ?? m.seq, who: "you", text: m.text, files: m.files, chatId: m.chatId, wrote: m.at, relay: { project: t.project, id: m.id, fwd: m.fwd, at: m.hop.at || 0 } });
+    // each under its true author: yours as yours (placed where the hop delivered it, its seq and time, not where you wrote
+    // it: written in the project's chat at 12:15 and passed on at 12:18, it sits below what you wrote here at 12:16;
+    // its own time stays in `wrote`, for its tooltip), an agent's cited message as that agent's (a coordinator by its
+    // name) at its own place, so a proposal stays above the "yes" that travelled with it, XO's as XO's
+    const who = (r) => (r === "workspace-coordinator" ? "Workspace coordinator" : r === "project-coordinator" ? `${PROJ(t.project)} coordinator` : null);
+    for (const m of shown) {
+      if (m.who === "you") out.push({ key: `relay:${m.id}`, at: m.hop.at || m.at, seq: m.hop.seq ?? m.seq, who: "you", text: m.text, files: m.files, chatId: m.chatId, wrote: m.at, relay: { project: t.project, id: m.id, fwd: m.fwd, at: m.hop.at || 0 } });
+      else out.push({ key: `relay:${m.id}`, at: m.at, seq: m.seq, who: m.who, text: m.text, files: m.files, chatId: m.chatId, ...(who(m.role) ? { name: who(m.role), role: "passed on" } : {}) });
+    }
     if (world.act.findRows) for (const x of missing) world.act.findRows(t.project, x.ids, x.seq);
   }
   // what the coordinators and this thread wrote each other: storm keeps it as hops (their note), never
