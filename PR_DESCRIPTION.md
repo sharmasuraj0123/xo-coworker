@@ -31,6 +31,17 @@ A press starts the message in the composer for you to finish; it never sends. On
 
 **A project just made or cloned opens on its starts too (5500c4e).** Before this fix, XO's own first line in a new project (for example "fabric-chat cloned from quirq-ai/fabric-chat · plan and memory added") counted as a conversation. So a cloned or newly created project never showed the starting view. Now a chat counts as empty until someone has said something: a stored message, or your own on its way. The starts sit after XO's lines, in the room between them and the composer. A new browser case, START, covers a clone and a new project in all four cells (the owner, 13 Nov 17:40Z).
 
+### Launchpad: ask before a push that would also deploy other apps (ee83721)
+**Pairs with xo-space PR #296** (d0b81cf).
+
+**What.** xo-space can stop a deploy with an `other_apps` decision. That happens when pushing this repo and branch would also deploy other Launchpad apps. Launchpad now shows the decision, listing each app by its slug (or its workflow file), with the repo and branch.
+- *Push anyway* redeploys once, with `allow_apps` set to every id in `data.apps`. The permission isn't kept, and it isn't carried past an Undo.
+- *Don't push* closes the decision.
+
+A linked app that Launchpad no longer has is reported as deleted or belonging to someone else, matching Space's `app_missing`. Tests: a mock scenario (`other-apps`), a unit test, and a four-cell browser case.
+
+**Why.** Several Launchpad apps can deploy from the same repository and branch. A push for one app would quietly redeploy the others, so the owner now confirms that first.
+
 ### Two small layout fixes (13 Nov evening)
 - **Launchpad's *Change* stays on its line (a10c1b5).** On a narrow panel, the Machine and Environment lines dropped *Change* onto a row of its own. Label, value and *Change* now share one grid, so *Change* sits at the end of the line, level with its label, however the value wraps. This includes a phone's taller tap height. A new four-cell case, LP45, covers it, with mock scenarios `live-machine` and `live-machine-noenv` (the owner, 13 Nov 18:01Z).
 - **A short thread or file link stays inside its bubble on a phone (96de17a).** Links were kept on one line whatever the width, so at 390 px a 29-character title ran past the bubble's edge. A link is now at most as wide as the line:
