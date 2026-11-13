@@ -25,7 +25,7 @@ Almost every change answers either something the owner asked for or a problem a 
 - *Explain how this project works*
 - *Do something on a schedule*
 
-A press starts the message in the composer for you to finish; it never sends. Once the composer has words, the rows step aside. Threads and the Workspace keep their one-line note. Only `js/app.js` and `css/app.css` change.
+A press starts the message in the composer for you to finish; it never sends. Once the composer has words, the rows step aside. Clearing the composer brings them back with the same soft fade (026eb2c). Before that fix they popped back in whole after 200 ms: the hide rule's delayed visibility ran in reverse, so the fade played while they were still hidden (the owner, 13 Nov 18:26Z). Threads and the Workspace keep their one-line note. Only `js/app.js` and `css/app.css` change.
 
 **Why.** An empty project showed one small grey line at the top ("No messages yet. Tell this project's coordinator what you'd like done.") above a large blank area. That looked broken, and it didn't say what the coordinator can do. The owner asked for a clean starting view like other chat apps', "nothing too much" (13 Nov 15:05Z).
 
