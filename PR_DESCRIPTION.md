@@ -44,7 +44,7 @@ A linked app that Launchpad no longer has is reported as deleted or belonging to
 
 ### No "What will you mostly do here?" question on startup (7f0ad4d)
 **What.** The first-run sheet that asked new users to pick a shape is gone, along with its view code, CSS and two unit tests. XO starts on the default, *Everything*. Settings › Shape is unchanged and is where anyone picks a shape.
-**Why.** The owner decided the question shouldn't block the first open: a person can start working at once and change the shape later if they want.
+**Why.** The owner asked for the question to come out of startup (13 Nov, approved 20:40Z). Opening XO goes straight in; the shape remains a setting.
 
 ### Two small layout fixes (13 Nov evening)
 - **Launchpad's *Change* stays on its line (a10c1b5).** On a narrow panel, the Machine and Environment lines dropped *Change* onto a row of its own. Label, value and *Change* now share one grid, so *Change* sits at the end of the line, level with its label, however the value wraps. This includes a phone's taller tap height. A new four-cell case, LP45, covers it, with mock scenarios `live-machine` and `live-machine-noenv` (the owner, 13 Nov 18:01Z).
