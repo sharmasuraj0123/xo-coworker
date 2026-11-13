@@ -6,7 +6,8 @@
 // sent anywhere, and nothing but GETs is asked.
 //   node tests/busy.test.mjs
 import assert from "node:assert/strict";
-import { BUSY_STATES, readSub, sessionRead, sessionBusy, runWorks, heldOf, heldWords, heldShort } from "../js/timeline.js";
+import { BUSY_STATES, readSub, sessionRead, sessionBusy, runWorks, heldOf, heldWords, heldShort, heldClock, heldBadge, soonestHeld, queuedButWorking, threadState } from "../js/timeline.js";
+const sp = (x) => String(x).replace(/\u00a0/g, " "); // the time is one phrase (no-break spaces); read as plain spaces
 
 let passed = 0;
 const pending = [];
@@ -24,16 +25,35 @@ t("on a turn is Working (starting, running, stopping); queued, warm, cold and pa
   assert.deepEqual([...BUSY_STATES].sort(), ["running", "starting", "stopping"]);
   assert.equal(sessionBusy(null), false);
 });
-t("held back by a gate (queued) is never Working: not with an older backend's busy, a stale run, or the runs counts", () => {
+t("held back by a gate (queued) is never Working: not with an older backend's busy, a run or counts from before it", () => {
   // storm queues a session only with no process (engine _wait): nothing of it can be running
-  const s = { id: "s", state: "queued", sub: true, readAt: 1 };
+  const s = { id: "s", state: "queued", sub: true, readAt: 1, statusAt: 10, statusSeq: 50 };
   assert.equal(sessionBusy(s), false);
-  assert.equal(sessionBusy(s, { runs: [{ session: "s", state: "running", seen: 5 }] }), false);
-  assert.equal(sessionBusy(s, { agg: { running: 2, waiting: 0, at: 9 } }), false);
+  assert.equal(sessionBusy(s, { runs: [{ session: "s", state: "running", seen: 5 }] }), false, "a run last heard of before it was queued");
+  assert.equal(sessionBusy(s, { agg: { running: 2, waiting: 0, at: 9 } }), false, "counts from before it was queued");
+  assert.equal(sessionBusy(s, { turn: { status: "running", seq: 40 } }), false, "a turn the stream started before it was queued (its end missed)");
   // an older backend says busy: true for it; that isn't a sub-agent at work
   assert.equal(readSub({ state: "queued", busy: true }), false);
   assert.deepEqual(sessionRead({ state: "queued", busy: true }, 7), { sub: false, readAt: 7 });
   assert.equal(readSub({ state: "queued", busy: false }), false);
+});
+t("work seen after a session said queued outlives it: a turn started, a sub-agent named, counts above none (its frame is late)", () => {
+  const s = { id: "s", state: "queued", statusAt: 10, statusSeq: 50 };
+  assert.equal(sessionBusy(s, { turn: { status: "running", seq: 51 } }), true);
+  assert.equal(queuedButWorking(s, { turn: { status: "running", seq: 51 } }), true);
+  assert.equal(sessionBusy(s, { runs: [{ session: "s", state: "running", seen: 11 }] }), true);
+  assert.equal(sessionBusy(s, { agg: { running: 1, waiting: 0, at: 11 } }), true);
+  assert.equal(sessionBusy(s, { agg: { running: 0, waiting: 0, at: 11 } }), false, "counts of none say nothing works");
+  assert.equal(sessionBusy(s, { runs: [{ session: "s", state: "finished", ended_at: "x", seen: 11 }] }), false);
+  // a status with no seq known (a local guess): any running turn the stream holds is evidence
+  assert.equal(queuedButWorking({ id: "s", state: "queued", statusAt: 10 }, { turn: { status: "running", seq: 3 } }), true);
+  assert.equal(queuedButWorking({ id: "s", state: "warm" }, { turn: { status: "running", seq: 99 } }), false, "only a queued status is overruled");
+});
+t("held is one shown state: a done, stopped or needs-reply thread whose next input waits is on its way again", () => {
+  for (const st of ["done", "failed", "needs_reply"]) assert.equal(threadState(st, null, false, true), "working", st);
+  for (const st of ["done", "failed", "needs_reply"]) assert.equal(threadState(st, null, false, false), st, `${st}, not held`);
+  // the founder's pause, an open approval and a resolved thread keep theirs
+  for (const st of ["paused", "needs_approval", "resolved"]) assert.equal(threadState(st, null, false, true), st, st);
 });
 t("heldOf: the backend's waiting first; an older backend's pool (closed, paid, warn); else held for no named reason", () => {
   const reset = "2026-11-14T06:50:00Z";
@@ -50,35 +70,54 @@ t("heldOf: the backend's waiting first; an older backend's pool (closed, paid, w
   // the paid gate: asked (your answer) or not (paid usage set to Never), as the pool's reason says
   assert.equal(heldOf({ state: "queued", pool: "p", waiting: { for: "paid" } }, { p: { state: "paid", reason: "paid_asked" } }).asked, true);
   assert.equal(heldOf({ state: "queued", pool: "p", waiting: { for: "paid" } }, { p: { state: "paid", reason: "paid_threshold" } }).asked, false);
+  assert.equal(heldOf({ state: "queued", pool: "p", waiting: { for: "paid" } }, { p: { state: "paid", reason: null } }).asked, false, "no reason read: not claimed asked");
   // an older backend: only "queued", and its pool
   assert.deepEqual(heldOf({ state: "queued", pool: "p" }, { p: { state: "closed", resets_at: reset } }), { for: "limit", until: reset, why: null, asked: false });
-  assert.deepEqual(heldOf({ state: "queued", pool: "p" }, { p: { state: "paid", reason: null } }), { for: "paid", until: null, why: null, asked: true });
+  assert.deepEqual(heldOf({ state: "queued", pool: "p" }, { p: { state: "paid", reason: "paid_asked" } }), { for: "paid", until: null, why: null, asked: true });
   assert.equal(heldOf({ state: "queued", pool: "p" }, { p: { state: "warn" } }).for, "near_limit");
   assert.deepEqual(heldOf({ state: "queued", pool: "p" }, { p: { state: "open" } }), { for: null, until: null, why: null, asked: false });
   assert.deepEqual(heldOf({ state: "queued" }), { for: null, until: null, why: null, asked: false });
 });
-t("held words: the reset while it's ahead, never a time gone by; each gate in plain words", () => {
-  const now = Date.parse("2026-11-14T05:00:00Z");
-  const ahead = "2026-11-14T06:50:00Z", gone = "2026-11-14T04:00:00Z";
+t("held words: one verb (starts), the reset while it's ahead, never a time gone by; each gate in plain words", () => {
+  const now = new Date(2026, 10, 14, 5, 0).getTime(); // local time: the owner's clock
+  const at = (d, h, m = 0) => new Date(2026, 10, 14 + d, h, m).toISOString();
   const limit = (until) => ({ for: "limit", until, why: null, asked: false });
-  assert.match(heldWords(limit(ahead), now), /^Waiting for the usage limit · starts at \d/);
-  assert.ok(!/Working/.test(heldWords(limit(ahead), now)));
-  assert.equal(heldWords(limit(gone), now), "Waiting for the usage limit to reset");
+  assert.match(sp(heldWords(limit(at(0, 6, 50)), now)), /^Waiting for the usage limit · starts at 6:50\sAM$/);
+  assert.ok(!/Working/.test(heldWords(limit(at(0, 6, 50)), now)));
+  assert.equal(heldWords(limit(at(0, 4)), now), "Waiting for the usage limit to reset");
   assert.equal(heldWords(limit(null), now), "Waiting for the usage limit to reset");
-  // a reset tomorrow says so; days away names the day
-  assert.match(heldWords(limit(new Date(now + 24 * 3600e3).toISOString()), now), /starts tomorrow at \d/);
-  assert.match(heldWords(limit("2026-11-17T06:50:00Z"), now), /starts [A-Z][a-z]{2} \d/);
-  assert.match(heldShort(limit(ahead), now), /^Waiting · \d/);
-  assert.match(heldShort(limit(new Date(now + 24 * 3600e3).toISOString()), now), /^Waiting · tomorrow \d/);
-  assert.equal(heldShort(limit(gone), now), "Waiting");
+  assert.match(sp(heldWords(limit(at(1, 1, 31)), now)), /starts tomorrow at 1:31\sAM$/);
+  assert.match(sp(heldWords(limit(at(3, 6, 50)), now)), /starts [A-Z][a-z]{2} at 6:50\sAM$/);
+  assert.match(sp(heldWords(limit(at(9, 6, 50)), now)), /starts on \S+ \S+ at 6:50\sAM$/, "a date: on … at …");
+  // the time never breaks across lines: everything after "starts " is one phrase
+  const tail = heldWords(limit(at(1, 1, 31)), now).split(" · ")[1];
+  assert.ok(/^starts/.test(tail) && !/ /.test(tail), `no breaking space in "${tail}"`);
+  // the short forms use the same verb
+  assert.match(sp(heldShort(limit(at(0, 6, 50)), now)), /^Starts 6:50\sAM$/);
+  assert.match(sp(heldShort(limit(at(1, 1, 31)), now)), /^Starts tomorrow 1:31\sAM$/);
+  assert.match(sp(heldClock(at(1, 1, 31), now)), /^tomorrow 1:31\sAM$/);
+  assert.equal(heldShort(limit(at(0, 4)), now), "Waiting");
+  // the paid gate: the question when it's asked; otherwise nothing claimed about the setting
   assert.equal(heldWords({ for: "paid", asked: true }, now), "Waiting for your choice on paid usage · it's in Needs you");
-  assert.match(heldWords({ for: "paid", asked: false }, now), /^Waiting before paid usage/);
+  assert.equal(heldWords({ for: "paid", asked: false }, now), "Waiting before paid usage · see Settings › Runtimes");
+  assert.ok(!/Never/.test(heldWords({ for: "paid", asked: false }, now)));
   assert.match(heldWords({ for: "near_limit" }, now), /^Waiting · near the usage limit/);
   assert.equal(heldWords({ for: "memory" }, now), "Waiting for memory to free up");
-  assert.match(heldWords({ for: "founder", until: ahead }, now), /^Paused by you · until \d/);
+  assert.match(sp(heldWords({ for: "founder", until: at(0, 6, 50) }, now)), /^Paused by you · until 6:50\sAM$/);
   assert.equal(heldShort({ for: "founder" }, now), "Paused");
+  assert.equal(heldBadge({ for: "founder" }), "Paused");
+  assert.equal(heldBadge({ for: "limit" }), "Waiting");
+  // a reason this UI doesn't name: the backend's own words, else a plain wait
+  assert.equal(heldWords({ for: null, why: "the new gate" }, now), "Waiting · the new gate");
   assert.equal(heldWords({ for: null }, now), "Waiting to start");
   assert.equal(heldWords(null, now), "");
+});
+t("of several held, the soonest start; one with no time when none has", () => {
+  const now = Date.parse("2026-11-14T05:00:00Z");
+  const a = { for: "limit", until: "2026-11-14T09:00:00Z" }, b = { for: "limit", until: "2026-11-14T06:00:00Z" }, c = { for: "memory", until: null }, gone = { for: "limit", until: "2026-11-14T04:00:00Z" };
+  assert.equal(soonestHeld([a, null, c, b, gone], now), b);
+  assert.equal(soonestHeld([c, gone], now), c);
+  assert.equal(soonestHeld([null], now), null);
 });
 t("waiting on the person is never Working: not with storm's busy, a sub-agent run, or the runs counts", () => {
   const s = { id: "s", state: "waiting_on_person", sub: true, readAt: 1 };
@@ -288,6 +327,58 @@ t("storm.js: held by the usage limit is Waiting, never Working or replying, on a
   await settle();
   assert.equal(world.thread("new").held, null);
   assert.equal(world.state.sessions.cse_new.waiting, null);
+  assert.ok(be.asked.every((a) => a.startsWith("GET ")), "only GETs");
+});
+
+t("storm.js: held is one shown state, and work seen after a stale queued wins (a turn started, a newer read)", async () => {
+  const at = "2026-11-13T21:00:00Z", reset = new Date(Date.now() + 3 * 3600e3).toISOString();
+  const pool = "claude_code:acct-1";
+  const thread = (ts, session, state, view) => ({ ts, chat_id: "chat_p", title: ts, state, session_id: session, created_at: at, updated_at: at, session: view, busy: false });
+  const q = { state: "queued", busy: true };
+  const be = fakeBackend({
+    "/chat/chats": { chats: [{ id: "chat_ws", kind: "workspace" }, { id: "chat_p", kind: "project", project: "demo" }] },
+    "/chat/chats/chat_p/threads": { threads: [
+      thread("done", "cse_done", "done", q), thread("asked", "cse_asked", "needs_reply", q), thread("stale", "cse_stale", "working", q), thread("read", "cse_read", "working", q),
+    ] },
+    "/chat/sessions": { sessions: ["done", "asked", "stale", "read"].map((x, i) => ({ id: `cse_${x}`, seq: i + 1, chat_id: "chat_p", thread_ts: x, role: "thread", agent: "claude_code", pool, state: "queued", busy: true }))
+      .concat([{ id: "cse_co", seq: 9, chat_id: "chat_p", role: "project-coordinator", agent: "claude_code", pool, state: "queued", busy: true }]) },
+    "/chat/review": { items: [] },
+    "/chat/chats/chat_ws/hops": { hops: [] },
+    "/chat/status": { pools: [{ id: pool, state: "closed", resets_at: reset, reason: "limit" }] },
+    "/chat/runtimes": { runtimes: [] },
+    "/chat/router": { mode: "auto" },
+  });
+  const { createWorld } = await import("../js/world.js");
+  const world = createWorld();
+  be.push("snapshot", { data: { seq: 100, turns: [] } });
+  await until(() => world.state.loaded);
+  await until(() => world.thread("stale") && world.thread("stale").held);
+  await settle();
+  // a done thread and one that asked you, each with your next message held: Waiting, not Done or Needs you
+  for (const id of ["done", "asked"]) {
+    assert.equal(world.thread(id).state, "working", `${id}: on its way again`);
+    assert.equal(world.thread(id).held.for, "limit", `${id}: held`);
+    assert.equal(world.thread(id).busy, false);
+  }
+  // a turn the stream starts after "queued" (the status frame that ended the wait is late): Working, Stop's target
+  be.push("turn.started", { session_id: "cse_stale", turn_id: "turn_1", seq: 200, ts: at, data: { origin: "person" } });
+  be.push("turn.started", { session_id: "cse_co", turn_id: "turn_2", seq: 201, ts: at, data: { origin: "person" } });
+  await settle();
+  assert.equal(world.thread("stale").busy, true);
+  assert.equal(world.thread("stale").held, null);
+  assert.equal(world.act.coordinatorHeld("demo"), null);
+  assert.equal(world.act.coordinatorBusy("demo"), "cse_co");
+  assert.equal(world.act.replying("demo"), true);
+  // a thread read newer than the live record's last status: its session runs
+  be.push("thread", { chat_id: "chat_p", data: { ts: "read", chat_id: "chat_p", state: "working", busy: true, session: { state: "running", busy: true } } });
+  await settle();
+  assert.equal(world.thread("read").busy, true);
+  assert.equal(world.thread("read").held, null);
+  // and a later queued frame holds it again
+  be.push("session", { session_id: "cse_read", seq: 300, data: { status: "queued" } });
+  await settle();
+  assert.equal(world.thread("read").busy, false);
+  assert.equal(world.thread("read").held.for, "limit");
   assert.ok(be.asked.every((a) => a.startsWith("GET ")), "only GETs");
 });
 

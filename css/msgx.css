@@ -143,8 +143,9 @@ body.files-open .mx-down{display:none}
    never dimmed and nothing more is left: 20 + 2 + the band = 32 px to the box on a desktop, 24 on a phone.
    (--dock-h is the dock's height, set by app.js; with a decision card docked it includes the card, and the
    message then ends 24 px above the card instead.) */
-:root[data-msgx] .scroller{padding-bottom:calc(var(--dock-h) - 18px)}
-:root[data-msgx] .app.has-tdock .scroller{padding-bottom:calc(var(--dock-h) + 4px)}
+/* --herald-room: the notices' line over the conversation's foot, while it shows there (app.js heraldRoom) */
+:root[data-msgx] .scroller{padding-bottom:calc(var(--dock-h) - 18px + var(--herald-room, 0px))}
+:root[data-msgx] .app.has-tdock .scroller{padding-bottom:calc(var(--dock-h) + 4px + var(--herald-room, 0px))}
 :root[data-msgx] #msgs>.m.cont{margin-top:-16px}
 
 /* the working words keep the app's soft shimmer (the owner's ask, 21:37): a slow light passing through the
@@ -281,9 +282,10 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] :is(#typing,#msgs) .shimmer{font-weight:400}
 :root[data-msgx] .typing .ty-b .elapsed:not(:empty)::before{content:none}
 /* a held line (the usage limit…) ends with when it starts: it wraps onto a second line rather than fade its
-   time away on a phone (nothing animates in it, so it can grow) */
+   time away on a phone (nothing animates in it, so it can grow); the time itself never breaks (timeline.js
+   keeps it one phrase), and the lines balance rather than leave one word alone */
 :root[data-msgx] .typing.is-held .ty-b{height:auto;min-height:44px;padding-block:12px}
-.typing.is-held .ty-b .ty-t{white-space:normal;overflow:visible}
+.typing.is-held .ty-b .ty-t{white-space:normal;overflow:visible;text-wrap:pretty}
 :root[data-msgx] .typing.is-held .ty-t.mx-fade{-webkit-mask-image:none;mask-image:none}
 @media (prefers-reduced-motion:reduce){.mx-wl.is-in,.mx-wl.is-out,:root[data-msgx] .mx-wl:not(.is-out){animation:none;color:var(--ink-2);background:none}}
 

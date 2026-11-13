@@ -21,7 +21,7 @@ import { createIntel } from "./intel.js";
 import { EFFORT, estLine, evidenceFor } from "./content.js";
 import { keepTurning, ICON, XO, NEXT_GLYPH, $, $$, RM, clock, dayOf, short, elapsed, reconcile, sound, wait, hold, dial, morph, expand } from "./ui.js";
 import { paidHtml } from "./paidview.js";
-import { uiMsg, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldClock } from "./timeline.js";
+import { uiMsg, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldClock, heldBadge, soonestHeld } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn } from "./turnview.js";
 import { nameWith } from "./comms.js";
 import { mediaHtml, fromAttachment, hydrateMedia, mediaItemOf, viewerFile, retryMedia, wireDragOut, webImagesHtml } from "./media.js";
@@ -260,14 +260,16 @@ const STATE_WORD = { working: "Working", needs_reply: "Needs you", needs_approva
 // filter, the header's badge and sweep, the sidebar's count and the favicon's line all read it from here.
 // A working thread whose session sits idle reads "Idle" (P1-8).
 const isBusy = (t) => t.busy === true || (t.state === "working" && t.busy !== false);
-// held back by a gate (the usage limit, the paid gate, the founder's pause…): nothing runs, its message waits
-// (timeline.js heldOf). Never Working and never Idle: "Waiting", with until when where a reset says it.
-const isHeld = (t) => !!(t && t.held && !isBusy(t));
+// held back by a gate (the usage limit, the paid gate, the founder's pause…): nothing runs, its next input waits
+// (timeline.js heldOf). One shown state, as storm.js promotes it (threadState: a done, stopped or needs-reply thread
+// whose input waits is "working"): never Working and never Idle, but "Waiting", with when it starts where a reset
+// says it. An open item on it still reads Needs you (askingState), and a resolved one Resolved.
+const isHeld = (t) => !!(t && t.held && !isBusy(t) && t.state === "working");
 // a thread continued on another runtime is frozen, not waiting on you: a quiet "Continued" (F4)
-const glyphOf = (t) => (isHeld(t) && t.state === "working" ? "paused" : t.state === "working" && t.busy === false ? "idle" : t.frozen ? "resolved" : t.state);
-const wordOf = (t) => (isHeld(t) && t.state === "working" ? heldShort(t.held) : glyphOf(t) === "idle" ? "Idle" : t.frozen ? "Continued" : STATE_WORD[t.state]);
+const glyphOf = (t) => (isHeld(t) ? "paused" : t.state === "working" && t.busy === false ? "idle" : t.frozen ? "resolved" : t.state);
+const wordOf = (t) => (isHeld(t) ? heldShort(t.held) : glyphOf(t) === "idle" ? "Idle" : t.frozen ? "Continued" : STATE_WORD[t.state]);
 // the state a badge or card is coloured by: a held thread in the pause's amber, never Working's blue
-const stOf = (t) => (t.frozen ? "resolved" : isHeld(t) && t.state === "working" ? "paused" : t.state);
+const stOf = (t) => (t.frozen ? "resolved" : isHeld(t) ? "paused" : t.state);
 // a thread link in any message is a token led by that thread's live state (js/markdown.js)
 setThreadInfo((id) => { const t = world.thread(id); return t ? { state: glyphOf(t), word: wordOf(t), title: t.title } : null; });
 const SORT_STATE = { needs_approval: 0, needs_reply: 0, paused: 0, failed: 1, working: 2, done: 3, resolved: 4 };
@@ -302,13 +304,14 @@ REC.panel = STAGE;
 /** The runtime a thread runs on, fixed for its life (its session's agent). */
 const agentOf = (t) => (t && ((t.session && t.session.agent) || (t.sessionId && world.state.sessions[t.sessionId]?.agent))) || null;
 const RT_EFFORT = { low: "Quick", medium: "Balanced", high: "Deep", xhigh: "Deeper", max: "Deepest" };
-/** When the limit that holds a thread opens (ISO), or null: a limit item names it, or its session is held by
- *  the usage limit (timeline.js heldOf: the backend's word, else its pool) and the reset is still ahead. */
+/** When the usage limit that holds a thread lets it start (ISO), or null. Only while the thread is held, and by the
+ *  limit (or by a gate an older backend doesn't name): its session's word (timeline.js heldOf), else the open limit
+ *  item that names it. Never for a thread at work, whatever an item still says. Only a time still ahead. */
 function waitingOn(t) {
+  if (!isHeld(t) || (t.held.for && t.held.for !== "limit")) return null;
   const lim = (t.limits || [])[0];
-  if (lim && lim.limit && lim.limit.resetsAt) return lim.limit.resetsAt;
-  const h = isHeld(t) ? t.held : null;
-  return h && h.for === "limit" && h.until && Date.parse(h.until) > Date.now() ? h.until : null;
+  const at = t.held.until || (lim && lim.limit && lim.limit.resetsAt) || null;
+  return at && Date.parse(at) > Date.now() ? at : null;
 }
 /** F1: which runtime a thread runs on, said only when there is more than one runtime to tell apart. */
 function rtTag(t, cls) {
@@ -320,10 +323,11 @@ function rtTag(t, cls) {
   // waits all the same; there the runtime needs no name)
   const wait = cls !== "ar" && waitingOn(t);
   if (wait) {
-    // beside the badge's "Waiting": what it waits for and until when ("Usage limit · until 6:50 AM")
+    // beside the badge's "Waiting": what it waits for and when it starts ("Usage limit · starts 6:50 AM"), the verb
+    // the line under the conversation and the sidebar use too (timeline.js heldWords)
     const who = many ? rtName(agent) : "";
-    const tip = `${who || "Your agent"} reached its usage limit. This thread waits until ${heldClock(wait)}${untilWords(wait) ? `, ${untilWords(wait)}` : ""}, then starts on its own.`;
-    return `<button type="button" class="tw-rt is-warn" data-set-open="runtimes" title="${esc(tip)}" aria-label="${esc(`${tip} Open Runtimes in Settings.`)}">${who ? `${esc(who)} limit` : "Usage limit"} · until ${esc(heldClock(wait))}</button>`;
+    const tip = `${who || "Your agent"} reached its usage limit. This thread starts on its own ${heldClock(wait)}${untilWords(wait) ? `, ${untilWords(wait)}` : ""}.`;
+    return `<button type="button" class="tw-rt is-warn" data-set-open="runtimes" title="${esc(tip)}" aria-label="${esc(`${tip} Open Runtimes in Settings.`)}">${who ? `${esc(who)} limit` : "Usage limit"} · starts ${esc(heldClock(wait))}</button>`;
   }
   if (!many) return "";
   const rt = findRt(rts, agent), h = healthOf(rt), se = t.session || {};
@@ -441,8 +445,9 @@ function sideRender(needs) {
     const needsMe = asks.length > 0;
     // hub #31: a project at work reads blue at a glance; what needs you (amber, red) still wins the row
     const working = busy && !needsMe;
-    // held back by a gate (the usage limit…), nothing of it running: a quiet "Waiting", never Working
-    const held = !busy && !needsMe ? (world.state.threads.find((t) => t.project === p.id && t.state !== "resolved" && isHeld(t))?.held || (world.act.coordinatorHeld && world.act.coordinatorHeld(p.id))) : null;
+    // held back by a gate (the usage limit…), nothing of it running: a quiet "Waiting", never Working; of several,
+    // the one that starts soonest
+    const held = !busy && !needsMe ? soonestHeld([...world.state.threads.filter((t) => t.project === p.id && isHeld(t)).map((t) => t.held), world.act.coordinatorHeld && world.act.coordinatorHeld(p.id)]) : null;
     const label = needsMe ? askShort(lead) : working ? (nBusy > 1 ? `${nBusy} threads working` : nBusy ? "Working" : "Coordinator working") : held ? heldShort(held) : "";
     const kind = needsMe ? (lead.risk === "destructive" || lead.group === "stopped" ? "red" : "amber") : "";
     const was = sideRender.needs?.get(p.id) || 0;
@@ -927,7 +932,7 @@ function threadCardHtml(tid, needs) {
   const heldN = !n ? needs.find((x) => x.t.id === t.id && x.held) : null;
   const cur = c.items.find((i) => i.state === "doing") || c.items.find((i) => i.state === "todo");
   const segs = c.items.map((i) => `<i class="sg s-${i.state}"></i>`).join("");
-  const st = n ? `Needs you · ${EFFORT[n.effort].time}` : isBusy(t) ? `Working${c.total ? ` · ${c.done} of ${c.total}` : ""}` : isHeld(t) ? heldShort(t.held) : t.state === "done" ? `Done${c.total ? ` · ${c.total} of ${c.total}` : ""}` : wordOf(t);
+  const st = n ? `Needs you · ${EFFORT[n.effort].time}` : isBusy(t) ? `Working${c.total ? ` · ${c.done} of ${c.total}` : ""}` : t.state === "done" ? `Done${c.total ? ` · ${c.total} of ${c.total}` : ""}` : wordOf(t);
   const now = n ? `◆ ${askTitle(n)}` : isBusy(t) && cur ? `✱ ${esc(cur.text)}` : isHeld(t) ? esc(heldWords(t.held)) : t.state === "failed" ? esc(String(t.happened || "").replace(/^Stopped:\s*/i, "")) : t.state === "done" ? esc(t.happened || "Finished.") : "";
   // a finished thread offers its real next step: the newest file it made, one click away (no file, no offer)
   const made = !n && t.state === "done" && REC.latestOf ? REC.latestOf(t.id, t.project) : null;
@@ -1252,11 +1257,11 @@ function topRender(needs) {
     const nd = P0.active.length;
     const asking = new Set(needs.map((n) => n.t.id));
     const working = world.state.threads.filter(isBusy).length;
-    // held back by a gate (the usage limit…): waiting to start, neither working nor idle
-    const waiting = world.state.threads.filter((x) => x.state === "working" && isHeld(x) && !asking.has(x.id)).length;
+    // held back by a gate (the usage limit…): neither working nor idle ("can wait" is what needs you later)
+    const waiting = world.state.threads.filter((x) => isHeld(x) && !asking.has(x.id)).length;
     const idle = world.state.threads.filter((x) => x.state === "working" && !isBusy(x) && !isHeld(x) && !asking.has(x.id)).length;
     const done = doneToday().length;
-    const parts = [counted(working, "working"), counted(waiting, "waiting to start"), counted(P0.held.length, "can wait"), counted(idle, "idle"), counted(done, "finished today")].filter(Boolean);
+    const parts = [counted(working, "working"), counted(waiting, "held back"), counted(P0.held.length, "can wait"), counted(idle, "idle"), counted(done, "finished today")].filter(Boolean);
     const need = hostNeedHtml(v, needs);
     const line = countLine([...(parts.length ? parts : ["All quiet"]), projects().length && `across ${counted(projects().length, projects().length === 1 ? "project" : "projects")}`]);
     // the counts go to Home; what the Workspace's own coordinator asks opens here, so the two are separate buttons
@@ -1267,11 +1272,11 @@ function topRender(needs) {
     const every = world.state.threads.filter((x) => x.project === pid); // resolved ones too: findable, reopenable
     const nd = needs.filter((n) => n.t.project === pid && n.admitted && !n.later).length;
     const w = ts.filter(isBusy).length;
-    const wt = ts.filter((x) => x.state === "working" && isHeld(x)).length;
+    const wt = ts.filter(isHeld).length;
     const dn = ts.filter((x) => x.state === "done").length;
     const rs = every.length - ts.length;
     // "done", not "done this week": the count is every done thread, however old
-    const parts = [counted(w, "working"), counted(wt, "waiting to start"), counted(dn, "done"), counted(rs, "resolved")].filter(Boolean);
+    const parts = [counted(w, "working"), counted(wt, "held back"), counted(dn, "done"), counted(rs, "resolved")].filter(Boolean);
     // Threads: every thread here, searchable, dropping down under its button (⌘K reaches them too)
     if (every.length) end = `<button type="button" class="all-btn th-btn" data-switch aria-haspopup="dialog" aria-expanded="${!allEl.hidden}" title="Every thread in ${esc(PROJ(pid))}, searchable">${ICON.threadOne}${esc(SHAPE.word("Threads"))}<span>${every.length}</span></button>`;
     const need = hostNeedHtml(v, needs);
@@ -1292,7 +1297,7 @@ function topRender(needs) {
       (S.tMenu === t.id ? `<span class="tw-menu" role="menu"><button type="button" role="menuitem" data-tfield="title">Rename</button><button type="button" role="menuitem" data-tfield="label">${t.label ? "Change label" : "Add a label"}</button>${t.label ? `<button type="button" role="menuitem" data-tfield="clear-label">Remove the label</button>` : ""}${SH.enabled ? `<button type="button" role="menuitem" data-shell="t:${esc(t.id)}">Open a shell in its worktree</button>` : ""}${movable(t) ? `<button type="button" role="menuitem" data-tmove="${esc(t.id)}">Continue on another runtime…</button>` : ""}</span>` : "") + `</span>` : "";
     // a shell in its worktree is in the menu (and the shells dock); the header keeps Resolve and the panel
     const allActs = acts ? acts.replace(/<\/span>$/, `${LP.button(v, STAGE.launchOpen)}${STAGE.button(v)}</span>`) : `<span class="tw-acts">${LP.button(v, STAGE.launchOpen)}${STAGE.button(v)}</span>`;
-    who = `${title}${label}<span class="badge st-${stOf(t)}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${isHeld(t) && waitingOn(t) ? "Waiting" : wordOf(t)}</span>${rtTag(t)}${fileChipHtml()}${allActs}`;
+    who = `${title}${label}<span class="badge st-${stOf(t)}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${isHeld(t) ? heldBadge(t.held) : wordOf(t)}</span>${rtTag(t)}${fileChipHtml()}${allActs}`;
     // a field being edited is never replaced under the person's fingers (a frame may change the badge)
     if (ed && $("#tw-edit")) who = null;
   } else who = `<span class="tw-t"><h1 id="conv-title">Thread</h1></span>`;
@@ -1833,7 +1838,8 @@ function typingRender() {
   // waits for and until when (timeline.js heldWords), in the pause's amber
   const coHeld = chat && world.act.coordinatorHeld ? world.act.coordinatorHeld(chat) : null;
   const chHeld = !chat && S.view.startsWith("c:") && world.act.sessionHeld ? world.act.sessionHeld(S.view.slice(2)) : null;
-  const held = coHeld || chHeld || (t && isHeld(t) ? t.held : null);
+  // a thread's own wait shows here even while an item on it asks you (it's true, and the item says the rest)
+  const held = coHeld || chHeld || (t && t.held && !isBusy(t) && t.state !== "resolved" ? t.held : null);
   if (held) {
     const who = coHeld ? (S.view === "ws" ? "The coordinator" : `${PROJ(chat)} coordinator`) : "";
     const words = heldWords(held);
@@ -1931,6 +1937,23 @@ function heraldRender(needs) {
   if (fa && fa !== box && box.contains(fa) && !(h && fa.closest(`[data-hn="${h.n}"]`))) heraldBack(box._line)?.focus({ preventScroll: true });
   if (patch(box, html) && was != null && html) box.firstElementChild?.classList.add("is-in");
   box._line = h;
+  heraldRoom();
+}
+/**
+ * The notices' line sits on the dock's top, over the conversation's foot (css/app.css .herald). The conversation
+ * keeps room for it while it shows there (--herald-room, css/msgx.css .scroller), so it never covers the last
+ * bubble or the line under it ("Paused until 6:50 AM" over "Waiting for the usage limit…"). Measured, not assumed:
+ * its height and how far it stands above the dock change with the width and with what's docked (is-stacked). A line
+ * moved out of the conversation (is-out: over a file) or hidden takes no room. follow.js keeps the latest pinned as
+ * the room changes (it watches the scroller's box).
+ */
+function heraldRoom() {
+  const box = $("#herald"), dock = $("#dock");
+  const line = box.firstElementChild;
+  const shown = line && !box.classList.contains("is-out") && line.getClientRects().length > 0;
+  const px = shown ? Math.max(0, Math.round(dock.getBoundingClientRect().top - box.getBoundingClientRect().top)) : 0;
+  const v = px ? `${px + 8}px` : "0px";
+  if ($("#app").style.getPropertyValue("--herald-room") !== v) $("#app").style.setProperty("--herald-room", v);
 }
 /** Where focus goes when a notice's line goes from under it: the control the notice acts on (h.back: selectors,
  *  e.g. the thread's Resolve, or Interrupt), else the message box, else the place's own region. */
@@ -2824,6 +2847,7 @@ scroller.addEventListener("scroll", () => {
     $("#app").style.setProperty("--dock-h", `${dock.offsetHeight}px`);
     const on = bar.getBoundingClientRect().top - dock.getBoundingClientRect().top > 0.5;
     if (dock.classList.contains("is-stacked") !== on) dock.classList.toggle("is-stacked", on);
+    heraldRoom(); // the line stands higher over what's docked (is-stacked)
   }).observe(dock);
 }
 initFollow();

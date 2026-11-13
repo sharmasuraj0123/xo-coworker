@@ -13,7 +13,7 @@ import { rules, context, decls } from "./lib/cascade.mjs";
 
 const ROOT = new URL("../", import.meta.url);
 const read = (f) => readFileSync(new URL(f, ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-const app = read("css/app.css"), fv = read("css/fileview.css"), html = readFileSync(new URL("index.html", ROOT), "utf8").replace(/<!--[\s\S]*?-->/g, "");
+const app = read("css/app.css"), fv = read("css/fileview.css"), mx = read("css/msgx.css"), html = readFileSync(new URL("index.html", ROOT), "utf8").replace(/<!--[\s\S]*?-->/g, "");
 const js = readFileSync(new URL("js/app.js", ROOT), "utf8");
 const all = rules(new URL("tests/lib/x.mjs", ROOT));
 let passed = 0;
@@ -46,7 +46,13 @@ t("census: the line is placed by the stack alone, never against one thing docked
   assert.match(app, /\.herald\{position:absolute;z-index:1;/, "drawn over the bar's fade it rides above the bar, a later sibling");
 });
 t("anything docked is measured, in the dock's own observer, before the frame is painted", () => {
-  assert.match(js, /const dock = \$\("#dock"\), bar = dock\.querySelector\("\.cbar"\);\s*new ResizeObserver\(\(\) => \{\s*\$\("#app"\)\.style\.setProperty\("--dock-h", `\$\{dock\.offsetHeight\}px`\);\s*const on = bar\.getBoundingClientRect\(\)\.top - dock\.getBoundingClientRect\(\)\.top > 0\.5;\s*if \(dock\.classList\.contains\("is-stacked"\) !== on\) dock\.classList\.toggle\("is-stacked", on\);\s*\}\)\.observe\(dock\);/);
+  assert.match(js, /const dock = \$\("#dock"\), bar = dock\.querySelector\("\.cbar"\);\s*new ResizeObserver\(\(\) => \{\s*\$\("#app"\)\.style\.setProperty\("--dock-h", `\$\{dock\.offsetHeight\}px`\);\s*const on = bar\.getBoundingClientRect\(\)\.top - dock\.getBoundingClientRect\(\)\.top > 0\.5;\s*if \(dock\.classList\.contains\("is-stacked"\) !== on\) dock\.classList\.toggle\("is-stacked", on\);\s*heraldRoom\(\);[^\n]*\s*\}\)\.observe\(dock\);/);
+});
+t("the conversation keeps room for the notices' line while it shows over its foot (it never covers the last bubble)", () => {
+  // measured where it stands (the dock's observer, and each time the line is drawn); none while it's out over a file
+  assert.match(js, /function heraldRoom\(\) \{[\s\S]*?classList\.contains\("is-out"\)[\s\S]*?setProperty\("--herald-room"/);
+  assert.match(js, /box\._line = h;\s*heraldRoom\(\);/);
+  assert.match(mx, /:root\[data-msgx\] \.scroller\{padding-bottom:calc\(var\(--dock-h\) - 18px \+ var\(--herald-room, 0px\)\)\}/);
 });
 t("a notice drawn out over Files keeps its own place (not moved by this)", () => {
   assert.match(fv, /\.herald\.is-out\{position:fixed;/);

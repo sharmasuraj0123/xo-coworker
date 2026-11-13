@@ -21,6 +21,7 @@ import { api } from "./api.js";
 import { renderInline } from "./markdown.js";
 import { isImagePath } from "./util.js";
 import { commsLine, commsText } from "./comms.js";
+import { heldWords } from "./timeline.js";
 import { fileIcon, folderIcon, fileColor } from "./fileicons.js";
 
 const KEY = "cv-map";
@@ -254,7 +255,9 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     const liveFile = [...a.files.values()].filter((f) => f.live).sort((x, y) => y.seq - x.seq)[0] || null;
     const lastFile = [...a.files.values()].sort((x, y) => y.seq - x.seq)[0] || null;
     const busy = isBusy(t);
-    return { id: t.id, title: t.title, go: "t:" + t.id, project: t.project, fold, act: a, now, liveFile, path: (liveFile || (!busy && lastFile) || null)?.path || null, spots: a.nowSpots, prev: a.lastFile, busy, waiting: !!(now && now.waiting), since: a.running ? Date.parse(a.running.at) : null, color: colorOf(t.id) };
+    // held back by a gate (the usage limit…): not at work, so not among the agents, but its own view says what it waits for
+    const held = !busy && t.held && t.state === "working" ? t.held : null;
+    return { held, id: t.id, title: t.title, go: "t:" + t.id, project: t.project, fold, act: a, now, liveFile, path: (liveFile || (!busy && lastFile) || null)?.path || null, spots: a.nowSpots, prev: a.lastFile, busy, waiting: !!(now && now.waiting), since: a.running ? Date.parse(a.running.at) : null, color: colorOf(t.id) };
   }
   function coordinatorOf(pid) {
     const sid = world.act.coordinatorBusy && world.act.coordinatorBusy(pid);
@@ -282,12 +285,12 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       const last = bl[bl.length - 1];
       return esc(last ? (last.type === "thinking" ? "Thinking" : last.type === "text" || last.type === "answer" ? "Writing its reply" : String(commsText(last.header) || "Working").replace(/`/g, "")) : "Starting");
     }
-    return ag.busy ? "Working" : "Not working right now";
+    return ag.busy ? "Working" : ag.held ? esc(heldWords(ag.held)) : "Not working right now";
   }
   /** The cursor's short word: "editing", "reading", "running a command"… */
   function verbOf(ag) {
     if (ag.waiting) return "waiting for you";
-    if (!ag.busy) return "idle";
+    if (!ag.busy) return ag.held ? "waiting" : "idle";
     if (ag.liveFile) return (ag.liveFile.verb || "working").toLowerCase();
     const k = ag.now && ag.now.kind;
     const said = ag.now && commsLine(ag.now, { project: ag.project });
@@ -958,8 +961,8 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       const t = scope.t, a = ags[0];
       title = t.title; ic = ICON.thread;
       sub = [t.branch && `<span class="mp-br">${ICON.branch}<code>${esc(t.branch)}</code></span>`, scope.fold ? (scope.fold.base ? "its own worktree" : "the project folder") : ""].filter(Boolean).join(`<span class="mp-sep">·</span>`);
-      const word = a.busy ? (a.waiting ? "Waiting for you" : doingLine(a)) : t.state === "done" ? "Done" : t.state === "resolved" ? "Resolved" : t.state === "failed" ? "Stopped" : "Not working right now";
-      extra = `<div class="mp-now st-${a.busy ? (a.waiting ? "wait" : "busy") : "rest"}" style="--c:${a.color}"><p class="mp-nl">${word}</p>${a.busy ? since(a.since) : ""}</div>`;
+      const word = a.busy ? (a.waiting ? "Waiting for you" : doingLine(a)) : a.held ? esc(heldWords(a.held)) : t.state === "done" ? "Done" : t.state === "resolved" ? "Resolved" : t.state === "failed" ? "Stopped" : "Not working right now";
+      extra = `<div class="mp-now st-${a.busy ? (a.waiting ? "wait" : "busy") : a.held ? "wait" : "rest"}" style="--c:${a.color}"><p class="mp-nl">${word}</p>${a.busy ? since(a.since) : ""}</div>`;
     } else {
       if (scope.kind === "project") { title = (world.project(scope.pid) || {}).name || scope.pid; ic = ICON.project; }
       else { title = "Working now"; ic = MAP_ICON; }

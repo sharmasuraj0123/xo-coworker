@@ -195,10 +195,15 @@ export function askText(md, max = 140) {
  * Storm's state is how the last turn ended: a message into a done or stopped thread starts a turn and
  * leaves it done or failed until that turn ends (only resolved and paused flip to working). While its
  * agent works, it shows Working, everywhere a thread's state is read; the turn's end sets it again.
+ * held: its session is held back by a gate with input waiting (heldOf). That input is the next thing it does,
+ * so a done, stopped or needs-reply thread is on its way again, as xo-space's own thread status derives it
+ * (chats/thread_status.py: queued input comes before the agent's last report): "working", which a held
+ * thread shows as Waiting. An open item still wins (askingState, after this).
  */
-export function threadState(state, turn, busy = false) {
+export function threadState(state, turn, busy = false, held = false) {
   if (state === "needs_reply" && turn && turn.status === "running" && turn.origin === "person") return "working";
-  if (busy && (state === "done" || state === "failed")) return "working";
+  if ((busy || held) && (state === "done" || state === "failed")) return "working";
+  if (held && state === "needs_reply") return "working";
   return state || "working";
 }
 
@@ -213,7 +218,10 @@ export function threadState(state, turn, busy = false) {
 // "queued" is not working. Storm queues a session only when a gate holds its ready message back (the
 // usage limit, the paid-usage hold, near-limit pacing, the memory guard, the founder's pause), and only
 // one with no process (engine `_wait`): nothing of it runs, so it is Waiting (heldOf below), never Working.
-// An older backend still says `busy: true` for it; that word is not taken.
+// An older backend still says `busy: true` for it; that word is not taken. Only work seen after the
+// status said "queued" outlives it (a turn started, a sub-agent named, counts above none): the frame that
+// ended the wait was missed or is late, and a run in progress is never hidden behind a stale "queued"
+// (queuedButWorking).
 
 /** Session states in which its agent is on a turn: a process starting it, running it or stopping it. */
 export const BUSY_STATES = new Set(["starting", "running", "stopping"]);
@@ -242,19 +250,35 @@ export function sessionRead(view, now = Date.now()) {
 }
 
 /**
+ * A session whose status says queued, yet work is seen after that status came: a turn the stream
+ * started after it (turn: its running turn, {seq}; s.statusSeq: the event seq when the status was set),
+ * a sub-agent the stream named after it (runs' `seen` against s.statusAt, ms), or `runs` counts above none
+ * after it. Then the wait is over whatever the status says yet (its frame was missed or is late): Working.
+ */
+export function queuedButWorking(s, { runs = [], agg = null, turn = null } = {}) {
+  if (!s || s.state !== HELD_STATE) return false;
+  const at = s.statusAt || 0, seq = s.statusSeq ?? null;
+  if (turn && turn.status !== "ended" && (seq == null || (turn.seq ?? -1) > seq)) return true;
+  for (const r of runs) if ((r.session == null || r.session === s.id) && runWorks(r) && (r.seen || 0) > at) return true;
+  return !!(agg && (agg.at || 0) > at && (agg.running || 0) + (agg.waiting || 0) > 0);
+}
+
+/**
  * Is a session's agent at work? s: {id, state, sub, readAt}: its newest status (frame or read), what
  * the last read said beyond it (readSub) and when that read came (ms). runs: its runs as the stream named
  * them ({state, ended_at, hidden, seen}, `seen` when the stream last spoke of each); agg: its newest
  * `runs` frame ({running, waiting, at}). Each says what it knows, the newest word winning:
  *   · waiting on the person is never Working, whatever else is true: it's you who's awaited (Needs you);
- *   · held by a gate (queued) is never Working: it has no process (heldOf says what it waits for);
+ *   · held by a gate (queued) isn't Working (heldOf says what it waits for), unless work is seen after it
+ *     said so (queuedButWorking: turn, its running turn);
  *   · on a turn (BUSY_STATES) is Working;
  *   · after the turn, a sub-agent still at work keeps it Working: a run the stream named since the last
  *     word on the counts, else the `runs` frame's counts when they're newer than the read, else the read.
  */
-export function sessionBusy(s, { runs = [], agg = null } = {}) {
+export function sessionBusy(s, { runs = [], agg = null, turn = null } = {}) {
   if (!s) return false;
-  if (s.state === "waiting_on_person" || s.state === HELD_STATE) return false;
+  if (s.state === "waiting_on_person") return false;
+  if (s.state === HELD_STATE) return queuedButWorking(s, { runs, agg, turn });
   if (BUSY_STATES.has(s.state)) return true;
   const readAt = s.readAt || 0;
   const counted = agg && (agg.at || 0) >= readAt ? agg : null;
@@ -270,18 +294,19 @@ export const HELD_FOR = new Set(["limit", "paid", "near_limit", "memory", "found
 
 /**
  * What a session held back by a gate waits for, or null when it isn't held. s: the session as known
- * ({state, pool, waiting}); pools: the engine's pools by id ({state, resets_at}).
+ * ({state, pool, waiting}); pools: the engine's pools by id ({state, resets_at, reason}).
  * → {for: "limit" | "paid" | "near_limit" | "memory" | "founder" | null, until: ISO | null, why: string | null,
- *    asked: bool} (asked: the paid gate waits for the founder's answer, as connLine reads the pool's reason)
+ *    asked: bool} (asked: the paid gate waits for the founder's answer: its pool's reason says paid_asked)
  * The backend's own word first: its session view and `session` frame carry `waiting` {for, until, pool,
  * why} while queued. An older backend says only "queued": then the session's pool says what holds it, when
  * a pool does (closed: the limit, until its reset; paid: the paid gate; warn: near-limit pacing), and
  * otherwise it's held for a reason this backend doesn't name (for: null), still never Working.
+ * A caller that has seen work since the status said queued asks queuedButWorking first: that one isn't held.
  */
 export function heldOf(s, pools = {}) {
   if (!s || s.state !== HELD_STATE) return null;
   const w = s.waiting;
-  const asked = (p) => !!p && p.state === "paid" && (p.reason === "paid_asked" || p.reason == null);
+  const asked = (p) => !!p && p.state === "paid" && p.reason === "paid_asked";
   if (w && typeof w === "object") {
     const p = (w.pool || s.pool) ? (pools || {})[w.pool || s.pool] : null;
     const until = w.until || (w.for === "limit" && p && p.state === "closed" && p.resets_at) || null;
@@ -294,48 +319,76 @@ export function heldOf(s, pools = {}) {
   return { for: null, until: null, why: null, asked: false };
 }
 
+const NB = "\u00a0"; // a time is one phrase: it never breaks across lines ("1:31" / "AM")
+const nb = (t) => String(t).replace(/[ \u202f]/g, NB);
 /**
- * When a held message runs, in the owner's clock: "6:50 AM" today, "tomorrow 6:50 AM", "Thu 6:50 AM" this
- * week, "5 Nov, 6:50 AM" later (runtimes.js clockWords, with tomorrow said as such). "" when it isn't a time.
+ * When a held message starts, in the owner's clock, as {day, hm}: day "" today, "tomorrow", a weekday this
+ * week ("Thu"), else a date ("5 Nov"); hm "6:50 AM" (the app's clock format, runtimes.js clockWords). null
+ * when it isn't a time.
  */
-export function heldClock(iso, now = Date.now()) {
-  const c = clockWords(iso, now);
-  if (!c || /^\d/.test(c)) return c;
-  const next = new Date(now);
+function whenParts(iso, now) {
+  const ms = Date.parse(iso || "");
+  if (!Number.isFinite(ms)) return null;
+  const d = new Date(ms), t = new Date(now), next = new Date(now);
   next.setDate(next.getDate() + 1);
-  return new Date(Date.parse(iso)).toDateString() === next.toDateString() ? `tomorrow ${clockWords(iso, Date.parse(iso))}` : c;
+  const hm = clockWords(iso, ms); // the time alone (same day as itself)
+  if (d.toDateString() === t.toDateString()) return { day: "", hm };
+  if (d.toDateString() === next.toDateString()) return { day: "tomorrow", hm };
+  if (ms > now && ms - now < 6 * 86400000) return { day: d.toLocaleDateString(undefined, { weekday: "short" }), hm };
+  return { day: d.toLocaleDateString(undefined, { day: "numeric", month: "short" }), date: true, hm };
 }
-/** The same after "starts": "at 6:50 AM", "tomorrow at 6:50 AM", "Thu 6:50 AM". */
+/** The short form, for a list, the sidebar and the header's chip: "6:50 AM", "tomorrow 6:50 AM", "Thu 6:50 AM", "5 Nov 6:50 AM". */
+export function heldClock(iso, now = Date.now()) {
+  const w = whenParts(iso, now);
+  return w ? nb(w.day ? `${w.day} ${w.hm}` : w.hm) : "";
+}
+/** The same in a sentence, after "starts": "at 6:50 AM", "tomorrow at 6:50 AM", "Thu at 6:50 AM", "on 5 Nov at 6:50 AM". */
 function whenWords(iso, now) {
-  const c = heldClock(iso, now);
-  return !c ? "" : /^\d/.test(c) ? `at ${c}` : c.replace(/^tomorrow /, "tomorrow at ");
+  const w = whenParts(iso, now);
+  return w ? nb(`${w.date ? `on ${w.day} ` : w.day ? `${w.day} ` : ""}at ${w.hm}`) : "";
 }
+const ahead = (h, now) => !!(h && h.until && Date.parse(h.until) > now);
 
 /**
  * A held session in words, one line, as the person reads it where the agent's activity shows:
- * "Waiting for the usage limit · starts at 6:50 AM". The time only while it's ahead; a reset that has
- * passed while it still waits says it's due, not a time gone by. "" when it isn't held.
+ * "Waiting for the usage limit · starts at 6:50 AM". One verb for the moment it runs, "starts", wherever
+ * it's said (heldShort, the header's chip). The time only while it's ahead: a reset that has passed while
+ * it still waits says it's due, not a time gone by. A reason this UI doesn't name is said in the backend's
+ * own words. Nothing is claimed that wasn't read (the paid gate's setting: only that it's in Settings).
+ * "" when it isn't held.
  */
 export function heldWords(h, now = Date.now()) {
   if (!h) return "";
-  const ahead = h.until && Date.parse(h.until) > now ? whenWords(h.until, now) : "";
+  const at = ahead(h, now) ? whenWords(h.until, now) : "";
   switch (h.for) {
-    case "limit": return ahead ? `Waiting for the usage limit · starts ${ahead}` : "Waiting for the usage limit to reset";
-    // as the composer's line says it (connLine): the question is in Needs you, or paid usage is set to Never
-    case "paid": return h.asked ? "Waiting for your choice on paid usage · it's in Needs you" : "Waiting before paid usage · it's set to Never in Settings › Runtimes";
+    // "starts" goes with its time: the line breaks before it, never inside it
+    case "limit": return at ? `Waiting for the usage limit · starts${NB}${at}` : "Waiting for the usage limit to reset";
+    case "paid": return h.asked ? "Waiting for your choice on paid usage · it's in Needs you" : "Waiting before paid usage · see Settings › Runtimes";
     case "near_limit": return "Waiting · near the usage limit, more urgent work goes first";
     case "memory": return "Waiting for memory to free up";
-    case "founder": return ahead ? `Paused by you · until ${ahead.replace(/^at /, "")}` : "Paused by you";
-    default: return "Waiting to start";
+    case "founder": return at ? `Paused by you · until ${at.replace(/^at\u00a0/, "")}` : "Paused by you";
+    default: return h.why ? `Waiting · ${h.why}` : "Waiting to start";
   }
 }
 
-/** The same in a word or two, for a list's state column: "Waiting", "Waiting · 6:50 AM", "Paused". */
+/** The badge's word: "Waiting", or "Paused" for the founder's own pause. */
+export const heldBadge = (h) => (h && h.for === "founder" ? "Paused" : "Waiting");
+
+/**
+ * The same in a few words, for a list's state column, a card and the sidebar, where the whole time must fit:
+ * "Starts 6:50 AM", "Starts tomorrow 1:47 AM" (the verb the line uses), else "Waiting"; "Paused" for the founder's.
+ */
 export function heldShort(h, now = Date.now()) {
   if (!h) return "";
   if (h.for === "founder") return "Paused";
-  const at = h.for === "limit" && h.until && Date.parse(h.until) > now ? heldClock(h.until, now) : "";
-  return at ? `Waiting · ${at}` : "Waiting";
+  return h.for === "limit" && ahead(h, now) ? `Starts ${heldClock(h.until, now)}` : "Waiting";
+}
+
+/** Of several held sessions, the one that starts soonest (a time ahead first, then the rest as given). */
+export function soonestHeld(list, now = Date.now()) {
+  const hs = (list || []).filter(Boolean);
+  const timed = hs.filter((h) => ahead(h, now)).sort((a, b) => Date.parse(a.until) - Date.parse(b.until));
+  return timed[0] || hs[0] || null;
 }
 
 /**
@@ -456,7 +509,6 @@ export function sendErrorTitle(err) {
   return "Message not sent";
 }
 
-const hhmm = (iso) => { const d = new Date(iso); return Number.isNaN(+d) ? "" : d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); };
 
 /**
  * The pools that can hold work back now (if1 #1). A pool id is "<runtime>:<account>" (storm's
@@ -511,7 +563,8 @@ export function connLine(w, { pid = null, thread = false } = {}) {
   if (off) return off;
   const pools = currentPools(w.pools, rts);
   const closed = pools.find((p) => p.state === "closed");
-  if (closed) return { kind: "wait", text: `Paused until ${hhmm(closed.resets_at)}`, sub: "usage limit · running work finishes, new work waits" };
+  // the app's one clock (heldClock: "1:47 AM", "tomorrow 1:47 AM"), as the held line under the conversation says it
+  if (closed) return { kind: "wait", text: `Paused until ${heldClock(closed.resets_at)}`, sub: "usage limit · running work finishes, new work waits" };
   const paid = pools.find((p) => p.state === "paid");
   // state "paid" is HELD, not spending: under Ask me the question is in Needs you; under Never nothing is asked and work waits
   if (paid) return paid.reason === "paid_asked" || paid.reason == null

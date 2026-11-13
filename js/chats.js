@@ -10,7 +10,7 @@ import { esc } from "./world.js";
 import { ICON } from "./ui.js";
 import { renderMarkdown } from "./markdown.js";
 import { turnHtml, turnAv } from "./turnview.js";
-import { cliName, mainRuntime, chatOrder, sessionRead, BUSY_STATES, heldShort } from "./timeline.js";
+import { cliName, mainRuntime, chatOrder, sessionRead, BUSY_STATES, heldShort, heldBadge } from "./timeline.js";
 import { redraw } from "./redraw.js";
 import { rovingTab } from "./keynav.js";
 import { once } from "./pending.js";
@@ -80,6 +80,9 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   const waiting = (s) => s.state === "waiting_on_person";
   /** What a gate holds this chat for (the usage limit…), or null: it waits, nothing runs. */
   const heldOf = (s) => (s && s.state === "queued" && world.act.sessionHeld ? world.act.sessionHeld(s.id) : null);
+  /** A turn in progress: its status says so (BUSY), or it says queued and the stream has seen it work since
+   *  (storm.js onTurn: the frame that ended the wait is late). Stop, delivery and the badge read this. */
+  const inTurn = (s) => !!s && (BUSY.has(s.state) || (s.state === "queued" && !!(world.act.onTurn && world.act.onTurn(s.id))));
 
   function listItems() {
     const rows = sessions().sort((a, b) => Date.parse(b.updated_at || b.created_at) - Date.parse(a.updated_at || a.created_at));
@@ -87,7 +90,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     if (!rows.length) return [{ key: "chats-none", html: `<div class="calm ch-calm"><div class="calm-mark">${ICON.thread}</div><h2>No chats yet.</h2><p>Ask anything below. A chat is one agent in one folder, outside your projects' coordinators.</p></div>` }];
     return [{ key: "chats-list", html: `<ul class="ch-list" aria-label="Your chats">${rows.map((s) => {
       // Working: on a turn, or a sub-agent working on after it (storm's busy rule); waiting on you says so first
-      const wait = waiting(s), busy = BUSY.has(s.state) || !!(world.act.sessionBusy && world.act.sessionBusy(s.id));
+      const wait = waiting(s), busy = inTurn(s) || !!(world.act.sessionBusy && world.act.sessionBusy(s.id));
       const held = !wait && !busy ? heldOf(s) : null;
       return `<li><button type="button" class="ch-row" data-go="c:${esc(s.id)}"><i class="g g-${wait ? "needs_approval" : busy ? "working" : held ? "paused" : "idle"}" aria-hidden="true"></i>` +
         `<span class="ch-main"><span class="ch-t">${esc(titleFor(s))}</span><span class="ch-m">${esc(metaLine(s))}</span></span>` +
@@ -136,7 +139,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   const turnCount = new Map();
   if (world.subscribe) world.subscribe(() => {
     // a "send now" chosen for a turn ends with that turn, wherever you are when it ends
-    if (C.now && !BUSY.has((session(C.now) || {}).state)) C.now = null;
+    if (C.now && !inTurn(session(C.now))) C.now = null;
     const v = view && view();
     if (!v || !v.startsWith("c:")) return;
     const sid = v.slice(2);
@@ -168,7 +171,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
         const meta = m.status === "sending" ? `<div class="meta"><i class="spin" aria-hidden="true"></i>Sending</div>`
           : m.status === "held" ? `<div class="meta is-warn"><span>Waiting for your choice below</span></div>`
           : m.status === "failed" ? `<div class="meta is-err"><span title="${esc(m.err || "")}">${esc(m.errTitle || "Not sent")}</span><button type="button" class="meta-btn" data-chat-retry="${esc(m.id)}">${ICON.retry}Retry</button><button type="button" class="meta-btn" data-chat-edit="${esc(m.id)}">${ICON.edit}Edit</button></div>`
-          : m.added ? `<div class="meta"><span>Added to the turn in progress, not sent now</span>${BUSY.has(s.state) ? `<button type="button" class="meta-btn" data-chat-stop>${ICON.stop}Stop the turn</button>` : ""}</div>` : "";
+          : m.added ? `<div class="meta"><span>Added to the turn in progress, not sent now</span>${inTurn(s) ? `<button type="button" class="meta-btn" data-chat-stop>${ICON.stop}Stop the turn</button>` : ""}</div>` : "";
         items.push({ key: `u:${m.id}`, html: `<div class="m m-you${m.status === "failed" ? " is-failed" : ""}"><div class="bubble">${esc(m.text)}</div>${meta}</div>` });
       } else {
         const inner = turnHtml(x.t, world.state.turns.blocksOf(x.t), { open: world.ui ? world.ui.tbOpen : {} });
@@ -182,8 +185,8 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     if (v === "chats") return `<span class="tw-ic" aria-hidden="true">${ICON.thread}</span><span class="tw-t"><h1 id="conv-title">Chats</h1><span class="pj-s">One agent, one folder, outside your projects' coordinators</span></span>`;
     const s = session(v.slice(2));
     if (!s) return `<span class="tw-t"><h1 id="conv-title">Chat</h1></span>`;
-    const busy = BUSY.has(s.state), wait = waiting(s), held = !busy && !wait ? heldOf(s) : null;
-    const st = s.retired_at ? ["resolved", "done", "Ended"] : wait ? ["needs_approval", "needs_approval", "Needs you"] : busy ? ["working", "working", "Working"] : held ? ["paused", "paused", heldShort(held)] : ["resolved", "idle", "Idle"];
+    const busy = inTurn(s), wait = waiting(s), held = !busy && !wait ? heldOf(s) : null;
+    const st = s.retired_at ? ["resolved", "done", "Ended"] : wait ? ["needs_approval", "needs_approval", "Needs you"] : busy ? ["working", "working", "Working"] : held ? ["paused", "paused", heldBadge(held)] : ["resolved", "idle", "Idle"];
     return `<span class="tw-t"><h1 id="conv-title">${esc(titleFor(s))}</h1><span class="pj-s">${esc(metaLine(s))}</span></span>` +
       `<span class="badge st-${st[0]}"><i class="g g-${st[1]}" aria-hidden="true"></i>${st[2]}</span>`;
   }
@@ -243,7 +246,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     if (!s) return "";
     // neutral, not amber: nothing waits on you, and nothing resumes
     if (s.retired_at) return `<span class="tg-end">${ICON.stop}</span><span>Ended. Start a new one from Chats.</span>`;
-    if (BUSY.has(s.state)) {
+    if (inTurn(s)) {
       const rt = runtime(s.agent);
       const steer = (feature(rt, "send_while_running") || {}).behaviour === "steered";
       if (C.now === s.id) return `<span class="tg-t tg-now-on">${ICON.bolt}</span><span>Sends now: <b>stops the turn in progress</b></span>`;
@@ -257,7 +260,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   /** "Send now" is its own toggle beside the line, only where the runtime can interrupt a turn. */
   function nowState(v) {
     const s = v && v.startsWith("c:") ? session(v.slice(2)) : null;
-    if (!s || !BUSY.has(s.state) || !offers(runtime(s.agent), "interrupt")) return null;
+    if (!s || !inTurn(s) || !offers(runtime(s.agent), "interrupt")) return null;
     return { on: C.now === s.id };
   }
 
@@ -347,7 +350,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       // while a turn runs: "now" when chosen (and offered), else "add" where the runtime steers a
       // running turn; a runtime that queues takes the message for its next turn (no delivery)
       const steer = (feature(rt, "send_while_running") || {}).behaviour === "steered";
-      const delivery = s && BUSY.has(s.state) ? (C.now === sid && offers(rt, "interrupt") ? "now" : steer ? "add" : null) : null;
+      const delivery = s && inTurn(s) ? (C.now === sid && offers(rt, "interrupt") ? "now" : steer ? "add" : null) : null;
       local.body = { text, client_id: local.cid, session_id: sid, ...(delivery ? { delivery } : {}) };
       (C.local.get(sid) || C.local.set(sid, []).get(sid)).push(local);
       schedule();
@@ -363,10 +366,13 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       const r = await api.prompt(local.body);
       local.status = "sent";
       if (!sid) {
-        // what we know until the stream says more (never over a newer state it already sent): starting, as
-        // the server admits it; held back by a gate, its own "queued" frame says so (timeline.js heldOf)
+        // what we know until the stream says more (never over a newer state it already sent): held back when
+        // its agent's pool holds new work now (the usage limit, the paid gate), as storm will queue it; else
+        // starting, as the server admits it. Either way its own frames correct it.
         const old = world.state.sessions[r.session_id];
-        world.state.sessions[r.session_id] = { id: r.session_id, role: "plain", state: "starting", agent: local.body.agent, model: local.body.model || null, effort: local.body.effort || null, permission_mode: local.body.permission_mode || null, cwd: local.body.cwd || null, created_at: new Date().toISOString(), ...(old || {}) };
+        const agent = local.body.agent || (mainRuntime(world.state.runtimes) || {}).name || null;
+        const heldNow = !!(world.act.agentHeld && world.act.agentHeld(agent));
+        world.state.sessions[r.session_id] = { id: r.session_id, role: "plain", state: heldNow ? "queued" : "starting", statusAt: Date.now(), statusSeq: world.state.lastSeq ?? null, agent: local.body.agent || agent, model: local.body.model || null, effort: local.body.effort || null, permission_mode: local.body.permission_mode || null, cwd: local.body.cwd || null, created_at: new Date().toISOString(), ...(old || {}) };
         C.titles.set(r.session_id, local.body.text.replace(/\s+/g, " ").slice(0, 120));
         C.local.set(r.session_id, [local]);
         // open it, unless the person has gone somewhere else meanwhile
@@ -423,9 +429,9 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     headHtml, targetHtml, confirmHtml, resolveConfirm, nowState,
     placeholder: (v) => (v === "chats" ? "Ask anything to start a chat…" : session(v.slice(2))?.retired_at ? "This chat has ended" : "Reply in this chat…"),
     session: (v) => (v && v.startsWith("c:") ? session(v.slice(2)) : null),
-    busy: (v) => { const s = v && v.startsWith("c:") ? session(v.slice(2)) : null; return !!(s && BUSY.has(s.state)); },
+    busy: (v) => { const s = v && v.startsWith("c:") ? session(v.slice(2)) : null; return !!(s && inTurn(s)); },
     /** Working now (not waiting on you): the typing line shows only then. */
-    working: (v) => { const s = v && v.startsWith("c:") ? session(v.slice(2)) : null; return !!(s && BUSY.has(s.state) && !waiting(s)); },
+    working: (v) => { const s = v && v.startsWith("c:") ? session(v.slice(2)) : null; return !!(s && inTurn(s) && !waiting(s)); },
     /** Why this chat can't take a message, if it can't. */
     blocked: (v) => { const s = v && v.startsWith("c:") ? session(v.slice(2)) : null; return s && s.retired_at ? "This chat has ended" : ""; },
     send, openSetup, closeSetup, setPref, renderSetup,
