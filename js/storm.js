@@ -349,7 +349,8 @@ export function stormSource(state, emit, event) {
   }
   function noteSession(s, sent = sentAt()) {
     const old = state.sessions[s.id];
-    if (old && old.seq != null && s.seq != null && old.seq > s.seq) return;
+    // (a read's seq is the session's creation, not its last word: what's newer is decided by where the read was
+    // sent against the stream's frames, below, never by that)
     // the whole Session (a plain chat needs its native_id, cwd and permission_mode), and what its `busy`
     // says beyond the status (a sub-agent working on after the turn), with when it was read
     const next = { ...(old || {}), ...s, paused: s.paused || null, retired_at: s.retired_at || null, seq: s.seq ?? null, ...sessionRead(s),
@@ -357,6 +358,9 @@ export function stormSource(state, emit, event) {
       ...(s.state ? { statusAt: sent.at, statusSeq: sent.seq } : {}) };
     // a status frame that came after this read was sent is newer than what the read says: it stands
     if (old && old.state && s.state && later(old, next)) Object.assign(next, { state: old.state, waiting: old.waiting ?? null, statusAt: old.statusAt, statusSeq: old.statusSeq });
+    // and so does any word a frame said since (paused, resumed); a retirement is never undone by a read
+    if (old && old.frameSeq != null && sent.seq != null && old.frameSeq > sent.seq) next.paused = old.paused ?? null;
+    if (old && old.retired_at && !next.retired_at) next.retired_at = old.retired_at;
     state.sessions[s.id] = next;
   }
   async function loadReview() {
@@ -695,7 +699,9 @@ export function stormSource(state, emit, event) {
         const id = env.session_id;
         if (!id) break;
         const old = state.sessions[id] || { id };
-        const next = { ...old, chat_id: old.chat_id || env.chat_id || null, thread_ts: old.thread_ts || env.thread_ts || null, state: d.status || old.state, seq: env.seq ?? old.seq };
+        // seq is the session's own (its creation's place, which a coordinator's newest is chosen by): a frame gives it
+        // only to a session first known from the stream; frameSeq is where the stream last spoke of it (noteSession)
+        const next = { ...old, chat_id: old.chat_id || env.chat_id || null, thread_ts: old.thread_ts || env.thread_ts || null, state: d.status || old.state, seq: old.seq ?? env.seq ?? null, frameSeq: env.seq ?? state.lastSeq };
         // what a gate holds it for, while queued (a newer backend's word; heldOf reads the pool without it).
         // Any other status ends the wait.
         if (d.status) {
@@ -1109,6 +1115,10 @@ export function stormSource(state, emit, event) {
       coordinatorHeld: (project) => heldOfSession(coordinatorOf(chatIdOf(project))),
       /** What a session held back by a gate waits for, or null (a plain chat's). */
       sessionHeld: (sessionId) => heldOfSession(state.sessions[sessionId] || null),
+      /** Where the stream stands now, for a read about to be sent ({at, seq}: noteSession orders it by this). */
+      sentAt,
+      /** A session read (a plain chat's list or its own), taken in the stream's order: sent = sentAt() before the request. */
+      noteSession: (s, sent) => { if (s && s.id) { noteSession(s, sent || sentAt()); soon(); } },
       /** Is a session on a turn now (its status, or work seen since it said queued)? A plain chat's Stop and delivery read it. */
       onTurn: (sessionId) => onTurn(state.sessions[sessionId] || null),
       /** Would new work for this agent be held back now (its pool closed or held for paid usage)? → heldOf's shape, or null. */
@@ -1126,10 +1136,10 @@ export function stormSource(state, emit, event) {
         return commsText(last.header) || (last.type === "text" ? "Writing" : null);
       },
       /** A session's runs as a tree (the live list and the log), with counts (UI-reference §2.6). */
+      // a read: its runs carry no stream seq (only the stream's own run frames are work seen after "queued")
       listRuns: async (session) => {
-        const sent = sentAt(); // a read stands where it was sent (queuedButWorking orders runs by it)
         const d = await api.runs(session, { tree: "true", depth: 3, limit: 200 });
-        const walk = (nodes) => { for (const n of nodes || []) { state.runs.set(n.id, { ...(state.runs.get(n.id) || {}), id: n.id, session, parent: n.parent_run_id || null, state: n.state, title: n.title || n.agent_type || "Sub-agent", kind: n.kind, background: !!n.background, depth: n.depth, spawn: n.spawn_call_id || null, started_at: n.started_at, ended_at: n.ended_at, summary: n.summary, tokens: n.tokens, tool_calls: n.tool_calls, last_tool: n.last_tool, can_stop: n.can_stop, seen: Date.now(), seenSeq: sent.seq }); walk(n.children); } };
+        const walk = (nodes) => { for (const n of nodes || []) { state.runs.set(n.id, { ...(state.runs.get(n.id) || {}), id: n.id, session, parent: n.parent_run_id || null, state: n.state, title: n.title || n.agent_type || "Sub-agent", kind: n.kind, background: !!n.background, depth: n.depth, spawn: n.spawn_call_id || null, started_at: n.started_at, ended_at: n.ended_at, summary: n.summary, tokens: n.tokens, tool_calls: n.tool_calls, last_tool: n.last_tool, can_stop: n.can_stop, seen: Date.now() }); walk(n.children); } };
         walk(d.runs);
         soon();
         return d;

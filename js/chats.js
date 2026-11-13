@@ -10,7 +10,7 @@ import { esc } from "./world.js";
 import { ICON } from "./ui.js";
 import { renderMarkdown } from "./markdown.js";
 import { turnHtml, turnAv } from "./turnview.js";
-import { cliName, mainRuntime, chatOrder, sessionRead, BUSY_STATES, heldShort, heldBadge } from "./timeline.js";
+import { cliName, mainRuntime, chatOrder, BUSY_STATES, heldShort, heldBadge } from "./timeline.js";
 import { redraw } from "./redraw.js";
 import { rovingTab } from "./keynav.js";
 import { once } from "./pending.js";
@@ -46,12 +46,11 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     if (C.loading) return;
     C.loading = true;
     try {
+      // the read stands where it was sent in the stream's order: a status frame that lands while it's out stays
+      // (storm.js noteSession, timeline.js statusLater)
+      const sent = world.act.sentAt();
       const d = await api.sessions({ role: "plain", before_seq: NEWEST, limit: 100 });
-      for (const s of d.sessions || []) {
-        const old = world.state.sessions[s.id];
-        if (old && old.seq != null && s.seq != null && old.seq > s.seq) continue; // the stream knows newer
-        world.state.sessions[s.id] = { ...(old || {}), ...s, ...sessionRead(s) }; // its `busy` beyond the status, and when
-      }
+      for (const s of d.sessions || []) world.act.noteSession(s, sent);
       C.list = true; C.err = null;
       // the list names models as their agent's catalog does
       for (const a of new Set(sessions().map((x) => x.agent).filter(Boolean))) ensureModels(a);
@@ -113,8 +112,9 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       let s = session(sid);
       if (s && s.agent) ensureModels(s.agent); // model names in words in the header
       if (!s || !s.native_id || s.cwd === undefined) {
+        const sent = world.act.sentAt(); // as the list's read: it stands where it was sent
         const full = await api.session(sid).catch(() => null);
-        if (full) { world.state.sessions[sid] = { ...(session(sid) || {}), ...full }; s = session(sid); }
+        if (full) { world.act.noteSession(full, sent); s = session(sid); }
       }
       if (!s) throw new Error("This chat isn't here any more.");
       const trimmed = world.act.takeTrimmed ? world.act.takeTrimmed(sid) : false;

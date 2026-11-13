@@ -262,8 +262,8 @@ export function statusLater(b, a) {
 /**
  * A session whose status says queued, yet work is seen after that status came: a turn the stream
  * started after it (turn: its running turn, {seq}; s.statusSeq: where the status stands in the stream), a
- * sub-agent the stream named after it (a run's seenSeq, else its `seen` against s.statusAt, ms), or `runs`
- * counts above none after it (their seq, else their moment). Then the wait is over whatever the status says yet (its frame was missed or is late): Working.
+ * sub-agent the stream named after it (a run.* frame's seenSeq; a runs list read is never this evidence), or the
+ * stream's `runs` counts above none after it (their seq, else their moment). Then the wait is over whatever the status says yet (its frame was missed or is late): Working.
  */
 export function queuedButWorking(s, { runs = [], agg = null, turn = null } = {}) {
   if (!s || s.state !== HELD_STATE) return false;
@@ -272,7 +272,9 @@ export function queuedButWorking(s, { runs = [], agg = null, turn = null } = {})
   // sent), else by the moment
   const after = (xSeq, xAt) => (xSeq != null && seq != null ? xSeq > seq : (xAt || 0) > at);
   if (turn && turn.status !== "ended" && (seq == null || (turn.seq ?? -1) > seq)) return true;
-  for (const r of runs) if ((r.session == null || r.session === s.id) && runWorks(r) && after(r.seenSeq ?? null, r.seen)) return true;
+  // a run counts only as the stream itself named it (run.* frames carry seenSeq); a read of the runs list says what
+  // the store holds, and a run whose end was never written would outlive the wait for ever
+  for (const r of runs) if ((r.session == null || r.session === s.id) && runWorks(r) && r.seenSeq != null && after(r.seenSeq, r.seen)) return true;
   return !!(agg && after(agg.seq ?? null, agg.at) && (agg.running || 0) + (agg.waiting || 0) > 0);
 }
 

@@ -41,10 +41,11 @@ t("work seen after a session said queued outlives it: a turn started, a sub-agen
   const s = { id: "s", state: "queued", statusAt: 10, statusSeq: 50 };
   assert.equal(sessionBusy(s, { turn: { status: "running", seq: 51 } }), true);
   assert.equal(queuedButWorking(s, { turn: { status: "running", seq: 51 } }), true);
-  assert.equal(sessionBusy(s, { runs: [{ session: "s", state: "running", seen: 11 }] }), true);
+  assert.equal(sessionBusy(s, { runs: [{ session: "s", state: "running", seen: 11, seenSeq: 52 }] }), true, "a run frame after it");
+  assert.equal(sessionBusy(s, { runs: [{ session: "s", state: "running", seen: 99 }] }), false, "a runs list read: never evidence (no stream seq)");
   assert.equal(sessionBusy(s, { agg: { running: 1, waiting: 0, at: 11 } }), true);
   assert.equal(sessionBusy(s, { agg: { running: 0, waiting: 0, at: 11 } }), false, "counts of none say nothing works");
-  assert.equal(sessionBusy(s, { runs: [{ session: "s", state: "finished", ended_at: "x", seen: 11 }] }), false);
+  assert.equal(sessionBusy(s, { runs: [{ session: "s", state: "finished", ended_at: "x", seen: 11, seenSeq: 52 }] }), false);
   // a status with no seq known (a local guess): any running turn the stream holds is evidence
   assert.equal(queuedButWorking({ id: "s", state: "queued", statusAt: 10 }, { turn: { status: "running", seq: 3 } }), true);
   assert.equal(queuedButWorking({ id: "s", state: "warm" }, { turn: { status: "running", seq: 99 } }), false, "only a queued status is overruled");
@@ -457,7 +458,7 @@ t("storm.js: a read sent before a status frame and answered after it doesn't und
   await settle();
   assert.equal(world.thread("t2").busy, true, "the frame stands: Working");
   assert.equal(world.thread("t2").held, null);
-  // a read sent after it says queued again: that one stands
+  // a later status frame says queued again: that one stands
   be.push("session", { session_id: "cse_2", seq: 41, data: { status: "queued", waiting: queuedView.waiting } });
   await settle();
   assert.equal(world.thread("t2").busy, false);
