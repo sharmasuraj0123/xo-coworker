@@ -29,6 +29,8 @@ A press starts the message in the composer for you to finish; it never sends. On
 
 **Why.** An empty project showed one small grey line at the top ("No messages yet. Tell this project's coordinator what you'd like done.") above a large blank area. That looked broken, and it didn't say what the coordinator can do. The owner asked for a clean starting view like other chat apps', "nothing too much" (13 Nov 15:05Z).
 
+**A project just made or cloned opens on its starts too (5500c4e).** Before this fix, XO's own first line in a new project (for example "fabric-chat cloned from quirq-ai/fabric-chat · plan and memory added") counted as a conversation. So a cloned or newly created project never showed the starting view. Now a chat counts as empty until someone has said something: a stored message, or your own on its way. The starts sit after XO's lines, in the room between them and the composer. A new browser case, START, covers a clone and a new project in all four cells (the owner, 13 Nov 17:40Z).
+
 ### Paid usage: Never / Ask me / Always allow (8b95b64, 583a933)
 **What.** Settings › Runtimes gains a *Paid usage* section. It has one mode for the Space and one row per agent account: *Same as all*, *Never*, *Ask me* or *Always allow*. A change saves at once and shows Saving, Saved, or the refusal beside the row. The runtime card and the account row show an *On paid usage* badge while paid usage is actually being spent.
 
