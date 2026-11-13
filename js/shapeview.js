@@ -1,9 +1,9 @@
-// Settings › Shape, the first-run question, and the few places the page reads the shape directly
+// Settings › Shape and the few places the page reads the shape directly
 // (density on <html>, the Settings rail's Advanced group, Home's order). js/shape.js holds the rules;
 // this only draws them. Every change is the person's own click, applied at once and said back plainly.
 // The sidebar is never touched here: a shape may only hide its Shells row (js/shells/dock.js).
 //
-// app.js calls: apply (the shape changed), open (the page was opened), homeOrder, firstRun.
+// app.js calls: apply (the shape changed), open (the page was opened), homeOrder.
 
 import { esc } from "./util.js";
 import { ICON } from "./ui.js";
@@ -55,9 +55,6 @@ export function createShapeView({ shape, announce = () => {}, notice = () => {} 
   // ── what the page reads straight from the shape ─────────────────────────────
   function apply() {
     document.documentElement.dataset.density = shape.get("density");
-    // a shape chosen on another device arrived (Storm's) while the first-run question was up: it's answered
-    const first = document.getElementById("shape-first");
-    if (first && shape.chosen && first._dismiss) first._dismiss();
     railRender();
     if (page && !page.hidden && !document.querySelector("#settings").hidden) render();
   }
@@ -313,90 +310,5 @@ export function createShapeView({ shape, announce = () => {}, notice = () => {} 
     if (ok && V.draft == null) landOn(box.querySelector("[data-shp-json]"), from);
   }
 
-  // ── the first run: one question, never again once answered ──────────────────
-  // Answered on another device counts: Storm's shape is read first (briefly; a slow read asks anyway, and
-  // the question steps aside if the answer arrives after all).
-  const FIRST_WAIT_MS = 2500;
-  async function firstRun() {
-    if (!shape.chosen && shape.synced) await Promise.race([shape.synced, new Promise((r) => setTimeout(r, FIRST_WAIT_MS))]);
-    if (shape.chosen || document.getElementById("shape-first")) return;
-    const back = document.activeElement;
-    const el = document.createElement("div");
-    el.className = "sheet shp-sheet";
-    el.id = "shape-first";
-    el.setAttribute("role", "dialog");
-    el.setAttribute("aria-modal", "true");
-    el.setAttribute("aria-labelledby", "shf-h");
-    el.setAttribute("aria-describedby", "shf-l");
-    el.innerHTML = `<div class="sheet-card shp-first" tabindex="-1"><header class="sheet-h"><h2 id="shf-h">What will you mostly do here?</h2>` +
-      `<button type="button" class="x" data-shf-close aria-label="Not now: show everything" title="Not now: show everything">${ICON.close}</button></header>` +
-      `<p class="shp-first-l" id="shf-l">XO shows what fits. You can change it any time in Settings › Shape.</p>` +
-      `<div class="set-choices shp-first-c" role="group" aria-labelledby="shf-h">${cardsOf().map((p) => `<button type="button" class="set-choice" data-shf="${esc(p.id)}"><span class="sc-dot" aria-hidden="true"></span><span class="sc-b"><b>${esc(p.name)}</b><span>${esc(p.summary)}</span></span></button>`).join("")}</div></div>`;
-    document.body.appendChild(el);
-    const leave = () => {
-      el.classList.add("is-out");
-      setTimeout(() => el.remove(), matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 160);
-      (back && back.isConnected && back !== document.body ? back : document.getElementById("say"))?.focus?.({ preventScroll: true });
-    };
-    const done = async (id) => {
-      if (el._done) return;
-      el._done = true;
-      // on its way (its preset's file may still be reading): the choice shows as chosen and busy, and every control in
-      // the sheet says it's waiting, so a later press is honestly ignored (the grader's lead on 4d33649, S117)
-      for (const b of el.querySelectorAll("button")) {
-        b.setAttribute("aria-disabled", "true");
-        if (b.dataset.shf === id) { b.classList.add("is-on"); b.setAttribute("aria-busy", "true"); }
-      }
-      // and says why: what's on its way, and that the rest (× too) waits for it (the grader's FIRST-RUN-FEEDBACK)
-      el.setAttribute("aria-busy", "true");
-      const say = el.querySelector("#shf-l");
-      if (say) {
-        say.setAttribute("role", "status");
-        say.textContent = `${id === "everything" ? "Showing everything" : `Setting up ${nameOf(id)}`}… The other choices and Not now wait until it's done.`;
-      }
-      const r = await shape.choose(id);
-      leave();
-      // its file couldn't be read: the choice is kept (it applies once the file reads, as Settings' own does), but
-      // what shows now is everything, and that's what's said, here and on screen, never "<preset>." as if it were set
-      // up (the create-project grader on 7e0db5b, S117 FIRST-RUN-PRESET-503: a refused preset GET closed the sheet
-      // and announced the preset as done; nothing said otherwise until Settings opened)
-      const why = id !== "everything" && shape.presetError(id);
-      if (why) {
-        announce(`${nameOf(id)} couldn't be read (${why}). XO shows everything until it can; Settings › Shape tries again.`);
-        notice({ text: `${nameOf(id)} couldn't be read`, sub: "XO shows everything until it can · Settings › Shape tries again" });
-        return;
-      }
-      announce((id === "everything" ? "Everything shows." : `${nameOf(id)}.`) + (r && r.kept === false ? ` ${UNKEPT}` : " Settings › Shape changes it any time."));
-    };
-    // answered elsewhere meanwhile: nothing is chosen here, the sheet just goes
-    el._dismiss = () => { if (el._done) return; el._done = true; leave(); announce("Your shape came from your other device."); };
-    el.addEventListener("click", (e) => {
-      const c = e.target.closest("[data-shf]");
-      if (c) { done(c.dataset.shf); return; }
-      // dismissing it is Everything: the UI as it is today
-      if (e.target === el || e.target.closest("[data-shf-close]")) done("everything");
-    });
-    el.addEventListener("keydown", (e) => {
-      // the app's own keys wait until this is answered
-      e.stopPropagation();
-      if (e.key === "Escape") { e.preventDefault(); done("everything"); return; }
-      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-        const cs = [...el.querySelectorAll("[data-shf]")], i = cs.indexOf(document.activeElement);
-        if (i >= 0) { e.preventDefault(); cs[(i + (e.key === "ArrowDown" ? 1 : cs.length - 1)) % cs.length].focus(); }
-        return;
-      }
-      if (e.key !== "Tab") return;
-      // the keyboard stays in the sheet until it's answered: its controls in the order they're drawn (Not now,
-      // then the choices), past the last is the first and before the first is the last, never the page behind
-      const f = [...el.querySelectorAll("button")];
-      const i = f.indexOf(document.activeElement);
-      if (i < 0) { e.preventDefault(); (e.shiftKey ? f[f.length - 1] : f[0]).focus(); return; }
-      if (e.shiftKey && i === 0) { e.preventDefault(); f[f.length - 1].focus(); }
-      else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
-    });
-    // the sheet itself takes focus, so no choice looks made before you make it; Tab goes on from there
-    el.querySelector(".shp-first").focus({ preventScroll: true });
-  }
-
-  return { apply, open, render, homeOrder, firstRun };
+  return { apply, open, render, homeOrder };
 }

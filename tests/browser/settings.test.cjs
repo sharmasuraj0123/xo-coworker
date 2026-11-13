@@ -15,7 +15,6 @@
 //   H17 C010      Esc from Settings opened from a phone's drawer returns to the menu, not the inert sidebar
 //   C099 C100      a General switch the shape refuses says why and never claims it changed
 //   S114 S115      Shape JSON: Revert and Save → the text
-//   S116 S117      the first-run question keeps Tab and Shift+Tab inside it
 //   C012 C013      Home: a control in Handled or Recently made keeps focus through Home's redraws
 //
 // Self-contained (tests/browser/harness.cjs serves the app and answers /api from a mock world); nothing reaches
@@ -888,6 +887,18 @@ t("C114 a refused usual runtime: the saved one stays chosen, the reason shows un
   assert.equal(await focused(page), `button${codex}`);
   await done(page);
 });
+t("SHAPE-START a fresh browser starts with no shape question; Settings › Shape still picks one", async (ctx) => {
+  const W = world({ shape: { shape: null, version: "new" } });
+  const page = await open(W, ctx);
+  await page.evaluate(() => { for (const k of ["cv-shape-mine", "cv-shape-device", "cv-shape-preset"]) localStorage.removeItem(k); });
+  await page.reload({ timeout: 30000 });
+  await page.waitForTimeout(3500); // past the old question's 2.5 s wait for Storm
+  assert.equal(await page.locator("#shape-first, [data-shf]").count(), 0, "no first-run question on startup");
+  await settings(page, "shape");
+  const card = page.locator("[data-shp-preset]").first();
+  assert.ok(await card.count() > 0, "Shape's presets are there");
+  await done(page);
+});
 // ── STATES · C106: Settings › Shape's controls answer hover and press, the Compact switch off and on (logged) ──
 const { stateSweep } = require("./harness.cjs");
 t("STATES C106 Shape: every control answers hover and press, Compact off and on", async (ctx) => {
@@ -1326,24 +1337,6 @@ t("S104 S108 S112 Revoke, Remove and Disconnect each answer a held press with a 
   assert.deepEqual([writes(page, "revoke"), writes(page, "remove"), writes(page, "disconnect")], [0, 0, 0], "nothing was done");
   await done(page);
 });
-t("S116 S117 the first-run question keeps Tab and Shift+Tab inside it", async (ctx) => {
-  const W = world({ shape: { shape: null, version: "new" } });
-  const page = await open(W, ctx, { firstRun: true });
-  await page.waitForSelector("#shape-first");
-  const where = () => page.evaluate(() => { const a = document.activeElement; return a.closest("#shape-first") ? (a.dataset.shf || (a.matches("[data-shf-close]") ? "close" : "sheet")) : `OUT:${a.tagName}`; });
-  assert.equal(await where(), "sheet");
-  const seen = [];
-  for (let i = 0; i < 8; i++) { await page.keyboard.press("Tab"); seen.push(await where()); }
-  assert.deepEqual(seen, ["close", "engineering", "marketing", "everything", "close", "engineering", "marketing", "everything"]);
-  await page.locator("[data-shf-close]").focus();
-  await page.keyboard.press("Shift+Tab");
-  assert.equal(await where(), "everything", "Shift+Tab from the first goes to the last");
-  await page.keyboard.press("Shift+Tab");
-  assert.equal(await where(), "marketing");
-  await page.screenshot({ path: `/tmp/settings-work/shots/${ctx.width}-${ctx.theme}-first-run.png` });
-  await done(page);
-});
-
 // ── Home ─────────────────────────────────────────────────────────────────────────────────
 t("H1 C012 C013 Home: Handled and a Recently made file keep focus through Home's redraws (and a second)", async (ctx) => {
   const made = [{ id: "artifact-note", name: "artifact.txt", path: "artifact.txt", relative_path: "artifact.txt", project_id: "demo", thread_ts: null, kind: "file", created_at: NOW, exists: true }];

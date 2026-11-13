@@ -1,5 +1,5 @@
-/* The shape per person (js/shape.js, js/shapeview.js): compact density, Settings › Shape, the first-run
-   question, and the simple model choice. Built from Plan F only (css/tokens.css): the scale's sizes and
+/* The shape per person (js/shape.js, js/shapeview.js): compact density, Settings › Shape, and
+   the simple model choice. Built from Plan F only (css/tokens.css): the scale's sizes and
    line heights, three weights, its radii, --e2 for the one floating sheet, --ease and its durations.
    Everything else reuses the existing parts (.set-choice cards, .btn, .switch, .sheet), so it reads as
    one product. The left sidebar is never styled here: a shape may only hide its Shells row. */
@@ -65,17 +65,6 @@
 .shp-where{font-weight:500;color:var(--ink)}
 .shp-sep{margin:0 8px;color:var(--ink-4)}
 .shp-probs code{margin-right:4px;font:400 var(--fs-xs)/var(--lh-12) var(--mono);color:var(--ink-3)}
-
-/* ── The first run: one question, on a sheet ────────────────────────────────────────────────────── */
-.shp-first{width:min(520px,100%);outline:none}
-/* the lead lines up with the sheet's title */
-.shp-first-l{padding:4px 22px 0;font:400 var(--fs-md)/var(--lh-14) var(--sans);color:var(--ink-3)}
-.shp-first-c{margin:0;padding:16px 16px 20px}
-.shp-first-c .set-choice{width:100%}
-.shp-first-c .set-choice:where(:not([aria-disabled="true"])):hover{background:var(--hover-fill);transition-duration:var(--d-hover-in)}
-/* a choice on its way: what waits for it (the other cards, the ×) is drawn waiting, as a disabled choice is */
-.shp-first [aria-disabled="true"]:not([aria-busy="true"]){opacity:.55}
-.shp-sheet.is-out{opacity:0;transition:opacity var(--d-out) var(--ease)}
 
 /* ── The simple model choice (xo:composer/intel "simple") ───────────────────────────────────────── */
 .iq-simple button[aria-disabled="true"]{color:var(--ink-4);cursor:default}
