@@ -21,7 +21,7 @@ import { createIntel } from "./intel.js";
 import { EFFORT, estLine, evidenceFor } from "./content.js";
 import { keepTurning, ICON, XO, NEXT_GLYPH, $, $$, RM, clock, dayOf, short, elapsed, reconcile, sound, wait, hold, dial, morph, expand } from "./ui.js";
 import { paidHtml } from "./paidview.js";
-import { uiMsg, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder } from "./timeline.js";
+import { uiMsg, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldClock } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn } from "./turnview.js";
 import { nameWith } from "./comms.js";
 import { mediaHtml, fromAttachment, hydrateMedia, mediaItemOf, viewerFile, retryMedia, wireDragOut, webImagesHtml } from "./media.js";
@@ -52,7 +52,7 @@ import { createRecord } from "./recordview.js";
 import { greeting, today } from "./skeleton.js"; // Home's shell, drawn before this module graph arrives
 import { arrive, still, EASE, MOVE } from "./motion.js";
 import { wireGestures } from "./gestures.js";
-import { rtName, manyRuntimes, findRt, healthOf, canMove, clockWords, untilWords } from "./runtimes.js";
+import { rtName, manyRuntimes, findRt, healthOf, canMove, untilWords } from "./runtimes.js";
 // the UI's shape per person: which surfaces show, in what order, how dense, in which words (js/shape.js)
 import { createShapeStore } from "./shape.js";
 import { createShapeView, SHAPE_IC, UNKEPT } from "./shapeview.js";
@@ -260,9 +260,14 @@ const STATE_WORD = { working: "Working", needs_reply: "Needs you", needs_approva
 // filter, the header's badge and sweep, the sidebar's count and the favicon's line all read it from here.
 // A working thread whose session sits idle reads "Idle" (P1-8).
 const isBusy = (t) => t.busy === true || (t.state === "working" && t.busy !== false);
+// held back by a gate (the usage limit, the paid gate, the founder's pause…): nothing runs, its message waits
+// (timeline.js heldOf). Never Working and never Idle: "Waiting", with until when where a reset says it.
+const isHeld = (t) => !!(t && t.held && !isBusy(t));
 // a thread continued on another runtime is frozen, not waiting on you: a quiet "Continued" (F4)
-const glyphOf = (t) => (t.state === "working" && t.busy === false ? "idle" : t.frozen ? "resolved" : t.state);
-const wordOf = (t) => (glyphOf(t) === "idle" ? "Idle" : t.frozen ? "Continued" : STATE_WORD[t.state]);
+const glyphOf = (t) => (isHeld(t) && t.state === "working" ? "paused" : t.state === "working" && t.busy === false ? "idle" : t.frozen ? "resolved" : t.state);
+const wordOf = (t) => (isHeld(t) && t.state === "working" ? heldShort(t.held) : glyphOf(t) === "idle" ? "Idle" : t.frozen ? "Continued" : STATE_WORD[t.state]);
+// the state a badge or card is coloured by: a held thread in the pause's amber, never Working's blue
+const stOf = (t) => (t.frozen ? "resolved" : isHeld(t) && t.state === "working" ? "paused" : t.state);
 // a thread link in any message is a token led by that thread's live state (js/markdown.js)
 setThreadInfo((id) => { const t = world.thread(id); return t ? { state: glyphOf(t), word: wordOf(t), title: t.title } : null; });
 const SORT_STATE = { needs_approval: 0, needs_reply: 0, paused: 0, failed: 1, working: 2, done: 3, resolved: 4 };
@@ -277,7 +282,7 @@ const FILESV = createFilesView({ files: FILES, viewer: VW, view: () => S.view, P
 const lpProject = (v) => (v && v.startsWith("p:") ? v.slice(2) : v && v.startsWith("t:") ? world.thread(v.slice(2))?.project || null : null);
 // the thread "Ask an agent" started: by its id when Launchpad has it (whatever its title, past older threads of the
 // same title; resolved reads as done); without one, discovered by xo-space's title "Deploy to Launchpad", while open
-const lpThread = (p, id) => { const t = id ? world.thread(id) : world.state.threads.find((x) => x.project === p && /^deploy to launchpad/i.test(x.title || "") && x.state !== "resolved"); return t && t.project === p ? { thread: t.id, title: t.title, since: t.createdAt, busy: isBusy(t), done: t.state === "done" || t.state === "resolved" } : null; };
+const lpThread = (p, id) => { const t = id ? world.thread(id) : world.state.threads.find((x) => x.project === p && /^deploy to launchpad/i.test(x.title || "") && x.state !== "resolved"); return t && t.project === p ? { thread: t.id, title: t.title, since: t.createdAt, busy: isBusy(t), held: isHeld(t) ? heldShort(t.held) : null, done: t.state === "done" || t.state === "resolved" } : null; };
 const LP = createLaunchpad({ api: createLpApi(), projectOf: lpProject, nameOf: (p) => PROJ(p), findThread: lpThread, go: (v) => go(v, { panel: true }), announce, onChange: () => schedule(),
   // Launchpad's own Undo names where focus goes (Stop, the header's Deploy, the page's work): ownFocus
   // and its kind: a failure ("err") reads as every failure notice here does (kind "stopped": the error's mark and
@@ -297,22 +302,31 @@ REC.panel = STAGE;
 /** The runtime a thread runs on, fixed for its life (its session's agent). */
 const agentOf = (t) => (t && ((t.session && t.session.agent) || (t.sessionId && world.state.sessions[t.sessionId]?.agent))) || null;
 const RT_EFFORT = { low: "Quick", medium: "Balanced", high: "Deep", xhigh: "Deeper", max: "Deepest" };
-/** When the limit that holds a thread opens (ISO), or null: a limit item names it, or it queues on a closed pool. */
-function waitingOn(t, rt) {
+/** When the limit that holds a thread opens (ISO), or null: a limit item names it, or its session is held by
+ *  the usage limit (timeline.js heldOf: the backend's word, else its pool) and the reset is still ahead. */
+function waitingOn(t) {
   const lim = (t.limits || [])[0];
   if (lim && lim.limit && lim.limit.resetsAt) return lim.limit.resetsAt;
-  const pool = rt && rt.health && rt.health.pool && world.state.pools[rt.health.pool];
-  return t.sessionState === "queued" && pool && pool.state === "closed" && pool.resets_at ? pool.resets_at : null;
+  const h = isHeld(t) ? t.held : null;
+  return h && h.for === "limit" && h.until && Date.parse(h.until) > Date.now() ? h.until : null;
 }
 /** F1: which runtime a thread runs on, said only when there is more than one runtime to tell apart. */
 function rtTag(t, cls) {
   const rts = world.state.runtimes;
   const agent = agentOf(t);
-  if (!agent || !manyRuntimes(rts)) return "";
+  if (!agent) return "";
+  const many = manyRuntimes(rts);
+  // F5: a thread held by its runtime's usage limit says until when, in the header: with one runtime too (it
+  // waits all the same; there the runtime needs no name)
+  const wait = cls !== "ar" && waitingOn(t);
+  if (wait) {
+    // beside the badge's "Waiting": what it waits for and until when ("Usage limit · until 6:50 AM")
+    const who = many ? rtName(agent) : "";
+    const tip = `${who || "Your agent"} reached its usage limit. This thread waits until ${heldClock(wait)}${untilWords(wait) ? `, ${untilWords(wait)}` : ""}, then starts on its own.`;
+    return `<button type="button" class="tw-rt is-warn" data-set-open="runtimes" title="${esc(tip)}" aria-label="${esc(`${tip} Open Runtimes in Settings.`)}">${who ? `${esc(who)} limit` : "Usage limit"} · until ${esc(heldClock(wait))}</button>`;
+  }
+  if (!many) return "";
   const rt = findRt(rts, agent), h = healthOf(rt), se = t.session || {};
-  // F5: a thread held by its runtime's closed limit says until when, in the header
-  const wait = cls !== "ar" && waitingOn(t, rt);
-  if (wait) return `<button type="button" class="tw-rt is-warn" data-set-open="runtimes" title="${esc(`${rtName(agent)} reached its usage limit. This thread waits until ${clockWords(wait)}${untilWords(wait) ? `, ${untilWords(wait)}` : ""}.`)}">Waiting for ${esc(rtName(agent))} until ${esc(clockWords(wait))}</button>`;
   const ver = rt && rt.health && rt.health.cli_version;
   const tip = [`Runs on ${rtName(agent)}${ver ? ` ${ver}` : ""}`, se.model || "its default model", se.effort ? RT_EFFORT[se.effort] || se.effort : ""].filter(Boolean).join(" · ") +
     `. ${h.key === "usable" ? `${rtName(agent)} is usable.` : `${h.word}.${h.why ? ` ${h.why}` : ""}`}`;
@@ -427,14 +441,16 @@ function sideRender(needs) {
     const needsMe = asks.length > 0;
     // hub #31: a project at work reads blue at a glance; what needs you (amber, red) still wins the row
     const working = busy && !needsMe;
-    const label = needsMe ? askShort(lead) : working ? (nBusy > 1 ? `${nBusy} threads working` : nBusy ? "Working" : "Coordinator working") : "";
+    // held back by a gate (the usage limit…), nothing of it running: a quiet "Waiting", never Working
+    const held = !busy && !needsMe ? (world.state.threads.find((t) => t.project === p.id && t.state !== "resolved" && isHeld(t))?.held || (world.act.coordinatorHeld && world.act.coordinatorHeld(p.id))) : null;
+    const label = needsMe ? askShort(lead) : working ? (nBusy > 1 ? `${nBusy} threads working` : nBusy ? "Working" : "Coordinator working") : held ? heldShort(held) : "";
     const kind = needsMe ? (lead.risk === "destructive" || lead.group === "stopped" ? "red" : "amber") : "";
     const was = sideRender.needs?.get(p.id) || 0;
     if (asks.length > was && sideRender.ready && !RM.matches) S.wash.set(p.id, { n: (S.wash.get(p.id)?.n || 0) + 1, until: now + 2600 });
     const w = S.wash.get(p.id);
     const washing = w && w.until > now;
     return { key: p.id, html:
-      `<button type="button" class="prow${needsMe ? ` needs k-${kind}` : working ? " busy" : ""}${on ? " is-on" : ""}${washing ? " wash" : ""}${q && pi === S.pfCur ? " is-cur" : ""}" data-go="p:${esc(p.id)}" data-w="${washing ? w.n : 0}"${on ? ' aria-current="page"' : ""} aria-label="${esc(p.name)}${needsMe ? `. ${asks.length} need${asks.length === 1 ? "s" : ""} you: ${esc(label)}` : busy ? ". Working" : ""}">` +
+      `<button type="button" class="prow${needsMe ? ` needs k-${kind}` : working ? " busy" : ""}${on ? " is-on" : ""}${washing ? " wash" : ""}${q && pi === S.pfCur ? " is-cur" : ""}" data-go="p:${esc(p.id)}" data-w="${washing ? w.n : 0}"${on ? ' aria-current="page"' : ""} aria-label="${esc(p.name)}${needsMe ? `. ${asks.length} need${asks.length === 1 ? "s" : ""} you: ${esc(label)}` : busy ? ". Working" : held ? `. ${esc(heldWords(held))}` : ""}">` +
       `<span class="pr-ic" aria-hidden="true">${projectIcon(p.id)}${busy && needsMe ? `<i class="pr-busy"></i>` : ""}</span>` +
       `<span class="pr-main"><span class="pr-l1"><span class="pr-name">${esc(p.name)}</span>${needsMe ? `<span class="pr-w" aria-hidden="true"><i class="pr-d"></i>${asks.length}</span>` : ""}</span>` +
       (label ? `<span class="pr-t">${esc(label)}</span>` : "") + `</span></button>` };
@@ -911,11 +927,11 @@ function threadCardHtml(tid, needs) {
   const heldN = !n ? needs.find((x) => x.t.id === t.id && x.held) : null;
   const cur = c.items.find((i) => i.state === "doing") || c.items.find((i) => i.state === "todo");
   const segs = c.items.map((i) => `<i class="sg s-${i.state}"></i>`).join("");
-  const st = n ? `Needs you · ${EFFORT[n.effort].time}` : isBusy(t) ? `Working${c.total ? ` · ${c.done} of ${c.total}` : ""}` : t.state === "done" ? `Done${c.total ? ` · ${c.total} of ${c.total}` : ""}` : wordOf(t);
-  const now = n ? `◆ ${askTitle(n)}` : isBusy(t) && cur ? `✱ ${esc(cur.text)}` : t.state === "failed" ? esc(String(t.happened || "").replace(/^Stopped:\s*/i, "")) : t.state === "done" ? esc(t.happened || "Finished.") : "";
+  const st = n ? `Needs you · ${EFFORT[n.effort].time}` : isBusy(t) ? `Working${c.total ? ` · ${c.done} of ${c.total}` : ""}` : isHeld(t) ? heldShort(t.held) : t.state === "done" ? `Done${c.total ? ` · ${c.total} of ${c.total}` : ""}` : wordOf(t);
+  const now = n ? `◆ ${askTitle(n)}` : isBusy(t) && cur ? `✱ ${esc(cur.text)}` : isHeld(t) ? esc(heldWords(t.held)) : t.state === "failed" ? esc(String(t.happened || "").replace(/^Stopped:\s*/i, "")) : t.state === "done" ? esc(t.happened || "Finished.") : "";
   // a finished thread offers its real next step: the newest file it made, one click away (no file, no offer)
   const made = !n && t.state === "done" && REC.latestOf ? REC.latestOf(t.id, t.project) : null;
-  return `<div class="tcard st-${n ? "needs" : t.state}${made ? " has-next" : ""}">` +
+  return `<div class="tcard st-${n ? "needs" : stOf(t)}${made ? " has-next" : ""}">` +
     `<button type="button" class="tc-open" data-go="t:${esc(t.id)}" aria-label="Open thread: ${esc(t.title)}, ${esc(st)}">` +
     `<span class="tc-top"><i class="g g-${n ? "needs_reply" : glyphOf(t)}" aria-hidden="true"></i><b>${esc(t.title)}</b><span class="tc-st">${esc(st)}</span></span>` +
     `<span class="tc-segs${segs ? "" : " is-empty"}" aria-hidden="true">${segs}</span>` +
@@ -1190,8 +1206,9 @@ function crailHtml(v, t, needs) {
   const fresh = Math.max(0, ($("#msgs")?.children.length || 0) - FILESV.chatRows);
   const name = convName(v, t);
   // a phone's bar also says what it's doing, or what it asks (amber), and how many new messages
-  const doing = ask ? `Needs you · ${askShort(ask)}` : busy ? `Working${(() => { const d = MAP.agents(v).find((a) => a.go === v)?.doing; return d ? ` · ${d}` : ""; })()}` : t ? wordOf(t) : "";
-  const says = [name, ask ? "needs you" : busy ? "working" : "", fresh ? "new messages" : ""].filter(Boolean).join(" · ");
+  const held = !ask && !busy && isHeld(t) ? t.held : null;
+  const doing = ask ? `Needs you · ${askShort(ask)}` : busy ? `Working${(() => { const d = MAP.agents(v).find((a) => a.go === v)?.doing; return d ? ` · ${d}` : ""; })()}` : held ? heldWords(held) : t ? wordOf(t) : "";
+  const says = [name, ask ? "needs you" : busy ? "working" : held ? "waiting" : "", fresh ? "new messages" : ""].filter(Boolean).join(" · ");
   return `<button type="button" class="crail-b${ask ? " is-ask" : ""}" data-crail data-fid="crail" title="Open the chat${FILESV.sheet ? "" : ` (${K.label("chatFold")})`}" aria-label="Open the chat: ${esc(says)}">` +
     `<span class="crail-ic">${ICON.threadOne}${busy && !ask ? '<i class="arc"></i>' : ""}</span>` +
     (ask ? `<em class="crail-m is-ask" aria-hidden="true">!</em>` : fresh ? `<em class="crail-m is-new" aria-hidden="true">${fresh > 9 ? "9+" : fresh}</em>` : "") +
@@ -1235,9 +1252,11 @@ function topRender(needs) {
     const nd = P0.active.length;
     const asking = new Set(needs.map((n) => n.t.id));
     const working = world.state.threads.filter(isBusy).length;
-    const idle = world.state.threads.filter((x) => x.state === "working" && !isBusy(x) && !asking.has(x.id)).length;
+    // held back by a gate (the usage limit…): waiting to start, neither working nor idle
+    const waiting = world.state.threads.filter((x) => x.state === "working" && isHeld(x) && !asking.has(x.id)).length;
+    const idle = world.state.threads.filter((x) => x.state === "working" && !isBusy(x) && !isHeld(x) && !asking.has(x.id)).length;
     const done = doneToday().length;
-    const parts = [counted(working, "working"), counted(P0.held.length, "can wait"), counted(idle, "idle"), counted(done, "finished today")].filter(Boolean);
+    const parts = [counted(working, "working"), counted(waiting, "waiting to start"), counted(P0.held.length, "can wait"), counted(idle, "idle"), counted(done, "finished today")].filter(Boolean);
     const need = hostNeedHtml(v, needs);
     const line = countLine([...(parts.length ? parts : ["All quiet"]), projects().length && `across ${counted(projects().length, projects().length === 1 ? "project" : "projects")}`]);
     // the counts go to Home; what the Workspace's own coordinator asks opens here, so the two are separate buttons
@@ -1248,10 +1267,11 @@ function topRender(needs) {
     const every = world.state.threads.filter((x) => x.project === pid); // resolved ones too: findable, reopenable
     const nd = needs.filter((n) => n.t.project === pid && n.admitted && !n.later).length;
     const w = ts.filter(isBusy).length;
+    const wt = ts.filter((x) => x.state === "working" && isHeld(x)).length;
     const dn = ts.filter((x) => x.state === "done").length;
     const rs = every.length - ts.length;
     // "done", not "done this week": the count is every done thread, however old
-    const parts = [counted(w, "working"), counted(dn, "done"), counted(rs, "resolved")].filter(Boolean);
+    const parts = [counted(w, "working"), counted(wt, "waiting to start"), counted(dn, "done"), counted(rs, "resolved")].filter(Boolean);
     // Threads: every thread here, searchable, dropping down under its button (⌘K reaches them too)
     if (every.length) end = `<button type="button" class="all-btn th-btn" data-switch aria-haspopup="dialog" aria-expanded="${!allEl.hidden}" title="Every thread in ${esc(PROJ(pid))}, searchable">${ICON.threadOne}${esc(SHAPE.word("Threads"))}<span>${every.length}</span></button>`;
     const need = hostNeedHtml(v, needs);
@@ -1272,7 +1292,7 @@ function topRender(needs) {
       (S.tMenu === t.id ? `<span class="tw-menu" role="menu"><button type="button" role="menuitem" data-tfield="title">Rename</button><button type="button" role="menuitem" data-tfield="label">${t.label ? "Change label" : "Add a label"}</button>${t.label ? `<button type="button" role="menuitem" data-tfield="clear-label">Remove the label</button>` : ""}${SH.enabled ? `<button type="button" role="menuitem" data-shell="t:${esc(t.id)}">Open a shell in its worktree</button>` : ""}${movable(t) ? `<button type="button" role="menuitem" data-tmove="${esc(t.id)}">Continue on another runtime…</button>` : ""}</span>` : "") + `</span>` : "";
     // a shell in its worktree is in the menu (and the shells dock); the header keeps Resolve and the panel
     const allActs = acts ? acts.replace(/<\/span>$/, `${LP.button(v, STAGE.launchOpen)}${STAGE.button(v)}</span>`) : `<span class="tw-acts">${LP.button(v, STAGE.launchOpen)}${STAGE.button(v)}</span>`;
-    who = `${title}${label}<span class="badge st-${t.frozen ? "resolved" : t.state}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${wordOf(t)}</span>${rtTag(t)}${fileChipHtml()}${allActs}`;
+    who = `${title}${label}<span class="badge st-${stOf(t)}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${isHeld(t) && waitingOn(t) ? "Waiting" : wordOf(t)}</span>${rtTag(t)}${fileChipHtml()}${allActs}`;
     // a field being edited is never replaced under the person's fingers (a frame may change the badge)
     if (ed && $("#tw-edit")) who = null;
   } else who = `<span class="tw-t"><h1 id="conv-title">Thread</h1></span>`;
@@ -1809,7 +1829,20 @@ function typingRender() {
   const t = convThread(S.view);
   let spec = null;
   const chat = !t && S.view !== "home" ? chatOf(S.view) : null;
-  if (chat && world.act.replying(chat)) {
+  // held back by a gate (the usage limit…): nothing runs, so no arc, no shimmer and no clock, only what it
+  // waits for and until when (timeline.js heldWords), in the pause's amber
+  const coHeld = chat && world.act.coordinatorHeld ? world.act.coordinatorHeld(chat) : null;
+  const chHeld = !chat && S.view.startsWith("c:") && world.act.sessionHeld ? world.act.sessionHeld(S.view.slice(2)) : null;
+  const held = coHeld || chHeld || (t && isHeld(t) ? t.held : null);
+  if (held) {
+    const who = coHeld ? (S.view === "ws" ? "The coordinator" : `${PROJ(chat)} coordinator`) : "";
+    const words = heldWords(held);
+    spec = { key: `held:${coHeld ? chat : chHeld ? S.view : t.id}`, cls: "av-live is-wait", icon: coHeld ? XO : ICON.thread, text: who ? `${who} · ${words.replace(/^\w/, (c) => c.toLowerCase())}` : words, since: null, wait: true };
+    // the words change when its reset passes ("starts at 6:50 AM" → "to reset"): drawn again then, not at a chance render
+    clearTimeout(S.heldT);
+    const at = Date.parse(held.until || "");
+    if (at > Date.now()) S.heldT = setTimeout(schedule, Math.min(at - Date.now() + 50, 2 ** 31 - 1));
+  } else if (chat && world.act.replying(chat)) {
     // the coordinator's session really works, or our message still waits for its answer (never a timer)
     const aw = world.state.awaiting[chat];
     const who = S.view === "ws" ? "The coordinator" : `${PROJ(chat)} coordinator`;
@@ -1837,7 +1870,9 @@ function typingRender() {
     return changed;
   }
   if (box._k !== spec.key) {
-    box.innerHTML = `<div class="typing" role="status"><div class="av ${spec.cls}">${spec.icon}<i class="arc" aria-hidden="true"></i></div><div class="ty-b"><span class="ty-t shimmer"></span><span class="elapsed"></span></div></div>`;
+    box.innerHTML = spec.wait
+      ? `<div class="typing is-held" role="status"><div class="av ${spec.cls}">${spec.icon}</div><div class="ty-b"><span class="ty-t"></span><span class="elapsed"></span></div></div>`
+      : `<div class="typing" role="status"><div class="av ${spec.cls}">${spec.icon}<i class="arc" aria-hidden="true"></i></div><div class="ty-b"><span class="ty-t shimmer"></span><span class="elapsed"></span></div></div>`;
     box._k = spec.key; box._h = spec.key;
     changed = true;
   }

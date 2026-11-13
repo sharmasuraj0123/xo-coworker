@@ -10,7 +10,7 @@ import { esc } from "./world.js";
 import { ICON } from "./ui.js";
 import { renderMarkdown } from "./markdown.js";
 import { turnHtml, turnAv } from "./turnview.js";
-import { cliName, mainRuntime, chatOrder, sessionRead } from "./timeline.js";
+import { cliName, mainRuntime, chatOrder, sessionRead, BUSY_STATES, heldShort } from "./timeline.js";
 import { redraw } from "./redraw.js";
 import { rovingTab } from "./keynav.js";
 import { once } from "./pending.js";
@@ -23,8 +23,9 @@ const MODE_WORDS = {
   deny_unasked: ["Rules only", "Only what your rules allow; the rest is refused."],
 };
 // a turn in progress: waiting on your decision is still mid-turn (storm's session.py), so a message
-// joins it and Stop can end it
-const BUSY = new Set(["queued", "starting", "running", "stopping", "waiting_on_person"]);
+// joins it and Stop can end it. "queued" is no turn: a gate holds its message back with no process
+// (timeline.js heldOf), so nothing joins it and there is nothing to stop.
+const BUSY = new Set([...BUSY_STATES, "waiting_on_person"]);
 const EFFORT_WORD = { low: "Quick", medium: "Balanced", high: "Deep", xhigh: "Deeper", max: "Deepest" };
 const PREFS = "cv-chat-prefs";
 const store = { get() { try { return JSON.parse(localStorage.getItem(PREFS) || "{}"); } catch { return {}; } }, set(v) { try { localStorage.setItem(PREFS, JSON.stringify(v)); } catch { /* private */ } } };
@@ -77,6 +78,8 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   const modelWord = (agent, id) => { const m = (C.models.get(agent) || []).find((x) => x.id === id); return m ? m.name : id; };
   const metaLine = (s) => capFirst([folderWord(s.cwd), cliName(s.agent), s.model ? modelWord(s.agent, s.model) : "", s.effort ? EFFORT_WORD[s.effort] || s.effort : "", (MODE_WORDS[s.permission_mode] || [s.permission_mode || ""])[0]].filter(Boolean).join(" · "));
   const waiting = (s) => s.state === "waiting_on_person";
+  /** What a gate holds this chat for (the usage limit…), or null: it waits, nothing runs. */
+  const heldOf = (s) => (s && s.state === "queued" && world.act.sessionHeld ? world.act.sessionHeld(s.id) : null);
 
   function listItems() {
     const rows = sessions().sort((a, b) => Date.parse(b.updated_at || b.created_at) - Date.parse(a.updated_at || a.created_at));
@@ -85,9 +88,10 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     return [{ key: "chats-list", html: `<ul class="ch-list" aria-label="Your chats">${rows.map((s) => {
       // Working: on a turn, or a sub-agent working on after it (storm's busy rule); waiting on you says so first
       const wait = waiting(s), busy = BUSY.has(s.state) || !!(world.act.sessionBusy && world.act.sessionBusy(s.id));
-      return `<li><button type="button" class="ch-row" data-go="c:${esc(s.id)}"><i class="g g-${wait ? "needs_approval" : busy ? "working" : "idle"}" aria-hidden="true"></i>` +
+      const held = !wait && !busy ? heldOf(s) : null;
+      return `<li><button type="button" class="ch-row" data-go="c:${esc(s.id)}"><i class="g g-${wait ? "needs_approval" : busy ? "working" : held ? "paused" : "idle"}" aria-hidden="true"></i>` +
         `<span class="ch-main"><span class="ch-t">${esc(titleFor(s))}</span><span class="ch-m">${esc(metaLine(s))}</span></span>` +
-        `<span class="ch-a${wait ? " is-need" : ""}">${wait ? "Needs you" : busy ? "Working" : esc(ago(s.updated_at || s.created_at))}</span></button></li>`;
+        `<span class="ch-a${wait ? " is-need" : ""}">${wait ? "Needs you" : busy ? "Working" : held ? esc(heldShort(held)) : esc(ago(s.updated_at || s.created_at))}</span></button></li>`;
     }).join("")}</ul>` }];
   }
 
@@ -178,8 +182,8 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     if (v === "chats") return `<span class="tw-ic" aria-hidden="true">${ICON.thread}</span><span class="tw-t"><h1 id="conv-title">Chats</h1><span class="pj-s">One agent, one folder, outside your projects' coordinators</span></span>`;
     const s = session(v.slice(2));
     if (!s) return `<span class="tw-t"><h1 id="conv-title">Chat</h1></span>`;
-    const busy = BUSY.has(s.state), wait = waiting(s);
-    const st = s.retired_at ? ["resolved", "done", "Ended"] : wait ? ["needs_approval", "needs_approval", "Needs you"] : busy ? ["working", "working", "Working"] : ["resolved", "idle", "Idle"];
+    const busy = BUSY.has(s.state), wait = waiting(s), held = !busy && !wait ? heldOf(s) : null;
+    const st = s.retired_at ? ["resolved", "done", "Ended"] : wait ? ["needs_approval", "needs_approval", "Needs you"] : busy ? ["working", "working", "Working"] : held ? ["paused", "paused", heldShort(held)] : ["resolved", "idle", "Idle"];
     return `<span class="tw-t"><h1 id="conv-title">${esc(titleFor(s))}</h1><span class="pj-s">${esc(metaLine(s))}</span></span>` +
       `<span class="badge st-${st[0]}"><i class="g g-${st[1]}" aria-hidden="true"></i>${st[2]}</span>`;
   }
@@ -245,6 +249,8 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       if (C.now === s.id) return `<span class="tg-t tg-now-on">${ICON.bolt}</span><span>Sends now: <b>stops the turn in progress</b></span>`;
       return `<span class="tg-t">${ICON.thread}</span><span>${steer ? "Adds to the turn in progress" : "Waits for the turn in progress"}</span>`;
     }
+    // held back by a gate: a reply waits with what's already waiting, and runs with it
+    if (heldOf(s)) return `<span class="tg-t">${ICON.thread}</span><span>Reply in <b>this chat</b> · it runs with the waiting message</span>`;
     return `<span class="tg-t">${ICON.thread}</span><span>Reply in <b>this chat</b></span>`;
   }
 
@@ -357,9 +363,10 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       const r = await api.prompt(local.body);
       local.status = "sent";
       if (!sid) {
-        // what we know until the stream says more (never over a newer state it already sent)
+        // what we know until the stream says more (never over a newer state it already sent): starting, as
+        // the server admits it; held back by a gate, its own "queued" frame says so (timeline.js heldOf)
         const old = world.state.sessions[r.session_id];
-        world.state.sessions[r.session_id] = { id: r.session_id, role: "plain", state: "queued", agent: local.body.agent, model: local.body.model || null, effort: local.body.effort || null, permission_mode: local.body.permission_mode || null, cwd: local.body.cwd || null, created_at: new Date().toISOString(), ...(old || {}) };
+        world.state.sessions[r.session_id] = { id: r.session_id, role: "plain", state: "starting", agent: local.body.agent, model: local.body.model || null, effort: local.body.effort || null, permission_mode: local.body.permission_mode || null, cwd: local.body.cwd || null, created_at: new Date().toISOString(), ...(old || {}) };
         C.titles.set(r.session_id, local.body.text.replace(/\s+/g, " ").slice(0, 120));
         C.local.set(r.session_id, [local]);
         // open it, unless the person has gone somewhere else meanwhile

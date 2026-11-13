@@ -13,7 +13,7 @@ import { api, clientId as newClientId, NEWEST, coderHeaders, STORM_DOWN } from "
 import { SSEStream } from "./sse.js";
 import { createTurns } from "./blocks.js";
 import { tasksOf } from "./model.js";
-import { uiMsg, mergeRows, addReaction, updateMessage, stormAsks, mapLimit, currentPools, threadState, askingState, mainRuntime, BUSY_STATES, readSub, sessionRead, sessionBusy, pageAfter, canPageOlder, framesShort } from "./timeline.js";
+import { uiMsg, mergeRows, addReaction, updateMessage, stormAsks, mapLimit, currentPools, threadState, askingState, mainRuntime, BUSY_STATES, heldOf, readSub, sessionRead, sessionBusy, pageAfter, canPageOlder, framesShort } from "./timeline.js";
 import { hostOf, askedBy } from "./review.js";
 import { isLimitItem, limitItem } from "./runtimes.js";
 import { paidBody, paidItem, accountRows, heldModes } from "./paid.js";
@@ -33,7 +33,7 @@ const RUNS_KEEP = 300;            // finished sub-agents kept in memory, beyond 
 const LOAD_CAP = 6;               // parallel GETs at boot
 const AWAIT_CAP_MS = 10 * 60000;  // "replying" never outlives this without a signal
 
-const BUSY = BUSY_STATES; // a session on a turn (timeline.js; storm's engine BUSY_STATES)
+const BUSY = BUSY_STATES; // a session on a turn (timeline.js; storm's engine BUSY_STATES); "queued" is held, not busy
 const COORD = new Set(["workspace-coordinator", "project-coordinator"]);
 export const WAITING_STATES = new Set(["needs_reply", "needs_approval", "paused"]);
 
@@ -103,6 +103,27 @@ export function stormSource(state, emit, event) {
     const live = r.session_id ? state.sessions[r.session_id] : null;
     return (live && live.state) || (r.session && r.session.state) || null;
   }
+  /**
+   * What a session held back by a gate waits for (timeline.js heldOf), or null. Its newest word: the live
+   * record (list and frames) when it has a status, else the thread view's `session`. An older backend names
+   * no reason, so the session's pool is read: its own, else its runtime's current one (a record made from
+   * frames alone has no pool yet).
+   */
+  function heldOfSession(s) {
+    if (!s || s.state !== "queued") return null;
+    let pool = s.pool || null;
+    if (!pool && s.agent) {
+      const rt = (state.runtimes || []).find((x) => x.name === s.agent);
+      pool = (rt && rt.health && rt.health.pool) || (rt && rt.cli && rt.cli.account ? `${s.agent}:${rt.cli.account}` : null);
+    }
+    return heldOf({ ...s, pool }, state.pools);
+  }
+  function threadSessionOf(r) {
+    if (!r.session_id) return null;
+    const live = state.sessions[r.session_id];
+    if (live && live.state) return live;
+    return r.session ? { ...r.session, id: r.session_id } : null;
+  }
   /** F4: where a thread went (continued in) and where it came from, from every trace of a move we hold. */
   let fromIndex = new Map();
   function indexMoves() {
@@ -160,6 +181,8 @@ export function stormSource(state, emit, event) {
       // "Working" means its agent really works (11 §6.3), never just the thread's state: on a turn, or a
       // sub-agent working on after it; waiting on you is never Working (timeline.js sessionBusy)
       busy,
+      // held back by a gate (the usage limit, …): nothing runs, its message waits; what for and until when
+      held: busy ? null : heldOfSession(threadSessionOf(r)),
       sessionId: r.session_id || null, sessionState: sstate,
       session: r.session || null, paused: (r.session && r.session.paused) || null,
       resolvedAt: r.resolved_at || null, agentMs: r.agent_ms || 0, pin: r.pin || {}, runs: r.runs || null,
@@ -348,6 +371,7 @@ export function stormSource(state, emit, event) {
   }
   async function loadStatus() {
     clearTimeout(statusT);
+    const sig = poolsSig();
     try {
       state.status = await api.status();
       state.statusError = null; state.statusCode = null;
@@ -362,10 +386,13 @@ export function stormSource(state, emit, event) {
     } catch (err) {
       state.statusError = err.message; state.statusCode = err.code;
     }
+    if (poolsSig() !== sig) commit();
     emit();
     statusT = setTimeout(loadStatus, state.statusError ? STATUS_RETRY_MS : STATUS_MS);
   }
   let poolsSeen = false, runtimesBusy = null;
+  // what a held thread says waits on its pool (heldOf): a pool that changes rebuilds the threads, not only the composer
+  const poolsSig = () => Object.entries(state.pools).map(([id, p]) => `${id}|${p.state}|${p.resets_at}|${p.reason}`).sort().join(",");
   const poolHeld = () => currentPools(state.pools, state.runtimes).some((p) => p.state === "closed" || p.state === "paid");
   function refreshRuntimes() {
     if (!runtimesBusy) runtimesBusy = loadRuntimes().finally(() => { runtimesBusy = null; });
@@ -384,11 +411,12 @@ export function stormSource(state, emit, event) {
     if (paidBusy) return paidBusy;
     paidBusy = (async () => {
       let changed = false;
+      const sig = poolsSig();
       try { state.advisory = await api.advisory(); changed = true; } catch { /* keep what we had */ }
       try { const r = await api.intents(); state.paid = r.intents || []; state.paidPools = r.pools || []; state.paidOk = true;
         // what XO says each pool is doing, as of now: a change of mode shows in the composer's line at once, not at the next status read
         for (const p of state.paidPools) if (p && p.pool && state.pools[p.pool]) state.pools[p.pool] = { ...state.pools[p.pool], state: p.state, resets_at: p.resets_at, reason: p.reason || null }; changed = true; } catch { /* keep what we had */ }
-      if (changed) { if ([...state.review.values()].some((it) => it.state === "open" && it.kind === "usage")) commit(); emit(); }
+      if (changed) { if (poolsSig() !== sig || [...state.review.values()].some((it) => it.state === "open" && it.kind === "usage")) commit(); emit(); }
     })().finally(() => { paidBusy = null; });
     return paidBusy;
   }
@@ -635,6 +663,9 @@ export function stormSource(state, emit, event) {
         if (!id) break;
         const old = state.sessions[id] || { id };
         const next = { ...old, chat_id: old.chat_id || env.chat_id || null, thread_ts: old.thread_ts || env.thread_ts || null, state: d.status || old.state, seq: env.seq ?? old.seq };
+        // what a gate holds it for, while queued (a newer backend's word; heldOf reads the pool without it).
+        // Any other status ends the wait.
+        if (d.status) next.waiting = d.status === "queued" && d.waiting && typeof d.waiting === "object" ? d.waiting : null;
         if (d.reason === "created") Object.assign(next, { role: d.role, agent: d.agent, preset: d.preset });
         if (d.reason === "paused") next.paused = d.why || "paused";
         if (d.reason === "resumed") next.paused = null;
@@ -701,9 +732,10 @@ export function stormSource(state, emit, event) {
       case "pool":
         if (d.pool) {
           const fresh = !(d.pool in state.pools);
+          const sig = poolsSig();
           state.pools[d.pool] = { ...(state.pools[d.pool] || {}), ...d };
           if (poolsSeen && fresh) refreshRuntimes();
-          emit();
+          if (poolsSig() !== sig) soon(); else emit();
         }
         break;
       case "run.started": {
@@ -1023,10 +1055,16 @@ export function stormSource(state, emit, event) {
       replying: (project) => {
         const aw = state.awaiting[project];
         if (aw && Date.now() - aw.at > AWAIT_CAP_MS) delete state.awaiting[project];
-        if (state.awaiting[project]) return true;
         const s = coordinatorOf(chatIdOf(project));
+        // held back by a gate it isn't replying, whatever we sent it: it waits (coordinatorHeld says for what)
+        if (s && s.state === "queued") return false;
+        if (state.awaiting[project]) return true;
         return !!s && BUSY.has(s.state);
       },
+      /** What a chat's coordinator, held back by a gate, waits for (timeline.js heldOf), or null. */
+      coordinatorHeld: (project) => heldOfSession(coordinatorOf(chatIdOf(project))),
+      /** What a session held back by a gate waits for, or null (a plain chat's). */
+      sessionHeld: (sessionId) => heldOfSession(state.sessions[sessionId] || null),
       /** What the coordinator is doing now: its running turn's latest block header, for the typing line. */
       doing: (project) => {
         const s = coordinatorOf(chatIdOf(project));

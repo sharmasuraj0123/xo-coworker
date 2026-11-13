@@ -569,6 +569,8 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     if (!mine) return { k: "unknown", word: "Started · its status isn't reported yet" };
     if (mine.done) return { k: "done", word: "Done: merge its work, then deploy" };
     if (mine.busy) return { k: "work", word: "Working" };
+    // held back by a gate (the usage limit…): it waits to start, said as the thread says it
+    if (mine.held) return { k: "idle", word: mine.held };
     return { k: "idle", word: "Not working right now" };
   }
   const askRow = (g, st) => `<ul class="lp-ag"><li><button type="button" class="lp-agr" data-lp="thread" data-go="t:${esc(g.thread)}" title="Open the thread"><span class="lp-t">${ICON.threadOne}${st.k === "work" ? '<i class="arc"></i>' : ""}</span><span class="lp-c"><b>${esc(g.title)}</b><span>${esc(st.word)}</span></span><span class="lp-m">${st.k === "work" ? `<span class="lp-tm">${since(g.since)}</span>` : ""}</span></button></li></ul>`;

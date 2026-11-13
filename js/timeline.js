@@ -2,6 +2,7 @@
 // shapes. No DOM, no fetch: tested from Node (tests/logic.test.mjs).
 
 import { attachmentsOf } from "./attach.js";
+import { clockWords } from "./runtimes.js";
 
 const COORDINATORS = new Set(["workspace-coordinator", "project-coordinator"]);
 
@@ -203,14 +204,21 @@ export function threadState(state, turn, busy = false) {
 
 // ── busy: is an agent at work right now ("Working")? ─────────────────────────
 // Storm says it on every session and thread view (xo-space 8c6bc03): `busy` is true while the session is
-// on a turn (queued, starting, running, stopping) or while a sub-agent works on after its turn ended.
+// on a turn (starting, running, stopping) or while a sub-agent works on after its turn ended.
 // Live session frames still carry only the status, so between reads the same rule is applied here: the
 // status, then the sub-agents the stream names (run.* until run.finished, and the `runs` frame's counts).
 // An older backend sends no `busy`: then the status and the stream's runs are all there is, and that's
 // the same rule with less to go on.
+//
+// "queued" is not working. Storm queues a session only when a gate holds its ready message back (the
+// usage limit, the paid-usage hold, near-limit pacing, the memory guard, the founder's pause), and only
+// one with no process (engine `_wait`): nothing of it runs, so it is Waiting (heldOf below), never Working.
+// An older backend still says `busy: true` for it; that word is not taken.
 
-/** Session states in which its agent is on a turn (storm's engine BUSY_STATES). */
-export const BUSY_STATES = new Set(["queued", "starting", "running", "stopping"]);
+/** Session states in which its agent is on a turn: a process starting it, running it or stopping it. */
+export const BUSY_STATES = new Set(["starting", "running", "stopping"]);
+/** A session held back by a gate before its turn: no process, its message waits (heldOf). */
+export const HELD_STATE = "queued";
 const RUN_ENDED = new Set(["finished", "failed", "stopped", "lost"]);
 /** A sub-agent run the stream said started and hasn't said ended. An internal (hidden) one isn't the person's to see. */
 export const runWorks = (r) => !!r && !r.ended_at && !RUN_ENDED.has(r.state) && !r.hidden;
@@ -218,10 +226,12 @@ export const runWorks = (r) => !!r && !r.ended_at && !RUN_ENDED.has(r.state) && 
 /**
  * What a read of a session (a session view, or a thread view's `session`) says beyond its status: true
  * when it was busy with no turn running, i.e. a sub-agent working on after the turn. undefined when the
- * view has no `busy` (an older backend), so nothing is assumed either way.
+ * view has no `busy` (an older backend), so nothing is assumed either way. A held session has no
+ * process, so no sub-agent: an older backend's `busy: true` on it says only that it was queued.
  */
 export function readSub(view) {
   if (!view || typeof view.busy !== "boolean") return undefined;
+  if (view.state === HELD_STATE) return false;
   return view.busy && !BUSY_STATES.has(view.state);
 }
 
@@ -237,13 +247,14 @@ export function sessionRead(view, now = Date.now()) {
  * them ({state, ended_at, hidden, seen}, `seen` when the stream last spoke of each); agg: its newest
  * `runs` frame ({running, waiting, at}). Each says what it knows, the newest word winning:
  *   · waiting on the person is never Working, whatever else is true: it's you who's awaited (Needs you);
+ *   · held by a gate (queued) is never Working: it has no process (heldOf says what it waits for);
  *   · on a turn (BUSY_STATES) is Working;
  *   · after the turn, a sub-agent still at work keeps it Working: a run the stream named since the last
  *     word on the counts, else the `runs` frame's counts when they're newer than the read, else the read.
  */
 export function sessionBusy(s, { runs = [], agg = null } = {}) {
   if (!s) return false;
-  if (s.state === "waiting_on_person") return false;
+  if (s.state === "waiting_on_person" || s.state === HELD_STATE) return false;
   if (BUSY_STATES.has(s.state)) return true;
   const readAt = s.readAt || 0;
   const counted = agg && (agg.at || 0) >= readAt ? agg : null;
@@ -251,6 +262,80 @@ export function sessionBusy(s, { runs = [], agg = null } = {}) {
   for (const r of runs) if ((r.session == null || r.session === s.id) && runWorks(r) && (r.seen || 0) >= since) return true;
   if (counted) return (counted.running || 0) + (counted.waiting || 0) > 0;
   return s.sub === true;
+}
+
+// ── held: what a queued session waits for ("Waiting") ───────────────────────
+/** What a gate can hold a session for (xo-space's session view `waiting.for`). */
+export const HELD_FOR = new Set(["limit", "paid", "near_limit", "memory", "founder"]);
+
+/**
+ * What a session held back by a gate waits for, or null when it isn't held. s: the session as known
+ * ({state, pool, waiting}); pools: the engine's pools by id ({state, resets_at}).
+ * → {for: "limit" | "paid" | "near_limit" | "memory" | "founder" | null, until: ISO | null, why: string | null,
+ *    asked: bool} (asked: the paid gate waits for the founder's answer, as connLine reads the pool's reason)
+ * The backend's own word first: its session view and `session` frame carry `waiting` {for, until, pool,
+ * why} while queued. An older backend says only "queued": then the session's pool says what holds it, when
+ * a pool does (closed: the limit, until its reset; paid: the paid gate; warn: near-limit pacing), and
+ * otherwise it's held for a reason this backend doesn't name (for: null), still never Working.
+ */
+export function heldOf(s, pools = {}) {
+  if (!s || s.state !== HELD_STATE) return null;
+  const w = s.waiting;
+  const asked = (p) => !!p && p.state === "paid" && (p.reason === "paid_asked" || p.reason == null);
+  if (w && typeof w === "object") {
+    const p = (w.pool || s.pool) ? (pools || {})[w.pool || s.pool] : null;
+    const until = w.until || (w.for === "limit" && p && p.state === "closed" && p.resets_at) || null;
+    return { for: HELD_FOR.has(w.for) ? w.for : null, until, why: w.why ? String(w.why) : null, asked: w.for === "paid" && asked(p) };
+  }
+  const p = s.pool ? (pools || {})[s.pool] : null;
+  if (p && p.state === "closed") return { for: "limit", until: p.resets_at || null, why: null, asked: false };
+  if (p && p.state === "paid") return { for: "paid", until: null, why: null, asked: asked(p) };
+  if (p && p.state === "warn") return { for: "near_limit", until: null, why: null, asked: false };
+  return { for: null, until: null, why: null, asked: false };
+}
+
+/**
+ * When a held message runs, in the owner's clock: "6:50 AM" today, "tomorrow 6:50 AM", "Thu 6:50 AM" this
+ * week, "5 Nov, 6:50 AM" later (runtimes.js clockWords, with tomorrow said as such). "" when it isn't a time.
+ */
+export function heldClock(iso, now = Date.now()) {
+  const c = clockWords(iso, now);
+  if (!c || /^\d/.test(c)) return c;
+  const next = new Date(now);
+  next.setDate(next.getDate() + 1);
+  return new Date(Date.parse(iso)).toDateString() === next.toDateString() ? `tomorrow ${clockWords(iso, Date.parse(iso))}` : c;
+}
+/** The same after "starts": "at 6:50 AM", "tomorrow at 6:50 AM", "Thu 6:50 AM". */
+function whenWords(iso, now) {
+  const c = heldClock(iso, now);
+  return !c ? "" : /^\d/.test(c) ? `at ${c}` : c.replace(/^tomorrow /, "tomorrow at ");
+}
+
+/**
+ * A held session in words, one line, as the person reads it where the agent's activity shows:
+ * "Waiting for the usage limit · starts at 6:50 AM". The time only while it's ahead; a reset that has
+ * passed while it still waits says it's due, not a time gone by. "" when it isn't held.
+ */
+export function heldWords(h, now = Date.now()) {
+  if (!h) return "";
+  const ahead = h.until && Date.parse(h.until) > now ? whenWords(h.until, now) : "";
+  switch (h.for) {
+    case "limit": return ahead ? `Waiting for the usage limit · starts ${ahead}` : "Waiting for the usage limit to reset";
+    // as the composer's line says it (connLine): the question is in Needs you, or paid usage is set to Never
+    case "paid": return h.asked ? "Waiting for your choice on paid usage · it's in Needs you" : "Waiting before paid usage · it's set to Never in Settings › Runtimes";
+    case "near_limit": return "Waiting · near the usage limit, more urgent work goes first";
+    case "memory": return "Waiting for memory to free up";
+    case "founder": return ahead ? `Paused by you · until ${ahead.replace(/^at /, "")}` : "Paused by you";
+    default: return "Waiting to start";
+  }
+}
+
+/** The same in a word or two, for a list's state column: "Waiting", "Waiting · 6:50 AM", "Paused". */
+export function heldShort(h, now = Date.now()) {
+  if (!h) return "";
+  if (h.for === "founder") return "Paused";
+  const at = h.for === "limit" && h.until && Date.parse(h.until) > now ? heldClock(h.until, now) : "";
+  return at ? `Waiting · ${at}` : "Waiting";
 }
 
 /**

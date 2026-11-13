@@ -280,6 +280,11 @@ body.files-open .mx-down{display:none}
    a second time over the shimmer's gradient, which is clipped to the same letters */
 :root[data-msgx] :is(#typing,#msgs) .shimmer{font-weight:400}
 :root[data-msgx] .typing .ty-b .elapsed:not(:empty)::before{content:none}
+/* a held line (the usage limit…) ends with when it starts: it wraps onto a second line rather than fade its
+   time away on a phone (nothing animates in it, so it can grow) */
+:root[data-msgx] .typing.is-held .ty-b{height:auto;min-height:44px;padding-block:12px}
+.typing.is-held .ty-b .ty-t{white-space:normal;overflow:visible}
+:root[data-msgx] .typing.is-held .ty-t.mx-fade{-webkit-mask-image:none;mask-image:none}
 @media (prefers-reduced-motion:reduce){.mx-wl.is-in,.mx-wl.is-out,:root[data-msgx] .mx-wl:not(.is-out){animation:none;color:var(--ink-2);background:none}}
 
 /* Pressed open (while it works, or after), the work is the same bubble grown into a card: its 44 px
