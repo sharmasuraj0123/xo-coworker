@@ -1,0 +1,2686 @@
+{
+ "note": "Canonical key → row ID. Append-only: never renumber, never reuse.",
+ "next": {
+  "C": 127,
+  "S": 273
+ },
+ "ids": {
+  "C001": {
+   "key": "#theme",
+   "aliases": []
+  },
+  "C002": {
+   "key": "#nv-home",
+   "aliases": []
+  },
+  "C003": {
+   "key": "#nv-ws",
+   "aliases": []
+  },
+  "C004": {
+   "key": "#nv-chats",
+   "aliases": []
+  },
+  "C005": {
+   "key": "#nv-arts",
+   "aliases": []
+  },
+  "C006": {
+   "key": "#side-add",
+   "aliases": []
+  },
+  "C007": {
+   "key": "#pf-in",
+   "aliases": []
+  },
+  "C008": {
+   "key": "button[data-go=p:…]",
+   "aliases": []
+  },
+  "C009": {
+   "key": "#nv-shells",
+   "aliases": []
+  },
+  "C010": {
+   "key": "#set-side",
+   "aliases": []
+  },
+  "C011": {
+   "key": "button[data-create]",
+   "aliases": []
+  },
+  "C012": {
+   "key": "button[data-handled]",
+   "aliases": []
+  },
+  "C013": {
+   "key": "button[data-made-file]",
+   "aliases": []
+  },
+  "C014": {
+   "key": "button[data-mode=empty]",
+   "aliases": []
+  },
+  "C015": {
+   "key": "button[data-mode=clone]",
+   "aliases": []
+  },
+  "C016": {
+   "key": "#cp-name",
+   "aliases": []
+  },
+  "C017": {
+   "key": "#cp-desc",
+   "aliases": []
+  },
+  "C018": {
+   "key": "#cp-cancel",
+   "aliases": []
+  },
+  "C019": {
+   "key": "#cp-submit",
+   "aliases": []
+  },
+  "C020": {
+   "key": "#jump-q",
+   "aliases": []
+  },
+  "C021": {
+   "key": "#j-N",
+   "aliases": []
+  },
+  "C022": {
+   "key": "button[data-go=home]",
+   "aliases": []
+  },
+  "C023": {
+   "key": "button[data-stage-toggle]",
+   "aliases": []
+  },
+  "C024": {
+   "key": "button[data-go=t:…]",
+   "aliases": []
+  },
+  "C025": {
+   "key": "button[data-switch]",
+   "aliases": []
+  },
+  "C026": {
+   "key": "button[data-lp-open]",
+   "aliases": []
+  },
+  "C027": {
+   "key": "button.mx-down",
+   "aliases": []
+  },
+  "C028": {
+   "key": "button[data-chat-fold]",
+   "aliases": []
+  },
+  "C029": {
+   "key": "button[data-fv-min]",
+   "aliases": []
+  },
+  "C030": {
+   "key": "input[data-fl-q]",
+   "aliases": []
+  },
+  "C031": {
+   "key": "button[data-fl-new]",
+   "aliases": []
+  },
+  "C032": {
+   "key": "button[data-fl-dir]",
+   "aliases": []
+  },
+  "C033": {
+   "key": "button[data-fl-file]",
+   "aliases": []
+  },
+  "C034": {
+   "key": "div.fl-split",
+   "aliases": []
+  },
+  "C035": {
+   "key": "div.fv-cgrip",
+   "aliases": []
+  },
+  "C036": {
+   "key": "button[data-fv-tree]",
+   "aliases": []
+  },
+  "C037": {
+   "key": "button[data-fl-rail=changes]",
+   "aliases": []
+  },
+  "C038": {
+   "key": "button[data-fl-rail=all]",
+   "aliases": []
+  },
+  "C039": {
+   "key": "button[data-fl-rail=find]",
+   "aliases": []
+  },
+  "C040": {
+   "key": "#top-back",
+   "aliases": []
+  },
+  "C041": {
+   "key": "button[data-resolve,data-to=resolve]",
+   "aliases": []
+  },
+  "C042": {
+   "key": "button[data-tmenu]",
+   "aliases": []
+  },
+  "C043": {
+   "key": "#pb-menu",
+   "aliases": []
+  },
+  "C044": {
+   "key": "#set-phone",
+   "aliases": []
+  },
+  "C045": {
+   "key": "button[data-ck]",
+   "aliases": []
+  },
+  "C046": {
+   "key": "button[data-n,data-runs]",
+   "aliases": [
+    "button[data-runs]"
+   ]
+  },
+  "C047": {
+   "key": "button[data-run]",
+   "aliases": []
+  },
+  "C048": {
+   "key": "button[data-go=c:…]",
+   "aliases": []
+  },
+  "C049": {
+   "key": "a[data-thread]",
+   "aliases": []
+  },
+  "C050": {
+   "key": "button.mx-work.mx-tail",
+   "aliases": []
+  },
+  "C051": {
+   "key": "button[data-mx-reply]",
+   "aliases": []
+  },
+  "C052": {
+   "key": "button[data-mx-copy]",
+   "aliases": []
+  },
+  "C053": {
+   "key": "#say",
+   "aliases": []
+  },
+  "C054": {
+   "key": "#attach",
+   "aliases": []
+  },
+  "C055": {
+   "key": "#target",
+   "aliases": []
+  },
+  "C056": {
+   "key": "#iq",
+   "aliases": []
+  },
+  "C057": {
+   "key": "#send",
+   "aliases": []
+  },
+  "C058": {
+   "key": "#at-N",
+   "aliases": []
+  },
+  "C059": {
+   "key": "div[data-dmodel]",
+   "aliases": []
+  },
+  "C060": {
+   "key": "button[data-deffort]",
+   "aliases": []
+  },
+  "C061": {
+   "key": "button[data-lmore]",
+   "aliases": []
+  },
+  "C062": {
+   "key": "button[data-lauto]",
+   "aliases": []
+  },
+  "C063": {
+   "key": "#arts-q",
+   "aliases": []
+  },
+  "C064": {
+   "key": "#arts-pj",
+   "aliases": []
+  },
+  "C065": {
+   "key": "button[data-arts-kind]",
+   "aliases": []
+  },
+  "C066": {
+   "key": "button[data-made-go]",
+   "aliases": []
+  },
+  "C067": {
+   "key": "div.stg-grip",
+   "aliases": []
+  },
+  "C068": {
+   "key": "button[data-stg-full]",
+   "aliases": []
+  },
+  "C069": {
+   "key": "button[data-stg-close]",
+   "aliases": []
+  },
+  "C070": {
+   "key": "button[data-fr-fold=launch]",
+   "aliases": []
+  },
+  "C071": {
+   "key": "button[data-lp=ask]",
+   "aliases": []
+  },
+  "C072": {
+   "key": "button[data-ghost=changes]",
+   "aliases": []
+  },
+  "C073": {
+   "key": "button[data-ghost=agents]",
+   "aliases": []
+  },
+  "C074": {
+   "key": "button[data-ghost=map]",
+   "aliases": []
+  },
+  "C075": {
+   "key": "div[data-gut]",
+   "aliases": []
+  },
+  "C076": {
+   "key": "button[data-lp=open]",
+   "aliases": []
+  },
+  "C077": {
+   "key": "button[data-open-files]",
+   "aliases": []
+  },
+  "C078": {
+   "key": "button[data-fr-fold=changes]",
+   "aliases": []
+  },
+  "C079": {
+   "key": "button[data-fr-fold=agents]",
+   "aliases": []
+  },
+  "C080": {
+   "key": "#stage-map-tree",
+   "aliases": [
+    "button[data-map-mode=tree]"
+   ]
+  },
+  "C081": {
+   "key": "#stage-map-graph",
+   "aliases": [
+    "button[data-map-mode=graph]"
+   ]
+  },
+  "C082": {
+   "key": "button[data-fr-fold=map]",
+   "aliases": []
+  },
+  "C083": {
+   "key": "div[data-dg]",
+   "aliases": []
+  },
+  "C084": {
+   "key": "button[data-follow]",
+   "aliases": []
+  },
+  "C085": {
+   "key": "button[data-cx]",
+   "aliases": []
+  },
+  "C086": {
+   "key": "button[data-cx-open]",
+   "aliases": []
+  },
+  "C087": {
+   "key": "div.cx-pd",
+   "aliases": []
+  },
+  "C088": {
+   "key": "button[data-vw-askfile]",
+   "aliases": []
+  },
+  "C089": {
+   "key": "button[data-vw-mode=preview]",
+   "aliases": []
+  },
+  "C090": {
+   "key": "button[data-vw-mode=source]",
+   "aliases": []
+  },
+  "C091": {
+   "key": "button[data-vw-edit]",
+   "aliases": []
+  },
+  "C092": {
+   "key": "button[data-vw-more]",
+   "aliases": []
+  },
+  "C093": {
+   "key": "div.vw-body",
+   "aliases": []
+  },
+  "C094": {
+   "key": "button[data-vw-cancel]",
+   "aliases": []
+  },
+  "C095": {
+   "key": "button[data-vw-saveit]",
+   "aliases": []
+  },
+  "C096": {
+   "key": "div.vw-body.vw-file",
+   "aliases": []
+  },
+  "C097": {
+   "key": "#set-x",
+   "aliases": []
+  },
+  "C098": {
+   "key": "button[data-set]",
+   "aliases": []
+  },
+  "C099": {
+   "key": "#hops-tog",
+   "aliases": []
+  },
+  "C100": {
+   "key": "#webpics-tog",
+   "aliases": []
+  },
+  "C101": {
+   "key": "button[data-shp-preset=engineering]",
+   "aliases": []
+  },
+  "C102": {
+   "key": "button[data-shp-preset=marketing]",
+   "aliases": []
+  },
+  "C103": {
+   "key": "button[data-shp-preset=everything]",
+   "aliases": []
+  },
+  "C104": {
+   "key": "button[data-shp-reset]",
+   "aliases": []
+  },
+  "C105": {
+   "key": "button[data-shp-all]",
+   "aliases": []
+  },
+  "C106": {
+   "key": "button[data-shp-dense]",
+   "aliases": []
+  },
+  "C107": {
+   "key": "summary.",
+   "aliases": []
+  },
+  "C108": {
+   "key": "textarea[data-shp-json]",
+   "aliases": []
+  },
+  "C109": {
+   "key": "button[data-route=agent]",
+   "aliases": []
+  },
+  "C110": {
+   "key": "button[data-dm,data-route=decision]",
+   "aliases": []
+  },
+  "C111": {
+   "key": "button[data-route=off]",
+   "aliases": []
+  },
+  "C112": {
+   "key": "a.",
+   "aliases": []
+  },
+  "C113": {
+   "key": "button[data-dm-on]",
+   "aliases": []
+  },
+  "C114": {
+   "key": "button[data-rtd-default]",
+   "aliases": []
+  },
+  "C115": {
+   "key": "input[data-rtd-allowed]",
+   "aliases": []
+  },
+  "C116": {
+   "key": "button[data-rule-off]",
+   "aliases": []
+  },
+  "C117": {
+   "key": "#sound-tog",
+   "aliases": []
+  },
+  "C118": {
+   "key": "button[data-rebind]",
+   "aliases": []
+  },
+  "S001": {
+   "key": "button[data-limit]",
+   "aliases": []
+  },
+  "S002": {
+   "key": "button[data-tb]",
+   "aliases": []
+  },
+  "S003": {
+   "key": "button[data-older]",
+   "aliases": []
+  },
+  "S004": {
+   "key": "button[data-rec-undo]",
+   "aliases": []
+  },
+  "S005": {
+   "key": "button[data-dock-open]",
+   "aliases": []
+  },
+  "S006": {
+   "key": "button[data-fv-restore]",
+   "aliases": []
+  },
+  "S007": {
+   "key": "button[data-fv-close]",
+   "aliases": []
+  },
+  "S008": {
+   "key": "button[data-crail]",
+   "aliases": []
+  },
+  "S009": {
+   "key": "input[data-tedit]",
+   "aliases": [
+    "#tw-edit"
+   ]
+  },
+  "S010": {
+   "key": "button[data-tfield]",
+   "aliases": []
+  },
+  "S011": {
+   "key": "button[data-shell]",
+   "aliases": []
+  },
+  "S012": {
+   "key": "button[data-tmove]",
+   "aliases": []
+  },
+  "S013": {
+   "key": "button[data-fold]",
+   "aliases": []
+  },
+  "S014": {
+   "key": "button[data-dock-undo]",
+   "aliases": []
+  },
+  "S015": {
+   "key": "button[data-herald-undo]",
+   "aliases": []
+  },
+  "S016": {
+   "key": "button[data-a]",
+   "aliases": []
+  },
+  "S017": {
+   "key": "a[data-ref]",
+   "aliases": []
+  },
+  "S018": {
+   "key": "button[data-lref-x]",
+   "aliases": []
+  },
+  "S019": {
+   "key": "button[data-set-open]",
+   "aliases": []
+  },
+  "S020": {
+   "key": "button[data-af]",
+   "aliases": []
+  },
+  "S021": {
+   "key": "button[data-all-done]",
+   "aliases": []
+  },
+  "S022": {
+   "key": "button[data-kreset]",
+   "aliases": []
+  },
+  "S023": {
+   "key": "#keys-reset-all",
+   "aliases": []
+  },
+  "S024": {
+   "key": "button[data-ar-undo]",
+   "aliases": []
+  },
+  "S025": {
+   "key": "button[data-nx-opt]",
+   "aliases": []
+  },
+  "S026": {
+   "key": "button[data-decide]",
+   "aliases": []
+  },
+  "S027": {
+   "key": "button[data-nx-back]",
+   "aliases": []
+  },
+  "S028": {
+   "key": "button[data-nx-allow]",
+   "aliases": []
+  },
+  "S029": {
+   "key": "button[data-later]",
+   "aliases": []
+  },
+  "S030": {
+   "key": "#nx-note-in",
+   "aliases": []
+  },
+  "S031": {
+   "key": "button[data-nx-send]",
+   "aliases": []
+  },
+  "S032": {
+   "key": "button[data-nx-cancel]",
+   "aliases": []
+  },
+  "S033": {
+   "key": "button[data-open-all]",
+   "aliases": []
+  },
+  "S034": {
+   "key": "button[data-glances]",
+   "aliases": []
+  },
+  "S035": {
+   "key": "button[data-bring]",
+   "aliases": []
+  },
+  "S036": {
+   "key": "button[data-bring-in]",
+   "aliases": []
+  },
+  "S037": {
+   "key": "button[data-interrupt]",
+   "aliases": []
+  },
+  "S038": {
+   "key": "button[data-unfreeze]",
+   "aliases": []
+  },
+  "S039": {
+   "key": "button[data-retry]",
+   "aliases": []
+  },
+  "S040": {
+   "key": "button[data-edit]",
+   "aliases": []
+  },
+  "S041": {
+   "key": "button[data-cx-all]",
+   "aliases": []
+  },
+  "S042": {
+   "key": "button[data-cx-show]",
+   "aliases": []
+  },
+  "S043": {
+   "key": "button[data-chat-retry]",
+   "aliases": []
+  },
+  "S044": {
+   "key": "button[data-chat-edit]",
+   "aliases": []
+  },
+  "S045": {
+   "key": "button[data-chat-stop]",
+   "aliases": []
+  },
+  "S046": {
+   "key": "button[data-csmode]",
+   "aliases": []
+  },
+  "S047": {
+   "key": "button[data-cs-done]",
+   "aliases": []
+  },
+  "S048": {
+   "key": "button[data-chc]",
+   "aliases": []
+  },
+  "S049": {
+   "key": "button[data-cp]",
+   "aliases": []
+  },
+  "S050": {
+   "key": "button[data-act]",
+   "aliases": []
+  },
+  "S051": {
+   "key": "button[data-opt]",
+   "aliases": []
+  },
+  "S052": {
+   "key": "button[data-iopt]",
+   "aliases": []
+  },
+  "S053": {
+   "key": "input[data-qid]",
+   "aliases": []
+  },
+  "S054": {
+   "key": "input[data-name]",
+   "aliases": []
+  },
+  "S055": {
+   "key": "button[data-iscope]",
+   "aliases": []
+  },
+  "S056": {
+   "key": "button[data-scope]",
+   "aliases": []
+  },
+  "S057": {
+   "key": "button[data-vig]",
+   "aliases": [
+    "button[data-vig=rest]"
+   ]
+  },
+  "S058": {
+   "key": "button[data-nav]",
+   "aliases": []
+  },
+  "S059": {
+   "key": "button[data-all]",
+   "aliases": []
+  },
+  "S060": {
+   "key": "button[data-cf]",
+   "aliases": []
+  },
+  "S061": {
+   "key": "button[data-fl-retry]",
+   "aliases": []
+  },
+  "S062": {
+   "key": "button[data-fl-unpick]",
+   "aliases": []
+  },
+  "S063": {
+   "key": "button[data-fl-change]",
+   "aliases": []
+  },
+  "S064": {
+   "key": "button[data-fl-touch]",
+   "aliases": []
+  },
+  "S065": {
+   "key": "button[data-fl-pick]",
+   "aliases": []
+  },
+  "S066": {
+   "key": "button[data-fl-back]",
+   "aliases": []
+  },
+  "S067": {
+   "key": "button[data-fl-mk]",
+   "aliases": []
+  },
+  "S068": {
+   "key": "button[data-fl-cp]",
+   "aliases": []
+  },
+  "S069": {
+   "key": "input[data-fl-name]",
+   "aliases": []
+  },
+  "S070": {
+   "key": "button[data-fv-back]",
+   "aliases": []
+  },
+  "S071": {
+   "key": "button[data-lrt]",
+   "aliases": []
+  },
+  "S072": {
+   "key": "button[data-lsimple]",
+   "aliases": [
+    "button[data-lsimple=auto]"
+   ]
+  },
+  "S073": {
+   "key": "button[data-lfull]",
+   "aliases": []
+  },
+  "S074": {
+   "key": "button[data-mv-cancel]",
+   "aliases": []
+  },
+  "S075": {
+   "key": "button[data-mv-go]",
+   "aliases": []
+  },
+  "S076": {
+   "key": "button[data-ldone]",
+   "aliases": []
+  },
+  "S077": {
+   "key": "button[data-lroute]",
+   "aliases": []
+  },
+  "S078": {
+   "key": "input[data-lp-env]",
+   "aliases": []
+  },
+  "S079": {
+   "key": "input[data-lp-f]",
+   "aliases": []
+  },
+  "S080": {
+   "key": "button[data-lbx]",
+   "aliases": [
+    "button[data-lbx=files]"
+   ]
+  },
+  "S081": {
+   "key": "button[data-map-toggle]",
+   "aliases": []
+  },
+  "S082": {
+   "key": "button[data-node]",
+   "aliases": []
+  },
+  "S083": {
+   "key": "button[data-mp-go]",
+   "aliases": []
+  },
+  "S084": {
+   "key": "button[data-mp-focus]",
+   "aliases": []
+  },
+  "S085": {
+   "key": "button[data-mp-full]",
+   "aliases": []
+  },
+  "S086": {
+   "key": "button[data-mp-close]",
+   "aliases": []
+  },
+  "S087": {
+   "key": "button[data-stage]",
+   "aliases": []
+  },
+  "S088": {
+   "key": "a[data-file]",
+   "aliases": [
+    "a[data-file,data-file-bytes,data-file-type]"
+   ]
+  },
+  "S089": {
+   "key": "button[data-copy]",
+   "aliases": []
+  },
+  "S090": {
+   "key": "button[data-mx]",
+   "aliases": []
+  },
+  "S091": {
+   "key": "button[data-rec-got]",
+   "aliases": []
+  },
+  "S092": {
+   "key": "button[data-rec-more]",
+   "aliases": []
+  },
+  "S093": {
+   "key": "button[data-made-open]",
+   "aliases": []
+  },
+  "S094": {
+   "key": "button[data-made-pin]",
+   "aliases": []
+  },
+  "S095": {
+   "key": "#made-q",
+   "aliases": []
+  },
+  "S096": {
+   "key": "button[data-made-kind]",
+   "aliases": []
+  },
+  "S097": {
+   "key": "button[data-rtd-fallback]",
+   "aliases": []
+  },
+  "S098": {
+   "key": "textarea[data-rtd-pref]",
+   "aliases": [
+    "#rtd-pref"
+   ]
+  },
+  "S099": {
+   "key": "button[data-runs-back]",
+   "aliases": []
+  },
+  "S100": {
+   "key": "button[data-run-stop]",
+   "aliases": []
+  },
+  "S101": {
+   "key": "button[data-runs-stop]",
+   "aliases": []
+  },
+  "S102": {
+   "key": "button[data-close]",
+   "aliases": []
+  },
+  "S103": {
+   "key": "button[data-rule-no]",
+   "aliases": []
+  },
+  "S104": {
+   "key": "button[data-rule-yes]",
+   "aliases": []
+  },
+  "S105": {
+   "key": "button[data-wt]",
+   "aliases": []
+  },
+  "S106": {
+   "key": "button[data-wt-no]",
+   "aliases": []
+  },
+  "S107": {
+   "key": "button[data-wt-hold]",
+   "aliases": []
+  },
+  "S108": {
+   "key": "button[data-wt-yes]",
+   "aliases": []
+  },
+  "S109": {
+   "key": "button[data-dm-off]",
+   "aliases": []
+  },
+  "S110": {
+   "key": "button[data-dm-cancel]",
+   "aliases": []
+  },
+  "S111": {
+   "key": "button[data-dm-no]",
+   "aliases": []
+  },
+  "S112": {
+   "key": "button[data-dm-yes]",
+   "aliases": []
+  },
+  "S113": {
+   "key": "button[data-ov-clear]",
+   "aliases": []
+  },
+  "S114": {
+   "key": "button[data-shp-revert]",
+   "aliases": []
+  },
+  "S115": {
+   "key": "button[data-shp-save]",
+   "aliases": []
+  },
+  "S116": {
+   "key": "button[data-shf-close]",
+   "aliases": []
+  },
+  "S117": {
+   "key": "button[data-shf]",
+   "aliases": []
+  },
+  "S118": {
+   "key": "button[data-shp-keep]",
+   "aliases": []
+  },
+  "S119": {
+   "key": "button[data-shp-switch]",
+   "aliases": []
+  },
+  "S120": {
+   "key": "button[data-change]",
+   "aliases": []
+  },
+  "S121": {
+   "key": "button[data-rail]",
+   "aliases": []
+  },
+  "S122": {
+   "key": "button[data-map-mode]",
+   "aliases": []
+  },
+  "S123": {
+   "key": "button[data-run-call]",
+   "aliases": []
+  },
+  "S124": {
+   "key": "button[data-vw-copy]",
+   "aliases": []
+  },
+  "S125": {
+   "key": "button[data-vw-copy-path]",
+   "aliases": []
+  },
+  "S126": {
+   "key": "button[data-vw-download]",
+   "aliases": []
+  },
+  "S127": {
+   "key": "button[data-vw-show]",
+   "aliases": []
+  },
+  "S128": {
+   "key": "button[data-vw-split]",
+   "aliases": []
+  },
+  "S129": {
+   "key": "button[data-vw-draftx]",
+   "aliases": []
+  },
+  "S130": {
+   "key": "button[data-vw-update]",
+   "aliases": []
+  },
+  "S131": {
+   "key": "button[data-vw-close]",
+   "aliases": []
+  },
+  "S132": {
+   "key": "button[data-vw-keep]",
+   "aliases": []
+  },
+  "S133": {
+   "key": "button[data-vw-discard]",
+   "aliases": []
+  },
+  "S134": {
+   "key": "button[data-vw-noconfirm]",
+   "aliases": []
+  },
+  "S135": {
+   "key": "button[data-vw-confirm]",
+   "aliases": []
+  },
+  "S136": {
+   "key": "button[data-vw-undo]",
+   "aliases": []
+  },
+  "S137": {
+   "key": "button[data-vw-tell]",
+   "aliases": []
+  },
+  "S138": {
+   "key": "button[data-vw-toastx]",
+   "aliases": []
+  },
+  "S139": {
+   "key": "button[data-vw-retry]",
+   "aliases": []
+  },
+  "C119": {
+   "key": "button[data-go-msg,data-go=p:…]",
+   "aliases": []
+  },
+  "C120": {
+   "key": "div[data-content]",
+   "aliases": []
+  },
+  "C121": {
+   "key": "button.mx-work",
+   "aliases": []
+  },
+  "C122": {
+   "key": "#side-x",
+   "aliases": []
+  },
+  "C123": {
+   "key": "#top-menu",
+   "aliases": []
+  },
+  "C124": {
+   "key": "button.dis-h",
+   "aliases": []
+  },
+  "C125": {
+   "key": "button[data-fl-more]",
+   "aliases": []
+  },
+  "S140": {
+   "key": "#att-input",
+   "aliases": []
+  },
+  "S141": {
+   "key": "#send-now",
+   "aliases": []
+  },
+  "S142": {
+   "key": "#pn-x",
+   "aliases": []
+  },
+  "S143": {
+   "key": "#cp-repo",
+   "aliases": []
+  },
+  "S144": {
+   "key": "#cp-stop",
+   "aliases": []
+  },
+  "S145": {
+   "key": "#all-q",
+   "aliases": []
+  },
+  "S146": {
+   "key": "button[data-go=…]",
+   "aliases": []
+  },
+  "S147": {
+   "key": "button[data-go-msg,data-go=ws]",
+   "aliases": []
+  },
+  "S148": {
+   "key": "button[data-go-msg,data-go=…]",
+   "aliases": []
+  },
+  "S149": {
+   "key": "button[data-go=…,data-hn]",
+   "aliases": []
+  },
+  "S150": {
+   "key": "button[data-decide,data-hn]",
+   "aliases": []
+  },
+  "S151": {
+   "key": "xo-select[data-cs=cwd]",
+   "aliases": []
+  },
+  "S152": {
+   "key": "xo-select[data-cs=agent]",
+   "aliases": []
+  },
+  "S153": {
+   "key": "xo-select[data-cs=model]",
+   "aliases": []
+  },
+  "S154": {
+   "key": "xo-select[data-cs=effort]",
+   "aliases": []
+  },
+  "S155": {
+   "key": "a[data-cp=copy]",
+   "aliases": []
+  },
+  "S156": {
+   "key": "button[data-cp=connect]",
+   "aliases": []
+  },
+  "S157": {
+   "key": "button[data-act=thread]",
+   "aliases": []
+  },
+  "S158": {
+   "key": "button[data-act=hold]",
+   "aliases": []
+  },
+  "S159": {
+   "key": "button[data-act=reply]",
+   "aliases": []
+  },
+  "S160": {
+   "key": "button[data-act=allow]",
+   "aliases": []
+  },
+  "S161": {
+   "key": "button[data-act=teach]",
+   "aliases": []
+  },
+  "S162": {
+   "key": "button[data-act=later]",
+   "aliases": []
+  },
+  "S163": {
+   "key": "button[data-act=retry]",
+   "aliases": []
+  },
+  "S164": {
+   "key": "button[data-act=note-reply]",
+   "aliases": []
+  },
+  "S165": {
+   "key": "button[data-act=back]",
+   "aliases": []
+  },
+  "S166": {
+   "key": "button[data-act=done]",
+   "aliases": []
+  },
+  "S167": {
+   "key": "button[data-act=note-send]",
+   "aliases": []
+  },
+  "S168": {
+   "key": "button[data-act=note-cancel]",
+   "aliases": []
+  },
+  "S169": {
+   "key": "button[data-vig=go]",
+   "aliases": []
+  },
+  "S170": {
+   "key": "button[data-lp=copy]",
+   "aliases": []
+  },
+  "S171": {
+   "key": "button[data-lp=select]",
+   "aliases": []
+  },
+  "S172": {
+   "key": "button[data-lp=edit]",
+   "aliases": []
+  },
+  "S173": {
+   "key": "button[data-lp=retry]",
+   "aliases": []
+  },
+  "S174": {
+   "key": "button[data-lp=cmd-copy]",
+   "aliases": []
+  },
+  "S175": {
+   "key": "button[data-lp=recheck-gh]",
+   "aliases": []
+  },
+  "S176": {
+   "key": "button[data-lp=env-all]",
+   "aliases": []
+  },
+  "S177": {
+   "key": "button[data-lp=deploy]",
+   "aliases": []
+  },
+  "S178": {
+   "key": "button[data-lp=reconnect]",
+   "aliases": []
+  },
+  "S179": {
+   "key": "button[data-lp=edit-cancel]",
+   "aliases": []
+  },
+  "S180": {
+   "key": "button[data-lp=pick]",
+   "aliases": []
+  },
+  "S181": {
+   "key": "button[data-lp=machine-open]",
+   "aliases": []
+  },
+  "S182": {
+   "key": "select[data-lp-f]",
+   "aliases": []
+  },
+  "S183": {
+   "key": "button[data-lp=disk-remove]",
+   "aliases": []
+  },
+  "S184": {
+   "key": "button[data-lp=disk-add]",
+   "aliases": []
+  },
+  "S185": {
+   "key": "button[data-lp=use-name]",
+   "aliases": []
+  },
+  "S186": {
+   "key": "button[data-lp=undo]",
+   "aliases": []
+  },
+  "S187": {
+   "key": "button[data-lp=stop]",
+   "aliases": []
+  },
+  "S188": {
+   "key": "button[data-lp=hide]",
+   "aliases": []
+  },
+  "S189": {
+   "key": "button[data-lp=rewatch]",
+   "aliases": []
+  },
+  "S190": {
+   "key": "button[data-lp=unlink]",
+   "aliases": []
+  },
+  "S191": {
+   "key": "button[data-lp=again]",
+   "aliases": []
+  },
+  "S192": {
+   "key": "button[data-lp=menu]",
+   "aliases": []
+  },
+  "S193": {
+   "key": "button[data-go=…,data-lp=thread]",
+   "aliases": []
+  },
+  "S194": {
+   "key": "button[data-lp=code-copy]",
+   "aliases": []
+  },
+  "S195": {
+   "key": "button[data-lp=device-cancel]",
+   "aliases": []
+  },
+  "S196": {
+   "key": "button[data-lp=link]",
+   "aliases": []
+  },
+  "S197": {
+   "key": "button[data-lp=pick-cancel]",
+   "aliases": []
+  },
+  "S198": {
+   "key": "button[data-lp=recheck]",
+   "aliases": []
+  },
+  "S199": {
+   "key": "button[data-lbx=down]",
+   "aliases": []
+  },
+  "S200": {
+   "key": "button[data-lbx=close]",
+   "aliases": []
+  },
+  "S201": {
+   "key": "button[data-lbx=prev]",
+   "aliases": []
+  },
+  "S202": {
+   "key": "button[data-lbx=next]",
+   "aliases": []
+  },
+  "S203": {
+   "key": "button[data-dg=tree]",
+   "aliases": []
+  },
+  "S204": {
+   "key": "button[data-dg=graph]",
+   "aliases": []
+  },
+  "S205": {
+   "key": "button[data-dg=out]",
+   "aliases": []
+  },
+  "S206": {
+   "key": "button[data-dg=in]",
+   "aliases": []
+  },
+  "S207": {
+   "key": "button[data-dg=fit]",
+   "aliases": []
+  },
+  "S208": {
+   "key": "button[data-dg=follow]",
+   "aliases": []
+  },
+  "S209": {
+   "key": "xo-select[data-abstain]",
+   "aliases": []
+  },
+  "S210": {
+   "key": "button[data-sh-tab]",
+   "aliases": []
+  },
+  "S211": {
+   "key": "button[data-sh-detach]",
+   "aliases": []
+  },
+  "S212": {
+   "key": "input[data-sh-name]",
+   "aliases": []
+  },
+  "S213": {
+   "key": "button[data-sh-rename]",
+   "aliases": []
+  },
+  "S214": {
+   "key": "button[data-sh-close]",
+   "aliases": []
+  },
+  "S215": {
+   "key": "button[data-sh-min]",
+   "aliases": []
+  },
+  "S216": {
+   "key": "button[data-sh-hide]",
+   "aliases": []
+  },
+  "S217": {
+   "key": "button[data-sh-no]",
+   "aliases": []
+  },
+  "S218": {
+   "key": "button[data-sh-yes]",
+   "aliases": []
+  },
+  "S219": {
+   "key": "button[data-sh-retry]",
+   "aliases": []
+  },
+  "S220": {
+   "key": "button[data-sh-filter]",
+   "aliases": []
+  },
+  "S221": {
+   "key": "button[data-sh-closedet]",
+   "aliases": []
+  },
+  "S222": {
+   "key": "button[data-sh-new]",
+   "aliases": []
+  },
+  "S223": {
+   "key": "button[data-sh-open]",
+   "aliases": []
+  },
+  "S224": {
+   "key": "button[data-file]",
+   "aliases": []
+  },
+  "S225": {
+   "key": "button[data-vw-mode=actual]",
+   "aliases": []
+  },
+  "S226": {
+   "key": "#mx-return",
+   "aliases": []
+  },
+  "S227": {
+   "key": "button.mx-r-x",
+   "aliases": []
+  },
+  "S228": {
+   "key": "button.mx-qpop",
+   "aliases": []
+  },
+  "S229": {
+   "key": "xo-select .dd-btn",
+   "aliases": []
+  },
+  "S230": {
+   "key": "xo-select .dd-row",
+   "aliases": []
+  },
+  "S231": {
+   "key": "diffs-container [contenteditable]",
+   "aliases": []
+  },
+  "S232": {
+   "key": "button.xd-mbtn",
+   "aliases": []
+  },
+  "C126": {
+   "key": "#c-note-N",
+   "aliases": []
+  },
+  "S233": {
+   "key": "button[data-a=view]",
+   "aliases": []
+  },
+  "S234": {
+   "key": "button[data-a=inline]",
+   "aliases": []
+  },
+  "S235": {
+   "key": "button[data-lsimple=deep]",
+   "aliases": []
+  },
+  "S236": {
+   "key": "xo-select[data-lp-f]",
+   "aliases": []
+  },
+  "S237": {
+   "key": "button[data-lp=stop-undo]",
+   "aliases": []
+  },
+  "S238": {
+   "key": "button[data-runs-retry]",
+   "aliases": []
+  },
+  "S239": {
+   "key": "button[data-runs-undo]",
+   "aliases": []
+  },
+  "S240": {
+   "key": "button[data-unfold]",
+   "aliases": []
+  },
+  "S241": {
+   "key": "gesture: drop files",
+   "aliases": []
+  },
+  "S242": {
+   "key": "diffs-container input[data-search]",
+   "aliases": []
+  },
+  "S243": {
+   "key": "diffs-container button[aria-label=\"Match Case\"]",
+   "aliases": []
+  },
+  "S244": {
+   "key": "diffs-container button[aria-label=\"Whole Word\"]",
+   "aliases": []
+  },
+  "S245": {
+   "key": "diffs-container button[aria-label=\"Regexp\"]",
+   "aliases": []
+  },
+  "S246": {
+   "key": "diffs-container button[aria-label=\"Next\"]",
+   "aliases": []
+  },
+  "S247": {
+   "key": "diffs-container button[aria-label=\"Previous\"]",
+   "aliases": []
+  },
+  "S248": {
+   "key": "diffs-container button[data-replace-toggle]",
+   "aliases": []
+  },
+  "S249": {
+   "key": "diffs-container input[data-replace]",
+   "aliases": []
+  },
+  "S250": {
+   "key": "diffs-container button[aria-label=\"Replace\"]",
+   "aliases": []
+  },
+  "S251": {
+   "key": "diffs-container button[aria-label=\"Replace All\"]",
+   "aliases": []
+  },
+  "S252": {
+   "key": "diffs-container button[data-search-close]",
+   "aliases": []
+  },
+  "S253": {
+   "key": "button[data-vw-diff-retry]",
+   "aliases": []
+  },
+  "S254": {
+   "key": "div[data-mvm]",
+   "aliases": []
+  },
+  "S255": {
+   "key": "button[data-mvp]",
+   "aliases": []
+  },
+  "S256": {
+   "key": "button[data-dm-submit]",
+   "aliases": []
+  },
+  "S257": {
+   "key": "xo-select[data-cs]",
+   "aliases": []
+  },
+  "S258": {
+   "key": "button.lp-ib[data-lp=copy]",
+   "aliases": []
+  },
+  "S259": {
+   "key": "button[data-lp=settings]",
+   "aliases": [
+    "LPX01-settings"
+   ]
+  },
+  "S260": {
+   "key": "button[data-lp=create-repo]",
+   "aliases": [
+    "LPX02-create-repo"
+   ]
+  },
+  "S261": {
+   "key": "button[data-lp=link-same]",
+   "aliases": [
+    "LPX03-link-same"
+   ]
+  },
+  "S262": {
+   "key": "button[data-lp=ask-fix]",
+   "aliases": [
+    "LPX04-ask-fix"
+   ]
+  },
+  "S263": {
+   "key": "button[data-lp=recreate]",
+   "aliases": [
+    "LPX05-recreate"
+   ]
+  },
+  "S264": {
+   "key": "button[data-lp=fix-port]",
+   "aliases": [
+    "LPX06-fix-port"
+   ]
+  },
+  "S265": {
+   "key": "a.lpm-host",
+   "aliases": [
+    "LPX10-open-host",
+    "a.lp-hh",
+    "LPX07-folded-host",
+    ".lpm-addr a.lp-ib",
+    "LPX09-open-icon",
+    ".lp-ha a.fr-ib",
+    "LPX13-head-open-icon",
+    ".lpv-addr a.lp-ib",
+    "LPX14-wide-open-icon"
+   ]
+  },
+  "S266": {
+   "key": "a.lp-ln",
+   "aliases": [
+    ".lpm a.lp-ln",
+    "LPX08-build-log",
+    ".lpv a.lp-ln",
+    "LPX17-wide-build-log",
+    ".lp-or a.lp-b",
+    "LPX16-failed-build-log",
+    ".lp-acts a.lp-go"
+   ]
+  },
+  "S267": {
+   "key": ".lp-acts a.lp-b",
+   "aliases": [
+    "LPX11-launchpad-link"
+   ]
+  },
+  "S268": {
+   "key": "a.lp-go.lp-wide",
+   "aliases": [
+    "LPX12-device-link"
+   ]
+  },
+  "S269": {
+   "key": "div.shd-grip",
+   "aliases": [
+    ".shd-grip",
+    "LPX15-shell-resize"
+   ]
+  },
+  "S270": {
+   "key": "input[data-vw-cut-sel]",
+   "aliases": []
+  },
+  "S271": {
+   "key": "button[data-vw-draft-show,data-vw-show]",
+   "aliases": []
+  },
+  "S272": {
+   "key": "button[data-vw-diff-redraw,data-vw-show]",
+   "aliases": []
+  }
+ },
+ "legacy": {
+  "C001": {
+   "kind": "C",
+   "key": "#theme"
+  },
+  "C002": {
+   "kind": "C",
+   "key": "#nv-home"
+  },
+  "C003": {
+   "kind": "C",
+   "key": "#nv-ws"
+  },
+  "C004": {
+   "kind": "C",
+   "key": "#nv-chats"
+  },
+  "C005": {
+   "kind": "C",
+   "key": "#nv-arts"
+  },
+  "C006": {
+   "kind": "C",
+   "key": "#side-add"
+  },
+  "C007": {
+   "kind": "C",
+   "key": "#pf-in"
+  },
+  "C008": {
+   "kind": "C",
+   "key": "button[data-go=p:…]"
+  },
+  "C009": {
+   "kind": "C",
+   "key": "#nv-shells"
+  },
+  "C010": {
+   "kind": "C",
+   "key": "#set-side"
+  },
+  "C011": {
+   "kind": "C",
+   "key": "button[data-create]"
+  },
+  "C012": {
+   "kind": "C",
+   "key": "button[data-handled]"
+  },
+  "C013": {
+   "kind": "C",
+   "key": "button[data-made-file]"
+  },
+  "C014": {
+   "kind": "C",
+   "key": "button[data-mode=empty]"
+  },
+  "C015": {
+   "kind": "C",
+   "key": "button[data-mode=clone]"
+  },
+  "C016": {
+   "kind": "C",
+   "key": "#cp-name"
+  },
+  "C017": {
+   "kind": "C",
+   "key": "#cp-desc"
+  },
+  "C018": {
+   "kind": "C",
+   "key": "#cp-cancel"
+  },
+  "C019": {
+   "kind": "C",
+   "key": "#cp-submit"
+  },
+  "C020": {
+   "kind": "C",
+   "key": "#jump-q"
+  },
+  "C021": {
+   "kind": "C",
+   "key": "#j-N"
+  },
+  "C022": {
+   "kind": "C",
+   "key": "button[data-go=home]"
+  },
+  "C023": {
+   "kind": "C",
+   "key": "button[data-stage-toggle]"
+  },
+  "C024": {
+   "kind": "C",
+   "key": "button[data-go=t:…]"
+  },
+  "C025": {
+   "kind": "C",
+   "key": "button[data-switch]"
+  },
+  "C026": {
+   "kind": "C",
+   "key": "button[data-lp-open]"
+  },
+  "C027": {
+   "kind": "C",
+   "key": "button.mx-down"
+  },
+  "C028": {
+   "kind": "C",
+   "key": "button[data-chat-fold]"
+  },
+  "C029": {
+   "kind": "C",
+   "key": "button[data-fv-min]"
+  },
+  "C030": {
+   "kind": "C",
+   "key": "input[data-fl-q]"
+  },
+  "C031": {
+   "kind": "C",
+   "key": "button[data-fl-new]"
+  },
+  "C032": {
+   "kind": "C",
+   "key": "button[data-fl-dir]"
+  },
+  "C033": {
+   "kind": "C",
+   "key": "button[data-fl-file]"
+  },
+  "C034": {
+   "kind": "C",
+   "key": "div.fl-split"
+  },
+  "C035": {
+   "kind": "C",
+   "key": "div.fv-cgrip"
+  },
+  "C036": {
+   "kind": "C",
+   "key": "button[data-fv-tree]"
+  },
+  "C037": {
+   "kind": "C",
+   "key": "button[data-fl-rail=changes]"
+  },
+  "C038": {
+   "kind": "C",
+   "key": "button[data-fl-rail=all]"
+  },
+  "C039": {
+   "kind": "C",
+   "key": "button[data-fl-rail=find]"
+  },
+  "C040": {
+   "kind": "C",
+   "key": "#top-back"
+  },
+  "C041": {
+   "kind": "C",
+   "key": "button[data-resolve,data-to=resolve]"
+  },
+  "C042": {
+   "kind": "C",
+   "key": "button[data-tmenu]"
+  },
+  "C043": {
+   "kind": "C",
+   "key": "#pb-menu"
+  },
+  "C044": {
+   "kind": "C",
+   "key": "#set-phone"
+  },
+  "C045": {
+   "kind": "C",
+   "key": "button[data-ck]"
+  },
+  "C046": {
+   "kind": "C",
+   "key": "button[data-n,data-runs]"
+  },
+  "C047": {
+   "kind": "C",
+   "key": "button[data-run]"
+  },
+  "C048": {
+   "kind": "C",
+   "key": "button[data-go=c:…]"
+  },
+  "C049": {
+   "kind": "C",
+   "key": "a[data-thread]"
+  },
+  "C050": {
+   "kind": "C",
+   "key": "button.mx-work.mx-tail"
+  },
+  "C051": {
+   "kind": "C",
+   "key": "button[data-mx-reply]"
+  },
+  "C052": {
+   "kind": "C",
+   "key": "button[data-mx-copy]"
+  },
+  "C053": {
+   "kind": "C",
+   "key": "#say"
+  },
+  "C054": {
+   "kind": "C",
+   "key": "#attach"
+  },
+  "C055": {
+   "kind": "C",
+   "key": "#target"
+  },
+  "C056": {
+   "kind": "C",
+   "key": "#iq"
+  },
+  "C057": {
+   "kind": "C",
+   "key": "#send"
+  },
+  "C058": {
+   "kind": "C",
+   "key": "#at-N"
+  },
+  "C059": {
+   "kind": "C",
+   "key": "div[data-dmodel]"
+  },
+  "C060": {
+   "kind": "C",
+   "key": "button[data-deffort]"
+  },
+  "C061": {
+   "kind": "C",
+   "key": "button[data-lmore]"
+  },
+  "C062": {
+   "kind": "C",
+   "key": "button[data-lauto]"
+  },
+  "C063": {
+   "kind": "C",
+   "key": "#arts-q"
+  },
+  "C064": {
+   "kind": "C",
+   "key": "#arts-pj"
+  },
+  "C065": {
+   "kind": "C",
+   "key": "button[data-arts-kind]"
+  },
+  "C066": {
+   "kind": "C",
+   "key": "button[data-made-go]"
+  },
+  "C067": {
+   "kind": "C",
+   "key": "div.stg-grip"
+  },
+  "C068": {
+   "kind": "C",
+   "key": "button[data-stg-full]"
+  },
+  "C069": {
+   "kind": "C",
+   "key": "button[data-stg-close]"
+  },
+  "C070": {
+   "kind": "C",
+   "key": "button[data-fr-fold=launch]"
+  },
+  "C071": {
+   "kind": "C",
+   "key": "button[data-lp=ask]"
+  },
+  "C072": {
+   "kind": "C",
+   "key": "button[data-ghost=changes]"
+  },
+  "C073": {
+   "kind": "C",
+   "key": "button[data-ghost=agents]"
+  },
+  "C074": {
+   "kind": "C",
+   "key": "button[data-ghost=map]"
+  },
+  "C075": {
+   "kind": "C",
+   "key": "div[data-gut]"
+  },
+  "C076": {
+   "kind": "C",
+   "key": "button[data-lp=open]"
+  },
+  "C077": {
+   "kind": "C",
+   "key": "button[data-open-files]"
+  },
+  "C078": {
+   "kind": "C",
+   "key": "button[data-fr-fold=changes]"
+  },
+  "C079": {
+   "kind": "C",
+   "key": "button[data-fr-fold=agents]"
+  },
+  "C080": {
+   "kind": "C",
+   "key": "#stage-map-tree"
+  },
+  "C081": {
+   "kind": "C",
+   "key": "#stage-map-graph"
+  },
+  "C082": {
+   "kind": "C",
+   "key": "button[data-fr-fold=map]"
+  },
+  "C083": {
+   "kind": "C",
+   "key": "div[data-dg]"
+  },
+  "C084": {
+   "kind": "C",
+   "key": "button[data-follow]"
+  },
+  "C085": {
+   "kind": "C",
+   "key": "button[data-cx]"
+  },
+  "C086": {
+   "kind": "C",
+   "key": "button[data-cx-open]"
+  },
+  "C087": {
+   "kind": "C",
+   "key": "div.cx-pd"
+  },
+  "C088": {
+   "kind": "C",
+   "key": "button[data-vw-askfile]"
+  },
+  "C089": {
+   "kind": "C",
+   "key": "button[data-vw-mode=preview]"
+  },
+  "C090": {
+   "kind": "C",
+   "key": "button[data-vw-mode=source]"
+  },
+  "C091": {
+   "kind": "C",
+   "key": "button[data-vw-edit]"
+  },
+  "C092": {
+   "kind": "C",
+   "key": "button[data-vw-more]"
+  },
+  "C093": {
+   "kind": "C",
+   "key": "div.vw-body"
+  },
+  "C094": {
+   "kind": "C",
+   "key": "button[data-vw-cancel]"
+  },
+  "C095": {
+   "kind": "C",
+   "key": "button[data-vw-saveit]"
+  },
+  "C096": {
+   "kind": "C",
+   "key": "div.vw-body.vw-file"
+  },
+  "C097": {
+   "kind": "C",
+   "key": "#set-x"
+  },
+  "C098": {
+   "kind": "C",
+   "key": "button[data-set]"
+  },
+  "C099": {
+   "kind": "C",
+   "key": "#hops-tog"
+  },
+  "C100": {
+   "kind": "C",
+   "key": "#webpics-tog"
+  },
+  "C101": {
+   "kind": "C",
+   "key": "button[data-shp-preset=engineering]"
+  },
+  "C102": {
+   "kind": "C",
+   "key": "button[data-shp-preset=marketing]"
+  },
+  "C103": {
+   "kind": "C",
+   "key": "button[data-shp-preset=everything]"
+  },
+  "C104": {
+   "kind": "C",
+   "key": "button[data-shp-reset]"
+  },
+  "C105": {
+   "kind": "C",
+   "key": "button[data-shp-all]"
+  },
+  "C106": {
+   "kind": "C",
+   "key": "button[data-shp-dense]"
+  },
+  "C107": {
+   "kind": "C",
+   "key": "summary."
+  },
+  "C108": {
+   "kind": "C",
+   "key": "textarea[data-shp-json]"
+  },
+  "C109": {
+   "kind": "C",
+   "key": "button[data-route=agent]"
+  },
+  "C110": {
+   "kind": "C",
+   "key": "button[data-dm,data-route=decision]"
+  },
+  "C111": {
+   "kind": "C",
+   "key": "button[data-route=off]"
+  },
+  "C112": {
+   "kind": "C",
+   "key": "a."
+  },
+  "C113": {
+   "kind": "C",
+   "key": "button[data-dm-on]"
+  },
+  "C114": {
+   "kind": "C",
+   "key": "button[data-rtd-default]"
+  },
+  "C115": {
+   "kind": "C",
+   "key": "input[data-rtd-allowed]"
+  },
+  "C116": {
+   "kind": "C",
+   "key": "button[data-rule-off]"
+  },
+  "C117": {
+   "kind": "C",
+   "key": "#sound-tog"
+  },
+  "C118": {
+   "kind": "C",
+   "key": "button[data-rebind]"
+  },
+  "S001": {
+   "kind": "S",
+   "key": "button[data-limit]"
+  },
+  "S002": {
+   "kind": "S",
+   "key": "button[data-tb]"
+  },
+  "S003": {
+   "kind": "S",
+   "key": "button[data-older]"
+  },
+  "S004": {
+   "kind": "S",
+   "key": "button[data-rec-undo]"
+  },
+  "S005": {
+   "kind": "S",
+   "key": "button[data-dock-open]"
+  },
+  "S006": {
+   "kind": "S",
+   "key": "button[data-fv-restore]"
+  },
+  "S007": {
+   "kind": "S",
+   "key": "button[data-fv-close]"
+  },
+  "S008": {
+   "kind": "S",
+   "key": "button[data-crail]"
+  },
+  "S009": {
+   "kind": "S",
+   "key": "input[data-tedit]"
+  },
+  "S010": {
+   "kind": "S",
+   "key": "button[data-tfield]"
+  },
+  "S011": {
+   "kind": "S",
+   "key": "button[data-shell]"
+  },
+  "S012": {
+   "kind": "S",
+   "key": "button[data-tmove]"
+  },
+  "S013": {
+   "kind": "S",
+   "key": "button[data-fold]"
+  },
+  "S014": {
+   "kind": "S",
+   "key": "button[data-dock-undo]"
+  },
+  "S015": {
+   "kind": "S",
+   "key": "button[data-herald-undo]"
+  },
+  "S016": {
+   "kind": "S",
+   "key": "button[data-a]"
+  },
+  "S017": {
+   "kind": "S",
+   "key": "a[data-ref]"
+  },
+  "S018": {
+   "kind": "S",
+   "key": "button[data-lref-x]"
+  },
+  "S019": {
+   "kind": "S",
+   "key": "button[data-set-open]"
+  },
+  "S020": {
+   "kind": "S",
+   "key": "button[data-af]"
+  },
+  "S021": {
+   "kind": "S",
+   "key": "button[data-all-done]"
+  },
+  "S022": {
+   "kind": "S",
+   "key": "button[data-kreset]"
+  },
+  "S023": {
+   "kind": "S",
+   "key": "#keys-reset-all"
+  },
+  "S024": {
+   "kind": "S",
+   "key": "button[data-ar-undo]"
+  },
+  "S025": {
+   "kind": "S",
+   "key": "button[data-nx-opt]"
+  },
+  "S026": {
+   "kind": "S",
+   "key": "button[data-decide]"
+  },
+  "S027": {
+   "kind": "S",
+   "key": "button[data-nx-back]"
+  },
+  "S028": {
+   "kind": "S",
+   "key": "button[data-nx-allow]"
+  },
+  "S029": {
+   "kind": "S",
+   "key": "button[data-later]"
+  },
+  "S030": {
+   "kind": "S",
+   "key": "#nx-note-in"
+  },
+  "S031": {
+   "kind": "S",
+   "key": "button[data-nx-send]"
+  },
+  "S032": {
+   "kind": "S",
+   "key": "button[data-nx-cancel]"
+  },
+  "S033": {
+   "kind": "S",
+   "key": "button[data-open-all]"
+  },
+  "S034": {
+   "kind": "S",
+   "key": "button[data-glances]"
+  },
+  "S035": {
+   "kind": "S",
+   "key": "button[data-bring]"
+  },
+  "S036": {
+   "kind": "S",
+   "key": "button[data-bring-in]"
+  },
+  "S037": {
+   "kind": "S",
+   "key": "button[data-interrupt]"
+  },
+  "S038": {
+   "kind": "S",
+   "key": "button[data-unfreeze]"
+  },
+  "S039": {
+   "kind": "S",
+   "key": "button[data-retry]"
+  },
+  "S040": {
+   "kind": "S",
+   "key": "button[data-edit]"
+  },
+  "S041": {
+   "kind": "S",
+   "key": "button[data-cx-all]"
+  },
+  "S042": {
+   "kind": "S",
+   "key": "button[data-cx-show]"
+  },
+  "S043": {
+   "kind": "S",
+   "key": "button[data-chat-retry]"
+  },
+  "S044": {
+   "kind": "S",
+   "key": "button[data-chat-edit]"
+  },
+  "S045": {
+   "kind": "S",
+   "key": "button[data-chat-stop]"
+  },
+  "S046": {
+   "kind": "S",
+   "key": "button[data-csmode]"
+  },
+  "S047": {
+   "kind": "S",
+   "key": "button[data-cs-done]"
+  },
+  "S048": {
+   "kind": "S",
+   "key": "button[data-chc]"
+  },
+  "S049": {
+   "kind": "S",
+   "key": "button[data-cp]"
+  },
+  "S050": {
+   "kind": "S",
+   "key": "button[data-act]"
+  },
+  "S051": {
+   "kind": "S",
+   "key": "button[data-opt]"
+  },
+  "S052": {
+   "kind": "S",
+   "key": "button[data-iopt]"
+  },
+  "S053": {
+   "kind": "S",
+   "key": "input[data-qid]"
+  },
+  "S054": {
+   "kind": "S",
+   "key": "input[data-name]"
+  },
+  "S055": {
+   "kind": "S",
+   "key": "button[data-iscope]"
+  },
+  "S056": {
+   "kind": "S",
+   "key": "button[data-scope]"
+  },
+  "S057": {
+   "kind": "S",
+   "key": "button[data-vig]"
+  },
+  "S058": {
+   "kind": "S",
+   "key": "button[data-nav]"
+  },
+  "S059": {
+   "kind": "S",
+   "key": "button[data-all]"
+  },
+  "S060": {
+   "kind": "S",
+   "key": "button[data-cf]"
+  },
+  "S061": {
+   "kind": "S",
+   "key": "button[data-fl-retry]"
+  },
+  "S062": {
+   "kind": "S",
+   "key": "button[data-fl-unpick]"
+  },
+  "S063": {
+   "kind": "S",
+   "key": "button[data-fl-change]"
+  },
+  "S064": {
+   "kind": "S",
+   "key": "button[data-fl-touch]"
+  },
+  "S065": {
+   "kind": "S",
+   "key": "button[data-fl-pick]"
+  },
+  "S066": {
+   "kind": "S",
+   "key": "button[data-fl-back]"
+  },
+  "S067": {
+   "kind": "S",
+   "key": "button[data-fl-mk]"
+  },
+  "S068": {
+   "kind": "S",
+   "key": "button[data-fl-cp]"
+  },
+  "S069": {
+   "kind": "S",
+   "key": "input[data-fl-name]"
+  },
+  "S070": {
+   "kind": "S",
+   "key": "button[data-fv-back]"
+  },
+  "S071": {
+   "kind": "S",
+   "key": "button[data-lrt]"
+  },
+  "S072": {
+   "kind": "S",
+   "key": "button[data-lsimple]"
+  },
+  "S073": {
+   "kind": "S",
+   "key": "button[data-lfull]"
+  },
+  "S074": {
+   "kind": "S",
+   "key": "button[data-mv-cancel]"
+  },
+  "S075": {
+   "kind": "S",
+   "key": "button[data-mv-go]"
+  },
+  "S076": {
+   "kind": "S",
+   "key": "button[data-ldone]"
+  },
+  "S077": {
+   "kind": "S",
+   "key": "button[data-lroute]"
+  },
+  "S078": {
+   "kind": "S",
+   "key": "input[data-lp-env]"
+  },
+  "S079": {
+   "kind": "S",
+   "key": "input[data-lp-f]"
+  },
+  "S080": {
+   "kind": "S",
+   "key": "button[data-lbx]"
+  },
+  "S081": {
+   "kind": "S",
+   "key": "button[data-map-toggle]"
+  },
+  "S082": {
+   "kind": "S",
+   "key": "button[data-node]"
+  },
+  "S083": {
+   "kind": "S",
+   "key": "button[data-mp-go]"
+  },
+  "S084": {
+   "kind": "S",
+   "key": "button[data-mp-focus]"
+  },
+  "S085": {
+   "kind": "S",
+   "key": "button[data-mp-full]"
+  },
+  "S086": {
+   "kind": "S",
+   "key": "button[data-mp-close]"
+  },
+  "S087": {
+   "kind": "S",
+   "key": "button[data-stage]"
+  },
+  "S088": {
+   "kind": "S",
+   "key": "a[data-file]"
+  },
+  "S089": {
+   "kind": "S",
+   "key": "button[data-copy]"
+  },
+  "S090": {
+   "kind": "S",
+   "key": "button[data-mx]"
+  },
+  "S091": {
+   "kind": "S",
+   "key": "button[data-rec-got]"
+  },
+  "S092": {
+   "kind": "S",
+   "key": "button[data-rec-more]"
+  },
+  "S093": {
+   "kind": "S",
+   "key": "button[data-made-open]"
+  },
+  "S094": {
+   "kind": "S",
+   "key": "button[data-made-pin]"
+  },
+  "S095": {
+   "kind": "S",
+   "key": "#made-q"
+  },
+  "S096": {
+   "kind": "S",
+   "key": "button[data-made-kind]"
+  },
+  "S097": {
+   "kind": "S",
+   "key": "button[data-rtd-fallback]"
+  },
+  "S098": {
+   "kind": "S",
+   "key": "textarea[data-rtd-pref]"
+  },
+  "S099": {
+   "kind": "S",
+   "key": "button[data-runs-back]"
+  },
+  "S100": {
+   "kind": "S",
+   "key": "button[data-run-stop]"
+  },
+  "S101": {
+   "kind": "S",
+   "key": "button[data-runs-stop]"
+  },
+  "S102": {
+   "kind": "S",
+   "key": "button[data-close]"
+  },
+  "S103": {
+   "kind": "S",
+   "key": "button[data-rule-no]"
+  },
+  "S104": {
+   "kind": "S",
+   "key": "button[data-rule-yes]"
+  },
+  "S105": {
+   "kind": "S",
+   "key": "button[data-wt]"
+  },
+  "S106": {
+   "kind": "S",
+   "key": "button[data-wt-no]"
+  },
+  "S107": {
+   "kind": "S",
+   "key": "button[data-wt-hold]"
+  },
+  "S108": {
+   "kind": "S",
+   "key": "button[data-wt-yes]"
+  },
+  "S109": {
+   "kind": "S",
+   "key": "button[data-dm-off]"
+  },
+  "S110": {
+   "kind": "S",
+   "key": "button[data-dm-cancel]"
+  },
+  "S111": {
+   "kind": "S",
+   "key": "button[data-dm-no]"
+  },
+  "S112": {
+   "kind": "S",
+   "key": "button[data-dm-yes]"
+  },
+  "S113": {
+   "kind": "S",
+   "key": "button[data-ov-clear]"
+  },
+  "S114": {
+   "kind": "S",
+   "key": "button[data-shp-revert]"
+  },
+  "S115": {
+   "kind": "S",
+   "key": "button[data-shp-save]"
+  },
+  "S116": {
+   "kind": "S",
+   "key": "button[data-shf-close]"
+  },
+  "S117": {
+   "kind": "S",
+   "key": "button[data-shf]"
+  },
+  "S118": {
+   "kind": "S",
+   "key": "button[data-shp-keep]"
+  },
+  "S119": {
+   "kind": "S",
+   "key": "button[data-shp-switch]"
+  },
+  "S120": {
+   "kind": "S",
+   "key": "button[data-change]"
+  },
+  "S121": {
+   "kind": "S",
+   "key": "button[data-rail]"
+  },
+  "S122": {
+   "kind": "S",
+   "key": "button[data-map-mode]"
+  },
+  "S123": {
+   "kind": "S",
+   "key": "button[data-run-call]"
+  },
+  "S124": {
+   "kind": "S",
+   "key": "button[data-vw-copy]"
+  },
+  "S125": {
+   "kind": "S",
+   "key": "button[data-vw-copy-path]"
+  },
+  "S126": {
+   "kind": "S",
+   "key": "button[data-vw-download]"
+  },
+  "S127": {
+   "kind": "S",
+   "key": "button[data-vw-show]"
+  },
+  "S128": {
+   "kind": "S",
+   "key": "button[data-vw-split]"
+  },
+  "S129": {
+   "kind": "S",
+   "key": "button[data-vw-draftx]"
+  },
+  "S130": {
+   "kind": "S",
+   "key": "button[data-vw-update]"
+  },
+  "S131": {
+   "kind": "S",
+   "key": "button[data-vw-close]"
+  },
+  "S132": {
+   "kind": "S",
+   "key": "button[data-vw-keep]"
+  },
+  "S133": {
+   "kind": "S",
+   "key": "button[data-vw-discard]"
+  },
+  "S134": {
+   "kind": "S",
+   "key": "button[data-vw-noconfirm]"
+  },
+  "S135": {
+   "kind": "S",
+   "key": "button[data-vw-confirm]"
+  },
+  "S136": {
+   "kind": "S",
+   "key": "button[data-vw-undo]"
+  },
+  "S137": {
+   "kind": "S",
+   "key": "button[data-vw-tell]"
+  },
+  "S138": {
+   "kind": "S",
+   "key": "button[data-vw-toastx]"
+  },
+  "S139": {
+   "kind": "S",
+   "key": "button[data-vw-retry]"
+  }
+ }
+}

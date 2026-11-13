@@ -7,28 +7,178 @@
 //
 // Safety: the input is never interpreted as HTML. Every piece of text goes
 // through esc(); the only tags in the output are the ones built here. Links
-// are allowed only to http(s) URLs (opened in a new tab) and to in-app
-// "#cmsg_…" thread anchors (data-thread, handled by the app). Anything else
-// renders as its plain text.
+// are allowed only to http(s) URLs (opened in a new tab), to in-app
+// "#cmsg_…" thread anchors (data-thread, handled by the app) and to relative
+// file paths (data-file, opened in the viewer). Anything else renders as its
+// plain text.
+//
+// Links say where they go by their shape, not by words (design-research/links):
+// - Inside Coworker (a thread, a file) a link is a token: a soft capsule led by
+//   the thing's own glyph (the thread's live state, the file's icon). It opens in place.
+// - Outside (the web) a link stays text, underlined, with a small ↗ after it:
+//   the arrow every Apple page uses for "this leaves". It opens a new tab.
+//
+// Pictures from the web (the owner's call: someone looking for a place to stay sees the listing's photos):
+// `![alt](https://…)`, or a bare http(s) address whose path ends in a picture's extension, on a line of its
+// own is a picture, shown like a shared one (js/media.js, through the app's setWebImages); consecutive such
+// lines make one album. Only http(s): any other scheme stays text. Inside a sentence it stays a link (an
+// image's alt as its words, never a stray "!"). Without the app's renderer (node, or "Show pictures from
+// the web" off on this device) the same lines are outbound links, so nothing is lost.
 
 import { esc } from "./util.js";
 import { highlight } from "./highlight.js";
+import { fileIcon } from "./fileicons.js";
 
 const THREAD_HREF = /^#(cmsg_[A-Za-z0-9_-]{1,128})$/;
 const HTTP_HREF = /^https?:\/\/[^\s<>"'`]+$/i;
+// a relative path to a file in the conversation's folder: no scheme, no "..", with a name that has an extension
+const FILE_HREF = /^(?:\.\/)?(?!\/)(?![a-z][a-z0-9+.-]*:)((?:[\w@~+-][\w@~+.-]*\/)*[\w@~+-][\w@~+.-]*\.[A-Za-z0-9]{1,10})(?:#L\d+(?:-L?\d+)?)?$/;
 
-/** Render a link target, or null when it is not allowed. */
-function linkAttrs(href) {
+// How the app describes a thread it knows: {state, word, title}. Set once by app.js; the renderer stays pure without it.
+let threadInfo = null;
+/** Let the app tell the renderer about threads it knows (their live state), for thread tokens. */
+export function setThreadInfo(fn) { threadInfo = typeof fn === "function" ? fn : null; }
+
+const ARROW_OUT = `<svg class="lk-ar" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M3.5 8.5 8.5 3.5M4.6 3.5h3.9v3.9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const THREAD_G = `<svg class="lk-tg" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M13.6 7.8a5.6 5.6 0 0 1-8.1 5L2.4 13.6l.9-3A5.6 5.6 0 1 1 13.6 7.8z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>`;
+const STATES = new Set(["working", "idle", "needs_reply", "needs_approval", "done", "failed", "paused", "resolved"]);
+
+/** The "leaves XO" arrow after an outbound link (js/media.js uses it for a web picture that couldn't show). */
+export { ARROW_OUT };
+
+/** A web address as people read it: the host and path, no scheme, "www." or trailing slash; long ones keep their ends. */
+export function shortUrl(u) {
+  let s = String(u || "").replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/\/$/, "");
+  if (s.length > 52) {
+    s = s.replace(/[?#].*$/, "");
+    const slash = s.indexOf("/");
+    const host = slash < 0 ? s : s.slice(0, slash);
+    const tail = s.slice(s.lastIndexOf("/") + 1);
+    s = host.length + tail.length < 46 && slash >= 0 ? `${host}/…/${tail}` : s.slice(0, 50) + "…";
+  }
+  return s;
+}
+// An outbound link's text, set so it wraps the way an address is read (QA F3, 2026-11-05: on a phone
+// "…/pierr" broke from "e↗"). A bare address may break only after "/" "-" "_" or before "." "?" "&"
+// "=" "#"; the last piece and the ↗ never part. A last piece longer than 20 characters keeps only its
+// final 6 with the arrow, so a long hash can still wrap rather than run off a narrow screen.
+const BREAK_AFTER = /([/\-_])/g, BREAK_BEFORE = /([.?&=#])/g;
+function addrHtml(s) {
+  const parts = String(s).replace(BREAK_AFTER, "$1\u0000").replace(BREAK_BEFORE, "\u0000$1").split("\u0000").filter(Boolean);
+  return parts.map(esc);
+}
+/** Text pieces (already HTML) and the arrow: every piece but the last can break; the last holds the ↗. */
+function outHtml(pieces, joiner) {
+  let last = pieces.pop() ?? "";
+  // a long last piece keeps only its tail with the arrow (entities are counted as written; close enough)
+  const plain = last.replace(/<[^>]*>/g, "");
+  if (plain.length > 20 && !/[<&]/.test(last)) { pieces.push(last.slice(0, -6)); last = last.slice(-6); }
+  const head = pieces.join(joiner);
+  return (head ? `<span class="lk-t">${head}</span>` : "") + `<span class="lk-end"><span class="lk-t">${last}</span>${ARROW_OUT}</span>`;
+}
+/** A labelled link's text: its last word holds the ↗; a label ending in markup keeps the arrow on with a word joiner. */
+function labelOut(label) {
+  if (/>\s*$/.test(label)) return `<span class="lk-t">${label}</span>\u2060${ARROW_OUT}`;
+  const m = /^([\s\S]*?)(\s*)([^\s]+)$/.exec(label);
+  if (!m) return `<span class="lk-t">${label}</span>${ARROW_OUT}`;
+  const pieces = m[1] ? [m[1] + m[2]] : [];
+  pieces.push(m[3]);
+  return outHtml(pieces, "");
+}
+
+/** Plain words (or, with address, a web address or host) set like an outbound link's text, its last piece holding the ↗. */
+export function outText(plain, { address = false } = {}) {
+  return address ? outHtml(addrHtml(plain), "<wbr>") : labelOut(esc(plain));
+}
+
+function hostOf(u) {
+  const m = /^https?:\/\/([^/?#]+)/i.exec(u);
+  return m ? m[1].replace(/^www\./i, "").replace(/^[^@]*@/, "") : "";
+}
+
+/** A short capsule kept whole: it moves to the next line as one piece rather than split between
+ *  words, and wraps inside its own box only when it is wider than the whole line (a phone's bubble),
+ *  so it never runs out of the bubble (css/links.css .lk-fit). A long one flows with the text as it is. */
+function fit(a, short) { return short ? `<span class="lk-fit">${a}</span>` : a; }
+
+/** A link's HTML, or null when the target is not allowed. `label` is rendered HTML, or null for a bare URL. */
+function linkHtml(href, label) {
   const h = String(href || "").trim();
   const t = THREAD_HREF.exec(h);
-  if (t) return `href="#${esc(t[1])}" class="md-tlink" data-thread="${esc(t[1])}"`;
-  if (HTTP_HREF.test(h)) return `href="${esc(h)}" target="_blank" rel="noopener noreferrer nofollow" class="md-link"`;
+  if (t) {
+    const id = t[1];
+    const info = (threadInfo && threadInfo(id)) || null;
+    const st = info && STATES.has(info.state) ? info.state : "";
+    const g = st ? `<i class="g g-${st}" aria-hidden="true"></i>` : THREAD_G;
+    const tip = info ? [info.word, "thread"].filter(Boolean).join(" · ") : "Thread";
+    // a short title stays one capsule; a long one may wrap (each line keeps its capsule)
+    const text = label != null ? label.replace(/<[^>]*>/g, "") : String(info?.title || "");
+    const long = text.length > 36;
+    return fit(`<a href="#${esc(id)}" class="lk lk-in lk-thread${info ? "" : " is-unknown"}${long ? " is-long" : ""}" data-thread="${esc(id)}" title="${esc(tip)}">` +
+      `<span class="lk-ic">${g}</span><span class="lk-t">${label ?? esc(info?.title || "a thread")}</span></a>`, !long);
+  }
+  if (HTTP_HREF.test(h)) {
+    const host = hostOf(h);
+    const local = /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])(:\d+)?$/i.test(host);
+    return `<a href="${esc(h)}" target="_blank" rel="noopener noreferrer nofollow" class="lk lk-out${local ? " is-local" : ""}${label == null ? " is-bare" : ""}" title="${esc(h)}">` +
+      `${label != null ? labelOut(label) : outHtml(addrHtml(shortUrl(h)), "<wbr>")}</a>`;
+  }
+  const f = FILE_HREF.exec(h);
+  if (f && label != null) {
+    const path = f[1], name = path.split("/").pop();
+    // an <a> like a thread's, so both capsules are the same inline box (a button would be an inline-block)
+    const long = label.replace(/<[^>]*>/g, "").length > 36;
+    return fit(`<a href="#${esc(path)}" class="lk lk-in lk-file${long ? " is-long" : ""}" data-file="${esc(path)}" data-file-name="${esc(name)}" data-file-type="" data-file-bytes="" title="${esc(path)}">` +
+      `<span class="lk-ic">${fileIcon(name)}</span><span class="lk-t">${label}</span></a>`, !long);
+  }
   return null;
+}
+
+// ── pictures from the web ──────────────────────────────────────────────────────
+const IMG_PATH = /\.(?:png|jpe?g|gif|webp|avif|svg)$/i;
+const IMG_MD = /!\[([^\]\n]{0,500})\]\(([^()\s]{1,2000})\)/;
+/** A web picture's address, or null: http(s) only; a bare one also needs a path ending in a picture's extension. */
+export function webImageUrl(u, { bare = false } = {}) {
+  const h = String(u || "").trim();
+  if (!HTTP_HREF.test(h)) return null;
+  if (bare) {
+    let path = "";
+    try { path = new URL(h).pathname; } catch { return null; }
+    if (!IMG_PATH.test(path)) return null;
+  }
+  return h;
+}
+/** The pictures a line is made of, [{alt, url}], when it holds only `![alt](url)`s or one bare picture address; else null. */
+export function imageLine(line) {
+  const s = String(line || "").trim();
+  if (!s) return null;
+  if (/^https?:\/\/\S+$/i.test(s)) { const url = webImageUrl(s, { bare: true }); return url ? [{ alt: "", url }] : null; }
+  const out = [];
+  const re = new RegExp(IMG_MD.source + "\\s*", "y");
+  while (re.lastIndex < s.length) {
+    const m = re.exec(s);
+    if (!m) return null; // anything else on the line: it's a sentence, not pictures
+    const url = webImageUrl(m[2]);
+    if (!url) return null;
+    out.push({ alt: m[1].replace(/\s+/g, " ").trim(), url });
+  }
+  return out.length ? out : null;
+}
+// The app's way to show web pictures ({alt, url} list → HTML, or null to keep them links). Set once by app.js.
+let webImages = null;
+/** Let the app draw pictures from the web (js/media.js); unset, they're links. */
+export function setWebImages(fn) { webImages = typeof fn === "function" ? fn : null; }
+function imagesHtml(list) {
+  const shown = webImages && webImages(list);
+  if (shown) return shown;
+  // as links, one per line: the alt as words, else the address as a bare link reads
+  return `<p>${list.map((x) => linkHtml(x.url, x.alt ? renderInline(x.alt, true) : null) || esc(x.alt || x.url)).join("<br>")}</p>`;
 }
 
 // Inline patterns, tried at each position; the earliest match wins.
 const INLINE = [
   { name: "code", re: /(`+)([\s\S]*?[^`])\1(?!`)/ },
+  { name: "img", re: IMG_MD },
   { name: "link", re: /\[([^\]\n]{1,500})\]\(([^()\s]{1,2000})\)/ },
   { name: "url", re: /\bhttps?:\/\/[^\s<>()"'`]+[^\s<>()"'`.,;:!?]/i },
   { name: "bold", re: /\*\*(?=\S)([\s\S]*?\S)\*\*|__(?=\S)([\s\S]*?\S)__/ },
@@ -59,16 +209,20 @@ export function renderInline(text, noLinks = false) {
         out += `<code>${esc(m[2].replace(/^ (.*) $/, "$1"))}</code>`;
         break;
       case "link": {
-        const attrs = linkAttrs(m[2]);
         const label = renderInline(m[1], true);
-        out += attrs ? `<a ${attrs}>${label}</a>` : label;
+        out += linkHtml(m[2], label) ?? label;
         break;
       }
-      case "url": {
-        const attrs = linkAttrs(m[0]);
-        out += attrs ? `<a ${attrs}>${esc(m[0])}</a>` : esc(m[0]);
+      case "img": {
+        // a picture inside a sentence stays a link (its alt as words, else its address); inside a link, its alt
+        const label = renderInline(m[1], true);
+        const url = noLinks ? null : webImageUrl(m[2]);
+        out += url ? linkHtml(url, label || null) : label;
         break;
       }
+      case "url":
+        out += linkHtml(m[0], null) ?? esc(m[0]);
+        break;
       case "bold":
         out += `<strong>${renderInline(m[1] ?? m[2], noLinks)}</strong>`;
         break;
@@ -225,6 +379,16 @@ export function renderMarkdown(src) {
         i++;
       }
       out.push(renderList(items));
+      continue;
+    }
+    const pics = imageLine(line);
+    if (pics) {
+      // pictures on lines of their own: one picture, or one album for a run of them
+      flush();
+      const all = [...pics];
+      i++;
+      for (let more; i < lines.length && (more = imageLine(lines[i])); i++) all.push(...more);
+      out.push(imagesHtml(all));
       continue;
     }
     para.push(line);

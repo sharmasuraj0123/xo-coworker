@@ -8,6 +8,9 @@
 // mind halfway. Touch events (not pointer events) because only a cancelable touchmove can stop the
 // browser's own scroll once a direction is picked.
 
+import { copyText, COPY_REFUSED } from "./util.js";
+import { menuKeys } from "./keynav.js";
+import { wordsOf } from "./words.js";
 const LOCK = 10;     // px before a touch picks its direction
 const SLOPE = 1.7;   // the picked axis must lead the other by this much: within ~30° of it
 export const FLICK = 0.45; // px/ms: a quick flick commits whatever the distance
@@ -114,7 +117,7 @@ const band = (d) => d * 0.28;
 const committed = (d, v, size, frac) => Math.abs(d) > size * frac || (Math.abs(v) > FLICK && Math.sign(v) === Math.sign(d) && Math.abs(d) > 24);
 
 // never start a navigation swipe on these: they take touches of their own
-const OWN = "input, textarea, select, [contenteditable], .b-hold, pre, table, .md-code, .vw-code, iframe, .xterm, [data-noswipe]";
+const OWN = "input, textarea, select, xo-select, [contenteditable], .b-hold, pre, table, .md-code, .vw-code, iframe, .xterm, [data-noswipe]";
 
 /**
  * The app's gestures. `A` is what app.js lets them do:
@@ -361,14 +364,21 @@ export function wireGestures(A) {
 }
 
 // ── long-press a message: Copy, Select text ─────────────────────────────────
+// The menu is opened from a message, so that's where focus goes back when it closes with focus in it (Copy,
+// Select text, Escape, Tab, a scroll): the message itself takes focus (tabindex -1: reachable this way, not in
+// the Tab order), never the page. A touch elsewhere goes on to whatever it lands on.
 const HOLD = 480;
 function longPress(A) {
   const msgs = document.getElementById("msgs");
-  let timer = 0, at = null, menu = null, fired = false;
+  let timer = 0, at = null, menu = null, from = null, fired = false;
   const WHAT = ".m-you .bubble, .m-them:not(.m-turn):not(.m-card) > .mb > .prose, .m-turn .tb-answer";
   const shut = () => {
     if (!menu) return;
-    menu.remove(); menu = null;
+    if (menu.contains(document.activeElement) && from && from.isConnected) {
+      if (!from.hasAttribute("tabindex")) from.tabIndex = -1;
+      from.focus({ preventScroll: true });
+    }
+    menu.remove(); menu = null; from = null;
     document.removeEventListener("touchstart", outside, true);
     document.removeEventListener("keydown", esc, true);
   };
@@ -400,10 +410,13 @@ function longPress(A) {
 
   function open(el, p) {
     shut();
+    from = el;
     menu = document.createElement("div");
     menu.className = "lp-menu";
     menu.setAttribute("role", "menu");
+    menu.setAttribute("aria-label", "Message");
     menu.innerHTML = `<button type="button" role="menuitem" data-lp="copy">Copy</button><button type="button" role="menuitem" data-lp="select">Select text</button>`;
+    menuKeys(menu, { close: shut }); // ↓ ↑ Home End; Tab closes it back to the message (Escape: esc below)
     document.body.appendChild(menu);
     const r = menu.getBoundingClientRect();
     const x = Math.max(10, Math.min(innerWidth - r.width - 10, p.x - r.width / 2));
@@ -412,12 +425,16 @@ function longPress(A) {
     menu.addEventListener("click", (e) => {
       const b = e.target.closest("[data-lp]");
       if (!b) return;
-      if (b.dataset.lp === "copy") { copyText((el.innerText || el.textContent || "").trim()); A.toast?.("Copied"); }
+      // "Copied" only once it's on the clipboard; refused, said so
+      if (b.dataset.lp === "copy") { copyText(wordsOf(el)).then((ok) => A.toast?.(ok ? "Copied" : COPY_REFUSED)); } // its words, as the desktop's Copy reads them
       else {
+        // focus goes to the message first (shut), then its words are selected: the selection stays
+        shut();
         el.classList.add("is-selecting");
         const s = getSelection();
         s.removeAllRanges();
         s.selectAllChildren(el);
+        return;
       }
       shut();
     });
@@ -425,18 +442,5 @@ function longPress(A) {
     menu.querySelector("button").focus({ preventScroll: true });
   }
 }
-/** Copy, even where the async clipboard isn't offered (a plain-http address on the network). */
-export function copyText(text) {
-  if (navigator.clipboard && isSecureContext) { navigator.clipboard.writeText(text).catch(() => legacy(text)); return; }
-  legacy(text);
-}
-function legacy(text) {
-  const ta = document.createElement("textarea");
-  ta.value = text;
-  ta.setAttribute("readonly", "");
-  ta.style.cssText = "position:fixed;top:0;left:0;opacity:0;pointer-events:none";
-  document.body.appendChild(ta);
-  ta.select();
-  try { document.execCommand("copy"); } catch { /* nothing more to try */ }
-  ta.remove();
-}
+// copyText lives in util.js (Files' Copy path uses it too); kept here for whoever imports it from gestures
+export { copyText };

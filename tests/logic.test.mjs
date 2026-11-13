@@ -1,9 +1,9 @@
 // Exercises the UI's pure modules (markdown, model, timeline) against fixed
 // cases and against live storm data through the proxy (GET only: nothing is written).
-//   node tests/logic.test.mjs            (UI server on 127.0.0.1:5180)
-//   XO_UI=http://127.0.0.1:5180 node tests/logic.test.mjs
+//   node tests/logic.test.mjs            (the live part runs if a UI answers on 127.0.0.1:5180, else it's skipped)
+//   XO_UI=http://127.0.0.1:3000 node tests/logic.test.mjs   (the live part through that UI; it must answer)
 import assert from "node:assert/strict";
-import { renderMarkdown, renderInline, threadLinks, excerptMarkdown } from "../js/markdown.js";
+import { renderMarkdown, renderInline, threadLinks, excerptMarkdown, setThreadInfo, shortUrl } from "../js/markdown.js";
 import { parseChecklist, tasksOf } from "../js/model.js";
 import { request } from "../js/api.js";
 import { highlight, langOf } from "../js/highlight.js";
@@ -32,13 +32,58 @@ t("attribute breakout in http link is escaped", () => {
 });
 t("thread links become in-app anchors", () => {
   const out = renderMarkdown("Sent to [Power operator + tests](#cmsg_0mv6m0vxl000834eada7).");
-  assert.match(out, /<a href="#cmsg_0mv6m0vxl000834eada7" class="md-tlink" data-thread="cmsg_0mv6m0vxl000834eada7">Power operator \+ tests<\/a>/);
+  assert.match(out, /<a href="#cmsg_0mv6m0vxl000834eada7" class="lk lk-in lk-thread is-unknown" data-thread="cmsg_0mv6m0vxl000834eada7"[^>]*>/);
+  assert.match(out, /<span class="lk-t">Power operator \+ tests<\/span><\/a>/);
   assert.deepEqual(threadLinks("[a](#cmsg_abc) [b](#cmsg_def) [a](#cmsg_abc)"), ["cmsg_abc", "cmsg_def"]);
 });
 t("http links open in new tab", () => {
   const out = renderMarkdown("see https://example.com/a?b=1, and [docs](https://x.dev)");
   assert.match(out, /href="https:\/\/example.com\/a\?b=1" target="_blank" rel="noopener noreferrer nofollow"/);
   assert.match(out, /href="https:\/\/x.dev"/);
+});
+t("links say where they go: inside is a token with its glyph, outside is text with an arrow", () => {
+  setThreadInfo((id) => (id === "cmsg_live" ? { state: "working", word: "Working", title: "Live panel" } : null));
+  try {
+    const live = renderInline("[the panel](#cmsg_live)");
+    assert.match(live, /class="lk lk-in lk-thread"/);
+    assert.match(live, /<i class="g g-working"/);
+    assert.match(live, /title="Working · thread"/);
+    const gone = renderInline("[other](#cmsg_gone)");
+    assert.match(gone, /is-unknown/);
+    assert.ok(!gone.includes('class="g '), gone);
+    // the app's word can never inject a class
+    setThreadInfo(() => ({ state: 'x" onclick="1', word: "<b>", title: "t" }));
+    const odd = renderInline("[t](#cmsg_odd)");
+    assert.ok(!odd.includes("onclick") && !odd.includes("<b>"), odd);
+  } finally { setThreadInfo(null); }
+  const web = renderInline("[PR #37](https://github.com/a/b/pull/37)");
+  assert.match(web, /class="lk lk-out"/);
+  // the last word and the ↗ never part (QA F3)
+  assert.match(web, /<span class="lk-t">PR <\/span><span class="lk-end"><span class="lk-t">#37<\/span><svg class="lk-ar"/);
+  const bare = renderInline("at http://localhost:3000/ now");
+  assert.match(bare, /lk-out is-local is-bare/);
+  assert.match(bare, /<span class="lk-t">localhost:3000<\/span>/);
+  assert.equal(shortUrl("https://www.example.com/"), "example.com");
+  assert.equal(shortUrl("https://github.com/sharmasuraj0123/xo-coworker/pull/37/files?x=1#diff-abcdef0123456789"), "github.com/…/files");
+});
+t("a bare address wraps only at its seams, and its last piece keeps the arrow (QA F3)", () => {
+  const out = renderInline("https://github.com/pierrecomputer/pierre");
+  assert.match(out, /<span class="lk-t">github<wbr>\.com\/<wbr>pierrecomputer\/<\/span><span class="lk-end"><span class="lk-t">pierre<\/span><svg class="lk-ar"/);
+  // a long last piece keeps only its last 6 characters with the arrow, so it can still wrap
+  const sha = renderInline("https://x.io/c/4f765da0b2c1d3e4f5a6b7c8");
+  assert.match(sha, /<span class="lk-end"><span class="lk-t">a6b7c8<\/span><svg/);
+  // a label ending in markup keeps the arrow on with a word joiner
+  assert.ok(renderInline("[the **HIG**](https://a.b/)").includes("</strong></span>\u2060<svg"));
+});
+t("relative file links open in the viewer; anything that leaves the folder stays text", () => {
+  const f = renderInline("[the turn view](js/turnview.js) and [readme](./README.md#L10)");
+  assert.match(f, /<a href="#js\/turnview.js" class="lk lk-in lk-file" data-file="js\/turnview.js" data-file-name="turnview.js"/);
+  assert.match(f, /<span class="lk-ic"><svg class="fi"/); // the file icon from js/fileicons.js, whichever set it draws
+  assert.match(f, /data-file="README.md"/);
+  for (const bad of ["[x](../etc/passwd)", "[x](/etc/passwd)", "[x](a/../../b.txt)", "[x](file:///etc/passwd)", "[x](mailto:a@b.c)", "[x](folder/)"]) {
+    const out = renderInline(bad);
+    assert.ok(!out.includes("<a "), bad + " → " + out);
+  }
 });
 t("bold, italic, code, lists, fences", () => {
   const out = renderMarkdown("**bold** *it* _it2_ `a<b`\n\n- one\n- two\n  - nested\n\n1. x\n2. y\n\n```py\nprint('<hi>')\n```");
@@ -251,6 +296,10 @@ t("an old account's closed pool pauses nothing after a re-login (if1 #1)", () =>
   assert.equal(connLine({ ...base, runtimes: rt("acct-new"), pools }), null, "an account with no pool row yet counts as open");
   const paid = { "claude_code:acct-old": { pool: "claude_code:acct-old", state: "paid" } };
   assert.equal(connLine({ ...base, runtimes: rt("acct-new"), pools: paid }), null, "paid on an old account: no line");
+  const held = (reason) => connLine({ ...base, runtimes: rt("acct-new"), pools: { "claude_code:acct-new": { pool: "claude_code:acct-new", state: "paid", reason } } });
+  assert.match(held("paid_asked").sub, /Needs you/, "held for a question: it is in Needs you");
+  assert.equal(held("paid_threshold").text, "Paused before paid usage", "held by Never: nothing is asked, and it says so");
+  assert.match(held("paid_threshold").sub, /Never/);
   assert.equal(currentPools(pools, rt("acct-70c53cc54fd1")).length, 1);
   assert.equal(currentPools({ p: { state: "closed" } }, rt("x")).length, 1, "an id that isn't runtime:account still counts");
 });
@@ -309,14 +358,14 @@ t("a shared file maps to its project route, or says there's none (if1 #2)", () =
   assert.ok(sharedFileRoute(null, "a.md").why, "a plain chat has no route");
 });
 
-t("a message relayed into a thread shows there, as yours (if1 #7)", () => {
+t("a message relayed into a thread shows there under its true author: yours as yours, an agent's as the agent's", () => {
   const th = { id: "cmsg_t" };
   const tl = [
     { id: "cmsg_fwd", seq: 1792, author_kind: "owner", text: "remove the implications section", created_at: "2026-10-22T12:04:30Z", extra: { forwarded_from: { chat_id: "chat_ws", message_id: "cmsg_ws" } } },
     { id: "cmsg_co", seq: 1793, author_kind: "agent", author_id: "project-coordinator", text: "On it.", created_at: "2026-10-22T12:04:31Z" },
   ];
   const hops = [
-    { id: "h1", kind: "relay", to_role: "thread", thread_ts: "cmsg_t", seq: 1803, message_ids: ["cmsg_fwd"] },
+    { id: "h1", kind: "relay", to_role: "thread", thread_ts: "cmsg_t", seq: 1803, created_at: "2026-10-22T12:07:00Z", message_ids: ["cmsg_fwd"] },
     { id: "h2", kind: "answer", to_role: "thread", thread_ts: "cmsg_t", seq: 722, message_ids: ["cmsg_old"] },
     { id: "h3", kind: "relay", to_role: "thread", thread_ts: "cmsg_other", seq: 9, message_ids: ["cmsg_fwd"] },
     { id: "h4", kind: "status", to_role: "project-coordinator", thread_ts: "cmsg_t", seq: 2000, message_ids: ["cmsg_co"] },
@@ -324,10 +373,12 @@ t("a message relayed into a thread shows there, as yours (if1 #7)", () => {
     { id: "h6", kind: "ask", to_role: "workspace-coordinator", thread_ts: "cmsg_t", seq: 1811, message_ids: ["cmsg_up"] },
   ];
   const { shown, missing } = relayedInto(th, hops, tl);
-  assert.deepEqual(shown.map((m) => m.id), ["cmsg_fwd"], "once, only the owner's words");
+  assert.deepEqual(shown.map((m) => m.id), ["cmsg_fwd", "cmsg_co"], "each once, in the hops' order");
   assert.equal(shown[0].who, "you"); assert.equal(shown[0].seq, 1792); assert.equal(shown[0].fwd.id, "cmsg_ws");
+  assert.deepEqual(shown[0].hop, { id: "h1", seq: 1803, at: Date.parse("2026-10-22T12:07:00Z") }, "placed where the hop delivered it, not where it was written");
+  assert.deepEqual([shown[1].who, shown[1].role], ["coord", "project-coordinator"], "a coordinator's message is never shown as yours");
   assert.deepEqual(missing, [{ ids: ["cmsg_old"], seq: 722 }], "not loaded: paged back from the hop's seq");
-  assert.equal(relayedInto(th, hops, tl, new Set(["cmsg_fwd"])).shown.length, 0, "never twice in the thread");
+  assert.equal(relayedInto(th, hops, tl, new Set(["cmsg_fwd", "cmsg_co"])).shown.length, 0, "never twice in the thread");
 });
 
 t("a thread message sent during a turn waits for it (Interrupt)", () => {
@@ -351,6 +402,16 @@ t("after an Interrupt, a thread running your message doesn't ask for a reply", (
   assert.equal(threadState("needs_reply", null), "needs_reply", "a plain Stop still waits on you");
   assert.equal(threadState("needs_approval", yours), "needs_approval");
   assert.equal(threadState(undefined, null), "working");
+});
+
+t("a done or stopped thread whose agent is back at work shows Working (storm keeps the last turn's state)", () => {
+  assert.equal(threadState("done", null, true), "working", "you wrote into a done thread; its turn runs");
+  assert.equal(threadState("failed", null, true), "working", "a stopped thread you wrote into");
+  assert.equal(threadState("done", null, false), "done", "the turn ended: done again");
+  assert.equal(threadState("done", null), "done", "no word on busy");
+  assert.equal(threadState("resolved", null, true), "resolved", "resolved stays resolved");
+  assert.equal(threadState("needs_reply", null, true), "needs_reply", "a turn you didn't start still waits on you");
+  assert.equal(threadState("needs_approval", null, true), "needs_approval");
 });
 
 t("what a thread and its coordinators wrote each other shows in the thread", () => {
@@ -443,7 +504,10 @@ try {
   }
   console.log(`      ${threadsSeen} thread(s) across the chats`);
 } catch (e) {
-  console.error("live data unavailable:", e.message);
-  process.exitCode = 1;
+  // asked for by XO_UI: it must answer. Run plainly with no UI up: the pure checks above still count.
+  if (process.env.XO_UI || !/fetch failed|ECONNREFUSED/.test(String(e.message) + String(e.cause && e.cause.code))) {
+    console.error("live data unavailable:", e.message);
+    process.exitCode = 1;
+  } else console.log("  --  live part skipped: no UI on :5180 (set XO_UI to run it through one)");
 }
 console.log(`${passed} passed${process.exitCode ? ", with failures" : ""}`);

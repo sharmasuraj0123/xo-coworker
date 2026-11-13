@@ -1,0 +1,92 @@
+/* Artifacts (js/recordview.js, design-research/16): everything threads made, across projects, as a place
+   of its own in the sidebar. Sizes, radii and motion come from Plan F (css/tokens.css). One spacing scale (4 px steps: 4 8 12 16 24 32 48), one type scale
+   (28/36 title, 14/20 lines, 13/20 meta, 12/16 labels), integer line heights, the one motion system. */
+
+/* the sidebar's row: like Home, Workspace and Chats; its count is a quiet number, never a signal */
+.nr-q{margin-left:auto;font:500 var(--fs-sm)/16px var(--mono);color:var(--ink-4);font-variant-numeric:tabular-nums}
+.nrow.is-on .nr-q{color:var(--ink-3)}
+
+/* the page: a library, so no composer under it */
+.app[data-view="artifacts"] .dock{display:none}
+.arts{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;outline:none;background:var(--canvas);scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.arts[hidden]{display:none}
+/* its header is every place's header (Workspace, Chats, a project): the place's icon, a 20 px title on the
+   28 px edge, one quiet line under it, one seam below; the library under it shares that edge */
+.ar-head{position:sticky;top:0;z-index:var(--z-sticky);display:flex;align-items:center;gap:12px;min-height:66px;padding:14px 28px;border-bottom:1px solid var(--line-faint);background:var(--canvas)}
+.ar-wrap{width:100%;padding:12px 28px 64px}
+.ar-sub{margin:0}
+/* a phone has one header, its bar (it names the place): the page keeps only its count line */
+@media (max-width:760px){
+  .arts{top:52px}
+  .ar-head{position:static;min-height:0;padding:12px 16px 0;border:0;background:none}
+  .ar-head .tw-ic,.ar-head h1{display:none}
+  .ar-wrap{padding:8px 16px 48px}
+}
+.ar-tools{display:flex;align-items:center;gap:8px;margin-top:8px}
+.ar-q{flex:1;min-width:0;max-width:420px;display:flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft);color:var(--ink-4);transition:border-color var(--d-hover) var(--ease)}
+.ar-q:focus-within{border-color:var(--line-strong)}
+.ar-q svg{flex:none;width:16px;height:16px}
+.ar-q input{flex:1;min-width:0;height:100%;border:0;outline:none;background:none;color:var(--ink);font:400 var(--fs-md)/20px var(--sans)}
+.ar-q input::placeholder{color:var(--ink-4)}
+.ar-kinds{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.ar-kinds button{display:inline-flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 12px;border-radius:999px;border:1px solid var(--line-soft);color:var(--ink-3);font:500 var(--fs-base)/20px var(--sans);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.ar-kinds button span{font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums}
+.ar-kinds button:hover{color:var(--ink);border-color:var(--line-strong)}
+.ar-kinds button[aria-checked="true"]{background:var(--fill-2);border-color:var(--line-strong);color:var(--ink)}
+.ar-kinds button[aria-checked="true"] span{color:var(--ink-3)}
+.ar-body{margin-top:8px}
+.ar-gh{padding:24px 0 12px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
+.ar-none{padding:48px 0;font:400 var(--fs-md)/20px var(--sans);color:var(--ink-3)}
+.ar-none b{display:block;margin-bottom:4px;color:var(--ink-2);font-weight:600}
+
+/* the gallery: cards on the same 16 px rhythm; pictures 160 high */
+.ar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.ar-grid .md-it{border-radius:var(--r-lg)}
+.ar-grid .md-th{height:160px;border-radius:calc(var(--r-lg) - 1px) calc(var(--r-lg) - 1px) 0 0}
+.ar-grid .md-ic svg,.ar-grid .md-ic svg.fi{width:28px;height:28px}
+.ar-grid .md-meta{gap:4px;padding:12px 12px 4px}
+.ar-grid .md-meta b{font:600 var(--fs-md)/20px var(--sans)}
+.ar-grid .md-meta > span{font:400 var(--fs-base)/20px var(--sans)}
+.ar-grid .md-from{margin:0 4px 8px;padding:4px 8px;font:400 var(--fs-sm)/16px var(--sans)}
+/* at any size (js/recordview.js): the gallery keeps its whole height and only the lines near the screen are
+   drawn, each in its place; a card without a thread keeps an empty "from" line, so every card is one height */
+.ar-body{position:relative;overflow-anchor:none}
+.ar-line{position:absolute;left:0;right:0}
+.ar-probe{position:absolute;top:0;left:0;right:0;visibility:hidden;pointer-events:none}
+.md-from.is-none{visibility:hidden}
+
+:root[data-theme="light"] .ar-q:not(:focus-within){background-color:#fff;border-color:rgba(0,0,0,.12)}
+:root[data-theme="light"] .ar-kinds button[aria-checked="true"]{background:rgba(0,0,0,.06)}
+
+@media (max-width:760px){
+  .ar-wrap{padding:24px 16px 48px}
+  .ar-tools{flex-wrap:wrap}
+  .ar-q{max-width:none;flex-basis:100%}
+  .ar-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .ar-grid .md-th{height:120px}
+
+  /* a phone, everything but the Images filter: one row per thing, content first (Astra's proposal, C013). The
+     name gets the width a 120 px decorative well took (234 px, up to two lines, not 147 px); a real preview or the
+     file's coloured icon leads at 36 px; under the name its project, kind and age, then the thread it came from;
+     the pin is its own 44 px target beside the row, never over the file. One height, so the page still draws only
+     what's near the screen. Pictures keep their big previews under Images. */
+  .arts:not(.is-pics) .ar-grid{grid-template-columns:minmax(0,1fr);gap:8px}
+  .arts:not(.is-pics) .ar-grid .md-it{display:grid;grid-template-columns:minmax(0,1fr) 44px;grid-template-rows:1fr auto auto 1fr;height:108px}
+  /* the name, its line and the thread it came from sit together in the middle of the row (one height for every
+     row, so a one-line name with no thread doesn't sit at the top of an empty row) */
+  .arts:not(.is-pics) .ar-grid .md-open{grid-column:1;grid-row:2;flex-direction:row;align-items:center;gap:12px;min-height:0;padding:0 0 0 12px}
+  .arts:not(.is-pics) .ar-grid .md-th{flex:none;width:36px;height:36px;gap:0;border:1px solid var(--line-soft);border-radius:var(--r)}
+  .arts:not(.is-pics) .ar-grid .md-th .md-ic{width:auto;height:auto;border:0;background:none}
+  .arts:not(.is-pics) .ar-grid .md-th .md-ic svg{width:20px;height:20px}
+  .arts:not(.is-pics) .ar-grid .md-ext{display:none}
+  .arts:not(.is-pics) .ar-grid .md-meta{flex:1;gap:2px;padding:0}
+  .arts:not(.is-pics) .ar-grid .md-meta b{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;white-space:normal;overflow-wrap:anywhere;font:500 var(--fs-md)/20px var(--sans)}
+  .arts:not(.is-pics) .ar-grid .md-meta b .mx-mid{display:inline}
+  .arts:not(.is-pics) .ar-grid .md-meta b :is(.mx-mh,.mx-mt){white-space:normal}
+  .arts:not(.is-pics) .ar-grid .md-meta > span{font:400 var(--fs-base)/18px var(--sans)}
+  .arts:not(.is-pics) .ar-grid .md-from{grid-column:1;grid-row:3;margin:2px 0 0 54px;font:400 var(--fs-base)/18px var(--sans)}
+  .arts:not(.is-pics) .ar-grid .md-from.is-none{display:none}
+  .arts:not(.is-pics) .ar-grid .md-pin{position:static;grid-column:2;grid-row:1 / -1;width:44px;height:auto;align-self:stretch;border-radius:0;background:none;color:var(--ink-4);opacity:1}
+  .arts:not(.is-pics) .ar-grid .md-it.is-pin .md-pin{color:var(--accent)}
+  .arts:not(.is-pics) .ar-grid .md-pin svg{width:16px;height:16px}
+}

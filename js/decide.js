@@ -18,10 +18,14 @@ import * as Kit from "./kit.js";
 import * as K from "./keys.js";
 import { EFFORT, effortOf, rank, evidenceFor, leverageOf, suggestFor, whyLine, estLine } from "./content.js";
 import { ICON, $, RM, clock, sound, dial, wait, morph, expand } from "./ui.js";
+import { usable, hookOf } from "./focusview.js";
 import { renderMarkdown, renderInline, excerptMarkdown } from "./markdown.js";
 import { highlight } from "./highlight.js";
 import { itemParts, itemBody, questionsOf, evidenceOf, itemEffort, isNo, VERB, holdWords as holdWordsOf } from "./review.js";
 import { clientId as newKey } from "./api.js";
+import { radioKeys } from "./keynav.js";
+import { resetWords, rtName } from "./runtimes.js";
+import { paidHtml } from "./paidview.js";
 
 export const riskLabel = (r) => ({ destructive: "Destructive", notable: "Notable", routine: "Routine", stopped: "Stopped" })[r] || "Notable";
 const BIG_CHECK = `<svg viewBox="0 0 52 52" aria-hidden="true"><circle class="sc" cx="26" cy="26" r="23"/><path class="sk" d="M15 27l7.5 7.5L38 19"/></svg>`;
@@ -32,7 +36,7 @@ const MARK = (s) => (s === "done" ? "✓" : s === "doing" ? "✱" : "○");
 const COMMANDS = new Set(["git", "npm", "npx", "pnpm", "yarn", "bun", "deno", "node", "python", "python3", "pip", "pip3", "uv", "rm", "mv", "cp", "ls", "cd", "cat", "curl", "wget", "docker", "kubectl", "cargo", "rustc", "sudo", "chmod", "chown", "mkdir", "touch", "sed", "awk", "grep", "ssh", "scp", "tar", "brew", "apt", "gh", "terraform"]);
 const cap = (s) => { const t = String(s || "").trim(); const w = (t.match(/^[a-z]+(?= |$)/) || [])[0]; return w && !COMMANDS.has(w) ? t.charAt(0).toUpperCase() + t.slice(1) : t; };
 
-export function createDecisions({ world, P, PROJ, announce, render, later, waitSince, onOpenThread, onAllClear, onUndone, onBreak, onSent, onNotSent }) {
+export function createDecisions({ world, P, PROJ, announce, render, back, later, waitSince, onOpenThread, onAllClear, onUndone, onBreak, onSent, onNotSent }) {
   const panel = $("#panel"), stage = $("#pn-stage");
   const firstSeen = new Map();
   let seq = 0;
@@ -183,11 +187,20 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
 
   // ── panel state ───────────────────────────────────────────────────────────
   const F = { open: false, order: [], items: new Map(), status: new Map(), cur: null, done: false, hold: null, mode: "all", returnTo: null, swap: 0, open0: {}, vig: false };
+  /** The words of the newest try on this ask that failed to send, kept for the next try: a Send back's note, or
+   *  (mode "reply") an answer you typed; "" once something newer happened to it. */
+  function failedWords(key, mode = "back") {
+    const e = log.find((d) => d.key === key);
+    if (!e || e.status !== "failed") return "";
+    return mode === "reply" ? (e.typed ? e.said || "" : "") : e.note || "";
+  }
   const api = {
     needItems,
     decisions: () => log.filter((d) => d.status !== "failed" && d.status !== "gone"),
     /** Decisions XO refused because the item had already left, with why (for the conversation). */
     notSent: () => log.filter((d) => d.status === "gone"),
+    /** The note of the newest decision on this ask that failed to send (its words are kept for the retry). */
+    failedNote: (key, mode) => failedWords(key, mode), // only while that failure is the latest word on it
     isOpen: () => F.open,
     current: () => (F.open && !F.done && !F.vig ? F.cur : null),
     open, close, sync, undo, decide, decideNow, laterNow, bringIn,
@@ -235,9 +248,13 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
     panel.classList.add("is-out");
     document.body.classList.remove("panel-open");
     setTimeout(() => { if (!F.open) { panel.hidden = true; panel.classList.remove("is-out"); stage.innerHTML = ""; } }, RM.matches ? 0 : 240);
+    // back to what opened it. Still here, it takes focus now (a redraw keeps the control it's on). Redrawn while the
+    // panel was open (Home's card shows "Open in the panel" meanwhile, so its Details was taken away), the same control
+    // takes it in the draw that brings it back, else the place: never the page, as the hidden Close leaves it (the
+    // controls grader on 05d76ca, S142: BODY at 450 ms, for Enter, Space and a press, four cells)
     const r = F.returnTo;
     F.returnTo = null;
-    if (restore && r && r.isConnected && r !== document.body) r.focus({ preventScroll: true });
+    if (restore) { if (usable(r)) r.focus({ preventScroll: true }); else back && back([hookOf(r)].filter(Boolean)); }
     toastRender();
     render();
   }
@@ -303,7 +320,7 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
     const verb = done ? "Done" : choice === "allow" ? "Allowed" : choice === "deny" ? "Sent back" : stopped ? "Asked to retry" : "Answered";
     const said = typeof choice === "object" && !done ? choice.option || choice.text : "";
     const fromSug = !!(n.sug && said && said === n.sug.label) || (choice === "allow" && n.sug && n.sug.label === "Allow");
-    const entry = { id: ++logN, key: n.key, verb, choice: choice === "allow" || choice === "deny" ? choice : "answer", label: n.ask.title, said, note, taught, fromSug, project: n.t.project, thread: n.t.title, tid: n.t.id, at: Date.now(), status: "queued", risk: n.risk, lev: n.lev, doneAt: n.t.checklist.done, secs: secs ?? (n.effort === "glance" ? 5 : 40) };
+    const entry = { id: ++logN, key: n.key, verb, choice: choice === "allow" || choice === "deny" ? choice : "answer", label: n.ask.title, said, typed: !done && typeof choice === "object" && !!choice && choice.text != null, note, taught, fromSug, project: n.t.project, thread: n.t.title, tid: n.t.id, at: Date.now(), status: "queued", risk: n.risk, lev: n.lev, doneAt: n.t.checklist.done, secs: secs ?? (n.effort === "glance" ? 5 : 40) };
     log.unshift(entry);
     teach.delete(n.key);
     if (F.open) F.status.set(n.key, choice === "deny" ? "back" : "allow");
@@ -350,8 +367,10 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
   function laterNow(key) { later.add(key); announce("Planned for later today. It won't come up as your next move until then."); render(); }
   function bringIn(key) { P.bringIn(key); announce("Brought in. It's in today's list now."); render(); }
 
-  function allowAllRoutine() {
-    const batch = F.order.filter(pending).map((k) => F.items.get(k)).filter((n) => n && n.group === "routine" && Kit.isBinary(n.ask));
+  /** keys: exactly the asks the question listed ("Allow 2" allows those 2): an ask that arrives while it's open
+   *  isn't swept in (Astra: it confirmed 3). Each must still be pending and routine. */
+  function allowAllRoutine(keys) {
+    const batch = keys.filter(pending).map((k) => F.items.get(k)).filter((n) => n && n.group === "routine" && Kit.isBinary(n.ask));
     if (!batch.length) return;
     const parts = batch.map((n) => {
       const entry = { id: ++logN, key: n.key, verb: "Allowed", choice: "allow", label: n.ask.title, project: n.t.project, thread: n.t.title, tid: n.t.id, at: Date.now(), status: "queued", risk: n.risk, batch: true, lev: n.lev, doneAt: n.t.checklist.done, secs: 3 };
@@ -378,10 +397,17 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
   function undo() { return !!queue.undo(); }
 
   // ── the card (shared by the panel and the thread's own decision) ─────────
+  /** The command an ask is about, when its headline would otherwise be that command (shown under it). */
+  function headCmd(n) {
+    if (n.ask.item) { const m = (n.ask.title || "").match(/`([^`]+)`/); return m && (m[1].length >= 16 || /[\s/|;&]/.test(m[1])) ? m[1] : ""; }
+    return Kit.commandOf(n.ask) || "";
+  }
+  // The headline says what will happen, in words; the exact command sits under it in mono at reading
+  // size, never at headline size (design-research/2026-11-vision/audit A6, the same rule as Home's card).
   function headline(n) {
-    if (n.ask.item) return renderInline(n.ask.title || "", true); // the server's words; `code` stays code
-    const cmd = Kit.commandOf(n.ask);
-    if (cmd) return `<span class="h-verb">Run</span> <code class="h-cmd">${esc(cmd)}</code>`;
+    const c = headCmd(n);
+    if (n.ask.item) return renderInline(c ? (n.ask.title || "").replace(`\`${c}\``, "a command") : n.ask.title || "", true); // the server's words
+    if (c) return `<span class="h-verb">Run</span> a command`;
     if (n.group === "stopped") { const c = n.t.checklist.items.find((i) => i.state !== "done"); return `<span class="h-verb">Stopped at</span> ${esc(c ? c.text : n.t.title)}`; }
     if (n.risk === "destructive") return esc(n.ask.title.replace(/:\s.*$/, ""));
     return esc(n.ask.title);
@@ -502,6 +528,14 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
     return act;
   }
 
+  /** A usage limit (F5): when it opens again, and the threads waiting on it (a link each). */
+  function limitHtml(it) {
+    const L = it.limit;
+    const when = L.resetsAt ? resetWords(L.resetsAt) : "";
+    return `<div class="lim">${when ? `<p class="lim-when">${ICON.clock}<span>Opens again ${esc(when)}</span></p>` : ""}` +
+      `<ul class="lim-ts" aria-label="Waiting threads">${L.threads.map((x) => `<li><button type="button" class="rt-go" data-go="t:${esc(x.ts)}" title="Open “${esc(x.title || "the thread")}”"><b>${esc(x.title || "A thread")}</b></button>${x.stays ? `<span class="lim-stay">stays: its project doesn't allow ${esc(rtName(L.moveTo))}</span>` : ""}</li>`).join("")}</ul></div>`;
+  }
+
   /** surface: "panel" | "dock" */
   function cardHtml(n, surface = "panel") {
     const id = ++cardN;
@@ -560,9 +594,9 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
       `<div class="c-body">` +
       `<div class="c-top"><span class="eff e-${n.effort}">${dial(n.effort)}<b>${E.label}</b><span>${E.time}</span></span>` +
       (destructive ? `<span class="risk r-destructive">${ICON.lock}Destructive</span>` : stopped ? `<span class="risk r-stopped">Stopped</span>` : "") +
-      (t.host ? `<button type="button" class="c-where" data-act="thread" title="Open where it was asked">${esc(t.title)}</button></div>` : `<button type="button" class="c-where" data-act="thread" title="${surface === "dock" ? "Open the thread" : `Open the thread beside this${K.hint("open")}`}">${esc(PROJ(t.project))}<span aria-hidden="true">›</span><b>${esc(t.title)}</b></button></div>`) +
-      `<h3 class="c-h" id="card-h-${id}">${headline(n)}</h3>` +
-      (line ? `<p class="c-line" id="card-why-${id}">${esc(line)}</p>` : "") + facts + est + sug +
+      (t.host ? `<button type="button" class="c-where" data-act="thread" title="${t.asker ? (surface === "dock" ? `Its coordinator asks, in this chat` : `Open ${esc(PROJ(t.project))}, where its coordinator asks`) : "Open where it was asked"}">${t.asker ? `${esc(PROJ(t.project))}<span aria-hidden="true">›</span><b>${esc(t.title)}</b>` : esc(t.title)}</button></div>` : `<button type="button" class="c-where" data-act="thread" title="${surface === "dock" ? "Open the thread" : `Open the thread beside this${K.hint("open")}`}">${esc(PROJ(t.project))}<span aria-hidden="true">›</span><b>${esc(t.title)}</b></button></div>`) +
+      `<h3 class="c-h" id="card-h-${id}">${headline(n)}</h3>` + (headCmd(n) ? `<p class="nx-cmd"><code>${esc(headCmd(n))}</code></p>` : "") +
+      (line ? `<p class="c-line" id="card-why-${id}">${esc(line)}</p>` : "") + (storm && a.item.limit ? limitHtml(a.item) : paidHtml(a.item)) + facts + est + sug +
       `<div class="dis${openEv ? " is-open" : ""}" data-dis="ev"><button type="button" class="dis-h" aria-expanded="${openEv}" aria-controls="dt-${id}" title="Details${K.hint("details")}">${ICON.chevron}<span>Details</span></button>` +
       `<div class="dis-b" id="dt-${id}"${openEv ? "" : " hidden"}><div class="dis-in">${storm ? itemDetailsHtml(n) : a.live ? waitingDetailsHtml(n) : detailsHtml(n, ev)}</div></div></div>` +
       `</div>` +
@@ -575,6 +609,11 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
     if (!n) return;
     F.vig = false;
     const my = ++F.swap;
+    // words being typed on this card (a note, an answer) when it goes without the person deciding it (withdrawn,
+    // answered elsewhere): the card that takes its place starts with its letter keys paused, or the next letter
+    // typed would decide it. Sending a note (Enter, Send back) is deciding: the next card's keys stay on.
+    const ae = document.activeElement, cur = $("#card");
+    const typing = how !== "allow" && how !== "back" && !!(cur && ae && cur.contains(ae) && ae.matches("textarea, input, [contenteditable]"));
     clearTimeout(F.autoT);
     F.hold && F.hold.cancel();
     let frame = $("#card");
@@ -604,6 +643,7 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
     frame.setAttribute("aria-labelledby", inner.querySelector(".c-h").id);
     const why = inner.querySelector(".c-line");
     if (why) frame.setAttribute("aria-describedby", why.id); else frame.removeAttribute("aria-describedby");
+    if (typing) { frame._quiet = true; frame._quietWhy = "The ask you were writing to went away; this is the next one."; }
     wireCard(frame, inner, fresh, { surface: "panel", after: (h) => advance(h) });
     F.busy = false;
     // focus the card itself: never an answer, never the suggestion
@@ -638,7 +678,12 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
     const secs = () => Math.max(2, Math.round((performance.now() - shownAt) / 1000));
     // decide, then move on: only when a decision was queued (a repeat press or a refused choice stays put)
     // the thread's own card says what it did, with its own Undo, in place: no second box (the toast) for it
-    const go = (choice, how, note = "") => { const entry = decide(n, choice, note, { secs: secs(), inline: ctx.surface === "dock" }); if (entry) ctx.after(how); return entry; };
+    // every decision this card makes goes through here, so the 300 ms re-arm covers them all: Allow, a stopped
+    // card's Try again, Done, an option or an answer, Send back now (a hold takes 1.2 s, a note is typed)
+    const go = (choice, how, note = "") => {
+      if (!ready()) { if (n.risk === "notable") hint(el, "A beat to read it first."); return null; }
+      const entry = decide(n, choice, note, { secs: secs(), inline: ctx.surface === "dock" }); if (entry) ctx.after(how); return entry;
+    };
     let noteMode = null;
     const body = frame;
     const step = ctx.onStep || null;
@@ -648,6 +693,8 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
       const no = n.ask.item ? itemParts(n.ask.item).back : null;
       q('[data-act="note-send"]').innerHTML = mode === "reply" ? "Send" : `${ICON.rewind}${esc((no && no.label) || "Send back")}`;
       noteIn.placeholder = mode === "reply" ? (n.group === "stopped" ? "e.g. use the read replica for this step" : "Type your answer") : "e.g. what it should try instead";
+      // a try that failed to send keeps its words for this one (Astra DEC-NOTE-LOSS/S167)
+      if (!noteIn.value) noteIn.value = failedWords(n.key, mode);
       morph(body, () => { note.hidden = false; el.classList.add("noting"); }, { duration: 280, fade: note });
       if (step) step();
       noteIn.focus({ preventScroll: true });
@@ -659,7 +706,10 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
       else { go("deny", "back", v); }
     };
     noteIn.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); e.stopPropagation(); sendNote(); }
+      // a word being composed (an IME) owns its keys: its Enter finishes the word (never sends: some browsers
+      // only say keyCode 229), its Escape cancels it (never closes the note) (Astra SRC-MAIN-IME-1)
+      if (e.isComposing || e.keyCode === 229) return;
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); e.stopPropagation(); sendNote(); }
       if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeNote(); }
     });
     frame._openNote = openNote; frame._closeNote = closeNote; frame._noting = () => !note.hidden;
@@ -669,7 +719,6 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
       if (n.group === "stopped") { go({ text: "Please try again from the failing step." }, "allow"); return; }
       if (n.ask.item) {
         if (n.ask.item.kind === "question") { hint(el, "Pick an answer, or answer in words."); return; }
-        if (n.risk === "notable" && !ready()) { hint(el, "A beat to read it first."); return; }
         if (itemParts(n.ask.item).hold) { hint(el, "This one needs a press and hold."); return; }
         el.querySelector('[data-act="allow"]')?.classList.add("pressed");
         const nameIn = el.querySelector("[data-name]");
@@ -677,7 +726,6 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
         return;
       }
       if (!Kit.isBinary(n.ask)) { hint(el, "Pick an answer, reply in words, or send it back."); return; }
-      if (n.risk === "notable" && !ready()) { hint(el, "A beat to read it first."); return; }
       el.querySelector('[data-act="allow"]')?.classList.add("pressed");
       go("allow", "allow");
     };
@@ -707,7 +755,8 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
       frame.addEventListener("pointerdown", () => frame._quietOff && frame._quietOff());
       frame.addEventListener("focusout", (e) => { if (!frame.contains(e.relatedTarget) && frame._quietOff) frame._quietOff(); });
     }
-    if (carried) frame._quietOn("A new ask took this one's place.");
+    if (carried) frame._quietOn(frame._quietWhy || "A new ask took this one's place.");
+    frame._quietWhy = null;
     frame._n = n;
 
     const qform = el.querySelector("[data-qform]");
@@ -794,18 +843,9 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
     const hold = q('[data-act="hold"]');
     let holder = null;
     if (hold) {
-      const fill = hold.querySelector(".hold-fill");
-      holder = Kit.holdToConfirm(hold, {
+      holder = Kit.holdButton(hold, {
         ready: () => (!ready() ? "Read it first: the hold starts after a moment." : qform && !formChoice(true) ? "Answer every question first." : true),
-        onProgress: (p) => {
-          fill.style.transition = "none";
-          fill.style.transform = `scaleX(${Math.pow(p, 1.7)})`;
-          hold.classList.toggle("tense", p > 0.72 && p < 1);
-          const ht = hold.querySelector(".hold-txt");
-          ht.textContent = p > 0 ? "Keep holding…" : ht.dataset.label || "Hold to allow";
-        },
         onConfirm: () => {
-          hold.classList.remove("tense");
           hold.classList.add("locked");
           hold.querySelector(".hold-txt").textContent = n.ask.item ? (VERB[(itemParts(n.ask.item).primary || {}).decision] || "Done") : "Allowed";
           sound.play("lock");
@@ -814,11 +854,7 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
           setTimeout(() => { if (c) go(c, "allow"); }, RM.matches ? 0 : 220);
         },
         onRefuse: (why) => { hint(el, why); hold.classList.remove("nope"); void hold.offsetWidth; hold.classList.add("nope"); },
-        onRelease: () => {
-          fill.style.transition = "transform .42s cubic-bezier(.34,1.56,.64,1)";
-          fill.style.transform = "scaleX(0)";
-          hint(el, "Released early. Nothing was sent.");
-        },
+        onRelease: () => hint(el, "Released early. Nothing was sent."),
       });
     }
     if (ctx.surface === "panel") F.hold = holder;
@@ -941,7 +977,7 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
       const b = e.target.closest("[data-cf]");
       if (!b) return;
       el.remove();
-      if (b.dataset.cf === "yes") allowAllRoutine(); else $("#card")?.focus();
+      if (b.dataset.cf === "yes") allowAllRoutine(batch.map((n) => n.key)); else $("#card")?.focus();
     });
   }
 
@@ -975,6 +1011,7 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
 
   // ── keys on a card (panel or dock) ────────────────────────────────────────
   function cardKeys(e, card, { onEsc, inPanel }) {
+    if (e.isComposing || e.keyCode === 229) return false; // a word being composed owns every key, Escape too
     const inField = e.target.matches?.("textarea, input");
     if (e.key === "Escape") {
       if (card && card._quietOff && card._quietOff()) { e.preventDefault(); e.stopPropagation(); return true; }
@@ -984,6 +1021,8 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
     }
     if (inField || e.metaKey || e.ctrlKey || e.altKey) return false;
     if (e.target.closest?.(".b-hold") && (e.key === "Enter" || e.key === " ")) return false;
+    // a key held down repeats: a repeat never decides anything (holding A must not approve card after card)
+    if (e.repeat && card && card._n) { e.preventDefault(); e.stopPropagation(); return true; }
     const n = card && card._n;
     if (!n) return false;
     const k = e.key;
@@ -1029,8 +1068,9 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
   }
   api.cardKeys = cardKeys;
 
+  radioKeys(panel);
   panel.addEventListener("keydown", (e) => {
-    if (!F.open) return;
+    if (!F.open || e.isComposing || e.keyCode === 229) return; // a composing word's keys close nothing
     const card = $("#card");
     if (e.key === "Escape") {
       const cf = stage.querySelector(".confirm");
@@ -1040,6 +1080,9 @@ export function createDecisions({ world, P, PROJ, announce, render, later, waitS
     }
     if (e.target.matches?.("textarea, input") || e.metaKey || e.ctrlKey || e.altKey) return;
     if (F.done || F.busy || F.vig || stage.querySelector(".confirm")) return;
+    // inside a choice of options (a rule's scope), the arrows move between its options (radioKeys), not to the
+    // next ask (Astra: ArrowRight on the scope went to the next ask)
+    if (/^Arrow/.test(e.key) && e.target.closest?.('[role="radiogroup"]')) return;
     const n = F.items.get(F.cur);
     if (!card || !n) return;
     const k = e.key;

@@ -6,7 +6,9 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createParser, SSEStream } from "../js/sse.js";
 import { createTurns } from "../js/blocks.js";
-import { itemParts, itemBody, questionsOf, itemEffort, evidenceOf, hostOf, isNo, holdWords } from "../js/review.js";
+import { itemParts, itemBody, questionsOf, itemEffort, evidenceOf, hostOf, askedBy, isNo, holdWords } from "../js/review.js";
+import { askingState } from "../js/timeline.js";
+import { hopRank, furtherState, mergeHop } from "../js/hopstate.js";
 
 let passed = 0;
 const pending = [];
@@ -355,6 +357,44 @@ t("a destructive yes of any kind is held; words never become a yes; a choice mus
   }
   const perm = item("permission", { options: [{ id: "once", decision: "allow", label: "Allow once", scope: "once" }, { id: "deny", decision: "deny", label: "Deny" }] });
   assert.throws(() => itemBody(perm, { scope: { id: "rule:project", scope: "rule", sentence: "made up" } }), /isn't offered/, "a scope not in the item's options is never sent");
+});
+t("a coordinator's sub-agent asks in its chat, named as the coordinator; a thread with an open item needs you", () => {
+  // the shape of rv_4ae32ce172404421 (xo-space, 2026-11-04): no thread, the project coordinator's session
+  const sub = item("permission", { chat_id: "chat_xs", thread_ts: null, session_id: "cse_pc", origin: "cli", run_id: "afbe" });
+  assert.deepEqual(hostOf(sub), { id: "chat:chat_xs", chat: "chat_xs", title: null }, "hosted by its chat, not lost for want of a thread");
+  assert.equal(askedBy(sub, { role: "project-coordinator" }), "coordinator");
+  assert.equal(askedBy(sub, { role: "workspace-coordinator" }), "coordinator");
+  assert.equal(askedBy(sub, null), "coordinator", "the session not read yet: a chat's agent is its coordinator");
+  assert.equal(askedBy({ ...sub, origin: "xo" }, { role: "project-coordinator" }), null, "what XO raises itself isn't the coordinator's ask");
+  assert.equal(askingState("working", 1), "needs_approval", "the row's state can trail the item");
+  assert.equal(askingState("resolved", 1), "needs_approval", "a resolved thread's sub-agent can still ask");
+  assert.equal(askingState("done", 0), "done");
+  assert.deepEqual([askingState("needs_reply", 1), askingState("paused", 1), askingState("paused", 1, true)], ["needs_reply", "paused", "paused"]);
+  assert.equal(askingState("working", 1, true), "working", "a thread continued elsewhere is frozen, not asking");
+});
+
+// ── hops (js/hopstate.js): a state only moves on, whichever of the stream and a read comes last ──
+t("hops: a history read that left before a receipt can't put it back", () => {
+  const sent = { id: "h1", kind: "ask", state: "sent", created_at: "2026-11-08T07:00:00Z" };
+  const live = mergeHop(sent, { id: "h1", state: "answered" }, { seq: 9, at: "t" });
+  assert.equal(live.state, "answered");
+  const late = mergeHop(live, { ...sent }, { at: sent.created_at });
+  assert.equal(late.state, "answered");
+  assert.equal(late.kind, "ask"); // the read's fields still land
+  assert.equal(late.at, sent.created_at);
+});
+t("hops: a receipt held before its hop was known counts once the hop arrives", () => {
+  const got = mergeHop(undefined, { id: "h2", kind: "ask", state: "sent" }, {}, "answered");
+  assert.equal(got.state, "answered");
+  assert.equal(mergeHop(undefined, { id: "h3", kind: "ask", state: "delivered" }, {}, null).state, "delivered");
+});
+t("hops: a newer state moves on; an unknown state never wins over a known one", () => {
+  assert.equal(mergeHop({ id: "h", state: "sent" }, { id: "h", state: "delivered" }).state, "delivered");
+  assert.equal(mergeHop({ id: "h", state: "delivered" }, { id: "h", state: "answered" }).state, "answered");
+  assert.equal(furtherState("answered", "sent"), "answered");
+  assert.equal(furtherState("sent", "nonsense"), "sent");
+  assert.equal(furtherState(undefined, "sent"), "sent");
+  assert.ok(hopRank("answered") > hopRank("delivered") && hopRank("delivered") > hopRank("sent") && hopRank("sent") > hopRank(undefined));
 });
 
 for (const run of pending) await run();

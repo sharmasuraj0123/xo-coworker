@@ -38,7 +38,7 @@ export function createWorld() {
     act: source.act,
     thread: (id) => state.threads.find((t) => t.id === id),
     project: (id) => state.projects.find((p) => p.id === id),
-    waiting: () => state.threads.filter((t) => WAITING(t.state)),
+    waiting: () => state.threads.filter((t) => WAITING(t.state) && !t.frozen),
   };
 }
 

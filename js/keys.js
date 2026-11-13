@@ -15,6 +15,8 @@ export const GROUPS = [
   { id: "global", name: "Anywhere" },
   { id: "decision", name: "On a decision" },
   { id: "intel", name: "In the intelligence popover" },
+  { id: "picture", name: "On a picture" },
+  { id: "diff", name: "In a diff or a file (the panel's Changes, Files)" },
 ];
 
 /** Every action. `fixed` rows are shown for reference but can't be changed. */
@@ -24,6 +26,9 @@ export const ACTIONS = [
   { id: "write", scope: "global", label: "Write (@ aims it at a project)", def: "/" },
   { id: "keys", scope: "global", label: "All shortcuts, on one sheet", def: "?" },
   { id: "shells", scope: "global", label: "Toggle shells", def: "mod+`" },
+  { id: "map", scope: "global", label: "The map: where your agents are working", def: "mod+\\" },
+  { id: "chatFold", scope: "global", label: "Beside a file: fold the chat, or open it and write", def: "mod+j" },
+  { id: "treeFold", scope: "global", label: "Beside a file: fold or show the files", def: "mod+b" },
   { id: "esc", scope: "global", label: "Back, exactly where you were (a shell keeps Esc)", fixed: "Esc" },
   { id: "allow", scope: "decision", label: "Allow (routine, notable)", def: "a" },
   { id: "hold", scope: "decision", label: "Allow a destructive ask (hold 1.2 s)", fixed: "hold ↵" },
@@ -40,7 +45,16 @@ export const ACTIONS = [
   { id: "undo", scope: "decision", label: "Undo the last decision (3 s)", def: "u" },
   { id: "allowAll", scope: "decision", label: "Allow all routine together", def: "shift+a" },
   { id: "auto", scope: "intel", label: "Back to Auto", def: "a" },
-  { id: "intelNav", scope: "intel", label: "Model · depth · pin it", fixed: "↑ ↓ · ← → · ↵" },
+  { id: "intelNav", scope: "intel", label: "Model · thinking · done", fixed: "↑ ↓ · ← → · ↵" },
+  // the lightbox (js/lightbox.js) keeps these itself; they're listed so the keys sheet tells the truth
+  { id: "picOpen", scope: "picture", label: "Open a picture in the conversation", fixed: "click · ↵" },
+  { id: "picStep", scope: "picture", label: "The previous or next picture in this conversation", fixed: "← →" },
+  { id: "picClose", scope: "picture", label: "Put it back where it was (or swipe down)", fixed: "Esc" },
+  { id: "nextChange", scope: "diff", label: "The next change", def: "j" },
+  { id: "prevChange", scope: "diff", label: "The previous change", def: "k" },
+  { id: "askLines", scope: "diff", label: "Ask about the lines selected in a file (Files)", fixed: "⌘L · Ctrl L" },
+  { id: "editFile", scope: "diff", label: "Edit the file (Files)", fixed: "E" },
+  { id: "saveFile", scope: "diff", label: "Save it (Files, editing)", fixed: "⌘S · Ctrl S" },
 ];
 const BY = new Map(ACTIONS.map((a) => [a.id, a]));
 
@@ -78,6 +92,13 @@ export function fromEvent(e) {
 export const binding = (id) => custom[id] ?? BY.get(id)?.def ?? null;
 export const changed = (id) => custom[id] != null && custom[id] !== BY.get(id)?.def;
 
+/**
+ * Is this keydown typing into a field? Asked of the whole path the event took, not its target: inside a shadow
+ * root the target is the host (Pierre's editor is a contenteditable in diffs-container's shadow root, so its
+ * target reads DIFFS-CONTAINER, and "/" or "?" typed there went to the global keys).
+ */
+export const typing = (e) => (e.composedPath ? e.composedPath() : [e.target]).some((n) => !!(n && n.matches && n.matches("input, textarea, [contenteditable]:not([contenteditable=\"false\"])")));
+
 /** Does this keydown trigger the action? */
 export function is(e, id) {
   const b = binding(id);
@@ -93,6 +114,21 @@ export function is(e, id) {
   return k === c.key;
 }
 export const hasMod = (id) => parse(binding(id) || "").mod;
+
+/**
+ * The key that works anywhere (scope "global") this keydown sets off, or null: one rule for every such action, and
+ * the same rule set() checks a new key against, so Settings never takes a key the page won't answer (the controls
+ * grader's C118: Settings took Ctrl+Shift+J for All shortcuts, and the page answered only four actions' ⌘/Ctrl keys).
+ * With ⌘/Ctrl it works everywhere, even while you type; without (a symbol: / ?) only when you aren't typing.
+ */
+export function globalFor(e, { typing: t = typing(e) } = {}) {
+  for (const a of ACTIONS) {
+    if (a.scope !== "global" || a.fixed || !is(e, a.id)) continue;
+    if (!hasMod(a.id) && t) continue;
+    return a.id;
+  }
+  return null;
+}
 
 /** How a key reads on screen: ⌘K on a Mac, Ctrl K elsewhere; letters in capitals. */
 export function show(s) {
@@ -121,6 +157,8 @@ export function set(id, combo) {
   if (c.mod && RESERVED_MOD.has(c.key)) return { error: `Your browser keeps ${show(combo)}. Pick another key.` };
   if (a.scope === "global" && !c.mod && (isLetter(c.key) || isDigit(c.key)))
     return { error: "Keys that work anywhere need ⌘ or Ctrl, or a symbol like / or ?, so typing never sets them off." };
+  // ⌥ alone types another character (on a Mac ⌥/ is ÷), so the page would never see the key you chose
+  if (a.scope === "global" && c.alt && !c.mod) return { error: `${show(combo)} types a character of its own on some keyboards. Add ⌘ or Ctrl, or pick a symbol like / or ?.` };
   if (a.scope !== "global" && (c.mod || c.alt)) return { error: "Decision keys are single keys (⇧ is fine). ⌘ and Ctrl stay with the browser." };
   if (a.scope === "decision" && isDigit(c.key)) return { error: "1–9 pick an answer. Pick another key." };
   const clash = ACTIONS.find((x) => x.id !== id && !x.fixed && overlaps(x.scope, a.scope) && binding(x.id) === str(c));

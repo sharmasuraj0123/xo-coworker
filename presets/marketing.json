@@ -1,0 +1,43 @@
+{
+  "preset": 1,
+  "id": "marketing",
+  "name": "Make content and campaigns",
+  "summary": "What was made, in plain words. Technical detail is a click away.",
+  "apps": {
+    "space.xo.design": { "version": "^0.4", "enable": "all-projects" },
+    "space.xo.docs": { "version": "^0.1", "enable": "all-projects" }
+  },
+  "layout": {
+    "artifacts": ["design", "doc", "image"],
+    "canvas": "xo:conversation",
+    "open": { "design": "space.xo.design:editor", "doc": "space.xo.docs:editor" },
+    "panel": [
+      { "tabs": ["xo:needs-you"] },
+      { "tabs": ["space.xo.design:inspect", "space.xo.design:versions", "xo:files"], "size": "tall" }
+    ],
+    "dock": [],
+    "commands": ["space.xo.design:new", "space.xo.design:critique", "space.xo.docs:brief"]
+  },
+  "density": "comfortable",
+  "words": { "thread": "task" },
+  "surfaces": {
+    "xo:thread/work": { "mode": "words" },
+    "xo:thread/branch": { "on": false },
+    "xo:thread/runtime": { "on": false },
+    "xo:thread/subagents": { "on": false },
+    "xo:thread/hops": { "on": false },
+    "xo:dock/shells": { "on": false },
+    "xo:home/recent": { "order": 15 },
+    "xo:panel/map": { "on": false },
+    "xo:panel/changes": { "on": false },
+    "xo:composer/intel": { "mode": "simple" },
+    "xo:settings/routing": { "advanced": true },
+    "xo:settings/rules": { "advanced": true },
+    "xo:settings/worktrees": { "advanced": true }
+  },
+  "defaults": {
+    "model": "auto",
+    "newProject": { "folders": ["design/", "copy/", "assets/"] },
+    "home": { "finds": true }
+  }
+}

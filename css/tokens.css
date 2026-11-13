@@ -1,114 +1,196 @@
-/* Colours distilled from xo-space-architecture-chip.html (its --ui-* palette:
-   canvas, panel, header, border, text, muted, and the warning / danger / scope /
-   component hues). In-between tints are mixed from those, never new hues.
-   The accent is XO's green (#83D63A, the "O" of the mark). On the light canvas
-   the same hue is darkened for text so it keeps 4.5:1; fills stay brand green.
-   Type is Geist everywhere (Geist Mono only for code and ids), served
-   locally (Vercel, SIL OFL 1.1), as in the chip. */
+/* Plan F: the one token file every screen is built from (design-research/2026-11-vision/direction,
+   refined by design-research/2026-11-lg). Later stylesheets use these names and never define a palette,
+   a scale or a theme of their own: a theme is this file's two blocks, nothing else.
+
+   Colours distilled from xo-space-architecture-chip.html. The accent is XO's green (#83D63A, the "O" of
+   the mark); on the light canvas the same hue is darkened for text so it keeps 4.5:1, while fills stay
+   brand green. Type is Geist everywhere (Geist Mono only for code, paths and ids), served locally
+   (Vercel, SIL OFL 1.1). */
 
 @font-face{font-family:"Geist";font-style:normal;font-weight:100 900;font-display:swap;src:url("../fonts/geist/Geist-Variable.woff2") format("woff2")}
 @font-face{font-family:"Geist Mono";font-style:normal;font-weight:100 900;font-display:swap;src:url("../fonts/geist/GeistMono-Variable.woff2") format("woff2")}
 
-/* Dark: a deep canvas (#141414) with chip-derived greys stepped up for panels and states. */
+/* ── Surfaces and lines: named by role, never by value ───────────────────────────────────────────────
+   Five depths and five lines replace a 39-step grey ramp and the per-component palettes (--g14 … --g72,
+   --pop-*, --comp-line*, --hair, --raised, --bg-2/3/4).
+     sunken   the sidebar, recessed regions          canvas   the window
+     surface  cards, rows, fields, panels' content    float    menus, popovers, dialogs, the composer
+     fill-1   a quiet well (code, tracks, notes)      fill-2   a chip, a static hover tint
+     fill-3   pressed, selected, a strong track       fill-4   thumbs, handles, an off switch
+     line-faint  seams between regions                line-soft  a card's edge
+     line        a control's edge                     line-strong  a hovered edge
+     line-hover  the strongest edge (a field being typed in, a focused well)
+   Interactive states over any surface use the translucent --hover-fill and --press-fill. */
+
+/* Dark: a deep neutral canvas (#141414); every step keeps the same relative lift. */
 :root{
   color-scheme:dark;
-  /* Surfaces: a deeper canvas (darkened 2026-10-13); each step keeps the same
-     relative lift so panels, hover and pressed still read as layers. */
-  --bg:#141414; --bg-2:#1B1B1B; --bg-3:#252525; --bg-4:#2E2E2E;     /* canvas, panel, hover, pressed */
-  --bg-head:#202020;                                                  /* header bands, tab strips */
-  --line:#323232; --line-soft:#232323; --line-hover:#565656;          /* border, border/canvas, border-strong */
-  --ink:#E1E1E1; --ink-2:#C1C1C1; --ink-3:#909090; --ink-4:#878787;   /* text, text/muted, muted, quiet (4.6:1) */
-  --accent:#83D63A; --accent-fill:#83D63A; --accent-ink:#141414; --accent-hover:#96DC58;
-  --accent-rgb:131,214,58; --bg-rgb:20,20,20; --bg-2-rgb:27,27,27;
+  --sunken:#111111; --canvas:#141414; --surface:#1B1B1B; --float:#1E1E1E;
+  --fill-1:#171717; --fill-2:#232323; --fill-3:#2C2C2C; --fill-4:#3A3A3A;
+  --menu-focus:#383838;   /* a menu's focused item: its fill is the mark, so it shows on the float (#232323 was 15 RGB-sum off it) */
+  --line-faint:#1F1F1F; --line-soft:#262626; --line:#303030; --line-strong:#3C3C3C; --line-hover:#565656;
+  --ink:#E1E1E1; --ink-2:#C1C1C1; --ink-3:#909090; --ink-4:#878787; --ink-5:#727272;   /* text, secondary, meta, quiet (4.6:1), placeholder */
+  --on-ink:#141414; --ink-hi:#FFFFFF;
+  --accent:#83D63A; --accent-fill:#83D63A; --accent-ink:#141414; --accent-hover:#96DC58; --accent-press:#74C02F; --accent-rgb:131,214,58;
   --err:#D7373F; --err-ink:#E68388;
   --warn:#F5A623; --info:#75ADF1; --violet:#BF8DFF;
   --mark-x:#E1E1E1; --mark-o:#83D63A;
   --bubble:#232323; --bubble-line:#303030;
-  --code-bg:#1B1B1B;
-  --shadow-sm:0 1px 2px rgba(0,0,0,.35),0 1px 1px rgba(0,0,0,.2);
-  --shadow-md:0 4px 14px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.3);
-  --shadow-lg:0 8px 24px rgba(0,0,0,.5),0 2px 6px rgba(0,0,0,.3);
+  --term-bg:#111111;
+  --code-bg:var(--fill-1);   /* code reads in a well, one step under the surface it sits on */
+  /* the sidebar's plates (rgba, so they sit on the sunken plane) */
+  --row-bg:rgba(255,255,255,.022); --row-bg-hover:rgba(255,255,255,.045); --row-on:rgba(255,255,255,.06);
+  --row-line:rgba(255,255,255,.05); --row-line-hover:rgba(255,255,255,.09); --row-hi:rgba(255,255,255,.03); --row-hover:rgba(255,255,255,.035);
+  /* frosted bars and toasts */
+  --herald-bg:rgba(27,27,27,.9); --herald-bg-hi:rgba(32,32,32,.94); --toast-bg:rgba(40,40,40,.95); --stamp-bg:rgba(29,29,29,.9);
+  --comp-bg:var(--float); --comp-shadow:rgba(0,0,0,.35); --comp-hi:rgba(255,255,255,.04);
+
+  /* Depth. Three elevations: 0 the canvas, 1 a raised surface (a step and a line, no shadow),
+     2 floating (menus, sheets, the composer): one contact shadow plus one short ambient. */
+  --e1:none;
+  --e2:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.24);
+  --shadow-md:var(--e2); --shadow-lg:var(--e2);
+  --lift-1:0 0 #0000; --lift-2:0 0 #0000; --lift-3:var(--e2);   /* light's paper lifts; in dark a step does it */
   --hairline:inset 0 1px 0 rgba(255,255,255,.035);
   --scrim:rgba(0,0,0,.55);
+  --sha:1;   /* how much a coloured shadow shows: 1 in dark, .28 in light */
+
+  /* Feedback. A hover is visible (≥ 1.15:1 against rest); a press goes one step further. */
+  --hover-fill:rgba(255,255,255,.06); --press-fill:rgba(255,255,255,.09);
+  /* The one focus ring: 2 px of the accent, following the element's own radius. */
+  --focus:rgba(var(--accent-rgb),.75);
+  /* the room the ring takes outside a control (its 2 px past a 2 px gap), and 2 px of air: kept clear wherever focus
+     scrolls a control into view (base.css) */
+  --ring-room:6px;
+  /* words on an agent's own colour (its Map tag): the colours are bright, so dark ink reads on every one of them,
+     6.0:1 at the least (#4C8DFF) where white read 1.7–3.3:1 (the controls grader on e55c2d8, S083) */
+  --on-agent:#0B0B0C;
+
+  /* Who speaks: the coordinator in violet, a decision in ink, a glance in green. */
+  --e-glance:var(--accent); --e-decide:#D6D6D6; --e-think:var(--violet); --coord:var(--violet);
+
+  /* The three lights. Green: done or go. Blue: working now. Amber: needs you. Red: real, irreversible danger.
+     Their quiet tints are mixed here, so a state never hard-codes one theme's RGB. */
+  --go:var(--accent); --work:var(--info); --need:var(--warn); --danger:var(--err);
 
   --sans:"Geist",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --serif:"Iowan Old Style","Charter","Source Serif 4","Source Serif Pro",Georgia,serif;   /* documents read as documents */
 
-  /* One type scale, human-sized (the chip: nothing below 10.5px, sentence case).
-     xs: counts, kbd · sm: secondary, meta · base: UI · md: titles, reading in docks
-     · lg: conversation prose · xl: section title · 2xl: empty-state title. */
-  --fs-xs:11px; --fs-sm:12px; --fs-base:13px; --fs-md:14px; --fs-lg:15px; --fs-xl:16px; --fs-2xl:20px;
-  --lh-ui:1.45; --lh-read:1.65;
-  --fw-medium:500; --fw-strong:600;
+  /* Type. One family, eight sizes, three weights, whole-pixel line heights on a 4 px grid, tracking by
+     size (Geist has no optical-size axis, so tracking does that job). 16 is for inputs only (a phone zooms
+     into anything smaller). Numbers are tabular sans; mono is for code.
+       12/16 meta · 13/20 UI · 14/20 labels · 15/24 reading · 16/24 inputs · 20/28 titles · 28/36 places · 40/44 ceremony */
+  --fs-xs:12px; --fs-sm:12px; --fs-base:13px; --fs-md:14px; --fs-lg:15px; --fs-xl:15px; --fs-2xl:20px; --fs-3xl:28px; --fs-4xl:40px;
+  --lh-12:16px; --lh-13:20px; --lh-14:20px; --lh-15:24px; --lh-16:24px; --lh-20:28px; --lh-28:36px; --lh-40:44px;
+  --tr-12:.01em; --tr-13:0em; --tr-15:0em; --tr-20:-.01em; --tr-28:-.02em; --tr-40:-.03em;
+  --lh-ui:20px; --lh-read:24px;
+  --fw-regular:400; --fw-medium:500; --fw-strong:600;
+  --fs-doc:17px; --lh-doc:28px;   /* documents (Files, the viewer) read in the serif at this size */
 
-  /* Geometry: soft and continuous. Radii grow with the size of the surface
-     (a 34px control gets 10px, a card 14px, the composer 22px). */
-  --r-xs:6px; --r-sm:8px; --r:10px; --r-lg:14px; --r-xl:18px; --r-2xl:22px; --r-pill:999px;
-  --h-ctl:34px; --h-bar:56px; --h-row:34px;
+  /* Geometry. The chrome is crisp; the conversation and the work are soft. Nested corners are computed,
+     never chosen: inner = outer − inset.
+       6 controls and chips · 8 rows and large controls · 12 cards, media, menus · 20 bubbles · 22 sheets · 28 composer */
+  --r-xs:6px; --r-sm:6px; --r:8px; --r-lg:12px; --r-xl:20px; --r-2xl:22px; --r-3xl:28px; --r-pill:999px;
+  /* Controls with a body come in three sizes. Hit areas may be larger (44 under a coarse pointer); compact
+     density steps one size down. 24 inline · 32 standard (every button, select and toolbar field) · 40 form
+     fields and a screen's primary action. */
+  --h-sm:24px; --h-ctl:32px; --h-lg:40px; --h-bar:56px;
+  /* Rows sit on 8 px steps, one grid with the controls: 40 a one-line row (the sidebar's, Settings', a tool
+     disclosure) · 48 a row with an action or a second line (Handled) · 56 a two-line list row (Chats). Compact
+     density steps a one-line row down to 32 (css/shape.css). A phone keeps its rows as they were: one-line rows
+     at its 36 floor, below. */
+  --h-row:40px; --h-row-act:48px; --h-row-list:56px;
+  /* Space: a 4 px grid. */
+  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px; --s-6:24px; --s-8:32px; --s-10:40px; --s-12:48px;
 
-  /* Motion. Feedback is fast, layout settles; nothing bounces.
-     Every animation is gated by prefers-reduced-motion in app.css. */
-  --ease:cubic-bezier(.22,.61,.36,1);
-  --ease-out:cubic-bezier(.16,1,.3,1);
-  --dur-fast:120ms;   /* hover, press, colour */
-  --dur-base:180ms;   /* popovers, chips, entrance of one message */
-  --dur-slow:260ms;   /* sheets, drawers */
+  /* Stacking: one scale, so a popover can never fall under a panel. */
+  --z-raised:2; --z-sticky:4; --z-dock:6; --z-panel:20; --z-overlay:60; --z-popover:80; --z-toast:100; --z-top:120;
+
+  /* Motion. One curve for everything that responds. A hover engages in 120 ms and releases in 200 (the
+     slower release is what feels expensive); a press goes down in 60. Floating things appear in 180 and
+     leave in 140, from the side they were called from; dialogs and sheets take 240; content arrives in 280;
+     a panel moves in 320; the landing is 600. Nothing overshoots. Gated by prefers-reduced-motion in base.css. */
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --ease-loop:cubic-bezier(.45,0,.55,1);   /* an ambient loop that responds to nothing (the working sweep): even in, even out */
+  --ease-out:var(--ease);
+  --dur-fast:120ms; --dur-base:180ms; --dur-slow:280ms;
+  --d-hover:200ms; --d-hover-in:120ms; --d-press:60ms; --d-pop:180ms; --d-pop-out:140ms; --d-sheet:240ms;
+  --d-in:280ms; --d-move:320ms; --d-long:480ms; --d-out:160ms; --d-land:600ms; --d-loop:2.4s;
+  --press-scale:.97;
 }
 
-/* Light: chip --ui-canvas #FFFFFF / --ui-panel #F5F5F5. Applied for a light OS
-   preference unless the user picked dark, or when the user picked light. */
-@media (prefers-color-scheme: light){
-  :root:not([data-theme="dark"]){
-    color-scheme:light;
-    --bg:#FFFFFF; --bg-2:#F5F5F5; --bg-3:#E8E8E8; --bg-4:#E0E0E0; --bg-head:#EAEAEA;
-    --line:#D0D0D0; --line-soft:#E8E8E8; --line-hover:#A3A3A3;
-    --ink:#1E1E1E; --ink-2:#414141; --ink-3:#6B6B6B; --ink-4:#737373;
-    --accent:#487620; --accent-fill:#83D63A; --accent-ink:#1E1E1E; --accent-hover:#76C134;
-    --accent-rgb:72,118,32; --bg-rgb:255,255,255; --bg-2-rgb:245,245,245;
-    --err:#C9252D; --err-ink:#B52128;
-    --warn:#8A4B0B; --info:#0851A7; --violet:#6D33B8;
-    --mark-x:#1E1E1E; --mark-o:#83D63A;
-    --bubble:#F0F0F0; --bubble-line:#E0E0E0;
-    --code-bg:#F5F5F5;
-    --shadow-sm:0 1px 2px rgba(0,0,0,.06);
-    --shadow-md:0 4px 14px rgba(0,0,0,.08),0 1px 3px rgba(0,0,0,.05);
-    --shadow-lg:0 8px 24px rgba(0,0,0,.16),0 2px 6px rgba(0,0,0,.06);
-    --hairline:inset 0 1px 0 rgba(255,255,255,.7);
-    --scrim:rgba(30,30,30,.32);
-  }
-}
+/* Light: one neutral family, the dark theme's own, so no warm off-white sits beside a cool one. The side is
+   recessed (#F2), the canvas a breath off white (#FAFAFA), and anything that holds content is white; grey
+   steps then darken in one direction only. Status hues are darkened so every label keeps ≥ 4.5:1 on white
+   and on the side. Light has no glow: a shadow is a contact shadow plus a short, low ambient one. */
 :root[data-theme="light"]{
   color-scheme:light;
-  --bg:#FFFFFF; --bg-2:#F5F5F5; --bg-3:#E8E8E8; --bg-4:#E0E0E0; --bg-head:#EAEAEA;
-  --line:#D0D0D0; --line-soft:#E8E8E8; --line-hover:#A3A3A3;
-  --ink:#1E1E1E; --ink-2:#414141; --ink-3:#6B6B6B; --ink-4:#737373;
-  --accent:#487620; --accent-fill:#83D63A; --accent-ink:#1E1E1E; --accent-hover:#76C134;
-  --accent-rgb:72,118,32; --bg-rgb:255,255,255; --bg-2-rgb:245,245,245;
-  --err:#C9252D; --err-ink:#B52128;
-  --warn:#8A4B0B; --info:#0851A7; --violet:#6D33B8;
-  --mark-x:#1E1E1E; --mark-o:#83D63A;
-  --bubble:#F0F0F0; --bubble-line:#E0E0E0;
-  --code-bg:#F5F5F5;
-  --shadow-sm:0 1px 2px rgba(0,0,0,.06);
-  --shadow-md:0 4px 14px rgba(0,0,0,.08),0 1px 3px rgba(0,0,0,.05);
-  --shadow-lg:0 8px 24px rgba(0,0,0,.16),0 2px 6px rgba(0,0,0,.06);
-  --hairline:inset 0 1px 0 rgba(255,255,255,.7);
-  --scrim:rgba(30,30,30,.32);
+  --sunken:#F2F2F2; --canvas:#FAFAFA; --surface:#FFFFFF; --float:#FFFFFF;
+  --fill-1:#F5F5F5; --fill-2:#EEEEEE; --fill-3:#E5E5E5; --fill-4:#C9C9C9;
+  --menu-focus:#EEEEEE;
+  --line-faint:#EEEEEE; --line-soft:#E6E6E6; --line:#DCDCDC; --line-strong:#CCCCCC; --line-hover:#BDBDBD;
+  --ink:#1A1A1A; --ink-2:#3B3B3B; --ink-3:#575757; --ink-4:#6B6B6B; --ink-5:#858585;
+  --on-ink:#FFFFFF; --ink-hi:#000000;
+  --accent:#3D7A17; --accent-fill:#83D63A; --accent-ink:#1A1A1A; --accent-hover:#76C134; --accent-press:#6CB12D; --accent-rgb:61,122,23;
+  --err:#C42B2B; --err-ink:#B42323;
+  --warn:#A15800; --info:#1F63C7; --violet:#7041C2;
+  --mark-x:#1A1A1A; --mark-o:#83D63A;
+  --bubble:#EFEFEF; --bubble-line:#EFEFEF;
+  --term-bg:var(--fill-1);
+  --row-bg:rgba(255,255,255,.5); --row-bg-hover:rgba(255,255,255,.85); --row-on:#FFFFFF;
+  --row-line:rgba(0,0,0,.05); --row-line-hover:rgba(0,0,0,.09); --row-hi:transparent; --row-hover:rgba(0,0,0,.04);
+  --herald-bg:rgba(255,255,255,.92); --herald-bg-hi:#FFFFFF; --toast-bg:rgba(28,28,28,.96); --stamp-bg:rgba(255,255,255,.95);
+  --comp-bg:var(--float); --comp-shadow:rgba(0,0,0,.05); --comp-hi:transparent;
+  --e2:0 1px 2px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.10);
+  --lift-1:0 1px 2px rgba(0,0,0,.04),0 1px 1px rgba(0,0,0,.02);
+  --lift-2:0 1px 2px rgba(0,0,0,.04),0 4px 12px -4px rgba(0,0,0,.08);
+  --lift-3:0 0 0 .5px rgba(0,0,0,.03),0 2px 6px rgba(0,0,0,.04),0 18px 44px -14px rgba(0,0,0,.16);
+  --shadow-md:var(--lift-2); --shadow-lg:var(--lift-3);
+  --hairline:0 0 #0000;
+  --scrim:rgba(18,18,18,.16);
+  --sha:.28;
+  --hover-fill:rgba(0,0,0,.065); --press-fill:rgba(0,0,0,.09);
+  --e-decide:#3B3B3B;
 }
 
-/* High contrast, when the OS asks for it (as the chip does). */
+/* An inverse surface: the toast is dark in both themes (--toast-bg), so in light everything on it takes the dark
+   palette's roles: ink, fills, lines, hover and press, the accent's hue and the focus ring. Its words, Undo, Tell and
+   its × read on it as they do in dark (the controls grader on d79d37e, S138: the Saved notice's × took light's
+   --ink-3, #575757, on the dark toast). The values are the dark block's own (tests/inverse-toast.test.mjs). */
+/* the lightbox keeps its dark chrome in both themes too, so it's an inverse surface the same way: its press and hover
+   fills are dark's (the controls grader on 8aa58d3, S080/S201 in light: light's press ink on its dark chrome added
+   nothing, 0.0% of pixels) */
+:root[data-theme="light"] :is(.toast,.lbx){
+  color-scheme:dark; color:var(--ink);
+  --fill-1:#171717; --fill-2:#232323; --fill-3:#2C2C2C; --fill-4:#3A3A3A;
+  --menu-focus:#383838;   /* a menu's focused item: its fill is the mark, so it shows on the float (#232323 was 15 RGB-sum off it) */
+  --line-faint:#1F1F1F; --line-soft:#262626; --line:#303030; --line-strong:#3C3C3C; --line-hover:#565656;
+  --ink:#E1E1E1; --ink-2:#C1C1C1; --ink-3:#909090; --ink-4:#878787; --ink-5:#727272;
+  --on-ink:#141414; --ink-hi:#FFFFFF;
+  --accent:#83D63A; --accent-rgb:131,214,58; --err-ink:#E68388;
+  --hover-fill:rgba(255,255,255,.06); --press-fill:rgba(255,255,255,.09);
+  --focus:rgba(var(--accent-rgb),.75);
+}
+
+/* High contrast, when the OS asks for it. */
 @media (prefers-contrast: more){
   :root{--ink-3:#B0B0B0; --ink-4:#B0B0B0; --line:#5A5A5A; --line-hover:#8E8E8E}
   :root[data-theme="light"]{--ink-3:#4B4B4B; --ink-4:#4B4B4B; --line:#8E8E8E; --line-hover:#6B6B6B}
-}
-@media (prefers-contrast: more) and (prefers-color-scheme: light){
-  :root:not([data-theme="dark"]){--ink-3:#4B4B4B; --ink-4:#4B4B4B; --line:#8E8E8E; --line-hover:#6B6B6B}
+  :root[data-theme="light"] :is(.toast,.lbx){--ink-3:#B0B0B0; --ink-4:#B0B0B0; --line:#5A5A5A; --line-hover:#8E8E8E}
 }
 
-/* Subtle state tints, mixed like the chip's --ui-*-subtle (never new hues). */
+/* Quiet state tints, mixed (never new hues), so they follow each theme's own status colour. */
 :root{
-  --accent-subtle:color-mix(in srgb,var(--accent-fill) 16%,var(--bg-2));
-  --warn-subtle:color-mix(in srgb,var(--warn) 14%,var(--bg-2));
-  --err-subtle:color-mix(in srgb,var(--err) 14%,var(--bg-2));
-  --info-subtle:color-mix(in srgb,var(--info) 14%,var(--bg-2));
+  --accent-subtle:color-mix(in srgb,var(--accent-fill) 16%,var(--fill-1));
+  --warn-subtle:color-mix(in srgb,var(--warn) 14%,var(--fill-1));
+  --err-subtle:color-mix(in srgb,var(--err) 14%,var(--fill-1));
+  --need-line:color-mix(in srgb,var(--warn) 30%,transparent);
+  --need-tint:color-mix(in srgb,var(--warn) 12%,transparent);
+  --need-tint-2:color-mix(in srgb,var(--warn) 20%,transparent);
+  --danger-line:color-mix(in srgb,var(--err-ink) 26%,transparent);
+  --danger-tint:color-mix(in srgb,var(--err) 14%,transparent);
 }
+/* a phone's one-line rows stay at its 36 px floor (Settings' and the picker's rows); its taller rows keep their own
+   heights in css/phone.css */
+@media (max-width:760px){:root{--h-row:36px}}
