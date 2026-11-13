@@ -110,7 +110,13 @@ function mockApi(W) {
     // a clone Space runs: started at once, running until stopped; W.cloneStopMode "503" refuses the stop
     // each clone its own id (clone-1, clone-2 …); W.cloneDone: ids that have finished; W.cloneStopGates[id]: a held
     // Stop for that clone
-    if (p === "/api/xo-projects" && m === "POST") { W.cloneN = (W.cloneN || 0) + 1; return json({ clone_id: `clone-${W.cloneN}` }, 202); }
+    // the project is in this test's world from the start, as mkdir's is (its chat; the clone itself runs on)
+    if (p === "/api/xo-projects" && m === "POST") {
+      W.cloneN = (W.cloneN || 0) + 1;
+      const id = JSON.parse(req.postData() || "{}").project_id;
+      if (id) W.extraChats = (W.extraChats || []).concat(chat(`chat_${id}`, "project", id));
+      return json({ clone_id: `clone-${W.cloneN}` }, 202);
+    }
     if ((k = /^\/api\/xo-projects\/clones\/([^/]+)$/.exec(p))) {
       const id = decodeURIComponent(k[1]);
       if (m === "DELETE") {

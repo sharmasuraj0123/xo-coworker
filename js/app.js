@@ -870,9 +870,12 @@ function messagesOf(conv) {
   // the coordinator's turn for your message failed: say so where you'll look (GitHub #30)
   const fail = !t && chat ? st.failed && st.failed[chat] : null;
   if (fail) out.push({ key: `fail:${fail.id}`, at: fail.at, who: "event", tone: "stop", text: `The coordinator couldn't answer: ${fail.error}` });
-  if (!rows.length && !locals.length && !(h && (h.loading || h.error))) {
-    // a project's empty chat opens on what its coordinator can start for you (startHtml)
-    out.push(t || conv === "ws" ? { key: "empty", at: -Infinity, who: "note", text: t ? "No messages in this thread yet." : "No messages yet. Ask the coordinator anything below." } : { key: "empty", at: -Infinity, who: "start", pid: convProject(conv) });
+  // empty means nobody has said anything yet: XO's own lines here (a new project's "cloned from …", a record
+  // line) are no conversation, so they don't stand in for one (the owner, 13 Nov 17:40Z: a cloned project
+  // opened on its one "cloned" line, without the starts)
+  if (!rows.length && !locals.some((m) => m.who === "you") && !(h && (h.loading || h.error))) {
+    // a project's empty chat opens on what its coordinator can start for you (startHtml), after XO's own lines
+    out.push(t || conv === "ws" ? { key: "empty", at: -Infinity, who: "note", text: t ? "No messages in this thread yet." : "No messages yet. Ask the coordinator anything below." } : { key: "empty", at: Infinity, who: "start", pid: convProject(conv) });
   }
   out.push(...locals.filter((m) => !m.merged).map((m) => ({ ...m, key: m.id })));
   // storm's seq orders what the server stored; the rest (your unsent rows, notes, events) is

@@ -3452,6 +3452,32 @@ t("H2: a project made from Create opens with focus in its message box", async ()
   assert.equal(await page.evaluate(() => document.activeElement.id), "say");
   await done(page);
 });
+t("START: a project just made or cloned opens on its starts, below XO's own line (the owner, 13 Nov 17:40Z)", async () => {
+  for (const [mode, name, line] of [["clone", "fabric-chat", /fabric-chat cloned from owner\/fabric-chat/], ["new", "Made here", /Made here created/]]) {
+    const W = { cloneDone: new Set(["clone-1"]) };
+    const page = await app(W);
+    await openCreate(page);
+    if (mode === "clone") { await page.locator('#cp-mode [data-mode="clone"]').click(); await page.locator("#cp-repo").fill("owner/fabric-chat"); }
+    await page.locator("#cp-name").fill(name);
+    await page.locator("#cp-submit").click();
+    await page.locator("#msgs .m-start").waitFor({ timeout: 8000 });
+    const ev = page.locator("#msgs .ev-ok").first();
+    assert.match(await ev.innerText(), line, `${mode}: XO's own line is there`);
+    const g = await page.evaluate(() => {
+      const r = (s) => document.querySelector(s).getBoundingClientRect();
+      const ev = r("#msgs .ev-ok"), st = r("#msgs .st-h"), list = r("#msgs .st-list"), comp = r("#composer"), sc = document.querySelector("#scroller");
+      return { evBottom: ev.bottom, top: st.top, bottom: list.bottom, comp: comp.top, rows: document.querySelectorAll("#msgs .st-o").length, last: document.querySelector("#msgs").lastElementChild.dataset.k, over: sc.scrollHeight - sc.clientHeight };
+    });
+    assert.equal(g.rows, 4, `${mode}: four starts`);
+    assert.equal(g.last, "empty", `${mode}: the starts come after XO's line`);
+    assert.ok(g.top - g.evBottom >= 40 && g.comp - g.bottom >= 40, `${mode}: the starts sit in the room between the line and the composer (${JSON.stringify(g)})`);
+    assert.ok(g.over <= 1, `${mode}: nothing to scroll (${g.over})`);
+    await page.locator("#msgs .st-o").first().click();
+    assert.match(await page.locator("#say").inputValue(), /^Start a thread to make $/, `${mode}: a press starts the message`);
+    await page.waitForFunction(() => getComputedStyle(document.querySelector("#msgs .st-list")).visibility === "hidden");
+    await done(page);
+  }
+});
 t("H3: Create keeps focus while it works, and on a plain failure stays on Create", async () => {
   let answer;
   const W = { createMode: "503", createGate: new Promise((ok) => (answer = ok)) };
