@@ -215,4 +215,35 @@ t("no XO tool's name reaches a row or a header: unknown ones are said generally"
   assert.match(html, /Used an XO tool/);
 });
 
+// The owner, 13 Nov 15:14Z ("what is this?", "why does it stop so abruptly!?"): a thread waiting for the browser.
+// Its lease calls were refused (another session held the seat), it set a wake for when the seat frees, said so,
+// called no_reply_needed, then wrote "[Wake: lease freed]" itself, and XO cut it there (:5002, 15:08-15:10Z).
+t("a turn that paused for the browser: no red lease rows, no made-up wake, no Stopped line; it says it's waiting", () => {
+  const T = createTurns();
+  const env = (type, seq, data) => ({ type, envelope: { type, seq, ts: "2026-11-13T15:10:04Z", chat_id: "c", session_id: "s", turn_id: "tw", data } });
+  const held = "headless-browser-suite is held by session cse_fa7f158313434f4e since 2026-11-13T14:54:07Z, until 2026-11-13T15:34:07Z";
+  const mcp = (id, tool, status, summary) => ({ call_id: id, kind: "mcp", tool: `mcp__xo_comms__${tool}`, target: `xo_comms/${tool}`, line: `\`${tool}\` on \`xo_comms\``, status, summary });
+  T.apply(env("turn.started", 251800, { origin: "wake" }));
+  T.apply(env("block.finished", 251939, { block: { id: "tw:g1", type: "activity", index: 1, header: "1 step failed", rows: [mcp("l1", "lease", "error", held)] } }));
+  T.apply(env("block.finished", 251962, { block: { id: "tw:g2", type: "activity", index: 2, header: "Used a tool, ran a command", rows: [mcp("w", "wake_me", "ok", '{"timer_id": "tmr_8e", "kind": "on", "at": null, "on": "lease_freed:headless-browser-suite", "note": "Browser slot free: take the headless-browser-suite lease and shoot the empty projec…'), { call_id: "b", kind: "command", line: "Run the tests", target: "node t", status: "ok" }] } }));
+  T.apply(env("block.finished", 252007, { block: { id: "tw:g3", type: "activity", index: 3, header: "Used a tool, 1 step failed", rows: [mcp("u", "update_status", "ok", '{"ok": true}'), mcp("l2", "lease", "error", held)] } }));
+  T.apply(env("block.finished", 252008, { block: { id: "tw:n", type: "narration", index: 4, text: "I'm armed to wake when the browser slot frees; ending this turn until then." } }));
+  T.apply(env("block.finished", 252011, { block: { id: "tw:g4", type: "activity", index: 5, header: "Used a tool", rows: [mcp("n", "no_reply_needed", "ok", '{"ok": true}')] } }));
+  T.apply(env("block.finished", 252012, { block: { id: "tw:a", type: "answer", index: 6, text: "[Wake: lease freed]" } }));
+  T.apply(env("turn.finished", 252012, { status: "stopped", stop_reason: "interrupted", wall_ms: 262000 }));
+  T.apply(env("turn.stopped", 252013, { by: "turn_ended", last_step: "`no_reply_needed` on `xo_comms`" }));
+  const tw = T.get("tw");
+  const html = turnHtml(tw, T.blocksOf(tw));
+  assert.doesNotMatch(html, /\[Wake|Stopped|xo_comms|tb-bad|is-err/);
+  assert.match(html, /tb-end is-pause[^]*Paused to wait for the browser/);
+  // opened, the refused leases say what happened, as a wait, not a failure
+  const open = turnHtml(tw, T.blocksOf(tw), { open: { "work:tw": true, "tw:g1": true, "tw:g3": true } });
+  assert.match(open, /The browser was in use/);
+  assert.match(open, /I&#39;m armed to wake|I'm armed to wake/);
+  assert.doesNotMatch(open, /is-err|xo_comms|\[Wake/);
+  // an earlier stretch of the same turn (cut where a message came) doesn't say it paused
+  const early = segmentTurn(tw, { k: 0, last: false, from: 0, to: 1000, blocks: [] });
+  assert.doesNotMatch(turnHtml(early, T.blocksOf(tw)), /Paused/);
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

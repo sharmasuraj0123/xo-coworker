@@ -10,7 +10,7 @@ import { fileIcon } from "./fileicons.js";
 import { ICON, elapsed } from "./ui.js";
 import { renderMarkdown, renderInline } from "./markdown.js";
 import { mediaHtml, fromSharedFile, dedupeByMade } from "./media.js";
-import { commsLine, commsHeader, commsText, commsTool } from "./comms.js";
+import { commsLine, commsHeader, commsText, commsTool, commsBusy, commsPause } from "./comms.js";
 
 const KIND_ICON = {
   create_file: "doc", edit_file: "edit", delete_file: "close", read: "eye", search: "search", list: "search",
@@ -29,6 +29,8 @@ const secs = (ms) => { if (ms == null || !Number.isFinite(ms)) return ""; const 
 
 function rowMark(r) {
   if (r.status === "running") return r.waiting ? `<i class="tb-m is-wait" title="Waiting for you"></i>` : `<i class="tb-live" aria-hidden="true"></i>`;
+  // a lease someone else holds isn't a failure: the agent waits its turn for it
+  if (commsBusy(r)) return `<span class="tb-m is-den" title="In use">${ICON.clock}</span>`;
   if (r.status === "error") return `<span class="tb-m is-err" title="Failed">${ICON.close}</span>`;
   if (r.status === "denied") return `<span class="tb-m is-den" title="Denied">${ICON.lock}</span>`;
   if (r.status === "cancelled") return `<span class="tb-m is-den" title="Cancelled">■</span>`;
@@ -194,7 +196,8 @@ function workFold(turn, work, blocks, open, live, now, media = {}) {
     // turn that went on to finish is the agent feeling its way (`ls`, `which`): it stays in the fold,
     // because surfacing it in red would cry wolf (design-research/2026-11-vision/audit H2). A denial
     // or a real error step still shows.
-    const routine = (r) => r.kind === "command" && r.status === "error" && turn.status !== "failed";
+    // so is a lease another session holds: the agent waits for it (often with a wake for when it frees)
+    const routine = (r) => (r.kind === "command" && r.status === "error" && turn.status !== "failed") || commsBusy(r);
     const bad = rows.filter((r) => (BAD.has(r.status) || r.kind === "error") && !(turn.status === "failed" && r.kind === "error") && !routine(r));
     // in words, a step that didn't work is said, not shown: what it ran is one click away, in Details
     if (bad.length) under += WORDS ? `<p class="tb-note tb-wbad">${bad.length === 1 ? "One step" : `${bad.length} steps`} didn't work. Open the line above to see what happened.</p>` : `<ul class="tb-rows tb-bad">${bad.slice(-3).map((r) => rowHtml(r, open)).join("")}</ul>`;
@@ -270,6 +273,8 @@ export function turnHtml(turn, blocks, { open = {}, hideAnswer = false, now = Da
   if (turn.status === "stopped" || turn.stopped) foot = `<p class="tb-end is-stop">■ ${stoppedAt(turn.stopped && turn.stopped.last_step)}</p>`;
   else if (turn.status === "failed") foot = `<p class="tb-end is-err">${ICON.close}<span>This turn failed${end.error ? `: ${esc(String(end.error).slice(0, 240))}` : ""}</span></p>`;
   else if (turn.status === "interrupted") foot = `<p class="tb-end">Interrupted${end.reason === "restart" ? " by a restart; it picks up again" : ""}</p>`;
+  // it ended its own turn to wait for something (a wake it set): said, so the end isn't a mystery
+  else if (turn.selfEnded) { const why = commsPause(blocks.flatMap((b) => (b.type === "activity" ? b.rows || [] : []))); if (why) foot = `<p class="tb-end is-pause">${ICON.clock}<span>${esc(why)}</span></p>`; }
   if (!html.length && !foot) return "";
   // is-said: it holds words, files or its end line (CSS shows a folded live turn only then), set here
   // rather than found with :has(), which made every change on the page re-check every message (QA #6)
@@ -317,7 +322,7 @@ export function segmentTurn(turn, seg) {
   const id = seg.k === 0 ? turn.id : `${turn.id}#${seg.k}`;
   const at = seg.from != null ? new Date(seg.from).toISOString() : turn.at;
   if (seg.last) return seg.k === 0 ? turn : { ...turn, id, at, end: turn.end ? { ...turn.end, wall_ms: seg.to != null && seg.from != null ? seg.to - seg.from : turn.end.wall_ms } : turn.end };
-  return { ...turn, id, at, status: "finished", stopped: null, end: { wall_ms: seg.to != null && seg.from != null ? seg.to - seg.from : null } };
+  return { ...turn, id, at, status: "finished", stopped: null, selfEnded: false, end: { wall_ms: seg.to != null && seg.from != null ? seg.to - seg.from : null } };
 }
 
 /**

@@ -32,6 +32,16 @@ export function commsTool(row) {
 const parse = (s) => { if (!s || typeof s !== "string" || s[0] !== "{") return {}; try { return JSON.parse(s) || {}; } catch { return {}; } };
 const q = (t) => (t ? `“${t}”` : "");
 
+/** A leased resource in words: the browser seat (whatever the lease is called), else its own name. */
+const resourceOf = (name) => (!name ? "a shared resource" : /browser/i.test(name) ? "the browser" : `“${name}”`);
+// what XO answers a lease another session holds: "headless-browser-suite is held by session cse_… since …"
+const HELD = /^(\S+) is held by\b/;
+/** A lease refused because another session holds it: the agent waits its turn (it can ask to be woken when
+    it frees), so this is routine, not a failure to show in red. */
+export function commsBusy(row) {
+  return commsTool(row) === "lease" && row.status === "error" && typeof row.summary === "string" && HELD.test(row.summary);
+}
+
 /** [in flight, done, failed] for a comms call; done words may name what the result returned. ctx.project: the
     project the calling agent works in (the Map shows several), else the open conversation's. */
 function words(tool, res, ctx = {}) {
@@ -85,8 +95,8 @@ function words(tool, res, ctx = {}) {
     case "handoff_note": return ["Writing a handoff note", "Wrote a handoff note"];
     case "wake_me": return ["Setting a reminder", "Set a reminder"];
     case "cancel_wake": return ["Cancelling a reminder", "Cancelled a reminder"];
-    case "lease": { const r = res.resource ? `the ${res.resource}` : "a shared resource"; return [`Reserving ${r}`, `Reserved ${r}`, `Couldn't reserve ${r}`]; }
-    case "release": { const r = res.resource ? `the ${res.resource}` : "a shared resource"; return [`Freeing ${r}`, `Freed ${r}`]; }
+    case "lease": { const r = resourceOf(res.resource); return [`Reserving ${r}`, `Reserved ${r}`, `Couldn't reserve ${r}`]; }
+    case "release": { const r = resourceOf(res.resource); return [`Freeing ${r}`, `Freed ${r}`]; }
     case "fetch_project_card": return ["Reading a project's card", "Read a project's card"];
     case "no_such_project": return ["Saying there's no such project", "Said there's no such project"];
     case "list_review": return ["Looking over what waits on you", "Looked over what waits on you"];
@@ -112,6 +122,7 @@ export function commsLine(row, ctx) {
   // a call made after the agent ended its turn did nothing (XO refuses it: "This turn is closed, …")
   const refused = typeof row.summary === "string" && /^This turn is closed\b/.test(row.summary);
   const failed = row.status === "error" || refused || res.ok === false || res.delivered === false || !!res.error;
+  if (commsBusy(row)) { const r = resourceOf(HELD.exec(row.summary)[1]); return `${r.charAt(0).toUpperCase()}${r.slice(1)} was in use`; }
   if (failed) return w[2] || `Didn't finish: ${lower(w[0])}`;
   // a message tool's success is its own receipt; without one (Codex drops the result body) it's said neutrally,
   // "Message to …", which claims neither delivery nor failure
@@ -139,4 +150,24 @@ export function commsText(s, ctx) {
     const w = words(tool, {}, ctx)[0];
     return at === 0 ? w : w.charAt(0).toLowerCase() + w.slice(1);
   });
+}
+
+/** Why a turn the agent ended itself is only a pause: the wake it set before it stopped (wake_me), in words
+    ("Paused to wait for the browser"), or null when it set none. Read from the call's result, which the
+    runtime may have shortened mid-way, so by its fields rather than as JSON. */
+export function commsPause(rows) {
+  const wake = (rows || []).filter((r) => commsTool(r) === "wake_me" && r.status === "ok" && typeof r.summary === "string").pop();
+  if (!wake) return null;
+  const on = /"on": ?"([^"]+)"/.exec(wake.summary), at = /"at": ?"([^"]+)"/.exec(wake.summary);
+  if (on) {
+    const [ev, about] = on[1].split(/:(.*)/);
+    if (ev === "lease_freed") return `Paused to wait for ${resourceOf(about)}`;
+    if (ev === "task_done") return "Paused until another thread finishes";
+    if (ev === "process_exited") return "Paused until a process finishes";
+    if (ev === "pool_reopened") return "Paused until its usage limit lifts";
+    return "Paused until it's woken";
+  }
+  const when = at && Date.parse(at[1]);
+  if (Number.isFinite(when)) return `Paused until ${new Date(when).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+  return "Paused until it's woken";
 }
