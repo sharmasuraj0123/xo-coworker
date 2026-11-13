@@ -1683,9 +1683,11 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 .column:has(.m-start),.msgs:has(> .m-start){display:flex;flex:1 0 auto;flex-direction:column}
 .m-start{display:flex;flex-direction:column;align-items:center;gap:16px;margin:auto 0;padding-bottom:var(--h-lg)}
 .st-h{font:600 var(--fs-2xl)/var(--lh-20) var(--sans);letter-spacing:-.01em;color:var(--ink);text-align:center;text-wrap:balance;overflow-wrap:anywhere}
-.st-list{list-style:none;display:grid;width:max-content;max-width:100%;transition:opacity var(--d-hover) var(--ease),visibility 0s linear var(--d-hover)}
-/* once you write, the draft is yours: the starts step aside (they never add to a draft) */
-body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden}
+.st-list{list-style:none;display:grid;width:max-content;max-width:100%;transition:opacity var(--d-hover) var(--ease),visibility 0s}
+/* once you write, the draft is yours: the starts step aside (they never add to a draft). Hidden goes on only
+   once the fade is out; coming back, they are shown at once so the fade in is seen (it was hidden until the
+   fade had ended, then popped in whole: the owner, 13 Nov 18:26Z) */
+body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opacity var(--d-hover) var(--ease),visibility 0s linear var(--d-hover)}
 .st-o{display:flex;align-items:center;gap:12px;width:100%;min-height:var(--h-lg);padding:0 12px;border-radius:var(--r-lg);color:var(--ink-2);font-size:var(--fs-md);line-height:var(--lh-14);text-align:left;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .st-ic{display:grid;place-items:center;flex:none;color:var(--ink-4);transition:color var(--d-hover) var(--ease)}
 .st-ic svg{width:16px;height:16px}
