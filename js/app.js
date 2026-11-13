@@ -1257,11 +1257,11 @@ function topRender(needs) {
     const nd = P0.active.length;
     const asking = new Set(needs.map((n) => n.t.id));
     const working = world.state.threads.filter(isBusy).length;
-    // held back by a gate (the usage limit…): neither working nor idle ("can wait" is what needs you later)
+    // held back by a gate (the usage limit…): "waiting", the word its badge and the Waiting filter use; neither working nor idle
     const waiting = world.state.threads.filter((x) => isHeld(x) && !asking.has(x.id)).length;
     const idle = world.state.threads.filter((x) => x.state === "working" && !isBusy(x) && !isHeld(x) && !asking.has(x.id)).length;
     const done = doneToday().length;
-    const parts = [counted(working, "working"), counted(waiting, "held back"), counted(P0.held.length, "can wait"), counted(idle, "idle"), counted(done, "finished today")].filter(Boolean);
+    const parts = [counted(working, "working"), counted(waiting, "waiting"), counted(P0.held.length, "can wait"), counted(idle, "idle"), counted(done, "finished today")].filter(Boolean);
     const need = hostNeedHtml(v, needs);
     const line = countLine([...(parts.length ? parts : ["All quiet"]), projects().length && `across ${counted(projects().length, projects().length === 1 ? "project" : "projects")}`]);
     // the counts go to Home; what the Workspace's own coordinator asks opens here, so the two are separate buttons
@@ -1276,7 +1276,7 @@ function topRender(needs) {
     const dn = ts.filter((x) => x.state === "done").length;
     const rs = every.length - ts.length;
     // "done", not "done this week": the count is every done thread, however old
-    const parts = [counted(w, "working"), counted(wt, "held back"), counted(dn, "done"), counted(rs, "resolved")].filter(Boolean);
+    const parts = [counted(w, "working"), counted(wt, "waiting"), counted(dn, "done"), counted(rs, "resolved")].filter(Boolean);
     // Threads: every thread here, searchable, dropping down under its button (⌘K reaches them too)
     if (every.length) end = `<button type="button" class="all-btn th-btn" data-switch aria-haspopup="dialog" aria-expanded="${!allEl.hidden}" title="Every thread in ${esc(PROJ(pid))}, searchable">${ICON.threadOne}${esc(SHAPE.word("Threads"))}<span>${every.length}</span></button>`;
     const need = hostNeedHtml(v, needs);

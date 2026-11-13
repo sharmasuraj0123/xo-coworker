@@ -606,6 +606,10 @@ export function stormSource(state, emit, event) {
   // ── the stream ────────────────────────────────────────────────────────────
   function onFrame(f) {
     firstFrame();
+    // where the stream stands, even while its frames are held for a load: a read sent now stands there (sentAt),
+    // never at 0 (the snapshot's own seq is its position before any stored frame)
+    const fe = f.envelope || {}, at = fe.seq ?? (f.type === "snapshot" && fe.data ? fe.data.seq : null);
+    if (at != null && at > state.lastSeq) state.lastSeq = at;
     if (holding) { held.push(f); return; }
     apply(f);
   }
@@ -777,13 +781,13 @@ export function stormSource(state, emit, event) {
         break;
       case "run.started": {
         const i = d.info || {};
-        state.runs.set(d.run_id, { ...(state.runs.get(d.run_id) || {}), id: d.run_id, session: env.session_id, parent: d.parent_run_id || null, state: d.state || "running", title: i.title || i.agent_type || "Sub-agent", kind: i.kind || "subagent", background: !!i.background, depth: i.depth || 1, model: i.model || null, spawn: i.spawn_call_id || null, started_at: env.ts, hidden: !!i.hidden, seen: Date.now() });
+        state.runs.set(d.run_id, { ...(state.runs.get(d.run_id) || {}), id: d.run_id, session: env.session_id, parent: d.parent_run_id || null, state: d.state || "running", title: i.title || i.agent_type || "Sub-agent", kind: i.kind || "subagent", background: !!i.background, depth: i.depth || 1, model: i.model || null, spawn: i.spawn_call_id || null, started_at: env.ts, hidden: !!i.hidden, seen: Date.now(), seenSeq: env.seq ?? null });
         soon(); // a sub-agent at work keeps its thread Working after the turn: the threads are rebuilt
         break;
       }
       case "run.state": {
         const r = state.runs.get(d.run_id);
-        if (r) { state.runs.set(d.run_id, { ...r, state: d.state || r.state, stopping: !!d.stop_requested_at, background: d.background ?? r.background, seen: Date.now() }); soon(); }
+        if (r) { state.runs.set(d.run_id, { ...r, state: d.state || r.state, stopping: !!d.stop_requested_at, background: d.background ?? r.background, seen: Date.now(), seenSeq: env.seq ?? r.seenSeq ?? null }); soon(); }
         break;
       }
       case "run.finished": {
@@ -793,7 +797,7 @@ export function stormSource(state, emit, event) {
         break;
       }
       case "runs": {
-        if (d.session) { state.liveRuns[d.session] = { running: d.running || 0, waiting: d.waiting || 0, tokens: d.tokens || 0, at: Date.now() }; soon(); }
+        if (d.session) { state.liveRuns[d.session] = { running: d.running || 0, waiting: d.waiting || 0, tokens: d.tokens || 0, at: Date.now(), seq: env.seq ?? null }; soon(); }
         break;
       }
       case "review.opened":
@@ -1123,8 +1127,9 @@ export function stormSource(state, emit, event) {
       },
       /** A session's runs as a tree (the live list and the log), with counts (UI-reference §2.6). */
       listRuns: async (session) => {
+        const sent = sentAt(); // a read stands where it was sent (queuedButWorking orders runs by it)
         const d = await api.runs(session, { tree: "true", depth: 3, limit: 200 });
-        const walk = (nodes) => { for (const n of nodes || []) { state.runs.set(n.id, { ...(state.runs.get(n.id) || {}), id: n.id, session, parent: n.parent_run_id || null, state: n.state, title: n.title || n.agent_type || "Sub-agent", kind: n.kind, background: !!n.background, depth: n.depth, spawn: n.spawn_call_id || null, started_at: n.started_at, ended_at: n.ended_at, summary: n.summary, tokens: n.tokens, tool_calls: n.tool_calls, last_tool: n.last_tool, can_stop: n.can_stop, seen: Date.now() }); walk(n.children); } };
+        const walk = (nodes) => { for (const n of nodes || []) { state.runs.set(n.id, { ...(state.runs.get(n.id) || {}), id: n.id, session, parent: n.parent_run_id || null, state: n.state, title: n.title || n.agent_type || "Sub-agent", kind: n.kind, background: !!n.background, depth: n.depth, spawn: n.spawn_call_id || null, started_at: n.started_at, ended_at: n.ended_at, summary: n.summary, tokens: n.tokens, tool_calls: n.tool_calls, last_tool: n.last_tool, can_stop: n.can_stop, seen: Date.now(), seenSeq: sent.seq }); walk(n.children); } };
         walk(d.runs);
         soon();
         return d;

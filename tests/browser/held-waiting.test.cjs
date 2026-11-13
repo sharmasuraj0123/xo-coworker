@@ -67,7 +67,8 @@ const sp = (x) => String(x || "").replace(/\u00a0/g, " "); // a time is one phra
         return b && p ? Math.round(p.getBoundingClientRect().top - b.getBoundingClientRect().bottom) : null;
       });
       const sendTitle = () => page.locator("#send").getAttribute("title");
-      const shot = async (what) => { if (process.env.HELD_SHOTS) { fs.mkdirSync(process.env.HELD_SHOTS, { recursive: true }); await page.screenshot({ path: `${process.env.HELD_SHOTS}/${width}-${theme}-${newer ? "newer" : "older"}-${what}.png` }); } };
+      // a picture is of the owner's scene: the stream live, the Space's line saying "Paused until", never "Can't reach XO"
+      const shot = async (what) => { await live(); await page.waitForFunction(() => /^Paused until/.test(document.querySelector("#herald .hr-conn .hr-t")?.textContent || "") && !/Can't reach/.test(document.querySelector("#herald")?.textContent || "")); if (process.env.HELD_SHOTS) { fs.mkdirSync(process.env.HELD_SHOTS, { recursive: true }); await page.screenshot({ path: `${process.env.HELD_SHOTS}/${width}-${theme}-${newer ? "newer" : "older"}-${what}.png` }); } };
 
       // ── the coordinator, held ──
       await page.evaluate(() => window.__t.go("p:demo"));
@@ -89,7 +90,7 @@ const sp = (x) => String(x || "").replace(/\u00a0/g, " "); // a time is one phra
       assert.match(sp(await row.getAttribute("aria-label")), /Waiting for the usage limit · starts (tomorrow )?at/, cell);
       // the project's header: both threads held back (the done one too), none working
       const ph = await page.locator("#top-who").textContent();
-      assert.match(ph, /2 held back/, `${cell}: ${ph}`);
+      assert.match(ph, /2 waiting/, `${cell}: ${ph}`);
       assert.doesNotMatch(ph, /working|done/i, cell);
       await shot("coordinator");
 

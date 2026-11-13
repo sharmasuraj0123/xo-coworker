@@ -48,6 +48,13 @@ t("work seen after a session said queued outlives it: a turn started, a sub-agen
   // a status with no seq known (a local guess): any running turn the stream holds is evidence
   assert.equal(queuedButWorking({ id: "s", state: "queued", statusAt: 10 }, { turn: { status: "running", seq: 3 } }), true);
   assert.equal(queuedButWorking({ id: "s", state: "warm" }, { turn: { status: "running", seq: 99 } }), false, "only a queued status is overruled");
+  // in the stream's order where both say it: a run or counts read (or framed) before the status don't count,
+  // whatever the clock said when they came back
+  const q = { id: "s", state: "queued", statusAt: 10, statusSeq: 50 };
+  assert.equal(queuedButWorking(q, { runs: [{ session: "s", state: "running", seen: 99, seenSeq: 40 }] }), false);
+  assert.equal(queuedButWorking(q, { runs: [{ session: "s", state: "running", seen: 5, seenSeq: 60 }] }), true);
+  assert.equal(queuedButWorking(q, { agg: { running: 1, waiting: 0, at: 99, seq: 40 } }), false);
+  assert.equal(queuedButWorking(q, { agg: { running: 1, waiting: 0, at: 5, seq: 60 } }), true);
 });
 t("which status is newest: the stream's order (a read stands where it was sent), then the moment", () => {
   // a read sent at seq 10 and answered after a frame at seq 12: the frame stands
@@ -388,6 +395,34 @@ t("storm.js: held is one shown state, and work seen after a stale queued wins (a
   assert.equal(world.thread("read").busy, false);
   assert.equal(world.thread("read").held.for, "limit");
   assert.ok(be.asked.every((a) => a.startsWith("GET ")), "only GETs");
+});
+
+t("storm.js: at boot a listed queued session stands at the snapshot's seq: a turn left running in history doesn't make it Working", async () => {
+  const at = "2026-11-13T21:00:00Z";
+  const be = fakeBackend({
+    "/chat/chats": { chats: [{ id: "chat_ws", kind: "workspace" }, { id: "chat_p", kind: "project", project: "demo" }] },
+    "/chat/chats/chat_p/threads": { threads: [{ ts: "t3", chat_id: "chat_p", title: "t3", state: "working", session_id: "cse_3", created_at: at, updated_at: at, busy: false, session: { state: "queued", busy: false, waiting: { for: "limit", until: null, pool: "p", why: "usage limit reached" } } }] },
+    "/chat/sessions": { sessions: [{ id: "cse_3", seq: 1, chat_id: "chat_p", thread_ts: "t3", role: "thread", agent: "claude_code", pool: "p", state: "queued", busy: false, waiting: { for: "limit", until: null, pool: "p", why: "usage limit reached" } }] },
+    "/chat/review": { items: [] },
+    "/chat/chats/chat_ws/hops": { hops: [] },
+    "/chat/status": { pools: [] },
+    "/chat/runtimes": { runtimes: [] },
+    "/chat/router": { mode: "auto" },
+  });
+  const { createWorld } = await import("../js/world.js");
+  const world = createWorld();
+  // the snapshot at seq 500 lists a turn of that session that started at 50 and never said it ended
+  be.push("snapshot", { data: { seq: 500, turns: [{ turn_id: "turn_old", session_id: "cse_3", chat_id: "chat_p", thread_ts: "t3", seq: 50, blocks: [] }] } });
+  await until(() => world.state.loaded);
+  await until(() => world.thread("t3"));
+  await settle();
+  assert.equal(world.state.sessions.cse_3.statusSeq, 500, "the read stands where the stream was when it was sent");
+  assert.equal(world.thread("t3").busy, false);
+  assert.equal(world.thread("t3").held.for, "limit");
+  // a turn the stream starts after it: that one is work
+  be.push("turn.started", { session_id: "cse_3", turn_id: "turn_new", seq: 501, ts: at, data: { origin: "person" } });
+  await settle();
+  assert.equal(world.thread("t3").busy, true);
 });
 
 t("storm.js: a read sent before a status frame and answered after it doesn't undo that frame (it stands where it was sent)", async () => {

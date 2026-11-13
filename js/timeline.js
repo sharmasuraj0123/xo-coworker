@@ -261,16 +261,19 @@ export function statusLater(b, a) {
 
 /**
  * A session whose status says queued, yet work is seen after that status came: a turn the stream
- * started after it (turn: its running turn, {seq}; s.statusSeq: the event seq when the status was set),
- * a sub-agent the stream named after it (runs' `seen` against s.statusAt, ms), or `runs` counts above none
- * after it. Then the wait is over whatever the status says yet (its frame was missed or is late): Working.
+ * started after it (turn: its running turn, {seq}; s.statusSeq: where the status stands in the stream), a
+ * sub-agent the stream named after it (a run's seenSeq, else its `seen` against s.statusAt, ms), or `runs`
+ * counts above none after it (their seq, else their moment). Then the wait is over whatever the status says yet (its frame was missed or is late): Working.
  */
 export function queuedButWorking(s, { runs = [], agg = null, turn = null } = {}) {
   if (!s || s.state !== HELD_STATE) return false;
   const at = s.statusAt || 0, seq = s.statusSeq ?? null;
+  // after the status: in the stream's order when both say where they stand (a frame's seq, a read's seq when
+  // sent), else by the moment
+  const after = (xSeq, xAt) => (xSeq != null && seq != null ? xSeq > seq : (xAt || 0) > at);
   if (turn && turn.status !== "ended" && (seq == null || (turn.seq ?? -1) > seq)) return true;
-  for (const r of runs) if ((r.session == null || r.session === s.id) && runWorks(r) && (r.seen || 0) > at) return true;
-  return !!(agg && (agg.at || 0) > at && (agg.running || 0) + (agg.waiting || 0) > 0);
+  for (const r of runs) if ((r.session == null || r.session === s.id) && runWorks(r) && after(r.seenSeq ?? null, r.seen)) return true;
+  return !!(agg && after(agg.seq ?? null, agg.at) && (agg.running || 0) + (agg.waiting || 0) > 0);
 }
 
 /**
