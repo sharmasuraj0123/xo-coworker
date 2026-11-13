@@ -28,6 +28,7 @@ const NEXT = {
   create_repo: ["Create the private repo", "create-repo"], rename_repo: ["Pick another name", "settings"],
   link: ["Link it", "link-same"], recreate_or_unlink: ["Create it again", "recreate"], unlink: ["Unlink", "unlink"], pick_app: ["Pick an app", "pick"],
   open_build_log: ["Open the build log", "log"],
+  allow_apps: ["Push anyway", "allow-apps"], // other_apps: a push that would also deploy apps outside this account
   confirm_repo: ["Deploy to this repository", "use-repo"], // with the decision's data: "Deploy to <owner/repo>"
 };
 const OUTSIDE = new Set(["manual", "none", "sign_in_xo", "reinstall_space", "pull_changes"]);

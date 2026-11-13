@@ -147,6 +147,14 @@ t("nextStep: confirm_repo is the lit 'Deploy to <repo>' button when Space names 
   assert.deepEqual(nextStep("retry", { repo: "o/r" }), ["Try again", "retry"], "other actions ignore the data");
 });
 
+t("nextStep: other_apps' allow_apps is the lit Push anyway; rows carries the decision's apps whole", () => {
+  assert.deepEqual(nextStep("allow_apps"), ["Push anyway", "allow-apps"]);
+  const out = play([{ type: "needs", step: "push", code: "other_apps", action: "allow_apps", message: "m", options: [{ id: "allow_apps", label: "Push anyway" }], data: { repo: "a/b", branch: "main", apps: [{ id: "x", slug: "x", workflow: "w.yml" }, { id: "w2.yml", slug: null, workflow: "w2.yml" }] }, ts: ts(1) }]);
+  const n = out.at(-1);
+  assert.deepEqual([n.type, n.code, n.action, n.step], ["needs", "other_apps", "allow_apps", "repo"]);
+  assert.deepEqual(n.data.apps.map((a) => a.id), ["x", "w2.yml"]);
+});
+
 // ── check and preflight ────────────────────────────────────────────────────
 const check = (o = {}) => ({
   project: "p", state: "ready", summary: "Ready.", reasons: [], blockers: [], warnings: [], config: null,

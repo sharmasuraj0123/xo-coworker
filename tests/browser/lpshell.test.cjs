@@ -100,6 +100,33 @@ t("LP11: confirm repo: warning before Deploy; the decision names repo and origin
   }
 });
 
+t("LP11: other apps: the decision lists each app and where the push goes; Push anyway redeploys with every id; Don't push closes it", async () => {
+  for (const decline of [false, true]) {
+    const page = await open({ launchpad: "other-apps" });
+    await W.openLaunchpad(page);
+    await page.locator('[data-lp="deploy"]').click();
+    await page.waitForSelector('[data-lp="allow-apps"]', { timeout: 9000 });
+    const card = await page.locator(".lp-ask").innerText();
+    assert.match(card, /acme\/todo/);
+    assert.match(card, /todo-xo-ab12cd3/);
+    assert.match(card, /deploy-staging\.yml/, "an app with no slug is named by its workflow file");
+    assert.equal((await page.locator('[data-lp="allow-apps"]').innerText()).trim(), "Push anyway");
+    if (decline) {
+      await page.locator('[data-lp="decline-apps"]').click();
+      await page.waitForSelector('[data-lp="allow-apps"]', { state: "detached" });
+      assert.equal(page.__sent.length, 1, "nothing was sent again");
+    } else {
+      await page.locator('[data-lp="allow-apps"]').click();
+      for (let i = 0; i < 60 && page.__sent.length < 2; i++) await page.waitForTimeout(150);
+      assert.equal(page.__sent.length, 2);
+      assert.equal(page.__sent[0].allow_apps, undefined);
+      assert.deepEqual(page.__sent[1].allow_apps, ["todo-xo-ab12cd3", "deploy-staging.yml"], "every id, exactly");
+      assert.equal(page.__sent[1].name, page.__sent[0].name);
+    }
+    await done(page);
+  }
+});
+
 for (const sc of ["live-machine", "live-machine-noenv"]) t(`LP45: Change sits on its line's first row, at the line's end, level with its label (${sc})`, async () => {
   const page = await open({ launchpad: sc });
   await W.openLaunchpad(page);
