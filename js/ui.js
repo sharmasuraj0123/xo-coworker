@@ -1,7 +1,12 @@
 // Converged · small shared helpers: icons, a keyed DOM reconciler, time words, smooth disclosure,
 // reduced motion and the optional soft sounds (off by default).
 import { esc } from "./world.js";
+import { redraw } from "./redraw.js";
+import { usable } from "./focusview.js";
 
+// Every glyph is drawn on a 24 grid. Its attributes are the fallback: outside the sidebar, base.css draws
+// every stroke at 1.5 px whatever the size (non-scaling stroke) with square ends (Plan F, design-research/
+// 2026-11-vision/direction), so don't tune a glyph's weight here; size it 16 (or 20) where it's used.
 const I = (d, extra = "") =>
   `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"${extra}>${d}</svg>`;
 
@@ -31,6 +36,8 @@ export const ICON = {
   home: I('<path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/>'),
   right: I('<path d="M9 6l6 6-6 6"/>', ' stroke-width="2"'),
   clock: I('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'),
+  // a refusal or an error said in a line: the clock's circle with a mark in it (a clock there read as "wait")
+  warn: I('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5.2M12 16.4v.1"/>'),
   menu: I('<path d="M4 7h16M4 12h16M4 17h10"/>'),
   eye: I('<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.6"/>'),
   clip: I('<path d="M20.5 11.5 12.6 19.4a5 5 0 0 1-7.1-7.1l8.2-8.2a3.3 3.3 0 0 1 4.7 4.7l-8.2 8.2a1.7 1.7 0 0 1-2.4-2.4l7.5-7.5"/>'),
@@ -53,8 +60,14 @@ export const ICON = {
   rule: I('<path d="M5 5h14M5 10h14M5 15h8"/><path d="M16 15.5l1.8 1.8L21 14"/>'),
   shield: I('<path d="M12 3.5 19 6v5.6c0 4.2-2.9 7.5-7 8.9-4.1-1.4-7-4.7-7-8.9V6z"/><path d="M9 12l2.2 2.2L15.5 10"/>'),
   key: I('<circle cx="8" cy="15" r="3.5"/><path d="M10.5 12.5 19 4M16 7l2.5 2.5M14 9l2 2"/>'),
+  // a thread: one agent's conversation with words in it (Chats keeps the empty bubble)
+  threadOne: I('<path d="M20.5 11.6a8 8 0 0 1-11.6 7.1L4 20l1.3-4.4A8 8 0 1 1 20.5 11.6z"/><path d="M8.6 10.2h7M8.6 13.4h4.4"/>'),
+  // artifacts: what threads made, a stack of finished things
+  stack: I('<path d="M12 3.5 20.5 8 12 12.5 3.5 8z"/><path d="M3.5 12 12 16.5 20.5 12"/><path d="M3.5 16 12 20.5 20.5 16"/>'),
+  pin: I('<path d="M14.5 3.5 20.5 9.5 18 10.5 14.5 14l.5 4.5-1.5 1.5-3.8-3.8L5 20.9 3.1 19l4.7-4.7L4 10.5 5.5 9l4.5.5L13.5 6z"/>'),
   shell: I('<rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="m7 9.5 3 2.5-3 2.5M12.5 15H17"/>'),
   minimize: I('<path d="M6 12h12"/>', ' stroke-width="2"'),
+  runtime: I('<rect x="6" y="6" width="12" height="12" rx="2.5"/><path d="M10 2.5v3.5M14 2.5v3.5M10 18v3.5M14 18v3.5M2.5 10H6M2.5 14H6M18 10h3.5M18 14h3.5"/>'),
   router: I('<circle cx="5.5" cy="12" r="2"/><circle cx="18.5" cy="6" r="2"/><circle cx="18.5" cy="18" r="2"/><path d="M7.5 12h4l5-5M11.5 12l5 5"/>'),
 };
 
@@ -100,11 +113,11 @@ export function morph(el, mutate, { duration = 320, fade = null } = {}) {
     const a = el.animate([{ height: `${h0}px`, overflow: "hidden" }, { height: `${h1}px`, overflow: "hidden" }], { duration, easing: EASE });
     a.id = "morph";
   }
-  if (fade) fade.animate([{ opacity: 0 }, { opacity: 1 }], { duration: Math.round(duration * 0.8), easing: "ease-out", delay: Math.round(duration * 0.15), fill: "backwards" });
+  if (fade) fade.animate([{ opacity: 0 }, { opacity: 1 }], { duration: Math.round(duration * 0.8), easing: EASE, delay: Math.round(duration * 0.15), fill: "backwards" });
 }
 
 /** One easing for every size change: continuous, no front-loaded jump (a frame never moves more than ~40 px). */
-export const EASE = "cubic-bezier(.3,.6,.25,1)";
+export const EASE = "cubic-bezier(.2,.8,.2,1)"; // the one curve (css/tokens.css --ease)
 export const EXPAND_MS = 320;
 
 /**
@@ -132,13 +145,13 @@ export function expand(box, body, open, { onStep = null, frame = null } = {}) {
     const a = body.animate([{ height: `${h0}px` }, { height: `${h1}px` }], { duration: EXPAND_MS, easing: EASE });
     body.style.overflow = "hidden";
     a.onfinish = a.oncancel = () => { body.style.overflow = ""; };
-    if (inner) inner.animate([{ opacity: 0, transform: "translateY(-3px)" }, { opacity: 1, transform: "none" }], { duration: 220, delay: 60, easing: "ease-out", fill: "backwards" });
+    if (inner) inner.animate([{ opacity: 0, transform: "translateY(-3px)" }, { opacity: 1, transform: "none" }], { duration: 220, delay: 60, easing: EASE, fill: "backwards" });
   } else {
     box.classList.remove("is-open");
     if (rm || !h0) { body.hidden = true; return; }
     body._closing = true;
     body.style.overflow = "hidden";
-    if (inner) inner.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, easing: "ease-in", fill: "forwards" });
+    if (inner) inner.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, easing: EASE, fill: "forwards" });
     const a = body.animate([{ height: `${h0}px` }, { height: "0px" }], { duration: EXPAND_MS - 40, easing: EASE });
     a.onfinish = () => { if (body._closing) { body.hidden = true; body._closing = false; } body.style.overflow = ""; inner?.getAnimations?.().forEach((x) => x.cancel()); };
   }
@@ -163,7 +176,7 @@ function expandFrame(box, body, open, frame, onStep) {
   frame.style.overflow = "hidden";
   const a = frame.animate([{ height: `${h0}px` }, { height: `${h1}px` }], { duration: EXPAND_MS, easing: EASE });
   a.id = "xf";
-  if (open && inner) inner.animate([{ opacity: 0, transform: "translateY(-3px)" }, { opacity: 1, transform: "none" }], { duration: 220, delay: 60, easing: "ease-out", fill: "backwards" });
+  if (open && inner) inner.animate([{ opacity: 0, transform: "translateY(-3px)" }, { opacity: 1, transform: "none" }], { duration: 220, delay: 60, easing: EASE, fill: "backwards" });
   if (!open && inner) inner.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, fill: "forwards" });
   a.onfinish = a.oncancel = () => { frame.style.overflow = ""; if (!box.classList.contains("is-open")) body.hidden = true; inner?.getAnimations?.().forEach((x) => x.cancel()); };
   if (onStep) { const t0 = performance.now(); const f = () => { onStep(); if (performance.now() - t0 < EXPAND_MS + 40) requestAnimationFrame(f); }; requestAnimationFrame(f); }
@@ -182,16 +195,24 @@ export function waited(ms) {
 export const $ = (s, el = document) => el.querySelector(s);
 export const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 export const RM = matchMedia("(prefers-reduced-motion: reduce)");
+/** An animation's time: none under reduced motion. Never for time a person needs to act (see hold). */
 export const wait = (ms) => new Promise((r) => setTimeout(r, RM.matches ? 0 : ms));
+/** Time a person has to act (an Undo window, a moment to read): real time, reduced motion or not. Reduced motion
+ *  cuts animations, never the time to act (Astra S014: the dock's Undo vanished in ~20 ms). */
+export const hold = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// one formatter each, made once: toLocale*String with options builds a new one per call (25 ms per redraw
+// of a 400-row conversation; QA C5)
+const CLOCK_F = new Intl.DateTimeFormat([], { hour: "numeric", minute: "2-digit" });
+const DAY_F = new Intl.DateTimeFormat(undefined, { weekday: "short", month: "short", day: "numeric" });
 export function clock(ms) {
-  return new Date(ms).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  return CLOCK_F.format(ms);
 }
 export function dayOf(ms, now = Date.now()) {
   const d = new Date(ms), t = new Date(now), y = new Date(now - 86400000);
   if (d.toDateString() === t.toDateString()) return "Today";
   if (d.toDateString() === y.toDateString()) return "Yesterday";
-  return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  return DAY_F.format(d);
 }
 export function short(ms, now = Date.now()) {
   const s = Math.max(0, Math.round((now - ms) / 1000));
@@ -214,21 +235,48 @@ export const plain = (md) => String(md || "").replace(/```[\s\S]*?```/g, "[code]
  * Keyed reconcile: items [{key, html}] → children of `box`. Unchanged items
  * keep their element (so animations, focus and selection survive a tick);
  * new ones get `is-new` unless `quiet`. Returns the list of new elements.
+ *
+ * A changed item is drawn anew, except the one you're in: a row holding focus is brought to its new HTML in
+ * place (js/redraw.js), so the control you're on stays (Astra DET-1: a tool's output arriving took focus from
+ * its disclosure). Its own attributes come from the new HTML; once the list is in order it hears "redrawn"
+ * (bubbling), so whatever decorates rows (js/msgx.js) puts its additions back in the same task. Every other row
+ * is replaced as before.
  */
-export function reconcile(box, items, { quiet = false } = {}) {
+/** Where focus can land in a row: its controls, in order. */
+const LANDING = 'button:not(:disabled), a[href], input:not([type="hidden"]):not(:disabled), textarea:not(:disabled), [tabindex="0"]';
+export function reconcile(box, items, { quiet = false, fallback = null } = {}) {
   const old = new Map();
   for (const el of box.children) if (el.dataset.k) old.set(el.dataset.k, el);
   const added = [];
   const tpl = document.createElement("template");
+  const active = document.activeElement, inPlace = [];
+  // a row that's going while it holds focus hands it on first, never to BODY (the create-project/Launchpad grader on
+  // f70ca6b, C050/C121: the working mini, dropped with no finished blocks, took focus with it): the nearest row that
+  // stays, before it, else after it (found now, before anything moves), or the list's fallback
+  const keep = new Set(items.map((it) => it.key));
+  const going = [...box.children].find((el) => el.dataset.k && !keep.has(el.dataset.k) && el.contains(active));
+  let near = null;
+  if (going) {
+    for (let s = going.previousElementSibling; s && !near; s = s.previousElementSibling) if (s.dataset.k && keep.has(s.dataset.k)) near = s.dataset.k;
+    for (let s = going.nextElementSibling; s && !near; s = s.nextElementSibling) if (s.dataset.k && keep.has(s.dataset.k)) near = s.dataset.k;
+  }
   items.forEach((it, i) => {
     let el = old.get(it.key);
     if (el && el._h !== it.html) {
       tpl.innerHTML = it.html.trim();
       const fresh = tpl.content.firstElementChild;
-      fresh.dataset.k = it.key; fresh._h = it.html;
-      const had = el === document.activeElement;
-      el.replaceWith(fresh); el = fresh;
-      if (had && fresh.tabIndex >= 0) fresh.focus({ preventScroll: true });
+      if (active && active !== el && el.contains(active) && fresh && fresh.tagName === el.tagName) {
+        for (const a of [...el.attributes]) if (a.name !== "data-k" && !fresh.hasAttribute(a.name)) el.removeAttribute(a.name);
+        for (const a of fresh.attributes) if (el.getAttribute(a.name) !== a.value) el.setAttribute(a.name, a.value);
+        redraw(el, fresh.innerHTML);
+        el._h = it.html;
+        inPlace.push(el);
+      } else {
+        fresh.dataset.k = it.key; fresh._h = it.html;
+        const had = el === active;
+        el.replaceWith(fresh); el = fresh;
+        if (had && fresh.tabIndex >= 0) fresh.focus({ preventScroll: true });
+      }
     } else if (!el) {
       tpl.innerHTML = it.html.trim();
       el = tpl.content.firstElementChild;
@@ -239,19 +287,50 @@ export function reconcile(box, items, { quiet = false } = {}) {
     const at = box.children[i];
     if (at !== el) box.insertBefore(el, at || null);
   });
+  if (going) {
+    near = near && [...box.children].find((el) => el.dataset.k === near);
+    const to = (near && [...near.querySelectorAll(LANDING)].find(usable)) || (fallback && fallback());
+    if (to && to.focus) to.focus({ preventScroll: true });
+  }
   for (const el of old.values()) el.remove();
+  // told once the list is in its final order, so what decorates rows sees their neighbours as they are
+  for (const el of inPlace) if (el.isConnected) el.dispatchEvent(new CustomEvent("redrawn", { bubbles: true }));
   return added;
 }
 
 // ── optional soft sounds (OFF by default; the person turns them on) ─────────
-let actx = null;
+// Turning sounds on takes a choice the browser will keep (sound that came back after a reload, or didn't, would be a
+// surprise either way): where it won't keep it, they stay off and that's said. Turning them off always works on this
+// page, and says when it won't be remembered. Turning on is a press, so the audio is made or woken right then; where
+// the browser won't play (no audio, or it refuses), they stay off and that's said.
+// (create-project grader on 7e0db5b, C117: a refused write left the switch off, a refused audio left it on with
+// nothing said, and a suspended context was never woken, its notes queueing silently.)
+let actx = null, chosen = null;
+const stored = () => { try { return localStorage.getItem("cv-sound") === "on"; } catch { return false; } };
+const keep = (v) => { try { localStorage.setItem("cv-sound", v ? "on" : "off"); return localStorage.getItem("cv-sound") === (v ? "on" : "off"); } catch { return false; } };
 export const sound = {
-  get on() { try { return localStorage.getItem("cv-sound") === "on"; } catch { return false; } },
-  set on(v) { try { localStorage.setItem("cv-sound", v ? "on" : "off"); } catch { /* private mode */ } },
+  get on() { return chosen ?? stored(); },
+  /**
+   * Turn sounds on or off from a press. Resolves to {on, kept, refused}: on, what the switch now says; kept, whether
+   * the browser keeps the choice (asked for on and not kept: they stay off); refused, that the browser won't play
+   * sound here (so they're off).
+   */
+  async turn(want) {
+    if (!want) { chosen = false; return { on: false, kept: keep(false), refused: false }; }
+    if (!keep(true)) { chosen = false; return { on: false, kept: false, refused: false }; }
+    try {
+      actx = actx || new AudioContext();
+      if (actx.state === "suspended") await actx.resume();
+    } catch { actx = null; }
+    if (!actx || actx.state !== "running") { chosen = false; keep(false); return { on: false, kept: true, refused: true }; }
+    chosen = true;
+    return { on: true, kept: true, refused: false };
+  },
   play(kind) {
     if (!this.on) return;
     try {
       actx = actx || new AudioContext();
+      if (actx.state !== "running") return; // asleep (a tab in the background): never queue notes for later
       const notes = { allow: [660, 990], back: [520, 390], done: [523, 659, 784], lock: [880], send: [740] }[kind] || [660];
       notes.forEach((f, i) => {
         const o = actx.createOscillator(), g = actx.createGain();
@@ -265,3 +344,26 @@ export const sound = {
 };
 
 export { esc };
+
+/**
+ * Every turning arc and every shimmering "working" line on the page moves in step, from the page's first
+ * moment, whenever it was drawn: one redrawn by a streamed update would otherwise restart from zero and
+ * look like it stutters.
+ */
+export function keepTurning() {
+  if (typeof document === "undefined" || !document.getAnimations) return;
+  const sync = () => {
+    for (const a of document.getAnimations()) {
+      if (a.animationName === "spin" || a.animationName === "arc-turn" || a.animationName === "shimmer") { if (a.startTime !== 0) a.startTime = 0; }
+    }
+  };
+  // only when something added holds an arc, a spinner or a shimmer (a scan of every animation on the page
+  // after any change at all cost tens of ms on a busy page, QA #11), and at once, before the frame is
+  // painted: a redrawn arc used to show one frame from its start before being put back in step
+  const MOVING = ".arc, .spin, .shimmer, .tb-live";
+  const moving = (n) => n.nodeType === 1 && (n.matches(MOVING) || !!n.querySelector(MOVING));
+  new MutationObserver((recs) => {
+    for (const r of recs) for (const n of r.addedNodes) if (moving(n)) { sync(); return; }
+  }).observe(document.body, { childList: true, subtree: true });
+  sync();
+}

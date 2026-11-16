@@ -107,6 +107,14 @@ t("backoff grows to 15 s; close codes say whether to retry", () => {
   assert.equal(closeMeaning(1006), "retry");
 });
 
+t("a shell's status dot is never blue (the owner: no blue dots; blue is for work in progress only)", () => {
+  const css = readFileSync(new URL("../css/app.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  const rules = [...css.matchAll(/([^{}]*\.shd-dot[^{}]*)\{([^{}]*)\}/g)].map((m) => [m[1].trim(), m[2]]);
+  assert.ok(rules.length >= 4, "the dot's rules are found");
+  const blue = rules.filter(([, body]) => /var\(--(?:info|work)\)|#(?:75ADF1|1F63C7)|rgb\(\s*117\s*,\s*173\s*,\s*241/i.test(body)).map(([sel]) => sel);
+  assert.deepEqual(blue, [], `blue dot rules: ${blue.join(", ")}`);
+});
+
 t("vendored xterm files are the pinned ones", () => {
   const sha = (p) => createHash("sha256").update(readFileSync(new URL("../js/vendor/xterm/" + p, import.meta.url))).digest("hex");
   assert.equal(sha("xterm.mjs"), "b336ec65a086c056d4804b3d4c2347da5663d3f23c3f25be866467bd8857ad59");

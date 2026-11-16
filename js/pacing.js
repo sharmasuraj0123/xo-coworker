@@ -19,7 +19,7 @@ export function createPacing({ params }) {
   const S = {
     pingMin: PING_MIN,
     vigilMin: 25,
-    reviewMs: (+params.get("review") || 0) * 60000,
+    reviewMs: 0, // (a ?review= test flag used to seed this; no URL switches on the live build, QA #14)
     reviewFrom: 0,
     vigilAckAt: -1,
     brought: new Set(),   // held asks the person brought in

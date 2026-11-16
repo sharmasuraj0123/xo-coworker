@@ -1,0 +1,536 @@
+[
+  {
+    "theme": "dark",
+    "width": 1440,
+    "states": {
+      "home": {
+        "rest": {
+          "background": "rgba(0, 0, 0, 0) linear-gradient(rgb(34, 34, 34), rgb(29, 29, 29)) repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "1px solid rgb(50, 50, 50)",
+          "shadow": "rgba(255, 255, 255, 0.04) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.25) 0px 6px 18px 0px",
+          "outline": "rgb(225, 225, 225) none 3px",
+          "focus": false,
+          "active": false,
+          "transform": "none"
+        },
+        "hover": {
+          "background": "color(srgb 0.167529 0.167529 0.167529) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "1px solid rgb(86, 86, 86)",
+          "shadow": "rgba(255, 255, 255, 0.04) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.25) 0px 6px 18px 0px",
+          "outline": "rgb(225, 225, 225) none 3px",
+          "focus": false,
+          "active": false,
+          "transform": "none"
+        },
+        "focus": {
+          "background": "rgba(0, 0, 0, 0) linear-gradient(rgb(34, 34, 34), rgb(29, 29, 29)) repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "1px solid rgb(50, 50, 50)",
+          "shadow": "rgba(255, 255, 255, 0.04) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.25) 0px 6px 18px 0px",
+          "outline": "rgba(131, 214, 58, 0.75) solid 2px",
+          "focus": true,
+          "active": false,
+          "transform": "none"
+        },
+        "active": {
+          "background": "color(srgb 0.167529 0.167529 0.167529) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "1px solid rgb(86, 86, 86)",
+          "shadow": "rgba(255, 255, 255, 0.09) 0px 0px 0px 1440px inset",
+          "outline": "rgb(225, 225, 225) none 3px",
+          "focus": false,
+          "active": true,
+          "transform": "none"
+        }
+      },
+      "side": {
+        "rest": {
+          "background": "rgb(34, 34, 34) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "0px none rgb(193, 193, 193)",
+          "shadow": "rgba(255, 255, 255, 0.035) 0px 1px 0px 0px inset",
+          "outline": "rgb(193, 193, 193) none 3px",
+          "focus": false,
+          "active": false,
+          "transform": "none"
+        },
+        "hover": {
+          "background": "rgb(38, 38, 38) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "0px none rgb(225, 225, 225)",
+          "shadow": "rgba(255, 255, 255, 0.035) 0px 1px 0px 0px inset",
+          "outline": "rgb(225, 225, 225) none 3px",
+          "focus": false,
+          "active": false,
+          "transform": "none"
+        },
+        "focus": {
+          "background": "rgb(38, 38, 38) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "0px none rgb(225, 225, 225)",
+          "shadow": "rgba(255, 255, 255, 0.035) 0px 1px 0px 0px inset",
+          "outline": "rgba(131, 214, 58, 0.75) solid 2px",
+          "focus": true,
+          "active": false,
+          "transform": "none"
+        },
+        "active": {
+          "background": "rgb(38, 38, 38) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "0px none rgb(225, 225, 225)",
+          "shadow": "rgba(255, 255, 255, 0.035) 0px 1px 0px 0px inset",
+          "outline": "rgb(225, 225, 225) none 3px",
+          "focus": false,
+          "active": true,
+          "transform": "matrix(0.96, 0, 0, 0.96, 0, 0)"
+        }
+      }
+    },
+    "gap": -17,
+    "alignment": {
+      "centreDelta": 0,
+      "rightDelta": 0,
+      "findBorder": "1px solid rgb(38, 38, 38)"
+    },
+    "blocked": []
+  },
+  {
+    "theme": "dark",
+    "width": 390,
+    "states": {
+      "home": {
+        "rest": {
+          "background": "rgba(0, 0, 0, 0) linear-gradient(rgb(34, 34, 34), rgb(29, 29, 29)) repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "1px solid rgb(50, 50, 50)",
+          "shadow": "rgba(255, 255, 255, 0.04) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.25) 0px 6px 18px 0px",
+          "outline": "rgb(225, 225, 225) none 3px",
+          "focus": false,
+          "active": false,
+          "transform": "none"
+        },
+        "hover": {
+          "background": "color(srgb 0.167529 0.167529 0.167529) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "1px solid rgb(86, 86, 86)",
+          "shadow": "rgba(255, 255, 255, 0.04) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.25) 0px 6px 18px 0px",
+          "outline": "rgb(225, 225, 225) none 3px",
+          "focus": false,
+          "active": false,
+          "transform": "none"
+        },
+        "focus": {
+          "background": "rgba(0, 0, 0, 0) linear-gradient(rgb(34, 34, 34), rgb(29, 29, 29)) repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "1px solid rgb(50, 50, 50)",
+          "shadow": "rgba(255, 255, 255, 0.04) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.25) 0px 6px 18px 0px",
+          "outline": "rgba(131, 214, 58, 0.75) solid 2px",
+          "focus": true,
+          "active": false,
+          "transform": "none"
+        },
+        "active": {
+          "background": "color(srgb 0.167529 0.167529 0.167529) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "1px solid rgb(86, 86, 86)",
+          "shadow": "rgba(255, 255, 255, 0.09) 0px 0px 0px 900px inset",
+          "outline": "rgb(225, 225, 225) none 3px",
+          "focus": false,
+          "active": true,
+          "transform": "none"
+        }
+      },
+      "side": {
+        "rest": {
+          "background": "rgb(34, 34, 34) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "0px none rgb(193, 193, 193)",
+          "shadow": "rgba(255, 255, 255, 0.035) 0px 1px 0px 0px inset",
+          "outline": "rgb(193, 193, 193) none 3px",
+          "focus": false,
+          "active": false,
+          "transform": "none"
+        },
+        "hover": {
+          "background": "rgb(38, 38, 38) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "0px none rgb(225, 225, 225)",
+          "shadow": "rgba(255, 255, 255, 0.035) 0px 1px 0px 0px inset",
+          "outline": "rgb(225, 225, 225) none 3px",
+          "focus": false,
+          "active": false,
+          "transform": "none"
+        },
+        "focus": {
+          "background": "rgb(38, 38, 38) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "0px none rgb(225, 225, 225)",
+          "shadow": "rgba(255, 255, 255, 0.035) 0px 1px 0px 0px inset",
+          "outline": "rgba(131, 214, 58, 0.75) solid 2px",
+          "focus": true,
+          "active": false,
+          "transform": "none"
+        },
+        "active": {
+          "background": "rgb(38, 38, 38) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "0px none rgb(225, 225, 225)",
+          "shadow": "rgba(255, 255, 255, 0.035) 0px 1px 0px 0px inset",
+          "outline": "rgb(225, 225, 225) none 3px",
+          "focus": false,
+          "active": true,
+          "transform": "matrix(0.96, 0, 0, 0.96, 0, 0)"
+        }
+      }
+    },
+    "gap": 12,
+    "alignment": {
+      "centreDelta": 0,
+      "rightDelta": 0,
+      "findBorder": "1px solid rgb(38, 38, 38)"
+    },
+    "blocked": []
+  },
+  {
+    "theme": "dark",
+    "width": 320,
+    "states": {
+      "home": {
+        "rest": {
+          "background": "rgba(0, 0, 0, 0) linear-gradient(rgb(34, 34, 34), rgb(29, 29, 29)) repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "1px solid rgb(50, 50, 50)",
+          "shadow": "rgba(255, 255, 255, 0.04) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.25) 0px 6px 18px 0px",
+          "outline": "rgb(225, 225, 225) none 3px",
+          "focus": false,
+          "active": false,
+          "transform": "none"
+        },
+        "hover": {
+          "background": "color(srgb 0.167529 0.167529 0.167529) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "1px solid rgb(86, 86, 86)",
+          "shadow": "rgba(255, 255, 255, 0.04) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.25) 0px 6px 18px 0px",
+          "outline": "rgb(225, 225, 225) none 3px",
+          "focus": false,
+          "active": false,
+          "transform": "none"
+        },
+        "focus": {
+          "background": "rgba(0, 0, 0, 0) linear-gradient(rgb(34, 34, 34), rgb(29, 29, 29)) repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "1px solid rgb(50, 50, 50)",
+          "shadow": "rgba(255, 255, 255, 0.04) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.25) 0px 6px 18px 0px",
+          "outline": "rgba(131, 214, 58, 0.75) solid 2px",
+          "focus": true,
+          "active": false,
+          "transform": "none"
+        },
+        "active": {
+          "background": "color(srgb 0.167529 0.167529 0.167529) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "1px solid rgb(86, 86, 86)",
+          "shadow": "rgba(255, 255, 255, 0.09) 0px 0px 0px 900px inset",
+          "outline": "rgb(225, 225, 225) none 3px",
+          "focus": false,
+          "active": true,
+          "transform": "none"
+        }
+      },
+      "side": {
+        "rest": {
+          "background": "rgb(34, 34, 34) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "0px none rgb(193, 193, 193)",
+          "shadow": "rgba(255, 255, 255, 0.035) 0px 1px 0px 0px inset",
+          "outline": "rgb(193, 193, 193) none 3px",
+          "focus": false,
+          "active": false,
+          "transform": "none"
+        },
+        "hover": {
+          "background": "rgb(38, 38, 38) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "0px none rgb(225, 225, 225)",
+          "shadow": "rgba(255, 255, 255, 0.035) 0px 1px 0px 0px inset",
+          "outline": "rgb(225, 225, 225) none 3px",
+          "focus": false,
+          "active": false,
+          "transform": "none"
+        },
+        "focus": {
+          "background": "rgb(38, 38, 38) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "0px none rgb(225, 225, 225)",
+          "shadow": "rgba(255, 255, 255, 0.035) 0px 1px 0px 0px inset",
+          "outline": "rgba(131, 214, 58, 0.75) solid 2px",
+          "focus": true,
+          "active": false,
+          "transform": "none"
+        },
+        "active": {
+          "background": "rgb(38, 38, 38) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "0px none rgb(225, 225, 225)",
+          "shadow": "rgba(255, 255, 255, 0.035) 0px 1px 0px 0px inset",
+          "outline": "rgb(225, 225, 225) none 3px",
+          "focus": false,
+          "active": true,
+          "transform": "matrix(0.96, 0, 0, 0.96, 0, 0)"
+        }
+      }
+    },
+    "gap": 12,
+    "alignment": {
+      "centreDelta": 0,
+      "rightDelta": 0,
+      "findBorder": "1px solid rgb(38, 38, 38)"
+    },
+    "blocked": []
+  },
+  {
+    "theme": "light",
+    "width": 1440,
+    "states": {
+      "home": {
+        "rest": {
+          "background": "rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "1px solid rgba(0, 0, 0, 0.1)",
+          "shadow": "rgba(0, 0, 0, 0.04) 0px 1px 2px 0px, rgba(0, 0, 0, 0.02) 0px 1px 1px 0px",
+          "outline": "rgb(26, 26, 26) none 3px",
+          "focus": false,
+          "active": false,
+          "transform": "none"
+        },
+        "hover": {
+          "background": "color(srgb 0.946118 0.946118 0.946118) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "1px solid rgba(0, 0, 0, 0.18)",
+          "shadow": "rgba(0, 0, 0, 0.04) 0px 1px 2px 0px, rgba(0, 0, 0, 0.02) 0px 1px 1px 0px",
+          "outline": "rgb(26, 26, 26) none 3px",
+          "focus": false,
+          "active": false,
+          "transform": "none"
+        },
+        "focus": {
+          "background": "rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "1px solid rgba(0, 0, 0, 0.1)",
+          "shadow": "rgba(0, 0, 0, 0.04) 0px 1px 2px 0px, rgba(0, 0, 0, 0.02) 0px 1px 1px 0px",
+          "outline": "rgba(61, 122, 23, 0.75) solid 2px",
+          "focus": true,
+          "active": false,
+          "transform": "none"
+        },
+        "active": {
+          "background": "color(srgb 0.946118 0.946118 0.946118) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "1px solid rgba(0, 0, 0, 0.18)",
+          "shadow": "rgba(0, 0, 0, 0.09) 0px 0px 0px 1440px inset",
+          "outline": "rgb(26, 26, 26) none 3px",
+          "focus": false,
+          "active": true,
+          "transform": "none"
+        }
+      },
+      "side": {
+        "rest": {
+          "background": "rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "0px none rgb(59, 59, 59)",
+          "shadow": "rgba(0, 0, 0, 0.07) 0px 0px 0px 1px inset",
+          "outline": "rgb(59, 59, 59) none 3px",
+          "focus": false,
+          "active": false,
+          "transform": "none"
+        },
+        "hover": {
+          "background": "color(srgb 0.964078 0.964078 0.964078) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "0px none rgb(26, 26, 26)",
+          "shadow": "rgba(0, 0, 0, 0.07) 0px 0px 0px 1px inset",
+          "outline": "rgb(26, 26, 26) none 3px",
+          "focus": false,
+          "active": false,
+          "transform": "none"
+        },
+        "focus": {
+          "background": "color(srgb 0.964078 0.964078 0.964078) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "0px none rgb(26, 26, 26)",
+          "shadow": "rgba(0, 0, 0, 0.07) 0px 0px 0px 1px inset",
+          "outline": "rgba(61, 122, 23, 0.75) solid 2px",
+          "focus": true,
+          "active": false,
+          "transform": "none"
+        },
+        "active": {
+          "background": "color(srgb 0.964078 0.964078 0.964078) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "0px none rgb(26, 26, 26)",
+          "shadow": "rgba(0, 0, 0, 0.07) 0px 0px 0px 1px inset",
+          "outline": "rgb(26, 26, 26) none 3px",
+          "focus": false,
+          "active": true,
+          "transform": "matrix(0.96, 0, 0, 0.96, 0, 0)"
+        }
+      }
+    },
+    "gap": -17,
+    "alignment": {
+      "centreDelta": 0,
+      "rightDelta": 0,
+      "findBorder": "1px solid rgba(0, 0, 0, 0.07)"
+    },
+    "blocked": []
+  },
+  {
+    "theme": "light",
+    "width": 390,
+    "states": {
+      "home": {
+        "rest": {
+          "background": "rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "1px solid rgba(0, 0, 0, 0.1)",
+          "shadow": "rgba(0, 0, 0, 0.04) 0px 1px 2px 0px, rgba(0, 0, 0, 0.02) 0px 1px 1px 0px",
+          "outline": "rgb(26, 26, 26) none 3px",
+          "focus": false,
+          "active": false,
+          "transform": "none"
+        },
+        "hover": {
+          "background": "color(srgb 0.946118 0.946118 0.946118) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "1px solid rgba(0, 0, 0, 0.18)",
+          "shadow": "rgba(0, 0, 0, 0.04) 0px 1px 2px 0px, rgba(0, 0, 0, 0.02) 0px 1px 1px 0px",
+          "outline": "rgb(26, 26, 26) none 3px",
+          "focus": false,
+          "active": false,
+          "transform": "none"
+        },
+        "focus": {
+          "background": "rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "1px solid rgba(0, 0, 0, 0.1)",
+          "shadow": "rgba(0, 0, 0, 0.04) 0px 1px 2px 0px, rgba(0, 0, 0, 0.02) 0px 1px 1px 0px",
+          "outline": "rgba(61, 122, 23, 0.75) solid 2px",
+          "focus": true,
+          "active": false,
+          "transform": "none"
+        },
+        "active": {
+          "background": "color(srgb 0.946118 0.946118 0.946118) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "1px solid rgba(0, 0, 0, 0.18)",
+          "shadow": "rgba(0, 0, 0, 0.09) 0px 0px 0px 900px inset",
+          "outline": "rgb(26, 26, 26) none 3px",
+          "focus": false,
+          "active": true,
+          "transform": "none"
+        }
+      },
+      "side": {
+        "rest": {
+          "background": "rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "0px none rgb(59, 59, 59)",
+          "shadow": "rgba(0, 0, 0, 0.07) 0px 0px 0px 1px inset",
+          "outline": "rgb(59, 59, 59) none 3px",
+          "focus": false,
+          "active": false,
+          "transform": "none"
+        },
+        "hover": {
+          "background": "color(srgb 0.964078 0.964078 0.964078) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "0px none rgb(26, 26, 26)",
+          "shadow": "rgba(0, 0, 0, 0.07) 0px 0px 0px 1px inset",
+          "outline": "rgb(26, 26, 26) none 3px",
+          "focus": false,
+          "active": false,
+          "transform": "none"
+        },
+        "focus": {
+          "background": "color(srgb 0.964078 0.964078 0.964078) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "0px none rgb(26, 26, 26)",
+          "shadow": "rgba(0, 0, 0, 0.07) 0px 0px 0px 1px inset",
+          "outline": "rgba(61, 122, 23, 0.75) solid 2px",
+          "focus": true,
+          "active": false,
+          "transform": "none"
+        },
+        "active": {
+          "background": "color(srgb 0.964078 0.964078 0.964078) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "0px none rgb(26, 26, 26)",
+          "shadow": "rgba(0, 0, 0, 0.07) 0px 0px 0px 1px inset",
+          "outline": "rgb(26, 26, 26) none 3px",
+          "focus": false,
+          "active": true,
+          "transform": "matrix(0.96, 0, 0, 0.96, 0, 0)"
+        }
+      }
+    },
+    "gap": 12,
+    "alignment": {
+      "centreDelta": 0,
+      "rightDelta": 0,
+      "findBorder": "1px solid rgba(0, 0, 0, 0.07)"
+    },
+    "blocked": []
+  },
+  {
+    "theme": "light",
+    "width": 320,
+    "states": {
+      "home": {
+        "rest": {
+          "background": "rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "1px solid rgba(0, 0, 0, 0.1)",
+          "shadow": "rgba(0, 0, 0, 0.04) 0px 1px 2px 0px, rgba(0, 0, 0, 0.02) 0px 1px 1px 0px",
+          "outline": "rgb(26, 26, 26) none 3px",
+          "focus": false,
+          "active": false,
+          "transform": "none"
+        },
+        "hover": {
+          "background": "color(srgb 0.946118 0.946118 0.946118) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "1px solid rgba(0, 0, 0, 0.18)",
+          "shadow": "rgba(0, 0, 0, 0.04) 0px 1px 2px 0px, rgba(0, 0, 0, 0.02) 0px 1px 1px 0px",
+          "outline": "rgb(26, 26, 26) none 3px",
+          "focus": false,
+          "active": false,
+          "transform": "none"
+        },
+        "focus": {
+          "background": "rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "1px solid rgba(0, 0, 0, 0.1)",
+          "shadow": "rgba(0, 0, 0, 0.04) 0px 1px 2px 0px, rgba(0, 0, 0, 0.02) 0px 1px 1px 0px",
+          "outline": "rgba(61, 122, 23, 0.75) solid 2px",
+          "focus": true,
+          "active": false,
+          "transform": "none"
+        },
+        "active": {
+          "background": "color(srgb 0.946118 0.946118 0.946118) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "1px solid rgba(0, 0, 0, 0.18)",
+          "shadow": "rgba(0, 0, 0, 0.09) 0px 0px 0px 900px inset",
+          "outline": "rgb(26, 26, 26) none 3px",
+          "focus": false,
+          "active": true,
+          "transform": "none"
+        }
+      },
+      "side": {
+        "rest": {
+          "background": "rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "0px none rgb(59, 59, 59)",
+          "shadow": "rgba(0, 0, 0, 0.07) 0px 0px 0px 1px inset",
+          "outline": "rgb(59, 59, 59) none 3px",
+          "focus": false,
+          "active": false,
+          "transform": "none"
+        },
+        "hover": {
+          "background": "color(srgb 0.964078 0.964078 0.964078) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "0px none rgb(26, 26, 26)",
+          "shadow": "rgba(0, 0, 0, 0.07) 0px 0px 0px 1px inset",
+          "outline": "rgb(26, 26, 26) none 3px",
+          "focus": false,
+          "active": false,
+          "transform": "none"
+        },
+        "focus": {
+          "background": "color(srgb 0.964078 0.964078 0.964078) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "0px none rgb(26, 26, 26)",
+          "shadow": "rgba(0, 0, 0, 0.07) 0px 0px 0px 1px inset",
+          "outline": "rgba(61, 122, 23, 0.75) solid 2px",
+          "focus": true,
+          "active": false,
+          "transform": "none"
+        },
+        "active": {
+          "background": "color(srgb 0.964078 0.964078 0.964078) none repeat scroll 0% 0% / auto padding-box border-box",
+          "border": "0px none rgb(26, 26, 26)",
+          "shadow": "rgba(0, 0, 0, 0.07) 0px 0px 0px 1px inset",
+          "outline": "rgb(26, 26, 26) none 3px",
+          "focus": false,
+          "active": true,
+          "transform": "matrix(0.96, 0, 0, 0.96, 0, 0)"
+        }
+      }
+    },
+    "gap": 12,
+    "alignment": {
+      "centreDelta": 0,
+      "rightDelta": 0,
+      "findBorder": "1px solid rgba(0, 0, 0, 0.07)"
+    },
+    "blocked": []
+  }
+]

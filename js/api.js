@@ -40,7 +40,7 @@ export class ApiError extends Error {
     super(message);
     this.status = status;
     this.code = code;
-    Object.assign(this, extra); // storm extras: feature, count, sentence, what, confirm, summary
+    Object.assign(this, extra); // storm extras: feature, count, sentence, what, confirm, summary, current
   }
 }
 
@@ -126,7 +126,7 @@ async function exchange(url, method, body, signal) {
     if (Array.isArray(d)) message = d.map((e) => `${(e.loc || []).slice(1).join(".")}: ${e.msg}`).join("; ");
     if (!message) message = `${res.status} ${res.statusText || "error"}`;
     const extra = {};
-    if (d && typeof d === "object" && !Array.isArray(d)) for (const k of ["feature", "count", "sentence", "what", "confirm", "summary"]) if (k in d) extra[k] = d[k];
+    if (d && typeof d === "object" && !Array.isArray(d)) for (const k of ["feature", "count", "sentence", "what", "confirm", "summary", "current"]) if (k in d) extra[k] = d[k];
     throw new ApiError(res.status, code, message, extra);
   }
   return data;
@@ -244,6 +244,20 @@ export const api = {
   status: () => get("/chat/status"),
   runtimes: () => get("/chat/runtimes"),
   models: (runtime) => get(`/chat/runtimes/${enc(runtime)}/models`),
+  /** {space, effective}: the Space's runtime policy (mixed runtimes §2.2) */
+  runtimePolicy: () => get("/chat/runtime-policy"),
+  /** Replaces the Space's policy: {allowed, default, preferences, fallback}. */
+  setRuntimePolicy: (policy) => send("PUT", "/chat/runtime-policy", policy),
+  /** {space, project, effective}: a project chat's own override (404 no_such_chat otherwise) */
+  chatRuntimePolicy: (chat) => get(`/chat/chats/${enc(chat)}/runtime-policy`),
+  /** Replaces a project's override; a null field follows the Space. */
+  setChatRuntimePolicy: (chat, policy) => send("PUT", `/chat/chats/${enc(chat)}/runtime-policy`, policy),
+  /** The Space advisory: each account's plan, usage windows and paid facts (facts only; every one with its source and age). */
+  advisory: () => get("/advisory"),
+  /** {intents: [...]}: the founder's holds and paid modes that hold now (rows: scope, scope_id, key, value, until, cites, set_at). */
+  intents: () => get("/chat/intent"),
+  /** The founder's paid-usage mode: {scope: "space", scope_id: "", value} or {scope: "pool", scope_id: poolId, value | null (null: follow the Space)}. */
+  setPaid: (body) => send("POST", "/chat/intent/paid", body),
   router: () => get("/chat/router"),
   setRouter: (body) => send("PUT", "/chat/router", body),
   routerModels: () => get("/chat/router/models"),
@@ -263,9 +277,22 @@ export const api = {
   thread: (chat, ts) => get(`/chat/chats/${enc(chat)}/threads/${enc(ts)}`),
   /** {resolved?, paused?: false, title?, label?, intelligence?} */
   patchThread: (chat, ts, body) => send("PATCH", `/chat/chats/${enc(chat)}/threads/${enc(ts)}`, body),
+  /** Continue a thread on another runtime (§2.4): it stops, freezes, and a linked new thread starts from its work. */
+  continueThread: (chat, ts, body) => request(`/chat/chats/${enc(chat)}/threads/${enc(ts)}/continue`, { method: "POST", body, timeout: 60000 }),
   hops: (chat, query = {}) => get(`/chat/chats/${enc(chat)}/hops`, query),
   memory: (chat) => get(`/chat/chats/${enc(chat)}/memory`),
+  /** What a chat's threads made (a newer backend): {made: [...], next_before}. 404 on an older one. */
+  made: (chat, query = {}) => get(`/chat/chats/${enc(chat)}/made`, query),
+  pinMade: (chat, id, on) => send(on ? "PUT" : "DELETE", `/chat/chats/${enc(chat)}/made/${enc(id)}/pin`),
+  /** The person looked at a chat (a newer backend keeps it per person, on every device): {seen: {seen_at, seen_seq}}. */
+  markSeen: (chat) => send("PUT", `/chat/chats/${enc(chat)}/seen`, {}),
   memoryFile: (chat, path) => get(`/chat/chats/${enc(chat)}/memory/${enc(path)}`),
+
+  // ── the person's shape (xo-space 8c6bc03): their own layer of the UI, kept for every device ──
+  /** {shape: object|null, version: "new"|<12 hex>, updated_at}. 404 on an older backend. */
+  shape: () => get("/chat/shape"),
+  /** {shape: object|null, if_version}: compare-and-set; a stale if_version is 409 shape_changed with `current`. */
+  putShape: (body) => send("PUT", "/chat/shape", body),
 
   // ── sessions, turns, history ──────────────────────────────────────────────
   sessions: (query = {}) => get("/chat/sessions", query),
@@ -307,16 +334,55 @@ export const api = {
 
   // ── projects ──────────────────────────────────────────────────────────────
   /** A text file inside a project, for the file viewer: {name, kind, size_bytes, truncated, content, …}. */
-  projectFile: (project, relativePath) => get(`/xo-projects/${enc(project)}/file`, { relative_path: relativePath }),
+  projectFile: (project, relativePath, at, { purpose } = {}) => get(`/xo-projects/${enc(project)}/file`, { relative_path: relativePath, ...(at ? { commit: at.commit, commit_path: at.path } : {}), ...(purpose ? { purpose } : {}) }),
+  /**
+   * Save a project file (Space; serve.py adds the UI's writer key). base_version: the version you started
+   * from. → {version, saved_at, edit_id}; 409 file_changed {current: {content, version}}; 428
+   * confirm_required (send again with confirm "runs_code"); 403 read_only_place | ui_only | outside_project.
+   */
+  saveProjectFile: (project, relativePath, content, baseVersion, confirm) =>
+    send("PUT", `/xo-projects/${enc(project)}/file`, { relative_path: relativePath, content, base_version: baseVersion, ...(confirm ? { confirm } : {}) }),
+  /** Undo a save (Space's edit log): the file goes back to what it was before that save. */
+  undoProjectEdit: (project, editId) => send("POST", `/xo-projects/${enc(project)}/edits/${enc(editId)}/undo`, {}),
+  /**
+   * What changed in a project (Space, design-research/2026-11-vision/pierre): a thread's worktree against
+   * where its branch left the default branch, uncommitted work included, or the project's own checkout
+   * against its HEAD. {root, base_commit, head_commit, computed_at, truncated, files: [{path, old_path?,
+   * status, additions, deletions, binary, version, patch, patch_omitted?}]}. path: one file (up to 1 MB).
+   */
+  projectChanges: (project, { worktree, path } = {}) => get(`/xo-projects/${enc(project)}/changes`, { ...(worktree ? { worktree } : {}), ...(path ? { path } : {}) }),
+  /** One folder of a project, a level at a time (a thread's worktree is `.xo/worktrees/<name>`): {dirs, files}. */
+  // hidden files too (.env, .gitignore, .github/…): you can read and edit everything in a project (the owner's D1)
+  projectTree: (project, relativePath) => get(`/xo-projects/${enc(project)}/tree`, { ...(relativePath ? { relative_path: relativePath } : {}), hidden: "true" }),
   /** An image inside a project, as a Blob for the image viewer (fetched, so it carries the Coder header and errors read as words). */
   projectImage: (project, relativePath, opts) => blob(`/xo-projects/${enc(project)}/image?relative_path=${enc(relativePath)}`, opts),
+  /**
+   * A project file as a commit had it (the coworker service's version route, xo-space 6 Nov): the Changes
+   * view's "Before" of a changed or deleted image (commit: /changes' base_commit). relativePath: the file now,
+   * project-relative (it may be gone); was: its name at that commit when it was renamed since (/changes'
+   * old_path, relative to the worktree). Images come inline. 404 version_not_found when the commit hadn't it.
+   */
+  projectVersion: (project, relativePath, { commit, was = null }, opts) => blob(`/coworker/xo-projects/${enc(project)}/version?relative_path=${enc(relativePath)}&commit=${enc(commit)}${was ? `&commit_path=${enc(was)}` : ""}&hidden=true`, opts),
   /** A whole project file as a Blob, for the viewer's Download (fetched, so the Coder token stays out of every URL). */
-  projectDownload: (project, relativePath) => blob(`/xo-projects/${enc(project)}/download?relative_path=${enc(relativePath)}`, { ms: 300000 }),
+  projectDownload: (project, relativePath) => blob(`/xo-projects/${enc(project)}/download?relative_path=${enc(relativePath)}&hidden=true`, { ms: 300000 }),
   /** Where xo-projects live: {roots: {...}, default}. Never hard-code the root. */
   workspaceConfig: () => get("/config/workspace"),
   /** Scaffold a new xo-project (xo-cowork-api). 409 when the folder exists. */
   createProject: ({ path, displayName, description }) =>
     send("POST", "/files/mkdir", { path, scaffold: true, display_name: displayName, ...(description ? { description } : {}) }),
+  /** Clone a Git repository into a new xo-project as a Space clone job (POST /xo-projects, wait:false): answers
+   *  202 {clone_id} at once; cloneStatus then reports {state, phase, percent, received_bytes, idle_seconds,
+   *  error, warning}. 400/409/429 come back before anything is cloned. */
+  cloneProject: ({ id, url, displayName, description }) =>
+    send("POST", "/xo-projects", { project_id: id, repository_url: url, display_name: displayName, ...(description ? { description } : {}), wait: false }),
+  cloneStatus: (cloneId) => get(`/xo-projects/clones/${enc(cloneId)}`),
+  /** Stops a clone; Space removes what it had fetched. */
+  cancelClone: (cloneId) => send("DELETE", `/xo-projects/clones/${enc(cloneId)}`),
+  /** GitHub connector: {status: "connected"|"needs_auth", username?, avatar_url?} */
+  githubStatus: () => get("/connectors/github/status"),
+  /** Device flow: {session_id, user_code, verification_uri}; poll → {status: "pending"} until the profile. */
+  githubConnect: () => send("POST", "/connectors/github/cli/start"),
+  githubConnectPoll: (sessionId) => send("POST", "/connectors/github/cli/poll", { session_id: sessionId }),
 
   // ── shells (/api/terminal/*): T = {id, name, scope, project, path, cwd, status, foreground, viewers, …} ──
   terminalStatus: () => get("/terminal/status"),

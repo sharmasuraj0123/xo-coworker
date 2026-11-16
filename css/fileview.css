@@ -1,0 +1,216 @@
+/* ── A file beside its conversation (Layout A, the owner's pick, 5 November 2026; design-research/2026-11-
+   vision/fileview-ux; js/filesview.js). On a desktop, a file opened in a conversation takes the middle and
+   the same #conv and #dock sit in a column on the right, --cw wide (400 px; dragged 360–560, kept). The
+   panel steps aside (js/stage.js). The header gives way to the chat's own 40 px head, the thread's strip
+   keeps one line, the composer's edges are the column's (16 px). Nothing here animates the chat's width:
+   follow.js keeps the row you were reading in place when the column changes. Loaded after msgx.css, so its
+   rules settle the conversation's own at equal weight. ───────────────────────────────────────────────── */
+:root{--cw:400px}
+.chead,.fv-cgrip{display:none}
+
+/* the switch is one frame: the conversation's 300 ms padding and offset transitions sit it out */
+body.dock-switch :is(.top,.thead,.since,.dock){transition:none!important}
+
+/* the file: the middle; the line it shares with the chat is dragged (360–560) */
+body.chat-docked .fv{right:var(--cw)}
+body.chat-docked .fv-cgrip{display:block;position:absolute;z-index:2;top:0;bottom:0;right:-5px;width:9px;cursor:col-resize;outline:none}
+body.chat-docked .fv-cgrip::before{content:"";position:absolute;top:0;bottom:0;left:4px;width:1px;background:var(--surface);transition:background var(--d-hover) var(--ease)}
+:root[data-theme="light"] body.chat-docked .fv-cgrip::before{background:rgba(0,0,0,.08)}
+body.chat-docked .fv-cgrip:hover::before,body.chat-docked .fv-cgrip:focus-visible::before,body.fv-sizing .fv-cgrip::before{background:var(--line-hover)}
+/* the file's head beside the chat: where it is, then put it away (32 × 32, 4 px in from the 40 px head) */
+body.chat-docked .fv-h{padding:0 4px 0 16px}
+.fv-sp{flex:1}
+.fv-ib{flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:var(--r);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.fv-ib:hover{background:var(--fill-2);color:var(--ink)}
+.fv-ib svg{width:16px;height:16px}
+.fv-ib:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
+/* every control in Files' head draws its ring inside it, as its icon buttons do: the head is the top of the screen when
+   Files covers a phone, and the main column's top edge clips it, so a ring 4 px out lost its top (the controls grader on
+   8aa58d3, S070: Back · Artifacts at y=2, 390 dark and light). The ring sweep reads the screen's edges now */
+.fv-h .fv-back:focus-visible{outline-offset:-2px;outline-color:var(--ring-in,var(--focus))}
+/* the way back to the chat (js/filesview.js, Codex Astra's design-research/files-return): first in the head, in
+   words and a muted plum (not red: nothing is lost), 32 px tall in the 40 px head. Hover only strengthens
+   its fill and hairline; on hover or keyboard focus a note under it says what it does */
+.fv-ret{--ret-ink:#deb8d6;--ret-fill:#302531;--ret-line:#50394d;--ret-hover:#3b2b3b;--ret-hover-line:#74516c;position:relative;box-sizing:border-box;flex:none;display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:var(--r);font:500 var(--fs-base)/20px var(--sans);white-space:nowrap;color:var(--ret-ink);background:var(--ret-fill);box-shadow:inset 0 0 0 1px var(--ret-line);transition:background var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease)}
+:root[data-theme="light"] .fv-ret{--ret-ink:#773c6d;--ret-fill:#f5ecf3;--ret-line:#dfc9da;--ret-hover:#efdfeb;--ret-hover-line:#ba93b2}
+.fv-ret:hover,.fv-ret:focus-visible{background:var(--ret-hover);box-shadow:inset 0 0 0 1px var(--ret-hover-line);transition-duration:var(--d-hover-in)}
+.fv-ret:focus-visible{outline:2px solid var(--ret-ink);outline-offset:-2px} /* inside it, as the head's others (S070) */
+.fv-ret>svg{flex:none;width:16px;height:16px}
+.fv-h .fv-sep{flex:none}
+/* a long branch gives way before the project's name, and never pushes the head past the window (Astra, on
+   7868494: at 390 "feature/improve-files-navigation" squeezed the name to 0 px and overflowed by 3 px). It has
+   only the room the name leaves (a basis of 0, growing up to its own width), so the name is cut only when it
+   alone doesn't fit; shrinking both, the name lost a fraction of a pixel and showed "xo-cowork…" */
+.fv-h .fv-s{flex:1 1 0;min-width:0;max-width:max-content;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fv-tip{position:absolute;top:calc(100% + 8px);left:0;z-index:calc(var(--z-panel) + 10);display:flex;flex-direction:column;gap:2px;min-width:208px;padding:10px 12px;border-radius:var(--r-lg);background:var(--surface);box-shadow:var(--e2),inset 0 0 0 1px var(--line-strong);font:500 var(--fs-base)/20px var(--sans);color:var(--ink);text-align:left;white-space:nowrap;pointer-events:none;opacity:0;visibility:hidden;transition:opacity var(--dur-fast) var(--ease),visibility 0s linear var(--dur-fast)}
+:root[data-theme="light"] .fv-tip{background:var(--surface);box-shadow:var(--e2),inset 0 0 0 1px var(--panel-line)}
+.fv-tip-t{display:flex;align-items:center;justify-content:space-between;gap:24px}
+.fv-tip kbd{font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
+.fv-tip-s{font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
+.fv-ret:hover .fv-tip{opacity:1;visibility:visible;transition-delay:var(--d-long),var(--d-long)}
+.fv-ret:focus-visible .fv-tip{opacity:1;visibility:visible;transition-delay:0s,0s}
+@media (hover:none){.fv-tip{display:none}}
+
+/* the chat: the same conversation, in a column on the right */
+body.chat-docked .conv{left:auto;right:0;width:var(--cw);--hg:16px}
+body.chat-docked :is(.conv,.dock){--gut-min:16px}
+body.chat-docked .conv>.top{display:none}
+body.chat-docked .chead{display:flex;align-items:center;gap:8px;flex:none;box-sizing:border-box;height:40px;padding:0 4px 0 16px;box-shadow:inset 0 -1px 0 var(--line-faint);background:var(--canvas)}  /* its rule inside it: 4 + 32 + 4 (panel.css, .vw-top) */
+:root[data-theme="light"] body.chat-docked .chead{border-bottom-color:rgba(0,0,0,.06)}
+.chead-t{min-width:0;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 var(--fs-base)/20px var(--sans);color:var(--ink)}
+.chead .badge{height:20px;padding:0 8px;gap:6px}
+/* the thread's strip, one line: the checklist, then its sub-agents as counts in the same 40 px boxes (as a
+   phone has them); the chips are a tap away in the checklist's list */
+body.chat-docked .thead{display:flex;align-items:flex-start;gap:8px;padding:8px 16px}
+body.chat-docked .thead .ckbar{flex:1;min-width:0}
+body.chat-docked .thead .rn-strip{display:none}
+body.chat-docked .thead .rn-log{flex:none;height:40px;margin:0;padding:0 12px 0 10px;border-radius:var(--r-lg);border:1px solid var(--line-faint);gap:6px}
+body.chat-docked .thead .rn-log span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+body.chat-docked .thead .rn-log::after{content:attr(data-n);font:500 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums}
+body.chat-docked .thead .rn-live{flex:none;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 13px 0 12px;border-radius:var(--r-lg);border:1px solid color-mix(in srgb,var(--info) 28%,var(--line-soft));background:color-mix(in srgb,var(--info) 6%,transparent);color:var(--ink-2)}
+body.chat-docked .thead .rn-live:hover{background:color-mix(in srgb,var(--info) 11%,transparent);border-color:color-mix(in srgb,var(--info) 42%,var(--line-soft));color:var(--ink)}
+body.chat-docked .thead .rn-live:has(.g-needs_reply){border-color:color-mix(in srgb,var(--warn) 34%,var(--line-soft));background:color-mix(in srgb,var(--warn) 7%,transparent)}
+body.chat-docked .thead .rn-live .rn-n{font:500 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums}
+body.files-open.chat-docked .mx-down{display:grid}
+/* agent bubbles stop 72 px short of the column's edge, so their hover Reply and Copy fit inside it */
+:root[data-msgx] body.chat-docked :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text):not(.has-table){max-width:calc(100% - 72px)}
+
+/* the dock: the composer and the thread's own ask, on the column's 16 px edges */
+body.files-open.chat-docked .dock{display:block;left:auto;right:0;width:var(--cw)}
+body.files-open.chat-docked .tdock{display:block}
+body.chat-docked .cbar{padding:22px 0 12px;background:linear-gradient(to bottom,transparent,var(--canvas) 26px)}
+body.chat-docked #target>span:last-child{display:none}
+
+/* a file put away: it keeps its place and its scroll, unseen (js/filesview.js minimise) */
+body.fv-min .fv{visibility:hidden;pointer-events:none;right:var(--cw)}
+
+/* its chip in the header: the file's own icon, its name and counts; × closes it */
+/* one chip: as tall as its two halves (--h-ctl; it stayed 28 when they went to 32, so the ×'s hover stood out past it as
+   a button of its own: the owner, 11 Nov 08:12Z), its edge drawn over them, so a half's hover fills inside the edge
+   and reads as the chip's own end */
+.fchip{position:relative;flex:none;display:inline-flex;align-items:stretch;border-radius:var(--r);background:var(--surface)} /* as tall as its halves, whatever they are (32; a phone's 36) */
+.fchip::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px var(--line-soft);pointer-events:none}
+:root[data-theme="light"] .fchip{background:var(--surface)}
+:root[data-theme="light"] .fchip::after{box-shadow:inset 0 0 0 1px var(--panel-line)}
+.fchip-b{display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 4px 0 8px;border-radius:var(--r) 0 0 var(--r);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-2)}
+.fchip-i{display:grid;place-items:center;width:16px;height:16px}
+.fchip-i svg{width:16px;height:16px}
+.fchip-n{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--mono)}
+.fchip-x{display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:0 var(--r) var(--r) 0;color:var(--ink-4)}
+.fchip-x svg{width:14px;height:14px}
+.fchip-b:hover,.fchip-x:hover{background:var(--fill-2);color:var(--ink)}
+:root[data-theme="light"] :is(.fchip-b,.fchip-x):hover{background:rgba(0,0,0,.05)}
+:is(.fchip-b,.fchip-x):focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
+
+/* the chat's head: its fold, 32 × 32, 4 px from the column's edge */
+.chead-sp{flex:1}
+.chead .fv-ib{margin-left:auto}
+
+/* ── the folds (the owner: "minimise, not close") ───────────────────────────────────────────────────────
+   Rails are 44 px inside, their line an inset shadow, so 32 px buttons sit on whole pixels at a 36 px pitch.
+   A mark on a rail button is a 6 px dot clear of its 16 px glyph (glyph 8–24, dot 25–31). */
+/* the tree, folded: Changed (a dot when this place changed something), All files, Find */
+.fl-rail{display:none}
+.fv .fl.is-wide.is-folded .fl-rail{display:flex;flex:none;flex-direction:column;align-items:center;gap:4px;width:44px;padding:6px 0;background:var(--fill-1);box-shadow:inset -1px 0 var(--line-faint)}
+:root[data-theme="light"] .fv .fl.is-wide.is-folded .fl-rail{background:#FBFBFA;box-shadow:inset -1px 0 rgba(0,0,0,.06)}
+.fv .fl.is-wide.is-folded :is(.fl-tree,.fl-split){display:none}
+.fl-rb{position:relative;display:grid;place-items:center;width:32px;height:32px;border-radius:var(--r);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.fl-rb:hover{background:var(--fill-2);color:var(--ink)}
+.fl-rb svg{width:16px;height:16px}
+.fl-rb em{position:absolute;top:3px;right:1px;width:6px;height:6px;border-radius:50%;background:var(--ink-3)} /* a mark, not news: blue is the chat's new messages */
+.fl-rb:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
+
+/* the chat, folded: the column slides out on transform (it keeps its width, nothing in it reflows, its scroll
+   stays), inert; the file widens once it's out (chat-railed). Opening: the file narrows, the column slides in */
+body.chat-docked :is(.conv,.dock){transition:transform var(--dur-base) var(--ease)}
+body.chat-docked.chat-min :is(.conv,.dock){transform:translateX(100%);pointer-events:none}
+body.chat-docked.chat-railed :is(.conv,.dock){visibility:hidden}
+body.chat-docked.chat-railed .fv{right:44px}
+body.chat-docked.chat-railed .fv-cgrip{display:none}
+.crail{display:none}
+body.chat-docked.chat-railed .crail{display:flex;position:absolute;z-index:6;top:0;right:0;bottom:0;width:44px;padding:0;background:var(--canvas);box-shadow:inset 1px 0 var(--line-faint)}
+:root[data-theme="light"] body.chat-docked.chat-railed .crail{box-shadow:inset 1px 0 rgba(0,0,0,.08)}
+.crail-b{position:relative;display:flex;flex-direction:column;align-items:center;gap:12px;width:44px;padding:3.5px 0 12px;border-radius:0;color:var(--ink-3)} /* its tile on the heads' controls' line (y 3.5) */
+.crail-b:hover{background:var(--surface);color:var(--ink)}
+.crail-b:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
+.crail-ic{position:relative;display:grid;place-items:center;width:32px;height:32px;border-radius:var(--r);background:var(--surface);box-shadow:inset 0 0 0 1px var(--line-soft);color:var(--ink-2)}
+:root[data-theme="light"] .crail-ic{background:var(--surface);box-shadow:inset 0 0 0 1px var(--panel-line)}
+.crail-ic svg{width:16px;height:16px}
+.crail-m{position:absolute;top:0;right:2px;font-style:normal} /* on the tile's corner, inside the 44 px rail */
+.crail-m.is-new{display:grid;place-items:center;min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;border-radius:999px;background:var(--fill-4);color:var(--ink);font:600 10px/1 var(--sans);font-variant-numeric:tabular-nums} /* a count, never a blue dot */
+:root[data-theme="light"] .crail-m.is-new{background:var(--ink-2);color:var(--surface)}
+.crail-m.is-ask{display:grid;place-items:center;width:14px;height:14px;border-radius:50%;background:var(--warn);color:#1A1200;font:600 10px/1 var(--sans)}
+.crail-t{writing-mode:vertical-rl;transform:rotate(180deg);max-height:min(320px,60vh);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 var(--fs-sm)/16px var(--sans)}
+/* compact (under sidebar + 44 + the chat + 560): opened, the chat lies over the file's right edge */
+body.chat-docked.chat-over .fv{right:44px}
+body.chat-docked.chat-over :is(.conv,.dock){z-index:8;box-shadow:var(--e2)}
+body.chat-docked.chat-over .conv{background:var(--canvas)}
+
+/* the lines a message is about, above the composer's field (Ask about these lines, beside a file) */
+.cref{display:flex;align-items:center;gap:4px;padding:8px 8px 0 12px}
+.cref[hidden]{display:none}
+.cref .lk{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cref-x{flex:none;display:grid;place-items:center;width:24px;height:24px;border-radius:var(--r-sm);color:var(--ink-4)}
+.cref-x:hover{background:var(--fill-2);color:var(--ink)}
+.cref-x svg{width:14px;height:14px}
+.cref-x:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
+
+@media (prefers-reduced-motion:reduce){.fv-ret,.fv-tip,.fv-ib,.fv-cgrip::before,.fl-rb,body.chat-docked :is(.conv,.dock){transition:none}}
+
+/* ── a phone (≤ 760 px): the same rule, vertically (body.chat-sheet). The file fills the screen; the chat is
+   a sheet that folds to one bar and never closes. Up, the same #conv and #dock cover the lower 70 %, the
+   composer at the bottom; down, they're out of sight with their scroll kept (inert), and the bar says who,
+   what it's doing and how many new messages; amber when it asks, with Open. phone.css comes after this
+   file, so these rules carry its :root:root weight. ───────────────────────────────────────────────────── */
+.crail-s,.crail-n,.crail-up,.crail-open{display:none}
+.fdock{display:none}
+@media (max-width:760px){
+  :root:root body.chat-sheet .fv{padding-bottom:calc(80px + env(safe-area-inset-bottom))}
+  :root:root body.files-open.chat-sheet .dock{display:block}
+  :root:root body.files-open.chat-sheet .tdock{display:block}
+  :root:root body.chat-sheet .conv>.top{display:none}
+  :root:root body.chat-sheet .fv .fl-bar{display:none} /* the head's ◧ swaps the list in and out */
+  :root:root body.chat-sheet .thead .rn-strip{display:none}
+  :root:root body.chat-sheet :is(.conv,.dock){z-index:8;transition:transform var(--d-sheet) var(--ease),visibility 0s linear var(--d-sheet)}
+  :root:root body.chat-sheet:not(.sheet-up) :is(.conv,.dock){transform:translateY(100%);visibility:hidden;pointer-events:none}
+  :root:root body.chat-sheet.sheet-up :is(.conv,.dock){transition:transform var(--d-sheet) var(--ease)}
+  :root:root body.chat-sheet .app .conv{top:30%;border-radius:var(--r-2xl) var(--r-2xl) 0 0;background:var(--canvas);box-shadow:var(--e2),inset 0 1px 0 var(--line-soft)}
+  :root:root body.chat-sheet .dock{z-index:9}
+  /* its head: a grabber over the name, its state and ⌄ */
+  :root:root body.chat-sheet .chead{display:flex;align-items:center;gap:8px;flex:none;position:relative;box-sizing:border-box;height:52px;padding:8px 4px 0 16px;border-bottom:1px solid var(--line-faint);border-radius:var(--r-2xl) var(--r-2xl) 0 0;background:var(--canvas);touch-action:none}
+  :root:root body.chat-sheet .chead::before{content:"";position:absolute;top:6px;left:50%;width:36px;height:4px;margin-left:-18px;border-radius:2px;background:var(--fill-4)}
+  :root:root body.chat-sheet .chead .fv-ib{width:40px;height:40px}
+  /* the bar: folded, one line over the file's foot */
+  :root:root body.chat-sheet.files-open:not(.sheet-up) .crail{display:flex;position:fixed;z-index:8;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));height:56px;padding:0;border-radius:var(--r-xl);background:var(--surface);box-shadow:var(--e2),inset 0 0 0 1px var(--line-soft);touch-action:none}
+  :root[data-theme="light"]:root body.chat-sheet.files-open:not(.sheet-up) .crail{background:var(--surface);box-shadow:var(--e2),inset 0 0 0 1px var(--panel-line)}
+  :root:root body.chat-sheet .crail-b{flex:1;width:auto;height:56px;padding:0 8px 0 12px;border-radius:var(--r-xl);text-align:left;display:grid;grid-template-columns:32px minmax(0,1fr) auto;grid-template-rows:20px 16px;column-gap:12px;row-gap:0;align-content:center}
+  :root:root body.chat-sheet .crail-ic{grid-row:1/3}
+  :root:root body.chat-sheet .crail-t{writing-mode:horizontal-tb;transform:none;max-height:none;font:600 var(--fs-base)/20px var(--sans);color:var(--ink)}
+  :root:root body.chat-sheet .crail-s{display:block;grid-column:2;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
+  :root:root body.chat-sheet :is(.crail-n,.crail-up,.crail-open){grid-column:3;grid-row:1/3}
+  :root:root body.chat-sheet .crail-up{display:grid;place-items:center;width:32px;height:32px;color:var(--ink-3);transform:rotate(180deg)}
+  :root:root body.chat-sheet .crail-up svg{width:16px;height:16px}
+  :root:root body.chat-sheet .crail-b:has(.crail-n) .crail-up{display:none}
+  :root:root body.chat-sheet .crail-n{display:grid;place-items:center;min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:999px;background:var(--fill-4);color:var(--ink);font:600 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums}
+  :root[data-theme="light"]:root body.chat-sheet .crail-n{background:var(--ink-2);color:var(--surface)}
+  :root:root body.chat-sheet .crail-b.is-ask{background:color-mix(in srgb,var(--warn) 12%,transparent)}
+  :root:root body.chat-sheet .crail-b.is-ask .crail-s{color:var(--warn)}
+  :root:root body.chat-sheet .crail-open{display:grid;place-items:center;height:32px;padding:0 12px;border-radius:var(--r);background:var(--warn);color:#1A1200;font:600 var(--fs-sm)/16px var(--sans)}
+  :root:root body.chat-sheet .crail-m{display:none}
+  /* the put-away file's chip: above the composer, where there's room for its name and counts */
+  :root:root .top .fchip{display:none}
+  :root:root .fdock:not(:empty){display:flex;width:var(--col-w);margin:0 0 8px var(--col-x);pointer-events:auto}
+  :root:root .fdock .fchip{max-width:100%;height:32px;background:var(--surface);box-shadow:var(--e1),inset 0 0 0 1px var(--line-soft)}
+  :root[data-theme="light"]:root .fdock .fchip{background:var(--surface);box-shadow:var(--e1),inset 0 0 0 1px var(--panel-line)}
+  :root:root .fdock :is(.fchip-b,.fchip-x){height:32px}
+  :root:root .fdock .fchip-b{min-width:0}
+  :root:root .fdock .fchip-x{width:32px}
+}
+@media (max-width:760px) and (prefers-reduced-motion:reduce){:root:root body.chat-sheet :is(.conv,.dock){transition:none}}
+
+/* the notices' line while Files has the chat folded away: out of the chat's (inert, hidden) dock, drawn above Files at
+   the foot of the page, as over a covering panel (js/herald.js heraldOut; the controls grader on cb7afe7, S137, V22);
+   on a phone, above the folded chat's bar (12 px off the foot, 56 tall) with 8 between */
+.herald.is-out{position:fixed;left:16px;right:16px;bottom:max(16px, env(safe-area-inset-bottom));z-index:var(--z-popover);visibility:visible}
+@media (max-width:760px){:root:root body.chat-sheet.files-open:not(.sheet-up) .herald.is-out{bottom:calc(76px + env(safe-area-inset-bottom))}}
+/* only the notices come out: the composer's own line stays folded with it (css/panel.css, with the covering panel's) */

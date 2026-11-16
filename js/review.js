@@ -4,11 +4,11 @@
 // the card's places (the main answer, the "no", the rule choices) and builds the request body.
 
 /** The decisions that say "go ahead" vs the ones that say "not this" (UI-reference §2.4). */
-const YES = new Set(["allow", "approve", "done", "continue", "answer"]);
+const YES = new Set(["allow", "approve", "done", "continue", "answer", "move"]);
 const NO = new Set(["deny", "send_back", "cant", "wait"]);
 
 /** How the person's answer reads afterwards ("Allowed · npm test"). */
-export const VERB = { allow: "Allowed", deny: "Denied", answer: "Answered", approve: "Approved", send_back: "Sent back", done: "Done", cant: "Can't do it", continue: "Continued", wait: "Waiting" };
+export const VERB = { allow: "Allowed", deny: "Denied", answer: "Answered", approve: "Approved", send_back: "Sent back", done: "Done", cant: "Can't do it", continue: "Continued", wait: "Waiting", move: "Moving" };
 
 /**
  * Sort an item's options into the card's places.
@@ -91,6 +91,10 @@ export function itemEffort(item) {
   return "decide";
 }
 
+/** Who an item's own words are from: XO for what XO raised itself (an integrity check, a limit, a paid-usage question: origin
+ *  xo or engine), the agent for what a coordinator or a CLI raised (origin agent or cli). */
+export const fromWords = (item) => (item && (item.origin === "xo" || item.origin === "engine") ? "From XO" : "From the agent");
+
 /**
  * The exact things to show under Details, from the item's own detail (never prose of ours):
  * [{label, lang, text}] blocks plus plain facts.
@@ -105,7 +109,7 @@ export function evidenceOf(item) {
   if (d.url) blocks.push({ label: "Address", lang: "txt", text: String(d.url) });
   if (d.mcp) blocks.push({ label: "Tool", lang: "txt", text: typeof d.mcp === "string" ? d.mcp : `${d.mcp.server || ""}/${d.mcp.tool || ""}` });
   if (d.plan) blocks.push({ label: "The plan", lang: "md", text: String(d.plan) });
-  if (d.text) blocks.push({ label: "From the agent", lang: "md", text: String(d.text) });
+  if (d.text) blocks.push({ label: fromWords(item), lang: "md", text: String(d.text) });
   if (item.kind === "create_project") {
     if (d.purpose) facts.push(`For: ${d.purpose}`);
     if (d.why_new) facts.push(`Why a new project: ${d.why_new}`);
@@ -137,4 +141,13 @@ export function hostOf(item) {
   if (item.chat_id) return { id: `chat:${item.chat_id}`, chat: item.chat_id, title: null };
   if (item.session_id) return { id: `session:${item.session_id}`, chat: null, session: item.session_id, title: "A plain chat" };
   return { id: `item:${item.id}`, chat: null, title: "XO" };
+}
+
+/**
+ * Who in a chat raised an item that has no thread: "coordinator" when its coordinator (or one of the
+ * coordinator's sub-agents) asked, null when XO raised it itself. session: the asking session, if known.
+ */
+export function askedBy(item, session) {
+  if (!item || (item.origin !== "cli" && item.origin !== "agent")) return null;
+  return !session || !session.role || /coordinator/.test(session.role) ? "coordinator" : null;
 }

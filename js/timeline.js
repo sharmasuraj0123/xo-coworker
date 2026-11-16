@@ -2,6 +2,7 @@
 // shapes. No DOM, no fetch: tested from Node (tests/logic.test.mjs).
 
 import { attachmentsOf } from "./attach.js";
+import { clockWords } from "./runtimes.js";
 
 const COORDINATORS = new Set(["workspace-coordinator", "project-coordinator"]);
 
@@ -33,6 +34,9 @@ export function uiMsg(row) {
     files: attachmentsOf(row),
     passedOn: p && p.project ? { project: String(p.project), to: (p.forwarded_message_ids || [])[0] || null } : null,
     reactions: Array.isArray(x.reactions) ? x.reactions.filter((r) => r && r.emoji) : [],
+    // a move to another runtime (mixed runtimes F4): the old thread's note, and the new thread's root
+    continuedIn: x.continued_in || null,
+    continuedFrom: x.continued_from || null,
   };
 }
 
@@ -46,6 +50,20 @@ export function addReaction(list, d, at = null) {
   const row = list[i], x = row.extra || {};
   const next = [...list];
   next[i] = { ...row, extra: { ...x, reactions: [...(x.reactions || []), { emoji: d.emoji, by: d.by || null, at }] } };
+  return next;
+}
+
+/**
+ * A `message.updated` event ({id, chat_id, thread_ts, extra}) onto the storm rows holding its message: a
+ * new list with that row's extra merged with the event's (files an agent shared after its turn's last
+ * reply arrive this way, on that reply), or null when the message isn't in `list`.
+ */
+export function updateMessage(list, d) {
+  const i = d && d.id ? (list || []).findIndex((r) => r && r.id === d.id) : -1;
+  if (i < 0 || !d.extra || typeof d.extra !== "object") return null;
+  const row = list[i];
+  const next = [...list];
+  next[i] = { ...row, extra: { ...(row.extra || {}), ...d.extra } };
   return next;
 }
 
@@ -74,6 +92,50 @@ export function mergeRows(list, incoming) {
   return { list: [...byId.values()].sort(bySeq), added };
 }
 const bySeq = (a, b) => (a.seq ?? Infinity) - (b.seq ?? Infinity) || (Date.parse(a.created_at) || 0) - (Date.parse(b.created_at) || 0);
+
+// ── a conversation read in pages, newest first (R5) ──────────────────────────
+// h, a conversation's history so far: {loaded, all, before, loading, older, olderError}. `before` is the
+// cursor storm gave with the last page (next_before_seq): the seq to read below. No cursor: all is read.
+
+/**
+ * The history after one page's answer ({messages, next_before_seq}): its cursor, whether that was all, and
+ * whether it ever had more than one page (then its beginning is worth saying when you reach it).
+ */
+export function pageAfter(h, d) {
+  const before = d && d.next_before_seq != null ? d.next_before_seq : null;
+  return { ...h, loaded: true, before, all: before == null, paged: !!(h && h.paged) || before != null };
+}
+
+/** Whether to read the next older page now: loaded, more to read, nothing on its way, no failure to retry by hand. */
+export function canPageOlder(h) {
+  return !!(h && h.loaded && !h.all && !h.loading && !h.older && !h.olderError && h.before != null);
+}
+
+/**
+ * The oldest seq a paged conversation holds (its messages, oldest first or not), or null once all is read.
+ * What is older than this (a thread's root request, a coordinator's note, a turn that ended before it) waits
+ * for its page, so nothing shows cut off from the messages around it.
+ */
+export function pageFloor(h, rows) {
+  if (!h || !h.loaded || h.all) return null;
+  let floor = null;
+  for (const r of rows || []) if (r && r.seq != null && (floor == null || r.seq < floor)) floor = r.seq;
+  return floor;
+}
+
+/**
+ * Whether a conversation item is inside the pages read: seq ≥ floor (a turn counts from where it ended).
+ * One with no seq (a move's banner, a note of ours) by its time, against floorAt (the oldest message's).
+ */
+export function inPage(item, floor, floorAt = null) {
+  if (floor == null || !item || item.who === "hist") return true;
+  if (item.seq == null) return floorAt == null || !(item.at < floorAt);
+  const s = item.who === "turn" && item.turn ? (item.turn.lastSeq ?? item.seq) : item.seq;
+  return s >= floor;
+}
+
+/** Whether a session's stored frames still stop short of a page's oldest message (read one more page of them). */
+export const framesShort = (framesBefore, floor) => framesBefore != null && floor != null && framesBefore > floor;
 
 /**
  * Your message in a thread that waits for its agent's running turn to end: stored after the turn
@@ -127,13 +189,232 @@ export function askText(md, max = 140) {
 }
 
 /**
- * The thread's state as shown, given its session's running turn (or null). A stopped turn leaves
- * the thread at needs_reply (ch 11 §7.3) until its next input ends; after an Interrupt that input is
- * already your message, running, so the thread isn't waiting on you.
+ * The thread's state as shown, given its session's running turn (or null) and whether its agent works
+ * now (busy, below). A stopped turn leaves the thread at needs_reply (ch 11 §7.3) until its next input
+ * ends; after an Interrupt that input is already your message, running, so the thread isn't waiting on you.
+ * Storm's state is how the last turn ended: a message into a done or stopped thread starts a turn and
+ * leaves it done or failed until that turn ends (only resolved and paused flip to working). While its
+ * agent works, it shows Working, everywhere a thread's state is read; the turn's end sets it again.
+ * held: its session is held back by a gate with input waiting (heldOf). That input is the next thing it does,
+ * so a done, stopped or needs-reply thread is on its way again, as xo-space's own thread status derives it
+ * (chats/thread_status.py: queued input comes before the agent's last report): "working", which a held
+ * thread shows as Waiting. An open item still wins (askingState, after this).
  */
-export function threadState(state, turn) {
+export function threadState(state, turn, busy = false, held = false) {
   if (state === "needs_reply" && turn && turn.status === "running" && turn.origin === "person") return "working";
+  if ((busy || held) && (state === "done" || state === "failed")) return "working";
+  if (held && state === "needs_reply") return "working";
   return state || "working";
+}
+
+// ── busy: is an agent at work right now ("Working")? ─────────────────────────
+// Storm says it on every session and thread view (xo-space 8c6bc03): `busy` is true while the session is
+// on a turn (starting, running, stopping) or while a sub-agent works on after its turn ended.
+// Live session frames still carry only the status, so between reads the same rule is applied here: the
+// status, then the sub-agents the stream names (run.* until run.finished, and the `runs` frame's counts).
+// An older backend sends no `busy`: then the status and the stream's runs are all there is, and that's
+// the same rule with less to go on.
+//
+// "queued" is not working. Storm queues a session only when a gate holds its ready message back (the
+// usage limit, the paid-usage hold, near-limit pacing, the memory guard, the founder's pause), and only
+// one with no process (engine `_wait`): nothing of it runs, so it is Waiting (heldOf below), never Working.
+// An older backend still says `busy: true` for it; that word is not taken. Only work seen after the
+// status said "queued" outlives it (a turn started, a sub-agent named, counts above none): the frame that
+// ended the wait was missed or is late, and a run in progress is never hidden behind a stale "queued"
+// (queuedButWorking).
+
+/** Session states in which its agent is on a turn: a process starting it, running it or stopping it. */
+export const BUSY_STATES = new Set(["starting", "running", "stopping"]);
+/** A session held back by a gate before its turn: no process, its message waits (heldOf). */
+export const HELD_STATE = "queued";
+const RUN_ENDED = new Set(["finished", "failed", "stopped", "lost"]);
+/** A sub-agent run the stream said started and hasn't said ended. An internal (hidden) one isn't the person's to see. */
+export const runWorks = (r) => !!r && !r.ended_at && !RUN_ENDED.has(r.state) && !r.hidden;
+
+/**
+ * What a read of a session (a session view, or a thread view's `session`) says beyond its status: true
+ * when it was busy with no turn running, i.e. a sub-agent working on after the turn. undefined when the
+ * view has no `busy` (an older backend), so nothing is assumed either way. A held session has no
+ * process, so no sub-agent: an older backend's `busy: true` on it says only that it was queued.
+ */
+export function readSub(view) {
+  if (!view || typeof view.busy !== "boolean") return undefined;
+  if (view.state === HELD_STATE) return false;
+  return view.busy && !BUSY_STATES.has(view.state);
+}
+
+/** A session read's word on busy, to spread onto its record: {sub, readAt} when the view has `busy`, else {}. */
+export function sessionRead(view, now = Date.now()) {
+  const sub = readSub(view);
+  return sub === undefined ? {} : { sub, readAt: now };
+}
+
+/**
+ * A status from `b` stands later than one from `a` (each {statusAt, statusSeq}): by the stream's order when both
+ * have a seq (a frame: its own; an HTTP read: the newest seen when it was SENT, never when it came back, so a read
+ * sent before a frame and answered after it doesn't override it), a tie or no seq by the moment.
+ */
+export function statusLater(b, a) {
+  if (b.statusSeq != null && a.statusSeq != null && b.statusSeq !== a.statusSeq) return b.statusSeq > a.statusSeq;
+  return (b.statusAt || 0) > (a.statusAt || 0);
+}
+
+/**
+ * A session whose status says queued, yet work is seen after that status came: a turn the stream
+ * started after it (turn: its running turn, {seq}; s.statusSeq: where the status stands in the stream), a
+ * sub-agent the stream named after it (a run.* frame's seenSeq; a runs list read is never this evidence), or the
+ * stream's `runs` counts above none after it (their seq, else their moment). Then the wait is over whatever the status says yet (its frame was missed or is late): Working.
+ */
+export function queuedButWorking(s, { runs = [], agg = null, turn = null } = {}) {
+  if (!s || s.state !== HELD_STATE) return false;
+  const at = s.statusAt || 0, seq = s.statusSeq ?? null;
+  // after the status: in the stream's order when both say where they stand (a frame's seq, a read's seq when
+  // sent), else by the moment
+  const after = (xSeq, xAt) => (xSeq != null && seq != null ? xSeq > seq : (xAt || 0) > at);
+  if (turn && turn.status !== "ended" && (seq == null || (turn.seq ?? -1) > seq)) return true;
+  // a run counts only as the stream itself named it (run.* frames carry seenSeq); a read of the runs list says what
+  // the store holds, and a run whose end was never written would outlive the wait for ever
+  for (const r of runs) if ((r.session == null || r.session === s.id) && runWorks(r) && r.seenSeq != null && after(r.seenSeq, r.seen)) return true;
+  return !!(agg && after(agg.seq ?? null, agg.at) && (agg.running || 0) + (agg.waiting || 0) > 0);
+}
+
+/**
+ * Is a session's agent at work? s: {id, state, sub, readAt}: its newest status (frame or read), what
+ * the last read said beyond it (readSub) and when that read came (ms). runs: its runs as the stream named
+ * them ({state, ended_at, hidden, seen}, `seen` when the stream last spoke of each); agg: its newest
+ * `runs` frame ({running, waiting, at}). Each says what it knows, the newest word winning:
+ *   · waiting on the person is never Working, whatever else is true: it's you who's awaited (Needs you);
+ *   · held by a gate (queued) isn't Working (heldOf says what it waits for), unless work is seen after it
+ *     said so (queuedButWorking: turn, its running turn);
+ *   · on a turn (BUSY_STATES) is Working;
+ *   · after the turn, a sub-agent still at work keeps it Working: a run the stream named since the last
+ *     word on the counts, else the `runs` frame's counts when they're newer than the read, else the read.
+ */
+export function sessionBusy(s, { runs = [], agg = null, turn = null } = {}) {
+  if (!s) return false;
+  if (s.state === "waiting_on_person") return false;
+  if (s.state === HELD_STATE) return queuedButWorking(s, { runs, agg, turn });
+  if (BUSY_STATES.has(s.state)) return true;
+  const readAt = s.readAt || 0;
+  const counted = agg && (agg.at || 0) >= readAt ? agg : null;
+  const since = Math.max(readAt, counted ? counted.at || 0 : 0);
+  for (const r of runs) if ((r.session == null || r.session === s.id) && runWorks(r) && (r.seen || 0) >= since) return true;
+  if (counted) return (counted.running || 0) + (counted.waiting || 0) > 0;
+  return s.sub === true;
+}
+
+// ── held: what a queued session waits for ("Waiting") ───────────────────────
+/** What a gate can hold a session for (xo-space's session view `waiting.for`). */
+export const HELD_FOR = new Set(["limit", "paid", "near_limit", "memory", "founder"]);
+
+/**
+ * What a session held back by a gate waits for, or null when it isn't held. s: the session as known
+ * ({state, pool, waiting}); pools: the engine's pools by id ({state, resets_at, reason}).
+ * → {for: "limit" | "paid" | "near_limit" | "memory" | "founder" | null, until: ISO | null, why: string | null,
+ *    asked: bool} (asked: the paid gate waits for the founder's answer: its pool's reason says paid_asked)
+ * The backend's own word first: its session view and `session` frame carry `waiting` {for, until, pool,
+ * why} while queued. An older backend says only "queued": then the session's pool says what holds it, when
+ * a pool does (closed: the limit, until its reset; paid: the paid gate; warn: near-limit pacing), and
+ * otherwise it's held for a reason this backend doesn't name (for: null), still never Working.
+ * A caller that has seen work since the status said queued asks queuedButWorking first: that one isn't held.
+ */
+export function heldOf(s, pools = {}) {
+  if (!s || s.state !== HELD_STATE) return null;
+  const w = s.waiting;
+  const asked = (p) => !!p && p.state === "paid" && p.reason === "paid_asked";
+  if (w && typeof w === "object") {
+    const p = (w.pool || s.pool) ? (pools || {})[w.pool || s.pool] : null;
+    const until = w.until || (w.for === "limit" && p && p.state === "closed" && p.resets_at) || null;
+    return { for: HELD_FOR.has(w.for) ? w.for : null, until, why: w.why ? String(w.why) : null, asked: w.for === "paid" && asked(p) };
+  }
+  const p = s.pool ? (pools || {})[s.pool] : null;
+  if (p && p.state === "closed") return { for: "limit", until: p.resets_at || null, why: null, asked: false };
+  if (p && p.state === "paid") return { for: "paid", until: null, why: null, asked: asked(p) };
+  if (p && p.state === "warn") return { for: "near_limit", until: null, why: null, asked: false };
+  return { for: null, until: null, why: null, asked: false };
+}
+
+const NB = "\u00a0"; // a time is one phrase: it never breaks across lines ("1:31" / "AM")
+const nb = (t) => String(t).replace(/[ \u202f]/g, NB);
+/**
+ * When a held message starts, in the owner's clock, as {day, hm}: day "" today, "tomorrow", a weekday this
+ * week ("Thu"), else a date ("5 Nov"); hm "6:50 AM" (the app's clock format, runtimes.js clockWords). null
+ * when it isn't a time.
+ */
+function whenParts(iso, now) {
+  const ms = Date.parse(iso || "");
+  if (!Number.isFinite(ms)) return null;
+  const d = new Date(ms), t = new Date(now), next = new Date(now);
+  next.setDate(next.getDate() + 1);
+  const hm = clockWords(iso, ms); // the time alone (same day as itself)
+  if (d.toDateString() === t.toDateString()) return { day: "", hm };
+  if (d.toDateString() === next.toDateString()) return { day: "tomorrow", hm };
+  if (ms > now && ms - now < 6 * 86400000) return { day: d.toLocaleDateString(undefined, { weekday: "short" }), hm };
+  return { day: d.toLocaleDateString(undefined, { day: "numeric", month: "short" }), date: true, hm };
+}
+/** The short form, for a list, the sidebar and the header's chip: "6:50 AM", "tomorrow 6:50 AM", "Thu 6:50 AM", "5 Nov 6:50 AM". */
+export function heldClock(iso, now = Date.now()) {
+  const w = whenParts(iso, now);
+  return w ? nb(w.day ? `${w.day} ${w.hm}` : w.hm) : "";
+}
+/** The same in a sentence, after "starts": "at 6:50 AM", "tomorrow at 6:50 AM", "Thu at 6:50 AM", "on 5 Nov at 6:50 AM". */
+function whenWords(iso, now) {
+  const w = whenParts(iso, now);
+  return w ? nb(`${w.date ? `on ${w.day} ` : w.day ? `${w.day} ` : ""}at ${w.hm}`) : "";
+}
+const ahead = (h, now) => !!(h && h.until && Date.parse(h.until) > now);
+
+/**
+ * A held session in words, one line, as the person reads it where the agent's activity shows:
+ * "Waiting for the usage limit · starts at 6:50 AM". One verb for the moment it runs, "starts", wherever
+ * it's said (heldShort, the header's chip). The time only while it's ahead: a reset that has passed while
+ * it still waits says it's due, not a time gone by. A reason this UI doesn't name is said in the backend's
+ * own words. Nothing is claimed that wasn't read (the paid gate's setting: only that it's in Settings).
+ * "" when it isn't held.
+ */
+export function heldWords(h, now = Date.now()) {
+  if (!h) return "";
+  const at = ahead(h, now) ? whenWords(h.until, now) : "";
+  switch (h.for) {
+    // "starts" goes with its time: the line breaks before it, never inside it
+    case "limit": return at ? `Waiting for the usage limit · starts${NB}${at}` : "Waiting for the usage limit to reset";
+    case "paid": return h.asked ? "Waiting for your choice on paid usage · it's in Needs you" : "Waiting before paid usage · see Settings › Runtimes";
+    case "near_limit": return "Waiting · near the usage limit, more urgent work goes first";
+    case "memory": return "Waiting for memory to free up";
+    case "founder": return at ? `Paused by you · until ${at.replace(/^at\u00a0/, "")}` : "Paused by you";
+    default: return h.why ? `Waiting · ${h.why}` : "Waiting to start";
+  }
+}
+
+/** The badge's word: "Waiting", or "Paused" for the founder's own pause. */
+export const heldBadge = (h) => (h && h.for === "founder" ? "Paused" : "Waiting");
+
+/**
+ * The same in a few words, for a list's state column, a card and the sidebar, where the whole time must fit:
+ * "Starts 6:50 AM", "Starts tomorrow 1:47 AM" (the verb the line uses), else "Waiting"; "Paused" for the founder's.
+ */
+export function heldShort(h, now = Date.now()) {
+  if (!h) return "";
+  if (h.for === "founder") return "Paused";
+  return h.for === "limit" && ahead(h, now) ? `Starts ${heldClock(h.until, now)}` : "Waiting";
+}
+
+/** Of several held sessions, the one that starts soonest (a time ahead first, then the rest as given). */
+export function soonestHeld(list, now = Date.now()) {
+  const hs = (list || []).filter(Boolean);
+  const timed = hs.filter((h) => ahead(h, now)).sort((a, b) => Date.parse(a.until) - Date.parse(b.until));
+  return timed[0] || hs[0] || null;
+}
+
+/**
+ * The state a thread shows while it has open items: an open item on the thread (its own ask or one of
+ * its sub-agents') waits on the person whatever the row says yet. The row's needs_approval can trail
+ * the item's frame, and a resolved thread's sub-agent can still ask; a thread continued elsewhere
+ * (frozen) or already waiting keeps its state.
+ */
+export function askingState(state, openItems, frozen = false) {
+  if (!openItems || frozen || state === "needs_reply" || state === "needs_approval" || state === "paused") return state;
+  return "needs_approval";
 }
 
 const clip = (s, n) => (s.length > n ? s.slice(0, n - 1).replace(/\s+\S*$/, "") + "…" : s);
@@ -160,7 +441,8 @@ export function stormAsks(t, items = []) {
     const full = String((t.card && t.card.needs_you) || t.happened || "").trim();
     const { title, rest } = askText(full);
     asks.push({ id: `${t.id}:${(t.card && t.card.updated_at) || t.lastAt}`, kind: "question", title: title || "It's waiting for your reply", detail: clip(rest, 220), full, risk: "notable", options: null, replyOnly: true, live: true });
-  } else if (t.state === "paused") {
+  } else if (t.state === "paused" && !t.frozen) {
+    // a thread continued elsewhere is frozen, not waiting on you (mixed runtimes F4)
     const why = String(t.paused || "it was stuck on a denied step");
     asks.push({ id: `${t.id}:paused:${t.lastAt}`, kind: "question", title: "It paused and waits for you", detail: `Why: ${why}. A reply in the thread resumes it.`, full: why, risk: "notable", options: null, replyOnly: true, live: true, paused: true });
   } else if (t.state === "needs_approval") {
@@ -242,7 +524,6 @@ export function sendErrorTitle(err) {
   return "Message not sent";
 }
 
-const hhmm = (iso) => { const d = new Date(iso); return Number.isNaN(+d) ? "" : d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); };
 
 /**
  * The pools that can hold work back now (if1 #1). A pool id is "<runtime>:<account>" (storm's
@@ -266,7 +547,24 @@ export function currentPools(pools, runtimes) {
  * The one honest line about the connection and what can run, or null when all is well.
  * w: {error, conn, statusError, statusCode, runtimes, router, pools, loaded}
  */
-export function connLine(w) {
+/** What routes a chat: its own routing when it has one, else the Space's (xo-space's chats/router.py effective()).
+ *  pid: the chat's project id ("workspace" for the Workspace); without one, the Space's. */
+export function routingOf(w, pid = null) {
+  const own = pid && (w && w.projects || []).find((p) => p.id === pid)?.routing;
+  return own && own.mode ? own : (w && w.router) || null;
+}
+/** Off, in words true to the server: only a new message to a chat whose routing is off is refused (delivery.py checks
+ *  the chat's effective routing on the timeline, never in a thread). Astra C111 on dd15034. */
+function offLine(w, pid) {
+  const r = routingOf(w, pid), own = pid && (w.projects || []).find((p) => p.id === pid)?.routing;
+  if (!r || r.mode !== "off") return null;
+  return own && own.mode ? { kind: "off", text: "Routing is off for this chat", sub: "new messages here are refused · replies in threads still work" }
+    : { kind: "off", text: "The router is off", sub: "chats using it refuse new messages · replies in threads still work" };
+}
+
+/** The line above the composer: thread (a reply in a thread, never routed) shows no routing-Off line, as the send
+ *  gate lets it go; pid: the chat a new message goes to (Launchpad grader on 83929bb: one rule with the gate) */
+export function connLine(w, { pid = null, thread = false } = {}) {
   if (!w) return null;
   // the engine down is said as such: the UI server answered, so it isn't the network
   if (STORM_DOWN.has(w.statusCode) || STORM_DOWN.has(w.errorCode)) return { kind: "down", text: "XO's chat engine isn't running", sub: "retrying · nothing you write is lost" };
@@ -276,24 +574,30 @@ export function connLine(w) {
     const r = mainRuntime(rts);
     return { kind: "off", text: `${cliName(r.name)} isn't connected`, sub: "connect it in XO · sending waits until then" };
   }
-  if (w.router && w.router.mode === "off") return { kind: "off", text: "The router is off", sub: "new messages to the Workspace and projects are refused · threads still take replies" };
+  const off = thread ? null : offLine(w, pid);
+  if (off) return off;
   const pools = currentPools(w.pools, rts);
   const closed = pools.find((p) => p.state === "closed");
-  if (closed) return { kind: "wait", text: `Paused until ${hhmm(closed.resets_at)}`, sub: "usage limit · running work finishes, new work waits" };
+  // the app's one clock (heldClock: "1:47 AM", "tomorrow 1:47 AM"), as the held line under the conversation says it
+  if (closed) return { kind: "wait", text: `Paused until ${heldClock(closed.resets_at)}`, sub: "usage limit · running work finishes, new work waits" };
   const paid = pools.find((p) => p.state === "paid");
-  if (paid) return { kind: "wait", text: "Paused for your choice", sub: "your subscription moved onto paid usage · it's in Needs you" };
+  // state "paid" is HELD, not spending: under Ask me the question is in Needs you; under Never nothing is asked and work waits
+  if (paid) return paid.reason === "paid_asked" || paid.reason == null
+    ? { kind: "wait", text: "Paused for your choice", sub: "before paid usage · it's in Needs you" }
+    : { kind: "wait", text: "Paused before paid usage", sub: "paid usage is set to Never · change it in Settings › Runtimes" };
   return null;
 }
 
 /** Why sending is paused right now ("" when it isn't), for the composer. timeline: posting to a chat's timeline. */
-export function sendBlock(w, { timeline = true } = {}) {
+export function sendBlock(w, { timeline = true, pid = null } = {}) {
   if (!w) return "";
   if (STORM_DOWN.has(w.statusCode) || STORM_DOWN.has(w.errorCode)) return "XO's chat engine isn't running";
   if (w.error && !(w.projects && w.projects.length)) return "Can't reach XO right now";
   if (!w.loaded) return "Connecting to XO…";
   const rts = w.runtimes || [];
   if (rts.length && rts.every((r) => !r.cli || r.cli.logged_in === false || r.error)) return `${cliName(mainRuntime(rts).name)} isn't connected`;
-  if (timeline && w.router && w.router.mode === "off") return "The router is off";
+  // a new message to a chat whose routing is off (its own, or the Space's when it has none); a thread's reply never
+  if (timeline) { const off = offLine(w, pid); if (off) return off.text; }
   return "";
 }
 
@@ -423,24 +727,27 @@ export function hopNotes(thread, hops) {
 }
 
 /**
- * Your messages relayed into a thread (if1 #7). Storm doesn't copy a relayed message into the thread:
- * the hop into it (a relay, a brief, an answer: any hop to the thread) names the message, which stays on the project's timeline. Returns
- * {shown: [ui message], missing: [{ids, seq}]}: the owner's own messages found on the loaded
- * timeline (each once, never one the thread already has), and per hop the ids not loaded yet,
- * with the hop's seq as the upper bound to page back from. Someone else's words are never shown as yours.
+ * The messages relayed into a thread (if1 #7). Storm doesn't copy a relayed message into the thread:
+ * the hop into it (a relay, a brief, an answer: any hop to the thread) names the message, which stays on the project's timeline. A hop
+ * may cite any message of its scope: yours, the agent's it answered (a bare "yes" travels with its proposal), or XO's. Returns
+ * {shown: [ui message, each with `hop` {id, seq, at}: when it was passed on], missing: [{ids, seq}]}: those found on the loaded
+ * timeline, each as the row's own author says it (who: you | coord | agent | system; never one's words as another's), each
+ * once and never one the thread already has, and per hop the ids not loaded yet, with the hop's seq as the upper bound to
+ * page back from.
  */
-export function relayedInto(thread, hops, timeline, have = new Set()) {
+export function relayedInto(thread, hops, timeline, have = new Set(), found = null) {
   const shown = [], missing = [], seen = new Set(have);
   for (const hp of hops || []) {
     if (!hp || hp.thread_ts !== thread.id || hp.to_role !== "thread" || !(hp.message_ids || []).length) continue;
     const lost = [];
     for (const id of hp.message_ids) {
       if (seen.has(id)) continue;
-      const row = timeline.find((r) => r.id === id);
+      const row = timeline.find((r) => r.id === id) || (found && found.get(id));
       if (!row) { lost.push(id); continue; }
       seen.add(id);
-      const m = uiMsg(row);
-      if (m.who === "you") shown.push(m);
+      // `hop`: when and where in the thread it was passed on, which is where it belongs there (the hop's
+      // seq and time, as hopNotes does), not where you wrote it (m.seq / m.at stay the original)
+      shown.push({ ...uiMsg(row), hop: { id: hp.id, seq: hp.seq ?? null, at: Date.parse(hp.created_at || hp.at) || 0 } });
     }
     if (lost.length) missing.push({ ids: lost, seq: hp.seq ?? null });
   }

@@ -18,6 +18,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { WAITING } from "./world.js";
 import { itemBody } from "./review.js";
+import { typing } from "./keys.js";
 
 export const COMMIT_MS = 3000;   // commit window before the world call
 export const HOLD_MS = 1200;     // destructive press-and-hold
@@ -43,7 +44,8 @@ export function groupOf(t, ask) {
 /** The thread's asks, or one synthetic ask when it waits on the person with none (live). */
 export function asksOf(t) {
   if (t.asks && t.asks.length) return t.asks;
-  if (!WAITING(t.state)) return [];
+  // a thread continued on another runtime is frozen, not waiting on you (mixed runtimes F4)
+  if (!WAITING(t.state) || t.frozen) return [];
   return [{
     id: null,
     kind: t.state === "needs_approval" ? "approval" : "question",
@@ -147,12 +149,44 @@ export function createCommitQueue({ delay = COMMIT_MS, exec, onChange }) {
  * focused button. Releasing early does nothing. A click alone does nothing.
  * ready() returns true or a reason string (shown by onRefuse).
  */
+/**
+ * The one hold-to-confirm button (allow a destructive ask, remove a worktree), built on holdToConfirm: a solid
+ * danger fill that grows with the time held, linearly, so the first moment already moves; a label slot that
+ * holds both of its words, so nothing shifts when "Keep holding…" takes over; a calm return when it's let go
+ * early. Nothing overshoots. The fill is a transform; the progress is one custom property (--p).
+ */
+export function holdButton(btn, { ready, onConfirm, onRefuse, onRelease, holding = "Keep holding…" }) {
+  const txt = btn.querySelector(".hold-txt");
+  if (txt && !txt.querySelector(".ht-a")) {
+    const a = document.createElement("span"); a.className = "ht-a"; a.textContent = txt.textContent;
+    const b = document.createElement("span"); b.className = "ht-b"; b.setAttribute("aria-hidden", "true"); b.textContent = holding;
+    txt.replaceChildren(a, b);
+  }
+  let back = 0;
+  return holdToConfirm(btn, {
+    ready,
+    onProgress: (p) => {
+      if (p > 0 && btn.classList.contains("is-releasing")) { clearTimeout(back); btn.classList.remove("is-releasing"); } // held again mid-drain: the fill follows the hand
+      btn.style.setProperty("--p", String(p)); btn.classList.toggle("tense", p > 0.8 && p < 1);
+    },
+    onConfirm: () => { btn.classList.remove("tense"); try { navigator.vibrate?.(24); } catch { /* not allowed */ } onConfirm(); }, // the one buzz is the hold completing
+    onRefuse,
+    onRelease: () => {
+      btn.classList.remove("tense"); btn.classList.add("is-releasing");
+      clearTimeout(back); back = setTimeout(() => btn.classList.remove("is-releasing"), 260);
+      onRelease && onRelease();
+    },
+  });
+}
+
 export function holdToConfirm(btn, { ms = HOLD_MS, ready, onProgress, onConfirm, onRefuse, onRelease }) {
   let t0 = 0, raf = 0, via = null;
+  const onAway = (e) => { if (e.type === "blur" || document.hidden) stop(true); };
   const stop = (early) => {
     if (!t0) return;
     cancelAnimationFrame(raf);
     t0 = 0; via = null;
+    removeEventListener("blur", onAway); document.removeEventListener("visibilitychange", onAway);
     btn.classList.remove("is-holding");
     btn.setAttribute("aria-pressed", "false");
     if (early) { onProgress(0); onRelease && onRelease(); }
@@ -167,14 +201,19 @@ export function holdToConfirm(btn, { ms = HOLD_MS, ready, onProgress, onConfirm,
     const r = ready();
     if (r !== true) { onRefuse && onRefuse(r); return; }
     via = src; t0 = performance.now();
+    addEventListener("blur", onAway); document.addEventListener("visibilitychange", onAway);
     btn.classList.add("is-holding");
     btn.setAttribute("aria-pressed", "true");
     raf = requestAnimationFrame(tick);
   };
+  btn.addEventListener("keydown", () => btn.classList.remove("by-pointer"));
   btn.addEventListener("pointerdown", (e) => {
     if (e.button !== 0) return;
     e.preventDefault();
-    btn.focus({ preventScroll: true });
+    // held by a pointer, it takes focus without a ring (the default it prevents would have given it focus the same way):
+    // a ring round a button you're pressing read as a border (the owner, 11 Nov 08:19Z); a key on it brings the ring back
+    btn.classList.add("by-pointer");
+    btn.focus({ preventScroll: true, focusVisible: false });
     try { btn.setPointerCapture(e.pointerId); } catch { /* old browsers */ }
     start("pointer");
   });
@@ -186,6 +225,17 @@ export function holdToConfirm(btn, { ms = HOLD_MS, ready, onProgress, onConfirm,
   });
   btn.addEventListener("keyup", (e) => { if ((e.key === "Enter" || e.key === " ") && via === "key") stop(true); });
   btn.addEventListener("blur", () => stop(true));
+  // a safety control: the hold ends when the window loses focus or the page hides (listened to only while a hold
+  // runs, so a removed card leaves nothing behind), and when the pointer leaves the button (pointer capture keeps
+  // the events coming, so it's checked by position, 8 px of give)
+  btn.addEventListener("pointermove", (e) => {
+    if (via !== "pointer") return;
+    const r = btn.getBoundingClientRect();
+    if (e.clientX < r.left - 8 || e.clientX > r.right + 8 || e.clientY < r.top - 8 || e.clientY > r.bottom + 8) stop(true);
+  });
+  // touch: the browser's own long-press (Android Chrome buzzes at ~0.5 s, well before the 1.2 s is up) is cancelled at
+  // touchstart, so the only buzz felt is the one when the hold completes
+  btn.addEventListener("touchstart", (e) => { if (e.cancelable) e.preventDefault(); }, { passive: false });
   btn.addEventListener("click", (e) => e.preventDefault());
   btn.addEventListener("contextmenu", (e) => e.preventDefault());
   return { cancel: () => stop(true) };
@@ -199,7 +249,7 @@ export function createAnnouncer(region, { quietMs = 2000 } = {}) {
   let lastTyped = 0;
   const q = [];
   addEventListener("keydown", (e) => {
-    if (e.target && e.target.matches && e.target.matches("input, textarea, [contenteditable]")) lastTyped = Date.now();
+    if (typing(e)) lastTyped = Date.now(); // a field, even in a shadow root (Pierre's editor)
   }, true);
   const flush = () => {
     if (!q.length || Date.now() - lastTyped < quietMs) return;
@@ -216,4 +266,5 @@ export function createAnnouncer(region, { quietMs = 2000 } = {}) {
 }
 
 /** Honest tab title: the number of asks waiting, never inflated. */
-export const titleFor = (n, base) => (n ? `◆ ${n} · ` : "") + base;
+/** The tab says "Needs you" only while it is true; it never counts upward to pull you back (the favicon turns amber). */
+export const titleFor = (n, base) => (n ? "Needs you · " : "") + base;

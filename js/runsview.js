@@ -22,37 +22,66 @@ const glyph = (st) => (st === "running" ? "working" : st === "waiting" ? "needs_
 /** The thread's own line about its sub-agents: the ones working now, else the log count. */
 export function runsStripHtml(live, total) {
   if (live.length) {
-    return `<div class="rn-strip" role="list" aria-label="Sub-agents working now">${live.map((r) =>
-      `<button type="button" class="rn-chip st-${esc(r.state)}" role="listitem" data-run="${esc(r.id)}" title="Open: ${esc(r.title)}"><i class="g g-${glyph(r.state)}" aria-hidden="true"></i><span>${esc(r.title)}</span>${r.state === "waiting" ? `<em>waiting on you</em>` : ""}</button>`).join("")}</div>`;
+    // a phone's checklist row has no room for the chips: there, one count opens the list (css/phone.css)
+    const n = live.length, wait = live.filter((r) => r.state === "waiting").length;
+    const word = `${n} sub-agent${n === 1 ? "" : "s"} working${wait ? `, ${wait} waiting on you` : ""}`;
+    const count = `<button type="button" class="rn-live" data-runs title="${word}" aria-label="${word}"><i class="g g-${wait ? "needs_reply" : "working"}" aria-hidden="true"></i><b class="rn-n">${n}</b></button>`;
+    return count + `<div class="rn-strip" role="list" aria-label="Sub-agents working now">${live.map((r) =>
+      // each chip is a button in its own list item: role=listitem on the button itself took its button role away (Astra C047)
+      `<div class="rn-it" role="listitem"><button type="button" class="rn-chip st-${esc(r.state)}" data-run="${esc(r.id)}" title="Open: ${esc(r.title)}"><i class="g g-${glyph(r.state)}" aria-hidden="true"></i><span>${esc(r.title)}</span>${r.state === "waiting" ? `<em>waiting on you</em>` : ""}</button></div>`).join("")}</div>`;
   }
-  return total ? `<button type="button" class="rn-log" data-runs title="What its sub-agents did">${ICON.list}<span>${total} sub-agent${total === 1 ? "" : "s"} ran</span></button>` : "";
+  return total ? `<button type="button" class="rn-log" data-runs data-n="${total}" title="What its sub-agents did">${ICON.list}<span>${total} sub-agent${total === 1 ? "" : "s"} ran</span></button>` : "";
 }
 
 /** One row of the list (recursive for children). */
-function rowHtml(r, { canStop, depth = 0 }) {
+function rowHtml(r, { canStop, depth = 0, saidFor = null, out = [] }) {
   const meta = [KIND_WORD[r.kind] || "", r.tool_calls ? `${r.tool_calls} step${r.tool_calls === 1 ? "" : "s"}` : "", r.tokens ? `${num(r.tokens)} tokens` : "", dur(r.started_at, LIVE.has(r.state) ? null : r.ended_at)].filter(Boolean).join(" · ");
+  // a stop on its way: busy, taking no repeat, until its answer is said
+  const busy = out.includes(`run:${r.id}`);
   const stop = canStop && LIVE.has(r.state) && r.can_stop !== false
-    ? `<button type="button" class="rn-stop" data-run-stop="${esc(r.id)}" title="Stop this sub-agent (Undo for 3 s)">${ICON.stop}<span>Stop</span></button>` : "";
+    ? `<button type="button" class="rn-stop" data-run-stop="${esc(r.id)}" title="${busy ? "Sending the stop…" : "Stop this sub-agent (Undo for 3 s)"}"${busy ? ' aria-busy="true" aria-disabled="true"' : ""}>${ICON.stop}<span>${busy ? "Stopping…" : "Stop"}</span></button>` : "";
   return `<li class="rn-row st-${esc(r.state)}${depth ? " is-child" : ""}" style="--d:${depth}">` +
     `<button type="button" class="rn-open" data-run="${esc(r.id)}"><i class="g g-${glyph(r.state)}" aria-hidden="true"></i>` +
     `<span class="rn-main"><span class="rn-t">${esc(r.title)}</span><span class="rn-m">${esc(STATE_WORD[r.state] || r.state)}${meta ? ` · ${esc(meta)}` : ""}</span>` +
     (r.summary && !LIVE.has(r.state) ? `<span class="rn-s">${esc(r.summary)}</span>` : "") + `</span>${ICON.right}</button>${stop}</li>` +
-    (r.children || []).map((c) => rowHtml(c, { canStop, depth: depth + 1 })).join("");
+    (saidFor && saidFor.key === `run:${r.id}` ? `<li class="rn-said-row" style="--d:${depth}">${saidHtml(saidFor, `run:${r.id}`)}</li>` : "") +
+    (r.children || []).map((c) => rowHtml(c, { canStop, depth: depth + 1, saidFor, out })).join("");
 }
 
 /** The list: working now first, then the log. */
-export function runsListHtml(tree, counts, { canStop, title }) {
+/** stops: stops of this thread's runs still in their Undo window [{key, what}] (the sheet's own Undo, since the
+ *  page behind the sheet can't be reached while it's open); state: "loading" | "error" | "ok". */
+export function runsListHtml(tree, counts, { canStop, title, stops = [], state = "ok", error = "", saidFor = null, session = "", out = [] }) {
+  tree = tree || [];
   const live = tree.filter((r) => LIVE.has(r.state));
   const done = tree.filter((r) => !LIVE.has(r.state));
   const c = counts || {};
   const sum = [c.running && `${c.running} working`, c.waiting && `${c.waiting} waiting on you`, c.done && `${c.done} done`, c.failed && `${c.failed} failed`, c.stopped && `${c.stopped} stopped`].filter(Boolean).join(" · ");
+  // "none" only when a read said so: while it reads, it says so; a failed read says what failed, with a retry.
+  // Rows already shown from before stay, and say the same above them: reading again, or that the read failed
+  // (Astra SRC-MAIN-RUN-2: cached rows hid the reading, the refusal and Try again)
+  const said = state === "loading" ? `<p class="rn-none" role="status">${tree.length ? "Reading its sub-agents again…" : "Reading its sub-agents…"}</p>`
+    : state === "error" ? `<p class="rn-none" role="alert">Couldn't read its sub-agents${tree.length ? " again" : ""}: ${esc(error)} <button type="button" class="fl-link" data-runs-retry>Try again</button></p>`
+    : !tree.length ? `<p class="rn-none">No sub-agents yet.</p>` : "";
   return `<header class="rn-h"><div><h2 id="runs-h">Sub-agents</h2><p>${esc(title)}${sum ? ` · ${esc(sum)}` : ""}</p></div>` +
-    (canStop && live.length > 1 ? `<button type="button" class="rn-stopall" data-runs-stop title="Stop every sub-agent; the thread's own agent keeps working">Stop all ${live.length}</button>` : "") +
+    (canStop && live.length > 1 ? (out.includes(`all:${session}`) ? `<button type="button" class="rn-stopall" data-runs-stop title="Sending the stop…" aria-busy="true" aria-disabled="true">Stopping…</button>` : `<button type="button" class="rn-stopall" data-runs-stop title="Stop every sub-agent; the thread's own agent keeps working">Stop all ${live.length}</button>` ) : "") +
     `<button type="button" class="x" data-close aria-label="Close"></button></header>` +
-    `<div class="rn-body">` +
-    (live.length ? `<h3 class="rn-k">Working now</h3><ul class="rn-list">${live.map((r) => rowHtml(r, { canStop })).join("")}</ul>` : "") +
-    (done.length ? `<h3 class="rn-k">${live.length ? "Earlier" : "What they did"}</h3><ul class="rn-list">${done.map((r) => rowHtml(r, { canStop })).join("")}</ul>` : "") +
-    (!tree.length ? `<p class="rn-none">No sub-agents yet.</p>` : "") + `</div>`;
+    `<div class="rn-body">` + stopsHtml(stops) + saidHtml(saidFor, `all:${session}`) + (tree.length ? said : "") +
+    (live.length ? `<h3 class="rn-k">Working now</h3><ul class="rn-list">${live.map((r) => rowHtml(r, { canStop, saidFor, out })).join("")}</ul>` : "") +
+    (done.length ? `<h3 class="rn-k">${live.length ? "Earlier" : "What they did"}</h3><ul class="rn-list">${done.map((r) => rowHtml(r, { canStop, saidFor, out })).join("")}</ul>` : "") +
+    (!tree.length ? said : "") + `</div>`;
+}
+/** What a stop's answer said, in the sheet where you acted (under the run's row, or at the top for Stop all), as well
+ *  as in the notice behind the sheet (the create-project grader on 2a8d278: a refusal was said only there, unseen).
+ *  said: {key, kind, text, sub}; key: the stop it answers ("run:<id>" | "all:<session>"). */
+export function saidHtml(said, key) {
+  if (!said || said.key !== key) return "";
+  return `<p class="rn-said k-${esc(said.kind)}" role="${said.kind === "halt" ? "status" : "alert"}"><b>${esc(said.text)}</b>${said.sub ? `<span>${esc(said.sub)}</span>` : ""}</p>`;
+}
+/** Stops still in their 3 s Undo, inside the sheet: each with its own Undo. */
+export function stopsHtml(stops) {
+  if (!stops || !stops.length) return "";
+  return `<ul class="rn-stops" aria-label="Stopping">${stops.map((s) => `<li class="rn-stopping" data-key="stop:${esc(s.key)}"><span>Stopping ${esc(s.what)}</span><button type="button" class="t-undo" data-runs-undo="${esc(s.key)}">Undo</button></li>`).join("")}</ul>`;
 }
 
 /** Workspace › Project › Thread › Sub-agent, from the run's ancestry. */
@@ -92,12 +121,12 @@ export function transcriptHtml(items, { open = {} } = {}) {
 }
 
 /** The whole run view: path, state, Stop, its transcript, its own sub-agents. */
-export function runViewHtml(run, { anc, items, children = [], canStop, gone = null, error = null, loading = false, open = {} }) {
+export function runViewHtml(run, { anc, items, children = [], canStop, gone = null, error = null, loading = false, open = {}, stops = [], saidFor = null, out = [] }) {
   const live = LIVE.has(run.state);
   const head = `<header class="rn-h is-run"><button type="button" class="rn-back" data-runs-back title="Back to the list">${ICON.back}<span>Sub-agents</span></button>` +
     `<button type="button" class="x" data-close aria-label="Close"></button></header>` +
     `<div class="rn-top">${pathHtml(anc, run)}<div class="rn-st"><span class="badge st-${esc(glyph(run.state))}"><i class="g g-${glyph(run.state)}" aria-hidden="true"></i>${esc(STATE_WORD[run.state] || run.state)}</span>` +
-    (canStop && live && run.can_stop !== false ? `<button type="button" class="rn-stop" data-run-stop="${esc(run.id)}">${ICON.stop}<span>Stop</span></button>` : "") + `</div></div>`;
+    (canStop && live && run.can_stop !== false ? (out.includes(`run:${run.id}`) ? `<button type="button" class="rn-stop" data-run-stop="${esc(run.id)}" title="Sending the stop…" aria-busy="true" aria-disabled="true">${ICON.stop}<span>Stopping…</span></button>` : `<button type="button" class="rn-stop" data-run-stop="${esc(run.id)}" title="Stop this sub-agent (Undo for 3 s)">${ICON.stop}<span>Stop</span></button>`) : "") + `</div></div>`;
   let body;
   if (gone) body = `<p class="rn-none">Its transcript is gone. ${esc(gone)}</p>`;
   else if (error) body = `<p class="rn-none">Couldn't read its work: ${esc(error)}</p>`;
@@ -105,5 +134,5 @@ export function runViewHtml(run, { anc, items, children = [], canStop, gone = nu
   else body = transcriptHtml(items, { open }) || `<p class="rn-none">Nothing recorded yet.</p>`;
   const kids = children.length ? `<h3 class="rn-k">Its sub-agents</h3><ul class="rn-list">${children.map((c) => rowHtml(c, { canStop })).join("")}</ul>` : "";
   const summary = run.summary && !live ? `<p class="rn-sum">${esc(run.summary)}</p>` : "";
-  return `${head}<div class="rn-body rn-run">${summary}${body}${kids}<p class="rn-foot">Messaging a sub-agent isn't possible; talk to its thread instead.</p></div>`;
+  return `${head}<div class="rn-body rn-run">${stopsHtml(stops)}${saidHtml(saidFor, `run:${run.id}`)}${summary}${body}${kids}<p class="rn-foot">Messaging a sub-agent isn't possible; talk to its thread instead.</p></div>`;
 }

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#141414">
+  <script>try{document.documentElement.dataset.theme=localStorage.getItem("cv-theme")==="light"?"light":"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+  <title>Files tree bench</title>
+  <!-- js/files.js alone, with XO's CSS, for tools/filetree/perf.mjs and same.mjs; served from the repository root -->
+  <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+  <!-- the type, asked for at once: Home's first paint is in Geist, never swapped (and shifted) a moment later -->
+  <link rel="preload" href="../../fonts/geist/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../../css/base.css">
+  <link rel="stylesheet" href="../../js/vendor/xterm/xterm.css">
+  <link rel="stylesheet" href="../../css/app.css">
+  <link rel="stylesheet" href="../../css/light.css">
+  <!-- the foundation (design-research/14): structure that holds in both themes, so it loads last -->
+  <link rel="stylesheet" href="../../css/foundation.css">
+  <link rel="stylesheet" href="../../css/panel.css">
+  <!-- diffs and their chrome (js/diffview.js, js/changesframe.js): the look as custom properties on Pierre's element -->
+  <link rel="stylesheet" href="../../css/diffs.css">
+  <link rel="stylesheet" href="../../css/links.css">
+  <link rel="stylesheet" href="../../css/artifacts.css">
+  <link rel="stylesheet" href="../../css/dropdown.css">
+  <!-- pictures and files in the conversation, and the lightbox (js/media.js, js/lightbox.js) -->
+  <link rel="stylesheet" href="../../css/media.css">
+  <!-- the shape per person (js/shape.js): Settings › Shape, the first-run question, compact density -->
+  <link rel="stylesheet" href="../../css/shape.css">
+  <!-- the left sidebar: one corner system, and which project is open (thread-28ea9d) -->
+  <link rel="stylesheet" href="../../css/side.css">
+  <!-- the conversation's bubbles (css/msgx.css + js/msgx.js): message bubbles, tails, replies, the working
+       bubble, thread cards and their progress, back-to-latest. Part of the product; removing either breaks the chat. -->
+  <link rel="stylesheet" href="../../css/msgx.css">
+  <!-- the phone (≤760 px): its top bars, last so it settles every earlier phone rule (thread "Phone UI audit") -->
+  <link rel="stylesheet" href="../../css/phone.css">
+</head>
+<body>
+<div id="main" style="position:fixed;inset:0;display:flex">
+  <div style="position:relative;flex:1;min-width:0;border-right:1px solid #444"><section class="fv" id="ours"><header class="fv-h"><b class="fv-t">Ours (js/files.js)</b></header><div class="fv-b"></div></section></div>
+  
+</div>
+<script type="module" src="./bench.js"></script>
+</body></html>

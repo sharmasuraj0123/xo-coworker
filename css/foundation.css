@@ -1,0 +1,249 @@
+/* The foundation (design-research/14): the interface critique of 2026-11-03 (§9, 26 surfaces), fixed.
+   Loaded last, after app.css and light.css, because these are rules of structure that hold in both
+   themes. The eight rules it applies (ui-design/README.md in the critique's folder):
+     1 hover fills sit inside their column; no negative margins   5 one left edge per region
+     2 one focus ring; inset where a scroller would clip it         6 whole pixels: integer line heights
+     3 press: small buttons .97; rows, tiles, tabs and cards never  7 side panels are flush, no shadow
+     4 an icon centres on its first line of text                    8 nothing loops unless an agent works
+   Its numbers now come from Plan F in css/tokens.css (4 px steps; radii 6 · 12 · 20 · 22; controls 32;
+   rows 36); this file never defines a scale of its own (tests/design-budget.test.mjs). */
+
+:root{--sw:360px;--edge:16px;--row-h:36px}
+
+/* ── 7 · the side panels: flush to the window, one hairline, no float, no shadow ─────────────────── */
+.stage,.panel,body.stage-full .stage{top:0;right:0;bottom:0;border-radius:0;border:0;border-left:1px solid var(--line-faint);box-shadow:none;animation:none}
+/* a side panel arrives from the edge it lives on: 12 px and a fade, 240 ms; the conversation re-wraps once, at the start */
+@media (min-width:761px){.stage:not([hidden]),.panel:not([hidden]){animation:panel-in var(--d-sheet) var(--ease)}}
+@keyframes panel-in{from{opacity:0;transform:translateX(12px)}}
+:root[data-theme="light"] :is(.stage,.panel){border-color:rgba(0,0,0,.08);box-shadow:none}
+.stage{width:var(--sw);z-index:var(--z-panel)}
+.panel{max-height:none;height:100%}
+body.stage-full .stage{left:0}
+body.stage-open{--mw:var(--sw);--vw:var(--sw)}
+/* its left edge is the handle: 320–640 px, double-click for 360 */
+.stg-grip{position:absolute;z-index:3;top:0;bottom:0;left:-3px;width:6px;cursor:col-resize;outline:none}
+.stg-grip::after{content:"";position:absolute;top:0;bottom:0;left:2px;width:2px;background:transparent;transition:background var(--d-hover) var(--ease)}
+.stg-grip:hover::after,.stg-grip:focus-visible::after,body.stage-sizing .stg-grip::after{background:var(--line-hover)}
+body.stage-sizing{cursor:col-resize;user-select:none}
+body.stage-sizing .stage,body.stage-sizing .conv,body.stage-sizing .scroller,body.stage-sizing .dock{transition:none}
+body.stage-full .stg-grip{display:none}
+.stg-bar{min-height:52px;padding:0 8px 0 6px}
+@media (max-width:760px){.stg-grip{display:none}.stage{width:auto}}
+/* Home's green atmosphere tinted the canvas beside the sidebar: the canvas is one colour everywhere */
+.home{background:var(--canvas)}
+
+/* ── the sidebar keeps its own look (the owner, 2026-11-04: "make it like before"): nothing here
+   touches it ─────────────────────────────────────────────────────────────────────────────────────── */
+
+/* ── 1 · hover fills inside the column: no negative margins ──────────────────────────────────────── */
+.top-back,.tw-rt,.target,.attach{margin-left:0}
+/* 4 · work rows read as text: no fill, the ink brightens and a chevron shows; the text starts on the
+   message's own column (the live turn's agent tile sits in the avatar gutter) */
+.tb-h{margin-left:0;padding:4px 0;border-radius:0;background-color:transparent!important}
+.tb-h:hover .tb-ht,.tb-h:focus-visible .tb-ht{color:var(--ink)}
+.tb-wh .tb-hi{display:none}
+.tb-work>.tb:not(.tb-work){margin-left:0}
+
+/* ── a chosen control answers the pointer too ─────────────────────────────────────────────────────────
+   A state (checked, selected, pressed, current, on, here) draws its own fill and inks, and a hover drawn as a fill
+   or an ink matched or outranked it, so the chosen control looked the same hovered: the Artifacts pin, the sidebar's
+   rows (C008), the chosen filter chip "All 5" (S020, the controls grader on 414de0f), and more of the same kind: chosen
+   segments, the Map's toggles, the gear, a shell's tab.
+   Hovered, any chosen state takes one layer of its own ink over whatever it draws, as a press takes the press fill:
+   a background layer, !important on a zero-specificity selector, so no state's own background can silence it, on
+   any fill (its ink is the text's: an inverted chip, ink on canvas, darkens). Named out of it: the sidebar's rows
+   (their layer is side.css's, C008's), the lists whose selection the pointer moves (Find a project, Jump, a dropdown:
+   the pointer is the selection, one active row, C058), and a shell's tab inside its wrapper (the wrapper takes it).
+   Before the press, so a press shows the press fill. tests/state-hover.test.mjs is the census. */
+:where(button,a[href],summary,[role=button],[role=tab],[role=radio],[role=switch],[role=checkbox],[role=option],[role=menuitem],[role=menuitemradio],.shd-tabw):where([aria-checked="true"],[aria-selected="true"],[aria-pressed="true"],[aria-current]:not([aria-current="false"]),.is-on,.is-cur,.is-here,.is-sel,.is-active,.is-pinned,.on):where(:hover:not(:disabled,[aria-disabled="true"],.prow,.nrow,.dd-row,.at-list li,.jump-list li,.shd-tabw > *,.shd-tabw.is-edit,.b-hold)){background-image:linear-gradient(color-mix(in srgb,currentColor 8%,transparent),color-mix(in srgb,currentColor 8%,transparent))!important}
+
+/* ── 3 · press (Plan F, with Codex's audit of :3400): the outer box never moves ──────────────────────
+   A toolbar or navigation control, a row and a card keep their place and edges when pressed: they go
+   one step deeper (an inset fill, so it works on any surface and follows the corners), in 60 ms. Only
+   the commit gestures keep a small give: Send, and the decision kit's Allow / Send back / hold (07 §4.4).
+   A card with two destinations (Made: the picture, and its source) presses only the one under you.
+   Every other control answers a press the same way (the controls list, CONTROLS.md, found 55 kinds that
+   didn't): the fill is a background layer, so a control's own edges, rings and colour stay under it. It is
+   !important on a zero-specificity selector so it reaches every control whatever its own background rule,
+   and the controls with a press of their own a person can see are named out of it: the accent's (Send, .btn-pri, the
+   editor's primary and send: --accent-press) and the ink's (the picker's Done, Send as Stop: an ink press), the
+   switches (a veil on their track, under the knob's give), Launchpad's lit buttons, a link in text (it dims), and the
+   sidebar's rows (theirs is the owner's to choose, asked 11 Nov). A give alone (a scale) or a fill one step past the
+   hover fill isn't a press a person sees (grader A's bar: under 30 RGB-sum, or under 10% of the box): Create, .btn,
+   the picker's chip and rows, the decision kit and its hold, the gear and + take the layer over their give (the state
+   sweep by that bar on 7137115: Create and the runtime chip held 0%). tests/press-reach.test.mjs. A link drawn as a control
+   takes it too (a file or a thread's capsule in a message: its own 14→18% step went by in its transition, held looked
+   as hovered, the controls grader on 8aa58d3, S017/S088); a link in a sentence dims instead. */
+:is(.help,.create,.then-i,.hm-quiet,.top-back,.all-btn,.nw,.wsh-next,.tc-open,.tc-dec,button.hr,.t-undo,.dock-hide,.dock-fold,.btn,.set-nav button,button.kr-k,.tb-cf,.tw-act,.tw-rt,.tb-fb,.syl-got,.map-btn,.stg-btn,.fl-r,.stg-tab,.ar,.syl-ln,.jump-list li,.iq-row,.hd,.hd-r,.fl-back,.stg-ic,.md-open,.md-from):active,.pn-nav:active:not(:disabled){transform:none}
+:where(button,a[href][class],[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],summary,.rt-check):where(:not(:disabled,[aria-disabled="true"],.send,.btn-pri,.iq-done,.b-hold,.theme,.switch,.lp-go,.lk:not(.lk-in),.xd-btn.is-pri,.xd-send,.tw-act.lp-btn,.prow,.nrow,:is(.vw-cut-dl,.wsh-home,.cp-link,.tg-ch,.fl-link,.lp-ln,.shl-all,.tp-done-u))):where(:active){background-image:linear-gradient(var(--press-fill),var(--press-fill))!important;--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
+/* a chosen control (on, checked, pressed, current) has a fill of its own, and the press's 9% veil over it read as its
+   hover (the controls grader on 5f52deb, C084: Changes' Follow held vs hovered, 18–20 RGB-sum on average): held, it
+   goes three veils deep, as an accent control goes to its own press (S135) */
+:where(button,a[href][class],[role=button],[role=tab],[role=radio],[role=switch],[role=checkbox],[role=option],[role=menuitemradio]):where([aria-checked="true"],[aria-selected="true"],[aria-pressed="true"],[aria-current]:not([aria-current="false"]),.is-on):where(:active:not(:disabled,[aria-disabled="true"],[aria-busy="true"],.prow,.nrow,.dd-row,.at-list li,.jump-list li,.switch,.theme,.b-hold)){background-image:linear-gradient(var(--press-fill),var(--press-fill)),linear-gradient(var(--press-fill),var(--press-fill)),linear-gradient(var(--press-fill),var(--press-fill))!important}
+/* hovered, a control's secondary words step up to the second ink, as pressed ones do: on the 6% hover fill the meta
+   inks fall under 4.5:1 (--ink-4 3.9–4.1 on dark float and surface and on light sunken, --ink-3 4.37 on dark float);
+   the second keeps 7.8–9.7. One rule for every control, the owner's choice (10 Nov 11:19); the sidebar's rows keep
+   their own look */
+:where(button,[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],summary,.rt-check):where(:hover:not(:disabled,[aria-disabled="true"],.prow,.nrow)){--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
+/* a button that reads as a link in text (Try again, Download, Back to the Workspace, the @ list's change, Files'
+   links, …): no box to fill, so it answers as a link does. Hover brings its ink and its underline up to full; a
+   press dims it. One state for all of them (the controls grader on d79d37e, S139: the viewer's Try again looked the
+   same at rest, on hover and pressed: full ink at rest left hover nowhere to go, and the shared press fill had no
+   box to show in). */
+:is(.vw-cut-dl,.wsh-home,.cp-link,.tg-ch,.fl-link,.lp-ln,.shl-all,.tp-done-u){transition:color var(--d-hover) var(--ease),text-decoration-color var(--d-hover) var(--ease),opacity var(--d-press) var(--ease)}
+:is(.vw-cut-dl,.wsh-home,.cp-link,.tg-ch,.fl-link,.lp-ln,.shl-all,.tp-done-u):where(:hover:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){color:var(--ink);text-decoration-color:currentColor}
+:is(.vw-cut-dl,.wsh-home,.cp-link,.tg-ch,.fl-link,.lp-ln,.shl-all,.tp-done-u):where(:active:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){opacity:.7}
+/* one of them standing on its own, not a word in a sentence, is a control like any other: on a desktop the 24 floor,
+   as the phone's own floor gives it 36 (the create-project grader on 414de0f, S014: the docked decision's Undo,
+   39×20). Zero specificity: one with a floor of its own keeps it (Files' links, 32). Links in a sentence are words,
+   exempt from it: Copy path's, Launchpad's, Home in the Workspace's line; and the @ line's "change", a word inside
+   that line's own button (tests/ctl-scale.test.mjs places them all) */
+@media (min-width:761px){:where(.vw-cut-dl,.fl-link,.shl-all,.tp-done-u){min-height:var(--h-sm)}}
+:where(.theme,.switch):where(:not(:disabled,[aria-disabled="true"])):where(:active) .th-knob{scale:.88}
+/* a switch's track takes the hover and the press as a veil of the ink, under its knob: its 1 px edge on hover was 9% of
+   the box and the knob's give 9% held (the state sweep by grader A's bar on 7137115: the theme switch). 14% and 28% keep
+   past 30 RGB-sum on the light green of an on switch */
+:where(.theme,.switch):where(:hover:not(:disabled,[aria-disabled="true"])) .th-track{background-image:linear-gradient(color-mix(in srgb,var(--ink) 14%,transparent),color-mix(in srgb,var(--ink) 14%,transparent))!important}
+:where(.theme,.switch):where(:active:not(:disabled,[aria-disabled="true"])) .th-track{background-image:linear-gradient(color-mix(in srgb,var(--ink) 28%,transparent),color-mix(in srgb,var(--ink) 28%,transparent))!important}
+:where(a[href]:not([class])):where(:active){opacity:.7}
+/* a control whose request is out (js/pending.js): it keeps focus and its place, says it's waiting, and doesn't press */
+[aria-busy="true"]{cursor:progress}
+:where([aria-busy="true"]):where(:active){background-image:none!important;transform:none}
+.md-it:has(.md-open:active){transform:none}
+
+/* ── 6 · whole pixels: integer line heights, so 1 px borders land on whole pixels ────────────────── */
+.tw-t h1{line-height:28px}
+.hm-h{font-size:var(--fs-3xl);line-height:36px}
+.mh{padding-top:0;align-items:center;min-height:32px}
+.md-grid{grid-template-columns:repeat(auto-fill,minmax(148px,1fr))}
+
+/* ── 4 · an icon centres on its first line; nested corners are concentric ────────────────────────── */
+.top-who{align-items:flex-start}
+/* a thread's title bar is one line: the title, its state, its runtime and its controls all centre on
+   the title's own line (they used to align by their tops, so 24 px labels sat 2 px high and 32 px
+   controls 2 px low). Every control here is 32 high with a 16 px icon, 8 apart (Plan F). */
+.top[data-kind="thread"] .top-who{align-items:center;gap:12px}
+/* its state and runtime are the same 32 px and 13 px text as the buttons beside them (they were 24 px
+   with 12 px text and looked an afterthought; the runtime is a button too). What tells them apart is
+   their surface, not their size: the state is a tinted pill, the runtime borderless, actions outlined. */
+.top .badge{height:var(--h-ctl);gap:8px;padding:0 12px;font:500 var(--fs-base)/var(--lh-13) var(--sans)}
+.top .tw-rt{height:var(--h-ctl);margin-left:0;padding:0 10px;font:500 var(--fs-base)/var(--lh-13) var(--sans)}
+@media (max-width:760px){.top .badge,.top .tw-rt{height:36px}}
+/* the title bar: the cube sits on the title's own line, a 28 px tile on the 28 px line, so its centre
+   is the title's centre line (the cap centre of 20 px Geist in a 28 px line is the line's middle) */
+.tw-ic{width:28px;height:28px;border-radius:var(--r-sm)}
+.tw-ic svg{width:16px;height:16px}
+.tw-xo .xo-mark{width:20px;height:8px}
+.top[data-kind="project"] .top-who{gap:12px}
+.top[data-kind="project"] .top-who .tw-ic{margin-top:0}
+/* and the bar's other controls share that line: the Now strip (40 high) and the end buttons (32 high)
+   centre on the title's 28 px line, not on the title-plus-counts block, so nothing sits 12 px lower */
+@media (min-width:761px){
+  /* 17 on top, so the tallest control (the Now strip's 34 px chips) clears the top by 14, the same
+     as the count line clears the hairline below */
+  .top[data-kind="project"]{align-items:flex-start;padding-top:17px}
+  .top[data-kind="project"] > .now-wrap{margin-top:calc((28px - 40px) / 2)}
+  .top[data-kind="project"] > .top-end{margin-top:calc((28px - 32px) / 2)}
+}
+/* the count line: whole-pixel line, figures a shade brighter than their words, quiet dots */
+.pj-s{line-height:20px}
+.top[data-kind="project"] .tw-t{gap:4px}
+.pj-k{color:var(--ink-2);font-weight:500;font-variant-numeric:tabular-nums}
+.pj-c{white-space:nowrap}
+.pj-d{color:var(--ink-4)}
+/* one type system (pixel audit #8): the project title 20/28 at 600, the count line 13/20 at 400, 4 apart;
+   Threads 32 high, 8 in and 8 between, its count 12/16 in tabular figures */
+.tw-t h1{font-size:var(--fs-2xl);font-weight:600;letter-spacing:-.01em}
+.th-btn{gap:8px;padding:0 8px}
+.th-btn span{font:500 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums}
+/* a working thread in the Now strip: the neutral arc, one rule with task cards and link capsules (app.css) */
+/* a phone: the count line may wrap, so the tile sits on the title's line instead (28 px, the line's
+   own height), and the name takes the whole first row (the desktop's 52% cap squeezed it to 186 px) */
+@media (max-width:760px){
+  .top[data-kind="project"] .top-who{flex:1 1 100%;max-width:none;align-items:flex-start;gap:12px}
+  .top[data-kind="project"] .tw-ic{width:28px;height:28px;border-radius:var(--r-sm)}
+  .top[data-kind="project"] .tw-t h1{font-size:var(--fs-2xl)}
+}
+.all-btn span{border-radius:var(--r-sm)}
+.dlg-head{align-items:flex-start}
+
+/* ── 2 · one focus ring: never clipped, never changes a thing's shape ────────────────────────────── */
+/* a ring drawn inside a control lies on its fill: on the accent's green, the green ring vanished (the controls grader
+   on 8aa58d3, S135: the viewer's Save, inset in its head on a phone, rgba(131,214,58,.75) on #83D63A). Every inset
+   ring takes the colour its fill asks for (--ring-in), and a control on the accent asks for the accent's own ink */
+:where(.btn-pri,.send,.xd-btn.is-pri,.xd-send,.tw-act.lp-btn,.b-allow.pressed,.b-done.pressed){--ring-in:var(--accent-ink)}
+/* a control on the accent presses deeper, to the accent's own press (--accent-press), as Create and .btn-pri do: the
+   shared press fill is a veil of the theme's ink, and in dark it lightened the green, which reads as its hover (the
+   controls grader on ba93c9b, S135: the viewer's Save held as hovered in dark, both rgb(150,220,88)) */
+:where(.xd-btn.is-pri,.xd-send,.send:not(.is-stop),.btn-pri):where(:active:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background-color:var(--accent-press)!important;border-color:var(--accent-press)!important}
+/* a control filled with the ink (the picker's Done, Send as Stop) presses to the ink a quarter of the way to the canvas:
+   its hover is the ink at its highest, and a veil of the ink over the ink shows nothing */
+:where(.iq-done,.send.is-stop):where(:active:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background-color:color-mix(in srgb,var(--ink) 76%,var(--canvas))!important}
+:is(.fl-r,.nw,.shd-tab,.ar,.stg-tab,.syl-ln,.then-i,.jump-list li,.iq-row,.set-nav button,.tb-h,.md-from,.md-pin,.ck-tog):focus-visible{outline-offset:-2px;outline-color:var(--ring-in,var(--focus))}
+.md-it{overflow:visible}
+.md-th{border-radius:calc(var(--r-lg) - 1px) calc(var(--r-lg) - 1px) 0 0}
+.now{padding:3px}
+.scroller .wsh-home:focus-visible{outline-offset:1px}
+
+/* ── 8 · nothing loops unless an agent works ─────────────────────────────────────────────────────── */
+.next,.next.in-next,.next.in-undo{animation:none}
+.next:not(.r-destructive){background:var(--surface);border:1px solid color-mix(in srgb,var(--accent-fill) 32%,var(--line))}
+:root[data-theme="light"] .next:not(.r-destructive){background:#fff;border-color:color-mix(in srgb,var(--accent-fill) 40%,rgba(0,0,0,.1))}
+.next.in-next{animation:in-next var(--d-long) var(--ease) both}
+.next.in-undo{animation:in-undo var(--d-long) var(--ease) both}
+.shd-dot.d-wait{animation:none}
+
+/* ── the worst three ─────────────────────────────────────────────────────────────────────────────── */
+/* Settings: the selected page is its own fill; no detached bar on a rail 11 px away */
+.set-nav{border-left:0;padding-left:0}
+.set-nav button::before{display:none}
+.set-nav button[aria-selected="true"]{background:var(--row-bg-hover)}
+/* a turn's own lines (its work, a tool group) start on the text column: the agent's mark is the
+   avatar beside the turn, so the line needs no icon of its own */
+.turn>.tb>.tb-h .tb-hi{display:none}
+/* Home, nothing waiting: the headline says it once; one quiet line under it, no card */
+.calm-line{margin-top:12px;font:400 var(--fs-md)/20px var(--sans);color:var(--ink-3)}
+/* the panel's content shares one edge (16) with its tabs */
+.md-pane .md-h{padding:16px 16px 2px}
+.md-pane .md-tools{padding:10px 16px}
+.md-pane .md-body{padding:2px 16px 16px}
+.md-pane .md-grid{grid-template-columns:repeat(auto-fill,minmax(148px,1fr))}
+.fl-head{padding:12px 12px 8px}
+/* the sidebar keeps its focus ring as it was */
+.side :focus-visible{border-radius:6px}
+
+/* ── one motion system (js/motion.js, design-research/15): one easing, three durations ─────────── */
+:root{--m-ease:var(--ease);--m-in:var(--d-in);--m-move:var(--d-move);--m-out:var(--d-out)}
+/* a picture in Made fills its frame without a flash: its frame keeps its size while it decodes */
+.md-th img{transition:opacity var(--m-in) var(--ease)}
+
+/* ── the sidebar: no blue dot (the owner, again, 2026-11-04); nothing else there changes ─────────── */
+.pr-busy{display:none}
+
+/* a message or search box draws no ring of its own when you type in it: the caret and its border's step are the mark
+   (the owner, 11 Nov 07:52Z: "remove the current border of textbox, it doesn't look good", the green ring drawn round
+   the message box, Find, All threads' search and the rest since C053/C007/C030). One rule for every such box, so none
+   draws one: tests/field-ring.test.mjs */
+:is(.fl-q,.all-q,.ar-q,.side-find,.composer,.jump-field,.xd-q):has(:is(input,textarea):focus-visible),.fl-new-r input:focus-visible{outline:none}
+/* a field with its own border (Create's repository, name and description, Settings' and Launchpad's fields, a select,
+   the dropdown's button) shows focus as one edge, on its border: the base ring stood 2 px outside it, two borders with
+   the page between (the owner, 11 Nov 08:00Z: "like it has 2 borders"). At −1 px its 2 px cover the border and one inside */
+:is(input:not([type=checkbox],[type=radio],[type=range],[type=button],[type=submit],[type=reset],[type=file],[type=color],[type=image]),textarea,select,.dd-btn):focus-visible{outline-offset:-1px}
+
+/* a resize grip the keyboard is on shows the one ring round its grab area, as every control shows focus: its 1 px line
+   brightening was the only cue, 1.5–2.5:1 (the controls grader on 9d1f71b, C034 Files' divider, C035 the chat's; the
+   panel's grip is the same kind). Files' divider is a 1 px line with a 9 px grab area drawn after it: the ring is there.
+   Each as specific as the rule that takes its outline away (body.chat-docked .fv-cgrip{outline:none} outweighed it) */
+body.chat-docked .fv-cgrip:focus-visible,.stg-grip:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px;border-radius:3px}
+.fv .fl.is-wide .fl-split:focus-visible::after{box-shadow:inset 0 0 0 2px var(--focus);border-radius:3px}
+
+/* a boxed text field (a form's .field, Launchpad's, a shell's name, a note to the agent): the keyboard's focus is the base
+   ring every control has (base.css: 2 px of the focus colour, 2 px out; 3.24:1 on white, 6.07:1 on #171717), never
+   taken away and with no halo beside it; typed in, its edge darkens (an invalid one stays red). Each took its outline
+   away for a faint halo, which left a 2.4–2.5:1 edge (the create-project grader on 4d33649, C108, Shape's JSON) */
+:is(.field input,.field textarea,.lp-in,.shd-in,.c-note textarea):focus{border-color:var(--line-hover)}
+
+/* a segment the keyboard is on draws its whole ring: it's stacked above its neighbours, 2 px away, so a selected
+   segment's background after it never paints over the ring's outward 2 px (the controls grader on 2a8d278, S127: Changes
+   lost its ring's right edge to File selected) */
+:is(.vw-seg,.rt-seg)>button:focus-visible{position:relative;z-index:1}

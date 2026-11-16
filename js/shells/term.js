@@ -8,6 +8,7 @@
 import { Terminal } from "../vendor/xterm/xterm.mjs";
 import { FitAddon } from "../vendor/xterm/addon-fit.mjs";
 import { api, terminalSocketUrl } from "../api.js";
+import { copyText } from "../util.js";
 import { createFlow, backoff, closeMeaning } from "./model.js";
 
 const RESIZE_MS = 120;
@@ -41,6 +42,7 @@ export function themeFromCss(el = document.documentElement) {
  *   on.state(s): "connecting" | "live" | "retrying" | "ended" | "off" | "error", with detail
  *   on.ready(T): the server's view of the shell on each attach
  *   on.exit({code, reason}), on.title(text), on.bell()
+ *   on.copy(ok): Ctrl+Shift+C copied the selection (true) or the browser refused (false)
  *   keys(e): return false to keep a key from the shell (the app's own toggle key)
  */
 export function mountShell(host, { id, ticket = null, on = {}, keys = () => true }) {
@@ -67,7 +69,8 @@ export function mountShell(host, { id, ticket = null, on = {}, keys = () => true
     // Ctrl+Shift+C / V copy and paste (Ctrl+C and Ctrl+V stay the shell's); ⌘C / ⌘V already work
     if (e.type === "keydown" && e.ctrlKey && e.shiftKey && !e.metaKey && !e.altKey) {
       const k = e.key.toLowerCase();
-      if (k === "c") { const sel = term.getSelection(); if (sel) navigator.clipboard?.writeText(sel).catch(() => {}); e.preventDefault(); return false; }
+      // the copy is said only once the text is on the clipboard; refused, the dock says why (focus stays here)
+      if (k === "c") { const sel = term.getSelection(); if (sel) copyText(sel).then((ok) => on.copy?.(ok)); e.preventDefault(); return false; }
       if (k === "v") return false; // the browser's own paste lands in xterm's textarea
     }
     return true;
@@ -159,6 +162,8 @@ export function mountShell(host, { id, ticket = null, on = {}, keys = () => true
   }
   function end(s, detail) {
     clearTimeout(timer);
+    // nothing types into an ended shell: its cursor stops blinking and goes
+    if (s === "ended" || s === "off") { term.options.cursorBlink = false; term.write("\x1b[?25l"); }
     emit(s, detail);
   }
   function write(bytes) {
