@@ -1,0 +1,63 @@
+/* Liquid glass: the composer as a refracting surface (js/glass/, adapted from the owner's liquid-glass
+   library at docs/liquid-glass, lib/surface.css @ a3a3cac). The renderer adds one decorative child,
+   .surface-optics, with five planes: a blur base, the refracting warp (an SVG displacement map on the
+   backdrop, Chromium), a tint, a reflection canvas painted from the same shape field (a lit arc at the
+   top-left, a faint bounce opposite, no uniform stroke), and the contact light under a press.
+   The foreground (the field, the buttons) stays sharp and native above them. */
+
+/* ── the library's planes, timings on the motion tokens ── */
+.surface{position:relative;--surface-fill:255 255 255;--surface-x:50%;--surface-y:50%}
+.surface>:not(.surface-optics){position:relative;z-index:1}
+.surface-optics{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none}
+.surface-optics>*{position:absolute;inset:0;border-radius:inherit}
+.surface-base{backdrop-filter:blur(var(--surface-blur,2px)) saturate(var(--surface-sat,1.16));-webkit-backdrop-filter:blur(var(--surface-blur,2px)) saturate(var(--surface-sat,1.16))}
+.surface-warp{opacity:0;transition:opacity var(--dur-fast) var(--ease)}
+[data-surface-ready]>.surface-optics>.surface-warp{backdrop-filter:var(--surface-filter);opacity:1}
+.surface-mirror-clip{position:absolute;inset:calc(-1 * var(--surface-mirror-pad,60px));border-radius:0;overflow:hidden;filter:blur(var(--surface-blur,2px)) saturate(1.16)}
+.surface-mirror-layer{position:absolute}
+[data-surface-renderer="mirror"][data-surface-ready]>.surface-optics>.surface-mirror{filter:var(--surface-filter)}
+[data-surface-renderer="mirror"]>.surface-optics>:is(.surface-base,.surface-warp){display:none}
+.surface-tint{background:linear-gradient(145deg,rgb(var(--surface-fill) / calc(var(--surface-tint,.2) + var(--surface-tint-lift,.14))),rgb(var(--surface-fill) / var(--surface-tint,.2)) 48%,rgb(var(--surface-fill) / calc(var(--surface-tint,.2) + .04)))}
+.surface-reflection{width:100%;height:100%;opacity:var(--surface-reflection-opacity,1)}
+/* contact light: starts where you touch, spreads through the glass while held, fades in place on release */
+@property --surface-touch-reach{syntax:'<percentage>';inherits:false;initial-value:16%}
+.surface-touch{background:radial-gradient(circle farthest-side at var(--surface-x) var(--surface-y),rgb(var(--surface-touch,255 255 255) / .14),rgb(var(--surface-touch,255 255 255) / .06) calc(var(--surface-touch-reach) * .5),transparent var(--surface-touch-reach));opacity:0;transition:opacity var(--d-long) var(--ease),--surface-touch-reach 0s var(--d-long)}
+[data-surface-pressed]>.surface-optics>.surface-touch{--surface-touch-reach:190%;opacity:1;transition:opacity var(--d-press) var(--ease),--surface-touch-reach var(--d-land) var(--ease)}
+.surface-definitions{position:absolute;pointer-events:none}
+
+/* ── the composer: glass instead of a filled card ──
+   Dark: a grey fill at .5 over the #141414 canvas lands on the float's own #1F, so at rest it reads as the
+   composer always has; what scrolls under it is blurred, bent at the shoulder, and dimmed enough for the field's
+   ink. Light: white at .66 over #FAFAFA. Its edge is the lit arc and a short contact shadow, never a border. */
+.composer.surface{border-color:transparent;background:transparent;--surface-fill:46 46 46;--surface-tint:.5 !important;--surface-tint-lift:.05;--surface-blur:7px !important;--surface-sat:1.3;--surface-reflection-opacity:.62;--surface-touch:255 255 255;box-shadow:0 1px 2px rgb(0 0 0 / .35),0 10px 26px -8px rgb(0 0 0 / .5);transition:box-shadow var(--d-hover) var(--ease)}
+.composer.surface:hover,.composer.surface:focus-within{border-color:transparent}
+/* the composer keeps its 1 px (transparent) border so nothing in it moves; the planes cover the border box, which is
+   the box the renderer measures, so the lit arc and the bend follow the outer 28 px corner exactly */
+.composer.surface>.surface-optics{inset:-1px}
+.composer.surface:focus-within{--surface-reflection-opacity:.9}
+:root[data-theme="light"] .composer.surface{--surface-fill:255 255 255;--surface-tint:.66 !important;--surface-tint-lift:.12;--surface-blur:7px !important;--surface-sat:1.4;--surface-reflection-opacity:1;--surface-touch:255 255 255;box-shadow:0 0 0 .5px rgb(0 0 0 / .07),0 1px 2px rgb(0 0 0 / .06),0 8px 24px -8px rgb(0 0 0 / .16)}
+:root[data-theme="light"] .composer.surface:focus-within{box-shadow:0 0 0 .5px rgb(0 0 0 / .09),0 1px 2px rgb(0 0 0 / .07),0 10px 26px -8px rgb(0 0 0 / .2)}
+
+/* the bar under it: the conversation now passes behind the glass, and fades to the canvas only in the last strip
+   under the composer, where nothing is read (it faded out above the composer before, so there was nothing to bend) */
+.cbar:has(>.composer.surface),body.chat-docked .cbar:has(>.composer.surface){background:linear-gradient(to bottom,transparent calc(100% - 64px),var(--canvas) calc(100% - 18px))}
+
+/* what the person asked for wins over the material */
+@media (prefers-reduced-transparency:reduce){
+  .surface>.surface-optics>:is(.surface-base,.surface-warp){backdrop-filter:none;-webkit-backdrop-filter:none}
+  .surface .surface-tint{background:rgb(var(--surface-fill))}
+  .surface>.surface-optics>.surface-mirror{display:none}
+  .composer.surface{--surface-fill:30 30 30}
+  :root[data-theme="light"] .composer.surface{--surface-fill:255 255 255}
+}
+@media (prefers-contrast:more){
+  .composer.surface{border-color:var(--line-strong)}
+  .surface .surface-tint{background:rgb(var(--surface-fill))}
+}
+@media (forced-colors:active){
+  .surface{background:Canvas;border:1px solid CanvasText}
+  .surface-optics{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .surface-warp,.surface-touch,[data-surface-pressed]>.surface-optics>.surface-touch{transition:none}
+}

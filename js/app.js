@@ -52,6 +52,7 @@ import { createRecord } from "./recordview.js";
 import { greeting, today } from "./skeleton.js"; // Home's shell, drawn before this module graph arrives
 import { arrive, still, EASE, MOVE } from "./motion.js";
 import { wireGestures } from "./gestures.js";
+import { glassComposer } from "./glass/bar.js";
 import { rtName, manyRuntimes, findRt, healthOf, canMove, untilWords } from "./runtimes.js";
 // the UI's shape per person: which surfaces show, in what order, how dense, in which words (js/shape.js)
 import { createShapeStore } from "./shape.js";
@@ -2316,6 +2317,8 @@ atList.addEventListener("pointermove", (e) => {
   document.addEventListener("pointercancel", () => { if (comp.classList.contains("held")) release(0); }, true);
   document.addEventListener("click", () => { if (comp.classList.contains("held")) release(0); }, true);
 }
+// the composer is liquid glass (css/glass.css, js/glass/): what scrolls behind it bends at its edge
+glassComposer($("#composer"));
 $("#composer").addEventListener("submit", (e) => { e.preventDefault(); if ($("#send").dataset.mode === "stop") stopRun(); else send(); });
 $("#target").addEventListener("click", () => {
   if (S.view === "chats") { CH.openSetup($("#target")); return; }
