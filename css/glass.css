@@ -61,3 +61,16 @@
 @media (prefers-reduced-motion:reduce){
   .surface-warp,.surface-touch,[data-surface-pressed]>.surface-optics>.surface-touch{transition:none}
 }
+
+/* Settings › General › Chat bar: two looks, one chosen (the model picker's segments, .iq-route, at a row's height) */
+.set-seg{flex:none;display:flex;gap:2px;padding:4px;border-radius:var(--r);background:var(--fill-2)}
+.set-seg button{display:inline-flex;align-items:center;justify-content:center;height:var(--h-sm);padding:0 12px;border-radius:calc(var(--r) - 4px);color:var(--ink-3);font:500 var(--fs-sm)/16px var(--sans);white-space:nowrap;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.set-seg button:hover:not([aria-checked="true"]){color:var(--ink);background:var(--hover-fill)}
+.set-seg button[aria-checked="true"]{background:var(--float);color:var(--ink);box-shadow:0 0 0 1px var(--line-soft),0 1px 2px rgb(0 0 0 / calc(.18 * var(--sha)))}
+.set-seg button:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+/* a phone: the choice goes under its words, full width, so the words keep the row's measure */
+@media (max-width:760px){
+  .set-row:has(>.set-seg){flex-wrap:wrap}
+  .set-row>.set-seg{width:100%}
+  .set-seg button{flex:1}
+}

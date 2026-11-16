@@ -6,6 +6,8 @@
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#141414">
   <script>try{document.documentElement.dataset.theme=localStorage.getItem("cv-theme")==="light"?"light":"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+  <!-- the chat bar's look (Settings › General): liquid glass unless this device chose stone glass; set before the first paint -->
+  <script>try{document.documentElement.dataset.bar=localStorage.getItem("cv-bar")==="stone"?"stone":"glass"}catch(e){document.documentElement.dataset.bar="glass"}</script>
   <title>XO Space</title>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <!-- the type, asked for at once: Home's first paint is in Geist, never swapped (and shifted) a moment later -->
@@ -178,6 +180,7 @@
             <button type="button" role="tab" id="set-t-keys" data-set="keys" aria-selected="false" aria-controls="set-p-keys" tabindex="-1">Keyboard</button>
           </nav>
           <div class="set-page" role="tabpanel" id="set-p-general" aria-labelledby="set-t-general" data-page="general"><header class="set-ph"><h2>General</h2><p class="set-intro">How the conversation shows what happens behind it.</p></header>
+            <div class="set-row"><div class="set-l"><b id="bar-l">Chat bar</b><span id="bar-d">Liquid glass shows what you scroll past through it, bent at its edge. Stone glass is opaque, as it was. Only on this device.</span></div><div class="set-seg" id="bar-seg" role="radiogroup" aria-labelledby="bar-l" aria-describedby="bar-d"><button type="button" role="radio" data-bar="glass" aria-checked="true">Liquid glass</button><button type="button" role="radio" data-bar="stone" aria-checked="false" tabindex="-1">Stone glass</button></div></div>
             <div class="set-row"><div class="set-l"><b id="hops-l">Show how messages travel</b><span>Inside a thread, a quiet line each time a message passes between the workspace, a project's coordinator and the thread. Off unless you turn it on.</span></div><button type="button" class="switch" id="hops-tog" role="switch" aria-checked="false" aria-labelledby="hops-l"><span class="th-track" aria-hidden="true"><span class="th-knob"></span></span></button></div>
             <div class="set-row"><div class="set-l"><b id="webpics-l">Show pictures from the web</b><span>A picture an agent links to shows in the conversation, read straight from its site, which can tell someone looked. Off, it's a link. Only on this device.</span></div><button type="button" class="switch" id="webpics-tog" role="switch" aria-checked="true" aria-labelledby="webpics-l"><span class="th-track" aria-hidden="true"><span class="th-knob"></span></span></button></div>
           </div>

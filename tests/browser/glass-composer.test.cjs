@@ -101,6 +101,44 @@ const steps = [
     assert.equal(r.tint, "none", "no gradient");
     assert.match(r.fill, /^rgb\(/, `an opaque fill (${r.fill})`);
   }],
+  ["Settings › General › Chat bar: Stone glass gives back the composer as it was, Liquid glass brings the glass, and it holds a reload", async (page) => {
+    await open(page);
+    const look = () => page.evaluate(() => { const c = document.getElementById("composer"), cs = getComputedStyle(c), bar = c.parentElement;
+      return { data: document.documentElement.dataset.bar, surface: c.classList.contains("surface"), optics: !!c.querySelector(".surface-optics"), bg: cs.backgroundColor, border: cs.borderTopColor, cbar: getComputedStyle(bar).backgroundImage, attrs: [...c.attributes].map((a) => a.name).filter((n) => n.startsWith("data-surface")), style: c.getAttribute("style") || "" }; });
+    const glass = await look();
+    assert.ok(glass.surface && glass.optics && glass.data === "glass", "liquid glass by default");
+    if (WIDTH < 600) { await page.evaluate(() => window.__t.go("home")); await page.waitForTimeout(200); }
+    await page.locator(WIDTH < 600 ? "#set-phone" : "#set-side").filter({ visible: true }).first().click();
+    await page.waitForSelector("#settings:not([hidden])");
+    const seg = page.locator("#bar-seg");
+    assert.ok(await seg.isVisible(), "the Chat bar choice is on General");
+    assert.equal(await seg.locator('[aria-checked="true"]').textContent(), "Liquid glass");
+    await seg.locator('[data-bar="stone"]').click();
+    assert.equal(await seg.locator('[aria-checked="true"]').textContent(), "Stone glass");
+    const stone = await look();
+    assert.equal(stone.data, "stone");
+    assert.ok(!stone.surface && !stone.optics, "no glass left on the composer");
+    assert.deepEqual(stone.attrs, [], "none of the renderer's attributes left");
+    assert.equal(stone.style, "", "none of its styles left");
+    assert.notEqual(stone.bg, "rgba(0, 0, 0, 0)", "the stone fill is back");
+    assert.notEqual(stone.border, "rgba(0, 0, 0, 0)", "and its line");
+    assert.notEqual(stone.cbar, glass.cbar, "the bar fades out above the composer again");
+    // the keyboard: arrows move the choice, as a radio group's do
+    await seg.locator('[data-bar="stone"]').focus();
+    await page.keyboard.press("ArrowLeft");
+    assert.equal((await look()).data, "glass", "ArrowLeft chooses Liquid glass");
+    assert.ok((await look()).surface, "and the glass is back");
+    await page.keyboard.press("ArrowRight");
+    assert.equal((await look()).data, "stone");
+    await page.keyboard.press("Escape");
+    await page.reload();
+    await page.waitForFunction(() => window.__t && window.__t.world.state.loaded);
+    await page.evaluate(() => window.__t.go("p:demo"));
+    await page.waitForTimeout(300);
+    const after = await look();
+    assert.ok(after.data === "stone" && !after.surface, "stone glass holds a reload");
+    await page.evaluate(() => localStorage.removeItem("cv-bar"));
+  }],
 ];
 (async () => {
   browser = await H.launch(chromium);
