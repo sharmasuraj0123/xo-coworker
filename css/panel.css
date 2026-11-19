@@ -567,9 +567,10 @@ body.stage-covers .herald{position:fixed;left:16px;right:16px;bottom:max(16px, e
 /* ── Shell mode: the shells' own dock in the panel, in place of its frames (the owner, 19 Nov) ─────────────────
    The same dock (its tabs, its sessions), filling the panel under its bar; its drag grip has nothing to size here.
    A phone keeps its shells sheet: the panel's Shell button isn't there. */
-.stg-shell{display:none}
-.stage.is-shell .stg-frames{display:none}
-.stage.is-shell .stg-shell{display:flex;flex:1;min-height:0;flex-direction:column}
+/* the panel's page (one panel model, 19 Nov): Shell today, Files and a Thread next; one host in place of the frames */
+.stg-page{display:none}
+.stage[data-page] .stg-frames{display:none}
+.stage[data-page] .stg-page{display:flex;flex:1;min-height:0;flex-direction:column}
 .shd.in-panel{grid-column:auto;grid-row:auto;flex:1;align-self:stretch;align-items:stretch;height:auto;min-height:0;border-top:1px solid var(--line-faint);z-index:auto}
 .shd.in-panel>*{align-self:stretch}
 .shd.in-panel .shd-grip{display:none}
@@ -595,3 +596,13 @@ body.stage-covers .herald{position:fixed;left:16px;right:16px;bottom:max(16px, e
 .stage .fr.is-flash>.fr-h{animation:fr-flash var(--d-long) var(--ease)}
 @keyframes fr-flash{from{background:var(--hover-fill)}}
 @media (prefers-reduced-motion:reduce){.stage .fr.is-flash>.fr-h{animation:none}}
+
+/* ── Pages open in the panel, two or more: their tabs in the bar, ‹ back to the sections first (one strip for every
+   kind of page: a shell, files, threads). A tab is a 24 control, its icon and its name; the one showing is filled. */
+.stage .pg-tabs{display:flex;align-items:center;gap:var(--s-1);min-width:0}
+.stage .pg-tab{flex:0 1 auto;min-width:0;display:inline-flex;align-items:center;gap:var(--s-2);height:var(--h-sm);padding:0 var(--s-2);border-radius:var(--r-sm);color:var(--ink-3);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);white-space:nowrap}
+.stage .pg-tab span{overflow:hidden;text-overflow:ellipsis}
+.stage .pg-tab svg{flex:none;width:var(--ic-sm);height:var(--ic-sm)}
+.stage .pg-tab:hover{background:var(--hover-fill);color:var(--ink)}
+.stage .pg-tab.is-on{background:var(--fill-2);color:var(--ink)}
+.stage .stg-t:has(.pg-tabs){align-items:center;gap:var(--s-1)}

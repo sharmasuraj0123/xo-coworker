@@ -82,7 +82,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   el.innerHTML = `<div class="stg-grip" role="separator" aria-orientation="vertical" aria-label="Resize the panel" title="Drag to resize · double-click for the default" tabindex="0"></div>` +
     `<header class="stg-bar"><div class="stg-t"></div><div class="stg-acts">${shell ? `<button type="button" class="stg-ic stg-shell-b" data-stg-shell aria-pressed="false" title="A shell here, in the panel" aria-label="Shell in the panel">${ICON.shell}</button>` : ""}<button type="button" class="stg-ic" data-stg-full></button><button type="button" class="stg-ic" data-stg-close aria-label="Close the panel" title="Close (Esc)">${ICON.close}</button></div></header>` +
     `<div class="stg-rail" aria-label="Panel, folded"><button type="button" class="stg-ic" data-rail="launch" title="Launchpad">${LP_ICON.rocket}</button><button type="button" class="stg-ic" data-rail="agents" title="Threads">${ICON.threads}</button><button type="button" class="stg-ic" data-rail="changes" title="Changes">${CHANGES_IC}</button><button type="button" class="stg-ic" data-rail="map" title="Map">${mapIcon}</button></div>` +
-    `<div class="stg-shell"></div>` +
+    `<div class="stg-page stg-shell"></div>` +
     `<div class="stg-frames">` +
     `<section class="fr fr-lp is-folded" data-fr="launch" aria-labelledby="fr-title-launch" hidden><header class="fr-h"><h2 class="fr-title" id="fr-title-launch">Launchpad</h2><span class="lp-hs"></span><div class="fr-a"><span class="lp-ha"></span><button type="button" class="fr-ib fr-fold" data-fr-fold="launch" aria-expanded="false" title="Open">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-launch" tabindex="-1"></div><div class="fr-ghosts" role="group" aria-label="Under Launchpad"></div></section><div class="fr-line" data-lp-line hidden></div>` +
     // its search filters the list here, in place (the owner, 19 Nov 15:04Z: "can't it search within?"), not a sheet
@@ -269,7 +269,12 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   function titleHtml() {
     // the panel says the place it's beside (the owner, 19 Nov: not "Agentic Control Pane"); in Shell mode, "› Shell"
     const place = nameOf(view());
-    return `<b class="stg-name" title="${esc(place || "")}">${esc(place || "Panel")}</b>${S.shell ? `<span class="stg-sub">Shell</span>` : ""}`;
+    const cur = S.page && PAGES.get(S.page.name);
+    // two pages or more open: their tabs (one strip for every kind, the Files plan's and the Thread page's)
+    if (S.tabs.length > 1) return `<button type="button" class="stg-ic pg-back" data-stg-sections title="Back to the panel's sections (Esc)" aria-label="Sections">${ICON.back}</button><span class="pg-tabs" role="tablist" aria-label="Open in the panel">${S.tabs.map((t) => {
+      const on = !!S.page && t.name === S.page.name && t.key === S.page.key, sp = PAGES.get(t.name), tt = sp.title ? sp.title(t.key) : t.name;
+      return `<button type="button" class="pg-tab${on ? " is-on" : ""}" role="tab" aria-selected="${on}" data-stg-tab="${esc(t.name)}" data-stg-key="${esc(t.key)}" title="${esc(tt)}">${sp.icon ? sp.icon(t.key) : ""}<span>${esc(tt)}</span></button>`; }).join("")}</span>`;
+    return `<b class="stg-name" title="${esc(place || "")}">${esc(place || "Panel")}</b>${cur ? `<span class="stg-sub">${esc(cur.title ? cur.title(S.page.key) : S.page.name)}</span>` : ""}`;
   }
   let nameOf = () => "";
 
@@ -383,7 +388,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   }
 
   function close({ restore = true, quiet = false } = {}) {
-    if (S.shell) setShell(false);
+    if (S.page) sections({ paint: false });
     if (!S.open) return;
     S.open = false;
     if (!quiet) S.lp = false; // closed by you: Launchpad is a head again next time; stepping aside (quiet) keeps it as it was
@@ -435,17 +440,70 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   }
 
   function toggle() { if (S.open && !S.rail) close(); else open(); }
-  /** Shell mode (the owner, 19 Nov: a shell in the panel, the left panel's Shells as they are): the shells' own dock,
-   *  the same sessions and tabs, moved into the panel in place of its frames; app.js moves it (shell(on, host)). */
-  function setShell(on) {
-    if (!shell || !!S.shell === !!on) return;
-    S.shell = !!on;
-    el.classList.toggle("is-shell", S.shell);
+  // ── Pages (one panel model: the Files plan and the Thread page, 19 Nov): the panel shows its sections, or one
+  // page in their place. A page kind is registered once: page(name, {title(key), icon(key), mount(host, key),
+  // hide(key), close(key) → false to keep it open (an unsaved file), width}). show(name, key) opens it as a tab
+  // and shows it; sections() goes back, its tabs kept; closeTab(name, key) asks the page first. One host, one
+  // switch (el.dataset.page); a page's width is its own (WIDTHS), the sections keep theirs.
+  const PAGES = new Map();
+  const TAB_MAX = 5;
+  Object.assign(S, { page: null, tabs: [] });
+  const sameTab = (a, b) => !!a && !!b && a.name === b.name && a.key === b.key;
+  function page(name, spec) { PAGES.set(name, spec); }
+  function show(name, key = name) {
+    const sp = PAGES.get(name);
+    if (!sp) return false;
+    const next = { name, key: String(key) };
+    if (!S.tabs.some((t) => sameTab(t, next))) {
+      S.tabs.push(next);
+      // at most TAB_MAX: the oldest that isn't showing goes, if it lets itself
+      while (S.tabs.length > TAB_MAX) { const old = S.tabs.find((t) => !sameTab(t, S.page) && !sameTab(t, next)); if (!old || !closeTab(old.name, old.key, { quiet: true })) break; }
+    }
+    if (!S.open) open({ focus: false });
+    if (!sameTab(S.page, next)) {
+      if (S.page) PAGES.get(S.page.name).hide?.(S.page.key);
+      S.page = next;
+      el.dataset.page = name;
+      el.classList.toggle("is-shell", name === "shell");
+      sp.mount(el.querySelector(".stg-page"), next.key);
+    }
+    pageChanged();
+    return true;
+  }
+  function sections({ paint: draw = true } = {}) {
+    if (!S.page) return;
+    PAGES.get(S.page.name).hide?.(S.page.key);
+    S.page = null;
+    delete el.dataset.page;
+    el.classList.remove("is-shell");
+    if (draw) pageChanged();
+  }
+  function closeTab(name, key = name, { quiet = false } = {}) {
+    const t = S.tabs.find((x) => x.name === name && x.key === String(key));
+    if (!t) return true;
+    const sp = PAGES.get(name);
+    if (sp.close && sp.close(t.key) === false) return false; // the page keeps itself open (it asked, or it must)
+    const was = sameTab(S.page, t);
+    if (was) { S.page = null; delete el.dataset.page; el.classList.remove("is-shell"); }
+    S.tabs = S.tabs.filter((x) => x !== t);
+    if (was && !quiet) { const prev = S.tabs[S.tabs.length - 1]; if (prev) show(prev.name, prev.key); else pageChanged(); }
+    else if (!quiet) pageChanged();
+    return true;
+  }
+  function pageChanged() {
     const b = el.querySelector("[data-stg-shell]");
-    b.setAttribute("aria-pressed", String(S.shell)); b.classList.toggle("is-on", S.shell);
-    b.title = S.shell ? "Back to Threads, Changes and Map" : "A shell here, in the panel";
-    shell(S.shell, el.querySelector(".stg-shell"));
+    if (b) { const on = S.page?.name === "shell"; b.setAttribute("aria-pressed", String(on)); b.classList.toggle("is-on", on); b.title = on ? "Back to Threads, Changes and Map" : "A shell here, in the panel"; }
+    apply();
     S.h.head = ""; paint();
+    onChange && onChange();
+  }
+  /** Shell mode (the owner, 19 Nov: a shell in the panel, the left panel's Shells as they are) is the page "shell":
+   *  the shells' own dock, the same sessions and tabs, moved into the panel in place of its frames; app.js moves it
+   *  (shell(on, host)). Turned off, its tab goes. */
+  if (shell) page("shell", { title: () => "Shell", mount: (host) => shell(true, host), hide: () => shell(false), close: () => { shell(false); } });
+  function setShell(on) {
+    if (!shell || (S.page?.name === "shell") === !!on) return;
+    if (on) show("shell"); else closeTab("shell");
   }
 
   /** Every render: the frames follow the view; the rail follows Files. */
@@ -481,7 +539,10 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     const t = e.target;
     if (t.closest("[data-stg-close]")) { close(); return; }
     if (t.closest("[data-stg-full]")) { setFull(!S.full); return; }
-    if (t.closest("[data-stg-shell]")) { setShell(!S.shell); return; }
+    if (t.closest("[data-stg-shell]")) { setShell(S.page?.name !== "shell"); return; }
+    if (t.closest("[data-stg-sections]")) { sections(); return; }
+    const tab = t.closest("[data-stg-tab]");
+    if (tab) { show(tab.dataset.stgTab, tab.dataset.stgKey); return; }
     const rl = t.closest("[data-rail]");
     // the rail goes as the part you asked for opens: focus goes to that part's own fold button, in its title row,
     // which now says it's open (Astra S121)
@@ -556,7 +617,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     if (e.key !== "Escape") return;
     if (e.target.closest && e.target.closest("input:not(.lp-in)") && e.target.value) return; // a search clears first; Launchpad's fields don't
     e.preventDefault(); e.stopPropagation();
-    if (S.full) setFull(false); else close();
+    if (S.full) setFull(false); else if (S.page && S.page.name !== "shell") sections(); else close();
   }, true);
 
   // the line between two frames: drag it (or ↑ ↓ on it) to give one of them room
@@ -659,13 +720,25 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   const clampW = (w) => Math.round(Math.max(W_MIN, Math.min(W_MAX, innerWidth - 480, w)));
   let wSaved = W_DEF, wMine = false;
   try { wMine = !!Number(localStorage.getItem(W_KEY)); wSaved = Number(localStorage.getItem(W_KEY)) || W_DEF; } catch { /* private mode */ }
-  const widthNow = () => (S.wide && !wMine && innerWidth - sideW() - WIDE >= READ ? Math.max(clampW(wSaved), clampW(WIDE)) : clampW(wSaved));
+  // a page with a width of its own (a file 640, a thread 560) keeps it apart from the sections': 480 up to the window
+  // less READ for the conversation beside it, the width you dragged it to kept per page kind
+  const PAGE_MIN = 480;
+  const pageSpecW = () => (S.page && PAGES.get(S.page.name)?.width) || 0;
+  const clampP = (w) => Math.round(Math.max(PAGE_MIN, Math.min(innerWidth - READ, w)));
+  const pageW = () => { let v = 0; try { v = Number(localStorage.getItem(`${W_KEY}:${S.page.name}`)) || 0; } catch { v = 0; } return clampP(v || pageSpecW()); };
+  const widthNow = () => (pageSpecW() ? pageW() : S.wide && !wMine && innerWidth - sideW() - WIDE >= READ ? Math.max(clampW(wSaved), clampW(WIDE)) : clampW(wSaved));
   function apply() {
     const v = S.rail ? RAIL : widthNow();
     document.documentElement.style.setProperty("--sw", `${v}px`);
     document.body.classList.toggle("stage-over", !S.rail && innerWidth > 760 && innerWidth - sideW() - v < READ);
   }
   const setW = (w, save = false) => {
+    if (pageSpecW()) {
+      const v = clampP(w);
+      try { if (save) localStorage.setItem(`${W_KEY}:${S.page.name}`, String(v)); else S.dragW = v; } catch { /* private mode */ }
+      document.documentElement.style.setProperty("--sw", `${v}px`);
+      return v;
+    }
     wSaved = clampW(w);
     if (save) { wMine = true; try { localStorage.setItem(W_KEY, String(wSaved)); } catch { /* private mode */ } }
     apply();
@@ -693,12 +766,15 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     const right = el.getBoundingClientRect().right;
     document.body.classList.add("stage-sizing");
     const move = (ev) => { wMine = true; setW(right - ev.clientX); };
-    const up = () => { grip.removeEventListener("pointermove", move); document.body.classList.remove("stage-sizing"); setW(wSaved, true); };
+    const up = () => { grip.removeEventListener("pointermove", move); document.body.classList.remove("stage-sizing"); setW(pageSpecW() ? S.dragW || pageW() : wSaved, true); };
     grip.addEventListener("pointermove", move);
     grip.addEventListener("pointerup", up, { once: true });
     grip.addEventListener("pointercancel", up, { once: true });
   });
-  grip.addEventListener("dblclick", () => { wMine = false; try { localStorage.removeItem(W_KEY); } catch { /* private mode */ } setW(W_DEF); });
+  grip.addEventListener("dblclick", () => {
+    if (pageSpecW()) { try { localStorage.removeItem(`${W_KEY}:${S.page.name}`); } catch { /* private mode */ } apply(); return; }
+    wMine = false; try { localStorage.removeItem(W_KEY); } catch { /* private mode */ } setW(W_DEF);
+  });
   grip.addEventListener("keydown", (e) => {
     if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
     e.preventDefault();
@@ -714,7 +790,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
      *  Threads whatever it showed. Shell mode and Launchpad give way, Threads unfolds, its list comes to its top,
      *  focus lands on its first thread and its head glows once, so the press always answers. */
     threads() {
-      if (S.shell) setShell(false);
+      if (S.page) sections({ paint: false });
       S.lp = false; fr.agents.folded = false;
       open({ focus: false });
       persist(); layout(); paint();
@@ -723,8 +799,12 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
       (b.querySelector(".tg-box [data-go]") || el.querySelector('[data-fr-fold="agents"]'))?.focus({ preventScroll: true });
       f.classList.remove("is-flash"); void f.offsetWidth; f.classList.add("is-flash");
     },
-    get isShell() { return !!S.shell; },
+    get isShell() { return S.page?.name === "shell"; },
     shellOff: () => setShell(false),
+    /** Pages (see "Pages" above): register a kind, show one, back to the sections, close a tab, what's open. */
+    page, show, sections, closeTab,
+    pages: () => S.tabs.map((t) => ({ ...t, title: PAGES.get(t.name).title?.(t.key) || t.name, on: sameTab(t, S.page) })),
+    get pageShown() { return S.page ? { ...S.page } : null; },
     /** The header's Deploy. */
     launch() {
       if (!(S.open && S.lp && !S.rail)) { openLaunch(); return; }

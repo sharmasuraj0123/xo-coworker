@@ -58,7 +58,7 @@ assert.match(app, /else if \(e\.target\.closest\?\.\("\[data-stage-open\]"\)\) S
 // on its first thread and its head glows (the owner, 19 Nov 14:50Z: "clicking on threads doesn't do anything")
 const stg = readFileSync(new URL("../js/stage.js", import.meta.url), "utf8");
 const thFn = stg.slice(stg.indexOf("    threads() {"), stg.indexOf("    },", stg.indexOf("    threads() {")));
-assert.match(thFn, /if \(S\.shell\) setShell\(false\);\s*S\.lp = false; fr\.agents\.folded = false;\s*open\(\{ focus: false \}\);/);
+assert.match(thFn, /if \(S\.page\) sections\(\{ paint: false \}\);\s*S\.lp = false; fr\.agents\.folded = false;\s*open\(\{ focus: false \}\);/);
 assert.match(thFn, /\(b\.querySelector\("\.tg-box \[data-go\]"\) \|\| el\.querySelector\('\[data-fr-fold="agents"\]'\)\)\?\.focus/);
 assert.match(thFn, /f\.classList\.add\("is-flash"\)/);
 
