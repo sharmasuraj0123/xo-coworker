@@ -69,6 +69,21 @@
 :root:not([data-msgx]) .turn{gap:4px}
 :root:not([data-msgx]) .turn>:is(.tb-text,.tb-answer,.tb-narr)+:is(.tb-text,.tb-answer,.tb-narr){margin-top:8px}
 
+/* ── a sign of life while a turn runs (the owner, 19 Nov: "at least some animation ... that something is happening") ──
+   Why it looked still: the document view hides a turn's mark (24c0369: no gutter beside the words), and the mark was
+   the turn's moving cue (.av-live, the blue arc travelling round it); the line's own icons are hidden too (foundation
+   4: work rows read as text), so only the 2.4 s shimmer was left, which reads as plain grey words in a glance.
+   Now the line the turn is on (the innermost running block: its thinking, its tool, or the work's own line) leads
+   with the working arc, the same blue arc as the sidebar's working thread and .tb-live (12 px in a 16 px slot, one
+   turn per 1.6 s, on the page's one clock: ui.js keepTurning syncs every arc-turn), then its shimmering words.
+   Truthful: only on a block that is running (.is-live); waiting for you (.is-waiting) or stopped, nothing moves. It's
+   a pseudo-element of the line, so the line's text updates in place and nothing is rebuilt for it. With reduced
+   motion it holds still. */
+:root:not([data-msgx]) .turn .tb.is-live:not(.is-waiting):not(:has(.tb.is-live))>.tb-h::before{content:"";flex:none;box-sizing:border-box;width:12px;height:12px;margin:0 2px;border:1.5px solid color-mix(in srgb,var(--info) 22%,transparent);border-top-color:var(--info);border-radius:50%;animation:arc-turn 1.6s linear infinite}
+@media (prefers-reduced-motion:reduce){:root:not([data-msgx]) .turn .tb.is-live>.tb-h::before{animation:none}}
+/* the shimmer reads in the conversation's own weight (app.css .shimmer sets 500, which looked bold) */
+:root:not([data-msgx]) :is(#typing,#msgs) .shimmer{font-weight:400}
+
 /* ── the action row (js/msgx.js actionRows) ────────────────────────────────────
    Icon buttons of --mx-b (32, --h-ctl; 36 on a phone) on the text's edge: the first icon's 16 px glyph sits
    (b − 16) / 2 into its button, so the row starts that far out and the glyph lands on the edge itself. One row per
