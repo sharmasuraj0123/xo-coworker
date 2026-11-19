@@ -60,7 +60,7 @@ import { fileIcon } from "./fileicons.js";
 import { countsHtml } from "./changesframe.js";
 import { setTheme as setDiffTheme } from "./diffview.js";
 import { createTray, fmtSize, kindOf, isLargePaste, pasteLabel, uploadErrorText, FINAL, MAX_FILES } from "./attach.js";
-import { api, uploadAttachment } from "./api.js";
+import { api, uploadAttachment } from "../core/platform/api.js";
 import { initCreate } from "../modules/create-project/create.js";
 import { classify, glyph, TOPICS } from "../modules/projects/projicons.js";
 import { createShells } from "./shells/dock.js";

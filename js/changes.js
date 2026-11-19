@@ -12,7 +12,7 @@
 //
 // app.js calls: sync (every render), of, entry, forTarget, patch, activity.
 
-import { api } from "./api.js";
+import { api } from "../core/platform/api.js";
 import { folderOf, placeOf } from "../core/services/places.js";
 import { prefetch } from "./diffview.js";
 

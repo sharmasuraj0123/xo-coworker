@@ -5,7 +5,7 @@
 // While a turn runs, a message joins it (the runtime's send_while_running) or, by choice, interrupts
 // it ("send now"), which first says how many background tasks it would stop (409 would_stop_runs).
 
-import { api, clientId, NEWEST } from "./api.js";
+import { api, clientId, NEWEST } from "../core/platform/api.js";
 import { esc } from "./world.js";
 import { space, once } from "../core/platform/index.js";
 import { ICON } from "./ui.js";

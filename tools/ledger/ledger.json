@@ -2179,9 +2179,9 @@
    "status": "split",
    "home": [
     "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
+    "core/platform/api.js"
    ],
-   "note": "the transport is in core/platform/http.js; js/api.js keeps the route table (and re-exports the transport) until the routes go to their modules"
+   "note": "the transport is in core/platform/http.js and the routes in core/platform/api.js; js/api.js re-exports it until the shims go"
   },
   "js/app.js": {
    "status": "split",
@@ -6342,56 +6342,32 @@
    "home": "core/platform/http.js"
   },
   "js/api.js::exports::attachmentUrl": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::exports::terminalSocketUrl": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::exports::attachmentText": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::exports::uploadAttachment": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::exports::clientId": {
    "status": "moved",
    "home": "core/platform/http.js"
   },
   "js/api.js::exports::NEWEST": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::exports::api": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::functions::deadline": {
    "status": "moved",
@@ -6410,28 +6386,16 @@
    "home": "core/platform/http.js"
   },
   "js/api.js::functions::terminalSocketUrl": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::functions::attachmentText": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::functions::uploadAttachment": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::functions::blob": {
    "status": "moved",
@@ -6442,388 +6406,196 @@
    "home": "core/platform/http.js"
   },
   "js/api.js::routes::/api/chat/*": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/status": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/runtimes": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/runtimes/{}/models": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/runtime-policy": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/chats/{}/runtime-policy": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/advisory": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/intent": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/router": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/router/models": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/chats": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/chats/{}": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/chats/{}/messages": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/chats/{}/threads": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/chats/{}/threads/{}": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/chats/{}/threads/{}/continue": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/chats/{}/hops": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/chats/{}/memory": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/chats/{}/made": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/chats/{}/memory/{}": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/shape": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/sessions": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/sessions/{}": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/active": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/events": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/messages/{}": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/review": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/review/{}": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/rules": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/sessions/{}/runs": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/runs/{}": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/runs/{}/transcript": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/chat/worktrees": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/schedules": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/schedules/{}": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/schedules/{}/runs": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/xo-projects/{}/file": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/xo-projects/{}/versions": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/xo-projects/{}/paths": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/xo-projects/{}/search": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/xo-projects/{}/changes": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/xo-projects/{}/tree": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/config/workspace": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/xo-projects/clones/{}": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/connectors/github/status": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/terminal/status": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/terminal/sessions": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::routes::/terminal/sessions/{}": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/api.js"
   },
   "js/api.js::keys::http_404": {
    "status": "moved",

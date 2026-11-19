@@ -11,7 +11,7 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | split | 35 |
 | kept | 1 |
 
-Items inside first-party files: 2290 (planned 1007, moved 695, split-region 560, deleted 25, kept 2, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1007, moved 752, split-region 503, deleted 25, kept 2, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -29,7 +29,7 @@ Items inside first-party files: 2290 (planned 1007, moved 695, split-region 560,
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `js/api.js` | 428 | split | core/platform/http.js, per-module clients (routes declared in each module.json) · next: the transport is in core/platform/http.js; js/api.js keeps the route table (and re-exports the transport) until the routes go to their modules |
+| `js/api.js` | 428 | split | core/platform/http.js, core/platform/api.js · next: the transport is in core/platform/http.js and the routes in core/platform/api.js; js/api.js re-exports it until the shims go |
 | `js/app.js` | 4840 | split | boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md §2.6) · next: moved so far: the sidebar (SIDE) to shell/rail/side.js, the phone drawer to shell/phone.js, the tab favicon to shell/favicon.js |
 | `js/attach.js` | 270 | split | modules/composer/attachments.js, core/services/world/rows.js + sessions.js + threads.js, core/platform/util.js · next: attachmentsOf, titleOf and picDims are in core/services/world/rows.js, re-exported here |
 | `js/blocks.js` | 241 | moved | core/services/world/turns.js · next: nothing imports the old path, so it leaves with no re-export |

@@ -25,7 +25,7 @@
 import { esc, isImagePath } from "../core/platform/index.js";
 import { fileIcon } from "./fileicons.js";
 import { ICON } from "./ui.js";
-import { api, attachmentUrl } from "./api.js";
+import { api, attachmentUrl } from "../core/platform/api.js";
 import { fmtSize, typeWord, titleOf } from "./attach.js";
 import { fadeImage, EASE, MOVE, still } from "./motion.js";
 import { ARROW_OUT, outText } from "./markdown.js";

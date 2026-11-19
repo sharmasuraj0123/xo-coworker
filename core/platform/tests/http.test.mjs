@@ -21,7 +21,7 @@ globalThis.fetch = /** @type {any} */ (async (url, init) => {
   return answer(url, init);
 });
 
-const A = await import("../../../js/api.js");
+const A = await import("../api.js");
 const H = await import("../http.js");
 let passed = 0;
 const t = async (name, fn) => { calls = []; await fn(); passed++; console.log("  ok  " + name); };

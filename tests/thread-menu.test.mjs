@@ -6,7 +6,6 @@ import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
-const api = readFileSync(new URL("../js/api.js", import.meta.url), "utf8");
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 
 // the menu: ⋯, not ✎; built from the thread's state
@@ -20,8 +19,14 @@ assert.match(menu, /t\.canDelete \? item\(`data-tdel=/, "Delete only where Space
 assert.doesNotMatch(menu, /[⌘⇧⏎⌫]/, "no key glyphs in it");
 
 // Delete: Space says per thread; asked in place, Keep it first; undo
-assert.match(api, /deleteThread: \(chat, ts, body\) => send\("DELETE", `\/chat\/chats\/\$\{enc\(chat\)\}\/threads\/\$\{enc\(ts\)\}`, body\)/);
-assert.match(api, /restoreThread: \(chat, ts\) => send\("POST", `\/chat\/chats\/\$\{enc\(chat\)\}\/threads\/\$\{enc\(ts\)\}\/restore`, \{\}\)/);
+{
+  const sent = [];
+  globalThis.fetch = async (url, init) => { sent.push([init.method, String(url), init.body]); return { ok: true, status: 200, type: "basic", text: async () => "{}" }; };
+  const { api } = await import("../core/platform/api.js");
+  await api.deleteThread("c/1", "t 1", { keep_branch: true });
+  await api.restoreThread("c/1", "t 1");
+  assert.deepEqual(sent, [["DELETE", "api/chat/chats/c%2F1/threads/t%201", '{"keep_branch":true}'], ["POST", "api/chat/chats/c%2F1/threads/t%201/restore", "{}"]]);
+}
 const del = app.slice(app.indexOf("function tdelRender("), app.indexOf("/** A Shell button: \"ws\""));
 assert.ok(del.indexOf("data-tdel-no>Keep it") < del.indexOf("data-tdel-yes"), "Keep it comes first");
 assert.match(del, /keepBranch: true/, "its branch is kept");

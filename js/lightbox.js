@@ -2,7 +2,7 @@
 
 // The conversation's pictures lent to the core lightbox: what each one is, where it's drawn, and how its file is fetched.
 import { createLightbox as create } from "../core/ui/lightbox.js";
-import { api, attachmentUrl } from "./api.js";
+import { api, attachmentUrl } from "../core/platform/api.js";
 import { typeWord, fmtSize } from "./attach.js";
 import { mediaItemOf, galleryOf, slotOf, cachedSrc, loadSrc, labelOf, midName, midNameHtml } from "./media.js";
 

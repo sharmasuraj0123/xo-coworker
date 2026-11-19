@@ -23,7 +23,7 @@ import { esc, isImagePath } from "../core/platform/index.js";
 import { fileIcon } from "./fileicons.js";
 import { ICON, $, xi } from "./ui.js";
 import { usable } from "./focusview.js";
-import { api, attachmentUrl, attachmentText, missingRoute } from "./api.js";
+import { api, attachmentUrl, attachmentText, missingRoute } from "../core/platform/api.js";
 import { kindOf, typeWord } from "./attach.js";
 import * as DV from "./diffview.js";
 import * as K from "../core/platform/keys.js";

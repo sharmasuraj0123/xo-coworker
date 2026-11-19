@@ -8,7 +8,7 @@
 //
 // app.js calls: openProject, openWorkspace, openThread, showList, toggle, countFor, owns.
 
-import { api } from "../api.js";
+import { api } from "../../core/platform/api.js";
 import { esc, COPY_REFUSED } from "../../core/platform/index.js";
 import { redraw } from "../redraw.js"; // in place: the control a person is on is kept, never replaced under them
 import { ICON } from "../ui.js";

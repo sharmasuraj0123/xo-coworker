@@ -13,7 +13,7 @@
 // changesframe.js (the panel) and viewer.js (Files) call drawImageChange; both ask isImageChange first.
 
 import { esc } from "../core/platform/index.js";
-import { api } from "./api.js";
+import { api } from "../core/platform/api.js";
 
 // Space's /image types, but SVG (a text file: it has a diff)
 const SHOWN = /\.(png|jpe?g|gif|webp|avif|bmp|ico)$/i;

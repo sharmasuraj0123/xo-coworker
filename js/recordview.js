@@ -29,7 +29,7 @@ import { createSince } from "../modules/since/view.js";
 import { createPreviews } from "../modules/artifacts/previews.js";
 import { sinceSection } from "../modules/since/section.js";
 import { madeSection } from "../modules/artifacts/section.js";
-import { api } from "./api.js";
+import { api } from "../core/platform/api.js";
 import { esc, short } from "../core/platform/index.js";
 import { ICON } from "./ui.js";
 import { sharedFileRoute } from "./timeline.js";
