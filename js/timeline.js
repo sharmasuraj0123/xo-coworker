@@ -732,6 +732,25 @@ export function hopNotes(thread, hops) {
 }
 
 /**
+ * Where a forwarded copy of your message began. A copy's `forwarded_from` names only the copy before it
+ * (xo-space's chat holds a copy of the one you wrote; a forward back into the first chat copies that copy), so
+ * the chain is followed through `find(id, chatId)`, which returns a stored row or null, up to `max` copies.
+ * Returns {chatId, id, known, row?}: `known` when the row at the end of the chain was read (it forwards from
+ * nothing: this is where you wrote it); otherwise the last copy's source, not yet read.
+ */
+export function forwardOrigin(fwd, find, max = 6) {
+  let cur = { chatId: fwd.chatId || null, id: fwd.id };
+  for (let i = 0; i < max; i++) {
+    const row = find(cur.id, cur.chatId);
+    if (!row) return { ...cur, known: false };
+    const f = row.extra && row.extra.forwarded_from;
+    if (!f || !f.message_id) return { chatId: row.chat_id || cur.chatId, id: cur.id, known: true, row };
+    cur = { chatId: f.chat_id || null, id: f.message_id };
+  }
+  return { ...cur, known: false };
+}
+
+/**
  * The messages relayed into a thread (if1 #7). Storm doesn't copy a relayed message into the thread:
  * the hop into it (a relay, a brief, an answer: any hop to the thread) names the message, which stays on the project's timeline. A hop
  * may cite any message of its scope: yours, the agent's it answered (a bare "yes" travels with its proposal), or XO's. Returns
