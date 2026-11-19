@@ -27,6 +27,7 @@
 - Size limits: a new file may not pass 400 lines; an old file may shrink, never grow.
 - Styles: tokens only, no literal colours or sizes. Every visual change goes through shared tokens, app-wide. No `!important`: use `@layer`.
 - Every storage key keeps its name, or gets a migration.
+- A module that calls a backend route adds that request to `core/platform/tests/routes-contract.test.mjs`, so the route is checked against xo-space's OpenAPI snapshot (`node tools/openapi/snapshot.mjs` refreshes it).
 
 ## The owner's standing rules
 - Nothing goes to GitHub or any remote unless the owner asks for that push.
