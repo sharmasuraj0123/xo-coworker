@@ -2626,9 +2626,7 @@ i.t-amber{background:var(--warn)}i.t-blue{background:var(--info)}i.t-red{backgro
 }
 @media (prefers-reduced-motion:reduce){.syl{animation:none}}
 
-/* ── the Map (js/map.js): where your agents are working, drawn. The folder as a diagram (boxes and
-   connectors on a dotted canvas) with each agent as a coloured cursor that glides from box to box,
-   drawn in the right panel's Map frame. Blue = working, amber = waiting on you, green = new. ─────── */
+/* ── the Map (js/map.js), in the panel's Map frame: the folder as boxes on a dotted canvas, each agent a gliding cursor; blue working, amber waiting, green new ── */
 :root{--mw:clamp(420px,42vw,720px)
 }
 

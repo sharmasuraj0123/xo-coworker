@@ -66,7 +66,7 @@ Items inside first-party files: 2290 (planned 1008, split-region 631, moved 624,
 | `js/launchpad.js` | 1166 | planned | modules/launchpad/ (store, controller, views, section) |
 | `js/lightbox.js` | 384 | split | core/ui/lightbox.js, modules/conversation (the pictures it lends the lightbox) · next: the lightbox is core/ui/lightbox.js; js/lightbox.js keeps only the conversation pictures it lends it, until the conversation module moves |
 | `js/lpapi.js` | 239 | split | modules/launchpad/client.js, modules/launchpad/model.js, core/services/github.js |
-| `js/map.js` | 1360 | split | modules/map, core/services/places.js, core/services/agent-activity.js · next: folderOf, placeOf, pathsInCommand are in core/services/places.js; activityOf in core/services/agent-activity.js; colorOf, layoutOf, edgePath in modules/map/layout.js; the standalone #map is deleted; the rest waits for modules/map |
+| `js/map.js` | 1360 | split | modules/map, core/services/places.js, core/services/agent-activity.js · next: folderOf, placeOf, pathsInCommand are in core/services/places.js; activityOf in core/services/agent-activity.js; colorOf, layoutOf, edgePath in modules/map/layout.js; the standalone #map's code and CSS are deleted, its <aside> in index.html waits for the shell; the rest waits for modules/map |
 | `js/markdown.js` | 519 | split | core/ui/markdown/markdown.js, core/ui/markdown/inline.js · next: blocks in markdown.js, inline text, links, pictures and the rich hooks in inline.js; js/markdown.js re-exports markdown.js until the shims go |
 | `js/mdlive.js` | 331 | planned | modules/files/editor/markdown-page.js |
 | `js/media.js` | 609 | split | modules/conversation/media/, core/ui/media (layout) |

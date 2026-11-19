@@ -4,6 +4,7 @@ import { existsSync } from "node:fs";
 import { sourceText } from "./lib/sources.mjs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { sourcePaths, readSource } from "./lib/sources.mjs";
 
 const LD = process.env.LINKEDOM || [join(homedir(), ".cache/xo-test-deps/node_modules/linkedom/esm/index.js"), "/tmp/dom/node_modules/linkedom/esm/index.js"].find((f) => existsSync(f));
 let passed = 0;
@@ -11,6 +12,18 @@ const t = async (name, fn) => {
   try { await fn(); passed++; console.log("  ok  " + name); }
   catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; }
 };
+
+const GONE = /(map-open|map-full|\.mp-hic|\.mp-x\b|\.mp-full|\.stage-tabs|\.st-tab|\.st-file|data-mp-close|data-mp-full|data-map-toggle)/;
+await t("no sheet styles the standalone Map, and none gives its leftover #map a display", () => {
+  for (const f of sourcePaths(".css")) {
+    const css = readSource(f).replace(/\/\*[\s\S]*?\*\//g, "");
+    for (const m of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      assert.doesNotMatch(m[1], GONE, `${f}: ${m[1].trim()}`);
+      if (/(^|[\s,>])(\.map|#map)(?![\w-])/.test(m[1])) assert.doesNotMatch(m[2], /display:/, `${f}: ${m[1].trim()}`);
+    }
+  }
+  assert.doesNotMatch(readSource("css/app.css"), /\.map-btn|\.st-x\b/);
+});
 
 if (!LD) {
   console.log("  skip: linkedom isn't installed (npm i linkedom in ~/.cache/xo-test-deps, or set LINKEDOM)");

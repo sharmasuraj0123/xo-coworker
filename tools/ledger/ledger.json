@@ -2392,7 +2392,7 @@
     "core/services/places.js",
     "core/services/agent-activity.js"
    ],
-   "note": "folderOf, placeOf, pathsInCommand are in core/services/places.js; activityOf in core/services/agent-activity.js; colorOf, layoutOf, edgePath in modules/map/layout.js; the standalone #map is deleted; the rest waits for modules/map"
+   "note": "folderOf, placeOf, pathsInCommand are in core/services/places.js; activityOf in core/services/agent-activity.js; colorOf, layoutOf, edgePath in modules/map/layout.js; the standalone #map's code and CSS are deleted, its <aside> in index.html waits for the shell; the rest waits for modules/map"
   },
   "js/markdown.js": {
    "status": "split",
