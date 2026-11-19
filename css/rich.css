@@ -20,6 +20,10 @@
    words (15 px in the first ink). A role or the model chosen trails it in the fourth ink. */
 :root:not([data-msgx]) .m-them>.mb>.mh{min-height:var(--h-sm);margin-bottom:8px;padding-left:32px;gap:8px;align-items:center}
 :root:not([data-msgx]) .m-them>.mb>.mh b{font:var(--fw-medium) var(--fs-base)/var(--lh-15) var(--sans);color:var(--ink-3)}
+/* the coordinator speaking, in the chat view as in bubbles: its name in its violet and a violet ring round its
+   mark (tokens.css --coord-ink, --coord-ring); its words stay ink, so reading never changes, only who's speaking */
+:root:not([data-msgx]) .m-coord>.mb>.mh b{color:var(--coord-ink)}
+:root:not([data-msgx]) .m-coord>.av{border-color:var(--coord-ring)}
 :root:not([data-msgx]) .m-them>.mb>.mh :is(.role,.m-iq){font:var(--fw-regular) var(--fs-sm)/var(--lh-15) var(--sans);color:var(--ink-4)}
 :root:not([data-msgx]) .m-them>.mb>.mh time{display:none}
 :root:not([data-msgx]) :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text){max-width:none}

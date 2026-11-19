@@ -927,7 +927,7 @@ function messagesOf(conv) {
     const who = (r) => (r === "workspace-coordinator" ? "Workspace coordinator" : r === "project-coordinator" ? `${PROJ(t.project)} coordinator` : null);
     for (const m of shown) {
       if (m.who === "you") out.push({ key: `relay:${m.id}`, at: m.hop.at || m.at, seq: m.hop.seq ?? m.seq, who: "you", text: m.text, files: m.files, chatId: m.chatId, wrote: m.at, relay: { project: t.project, id: m.id, fwd: m.fwd, at: m.hop.at || 0 } });
-      else out.push({ key: `relay:${m.id}`, at: m.at, seq: m.seq, who: m.who, text: m.text, files: m.files, chatId: m.chatId, ...(who(m.role) ? { name: who(m.role), role: "passed on" } : {}) });
+      else out.push({ key: `relay:${m.id}`, at: m.at, seq: m.seq, who: m.who, text: m.text, files: m.files, chatId: m.chatId, ...(who(m.role) ? { name: who(m.role), role: "passed on", coord: true } : {}) });
     }
     if (world.act.findRows) for (const x of missing) world.act.findRows(t.project, x.ids, x.seq);
   }
@@ -1170,7 +1170,7 @@ function msgItems(conv, needs) {
       const iq = m.iq ? `<span class="m-iq" title="${m.iq.src === "pinned" ? "Pinned for this conversation" : `Chosen by the ${esc(m.iq.src)}`}">${esc(m.iq.name)} ${m.iq.pips} · ${esc(m.iq.src)}</span>` : "";
       // what an agent shares on its message shows under its words, on its text column
       const media = m.files && m.files.length ? mediaHtml(m.files.map((f) => fromAttachment(f, { chat: m.chatId, by: name, at: m.at })), { side: "them" }) : "";
-      html = `<div class="m m-them${cont ? " cont" : ""}">${cont ? `<div class="av av-gap"></div>` : av}<div class="mb">` +
+      html = `<div class="m m-them${m.who === "coord" || m.coord ? " m-coord" : ""}${cont ? " cont" : ""}">${cont ? `<div class="av av-gap"></div>` : av}<div class="mb">` +
         (cont ? "" : `<div class="mh"><b>${esc(name)}</b>${role ? `<span class="role">${esc(role)}</span>` : ""}<time>${clock(m.at)}</time>${iq}</div>`) +
         `${m.text ? proseHtml(m.text) : ""}${media}${reactionsHtml(m.reactions)}${tid ? threadCardHtml(tid, needs) : ""}${(m.threads || []).map((x) => threadCardHtml(x, needs)).join("")}</div></div>`;
     } else if (m.who === "turn") {
