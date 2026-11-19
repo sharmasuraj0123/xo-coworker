@@ -84,7 +84,7 @@ export function byWords(by, threadTitle = () => null) {
 }
 
 /**
- * The documents. api: {projectFile, saveProjectFile} (js/api.js); store: localStorage or a stand-in; clock:
+ * The documents. api: {projectFile, saveProjectFile} (core/platform/api.js); store: localStorage or a stand-in; clock:
  * {now, set(fn, ms) → id, clear(id)}; onChange(doc, what): every state change ("state", "saved", "version",
  * "applied", "conflict"), for the views to redraw.
  */

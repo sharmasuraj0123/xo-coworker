@@ -16,7 +16,7 @@ import { esc } from "./world.js";
 import { space, once } from "../core/platform/index.js";
 import { redraw } from "./redraw.js";
 import { ICON, RM, xi } from "./ui.js";
-import { api } from "./api.js";
+import { api } from "../core/platform/api.js";
 import { mainRuntime } from "./timeline.js";
 import { rtName, rtMark, usable, allowedOf, moveTargets, findRt, healthOf, manyRuntimes } from "../core/services/runtimes.js";
 

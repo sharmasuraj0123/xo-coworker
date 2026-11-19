@@ -14,7 +14,7 @@
 
 import { esc } from "./world.js";
 import { ICON } from "./ui.js";
-import { api } from "./api.js";
+import { api } from "../core/platform/api.js";
 import { renderInline } from "./markdown.js";
 import { isImagePath, elapsed } from "../core/platform/index.js";
 import { commsLine, commsText } from "../core/services/comms.js";

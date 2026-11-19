@@ -2,7 +2,7 @@
 
 // Settings › Worktrees: a thread's checkout, removed only after saying what would be lost.
 
-import { api } from "../../js/api.js";
+import { api } from "../../core/platform/api.js";
 import { esc } from "../../js/world.js";
 import { ICON } from "../../js/ui.js";
 import { holdButton } from "../../core/ui/components/hold.js";

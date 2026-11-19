@@ -20,7 +20,7 @@
 import { esc, copyText, COPY_REFUSED, space, rank, marked } from "../core/platform/index.js";
 import { ICON } from "./ui.js";
 import { redraw } from "./redraw.js";
-import { api } from "./api.js";
+import { api } from "../core/platform/api.js";
 import { activityOf } from "../core/services/agent-activity.js";
 import { folderOf } from "../core/services/places.js";
 import { fileIcon, folderIcon } from "./fileicons.js";

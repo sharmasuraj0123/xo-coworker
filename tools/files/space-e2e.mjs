@@ -14,7 +14,7 @@ const ORIGIN = "http://127.0.0.1:5293";
 const realFetch = globalThis.fetch;
 globalThis.fetch = (u, o) => realFetch(new URL(u, ORIGIN + "/"), o);
 globalThis.location = new URL(ORIGIN + "/");
-const { api } = await import(WT + "/js/api.js");
+const { api } = await import(WT + "/core/platform/api.js");
 const { createDocs } = await import(WT + "/js/docs.js");
 const P = "demo", DIR = "/tmp/e2e/projects/demo";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -145,7 +145,7 @@ await step("delete into Space's trash, and Undo brings it back", async () => {
   assert.ok(existsSync(DIR + "/scratch.txt"));
 });
 await step("a missing route vs a route's own 404 (the frontend's missingRoute rule)", async () => {
-  const { missingRoute, request } = await import(WT + "/js/api.js");
+  const { missingRoute, request } = await import(WT + "/core/platform/api.js");
   let e1 = null; try { await api.projectFile(P, "nope.md", null, { version: "sha256:00" }); } catch (e) { e1 = e; }
   assert.equal(e1.status, 404); assert.ok(!missingRoute(e1), `coded: ${e1.code}`);
   let e2 = null; try { await request("/xo-projects/demo/no-such-route"); } catch (e) { e2 = e; }

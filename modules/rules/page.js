@@ -2,7 +2,7 @@
 
 // Settings › Rules: what agents may do without asking, each rule made by you and revoked here.
 
-import { api } from "../../js/api.js";
+import { api } from "../../core/platform/api.js";
 import { esc } from "../../js/world.js";
 import { renderInline } from "../../js/markdown.js";
 import { isPending, busyAttrs } from "../../core/platform/index.js";

@@ -1,5 +1,5 @@
 // @ts-check
-import { api, NEWEST } from "../../../js/api.js";
+import { api, NEWEST } from "../../platform/api.js";
 import { clientId, coderHeaders } from "../../platform/http.js";
 import { SSEStream } from "../../platform/sse.js";
 

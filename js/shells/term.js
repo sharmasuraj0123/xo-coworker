@@ -7,7 +7,7 @@
 
 import { Terminal } from "../vendor/xterm/xterm.mjs";
 import { FitAddon } from "../vendor/xterm/addon-fit.mjs";
-import { api, terminalSocketUrl } from "../api.js";
+import { api, terminalSocketUrl } from "../../core/platform/api.js";
 import { copyText } from "../../core/platform/index.js";
 import { createFlow, backoff, closeMeaning } from "./model.js";
 
