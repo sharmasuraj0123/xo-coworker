@@ -519,7 +519,8 @@ button:disabled{cursor:default}
 /* chat rhythm on the 4-point scale (pixel audit #14): 24 between messages, 8 between one sender's
    follow-ons, 12 between paragraphs, prose 15/24; the avatar is 32 with a 12 gap, so text stays 44px in */
 .m{position:relative;margin:0 0 24px}
-.m.cont{margin-top:-16px}
+.m:has(+.ev){margin-bottom:var(--s-4)}   /* a line after a message: 16 (was 24 then the line's −8) */
+.m.mx-next-cont,.m:has(+.m.cont){margin-bottom:var(--s-2)}   /* the same speaker going on: 8, said once (was 24 then −16) */
 .m.is-new{animation:msg-in var(--d-in) var(--ease)}
 @keyframes msg-in{from{opacity:0;transform:translateY(8px)}}
 .m-you{display:flex;flex-direction:column;align-items:flex-end}
@@ -679,7 +680,7 @@ code.hl{color:var(--code-ink)}
 
 /* An event line sits on the conversation's grid (hub #23): its icon centred in the avatar column,
    its words on the message column, its time in quiet mono on the right. */
-.ev{display:flex;align-items:center;gap:14px;min-height:22px;margin:-8px 0 16px;font-size:var(--fs-base);line-height:var(--lh-14);color:var(--ink-3);border-radius:var(--r-sm)}
+.ev{display:flex;align-items:center;gap:14px;min-height:22px;margin:0 0 var(--s-4);font-size:var(--fs-base);line-height:var(--lh-14);color:var(--ink-3);border-radius:var(--r-sm)}
 .ev-ic{flex:none;display:grid;place-items:center;width:22px;height:22px;margin:0 4px;border-radius:50%;background:rgba(var(--accent-rgb),.12);color:var(--accent)}
 .ev-ic svg{width:13px;height:13px}
 .ev-back .ev-ic{background:var(--fill-2);color:var(--ink-3)}
@@ -1511,15 +1512,15 @@ button.tp-done-u:hover{color:var(--ink)}
 .set-row{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 16px 16px 18px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);box-shadow:var(--hairline)}
 /* rows that follow each other read as one group: shared edges, one card */
 .set-row+.set-row{margin-top:-1px}
-.set-sec>.set-row+.set-row{margin-top:-9px}
+.set-sec>.set-row+.set-row{margin-top:calc(-1 * (var(--s-2) + 1px))}
 .set-row:has(+.set-row){border-bottom-left-radius:0;border-bottom-right-radius:0}
 .set-row+.set-row{border-top-left-radius:0;border-top-right-radius:0;box-shadow:none}
 .set-l{display:flex;flex-direction:column;gap:3px;min-width:0}
 .set-l b{font:var(--fw-medium) var(--fs-md)/var(--lh-14) var(--sans);color:var(--ink)}
 .set-l span{font-size:var(--fs-base);line-height:var(--lh-14);color:var(--ink-3)}
 /* Settings › Keyboard: every shortcut, click one to change it */
-.kp-t{margin:-4px 0 18px;font-size:var(--fs-base);line-height:var(--lh-14);color:var(--ink-3);max-width:60ch}
-.kg{margin-bottom:22px}
+.kp-t{margin:0 0 var(--s-4);font-size:var(--fs-base);line-height:var(--lh-14);color:var(--ink-3);max-width:60ch}
+.kg{margin-bottom:var(--s-6)}
 .kg h3{margin:0 0 var(--s-2);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
 .kl{border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);box-shadow:var(--hairline);overflow:hidden}
 .kr{display:grid;grid-template-columns:minmax(0,1fr) auto 32px;align-items:center;gap:10px;min-height:48px;padding:6px 8px 6px 18px;border-top:1px solid var(--line-faint)}

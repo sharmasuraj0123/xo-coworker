@@ -148,7 +148,7 @@ body.files-open .mx-down{display:none}
 /* --herald-room: the notices' line over the conversation's foot, while it shows there (app.js heraldRoom) */
 :root[data-msgx] .scroller{padding-bottom:calc(var(--dock-h) - 18px + var(--herald-room, 0px))}
 :root[data-msgx] .app.has-tdock .scroller{padding-bottom:calc(var(--dock-h) + 4px + var(--herald-room, 0px))}
-:root[data-msgx] #msgs>.m.cont{margin-top:-16px}
+:root[data-msgx] #msgs>.m:is(.mx-next-cont,:has(+.m.cont)){margin-bottom:var(--s-1)}   /* within a run: 4 (was 20 then −16) */
 
 /* the working words keep the app's soft shimmer (the owner's ask, 21:37): a slow light passing through the
    line, the same 2.4 s wave as .shimmer in app.css. A redraw at every step never restarts it: ui.js's
@@ -222,7 +222,8 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-turn .turn>.tb>.tb-h:hover{background-color:var(--hover-fill)!important}
 :root[data-msgx] .m-turn .turn>.tb:is(.is-open,.has-rows)>.tb-h{background-color:var(--hover-fill)!important}
 :root[data-msgx] .m-turn .turn>.tb:not(.tb-answer):not(.tb-text):not(.is-open)>:not(.tb-h){margin-left:16px}
-:root[data-msgx] #msgs>.m-turn+.m-them:not(.mx-other){margin-top:-12px}
+:root[data-msgx] #msgs>.m-turn:has(+.m-them:not(.mx-other)){margin-bottom:var(--s-2)}   /* a turn to its own words: 8 (was 20 then −12) */
+:root[data-msgx] #msgs>.m:has(+.ev){margin-bottom:var(--s-3)}   /* a line after a message: 12 (was 20 then −8) */
 
 /* While the agent works: one calm bubble where its reply will be, as Messages shows someone typing. One
    line says what it's doing and crossfades when that changes; the time waits quietly at the end. The only

@@ -116,7 +116,7 @@
   /* the Now strip: its own row under the bar, its chips' edge on the content's 16 px line */
   /* its chips 8 under the count line and 8 over the hairline: 6 + 40 + 4 + (2 + 36 + 2) + 6 + 1 = 97 */
   :root:root .top[data-kind="project"]:has(> .now-wrap:not([hidden])){padding-bottom:6px}
-  :root:root .top[data-kind="project"] .now-wrap{order:3;flex:1 1 100%;margin:4px -16px 0 0;padding:0 0 0 10px}
+  :root:root .top[data-kind="project"] .now-wrap{order:3;flex:1 1 100%;margin:var(--s-1) calc(-1 * var(--gut-min)) 0 0;padding:0 0 0 10px}
   :root:root .top[data-kind="project"] .now{padding:2px 16px 2px 0;scroll-padding-left:0}
   :root:root .top[data-kind="project"] .nw{height:36px}
 
