@@ -7891,8 +7891,8 @@
    "home": "modules/projects (picker; registers `header.title` affordance) (app.js l.315)"
   },
   "js/app.js::custom_events::xo:gesture": {
-   "status": "planned",
-   "home": "core/platform gestures, fed by the layer registry (each layer declares `swipeClose`) (app.js l.4692)"
+   "status": "moved",
+   "home": "core/platform/gestures.js"
   },
   "js/attach.js::exports::MAX_BYTES": {
    "status": "split-region",
