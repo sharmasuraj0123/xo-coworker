@@ -7,7 +7,7 @@ import { renderMarkdown, renderInline, threadLinks, excerptMarkdown, setThreadIn
 import { parseChecklist, tasksOf } from "../js/model.js";
 import { request } from "../js/api.js";
 import { highlight, langOf } from "../js/highlight.js";
-import { uiMsg, mergeRows, echoes, askText, stormAsks, threadAnchors, parseTarget, stripTarget, sendErrorTitle, connLine, currentPools, sharedFileRoute, relayedInto, sendBlock, mapLimit, plainText, hopLine, waitsForTurn, threadState, hopNotes, mainRuntime, chatOrder, addReaction, reactionGroups } from "../js/timeline.js";
+import { uiMsg, mergeRows, echoes, askText, stormAsks, threadAnchors, parseTarget, stripTarget, sendErrorTitle, connLine, currentPools, sharedFileRoute, relayedInto, forwardOrigin, sendBlock, mapLimit, plainText, hopLine, waitsForTurn, threadState, hopNotes, mainRuntime, chatOrder, addReaction, reactionGroups } from "../js/timeline.js";
 
 let passed = 0;
 const t = (name, fn) => {
@@ -393,6 +393,21 @@ t("a message relayed into a thread shows there under its true author: yours as y
   assert.deepEqual([shown[1].who, shown[1].role], ["coord", "project-coordinator"], "a coordinator's message is never shown as yours");
   assert.deepEqual(missing, [{ ids: ["cmsg_old"], seq: 722 }], "not loaded: paged back from the hop's seq");
   assert.equal(relayedInto(th, hops, tl, new Set(["cmsg_fwd", "cmsg_co"])).shown.length, 0, "never twice in the thread");
+});
+
+t("a forwarded copy is followed to where you wrote it (a copy of a copy is no new message)", () => {
+  const rows = {
+    ffcd: { id: "ffcd", chat_id: "chat_co", text: "status?", extra: {} },
+    "9ee8": { id: "9ee8", chat_id: "chat_sp", text: "status?", extra: { forwarded_from: { chat_id: "chat_co", message_id: "ffcd", via: ["xo-coworker", "workspace"] } } },
+  };
+  const find = (id) => rows[id] || null;
+  const o = forwardOrigin({ chatId: "chat_sp", id: "9ee8", via: ["xo-space", "workspace"] }, find);
+  assert.deepEqual([o.known, o.chatId, o.id], [true, "chat_co", "ffcd"], "the copy's source is a copy: its own source is where you wrote it");
+  assert.equal(forwardOrigin({ chatId: "chat_co", id: "ffcd" }, find).chatId, "chat_co", "one written there is its own origin");
+  const u = forwardOrigin({ chatId: "chat_sp", id: "nope" }, find);
+  assert.deepEqual([u.known, u.chatId, u.id], [false, "chat_sp", "nope"], "a source not read yet stays unknown, never guessed");
+  const loop = { a: { id: "a", extra: { forwarded_from: { chat_id: "c", message_id: "b" } } }, b: { id: "b", extra: { forwarded_from: { chat_id: "c", message_id: "a" } } } };
+  assert.equal(forwardOrigin({ chatId: "c", id: "a" }, (id) => loop[id]).known, false, "a loop ends");
 });
 
 t("a thread message sent during a turn waits for it (Interrupt)", () => {
