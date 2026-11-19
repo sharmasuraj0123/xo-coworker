@@ -1,0 +1,17 @@
+/* Open, Launchpad is drawn over the panel's other frames: its head stays in the stack, its body covers the rest, and their heads show at its foot */
+.stage .stg-frames{position:relative}
+.stage .fr-lp.is-open{position:static} /* the stack, not the head, holds what it draws over (its light sits where it did: the stack's top) */
+.stage .fr-lp.is-open>.fr-b{position:absolute;z-index:3;left:0;right:0;top:calc(var(--h-lg) + 1px);bottom:var(--ghosts,0px);background:var(--sunken)}
+.stage .fr-lp.is-open>.fr-ghosts{position:absolute;z-index:3;left:0;right:0;bottom:0;background:var(--sunken)}
+.fr-ghosts{flex:none;display:flex;flex-direction:column}
+.fr-ghosts:empty{display:none}
+.fr-ghost{position:relative;display:block;width:100%;height:var(--h-lg);padding:0;border:0;background:none;text-align:left;cursor:pointer}
+.fr-ghost-v{display:flex;align-items:center;gap:8px;height:var(--h-lg);padding:0 12px;pointer-events:none}
+.fr-ghost::before{content:"";position:absolute;top:0;left:12px;right:12px;height:1px;background:var(--panel-line)}
+.fr-ghost:hover{background:var(--panel-hover)}
+.fr-ghost:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
+/* the copy's controls are spans: what their buttons had, by look */
+.fr-ghost .fr-fold svg{transform:rotate(-90deg)}
+.fr-ghost .fr-ib,.fr-ghost .fr-t{display:inline-grid;place-items:center}
+.fr-ghost .fr-t{display:flex;align-items:center}
+.fr-ghost .fr-t.is-on{background:var(--panel-surface);box-shadow:var(--panel-lift);color:var(--ink)}

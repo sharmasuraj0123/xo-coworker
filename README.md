@@ -165,6 +165,10 @@ UPDATE=1 node e2e/run.mjs        # write the snapshots instead of comparing; rev
 - The exit code is the verdict, never the printed lines.
 - `tools/check.mjs` and `tests/run.mjs` never start a browser. `e2e/run.mjs` and `tests/browser/` run only when the owner asks, one browser at a time.
 - Each test file says what it covers in its header. `e2e/README.md` explains the lane: the fake Space, the settle barrier and the snapshots.
+- The browser suites' mocks live in `e2e/`:
+  - `e2e/fixtures/mockspace-harness.cjs`: Space's deploy routes for `tests/browser/harness.cjs` and the Launchpad + Shells world;
+  - `e2e/worlds/lp-shell.cjs`: the world `tests/browser/lpshell.test.cjs` runs in;
+  - `e2e/fixtures/controls/`: the controls registry and its generator, read by `tests/stale-pass.test.mjs`.
 
 **Never let a test send a non-GET request to a live backend.**
 

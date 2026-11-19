@@ -12,11 +12,12 @@
 import assert from "node:assert/strict";
 import { resolveTokens } from "./lib/tokens.mjs";
 import { readFileSync, readdirSync } from "node:fs";
+import { sourcePaths } from "./lib/sources.mjs";
 import { rules, context, decls, px, spec, cmp, covers } from "./lib/cascade.mjs";
 
 const ROOT = new URL("../", import.meta.url);
 const tokens = Object.fromEntries([...readFileSync(new URL("core/ui/tokens.css", ROOT), "utf8").matchAll(/(--[\w-]+):\s*(\d+(?:\.\d+)?)px/g)].map((m) => [m[1], +m[2]]));
-const FILES = ["js/launchpad.js", "modules/create-project/create.js", "shell/panel/panel.js", "shell/panel/pages.js", "shell/panel/frames.js", "shell/panel/lists.js", "js/intel.js", ...readdirSync(new URL("js/shells/", ROOT)).filter((f) => f.endsWith(".js")).map((f) => `js/shells/${f}`)];
+const FILES = [...sourcePaths(".js").filter((p) => p.startsWith("modules/launchpad/")), "modules/create-project/create.js", "shell/panel/panel.js", "shell/panel/pages.js", "shell/panel/frames.js", "shell/panel/lists.js", "js/intel.js", ...readdirSync(new URL("js/shells/", ROOT)).filter((f) => f.endsWith(".js")).map((f) => `js/shells/${f}`)];
 const all = rules(new URL("tests/lib/x.mjs", ROOT));
 const at = (w) => all.map((r) => ({ r, c: context(r, w), s: spec(r.sel) })).filter((x) => x.c.active && !x.c.cond);
 const P = at(390), D = at(1440);
@@ -64,7 +65,7 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
 
 t("the census finds Launchpad's boxed links (Open in Launchpad, Logs on GitHub, both Open it, the address, Open GitHub)", () => {
   for (const B of ["a.lp-b", "a.lp-ib", ".lp-ha>a.fr-ib", "a.lpm-host", "a.lp-go", "a.lp-go.lp-wide"]) assert.ok(links.has(B), `${B} in the census`);
-  const lp = readFileSync(new URL("js/launchpad.js", ROOT), "utf8");
+  const lp = readFileSync(new URL("modules/launchpad/launchpad.js", ROOT), "utf8");
   assert.match(lp, /const ha = [^\n]*<a class="fr-ib"/, "the head's Open it is the .fr-ib link");
   assert.match(lp, /redraw\(S\.ha, ha\)/, "drawn into .lp-ha, directly (in place)");
 });

@@ -60,8 +60,8 @@ t("every icon a module names is in the pack", () => {
 
 t("no module keeps a hand-drawn icon: every set draws from the pack", () => {
   const sets = ["core/ui/icons/names.js", "shell/panel/panel.js", "shell/panel/pages.js", "shell/panel/frames.js", "shell/panel/lists.js", "js/map.js", "js/files.js", "modules/files/page.js", "modules/changes/frame.js", "modules/settings/shape-page.js",
-    "js/viewer.js", "core/ui/lightbox.js", "modules/create-project/create.js", "js/intel.js", "modules/search/quickopen.js", "js/msgx.js", "js/turnview.js",
-    "js/launchpad.js", "core/ui/markdown/inline.js", "core/ui/markdown/markdown.js", "modules/projects/projicons.js"];
+    "js/viewer.js", "core/ui/lightbox.js", "modules/create-project/create.js", "js/intel.js", "modules/search/quickopen.js", "js/msgx.js", "js/turnview.js", ...sourcePaths(".js").filter((p) => p.startsWith("modules/launchpad/")),
+    "core/ui/markdown/inline.js", "core/ui/markdown/markdown.js", "modules/projects/projicons.js"];
   for (const f of sets) assert.doesNotMatch(read(f), /<svg viewBox="0 0 24 24"|<path d="M|const I = \(d/, f);
   const ui = read("core/ui/icons/names.js");
   const block = ui.slice(ui.indexOf("export const ICON = {"), ui.indexOf("\n};", ui.indexOf("export const ICON = {")));

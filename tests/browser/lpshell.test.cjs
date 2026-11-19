@@ -607,13 +607,17 @@ t("LP21: the notice's Undo for Stop puts focus back on Stop; no stop is asked fo
 });
 
 for (const where of ["section put away", "another place on screen"]) {
-  t(`LP21: Stop's notice Undo with the ${where}: focus goes to ${where === "section put away" ? "Launchpad's own head in the panel" : "that page's work, or on a phone the panel's Close"}; no stop`, async () => {
+  t(`LP21: Stop's notice Undo with the ${where}: focus goes to ${where === "section put away" ? "the project's own Deploy" : "that page's work"}, or on a phone the panel's Close; no stop`, async () => {
     const calls = [];
     const page = await open({ launchpad: "building", onDeploy: (r, m, p) => { if (/\/api\/deploy\/[^/]+$/.test(p) && m === "DELETE") { calls.push(m); return json(r, { stopped: true }); } return r.fallback(); } });
     await W.openLaunchpad(page);
     await page.waitForFunction(() => document.querySelector(".lp")?.dataset.screen === "run");
     await page.locator('[data-lp="stop"]').click();
-    if (where === "section put away") await page.locator('[data-lp="hide"]').click();
+    if (where === "section put away") {
+      await page.locator('[data-lp="hide"]').click();
+      const hid = await page.evaluate(() => { const a = document.activeElement; return { deploy: a.hasAttribute("data-lp-open"), close: a.hasAttribute("data-stg-close") }; });
+      assert.ok(WIDTH <= 760 ? hid.close : hid.deploy, `Hide puts focus on ${WIDTH <= 760 ? "the covering panel's Close" : "the project's own Deploy"}`);
+    }
     // another place: the page changes by script (window.__t.go). A person changes place by pressing something, which
     // takes focus off Launchpad first, so the case lets go of it deliberately before the script moves the page (a
     // navigation by script with focus left in a section it hides is the test's own move, not a person's path)
@@ -622,12 +626,12 @@ for (const where of ["section put away", "another place on screen"]) {
     await page.keyboard.press("Enter");
     await page.waitForTimeout(3300);
     assert.deepEqual(calls, [], "no stop was asked for");
-    // what Undo kept is the run, in Launchpad's section: its head (folded, in the panel) has focus. With another place on
-    // screen: that page's work, unless the open panel covers the page (a phone): then the panel's own Close
-    const at = await page.evaluate(() => { const a = document.activeElement; return { fold: a.getAttribute("data-fr-fold"), close: a.hasAttribute("data-stg-close"), id: a.id, inPanel: !!a.closest("#stage"), drawn: a.getClientRects().length > 0 }; });
-    if (where === "section put away") assert.deepEqual([at.fold, at.inPanel, at.drawn], ["launch", true, true], "Launchpad's head, in the panel");
-    else if (WIDTH > 760) assert.equal(at.id, "scroller", "the Workspace's conversation");
-    else assert.deepEqual([at.close, at.drawn], [true, true], "the covering panel's Close");
+    // put away, Launchpad leaves the panel (it shows only when Deploy opens it): the run Undo kept is reached by the
+    // project's own Deploy, or that page's work with another place on screen; on a phone, the covering panel's Close
+    const at = await page.evaluate(() => { const a = document.activeElement; return { deploy: a.hasAttribute("data-lp-open"), close: a.hasAttribute("data-stg-close"), id: a.id, drawn: a.getClientRects().length > 0 }; });
+    if (WIDTH <= 760) assert.deepEqual([at.close, at.drawn], [true, true], "the covering panel's Close");
+    else if (where === "section put away") assert.deepEqual([at.deploy, at.drawn], [true, true], "the project's own Deploy");
+    else assert.equal(at.id, "scroller", "the Workspace's conversation");
     await done(page);
   });
 }

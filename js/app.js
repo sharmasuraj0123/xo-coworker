@@ -47,8 +47,8 @@ import { stackLayers } from "../shell/layers.js";
 import { wireBack } from "../shell/back.js";
 import { faviconRender } from "../shell/favicon.js";
 import { createDrawer } from "../shell/phone.js";
-import { createLaunchpad } from "./launchpad.js";
-import { createLpApi } from "./lpapi.js";
+import { createLaunchpad } from "../modules/launchpad/launchpad.js";
+import { createLpApi } from "../modules/launchpad/client.js";
 import { createFiles, fileScope, localIn, scopeOf as filesScopeOf } from "./files.js";
 import { createPaths } from "../core/services/paths.js";
 import { createQuickOpen } from "../modules/search/quickopen.js";
@@ -396,7 +396,7 @@ const MAP = createMap({ world, go: (v) => go(v, { panel: true }), announce, isBu
 // Files: the project's files, and the one place a file opens (js/files.js)
 const FILES = createFiles({ world, viewer: VW, isBusy, PROJ, go: (v) => go(v), changes: CHG, onFold: (f) => FP.treeFolded(f), paths: PATHS });
 // Files is a page of the panel (modules/files/page.js); otherwise the panel is a stack of frames: Threads · Changes · Map
-// Launchpad (js/launchpad.js): Deploy in the header row of a project and a thread; its section tops the panel
+// Launchpad (modules/launchpad/): Deploy in the header row of a project and a thread; its section tops the panel
 const lpProject = (v) => (v && v.startsWith("p:") ? v.slice(2) : v && v.startsWith("t:") ? world.thread(v.slice(2))?.project || null : null);
 // the thread "Ask an agent" started: by its id when Launchpad has it (whatever its title, past older threads of the
 // same title; resolved reads as done); without one, discovered by xo-space's title "Deploy to Launchpad", while open

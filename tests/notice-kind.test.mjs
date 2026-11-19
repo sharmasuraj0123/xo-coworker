@@ -5,8 +5,9 @@
 //   node tests/notice-kind.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { sourcePaths, readSource } from "./lib/sources.mjs";
 
-const lp = readFileSync(new URL("../js/launchpad.js", import.meta.url), "utf8");
+const lp = sourcePaths(".js").filter((p) => p.startsWith("modules/launchpad/")).map(readSource).join("\n");
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 const css = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
 let passed = 0;

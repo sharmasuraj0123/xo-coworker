@@ -5,10 +5,10 @@
 // items could look active again. No browser.
 //   node tests/menu-one-active.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { sheet } from "./lib/cascade.mjs";
 
 const SHEETS = ["app.css", "diffs.css", "panel.css", "launchpad.css"];
-const css = SHEETS.map((f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
+const css = SHEETS.map((f) => sheet(new URL(`../css/${f}`, import.meta.url))).join("\n");
 const rules = [...css.matchAll(/([^{}@]+)\{([^{}]*)\}/g)].map((m) => ({ sel: m[1].trim(), d: m[2] }));
 /** the states a selector for an item of this menu paints: hover, focus (any), focus-visible */
 function paints(menu, item) {

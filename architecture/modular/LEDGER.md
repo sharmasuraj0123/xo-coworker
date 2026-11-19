@@ -4,14 +4,14 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 569 |
+| planned | 565 |
 | vendor | 367 |
-| deleted | 271 |
-| moved | 70 |
-| split | 32 |
+| deleted | 272 |
+| moved | 71 |
+| split | 34 |
 | kept | 4 |
 
-Items inside first-party files: 2290 (moved 957, planned 787, split-region 429, deleted 114, kept 2, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (moved 1010, planned 760, split-region 402, deleted 115, kept 2, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -63,9 +63,9 @@ Items inside first-party files: 2290 (moved 957, planned 787, split-region 429, 
 | `js/keynav.js` | 109 | moved | core/ui/a11y/keynav.js · next: js/keynav.js re-exports core/ui/a11y/keynav.js until the shims go |
 | `js/keys.js` | 176 | split | core/platform/keys.js, core/kernel (shortcut place), modules/settings/keyboard.js · next: the engine and its catalogue are in core/platform/keys.js; js/keys.js re-exports it until the shims go; the catalogue becomes the kernel's shortcut place when modules contribute their keys |
 | `js/kit.js` | 270 | split | modules/decisions/kit.js, core/ui/components/hold.js · next: the hold button and its guard are in core/ui/components/hold.js (modules/decisions/kit.js re-exports them) |
-| `js/launchpad.js` | 1166 | planned | modules/launchpad/ (store, controller, views, section) |
+| `js/launchpad.js` | 1166 | split | modules/launchpad/launchpad.js, modules/launchpad/store.js, modules/launchpad/views.js, modules/launchpad/system.js, modules/launchpad/actions.js, modules/launchpad/words.js · next: moved whole into modules/launchpad/, typed and split under 400 lines; app.js still calls createLaunchpad and hands the section to the panel until the shell hosts panel.frame and header.action |
 | `js/lightbox.js` | 384 | split | core/ui/lightbox.js, modules/conversation (the pictures it lends the lightbox) · next: the lightbox is core/ui/lightbox.js; js/lightbox.js keeps only the conversation pictures it lends it, until the conversation module moves |
-| `js/lpapi.js` | 239 | split | modules/launchpad/client.js, modules/launchpad/model.js, core/services/github.js |
+| `js/lpapi.js` | 239 | split | modules/launchpad/model.js, modules/launchpad/client.js · next: GitHub's device flow stays in client.js until core/services/github takes it with create-project's |
 | `js/map.js` | 1360 | split | modules/map, core/services/places.js, core/services/agent-activity.js · next: folderOf, placeOf, pathsInCommand are in core/services/places.js; activityOf in core/services/agent-activity.js; colorOf, layoutOf, edgePath in modules/map/layout.js; the standalone #map's code and CSS are deleted, its <aside> in index.html waits for the shell; the rest waits for modules/map |
 | `js/markdown.js` | 519 | split | core/ui/markdown/markdown.js, core/ui/markdown/inline.js · next: blocks in markdown.js, inline text, links, pictures and the rich hooks in inline.js; js/markdown.js re-exports markdown.js until the shims go |
 | `js/mdlive.js` | 331 | moved | modules/files/markdown-page.js |
@@ -120,7 +120,7 @@ Items inside first-party files: 2290 (moved 957, planned 787, split-region 429, 
 | `css/docs.css` | 141 | planned | modules/files/editor/docs.css |
 | `css/dropdown.css` | 52 | moved | core/ui/components/xo-select.css |
 | `css/foundation.css` | 267 | split | core/ui/foundation.css, modules/* (structure rules) |
-| `css/launchpad.css` | 438 | planned | modules/launchpad/launchpad.css |
+| `css/launchpad.css` | 438 | split | modules/launchpad/launchpad.css, modules/launchpad/system.css, modules/launchpad/cover.css · next: css/launchpad.css keeps their @imports, in its place in the cascade, and the reduced-motion rule with its !important until the sheet gets its @layer |
 | `css/light.css` | 85 | split | core/ui/tokens.css (light roles), modules/* (light blocks) |
 | `css/links.css` | 104 | planned | modules/conversation/links.css |
 | `css/media.css` | 127 | planned | modules/conversation/media/media.css |
@@ -197,7 +197,7 @@ Items inside first-party files: 2290 (moved 957, planned 787, split-region 429, 
 | `tests/keynav.test.mjs` | 185 | planned | core/platform/tests/keynav.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/keys-dispatch.test.mjs` | 87 | planned | core/platform/tests/keys-dispatch.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/keys.test.mjs` | 48 | moved | core/platform/tests/keys.test.mjs |
-| `tests/launchpad.test.mjs` | 326 | planned | modules/launchpad/tests/launchpad.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/launchpad.test.mjs` | 326 | moved | modules/launchpad/tests/launchpad.test.mjs |
 | `tests/layout-reads.test.mjs` | 25 | planned | modules/conversation/tests/layout-reads.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/link-buttons.test.mjs` | 47 | planned | core/ui (css guard)/tests/link-buttons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/links-css.test.mjs` | 44 | planned | modules/files/tests/links-css.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
@@ -206,7 +206,7 @@ Items inside first-party files: 2290 (moved 957, planned 787, split-region 429, 
 | `tests/lp-create-stop-focus.test.mjs` | 39 | moved | modules/create-project/tests/lp-create-stop-focus.test.mjs · next: still reads the source; its rewrite as a behaviour test is owed |
 | `tests/lp-intel-order.test.mjs` | 74 | planned | modules/composer/tests/lp-intel-order.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/lp-phone-links.test.mjs` | 90 | planned | core/ui phone floor (launchpad, create, intel, shells)/tests/lp-phone-links.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/lp-stop-notice.test.mjs` | 171 | planned | modules/launchpad/tests/lp-stop-notice.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/lp-stop-notice.test.mjs` | 171 | moved | modules/launchpad/tests/lp-stop-notice.test.mjs · next: still reads app.js's notice() source; its rewrite as a behaviour test is owed |
 | `tests/main-clip.test.mjs` | 19 | planned | core/ui (css guard)/tests/main-clip.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/map-focus-reveal.test.mjs` | 38 | planned | modules/map/tests/map-focus-reveal.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/map-follow-cursor.test.mjs` | 26 | planned | modules/map/tests/map-follow-cursor.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
@@ -1355,7 +1355,7 @@ Items inside first-party files: 2290 (moved 957, planned 787, split-region 429, 
 | `design-research/2026-11-vision/canvas-editing/SPACE-CONTRACT.md` | 244 | deleted | moved to the design archive (owner D4) |
 | `design-research/2026-11-vision/canvas-editing/files-as-editor.md` | 171 | deleted | moved to the design archive (owner D4) |
 | `design-research/2026-11-vision/canvas-editing/vscode-behaviours.md` | 177 | deleted | moved to the design archive (owner D4) |
-| `design-research/2026-11-vision/launchpad/tools/mockspace.cjs` | 133 | moved | e2e/fixtures/mockspace-harness.cjs · next: Wave 4 Launchpad: fold the scenarios Launchpad's tests need into e2e/fixtures/mockspace-harness.cjs, then delete tools/launchpad/smoke.cjs (D6) and e2e/fixtures/mockspace.cjs together, after one browser run when the owner asks |
+| `design-research/2026-11-vision/launchpad/tools/mockspace.cjs` | 133 | moved | e2e/fixtures/mockspace-harness.cjs |
 
 ## tools/codemirror (1)
 
@@ -1412,8 +1412,8 @@ Items inside first-party files: 2290 (moved 957, planned 787, split-region 429, 
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `tools/launchpad/mockspace.cjs` | 164 | moved | e2e/fixtures/mockspace.cjs · next: Wave 4 Launchpad: fold the scenarios Launchpad's tests need into e2e/fixtures/mockspace-harness.cjs, then delete tools/launchpad/smoke.cjs (D6) and e2e/fixtures/mockspace.cjs together, after one browser run when the owner asks |
-| `tools/launchpad/smoke.cjs` | 128 | deleted | a one-off probe with machine paths (owner D6) |
+| `tools/launchpad/mockspace.cjs` | 164 | deleted | its copy at e2e/fixtures/mockspace.cjs served only tools/launchpad/smoke.cjs; every scenario a browser suite opens is in e2e/fixtures/mockspace-harness.cjs (modules/launchpad/tests/mockspace-scenarios.test.mjs), and lpshell's Launchpad cases pass on it |
+| `tools/launchpad/smoke.cjs` | 128 | deleted | a one-off probe with machine paths and no assertions (owner D6); the 14 scenarios only it played (live-behind, sizes-fallback, size-refused, live-nodisk, live-oldspace, live-domain, live-noenv-disk, gh-scope, gh-scope-run, gh-import, repo-taken, link-existing, pull, lost) have no browser case yet |
 
 ## tools/xoicons (1)
 

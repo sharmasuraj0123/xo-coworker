@@ -5,7 +5,6 @@
   "js/decide.js": 1104,
   "js/files.js": 940,
   "js/intel.js": 742,
-  "js/launchpad.js": 1166,
   "js/map.js": 1102,
   "js/media.js": 609,
   "js/msgx.js": 917,
@@ -13,7 +12,6 @@
   "js/timeline.js": 455,
   "js/viewer.js": 1156,
   "css/app.css": 3057,
-  "css/launchpad.css": 438,
   "css/msgx.css": 408,
   "css/panel.css": 645
  },
