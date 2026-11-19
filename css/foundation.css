@@ -75,7 +75,7 @@ body.stage-full .stg-grip{display:none}
    sweep by that bar on 7137115: Create and the runtime chip held 0%). tests/press-reach.test.mjs. A link drawn as a control
    takes it too (a file or a thread's capsule in a message: its own 14→18% step went by in its transition, held looked
    as hovered, the controls grader on 8aa58d3, S017/S088); a link in a sentence dims instead. */
-:is(.help,.create,.then-i,.hm-quiet,.top-back,.all-btn,.wsh-next,.tc-open,.tc-dec,button.hr,.t-undo,.dock-hide,.dock-fold,.btn,.set-nav button,button.kr-k,.tb-cf,.tw-act,.tw-rt,.tb-fb,.syl-got,.stg-btn,.fl-r,.stg-tab,.ar,.syl-ln,.jump-list li,.iq-row,.hd,.hd-r,.fl-back,.stg-ic,.md-open,.md-from):active,.pn-nav:active:not(:disabled){transform:none}
+:is(.help,.create,.then-i,.hm-quiet,.top-back,.all-btn,.wsh-next,.tc-open,.tc-dec,button.hr,.t-undo,.dock-hide,.dock-fold,.btn,.set-nav button,button.kr-k,.tb-cf,.tw-act,.tw-rt,.tb-fb,.stg-btn,.fl-r,.stg-tab,.ar,.jump-list li,.iq-row,.hd,.hd-r,.fl-back,.stg-ic,.md-open,.md-from):active,.pn-nav:active:not(:disabled){transform:none}
 :where(button,a[href][class],[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],summary,.rt-check):where(:not(:disabled,[aria-disabled="true"],.send,.btn-pri,.iq-done,.b-hold,.theme,.switch,.lp-go,.lk:not(.lk-in),.xd-btn.is-pri,.xd-send,.tw-act.lp-btn,.prow,.nrow,:is(.vw-cut-dl,.wsh-home,.cp-link,.tg-ch,.fl-link,.lp-ln,.shl-all,.tp-done-u))):where(:active){background-image:linear-gradient(var(--press-fill),var(--press-fill))!important;--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
 /* A control that reads as text, and a cell of a flush bar, still have a shape (the owner, 19 Nov: "this rectangle when
    clicking looks weird ... give it some space to breathe ... consistent curvature"). The press above is a fill of the
@@ -199,7 +199,7 @@ body.stage-full .stg-grip{display:none}
 :where(.iq-done):where(:active:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background-color:color-mix(in srgb,var(--ink) 76%,var(--canvas))!important}
 /* Stop, a stone disc: it presses a step deeper than its hover (app.css, .send.is-stop) */
 :where(.send.is-stop):where(:active:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background-color:color-mix(in srgb,var(--ink) 18%,var(--stop))!important}
-:is(.fl-r,.fl-sec,.shd-tab,.ar,.stg-tab,.syl-ln,.then-i,.jump-list li,.iq-row,.set-nav button,.tb-h,.md-from,.md-pin,.ck-tog):focus-visible{outline-offset:-2px;outline-color:var(--ring-in,var(--focus))}
+:is(.fl-r,.fl-sec,.shd-tab,.ar,.stg-tab,.then-i,.jump-list li,.iq-row,.set-nav button,.tb-h,.md-from,.md-pin,.ck-tog):focus-visible{outline-offset:-2px;outline-color:var(--ring-in,var(--focus))}
 .md-it{overflow:visible}
 .md-th{border-radius:calc(var(--r-lg) - 1px) calc(var(--r-lg) - 1px) 0 0}
 .scroller .wsh-home:focus-visible{outline-offset:1px}

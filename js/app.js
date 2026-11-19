@@ -62,6 +62,7 @@ import { initCreate } from "../modules/create-project/create.js";
 import { classify, glyph, TOPICS } from "../modules/projects/projicons.js";
 import { createShells } from "./shells/dock.js";
 import { createRecord } from "./recordview.js";
+import { drawSections } from "../modules/home/sections.js";
 import { greeting, today } from "./skeleton.js"; // Home's shell, drawn before this module graph arrives
 import { arrive, still, EASE, MOVE } from "./motion.js";
 import { wireGestures, dockGestures } from "./gestures.js";
@@ -268,7 +269,7 @@ wireDragOut($("#msgs"));
 const SH = createShells({ PROJ, announce, notify: (h) => heraldShow(h, 6000), onChange: () => schedule(), wanted: () => SHAPE.on("xo:dock/shells") });
 CAP.terminal = () => SH.available;
 // a project's record: Since you left, Made, Recently made
-const REC = createRecord({ world, go: (v) => go(v), VW, PROJ, schedule: () => schedule(), announce, mark: (t) => threadMark(t, { lead: true }) });
+const REC = createRecord({ world, go: (v) => go(v), VW, PROJ, schedule: () => schedule(), announce, mark: (t) => threadMark(t, { lead: true }), places: kernel.places });
 REC.view = () => S.view;
 /** A Shell button for the top bar: a count when shells already run there (it opens their list then). */
 
@@ -798,9 +799,7 @@ function homeRender(needs) {
   } else if (P0.later.length) then = `<div class="then-foot solo"><button type="button" class="hm-quiet is-later" data-fid="bring" data-bring>${ICON.clock}${P0.later.length} later today <span>bring back</span></button></div>`;
   patch($("#hm-then"), then);
   landed($("#hm-then"));
-  // since you were away: one quiet line per project that moved (the 2026-11-04 card stays removed), then made
-  patch($("#hm-since"), REC.homeSinceLines(needs));
-  REC.homeMade($("#hm-made"));
+  drawSections(kernel.places, $("#hm-body"), { needs, patch }); // Since you left, then Recently made
 
   endRender(P0, working);
   SV.homeOrder($("#hm-body")); // the shape's order for Home (xo:home/*)

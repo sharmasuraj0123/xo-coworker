@@ -2492,11 +2492,8 @@ a.vw-btn{text-decoration:none}
   .shd.is-half .shd-bar::before{top:var(--s-1)}
 }
 
-/* ── a project's record (js/recordview.js) ───────────────
-   Since you left: one card under a project's header after you've been away, and on Home.
-   Made: a sheet of what its threads shared, and Recently made on Home. */
+/* ── a project's record: Since you left's line under a project's header, and Made with Recently made on Home ── */
 .since{flex:none;padding:12px var(--hg);border-bottom:1px solid var(--line-faint)}
-i.t-amber{background:var(--warn)}i.t-blue{background:var(--info)}i.t-red{background:var(--err)}i.t-green{background:var(--accent-fill)}
 
 .all-btn.is-made{gap:7px}
 .all-btn.is-made svg{width:13px;height:13px;color:var(--accent)}

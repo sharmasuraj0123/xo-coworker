@@ -1,7 +1,7 @@
 // @ts-check
 
 // A project's icon from what it is about, offline: keywords scored against its name (weighted) and thread titles pick one of the 31 project topics, else the cube.
-import { xi, hasIcon } from "../../js/icon.js";
+import { xi, hasIcon } from "../../core/ui/icons/icon.js";
 
 // Order breaks ties (earlier wins); a name's keyword of 4+ letters also counts inside a run-together word ("agentadvisory").
 const CLASSES = [

@@ -54,7 +54,7 @@ await t("the Map draws its boxes, its head and a cursor's tag in place", () => {
   assert.match(m, /redraw\(c\.el\.querySelector\("\.dg-tag"\), tag\)/, "a cursor's tag");
 });
 await t("the other live regions draw in place: away line, Follow, decisions foot, Launchpad, the file's head, send, chip, counts", () => {
-  assert.equal((src("recordview.js").match(/if \(box\._h !== html\) \{ redraw\(box, html\);/g) || []).length, 1, "the away line");
+  assert.match(readFileSync(new URL("../modules/since/view.js", import.meta.url), "utf8"), /if \(box\._h !== html\) \{ redraw\(box, html\); box\._h = html; \}/, "the away line");
   assert.match(readFileSync(new URL("../shell/panel/panel.js", import.meta.url), "utf8"), /if \(fw\._h !== fh\) \{ redraw\(fw, fh\);/);
   assert.match(src("decide.js"), /redraw\(foot, F\.done \|\| F\.vig \? "" :/);
   const lp = src("launchpad.js");
