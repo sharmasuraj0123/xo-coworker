@@ -7580,11 +7580,13 @@
   },
   "js/app.js::functions::canBack": {
    "status": "planned",
-   "home": "core/platform router (history) + core/ui layers (app.js l.4648)"
+   "home": "core/platform router (history) + core/ui layers (app.js l.4648)",
+   "note": "its layers are now one list on the kernel's stack (shell/layers.js); the history part stays until the router moves"
   },
   "js/app.js::functions::stepBack": {
    "status": "planned",
-   "home": "core/platform router (history) + core/ui layers (app.js l.4652)"
+   "home": "core/platform router (history) + core/ui layers (app.js l.4652)",
+   "note": "its layers are now one list on the kernel's stack (shell/layers.js); the history part stays until the router moves"
   },
   "js/app.js::functions::armBack": {
    "status": "planned",

@@ -40,6 +40,7 @@ import { createMap } from "./map.js";
 import { createStage } from "./stage.js";
 import { createSide } from "../shell/rail/side.js";
 import { kernel } from "../shell/kernel.js";
+import { stackLayers } from "../shell/layers.js";
 import { faviconRender } from "../shell/favicon.js";
 import { createDrawer } from "../shell/phone.js";
 import { createLaunchpad } from "./launchpad.js";
@@ -4276,30 +4277,29 @@ function runGlobal(id) {
 }
 
 // ── the phone's own Back (Android's back gesture, Safari's edge swipe) ──────
-// The app keeps one history entry of its own while there is somewhere to go back to. Back then does
-// what Esc does (the top sheet, the viewer, Settings, the sidebar), then a thread's parent, then the
-// places you came through; with nothing left it lets the browser leave.
-const sheetsOpen = () => QO.isOpen || !jump.hidden || !keys.hidden || !allEl.hidden || RS.open || CREATE.isOpen() || IQ.isOpen || CH.setupOpen;
+// One history entry of the app's own while there's somewhere to go back to: Back closes the top-most open layer, then goes to a thread's parent, then the places you came through; with nothing left the browser leaves.
+const LAYERS = stackLayers(kernel.layers, [
+  { id: "create", open: () => CREATE.isOpen(), back: () => { CREATE.close(); } },
+  { id: "jump", open: () => !jump.hidden, back: () => { JUMP.close(); } },
+  { id: "intel", open: () => IQ.isOpen, back: () => { IQ.close(); } },
+  { id: "chat-setup", open: () => CH.setupOpen, back: () => { CH.closeSetup(); } },
+  { id: "runs", open: () => RS.open, back: () => { runsEscape(); } },
+  { id: "keys", open: () => !keys.hidden, back: () => { closeKeys(); } },
+  { id: "all", open: () => !allEl.hidden, back: () => { closeAll(); } },
+  { id: "lightbox", open: () => LB.isOpen, back: () => { LB.close(); }, overlay: false },
+  { id: "files-page", open: () => FP.isOpen, back: () => { STAGE.sections(); } },
+  { id: "panel-sheet", open: () => STAGE.isOpen && PHONE.matches, back: () => { STAGE.close(); } },
+  { id: "settings", open: () => !setEl.hidden, back: () => { closeSettings(); } },
+  { id: "shells", open: () => SH.raised, back: () => SH.lower() },
+  { id: "drawer", open: () => $("#app").classList.contains("drawer"), back: () => { setDrawer(false); } },
+  { id: "decisions", open: () => D.isOpen(), back: () => { D.close(); } },
+  { id: "quickopen", open: () => QO.isOpen, back: () => false },
+]);
 const placeOk = (v) => v === "home" || v === "ws" || v === "chats" || v === "artifacts" || (v.startsWith("p:") && !!world.project(v.slice(2))) || (v.startsWith("t:") && !!world.thread(v.slice(2))) || v.startsWith("c:");
-function canBack() {
-  return sheetsOpen() || LB.isOpen || FP.isOpen || (STAGE.isOpen && PHONE.matches) || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised || S.view !== "home" || S.trail.length > 0;
-}
+const canBack = () => LAYERS.open() || S.view !== "home" || S.trail.length > 0;
 /** One step back. False when there's nothing left in the app to go back to. */
 function stepBack() {
-  if (CREATE.isOpen()) { CREATE.close(); return true; }
-  if (!jump.hidden) { JUMP.close(); return true; }
-  if (IQ.isOpen) { IQ.close(); return true; }
-  if (CH.setupOpen) { CH.closeSetup(); return true; }
-  if (RS.open) { runsEscape(); return true; }
-  if (!keys.hidden) { closeKeys(); return true; }
-  if (!allEl.hidden) { closeAll(); return true; }
-  if (LB.isOpen) { LB.close(); return true; }
-  if (FP.isOpen) { STAGE.sections(); return true; }
-  if (STAGE.isOpen && PHONE.matches) { STAGE.close(); return true; }
-  if (!setEl.hidden) { closeSettings(); return true; }
-  if (SH.raised && SH.lower()) return true;
-  if ($("#app").classList.contains("drawer")) { setDrawer(false); return true; }
-  if (D.isOpen()) { D.close(); return true; }
+  if (kernel.layers.back()) return true;
   if (S.view.startsWith("t:") || S.view.startsWith("c:")) { back(); return true; }
   while (S.trail.length) {
     const v = S.trail.pop();
@@ -4330,7 +4330,7 @@ document.addEventListener("xo:gesture", armBack);
 // ── touch: gestures for the same moves (js/gestures.js), and the title back to the top ──
 wireGestures({
   phone: () => PHONE.matches,
-  overlay: () => sheetsOpen() || FP.isOpen || (STAGE.isOpen && PHONE.matches) || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised,
+  overlay: () => LAYERS.open({ overlay: true }),
   view: () => S.view,
   back,
   drawer: (open) => setDrawer(open),
