@@ -217,7 +217,7 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
     const live = f.live ? null : f;
     if (!live) { draw(s.key, { ...f, binary: false, patch_omitted: null }, null); note.textContent = "Being written now…"; return true; }
     const shown = D.key === s.key && D.path === f.path;
-    // never redraw under you; but what's drawn is shown again if picking another file hid it (A, then B while it was read, then A again: Files/Map grader on C085)
+    // never redraw under you; but what's drawn is shown again if picking another file hid it (A, then B while it was read, then A again)
     if (shown && !st.follow && D.patch && prevSel === st.sel) { showDrawn(f); return true; }
     // another file picked: the last diff goes at once and it says it's reading, except while this file's own draw is on its way.
     const coming = D.pend && D.pend.key === s.key && D.pend.path === f.path;
