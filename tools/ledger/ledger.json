@@ -7875,8 +7875,8 @@
    "home": "drop (history) (app.js l.1)"
   },
   "js/app.js::keys::Home": {
-   "status": "planned",
-   "home": "drop (history) (app.js l.3)"
+   "status": "deleted",
+   "reason": "drop (history) (app.js l.3)"
   },
   "js/app.js::keys::End": {
    "status": "planned",
@@ -9440,59 +9440,59 @@
    "home": "core/ui/a11y/focus.js"
   },
   "js/follow.js::exports::createFollow": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/follow.js::exports::fromLatest": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/follow.js::exports::fromTop": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/follow.js::exports::isPinned": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/follow.js::exports::toLatest": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/follow.js::exports::unpin": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/follow.js::exports::toRow": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/follow.js::exports::initFollow": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/follow.js::functions::createFollow": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/follow.js::functions::initFollow": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/follow.js::ids::scroller": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/follow.js::ids::column": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/follow.js::ids::msgs": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/follow.js::ids::dock": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/fuzzy.js::exports::score": {
@@ -12170,19 +12170,19 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/pacing.js::exports::SMALL_MIN": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/pacing.js"
   },
   "js/pacing.js::exports::PING_MIN": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/pacing.js"
   },
   "js/pacing.js::exports::createPacing": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/pacing.js"
   },
   "js/pacing.js::functions::createPacing": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/pacing.js"
   },
   "js/paid.js::exports::MODES": {
@@ -12266,11 +12266,11 @@
    "home": "core/services/world/paid.js"
   },
   "js/paidview.js::exports::paidHtml": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/cards/paid.js"
   },
   "js/paidview.js::functions::paidHtml": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/cards/paid.js"
   },
   "js/paths.js::exports::createPaths": {
@@ -15185,11 +15185,11 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/words.js::exports::wordsOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/words.js"
   },
   "js/words.js::functions::wordsOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/words.js"
   },
   "js/world.js::exports::STATES": {
@@ -16201,16 +16201,16 @@
    "home": "core/platform/tests/focusview.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/follow-instance.test.mjs::globals::matchMedia": {
-   "status": "planned",
-   "home": "modules/conversation/tests/follow-instance.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/conversation/tests/follow-instance.test.mjs"
   },
   "tests/follow-instance.test.mjs::globals::ResizeObserver": {
-   "status": "planned",
-   "home": "modules/conversation/tests/follow-instance.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/conversation/tests/follow-instance.test.mjs"
   },
   "tests/follow-instance.test.mjs::globals::document": {
-   "status": "planned",
-   "home": "modules/conversation/tests/follow-instance.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/conversation/tests/follow-instance.test.mjs"
   },
   "tests/keynav.test.mjs::globals::document": {
    "status": "planned",
@@ -16721,8 +16721,8 @@
    "home": "modules/files/tests/viewer-head-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/words.test.mjs::globals::getComputedStyle": {
-   "status": "planned",
-   "home": "modules/conversation/tests/words.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/conversation/tests/words.test.mjs"
   },
   "tests/xoicons.test.mjs::exports::ICON": {
    "status": "planned",
