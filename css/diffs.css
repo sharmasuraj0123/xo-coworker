@@ -40,7 +40,7 @@ diffs-container{
 .tb-cf .xd-n{margin-left:var(--s-1)}
 .tb-cf.is-on{background:color-mix(in srgb,var(--ink) 9%,var(--surface));border-color:var(--line-strong);color:var(--ink)}
 
-/* ── the panel's Changes (js/changesframe.js): the list, then the chosen file's diff ──
+/* ── the panel's Changes (modules/changes/frame.js): the list, then the chosen file's diff ──
    Rows are 32 px on the panel's 12 px side margins. Measured from the card's outer edge (its 1 px border
    included): the head's button, 28 px, sits 4 px in on top and right, so its radius is 12 − 4 = 8; the
    head is 1 + 3 + 28 + 3 = 35 px with its line, the path 12 px in, as the rows' icons are. */
@@ -213,7 +213,7 @@ diffs-container{
 :root[data-theme="light"] .vw-menu{box-shadow:var(--lift-3)}
 @media (prefers-reduced-motion:reduce){.vw-menu{animation:none}}
 
-/* an image change (js/imagechange.js): the image itself, fitted on a checkerboard (its transparent parts show
+/* an image change (modules/changes/imagechange.js): the image itself, fitted on a checkerboard (its transparent parts show
    as such), and a line under it: what changed, its size, what can't be shown. In the panel's pane and in
    Files' Changes view */
 .stage .cx-im{flex:1 1 0;min-height:0;display:flex;flex-direction:column}

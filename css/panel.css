@@ -361,7 +361,7 @@ body.stage-vsizing{cursor:row-resize;user-select:none}
 .fr[data-fr="map"] .dg{border-top:0}
 
 
-/* ══ Files, a page of the panel (js/filespage.js): the tree at a width you drag (or its rail), the file in the rest ══ */
+/* ══ Files, a page of the panel (modules/files/page.js): the tree at a width you drag (or its rail), the file in the rest ══ */
 .fv{flex:1;min-height:0;display:flex;flex-direction:column;min-width:0;background:var(--canvas);outline:none;--pe:12px;--pn:36px}
 .fv[hidden]{display:none}
 .fv-b{flex:1;min-height:0;display:flex}

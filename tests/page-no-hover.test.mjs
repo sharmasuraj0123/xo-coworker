@@ -1,4 +1,4 @@
-// The Markdown page (js/mdlive.js, css/docs.css) reads as a document: no control chrome on the editing surface or its
+// The Markdown page (modules/files/markdown-page.js, css/docs.css) reads as a document: no control chrome on the editing surface or its
 // drawn blocks when the pointer passes over them (the owner, 19 Nov 13:35Z: "what's with the hover border when i am in md
 // canvas?": a 1 px outline drawn on every table, formula and diagram on hover). A table cell you type in keeps its own
 // focus mark.

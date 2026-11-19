@@ -1,6 +1,6 @@
 // @ts-check
 
-// Unsaved edits, kept in this browser (Files › Edit, js/viewer.js).
+// Unsaved edits, kept in this browser until ⌘S saves them (js/viewer.js).
 
 /** @import { Store, Draft } from "./types.d.ts" */
 

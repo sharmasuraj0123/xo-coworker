@@ -1,4 +1,4 @@
-/* Files: a file you read and type in (js/viewer.js, js/doceditor.js, js/mdlive.js). One editor for every text file:
+/* Files: a file you read and type in (js/viewer.js, modules/files/editor.js, modules/files/markdown-page.js). One editor for every text file:
    code as code, Markdown as a page; the open files as tabs; the file's versions under its head. Built from the one
    scale (core/ui/tokens.css), soft corners everywhere. */
 
@@ -136,6 +136,6 @@
 /* a table's, formula's or diagram's drawing under its source while the caret is in it */
 .cm-md-block.is-preview{margin-top:4px;padding-top:8px;border-top:1px dashed var(--line);opacity:.92}
 
-/* ── a table you type in (js/mdlive.js TableWidget): each cell editable where it's drawn ── */
+/* ── a table you type in (modules/files/markdown-page.js TableWidget): each cell editable where it's drawn ── */
 .cm-md-table td,.cm-md-table th{cursor:text;outline:none}
 .cm-md-table td:focus,.cm-md-table th:focus{box-shadow:inset 0 0 0 1px var(--line-strong);background:var(--hover-fill)}

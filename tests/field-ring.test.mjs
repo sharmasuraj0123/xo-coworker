@@ -30,7 +30,7 @@ t("every bordered field (text inputs, textareas, selects, the dropdown's button)
   const out = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter(([, sel, body]) => !/:has\(/.test(sel) && /(^|[\s,(>])(input|textarea|select)\b[^,]*:focus/.test(sel) && /outline-offset:\s*[1-9]/.test(body)).map(([, sel]) => sel.trim().slice(0, 80));
   assert.deepEqual(out, [], "a field ringed outside its edge");
 });
-// the file's editor (CodeMirror, js/doceditor.js) draws no ring, around its box or over it: the caret is the mark (the
+// the file's editor (CodeMirror, modules/files/editor.js) draws no ring, around its box or over it: the caret is the mark (the
 // owner, 19 Nov 10:59Z: "this green highlight around the canvas looks horrendous. remove it.")
 t("a file you're typing in draws no ring", () => {
   assert.doesNotMatch(css, /#viewer:has\([^)]*cm-focused[^)]*\)::after/, "no ring over the file");

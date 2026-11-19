@@ -1,6 +1,6 @@
 // A file shows what it is now, never an older drawing of it. The editor is made per document (js/viewer.js drawText:
 // keyed by the document's key, its project and path, and whether it's a page or source) and shows the document's
-// live text; the document (js/docs.js) takes the version each save answers, so the next save is sent against it,
+// live text; the document (modules/files/documents.js) takes the version each save answers, so the next save is sent against it,
 // whether or not Space says when (a save it couldn't log answers saved_at null: the controls grader's lead on
 // 4f5315a, C095, when a key of path, size and time kept an old drawing). No browser.
 //   node tests/file-cache.test.mjs
