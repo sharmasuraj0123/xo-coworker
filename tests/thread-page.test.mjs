@@ -85,12 +85,15 @@ assert.match(app, /route: \(p\) => fileRoute\(p, conv\), by:/);
   assert.deepEqual(fr("a.md"), { project: "p", rel: "a.md" }, "no conversation named, nothing drawn: the main chat's");
   console.log("thread-page file chips: ok"); }
 
-// its ⋯: a shell, the branch's name, Stop; the rest on its own page
-assert.match(app, /data-tp-menu aria-haspopup="menu" aria-expanded="\$\{!!TP\.menu\}"/);
-assert.match(app, /item\(`data-tp-full="\$\{esc\(t\.id\)\}"`, `Rename, label\$\{t\.canDelete \? ", delete" : ""\}… \(its page\)`\)/);
-// its ⋯ answers a press (19 Nov 18:52Z: the listener went with a refactor and the button did nothing)
-assert.match(app, /const m = e\.target\.closest\?\.\("\[data-tp-menu\]"\);\n\s*if \(m\) \{ TP\.menu = !TP\.menu; \$\("#tphead"\)\._h = ""; render\(\);/);
-assert.match(app, /if \(TP\.menu\) \{ TP\.menu = false; \$\("#tphead"\)\._h = ""; schedule\(\); \}\n\}, true\);/, "a click elsewhere closes it");
+// its ⋯ is THE thread menu (the owner, 19 Nov 18:59Z): the full header's, opened in the page; its hover and keys
+// (menuKeys on the page's head), drawn in the click; a choice acts there or goes to its own page with it started
+assert.match(app, /data-tmenu="\$\{esc\(t\.id\)\}" data-tmenu-in="page" aria-haspopup="menu" aria-expanded="\$\{open\}"/);
+assert.match(app, /\$\{open \? threadMenuHtml\(t, "page"\) : ""\}/);
+assert.match(app, /menuKeys\(\$\("#tphead"\), \{ close: \(\) => closeThreadMenu\(\) \}\);/);
+assert.doesNotMatch(app, /tpMenuHtml|data-tp-menu|TP\.menu/, "no second menu");
+assert.match(app, /where === "page" \? item\(`data-tp-full="\$\{esc\(t\.id\)\}"`, "Open as its own page"\) : item\(`data-tside="\$\{esc\(t\.id\)\}"`, "Open beside its project's chat"\)/);
+assert.match(app, /render\(\); \/\/ drawn now, in the click/);
+assert.doesNotMatch(app.slice(app.indexOf("function tpHead("), app.indexOf("\n}\n", app.indexOf("function tpHead("))), /tp-full/, "one ⤢: the panel's own");
 console.log("thread-page menu: ok");
 
 // its composer has files (the paperclip, a paste, a drop on the page) and its model chip, the chat's own code
