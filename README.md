@@ -28,7 +28,7 @@ A web UI for the XO Space **projects chat** backend (`/api/projects-chat/*`). It
 - **Stone and glass**: the chrome is stone (neutral, crisp, shadowless; controls 32 px with 6 px corners), the work is glass (soft bubbles, vivid pictures). One scale for everything in `core/ui/tokens.css`: 8 type sizes with whole-pixel line heights and tracking by size, 3 weights, radii 6 · 12 · 20 · 22, one floating elevation, one motion curve (a hover engages in 120 ms and releases in 200, a press in 60; nothing overshoots), three lights (green done, blue working, amber needs you). Icons outside the sidebar draw one 1.5 px line at any size. Documents in Files read in a serif. `tests/design-budget.test.mjs` fails the build when a stylesheet strays from the scale. The left sidebar keeps its own look (the owner's decision).
 - Light and dark themes. Geist type and the XO palette, with XO green as the accent. Motion honours reduced-motion settings.
 
-Plain HTML, CSS and vanilla ES modules: no build step and no CDN. The app needs nothing installed to run; `package.json` holds only dev-only checkers (types, lint), installed with `npm ci` for `node tools/check.mjs`. Rules for working here: `AGENTS.md`.
+Plain HTML, CSS and vanilla ES modules: no build step and no CDN. The app needs nothing installed to run; `package.json` holds only dev-only tools (types, lint, and linkedom, the DOM some unit tests run in), installed with `npm ci`. Rules for working here: `AGENTS.md`.
 
 ## Start
 
@@ -86,7 +86,7 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
     runtimes XO may use, starting elsewhere at a limit, and how coordinators choose.
   - **A usage limit:** one card per runtime (decided with `move` or `wait`), shown in Needs you and at the end of each thread waiting on it. Those threads' headers read "Waiting for … until …".
   - A coordinator's steer, interrupt or stop on a thread shows as one quiet row (`thread.control`).
-- **Open thread:** polled every 4 s while its agent is busy and every 15 s otherwise. "Working" means the session is actually busy: storm's `busy` (on a turn, or a sub-agent working on after it), kept live between reads by the same rule from the stream's session status, `run.*` events and `runs` counts (`timeline.js` `sessionBusy`). Waiting on you is never Working. An idle one reads "Idle".
+- **Open thread:** polled every 4 s while its agent is busy and every 15 s otherwise. "Working" means the session is actually busy: storm's `busy` (on a turn, or a sub-agent working on after it), kept live between reads by the same rule from the stream's session status, `run.*` events and `runs` counts (`timeline.js` `sessionBusy`). Waiting on you is never Working. An idle one reads "Waiting".
 - **Coordinator messages:** storm keeps what a coordinator and a thread write each other as hops (`GET /chats/{chat}/hops?thread=`, the text in `note`), not as messages. A thread shows them in place: the coordinator's brief, follow-ups and answers as its messages, the thread's own questions as a quiet "Asked the coordinator" line, and your messages they cite. A hop that arrives on the stream has no note, so the open thread reads its hops again.
 - **Asks:** a thread waiting on you is titled from its agent's last message. You answer in words, as a thread reply.
 - **Since you left and Made:** each place (Home, a project) remembers per browser when you last
@@ -113,7 +113,7 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
     reconnect (with backoff; none after 4404, 4403 or 4429, too many viewers, which is said in words), `pause`/`resume` from xterm's write callbacks (100 KB / 10 KB).
   - Inside a shell every key is the shell's (Esc, Ctrl+K…) except the toggle (`` mod+` ``). Ctrl+Shift+C / V copy and paste.
 
-**The backend does not have these yet**, so the UI hides or degrades them (see `docs/requirements.md`):
+**The backend does not have these yet**, so the UI hides or degrades them:
 - approvals with an approve/deny route (R2);
 - stopping a running agent;
 - resolving a thread from the UI (R1);
@@ -128,8 +128,8 @@ The app is a small kernel, a few layers of shared code, and modules that plug in
 |---|---|
 | `core/kernel/` | Holds modules together without knowing any feature: places, activation, undo of everything a module registers, the bus, batched redraws, the layer stack. It imports nothing. |
 | `core/platform/` | Browser plumbing: requests, streams, keys, touch, time words, small helpers. |
-| `core/ui/` | Drawing that every view shares. |
-| `core/services/` | The data layer: the world the views render, storm's stream and writes, the shape, paths, notices, runtimes. No DOM, so it is tested from Node. |
+| `core/ui/` | What every view draws with: the tokens and the foundation sheet, icons, markdown, motion, redraw in place, accessibility helpers, shared components, the lightbox. |
+| `core/services/` | The data layer: the world the views render, storm's stream and writes, the shape, paths, notices, runtimes. It draws nothing, so it is tested from Node. |
 | `shell/` | The frame around everything: the rail, the right panel and its pages, the phone layout, one layer stack for Esc, Back, inert and Tab, and the catalogue of places. |
 | `modules/*/` | One feature per folder, such as Settings, search or create project. |
 | `apps-host/` | Installed apps: their manifests, sandboxed frames, the bridge to their tools, Settings › Apps. |
@@ -141,17 +141,17 @@ Outside the app:
 
 | Folder | What lives there |
 |---|---|
-| `tests/` | Unit tests for code still in `js/` and `css/`. Moved code keeps its tests beside it, in `core/*/tests/`, `shell/tests/`, `modules/*/tests/` and `apps-host/tests/`. |
+| `tests/` | Unit tests that have not moved beside their code yet, and their helpers in `tests/lib/`. Moved tests live in `core/*/tests/`, `shell/tests/`, `modules/*/tests/` and `apps-host/tests/`. |
 | `e2e/` | The fast UI lane: the real app in headless Chromium against a fake Space on a seeded store, asserted with accessibility-text snapshots. |
 | `tests/browser/` | The older Playwright suites, run only when the owner asks. |
-| `tools/` | `check.mjs` and its baselines, the file ledger, the OpenAPI snapshot, and the scripts that vendor CodeMirror and Pierre's diffs and build the icon set. |
+| `tools/` | `check.mjs` and its baselines, the file ledger, the places catalogue's generator, the OpenAPI snapshot, and the scripts that vendor CodeMirror and Pierre's diffs and build the icon set. |
 | `presets/` | The presets (Build software, Make content and campaigns), served as static files until Storm serves them. |
 | `assets/`, `fonts/` | Icons and the Geist faces. |
 
 ## Checks and tests
 
 ```sh
-npm ci                           # once, and whenever package.json changes: the dev-only checkers
+npm ci                           # once, and whenever package.json changes: the dev-only tools
 node tools/check.mjs             # before a merge: lint, types, ratchets, comments, layers, places, ledger, then every unit test
 node tools/check.mjs --fast      # the same without the tests; the pre-commit hook runs it
 node tools/check.mjs --update-baselines   # lower the baselines to what the code is now; they never rise
