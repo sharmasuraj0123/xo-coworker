@@ -38,7 +38,7 @@ assert.match(stage, /const sectionsNeed = \(\) => \{ const tg = threads \? threa
 assert.match(stage, /\$\{sectionsNeed\(\) \? '<i class="pg-dot" aria-hidden="true"><\/i>' : ""\}/);
 // widths: a page's own, kept per kind, 480 up to the window less READ
 assert.match(stage, /const PAGE_MIN = 480;/);
-assert.match(stage, /const clampP = \(w\) => Math\.round\(Math\.max\(PAGE_MIN, Math\.min\(innerWidth - READ, w\)\)\);/);
+assert.match(stage, /const clampP = \(w\) => \(innerWidth <= 760 \? innerWidth : Math\.round\(Math\.max\(PAGE_MIN, Math\.min\(innerWidth - READ, w\)\)\)\);/, "a phone's page is its sheet's width");
 assert.match(stage, /localStorage\.setItem\(`\$\{W_KEY\}:\$\{S\.page\.name\}`, String\(v\)\)/);
 // the bar: tabs from two pages on, ‹ first
 assert.match(stage, /role="tab" aria-selected="\$\{on\}" data-stg-tab="\$\{esc\(t\.name\)\}" data-stg-key="\$\{esc\(t\.key\)\}"/);

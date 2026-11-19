@@ -2768,6 +2768,8 @@ STAGE.page("thread", {
   unmount: () => tpUnmount(),
   // a reply being written is kept (its draft), so closing never loses it: nothing to ask
   canClose: () => true,
+  // Esc in its composer leaves the field first (the draft stays); the next Esc goes back to the sections
+  escape: () => { if (TP.K && document.activeElement === TP.K.say) { TP.K.say.blur(); TP.C.scroller.focus({ preventScroll: true }); return true; } return false; },
 });
 /** The thread page's head: its state, its runtime and branch, Open full width. */
 function tpHead(t) {

@@ -780,7 +780,8 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   // less READ for the conversation beside it, the width you dragged it to kept per page kind
   const PAGE_MIN = 480;
   const pageSpecW = () => (S.page && PAGES.get(S.page.name)?.width) || 0;
-  const clampP = (w) => Math.round(Math.max(PAGE_MIN, Math.min(innerWidth - READ, w)));
+  // (a phone: the panel is its full-screen sheet, so a page is the window's width)
+  const clampP = (w) => (innerWidth <= 760 ? innerWidth : Math.round(Math.max(PAGE_MIN, Math.min(innerWidth - READ, w))));
   const pageW = () => { let v = 0; try { v = Number(localStorage.getItem(`${W_KEY}:${S.page.name}`)) || 0; } catch { v = 0; } return clampP(v || pageSpecW()); };
   const widthNow = () => (pageSpecW() ? pageW() : S.wide && !wMine && innerWidth - sideW() - WIDE >= READ ? Math.max(clampW(wSaved), clampW(WIDE)) : clampW(wSaved));
   function apply() {
