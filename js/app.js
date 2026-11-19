@@ -4644,8 +4644,10 @@ addEventListener("keydown", (e) => {
   // a key that works anywhere, by one rule (js/keys.js globalFor: the one Settings checks a key against): with ⌘/Ctrl
   // it works everywhere, even while typing (C118: only four actions' were answered here, so a ⌘/Ctrl key Settings
   // took for All shortcuts or Write did nothing)
-  const g = K.globalFor(e);
-  if (g && K.hasMod(g) && runGlobal(g)) { e.preventDefault(); return; }
+  // A key the field you're typing in already took stays the field's: ⌘B in a Markdown page makes bold and doesn't
+  // also fold the tree (the editor's keymap answers first, and says so with preventDefault)
+  const g = K.globalFor(e), taken = e.defaultPrevented && K.typing(e);
+  if (g && K.hasMod(g) && !taken && runGlobal(g)) { e.preventDefault(); return; }
   if (!jump.hidden) { if (e.key === "Escape") { e.preventDefault(); closeJump(); } return; }
   if (IQ.isOpen) { if (e.key === "Escape") { e.preventDefault(); IQ.close(); } return; }
   if (CREATE.isOpen()) return;

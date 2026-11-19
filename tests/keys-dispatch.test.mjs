@@ -69,9 +69,19 @@ t("⌥ alone (it types a character of its own) is refused for an Anywhere action
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 t("the page asks the one rule, not a list of its own", () => {
   assert.doesNotMatch(app, /for \(const id of \["jump", "intel", "shells", "map"\]\)/, "the four-action list is gone");
-  assert.match(app, /const g = K\.globalFor\(e\);\s*if \(g && K\.hasMod\(g\) && runGlobal\(g\)\)/, "⌘/Ctrl keys: the one rule, everywhere");
+  assert.match(app, /const g = K\.globalFor\(e\), taken = e\.defaultPrevented && K\.typing\(e\);\s*if \(g && K\.hasMod\(g\) && !taken && runGlobal\(g\)\)/, "⌘/Ctrl keys: the one rule, everywhere but a key the field took");
   assert.match(app, /const s = K\.globalFor\(e, \{ typing: false \}\);\s*if \(s && !K\.hasMod\(s\) && runGlobal\(s\)\)/, "symbol keys: the one rule, not while typing");
   assert.match(app, /function runGlobal\(id\) \{[\s\S]*?chatFold[\s\S]*?treeFold[\s\S]*?GLOBAL\[id\]\(\);/, "every Anywhere action runs from it, the folds included");
   for (const id of ["jump", "intel", "write", "keys", "shells", "map"]) assert.match(app, new RegExp(`^  ${id}: \\(\\) =>`, "m"), `GLOBAL.${id}`);
+});
+t("a ⌘/Ctrl key the field took stays the field's: ⌘B in a Markdown page bolds, it doesn't fold the tree", () => {
+  // mdlive's keymap answers Mod-b first (CodeMirror preventDefaults what it runs); the page sees it taken
+  assert.match(readFileSync(new URL("../js/mdlive.js", import.meta.url), "utf8"), /\{ key: "Mod-b", run: wrap\("\*\*"\) \}/);
+  K.resetAll();
+  const ed = { matches: (q) => q.includes("[contenteditable]") }, e = { ...keydown("mod+b"), defaultPrevented: true, target: ed, composedPath: () => [ed] };
+  assert.equal(K.globalFor(e), "treeFold", "⌘B is still the tree's key");
+  assert.equal(K.typing(e), true, "the editor is a field");
+  // outside a field (or a field that let the key go), ⌘B folds the tree as before
+  assert.equal(K.typing({ ...e, target: {}, composedPath: () => [{ matches: () => false }] }), false);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
