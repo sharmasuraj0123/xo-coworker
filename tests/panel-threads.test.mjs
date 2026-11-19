@@ -47,4 +47,18 @@ const block = css.slice(css.indexOf("── Threads (the frame that was Agents)"
 assert.ok(block.length > 100);
 assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, ""), /\b\d+(\.\d+)?(px|rem|ms)\b/, "no literal sizes");
 
+// Threads above Changes (the owner, 19 Nov 13:42Z): the order, the lines between, the rail; files arriving open Changes
+assert.match(stage, /const ORDER = \["agents", "changes", "map"\];/);
+assert.ok(stage.indexOf('frame("agents", "Threads"') < stage.indexOf('frame("changes", "Changes"'), "Threads is drawn first");
+assert.match(stage, /gutter\("agents", "changes"\)/); assert.match(stage, /gutter\("changes", "map"\)/);
+assert.match(stage, /if \(S\.chEmpty === true && !empty && fr\.changes\.folded\) \{ fr\.changes\.folded = false; persist\(\); \}/);
+
+// the agent's mark, quiet: under the row's time, small, in the panel and in All threads alike
+{ const a = stage.indexOf('<span class="ag-tm"><span class="ag-when">'), b = stage.indexOf('<span class="ag-mk">${r.mark}</span>'); assert.ok(a > 0 && b > a, "the mark sits under the time, in the right column"); }
+assert.doesNotMatch(stage, /<b>\$\{r\.mark/, "not before the title");
+assert.match(app, /<span class="ar-a"><span>\$\{esc\(short\(t\.lastAt\)\)\}<\/span>\$\{threadMark\(t\) \? `<span class="ar-mk">/);
+assert.doesNotMatch(app, /<span class="ar-tl">\$\{threadMark/, "not before All threads' title");
+assert.match(readFileSync(new URL("../css/tokens.css", import.meta.url), "utf8"), /--mark-sm:var\(--s-3\);/);
+assert.match(css, /\.stage \.ag-mk \.agm\{width:var\(--mark-sm\);height:var\(--mark-sm\)/);
+
 console.log("panel-threads: ok");

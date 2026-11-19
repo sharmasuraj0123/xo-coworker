@@ -2,7 +2,8 @@
 // 4 November): no tab strip, but frames one above the other, each with its own 40 px head,
 // each folding to that head, the line between two frames dragged to give one of them room.
 //
-//   · Changes, on top: every file the place changed with its +/− counts, then the chosen file's diff
+//   (Threads on top, then Changes, then the Map: the owner, 19 Nov 13:42Z.)
+//   · Changes: every file the place changed with its +/− counts, then the chosen file's diff
 //     (js/changesframe.js, from Space's /changes; the owner's design, 5 November). It follows the agent
 //     until you touch it. Where Space has no /changes yet, today's list (js/files.js changes()), whose
 //     rows open the file in Files. "All files" opens Files on its own.
@@ -33,7 +34,7 @@ import { setTheme as diffTheme } from "./diffview.js";
 import { LP_ICON } from "./launchpad.js";
 
 const KEY = "xo-stage";
-const FR_KEY = "xo-stage-frames-3"; // Changes · Threads · Map, the Map folded at first (the order before it kept "-2")
+const FR_KEY = "xo-stage-frames-3"; // Threads · Changes · Map, the Map folded at first (the order before it kept "-2")
 const PANEL_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="M14.5 4.5v15"/><path d="M17 8.5h1.5M17 11.5h1.5"/></svg>';
 const FULL_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>';
 const UNFULL_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14h6v6M20 10h-6V4M10 14l-7 7M14 10l7-7"/></svg>';
@@ -52,7 +53,7 @@ const ago = (ms) => { if (!Number.isFinite(ms)) return ""; const s = Math.max(0,
  * re-renders (header buttons). frames(): the frames the person's shape keeps (xo:panel/*), of "changes",
  * "agents", "map"; the order stays the panel's own, since each line between two frames sizes a known pair.
  */
-const ORDER = ["changes", "agents", "map"];
+const ORDER = ["agents", "changes", "map"];
 const MAP_H = 260, MAP_MIN = 72;
 // Agents is sized in whole rows, never a row cut in half: up to AG_ROWS by default, 1–8 as the line above
 // it is dragged; a row and the gap under it are ROW px (css/panel.css, .stage .ag-r)
@@ -80,11 +81,11 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   const gutter = (a, b) => `<div class="fr-gut" role="separator" aria-orientation="horizontal" aria-label="Resize ${a} and ${b}" data-gut="${a}|${b}" tabindex="0"></div>`;
   el.innerHTML = `<div class="stg-grip" role="separator" aria-orientation="vertical" aria-label="Resize the panel" title="Drag to resize · double-click for the default" tabindex="0"></div>` +
     `<header class="stg-bar"><div class="stg-t"></div><div class="stg-acts"><button type="button" class="stg-ic" data-stg-full></button><button type="button" class="stg-ic" data-stg-close aria-label="Close the panel" title="Close (Esc)">${ICON.close}</button></div></header>` +
-    `<div class="stg-rail" aria-label="Panel, folded"><button type="button" class="stg-ic" data-rail="launch" title="Launchpad">${LP_ICON.rocket}</button><button type="button" class="stg-ic" data-rail="changes" title="Changes">${CHANGES_IC}</button><button type="button" class="stg-ic" data-rail="agents" title="Threads">${ICON.threadOne}</button><button type="button" class="stg-ic" data-rail="map" title="Map">${mapIcon}</button></div>` +
+    `<div class="stg-rail" aria-label="Panel, folded"><button type="button" class="stg-ic" data-rail="launch" title="Launchpad">${LP_ICON.rocket}</button><button type="button" class="stg-ic" data-rail="agents" title="Threads">${ICON.threadOne}</button><button type="button" class="stg-ic" data-rail="changes" title="Changes">${CHANGES_IC}</button><button type="button" class="stg-ic" data-rail="map" title="Map">${mapIcon}</button></div>` +
     `<div class="stg-frames">` +
     `<section class="fr fr-lp is-folded" data-fr="launch" aria-labelledby="fr-title-launch" hidden><header class="fr-h"><h2 class="fr-title" id="fr-title-launch">Launchpad</h2><span class="lp-hs"></span><div class="fr-a"><span class="lp-ha"></span><button type="button" class="fr-ib fr-fold" data-fr-fold="launch" aria-expanded="false" title="Open">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-launch" tabindex="-1"></div><div class="fr-ghosts" role="group" aria-label="Under Launchpad"></div></section><div class="fr-line" data-lp-line hidden></div>` +
-    frame("changes", "Changes", `<button type="button" class="xd-follow" data-follow hidden></button><button type="button" class="fr-ib" data-open-files title="All files">${FILES_IC}</button>`) + gutter("changes", "agents") +
-    frame("agents", "Threads", `<button type="button" class="fr-ib" data-switch aria-haspopup="dialog" aria-expanded="false" title="Find a thread" aria-label="Find a thread">${ICON.search}</button>`) + gutter("agents", "map") +
+    frame("agents", "Threads", `<button type="button" class="fr-ib" data-switch aria-haspopup="dialog" aria-expanded="false" title="Find a thread" aria-label="Find a thread">${ICON.search}</button>`) + gutter("agents", "changes") +
+    frame("changes", "Changes", `<button type="button" class="xd-follow" data-follow hidden></button><button type="button" class="fr-ib" data-open-files title="All files">${FILES_IC}</button>`) + gutter("changes", "map") +
     frame("map", "Map", `<div class="fr-views" role="tablist" aria-label="Map view"><button type="button" class="fr-t" role="tab" id="stage-map-tree" aria-controls="fr-body-map" data-map-mode="tree">Diagram</button><button type="button" class="fr-t" role="tab" id="stage-map-graph" aria-controls="fr-body-map" data-map-mode="graph">Graph</button></div>`) +
     `</div>`;
   $("#main").appendChild(el);
@@ -130,8 +131,8 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     // element in it (6,900 with a diff open) on each fold
     LPF.classList.toggle("is-open", S.lp);
     pressDeploy();
-    el.querySelector('[data-gut="changes|agents"]').hidden = !(on("changes") && (on("agents") || on("map")));
-    el.querySelector('[data-gut="agents|map"]').hidden = !(on("agents") && on("map"));
+    el.querySelector('[data-gut="agents|changes"]').hidden = !(on("agents") && (on("changes") || on("map")));
+    el.querySelector('[data-gut="changes|map"]').hidden = !(on("changes") && on("map"));
     for (const id of ORDER) {
       const f = el.querySelector(`[data-fr="${id}"]`), folded = !!fr[id].folded;
       // covered by an open Launchpad: out of the accessibility tree (an attribute no style reads, so nothing restyles;
@@ -209,8 +210,9 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
       const mark = r.state === "working" ? '<i class="arc"></i>' : r.state === "needs" ? `<i class="ag-wait ag-need">${ICON.diamond}</i>` : r.state === "done" ? `<i class="ag-wait ag-done">${ICON.check}</i>` : "";
       return `<li><button type="button" class="ag-r${r.state === "working" || r.state === "needs" ? "" : " is-idle"}${r.on ? " is-on" : ""}"${r.on ? ' aria-current="page"' : ""} data-go="${esc(r.go)}" aria-label="${esc(`${r.title}. ${r.word}`)}">` +
         `<span class="ag-ic"${r.color ? ` style="--c:${esc(r.color)}"` : ""} aria-hidden="true">${r.coord ? ICON.project : ICON.threadOne}${mark}</span>` +
-        `<span class="ag-t"><b>${r.mark || ""}${esc(r.title)}</b><span class="ag-activity"><span class="ag-doing">${r.subHtml || esc(r.sub || r.word)}</span></span></span>` +
-        `<span class="ag-tm">${r.since ? `<span class="elapsed" data-since="${r.since}">${ago(r.since)}</span>` : esc(r.at || "")}</span></button></li>`;
+        `<span class="ag-t"><b>${esc(r.title)}</b><span class="ag-activity"><span class="ag-doing">${r.subHtml || esc(r.sub || r.word)}</span></span></span>` +
+        // the right column: the time on the title's line, the agent's mark small under it on the summary's line
+        `<span class="ag-tm"><span class="ag-when">${r.since ? `<span class="elapsed" data-since="${r.since}">${ago(r.since)}</span>` : esc(r.at || "")}</span>${r.mark ? `<span class="ag-mk">${r.mark}</span>` : ""}</span></button></li>`;
     };
     return `<ul class="ag-list tg-list">${groups.map((x) => {
       const folded = !!g[x.k], n = x.rows.length, cap = more[x.k] ? Infinity : SHOW[x.k] ?? 5;
@@ -263,7 +265,11 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     cxHost.hidden = !hd; old.hidden = !!hd;
     if (!hd && !S.lp) { const ch = files.changes(v); set("changes", old, changesHtml(ch)); }
     const empty = hd ? !hd.count : !files.changes(v).length;
-    if (S.chEmpty !== empty) { S.chEmpty = empty; layout(); }
+    if (S.chEmpty !== empty) {
+      // files arriving open Changes under Threads (the owner, 19 Nov 13:42Z); a fold you made since stays
+      if (S.chEmpty === true && !empty && fr.changes.folded) { fr.changes.folded = false; persist(); }
+      S.chEmpty = empty; layout();
+    }
     // the Map's Diagram | Graph only while the Map is open; its fold opens it
     { const mv = el.querySelector('[data-fr="map"] .fr-views'); if (mv) mv.hidden = !!fr.map.folded; }
     const n = el.querySelector('[data-fr-n="changes"]');
@@ -540,7 +546,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
         // past that, the line goes on moving: the Map under Agents takes the room or gives it (the owner, 6 Nov:
         // with one agent at work the line above Agents didn't move at all, while the Map's did)
         // (what the rows' snapping left the line ahead of the pointer is taken off first, so it stays under it)
-        if (!fr.agents.folded && ((d > 0 && was >= top) || (d < 0 && was <= 1)) && mapSizes()) {
+        if (b === "map" && !fr.agents.folded && ((d > 0 && was >= top) || (d < 0 && was <= 1)) && mapSizes()) {
           const t = acc + d;
           if (Math.sign(t) === Math.sign(d)) { acc = 0; const h = fr.map.h || MAP_H; sizeMap(t); past += t - ((fr.map.h || MAP_H) - h); layout(); } else acc = t;
           return;
