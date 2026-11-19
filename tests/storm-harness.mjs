@@ -95,7 +95,7 @@ export const settle = (ms = 80) => new Promise((r) => setTimeout(r, ms));
 
 /** A world on the fake backend, past its boot; its events are kept in order. */
 export async function boot(be, { seq = 1, turns = [] } = {}) {
-  const { createWorld } = await import("../js/world.js");
+  const { createWorld } = await import("../core/services/world/store.js");
   const world = createWorld();
   /** @type {any[]} */
   const events = [];

@@ -2,7 +2,7 @@
 import { fakeBackend, boot, until, settle, fire, intervals, thread, runner } from "./storm-harness.mjs";
 
 const { t, done, assert } = runner();
-const { createWorld } = await import("../js/world.js");
+const { createWorld } = await import("../core/services/world/store.js");
 
 t("boot: the stream opens first, nothing is read until its first frame, then everything is read", async () => {
   const be = fakeBackend();

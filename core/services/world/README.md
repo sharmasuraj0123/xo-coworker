@@ -1,9 +1,10 @@
 # core/services/world
 
-The world's pure parts: no page, no network.
+The world the views render (`store.js`: `createWorld`, on storm), and its pure parts: no page, no network.
 
 | File | What it does |
 |---|---|
+| `store.js` | `createWorld()`: the state, `subscribe`, `onEvent` (the last 200 kept in `state.activity`), `act` (storm's), and the `thread`, `project` and `waiting` selectors. |
 | `turns.js` | Storm's turns and their blocks, built only from stream frames, so a turn looks the same watched live or read from history. |
 | `hops.js` | A hop's state only moves on (sent → delivered → answered): a merge keeps the further one. |
 | `paid.js` | Paid usage: the founder's modes, which one holds for an account, the account rows, the paid-usage question. |

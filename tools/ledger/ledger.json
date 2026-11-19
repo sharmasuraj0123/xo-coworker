@@ -4104,8 +4104,12 @@
    "home": "modules/conversation/words.js"
   },
   "js/world.js": {
-   "status": "planned",
-   "home": "core/services/world/store.js"
+   "status": "split",
+   "home": [
+    "core/services/world/store.js",
+    "core/platform/util.js (esc)"
+   ],
+   "note": "js/world.js re-exports the store and keeps esc until core/platform/util.js takes it"
   },
   "js/xoicons.js": {
    "status": "planned",
@@ -15685,11 +15689,11 @@
    "reason": "nothing imports it"
   },
   "js/world.js::exports::WAITING": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/store.js"
   },
   "js/world.js::exports::createWorld": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/store.js"
   },
   "js/world.js::exports::ago": {
@@ -15698,10 +15702,10 @@
   },
   "js/world.js::exports::esc": {
    "status": "planned",
-   "home": "core/services/world/store.js"
+   "home": "core/platform/util.js (one esc: util.js has its own)"
   },
   "js/world.js::functions::createWorld": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/store.js"
   },
   "js/world.js::functions::ago": {
@@ -15710,7 +15714,7 @@
   },
   "js/world.js::functions::esc": {
    "status": "planned",
-   "home": "core/services/world/store.js"
+   "home": "core/platform/util.js (one esc: util.js has its own)"
   },
   "js/xoicons.js::exports::XI": {
    "status": "planned",
