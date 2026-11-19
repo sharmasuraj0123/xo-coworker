@@ -1,4 +1,4 @@
-// node modules/artifacts/tests/cards.test.mjs: a made card is made once and then updated in place, the same node under a press, its pin and age changing.
+// node modules/artifacts/tests/cards.test.mjs: a made card is made once and then updated in place, the same nodes as its pin changes.
 import assert from "node:assert/strict";
 import { dom } from "../../../tests/lib/dom.mjs";
 
