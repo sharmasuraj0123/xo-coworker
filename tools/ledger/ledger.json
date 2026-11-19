@@ -6270,12 +6270,8 @@
    "reason": "the export only: nothing imported it; the constant stays where requests use it"
   },
   "js/api.js::exports::READ_MS": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "the export only: nothing imported it; the constant stays where requests use it"
   },
   "js/api.js::exports::request": {
    "status": "split-region",
