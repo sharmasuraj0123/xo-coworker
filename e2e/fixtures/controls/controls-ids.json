@@ -841,14 +841,6 @@
    "key": "button[data-rec-got]",
    "aliases": []
   },
-  "S092": {
-   "key": "button[data-rec-more]",
-   "aliases": []
-  },
-  "S093": {
-   "key": "button[data-made-open]",
-   "aliases": []
-  },
   "S094": {
    "key": "button[data-made-pin]",
    "aliases": []

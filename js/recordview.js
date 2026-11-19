@@ -18,7 +18,7 @@
 // "Seen" is the backend's per chat when it has it (the later of it and this browser's), else this
 // browser's; the thread's `summary` and `git` state make the card's words exact when they're there.
 //
-// app.js calls: placeOf, leave, projectSince, homeSinceHtml, homeMade, madeCount, jumpItems, and
+// app.js calls: placeOf, leave, sinceLine, homeSinceLines, homeMade, madeCount, jumpItems, and
 // the panel's Made tab (made: mount, show, count); `panel` is set to the panel once it exists.
 
 import { syncList, fadeImage, setHtml, setText } from "./motion.js";
@@ -35,7 +35,6 @@ import { skTile, bar as skBar, rememberedMade } from "./skeleton.js";
 
 const PINS = "xo-made-pins";
 const TREES_MS = 60000;     // worktrees read at most this often per chat
-const LINES = 6;            // a card's lines before "+N more"
 const RECENT = 6;           // Recently made on Home
 
 const KIND_IC = { image: ICON.image, page: ICON.globe, doc: ICON.doc, data: ICON.list, code: ICON.edit, link: ICON.arrow, branch: ICON.branch };
@@ -61,7 +60,6 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
   const seen = R.createSeen(localStorage);
   const since = new Map();        // place → when you'd last looked, if you were away long enough; null: nothing to say
   const done = new Set();         // places whose card you dismissed in this page
-  const more = new Set();         // places whose card shows every line
   const trees = new Map();        // chat id ("" for all) → {at, loading, map: thread ts → worktree}
   let pins = new Set();
   try { pins = new Set(JSON.parse(localStorage.getItem(PINS) || "[]")); } catch { /* private mode */ }
@@ -113,7 +111,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
   document.addEventListener("visibilitychange", () => {
     const v = currentView();
     if (document.hidden) { hiddenAt = Date.now(); const p = v && placeOf(v); if (p) markPlace(p); return; }
-    if (hiddenAt && Date.now() - hiddenAt >= R.AWAY_MS) { since.clear(); done.clear(); more.clear(); schedule(); }
+    if (hiddenAt && Date.now() - hiddenAt >= R.AWAY_MS) { since.clear(); done.clear(); schedule(); }
   });
   addEventListener("pagehide", () => { const v = currentView(); const p = v && placeOf(v); if (p) markPlace(p); });
   let currentView = () => null;
@@ -135,45 +133,6 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
 
   // ── Since you left ──────────────────────────────────────────────────────
   function needingSet(needs) { return new Set(needs.filter((n) => n.admitted && !n.later).map((n) => n.t.id)); }
-
-  function gitHtml(git) {
-    return git.word ? `<span class="syl-git g-${git.group}">${esc(git.word)}</span>` : "";
-  }
-  function cardHead(place, s, counts, extra = "") {
-    const h = R.headline(counts);
-    return `<header class="syl-hd"><div class="syl-hw"><p class="syl-k">${ICON.clock}<span>Since you left · ${esc(R.sinceWord(s))}, ${esc(R.awayWord(s))} ago</span></p>` +
-      `<h2 class="syl-t">${esc(h.lead)} <em>${esc(h.tail)}</em></h2></div>` +
-      `<button type="button" class="syl-got" data-rec-got="${esc(place)}">Got it</button>${extra}</header>`;
-  }
-
-  /** The project's card, into #since (shown under the header, outside the scrolling conversation). */
-  function projectSince(pid, needs) {
-    const box = $("#since");
-    const place = pid ? "p:" + pid : null;
-    const s = place ? arrive(place) : null;
-    if (!place || s == null || done.has(place)) { box.hidden = true; if (box._h) { box.innerHTML = ""; box._h = ""; } return; }
-    const p = world.project(pid);
-    const map = p && p.chatId ? treesFor(p.chatId) : new Map();
-    const cu = R.catchUp(threadsIn(pid), { since: s, needing: needingSet(needs), trees: map });
-    if (!cu.total) { box.hidden = true; box.innerHTML = ""; box._h = ""; return; }
-    const all = more.has(place);
-    let left = all ? Infinity : LINES;
-    let body = "";
-    for (const g of cu.groups) {
-      if (left <= 0) break;
-      const items = g.items.slice(0, left);
-      left -= items.length;
-      body += `<p class="syl-gh"><i class="t-${g.tone}" aria-hidden="true"></i>${esc(g.label)}${g.why ? `<span> · ${esc(g.why)}</span>` : ""}</p>` +
-        items.map(({ t, line, git }) => `<button type="button" class="syl-ln" data-go="t:${esc(t.id)}"><span class="syl-tt"><b>${mark(t)}${esc(t.title)}</b>${line ? `<small>${esc(line)}</small>` : ""}</span>${gitHtml(git)}<span class="syl-ch" aria-hidden="true">${ICON.right}</span></button>`).join("");
-    }
-    const hidden = cu.total - Math.min(cu.total, all ? cu.total : LINES);
-    const made = madeOf(pid).filter((m) => m.at > s).length;
-    const foot = [hidden > 0 ? `<button type="button" class="syl-more" data-rec-more="${esc(place)}">+${hidden} more</button>` : "",
-      made ? `<button type="button" class="syl-more is-made" data-made-open="${esc(pid)}">${ICON.spark}${made} ${made === 1 ? "thing" : "things"} made</button>` : ""].filter(Boolean).join("");
-    const html = `<section class="syl" aria-label="Since you left">${cardHead(place, s, cu.counts)}<div class="syl-b">${body}</div>${foot ? `<footer class="syl-f">${foot}</footer>` : ""}</section>`;
-    box.hidden = false;
-    if (box._h !== html) { redraw(box, html); box._h = html; } // in place: its buttons stay the same nodes as counts change
-  }
 
   /** The quiet form (the owner removed the card on 2026-11-04 and chose this one line on 2026-11-08): after
       AWAY_MS away, one line under a project's header, "Since Friday · 3 finished · 1 not pushed · 1 needs you",
@@ -207,27 +166,6 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
     if (!rows.length) return "";
     rows.sort((a, b) => b.at - a.at);
     return `<section class="sl-home" aria-label="Since you were away"><p class="sl-k">${ICON.clock}Since ${esc(R.sinceWord(s))}<button type="button" class="sl-x" data-rec-got="home" aria-label="Got it" title="Got it">${ICON.close}</button></p>${rows.slice(0, 5).map((r) => r.html).join("")}</section>`;
-  }
-
-  /** Home's card: one line per project that moved, its groups as counts. "" when there's nothing to say. */
-  function homeSinceHtml(needs) {
-    const s = arrive("home");
-    if (s == null || done.has("home")) return "";
-    const map = treesFor("");
-    const needing = needingSet(needs);
-    const total = {};
-    const rows = [];
-    for (const p of world.state.projects || []) {
-      if (!p || p.id === "workspace") continue;
-      const cu = R.catchUp(threadsIn(p.id), { since: s, needing, trees: map });
-      if (!cu.total) continue;
-      for (const [k, n] of Object.entries(cu.counts)) total[k] = (total[k] || 0) + n;
-      const chips = cu.groups.map((g) => `<span class="syl-chip"><i class="t-${g.tone}" aria-hidden="true"></i>${g.items.length} ${esc(g.label.toLowerCase())}</span>`).join("");
-      rows.push({ at: Math.max(...cu.groups.flatMap((g) => g.items.map((x) => x.t.lastAt))), html: `<button type="button" class="syl-ln is-p" data-go="p:${esc(p.id)}"><span class="syl-p">${esc(p.name || p.id)}</span><span class="syl-chips">${chips}</span><span class="syl-ch" aria-hidden="true">${ICON.right}</span></button>` });
-    }
-    if (!rows.length) return "";
-    rows.sort((a, b) => b.at - a.at);
-    return `<section class="syl is-home" aria-label="Since you left">${cardHead("home", s, total)}<div class="syl-b">${rows.map((r) => r.html).join("")}</div></section>`;
   }
 
   // ── Made ────────────────────────────────────────────────────────────────
@@ -820,10 +758,6 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
       if (got.contains(document.activeElement)) document.getElementById(p === "home" ? "home" : "scroller")?.focus({ preventScroll: true });
       done.add(p); markPlace(p); announce("Caught up"); schedule(); return;
     }
-    const mr = t.closest("[data-rec-more]");
-    if (mr) { more.add(mr.dataset.recMore); schedule(); return; }
-    const mo = t.closest("[data-made-open]");
-    if (mo && panel) { panel.open("made"); return; }
     const pin = t.closest("[data-made-pin]");
     if (pin) { togglePin(pin.dataset.madePin); return; }
     const f = t.closest("[data-made-file]");
@@ -840,7 +774,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
   });
 
   return {
-    placeOf, leave, projectSince, homeSinceHtml, sinceLine, homeSinceLines, homeMade, madeCount, jumpItems,
+    placeOf, leave, sinceLine, homeSinceLines, homeMade, madeCount, jumpItems,
     /** The newest file a thread made (not a branch): what its finished card offers to open. */
     latestOf: (tid, project) => madeOf(project || null).find((x) => x.tid === tid && x.kind !== "branch" && x.kind !== "link" && x.exists !== false) || null,
     /** The Artifacts page (a sidebar place): render() draws it; count() is what the sidebar shows. */

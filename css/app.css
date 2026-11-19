@@ -2496,45 +2496,7 @@ a.vw-btn{text-decoration:none}
    Since you left: one card under a project's header after you've been away, and on Home.
    Made: a sheet of what its threads shared, and Recently made on Home. */
 .since{flex:none;padding:12px var(--hg);border-bottom:1px solid var(--line-faint)}
-.since .syl{max-width:760px;margin:0 auto}
-.syl{border-radius:var(--r-xl);border:1px solid var(--line);background:var(--surface);box-shadow:var(--hairline);overflow:hidden;animation:sheet-in var(--d-in) var(--ease)}
-.syl-hd{display:flex;align-items:flex-start;gap:12px;padding:16px 16px 10px 20px}
-.syl-hw{flex:1;min-width:0}
-.syl-k{display:flex;align-items:center;gap:6px;margin-bottom:7px;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
-.syl-k svg{width:13px;height:13px}
-.syl-t{font:var(--fw-strong) var(--fs-2xl)/var(--lh-20) var(--sans);letter-spacing:var(--tr-20);color:var(--ink)}
-.syl-t em{font-style:normal;color:var(--ink-3)}
-.syl-got{flex:none;height:var(--h-ctl);padding:0 13px;border-radius:var(--r-sm);border:1px solid var(--line);color:var(--ink-2);font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
-.syl-got:hover{background:var(--fill-2);border-color:var(--line-strong);color:var(--ink)}
-.syl-got:active{transform:scale(.96)}
-.syl-b{max-height:min(46vh,420px);overflow-y:auto;padding:0 10px 8px;scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent}
-.syl-gh{display:flex;align-items:center;gap:8px;padding:10px 10px 5px;font:var(--fw-strong) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
-.syl-gh span{font-weight:var(--fw-regular);color:var(--ink-4)}
-.syl-gh i,.syl-chip i{flex:none;width:7px;height:7px;border-radius:50%;background:var(--ink-4)}
 i.t-amber{background:var(--warn)}i.t-blue{background:var(--info)}i.t-red{background:var(--err)}i.t-green{background:var(--accent-fill)}
-.syl-ln{display:grid;grid-template-columns:minmax(0,1fr) auto 16px;align-items:center;gap:14px;width:100%;min-height:var(--h-row-act);padding:6px 10px;border-radius:var(--r-sm);text-align:left;transition:background var(--d-hover) var(--ease)}
-.syl-ln:hover,.syl-ln:focus-visible{background:var(--fill-2)}
-.syl-tt{min-width:0}
-.syl-tt b{display:block;font:var(--fw-medium) var(--fs-md)/var(--lh-14) var(--sans);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.syl-tt small{display:block;margin-top:var(--s-1);font:var(--fw-regular) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.syl-git{font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--mono);color:var(--ink-3);white-space:nowrap}
-.syl-git.g-unsaved{color:var(--warn)}
-.syl-git.g-unpushed{color:var(--info)}
-.syl-git.g-unmerged{color:var(--info)}
-.syl-git.g-shipped{color:var(--accent)}
-.syl-ch{display:grid;place-items:center;color:var(--ink-4)}
-.syl-ch svg{width:14px;height:14px}
-.syl-f{display:flex;align-items:center;gap:6px;padding:8px 14px 12px;border-top:1px solid var(--line-faint)}
-.syl-more{display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 10px;border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-3)}
-.syl-more:hover{background:var(--fill-2);color:var(--ink)}
-.syl-more svg{width:13px;height:13px}
-.syl-more.is-made{color:var(--accent)}
-.syl.is-home{margin-top:14px}
-.syl.is-home .syl-b{padding-top:2px}
-.syl-ln.is-p{grid-template-columns:132px minmax(0,1fr) 16px}
-.syl-p{font:var(--fw-medium) var(--fs-md)/var(--lh-14) var(--sans);color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.syl-chips{display:flex;flex-wrap:wrap;gap:6px}
-.syl-chip{display:inline-flex;align-items:center;gap:6px;height:var(--h-sm);padding:0 9px;border-radius:999px;background:var(--fill-2);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-2)}
 
 .all-btn.is-made{gap:7px}
 .all-btn.is-made svg{width:13px;height:13px;color:var(--accent)}
@@ -2614,17 +2576,9 @@ i.t-amber{background:var(--warn)}i.t-blue{background:var(--info)}i.t-red{backgro
 @media (hover:none){.md-pin{opacity:1}}
 @media (max-width:760px){
   .since{padding:10px 12px}
-  .since .syl-b{max-height:26vh}
-  .since .syl-t{font-size:var(--fs-read)}
-  .syl-hd{padding:14px 12px 8px 16px}
-  .syl-ln{grid-template-columns:minmax(0,1fr) 16px}
-  .syl-ln .syl-git{grid-column:1;grid-row:2}
-  .syl-ln.is-p{grid-template-columns:minmax(0,1fr) 16px}
-  .syl-ln.is-p .syl-chips{grid-column:1}
   .md-grid.is-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
   .md-grid.is-strip .md-it:nth-child(n+5){display:none}
 }
-@media (prefers-reduced-motion:reduce){.syl{animation:none}}
 
 /* ── the Map (js/map.js), in the panel's Map frame: the folder as boxes on a dotted canvas, each agent a gliding cursor; blue working, amber waiting, green new ── */
 :root{--mw:clamp(420px,42vw,720px)
