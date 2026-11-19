@@ -1,8 +1,6 @@
-// An image in a place's changes (js/imagechange.js): which changes show as the image itself, and the words
-// under it. The owner, 6 Nov: an image in the panel's Changes said only "Binary file".
-//   node tests/imagechange.test.mjs
+// An image in a place's changes (modules/changes/imagechange.js): which changes show as the image itself, and the words under it.
 import assert from "node:assert/strict";
-import { isImageChange, imageWords, noRoute } from "../js/imagechange.js";
+import { isImageChange, imageWords, noRoute } from "../imagechange.js";
 
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };

@@ -24,7 +24,7 @@ import { api } from "./api.js";
 import { activityOf } from "../core/services/agent-activity.js";
 import { folderOf } from "../core/services/places.js";
 import { fileIcon, folderIcon } from "./fileicons.js";
-import { countsHtml } from "./changesframe.js";
+import { countsHtml } from "../modules/changes/frame.js";
 import { RUNS } from "./viewer.js";
 import { pointerFollows } from "./keynav.js";
 

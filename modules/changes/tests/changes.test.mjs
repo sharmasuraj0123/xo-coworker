@@ -1,8 +1,4 @@
-// What a place changed (js/changes.js) and the panel's Changes (js/changesframe.js): which place a view
-// reads, when it reads it again (once per finished agent edit, never per frame), the chips' mapping from an
-// agent's absolute path, a patch left out of the list, Space without the route, and Following's rules.
-// Fake fetch, no network, no browser.
-//   node tests/changes.test.mjs
+// What a place changed (modules/changes/store.js) and the panel's Changes (modules/changes/frame.js): which place a view reads, when it reads it again (once per finished…
 import assert from "node:assert/strict";
 
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
@@ -15,9 +11,9 @@ globalThis.fetch = async (url) => {
   const r = reply(u);
   return { ok: r.status < 300, status: r.status, statusText: "", type: "basic", text: async () => JSON.stringify(r.body) };
 };
-const { scopeOf, activityIn, createChanges, lineRef, fileRef } = await import("../js/changes.js");
-const { choose, newestHunkLine, countsHtml } = await import("../js/changesframe.js");
-const { createTurns } = await import("../core/services/world/turns.js");
+const { scopeOf, activityIn, createChanges, lineRef, fileRef } = await import("../store.js");
+const { choose, newestHunkLine, countsHtml } = await import("../frame.js");
+const { createTurns } = await import("../../../core/services/world/turns.js");
 
 let passed = 0;
 const t = async (name, fn) => {
