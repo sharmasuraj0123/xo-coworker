@@ -2310,11 +2310,9 @@
    "note": "the drag primitive is in core/platform/gestures.js; the app's gestures stay in js/gestures.js until the shell takes them"
   },
   "js/herald.js": {
-   "status": "split",
-   "home": [
-    "core/services/notices.js",
-    "shell (notice renderer)"
-   ]
+   "status": "moved",
+   "home": "core/services/notices.js",
+   "note": "every importer points at the new home; the line is drawn by app.js's heraldShow, which the shell takes"
   },
   "js/highlight.js": {
    "status": "planned",
@@ -9638,60 +9636,32 @@
    "home": "core/platform/gestures.js"
   },
   "js/herald.js::exports::OWN": {
-   "status": "split-region",
-   "home": [
-    "core/services/notices.js",
-    "shell (notice renderer)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/notices.js"
   },
   "js/herald.js::exports::createHerald": {
-   "status": "split-region",
-   "home": [
-    "core/services/notices.js",
-    "shell (notice renderer)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/notices.js"
   },
   "js/herald.js::exports::noticeFor": {
-   "status": "split-region",
-   "home": [
-    "core/services/notices.js",
-    "shell (notice renderer)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/notices.js"
   },
   "js/herald.js::exports::refusedNotice": {
-   "status": "split-region",
-   "home": [
-    "core/services/notices.js",
-    "shell (notice renderer)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/notices.js"
   },
   "js/herald.js::functions::createHerald": {
-   "status": "split-region",
-   "home": [
-    "core/services/notices.js",
-    "shell (notice renderer)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/notices.js"
   },
   "js/herald.js::functions::noticeFor": {
-   "status": "split-region",
-   "home": [
-    "core/services/notices.js",
-    "shell (notice renderer)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/notices.js"
   },
   "js/herald.js::functions::refusedNotice": {
-   "status": "split-region",
-   "home": [
-    "core/services/notices.js",
-    "shell (notice renderer)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/notices.js"
   },
   "js/highlight.js::exports::langOf": {
    "status": "planned",

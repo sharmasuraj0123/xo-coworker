@@ -71,7 +71,7 @@ import { createShapeStore } from "./shape.js";
 import { createShapeView, SHAPE_IC, UNKEPT } from "../modules/settings/shape-page.js";
 import { setWorkMode } from "./turnview.js";
 import { radioKeys, menuKeys } from "./keynav.js";
-import { createHerald, noticeFor, refusedNotice } from "./herald.js";
+import { createHerald, noticeFor, refusedNotice } from "../core/services/notices.js";
 import { regionRings } from "./ring.js";
 import { keepFocusInView, usable, hookOf } from "./focusview.js";
 
@@ -1966,17 +1966,17 @@ function tickElapsed() { for (const el of $$(".elapsed[data-since]")) { const t 
 setInterval(tickElapsed, 1000);
 
 // ── the dock line: one calm labelled line (no glow on the composer, ever) ───
-// the herald's lines (js/herald.js): made on first use (S is the app's state), so a line asked for while the app is
+// the herald's lines (core/services/notices.js): made on first use (S is the app's state), so a line asked for while the app is
 // still starting has it
 function HER() { return S._her || (S._her = createHerald({ state: S, schedule: () => schedule() })); }
 regionRings(); // the keyboard's ring over a file's or a change's region (js/ring.js)
 keepFocusInView(); // focus a script hands on is never left out of sight (js/focusview.js)
 function heraldShow(h, ms) { return HER().show(h, ms); }
-/** A message's own notice, set in place (on screen, or still waiting): see js/herald.js */
+/** A message's own notice, set in place (on screen, or still waiting): see core/services/notices.js */
 function heraldFor(mid, make, ms) { return HER().forMsg(mid, make, ms); }
 function heraldPut(h, ms) { return HER().put(h, ms); }
 function heraldNext() { return HER().next(); }
-/** A subject's notice that's no longer true goes, on screen or waiting (js/herald.js drop). */
+/** A subject's notice that's no longer true goes, on screen or waiting (core/services/notices.js drop). */
 function heraldDrop(mid) { return HER().drop(mid); }
 function heraldRender(needs) {
   const box = $("#herald");
@@ -2545,7 +2545,7 @@ function blockFor(dest) {
   return sendBlock(world.state, { timeline: !dest.thread, pid: dest.thread ? null : dest.pid || "workspace" });
 }
 /** A send the gate refused, before it went: said, and shown where the person is, as a message that didn't go
- *  (js/herald.js refusedNotice). Every refused path comes here: the composer, Chats, a Retry, a file's Tell and Ask
+ *  (core/services/notices.js refusedNotice). Every refused path comes here: the composer, Chats, a Retry, a file's Tell and Ask
  *  about this (the controls grader on d79d37e, S137: the refusal was only read out; the screen didn't change). */
 function refuse(block, kept = "your words are kept") {
   announce(`Not sent: ${block}. ${kept[0].toUpperCase()}${kept.slice(1)}.`);
