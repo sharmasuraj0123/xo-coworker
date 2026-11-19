@@ -111,3 +111,18 @@ console.log("thread-page files and model: ok");
   assert.doesNotMatch(a2, /\n\s+grader on 8aa58d3, C024[^\n]*\*\/\n/, "no stray comment ending voids the rule after it");
   assert.match(p2, /\.stage \.tp-thead\{--hg:var\(--s-4\)\}/);
   console.log("thread-page checklist gap: ok"); }
+
+// a Thread page that closes takes down what it hung on the page: msgx's document listeners, its timer, its quote button
+// and sheets, and the dock's ResizeObserver (closing and opening a thread added one more set each time)
+{ const mx = readFileSync(new URL("../js/msgx.js", import.meta.url), "utf8"), ap = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
+  const code = mx.replace(/\/\/[^\n]*/g, "");
+  const body = code.slice(code.indexOf("export function decorateConversation(E) {"));
+  assert.doesNotMatch(body.replace(/const onDoc = [^\n]*/, ""), /document\.addEventListener\(/, "every document listener goes through onDoc, so destroy() removes it");
+  assert.equal((body.match(/\bonDoc\("/g) || []).length, 5);
+  assert.match(body, /const tk = setInterval\(tick, 1000\); gone\.push\(\(\) => clearInterval\(tk\)\);/);
+  assert.match(body, /document\.body\.append\(qpop\); gone\.push\(\(\) => qpop\.remove\(\)\);/);
+  assert.match(body, /return \{ decorate, conv, msgs, destroy: \(\) => \{ while \(gone\.length\) gone\.pop\(\)\(\); \} \};/);
+  assert.match(ap, /TP\.deco = decorateConversation\(/);
+  assert.match(ap, /TP\.dockRO = new ResizeObserver\(/);
+  assert.match(ap, /TP\.follow\?\.destroy\(\); TP\.deco\?\.destroy\(\); TP\.dockRO\?\.disconnect\(\);/);
+  console.log("thread-page teardown: ok"); }

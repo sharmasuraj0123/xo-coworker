@@ -2768,10 +2768,11 @@ function tpMount(box) {
   box.addEventListener("drop", (e) => { if (![...(e.dataTransfer?.types || [])].includes("Files")) return; e.preventDefault(); e.stopPropagation(); addFiles(e.dataTransfer.files, TP.K); });
   // its model and effort: the thread's own session, the chat's picker
   TP.K.iq.addEventListener("click", () => { const sid = sessionOf(tpView()); if (IQ.isOpen) IQ.close(); else IQ.open(sid, TP.K.iq); });
-  decorateConversation({ conv: box, msgs: els.msgs, scroller: els.scroller, typing: $("#ttyping"), composer: TP.K.form, say: TP.K.say, send: TP.K.send, atList: null,
+  TP.deco = decorateConversation({ conv: box, msgs: els.msgs, scroller: els.scroller, typing: $("#ttyping"), composer: TP.K.form, say: TP.K.say, send: TP.K.send, atList: null,
     dock: els.dock, tdock: $("#tptdock"), herald: null, host: box, follow: TP.follow, isThread: () => true, view: tpView, onView: (fn) => TP.viewSubs.add(fn) });
   // the composer's height is the conversation's room at its foot (as #app's --dock-h is the main chat's)
-  new ResizeObserver(() => box.style.setProperty("--dock-h", `${Math.round(els.dock.offsetHeight)}px`)).observe(els.dock);
+  TP.dockRO = new ResizeObserver(() => box.style.setProperty("--dock-h", `${Math.round(els.dock.offsetHeight)}px`));
+  TP.dockRO.observe(els.dock);
   els.scroller.addEventListener("scroll", () => { if (!TP.scrollRaf) TP.scrollRaf = requestAnimationFrame(() => { TP.scrollRaf = 0; loadAhead(TP.C); }); }, { passive: true });
 }
 function tpShow(key, { focus = false } = {}) {
@@ -2789,9 +2790,10 @@ function tpShow(key, { focus = false } = {}) {
 }
 function tpUnmount() {
   if (TP.K) saveDraft(TP.K);
-  TP.follow?.destroy();
+  // everything it hung on the page goes with it (a page closed and opened again added a set each time)
+  TP.follow?.destroy(); TP.deco?.destroy(); TP.dockRO?.disconnect();
   world.act.watchSideThread?.(null);
-  Object.assign(TP, { box: null, C: null, K: null, tid: null, follow: null }); TP.viewSubs.clear();
+  Object.assign(TP, { box: null, C: null, K: null, tid: null, follow: null, deco: null, dockRO: null, dock: null }); TP.viewSubs.clear();
 
 }
 STAGE.page("thread", {
