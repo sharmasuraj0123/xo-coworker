@@ -94,7 +94,7 @@ const CLIPPERS = {
   ".att": ["inner", "a file on a message: its padding (6–10, 4 at its right) holds its buttons' ring"], ".m-files .tb-fb.is-img .tb-fi": ["decor", "a picture's thumbnail"],
   ".shd.is-half": ["inner", "a phone's Shells sheet: its tabs and list are placed (.shd-tabs, .shd-list)"], ".syl": ["inner", "a record: its lines are placed (.syl-b)"],
   ".md-it": ["inner", "a Made card: its ring a layer inside it (C013), its from line and pin inset"], ".md-th": ["decor", "a picture's thumbnail"], ".md-well": ["decor", "an Artifacts card's well, its page on it (no control inside)"], ".md-sheet": ["decor", "the page of the thing on that well: words, never a control"],
-  ".map": ["inner", "the Map: its head and toolbar pad their controls"], ".mp-sub": ["text", "the Map's sub-line"], ".dg": ["inner", "the diagram: the camera brings what the keyboard reaches into view with room (S208)"],
+  ".mp-sub": ["text", "the Map's sub-line"], ".dg": ["inner", "the diagram: the camera brings what the keyboard reaches into view with room (S208)"],
   ".stage": ["bars", "the side panel: every control in its bar draws its ring inside (C076)"], ".fr": ["bars", "a frame of the panel: every control in its head draws its ring inside (C076: Deploy, 36 tall in the 40 px head on a phone), its body is placed (.fr-b)"],
   ".fr[data-fr=\"map\"] .fr-b": ["inner", "the Map's frame: its host pads"], ".stage .fr[data-fr=\"changes\"] .fr-b": ["inner", "the changes frame: its list and pane are placed"],
   ".stg-t": ["text", "a tab's words"], ".ag-t": ["text", "an agent's name"], ".stage .ag-t": ["text", "an agent's name"], ".stage .cx-t": ["text", "a change's name"], ".stage .ch-copy": ["text", "a change's name and path"],
