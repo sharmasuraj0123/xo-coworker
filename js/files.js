@@ -26,6 +26,7 @@ import { fileIcon, folderIcon } from "./fileicons.js";
 import { countsHtml } from "./changesframe.js";
 import { RUNS } from "./viewer.js";
 import { pointerFollows } from "./keynav.js";
+import { rank, marked } from "./fuzzy.js";
 
 const WIDE = 600;       // the panel's width from which tree and file sit side by side (the panel goes to 720)
 const TOUCHED = 6;      // "Touched by agents" shows at most this many
@@ -90,7 +91,7 @@ export function newFileSay(n, dir, d, confirm = false) {
   return confirm || RUNS.test(dir ? `${dir}/${n}` : n) ? RUNS_SAY : null;
 }
 
-export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, onFold = null }) {
+export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, onFold = null, paths = null }) {
   const F = {
     host: null, view: "home", scope: { key: "all" }, pick: null, shown: false,
     dirs: new Map(),     // "<project>|<api path>" → {state, dirs, files, error, v (new with every change)}
@@ -240,6 +241,28 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     refocus(had, root);
   }
 
+  /** What Find finds: every file in the place (js/paths.js) ranked by a few letters (js/fuzzy.js), a row each, its
+   *  folder after its name; while the list is still being read, it says so. */
+  function drawFound(s) {
+    const root = T.groups.get("").el;
+    const e = paths.of({ project: s.project, base: s.base || "" });
+    const all = e.paths || [];
+    const hits = rank(all, F.q, 200);
+    const rows = hits.map((m) => {
+      const name = base(m.path), at = m.path.length - name.length, dir = m.path.slice(0, Math.max(0, at - 1));
+      return `<button type="button" class="fl-r is-found" style="--d:0" data-fl-file="${esc(m.path)}" title="${esc(m.path)}"><span class="fl-c fl-i">${fileIcon(name)}</span>` +
+        `<span class="fl-n">${marked(name, m.hits.filter((h) => h >= at).map((h) => h - at), esc)}</span><span class="fl-sz">${marked(dir, m.hits.filter((h) => h < dir.length), esc)}</span></button>`;
+    }).join("");
+    const note = e.state === "loading" ? `<p class="fl-note" role="status"><i class="spin" aria-hidden="true"></i>Reading the files… ${all.length ? `${all.length} so far` : ""}</p>`
+      : e.state === "error" ? `<p class="fl-note is-err" role="status">Couldn't read the files here.</p>`
+      : !hits.length ? `<p class="fl-note" role="status">No file matches “${esc(F.q.trim())}”</p>`
+      : e.truncated ? `<p class="fl-note">Among the first ${all.length} files</p>` : "";
+    const a = document.activeElement, had = a && root.contains(a) ? a : null;
+    redraw(root, rows + note);
+    T.groups = new Map([["", T.groups.get("")]]);
+    refocus(had, root);
+  }
+
   /** Bring a folder's group up to date, then the open folders inside it. */
   function sync(s, local, g, ctx) {
     const d = F.dirs.get(dkey(s, local));
@@ -269,7 +292,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
 
   function headHtml(s) {
     return `<div class="fl-crumb">${F.pick || (F.follow && F.viewKey === "all") ? `<button type="button" class="fl-up" data-fl-unpick title="Your projects">${BACK}</button>` : ""}<b>${esc(s.label)}</b>${s.sub ? `<small title="${s.base ? "A thread's own worktree: its branch" : ""}">${esc(s.sub)}</small>` : ""}</div>` +
-      `<div class="fl-find"><label class="fl-q"><span class="sr-only">Find a file</span>${ICON.search}<input data-fl-q placeholder="Find a loaded file" autocomplete="off" spellcheck="false"></label>` +
+      `<div class="fl-find"><label class="fl-q"><span class="sr-only">Find a file</span>${ICON.search}<input data-fl-q placeholder="Find a file" autocomplete="off" spellcheck="false"></label>` +
       `<button type="button" class="fl-add" data-fl-new="" title="New file" aria-label="New file in ${esc(s.label || "this folder")}">${NEW_IC}</button></div>`;
   }
   /** Above the tree: what this place changed (Space's /changes), every file with its counts, each opening on
@@ -314,7 +337,10 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     T.changed = cs && cs.state === "ok" ? cs.files.size : tl.length;
     // in place: the Changed or Touched row you opened (it gains is-on as its file opens) stays the same node and
     // keeps focus (the browser run, S063: it was replaced, and focus fell to the page)
-    const secs = tree.querySelector(".fl-secs"), sh = secHtml(s, tl);
+    const finding = !!(paths && F.q.trim());
+    const u = F.undo && (!F.undo.s || F.undo.s.key === s.key) ? F.undo : null;
+    const undoNote = u ? (u.err ? `<p class="fl-note is-err" role="alert">${esc(u.err)} <button type="button" class="fl-link" data-fl-undo>OK</button></p>` : `<p class="fl-note" role="status">Deleted ${esc(u.name)} <button type="button" class="fl-link" data-fl-undo>Undo</button></p>`) : "";
+    const secs = tree.querySelector(".fl-secs"), sh = undoNote + (finding ? "" : secHtml(s, tl));
     if (secs._h !== sh) { redraw(secs, sh); secs._h = sh; }
     const open = setOf(s.key), openIn = new Map();
     for (const p of open) { const at = parentOf(p); if (!openIn.has(at)) openIn.set(at, []); openIn.get(at).push(p); }
@@ -322,7 +348,9 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     const naming = NW.el && NW.el.contains(document.activeElement) ? NW.el.querySelector("input") : null;
     const onMore = !!M.btn && document.activeElement === M.btn;
     const sel = naming ? [naming.selectionStart, naming.selectionEnd] : null;
-    if (T.q !== ctx.q) { drawAll(s, ctx); T.q = ctx.q; } else sync(s, "", T.groups.get(""), ctx);
+    // finding: every file in the place that matches, best first (not only the folders read so far); cleared, the tree
+    if (finding) { drawFound(s); T.q = ctx.q; }
+    else if (T.q !== ctx.q) { drawAll(s, ctx); T.q = ctx.q; } else sync(s, "", T.groups.get(""), ctx);
     placeNew();
     if (naming && naming.isConnected && document.activeElement !== naming) { naming.focus({ preventScroll: true }); naming.setSelectionRange(...sel); }
     // the ⋯ follows its folder's row when that row was drawn anew
@@ -459,24 +487,32 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
   // Nowhere XO keeps (a project's .xo/): Space refuses a write there.
   const M = { btn: null, row: null, menu: null, from: null, dir: null };
   const canMake = (s, p) => !!s.project && !(!s.base && (p === ".xo" || p.startsWith(".xo/")));
+  /** Space can rename, move and delete here (its /paths answered: the newer Space, SPACE-CONTRACT.md §4.3–4.6). */
+  const ops = (s) => !!(paths && s && s.project && paths.of({ project: s.project, base: s.base || "" }).via === "paths");
+  const pathOfRow = (row) => (row ? row.dataset.flDir ?? row.dataset.flFile ?? null : null);
   const rowOf = (p) => T.groups.get(parentOf(p))?.el.querySelector(`:scope > [data-fl-dir="${CSS.escape(p)}"]`) || null;
   function moreAt(row) {
     const b = M.btn;
     // (the same row, its folder's rows redrawn in place: its has-more is the tree's, so it's put back)
     if (!b || (row === M.row && (!row || b.previousElementSibling === row))) { if (row && b) { row.classList.add("has-more"); b.style.top = `${row.offsetTop}px`; } return; }
     M.row?.classList.remove("has-more");
-    if (!row || !canMake(F.scope, row.dataset.flDir)) { M.row = null; b.remove(); return; }
+    if (!row || !canMake(F.scope, pathOfRow(row))) { M.row = null; b.remove(); return; }
     M.row = row;
     row.classList.add("has-more");
     row.after(b);
     b.style.top = `${row.offsetTop}px`;
-    b.dataset.flMore = row.dataset.flDir;
-    b.setAttribute("aria-label", `More for ${base(row.dataset.flDir)}`);
+    b.dataset.flMore = pathOfRow(row);
+    b.dataset.flKind = row.dataset.flDir != null ? "dir" : "file";
+    b.setAttribute("aria-label", `More for ${base(pathOfRow(row))}`);
   }
   function openMenu(btn) {
     const m = M.menu;
-    M.from = btn; M.dir = btn.dataset.flMore;
-    m.innerHTML = `<button type="button" role="menuitem" data-fl-mk>${NEW_IC}<span>New file</span></button><button type="button" role="menuitem" data-fl-cp>${ICON.copy}<span>Copy path</span></button>`;
+    M.from = btn; M.dir = btn.dataset.flMore; M.kind = btn.dataset.flKind || "dir";
+    const can = ops(F.scope), dir = M.kind === "dir";
+    m.innerHTML = (dir ? `<button type="button" role="menuitem" data-fl-mk>${NEW_IC}<span>New file</span></button>` : "") +
+      (dir && can ? `<button type="button" role="menuitem" data-fl-mkdir>${FOLDER_IC}<span>New folder</span></button>` : "") +
+      (can ? `<button type="button" role="menuitem" data-fl-rn><span>Rename or move…</span><kbd>F2</kbd></button><button type="button" role="menuitem" data-fl-del><span>Delete</span></button>` : "") +
+      `<button type="button" role="menuitem" data-fl-cp>${ICON.copy}<span>Copy path</span></button>`;
     m.hidden = false;
     btn.setAttribute("aria-expanded", "true");
     const r = btn.getBoundingClientRect(), w = m.offsetWidth, h = m.offsetHeight;
@@ -493,6 +529,9 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
   function wireMenu(m) {
     m.addEventListener("click", (e) => {
       if (e.target.closest("[data-fl-mk]")) { closeMenu(); startNew(M.dir); return; }
+      if (e.target.closest("[data-fl-mkdir]")) { closeMenu(); startNew(M.dir, "folder"); return; }
+      if (e.target.closest("[data-fl-rn]")) { closeMenu(); startNew(parentOf(M.dir), "rename", M.dir); return; }
+      if (e.target.closest("[data-fl-del]")) { closeMenu(); remove(M.dir, M.kind); return; }
       const cp = e.target.closest("[data-fl-cp]");
       // "Copied" only once the path is on the clipboard; refused, the item says so and the menu stays
       if (cp) { copyText(M.dir).then((ok) => { if (ok) { cp.innerHTML = `${ICON.check}<span>Copied</span>`; setTimeout(() => closeMenu(true), 600); } else { cp.innerHTML = `<span>Couldn't copy here</span>`; cp.title = COPY_REFUSED; } }); }
@@ -514,8 +553,10 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
   // go. Space's save with no version makes the file, empty, only if nothing has that name yet (409
   // file_exists); it can't make folders (404 folder_not_found), so a name is just a name. A path that runs
   // code (.git/…, .claude/…) says so first; Enter then makes it anyway (Space's confirm: "runs_code").
-  const NW = { key: null, dir: null, el: null, busy: false, confirm: false };
-  function startNew(dir) {
+  // mode: "file" (New file), "folder" (New folder), "rename" (Rename or move: from is the old path; a name with "/"
+  // moves it, folders made as needed)
+  const NW = { key: null, dir: null, el: null, busy: false, confirm: false, mode: "file", from: null };
+  function startNew(dir, mode = "file", from = null) {
     const s = F.scope;
     if (!canMake(s, dir)) return;
     endNew();
@@ -523,19 +564,23 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     const depth = dir ? dir.split("/").length : 0;
     const el = document.createElement("div");
     el.className = "fl-new"; el.setAttribute("data-own", ""); // the tree's own: a redraw of its folder leaves it first
-    el.innerHTML = `<div class="fl-new-r" style="--d:${depth}"><span class="fl-c fl-i">${fileIcon("")}</span><input data-fl-name aria-label="Name of the new file in ${esc(dir ? base(dir) : s.label || "this folder")}" placeholder="Name, e.g. notes.md" autocomplete="off" spellcheck="false" maxlength="255"></div>` +
+    const what = mode === "rename" ? `New name or path for ${esc(base(from))}` : mode === "folder" ? `Name of the new folder in ${esc(dir ? base(dir) : s.label || "this folder")}` : `Name of the new file in ${esc(dir ? base(dir) : s.label || "this folder")}`;
+    el.innerHTML = `<div class="fl-new-r" style="--d:${depth}"><span class="fl-c fl-i">${mode === "folder" ? FOLDER_IC : fileIcon(mode === "rename" ? base(from) : "")}</span><input data-fl-name aria-label="${what}" placeholder="${mode === "folder" ? "Folder name" : mode === "rename" ? "New name, or a path to move it" : "Name, e.g. notes.md"}" autocomplete="off" spellcheck="false" maxlength="1024"></div>` +
       `<p class="fl-new-say" style="--d:${depth}" role="status" hidden></p>`;
-    Object.assign(NW, { key: s.key, dir, el, busy: false, confirm: false });
+    Object.assign(NW, { key: s.key, dir, el, busy: false, confirm: false, mode, from });
     F.q = ""; // a search could hide the folder it goes in
     paint();
-    el.querySelector("input").focus({ preventScroll: true });
+    const inp = el.querySelector("input");
+    if (mode === "rename") inp.value = base(from);
+    inp.focus({ preventScroll: true });
+    if (mode === "rename") { const dot = inp.value.lastIndexOf("."); inp.setSelectionRange(0, dot > 0 ? dot : inp.value.length); }
     el.scrollIntoView({ block: "nearest" });
   }
   function endNew({ focus = false } = {}) {
     if (!NW.el) return;
     const dir = NW.dir;
     NW.el.remove();
-    Object.assign(NW, { key: null, dir: null, el: null, busy: false, confirm: false });
+    Object.assign(NW, { key: null, dir: null, el: null, busy: false, confirm: false, mode: "file", from: null });
     if (focus) (dir ? rowOf(dir) : F.host.querySelector("[data-fl-new]"))?.focus({ preventScroll: true });
   }
   /** The new file's row stays first in its folder's rows (a redraw of the folder puts it back); a folder
@@ -572,6 +617,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
   };
   async function makeNew() {
     if (!NW.el || NW.busy) return;
+    if (NW.mode !== "file") return makeOther();
     const s = F.scope, dir = NW.dir, inp = NW.el.querySelector("input"), n = inp.value.trim();
     const say = n ? nameSay(s, dir, n) : { err: true, words: "Give it a name" };
     if (say && say.err) { sayNew(say); return; }
@@ -605,6 +651,60 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     }
   }
 
+  /** A new folder, or a rename or move (Space's /files/mkdir, /files/rename): the folders read again, an open file follows. */
+  async function makeOther() {
+    const s = F.scope, dir = NW.dir, inp = NW.el.querySelector("input"), n = inp.value.trim().replace(/^\/+|\/+$/g, "");
+    if (!n || n.split("/").some((x) => !x || x === "." || x === "..")) { sayNew({ err: true, words: n ? "A name can't be that" : "Give it a name" }); return; }
+    const local = NW.mode === "rename" && n.includes("/") ? n : dir ? `${dir}/${n}` : n;
+    if (NW.mode === "rename" && local === NW.from) { endNew({ focus: true }); return; }
+    const mine = NW.el, mode = NW.mode, from = NW.from;
+    NW.busy = true; inp.readOnly = true; sayNew({ words: mode === "folder" ? "Making it…" : "Moving it…" });
+    try {
+      if (mode === "folder") await api.mkdirProject(s.project, apiRel(s, local));
+      else await api.renameProjectFile(s.project, apiRel(s, from), apiRel(s, local), NW.confirm ? "runs_code" : null);
+      if (NW.el !== mine) return;
+      endNew();
+      if (changes && changes.saved) changes.saved(s.project, apiRel(s, local));
+      if (mode === "rename") { const was = parentOf(from); if (was !== dir) await load(s, was, { again: true }); paths.changed({ project: s.project, base: s.base || "" }, { kind: "rename", path: local, old_path: from }); }
+      for (let p = parentOf(local); ; p = parentOf(p)) { if (p) setOf(s.key).add(p); if (!p) break; }
+      await load(s, parentOf(local), { again: true });
+      await load(s, dir, { again: true });
+      paint();
+      rowOf(local)?.focus({ preventScroll: true }) || F.host.querySelector(`.fl-g [data-fl-file="${CSS.escape(local)}"]`)?.focus({ preventScroll: true });
+    } catch (err) {
+      if (NW.el !== mine) return;
+      NW.busy = false; inp.readOnly = false;
+      if (err.status === 428) { NW.confirm = true; sayNew(RUNS_SAY); }
+      else sayNew({ err: true, words: err.status === 409 ? `${base(local)} is already there` : err.status === 404 ? "It isn't there any more" : makeWords(err, n) });
+      inp.focus({ preventScroll: true });
+    }
+  }
+  /** Delete: into XO Space's trash (never the project), with Undo here until the next one. */
+  async function remove(local, kind) {
+    const s = F.scope;
+    try {
+      const r = await api.deleteProjectFile(s.project, apiRel(s, local));
+      F.undo = { editId: r.edit_id, name: base(local), local, s };
+      if (kind === "dir") setOf(s.key).delete(local);
+      paths.changed({ project: s.project, base: s.base || "" }, { kind: "delete", path: local });
+      await load(s, parentOf(local), { again: true });
+      paint();
+      F.host.querySelector("[data-fl-undo]")?.focus({ preventScroll: true });
+    } catch (err) {
+      F.undo = { err: err.status === 428 ? "Git or an agent runs what's in it: delete it from a shell, or ask the agent" : err.status === 403 ? "XO keeps this: it can't be deleted here" : err.message || "Couldn't delete it", name: base(local) };
+      paint();
+    }
+  }
+  async function undoRemove() {
+    const u = F.undo;
+    if (!u || !u.editId) { F.undo = null; paint(); return; }
+    F.undo = null;
+    try { await api.undoProjectEdit(u.s.project, u.editId); } catch (err) { F.undo = { err: err.status === 409 ? `Something called ${u.name} is there now` : err.message || "Couldn't bring it back", name: u.name }; }
+    paths.changed({ project: u.s.project, base: u.s.base || "" }, { kind: "create", path: u.local });
+    await load(u.s, parentOf(u.local), { again: true });
+    paint();
+  }
+
   // ── input ─────────────────────────────────────────────────────────────────
   function wire(host) {
     host.addEventListener("click", (e) => {
@@ -614,6 +714,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       const mb = t.closest("[data-fl-more]");
       if (mb) { if (M.menu.hidden || M.from !== mb) openMenu(mb); else closeMenu(true); return; }
       if (t.closest("[data-fl-new]")) { startNew(""); return; }
+      if (t.closest("[data-fl-undo]")) { if (F.undo && F.undo.editId) undoRemove(); else { F.undo = null; paint(); } return; }
       const dirB = t.closest("[data-fl-dir]");
       if (dirB) {
         const p = dirB.dataset.flDir, open = setOf(F.scope.key);
@@ -649,14 +750,14 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     });
     host.addEventListener("input", (e) => {
       if (e.target.matches("[data-fl-q]")) { F.q = e.target.value; paint(); return; }
-      if (e.target.matches("[data-fl-name]") && NW.el) {
+      if (e.target.matches("[data-fl-name]") && NW.el && NW.mode === "file") {
         const n = e.target.value.trim();
         NW.el.querySelector(".fl-i").innerHTML = fileIcon(n);
         sayNew(nameSay(F.scope, NW.dir, n));
       }
     });
     // the ⋯ comes to the folder under the pointer, or the one with focus
-    const folderRow = (x) => (x && x.matches && x.matches(".fl-g > .fl-r.is-dir") ? x : null);
+    const folderRow = (x) => (x && x.matches && (x.matches(".fl-g > .fl-r.is-dir") || (ops(F.scope) && x.matches(".fl-g > .fl-r[data-fl-file]:not(.is-found)"))) ? x : null);
     host.addEventListener("pointerover", (e) => {
       if (!M.menu.hidden || e.target.closest(".fl-more")) return;
       const r = e.target.closest(".fl-r");
@@ -685,6 +786,9 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       if ((e.key === "ContextMenu" || (e.shiftKey && e.key === "F10")) && folderRow(document.activeElement)) {
         e.preventDefault(); moreAt(document.activeElement); if (M.row) openMenu(M.btn); return;
       }
+      // F2: rename (or move) the row with focus, as VS Code's explorer does
+      if (e.key === "F2" && folderRow(document.activeElement) && ops(F.scope)) { e.preventDefault(); const p = pathOfRow(document.activeElement); startNew(parentOf(p), "rename", p); return; }
+      if ((e.key === "Delete" || (e.metaKey && e.key === "Backspace")) && folderRow(document.activeElement) && ops(F.scope)) { e.preventDefault(); const r = document.activeElement; remove(pathOfRow(r), r.dataset.flDir != null ? "dir" : "file"); return; }
       if (e.key === "Escape" && e.target.matches("[data-fl-q]") && e.target.value) { e.preventDefault(); e.stopPropagation(); F.q = ""; e.target.value = ""; paint(); return; }
       if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
       const rows = [...host.querySelectorAll(".fl-tree .fl-r")];
@@ -712,6 +816,8 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
   }
 
   return {
+    /** Every file in the place was read further (js/paths.js): Find's list follows. */
+    pathsChanged() { if (F.q.trim()) paint(); },
     /** Once: draw inside the Files tab; the viewer moves in beside the tree. */
     mount(host) {
       F.host = host;
@@ -720,7 +826,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       const vw = document.getElementById("viewer");
       if (vw) host.querySelector(".fl-view").appendChild(vw);
       M.btn = document.createElement("button");
-      M.btn.type = "button"; M.btn.className = "fl-more"; M.btn.title = "New file, copy path"; M.btn.setAttribute("data-own", "");
+      M.btn.type = "button"; M.btn.className = "fl-more"; M.btn.title = "More: new, rename, delete, copy path"; M.btn.setAttribute("data-own", "");
       M.btn.setAttribute("aria-haspopup", "menu"); M.btn.setAttribute("aria-expanded", "false");
       M.btn.innerHTML = MORE_IC;
       M.menu = document.createElement("div");

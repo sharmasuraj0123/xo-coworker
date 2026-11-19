@@ -726,6 +726,10 @@ export function stormSource(state, emit, event) {
         soon();
         break;
       }
+      // a file changed on disk (Space's watcher and version store, SPACE-CONTRACT.md §3): the open file takes it in
+      case "file.version": case "file.version.attributed": case "file.rescan":
+        event({ kind: "file", type, data: d });
+        break;
       case "turn.started":
         // a turn under a session still said to be queued is work seen after it (timeline.js queuedButWorking):
         // the threads are rebuilt, so it reads Working (and its Stop shows) even before its status frame

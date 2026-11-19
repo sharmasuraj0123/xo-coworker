@@ -39,7 +39,9 @@ import { createMap, MAP_ICON } from "./map.js";
 import { createStage } from "./stage.js";
 import { createLaunchpad } from "./launchpad.js";
 import { createLpApi } from "./lpapi.js";
-import { createFiles, fileScope, localIn } from "./files.js";
+import { createFiles, fileScope, localIn, scopeOf as filesScopeOf } from "./files.js";
+import { createPaths } from "./paths.js";
+import { createQuickOpen } from "./quickopen.js";
 import { createFilesView } from "./filesview.js";
 import { createChanges, lineRef, fileRef } from "./changes.js";
 import { fileIcon } from "./fileicons.js";
@@ -209,12 +211,40 @@ const CHG = createChanges({ world, onChange: () => schedule() });
 const VW = createViewer({
   announce, onChange: () => schedule(), changes: CHG,
   ask: { target: (f) => askPlace(f)?.name || null, send: askAboutLines, compose: (f, a, b) => composeAbout(f, a, b), file: (f) => askAboutFile(f) },
-  // a save (Files › Edit): its place's changes are read again; Tell the agent is a message to its thread
-  edits: { saved: (f) => CHG.saved(f.project, f.rel), removed: (f) => { CHG.saved(f.project, f.rel); FILES.reread(f); }, tell: (f, s) => sendAbout(f, `I edited ${s.path}. Read it again before you change it.`) },
+  // each save (the file saves itself as you type): its place's changes are read again, once you pause
+  edits: { saved: (f) => savedSoon(f) },
+  // who made a version: an agent's thread, by its title
+  threadTitle: (ts) => world.thread(ts)?.title || null,
   away: () => { if (FILESV.sheet) return FILESV.escape(document.activeElement); if (!FILESV.docked) return false; FILESV.minimise(); return true; },
   // closed, with what opened it gone and nothing drawn in its place: where you'd carry on
   home: () => [$("#say"), placeRegion()].find(usable) || null,
 }); // a file, in Files (js/filesview.js)
+// saves come a second apart while you type: the place's changes are read again once they settle, not per save
+const savedT = new Map();
+function savedSoon(f) {
+  const k = `${f.project}|${f.rel}`;
+  clearTimeout(savedT.get(k));
+  savedT.set(k, setTimeout(() => { savedT.delete(k); CHG.saved(f.project, f.rel); }, 2500));
+}
+// a file changed on disk (Space's file.version): the open file takes it in, and the place's file list follows
+world.onEvent((e) => {
+  if (e.kind !== "file") return;
+  VW.fileChanged({ ...e.data, type: e.type });
+  const d = e.data || {}, m = /^(\.xo\/worktrees\/[^/]+)\/(.+)$/.exec(d.path || "");
+  if (d.project_id && (d.kind === "create" || d.kind === "delete" || d.kind === "rename")) {
+    PATHS.changed({ project: d.project_id, base: m ? m[1] : "" }, { kind: d.kind, path: m ? m[2] : d.path, old_path: d.old_path ? d.old_path.replace(/^\.xo\/worktrees\/[^/]+\//, "") : null });
+  }
+});
+// every file in a place (js/paths.js), for ⌘P and the tree's Find; ⌘P and ⌘⇧F themselves (js/quickopen.js)
+const PATHS = createPaths({ api, onChange: () => { QO.refresh(); FILES.pathsChanged && FILES.pathsChanged(); } });
+/** The place the view shows files of (a thread's worktree, a project's folder), or null. */
+const placeNow = () => { const s = filesScopeOf(S.view, { thread: (id) => world.thread(id), project: (id) => PROJ(id) }); return s.key === "all" ? null : { project: s.project, base: s.base || "", label: s.label + (s.sub ? ` · ${s.sub}` : "") }; };
+const QO = createQuickOpen({
+  paths: PATHS, api, place: placeNow, announce,
+  openFile: (rel, { line }) => VW.open({ path: rel, name: rel.split("/").pop(), project: placeNow().project, rel, ...(line ? { lines: [line, line] } : {}) }, null),
+  openFiles: () => VW.openFiles || [],
+  layer: { shown: () => syncInert(), hidden: () => syncInert() },
+});
 // a picture opens over the conversation (js/lightbox.js); Open in Files hands it to the viewer, which brings Files up
 const LB = createLightbox({ openFile: (it, from) => VW.open(viewerFile(it), from), announce });
 wireDragOut($("#msgs"));
@@ -290,7 +320,7 @@ const SORT_STATE = { needs_approval: 0, needs_reply: 0, paused: 0, failed: 1, wo
 const MAP = createMap({ world, viewer: VW, go: (v) => go(v, { panel: true }), announce, isBusy, onChange: () => schedule(), openFile: (f, from) => VW.open(f, from) });
 // the panel: one card on the right with tabs (Map, Made, File; later apps), one header button, ⌘\
 // Files: the project's files, and the one place a file opens (js/files.js, design-research/13)
-const FILES = createFiles({ world, viewer: VW, isBusy, PROJ, go: (v) => go(v), changes: CHG, onFold: (f) => FILESV.treeFolded(f) });
+const FILES = createFiles({ world, viewer: VW, isBusy, PROJ, go: (v) => go(v), changes: CHG, onFold: (f) => FILESV.treeFolded(f), paths: PATHS });
 // Files is a place in the main area (js/filesview.js); the panel is a stack of frames: Agents · Map · Changes
 const FILESV = createFilesView({ files: FILES, viewer: VW, view: () => S.view, PROJ, world, announce, onChange: () => schedule(), onDock: () => STAGE.sync() });
 // Launchpad (js/launchpad.js): Deploy in the header row of a project and a thread; its section tops the panel
@@ -3730,7 +3760,7 @@ jump.addEventListener("mousedown", (e) => { if (e.target === jump) closeJump(); 
 function syncInert() {
   // only what this set inert is released here: Files keeps its own inert parts (a railed or folded chat)
   const hold = (el, on) => { if (on && !el.inert) { el.inert = true; el.dataset.layerInert = ""; } else if (!on && "layerInert" in el.dataset) { el.inert = false; delete el.dataset.layerInert; } };
-  hold($("#app"), [jump, keys, allEl, runsEl].some((el) => !el.hidden));
+  hold($("#app"), [jump, keys, allEl, runsEl, QO.el].some((el) => !el.hidden));
   const settings = !setEl.hidden;
   for (const el of $("#main").children) if (el !== setEl && !el.classList.contains("toast-wrap")) hold(el, settings);
   // a phone: the sidebar is a drawer; closed, it is off screen and out of reach; open, it covers the main area
@@ -4032,6 +4062,7 @@ addEventListener("keydown", (e) => {
   if (CREATE.isOpen()) return;
   if (e.key === "Escape") {
     // the layer on top goes first: a sheet, then Settings (it covers the main area), then what it covers
+    if (QO.isOpen) { QO.close(); return; }
     if (RS.open) { runsEscape(); return; }
     if (!keys.hidden) { closeKeys(); return; }
     if (!allEl.hidden) { closeAll(); return; }
@@ -4059,6 +4090,9 @@ addEventListener("keydown", (e) => {
 function runGlobal(id) {
   if (id === "chatFold") return FILESV.chatKey();
   if (id === "treeFold") return FILESV.toggleTree();
+  // ⌘P, ⌘⇧F: only where the view has files (a project, a thread); elsewhere the browser keeps its keys
+  if (id === "quickOpen") return QO.isOpen ? (QO.close(), true) : QO.open("files");
+  if (id === "findInFiles") return QO.isOpen ? (QO.close(), true) : QO.open("text");
   if (!GLOBAL[id]) return false;
   GLOBAL[id]();
   return true;
@@ -4068,7 +4102,7 @@ function runGlobal(id) {
 // The app keeps one history entry of its own while there is somewhere to go back to. Back then does
 // what Esc does (the top sheet, the viewer, Settings, the sidebar), then a thread's parent, then the
 // places you came through; with nothing left it lets the browser leave.
-const sheetsOpen = () => !jump.hidden || !keys.hidden || !allEl.hidden || RS.open || CREATE.isOpen() || IQ.isOpen || CH.setupOpen;
+const sheetsOpen = () => QO.isOpen || !jump.hidden || !keys.hidden || !allEl.hidden || RS.open || CREATE.isOpen() || IQ.isOpen || CH.setupOpen;
 const placeOk = (v) => v === "home" || v === "ws" || v === "chats" || v === "artifacts" || (v.startsWith("p:") && !!world.project(v.slice(2))) || (v.startsWith("t:") && !!world.thread(v.slice(2))) || v.startsWith("c:");
 function canBack() {
   return sheetsOpen() || LB.isOpen || VW.isOpen || FILESV.isOpen || (STAGE.isOpen && PHONE.matches) || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised || S.view !== "home" || S.trail.length > 0;

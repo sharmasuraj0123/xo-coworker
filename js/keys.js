@@ -27,6 +27,8 @@ export const ACTIONS = [
   { id: "keys", scope: "global", label: "All shortcuts, on one sheet", def: "?" },
   { id: "shells", scope: "global", label: "Toggle shells", def: "mod+`" },
   { id: "map", scope: "global", label: "The map: where your agents are working", def: "mod+\\" },
+  { id: "quickOpen", scope: "global", label: "Go to a file in this place (type :120 for a line)", def: "mod+p" },
+  { id: "findInFiles", scope: "global", label: "Find text in this place's files", def: "mod+shift+f" },
   { id: "chatFold", scope: "global", label: "Beside a file: fold the chat, or open it and write", def: "mod+j" },
   { id: "treeFold", scope: "global", label: "Beside a file: fold or show the files", def: "mod+b" },
   { id: "esc", scope: "global", label: "Back, exactly where you were (a shell keeps Esc)", fixed: "Esc" },
@@ -53,8 +55,8 @@ export const ACTIONS = [
   { id: "nextChange", scope: "diff", label: "The next change", def: "j" },
   { id: "prevChange", scope: "diff", label: "The previous change", def: "k" },
   { id: "askLines", scope: "diff", label: "Ask about the lines selected in a file (Files)", fixed: "⌘L · Ctrl L" },
-  { id: "editFile", scope: "diff", label: "Edit the file (Files)", fixed: "E" },
-  { id: "saveFile", scope: "diff", label: "Save it (Files, editing)", fixed: "⌘S · Ctrl S" },
+  { id: "saveFile", scope: "diff", label: "Save now (a file saves itself a second after you stop typing)", fixed: "⌘S · Ctrl S" },
+  { id: "gotoLine", scope: "diff", label: "Go to a line (Files)", fixed: "⌃G" },
 ];
 const BY = new Map(ACTIONS.map((a) => [a.id, a]));
 

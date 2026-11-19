@@ -342,6 +342,22 @@ export const api = {
    */
   saveProjectFile: (project, relativePath, content, baseVersion, confirm) =>
     send("PUT", `/xo-projects/${enc(project)}/file`, { relative_path: relativePath, content, base_version: baseVersion, ...(confirm ? { confirm } : {}) }),
+  /**
+   * A file's versions, every writer's (Space's version store, SPACE-CONTRACT.md §4.1): {versions: [{id, n, version,
+   * at, by: {kind: ui|agent|disk, thread_ts?, message_id?}, kind, current}], head, more}. 404 on a Space without it.
+   */
+  projectVersions: (project, relativePath, { limit = 50, before = null } = {}) => get(`/xo-projects/${enc(project)}/versions`, { relative_path: relativePath, limit, ...(before ? { before } : {}) }),
+  /** Every file in a place (§4.6): {root, paths, dirs, truncated, stamp} or {unchanged} for the same stamp. */
+  projectPaths: (project, { worktree = null, stamp = null } = {}) => get(`/xo-projects/${enc(project)}/paths`, { ...(worktree ? { worktree } : {}), ...(stamp ? { stamp } : {}) }),
+  /** Text in a place's files (§4.7): {root, matches: [{path, line, col, text, ranges}], files, truncated, took_ms}. */
+  projectSearch: (project, { q, worktree = null, regex = false, case: cs = false, word = false, glob = null, limit = 500 } = {}) =>
+    get(`/xo-projects/${enc(project)}/search`, { q, ...(worktree ? { worktree } : {}), regex: String(!!regex), case: String(!!cs), word: String(!!word), ...(glob ? { glob } : {}), limit }),
+  /** Rename or move a file or folder (§4.3; the UI's writer key, serve.py): {relative_path, old_relative_path, kind, edit_id}. */
+  renameProjectFile: (project, relativePath, newRelativePath, confirm) => send("POST", `/xo-projects/${enc(project)}/files/rename`, { relative_path: relativePath, new_relative_path: newRelativePath, ...(confirm ? { confirm } : {}) }),
+  /** Delete a file or folder into Space's trash (§4.4): {edit_id, kind, count}; undoProjectEdit brings it back. */
+  deleteProjectFile: (project, relativePath, baseVersion, confirm) => send("POST", `/xo-projects/${enc(project)}/files/delete`, { relative_path: relativePath, ...(baseVersion ? { base_version: baseVersion } : {}), ...(confirm ? { confirm } : {}) }),
+  /** A new folder (§4.5). */
+  mkdirProject: (project, relativePath) => send("POST", `/xo-projects/${enc(project)}/files/mkdir`, { relative_path: relativePath }),
   /** Undo a save (Space's edit log): the file goes back to what it was before that save. */
   undoProjectEdit: (project, editId) => send("POST", `/xo-projects/${enc(project)}/edits/${enc(editId)}/undo`, {}),
   /**
