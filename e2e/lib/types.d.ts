@@ -8,6 +8,7 @@ export interface Seed {
   threadMessages?: Record<string, Row[]>;
   files?: Record<string, Record<string, string>>;
   routes?: Record<string, unknown>;
+  apps?: import("./apps.mjs").AppsSeed;
 }
 
 export interface Write { method: string; path: string; body: unknown; unknown?: boolean }
@@ -21,6 +22,7 @@ export interface Store {
   files: Record<string, Record<string, string>>;
   routes: Record<string, unknown>;
   statics: Record<string, unknown>;
+  apps: import("./apps.mjs").Apps;
   seq: number;
   writes: Write[];
   misses: string[];

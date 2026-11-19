@@ -1,8 +1,8 @@
 // @ts-check
 import { esc } from "../core/platform/util.js";
-import { checkManifest, permissionWords } from "./manifest.js";
+import { checkRow, permissionWords, capabilityWords } from "./manifest.js";
 
-/** @typedef {import("./manifest.js").Permission} Permission @typedef {import("./manifest.js").App} App @typedef {{ state?: string, granted?: string[], optional?: string[] }} ProjectGrant @typedef {{ id: string, name?: string, version?: string, state?: string, development?: boolean, previous?: string, error?: string, manifest?: unknown, manifest_sha?: string, projects?: Record<string, ProjectGrant> }} Row @typedef {{ staging_id: string, sha256: string, id: string, name?: string, version?: string, commit?: string, publisher?: string, development?: boolean, permissions?: { required?: Permission[], optional?: Permission[] }, routes?: Array<{ words?: string, routes?: string[] }>, secrets?: string[], warnings?: string[], size?: number }} Staged @typedef {{ mode: "list" | "install" | "sheet" | "app", rows: Row[], loading: boolean, error: string, busy: string, source: "git" | "path", staged: Staged | null, appId: string, grantFor: string, activity: Array<{ at?: string, what?: string, outcome?: string }> | null, values: Record<string, Record<string, unknown>> }} State @typedef {{ projects: Array<{ id: string, name: string }>, project?: string }} Ctx */
+/** @typedef {import("./manifest.js").Permission} Permission @typedef {import("./manifest.js").App} App @typedef {{ state?: string, permissions?: Array<{ cap: string }>, routes?: string[], manifest_sha?: string }} ProjectGrant @typedef {{ id: string, slug?: string, name?: string, version?: string, sha256?: string, state?: string, runtime?: unknown, development?: boolean, previous?: { version?: string } | null, error?: string, manifest?: unknown, projects?: Record<string, ProjectGrant>, pending?: Array<{ approval_id: string, action?: string, title?: string, project?: string | null }> }} Row @typedef {{ kind?: string, url?: string | null, ref?: string | null, commit?: string | null, path?: string | null }} Source @typedef {{ staging_id: string, sha256: string, id: string, name?: string, version?: string, summary?: string, publisher?: string, source?: Source, development?: boolean, permissions?: { required?: Permission[], optional?: Permission[] }, capabilities?: Array<{ capability: string, routes?: string[] }>, uses_internet?: boolean, secrets?: string[], tools?: Array<{ name: string, title?: string, risk?: string }>, warnings?: string[] }} Staged @typedef {{ mode: "list" | "install" | "sheet" | "app", rows: Row[], loading: boolean, error: string, busy: string, source: "git" | "path", staged: Staged | null, appId: string, grantFor: string, activity: Array<{ at?: string, what?: string, outcome?: string }> | null, values: Record<string, Record<string, unknown>>, off: string }} State @typedef {{ projects: Array<{ id: string, name: string }>, project?: string }} Ctx */
 
 /** @param {string} label @param {string} act @param {Record<string, string>} [data] @param {string} [extra] */
 const btn = (label, act, data = {}, extra = "") =>
@@ -15,8 +15,11 @@ const perms = (list, title, o = {}) => (list && list.length ? `<section class="s
   return `<div class="set-row" data-key="${esc(key)}">${o.pick ? `<label class="xa-pick"><input type="checkbox" data-optional="${esc(key)}"> ${words}</label>` : words}</div>`;
 }).join("")}</section>` : "");
 
+const failed = (/** @type {Row} */ r) => (r.runtime && typeof r.runtime === "object" ? /** @type {any} */ (r.runtime).state : r.runtime) === "failed";
 /** @param {Row} r */
-const rowState = (r) => [r.version ? `v${r.version}` : "", r.development ? "Development" : "", r.state === "failed" ? "Stopped after crashes" : r.state === "needs_consent" ? "Update waits for your OK" : ""].filter(Boolean).join(" · ");
+const rowState = (r) => {
+  return [r.version ? `v${r.version}` : "", r.development ? "Development" : "", failed(r) ? "Stopped after crashes" : "", (r.pending || []).some((w) => !w.project) ? "Waiting for your approval in Needs you" : ""].filter(Boolean).join(" · ");
+};
 /** @param {string} title @param {string} inner @param {string} [key] */
 const sec = (title, inner, key = "") => `<section class="set-sec"${key ? ` data-key="${esc(key)}"` : ""}><h3>${esc(title)}</h3>${inner}</section>`;
 /** @param {string} b @param {string} sub @param {string} [tail] @param {string} [key] */
@@ -27,8 +30,8 @@ const top = (title) => `<h3 class="xa-title" tabindex="-1" data-autofocus>${esc(
 /** @param {State} s */
 function list(s) {
   const rows = s.rows.map((r) => row(esc(r.name || r.id), esc(rowState(r) || r.id), btn("Open", "open", { app: r.id }, ` aria-label="Open ${esc(r.name || r.id)}"`), r.id)).join("");
-  return `${top("Apps")}<p class="set-lead">Apps add views and tools to the projects you turn them on in. They use XO's local routes, ask before they touch anything, and never see your keys.</p>
-${note(s)}${s.loading ? "" : rows || `<p class="set-empty">No apps yet.</p>`}<div class="set-fa">${btn("Install an app", "install")}</div>`;
+  return `${top("Installed apps")}<p class="set-lead">Apps add views and tools to the projects you turn them on in. They use XO's local routes, ask before they touch anything, and never see your keys.</p>
+${s.off ? `<p class="set-note">${esc(s.off)}</p>` : `${note(s)}${s.loading ? "" : rows || `<p class="set-empty">No apps yet.</p>`}<div class="set-fa">${btn("Install an app", "install")}</div>`}`;
 }
 
 /** @param {State} s */
@@ -48,11 +51,17 @@ ${note(s)}<div class="set-fa">${btn("Cancel", "back")}${btn("Check it", "stage")
 /** @param {State} s */
 function sheet(s) {
   const st = /** @type {Staged} */ (s.staged);
-  const routes = (st.routes || []).map((g) => row(esc(g.words || ""), (g.routes || []).map((x) => `<code>${esc(x)}</code>`).join(" "))).join("");
+  const routes = (st.capabilities || []).map((g) => row(esc(capabilityWords(g.capability)), (g.routes || []).map((x) => `<code>${esc(x)}</code>`).join(" "))).join("");
+  const src = st.source || {};
+  const from = src.kind === "git" ? [src.url, src.ref, src.commit && `commit ${String(src.commit).slice(0, 12)}`] : [src.path];
+  const tools = (st.tools || []).map((t) => row(esc(t.title || t.name), esc(t.risk === "destructive" ? "Can't be undone: asks you first" : t.risk === "notable" ? "Notable" : "Routine"))).join("");
   return `${top(`Install ${st.name || st.id}?`)}
-<p class="set-lead">${esc([st.id, st.version && `v${st.version}`, st.publisher || "Unverified publisher", st.commit && `commit ${String(st.commit).slice(0, 12)}`, st.development && "Development: loads from a folder you can edit"].filter(Boolean).join(" · "))}</p>
+<p class="set-lead">${esc([st.id, st.version && `v${st.version}`, !st.publisher || st.publisher === "unverified" ? "Unverified publisher" : st.publisher, ...from, st.development && "Development: loads from a folder you can edit"].filter(Boolean).join(" · "))}</p>
+${st.summary ? `<p class="set-lead">${esc(st.summary)}</p>` : ""}
 ${perms(st.permissions?.required, "It will be able to")}${perms(st.permissions?.optional, "It may ask later to")}
 ${routes ? sec("XO routes it uses", routes) : ""}
+${st.uses_internet ? `<p class="set-lead">Can reach the internet (through XO's proxy).</p>` : ""}
+${tools ? sec("Its tools", tools) : ""}
 ${(st.secrets || []).length ? sec("Your keys, by name (its server only)", `<p class="set-lead">${(st.secrets || []).map((x) => `<code>${esc(x)}</code>`).join(" ")}</p>`) : ""}
 ${(st.warnings || []).map((w) => `<p class="set-note">${esc(w)}</p>`).join("")}
 <p class="set-lead">Installing runs nothing. You choose the projects it shows in next.</p>
@@ -63,12 +72,13 @@ ${note(s)}<div class="set-fa">${btn("Not now", "back")}${btn("Install", "confirm
 function appPage(s, c) {
   const r = s.rows.find((x) => x.id === s.appId);
   if (!r) return `<p class="set-empty">That app is gone.</p><div class="set-fa">${btn("Back to Apps", "back")}</div>`;
-  const { app, problems } = checkManifest(r.manifest);
+  const { app, problems } = checkRow(r);
   const grantFor = s.grantFor;
   const projects = c.projects.map((p) => {
     const g = r.projects?.[p.id];
-    const on = g?.state === "enabled", waits = g?.state === "needs_consent";
-    return row(esc(p.name), on ? "On" : waits ? "Waits for your OK" : "Off", on ? btn("Turn off", "revoke", { project: p.id }) : btn(waits ? "Review" : "Turn on", "grant", { project: p.id }), `p:${p.id}`);
+    const on = g?.state === "enabled", waits = g?.state === "needs_consent", asked = (r.pending || []).some((w) => w.project === p.id);
+    const opens = on && app && (app.surfaces.panel || []).length ? btn("Open", "open-panel", { project: p.id }, ` aria-label="Open ${esc(app.name)} in ${esc(p.name)}"`) : "";
+    return row(esc(p.name), asked ? "Waiting for your approval in Needs you" : on ? "On" : waits ? "Waits for your OK" : "Off", `<span class="xa-acts">${opens}${on ? btn("Turn off", "revoke", { project: p.id }) : btn(waits ? "Review" : "Turn on", "grant", { project: p.id })}</span>`, `p:${p.id}`);
   }).join("");
   const sheetFor = grantFor && app ? `<div class="set-form" data-key="grant:${esc(grantFor)}"><h4 tabindex="-1" data-autofocus>Turn ${esc(app.name)} on in ${esc(c.projects.find((p) => p.id === grantFor)?.name || grantFor)}?</h4>
 ${perms(app.permissions.required, "It will be able to")}${perms(app.permissions.optional, "Also allow (you can say yes later)", { pick: true })}
@@ -82,7 +92,7 @@ ${app && app.summary ? `<p class="set-lead">${esc(app.summary)}</p>` : ""}
 ${problems.length ? `<div class="set-err" role="alert"><p>XO won't show this version:</p><ul>${problems.map((p) => `<li>${esc(p)}</li>`).join("")}</ul></div>` : ""}
 ${r.error ? `<p class="set-err">${esc(r.error)}</p>` : ""}
 ${note(s)}${sec("Projects", projects || `<p class="set-note">No projects yet.</p>`)}${sheetFor}${here}
-<div class="set-fa">${btn("Update", "update")}${r.previous ? btn(`Use v${r.previous} again`, "rollback") : ""}${r.state === "failed" ? btn("Restart", "start") : ""}${btn(s.activity ? "Hide activity" : "Activity", "activity")}${btn("Remove", "remove")}</div>${activity}`;
+<div class="set-fa">${btn("Update", "update")}${r.previous && r.previous.version ? btn(`Use v${r.previous.version} again`, "rollback") : ""}${failed(r) ? btn("Restart", "start") : ""}${btn(s.activity ? "Hide activity" : "Activity", "activity")}${btn("Remove", "remove")}</div>${activity}`;
 }
 
 /** @param {App} app @param {Record<string, unknown>} values */
