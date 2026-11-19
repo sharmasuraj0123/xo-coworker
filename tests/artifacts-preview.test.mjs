@@ -25,10 +25,23 @@ assert.equal(previewOf("empty.js", "   \n "), null, "nothing to show: the icon s
 
 // the view: only near view, once, through the thread's folder; never a binary
 const view = readFileSync(new URL("../js/recordview.js", import.meta.url), "utf8");
-assert.match(view, /if \(m\) \{ loadThumbs\(\[m\]\); loadTexts\(\[m\]\); \}/, "read when its card comes near view");
-assert.match(view, /String\(d && d\.content \|\| ""\)\.slice\(0, 4096\)/, "from its first bytes");
+assert.match(view, /if \(m\) \{ nearY\.set\(m\.key, \{ y: e\.boundingClientRect\.top - e\.rootBounds\.top \+ A\.box\.scrollTop \}\); loadThumbs\(\[m\]\); loadTexts\(\[m\]\); \}/, "read when its card comes near view; where it is comes from the observer, no layout read");
+assert.match(view, /String\(\(await api\.projectFile\(r\.project, r\.rel\)\)\?\.content \|\| ""\)\.slice\(0, 4096\)/, "from its first bytes");
 assert.match(view, /!\/\\\.\(pdf\|docx\?\|xlsx\?\|pptx\?\|zip\|gz\)\$\/i\.test/);
 assert.match(view, /if \(where === "page"\) \{ const w = wellHtml\(m\); if \(w\) return w \+ iconHtml\(m\); \}/, "only on the Artifacts page; the icon stays for a phone's rows");
+
+// previews never hold the page up (the owner, 19 Nov 14:46Z): one queue, a few at a time, nearest the view first;
+// what arrives is drawn once a frame; kept on the device (pictures as a small copy); a card is drawn at once
+assert.match(view, /const PREV_CAP = 3, PREV_W = 640, PREV_CACHE = "xo-previews-1";/);
+assert.match(view, /while \(PQ\.n < PREV_CAP && PQ\.q\.length\)/);
+assert.match(view, /return Math\.abs\(w\.y - box\.scrollTop - box\.clientHeight \/ 3\);/, "nearest the view first");
+assert.match(view, /PQ\.landed = requestAnimationFrame\(/, "arrivals drawn once a frame");
+assert.doesNotMatch(view, /api\.(projectImage|projectFile)\([^)]*\)\.then\(/, "no read outside the queue");
+assert.match(view, /const hit = await cached\(m, "pic"\);/);
+assert.match(view, /const hit = await cached\(m, "text"\);/);
+assert.match(view, /c\.convertToBlob\(\{ type: "image\/webp", quality: 0\.82 \}\)/, "a picture kept small for its card");
+assert.match(view, /`<span class="md-well is-wait"\$\{wt\}>\$\{iconHtml\(m\)\}<\/span>`/, "the well at once, tinted, with the kind's icon");
+assert.match(view, /loadThumbs\(list\.slice\(0, 48\)\)/, "the panel's Made asks for its first screens only");
 
 // every well is tinted with its file icon's colour, a picture's too (the owner, 19 Nov 14:29Z); the card's link back
 // to its thread wears the thread mark, not a "‹" that reads as Back (proposal round 4)
