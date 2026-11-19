@@ -4,14 +4,14 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 617 |
+| planned | 616 |
 | vendor | 367 |
-| deleted | 232 |
-| moved | 59 |
+| deleted | 234 |
+| moved | 58 |
 | split | 37 |
 | kept | 1 |
 
-Items inside first-party files: 2290 (planned 905, moved 904, split-region 453, deleted 25, kept 2, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (moved 903, planned 898, split-region 453, deleted 33, kept 2, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -1355,7 +1355,7 @@ Items inside first-party files: 2290 (planned 905, moved 904, split-region 453, 
 | `design-research/2026-11-vision/canvas-editing/SPACE-CONTRACT.md` | 244 | deleted | moved to the design archive (owner D4) |
 | `design-research/2026-11-vision/canvas-editing/files-as-editor.md` | 171 | deleted | moved to the design archive (owner D4) |
 | `design-research/2026-11-vision/canvas-editing/vscode-behaviours.md` | 177 | deleted | moved to the design archive (owner D4) |
-| `design-research/2026-11-vision/launchpad/tools/mockspace.cjs` | 133 | moved | e2e/fixtures/mockspace-harness.cjs · next: Wave 4 Launchpad: fold the scenarios Launchpad's tests need into e2e/fixtures/mockspace-harness.cjs, then delete tools/launchpad/smoke.cjs (D6) and e2e/fixtures/mockspace.cjs together, after one browser run when the owner asks |
+| `design-research/2026-11-vision/launchpad/tools/mockspace.cjs` | 133 | moved | e2e/fixtures/mockspace-harness.cjs |
 
 ## tools/codemirror (1)
 
@@ -1412,8 +1412,8 @@ Items inside first-party files: 2290 (planned 905, moved 904, split-region 453, 
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `tools/launchpad/mockspace.cjs` | 164 | moved | e2e/fixtures/mockspace.cjs · next: Wave 4 Launchpad: fold the scenarios Launchpad's tests need into e2e/fixtures/mockspace-harness.cjs, then delete tools/launchpad/smoke.cjs (D6) and e2e/fixtures/mockspace.cjs together, after one browser run when the owner asks |
-| `tools/launchpad/smoke.cjs` | 128 | planned | delete: a one-off probe with machine paths (owner D6) |
+| `tools/launchpad/mockspace.cjs` | 164 | deleted | its copy at e2e/fixtures/mockspace.cjs served only tools/launchpad/smoke.cjs; every scenario a browser suite opens is in e2e/fixtures/mockspace-harness.cjs (modules/launchpad/tests/mockspace-scenarios.test.mjs), and lpshell's Launchpad cases pass on it |
+| `tools/launchpad/smoke.cjs` | 128 | deleted | a one-off probe with machine paths (owner D6); the Launchpad browser cases cover what it played |
 
 ## tools/xoicons (1)
 

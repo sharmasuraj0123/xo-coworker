@@ -167,7 +167,6 @@ node tools/check.mjs --fast      # the same without the tests; the pre-commit ho
 
 Each test file says what it covers in its header. Browser suites (`tests/browser/`, Playwright) run only when the owner asks. Their mocks live in `e2e/`:
 - `e2e/fixtures/mockspace-harness.cjs`: Space's deploy routes for `tests/browser/harness.cjs` and the Launchpad + Shells world;
-- `e2e/fixtures/mockspace.cjs`: the newer copy `tools/launchpad/smoke.cjs` uses;
 - `e2e/worlds/lp-shell.cjs`: the world `tests/browser/lpshell.test.cjs` runs in;
 - `e2e/fixtures/controls/`: the controls registry and its generator, read by `tests/stale-pass.test.mjs`.
 

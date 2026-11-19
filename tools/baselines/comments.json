@@ -943,10 +943,6 @@
   "extra": 2,
   "refs": 0
  },
- "tools/launchpad/smoke.cjs": {
-  "extra": 3,
-  "refs": 0
- },
  "tools/xoicons/build.mjs": {
   "extra": 13,
   "refs": 0

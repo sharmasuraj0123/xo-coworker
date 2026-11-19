@@ -2156,8 +2156,7 @@
   },
   "design-research/2026-11-vision/launchpad/tools/mockspace.cjs": {
    "status": "moved",
-   "home": "e2e/fixtures/mockspace-harness.cjs",
-   "note": "Wave 4 Launchpad: fold the scenarios Launchpad's tests need into e2e/fixtures/mockspace-harness.cjs, then delete tools/launchpad/smoke.cjs (D6) and e2e/fixtures/mockspace.cjs together, after one browser run when the owner asks"
+   "home": "e2e/fixtures/mockspace-harness.cjs"
   },
   "favicon.svg": {
    "status": "planned",
@@ -5032,13 +5031,12 @@
    "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/mockspace.cjs": {
-   "status": "moved",
-   "home": "e2e/fixtures/mockspace.cjs",
-   "note": "Wave 4 Launchpad: fold the scenarios Launchpad's tests need into e2e/fixtures/mockspace-harness.cjs, then delete tools/launchpad/smoke.cjs (D6) and e2e/fixtures/mockspace.cjs together, after one browser run when the owner asks"
+   "status": "deleted",
+   "reason": "its copy at e2e/fixtures/mockspace.cjs served only tools/launchpad/smoke.cjs; every scenario a browser suite opens is in e2e/fixtures/mockspace-harness.cjs (modules/launchpad/tests/mockspace-scenarios.test.mjs), and lpshell's Launchpad cases pass on it"
   },
   "tools/launchpad/smoke.cjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6); the Launchpad browser cases cover what it played"
   },
   "tools/xoicons/build.mjs": {
    "status": "kept",
@@ -16673,36 +16671,36 @@
    "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/mockspace.cjs::functions::body": {
-   "status": "moved",
-   "home": "e2e/fixtures/mockspace.cjs"
+   "status": "deleted",
+   "reason": "its file's copy, e2e/fixtures/mockspace.cjs, is deleted: only the probe used it; the harness's mockspace serves every suite"
   },
   "tools/launchpad/smoke.cjs::ids::main": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "its file, a one-off probe (owner D6), is deleted"
   },
   "tools/launchpad/smoke.cjs::ids::fr-body-launch": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "its file, a one-off probe (owner D6), is deleted"
   },
   "tools/launchpad/smoke.cjs::ids::app": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "its file, a one-off probe (owner D6), is deleted"
   },
   "tools/launchpad/smoke.cjs::storage::xo-stage": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "its file, a one-off probe (owner D6), is deleted"
   },
   "tools/launchpad/smoke.cjs::storage::xo-lp-state": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "its file, a one-off probe (owner D6), is deleted"
   },
   "tools/launchpad/smoke.cjs::routes::/tmp/pw/node_modules/playwright-core": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "its file, a one-off probe (owner D6), is deleted"
   },
   "tools/launchpad/smoke.cjs::globals::requestAnimationFrame": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "its file, a one-off probe (owner D6), is deleted"
   },
   "tools/xoicons/build.mjs::exports::clean": {
    "status": "planned",
