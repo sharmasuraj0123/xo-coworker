@@ -7,7 +7,7 @@ import { dirname, join } from "node:path";
 const DIR = dirname(fileURLToPath(import.meta.url));
 const ROOT = dirname(DIR);
 const filter = process.argv[2] || "";
-const JOBS = Math.max(1, Number(process.env.JOBS) || 4);
+const JOBS = Math.max(1, Number(process.env.JOBS) || 2);
 const TIMEOUT = Math.max(1000, Number(process.env.TEST_TIMEOUT_MS) || 120_000);
 const KNOWN_PATH = join(DIR, "known-failures.json");
 const known = existsSync(KNOWN_PATH) ? JSON.parse(readFileSync(KNOWN_PATH, "utf8")) : {};
