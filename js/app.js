@@ -343,7 +343,7 @@ const LP = createLaunchpad({ api: createLpApi(), projectOf: lpProject, nameOf: (
   // the owner's choice B): its Undo's deadline is the action's own (l.until), so it can't outlive what it undoes
   notice: (mid, l, ms) => { const h = { mid, kind: l.kind === "err" ? "stopped" : l.kind || "done", text: l.text, ...(l.sub ? { sub: l.sub } : {}), ...(l.undo ? { undo: l.undo, undoLabel: l.undoLabel, undoUntil: l.until || 0, ownFocus: true } : {}) }; return heraldFor(mid, () => h, ms) || heraldShow(h, ms); },
   unnotice: (mid) => heraldDrop(mid) });
-const STAGE = createStage({ map: MAP, mapIcon: MAP_ICON, files: FILES, changes: CHG, filesView: FILESV, viewer: VW, view: () => S.view, go: (v) => go(v, { panel: true }), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP, threads: (v) => panelThreads(v) });
+const STAGE = createStage({ map: MAP, mapIcon: MAP_ICON, files: FILES, changes: CHG, filesView: FILESV, viewer: VW, view: () => S.view, go: (v) => go(v, { panel: true }), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP, threads: (v) => panelThreads(v), shell: (on, host) => panelShell(on, host) });
 // the place beside the panel's name: a thread's project (its title is the conversation's own head), a project
 STAGE.names = (v) => {
   const p = v.startsWith("t:") ? world.thread(v.slice(2))?.project : v.startsWith("p:") ? v.slice(2) : null;
@@ -3644,6 +3644,23 @@ async function deleteThread(tid) {
     heraldShow({ kind: "stopped", text: "Couldn't delete the thread", sub: String(err && err.message || err), force: true }, 6000);
   }
 }
+/** The panel's Shell: the shells' own dock moved into the panel (the same sessions and tabs as under the page), a
+ *  shell opened for where you are (a thread's worktree, a project's folder, the workspace). Off, it goes back under
+ *  the page, put away. Put away from inside the panel (its own ↓), the panel goes back to its frames. */
+const SHD_HOME = { parent: $("#shd").parentNode, next: $("#shd").nextSibling };
+function panelShell(on, host) {
+  const d = $("#shd");
+  if (on) {
+    if (!SH.enabled) { STAGE.shellOff(); heraldShow({ kind: "calm", text: "Shells aren't on here" }, 3200); return; }
+    host.append(d); d.classList.add("in-panel");
+    openShell(S.view.startsWith("t:") || S.view.startsWith("p:") ? S.view : "ws");
+  } else {
+    d.classList.remove("in-panel");
+    SHD_HOME.parent.insertBefore(d, SHD_HOME.next);
+    SH.hide();
+  }
+}
+new MutationObserver(() => { if (STAGE.isShell && $("#shd").hidden) STAGE.shellOff(); }).observe($("#shd"), { attributes: true, attributeFilter: ["hidden"] });
 /** A Shell button: "ws", "p:<project folder>" or "t:<thread>" (its worktree, else the project's folder). */
 function openShell(where) {
   if (where === "ws") return SH.openWorkspace();

@@ -61,7 +61,7 @@ const AG_ROWS = 6, ROW = 48; // Threads shows six rows at first (a list to read,
 // Agents never takes the room Changes needs: its 40 px head, one 32 px file row and the list's 8 px foot,
 // the diff's 120 px and its 12 px margin (css/diffs.css). In a short window Agents shows fewer rows
 const CH_MIN = 212, HEAD = 40;
-export function createStage({ map, mapIcon, files, changes, filesView, viewer, view, go, announce, onChange, frames = () => ORDER, launch = null, threads = null }) {
+export function createStage({ map, mapIcon, files, changes, filesView, viewer, view, go, announce, onChange, frames = () => ORDER, launch = null, threads = null, shell = null }) {
   const saved = sget(KEY);
   // the Map starts folded, in its Graph (the owner, 19 Nov): Threads and Changes have the room
   const fr = { changes: { folded: false }, agents: { rows: null, folded: false, groups: { done: true } }, map: { h: MAP_H, folded: true }, ...sget(FR_KEY) };
@@ -80,8 +80,9 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   const frame = (id, title, acts = "") => `<section class="fr" data-fr="${id}" aria-labelledby="fr-title-${id}"><header class="fr-h"><h2 class="fr-title" id="fr-title-${id}">${title}${id !== "map" ? `<span class="fr-n" data-fr-n="${id}"></span>` : ""}</h2><div class="fr-a">${acts}<button type="button" class="fr-ib fr-fold" data-fr-fold="${id}" aria-expanded="true" title="Fold">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-${id}"${id === "map" ? ' role="tabpanel"' : ""}></div></section>`;
   const gutter = (a, b) => `<div class="fr-gut" role="separator" aria-orientation="horizontal" aria-label="Resize ${a} and ${b}" data-gut="${a}|${b}" tabindex="0"></div>`;
   el.innerHTML = `<div class="stg-grip" role="separator" aria-orientation="vertical" aria-label="Resize the panel" title="Drag to resize · double-click for the default" tabindex="0"></div>` +
-    `<header class="stg-bar"><div class="stg-t"></div><div class="stg-acts"><button type="button" class="stg-ic" data-stg-full></button><button type="button" class="stg-ic" data-stg-close aria-label="Close the panel" title="Close (Esc)">${ICON.close}</button></div></header>` +
+    `<header class="stg-bar"><div class="stg-t"></div><div class="stg-acts">${shell ? `<button type="button" class="stg-ic stg-shell-b" data-stg-shell aria-pressed="false" title="A shell here, in the panel" aria-label="Shell in the panel">${ICON.shell}</button>` : ""}<button type="button" class="stg-ic" data-stg-full></button><button type="button" class="stg-ic" data-stg-close aria-label="Close the panel" title="Close (Esc)">${ICON.close}</button></div></header>` +
     `<div class="stg-rail" aria-label="Panel, folded"><button type="button" class="stg-ic" data-rail="launch" title="Launchpad">${LP_ICON.rocket}</button><button type="button" class="stg-ic" data-rail="agents" title="Threads">${ICON.threadOne}</button><button type="button" class="stg-ic" data-rail="changes" title="Changes">${CHANGES_IC}</button><button type="button" class="stg-ic" data-rail="map" title="Map">${mapIcon}</button></div>` +
+    `<div class="stg-shell"></div>` +
     `<div class="stg-frames">` +
     `<section class="fr fr-lp is-folded" data-fr="launch" aria-labelledby="fr-title-launch" hidden><header class="fr-h"><h2 class="fr-title" id="fr-title-launch">Launchpad</h2><span class="lp-hs"></span><div class="fr-a"><span class="lp-ha"></span><button type="button" class="fr-ib fr-fold" data-fr-fold="launch" aria-expanded="false" title="Open">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-launch" tabindex="-1"></div><div class="fr-ghosts" role="group" aria-label="Under Launchpad"></div></section><div class="fr-line" data-lp-line hidden></div>` +
     frame("agents", "Threads", `<button type="button" class="fr-ib" data-switch aria-haspopup="dialog" aria-expanded="false" title="Find a thread" aria-label="Find a thread">${ICON.search}</button>`) + gutter("agents", "changes") +
@@ -238,9 +239,9 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   /** The panel's name, and the place it's showing beside it, quieter (the owner, 6 Nov). Who's at work is
    *  Agents' own head, so it isn't said here too. */
   function titleHtml() {
-    // the panel says the place it's beside (the owner, 19 Nov: not "Agentic Control Pane")
+    // the panel says the place it's beside (the owner, 19 Nov: not "Agentic Control Pane"); in Shell mode, "› Shell"
     const place = nameOf(view());
-    return `<b class="stg-name" title="${esc(place || "")}">${esc(place || "Panel")}</b>`;
+    return `<b class="stg-name" title="${esc(place || "")}">${esc(place || "Panel")}</b>${S.shell ? `<span class="stg-sub">Shell</span>` : ""}`;
   }
   let nameOf = () => "";
 
@@ -350,6 +351,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   }
 
   function close({ restore = true, quiet = false } = {}) {
+    if (S.shell) setShell(false);
     if (!S.open) return;
     S.open = false;
     if (!quiet) S.lp = false; // closed by you: Launchpad is a head again next time; stepping aside (quiet) keeps it as it was
@@ -401,6 +403,18 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   }
 
   function toggle() { if (S.open && !S.rail) close(); else open(); }
+  /** Shell mode (the owner, 19 Nov: a shell in the panel, the left panel's Shells as they are): the shells' own dock,
+   *  the same sessions and tabs, moved into the panel in place of its frames; app.js moves it (shell(on, host)). */
+  function setShell(on) {
+    if (!shell || !!S.shell === !!on) return;
+    S.shell = !!on;
+    el.classList.toggle("is-shell", S.shell);
+    const b = el.querySelector("[data-stg-shell]");
+    b.setAttribute("aria-pressed", String(S.shell)); b.classList.toggle("is-on", S.shell);
+    b.title = S.shell ? "Back to Threads, Changes and Map" : "A shell here, in the panel";
+    shell(S.shell, el.querySelector(".stg-shell"));
+    S.h.head = ""; paint();
+  }
 
   /** Every render: the frames follow the view; the rail follows Files. */
   function sync() {
@@ -435,6 +449,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     const t = e.target;
     if (t.closest("[data-stg-close]")) { close(); return; }
     if (t.closest("[data-stg-full]")) { setFull(!S.full); return; }
+    if (t.closest("[data-stg-shell]")) { setShell(!S.shell); return; }
     const rl = t.closest("[data-rail]");
     // the rail goes as the part you asked for opens: focus goes to that part's own fold button, in its title row,
     // which now says it's open (Astra S121)
@@ -657,6 +672,8 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   return {
     get isOpen() { return S.open; },
     open: () => open(), close, toggle, sync,
+    get isShell() { return !!S.shell; },
+    shellOff: () => setShell(false),
     /** The header's Deploy. */
     launch() {
       if (!(S.open && S.lp && !S.rail)) { openLaunch(); return; }
