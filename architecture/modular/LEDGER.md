@@ -4,13 +4,13 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 667 |
+| planned | 662 |
 | vendor | 367 |
 | deleted | 232 |
 | split | 34 |
-| moved | 13 |
+| moved | 18 |
 
-Items inside first-party files: 2290 (planned 1316, split-region 828, moved 127, deleted 19), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1309, split-region 828, moved 134, deleted 19), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -38,7 +38,7 @@ Items inside first-party files: 2290 (planned 1316, split-region 828, moved 127,
 | `js/chats.js` | 452 | planned | modules/chats/ |
 | `js/comms.js` | 173 | planned | modules/conversation/blocks/comms.js |
 | `js/content.js` | 72 | planned | modules/decisions/rank.js |
-| `js/create.js` | 364 | planned | modules/create-project/ |
+| `js/create.js` | 364 | moved | modules/create-project/create.js |
 | `js/decide.js` | 1104 | split | modules/decisions/needs.js, modules/decisions/queue.js, modules/decisions/card.js, modules/decisions/panel.js, modules/decisions/toast.js |
 | `js/diffthemes.js` | 4 | planned | modules/changes/diff-renderer/themes.js (generated) |
 | `js/diffview.js` | 421 | split | modules/changes/diff-renderer/, decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS) |
@@ -153,8 +153,8 @@ Items inside first-party files: 2290 (planned 1316, split-region 828, moved 127,
 | `tests/coord-colour.test.mjs` | 46 | planned | modules/conversation/tests/coord-colour.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/copy-path-fail.test.mjs` | 57 | planned | modules/files/tests/copy-path-fail.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/cover-inert.test.mjs` | 28 | planned | shell (panel host)/tests/cover-inert.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/create-busy-honest.test.mjs` | 33 | planned | modules/create-project/tests/create-busy-honest.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/create.test.mjs` | 51 | planned | modules/create-project/tests/create.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/create-busy-honest.test.mjs` | 33 | moved | modules/create-project/tests/create-busy-honest.test.mjs |
+| `tests/create.test.mjs` | 51 | moved | modules/create-project/tests/create.test.mjs |
 | `tests/css-wellformed.test.mjs` | 80 | planned | core/ui (css guard)/tests/css-wellformed.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/ctl-heights.test.mjs` | 25 | planned | core/ui (css guard)/tests/ctl-heights.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/ctl-scale.test.mjs` | 181 | planned | core/ui (css guard, all modules)/tests/ctl-scale.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
@@ -201,8 +201,8 @@ Items inside first-party files: 2290 (planned 1316, split-region 828, moved 127,
 | `tests/link-buttons.test.mjs` | 47 | planned | core/ui (css guard)/tests/link-buttons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/links-css.test.mjs` | 44 | planned | modules/files/tests/links-css.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/logic.test.mjs` | 549 | planned | core/services + conversation (markdown)/tests/logic.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/lp-create-connect-focus.test.mjs` | 34 | planned | modules/create-project/tests/lp-create-connect-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/lp-create-stop-focus.test.mjs` | 39 | planned | modules/create-project/tests/lp-create-stop-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/lp-create-connect-focus.test.mjs` | 34 | moved | modules/create-project/tests/lp-create-connect-focus.test.mjs |
+| `tests/lp-create-stop-focus.test.mjs` | 39 | moved | modules/create-project/tests/lp-create-stop-focus.test.mjs |
 | `tests/lp-intel-order.test.mjs` | 74 | planned | modules/composer/tests/lp-intel-order.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/lp-phone-links.test.mjs` | 90 | planned | core/ui phone floor (launchpad, create, intel, shells)/tests/lp-phone-links.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/lp-stop-notice.test.mjs` | 171 | planned | modules/launchpad/tests/lp-stop-notice.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |

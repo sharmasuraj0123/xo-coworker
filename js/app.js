@@ -50,7 +50,7 @@ import { countsHtml } from "./changesframe.js";
 import { setTheme as setDiffTheme } from "./diffview.js";
 import { createTray, fmtSize, kindOf, isLargePaste, pasteLabel, uploadErrorText, FINAL, MAX_FILES } from "./attach.js";
 import { api, uploadAttachment } from "./api.js";
-import { initCreate } from "./create.js";
+import { initCreate } from "../modules/create-project/create.js";
 import { classify, glyph, TOPICS } from "./projicons.js";
 import { createShells } from "./shells/dock.js";
 import { createRecord } from "./recordview.js";
@@ -3985,7 +3985,7 @@ allEl.addEventListener("click", (e) => {
   if (g) { allEl.hidden = true; go(g.dataset.go); }
 });
 
-// ── Create XO Project (js/create.js): start empty or clone a repository ─────
+// ── Create XO Project (modules/create-project/create.js): start empty or clone a repository ─────
 const CREATE = initCreate({
   world, S, go, heraldShow, announce, setDrawer,
   // On a phone the sidebar button that opened it is inside the closed drawer: return to the menu.

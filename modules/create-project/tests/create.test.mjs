@@ -1,10 +1,8 @@
-// The new-project dialog (js/create.js): what the Repository field means (as Space reads it) and the folder a
-// name makes. Pure, no network.
-//   node tests/create.test.mjs
+// The new-project dialog: what the Repository field means (as Space reads it) and the folder a name makes; pure, no network.
 import assert from "node:assert/strict";
 
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
-const { parseRepo, slugify } = await import("../js/create.js");
+const { parseRepo, slugify } = await import("../create.js");
 
 let passed = 0;
 const t = (name, fn) => {

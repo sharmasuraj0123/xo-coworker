@@ -1,14 +1,8 @@
-// Create's Connect GitHub (S049, S156: H6). Connect can be pressed in two places: GitHub's line under the
-// Repository field (#cp-gh), and a failed clone's message ("This repo is private… Connect GitHub", #cp-err). The
-// focus hand-off only looked at #cp-gh. Pressed from the message, a success cleared the message (error(""), the
-// button with it) and nobody moved focus: it fell to the page. A code didn't move it to Copy either. Focus on either
-// Connect is now focus on Connect, and goes where Connect leads: Copy for a code, the repository once connected, and
-// a Connect again on failure.
-//   node tests/lp-create-connect-focus.test.mjs
+// Create's Connect GitHub lives in GitHub's line and in a failed clone's message; focus on either goes where Connect leads.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const src = readFileSync(new URL("../js/create.js", import.meta.url), "utf8");
+const src = readFileSync(new URL("../create.js", import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const connect = (() => { const i = src.indexOf("async function connect() {"); assert.ok(i > 0, "connect found"); return src.slice(i, src.indexOf("\n  }\n", i)); })();

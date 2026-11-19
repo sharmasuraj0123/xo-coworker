@@ -2228,8 +2228,8 @@
    "home": "modules/decisions/rank.js"
   },
   "js/create.js": {
-   "status": "planned",
-   "home": "modules/create-project/"
+   "status": "moved",
+   "home": "modules/create-project/create.js"
   },
   "js/decide.js": {
    "status": "split",
@@ -4235,12 +4235,12 @@
    "home": "shell (panel host)/tests/cover-inert.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/create-busy-honest.test.mjs": {
-   "status": "planned",
-   "home": "modules/create-project/tests/create-busy-honest.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/create-project/tests/create-busy-honest.test.mjs"
   },
   "tests/create.test.mjs": {
-   "status": "planned",
-   "home": "modules/create-project/tests/create.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/create-project/tests/create.test.mjs"
   },
   "tests/css-wellformed.test.mjs": {
    "status": "planned",
@@ -4443,12 +4443,12 @@
    "home": "core/services + conversation (markdown)/tests/logic.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/lp-create-connect-focus.test.mjs": {
-   "status": "planned",
-   "home": "modules/create-project/tests/lp-create-connect-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/create-project/tests/lp-create-connect-focus.test.mjs"
   },
   "tests/lp-create-stop-focus.test.mjs": {
-   "status": "planned",
-   "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs"
   },
   "tests/lp-intel-order.test.mjs": {
    "status": "planned",
@@ -8505,32 +8505,32 @@
    "home": "modules/decisions/rank.js"
   },
   "js/create.js::exports::slugify": {
-   "status": "planned",
-   "home": "modules/create-project/"
+   "status": "moved",
+   "home": "modules/create-project/create.js"
   },
   "js/create.js::exports::parseRepo": {
-   "status": "planned",
-   "home": "modules/create-project/"
+   "status": "moved",
+   "home": "modules/create-project/create.js"
   },
   "js/create.js::exports::initCreate": {
-   "status": "planned",
-   "home": "modules/create-project/"
+   "status": "moved",
+   "home": "modules/create-project/create.js"
   },
   "js/create.js::functions::parseRepo": {
-   "status": "planned",
-   "home": "modules/create-project/"
+   "status": "moved",
+   "home": "modules/create-project/create.js"
   },
   "js/create.js::functions::initCreate": {
-   "status": "planned",
-   "home": "modules/create-project/"
+   "status": "moved",
+   "home": "modules/create-project/create.js"
   },
   "js/create.js::keys::clone_finished": {
-   "status": "planned",
-   "home": "modules/create-project/"
+   "status": "moved",
+   "home": "modules/create-project/create.js"
   },
   "js/create.js::keys::cancelled": {
-   "status": "planned",
-   "home": "modules/create-project/"
+   "status": "moved",
+   "home": "modules/create-project/create.js"
   },
   "js/decide.js::exports::riskLabel": {
    "status": "split-region",
