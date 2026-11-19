@@ -11,7 +11,8 @@ node e2e/tests/store.test.mjs node e2e/tests/aria.test.mjs   the lane's own unit
 ```
 
 - **Exit code:** 0 means every case passed, 1 means a case failed or the 3-minute budget ran out, and 2 means
-  nothing ran (no Playwright or Chromium). The exit code is the verdict; the printed lines are not.
+  nothing ran (no Playwright or Chromium, or no case matches the filter). The exit code is the verdict; the
+  printed lines are not.
 - **Only on request.** `tools/check.mjs` and `tests/run.mjs` never start a browser. On this machine, hold the
   `headless-browser-suite` lease first, and run one browser suite at a time.
 
@@ -22,28 +23,35 @@ node e2e/tests/store.test.mjs node e2e/tests/aria.test.mjs   the lane's own unit
    - it answers `/api` from the seed, using xo-space's row shapes;
    - it streams `/api/chat/stream` the way xo-space does. A snapshot frame comes first, so the app's boot isn't
      held for 4 s waiting for a first frame. After that come frames with ids, and a posted message comes back as
-     its `message` frame.
+     its `message` frame. A reconnect with `Last-Event-ID` gets the frames it missed, and a heartbeat keeps a
+     quiet stream open.
 
-   Nothing is injected into the app's modules, and no `window.__t`. Reads the seed doesn't know get a 404. A
-   write it doesn't know is refused, and **fails the case**.
+   Nothing is injected into the app's modules, and no `window.__t`. Any of these **fails the case**:
+   - a read the seed doesn't answer (it gets a 404);
+   - a write the seed doesn't answer (it gets a 405);
+   - an error inside the fake Space itself.
 2. **The page.** One Chromium for the run and one context per case:
    - reduced motion, at DPR 1;
    - locale en-GB, time zone UTC;
-   - the clock fixed to the seed's `now`, so "6m ago" reads the same on every run.
+   - `Date` fixed to the seed's `now`, so "6m ago" reads the same on every run. Timers still run in real time.
+     A case that needs time to pass (an undo window, a "fresh" mark) moves it with `t.tick(ms)`.
 
-   A page error fails the case.
+   A page error fails the case, and so does focus that falls to the page because the control holding it went
+   away.
 3. **The settle barrier** (`lib/settle.mjs`). `t.settle()` waits until all of these hold at once:
-   - no request is open (the stream doesn't count);
-   - no short timer (≤ 1 s) is waiting;
-   - the DOM hasn't changed for 3 animation frames;
+   - no request is open (an event stream counts until its first event arrives);
+   - no timer under 1 s is waiting (a timer of 1 s or more is a poll, not work in progress);
+   - no animation-frame callback is waiting;
+   - nothing has changed for 3 animation frames: no DOM change, and no request or timer has just finished;
    - the fonts are loaded;
-   - nothing is `[aria-busy="true"]` or `[data-streaming]`.
+   - nothing is `[aria-busy="true"]`.
 
    It uses no sleeps, no `networkidle` and no `requestIdleCallback`. If the page doesn't settle, the error names
    what is still going on.
 4. **ARIA snapshots** (`lib/aria.mjs`). `t.snap(name, locator?)` compares the accessibility tree's text with
    `snapshots/<spec>/<case>--<name>.aria.yml`. A mismatch fails the case with a line diff, and the case carries
-   on, so one run shows every difference. The snapshots don't depend on the theme or the DPR.
+   on, so one run shows every difference. The snapshots don't depend on the theme or the DPR. A full run (no
+   filter) fails on a golden that no case uses; `UPDATE=1` removes it.
 
 ## Writing a case
 
@@ -53,7 +61,7 @@ export const cases = [{
   name: "the project opens on its conversation",
   seed: "basic",            // e2e/seeds/basic.json (or a seed object)
   viewport: "desktop",      // or "phone" (390×844), or {width, height}
-  async run(t) {            // t: page, space, store, open(), settle(), snap(), fail()
+  async run(t) {            // t: page, space, store, open(), settle(), snap(), fail(), tick()
     await t.open();
     await t.page.getByRole("link", { name: "demo" }).click();
     await t.settle();

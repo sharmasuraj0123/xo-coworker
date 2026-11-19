@@ -10,7 +10,7 @@ export interface Seed {
   routes?: Record<string, unknown>;
 }
 
-export interface Write { method: string; path: string; body: unknown; unknown?: boolean }
+export interface Write { method: string; path: string; body: any; unknown?: boolean }
 
 export interface Store {
   now: string;
@@ -23,10 +23,11 @@ export interface Store {
   statics: Record<string, unknown>;
   seq: number;
   writes: Write[];
+  misses: string[];
 }
 
 export interface Ask { method: string; path: string; query: URLSearchParams; body: any }
-export interface Answer { status: number; body: unknown; type?: string }
+export interface Answer { status: number; body: any; type?: string }
 
 export interface FrameMeta { chat_id?: string | null; thread_ts?: string | null; session_id?: string | null; turn_id?: string | null; seq?: number | null }
 export interface Frame extends FrameMeta { type: string; data: unknown }
@@ -36,6 +37,9 @@ export interface Space {
   store: Store;
   log: string[];
   readonly open: number;
+  idle(ms: number): Promise<boolean>;
+  errors: string[];
+  misses: string[];
   push(type: string, data?: unknown, meta?: FrameMeta): void;
   close(): Promise<void>;
 }
@@ -43,11 +47,13 @@ export interface Space {
 export interface Probe {
   fetches: Map<number, string>;
   timers: Map<unknown, string>;
+  frames: number;
   quiet: number;
   changed: string[];
   n: number;
   drops: string[];
   busy(quietFrames: number): string[];
+  checkDrops(): void;
 }
 
 export interface SettleOptions { timeout?: number; quietFrames?: number }
@@ -67,6 +73,7 @@ export interface Tools {
   open(path?: string): Promise<number>;
   snap(name: string, locator?: Locator): Promise<void>;
   fail(msg: string): void;
+  tick(ms: number): Promise<void>;
 }
 
 export interface Case {

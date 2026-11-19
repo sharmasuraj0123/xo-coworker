@@ -1,4 +1,10 @@
+// @ts-check
+
+/** @import { Case } from "../lib/types.d.ts" */
+
 // The lane's own probe in a real page: settle waits out work and names it; a focus drop is caught.
+
+/** @type {Omit<Case, "file">[]} */
 export const cases = [
   {
     name: "settle waits out work in progress and names it", seed: "basic",
@@ -7,9 +13,9 @@ export const cases = [
       await t.open();
       await page.evaluate(() => { const w = /** @type {any} */ (window); const tick = () => { document.body.dataset.e2eTick = String(Date.now() + Math.random()); w.__e2eT = setTimeout(tick, 50); }; tick(); });
       let said = null;
-      try { await t.settle({ timeout: 800 }); } catch (e) { said = String(e.message); }
+      try { await t.settle({ timeout: 800 }); } catch (e) { said = String(/** @type {Error} */ (e).message); }
       if (!said) t.fail("settle returned while a timer kept changing the page");
-      else if (!/short timers waiting: 50 ms tick/.test(said)) t.fail(`settle gave up without naming the timer: ${said}`);
+      else if (!/timers waiting: 50 ms tick/.test(said)) t.fail(`settle gave up without naming the timer: ${said}`);
       await page.evaluate(() => clearTimeout(/** @type {any} */ (window).__e2eT));
       await t.settle();
       await page.evaluate(() => { const w = /** @type {any} */ (window); w.__e2eGot = false; fetch("api/chat/chats").then(() => { w.__e2eGot = true; }); });

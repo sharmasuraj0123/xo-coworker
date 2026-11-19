@@ -1,4 +1,10 @@
+// @ts-check
+
+/** @import { Case } from "../lib/types.d.ts" */
+
 // The right panel lists the project's threads, changes and map.
+
+/** @type {Omit<Case, "file">[]} */
 export const cases = [
   {
     name: "the threads panel lists the finished thread", seed: "basic",

@@ -1,10 +1,16 @@
+// @ts-check
+
+/** @import { Case } from "../lib/types.d.ts" */
+
 // A project opens on its conversation; a message sent from the composer is posted once and shown.
-const openDemo = async (t) => {
+
+const openDemo = async (/** @type {import("../lib/types.d.ts").Tools} */ t) => {
   await t.open();
   await t.page.getByRole("navigation", { name: "Projects" }).getByRole("button", { name: "demo" }).click();
   await t.settle();
 };
 
+/** @type {Omit<Case, "file">[]} */
 export const cases = [
   {
     name: "a project opens on its conversation", seed: "basic",

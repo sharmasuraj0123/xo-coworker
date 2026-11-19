@@ -1,4 +1,10 @@
+// @ts-check
+
+/** @import { Case } from "../lib/types.d.ts" */
+
 // The sidebar and Home at rest, on a desktop and a phone; Settings opens and closes.
+
+/** @type {Omit<Case, "file">[]} */
 export const cases = [
   {
     name: "home at rest, desktop", seed: "basic",
@@ -27,7 +33,7 @@ export const cases = [
       await page.keyboard.press("Escape");
       await t.settle();
       if (await page.getByRole("dialog").count()) t.fail("Escape left the settings dialog open");
-      const focus = await page.evaluate(() => { const a = document.activeElement; return a === document.body ? "BODY" : `${a.tagName} ${a.getAttribute("aria-label") || a.textContent.trim()}`; });
+      const focus = await page.evaluate(() => { const a = document.activeElement; return !a || a === document.body ? "BODY" : `${a.tagName} ${a.getAttribute("aria-label") || (a.textContent || "").trim()}`; });
       if (focus !== "BUTTON Settings") t.fail(`focus after Escape is on ${focus}, not the Settings button that opened it`);
     },
   },

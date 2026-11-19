@@ -1,3 +1,5 @@
+// @ts-check
+
 // The ARIA snapshot helpers, without a browser.
 import assert from "node:assert/strict";
 import { mkdtempSync, readFileSync, rmSync, existsSync } from "node:fs";
@@ -6,7 +8,7 @@ import { join } from "node:path";
 import { normalise, diffLines, trimDiff, compareAria } from "../lib/aria.mjs";
 
 let passed = 0;
-const test = async (name, fn) => { await fn(); passed++; console.log(`ok ${name}`); };
+const test = async (/** @type {string} */ name, /** @type {() => unknown} */ fn) => { await fn(); passed++; console.log(`ok ${name}`); };
 
 await test("normalise: trailing spaces go, one newline ends it, the run's port leaves URLs", () => {
   assert.equal(normalise('- link "a":\n  - /url: http://127.0.0.1:45123/x   \n\n\n'), '- link "a":\n  - /url: http://e2e/x\n');
@@ -24,11 +26,11 @@ await test("trimDiff: changed lines with context, the rest left out", () => {
 
 await test("compareAria: no golden fails; UPDATE writes it; then the same text passes and other text shows a diff", async () => {
   const dir = mkdtempSync(join(tmpdir(), "e2e-aria-")), file = join(dir, "x", "case.aria.yml");
-  const loc = (t) => ({ ariaSnapshot: async () => t });
+  const loc = (/** @type {string} */ t) => ({ ariaSnapshot: async () => t });
   try {
     const missing = await compareAria(loc("- button \"Send\""), file, { update: false });
     assert.equal(missing.ok, false);
-    assert.match(missing.diff, /no golden/);
+    assert.match(String(missing.diff), /no golden/);
     const w = await compareAria(loc("- button \"Send\""), file, { update: true });
     assert.equal(w.written, true);
     assert.equal(readFileSync(file, "utf8"), '- button "Send"\n');

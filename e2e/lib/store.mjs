@@ -26,6 +26,8 @@ function quiet(now) {
     "/api/chat/router": { mode: "agent", decision_model: null, abstain_below: 0.5 },
     "/api/config/workspace": { roots: { home: "/home/test" }, default: "home" },
     "/api/connectors/github/status": { status: "needs_auth" },
+    "/api/advisory": { accounts: [] },
+    "/api/chat/intent": { intents: [], pools: [] },
   };
 }
 
@@ -41,27 +43,28 @@ export function createStore(seed = {}) {
   const s = structuredClone(seed);
   const now = s.now || "2026-11-19T12:00:00Z";
   const chats = (s.chats || [{ id: "chat_ws", kind: "workspace" }, { id: "chat_demo", kind: "project", project: "demo" }]).map((c) => chatRow(c, now));
-  /** @type {(row: Row, chatId: string | null, i: number) => Row} */
-  const fill = (row, chatId, i) => ({ chat_id: chatId, thread_ts: null, author_kind: "owner", author_id: "owner", created_at: now, extra: {}, ...row, seq: row.seq ?? i + 1 });
+  let next = Math.max(0, ...[...Object.values(s.messages || {}), ...Object.values(s.threadMessages || {})].flat().map((r) => Number(r.seq) || 0));
+  /** @type {(row: Row, chatId: string | null) => Row} */
+  const fill = (row, chatId) => ({ chat_id: chatId, thread_ts: null, author_kind: "owner", author_id: "owner", created_at: now, extra: {}, ...row, seq: row.seq ?? ++next });
   /** @type {Record<string, Row[]>} */
   const messages = {};
   /** @type {Record<string, Row[]>} */
   const threads = {};
   /** @type {Record<string, Row[]>} */
   const threadMessages = {};
-  for (const [id, rows] of Object.entries(s.messages || {})) messages[id] = rows.map((r, i) => fill(r, id, i));
+  for (const [id, rows] of Object.entries(s.messages || {})) messages[id] = rows.map((r) => fill(r, id));
   for (const [id, rows] of Object.entries(s.threads || {})) threads[id] = rows.map((r) => ({ chat_id: id, label: null, resolved_at: null, session_id: null, cwd: null, branch: null, worktree_path: null, status_md: null, outputs: [], created_at: now, updated_at: now, summary: null, state: "done", activity: null, wait_reason: null, card: null, agent_ms: 0, git: null, ...r }));
   /** @param {string} ts */
   const chatOf = (ts) => Object.keys(threads).find((id) => threads[id].some((t) => t.ts === ts)) || null;
-  for (const [ts, rows] of Object.entries(s.threadMessages || {})) threadMessages[ts] = rows.map((r, i) => fill({ thread_ts: ts, ...r }, r.chat_id || chatOf(ts), i));
-  const seqs = [...Object.values(messages), ...Object.values(threadMessages)].flat().map((r) => r.seq);
+  for (const [ts, rows] of Object.entries(s.threadMessages || {})) threadMessages[ts] = rows.map((r) => fill({ thread_ts: ts, ...r }, r.chat_id || chatOf(ts)));
   return {
     now, chats, messages, threads, threadMessages,
     files: s.files || {},
     routes: s.routes || {},
     statics: quiet(now),
-    seq: Math.max(0, ...seqs),
+    seq: next,
     writes: [],
+    misses: [],
   };
 }
 
@@ -139,6 +142,14 @@ export function answer(st, q) {
     c.seen = { seen_at: st.now, seen_seq: st.seq };
     return done(ok({ seen: c.seen }));
   }
+  if ((k = /^\/api\/deploy\/([^/]+)\/check$/.exec(p)) && m === "GET") {
+    const id = decodeURIComponent(k[1]);
+    if (!st.chats.some((c) => c.project === id)) return done(err(404, "not_found", "No such project"));
+    return done(ok({ schema: 1, project: id, state: "needs-agent", summary: "Needs preparing.", reasons: [{ what: "A Dockerfile", why: "Nothing builds an image yet" }], blockers: [], warnings: [], config: null, config_error: null,
+      fields: { name: { value: id, source: "the project folder" }, port: { value: null, source: "" }, health_path: { value: null, source: "default" }, env: [], repo: { full_name: null, remote: null, branch: "main", origin: null, new_repo_name: id }, size: { value: null, source: "the template's default" }, storage: { value: null, source: "none" } },
+      git: { repo: false, branch: null, head: null, deployed_head: null, origin_github: null },
+      prerequisites: { github_connected: false, github_source: null, launchpad_key: false, launchpad_cli: false }, running: null, last: null }));
+  }
   if ((k = /^\/api\/xo-projects\/([^/]+)\/changes$/.exec(p)) && m === "GET") {
     const id = decodeURIComponent(k[1]);
     return done(ok({ project_id: id, worktree: null, root: `/home/test/${id}`, base_ref: "HEAD", base_commit: "c0", base_source: "head", head_commit: "c0", computed_at: st.now, truncated: false, total_files: 0, files: [] }));
@@ -156,5 +167,6 @@ export function answer(st, q) {
     st.writes.push({ method: m, path: p, body: q.body, unknown: true });
     return done(err(405, "not_in_seed", `e2e: ${m} ${p} isn't answered by this seed`));
   }
+  st.misses.push(`${m} ${p}`);
   return done(err(404, "not_found", "not in the seeded store"));
 }

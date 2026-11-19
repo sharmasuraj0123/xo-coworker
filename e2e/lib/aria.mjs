@@ -39,7 +39,7 @@ export function trimDiff(lines, context = 2) {
 }
 
 /** @param {{ariaSnapshot: () => Promise<string>}} locator @param {string} file @returns {Promise<{ok: boolean, written?: boolean, diff?: string, text: string}>} */
-export async function compareAria(locator, file, { update = process.env.UPDATE === "1" } = {}) {
+export async function compareAria(locator, file, { update = false } = {}) {
   const text = normalise(await locator.ariaSnapshot());
   if (update) {
     const was = existsSync(file) ? readFileSync(file, "utf8") : null;

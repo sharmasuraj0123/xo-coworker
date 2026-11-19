@@ -2,6 +2,7 @@
   - button "Change demo's icon"
   - heading "demo" [level=1]
   - button "1 thread. Open them in the panel": Threads 1
+  - button "Deploy"
   - 'button "Panel: threads, changes and map"'
   - log "Messages":
     - separator: Beginning of the conversation
