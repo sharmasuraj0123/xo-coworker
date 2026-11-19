@@ -129,7 +129,7 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 | `core/ui/foundation.css`, `css/app.css` | reset and the UI |
 | `js/app.js` | views, rendering, navigation, composer, sending |
 | `core/services/world/`, `core/services/storm/` | the world the views render, from the real API (`js/world.js`, `js/storm.js` re-export them) |
-| `js/api.js`, `js/stream.js` | HTTP client and SSE `ChatStream` |
+| `core/platform/api.js`, `core/platform/http.js`, `core/platform/sse.js` | the route table, the HTTP transport and the SSE stream |
 | `js/attach.js` | files on a message: checks before upload, a large paste as a file, the composer's upload tray |
 | `js/model.js`, `js/timeline.js`, `js/markdown.js`, `js/util.js` | pure helpers: thread state, checklists, message rows and dedupe, asks, `@target`, safe markdown |
 | `js/decide.js`, `js/kit.js`, `js/pacing.js` | decisions, the decision kit and commit window, and pacing (what speaks up and what waits) |
