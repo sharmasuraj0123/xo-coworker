@@ -4,7 +4,7 @@ import { dom, settle } from "../../../tests/lib/dom.mjs";
 
 const PAGE = `<section id="settings"><nav><button data-set="routing">Routing</button></nav><div data-page="routing"><div class="set-live"></div></div></section>`;
 await dom(PAGE);
-const { api } = await import("../../../js/api.js");
+const { api } = await import("../../../core/platform/api.js");
 const { createSettings } = await import("../../../js/settings.js");
 let passed = 0;
 const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };

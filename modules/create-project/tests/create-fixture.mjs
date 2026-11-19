@@ -18,7 +18,7 @@ export async function createDialog() {
   dlg.close = () => { dlg.open = false; dlg.removeAttribute("open"); dlg.dispatchEvent(new Event("close")); };
   const form = document.querySelector("#create-form");
   form.reset ??= () => { for (const el of form.querySelectorAll("input, textarea")) el.value = ""; };
-  const { api } = await import("../../../js/api.js");
+  const { api } = await import("../../../core/platform/api.js");
   const said = [], heralds = [];
   /** @type {{ waiting: ReturnType<typeof deferred>[], polls: number }} */
   const clone = { waiting: [], polls: 0, id: `c${++dialogs}`, over: false };
