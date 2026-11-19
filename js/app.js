@@ -56,7 +56,7 @@ import { createRecord } from "./recordview.js";
 import { greeting, today } from "./skeleton.js"; // Home's shell, drawn before this module graph arrives
 import { arrive, still, EASE, MOVE } from "./motion.js";
 import { wireGestures } from "./gestures.js";
-import { rtName, manyRuntimes, findRt, healthOf, canMove, untilWords } from "./runtimes.js";
+import { rtName, rtMark, manyRuntimes, findRt, healthOf, canMove, untilWords } from "./runtimes.js";
 // the UI's shape per person: which surfaces show, in what order, how dense, in which words (js/shape.js)
 import { createShapeStore } from "./shape.js";
 import { createShapeView, SHAPE_IC, UNKEPT } from "./shapeview.js";
@@ -382,8 +382,10 @@ function rtTag(t, cls) {
   if (cls === "ar" && rt && rt.default && !warn) return "";
   // a shape without runtime names (xo:thread/runtime) still says when the runtime is in trouble
   if (!warn && !SHAPE.on("xo:thread/runtime")) return "";
-  return cls === "ar" ? `<span class="ar-r${warn}" title="${esc(tip)}">${esc(rtName(agent))}<span aria-hidden="true"> · </span></span>`
-    : `<button type="button" class="tw-rt${warn}" data-set-open="runtimes" title="${esc(tip)}" aria-label="${esc(tip)} Open Runtimes in Settings.">${esc(rtName(agent))}</button>`;
+  // its company's mark (js/runtimes.js rtMark): alone in a list row, the name beside it in the header; a runtime
+  // without a mark keeps its name
+  return cls === "ar" ? `<span class="ar-r${warn}" title="${esc(tip)}">${rtMark(agent) || esc(rtName(agent))}<span aria-hidden="true"> · </span></span>`
+    : `<button type="button" class="tw-rt${warn}" data-set-open="runtimes" title="${esc(tip)}" aria-label="${esc(tip)} Open Runtimes in Settings.">${rtMark(agent, { withName: true }) || esc(rtName(agent))}</button>`;
 }
 /** F7: what a runtime does with a message sent while its turn runs: "steered" (joins it) or "queued". */
 // The steer hint is off until xo-space's deploy makes a reply join the running turn: the composer never

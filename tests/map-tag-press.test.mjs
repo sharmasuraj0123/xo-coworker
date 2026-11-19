@@ -14,7 +14,7 @@ t("a tag's secondary words aren't dimmed: full ink, a lighter weight", () => {
   const r = css.match(/\.dg-tag span\{([^}]*)\}/);
   assert.ok(r, "the rule");
   assert.doesNotMatch(r[1], /opacity/, "no opacity");
-  assert.match(r[1], /font-weight:400/);
+  assert.match(r[1], /font-weight:var\(--fw-regular\)/);
 });
 t("the idle tag's words in the first ink on dark", () => {
   assert.match(css, /\.dg-cur\.is-idle \.dg-tag\{background:var\(--fill-4\);color:var\(--ink\)\}/);

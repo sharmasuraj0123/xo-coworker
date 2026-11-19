@@ -35,7 +35,7 @@
   /* ── three quick fixes ───────────────────────────────────────────────────────────────────────────── */
   /* 16 px in every field: under 16, iPhone zooms the page when one takes focus, and it stays zoomed
      (Find a project was 13, New project 14, All threads 14, Jump 15, a decision's note 15) */
-  :root:root :is(input:not([type="checkbox"],[type="radio"],[type="range"],[type="file"]),textarea,select){font-size:16px}
+  :root:root :is(input:not([type="checkbox"],[type="radio"],[type="range"],[type="file"]),textarea,select){font-size:var(--fs-read)}
   /* the notch and the status bar: as a home-screen app the page runs under them (viewport-fit=cover),
      so the bars start below the top safe area (0 in a browser tab) */
   :root:root .phonebar{height:calc(52px + env(safe-area-inset-top));padding-top:calc(6px + env(safe-area-inset-top))}
@@ -68,9 +68,9 @@
   :root:root .top .tw-ic{display:none}
   :root:root .top .tw-t{display:flex;flex-direction:column;gap:0;min-width:0;padding-left:4px}
   :root:root .top .tw-t h1,
-  :root:root .top .tw-h{font:600 var(--fs-lg)/20px var(--sans);letter-spacing:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  :root:root .top .pj-s{display:block;min-width:0;height:16px;margin:0;padding:0;font-size:var(--fs-sm);line-height:16px;color:var(--ink-3);text-align:left;overflow:clip;overflow-clip-margin:var(--ring-room);text-overflow:ellipsis;white-space:nowrap}
-  :root:root .top .pj-s :is(button,.pj-home){min-height:0;height:16px;line-height:16px}
+  :root:root .top .tw-h{font:var(--fw-strong) var(--fs-lg)/var(--lh-14) var(--sans);letter-spacing:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  :root:root .top .pj-s{display:block;min-width:0;height:16px;margin:0;padding:0;font-size:var(--fs-sm);line-height:var(--lh-12);color:var(--ink-3);text-align:left;overflow:clip;overflow-clip-margin:var(--ring-room);text-overflow:ellipsis;white-space:nowrap}
+  :root:root .top .pj-s :is(button,.pj-home){min-height:0;height:16px;line-height:var(--lh-12)}
   :root:root .top-end{gap:8px;margin-left:8px}
   /* when its coordinator asks, the quiet line says only that, and the ask's count never hides: past the
      room, its words give way first ("Coordinator nee… 2"). At 375 the Threads button cut "Coordinator
@@ -83,7 +83,7 @@
   /* and it's a button a thumb can take: 36 tall, a quiet warm pill under the name, only while the coordinator asks (the
      bar grows by 20 then). The owner, 11 Nov 05:42Z, with the coordinator's recommendation (S005: 154×16 on a phone) */
   :root:root .top .pj-s.has-need{height:36px;margin-top:2px;overflow:visible}
-  :root:root .top .pj-s > .pj-need{flex:0 1 auto;min-width:0;max-width:100%;height:36px;min-height:36px;padding:0 12px 0 10px;border-radius:999px;background:color-mix(in srgb,var(--warn) 12%,transparent);font-size:var(--fs-sm);line-height:16px}
+  :root:root .top .pj-s > .pj-need{flex:0 1 auto;min-width:0;max-width:100%;height:36px;min-height:36px;padding:0 12px 0 10px;border-radius:999px;background:color-mix(in srgb,var(--warn) 12%,transparent);font-size:var(--fs-sm);line-height:var(--lh-12)}
   /* its hover a deeper wash (12% → 24% of the warn: 46 RGB-sum in dark, 60 in light), held the shared press over it: its
      words' colour alone moved 6% of the box (the controls grader on fa49c3c, S005 at 390) */
   :root:root .top .pj-s > .pj-need:hover{background-color:color-mix(in srgb,var(--warn) 24%,transparent);color:var(--warn)}
@@ -94,11 +94,11 @@
   :root:root .top[data-kind="thread"] .top-who{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;grid-template-rows:20px 16px;column-gap:0;row-gap:0;padding-left:4px}
   :root:root .top[data-kind="thread"] .tw-h{grid-column:1 / 4;grid-row:1;display:block;-webkit-line-clamp:unset}
   /* 16 px in the fields: under 16, iPhone zooms the page when one takes focus (and the label's was 13) */
-  :root:root .top[data-kind="thread"] .tw-in-t{grid-column:1 / 4;grid-row:1 / 3;height:36px;font:600 16px/1 var(--sans)}
-  :root:root .top[data-kind="thread"] .tw-in-l{grid-column:1 / 4;grid-row:1 / 3;height:36px;font:500 16px/1 var(--sans)}
-  :root:root .top[data-kind="thread"] .badge{grid-column:1;grid-row:2;height:16px;padding:0;gap:6px;background:none;font:500 var(--fs-sm)/16px var(--sans)}
+  :root:root .top[data-kind="thread"] .tw-in-t{grid-column:1 / 4;grid-row:1 / 3;height:36px;font:var(--fw-strong) var(--fs-read)/1 var(--sans)}
+  :root:root .top[data-kind="thread"] .tw-in-l{grid-column:1 / 4;grid-row:1 / 3;height:36px;font:var(--fw-medium) var(--fs-read)/1 var(--sans)}
+  :root:root .top[data-kind="thread"] .badge{grid-column:1;grid-row:2;height:16px;padding:0;gap:6px;background:none;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans)}
   :root:root .top[data-kind="thread"] .badge .g{width:7px;height:7px}
-  :root:root .top[data-kind="thread"] .tw-label{grid-column:3;grid-row:2;justify-self:start;height:16px;margin-left:8px;padding:0 6px;font-size:var(--fs-sm);line-height:14px;max-width:100%}
+  :root:root .top[data-kind="thread"] .tw-label{grid-column:3;grid-row:2;justify-self:start;height:16px;margin-left:8px;padding:0 6px;font-size:var(--fs-sm);line-height:var(--lh-12);max-width:100%}
   :root:root .top[data-kind="thread"] .tw-acts{grid-column:4;grid-row:1 / 3;align-self:center;margin-left:8px}
   /* renaming or labelling: the field takes the name's whole block, 36 high, and the quiet line steps aside */
   :root:root .top[data-kind="thread"] .top-who:has(.tw-in) :is(.badge,.tw-rt,.tw-label){display:none}
@@ -129,13 +129,13 @@
   /* finished sub-agents: their count alone ("≡ 9"), read from data-n; the words stay for VoiceOver */
   :root:root .thead .rn-log{flex:none;height:40px;margin:0;padding:0 12px 0 10px;border-radius:var(--r-lg);border:1px solid var(--line-faint);gap:6px}
   :root:root .thead .rn-log span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-  :root:root .thead .rn-log::after{content:attr(data-n);font:500 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums}
+  :root:root .thead .rn-log::after{content:attr(data-n);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);font-variant-numeric:tabular-nums}
   /* sub-agents working now: one count beside the checklist (its arc, or ◆ when one waits on you), the
      same 40 px box as the finished count; it opens the list, where each one is named */
   :root:root .thead .rn-strip{display:none}
   :root:root .thead .rn-live{flex:none;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 13px 0 12px;border-radius:var(--r-lg);border:1px solid color-mix(in srgb,var(--info) 28%,var(--line-soft));background:color-mix(in srgb,var(--info) 6%,transparent);color:var(--ink-2)}
   :root:root .thead .rn-live:has(.g-needs_reply){border-color:color-mix(in srgb,var(--warn) 34%,var(--line-soft));background:color-mix(in srgb,var(--warn) 7%,transparent)}
-  :root:root .thead .rn-live .rn-n{font:500 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums}
+  :root:root .thead .rn-live .rn-n{font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);font-variant-numeric:tabular-nums}
   :root:root .thead .rn-live:active{transform:scale(.96)}
 
   /* the state line: along the bar's top edge, under the status bar */

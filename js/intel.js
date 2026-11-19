@@ -18,7 +18,7 @@ import { once } from "./pending.js";
 import { ICON, RM } from "./ui.js";
 import { api } from "./api.js";
 import { mainRuntime } from "./timeline.js";
-import { rtName, usable, allowedOf, moveTargets, findRt, healthOf, manyRuntimes } from "./runtimes.js";
+import { rtName, rtMark, usable, allowedOf, moveTargets, findRt, healthOf, manyRuntimes } from "./runtimes.js";
 
 const EFFORT_WORD = { low: "Quick", medium: "Balanced", high: "Deep", xhigh: "Deeper", max: "Deepest" };
 const PIPS = { low: 1, medium: 2, high: 3, xhigh: 4, max: 5 };
@@ -147,7 +147,8 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     const rtn = runtimeOf(s), main = (mainRuntime(world.state.runtimes) || {}).name;
     const rt = manyRuntimes(world.state.runtimes) && rtn && rtn !== main && !phone ? rtName(rtn) : null;
     const words = [];
-    if (rt) words.push(`<span class="iq-a">${esc(rt)}</span>`);
+    // a runtime other than the usual one: its mark (its name on hover, and in the chip's title and the picker)
+    if (rt) words.push(rtMark(rtn) || `<span class="iq-a">${esc(rt)}</span>`);
     if (next) words.push(`<span class="iq-a">Next turn</span>`);
     words.push(model ? `<span class="iq-t">${esc(nameOf(model))}</span>` : `<span class="iq-a">Auto</span>`);
     if (effort) words.push(`<span class="iq-e">${esc(effortWord(effort))}</span>`);
@@ -222,7 +223,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     // while a change is out (a runtime set, a move, a save), every choice here waits: aria-disabled, not disabled,
     // so the one you're on keeps focus
     const wait = P.busy || P.saving || (P.mv && P.mv.busy);
-    const btns = ch.list.map((o) => `<button type="button" role="radio" data-lrt="${esc(o.id)}" aria-checked="${sel === o.id}"${!o.usable ? ` aria-disabled="true" title="${esc(o.why)}"` : wait ? ' aria-disabled="true"' : ""}>${esc(o.label)}</button>`).join("");
+    const btns = ch.list.map((o) => `<button type="button" role="radio" data-lrt="${esc(o.id)}" aria-checked="${sel === o.id}"${!o.usable ? ` aria-disabled="true" title="${esc(o.why)}"` : wait ? ' aria-disabled="true"' : ""}>${rtMark(o.id, { withName: true }) || esc(o.label)}</button>`).join("");
     const off = ch.list.filter((o) => !o.usable);
     let line;
     if (kind === "thread") line = moving(s) ? "" : `This thread runs on ${esc(rtName(ch.on))} for its whole life.${ch.list.some((o) => o.id !== ch.on && o.usable) ? " Choose another to continue it there." : ""}`;

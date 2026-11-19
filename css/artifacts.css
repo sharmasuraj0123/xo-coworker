@@ -3,7 +3,7 @@
    (28/36 title, 14/20 lines, 13/20 meta, 12/16 labels), integer line heights, the one motion system. */
 
 /* the sidebar's row: like Home, Workspace and Chats; its count is a quiet number, never a signal */
-.nr-q{margin-left:auto;font:500 var(--fs-sm)/16px var(--mono);color:var(--ink-4);font-variant-numeric:tabular-nums}
+.nr-q{margin-left:auto;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--mono);color:var(--ink-4);font-variant-numeric:tabular-nums}
 .nrow.is-on .nr-q{color:var(--ink-3)}
 
 /* the page: a library, so no composer under it */
@@ -26,18 +26,18 @@
 .ar-q{flex:1;min-width:0;max-width:420px;display:flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft);color:var(--ink-4);transition:border-color var(--d-hover) var(--ease)}
 .ar-q:focus-within{border-color:var(--line-strong)}
 .ar-q svg{flex:none;width:16px;height:16px}
-.ar-q input{flex:1;min-width:0;height:100%;border:0;outline:none;background:none;color:var(--ink);font:400 var(--fs-md)/20px var(--sans)}
+.ar-q input{flex:1;min-width:0;height:100%;border:0;outline:none;background:none;color:var(--ink);font:var(--fw-regular) var(--fs-md)/var(--lh-14) var(--sans)}
 .ar-q input::placeholder{color:var(--ink-4)}
 .ar-kinds{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.ar-kinds button{display:inline-flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 12px;border-radius:999px;border:1px solid var(--line-soft);color:var(--ink-3);font:500 var(--fs-base)/20px var(--sans);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.ar-kinds button span{font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums}
+.ar-kinds button{display:inline-flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 12px;border-radius:999px;border:1px solid var(--line-soft);color:var(--ink-3);font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.ar-kinds button span{font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums}
 .ar-kinds button:hover{color:var(--ink);border-color:var(--line-strong)}
 .ar-kinds button[aria-checked="true"]{background:var(--fill-2);border-color:var(--line-strong);color:var(--ink)}
 .ar-kinds button[aria-checked="true"] span{color:var(--ink-3)}
 .ar-body{margin-top:8px}
-.ar-gh{padding:24px 0 12px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
-.ar-none{padding:48px 0;font:400 var(--fs-md)/20px var(--sans);color:var(--ink-3)}
-.ar-none b{display:block;margin-bottom:4px;color:var(--ink-2);font-weight:600}
+.ar-gh{padding:24px 0 12px;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
+.ar-none{padding:48px 0;font:var(--fw-regular) var(--fs-md)/var(--lh-14) var(--sans);color:var(--ink-3)}
+.ar-none b{display:block;margin-bottom:4px;color:var(--ink-2);font-weight:var(--fw-strong)}
 
 /* the gallery: cards on the same 16 px rhythm; pictures 160 high */
 .ar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
@@ -45,9 +45,9 @@
 .ar-grid .md-th{height:160px;border-radius:calc(var(--r-lg) - 1px) calc(var(--r-lg) - 1px) 0 0}
 .ar-grid .md-ic svg,.ar-grid .md-ic svg.fi{width:28px;height:28px}
 .ar-grid .md-meta{gap:4px;padding:12px 12px 4px}
-.ar-grid .md-meta b{font:600 var(--fs-md)/20px var(--sans)}
-.ar-grid .md-meta > span{font:400 var(--fs-base)/20px var(--sans)}
-.ar-grid .md-from{margin:0 4px 8px;padding:4px 8px;font:400 var(--fs-sm)/16px var(--sans)}
+.ar-grid .md-meta b{font:var(--fw-strong) var(--fs-md)/var(--lh-14) var(--sans)}
+.ar-grid .md-meta > span{font:var(--fw-regular) var(--fs-base)/var(--lh-14) var(--sans)}
+.ar-grid .md-from{margin:0 4px 8px;padding:4px 8px;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans)}
 /* at any size (js/recordview.js): the gallery keeps its whole height and only the lines near the screen are
    drawn, each in its place; a card without a thread keeps an empty "from" line, so every card is one height */
 .ar-body{position:relative;overflow-anchor:none}
@@ -80,7 +80,7 @@
   .arts:not(.is-pics) .ar-grid .md-th .md-ic svg{width:20px;height:20px}
   .arts:not(.is-pics) .ar-grid .md-ext{display:none}
   .arts:not(.is-pics) .ar-grid .md-meta{flex:1;gap:2px;padding:0}
-  .arts:not(.is-pics) .ar-grid .md-meta b{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;white-space:normal;overflow-wrap:anywhere;font:500 var(--fs-md)/20px var(--sans)}
+  .arts:not(.is-pics) .ar-grid .md-meta b{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;white-space:normal;overflow-wrap:anywhere;font:var(--fw-medium) var(--fs-md)/var(--lh-14) var(--sans)}
   .arts:not(.is-pics) .ar-grid .md-meta b .mx-mid{display:inline}
   .arts:not(.is-pics) .ar-grid .md-meta b :is(.mx-mh,.mx-mt){white-space:normal}
   .arts:not(.is-pics) .ar-grid .md-meta > span{font:400 var(--fs-base)/18px var(--sans)}

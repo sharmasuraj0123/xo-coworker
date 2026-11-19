@@ -84,12 +84,23 @@
   --fs-xs:12px; --fs-sm:12px; --fs-base:13px; --fs-md:14px; --fs-lg:15px; --fs-xl:15px; --fs-2xl:20px; --fs-3xl:28px; --fs-4xl:40px;
   --lh-12:16px; --lh-13:20px; --lh-14:20px; --lh-15:24px; --lh-16:24px; --lh-20:28px; --lh-28:36px; --lh-40:44px;
   --tr-12:.01em; --tr-13:0em; --tr-15:0em; --tr-20:-.01em; --tr-28:-.02em; --tr-40:-.03em;
+  --tr-caps:.04em;   /* a small caps label (FILES, SECTION) */
+  --tr-code:.1em;    /* a code to read out or type (a pairing code) */
   --lh-ui:20px; --lh-read:24px;
   --fw-regular:400; --fw-medium:500; --fw-strong:600;
-  --fs-doc:17px; --lh-doc:28px;   /* documents (Files, the viewer) read in the serif at this size */
-  /* a reply in the conversation is read like a page (the owner, 19 Nov: "painful to read"): 16 on 26, its text lines
-     at most --measure wide (~80 characters of Geist); what isn't text (code, tables, charts, cards) keeps the column */
-  --fs-read:16px; --lh-chat:26px; --measure:37.5em;
+  /* ONE TYPE SCALE (the owner, 19 Nov: "consistency in the entire system"). Every text style uses these tokens, no
+     local sizes, line heights, weights, tracking or font features:
+       read    16/24 (--fs-read / --lh-read)  everything people read: messages from anyone in either view, replies,
+                                              a thread's words, decisions, runs, Files' Markdown, what you type
+       ui      14/20 (--fs-md / --lh-14)      controls and rows
+       label   13/20 (--fs-base / --lh-13)    a label above or beside something
+       meta    12/16 (--fs-sm / --lh-12)      times, counts, secondary lines
+       heads   20/28 · 28/36 · 40/44 (--fs-2xl/--lh-20 · --fs-3xl/--lh-28 · --fs-4xl/--lh-40)
+     weights --fw-regular 400 · --fw-medium 500 · --fw-strong 600; one set of Geist letterforms (no alternates).
+     Text lines of what's read stop at --measure: the reading column less one breathing inset (--s-12, 48) on the
+     right, so words end short of where your message ends; a column narrower than 528 (a phone, beside a file) reads
+     on its whole width. Code, tables, charts and cards keep the whole column. */
+  --fs-read:16px; --measure:max(calc(100% - var(--s-12)), min(100%, 480px));   /* outside a view's column: its own box */
 
   /* Geometry. The chrome is crisp; the conversation and the work are soft. Nested corners are computed,
      never chosen: inner = outer − inset.

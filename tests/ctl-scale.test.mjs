@@ -16,7 +16,11 @@ import { readFileSync, readdirSync } from "node:fs";
 import { rules, context, decls, px } from "./lib/cascade.mjs";
 
 const ROOT = new URL("../", import.meta.url);
-const tokensCss = readFileSync(new URL("css/tokens.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+// The type scale's tokens (css/tokens.css, 19 Nov) read back as the values these checks were written against, so a
+// size measured here is the same size whether a rule spells it or names its token
+const TYPE = { "var(--fw-regular)": "400", "var(--fw-medium)": "500", "var(--fw-strong)": "600", "var(--lh-12)": "16px", "var(--lh-13)": "20px", "var(--lh-14)": "20px", "var(--lh-15)": "24px", "var(--lh-20)": "28px", "var(--lh-28)": "36px", "var(--lh-40)": "44px", "var(--lh-read)": "24px" };
+const readCss = (u, enc) => readFileSync(u, enc).replace(/var\(--(?:fw-[a-z]+|lh-(?:12|13|14|15|20|28|40|read))\)/g, (m) => TYPE[m] || m);
+const tokensCss = readCss(new URL("css/tokens.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 // the desktop's tokens: the :root block, not a phone's media query below it
 const desk = tokensCss.replace(/@media[^{]*\{(?:[^{}]|\{[^{}]*\})*\}/g, "");
 const tokens = Object.fromEntries([...desk.matchAll(/(--[\w-]+):\s*(\d+(?:\.\d+)?)px/g)].map((m) => [m[1], +m[2]]));
@@ -72,10 +76,10 @@ t("the lists only shrink: a control that has moved onto the scale leaves them", 
 t("rows from the tokens: 40 one line, 48 with an action, 56 a two-line list row; a phone's one-line rows 36, compact 32", () => {
   assert.equal(tokens["--h-row"], 40); assert.equal(tokens["--h-row-act"], 48); assert.equal(tokens["--h-row-list"], 56);
   assert.match(tokensCss, /@media \(max-width:760px\)\{:root\{--h-row:36px\}\}/);
-  assert.match(readFileSync(new URL("css/shape.css", ROOT), "utf8"), /:root\[data-density="compact"\] :is\(\.main,\.sheet,\.iq-pop\)\{\s*--h-row:32px;/);
+  assert.match(readCss(new URL("css/shape.css", ROOT), "utf8"), /:root\[data-density="compact"\] :is\(\.main,\.sheet,\.iq-pop\)\{\s*--h-row:32px;/);
   // and its controls on the scale: 24, not 28 (C106, the Compact switch 46×28; the owner, 11 Nov 05:42Z)
-  assert.match(readFileSync(new URL("css/shape.css", ROOT), "utf8"), /:root\[data-density="compact"\] :is\(\.main,\.sheet,\.iq-pop\)\{\s*--h-row:32px; --h-ctl:var\(--h-sm\);/);
-  const app = readFileSync(new URL("css/app.css", ROOT), "utf8");
+  assert.match(readCss(new URL("css/shape.css", ROOT), "utf8"), /:root\[data-density="compact"\] :is\(\.main,\.sheet,\.iq-pop\)\{\s*--h-row:32px; --h-ctl:var\(--h-sm\);/);
+  const app = readCss(new URL("css/app.css", ROOT), "utf8");
   assert.match(app, /\.nrow,\.prow\{[^}]*min-height:var\(--h-row\);padding:5px 10px 5px 7px;/, "the sidebar's rows 40: 1 + 5 + its 28 px icon + 5 + 1, its left edge where it was");
   // the rows as drawn, not only their floor: the words inside them fill the step exactly (the row measurement on
   // f93345a: Chats' rows were 64, their two lines 20 + 4 + 20 over a 56 floor; a project's two lines 49.1, 18.2 + 2 +
@@ -84,10 +88,10 @@ t("rows from the tokens: 40 one line, 48 with an action, 56 a two-line list row;
   assert.match(app, /\.ch-main\{[^}]*gap:2px\}/); assert.match(app, /\.ch-t\{font:500 var\(--fs-md\)\/20px/); assert.match(app, /\.ch-m\{font-size:var\(--fs-sm\);line-height:16px;/, "20 + 2 + 16 = 38");
   assert.match(app, /\.pr-main\{[^}]*gap:2px\}/); assert.match(app, /\.pr-name\{[^}]*font:550 var\(--fs-md\)\/18px/); assert.match(app, /\.pr-t\{[^}]*line-height:16px;/, "a project's row with its second line 48: 1 + 5 + 18 + 2 + 16 + 5 + 1");
   assert.match(app, /\.hd\{[^}]*min-height:var\(--h-row-act\);/, "Handled 48");
-  const mx = readFileSync(new URL("css/msgx.css", ROOT), "utf8");
+  const mx = readCss(new URL("css/msgx.css", ROOT), "utf8");
   assert.equal((mx.match(/>\.tb-h\{width:100%;min-height:var\(--h-row\);/g) || []).length, 2, "an open tool disclosure 40 (it was 44)");
   // a phone's rows on the steps (the owner, 11 Nov 05:42Z)
-  const phone = readFileSync(new URL("css/phone.css", ROOT), "utf8");
+  const phone = readCss(new URL("css/phone.css", ROOT), "utf8");
   assert.match(phone, /\.nrow,\.prow\{min-height:40px;padding-top:5px;padding-bottom:5px\}/);
   // Chats' rows are 56 on a phone too: no phone rule changes them (C048: their phone 58 floor drew 66)
   assert.doesNotMatch(phone.replace(/\/\*[\s\S]*?\*\//g, ""), /\.ch-(row|main|m)\{/, "a phone keeps Chats' rows as a desktop draws them, 56");
@@ -100,7 +104,7 @@ t("a phone's rows are on its steps (36 one line, 40, 48, 56), but those listed f
   const PHONE_STEPS = new Set([36, 40, 48, 56]);
   // none kept: the six a phone had kept from before the 8 px steps moved onto them (the owner, 11 Nov 05:42Z)
   const KEPT = {};
-  const phoneCss = readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  const phoneCss = readCss(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
   const rows = /\.(nrow|prow|ch-row|hd-r|ar|ar-fold|ar-undo|syl-ln|ag-r|ch-r|tb-h|b-opt|set-row|iq-row|fl-r|cx-r|kr)\b/;
   const off = [];
   for (const m of phoneCss.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
@@ -114,7 +118,7 @@ t("a phone's rows are on its steps (36 one line, 40, 48, 56), but those listed f
 });
 t("a control sized by its words and padding is on the scale too: the decision's where line, 24 (S157: 104×26)", () => {
   // the census reads declared heights; one drawn by its padding (3 + 20 + 3) escaped it (the controls grader on f93345a)
-  assert.match(readFileSync(new URL("css/app.css", ROOT), "utf8"), /\.c-where\{[^}]*height:var\(--h-sm\);[^}]*padding:0 6px;/);
+  assert.match(readCss(new URL("css/app.css", ROOT), "utf8"), /\.c-where\{[^}]*height:var\(--h-sm\);[^}]*padding:0 6px;/);
 });
 t("a row-type control's one line fits its row: border, padding and line no taller than its floor, so only words that wrap grow it", () => {
   // a row's floor (min-height 40/48/56) hides a height its padding and line make: one 2 px over made Home's answers
@@ -144,16 +148,16 @@ t("a row-type control's one line fits its row: border, padding and line no talle
 });
 t("a button's label sits on one line: the meta line's buttons never wrap or shrink (S045: Stop the turn on a phone)", () => {
   // the browser sweep (harness.cjs ringClips) checks every one-line control in view for a label on two lines
-  assert.match(readFileSync(new URL("css/app.css", ROOT), "utf8"), /\.meta-btn\{flex:none;white-space:nowrap;display:inline-flex;/);
+  assert.match(readCss(new URL("css/app.css", ROOT), "utf8"), /\.meta-btn\{flex:none;white-space:nowrap;display:inline-flex;/);
 });
 t("an answer is a row: one line 40, with its description line 56 (S025, S052)", () => {
-  const app = readFileSync(new URL("css/app.css", ROOT), "utf8");
+  const app = readCss(new URL("css/app.css", ROOT), "utf8");
   assert.match(app, /\.b-opt\{flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:0;min-height:var\(--h-lg\);padding:7px 14px;[^}]*line-height:24px;/, "1 + 7 + 24 + 7 + 1 = 40");
   assert.match(app, /\.o-l\{font:500 var\(--fs-lg\)\/24px/);
   assert.match(app, /\.o-d\{display:block;margin-top:0;font:400 var\(--fs-sm\)\/16px/, "+ 16 = 56, no gap between the lines");
 });
 t("a button drawn as a link, standing on its own, has the desktop's 24 floor; one in a sentence is words (S014: the docked Undo, 39×20)", () => {
-  const fnd = readFileSync(new URL("css/foundation.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  const fnd = readCss(new URL("css/foundation.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
   const links = fnd.match(/:is\(([^)]*)\)\{transition:color var\(--d-hover\)/)[1].split(",");
   const floor = fnd.match(/:where\(([^)]*)\)\{min-height:var\(--h-sm\)\}/)[1].split(",");
   // in a sentence: Copy path's (dialog text), Launchpad's lines, Home in the Workspace's sentence; and the @ line's
@@ -164,7 +168,7 @@ t("a button drawn as a link, standing on its own, has the desktop's 24 floor; on
   assert.match(readFileSync(new URL("js/chats.js", ROOT), "utf8"), /<span class="tg-ch">/, "the @ line's change is a word in its button");
 });
 t("the composer's circles in compact density sit on its corner: no comfortable margin moves them", () => {
-  assert.match(readFileSync(new URL("css/shape.css", ROOT), "utf8"), /\[data-density="compact"\] :is\(\.attach,\.send\)\{width:var\(--h-row\);height:var\(--h-row\);margin:0\}/);
+  assert.match(readCss(new URL("css/shape.css", ROOT), "utf8"), /\[data-density="compact"\] :is\(\.attach,\.send\)\{width:var\(--h-row\);height:var\(--h-row\);margin:0\}/);
 });
 t("a segment's buttons are 24 inside its 32 (1 + 3 of inset, their corners 6 − 4), folded to a 24 square", () => {
   for (const f of ["app.css", "panel.css"]) {
@@ -172,6 +176,6 @@ t("a segment's buttons are 24 inside its 32 (1 + 3 of inset, their corners 6 −
     assert.match(css, /\.vw-seg\{[^}]*padding:3px;/, `${f}: the segment's inset`);
     assert.match(css, /\.vw-seg button\{height:var\(--h-sm\);[^}]*border-radius:calc\(var\(--r-sm\) - 4px\)/, `${f}: its buttons`);
   }
-  assert.match(readFileSync(new URL("css/panel.css", ROOT), "utf8"), /\.vw-seg button:where\(:has\(svg\)\)\{width:var\(--h-sm\);/);
+  assert.match(readCss(new URL("css/panel.css", ROOT), "utf8"), /\.vw-seg button:where\(:has\(svg\)\)\{width:var\(--h-sm\);/);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

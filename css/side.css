@@ -42,7 +42,7 @@
 .prow:not(.busy):not(.needs):not(.is-on):hover{background:var(--row-hover)}
 .prow:not(.is-on) .pr-name{color:var(--ink-2)}
 .prow:not(.is-on):hover .pr-name,.prow.is-on .pr-name{color:var(--ink)}
-.prow.is-on .pr-name{font-weight:600}
+.prow.is-on .pr-name{font-weight:var(--fw-strong)}
 
 /* the open project: the one raised card */
 .prow.is-on{background:color-mix(in srgb,var(--ink) 8%,var(--sb-side));border-color:color-mix(in srgb,var(--ink) 11%,transparent);box-shadow:inset 0 1px 0 color-mix(in srgb,var(--ink) 7%,transparent),0 6px 14px -10px rgb(0 0 0 / .7),0 1px 2px rgb(0 0 0 / .3)}

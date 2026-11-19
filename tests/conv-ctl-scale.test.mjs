@@ -68,7 +68,7 @@ t("the folded tool pill is --h-ctl (it was 28), and so are the rail's header and
     assert.equal(px(body(msgx, sel), "min-height"), "var(--h-ctl)", sel);
   const pill = body(msgx, ":root[data-msgx] .m-turn .turn>.tb>.tb-h");
   assert.equal(px(pill, "padding"), "4px 12px 4px 16px", "its words keep their 16 px edge");
-  assert.equal(px(pill, "line-height"), "20px", "centred: (32 − 20) / 2 = 6 above and below");
+  assert.equal(px(pill, "line-height"), "var(--lh-14)", "centred: (32 − 20) / 2 = 6 above and below (--lh-14, 20 px, on the type scale)");
 });
 
 t("a phone keeps the pill and the rail's header and rows at its 36 floor", () => {

@@ -10,7 +10,7 @@ diffs-container{
   min-height:1px;
   --diffs-font-family:var(--mono);
   --diffs-header-font-family:var(--sans);
-  --diffs-font-size:13px; --diffs-line-height:20px; --diffs-tab-size:2;
+  --diffs-font-size:var(--fs-base); --diffs-line-height:var(--lh-13); --diffs-tab-size:2;
   --diffs-font-features:"liga" 0,"calt" 0;   /* => reads as two characters, as in the viewer */
   --diffs-bg-context-override:var(--fill-1);
   --diffs-bg-buffer-override:var(--fill-1);
@@ -34,8 +34,8 @@ diffs-container{
 }
 
 /* ── counts: "+5 −8", tabular so they never shift, the code tokens' green and red ── */
-.xd-n{flex:none;display:inline-flex;gap:6px;font:500 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums;letter-spacing:0;color:var(--ink-4)}
-.xd-n b{font-weight:500}
+.xd-n{flex:none;display:inline-flex;gap:6px;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);font-variant-numeric:tabular-nums;letter-spacing:0;color:var(--ink-4)}
+.xd-n b{font-weight:var(--fw-medium)}
 .xd-a{color:var(--code-add)}
 .xd-d{color:var(--code-del)}
 
@@ -59,7 +59,7 @@ diffs-container{
    drawn yet is a flex item that could shrink, so 500 rows measured ~2,400 px, not ~17,000, and scrolling
    jumped (Astra, on 58a4883) */
 .stage .cx-list>li{flex:0 0 32px;scroll-snap-align:start;content-visibility:auto;contain-intrinsic-size:auto 32px}
-.stage .cx-more{box-sizing:border-box;display:flex;align-items:center;width:100%;height:32px;padding:0 8px 0 32px;border-radius:var(--r);text-align:left;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.stage .cx-more{box-sizing:border-box;display:flex;align-items:center;width:100%;height:32px;padding:0 8px 0 32px;border-radius:var(--r);text-align:left;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .stage .cx-more:not(:disabled):hover{background:var(--panel-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
 .stage .cx-more:disabled{color:var(--ink-4)}
 .stage .cx-r{box-sizing:border-box;display:grid;grid-template-columns:16px minmax(0,1fr) auto;column-gap:8px;align-items:center;width:100%;height:32px;padding:0 8px;border-radius:var(--r);text-align:left;color:var(--ink-2);transition:background var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease)}
@@ -72,36 +72,36 @@ diffs-container{
 .stage .cx-r.is-on .cx-i .arc{background:color-mix(in srgb,var(--ink) 8%,var(--sunken))}
 :root[data-theme="light"] .stage .cx-r.is-on .cx-i .arc{background:var(--surface)}
 .stage .cx-t{display:flex;align-items:baseline;gap:8px;min-width:0;overflow:hidden;white-space:nowrap}
-.stage .cx-n{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:500 var(--fs-base)/20px var(--sans)}
-.stage .cx-d{flex:0 100 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.stage .cx-n{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans)}
+.stage .cx-d{flex:0 100 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
 .stage .cx-r:hover .cx-n,.stage .cx-r.is-on .cx-n{color:var(--ink)}
 .stage .cx-pane{position:relative;flex:1 1 0;min-height:120px;display:flex;flex-direction:column;margin:0 12px 12px;border-radius:var(--r-lg);border:1px solid var(--panel-line);background:var(--fill-1);overflow:hidden}
 .stage .cx-pane[hidden]{display:none}
 .stage .cx-ph{flex:none;box-sizing:border-box;display:flex;align-items:center;gap:8px;height:35px;padding:0 3px 0 11px;border-bottom:1px solid var(--panel-line)}
-.stage .cx-pp{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 var(--fs-sm)/16px var(--mono);color:var(--ink-2)}
+.stage .cx-pp{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--mono);color:var(--ink-2)}
 .stage .cx-sp{flex:1}
 .stage .cx-ofi{display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:calc(var(--r-lg) - 4px);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .stage .cx-ofi:hover{background:var(--panel-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
 .stage .cx-ofi svg{width:16px;height:16px}
 .stage .cx-pd{flex:1 1 0;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin}
 .stage .cx-pd[hidden]{display:none}
-.stage .cx-pd diffs-container{--diffs-font-size:12px;--diffs-line-height:18px}
-.stage .cx-note,.stage .cx-none{margin:0;padding:12px;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.stage .cx-pd diffs-container{--diffs-font-size:var(--fs-sm);--diffs-line-height:var(--lh-12)}
+.stage .cx-note,.stage .cx-none{margin:0;padding:12px;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
 .stage .cx-none{padding:4px 20px 12px}
 .stage .cx-none .spin{display:inline-block;width:10px;height:10px;margin-right:6px;border-radius:50%;vertical-align:-1px}
 /* paused: an edit you aren't looking at, said quietly over the diff, never a jump */
-.stage .cx-pill{position:absolute;z-index:2;top:44px;left:50%;transform:translateX(-50%);display:inline-flex;align-items:center;gap:8px;height:var(--h-ctl);max-width:calc(100% - 48px);padding:0 12px;border-radius:var(--r-pill);background:var(--surface);border:1px solid var(--panel-line);box-shadow:var(--e2);font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-2);white-space:nowrap;animation:cx-pill var(--d-in) var(--ease)}
+.stage .cx-pill{position:absolute;z-index:2;top:44px;left:50%;transform:translateX(-50%);display:inline-flex;align-items:center;gap:8px;height:var(--h-ctl);max-width:calc(100% - 48px);padding:0 12px;border-radius:var(--r-pill);background:var(--surface);border:1px solid var(--panel-line);box-shadow:var(--e2);font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-2);white-space:nowrap;animation:cx-pill var(--d-in) var(--ease)}
 .stage .cx-pill[hidden]{display:none}
 .stage .cx-pill>span:first-of-type{min-width:0;overflow:hidden;text-overflow:ellipsis}
-.stage .cx-pill b{font-weight:500;color:var(--ink)}
+.stage .cx-pill b{font-weight:var(--fw-medium);color:var(--ink)}
 .stage .cx-pill i{width:6px;height:6px;border-radius:50%;background:var(--ink-3)}
-.stage .cx-pill .cx-show{font-weight:500;color:var(--ink)}
-.stage .cx-pill .cx-show::before{content:"·";margin-right:8px;font-weight:400;color:var(--ink-4)}
+.stage .cx-pill .cx-show{font-weight:var(--fw-medium);color:var(--ink)}
+.stage .cx-pill .cx-show::before{content:"·";margin-right:8px;font-weight:var(--fw-regular);color:var(--ink-4)}
 .stage .cx-pill:hover{border-color:var(--line-hover)}
 @keyframes cx-pill{from{opacity:0;transform:translate(-50%,-4px)}}
 /* the frame's head: the total beside the count, and Follow */
 .stage [data-fr="changes"] .fr-n{display:inline-flex;align-items:baseline;gap:8px}
-.stage .xd-follow{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px;border-radius:var(--r-pill);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.stage .xd-follow{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px;border-radius:var(--r-pill);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .stage .xd-follow[hidden]{display:none}
 .stage .xd-follow:hover{background:var(--panel-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
 .stage .xd-follow.is-on{background:color-mix(in srgb,var(--info) 14%,transparent);color:color-mix(in srgb,var(--info) 75%,var(--ink))}
@@ -124,10 +124,10 @@ diffs-container{
 .vw-file diffs-container{--code-bg:var(--canvas)}
 
 /* "Ask about lines 36–43 ⌘L": under the selection's last line, at the code's right edge */
-.xd-ask{position:absolute;z-index:3;right:16px;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px 0 8px;border-radius:var(--r-pill);background:var(--surface);border:1px solid var(--line);box-shadow:var(--e2);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink);white-space:nowrap;animation:xd-in var(--d-in) var(--ease)}
+.xd-ask{position:absolute;z-index:3;right:16px;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px 0 8px;border-radius:var(--r-pill);background:var(--surface);border:1px solid var(--line);box-shadow:var(--e2);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink);white-space:nowrap;animation:xd-in var(--d-in) var(--ease)}
 .xd-ask:hover{border-color:var(--line-hover)}
 .xd-ask svg{width:14px;height:14px;color:var(--ink-3)}
-.xd-ask kbd{all:unset;margin-left:2px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.xd-ask kbd{all:unset;margin-left:2px;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
 :root[data-theme="light"] .xd-ask{background:#fff}
 @keyframes xd-in{from{opacity:0;transform:translateY(-2px)}}
 
@@ -136,12 +136,12 @@ diffs-container{
    14 + 8 = 22. Send never shrinks: a long thread name is cut instead (Astra F3). */
 .xd-q{box-sizing:border-box;max-width:600px;margin:8px 16px 12px;padding:5px 5px 5px 15px;border-radius:var(--r-2xl);background:var(--surface);border:1px solid var(--line);box-shadow:var(--e2);font-family:var(--sans);white-space:normal;animation:xd-in var(--d-in) var(--ease)}
 :root[data-theme="light"] .xd-q{background:#fff}
-.xd-q .xd-ref{display:flex;align-items:center;gap:6px;margin:4px 0 4px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
+.xd-q .xd-ref{display:flex;align-items:center;gap:6px;margin:4px 0 4px;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
 .xd-q .xd-ref svg{width:14px;height:14px}
-.xd-q .xd-in{display:block;box-sizing:border-box;width:100%;min-height:40px;margin:0;padding:0;border:0;outline:none;resize:none;background:none;font:400 var(--fs-md)/20px var(--sans);color:var(--ink)}
+.xd-q .xd-in{display:block;box-sizing:border-box;width:100%;min-height:40px;margin:0;padding:0;border:0;outline:none;resize:none;background:none;font:var(--fw-regular) var(--fs-md)/var(--lh-14) var(--sans);color:var(--ink)}
 .xd-q .xd-in::placeholder{color:var(--ink-4)}
-.xd-q .xd-row{display:flex;align-items:center;gap:8px;margin-top:4px;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
-.xd-q .xd-row b{font-weight:500;color:var(--ink-2)}
+.xd-q .xd-row{display:flex;align-items:center;gap:8px;margin-top:4px;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
+.xd-q .xd-row b{font-weight:var(--fw-medium);color:var(--ink-2)}
 .xd-q .xd-sp{flex:1}
 .xd-q .xd-send{flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:50%;background:var(--accent-fill);color:var(--accent-ink)}
 .xd-q .xd-to{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -161,11 +161,11 @@ diffs-container{
 @container flpv (max-width:360px){.vw-seg.is-words{display:flex}.vw-seg.is-words button{padding:0 6px}}
 
 /* ── Files (js/viewer.js): the file's state in its head, read-only places, files that run code ── */
-.xd-state{display:inline-flex;align-items:center;gap:6px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3);white-space:nowrap}
+.xd-state{display:inline-flex;align-items:center;gap:6px;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3);white-space:nowrap}
 .xd-state i{flex:none;width:6px;height:6px;border-radius:50%;background:var(--warn)}
 .xd-errline{color:var(--err-ink)}
 .xd-vsep{flex:none;width:1px;height:16px;margin:0 4px;background:var(--fill-3)}
-.xd-btn{flex:none;display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line);font:500 var(--fs-base)/20px var(--sans);color:var(--ink-2);white-space:nowrap;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.xd-btn{flex:none;display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line);font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-2);white-space:nowrap;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .xd-btn:hover{border-color:var(--line-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
 .xd-btn.is-pri{background:var(--accent-fill);border-color:var(--accent-fill);color:var(--accent-ink)}
 .xd-btn.is-pri:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
@@ -174,26 +174,26 @@ diffs-container{
 .xd-btn:is(:disabled,[aria-disabled="true"]){opacity:.45;cursor:default}
 .xd-btn[aria-disabled="true"]:hover{border-color:var(--line);color:var(--ink-2)}
 .xd-btn.is-pri[aria-disabled="true"]:hover{background:var(--accent-fill);border-color:var(--accent-fill);color:var(--accent-ink)}
-.xd-btn kbd{all:unset;font:500 var(--fs-sm)/16px var(--sans);opacity:.6}
-.xd-ro{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 8px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3);white-space:nowrap}
+.xd-btn kbd{all:unset;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);opacity:.6}
+.xd-ro{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 8px;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3);white-space:nowrap}
 .xd-ro svg{width:14px;height:14px}
-.xd-runs{flex:none;display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px 0 6px;margin-right:4px;border-radius:var(--r-pill);background:color-mix(in srgb,var(--warn) 12%,transparent);font:500 var(--fs-sm)/16px var(--sans);color:color-mix(in srgb,var(--warn) 70%,var(--ink))}
+.xd-runs{flex:none;display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px 0 6px;margin-right:4px;border-radius:var(--r-pill);background:color-mix(in srgb,var(--warn) 12%,transparent);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:color-mix(in srgb,var(--warn) 70%,var(--ink))}
 .xd-runs svg{width:14px;height:14px}
 /* the run-code question, under Save */
 .vw-top{position:relative;z-index:3} /* above the file below it: the run-code question opens over the code */
-.xd-pop{position:absolute;z-index:var(--z-panel);top:calc(100% + 8px);right:8px;width:320px;padding:12px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line);box-shadow:var(--e2);font:400 var(--fs-md)/20px var(--sans);color:var(--ink-2);animation:xd-in var(--d-in) var(--ease)}
+.xd-pop{position:absolute;z-index:var(--z-panel);top:calc(100% + 8px);right:8px;width:320px;padding:12px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line);box-shadow:var(--e2);font:var(--fw-regular) var(--fs-md)/var(--lh-14) var(--sans);color:var(--ink-2);animation:xd-in var(--d-in) var(--ease)}
 :root[data-theme="light"] .xd-pop{background:#fff}
 .xd-pop p{margin:0}
-.xd-pop b{color:var(--ink);font-weight:600}
+.xd-pop b{color:var(--ink);font-weight:var(--fw-strong)}
 .xd-pop-a{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
 /* the file changed while you edited: said in words above the merge view */
-.xd-bar{flex:none;margin:0;padding:10px 16px;border-bottom:1px solid var(--line-faint);background:color-mix(in srgb,var(--warn) 7%,var(--canvas));font:400 var(--fs-md)/20px var(--sans);color:var(--ink-2)}
-.xd-bar b{color:var(--ink);font-weight:600}
+.xd-bar{flex:none;margin:0;padding:10px 16px;border-bottom:1px solid var(--line-faint);background:color-mix(in srgb,var(--warn) 7%,var(--canvas));font:var(--fw-regular) var(--fs-md)/var(--lh-14) var(--sans);color:var(--ink-2)}
+.xd-bar b{color:var(--ink);font-weight:var(--fw-strong)}
 .xd-bar:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
 /* each place you both changed: your three choices, drawn by us in Pierre's slot */
 .xd-merge{display:flex;align-items:center;gap:4px;padding:4px 0;font-family:var(--sans);border-radius:var(--r-sm);outline:none}
 .xd-merge:focus-visible{box-shadow:0 0 0 2px var(--focus)}
-.xd-mbtn{height:24px;padding:0 10px;border-radius:var(--r-pill);border:1px solid var(--line);background:var(--surface);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.xd-mbtn{height:24px;padding:0 10px;border-radius:var(--r-pill);border:1px solid var(--line);background:var(--surface);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .xd-mbtn:hover{border-color:var(--line-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
 .xd-mbtn.is-mine{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));color:var(--ink)}
 .xd-mbtn:focus-visible,.xd-btn:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
@@ -209,12 +209,12 @@ diffs-container{
    lasts, the ⋯ says so in words ("Copied", "Downloading…"): the menu has closed by then */
 .vw-mw{position:relative;display:flex}
 .vw-more:is(.is-done,.is-busy){width:auto;padding:0 10px 0 8px;gap:6px}
-.vw-more:is(.is-done,.is-busy) span{display:inline;font:500 var(--fs-sm)/16px var(--sans)}
+.vw-more:is(.is-done,.is-busy) span{display:inline;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans)}
 .vw-more.is-done{color:var(--go)}
 .vw-more.is-busy{color:var(--ink-2)} /* its spinner in the second ink: 9.9:1 on the dark head, 10:1 on the light (C092 at 320) */
 .vw-more .spin{width:12px;height:12px}
 .vw-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:var(--z-panel);display:flex;flex-direction:column;min-width:176px;padding:4px;border-radius:var(--r-lg);border:1px solid var(--line-soft);background:var(--float);box-shadow:var(--e2);animation:msg-in var(--d-out) var(--ease)}
-.vw-menu :is([role=menuitem],[role=menuitemradio]){display:flex;align-items:center;gap:8px;height:32px;padding:0 8px;border-radius:var(--r-sm);text-align:left;text-decoration:none;font:400 var(--fs-base)/20px var(--sans);color:var(--ink-2);white-space:nowrap}
+.vw-menu :is([role=menuitem],[role=menuitemradio]){display:flex;align-items:center;gap:8px;height:32px;padding:0 8px;border-radius:var(--r-sm);text-align:left;text-decoration:none;font:var(--fw-regular) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-2);white-space:nowrap}
 /* one active item: the focused one, whichever hand moved it (the mouse moves focus: keynav.js pointerFollows); :hover
    never paints a second (Astra on e1f8666: mouse onto an item, then ↓, left two looking active) */
 .vw-menu :is([role=menuitem],[role=menuitemradio]):focus{background:var(--menu-focus);color:var(--ink);outline:none}
@@ -233,13 +233,13 @@ diffs-container{
 .ximg-c img{display:block;max-width:100%;max-height:100%;object-fit:contain;box-shadow:0 0 0 1px var(--panel-line)}
 .ximg-open{width:100%;height:100%;min-height:0;display:grid;grid-template:minmax(0,1fr)/minmax(0,1fr);place-items:center;padding:0;border-radius:var(--r-sm);cursor:zoom-in}
 .ximg-open:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
-.ximg-say{display:flex;align-items:center;gap:8px;margin:0;padding:4px 8px;border-radius:var(--r-sm);background:var(--fill-1);font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+.ximg-say{display:flex;align-items:center;gap:8px;margin:0;padding:4px 8px;border-radius:var(--r-sm);background:var(--fill-1);font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
 .ximg-say .spin{width:10px;height:10px}
-.ximg-cap{flex:none;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;padding:8px 12px;border-top:1px solid var(--panel-line);font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
-.ximg-cap b{font-weight:500;color:var(--ink-2)}
+.ximg-cap{flex:none;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;padding:8px 12px;border-top:1px solid var(--panel-line);font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
+.ximg-cap b{font-weight:var(--fw-medium);color:var(--ink-2)}
 .ximg-m{font-variant-numeric:tabular-nums}
 .ximg-n{flex-basis:100%}
 .ximg-n[hidden]{display:none}
 /* Before and Now: each picture says which it is, in its corner, above the picture (never over it) */
 .ximg.is-two .ximg-c{padding-top:32px}
-.ximg-tag{position:absolute;top:8px;left:8px;z-index:1;padding:2px 6px;border-radius:var(--r-sm);background:color-mix(in srgb,var(--fill-1) 88%,transparent);box-shadow:0 0 0 1px var(--panel-line);font:500 var(--fs-xs)/14px var(--sans);color:var(--ink-2);pointer-events:none}
+.ximg-tag{position:absolute;top:8px;left:8px;z-index:1;padding:2px 6px;border-radius:var(--r-sm);background:color-mix(in srgb,var(--fill-1) 88%,transparent);box-shadow:0 0 0 1px var(--panel-line);font:var(--fw-medium) var(--fs-xs)/var(--lh-12) var(--sans);color:var(--ink-2);pointer-events:none}

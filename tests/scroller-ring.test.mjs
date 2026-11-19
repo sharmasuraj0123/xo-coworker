@@ -80,7 +80,7 @@ t("each holds the ring as listed: a padded one by at least the ring on every sid
 // that fades a scroller's cut edge, over controls that draw their ring inside them or sit clear of it
 const CLIPPERS = {
   "html": ["page", "the page"], "body": ["page", "the page"], ".main": ["inner", "the main area: its views and header pad their controls"],
-  ".sr-only": ["decor", "words for a screen reader"], ".rn-stop span": ["decor", "words for a screen reader"], "body.chat-docked .thead .rn-log span": ["decor", "words for a screen reader"], ":root:root .thead .rn-log span": ["decor", "words for a screen reader"],
+  ".sr-only": ["decor", "words for a screen reader"], ".agm-openai": ["decor", "an agent's mark (OpenAI's, a mask in the ink)"], ".rn-stop span": ["decor", "words for a screen reader"], "body.chat-docked .thead .rn-log span": ["decor", "words for a screen reader"], ":root:root .thead .rn-log span": ["decor", "words for a screen reader"],
   ".now.fade-r": ["fade", "the Now strip's edge, while more chips lie that way (its chips' ring inset, .nw)"], ".now.fade-l": ["fade", "the same, at its start"], ".now.fade-l.fade-r": ["fade", "the same, both ends"],
   ".ckbar": ["inset:.ck-tog", "a thread's checklist bar: its toggle fills it (C045)"],
   ".ck-b>ol": ["text", "the checklist's steps"], ".ck-b": ["text", "the checklist's steps, clipped as they open (words, no controls)"], ".sg.s-done.is-pop": ["decor", "a step's mark in the progress line"],
