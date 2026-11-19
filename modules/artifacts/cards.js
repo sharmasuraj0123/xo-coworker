@@ -16,9 +16,9 @@ export const KIND_IC = /** @type {Record<string, string>} */ ({ image: ICON.imag
 
 /** @param {{ PV: any, PROJ: (pid: string) => string, naming: (m: any, max?: number) => any }} deps */
 export function createCards({ PV, PROJ, naming: madeNaming }) {
-  /** On the Artifacts page a card shows the thing itself, as a page on a well tinted with its file icon's own colour (the owner, 19 Nov): a picture whole from its top left, a document its title and first words, code and data their first lines. Card 12 → well inset --cell-in, so 8; the page inside is the fixed --r-xs. The kind's icon stays under it for a phone's list, where a card is one line. @param {any} m */
+  /** On the Artifacts page and Home's strip a card shows the thing itself on a well tinted in its file icon's colour: a picture from its top left, a document's title and first words, code's first lines; the kind's icon stays for a phone's one-line rows. @param {any} m */
   function wellHtml(m) {
-    // every well takes its file icon's colour, pictures too (the proposal's rule; the owner, 19 Nov 14:29Z: "wasn't there supposed to be some colours here?": a picture's well was left grey)
+    // every well takes its file icon's colour, pictures too
     const tint = fileColor(m.name || m.path) || "";
     const wt = tint ? ` style="--wt:${esc(tint)}"` : "";
     // drawn at once: until its preview lands the well holds the kind's icon, already in its colour
@@ -33,7 +33,7 @@ export function createCards({ PV, PROJ, naming: madeNaming }) {
   }
   /** @param {any} m @param {Where} where */
   function thumbHtml(m, where) {
-    // the Artifacts page and Home's Recently made show the thing itself, on its colour (the owner, 19 Nov 14:57Z: Home too)
+    // the Artifacts page and Home's Recently made show the thing itself, on its colour
     if (where === "page" || where === true) { const w = wellHtml(m); if (w) return w + iconHtml(m); }
     if (m.kind === "image") {
       const u = PV.thumbs.get(m.key);
@@ -67,7 +67,7 @@ export function createCards({ PV, PROJ, naming: madeNaming }) {
       `<button type="button" class="md-pin" data-made-pin="${esc(m.key)}" aria-pressed="${m.pinned}" aria-label="${m.pinned ? "Unpin" : "Pin"} ${esc(n.label)}" title="${m.pinned ? "Unpin" : "Pin it on top"}">${ICON.pin}</button></li>`;
   }
 
-  // A card is made once and then updated in place (js/motion.js): its time, pin and picture change without redrawing it, so a picture never flashes; a new card arrives, the rest glide aside.
+  // A card is made once and then updated in place: its time, pin and picture change without redrawing it, so a picture never flashes
   const tpl = document.createElement("template");
   /** @param {Where} where @returns {(m: any) => any} */
   const cardMake = (where) => (m) => {
@@ -91,7 +91,7 @@ export function createCards({ PV, PROJ, naming: madeNaming }) {
     const th = el.querySelector(".md-th"), th2 = nx.querySelector(".md-th");
     if (th && th2) { th.className = th2.className; if (setHtml(th, th2.innerHTML)) fadeImage(th.querySelector("img")); }
     setHtml(el.querySelector(".md-meta b"), nx.querySelector(".md-meta b").innerHTML); // a name cut in the middle is two spans
-    // the meta's own line (its age), not a span inside a name cut in the middle (Astra H12: the age went stale)
+    // the meta's own line (its age), not a span inside a name cut in the middle
     setText(el.querySelector(".md-meta > span"), nx.querySelector(".md-meta > span").textContent);
     const fr = el.querySelector(".md-from span"), fr2 = nx.querySelector(".md-from span");
     if (fr && fr2) setText(fr, fr2.textContent);
