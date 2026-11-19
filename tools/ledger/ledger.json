@@ -2417,7 +2417,7 @@
   "js/merge.js": {
    "status": "moved",
    "home": "core/platform/diff.js",
-   "note": "js/merge.js re-exports core/platform/diff.js until the shims go"
+   "note": "every importer points at core/platform/diff.js, so it leaves with no re-export"
   },
   "js/model.js": {
    "status": "planned",

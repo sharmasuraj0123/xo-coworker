@@ -70,7 +70,7 @@ Items inside first-party files: 2290 (planned 1007, moved 695, split-region 561,
 | `js/markdown.js` | 519 | split | core/ui/markdown/markdown.js, core/ui/markdown/inline.js · next: blocks in markdown.js, inline text, links, pictures and the rich hooks in inline.js; js/markdown.js re-exports markdown.js until the shims go |
 | `js/mdlive.js` | 331 | planned | modules/files/editor/markdown-page.js |
 | `js/media.js` | 609 | split | modules/conversation/media/, core/ui/media (layout) |
-| `js/merge.js` | 101 | moved | core/platform/diff.js · next: js/merge.js re-exports core/platform/diff.js until the shims go |
+| `js/merge.js` | 101 | moved | core/platform/diff.js · next: every importer points at core/platform/diff.js, so it leaves with no re-export |
 | `js/model.js` | 34 | planned | modules/threads/checklist.js |
 | `js/motion.js` | 82 | moved | core/ui/motion.js · next: js/motion.js re-exports core/ui/motion.js until the shims go |
 | `js/msgx.js` | 917 | split | modules/conversation/decorate.js, modules/conversation/working.js, modules/conversation/actions.js, modules/conversation/gestures.js, modules/conversation/latest-button.js, modules/composer (reply chip, quote) |
