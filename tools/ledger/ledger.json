@@ -2183,7 +2183,8 @@
   },
   "js/app.js": {
    "status": "split",
-   "home": "boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md §2.6)"
+   "home": "boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md §2.6)",
+   "note": "moved so far: the sidebar (SIDE) to shell/rail/side.js, the phone drawer to shell/phone.js, the tab favicon to shell/favicon.js"
   },
   "js/attach.js": {
    "status": "split",
@@ -7267,8 +7268,8 @@
    "home": "core/kernel (scheduler + render pass that calls each registered module's `render(ctx)`), shell (page host switching) (app.js l.2834)"
   },
   "js/app.js::functions::faviconRender": {
-   "status": "planned",
-   "home": "`placeRegion` → shell (focus fallback); favicon → shell (tab status) (app.js l.2900)"
+   "status": "moved",
+   "home": "shell/favicon.js"
   },
   "js/app.js::functions::loadAhead": {
    "status": "planned",
@@ -7471,8 +7472,8 @@
    "home": "modules/threads (app.js l.3942)"
   },
   "js/app.js::functions::setDrawer": {
-   "status": "planned",
-   "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4001)"
+   "status": "moved",
+   "home": "shell/phone.js"
   },
   "js/app.js::functions::threadIc": {
    "status": "planned",
@@ -7759,24 +7760,24 @@
    "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4182)"
   },
   "js/app.js::storage::xo-side-folded": {
-   "status": "planned",
-   "home": "shell (sidebar: entries come from the `sidebar.entry` place, so CORE/PLACES become registrations) (app.js l.4373)"
+   "status": "moved",
+   "home": "shell/rail/side.js"
   },
   "js/app.js::storage::${f.project}|${f.rel}": {
    "status": "planned",
    "home": "modules/changes; modules/files (viewer) (app.js l.234)"
   },
   "js/app.js::storage::<SIDE.KEY>": {
-   "status": "planned",
-   "home": "shell/rail (the sidebar's own keys)"
+   "status": "moved",
+   "home": "shell/rail/side.js"
   },
   "js/app.js::storage::<SIDE.BAR>": {
-   "status": "planned",
-   "home": "shell/rail (the sidebar's own keys)"
+   "status": "moved",
+   "home": "shell/rail/side.js"
   },
   "js/app.js::storage::<SIDE.PINS>": {
-   "status": "planned",
-   "home": "shell/rail (the sidebar's own keys)"
+   "status": "moved",
+   "home": "shell/rail/side.js"
   },
   "js/app.js::keys::all": {
    "status": "planned",
