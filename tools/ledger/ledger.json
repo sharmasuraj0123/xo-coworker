@@ -5023,8 +5023,8 @@
    "note": "Wave 4 Launchpad: fold the scenarios Launchpad's tests need into e2e/fixtures/mockspace-harness.cjs, then delete tools/launchpad/smoke.cjs (D6) and e2e/fixtures/mockspace.cjs together, after one browser run when the owner asks"
   },
   "tools/launchpad/smoke.cjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/xoicons/build.mjs": {
    "status": "kept",
@@ -17122,32 +17122,32 @@
    "home": "e2e/fixtures/mockspace.cjs"
   },
   "tools/launchpad/smoke.cjs::ids::main": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/smoke.cjs::ids::fr-body-launch": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/smoke.cjs::ids::app": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/smoke.cjs::storage::xo-stage": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/smoke.cjs::storage::xo-lp-state": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/smoke.cjs::routes::/tmp/pw/node_modules/playwright-core": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/smoke.cjs::globals::requestAnimationFrame": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/xoicons/build.mjs::exports::clean": {
    "status": "planned",

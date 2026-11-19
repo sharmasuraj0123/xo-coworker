@@ -4,14 +4,14 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 616 |
+| planned | 615 |
 | vendor | 367 |
-| deleted | 240 |
+| deleted | 241 |
 | moved | 54 |
 | split | 35 |
 | kept | 1 |
 
-Items inside first-party files: 2290 (planned 984, moved 695, split-region 561, deleted 47, kept 2, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 977, moved 695, split-region 561, deleted 54, kept 2, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -1413,7 +1413,7 @@ Items inside first-party files: 2290 (planned 984, moved 695, split-region 561, 
 | File | Lines | Status | New home |
 |---|---:|---|---|
 | `tools/launchpad/mockspace.cjs` | 164 | moved | e2e/fixtures/mockspace.cjs · next: Wave 4 Launchpad: fold the scenarios Launchpad's tests need into e2e/fixtures/mockspace-harness.cjs, then delete tools/launchpad/smoke.cjs (D6) and e2e/fixtures/mockspace.cjs together, after one browser run when the owner asks |
-| `tools/launchpad/smoke.cjs` | 128 | planned | delete: a one-off probe with machine paths (owner D6) |
+| `tools/launchpad/smoke.cjs` | 128 | deleted | a one-off probe with machine paths (owner D6) |
 
 ## tools/xoicons (1)
 
