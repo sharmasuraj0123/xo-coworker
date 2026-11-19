@@ -23,13 +23,9 @@ import { fileIcon, folderIcon, fileColor } from "./fileicons.js";
 import { redraw } from "./redraw.js";
 import { folderOf } from "../core/services/places.js";
 import { activityOf } from "../core/services/agent-activity.js";
-
-
-// the drawing
-const NW = 148, NH = 32, COL = 184, ROW = 42, PAD = 28; // compact: two columns read at 360px
+import { NW, NH, PAD, colorOf, layoutOf, edgePath } from "../modules/map/layout.js";
 
 const FILE_CAP = 8, DIR_CAP = 14; // boxes a folder shows before "N more"
-const PALETTE = ["#4C8DFF", "#A472FF", "#FF6FAE", "#FF9F43", "#2EC4B6", "#E5C23A"];
 const COORD_COLOR = "#7ED957";
 
 export const MAP_ICON = ICON.map;
@@ -44,38 +40,6 @@ const TOOL = {
 const base = (p) => String(p || "").replace(/\/+$/, "").split("/").pop();
 const parentOf = (p) => { const i = p.lastIndexOf("/"); return i < 0 ? "" : p.slice(0, i); };
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-/** An agent's colour: the same agent keeps it, wherever it shows. */
-export function colorOf(id) { let h = 7; for (const c of String(id)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return PALETTE[h % PALETTE.length]; }
-
-
-/**
- * A tree laid out left to right, like a hand-drawn diagram: each level a column, each leaf a row, a
- * parent centred on its children. Pure. node: {id, children?} → {nodes (with x, y), edges, w, h}.
- */
-export function layoutOf(root, { col = COL, row = ROW, nw = NW, nh = NH } = {}) {
-  const nodes = [], edges = [];
-  let y = 0;
-  const place = (n, depth, parent) => {
-    n.x = depth * col;
-    const kids = n.children || [];
-    if (!kids.length) { n.y = y; y += row; }
-    else { for (const c of kids) place(c, depth + 1, n); n.y = (kids[0].y + kids[kids.length - 1].y) / 2; }
-    nodes.push(n);
-    if (parent) edges.push({ from: parent, to: n });
-  };
-  place(root, 0, null);
-  const w = Math.max(...nodes.map((n) => n.x)) + nw;
-  return { nodes, edges, w, h: Math.max(row, y) - row + nh };
-}
-
-/** A connector: out of the parent's right side, along a shared trunk, into the child, corners rounded. */
-export function edgePath(p, c, { nw = NW, nh = NH, r = 8 } = {}) {
-  const x1 = p.x + nw, y1 = p.y + nh / 2, x2 = c.x, y2 = c.y + nh / 2;
-  const xm = x1 + Math.min(28, (x2 - x1) / 2);
-  if (Math.abs(y2 - y1) < 1) return `M${x1} ${y1}H${x2}`;
-  const d = y2 > y1 ? 1 : -1, rr = Math.min(r, Math.abs(y2 - y1) / 2);
-  return `M${x1} ${y1}H${xm - rr}Q${xm} ${y1} ${xm} ${y1 + d * rr}V${y2 - d * rr}Q${xm} ${y2} ${xm + rr} ${y2}H${x2}`;
-}
 
 /**
  * Run fn once the frame in hand has painted and input has paused (no key, press, wheel or touch for PAUSE_MS), and at

@@ -211,7 +211,6 @@ button:disabled{cursor:default}
   body.stage-open:not(.panel-open):not(.stage-full):not(.stage-over) .main{--rp:var(--sw)}
   body.viewer-open .main{--rp:var(--vw)}
 }
-@media (min-width:1041px){body.map-open:not(.panel-open):not(.viewer-open):not(.map-full) .main{--rp:var(--mw)}}
 @media (max-width:760px){.main{--gut-min:16px}}
 .phonebar{display:none}
 
@@ -2628,28 +2627,15 @@ i.t-amber{background:var(--warn)}i.t-blue{background:var(--info)}i.t-red{backgro
 @media (prefers-reduced-motion:reduce){.syl{animation:none}}
 
 /* ── the Map (js/map.js): where your agents are working, drawn. The folder as a diagram (boxes and
-   connectors on a dotted canvas) with each agent as a coloured cursor that glides from box to box.
-   Same family as the Needs you panel and the viewer: a floating card on the right, or the whole main
-   area at full size. The viewer stacks over it (Live · File); the Needs you panel takes the right side
-   while it is open and gives it back. Blue = working, amber = waiting on you, green = new. ─────────── */
+   connectors on a dotted canvas) with each agent as a coloured cursor that glides from box to box,
+   drawn in the right panel's Map frame. Blue = working, amber = waiting on you, green = new. ─────── */
 :root{--mw:clamp(420px,42vw,720px)
 }
-
-body.panel-open .map{display:none}
-.map{position:absolute;z-index:calc(var(--z-panel) - 1);top:var(--float-inset);right:var(--float-inset);bottom:var(--float-inset);width:var(--mw);display:flex;flex-direction:column;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);box-shadow:var(--e2);outline:none;overflow:hidden;transition:width var(--d-move) var(--ease)}
-.map[hidden]{display:none}
-.map.is-in{animation:sheet-in var(--d-move) var(--ease) both}
-:root[data-theme="light"] .map{background:var(--surface)}
-/* full size: the drawing takes the main area; the conversation waits behind it */
-body.map-full .map{left:var(--float-inset);width:auto;z-index:calc(var(--z-panel) + 1)}
-body.map-full .dock,body.map-full .tdock{visibility:hidden}
 
 .mp-head{flex:none}
 /* inside a host's panel (the right panel's Map tab): a column that fills it */
 .map-host{display:flex;flex-direction:column;min-height:0;height:100%}
 .mp-top{display:flex;align-items:center;gap:10px;padding:12px 10px 10px 12px}
-.mp-hic{flex:none;display:grid;place-items:center;width:var(--tile);height:var(--tile);border-radius:var(--r-sm);background:var(--fill-2);color:var(--ink-2)}
-.mp-hic svg{width:17px;height:17px}
 .mp-t{flex:1;min-width:0}
 .mp-t h2{font:var(--fw-strong) var(--fs-lg)/var(--lh-15) var(--sans);letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mp-sub{display:flex;align-items:center;gap:6px;min-width:0;margin-top:var(--s-1);font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4);white-space:nowrap;overflow:hidden}
@@ -2657,10 +2643,6 @@ body.map-full .dock,body.map-full .tdock{visibility:hidden}
 .mp-br svg{flex:none;width:12px;height:12px}
 .mp-br code{font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--mono);color:var(--ink-3);overflow:hidden;text-overflow:ellipsis}
 .mp-sep{color:var(--ink-4)}
-.mp-x{flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.mp-x:hover{background:var(--fill-2);color:var(--ink)}
-.mp-x svg{width:16px;height:16px}
-.mp-full svg{width:15px;height:15px}
 
 /* Now (a thread): one line for what its agent is doing */
 .mp-now{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;margin:0 12px 10px;padding:8px 10px 8px 16px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft)}
@@ -2809,27 +2791,10 @@ button.dg-n:hover{border-color:var(--line-strong);color:var(--ink)}
 .dg-key .m-edited i{border-color:var(--violet)}
 .dg-key .m-deleted i{border-style:dashed}
 
-/* one panel, two modes: the Live · File switch on top of whichever shows */
-.stage-tabs{flex:none;display:flex;align-items:center;gap:4px;padding:10px 12px 0}
-.st-file{flex:1;min-width:0;display:flex;align-items:center;gap:2px}
-.st-tab{position:relative;flex:none;display:inline-flex;align-items:center;gap:6px;min-width:0;max-width:100%;height:30px;padding:0 10px;border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.st-file .st-tab{flex:0 1 auto}
-.st-tab span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.st-tab svg{flex:none;width:14px;height:14px}
-.st-tab:hover{background:var(--fill-2);color:var(--ink)}
-.st-tab[aria-pressed="true"]{background:var(--fill-2);color:var(--ink);box-shadow:var(--hairline)}
-.viewer .stage-tabs{padding-bottom:2px}
-.viewer .stage-tabs ~ .vw-top .vw-x{display:none} /* the tab closes it */
-.map .stage-tabs + .mp-top{padding-top:8px}
-
 @media (max-width:1180px) and (min-width:761px){:root{--mw:min(460px,48vw)}}
-/* too narrow to sit beside the conversation: it floats over it */
+/* a phone: the head clears the notch, the tools reach touch size */
 @media (max-width:760px){
-  .map,body.map-full .map{position:fixed;inset:0;width:auto;z-index:calc(var(--z-popover) - 1);border-radius:0;border:0}
-  .map.is-in{animation:sheet-up var(--d-move) var(--ease) both}
   .mp-top{padding:max(10px,env(safe-area-inset-top)) 8px 8px 12px}
-  .mp-x{width:var(--h-lg);height:var(--h-lg)}
-  .mp-full{display:none}
   .dg{margin:0;border-radius:0;border-left:0;border-right:0}
   .dg-tools button{width:var(--h-touch);height:var(--h-touch)}
 }
@@ -2875,8 +2840,8 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 .stg-pane{position:absolute;inset:0;display:flex;flex-direction:column;min-height:0}
 .stg-pane[hidden]{display:none}
 /* the Map and the viewer inside it: the panel is their card, their tabs and their close */
-.stage .map,.stage .viewer,body.map-full .stage .map{position:relative;inset:auto;z-index:auto;flex:1;width:auto;min-height:0;border:0;border-radius:0;background:transparent;box-shadow:none;animation:none}
-.stage .stage-tabs,.stage [data-mp-close],.stage [data-mp-full],.stage [data-vw-close]{display:none}
+.stage .viewer{position:relative;inset:auto;z-index:auto;flex:1;width:auto;min-height:0;border:0;border-radius:0;background:transparent;box-shadow:none;animation:none}
+.stage [data-vw-close]{display:none}
 /* the header's one button */
 .stg-btn{position:relative;flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);border:1px solid var(--line-soft);color:var(--ink-2);align-self:center;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
 .top[data-kind="project"] .stg-btn{align-self:flex-end}

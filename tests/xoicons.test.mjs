@@ -9,7 +9,7 @@ import { sourcePaths } from "./lib/sources.mjs";
 import { build, clean } from "../tools/xoicons/build.mjs";
 import { XI } from "../core/ui/icons/xoicons.js";
 import { xi, hasIcon } from "../core/ui/icons/icon.js";
-import { classify, glyph } from "../js/projicons.js";
+import { classify, glyph } from "../modules/projects/projicons.js";
 import { fileIcon, iconKey, FOLDER_ICON } from "../core/ui/icons/fileicons.js";
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
@@ -61,7 +61,7 @@ t("every icon a module names is in the pack", () => {
 t("no module keeps a hand-drawn icon: every set draws from the pack", () => {
   const sets = ["core/ui/icons/names.js", "shell/panel/panel.js", "shell/panel/pages.js", "shell/panel/frames.js", "shell/panel/lists.js", "js/map.js", "js/files.js", "js/filespage.js", "js/changesframe.js", "modules/settings/shape-page.js",
     "js/viewer.js", "core/ui/lightbox.js", "modules/create-project/create.js", "js/intel.js", "modules/search/quickopen.js", "js/msgx.js", "js/turnview.js",
-    "js/launchpad.js", "core/ui/markdown/inline.js", "core/ui/markdown/markdown.js", "js/projicons.js"];
+    "js/launchpad.js", "core/ui/markdown/inline.js", "core/ui/markdown/markdown.js", "modules/projects/projicons.js"];
   for (const f of sets) assert.doesNotMatch(read(f), /<svg viewBox="0 0 24 24"|<path d="M|const I = \(d/, f);
   const ui = read("core/ui/icons/names.js");
   const block = ui.slice(ui.indexOf("export const ICON = {"), ui.indexOf("\n};", ui.indexOf("export const ICON = {")));
@@ -72,7 +72,7 @@ t("no module keeps a hand-drawn icon: every set draws from the pack", () => {
 });
 
 t("project topics: each topic is the owner's project-<topic>; nothing placed keeps the cube", () => {
-  const src = read("js/projicons.js");
+  const src = read("modules/projects/projicons.js");
   const topics = [...src.matchAll(/^ {2}\["([a-z-]+)", "/gm)].map((m) => m[1]);
   assert.equal(topics.length, 31);
   for (const k of topics) assert.ok(hasIcon(`project-${k}`), k);

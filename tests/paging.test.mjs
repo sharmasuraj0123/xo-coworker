@@ -1,11 +1,11 @@
 // A thread read in pages, newest first (js/timeline.js): the cursor, when to ask for the next page, what
-// a paged conversation shows, and a session's older frames applied after its newer ones (js/blocks.js).
+// a paged conversation shows, and a session's older frames applied after its newer ones (core/services/world/turns.js).
 // No network, no DOM.
 //   node tests/paging.test.mjs
 import assert from "node:assert/strict";
 
 const { pageAfter, canPageOlder, pageFloor, inPage, framesShort } = await import("../js/timeline.js");
-const { createTurns } = await import("../js/blocks.js");
+const { createTurns } = await import("../core/services/world/turns.js");
 
 let passed = 0;
 const t = (name, fn) => {

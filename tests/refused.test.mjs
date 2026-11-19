@@ -6,7 +6,7 @@
 //   node tests/refused.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import * as H from "../js/herald.js";
+import * as H from "../core/services/notices.js";
 
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
@@ -14,7 +14,7 @@ const clock = () => { let now = 1000; const timers = []; return { now: () => now
 const make = () => { const c = clock(), state = { herald: null }; return { c, state, her: H.createHerald({ state, now: c.now, setTimer: c.set, clearTimer: c.clear }) }; };
 
 t("the refused notice: Not sent, why, and what was kept; a failure's kind, forced", () => {
-  assert.equal(typeof H.refusedNotice, "function", "js/herald.js refusedNotice(block, kept)");
+  assert.equal(typeof H.refusedNotice, "function", "core/services/notices.js refusedNotice(block, kept)");
   const n = H.refusedNotice("Routing is off for this chat");
   assert.deepEqual([n.kind, n.text, n.sub, n.force], ["stopped", "Not sent: Routing is off for this chat", "your words are kept", true]);
   assert.equal(H.refusedNotice("XO can't be reached", "your text is kept").sub, "your text is kept");

@@ -28,8 +28,7 @@ if (!LD) {
   globalThis.removeEventListener ??= () => {};
   const { createMap } = await import("../js/map.js");
   const world = { state: { threads: [], projects: [], turns: null }, thread: () => null, project: () => null };
-  const viewer = { isOpen: false, hasFile: false, park() { throw new Error("the Map parked the viewer"); }, open() {}, close() {}, refresh() {} };
-  const MAP = createMap({ world, viewer, go() {}, announce() {}, isBusy: () => false, onChange() {}, openFile() {} });
+  const MAP = createMap({ world, go() {}, announce() {}, isBusy: () => false, openFile() {} });
 
   await t("its API is the panel's: mount, show, hide, render and the words the panel reads", () => {
     for (const k of ["isOpen", "toggle", "open", "close", "button", "tabs", "liveIn"]) assert.ok(!(k in MAP), `no standalone ${k}`);

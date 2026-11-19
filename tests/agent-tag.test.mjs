@@ -8,6 +8,7 @@ import { readFileSync } from "node:fs";
 
 const R = new URL("../", import.meta.url);
 const map = readFileSync(new URL("js/map.js", R), "utf8");
+const layout = readFileSync(new URL("modules/map/layout.js", R), "utf8");
 const css = ["css/app.css", "css/panel.css", "core/ui/tokens.css"].map((f) => readFileSync(new URL(f, R), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
@@ -37,7 +38,7 @@ t("the press floor: 36 px on a phone (the app's 760 px breakpoint), 24 on a desk
   assert.match(map, /const pressScale = \(b, s, anyScale = false\) => Math\.min\(2\.4, Math\.max\(READABLE, \.\.\.\(onPhone\(\) \|\| anyScale \? \[s, pressMin\(\) \/ Math\.max\(1, Math\.min\(b\.offsetWidth, b\.offsetHeight\)\)\] : \[\]\)\)\);/, "its own size alone reaches the floor");
 });
 t("its words take one token that reads on every agent colour, the softer part too", () => {
-  const pal = JSON.parse(map.match(/const PALETTE = (\[[^\]]+\]);/)[1]);
+  const pal = JSON.parse(layout.match(/const PALETTE = (\[[^\]]+\]);/)[1]);
   const ink = css.match(/--on-agent:(#[0-9A-Fa-f]{6})/);
   assert.ok(ink, "--on-agent");
   assert.match(css, /\.dg-tag\{[^}]*background:var\(--c\);color:var\(--on-agent\)/, "the tag's words");

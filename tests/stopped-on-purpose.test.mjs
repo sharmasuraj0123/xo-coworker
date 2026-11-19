@@ -81,7 +81,7 @@ await t("storm.js: activity and wait_reason are kept; t.stop only for a stop som
     "/chat/sessions": { sessions: [] }, "/chat/review": { items: [] }, "/chat/chats/chat_ws/hops": { hops: [] },
     "/chat/status": { pools: [] }, "/chat/runtimes": { runtimes: [] }, "/chat/router": { mode: "auto" },
   });
-  const { createWorld } = await import("../js/world.js");
+  const { createWorld } = await import("../core/services/world/store.js");
   world = createWorld();
   be.push("snapshot", { data: { seq: 1, turns: [] } });
   await until(() => world.state.loaded);

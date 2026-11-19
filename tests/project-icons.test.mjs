@@ -1,10 +1,10 @@
 // A project's icon, yours to choose (the owner, 19 Nov 14:44Z: "per project icons are fine"): its header tile opens a
 // picker of the owner's project topics and the cube, "Automatic" (its own guess) first; the choice is kept in your
-// shape (layout.icons, js/shape.js), so every device shows it; a choice it doesn't know falls back to the guess.
+// shape (layout.icons, core/services/shape), so every device shows it; a choice it doesn't know falls back to the guess.
 //   node tests/project-icons.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { TOPICS, glyph } from "../js/projicons.js";
+import { TOPICS, glyph } from "../modules/projects/projicons.js";
 import { hasIcon } from "../core/ui/icons/icon.js";
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 const side = readFileSync(new URL("../css/side.css", import.meta.url), "utf8");

@@ -1,18 +1,14 @@
 {
  "js/api.js": {
-  "extra": 51,
+  "extra": 33,
   "refs": 1
  },
  "js/app.js": {
-  "extra": 426,
+  "extra": 399,
   "refs": 2
  },
  "js/attach.js": {
-  "extra": 28,
-  "refs": 0
- },
- "js/blocks.js": {
-  "extra": 27,
+  "extra": 21,
   "refs": 0
  },
  "js/changes.js": {
@@ -37,10 +33,6 @@
  },
  "js/content.js": {
   "extra": 8,
-  "refs": 0
- },
- "js/create.js": {
-  "extra": 24,
   "refs": 0
  },
  "js/decide.js": {
@@ -91,24 +83,12 @@
   "extra": 37,
   "refs": 0
  },
- "js/fuzzy.js": {
-  "extra": 9,
-  "refs": 0
- },
  "js/gestures.js": {
-  "extra": 26,
-  "refs": 0
- },
- "js/herald.js": {
-  "extra": 17,
+  "extra": 11,
   "refs": 0
  },
  "js/highlight.js": {
   "extra": 13,
-  "refs": 0
- },
- "js/hopstate.js": {
-  "extra": 2,
   "refs": 0
  },
  "js/icon.js": {
@@ -125,10 +105,6 @@
  },
  "js/keynav.js": {
   "extra": 24,
-  "refs": 0
- },
- "js/keys.js": {
-  "extra": 16,
   "refs": 0
  },
  "js/kit.js": {
@@ -148,7 +124,7 @@
   "refs": 0
  },
  "js/map.js": {
-  "extra": 118,
+  "extra": 93,
   "refs": 0
  },
  "js/markdown.js": {
@@ -161,10 +137,6 @@
  },
  "js/media.js": {
   "extra": 97,
-  "refs": 0
- },
- "js/merge.js": {
-  "extra": 14,
   "refs": 0
  },
  "js/model.js": {
@@ -183,32 +155,8 @@
   "extra": 12,
   "refs": 0
  },
- "js/paid.js": {
-  "extra": 26,
-  "refs": 0
- },
  "js/paidview.js": {
   "extra": 2,
-  "refs": 0
- },
- "js/paths.js": {
-  "extra": 6,
-  "refs": 0
- },
- "js/pending.js": {
-  "extra": 12,
-  "refs": 0
- },
- "js/projicons.js": {
-  "extra": 5,
-  "refs": 0
- },
- "js/quickopen.js": {
-  "extra": 7,
-  "refs": 0
- },
- "js/record.js": {
-  "extra": 57,
   "refs": 0
  },
  "js/recordview.js": {
@@ -231,28 +179,8 @@
   "extra": 9,
   "refs": 0
  },
- "js/rtsettings.js": {
-  "extra": 28,
-  "refs": 0
- },
  "js/runsview.js": {
   "extra": 9,
-  "refs": 0
- },
- "js/runtimes.js": {
-  "extra": 23,
-  "refs": 0
- },
- "js/settings.js": {
-  "extra": 17,
-  "refs": 0
- },
- "js/shape.js": {
-  "extra": 98,
-  "refs": 0
- },
- "js/shapeview.js": {
-  "extra": 27,
   "refs": 0
  },
  "js/shells/dock.js": {
@@ -271,20 +199,8 @@
   "extra": 17,
   "refs": 0
  },
- "js/sse.js": {
-  "extra": 19,
-  "refs": 0
- },
- "js/stage.js": {
-  "extra": 101,
-  "refs": 1
- },
- "js/storm.js": {
-  "extra": 86,
-  "refs": 0
- },
  "js/timeline.js": {
-  "extra": 203,
+  "extra": 94,
   "refs": 0
  },
  "js/turnview.js": {
@@ -292,11 +208,7 @@
   "refs": 0
  },
  "js/ui.js": {
-  "extra": 47,
-  "refs": 0
- },
- "js/util.js": {
-  "extra": 10,
+  "extra": 46,
   "refs": 0
  },
  "js/viewer.js": {
@@ -307,16 +219,12 @@
   "extra": 11,
   "refs": 0
  },
- "js/world.js": {
-  "extra": 11,
-  "refs": 0
- },
  "js/xoicons.js": {
   "extra": 2,
   "refs": 0
  },
  "css/app.css": {
-  "extra": 198,
+  "extra": 196,
   "refs": 0
  },
  "css/artifacts.css": {
@@ -483,14 +391,6 @@
   "extra": 6,
   "refs": 0
  },
- "tests/create-busy-honest.test.mjs": {
-  "extra": 8,
-  "refs": 0
- },
- "tests/create.test.mjs": {
-  "extra": 2,
-  "refs": 0
- },
  "tests/css-wellformed.test.mjs": {
   "extra": 7,
   "refs": 0
@@ -651,10 +551,6 @@
   "extra": 5,
   "refs": 0
  },
- "tests/keys.test.mjs": {
-  "extra": 3,
-  "refs": 0
- },
  "tests/launchpad.test.mjs": {
   "extra": 2,
   "refs": 0
@@ -681,14 +577,6 @@
  },
  "tests/logic.test.mjs": {
   "extra": 3,
-  "refs": 0
- },
- "tests/lp-create-connect-focus.test.mjs": {
-  "extra": 6,
-  "refs": 0
- },
- "tests/lp-create-stop-focus.test.mjs": {
-  "extra": 5,
   "refs": 0
  },
  "tests/lp-intel-order.test.mjs": {
@@ -859,10 +747,6 @@
   "extra": 2,
   "refs": 0
  },
- "tests/rail-order.test.mjs": {
-  "extra": 4,
-  "refs": 0
- },
  "tests/rec-undo-focus.test.mjs": {
   "extra": 5,
   "refs": 0
@@ -919,24 +803,12 @@
   "extra": 4,
   "refs": 0
  },
- "tests/routing-words.test.mjs": {
-  "extra": 4,
-  "refs": 0
- },
- "tests/rtsettings.test.mjs": {
-  "extra": 6,
-  "refs": 0
- },
  "tests/runs-stop-receipt.test.mjs": {
   "extra": 11,
   "refs": 0
  },
  "tests/runtimes.test.mjs": {
   "extra": 1,
-  "refs": 0
- },
- "tests/saved-truth.test.mjs": {
-  "extra": 5,
   "refs": 0
  },
  "tests/scroller-ring.test.mjs": {
@@ -965,14 +837,6 @@
  },
  "tests/settings-css.test.mjs": {
   "extra": 2,
-  "refs": 0
- },
- "tests/shape-held.test.mjs": {
-  "extra": 8,
-  "refs": 0
- },
- "tests/shape-unkept.test.mjs": {
-  "extra": 4,
   "refs": 0
  },
  "tests/shape.test.mjs": {

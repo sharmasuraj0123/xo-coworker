@@ -1,14 +1,14 @@
 // A thread's resolve has one notice (C041, the controls grader on 1ef7056): a refused resolve says "Couldn't resolve it
 // · Retry"; when a later resolve of the same thread goes through, that notice is replaced (on screen or waiting), or
 // taken away when the outcome has nothing to say. It never stays with a live Retry that would resolve the thread again.
-// The real herald (js/herald.js) with a hand-moved clock, and how the app's resolveThread uses it (js/app.js).
+// The real herald (core/services/notices.js) with a hand-moved clock, and how the app's resolveThread uses it (js/app.js).
 //   node tests/conv-herald-resolve.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 let passed = 0;
 const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + (e.stack || e.message)); process.exitCode = 1; } };
-const H = await import("../js/herald.js");
+const H = await import("../core/services/notices.js");
 const clock = () => { let now = 1000, timers = []; return { now: () => now, set: (fn, ms) => { timers.push({ at: now + ms, fn }); return timers.length; }, clear: () => {}, tick(ms) { now += ms; const due = timers.filter((x) => x.at <= now); timers = timers.filter((x) => x.at > now); due.forEach((x) => x.fn()); } }; };
 const make = () => { const c = clock(), state = { herald: null }; const her = H.createHerald({ state, now: c.now, setTimer: c.set, clearTimer: c.clear }); return { c, state, her }; };
 const about = "resolve:t1";

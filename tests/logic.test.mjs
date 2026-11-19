@@ -7,7 +7,8 @@ import { renderMarkdown, renderInline, threadLinks, excerptMarkdown, setThreadIn
 import { parseChecklist, tasksOf } from "../js/model.js";
 import { request } from "../js/api.js";
 import { highlight, langOf } from "../core/ui/markdown/highlight.js";
-import { uiMsg, mergeRows, echoes, askText, stormAsks, threadAnchors, parseTarget, stripTarget, sendErrorTitle, connLine, currentPools, sharedFileRoute, relayedInto, forwardOrigin, sendBlock, mapLimit, plainText, hopLine, waitsForTurn, threadState, hopNotes, mainRuntime, chatOrder, addReaction, reactionGroups } from "../js/timeline.js";
+import { uiMsg, mergeRows, echoes, askText, stormAsks, threadAnchors, parseTarget, stripTarget, sendErrorTitle, connLine, currentPools, sharedFileRoute, relayedInto, forwardOrigin, sendBlock, plainText, hopLine, waitsForTurn, threadState, hopNotes, mainRuntime, chatOrder, addReaction, reactionGroups } from "../js/timeline.js";
+import { mapLimit } from "../core/services/storm/load.js";
 
 let passed = 0;
 const t = (name, fn) => {

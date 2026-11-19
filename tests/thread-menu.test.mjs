@@ -6,7 +6,6 @@ import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
-const storm = readFileSync(new URL("../js/storm.js", import.meta.url), "utf8");
 const api = readFileSync(new URL("../js/api.js", import.meta.url), "utf8");
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 
@@ -21,7 +20,6 @@ assert.match(menu, /t\.canDelete \? item\(`data-tdel=/, "Delete only where Space
 assert.doesNotMatch(menu, /[⌘⇧⏎⌫]/, "no key glyphs in it");
 
 // Delete: Space says per thread; asked in place, Keep it first; undo
-assert.match(storm, /canDelete: r\.can_delete === true,/);
 assert.match(api, /deleteThread: \(chat, ts, body\) => send\("DELETE", `\/chat\/chats\/\$\{enc\(chat\)\}\/threads\/\$\{enc\(ts\)\}`, body\)/);
 assert.match(api, /restoreThread: \(chat, ts\) => send\("POST", `\/chat\/chats\/\$\{enc\(chat\)\}\/threads\/\$\{enc\(ts\)\}\/restore`, \{\}\)/);
 const del = app.slice(app.indexOf("function tdelRender("), app.indexOf("/** A Shell button: \"ws\""));
