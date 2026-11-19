@@ -26,6 +26,9 @@ const IC = {
   check: I('<path d="m5 12.5 4.5 4.5L19 7.5"/>'),
   close: I('<path d="M6 6l12 12M18 6 6 18"/>'),
   down: I('<path d="M6 9.5l6 6 6-6"/>'),
+  // Lucide's thumbs (ISC, js/vendor/lucide/LICENSE), on the same 24 grid and stroke as the rest
+  good: I('<path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>'),
+  bad: I('<path d="M17 14V2"/><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"/>'),
 };
 
 // The look keys off <html data-msgx="bubbles"> (and data-msgx-tails): set before the first paint (index.html) when
@@ -202,6 +205,75 @@ function decorate() {
   }
   projectMarks();
   cardSteps();
+  actionRows(kids);
+}
+
+// ── the action row under a message (the document view; owner, 19 Nov, after Claude's) ─────────────────────────
+// Under each message, on the conversation's text edge: Copy, Reply, and for an agent's words Good response and
+// Bad response, then the time. Quiet until the message is hovered or focused; the latest reply's always shows; on
+// a phone every row shows, at 36 px. Hidden in the bubbles (they keep Reply and Copy beside the bubble).
+//
+// Never rebuilt while the conversation redraws: ui.js reconcile replaces a row whose HTML changed (a turn
+// streaming, a thread card ticking), which used to take whatever this file had added with it. Each message's row
+// is built once, kept here by the row's key, and the same element is moved into the row drawn in its place, in
+// the same task (this runs from a MutationObserver), so a press that straddles a redraw lands on the same button.
+// A turn gets its row only once it has settled (no longer .is-live): nothing to copy or rate mid-reply.
+const ROWS = new Map(); // row key → its action row element
+const RATE_KEY = "xo-msg-rating";
+let RATED;
+try { RATED = new Map(Object.entries(JSON.parse(localStorage.getItem(RATE_KEY) || "{}"))); } catch { RATED = new Map(); }
+function rowFor(el, you) {
+  const k = el.dataset.k;
+  let row = ROWS.get(k);
+  if (row) return row;
+  row = document.createElement("div");
+  row.className = "mx-actrow"; row.dataset.own = "";
+  const r = RATED.get(k);
+  row.innerHTML = (you ? "" :
+    `<button type="button" data-mx-copy title="Copy" aria-label="Copy">${IC.copy}</button>` +
+    `<button type="button" data-mx-reply title="Reply" aria-label="Reply">${IC.reply}</button>` +
+    `<button type="button" data-mx-rate="good" title="Good response" aria-label="Good response" aria-pressed="${r === "good"}">${IC.good}</button>` +
+    `<button type="button" data-mx-rate="bad" title="Bad response" aria-label="Bad response" aria-pressed="${r === "bad"}">${IC.bad}</button>`) +
+    (you ? `<button type="button" data-mx-copy title="Copy" aria-label="Copy">${IC.copy}</button><button type="button" data-mx-reply title="Reply" aria-label="Reply">${IC.reply}</button>` : "") +
+    `<time></time>`;
+  ROWS.set(k, row);
+  // a long conversation, or many: forget rows no longer on the page, oldest first
+  if (ROWS.size > 800) for (const [key, x] of ROWS) { if (ROWS.size <= 600) break; if (!x.isConnected) ROWS.delete(key); }
+  return row;
+}
+function actionRows(kids) {
+  let latest = null;
+  for (const el of kids) {
+    if (!el.classList.contains("m") || el.classList.contains("m-card") || !el.dataset.k) continue;
+    const you = el.classList.contains("m-you");
+    const host = you ? el : el.querySelector(":scope > .mb");
+    // words to copy and rate (a card or pictures alone have none); a turn still at work waits for its end
+    if (!host || !bubbleOf(el) || el.classList.contains("is-live")) continue;
+    const row = rowFor(el, you);
+    if (row.parentElement !== host) host.append(row);
+    const t = el.dataset.mxTime || "";
+    const time = row.querySelector("time");
+    if (time.textContent !== t) time.textContent = t;
+    if (!you) latest = el;
+  }
+  for (const el of msgs.querySelectorAll(":scope > .mx-latest")) if (el !== latest) el.classList.remove("mx-latest");
+  latest?.classList.add("mx-latest");
+}
+/**
+ * Good or bad, for one message: pressed again, it's taken back. Kept on this device only for now.
+ * BACKEND: when xo-space takes ratings, send them here (one call per change, rating null when taken back), e.g.
+ *   api(`/api/chat/chats/${chat}/messages/${key}/rating`, { method: "PUT", body: { rating } })
+ * keeping this local state as the optimistic one and putting it back if the call is refused.
+ */
+function rate(btn) {
+  const m = btn.closest(".m"), k = m && m.dataset.k;
+  if (!k) return;
+  const want = btn.dataset.mxRate, rating = RATED.get(k) === want ? null : want;
+  if (rating) RATED.set(k, rating); else RATED.delete(k);
+  try { localStorage.setItem(RATE_KEY, JSON.stringify(Object.fromEntries(RATED))); } catch { /* kept for this page only */ }
+  for (const b of btn.closest(".mx-actrow").querySelectorAll("[data-mx-rate]")) b.setAttribute("aria-pressed", String(b.dataset.mxRate === rating));
+  const live = document.getElementById("live");
+  if (live) { live.textContent = ""; setTimeout(() => { live.textContent = rating ? `Marked as a ${rating} response.` : "Rating taken back."; }, 40); }
 }
 
 /** A thread card's step handoff: when a step completes since the card was last drawn, green fills it from
@@ -592,6 +664,8 @@ document.addEventListener("keydown", (e) => {
 document.addEventListener("submit", (e) => { if (e.target === composer && $("#send").dataset.mode !== "stop") withQuote(); }, true);
 
 msgs.addEventListener("click", async (e) => {
+  const g = e.target.closest("[data-mx-rate]");
+  if (g) { rate(g); return; }
   const r = e.target.closest("[data-mx-reply]");
   if (r) { startReply(r.closest(".m")); return; }
   const c = e.target.closest("[data-mx-copy]");

@@ -4,16 +4,54 @@
    Values come from css/tokens.css; corners nest (a block's 12 px corner inside nothing; a tooltip 12). */
 
 /* ── the document view ────────────────────────────────────────────────────────
-   An agent's reply reads as a page: its words take the whole text column (the avatar's 32 + 12 gutter, then
-   everything to the column's right edge), so a table, a chart or a diagram has the room it needs. Yours stays the
-   quiet box on the right. Reply and Copy sit on the reply's header line, at its right end, shown on hover, so
-   they never cover the words or hold space under every message. */
+   One column, one pair of edges (owner, 19 Nov, after Claude's): an agent's words, its thread cards, its pictures
+   and its action row start on the column's left edge, the same edge as the composer below; your messages end on
+   its right edge, as the composer does. The speaker's mark (24) sits inline with their name on the header line,
+   not in a gutter of its own (it used to be a 32 px column + 12, so every reply started 44 px in from the
+   composer's edge). The time moves from the header to the action row, under every message. */
+:root:not([data-msgx]) .m-them{grid-template-columns:24px minmax(0,1fr);gap:0 8px}
+:root:not([data-msgx]) .m-them>.mb{grid-area:1/1/2/3;min-width:0}
+:root:not([data-msgx]) .m-them>.av{grid-area:1/1;z-index:1;width:24px;height:24px;margin-top:4px;border-radius:var(--r-sm)}
+:root:not([data-msgx]) .m-them>.av svg{width:14px;height:14px}
+:root:not([data-msgx]) .m-them>.av-gap,:root:not([data-msgx]) .m-turn>.av{display:none}
+:root:not([data-msgx]) .m-them>.mb>.mh{padding-left:32px}
+:root:not([data-msgx]) .m-them>.mb>.mh time{display:none}
 :root:not([data-msgx]) :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text){max-width:none}
-:root:not([data-msgx]) :is(.m-them,.m-turn)>.mb{position:relative}
-:root:not([data-msgx]) :is(.m-them,.m-turn) .mb .mx-acts:not(.is-foot){display:none}
-:root:not([data-msgx]) :is(.m-them,.m-turn)>.mb>.mx-acts.is-foot{display:flex;top:0;right:0;left:auto;flex-direction:row;transform:none;opacity:0;pointer-events:none;background:var(--canvas);border-radius:var(--r-pill)}
-:root:not([data-msgx]) :is(.m-them,.m-turn):is(:hover,:focus-within)>.mb>.mx-acts.is-foot{opacity:1;pointer-events:auto}
-@media (hover:none){:root:not([data-msgx]) :is(.m-them,.m-turn)>.mb>.mx-acts.is-foot{display:none}}
+/* a line between messages (a thread finished, a decision): its icon centred on the mark's 24 px, its words on the
+   names' edge (24 + 8) */
+:root:not([data-msgx]) #msgs>.ev{gap:8px}
+:root:not([data-msgx]) #msgs>.ev>.ev-ic{margin:0 1px}
+/* someone replying: the same mark and edge as a message's header */
+:root:not([data-msgx]) .typing{grid-template-columns:24px minmax(0,1fr);gap:8px}
+:root:not([data-msgx]) .typing>.av{width:24px;height:24px;border-radius:var(--r-sm)}
+/* the bubbles' Reply and Copy beside a bubble give way to the action row */
+:root:not([data-msgx]) .mx-acts{display:none!important}
+
+/* ── the action row (js/msgx.js actionRows) ────────────────────────────────────
+   Icon buttons of --mx-b (32, --h-ctl; 36 on a phone) on the text's edge: the first icon's 16 px glyph sits
+   (b − 16) / 2 into its button, so the row starts that far out and the glyph lands on the edge itself; yours
+   mirror it on the right edge. Quiet at rest:
+   the row holds its place (no shift on hover) and shows on hover or focus; the latest reply's always shows.
+   Between messages: the row, then 8 px, so a run of messages keeps one rhythm. */
+.mx-actrow{display:none}
+:root:not([data-msgx]) .mx-actrow{--mx-b:var(--h-ctl);display:flex;align-items:center;height:var(--mx-b);margin:4px 0 0 calc((16px - var(--mx-b)) / 2);opacity:0;transition:opacity var(--d-out) var(--ease)}
+:root:not([data-msgx]) .m-you>.mx-actrow{margin:4px calc((16px - var(--mx-b)) / 2) 0 0;flex-direction:row-reverse}
+:root:not([data-msgx]) #msgs>.m:is(:hover,:focus-within,.mx-latest)>.mb>.mx-actrow,
+:root:not([data-msgx]) #msgs>.m:is(:hover,:focus-within)>.mx-actrow{opacity:1;transition-duration:var(--d-hover-in)}
+:root:not([data-msgx]) #msgs>.m:has(>.mb>.mx-actrow,>.mx-actrow){margin-bottom:8px}
+:root:not([data-msgx]) #msgs>.m:has(>.mb>.mx-actrow,>.mx-actrow)+.m.cont{margin-top:0}
+.mx-actrow button{display:grid;place-items:center;flex:none;width:var(--mx-b,var(--h-ctl));height:var(--mx-b,var(--h-ctl));border-radius:var(--r);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.mx-actrow button:hover{background:var(--hover-fill);color:var(--ink);transition-duration:var(--d-hover-in)}
+.mx-actrow button:active{background:var(--press-fill);--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
+.mx-actrow svg{width:16px;height:16px}
+.mx-actrow [aria-pressed="true"]{color:var(--ink)}
+.mx-actrow [aria-pressed="true"] svg{fill:currentColor;fill-opacity:.2}
+.mx-actrow time{padding:0 8px;font:400 var(--fs-xs)/16px var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap}
+.mx-actrow time:empty{display:none}
+/* a phone's controls are 36 at least (css/phone.css's floor, ≤ 760 px), and a finger has no hover: the buttons take
+   36 (the row's offset follows, so the glyph stays on the edge), and without hover every row shows */
+@media (max-width:760px){:root:not([data-msgx]) .mx-actrow{--mx-b:36px}}
+@media (hover:none){:root:not([data-msgx]) .mx-actrow{--mx-b:36px;opacity:1}}
 
 /* ── math (KaTeX, js/rich.js) ─────────────────────────────────────────────────
    Before it's drawn (a beat, while KaTeX loads between keystrokes), a formula shows its TeX quietly, in the code
