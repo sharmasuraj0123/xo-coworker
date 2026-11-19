@@ -1,6 +1,6 @@
 // @ts-check
 
-// Whatever a script or a Tab focuses is brought wholly into sight: its nearest scroller only, the least distance.
+// Whatever a script or a Tab focuses is brought wholly into sight by its nearest scroller only (scrollIntoView also moves clipped boxes and a phone's sheet).
 
 /** @typedef {{ top: number, bottom: number, left: number, right: number }} Box */
 

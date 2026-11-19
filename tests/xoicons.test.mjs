@@ -1,10 +1,11 @@
-// The owner's icon pack (assets/icons/xo, 19 Nov) is the one source of the app's icons: js/xoicons.js is what
+// The owner's icon pack (assets/icons/xo, 19 Nov) is the one source of the app's icons: core/ui/icons/xoicons.js is what
 // tools/xoicons/build.mjs makes of it (each file passed an allowlist; ink is currentColor; no Figma ids), and every
 // icon set (ICON, the panel, Map, Files, viewer, chat, steps, Launchpad, links, file types, project topics) draws
 // from it, so no module keeps a hand-drawn <svg> of its own.
 //   node tests/xoicons.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
+import { sourcePaths } from "./lib/sources.mjs";
 import { build, clean } from "../tools/xoicons/build.mjs";
 import { XI } from "../core/ui/icons/xoicons.js";
 import { xi, hasIcon } from "../core/ui/icons/icon.js";
@@ -15,7 +16,7 @@ const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
-t("js/xoicons.js is what the pack makes (rebuild: node tools/xoicons/build.mjs)", () => {
+t("core/ui/icons/xoicons.js is what the pack makes (rebuild: node tools/xoicons/build.mjs)", () => {
   assert.equal(read("core/ui/icons/xoicons.js"), build());
   const man = JSON.parse(read("assets/icons/xo/manifest.json"));
   assert.equal(Object.keys(XI).length, man.icons.length);
@@ -50,7 +51,7 @@ t("xi(): the pack's icon, its name on it, a size only from the scale", () => {
 });
 
 t("every icon a module names is in the pack", () => {
-  const files = ["js", "core/ui"].flatMap((d) => readdirSync(new URL(`../${d}/`, import.meta.url), { recursive: true }).filter((f) => f.endsWith(".js") && !f.includes("vendor/")).map((f) => `${d}/${f}`));
+  const files = sourcePaths(".js");
   const names = new Set();
   for (const f of files) for (const m of read(f).matchAll(/\bxi\("([a-z0-9-]+)"/g)) names.add(m[1]);
   assert.ok(names.size > 60, `${names.size} names`);
@@ -60,7 +61,7 @@ t("every icon a module names is in the pack", () => {
 t("no module keeps a hand-drawn icon: every set draws from the pack", () => {
   const sets = ["core/ui/icons/names.js", "js/stage.js", "js/map.js", "js/files.js", "js/filespage.js", "js/changesframe.js", "js/shapeview.js",
     "js/viewer.js", "core/ui/lightbox.js", "js/create.js", "js/intel.js", "js/quickopen.js", "js/msgx.js", "js/turnview.js",
-    "js/launchpad.js", "core/ui/markdown/inline.js", "js/projicons.js"];
+    "js/launchpad.js", "core/ui/markdown/inline.js", "core/ui/markdown/markdown.js", "js/projicons.js"];
   for (const f of sets) assert.doesNotMatch(read(f), /<svg viewBox="0 0 24 24"|<path d="M|const I = \(d/, f);
   const ui = read("core/ui/icons/names.js");
   const block = ui.slice(ui.indexOf("export const ICON = {"), ui.indexOf("\n};", ui.indexOf("export const ICON = {")));

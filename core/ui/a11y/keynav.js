@@ -60,7 +60,7 @@ export function pointerFollows(root, sel = ITEM) {
   });
 }
 
-/** Arrows, Home, End and a letter move through any menu inside root; Escape and Tab call close(menu, key). @param {Element} root @param {{ close?: (menu: Element, key: string) => void }} [opts] */
+/** Arrows, Home, End and a letter move through any menu inside root; Escape and Tab call close(menu, key), which puts focus back on the menu's button (Tab then goes on from there). @param {Element} root @param {{ close?: (menu: Element, key: string) => void }} [opts] */
 export function menuKeys(root, { close } = {}) {
   pointerFollows(root);
   root.addEventListener("keydown", (ev) => {

@@ -9,7 +9,8 @@
 // "Here" is one test (usable), where five files each had their own copy.
 //   node tests/focus-back.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
+import { sourcePaths, readSource } from "./lib/sources.mjs";
 
 const ROOT = new URL("../", import.meta.url);
 const read = (f) => readFileSync(new URL(f, ROOT), "utf8");
@@ -19,7 +20,7 @@ const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  "
 await t("one helper says a control can take focus: no file keeps its own copy", () => {
   const fv = read("core/ui/a11y/focus.js");
   assert.match(fv, /export const usable = \(el\) => !!el && el !== document\.body && el\.isConnected && !el\.closest\("\[inert\], \[hidden\]"\) && el\.getClientRects\(\)\.length > 0;/);
-  const copies = readdirSync(new URL("js/", ROOT)).filter((f) => f.endsWith(".js")).filter((f) => /closest\("\[inert\], \[hidden\]"\)/.test(read(`js/${f}`)));
+  const copies = sourcePaths(".js").filter((f) => f !== "core/ui/a11y/focus.js" && /closest\("\[inert\], \[hidden\]"\)/.test(readSource(f)));
   assert.deepEqual(copies, [], `own copies of the test: ${copies.join(", ")}`);
   for (const f of ["app.js", "decide.js", "viewer.js", "stage.js", "create.js"]) assert.match(read(`js/${f}`), /import \{[^}]*\busable\b[^}]*\} from "\.\/focusview\.js";/, `${f} takes it from focusview.js`);
   assert.match(read("core/ui/redraw.js"), /import \{[^}]*\busable\b[^}]*\} from "\.\/a11y\/focus\.js";/, "reconcile takes it from a11y/focus.js");

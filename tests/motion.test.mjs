@@ -1,6 +1,7 @@
 // One motion system: the curve and durations are the tokens', and only core/platform/motion.js keeps the curve or asks for reduced motion.
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
+import { sourcePaths, readSource } from "./lib/sources.mjs";
 
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
 const M = await import("../core/ui/motion.js");
@@ -17,10 +18,9 @@ t("the curve and the three durations are the tokens'", () => {
 });
 t("no other file keeps a copy of the curve or asks the reduced-motion question itself", () => {
   const copies = [];
-  for (const dir of ["js", "core"]) for (const f of readdirSync(new URL(`../${dir}`, import.meta.url), { recursive: true })) {
-    const p = `${dir}/${f}`;
-    if (!p.endsWith(".js") || p.includes("vendor/") || p === "core/platform/motion.js") continue;
-    const s = readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
+  for (const p of sourcePaths(".js")) {
+    if (p === "core/platform/motion.js") continue;
+    const s = readSource(p);
     if (s.includes("cubic-bezier(.2,.8,.2,1)") || s.includes('matchMedia("(prefers-reduced-motion: reduce)")')) copies.push(p);
   }
   assert.deepEqual(copies, []);

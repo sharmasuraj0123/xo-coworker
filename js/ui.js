@@ -1,5 +1,4 @@
-// Converged · small shared helpers: icons, a keyed DOM reconciler, time words, smooth disclosure,
-// reduced motion and the optional soft sounds (off by default).
+// The optional soft sounds (off by default), $ and $$, and the core helpers the app still reads from here.
 import { esc } from "./world.js";
 export { reconcile } from "../core/ui/redraw.js";
 export { morph, EASE, EXPAND_MS, expand, RM, wait, hold, keepTurning } from "../core/ui/motion.js";

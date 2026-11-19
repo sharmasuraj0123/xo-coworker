@@ -6,7 +6,7 @@ import { inSight, bringWhole, usable } from "./a11y/focus.js";
 
 /** @typedef {any} Node_ */
 
-/** Redraws el's children to html in place; true if anything changed. @param {Element} el @param {string} html */
+/** Redraws el's children to html in place; true if anything changed. A focused control the new HTML drops is its caller's to hand on. @param {Element} el @param {string} html */
 export function redraw(el, html) {
   const tpl = document.createElement("template");
   tpl.innerHTML = html;

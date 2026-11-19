@@ -5,6 +5,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFileSync, readdirSync, statSync } from "node:fs";
+import { sourcePaths, readSource } from "./lib/sources.mjs";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { codeColors, moduleSource, rootProps, color } from "../tools/diffview/theme.mjs";
@@ -71,9 +72,9 @@ await t("every language langOf() asks for is in the build", async () => {
 await t("first load stays as it was: only js/diffview.js reaches the library, and only by import()", () => {
   const src = readFileSync(join(ROOT, "js/diffview.js"), "utf8").replace(/\/\/.*$/gm, "");
   assert.ok(!/^\s*import\s[^(]/m.test(src), "js/diffview.js has a static import");
-  for (const f of readdirSync(join(ROOT, "js")).filter((n) => n.endsWith(".js") && n !== "diffview.js")) {
-    const s = readFileSync(join(ROOT, "js", f), "utf8");
-    assert.ok(!/vendor\/pierre-diffs|diffthemes/.test(s), `js/${f} reaches the library directly`);
+  for (const f of sourcePaths(".js").filter((n) => n !== "js/diffview.js" && n !== "js/diffthemes.js")) {
+    const s = readSource(f);
+    assert.ok(!/vendor\/pierre-diffs|diffthemes/.test(s), `${f} reaches the library directly`);
   }
   const html = readFileSync(join(ROOT, "index.html"), "utf8");
   assert.ok(!/(?:src|href)="[^"]*(?:pierre-diffs|diffview|diffthemes)/.test(html), "index.html loads the library");
