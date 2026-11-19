@@ -1,7 +1,7 @@
 // @ts-check
 import { createBridge } from "./bridge.js";
 
-/** @typedef {import("./bridge.js").Handlers} Handlers @typedef {import("./manifest.js").App} App @typedef {{ doc: Document, win: EventTarget, app: App, title: string, granted: string[], load: () => Promise<string>, ready?: (notify: (method: string, params: unknown) => void) => void, handlers: Omit<Handlers, "resize" | "initialized" | "hostContext">, displayMode?: string, timers?: { setTimeout: typeof setTimeout, clearTimeout: typeof clearTimeout, setInterval: typeof setInterval, clearInterval: typeof clearInterval } }} FrameOpts */
+/** @typedef {import("./bridge.js").Handlers} Handlers @typedef {import("./manifest.js").App} App @typedef {{ doc: Document, win: EventTarget, app: App, title: string, load: () => Promise<{ html: string, app: App, granted: string[] }>, ready?: (notify: (method: string, params: unknown) => void) => void, handlers: Omit<Handlers, "resize" | "initialized" | "hostContext">, displayMode?: string, timers?: { setTimeout: typeof setTimeout, clearTimeout: typeof clearTimeout, setInterval: typeof setInterval, clearInterval: typeof clearInterval } }} FrameOpts */
 
 export const CSP = "default-src 'none'; script-src 'unsafe-inline' blob:; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data: blob:; worker-src blob:; connect-src 'none'; frame-src 'none'; child-src blob:; form-action 'none'; base-uri 'none'; object-src 'none'";
 export const SANDBOX = "allow-scripts";
@@ -51,7 +51,8 @@ const themeOf = (doc) => (doc.documentElement.getAttribute("data-theme") === "li
 
 /** XO's frame around one sandboxed view: loading, live, stopped; the view draws only its content. @param {HTMLElement} host @param {FrameOpts} o */
 export function createAppFrame(host, o) {
-  const { doc, app } = o;
+  const { doc } = o;
+  let app = o.app;
   const T = o.timers || globalThis;
   const box = doc.createElement("div");
   box.className = "xa-frame";
@@ -105,8 +106,8 @@ export function createAppFrame(host, o) {
     const my = ++gen;
     loads = 0;
     show("loading", `Opening ${app.name}…`);
-    let html;
-    try { html = await o.load(); } catch (e) { if (my === gen && !gone) stop(`${app.name} couldn't open: ${String(/** @type {any} */ (e)?.message || e)}`); return; }
+    let html, granted;
+    try { ({ html, app, granted } = await o.load()); } catch (e) { if (my === gen && !gone) stop(`${app.name} couldn't open: ${String(/** @type {any} */ (e)?.message || e)}`); return; }
     if (my !== gen || gone) return;
     const f = doc.createElement("iframe");
     f.className = "xa-frame-view";
@@ -118,7 +119,7 @@ export function createAppFrame(host, o) {
     f.srcdoc = buildSrcdoc(html, look());
     iframe = f;
     const b = createBridge({
-      app, granted: o.granted, win: o.win, frame: () => f.contentWindow, timers: T,
+      app, granted, win: o.win, frame: () => f.contentWindow, timers: T,
       handlers: {
         ...o.handlers,
         hostContext,

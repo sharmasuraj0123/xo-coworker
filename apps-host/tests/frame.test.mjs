@@ -25,8 +25,8 @@ const win = new EventTarget();
 const T = fakeTimers();
 /** @type {any[]} */
 const seen = [];
-const make = (load = async () => "<p>hi</p>") => createAppFrame(/** @type {any} */ (host), {
-  doc: /** @type {any} */ (doc), win, app, title: "Word: Outline", granted: [], load, timers: T,
+const make = (load = async () => ({ html: "<p>hi</p>", app, granted: [] })) => createAppFrame(/** @type {any} */ (host), {
+  doc: /** @type {any} */ (doc), win, app, title: "Word: Outline", load, timers: T,
   ready: (notify) => { seen.push("ready"); notify("ui/notifications/tool-input", { arguments: { path: "a.word.json" } }); },
   handlers: { callTool: async () => ({}), readResource: async () => ({}), draft() {}, context() {}, openLink: () => false, displayMode: () => "inline" },
 });

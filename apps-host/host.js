@@ -56,10 +56,10 @@ export function createAppsHost(d) {
 
       /** @param {HTMLElement} el @param {{ app: App, surface: Surface, kind: string, at: At, input?: unknown, onGone?: () => void }} v */
       const mountView = (el, v) => {
-        const { app, surface, at } = v;
-        let where, alive = 0;
+        const { at } = v;
+        let { app, surface } = v;
+        let where, alive = 0, view = "";
         try { where = whereOf(at); } catch (e) { where = null; }
-        const view = /** @type {string} */ (surface.view);
         /** @type {ReturnType<typeof createAppFrame> | null} */
         let frame = null;
         const closed = () => {
@@ -76,16 +76,22 @@ export function createAppsHost(d) {
         };
         frame = createAppFrame(el, {
           doc: d.doc, win: d.win, app, title: surface.title ? `${app.name}: ${surface.title}` : app.name,
-          granted: where ? granted(app.id, where.project) : [],
           load: async () => {
             if (!where || !enabled(app.id, where.project)) throw new Error("it isn't on in this project");
+            const now = apps.get(app.id)?.app;
+            const s = now && (now.surfaces[v.kind] || []).find((x) => x.id === surface.id);
+            if (!now || !s || !s.view) throw new Error("this view is gone from the app");
+            app = now;
+            surface = s;
             const w = where;
+            if (alive && view !== s.view) closed();
             frames.add(handle);
+            view = s.view;
             if (!alive) {
               d.client.viewOpened(app.id, w, view).catch(() => {});
               alive = d.win.setInterval(() => { if (d.doc.visibilityState !== "hidden") d.client.viewAlive(app.id, w, view).catch(() => {}); }, ALIVE_MS);
             }
-            return htmlOf(await d.client.resource(app.id, view, where));
+            return { html: htmlOf(await d.client.resource(app.id, view, w)), app, granted: granted(app.id, w.project) };
           },
           ready: (notify) => { if (v.input !== undefined) notify(v.kind === "inline" ? "ui/notifications/tool-result" : "ui/notifications/tool-input", v.kind === "inline" ? { structuredContent: v.input } : { arguments: v.input }); },
           handlers: {
