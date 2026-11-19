@@ -455,6 +455,7 @@ dsh has no scaffolding command at all. This is where XO can be the easier platfo
   - old paths re-export new ones (shims) for one phase, then the shims are deleted;
   - **characterisation tests come first**: behaviour tests written against today's code before it moves, so the move is checked by something other than eyes;
   - the ledger is updated in the same commit as the move.
+- **Extract, then wire.** Legacy files may only shrink (the size ratchet refuses growth, which already stopped one attempt to wire the kernel into `stage.js` in place). So a piece moves out to its new home first, and only then do the old call sites connect to it. Who does what: `architecture/WAVES.md`.
 
 | Phase | Scope | Exit criteria | Size | Main risks |
 |---|---|---|---|---|
