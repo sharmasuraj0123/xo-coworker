@@ -1,7 +1,7 @@
-// A save, download, copy or undo that failed is said the same way in every view of the viewer (the controls grader on
+// A save, download or copy that failed is said the same way in every view of the viewer (the controls grader on
 // e55c2d8, S126: in the Changes view, Download held then refused, and the screen went back to "Binary file · Download"
 // saying nothing; the diff's branch drew no error line, where the file's and the plain one did). One place draws what
-// sits above every body: the tabs, the head, and the failure. Checked from the source; drawn, the flows case "S126".
+// sits above every body: the tabs, the head, the versions, and the failure. Checked from the source; drawn, the flows case "S126".
 //   node tests/viewer-errors.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -12,7 +12,8 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
 const i = src.indexOf("function renderNow()"), body = src.slice(i, src.indexOf("\n  }\n", i));
 
 t("one place draws the failure, with the tabs and the head", () => {
-  assert.match(src, /const above = \(\) => \{[\s\S]{0,400}?return \(tabs \? tabs\(\) : ""\) \+ head\(\) \+ \(V\.saveError \? `<p class="vw-cut" role="alert">/);
+  // the stage's tabs, the open files' tabs, the head and the versions under it, then the failure
+  assert.match(src, /const above = \(\) => \{[\s\S]{0,400}?return \(tabs \? tabs\(\) : ""\) \+ tabsHtml\(\) \+ head\(\) \+ verBar\(\) \+\s*\(V\.saveError \? `<p class="vw-cut" role="alert">/);
   assert.equal((src.match(/V\.saveError \? `<p class="vw-cut" role="alert">/g) || []).length, 1, "and nowhere else");
 });
 t("every branch of the viewer draws it: the file, the change, the plain view", () => {

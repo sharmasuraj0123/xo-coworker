@@ -47,6 +47,7 @@ export function regionRings(doc = document, win = window) {
   const check = () => {
     const el = doc.activeElement;
     if (!el || !el.matches || !el.matches(REGIONS) || !el.matches(":focus-visible")) return;
+    if (el.classList && el.classList.contains("vw-doc")) return; // a file you type in draws no ring (the owner, 19 Nov 10:59Z)
     if (el.parentElement && el.offsetParent !== el.parentElement) return; // the outline stays
     if (on === el && ring) { place(); return; }
     drop();

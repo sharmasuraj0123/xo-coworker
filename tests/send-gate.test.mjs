@@ -31,14 +31,6 @@ t("the file actions (Ask about lines' fallback, Tell the agent) ask about the fi
   assert.doesNotMatch(b, /liveBlock\(\)/, "not the current chat's or draft's gate");
   assert.match(b, /blockFor\(at\.thread \? \{ thread: true \} : \{ pid: at\.chat \}\)/, "the file's thread, or its project");
 });
-t("Tell the agent, refused, keeps its notice (and the Tell in it) to try again: the notice goes only once it went", () => {
-  const v = readFileSync(new URL("../js/viewer.js", import.meta.url), "utf8");
-  const i = v.indexOf('e.target.closest("[data-vw-tell]")');
-  assert.ok(i >= 0, "the Tell handler");
-  const line = v.slice(i, v.indexOf("\n", i));
-  const tell = line.indexOf("edits.tell("), clear = line.indexOf("saved = null");
-  assert.ok(tell >= 0 && clear >= 0, "it tells and clears");
-  assert.ok(tell < clear, "it asks edits.tell first, and clears the notice only after it went");
-  assert.match(line, /if \(!s \|\| !edits\.tell\(V\.file, s\)\) return;/, "refused: nothing cleared");
-});
+// (Tell the agent, after a save, is gone: the file saves itself as you type, and Space tells the agent what you changed at
+// the start of its next turn, services/cowork_agent/storm/person_edits.py; there's no notice left to keep)
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

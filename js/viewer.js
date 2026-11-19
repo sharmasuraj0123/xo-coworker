@@ -1,34 +1,37 @@
-// The file viewer (if1 #2): a shared file opens in a panel beside the conversation, like a canvas.
-// Markdown renders (markdown.js), other text is coloured code with line numbers (highlight.js), and
+// The file viewer (if1 #2), in Files: a file opens beside the conversation, like a canvas, ready to read and to
+// type in. Every text file is one editor (js/doceditor.js, CodeMirror): code reads as code, Markdown as a page
+// (Page, or Source: the same editor), and what you type saves itself (js/docs.js, one document per open file:
+// a second after your last key, when you leave it, ⌘S at once). There's no Edit and no Save. Someone else's change
+// (an agent, bash, git) comes in place as a new version, the lines it touched glowing for a moment; if you were
+// typing, it's merged into yours, and only lines you both changed ask (Keep yours · Take theirs). Each version is in
+// the head's ‹ n of m ›: who made it, an older one read only with Restore, and Show changes.
 // HTML shows in a sandboxed frame that runs the page's own scripts but has no same-origin (an opaque origin:
 // no reach into XO's window, cookies, storage or /api, which serve.py refuses a null origin; no popups,
 // forms or top navigation; Source shows its text), and an
 // image shows fitted to the panel (Actual size, or a click on it, shows it 1:1). It reads the
 // project-scoped `/api/xo-projects/<project>/file` and `/image` routes only, never `/api/files/*`.
-// A file attached to a message (hub #30) opens here too: an image as itself, a PDF in a frame, text as
+// A file attached to a message (hub #30) opens here too, read only: an image as itself, a PDF in a frame, text as
 // text (read with fetch, never rendered as HTML), all from the attachment route, which the server
 // guards with its own headers. A long paste not sent yet previews from the composer.
-// A project file also downloads whole from the project-scoped `/download` route, which matters most
-// when the preview stops at 256 KB. It is fetched with the Coder header and saved as a blob, so the
-// token never sits in a URL (or the browser's download history).
-// Esc closes it; on phones it takes the whole screen. Focus goes in, and back to the file card.
-// With the Map open (js/map.js) the two are one right-hand panel with two modes, Live and File: `tabs`
-// draws the switch, and switching to Live parks the file (hidden, kept) until you come back to it.
+// A project file also downloads whole from the project-scoped `/download` route. It is fetched with the Coder
+// header and saved as a blob, so the token never sits in a URL (or the browser's download history).
+// Several files stay open as tabs (a single click opens a preview tab the next one replaces; typing in it, or a
+// double click on its tab, keeps it). Esc puts the file away (or closes it); on phones it takes the whole screen.
+// Focus goes in, and back to what opened it.
 
 import { esc, isImagePath } from "./util.js";
 import { fileIcon } from "./fileicons.js";
 import { ICON, $ } from "./ui.js";
 import { usable } from "./focusview.js";
-import { renderMarkdown } from "./markdown.js";
-import { api, attachmentUrl, attachmentText } from "./api.js";
+import { api, attachmentUrl, attachmentText, missingRoute } from "./api.js";
 import { kindOf, typeWord } from "./attach.js";
 import * as DV from "./diffview.js";
 import * as K from "./keys.js";
 import { pointerFollows } from "./keynav.js";
 import { redrawNode } from "./redraw.js";
 import { countsHtml } from "./changesframe.js";
-import { merge3 } from "./merge.js";
-import { draftKey, getDraft, putDraft, dropDraft } from "./drafts.js";
+import { createDocs, byWords } from "./docs.js";
+import { mount as mountEditor, prefetch as prefetchEditor } from "./doceditor.js";
 import { isImageChange, drawImageChange } from "./imagechange.js";
 
 const size = (n) => (n == null || !Number.isFinite(n) ? "" : n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(1)} MB`);
@@ -36,14 +39,13 @@ const bytes = (s) => new TextEncoder().encode(s).length;
 const extOf = (name) => (/\.([\w-]+)$/.exec(String(name || "")) || [])[1] || "";
 const KIND_WORD = { markdown: "Markdown", html: "HTML", text: "Text", code: "Code", json: "JSON" };
 
-const EDIT_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>';
 const LOCK_IC = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10.5" width="14" height="9.5" rx="2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>';
 const BOLT_IC = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3.5 5.5 13.5H12l-1 7 7.5-10H12z"/></svg>';
-// files git or an agent runs (Space confirms a save to one with a 428; the head says so before you edit)
+// files git or an agent runs (Space confirms a save to one with a 428; the head says so before you type)
 // before Space answers with the file's place: what git or an agent runs. Case doesn't matter (Space treats
 // .GIT/ and .Claude/ as .git/ and .claude/, on any file system)
 export const RUNS = /^(?:\.git|\.claude|\.codex|\.agents)(?:\/|$)|^\.mcp\.json$/i;
-// Space's reasons a file can't be edited here, in words
+// Space's reasons a file can't be changed here, in words
 const NOT_EDITABLE = {
   read_only_place: "Read only · XO keeps this file",
   too_large: "Too large to edit here",
@@ -51,52 +53,39 @@ const NOT_EDITABLE = {
   not_utf8: "Not plain text",
   not_text: "Not plain text",
   historical: "An earlier version: read only",
+  attachment: "Read only",
 };
-const ASK_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-10.9 6.7L4 19.5l1.3-4.6A7.5 7.5 0 1 1 20 11.5z"/></svg>';
 const MORE_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>';
 const SPLIT_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M12 4.5v15"/></svg>';
 // the Source toggle's glyph: angle brackets, drawn like the other line icons
 const SRC_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>';
+const PAGE_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5h7l4 4V19a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 19V5a1.5 1.5 0 0 1 1-1.5z"/><path d="M9 11h6M9 14.5h6M9 18h3.5"/></svg>';
+const PREV_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14.5 6-6 6 6 6"/></svg>';
+const NEXT_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg>';
 
-/**
- * What a refused save means, in words (Space's PUT /file): {kind: "confirm" (a file that runs code: ask, then
- * send again with confirm "runs_code") | "conflict" (the file changed: merge, err.current) | "readonly" |
- * "error", words}. Pure.
- */
-export function saveOutcome(err) {
-  const s = err && err.status, c = err && err.code;
-  if (s === 428 && c === "confirm_required") return { kind: "confirm", words: "" };
-  if (s === 409 && c === "file_changed" && err.current && typeof err.current.content === "string") return { kind: "conflict", words: "" };
-  if (s === 409 && c === "file_changed" && err.current === null) return { kind: "error", words: "This file was deleted while you were editing: copy what you need" };
-  if (s === 403 && c === "read_only_place") return { kind: "readonly", words: "XO keeps this file: it can't be saved here" };
-  if (s === 403 && c === "outside_project") return { kind: "error", words: "This file is outside the project" };
-  if (s === 403) return { kind: "error", words: "Saving isn't allowed here" };
-  if (s === 503 && c === "writer_key_missing") return { kind: "error", words: "XO Space hasn't enabled saving yet" };
-  if (s === 409) return { kind: "error", words: "The file changed and XO didn't send the new version: copy your edit, then open it again" };
-  return { kind: "error", words: (err && err.message) || "Couldn't save" };
+/** When, in a few words ("just now", "4 min ago", "10:42"). Pure. */
+export function whenWords(at, now = Date.now()) {
+  const t = Date.parse(at || "");
+  if (!Number.isFinite(t)) return "";
+  const s = Math.max(0, (now - t) / 1000);
+  if (s < 45) return "just now";
+  if (s < 3600) return `${Math.round(s / 60)} min ago`;
+  const d = new Date(t);
+  const same = new Date(now).toDateString() === d.toDateString();
+  return same ? d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : d.toLocaleDateString([], { day: "numeric", month: "short" });
 }
 
-/*
- * A text file shows whole through Pierre too (js/diffview.js file: virtualised, coloured in the worker).
- * Select lines (drag across the numbers, or Shift-click) and "Ask about lines 36–43 ⌘L" appears under them;
- * it opens a small composer under those lines (the code moves down for it) that sends to the file's own
- * thread, or the project's coordinator. ask: {target(f) → its name in words, or null when there's nowhere
- * to send; send(f, a, b, text) → true when it went}. lines on a file opened: [a, b] selected and in view.
+/**
+ * The viewer. ask: {target(f) → its name in words, or null when there's nowhere to send; send(f, a, b, text) → true
+ * when it went; compose(f, a, b) → true when the lines went into the chat's own composer; file(f)}. edits: {saved(f)
+ * after each save (its place's changes are read again)}. threadTitle(ts) names who made a version. away() puts the
+ * file away beside a chat (Esc); home() is where focus goes when what opened the file is gone.
  */
-/*
- * Edit (P3): a file Space says you can edit (/file's version, editable) turns into Pierre's editor in place;
- * Save (⌘S) sends it with the version you started from. A file that runs code asks once before its first
- * save; a place XO keeps is read only, said in words; if the file changed while you edited, both versions
- * are merged and any place you both changed waits in Pierre's merge view for your choice. A save never
- * commits. edits: {saved(f, {path, editId, merged}) after a save: the app offers Undo and Tell the agent;
- * removed(f) when a new file's Undo took it away}. A file just made (Files › New file, open's f.created: its
- * edit id) opens being edited, with "Created · Undo" at its foot.
- */
-export function createViewer({ announce, onChange, tabs, changes = null, ask = null, edits = null, away = null, home = null }) {
+export function createViewer({ announce, onChange, tabs, changes = null, ask = null, edits = null, away = null, home = null, threadTitle = () => null }) {
   const el = $("#viewer");
   // a copy still on its way after this long says so ("Copying…"): quicker, and it only says Copied
   const COPY_SAYS_MS = 150;
-  const V = { open: false, parked: false, file: null, data: null, error: null, loading: false, mode: "preview", returnTo: null, gen: 0, copied: false, dims: null, busy: null, saveError: null, show: "file", split: false, draft: null, menu: false };
+  const V = { open: false, parked: false, file: null, data: null, error: null, loading: false, mode: "preview", textMode: "page", imgMode: "preview", returnTo: null, gen: 0, copied: false, dims: null, busy: null, saveError: null, show: "file", split: false, menu: false, tabs: [], showChanges: false };
   // the diff, kept across redraws of the head (Pierre's element moves with its body): {el, handle, img (an image
   // change's drawing, js/imagechange.js), key, gen, failed (the change the renderer last failed to draw: its notice
   // turns busy when it's drawn again)}
@@ -104,40 +93,22 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   /** This file in its place's changes ({scope, path, file, base}), or null. */
   const chg = () => (changes && V.file && V.file.project && V.file.rel ? changes.at(V.file.project, V.file.rel) : null);
   const showsDiff = () => V.show === "changes" && !!chg();
-  // the whole file through Pierre: {el (the scroller), handle, key, pend, gen, sel: {a, b}, asking, q (the composer)}
-  const FL = { el: null, handle: null, key: null, pend: null, gen: 0, sel: null, asking: false, q: null };
-  // editing: {ed (the editor), base (the text you started from), version, dirty, saving, err, confirm,
-  //   from (opened from a draft unlike the file), confirmed (this file runs code and you said Save once),
-  //   discard (asking to discard), conflict: {view, version, left, text}}; saved: the last save's toast
-  //   {path, editId, name}
-  const ED = { on: false };
-  // an edit's generation: opening a file, closing, and each new edit move it on, so a save (or a merge view)
-  // that finishes late only ever lands on the file and the edit that started it
-  let edGen = 0;
-  // drafts (js/drafts.js): your unsaved edits, kept in this browser when you leave the file
+  // the text file's editor: {el (its body, kept across redraws of the head), h (the editor), key (which document),
+  // gen, sel ({a, b}: lines selected), asking ({a, b}: the fallback composer is open)}
+  const TX = { el: null, h: null, key: null, gen: 0, sel: null, asking: false, q: null };
+  // the open files' documents (js/docs.js): one per project file, shared by every tab and view of it
   const store = (() => { try { return localStorage; } catch { return null; } })();
-  const dkey = () => (V.file && V.file.project && V.file.rel ? draftKey(V.file.project, V.file.rel) : null);
-  let draftT = 0;
-  /** Keep what's in the editor as this file's draft (or let it go, when it's the file again). False: not kept. */
-  function keepDraft() {
-    clearTimeout(draftT);
-    if (!ED.on || !ED.ed || ED.conflict) return false;
-    const text = ED.ed.text();
-    if (text === ED.base) { dropDraft(store, dkey()); V.draft = null; if (ED.dirty) { ED.dirty = false; ED.from = false; paintHead(); } return true; }
-    const d = { text, base: ED.base, version: ED.version, at: Date.now() };
-    if (!putDraft(store, dkey(), d)) return false;
-    V.draft = d;
-    return true;
-  }
-  /** After a pause in typing, never on a keystroke. */
-  const draftSoon = () => { clearTimeout(draftT); draftT = setTimeout(keepDraft, 800); };
-  const letDraftGo = () => { clearTimeout(draftT); dropDraft(store, dkey()); V.draft = null; };
-  let saved = null;
-  const showsFile = () => {
+  const docs = createDocs({ api, store, onChange: (d, what) => docChanged(d, what) });
+  /** The document on show (a project file's, or an attachment's read-only one), or null. */
+  const doc = () => (V.data && V.data.doc) || null;
+  /** A text file shows in the editor: everything but images, PDFs and HTML's own preview. */
+  const showsText = () => {
     const d = V.data;
     if (!V.open || V.loading || V.error || V.why || !d || typeof d.content !== "string" || showsDiff()) return false;
-    return d.kind === "markdown" || d.kind === "html" ? V.mode === "source" : d.kind !== "image" && d.kind !== "pdf";
+    if (d.kind === "html") return V.mode === "source";
+    return d.kind !== "image" && d.kind !== "pdf";
   };
+  const isMd = () => !!(V.data && V.data.kind === "markdown");
 
   /** The object URL an image is shown from lives as long as the image is open. */
   function dropImage() {
@@ -212,8 +183,77 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (on) el.querySelector("[data-vw-more]")?.focus({ preventScroll: true });
   }
 
+  // ── the head: the file's name, its state, its versions, the view switch, ⋯ and × ─────────────────────────────
+  /** The document's state in a few words, with its dot: Saving… · Saved · Not saved: why · Deleted on disk. */
+  function stateHtml(d) {
+    if (!d || d.state === "readonly") return "";
+    if (d.state === "conflict") { const n = d.merge ? d.merge.left : 0; return `<span class="xd-state is-need" role="status"><i></i>${n} ${n === 1 ? "place" : "places"} to choose</span>`; }
+    if (d.state === "saving") return `<span class="xd-state is-quiet" role="status">Saving…</span>`;
+    if (d.state === "dirty") return `<span class="xd-state is-unsaved" role="status" title="${MODK}S saves it"><i></i>Unsaved · ${MODK}S</span>`;
+    if (d.state === "deleted") return `<span class="xd-state is-need" role="status" title="${esc(d.err || "")}"><i></i>Deleted on disk</span>`;
+    if (d.state === "error") return `<span class="xd-state is-need" role="status" title="${esc(d.err || "")}"><i></i>Not saved</span>`;
+    return V.savedFlash === d ? `<span class="xd-state is-quiet is-done" role="status">Saved</span>` : "";
+  }
+  /** ‹ n of m ›, who made the one shown and when, Show changes; on an older one, Restore and Latest. */
+  function versionsHtml(d) {
+    if (!d || d.versions.length < 2 || showsDiff()) return "";
+    const n = d.versions.length, at = d.viewing ? d.versions.indexOf(d.viewing) : n - 1, v = d.versions[at];
+    const who = byWords(v.by, threadTitle) || (at === 0 ? "When you opened it" : "");
+    const when = whenWords(v.at);
+    const words = [who, when].filter(Boolean).join(" · ");
+    const step = `<span class="vw-vers" role="group" aria-label="Versions"><button type="button" class="vw-btn" data-vw-ver="-1" aria-label="The version before"${at <= 0 ? ' aria-disabled="true"' : ""}>${PREV_IC}</button>` +
+      `<span class="vw-vn" title="${esc(words)}"><b>${at + 1}</b> of ${n}</span>` +
+      `<button type="button" class="vw-btn" data-vw-ver="1" aria-label="The version after"${at >= n - 1 ? ' aria-disabled="true"' : ""}>${NEXT_IC}</button></span>`;
+    const who2 = words ? `<span class="vw-who">${esc(words)}</span>` : "";
+    if (d.viewing) {
+      const can = d.viewing.text != null;
+      return step + who2 + (can && d.state !== "readonly" ? `<button type="button" class="xd-btn" data-vw-restore title="Make this version the file again (a new version: nothing is lost)">Restore</button>` : "") +
+        `<button type="button" class="xd-btn" data-vw-latest>Latest</button>`;
+    }
+    const prev = d.versions[n - 2];
+    const canShow = prev && prev.text != null && d.state !== "conflict";
+    return step + who2 + (canShow ? `<button type="button" class="xd-btn${V.showChanges ? " is-on" : ""}" data-vw-changes aria-pressed="${!!V.showChanges}" title="Mark what this version changed">Show changes</button>` : "");
+  }
+  const MODK = /Mac|iPhone|iPad/.test(navigator.platform || "") ? "⌘" : "Ctrl ";
+  /** Closing files with unsaved changes asks, as VS Code does: Save, Don't save, or Cancel (V.asking: {docs, then}). */
+  const unsavedPop = () => {
+    const A = V.asking, n = A.docs.length;
+    const what = n === 1 ? `your changes to ${esc(A.docs[0].rel.split("/").pop())}` : `your changes to ${n} files`;
+    return `<div class="xd-pop" role="alertdialog" aria-label="Save ${what}?"><p><b>Save ${what}?</b> If you don't, they're gone.</p><div class="xd-pop-a"><button type="button" class="xd-btn" data-vw-unsaved="discard">Don't save</button><button type="button" class="xd-btn" data-vw-unsaved="cancel">Cancel</button><button type="button" class="xd-btn is-pri" data-vw-unsaved="save">Save</button></div></div>`;
+  };
+  /** Ask before closing what has unsaved changes; then() goes on once it's saved or let go. */
+  function askUnsaved(list, then) {
+    const ds = list.filter((D) => D && (D.state === "dirty" || D.state === "error" || D.state === "conflict" || D.state === "deleted"));
+    if (!ds.length) { then(); return; }
+    V.asking = { docs: ds, then };
+    paintHead();
+    el.querySelector('[data-vw-unsaved="save"]')?.focus({ preventScroll: true });
+  }
+  async function answerUnsaved(how) {
+    const A = V.asking;
+    V.asking = null;
+    if (!A || how === "cancel") { paintHead(); TX.h?.focus(); return; }
+    if (how === "discard") { for (const D of A.docs) docs.discard(D); A.then(); return; }
+    await Promise.all(A.docs.map((D) => docs.flush(D)));
+    // saved (or refused: then it stays open, saying why)
+    if (A.docs.every((D) => D.state === "saved")) A.then(); else paintHead();
+  }
+  /** A file that runs code asks once before its first save: Save, or Not now (it stays unsaved, in this browser). */
+  const confirmPop = () => `<div class="xd-pop" role="dialog" aria-label="Save a file that runs code"><p><b>Git or an agent runs what this file says.</b> A slip here runs on the next commit or the next agent turn. Save it?</p><div class="xd-pop-a"><button type="button" class="xd-btn" data-vw-noconfirm>Not now</button><button type="button" class="xd-btn is-pri" data-vw-confirm>Save</button></div></div>`;
+  /** The open files, as tabs (two or more): a preview tab's name in italics; a dot while one has unsaved text. */
+  function tabsHtml() {
+    if (V.tabs.length < 2) return "";
+    const cur = V.file;
+    return `<div class="vw-tabs" role="tablist" aria-label="Open files">` + V.tabs.map((t, i) => {
+      const on = t.file === cur, d = t.doc, dirty = d && (d.state === "dirty" || d.state === "saving" || d.state === "conflict" || d.state === "error");
+      return `<span class="vw-tab${on ? " is-on" : ""}${t.preview ? " is-preview" : ""}" role="presentation"><button type="button" role="tab" class="vw-tab-b" data-vw-tab="${i}" aria-selected="${on}" title="${esc(t.file.where || t.file.name || "")}">` +
+        `<span class="vw-ic" aria-hidden="true">${fileIcon(t.file.name || t.file.path || "")}</span><span class="vw-tn">${esc(t.file.name || t.file.path || "")}</span></button>` +
+        `<button type="button" class="vw-tab-x${dirty ? " is-dirty" : ""}" data-vw-tabx="${i}" aria-label="Close ${esc(t.file.name || "")}${dirty ? " (not saved yet)" : ""}"><i aria-hidden="true"></i>${ICON.close}</button></span>`;
+    }).join("") + `</div>`;
+  }
+
   function head() {
-    const f = V.file, d = V.data;
+    const f = V.file, d = V.data, D = doc();
     const kind = f.att || f.local != null ? typeWord(f.type || "", f.name) : d ? KIND_WORD[d.kind] || (extOf(f.name).toUpperCase() || "Text") : String(f.type || "").split("/").pop() || "";
     const c = chg(), diffing = showsDiff();
     const meta = diffing ? [] : [kind, V.dims && `${V.dims.w} × ${V.dims.h}`, size(d ? d.size_bytes : f.bytes)].filter(Boolean);
@@ -221,313 +261,128 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     // a changed file: what changed, or the whole file (the design's head: name, counts, the switch)
     const show = c ? `<div class="vw-seg is-words" role="group" aria-label="Show"><button type="button" data-vw-show="changes" aria-pressed="${diffing}">Changes</button><button type="button" data-vw-show="file" aria-pressed="${!diffing}">File</button></div>` +
       (diffing ? `<button type="button" class="vw-btn vw-split${V.split ? " is-on" : ""}" data-vw-split aria-pressed="${V.split}" title="${V.split ? "One column" : "Side by side"}" aria-label="Side by side">${SPLIT_IC}</button>` : "") : "";
-    const toggle = diffing ? "" : d && (d.kind === "html" || d.kind === "markdown")
-      ? `<div class="vw-seg" role="group" aria-label="Show"><button type="button" data-vw-mode="preview" aria-pressed="${V.mode === "preview"}" title="Preview" aria-label="Preview">${ICON.eye}<span>Preview</span></button><button type="button" data-vw-mode="source" aria-pressed="${V.mode === "source"}" title="Source" aria-label="Source">${SRC_IC}<span>Source</span></button></div>`
-      : d && d.kind === "image"
-        ? `<div class="vw-seg" role="group" aria-label="Size"><button type="button" data-vw-mode="preview" aria-pressed="${V.mode === "preview"}">Fit</button><button type="button" data-vw-mode="actual" aria-pressed="${V.mode === "actual"}" aria-label="Actual size"><span class="vw-wide">Actual size</span><span class="vw-narrow" aria-hidden="true">1:1</span></button></div>`
-        : "";
+    // Markdown: Page or Source (the same editor); HTML: Preview (its own page, in a frame) or Source; an image: Fit or 1:1
+    const toggle = diffing ? "" : d && d.kind === "markdown"
+      ? `<div class="vw-seg" role="group" aria-label="Show"><button type="button" data-vw-mode="page" aria-pressed="${V.textMode !== "source"}" title="As a page" aria-label="Page">${PAGE_IC}<span>Page</span></button><button type="button" data-vw-mode="source" aria-pressed="${V.textMode === "source"}" title="Source" aria-label="Source">${SRC_IC}<span>Source</span></button></div>`
+      : d && d.kind === "html"
+        ? `<div class="vw-seg" role="group" aria-label="Show"><button type="button" data-vw-mode="preview" aria-pressed="${V.mode === "preview"}" title="Preview" aria-label="Preview">${ICON.eye}<span>Preview</span></button><button type="button" data-vw-mode="source" aria-pressed="${V.mode === "source"}" title="Source" aria-label="Source">${SRC_IC}<span>Source</span></button></div>`
+        : d && d.kind === "image"
+          ? `<div class="vw-seg" role="group" aria-label="Size"><button type="button" data-vw-mode="preview" aria-pressed="${V.imgMode !== "actual"}">Fit</button><button type="button" data-vw-mode="actual" aria-pressed="${V.imgMode === "actual"}" aria-label="Actual size"><span class="vw-wide">Actual size</span><span class="vw-narrow" aria-hidden="true">1:1</span></button></div>`
+          : "";
+    const state = !diffing ? stateHtml(D) : "";
     const name = `<span class="vw-ic" aria-hidden="true">${fileIcon(f.name || f.path || "")}</span>` +
-      `<div class="vw-t"><h2 id="vw-h"${f.where ? ` title="${esc(f.where)}"` : ""}>${esc(f.name || f.path)}</h2>${c && diffing ? countsHtml(c.file) : ""}${meta.length && !ED.on ? `<span class="vw-meta">${esc(meta.join(" · "))}</span>` : ""}</div>`;
+      `<div class="vw-t"><h2 id="vw-h"${f.where ? ` title="${esc(f.where)}"` : ""}>${esc(f.name || f.path)}</h2>${c && diffing ? countsHtml(c.file) : ""}${meta.length && !state ? `<span class="vw-meta">${esc(meta.join(" · "))}</span>` : state}</div>`;
     const runs = !diffing && runsCode() ? `<span class="xd-runs" title="Git or an agent runs what this file says">${BOLT_IC}<span>Runs code</span></span>` : "";
-    if (ED.on) return `<header class="vw-top">${name}<div class="vw-acts">${runs}${editActs()}</div>${ED.confirm ? confirmPop() : ""}</header>`;
-    const why = !diffing && d && typeof d.content === "string" && d.editable === false ? NOT_EDITABLE[d.not_editable_reason] || "Read only" : "";
-    const edit = why ? `<span class="xd-ro" title="${d.not_editable_reason === "read_only_place" ? "XO keeps this file: change it from its own screen" : esc(why)}">${d.not_editable_reason === "read_only_place" ? LOCK_IC : ""}<span>${esc(why)}</span></span>`
-      : diffing && V.draft ? `<button type="button" class="xd-btn xd-draft" data-vw-draft-show data-vw-show="file" title="Your unsaved edits to this file are kept: see them in File"><i></i>Your draft</button>`
-      : !diffing && canEdit() && V.draft && !ED.opening ? `<span class="xd-state" title="Your unsaved edits, kept in this browser"><i></i>Your draft</span><button type="button" class="xd-btn" data-vw-draftx title="Let your draft go">Discard</button><button type="button" class="xd-edit" data-vw-edit title="Continue editing (E)" aria-label="Continue your draft">${EDIT_IC}<span>Continue</span></button>`
-      : !diffing && canEdit() ? `<button type="button" class="xd-edit" data-vw-edit title="${ED.opening ? "Opening it for editing…" : "Edit (E)"}" aria-label="${ED.opening ? "Opening for editing" : "Edit"}"${ED.opening ? " disabled" : ""}>${ED.opening ? '<i class="spin" aria-hidden="true"></i>' : EDIT_IC}<span>${ED.opening ? "Opening…" : "Edit"}</span></button>` : "";
+    const why = !diffing && d && typeof d.content === "string" && (d.editable === false || (D && D.state === "readonly")) ? NOT_EDITABLE[d.not_editable_reason || (D && D.err)] || "Read only" : "";
+    const ro = why ? `<span class="xd-ro" title="${d.not_editable_reason === "read_only_place" ? "XO keeps this file: change it from its own screen" : esc(why)}">${d.not_editable_reason === "read_only_place" ? LOCK_IC : ""}<span>${esc(why)}</span></span>` : "";
     // Ask about this: the whole file, into its conversation's composer (lines have their own "Ask about lines")
     const askT = ask && ask.file && f.project && f.rel && ask.target(f);
     const askB = askT && !diffing ? `<button type="button" class="xd-btn vw-ask" data-vw-askfile title="Ask ${esc(askT)} about this file">Ask about this</button>` : "";
-    const upd = V.updated && !diffing ? `<button type="button" class="xd-btn vw-upd" data-vw-update title="An agent changed this file after you opened it: show the new version">Updated · Show</button>` : "";
-    // a narrow head keeps one row: the view switch, Edit (or Cancel · Save), ⋯ and × stay; these fold into ⋯ (the
-    // owner's choice, 9 Nov: at 320 px More was pushed off and the name went to nothing)
+    // a narrow head keeps one row: the view switch, ⋯ and × stay; these fold into ⋯ (the owner's choice, 9 Nov: at
+    // 320 px More was pushed off and the name went to nothing)
     const fold = (cls, attrs, label, role = "menuitem") => `<button type="button" role="${role}" class="vw-fold ${cls}" ${attrs}><span>${label}</span></button>`;
     const folds = [
       askB && fold("f-wide", `data-vw-askfile title="Ask ${esc(askT)} about this file"`, "Ask about this"),
-      upd && fold("f-wide", "data-vw-update", "Updated · Show the new version"),
-      !diffing && canEdit() && V.draft && !ED.opening && fold("f-wide", "data-vw-draftx", "Discard your draft"),
       runs && fold("f-wide", `aria-disabled="true" title="Git or an agent runs what this file says"`, "Runs code"),
-      // both switches in one head: the file's own (Preview · Source, Fit · Actual size) folds, Changes · File stays
+      // both switches in one head: the file's own (Page · Source, Fit · Actual size) folds, Changes · File stays
       show && toggle && (d.kind === "image"
-        ? fold("f-narrow", `data-vw-mode="preview" aria-checked="${V.mode === "preview"}"`, "Fit", "menuitemradio") + fold("f-narrow", `data-vw-mode="actual" aria-checked="${V.mode === "actual"}"`, "Actual size", "menuitemradio")
-        : fold("f-narrow", `data-vw-mode="preview" aria-checked="${V.mode === "preview"}"`, "Preview", "menuitemradio") + fold("f-narrow", `data-vw-mode="source" aria-checked="${V.mode === "source"}"`, "Source", "menuitemradio")),
+        ? fold("f-narrow", `data-vw-mode="preview" aria-checked="${V.imgMode !== "actual"}"`, "Fit", "menuitemradio") + fold("f-narrow", `data-vw-mode="actual" aria-checked="${V.imgMode === "actual"}"`, "Actual size", "menuitemradio")
+        : d.kind === "markdown"
+          ? fold("f-narrow", `data-vw-mode="page" aria-checked="${V.textMode !== "source"}"`, "Page", "menuitemradio") + fold("f-narrow", `data-vw-mode="source" aria-checked="${V.textMode === "source"}"`, "Source", "menuitemradio")
+          : fold("f-narrow", `data-vw-mode="preview" aria-checked="${V.mode === "preview"}"`, "Preview", "menuitemradio") + fold("f-narrow", `data-vw-mode="source" aria-checked="${V.mode === "source"}"`, "Source", "menuitemradio")),
     ].filter(Boolean);
     const more = moreHtml(f, canCopy, folds);
     return `<header class="vw-top">${name}` +
-      `<div class="vw-acts">${upd}${askB}${runs}${show}${toggle}${edit}${more}` +
-      `<button type="button" class="vw-x" data-vw-close aria-label="Close the file" title="Close (Esc)">${ICON.close}</button></div></header>`;
+      `<div class="vw-acts">${askB}${runs}${ro}${show}${toggle}${more}` +
+      `<button type="button" class="vw-x" data-vw-close aria-label="Close the file" title="Close (Esc)">${ICON.close}</button></div>` +
+      (D && D.confirm ? confirmPop() : V.asking ? unsavedPop() : "") + `</header>`;
+  }
+  /** The bar under the head: the file's versions (two or more), or nothing. */
+  function verBar() {
+    const D = doc(), vers = showsDiff() ? "" : versionsHtml(D);
+    return vers ? `<div class="vw-verbar${D && D.viewing ? " is-old" : ""}">${vers}</div>` : "";
   }
 
-  // ── editing ─────────────────────────────────────────────────────────────────────────────────
   /** The file's path in its own place (a worktree's own path), for the run-code rule and messages. */
   const localPath = () => String(V.file.rel || "").replace(/^\.xo\/worktrees\/[^/]+\//, "");
   // Space says (/file's place: ordinary, read_only, runs_code); before it answers, the same rule by path
   const runsCode = () => !!(V.file && V.file.project && V.file.rel && (V.data && V.data.place ? V.data.place === "runs_code" : RUNS.test(localPath())));
-  /** Space says this file can be edited here (a version to save against, and not one it keeps). */
-  // only where Space answers with its edit fields; a cut preview has no version and is read whole to edit
-  const canEdit = () => !!(edits && V.file.project && V.file.rel && V.data && typeof V.data.content === "string" && !V.loading && !showsDiff() && V.data.kind !== "image" && V.data.kind !== "pdf" && "editable" in V.data && V.data.editable !== false && (V.data.version != null || V.data.truncated));
-  const MODS = /Mac|iPhone|iPad/.test(navigator.platform || "") ? "⌘" : "Ctrl ";
-  function editActs() {
-    if (ED.discard) return `<span class="xd-state">Discard your edits?</span><button type="button" class="xd-btn" data-vw-keep>Keep editing</button><button type="button" class="xd-btn is-warn" data-vw-discard>Discard</button>`;
-    if (ED.conflict) return `<span class="xd-state">${ED.conflict.left ? `${ED.conflict.left} ${ED.conflict.left === 1 ? "place" : "places"} to choose` : "All chosen"}</span><span class="xd-vsep"></span><button type="button" class="xd-btn" data-vw-cancel>Cancel</button><button type="button" class="xd-btn is-pri" data-vw-saveit${ED.conflict.left || ED.saving ? ' aria-disabled="true"' : ""}>Save <kbd>${MODS}S</kbd></button>`;
-    return (ED.moved ? `<span class="xd-state" title="It changed since you left it: Save merges your edits with those changes">Changed since your draft</span>` : ED.dirty || ED.err ? `<span class="xd-state"><i></i>Edited</span>` : "") +
-      `<span class="xd-vsep"></span><button type="button" class="xd-btn" data-vw-cancel>Cancel</button><button type="button" class="xd-btn is-pri" data-vw-saveit${ED.saving ? ' aria-disabled="true"' : ""}>${ED.saving ? "Saving…" : `Save <kbd>${MODS}S</kbd>`}</button>`;
-  }
-  const confirmPop = () => `<div class="xd-pop" role="dialog" aria-label="Save a file that runs code"><p><b>Git or an agent runs what this file says.</b> A slip here runs on the next commit or the next agent turn. Save anyway?</p><div class="xd-pop-a"><button type="button" class="xd-btn" data-vw-noconfirm>Cancel</button><button type="button" class="xd-btn is-pri" data-vw-confirm>Save</button></div></div>`;
-  /**
-   * Redraw only the head: the editor below keeps its focus and caret. A control in the head that had focus
-   * keeps it across the redraw (Save stays focused through Saving… and a failed save), and Cancel's question
-   * takes it to Keep editing, the answer that loses nothing.
-   */
   /** A viewer control's hook as a selector, its name and value ([data-vw-show="file"], never only [data-vw-show]: that
    *  finds Changes for File, the controls grader's V99-v3 on 2a8d278): how every redraw finds the focused control again. */
   const hookOf = (e) => { const a = e && e.attributes && [...e.attributes].find((x) => x.name.startsWith("data-vw-")); return a ? (a.value ? `[${a.name}="${CSS.escape(a.value)}"]` : `[${a.name}]`) : ""; };
+  /** Redraw only the head (and the versions bar under it): the editor below keeps its focus and caret. A control in the
+   *  head that had focus keeps it across the redraw. */
   function paintHead() {
-    // editing, the file's box draws the message box's ring while the caret is in it (the owner, 11 Nov 05:42Z)
-    el.classList.toggle("is-editing", !!ED.on);
     const top = el.querySelector(".vw-top");
     if (!top) return;
     const ae = document.activeElement;
     const had = ae && top.contains(ae) ? hookOf(ae) : "";
     const fromMenu = !!(ae && ae.closest && ae.closest(".vw-menu"));
-    // the head is drawn again (in place), the control under the keyboard maybe with it: the viewer holds focus first, in this step, and
-    // the same control (or what follows it) takes it back below; the editor may take a moment to (the controls grader
-    // on 8aa58d3: the "file that runs code" question's Cancel and Save, S134/S135, went with the head: BODY, 11/11)
+    // the head is drawn again (in place), the control under the keyboard maybe with it: the viewer holds focus first, in
+    // this step, and the same control (or what follows it) takes it back below
     if (ae && top.contains(ae)) el.focus({ preventScroll: true });
     redrawNode(top, head()); // in place: a head control that stays is the same node, so a press on it still clicks
-    errPaint();
+    paintBars();
     if (!had) return;
     const now = el.querySelector(".vw-top");
     // the same control where it shows; one chosen from ⋯'s menu, else the ⋯ itself (focus goes back to what opened it)
-    const to = (ED.on && ED.discard && now.querySelector("[data-vw-keep]")) || shown(now, had) || (fromMenu && shown(now, "[data-vw-more]")) || (ED.on && ED.ed) || headFocus(false);
+    const to = shown(now, had) || (fromMenu && shown(now, "[data-vw-more]")) || headFocus(false);
+    if (to && to !== document.activeElement) to.focus({ preventScroll: true });
+  }
+  /** The open files' tabs above the head and the versions bar under it, each drawn again in place (made or taken away
+   *  as they come and go); a control of theirs that had focus keeps it, the same way the head's do. */
+  function paintBars() {
+    const top = el.querySelector(".vw-top");
+    if (!top) return;
+    const ae = document.activeElement;
+    const zone = (x) => !!x && !!x.closest && !!x.closest(".vw-tabs, .vw-verbar") && el.contains(x);
+    const had = zone(ae) ? hookOf(ae) : "";
+    if (had) el.focus({ preventScroll: true });
+    const place = (cls, html, put) => {
+      const now = el.querySelector(`:scope > .${cls}`);
+      if (now && html) redrawNode(now, html); else if (now) now.remove(); else if (html) put(html);
+    };
+    place("vw-tabs", tabsHtml(), (h) => top.insertAdjacentHTML("beforebegin", h));
+    place("vw-verbar", verBar(), (h) => el.querySelector(".vw-top").insertAdjacentHTML("afterend", h));
+    if (!had) return;
+    const to = shown(el, had) || headFocus(false);
     if (to && to !== document.activeElement) to.focus({ preventScroll: true });
   }
   /**
-   * Where focus goes when what had it goes (an edit ended, a notice closed): never the page, never somewhere that
-   * shows no ring. While editing, back to the caret (the head has Save and Cancel then, no Edit: closing the Created
-   * notice put focus on the viewer's own section, which shows no ring: the controls grader on 9d1f71b, S138); else
-   * the file's Edit; else the head's first control that shows (Close is always there); the viewer itself only with
-   * none. go=false: only say where it would go.
+   * Where focus goes when what had it goes (a notice closed, a version left): never the page, never somewhere that
+   * shows no ring. The text, when there's an editor; else the head's first control that shows (Close is always
+   * there); the viewer itself only with none. go=false: only say where it would go.
    */
   function headFocus(go = true) {
     const head = el.querySelector(".vw-top");
-    const to = (ED.on && ED.ed) || shown(el, ".vw-top [data-vw-edit]")
+    const to = (TX.h && showsText() && TX.h.view.contentDOM)
       || (head && [...head.querySelectorAll('button:not(:disabled), [tabindex="0"]')].find((x) => x.getClientRects().length && !x.closest("[inert]"))) || el;
     if (go) to.focus({ preventScroll: true });
     return to;
   }
   // focus was on the viewer (or dropped to the page when its control went): it may be put back after a redraw
   const focusHere = () => { const a = document.activeElement; return !a || a === document.body || el.contains(a); };
-  /** A save that didn't go, in words, on its own line under the head: never pushing Cancel and Save away. */
-  function errPaint() {
-    let line = el.querySelector(":scope > .xd-errline");
-    const why = ED.on ? ED.err : null;
-    if (!why) { if (line) line.remove(); return; }
-    if (!line) { line = document.createElement("p"); line.className = "vw-cut xd-errline"; line.setAttribute("role", "alert"); el.querySelector(".vw-top")?.after(line); }
-    line.innerHTML = `${ICON.warn}<span>${esc(why)}</span>`;
-  }
-  /** Edit: the head turns into Cancel · Save once the editor is really there (a caret you can type at). */
-  async function startEdit() {
-    const f = V.file, my = V.gen;
-    if (!canEdit() || ED.on || ED.opening) return;
-    // this opening's own mark: an answer for a file you've since left clears only its own "Opening…" (grader on
-    // 44e429d: a late answer for the last file cleared, or set, the next file's)
-    const me = ++edGen;
-    Object.assign(ED, { opening: me, ed: null, base: null, version: null, dirty: false, saving: false, err: null, confirm: false, discard: false, conflict: null, real: null, moved: false, from: false });
-    V.saveError = null; V.menu = false;
-    if (!(saved && saved.created)) { saved = null; toastPaint(); }
-    // Edit becomes Cancel · Save before the editor is ready: while it opens, focus waits on the viewer itself (the
-    // editor takes it when it's there), so it never passes through the page (found by the suite's drop check)
-    if (el.contains(document.activeElement) && document.activeElement !== el) el.focus({ preventScroll: true });
-    // a document (Markdown, HTML) is edited as its source
-    if (!showsFile()) { V.mode = "source"; V.textMode = "source"; render(); } else paintHead();
-    // it didn't open: focus goes back to Edit (to try again), or the head when there's no Edit now (Astra C091)
-    const fail = (why) => { const was = ED.opening === me; if (was) ED.opening = false; if (my !== V.gen) { if (was && V.open) paintHead(); return; } if (why) V.saveError = why; const back = focusHere(); render(); if (back) headFocus(); };
-    try {
-      // the whole file and its current version (a preview can stop at 256 KB; an edit reads up to 1 MB)
-      const d = await api.projectFile(f.project, f.rel, null, { purpose: "edit" });
-      if (my !== V.gen) return fail();
-      if (d.editable === false || d.truncated || d.version == null) { V.data = { ...V.data, ...d, editable: false, not_editable_reason: d.not_editable_reason || (d.truncated ? "truncated" : "not_text") }; return fail(); }
-      // your draft, if you left one: the editor opens on it, against the version you started from (a file
-      // that changed since saves through the usual merge); the file itself comes back if you leave it again
-      const dr = V.draft;
-      if (dr) { ED.real = d; ED.moved = dr.version !== d.version; V.data = { ...d, content: dr.text, version: dr.version }; dropFile(); render(); }
-      else if (d.content !== V.data.content) { V.data = d; dropFile(); render(); }
-      else V.data = d;
-      for (let i = 0; i < 60 && !FL.handle; i++) await new Promise((r) => requestAnimationFrame(r));
-      if (my !== V.gen || !FL.handle) return fail();
-      // per keystroke only what's cheap: the editor's own "something to undo"; the whole text is read once a
-      // pause in typing, for the draft (and its "the same as the file again")
-      const ed = await FL.handle.edit({ onChange: () => { if (!ED.ed) return; const dirty = ED.from || ED.ed.dirty(); draftSoon(); if (dirty !== ED.dirty || ED.err) { ED.dirty = dirty; ED.err = null; paintHead(); } } });
-      if (my !== V.gen) { ed.stop(); return fail(); }
-      Object.assign(ED, dr ? { on: true, opening: false, ed, base: dr.base, version: dr.version, dirty: dr.text !== dr.base, from: dr.text !== dr.base } : { on: true, opening: false, ed, base: d.content, version: d.version, from: false });
-      if (FL.sel) { FL.sel = null; askCapsule(); }
-      paintHead();
-      ed.focus({ lineNumber: f.lines ? f.lines[0] : "first-visible" });
-      announce(`Editing ${f.name}. ${MODS}S saves, Esc leaves.`);
-    } catch (err) {
-      if (my !== V.gen) return fail(); // the last file's answer: nothing of it lands on this one
-      if (err.status === 413) { V.data = { ...V.data, editable: false, not_editable_reason: "too_large" }; return fail(); }
-      fail(err.message || "Couldn't open this file for editing.");
-    }
-  }
-  /** Leave editing. keep: what's now in the file view stays (after a save); else it goes back to the file. */
-  function stopEdit({ keep = false } = {}) {
-    if (!ED.on) return;
-    if (ED.ed) ED.ed.stop();
-    const was = ED.conflict;
-    clearTimeout(draftT);
-    ED.on = false; ED.ed = null; ED.conflict = null; ED.confirm = false; ED.discard = false; ED.moved = false;
-    if (was && was.view) { was.view.destroy(); }
-    if (!keep && ED.real) V.data = ED.real; // the file as it is, not your draft
-    ED.real = null;
-    if (!keep || was) { dropFile(); }
-    render();
-  }
-  function cancelEdit() {
-    if (ED.dirty && !ED.discard && !ED.conflict) { ED.discard = true; paintHead(); return; }
-    const back = focusHere();
-    letDraftGo();
-    stopEdit();
-    if (back) headFocus();
-  }
-  async function save(confirm = null) {
-    if (!ED.on || ED.saving) return;
-    const f = V.file, conflict = ED.conflict;
-    // the one gate for every way to save (the button, Ctrl/Cmd+S): a merge with a place still to choose never
-    // saves, or the conflict markers would be written into the file
-    if (conflict && conflict.left !== 0) {
-      const n = conflict.left;
-      announce(n ? `Choose what to keep in ${n} ${n === 1 ? "place" : "places"} first.` : "Choose what to keep first.");
-      return;
-    }
-    const text = conflict ? conflict.text : ED.ed && ED.ed.text();
-    if (text == null) return;
-    if (!conflict && text === ED.base) { const back = focusHere(); stopEdit({ keep: true }); if (back) headFocus(); return; }
-    ED.saving = true; ED.err = null; ED.confirm = false; paintHead();
-    const my = edGen, key = dkey();
-    // a merge saves the choices as they were when Save was pressed: they can't move while it saves
-    const merge = conflict && fileBody();
-    if (merge) merge.inert = true;
-    try {
-      const r = await api.saveProjectFile(f.project, f.rel, text, conflict ? conflict.version : ED.version, confirm || (ED.confirmed ? "runs_code" : null));
-      if (my !== edGen) { savedAway(f, key, text, r); return; }
-      if (merge) merge.inert = false;
-      V.data = { ...V.data, content: text, version: r.version, size_bytes: new TextEncoder().encode(text).length, modified_at: r.saved_at || V.data.modified_at };
-      ED.saving = false;
-      // you typed on while it saved: what was sent is saved, and what you typed since stays in the editor,
-      // unsaved, against the version just saved (its draft too): Save again sends it
-      const now = !conflict && ED.ed ? ED.ed.text() : text;
-      if (now !== text) {
-        Object.assign(ED, { base: text, version: r.version, real: null, dirty: true, from: true });
-        keepDraft();
-        paintHead();
-        announce(`Saved ${f.name} as it was when you pressed Save. What you typed since isn't saved yet.`);
-        edits && edits.saved && edits.saved(f, { path: localPath(), name: f.name, editId: r.edit_id });
-        return;
-      }
-      letDraftGo();
-      ED.real = null;
-      const back = focusHere();
-      stopEdit({ keep: !conflict });
-      if (back) headFocus();
-      saved = { path: localPath(), name: f.name, editId: r.edit_id, merged: !!conflict, unchanged: !!r.unchanged };
-      toastPaint();
-      announce(`Saved ${f.name}.`);
-      edits && edits.saved && edits.saved(f, saved);
-    } catch (err) {
-      if (my !== edGen) { failedAway(f, key, err); return; }
-      ED.saving = false;
-      if (merge) merge.inert = false;
-      const o = saveOutcome(err);
-      if (o.kind === "confirm") { ED.confirm = true; paintHead(); el.querySelector("[data-vw-confirm]")?.focus(); return; }
-      // merged with the editor as it is now, words typed while it was saving included
-      if (o.kind === "conflict") { clash(!conflict && ED.ed ? ED.ed.text() : text, err.current); return; }
-      if (o.kind === "readonly") V.data = { ...V.data, editable: false, not_editable_reason: "read_only_place" };
-      ED.err = o.words; // your edit stays in the editor: nothing is lost
-      paintHead();
-    }
-  }
-  /**
-   * A save that finished after you moved to another file (or closed it): the file you're on now is left as it
-   * is. The saved file's draft (opening the other file kept your edits as one) goes if it holds what was
-   * saved; text typed after Save stays, now against the saved version.
-   */
-  function savedAway(f, key, text, r) {
-    const d = key && getDraft(store, key);
-    if (d && d.text === text) dropDraft(store, key);
-    else if (d) putDraft(store, key, { ...d, base: text, version: r.version, at: Date.now() });
-    if (V.open && dkey() === key) V.draft = getDraft(store, key);
-    announce(`Saved ${f.name}.`);
-    edits && edits.saved && edits.saved(f, { path: f.rel, name: f.name, editId: r.edit_id });
-  }
-  /** A save that failed after you moved on: nothing lands here; your edits wait as that file's draft. */
-  function failedAway(f, key, err) {
-    const kept = key && getDraft(store, key);
-    announce(`Couldn't save ${f.name}${err && err.message ? `: ${err.message}` : ""}.${kept ? " Your edits wait as its draft." : ""}`);
-  }
-  /**
-   * The file changed while you edited (409): yours and the agent's, merged against where you started. With
-   * no place you both changed, it saves at once (against the agent's version); otherwise the merge view.
-   */
-  async function clash(mine, current) {
-    const m = merge3(ED.base, mine, current.content);
-    if (!m.conflicts) { ED.conflict = { view: null, version: current.version, left: 0, text: m.text }; return save(); }
-    // the editor goes; if you were in it (typing on while the save was out), focus goes to the words that say
-    // what happened, not to the page, and not to a choice: a key you were still typing can't pick an answer
-    const hadFocus = el.contains(document.activeElement);
-    if (ED.ed) { ED.ed.stop(); ED.ed = null; }
-    const host = fileBody();
-    if (FL.handle) { FL.handle.destroy(); FL.handle = null; FL.key = null; FL.pend = null; }
-    host.replaceChildren();
-    ED.conflict = { view: null, version: current.version, left: m.conflicts, text: m.text };
-    el.querySelector(".xd-bar")?.remove();
-    host.insertAdjacentHTML("beforebegin", `<p class="xd-bar" tabindex="-1"><b>The agent changed ${esc(V.file.name)} while you were editing.</b> Where you both changed the same lines, choose what to keep, then save.</p>`);
+
+  /** The documents changed (a save, a version, someone else's change): the head says so; a clash opens its chunks. */
+  function docChanged(d, what) {
+    // a tab's dot follows its document whether or not it's the one on show
+    if (!V.open) return;
+    if (what === "saved") { edits && edits.saved && edits.saved({ project: d.project, rel: d.rel }); flashSaved(d); }
+    if (d !== doc()) { if (what === "state" || what === "saved") paintHead(); return; }
+    if (what === "conflict" && TX.h) { TX.h.showMerge(); announce(`${V.file.name} changed while you were typing. Where you both changed the same lines, keep yours or take theirs.`); }
+    if (what === "applied" && d.state === "saved") announce(`${V.file.name} changed: the new version is in.`);
+    if (what === "state" && TX.h) TX.h.refresh();
+    if (what === "confirm" && d.confirm) { paintHead(); el.querySelector("[data-vw-confirm]")?.focus({ preventScroll: true }); return; }
+    // typing in a preview tab keeps it
+    if (what === "state" && d.state === "dirty") { const t = V.tabs.find((x) => x.doc === d); if (t && t.preview) t.preview = false; }
     paintHead();
-    if (hadFocus) el.querySelector(".xd-bar")?.focus({ preventScroll: true });
-    const my = edGen, mine3 = ED.conflict;
-    const view = await DV.conflict(host, m.text, {
-      path: V.file.name,
-      labels: { current: "Keep yours", incoming: "Take the agent's", both: "Keep both" },
-      onResolve: (text, left) => { if (!ED.conflict || ED.conflict !== mine3) return; ED.conflict.text = text; ED.conflict.left = left; paintHead(); },
-      // every place chosen: Save is next (S232)
-      onDone: () => { if (ED.conflict === mine3 && !mine3.left) el.querySelector("[data-vw-saveit]")?.focus({ preventScroll: true }); }, // (only with none left)
-    });
-    // the file was left while the merge view was drawing: it isn't this file's any more
-    if (my !== edGen || ED.conflict !== mine3) { view && view.destroy && view.destroy(); return; }
-    ED.conflict.view = view;
   }
-  /** "Saved · Undo · Tell the agent", at the foot of the file, for the last save. */
-  function toastPaint() {
-    let t = el.querySelector(":scope > .xd-toast");
-    if (!saved || !V.open) { if (t) t.remove(); return; }
-    if (!t) { t = document.createElement("div"); t.className = "xd-toast"; el.appendChild(t); }
-    const acts = `${saved.editId ? `<button type="button" class="t-undo" data-vw-undo${saved.created ? ` title="Take ${esc(saved.name)} away again"` : ""}>Undo</button>` : ""}${edits && edits.tell && !saved.unchanged && !saved.created ? `<button type="button" class="t-undo" data-vw-tell>Tell the agent</button>` : ""}`;
-    t.innerHTML = `<div class="toast" role="status"><span class="t-ic">${ICON.check}</span><span class="t-m"><b>${saved.created ? "Created" : saved.unchanged ? "Nothing to save" : "Saved"}</b> <span>${esc(saved.name)}${saved.unchanged ? " is as it was" : saved.merged ? ", with the agent's changes" : ""}</span></span>` +
-      `${acts ? `<span class="xd-tacts">${acts}</span>` : ""}<button type="button" class="xd-tx" data-vw-toastx aria-label="Close">${ICON.close}</button></div>`;
-  }
-  async function undoSave() {
-    const f = V.file, s = saved;
-    if (!s || !s.editId) return;
-    // Undo's button goes with its toast: focus waits on the viewer, then goes to the file's head
-    const back = focusHere();
-    saved = null; toastPaint();
-    if (back) el.focus({ preventScroll: true });
-    const settle = () => { if (back && V.file === f && V.open && (document.activeElement === el || document.activeElement === document.body)) headFocus(); };
-    if (s.created) { // the file goes: what you typed in it since goes with it
-      if (ED.on) { letDraftGo(); stopEdit(); }
-      try { await api.undoProjectEdit(f.project, s.editId); }
-      catch (err) { if (V.file === f) { V.saveError = err.status === 409 ? `${s.name} changed since it was made: it stays` : err.message || "Couldn't undo it."; render(); settle(); } return; }
-      announce(`${s.name} is gone.`);
-      if (V.file === f) close();
-      if (edits && edits.removed) edits.removed(f);
-      return;
-    }
-    try { await api.undoProjectEdit(f.project, s.editId); announce(`${s.name} is back as it was.`); }
-    catch (err) { V.saveError = err.status === 410 ? "That save can't be undone any more: the version before it is gone" : err.status === 404 ? "That save isn't in XO's log any more" : err.message || "Couldn't undo the save."; }
-    if (V.file !== f) return;
-    dropFile(); await load();
-    settle();
+  let flashT = 0;
+  /** "Saved", quietly, for a moment after each save of the file on show. */
+  function flashSaved(d) {
+    if (d !== doc()) return;
+    V.savedFlash = d; clearTimeout(flashT);
+    flashT = setTimeout(() => { if (V.savedFlash === d) { V.savedFlash = null; if (V.open) paintHead(); } }, 1600);
   }
 
   function body() {
@@ -536,17 +391,20 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (V.error) return `<div class="vw-empty"><p>${esc(V.error)}</p></div>`;
     const d = V.data;
     if (d.kind === "image") {
-      const actual = V.mode === "actual";
+      const actual = V.imgMode === "actual";
       return `<div class="vw-img${actual ? " is-actual" : ""}"><img src="${esc(d.url)}" alt="${esc(V.file.name || "Image")}" draggable="false" title="${actual ? "Fit to the panel" : "Show at actual size"}"></div>`;
     }
     if (d.kind === "pdf") return `<iframe class="vw-frame vw-pdf" src="${esc(d.url)}" title="${esc(V.file.name || "PDF")}" referrerpolicy="no-referrer"></iframe>`;
     const text = String(d.content ?? "");
-    const cut = d.truncated ? `<p class="vw-cut">${ICON.clock}<span>Showing the first ${esc(size(bytes(text)))} of ${esc(size(d.size_bytes))}. The rest isn't previewed.</span>${canSave() ? `<button type="button" class="vw-cut-dl" data-vw-download${V.busy ? ` aria-disabled="true"${V.busy.kind === "download" ? ' aria-busy="true"' : ""}` : ""}>Download the whole file</button>` : ""}</p>` : "";
-    let main;
-    if (d.kind === "markdown" && V.mode !== "source") main = `<article class="prose vw-md">${renderMarkdown(text)}</article>`;
-    else if (d.kind === "html" && V.mode === "preview") main = `<iframe class="vw-frame" sandbox="allow-scripts" referrerpolicy="no-referrer" title="${esc(V.file.name || "HTML preview")}" srcdoc="${esc(text)}"></iframe>`;
-    else main = ""; // text and code show through Pierre (render → showsFile)
-    return cut + main;
+    const cut = cutHtml();
+    if (d.kind === "html" && V.mode === "preview") return cut + `<iframe class="vw-frame" sandbox="allow-scripts" referrerpolicy="no-referrer" title="${esc(V.file.name || "HTML preview")}" srcdoc="${esc(d.doc ? docs.textOf(d.doc) : text)}"></iframe>`;
+    return cut; // text shows in the editor (render → showsText)
+  }
+  /** A file over 1 MB reads only its first part: said so, with the whole file a download away. */
+  function cutHtml() {
+    const d = V.data;
+    if (!d || !d.truncated) return "";
+    return `<p class="vw-cut">${ICON.clock}<span>Showing the first ${esc(size(bytes(d.content)))} of ${esc(size(d.size_bytes))}. The rest isn't shown.</span>${canSave() ? `<button type="button" class="vw-cut-dl" data-vw-download${V.busy ? ` aria-disabled="true"${V.busy.kind === "download" ? ' aria-busy="true"' : ""}` : ""}>Download the whole file</button>` : ""}</p>`;
   }
 
   /** The diff body: one element, kept (with Pierre's drawing in it) while the head around it redraws. */
@@ -659,178 +517,188 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     (same && same.getClientRects().length && !same.matches('[aria-busy="true"]') ? same : host).focus({ preventScroll: true });
   }
 
-  // ── the whole file, through Pierre ──────────────────────────────────────────────────────────────
-  function fileBody() {
-    if (!FL.el) { FL.el = document.createElement("div"); FL.el.className = "vw-body vw-file"; FL.el.tabIndex = 0; }
-    return FL.el;
+  // ── the text: one editor (js/doceditor.js) on the document (js/docs.js) ─────────────────────────────────────────
+  function textBody() {
+    // the editor's own text takes the keys (a tab stop of its own); the body holds focus only when what was in it goes
+    // (a notice drawn over, a Try again pressed), so focus never falls to the page
+    if (!TX.el) { TX.el = document.createElement("div"); TX.el.className = "vw-body vw-file vw-doc"; TX.el.tabIndex = -1; }
+    return TX.el;
   }
-  function dropFile() { FL.gen++; if (FL.handle) { FL.handle.destroy(); FL.handle = null; } FL.key = null; FL.pend = null; FL.sel = null; FL.asking = false; askCapsule(); }
-  async function drawFile() {
-    const d = V.data, f = V.file;
-    // the drawing's key, also the renderer's cache key: with the file's version (its content hash), so a saved text
-    // never draws as the old one. A save xo-space couldn't log answers no saved_at (modified_at stays), and a
-    // same-length edit kept path, size and time (controls grader's lead on 4f5315a, C095)
-    const key = `${f.project || ""}|${f.rel || f.path || f.name}|${d.version || ""}|${d.size_bytes ?? d.content.length}|${d.modified_at || ""}`;
-    if ((FL.key === key && FL.handle) || FL.pend === key) return;
-    if (FL.handle) dropFile();
-    FL.pend = key;
-    const my = ++FL.gen, host = fileBody();
-    // drawing again after a failure says so while it's out: the failure's words become what's happening and its Try
-    // again shows it's busy, in place (a second press does nothing more). They stood as they were while the renderer
-    // loaded (the controls grader on 9d1f71b, S139: "Couldn't show this file" at 150 and 800 ms, Try again looking
-    // ready). Drawn, the notice goes; failed again, it says so again.
-    const again = host.querySelector(":scope > .vw-empty [data-vw-retry]");
+  /** Let the editor go (its state stays with its document, for when the file is back). */
+  function dropText() {
+    TX.gen++;
+    if (TX.h) { TX.h.destroy(); TX.h = null; }
+    TX.key = null; TX.sel = null; closeAsk(true);
+    if (TX.el) TX.el.replaceChildren();
+  }
+  /** The editor for the document on show: made once per document, kept while the head redraws. */
+  async function drawText() {
+    const D = doc();
+    if (!D) return;
+    const page = isMd() && V.textMode !== "source";
+    const key = `${D.key}|${page ? "page" : "src"}`;
+    if (TX.key === key && TX.h) return;
+    if (TX.h && TX.key && TX.key.split("|").slice(0, -1).join("|") === D.key) { TX.h.setPage(page); TX.key = key; return; }
+    // drawing again after a failure says so while it's out, in place: the failure's words become what's happening and
+    // its Try again shows it's busy (a second press does nothing more); drawn, the notice goes; failed, it says so again
+    const again = TX.el && TX.el.querySelector(":scope > .vw-empty [data-vw-retry]");
+    if (!again) dropText();
+    else { TX.gen++; if (TX.h) { TX.h.destroy(); TX.h = null; } }
+    TX.key = key;
+    const my = TX.gen, host = textBody(), f = V.file;
     if (again) {
       const box = again.closest(".vw-empty"), words = box.querySelector("p");
       box.setAttribute("role", "status");
       if (words) words.textContent = "Drawing this file…";
       again.setAttribute("aria-busy", "true"); again.setAttribute("aria-disabled", "true"); again.textContent = "Trying again…";
     }
+    host.classList.toggle("is-page", page);
+    const askable = !!(ask && f.project && f.rel && ask.target(f));
     try {
-      const h = await DV.file(host, d.content, {
-        path: f.name || f.path, wrap: true, key,
-        onSelect: ask && f.project && f.rel ? (r) => select(r) : undefined,
-        note: ask && f.project && f.rel ? () => composer() : undefined,
+      const h = await mountEditor(host, {
+        docs, doc: D, name: f.name || f.path || "", page,
+        onLines: askable ? (l) => { TX.sel = l; } : null,
+        onAsk: askable ? (l) => openAsk(l) : null,
+        onSave: () => { docs.flush(D); },
       });
-      if (my !== FL.gen) { h.destroy(); return; }
-      FL.handle = h; FL.key = key;
-      // the renderer that failed said so in this same body; drawn now, that notice and its Try again go (they
-      // stayed beside the file: Files/Map grader on S139)
+      if (my !== TX.gen) { h.destroy(); return; }
+      TX.h = h;
+      // the renderer that failed said so in this same body; drawn now, that notice and its Try again go
       inRegion(host, () => { for (const x of host.querySelectorAll(":scope > .vw-empty")) x.remove(); });
-      if (f.lines) { const [a, b] = f.lines; h.select({ start: a, end: b }); requestAnimationFrame(() => { h.reveal(a); select({ start: a, end: b }); }); }
-    } catch {
-      if (my !== FL.gen) return;
-      FL.pend = null;
+      if (D.state === "conflict") h.showMerge();
+      if (D.viewing) h.showVersion(D.viewing.text);
+      else if (V.showChanges) showChangesNow();
+      // a link to lines (path:a-b) selects them; a file just made puts the caret in it
+      if (f.lines) { const [a, b] = f.lines; h.select(a, b); }
+      if (el.contains(document.activeElement) || document.activeElement === document.body || V.focusText) { V.focusText = false; h.focus(); }
+    } catch (err) {
+      if (my !== TX.gen) return;
+      TX.key = null;
+      console.error(err);
       inRegion(host, () => { host.innerHTML = `<div class="vw-empty"><p>Couldn't show this file.</p><p><button type="button" class="vw-cut-dl" data-vw-retry>Try again</button></p></div>`; });
     }
   }
-  /** A selection ended (or cleared): "Ask about lines a–b" under its last line. */
-  function select(r) {
-    if (!r && FL.pressing) return; // a press on the capsule itself isn't "clicked elsewhere"
-    FL.sel = r ? { a: Math.min(r.start, r.end), b: Math.max(r.start, r.end) } : null;
-    if (!FL.sel && FL.asking) return; // the composer stays until you send or close it
-    askCapsule();
+  /** Show changes: what the version on show changed from the one before it, marked in the text. */
+  function showChangesNow() {
+    const D = doc();
+    if (!TX.h || !D) return;
+    const n = D.versions.length, prev = n > 1 ? D.versions[n - 2] : null;
+    TX.h.showChanges(V.showChanges && prev && prev.text != null ? prev.text : null);
   }
-  const MOD = /Mac|iPhone|iPad/.test(navigator.platform || "") ? "⌘" : "Ctrl ";
-  function askCapsule() {
-    const host = FL.el;
-    if (!host) return;
-    let b = host.querySelector(":scope > .xd-ask");
-    const s = FL.sel, at = s && !FL.asking && FL.handle && ask && ask.target(V.file) ? FL.handle.place(s.b) : null;
-    if (!at) { if (b) b.remove(); return; }
-    if (!b) {
-      b = document.createElement("button"); b.type = "button"; b.className = "xd-ask"; b.dataset.vwAsk = "";
-      b.addEventListener("pointerdown", () => { FL.pressing = true; addEventListener("pointerup", () => setTimeout(() => { FL.pressing = false; }), { once: true }); });
-      host.appendChild(b);
+  /** Step to an older or newer version (read only), or back to the latest. */
+  async function stepVersion(dir) {
+    const D = doc();
+    if (!D || !TX.h) return;
+    const n = D.versions.length, at = D.viewing ? D.versions.indexOf(D.viewing) : n - 1;
+    let to = Math.min(n - 1, Math.max(0, at + dir));
+    if (to === at || to < 0 || to > n - 1) return;
+    // an older version whose text isn't held here is read from Space's version store (§4.2); one it no longer keeps
+    // (pruned, a secret's) is stepped over
+    for (; to > 0 && to < n - 1 && D.versions[to].text == null; to += dir) {
+      const v = D.versions[to];
+      if (!v.version || v.gone) continue;
+      try {
+        const r = await api.projectFile(D.project, D.rel, null, { version: v.version });
+        if (typeof r.content === "string") { v.text = r.content; break; }
+      } catch { v.gone = true; }
+      if (doc() !== D) return;
     }
-    b.innerHTML = `${ASK_IC}<span>Ask about ${s.a === s.b ? `line ${s.a}` : `lines ${s.a}–${s.b}`}</span><kbd>${MOD}L</kbd>`;
-    b.style.top = `${Math.round(at.bottom + 6)}px`;
+    if (to === at || to < 0 || to > n - 1 || doc() !== D) return;
+    if (to === n - 1) { docs.view(D, null); TX.h.showVersion(null); announce("The latest version."); }
+    else {
+      if (V.showChanges) { V.showChanges = false; TX.h.showChanges(null); }
+      const v = docs.view(D, to);
+      if (!v || v.text == null) { docs.view(D, null); return; }
+      TX.h.showVersion(v.text);
+      announce(`Version ${to + 1} of ${n}${byWords(v.by, threadTitle) ? `, by ${byWords(v.by, threadTitle)}` : ""}. Read only.`);
+    }
+    paintHead();
   }
-  /** The small composer, as a row under the selected lines (Pierre makes room for it: nothing is covered). */
-  function composer() {
-    if (FL.q) return FL.q;
-    const q = document.createElement("form");
-    q.className = "xd-q";
-    q.innerHTML = `<p class="xd-ref"></p><textarea class="xd-in" rows="2" aria-label="Your question about these lines" placeholder="Ask about these lines"></textarea>` +
-      `<div class="xd-row"><span class="xd-to"></span><span class="xd-sp"></span><span class="xd-hint">Esc to close</span><button type="submit" class="xd-send" aria-label="Send">${ICON.send}</button></div>`;
-    q.addEventListener("submit", (e) => { e.preventDefault(); sendAsk(); });
-    q.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); sendAsk(); }
-      if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeAsk(); }
-    });
-    return (FL.q = q);
-  }
-  function openAsk() {
-    const s = FL.sel, f = V.file;
-    if (!s || !FL.handle || !ask) return;
+
+  // ── asking about lines: "Ask about lines a–b ⌘L" under a selection (the editor draws it); beside the chat the lines
+  // go into the chat's own composer (the owner's D4); elsewhere a small composer opens under the head ──
+  function openAsk(l) {
+    const f = V.file;
+    if (!l || !ask) return;
     const to = ask.target(f);
     if (!to) return;
-    // beside the chat, the lines go into the chat's own composer (the owner's D4); this composer is the
-    // fallback where there's no chat beside the file, or it's another place's
-    if (ask.compose && ask.compose(f, s.a, s.b)) return;
-    const q = composer();
-    q.querySelector(".xd-ref").innerHTML = `${fileIcon(f.name || f.path)}<span>${esc(f.name || f.path)} · ${s.a === s.b ? `line ${s.a}` : `lines ${s.a}–${s.b}`}</span>`;
+    if (ask.compose && ask.compose(f, l.a, l.b)) return;
+    TX.asking = { a: l.a, b: l.b };
+    let q = el.querySelector(":scope > .xd-q");
+    if (!q) {
+      q = document.createElement("form");
+      q.className = "xd-q";
+      q.innerHTML = `<p class="xd-ref"></p><textarea class="xd-in" rows="2" aria-label="Your question about these lines" placeholder="Ask about these lines"></textarea>` +
+        `<div class="xd-row"><span class="xd-to"></span><span class="xd-sp"></span><span class="xd-hint">Esc to close</span><button type="submit" class="xd-send" aria-label="Send">${ICON.send}</button></div>`;
+      q.addEventListener("submit", (e) => { e.preventDefault(); sendAsk(); });
+      q.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); sendAsk(); }
+        if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeAsk(); }
+      });
+      (el.querySelector(":scope > .vw-verbar") || el.querySelector(":scope > .vw-top")).after(q);
+    }
+    q.querySelector(".xd-ref").innerHTML = `${fileIcon(f.name || f.path)}<span>${esc(f.name || f.path)} · ${l.a === l.b ? `line ${l.a}` : `lines ${l.a}–${l.b}`}</span>`;
     q.querySelector(".xd-to").innerHTML = `To <b>${esc(to)}</b>`;
-    FL.asking = { a: s.a, b: s.b };
-    askCapsule();
-    FL.handle.select({ start: s.a, end: s.b }); // the lines stay marked while you write
-    FL.handle.note(s.b);
-    // Pierre places the row on its next frame or two: focus lands once it's there
-    const ta = q.querySelector(".xd-in");
-    let n = 0;
-    const focus = () => { if (!FL.asking) return; if (ta.isConnected) ta.focus({ preventScroll: true }); if (document.activeElement !== ta && ++n < 20) requestAnimationFrame(focus); };
-    requestAnimationFrame(focus);
+    q.querySelector(".xd-in").focus({ preventScroll: true });
   }
-  function closeAsk() {
-    if (!FL.asking) return;
-    FL.asking = false;
-    if (FL.handle) FL.handle.note(null);
-    if (FL.q) FL.q.querySelector(".xd-in").value = "";
-    askCapsule();
-    FL.el?.focus({ preventScroll: true });
+  function closeAsk(quiet = false) {
+    const q = el.querySelector(":scope > .xd-q");
+    const had = !!TX.asking;
+    TX.asking = false;
+    if (q) q.remove();
+    if (had && !quiet && TX.h) TX.h.focus();
   }
   function sendAsk() {
-    const q = FL.q, t = q && q.querySelector(".xd-in").value.trim();
-    if (!t || !FL.asking) return;
-    if (ask.send(V.file, FL.asking.a, FL.asking.b, t)) { closeAsk(); FL.sel = null; FL.handle?.select(null); askCapsule(); }
+    const q = el.querySelector(":scope > .xd-q"), t = q && q.querySelector(".xd-in").value.trim();
+    if (!t || !TX.asking) return;
+    if (ask.send(V.file, TX.asking.a, TX.asking.b, t)) { closeAsk(); if (TX.h) TX.h.clearSelection(); }
   }
+
 
   /**
    * Redraw. A control of the viewer's that had focus keeps it (the same control drawn again: Changes after
-   * pressing Changes), else the file's Edit, else the viewer itself: a redraw never drops focus to the page
-   * (Astra S127). Focus inside the file's own body is left alone (that body isn't redrawn).
+   * pressing Changes), else the text, else the head's first control: a redraw never drops focus to the page
+   * (Astra S127). Focus inside the text is left alone (the editor isn't redrawn).
    */
   function render() {
-    el.classList.toggle("is-editing", !!ED.on);
     const ae = document.activeElement;
     let was = null;
     const fromMenu = !!(ae && ae.closest && ae.closest(".vw-menu"));
-    // a control that shows a view (Your draft: File) and isn't drawn in it: focus goes to that view's segment
+    // a control that shows a view and isn't drawn in it: focus goes to that view's segment
     const chose = ae && ae.dataset && ae.dataset.vwShow;
-    if (ae && ae !== el && el.contains(ae)) {
-      was = hookOf(ae);
-    }
+    if (ae && ae !== el && el.contains(ae) && !(TX.el && TX.el.contains(ae))) was = hookOf(ae);
     renderNow();
     if (was == null || !V.open) return;
     const now = document.activeElement;
     if (now && now !== document.body && now.isConnected && now.getClientRects().length) return;
-    // the same control where it shows (never its hidden twin in a narrow head); one from ⋯'s menu, the ⋯; one that
-    // showed a view it isn't drawn in (Your draft: File), that view's segment (the controls grader's
-    // viewer-your-draft-shortcut on 63b22ad: Continue took focus, not File); the offered path's field gone with its refusal, where Copy path is again; else headFocus's: Edit, else the head's first
-    // control that shows. Never the viewer's own section, which draws no ring (the controls grader on 1ed50f6, S125)
     const to = (was && shown(el, was)) || (fromMenu && shown(el, "[data-vw-more]"))
       || (chose && chose === V.show && shown(el, `.vw-seg [data-vw-show="${chose}"]`))
       || (was === "[data-vw-cut-sel]" && (shown(el, "[data-vw-copy-path]") || shown(el, "[data-vw-more]"))) || headFocus(false);
     to.focus({ preventScroll: true });
   }
-  /** What every view of the viewer draws above its body, the same way in each: its tabs, its head, and a save,
-   *  download, copy or undo that failed (V.saveError), said under the head. One place for every branch, so none can
-   *  leave it out (the controls grader on e55c2d8, S126: the diff's branch did, and a refused Download in Changes went
-   *  back to "Binary file · Download" saying nothing) */
+  /** What every view of the viewer draws above its body, the same way in each: the stage's tabs, the open files' tabs,
+   *  the head, and a download, copy or undo that failed (V.saveError), said under the head. */
   const above = () => {
-    // a refusal that hands you what it couldn't give (a path that didn't copy: the path itself, in a read-only field
-    // that selects all of it, the controls grader on 4d33649, S125 / V49) carries it as select
     const cut = V.saveError && (typeof V.saveError === "string" ? { text: V.saveError } : V.saveError);
-    return (tabs ? tabs() : "") + head() + (V.saveError ? `<p class="vw-cut" role="alert">${ICON.warn}<span>${esc(cut.text)}</span>${cut.select ? `<input class="vw-cut-sel" data-vw-cut-sel readonly value="${esc(cut.select)}" aria-label="The path, to copy" spellcheck="false">` : ""}</p>` : "");
+    const D = doc(), err = D && (D.state === "error" || D.state === "deleted") && D.err ? D.err : null;
+    return (tabs ? tabs() : "") + tabsHtml() + head() + verBar() +
+      (V.saveError ? `<p class="vw-cut" role="alert">${ICON.warn}<span>${esc(cut.text)}</span>${cut.select ? `<input class="vw-cut-sel" data-vw-cut-sel readonly value="${esc(cut.select)}" aria-label="The path, to copy" spellcheck="false">` : ""}</p>` : "") +
+      (err && !showsDiff() ? `<p class="vw-cut xd-errline" role="alert">${ICON.warn}<span>${esc(err)}</span>${D.state === "deleted" ? `<button type="button" class="vw-cut-dl" data-vw-saveagain>Save it again</button>` : `<button type="button" class="vw-cut-dl" data-vw-saveagain>Try again</button>`}</p>` : "");
   };
   function renderNow() {
     if (!V.open) return;
-    if (showsFile()) {
-      // the head redraws; the file's body (Pierre's drawing, where you are, a question you're writing) stays
-      const host = fileBody(), top = host.scrollTop, d = V.data;
+    const asking = el.querySelector(":scope > .xd-q");
+    if (showsText()) {
+      // the head redraws; the text's body (the editor, where you are) stays
+      const host = textBody();
       if (DF.handle || DF.key) dropDiff();
-      const cut = d.truncated ? `<p class="vw-cut">${ICON.clock}<span>Showing the first ${esc(size(bytes(d.content)))} of ${esc(size(d.size_bytes))}. The rest isn't previewed.</span>${canSave() ? `<button type="button" class="vw-cut-dl" data-vw-download${V.busy ? ` aria-disabled="true"${V.busy.kind === "download" ? ' aria-busy="true"' : ""}` : ""}>Download the whole file</button>` : ""}</p>` : "";
-      const bar = el.querySelector(":scope > .xd-bar");
-      el.innerHTML = above() + cut + `<i data-vw-file hidden></i>`;
+      el.innerHTML = above() + cutHtml() + `<i data-vw-file hidden></i>`;
       el.querySelector("[data-vw-file]").replaceWith(host);
-      if (bar && ED.conflict) host.before(bar);
-      host.scrollTop = top;
-      errPaint();
-      toastPaint();
-      if (!ED.conflict) drawFile();
+      if (asking) (el.querySelector(":scope > .vw-verbar") || el.querySelector(":scope > .vw-top")).after(asking);
+      drawText();
       return;
     }
-    if (FL.handle || FL.key) dropFile();
+    if (TX.h || TX.key) dropText();
     if (showsDiff()) {
       // the head redraws; the diff's body (and where you are in it) stays
       const host = diffBody(), top = host.scrollTop;
@@ -858,8 +726,18 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     return { kind: textKind, content: await attachmentText(f.att.chat, f.att.id), name, size_bytes: f.bytes };
   }
 
+  /** Read a project text file whole for its document (up to 1 MB, editable); a bigger one reads its first part only. */
+  async function readText(f) {
+    try { return await api.projectFile(f.project, f.rel, null, { purpose: "edit" }); }
+    catch (err) {
+      if (err.status !== 413) throw err;
+      const d = await api.projectFile(f.project, f.rel);
+      return { ...d, editable: false, not_editable_reason: "too_large" };
+    }
+  }
+
   async function load() {
-    const my = ++V.gen;
+    const my = ++V.gen, tab = V.tab;
     dropImage();
     V.loading = true; V.error = null; V.data = null; V.dims = null;
     render();
@@ -867,89 +745,154 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       if (V.file.att || V.file.local != null) {
         const d = await readAttachment(V.file);
         if (my !== V.gen) return;
+        if (typeof d.content === "string") d.doc = docs.open(`att:${V.file.att ? V.file.att.chat : "paste"}`, V.file.att ? V.file.att.id : V.file.name || "paste", { ...d, version: null, editable: false, not_editable_reason: "attachment" });
         V.data = d;
       } else if (V.file.image) {
         const blob = await api.projectImage(V.file.project, V.file.rel);
         if (my !== V.gen) return;
         V.data = { kind: "image", size_bytes: blob.size, url: URL.createObjectURL(blob) };
       } else {
-        const d = await api.projectFile(V.file.project, V.file.rel);
+        const d = await readText(V.file);
         if (my !== V.gen) return;
-        V.data = d;
         if (typeof d.content !== "string") V.error = "XO sent this file without its text.";
+        else d.doc = docs.open(V.file.project, V.file.rel, d);
+        V.data = d;
+        if (d.doc) loadVersions(d.doc);
       }
+      if (tab) { tab.data = V.data; tab.doc = V.data && V.data.doc || null; }
     } catch (err) {
       if (my !== V.gen) return;
       V.error = err.status === 404 ? "This file isn't there any more." : err.status === 403 && err.code === "outside_project" ? "This file is outside the project: a link leads out of it." : err.message || "Couldn't read this file.";
     }
     V.loading = false;
-    // the version that came with what was loaded (a content hash), never one read afterwards
-    V.seenSig = V.data && typeof V.data.version === "string" ? V.data.version : null; V.updated = false; V.checkedSig = null;
     render();
-    if (V.fresh) { V.fresh = false; if (canEdit()) startEdit(); }
   }
-  // Stable inspection (Astra I6): what you're reading never changes under you. When an agent changes the file after
-  // it was read, the head says "Updated" and you take the new version when you choose (Show), not mid-sentence.
-  // the project's changes carry each changed file's content hash (version, the same as /file's): a different hash is
-  // a newer version; a file the changes don't list, or list without a hash, is never claimed to have moved
-  const sigNow = () => { const c = V.file && V.file.project && V.file.rel && changes ? changes.at(V.file.project, V.file.rel) : null; return c && typeof c.file.version === "string" ? c.file.version : null; };
-  /** Called on every app render: a newer version since this one was read lights "Updated". */
+  /** Who made each version and when, from Space (GET /versions, SPACE-CONTRACT.md §4.1), where it has them. */
+  let versionsRoute = true;
+  async function loadVersions(D) {
+    if (!versionsRoute || !api.projectVersions) return;
+    try {
+      const r = await api.projectVersions(D.project, D.rel);
+      docs.knownVersions(D, r.versions || []);
+    } catch (err) { if (missingRoute(err)) versionsRoute = false; } // a bare 404: no route yet
+  }
+
+  // Someone else changed a file that's open. Space says so itself (its file.version event: app.js → fileChanged);
+  // until it does, the project's changes are the signal: a changed file's hash in /changes (read after each edit an
+  // agent finishes) that isn't the open document's version means a newer one. Either way the document takes it in
+  // (js/docs.js changed): in place when you have nothing unsaved, merged when you do.
+  const sigNow = (D) => { const c = changes ? changes.at(D.project, D.rel) : null; return c && typeof c.file.version === "string" ? c.file.version : null; };
+  let pushed = false; // Space sends file.version: the /changes signal isn't needed
+  /** Called on every app render (the /changes signal, on today's Space). */
   function notice() {
-    if (!V.open || V.parked || V.loading || !V.data || V.seenSig == null || ED.on || V.updated) return;
-    const now = sigNow();
-    // a different hash in the changes isn't proof of a newer file (the changes can be older than what was loaded):
-    // it's confirmed against the file's own version, read once per hash, and only a different one says Updated
-    if (!now || now === V.seenSig || now === V.checkedSig || !V.file.project || !V.file.rel || V.file.image) return;
-    V.checkedSig = now;
-    const my = V.gen, seen = V.seenSig;
-    api.projectFile(V.file.project, V.file.rel).then((d) => {
-      if (my !== V.gen || !V.open || ED.on || V.seenSig !== seen) return;
-      if (d && typeof d.version === "string" && d.version !== seen) { V.updated = true; paintHead(); }
-    }, () => { /* unreadable now: nothing is claimed */ });
+    if (pushed || !V.open) return;
+    for (const t of V.tabs) {
+      const D = t.doc;
+      if (!D || D.state === "readonly" || D.state === "conflict" || !D.project || D.project.startsWith("att:")) continue;
+      const now = sigNow(D);
+      if (!now || now === D.version || now === D.checkedSig) continue;
+      D.checkedSig = now;
+      docs.changed(D.project, D.rel, { version: now, by: { kind: "agent" } });
+    }
+  }
+  /** Space's file.version (and .attributed, file.rescan): what changed, who made it. */
+  function fileChanged(ev) {
+    pushed = true;
+    if (!ev || !ev.project_id) return;
+    if (ev.type === "file.rescan") { // the watcher lost track: every open document checks its file again
+      for (const D of docs.all()) if (D.project === ev.project_id) docs.changed(D.project, D.rel, {});
+      return;
+    }
+    const D = docs.get(ev.project_id, ev.path) || (ev.old_path ? docs.get(ev.project_id, ev.old_path) : null);
+    if (!D) return;
+    // renamed or moved: the document, and its tab, follow the file to its new path
+    if (ev.kind === "rename" && ev.old_path && ev.path && D.rel === ev.old_path) {
+      docs.renamed(D.project, ev.old_path, ev.path);
+      const name = ev.path.split("/").pop();
+      for (const t of V.tabs) if (t.doc === D) { t.file = { ...t.file, rel: ev.path, path: ev.path, name, where: ev.path }; if (t === V.tab) V.file = t.file; }
+      if (D === doc()) { announce(`${name}: the file moved to ${ev.path}.`); render(); } else paintHead();
+      if (ev.version && ev.version === D.version) return;
+    }
+    if (ev.type === "file.version.attributed") { // who made a version already in
+      const v = D.versions.find((x) => x.id === ev.id);
+      if (v) { v.by = ev.by; if (D === doc()) paintHead(); }
+      return;
+    }
+    docs.changed(D.project, D.rel, { version: ev.version, by: ev.by, at: ev.at, id: ev.id, kind: ev.kind });
+  }
+
+  // ── tabs: several files open at once ──────────────────────────────────────────────────────────────────────────
+  const sameFile = (a, b) => !!a && !!b && (a.project && a.rel ? a.project === b.project && a.rel === b.rel : a.att && b.att ? a.att.chat === b.att.chat && a.att.id === b.att.id : a === b);
+  function releaseTab(t) {
+    if (t.doc) { docs.release(t.doc); t.doc = null; }
+    if (t.data && t.data.url && !t.data.remote) URL.revokeObjectURL(t.data.url);
+  }
+  /** Show a tab: its document is already open (instant), or the file is read. */
+  function showTab(t) {
+    dropText();
+    V.gen++;
+    V.tab = t; V.file = t.file;
+    Object.assign(V, { data: t.data || null, dims: null, error: null, why: t.file.why || null, imgMode: "preview", copied: false, busy: null, saveError: null, menu: false, showChanges: false });
+    V.show = t.file.show === "changes" ? "changes" : "file";
+    dropDiff(); if (DF.el) DF.el.scrollTop = 0;
+    if (V.why) render(); else if (showsDiff()) { V.loading = false; render(); } else if (t.data) { V.loading = false; render(); } else load();
   }
 
   /**
-   * f: {name, path, type, bytes, project?, rel?, why?} for a shared file, {name, type, bytes, att:
-   * {chat, id}} for an attachment, {name, bytes, local: text} for a paste; from: where focus returns.
+   * f: {name, path, type, bytes, project?, rel?, why?, lines?: [a, b], show?: "changes", pin?} for a shared file,
+   * {name, type, bytes, att: {chat, id}} for an attachment, {name, bytes, local: text} for a paste; from: where
+   * focus returns. A file already open comes forward; another takes the preview tab's place (or a new tab).
    */
   function open(f, from) {
     const was = V.open;
-    edGen++; V.gen++; ED.opening = false; // what was on its way for the last file is the last file's
-
-    // the file you were editing, before this one takes its place: your edits wait as its draft
-    if (ED.on && ED.dirty) keepDraft();
-    if (ED.on) { if (ED.ed) ED.ed.stop(); if (ED.conflict && ED.conflict.view) ED.conflict.view.destroy(); ED.on = false; ED.conflict = null; ED.real = null; ED.moved = false; }
-    dropImage();
     if (V.parked) { V.parked = false; el.hidden = false; }
-    Object.assign(V, { open: true, file: { ...f, where: f.rel || f.path || "", image: f.att ? kindOf(f.type || "") === "image" : f.local == null && isImagePath(f.rel || f.path || f.name) }, data: null, dims: null, error: null, why: f.why || null, mode: V.textMode || "preview", copied: false, busy: null, saveError: null, menu: false, returnTo: from || (was ? V.returnTo : document.activeElement) });
-    if (V.file.image) V.mode = "preview";
-    V.draft = getDraft(store, dkey()); // your unsaved edits in this file from before, if any
-    // a changed file asked for as a change (the panel's Open in Files, the tree's Changed section) opens on
-    // its diff; any other way in, whole. The diff is drawn from the patch and needs no read of the file.
-    // a file just made: "Created · Undo" until the next save, and the editor opens on it once it's read
-    saved = f.created ? { path: localPath(), name: f.name, editId: typeof f.created === "string" ? f.created : null, created: true } : null;
-    V.fresh = !!f.created;
-    ED.confirmed = false; // a file that runs code asks again once you've left it
-    dropDiff(); dropFile(); if (DF.el) DF.el.scrollTop = 0; if (FL.el) FL.el.scrollTop = 0;
-    V.show = f.show === "changes" ? "changes" : "file";
+    const file = { ...f, where: f.rel || f.path || "", image: f.att ? kindOf(f.type || "") === "image" : f.local == null && isImagePath(f.rel || f.path || f.name) };
+    // leaving the file on show: what's pending in it saves now
+    let t = V.tabs.find((x) => sameFile(x.file, file));
+    if (t) { t.file = { ...t.file, ...file }; }
+    else {
+      const prev = V.tabs.findIndex((x) => x.preview && !(x.doc && (x.doc.state === "dirty" || x.doc.state === "saving" || x.doc.state === "conflict")));
+      t = { file, data: null, doc: null, preview: !f.pin && !f.created };
+      if (prev >= 0) { releaseTab(V.tabs[prev]); V.tabs.splice(prev, 1, t); } else V.tabs.push(t);
+    }
+    if (!was) V.returnTo = from || document.activeElement;
+    else if (from) V.returnTo = from;
+    V.open = true;
     el.hidden = false;
     document.body.classList.add("viewer-open");
     if (!was) { el.classList.remove("is-in"); void el.offsetWidth; el.classList.add("is-in"); }
-    if (V.why) render(); else if (showsDiff()) { V.loading = false; render(); } else load();
-    el.focus({ preventScroll: true });
+    V.focusText = !!f.created;
+    prefetchEditor();
+    showTab(t);
+    if (!(f.created || f.lines)) el.focus({ preventScroll: true });
     announce(`${f.name || f.path} is open beside the conversation. Esc closes it.`);
     onChange && onChange();
   }
+  /** Close one tab; the last one closes the viewer. */
+  function closeTab(i) {
+    const t = V.tabs[i];
+    if (!t) return;
+    if (V.tabs.length === 1) { close(); return; }
+    if (t.doc && !V.asking) { askUnsaved([t.doc], () => closeTab(V.tabs.indexOf(t))); if (V.asking) return; }
+    const on = t === V.tab;
+    releaseTab(t);
+    V.tabs.splice(i, 1);
+    if (on) { const next = V.tabs[Math.min(i, V.tabs.length - 1)]; V.focusText = true; showTab(next); } else paintHead();
+    onChange && onChange();
+  }
 
-  function close({ restore = true } = {}) {
+  function close({ restore = true, ask = false } = {}) {
     if (!V.open) return;
-    V.open = false; V.parked = false; V.gen++; edGen++;
+    // closed by you (× or Esc) with unsaved changes: asked first (Save, Don't save, Cancel), as VS Code does. Closed by
+    // the app (another place): unsaved text waits as a draft in this browser, unsaved, for when the file opens again
+    if (ask) { const ds = V.tabs.map((t) => t.doc).filter(Boolean); askUnsaved(ds, () => close({ restore })); if (V.asking) return; }
+    for (const D of docs.unsaved()) docs.keepDraft(D);
+    V.open = false; V.parked = false; V.gen++;
     const a = document.activeElement, lost = !a || a === document.body || el.contains(a); // focus goes with the viewer
-    if (ED.on && ED.dirty) keepDraft(); // closed while editing: your edits wait as its draft
-    if (ED.on) { if (ED.ed) ED.ed.stop(); if (ED.conflict && ED.conflict.view) ED.conflict.view.destroy(); ED.on = false; ED.conflict = null; ED.real = null; ED.moved = false; }
-    V.draft = null;
-    saved = null; el.querySelector(":scope > .xd-toast")?.remove();
-    dropImage(); V.data = null; dropDiff(); dropFile();
+    dropText(); dropDiff();
+    // their documents go (anything unsaved was saved or let go in the question above)
+    for (const t of V.tabs) releaseTab(t);
+    V.tabs = []; V.tab = null; V.data = null;
     el.hidden = true; el.innerHTML = "";
     document.body.classList.remove("viewer-open");
     const back = V.returnTo;
@@ -1014,7 +957,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   }
 
   // a choice from ⋯'s menu: it acts, then the menu goes and focus is on something that shows: where the action put
-  // it, else the same control where it shows, else the ⋯ (S130 on d79d37e: Updated · Show from More left BODY)
+  // it, else the same control where it shows, else the ⋯
   el.addEventListener("click", (e) => {
     const fromMenu = V.menu && !!e.target.closest(".vw-menu") && !e.target.closest(".vw-menu a");
     act(e);
@@ -1022,6 +965,11 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (el.querySelector(".vw-menu") && !V.menu) paintHead(); // nothing redrew the head: the menu goes now
     const a = document.activeElement;
     if (!a || a === document.body || (el.contains(a) && !a.getClientRects().length)) (shown(el, "[data-vw-more]") || headFocus(false)).focus({ preventScroll: true });
+  });
+  el.addEventListener("dblclick", (e) => {
+    // a double click on a preview tab keeps it
+    const tb = e.target.closest("[data-vw-tab]");
+    if (tb) { const t = V.tabs[+tb.dataset.vwTab]; if (t && t.preview) { t.preview = false; paintHead(); } }
   });
   function act(e) {
     if (e.target.closest("[data-vw-more]")) {
@@ -1035,55 +983,53 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     // a menu item: the menu closes, then it acts (a link is left to the browser, so its close waits a turn)
     if (V.menu && e.target.closest(".vw-menu a")) { setTimeout(() => menuOff(true)); return; }
     if (V.menu && e.target.closest(".vw-menu")) V.menu = false;
-    if (e.target.closest("[data-vw-close]")) { close(); return; }
+    const tx = e.target.closest("[data-vw-tabx]");
+    if (tx) { closeTab(+tx.dataset.vwTabx); return; }
+    const tb = e.target.closest("[data-vw-tab]");
+    if (tb) { const t = V.tabs[+tb.dataset.vwTab]; if (t && t !== V.tab) { V.focusText = true; showTab(t); onChange && onChange(); } return; }
+    const un = e.target.closest("[data-vw-unsaved]");
+    if (un) { answerUnsaved(un.dataset.vwUnsaved); return; }
+    if (e.target.closest("[data-vw-close]")) { close({ ask: true }); return; }
     if (e.target.closest('[data-vw-diff-redraw][aria-busy="true"]')) return;
     const sh = e.target.closest("[data-vw-show]");
     if (sh) { V.show = sh.dataset.vwShow; if (V.show === "file" && !V.data && !V.loading) { load(); return; } V.keepScroll = true; render(); return; }
-    if (e.target.closest("[data-vw-ask]")) { openAsk(); return; }
-    if (e.target.closest("[data-vw-edit]")) { startEdit(); return; }
-    if (e.target.closest("[data-vw-saveit]")) { save(); return; }
-    if (e.target.closest("[data-vw-cancel]")) { cancelEdit(); return; }
-    if (e.target.closest("[data-vw-keep]")) { ED.discard = false; ED.then = null; paintHead(); ED.ed?.focus(); return; }
-    if (e.target.closest("[data-vw-discard]")) { const then = ED.then; ED.then = null; letDraftGo(); stopEdit(); if (then) then(); else headFocus(); return; }
-    if (e.target.closest("[data-vw-draftx]")) { letDraftGo(); paintHead(); el.querySelector("[data-vw-edit]")?.focus(); announce("Your draft is gone."); return; }
-    if (e.target.closest("[data-vw-confirm]")) { ED.confirmed = true; save("runs_code"); return; }
-    if (e.target.closest("[data-vw-noconfirm]")) { ED.confirm = false; paintHead(); ED.ed?.focus(); return; }
-    if (e.target.closest("[data-vw-undo]")) { undoSave(); return; }
-    // the notice goes once you've told the agent: focus goes to the file's head, not the page (Astra S137)
-    // told only once it went: refused (its place's routing off, XO unreachable: the app says why), the notice and its
-    // Tell stay, to try again (the controls grader on 945eecb: the notice went first, and the retry with it)
-    // what became of the message is its own notice's to say (Sending, then Sent or Not sent): nothing is announced here
-    // before the server answers (the controls grader on dfe1491: "Told the agent." while it still said Sending)
-    if (e.target.closest("[data-vw-tell]")) { const s = saved; if (!s || !edits.tell(V.file, s)) return; const back = focusHere(); saved = null; toastPaint(); if (back) headFocus(); return; }
-    // the notice goes with its ×: focus goes to the file's head, not the page (Astra S138)
-    // focus goes on before the notice goes; the editor takes it a frame or two late (its document arriving), so the
-    // notice waits for it (in between, focus fell to the page: S138 Created)
-    if (e.target.closest("[data-vw-toastx]")) {
-      const back = focusHere(), was = saved;
-      const go = () => { if (saved === was) { saved = null; toastPaint(); } };
-      if (!back) { go(); return; }
-      const to = headFocus(false);
-      if (to === ED.ed) { Promise.resolve(ED.ed.focus({ preventScroll: true })).then(go, go); return; }
-      to.focus({ preventScroll: true }); go(); return;
+    const ver = e.target.closest("[data-vw-ver]");
+    if (ver) { if (ver.getAttribute("aria-disabled") !== "true") stepVersion(+ver.dataset.vwVer); return; }
+    if (e.target.closest("[data-vw-latest]")) { const D = doc(); if (D && TX.h) { docs.view(D, null); TX.h.showVersion(null); paintHead(); TX.h.focus(); } return; }
+    if (e.target.closest("[data-vw-restore]")) {
+      const D = doc(), v = D && D.viewing;
+      if (!v || v.text == null || !TX.h) return;
+      TX.h.showVersion(null);
+      docs.restore(D, v.text, { id: v.id });
+      announce("That version is the file again (a new version: the one before is kept).");
+      paintHead(); TX.h.focus();
+      return;
     }
+    if (e.target.closest("[data-vw-changes]")) { V.showChanges = !V.showChanges; showChangesNow(); paintHead(); return; }
+    if (e.target.closest("[data-vw-saveagain]")) { const D = doc(); if (D) docs.save(D); return; }
+    if (e.target.closest("[data-vw-confirm]")) { const D = doc(); if (D) docs.confirmRunsCode(D, true); TX.h?.focus(); return; }
+    if (e.target.closest("[data-vw-noconfirm]")) { const D = doc(); if (D) docs.confirmRunsCode(D, false); paintHead(); TX.h?.focus(); return; }
+    // the renderer's Try again: the editor again (focus waits on the file's body, where the file appears)
+    if (e.target.closest('[data-vw-retry][aria-busy="true"]')) return;
+    if (e.target.closest("[data-vw-retry]")) { TX.key = null; drawText(); return; }
     // a change that failed to read: read it again; focus waits on the diff's body, where the change appears
     if (e.target.closest("[data-vw-diff-retry]")) { const c = chg(); if (!c) return; diffBody().focus({ preventScroll: true }); drawDiff(c, { again: true }); return; }
-    // the renderer's Try again goes as the file draws: focus waits on the file's body, where the file appears (S139)
-    // (pressed again while it's trying: nothing more; it's already on its way)
-    if (e.target.closest('[data-vw-retry][aria-busy="true"]')) return;
-    if (e.target.closest("[data-vw-retry]")) { const back = focusHere(); FL.pend = null; drawFile(); if (back) (fileBody() || el).focus({ preventScroll: true }); return; }
     if (e.target.closest("[data-vw-split]")) { V.split = !V.split; if (DF.handle) DF.handle.split(V.split); render(); return; }
     const m = e.target.closest("[data-vw-mode]");
-    // the documents' mode (Preview or Source) is chosen on a document only: an image's Fit shares the value "preview"
-    // and never sets it (the controls grader on 131d146, I79: Source came back as Preview after an image's Fit)
-    if (m) { V.mode = m.dataset.vwMode; if (!V.file.image && !(V.data && V.data.kind === "image")) V.textMode = V.mode; render(); return; }
-    if (e.target.closest(".vw-img img")) { V.mode = V.mode === "actual" ? "preview" : "actual"; render(); return; }
-    if (e.target.closest("[data-vw-copy]")) { copy(String(V.data.content)); return; }
+    if (m) {
+      const mode = m.dataset.vwMode;
+      // an image's Fit or 1:1 is the image's own: never a document's mode (the controls grader on 131d146, I79: the values
+      // are shared, "preview" being both an image's Fit and HTML's Preview)
+      if (V.file.image || (V.data && V.data.kind === "image")) { V.imgMode = mode; render(); return; }
+      // Markdown's Page or Source: the same editor, switched in place (caret, undo and scroll stay)
+      if (mode === "page" || (mode === "source" && isMd())) { V.textMode = mode; if (TX.h) { TX.h.setPage(mode === "page"); TX.key = `${doc().key}|${mode === "page" ? "page" : "src"}`; TX.el?.classList.toggle("is-page", mode === "page"); paintHead(); } else render(); return; }
+      V.mode = mode; render(); return;
+    }
+    if (e.target.closest(".vw-img img")) { V.imgMode = V.imgMode === "actual" ? "preview" : "actual"; render(); return; }
+    if (e.target.closest("[data-vw-copy]")) { const D = doc(); copy(D ? docs.textOf(D) : String(V.data.content)); return; }
     if (e.target.closest("[data-vw-copy-path]")) { copy(V.file.rel ? localPath() : V.file.path, "path"); return; }
     if (e.target.closest("[data-vw-askfile]")) { ask.file(V.file); return; }
-    // the new version, at the place you were reading
-    if (e.target.closest("[data-vw-update]")) { const top = el.querySelector(".vw-body")?.scrollTop || 0; load().then(() => { const b = el.querySelector(".vw-body"); if (b) b.scrollTop = top; }); return; }
-        if (e.target.closest("[data-vw-download]")) download();
+    if (e.target.closest("[data-vw-download]")) download();
   }
   // an image's size shows in the header once it has decoded; one that won't decode says so
   el.addEventListener("load", (e) => {
@@ -1098,19 +1044,18 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     dropImage(); V.data = null;
     render();
   }, true);
-  // a reload or a closed tab with unsaved edits: the browser's own question (the only one it allows)
-  addEventListener("beforeunload", (e) => { if (ED.on && (ED.dirty || ED.conflict) && !(ED.dirty && !ED.conflict && keepDraft())) { e.preventDefault(); e.returnValue = ""; } });
+  // the page going away (a reload, a closed tab): what's pending saves now, and waits as a draft in this browser
+  // meanwhile; the browser's own question only when a draft couldn't be kept
+  addEventListener("pagehide", () => { for (const D of docs.unsaved()) docs.keepDraft(D); });
+  addEventListener("beforeunload", (e) => { const lost = docs.unsaved().filter((D) => D.state === "conflict" || !docs.keepDraft(D)); if (lost.length) { e.preventDefault(); e.returnValue = ""; } });
   // a press anywhere but the ⋯ and its menu closes the menu
   document.addEventListener("pointerdown", (e) => { if (V.menu && !(e.target.closest && e.target.closest(".vw-mw"))) menuOff(); }, true);
-  // a tab put away (a phone may close it later): the draft is kept now
-  document.addEventListener("visibilitychange", () => { if (document.hidden && ED.on && ED.dirty) keepDraft(); });
+  // a tab put away (a phone may close it later): what's pending saves now, kept as a draft meanwhile
+  document.addEventListener("visibilitychange", () => { if (document.hidden) for (const D of docs.unsaved()) docs.keepDraft(D); });
   pointerFollows(el); // the More menu: the item under the mouse is the active one (C058)
   // the path a refused Copy path offers: focused (Tab, or a click), all of it is selected, ready to copy; a click that
   // only placed the caret selects it all again
   el.addEventListener("focusin", (e) => { if (e.target.matches?.(".vw-cut-sel")) e.target.select(); });
-  // editing, the ring is drawn over the file (css/panel.css #viewer::after) from the file's own top: the head above it
-  // changes height (a phone's safe area, the stage's tabs), so where the file starts is read as focus comes into it
-  el.addEventListener("focusin", () => { if (!ED.on) return; const b = el.querySelector(".vw-body"); if (b) el.style.setProperty("--vw-body-top", `${b.offsetTop}px`); });
   el.addEventListener("click", (e) => { const s = e.target.closest?.(".vw-cut-sel"); if (s && s.selectionStart === s.selectionEnd) s.select(); });
   // a press on the offered path selects all of it: the mouse's own caret placement is kept off it (it came after the
   // click's select and collapsed it again: the controls grader on c767cbf, S270-manual-reclick-v4); it takes focus and
@@ -1125,23 +1070,20 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       return;
     }
     const mod = (e.metaKey || e.ctrlKey) && !e.altKey;
-    if (ED.on) {
-      if (mod && e.key.toLowerCase() === "s") { e.preventDefault(); if (ED.confirm) { ED.confirmed = true; save("runs_code"); } else save(); return; }
-      // an Escape the editor already used (its find bar closing, a suggestion going) isn't the viewer's: you stay
-      // editing (Astra EDITOR-close: it closed the find bar and left the editor too)
-      if (e.key === "Escape" && e.defaultPrevented) { e.stopPropagation(); return; } // nor Files' (it put the file away)
-      if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); if (ED.confirm) { ED.confirm = false; paintHead(); ED.ed?.focus(); } else cancelEdit(); return; }
-      return;
-    }
-    if (!mod && !e.altKey && (e.key === "e" || e.key === "E") && !e.target.closest("input, textarea, [contenteditable]") && canEdit() && !FL.asking) { e.preventDefault(); startEdit(); return; }
+    // ⌘S: save now (anywhere in the viewer; the editor's own ⌘S does the same)
+    if (mod && !e.shiftKey && e.key.toLowerCase() === "s") { e.preventDefault(); const D = doc(); if (D) { if (D.confirm) docs.confirmRunsCode(D, true); else docs.flush(D); } return; }
     if (e.key === "Escape") {
+      // an Escape the editor already used (its find bar closing, a suggestion going) isn't the viewer's
+      if (e.defaultPrevented) { e.stopPropagation(); return; }
       e.preventDefault(); e.stopPropagation();
-      if (FL.sel && !FL.asking) { FL.sel = null; FL.handle?.select(null); askCapsule(); return; } // a selection clears first
+      const D = doc();
+      if (D && D.confirm) { docs.confirmRunsCode(D, false); paintHead(); TX.h?.focus(); return; }
+      if (D && D.viewing && TX.h) { docs.view(D, null); TX.h.showVersion(null); paintHead(); TX.h.focus(); return; }
+      if (TX.sel && TX.h && TX.el && TX.el.contains(e.target)) { TX.h.clearSelection(); return; } // a selection clears first
+      if (V.asking) { answerUnsaved("cancel"); return; }
       if (away && away()) return; // beside the chat, the file is put away, not closed (js/filesview.js)
-      close(); return;
+      close({ ask: true }); return;
     }
-    // ⌘L (Ctrl L): ask about the lines selected in a file (the browser's own ⌘L only while lines are selected)
-    if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === "l" && FL.sel && !FL.asking && showsFile()) { e.preventDefault(); openAsk(); return; }
     // J / K: the next or previous change, on a diff
     if (!showsDiff() || !DF.el || e.target.closest("input, textarea, [contenteditable]")) return;
     const dir = K.is(e, "nextChange") ? 1 : K.is(e, "prevChange") ? -1 : 0;
@@ -1162,7 +1104,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     document.body.classList.add("viewer-open");
     render();
     const b = el.querySelector(".vw-body");
-    if (b) b.scrollTop = V.keep || 0;
+    if (b && !TX.h) b.scrollTop = V.keep || 0;
     el.focus({ preventScroll: true });
     onChange && onChange();
   }
@@ -1170,18 +1112,23 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   function refresh() { if (V.open && !V.parked) { V.keepScroll = true; render(); } }
 
   return {
-    open, close, park, unpark, refresh, notice,
+    open, close, park, unpark, refresh, notice, fileChanged,
     get isOpen() { return V.open && !V.parked; }, get hasFile() { return V.open; }, get isParked() { return V.open && V.parked; }, get file() { return V.file; }, get opener() { return V.open ? V.returnTo : null; },
-    /** Unsaved edits on screen (leaving asks first). */
-    get editing() { return ED.on && (ED.dirty || !!ED.conflict); },
-    /** You're leaving (another place, back to the conversation): with unsaved edits, the head asks first;
-     *  go() runs once you choose Discard. */
+    /** Lines you both changed, waiting for your choice (leaving asks first). Unsaved text otherwise saves itself. */
+    get editing() { return docs.all().some((D) => D.state === "conflict"); },
+    /** Go to the line (⌃G from outside, a search result): the editor's own go-to. */
+    goto(line, col = null) { if (TX.h) { TX.h.focus({ line }); void col; } else if (V.file) V.file.lines = [line, line]; },
+    /** The open files (tabs), for ⌘P's "open" section. */
+    get openFiles() { return V.tabs.map((t) => t.file); },
+    /** You're leaving (another place, back to the conversation): unsaved text is kept as a draft in this browser (it
+     *  comes back unsaved, for ⌘S); nothing is saved for you. */
     leave(go) {
-      if (!(ED.on && (ED.dirty || ED.conflict))) { go(); return; }
-      // kept as a draft in this browser: it'll be waiting when you come back. A merge in progress, or a draft
-      // too big to keep, asks first, as before
-      if (!ED.conflict && keepDraft()) { stopEdit(); announce("Your edits are kept as a draft."); go(); return; }
-      ED.discard = true; ED.then = go; paintHead(); el.querySelector("[data-vw-keep]")?.focus();
+      for (const D of docs.unsaved()) docs.keepDraft(D);
+      const clash = docs.all().find((D) => D.state === "conflict");
+      if (!clash) { go(); return; }
+      announce("Lines you and someone else both changed are waiting: keep yours or take theirs first. Your text is kept as a draft meanwhile.");
+      docs.keepDraft(clash);
+      go();
     },
   };
 }

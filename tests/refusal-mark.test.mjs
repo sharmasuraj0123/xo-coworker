@@ -15,10 +15,11 @@ t("the icon set has the mark: the clock's circle with a mark in it", () => {
 });
 t("the viewer's refusal line (a refused Copy path, a save refused) and the editor's error line draw it", () => {
   assert.match(vw, /V\.saveError \? `<p class="vw-cut" role="alert">\$\{ICON\.warn\}/);
-  assert.match(vw, /line\.innerHTML = `\$\{ICON\.warn\}<span>\$\{esc\(why\)\}<\/span>`;/);
+  // a save that didn't go (Not saved, Deleted on disk): its line under the head, with Try again or Save it again
+  assert.match(vw, /<p class="vw-cut xd-errline" role="alert">\$\{ICON\.warn\}<span>\$\{esc\(err\)\}<\/span>/);
   assert.doesNotMatch(vw, /role="alert">\$\{ICON\.clock\}/, "no alert under a clock");
 });
 t("a preview that shows the first part of a file keeps its clock (a limit, not a refusal)", () => {
-  assert.match(vw, /d\.truncated \? `<p class="vw-cut">\$\{ICON\.clock\}<span>Showing the first/);
+  assert.match(vw, /if \(!d \|\| !d\.truncated\) return "";\s*return `<p class="vw-cut">\$\{ICON\.clock\}<span>Showing the first/);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

@@ -1,22 +1,25 @@
-// A file drawn after a save shows what was saved: the viewer's drawing key (also the renderer's cache key) carries
-// the file's version, its content hash, so two different texts never share one. Controls grader's lead on 4f5315a
-// (C095): when xo-space saves but can't log the edit, it answers saved_at null (services/project_files/save.py
-// _logged), so modified_at stayed as it was; a same-length edit then kept path, size and modified_at, the key didn't
-// move, and the old drawing (and the renderer's cached tokens for that key) could stand. No browser.
+// A file shows what it is now, never an older drawing of it. The editor is made per document (js/viewer.js drawText:
+// keyed by the document's key, its project and path, and whether it's a page or source) and shows the document's
+// live text; the document (js/docs.js) takes the version each save answers, so the next save is sent against it,
+// whether or not Space says when (a save it couldn't log answers saved_at null: the controls grader's lead on
+// 4f5315a, C095, when a key of path, size and time kept an old drawing). No browser.
 //   node tests/file-cache.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const v = readFileSync(new URL("../js/viewer.js", import.meta.url), "utf8");
+const docs = readFileSync(new URL("../js/docs.js", import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
-t("the file's drawing key carries its version (a content hash), so a saved text never draws as the old one", () => {
-  const m = /async function drawFile\(\) \{\s*const d = V\.data, f = V\.file;(?:\s*\/\/[^\n]*)*\s*const key = `([^`]*)`;/.exec(v);
-  assert.ok(m, "drawFile's key");
-  assert.match(m[1], /d\.version/, `the key: ${m[1]}`);
+t("the editor is keyed by its document (and page or source), so another file never shows in it", () => {
+  const m = /async function drawText\(\) \{[\s\S]*?const key = `([^`]*)`;/.exec(v);
+  assert.ok(m, "drawText's key");
+  assert.match(m[1], /D\.key/, `the key: ${m[1]}`);
+  assert.match(v, /if \(TX\.key === key && TX\.h\) return;/, "the same document's editor stays");
 });
-t("a save takes the version it answers (the key moves with it), whether or not it says when", () => {
-  assert.match(v, /V\.data = \{ \.\.\.V\.data, content: text, version: r\.version,/, "the saved version replaces the old one");
+t("a save takes the version it answers, whether or not it says when", () => {
+  assert.match(docs, /d\.base = text; d\.version = r\.version;/, "the saved version replaces the old one");
+  assert.match(docs, /at: r\.saved_at \|\| null/, "no saved_at: the version still moves on");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

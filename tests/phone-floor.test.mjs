@@ -90,7 +90,7 @@ t("a control whose words hide to leave its icon is 36 px wide on a phone too (th
     short.push(k);
   }
   assert.deepEqual(short, [], `icon buttons on a phone without the 36 px width: ${short.join(", ")}`);
-  for (const k of ["xd-edit", "xd-runs", "tw-act", "map-btn", "lbx-btn", "vw-btn"]) assert.ok(iconed.has(k), `found: ${k}`);
+  for (const k of ["xd-runs", "tw-act", "map-btn", "lbx-btn", "vw-btn"]) assert.ok(iconed.has(k), `found: ${k}`);
 });
 t("the icon buttons the browser pass found narrow are on the list: Open in Files (28), New file (32)", () => {
   const phone = readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
