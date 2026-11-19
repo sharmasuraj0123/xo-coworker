@@ -13,6 +13,74 @@ So this note is in four parts:
 - **C** asks where a document should open, now that the full-width chat view is becoming the default.
 - **D** is the reference research (how other tools do it).
 
+**The owner, 09:12Z:** "it should update and show as a new version. That's what I asked you to research for … Research how Claude/ChatGPT/Gemini UIs offer these things. I want that." That is answered first, in **V**. Parts A–D below are the system map it rests on.
+
+---
+
+## V. Every change is a new version: how Claude, ChatGPT and Gemini do it, and how XO gets it
+
+### V1. What the three do
+
+| | Claude (artifacts; Claude Science files) | ChatGPT Canvas | Gemini Canvas |
+|---|---|---|---|
+| **When the AI changes the doc** | It **updates in place to the new version**: "each edit creates a new version". In Claude Science: "When Claude saves the same filename again … the artifact gains a new version." | The canvas rewrites in place; the new text *is* the current version. | The doc updates in place; Gemini "will apply updates". |
+| **Moving between versions** | A **version stepper** (a version dropdown on claude.ai; arrows at the foot in older builds). | **Version arrows** in the top toolbar. | **Previous version / Next version** at the top of the Canvas panel ("To view your saved versions, at the top, click…"). |
+| **Seeing what changed** | A **diff toggle**: "you can choose which earlier version to compare against; the previous version is the default." | **Show changes** in the toolbar: "additions and deletions" between versions, for documents and code. | Not documented. **Suggest edits** proposes changes instead of applying them. |
+| **Going back** | Older versions are **read only**; to restore one, ask Claude to save it again. | **Restore** an earlier version (the back button). | Step back to a saved version. |
+| **Your own edits** | Type in the doc, or (Claude Science) **Edit content → Save**, which "creates a new version". Editing a table cell saves a new version. | Type in the canvas. Edits are kept with the version. | Type in the canvas; "Changes are auto-saved." |
+| **Aiming the AI** | Select text → **Edit with Claude**. | Select text → **Ask ChatGPT** (a targeted edit). | Select text → **Ask Gemini** box beside it. |
+| **Chat ↔ version** | Claude Science: "Links Claude puts in the conversation point to the specific version that existed at the time." | Each assistant turn that edited the canvas marks a version. | Same. |
+
+What they agree on:
+
+1. **The AI's change lands as the new current version.** You don't get a "something changed, click to see it" button.
+2. **A stepper** (‹ 3 of 5 ›) is always in the doc's head.
+3. **"Show changes" compares against the previous version** by default.
+4. **Old versions are read only**, and Restore makes them current again (a new version, so nothing is lost).
+5. **Each version belongs to a turn in the chat**, and the chat's link to the doc opens the version that turn made.
+
+### V2. What this looks like in XO
+
+```
+┌─ Files ──────────────────────────────────────────────────────┬─ chat (docked) ─┐
+│ ‹  v5 of 5  ›  · edited by "Pricing page" thread · 2 min ago │                 │
+│               [Show changes]                    ⋯   —   ×   │  Agent: I've    │
+│ ─────────────────────────────────────────────────────────────│  updated the    │
+│  # Pricing                                                   │  tiers and the  │
+│  ░ Three tiers, billed monthly.            ← changed (tint)  │  chart. [doc ▸] │
+│  $$ p = c \cdot (1+m) $$                    (drawn)          │                 │
+│  [ chart ]                                                   │                 │
+└──────────────────────────────────────────────────────────────┴─────────────────┘
+ Older version:  ‹ v3 of 5 › · by you · 10:42   [Restore this version] [Back to latest]
+```
+
+- **An agent edits the open doc.** When its turn ends, the page moves to **v(n+1)** on its own, with no "Updated · Show" button. The blocks that changed carry a soft tint for a few seconds. The head names who made the version and links to their message.
+- **You edit** (click a block and type, as in Option 1). Your autosaves fold into **one version per editing stretch**: it closes when you leave the doc or after ~2 minutes without typing. "by you" then shows as one step, not fifty.
+- **Agent and you at once.** If you're typing when the agent's version lands, your text stays where it is. Their change is merged in (`merge3`, as at a save). Only a place you both changed asks you to choose.
+- **‹ ›** steps back through older versions. These are read only, with **Restore this version** (saved as a new version, so it's undoable) and **Back to latest**.
+- **Show changes** draws the doc with additions highlighted and removals struck through against the previous version. Pierre's side-by-side diff stays one click away for code.
+- **The chat.** The doc chip in the reply that made v5 opens v5. If there's a newer version, it says so ("v5 · latest is v7").
+
+### V3. What XO has and what's missing (from the map in A)
+
+| Needed | Today | Gap |
+|---|---|---|
+| Your saves as versions | **Yes.** Space's edit log (`services/project_files/edits.py`) records each UI save, with both blobs, `from_version` / `to_version` and an `edit_id`. `GET /api/xo-projects/{p}/edits?relative_path=` lists them. | Group autosaves into stretches (UI side, or a `stretch` id on the record). |
+| **Agent changes as versions** | **No.** Agents write straight to disk. Space's `Made` hears each turn's end and **already lists the files that turn wrote**, with the turn's reply message (`_turn_wrote`, `services/cowork_agent/storm/made.py:186`). It keeps no content. | **Space:** in `_turn_wrote`, for each written file, hash it. If it differs from the last logged version, `edits.record(target, None, bytes, kind="agent")` with the thread, turn and `message_id`. That's ~30 lines plus 4 fields on `Edit`, reusing the same blobs, retention (30 days / 200 MB) and secret rules. |
+| The first version | Partly: `GET /file-history` (git log) and `GET /file?commit=`. | v1 = the file at HEAD (or the first logged version) when the log has nothing older. |
+| A list of versions | Partly (`GET /edits`, UI saves only). | **Space:** `GET /api/xo-projects/{p}/versions?relative_path=` → `[{n, version, at, by: {kind: you\|agent, thread, title}, message_id, size}]`, plus each version's content from its blob (`GET /file?version=sha256:…`). |
+| Telling the viewer at once | **No push.** The viewer polls `/changes` after an agent's edit step, which misses bash writes, committed files and other places (A7). | **Space:** the `made {items}` SSE event already goes out when a turn's writes are recorded. Add `version` to each item. **Frontend:** the viewer listens and moves to the new version. A7's gaps close for every turn-tool write; bash writes still need the turn-end hash check described above. |
+| Restore | **Yes.** It's just a `PUT /file` with the old content (logged, undoable). | Nothing new on the server. |
+| Show changes | `merge.js changes()` (line diff), Pierre diff view. | **Frontend:** a block-level diff on the rendered page (added = tint, removed = struck), from line ranges (`data-l`). |
+| Version ↔ chat message | `Made` rows carry `message_id`. | **Frontend:** the chip in that message opens `?version=` that version. |
+
+### V4. What can ship today, and what follows
+
+- **Today, frontend only (≈½ day):** when the open doc changes (today's detection, A7), **move to the new version automatically** instead of showing "Updated · Show". Tint the changed blocks, and show a **‹ v of n ›** stepper with **Show changes** for the versions *this browser has seen* since the doc opened, plus **Restore** (a `PUT` of the older text).
+  - **Limits:** history starts when you open the doc. Bash writes are still seen late. No xo-space change.
+- **Next (≈1 day, Space + frontend):** agent versions recorded at turn end, `GET /versions`, `version` on the `made` event, and the chip-to-version link. The stepper then shows the whole history from any device, and updates arrive the moment the turn ends.
+- **With it:** Option 1's click-a-block editing and autosave, so "you" versions sit beside "agent" versions.
+
 Line numbers are for `aea856f` (frontend). xo-space line numbers are for the build running on :5002, which is `/opt/xo-space`, the same code as branch `xo/thread-db1062`. Its `main` doesn't have the file routes yet. The xo-space routes were confirmed against `GET /openapi.json`, and `/file` and `/changes` with live GETs.
 
 ---
@@ -345,6 +413,10 @@ What they have in common:
 
 ## Recommendation
 
+0. **Versions first (V):** an agent's change lands as the new version, with **‹ v of n ›**, **Show changes**, **Restore**, and chat links to the version a turn made.
+   - **Today:** the frontend-only slice in V4.
+   - **Next:** Space records agent versions at turn end and pushes them on the `made` event.
+   - The owner's 09:12Z answer settles B's question about agent changes: they **update in place as a new version**. That replaces the 5 Nov "Updated · Show" rule for documents.
 1. **Option 1**, built only after the chat-view thread's `markdown.js` / `rich.js` lands (they edit the same file).
    - **Today-sized core:** page typography; click a block to edit; autosave with *Saved* and *Undo changes* (back to how it was when opened); Edit / Cancel / Save gone for `.md`; runs-code files ask once.
    - **No xo-space change.**
@@ -360,6 +432,7 @@ What they have in common:
 
 ## Sources
 
+- Versions: [Claude Science, Artifacts › Versions](https://claude.com/docs/claude-science/artifacts) (version stepper, diff toggle against the previous version, chat links pinned to versions); [How to view version history of an artifact in Claude.ai](https://www.guideflow.com/tutorial/how-to-view-version-history-of-an-artifact-in-claudeai) (version dropdown); [OpenAI: Using canvas](https://help.openai.com/en/articles/9930697-using-canvas-in-chatgpt) (version arrows, Show changes, restore); [Gemini Apps Help: Canvas](https://support.google.com/gemini/answer/16047321?hl=en) (Previous / Next version, auto-save, select → prompt); [Gemini Enterprise: documents in Canvas](https://support.google.com/g/answer/16914858?hl=en) (version arrows on the editing bar, Ask Gemini beside a selection)
 - Claude: [What are artifacts and how do I use them?](https://support.claude.com/en/articles/17153992-what-are-artifacts-and-how-do-i-use-them); [Artifacts](https://claude.com/features/artifacts)
 - ChatGPT: [Using canvas in ChatGPT](https://help.openai.com/en/articles/9930697-using-canvas-in-chatgpt); [Introducing canvas](https://openai.com/index/introducing-canvas/)
 - Obsidian: [Edit and read](https://help.obsidian.md/edit-and-read); [Editor decorations](https://docs.obsidian.md/Plugins/Editor/Decorations)
