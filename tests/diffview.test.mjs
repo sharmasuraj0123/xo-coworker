@@ -76,6 +76,10 @@ await t("the adapter offers only what the app draws: diffs, J/K, the theme, idle
   assert.doesNotMatch(readFileSync(join(ROOT, "tools/diffview/vendor.mjs"), "utf8"), /diffs\/edit/, "and the vendoring script doesn't bring it back");
 });
 
+await t("tools/diffview holds only what makes the vendored library and its themes, no one-off probes", () => {
+  assert.deepEqual(readdirSync(join(ROOT, "tools/diffview")).sort(), ["theme.mjs", "vendor.mjs"]);
+});
+
 await t("first load stays as it was: only js/diffview.js reaches the library, and only by import()", () => {
   const src = readFileSync(join(ROOT, "js/diffview.js"), "utf8").replace(/\/\/.*$/gm, "");
   assert.ok(!/^\s*import\s[^(]/m.test(src), "js/diffview.js has a static import");

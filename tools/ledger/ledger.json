@@ -4897,84 +4897,84 @@
    "home": "tools/codemirror/vendor.mjs (vendor hash manifests)"
   },
   "tools/diffview/astra-recheck.cjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/dlcopy.cjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/fake-changes.cjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/fake-preload.cjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/fileview-shots.cjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/lab.html": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/livecheck.cjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/measure.cjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/p1measure.cjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/p1shots.cjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/p2ask.cjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/p2measure.cjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/p3flow.cjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/p3phone.cjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/panel.cjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/rows-long.cjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/rows-max.cjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/rows.cjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/sandbox-preview.cjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/sandbox.cjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/theme.mjs": {
    "status": "planned",
@@ -16664,152 +16664,152 @@
    "home": "tools/codemirror/vendor.mjs (vendor hash manifests)"
   },
   "tools/diffview/astra-recheck.cjs::ids::stage": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/dlcopy.cjs::ids::projects": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/dlcopy.cjs::ids::stage": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/dlcopy.cjs::ids::viewer": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/dlcopy.cjs::storage::cv-theme": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/dlcopy.cjs::routes::/tmp/pw/node_modules/playwright-core": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/dlcopy.cjs::routes::/api/": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/fileview-shots.cjs::functions::openFile": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/fileview-shots.cjs::ids::stage": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/livecheck.cjs::ids::stage": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/measure.cjs::functions::run": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/measure.cjs::routes::/tmp/pw/node_modules/playwright-core": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/measure.cjs::globals::__lt": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/p1measure.cjs::functions::scene": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/p1measure.cjs::ids::stage": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/p2ask.cjs::ids::herald": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/p3flow.cjs::functions::openFile": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/p3flow.cjs::functions::edit": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/p3flow.cjs::ids::stage": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/p3phone.cjs::ids::stage": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/panel.cjs::ids::projects": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/panel.cjs::ids::herald": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/panel.cjs::ids::stage": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/panel.cjs::storage::cv-theme": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/panel.cjs::storage::<k>": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/panel.cjs::routes::/tmp/pw/node_modules/playwright-core": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/rows-long.cjs::ids::stage": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/rows-max.cjs::ids::stage": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/rows.cjs::ids::stage": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/sandbox-preview.cjs::ids::projects": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/sandbox-preview.cjs::ids::stage": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/sandbox-preview.cjs::ids::viewer": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/sandbox-preview.cjs::storage::xo-probe-secret": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/sandbox-preview.cjs::routes::/tmp/pw/node_modules/playwright-core": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/sandbox-preview.cjs::routes::/api/": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/sandbox-preview.cjs::routes::/api/xo-projects": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/sandbox.cjs::routes::/api/xo-projects/{}/(changes|file|tree|edits|download|image)": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/theme.mjs::exports::rootProps": {
    "status": "planned",

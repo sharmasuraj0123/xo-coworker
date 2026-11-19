@@ -4,14 +4,14 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 618 |
+| planned | 598 |
 | vendor | 367 |
-| deleted | 238 |
+| deleted | 258 |
 | moved | 54 |
 | split | 35 |
 | kept | 1 |
 
-Items inside first-party files: 2290 (planned 1006, moved 696, split-region 546, deleted 39, kept 2, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 969, moved 696, split-region 546, deleted 76, kept 2, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -1367,26 +1367,26 @@ Items inside first-party files: 2290 (planned 1006, moved 696, split-region 546,
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `tools/diffview/astra-recheck.cjs` | 41 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/diffview/dlcopy.cjs` | 50 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/diffview/fake-changes.cjs` | 42 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/diffview/fake-preload.cjs` | 21 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/diffview/fileview-shots.cjs` | 58 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/diffview/lab.html` | 39 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/diffview/livecheck.cjs` | 47 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/diffview/measure.cjs` | 124 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/diffview/p1measure.cjs` | 55 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/diffview/p1shots.cjs` | 38 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/diffview/p2ask.cjs` | 57 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/diffview/p2measure.cjs` | 40 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/diffview/p3flow.cjs` | 138 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/diffview/p3phone.cjs` | 52 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/diffview/panel.cjs` | 81 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/diffview/rows-long.cjs` | 59 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/diffview/rows-max.cjs` | 39 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/diffview/rows.cjs` | 50 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/diffview/sandbox-preview.cjs` | 61 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/diffview/sandbox.cjs` | 24 | planned | delete: a one-off probe with machine paths (owner D6) |
+| `tools/diffview/astra-recheck.cjs` | 41 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
+| `tools/diffview/dlcopy.cjs` | 50 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
+| `tools/diffview/fake-changes.cjs` | 42 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
+| `tools/diffview/fake-preload.cjs` | 21 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
+| `tools/diffview/fileview-shots.cjs` | 58 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
+| `tools/diffview/lab.html` | 39 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
+| `tools/diffview/livecheck.cjs` | 47 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
+| `tools/diffview/measure.cjs` | 124 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
+| `tools/diffview/p1measure.cjs` | 55 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
+| `tools/diffview/p1shots.cjs` | 38 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
+| `tools/diffview/p2ask.cjs` | 57 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
+| `tools/diffview/p2measure.cjs` | 40 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
+| `tools/diffview/p3flow.cjs` | 138 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
+| `tools/diffview/p3phone.cjs` | 52 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
+| `tools/diffview/panel.cjs` | 81 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
+| `tools/diffview/rows-long.cjs` | 59 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
+| `tools/diffview/rows-max.cjs` | 39 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
+| `tools/diffview/rows.cjs` | 50 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
+| `tools/diffview/sandbox-preview.cjs` | 61 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
+| `tools/diffview/sandbox.cjs` | 24 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
 | `tools/diffview/theme.mjs` | 155 | planned | tools/diffview/ (generates the diff themes) |
 | `tools/diffview/vendor.mjs` | 132 | planned | tools/diffview/vendor.mjs (vendor hash manifests) |
 
