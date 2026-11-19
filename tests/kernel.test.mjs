@@ -104,6 +104,18 @@ await t("layers: Esc is offered top-down until one takes it; closing returns foc
   assert.equal(L.top().id, "panel");
 });
 
+await t("layers: a layer whose back or escape throws counts as handled, is logged, and the layers under it are not offered the key", () => {
+  const warns = [];
+  const L = createLayers((...a) => warns.push(a));
+  let under = 0;
+  L.push({ id: "under", back: () => { under++; return true; }, escape: () => { under++; return true; } });
+  L.push({ id: "broken", back: () => { throw new Error("boom"); }, escape: () => { throw new Error("boom"); } });
+  assert.equal(L.back(), true);
+  assert.equal(L.escape(), true);
+  assert.equal(under, 0);
+  assert.equal(warns.length, 2);
+});
+
 await t("semver: ^, ~, x-ranges, comparisons and ||", () => {
   assert.ok(satisfies("1.4.2", "^1"));
   assert.ok(!satisfies("2.0.0", "^1"));

@@ -57,7 +57,7 @@ const OTHER = [
   [/\.(prow|nrow)\b/, /:root:root \.side :is\(\.prow\.busy,\.prow\.needs,\.prow\.is-on,\.nrow\.is-on\):hover\{background-image:linear-gradient\(color-mix\(in srgb,var\(--ink\) 6%,transparent\)/, "css/side.css", "the sidebar's rows: their own layer over each state's wash (C008), the sidebar's frozen look"],
   [/\.dd-row\b/, /addEventListener\("pointermove", \(e\) => \{ const r = \/\*\* @type \{any\} \*\/ \(e\.target\)\.closest\?\.\("\.dd-row"\); if \(r && !r\.hasAttribute\("aria-disabled"\)\) this\._activate\(/, "core/ui/components/xo-select.js", "a dropdown's rows: the pointer moves its one active row (C058)"],
   [/\.at-list li\b/, /atList\.addEventListener\("pointermove", \(e\) => \{[^]*?li\.setAttribute\("aria-selected", "true"\)|atList\.addEventListener\("pointermove"/, "js/app.js", "Find a project's rows: the pointer moves the selection (C058)"],
-  [/\.jump-list li\b/, /jl\.addEventListener\("pointermove", \(e\) => \{[^]*?li\.setAttribute\("aria-selected", "true"\)/, "js/app.js", "Jump's rows: the pointer moves the selection"],
+  [/\.jump-list li\b/, /list\.addEventListener\("pointermove", \(e\) => \{[^]*?li\.setAttribute\("aria-selected", "true"\)/, "modules/search/jump.js", "Jump's rows: the pointer moves the selection"],
   [/\.shd-tab(?![\w-])/, /\.shd-tabw\)/, "css/foundation.css", "a shell's tab: its wrapper draws the state, and the wrapper takes the layer"],
   [/\.shd-tabw\.is-edit/, /\.shd-tabw\.is-edit\{|\.shd-tabw\.is-edit,/, "css/app.css", "a shell's tab being renamed: a field, not a tab to hover"],
 ];

@@ -93,7 +93,7 @@ export function homeShell(box = document.getElementById("home")) {
   if (made && made.n > 0) {
     $("hm-made").innerHTML = `<section class="md-recent hm-sk" aria-hidden="true"><h2 class="hm-lbl"><svg aria-hidden="true"></svg>${bar("104px", "sk-lb")}&#8203;</h2><ul class="md-grid is-strip">${Array.from({ length: made.n }, (_, i) => skTile(true, i)).join("")}</ul></section>`;
   }
-  // the order and the parts the shape shows (shapeview.js homeOrder puts them right again once it loads)
+  // the order and the parts the shape shows (modules/settings/shape-page.js homeOrder puts them right again once it loads)
   if (s) for (const p of s.parts) { const el = $(p.id); if (el) { el.hidden = !!p.hidden; body.appendChild(el); } }
   for (const id of ["hm-head", "hm-next", "hm-then", "hm-end", "hm-made"]) $(id)._sk = true;
 }

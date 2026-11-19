@@ -3,7 +3,11 @@
     "target": "es2024",
     "module": "esnext",
     "moduleResolution": "bundler",
-    "lib": ["es2024", "dom", "dom.iterable"],
+    "lib": [
+      "es2024",
+      "dom",
+      "dom.iterable"
+    ],
     "allowJs": true,
     "checkJs": false,
     "strict": true,
@@ -12,6 +16,18 @@
     "noImplicitOverride": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["js/**/*.js", "core/**/*.js", "core/**/*.d.ts", "shell/**/*.js", "modules/**/*.js", "boot.js"],
-  "exclude": ["js/vendor/**", "vendor/**", "node_modules/**"]
+  "include": [
+    "js/**/*.js",
+    "core/**/*.js",
+    "core/**/*.d.ts",
+    "shell/**/*.js",
+    "modules/**/*.js",
+    "boot.js",
+    "apps-host/**/*.js"
+  ],
+  "exclude": [
+    "js/vendor/**",
+    "vendor/**",
+    "node_modules/**"
+  ]
 }

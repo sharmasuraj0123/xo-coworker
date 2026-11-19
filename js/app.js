@@ -19,7 +19,7 @@ import { createDecisions } from "./decide.js";
 import { createPacing } from "./pacing.js";
 import { createIntel } from "./intel.js";
 import { EFFORT, estLine, evidenceFor } from "./content.js";
-import { keepTurning, ICON, xi, XO, NEXT_GLYPH, $, $$, RM, reconcile, sound, wait, hold, dial, morph, expand } from "./ui.js";
+import { keepTurning, ICON, XO, NEXT_GLYPH, $, $$, RM, reconcile, sound, wait, hold, dial, morph, expand } from "./ui.js";
 import { paidHtml } from "./paidview.js";
 import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldClock, heldBadge, soonestHeld } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn } from "./turnview.js";
@@ -31,18 +31,26 @@ import { createLightbox } from "./lightbox.js";
 import { itemParts } from "./review.js";
 import { runsStripHtml, runsListHtml, runViewHtml } from "./runsview.js";
 import { createSettings } from "./settings.js";
-import { createRuntimeSettings } from "./rtsettings.js";
+import { createRuntimeSettings } from "../modules/runtimes/settings.js";
 import { createChats } from "./chats.js";
 import { initFollow, toLatest, unpin, isPinned, fromTop, toRow, fromLatest, createFollow } from "./follow.js";
 import { decorateConversation } from "./msgx.js";
 import { createViewer } from "./viewer.js";
 import { createMap } from "./map.js";
 import { createStage } from "./stage.js";
+import { createSide } from "../shell/rail/side.js";
+import { kernel } from "../shell/kernel.js";
+import { stackLayers } from "../shell/layers.js";
+import { faviconRender } from "../shell/favicon.js";
+import { createDrawer } from "../shell/phone.js";
 import { createLaunchpad } from "./launchpad.js";
 import { createLpApi } from "./lpapi.js";
 import { createFiles, fileScope, localIn, scopeOf as filesScopeOf } from "./files.js";
 import { createPaths } from "./paths.js";
-import { createQuickOpen } from "./quickopen.js";
+import { createQuickOpen } from "../modules/search/quickopen.js";
+import { createJump } from "../modules/search/jump.js";
+import { createSettingsFrame } from "../modules/settings/frame.js";
+import { createKeysPage } from "../modules/settings/keys-page.js";
 import { createFilesPage } from "./filespage.js";
 import { createChanges, lineRef, fileRef } from "./changes.js";
 import { fileIcon } from "./fileicons.js";
@@ -50,7 +58,7 @@ import { countsHtml } from "./changesframe.js";
 import { setTheme as setDiffTheme } from "./diffview.js";
 import { createTray, fmtSize, kindOf, isLargePaste, pasteLabel, uploadErrorText, FINAL, MAX_FILES } from "./attach.js";
 import { api, uploadAttachment } from "./api.js";
-import { initCreate } from "./create.js";
+import { initCreate } from "../modules/create-project/create.js";
 import { classify, glyph, TOPICS } from "./projicons.js";
 import { createShells } from "./shells/dock.js";
 import { createRecord } from "./recordview.js";
@@ -60,7 +68,7 @@ import { wireGestures, dockGestures } from "./gestures.js";
 import { rtName, rtMark, manyRuntimes, findRt, healthOf, canMove, untilWords } from "./runtimes.js";
 // the UI's shape per person: which surfaces show, in what order, how dense, in which words (js/shape.js)
 import { createShapeStore } from "./shape.js";
-import { createShapeView, SHAPE_IC, UNKEPT } from "./shapeview.js";
+import { createShapeView, SHAPE_IC, UNKEPT } from "../modules/settings/shape-page.js";
 import { setWorkMode } from "./turnview.js";
 import { radioKeys, menuKeys } from "./keynav.js";
 import { createHerald, noticeFor, refusedNotice } from "./herald.js";
@@ -243,7 +251,7 @@ world.onEvent((e) => {
     PATHS.changed({ project: d.project_id, base: m ? m[1] : "" }, { kind: d.kind, path: m ? m[2] : d.path, old_path: d.old_path ? d.old_path.replace(/^\.xo\/worktrees\/[^/]+\//, "") : null });
   }
 });
-// every file in a place (js/paths.js), for ⌘P and the tree's Find; ⌘P and ⌘⇧F themselves (js/quickopen.js)
+// every file in a place (js/paths.js), for ⌘P and the tree's Find; ⌘P and ⌘⇧F themselves (modules/search/quickopen.js)
 const PATHS = createPaths({ api, onChange: () => { QO.refresh(); FILES.pathsChanged && FILES.pathsChanged(); } });
 /** The place the view shows files of (a thread's worktree, a project's folder), or null. */
 const placeNow = () => { const s = filesScopeOf(S.view, { thread: (id) => world.thread(id), project: (id) => PROJ(id) }); return s.key === "all" ? null : { project: s.project, base: s.base || "", label: s.label + (s.sub ? ` · ${s.sub}` : "") }; };
@@ -400,7 +408,7 @@ const LP = createLaunchpad({ api: createLpApi(), projectOf: lpProject, nameOf: (
   // the owner's choice B): its Undo's deadline is the action's own (l.until), so it can't outlive what it undoes
   notice: (mid, l, ms) => { const h = { mid, kind: l.kind === "err" ? "stopped" : l.kind || "done", text: l.text, ...(l.sub ? { sub: l.sub } : {}), ...(l.undo ? { undo: l.undo, undoLabel: l.undoLabel, undoUntil: l.until || 0, ownFocus: true } : {}) }; return heraldFor(mid, () => h, ms) || heraldShow(h, ms); },
   unnotice: (mid) => heraldDrop(mid) });
-const STAGE = createStage({ map: MAP, files: FILES, changes: CHG, openFiles: () => FP.show({ focus: true }), viewer: VW, view: () => S.view, go: (v, e) => openFromPanel(v, e), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP, threads: (v) => panelThreads(v), shell: (on, host) => panelShell(on, host), owns: (e) => SH.owns(e) });
+const STAGE = createStage({ map: MAP, files: FILES, changes: CHG, openFiles: () => FP.show({ focus: true }), viewer: VW, view: () => S.view, go: (v, e) => openFromPanel(v, e), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP, threads: (v) => panelThreads(v), shell: (on, host) => panelShell(on, host), owns: (e) => SH.owns(e), places: kernel.places });
 // Files, a page of the panel (js/filespage.js; the owner, 19 Nov 14:57Z): the tree and the file open beside the chat,
 // which never moves
 const FP = createFilesPage({ stage: STAGE, files: FILES, viewer: VW, view: () => S.view, announce });
@@ -2886,32 +2894,6 @@ function render() {
 /** Where you carry on when the control you were on goes and nothing more particular is named: the place's own
  *  region (Home, Artifacts, else the conversation). */
 const placeRegion = () => (S.view === "home" ? $("#home") : S.view === "artifacts" ? $("#arts") : scroller);
-/**
- * The progress line, XO's one motif, in the browser tab too. While an agent works, the mark carries the
- * latest working thread's own steps along its foot (green done, blue the step it's on, grey to do), the
- * same line as in its header; with no checklist, one blue line. When nothing works, the plain mark.
- * While something truly needs you (the same count the title says), the line is one amber line instead: that
- * is what a glance at the tab is for. A line, never a dot, never a badge that counts up.
- */
-const FAVICON = { key: null, plain: null };
-function faviconRender(t, need = false) {
-  const c = !need && t && t.checklist;
-  const n = c && c.total ? Math.min(c.total, 6) : 0;
-  const done = n ? Math.min(n, Math.round((c.done / c.total) * n)) : 0;
-  const key = need ? "need" : t ? `${n}:${done}` : "";
-  if (FAVICON.key === key) return;
-  FAVICON.key = key;
-  const link = document.querySelector('link[rel="icon"]');
-  if (!link) return;
-  if (FAVICON.plain == null) FAVICON.plain = link.getAttribute("href");
-  if (!t && !need) { link.setAttribute("href", FAVICON.plain); return; }
-  // the owner's favicon-progress (assets/icons/xo/g-app-icon): the mark raised 5, the line on its foot, 48 grid
-  const W = 28.5, X = 9.75, GAP = 1.5, k = n || 1, w = (W - GAP * (k - 1)) / k;
-  const fill = (i) => (need ? "#F5A623" : !n ? "#75ADF1" : i < done ? "#83D63A" : i === done ? "#75ADF1" : "#4A4A4A");
-  const seg = Array.from({ length: k }, (_, i) => `<rect x="${(X + i * (w + GAP)).toFixed(2)}" y="35" width="${w.toFixed(2)}" height="2.5" rx="1.25" fill="${fill(i)}"/>`).join("");
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><rect width="48" height="48" rx="11" fill="#151515"/><path d="M10.4 13.8l5.2 5.2-5.2 5.2M23.2 13.8L18 19l5.2 5.2" fill="none" stroke-width="3" stroke="#E1E1E1"/><path d="M32 13.8L26.8 19l5.2 5.2M34.4 13.8l5.2 5.2-5.2 5.2" fill="none" stroke-width="3" stroke="#83D63A"/>${seg}</svg>`;
-  link.setAttribute("href", `data:image/svg+xml,${encodeURIComponent(svg)}`);
-}
 /** Earlier messages load before you reach them (hub #28). Within about a screen of the top, the next
  *  page is fetched, and it lands above what you're reading without moving it; a first page too short to
  *  scroll keeps loading until it fills the view or the conversation begins. A thread pages the same way. */
@@ -3985,7 +3967,10 @@ allEl.addEventListener("click", (e) => {
   if (g) { allEl.hidden = true; go(g.dataset.go); }
 });
 
-// ── Create XO Project (js/create.js): start empty or clone a repository ─────
+// ── phone drawer ────────────────────────────────────────────────────────────
+const setDrawer = createDrawer({ phone: PHONE, syncInert });
+
+// ── Create XO Project (modules/create-project/create.js): start empty or clone a repository ─────
 const CREATE = initCreate({
   world, S, go, heraldShow, announce, setDrawer,
   // On a phone the sidebar button that opened it is inside the closed drawer: return to the menu.
@@ -3993,94 +3978,39 @@ const CREATE = initCreate({
 });
 $("#side-add").addEventListener("click", CREATE.open);
 
-// ── phone drawer ────────────────────────────────────────────────────────────
-let drawerReturn = null;
-function setDrawer(open) {
-  if (!PHONE.matches && open) return;
-  if (open) drawerReturn = document.activeElement;
-  $("#app").classList.toggle("drawer", !!open);
-  $("#side-scrim").hidden = !open;
-  $("#pb-menu").setAttribute("aria-expanded", String(!!open));
-  $("#top-menu").setAttribute("aria-expanded", String(!!open));
-  syncInert();
-  if (open) $("#nv-home").focus();
-  else if ($("#side").contains(document.activeElement) || document.activeElement === document.body) {
-    const back = [drawerReturn, $("#top-menu"), $("#pb-menu")].find((b) => b && b.isConnected && b.offsetParent && !b.closest("[inert]"));
-    if (PHONE.matches) back?.focus({ preventScroll: true });
-  }
-}
-$("#pb-menu").addEventListener("click", () => setDrawer(true));
-$("#top-menu").addEventListener("click", () => setDrawer(true));
-$("#side-x").addEventListener("click", () => setDrawer(false));
-$("#side-scrim").addEventListener("click", () => setDrawer(false));
-
 // ── jump (⌘K) ───────────────────────────────────────────────────────────────
-const jump = $("#jump"), jq = $("#jump-q"), jl = $("#jump-list");
-let jsel = 0, jitems = [];
-/** A thread's icon in ⌘K: its state glyph, the one every list uses (the blue working arc while it works, amber
-    when it needs you); no dot on a corner (the owner: no blue dots anywhere). */
+const jump = $("#jump");
+/** A thread's icon in ⌘K: its state glyph, the one every list uses (amber when it needs you). */
 function threadIc(t) {
   const n = D.needItems().some((x) => x.t.id === t.id && x.admitted);
   return `<span class="j-th"><i class="g g-${n ? "needs_reply" : glyphOf(t)}" aria-hidden="true"></i></span>`;
 }
-function jumpRender() {
-  const q = jq.value.trim().toLowerCase();
+function jumpPlaces() {
   const all = [{ v: "home", name: "Home", sub: "Your next move", icon: ICON.home }, { v: "ws", name: "Workspace", sub: "The coordinator", icon: XO }, { v: "chats", name: "Chats", sub: "One agent, one folder", icon: ICON.thread }, { v: "artifacts", name: "Artifacts", sub: "Everything your threads made", icon: ICON.stack }];
   for (const p of projects()) {
     all.push({ v: "p:" + p.id, name: p.name, sub: "Project", icon: projectIcon(p.id) });
     for (const t of threadsOf(p.id)) all.push({ v: "t:" + t.id, name: t.title, sub: `${p.name} · ${wordOf(t).toLowerCase()}`, icon: threadIc(t), t: true });
   }
-  // verbs, after the places and only when typed for: searching never runs one; Enter or a click does
+  return all;
+}
+function jumpActions() {
   const light = document.documentElement.dataset.theme === "light";
-  const verbs = q ? [
+  return [
     { name: "New project…", sub: "Action", icon: ICON.plus, run: () => CREATE.open() },
     { name: "Settings", sub: "Action", icon: ICON.sliders, run: () => openSettings() },
     { name: "Keyboard shortcuts", sub: "Action", icon: ICON.sliders, run: () => openKeys() },
     { name: light ? "Dark mode" : "Light mode", sub: "Action", icon: light ? ICON.moon : ICON.sun, run: () => $("#theme").click() },
     ...(IQ.kindOf(sessionOf(S.view)) ? [{ name: "Intelligence: model and thinking", sub: "Action", icon: ICON.sliders, run: () => IQ.open(sessionOf(S.view), $("#iq")) }] : []),
     ...(S.view !== "home" && S.view !== "artifacts" ? [{ name: "Threads, Changes and Map", sub: "Action", icon: ICON.sliders, run: () => STAGE.toggle() }] : []),
-  ].filter((x) => x.name.toLowerCase().includes(q)) : [];
-  jitems = all.filter((x) => !q || (x.name + " " + x.sub).toLowerCase().includes(q)).concat(verbs, REC.jumpItems(q));
-  jsel = Math.min(jsel, Math.max(0, jitems.length - 1));
-  jl.innerHTML = jitems.map((x, i) => `<li role="option" id="j-${i}" aria-selected="${i === jsel}" data-i="${i}" class="${x.t ? "is-t" : ""}"><span class="j-ic">${x.icon}</span><span class="j-n">${esc(x.name)}</span><span class="j-s">${esc(x.sub)}</span></li>`).join("") || `<li class="j-none">Nothing matches “${esc(q)}”.</li>`;
-  jq.setAttribute("aria-activedescendant", jitems.length ? `j-${jsel}` : "");
-  jl.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: "nearest" });
+  ];
 }
-let jumpReturn = null;
-/**
- * Focus an overlay that is opening. A native modal still closing (Create's 160 ms) holds focus until it lets go,
- * and then hands it back to whatever opened it: the overlay takes it now if it can, and again once the modal has
- * closed, so the person's keys land where they now look (Astra C020: Create, Esc, Ctrl+K at once).
- */
+// Focus an opening overlay now, and again once a native modal still closing (Create's 160 ms) lets go of it.
 function focusOverlay(target) {
   target.focus({ preventScroll: true });
   const modal = [...document.querySelectorAll("dialog[open]")].find((d) => d.matches(":modal"));
   if (modal) modal.addEventListener("close", () => { if (target.isConnected && !target.closest("[hidden]")) target.focus({ preventScroll: true }); }, { once: true });
 }
-function openJump() { jumpReturn = document.activeElement; jump.hidden = false; jq.value = ""; jsel = 0; jumpRender(); focusOverlay(jq); }
-function closeJump({ restore = true } = {}) { if (jump.hidden) return; jump.hidden = true; syncInert(); if (restore && jumpReturn && jumpReturn.isConnected && jumpReturn.offsetParent) jumpReturn.focus({ preventScroll: true }); }
-jq.addEventListener("input", () => { jsel = 0; jumpRender(); });
-jq.addEventListener("keydown", (e) => {
-  // every key of a word being composed (an IME) is the word's: its arrows move among the candidates, Escape
-  // cancels it, Enter finishes it; none of them moves the selection or closes Jump (Astra SRC-MAIN-IME-1)
-  if (e.isComposing || e.keyCode === 229) return;
-  if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); jsel = (jsel + (e.key === "ArrowDown" ? 1 : jitems.length - 1)) % Math.max(1, jitems.length); jumpRender(); }
-  // Enter while a word is being composed (an IME) finishes the word; with nothing found, Jump stays open on what
-  // you typed (it never closes onto nothing: Astra, e20231c)
-  if (e.key === "Enter") { e.preventDefault(); const x = jitems[jsel]; if (!x) { announce("Nothing matches. Change what you typed, or Esc to close."); return; } closeJump({ restore: !!x.run }); x.run ? x.run() : go(x.v); }
-  if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeJump(); }
-});
-// the row under a moving pointer becomes the selection, as the arrows make it (only on a real move: a list
-// scrolling under a still pointer never steals the keyboard's row)
-jl.addEventListener("pointermove", (e) => {
-  const li = e.target.closest("[data-i]");
-  if (!li || +li.dataset.i === jsel) return;
-  jl.querySelector('[aria-selected="true"]')?.setAttribute("aria-selected", "false");
-  jsel = +li.dataset.i; li.setAttribute("aria-selected", "true");
-  jq.setAttribute("aria-activedescendant", li.id);
-});
-jl.addEventListener("click", (e) => { const li = e.target.closest("[data-i]"); if (li) { const x = jitems[+li.dataset.i]; closeJump({ restore: !!x.run }); if (x.run) x.run(); else go(x.v); } });
-jump.addEventListener("mousedown", (e) => { if (e.target === jump) closeJump(); });
+const JUMP = createJump({ host: jump, field: $("#jump-q"), list: $("#jump-list"), places: jumpPlaces, actions: jumpActions, more: (q) => REC.jumpItems(q), go: (v) => go(v), announce, focusIn: focusOverlay, onHidden: () => syncInert() });
 
 // ── one layer on top ──────────────────────────────────────────────────────────
 // A sheet (Jump, Keys, All threads, Runs) is modal: everything under it is inert, so Tab and Shift+Tab stay in
@@ -4207,7 +4137,6 @@ function closeKeys() { keys.hidden = true; syncInert(); keysReturn?.focus?.({ pr
 
 // ── settings: a page over the main area; closing it returns exactly where you were ──
 const setEl = $("#settings");
-let setReturn = null;
 const SETS = createSettings({ world, announce, PROJ, onChange: () => schedule() });
 const RTSET = createRuntimeSettings({ world, announce, PROJ });
 // Settings › Shape and the page's own reading of the shape (density, work, rail)
@@ -4249,45 +4178,16 @@ async function unfreeze(tid, btn) {
     schedule();
   } catch (err) { announce(`Couldn't pick it back up: ${err.message}`); if (btn) { btn.removeAttribute("aria-disabled"); btn.removeAttribute("aria-busy"); } }
 }
-function setPage(id) {
-  // the rail is a tablist: only the chosen tab is in the Tab order (arrows move between them), Tab goes on into its page
-  for (const b of $$("[data-set]")) { const on = b.dataset.set === id; b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1; }
-  for (const p of $$("[data-page]")) p.hidden = p.dataset.page !== id;
-  SETS.open(id);
-  if (id === "runtimes") RTSET.open();
-  if (id === "shape") SV.open();
-}
-function openSettings() {
-  if (!setEl.hidden) return;
-  // the layers Settings takes the place of close first (a phone's drawer hands the keyboard back to its menu):
-  // where the keyboard is then is where closing Settings returns it
-  setDrawer(false);
-  if (D.isOpen()) D.close();
-  IQ.close({ restore: false });
-  setReturn = document.activeElement;
-  setEl.hidden = false;
-  $("#set-side").classList.add("is-on");
-  $("#set-side").setAttribute("aria-expanded", "true");
-  const first = setEl.querySelector('[aria-selected="true"]');
-  if (first) focusOverlay(first);
-}
-function closeSettings({ restore = true } = {}) {
-  if (setEl.hidden) return;
-  if (S.recording) { S.recording = null; keysPageRender(); }
-  setEl.hidden = true;
-  syncInert();
-  $("#set-side").classList.remove("is-on");
-  $("#set-side").setAttribute("aria-expanded", "false");
-  // back where you were, if it can take the keyboard (there, drawn, not inert, not disabled); else the composer
-  const takes = (el) => !!el && el !== document.body && el.isConnected && el.getClientRects().length > 0 && !el.closest("[inert]") && !el.disabled;
-  if (restore) [setReturn, say].find(takes)?.focus({ preventScroll: true });
-}
-$("#set-side").addEventListener("click", () => (setEl.hidden ? openSettings() : closeSettings()));
-$("#set-phone").addEventListener("click", openSettings);
-$("#set-x").addEventListener("click", () => closeSettings());
-for (const b of $$("[data-set]")) b.addEventListener("click", () => setPage(b.dataset.set));
-/** A link into one Settings page (a thread's runtime name opens Runtimes). */
-document.addEventListener("click", (e) => { const b = e.target.closest("[data-set-open]"); if (b) { setPage(b.dataset.setOpen); if (setEl.hidden) openSettings(); else setEl.querySelector('[aria-selected="true"]')?.focus({ preventScroll: true }); } });
+const SETF = createSettingsFrame({
+  el: setEl, side: $("#set-side"), phoneButton: $("#set-phone"), closeButton: $("#set-x"), phone: PHONE, focusIn: focusOverlay, fallback: () => say,
+  onPage: (id) => { SETS.open(id); if (id === "runtimes") RTSET.open(); if (id === "shape") SV.open(); },
+  // a phone's drawer hands the keyboard back to its menu first, so closing Settings returns it there
+  beforeOpen: () => { setDrawer(false); if (D.isOpen()) D.close(); IQ.close({ restore: false }); },
+  beforeClose: () => { if (S.recording) { S.recording = null; KP.render(); } },
+  onHidden: () => syncInert(),
+});
+function openSettings() { SETF.open(); }
+function closeSettings(o) { SETF.close(o); }
 
 // ── shortcuts: one list (keys.js) drives the handlers, the tooltips, the sheet and this page ──
 function keysSheetRender() {
@@ -4295,65 +4195,9 @@ function keysSheetRender() {
     K.ACTIONS.filter((a) => a.scope === g).map((a) => `<dt><kbd>${esc(K.label(a.id))}</kbd></dt><dd>${esc(a.label)}</dd>`).join("")).join("")}</dl>`;
   $("#keys-cols").innerHTML = col(["global", "picture"]) + col(["decision", "intel"]);
 }
-/** The Keyboard page, drawn in place: the key under the keyboard stays the same node as it records, cancels or changes. */
-function keysPageRender() {
-  const box = $("#set-keys-list");
-  const rec = S.recording, err = S.keyErr;
-  redraw(box, `<p class="kp-t">Click a key to change it. Keys that work anywhere need ⌘ or Ctrl, or a symbol like / or ?, so typing never sets them off. Your keys are kept in this browser.</p>` +
-    K.GROUPS.map((g) => `<section class="kg" aria-labelledby="kg-${g.id}"><h3 id="kg-${g.id}">${esc(g.name)}</h3><div class="kl">` +
-      K.ACTIONS.filter((a) => a.scope === g.id).map((a) => {
-        const key = a.fixed
-          ? `<span class="kr-k is-fixed" title="This one is fixed"><kbd>${esc(a.fixed)}</kbd></span>`
-          : `<button type="button" class="kr-k${rec === a.id ? " is-rec" : ""}" data-rebind="${a.id}" aria-label="${esc(a.label)}: ${esc(K.label(a.id))}. ${rec === a.id ? "Press the new key, or Esc to cancel" : "Change it"}">${rec === a.id ? `<span class="kr-rec">Press a key…</span>` : `<kbd>${esc(K.label(a.id))}</kbd>`}</button>`;
-        const reset = !a.fixed && K.changed(a.id) ? `<button type="button" class="kr-r" data-kreset="${a.id}" title="Back to ${esc(K.show(a.def))}" aria-label="Reset ${esc(a.label)} to ${esc(K.show(a.def))}">${ICON.retry}</button>` : `<span class="kr-r" aria-hidden="true"></span>`;
-        return `<div class="kr${K.changed(a.id) ? " is-changed" : ""}${a.fixed ? " is-fixed" : ""}"><span class="kr-l">${esc(a.label)}</span>${key}${reset}</div>` +
-          (err && err.id === a.id ? `<p class="kr-err" role="alert">${esc(err.msg)}</p>` : "");
-      }).join("") + `</div></section>`).join("") +
-    `<div class="kp-f"><button type="button" class="btn" id="keys-reset-all"${K.anyChanged() ? "" : " disabled"}>${ICON.retry}Reset all to defaults</button></div>`);
-}
-$("#set-keys-list").addEventListener("click", (e) => {
-  const rb = e.target.closest("[data-rebind]");
-  if (rb) { S.keyErr = null; S.recording = S.recording === rb.dataset.rebind ? null : rb.dataset.rebind; keysPageRender(); return; }
-  // a reset takes its own button away (nothing left to reset): the keyboard goes to the key it reset,
-  // and after Reset all, which disables itself, to the first key in the list
-  const rs = e.target.closest("[data-kreset]");
-  if (rs) { const id = rs.dataset.kreset; S.keyErr = null; K.reset(id); $(`[data-rebind="${id}"]`)?.focus({ preventScroll: true }); return; }
-  if (e.target.closest("#keys-reset-all")) { S.keyErr = null; S.recording = null; K.resetAll(); $("#set-keys-list [data-rebind]")?.focus({ preventScroll: true }); }
-});
-document.addEventListener("pointerdown", (e) => {
-  // a click anywhere but a key chip cancels a recording
-  if (S.recording && !e.target.closest?.("[data-rebind]")) { S.recording = null; S.keyErr = null; keysPageRender(); }
-}, true);
-addEventListener("keydown", (e) => {
-  if (!S.recording) return;
-  e.preventDefault(); e.stopPropagation();
-  if (e.key === "Escape" && !e.metaKey && !e.ctrlKey) { S.recording = null; S.keyErr = null; keysPageRender(); return; }
-  const combo = K.fromEvent(e);
-  if (!combo) return; // a modifier on its own: keep listening
-  const id = S.recording;
-  const r = K.set(id, combo);
-  S.recording = null;
-  S.keyErr = r.error ? { id, msg: r.error } : null;
-  keysPageRender();
-  if (r.ok) announce(`${K.ACTIONS.find((a) => a.id === id).label}: ${K.label(id)}`);
-}, true);
-K.onChange(() => { keysPageRender(); if (!keys.hidden) keysSheetRender(); schedule(); });
-keysPageRender();
-// the rail's keys (WAI-ARIA tabs, chosen as they're reached): down/right the next, up/left the previous, wrapping; Home, End
-setEl.querySelector(".set-nav").addEventListener("keydown", (e) => {
-  if (e.altKey || e.ctrlKey || e.metaKey) return;
-  const tabs = $$("[data-set]");
-  const i = tabs.indexOf(document.activeElement);
-  if (i < 0) return;
-  const j = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1
-    : e.key === "ArrowDown" || e.key === "ArrowRight" ? (i + 1) % tabs.length
-    : e.key === "ArrowUp" || e.key === "ArrowLeft" ? (i + tabs.length - 1) % tabs.length : -1;
-  if (j < 0) return;
-  e.preventDefault();
-  tabs[j].focus(); setPage(tabs[j].dataset.set);
-});
-// a column of tabs at the side; on a phone, a row across the top
-{ const nav = setEl.querySelector(".set-nav"), orient = () => nav.setAttribute("aria-orientation", PHONE.matches ? "horizontal" : "vertical"); orient(); PHONE.addEventListener("change", orient); }
+const KP = createKeysPage({ box: $("#set-keys-list"), state: S, announce, resetIcon: ICON.retry });
+K.onChange(() => { KP.render(); if (!keys.hidden) keysSheetRender(); schedule(); });
+KP.render();
 
 // ── theme toggle ────────────────────────────────────────────────────────────
 $("#theme").addEventListener("click", () => {
@@ -4364,211 +4208,7 @@ $("#theme").addEventListener("click", () => {
 });
 
 // ── the sidebar: folds to its rail; More holds every further place ─────────────
-// Folded, the sidebar is a rail of the same rows with their words hidden (64 = 12 + a 40 row + 12, tokens.css
-// --side-rail-w); a row's name is its tooltip. Kept per browser. Not on a phone: there the sidebar is a drawer.
-const SIDE = {
-  KEY: "xo-side-folded", PINS: "xo-side-pins",
-  folded: (() => { try { return localStorage.getItem("xo-side-folded") === "1"; } catch { return false; } })(),
-  fold(on, { quiet = false } = {}) {
-    SIDE.folded = !!on;
-    try { localStorage.setItem(SIDE.KEY, on ? "1" : "0"); } catch { /* private */ }
-    $("#app").classList.toggle("side-folded", SIDE.folded);
-    const b = $("#side-fold");
-    b.setAttribute("aria-expanded", String(!SIDE.folded));
-    b.setAttribute("aria-label", SIDE.folded ? "Show the sidebar" : "Fold the sidebar");
-    b.title = `${SIDE.folded ? "Show" : "Fold"} the sidebar${K.hint("sideFold")}`;
-    $("#side-jump").title = `Search and jump${K.hint("jump")}`;
-    // the places' names become their tooltips while the words are hidden
-    for (const r of $$("#side .nav .nrow")) { const n = r.querySelector(".nr-name")?.textContent || ""; if (SIDE.folded) r.title = n; else r.removeAttribute("title"); }
-    SIDE.closeMore();
-    if (!quiet) { announce(SIDE.folded ? "Sidebar folded" : "Sidebar shown"); render(); }
-  },
-  // The bar (the owner, 19 Nov 14:29Z: "customize the bar: what to keep, what not to keep"): every place, in the
-  // order you set; the ones you keep are rows, the rest wait in More. Kept in your shape (layout.side, js/shape.js),
-  // so it follows you to every device; what this browser kept before is moved there once. Settings' own pages are
-  // places too; new places arrive in More.
-  BAR: "xo-side-bar",
-  CORE: [
-    { id: "home", name: "Home", sel: "#nv-home" },
-    { id: "ws", name: "Workspace", sel: "#nv-ws" },
-    { id: "chats", name: "Chats", sel: "#nv-chats" },
-    { id: "arts", name: "Artifacts", sel: "#nv-arts" },
-  ],
-  PLACES: [
-    { id: "runtimes", name: "Runtimes", ic: () => ICON.runtime },
-    { id: "routing", name: "Routing", ic: () => ICON.router },
-    { id: "rules", name: "Rules", ic: () => ICON.rule },
-    { id: "worktrees", name: "Worktrees", ic: () => ICON.branch },
-    { id: "keys", name: "Keyboard", ic: () => ICON.key },
-  ],
-  all() { return [...SIDE.CORE, ...SIDE.PLACES]; },
-  byId(id) { return SIDE.all().find((p) => p.id === id); },
-  /** {order, shown}: what you saved, made whole (a place it doesn't know joins at the end, hidden; one it knows
-   *  no more is dropped). Before this, More's pins said which of Settings' pages showed: they still do. */
-  bar() {
-    const ids = SIDE.all().map((p) => p.id), def = { order: ids, shown: SIDE.CORE.map((p) => p.id) };
-    let v = SHAPE.get("layout")?.side ?? null;
-    if (v == null) { try { v = JSON.parse(localStorage.getItem(SIDE.BAR) || "null"); } catch { v = null; } }
-    if (!v || !Array.isArray(v.order) || !Array.isArray(v.shown)) {
-      let pins = [];
-      try { pins = JSON.parse(localStorage.getItem(SIDE.PINS) || "[]"); } catch { pins = []; }
-      return { order: def.order, shown: [...def.shown, ...(Array.isArray(pins) ? pins.filter((x) => ids.includes(x)) : [])] };
-    }
-    const order = [...v.order.filter((x) => ids.includes(x)), ...ids.filter((x) => !v.order.includes(x))];
-    return { order: [...new Set(order)], shown: v.shown.filter((x) => ids.includes(x)) };
-  },
-  save(b) { SHAPE.patchMine({ layout: { side: { order: b.order, shown: b.shown } } }); try { localStorage.removeItem(SIDE.BAR); localStorage.removeItem(SIDE.PINS); } catch { /* private */ } SIDE.apply(); },
-  isDefault(b = SIDE.bar()) { const d = SIDE.all().map((p) => p.id); return b.order.join() === d.join() && b.shown.join() === SIDE.CORE.map((p) => p.id).join(); },
-  reset() { SHAPE.patchMine({ layout: { side: null } }); try { localStorage.removeItem(SIDE.BAR); localStorage.removeItem(SIDE.PINS); } catch { /* private */ } SIDE.apply(); },
-  /** What this browser kept before the bar lived in your shape (its own key, or More's pins): moved there once. */
-  adopt() {
-    if (SHAPE.get("layout")?.side != null) return;
-    let had = false;
-    try { had = localStorage.getItem(SIDE.BAR) != null || localStorage.getItem(SIDE.PINS) != null; } catch { had = false; }
-    if (had && !SIDE.isDefault()) SIDE.save(SIDE.bar());
-  },
-  /** Keep a place in the bar, or send it to More (More's pin, the editor's switch). */
-  pin(id, on) {
-    const b = SIDE.bar();
-    b.shown = b.shown.filter((x) => x !== id);
-    if (on) b.shown.push(id);
-    SIDE.save(b);
-  },
-  /** Move a place one step (dir −1 / +1), or to before another (the editor's drag). */
-  move(id, dir, before = null) {
-    const b = SIDE.bar(), o = b.order.filter((x) => x !== id);
-    let at = before != null ? (before === "" ? o.length : o.indexOf(before)) : Math.max(0, Math.min(o.length, b.order.indexOf(id) + dir));
-    if (at < 0) at = o.length;
-    o.splice(at, 0, id);
-    b.order = o;
-    SIDE.save(b);
-  },
-  extras: new Map(), // a Settings page kept in the bar: its row, made once
-  /** The sidebar's rows, as the bar says: the four places are the page's own rows (they keep their counts), moved
-   *  and hidden; Settings' pages are rows made for them. All of them before More. */
-  apply() {
-    const b = SIDE.bar(), nav = $("#side .nav"), more = $("#nv-more");
-    for (const p of SIDE.PLACES) if (!b.shown.includes(p.id)) SIDE.extras.get(p.id)?.remove();
-    for (const id of b.order) {
-      const p = SIDE.byId(id), on = b.shown.includes(id);
-      let el = p.sel ? $(p.sel) : SIDE.extras.get(id);
-      if (!p.sel && on && !el) {
-        const t = document.createElement("template");
-        t.innerHTML = `<button type="button" class="nrow" data-set-open="${p.id}"><span class="nr-ic">${p.ic()}</span><span class="nr-name">${esc(p.name)}</span></button>`;
-        el = t.content.firstElementChild; SIDE.extras.set(id, el);
-      }
-      if (!el) continue;
-      if (p.sel) el.hidden = !on;
-      if (on || p.sel) { if (el.nextElementSibling !== more || el.parentNode !== nav) nav.insertBefore(el, more); }
-      if (on && SIDE.folded) el.title = p.name;
-    }
-    if (!$("#side-more").hidden) SIDE.drawMore();
-  },
-  drawPins() { SIDE.apply(); },
-  /** More: the places you didn't keep, each with its pin, and "Edit the sidebar…"; or, editing, every place with
-   *  its switch and its grip (drag, or ↑ ↓ on the grip), Reset and Done. */
-  drawMore() {
-    const b = SIDE.bar(), pop = $("#side-more");
-    const icon = (p) => (p.ic ? p.ic() : $(p.sel)?.querySelector(".nr-ic")?.innerHTML || "");
-    let html;
-    if (SIDE.editing) {
-      pop.setAttribute("role", "dialog"); pop.setAttribute("aria-label", "Edit the sidebar");
-      html = `<div class="se-h"><b>Edit the sidebar</b><span>Keep a place in the bar, or leave it in More. Drag to reorder, or ↑ ↓ on its grip.</span></div><ul class="se-list">` +
-        b.order.map((id) => { const p = SIDE.byId(id), on = b.shown.includes(id);
-          return `<li class="se-row${on ? "" : " is-off"}" data-se="${id}" draggable="true">` +
-            `<button type="button" class="se-grip" data-se-grip="${id}" aria-label="Move ${esc(p.name)}: up or down arrow" title="Drag, or ↑ ↓">${xi("drag-handle")}</button>` +
-            `<span class="nr-ic">${icon(p)}</span><span class="nr-name">${esc(p.name)}</span>` +
-            `<button type="button" class="switch se-sw" role="switch" data-se-sw="${id}" aria-checked="${on}" aria-label="Keep ${esc(p.name)} in the sidebar"><span class="th-track" aria-hidden="true"><span class="th-knob"></span></span></button></li>`; }).join("") +
-        `</ul><div class="se-f"><button type="button" class="btn" data-se-reset${SIDE.isDefault(b) ? " disabled" : ""}>Reset to default</button><button type="button" class="btn btn-pri" data-se-done>Done</button></div>`;
-    } else {
-      pop.setAttribute("role", "menu"); pop.setAttribute("aria-label", "More places");
-      const rest = b.order.filter((id) => !b.shown.includes(id)).map((id) => SIDE.byId(id));
-      html = rest.map((p) => {
-        const go = p.sel ? `data-go="${$(p.sel).dataset.go}"` : `data-set-open="${p.id}"`;
-        return `<div class="sm-row" role="none"><button type="button" class="nrow" role="menuitem" ${go}><span class="nr-ic">${icon(p)}</span><span class="nr-name">${esc(p.name)}</span></button>` +
-          `<button type="button" class="sm-pin" data-side-pin="${p.id}" aria-pressed="false" title="Keep in the sidebar" aria-label="Keep ${esc(p.name)} in the sidebar">${ICON.pin}</button></div>`; }).join("") +
-        `${rest.length ? `<div class="sm-sep" role="separator"></div>` : ""}<div class="sm-row" role="none"><button type="button" class="nrow" role="menuitem" data-side-edit><span class="nr-ic">${ICON.edit}</span><span class="nr-name">Edit the sidebar…</span></button></div>`;
-    }
-    if (pop._h !== html) { redraw(pop, html); pop._h = html; }
-  },
-  editing: false,
-  edit(on) {
-    SIDE.editing = !!on; SIDE.drawMore();
-    const pop = $("#side-more");
-    (on ? pop.querySelector("[data-se-grip]") : pop.querySelector('[role="menuitem"]'))?.focus({ preventScroll: true });
-  },
-  openMore() {
-    const pop = $("#side-more"), row = $("#nv-more");
-    SIDE.drawMore();
-    pop.hidden = false;
-    row.setAttribute("aria-expanded", "true"); row.classList.add("is-on");
-    // it springs from its row: beside it, level with it
-    const r = row.getBoundingClientRect();
-    pop.style.setProperty("--pop-x", `${Math.round(r.right)}px`); pop.style.setProperty("--pop-y", `${Math.round(r.top)}px`);
-    pop.querySelector('[role="menuitem"]')?.focus({ preventScroll: true });
-  },
-  closeMore({ focus = false } = {}) {
-    const pop = $("#side-more"), row = $("#nv-more");
-    if (!pop || pop.hidden) return;
-    pop.hidden = true; SIDE.editing = false;
-    row.setAttribute("aria-expanded", "false"); row.classList.remove("is-on");
-    if (focus) row.focus({ preventScroll: true });
-  },
-};
-$("#side-fold").addEventListener("click", () => SIDE.fold(!SIDE.folded));
-$("#side-jump").addEventListener("click", () => (jump.hidden ? openJump() : closeJump()));
-$("#nv-more").addEventListener("click", () => ($("#side-more").hidden ? SIDE.openMore() : SIDE.closeMore({ focus: true })));
-$("#side-more").addEventListener("click", (e) => {
-  const t = e.target, pop = $("#side-more");
-  const pin = t.closest("[data-side-pin]");
-  if (pin) { const id = pin.dataset.sidePin; SIDE.pin(id, true); announce(`${SIDE.byId(id).name} is in the sidebar`); pop.querySelector('[role="menuitem"]')?.focus({ preventScroll: true }); return; }
-  if (t.closest("[data-side-edit]")) { SIDE.edit(true); return; }
-  const sw = t.closest("[data-se-sw]");
-  if (sw) { const id = sw.dataset.seSw, on = sw.getAttribute("aria-checked") !== "true"; SIDE.pin(id, on); announce(`${SIDE.byId(id).name}: ${on ? "in the sidebar" : "in More"}`); pop.querySelector(`[data-se-sw="${id}"]`)?.focus({ preventScroll: true }); return; }
-  if (t.closest("[data-se-reset]")) { SIDE.reset(); announce("The sidebar is back to its default"); pop.querySelector("[data-se-done]")?.focus({ preventScroll: true }); return; }
-  if (t.closest("[data-se-done]")) { SIDE.edit(false); return; }
-  if (t.closest("[data-set-open],[data-go]")) SIDE.closeMore();
-});
-$("#side-more").addEventListener("keydown", (e) => {
-  const grip = e.target.closest?.("[data-se-grip]");
-  if (grip && (e.key === "ArrowUp" || e.key === "ArrowDown") && !e.metaKey && !e.ctrlKey) {
-    e.preventDefault();
-    const id = grip.dataset.seGrip;
-    SIDE.move(id, e.key === "ArrowUp" ? -1 : 1);
-    const b = SIDE.bar();
-    announce(`${SIDE.byId(id).name}: ${b.order.indexOf(id) + 1} of ${b.order.length}`);
-    $(`#side-more [data-se-grip="${id}"]`)?.focus({ preventScroll: true });
-    return;
-  }
-  if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); if (SIDE.editing) SIDE.edit(false); else SIDE.closeMore({ focus: true }); return; }
-  if (SIDE.editing) return;
-  const items = $$('#side-more [role="menuitem"]'), i = items.indexOf(document.activeElement);
-  if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); const j = (i + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length; items[j]?.focus({ preventScroll: true }); }
-});
-// the editor's drag: a row dropped on another goes before it (after it, past its middle)
-$("#side-more").addEventListener("dragstart", (e) => { const r = e.target.closest?.(".se-row"); if (!r) return; e.dataTransfer.setData("text/x-xo-place", r.dataset.se); e.dataTransfer.effectAllowed = "move"; r.classList.add("is-drag"); });
-$("#side-more").addEventListener("dragend", (e) => { e.target.closest?.(".se-row")?.classList.remove("is-drag"); $$("#side-more .se-row.is-over").forEach((x) => x.classList.remove("is-over", "is-after")); });
-$("#side-more").addEventListener("dragover", (e) => {
-  const r = e.target.closest?.(".se-row"); if (!r) return;
-  e.preventDefault(); e.dataTransfer.dropEffect = "move";
-  const after = e.clientY > r.getBoundingClientRect().top + r.offsetHeight / 2;
-  $$("#side-more .se-row.is-over").forEach((x) => x !== r && x.classList.remove("is-over", "is-after"));
-  r.classList.add("is-over"); r.classList.toggle("is-after", after);
-});
-$("#side-more").addEventListener("drop", (e) => {
-  const r = e.target.closest?.(".se-row"), id = e.dataTransfer.getData("text/x-xo-place");
-  if (!r || !id || r.dataset.se === id) return;
-  e.preventDefault();
-  const after = e.clientY > r.getBoundingClientRect().top + r.offsetHeight / 2;
-  const next = after ? r.nextElementSibling?.dataset.se ?? "" : r.dataset.se;
-  if (next !== id) SIDE.move(id, 0, next);
-});
-document.addEventListener("pointerdown", (e) => { if (!$("#side-more").hidden && !e.target.closest("#side-more,#nv-more")) SIDE.closeMore(); });
-SIDE.apply();
-// your shape is read from Storm after load (and another device can change it): the bar follows; this browser's old
-// copy moves into it once it's read
-SHAPE.synced.then(() => { SIDE.adopt(); SIDE.apply(); });
-SHAPE.onChange(() => SIDE.apply());
+const SIDE = createSide({ shape: SHAPE, keys: K, announce, render, toggleJump: () => (jump.hidden ? JUMP.open() : JUMP.close()) });
 
 // the Map's toggle, in every conversation's header
 document.addEventListener("click", (e) => { if (e.target.closest?.("[data-stage-toggle]")) STAGE.toggle(); else if (e.target.closest?.("[data-stage-open]")) STAGE.threads(); else if (e.target.closest?.("[data-lp-open]")) STAGE.launch(); });
@@ -4576,7 +4216,7 @@ document.addEventListener("click", (e) => { if (e.target.closest?.("[data-stage-
 // ── global keys ─────────────────────────────────────────────────────────────
 const GLOBAL = {
   shells: () => SH.toggle(),
-  jump: () => (jump.hidden ? openJump() : closeJump()),
+  jump: () => (jump.hidden ? JUMP.open() : JUMP.close()),
   intel: () => (IQ.isOpen ? IQ.close() : IQ.open(sessionOf(S.view), $("#iq"))),
   write: () => say.focus(),
   keys: () => openKeys(),
@@ -4597,7 +4237,7 @@ addEventListener("keydown", (e) => {
   // also fold the tree (the editor's keymap answers first, and says so with preventDefault)
   const g = K.globalFor(e), taken = e.defaultPrevented && K.typing(e);
   if (g && K.hasMod(g) && !taken && runGlobal(g)) { e.preventDefault(); return; }
-  if (!jump.hidden) { if (e.key === "Escape") { e.preventDefault(); closeJump(); } return; }
+  if (!jump.hidden) { if (e.key === "Escape") { e.preventDefault(); JUMP.close(); } return; }
   if (IQ.isOpen) { if (e.key === "Escape") { e.preventDefault(); IQ.close(); } return; }
   if (CREATE.isOpen()) return;
   if (e.key === "Escape") {
@@ -4637,30 +4277,29 @@ function runGlobal(id) {
 }
 
 // ── the phone's own Back (Android's back gesture, Safari's edge swipe) ──────
-// The app keeps one history entry of its own while there is somewhere to go back to. Back then does
-// what Esc does (the top sheet, the viewer, Settings, the sidebar), then a thread's parent, then the
-// places you came through; with nothing left it lets the browser leave.
-const sheetsOpen = () => QO.isOpen || !jump.hidden || !keys.hidden || !allEl.hidden || RS.open || CREATE.isOpen() || IQ.isOpen || CH.setupOpen;
+// One history entry of the app's own while there's somewhere to go back to: Back closes the top-most open layer, then goes to a thread's parent, then the places you came through; with nothing left the browser leaves.
+const LAYERS = stackLayers(kernel.layers, [
+  { id: "create", open: () => CREATE.isOpen(), back: () => { CREATE.close(); } },
+  { id: "jump", open: () => !jump.hidden, back: () => { JUMP.close(); } },
+  { id: "intel", open: () => IQ.isOpen, back: () => { IQ.close(); } },
+  { id: "chat-setup", open: () => CH.setupOpen, back: () => { CH.closeSetup(); } },
+  { id: "runs", open: () => RS.open, back: () => { runsEscape(); } },
+  { id: "keys", open: () => !keys.hidden, back: () => { closeKeys(); } },
+  { id: "all", open: () => !allEl.hidden, back: () => { closeAll(); } },
+  { id: "lightbox", open: () => LB.isOpen, back: () => { LB.close(); }, overlay: false },
+  { id: "files-page", open: () => FP.isOpen, back: () => { STAGE.sections(); } },
+  { id: "panel-sheet", open: () => STAGE.isOpen && PHONE.matches, back: () => { STAGE.close(); } },
+  { id: "settings", open: () => !setEl.hidden, back: () => { closeSettings(); } },
+  { id: "shells", open: () => SH.raised, back: () => SH.lower() },
+  { id: "drawer", open: () => $("#app").classList.contains("drawer"), back: () => { setDrawer(false); } },
+  { id: "decisions", open: () => D.isOpen(), back: () => { D.close(); } },
+  { id: "quickopen", open: () => QO.isOpen, back: () => false },
+]);
 const placeOk = (v) => v === "home" || v === "ws" || v === "chats" || v === "artifacts" || (v.startsWith("p:") && !!world.project(v.slice(2))) || (v.startsWith("t:") && !!world.thread(v.slice(2))) || v.startsWith("c:");
-function canBack() {
-  return sheetsOpen() || LB.isOpen || FP.isOpen || (STAGE.isOpen && PHONE.matches) || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised || S.view !== "home" || S.trail.length > 0;
-}
+const canBack = () => LAYERS.open() || S.view !== "home" || S.trail.length > 0;
 /** One step back. False when there's nothing left in the app to go back to. */
 function stepBack() {
-  if (CREATE.isOpen()) { CREATE.close(); return true; }
-  if (!jump.hidden) { closeJump(); return true; }
-  if (IQ.isOpen) { IQ.close(); return true; }
-  if (CH.setupOpen) { CH.closeSetup(); return true; }
-  if (RS.open) { runsEscape(); return true; }
-  if (!keys.hidden) { closeKeys(); return true; }
-  if (!allEl.hidden) { closeAll(); return true; }
-  if (LB.isOpen) { LB.close(); return true; }
-  if (FP.isOpen) { STAGE.sections(); return true; }
-  if (STAGE.isOpen && PHONE.matches) { STAGE.close(); return true; }
-  if (!setEl.hidden) { closeSettings(); return true; }
-  if (SH.raised && SH.lower()) return true;
-  if ($("#app").classList.contains("drawer")) { setDrawer(false); return true; }
-  if (D.isOpen()) { D.close(); return true; }
+  if (kernel.layers.back()) return true;
   if (S.view.startsWith("t:") || S.view.startsWith("c:")) { back(); return true; }
   while (S.trail.length) {
     const v = S.trail.pop();
@@ -4691,7 +4330,7 @@ document.addEventListener("xo:gesture", armBack);
 // ── touch: gestures for the same moves (js/gestures.js), and the title back to the top ──
 wireGestures({
   phone: () => PHONE.matches,
-  overlay: () => sheetsOpen() || FP.isOpen || (STAGE.isOpen && PHONE.matches) || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised,
+  overlay: () => LAYERS.open({ overlay: true }),
   view: () => S.view,
   back,
   drawer: (open) => setDrawer(open),
@@ -4704,7 +4343,7 @@ wireGestures({
     { host: $("#panel"), open: () => PHONE.matches && D.isOpen(), close: () => D.close() },
     { host: allEl, card: () => allEl.querySelector(".sheet-card"), open: () => !allEl.hidden, close: closeAll },
     { host: runsEl, card: () => runsCard, open: () => RS.open, close: closeRuns },
-    { host: jump, card: () => jump.querySelector(".sheet-card"), open: () => !jump.hidden, close: closeJump },
+    { host: jump, card: () => jump.querySelector(".sheet-card"), open: () => !jump.hidden, close: JUMP.close },
     { host: keys, card: () => keys.querySelector(".sheet-card"), open: () => !keys.hidden, close: closeKeys },
     { host: $("#iq-pop"), open: () => IQ.isOpen && $("#iq-pop").classList.contains("is-sheet"), close: () => IQ.close() },
     { host: $("#cs-pop"), open: () => CH.setupOpen && $("#cs-pop").classList.contains("is-sheet"), close: () => { CH.closeSetup(); updateComposer(); } },

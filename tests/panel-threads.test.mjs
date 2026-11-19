@@ -5,7 +5,8 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const stage = readFileSync(new URL("../js/stage.js", import.meta.url), "utf8");
+import { panelSrc } from "./lib/panel-src.mjs";
+const stage = panelSrc;
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 const map = readFileSync(new URL("../js/map.js", import.meta.url), "utf8");
 const css = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
@@ -56,7 +57,7 @@ assert.match(app, /else if \(e\.target\.closest\?\.\("\[data-stage-open\]"\)\) S
 
 // with the panel open, the header's Threads still answers: Shell and Launchpad give way, Threads unfolds, focus lands
 // on its first thread and its head glows (the owner, 19 Nov 14:50Z: "clicking on threads doesn't do anything")
-const stg = readFileSync(new URL("../js/stage.js", import.meta.url), "utf8");
+const stg = readFileSync(new URL("../shell/panel/panel.js", import.meta.url), "utf8");
 const thFn = stg.slice(stg.indexOf("    threads() {"), stg.indexOf("    },", stg.indexOf("    threads() {")));
 assert.match(thFn, /if \(S\.page\) sections\(\{ paint: false \}\);\s*S\.lp = false; fr\.agents\.folded = false;\s*open\(\{ focus: false \}\);/);
 assert.match(thFn, /\(b\.querySelector\("\.tg-box \[data-go\]"\) \|\| el\.querySelector\('\[data-fr-fold="agents"\]'\)\)\?\.focus/);

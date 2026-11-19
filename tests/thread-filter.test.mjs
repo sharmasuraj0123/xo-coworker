@@ -4,8 +4,9 @@
 //   node tests/thread-filter.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { panelSrc } from "./lib/panel-src.mjs";
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
-const stage = read("js/stage.js"), app = read("js/app.js"), panel = read("css/panel.css"), found = read("css/foundation.css");
+const stage = panelSrc, app = read("js/app.js"), panel = read("css/panel.css"), found = read("css/foundation.css");
 
 // the match, run as written
 const m = /const matchesQ = (\(r, q\) => \{[^\n]*\});/.exec(stage);
@@ -24,9 +25,9 @@ assert.match(stage, /qBox\.hidden = !\(tg && \(total > FILTER_AT \|\| tq \|\| S\
 assert.match(stage, /if \(t\.closest\("\[data-tg-find\]"\)\) \{ findThreads\(\); return; \}/);
 assert.match(stage, /S\.tqOpen = true; paint\(\);\s*const q = el\.querySelector\("\[data-tg-q\]"\); q\.focus\(\{ preventScroll: true \}\); q\.select\(\);/);
 assert.match(stage, /if \(e\.key === "Escape" && S\.tqOpen\)/, "empty, Esc puts it away again");
-assert.match(stage, /set\("agents", body\("agents"\)\.querySelector\("\.tg-box"\), tg \? threadsHtml\(tg, tq\) : agentsHtml\(ag\)\);/);
+assert.match(stage, /set\("agents", body\("agents"\)\.querySelector\("\.tg-box"\), tg \? threadsHtml\(tg, tq, \{ folds: fr\.agents\.groups, more: S\.tgMore \}\) : agentsHtml\(ag, v\)\);/);
 assert.match(stage, /No thread matches “\$\{esc\(q\)\}”\. <button type="button" class="tg-clear" data-tg-clear>Clear the filter<\/button>/);
-assert.match(stage, /const g = q \? \{\} : fr\.agents\.groups \|\| \{\}, more = q \? \{ needs: 1, working: 1, waiting: 1, done: 1 \} : S\.tgMore \|\| \{\};/);
+assert.match(stage, /const g = q \? \{\} : folds \|\| \{\}, more = q \? \{ needs: 1, working: 1, waiting: 1, done: 1 \} : shownMore \|\| \{\};/);
 // keys: / in the panel, Esc clears first, ↓ and Enter go to the first match
 assert.match(stage, /if \(e\.key === "\/" && !e\.metaKey && !e\.ctrlKey && !e\.altKey && !e\.target\.closest\?\.\("input, textarea, \[contenteditable\]"\)\)/);
 assert.match(stage, /if \(!fr\.agents\.folded && el\.querySelector\('\[data-fr="agents"\]:not\(\[hidden\]\)'\)\) \{ e\.preventDefault\(\); e\.stopPropagation\(\); findThreads\(\); return; \}/);

@@ -7,10 +7,12 @@
 //   node tests/stage-pages.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-const stage = readFileSync(new URL("../js/stage.js", import.meta.url), "utf8");
+import { panelSrc } from "./lib/panel-src.mjs";
+const stage = panelSrc;
 const css = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
 
-assert.match(stage, /page, show, sections, closeTab, requestClose,\n\s*pages: \(\) => S\.tabs\.map/);
+assert.match(stage, /page: PG\.page, show, sections, closeTab: PG\.closeTab, requestClose,\n\s*pages: PG\.pages,/);
+assert.match(stage, /const pages = \(\) => S\.tabs\.map/);
 assert.match(stage, /const TAB_MAX = 5;/);
 // the Files thread's seven edits:
 // 1. hidden pages live on: mount once, onShow/onHide every switch, unmount only when the tab closes; a box each
@@ -51,9 +53,9 @@ assert.match(css, /\.stage \.stg-t:has\(\.pg-back\)\{align-items:center;gap:var\
 // inside the Shell page's terminal Esc is the shell's (vim), not the panel's: the stage's keys ask the shells' one rule
 // first (owns: inside #shd .xterm), as the app's keys do
 { const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8"), dock = readFileSync(new URL("../js/shells/dock.js", import.meta.url), "utf8");
-  assert.match(stage, /shell = null, owns = \(\) => false \}\) \{/);
-  assert.match(stage, /el\.addEventListener\("keydown", \(e\) => \{\n(\s*\/\/[^\n]*\n)*\s*if \(owns\(e\)\) return;/, "the terminal's keys before the panel's");
-  assert.match(app, /createStage\(\{[^\n]*owns: \(e\) => SH\.owns\(e\) \}\);/);
+  assert.match(stage, /shell = null, owns = \(\) => false, places \}\) \{/);
+  assert.match(stage, /el\.addEventListener\("keydown", \((?:\/\*\* @type \{any\} \*\/ )?e\) => \{\n(\s*\/\/[^\n]*\n)*\s*if \(owns\(e\)\) return;/, "the terminal's keys before the panel's");
+  assert.match(app, /createStage\(\{[^\n]*owns: \(e\) => SH\.owns\(e\), places: kernel\.places \}\);/);
   assert.match(dock, /return !!\(el && el\.closest && el\.closest\("#shd \.xterm"\)\);/);
   assert.match(app, /if \(SH\.owns\(e\)\) \{/); }
 console.log("stage-pages: ok");

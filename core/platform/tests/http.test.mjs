@@ -22,6 +22,7 @@ globalThis.fetch = /** @type {any} */ (async (url, init) => {
 });
 
 const A = await import("../../../js/api.js");
+const H = await import("../http.js");
 let passed = 0;
 const t = async (name, fn) => { calls = []; await fn(); passed++; console.log("  ok  " + name); };
 const pick = (e) => ({ status: e.status, code: e.code });
@@ -145,6 +146,19 @@ await t("one error parser: blobs, texts and uploads read every error shape as re
   assert.deepEqual([e.code, e.current], ["changed", { v: 3 }]);
   e = await rejects(A.attachmentText("c", "a"));
   assert.deepEqual([e.code, e.current], ["changed", { v: 3 }]);
+});
+await t("a failed answer whose body can't be read keeps its status: blobs, texts and requests alike", async () => {
+  const broken = (status) => ({ ...res(status, "", { statusText: "Gone" }), text: async () => { throw new TypeError("body stream broke"); }, json: async () => { throw new TypeError("body stream broke"); } });
+  answer = () => broken(410);
+  for (const p of [A.api.projectImage("p", "x.png"), A.attachmentText("c", "a"), A.request("/a")]) {
+    const e = await rejects(p);
+    assert.deepEqual([e.status, e.code, e.message], [410, "http_410", "410 Gone"]);
+  }
+});
+await t("signed and socket URLs keep a query the path already has, and add the token to it", async () => {
+  assert.equal(H.signedUrl("/x/file?relative_path=a%2Fb.png&hidden=true"), "api/x/file?relative_path=a%2Fb.png&hidden=true&coder_session_token=TOK%2F1");
+  assert.equal(H.signedUrl("/x"), "api/x?coder_session_token=TOK%2F1");
+  assert.equal(H.socketUrl("/t/ws?cols=80"), "wss://ws.example/app/api/t/ws?cols=80&coder_session_token=TOK%2F1");
 });
 await t("clientId: fresh each time, ui_ prefixed", async () => {
   const a = A.clientId(), b = A.clientId();

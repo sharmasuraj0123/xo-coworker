@@ -1,0 +1,18 @@
+@layer apps {
+  [data-m="apps-host"] .xa-title { margin: 0; font-size: var(--fs-lg); font-weight: var(--fw-strong); color: var(--ink); }
+  [data-m="apps-host"] .xa-pick { display: flex; align-items: baseline; gap: var(--s-2); }
+  [data-m="apps-host"] .xa-from { display: flex; flex-direction: column; gap: var(--s-2); margin: 0; padding: 0; border: 0; }
+  [data-m="apps-host"] .xa-from legend { margin-bottom: var(--s-1); color: var(--ink-3); font-size: var(--fs-sm); }
+  [data-m="apps-host"] .xa-back { justify-content: flex-start; }
+
+  .xa-frame { position: relative; display: flex; flex-direction: column; min-height: var(--h-lg); height: var(--xa-view-h, 100%); max-height: var(--xa-card-max, none); color: var(--ink-3); font-size: var(--fs-sm); }
+  .xa-frame-status { display: flex; align-items: center; justify-content: center; gap: var(--s-2); padding: var(--s-3); }
+  .xa-frame[data-state="live"] .xa-frame-status { display: none; }
+  .xa-frame[data-state="loading"] .xa-frame-view { visibility: hidden; position: absolute; }
+  .xa-frame-view { flex: 1; width: 100%; min-height: 0; border: 0; background: transparent; }
+
+  .xa-card { display: flex; flex-direction: column; max-height: var(--xa-card-max, none); border-radius: var(--r-lg); background: var(--surface); box-shadow: var(--lift-1); overflow: hidden; }
+  .xa-card-picture { margin: 0; display: flex; flex-direction: column; cursor: pointer; }
+  .xa-card-picture img { display: block; max-width: 100%; height: auto; }
+  .xa-card-picture figcaption { padding: var(--s-2) var(--s-3); color: var(--ink-2); font-size: var(--fs-sm); }
+}

@@ -1633,7 +1633,8 @@
    "home": [
     "modules/settings/shape.css",
     "core/ui (density)"
-   ]
+   ],
+   "note": "Settings › Shape and its rail label moved to modules/settings/shape.css, which css/shape.css imports first (same cascade place); density and the two composer and thread rules stay for core/ui"
   },
   "css/side.css": {
    "status": "planned",
@@ -2182,7 +2183,8 @@
   },
   "js/app.js": {
    "status": "split",
-   "home": "boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md \u00a72.6)"
+   "home": "boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md §2.6)",
+   "note": "moved so far: the sidebar (SIDE) to shell/rail/side.js, the phone drawer to shell/phone.js, the tab favicon to shell/favicon.js"
   },
   "js/attach.js": {
    "status": "split",
@@ -2229,8 +2231,8 @@
    "home": "modules/decisions/rank.js"
   },
   "js/create.js": {
-   "status": "planned",
-   "home": "modules/create-project/"
+   "status": "moved",
+   "home": "modules/create-project/create.js"
   },
   "js/decide.js": {
    "status": "split",
@@ -2459,7 +2461,7 @@
    "home": "modules/projects/projicons.js"
   },
   "js/quickopen.js": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/record.js": {
@@ -2498,11 +2500,9 @@
    "note": "js/ring.js re-exports core/ui/a11y/ring.js until the shims go; its two region selectors stay until files and changes contribute them"
   },
   "js/rtsettings.js": {
-   "status": "split",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ]
+   "status": "moved",
+   "home": "modules/runtimes/settings.js",
+   "note": "the whole page moved, Paid usage rows with it: they become modules/runtimes/paid when Paid is its own settings.section"
   },
   "js/runsview.js": {
    "status": "planned",
@@ -2515,23 +2515,21 @@
   "js/settings.js": {
    "status": "split",
    "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ]
+    "modules/settings/host.js",
+    "modules/routing/page.js",
+    "modules/rules/page.js",
+    "modules/worktrees/page.js"
+   ],
+   "note": "js/settings.js keeps only the wiring until the shell's settings.section place takes it"
   },
   "js/shape.js": {
    "status": "planned",
    "home": "core/services/shape/shape.js"
   },
   "js/shapeview.js": {
-   "status": "split",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ]
+   "status": "moved",
+   "home": "modules/settings/shape-page.js",
+   "note": "whole file moved; the home thread takes homeOrder and the shell thread density (apply) from shape-page.js later"
   },
   "js/shells/dock.js": {
    "status": "planned",
@@ -2560,14 +2558,15 @@
   "js/stage.js": {
    "status": "split",
    "home": [
-    "shell/panel",
+    "shell/panel (panel.js, pages.js, frames.js, width.js, lists.js)",
     "core/kernel (panel.page/panel.frame places)",
     "modules/threads (Threads frame)",
     "modules/changes (frame wiring)",
     "modules/map (frame wiring)",
     "modules/launchpad (cover)",
     "modules/shells (shell page)"
-   ]
+   ],
+   "note": "moved into shell/panel/ whole; js/stage.js re-exports createStage until the shims go; lists.js (the frames' contents) and the shell page still go to their modules"
   },
   "js/storm.js": {
    "status": "split",
@@ -4129,7 +4128,8 @@
   },
   "serve.py": {
    "status": "planned",
-   "home": "serve.py (kept; apps-host routes added in phase 7)"
+   "home": "serve.py (kept; apps-host routes added in phase 7)",
+   "note": "the writer key now also covers app management (/api/apps writes) and app views (/api/coworker/apps/*), only for XO's own page"
   },
   "start.sh": {
    "status": "planned",
@@ -4258,12 +4258,13 @@
    "home": "shell (panel host)/tests/cover-inert.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/create-busy-honest.test.mjs": {
-   "status": "planned",
-   "home": "modules/create-project/tests/create-busy-honest.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/create-project/tests/create-busy-honest.test.mjs",
+   "note": "still reads the source; its rewrite as a behaviour test is owed"
   },
   "tests/create.test.mjs": {
-   "status": "planned",
-   "home": "modules/create-project/tests/create.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/create-project/tests/create.test.mjs"
   },
   "tests/css-wellformed.test.mjs": {
    "status": "planned",
@@ -4466,12 +4467,14 @@
    "home": "core/services + conversation (markdown)/tests/logic.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/lp-create-connect-focus.test.mjs": {
-   "status": "planned",
-   "home": "modules/create-project/tests/lp-create-connect-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/create-project/tests/lp-create-connect-focus.test.mjs",
+   "note": "still reads the source; its rewrite as a behaviour test is owed"
   },
   "tests/lp-create-stop-focus.test.mjs": {
-   "status": "planned",
-   "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs",
+   "note": "still reads the source; its rewrite as a behaviour test is owed"
   },
   "tests/lp-intel-order.test.mjs": {
    "status": "planned",
@@ -4642,8 +4645,9 @@
    "home": "modules/search/tests/quickopen.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/rail-order.test.mjs": {
-   "status": "planned",
-   "home": "modules/settings/tests/rail-order.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/settings/tests/rail-order.test.mjs",
+   "note": "re-pointed at shape-page.js; still reads the source, a behaviour rewrite is open"
   },
   "tests/rec-undo-focus.test.mjs": {
    "status": "planned",
@@ -4702,12 +4706,13 @@
    "home": "modules/settings/tests/routing-truth.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/routing-words.test.mjs": {
-   "status": "planned",
-   "home": "modules/settings/tests/routing-words.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/routing/tests/routing-words.test.mjs",
+   "note": "still reads the source; its rewrite as a behaviour test is owed"
   },
   "tests/rtsettings.test.mjs": {
-   "status": "planned",
-   "home": "modules/settings/runtimes/tests/rtsettings.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/runtimes/tests/rtsettings.test.mjs"
   },
   "tests/runs-stop-receipt.test.mjs": {
    "status": "planned",
@@ -4718,8 +4723,9 @@
    "home": "modules/settings/runtimes/tests/runtimes.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/saved-truth.test.mjs": {
-   "status": "planned",
-   "home": "modules/settings/runtimes/tests/saved-truth.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/runtimes/tests/saved-truth.test.mjs",
+   "note": "still reads the source; its rewrite as a behaviour test is owed"
   },
   "tests/scroller-ring.test.mjs": {
    "status": "planned",
@@ -4750,12 +4756,14 @@
    "home": "core/ui (css guard)/tests/settings-css.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/shape-held.test.mjs": {
-   "status": "planned",
-   "home": "modules/settings/tests/shape-held.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/settings/tests/shape-held.test.mjs",
+   "note": "re-pointed at shape-page.js; still reads the source, a behaviour rewrite is open"
   },
   "tests/shape-unkept.test.mjs": {
-   "status": "planned",
-   "home": "modules/settings/tests/shape-unkept.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/settings/tests/shape-unkept.test.mjs",
+   "note": "re-pointed at shape-page.js; still reads the source, a behaviour rewrite is open"
   },
   "tests/shape.test.mjs": {
    "status": "planned",
@@ -6807,7 +6815,7 @@
   },
   "js/app.js::functions::announce": {
    "status": "planned",
-   "home": "`S` must be split per module (see \u00a73); `announce` \u2192 core/platform a11y (app.js l.162)"
+   "home": "`S` must be split per module (see §3); `announce` → core/platform a11y (app.js l.162)"
   },
   "js/app.js::functions::savedSoon": {
    "status": "planned",
@@ -6851,15 +6859,15 @@
   },
   "js/app.js::functions::landed": {
    "status": "planned",
-   "home": "`patch` \u2192 core/ui (render primitives, next to redraw.js); `homeParts` \u2192 modules/home (app.js l.617)"
+   "home": "`patch` → core/ui (render primitives, next to redraw.js); `homeParts` → modules/home (app.js l.617)"
   },
   "js/app.js::functions::patch": {
    "status": "planned",
-   "home": "`patch` \u2192 core/ui (render primitives, next to redraw.js); `homeParts` \u2192 modules/home (app.js l.629)"
+   "home": "`patch` → core/ui (render primitives, next to redraw.js); `homeParts` → modules/home (app.js l.629)"
   },
   "js/app.js::functions::homeParts": {
    "status": "planned",
-   "home": "`patch` \u2192 core/ui (render primitives, next to redraw.js); `homeParts` \u2192 modules/home (app.js l.642)"
+   "home": "`patch` → core/ui (render primitives, next to redraw.js); `homeParts` → modules/home (app.js l.642)"
   },
   "js/app.js::functions::optHtml": {
    "status": "planned",
@@ -6879,7 +6887,7 @@
   },
   "js/app.js::functions::homeRender": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.716)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.716)"
   },
   "js/app.js::functions::endRender": {
    "status": "planned",
@@ -6903,7 +6911,7 @@
   },
   "js/app.js::functions::messagesOf": {
    "status": "planned",
-   "home": "modules/conversation (model, pure) \u2192 core/services conversation selector; event sources (decisions, threads) should register `conversation.event` providers (app.js l.863)"
+   "home": "modules/conversation (model, pure) → core/services conversation selector; event sources (decisions, threads) should register `conversation.event` providers (app.js l.863)"
   },
   "js/app.js::functions::proseHtml": {
    "status": "planned",
@@ -6939,11 +6947,11 @@
   },
   "js/app.js::functions::msgItems": {
    "status": "planned",
-   "home": "modules/conversation renderer with a **keyed `conversation.block` registry** (kind \u2192 renderer); limit \u2192 runtimes, control \u2192 threads, turn \u2192 conversation/turns (app.js l.1170)"
+   "home": "modules/conversation renderer with a **keyed `conversation.block` registry** (kind → renderer); limit → runtimes, control → threads, turn → conversation/turns (app.js l.1170)"
   },
   "js/app.js::functions::msgItemsOf": {
    "status": "planned",
-   "home": "modules/conversation renderer with a **keyed `conversation.block` registry** (kind \u2192 renderer); limit \u2192 runtimes, control \u2192 threads, turn \u2192 conversation/turns (app.js l.1174)"
+   "home": "modules/conversation renderer with a **keyed `conversation.block` registry** (kind → renderer); limit → runtimes, control → threads, turn → conversation/turns (app.js l.1174)"
   },
   "js/app.js::functions::wsHeadRender": {
    "status": "planned",
@@ -7051,39 +7059,39 @@
   },
   "js/app.js::functions::HER": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.1964)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1964)"
   },
   "js/app.js::functions::heraldShow": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.1967)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1967)"
   },
   "js/app.js::functions::heraldFor": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.1969)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1969)"
   },
   "js/app.js::functions::heraldPut": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.1970)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1970)"
   },
   "js/app.js::functions::heraldNext": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.1971)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1971)"
   },
   "js/app.js::functions::heraldDrop": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.1973)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1973)"
   },
   "js/app.js::functions::heraldRender": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.1974)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1974)"
   },
   "js/app.js::functions::heraldRoom": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.2015)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.2015)"
   },
   "js/app.js::functions::heraldBack": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.2025)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.2025)"
   },
   "js/app.js::functions::recordLine": {
    "status": "planned",
@@ -7139,35 +7147,35 @@
   },
   "js/app.js::functions::chatTargetRender": {
    "status": "planned",
-   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2267)"
+   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2267)"
   },
   "js/app.js::functions::targetLineRender": {
    "status": "planned",
-   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2280)"
+   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2280)"
   },
   "js/app.js::functions::updateComposer": {
    "status": "planned",
-   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2294)"
+   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2294)"
   },
   "js/app.js::functions::syncPlaceholder": {
    "status": "planned",
-   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2336)"
+   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2336)"
   },
   "js/app.js::functions::atClose": {
    "status": "planned",
-   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2345)"
+   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2345)"
   },
   "js/app.js::functions::pickAt": {
    "status": "planned",
-   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2355)"
+   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2355)"
   },
   "js/app.js::functions::saveDraft": {
    "status": "planned",
-   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2365)"
+   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2365)"
   },
   "js/app.js::functions::loadDraft": {
    "status": "planned",
-   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2366)"
+   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2366)"
   },
   "js/app.js::functions::sendNowRender": {
    "status": "planned",
@@ -7191,27 +7199,27 @@
   },
   "js/app.js::functions::lift": {
    "status": "planned",
-   "home": "modules/composer (send gate \u2192 core/services send) (app.js l.2521)"
+   "home": "modules/composer (send gate → core/services send) (app.js l.2521)"
   },
   "js/app.js::functions::liveBlock": {
    "status": "planned",
-   "home": "modules/composer (send gate \u2192 core/services send) (app.js l.2529)"
+   "home": "modules/composer (send gate → core/services send) (app.js l.2529)"
   },
   "js/app.js::functions::blockFor": {
    "status": "planned",
-   "home": "modules/composer (send gate \u2192 core/services send) (app.js l.2537)"
+   "home": "modules/composer (send gate → core/services send) (app.js l.2537)"
   },
   "js/app.js::functions::refuse": {
    "status": "planned",
-   "home": "modules/composer (send gate \u2192 core/services send) (app.js l.2543)"
+   "home": "modules/composer (send gate → core/services send) (app.js l.2543)"
   },
   "js/app.js::functions::connDest": {
    "status": "planned",
-   "home": "modules/composer (send gate \u2192 core/services send) (app.js l.2548)"
+   "home": "modules/composer (send gate → core/services send) (app.js l.2548)"
   },
   "js/app.js::functions::composerDest": {
    "status": "planned",
-   "home": "modules/composer (send gate \u2192 core/services send) (app.js l.2551)"
+   "home": "modules/composer (send gate → core/services send) (app.js l.2551)"
   },
   "js/app.js::functions::sendLive": {
    "status": "planned",
@@ -7282,12 +7290,12 @@
    "home": "core/kernel (scheduler + render pass that calls each registered module's `render(ctx)`), shell (page host switching) (app.js l.2834)"
   },
   "js/app.js::functions::faviconRender": {
-   "status": "planned",
-   "home": "`placeRegion` \u2192 shell (focus fallback); favicon \u2192 shell (tab status) (app.js l.2900)"
+   "status": "moved",
+   "home": "shell/favicon.js"
   },
   "js/app.js::functions::loadAhead": {
    "status": "planned",
-   "home": "`placeRegion` \u2192 shell (focus fallback); favicon \u2192 shell (tab status) (app.js l.2921)"
+   "home": "`placeRegion` → shell (focus fallback); favicon → shell (tab status) (app.js l.2921)"
   },
   "js/app.js::functions::loadOlderNow": {
    "status": "planned",
@@ -7299,27 +7307,27 @@
   },
   "js/app.js::functions::readingPlace": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.2986)"
+   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.2986)"
   },
   "js/app.js::functions::holdPlace": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.2997)"
+   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.2997)"
   },
   "js/app.js::functions::stirred": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.3004)"
+   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.3004)"
   },
   "js/app.js::functions::foldsBefore": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.3013)"
+   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.3013)"
   },
   "js/app.js::functions::workMotion": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.3033)"
+   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.3033)"
   },
   "js/app.js::functions::saveScroll": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.3087)"
+   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.3087)"
   },
   "js/app.js::functions::go": {
    "status": "planned",
@@ -7335,23 +7343,23 @@
   },
   "js/app.js::functions::follow": {
    "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3187)"
+   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3187)"
   },
   "js/app.js::functions::loadChatHops": {
    "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3200)"
+   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3200)"
   },
   "js/app.js::functions::ensureRoot": {
    "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3208)"
+   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3208)"
   },
   "js/app.js::functions::back": {
    "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3217)"
+   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3217)"
   },
   "js/app.js::functions::decideKey": {
    "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3227)"
+   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3227)"
   },
   "js/app.js::functions::showMsg": {
    "status": "planned",
@@ -7435,15 +7443,15 @@
   },
   "js/app.js::functions::openNext": {
    "status": "planned",
-   "home": "modules/threads (public `threadState`, `panelThreads` \u2192 panel frame \"threads\") (app.js l.3736)"
+   "home": "modules/threads (public `threadState`, `panelThreads` → panel frame \"threads\") (app.js l.3736)"
   },
   "js/app.js::functions::threadState": {
    "status": "planned",
-   "home": "modules/threads (public `threadState`, `panelThreads` \u2192 panel frame \"threads\") (app.js l.3746)"
+   "home": "modules/threads (public `threadState`, `panelThreads` → panel frame \"threads\") (app.js l.3746)"
   },
   "js/app.js::functions::panelThreads": {
    "status": "planned",
-   "home": "modules/threads (public `threadState`, `panelThreads` \u2192 panel frame \"threads\") (app.js l.3755)"
+   "home": "modules/threads (public `threadState`, `panelThreads` → panel frame \"threads\") (app.js l.3755)"
   },
   "js/app.js::functions::allRender": {
    "status": "planned",
@@ -7486,28 +7494,31 @@
    "home": "modules/threads (app.js l.3942)"
   },
   "js/app.js::functions::setDrawer": {
-   "status": "planned",
-   "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4001)"
+   "status": "moved",
+   "home": "shell/phone.js"
   },
   "js/app.js::functions::threadIc": {
    "status": "planned",
    "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4025)"
   },
   "js/app.js::functions::jumpRender": {
-   "status": "planned",
-   "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4029)"
+   "status": "moved",
+   "home": "modules/search/jump.js",
+   "note": "createJump: render, open, close; app.js keeps the items it lists (places, actions) until the jump.item place"
   },
   "js/app.js::functions::focusOverlay": {
    "status": "planned",
    "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4058)"
   },
   "js/app.js::functions::openJump": {
-   "status": "planned",
-   "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4063)"
+   "status": "moved",
+   "home": "modules/search/jump.js",
+   "note": "createJump: render, open, close; app.js keeps the items it lists (places, actions) until the jump.item place"
   },
   "js/app.js::functions::closeJump": {
-   "status": "planned",
-   "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4064)"
+   "status": "moved",
+   "home": "modules/search/jump.js",
+   "note": "createJump: render, open, close; app.js keeps the items it lists (places, actions) until the jump.item place"
   },
   "js/app.js::functions::syncInert": {
    "status": "planned",
@@ -7519,35 +7530,35 @@
   },
   "js/app.js::functions::soundRender": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4132)"
+   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4132)"
   },
   "js/app.js::functions::hopsRender": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4158)"
+   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4158)"
   },
   "js/app.js::functions::webpicsRender": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4159)"
+   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4159)"
   },
   "js/app.js::functions::deviceSaid": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4165)"
+   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4165)"
   },
   "js/app.js::functions::setChatBubbles": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4186)"
+   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4186)"
   },
   "js/app.js::functions::bubblesRender": {
    "status": "planned",
-   "home": "modules/settings host; shape fan-out \u2192 core/services shape `onChange` subscribers per module (app.js l.4193)"
+   "home": "modules/settings host; shape fan-out → core/services shape `onChange` subscribers per module (app.js l.4193)"
   },
   "js/app.js::functions::openKeys": {
    "status": "planned",
-   "home": "modules/settings host; shape fan-out \u2192 core/services shape `onChange` subscribers per module (app.js l.4208)"
+   "home": "modules/settings host; shape fan-out → core/services shape `onChange` subscribers per module (app.js l.4208)"
   },
   "js/app.js::functions::closeKeys": {
    "status": "planned",
-   "home": "modules/settings host; shape fan-out \u2192 core/services shape `onChange` subscribers per module (app.js l.4209)"
+   "home": "modules/settings host; shape fan-out → core/services shape `onChange` subscribers per module (app.js l.4209)"
   },
   "js/app.js::functions::shapeApply": {
    "status": "planned",
@@ -7562,24 +7573,28 @@
    "home": "modules/settings (route `settings/<page>`) (app.js l.4242)"
   },
   "js/app.js::functions::setPage": {
-   "status": "planned",
-   "home": "modules/settings (route `settings/<page>`) (app.js l.4255)"
+   "status": "moved",
+   "home": "modules/settings/frame.js",
+   "note": "createSettingsFrame; app.js keeps one-line openSettings/closeSettings until the shell's settings place takes them"
   },
   "js/app.js::functions::openSettings": {
-   "status": "planned",
-   "home": "modules/settings (route `settings/<page>`) (app.js l.4263)"
+   "status": "moved",
+   "home": "modules/settings/frame.js",
+   "note": "createSettingsFrame; app.js keeps one-line openSettings/closeSettings until the shell's settings place takes them"
   },
   "js/app.js::functions::closeSettings": {
-   "status": "planned",
-   "home": "core/platform keys (sheet + settings section); rail keys \u2192 modules/settings (app.js l.4277)"
+   "status": "moved",
+   "home": "modules/settings/frame.js",
+   "note": "createSettingsFrame; app.js keeps one-line openSettings/closeSettings until the shell's settings place takes them"
   },
   "js/app.js::functions::keysSheetRender": {
    "status": "planned",
-   "home": "core/platform keys (sheet + settings section); rail keys \u2192 modules/settings (app.js l.4296)"
+   "home": "core/platform keys (sheet + settings section); rail keys → modules/settings (app.js l.4296)"
   },
   "js/app.js::functions::keysPageRender": {
-   "status": "planned",
-   "home": "core/platform keys (sheet + settings section); rail keys \u2192 modules/settings (app.js l.4302)"
+   "status": "moved",
+   "home": "modules/settings/keys-page.js",
+   "note": "createKeysPage; app.js renders it on K.onChange"
   },
   "js/app.js::functions::runGlobal": {
    "status": "planned",
@@ -7587,11 +7602,13 @@
   },
   "js/app.js::functions::canBack": {
    "status": "planned",
-   "home": "core/platform router (history) + core/ui layers (app.js l.4648)"
+   "home": "core/platform router (history) + core/ui layers (app.js l.4648)",
+   "note": "its layers are now one list on the kernel's stack (shell/layers.js); the history part stays until the router moves"
   },
   "js/app.js::functions::stepBack": {
    "status": "planned",
-   "home": "core/platform router (history) + core/ui layers (app.js l.4652)"
+   "home": "core/platform router (history) + core/ui layers (app.js l.4652)",
+   "note": "its layers are now one list on the kernel's stack (shell/layers.js); the history part stays until the router moves"
   },
   "js/app.js::functions::armBack": {
    "status": "planned",
@@ -7599,11 +7616,11 @@
   },
   "js/app.js::functions::whenWorld": {
    "status": "planned",
-   "home": "`whenWorld` \u2192 core/services world; `resolveFromRow` \u2192 modules/threads (app.js l.4722)"
+   "home": "`whenWorld` → core/services world; `resolveFromRow` → modules/threads (app.js l.4722)"
   },
   "js/app.js::functions::resolveFromRow": {
    "status": "planned",
-   "home": "`whenWorld` \u2192 core/services world; `resolveFromRow` \u2192 modules/threads (app.js l.4735)"
+   "home": "`whenWorld` → core/services world; `resolveFromRow` → modules/threads (app.js l.4735)"
   },
   "js/app.js::ids::nx-note-in": {
    "status": "planned",
@@ -7615,43 +7632,43 @@
   },
   "js/app.js::ids::hm-head": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.719)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
   },
   "js/app.js::ids::hm-body": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.719)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
   },
   "js/app.js::ids::hm-since": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.719)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
   },
   "js/app.js::ids::hm-next": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.719)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
   },
   "js/app.js::ids::hm-then": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.719)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
   },
   "js/app.js::ids::hm-end": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.719)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
   },
   "js/app.js::ids::hm-made": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.719)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
   },
   "js/app.js::ids::home-h": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.734)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.734)"
   },
   "js/app.js::ids::then-h": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.779)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.779)"
   },
   "js/app.js::ids::handled": {
    "status": "planned",
-   "home": "`S` must be split per module (see \u00a73); `announce` \u2192 core/platform a11y (app.js l.152)"
+   "home": "`S` must be split per module (see §3); `announce` → core/platform a11y (app.js l.152)"
   },
   "js/app.js::ids::hd-head": {
    "status": "planned",
@@ -7750,8 +7767,9 @@
    "home": "modules/threads (`thread.menu` list place: shells, runtimes add items) (app.js l.3869)"
   },
   "js/app.js::ids::keys-reset-all": {
-   "status": "planned",
-   "home": "core/platform keys (sheet + settings section); rail keys \u2192 modules/settings (app.js l.4315)"
+   "status": "moved",
+   "home": "modules/settings/keys-page.js",
+   "note": "createKeysPage; app.js renders it on K.onChange"
   },
   "js/app.js::ids::all-list": {
    "status": "planned",
@@ -7763,27 +7781,27 @@
   },
   "js/app.js::storage::cv-bubbles": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4182)"
+   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4182)"
   },
   "js/app.js::storage::xo-side-folded": {
-   "status": "planned",
-   "home": "shell (sidebar: entries come from the `sidebar.entry` place, so CORE/PLACES become registrations) (app.js l.4373)"
+   "status": "moved",
+   "home": "shell/rail/side.js"
   },
   "js/app.js::storage::${f.project}|${f.rel}": {
    "status": "planned",
    "home": "modules/changes; modules/files (viewer) (app.js l.234)"
   },
   "js/app.js::storage::<SIDE.KEY>": {
-   "status": "planned",
-   "home": "shell/rail (the sidebar's own keys)"
+   "status": "moved",
+   "home": "shell/rail/side.js"
   },
   "js/app.js::storage::<SIDE.BAR>": {
-   "status": "planned",
-   "home": "shell/rail (the sidebar's own keys)"
+   "status": "moved",
+   "home": "shell/rail/side.js"
   },
   "js/app.js::storage::<SIDE.PINS>": {
-   "status": "planned",
-   "home": "shell/rail (the sidebar's own keys)"
+   "status": "moved",
+   "home": "shell/rail/side.js"
   },
   "js/app.js::keys::all": {
    "status": "planned",
@@ -8529,32 +8547,32 @@
    "home": "modules/decisions/rank.js"
   },
   "js/create.js::exports::slugify": {
-   "status": "planned",
-   "home": "modules/create-project/"
+   "status": "moved",
+   "home": "modules/create-project/create.js"
   },
   "js/create.js::exports::parseRepo": {
-   "status": "planned",
-   "home": "modules/create-project/"
+   "status": "moved",
+   "home": "modules/create-project/create.js"
   },
   "js/create.js::exports::initCreate": {
-   "status": "planned",
-   "home": "modules/create-project/"
+   "status": "moved",
+   "home": "modules/create-project/create.js"
   },
   "js/create.js::functions::parseRepo": {
-   "status": "planned",
-   "home": "modules/create-project/"
+   "status": "moved",
+   "home": "modules/create-project/create.js"
   },
   "js/create.js::functions::initCreate": {
-   "status": "planned",
-   "home": "modules/create-project/"
+   "status": "moved",
+   "home": "modules/create-project/create.js"
   },
   "js/create.js::keys::clone_finished": {
-   "status": "planned",
-   "home": "modules/create-project/"
+   "status": "moved",
+   "home": "modules/create-project/create.js"
   },
   "js/create.js::keys::cancelled": {
-   "status": "planned",
-   "home": "modules/create-project/"
+   "status": "moved",
+   "home": "modules/create-project/create.js"
   },
   "js/decide.js::exports::riskLabel": {
    "status": "split-region",
@@ -12411,43 +12429,43 @@
    "home": "modules/projects/projicons.js"
   },
   "js/quickopen.js::exports::createQuickOpen": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/quickopen.js::functions::createQuickOpen": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/quickopen.js::ids::qo-q": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/quickopen.js::ids::qo-list": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/quickopen.js::ids::qo-": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/quickopen.js::keys::bad_regex": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/quickopen.js::keys::ArrowDown": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/quickopen.js::keys::ArrowUp": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/quickopen.js::keys::Enter": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/quickopen.js::keys::Escape": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/record.js::exports::AWAY_MS": {
@@ -13243,116 +13261,60 @@
    "home": "core/ui/a11y/ring.js"
   },
   "js/rtsettings.js::exports::usualOf": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::exports::sameValue": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::exports::receipts": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::exports::createRuntimeSettings": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::functions::usualOf": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::functions::receipts": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::functions::createRuntimeSettings": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::ids::settings": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::ids::rtsp-h": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::ids::rtd-preferences": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::ids::rtd-pref": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::ids::rtp-space": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::ids::rtp-h": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::ids::rtl-h": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/runsview.js::exports::runsStripHtml": {
    "status": "planned",
@@ -13571,114 +13533,53 @@
    "home": "core/services/runtimes.js"
   },
   "js/settings.js::exports::createSettings": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "js/settings.js (wiring)"
   },
   "js/settings.js::functions::createSettings": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "js/settings.js (wiring)"
   },
   "js/settings.js::ids::settings": {
-   "status": "split-region",
+   "status": "split",
    "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+    "modules/settings/host.js",
+    "modules/routing/page.js",
+    "modules/rules/page.js",
+    "modules/worktrees/page.js"
+   ]
   },
   "js/settings.js::ids::rt-h": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/routing/page.js"
   },
   "js/settings.js::ids::dm-h": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/routing/page.js"
   },
   "js/settings.js::ids::ov-h": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/routing/page.js"
   },
   "js/settings.js::ids::rl-mine": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/rules/page.js"
   },
   "js/settings.js::ids::rl-def": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/rules/page.js"
   },
   "js/settings.js::keys::invalid_key": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/routing/page.js"
   },
   "js/settings.js::keys::would_lose_work": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/worktrees/page.js"
   },
   "js/settings.js::keys::session_busy": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/worktrees/page.js"
   },
   "js/shape.js::exports::SHAPE_VERSION": {
    "status": "planned",
@@ -13817,121 +13718,56 @@
    "home": "core/services/shape/shape.js"
   },
   "js/shapeview.js::exports::SHAPE_IC": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::exports::UNKEPT": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::exports::createShapeView": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::functions::inOrder": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::functions::createShapeView": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::ids::settings": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::ids::shp-h-p": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::ids::shp-cf": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::ids::shp-h-d": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::ids::shp-h-v": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::ids::shp-dense-l": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::ids::shp-js": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::ids::shp-h-pr": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shells/dock.js::exports::createShells": {
    "status": "planned",
@@ -14290,238 +14126,76 @@
    "home": "core/platform/sse.js"
   },
   "js/stage.js::exports::createStage": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::functions::createStage": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::ids::fr-title-launch": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::ids::fr-body-launch": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::ids::stage-map-tree": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::ids::stage-map-graph": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::ids::herald": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::storage::${W_KEY}:${S.page.name}": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/width.js"
   },
   "js/stage.js::storage::<k>": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::storage::xo-stage-w": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/width.js"
   },
   "js/stage.js::keys::Escape": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::keys::ArrowDown": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::keys::Enter": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::keys::Home": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::keys::End": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::keys::ArrowRight": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::keys::/": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::keys::ArrowLeft": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/storm.js::exports::WAITING_STATES": {
    "status": "split-region",
@@ -17202,8 +16876,8 @@
    "home": "core/platform (sounds) + settings/tests/conv-sound.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/create.test.mjs::globals::matchMedia": {
-   "status": "planned",
-   "home": "modules/create-project/tests/create.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/create-project/tests/create.test.mjs"
   },
   "tests/css-wellformed.test.mjs::functions::uncomment": {
    "status": "planned",
@@ -17462,12 +17136,12 @@
    "home": "core/services + conversation (markdown)/tests/logic.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/lp-create-stop-focus.test.mjs::ids::cp-prog": {
-   "status": "planned",
-   "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs"
   },
   "tests/lp-create-stop-focus.test.mjs::ids::cp-stop": {
-   "status": "planned",
-   "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs"
   },
   "tests/lp-intel-order.test.mjs::globals::window": {
    "status": "planned",
@@ -17630,8 +17304,8 @@
    "home": "modules/projects/tests/project-icons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/rail-order.test.mjs::functions::dom": {
-   "status": "planned",
-   "home": "modules/settings/tests/rail-order.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/settings/tests/rail-order.test.mjs"
   },
   "tests/reconcile-focus.test.mjs::exports::reconcile": {
    "status": "planned",
@@ -17670,8 +17344,8 @@
    "home": "modules/threads/tests/runs-stop-receipt.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/saved-truth.test.mjs::globals::matchMedia": {
-   "status": "planned",
-   "home": "modules/settings/runtimes/tests/saved-truth.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/runtimes/tests/saved-truth.test.mjs"
   },
   "tests/shape.test.mjs::functions::test_store_more": {
    "status": "planned",

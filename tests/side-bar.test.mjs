@@ -6,7 +6,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
+const app = readFileSync(new URL("../shell/rail/side.js", import.meta.url), "utf8");
 const side = readFileSync(new URL("../css/side.css", import.meta.url), "utf8");
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 

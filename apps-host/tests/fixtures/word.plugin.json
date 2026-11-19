@@ -1,0 +1,51 @@
+{
+  "name": "xo-word",
+  "version": "0.3.0",
+  "description": "A document editor you and your agents write in together.",
+  "extensions": {
+    "space.xo": {
+      "id": "dev.example.word",
+      "displayName": "Word",
+      "summary": "Write documents with your agents.",
+      "engines": { "xo": ">=0.1 <1", "mcpApps": "2026-01-26" },
+      "documents": [{ "type": "doc", "label": "Document", "pattern": "**/*.word.json" }],
+      "permissions": {
+        "required": [
+          { "cap": "files.read", "paths": ["docs/**", "**/*.word.json"], "why": "To open your documents." },
+          { "cap": "files.write", "paths": ["**/*.word.json"], "why": "To save what you and your agents write." }
+        ],
+        "optional": [
+          { "cap": "composer.draft", "why": "To suggest a message. Only you send it.", "askWhen": "suggest" },
+          { "cap": "context.update", "why": "So the agent knows which paragraph you mean." }
+        ]
+      },
+      "routes": [
+        "GET /api/chat/chats/{chat_id}/threads",
+        "POST /api/chat/chats/{chat_id}/messages",
+        "GET /api/xo-projects/{project_id}/file"
+      ],
+      "surfaces": {
+        "canvas": [{ "id": "editor", "title": "Word", "view": "ui://dev.example.word/editor", "for": "doc" }],
+        "panel": [{ "id": "outline", "title": "Outline", "view": "ui://dev.example.word/outline", "icon": "list" }],
+        "header": [{ "id": "open-outline", "title": "Outline", "opens": "outline", "icon": "doc" }],
+        "commands": [
+          { "id": "new", "slash": "/word", "title": "New document", "run": { "tool": "word_create" } },
+          { "id": "delete", "title": "Delete this document", "run": { "tool": "word_delete" } },
+          { "id": "tighten", "slash": "/tighten", "title": "Tighten this", "when": "view == 'thread'", "run": { "prompt": "tighten" } }
+        ],
+        "inline": [{ "id": "card", "view": "ui://dev.example.word/card", "maxHeight": 240 }],
+        "evidence": [{ "id": "pick", "view": "ui://dev.example.word/pick" }],
+        "settings": [
+          { "name": "units", "label": "Units", "type": "select", "options": ["pt", "px"], "default": "pt" },
+          { "name": "wrap", "label": "Wrap long lines", "type": "checkbox", "default": true, "scope": "project" }
+        ]
+      },
+      "tools": {
+        "word_create": { "risk": "routine" },
+        "word_read": { "risk": "routine", "readOnly": true },
+        "word_delete": { "risk": "destructive" },
+        "agent_only": { "visibility": ["model"] }
+      }
+    }
+  }
+}

@@ -59,8 +59,8 @@ t("every icon a module names is in the pack", () => {
 });
 
 t("no module keeps a hand-drawn icon: every set draws from the pack", () => {
-  const sets = ["core/ui/icons/names.js", "js/stage.js", "js/map.js", "js/files.js", "js/filespage.js", "js/changesframe.js", "js/shapeview.js",
-    "js/viewer.js", "core/ui/lightbox.js", "js/create.js", "js/intel.js", "js/quickopen.js", "js/msgx.js", "js/turnview.js",
+  const sets = ["core/ui/icons/names.js", "shell/panel/panel.js", "shell/panel/pages.js", "shell/panel/frames.js", "shell/panel/lists.js", "js/map.js", "js/files.js", "js/filespage.js", "js/changesframe.js", "modules/settings/shape-page.js",
+    "js/viewer.js", "core/ui/lightbox.js", "modules/create-project/create.js", "js/intel.js", "modules/search/quickopen.js", "js/msgx.js", "js/turnview.js",
     "js/launchpad.js", "core/ui/markdown/inline.js", "core/ui/markdown/markdown.js", "js/projicons.js"];
   for (const f of sets) assert.doesNotMatch(read(f), /<svg viewBox="0 0 24 24"|<path d="M|const I = \(d/, f);
   const ui = read("core/ui/icons/names.js");
@@ -97,7 +97,7 @@ t("the app icon is the owner's; the tab's working line sits on its foot", () => 
   const fav = read("favicon.svg");
   assert.match(fav, /viewBox="0 0 48 48"/);
   assert.match(fav, /<rect width="48" height="48" rx="11" fill="#151515"\/>/);
-  const app = read("js/app.js");
+  const app = read("shell/favicon.js");
   assert.match(app, /const W = 28\.5, X = 9\.75, GAP = 1\.5/);
   assert.match(app, /y="35" width="\$\{w\.toFixed\(2\)\}" height="2\.5" rx="1\.25"/);
 });
