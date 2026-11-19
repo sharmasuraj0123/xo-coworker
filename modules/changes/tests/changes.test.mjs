@@ -1,4 +1,4 @@
-// What a place changed (modules/changes/store.js) and the panel's Changes (modules/changes/frame.js): which place a view reads, when it reads it again (once per finished…
+// What a place changed (modules/changes/store.js) and the panel's Changes (modules/changes/frame.js): which place a view reads, when it reads again, and following.
 import assert from "node:assert/strict";
 
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });

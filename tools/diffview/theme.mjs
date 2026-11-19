@@ -1,7 +1,6 @@
 // The syntax colours of a diff or a file in Files: XO's code tokens (--code-*, the colours of code in chat,
 // css/app.css) worked out to plain hex for each theme, as the TextMate pair xo-dark / xo-light that
-// @pierre/diffs highlights with. Pierre's editor recolours the lines you type from concrete colours, so the
-// syntax theme can't be CSS variables; everything else in a diff can, and is (css/diffs.css).
+// @pierre/diffs highlights with: Shiki's themes take concrete colours; everything else in a diff is CSS variables (css/diffs.css).
 //
 //   node tools/diffview/theme.mjs        writes modules/changes/diffthemes.js
 //
@@ -141,7 +140,9 @@ export function textmate(name, type, c) {
 
 export function moduleSource(colors = codeColors()) {
   const dark = textmate("xo-dark", "dark", colors.dark), light = textmate("xo-light", "light", colors.light);
-  return `// Generated from XO's code tokens by \`node tools/diffview/theme.mjs\`; don't edit (tests/diffview.test.mjs fails when stale).
+  return `// @ts-check
+
+// Generated from XO's code tokens by \`node tools/diffview/theme.mjs\`; don't edit (tests/diffview.test.mjs fails when stale).
 export const XO_DARK = ${JSON.stringify(dark)};
 export const XO_LIGHT = ${JSON.stringify(light)};
 `;

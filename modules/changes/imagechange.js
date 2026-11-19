@@ -37,7 +37,7 @@ function whyNot(err, which) {
   return which === "before" ? "Couldn't read the earlier version." : "Couldn't read this image.";
 }
 
-/** Draw a change's image into host: the image fitted on a checkerboard (two, Before and Now, for a changed one), and a line under it (what changed; each version's size in… @param {HTMLElement} host @param {{ project: string, rel: string, file: ChangeFile, at?: string | null, open?: ((b: HTMLElement) => void) | null }} o */
+/** Draw a change's image into host (Before beside Now for a changed one, a line of sizes under it); returns {drop()}, to call before drawing anything else there. @param {HTMLElement} host @param {{ project: string, rel: string, file: ChangeFile, at?: string | null, open?: ((b: HTMLElement) => void) | null }} o */
 export function drawImageChange(host, { project, rel, file, at = null, open = null }) {
   const w = imageWords(file), ctl = new AbortController(), /** @type {string[]} */ urls = [];
   let gone = false;

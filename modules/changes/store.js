@@ -36,7 +36,7 @@ export function scopeOf(view, world) {
   return null;
 }
 
-/** What agents are doing to files in a scope, from the turns on hand: sig (changes when an edit finishes), busy, live (paths being edited right now), last (the path an… @param {Scope | null} scope @param {any[]} threads @param {any} turns @returns {Activity} */
+/** What agents are doing to files in a scope, from the turns on hand: sig (changes when an edit finishes), busy, live (paths being edited now), last (the newest edited path). @param {Scope | null} scope @param {any[]} threads @param {any} turns @returns {Activity} */
 export function activityIn(scope, threads, turns) {
   /** @type {Activity} */
   const out = { sig: "", busy: false, live: new Set(), last: null };
@@ -98,7 +98,7 @@ export function createChanges({ world, onChange }) {
       prefetch([...files.keys()].slice(0, 24));
     } catch (e) {
       const err = /** @type {HttpError} */ (e);
-      // where Space can't say what changed (no such route yet, a project that isn't a git repository, a thread whose worktree is gone, git too old), the panel and Files keep…
+      // where Space can't say what changed (no route yet, not a git repository, a gone worktree, git too old), the panel and Files keep their older list.
       if ((err.status === 404 && (err.code === "http_404" || err.code === "not_a_repository")) || (err.status === 501 && err.code === "git_too_old")) { NO.add(s.project); p.state = "unsupported"; }
       else if (err.status === 404 && err.code === "worktree_not_found") p.state = "unsupported";
       else if (p.state !== "ok") { p.state = "error"; p.err = err.message || "Couldn't read what changed."; }
@@ -153,7 +153,7 @@ export function createChanges({ world, onChange }) {
     },
     /** git's patch for one file in a view's place: the list's, or read on its own when the list left it out. @param {string} view @param {string} path */
     patch(view, path) { return patchIn(scopeOf(view, world), path); },
-    /** A project file (its project-relative path, a worktree's included) in its place's changes: {scope, path, file, base} (base: the commit its change is against), or null… @param {string} project @param {string} rel */
+    /** A project file (project-relative, a worktree's included) in its place's changes: {scope, path, file, base}, or null when that place didn't change it. @param {string} project @param {string} rel */
     at(project, rel) {
       const m = /^(\.xo\/worktrees\/[^/]+)\/(.+)$/.exec(String(rel || ""));
       const base = m ? m[1] : "", path = m ? m[2] : String(rel || "");

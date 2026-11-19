@@ -58,7 +58,7 @@ function workers(P) {
   return pool;
 }
 
-/** Get the first draw ready when you've stopped touching the page for a moment (no scroll, key or press for 1.2 s, then an idle callback): the library, the worker, and each… */
+/** Warm up after 1.2 s without input and an idle callback: the library, the worker and each language's grammar, compiled in the worker. Safe to call often. */
 const loadedLangs = new Set();
 const INPUT = ["wheel", "scroll", "pointerdown", "keydown", "touchstart"];
 const quiet = () => new Promise(/** @param {(v?: void) => void} r */ (r) => {

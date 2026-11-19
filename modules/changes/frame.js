@@ -96,7 +96,7 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
     if (now) { now.classList.add("is-on"); now.setAttribute("aria-selected", "true"); }
   }
 
-  /** One file's row, as it is whichever file is picked: the pick is marked in place (markPick), so picking another file changes two rows, not the list (Astra, 6 Nov: 500 rows… @param {FrameFile} f @param {Set<string>} live */
+  /** One file's row, the same whichever file is picked: markPick marks the pick in place, so a new pick changes two rows, not the list. @param {FrameFile} f @param {Set<string>} live */
   function rowHtml(f, live) {
     const dir = dirOf(f.path), isLive = live.has(f.path);
     const sub = [dir, isLive ? "editing now" : f.status === "added" ? "new" : f.status === "deleted" ? "deleted" : f.status === "renamed" ? `from ${base(f.old_path)}` : ""].filter(Boolean).join(" · ");
@@ -200,7 +200,7 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
     set("list", list, rows.map((f) => rowHtml(f, act.live)).join("") +
       (more > 0 ? `<li role="presentation"><button type="button" class="cx-more"${rows.length < files.length ? " data-cx-all" : " disabled"}>${rows.length < files.length ? `${(files.length - rows.length).toLocaleString()} more files · Show them` : `${more.toLocaleString()} more files, too many to list here`}</button></li>` : ""));
     markPick(st.sel);
-    // "Show them" pressed: it goes with the rows it reveals, so focus goes on to the first of them, where the list goes on (the Files grader: Show them replaced, focus to…
+    // "Show them" pressed: focus moves on to the first row it revealed, only where it would otherwise be lost.
     if (st.reveal) {
       const was = st.reveal, a = document.activeElement; st.reveal = null;
       const first = /** @type {HTMLElement[]} */ ([...list.querySelectorAll("[data-cx]")]).find((r) => !was.has(r.dataset.cx));
@@ -219,7 +219,7 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
     const shown = D.key === s.key && D.path === f.path;
     // never redraw under you; but what's drawn is shown again if picking another file hid it (A, then B while it was read, then A again: Files/Map grader on C085)
     if (shown && !st.follow && D.patch && prevSel === st.sel) { showDrawn(f); return true; }
-    // another file picked: the last one's diff goes at once, and it says it's reading (Astra C085: the old diff stayed under the new header for as long as the read took) (not…
+    // another file picked: the last diff goes at once and it says it's reading, except while this file's own draw is on its way.
     const coming = D.pend && D.pend.key === s.key && D.pend.path === f.path;
     if (!shown && !coming) { pd.hidden = true; im.hidden = true; note.hidden = false; note.textContent = "Reading its change…"; }
     changes.patch(v, f.path).then((/** @type {string | null} */ patch) => {
@@ -255,11 +255,11 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
     if (r) { const s = changes.scope(view()); if (!s) return; const st = stOf(s.key); st.follow = false; st.sig = changes.activity(view()).sig; st.sel = r.dataset.cx ?? null; if (st.pill === st.sel) st.pill = null; onChange && onChange(); return; }
     if (t.closest("[data-cx-show]")) {
       const s = changes.scope(view()); if (!s) return; const st = stOf(s.key); st.sel = pill.dataset.cxShow || st.sel; st.pill = null; D.patch = null; D.pend = null;
-      // the pill goes once it's answered: focus goes to the file it showed, in the list, before it goes (Astra S042)
+      // the pill goes once answered: focus goes first to the file it showed, in the list.
       (/** @type {HTMLElement | null} */ (list.querySelector(`[data-cx="${CSS.escape(st.sel || "")}"]`)) || pd).focus({ preventScroll: true });
       onChange && onChange(); return;
     }
-    // the file picked (whose header this button is in), not the last diff drawn (Astra C086)
+    // the file picked (whose header holds this button), not the last diff drawn
     if (t.closest("[data-cx-open]")) { const s = changes.scope(view()); const p = s && (stOf(s.key).sel || D.path); if (s && p) openFile(s, p, /** @type {HTMLElement | null} */ (t.closest("[data-cx-open]"))); }
   });
   // touching the diff (a scroll, a press, a key) is reading it: following pauses there
