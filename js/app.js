@@ -42,7 +42,6 @@ import { createLpApi } from "./lpapi.js";
 import { createFiles, fileScope, localIn, scopeOf as filesScopeOf } from "./files.js";
 import { createPaths } from "./paths.js";
 import { createQuickOpen } from "./quickopen.js";
-import { fitChips } from "./nowfit.js";
 import { createFilesView } from "./filesview.js";
 import { createChanges, lineRef, fileRef } from "./changes.js";
 import { fileIcon } from "./fileicons.js";
@@ -62,7 +61,7 @@ import { rtName, rtMark, manyRuntimes, findRt, healthOf, canMove, untilWords } f
 import { createShapeStore } from "./shape.js";
 import { createShapeView, SHAPE_IC, UNKEPT } from "./shapeview.js";
 import { setWorkMode } from "./turnview.js";
-import { once, busyAttrs } from "./pending.js";
+import { once, isPending, busyAttrs } from "./pending.js";
 import { radioKeys, menuKeys } from "./keynav.js";
 import { createHerald, noticeFor, refusedNotice } from "./herald.js";
 import { regionRings } from "./ring.js";
@@ -306,7 +305,7 @@ const STATE_WORD = { working: "Working", needs_reply: "Needs you", needs_approva
 // "Working" only while its agent really works: storm's `busy` (on a turn, or a sub-agent working on after it,
 // never while it waits on you), kept live between reads by the same rule (timeline.js sessionBusy). The Working
 // filter, the header's badge and sweep, the sidebar's count and the favicon's line all read it from here.
-// A working thread whose session sits idle reads "Idle" (P1-8).
+// A working thread whose session sits idle reads "Waiting" (the one vocabulary, 19 Nov; it read "Idle", P1-8).
 const isBusy = (t) => t.busy === true || (t.state === "working" && t.busy !== false);
 // held back by a gate (the usage limit, the paid gate, the founder's pause…): nothing runs, its next input waits
 // (timeline.js heldOf). One shown state, as storm.js promotes it (threadState: a done, stopped or needs-reply thread
@@ -316,7 +315,8 @@ const isHeld = (t) => !!(t && t.held && !isBusy(t) && t.state === "working");
 // a thread continued on another runtime is frozen, not waiting on you: a quiet "Continued" (F4)
 // a stop someone meant (timeline.js stopOf) is drawn quiet, in the ink, never the red of a failure: "stopped"
 const glyphOf = (t) => (isHeld(t) ? "paused" : t.state === "working" && t.busy === false ? "idle" : t.frozen ? "resolved" : t.stop ? "stopped" : t.state);
-const wordOf = (t) => (isHeld(t) ? heldShort(t.held) : glyphOf(t) === "idle" ? "Idle" : t.frozen ? "Continued" : STATE_WORD[t.state]);
+// an open thread whose agent sits idle is "Waiting": the word the panel, the header and All threads use (the owner, 19 Nov)
+const wordOf = (t) => (isHeld(t) ? heldShort(t.held) : glyphOf(t) === "idle" ? "Waiting" : t.frozen ? "Continued" : STATE_WORD[t.state]);
 // the state a badge or card is coloured by: a held thread in the pause's amber, never Working's blue
 const stOf = (t) => (t.frozen ? "resolved" : isHeld(t) ? "paused" : t.stop ? "stopped" : t.state);
 // a thread link in any message is a token led by that thread's live state (js/markdown.js)
@@ -1317,7 +1317,7 @@ function topRender(needs) {
     if (v !== "chats") { patch(back, `${ICON.back}<span>Chats</span>`); back.setAttribute("aria-label", "Back to Chats"); back.title = "Back (Esc)"; }
     patch($("#top-who"), CH.headHtml(v));
     patch($("#top-end"), STAGE.button(v));
-    nowRender(needs); checklistRender(needs);
+    checklistRender(needs);
     return;
   }
   if (t) {
@@ -1366,8 +1366,8 @@ function topRender(needs) {
       : t.label ? `<span class="tw-label" title="Label">${esc(t.label)}</span>` : "";
     const resolved = t.state === "resolved";
     const acts = world.act.storm ? `<span class="tw-acts"><button type="button" class="tw-act" data-key="tw-resolve" data-resolve="${esc(t.id)}" data-to="${resolved ? "open" : "resolve"}"${busyAttrs(`resolve:${t.id}`)} title="${resolved ? "Reopen it: its agent can pick it up again" : "Mark it resolved: nothing more is owed"}">${resolved ? ICON.retry : ICON.check}<span>${resolved ? "Reopen" : "Resolve"}</span></button>` +
-      `<button type="button" class="tw-act tw-more" data-tmenu="${esc(t.id)}" aria-haspopup="menu" aria-expanded="${S.tMenu === t.id}" title="Rename, label and more" aria-label="Rename, label and more">${ICON.edit}</button>` +
-      (S.tMenu === t.id ? `<span class="tw-menu" role="menu"><button type="button" role="menuitem" data-tfield="title">Rename</button><button type="button" role="menuitem" data-tfield="label">${t.label ? "Change label" : "Add a label"}</button>${t.label ? `<button type="button" role="menuitem" data-tfield="clear-label">Remove the label</button>` : ""}${SH.enabled ? `<button type="button" role="menuitem" data-shell="t:${esc(t.id)}">Open a shell in its worktree</button>` : ""}${movable(t) ? `<button type="button" role="menuitem" data-tmove="${esc(t.id)}">Continue on another runtime…</button>` : ""}</span>` : "") + `</span>` : "";
+      `<button type="button" class="tw-act tw-more" data-tmenu="${esc(t.id)}" aria-haspopup="menu" aria-expanded="${S.tMenu === t.id}" title="Everything this thread can do" aria-label="Thread actions">${ICON.more}</button>` +
+      (S.tMenu === t.id ? threadMenuHtml(t) : "") + `</span>` : "";
     // a shell in its worktree is in the menu (and the shells dock); the header keeps Resolve and the panel
     const allActs = acts ? acts.replace(/<\/span>$/, `${LP.button(v, STAGE.launchOpen)}${STAGE.button(v)}</span>`) : `<span class="tw-acts">${LP.button(v, STAGE.launchOpen)}${STAGE.button(v)}</span>`;
     who = `${title}${label}<span class="badge st-${stOf(t)}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${isHeld(t) ? heldBadge(t.held) : wordOf(t)}</span>${rtTag(t)}${fileChipHtml()}${allActs}`;
@@ -1382,82 +1382,11 @@ function topRender(needs) {
   const endHtml = t ? end : fileChipHtml() + end + (v.startsWith("p:") ? LP.button(v, STAGE.launchOpen) : "") + STAGE.button(v);
   if ($("#top-end")._h !== endHtml) { redraw($("#top-end"), endHtml); $("#top-end")._h = endHtml; }
   LP.ensure(v);
-  nowRender(needs);
   checklistRender(needs);
+  tdelRender(t);
   REC.sinceLine(v.startsWith("p:") ? v.slice(2) : null, needs);
 }
 
-/** The Now strip, in the header row: every thread in progress as one slim chip (its state, its
- *  name, its progress), needs-you first, then stopped, then working. One line high; it scrolls
- *  sideways instead of growing. What each one is waiting on is said in the conversation below. */
-function nowRender(needs) {
-  const wrap = $("#now-wrap");
-  const v = S.view;
-  const pid = v.startsWith("p:") ? v.slice(2) : null;
-  if (!pid) { wrap.hidden = true; return; }
-  const ts = threadsOf(pid);
-  const need = (t) => needs.find((x) => x.t.id === t.id && x.admitted && !x.later);
-  const rankT = (t) => (need(t) ? 0 : t.state === "failed" ? 1 : t.state === "working" ? 2 : 9);
-  const shelf = ts.filter((t) => rankT(t) < 9).sort((a, b) => rankT(a) - rankT(b) || b.lastAt - a.lastAt);
-  wrap.hidden = !shelf.length;
-  if (!shelf.length) return;
-  const items = shelf.map((t) => {
-    const c = t.checklist, n = need(t);
-    const st = n ? "needs" : glyphOf(t);
-    const what = n ? `needs you: ${askShort(n)}` : t.stop ? stopWords(t.stop) : t.state === "failed" ? String(t.happened || "Stopped") : wordOf(t).toLowerCase();
-    return `<button type="button" class="nw st-${st}" role="listitem" data-go="t:${esc(t.id)}" title="${esc(`${t.title} · ${c.done} of ${c.total} · ${what}`)}" aria-label="${esc(t.title)}${esc(threadAgentWords(t))}, ${n ? "needs you" : wordOf(t).toLowerCase()}, ${c.done} of ${c.total}">` +
-      `<i class="g g-${n ? "needs_reply" : glyphOf(t)}" aria-hidden="true"></i>${threadMark(t)}<b>${esc(t.title)}</b>` +
-      `<span class="nw-segs" aria-hidden="true">${c.items.map((i) => `<i class="sg s-${i.state}"></i>`).join("")}</span></button>`;
-  }).join("");
-  const html = `<div class="now" role="list" aria-label="Now in ${esc(PROJ(pid))}">${items}</div>`;
-  if (html !== NE.html) { NE.html = html; NE.dirty = true; }
-  patch(wrap, html);
-  nowEdges();
-}
-// the strip is measured only when its chips or its width change (NE.dirty: the chips' markup changed, or the
-// ResizeObserver below saw a new size), never on every redraw: each render measured every chip, a forced layout each,
-// 28 of them in the "Back to chat" click (the owner, 19 Nov 12:06Z)
-const NE = { html: "", dirty: true };
-if (typeof ResizeObserver === "function") new ResizeObserver(() => { NE.dirty = true; nowEdges(); }).observe($("#now-wrap"));
-/** Fade the strip's edges only where there is more to scroll to. */
-function nowEdges() {
-  const now = $("#now-wrap .now");
-  if (!now) return;
-  // with a pointer, the strip shows whole chips only, and what doesn't fit is one "+N" that opens the
-  // project's threads (a chip cut mid-word read as broken); a touch screen keeps the swipe and the fades
-  // The "+N" is one button for as long as it's needed: its count changes in place, so a scroll, a resize or All
-  // opening never replaces it (it's the switcher's opener, the place Escape returns to: Astra H30); it's the strip's own
-  // (data-own), so the chips' redraw in place leaves it be
-  if (matchMedia("(hover: hover) and (pointer: fine)").matches) {
-    if (!NE.dirty) return;
-    NE.dirty = false;
-    const chips = [...now.querySelectorAll(".nw:not(.nw-more)")];
-    let more = now.querySelector(".nw-more");
-    // write what measuring needs (every chip shown), then read everything once, then write the result
-    for (const c of chips) c.hidden = false;
-    now.classList.remove("fade-l", "fade-r");
-    const cs = getComputedStyle(now), inner = now.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-    const { fit, n } = fitChips(chips.map((c) => c.offsetWidth), inner);
-    for (const c of chips.slice(fit)) c.hidden = true;
-    if (!n) { more?.remove(); return; }
-    if (!more) { now.insertAdjacentHTML("beforeend", `<button type="button" class="nw nw-more" data-switch aria-haspopup="dialog" data-own></button>`); more = now.lastElementChild; }
-    else if (more !== now.lastElementChild) now.append(more);
-    if (more.textContent !== `+${n}`) { more.textContent = `+${n}`; more.title = `${n} more in progress: every thread in this project`; }
-    return;
-  }
-  const more = now.scrollWidth - now.clientWidth > 2;
-  now.classList.toggle("fade-l", more && now.scrollLeft > 2);
-  now.classList.toggle("fade-r", more && now.scrollLeft < now.scrollWidth - now.clientWidth - 2);
-}
-$("#now-wrap").addEventListener("scroll", nowEdges, { passive: true, capture: true });
-$("#now-wrap").addEventListener("wheel", (e) => {
-  // a mouse wheel scrolls the strip sideways
-  const now = e.target.closest(".now");
-  if (!now || Math.abs(e.deltaX) > Math.abs(e.deltaY) || now.scrollWidth <= now.clientWidth) return;
-  e.preventDefault();
-  now.scrollLeft += e.deltaY;
-}, { passive: false });
-addEventListener("resize", () => { NE.dirty = true; nowEdges(); });
 
 /** The checklist bar: shows the step in progress; a finished step flashes its tick, then moves on. */
 function checklistRender(needs) {
@@ -2952,8 +2881,8 @@ function go(v, { from, focus = false, carry = false, panel = false } = {}) {
   if (panel && v !== S.view && PHONE.matches && STAGE.isOpen) STAGE.close({ restore: false, quiet: true });
   if (v === S.view) { if (focus) say.focus(); return; }
   const a = document.activeElement;
-  const opener = a && a.closest?.("[data-k], .nw");
-  if (opener && (opener.closest("#msgs") || opener.closest("#now-wrap"))) S.opener[S.view] = opener.dataset.k || opener.dataset.go;
+  const opener = a && a.closest?.("[data-k]");
+  if (opener && opener.closest("#msgs")) S.opener[S.view] = opener.dataset.k || opener.dataset.go;
   saveScroll(); saveDraft();
   // the phone's Back retraces the places you went; a thread's parent already knows its own way back
   if (!S.retrace && !v.startsWith("t:") && !v.startsWith("c:")) { S.trail = S.trail.filter((x) => x !== v); S.trail.push(S.view); if (S.trail.length > 30) S.trail.shift(); }
@@ -2973,7 +2902,7 @@ function go(v, { from, focus = false, carry = false, panel = false } = {}) {
   if (v === "home") $("#home").scrollTop = S.scroll.home || 0;
   if (v === "artifacts") $("#arts").scrollTop = S.scroll.artifacts || 0;
   const k = S.opener[v];
-  const target = k ? ($("#msgs").querySelector(`[data-k="${CSS.escape(k)}"] [data-go]`) || $("#now-wrap").querySelector(`[data-go="${CSS.escape(k)}"]`)) : null;
+  const target = k ? ($("#msgs").querySelector(`[data-k="${CSS.escape(k)}"] [data-go]`)) : null;
   if (focus) say.focus({ preventScroll: true });
   else if (back && target) target.focus({ preventScroll: true });
   // the place's own reading region: Home's, Artifacts' (the conversation's scroller is hidden there), else the
@@ -3455,6 +3384,16 @@ document.addEventListener("click", (e) => {
   const tm = t.closest("[data-tmenu]");
   if (tm) { S.tMenu = S.tMenu === tm.dataset.tmenu ? null : tm.dataset.tmenu; $("#top-who")._h = null; schedule(); if (S.tMenu) requestAnimationFrame(() => $(".tw-menu [role=menuitem]")?.focus()); return; }
   const tf = t.closest("[data-tfield]");
+  // the thread's ⋯: previous / next thread, copy its branch's name
+  const tg = t.closest("[data-tgo]");
+  if (tg) { if (tg.getAttribute("aria-disabled") !== "true" && tg.dataset.tgo) { closeThreadMenu({ focus: false }); go(tg.dataset.tgo); } return; }
+  const tc = t.closest("[data-tcopy]");
+  if (tc) { const b = tc.dataset.tcopy; closeThreadMenu(); navigator.clipboard?.writeText(b).then(() => heraldShow({ kind: "done", text: "Branch name copied", sub: b }, 2400), () => heraldShow({ kind: "stopped", text: "Couldn't copy the branch name", sub: b }, 4200)); return; }
+  const td = t.closest("[data-tdel]");
+  if (td) { const tid = td.dataset.tdel; S.tMenu = null; S.tDel = tid; $("#top-who")._h = null; render(); requestAnimationFrame(() => $("[data-tdel-no]")?.focus({ preventScroll: true })); return; }
+  if (t.closest("[data-tdel-no]")) { const tid = S.tDel; S.tDel = null; $("#top-who")._h = null; render(); $(`[data-tmenu="${CSS.escape(tid || "")}"]`)?.focus({ preventScroll: true }); return; }
+  const tdy = t.closest("[data-tdel-yes]");
+  if (tdy) { deleteThread(tdy.dataset.tdelYes); return; }
   const lb = t.closest("[data-limit]");
   if (lb) { decideLimit(lb.dataset.limit, lb.dataset.limitD); return; }
   const tmv = t.closest("[data-tmove]");
@@ -3589,7 +3528,7 @@ function panelThreads(v) {
     const st = threadState(t, needs), ag = doing.get("t:" + t.id);
     const ask = st === "needs" ? needs.find((n) => n.t.id === t.id) : null;
     groups[st].push({ go: "t:" + t.id, title: t.title, state: st, word: STATE_WORDS[st], mark: threadMark(t, { lead: true }),
-      sub: st === "working" && ag ? ag.doing : ask ? askShort(ask) : t.summary || (t.state === "failed" ? "Stopped" : t.state === "resolved" ? "Resolved" : isHeld(t) ? heldWords(t.held) : STATE_WORDS[st]),
+      sub: st === "working" && ag ? ag.doing : ask ? askShort(ask) : t.stop ? stopWords(t.stop) : t.summary || (t.state === "failed" ? "Stopped" : t.state === "resolved" ? "Resolved" : isHeld(t) ? heldWords(t.held) : STATE_WORDS[st]),
       since: st === "working" && ag ? ag.since : null, at: st === "working" ? "" : short(t.lastAt), color: ag?.color, on: v === "t:" + t.id });
   }
   return ["needs", "working", "waiting", "done"].filter((k) => groups[k].length).map((k) => ({ k, word: STATE_WORDS[k], rows: groups[k] }));
@@ -3605,8 +3544,9 @@ function allRender() {
   const ts = world.state.threads.filter((t) => t.project === pid);
   // "Working" means its agent is working right now (isBusy), nothing else: an open thread whose agent
   // sits idle, or one paused or waiting, is "Waiting" (audit: a Working filter listed 6 idle threads)
-  const cat = (t) => (needs.some((n) => n.t.id === t.id && n.admitted && n.group !== "stopped") ? "needs" : t.state === "failed" ? "stopped" : t.frozen ? "done" : t.state === "done" || t.state === "resolved" ? "done" : isBusy(t) ? "working" : t.state === "working" || WAITING(t.state) ? "waiting" : "other");
-  const counts = { all: ts.length, needs: 0, working: 0, waiting: 0, done: 0, stopped: 0 };
+  // the panel's four states (threadState): one vocabulary everywhere
+  const cat = (t) => threadState(t, needs);
+  const counts = { all: ts.length, needs: 0, working: 0, waiting: 0, done: 0 };
   for (const t of ts) { const c = cat(t); if (counts[c] != null) counts[c]++; }
   allFilterRender(counts);
   $("#all-h").textContent = `All ${SHAPE.word("threads")} · ${PROJ(pid)}`;
@@ -3614,12 +3554,12 @@ function allRender() {
   $("#all-q").placeholder = `Search ${SHAPE.word("threads")}`;
   let list = ts.filter((t) => !q || t.title.toLowerCase().includes(q) || (t.branch || "").toLowerCase().includes(q));
   if (S.allFilter !== "all") list = list.filter((t) => cat(t) === S.allFilter);
-  const order = { needs: 0, stopped: 1, working: 2, waiting: 3, done: 4, other: 5 };
+  const order = { needs: 0, working: 1, waiting: 2, done: 3 };
   list.sort((a, b) => order[cat(a)] - order[cat(b)] || b.lastAt - a.lastAt);
   const row = (t) => {
     const c = t.checklist;
     const k = cat(t);
-    return `<li><button type="button" class="ar st-${k}" data-go="t:${esc(t.id)}"><i class="g g-${k === "needs" ? "needs_reply" : glyphOf(t)}" aria-hidden="true"></i><span class="ar-tl">${threadMark(t)}<span class="ar-t">${esc(t.title)}</span>${t.label ? `<span class="ar-l">${esc(t.label)}</span>` : ""}</span><span class="ar-s">${rtTag(t, "ar")}${k === "needs" ? "Needs you" : wordOf(t)}</span><span class="mini" aria-label="${c.done} of ${c.total}"><i style="--p:${c.total ? c.done / c.total : 0}"></i></span><span class="ar-a">${esc(short(t.lastAt))}</span></button></li>`;
+    return `<li><button type="button" class="ar st-${k}" data-go="t:${esc(t.id)}"><i class="g g-${k === "needs" ? "needs_reply" : glyphOf(t)}" aria-hidden="true"></i><span class="ar-tl">${threadMark(t)}<span class="ar-t">${esc(t.title)}</span>${t.label ? `<span class="ar-l">${esc(t.label)}</span>` : ""}</span><span class="ar-s">${rtTag(t, "ar")}${STATE_WORDS[k]}</span><span class="mini" aria-label="${c.done} of ${c.total}"><i style="--p:${c.total ? c.done / c.total : 0}"></i></span><span class="ar-a">${esc(short(t.lastAt))}</span></button></li>`;
   };
   const fold = S.allFilter === "all" && !q;
   const liveL = fold ? list.filter((t) => cat(t) !== "done") : list;
@@ -3634,7 +3574,7 @@ function allRender() {
  * or the arrows: keynav.js) is the same element afterwards and keeps focus. Only the chosen one is in the Tab
  * order. An empty filter can't be chosen, except the one already chosen (it stays reachable while it empties).
  */
-const ALL_F = [["all", "All"], ["needs", "Needs you"], ["working", "Working"], ["waiting", "Waiting"], ["done", "Done"], ["stopped", "Stopped"]];
+const ALL_F = [["all", "All"], ["needs", "Needs you"], ["working", "Working"], ["waiting", "Waiting"], ["done", "Done"]];
 function allFilterRender(counts) {
   const box = $("#all-f");
   if (box.children.length !== ALL_F.length) box.innerHTML = ALL_F.map(([k, w]) => `<button type="button" role="radio" data-af="${k}">${w}<span></span></button>`).join("");
@@ -3647,6 +3587,63 @@ function allFilterRender(counts) {
   }
 }
 radioKeys($("#all-f"));
+/** The thread's ⋯ (the owner, 19 Nov): one menu for everything a thread can do, only what fits its state now.
+ *  Previous / next go through the place's threads in the panel's order; Stop only while it works; Copy branch
+ *  name only with a branch; Delete only where Space can delete a thread (t.canDelete), asked in place. */
+function threadSiblings(t) {
+  const list = panelThreads("t:" + t.id).flatMap((g) => g.rows).filter((r) => !r.coord).map((r) => r.go);
+  const i = list.indexOf("t:" + t.id);
+  return { prev: i > 0 ? list[i - 1] : null, next: i >= 0 && i < list.length - 1 ? list[i + 1] : null };
+}
+function threadMenuHtml(t) {
+  const sib = threadSiblings(t), item = (attrs, words, off = false) => `<button type="button" role="menuitem" ${attrs}${off ? ' aria-disabled="true"' : ""}>${words}</button>`;
+  const sep = '<span class="tw-sep" role="separator"></span>';
+  const groups = [
+    [item(`data-tgo="${esc(sib.prev || "")}"`, "Previous thread", !sib.prev), item(`data-tgo="${esc(sib.next || "")}"`, "Next thread", !sib.next)],
+    [SH.enabled ? item(`data-shell="t:${esc(t.id)}"`, "Open a shell in its worktree") : "",
+      t.branch ? item(`data-tcopy="${esc(t.branch)}"`, "Copy branch name") : ""],
+    [item('data-tfield="title"', "Rename"), item('data-tfield="label"', t.label ? "Change label" : "Add a label"), t.label ? item('data-tfield="clear-label"', "Remove the label") : "",
+      movable(t) ? item(`data-tmove="${esc(t.id)}"`, "Continue on another runtime…") : "",
+      isBusy(t) ? item("data-chat-stop", "Stop") : ""],
+    [t.canDelete ? item(`data-tdel="${esc(t.id)}" class="tw-danger"`, "Delete thread…") : ""],
+  ].map((g) => g.filter(Boolean).join("")).filter(Boolean);
+  return `<span class="tw-menu" role="menu">${groups.join(sep)}</span>`;
+}
+/** Delete, asked in place: what goes (its messages, its transcript, its worktree folder), what stays (its branch),
+ *  for how long it can be undone; Keep it first. When Space says work would be lost, it names it and the button
+ *  says so ("Delete anyway"). */
+function tdelRender(t) {
+  const box = $("#tdel");
+  const on = !!(t && S.tDel === t.id);
+  box.hidden = !on;
+  if (!on) { if (box._h) { box.innerHTML = ""; box._h = ""; } return; }
+  const lose = S.tDelLose;
+  const html = `<div class="wt-confirm" role="alertdialog" aria-labelledby="tdel-q"><p class="wt-q" id="tdel-q"><b>Delete “${esc(t.title)}”?</b> Its messages and transcript go, and its worktree folder is removed. You can undo it for a few seconds.</p>` +
+    (t.branch ? `<div class="wt-loss"><p>Its branch <code>${esc(t.branch)}</code> is kept${t.git && t.git.ahead ? `, ${t.git.ahead} commit${t.git.ahead === 1 ? "" : "s"} ahead of where it started` : ""}.</p></div>` : "") +
+    (lose ? `<div class="wt-loss"><p><b>${esc(lose.summary || "Work that isn't kept anywhere else")}</b></p></div>` : "") +
+    `<div class="set-fa"><button type="button" class="btn" data-tdel-no>Keep it</button><button type="button" class="btn btn-danger" data-tdel-yes="${esc(t.id)}"${busyAttrs(`tdel:${t.id}`)}>${lose ? "Delete anyway" : "Delete thread"}</button></div></div>`;
+  if (box._h !== html) { redraw(box, html); box._h = html; }
+}
+async function deleteThread(tid) {
+  const t = world.thread(tid);
+  if (!t || !world.act.deleteThread) return;
+  const pid = t.project;
+  try {
+    if (isPending(`tdel:${tid}`)) return; // already on its way
+    const p = once(`tdel:${tid}`, () => world.act.deleteThread(tid, { keepBranch: true, confirm: S.tDelLose?.confirm || null }));
+    render();
+    const res = await p;
+    S.tDel = null; S.tDelLose = null;
+    go("p:" + pid);
+    heraldShow({ kind: "done", text: `“${t.title}” deleted`, sub: t.branch ? `Its branch ${t.branch} is kept` : PROJ(pid),
+      undo: () => world.act.restoreThread(tid, res.row).then(() => announce("Thread back"), () => heraldShow({ kind: "stopped", text: "Couldn't bring it back", sub: t.title, force: true }, 6000)),
+      undoUntil: res.undo_until ? Date.parse(res.undo_until) : Date.now() + 10000, ownFocus: true }, 10000);
+  } catch (err) {
+    // work kept nowhere else: say what, and ask again (the next press sends Space's confirm token)
+    if (err && err.code === "would_lose_work") { S.tDelLose = { summary: err.what?.summary || null, confirm: err.confirm || err.what?.confirm || null }; $("#top-who")._h = null; render(); return; }
+    heraldShow({ kind: "stopped", text: "Couldn't delete the thread", sub: String(err && err.message || err), force: true }, 6000);
+  }
+}
 /** A Shell button: "ws", "p:<project folder>" or "t:<thread>" (its worktree, else the project's folder). */
 function openShell(where) {
   if (where === "ws") return SH.openWorkspace();

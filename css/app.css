@@ -381,18 +381,10 @@ button:disabled{cursor:default}
 .st-working{--st:var(--info)}.st-needs_reply,.st-needs_approval{--st:var(--warn)}.st-done{--st:var(--accent)}.st-failed{--st:var(--err-ink)}.st-stopped{--st:var(--ink-4)}.st-resolved{--st:var(--ink-4)}
 
 /* the Now shelf: at most three, needs-you first, never grows */
-.now-wrap{flex:1;min-width:0;display:flex;align-items:center}
-.now{display:flex;gap:6px;min-width:0;overflow-x:auto;scrollbar-width:none;padding:2px 1px;overscroll-behavior-x:contain}
-.nw-more{justify-content:center;min-width:var(--h-hit);padding:0 10px;color:var(--ink-3);font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);font-variant-numeric:tabular-nums}
-.nw-more:hover{color:var(--ink)}
 /* A thread's header keeps its title: when the row is short (a panel open, a narrow window) the actions give
    way first and become their icons; the runtime's name goes (it is in the composer's chip). */
 .top[data-kind="thread"],.top[data-kind="project"]{container:top / inline-size}
-/* a project's header in a short row: the Now strip goes before anything is cut (it's one click away in Threads),
-   then the actions become their icons; the title keeps its room */
-@container top (max-width:700px){
-  .top[data-kind="project"] .now-wrap{display:none}
-}
+/* a project's header in a short row: the actions become their icons; the title keeps its room */
 @container top (max-width:560px){
   .top[data-kind="project"] .tw-act.lp-btn{width:var(--h-ctl);padding:0;justify-content:center}
   .top[data-kind="project"] .tw-act.lp-btn>span{display:none}
@@ -402,20 +394,7 @@ button:disabled{cursor:default}
   .top .tw-act:not(.tw-more)>span{display:none}
   .top .tw-rt{display:none}
 }
-.now::-webkit-scrollbar{display:none}
-.now.fade-r{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 48px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 48px),transparent)}
-.now.fade-l{-webkit-mask-image:linear-gradient(90deg,transparent,#000 48px);mask-image:linear-gradient(90deg,transparent,#000 48px)}
-.now.fade-l.fade-r{-webkit-mask-image:linear-gradient(90deg,transparent,#000 48px,#000 calc(100% - 48px),transparent);mask-image:linear-gradient(90deg,transparent,#000 48px,#000 calc(100% - 48px),transparent)}
-.nw{flex:none;display:inline-flex;align-items:center;gap:8px;height:var(--h-ctl);max-width:260px;padding:0 12px 0 11px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft);text-align:left;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
-.nw:hover{background:color-mix(in srgb,var(--ink) 7%,var(--surface));border-color:var(--line)}
-.nw:active{transform:scale(.97)}
-/* its state is a tint drawn as a layer over its fill, so the hover's fill (.nw:hover) still shows under it (the controls
    grader on 8aa58d3, C024: the state's whole background beat the hover's, on equal specificity) */
-.nw.st-needs{background-image:linear-gradient(180deg,rgb(245 166 35 / .07),transparent);border-color:rgb(245 166 35 / .3)}
-.nw.st-failed{border-color:rgb(230 131 136 / .26)}
-.nw b{min-width:0;font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.nw-segs{flex:none;display:flex;gap:2px;width:var(--h-lg)}
-.nw-segs .sg{flex:1;width:auto;height:3px}
 .thead{flex:none;padding:0 var(--hg) 10px;border-bottom:1px solid var(--line-faint)}
 .ckbar{border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-faint);overflow:hidden;transition:border-color var(--d-in) var(--ease),background var(--d-in) var(--ease)}
 .ckbar.m-needs{border-color:rgb(245 166 35 / .24)}
@@ -1607,13 +1586,11 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .top{min-height:56px;padding-top:12px;padding-bottom:10px}
   .top[data-kind="project"]{flex-wrap:wrap;gap:10px 12px;padding:14px 16px 12px}
   .top[data-kind="project"] .top-who{flex:1;max-width:none}
-  .top[data-kind="project"] .now-wrap{order:3;flex-basis:100%}
   .top[data-kind="project"] .tw-t h1{font-size:var(--fs-2xl)}
   .top[data-kind="project"] .tw-ic{align-self:flex-start;width:30px;height:30px;border-radius:var(--r-sm)}
   .top[data-kind="project"] .tw-ic svg{width:16px;height:16px}
   .all-btn{align-self:center;margin-top:0;padding:0 4px 0 10px}
   .pj-s{white-space:normal}
-  .nw{max-width:72vw}
   .thead{padding-left:var(--hg);padding-right:var(--hg)}
   .ck-tog{gap:9px;padding:0 8px 0 10px}
   .ck-segs .sg{width:10px}
@@ -2079,8 +2056,6 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 
 /* the live intelligence popover (R6): models with storm's own descriptions */
 /* live: a model's efforts come from the catalog (up to five); each pip is one effort */
-@media (max-width:760px){
-}
 
 /* ── Chats: plain chats with one agent (U1) ───────────────────────────────── */
 .ch-list{list-style:none;display:flex;flex-direction:column;gap:6px;margin:6px 0 24px}
@@ -2109,7 +2084,6 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
   .dock-hide{height:var(--h-touch);min-width:var(--h-touch)}
   .tb-h{min-height:var(--h-touch)}
   .m-turn{--tb-line:36px;--av-h:26px}
-  .nw{height:var(--h-touch)}
   .hr.hr-need{min-height:var(--h-touch)}
   .rn-chip,.rn-log,.rn-stopall{height:var(--h-touch)}
   #say{min-height:var(--h-touch)}
@@ -2842,8 +2816,6 @@ button.dg-n:hover{border-color:var(--line-strong);color:var(--ink)}
 
 @media (max-width:1180px) and (min-width:761px){:root{--mw:min(460px,48vw)}}
 /* too narrow to sit beside the conversation: it floats over it */
-@media (max-width:1040px) and (min-width:761px){
-}
 @media (max-width:760px){
   .map,body.map-full .map{position:fixed;inset:0;width:auto;z-index:calc(var(--z-popover) - 1);border-radius:0;border:0}
   .map.is-in{animation:sheet-up var(--d-move) var(--ease) both}
@@ -3120,3 +3092,12 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .rt-def .field textarea{min-height:64px}
 .rt-ferr{font-size:var(--fs-sm);color:var(--err-ink)}
 .rt-saved{font-size:var(--fs-sm);color:var(--ink-4)}
+
+/* ── The thread's ⋯ (the owner, 19 Nov): one menu, in groups; Delete, asked in place under the header ───────────
+   Groups part with a hairline, inset like the items' words. Delete's confirm sits on the header's own edges
+   (--hg) with one gap (--s-3) above and below, as Settings › Worktrees asks it. */
+.tw-sep{display:block;height:1px;margin:var(--s-1) var(--s-2);background:var(--line-soft)}
+.tw-menu .tw-danger{color:var(--err-ink)}
+.tw-menu button[aria-disabled="true"]{color:var(--ink-5);cursor:default}
+.tdel{flex:none;padding:var(--s-3) var(--hg)}
+.tdel[hidden]{display:none}

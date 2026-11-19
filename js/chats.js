@@ -187,7 +187,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     const s = session(v.slice(2));
     if (!s) return `<span class="tw-t"><h1 id="conv-title">Chat</h1></span>`;
     const busy = inTurn(s), wait = waiting(s), held = !busy && !wait ? heldOf(s) : null;
-    const st = s.retired_at ? ["resolved", "done", "Ended"] : wait ? ["needs_approval", "needs_approval", "Needs you"] : busy ? ["working", "working", "Working"] : held ? ["paused", "paused", heldBadge(held)] : ["resolved", "idle", "Idle"];
+    const st = s.retired_at ? ["resolved", "done", "Ended"] : wait ? ["needs_approval", "needs_approval", "Needs you"] : busy ? ["working", "working", "Working"] : held ? ["paused", "paused", heldBadge(held)] : ["resolved", "idle", "Waiting"];
     return `<span class="tw-t"><h1 id="conv-title">${esc(titleFor(s))}</h1><span class="pj-s">${esc(metaLine(s))}</span></span>` +
       `<span class="badge st-${st[0]}"><i class="g g-${st[1]}" aria-hidden="true"></i>${st[2]}</span>`;
   }

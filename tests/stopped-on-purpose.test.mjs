@@ -135,7 +135,7 @@ await t("the header, the sidebar row, the badge and the checklist line: quiet in
   assert.match(app, /const badge = t \? `<span class="badge st-\$\{stOf\(t\)\}">/);
   assert.match(app, /t\.state === "failed" && !t\.stop \? "stop" : isBusy\(t\)/, "no red line along the header");
   assert.match(app, /else if \(t\.stop\) \{ mode = "stopped"; nowHtml = `<span class="ck-m">■<\/span><span>\$\{esc\(stopWords\(t\.stop\)\)\}<\/span>`; \}\n {2}else if \(t\.state === "failed"\)/);
-  assert.match(app, /: t\.stop \? stopWords\(t\.stop\) : t\.state === "failed" \? String\(t\.happened/, "the sidebar row's title");
+  assert.match(app, /t\.stop \? stopWords\(t\.stop\) : t\.summary \|\| \(t\.state === "failed" \? "Stopped"/, "the panel's Threads row says the stop quietly");
   assert.match(css, /\.g-stopped\{background:var\(--ink-4\);border-radius:2px\}/);
   assert.match(css, /\.st-stopped\{--st:var\(--ink-4\)\}/);
 });

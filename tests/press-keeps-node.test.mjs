@@ -67,7 +67,6 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
   assert.match(app, /const swap = \(\) => \{ redraw\(chip, html\); chip\._h = html; \}/);
   assert.match(app, /redraw\(hn, hnHtml\)/); assert.match(app, /redraw\(wn, wnHtml\)/);
   assert.match(app, /redraw\(\$\("#all-list"\), html\)/);
-  assert.match(app, /class="nw nw-more" data-switch aria-haspopup="dialog" data-own>/, "the strip's +N is its own");
 });
 
 // ── on a DOM ──────────────────────────────────────────────────────────────────

@@ -280,6 +280,11 @@ export const api = {
   thread: (chat, ts) => get(`/chat/chats/${enc(chat)}/threads/${enc(ts)}`),
   /** {resolved?, paused?: false, title?, label?, intelligence?} */
   patchThread: (chat, ts, body) => send("PATCH", `/chat/chats/${enc(chat)}/threads/${enc(ts)}`, body),
+  /** Delete a thread (Space, when it offers it: a thread row's can_delete). {keep_branch, confirm?} → {deleted,
+   *  undo_until}; 409 would_lose_work {what, confirm} when its worktree holds work kept nowhere else. Undone by
+   *  restoreThread until undo_until. design-research/2026-11-19-threads-panel/DELETE-SPEC.md */
+  deleteThread: (chat, ts, body) => send("DELETE", `/chat/chats/${enc(chat)}/threads/${enc(ts)}`, body),
+  restoreThread: (chat, ts) => send("POST", `/chat/chats/${enc(chat)}/threads/${enc(ts)}/restore`, {}),
   /** Continue a thread on another runtime (§2.4): it stops, freezes, and a linked new thread starts from its work. */
   continueThread: (chat, ts, body) => request(`/chat/chats/${enc(chat)}/threads/${enc(ts)}/continue`, { method: "POST", body, timeout: 60000 }),
   hops: (chat, query = {}) => get(`/chat/chats/${enc(chat)}/hops`, query),

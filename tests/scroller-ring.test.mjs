@@ -36,7 +36,7 @@ const SCROLLERS = {
   ".keys-cols": ["room", "Settings › Keyboard"], ".set-body": ["room", "Settings' page"], ".set-page": ["room", "a Settings page on a phone"],
   ".rn-body": ["room", "Runs' sheet"], ".shd-list": ["room", "Shells' list"], ".dd-menu": ["room", "a dropdown's options"],
   ".cs-pop": ["room:.iq-pop", "the new chat's settings (an .iq-pop)"],
-  ".now": ["inset:.nw", "the Now strip's chips"], ".shd-tabs": ["inset:.shd-tab", "a shell's tabs"], ".stg-tabs": ["inset:.stg-tab", "the stage's tabs"], ".vw-tabs": ["inset:.vw-tab-b", "the open files' tabs (their close buttons inset too)"],
+".shd-tabs": ["inset:.shd-tab", "a shell's tabs"], ".stg-tabs": ["inset:.stg-tab", "the stage's tabs"], ".vw-tabs": ["inset:.vw-tab-b", "the open files' tabs (their close buttons inset too)"],
   ".set-nav": ["inset:.set-nav button", "Settings' rail"], ".fl-list": ["inset:.fl-r", "Files' tree"], ".iq-list": ["inset:.iq-row", "the picker's models"],
   ".syl-b": ["inset:.syl-ln", "a record's lines"], ".stage .cx-list": ["inset:.cx-r", "the changes list"],
   ".md-body": ["inset:.md-from", "Made's cards (their ring a layer inside them, C013; their from line and pin inset)"],
@@ -81,7 +81,6 @@ t("each holds the ring as listed: a padded one by at least the ring on every sid
 const CLIPPERS = {
   "html": ["page", "the page"], "body": ["page", "the page"], ".main": ["inner", "the main area: its views and header pad their controls"],
   ".sr-only": ["decor", "words for a screen reader"], ".agm-openai": ["decor", "an agent's mark (OpenAI's, a mask in the ink)"], ".rn-stop span": ["decor", "words for a screen reader"], "body.chat-docked .thead .rn-log span": ["decor", "words for a screen reader"], ":root:root .thead .rn-log span": ["decor", "words for a screen reader"],
-  ".now.fade-r": ["fade", "the Now strip's edge, while more chips lie that way (its chips' ring inset, .nw)"], ".now.fade-l": ["fade", "the same, at its start"], ".now.fade-l.fade-r": ["fade", "the same, both ends"],
   ".ckbar": ["inset:.ck-tog", "a thread's checklist bar: its toggle fills it (C045)"],
   ".ck-b>ol": ["text", "the checklist's steps"], ".ck-b": ["text", "the checklist's steps, clipped as they open (words, no controls)"], ".sg.s-done.is-pop": ["decor", "a step's mark in the progress line"],
   ".card": ["inner", "a decision card: its body pads 16, its actions 12"], ".chg": ["text", "a change's preview: its caption and text"], ".c-hint": ["text", "a card's hint"],

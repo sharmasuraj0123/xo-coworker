@@ -212,6 +212,8 @@ export function stormSource(state, emit, event) {
       outputs: r.outputs || [], card,
       // a newer backend: one past-tense sentence of what it did, and its branch's git state (null until read)
       summary: r.summary || null, git: r.git || null,
+      // Space can delete it (a newer backend says so per thread): the thread's ⋯ offers Delete only then
+      canDelete: r.can_delete === true,
       ...moveOf(r), limits: limitsFor(r.ts),
     };
     const open = openItemsFor(r.ts);
@@ -1037,6 +1039,22 @@ export function stormSource(state, emit, event) {
           soon();
           throw err;
         }
+      },
+      /** Delete (Space's soft delete: undoable until undo_until); the row goes from the lists at once and comes
+       *  back if Space refuses. A refusal (409 would_lose_work) is thrown for the caller to ask again. */
+      deleteThread: async (threadId, { keepBranch = true, confirm = null } = {}) => {
+        const r = threadOf(threadId);
+        if (!r) throw new Error("Unknown thread");
+        const res = await api.deleteThread(r.chat_id, threadId, { keep_branch: keepBranch, ...(confirm ? { confirm } : {}) });
+        rawThreads.delete(threadId);
+        soon();
+        return { ...res, row: r };
+      },
+      restoreThread: async (threadId, row) => {
+        const t = await api.restoreThread(row.chat_id, threadId);
+        rawThreads.set(threadId, { ...row, ...(t || {}), _at: Date.now() });
+        soon();
+        return t;
       },
       /** Rename (1..120) or label (≤32; null clears). */
       editThread: async (threadId, change) => {
