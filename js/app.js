@@ -9,7 +9,7 @@
 // of deciding. Stop while anything runs. Intelligence per session in the
 // composer. Light and dark.
 import { createWorld, esc, WAITING } from "./world.js";
-import { copyText, COPY_REFUSED, space } from "../core/platform/index.js";
+import { copyText, COPY_REFUSED, space, clock, dayOf, short, elapsed } from "../core/platform/index.js";
 import { redraw } from "./redraw.js";
 import "./dropdown.js"; // <xo-select>: the one dropdown, in place of the browser's <select>
 import { renderMarkdown, renderInline, setThreadInfo, setWebImages } from "./markdown.js";
@@ -19,7 +19,7 @@ import { createDecisions } from "./decide.js";
 import { createPacing } from "./pacing.js";
 import { createIntel } from "./intel.js";
 import { EFFORT, estLine, evidenceFor } from "./content.js";
-import { keepTurning, ICON, xi, XO, NEXT_GLYPH, $, $$, RM, clock, dayOf, short, elapsed, reconcile, sound, wait, hold, dial, morph, expand } from "./ui.js";
+import { keepTurning, ICON, xi, XO, NEXT_GLYPH, $, $$, RM, reconcile, sound, wait, hold, dial, morph, expand } from "./ui.js";
 import { paidHtml } from "./paidview.js";
 import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldClock, heldBadge, soonestHeld } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn } from "./turnview.js";

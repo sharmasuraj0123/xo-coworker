@@ -8,7 +8,7 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | vendor | 367 |
 | split | 34 |
 
-Items inside first-party files: 2290 (planned 1367, split-region 895, deleted 17, moved 11), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1367, split-region 887, moved 19, deleted 17), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 

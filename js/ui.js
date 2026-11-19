@@ -216,34 +216,7 @@ export const wait = (ms) => new Promise((r) => setTimeout(r, RM.matches ? 0 : ms
  *  cuts animations, never the time to act (Astra S014: the dock's Undo vanished in ~20 ms). */
 export const hold = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// one formatter each, made once: toLocale*String with options builds a new one per call (25 ms per redraw
-// of a 400-row conversation; QA C5)
-const CLOCK_F = new Intl.DateTimeFormat([], { hour: "numeric", minute: "2-digit" });
-const DAY_F = new Intl.DateTimeFormat(undefined, { weekday: "short", month: "short", day: "numeric" });
-export function clock(ms) {
-  return CLOCK_F.format(ms);
-}
-export function dayOf(ms, now = Date.now()) {
-  const d = new Date(ms), t = new Date(now), y = new Date(now - 86400000);
-  if (d.toDateString() === t.toDateString()) return "Today";
-  if (d.toDateString() === y.toDateString()) return "Yesterday";
-  return DAY_F.format(d);
-}
-export function short(ms, now = Date.now()) {
-  const s = Math.max(0, Math.round((now - ms) / 1000));
-  if (s < 45) return "now";
-  const m = Math.round(s / 60);
-  if (m < 60) return `${m}m`;
-  const h = Math.round(m / 60);
-  if (h < 24) return `${h}h`;
-  return new Date(ms).toLocaleDateString(undefined, { weekday: "short" });
-}
-export function elapsed(secs) {
-  if (secs < 60) return `${secs}s`;
-  const m = Math.floor(secs / 60);
-  if (m < 60) return `${m}m ${String(secs % 60).padStart(2, "0")}s`;
-  return `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, "0")}m`;
-}
+export { clock, dayOf, short, elapsed } from "../core/platform/index.js";
 export const plain = (md) => String(md || "").replace(/```[\s\S]*?```/g, "[code]").replace(/[*_`#>]/g, "").replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/\s+/g, " ").trim();
 
 /**

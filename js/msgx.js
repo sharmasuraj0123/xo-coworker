@@ -12,9 +12,9 @@
 //     · swipe left anywhere: every message's time slides in, like Messages
 //     · a sent reply shows its quote as a card in your bubble; press it to go back to the original
 
-import { elapsed, ICON, xi } from "./ui.js";
+import { ICON, xi } from "./ui.js";
 import { toLatest as mainToLatest, fromLatest as mainFromLatest } from "./follow.js";
-import { copyText, COPY_REFUSED, space } from "../core/platform/index.js";
+import { copyText, COPY_REFUSED, space, elapsed } from "../core/platform/index.js";
 import { wordsOf } from "./words.js";
 
 const $ = (s, r = document) => r.querySelector(s);

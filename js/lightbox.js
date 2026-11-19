@@ -17,9 +17,9 @@
 // createLightbox({openFile, announce}) → {open(key, from, root), close(), isOpen}
 //   openFile(item, from): "Open in Files" (app.js hands it to the viewer, which brings Files up).
 
-import { esc } from "../core/platform/index.js";
+import { esc, clock } from "../core/platform/index.js";
 import { ARROW_OUT } from "./markdown.js";
-import { ICON, clock } from "./ui.js";
+import { ICON } from "./ui.js";
 import { api, attachmentUrl } from "./api.js";
 import { typeWord, fmtSize } from "./attach.js";
 import { still } from "./motion.js";
