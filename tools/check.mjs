@@ -51,8 +51,11 @@ step("lint", () => {
 
 step("types", () => {
   if (!existsSync(bin("tsc"))) return "tsc is not installed: run `npm ci`";
-  const r = run(bin("tsc"), ["-p", "jsconfig.json"]);
-  return r.status === 0 ? null : `type errors:\n${(r.stdout + r.stderr).trim()}`;
+  for (const project of ["jsconfig.json", "e2e/jsconfig.json"]) {
+    const r = run(bin("tsc"), ["-p", project]);
+    if (r.status !== 0) return `type errors (${project}):\n${(r.stdout + r.stderr).trim()}`;
+  }
+  return null;
 });
 
 function sourceFiles() {

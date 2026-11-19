@@ -44,12 +44,13 @@ t("a query can end in :line or :line:col", () => {
   assert.deepEqual(lineOf("plain"), { query: "plain", line: null, col: null });
 });
 
+// the CPU this process spends, not the wall clock: a loaded machine makes the wait longer, never the work
 t("10,000 paths rank in well under a frame budget per key", () => {
   const many = Array.from({ length: 10000 }, (_, i) => `src/module${i % 97}/part${i}/file${i}.ts`);
-  const t0 = performance.now();
+  const c0 = process.cpuUsage();
   rank(many, "mod5file12");
-  const ms = performance.now() - t0;
-  assert.ok(ms < 150, `took ${ms.toFixed(1)} ms`);
+  const c = process.cpuUsage(c0), ms = (c.user + c.system) / 1000;
+  assert.ok(ms < 150, `took ${ms.toFixed(1)} ms of CPU`);
 });
 
 t("paths: Space's /paths when it has it, worktree-aware", async () => {

@@ -1,0 +1,977 @@
+{
+ "title": "XO Space API",
+ "version": "1.0.0",
+ "taken": "2026-11-19",
+ "paths": {
+  "/": [
+   "GET"
+  ],
+  "/.well-known/oauth-protected-resource": [
+   "GET"
+  ],
+  "/api/advisory": [
+   "GET"
+  ],
+  "/api/agents": [
+   "GET",
+   "POST"
+  ],
+  "/api/agents/{agent_id}": [
+   "GET",
+   "DELETE",
+   "PATCH"
+  ],
+  "/api/automations": [
+   "GET"
+  ],
+  "/api/channels": [
+   "GET"
+  ],
+  "/api/channels/add": [
+   "POST"
+  ],
+  "/api/chat/abort": [
+   "POST"
+  ],
+  "/api/chat/active": [
+   "GET"
+  ],
+  "/api/chat/chats": [
+   "GET"
+  ],
+  "/api/chat/chats/{chat_id}": [
+   "GET",
+   "PATCH"
+  ],
+  "/api/chat/chats/{chat_id}/attachments": [
+   "POST"
+  ],
+  "/api/chat/chats/{chat_id}/attachments/{att_id}": [
+   "GET"
+  ],
+  "/api/chat/chats/{chat_id}/hops": [
+   "GET"
+  ],
+  "/api/chat/chats/{chat_id}/made": [
+   "GET"
+  ],
+  "/api/chat/chats/{chat_id}/made/{made_id}/pin": [
+   "PUT",
+   "DELETE"
+  ],
+  "/api/chat/chats/{chat_id}/memory": [
+   "GET"
+  ],
+  "/api/chat/chats/{chat_id}/memory/{path}": [
+   "GET"
+  ],
+  "/api/chat/chats/{chat_id}/messages": [
+   "GET",
+   "POST"
+  ],
+  "/api/chat/chats/{chat_id}/runtime-policy": [
+   "GET",
+   "PUT"
+  ],
+  "/api/chat/chats/{chat_id}/seen": [
+   "PUT"
+  ],
+  "/api/chat/chats/{chat_id}/tasks/{task_id}/reports": [
+   "GET"
+  ],
+  "/api/chat/chats/{chat_id}/thread-events": [
+   "GET"
+  ],
+  "/api/chat/chats/{chat_id}/threads": [
+   "GET"
+  ],
+  "/api/chat/chats/{chat_id}/threads/{ts}": [
+   "GET",
+   "DELETE",
+   "PATCH"
+  ],
+  "/api/chat/chats/{chat_id}/threads/{ts}/continue": [
+   "POST"
+  ],
+  "/api/chat/chats/{chat_id}/threads/{ts}/events": [
+   "GET"
+  ],
+  "/api/chat/chats/{chat_id}/threads/{ts}/restore": [
+   "POST"
+  ],
+  "/api/chat/chats/{chat_id}/work": [
+   "GET"
+  ],
+  "/api/chat/events": [
+   "GET"
+  ],
+  "/api/chat/intent": [
+   "GET"
+  ],
+  "/api/chat/intent/paid": [
+   "POST"
+  ],
+  "/api/chat/intent/pause": [
+   "POST"
+  ],
+  "/api/chat/intent/resume": [
+   "POST"
+  ],
+  "/api/chat/intent/stop": [
+   "POST"
+  ],
+  "/api/chat/prompt": [
+   "POST"
+  ],
+  "/api/chat/review": [
+   "GET"
+  ],
+  "/api/chat/review/{item_id}": [
+   "GET"
+  ],
+  "/api/chat/review/{item_id}/decision": [
+   "POST"
+  ],
+  "/api/chat/router": [
+   "GET",
+   "PUT"
+  ],
+  "/api/chat/router/models": [
+   "GET",
+   "POST"
+  ],
+  "/api/chat/router/models/{provider}": [
+   "DELETE"
+  ],
+  "/api/chat/rules": [
+   "GET",
+   "POST"
+  ],
+  "/api/chat/rules/{rule_id}": [
+   "DELETE"
+  ],
+  "/api/chat/runs/{run_id}": [
+   "GET"
+  ],
+  "/api/chat/runs/{run_id}/stop": [
+   "POST"
+  ],
+  "/api/chat/runs/{run_id}/transcript": [
+   "GET"
+  ],
+  "/api/chat/runtime-policy": [
+   "GET",
+   "PUT"
+  ],
+  "/api/chat/runtimes": [
+   "GET"
+  ],
+  "/api/chat/runtimes/{name}/models": [
+   "GET"
+  ],
+  "/api/chat/sessions": [
+   "GET"
+  ],
+  "/api/chat/sessions/{session_id}": [
+   "GET",
+   "PATCH"
+  ],
+  "/api/chat/sessions/{session_id}/runs": [
+   "GET"
+  ],
+  "/api/chat/sessions/{session_id}/runs/stop": [
+   "POST"
+  ],
+  "/api/chat/sessions/{session_id}/stream": [
+   "GET"
+  ],
+  "/api/chat/shape": [
+   "GET",
+   "PUT"
+  ],
+  "/api/chat/status": [
+   "GET"
+  ],
+  "/api/chat/stream": [
+   "GET"
+  ],
+  "/api/chat/stream/{stream_id}": [
+   "GET"
+  ],
+  "/api/chat/worktrees": [
+   "GET"
+  ],
+  "/api/chat/worktrees/{chat_id}/{thread_ts}": [
+   "DELETE"
+  ],
+  "/api/config/agents/{name}": [
+   "GET"
+  ],
+  "/api/config/api-key": [
+   "GET"
+  ],
+  "/api/config/local": [
+   "GET"
+  ],
+  "/api/config/ollama": [
+   "GET"
+  ],
+  "/api/config/openai-subscription": [
+   "GET"
+  ],
+  "/api/config/openyak-account": [
+   "GET"
+  ],
+  "/api/config/providers": [
+   "GET"
+  ],
+  "/api/config/providers/{provider_id}/key": [
+   "POST",
+   "DELETE"
+  ],
+  "/api/config/workspace": [
+   "GET"
+  ],
+  "/api/connections": [
+   "GET"
+  ],
+  "/api/connections/{toolkit}": [
+   "GET",
+   "PUT",
+   "DELETE"
+  ],
+  "/api/connections/{toolkit}/account": [
+   "POST"
+  ],
+  "/api/connections/{toolkit}/events": [
+   "GET"
+  ],
+  "/api/connections/{toolkit}/poll": [
+   "POST"
+  ],
+  "/api/connectors": [
+   "GET"
+  ],
+  "/api/connectors/composio/api-key": [
+   "PUT",
+   "DELETE"
+  ],
+  "/api/connectors/composio/backend": [
+   "GET"
+  ],
+  "/api/connectors/composio/callback": [
+   "GET"
+  ],
+  "/api/connectors/composio/toolkits": [
+   "GET"
+  ],
+  "/api/connectors/composio/{toolkit}/accounts": [
+   "GET"
+  ],
+  "/api/connectors/composio/{toolkit}/accounts/{connected_account_id}/alias": [
+   "PUT"
+  ],
+  "/api/connectors/composio/{toolkit}/accounts/{connected_account_id}/unlink": [
+   "POST"
+  ],
+  "/api/connectors/composio/{toolkit}/connect": [
+   "POST"
+  ],
+  "/api/connectors/composio/{toolkit}/disconnect": [
+   "POST"
+  ],
+  "/api/connectors/composio/{toolkit}/prefs": [
+   "GET",
+   "PUT"
+  ],
+  "/api/connectors/composio/{toolkit}/scope": [
+   "GET",
+   "PUT"
+  ],
+  "/api/connectors/composio/{toolkit}/status": [
+   "GET"
+  ],
+  "/api/connectors/composio/{toolkit}/tools": [
+   "GET"
+  ],
+  "/api/connectors/gdrive/remotes": [
+   "GET",
+   "POST"
+  ],
+  "/api/connectors/gdrive/remotes/{name}": [
+   "DELETE"
+  ],
+  "/api/connectors/gdrive/remotes/{name}/folders": [
+   "GET"
+  ],
+  "/api/connectors/gdrive/remotes/{name}/mkdir": [
+   "POST"
+  ],
+  "/api/connectors/gdrive/remotes/{name}/rmdir": [
+   "POST"
+  ],
+  "/api/connectors/gdrive/remotes/{name}/upload": [
+   "POST"
+  ],
+  "/api/connectors/gdrive/sessions/{session_id}": [
+   "GET"
+  ],
+  "/api/connectors/gdrive/sessions/{session_id}/cancel": [
+   "POST"
+  ],
+  "/api/connectors/gdrive/sessions/{session_id}/submit": [
+   "POST"
+  ],
+  "/api/connectors/github/cli/cancel": [
+   "POST"
+  ],
+  "/api/connectors/github/cli/existing": [
+   "GET"
+  ],
+  "/api/connectors/github/cli/import": [
+   "POST"
+  ],
+  "/api/connectors/github/cli/poll": [
+   "POST"
+  ],
+  "/api/connectors/github/cli/start": [
+   "POST"
+  ],
+  "/api/connectors/github/disconnect": [
+   "POST"
+  ],
+  "/api/connectors/github/reconnect": [
+   "POST"
+  ],
+  "/api/connectors/github/status": [
+   "GET"
+  ],
+  "/api/connectors/github/token": [
+   "POST"
+  ],
+  "/api/connectors/magicpath/login": [
+   "POST"
+  ],
+  "/api/connectors/magicpath/logout": [
+   "POST"
+  ],
+  "/api/connectors/magicpath/setup": [
+   "POST"
+  ],
+  "/api/connectors/magicpath/status": [
+   "GET"
+  ],
+  "/api/connectors/onedrive/remotes": [
+   "GET",
+   "POST"
+  ],
+  "/api/connectors/onedrive/remotes/{name}": [
+   "DELETE"
+  ],
+  "/api/connectors/onedrive/sessions/{session_id}": [
+   "GET"
+  ],
+  "/api/connectors/onedrive/sessions/{session_id}/cancel": [
+   "POST"
+  ],
+  "/api/connectors/onedrive/sessions/{session_id}/submit": [
+   "POST"
+  ],
+  "/api/connectors/vercel/disconnect": [
+   "POST"
+  ],
+  "/api/connectors/vercel/oauth/exchange": [
+   "POST"
+  ],
+  "/api/connectors/vercel/oauth/start": [
+   "GET"
+  ],
+  "/api/connectors/vercel/reconnect": [
+   "POST"
+  ],
+  "/api/connectors/vercel/status": [
+   "GET"
+  ],
+  "/api/connectors/vercel/token": [
+   "POST"
+  ],
+  "/api/coworker/xo-projects/{project_id}/version": [
+   "GET"
+  ],
+  "/api/deploy/flow": [
+   "GET"
+  ],
+  "/api/deploy/sizes": [
+   "GET"
+  ],
+  "/api/deploy/{project}": [
+   "POST",
+   "DELETE"
+  ],
+  "/api/deploy/{project}/agent": [
+   "POST"
+  ],
+  "/api/deploy/{project}/apps": [
+   "GET"
+  ],
+  "/api/deploy/{project}/check": [
+   "GET"
+  ],
+  "/api/deploy/{project}/link": [
+   "POST",
+   "DELETE"
+  ],
+  "/api/deploy/{project}/preflight": [
+   "GET"
+  ],
+  "/api/deploy/{project}/watch": [
+   "GET"
+  ],
+  "/api/doctor": [
+   "GET"
+  ],
+  "/api/doctor/runtime-leftovers/{key}/move-aside": [
+   "POST"
+  ],
+  "/api/files/content": [
+   "POST"
+  ],
+  "/api/files/content-binary": [
+   "POST"
+  ],
+  "/api/files/list-directory": [
+   "POST"
+  ],
+  "/api/files/mkdir": [
+   "POST"
+  ],
+  "/api/files/save": [
+   "POST"
+  ],
+  "/api/files/upload": [
+   "POST"
+  ],
+  "/api/fts/index/{workspace}": [
+   "GET",
+   "POST"
+  ],
+  "/api/inbox": [
+   "GET",
+   "POST",
+   "PATCH"
+  ],
+  "/api/inbox/{item_id}": [
+   "DELETE",
+   "PATCH"
+  ],
+  "/api/mcp/status": [
+   "GET"
+  ],
+  "/api/messages/{session_id}": [
+   "GET"
+  ],
+  "/api/models": [
+   "GET"
+  ],
+  "/api/ollama/status": [
+   "GET"
+  ],
+  "/api/onboarding": [
+   "GET"
+  ],
+  "/api/onboarding/complete": [
+   "POST"
+  ],
+  "/api/plugins/status": [
+   "GET"
+  ],
+  "/api/project-sharing/check": [
+   "POST"
+  ],
+  "/api/project-sharing/status": [
+   "GET"
+  ],
+  "/api/quirq": [
+   "GET"
+  ],
+  "/api/remote-control/start": [
+   "POST"
+  ],
+  "/api/remote-control/status": [
+   "GET"
+  ],
+  "/api/remote-control/stop": [
+   "POST"
+  ],
+  "/api/runtime-config": [
+   "GET",
+   "PUT"
+  ],
+  "/api/runtime-config/restart": [
+   "POST"
+  ],
+  "/api/runtime-config/roots": [
+   "PUT"
+  ],
+  "/api/schedules": [
+   "GET",
+   "POST"
+  ],
+  "/api/schedules/{job_id}": [
+   "GET",
+   "PUT",
+   "DELETE"
+  ],
+  "/api/schedules/{job_id}/run": [
+   "POST"
+  ],
+  "/api/schedules/{job_id}/runs": [
+   "GET"
+  ],
+  "/api/secrets": [
+   "GET",
+   "PUT"
+  ],
+  "/api/secrets/env": [
+   "GET",
+   "PUT"
+  ],
+  "/api/secrets/env/keys": [
+   "GET"
+  ],
+  "/api/secrets/{key}": [
+   "DELETE",
+   "PATCH"
+  ],
+  "/api/secrets/{key}/reveal": [
+   "GET"
+  ],
+  "/api/sessions": [
+   "GET",
+   "POST"
+  ],
+  "/api/sessions/search": [
+   "GET"
+  ],
+  "/api/sessions/{session_id}": [
+   "GET",
+   "DELETE",
+   "PATCH"
+  ],
+  "/api/sessions/{session_id}/files": [
+   "GET"
+  ],
+  "/api/sessions/{session_id}/otel": [
+   "GET"
+  ],
+  "/api/sessions/{session_id}/otel/export": [
+   "POST"
+  ],
+  "/api/sessions/{session_id}/todos": [
+   "GET"
+  ],
+  "/api/sessions/{session_id}/transcript": [
+   "GET"
+  ],
+  "/api/skills": [
+   "GET"
+  ],
+  "/api/skills/catalog": [
+   "GET"
+  ],
+  "/api/skills/install": [
+   "POST"
+  ],
+  "/api/telemetry/sources": [
+   "GET"
+  ],
+  "/api/telemetry/sources/{source_id}": [
+   "PUT"
+  ],
+  "/api/terminal/sessions": [
+   "GET",
+   "POST"
+  ],
+  "/api/terminal/sessions/{terminal_id}": [
+   "GET",
+   "DELETE",
+   "PATCH"
+  ],
+  "/api/terminal/sessions/{terminal_id}/attach": [
+   "POST"
+  ],
+  "/api/terminal/status": [
+   "GET"
+  ],
+  "/api/tools": [
+   "GET"
+  ],
+  "/api/usage": [
+   "GET"
+  ],
+  "/api/usage/analytics": [
+   "GET"
+  ],
+  "/api/usage/sessions": [
+   "GET"
+  ],
+  "/api/usage/sessions/{session_id}": [
+   "GET"
+  ],
+  "/api/usage/summary": [
+   "GET"
+  ],
+  "/api/usage/summary/card": [
+   "GET"
+  ],
+  "/api/workspace-memory": [
+   "GET",
+   "PUT",
+   "DELETE"
+  ],
+  "/api/workspace-memory/export": [
+   "POST"
+  ],
+  "/api/workspace-memory/list": [
+   "GET"
+  ],
+  "/api/workspace-memory/refresh": [
+   "POST"
+  ],
+  "/api/workspace/workitems": [
+   "GET"
+  ],
+  "/api/xo-projects": [
+   "GET",
+   "POST"
+  ],
+  "/api/xo-projects-sync/all": [
+   "POST"
+  ],
+  "/api/xo-projects-sync/all/restore": [
+   "POST"
+  ],
+  "/api/xo-projects-sync/projects": [
+   "GET"
+  ],
+  "/api/xo-projects-sync/projects/{project_id}": [
+   "POST"
+  ],
+  "/api/xo-projects-sync/projects/{project_id}/restore": [
+   "POST"
+  ],
+  "/api/xo-projects-sync/setup": [
+   "POST"
+  ],
+  "/api/xo-projects-sync/status": [
+   "GET"
+  ],
+  "/api/xo-projects/activity": [
+   "GET"
+  ],
+  "/api/xo-projects/clones/{clone_id}": [
+   "GET",
+   "DELETE"
+  ],
+  "/api/xo-projects/timeline": [
+   "GET"
+  ],
+  "/api/xo-projects/usage": [
+   "GET"
+  ],
+  "/api/xo-projects/usage/analytics": [
+   "GET"
+  ],
+  "/api/xo-projects/usage/sessions": [
+   "GET"
+  ],
+  "/api/xo-projects/usage/sessions/{session_id}": [
+   "GET"
+  ],
+  "/api/xo-projects/usage/summary": [
+   "GET"
+  ],
+  "/api/xo-projects/usage/summary/card": [
+   "GET"
+  ],
+  "/api/xo-projects/{project_id}": [
+   "DELETE"
+  ],
+  "/api/xo-projects/{project_id}/activity": [
+   "GET"
+  ],
+  "/api/xo-projects/{project_id}/apply": [
+   "POST"
+  ],
+  "/api/xo-projects/{project_id}/changes": [
+   "GET"
+  ],
+  "/api/xo-projects/{project_id}/commits": [
+   "GET"
+  ],
+  "/api/xo-projects/{project_id}/download": [
+   "GET"
+  ],
+  "/api/xo-projects/{project_id}/edits": [
+   "GET"
+  ],
+  "/api/xo-projects/{project_id}/edits/{edit_id}/undo": [
+   "POST"
+  ],
+  "/api/xo-projects/{project_id}/file": [
+   "GET",
+   "PUT"
+  ],
+  "/api/xo-projects/{project_id}/file-history": [
+   "GET"
+  ],
+  "/api/xo-projects/{project_id}/files/delete": [
+   "POST"
+  ],
+  "/api/xo-projects/{project_id}/files/mkdir": [
+   "POST"
+  ],
+  "/api/xo-projects/{project_id}/files/rename": [
+   "POST"
+  ],
+  "/api/xo-projects/{project_id}/github/issues": [
+   "GET"
+  ],
+  "/api/xo-projects/{project_id}/github/issues/{issue_number}/adopt": [
+   "POST"
+  ],
+  "/api/xo-projects/{project_id}/image": [
+   "GET"
+  ],
+  "/api/xo-projects/{project_id}/members": [
+   "GET"
+  ],
+  "/api/xo-projects/{project_id}/paths": [
+   "GET"
+  ],
+  "/api/xo-projects/{project_id}/peers": [
+   "GET",
+   "POST"
+  ],
+  "/api/xo-projects/{project_id}/peers/{user_id}": [
+   "GET",
+   "DELETE",
+   "PATCH"
+  ],
+  "/api/xo-projects/{project_id}/removal": [
+   "GET"
+  ],
+  "/api/xo-projects/{project_id}/revoke": [
+   "POST"
+  ],
+  "/api/xo-projects/{project_id}/search": [
+   "GET"
+  ],
+  "/api/xo-projects/{project_id}/share": [
+   "POST"
+  ],
+  "/api/xo-projects/{project_id}/timeline": [
+   "GET"
+  ],
+  "/api/xo-projects/{project_id}/todos": [
+   "GET",
+   "POST"
+  ],
+  "/api/xo-projects/{project_id}/todos/{todo_id}": [
+   "GET",
+   "DELETE",
+   "PATCH"
+  ],
+  "/api/xo-projects/{project_id}/tree": [
+   "GET"
+  ],
+  "/api/xo-projects/{project_id}/usage/analytics": [
+   "GET"
+  ],
+  "/api/xo-projects/{project_id}/usage/sessions": [
+   "GET"
+  ],
+  "/api/xo-projects/{project_id}/usage/sessions/{session_id}": [
+   "GET"
+  ],
+  "/api/xo-projects/{project_id}/usage/summary": [
+   "GET"
+  ],
+  "/api/xo-projects/{project_id}/usage/summary/card": [
+   "GET"
+  ],
+  "/api/xo-projects/{project_id}/versions": [
+   "GET"
+  ],
+  "/api/xo-projects/{project_id}/workitems": [
+   "GET",
+   "POST"
+  ],
+  "/api/xo-projects/{project_id}/workitems/{workitem_id}": [
+   "GET",
+   "DELETE",
+   "PATCH"
+  ],
+  "/api/xo-projects/{project_id}/workitems/{workitem_id}/adoption": [
+   "DELETE"
+  ],
+  "/api/xo-projects/{project_id}/workitems/{workitem_id}/assignee": [
+   "PUT"
+  ],
+  "/api/xo-projects/{project_id}/workitems/{workitem_id}/claim": [
+   "POST",
+   "DELETE"
+  ],
+  "/app/restart": [
+   "POST"
+  ],
+  "/app/update": [
+   "POST"
+  ],
+  "/callback": [
+   "GET"
+  ],
+  "/channels/status": [
+   "GET"
+  ],
+  "/connect/claude-code": [
+   "POST",
+   "DELETE"
+  ],
+  "/connect/claude-code/callback": [
+   "POST"
+  ],
+  "/connect/codex": [
+   "POST"
+  ],
+  "/debug/ai-auth": [
+   "GET"
+  ],
+  "/gateway/restart": [
+   "POST"
+  ],
+  "/health": [
+   "GET"
+  ],
+  "/mcp/composio-proxy": [
+   "GET",
+   "POST",
+   "DELETE"
+  ],
+  "/mcp/composio-proxy/": [
+   "GET",
+   "POST",
+   "DELETE"
+  ],
+  "/mcp/composio-proxy/u/{token}": [
+   "GET",
+   "POST",
+   "DELETE"
+  ],
+  "/mcp/composio-proxy/u/{token}/": [
+   "GET",
+   "POST",
+   "DELETE"
+  ],
+  "/mcp/cowork-proxy": [
+   "GET",
+   "POST",
+   "DELETE"
+  ],
+  "/mcp/cowork-proxy/": [
+   "GET",
+   "POST",
+   "DELETE"
+  ],
+  "/mcp/cowork-proxy/u/{token}": [
+   "GET",
+   "POST",
+   "DELETE"
+  ],
+  "/mcp/cowork-proxy/u/{token}/": [
+   "GET",
+   "POST",
+   "DELETE"
+  ],
+  "/models/status": [
+   "GET"
+  ],
+  "/openclaw/usage/analytics": [
+   "GET"
+  ],
+  "/openclaw/usage/sessions": [
+   "GET"
+  ],
+  "/openclaw/usage/sessions/{session_id}": [
+   "GET"
+  ],
+  "/openclaw/usage/summary": [
+   "GET"
+  ],
+  "/openclaw/usage/summary/card": [
+   "GET"
+  ],
+  "/providers/status": [
+   "GET"
+  ],
+  "/space/branding": [
+   "GET",
+   "PUT"
+  ],
+  "/space/branding/logo": [
+   "GET"
+  ],
+  "/space/data/session_prompts.json": [
+   "GET"
+  ],
+  "/space/server/restart": [
+   "POST"
+  ],
+  "/space/server/status": [
+   "GET"
+  ],
+  "/space/server/stop": [
+   "POST"
+  ],
+  "/space/setup/status": [
+   "GET"
+  ],
+  "/space/theme": [
+   "GET",
+   "PUT"
+  ],
+  "/space/update/apply": [
+   "POST"
+  ],
+  "/space/update/status": [
+   "GET"
+  ],
+  "/xo-auth/consume": [
+   "POST"
+  ],
+  "/xo-auth/logout": [
+   "POST"
+  ],
+  "/xo-auth/start": [
+   "POST"
+  ],
+  "/xo-auth/state": [
+   "GET"
+  ],
+  "/xo-auth/status/{auth_session_id}": [
+   "GET"
+  ],
+  "/xo-auth/whoami": [
+   "GET"
+  ],
+  "/xo/dashboard.json": [
+   "GET"
+  ],
+  "/xo/sessions.json": [
+   "GET"
+  ],
+  "/xo/space.json": [
+   "GET"
+  ]
+ }
+}

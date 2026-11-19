@@ -886,9 +886,9 @@ export function stormSource(state, emit, event) {
 
   async function boot() {
     startStream();
-    // the subscription is in place once its first frame (the snapshot) arrives; frames from then on
-    // are held during the load, so nothing that changes while it runs is lost or reverted
-    await Promise.race([sawFrame, new Promise((r) => setTimeout(r, 4000))]);
+    // the snapshot frame means the subscription is in place; later frames are held during the load
+    let fallback;
+    await Promise.race([sawFrame, new Promise((r) => { fallback = setTimeout(r, 4000); })]).finally(() => clearTimeout(fallback));
     await Promise.all([loadAll(), loadStatus()]);
     commit();
     holding = false;
