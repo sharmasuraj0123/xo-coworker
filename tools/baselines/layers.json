@@ -1,8 +1,4 @@
 {
- "core/platform/tests/http.test.mjs -> js/api.js": 1,
- "core/platform/tests/routes-contract.test.mjs -> js/api.js": 1,
- "core/platform/tests/routes-contract.test.mjs -> js/lpapi.js": 1,
- "core/platform/tests/util.test.mjs -> js/util.js": 1,
  "core/services/storm/act.js -> js/comms.js": 1,
  "core/services/storm/client.js -> js/api.js": 1,
  "core/services/storm/selectors/commit.js -> js/review.js": 1,
