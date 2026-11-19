@@ -49,7 +49,7 @@ export const STORM_DOWN = new Set(["engine_not_running", "engine_elsewhere", "en
 
 // How long a request may go unanswered before it gives up (if1 #6). A write that never settles
 // would stay "Sending" with no Retry; a read that never settles would stall its poll for good.
-export const WRITE_MS = 20000;
+const WRITE_MS = 20000;
 export const READ_MS = 30000;
 
 /** One signal that aborts on the caller's signal or after `ms`; `timedOut()` says which. */
