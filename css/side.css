@@ -1,5 +1,5 @@
 /* The left sidebar's own palette, frozen at the values it had on 2026-11-08 (the owner: keep it exactly as
-   it is, and ask before any change). The rest of the product moved to the role tokens in css/tokens.css;
+   it is, and ask before any change). The rest of the product moved to the role tokens in core/ui/tokens.css;
    the sidebar reads these copies so that move can't restyle it. */
 :root{--sb-side:#111111; --sb-hair:#232323; --sb-line:#323232; --sb-line-hover:#565656; --sb-bg-3:#252525;
   --sb-g17:#171717; --sb-g1A:#1A1A1A; --sb-g1C:#1C1C1C; --sb-g1F:#1F1F1F; --sb-g22:#222222; --sb-g26:#262626; --sb-g2A:#2A2A2A; --sb-g45:#454545}

@@ -5,7 +5,7 @@
      2 one focus ring; inset where a scroller would clip it         6 whole pixels: integer line heights
      3 press: small buttons .97; rows, tiles, tabs and cards never  7 side panels are flush, no shadow
      4 an icon centres on its first line of text                    8 nothing loops unless an agent works
-   Its numbers now come from Plan F in css/tokens.css (4 px steps; radii 6 · 12 · 20 · 22; controls 32;
+   Its numbers now come from Plan F in core/ui/tokens.css (4 px steps; radii 6 · 12 · 20 · 22; controls 32;
    rows 36); this file never defines a scale of its own (tests/design-budget.test.mjs). */
 
 :root{--sw:360px;--edge:16px;--row-h:36px}
@@ -79,7 +79,7 @@ body.stage-full .stg-grip{display:none}
 :where(button,a[href][class],[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],summary,.rt-check):where(:not(:disabled,[aria-disabled="true"],.send,.btn-pri,.iq-done,.b-hold,.theme,.switch,.lp-go,.lk:not(.lk-in),.xd-btn.is-pri,.xd-send,.tw-act.lp-btn,.prow,.nrow,:is(.vw-cut-dl,.wsh-home,.cp-link,.tg-ch,.fl-link,.lp-ln,.shl-all,.tp-done-u))):where(:active){background-image:linear-gradient(var(--press-fill),var(--press-fill))!important;--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
 /* A control that reads as text, and a cell of a flush bar, still have a shape (the owner, 19 Nov: "this rectangle when
    clicking looks weird ... give it some space to breathe ... consistent curvature"). The press above is a fill of the
-   control's own box at the control's own corners, and a focus ring (base.css) follows those corners too, so a control
+   control's own box at the control's own corners, and a focus ring (core/ui/foundation.css) follows those corners too, so a control
    drawn with radius 0 and no room around its words pressed into a square flush with them: a turn's work rows
    (.tb-h, made text-like by 4 above), Made's source line and pin on a phone, the panel's tabs, the docked chat's rail.
    Fixed at their shape, not their press:
@@ -256,7 +256,7 @@ body.stage-full .stg-grip{display:none}
 .fv .fl.is-wide .fl-split:focus-visible::after{box-shadow:inset 0 0 0 2px var(--focus);border-radius:3px}
 
 /* a boxed text field (a form's .field, Launchpad's, a shell's name, a note to the agent): the keyboard's focus is the base
-   ring every control has (base.css: 2 px of the focus colour, 2 px out; 3.24:1 on white, 6.07:1 on #171717), never
+   ring every control has (core/ui/foundation.css: 2 px of the focus colour, 2 px out; 3.24:1 on white, 6.07:1 on #171717), never
    taken away and with no halo beside it; typed in, its edge darkens (an invalid one stays red). Each took its outline
    away for a faint halo, which left a 2.4–2.5:1 edge (the create-project grader on 4d33649, C108, Shape's JSON) */
 :is(.field input,.field textarea,.lp-in,.shd-in,.c-note textarea):focus{border-color:var(--line-hover)}

@@ -6,7 +6,7 @@ import { sourcePaths, readSource } from "./sources.mjs";
 const ROOT = new URL("../../", import.meta.url);
 export const ORDER = ["reset", "tokens", "foundation", "components", "shell", "modules", "apps", "theme", "density", "phone"];
 const SHORTHANDS = ["margin", "padding", "border", "background", "font", "transition", "animation", "outline", "overflow", "flex", "grid", "gap", "inset", "list-style", "text-decoration", "scroll-margin", "scroll-padding", "mask", "columns", "place-items", "place-content", "place-self"];
-const LONG = { gap: ["row-gap", "column-gap"], inset: ["top", "right", "bottom", "left"], "place-items": ["align-items", "justify-items"], "place-content": ["align-content", "justify-content"], "place-self": ["align-self", "justify-self"] };
+const LONG = { font: ["line-height"], gap: ["row-gap", "column-gap"], inset: ["top", "right", "bottom", "left"], "place-items": ["align-items", "justify-items"], "place-content": ["align-content", "justify-content"], "place-self": ["align-self", "justify-self"] };
 
 /** Do two properties set the same thing (the same name, or a shorthand and one of its longhands)? @param {string} a @param {string} b */
 export function related(a, b) {
@@ -73,7 +73,7 @@ export function drawn() {
   for (const m of text.matchAll(/class(?:Name)?\s*[=:]\s*["'`]([^"'`]*)["'`]/g)) { const ns = names(m[1]); for (const a of ns) for (const b of ns) add(peers, a, b); }
   for (const m of text.matchAll(/<([a-zA-Z][\w-]*)\b[^>]*?\sclass="([^"]*)"/g)) for (const c of names(m[2])) add(tags, c, m[1].toLowerCase());
   for (const m of text.matchAll(/(\w+) = document\.createElement\("([\w-]+)"\);[^]{0,200}?\b\1\.className = "([^"]+)"/g)) for (const c of names(m[3])) add(tags, c, m[2]);
-  for (const m of text.matchAll(/classList\.(?:add|toggle)\(\s*["']([\w-]+)["']/g)) { add(peers, m[1], m[1]); add(tags, m[1], "*"); }
+  for (const m of text.matchAll(/classList\.(?:add|toggle)\(\s*["']([\w-]+)["']/g)) { add(peers, m[1], "*"); add(tags, m[1], "*"); }
   for (const m of text.matchAll(/className\s*=\s*[^;\n]*/g)) for (const c of m[0].match(/[\w-]+/g) || []) add(tags, c, "*");
   for (const set of tags.values()) if (set.size > 1) set.delete("*");
   return { peers, tags, text };
@@ -89,11 +89,11 @@ const alternatives = (c) => {
 };
 const tag = (/** @type {string} */ c) => (c.match(/^[a-zA-Z][\w-]*/) || [null])[0];
 const pseudo = (/** @type {string} */ c) => (c.match(/::?(before|after|placeholder|marker|selection|backdrop|-webkit-[\w-]+|first-line|first-letter)/) || [null])[1];
-const marks = (/** @type {string} */ c) => new Set(c.replace(/:not\((?:[^()]|\([^()]*\))*\)/g, "").match(/[.#][\w-]+/g) || []);
+const marks = (/** @type {string} */ c) => new Set(c.replace(/:(not|has)\((?:[^()]|\([^()]*\))*\)/g, "").match(/[.#][\w-]+/g) || []);
 /** @typedef {{ peers: Map<string, Set<string>>, tags: Map<string, Set<string>>, text: string }} Drawn */
 
 /** Does the app ever draw the attribute values a compound asks for (on a tag, the root aside)? @param {string} c @param {Drawn} d */
-const attrsDrawn = (c, d) => !tag(c) || /^(html)$/.test(/** @type {string} */ (tag(c))) || [...c.replace(/:not\((?:[^()]|\([^()]*\))*\)/g, "").matchAll(/\[([\w-]+)="([^"]*)"\]/g)].every(([, k, v]) => d.text.includes(`${k}="${v}"`) || d.text.includes(`"${k}", "${v}"`));
+const attrsDrawn = (c, d) => !tag(c) || /^(html)$/.test(/** @type {string} */ (tag(c))) || [...c.replace(/:not\((?:[^()]|\([^()]*\))*\)/g, "").matchAll(/\[([\w-]+)="([^"]*)"\]/g)].every(([, k, v]) => d.text.includes(`${k}="${v}"`) || d.text.includes(`${k}=\\"${v}\\"`) || d.text.includes(`"${k}", "${v}"`));
 const isRoot = (/** @type {string} */ c) => /^:root\b|^html\b/.test(c);
 
 /** Could two compounds be the same element? @param {string} a @param {string} b @param {Drawn} d */
@@ -106,7 +106,8 @@ function one(a, b, d) {
   const onTag = (/** @type {Set<string>} */ M, /** @type {string | null} */ t) => !t || [...M].every((x) => x[0] !== "." || !d.tags.get(x.slice(1)) || /** @type {Set<string>} */ (d.tags.get(x.slice(1))).has(t) || /** @type {Set<string>} */ (d.tags.get(x.slice(1))).has("*"));
   if (!onTag(A, tb) || !onTag(B, ta)) return false;
   if (!A.size || !B.size) return true;
-  for (const x of A) for (const y of B) if (x === y || (x[0] === "." && y[0] === "." && d.peers.get(x.slice(1))?.has(y.slice(1)))) return true;
+  const loose = (/** @type {string} */ x) => x[0] === "#" || d.peers.get(x.slice(1))?.has("*");
+  for (const x of A) for (const y of B) if (x === y || loose(x) || loose(y) || (x[0] === "." && y[0] === "." && d.peers.get(x.slice(1))?.has(y.slice(1)))) return true;
   return false;
 }
 /** Could two selectors style the same element (or pseudo-element)? @param {string} a @param {string} b @param {Drawn} d */
@@ -126,9 +127,6 @@ const beatsLayered = (a, b) => {
   return beatsPlain(a, b);
 };
 
-/** animation:none against a longhand of it other than its name: nothing animates either way. @param {Decl} a @param {Decl} b */
-const still = (a, b) => [[a, b], [b, a]].some(([x, y]) => x.p === "animation" && x.v === "none" && y.p.startsWith("animation-") && y.p !== "animation-name");
-
 /** The contests the layers turn: same element, related property, a different value, and a different winner than load order gives. @param {Decl[]} all */
 export function turned(all, d = drawn()) {
   /** @type {Map<string, Decl[]>} */
@@ -139,7 +137,7 @@ export function turned(all, d = drawn()) {
   for (const list of byProp.values()) {
     const layered = list.filter((d) => d.layer != null);
     for (const a of layered) for (const b of list) {
-      if (a === b || !related(a.p, b.p) || a.v === b.v || still(a, b)) continue;
+      if (a === b || !related(a.p, b.p) || a.v === b.v) continue;
       const [x, y] = a.n < b.n ? [a, b] : [b, a];
       if (beatsPlain(x, y) === beatsLayered(x, y)) continue;
       if (!sameElement(x.sel, y.sel, d)) continue;

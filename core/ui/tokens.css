@@ -60,7 +60,7 @@
   /* The one focus ring: 2 px of the accent, following the element's own radius. */
   --focus:rgba(var(--accent-rgb),.75);
   /* the room the ring takes outside a control (its 2 px past a 2 px gap), and 2 px of air: kept clear wherever focus
-     scrolls a control into view (base.css) */
+     scrolls a control into view (core/ui/foundation.css) */
   --ring-room:6px;
   /* words on an agent's own colour (its Map tag): the colours are bright, so dark ink reads on every one of them,
      6.0:1 at the least (#4C8DFF) where white read 1.7–3.3:1 (the controls grader on e55c2d8, S083) */
@@ -158,7 +158,7 @@
   /* Motion. One curve for everything that responds. A hover engages in 120 ms and releases in 200 (the
      slower release is what feels expensive); a press goes down in 60. Floating things appear in 180 and
      leave in 140, from the side they were called from; dialogs and sheets take 240; content arrives in 280;
-     a panel moves in 320; the landing is 600. Nothing overshoots. Gated by prefers-reduced-motion in base.css. */
+     a panel moves in 320; the landing is 600. Nothing overshoots. Gated by prefers-reduced-motion in core/ui/foundation.css. */
   --ease:cubic-bezier(.2,.8,.2,1);
   --ease-loop:cubic-bezier(.45,0,.55,1);   /* an ambient loop that responds to nothing (the working sweep): even in, even out */
   --ease-out:var(--ease);
