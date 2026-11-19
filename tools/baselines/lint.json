@@ -1,5 +1,4 @@
 {
- "js/runtimes.js::eslint(no-unused-vars)": 1,
  "tests/browser/settings.test.cjs::eslint(no-unused-vars)": 1,
  "tests/design-budget.test.mjs::eslint(no-unused-vars)": 1,
  "js/highlight.js::eslint(no-unused-vars)": 1,
@@ -8,8 +7,6 @@
  "tests/browser/flows.test.cjs::eslint(no-unused-vars)": 3,
  "tools/files/space-e2e.mjs::eslint(no-empty)": 1,
  "js/lpapi.js::eslint(no-unused-vars)": 1,
- "js/storm.js::eslint(no-unused-vars)": 3,
- "js/storm.js::eslint(no-dupe-keys)": 1,
  "js/drafts.js::eslint(no-empty)": 1,
  "js/recordview.js::eslint(no-unused-vars)": 1,
  "tools/check.mjs::eslint(no-unused-vars)": 1,
