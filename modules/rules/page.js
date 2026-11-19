@@ -4,7 +4,7 @@
 
 import { api } from "../../core/platform/api.js";
 import { esc } from "../../js/world.js";
-import { renderInline } from "../../js/markdown.js";
+import { renderInline } from "../../core/ui/markdown/markdown.js";
 import { isPending, busyAttrs } from "../../core/platform/index.js";
 
 /** @param {import("./types").SettingsHost} host @param {Omit<import("./types").PageDeps, "onChange">} deps */

@@ -3,7 +3,7 @@
 // Settings › Keyboard: every shortcut and its key, changed by recording a new one; drawn in place.
 
 import { esc } from "../../js/world.js";
-import { redraw } from "../../js/redraw.js";
+import { redraw } from "../../core/ui/redraw.js";
 import * as K from "../../core/platform/keys.js";
 
 /** @param {import("./types").KeysPageDeps} deps */

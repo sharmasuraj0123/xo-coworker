@@ -5,7 +5,7 @@
 import { api } from "../../core/platform/api.js";
 import { esc } from "../../js/world.js";
 import { isPending, busyAttrs } from "../../core/platform/index.js";
-import { rovingTab } from "../../js/keynav.js";
+import { rovingTab } from "../../core/ui/a11y/keynav.js";
 
 const PCT = [0.5, 0.6, 0.7, 0.8, 0.9];
 /** The confidence choices, always including the server's own value. @param {number} v */

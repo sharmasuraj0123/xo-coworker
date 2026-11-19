@@ -3,11 +3,11 @@
 // Settings › Shape, the Settings rail's Advanced group, density on <html> and Home's order; core/services/shape holds the rules.
 
 import { esc, once, isPending, busyAttrs } from "../../core/platform/index.js";
-import { ICON } from "../../js/ui.js";
+import { ICON } from "../../core/ui/icons/names.js";
 import { PRESETS, createShape, describeShape } from "../../core/services/shape/index.js";
-import { redraw } from "../../js/redraw.js";
-import { bringWhole } from "../../js/focusview.js";
-import { rovingTab } from "../../js/keynav.js";
+import { redraw } from "../../core/ui/redraw.js";
+import { bringWhole } from "../../core/ui/a11y/focus.js";
+import { rovingTab } from "../../core/ui/a11y/keynav.js";
 
 export const SHAPE_IC = ICON.shape;
 

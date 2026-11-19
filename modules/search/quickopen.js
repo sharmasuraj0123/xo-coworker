@@ -3,8 +3,8 @@
 // Go to a file (⌘P) or find text in the place's files (⌘⇧F), in the sheet ⌘K uses (#qo).
 
 import { esc, rank, marked, lineOf } from "../../core/platform/index.js";
-import { xi } from "../../js/icon.js";
-import { fileIcon } from "../../js/fileicons.js";
+import { xi } from "../../core/ui/icons/icon.js";
+import { fileIcon } from "../../core/ui/icons/fileicons.js";
 import { missingRoute } from "../../core/platform/http.js";
 
 const SEARCH_MS = 220;

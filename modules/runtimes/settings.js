@@ -5,8 +5,8 @@
 import { esc } from "../../js/world.js";
 import { clockWords, rtName, isInstalled, healthOf, windowsOf, resetWords, allowedOf, defaultOf, errorField } from "../../core/services/runtimes.js";
 import { once, isPending, busyAttrs } from "../../core/platform/index.js";
-import { redraw } from "../../js/redraw.js";
-import { rovingTab } from "../../js/keynav.js";
+import { redraw } from "../../core/ui/redraw.js";
+import { rovingTab } from "../../core/ui/a11y/keynav.js";
 import { MODES, MODE_NAME as MODE_NAMES, MODE_SUB as MODE_SUBS, heldModes, effectiveMode, accountRows, onPaid, creditsWords } from "../../core/services/world/paid.js";
 
 const REFRESH_MS = 30000;

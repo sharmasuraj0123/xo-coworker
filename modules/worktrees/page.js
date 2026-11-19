@@ -4,7 +4,7 @@
 
 import { api } from "../../core/platform/api.js";
 import { esc } from "../../js/world.js";
-import { ICON } from "../../js/ui.js";
+import { ICON } from "../../core/ui/icons/names.js";
 import { holdButton } from "../../core/ui/components/hold.js";
 import { isPending, busyAttrs } from "../../core/platform/index.js";
 

@@ -4,7 +4,7 @@
 
 import { esc } from "../../js/world.js";
 import { once, isPending } from "../../core/platform/index.js";
-import { redraw } from "../../js/redraw.js";
+import { redraw } from "../../core/ui/redraw.js";
 
 /** @param {string} iso */
 const when = (iso) => { const d = new Date(iso); return Number.isNaN(+d) ? "" : d.toLocaleDateString(undefined, { month: "short", day: "numeric" }); };
