@@ -1,6 +1,7 @@
 // The Settings rail takes the shape's order, technical pages under "Advanced", without ever moving the focused tab.
 import assert from "node:assert/strict";
 import { shapePage, RAIL } from "./shape-fixture.mjs";
+import { same } from "../../../tests/lib/dom.mjs";
 
 let passed = 0;
 const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
@@ -28,7 +29,7 @@ for (const focused of RAIL) {
     P.view.apply();
     assert.deepEqual(order(nav), ["routing", "rules", "shp-navh", "general", "shape"]);
     assert.ok(!moved.includes(focused), `${focused} moved: ${moved}`);
-    assert.equal(document.activeElement, tab, "focus stays on it");
+    same(document.activeElement, tab, "focus stays on it");
   });
 }
 

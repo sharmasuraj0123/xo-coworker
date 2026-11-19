@@ -1,35 +1,66 @@
-// Create's progress row (the clone's Stop) never takes focus away with it: setBusy hands focus in the row to Create before hiding it.
+// A clone's Stop lives in its progress row; when the row goes, focus that was on Stop lands on Create, never on the page.
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { pageHtml } from "../../../tests/lib/page.mjs";
+import { createDialog } from "./create-fixture.mjs";
+import { same } from "../../../tests/lib/dom.mjs";
 
-const src = readFileSync(new URL("../create.js", import.meta.url), "utf8");
-const html = pageHtml();
 let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-const setBusy = (() => { const i = src.indexOf("function setBusy(on, repoOf) {"); assert.ok(i > 0, "setBusy found"); return src.slice(i, src.indexOf("\n  }\n", i)); })();
+const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
+async function cloning() {
+  const D = await createDialog();
+  await D.press('[data-mode="clone"]');
+  D.type("#cp-repo", "acme/site");
+  await D.submit();
+  await D.answer({ state: "running", phase: "receiving", percent: 10 });
+  return D;
+}
 
-t("Stop lives in the progress row, so hiding the row hides Stop", () => {
-  const prog = html.indexOf('id="cp-prog"'), stop = html.indexOf('id="cp-stop"');
-  assert.ok(prog > 0 && stop > prog, "#cp-stop comes after #cp-prog opens");
-  const between = html.slice(prog, stop);
-  const open = (between.match(/<div\b/g) || []).length + 1, closed = (between.match(/<\/div>/g) || []).length; // +1: #cp-prog itself
-  assert.ok(open > closed, "#cp-prog is still open where #cp-stop is: Stop is inside it");
+await t("Stop is inside the progress row, shown while a clone runs", async () => {
+  const D = await cloning();
+  same(D.$("#cp-stop").closest("#cp-prog"), D.$("#cp-prog"));
+  assert.equal(D.$("#cp-prog").hidden, false);
+  assert.equal(D.$("#cp-stop").hidden, false);
 });
-t("setBusy(false) notes whether focus is in the progress row before it hides it", () => {
-  const note = setBusy.indexOf('const fromProg = !on && $("#cp-prog").contains(document.activeElement);');
-  const hide = setBusy.indexOf('$("#cp-prog").hidden = !(on && mode === "clone");');
-  assert.ok(note > 0, "it looks before hiding");
-  assert.ok(hide > note, "and hides after looking");
+
+await t("Stop asks with aria-disabled and aria-busy, never disabled, so focus stays on it", async () => {
+  const D = await cloning();
+  let answer;
+  D.api.cancelClone = () => new Promise((ok) => { answer = ok; });
+  D.$("#cp-stop").focus();
+  await D.press("#cp-stop");
+  assert.equal(D.$("#cp-stop").getAttribute("aria-disabled"), "true");
+  assert.equal(D.$("#cp-stop").getAttribute("aria-busy"), "true");
+  assert.equal(D.$("#cp-stop").disabled, false);
+  same(document.activeElement, D.$("#cp-stop"));
+  answer({});
 });
-t("and then hands that focus to Create, the control that starts it again", () => {
-  const hide = setBusy.indexOf('$("#cp-prog").hidden = !(on && mode === "clone");');
-  const hand = setBusy.indexOf("if (fromProg) submit.focus({ preventScroll: true });");
-  assert.ok(hand > hide, "focus is handed on once the row is hidden, in the same call");
+
+await t("stopped: the row hides, and focus that was on Stop lands on Create, the control that starts it again", async () => {
+  const D = await cloning();
+  D.$("#cp-stop").focus();
+  await D.press("#cp-stop");
+  await D.answer({ state: "cancelled" });
+  assert.equal(D.$("#cp-prog").hidden, true);
+  same(document.activeElement, D.$("#cp-submit"));
+  assert.equal(D.said.at(-1), "Stopped cloning. Nothing was kept.");
 });
-t("Stop never goes disabled while it asks (aria-disabled keeps its focus for Stop again)", () => {
-  const stop = src.slice(src.indexOf("async function stop() {"), src.indexOf("async function stop() {") + 1600);
-  assert.match(stop, /st\.setAttribute\("aria-disabled", "true"\); st\.setAttribute\("aria-busy", "true"\);/);
-  assert.doesNotMatch(stop, /st\.disabled = true/);
+
+await t("a refused Stop leaves you on Stop, ready to try again, and says why", async () => {
+  const D = await cloning();
+  D.api.cancelClone = async () => { throw Object.assign(new Error("Busy."), { status: 500 }); };
+  D.$("#cp-stop").focus();
+  await D.press("#cp-stop");
+  assert.equal(D.$("#cp-stop").hasAttribute("aria-disabled"), false);
+  assert.equal(D.$("#cp-stop").hasAttribute("aria-busy"), false);
+  same(document.activeElement, D.$("#cp-stop"));
+  assert.equal(D.$("#cp-err").textContent, "Couldn't stop it: Busy.");
 });
-console.log(`${passed} passed${process.exitCode ? ", some failed" : ""}`);
+
+await t("a clone that fails while focus is on Stop: focus lands on Create, not on the page", async () => {
+  const D = await cloning();
+  D.$("#cp-stop").focus();
+  await D.answer({ state: "failed", error: { code: "timed_out" } });
+  assert.equal(D.$("#cp-prog").hidden, true);
+  same(document.activeElement, D.$("#cp-submit"));
+});
+console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
+process.exit();

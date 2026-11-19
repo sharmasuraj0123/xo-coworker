@@ -1,6 +1,6 @@
 // Settings draws the settings.section place: a tab and a page per entry, rendered when opened, let go when left or gone.
 import assert from "node:assert/strict";
-import { dom, settle } from "../../../tests/lib/dom.mjs";
+import { dom, settle, same } from "../../../tests/lib/dom.mjs";
 import { createKernel } from "../../../core/kernel/index.js";
 import { definePlaces } from "../../../shell/places.js";
 
@@ -38,7 +38,7 @@ await t("an entry gets its own tab and page, with the settings page markup, and 
   assert.equal(page("apps").hidden, true);
   assert.equal(page("apps").querySelector("h2").textContent, "Apps");
   assert.ok(page("apps").querySelector('[data-section="apps"]'), "the entry's host, under the title");
-  assert.equal(page("apps").querySelector(".set-live"), null, "the entry draws its own .set-live, as built-in pages have one");
+  same(page("apps").querySelector(".set-live"), null, "the entry draws its own .set-live, as built-in pages have one");
   assert.deepEqual(S.log, []);
 });
 
@@ -68,8 +68,8 @@ await t("an entry taken away (its app removed) takes its tab and page with it, a
   const undo = S.places.contribute("settings.section", S.entry("apps", "Apps"), "xo.apps-host");
   S.frame.open(); S.frame.setPage("apps");
   undo(); await settle();
-  assert.equal(tab("apps"), null);
-  assert.equal(page("apps"), null);
+  same(tab("apps"), null);
+  same(page("apps"), null);
   assert.deepEqual(S.log.at(-1), ["undo", "apps"]);
   assert.equal(page("general").hidden, false);
 });

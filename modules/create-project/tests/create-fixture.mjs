@@ -1,0 +1,54 @@
+// The New project dialog on a DOM, from the page's own markup, with Space's answers set by each test.
+import { dom, settle, deferred } from "../../../tests/lib/dom.mjs";
+import { pageHtml } from "../../../tests/lib/page.mjs";
+
+const html = pageHtml();
+const DIALOG = html.slice(html.indexOf('<dialog class="dlg" id="create-dlg"'), html.indexOf("</dialog>", html.indexOf('id="create-dlg"')) + "</dialog>".length);
+
+let dialogs = 0;
+/** Space as the dialog sees it: each route a function the test can replace; clones answer from `clone`. */
+export async function createDialog() {
+  await dom(`<button id="opener">New project</button>${DIALOG}`);
+  const dlg = document.querySelector("#create-dlg");
+  dlg.open = false;
+  dlg.showModal = () => { dlg.open = true; dlg.setAttribute("open", ""); };
+  dlg.close = () => { dlg.open = false; dlg.removeAttribute("open"); dlg.dispatchEvent(new Event("close")); };
+  const form = document.querySelector("#create-form");
+  form.reset ??= () => { for (const el of form.querySelectorAll("input, textarea")) el.value = ""; };
+  const { api } = await import("../../../js/api.js");
+  const said = [], heralds = [];
+  /** @type {{ waiting: ReturnType<typeof deferred>[], polls: number }} */
+  const clone = { waiting: [], polls: 0, id: `c${++dialogs}` };
+  Object.assign(api, {
+    workspaceConfig: async () => ({ roots: { home: "/w" }, default: "home" }),
+    createProject: () => deferred().promise,
+    cloneProject: async () => ({ clone_id: clone.id }),
+    cloneStatus: (id) => {
+      if (id !== clone.id) return new Promise(() => {});
+      clone.polls++; const d = deferred(); clone.waiting.push(d); return d.promise;
+    },
+    cancelClone: async () => ({}),
+    githubStatus: async () => ({ status: "needs_auth" }),
+    githubConnect: async () => ({ status: "connected", username: "ann" }),
+    githubConnectPoll: async () => ({ status: "pending" }),
+  });
+  const { initCreate } = await import("../create.js");
+  const ctx = {
+    world: { state: { projects: [] }, act: { refresh: async () => {} } },
+    S: { desc: {}, local: {}, n: 0 }, go: () => {}, heraldShow: (h) => heralds.push(h), announce: (s) => said.push(s), setDrawer: () => {}, onPhoneClose: () => {},
+  };
+  const C = initCreate(ctx);
+  const $ = (sel) => document.querySelector(sel);
+  const type = (sel, text) => { const el = $(sel); el.value = text; el.dispatchEvent(new Event("input", { bubbles: true })); };
+  const press = async (sel) => { const el = $(sel); if (!el) throw new Error(`no ${sel}`); el.dispatchEvent(new Event("click", { bubbles: true })); await settle(); };
+  const submit = async () => { form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })); await settle(); };
+  /** Answer the clone's next poll (they come a second apart) with `st`. */
+  const answer = async (st) => {
+    for (let i = 0; !clone.waiting.length; i++) { if (i > 40) throw new Error("the clone was never polled"); await new Promise((r) => setTimeout(r, 50)); }
+    clone.waiting.shift().resolve(st); await settle();
+  };
+  $("#opener").focus();
+  await C.open();
+  await settle();
+  return { C, api, $, type, press, submit, answer, clone, said, heralds, settle };
+}

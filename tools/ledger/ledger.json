@@ -4281,7 +4281,7 @@
   "tests/create-busy-honest.test.mjs": {
    "status": "moved",
    "home": "modules/create-project/tests/create-busy-honest.test.mjs",
-   "note": "still reads the source; its rewrite as a behaviour test is owed"
+   "note": "rewritten as a behaviour test: the New project dialog from index.html driven on a DOM (modules/create-project/tests/create-fixture.mjs); its two app-wide ARIA rules stay source checks"
   },
   "tests/create.test.mjs": {
    "status": "moved",
@@ -4490,12 +4490,12 @@
   "tests/lp-create-connect-focus.test.mjs": {
    "status": "moved",
    "home": "modules/create-project/tests/lp-create-connect-focus.test.mjs",
-   "note": "still reads the source; its rewrite as a behaviour test is owed"
+   "note": "rewritten as a behaviour test: the New project dialog from index.html driven on a DOM (modules/create-project/tests/create-fixture.mjs)"
   },
   "tests/lp-create-stop-focus.test.mjs": {
    "status": "moved",
    "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs",
-   "note": "still reads the source; its rewrite as a behaviour test is owed"
+   "note": "rewritten as a behaviour test: the New project dialog from index.html driven on a DOM (modules/create-project/tests/create-fixture.mjs)"
   },
   "tests/lp-intel-order.test.mjs": {
    "status": "planned",

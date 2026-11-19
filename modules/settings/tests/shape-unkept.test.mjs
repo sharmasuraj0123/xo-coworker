@@ -1,7 +1,7 @@
 // A shape change this browser can't keep says so where it was made, never at the page's top: the Shape page on a DOM.
 import assert from "node:assert/strict";
 import { shapePage } from "./shape-fixture.mjs";
-import { settle } from "../../../tests/lib/dom.mjs";
+import { settle, same } from "../../../tests/lib/dom.mjs";
 
 let passed = 0;
 const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
@@ -40,7 +40,7 @@ await t("JSON saved, not kept: said in the JSON's status beside the text, not up
   await P.press("[data-shp-save]");
   assert.deepEqual(P.shape.sent, ["mine"]);
   assert.equal(P.box().querySelector(".shp-status").textContent, P.UNKEPT);
-  assert.equal(warning(P), null, "no line elsewhere on the page");
+  same(warning(P), null, "no line elsewhere on the page");
 });
 
 await t("the next change that is kept takes the warning away", async () => {
@@ -50,7 +50,7 @@ await t("the next change that is kept takes the warning away", async () => {
   P.shape.next = { kept: true };
   await P.press("[data-shp-dense]");
   await settle();
-  assert.equal(warning(P), null);
+  same(warning(P), null);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
 process.exit();

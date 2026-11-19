@@ -49,3 +49,9 @@ export function deferred() {
   const promise = new Promise((a, b) => { resolve = a; reject = b; });
   return { promise, resolve, reject };
 }
+
+/** a and b are one node (or both null); said by tag and id, since printing a DOM node in a diff never ends. @param {any} a @param {any} b @param {string} [msg] */
+export function same(a, b, msg = "not the same node") {
+  const name = (/** @type {any} */ n) => (n && n.tagName ? `<${n.tagName.toLowerCase()}${n.id ? `#${n.id}` : ""}${n.dataset && n.dataset.cp ? ` data-cp=${n.dataset.cp}` : ""}>${String(n.textContent || "").slice(0, 40)}` : String(n));
+  if (a !== b) throw new Error(`${msg}: ${name(a)} where ${name(b)} was expected`);
+}
