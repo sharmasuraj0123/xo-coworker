@@ -201,6 +201,31 @@ if (!existsSync(LD)) {
       assert.equal(fh.querySelectorAll('[data-fl-g="c"]').length, 1);
       assert.equal(row("c").nextElementSibling, fh.querySelector('[data-fl-g="c"]'));
     });
+    // the owner, 19 Nov: a folder stuck on "Reading…" until clicked again. A file opened from elsewhere (Changed, a chip)
+    // opens every folder down to it and reads them one after another; the app renders between the reads, and each render
+    // gives F.scope a new object, so a "same place?" check by identity stopped after the first read
+    await t("Files: a file opened from elsewhere reads every folder down to it, the app rendering around each read", async () => {
+      const rev = FILES.reveal({ project: "p", rel: "b/q/r/s.md", name: "s.md" });
+      for (const [rel, dirs, files] of [["b", ["b/q"], []], ["b/q", ["b/q/r"], []], ["b/q/r", [], ["b/q/r/s.md"]]]) {
+        FILES.render("p:p"); // as the stream does, several times a second
+        await tick(); await tick();
+        assert.ok(calls.some((c) => c.rel === rel && !c.done), `${rel} is read (requests: ${calls.filter((c) => !c.done).map((c) => c.rel).join(", ") || "none"})`);
+        await answer(rel, dirs, files);
+        FILES.render("p:p");
+      }
+      await rev;
+      for (const p of ["b", "b/q", "b/q/r"]) {
+        assert.equal(row(p).getAttribute("aria-expanded"), "true", `${p} open`);
+        assert.doesNotMatch(fh.querySelector(`[data-fl-g="${p}"]`).textContent, /Reading/, `${p} shows its rows`);
+      }
+      assert.ok(fh.querySelector('[data-fl-g="b/q/r"] [data-fl-file="b/q/r/s.md"]'), "the file is there to be marked");
+    });
+    await t("Files: an open folder that nothing has read starts its read where it's drawn, so Reading… always has a read", () => {
+      const f = readFileSync(new URL("../js/files.js", import.meta.url), "utf8");
+      const i = f.indexOf("function sync(s, local, g, ctx) {"), body = f.slice(i, f.indexOf("\n  }\n", i));
+      assert.match(body, /if \(!F\.dirs\.has\(dkey\(s, p\)\)\) load\(s, p\);/);
+      assert.doesNotMatch(f, /F\.scope !== s\b/, "a place is the same place by its key, never by the object");
+    });
   } finally { rmSync(dir, { recursive: true, force: true }); }
 }
 console.log(`\n${passed} passed${skipped ? `, ${skipped} skipped (said above)` : ""}${process.exitCode ? ", some FAILED" : ""}`);

@@ -283,6 +283,9 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       if (!b) continue;
       const c = group(p), at = b.nextElementSibling === M.btn ? M.btn : b;
       if (at.nextElementSibling !== c.el) at.after(c.el);
+      // an open folder is read: one opened by any path (a click, a file revealed in it, a rename into it) and never read
+      // starts its read here, so "Reading…" always has a read under way
+      if (!F.dirs.has(dkey(s, p))) load(s, p);
       open.add(p);
     }
     for (const p of g.open) if (!open.has(p)) { flip(g.el, p, false); T.groups.get(p)?.el.remove(); }
@@ -428,7 +431,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     const s = F.scope;
     if (!F.wide || !s.project || viewer.hasFile) return;
     const d = await load(s, "");
-    if (F.scope !== s || viewer.hasFile || !d || d.state !== "ok") return;
+    if (F.scope.key !== s.key || viewer.hasFile || !d || d.state !== "ok") return; // (another place: by its key, see reveal)
     const r = d.files.find((x) => /^readme\.(md|mdx|markdown|txt)$/i.test(x.name)) || null;
     if (!r) return;
     F.sel = r.path; F.auto = true;
@@ -451,7 +454,11 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     for (let p = parentOf(local); p; p = parentOf(p)) chain.unshift(p);
     for (const p of chain) open.add(p);
     paint();
-    for (const p of ["", ...chain]) { await load(s, p); if (F.scope !== s) return; }
+    // each folder down to it is read, one after another, while the place is the same. The place is its key: every
+    // render gives F.scope a new object (setScope), so a check by identity stopped after the first read and left the
+    // folders below open with nothing read, "Reading…" for good until a click closed and opened them again (the owner,
+    // 19 Nov: a folder stuck on Reading until clicked again)
+    for (const p of ["", ...chain]) { await load(s, p); if (F.scope.key !== s.key) return; }
     requestAnimationFrame(() => F.host && F.host.querySelector(`.fl-r.is-on`)?.scrollIntoView({ block: "nearest" }));
   }
 
