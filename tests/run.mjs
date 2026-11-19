@@ -1,6 +1,7 @@
 // One command for every unit test: `node tests/run.mjs [filter]`.
 //
-// Runs each tests/*.test.mjs (and tests/*.test.py with python3) in its own process, a few at a time,
+// Runs each tests/*.test.mjs (and tests/*.test.py with python3), plus every <dir>/**/tests/*.test.mjs under
+// core/, shell/, modules/, apps-host/ and e2e/ (unit tests that never start a browser), each in its own process, a few at a time,
 // and fails when ANY of them exits non-zero. The exit code is the verdict, never the words a test
 // prints: a file can print "N passed" and still fail (our memory note, 2026-11). Browser suites
 // (tests/browser/, later e2e/) are not run here: they run only when the owner asks.
@@ -26,14 +27,26 @@ const TIMEOUT = Math.max(1000, Number(process.env.TEST_TIMEOUT_MS) || 120_000);
 const KNOWN_PATH = join(DIR, "known-failures.json");
 const known = existsSync(KNOWN_PATH) ? JSON.parse(readFileSync(KNOWN_PATH, "utf8")) : {};
 
-const files = readdirSync(DIR)
-  .filter((f) => /\.test\.(mjs|py)$/.test(f) && f.includes(filter))
-  .sort();
+const IS_TEST = /\.test\.(mjs|py)$/;
+/** tests/<file> is listed by name; a test in a module's own tests/ folder by its path from the repo root. */
+const files = readdirSync(DIR).filter((f) => IS_TEST.test(f));
+/** @param {string} rel */
+function walk(rel) {
+  for (const n of readdirSync(join(ROOT, rel), { withFileTypes: true })) {
+    if (n.name === "node_modules" || n.name === "vendor") continue;
+    const p = `${rel}/${n.name}`;
+    if (n.isDirectory()) walk(p);
+    else if (/(^|\/)tests\/[^/]+\.test\.mjs$/.test(p)) files.push(p);
+  }
+}
+for (const d of ["core", "shell", "modules", "apps-host", "e2e"]) if (existsSync(join(ROOT, d))) walk(d);
+files.splice(0, files.length, ...files.filter((f) => f.includes(filter)).sort());
 
 /** Run one test file; resolve {file, code, ms, out}. */
 function runOne(file) {
   const t0 = Date.now();
-  const [cmd, args] = file.endsWith(".py") ? ["python3", [join(DIR, file)]] : [process.execPath, [join(DIR, file)]];
+  const path = file.includes("/") ? join(ROOT, file) : join(DIR, file);
+  const [cmd, args] = file.endsWith(".py") ? ["python3", [path]] : [process.execPath, [path]];
   return new Promise((resolve) => {
     const child = spawn(cmd, args, { cwd: ROOT, env: { ...process.env, FORCE_COLOR: "0" }, stdio: ["ignore", "pipe", "pipe"] });
     let out = "";
