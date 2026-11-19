@@ -297,7 +297,7 @@ button .spin,.btn .spin{color:inherit}
    each with its own 32 px head and tabs, folding to that head, the 1 px line between two dragged ══ */
 .stg-bar{padding:0 8px 0 var(--pe)}
 .stg-t{flex:1;min-width:0;display:flex;align-items:baseline;gap:8px;white-space:nowrap;overflow:hidden}
-/* "Agentic Control Pane", then the place it shows, quieter: a long place name gives way first */
+/* the place the panel is beside (a long name gives way first) */
 .stg-name{flex:none;font:var(--fw-strong) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink)}
 .stg-sub{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
 .stg-frames{flex:1;min-height:0;display:flex;flex-direction:column}
@@ -539,3 +539,19 @@ body.stage-covers .herald{position:fixed;left:16px;right:16px;bottom:max(16px, e
    line (Off, can't reach XO) says where a draft can't go and stays with it. Over the panel it hid the map's zoom
    buttons on a phone (the phone floor's browser pass, 320 and 390) */
 :is(body.stage-covers .herald,.herald.is-out) .hr-conn{display:none}
+
+/* ── Threads (the frame that was Agents): groups in one vocabulary (the owner, 19 Nov) ──────────────────────────
+   A group's head is a 32 control: its word starts on the tiles' left edge (the list's 12 + the row's 8), its
+   chevron sits on the frame head's fold axis (a 24 box at the list's edge), turned when folded. "Show N more"
+   starts on the titles' edge (8 + the 28 tile + 8). A row's state is its tile's corner mark: the arc while it
+   works, the amber diamond when it needs you, a tick when it's done. */
+.stage .tg-h{list-style:none}
+.stage .tg-b{display:flex;align-items:center;gap:var(--s-2);width:100%;height:var(--h-ctl);padding:0 0 0 var(--s-2);border-radius:var(--r);text-align:left;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
+.stage .tg-b:hover,.stage .tg-b:focus-visible{color:var(--ink-2)}
+.stage .tg-w{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stage .tg-ch{display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);margin-left:auto;color:var(--ink-4)}
+.stage .tg-ch svg{width:var(--s-4);height:var(--s-4);transition:rotate var(--d-hover) var(--ease)}
+.stage .tg-b[aria-expanded="false"] .tg-ch svg{rotate:-90deg}
+.stage .tg-more{padding-left:calc(var(--s-2) + var(--s-8) + var(--s-1));font-weight:var(--fw-regular);color:var(--ink-3)}
+.stage .ag-need{color:var(--need)}
+.stage .ag-done{color:var(--go)}

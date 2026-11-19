@@ -243,13 +243,13 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     refs: new Map(),     // box id → what a click on it does
     curs: new Map(),     // agent id → its cursor element and where it was
     head: "", layoutKey: "", scope: null, layout: null, dragged: false,
-    mode: "tree",        // "tree": the diagram; "graph": a living node graph
+    mode: "graph",       // "graph": a living node graph (the default, the owner 19 Nov); "tree": the diagram
     bounds: null,        // the drawing's extent by its layout (bounds() adds the boxes as drawn), for Fit
     reach: null, reachKey: "", // the drawn boxes' far edges, and the drawing they were measured on
     gpos: new Map(),     // scope key → Map box id → {x, y, vx, vy}: the graph keeps its shape across redraws
     gkey: "", gnodes: [], gedges: [], alpha: 0, raf: 0, gags: [], glit: new Map(),
   };
-  try { if (localStorage.getItem(MODE_KEY) === "graph") M.mode = "graph"; } catch { /* private mode */ }
+  try { if (localStorage.getItem(MODE_KEY) === "tree") M.mode = "tree"; } catch { /* private mode */ }
   // a box's words change width when the font arrives: measure the drawing again
   if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener("loadingdone", () => { M.reachKey = ""; });
   // a cursor is its arrow: what the agent is doing is said once, in the line above the drawing (a

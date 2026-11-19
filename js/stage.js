@@ -6,8 +6,9 @@
 //     (js/changesframe.js, from Space's /changes; the owner's design, 5 November). It follows the agent
 //     until you touch it. Where Space has no /changes yet, today's list (js/files.js changes()), whose
 //     rows open the file in Files. "All files" opens Files on its own.
-//   · Agents: who is at work in this view, on what, for how long (js/map.js agents()), just above the Map,
-//     so who sits next to where.
+//   · Threads (the frame that was Agents; its id stays "agents" for the shape's xo:panel/agents): every thread of
+//     the place, in one vocabulary (Needs you, Working, Waiting, Done), what each is on or what it did, and when.
+//     A working thread says what it's doing now (js/map.js agents()); Done is folded (the owner, 19 Nov).
 //   · Map: where they are, as a Diagram or a Graph (js/map.js, mounted here; its tabs are the frame's).
 //
 //   · Launchpad, above them all (js/launchpad.js): folded to its head, it says where the project's deploy
@@ -32,12 +33,11 @@ import { setTheme as diffTheme } from "./diffview.js";
 import { LP_ICON } from "./launchpad.js";
 
 const KEY = "xo-stage";
-const FR_KEY = "xo-stage-frames-2"; // Changes · Agents · Map (the order before it kept "xo-stage-frames")
+const FR_KEY = "xo-stage-frames-3"; // Changes · Threads · Map, the Map folded at first (the order before it kept "-2")
 const PANEL_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="M14.5 4.5v15"/><path d="M17 8.5h1.5M17 11.5h1.5"/></svg>';
 const FULL_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>';
 const UNFULL_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14h6v6M20 10h-6V4M10 14l-7 7M14 10l7-7"/></svg>';
 const FOLD_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
-const AGENTS_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><path d="M15.5 5.6a3 3 0 0 1 0 5.8M17.5 14.4c1.6.7 2.6 2.3 3 4.6"/></svg>';
 const CHANGES_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5h7l4 4V19a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 19V5a1.5 1.5 0 0 1 1-1.5z"/><path d="M9.5 13.5l2 2 3.5-4"/></svg>';
 const FILES_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 18V6.5A1.5 1.5 0 0 1 5 5h4l2 2h8A1.5 1.5 0 0 1 20.5 8.5V18a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18z"/></svg>';
 
@@ -56,13 +56,15 @@ const ORDER = ["changes", "agents", "map"];
 const MAP_H = 260, MAP_MIN = 72;
 // Agents is sized in whole rows, never a row cut in half: up to AG_ROWS by default, 1–8 as the line above
 // it is dragged; a row and the gap under it are ROW px (css/panel.css, .stage .ag-r)
-const AG_ROWS = 3, ROW = 48;
+const AG_ROWS = 6, ROW = 48; // Threads shows six rows at first (a list to read, not three live agents)
 // Agents never takes the room Changes needs: its 40 px head, one 32 px file row and the list's 8 px foot,
 // the diff's 120 px and its 12 px margin (css/diffs.css). In a short window Agents shows fewer rows
 const CH_MIN = 212, HEAD = 40;
-export function createStage({ map, mapIcon, files, changes, filesView, viewer, view, go, announce, onChange, frames = () => ORDER, launch = null }) {
+export function createStage({ map, mapIcon, files, changes, filesView, viewer, view, go, announce, onChange, frames = () => ORDER, launch = null, threads = null }) {
   const saved = sget(KEY);
-  const fr = { changes: { folded: false }, agents: { rows: null, folded: false }, map: { h: MAP_H, folded: false }, ...sget(FR_KEY) };
+  // the Map starts folded, in its Graph (the owner, 19 Nov): Threads and Changes have the room
+  const fr = { changes: { folded: false }, agents: { rows: null, folded: false, groups: { done: true } }, map: { h: MAP_H, folded: true }, ...sget(FR_KEY) };
+  if (!fr.agents.groups) fr.agents.groups = { done: true };
   if (!fr.map.h) fr.map.h = MAP_H;
   // a height dragged before Agents went by rows (any pixel count, so a row could show in half): its rows
   if (fr.agents.h) { fr.agents.rows = Math.max(1, Math.min(8, Math.round((fr.agents.h - 44) / ROW))); delete fr.agents.h; }
@@ -73,16 +75,16 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   el.id = "stage";
   el.hidden = true;
   el.tabIndex = -1;
-  el.setAttribute("aria-label", "Agentic Control Pane");
+  el.setAttribute("aria-label", "Panel: threads, changes and map");
   const frame = (id, title, acts = "") => `<section class="fr" data-fr="${id}" aria-labelledby="fr-title-${id}"><header class="fr-h"><h2 class="fr-title" id="fr-title-${id}">${title}${id !== "map" ? `<span class="fr-n" data-fr-n="${id}"></span>` : ""}</h2><div class="fr-a">${acts}<button type="button" class="fr-ib fr-fold" data-fr-fold="${id}" aria-expanded="true" title="Fold">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-${id}"${id === "map" ? ' role="tabpanel"' : ""}></div></section>`;
   const gutter = (a, b) => `<div class="fr-gut" role="separator" aria-orientation="horizontal" aria-label="Resize ${a} and ${b}" data-gut="${a}|${b}" tabindex="0"></div>`;
   el.innerHTML = `<div class="stg-grip" role="separator" aria-orientation="vertical" aria-label="Resize the panel" title="Drag to resize · double-click for the default" tabindex="0"></div>` +
     `<header class="stg-bar"><div class="stg-t"></div><div class="stg-acts"><button type="button" class="stg-ic" data-stg-full></button><button type="button" class="stg-ic" data-stg-close aria-label="Close the panel" title="Close (Esc)">${ICON.close}</button></div></header>` +
-    `<div class="stg-rail" aria-label="Panel, folded"><button type="button" class="stg-ic" data-rail="launch" title="Launchpad">${LP_ICON.rocket}</button><button type="button" class="stg-ic" data-rail="changes" title="Changes">${CHANGES_IC}</button><button type="button" class="stg-ic" data-rail="agents" title="Agents">${AGENTS_IC}</button><button type="button" class="stg-ic" data-rail="map" title="Map">${mapIcon}</button></div>` +
+    `<div class="stg-rail" aria-label="Panel, folded"><button type="button" class="stg-ic" data-rail="launch" title="Launchpad">${LP_ICON.rocket}</button><button type="button" class="stg-ic" data-rail="changes" title="Changes">${CHANGES_IC}</button><button type="button" class="stg-ic" data-rail="agents" title="Threads">${ICON.threadOne}</button><button type="button" class="stg-ic" data-rail="map" title="Map">${mapIcon}</button></div>` +
     `<div class="stg-frames">` +
     `<section class="fr fr-lp is-folded" data-fr="launch" aria-labelledby="fr-title-launch" hidden><header class="fr-h"><h2 class="fr-title" id="fr-title-launch">Launchpad</h2><span class="lp-hs"></span><div class="fr-a"><span class="lp-ha"></span><button type="button" class="fr-ib fr-fold" data-fr-fold="launch" aria-expanded="false" title="Open">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-launch" tabindex="-1"></div><div class="fr-ghosts" role="group" aria-label="Under Launchpad"></div></section><div class="fr-line" data-lp-line hidden></div>` +
     frame("changes", "Changes", `<button type="button" class="xd-follow" data-follow hidden></button><button type="button" class="fr-ib" data-open-files title="All files">${FILES_IC}</button>`) + gutter("changes", "agents") +
-    frame("agents", "Agents") + gutter("agents", "map") +
+    frame("agents", "Threads", `<button type="button" class="fr-ib" data-switch aria-haspopup="dialog" aria-expanded="false" title="Find a thread" aria-label="Find a thread">${ICON.search}</button>`) + gutter("agents", "map") +
     frame("map", "Map", `<div class="fr-views" role="tablist" aria-label="Map view"><button type="button" class="fr-t" role="tab" id="stage-map-tree" aria-controls="fr-body-map" data-map-mode="tree">Diagram</button><button type="button" class="fr-t" role="tab" id="stage-map-graph" aria-controls="fr-body-map" data-map-mode="graph">Graph</button></div>`) +
     `</div>`;
   $("#main").appendChild(el);
@@ -114,11 +116,13 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
       el.querySelector(`[data-rail="${id}"]`).hidden = !on(id);
     }
     // Launchpad: there for a project that can deploy; open, it has the stack and the others show their heads
-    const lpOn = !!(launch && launch.has(view()));
-    if (!lpOn) S.lp = false;
+    // (only while it's open: folded, it isn't a standing row; the header's Deploy opens it, the owner 19 Nov)
+    const lpCan = !!(launch && launch.has(view()));
+    if (!lpCan) S.lp = false;
+    const lpOn = lpCan && S.lp;
     LPF.hidden = !lpOn;
     el.querySelector("[data-lp-line]").hidden = !lpOn;
-    el.querySelector('[data-rail="launch"]').hidden = !lpOn;
+    el.querySelector('[data-rail="launch"]').hidden = !lpCan;
     LPF.classList.toggle("is-folded", !S.lp);
     LPF.querySelector("[data-fr-fold]").setAttribute("aria-expanded", String(S.lp));
     LPF.querySelector("[data-fr-fold]").title = S.lp ? "Fold" : "Open";
@@ -138,8 +142,9 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
       f.querySelector("[data-fr-fold]").setAttribute("aria-expanded", String(!folded));
       f.querySelector("[data-fr-fold]").title = folded ? "Open" : "Fold";
     }
-    // Changes takes the room that's left; when it folds (or the shape has none), the Map; else Agents
-    const grow = ["changes", "map", "agents"].find((id) => on(id) && !fr[id].folded);
+    // Changes takes the room that's left; when it folds (or the shape has none), the Map; else Threads. While Changes
+    // has nothing to show, Threads has the room (an empty Changes held most of the panel over a list cut to rows)
+    const grow = (S.chEmpty ? ["agents", "changes", "map"] : ["changes", "map", "agents"]).find((id) => on(id) && !fr[id].folded);
     for (const id of ORDER) {
       const f = el.querySelector(`[data-fr="${id}"]`);
       f.classList.toggle("is-grow", grow === id);
@@ -180,7 +185,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     const g = LPF.querySelector(".fr-ghosts");
     // each a real button, named "Open Changes, 47 +514 −78": the copy inside is only its look (its controls turned
     // to spans, their hooks dropped), so Tab goes Launchpad → these → out of the panel and a click opens that frame
-    const NAME = { changes: "Changes", agents: "Agents", map: "Map" };
+    const NAME = { changes: "Changes", agents: "Threads", map: "Map" };
     const html = !S.lp ? "" : ORDER.filter((id) => !el.querySelector(`[data-fr="${id}"]`).hidden).map((id) => {
       const f = el.querySelector(`[data-fr="${id}"]`), n = f.querySelector(`[data-fr-n="${id}"]`)?.textContent.trim();
       const look = f.querySelector(":scope > .fr-h").innerHTML
@@ -193,6 +198,28 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   }
 
   // ── what the frames say ─────────────────────────────────────────────────────
+  /** Threads: groups in one vocabulary, each folding on the frame's own fold axis; a row is the Agents row
+   *  (tile, title, what it's on, when), its state the tile's corner mark: the arc while it works, the amber
+   *  diamond when it needs you, a tick when it's done. Waiting shows its first few, then "Show N more". */
+  const SHOW = { needs: Infinity, working: Infinity, waiting: 5, done: 5 };
+  function threadsHtml(groups) {
+    if (!groups || !groups.length) return `<p class="fr-none">No ${"threads"} here yet.</p>`;
+    const g = fr.agents.groups || {}, more = S.tgMore || {};
+    const row = (r) => {
+      const mark = r.state === "working" ? '<i class="arc"></i>' : r.state === "needs" ? `<i class="ag-wait ag-need">${ICON.diamond}</i>` : r.state === "done" ? `<i class="ag-wait ag-done">${ICON.check}</i>` : "";
+      return `<li><button type="button" class="ag-r${r.state === "working" || r.state === "needs" ? "" : " is-idle"}${r.on ? " is-on" : ""}"${r.on ? ' aria-current="page"' : ""} data-go="${esc(r.go)}" aria-label="${esc(`${r.title}. ${r.word}`)}">` +
+        `<span class="ag-ic"${r.color ? ` style="--c:${esc(r.color)}"` : ""} aria-hidden="true">${r.coord ? ICON.project : ICON.threadOne}${mark}</span>` +
+        `<span class="ag-t"><b>${r.mark || ""}${esc(r.title)}</b><span class="ag-activity"><span class="ag-doing">${r.subHtml || esc(r.sub || r.word)}</span></span></span>` +
+        `<span class="ag-tm">${r.since ? `<span class="elapsed" data-since="${r.since}">${ago(r.since)}</span>` : esc(r.at || "")}</span></button></li>`;
+    };
+    return `<ul class="ag-list tg-list">${groups.map((x) => {
+      const folded = !!g[x.k], n = x.rows.length, cap = more[x.k] ? Infinity : SHOW[x.k] ?? 5;
+      const head = `<li class="tg-h"><button type="button" class="tg-b" data-tg-fold="${x.k}" aria-expanded="${!folded}"><span class="tg-w">${esc(x.word)}</span><span class="fr-n">${n}</span><span class="tg-ch" aria-hidden="true">${FOLD_IC}</span></button></li>`;
+      if (folded) return head;
+      const shown = x.rows.slice(0, cap);
+      return head + shown.map(row).join("") + (n > shown.length ? `<li class="tg-h"><button type="button" class="tg-b tg-more" data-tg-more="${x.k}" aria-expanded="false"><span class="tg-w">Show ${n - shown.length} more</span><span class="tg-ch" aria-hidden="true">${FOLD_IC}</span></button></li>` : "");
+    }).join("")}</ul>`;
+  }
   function agentsHtml(list) {
     if (!list.length) return `<p class="fr-none">No agent is working here right now.</p>`;
     return `<ul class="ag-list">${list.map((a) => `<li><button type="button" class="ag-r${a.busy ? "" : " is-idle"}${a.go === view() ? " is-on" : ""}"${a.go === view() ? ' aria-current="page"' : ""} data-go="${esc(a.go)}" title="Open ${esc(a.title)}">` +
@@ -209,8 +236,9 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   /** The panel's name, and the place it's showing beside it, quieter (the owner, 6 Nov). Who's at work is
    *  Agents' own head, so it isn't said here too. */
   function titleHtml() {
+    // the panel says the place it's beside (the owner, 19 Nov: not "Agentic Control Pane")
     const place = nameOf(view());
-    return `<b class="stg-name">Agentic Control Pane</b>${place ? `<span class="stg-sub" title="${esc(place)}">${esc(place)}</span>` : ""}`;
+    return `<b class="stg-name" title="${esc(place || "")}">${esc(place || "Panel")}</b>`;
   }
   let nameOf = () => "";
 
@@ -224,14 +252,20 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     const set = (k, node, html) => { const same = html.replace(/(<span class="elapsed" data-since="\d+">)[^<]*/g, "$1"); if (S.h[k] !== same) { redraw(node, html); S.h[k] = same; } };
     set("head", el.querySelector(".stg-t"), titleHtml());
     if (launch && !LPF.hidden) launch.paint(v, S.lp && !S.rail);
-    if (!S.lp) set("agents", body("agents"), agentsHtml(ag)); // under Launchpad Agents is a head: its list waits
-    el.querySelector('[data-fr-n="agents"]').textContent = ag.filter((a) => a.busy).length || "";
+    // under Launchpad Threads is a head: its list waits
+    const tg = threads ? threads(v) : null;
+    if (!S.lp) set("agents", body("agents"), tg ? threadsHtml(tg) : agentsHtml(ag));
+    el.querySelector('[data-fr-n="agents"]').textContent = tg ? (tg.reduce((n, x) => n + x.rows.length, 0) || "") : (ag.filter((a) => a.busy).length || "");
     // Changes: Space's list and diff where it has /changes, else today's list
     const cxOn = !fr.changes.folded && !S.lp && CX.paint();
     const hd = CX.head();
     const [cxHost, old] = body("changes").children;
     cxHost.hidden = !hd; old.hidden = !!hd;
     if (!hd && !S.lp) { const ch = files.changes(v); set("changes", old, changesHtml(ch)); }
+    const empty = hd ? !hd.count : !files.changes(v).length;
+    if (S.chEmpty !== empty) { S.chEmpty = empty; layout(); }
+    // the Map's Diagram | Graph only while the Map is open; its fold opens it
+    { const mv = el.querySelector('[data-fr="map"] .fr-views'); if (mv) mv.hidden = !!fr.map.folded; }
     const n = el.querySelector('[data-fr-n="changes"]');
     set("chn", n, hd ? (hd.count ? `${hd.count}${hd.total.add || hd.total.del ? ` ${countsHtml(hd.total)}` : ""}` : "") : String(files.changes(v).length || ""));
     const fw = el.querySelector("[data-follow]");
@@ -386,7 +420,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     }
     if (!S.open) return;
     fitRail();
-    if (LPF.hidden === !!(launch && launch.has(view()))) layout();
+    if (LPF.hidden === !!(launch && launch.has(view()) && S.lp)) layout();
     paint();
   }
 
@@ -417,6 +451,10 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     if (t.closest("[data-follow]")) { CX.toggleFollow(); paint(); return; }
     const ch = t.closest("[data-change]");
     if (ch) { const rel = ch.dataset.change; viewer.open({ path: rel, name: rel.split("/").pop(), project: ch.dataset.changeProject, rel }, ch); return; }
+    const tf = t.closest("[data-tg-fold]");
+    if (tf) { const k = tf.dataset.tgFold; fr.agents.groups = { ...(fr.agents.groups || {}), [k]: !fr.agents.groups?.[k] }; persist(); paint(); el.querySelector(`[data-tg-fold="${CSS.escape(k)}"]`)?.focus({ preventScroll: true }); return; }
+    const tm = t.closest("[data-tg-more]");
+    if (tm) { const k = tm.dataset.tgMore; S.tgMore = { ...(S.tgMore || {}), [k]: true }; paint(); return; }
     const g = t.closest("[data-go]");
     if (g) { go(g.dataset.go); }
   });
@@ -642,7 +680,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     owns: (node) => !!(node && el.contains(node)),
     /** The one header button: opens the panel, or closes it. No dot: nothing blinks here. */
     button() {
-      return `<button type="button" class="stg-btn${S.open ? " is-on" : ""}" data-stage-toggle aria-pressed="${S.open}" aria-controls="stage" aria-label="Panel: agents, map and changes" title="Agents, Map and Changes">${PANEL_IC}</button>`;
+      return `<button type="button" class="stg-btn${S.open ? " is-on" : ""}" data-stage-toggle aria-pressed="${S.open}" aria-controls="stage" aria-label="Panel: threads, changes and map" title="Threads, Changes and Map">${PANEL_IC}</button>`;
     },
   };
 }

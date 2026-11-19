@@ -343,7 +343,7 @@ const LP = createLaunchpad({ api: createLpApi(), projectOf: lpProject, nameOf: (
   // the owner's choice B): its Undo's deadline is the action's own (l.until), so it can't outlive what it undoes
   notice: (mid, l, ms) => { const h = { mid, kind: l.kind === "err" ? "stopped" : l.kind || "done", text: l.text, ...(l.sub ? { sub: l.sub } : {}), ...(l.undo ? { undo: l.undo, undoLabel: l.undoLabel, undoUntil: l.until || 0, ownFocus: true } : {}) }; return heraldFor(mid, () => h, ms) || heraldShow(h, ms); },
   unnotice: (mid) => heraldDrop(mid) });
-const STAGE = createStage({ map: MAP, mapIcon: MAP_ICON, files: FILES, changes: CHG, filesView: FILESV, viewer: VW, view: () => S.view, go: (v) => go(v, { panel: true }), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP });
+const STAGE = createStage({ map: MAP, mapIcon: MAP_ICON, files: FILES, changes: CHG, filesView: FILESV, viewer: VW, view: () => S.view, go: (v) => go(v, { panel: true }), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP, threads: (v) => panelThreads(v) });
 // the place beside the panel's name: a thread's project (its title is the conversation's own head), a project
 STAGE.names = (v) => {
   const p = v.startsWith("t:") ? world.thread(v.slice(2))?.project : v.startsWith("p:") ? v.slice(2) : null;
@@ -1347,17 +1347,13 @@ function topRender(needs) {
     const pid = v.slice(2);
     const ts = threadsOf(pid);
     const every = world.state.threads.filter((x) => x.project === pid); // resolved ones too: findable, reopenable
-    const nd = needs.filter((n) => n.t.project === pid && n.admitted && !n.later).length;
-    const w = ts.filter(isBusy).length;
-    const wt = ts.filter(isHeld).length;
-    const dn = ts.filter((x) => x.state === "done").length;
-    const rs = every.length - ts.length;
-    // "done", not "done this week": the count is every done thread, however old
-    const parts = [counted(w, "working"), counted(wt, "waiting"), counted(dn, "done"), counted(rs, "resolved")].filter(Boolean);
-    // Threads: every thread here, searchable, dropping down under its button (⌘K reaches them too)
-    if (every.length) end = `<button type="button" class="all-btn th-btn" data-switch aria-haspopup="dialog" aria-expanded="${!allEl.hidden}" title="Every thread in ${esc(PROJ(pid))}, searchable">${ICON.threadOne}${esc(SHAPE.word("Threads"))}<span>${every.length}</span></button>`;
+    // the same words as the panel's Threads (Working, Waiting; Needs you is said by `need`, its own button); Done
+    // lives in the panel, folded. Every thread here, searchable, is the panel Threads frame's search.
+    const by = { working: 0, waiting: 0 };
+    for (const x of every) { const k = threadState(x, needs); if (by[k] != null) by[k]++; }
+    const parts = [counted(by.working, "working"), counted(by.waiting, "waiting")].filter(Boolean);
     const need = hostNeedHtml(v, needs);
-    who = `<span class="tw-ic" aria-hidden="true">${projectIcon(pid)}</span><span class="tw-t"><h1 id="conv-title">${esc(PROJ(pid))}</h1><span class="pj-s${need ? " has-need" : ""}">${countLine([need, ...(parts.length ? parts : [every.length ? "All quiet" : "No threads yet"]), S.desc[pid] && esc(S.desc[pid])])}</span></span>`;
+    who = `<span class="tw-ic" aria-hidden="true">${projectIcon(pid)}</span><span class="tw-t"><h1 id="conv-title">${esc(PROJ(pid))}</h1><span class="pj-s${need ? " has-need" : ""}">${countLine([need, ...(parts.length ? [`<button type="button" class="pj-home" data-stage-open title="Open its threads in the panel">${countLine(parts)}</button>`] : [every.length ? "All quiet" : "No threads yet"]), S.desc[pid] && esc(S.desc[pid])])}</span></span>`;
   } else if (t) {
     const ed = S.tEdit && S.tEdit.tid === t.id ? S.tEdit.field : null;
     // the field shows what was typed (kept through a refusal), and says it's waiting while it saves
@@ -3561,6 +3557,44 @@ function openNext() {
   decideKey(P0.next.key);
 }
 
+// ── One state per thread, in one vocabulary ─────────────────────────────────
+/** Needs you · Working · Waiting · Done, from what XO knows: an open ask on it, its agent at work right now,
+ *  finished (done, resolved, stopped, frozen), else waiting (idle, paused, held). */
+const STATE_WORDS = { needs: "Needs you", working: "Working", waiting: "Waiting", done: "Done" };
+function threadState(t, needs) {
+  if (needs.some((n) => n.t.id === t.id && n.admitted && n.group !== "stopped")) return "needs";
+  if (t.frozen || t.state === "done" || t.state === "resolved" || t.state === "failed" || t.state === "stopped") return "done";
+  if (isBusy(t)) return "working";
+  return "waiting";
+}
+/** The panel's Threads: the place's threads (a thread's view: its project's), grouped in that order, the
+ *  coordinator first when it asks or works. A working row says what it's doing now (the Map's own line), the
+ *  rest what they did (Space's one-line summary) or their state. */
+function panelThreads(v) {
+  const pid = convProject(v);
+  if (!pid) return [];
+  const needs = D.needItems();
+  const doing = new Map(MAP.agents(pid === "workspace" ? "ws" : "p:" + pid).map((a) => [a.go, a]));
+  const groups = { needs: [], working: [], waiting: [], done: [] };
+  // the coordinator: not a thread, but what it asks counts in "need you" everywhere, so it's here too
+  const coordAsks = needs.filter((n) => n.t.host && n.t.project === pid && n.admitted);
+  const coordGo = pid === "workspace" ? "ws" : "p:" + pid, coordAg = doing.get(coordGo);
+  if (coordAsks.length || coordAg) {
+    const st = coordAsks.length ? "needs" : "working";
+    groups[st].push({ go: coordGo, coord: true, title: pid === "workspace" ? "Workspace coordinator" : "Coordinator", state: st, word: STATE_WORDS[st],
+      sub: coordAsks.length ? askShort(coordAsks[0]) : coordAg.doing, since: st === "working" ? coordAg.since : null, color: coordAg?.color, on: v === coordGo });
+  }
+  const ts = world.state.threads.filter((t) => t.project === pid).sort((a, b) => b.lastAt - a.lastAt);
+  for (const t of ts) {
+    const st = threadState(t, needs), ag = doing.get("t:" + t.id);
+    const ask = st === "needs" ? needs.find((n) => n.t.id === t.id) : null;
+    groups[st].push({ go: "t:" + t.id, title: t.title, state: st, word: STATE_WORDS[st], mark: threadMark(t, { lead: true }),
+      sub: st === "working" && ag ? ag.doing : ask ? askShort(ask) : t.summary || (t.state === "failed" ? "Stopped" : t.state === "resolved" ? "Resolved" : isHeld(t) ? heldWords(t.held) : STATE_WORDS[st]),
+      since: st === "working" && ag ? ag.since : null, at: st === "working" ? "" : short(t.lastAt), color: ag?.color, on: v === "t:" + t.id });
+  }
+  return ["needs", "working", "waiting", "done"].filter((k) => groups[k].length).map((k) => ({ k, word: STATE_WORDS[k], rows: groups[k] }));
+}
+
 // ── All threads: searchable, filtered; finished ones fold into one line ────
 const allEl = $("#all");
 let allReturn = null;
@@ -3742,7 +3776,7 @@ function jumpRender() {
     { name: "Keyboard shortcuts", sub: "Action", icon: ICON.sliders, run: () => openKeys() },
     { name: light ? "Dark mode" : "Light mode", sub: "Action", icon: light ? ICON.moon : ICON.sun, run: () => $("#theme").click() },
     ...(IQ.kindOf(sessionOf(S.view)) ? [{ name: "Intelligence: model and thinking", sub: "Action", icon: ICON.sliders, run: () => IQ.open(sessionOf(S.view), $("#iq")) }] : []),
-    ...(S.view !== "home" && S.view !== "artifacts" ? [{ name: "Agents, Map and Changes", sub: "Action", icon: ICON.sliders, run: () => STAGE.toggle() }] : []),
+    ...(S.view !== "home" && S.view !== "artifacts" ? [{ name: "Threads, Changes and Map", sub: "Action", icon: ICON.sliders, run: () => STAGE.toggle() }] : []),
   ].filter((x) => x.name.toLowerCase().includes(q)) : [];
   jitems = all.filter((x) => !q || (x.name + " " + x.sub).toLowerCase().includes(q)).concat(verbs, REC.jumpItems(q));
   jsel = Math.min(jsel, Math.max(0, jitems.length - 1));
@@ -4151,7 +4185,7 @@ document.addEventListener("pointerdown", (e) => { if (!$("#side-more").hidden &&
 SIDE.drawPins();
 
 // the Map's toggle, in every conversation's header
-document.addEventListener("click", (e) => { if (e.target.closest?.("[data-stage-toggle]")) STAGE.toggle(); else if (e.target.closest?.("[data-lp-open]")) STAGE.launch(); });
+document.addEventListener("click", (e) => { if (e.target.closest?.("[data-stage-toggle]")) STAGE.toggle(); else if (e.target.closest?.("[data-stage-open]")) STAGE.open(); else if (e.target.closest?.("[data-lp-open]")) STAGE.launch(); });
 
 // ── global keys ─────────────────────────────────────────────────────────────
 const GLOBAL = {

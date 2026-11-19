@@ -69,6 +69,8 @@ export const ICON = {
   minimize: I('<path d="M6 12h12"/>', ' stroke-width="2"'),
   // the sidebar folding to its rail: a window with its left column
   sidebar: I('<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M9.5 4.5v15"/>'),
+  // needs you: the amber diamond the sidebar and the lists use
+  diamond: I('<path d="M12 5.5 18.5 12 12 18.5 5.5 12z" fill="currentColor" stroke="none"/>'),
   // more: the three dots every ⋯ shows
   more: I('<circle cx="5.5" cy="12" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="18.5" cy="12" r="1.2" fill="currentColor"/>'),
   runtime: I('<rect x="6" y="6" width="12" height="12" rx="2.5"/><path d="M10 2.5v3.5M14 2.5v3.5M10 18v3.5M14 18v3.5M2.5 10H6M2.5 14H6M18 10h3.5M18 14h3.5"/>'),
