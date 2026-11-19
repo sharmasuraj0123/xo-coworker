@@ -9,7 +9,7 @@ const CM = await import("../js/vendor/codemirror/cm.js");
 // own code has loaded, which reads `document` only when it's there)
 globalThis.document = { documentElement: { dataset: {} }, createElement: () => ({ getContext: () => null }), querySelector: () => null };
 globalThis.addEventListener ??= () => {};
-const { pageView, toggleMark } = await import("../js/mdlive.js");
+const { pageView, toggleMark, rowLine, tableRows } = await import("../js/mdlive.js");
 const { EditorState, EditorView, markdown, markdownLanguage, ensureSyntaxTree } = CM;
 
 let passed = 0;
@@ -54,8 +54,8 @@ t("with the caret on the last line: the table, the diagram, the formula and the 
   assert.deepEqual(out, [[3, 5], [7, 9], [15, 15], [17, 17]]);
 });
 
-t("the caret inside a table, a diagram or a formula: its source to type in, its drawing kept right under it", () => {
-  assert.deepEqual(blocks(4).out, [[5, 5], [7, 9], [15, 15], [17, 17]], "in the table: drawn under its last line");
+t("a table is always drawn (you type in its cells); a diagram or formula with the caret in it: its source, its drawing under it", () => {
+  assert.deepEqual(blocks(4).out, [[3, 5], [7, 9], [15, 15], [17, 17]], "the caret in the table: still drawn");
   assert.deepEqual(blocks(8).out, [[3, 5], [9, 9], [15, 15], [17, 17]], "in the diagram");
 });
 
@@ -93,6 +93,16 @@ t("a long file read a part at a time: every table is drawn once the parser has r
   CM.ensureSyntaxTree(st, st.doc.length, 5000);
   st = st.update({}).state;
   assert.equal(count(st), 8, "all eight tables drawn");
+});
+
+t("a table's cells and its rows' lines: read from the source, written back one row at a time", () => {
+  const t = tableRows("| ID | Means |\n|:--|--:|\n| `a|b` | one \\| two |\n| x | |");
+  assert.equal(t.width, 2);
+  assert.deepEqual(t.align, ["", "right"]);
+  assert.deepEqual(t.rows.map((r) => r.line), [0, 2, 3], "the delimiter row is skipped");
+  assert.deepEqual(t.rows[1].cells, ["`a|b`", "one | two"]);
+  assert.equal(rowLine(["one | two", "x"]), "| one \\| two | x |", "a pipe in a cell is escaped");
+  assert.equal(rowLine(["", ""]), "|  |  |");
 });
 
 console.log(`${passed} passed`);

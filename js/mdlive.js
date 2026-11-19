@@ -11,7 +11,7 @@
 //
 // pageView(CM) → the extension (js/doceditor.js puts it in a compartment, so Source is the same editor without it).
 
-import { renderMarkdown, renderInline } from "./markdown.js";
+import { renderMarkdown, renderInline, cells } from "./markdown.js";
 import { drawMath, drawDiagram } from "./rich.js";
 
 // A widget's math and diagrams are drawn by the chat's own renderer (js/rich.js: one cache, one Mermaid queue), a
@@ -53,6 +53,19 @@ export function toggleMark(CM, state, mark) {
   };
 }
 
+/** A table row written back from its cells: "| a | b |", a "|" inside a cell escaped. Pure. */
+export function rowLine(list) {
+  return `| ${list.map((c) => String(c).replace(/\n/g, " ").replace(/(?<!\\)\|/g, "\\|")).join(" | ")} |`;
+}
+/** A table's source as rows of cells (the delimiter row left out) and the line each row is on. Pure. */
+export function tableRows(src) {
+  const lines = src.split("\n");
+  const rows = [];
+  lines.forEach((l, i) => { if (i !== 1 && l.trim()) rows.push({ line: i, cells: cells(l) }); });
+  const align = lines[1] ? cells(lines[1]).map((c) => (/^:-+:$/.test(c) ? "center" : /-+:$/.test(c) ? "right" : "")) : [];
+  return { rows, align, width: rows.length ? rows[0].cells.length : 0 };
+}
+
 export function pageView(CM) {
   const { ViewPlugin, Decoration, WidgetType, StateField, EditorView, syntaxTree, RangeSetBuilder, EditorSelection, Prec, keymap } = CM;
 
@@ -76,6 +89,86 @@ export function pageView(CM) {
     }
     ignoreEvent() { return false; }
     get estimatedHeight() { return 48; }
+  }
+  /**
+   * A table you type into (the owner, 19 Nov 12:11Z): each cell is editable where it's drawn; a cell's text goes back
+   * into its row's line as you type (that line only, rewritten as "| a | b |"). Tab and ⇧Tab move between cells, Enter
+   * goes down a row (in the last row it adds one), Esc leaves the table. A cell shows its Markdown while you're in it
+   * and its formatting otherwise. The editor keeps this same table as the text changes under it (updateDOM), so the
+   * cell you're in keeps its caret.
+   */
+  class TableWidget extends WidgetType {
+    constructor(src, from) { super(); this.src = src; this.from = from; }
+    eq(o) { return o.src === this.src; }
+    toDOM(view) {
+      const wrap = document.createElement("div");
+      wrap.className = "cm-md-block cm-md-table prose vw-md";
+      wrap.innerHTML = `<div class="md-table"><table><thead></thead><tbody></tbody></table></div>`;
+      wrap._w = this;
+      this.fill(wrap, null);
+      const cellOf = (t) => t.closest && t.closest("[data-r]");
+      wrap.addEventListener("focusin", (e) => { const c = cellOf(e.target); if (c && c.textContent !== c.dataset.raw) c.textContent = c.dataset.raw; });
+      wrap.addEventListener("focusout", (e) => { const c = cellOf(e.target); if (c) c.innerHTML = renderInline(c.dataset.raw) || "&#8203;"; });
+      wrap.addEventListener("input", (e) => {
+        const c = cellOf(e.target);
+        if (!c) return;
+        c.dataset.raw = c.textContent.replace(/\u200b/g, "");
+        const w = wrap._w, r = +c.dataset.r;
+        const row = [...wrap.querySelectorAll(`[data-r="${r}"]`)].map((x) => x.dataset.raw);
+        const { rows } = tableRows(w.src);
+        const line = view.state.doc.lineAt(w.from).number + rows[r].line;
+        const l = view.state.doc.line(line);
+        view.dispatch({ changes: { from: l.from, to: l.to, insert: rowLine(row) }, userEvent: "input.table" });
+      });
+      wrap.addEventListener("keydown", (e) => {
+        const c = cellOf(e.target);
+        if (!c || e.isComposing) return;
+        const all = [...wrap.querySelectorAll("[data-r]")], i = all.indexOf(c);
+        const w = wrap._w, { rows, width } = tableRows(w.src), r = +c.dataset.r, k = +c.dataset.c;
+        const go = (x) => { if (!x) return; x.focus(); const s = getSelection(); s.selectAllChildren(x); s.collapseToEnd(); };
+        if (e.key === "Tab") { e.preventDefault(); go(all[i + (e.shiftKey ? -1 : 1)]); return; }
+        if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); const end = view.state.doc.lineAt(w.from).number + rows[rows.length - 1].line; view.focus(); view.dispatch({ selection: { anchor: view.state.doc.line(end).to } }); return; }
+        if (e.key === "Enter") {
+          e.preventDefault();
+          if (r < rows.length - 1) { go(wrap.querySelector(`[data-r="${r + 1}"][data-c="${k}"]`)); return; }
+          // the last row: a new one under it, its first cell next
+          const last = view.state.doc.line(view.state.doc.lineAt(w.from).number + rows[r].line);
+          wrap._focusNext = { r: r + 1, c: 0 };
+          view.dispatch({ changes: { from: last.to, insert: "\n" + rowLine(Array(width).fill("")) }, userEvent: "input.table" });
+        }
+      });
+      return wrap;
+    }
+    /** The text changed under the table (a cell typed in, a row added): its cells are brought up to date in place. */
+    updateDOM(dom) {
+      if (!dom.classList.contains("cm-md-table")) return false;
+      dom._w = this;
+      this.fill(dom, document.activeElement);
+      if (dom._focusNext) { const n = dom._focusNext; dom._focusNext = null; const x = dom.querySelector(`[data-r="${n.r}"][data-c="${n.c}"]`); if (x) x.focus(); }
+      return true;
+    }
+    fill(wrap, keep) {
+      const { rows, align, width } = tableRows(this.src);
+      const head = wrap.querySelector("thead"), body = wrap.querySelector("tbody");
+      const want = (r) => (r === 0 ? head : body);
+      rows.forEach((row, r) => {
+        const sec = want(r), idx = r === 0 ? 0 : r - 1;
+        let tr = sec.children[idx];
+        if (!tr) { tr = document.createElement("tr"); sec.appendChild(tr); }
+        for (let k = 0; k < width; k++) {
+          let td = tr.children[k];
+          if (!td) { td = document.createElement(r === 0 ? "th" : "td"); td.contentEditable = "true"; td.spellcheck = true; td.dataset.r = r; td.dataset.c = k; tr.appendChild(td); }
+          const raw = row.cells[k] ?? "";
+          if (align[k]) td.style.textAlign = align[k];
+          if (td === keep) { td.dataset.raw = raw; continue; } // the cell you're typing in keeps its text and caret
+          if (td.dataset.raw !== raw || !td.innerHTML) { td.dataset.raw = raw; td.innerHTML = renderInline(raw) || "&#8203;"; }
+        }
+        while (tr.children.length > width) tr.lastChild.remove();
+      });
+      while (body.children.length > Math.max(0, rows.length - 1)) body.lastChild.remove();
+    }
+    ignoreEvent() { return true; } // its cells are its own: the editor leaves their keys and clicks alone
+    get estimatedHeight() { return 120; }
   }
   /** An inline formula, drawn; a click puts the caret in it (its source shows). */
   class MathWidget extends WidgetType {
@@ -107,7 +200,7 @@ export function pageView(CM) {
       enter(n) {
         const name = n.name;
         if (name === "HorizontalRule") { out.push({ from: n.from, to: n.to, always: true }); return false; }
-        if (name === "Table") { out.push({ from: n.from, to: n.to }); return false; }
+        if (name === "Table") { out.push({ from: n.from, to: n.to, always: true, table: true }); return false; }
         if (name === "FencedCode") {
           const info = n.node.getChild("CodeInfo");
           const lang = info ? state.sliceDoc(info.from, info.to).trim() : "";
@@ -123,7 +216,7 @@ export function pageView(CM) {
       },
     });
     // whole lines only (a block decoration replaces lines)
-    return out.map((b) => ({ from: state.doc.lineAt(b.from).from, to: state.doc.lineAt(b.to).to, always: !!b.always }));
+    return out.map((b) => ({ from: state.doc.lineAt(b.from).from, to: state.doc.lineAt(b.to).to, always: !!b.always, table: !!b.table }));
   }
   const blockField = StateField.define({
     create: (state) => ({ list: blocksOf(state), deco: null }),
@@ -142,6 +235,8 @@ export function pageView(CM) {
       for (const x of v.list) {
         if (x.to > state.doc.length) continue;
         const src = state.sliceDoc(x.from, x.to);
+        // a table is always drawn, and you type in its cells; the others draw until the caret is in them
+        if (x.table) { b.add(x.from, x.to, Decoration.replace({ widget: new TableWidget(src, x.from), block: true })); continue; }
         if (x.always || !touches(state, x.from, x.to)) { b.add(x.from, x.to, Decoration.replace({ widget: new BlockWidget(src, x.from), block: true })); continue; }
         // the caret is in it: its source to type in, and its drawing kept right under it, following what you type
         b.add(x.to, x.to, Decoration.widget({ widget: new BlockWidget(src, x.from, true), block: true, side: 1 }));

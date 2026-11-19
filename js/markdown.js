@@ -305,8 +305,8 @@ function codeBlock(lang, code) {
   );
 }
 
-/** A table row's cells: split on "|" outside `code`, with the outer pipes dropped. */
-function cells(line) {
+/** A table row's cells: split on "|" outside `code`, with the outer pipes dropped. (Files' page edits tables by it.) */
+export function cells(line) {
   const out = [];
   let cur = "", tick = false;
   const t = line.trim().replace(/^\|/, "").replace(/(?<!\\)\|$/, "");
