@@ -2694,19 +2694,22 @@ function retry(id) {
  * A message's words back in the composer (Edit on a failed one, a refused new chat): with what you've written
  * since, never instead of it. The words come first, your newer draft under them, and focus is in the composer.
  */
-function putBack(text) {
-  const now = say.value.trim();
-  say.value = now ? `${text}\n\n${say.value.replace(/^\s+/, "")}` : text;
-  growSay(); saveDraft(); updateComposer(); say.focus();
-  say.setSelectionRange(say.value.length, say.value.length);
+function putBack(text, K = MK) {
+  const f = K.say, now = f.value.trim();
+  f.value = now ? `${text}\n\n${f.value.replace(/^\s+/, "")}` : text;
+  growSay(K); saveDraft(K); updateComposer(K); f.focus();
+  f.setSelectionRange(f.value.length, f.value.length);
 }
-function editFailed(id) {
-  const list = S.local[S.view] || [];
+/** A failed message's Edit: its words back in the composer of the conversation it's in (the chat's, or a thread
+ *  page's in the panel). */
+function editFailed(id, K = MK) {
+  const view = K.view;
+  const list = S.local[view] || [];
   const i = list.findIndex((x) => x.id === id);
   if (i < 0) return;
   const [m] = list.splice(i, 1);
-  if (m.files && m.files.length) tray.restore(S.view, m.files);
-  putBack((m.target && m.target !== convProject(S.view) ? `@${m.target} ` : "") + m.text);
+  if (m.files && m.files.length) tray.restore(view, m.files);
+  putBack((m.target && m.target !== convProject(view) ? `@${m.target} ` : "") + m.text, K);
   render();
 }
 
@@ -2780,6 +2783,11 @@ function drawThreadPage(needs) {
   tpHead(t);
   checklistRender(needs, $("#tpthead"), tpView(), "tck-list");
   drawConv(TP.C, needs);
+  // what it asks you: a line above its composer that opens the decision where it's decided today (the thread's own
+  // page, its card docked over the composer); deciding inside the panel is a later step
+  const ask = needs.find((x) => x.t.id === t.id && !x.later);
+  const dk = $("#tptdock"), dh = ask ? `<button type="button" class="tp-ask" data-tp-full="${esc(t.id)}"><i class="g g-needs_reply" aria-hidden="true"></i><span>It asks you: ${esc(askShort(ask))}</span><span class="tp-ask-go">Decide ${ICON.arrow}</span></button>` : "";
+  if (dk._h !== dh) { redraw(dk, dh); dk._h = dh; }
   if (document.activeElement !== TP.K.say) updateComposer(TP.K); else { sendRender(TP.K); targetLineRender(TP.K); }
 }
 document.addEventListener("click", (e) => { const b = e.target.closest?.("[data-tp-full]"); if (b) { const id = b.dataset.tpFull; STAGE.closeTab("thread"); go("t:" + id); } });
@@ -3509,6 +3517,9 @@ $("#top").addEventListener("focusout", (e) => {
 });
 
 // ── clicks ──────────────────────────────────────────────────────────────────
+/** The conversation a control is in (P1 step 8): the panel's thread page, else the main chat. */
+const convAt = (el) => (TP.box && el && TP.box.contains(el) ? TP.C : MAIN);
+const composerAt = (el) => (TP.box && el && TP.box.contains(el) ? TP.K : MK);
 document.addEventListener("click", (e) => {
   const t = e.target;
   if (t.closest("#iq-pop")) return;
@@ -3517,7 +3528,7 @@ document.addEventListener("click", (e) => {
   if (g && !t.closest("#all") && !t.closest("#stage")) { e.preventDefault(); go(g.dataset.go); if (g.dataset.goMsg) showMsg(g.dataset.goMsg); return; }
   const tl = t.closest("a[data-thread]");
   if (tl) { e.preventDefault(); if (world.thread(tl.dataset.thread)) go("t:" + tl.dataset.thread); else heraldShow({ kind: "calm", text: "That thread isn't loaded", sub: "it may be in another project" }, 3200); return; }
-  if (t.closest("[data-older]")) { loadOlderNow(); return; }
+  if (t.closest("[data-older]")) { loadOlderNow(convAt(t)); return; }
   const so = t.closest("[data-start]");
   if (so) { startDraft(+so.dataset.start); return; }
   const d = t.closest("[data-decide]");
@@ -3563,22 +3574,23 @@ document.addEventListener("click", (e) => {
   }
   const che = t.closest("[data-chat-edit]");
   if (che) { const text = CH.edit(che.dataset.chatEdit); if (text != null) putBack(text); return; }
-  if (e.target.closest("[data-chat-stop]")) { stopRun(); return; }
+  if (e.target.closest("[data-chat-stop]")) { stopRun(convAt(t).view); return; }
   // sub-agents: the strip under the checklist, the log, a sub-agent's row in a turn
   const rc = t.closest("[data-run-call]");
-  if (rc) { const th = convThread(S.view); const r = [...(world.state.runs?.values() || [])].find((x) => x.spawn === rc.dataset.runCall); openRuns(th, r ? r.id : null); return; }
+  if (rc) { const th = convThread(convAt(rc).view); const r = [...(world.state.runs?.values() || [])].find((x) => x.spawn === rc.dataset.runCall); openRuns(th, r ? r.id : null); return; }
   const ro = t.closest("#thead [data-run]");
-  if (ro) { openRuns(convThread(S.view), ro.dataset.run); return; }
-  if (t.closest("#thead [data-runs]")) { openRuns(convThread(S.view)); return; }
+  if (ro) { openRuns(convThread(convAt(ro).view), ro.dataset.run); return; }
+  if (t.closest(":is(#thead,#tpthead) [data-runs]")) { openRuns(convThread(convAt(t).view)); return; }
   // storm blocks: open or fold a block or a row (thinking steps, an activity group, a command's output)
   const tb = t.closest("[data-tb]");
   if (tb) {
     const k = tb.dataset.tb; S.tbOpen[k] = !S.tbOpen[k];
     // you opened this to read it where it is: it unfolds downward and the view stays (even at the latest;
     // pressing the agent's working bubble instead goes back to following, msgx.js)
-    if (tb.closest("#msgs")) unpin();
-    // the redraw replaces this line: its fold glides (workMotion), and focus comes back to it
-    S.tbToggled = { k, open: S.tbOpen[k], focus: tb === document.activeElement || tb.contains(document.activeElement) };
+    const tc = convAt(tb);
+    if (tb.closest(".msgs")) tc.follow.unpin();
+    // the redraw replaces this line: its fold glides (workMotion, in the conversation it's in), and focus comes back to it
+    S.tbToggled = { k, open: S.tbOpen[k], focus: tb === document.activeElement || tb.contains(document.activeElement), in: tc.msgs };
     schedule(); return;
   }
   // beside a file, the chat folds to its rail and opens from it (js/filesview.js)
@@ -3627,7 +3639,7 @@ document.addEventListener("click", (e) => {
   // Rename and the label open their field (focus goes there); Remove the label is done from ⋯ (focus back on it)
   if (tf) { const tid = S.tMenu; if (tf.dataset.tfield === "clear-label") { closeThreadMenu(); saveThreadField(tid, "label", ""); } else { S.tMenu = null; startThreadEdit(tid, tf.dataset.tfield); } return; }
   if (S.tMenu && !t.closest(".tw-menu")) closeThreadMenu({ focus: false });
-  if (t.closest("[data-ck]")) { const th = convThread(S.view); if (th) { S.ckOpen[th.id] = !S.ckOpen[th.id]; checklistRender(D.needItems()); } return; }
+  if (t.closest("[data-ck]")) { const tc = convAt(t), th = convThread(tc.view); if (th) { S.ckOpen[th.id] = !S.ckOpen[th.id]; if (tc === MAIN) checklistRender(D.needItems()); else checklistRender(D.needItems(), $("#tpthead"), tc.view, "tck-list"); } return; }
   const o = t.closest("[data-nx-opt]");
   if (o) { const n = homeParts().next; if (n) { o.classList.add("pressed"); nextDecide({ option: n.ask.options[+o.dataset.nxOpt] }); } return; }
   if (t.closest("[data-nx-allow]")) { nextDecide("allow"); return; }
@@ -3637,9 +3649,9 @@ document.addEventListener("click", (e) => {
   const r = t.closest("[data-retry]");
   if (r) { retry(r.dataset.retry); return; }
   // Interrupt goes as its turn stops: focus lands on its Undo (3 s), drawn in the same step (Astra RUN-5)
-  if (t.closest("[data-interrupt]")) { S.focusNext = ["#herald [data-herald-undo]"]; interruptRun(); return; }
+  if (t.closest("[data-interrupt]")) { S.focusNext = ["#herald [data-herald-undo]"]; interruptRun(convAt(t).view); return; }
   const ed = t.closest("[data-edit]");
-  if (ed) { editFailed(ed.dataset.edit); return; }
+  if (ed) { editFailed(ed.dataset.edit, composerAt(ed)); return; }
   const mx = t.closest("[data-mx]");
   if (mx) { openMedia(mx, e); return; }
   if (t.closest("[data-lref-x]")) { delete S.lref[S.view]; lrefRender(); say.focus(); return; }
@@ -3650,10 +3662,10 @@ document.addEventListener("click", (e) => {
   // opening it is reading here, as opening a work fold is: the view unpins on this row, so the panel making
   // room (the conversation narrows and re-wraps) moves nothing you're reading
   if (cf) {
-    const c = CHG.forTarget(S.view, cf.dataset.file);
+    const cv = convAt(cf), c = CHG.forTarget(cv.view, cf.dataset.file);
     if (c) {
-      unpin(cf); // the row you clicked in stays where it is while the panel takes its room (follow.js)
-      const s = CHG.scope(S.view);
+      cv.follow.unpin(cf); // the row you clicked in stays where it is while the panel takes its room (follow.js)
+      const s = CHG.scope(cv.view);
       const inFiles = () => VW.open({ path: c.path, name: c.path.split("/").pop(), project: s.project, rel: s.worktree ? `.xo/worktrees/${s.worktree}/${c.path}` : c.path, show: "changes" }, cf);
       // beside a file (the chat docked, a phone's sheet), or ⌘/Ctrl-click: its diff in Files, in the middle, in
       // place of the one shown; on a phone the sheet folds so the file shows

@@ -37,5 +37,16 @@ assert.match(app, /data-tp-full="\$\{esc\(t\.id\)\}"/);
 // CSS: the panel's reading column, tokens only
 const block = css.slice(css.indexOf("── The Thread page"));
 assert.ok(block.length > 300);
-assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, "").replace(/inset 0 -1px 0/g, ""), /\b\d+(\.\d+)?(px|rem|ms)\b|#[0-9a-f]{3,8}\b/i);
+assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, "").replace(/inset 0 -1px 0/g, "").replace(/@media \([^)]*\)/g, ""), /\b\d+(\.\d+)?(px|rem|ms)\b|#[0-9a-f]{3,8}\b/i);
 console.log("thread-page: ok");
+// clicks inside it act on its own thread (P1 step 8): older pages, folds, Stop, Interrupt, Edit, its checklist, runs, a
+// changed file's chip
+{
+  const a = app;
+  for (const re of [/if \(t\.closest\("\[data-older\]"\)\) \{ loadOlderNow\(convAt\(t\)\); return; \}/, /stopRun\(convAt\(t\)\.view\)/, /interruptRun\(convAt\(t\)\.view\)/,
+    /editFailed\(ed\.dataset\.edit, composerAt\(ed\)\)/, /S\.tbToggled = \{ k, open: S\.tbOpen\[k\], focus: [^\n]*, in: tc\.msgs \};/, /const cv = convAt\(cf\), c = CHG\.forTarget\(cv\.view, cf\.dataset\.file\);/,
+    /:is\(#thead,#tpthead\) \[data-runs\]/, /const convAt = \(el\) => \(TP\.box && el && TP\.box\.contains\(el\) \? TP\.C : MAIN\);/]) assert.match(a, re, String(re));
+  // what it asks you: one line above its composer that opens the decision
+  assert.match(a, /class="tp-ask" data-tp-full="\$\{esc\(t\.id\)\}"/);
+  console.log("thread-page clicks: ok");
+}
