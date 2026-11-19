@@ -295,4 +295,3 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
     get wide() { return !pane.hidden && !!D.handle; },
   };
 }
-export { countsHtml };
