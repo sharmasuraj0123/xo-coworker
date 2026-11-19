@@ -10,7 +10,7 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | split | 33 |
 | moved | 31 |
 
-Items inside first-party files: 2290 (planned 1179, split-region 659, moved 425, deleted 24, kept 2, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1177, split-region 659, moved 427, deleted 24, kept 2, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -105,7 +105,7 @@ Items inside first-party files: 2290 (planned 1179, split-region 659, moved 425,
 | `js/util.js` | 112 | split | core/platform/util.js, core/platform/time.js, core/platform/clipboard.js · next: js/util.js re-exports core/platform until the shims go |
 | `js/viewer.js` | 1157 | split | modules/files/viewer, modules/files/documents (external-change intake), modules/changes/file-diff |
 | `js/words.js` | 48 | planned | modules/conversation/words.js |
-| `js/world.js` | 56 | split | core/services/world/store.js, core/platform/util.js (esc) · next: js/world.js re-exports the store and keeps esc until core/platform/util.js takes it |
+| `js/world.js` | 56 | split | core/services/world/store.js, core/platform/util.js (esc) · next: js/world.js re-exports the store and the platform's esc until the shims go |
 | `js/xoicons.js` | 390 | planned | core/ui/icons/xoicons.js (generated) |
 
 ## css (18)

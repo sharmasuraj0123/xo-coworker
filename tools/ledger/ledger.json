@@ -4110,7 +4110,7 @@
     "core/services/world/store.js",
     "core/platform/util.js (esc)"
    ],
-   "note": "js/world.js re-exports the store and keeps esc until core/platform/util.js takes it"
+   "note": "js/world.js re-exports the store and the platform's esc until the shims go"
   },
   "js/xoicons.js": {
    "status": "planned",
@@ -15373,8 +15373,8 @@
    "reason": "nothing imports it"
   },
   "js/world.js::exports::esc": {
-   "status": "planned",
-   "home": "core/platform/util.js (one esc: util.js has its own)"
+   "status": "moved",
+   "home": "core/platform/util.js (the one esc; the same characters)"
   },
   "js/world.js::functions::createWorld": {
    "status": "moved",
@@ -15385,8 +15385,8 @@
    "reason": "nothing imports it"
   },
   "js/world.js::functions::esc": {
-   "status": "planned",
-   "home": "core/platform/util.js (one esc: util.js has its own)"
+   "status": "moved",
+   "home": "core/platform/util.js (the one esc; the same characters)"
   },
   "js/xoicons.js::exports::XI": {
    "status": "planned",
