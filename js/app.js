@@ -95,7 +95,8 @@ const num = (n) => NUM[n] || String(n);
 const low = (n) => num(n).toLowerCase();
 const plural = (n, w) => `${w}${n === 1 ? "" : "s"}`;
 const DRAFTS = "cv-drafts:live";
-const STOP_ICON = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2.2" fill="currentColor"/></svg>`;
+// Stop's square: all of its 14 px box, with 4 px corners (css/app.css, .send.is-stop)
+const STOP_ICON = `<svg viewBox="0 0 14 14" width="14" height="14" aria-hidden="true"><rect width="14" height="14" rx="4" fill="currentColor"/></svg>`;
 
 // ── theme: dark by default, a slide toggle in the sidebar (#28) ────────────
 const THEME = { get() { try { return localStorage.getItem("cv-theme") === "light" ? "light" : "dark"; } catch { return "dark"; } } };

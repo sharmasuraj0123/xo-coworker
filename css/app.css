@@ -752,8 +752,13 @@ button.hr:active{transform:scale(.97)}
 .send:active{transform:scale(var(--press-scale))}
 .send:disabled{background:var(--fill-3);color:var(--ink-5);cursor:default}
 /* Stop: while the coordinator or this thread's agent is working (and the field is empty) */
-.send.is-stop{background:var(--ink);color:var(--on-ink)}
-.send.is-stop:hover{background:var(--ink-hi)}
+/* It was a white disc (the ink) with a 6 px square of 1 px corners, and the owner wanted no harsh corners and nothing
+   glaring (19 Nov 08:57Z). Now a quiet stone disc in Send's own place, 40 px and round, so its edge is concentric with
+   the composer's 28 px corner (8 px in: 28 − 8 = 20, its radius); in it a 14 px square with 4 px corners, the ink's
+   own colour. Hover and press only deepen the stone */
+.send.is-stop{--stop:var(--fill-4);--ring-in:var(--focus);background:var(--stop);color:var(--ink)}
+:root[data-theme="light"] .send.is-stop{--stop:var(--fill-3)}
+.send.is-stop:hover{background:color-mix(in srgb,var(--ink) 9%,var(--stop))}
 .send.is-stop svg{width:14px;height:14px}
 .send.fired{animation:fire var(--d-move) var(--ease)}
 @keyframes fire{from{transform:scale(.9)}}

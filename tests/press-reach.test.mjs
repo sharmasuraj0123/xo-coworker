@@ -66,7 +66,8 @@ const ACCENT = /^:where\((.*?)\):where\(:active:not\([^{]*\)\)\{background-color
 const INK = /^:where\((.*?)\):where\(:active:not\([^{]*\)\)\{background-color:color-mix\(in srgb,var\(--ink\) \d+%,var\(--canvas\)\)!important/m.exec(fnd)?.[1] || "";
 const DIM = /:is\(([^)]*)\):where\(:active:not\([^)]*\)\)\{opacity:\.7\}/.exec(fnd)?.[1] || "";
 const OWN = {
-  ".send": () => ACCENT.includes(".send:not(.is-stop)") && INK.includes(".send.is-stop"),
+  // Stop is a stone disc (the owner, 19 Nov): it presses a step deeper than its hover, never to the ink
+  ".send": () => ACCENT.includes(".send:not(.is-stop)") && /:where\(\.send\.is-stop\):where\(:active:not\([^{]*\)\)\{background-color:color-mix\(in srgb,var\(--ink\) 18%,var\(--stop\)\)!important/.test(fnd) && !INK.includes(".send.is-stop"),
   ".btn-pri": () => ACCENT.includes(".btn-pri"), ".xd-btn.is-pri": () => ACCENT.includes(".xd-btn.is-pri"), ".xd-send": () => ACCENT.includes(".xd-send"),
   ".iq-done": () => INK.includes(".iq-done"),
   // a hold: its own fill grows from the left as it's held, the whole press (no veil over it, no halo: the owner, 11 Nov 08:19Z)

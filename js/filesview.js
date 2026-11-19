@@ -214,9 +214,10 @@ export function createFilesView({ files, viewer, view, PROJ, world, announce, on
     const folded = files.listing ? false : F.sheet ? true : files.folded;
     const tree = viewer.hasFile ? `<button type="button" class="fv-ib" data-fv-tree aria-pressed="${!folded}" title="${folded ? "Show the files (⌘B)" : "Fold the files to a rail (⌘B)"}" aria-label="${folded ? "Show the files" : "Fold the files"}">${TREE_IC}</button>` : "";
     const where = `${tree}<h1 class="fv-t">${esc(name)}</h1>${sub ? `<span class="fv-s">${esc(sub)}</span>` : ""}`;
-    // beside the chat: the way back to it leads the head, in words and its own plum, where browsing and reading
-    // both keep it (the owner, 6 Nov: the minus at the far right was hard to find; Codex Astra's
-    // design-research/files-return). Files is minimised, not closed: the file waits in the thread's header
+    // beside the chat: the way back to it leads the head, in words, where browsing and reading both keep it (the
+    // owner, 6 Nov: the minus at the far right was hard to find; Codex Astra's design-research/files-return), as
+    // quiet as the head's other controls (the owner, 19 Nov: the plum chip was too big and overwhelming). Files is
+    // minimised, not closed: the file waits in the thread's header
     if (F.docked || F.sheet) return `<button type="button" class="fv-ret" data-fv-min aria-label="Back to chat: minimise Files" aria-describedby="fv-ret-tip">${BACK_IC}<span>Back to chat</span>` +
       `<span class="fv-tip" role="tooltip" id="fv-ret-tip"><span class="fv-tip-t">Minimise Files<kbd>Esc</kbd></span><span class="fv-tip-s">Your file stays open.</span></span></button>` +
       `<span class="fv-sep" aria-hidden="true"></span>${where}`;

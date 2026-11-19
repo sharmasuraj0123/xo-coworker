@@ -14,7 +14,7 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
 t("every control in Files' head draws its ring inside it: the icon buttons, Back, Back to chat", () => {
   assert.match(fv, /\.fv-ib:focus-visible\{outline:2px solid var\(--ring-in,var\(--focus\)\);outline-offset:-2px\}/);
   assert.match(fv, /\.fv-h \.fv-back:focus-visible\{outline-offset:-2px;outline-color:var\(--ring-in,var\(--focus\)\)\}/);
-  assert.match(fv, /\.fv-ret:focus-visible\{outline:2px solid var\(--ret-ink\);outline-offset:-2px\}/);
+  assert.match(fv, /\.fv-ret:focus-visible\{outline:2px solid var\(--ring-in,var\(--focus\)\);outline-offset:-2px\}/);
   // and none of them is drawn outside anywhere
   assert.doesNotMatch(fv, /\.fv-(back|ret|ib)[^{]*:focus-visible[^{]*\{[^}]*outline-offset:[0-9]/);
 });
