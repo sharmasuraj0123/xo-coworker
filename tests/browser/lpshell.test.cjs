@@ -613,7 +613,11 @@ for (const where of ["section put away", "another place on screen"]) {
     await W.openLaunchpad(page);
     await page.waitForFunction(() => document.querySelector(".lp")?.dataset.screen === "run");
     await page.locator('[data-lp="stop"]').click();
-    if (where === "section put away") await page.locator('[data-lp="hide"]').click();
+    if (where === "section put away") {
+      await page.locator('[data-lp="hide"]').click();
+      const hid = await page.evaluate(() => { const a = document.activeElement; return { deploy: a.hasAttribute("data-lp-open"), close: a.hasAttribute("data-stg-close") }; });
+      assert.ok(WIDTH <= 760 ? hid.close : hid.deploy, `Hide puts focus on ${WIDTH <= 760 ? "the covering panel's Close" : "the project's own Deploy"}`);
+    }
     // another place: the page changes by script (window.__t.go). A person changes place by pressing something, which
     // takes focus off Launchpad first, so the case lets go of it deliberately before the script moves the page (a
     // navigation by script with focus left in a section it hides is the test's own move, not a person's path)

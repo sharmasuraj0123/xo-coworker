@@ -1413,7 +1413,7 @@ Items inside first-party files: 2290 (moved 903, planned 898, split-region 453, 
 | File | Lines | Status | New home |
 |---|---:|---|---|
 | `tools/launchpad/mockspace.cjs` | 164 | deleted | its copy at e2e/fixtures/mockspace.cjs served only tools/launchpad/smoke.cjs; every scenario a browser suite opens is in e2e/fixtures/mockspace-harness.cjs (modules/launchpad/tests/mockspace-scenarios.test.mjs), and lpshell's Launchpad cases pass on it |
-| `tools/launchpad/smoke.cjs` | 128 | deleted | a one-off probe with machine paths (owner D6); the Launchpad browser cases cover what it played |
+| `tools/launchpad/smoke.cjs` | 128 | deleted | a one-off probe with machine paths and no assertions (owner D6); the 14 scenarios only it played (live-behind, sizes-fallback, size-refused, live-nodisk, live-oldspace, live-domain, live-noenv-disk, gh-scope, gh-scope-run, gh-import, repo-taken, link-existing, pull, lost) have no browser case yet |
 
 ## tools/xoicons (1)
 
