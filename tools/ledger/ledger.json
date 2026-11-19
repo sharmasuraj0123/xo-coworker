@@ -2438,7 +2438,7 @@
    ]
   },
   "js/pacing.js": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/pacing.js"
   },
   "js/paid.js": {

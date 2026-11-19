@@ -13,7 +13,7 @@ g.localStorage = { getItem: () => null, setItem() {}, removeItem() {} };
 
 const Kit = await import("../js/kit.js");
 const { createDecisions } = await import("../js/decide.js");
-const { createPacing } = await import("../js/pacing.js");
+const { createPacing } = await import("../modules/decisions/pacing.js");
 
 const calls = [];
 const thread = (id, title, asks, state = "needs_approval") => ({ id, title, project: "demo", state, asks, checklist: { done: 0, total: 0, items: [] }, needsYou: "", messages: [] });

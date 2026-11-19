@@ -16,7 +16,7 @@ import { renderMarkdown, renderInline, setThreadInfo, setWebImages } from "./mar
 import * as Kit from "./kit.js";
 import * as K from "../core/platform/keys.js";
 import { createDecisions } from "./decide.js";
-import { createPacing } from "./pacing.js";
+import { createPacing } from "../modules/decisions/pacing.js";
 import { createIntel } from "./intel.js";
 import { EFFORT, estLine, evidenceFor } from "./content.js";
 import { keepTurning, ICON, XO, NEXT_GLYPH, $, $$, RM, reconcile, sound, wait, hold, dial, morph, expand } from "./ui.js";

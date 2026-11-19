@@ -4,10 +4,10 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 629 |
+| planned | 628 |
 | vendor | 367 |
 | deleted | 232 |
-| moved | 49 |
+| moved | 50 |
 | split | 35 |
 | kept | 1 |
 
@@ -74,7 +74,7 @@ Items inside first-party files: 2290 (planned 1008, split-region 631, moved 624,
 | `js/model.js` | 34 | planned | modules/threads/checklist.js |
 | `js/motion.js` | 82 | moved | core/ui/motion.js · next: js/motion.js re-exports core/ui/motion.js until the shims go |
 | `js/msgx.js` | 917 | split | modules/conversation/decorate.js, modules/conversation/working.js, modules/conversation/actions.js, modules/conversation/gestures.js, modules/conversation/latest-button.js, modules/composer (reply chip, quote) |
-| `js/pacing.js` | 67 | planned | modules/decisions/pacing.js |
+| `js/pacing.js` | 67 | moved | modules/decisions/pacing.js |
 | `js/paid.js` | 152 | moved | core/services/world/paid.js · next: every importer points at the new home, so it leaves with no re-export |
 | `js/paidview.js` | 21 | planned | modules/decisions/cards/paid.js |
 | `js/paths.js` | 83 | moved | core/services/paths.js · next: every importer points at the new home, so it leaves with no re-export |
