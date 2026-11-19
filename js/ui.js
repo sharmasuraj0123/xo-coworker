@@ -207,16 +207,6 @@ function expandFrame(box, body, open, frame, onStep) {
   if (onStep) { const t0 = performance.now(); const f = () => { onStep(); if (performance.now() - t0 < EXPAND_MS + 40) requestAnimationFrame(f); }; requestAnimationFrame(f); }
 }
 
-/** mm:ss for a countdown. */
-export const mmss = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
-/** "3 h 12 m" / "42 m" for how long something has waited. */
-export function waited(ms) {
-  const m = Math.max(1, Math.round(ms / 60000));
-  if (m < 60) return `${m}m`;
-  const h = Math.floor(m / 60);
-  return m % 60 ? `${h}h ${m % 60}m` : `${h}h`;
-}
-
 export const $ = (s, el = document) => el.querySelector(s);
 export const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 export const RM = matchMedia("(prefers-reduced-motion: reduce)");

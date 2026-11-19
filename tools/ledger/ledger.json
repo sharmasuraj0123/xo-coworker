@@ -16097,28 +16097,12 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/ui.js::exports::mmss": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "nothing imported it (no importer in js/, core/, tests/, tools/ or index.html)"
   },
   "js/ui.js::exports::waited": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "nothing imported it (no importer in js/, core/, tests/, tools/ or index.html)"
   },
   "js/ui.js::exports::$": {
    "status": "split-region",
@@ -16337,16 +16321,8 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/ui.js::functions::waited": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "nothing imported it (no importer in js/, core/, tests/, tools/ or index.html)"
   },
   "js/ui.js::functions::clock": {
    "status": "split-region",
