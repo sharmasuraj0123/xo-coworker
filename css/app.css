@@ -3101,3 +3101,12 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .tw-menu button[aria-disabled="true"]{color:var(--ink-5);cursor:default}
 .tdel{flex:none;padding:var(--s-3) var(--hg)}
 .tdel[hidden]{display:none}
+
+/* All threads: the agent's mark small, under the row's time (the panel's rule, css/panel.css). Everything in the row
+   sits on its first line (the title's), so the time stays level with the title and the mark takes the line under it. */
+.ar:has(.ar-mk){align-items:start}
+.ar:has(.ar-mk)>:not(.ar-a){min-height:var(--lh-14);display:flex;align-items:center}
+.ar-a{display:flex;flex-direction:column;align-items:flex-end}
+.ar-a>span:first-child{line-height:var(--lh-14)}
+.ar-mk{display:flex;align-items:center;height:var(--mark-sm)}
+.ar-mk .agm{width:var(--mark-sm);height:var(--mark-sm);vertical-align:baseline;margin:0}

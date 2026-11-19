@@ -555,3 +555,11 @@ body.stage-covers .herald{position:fixed;left:16px;right:16px;bottom:max(16px, e
 .stage .tg-more{padding-left:calc(var(--s-2) + var(--s-8) + var(--s-1));font-weight:var(--fw-regular);color:var(--ink-3)}
 .stage .ag-need{color:var(--need)}
 .stage .ag-done{color:var(--go)}
+
+/* ── An agent's mark, said quietly (the owner, 19 Nov 13:42Z): small (--mark-sm), under the row's time in its right
+   column, so the agent is known without shouting. The time sits on the title's line, the mark on the summary's line
+   (each line's own height), both at the column's right edge; the title and summary keep the left. */
+.stage .ag-tm{display:flex;flex-direction:column;align-items:flex-end}
+.stage .ag-tm .ag-when{line-height:var(--lh-14);min-height:var(--lh-14)}
+.stage .ag-mk{display:flex;align-items:center;height:var(--lh-12)}
+.stage .ag-mk .agm{width:var(--mark-sm);height:var(--mark-sm);vertical-align:baseline;margin:0}

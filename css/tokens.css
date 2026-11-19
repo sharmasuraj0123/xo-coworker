@@ -132,6 +132,8 @@
      (a phone's floor for anything pressed) · --h-hit 44 (a full touch row or target). Boxes that don't follow density
      (an avatar, an icon or file tile, an orb, a fade): --tile 32 · --tile-lg 36 · --tile-xl 44. */
   --h-touch:36px; --h-hit:44px; --tile:32px; --tile-lg:36px; --tile-xl:44px;
+  /* an agent's mark where a list row says it quietly, under the row's time (the owner, 19 Nov 13:42Z) */
+  --mark-sm:var(--s-3);
   /* Space: a 4 px grid. */
   --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px; --s-6:24px; --s-8:32px; --s-10:40px; --s-12:48px;
 
