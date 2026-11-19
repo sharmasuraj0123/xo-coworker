@@ -95,7 +95,7 @@
 .lp-note b{font-weight:var(--fw-medium);color:var(--ink-2)}
 .lp-note.t-need{padding-bottom:4px;color:var(--need)}
 .lp-src{display:flex;align-items:flex-start;gap:8px}
-.lp-src svg{flex:none;width:14px;height:14px;margin-top:1px;color:var(--ink-4)}
+.lp-src svg{flex:none;--ic:14px;width:var(--ic);height:var(--ic);margin-top:calc((1lh - var(--ic)) / 2);color:var(--ink-4)}
 .lp-set{padding:12px 12px 0}
 .lp-f{display:grid;grid-template-columns:104px minmax(0,1fr);column-gap:8px;align-items:start;padding:6px 8px}
 .lp-l{padding:6px 0;font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

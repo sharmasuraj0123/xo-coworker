@@ -23,7 +23,7 @@
 .stg-tab.is-on{color:var(--ink)}
 .stg-tab.is-on::after{background:var(--ink-2)}
 .stg-tab svg{width:16px;height:16px}
-.stg-n{margin-left:-2px;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
+.stg-n{font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
 .stg-acts{gap:4px}
 .stg-ic{width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);color:var(--ink-4)}
 .stg-ic svg{width:16px;height:16px}

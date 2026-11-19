@@ -40,7 +40,7 @@ diffs-container{
 .xd-d{color:var(--code-del)}
 
 /* ── a turn's changed files in chat: the chip carries its counts; the one the panel shows reads as chosen ── */
-.tb-cf .xd-n{margin-left:2px}
+.tb-cf .xd-n{margin-left:var(--s-1)}
 .tb-cf.is-on{background:color-mix(in srgb,var(--ink) 9%,var(--surface));border-color:var(--line-strong);color:var(--ink)}
 
 /* ── the panel's Changes (js/changesframe.js): the list, then the chosen file's diff ──
@@ -127,7 +127,7 @@ diffs-container{
 .xd-ask{position:absolute;z-index:3;right:16px;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px 0 8px;border-radius:var(--r-pill);background:var(--surface);border:1px solid var(--line);box-shadow:var(--e2);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink);white-space:nowrap;animation:xd-in var(--d-in) var(--ease)}
 .xd-ask:hover{border-color:var(--line-hover)}
 .xd-ask svg{width:14px;height:14px;color:var(--ink-3)}
-.xd-ask kbd{all:unset;margin-left:2px;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
+.xd-ask kbd{all:unset;margin-left:var(--s-1);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
 :root[data-theme="light"] .xd-ask{background:#fff}
 @keyframes xd-in{from{opacity:0;transform:translateY(-2px)}}
 
