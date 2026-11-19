@@ -10,17 +10,17 @@ AREAS = ("core/", "shell/", "modules/", "apps-host/", "e2e/", "tools/", "tests/"
 SCANNED = re.compile(r"\.((m|c)?js|css|html)$")
 REEXPORT = re.compile(r"^\s*export\s*(\*|\{[^}]*\})\s*from\s*['\"][^'\"]+['\"];?\s*$", re.M)
 REGION_NOTE = "assign to its region's home when this file moves (see its analysis)"
-GONE_WORDS = ("delete", "drop", "none:")
+GONE = re.compile(r"^(delete|drop)\b|^none:", re.I)
 
 def candidates(home):
-    """The repo paths a home names, in order: `core/ui/x.js (why)`, a list of them, or a folder."""
+    """The first repo path each home entry names: `core/ui/x.js (why)`, a list of them, or a folder."""
     texts = home if isinstance(home, list) else [home or ""]
     out = []
     for t in texts:
         for tok in re.split(r"[\s,;()`+]+", t):
             tok = tok.rstrip(".:").replace("*", "").rstrip("/")
             if tok.startswith(AREAS) or tok in ("index.html", "serve.py", "start.sh", "boot.js"):
-                out.append(tok)
+                out.append(tok); break
     return list(dict.fromkeys(out))
 
 class Tree:
@@ -46,29 +46,20 @@ class Tree:
             out += [os.path.relpath(os.path.join(d, n), self.repo) for n in sorted(names) if SCANNED.search(n)]
         return out
 
-    def area(self, p):
-        """The nearest existing path at or above p, never above an area's own folder (modules/x, core/ui)."""
-        while p and not self.exists(p):
-            p = os.path.dirname(p)
-        return p if p and (p.count("/") >= 1 or p in ("shell", "e2e", "apps-host", "index.html")) else None
-
 def holds(found, kind, name):
     kinds = ("exports", "functions") if kind in ("exports", "functions") else (kind,)
     return any(name in found.get(k, []) for k in kinds)
 
 def where(tree, home, kind, name, src):
-    """The first file at the item's home, other than its source, that holds it: the named files, then their folders."""
-    named = [c for c in candidates(home) if tree.exists(c)]
-    wider = [a for a in (tree.area(c) for c in candidates(home)) if a]
-    wider += [os.path.dirname(c) for c in named if os.path.isfile(os.path.join(tree.repo, c)) and os.path.dirname(c).count("/") >= 1]
-    for base in dict.fromkeys(named + wider):
+    """The first file at the item's home, other than its source, that holds it: a named file, or one in a named folder."""
+    for base in (c for c in candidates(home) if tree.exists(c)):
         for f in tree.files_under(base):
             if f != src and holds(tree.items(f), kind, name): return f
     return None
 
 def gone_reason(home):
     h = (home if isinstance(home, str) else "").strip()
-    if not h.lower().startswith(GONE_WORDS): return None
+    if not GONE.match(h): return None
     return re.sub(r"^delete:\s*", "", h) or h
 
 def reconcile(repo):
@@ -91,8 +82,9 @@ def reconcile(repo):
                 new = {"status": "moved", "home": at}
                 if e.get("note") and e["note"] != REGION_NOTE: new["note"] = e["note"]
             changes.append((key, e, new)); L["items"][key] = new
+    still = {k.split("::")[0] for k, e in L.get("items", {}).items() if e.get("status") in OPEN}
     for p, e in L["files"].items():
-        if e.get("status") not in OPEN or tree.exists(p): continue
+        if e.get("status") not in OPEN or tree.exists(p) or p in still: continue
         reason = gone_reason(e.get("home"))
         homes = candidates(e.get("home"))
         if reason: new = {"status": "deleted", "reason": reason}

@@ -29,6 +29,7 @@ class Reconcile(unittest.TestCase):
             "js/half.js": {"status": "planned", "home": ["core/services/new.js", "modules/nowhere/x.js"]},
             "js/probe.js": {"status": "planned", "home": "delete: a one-off probe (owner D6)"},
             "js/a.js": {"status": "planned", "home": "core/ui/a.js"},
+            "js/left.js": {"status": "planned", "home": "core/services/new.js"},
         }, "items": {
             "js/a.js::functions::moved": {"status": "planned", "home": "core/ui/a.js"},
             "js/a.js::functions::kept": {"status": "planned", "home": "core/ui/a.js"},
@@ -38,6 +39,9 @@ class Reconcile(unittest.TestCase):
             "js/m.js::functions::hydrate": {"status": "split-region", "home": ["modules/conv/media/", "core/ui/media (layout)"], "note": REGION},
             "js/m.js::ids::dock": {"status": "split-region", "home": ["modules/conv/latest.js"], "note": REGION},
             "js/a.js::keys::Home": {"status": "planned", "home": "drop (history)"},
+            "js/elsewhere.js::functions::lost": {"status": "planned", "home": "modules/nowhere/x.js (was in core/ui/a.js)"},
+            "js/b.js::functions::moved": {"status": "planned", "home": "dropdown: core/ui/a.js"},
+            "js/left.js::functions::unplaced": {"status": "planned", "home": "core/services/new.js"},
             "js/a.js::functions::done": {"status": "moved", "home": "core/ui/a.js"},
         }}
         write(self.repo, "tools/ledger/ledger.json", json.dumps(self.ledger, indent=1) + "\n")
@@ -65,7 +69,9 @@ class Reconcile(unittest.TestCase):
         self.assertIn("not found at its home: js/a.js::functions::lost", out)
         self.assertEqual(it["js/shim.js::exports::BAR"], {"status": "moved", "home": "core/ui/a.js"}, "a re-export is not a definition")
         self.assertEqual(it["js/m.js::functions::hydrate"], {"status": "moved", "home": "modules/conv/media/cards.js"})
-        self.assertEqual(it["js/m.js::ids::dock"], {"status": "moved", "home": "modules/conv/index.js"}, "a missing file falls back to its folder")
+        self.assertEqual(it["js/m.js::ids::dock"]["status"], "split-region", "a home file that doesn't exist is no home, nor is its folder")
+        self.assertEqual(it["js/elsewhere.js::functions::lost"]["status"], "planned", "only the first path of a home counts")
+        self.assertEqual(it["js/b.js::functions::moved"], {"status": "moved", "home": "core/ui/a.js"}, "dropdown is not drop")
         self.assertEqual(it["js/a.js::keys::Home"], {"status": "deleted", "reason": "drop (history)"})
         self.assertEqual(it["js/a.js::functions::done"], self.ledger["items"]["js/a.js::functions::done"])
 
@@ -77,6 +83,7 @@ class Reconcile(unittest.TestCase):
         self.assertEqual(f["js/half.js"]["status"], "planned", "one of its homes does not exist")
         self.assertEqual(f["js/probe.js"], {"status": "deleted", "reason": "a one-off probe (owner D6)"})
         self.assertEqual(f["js/a.js"]["status"], "planned", "the file is still there")
+        self.assertEqual(f["js/left.js"]["status"], "planned", "one of its items is still open")
 
 if __name__ == "__main__":
     unittest.main()
