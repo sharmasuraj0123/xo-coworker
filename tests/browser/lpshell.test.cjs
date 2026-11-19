@@ -1,12 +1,11 @@
 // Browser tests for Launchpad and the Shells dock: how each control answers, in the app itself.
-// The rows they lock are listed in design-research/2026-11-lg/LAUNCHPAD-SHELL.md.
 //   Launchpad: errors are whole · name taken · size dropdown · undo · stop window · copy is truthful · menu keys ·
 //              ask pending
 //   Shells: toggle · close says so · close all detached · tab keys · rename in the tab · close asks in its row · new shell pending · retry counts ·
 //           ended · terminal copy
 //
 // Self-contained: the app is served from this folder, every /api request is answered in the page by
-// design-research/2026-11-lg/lp-shell/world.cjs (Launchpad's routes by design-research's mockspace, the shells'
+// e2e/worlds/lp-shell.cjs (Launchpad's routes by the mockspace, the shells'
 // REST routes and WebSocket mocked). Nothing reaches a Space; nothing is written anywhere.
 //   node tests/browser/lpshell.test.cjs [name-regex]
 // Needs Playwright's core and a Chromium: PLAYWRIGHT_CORE (default /tmp/pw/node_modules/playwright-core).
@@ -14,7 +13,7 @@
 "use strict";
 const assert = require("assert/strict");
 let W;
-try { W = require("../../design-research/2026-11-lg/lp-shell/world.cjs"); } catch (e) { console.error(`not run: ${e.message.split("\n")[0]}`); process.exit(2); }
+try { W = require("../../e2e/worlds/lp-shell.cjs"); } catch (e) { console.error(`not run: ${e.message.split("\n")[0]}`); process.exit(2); }
 
 let env, WIDTH = 1440, THEME = "dark", MOTION = "reduce", passed = 0, failed = 0;
 const tests = [];

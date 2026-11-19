@@ -2116,16 +2116,16 @@
    "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-lg/controls-ids.json": {
-   "status": "planned",
-   "home": "e2e/fixtures/ (tests need it; then it leaves design-research)"
+   "status": "moved",
+   "home": "e2e/fixtures/controls/controls-ids.json"
   },
   "design-research/2026-11-lg/lp-shell/world.cjs": {
-   "status": "planned",
-   "home": "e2e/fixtures/ (tests need it; then it leaves design-research)"
+   "status": "moved",
+   "home": "e2e/worlds/lp-shell.cjs"
   },
   "design-research/2026-11-lg/tools/controls-md.cjs": {
-   "status": "planned",
-   "home": "e2e/fixtures/ (tests need it; then it leaves design-research)"
+   "status": "deleted",
+   "reason": "archived with design-research; the only part a test read, its Recheck list for a4faed2, is e2e/fixtures/controls/link-rows.json"
   },
   "design-research/2026-11-vision/canvas-editing/PLAN.md": {
    "status": "planned",
@@ -2148,8 +2148,8 @@
    "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-vision/launchpad/tools/mockspace.cjs": {
-   "status": "planned",
-   "home": "e2e/fixtures/ (tests need it; then it leaves design-research)"
+   "status": "moved",
+   "home": "e2e/fixtures/mockspace-harness.cjs"
   },
   "favicon.svg": {
    "status": "planned",
@@ -4943,8 +4943,8 @@
    "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/mockspace.cjs": {
-   "status": "planned",
-   "home": "e2e/fixtures/mockspace.cjs (one copy; the design-research copy goes)"
+   "status": "moved",
+   "home": "e2e/fixtures/mockspace.cjs"
   },
   "tools/launchpad/smoke.cjs": {
    "status": "planned",
@@ -18745,8 +18745,8 @@
    "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/mockspace.cjs::functions::body": {
-   "status": "planned",
-   "home": "e2e/fixtures/mockspace.cjs (one copy; the design-research copy goes)"
+   "status": "moved",
+   "home": "e2e/fixtures/mockspace.cjs"
   },
   "tools/launchpad/smoke.cjs::ids::main": {
    "status": "planned",

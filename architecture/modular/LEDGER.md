@@ -4,11 +4,13 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 912 |
+| planned | 907 |
 | vendor | 367 |
 | split | 34 |
+| moved | 4 |
+| deleted | 1 |
 
-Items inside first-party files: 2290 (planned 1367, split-region 923), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1366, split-region 923, moved 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -1344,15 +1346,15 @@ Items inside first-party files: 2290 (planned 1367, split-region 923), in `ledge
 | `design-research/2026-11-chatview/shots-gaps/now-gap-before-after.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
 | `design-research/2026-11-chatview/shots-gaps/thread-strip-before-after.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
 | `design-research/2026-11-chatview/showcase.cjs` | 151 | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-lg/controls-ids.json` | 2686 | planned | e2e/fixtures/ (tests need it; then it leaves design-research) |
-| `design-research/2026-11-lg/lp-shell/world.cjs` | 212 | planned | e2e/fixtures/ (tests need it; then it leaves design-research) |
-| `design-research/2026-11-lg/tools/controls-md.cjs` | 761 | planned | e2e/fixtures/ (tests need it; then it leaves design-research) |
+| `design-research/2026-11-lg/controls-ids.json` | 2686 | moved | e2e/fixtures/controls/controls-ids.json |
+| `design-research/2026-11-lg/lp-shell/world.cjs` | 212 | moved | e2e/worlds/lp-shell.cjs |
+| `design-research/2026-11-lg/tools/controls-md.cjs` | 761 | deleted | archived with design-research; the only part a test read, its Recheck list for a4faed2, is e2e/fixtures/controls/link-rows.json |
 | `design-research/2026-11-vision/canvas-editing/PLAN.md` | 215 | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
 | `design-research/2026-11-vision/canvas-editing/README.md` | 444 | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
 | `design-research/2026-11-vision/canvas-editing/SPACE-CONTRACT.md` | 244 | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
 | `design-research/2026-11-vision/canvas-editing/files-as-editor.md` | 171 | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
 | `design-research/2026-11-vision/canvas-editing/vscode-behaviours.md` | 177 | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-vision/launchpad/tools/mockspace.cjs` | 133 | planned | e2e/fixtures/ (tests need it; then it leaves design-research) |
+| `design-research/2026-11-vision/launchpad/tools/mockspace.cjs` | 133 | moved | e2e/fixtures/mockspace-harness.cjs |
 
 ## tools/codemirror (1)
 
@@ -1409,7 +1411,7 @@ Items inside first-party files: 2290 (planned 1367, split-region 923), in `ledge
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `tools/launchpad/mockspace.cjs` | 164 | planned | e2e/fixtures/mockspace.cjs (one copy; the design-research copy goes) |
+| `tools/launchpad/mockspace.cjs` | 164 | moved | e2e/fixtures/mockspace.cjs |
 | `tools/launchpad/smoke.cjs` | 128 | planned | delete: a one-off probe with machine paths (owner D6) |
 
 ## tools/xoicons (1)

@@ -1,7 +1,4 @@
-// Space's deploy routes, mocked in the browser in the contract's own shapes (xo-space services/launchpad/API.md),
-// so shots and smoke tests run the app's real client (js/lpapi.js) end to end. One scenario per page:
-//   await install(page, "building")
-// Every other non-GET request is aborted: tests never write to the live backend.
+// Space's deploy routes, mocked in the page one scenario at a time (install(page, "building")); other non-GET requests are aborted.
 
 const REPO = "sharmasuraj0123/xo-coworker", HOST = "xo-coworker-xo-4f1c2a9.apps.hello-xo.nl", URL_ = `https://${HOST}`;
 const RUN_URL = `https://github.com/${REPO}/actions/runs/128`;
@@ -84,8 +81,7 @@ const SCENARIOS = {
   live: { check: check({ state: "linked", config: linked, git: { ...check().git, deployed_head: "cd6096efbe28" } }), pre: pre({ launchpad: { app: { id: "app_7f3a", name: "xo-coworker", status: "running", url: URL_, exists: true, release: 3, rollout: "ready", last_deploy_at: new Date(Date.now() - 2 * 60e3).toISOString(), ready: 1, desired: 1, size: "xo.small", size_label: "xo.small, 1 CPU and 2 GB memory", storage: { path: "/data", size: "2Gi" } }, env_set: { XO_API: true, XO_API_KEY: true } } }) },
   // linked, and main has moved on since the live release
   "live-behind": { check: check({ state: "linked", config: linked, git: { ...check().git, head: "9e1f0aa77c21", deployed_head: "cd6096efbe28" } }), pre: null },
-  // the machine: Launchpad's catalog out of reach (flow.json's table, no default); a size Launchpad refuses;
-  // a linked app made without a disk; a linked app as a Space before sizes reports it (today's :5002)
+  // sizes: the catalog out of reach, a refused size, apps without a disk, a Space that predates sizes
   "sizes-fallback": { check: check(), pre: pre({ launchpad: { sizes: { ...SIZES, default: null, source: "flow.json", error: "launchpad_unreachable" } } }) },
   "size-refused": { check: check(), deploy: "size-refused" },
   "live-nodisk": null, "live-oldspace": null, "live-domain": null, "live-noenv-disk": null,
@@ -143,8 +139,7 @@ exports.install = async (page, name) => {
     const u = new URL(r.request().url()), m = r.request().method(), path = u.pathname;
     if (/\/api\/deploy\/[^/]+\/check$/.test(path)) return sc.check === "hang" ? undefined : json(r, sc.check);
     if (/\/api\/deploy\/[^/]+\/preflight$/.test(path)) { if (page.__slowPre) await new Promise((ok) => setTimeout(ok, page.__slowPre)); return json(r, imported ? pre() : sc.pre || pre()); }
-    // a resume (?run=&after=) of a frozen run: a live Space would hold the stream open with pings; the mock holds the
-    // request unanswered instead (a fulfilled body can't stay open), so the run stays as it was
+    // a resumed frozen run: the request stays unanswered, as a live Space would hold the stream open
     if (/\/api\/deploy\/[^/]+\/watch$/.test(path) && sc.lose && u.searchParams.get("after")) return sse(r, ""); // a Space that answers with nothing
     if (/\/api\/deploy\/[^/]+\/watch$/.test(path)) { if (u.searchParams.get("after")) { await new Promise((ok) => setTimeout(ok, 120e3)); return r.fulfill({ status: 204, body: "" }).catch(() => {}); } return sse(r, sc.watch ? body(...sc.watch) : ""); }
     if (/\/api\/deploy\/[^/]+\/apps$/.test(path)) return json(r, { apps: APPS, linked: null, name: "xo-coworker" });

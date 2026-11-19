@@ -1,7 +1,4 @@
-// Space's deploy routes, mocked in the browser in the contract's own shapes (xo-space services/launchpad/API.md),
-// so shots and smoke tests run the app's real client (js/lpapi.js) end to end. One scenario per page:
-//   await install(page, "building")
-// Every other non-GET request is aborted: tests never write to the live backend.
+// Space's deploy routes, mocked in the page one scenario at a time (install(page, "building")); other non-GET requests are aborted.
 
 const REPO = "sharmasuraj0123/xo-coworker", HOST = "xo-coworker-xo-4f1c2a9.apps.xo.builders", URL_ = `https://${HOST}`;
 const RUN_URL = `https://github.com/${REPO}/actions/runs/128`;

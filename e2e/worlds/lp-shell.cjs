@@ -1,20 +1,13 @@
-// A self-contained world for Launchpad and the Shells dock: the app served from this worktree by a small
-// static server, every /api request answered in the page (a Workspace, one project "demo" with one thread),
-// Launchpad's routes by design-research's mockspace (one scenario per page), and the shells' REST routes and
-// WebSocket mocked here. Nothing reaches a Space; nothing is written anywhere.
-//
-//   const W = require("./world.cjs");
-//   const { browser, base, close } = await W.start();
-//   const page = await W.open(browser, base, { width: 1440, theme: "dark", launchpad: "ready", shells: true });
+// Launchpad and the Shells dock against a static server and in-page mocks: W.start(), then W.open(browser, base, opts).
 "use strict";
 const http = require("http"), fs = require("fs"), path = require("path");
 
 const PW = process.env.PLAYWRIGHT_CORE || "/tmp/pw/node_modules/playwright-core";
 const { chromium } = require(PW);
 const EXE = process.env.CHROME || `${process.env.HOME}/.cache/ms-playwright/chromium_headless_shell-1248/chrome-headless-shell-linux64/chrome-headless-shell`;
-const { install: installLaunchpad, SCENARIOS } = require("../../2026-11-vision/launchpad/tools/mockspace.cjs");
+const { install: installLaunchpad, SCENARIOS } = require("../fixtures/mockspace-harness.cjs");
 
-const ROOT = path.resolve(__dirname, "..", "..", "..");
+const ROOT = path.resolve(__dirname, "..", "..");
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".json": "application/json", ".woff2": "font/woff2", ".wasm": "application/wasm", ".ico": "image/x-icon" };
 // a stream a test writes to as it goes (Launchpad's /watch, routed here): SSE.push(event, end)
 const SSE = { clients: [], head: [], push(ev, end = false) { for (const c of this.clients) { c.write(`data: ${JSON.stringify(ev)}\n\n`); if (end) c.end(); } if (end) this.clients = []; } };
@@ -144,11 +137,7 @@ async function start() {
   return { browser, base, server, close: async () => { await browser.close(); server.close(); } };
 }
 
-/**
- * A page of the app in this world. opts: width (1440), height (900), theme ("dark"), dpr (1), launchpad (a
- * mockspace scenario, or null for no deploy routes), shells (true: on), terms ("none" | "some"), motion
- * ("reduce" | "no-preference"), and any W fields (onDeploy, api, ws, createFail, …).
- */
+/** A page of the app in this world; opts: width, height, theme, dpr, launchpad scenario, shells, terms, motion, and W fields. */
 async function open(browser, base, opts = {}) {
   const { width = 1440, height = 900, theme = "dark", dpr = 1, motion = "no-preference" } = opts;
   const phone = width <= 760;
@@ -163,11 +152,7 @@ async function open(browser, base, opts = {}) {
     const c = { writeText: (s) => (mode === "deny" ? Promise.reject(new DOMException("Write permission denied.", "NotAllowedError")) : (window.__clip.push(String(s)), Promise.resolve())), readText: () => Promise.resolve(window.__clip.at(-1) || "") };
     try { Object.defineProperty(navigator, "clipboard", { value: c, configurable: true }); } catch { /* */ }
   }, [opts.clip || "ok"]);
-  // the main build's focus check (tests/browser/harness.cjs, 69f8f2a): every time focus falls to the page because
-  // the control that had it was removed or hidden, it's recorded in window.__focusDrops. One change: Chrome 156
-  // fires focusout on a node being removed while it is still connected, so harness.cjs's focusout (which forgets a
-  // control still in the page) forgot every removed one and recorded only hidden ones. Here the decision waits a
-  // microtask: still connected and shown then is a blur on purpose; gone or hidden is a drop.
+  // focus drops: decided a microtask after focusout, since Chrome fires it on a node still connected while being removed
   await ctx.addInitScript(() => {
     window.__focusDrops = [];
     let last = null;
