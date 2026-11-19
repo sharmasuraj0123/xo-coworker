@@ -7,12 +7,12 @@
 // is saved as it is changed (a PUT that replaces the Space's policy); a refusal is said under it.
 //
 // The page is drawn in place (js/redraw.js): the control under the keyboard stays the same node. A save answers
-// once until it settles (js/pending.js): the defaults say they're waiting (aria-busy, not disabled, so focus and
+// once until it settles (core/platform/pending.js): the defaults say they're waiting (aria-busy, not disabled, so focus and
 // the Tab order stay), a repeat joins it, and a failure keeps what was typed.
 
 import { esc } from "./world.js";
 import { clockWords, rtName, isInstalled, healthOf, windowsOf, resetWords, allowedOf, defaultOf, errorField } from "./runtimes.js";
-import { once, isPending, busyAttrs } from "./pending.js";
+import { once, isPending, busyAttrs } from "../core/platform/index.js";
 import { redraw } from "./redraw.js";
 import { rovingTab } from "./keynav.js";
 import { MODES, MODE_NAME, MODE_SUB, heldModes, effectiveMode, accountRows, onPaid, creditsWords } from "./paid.js";

@@ -4,7 +4,7 @@
 // Reads on open; the stream keeps the router setting current.
 //
 // A page is drawn in place (js/redraw.js): the control under the keyboard stays the same node through every
-// redraw. A request answers once until it settles (js/pending.js): the control says it's waiting, a repeat joins
+// redraw. A request answers once until it settles (core/platform/pending.js): the control says it's waiting, a repeat joins
 // it, a failure is said beside its cause and leaves a retry that works. Where an action takes its own control
 // away (a question opens, a row goes), focus goes where that action's contract says (land).
 
@@ -13,7 +13,7 @@ import { esc } from "./world.js";
 import { ICON } from "./ui.js";
 import { renderInline } from "./markdown.js";
 import { holdButton } from "../core/ui/components/hold.js";
-import { once, isPending, busyAttrs } from "./pending.js";
+import { once, isPending, busyAttrs } from "../core/platform/index.js";
 import { redraw } from "./redraw.js";
 import { radioKeys, rovingTab } from "./keynav.js";
 

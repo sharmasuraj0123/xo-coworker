@@ -4,7 +4,7 @@
 // A shell is the backend's T (/api/terminal/sessions): {id, name, scope, project, path, cwd, status,
 // exit_code, ended_reason, foreground, viewers, created_at, detached_since, closes_at, ended_at, …}.
 
-import { toMs } from "../util.js";
+import { toMs } from "../../core/platform/index.js";
 
 /** The programs that are "just the shell": closing one of these loses nothing that's running. */
 const SHELLS = new Set(["bash", "sh", "zsh", "fish", "dash", "ksh", "tcsh", "csh", "ash", "nu", "pwsh", "login"]);

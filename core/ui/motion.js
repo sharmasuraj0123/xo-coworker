@@ -1,13 +1,12 @@
 // @ts-check
 
-// One motion system: one curve, three durations, one reduced-motion query; things arrive, glide and leave, never pop or jump.
+// One motion system on the platform's curve and reduced-motion query: things arrive, glide and leave, never pop or jump.
 
-/** The one curve, as css/tokens.css --ease. */
-export const EASE = "cubic-bezier(.2,.8,.2,1)";
+import { EASE, RM } from "../platform/motion.js";
+
+export { EASE, RM };
 export const IN = 280, MOVE = 320, OUT = 160;
 export const EXPAND_MS = 320;
-/** The one reduced-motion query. */
-export const RM = typeof matchMedia === "function" ? matchMedia("(prefers-reduced-motion: reduce)") : { matches: true };
 export const still = () => RM.matches || typeof Element === "undefined" || typeof Element.prototype.animate !== "function";
 
 /** An animation's time: none under reduced motion. Never for time a person needs to act (see hold). @param {number} ms */

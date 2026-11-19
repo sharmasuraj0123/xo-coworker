@@ -19,14 +19,14 @@
 // double click on its tab, keeps it). Esc puts the file away (or closes it); on phones it takes the whole screen.
 // Focus goes in, and back to what opened it.
 
-import { esc, isImagePath } from "./util.js";
+import { esc, isImagePath } from "../core/platform/index.js";
 import { fileIcon } from "./fileicons.js";
 import { ICON, $, xi } from "./ui.js";
 import { usable } from "./focusview.js";
 import { api, attachmentUrl, attachmentText, missingRoute } from "./api.js";
 import { kindOf, typeWord } from "./attach.js";
 import * as DV from "./diffview.js";
-import * as K from "./keys.js";
+import * as K from "../core/platform/keys.js";
 import { pointerFollows } from "./keynav.js";
 import { redrawNode } from "./redraw.js";
 import { countsHtml } from "./changesframe.js";

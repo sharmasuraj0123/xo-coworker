@@ -15,6 +15,6 @@
     "import/no-cycle": "error"
   },
   "overrides": [
-    { "files": ["tests/**", "tools/**", "e2e/**"], "env": { "node": true, "browser": true } }
+    { "files": ["tests/**", "tools/**", "e2e/**", "**/tests/**"], "env": { "node": true, "browser": true } }
   ]
 }

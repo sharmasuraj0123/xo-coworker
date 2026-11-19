@@ -13,12 +13,12 @@
 // stage.js mounts it in the Changes frame and calls: paint (every render), head, select, resume, chosen,
 // wide. It reads js/changes.js; "Open in Files" goes through openFile.
 
-import { esc } from "./util.js";
+import { esc } from "../core/platform/index.js";
 import { xi } from "./icon.js";
 import { redraw } from "./redraw.js";
 import { fileIcon } from "./fileicons.js";
 import * as DV from "./diffview.js";
-import * as K from "./keys.js";
+import * as K from "../core/platform/keys.js";
 import { isImageChange, drawImageChange } from "./imagechange.js";
 
 const OPEN_IC = xi("external-link");

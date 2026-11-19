@@ -1,8 +1,8 @@
-// Finding a file by a few letters (js/fuzzy.js) and every file in a place (js/paths.js: Space's /paths, or a walk
+// Finding a file by a few letters (core/platform/fuzzy.js) and every file in a place (js/paths.js: Space's /paths, or a walk
 // of /tree on today's Space). Pure; Space is a stand-in.
 //   node tests/quickopen.test.mjs
 import assert from "node:assert/strict";
-import { score, rank, marked, lineOf } from "../js/fuzzy.js";
+import { score, rank, marked, lineOf } from "../core/platform/fuzzy.js";
 import { createPaths } from "../js/paths.js";
 
 let passed = 0;

@@ -322,5 +322,16 @@ t("stream: a resume that brings something new earns its five tries again", async
   RETRY.ms = 3000;
 });
 
+t("stream: events read by the platform's SSE parser: CRLF lines, events split across chunks, comments", async () => {
+  const done = { run_id: "r5", seq: 2, ts: ts(2), type: "done", url: "https://a-xo-1.apps.example.nl", release: 3, commit: "abc" };
+  const text = `: hello\r\nretry: 3000\r\n\r\nid: r5:1\r\ndata: ${JSON.stringify({ run_id: "r5", seq: 1, ts: ts(1), type: "step", step: "build", status: "running" })}\r\n\r\nid: r5:2\r\ndata: ${JSON.stringify(done)}\r\n\r\n`;
+  const cut = text.indexOf("\r\n\r\nid: r5:2") + 1;
+  globalThis.fetch = async () => new Response(new ReadableStream({ start(c) { const e = new TextEncoder(); c.enqueue(e.encode(text.slice(0, cut))); c.enqueue(e.encode(text.slice(cut))); c.close(); } }), { status: 200, headers: { "Content-Type": "text/event-stream" } });
+  const got = [];
+  await Promise.race([new Promise((resolve) => { createLpApi().watch("p", (e) => { got.push(e); if (e.step === "live") resolve(); }); }), new Promise((r) => setTimeout(r, 2000))]);
+  assert.ok(got.some((e) => e.step === "build" && e.state === "doing"), "the build row opened");
+  assert.equal(got.at(-1).step, "live", "and the deploy ended live");
+});
+
 await chain;
 console.log(`${passed} passed`);

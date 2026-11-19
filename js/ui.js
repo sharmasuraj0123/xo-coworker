@@ -7,47 +7,10 @@ export { morph, EASE, EXPAND_MS, expand, RM, wait, hold, keepTurning } from "../
 export { xi } from "../core/ui/icons/icon.js";
 export { ICON, NEXT_GLYPH, dial, XO } from "../core/ui/icons/names.js";
 
-/** mm:ss for a countdown. */
-export const mmss = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
-/** "3 h 12 m" / "42 m" for how long something has waited. */
-export function waited(ms) {
-  const m = Math.max(1, Math.round(ms / 60000));
-  if (m < 60) return `${m}m`;
-  const h = Math.floor(m / 60);
-  return m % 60 ? `${h}h ${m % 60}m` : `${h}h`;
-}
-
 export const $ = (s, el = document) => el.querySelector(s);
 export const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 
-// one formatter each, made once: toLocale*String with options builds a new one per call (25 ms per redraw
-// of a 400-row conversation; QA C5)
-const CLOCK_F = new Intl.DateTimeFormat([], { hour: "numeric", minute: "2-digit" });
-const DAY_F = new Intl.DateTimeFormat(undefined, { weekday: "short", month: "short", day: "numeric" });
-export function clock(ms) {
-  return CLOCK_F.format(ms);
-}
-export function dayOf(ms, now = Date.now()) {
-  const d = new Date(ms), t = new Date(now), y = new Date(now - 86400000);
-  if (d.toDateString() === t.toDateString()) return "Today";
-  if (d.toDateString() === y.toDateString()) return "Yesterday";
-  return DAY_F.format(d);
-}
-export function short(ms, now = Date.now()) {
-  const s = Math.max(0, Math.round((now - ms) / 1000));
-  if (s < 45) return "now";
-  const m = Math.round(s / 60);
-  if (m < 60) return `${m}m`;
-  const h = Math.round(m / 60);
-  if (h < 24) return `${h}h`;
-  return new Date(ms).toLocaleDateString(undefined, { weekday: "short" });
-}
-export function elapsed(secs) {
-  if (secs < 60) return `${secs}s`;
-  const m = Math.floor(secs / 60);
-  if (m < 60) return `${m}m ${String(secs % 60).padStart(2, "0")}s`;
-  return `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, "0")}m`;
-}
+export { clock, dayOf, short, elapsed } from "../core/platform/index.js";
 export const plain = (md) => String(md || "").replace(/```[\s\S]*?```/g, "[code]").replace(/[*_`#>]/g, "").replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/\s+/g, " ").trim();
 
 // ── optional soft sounds (OFF by default; the person turns them on) ─────────

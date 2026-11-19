@@ -1,10 +1,7 @@
-// The global keys' typing guard (js/keys.js typing): a key typed into a field never reaches the app's own
-// shortcuts ("/" writes in the chat, "?" opens the keys sheet), even when the field is inside a shadow root.
-// Astra, 5 Nov: in Files › Edit, "/" moved focus to the chat composer and the rest of the line went there.
-//   node tests/keys.test.mjs
+// node core/platform/tests/keys.test.mjs: a key typed into a field, even in a shadow root, never reaches the app's own shortcuts.
 import assert from "node:assert/strict";
 
-const { typing } = await import("../js/keys.js");
+const { typing } = await import("../keys.js");
 
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };

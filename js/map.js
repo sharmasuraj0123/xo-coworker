@@ -16,10 +16,10 @@
 // `.xo/worktrees/<name>` too). Nothing here writes.
 
 import { esc } from "./world.js";
-import { ICON, $, elapsed } from "./ui.js";
+import { ICON, $ } from "./ui.js";
 import { api } from "./api.js";
 import { renderInline } from "./markdown.js";
-import { isImagePath } from "./util.js";
+import { isImagePath, elapsed } from "../core/platform/index.js";
 import { commsLine, commsText } from "./comms.js";
 import { heldWords } from "./timeline.js";
 import { fileIcon, folderIcon, fileColor } from "./fileicons.js";

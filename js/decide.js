@@ -15,14 +15,14 @@
 // no key takes it. Focus lands on the card itself, never on an answer.
 import { esc, WAITING } from "./world.js";
 import * as Kit from "./kit.js";
-import * as K from "./keys.js";
+import * as K from "../core/platform/keys.js";
 import { EFFORT, effortOf, rank, evidenceFor, leverageOf, suggestFor, whyLine, estLine } from "./content.js";
 import { ICON, $, RM, clock, sound, dial, wait, morph, expand } from "./ui.js";
 import { usable, hookOf } from "./focusview.js";
 import { renderMarkdown, renderInline, excerptMarkdown } from "./markdown.js";
 import { highlight } from "./highlight.js";
 import { itemParts, itemBody, questionsOf, evidenceOf, itemEffort, isNo, VERB, holdWords as holdWordsOf } from "./review.js";
-import { clientId as newKey } from "./api.js";
+import { clientId as newKey } from "../core/platform/http.js";
 import { radioKeys } from "./keynav.js";
 import { resetWords, rtName } from "./runtimes.js";
 import { paidHtml } from "./paidview.js";

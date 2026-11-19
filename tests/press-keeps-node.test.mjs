@@ -141,12 +141,10 @@ if (!existsSync(LD)) {
     // a folder laid out as the repo is: js/files.js, the pure modules it uses as they are, the rest stood in for
     const filesSrc = src("files.js");
     const specs = [...filesSrc.matchAll(/^import [^;]* from "([^"]+)";$/gm)].map((m) => m[1]);
-    const ESC = 'export const esc = (s) => String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); export const copyText = async () => true; export const COPY_REFUSED = ""; export const space = () => 0;';
     const STUB = {
       "focusview.js": "export const inSight = () => true; export const bringWhole = () => {};",
       "core/ui/a11y/focus.js": "export const inSight = () => true; export const bringWhole = () => {}; export const usable = () => true;",
-      "util.js": ESC,
-      "core/platform/index.js": ESC + ' export { rank, marked } from "./fuzzy.js";',
+      "core/platform/index.js": 'export const esc = (s) => String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); export const copyText = async () => true; export const COPY_REFUSED = ""; export const space = () => 0; export { rank, marked } from "./fuzzy.js";',
       "ui.js": 'export const ICON = new Proxy({}, { get: () => "<i></i>" });',
       "api.js": "export const calls = []; export const missingRoute = () => false; export const api = { projectTree: (project, rel) => new Promise((res) => calls.push({ project, rel, res })) };",
       "map.js": 'export const MARKS = { files: new Map() }; export const activityOf = () => ({ files: MARKS.files }); export const folderOf = () => ({ root: "/w/p", base: "", project: "p", projectRoot: "/w/p" });',

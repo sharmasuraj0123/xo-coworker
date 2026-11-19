@@ -19,7 +19,7 @@
 
 import { ICON } from "./ui.js";
 import { appState, nextStep, formKey, launchpadUrl, sizeWords } from "./lpapi.js";
-import { esc, copyText, COPY_REFUSED } from "./util.js";
+import { esc, copyText, COPY_REFUSED } from "../core/platform/index.js";
 import { pointerFollows } from "./keynav.js";
 import { redraw } from "./redraw.js";
 

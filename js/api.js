@@ -6,238 +6,30 @@
 // The UI owns no decision logic: risk, allowed scopes, rule sentences, routing
 // and permission answers come from the server; this client only carries them.
 
-const BASE = "api";
-
-// Inside a Coder workspace, the app is opened at `?coder_session_token=…`
-// (xo-swarm does this). Coder accepts that for the page load, but the cookie
-// it sets lasts a minute, after which every request here is redirected to
-// Coder's sign-in on another origin and fails CORS. So the token is kept for
-// this tab, taken out of the address bar, and sent on every request.
-const TOKEN_PARAM = "coder_session_token";
-const TOKEN_KEY = "xo-coder-token";
-const coderToken = (() => {
-  let token = null;
-  try {
-    const url = new URL(location.href);
-    token = url.searchParams.get(TOKEN_PARAM);
-    if (token) {
-      url.searchParams.delete(TOKEN_PARAM);
-      history.replaceState(history.state, "", url);
-    }
-  } catch { /* not in a browser */ }
-  try {
-    if (token) sessionStorage.setItem(TOKEN_KEY, token);
-    else token = sessionStorage.getItem(TOKEN_KEY);
-  } catch { /* storage blocked: this page load still has the token */ }
-  return token;
-})();
-
-/** Headers that keep Coder's app proxy signing requests in. */
-export const coderHeaders = () => (coderToken ? { "Coder-Session-Token": coderToken } : {});
-
-export class ApiError extends Error {
-  constructor(status, code, message, extra = {}) {
-    super(message);
-    this.status = status;
-    this.code = code;
-    Object.assign(this, extra); // storm extras: feature, count, sentence, what, confirm, summary, current
-  }
-}
+import { request, blob, signedUrl, socketUrl, text, upload, urlOf } from "../core/platform/http.js";
+export { coderHeaders, ApiError, request, missingRoute, clientId } from "../core/platform/http.js";
 
 /** The storm codes that mean "storm can't be used in this server right now" (UI-reference §0.3). */
 export const STORM_DOWN = new Set(["engine_not_running", "engine_elsewhere", "engine_failed", "store_refused", "store_failed", "stream_not_running"]);
 
-// How long a request may go unanswered before it gives up (if1 #6). A write that never settles
-// would stay "Sending" with no Retry; a read that never settles would stall its poll for good.
-export const WRITE_MS = 20000;
-export const READ_MS = 30000;
-
-/** One signal that aborts on the caller's signal or after `ms`; `timedOut()` says which. */
-function deadline(signal, ms) {
-  const ctl = new AbortController();
-  let late = false;
-  const t = setTimeout(() => { late = true; ctl.abort(); }, ms);
-  const onAbort = () => ctl.abort();
-  if (signal) {
-    if (signal.aborted) ctl.abort();
-    else signal.addEventListener("abort", onAbort, { once: true });
-  }
-  return {
-    signal: ctl.signal,
-    timedOut: () => late,
-    done: () => { clearTimeout(t); if (signal) signal.removeEventListener("abort", onAbort); },
-  };
-}
-
-export async function request(path, { method = "GET", body, signal, query, timeout, headers = null } = {}) {
-  let url = BASE + path;
-  if (query) {
-    const q = new URLSearchParams();
-    for (const [k, v] of Object.entries(query)) if (v != null && v !== "") q.set(k, String(v));
-    const qs = q.toString();
-    if (qs) url += "?" + qs;
-  }
-  const ms = timeout ?? (method === "GET" ? READ_MS : WRITE_MS);
-  const dl = deadline(signal, ms);
-  try {
-    return await exchange(url, method, body, dl.signal, headers);
-  } catch (err) {
-    if (err && err.name === "AbortError" && dl.timedOut()) {
-      throw new ApiError(0, "timeout", `XO didn't answer in ${Math.round(ms / 1000)} s.`);
-    }
-    throw err;
-  } finally {
-    dl.done();
-  }
-}
-
-async function exchange(url, method, body, signal, extra = null) {
-  let res;
-  try {
-    res = await fetch(url, {
-      method,
-      signal,
-      headers: { ...(body ? { "Content-Type": "application/json" } : {}), ...coderHeaders(), ...(extra || {}) },
-      body: body ? JSON.stringify(body) : undefined,
-      cache: "no-store",
-      // A redirect here is Coder sending us to sign in, which fetch can't follow.
-      redirect: "manual",
-    });
-  } catch (err) {
-    if (err.name === "AbortError") throw err;
-    throw new ApiError(0, "network", "Can't reach the UI server. Is serve.py running?");
-  }
-  if (res.type === "opaqueredirect") {
-    throw new ApiError(401, "signed_out", "Signed out of the workspace. Reopen this app from XO.");
-  }
-  let data = null;
-  const text = await res.text();
-  try {
-    data = text ? JSON.parse(text) : null;
-  } catch {
-    data = null;
-  }
-  if (!res.ok) {
-    // Four error shapes (UI-reference §0.2): storm's {detail: {code, message, …extras}}, FastAPI's
-    // 422 list, a plain-string detail, and serve.py's own.
-    const d = data && data.detail;
-    const code = (d && d.code) || (data && data.error) || `http_${res.status}`;
-    let message = (d && d.message) || (typeof d === "string" ? d : "");
-    if (Array.isArray(d)) message = d.map((e) => `${(e.loc || []).slice(1).join(".")}: ${e.msg}`).join("; ");
-    if (!message) message = `${res.status} ${res.statusText || "error"}`;
-    const extra = {};
-    if (d && typeof d === "object" && !Array.isArray(d)) for (const k of ["feature", "count", "sentence", "what", "confirm", "summary", "current"]) if (k in d) extra[k] = d[k];
-    throw new ApiError(res.status, code, message, extra);
-  }
-  return data;
-}
-
-const enc = encodeURIComponent;
-/** A Space without this route yet: FastAPI's bare 404 (no code of its own: "http_404") or 405. A route's own 404 names
- *  what isn't there (not_found, version_not_found…). Pure. */
-export const missingRoute = (err) => !!err && (err.status === 405 || (err.status === 404 && (!err.code || err.code === "http_404")));
-
-/** An ApiError from a non-2xx answer whose body is `text` (any of the four error shapes). */
-function errorOf(status, statusText, text) {
-  let data = null;
-  try { data = text ? JSON.parse(text) : null; } catch { data = null; }
-  const d = data && data.detail;
-  const code = (d && d.code) || (data && data.error) || `http_${status}`;
-  let message = (d && d.message) || (typeof d === "string" ? d : "");
-  if (Array.isArray(d)) message = d.map((e) => `${(e.loc || []).slice(1).join(".")}: ${e.msg}`).join("; ");
-  if (!message) message = `${status} ${statusText || "error"}`;
-  return new ApiError(status, code, message);
-}
-
 // ── attachments (hub #30): a file is (chat id, attachment id); the browser never sees a path ──
-const attPath = (chat, id) => `${BASE}/chat/chats/${enc(chat)}/attachments/${enc(id)}`;
+const enc = encodeURIComponent;
+const attPath = (chat, id) => `/chat/chats/${enc(chat)}/attachments/${enc(id)}`;
 
-/**
- * The URL an <img> or <iframe> loads an attachment from. Those can't send headers, so inside Coder
- * the token rides in the query (serve.py takes it out before forwarding, as for the stream).
- */
-export const attachmentUrl = (chat, id) => attPath(chat, id) + (coderToken ? `?${TOKEN_PARAM}=${enc(coderToken)}` : "");
+/** The URL an <img> or <iframe> loads an attachment from (they can't send headers). */
+export const attachmentUrl = (chat, id) => signedUrl(attPath(chat, id));
 
-/**
- * The ws(s):// URL of a shell's socket, relative to the page like every other call. A WebSocket
- * can't send headers either, so inside Coder the token rides in the query; serve.py drops the
- * whole query before the tunnel. The attach ticket never goes in the URL: it is the first message.
- */
-export function terminalSocketUrl(id) {
-  const url = new URL(`${BASE}/terminal/sessions/${enc(id)}/ws`, location.href);
-  url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
-  url.search = coderToken ? `?${TOKEN_PARAM}=${enc(coderToken)}` : "";
-  return url.href;
-}
+/** The ws(s):// URL of a shell's socket. The attach ticket never goes in the URL: it is the first message. */
+export const terminalSocketUrl = (id) => socketUrl(`/terminal/sessions/${enc(id)}/ws`);
 
 /** An attachment's text, for the viewer (the server always sends text as text/plain). */
-export async function attachmentText(chat, id, { signal } = {}) {
-  const dl = deadline(signal, READ_MS);
-  let res;
-  try {
-    res = await fetch(attPath(chat, id), { signal: dl.signal, headers: coderHeaders(), redirect: "manual" });
-    if (res.type === "opaqueredirect") throw new ApiError(401, "signed_out", "Signed out of the workspace. Reopen this app from XO.");
-    const text = await res.text();
-    if (!res.ok) throw errorOf(res.status, res.statusText, text);
-    return text;
-  } catch (err) {
-    if (err instanceof ApiError) throw err;
-    if (err && err.name === "AbortError" && dl.timedOut()) throw new ApiError(0, "timeout", `XO didn't answer in ${Math.round(READ_MS / 1000)} s.`);
-    if (err && err.name === "AbortError") throw err;
-    throw new ApiError(0, "network", "Can't reach the UI server. Is serve.py running?");
-  } finally {
-    dl.done();
-  }
-}
+export const attachmentText = (chat, id, { signal } = {}) => text(attPath(chat, id), { signal });
 
-/**
- * Upload one file's raw bytes to a chat. XMLHttpRequest, since fetch has no upload progress.
- * Returns {promise → {id, name, type, bytes}, abort()}; onProgress(sent, total) as it goes.
- * An abort rejects with an AbortError.
- */
-export function uploadAttachment(chat, blob, name, { onProgress } = {}) {
-  const xhr = new XMLHttpRequest();
-  const promise = new Promise((resolve, reject) => {
-    xhr.open("POST", `${BASE}/chat/chats/${enc(chat)}/attachments?name=${enc(name)}`);
-    for (const [k, v] of Object.entries(coderHeaders())) xhr.setRequestHeader(k, v);
-    xhr.setRequestHeader("Content-Type", blob.type || "application/octet-stream");
-    if (onProgress) xhr.upload.onprogress = (e) => onProgress(e.loaded, e.lengthComputable ? e.total : blob.size);
-    xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        try { resolve(JSON.parse(xhr.responseText)); } catch { reject(new ApiError(xhr.status, "bad_answer", "XO's answer to the upload wasn't readable.")); }
-      } else reject(errorOf(xhr.status, xhr.statusText, xhr.responseText));
-    };
-    xhr.onerror = () => reject(new ApiError(0, "network", "Can't reach the UI server. Is serve.py running?"));
-    xhr.onabort = () => reject(Object.assign(new Error("Upload cancelled"), { name: "AbortError" }));
-    xhr.send(blob);
-  });
-  return { promise, abort: () => xhr.abort() };
-}
+/** Upload one file's raw bytes to a chat: {promise → {id, name, type, bytes}, abort()}; onProgress(sent, total) as it goes. */
+export const uploadAttachment = (chat, blob, name, { onProgress } = {}) => upload(`/chat/chats/${enc(chat)}/attachments?name=${enc(name)}`, blob, { onProgress });
+
 const get = (path, query) => request(path, { query });
 const send = (method, path, body, query) => request(path, { method, body, query });
-
-/** GET a file's bytes as a Blob; failures throw the same ApiErrors as `request`. */
-async function blob(path, { signal, ms = READ_MS } = {}) {
-  const dl = deadline(signal, ms);
-  try {
-    const res = await fetch(BASE + path, { signal: dl.signal, headers: coderHeaders(), cache: "no-store", redirect: "manual" });
-    if (res.type === "opaqueredirect") throw new ApiError(401, "signed_out", "Signed out of the workspace. Reopen this app from XO.");
-    if (res.ok) return await res.blob();
-    let d = null;
-    try { d = (await res.json()).detail; } catch { /* not JSON */ }
-    throw new ApiError(res.status, (d && d.code) || `http_${res.status}`, (d && d.message) || (typeof d === "string" ? d : "") || `${res.status} ${res.statusText || "error"}`);
-  } catch (err) {
-    if (err instanceof ApiError) throw err;
-    if (err && err.name === "AbortError" && dl.timedOut()) throw new ApiError(0, "timeout", `XO didn't answer in ${Math.round(ms / 1000)} s.`);
-    if (err && err.name === "AbortError") throw err;
-    throw new ApiError(0, "network", "Can't reach the UI server. Is serve.py running?");
-  } finally {
-    dl.done();
-  }
-}
-
-/** A fresh id for a write that must never happen twice (UI-reference §0.7). */
-export const clientId = () => `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
 
 /** The largest seq: "the newest page" is the page just before it. */
 export const NEWEST = 9007199254740991;
@@ -424,5 +216,5 @@ export const api = {
   closeTerminal: (id) => send("DELETE", `/terminal/sessions/${enc(id)}`),
 
   // ── the one global stream ─────────────────────────────────────────────────
-  streamUrl: () => `${BASE}/chat/stream`,
+  streamUrl: () => urlOf("/chat/stream"),
 };
