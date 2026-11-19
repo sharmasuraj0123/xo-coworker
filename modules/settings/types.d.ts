@@ -31,3 +31,7 @@ export interface SettingsFrameDeps {
   onPage: (id: string) => void; beforeOpen: () => void; beforeClose: () => void; onHidden: () => void;
   focusIn: (el: HTMLElement) => void; fallback: () => Element | null; phone: MediaQueryList;
 }
+export interface SettingsState {
+  router: any; models: any[]; rules: any[] | null; defaults: any[]; trees: any[] | null; reported: any[];
+  err: Record<string, any>; form: string | null; confirm: any;
+}

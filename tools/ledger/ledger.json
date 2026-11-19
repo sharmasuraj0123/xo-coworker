@@ -2493,11 +2493,12 @@
   "js/settings.js": {
    "status": "split",
    "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ]
+    "modules/settings/host.js",
+    "modules/routing/page.js",
+    "modules/rules/page.js",
+    "modules/worktrees/page.js"
+   ],
+   "note": "js/settings.js keeps only the wiring until the shell's settings.section place takes it"
   },
   "js/shape.js": {
    "status": "planned",
@@ -4677,8 +4678,9 @@
    "home": "modules/settings/tests/routing-truth.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/routing-words.test.mjs": {
-   "status": "planned",
-   "home": "modules/settings/tests/routing-words.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/routing/tests/routing-words.test.mjs",
+   "note": "still reads the source; its rewrite as a behaviour test is open"
   },
   "tests/rtsettings.test.mjs": {
    "status": "moved",
@@ -13527,114 +13529,53 @@
    "home": "core/services/runtimes.js"
   },
   "js/settings.js::exports::createSettings": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "js/settings.js (wiring)"
   },
   "js/settings.js::functions::createSettings": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "js/settings.js (wiring)"
   },
   "js/settings.js::ids::settings": {
-   "status": "split-region",
+   "status": "split",
    "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+    "modules/settings/host.js",
+    "modules/routing/page.js",
+    "modules/rules/page.js",
+    "modules/worktrees/page.js"
+   ]
   },
   "js/settings.js::ids::rt-h": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/routing/page.js"
   },
   "js/settings.js::ids::dm-h": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/routing/page.js"
   },
   "js/settings.js::ids::ov-h": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/routing/page.js"
   },
   "js/settings.js::ids::rl-mine": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/rules/page.js"
   },
   "js/settings.js::ids::rl-def": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/rules/page.js"
   },
   "js/settings.js::keys::invalid_key": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/routing/page.js"
   },
   "js/settings.js::keys::would_lose_work": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/worktrees/page.js"
   },
   "js/settings.js::keys::session_busy": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/worktrees/page.js"
   },
   "js/shape.js::exports::SHAPE_VERSION": {
    "status": "planned",

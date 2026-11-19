@@ -4,13 +4,13 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 659 |
+| planned | 658 |
 | vendor | 367 |
 | deleted | 232 |
 | split | 33 |
-| moved | 22 |
+| moved | 23 |
 
-Items inside first-party files: 2290 (planned 1300, split-region 815, moved 156, deleted 19), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1300, split-region 804, moved 164, deleted 19, kept 2, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -89,7 +89,7 @@ Items inside first-party files: 2290 (planned 1300, split-region 815, moved 156,
 | `js/rtsettings.js` | 296 | moved | modules/runtimes/settings.js · next: the whole page moved, Paid usage rows with it: they become modules/runtimes/paid when Paid is its own settings.section |
 | `js/runsview.js` | 138 | planned | modules/threads/runs/ |
 | `js/runtimes.js` | 179 | planned | core/services/runtimes.js |
-| `js/settings.js` | 407 | split | modules/settings (host, pend/land), modules/routing, modules/rules, modules/worktrees |
+| `js/settings.js` | 407 | split | modules/settings/host.js, modules/routing/page.js, modules/rules/page.js, modules/worktrees/page.js · next: js/settings.js keeps only the wiring until the shell's settings.section place takes it |
 | `js/shape.js` | 731 | planned | core/services/shape/shape.js |
 | `js/shapeview.js` | 314 | moved | modules/settings/shape-page.js · next: whole file moved; the home thread takes homeOrder and the shell thread density (apply) from shape-page.js later |
 | `js/shells/dock.js` | 704 | planned | modules/shells/dock.js |
@@ -260,7 +260,7 @@ Items inside first-party files: 2290 (planned 1300, split-region 815, moved 156,
 | `tests/ring-room.test.mjs` | 67 | planned | core/platform/tests/ring-room.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/ring.test.mjs` | 124 | planned | core/platform/tests/ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/routing-truth.test.mjs` | 45 | planned | modules/settings/tests/routing-truth.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/routing-words.test.mjs` | 26 | planned | modules/settings/tests/routing-words.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/routing-words.test.mjs` | 26 | moved | modules/routing/tests/routing-words.test.mjs · next: still reads the source; its rewrite as a behaviour test is open |
 | `tests/rtsettings.test.mjs` | 81 | moved | modules/runtimes/tests/rtsettings.test.mjs |
 | `tests/runs-stop-receipt.test.mjs` | 69 | planned | modules/threads/tests/runs-stop-receipt.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/runtimes.test.mjs` | 126 | planned | modules/settings/runtimes/tests/runtimes.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |

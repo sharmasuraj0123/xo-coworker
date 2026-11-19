@@ -34,7 +34,7 @@ await t("the line above the composer says Off only where it applies, in words tr
   assert.match(l.sub, /threads/, "and that replies in threads still go");
 });
 await t("Settings' Off says what the server does: chats using this setting refuse new messages; replies inside threads still work", () => {
-  const s = readFileSync(new URL("../js/settings.js", import.meta.url), "utf8");
+  const s = readFileSync(new URL("../modules/routing/page.js", import.meta.url), "utf8");
   const m = /opt\("off", null, "Off", "([^"]+)"\)/.exec(s);
   assert.ok(m, "the Off choice");
   assert.doesNotMatch(m[1], /New messages to the Workspace and projects are refused/);
