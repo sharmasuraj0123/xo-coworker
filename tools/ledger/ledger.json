@@ -1635,7 +1635,7 @@
     "modules/settings/shape.css",
     "core/ui (density)"
    ],
-   "note": "Settings › Shape and its rail label moved to modules/settings/shape.css, which css/shape.css imports first (same cascade place); density and the two composer and thread rules stay for core/ui"
+   "note": "Settings \u203a Shape and its rail label moved to modules/settings/shape.css, which css/shape.css imports first (same cascade place); density and the two composer and thread rules stay for core/ui"
   },
   "css/side.css": {
    "status": "planned",
@@ -15656,14 +15656,12 @@
    "home": "e2e/lib/store.mjs"
   },
   "tests/browser/harness.cjs::globals::__ED": {
-   "status": "planned",
-   "home": "none: e2e/ injects nothing into the app",
-   "note": "goes with harness.cjs once its suites are ported"
+   "status": "deleted",
+   "reason": "the hook patched viewer.js's startEdit(), gone since the Files editor moved to CodeMirror; the 29 flow cases that read it tested the removed Edit/Save/Tell editor and went with it, and tests/browser-hooks.test.mjs fails when a hook's anchor goes"
   },
   "tests/browser/harness.cjs::globals::__V": {
-   "status": "planned",
-   "home": "none: e2e/ injects nothing into the app",
-   "note": "goes with harness.cjs once its suites are ported"
+   "status": "deleted",
+   "reason": "the hook patched viewer.js's startEdit(), gone since the Files editor moved to CodeMirror; the 29 flow cases that read it tested the removed Edit/Save/Tell editor and went with it, and tests/browser-hooks.test.mjs fails when a hook's anchor goes"
   },
   "tests/browser/harness.cjs::globals::__storm": {
    "status": "planned",
