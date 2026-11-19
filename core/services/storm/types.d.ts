@@ -3,7 +3,7 @@ export type Frame = { type: string; id?: string | null; envelope?: Row };
 export type StormEvent = Row & { kind: string };
 export type Sent = { at: number; seq: number | null };
 export type Session = Row & { id: string };
-export type Project = Row & { id: string; chatId: string | null };
+export type Project = Row & { id: string; chatId: string };
 
 export interface StormState extends Row {
   projects: Project[];
