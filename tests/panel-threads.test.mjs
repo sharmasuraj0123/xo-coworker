@@ -91,7 +91,7 @@ assert.match(stage, /if \(S\.chEmpty === true && !empty && fr\.changes\.folded\)
 assert.doesNotMatch(stage, /<b>\$\{r\.mark/, "not before the title");
 assert.match(app, /<span class="ar-a"><span>\$\{esc\(short\(t\.lastAt\)\)\}<\/span>\$\{threadMark\(t\) \? `<span class="ar-mk">/);
 assert.doesNotMatch(app, /<span class="ar-tl">\$\{threadMark/, "not before All threads' title");
-assert.match(readFileSync(new URL("../css/tokens.css", import.meta.url), "utf8"), /--mark-sm:var\(--s-3\);/);
+assert.match(readFileSync(new URL("../core/ui/tokens.css", import.meta.url), "utf8"), /--mark-sm:var\(--s-3\);/);
 assert.match(css, /\.stage \.ag-mk \.agm\{width:var\(--mark-sm\);height:var\(--mark-sm\)/);
 
 console.log("panel-threads: ok");

@@ -11,7 +11,7 @@ import { rules, context, decls, px, spec, cmp, covers } from "./lib/cascade.mjs"
 import { sourcePaths, readSource } from "./lib/sources.mjs";
 
 const ROOT = new URL("../", import.meta.url);
-const tokens = Object.fromEntries([...readFileSync(new URL("css/tokens.css", ROOT), "utf8").matchAll(/(--[\w-]+):\s*(\d+(?:\.\d+)?)px/g)].map((m) => [m[1], +m[2]]));
+const tokens = Object.fromEntries([...readFileSync(new URL("core/ui/tokens.css", ROOT), "utf8").matchAll(/(--[\w-]+):\s*(\d+(?:\.\d+)?)px/g)].map((m) => [m[1], +m[2]]));
 // what's a control: the classes the templates put on button, summary and select, and on the button/tab/option/menu
 // item/switch roles
 const src = [readFileSync(new URL("index.html", ROOT), "utf8"), ...sourcePaths(".js").map(readSource)].join("\n");

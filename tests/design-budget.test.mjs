@@ -1,5 +1,5 @@
 // The design budget ("Plan F"): every stylesheet is built from
-// the one scale in css/tokens.css, and this test fails the moment a new literal size, weight, radius,
+// the one scale in core/ui/tokens.css, and this test fails the moment a new literal size, weight, radius,
 // curve or heavy shadow sneaks back in. It counts what the CSS declares, outside the left sidebar
 // (which keeps its own look, the owner's decision) and outside the token file itself.
 // No network, no browser.
@@ -15,7 +15,7 @@ const FRAME = /^\s*(?:from|to|[\d.]+%)(?:\s*,\s*(?:from|to|[\d.]+%))*\s*$/;
 /** Every declaration outside the sidebar, token blocks, @font-face and keyframe frames. */
 function declarations() {
   const out = [];
-  for (const f of cssNames().filter((n) => n !== "tokens.css")) {
+  for (const f of cssNames().filter((n) => n !== "../core/ui/tokens.css")) {
     const css = readFileSync(new URL(f, DIR), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
     for (const m of css.matchAll(/([^{}]*)\{([^{}]*)\}/g)) {
       const sel = m[1].trim();
@@ -70,7 +70,7 @@ t("radii come from the scale", () => {
 t("one motion curve (and nothing overshoots)", () => {
   const curves = literal(/cubic-bezier\(([^)]+)\)/g);
   assert.deepEqual(curves, [], `literal curves outside tokens.css: ${curves.join(" | ")}`);
-  const tokens = readFileSync(new URL("tokens.css", DIR), "utf8");
+  const tokens = readFileSync(new URL("../core/ui/tokens.css", DIR), "utf8");
   for (const m of tokens.matchAll(/cubic-bezier\(([^)]+)\)/g)) {
     const [, y1, , y2] = m[1].split(",").map(Number);
     assert.ok(y1 <= 1 && y2 <= 1, `an overshooting curve in tokens.css: ${m[0]}`);
@@ -88,7 +88,7 @@ t("no malformed var() (a broken value drops its whole declaration without a word
 });
 
 
-// The theme is css/tokens.css's two blocks. Surfaces, lines and ink are named by role (canvas, surface, float,
+// The theme is core/ui/tokens.css's two blocks. Surfaces, lines and ink are named by role (canvas, surface, float,
 // fill-1…4, line-faint … line-hover, ink … ink-5); no stylesheet keeps a palette of its own, and nothing is
 // named after its hex (the old --g14 … --g72 ramp). The left sidebar's frozen copies (--sb-*) are the one
 // exception, until the owner decides otherwise. A state may point one role at another (a pressed control's meta inks at
@@ -96,7 +96,7 @@ t("no malformed var() (a broken value drops its whole declaration without a word
 const ROLE = /^--(?:canvas|sunken|surface|float|fill-\d|line(?:-faint|-soft|-strong|-hover)?|ink(?:-\d)?|accent(?:-[\w]+)?|err(?:-ink)?|warn|info|violet|bg(?:-\d|-head)?|hair|raised|side|pop-(?:bg|line)|comp-line(?:-hi)?)$/;
 t("the palette lives in tokens.css alone", () => {
   const all = [];
-  for (const f of cssNames().filter((n) => n !== "tokens.css")) {
+  for (const f of cssNames().filter((n) => n !== "../core/ui/tokens.css")) {
     const css = readFileSync(new URL(f, DIR), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
     for (const m of css.matchAll(/(--[\w-]+)\s*:\s*([^;}]*)/g)) {
       const to = /^var\((--[\w-]+)\)$/.exec(m[2].trim());

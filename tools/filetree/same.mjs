@@ -40,7 +40,7 @@ log("reopen js", await step("reopen js", click, dir("js")));
 log("pick a file", await step("pick a file", click, '#ours [data-fl-file="js/vendor/xterm/xterm.mjs"]'));
 log("close vendor", await step("close vendor", click, dir("js/vendor")));
 log("reopen vendor", await step("reopen vendor", click, dir("js/vendor")));
-log("pick another", await step("pick another", click, '#ours [data-fl-file="css/base.css"]'));
+log("pick another", await step("pick another", click, '#ours [data-fl-file="core/ui/foundation.css"]'));
 // search: narrows, an open folder whose name doesn't match stays with what's found in it
 const type = (v) => { const q = document.querySelector("#ours [data-fl-q]"); q.focus(); q.value = v; q.dispatchEvent(new Event("input", { bubbles: true })); };
 for (const v of ["p", "pa", "pan", "pa", ""]) log(`search "${v}"`, await step(`search ${v}`, type, v));

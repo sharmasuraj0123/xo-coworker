@@ -30,13 +30,13 @@
  "important": {
   "css/app.css": 7,
   "css/artifacts.css": 1,
-  "css/base.css": 6,
   "css/docs.css": 7,
   "css/foundation.css": 14,
   "css/launchpad.css": 1,
   "css/msgx.css": 7,
   "css/panel.css": 11,
   "css/phone.css": 1,
-  "css/rich.css": 2
+  "core/ui/foundation.css": 6,
+  "core/ui/markdown/rich.css": 2
  }
 }

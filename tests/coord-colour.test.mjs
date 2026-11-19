@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-const tokens = read("css/tokens.css"), msgx = read("css/msgx.css"), rich = read("css/rich.css"), js = read("js/app.js");
+const tokens = read("core/ui/tokens.css"), msgx = read("css/msgx.css"), rich = read("core/ui/markdown/rich.css"), js = read("js/app.js");
 let failed = 0;
 const t = (name, fn) => { try { fn(); console.log(`  ok  ${name}`); } catch (e) { failed++; console.log(`  FAIL ${name}\n${e.message}`); } };
 

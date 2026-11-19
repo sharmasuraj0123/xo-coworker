@@ -11,7 +11,7 @@ import { readFileSync } from "node:fs";
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const read = (f) => resolveTokens(readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""));
-const msgx = read("msgx.css"), tokens = read("tokens.css"), phone = read("phone.css");
+const msgx = read("msgx.css"), tokens = read("../core/ui/tokens.css"), phone = read("phone.css");
 const body = (css, sel) => { const m = new RegExp(`(?:^|[}\\n])\\s*${sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\{([^}]*)\\}`).exec(css); assert.ok(m, `${sel} is declared`); return m[1]; };
 const px = (b, prop) => (new RegExp(`(?:^|;)${prop}:([^;]+)`).exec(b) || [])[1];
 

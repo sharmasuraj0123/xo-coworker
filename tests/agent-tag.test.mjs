@@ -8,7 +8,7 @@ import { readFileSync } from "node:fs";
 
 const R = new URL("../", import.meta.url);
 const map = readFileSync(new URL("js/map.js", R), "utf8");
-const css = ["css/app.css", "css/panel.css", "css/tokens.css"].map((f) => readFileSync(new URL(f, R), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
+const css = ["css/app.css", "css/panel.css", "core/ui/tokens.css"].map((f) => readFileSync(new URL(f, R), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const lum = (h) => { const c = [0, 2, 4].map((i) => parseInt(h.replace("#", "").slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };

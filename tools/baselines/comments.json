@@ -323,20 +323,12 @@
   "extra": 15,
   "refs": 0
  },
- "css/base.css": {
-  "extra": 18,
-  "refs": 0
- },
  "css/diffs.css": {
   "extra": 20,
   "refs": 0
  },
  "css/docs.css": {
   "extra": 4,
-  "refs": 0
- },
- "css/dropdown.css": {
-  "extra": 7,
   "refs": 0
  },
  "css/foundation.css": {
@@ -371,20 +363,12 @@
   "extra": 77,
   "refs": 0
  },
- "css/rich.css": {
-  "extra": 62,
-  "refs": 0
- },
  "css/shape.css": {
   "extra": 8,
   "refs": 0
  },
  "css/side.css": {
   "extra": 39,
-  "refs": 0
- },
- "css/tokens.css": {
-  "extra": 68,
   "refs": 0
  },
  "tests/agent-marks.test.mjs": {
@@ -1209,6 +1193,22 @@
  },
  "index.html": {
   "extra": 285,
+  "refs": 0
+ },
+ "core/ui/foundation.css": {
+  "extra": 18,
+  "refs": 0
+ },
+ "core/ui/components/xo-select.css": {
+  "extra": 7,
+  "refs": 0
+ },
+ "core/ui/markdown/rich.css": {
+  "extra": 62,
+  "refs": 0
+ },
+ "core/ui/tokens.css": {
+  "extra": 68,
   "refs": 0
  }
 }

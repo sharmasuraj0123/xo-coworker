@@ -135,7 +135,7 @@ export function chartHtml(src) {
       for (const [j, v] of q.pts) {
         if (v == null) continue;
         const top = Math.min(yv(v), zero), h = Math.abs(yv(v) - zero);
-        // each category's band: its bars side by side, 2 px apart, at most 24 px each (css/rich.css), centred
+        // each category's band: its bars side by side, 2 px apart, at most 24 px each (core/ui/markdown/rich.css), centred
         html += `<i class="mc-bar${v < 0 ? " is-neg" : ""}" style="--c:${col(i)};--k:${k};--i:${i};left:${pct((j + 0.5) / n)};top:${pct(top)};height:${pct(h)}"></i>`;
       }
     });

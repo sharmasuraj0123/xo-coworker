@@ -44,7 +44,7 @@ t("xi(): the pack's icon, its name on it, a size only from the scale", () => {
   assert.match(xi("lock", "", "sm"), /class="xi ic-sm"/);
   assert.throws(() => xi("lock", "", "15"));
   assert.throws(() => xi("no-such-icon"));
-  const base = read("css/base.css");
+  const base = read("core/ui/foundation.css");
   assert.match(base, /:where\(svg\.xi:not\(\.xo-mark\)\)\{width:var\(--ic\);height:var\(--ic\)\}/);
   for (const k of ["xs", "sm", "lg"]) assert.match(base, new RegExp(`:where\\(svg\\.xi\\.ic-${k}\\)\\{width:var\\(--ic-${k}\\);height:var\\(--ic-${k}\\)\\}`));
 });

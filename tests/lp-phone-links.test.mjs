@@ -15,7 +15,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { rules, context, decls, px, spec, cmp, covers } from "./lib/cascade.mjs";
 
 const ROOT = new URL("../", import.meta.url);
-const tokens = Object.fromEntries([...readFileSync(new URL("css/tokens.css", ROOT), "utf8").matchAll(/(--[\w-]+):\s*(\d+(?:\.\d+)?)px/g)].map((m) => [m[1], +m[2]]));
+const tokens = Object.fromEntries([...readFileSync(new URL("core/ui/tokens.css", ROOT), "utf8").matchAll(/(--[\w-]+):\s*(\d+(?:\.\d+)?)px/g)].map((m) => [m[1], +m[2]]));
 const FILES = ["js/launchpad.js", "js/create.js", "js/stage.js", "js/intel.js", ...readdirSync(new URL("js/shells/", ROOT)).filter((f) => f.endsWith(".js")).map((f) => `js/shells/${f}`)];
 const all = rules(new URL("tests/lib/x.mjs", ROOT));
 const at = (w) => all.map((r) => ({ r, c: context(r, w), s: spec(r.sel) })).filter((x) => x.c.active && !x.c.cond);

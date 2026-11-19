@@ -7,8 +7,8 @@
    brand green. Type is Geist everywhere (Geist Mono only for code, paths and ids), served locally
    (Vercel, SIL OFL 1.1). */
 
-@font-face{font-family:"Geist";font-style:normal;font-weight:100 900;font-display:swap;src:url("../fonts/geist/Geist-Variable.woff2") format("woff2")}
-@font-face{font-family:"Geist Mono";font-style:normal;font-weight:100 900;font-display:swap;src:url("../fonts/geist/GeistMono-Variable.woff2") format("woff2")}
+@font-face{font-family:"Geist";font-style:normal;font-weight:100 900;font-display:swap;src:url("../../fonts/geist/Geist-Variable.woff2") format("woff2")}
+@font-face{font-family:"Geist Mono";font-style:normal;font-weight:100 900;font-display:swap;src:url("../../fonts/geist/GeistMono-Variable.woff2") format("woff2")}
 
 /* ── Surfaces and lines: named by role, never by value ───────────────────────────────────────────────
    Five depths and five lines replace a 39-step grey ramp and the per-component palettes (--g14 … --g72,

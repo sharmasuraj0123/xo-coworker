@@ -20,7 +20,7 @@ t("every menu's focused item is filled with --menu-focus, never a fill a step of
   assert.deepEqual(off, [], "a menu's focus fill that isn't --menu-focus");
 });
 t("--menu-focus keeps clear of the float in every theme block: at least 45 RGB-sum, half again past the graders' 30 (dark 78, light 51, unchanged)", () => {
-  const tokens = css("tokens.css");
+  const tokens = css("../core/ui/tokens.css");
   const blocks = [...tokens.matchAll(/\{([^{}]*--menu-focus:[^{}]*)\}/g)].map((m) => m[1]);
   assert.ok(blocks.length >= 3, `theme blocks with --menu-focus: ${blocks.length}`);
   const darkFloat = /--float:(#[0-9A-Fa-f]{6})/.exec(blocks[0]);

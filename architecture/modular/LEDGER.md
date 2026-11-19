@@ -4,14 +4,14 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 655 |
+| planned | 651 |
 | vendor | 367 |
 | deleted | 232 |
 | split | 37 |
-| moved | 21 |
+| moved | 25 |
 | kept | 1 |
 
-Items inside first-party files: 2290 (planned 1161, split-region 814, moved 296, deleted 19), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1157, split-region 814, moved 300, deleted 19), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -115,10 +115,10 @@ Items inside first-party files: 2290 (planned 1161, split-region 814, moved 296,
 |---|---:|---|---|
 | `css/app.css` | 3154 | split | core/ui + shell + modules/* by region (analysis/6-css-tests-tools.md, app.css region map) |
 | `css/artifacts.css` | 126 | planned | modules/artifacts/artifacts.css |
-| `css/base.css` | 52 | planned | core/ui/foundation.css |
+| `css/base.css` | 52 | moved | core/ui/foundation.css |
 | `css/diffs.css` | 245 | planned | modules/changes/diffs.css |
 | `css/docs.css` | 141 | planned | modules/files/editor/docs.css |
-| `css/dropdown.css` | 52 | planned | core/ui/components/xo-select.css |
+| `css/dropdown.css` | 52 | moved | core/ui/components/xo-select.css |
 | `css/foundation.css` | 267 | split | core/ui/foundation.css, modules/* (structure rules) |
 | `css/launchpad.css` | 438 | planned | modules/launchpad/launchpad.css |
 | `css/light.css` | 85 | split | core/ui/tokens.css (light roles), modules/* (light blocks) |
@@ -127,10 +127,10 @@ Items inside first-party files: 2290 (planned 1161, split-region 814, moved 296,
 | `css/msgx.css` | 408 | planned | modules/conversation/msgx.css |
 | `css/panel.css` | 645 | split | shell/panel.css, modules/threads, modules/changes, modules/map, modules/files |
 | `css/phone.css` | 293 | split | shell/phone.css, modules/* (phone blocks) |
-| `css/rich.css` | 232 | planned | core/ui/markdown/rich.css |
+| `css/rich.css` | 232 | moved | core/ui/markdown/rich.css |
 | `css/shape.css` | 74 | split | modules/settings/shape.css, core/ui (density) |
 | `css/side.css` | 164 | planned | shell/sidebar.css |
-| `css/tokens.css` | 245 | planned | core/ui/tokens.css |
+| `css/tokens.css` | 245 | moved | core/ui/tokens.css |
 
 ## tests-unit (165)
 
@@ -306,16 +306,16 @@ Items inside first-party files: 2290 (planned 1161, split-region 814, moved 296,
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `tests/browser/chat-read-order.test.cjs` | 100 | planned | e2e/specs/chat-read-order.spec.mjs |
-| `tests/browser/conversation.test.cjs` | 1495 | planned | e2e/specs/conversation.spec.mjs |
-| `tests/browser/coordinator-busy.test.cjs` | 80 | planned | e2e/specs/coordinator-busy.spec.mjs |
-| `tests/browser/flows.test.cjs` | 4382 | planned | e2e/specs/flows.spec.mjs |
-| `tests/browser/harness.cjs` | 444 | planned | e2e/lib (space.mjs, store.mjs, settle.mjs, browser.mjs) + e2e/run.mjs |
-| `tests/browser/held-contract.test.cjs` | 99 | planned | e2e/specs/held-contract.spec.mjs |
-| `tests/browser/held-waiting.test.cjs` | 151 | planned | e2e/specs/held-waiting.spec.mjs |
-| `tests/browser/lpshell.test.cjs` | 1008 | planned | e2e/specs/lpshell.spec.mjs |
-| `tests/browser/settings.test.cjs` | 1464 | planned | e2e/specs/settings.spec.mjs |
-| `tests/browser/smoke.test.cjs` | 115 | planned | e2e/specs/smoke.spec.mjs |
+| `tests/browser/chat-read-order.test.cjs` | 100 | planned | e2e/specs/chat-read-order.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/conversation.test.cjs` | 1495 | planned | e2e/specs/conversation.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/coordinator-busy.test.cjs` | 80 | planned | e2e/specs/coordinator-busy.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/flows.test.cjs` | 4382 | planned | e2e/specs/flows.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/harness.cjs` | 444 | planned | e2e/lib (space.mjs, store.mjs, settle.mjs, browser.mjs) + e2e/run.mjs · next: its in-page mock world becomes the fake Space and seeds; it goes when the last suite is a case in e2e/specs |
+| `tests/browser/held-contract.test.cjs` | 99 | planned | e2e/specs/held-contract.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/held-waiting.test.cjs` | 151 | planned | e2e/specs/held-waiting.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/lpshell.test.cjs` | 1008 | planned | e2e/specs/lpshell.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/settings.test.cjs` | 1464 | planned | e2e/specs/settings.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/smoke.test.cjs` | 115 | planned | e2e/specs/smoke.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
 
 ## tests-lib (2)
 

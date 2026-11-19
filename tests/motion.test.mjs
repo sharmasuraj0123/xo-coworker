@@ -4,7 +4,7 @@ import { readFileSync, readdirSync } from "node:fs";
 
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
 const M = await import("../core/ui/motion.js");
-const tokens = readFileSync(new URL("../css/tokens.css", import.meta.url), "utf8");
+const tokens = readFileSync(new URL("../core/ui/tokens.css", import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 

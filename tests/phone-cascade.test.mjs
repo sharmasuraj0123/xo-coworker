@@ -8,7 +8,7 @@
 import assert from "node:assert/strict";
 import { lost, shrunk } from "./lib/cascade.mjs";
 import { readFileSync } from "node:fs";
-const tokens = Object.fromEntries([...readFileSync(new URL("../css/tokens.css", import.meta.url), "utf8").matchAll(/(--[\w-]+):\s*(\d+(?:\.\d+)?)px/g)].map((m) => [m[1], +m[2]]));
+const tokens = Object.fromEntries([...readFileSync(new URL("../core/ui/tokens.css", import.meta.url), "utf8").matchAll(/(--[\w-]+):\s*(\d+(?:\.\d+)?)px/g)].map((m) => [m[1], +m[2]]));
 
 const L = lost(new URL("./lib/x.mjs", import.meta.url)).filter((x) => x.how === "all");
 const lines = L.map((x) => `${x.A.f} ${x.A.sel} { ${x.da.p}: ${x.da.v} }  ← ${x.B.f} ${x.B.sel} { ${x.db.p}: ${x.db.v} }`);

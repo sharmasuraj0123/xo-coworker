@@ -9,7 +9,7 @@ import { readFileSync } from "node:fs";
 const read = (f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 // the sheets in the order index.html loads them (a later one wins at equal specificity)
 const ORDER = ["app.css", "panel.css", "phone.css"];
-const tokens = Object.fromEntries([...read("tokens.css").matchAll(/(--[\w-]+):\s*(\d+)px/g)].map((m) => [m[1], +m[2]]));
+const tokens = Object.fromEntries([...read("../core/ui/tokens.css").matchAll(/(--[\w-]+):\s*(\d+)px/g)].map((m) => [m[1], +m[2]]));
 /** every rule as {f, sel, d, at: [enclosing @-preludes]}, by walking the braces */
 function rulesOf(f, css) {
   const out = [], stack = [];

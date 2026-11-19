@@ -1562,7 +1562,7 @@
    "home": "modules/artifacts/artifacts.css"
   },
   "css/base.css": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/foundation.css"
   },
   "css/diffs.css": {
@@ -1574,7 +1574,7 @@
    "home": "modules/files/editor/docs.css"
   },
   "css/dropdown.css": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/components/xo-select.css"
   },
   "css/foundation.css": {
@@ -1625,7 +1625,7 @@
    ]
   },
   "css/rich.css": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.css"
   },
   "css/shape.css": {
@@ -1640,7 +1640,7 @@
    "home": "shell/sidebar.css"
   },
   "css/tokens.css": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/tokens.css"
   },
   "design-research/2026-11-19-icons/ICONS.md": {
@@ -5496,19 +5496,19 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "css/rich.css::ids::msgs": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.css"
   },
   "css/rich.css::ids::tmsgs": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.css"
   },
   "css/rich.css::ids::typing": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.css"
   },
   "css/rich.css::ids::ttyping": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.css"
   },
   "index.html::ids::app": {

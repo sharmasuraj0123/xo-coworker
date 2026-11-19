@@ -1,9 +1,9 @@
-// The stylesheets' size, space and type tokens read as the px they are (css/tokens.css, comfortable density), and the
+// The stylesheets' size, space and type tokens read as the px they are (core/ui/tokens.css, comfortable density), and the
 // simple calc()s made of them worked out, so a test that checks a size checks the size, whether a rule writes it as a
 // number or names its token (the owner, 19 Nov: every size from the tokens).
 import { readFileSync } from "node:fs";
 
-const src = readFileSync(new URL("../../css/tokens.css", import.meta.url), "utf8");
+const src = readFileSync(new URL("../../core/ui/tokens.css", import.meta.url), "utf8");
 const TOKENS = {};
 for (const m of src.matchAll(/(--[\w-]+):\s*(-?\d+(?:\.\d+)?)px\s*[;}]/g)) if (!(m[1] in TOKENS)) TOKENS[m[1]] = +m[2];
 for (const m of src.matchAll(/(--[\w-]+):\s*var\((--[\w-]+)\)\s*[;}]/g)) if (!(m[1] in TOKENS) && m[2] in TOKENS) TOKENS[m[1]] = TOKENS[m[2]];
