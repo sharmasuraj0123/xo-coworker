@@ -4729,7 +4729,7 @@
   "tests/routing-words.test.mjs": {
    "status": "moved",
    "home": "modules/routing/tests/routing-words.test.mjs",
-   "note": "still reads the source; its rewrite as a behaviour test is owed"
+   "note": "rewritten as a behaviour test: Settings › Routing driven on a DOM (tests/lib/dom.mjs), api answered by the test"
   },
   "tests/rtsettings.test.mjs": {
    "status": "moved",
