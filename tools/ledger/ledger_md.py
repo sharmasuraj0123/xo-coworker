@@ -2,7 +2,7 @@
 """Regenerates architecture/modular/LEDGER.md from tools/ledger/ledger.json."""
 import json, os, sys
 from collections import Counter, defaultdict
-repo = sys.argv[1] if len(sys.argv) > 1 else "."
+repo = next((a for a in sys.argv[1:] if not a.startswith("--")), ".")
 L = json.load(open(os.path.join(repo, "tools/ledger/ledger.json")))
 inv = json.load(open(os.path.join(repo, "tools/ledger/inventory.json")))
 G = {r["path"]: r["group"] for r in inv["files"]}; N = {r["path"]: r.get("lines") for r in inv["files"]}
@@ -24,5 +24,11 @@ for g in groups:
         if e.get("note"): h += f" · next: {e['note']}"
         out.append(f"| `{p}` | {N.get(p) if N.get(p) is not None else ''} | {e['status']} | {h} |")
     out.append("")
-open(os.path.join(repo, "architecture/modular/LEDGER.md"), "w").write("\n".join(out) + "\n")
-print(f"{len(L['files'])} files written")
+text = "\n".join(out) + "\n"
+target = os.path.join(repo, "architecture/modular/LEDGER.md")
+if "--check" in sys.argv:
+    if not os.path.exists(target) or open(target).read() != text:
+        sys.exit("LEDGER.md is stale: run python3 tools/ledger/ledger_md.py .")
+else:
+    open(target, "w").write(text)
+    print(f"{len(L['files'])} files written")

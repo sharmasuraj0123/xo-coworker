@@ -202,7 +202,9 @@ step("places", () => {
 
 step("ledger", () => {
   const r = run("python3", ["tools/ledger/check_ledger.py", "--repo", "."]);
-  return r.status === 0 ? null : `ledger:\n${(r.stdout + r.stderr).trim()}`;
+  if (r.status !== 0) return `ledger:\n${(r.stdout + r.stderr).trim()}`;
+  const md = run("python3", ["tools/ledger/ledger_md.py", ".", "--check"]);
+  return md.status === 0 ? null : (md.stdout + md.stderr).trim();
 });
 
 if (!FAST) step("tests", () => {

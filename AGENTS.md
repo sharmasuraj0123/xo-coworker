@@ -6,6 +6,7 @@
 - Branch `coworker/modular` turns this app into a kernel + modules + apps. Plan: `architecture/PLAN.md`.
 - Ledger: `tools/ledger/ledger.json`, readable in `architecture/modular/LEDGER.md`. It maps every file of the base commit to its new home.
 - A commit that moves code updates the ledger in the same commit (moved, kept, or deleted with a reason).
+- `architecture/modular/LEDGER.md` is generated: never hand-merge it. After a conflict or a ledger edit, run `python3 tools/ledger/ledger_md.py .`; the check fails when it is stale.
 - Move commits change no behaviour. Fixes and deletions are separate commits, each with a test.
 - One module moves at a time. While it moves, no feature work touches it.
 
