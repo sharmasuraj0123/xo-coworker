@@ -2349,7 +2349,8 @@
    "home": [
     "modules/decisions/kit.js",
     "core/ui/components/hold.js"
-   ]
+   ],
+   "note": "the hold button and its guard are in core/ui/components/hold.js (kit.js re-exports them); the rest goes to modules/decisions"
   },
   "js/launchpad.js": {
    "status": "planned",
@@ -10234,12 +10235,8 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/kit.js::exports::HOLD_MS": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/components/hold.js"
   },
   "js/kit.js::exports::READ_MS": {
    "status": "split-region",
@@ -10338,20 +10335,12 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/kit.js::exports::holdButton": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/components/hold.js"
   },
   "js/kit.js::exports::holdToConfirm": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/components/hold.js"
   },
   "js/kit.js::exports::createAnnouncer": {
    "status": "split-region",
@@ -10418,20 +10407,12 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/kit.js::functions::holdButton": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/components/hold.js"
   },
   "js/kit.js::functions::holdToConfirm": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/components/hold.js"
   },
   "js/kit.js::functions::createAnnouncer": {
    "status": "split-region",
@@ -10442,20 +10423,12 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/kit.js::keys::Enter": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/components/hold.js"
   },
   "js/kit.js::keys:: ": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/components/hold.js"
   },
   "js/launchpad.js::exports::LP_ICON": {
    "status": "planned",

@@ -11,7 +11,7 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | moved | 13 |
 | kept | 1 |
 
-Items inside first-party files: 2290 (planned 1283, split-region 902, moved 105), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1283, split-region 895, moved 112), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -62,7 +62,7 @@ Items inside first-party files: 2290 (planned 1283, split-region 902, moved 105)
 | `js/intel.js` | 743 | planned | modules/intelligence/ |
 | `js/keynav.js` | 109 | moved | core/ui/a11y/keynav.js · next: js/keynav.js re-exports core/ui/a11y/keynav.js until the shims go |
 | `js/keys.js` | 176 | split | core/platform/keys.js, core/kernel (shortcut place), modules/settings/keyboard.js |
-| `js/kit.js` | 270 | split | modules/decisions/kit.js, core/ui/components/hold.js |
+| `js/kit.js` | 270 | split | modules/decisions/kit.js, core/ui/components/hold.js · next: the hold button and its guard are in core/ui/components/hold.js (kit.js re-exports them); the rest goes to modules/decisions |
 | `js/launchpad.js` | 1166 | planned | modules/launchpad/ (store, controller, views, section) |
 | `js/lightbox.js` | 384 | planned | core/ui/lightbox.js |
 | `js/lpapi.js` | 239 | split | modules/launchpad/client.js, modules/launchpad/model.js, core/services/github.js |

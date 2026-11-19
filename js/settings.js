@@ -12,7 +12,7 @@ import { api } from "./api.js";
 import { esc } from "./world.js";
 import { ICON } from "./ui.js";
 import { renderInline } from "./markdown.js";
-import { holdButton } from "./kit.js";
+import { holdButton } from "../core/ui/components/hold.js";
 import { once, isPending, busyAttrs } from "./pending.js";
 import { redraw } from "./redraw.js";
 import { radioKeys, rovingTab } from "./keynav.js";
