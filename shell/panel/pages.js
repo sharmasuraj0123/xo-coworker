@@ -150,11 +150,12 @@ export function createPages({ el, S, places, at, icon, view, threads, shell, nam
     if (on) show("shell"); else closeTab("shell");
   }
 
+  /** A tab's title, for the key it shows now (a single page's own). @param {Tab} t */
+  const titleOf = (t) => { const sp = PAGES.get(t.name), k = sp.single ? (S.single?.[t.name] ?? t.key) : t.key; return sp.title ? said(sp.title, k) : t.name; };
   /** The panel's name, the place it's beside; with a page, ‹ Sections, the page's lead control and its tabs. */
   function titleHtml() {
     const place = nameOf()(view());
     const cur = S.page && PAGES.get(S.page.name);
-    const titleOf = (/** @type {Tab} */ t) => { const sp = PAGES.get(t.name), k = sp.single ? (S.single?.[t.name] ?? t.key) : t.key; return sp.title ? said(sp.title, k) : t.name; };
     // ‹ Sections leads any page but the shell, with a dot when the sections need you
     const back = S.page && S.page.name !== "shell" ? `<button type="button" class="stg-ic pg-back" data-stg-sections title="Back to Threads, Changes and Map (Esc)" aria-label="Sections${sectionsNeed() ? ", something needs you" : ""}">${ICON.back}${sectionsNeed() ? '<i class="pg-dot" aria-hidden="true"></i>' : ""}</button>` : "";
     const lead = cur && cur.lead ? cur.lead(S.page.key) || "" : "";
@@ -166,6 +167,6 @@ export function createPages({ el, S, places, at, icon, view, threads, shell, nam
     return `<b class="stg-name" title="${esc(place || "")}">${esc(place || "Panel")}</b>${cur ? `<span class="stg-sub">${esc(titleOf(S.page))}</span>` : ""}`;
   }
 
-  const pages = () => S.tabs.map((/** @type {Tab} */ t) => ({ ...t, title: said(PAGES.get(t.name).title, t.key) || t.name, on: sameTab(t, S.page) }));
+  const pages = () => S.tabs.map((/** @type {Tab} */ t) => ({ ...t, title: titleOf(t), on: sameTab(t, S.page) }));
   return { PAGES, page, show, sections, closeTab, requestClose, setShell, titleHtml, pages };
 }
