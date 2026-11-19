@@ -8,7 +8,7 @@ import { readdirSync, readFileSync, rmSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, join } from "node:path";
 import { startSpace } from "./lib/space.mjs";
-import { probe, settle, LONG_MS, POLL_MIN_MS } from "./lib/settle.mjs";
+import { probe, settle, LONG_MS, POLL_MIN_MS, SETTLE_MS } from "./lib/settle.mjs";
 import { compareAria } from "./lib/aria.mjs";
 import { goldens, unused } from "./lib/goldens.mjs";
 import { findPlaywright, launch } from "./lib/browser.mjs";
@@ -67,7 +67,7 @@ async function runCase(browser, c) {
     const t = {
       page: pg, space: sp, store: sp.store,
       settle: (o) => settle(pg, sp, o),
-      open: async (path = "/") => { await pg.goto(sp.base + path); return settle(pg, sp, { timeout: 15000 }); },
+      open: async (path = "/") => { await pg.goto(sp.base + path); return settle(pg, sp, { timeout: SETTLE_MS + 3000 }); },
       snap: async (name, locator = pg.locator("body")) => {
         const file = join(SNAPS, c.file, `${slug(c.name)}--${slug(name)}.aria.yml`);
         used.add(file);

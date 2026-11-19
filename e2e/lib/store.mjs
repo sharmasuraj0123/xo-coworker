@@ -43,16 +43,17 @@ export function createStore(seed = {}) {
   const s = structuredClone(seed);
   const now = s.now || "2026-11-19T12:00:00Z";
   const chats = (s.chats || [{ id: "chat_ws", kind: "workspace" }, { id: "chat_demo", kind: "project", project: "demo" }]).map((c) => chatRow(c, now));
-  let next = 0;
+  let top = 0, last = 0;
   /** @type {Set<number>} */
   const seqs = new Set();
   /** @type {(row: Row, chatId: string | null, where: string) => Row} */
   const fill = (row, chatId, where) => {
-    const seq = row.seq ?? next + 1;
-    if (seq <= next) throw new Error(`seed: ${where} has seq ${seq} after ${next}; rows go in seq order`);
+    const seq = row.seq ?? Math.max(top, last) + 1;
+    if (seq <= last) throw new Error(`seed: ${where} has seq ${seq} after ${last}; rows go in seq order`);
     if (seqs.has(seq)) throw new Error(`seed: seq ${seq} is used twice (${where})`);
     seqs.add(seq);
-    next = seq;
+    last = seq;
+    top = Math.max(top, seq);
     return { chat_id: chatId, thread_ts: null, author_kind: "owner", author_id: "owner", created_at: now, extra: {}, ...row, seq };
   };
   /** @type {Record<string, Row[]>} */
@@ -61,11 +62,11 @@ export function createStore(seed = {}) {
   const threads = {};
   /** @type {Record<string, Row[]>} */
   const threadMessages = {};
-  for (const [id, rows] of Object.entries(s.messages || {})) { next = 0; messages[id] = rows.map((r) => fill(r, id, `messages.${id}`)); }
+  for (const [id, rows] of Object.entries(s.messages || {})) { last = 0; messages[id] = rows.map((r) => fill(r, id, `messages.${id}`)); }
   for (const [id, rows] of Object.entries(s.threads || {})) threads[id] = rows.map((r) => ({ chat_id: id, label: null, resolved_at: null, session_id: null, cwd: null, branch: null, worktree_path: null, status_md: null, outputs: [], created_at: now, updated_at: now, summary: null, state: "done", activity: null, wait_reason: null, card: null, agent_ms: 0, git: null, ...r }));
   /** @param {string} ts */
   const chatOf = (ts) => Object.keys(threads).find((id) => threads[id].some((t) => t.ts === ts)) || null;
-  for (const [ts, rows] of Object.entries(s.threadMessages || {})) { next = 0; threadMessages[ts] = rows.map((r) => fill({ thread_ts: ts, ...r }, r.chat_id || chatOf(ts), `threadMessages.${ts}`)); }
+  for (const [ts, rows] of Object.entries(s.threadMessages || {})) { last = 0; threadMessages[ts] = rows.map((r) => fill({ thread_ts: ts, ...r }, r.chat_id || chatOf(ts), `threadMessages.${ts}`)); }
   return {
     now, chats, messages, threads, threadMessages,
     files: s.files || {},

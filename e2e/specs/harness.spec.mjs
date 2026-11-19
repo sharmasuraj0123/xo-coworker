@@ -47,6 +47,12 @@ export const cases = [
       await t.settle();
       if (polls !== 1) t.fail(`a re-arming poll should be waited for once, until it shows it re-arms; it ran ${polls} times`);
       await page.evaluate(() => clearTimeout(/** @type {any} */ (window).__e2eP));
+      await page.evaluate(() => { const w = /** @type {any} */ (window); w.__e2eLoops = 0; w.__e2eStop = false; (async () => { while (!w.__e2eStop) { await new Promise((ok) => setTimeout(ok, 1100)); w.__e2eLoops++; } })(); });
+      await t.settle();
+      const loops = await page.evaluate(() => /** @type {any} */ (window).__e2eLoops);
+      await t.settle();
+      if (loops !== 1) t.fail(`an await-loop poll should be waited for once, until it shows it re-arms; it ran ${loops} times`);
+      await page.evaluate(() => { /** @type {any} */ (window).__e2eStop = true; });
     },
   },
   {

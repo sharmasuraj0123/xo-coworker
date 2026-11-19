@@ -44,15 +44,15 @@ node e2e/tests/store.test.mjs node e2e/tests/aria.test.mjs   the lane's own unit
 3. **The settle barrier** (`lib/settle.mjs`). `t.settle()` waits until all of these hold at once:
    - no request is open: a fetch until its body is read, an event stream until its first event (a resume with
      `Last-Event-ID` until its headers), and anything the Space serves, so `import()`, workers and uploads too;
-   - no timer under 10 s is waiting, unless it is a poll: one whose function or call site re-arms it from its
-     own callback;
+   - no timer under 10 s is waiting, unless it is a poll: one whose function or call site arms it again within
+     one period of its last run (a recursive timer, or an `await` sleep in a loop);
    - no animation-frame callback is waiting, and no worker owes a reply;
    - nothing has changed for 3 animation frames: no DOM change, and no request, timer or reply has just ended;
    - the fonts are loaded;
    - nothing is `[aria-busy="true"]`.
 
-   It uses no sleeps, no `networkidle` and no `requestIdleCallback`. If the page doesn't settle, the error names
-   what is still going on.
+   It uses no sleeps, no `networkidle` and no `requestIdleCallback`. By default it gives up after 12 s, longer
+   than any timer it waits for, and the error names what is still going on.
 4. **ARIA snapshots** (`lib/aria.mjs`). `t.snap(name, locator?)` compares the accessibility tree's text with
    `snapshots/<spec>/<case>--<name>.aria.yml`. A mismatch fails the case with a line diff, and the case carries
    on, so one run shows every difference. The snapshots don't depend on the theme or the DPR. A full run (no

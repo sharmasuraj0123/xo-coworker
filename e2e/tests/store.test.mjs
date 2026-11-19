@@ -128,6 +128,8 @@ await test("seed rows keep their order: a missing seq follows the row before it;
   const st = createStore({ chats, messages: { a: [{ id: "1" }, { id: "2", seq: 7 }, { id: "3" }], b: [{ id: "4", seq: 20 }] } });
   assert.deepEqual(st.messages.a.map((m) => m.seq), [1, 7, 8]);
   assert.equal(st.seq, 20);
+  const both = createStore({ chats, messages: { a: [{ id: "1" }, { id: "2" }], b: [{ id: "3" }] }, threadMessages: { t: [{ id: "4", chat_id: "a" }] } });
+  assert.deepEqual([...both.messages.a, ...both.messages.b, ...both.threadMessages.t].map((m) => m.seq), [1, 2, 3, 4], "rows without seqs are numbered once across the whole seed");
   assert.throws(() => createStore({ chats, messages: { a: [{ id: "1", seq: 5 }, { id: "2", seq: 3 }] } }), /seq 3 after 5/);
   assert.throws(() => createStore({ chats, messages: { a: [{ id: "1", seq: 5 }], b: [{ id: "2", seq: 5 }] } }), /seq 5 is used twice/);
 });

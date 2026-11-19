@@ -5,6 +5,7 @@
 // The in-page probe (requests, timers, frames, worker replies, DOM changes, focus drops) and the settle barrier.
 
 export const LONG_MS = 10000;
+export const SETTLE_MS = LONG_MS + 2000;
 export const POLL_MIN_MS = 1000;
 export const QUIET_FRAMES = 3;
 
@@ -38,22 +39,19 @@ export function probe({ long, pollMin }) {
   /** @type {Set<unknown>} */
   const polls = new Set();
   /** @type {Map<unknown, number>} */
-  const running = new Map();
-  const enter = (/** @type {unknown[]} */ keys) => { for (const k of keys) running.set(k, (running.get(k) || 0) + 1); };
-  const leave = (/** @type {unknown[]} */ keys) => { for (const k of keys) { const n = (running.get(k) || 1) - 1; if (n) running.set(k, n); else running.delete(k); } };
+  const fired = new Map();
   const siteOf = () => (new Error().stack || "").split("\n")[3]?.trim() || "?";
   g.setTimeout = (/** @type {unknown} */ fn, /** @type {number | undefined} */ ms, /** @type {unknown[]} */ ...a) => {
     const d = Number(ms) || 0;
     if (typeof fn !== "function" || d >= long) return st(fn, ms, ...a);
-    const at = siteOf(), keys = [at, fn];
-    if (d >= pollMin && keys.some((k) => running.has(k))) for (const k of keys) polls.add(k);
+    const at = siteOf(), keys = [at, fn], now = performance.now();
+    if (d >= pollMin && keys.some((k) => now - (fired.get(k) ?? -Infinity) < d)) for (const k of keys) polls.add(k);
     if (keys.some((k) => polls.has(k))) return st(fn, ms, ...a);
     const id = st(() => {
       S.timers.delete(id);
       S.quiet = 0;
-      enter(keys);
-      const out = () => leave(keys);
-      try { const r = fn(...a); if (r && typeof r.then === "function") r.then(out, out); else out(); } catch (e) { out(); throw e; }
+      for (const k of keys) fired.set(k, performance.now());
+      fn(...a);
     }, d);
     S.timers.set(id, `${d} ms from ${at}`);
     return id;
@@ -129,7 +127,7 @@ export function probe({ long, pollMin }) {
 export const busyNow = (q) => { /** @type {Probe | undefined} */ const S = /** @type {any} */ (window).__e2e; return S ? S.busy(q) : ["the e2e probe isn't installed"]; };
 
 /** Wait for the page and the Space to settle; past `timeout` ms, throw with what is still busy. @param {Page} page @param {{open: number, served: number, idle(ms: number): Promise<boolean>}} [space] @param {SettleOptions} [o] */
-export async function settle(page, space, { timeout = 6000, quietFrames = QUIET_FRAMES } = {}) {
+export async function settle(page, space, { timeout = SETTLE_MS, quietFrames = QUIET_FRAMES } = {}) {
   const t0 = Date.now();
   const left = () => Math.max(1, timeout - (Date.now() - t0));
   for (;;) {

@@ -10,8 +10,7 @@ export const cases = [
     name: "boot settles without waiting out the first-frame fallback", seed: "basic",
     async run(t) {
       await t.page.goto(t.space.base + "/");
-      const ms = await t.settle({ timeout: 3000 });
-      if (ms >= 3000) t.fail(`boot took ${ms} ms to settle`);
+      try { await t.settle({ timeout: 3000 }); } catch (e) { t.fail(`boot didn't settle within 3 s: ${/** @type {Error} */ (e).message}`); }
     },
   },
 ];
