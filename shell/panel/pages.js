@@ -2,7 +2,8 @@
 
 // The panel's pages: it shows its sections, or one page in their place (Shell, Files, Thread).
 
-import { ICON } from "../../js/ui.js";
+import { ICON } from "../../core/ui/icons/names.js";
+import { xi, hasIcon } from "../../core/ui/icons/icon.js";
 import { esc } from "../../core/platform/index.js";
 
 /** @typedef {{ name: string, key: string }} Tab */
@@ -11,7 +12,7 @@ import { esc } from "../../core/platform/index.js";
 
 /** @typedef {{ title?: string | ((key: string) => string), icon?: string | ((key: string) => string), width?: number | ((o: { room: number }) => number), single?: boolean, lead?: (key: string) => string, act?: (name: string, el: Element) => void, mount: (host: HTMLElement, at: At & { key: string }) => void | (() => void), onShow?: (key: string, o: { focus: boolean }) => void, onHide?: (key: string) => void, unmount?: (key: string) => void, canClose?: (key: string) => boolean | Promise<boolean>, escape?: (key: string) => boolean }} PageSpec */
 
-/** @typedef {{ el: any, S: any, places: import("../../core/kernel/types").Kernel["places"], at: () => At, icon: (name: string) => string, view: () => string, threads: ((v: string) => Array<{ k: string, rows: any[] }>) | null, shell: any, nameOf: () => (v: string) => string, open: (o?: { focus?: boolean }) => void, close: () => void, setFull: (on: boolean) => void, apply: () => void, paint: () => void, onChange: any }} PagesDeps */
+/** @typedef {{ el: any, S: any, places: import("../../core/kernel/types").Kernel["places"], at: () => At, view: () => string, threads: ((v: string) => Array<{ k: string, rows: any[] }>) | null, shell: any, nameOf: () => (v: string) => string, open: (o?: { focus?: boolean }) => void, close: () => void, setFull: (on: boolean) => void, apply: () => void, paint: () => void, onChange: any }} PagesDeps */
 
 /** A title or an icon, given as it is or worked out from the tab's key. @param {string | ((key: string) => string) | undefined} v @param {string} key */
 const said = (v, key) => (typeof v === "function" ? v(key) : v || "");
@@ -19,7 +20,7 @@ const said = (v, key) => (typeof v === "function" ? v(key) : v || "");
 const TAB_MAX = 5;
 
 /** @param {PagesDeps} P */
-export function createPages({ el, S, places, at, icon, view, threads, shell, nameOf, open, close, setFull, apply, paint, onChange }) {
+export function createPages({ el, S, places, at, view, threads, shell, nameOf, open, close, setFull, apply, paint, onChange }) {
   // the pages are the kernel's panel.page entries; registering a kind again replaces it
   const PAGES = { get: (/** @type {string} */ name) => /** @type {PageSpec} */ (/** @type {unknown} */ (places.get("panel.page", name))) };
   /** @type {Map<string, () => void>} */
@@ -162,7 +163,7 @@ export function createPages({ el, S, places, at, icon, view, threads, shell, nam
     // on the sections, what the pages keep stays one click away as its tab, beside the place
     if (S.tabs.length > 1 || (!S.page && S.tabs.length)) return `${S.page ? (back || `<button type="button" class="stg-ic pg-back" data-stg-sections title="Back to Threads, Changes and Map (Esc)" aria-label="Sections">${ICON.back}</button>`) + lead : `<b class="stg-name" title="${esc(place || "")}">${esc(place || "Panel")}</b>`}<span class="pg-tabs" role="tablist" aria-label="Open in the panel">${S.tabs.map((/** @type {Tab} */ t) => {
       const on = sameTab(t, S.page), sp = PAGES.get(t.name), tt = titleOf(t);
-      return `<button type="button" class="pg-tab${on ? " is-on" : ""}" role="tab" aria-selected="${on}" data-stg-tab="${esc(t.name)}" data-stg-key="${esc(t.key)}" title="${esc(tt)}">${typeof sp.icon === "function" ? sp.icon(t.key) : sp.icon ? icon(sp.icon) : ""}<span>${esc(tt)}</span></button>`; }).join("")}</span>`;
+      return `<button type="button" class="pg-tab${on ? " is-on" : ""}" role="tab" aria-selected="${on}" data-stg-tab="${esc(t.name)}" data-stg-key="${esc(t.key)}" title="${esc(tt)}">${typeof sp.icon === "function" ? sp.icon(t.key) : sp.icon && hasIcon(sp.icon) ? xi(sp.icon) : ""}<span>${esc(tt)}</span></button>`; }).join("")}</span>`;
     if (cur && back) return `${back}${lead}<b class="stg-name" title="${esc(titleOf(S.page))}">${esc(titleOf(S.page))}</b>`;
     return `<b class="stg-name" title="${esc(place || "")}">${esc(place || "Panel")}</b>${cur ? `<span class="stg-sub">${esc(titleOf(S.page))}</span>` : ""}`;
   }

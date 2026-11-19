@@ -19,7 +19,7 @@ const mounted = {}, themes = [];
 const map = { mount: () => {}, agents: () => [], mode: "graph", setMode() {}, show() {}, hide() {} };
 K.places.contribute("panel.frame", { id: "map", title: "Map", mount: (host) => { mounted.map = host.id; }, api: map }, "t");
 K.places.contribute("panel.frame", { id: "changes", title: "Changes", mount: (host, o) => { mounted.changes = [host.className, typeof o.openFile, typeof o.view]; return { paint: () => false, head: () => null, wide: false }; }, counts: () => "", theme: (t) => themes.push(t) }, "t");
-const S = createStage({ files: { changes: () => [] }, viewer: {}, view: () => "home", go() {}, announce() {}, at: () => ({}), icon: () => "", places: K.places });
+const S = createStage({ files: { changes: () => [] }, viewer: {}, view: () => "home", go() {}, announce() {}, at: () => ({}), places: K.places });
 assert.equal(mounted.map, "fr-body-map", "the Map's entry mounts into the Map frame's body");
 assert.deepEqual(mounted.changes, ["cx-host", "function", "function"], "Changes' entry mounts into its host, with the panel's openFile and view");
 S.theme("light");

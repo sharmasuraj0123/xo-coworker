@@ -2,9 +2,10 @@
 
 // The panel: one right-hand column of stacked frames (Threads, Changes, Map; Launchpad over them) or one page in their place.
 
-import { ICON, $ } from "../../js/ui.js";
-import { redraw } from "../../js/redraw.js";
-import { usable } from "../../js/focusview.js";
+import { $ } from "../../js/ui.js";
+import { ICON } from "../../core/ui/icons/names.js";
+import { redraw } from "../../core/ui/redraw.js";
+import { usable } from "../../core/ui/a11y/focus.js";
 import { ORDER, MAP_H, ROW, createFrames } from "./frames.js";
 import { FILTER_AT, threadsHtml, agentsHtml, changesHtml } from "./lists.js";
 import { createPages } from "./pages.js";
@@ -24,10 +25,10 @@ const sget = (k) => { try { return JSON.parse(localStorage.getItem(k) || "{}") |
 /** @param {string} k @param {unknown} v */
 const sset = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* private mode */ } };
 
-/** @typedef {{ files: any, openFiles?: (() => void) | null, viewer: any, view: () => string, go: (v: string, e?: Event) => void, announce: (s: string) => void, onChange?: () => void, frames?: () => string[], threads?: any, shell?: ((on: boolean, host?: HTMLElement) => void) | null, owns?: (e: Event) => boolean, at: () => import("../../core/kernel/types").At, icon: (name: string) => string, places: import("../../core/kernel/types").Kernel["places"] }} StageDeps */
+/** @typedef {{ files: any, openFiles?: (() => void) | null, viewer: any, view: () => string, go: (v: string, e?: Event) => void, announce: (s: string) => void, onChange?: () => void, frames?: () => string[], threads?: any, shell?: ((on: boolean, host?: HTMLElement) => void) | null, owns?: (e: Event) => boolean, at: () => import("../../core/kernel/types").At, places: import("../../core/kernel/types").Kernel["places"] }} StageDeps */
 
 /** @param {StageDeps} deps */
-export function createStage({ files, openFiles = null, viewer, view, go, announce, onChange, frames = () => ORDER, threads = null, shell = null, owns = () => false, at, icon, places }) {
+export function createStage({ files, openFiles = null, viewer, view, go, announce, onChange, frames = () => ORDER, threads = null, shell = null, owns = () => false, at, places }) {
   const saved = sget(KEY);
   // the frames' own parts are the panel.frame place's entries: the Map, Changes and, where it's there, Launchpad
   const frameOf = (/** @type {string} */ id) => /** @type {any} */ (places.get("panel.frame", id));
@@ -92,7 +93,7 @@ export function createStage({ files, openFiles = null, viewer, view, go, announc
 
   /** @type {(v: string) => string} */
   let nameOf = () => "";
-  const PG = createPages({ el, S, places, at, icon, view, threads, shell, nameOf: () => nameOf, open, close, setFull, apply, paint, onChange });
+  const PG = createPages({ el, S, places, at, view, threads, shell, nameOf: () => nameOf, open, close, setFull, apply, paint, onChange });
   const { PAGES, show, sections, requestClose, setShell } = PG;
   const FR = createFrames({ el, S, fr, LPF, frames, view, launch, map, persist, paint, pressDeploy });
   function layout() { FR.layout(); }

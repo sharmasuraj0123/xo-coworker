@@ -2,9 +2,9 @@
 
 // What the panel's frames list: Threads in groups, the agents at work, today's Changes list.
 
-import { ICON } from "../../js/ui.js";
+import { ICON } from "../../core/ui/icons/names.js";
 import { esc, since } from "../../core/platform/index.js";
-import { fileIcon } from "../../js/fileicons.js";
+import { fileIcon } from "../../core/ui/icons/fileicons.js";
 
 const FOLD_IC = ICON.chevron;
 

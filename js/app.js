@@ -19,7 +19,7 @@ import { createDecisions } from "./decide.js";
 import { createPacing } from "../modules/decisions/pacing.js";
 import { createIntel } from "./intel.js";
 import { EFFORT, estLine, evidenceFor } from "../modules/decisions/rank.js";
-import { keepTurning, ICON, xi, XO, NEXT_GLYPH, $, $$, RM, reconcile, sound, wait, hold, dial, morph, expand } from "./ui.js";
+import { keepTurning, ICON, XO, NEXT_GLYPH, $, $$, RM, reconcile, sound, wait, hold, dial, morph, expand } from "./ui.js";
 import { paidHtml } from "../modules/decisions/cards/paid.js";
 import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldClock, heldBadge, soonestHeld } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn } from "./turnview.js";
@@ -41,7 +41,6 @@ import { createMap } from "./map.js";
 import { createStage } from "./stage.js";
 import { createSide } from "../shell/rail/side.js";
 import { kernel } from "../shell/kernel.js";
-import { hasIcon } from "./icon.js";
 import { headerActionsHtml, wireHeaderActions } from "../shell/header.js";
 import { stackLayers } from "../shell/layers.js";
 import { wireBack } from "../shell/back.js";
@@ -410,10 +409,10 @@ const LP = createLaunchpad({ api: createLpApi(), projectOf: lpProject, nameOf: (
   // the owner's choice B): its Undo's deadline is the action's own (l.until), so it can't outlive what it undoes
   notice: (mid, l, ms) => { const h = { mid, kind: l.kind === "err" ? "stopped" : l.kind || "done", text: l.text, ...(l.sub ? { sub: l.sub } : {}), ...(l.undo ? { undo: l.undo, undoLabel: l.undoLabel, undoUntil: l.until || 0, ownFocus: true } : {}) }; return heraldFor(mid, () => h, ms) || heraldShow(h, ms); },
   unnotice: (mid) => heraldDrop(mid) });
-const iconNamed = (n) => (hasIcon(n) ? xi(n) : ""), atOf = (v) => { const t = convThread(v); return { view: v, project: t ? t.project : v.startsWith("p:") ? v.slice(2) : undefined, thread: t ? t.id : undefined }; };
+const atOf = (v) => { const t = convThread(v); return { view: v, project: t ? t.project : v.startsWith("p:") ? v.slice(2) : undefined, thread: t ? t.id : undefined }; };
 const FRAMES = { map: { title: "Map", mount: (host) => MAP.mount(host), api: MAP }, changes: { title: "Changes", mount: (host, o) => createChangesFrame({ host, changes: CHG, ...o }), theme: setDiffTheme }, launch: { title: "Launchpad", mount: (section, o) => LP.mount(section, o), api: LP } };
 for (const [id, e] of Object.entries(FRAMES)) kernel.places.contribute("panel.frame", { id, ...e }, id === "launch" ? "xo.launchpad" : `xo.${id}`);
-const STAGE = createStage({ files: FILES, openFiles: () => FP.show({ focus: true }), viewer: VW, view: () => S.view, go: (v, e) => openFromPanel(v, e), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), threads: (v) => panelThreads(v), shell: (on, host) => panelShell(on, host), owns: (e) => SH.owns(e), at: () => atOf(S.view), icon: iconNamed, places: kernel.places });
+const STAGE = createStage({ files: FILES, openFiles: () => FP.show({ focus: true }), viewer: VW, view: () => S.view, go: (v, e) => openFromPanel(v, e), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), threads: (v) => panelThreads(v), shell: (on, host) => panelShell(on, host), owns: (e) => SH.owns(e), at: () => atOf(S.view), places: kernel.places });
 // Files, a page of the panel (modules/files/page.js; the owner, 19 Nov 14:57Z): the tree and the file open beside the chat,
 // which never moves
 const FP = createFilesPage({ stage: STAGE, files: FILES, viewer: VW, view: () => S.view, announce });
@@ -1427,7 +1426,7 @@ function topRender(needs) {
       `<button type="button" class="tw-act tw-more" data-tmenu="${esc(t.id)}" aria-haspopup="menu" aria-expanded="${S.tMenu === t.id && S.tMenuIn !== "page"}" title="Everything this thread can do" aria-label="Thread actions">${ICON.more}</button>` +
       (S.tMenu === t.id && S.tMenuIn !== "page" ? threadMenuHtml(t) : "") + `</span>` : "";
     // a shell in its worktree is in the menu (and the shells dock); the header keeps Resolve and the panel
-    const ext = headerActionsHtml(kernel.places, atOf(v), iconNamed), allActs = acts ? acts.replace(/<\/span>$/, `${ext}${LP.button(v, STAGE.launchOpen)}${STAGE.button(v)}</span>`) : `<span class="tw-acts">${ext}${LP.button(v, STAGE.launchOpen)}${STAGE.button(v)}</span>`;
+    const ext = headerActionsHtml(kernel.places, atOf(v)), allActs = acts ? acts.replace(/<\/span>$/, `${ext}${LP.button(v, STAGE.launchOpen)}${STAGE.button(v)}</span>`) : `<span class="tw-acts">${ext}${LP.button(v, STAGE.launchOpen)}${STAGE.button(v)}</span>`;
     who = `${title}${label}<span class="badge st-${stOf(t)}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${isHeld(t) ? heldBadge(t.held) : wordOf(t)}</span>${rtTag(t)}${allActs}`;
     // a field being edited is never replaced under the person's fingers (a frame may change the badge)
     if (ed && $("#tw-edit")) who = null;
@@ -1438,7 +1437,7 @@ function topRender(needs) {
   // in place too: Threads (the switcher's opener) is the same button when All opens and sets aria-expanded, so
   // closing All finds it to return to (Astra H30)
   const pv = v.startsWith("p:");
-  const endHtml = t ? end : end + (pv ? S.hdrCtl + headerActionsHtml(kernel.places, atOf(v), iconNamed) + LP.button(v, STAGE.launchOpen) : "") + STAGE.button(v);
+  const endHtml = t ? end : end + (pv ? S.hdrCtl + headerActionsHtml(kernel.places, atOf(v)) + LP.button(v, STAGE.launchOpen) : "") + STAGE.button(v);
   if ($("#top-end")._h !== endHtml) { redraw($("#top-end"), endHtml); $("#top-end")._h = endHtml; }
   LP.ensure(v);
   checklistRender(needs);

@@ -2,9 +2,11 @@
 
 // The sidebar: folded, a rail of the same rows with their words hidden; its bar is yours to edit, and More holds the rest.
 
-import { ICON, xi, $, $$ } from "../../js/ui.js";
-import { esc } from "../../js/world.js";
-import { redraw } from "../../js/redraw.js";
+import { $, $$ } from "../../js/ui.js";
+import { ICON } from "../../core/ui/icons/names.js";
+import { xi } from "../../core/ui/icons/icon.js";
+import { esc } from "../../core/platform/index.js";
+import { redraw } from "../../core/ui/redraw.js";
 
 /** @typedef {{ shape: any, keys: { hint: (id: string) => string }, announce: (text: string) => void, render: () => void, toggleJump: () => void }} SideDeps */
 
