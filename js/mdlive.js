@@ -223,7 +223,7 @@ export function pageView(CM) {
     update(v, tr) {
       // the parser reads a long file a part at a time (the rest after the first frame, in the background): the blocks
       // are found again whenever it has read further, not only when the text changes (the owner, 19 Nov 12:08Z: "these
-      // tables don't render in file view", 7 of ICONS.md's 8 lay past the first part)
+      // tables don't render in file view")
       const grew = syntaxTree(tr.state) !== syntaxTree(tr.startState);
       const list = tr.docChanged || grew ? blocksOf(tr.state) : v.list;
       if (!tr.docChanged && !grew && !tr.selection && v.deco) return v;

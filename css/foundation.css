@@ -1,6 +1,6 @@
 /* The foundation: the interface critique of 2026-11-03 (§9, 26 surfaces), fixed.
    Loaded last, after app.css and light.css, because these are rules of structure that hold in both
-   themes. The eight rules it applies (ui-design/README.md in the critique's folder):
+   themes. The eight rules it applies:
      1 hover fills sit inside their column; no negative margins   5 one left edge per region
      2 one focus ring; inset where a scroller would clip it         6 whole pixels: integer line heights
      3 press: small buttons .97; rows, tiles, tabs and cards never  7 side panels are flush, no shadow
