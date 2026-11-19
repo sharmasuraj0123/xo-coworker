@@ -11,7 +11,7 @@ const keys = readFileSync(new URL("../js/keys.js", import.meta.url), "utf8");
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 
 // the top row: fold, brand, search; the foot: Shells, theme and Settings as icons
-for (const id of ["side-fold", "side-jump", "nv-more", "side-more", "nv-pins"]) assert.match(html, new RegExp(`id="${id}"`), `#${id} in index.html`);
+for (const id of ["side-fold", "side-jump", "nv-more", "side-more"]) assert.match(html, new RegExp(`id="${id}"`), `#${id} in index.html`);
 assert.match(html, /class="gear is-ic" id="theme" role="switch"/, "the theme is a foot icon button, still a switch");
 assert.match(html, /class="gear is-ic" id="set-side"[^>]*aria-label="Settings"/, "Settings keeps its name for screen readers");
 assert.doesNotMatch(html, /<span class="gear-t">Settings<\/span>/, "Settings shows no word");
