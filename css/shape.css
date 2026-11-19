@@ -13,6 +13,7 @@
   --h-row:32px; --h-ctl:var(--h-sm);
   --fs-lg:var(--fs-md); --fs-xl:var(--fs-md);
   --lh-15:var(--lh-14); --lh-read:var(--lh-14);
+  --fs-read:var(--fs-lg); --lh-chat:var(--lh-15);
 }
 [data-density="compact"] :is(.prose,.bubble,.b-opt,.o-l){line-height:var(--lh-read)}
 [data-density="compact"] :is(.iq,.stg-btn,.all-btn,.target){height:var(--h-ctl)}

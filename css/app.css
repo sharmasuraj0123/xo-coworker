@@ -22,7 +22,7 @@
 
 ::selection{background:rgba(var(--accent-rgb),.28)}
 html,body{overflow:clip}
-body{background:var(--sunken);font-feature-settings:"ss01","cv11"}
+body{background:var(--sunken)}
 code{font-family:var(--mono)}
 .muted{color:var(--ink-4)}
 button{-webkit-tap-highlight-color:transparent}

@@ -22,7 +22,11 @@
 :root:not([data-msgx]) .m-them>.mb>.mh b{font:500 var(--fs-base)/24px var(--sans);color:var(--ink-3)}
 :root:not([data-msgx]) .m-them>.mb>.mh :is(.role,.m-iq){font:400 var(--fs-sm)/24px var(--sans);color:var(--ink-4)}
 :root:not([data-msgx]) .m-them>.mb>.mh time{display:none}
-:root:not([data-msgx]) :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text){max-width:none}
+:root:not([data-msgx]) :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text){max-width:none;font-size:var(--fs-read);line-height:var(--lh-chat)}
+/* Read like a page (the owner, 19 Nov 11:31Z: "painful to read"; measured on 9f3c85a: 109 characters a line at 15 px).
+   A reply's words are 16 on 26 and its text lines stop at --measure (600 px at 16, ~80 characters); its code, tables,
+   charts, diagrams, formulas, pictures and cards keep the whole column. */
+:root:not([data-msgx]) :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text)>:is(p,ul,ol,blockquote,.md-h){max-width:var(--measure)}
 /* a line between messages (a thread finished, a decision): its icon centred on the mark's 24 px, its words on the
    names' edge (24 + 8) */
 :root:not([data-msgx]) #msgs>.ev{gap:8px}

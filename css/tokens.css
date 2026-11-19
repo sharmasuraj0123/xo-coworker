@@ -87,6 +87,9 @@
   --lh-ui:20px; --lh-read:24px;
   --fw-regular:400; --fw-medium:500; --fw-strong:600;
   --fs-doc:17px; --lh-doc:28px;   /* documents (Files, the viewer) read in the serif at this size */
+  /* a reply in the conversation is read like a page (the owner, 19 Nov: "painful to read"): 16 on 26, its text lines
+     at most --measure wide (~80 characters of Geist); what isn't text (code, tables, charts, cards) keeps the column */
+  --fs-read:16px; --lh-chat:26px; --measure:37.5em;
 
   /* Geometry. The chrome is crisp; the conversation and the work are soft. Nested corners are computed,
      never chosen: inner = outer − inset.
