@@ -43,7 +43,7 @@ export const cases = [
       await settings.getByRole("button", { name: "Install", exact: true }).click();
       await t.settle();
       await owner(t, "Install Hello 0.1.0");
-      if (!(await settings.getByRole("heading", { name: "Hello", exact: true }).count())) t.fail("the app's page didn't open after the OK");
+      await settings.getByRole("heading", { name: "Hello", exact: true }).waitFor({ timeout: 6000 }).catch(() => t.fail("the app's page didn't open after the OK"));
       await settings.getByRole("button", { name: "Turn on" }).click();
       await t.settle();
       await settings.getByRole("button", { name: "Allow" }).click();
@@ -56,8 +56,7 @@ export const cases = [
       await view.getByRole("textbox", { name: "Name" }).fill("Ana");
       await view.getByRole("button", { name: "Say hello" }).click();
       await t.settle();
-      const said = await view.getByRole("status").textContent();
-      if (said !== "Hello, Ana.") t.fail(`the panel said "${said}", not "Hello, Ana."`);
+      await view.getByRole("status").getByText("Hello, Ana.", { exact: true }).waitFor({ timeout: 6000 }).catch(async () => t.fail(`the panel said "${await view.getByRole("status").textContent()}", not "Hello, Ana."`));
       const calls = t.space.store.writes.filter((w) => w.path === "/api/coworker/apps/dev.xo-apps.hello/call");
       if (calls.length !== 1) t.fail(`${calls.length} tool calls reached the Space, not 1`);
     },
