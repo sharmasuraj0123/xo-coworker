@@ -2306,7 +2306,7 @@
   "js/fuzzy.js": {
    "status": "moved",
    "home": "core/platform/fuzzy.js",
-   "note": "js/fuzzy.js re-exports core/platform until the shims go"
+   "note": "every importer points at core/platform/fuzzy.js, so it leaves with no re-export"
   },
   "js/gestures.js": {
    "status": "split",
