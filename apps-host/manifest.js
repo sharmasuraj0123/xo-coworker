@@ -3,7 +3,7 @@ import { satisfies } from "../core/kernel/semver.js";
 import { parseRoute } from "./routes.js";
 import { parseWhen } from "./when.js";
 
-/** @typedef {import("./routes.js").Route} Route @typedef {import("./when.js").When} When @typedef {{ cap: string, why: string, paths?: string[], hosts?: string[], names?: string[], askWhen?: string }} Permission @typedef {{ id: string, title: string, icon?: string, view?: string, when?: When, for?: string, slash?: string, description?: string, opens?: string, run?: { tool?: string, prompt?: string }, size?: string, maxHeight?: number }} Surface @typedef {{ name: string, label: string, type: string, options?: string[], default?: unknown, scope: "person" | "project" }} Field @typedef {{ type: string, label: string, pattern: string, re: RegExp }} DocType @typedef {{ risk: string, visibility: string[], readOnly: boolean }} Tool @typedef {{ id: string, name: string, version: string, summary: string, engines: string, permissions: { required: Permission[], optional: Permission[] }, routes: Route[], documents: DocType[], surfaces: Record<string, Surface[]>, settings: Field[], tools: Record<string, Tool>, limits: { callTimeoutMs: number, maxResultBytes: number } }} App */
+/** @typedef {import("./routes.js").Route} Route @typedef {import("./when.js").When} When @typedef {{ cap: string, why: string, paths?: string[], names?: string[], askWhen?: string }} Permission @typedef {{ id: string, title: string, icon?: string, view?: string, when?: When, for?: string, slash?: string, description?: string, opens?: string, run?: { tool?: string, prompt?: string }, size?: string, maxHeight?: number }} Surface @typedef {{ name: string, label: string, type: string, options?: string[], default?: unknown, scope: "person" | "project" }} Field @typedef {{ type: string, label: string, pattern: string, re: RegExp }} DocType @typedef {{ risk: string, visibility: string[], readOnly: boolean }} Tool @typedef {{ id: string, name: string, version: string, summary: string, engines: string, permissions: { required: Permission[], optional: Permission[] }, routes: Route[], documents: DocType[], surfaces: Record<string, Surface[]>, settings: Field[], tools: Record<string, Tool>, limits: { callTimeoutMs: number, maxResultBytes: number } }} App */
 
 export const APPS_CONTRACT = "0.1.0";
 
@@ -27,7 +27,7 @@ export const CAPS = Object.freeze({
   "context.update": "Tell the agent what you're pointing at",
   "composer.draft": "Suggest a message. Only you send it.",
   "inbox.post": "Post notes to Inbox (never Needs you)",
-  "network": "Connect to {hosts}",
+  "network": "Reach the internet, through XO's egress proxy",
   "secrets": "Use your {names}. Its views never see it.",
   "clipboard.write": "Copy to your clipboard",
 });
@@ -75,9 +75,8 @@ export function checkManifest(plugin) {
       const paths = list(p.paths);
       if (!paths.length || !paths.every((g) => str(g, 200) && !BAD_GLOB.test(g))) { problems.push(`${where} ${p.cap}: paths must be project-relative globs, never .git, .xo, .env, absolute or ..`); return null; }
     }
-    if (p.cap === "network" && !(list(p.hosts).length && list(p.hosts).every((h) => typeof h === "string" && /^[a-z0-9.-]+\.[a-z]{2,}$/.test(h)))) { problems.push(`${where} network: hosts must be named, like "api.example.com"`); return null; }
     if (p.cap === "secrets" && !(list(p.names).length && list(p.names).every((n) => typeof n === "string" && /^[A-Z][A-Z0-9_]{0,63}$/.test(n)))) { problems.push(`${where} secrets: names must look like "API_KEY"`); return null; }
-    return { cap: p.cap, why: p.why, paths: p.paths, hosts: p.hosts, names: p.names, askWhen: typeof p.askWhen === "string" && /^[a-z][a-z0-9-]{0,39}$/.test(p.askWhen) ? p.askWhen : undefined };
+    return { cap: p.cap, why: p.why, paths: p.paths, names: p.names, askWhen: typeof p.askWhen === "string" && /^[a-z][a-z0-9-]{0,39}$/.test(p.askWhen) ? p.askWhen : undefined };
   };
   const perms = x.permissions || {};
   const permissions = {
@@ -184,5 +183,5 @@ function fields(raw, problems) {
 /** A permission in the words the person reads. @param {Permission} p */
 export function permissionWords(p) {
   const join = (/** @type {string[] | undefined} */ a) => (a || []).join(", ");
-  return CAPS[/** @type {keyof typeof CAPS} */ (p.cap)].replace("{paths}", join(p.paths)).replace("{hosts}", join(p.hosts)).replace("{names}", join(p.names));
+  return CAPS[/** @type {keyof typeof CAPS} */ (p.cap)].replace("{paths}", join(p.paths)).replace("{names}", join(p.names));
 }

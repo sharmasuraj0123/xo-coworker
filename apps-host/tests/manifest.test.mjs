@@ -26,6 +26,7 @@ const sneaky = clone();
 x(sneaky).permissions.optional[0].askWhen = "context.update; x";
 assert.equal(checkManifest(sneaky).app?.permissions.optional[0].askWhen, undefined, "askWhen is a plain key or nothing");
 assert.equal(permissionWords(app.permissions.required[0]), "Read files in docs/**, **/*.word.json");
+assert.equal(permissionWords({ cap: "network", why: "x" }), "Reach the internet, through XO's egress proxy");
 assert.ok(globRe("**/*.word.json").test("a/b/c.word.json"));
 assert.ok(globRe("**/*.word.json").test("c.word.json"));
 assert.ok(!globRe("docs/*.word.json").test("docs/a/b.word.json"));
@@ -66,6 +67,5 @@ refused((p) => { x(p).surfaces.panel[0].when = "eval('x')"; }, /must look like/)
 refused((p) => { x(p).surfaces.canvas[0].for = "sheet"; }, /"for" must name/);
 refused((p) => { x(p).surfaces.panel.push({ ...x(p).surfaces.panel[0] }); }, /its own short id/);
 refused((p) => { x(p).surfaces.settings.push({ name: "s", label: "S", type: "html" }); }, /needs a label and a type/);
-refused((p) => { x(p).permissions.optional.push({ cap: "network", hosts: ["127.0.0.1"], why: "x" }); }, /hosts must be named/);
 refused((p) => { x(p).tools.word_create.risk = "low"; }, /risk is/);
 console.log("ok manifest: the Word fixture passes; every unsafe or unknown field is refused in plain words");

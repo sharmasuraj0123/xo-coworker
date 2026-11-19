@@ -1,8 +1,8 @@
 // @ts-check
-import { esc } from "./html.js";
+import { esc } from "../core/platform/util.js";
 import { checkManifest, permissionWords } from "./manifest.js";
 
-/** @typedef {import("./manifest.js").Permission} Permission @typedef {import("./manifest.js").App} App @typedef {{ state?: string, granted?: string[], optional?: string[] }} ProjectGrant @typedef {{ id: string, name?: string, version?: string, state?: string, development?: boolean, previous?: string, error?: string, manifest?: unknown, projects?: Record<string, ProjectGrant> }} Row @typedef {{ staging_id: string, sha256: string, id: string, name?: string, version?: string, commit?: string, publisher?: string, development?: boolean, permissions?: { required?: Permission[], optional?: Permission[] }, routes?: Array<{ words?: string, routes?: string[] }>, hosts?: string[], secrets?: string[], warnings?: string[], size?: number }} Staged @typedef {{ mode: "list" | "install" | "sheet" | "app", rows: Row[], loading: boolean, error: string, busy: string, source: "git" | "path", staged: Staged | null, appId: string, grantFor: string, activity: Array<{ at?: string, what?: string, outcome?: string }> | null, values: Record<string, Record<string, unknown>> }} State @typedef {{ projects: Array<{ id: string, name: string }>, project?: string }} Ctx */
+/** @typedef {import("./manifest.js").Permission} Permission @typedef {import("./manifest.js").App} App @typedef {{ state?: string, granted?: string[], optional?: string[] }} ProjectGrant @typedef {{ id: string, name?: string, version?: string, state?: string, development?: boolean, previous?: string, error?: string, manifest?: unknown, projects?: Record<string, ProjectGrant> }} Row @typedef {{ staging_id: string, sha256: string, id: string, name?: string, version?: string, commit?: string, publisher?: string, development?: boolean, permissions?: { required?: Permission[], optional?: Permission[] }, routes?: Array<{ words?: string, routes?: string[] }>, secrets?: string[], warnings?: string[], size?: number }} Staged @typedef {{ mode: "list" | "install" | "sheet" | "app", rows: Row[], loading: boolean, error: string, busy: string, source: "git" | "path", staged: Staged | null, appId: string, grantFor: string, activity: Array<{ at?: string, what?: string, outcome?: string }> | null, values: Record<string, Record<string, unknown>> }} State @typedef {{ projects: Array<{ id: string, name: string }>, project?: string }} Ctx */
 
 /** @param {string} label @param {string} act @param {Record<string, string>} [data] @param {string} [extra] */
 const btn = (label, act, data = {}, extra = "") =>
@@ -53,7 +53,6 @@ function sheet(s) {
 <p class="set-lead">${esc([st.id, st.version && `v${st.version}`, st.publisher || "Unverified publisher", st.commit && `commit ${String(st.commit).slice(0, 12)}`, st.development && "Development: loads from a folder you can edit"].filter(Boolean).join(" · "))}</p>
 ${perms(st.permissions?.required, "It will be able to")}${perms(st.permissions?.optional, "It may ask later to")}
 ${routes ? sec("XO routes it uses", routes) : ""}
-${(st.hosts || []).length ? sec("Internet", `<p class="set-lead">${esc((st.hosts || []).join(", "))}</p>`) : ""}
 ${(st.secrets || []).length ? sec("Your keys, by name (its server only)", `<p class="set-lead">${(st.secrets || []).map((x) => `<code>${esc(x)}</code>`).join(" ")}</p>`) : ""}
 ${(st.warnings || []).map((w) => `<p class="set-note">${esc(w)}</p>`).join("")}
 <p class="set-lead">Installing runs nothing. You choose the projects it shows in next.</p>

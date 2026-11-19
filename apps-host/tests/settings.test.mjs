@@ -13,7 +13,7 @@ const evil = view(/** @type {any} */ ({ ...base, rows: [{ id: "x.y", name: "<img
 assert.ok(!evil.includes("<img src=x") && evil.includes("&lt;img src=x onerror=alert(1)&gt;"), "names are escaped");
 assert.ok(!evil.includes('1"><b>'));
 
-const staged = { staging_id: "s1", sha256: "a".repeat(64), id: "dev.example.word", name: "Word", version: "0.3.0", publisher: "", commit: "0123456789abcdef", permissions: WORD.extensions["space.xo"].permissions, routes: [{ words: "Start threads and send messages in this project, as the app", routes: ["POST /api/chat/chats/{chat_id}/messages"] }], secrets: ["API_KEY"], hosts: ["api.example.com"] };
+const staged = { staging_id: "s1", sha256: "a".repeat(64), id: "dev.example.word", name: "Word", version: "0.3.0", publisher: "", commit: "0123456789abcdef", permissions: WORD.extensions["space.xo"].permissions, routes: [{ words: "Start threads and send messages in this project, as the app", routes: ["POST /api/chat/chats/{chat_id}/messages"] }], secrets: ["API_KEY"] };
 const sheet = view(/** @type {any} */ ({ ...base, mode: "sheet", staged }), ctx);
 assert.match(sheet, /Install Word\?/);
 assert.match(sheet, /Unverified publisher/);
