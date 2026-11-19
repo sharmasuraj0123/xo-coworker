@@ -394,7 +394,6 @@ button:disabled{cursor:default}
   .top .tw-act:not(.tw-more)>span{display:none}
   .top .tw-rt{display:none}
 }
-   grader on 8aa58d3, C024: the state's whole background beat the hover's, on equal specificity) */
 .thead{flex:none;padding:0 var(--hg) 10px;border-bottom:1px solid var(--line-faint)}
 .ckbar{border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-faint);overflow:hidden;transition:border-color var(--d-in) var(--ease),background var(--d-in) var(--ease)}
 .ckbar.m-needs{border-color:rgb(245 166 35 / .24)}
