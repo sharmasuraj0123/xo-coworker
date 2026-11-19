@@ -16453,40 +16453,40 @@
    "home": "core/platform/util.js"
   },
   "js/util.js::exports::WORKSPACE": {
-   "status": "moved",
-   "home": "core/platform/util.js"
+   "status": "deleted",
+   "reason": "nothing imported it (core/platform/tests/exports-used.test.mjs); record.js and app.js keep their own plural"
   },
   "js/util.js::exports::WORKSPACE_ID": {
-   "status": "moved",
-   "home": "core/platform/util.js"
+   "status": "deleted",
+   "reason": "nothing imported it (core/platform/tests/exports-used.test.mjs); record.js and app.js keep their own plural"
   },
   "js/util.js::exports::chatLabel": {
-   "status": "moved",
-   "home": "core/platform/util.js"
+   "status": "deleted",
+   "reason": "nothing imported it (core/platform/tests/exports-used.test.mjs); record.js and app.js keep their own plural"
   },
   "js/util.js::exports::toMs": {
    "status": "moved",
    "home": "core/platform/time.js"
   },
   "js/util.js::exports::relTime": {
-   "status": "moved",
-   "home": "core/platform/time.js"
+   "status": "deleted",
+   "reason": "nothing imported it (core/platform/tests/exports-used.test.mjs); record.js and app.js keep their own plural"
   },
   "js/util.js::exports::clockTime": {
-   "status": "moved",
-   "home": "core/platform/time.js"
+   "status": "deleted",
+   "reason": "nothing imported it (core/platform/tests/exports-used.test.mjs); record.js and app.js keep their own plural"
   },
   "js/util.js::exports::fullTime": {
-   "status": "moved",
-   "home": "core/platform/time.js"
+   "status": "deleted",
+   "reason": "nothing imported it (core/platform/tests/exports-used.test.mjs); record.js and app.js keep their own plural"
   },
   "js/util.js::exports::dayLabel": {
-   "status": "moved",
-   "home": "core/platform/time.js"
+   "status": "deleted",
+   "reason": "nothing imported it (core/platform/tests/exports-used.test.mjs); record.js and app.js keep their own plural"
   },
   "js/util.js::exports::plural": {
-   "status": "moved",
-   "home": "core/platform/util.js"
+   "status": "deleted",
+   "reason": "nothing imported it (core/platform/tests/exports-used.test.mjs); record.js and app.js keep their own plural"
   },
   "js/util.js::exports::isImagePath": {
    "status": "moved",
@@ -16509,32 +16509,32 @@
    "home": "core/platform/util.js"
   },
   "js/util.js::functions::chatLabel": {
-   "status": "moved",
-   "home": "core/platform/util.js"
+   "status": "deleted",
+   "reason": "nothing imported it (core/platform/tests/exports-used.test.mjs); record.js and app.js keep their own plural"
   },
   "js/util.js::functions::toMs": {
    "status": "moved",
    "home": "core/platform/time.js"
   },
   "js/util.js::functions::relTime": {
-   "status": "moved",
-   "home": "core/platform/time.js"
+   "status": "deleted",
+   "reason": "nothing imported it (core/platform/tests/exports-used.test.mjs); record.js and app.js keep their own plural"
   },
   "js/util.js::functions::clockTime": {
-   "status": "moved",
-   "home": "core/platform/time.js"
+   "status": "deleted",
+   "reason": "nothing imported it (core/platform/tests/exports-used.test.mjs); record.js and app.js keep their own plural"
   },
   "js/util.js::functions::fullTime": {
-   "status": "moved",
-   "home": "core/platform/time.js"
+   "status": "deleted",
+   "reason": "nothing imported it (core/platform/tests/exports-used.test.mjs); record.js and app.js keep their own plural"
   },
   "js/util.js::functions::dayLabel": {
-   "status": "moved",
-   "home": "core/platform/time.js"
+   "status": "deleted",
+   "reason": "nothing imported it (core/platform/tests/exports-used.test.mjs); record.js and app.js keep their own plural"
   },
   "js/util.js::functions::plural": {
-   "status": "moved",
-   "home": "core/platform/util.js"
+   "status": "deleted",
+   "reason": "nothing imported it (core/platform/tests/exports-used.test.mjs); record.js and app.js keep their own plural"
   },
   "js/util.js::functions::copyText": {
    "status": "moved",

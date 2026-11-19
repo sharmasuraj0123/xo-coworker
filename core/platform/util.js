@@ -16,19 +16,6 @@ export function esc(value) {
   return String(value ?? "").replace(/[&<>"'`]/g, (c) => ESC[c]);
 }
 
-export const WORKSPACE = "workspace";
-export const WORKSPACE_ID = "chat_workspace";
-
-/** @param {string | null | undefined} chat */
-export function chatLabel(chat) {
-  return chat === WORKSPACE ? "Workspace" : String(chat || "");
-}
-
-/** @param {number} n @param {string} one @param {string} [many] */
-export function plural(n, one, many = one + "s") {
-  return `${n} ${n === 1 ? one : many}`;
-}
-
 /** Image types the file viewer shows, by suffix (the server's /image route takes the same ones). */
 const IMAGE_EXT = /\.(png|jpe?g|gif|webp|avif|bmp|ico|svg)$/i;
 /** @param {string | null | undefined} path */
