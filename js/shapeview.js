@@ -5,10 +5,9 @@
 //
 // app.js calls: apply (the shape changed), open (the page was opened), homeOrder.
 
-import { esc } from "../core/platform/index.js";
+import { esc, once, isPending, busyAttrs } from "../core/platform/index.js";
 import { ICON } from "./ui.js";
 import { PRESETS, createShape, describeShape } from "./shape.js";
-import { once, isPending, busyAttrs } from "./pending.js";
 import { redraw } from "./redraw.js";
 import { bringWhole } from "./focusview.js";
 import { rovingTab } from "./keynav.js";

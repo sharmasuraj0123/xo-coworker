@@ -7,14 +7,13 @@
 
 import { api, clientId, NEWEST } from "./api.js";
 import { esc } from "./world.js";
-import { space } from "../core/platform/index.js";
+import { space, once } from "../core/platform/index.js";
 import { ICON } from "./ui.js";
 import { renderMarkdown } from "./markdown.js";
 import { turnHtml, turnAv } from "./turnview.js";
 import { cliName, mainRuntime, chatOrder, BUSY_STATES, heldShort, heldBadge } from "./timeline.js";
 import { redraw } from "./redraw.js";
 import { rovingTab } from "./keynav.js";
-import { once } from "./pending.js";
 
 const MODE_WORDS = {
   auto: ["Auto", "Its own safety check decides; most actions run unasked."],
@@ -360,7 +359,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     await deliver(local, sid);
   }
   /** One request at a time per message (its client_id): a Retry pressed again, or the would-stop question answered
-   *  twice, joins the one that's out (js/pending.js). */
+   *  twice, joins the one that's out (core/platform/pending.js). */
   function deliver(local, sid) { return once(`chat-send:${local.cid}`, () => post(local, sid)); }
   async function post(local, sid) {
     local.status = "sending";

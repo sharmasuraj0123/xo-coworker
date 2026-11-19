@@ -40,7 +40,7 @@ class XoSelect extends HTMLElement {
   get selectedIndex() { return this.options.findIndex((o) => o.value === this.value); }
   get disabled() { return this.hasAttribute("disabled"); }
   set disabled(on) { this.toggleAttribute("disabled", !!on); }
-  /** Held while what it chose is being saved (aria-busy, aria-disabled on the host, js/pending.js busyAttrs): it keeps
+  /** Held while what it chose is being saved (aria-busy, aria-disabled on the host, core/platform/pending.js busyAttrs): it keeps
    *  focus and its place, but takes no new choice and doesn't open (the create-project grader on 9d1f71b, S209: a busy
    *  threshold still opened and took 90%, sent nothing, and the 70% answer put it back: the choice thrown away). */
   get held() { return this.getAttribute("aria-busy") === "true" || this.getAttribute("aria-disabled") === "true"; }

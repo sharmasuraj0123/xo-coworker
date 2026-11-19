@@ -2424,8 +2424,9 @@
    "home": "core/services/paths.js"
   },
   "js/pending.js": {
-   "status": "planned",
-   "home": "core/platform/pending.js"
+   "status": "moved",
+   "home": "core/platform/pending.js",
+   "note": "js/pending.js re-exports core/platform until the shims go"
   },
   "js/projicons.js": {
    "status": "planned",
@@ -12570,19 +12571,19 @@
    "home": "core/services/paths.js"
   },
   "js/pending.js::exports::isPending": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/pending.js"
   },
   "js/pending.js::exports::busyAttrs": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/pending.js"
   },
   "js/pending.js::exports::once": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/pending.js"
   },
   "js/pending.js::functions::once": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/pending.js"
   },
   "js/projicons.js::exports::TOPICS": {

@@ -4,11 +4,12 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 912 |
+| planned | 911 |
 | vendor | 367 |
 | split | 34 |
+| moved | 1 |
 
-Items inside first-party files: 2290 (planned 1367, split-region 887, moved 19, deleted 17), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1363, split-region 887, moved 23, deleted 17), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -75,7 +76,7 @@ Items inside first-party files: 2290 (planned 1367, split-region 887, moved 19, 
 | `js/paid.js` | 152 | planned | core/services/world/paid.js |
 | `js/paidview.js` | 21 | planned | modules/decisions/cards/paid.js |
 | `js/paths.js` | 83 | planned | core/services/paths.js |
-| `js/pending.js` | 22 | planned | core/platform/pending.js |
+| `js/pending.js` | 22 | moved | core/platform/pending.js |
 | `js/projicons.js` | 83 | planned | modules/projects/projicons.js |
 | `js/quickopen.js` | 179 | planned | modules/search/quickopen.js |
 | `js/record.js` | 340 | split | modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js |

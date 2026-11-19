@@ -4,3 +4,4 @@
 export * from "./util.js";
 export * from "./time.js";
 export * from "./clipboard.js";
+export * from "./pending.js";
