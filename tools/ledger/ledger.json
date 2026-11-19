@@ -2603,7 +2603,8 @@
     "core/platform/dom",
     "core/platform/time",
     "core/services/sound"
-   ]
+   ],
+   "note": "reconcile in core/ui/redraw.js, the motion in core/ui/motion.js, the icon names in core/ui/icons/names.js, the time words in core/platform; ui.js keeps $, $$, plain and the sounds, and re-exports the rest until the shims go"
   },
   "js/util.js": {
    "status": "split",
@@ -15439,7 +15440,8 @@
   },
   "js/ui.js::exports::EASE": {
    "status": "moved",
-   "home": "core/ui/motion.js"
+   "home": "core/platform/motion.js",
+   "note": "core/ui/motion.js re-exports it"
   },
   "js/ui.js::exports::EXPAND_MS": {
    "status": "moved",
@@ -15483,7 +15485,8 @@
   },
   "js/ui.js::exports::RM": {
    "status": "moved",
-   "home": "core/ui/motion.js"
+   "home": "core/platform/motion.js",
+   "note": "core/ui/motion.js re-exports it"
   },
   "js/ui.js::exports::wait": {
    "status": "moved",

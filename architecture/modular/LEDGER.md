@@ -102,7 +102,7 @@ Items inside first-party files: 2290 (planned 1121, split-region 747, moved 398,
 | `js/storm.js` | 1242 | split | core/services/storm/client, core/services/storm/stream, core/services/storm/reducers/*, core/services/storm/selectors/*, core/services/storm/commands, core/services/account, core/services/review |
 | `js/timeline.js` | 816 | split | core/services/world/normalise.js, modules/conversation/model.js, modules/threads, modules/decisions |
 | `js/turnview.js` | 331 | planned | modules/conversation/blocks/turn.js |
-| `js/ui.js` | 397 | split | core/ui/icons, core/ui/motion, core/ui/redraw (reconcile), core/platform/dom, core/platform/time, core/services/sound |
+| `js/ui.js` | 397 | split | core/ui/icons, core/ui/motion, core/ui/redraw (reconcile), core/platform/dom, core/platform/time, core/services/sound · next: reconcile in core/ui/redraw.js, the motion in core/ui/motion.js, the icon names in core/ui/icons/names.js, the time words in core/platform; ui.js keeps $, $$, plain and the sounds, and re-exports the rest until the shims go |
 | `js/util.js` | 112 | split | core/platform/util.js, core/platform/time.js, core/platform/clipboard.js · next: js/util.js re-exports core/platform until the shims go |
 | `js/viewer.js` | 1157 | split | modules/files/viewer, modules/files/documents (external-change intake), modules/changes/file-diff |
 | `js/words.js` | 48 | planned | modules/conversation/words.js |
