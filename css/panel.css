@@ -53,8 +53,14 @@ body.stage-over .stage{box-shadow:var(--e2)}
    (js/files.js fitList) with no foot inside its scroller, and it settles on a row when a scroll ends (not CSS
    scroll snapping: thousands of snap areas made a 2,000-row tree four times slower to click and scroll) */
 .fl-list{padding:0 6px}
-.fl-sec{box-sizing:border-box;height:28px;margin:0;padding:8px 6px 4px;font:var(--fw-strong) var(--fs-sm)/var(--lh-12) var(--sans);letter-spacing:var(--tr-12);color:var(--ink-4)}
-.fl-sec:first-child{padding-top:8px}
+.fl-sec{box-sizing:border-box;height:var(--h-ctl);margin:0;padding:0 6px;font:var(--fw-strong) var(--fs-sm)/var(--lh-12) var(--sans);letter-spacing:var(--tr-12);color:var(--ink-4)}
+.fl-sec:first-child{padding-top:0}
+/* a section's head is its disclosure (Changed, All files), as a panel frame's is: folded, its rows go and its count shows */
+button.fl-sec{display:flex;align-items:center;gap:4px;width:100%;border:0;background:none;text-align:left;cursor:pointer;transition:color var(--d-hover) var(--ease)}
+button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
+.fl-sec .fl-c svg{transition:transform var(--d-hover) var(--ease)}
+.fl-sec[aria-expanded="true"] .fl-c svg{transform:rotate(90deg)}
+.fl-sec-n{margin-left:auto;font-weight:var(--fw-regular);color:var(--ink-5)}
 .fl-r{height:var(--h-ctl);min-height:var(--h-ctl);gap:8px;padding:0 6px 0 calc(6px + var(--d) * 16px);border-radius:var(--r-sm);font:var(--fw-regular) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-2)}
 .fl-r.is-dir{color:var(--ink-2);font-weight:var(--fw-regular)}
 .fl-r:hover{background:var(--surface);color:var(--ink)}

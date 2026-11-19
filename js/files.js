@@ -30,7 +30,6 @@ import { rank, marked } from "./fuzzy.js";
 
 const WIDE = 600;       // the panel's width from which tree and file sit side by side (the panel goes to 720)
 const TOUCHED = 6;      // "Touched by agents" shows at most this many
-const ROW = 28;         // a row's height, and a heading's: the list is a whole number of them (css/panel.css)
 
 const I = (d, w = 15) => `<svg viewBox="0 0 24 24" width="${w}" height="${w}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 export const FILES_ICON = I('<path d="M3.5 18V6.5A1.5 1.5 0 0 1 5 5h4l2 2h8A1.5 1.5 0 0 1 20.5 8.5V18a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18z"/>', 16);
@@ -302,17 +301,34 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
    *  nothing: the panel's Changes says the same, and the turns' marks aren't the place's state. */
   function secHtml(s, tl) {
     const cs = changes && s.key === F.viewKey ? changes.of(F.view) : null;
-    if (cs && cs.state === "ok" && !cs.files.size) return "";
+    if (cs && cs.state === "ok" && !cs.files.size) { return ""; }
     if (cs && cs.state === "ok") {
       const live = changes.activity(F.view).live;
-      return `<p class="fl-sec">Changed ${s.base ? "in this thread" : "here"}</p>` + [...cs.files.values()].map((f) => {
+      if (folded(s, "changed")) return secHead(s, "changed", `Changed ${s.base ? "in this thread" : "here"}`, cs.files.size) + secHead(s, "all", "All files");
+      return secHead(s, "changed", `Changed ${s.base ? "in this thread" : "here"}`, cs.files.size) + [...cs.files.values()].map((f) => {
         const rel = s.base ? `${s.base}/${f.path}` : f.path, on = viewer.hasFile && viewer.file && viewer.file.rel === rel && viewer.file.show === "changes";
         return `<button type="button" class="fl-r is-touch${on ? " is-on" : ""}" style="--d:0" data-fl-change="${esc(rel)}" title="${esc(f.path)}"><span class="fl-c fl-i">${fileIcon(f.path)}</span><span class="fl-n">${esc(f.path)}</span>${live.has(f.path) ? `<span class="fl-who w-live"><i></i>editing now</span>` : f.binary ? "" : countsHtml(f)}</button>`;
-      }).join("") + `<p class="fl-sec">All files</p>`;
+      }).join("") + secHead(s, "all", "All files");
     }
     const top = tl.slice(0, TOUCHED);
-    return top.length ? `<p class="fl-sec">Touched by agents</p>` + top.map((x) => `<button type="button" class="fl-r is-touch" style="--d:0" data-fl-touch="${esc(x.rel)}" title="${esc(`${x.path} · ${x.who}`)}"><span class="fl-c fl-i">${fileIcon(x.path)}</span><span class="fl-n">${esc(x.path)}</span>${dot(x, true)}</button>`).join("") + `<p class="fl-sec">All files</p>` : "";
+    if (!top.length) return "";
+    return secHead(s, "changed", "Touched by agents", top.length) + (folded(s, "changed") ? "" : top.map((x) => `<button type="button" class="fl-r is-touch" style="--d:0" data-fl-touch="${esc(x.rel)}" title="${esc(`${x.path} · ${x.who}`)}"><span class="fl-c fl-i">${fileIcon(x.path)}</span><span class="fl-n">${esc(x.path)}</span>${dot(x, true)}</button>`).join("")) + secHead(s, "all", "All files");
   }
+  // ── sections that fold (the owner, 19 Nov 13:03Z: "all files and changed files should be minimizable"): a section's
+  // head is its disclosure, as a panel frame's is; folded or open is kept per project in this browser ──
+  const SECS_KEY = "xo-files-secs";
+  const secState = (() => { try { return JSON.parse(localStorage.getItem(SECS_KEY) || "{}") || {}; } catch { return {}; } })();
+  const folded = (s, part) => !!(secState[s.project] && secState[s.project][part]);
+  function setFolded(s, part, on) {
+    const p = secState[s.project] || (secState[s.project] = {});
+    if (on) p[part] = true; else delete p[part];
+    if (!Object.keys(p).length) delete secState[s.project];
+    try { localStorage.setItem(SECS_KEY, JSON.stringify(secState)); } catch { /* kept for this visit only */ }
+  }
+  const secHead = (s, part, words, n = null) => {
+    const open = !folded(s, part);
+    return `<button type="button" class="fl-sec" data-fl-sec="${part}" aria-expanded="${open}" title="${open ? "Fold" : "Show"} ${esc(words.toLowerCase())}"><span class="fl-c" aria-hidden="true">${CH}</span><span class="fl-sec-t">${esc(words)}</span>${!open && n != null ? `<span class="fl-sec-n">${n}</span>` : ""}</button>`;
+  };
   const pickHtml = () => `<div class="fl-head"><div class="fl-crumb"><b>Projects</b></div></div><div class="fl-list">` +
     (world.state.projects || []).filter((p) => p && p.id !== "workspace").map((p) => `<button type="button" class="fl-r is-dir" style="--d:0" data-fl-pick="${esc(p.id)}"><span class="fl-c">${CH}</span><span class="fl-n">${esc(p.name || p.id)}</span>${world.state.threads.some((t) => t.project === p.id && isBusy(t)) ? `<span class="fl-who w-live" title="Agents at work"><i></i></span>` : ""}</button>`).join("") + `</div>`;
   const put = (node, html) => { if (node._h !== html) { node.innerHTML = html; node._h = html; return true; } return false; };
@@ -327,7 +343,6 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       tree.innerHTML = `<div class="fl-head"></div><div class="fl-list"><div class="fl-secs"></div><div class="fl-g" data-fl-g=""></div></div>`;
       tree._h = null; T.key = s.key; T.on = null; T.q = null;
       T.groups = new Map([["", { el: tree.querySelector(".fl-list > .fl-g"), sig: null, open: new Set() }]]);
-      requestAnimationFrame(fitList);
     }
     const head = tree.querySelector(".fl-head");
     const qi = head.querySelector("[data-fl-q]"), typing = qi && document.activeElement === qi ? [qi.selectionStart, qi.selectionEnd] : null;
@@ -343,6 +358,10 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     const u = F.undo && (!F.undo.s || F.undo.s.key === s.key) ? F.undo : null;
     const undoNote = u ? (u.err ? `<p class="fl-note is-err" role="alert">${esc(u.err)} <button type="button" class="fl-link" data-fl-undo>OK</button></p>` : `<p class="fl-note" role="status">Deleted ${esc(u.name)} <button type="button" class="fl-link" data-fl-undo>Undo</button></p>`) : "";
     const secs = tree.querySelector(".fl-secs"), sh = undoNote + (finding ? "" : secHtml(s, tl));
+    // All files folded (its head shown): the tree under it is hidden, kept as it was (its open folders, where you were)
+    const allFolded = !finding && sh.includes('data-fl-sec="all"') && folded(s, "all");
+    const rootG = tree.querySelector(".fl-list > .fl-g");
+    if (rootG && rootG.hidden !== allFolded) rootG.hidden = allFolded;
     if (secs._h !== sh) { redraw(secs, sh); secs._h = sh; }
     const open = setOf(s.key), openIn = new Map();
     for (const p of open) { const at = parentOf(p); if (!openIn.has(at)) openIn.set(at, []); openIn.get(at).push(p); }
@@ -453,17 +472,6 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     return false;
   }
 
-  /** Whole rows: the list is a whole number of its 28 px rows tall (headings are 28 too), and it snaps to
-   *  them, so the last row on screen is never cut (Astra, 5 Nov). */
-  function fitList() {
-    const tree = F.host && F.host.querySelector(".fl-tree"), list = tree && tree.querySelector(".fl-list");
-    if (!list) return;
-    const head = tree.querySelector(".fl-head"), room = tree.clientHeight - (head ? head.offsetHeight : 0);
-    const h = room > 0 ? Math.floor(room / ROW) * ROW : 0;
-    const px = h ? `${h}px` : "";
-    if (list.style.maxHeight !== px) list.style.maxHeight = px;
-  }
-
   // ── folded to a rail (beside a file) ─────────────────────────────────────
   /** Fold or open the tree; `onFold` (js/filesview.js) hears it when it was you. */
   function fold(on, { mine = false } = {}) {
@@ -477,8 +485,11 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     fold(false, { mine: true });
     const tree = F.host.querySelector(".fl-tree"), list = tree.querySelector(".fl-list");
     if (part === "find") { tree.querySelector("[data-fl-q]")?.focus(); return; }
+    // the section asked for opens if it was folded
+    const which = part === "all" ? "all" : "changed";
+    if (F.scope && F.scope.project && folded(F.scope, which)) { setFolded(F.scope, which, false); paint(); }
     const secs = [...tree.querySelectorAll(".fl-sec")];
-    const at = part === "all" ? secs.find((x) => /^All files/.test(x.textContent)) : secs[0];
+    const at = part === "all" ? tree.querySelector('[data-fl-sec="all"]') : secs[0];
     if (list) list.scrollTop = at && part === "all" ? at.offsetTop - list.offsetTop : 0;
     (part === "all" ? tree.querySelector(".fl-g .fl-r") : tree.querySelector(".fl-secs .fl-r") || tree.querySelector(".fl-r"))?.focus({ preventScroll: true });
   }
@@ -734,6 +745,8 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       const mb = t.closest("[data-fl-more]");
       if (mb) { if (M.menu.hidden || M.from !== mb) openMenu(mb); else closeMenu(true); return; }
       if (t.closest("[data-fl-new]")) { startNew(""); return; }
+      const sec = t.closest("[data-fl-sec]");
+      if (sec) { const part = sec.dataset.flSec; setFolded(F.scope, part, !folded(F.scope, part)); paint(); host.querySelector(`[data-fl-sec="${part}"]`)?.focus({ preventScroll: true }); return; }
       if (t.closest("[data-fl-undo]")) { if (F.undo && F.undo.editId) undoRemove(); else { F.undo = null; paint(); } return; }
       const dirB = t.closest("[data-fl-dir]");
       if (dirB) {
@@ -849,18 +862,9 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       const w = host.getBoundingClientRect().width >= WIDE;
       if (w !== F.wide) { F.wide = w; paint(); if (w) frontPage(); }
     }).observe(host);
-    // the list's whole rows follow the tree's own height (it shows, folds, or the window changes)
-    if (typeof ResizeObserver === "function") new ResizeObserver(() => fitList()).observe(host.querySelector(".fl-tree"));
-    // a scroll that ends between rows settles on the nearest one (every row, heading and note is 28 px)
-    let settleT = 0;
-    const settle = (e) => {
-      const l = e.target;
-      if (!l.classList || !l.classList.contains("fl-list")) return;
-      const t = Math.round(l.scrollTop / ROW) * ROW;
-      if (Math.abs(t - l.scrollTop) >= 1 && t <= l.scrollHeight - l.clientHeight) l.scrollTo({ top: t, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
-    };
-    if ("onscrollend" in window) host.addEventListener("scrollend", settle, true);
-    else host.addEventListener("scroll", (e) => { clearTimeout(settleT); settleT = setTimeout(() => settle(e), 160); }, true);
+    // no snapping: the list scrolls where you leave it, its end always in reach (it settled every scroll on a 28 px
+    // grid its 32 px rows no longer keep, and pulled a scroll to the end back by up to 14 px: the owner, 19 Nov 13:03Z
+    // "i am not able to scroll till bottom, its coming back automatically")
   }
 
   return {
