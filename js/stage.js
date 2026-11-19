@@ -294,7 +294,8 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
       S.open = true;
       S.returnTo = document.activeElement;
       el.hidden = false;
-      el.classList.remove("is-in"); void el.offsetWidth; el.classList.add("is-in");
+      // its entrance starts in the next frame, not by forcing a layout in the middle of the switch that brought it
+      el.classList.remove("is-in"); requestAnimationFrame(() => { if (S.open) el.classList.add("is-in"); });
       document.body.classList.add("stage-open");
     }
     S.railOff = true; // opened on purpose: shown whole, even beside Files

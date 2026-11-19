@@ -210,6 +210,23 @@ export function edgePath(p, c, { nw = NW, nh = NH, r = 8 } = {}) {
  *  · standalone (#map, until the panel lands): open/close/toggle/button/tabs, files through `viewer`.
  *    None of that runs once the Map is mounted.
  */
+/**
+ * Run fn once the frame in hand has painted and input has paused (no key, press, wheel or touch for PAUSE_MS), and at
+ * the latest after MAX_MS: work that can wait never shares the frame of the click that brought it (the page is never
+ * idle here, so requestIdleCallback won't do: memory "page-never-idle").
+ */
+const PAUSE_MS = 120, MAX_MS = 700;
+function afterPause(fn) {
+  let last = performance.now();
+  const start = last, seen = () => { last = performance.now(); };
+  const evs = ["keydown", "pointerdown", "wheel", "touchstart"];
+  for (const ev of evs) addEventListener(ev, seen, { capture: true, passive: true });
+  const go = () => { for (const ev of evs) removeEventListener(ev, seen, { capture: true }); fn(); };
+  const check = () => { const now = performance.now(); if (now - last >= PAUSE_MS || now - start >= MAX_MS) go(); else setTimeout(check, PAUSE_MS - (now - last)); };
+  // after this frame paints: a frame callback, then a task
+  requestAnimationFrame(() => setTimeout(check, 0));
+}
+
 export function createMap({ world, viewer = null, go, announce, isBusy, onChange, openFile = null }) {
   let el = $("#map"); // the panel it draws in: its own #map, or a host's tab (mount)
   let saved = false; // standalone only: was #map open last time (read on the first render, if nothing mounted it)
@@ -980,7 +997,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
 
   /** Draw what changed: the head as words, the boxes when the drawing changes, the cursors always (they glide). */
   function paint() {
-    if (!M.open || !el || (!M.hosted && viewer && viewer.isOpen)) return; // under the viewer nothing moves, so focus comes back to the box it left
+    if (!M.open || !el || M.waking || (!M.hosted && viewer && viewer.isOpen)) return; // under the viewer nothing moves, so focus comes back to the box it left
     const scope = scopeOf(M.view);
     // a different thread or project (or view): it gets its own first look
     const sk = scope.key + "|" + M.mode;
@@ -1082,15 +1099,15 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
         // nearest node above it, else the drawing: never the page (Astra S082)
         if (fid != null) focusNode(nodes, fid);
       }
+      // read first, then write: the canvas is measured once, before the cursors are written (a read per cursor between
+      // their writes laid the page out again for each one)
+      const cam = camOf(scope), vw = view()?.clientWidth || 0, tw = tagW();
       cursors(ags, (id) => {
         const n = byId.get(id);
         if (!n) return null;
         let side = sideOf(n);
         // a name that would run off the canvas's right edge goes on the box's left instead
-        if (side === "right") {
-          const c = camOf(scope), v = view();
-          if (v && v.clientWidth && c.x + (n.x + PAD + NW + 2 + tagW()) * c.s > v.clientWidth - 8) side = "left";
-        }
+        if (side === "right" && vw && cam.x + (n.x + PAD + NW + 2 + tw) * cam.s > vw - 8) side = "left";
         return { x: side === "left" ? n.x + PAD + 10 : n.x + PAD + NW + 2, y: n.y + PAD + 9, cx: n.x + PAD + NW / 2, cy: n.y + PAD + NH / 2, side };
       });
     }
@@ -1293,13 +1310,24 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
       if (v) M.view = v;
       M.open = true;
       if (!view() || el.dataset.scope !== scopeOf(M.view).key + "|" + M.mode) { el.dataset.scope = ""; M.lastScope = null; }
-      if (!was) M.head = "";
-      paint();
-      const c = M.scope && camOf(M.scope);
-      if (c && !was) requestAnimationFrame(() => { paint(); frame(c); }); // its size may have changed while hidden
+      if (was) { paint(); return; }
+      // coming back (the panel returning as a file is put away): the panel's frame shows at once with the drawing as it
+      // was; the Map draws again once that switch has painted and your hands are still, not in the click that brought
+      // it (the owner, 19 Nov 12:06Z: "back to the chat … seems to have a lag": the Map's redraw was ~30 of the click's
+      // whole-page style passes)
+      M.head = "";
+      M.waking = true;
+      const my = (M.wakeGen = (M.wakeGen || 0) + 1);
+      afterPause(() => {
+        if (my !== M.wakeGen || !M.open) return;
+        M.waking = false;
+        paint();
+        const c = M.scope && camOf(M.scope);
+        if (c) requestAnimationFrame(() => { if (M.open && !M.waking) { paint(); frame(c); } }); // its size may have changed while hidden
+      });
     },
     /** The tab was hidden or the panel closed: stop the heavy work (the graph stops), keep camera and folds. */
-    hide() { M.open = false; if (M.raf) { cancelAnimationFrame(M.raf); M.raf = 0; } },
+    hide() { M.open = false; M.waking = false; M.wakeGen = (M.wakeGen || 0) + 1; if (M.raf) { cancelAnimationFrame(M.raf); M.raf = 0; } },
     /** The same as hide(), for a host that mounts each time the tab shows. */
     unmount() { this.hide(); },
     /** Agents at work in this view's scope: the tab's dot and the header button's dot. */
