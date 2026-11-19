@@ -2595,7 +2595,7 @@
     "core/services/storm/act.js",
     "core/services/storm/types.d.ts"
    ],
-   "note": "js/storm.js is a one-line re-export of core/services/storm until the shims go"
+   "note": "every importer points at core/services/storm, so it leaves with no re-export"
   },
   "js/timeline.js": {
    "status": "split",
