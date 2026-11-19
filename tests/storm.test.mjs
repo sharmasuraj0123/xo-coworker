@@ -285,7 +285,7 @@ t("stream: nudge never opens a second connection; close stops delivery", async (
   assert.equal(got.length, n);
 });
 
-// ── review items (js/review.js): every kind's answers come from its own options ──
+// ── review items (core/services/review.js): every kind's answers come from its own options ──
 const OPT = {
   once: { id: "once", decision: "allow", label: "Allow once", scope: "once" },
   thread: { id: "thread", decision: "allow", label: "Allow for this thread", scope: "thread", sentence: "In this thread, run exactly `npm test`" },

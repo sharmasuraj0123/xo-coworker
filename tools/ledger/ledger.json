@@ -2364,7 +2364,7 @@
     "modules/decisions/kit.js",
     "core/ui/components/hold.js"
    ],
-   "note": "the hold button and its guard are in core/ui/components/hold.js (kit.js re-exports them); the rest goes to modules/decisions"
+   "note": "the hold button and its guard are in core/ui/components/hold.js (modules/decisions/kit.js re-exports them)"
   },
   "js/launchpad.js": {
    "status": "planned",

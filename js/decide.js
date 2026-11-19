@@ -14,7 +14,7 @@
 // suggestion is a quiet line: never pre-selected, never focused, never sent,
 // no key takes it. Focus lands on the card itself, never on an answer.
 import { esc, WAITING } from "./world.js";
-import * as Kit from "./kit.js";
+import * as Kit from "../modules/decisions/kit.js";
 import * as K from "../core/platform/keys.js";
 import { EFFORT, effortOf, rank, evidenceFor, leverageOf, suggestFor, whyLine, estLine } from "./content.js";
 import { ICON, $, RM, clock, sound, dial, wait, morph, expand } from "./ui.js";

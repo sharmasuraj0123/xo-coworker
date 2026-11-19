@@ -114,7 +114,7 @@ globalThis.document = { querySelector: () => el(), querySelectorAll: () => [], g
 globalThis.localStorage = { getItem: () => null, setItem() {} };
 await t("Decide: a stop someone meant asks nothing; a crash and an older backend's \"failed\" keep Try again; its open review items still ask", async () => {
   const { createDecisions } = await import("../js/decide.js");
-  const Kit = await import("../js/kit.js");
+  const Kit = await import("../modules/decisions/kit.js");
   const mk = (id, extra) => ({ id, title: id, project: "demo", state: "failed", checklist: { items: [], done: 0, total: 0 }, asks: [], lastAt: 1, happened: "", stop: null, ...extra });
   const item = { id: "rv_1", kind: "approval", title: "Approve the schedule", risk: "notable", item: { id: "rv_1", kind: "approval", title: "Approve the schedule", options: [] } };
   const w = { state: { threads: [mk("meant", { stop: { by: "coordinator", reason: "r" }, asks: [item] }), mk("crash"), mk("older", { stop: undefined })], hosts: [] } };

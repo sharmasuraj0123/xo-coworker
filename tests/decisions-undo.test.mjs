@@ -11,7 +11,7 @@ g.MutationObserver = window.MutationObserver;
 g.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} };
 g.localStorage = { getItem: () => null, setItem() {}, removeItem() {} };
 
-const Kit = await import("../js/kit.js");
+const Kit = await import("../modules/decisions/kit.js");
 const { createDecisions } = await import("../js/decide.js");
 const { createPacing } = await import("../modules/decisions/pacing.js");
 

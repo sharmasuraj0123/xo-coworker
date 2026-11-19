@@ -6,7 +6,7 @@
 // The coordinator ranks asks by how much work a second of you buys
 // (leverage ÷ effort). Destructive asks are Think, set apart and never
 // forced first. Leverage is steps-left × a typical step.
-import * as Kit from "./kit.js";
+import * as Kit from "../modules/decisions/kit.js";
 
 export const EFFORT = {
   glance: { label: "Glance", time: "~5 s", secs: 5, long: "a 5-second glance", you: "5 s of you" },
