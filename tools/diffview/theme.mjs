@@ -113,7 +113,7 @@ export function codeColors(root = ROOT) {
   return { dark: of(p.dark), light: of(p.light) };
 }
 
-/** A TextMate theme from the code colours: the scopes js/highlight.js colours, mapped onto TextMate's. */
+/** A TextMate theme from the code colours: the scopes core/ui/markdown/highlight.js colours, mapped onto TextMate's. */
 export function textmate(name, type, c) {
   const s = (scope, foreground, fontStyle) => ({ scope, settings: fontStyle ? { foreground, fontStyle } : { foreground } });
   return {

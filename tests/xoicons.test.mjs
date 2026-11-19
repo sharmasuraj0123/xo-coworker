@@ -60,7 +60,7 @@ t("every icon a module names is in the pack", () => {
 t("no module keeps a hand-drawn icon: every set draws from the pack", () => {
   const sets = ["core/ui/icons/names.js", "js/stage.js", "js/map.js", "js/files.js", "js/filespage.js", "js/changesframe.js", "js/shapeview.js",
     "js/viewer.js", "js/lightbox.js", "js/create.js", "js/intel.js", "js/quickopen.js", "js/msgx.js", "js/turnview.js",
-    "js/launchpad.js", "js/markdown.js", "js/projicons.js"];
+    "js/launchpad.js", "core/ui/markdown/inline.js", "js/projicons.js"];
   for (const f of sets) assert.doesNotMatch(read(f), /<svg viewBox="0 0 24 24"|<path d="M|const I = \(d/, f);
   const ui = read("core/ui/icons/names.js");
   const block = ui.slice(ui.indexOf("export const ICON = {"), ui.indexOf("\n};", ui.indexOf("export const ICON = {")));

@@ -4,14 +4,14 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 660 |
+| planned | 656 |
 | vendor | 367 |
 | deleted | 232 |
-| split | 35 |
-| moved | 18 |
+| split | 36 |
+| moved | 21 |
 | kept | 1 |
 
-Items inside first-party files: 2290 (planned 1243, split-region 814, moved 214, deleted 19), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1168, split-region 814, moved 289, deleted 19), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -35,7 +35,7 @@ Items inside first-party files: 2290 (planned 1243, split-region 814, moved 214,
 | `js/blocks.js` | 241 | planned | core/services/world/turns.js |
 | `js/changes.js` | 194 | split | modules/changes/store.js, modules/conversation/refs.js (fileRef, lineRef), core/services/places.js |
 | `js/changesframe.js` | 323 | split | modules/changes/frame.js, core/ui/components/counts.js |
-| `js/chart.js` | 176 | planned | core/ui/markdown/chart.js |
+| `js/chart.js` | 176 | moved | core/ui/markdown/chart.js · next: js/chart.js re-exports it until the shims go |
 | `js/chats.js` | 452 | planned | modules/chats/ |
 | `js/comms.js` | 173 | planned | modules/conversation/blocks/comms.js |
 | `js/content.js` | 72 | planned | modules/decisions/rank.js |
@@ -55,7 +55,7 @@ Items inside first-party files: 2290 (planned 1243, split-region 814, moved 214,
 | `js/fuzzy.js` | 118 | moved | core/platform/fuzzy.js · next: js/fuzzy.js re-exports core/platform until the shims go |
 | `js/gestures.js` | 451 | split | core/platform/gestures.js, shell (the app's gestures: wireGestures, dockGestures, long press) · next: the drag primitive is in core/platform/gestures.js; the app's gestures stay in js/gestures.js until the shell takes them |
 | `js/herald.js` | 92 | split | core/services/notices.js, shell (notice renderer) |
-| `js/highlight.js` | 149 | planned | core/ui/markdown/highlight.js |
+| `js/highlight.js` | 149 | moved | core/ui/markdown/highlight.js · next: js/highlight.js re-exports it until the shims go |
 | `js/hopstate.js` | 13 | planned | core/services/world/hops.js |
 | `js/icon.js` | 24 | moved | core/ui/icons/icon.js · next: js/icon.js re-exports core/ui/icons/icon.js until the shims go |
 | `js/imagechange.js` | 120 | planned | modules/changes/imagechange.js |
@@ -67,7 +67,7 @@ Items inside first-party files: 2290 (planned 1243, split-region 814, moved 214,
 | `js/lightbox.js` | 384 | planned | core/ui/lightbox.js |
 | `js/lpapi.js` | 239 | split | modules/launchpad/client.js, modules/launchpad/model.js, core/services/github.js |
 | `js/map.js` | 1360 | split | modules/map, core/services/places.js, core/services/agent-activity.js |
-| `js/markdown.js` | 519 | planned | core/ui/markdown/markdown.js |
+| `js/markdown.js` | 519 | split | core/ui/markdown/markdown.js, core/ui/markdown/inline.js · next: blocks in markdown.js, inline text, links, pictures and the rich hooks in inline.js; js/markdown.js re-exports markdown.js until the shims go |
 | `js/mdlive.js` | 331 | planned | modules/files/editor/markdown-page.js |
 | `js/media.js` | 609 | split | modules/conversation/media/, core/ui/media (layout) |
 | `js/merge.js` | 101 | moved | core/platform/diff.js · next: js/merge.js re-exports core/platform/diff.js until the shims go |
@@ -85,7 +85,7 @@ Items inside first-party files: 2290 (planned 1243, split-region 814, moved 214,
 | `js/recordview.js` | 855 | split | modules/artifacts, modules/since |
 | `js/redraw.js` | 130 | moved | core/ui/redraw.js · next: js/redraw.js re-exports core/ui/redraw.js until the shims go |
 | `js/review.js` | 153 | planned | modules/decisions/items.js |
-| `js/rich.js` | 281 | planned | core/ui/markdown/rich.js |
+| `js/rich.js` | 281 | moved | core/ui/markdown/rich.js · next: js/rich.js re-exports it until the shims go |
 | `js/ring.js` | 65 | moved | core/ui/a11y/ring.js · next: js/ring.js re-exports core/ui/a11y/ring.js until the shims go; its two region selectors stay until files and changes contribute them |
 | `js/rtsettings.js` | 296 | split | modules/runtimes (settings.section), modules/runtimes/paid |
 | `js/runsview.js` | 138 | planned | modules/threads/runs/ |

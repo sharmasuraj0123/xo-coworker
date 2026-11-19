@@ -2182,7 +2182,7 @@
   },
   "js/app.js": {
    "status": "split",
-   "home": "boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md §2.6)"
+   "home": "boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md \u00a72.6)"
   },
   "js/attach.js": {
    "status": "split",
@@ -2212,8 +2212,9 @@
    ]
   },
   "js/chart.js": {
-   "status": "planned",
-   "home": "core/ui/markdown/chart.js"
+   "status": "moved",
+   "home": "core/ui/markdown/chart.js",
+   "note": "js/chart.js re-exports it until the shims go"
   },
   "js/chats.js": {
    "status": "planned",
@@ -2317,8 +2318,9 @@
    ]
   },
   "js/highlight.js": {
-   "status": "planned",
-   "home": "core/ui/markdown/highlight.js"
+   "status": "moved",
+   "home": "core/ui/markdown/highlight.js",
+   "note": "js/highlight.js re-exports it until the shims go"
   },
   "js/hopstate.js": {
    "status": "planned",
@@ -2384,8 +2386,12 @@
    ]
   },
   "js/markdown.js": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "split",
+   "home": [
+    "core/ui/markdown/markdown.js",
+    "core/ui/markdown/inline.js"
+   ],
+   "note": "blocks in markdown.js, inline text, links, pictures and the rich hooks in inline.js; js/markdown.js re-exports markdown.js until the shims go"
   },
   "js/mdlive.js": {
    "status": "planned",
@@ -2478,8 +2484,9 @@
    "home": "modules/decisions/items.js"
   },
   "js/rich.js": {
-   "status": "planned",
-   "home": "core/ui/markdown/rich.js"
+   "status": "moved",
+   "home": "core/ui/markdown/rich.js",
+   "note": "js/rich.js re-exports it until the shims go"
   },
   "js/ring.js": {
    "status": "moved",
@@ -6786,7 +6793,7 @@
   },
   "js/app.js::functions::announce": {
    "status": "planned",
-   "home": "`S` must be split per module (see §3); `announce` → core/platform a11y (app.js l.162)"
+   "home": "`S` must be split per module (see \u00a73); `announce` \u2192 core/platform a11y (app.js l.162)"
   },
   "js/app.js::functions::savedSoon": {
    "status": "planned",
@@ -6830,15 +6837,15 @@
   },
   "js/app.js::functions::landed": {
    "status": "planned",
-   "home": "`patch` → core/ui (render primitives, next to redraw.js); `homeParts` → modules/home (app.js l.617)"
+   "home": "`patch` \u2192 core/ui (render primitives, next to redraw.js); `homeParts` \u2192 modules/home (app.js l.617)"
   },
   "js/app.js::functions::patch": {
    "status": "planned",
-   "home": "`patch` → core/ui (render primitives, next to redraw.js); `homeParts` → modules/home (app.js l.629)"
+   "home": "`patch` \u2192 core/ui (render primitives, next to redraw.js); `homeParts` \u2192 modules/home (app.js l.629)"
   },
   "js/app.js::functions::homeParts": {
    "status": "planned",
-   "home": "`patch` → core/ui (render primitives, next to redraw.js); `homeParts` → modules/home (app.js l.642)"
+   "home": "`patch` \u2192 core/ui (render primitives, next to redraw.js); `homeParts` \u2192 modules/home (app.js l.642)"
   },
   "js/app.js::functions::optHtml": {
    "status": "planned",
@@ -6858,7 +6865,7 @@
   },
   "js/app.js::functions::homeRender": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.716)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.716)"
   },
   "js/app.js::functions::endRender": {
    "status": "planned",
@@ -6882,7 +6889,7 @@
   },
   "js/app.js::functions::messagesOf": {
    "status": "planned",
-   "home": "modules/conversation (model, pure) → core/services conversation selector; event sources (decisions, threads) should register `conversation.event` providers (app.js l.863)"
+   "home": "modules/conversation (model, pure) \u2192 core/services conversation selector; event sources (decisions, threads) should register `conversation.event` providers (app.js l.863)"
   },
   "js/app.js::functions::proseHtml": {
    "status": "planned",
@@ -6918,11 +6925,11 @@
   },
   "js/app.js::functions::msgItems": {
    "status": "planned",
-   "home": "modules/conversation renderer with a **keyed `conversation.block` registry** (kind → renderer); limit → runtimes, control → threads, turn → conversation/turns (app.js l.1170)"
+   "home": "modules/conversation renderer with a **keyed `conversation.block` registry** (kind \u2192 renderer); limit \u2192 runtimes, control \u2192 threads, turn \u2192 conversation/turns (app.js l.1170)"
   },
   "js/app.js::functions::msgItemsOf": {
    "status": "planned",
-   "home": "modules/conversation renderer with a **keyed `conversation.block` registry** (kind → renderer); limit → runtimes, control → threads, turn → conversation/turns (app.js l.1174)"
+   "home": "modules/conversation renderer with a **keyed `conversation.block` registry** (kind \u2192 renderer); limit \u2192 runtimes, control \u2192 threads, turn \u2192 conversation/turns (app.js l.1174)"
   },
   "js/app.js::functions::wsHeadRender": {
    "status": "planned",
@@ -7030,39 +7037,39 @@
   },
   "js/app.js::functions::HER": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1964)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.1964)"
   },
   "js/app.js::functions::heraldShow": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1967)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.1967)"
   },
   "js/app.js::functions::heraldFor": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1969)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.1969)"
   },
   "js/app.js::functions::heraldPut": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1970)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.1970)"
   },
   "js/app.js::functions::heraldNext": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1971)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.1971)"
   },
   "js/app.js::functions::heraldDrop": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1973)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.1973)"
   },
   "js/app.js::functions::heraldRender": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1974)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.1974)"
   },
   "js/app.js::functions::heraldRoom": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.2015)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.2015)"
   },
   "js/app.js::functions::heraldBack": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.2025)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.2025)"
   },
   "js/app.js::functions::recordLine": {
    "status": "planned",
@@ -7118,35 +7125,35 @@
   },
   "js/app.js::functions::chatTargetRender": {
    "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2267)"
+   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2267)"
   },
   "js/app.js::functions::targetLineRender": {
    "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2280)"
+   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2280)"
   },
   "js/app.js::functions::updateComposer": {
    "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2294)"
+   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2294)"
   },
   "js/app.js::functions::syncPlaceholder": {
    "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2336)"
+   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2336)"
   },
   "js/app.js::functions::atClose": {
    "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2345)"
+   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2345)"
   },
   "js/app.js::functions::pickAt": {
    "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2355)"
+   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2355)"
   },
   "js/app.js::functions::saveDraft": {
    "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2365)"
+   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2365)"
   },
   "js/app.js::functions::loadDraft": {
    "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2366)"
+   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2366)"
   },
   "js/app.js::functions::sendNowRender": {
    "status": "planned",
@@ -7170,27 +7177,27 @@
   },
   "js/app.js::functions::lift": {
    "status": "planned",
-   "home": "modules/composer (send gate → core/services send) (app.js l.2521)"
+   "home": "modules/composer (send gate \u2192 core/services send) (app.js l.2521)"
   },
   "js/app.js::functions::liveBlock": {
    "status": "planned",
-   "home": "modules/composer (send gate → core/services send) (app.js l.2529)"
+   "home": "modules/composer (send gate \u2192 core/services send) (app.js l.2529)"
   },
   "js/app.js::functions::blockFor": {
    "status": "planned",
-   "home": "modules/composer (send gate → core/services send) (app.js l.2537)"
+   "home": "modules/composer (send gate \u2192 core/services send) (app.js l.2537)"
   },
   "js/app.js::functions::refuse": {
    "status": "planned",
-   "home": "modules/composer (send gate → core/services send) (app.js l.2543)"
+   "home": "modules/composer (send gate \u2192 core/services send) (app.js l.2543)"
   },
   "js/app.js::functions::connDest": {
    "status": "planned",
-   "home": "modules/composer (send gate → core/services send) (app.js l.2548)"
+   "home": "modules/composer (send gate \u2192 core/services send) (app.js l.2548)"
   },
   "js/app.js::functions::composerDest": {
    "status": "planned",
-   "home": "modules/composer (send gate → core/services send) (app.js l.2551)"
+   "home": "modules/composer (send gate \u2192 core/services send) (app.js l.2551)"
   },
   "js/app.js::functions::sendLive": {
    "status": "planned",
@@ -7262,11 +7269,11 @@
   },
   "js/app.js::functions::faviconRender": {
    "status": "planned",
-   "home": "`placeRegion` → shell (focus fallback); favicon → shell (tab status) (app.js l.2900)"
+   "home": "`placeRegion` \u2192 shell (focus fallback); favicon \u2192 shell (tab status) (app.js l.2900)"
   },
   "js/app.js::functions::loadAhead": {
    "status": "planned",
-   "home": "`placeRegion` → shell (focus fallback); favicon → shell (tab status) (app.js l.2921)"
+   "home": "`placeRegion` \u2192 shell (focus fallback); favicon \u2192 shell (tab status) (app.js l.2921)"
   },
   "js/app.js::functions::loadOlderNow": {
    "status": "planned",
@@ -7278,27 +7285,27 @@
   },
   "js/app.js::functions::readingPlace": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.2986)"
+   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.2986)"
   },
   "js/app.js::functions::holdPlace": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.2997)"
+   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.2997)"
   },
   "js/app.js::functions::stirred": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.3004)"
+   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.3004)"
   },
   "js/app.js::functions::foldsBefore": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.3013)"
+   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.3013)"
   },
   "js/app.js::functions::workMotion": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.3033)"
+   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.3033)"
   },
   "js/app.js::functions::saveScroll": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.3087)"
+   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.3087)"
   },
   "js/app.js::functions::go": {
    "status": "planned",
@@ -7314,23 +7321,23 @@
   },
   "js/app.js::functions::follow": {
    "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3187)"
+   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3187)"
   },
   "js/app.js::functions::loadChatHops": {
    "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3200)"
+   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3200)"
   },
   "js/app.js::functions::ensureRoot": {
    "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3208)"
+   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3208)"
   },
   "js/app.js::functions::back": {
    "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3217)"
+   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3217)"
   },
   "js/app.js::functions::decideKey": {
    "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3227)"
+   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3227)"
   },
   "js/app.js::functions::showMsg": {
    "status": "planned",
@@ -7414,15 +7421,15 @@
   },
   "js/app.js::functions::openNext": {
    "status": "planned",
-   "home": "modules/threads (public `threadState`, `panelThreads` → panel frame \"threads\") (app.js l.3736)"
+   "home": "modules/threads (public `threadState`, `panelThreads` \u2192 panel frame \"threads\") (app.js l.3736)"
   },
   "js/app.js::functions::threadState": {
    "status": "planned",
-   "home": "modules/threads (public `threadState`, `panelThreads` → panel frame \"threads\") (app.js l.3746)"
+   "home": "modules/threads (public `threadState`, `panelThreads` \u2192 panel frame \"threads\") (app.js l.3746)"
   },
   "js/app.js::functions::panelThreads": {
    "status": "planned",
-   "home": "modules/threads (public `threadState`, `panelThreads` → panel frame \"threads\") (app.js l.3755)"
+   "home": "modules/threads (public `threadState`, `panelThreads` \u2192 panel frame \"threads\") (app.js l.3755)"
   },
   "js/app.js::functions::allRender": {
    "status": "planned",
@@ -7498,35 +7505,35 @@
   },
   "js/app.js::functions::soundRender": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4132)"
+   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4132)"
   },
   "js/app.js::functions::hopsRender": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4158)"
+   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4158)"
   },
   "js/app.js::functions::webpicsRender": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4159)"
+   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4159)"
   },
   "js/app.js::functions::deviceSaid": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4165)"
+   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4165)"
   },
   "js/app.js::functions::setChatBubbles": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4186)"
+   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4186)"
   },
   "js/app.js::functions::bubblesRender": {
    "status": "planned",
-   "home": "modules/settings host; shape fan-out → core/services shape `onChange` subscribers per module (app.js l.4193)"
+   "home": "modules/settings host; shape fan-out \u2192 core/services shape `onChange` subscribers per module (app.js l.4193)"
   },
   "js/app.js::functions::openKeys": {
    "status": "planned",
-   "home": "modules/settings host; shape fan-out → core/services shape `onChange` subscribers per module (app.js l.4208)"
+   "home": "modules/settings host; shape fan-out \u2192 core/services shape `onChange` subscribers per module (app.js l.4208)"
   },
   "js/app.js::functions::closeKeys": {
    "status": "planned",
-   "home": "modules/settings host; shape fan-out → core/services shape `onChange` subscribers per module (app.js l.4209)"
+   "home": "modules/settings host; shape fan-out \u2192 core/services shape `onChange` subscribers per module (app.js l.4209)"
   },
   "js/app.js::functions::shapeApply": {
    "status": "planned",
@@ -7550,15 +7557,15 @@
   },
   "js/app.js::functions::closeSettings": {
    "status": "planned",
-   "home": "core/platform keys (sheet + settings section); rail keys → modules/settings (app.js l.4277)"
+   "home": "core/platform keys (sheet + settings section); rail keys \u2192 modules/settings (app.js l.4277)"
   },
   "js/app.js::functions::keysSheetRender": {
    "status": "planned",
-   "home": "core/platform keys (sheet + settings section); rail keys → modules/settings (app.js l.4296)"
+   "home": "core/platform keys (sheet + settings section); rail keys \u2192 modules/settings (app.js l.4296)"
   },
   "js/app.js::functions::keysPageRender": {
    "status": "planned",
-   "home": "core/platform keys (sheet + settings section); rail keys → modules/settings (app.js l.4302)"
+   "home": "core/platform keys (sheet + settings section); rail keys \u2192 modules/settings (app.js l.4302)"
   },
   "js/app.js::functions::runGlobal": {
    "status": "planned",
@@ -7578,11 +7585,11 @@
   },
   "js/app.js::functions::whenWorld": {
    "status": "planned",
-   "home": "`whenWorld` → core/services world; `resolveFromRow` → modules/threads (app.js l.4722)"
+   "home": "`whenWorld` \u2192 core/services world; `resolveFromRow` \u2192 modules/threads (app.js l.4722)"
   },
   "js/app.js::functions::resolveFromRow": {
    "status": "planned",
-   "home": "`whenWorld` → core/services world; `resolveFromRow` → modules/threads (app.js l.4735)"
+   "home": "`whenWorld` \u2192 core/services world; `resolveFromRow` \u2192 modules/threads (app.js l.4735)"
   },
   "js/app.js::ids::nx-note-in": {
    "status": "planned",
@@ -7594,43 +7601,43 @@
   },
   "js/app.js::ids::hm-head": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.719)"
   },
   "js/app.js::ids::hm-body": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.719)"
   },
   "js/app.js::ids::hm-since": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.719)"
   },
   "js/app.js::ids::hm-next": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.719)"
   },
   "js/app.js::ids::hm-then": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.719)"
   },
   "js/app.js::ids::hm-end": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.719)"
   },
   "js/app.js::ids::hm-made": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.719)"
   },
   "js/app.js::ids::home-h": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.734)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.734)"
   },
   "js/app.js::ids::then-h": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.779)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.779)"
   },
   "js/app.js::ids::handled": {
    "status": "planned",
-   "home": "`S` must be split per module (see §3); `announce` → core/platform a11y (app.js l.152)"
+   "home": "`S` must be split per module (see \u00a73); `announce` \u2192 core/platform a11y (app.js l.152)"
   },
   "js/app.js::ids::hd-head": {
    "status": "planned",
@@ -7730,7 +7737,7 @@
   },
   "js/app.js::ids::keys-reset-all": {
    "status": "planned",
-   "home": "core/platform keys (sheet + settings section); rail keys → modules/settings (app.js l.4315)"
+   "home": "core/platform keys (sheet + settings section); rail keys \u2192 modules/settings (app.js l.4315)"
   },
   "js/app.js::ids::all-list": {
    "status": "planned",
@@ -7742,7 +7749,7 @@
   },
   "js/app.js::storage::cv-bubbles": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4182)"
+   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4182)"
   },
   "js/app.js::storage::xo-side-folded": {
    "status": "planned",
@@ -8308,35 +8315,35 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/chart.js::exports::readChart": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/chart.js"
   },
   "js/chart.js::exports::niceTicks": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/chart.js"
   },
   "js/chart.js::exports::fmt": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/chart.js"
   },
   "js/chart.js::exports::chartHtml": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/chart.js"
   },
   "js/chart.js::functions::readChart": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/chart.js"
   },
   "js/chart.js::functions::niceTicks": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/chart.js"
   },
   "js/chart.js::functions::fmt": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/chart.js"
   },
   "js/chart.js::functions::chartHtml": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/chart.js"
   },
   "js/chats.js::exports::createChats": {
@@ -9659,27 +9666,27 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/highlight.js::exports::langOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/highlight.js"
   },
   "js/highlight.js::exports::highlight": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/highlight.js"
   },
   "js/highlight.js::functions::langOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/highlight.js"
   },
   "js/highlight.js::functions::diffHtml": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/highlight.js"
   },
   "js/highlight.js::functions::tokens": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/highlight.js"
   },
   "js/highlight.js::functions::highlight": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/highlight.js"
   },
   "js/hopstate.js::exports::hopRank": {
@@ -10806,159 +10813,159 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/markdown.js::exports::setThreadInfo": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::exports::ARROW_OUT": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::exports::shortUrl": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::exports::outText": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::exports::setRich": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::exports::webImageUrl": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::exports::fileImagePath": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::exports::imageLine": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::exports::setWebImages": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::exports::renderInline": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::exports::cells": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/markdown.js"
   },
   "js/markdown.js::exports::renderMarkdown": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/markdown.js"
   },
   "js/markdown.js::exports::excerptMarkdown": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/markdown.js"
   },
   "js/markdown.js::exports::threadLinks": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/markdown.js"
   },
   "js/markdown.js::functions::setThreadInfo": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::shortUrl": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::addrHtml": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::outHtml": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::labelOut": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::outText": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::hostOf": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::fit": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::linkHtml": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::setRich": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::mathHtml": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::diagramHtml": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::webImageUrl": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::fileImagePath": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::imageLine": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::setWebImages": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::imagesHtml": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::renderInline": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::codeBlock": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/markdown.js"
   },
   "js/markdown.js::functions::cells": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/markdown.js"
   },
   "js/markdown.js::functions::renderTable": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/markdown.js"
   },
   "js/markdown.js::functions::renderList": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/markdown.js"
   },
   "js/markdown.js::functions::renderMarkdown": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/markdown.js"
   },
   "js/markdown.js::functions::excerptMarkdown": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/markdown.js"
   },
   "js/markdown.js::functions::threadLinks": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/markdown.js"
   },
   "js/mdlive.js::exports::toggleMark": {
@@ -13114,91 +13121,91 @@
    "home": "modules/decisions/items.js"
   },
   "js/rich.js::exports::cachedMath": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::exports::cachedDiagram": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::exports::drawMath": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::exports::drawDiagram": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::exports::startRich": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::cachedMath": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::cachedDiagram": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::afterPause": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::wake": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::pass": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::loadKatex": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::drawMath": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::drawMathEl": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::hexOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::mermaidFor": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::diagramFor": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::drawDiagram": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::drawDiagramEl": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::chartHover": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::chartLeave": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::startRich": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::ids::d": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/ring.js::exports::REGIONS": {
