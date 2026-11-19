@@ -12,8 +12,9 @@
 // and so does a listed one that has moved (the lists only shrink).
 //   node tests/ctl-scale.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { rules, context, decls, px } from "./lib/cascade.mjs";
+import { sourcePaths, readSource } from "./lib/sources.mjs";
 
 const ROOT = new URL("../", import.meta.url);
 // The type scale's tokens (css/tokens.css, 19 Nov) read back as the values these checks were written against, so a
@@ -24,7 +25,7 @@ const tokensCss = readCss(new URL("css/tokens.css", ROOT), "utf8").replace(/\/\*
 // the desktop's tokens: the :root block, not a phone's media query below it
 const desk = tokensCss.replace(/@media[^{]*\{(?:[^{}]|\{[^{}]*\})*\}/g, "");
 const tokens = Object.fromEntries([...desk.matchAll(/(--[\w-]+):\s*(\d+(?:\.\d+)?)px/g)].map((m) => [m[1], +m[2]]));
-const src = [readFileSync(new URL("index.html", ROOT), "utf8"), ...readdirSync(new URL("js/", ROOT)).filter((f) => f.endsWith(".js")).map((f) => readFileSync(new URL(`js/${f}`, ROOT), "utf8")), ...readdirSync(new URL("js/shells/", ROOT)).filter((f) => f.endsWith(".js")).map((f) => readFileSync(new URL(`js/shells/${f}`, ROOT), "utf8"))].join("\n");
+const src = [readFileSync(new URL("index.html", ROOT), "utf8"), ...sourcePaths(".js").map(readSource)].join("\n");
 const ctl = new Set();
 const add = (cls, skip) => { for (const k of cls.trim().split(/\s+/)) if (k && !skip.test(k)) ctl.add("." + k); };
 for (const m of src.matchAll(/<(button|summary|select)\b([^>]*)>/g)) { const c = /class="([^"$]*)/.exec(m[2]); if (c) add(c[1], /^(is|st|k|m|t|r|e)-/); }

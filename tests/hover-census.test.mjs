@@ -5,12 +5,13 @@
 // answer another way are listed with how; a new button with none fails here.
 //   node tests/hover-census.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
+import { sourcePaths, readSource } from "./lib/sources.mjs";
 
 const ROOT = new URL("../", import.meta.url);
 const read = (f) => readFileSync(new URL(f, ROOT), "utf8");
-const src = [read("index.html"), ...readdirSync(new URL("js/", ROOT)).filter((f) => f.endsWith(".js")).map((f) => read(`js/${f}`)), ...readdirSync(new URL("js/shells/", ROOT)).filter((f) => f.endsWith(".js")).map((f) => read(`js/shells/${f}`))].join("\n");
-const css = readdirSync(new URL("css/", ROOT)).filter((f) => f.endsWith(".css")).map((f) => read(`css/${f}`).replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
+const src = [read("index.html"), ...sourcePaths(".js").map(readSource)].join("\n");
+const css = sourcePaths(".css").map((f) => read(f).replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
 // each button by the first class the templates give it
 const buttons = new Set();
 for (const m of src.matchAll(/<button\b([^>]*)>/g)) { const c = /class="([^"$]*)/.exec(m[1]); if (c) { const k = c[1].trim().split(/\s+/)[0]; if (k && !/^(is|st|k|m|t|r|e)-/.test(k)) buttons.add(k); } }

@@ -6,14 +6,15 @@
 //   node tests/phone-floor.test.mjs
 import assert from "node:assert/strict";
 import { resolveTokens, NEW_SIZES } from "./lib/tokens.mjs";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { rules, context, decls, px, spec, cmp, covers } from "./lib/cascade.mjs";
+import { sourcePaths, readSource } from "./lib/sources.mjs";
 
 const ROOT = new URL("../", import.meta.url);
 const tokens = Object.fromEntries([...readFileSync(new URL("css/tokens.css", ROOT), "utf8").matchAll(/(--[\w-]+):\s*(\d+(?:\.\d+)?)px/g)].map((m) => [m[1], +m[2]]));
 // what's a control: the classes the templates put on button, summary and select, and on the button/tab/option/menu
 // item/switch roles
-const src = [readFileSync(new URL("index.html", ROOT), "utf8"), ...readdirSync(new URL("js/", ROOT)).filter((f) => f.endsWith(".js")).map((f) => readFileSync(new URL(`js/${f}`, ROOT), "utf8")), ...readdirSync(new URL("js/shells/", ROOT)).filter((f) => f.endsWith(".js")).map((f) => readFileSync(new URL(`js/shells/${f}`, ROOT), "utf8"))].join("\n");
+const src = [readFileSync(new URL("index.html", ROOT), "utf8"), ...sourcePaths(".js").map(readSource)].join("\n");
 const ctl = new Set(), labels = new Set();
 for (const m of src.matchAll(/<(button|summary|select)\b([^>]*)>/g)) { const c = /class="([^"$]*)/.exec(m[2]); if (c) for (const k of c[1].trim().split(/\s+/)) if (k && !/^(is|st|k|m|t|r|e)-/.test(k)) ctl.add("." + k); }
 // a label that holds a checkbox or radio is the control you press (C115: Runtimes' allow/deny, missed by this census)
@@ -68,7 +69,7 @@ t("no control's own min-height or max-height holds it under 36 px on a phone, un
 });
 t("a control whose words hide to leave its icon is 36 px wide on a phone too (the browser pass at 320/390 found Edit 28)", () => {
   // the controls whose label (a span) is hidden somewhere: on a phone they're icon buttons
-  const css = readdirSync(new URL("css/", ROOT)).filter((f) => f.endsWith(".css")).map((f) => resolveTokens(readFileSync(new URL(`css/${f}`, ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""), [...NEW_SIZES, "--h-sm", "--h-ctl"])).join("\n");
+  const css = sourcePaths(".css").map((f) => resolveTokens(readSource(f).replace(/\/\*[\s\S]*?\*\//g, ""), [...NEW_SIZES, "--h-sm", "--h-ctl"])).join("\n");
   const iconed = new Set();
   for (const m of css.matchAll(/([^{}]+)\{display:none\}/g)) for (const sel of m[1].split(",")) {
     const k = /\.([\w-]+)(?:[.:][\w-]+(?:\([^)]*\))?)*(?: |>)span$/.exec(sel.trim());
@@ -122,7 +123,7 @@ t("the floor reaches a link drawn as a control and leaves a link in text (S267):
     assert.ok(!not.includes(k), `${k} is under the floor`);
   }
   // one rule: no part restates the floor for its own links
-  const css = readdirSync(new URL("css/", ROOT)).filter((f) => f.endsWith(".css") && f !== "phone.css").map((f) => resolveTokens(readFileSync(new URL(`css/${f}`, ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""), [...NEW_SIZES, "--h-sm", "--h-ctl"])).join("\n");
+  const css = sourcePaths(".css").filter((f) => f !== "css/phone.css").map((f) => resolveTokens(readSource(f).replace(/\/\*[\s\S]*?\*\//g, ""), [...NEW_SIZES, "--h-sm", "--h-ctl"])).join("\n");
   assert.doesNotMatch(css, /a\.[\w-]+[^{}]*\{min-height:36px;min-width:36px\}/, "no second floor for links outside phone.css");
 });
 // a text field is a control too (the controls grader on 1ed50f6: the refused path's field, .vw-cut-sel, was 24 px on a

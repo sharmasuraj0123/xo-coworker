@@ -1,6 +1,7 @@
 // Every control the shared link state reaches has its row in the Recheck list for a4faed2, and the list names no other.
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
+import { sourcePaths } from "./lib/sources.mjs";
 
 const R = new URL("../", import.meta.url);
 const read = (f) => readFileSync(new URL(f, R), "utf8");
@@ -13,7 +14,7 @@ t("every control the shared link state reaches has its row in the Recheck list, 
   const sel = /:is\(([^)]*)\)\{transition:color var\(--d-hover\)/.exec(found);
   assert.ok(sel, "the shared link state in foundation.css");
   const classes = sel[1].split(",").map((x) => x.trim().replace(/^\./, ""));
-  const src = ["index.html", ...readdirSync(new URL("js/", R), { recursive: true }).filter((f) => String(f).endsWith(".js")).map((f) => `js/${f}`)].map(read).join("\n");
+  const src = ["index.html", ...sourcePaths(".js")].map(read).join("\n");
   // each element with one of the classes, keyed as the registry keys it: its tag and its data- hooks
   const keys = new Set();
   for (const m of src.matchAll(/<(button|a)\b([^>]*)>/g)) {

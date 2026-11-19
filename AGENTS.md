@@ -11,7 +11,7 @@
 
 ## Before you commit or merge
 - `node tools/check.mjs` must pass: lint, types, ratchets, comments, ledger, then every unit test, judged by exit code.
-- The pre-commit hook runs `--fast`. Turn it on with `git config core.hooksPath .githooks`.
+- The pre-commit hook runs `--fast`. It is already on: `core.hooksPath` is set in the shared git config, so never run `git config` for it.
 - Dev-only tools: run `npm ci` once. The app never needs them; it runs from plain files with no build.
 - Never weaken a baseline. `--update-baselines` only lowers numbers.
 - No browser suites unless the owner asks. Hold the `headless-browser-suite` lease, and run one suite at a time.
