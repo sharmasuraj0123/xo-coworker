@@ -196,8 +196,11 @@ button:disabled{cursor:default}
    every view ends where it begins: Home, the conversation, Artifacts, the dock, the toasts. Inside each, the
    reading column is placed from that view's own width (each is an inline-size container), never centred in
    a scrollbox: a scrollbar can't move it, and the composer below shares both of its edges with the messages
-   above. 720 wide at most, never closer than --gut-min to an edge. */
+   above. 720 wide at most, never closer than --gut-min to an edge. The conversation (its messages and the dock under
+   them) reads a step wider, 768 (the owner, 19 Nov: "a bit wider, just a bit", for replies that hold tables, charts and
+   code); Home and Artifacts keep 720. Beside an open file the docked chat is narrower than either, so it's unchanged. */
 .main{--rp:0px;--gut-min:28px;--col-max:720px}
+.main :is(.conv,.dock){--col-max:768px}
 :is(.home,.conv,.arts,.dock){container-type:inline-size;--col-w:min(var(--col-max),100cqw - 2 * var(--gut-min));--col-x:calc((100cqw - var(--col-w)) / 2)}
 .main :is(.home,.conv,.arts,.dock,.toast-wrap){right:var(--rp)}
 @media (min-width:761px){
@@ -657,6 +660,19 @@ code.hl{color:var(--code-ink)}
 .tc-dec:active{transform:scale(.96)}
 .tc-open:focus-visible{outline:none}
 .tcard:has(.tc-open:focus-visible){border-color:rgba(var(--accent-rgb),.6);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.14)}
+/* A finished thread's next step (the newest file it made, 0079e74): its own row at the card's foot, in both chat
+   looks. It was styled only for the bubbles (css/msgx.css), so in the document view the bare button became a second
+   column of the card's flex row (measured on 6690328 at 1440: Open's content 450 px, the button 224 px beside it,
+   square). The card stacks; the row is 6 px in from the card's sides and foot, so its corner nests in the card's
+   (12 − 6 = 6) and its icon lands on the card's 16 px text edge (6 + 10). It takes Open's place: one action. */
+.tcard.has-next{flex-direction:column}
+.tcard.has-next .tc-go{visibility:hidden}
+.tc-next{position:relative;display:flex;align-items:center;gap:8px;height:var(--h-ctl);margin:0 6px 6px;padding:0 10px;border-radius:calc(var(--r-lg) - 6px);background:var(--hover-fill);color:var(--ink);font:500 var(--fs-base)/20px var(--sans);text-align:left;transition:background var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
+@media (pointer:coarse){.tc-next::after{content:"";position:absolute;inset:-6px 0}}
+.tc-next span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tc-next svg{flex:none;width:14px;height:14px;color:var(--accent)}
+.tc-next:hover{background:var(--press-fill)}
+.tc-next:active{transform:scale(var(--press-scale))}
 
 /* An event line sits on the conversation's grid (hub #23): its icon centred in the avatar column,
    its words on the message column, its time in quiet mono on the right. */
