@@ -270,29 +270,33 @@ export function createDocs({ api, store = null, clock = { now: () => Date.now(),
       emit(d, "applied");
       return;
     }
-    // the same lines, changed both ways: the merge view decides; nothing saves until every place is chosen
+    // the same lines, changed both ways: the merge view decides; nothing saves until every place is chosen. The
+    // editor holds the merge with your lines in each such place (ours), shown against the same merge with theirs
+    // (other): each place is one chunk, kept (yours) or taken back (theirs)
     clock.clear(d.saveT);
-    d.merge = { base: d.base, mine, theirs, version: current.version, text: m.text, left: m.conflicts };
+    const ours = merge3(d.base, mine, theirs, { pick: "ours" }).text, other = merge3(d.base, mine, theirs, { pick: "theirs" }).text;
+    d.merge = { base: d.base, mine, theirs, version: current.version, text: ours, other, left: m.conflicts };
+    const e = minimalEdit(mine, ours);
+    d.text = ours;
+    if (e && d.apply) d.apply(e, { lines: changedLines(mine, ours), why: "merging" });
     keepDraft(d);
     setState(d, "conflict");
     emit(d, "conflict");
   }
 
-  /** The merge view's choices so far: {text, left}. With none left, `resolve` takes the text and saves it. */
-  function mergeProgress(d, text, left) {
-    if (!d.merge) return;
-    d.merge.text = text; d.merge.left = left;
+  /** The merge view's places still to choose. With none left, `resolve` takes what the editor holds and saves it. */
+  function mergeProgress(d, left) {
+    if (!d.merge || d.merge.left === left) return;
+    d.merge.left = left;
     emit(d, "state");
   }
   function resolve(d) {
     if (!d.merge || d.merge.left) return false;
-    const { text, version, theirs } = d.merge;
+    const { version, theirs } = d.merge;
     d.merge = null;
     d.base = theirs; d.version = version;
-    const now = textOf(d);
-    const e = minimalEdit(now, text);
-    d.text = text;
-    if (e && d.apply) d.apply(e, { lines: [], why: "resolved" });
+    // what the editor holds now is the choice (each place kept or taken back)
+    d.text = textOf(d);
     setState(d, "dirty");
     flush(d);
     return true;

@@ -167,7 +167,11 @@ t("a save that finds the file changed (409) merges and saves again; the same lin
   const n = space.saves.length;
   await clock.tick(AUTOSAVE_MS * 3);
   assert.equal(space.saves.length, n, "nothing saves until every place is chosen");
-  docs.mergeProgress(d, "zero\none\nTWO both\nthree\nfour\n", 0);
+  assert.equal(v.text, "zero\none\nTWO mine\nthree\nfour\n", "the editor holds yours in the place you both changed");
+  assert.equal(d.merge.other, "zero\none\nTWO theirs\nthree\nfour\n", "shown against theirs");
+  v.text = "zero\none\nTWO both\nthree\nfour\n"; // chosen in the merge view (kept, taken back, or edited)
+  assert.equal(docs.resolve(d), false, "not while a place is left");
+  docs.mergeProgress(d, 0);
   assert.ok(docs.resolve(d));
   await settle();
   assert.equal(space.disk.get("a.md"), "zero\none\nTWO both\nthree\nfour\n");

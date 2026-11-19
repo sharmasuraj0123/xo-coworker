@@ -56,9 +56,10 @@ export function changes(a, b) {
 /**
  * base: the file when you started editing; ours: yours; theirs: the agent's (what's there now). Returns
  * {text, conflicts}: the merged text, with each place both changed differently marked as git marks one
- * (<<<<<<< yours, =======, >>>>>>> the agent's), and how many such places there are.
+ * (<<<<<<< yours, =======, >>>>>>> the agent's), and how many such places there are. pick "ours" or "theirs":
+ * that side's lines in each such place instead of the marks (two texts that differ only there, for a merge view).
  */
-export function merge3(base, ours, theirs, { mine = "yours", other = "the agent's" } = {}) {
+export function merge3(base, ours, theirs, { mine = "yours", other = "the agent's", pick = null } = {}) {
   const O = linesOf(base), A = linesOf(ours), B = linesOf(theirs);
   const eol = (String(theirs).match(/\r\n/g) || []).length > (String(theirs).match(/(?<!\r)\n/g) || []).length ? "\r\n" : "\n";
   const blocks = [...changes(O, A).map((c) => ({ ...c, side: A })), ...changes(O, B).map((c) => ({ ...c, side: B }))]
@@ -88,7 +89,10 @@ export function merge3(base, ours, theirs, { mine = "yours", other = "the agent'
     else if (!hasA || a.join("") === b.join("")) out.push(...b);
     else {
       conflicts++;
-      out.push(`<<<<<<< ${mine}${eol}`, ...ended(a), `=======${eol}`, ...ended(b), `>>>>>>> ${other}${eol}`);
+      // pick: one side's lines where both changed (the editor's merge view shows the other side against it)
+      if (pick === "ours") out.push(...a);
+      else if (pick === "theirs") out.push(...b);
+      else out.push(`<<<<<<< ${mine}${eol}`, ...ended(a), `=======${eol}`, ...ended(b), `>>>>>>> ${other}${eol}`);
     }
     at = g.end;
   }
