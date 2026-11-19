@@ -2811,9 +2811,9 @@ function openFromPanel(v, e) {
 // ── render ──────────────────────────────────────────────────────────────────
 const scroller = $("#scroller"), msgsEl = $("#msgs");
 /**
- * A conversation on screen (P1 of a thread beside the coordinator's chat): its view, its own elements
- * (messages, scroller, column, typing line) and its follower, and what its drawing remembers (rendered, filled). The main chat (#conv) is MAIN, its view always S.view; the panel's
- * thread page makes its own. drawConv(C, needs) draws one.
+ * A conversation on screen (P1 of a thread beside the coordinator's chat): its view, its own elements (messages,
+ * scroller, column, typing line), its follower, and what its drawing remembers (rendered, filled). The main chat
+ * (#conv) is MAIN, its view always S.view; the panel's thread page makes its own. drawConv(C, needs) draws one.
  */
 function createConv({ view, msgs, scroller: sc, column, typing, follow, main = false }) {
   return { get view() { return typeof view === "function" ? view() : view; }, msgs, scroller: sc, column, typing, follow, main, rendered: null, filled: null };
