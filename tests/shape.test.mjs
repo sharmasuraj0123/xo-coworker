@@ -297,6 +297,21 @@ function test_store_more() {
     assert.equal(S.on("xo:thread/runtime"), true, "no file: the built-in defaults");
     assert.match(S.problems[0].text, /couldn't be read/);
   });
+  t("store: your sidebar and project icons are yours, kept for every device (layout.side, layout.icons; patchMine)", async () => {
+    const st = mem();
+    const S = createShapeStore({ storage: st, load: async (id) => preset(id) });
+    await S.setMine({ preset: "everything" });
+    assert.ok(S.patchMine({ layout: { side: { order: ["arts", "home"], shown: ["arts"] } } }).ok);
+    assert.deepEqual(S.get("layout").side, { order: ["arts", "home"], shown: ["arts"] });
+    assert.ok(S.patchMine({ layout: { icons: { "xo-space": "research" } } }).ok);
+    assert.deepEqual(S.get("layout").icons, { "xo-space": "research" });
+    assert.deepEqual(S.get("layout").side.shown, ["arts"], "a patch keeps what it doesn't name");
+    assert.equal(JSON.parse(st.getItem(KEYS.mine)).layout.icons["xo-space"], "research", "kept in mine (Storm's copy follows)");
+    assert.equal(S.problems.length, 0, "both are shape keys");
+    S.patchMine({ layout: { side: null } });
+    assert.equal(S.get("layout").side, undefined, "null removes it");
+    assert.ok(S.patchMine([1]).error);
+  });
   t("store: the chosen preset's file read at last applies at once, as a choice of it does (C101/C102/S119)", async () => {
     // the create-project grader on dead20c: the preset's read refused, the preset chosen (XO shows everything), the
     // read allowed and Shape opened again: its error cleared, but XO stayed as Everything until a reload

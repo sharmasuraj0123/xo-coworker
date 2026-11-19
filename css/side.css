@@ -149,3 +149,16 @@
 .se-grip:active{cursor:grabbing}
 .se-sw{margin-left:auto}
 .se-f{display:flex;justify-content:space-between;gap:var(--s-2);padding:var(--s-3) var(--s-2) var(--s-1)}
+
+/* ── A project's icon, yours to choose (the owner, 19 Nov 14:44Z): its header tile opens the picker, More's popover
+   in shape: "Automatic" (its own guess, marked A) first, then the owner's topics and the cube, 32 tiles 8 apart */
+.pj-pick{flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);margin:calc(-1 * var(--s-1) / 2);border-radius:var(--r)}
+.pj-pick:hover .tw-ic,.pj-pick[aria-expanded="true"] .tw-ic{border-color:var(--line-strong);color:var(--ink)}
+.pk-pop{left:var(--pop-x);top:var(--pop-y);width:calc(8 * var(--tile) + 7 * var(--s-2) + 2 * var(--s-3) + 2 * var(--s-2))}
+.pk-grid{display:grid;grid-template-columns:repeat(8,var(--tile));gap:var(--s-2);padding:0 var(--s-3) var(--s-3)}
+.pk-o{display:grid;place-items:center;width:var(--tile);height:var(--tile);border-radius:var(--r);border:1px solid transparent;color:var(--ink-3)}
+.pk-o:hover{background:var(--hover-fill);color:var(--ink)}
+.pk-o.is-on{border-color:var(--line-strong);background:var(--fill-2);color:var(--ink)}
+.pk-o svg{width:var(--ic);height:var(--ic)}
+.pk-auto{position:relative;display:grid;place-items:center}
+.pk-auto i{position:absolute;right:calc(-1 * var(--s-2));bottom:calc(-1 * var(--s-2));font:var(--fw-strong) var(--fs-xs)/1 var(--sans);font-style:normal;color:var(--ink-4)}
