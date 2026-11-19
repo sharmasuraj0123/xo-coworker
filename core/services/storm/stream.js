@@ -40,8 +40,10 @@ export function startStorm(ctx) {
     if (!state.error && state.projects.length) return;
     recovering = (async () => {
       ctx.holding = true;
-      // live updates wait at most 15 s for the reload; a hung GET doesn't freeze the page
-      try { await Promise.race([ctx.loadAll(), new Promise((r) => setTimeout(r, 15000))]); } finally {
+      /** Live updates wait at most 15 s for the reload, so a hung GET doesn't freeze the page. @type {ReturnType<typeof setTimeout> | undefined} */
+      let cutoff;
+      try { await Promise.race([ctx.loadAll(), new Promise((r) => { cutoff = setTimeout(r, 15000); })]); } finally {
+        clearTimeout(cutoff);
         ctx.commit();
         ctx.holding = false;
         for (const f of held.splice(0)) ctx.apply(f);

@@ -75,4 +75,22 @@ t("after a reset, rows looked up by id before are looked up again", async () => 
   await until(() => reads() === 2);
 });
 
+t("a recovery that loads in time leaves no 15 s cut-off timer armed", async () => {
+  let down = true;
+  const be = fakeBackend({ "GET /chat/chats": () => (down ? fail(503, { code: "engine_not_running", message: "down" }) : { chats: [{ id: "chat_p", kind: "project", project: "demo" }] }) });
+  const { world } = await boot(be);
+  const st = globalThis.setTimeout, ct = globalThis.clearTimeout, armed = new Set();
+  globalThis.setTimeout = /** @type {any} */ ((fn, ms, ...a) => { const h = st(() => { armed.delete(h); fn(...a); }, ms); if (ms === 15000) armed.add(h); return h; });
+  globalThis.clearTimeout = /** @type {any} */ ((h) => { armed.delete(h); ct(h); });
+  try {
+    down = false;
+    be.end();
+    await until(() => be.conns.length === 2);
+    be.push("heartbeat", { data: {} });
+    await until(() => world.state.projects.length === 1 && !world.state.error, 4000);
+    await settle();
+    assert.equal(armed.size, 0, "the cut-off is cleared once the load wins the race");
+  } finally { globalThis.setTimeout = st; globalThis.clearTimeout = ct; for (const h of armed) ct(h); }
+});
+
 await done();
