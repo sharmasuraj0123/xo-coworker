@@ -28,6 +28,7 @@ import * as R from "./record.js";
 import { createSince } from "../modules/since/view.js";
 import { createPreviews } from "../modules/artifacts/previews.js";
 import { createCards, KIND_IC } from "../modules/artifacts/cards.js";
+import { createMadeStore } from "../modules/artifacts/store.js";
 import { sinceSection } from "../modules/since/section.js";
 import { madeSection } from "../modules/artifacts/section.js";
 import { api } from "./api.js";
@@ -37,7 +38,6 @@ import { sharedFileRoute } from "./timeline.js";
 import { midName, midNameHtml } from "./media.js";
 import { skTile, bar as skBar, rememberedMade } from "./skeleton.js";
 
-const PINS = "xo-made-pins";
 const RECENT = 6;           // Recently made on Home
 
 /**
@@ -60,11 +60,7 @@ export function madeNaming(m, max = 28) {
 
 export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = () => "", places }) {
   const SL = createSince({ world, api, schedule, announce });
-  let pins = new Set();
-  try { pins = new Set(JSON.parse(localStorage.getItem(PINS) || "[]")); } catch { /* private mode */ }
-  const savePins = () => { try { localStorage.setItem(PINS, JSON.stringify([...pins])); } catch { /* private mode */ } };
 
-  const threadsIn = (pid) => world.state.threads.filter((t) => t.project === pid);
 
   // ── Made ────────────────────────────────────────────────────────────────
   const M = { pid: null, kind: "all", q: "", host: null, built: false };
@@ -72,99 +68,11 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
   const shown = () => !!(M.host && !M.host.hidden && panel && panel.isOpen);
   /** The project a view belongs to, or null (Home, the Workspace, Chats: every project). */
   const pidOf = (v) => (!v ? null : v.startsWith("p:") ? v.slice(2) : v.startsWith("t:") ? world.thread(v.slice(2))?.project || null : null);
+  const MS = createMadeStore({ world, api, schedule, announce, changed: () => { if (shown()) madeRender(); } });
+  const { madeOf, madePending, olderPages, projectsMade, togglePin } = MS;
+  const madeCount = (pid) => madeOf(pid).length;
   const PV = createPreviews({ world, api, sharedFileRoute, box: () => A.box, landed: () => { schedule(); if (shown()) madeRender(); } });
 
-  // The backend's Made, per chat: {at, loading, rows, more, v} while it answers, {off} when it has no such route.
-  // The newest page is read when something shows Made (and again every MADE_MS); `more` is where the next older
-  // page starts, read only for the Artifacts page (olderPages), which filters everything there is. Until a chat's
-  // first answer the record is `pending`: Home and Artifacts hold the place with stand-ins rather than show the
-  // older backend's fallback (what threads shared) and swap it a moment later.
-  const served = new Map();
-  const MADE_MS = 30000;
-  const PAGE_FIRST = 200, PAGE_MORE = 500, PAGES_MAX = 40; // the Space's limit is 500 a page
-  function servedRows(chat) {
-    if (!chat) return null;
-    let c = served.get(chat);
-    if (c && c.off) return null;
-    if (!c || (!c.loading && Date.now() - c.at > MADE_MS)) {
-      const entry = { at: Date.now(), loading: true, rows: c ? c.rows : null, off: false, tried: !!c, more: c ? c.more : null, end: c ? c.end : false, pages: c ? c.pages : 0, paging: false, v: c ? c.v + 1 : 0 };
-      served.set(chat, entry);
-      api.made(chat, { limit: PAGE_FIRST }).then((d) => {
-        if (!Array.isArray(d.made)) { entry.rows = null; entry.off = true; return; }
-        // the newest page: merged with older ones already read (they stay), or everything there is
-        const complete = !d.next_before;
-        entry.rows = R.mergeMadeRows(entry.rows, d.made, { first: true, complete });
-        // older pages: once read to the end they're kept (anything touched since comes back on the newest page)
-        entry.more = complete || entry.end ? null : entry.more ?? d.next_before;
-        entry.v++;
-      }).catch((err) => { if (err.status === 404 || err.status === 405) entry.off = true; /* else: try again later, the fallback meanwhile */ })
-        .finally(() => { entry.loading = false; entry.tried = true; entry.at = Date.now(); schedule(); if (shown()) madeRender(); });
-      c = entry;
-    }
-    return c.rows;
-  }
-  /** A chat whose Made hasn't answered yet, the first time it's asked. */
-  const pendingChat = (chat) => { const c = chat ? served.get(chat) : null; return !!(c && c.loading && !c.tried && c.rows == null && !c.off); };
-  const projectsMade = () => (world.state.projects || []).filter((p) => p && p.id !== "workspace");
-  /** Is what was made still on its way (pid's, or every project's)? Asking starts the reading. Once every
-   *  project's has come, it has: a project added later brings its things when they come, without stand-ins. */
-  let settled = false;
-  function madePending(pid) {
-    const ps = pid ? [world.project(pid)].filter(Boolean) : projectsMade();
-    let any = false;
-    for (const p of ps) { servedRows(p.chatId); if (pendingChat(p.chatId)) any = true; }
-    if (!pid && !any && ps.length) settled = true;
-    return any && !(settled && !pid);
-  }
-  /** The Artifacts page reads what's older too, a page at a time, in the background (each page lands below). */
-  function olderPages() {
-    for (const p of projectsMade()) {
-      const e = served.get(p.chatId);
-      if (!e || e.off || e.paging || !e.rows || !e.more || e.pages >= PAGES_MAX) continue;
-      const before = R.olderCursor(e.more);
-      if (!before) { e.more = null; continue; }
-      e.paging = true;
-      api.made(p.chatId, { limit: PAGE_MORE, before }).then((d) => {
-        if (!Array.isArray(d.made)) { e.more = null; return; }
-        const n0 = e.rows.length;
-        e.rows = R.mergeMadeRows(e.rows, d.made);
-        e.pages++;
-        // a page that brought nothing new (every row was a repeat) or the last one: that's all there is
-        e.more = d.next_before && e.rows.length > n0 && d.next_before !== e.more ? d.next_before : null;
-        if (!e.more) e.end = true;
-        e.v++;
-      }).catch(() => { /* the next look tries again */ }).finally(() => { e.paging = false; schedule(); });
-    }
-  }
-  // Made items, kept between renders: a chat's are worked out again only when its rows, its pins or the
-  // threads' titles change (the page can hold thousands, and the sidebar counts them on every render)
-  let titlesOf = null, titles = new Map(), pinsV = 0;
-  const threadTitleOf = (ts) => {
-    if (titlesOf !== world.state.threads) { titlesOf = world.state.threads; titles = new Map(titlesOf.map((t) => [t.id, t.title || ""])); }
-    return titles.get(ts) || "";
-  };
-  const memo = new Map(); // pid → {key, items}
-  function madeIn(pid) {
-    const chat = world.project(pid)?.chatId;
-    const rows = servedRows(chat);
-    threadTitleOf("");
-    const e = served.get(chat);
-    const key = rows ? `s|${e.v}|${rows.length}` : `f|${pinsV}`;
-    const m = memo.get(pid);
-    if (m && m.key === key && m.titles === titles && (rows || m.threads === world.state.threads)) return m.items;
-    const items = rows ? R.madeFromServer(rows, { project: pid, threadTitle: threadTitleOf }).map((x) => ({ ...x, chat })) : R.madeItems(threadsIn(pid), { pins });
-    memo.set(pid, { key, titles, threads: world.state.threads, items });
-    return items;
-  }
-  let allMemo = { parts: [], items: [] };
-  function madeOf(pid) {
-    if (pid) return madeIn(pid);
-    const parts = projectsMade().map((p) => madeIn(p.id));
-    if (parts.length === allMemo.parts.length && parts.every((x, i) => x === allMemo.parts[i])) return allMemo.items;
-    allMemo = { parts, items: parts.flat().sort((a, b) => b.at - a.at) };
-    return allMemo.items;
-  }
-  const madeCount = (pid) => madeOf(pid).length;
 
   const { syncCards } = createCards({ PV, PROJ, naming: madeNaming });
   const tpl = document.createElement("template");
@@ -238,24 +146,6 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
     const route = m.exists === false ? { why: "This file isn't there any more: its worktree was removed and no copy was kept." }
       : m.fileProject && m.rel ? { project: m.fileProject, rel: m.rel } : sharedFileRoute(world.thread(m.tid), m.path);
     VW.open({ path: m.path, name: m.name, type: m.type, bytes: m.bytes, ...route }, from);
-  }
-  function togglePin(key) {
-    const m = madeOf(null).find((x) => x.key === key);
-    const on = m ? !m.pinned : !pins.has(key);
-    if (m && m.server && m.chat) {
-      // the backend's pin, for every device: shown at once, put back if it's refused
-      const e = served.get(m.chat);
-      const row = (e?.rows || []).find((r) => r.id === m.id);
-      if (row) { row.pinned = on; e.v++; }
-      api.pinMade(m.chat, m.id, on).catch((err) => { if (row) { row.pinned = !on; e.v++; } announce(`Couldn't ${on ? "pin" : "unpin"} it: ${err.message}`); schedule(); if (shown()) madeRender(); });
-    } else {
-      if (on) pins.add(key); else pins.delete(key);
-      pinsV++;
-      savePins();
-    }
-    announce(on ? "Pinned" : "Unpinned");
-    if (shown()) madeRender();
-    schedule();
   }
 
   /** A made card still coming (skeleton.js), as an element: where its card will be, at its size. */
@@ -443,7 +333,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
     A.byKey = new Map();
     for (const g of v.groups) for (const m of g.items) A.byKey.set(m.key, m);
     // older pages still on their way: two rows of stand-ins under the list
-    const reading = projectsMade().some((p) => { const e = served.get(p.chatId); return e && !e.off && e.more && !e.end; });
+    const reading = MS.olderLeft();
     // what you're looking at stays where it is when things land above it (a new thing at the top, a pinned one
     // from an older page): the first card in view is the anchor, and the scroll follows it
     const view = box.scrollTop - be.offsetTop;

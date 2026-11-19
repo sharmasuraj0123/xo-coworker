@@ -2486,7 +2486,7 @@
     "modules/artifacts",
     "modules/since"
    ],
-   "note": "Since you left (seen marks, the worktrees' git words, the line, Home's lines, Got it) is in modules/since/view.js; the preview queue and its device cache in modules/artifacts/previews.js; the cards in modules/artifacts/cards.js; the dead Since card is deleted; the Made tab, Home's strip, the Artifacts page and ⌘K wait for modules/artifacts"
+   "note": "Since you left (seen marks, the worktrees' git words, the line, Home's lines, Got it) is in modules/since/view.js; the preview queue in modules/artifacts/previews.js; the cards in modules/artifacts/cards.js; what was made (the backend's pages, the fallback, pins) in modules/artifacts/store.js; the dead Since card is deleted; the Made tab, Home's strip, the Artifacts page and ⌘K wait for modules/artifacts"
   },
   "js/redraw.js": {
    "status": "moved",
@@ -12659,12 +12659,8 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/recordview.js::storage::xo-made-pins": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts",
-    "modules/since"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/artifacts/store.js"
   },
   "js/recordview.js::keys::Escape": {
    "status": "split-region",
