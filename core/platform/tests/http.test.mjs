@@ -133,6 +133,19 @@ await t("an upload sends raw bytes with the token, reports progress and reads it
   up3.abort();
   assert.equal((await rejects(up3.promise)).name, "AbortError");
 });
+await t("one error parser: blobs, texts and uploads read every error shape as requests do, extras and all", async () => {
+  answer = () => res(421, JSON.stringify({ error: "bad_host" }), { statusText: "Misdirected" });
+  let e = await rejects(A.api.projectImage("p", "x.png"));
+  assert.deepEqual([e.status, e.code, e.message], [421, "bad_host", "421 Misdirected"]);
+  answer = () => res(422, JSON.stringify({ detail: [{ loc: ["query", "relative_path"], msg: "required" }] }));
+  e = await rejects(A.api.projectImage("p", "x.png"));
+  assert.deepEqual([e.code, e.message], ["http_422", "relative_path: required"]);
+  answer = () => res(409, JSON.stringify({ detail: { code: "changed", message: "Changed.", current: { v: 3 } } }));
+  e = await rejects(A.api.projectImage("p", "x.png"));
+  assert.deepEqual([e.code, e.current], ["changed", { v: 3 }]);
+  e = await rejects(A.attachmentText("c", "a"));
+  assert.deepEqual([e.code, e.current], ["changed", { v: 3 }]);
+});
 await t("clientId: fresh each time, ui_ prefixed", async () => {
   const a = A.clientId(), b = A.clientId();
   assert.match(a, /^ui_[0-9a-z]+_[0-9a-z]{1,8}$/);

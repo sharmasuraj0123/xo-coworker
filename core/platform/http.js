@@ -105,33 +105,19 @@ async function exchange(url, method, body, signal, extra = null) {
   if (res.type === "opaqueredirect") {
     throw new ApiError(401, "signed_out", "Signed out of the workspace. Reopen this app from XO.");
   }
-  /** @type {any} */
-  let data = null;
   const text = await res.text();
+  if (!res.ok) throw errorOf(res.status, res.statusText, text);
   try {
-    data = text ? JSON.parse(text) : null;
+    return text ? JSON.parse(text) : null;
   } catch {
-    data = null;
+    return null;
   }
-  if (!res.ok) {
-    // four error shapes: storm's {detail: {code, message, …extras}}, FastAPI's 422 list, a plain-string detail, and serve.py's own
-    const d = data && data.detail;
-    const code = (d && d.code) || (data && data.error) || `http_${res.status}`;
-    let message = (d && d.message) || (typeof d === "string" ? d : "");
-    if (Array.isArray(d)) message = d.map((e) => `${(e.loc || []).slice(1).join(".")}: ${e.msg}`).join("; ");
-    if (!message) message = `${res.status} ${res.statusText || "error"}`;
-    /** @type {Record<string, unknown>} */
-    const extra = {};
-    if (d && typeof d === "object" && !Array.isArray(d)) for (const k of ["feature", "count", "sentence", "what", "confirm", "summary", "current"]) if (k in d) extra[k] = d[k];
-    throw new ApiError(res.status, code, message, extra);
-  }
-  return data;
 }
 
 /** A Space without this route yet: FastAPI's bare 404 ("http_404") or 405; a route's own 404 names what isn't there. @param {any} err */
 export const missingRoute = (err) => !!err && (err.status === 405 || (err.status === 404 && (!err.code || err.code === "http_404")));
 
-/** An ApiError from a non-2xx answer whose body is `text` (any of the four error shapes). @param {number} status @param {string} statusText @param {string} text */
+/** The one error parser: storm's {detail: {code, message, …extras}}, FastAPI's 422 list, a plain-string detail, or serve.py's own. @param {number} status @param {string} statusText @param {string} text */
 function errorOf(status, statusText, text) {
   /** @type {any} */
   let data = null;
@@ -141,7 +127,10 @@ function errorOf(status, statusText, text) {
   let message = (d && d.message) || (typeof d === "string" ? d : "");
   if (Array.isArray(d)) message = d.map((e) => `${(e.loc || []).slice(1).join(".")}: ${e.msg}`).join("; ");
   if (!message) message = `${status} ${statusText || "error"}`;
-  return new ApiError(status, code, message);
+  /** @type {Record<string, unknown>} */
+  const extra = {};
+  if (d && typeof d === "object" && !Array.isArray(d)) for (const k of ["feature", "count", "sentence", "what", "confirm", "summary", "current"]) if (k in d) extra[k] = d[k];
+  return new ApiError(status, code, message, extra);
 }
 
 /** The page-relative URL of a route. @param {string} path */
@@ -206,10 +195,7 @@ export async function blob(path, { signal, ms = READ_MS } = {}) {
     const res = await fetch(BASE + path, { signal: dl.signal, headers: coderHeaders(), cache: "no-store", redirect: "manual" });
     if (res.type === "opaqueredirect") throw new ApiError(401, "signed_out", "Signed out of the workspace. Reopen this app from XO.");
     if (res.ok) return await res.blob();
-    /** @type {any} */
-    let d = null;
-    try { d = (await res.json()).detail; } catch { /* not JSON */ }
-    throw new ApiError(res.status, (d && d.code) || `http_${res.status}`, (d && d.message) || (typeof d === "string" ? d : "") || `${res.status} ${res.statusText || "error"}`);
+    throw errorOf(res.status, res.statusText, await res.text());
   } catch (err) {
     if (err instanceof ApiError) throw err;
     if (err && /** @type {Error} */ (err).name === "AbortError" && dl.timedOut()) throw new ApiError(0, "timeout", `XO didn't answer in ${Math.round(ms / 1000)} s.`);
