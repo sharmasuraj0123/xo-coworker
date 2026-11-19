@@ -162,7 +162,7 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 node tests/run.mjs               # every unit test (tests/*.test.mjs and tests/*.test.py), judged by exit code; ~15 s
 node tests/run.mjs files         # only the tests whose name contains "files"
 node tools/check.mjs             # the full check before a merge: lint, types, ratchets, ledger, then every test
-node tools/check.mjs --fast      # the same without the tests (the pre-commit hook: git config core.hooksPath .githooks)
+node tools/check.mjs --fast      # the same without the tests; the pre-commit hook runs it (already on in the shared git config)
 ```
 
 Each test file says what it covers in its header. Browser suites (`tests/browser/`, Playwright) run only when the owner asks. Their mocks live in `e2e/`:
