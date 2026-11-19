@@ -27,8 +27,8 @@ const TW_KEY = "xo-files-tree", TW_DEF = 280, TW_MIN = 200, TW_MAX = 480;
 const CW_KEY = "xo-chat-w", CW_DEF = 400, CW_MIN = 360, CW_MAX = 560;
 const FOLD_KEY = "xo-files-folds"; // {tree: "open"|"folded", chat: "open"|"folded"}: what you chose, per browser
 const PHONE = 760, RAIL = 44, FILE_MIN = 640, COMPACT_FILE = 560, SLIDE = 200;
-const BACK_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 5-7 7 7 7M3 12h18"/></svg>';
-const TREE_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M9.5 4.5v15"/></svg>';
+const BACK_IC = ICON.backTo;
+const TREE_IC = ICON.sidebar;
 
 export function createFilesView({ files, viewer, view, PROJ, world, announce, onChange, onDock = null }) {
   const F = { open: false, min: false, docked: false, sheet: false, fileOnly: false, seen: null, returnTo: null, head: "", toChip: false,

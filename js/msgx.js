@@ -12,24 +12,14 @@
 //     · swipe left anywhere: every message's time slides in, like Messages
 //     · a sent reply shows its quote as a card in your bubble; press it to go back to the original
 
-import { elapsed } from "./ui.js";
+import { elapsed, ICON, xi } from "./ui.js";
 import { toLatest, fromLatest } from "./follow.js";
 import { copyText, COPY_REFUSED, space } from "./util.js";
 import { wordsOf } from "./words.js";
 
 const $ = (s, r = document) => r.querySelector(s);
 const root = document.documentElement;
-const I = (d) => `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
-const IC = {
-  reply: I('<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>'),
-  copy: I('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/>'),
-  check: I('<path d="m5 12.5 4.5 4.5L19 7.5"/>'),
-  close: I('<path d="M6 6l12 12M18 6 6 18"/>'),
-  down: I('<path d="M6 9.5l6 6 6-6"/>'),
-  // Lucide's thumbs (ISC, js/vendor/lucide/LICENSE), on the same 24 grid and stroke as the rest
-  good: I('<path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>'),
-  bad: I('<path d="M17 14V2"/><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"/>'),
-};
+const IC = { reply: ICON.reply, copy: ICON.copy, check: xi("check"), close: ICON.close, down: ICON.chevron, good: ICON.good, bad: ICON.bad };
 
 // The look keys off <html data-msgx="bubbles"> (and data-msgx-tails): set before the first paint (index.html) when
 // this device turned Chat bubbles on in Settings › General; without it the conversation reads as a document (css/rich.css).

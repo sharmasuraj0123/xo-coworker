@@ -8,15 +8,30 @@
 // its plain page for anything else. Folders keep a quiet line glyph (Pierre shows folders by their
 // chevron; the Map and Made still want a folder mark).
 //
+// The plain kinds are the owner's (assets/icons/xo/i-file-types, 19 Nov): a page, text, code, data, a picture… drawn
+// in their kind's colour; other projects' marks (TypeScript, React, Docker…) stay theirs, from Pierre. Archives
+// (.zip, .tar, .gz…) have their own icon now. Folders are the owner's folder and open folder.
+//
 // API (kept for every caller): fileIcon(name), folderIcon(open), iconKey(name), fileColor(name),
 // FOLDER_ICON, FOLDER_OPEN_ICON. An icon is an inline <svg class="fi"> carrying its two colours as
 // --fi-l / --fi-d; css/panel.css picks the one for the theme.
 
 import { PIERRE } from "./vendor/pierre/icons.js";
-import { LUCIDE } from "./vendor/lucide/files.js";
+import { xi } from "./icon.js";
+import { XI } from "./xoicons.js";
 
 const { symbols, plainFile, names, exts, overrides, colors } = PIERRE;
 const GRAY = colors.default || ["#84848a", "#adadb1"];
+
+// Pierre's plain kinds → the owner's file icons (the rest of Pierre's tokens are other projects' marks)
+const OWN = { default: "file-default", text: "file-text", html: "file-code-html", json: "file-json", yml: "file-yaml",
+  bash: "file-shell", image: "file-image", svg: "file-svg", font: "file-font", table: "file-table", database: "file-database",
+  markdown: "file-markdown", zip: "file-archive", archive: "file-archive", pdf: "file-pdf", audio: "file-audio",
+  video: "file-video" };
+// kinds Pierre has no token for, by the last extension
+const KINDS = { pdf: "pdf", mp3: "audio", wav: "audio", m4a: "audio", ogg: "audio", flac: "audio", aac: "audio",
+  mp4: "video", mov: "video", webm: "video", mkv: "video", avi: "video", "7z": "archive", rar: "archive",
+  bz2: "archive", xz: "archive", zst: "archive", tgz: "archive" };
 
 const draw = (vb, body, token) => {
   const [l, d] = colors[token] || GRAY;
@@ -39,6 +54,7 @@ export function iconKey(name) {
     if (exts[raw]) return exts[raw];
   }
   if (exts[file]) return exts[file]; // a bare LICENSE, AUTHORS…
+  if (segs.length > 1 && KINDS[segs[segs.length - 1]]) return KINDS[segs[segs.length - 1]];
   return "default";
 }
 
@@ -46,15 +62,15 @@ export function iconKey(name) {
 export function fileIcon(name) {
   const t = iconKey(name);
   if (!cache.has(t)) {
+    const own = OWN[t] || (!symbols[t] && "file-default");
     const s = symbols[t];
-    cache.set(t, s ? draw(s.vb, s.body, t) : draw(plainFile.vb, plainFile.body, "default"));
+    cache.set(t, own ? draw(XI[own][0], XI[own][1], OWN[t] ? t : "default") : draw(s.vb, s.body, t));
   }
   return cache.get(t);
 }
 
-const line = (n, label) => `<svg class="fi fi-line" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-fi="${label}">${LUCIDE[n]}</svg>`;
-export const FOLDER_ICON = line("folder", "folder");
-export const FOLDER_OPEN_ICON = line("folder-open", "folder-open");
+export const FOLDER_ICON = xi("folder", "fi fi-line").replace("<svg ", '<svg data-fi="folder" ');
+export const FOLDER_OPEN_ICON = xi("folder-open", "fi fi-line").replace("<svg ", '<svg data-fi="folder-open" ');
 /** A folder's icon, open or not. */
 export const folderIcon = (open = false) => (open ? FOLDER_OPEN_ICON : FOLDER_ICON);
 

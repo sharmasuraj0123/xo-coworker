@@ -35,6 +35,13 @@ kbd{font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);padding:2px 5px;
    untouched; so are the XO mark and the left sidebar (the owner: keep it exactly as it is). */
 svg[stroke="currentColor"][fill="none"]:not(.side svg){stroke-width:1.5px;stroke-linecap:square;stroke-linejoin:miter}
 svg[stroke="currentColor"][fill="none"]:not(.side svg) :is(path,line,polyline,polygon,circle,rect,ellipse){vector-effect:non-scaling-stroke}
+/* The owner's icon pack (js/xoicons.js, 19 Nov) carries its own pen on each path (1.75 on the 24 grid, round ends and
+   joins), so the rule above doesn't touch it. Its size is a token unless the slot says otherwise (no specificity:
+   any slot's own rule wins). */
+:where(svg.xi:not(.xo-mark)){width:var(--ic);height:var(--ic)}
+:where(svg.xi.ic-xs){width:var(--ic-xs);height:var(--ic-xs)}
+:where(svg.xi.ic-sm){width:var(--ic-sm);height:var(--ic-sm)}
+:where(svg.xi.ic-lg){width:var(--ic-lg);height:var(--ic-lg)}
 
 @media (prefers-reduced-motion:reduce){
   /* nothing moves. Transitions are none, not 0.01 ms: a 0.01 ms one is given to every property of every element (its

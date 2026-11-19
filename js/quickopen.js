@@ -8,6 +8,7 @@
 //   of the place; openFiles() → the files open now ({rel}); layer.shown()/hidden() keeps the page behind inert.
 
 import { esc } from "./util.js";
+import { xi } from "./icon.js";
 import { fileIcon } from "./fileicons.js";
 import { rank, marked, lineOf } from "./fuzzy.js";
 import { missingRoute } from "./api.js";
@@ -38,7 +39,7 @@ export function createQuickOpen({ paths, api, place, openFile, openFiles = () =>
     el.hidden = false;
     el.setAttribute("aria-label", mode === "files" ? "Go to a file" : "Find in files");
     q.placeholder = mode === "files" ? "Go to a file (type :120 for a line)" : "Find in files";
-    el.querySelector(".qo-ic").innerHTML = mode === "files" ? `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5h7l4 4V19a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 19V5a1.5 1.5 0 0 1 1-1.5z"/></svg>` : `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/></svg>`;
+    el.querySelector(".qo-ic").innerHTML = mode === "files" ? xi("doc") : xi("search");
     el.querySelector(".qo-where").textContent = pl.label || "";
     opts.hidden = mode !== "text";
     q.value = "";

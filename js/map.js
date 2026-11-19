@@ -36,19 +36,13 @@ const FILE_CAP = 8, DIR_CAP = 14; // boxes a folder shows before "N more"
 const PALETTE = ["#4C8DFF", "#A472FF", "#FF6FAE", "#FF9F43", "#2EC4B6", "#E5C23A"];
 const COORD_COLOR = "#7ED957";
 
-export const MAP_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="7" height="5" rx="1.5"/><rect x="14" y="4" width="7" height="5" rx="1.5"/><rect x="14" y="15" width="7" height="5" rx="1.5"/><path d="M10 6.5h4M6.5 9v8.5H14"/></svg>';
-const DIR_OPEN = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 18V7a1.5 1.5 0 0 1 1.5-1.5h4l2 2h7A1.5 1.5 0 0 1 19.5 9v1.5"/><path d="M3.5 18l2.3-6.4a1.5 1.5 0 0 1 1.4-1h13.3l-2.4 7.4H3.5z"/></svg>';
-// the pointer: a crisp arrow, its tip at (1, 1), white-edged so it reads on any box
-const ARROW = '<svg class="dg-arrow" viewBox="0 0 18 18" width="18" height="18" aria-hidden="true"><path d="M1.6 1.4 15.6 7.1c.5.2.5.9 0 1.1l-5.9 2.2a1 1 0 0 0-.6.6l-2.2 5.9c-.2.5-.9.5-1.1 0L.2 2.9C0 2 .8 1.1 1.6 1.4z"/></svg>';
+export const MAP_ICON = ICON.map;
+// the pointer: the pack's agent cursor, its tip at (1, 1) of an 18 box (css/app.css .dg-arrow), coloured per agent
+const ARROW = ICON.cursor;
 const MODE_KEY = "cv-map-mode";
-const I = (d) => `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const TOOL = {
-  out: I('<path d="M6 12h12"/>'), in: I('<path d="M6 12h12M12 6v12"/>'),
-  fit: I('<path d="M4 9V5.5A1.5 1.5 0 0 1 5.5 4H9M15 4h3.5A1.5 1.5 0 0 1 20 5.5V9M20 15v3.5a1.5 1.5 0 0 1-1.5 1.5H15M9 20H5.5A1.5 1.5 0 0 1 4 18.5V15"/>'),
-  follow: I('<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>'),
-  full: I('<path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/>'),
-  tree: I('<rect x="3" y="4" width="7" height="5" rx="1"/><rect x="14" y="4" width="7" height="5" rx="1"/><rect x="14" y="15" width="7" height="5" rx="1"/><path d="M10 6.5h4M6.5 9v8.5H14"/>'),
-  graph: I('<circle cx="6" cy="6" r="2.3"/><circle cx="18" cy="8" r="2.3"/><circle cx="9" cy="18" r="2.3"/><circle cx="18" cy="18" r="1.6"/><path d="M8.2 6.4l7.6 1.2M7 8.2l1.5 7.6M11.2 17.6l5.3.3M17.9 10.3v6.1"/>'), unfull: I('<path d="M4 14h6v6M20 10h-6V4M10 14l-7 7M14 10l7-7"/>'),
+  out: ICON.minimize, in: ICON.plus, fit: ICON.fit, follow: ICON.follow, full: ICON.full, unfull: ICON.unfull,
+  tree: ICON.map, graph: ICON.graph,
 };
 
 const base = (p) => String(p || "").replace(/\/+$/, "").split("/").pop();

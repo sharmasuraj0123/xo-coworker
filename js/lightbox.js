@@ -31,9 +31,9 @@ const BACK_MS = 240;
 // Swipe thresholds (proposal §7): down past 96 px or 0.6 px/ms closes; sideways past 20 % or 0.5 px/ms moves.
 const DOWN_PX = 96, DOWN_V = 0.6, SIDE_PART = 0.2, SIDE_V = 0.5, LOCK_PX = 8, FADE_PX = 400;
 
-const NEXT = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
-const PREV = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>';
-const FILES = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 7a1.5 1.5 0 0 1 1.5-1.5h4l2 2h8A1.5 1.5 0 0 1 20.5 9v9a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18z"/></svg>';
+const NEXT = ICON.right;
+const PREV = ICON.back;
+const FILES = ICON.folder;
 
 /** A token's duration in ms, read from the page (so a change in tokens.css changes the motion too). */
 function ms(name, fallback) {

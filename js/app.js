@@ -108,7 +108,7 @@ const low = (n) => num(n).toLowerCase();
 const plural = (n, w) => `${w}${n === 1 ? "" : "s"}`;
 const DRAFTS = "cv-drafts:live";
 // Stop's square: all of its 14 px box, with 4 px corners (css/app.css, .send.is-stop)
-const STOP_ICON = `<svg viewBox="0 0 14 14" width="14" height="14" aria-hidden="true"><rect width="14" height="14" rx="4" fill="currentColor"/></svg>`;
+const STOP_ICON = ICON.stop;
 
 // ── theme: dark by default, a slide toggle in the sidebar (#28) ────────────
 const THEME = { get() { try { return localStorage.getItem("cv-theme") === "light" ? "light" : "dark"; } catch { return "dark"; } } };
@@ -272,7 +272,7 @@ function projectIcon(pid) {
   const memo = projIcons.get(pid);
   if (memo && memo.n === ts.length) return memo.svg;
   const { icon } = classify((world.project(pid) || {}).name || pid, ts.map((t) => t.title || ""));
-  const svg = icon === "box" ? ICON.project : glyph(icon);
+  const svg = glyph(icon);
   projIcons.set(pid, { n: ts.length, svg });
   return svg;
 }
@@ -639,7 +639,7 @@ function nextCardHtml(n) {
   const t = n.t, E = EFFORT[n.effort];
   const { head, cmd } = nextHead(n);
   return `<article class="next r-${n.risk} e-${n.effort}${D.failedNote(n.key) ? " noting" : ""}" data-key="${esc(n.key)}" data-fid="nextcard" tabindex="-1" aria-label="Your next move: ${esc(n.ask.title)}">` +
-    `<div class="stamp stamp-allow" aria-hidden="true"><svg viewBox="0 0 52 52"><circle class="sc" cx="26" cy="26" r="23"/><path class="sk" d="M15 27l7.5 7.5L38 19"/></svg></div>` +
+    `<div class="stamp stamp-allow" aria-hidden="true">${ICON.stampAllow}</div>` +
     `<div class="nx-in">` +
     `<div class="nx-meta"><span class="eff e-${n.effort}">${dial(n.effort)}<b>${E.label}</b><span>${E.time}</span></span>` +
     (n.risk === "destructive" ? `<span class="risk r-destructive">${ICON.lock}Destructive</span>` : n.group === "stopped" ? `<span class="risk r-stopped">Stopped</span>` : "") +
@@ -1269,7 +1269,7 @@ function fileChipHtml() {
     `<span class="fchip-i" aria-hidden="true">${fileIcon(name)}</span><span class="fchip-n">${esc(name)}</span>${c && !c.file.binary ? countsHtml(c.file) : ""}</button>` +
     `<button type="button" class="fchip-x" data-fv-close data-fid="fchip-x" aria-label="Close ${esc(name)}" title="Close it">${ICON.close}</button></span>`;
 }
-const CHAT_FOLD_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7l5 5-5 5"/><path d="M20 4.5v15"/></svg>';
+const CHAT_FOLD_IC = ICON.foldRail;
 const convName = (v, t) => (t ? t.title : v.startsWith("p:") ? PROJ(v.slice(2)) : v === "ws" ? "Workspace" : ($("#conv-title")?.textContent || "Conversation"));
 /** The chat's own head while it sits beside a file (body.chat-docked hides the header): its name, its state,
  *  and fold it to its rail (js/filesview.js). */
@@ -1760,7 +1760,7 @@ function dockRender(needs) {
   frame.className = `card is-dock r-${n.risk} e-${n.effort}`;
   frame.tabIndex = -1;
   frame.setAttribute("aria-roledescription", "decision");
-  frame.innerHTML = `<div class="stamp stamp-allow" aria-hidden="true"><svg viewBox="0 0 52 52"><circle class="sc" cx="26" cy="26" r="23"/><path class="sk" d="M15 27l7.5 7.5L38 19"/></svg></div><div class="stamp stamp-back" aria-hidden="true"><svg viewBox="0 0 52 52"><circle class="sc" cx="26" cy="26" r="23"/><path class="sk" d="M21 30l-6-6 6-6M15 24h14a7 7 0 0 1 0 14h-4"/></svg></div>`;
+  frame.innerHTML = `<div class="stamp stamp-allow" aria-hidden="true">${ICON.stampAllow}</div><div class="stamp stamp-back" aria-hidden="true">${ICON.stampBack}</div>`;
   const tpl = document.createElement("template");
   tpl.innerHTML = D.cardHtml(n, "dock").trim();
   const inner = tpl.content.firstElementChild;
@@ -2717,10 +2717,11 @@ function faviconRender(t, need = false) {
   if (!link) return;
   if (FAVICON.plain == null) FAVICON.plain = link.getAttribute("href");
   if (!t && !need) { link.setAttribute("href", FAVICON.plain); return; }
-  const W = 360, X = 70, GAP = 14, k = n || 1, w = (W - GAP * (k - 1)) / k;
+  // the owner's favicon-progress (assets/icons/xo/g-app-icon): the mark raised 5, the line on its foot, 48 grid
+  const W = 28.5, X = 9.75, GAP = 1.5, k = n || 1, w = (W - GAP * (k - 1)) / k;
   const fill = (i) => (need ? "#F5A623" : !n ? "#75ADF1" : i < done ? "#83D63A" : i === done ? "#75ADF1" : "#4A4A4A");
-  const seg = Array.from({ length: k }, (_, i) => `<rect x="${(X + i * (w + GAP)).toFixed(1)}" y="418" width="${w.toFixed(1)}" height="30" rx="4" fill="${fill(i)}"/>`).join("");
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500"><rect width="500" height="500" rx="110" fill="#151515"/><g transform="translate(250 215) scale(0.8) translate(-246.5 -250)" fill="none" stroke-width="34"><polyline stroke="#E1E1E1" points="36.99 165.84 118.47 247.31 31.16 334.61"/><polyline stroke="#E1E1E1" points="244.91 165.84 163.44 247.31 250.74 334.61"/><polyline stroke="#83D63A" points="328.12 165.06 246.65 246.53 333.95 333.84"/><polyline stroke="#83D63A" points="380.51 165.06 461.99 246.53 374.68 333.84"/></g>${seg}</svg>`;
+  const seg = Array.from({ length: k }, (_, i) => `<rect x="${(X + i * (w + GAP)).toFixed(2)}" y="35" width="${w.toFixed(2)}" height="2.5" rx="1.25" fill="${fill(i)}"/>`).join("");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><rect width="48" height="48" rx="11" fill="#151515"/><path d="M10.4 13.8l5.2 5.2-5.2 5.2M23.2 13.8L18 19l5.2 5.2" fill="none" stroke-width="3" stroke="#E1E1E1"/><path d="M32 13.8L26.8 19l5.2 5.2M34.4 13.8l5.2 5.2-5.2 5.2" fill="none" stroke-width="3" stroke="#83D63A"/>${seg}</svg>`;
   link.setAttribute("href", `data:image/svg+xml,${encodeURIComponent(svg)}`);
 }
 /** Earlier messages load before you reach them (hub #28). Within about a screen of the top, the next

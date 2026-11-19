@@ -29,8 +29,8 @@ import { paidHtml } from "./paidview.js";
 import { redraw } from "./redraw.js";
 
 export const riskLabel = (r) => ({ destructive: "Destructive", notable: "Notable", routine: "Routine", stopped: "Stopped" })[r] || "Notable";
-const BIG_CHECK = `<svg viewBox="0 0 52 52" aria-hidden="true"><circle class="sc" cx="26" cy="26" r="23"/><path class="sk" d="M15 27l7.5 7.5L38 19"/></svg>`;
-const BIG_BACK = `<svg viewBox="0 0 52 52" aria-hidden="true"><circle class="sc" cx="26" cy="26" r="23"/><path class="sk" d="M21 30l-6-6 6-6M15 24h14a7 7 0 0 1 0 14h-4"/></svg>`;
+const BIG_CHECK = ICON.stampAllow;
+const BIG_BACK = ICON.stampBack;
 const MARK = (s) => (s === "done" ? "✓" : s === "doing" ? "✱" : "○");
 // capitalise a plain lowercase sentence ("the agent asks…"), never a name or a path ("perm-test.txt")
 // a sentence starting with a command ("git push…", "npm install…") stays as written

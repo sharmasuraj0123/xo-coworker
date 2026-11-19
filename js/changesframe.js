@@ -14,13 +14,14 @@
 // wide. It reads js/changes.js; "Open in Files" goes through openFile.
 
 import { esc } from "./util.js";
+import { xi } from "./icon.js";
 import { redraw } from "./redraw.js";
 import { fileIcon } from "./fileicons.js";
 import * as DV from "./diffview.js";
 import * as K from "./keys.js";
 import { isImageChange, drawImageChange } from "./imagechange.js";
 
-const OPEN_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-8 8M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg>';
+const OPEN_IC = xi("external-link");
 const base = (p) => String(p || "").split("/").pop();
 const SHOWN = 100; // rows drawn at first: a long list costs a frame per few hundred
 const dirOf = (p) => { const i = String(p || "").lastIndexOf("/"); return i < 0 ? "" : p.slice(0, i); };

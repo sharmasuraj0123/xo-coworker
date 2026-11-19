@@ -21,7 +21,7 @@
 
 import { esc, isImagePath } from "./util.js";
 import { fileIcon } from "./fileicons.js";
-import { ICON, $ } from "./ui.js";
+import { ICON, $, xi } from "./ui.js";
 import { usable } from "./focusview.js";
 import { api, attachmentUrl, attachmentText, missingRoute } from "./api.js";
 import { kindOf, typeWord } from "./attach.js";
@@ -39,8 +39,8 @@ const bytes = (s) => new TextEncoder().encode(s).length;
 const extOf = (name) => (/\.([\w-]+)$/.exec(String(name || "")) || [])[1] || "";
 const KIND_WORD = { markdown: "Markdown", html: "HTML", text: "Text", code: "Code", json: "JSON" };
 
-const LOCK_IC = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10.5" width="14" height="9.5" rx="2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>';
-const BOLT_IC = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3.5 5.5 13.5H12l-1 7 7.5-10H12z"/></svg>';
+const LOCK_IC = xi("lock", "", "sm");
+const BOLT_IC = xi("runs-code", "", "sm");
 // files git or an agent runs (Space confirms a save to one with a 428; the head says so before you type)
 // before Space answers with the file's place: what git or an agent runs. Case doesn't matter (Space treats
 // .GIT/ and .Claude/ as .git/ and .claude/, on any file system)
@@ -55,13 +55,13 @@ const NOT_EDITABLE = {
   historical: "An earlier version: read only",
   attachment: "Read only",
 };
-const MORE_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>';
-const SPLIT_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M12 4.5v15"/></svg>';
+const MORE_IC = ICON.more;
+const SPLIT_IC = ICON.split;
 // the Source toggle's glyph: angle brackets, drawn like the other line icons
-const SRC_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>';
-const PAGE_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5h7l4 4V19a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 19V5a1.5 1.5 0 0 1 1-1.5z"/><path d="M9 11h6M9 14.5h6M9 18h3.5"/></svg>';
-const PREV_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14.5 6-6 6 6 6"/></svg>';
-const NEXT_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg>';
+const SRC_IC = ICON.code;
+const PAGE_IC = ICON.doc;
+const PREV_IC = ICON.back;
+const NEXT_IC = ICON.right;
 
 /** When, in a few words ("just now", "4 min ago", "10:42"). Pure. */
 export function whenWords(at, now = Date.now()) {
