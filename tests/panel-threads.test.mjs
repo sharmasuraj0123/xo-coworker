@@ -51,7 +51,27 @@ const th = appCss.slice(appCss.indexOf("── The project header's Threads cont
 assert.ok(th.length > 200, "the block is there");
 assert.doesNotMatch(th.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\b1px solid\b/g, "").replace(/@container top \([^)]*\)/g, ""), /\b\d+(\.\d+)?(px|rem|ms)\b/, "tokens only");
 assert.match(app, /<span class="tw-t is-one"><h1 id="conv-title"/);
-assert.match(app, /else if \(e\.target\.closest\?\.\("\[data-stage-open\]"\)\) STAGE\.open\(\)/);
+assert.match(app, /else if \(e\.target\.closest\?\.\("\[data-stage-open\]"\)\) STAGE\.threads\(\)/, "the header's Threads shows Threads, open or not");
+
+// with the panel open, the header's Threads still answers: Shell and Launchpad give way, Threads unfolds, focus lands
+// on its first thread and its head glows (the owner, 19 Nov 14:50Z: "clicking on threads doesn't do anything")
+const stg = readFileSync(new URL("../js/stage.js", import.meta.url), "utf8");
+const thFn = stg.slice(stg.indexOf("    threads() {"), stg.indexOf("    },", stg.indexOf("    threads() {")));
+assert.match(thFn, /if \(S\.shell\) setShell\(false\);\s*S\.lp = false; fr\.agents\.folded = false;\s*open\(\{ focus: false \}\);/);
+assert.match(thFn, /\(b\.querySelector\("\.tg-box \[data-go\]"\) \|\| el\.querySelector\('\[data-fr-fold="agents"\]'\)\)\?\.focus/);
+assert.match(thFn, /f\.classList\.add\("is-flash"\)/);
+
+// one count (the owner, 19 Nov 14:50Z: 35 in the header, 73 in the panel): every thread of the project, by state;
+// the header and the panel's head both say it; the coordinator's row isn't a thread
+const cf = app.slice(app.indexOf("function threadCounts("), app.indexOf("\n}\n", app.indexOf("function threadCounts(")) + 2);
+const threadCounts = new Function("world", "threadState", `${cf}; return threadCounts;`)(
+  { state: { threads: [{ project: "p", s: "working" }, { project: "p", s: "done" }, { project: "p", s: "done" }, { project: "q", s: "waiting" }, { project: "p", s: "waiting" }] } },
+  (t) => t.s);
+assert.deepEqual(threadCounts("p", []), { all: 4, needs: 0, working: 1, waiting: 1, done: 2 });
+assert.match(app, /const by = threadCounts\(pid, needs\);/);
+assert.match(app, /S\.hdrCtl = threadsCtl\(by\.all, by\);/);
+assert.match(stg, /tg\.reduce\(\(n, x\) => n \+ x\.rows\.filter\(\(r\) => !r\.coord\)\.length, 0\)/, "the panel's head counts threads, not the coordinator");
+assert.match(app, /const ts = world\.state\.threads\.filter\(\(t\) => t\.project === pid\)\.sort/, "the panel lists every thread of the project");
 assert.doesNotMatch(app, /class="all-btn th-btn"/, "the header's Threads button moved into the panel");
 
 // the group heads: tokens only (a 1 px line aside)

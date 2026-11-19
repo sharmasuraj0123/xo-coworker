@@ -590,3 +590,8 @@ body.stage-covers .herald{position:fixed;left:16px;right:16px;bottom:max(16px, e
 .stage .tg-none{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--s-2)}
 .stage .tg-clear{color:var(--accent);font:inherit;text-decoration:underline;text-underline-offset:var(--s-1)}
 .stage .tg-clear:hover{color:var(--accent-hover)}
+
+/* the header's Threads answers even when Threads already shows: its head glows once (the owner, 19 Nov 14:50Z) */
+.stage .fr.is-flash>.fr-h{animation:fr-flash var(--d-long) var(--ease)}
+@keyframes fr-flash{from{background:var(--hover-fill)}}
+@media (prefers-reduced-motion:reduce){.stage .fr.is-flash>.fr-h{animation:none}}

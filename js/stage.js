@@ -280,7 +280,8 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     const qBox = body("agents").querySelector(".tg-q");
     qBox.hidden = !(tg && (total > FILTER_AT || tq));
     if (!S.lp) set("agents", body("agents").querySelector(".tg-box"), tg ? threadsHtml(tg, tq) : agentsHtml(ag));
-    el.querySelector('[data-fr-n="agents"]').textContent = tg ? (tg.reduce((n, x) => n + x.rows.length, 0) || "") : (ag.filter((a) => a.busy).length || "");
+    // the threads, not the coordinator's row: the same count as the header's Threads (app.js threadCounts)
+    el.querySelector('[data-fr-n="agents"]').textContent = tg ? (tg.reduce((n, x) => n + x.rows.filter((r) => !r.coord).length, 0) || "") : (ag.filter((a) => a.busy).length || "");
     // Changes: Space's list and diff where it has /changes, else today's list
     const cxOn = !fr.changes.folded && !S.lp && CX.paint();
     const hd = CX.head();
@@ -700,6 +701,19 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   return {
     get isOpen() { return S.open; },
     open: () => open(), close, toggle, sync,
+    /** The header's Threads (the owner, 19 Nov 14:50Z: with the panel open it did nothing): the panel open on its
+     *  Threads whatever it showed. Shell mode and Launchpad give way, Threads unfolds, its list comes to its top,
+     *  focus lands on its first thread and its head glows once, so the press always answers. */
+    threads() {
+      if (S.shell) setShell(false);
+      S.lp = false; fr.agents.folded = false;
+      open({ focus: false });
+      persist(); layout(); paint();
+      const f = el.querySelector('[data-fr="agents"]'), b = body("agents");
+      b.scrollTop = 0;
+      (b.querySelector(".tg-box [data-go]") || el.querySelector('[data-fr-fold="agents"]'))?.focus({ preventScroll: true });
+      f.classList.remove("is-flash"); void f.offsetWidth; f.classList.add("is-flash");
+    },
     get isShell() { return !!S.shell; },
     shellOff: () => setShell(false),
     /** The header's Deploy. */

@@ -1247,6 +1247,16 @@ function wsHeadRender() {
  *  line breaks only at a dot, never inside "1 resolved". */
 const counted = (n, word) => (n ? `<span class="pj-c"><span class="pj-k">${n}</span> ${word}</span>` : "");
 const countLine = (bits) => bits.filter(Boolean).join(`<span class="pj-d" aria-hidden="true"> · </span>`);
+/** A place's threads, counted once for the header and the panel (the owner, 19 Nov 14:50Z: the header said 35, the
+ *  panel 73): every thread of the project, the Done ones too, which is the list the panel's Threads shows (the
+ *  coordinator's own row isn't a thread and isn't counted); by state in the panel's four words. The header said
+ *  35 because it counted only the unresolved (threadsOf); the panel counted every thread and the coordinator row. */
+function threadCounts(pid, needs) {
+  const c = { all: 0, needs: 0, working: 0, waiting: 0, done: 0 };
+  for (const t of world.state.threads) if (t.project === pid) { c.all++; c[threadState(t, needs)]++; }
+  return c;
+}
+
 /** The project header's Threads control (the owner, 19 Nov 14:16Z: the header must say the project has threads,
  *  legibly, apart from its title; 14:20Z: beside Deploy): "Threads" and how many, then what's at work as the working
  *  arc and its number, and what needs you as its mark and number. One 32 control among the header's actions; it
@@ -1358,17 +1368,13 @@ function topRender(needs) {
     who = `<span class="tw-ic tw-xo" aria-hidden="true">${XO}</span><span class="tw-t"><h1 id="conv-title">Workspace</h1>${need ? `<span class="pj-s has-need">${countLine([need, `<button type="button" class="pj-home" data-go="home" title="What needs you is on Home">${line}</button>`])}</span>` : `<button type="button" class="pj-s pj-home" data-go="home" title="What needs you is on Home">${line}</button>`}</span>`;
   } else if (v.startsWith("p:")) {
     const pid = v.slice(2);
-    const ts = threadsOf(pid);
-    const every = world.state.threads.filter((x) => x.project === pid); // resolved ones too: findable, reopenable
-    // the same words as the panel's Threads (Working, Waiting; Needs you is said by `need`, its own button); Done
-    // lives in the panel, folded. Every thread here, searchable, is the panel Threads frame's search.
-    const by = { working: 0, waiting: 0, needs: 0 };
-    for (const x of every) { const k = threadState(x, needs); if (by[k] != null) by[k]++; }
+    // the same count and words as the panel's Threads (threadCounts): every thread, Done folded there
+    const by = threadCounts(pid, needs);
     const need = hostNeedHtml(v, needs);
     // the header says the project has threads (the owner, 19 Nov 14:20Z picked it beside Deploy): Threads and how
     // many, what's at work, what needs you; one control among the header's actions, apart from the title
     who = `<span class="tw-ic" aria-hidden="true">${projectIcon(pid)}</span><span class="tw-t is-one"><h1 id="conv-title"${S.desc[pid] ? ` title="${esc(S.desc[pid])}"` : ""}>${esc(PROJ(pid))}</h1>${need}</span>`;
-    S.hdrCtl = threadsCtl(ts.length, by);
+    S.hdrCtl = threadsCtl(by.all, by);
   } else if (t) {
     const ed = S.tEdit && S.tEdit.tid === t.id ? S.tEdit.field : null;
     // the field shows what was typed (kept through a refusal), and says it's waiting while it saves
@@ -4332,7 +4338,7 @@ document.addEventListener("pointerdown", (e) => { if (!$("#side-more").hidden &&
 SIDE.apply();
 
 // the Map's toggle, in every conversation's header
-document.addEventListener("click", (e) => { if (e.target.closest?.("[data-stage-toggle]")) STAGE.toggle(); else if (e.target.closest?.("[data-stage-open]")) STAGE.open(); else if (e.target.closest?.("[data-lp-open]")) STAGE.launch(); });
+document.addEventListener("click", (e) => { if (e.target.closest?.("[data-stage-toggle]")) STAGE.toggle(); else if (e.target.closest?.("[data-stage-open]")) STAGE.threads(); else if (e.target.closest?.("[data-lp-open]")) STAGE.launch(); });
 
 // ── global keys ─────────────────────────────────────────────────────────────
 const GLOBAL = {
