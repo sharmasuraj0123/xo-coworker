@@ -23,6 +23,7 @@ const OTHER = {
   "vw-fold": [/\.vw-menu :is\(\[role=menuitem\],\[role=menuitemradio\]\):focus\{background:var\(--menu-focus\)/, "an item of the file's ⋯ menu: the pointer moves the menu's focus (keynav pointerFollows), and focus fills it"],
   "side-x": [/\.side-x\{display:none\}/, "the drawer's close: a phone's, never drawn on a desktop"],
   "top-menu": [/\.top-menu\{display:none\}/, "the phone bar's menu: never drawn on a desktop"],
+  "rn-live": [/\.rn-live\{display:none\}/, "the thread's sub-agents as one count: a phone's (its press is :active), never drawn on a desktop since the docked chat went"],
   "pb-menu": [/@media \(max-width:760px\)\{[\s\S]*?\.pb-menu\{display:grid/, "the phone bar's menu: drawn only on a phone"],
 };
 let passed = 0;

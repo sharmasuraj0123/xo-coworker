@@ -1,6 +1,5 @@
-// The owner's 19 Nov 08:57Z message: Files' Back to chat was too big and overwhelming ("make it something normal"),
-// and Stop was "a big white circle with a very small square inside it" ("i don't want harsh corners anywhere").
-// Back to chat is a quiet control on the scale; Stop is a stone disc with a rounded square, concentric with the composer.
+// The owner's 19 Nov 08:57Z message: Stop was "a big white circle with a very small square inside it" ("i don't want harsh corners anywhere").
+// (Files' Back to chat, the other half of it, went with the Files place: Files is a page of the panel.) Stop is a stone disc with a rounded square, concentric with the composer.
 //   node tests/files-stop-look.test.mjs
 import assert from "node:assert/strict";
 import { resolveTokens, NEW_SIZES } from "./lib/tokens.mjs";
@@ -11,14 +10,6 @@ const nc = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
-t("Back to chat is a quiet control: 32 tall, the head's 8 px corner, no fill or hairline at rest", () => {
-  const fv = nc(read("css/fileview.css"));
-  const r = /\.fv-ret\{([^}]*)\}/.exec(fv)[1];
-  assert.match(r, /height:32px/);
-  assert.match(r, /border-radius:var\(--r\)/);
-  assert.doesNotMatch(r, /(^|;)(background|box-shadow|border):/);
-  assert.doesNotMatch(fv, /--ret-(ink|fill|line|hover)/, "no plum left");
-});
 t("Stop: a stone disc with the owner's stop square, its radius concentric with the composer's", () => {
   const app = nc(read("css/app.css")), js = read("js/app.js"), tok = read("css/tokens.css");
   // the owner's stop (assets/icons/xo/c-actions/stop.svg: a 12 square, 3.5 corners, on the 24 grid), at --ic-lg

@@ -700,7 +700,7 @@ code.hl{color:var(--code-ink)}
    is-stacked) it sits on the stack's top, clear of its ring's room, so nothing docked there lies under it (S007, and
    the decision card's foot under "Can't reach XO" at 390 on 86b3f9b) */
 .herald{position:absolute;z-index:1;left:var(--col-x);right:var(--col-x);bottom:calc(100% - var(--cbar-fade) + var(--dock-gap));display:flex;justify-content:center;pointer-events:none}
-body:not(.stage-covers) .dock.is-stacked>.herald:not(.is-out){bottom:calc(100% + var(--dock-gap))}
+body:not(.stage-covers) .dock.is-stacked>.herald{bottom:calc(100% + var(--dock-gap))}
 /* with anything docked, the gap over the box is the docked thing's own (--dock-gap), not the bar's fade room */
 .dock.is-stacked>.cbar{padding-top:0}
 .hr{pointer-events:auto;position:relative;display:inline-flex;align-items:center;gap:8px;max-width:100%;height:var(--h-ctl);padding:0 14px 0 12px;border-radius:999px;background:var(--herald-bg);border:1px solid var(--line-soft);color:var(--ink-3);font-size:var(--fs-base);white-space:nowrap;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 10px 28px rgb(0 0 0 / calc(.3 * var(--sha)))}
@@ -732,6 +732,14 @@ button.hr:active{transform:scale(.97)}
 
 .composer{position:relative;display:grid;grid-template-columns:minmax(0,1fr);width:var(--col-w);margin-left:var(--col-x);padding:12px 9px 9px 9px;border:1px solid var(--line);border-radius:var(--r-3xl);background:var(--comp-bg);box-shadow:0 8px 24px var(--comp-shadow),0 1px 0 var(--comp-hi) inset}
 .composer:hover{border-color:var(--line-strong)}
+/* the lines a message is about, above the composer's field (Ask about this, from a file) */
+.cref{display:flex;align-items:center;gap:4px;padding:8px 8px 0 12px}
+.cref[hidden]{display:none}
+.cref .lk{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cref-x{flex:none;display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);border-radius:var(--r-sm);color:var(--ink-4)}
+.cref-x:hover{background:var(--fill-2);color:var(--ink)}
+.cref-x svg{width:14px;height:14px}
+.cref-x:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
 .composer:focus-within{border-color:var(--line-strong);box-shadow:0 8px 24px var(--comp-shadow),0 1px 0 var(--comp-hi) inset}
 /* the composer's corners hold two circles, attach and Send, 36 px and 10 px in from its edge, so the
    composer's 28 px corner is concentric with them (18 + 10). The text starts on the paperclip's glyph. */

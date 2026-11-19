@@ -19,8 +19,7 @@
 // Made left the panel for the sidebar's Artifacts (another thread). The panel owns its frame: a 40 px
 // title bar (the place, full size, close), its width (dragged, 320–720, kept), whether it's open (kept),
 // the page making room for it (body.stage-open, body.stage-full), and floating over the conversation
-// when that would get too narrow (body.stage-over). While Files is open and the reader would drop under
-// 560 px, the panel folds to a 40 px rail (body.stage-rail); a rail icon opens it again.
+// when that would get too narrow (body.stage-over).
 //
 // app.js calls: button, toggle, open, close, sync, isOpen, owns.
 
@@ -31,7 +30,6 @@ import { usable } from "./focusview.js";
 import { fileIcon } from "./fileicons.js";
 import { createChangesFrame, countsHtml } from "./changesframe.js";
 import { setTheme as diffTheme } from "./diffview.js";
-import { LP_ICON } from "./launchpad.js";
 
 const KEY = "xo-stage";
 const FR_KEY = "xo-stage-frames-3"; // Threads · Changes · Map, the Map folded at first (the order before it kept "-2")
@@ -39,7 +37,6 @@ const PANEL_IC = ICON.panel;
 const FULL_IC = ICON.full;
 const UNFULL_IC = ICON.unfull;
 const FOLD_IC = ICON.chevron;
-const CHANGES_IC = ICON.changes;
 const FILES_IC = ICON.folder;
 
 const sget = (k) => { try { return JSON.parse(localStorage.getItem(k) || "{}") || {}; } catch { return {}; } };
@@ -47,9 +44,9 @@ const sset = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } cat
 const ago = (ms) => { if (!Number.isFinite(ms)) return ""; const s = Math.max(0, Math.floor((Date.now() - ms) / 1000)); return s < 60 ? `${s}s` : s < 3600 ? `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, "0")}s` : `${Math.floor(s / 3600)}h ${String(Math.floor(s / 60) % 60).padStart(2, "0")}m`; };
 
 /**
- * map: the Map (mount, show, hide, render, live, agents, mode, setMode), mapIcon. files: js/files.js
- * (changes, today's list). changes: js/changes.js (Space's /changes). filesView: js/filesview.js (open,
- * isOpen). viewer: the file viewer. view(): the view on screen. go(view): navigate. onChange(): the app
+ * map: the Map (mount, show, hide, render, live, agents, mode, setMode). files: js/files.js
+ * (changes, today's list). changes: js/changes.js (Space's /changes). openFiles(): the panel's Files page (js/filespage.js;
+ * "All files"). viewer: the file viewer. view(): the view on screen. go(view): navigate. onChange(): the app
  * re-renders (header buttons). frames(): the frames the person's shape keeps (xo:panel/*), of "changes",
  * "agents", "map"; the order stays the panel's own, since each line between two frames sizes a known pair.
  */
@@ -61,7 +58,7 @@ const AG_ROWS = 6, ROW = 48; // Threads shows six rows at first (a list to read,
 // Agents never takes the room Changes needs: its 40 px head, one 32 px file row and the list's 8 px foot,
 // the diff's 120 px and its 12 px margin (css/diffs.css). In a short window Agents shows fewer rows
 const CH_MIN = 212, HEAD = 40;
-export function createStage({ map, mapIcon, files, changes, filesView, viewer, view, go, announce, onChange, frames = () => ORDER, launch = null, threads = null, shell = null }) {
+export function createStage({ map, files, changes, openFiles = null, viewer, view, go, announce, onChange, frames = () => ORDER, launch = null, threads = null, shell = null }) {
   const saved = sget(KEY);
   // the Map starts folded, in its Graph (the owner, 19 Nov): Threads and Changes have the room
   const fr = { changes: { folded: false }, agents: { rows: null, folded: false, groups: { done: true } }, map: { h: MAP_H, folded: true }, ...sget(FR_KEY) };
@@ -69,7 +66,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   if (!fr.map.h) fr.map.h = MAP_H;
   // a height dragged before Agents went by rows (any pixel count, so a row could show in half): its rows
   if (fr.agents.h) { fr.agents.rows = Math.max(1, Math.min(8, Math.round((fr.agents.h - 44) / ROW))); delete fr.agents.h; }
-  const S = { lp: false, open: false, full: false, returnTo: null, railOff: false, rail: false, aside: false, yielded: false, wide: false, stackH: 0, h: { agents: "", changes: "", head: "", chn: "" } };
+  const S = { lp: false, open: false, full: false, returnTo: null, wide: false, stackH: 0, h: { agents: "", changes: "", head: "", chn: "" } };
 
   const el = document.createElement("aside");
   el.className = "stage";
@@ -81,7 +78,6 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   const gutter = (a, b) => `<div class="fr-gut" role="separator" aria-orientation="horizontal" aria-label="Resize ${a} and ${b}" data-gut="${a}|${b}" tabindex="0"></div>`;
   el.innerHTML = `<div class="stg-grip" role="separator" aria-orientation="vertical" aria-label="Resize the panel" title="Drag to resize · double-click for the default" tabindex="0"></div>` +
     `<header class="stg-bar"><div class="stg-t"></div><div class="stg-acts">${shell ? `<button type="button" class="stg-ic stg-shell-b" data-stg-shell aria-pressed="false" title="A shell here, in the panel" aria-label="Shell in the panel">${ICON.shell}</button>` : ""}<button type="button" class="stg-ic" data-stg-full></button><button type="button" class="stg-ic" data-stg-close aria-label="Close the panel" title="Close (Esc)">${ICON.close}</button></div></header>` +
-    `<div class="stg-rail" aria-label="Panel, folded"><button type="button" class="stg-ic" data-rail="launch" title="Launchpad">${LP_ICON.rocket}</button><button type="button" class="stg-ic" data-rail="agents" title="Threads">${ICON.threads}</button><button type="button" class="stg-ic" data-rail="changes" title="Changes">${CHANGES_IC}</button><button type="button" class="stg-ic" data-rail="map" title="Map">${mapIcon}</button></div>` +
     `<div class="stg-page stg-shell"></div>` +
     `<div class="stg-frames">` +
     `<section class="fr fr-lp is-folded" data-fr="launch" aria-labelledby="fr-title-launch" hidden><header class="fr-h"><h2 class="fr-title" id="fr-title-launch">Launchpad</h2><span class="lp-hs"></span><div class="fr-a"><span class="lp-ha"></span><button type="button" class="fr-ib fr-fold" data-fr-fold="launch" aria-expanded="false" title="Open">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-launch" tabindex="-1"></div><div class="fr-ghosts" role="group" aria-label="Under Launchpad"></div></section><div class="fr-line" data-lp-line hidden></div>` +
@@ -122,13 +118,12 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
 
   // ── the frames: folded or open, their heights ───────────────────────────────
   function layout() {
-    // the shape's frames: one it doesn't keep is gone, with its rail icon and the line beside it
+    // the shape's frames: one it doesn't keep is gone, with the line beside it
     const keep = new Set(frames());
     if (!keep.size) keep.add("agents");
     const on = (id) => keep.has(id);
     for (const id of ORDER) {
       el.querySelector(`[data-fr="${id}"]`).hidden = !on(id);
-      el.querySelector(`[data-rail="${id}"]`).hidden = !on(id);
     }
     // Launchpad: there for a project that can deploy; open, it has the stack and the others show their heads
     // (only while it's open: folded, it isn't a standing row; the header's Deploy opens it, the owner 19 Nov)
@@ -137,7 +132,6 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     const lpOn = lpCan && S.lp;
     LPF.hidden = !lpOn;
     el.querySelector("[data-lp-line]").hidden = !lpOn;
-    el.querySelector('[data-rail="launch"]').hidden = !lpCan;
     LPF.classList.toggle("is-folded", !S.lp);
     LPF.querySelector("[data-fr-fold]").setAttribute("aria-expanded", String(S.lp));
     LPF.querySelector("[data-fr-fold]").title = S.lp ? "Fold" : "Open";
@@ -167,7 +161,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
       f.style.height = fr[id].folded || grow === id || !h ? "" : `${h}px`;
     }
     capAgents();
-    if (fr.map.folded || S.lp || !on("map") || !S.open || S.rail) map.hide(); else map.show(view());
+    if (fr.map.folded || S.lp || !on("map") || !S.open) map.hide(); else map.show(view());
   }
 
   /** Agents is as tall as its rows, up to its count of them (3, or what you dragged to), and never more than
@@ -274,10 +268,14 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     // ‹ Sections leads any page but the shell (its own button is its way back, as before), with a dot when the
     // sections need you (an ask in Threads)
     const back = S.page && S.page.name !== "shell" ? `<button type="button" class="stg-ic pg-back" data-stg-sections title="Back to Threads, Changes and Map (Esc)" aria-label="Sections${sectionsNeed() ? ", something needs you" : ""}">${ICON.back}${sectionsNeed() ? '<i class="pg-dot" aria-hidden="true"></i>' : ""}</button>` : "";
-    if (S.tabs.length > 1) return `${back || `<button type="button" class="stg-ic pg-back" data-stg-sections title="Back to Threads, Changes and Map (Esc)" aria-label="Sections">${ICON.back}</button>`}<span class="pg-tabs" role="tablist" aria-label="Open in the panel">${S.tabs.map((t) => {
+    // a page's own lead control (Files: show or hide its file list), first after ‹ Sections, where you look first
+    const lead = cur && cur.lead ? cur.lead(S.page.key) || "" : "";
+    // on the sections, what the pages keep (a file in Files, a thread) stays one click away as its tab, beside the place
+    // (‹ Sections or Esc from a file keeps it: the plan, FILES-IN-PANEL.md §2)
+    if (S.tabs.length > 1 || (!S.page && S.tabs.length)) return `${S.page ? (back || `<button type="button" class="stg-ic pg-back" data-stg-sections title="Back to Threads, Changes and Map (Esc)" aria-label="Sections">${ICON.back}</button>`) + lead : `<b class="stg-name" title="${esc(place || "")}">${esc(place || "Panel")}</b>`}<span class="pg-tabs" role="tablist" aria-label="Open in the panel">${S.tabs.map((t) => {
       const on = sameTab(t, S.page), sp = PAGES.get(t.name), tt = titleOf(t);
       return `<button type="button" class="pg-tab${on ? " is-on" : ""}" role="tab" aria-selected="${on}" data-stg-tab="${esc(t.name)}" data-stg-key="${esc(t.key)}" title="${esc(tt)}">${sp.icon ? sp.icon(t.key) : ""}<span>${esc(tt)}</span></button>`; }).join("")}</span>`;
-    if (cur && back) return `${back}<b class="stg-name" title="${esc(titleOf(S.page))}">${esc(titleOf(S.page))}</b>`;
+    if (cur && back) return `${back}${lead}<b class="stg-name" title="${esc(titleOf(S.page))}">${esc(titleOf(S.page))}</b>`;
     return `<b class="stg-name" title="${esc(place || "")}">${esc(place || "Panel")}</b>${cur ? `<span class="stg-sub">${esc(titleOf(S.page))}</span>` : ""}`;
   }
   let nameOf = () => "";
@@ -291,7 +289,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     // drawn in place (js/redraw.js), so the row you're on in Agents or Changes stays itself as the list moves live
     const set = (k, node, html) => { const same = html.replace(/(<span class="elapsed" data-since="\d+">)[^<]*/g, "$1"); if (S.h[k] !== same) { redraw(node, html); S.h[k] = same; } };
     set("head", el.querySelector(".stg-t"), titleHtml());
-    if (launch && !LPF.hidden) launch.paint(v, S.lp && !S.rail);
+    if (launch && !LPF.hidden) launch.paint(v, S.lp);
     // under Launchpad Threads is a head: its list waits
     const tg = threads ? threads(v) : null;
     const tq = (S.tq || "").trim().toLowerCase(), total = tg ? tg.reduce((n, x) => n + x.rows.length, 0) : 0;
@@ -370,8 +368,6 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   }
 
   function open({ focus = true } = {}) {
-    // asked for while a file sits beside the chat: the right column is the panel's again, the file waits
-    if (filesView.docked) { filesView.minimise({ chip: false }); S.aside = false; }
     if (!S.open) {
       S.open = true;
       S.returnTo = document.activeElement;
@@ -380,9 +376,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
       el.classList.remove("is-in"); requestAnimationFrame(() => { if (S.open) el.classList.add("is-in"); });
       document.body.classList.add("stage-open");
     }
-    S.railOff = true; // opened on purpose: shown whole, even beside Files
-    S.yielded = false;
-    fitRail();
+    apply();
     layout();
     paint();
     coverSync();
@@ -399,8 +393,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     if (S.full) setFull(false);
     el.hidden = true;
     coverSync(); // what it covered is in reach again before focus goes back to it
-    document.body.classList.remove("stage-open", "stage-rail");
-    S.rail = false;
+    document.body.classList.remove("stage-open");
     launch && launch.away && launch.away(); // typed secrets don't stay behind in a closed panel (Astra)
     pressDeploy();
     map.hide();
@@ -420,7 +413,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   function openLaunch() {
     S.lp = true;
     S.lpOpened = !S.open; // pressed again, Deploy puts things back as they were: the panel closed, or Launchpad folded
-    if (!S.open || S.rail) open({ focus: false }); else { layout(); paint(); }
+    if (!S.open) open({ focus: false }); else { layout(); paint(); }
     // focus goes into the section, so Esc closes the panel rather than leaving the thread (Astra on 761119f); in
     // the same step the panel opens, since on a phone it covers Deploy and puts it out of reach (the browser run:
     // a frame later, focus had already fallen to the page); once more next frame if it wasn't drawn yet
@@ -432,7 +425,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   /** The header's Deploy shows Launchpad open as pressed. Set here, where it changes, rather than by redrawing the
    *  app: the header's next draw writes the same state (app.js asks launchOpen), so the two never disagree. */
   function pressDeploy() {
-    const on = S.open && S.lp && !S.rail;
+    const on = S.open && S.lp;
     for (const b of document.querySelectorAll("[data-lp-open]")) { b.classList.toggle("is-on", on); b.setAttribute("aria-pressed", String(on)); }
   }
 
@@ -443,7 +436,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     coverSync();
   }
 
-  function toggle() { if (S.open && !S.rail) close(); else open(); }
+  function toggle() { if (S.open) close(); else open(); }
   // ── Pages (one panel model: the Files plan and the Thread page, 19 Nov; the Files thread's seven edits folded in)
   // The panel shows its sections, or one page in their place. A kind is registered once:
   //   page(name, { title(key), icon(key), width, single,
@@ -509,6 +502,9 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   function sections({ paint: draw = true } = {}) {
     if (!S.page) return;
     const t = S.page;
+    // focus in the page (a file, Esc from it) or on its head (‹ Sections itself, which goes with it) doesn't fall to the
+    // page's body: it goes to that page's tab, else the panel
+    const had = el.contains(document.activeElement);
     PAGES.get(t.name).onHide?.(t.key);
     boxFor(t).hidden = true;
     S.fullOf = { ...(S.fullOf || {}), [t.name]: S.full };
@@ -518,6 +514,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     if (S.full) setFull(false); // the sections come back at their own width
     apply();
     if (draw) pageChanged();
+    if (had && S.open) (el.querySelector(`[data-stg-tab="${CSS.escape(t.name)}"], [data-stg-page="${CSS.escape(t.name)}"]`) || el).focus({ preventScroll: true });
   }
   /** A tab goes: its page's own ×, or more than TAB_MAX. Asked first (canClose); refused, it stays. */
   async function closeTab(name, key = name) {
@@ -560,30 +557,12 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     if (on) show("shell"); else closeTab("shell");
   }
 
-  /** Every render: the frames follow the view; the rail follows Files. */
+  /** Every render: the frames follow the view. */
   function sync() {
-    // what the cover holds inert follows the page as it changes (the herald moving in or out of the folded chat)
+    // what the cover holds inert follows the page as it changes
     if (S.open || document.querySelector("[data-stage-inert]")) coverSync();
-    // the panel steps aside while Files covers a phone, and while a file sits beside the chat (the right
-    // column holds one thing: the chat); it comes back as it was when the file goes
-    const aside = filesView.isOpen && (innerWidth <= 760 || filesView.docked);
-    if (aside !== S.aside) {
-      S.aside = aside;
-      // stepping aside for a file you opened from the panel: what you were on goes with it, so focus goes to the
-      // file (Files couldn't take it a moment ago: the panel covering a phone kept it out of reach) (Astra S082)
-      if (aside && S.open) {
-        S.yielded = true;
-        const had = el.contains(document.activeElement) || document.activeElement === document.body;
-        close({ restore: false, quiet: true });
-        if (had) { const v = document.getElementById("viewer"), fv = document.getElementById("fv"); (v && !v.hidden && v.getClientRects().length ? v : fv)?.focus({ preventScroll: true }); }
-        return;
-      }
-      // it comes back as it was when the file goes; but on a phone, "Back to chat" (Files put away to its chip)
-      // means the chat: a panel brought back would cover it again (Astra C029). It opens from its button.
-      if (!aside && S.yielded) { S.yielded = false; if (!S.open && !(innerWidth <= 760 && filesView.isMin)) open({ focus: innerWidth <= 760 }); }
-    }
     if (!S.open) return;
-    fitRail();
+    apply();
     if (LPF.hidden === !!(launch && launch.has(view()) && S.lp)) layout();
     paint();
   }
@@ -595,12 +574,10 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     if (t.closest("[data-stg-full]")) { setFull(!S.full); return; }
     if (t.closest("[data-stg-shell]")) { setShell(S.page?.name !== "shell"); return; }
     if (t.closest("[data-stg-sections]")) { sections(); return; }
+    const pa = t.closest("[data-stg-act]");
+    if (pa && S.page) { PAGES.get(S.page.name).act?.(pa.dataset.stgAct, pa); return; }
     const tab = t.closest("[data-stg-tab]");
     if (tab) { const sp = PAGES.get(tab.dataset.stgTab); show(tab.dataset.stgTab, sp?.single ? S.single?.[tab.dataset.stgTab] ?? tab.dataset.stgKey : tab.dataset.stgKey, { focus: true }); return; }
-    const rl = t.closest("[data-rail]");
-    // the rail goes as the part you asked for opens: focus goes to that part's own fold button, in its title row,
-    // which now says it's open (Astra S121)
-    if (rl) { const id = rl.dataset.rail; S.railOff = true; if (id === "launch") S.lp = true; else { S.lp = false; fr[id].folded = false; } fitRail(); layout(); paint(); persist(); (el.querySelector(`[data-fr-fold="${CSS.escape(id)}"]`) || body(id))?.focus({ preventScroll: true }); return; }
     const fo = t.closest("[data-fr-fold]");
     if (fo) {
       const id = fo.dataset.frFold;
@@ -615,7 +592,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     if (t.closest('[data-fr="launch"] .fr-h') && !S.lp && !t.closest("a,button")) { S.lp = true; layout(); paint(); return; }
     const mm = t.closest("[data-map-mode]");
     if (mm) { if (fr.map.folded) { fr.map.folded = false; layout(); } map.setMode(mm.dataset.mapMode); paint(); return; }
-    if (t.closest("[data-open-files]")) { filesView.open(); return; }
+    if (t.closest("[data-open-files]")) { openFiles && openFiles(); return; }
     if (t.closest("[data-follow]")) { CX.toggleFollow(); paint(); return; }
     const ch = t.closest("[data-change]");
     if (ch) { const rel = ch.dataset.change; viewer.open({ path: rel, name: rel.split("/").pop(), project: ch.dataset.changeProject, rel }, ch); return; }
@@ -756,14 +733,13 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   }
 
   // ── width: flush to the window's right edge, 360 px by default, 320–720 by dragging its left edge ─
-  const W_KEY = "xo-stage-w", W_DEF = 360, W_MIN = 320, W_MAX = 720, RAIL = 40;
+  const W_KEY = "xo-stage-w", W_DEF = 360, W_MIN = 320, W_MAX = 720;
   // a diff wants room for code: with one showing, the panel widens to WIDE while the conversation keeps READ
   // (never past a width you dragged it to yourself)
   const WIDE = 560;
   // when the conversation beside it would drop under READ px, the panel floats over it (with a shadow)
   // instead of squeezing it: a cut-down thread title is worse than a covered margin
   const READ = 560;
-  const RAIL_READ = 520; // beside Files, the reader keeps at least this much; under it the panel folds to its rail
   // the sidebar's width changes only when it's resized (the window, its collapse): read once then, not on every
   // change of the panel, where the read forced the page's layout in the middle of its own (24–88 ms at 4×)
   let sideWv = null;
@@ -787,9 +763,9 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   const pageW = () => { let v = 0; try { v = Number(localStorage.getItem(`${W_KEY}:${S.page.name}`)) || 0; } catch { v = 0; } return clampP(v || pageSpecW()); };
   const widthNow = () => (pageSpecW() ? pageW() : S.wide && !wMine && innerWidth - sideW() - WIDE >= READ ? Math.max(clampW(wSaved), clampW(WIDE)) : clampW(wSaved));
   function apply() {
-    const v = S.rail ? RAIL : widthNow();
+    const v = widthNow();
     document.documentElement.style.setProperty("--sw", `${v}px`);
-    document.body.classList.toggle("stage-over", !S.rail && innerWidth > 760 && innerWidth - sideW() - v < READ);
+    document.body.classList.toggle("stage-over", innerWidth > 760 && innerWidth - sideW() - v < READ);
   }
   const setW = (w, save = false) => {
     if (pageSpecW()) {
@@ -803,23 +779,11 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     apply();
     return wSaved;
   };
-  /** Beside Files, a wide panel folds to its rail so the reader keeps 560 px, unless you opened it. */
-  function fitRail() {
-    const tw = filesView.isOpen ? (parseFloat(getComputedStyle(document.querySelector("#fv") || document.body).getPropertyValue("--tw")) || 280) : 0;
-    if (!filesView.isOpen) S.railOff = false;
-    const want = S.open && filesView.isOpen && !S.railOff && innerWidth > 760 && innerWidth - sideW() - widthNow() - tw < RAIL_READ;
-    if (want !== S.rail) {
-      S.rail = want;
-      document.body.classList.toggle("stage-rail", want);
-      layout();
-    }
-    apply();
-  }
   setW(wSaved);
-  addEventListener("resize", () => { fitRail(); coverSync(); if (S.open) capAgents(); });
+  addEventListener("resize", () => { apply(); coverSync(); if (S.open) capAgents(); });
   const grip = el.querySelector(".stg-grip");
   grip.addEventListener("pointerdown", (e) => {
-    if (e.button !== 0 || S.full || S.rail) return;
+    if (e.button !== 0 || S.full) return;
     e.preventDefault();
     grip.setPointerCapture(e.pointerId);
     const right = el.getBoundingClientRect().right;
@@ -864,13 +828,15 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     page, show, sections, closeTab, requestClose,
     pages: () => S.tabs.map((t) => ({ ...t, title: PAGES.get(t.name).title?.(t.key) || t.name, on: sameTab(t, S.page) })),
     get pageShown() { return S.page ? { ...S.page } : null; },
+    /** A page's width changed (Files' tree folded or opened, its width dragged): the panel fits it again, one write. */
+    refit: () => apply(),
     /** The header's Deploy. */
     launch() {
-      if (!(S.open && S.lp && !S.rail)) { openLaunch(); return; }
+      if (!(S.open && S.lp)) { openLaunch(); return; }
       if (S.lpOpened) close(); else { S.lp = false; layout(); paint(); }
     },
     /** Is Launchpad open in the panel (the header's Deploy reads as pressed)? */
-    get launchOpen() { return S.open && S.lp && !S.rail; },
+    get launchOpen() { return S.open && S.lp; },
     /** The shape changed: the frames it keeps, at once. */
     reshape() { layout(); paint(); },
     /** A changed file's chip: the panel opens (if closed) on that file's diff; false when it can't. */
@@ -878,13 +844,15 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
       if (!frames().includes("changes") || !CX.head()) return false;
       if (!CX.select(path)) return false;
       fr.changes.folded = false;
-      if (!S.open || S.rail) open({ focus: false }); else { layout(); paint(); persist(); }
+      // a page in front (a file in Files, a thread): the sections come back to show it, the page kept as its tab
+      if (S.page) sections({ paint: false });
+      if (!S.open) open({ focus: false }); else { layout(); paint(); persist(); }
       return true;
     },
     /** You sent the agent a message: following resumes (D6). */
     resumeFollow(v) { CX.resume(v); },
     /** The file chosen in the panel's Changes for a view, while the panel shows it (its chip reads as chosen). */
-    chosen(v) { return S.open && !S.rail && !fr.changes.folded && frames().includes("changes") ? CX.chosen(v) : null; },
+    chosen(v) { return S.open && !fr.changes.folded && frames().includes("changes") ? CX.chosen(v) : null; },
     /** The app's theme switched: drawn diffs follow. */
     theme: (t) => diffTheme(t),
     /** The place's name for the title bar (app.js knows the names). */

@@ -38,8 +38,6 @@
   <link rel="stylesheet" href="./css/rich.css">
   <!-- a file you read and type in: the editor, Markdown as a page, the open files as tabs, its versions (js/doceditor.js) -->
   <link rel="stylesheet" href="./css/docs.css">
-  <!-- a file beside its conversation (css/fileview.css + js/filesview.js): the chat docked in a right column -->
-  <link rel="stylesheet" href="./css/fileview.css">
   <!-- the phone (≤760 px): its top bars, last so it settles every earlier phone rule (thread "Phone UI audit") -->
   <link rel="stylesheet" href="./css/phone.css">
 </head>
@@ -98,8 +96,6 @@
 
       <!-- A conversation: the Workspace, a project, or a thread -->
       <section class="conv" id="conv" hidden>
-        <!-- the chat's own head while it sits beside a file (body.chat-docked, js/filesview.js) -->
-        <header class="chead" id="chead" tabindex="-1"></header>
         <header class="top" id="top">
           <!-- a phone's menu, inside the conversation's own bar (css/phone.css); the phonebar's ☰ elsewhere -->
           <button type="button" class="top-menu" id="top-menu" aria-label="Open menu" aria-controls="side" aria-expanded="false"></button>
@@ -125,10 +121,8 @@
       <!-- The dock: one calm labelled line, the thread's own decision (in a thread), the composer on a glass bar -->
       <div class="dock" id="dock">
         <!-- what's docked over the composer is one stack, read top to bottom: the notices' line, on top of whatever
-             is docked (on the composer bar's fade when nothing is); the put-away file's chip (a phone: the header
-             has no room for it); the thread's decision; the composer -->
+             is docked (on the composer bar's fade when nothing is); the thread's decision; the composer -->
         <div class="herald" id="herald" aria-live="polite"></div>
-        <div class="fdock" id="fdock"></div>
         <div class="tdock" id="tdock"></div>
         <div class="cbar">
         <form class="composer" id="composer" autocomplete="off">
@@ -153,9 +147,6 @@
         </form>
         </div>
       </div>
-
-      <!-- the chat folded to a rail beside a file (css/fileview.css, js/filesview.js) -->
-      <nav class="crail" id="crail" aria-label="The conversation, folded"></nav>
 
       <!-- Global decisions: beside the conversation, sized to its content -->
       <section class="panel" id="panel" aria-labelledby="pn-h" hidden>

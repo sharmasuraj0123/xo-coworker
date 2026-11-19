@@ -100,7 +100,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     follow: null,        // the folder of a file opened from elsewhere (Artifacts, another thread): shown until you leave
     viewKey: "all",      // the scope the view itself gives
     q: "", wide: false,
-    folded: false,       // beside a file, the tree folded to its rail (◧, ⌘B; js/filesview.js decides when)
+    folded: false,       // beside a file, the tree folded to its rail (its fold button, ⌘B; js/filespage.js keeps it)
   };
   const setOf = (k) => { if (!F.open.has(k)) F.open.set(k, new Set()); return F.open.get(k); };
   const apiRel = (s, local) => (s.base ? (local ? `${s.base}/${local}` : s.base) : local);
@@ -479,7 +479,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
   }
 
   // ── folded to a rail (beside a file) ─────────────────────────────────────
-  /** Fold or open the tree; `onFold` (js/filesview.js) hears it when it was you. */
+  /** Fold or open the tree; `onFold` (js/filespage.js) hears it when it was you. */
   function fold(on, { mine = false } = {}) {
     if (F.folded === !!on) return;
     F.folded = !!on;
@@ -931,6 +931,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     list(on) { if (F.wide || !viewer.hasFile) return false; F.fileView = !on; paint(); return true; },
     get listing() { return !F.wide && viewer.hasFile && !F.fileView; },
     get folded() { return F.folded; },
+    get wide() { return F.wide; },
     /** The file came from you (a click), not from the front page: the panel treats it as yours. */
     get auto() { return F.auto; },
     /** The folder on screen ({label, sub}), or null when it's the list of projects. */
