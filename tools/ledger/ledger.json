@@ -2125,7 +2125,7 @@
   },
   "design-research/2026-11-lg/tools/controls-md.cjs": {
    "status": "deleted",
-   "reason": "archived with design-research; the only part a test read, its Recheck list for a4faed2, is e2e/fixtures/controls/link-rows.json"
+   "reason": "archived to the design archive: a generator whose inputs live outside the repo; the test's data is now e2e/fixtures/controls/link-rows.json"
   },
   "design-research/2026-11-vision/canvas-editing/PLAN.md": {
    "status": "deleted",
@@ -2149,7 +2149,8 @@
   },
   "design-research/2026-11-vision/launchpad/tools/mockspace.cjs": {
    "status": "moved",
-   "home": "e2e/fixtures/mockspace-harness.cjs"
+   "home": "e2e/fixtures/mockspace-harness.cjs",
+   "note": "Wave 4 Launchpad: fold the scenarios Launchpad's tests need into e2e/fixtures/mockspace-harness.cjs, then delete tools/launchpad/smoke.cjs (D6) and e2e/fixtures/mockspace.cjs together, after one browser run when the owner asks"
   },
   "favicon.svg": {
    "status": "planned",
@@ -4944,7 +4945,8 @@
   },
   "tools/launchpad/mockspace.cjs": {
    "status": "moved",
-   "home": "e2e/fixtures/mockspace.cjs"
+   "home": "e2e/fixtures/mockspace.cjs",
+   "note": "Wave 4 Launchpad: fold the scenarios Launchpad's tests need into e2e/fixtures/mockspace-harness.cjs, then delete tools/launchpad/smoke.cjs (D6) and e2e/fixtures/mockspace.cjs together, after one browser run when the owner asks"
   },
   "tools/launchpad/smoke.cjs": {
    "status": "planned",

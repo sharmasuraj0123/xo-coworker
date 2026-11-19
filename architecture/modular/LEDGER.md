@@ -1348,13 +1348,13 @@ Items inside first-party files: 2290 (planned 1366, split-region 923, moved 1), 
 | `design-research/2026-11-chatview/showcase.cjs` | 151 | deleted | moved to the design archive (owner D4) |
 | `design-research/2026-11-lg/controls-ids.json` | 2686 | moved | e2e/fixtures/controls/controls-ids.json |
 | `design-research/2026-11-lg/lp-shell/world.cjs` | 212 | moved | e2e/worlds/lp-shell.cjs |
-| `design-research/2026-11-lg/tools/controls-md.cjs` | 761 | deleted | archived with design-research; the only part a test read, its Recheck list for a4faed2, is e2e/fixtures/controls/link-rows.json |
+| `design-research/2026-11-lg/tools/controls-md.cjs` | 761 | deleted | archived to the design archive: a generator whose inputs live outside the repo; the test's data is now e2e/fixtures/controls/link-rows.json |
 | `design-research/2026-11-vision/canvas-editing/PLAN.md` | 215 | deleted | moved to the design archive (owner D4) |
 | `design-research/2026-11-vision/canvas-editing/README.md` | 444 | deleted | moved to the design archive (owner D4) |
 | `design-research/2026-11-vision/canvas-editing/SPACE-CONTRACT.md` | 244 | deleted | moved to the design archive (owner D4) |
 | `design-research/2026-11-vision/canvas-editing/files-as-editor.md` | 171 | deleted | moved to the design archive (owner D4) |
 | `design-research/2026-11-vision/canvas-editing/vscode-behaviours.md` | 177 | deleted | moved to the design archive (owner D4) |
-| `design-research/2026-11-vision/launchpad/tools/mockspace.cjs` | 133 | moved | e2e/fixtures/mockspace-harness.cjs |
+| `design-research/2026-11-vision/launchpad/tools/mockspace.cjs` | 133 | moved | e2e/fixtures/mockspace-harness.cjs · next: Wave 4 Launchpad: fold the scenarios Launchpad's tests need into e2e/fixtures/mockspace-harness.cjs, then delete tools/launchpad/smoke.cjs (D6) and e2e/fixtures/mockspace.cjs together, after one browser run when the owner asks |
 
 ## tools/codemirror (1)
 
@@ -1411,7 +1411,7 @@ Items inside first-party files: 2290 (planned 1366, split-region 923, moved 1), 
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `tools/launchpad/mockspace.cjs` | 164 | moved | e2e/fixtures/mockspace.cjs |
+| `tools/launchpad/mockspace.cjs` | 164 | moved | e2e/fixtures/mockspace.cjs · next: Wave 4 Launchpad: fold the scenarios Launchpad's tests need into e2e/fixtures/mockspace-harness.cjs, then delete tools/launchpad/smoke.cjs (D6) and e2e/fixtures/mockspace.cjs together, after one browser run when the owner asks |
 | `tools/launchpad/smoke.cjs` | 128 | planned | delete: a one-off probe with machine paths (owner D6) |
 
 ## tools/xoicons (1)
