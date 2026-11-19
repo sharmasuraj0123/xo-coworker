@@ -29,3 +29,5 @@ Import the side-effect files by their own path, never through `index.js`, so loa
 ## Tests
 
 `tests/*.test.mjs`, run by `node tests/run.mjs`. `exports-used.test.mjs` fails when an export here has no importer.
+
+`routes-contract.test.mjs` drives every route the client has (`js/api.js`'s `api`, its attachment helpers, and Launchpad's deploy client) with fetch faked. Each request's method and path must be in `tests/fixtures/openapi-routes.json`, which is xo-space's `/openapi.json` reduced to each path's methods. Refresh that snapshot with `node tools/openapi/snapshot.mjs` (one GET from 127.0.0.1:5002, or the base given as its argument); a route xo-space drops then fails the test, not the owner.
