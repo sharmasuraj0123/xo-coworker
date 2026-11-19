@@ -1,6 +1,6 @@
 {
  "lines": {
-  "js/app.js": 4476,
+  "js/app.js": 4454,
   "js/chats.js": 449,
   "js/decide.js": 1104,
   "js/diffview.js": 421,
@@ -11,11 +11,11 @@
   "js/map.js": 1102,
   "js/media.js": 609,
   "js/msgx.js": 917,
-  "js/recordview.js": 855,
+  "js/recordview.js": 593,
   "js/shells/dock.js": 704,
   "js/timeline.js": 455,
   "js/viewer.js": 1157,
-  "css/app.css": 3108,
+  "css/app.css": 3057,
   "css/launchpad.css": 438,
   "css/msgx.css": 408,
   "css/panel.css": 645

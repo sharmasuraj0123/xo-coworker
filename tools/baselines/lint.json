@@ -5,7 +5,6 @@
  "tests/browser/flows.test.cjs::eslint(no-unused-vars)": 3,
  "js/lpapi.js::eslint(no-unused-vars)": 1,
  "js/drafts.js::eslint(no-empty)": 1,
- "js/recordview.js::eslint(no-unused-vars)": 1,
  "js/media.js::eslint(no-unused-vars)": 1,
  "js/mdlive.js::eslint(no-unused-vars)": 1,
  "js/chats.js::eslint(no-unused-vars)": 1,

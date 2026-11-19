@@ -4,7 +4,7 @@
   "refs": 1
  },
  "js/app.js": {
-  "extra": 399,
+  "extra": 396,
   "refs": 2
  },
  "js/attach.js": {
@@ -108,7 +108,7 @@
   "refs": 0
  },
  "js/recordview.js": {
-  "extra": 71,
+  "extra": 57,
   "refs": 0
  },
  "js/review.js": {
@@ -152,11 +152,7 @@
   "refs": 1
  },
  "css/app.css": {
-  "extra": 196,
-  "refs": 0
- },
- "css/artifacts.css": {
-  "extra": 15,
+  "extra": 192,
   "refs": 0
  },
  "css/diffs.css": {
@@ -197,10 +193,6 @@
  },
  "css/phone.css": {
   "extra": 77,
-  "refs": 0
- },
- "css/shape.css": {
-  "extra": 4,
   "refs": 0
  },
  "css/side.css": {
@@ -953,10 +945,6 @@
  },
  "serve.py": {
   "extra": 67,
-  "refs": 0
- },
- "index.html": {
-  "extra": 285,
   "refs": 0
  },
  "core/ui/foundation.css": {

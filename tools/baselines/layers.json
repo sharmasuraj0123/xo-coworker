@@ -22,7 +22,6 @@
  "modules/create-project/create.js -> js/attach.js": 1,
  "modules/create-project/create.js -> js/redraw.js": 1,
  "modules/create-project/create.js -> js/focusview.js": 1,
- "modules/projects/projicons.js -> js/icon.js": 1,
  "modules/routing/page.js -> js/api.js": 1,
  "modules/routing/page.js -> js/world.js": 1,
  "modules/routing/page.js -> js/keynav.js": 1,
