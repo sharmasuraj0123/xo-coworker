@@ -947,26 +947,6 @@
   "extra": 16,
   "refs": 0
  },
- "tools/files/space-e2e.mjs": {
-  "extra": 7,
-  "refs": 0
- },
- "tools/filetree/lib.mjs": {
-  "extra": 2,
-  "refs": 0
- },
- "tools/filetree/perf.mjs": {
-  "extra": 1,
-  "refs": 0
- },
- "tools/filetree/same.mjs": {
-  "extra": 2,
-  "refs": 0
- },
- "tools/launchpad/smoke.cjs": {
-  "extra": 3,
-  "refs": 0
- },
  "tools/xoicons/build.mjs": {
   "extra": 13,
   "refs": 0
