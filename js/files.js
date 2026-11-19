@@ -186,17 +186,19 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     if (!d || (d.state === "loading" && !d.dirs)) return `<p class="fl-note" style="--d:${depth}"><i class="spin" aria-hidden="true"></i>Reading…</p>`;
     if (d.state === "error") return `<p class="fl-note is-err" style="--d:${depth}">${esc(d.error)} <button type="button" class="fl-link" data-fl-retry="${esc(local)}">Try again</button></p>`;
     const open = setOf(s.key);
+    // where Space can move files (its /files/rename), a row can be dragged onto a folder, as in VS Code's explorer
+    const drag = ops(s) ? ' draggable="true"' : "";
     let h = "";
     for (const x of d.dirs) {
       const on = open.has(x.path);
       if (q && !x.name.toLowerCase().includes(q) && !on) continue;
-      h += `<button type="button" class="fl-r is-dir${on ? " is-open" : ""}" style="--d:${depth}" data-fl-dir="${esc(x.path)}" aria-expanded="${on}"><span class="fl-c">${CH}</span><span class="fl-n">${esc(x.name)}</span>${marks.dirs.has(x.path) ? `<span class="fl-who w-${marks.dirs.get(x.path)}"><i></i></span>` : ""}</button>`;
+      h += `<button type="button" class="fl-r is-dir${on ? " is-open" : ""}" style="--d:${depth}"${drag} data-fl-dir="${esc(x.path)}" aria-expanded="${on}"><span class="fl-c">${CH}</span><span class="fl-n">${esc(x.name)}</span>${marks.dirs.has(x.path) ? `<span class="fl-who w-${marks.dirs.get(x.path)}"><i></i></span>` : ""}</button>`;
       if (on && inner) h += `<div class="fl-g" data-fl-g="${esc(x.path)}" data-own>${inner(x.path)}</div>`;
     }
     for (const x of d.files) {
       if (q && !x.name.toLowerCase().includes(q)) continue;
       const m = marks.files.get(x.path);
-      h += `<button type="button" class="fl-r" style="--d:${depth}" data-fl-file="${esc(x.path)}" data-fl-bytes="${x.bytes ?? ""}" title="${esc(x.path)}"><span class="fl-c fl-i">${fileIcon(x.name)}</span><span class="fl-n">${esc(x.name)}</span>${m ? dot(m) : ""}<span class="fl-sz">${esc(size(x.bytes))}</span></button>`;
+      h += `<button type="button" class="fl-r" style="--d:${depth}"${drag} data-fl-file="${esc(x.path)}" data-fl-bytes="${x.bytes ?? ""}" title="${esc(x.path)}"><span class="fl-c fl-i">${fileIcon(x.name)}</span><span class="fl-n">${esc(x.name)}</span>${m ? dot(m) : ""}<span class="fl-sz">${esc(size(x.bytes))}</span></button>`;
     }
     if (!d.dirs.length && !d.files.length) h += `<p class="fl-note" style="--d:${depth}">Empty</p>`;
     return h;
@@ -679,6 +681,22 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       inp.focus({ preventScroll: true });
     }
   }
+  /** Move a file or folder (a drag onto a folder): Space's /files/rename; the folders read again; a clash said in words. */
+  async function moveTo(from, local) {
+    const s = F.scope;
+    try {
+      await api.renameProjectFile(s.project, apiRel(s, from), apiRel(s, local));
+      paths.changed({ project: s.project, base: s.base || "" }, { kind: "rename", path: local, old_path: from });
+      if (parentOf(local)) setOf(s.key).add(parentOf(local));
+      await load(s, parentOf(from), { again: true });
+      await load(s, parentOf(local), { again: true });
+      F.undo = null;
+      paint();
+    } catch (err) {
+      F.undo = { err: err.status === 409 ? `${base(local)} is already there` : err.status === 428 ? "Git or an agent runs what's there: move it from a shell, or ask the agent" : err.status === 403 ? "XO keeps that folder: nothing moves into it" : err.message || "Couldn't move it", name: base(from) };
+      paint();
+    }
+  }
   /** Delete: into XO Space's trash (never the project), with Undo here until the next one. */
   async function remove(local, kind) {
     const s = F.scope;
@@ -777,6 +795,34 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       if (e.target.matches("[data-fl-name]") && NW.el && !NW.busy && !e.target.value.trim()) setTimeout(() => { if (NW.el && !NW.el.contains(document.activeElement) && !NW.el.querySelector("input").value.trim()) endNew(); });
     });
     host.addEventListener("scroll", () => closeMenu(), true);
+    // ── moving by dragging: a file or folder onto a folder (or the list's empty space: the place's top) ──
+    let dragging = null;
+    const dropDir = (t) => { const r = t.closest && t.closest(".fl-g > .fl-r.is-dir"); if (r) return r.dataset.flDir; return t.closest && t.closest(".fl-list") && !t.closest(".fl-r, .fl-secs") ? "" : null; };
+    const fits = (to) => dragging && to != null && to !== parentOf(dragging.path) && to !== dragging.path && !to.startsWith(dragging.path + "/");
+    let over = null;
+    const mark = (el) => { if (over === el) return; over?.classList.remove("is-drop"); over = el; el?.classList.add("is-drop"); };
+    host.addEventListener("dragstart", (e) => {
+      const r = e.target.closest && e.target.closest(".fl-g > .fl-r[draggable]");
+      if (!r || !ops(F.scope)) return;
+      dragging = { path: pathOfRow(r), kind: r.dataset.flDir != null ? "dir" : "file" };
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", dragging.path);
+    });
+    host.addEventListener("dragover", (e) => {
+      const to = dropDir(e.target);
+      if (!fits(to)) { mark(null); return; }
+      e.preventDefault(); e.dataTransfer.dropEffect = "move";
+      mark(to ? e.target.closest(".fl-r") : e.target.closest(".fl-list"));
+    });
+    host.addEventListener("dragleave", (e) => { if (!host.contains(e.relatedTarget)) mark(null); });
+    host.addEventListener("dragend", () => { dragging = null; mark(null); });
+    host.addEventListener("drop", (e) => {
+      const to = dropDir(e.target), d = dragging;
+      mark(null); dragging = null;
+      if (!d || !fits(to)) return;
+      e.preventDefault();
+      moveTo(d.path, to ? `${to}/${base(d.path)}` : base(d.path));
+    });
     host.addEventListener("keydown", (e) => {
       if (e.target.matches("[data-fl-name]")) {
         if (e.key === "Enter") { e.preventDefault(); makeNew(); }
