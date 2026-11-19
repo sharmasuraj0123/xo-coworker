@@ -5,9 +5,9 @@ import { stackLayers, ORDER } from "../layers.js";
 
 const K = createKernel({ warn: () => {}, log: () => {} });
 const open = new Set(), closed = [];
-const layer = (id, extra = {}) => ({ id, open: () => open.has(id), back: () => { open.delete(id); closed.push(id); }, ...extra });
+const layer = (id, extra = {}) => ({ id, open: () => open.has(id), close: () => { open.delete(id); closed.push(id); }, ...extra });
 let lowers = false;
-const L = stackLayers(K.layers, [layer("create"), layer("jump"), layer("lightbox", { overlay: false }), layer("shells", { back: () => { if (!lowers) return false; open.delete("shells"); closed.push("shells"); return true; } }), layer("decisions")]);
+const L = stackLayers(K.layers, [layer("create"), layer("jump"), layer("lightbox", { overlay: false }), layer("shells", { close: () => { if (!lowers) return false; open.delete("shells"); closed.push("shells"); return true; } }), layer("decisions")]);
 
 assert.equal(K.layers.list().length, 5);
 assert.equal(K.layers.top()?.id, "create", "the list's first is the stack's top");
@@ -49,4 +49,15 @@ assert.ok(above("files-page", "panel-sheet"), "a file in the panel goes back to 
 assert.ok(above("settings", "panel-sheet"), "Settings sits over the panel (z-index panel + 20), on a phone too");
 assert.ok(above("shells", "chat-setup") && above("lightbox", "chat-setup"), "the chat setup popover is under every other layer");
 assert.ok(above("intel", "quickopen") && above("quickopen", "runs"), "Quick Open sits with the sheets");
-console.log("ok layers: Back by the stack, open by the list, one order");
+
+// Esc asks only the layers that take it, in the same order; a layer may take Esc and leave Back alone
+const K3 = createKernel({ warn: () => {}, log: () => {} });
+open.clear(); closed.length = 0;
+stackLayers(K3.layers, [layer("quickopen", { back: false, escape: true }), layer("settings", { escape: true }), layer("panel-sheet")]);
+open.add("quickopen"); open.add("settings"); open.add("panel-sheet");
+assert.equal(K3.layers.back(), true);
+assert.deepEqual(closed, ["settings"], "Back passes over Quick Open");
+assert.equal(K3.layers.escape(), true);
+assert.deepEqual(closed, ["settings", "quickopen"], "Esc takes Quick Open");
+assert.equal(K3.layers.escape(), false, "the panel's sheet keeps its own Esc");
+console.log("ok layers: Back by the stack, open by the list, one order, Esc too");

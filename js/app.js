@@ -4248,16 +4248,7 @@ addEventListener("keydown", (e) => {
   if (CREATE.isOpen()) return;
   if (e.key === "Escape") {
     // the layer on top goes first: a sheet, then Settings (it covers the main area), then what it covers
-    if (QO.isOpen) { QO.close(); return; }
-    if (RS.open) { runsEscape(); return; }
-    if (!keys.hidden) { closeKeys(); return; }
-    if (!allEl.hidden) { closeAll(); return; }
-    if (!setEl.hidden) { closeSettings(); return; }
-    // a file in the panel: back to its sections (the file stays as the Files tab)
-    if (FP.isOpen) { STAGE.sections(); return; }
-    if ($("#app").classList.contains("drawer")) { setDrawer(false); return; }
-    if (D.isOpen()) { D.close(); return; }
-    if (CH.setupOpen) { CH.closeSetup(); return; }
+    if (kernel.layers.escape()) return;
     if (S.view.startsWith("t:")) back();
     else if (S.view.startsWith("c:")) go("chats");
     return;
@@ -4285,21 +4276,21 @@ function runGlobal(id) {
 // ── the phone's own Back (Android's back gesture, Safari's edge swipe) ──────
 // One history entry of the app's own while there's somewhere to go back to: Back closes the top-most open layer, then goes to a thread's parent, then the places you came through; with nothing left the browser leaves.
 const LAYERS = stackLayers(kernel.layers, [
-  { id: "create", open: () => CREATE.isOpen(), back: () => { CREATE.close(); } },
-  { id: "jump", open: () => !jump.hidden, back: () => { JUMP.close(); } },
-  { id: "intel", open: () => IQ.isOpen, back: () => { IQ.close(); } },
-  { id: "quickopen", open: () => QO.isOpen, back: () => false },
-  { id: "runs", open: () => RS.open, back: () => { runsEscape(); } },
-  { id: "keys", open: () => !keys.hidden, back: () => { closeKeys(); } },
-  { id: "all", open: () => !allEl.hidden, back: () => { closeAll(); } },
-  { id: "lightbox", open: () => LB.isOpen, back: () => { LB.close(); }, overlay: false },
-  { id: "settings", open: () => !setEl.hidden, back: () => { closeSettings(); } },
-  { id: "files-page", open: () => FP.isOpen, back: () => { STAGE.sections(); } },
-  { id: "panel-sheet", open: () => STAGE.isOpen && PHONE.matches, back: () => { STAGE.close(); } },
-  { id: "shells", open: () => SH.raised, back: () => SH.lower() },
-  { id: "drawer", open: () => $("#app").classList.contains("drawer"), back: () => { setDrawer(false); } },
-  { id: "decisions", open: () => D.isOpen(), back: () => { D.close(); } },
-  { id: "chat-setup", open: () => CH.setupOpen, back: () => { CH.closeSetup(); } },
+  { id: "create", open: () => CREATE.isOpen(), close: () => { CREATE.close(); } },
+  { id: "jump", open: () => !jump.hidden, close: () => { JUMP.close(); } },
+  { id: "intel", open: () => IQ.isOpen, close: () => { IQ.close(); } },
+  { id: "quickopen", open: () => QO.isOpen, close: () => { QO.close(); }, back: false, escape: true },
+  { id: "runs", open: () => RS.open, close: () => { runsEscape(); }, escape: true },
+  { id: "keys", open: () => !keys.hidden, close: () => { closeKeys(); }, escape: true },
+  { id: "all", open: () => !allEl.hidden, close: () => { closeAll(); }, escape: true },
+  { id: "lightbox", open: () => LB.isOpen, close: () => { LB.close(); }, overlay: false },
+  { id: "settings", open: () => !setEl.hidden, close: () => { closeSettings(); }, escape: true },
+  { id: "files-page", open: () => FP.isOpen, close: () => { STAGE.sections(); }, escape: true },
+  { id: "panel-sheet", open: () => STAGE.isOpen && PHONE.matches, close: () => { STAGE.close(); } },
+  { id: "shells", open: () => SH.raised, close: () => SH.lower() },
+  { id: "drawer", open: () => $("#app").classList.contains("drawer"), close: () => { setDrawer(false); }, escape: true },
+  { id: "decisions", open: () => D.isOpen(), close: () => { D.close(); }, escape: true },
+  { id: "chat-setup", open: () => CH.setupOpen, close: () => { CH.closeSetup(); }, escape: true },
 ]);
 const placeOk = (v) => v === "home" || v === "ws" || v === "chats" || v === "artifacts" || (v.startsWith("p:") && !!world.project(v.slice(2))) || (v.startsWith("t:") && !!world.thread(v.slice(2))) || v.startsWith("c:");
 const canBack = () => LAYERS.open() || S.view !== "home" || S.trail.length > 0;
