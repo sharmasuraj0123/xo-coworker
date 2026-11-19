@@ -13,6 +13,10 @@
 // comes out already drawn, the same HTML as what's on screen. A theme switch redraws diagrams in the background and
 // swaps each when ready; until then a diagram keeps the drawing it has.
 
+// For anything else that draws math or diagrams (Files' editor, whose widgets come and go as it scrolls), the same
+// drawings are exported: drawMath(tex, display) and drawDiagram(src) → Promise<html>, and the synchronous cache reads
+// cachedMath / cachedDiagram (what markdown.js asks through setRich). One cache and one Mermaid queue for the page.
+
 import { setRich } from "./markdown.js";
 
 const QUIET = 600; // ms without input before anything loads or draws
@@ -26,14 +30,15 @@ const MATH = new Map(); // (display ? "D" : "I") + tex → KaTeX's HTML
 const DIAGRAMS = new Map(); // theme + "\n" + src → {html, theme}
 const FAILED = new Map(); // src → why it couldn't be drawn (any theme)
 const cap = (m, n = 600) => { if (m.size > n) m.delete(m.keys().next().value); };
-setRich({
-  math: (tex, display) => MATH.get((display ? "D" : "I") + tex) ?? null,
-  diagram: (src) => {
-    if (FAILED.has(src)) return { error: FAILED.get(src) };
-    // this theme's drawing, else the other theme's until this one is drawn (it's swapped in place when ready)
-    return DIAGRAMS.get(theme() + "\n" + src) || DIAGRAMS.get((theme() === "dark" ? "light" : "dark") + "\n" + src) || null;
-  },
-});
+/** A formula's drawing if it's been drawn (KaTeX's HTML), else null. Synchronous: markdown.js asks it as it writes. */
+export function cachedMath(tex, display = false) { return MATH.get((display ? "D" : "I") + tex) ?? null; }
+/** A diagram's drawing if it's been drawn: {html, theme, w} for this theme (else the other theme's, until this one is
+ *  drawn), {error} if Mermaid couldn't read it, else null. Synchronous. */
+export function cachedDiagram(src) {
+  if (FAILED.has(src)) return { error: FAILED.get(src) };
+  return DIAGRAMS.get(theme() + "\n" + src) || DIAGRAMS.get((theme() === "dark" ? "light" : "dark") + "\n" + src) || null;
+}
+setRich({ math: cachedMath, diagram: cachedDiagram });
 
 // ── waiting for a pause in input ────────────────────────────────────────────
 let lastInput = -Infinity;
@@ -68,8 +73,8 @@ async function pass() {
     for (const el of todo) {
       if (!el.isConnected) continue;
       if (quietFor() < QUIET) break; // a key: stop, and wait for the next pause
-      if (el.classList.contains("md-math")) await drawMath(el);
-      else await drawDiagram(el);
+      if (el.classList.contains("md-math")) await drawMathEl(el);
+      else await drawDiagramEl(el);
       did++;
       if (performance.now() - t0 > SLICE) { await new Promise((r) => setTimeout(r, 0)); t0 = performance.now(); }
     }
@@ -96,19 +101,28 @@ function loadKatex() {
   });
   return katexP;
 }
-async function drawMath(el) {
-  const tex = el.dataset.tex || "", display = el.classList.contains("is-block"), key = (display ? "D" : "I") + tex;
+/**
+ * A formula drawn by KaTeX: its HTML (cached by its TeX, so the page and any editor share one drawing). Loads KaTeX
+ * and its stylesheet the first time. Rejects when it can't be drawn (too long, KaTeX not loaded); a TeX error is
+ * drawn in place in the error colour, not thrown. It doesn't wait for a pause in input: a caller drawing outside
+ * the conversation (an editor's widget) decides when; the page's own pass waits (pass() below).
+ */
+export async function drawMath(tex, display = false) {
+  tex = String(tex ?? "");
+  const key = (display ? "D" : "I") + tex;
   let html = MATH.get(key);
-  if (html == null) {
-    if (tex.length > MAX_TEX) { el.classList.add("is-failed"); return; }
-    let katex;
-    try { katex = await loadKatex(); } catch { el.classList.add("is-failed"); return; }
-    try {
-      // trust off (no \href, \includegraphics…), errors drawn in place in the error colour rather than thrown
-      html = katex.renderToString(tex, { displayMode: display, throwOnError: false, trust: false, strict: "ignore", output: "htmlAndMathml", maxSize: 50, maxExpand: 500 });
-    } catch { el.classList.add("is-failed"); return; }
-    MATH.set(key, html); cap(MATH, 2000);
-  }
+  if (html != null) return html;
+  if (tex.length > MAX_TEX) throw new Error("This formula is too long to draw here.");
+  const katex = await loadKatex();
+  // trust off (no \href, \includegraphics…), errors drawn in place in the error colour rather than thrown
+  html = katex.renderToString(tex, { displayMode: display, throwOnError: false, trust: false, strict: "ignore", output: "htmlAndMathml", maxSize: 50, maxExpand: 500 });
+  MATH.set(key, html); cap(MATH, 2000);
+  return html;
+}
+async function drawMathEl(el) {
+  const tex = el.dataset.tex || "", display = el.classList.contains("is-block");
+  let html;
+  try { html = await drawMath(tex, display); } catch { el.classList.add("is-failed"); return; }
   if (!el.isConnected || el.dataset.tex !== tex) return;
   el.innerHTML = html;
   el.classList.add("is-done");
@@ -156,29 +170,54 @@ async function mermaidFor(th) {
   }
   return mermaid;
 }
-async function drawDiagram(fig) {
-  const src = fig.querySelector(":scope > .md-dg-src")?.textContent ?? "";
-  const th = theme(), key = th + "\n" + src;
-  let got = DIAGRAMS.get(key);
-  if (!got && !FAILED.has(src)) {
-    if (src.length > MAX_DIAGRAM) FAILED.set(src, "it's too long to draw here.");
-    else {
-      const id = `xo-dg-${++seq}`;
-      try {
-        const mermaid = await mermaidFor(th);
-        const { svg } = await mermaid.render(id, src);
-        // its natural width (the viewBox's): it's drawn no wider than that, and no narrower than 80 % of it, so on a
-        // phone a wide diagram scrolls sideways in its card rather than shrinking to words no one can read
-        const vb = /viewBox="[-\d.]+[ ,]+[-\d.]+[ ,]+([\d.]+)/.exec(svg);
-        got = { html: svg, theme: th, w: vb ? Math.round(+vb[1]) : null };
-        DIAGRAMS.set(key, got); cap(DIAGRAMS, 200);
-      } catch (e) {
-        FAILED.set(src, String((e && e.message) || "Mermaid couldn't read it.").split("\n")[0].slice(0, 160));
-      } finally {
-        document.getElementById("d" + id)?.remove(); // Mermaid's scratch box, left behind when it throws
-      }
+// Mermaid draws one diagram at a time (its configuration is global, and a theme change re-initialises it), so every
+// drawing, the page's and an editor's, goes through one queue; the same diagram asked twice shares one drawing.
+let queue = Promise.resolve();
+const INFLIGHT = new Map(); // theme + "\n" + src → its drawing's promise
+/** {html, theme, w} for this theme, drawing it if needed; {error} when Mermaid can't read it. Never rejects. */
+function diagramFor(src, th = theme()) {
+  const key = th + "\n" + src;
+  const have = DIAGRAMS.get(key);
+  if (have) return Promise.resolve(have);
+  if (FAILED.has(src)) return Promise.resolve({ error: FAILED.get(src) });
+  if (src.length > MAX_DIAGRAM) { FAILED.set(src, "it's too long to draw here."); return Promise.resolve({ error: FAILED.get(src) }); }
+  if (INFLIGHT.has(key)) return INFLIGHT.get(key);
+  const p = (queue = queue.then(async () => {
+    const id = `xo-dg-${++seq}`;
+    try {
+      const mermaid = await mermaidFor(th);
+      const { svg } = await mermaid.render(id, src);
+      // its natural width (the viewBox's): it's drawn no wider than that, and no narrower than 80 % of it, so on a
+      // phone a wide diagram scrolls sideways in its card rather than shrinking to words no one can read
+      const vb = /viewBox="[-\d.]+[ ,]+[-\d.]+[ ,]+([\d.]+)/.exec(svg);
+      const got = { html: svg, theme: th, w: vb ? Math.round(+vb[1]) : null };
+      DIAGRAMS.set(key, got); cap(DIAGRAMS, 200);
+      return got;
+    } catch (e) {
+      FAILED.set(src, String((e && e.message) || "Mermaid couldn't read it.").split("\n")[0].slice(0, 160));
+      return { error: FAILED.get(src) };
+    } finally {
+      document.getElementById("d" + id)?.remove(); // Mermaid's scratch box, left behind when it throws
+      INFLIGHT.delete(key);
     }
-  }
+  }));
+  INFLIGHT.set(key, p);
+  return p;
+}
+/**
+ * A Mermaid diagram drawn in XO's tokens for the current theme: its SVG's HTML (cached by source and theme, shared
+ * with the page). Loads Mermaid the first time. Rejects with Mermaid's reason when it can't read the source. Like
+ * drawMath, it doesn't wait for a pause in input; drawings queue one at a time.
+ */
+export async function drawDiagram(src) {
+  const got = await diagramFor(String(src ?? ""));
+  if (got.error) throw new Error(got.error);
+  return got.html;
+}
+async function drawDiagramEl(fig) {
+  const src = fig.querySelector(":scope > .md-dg-src")?.textContent ?? "";
+  const got0 = await diagramFor(src);
+  const got = got0.error ? null : got0;
   if (!fig.isConnected || (fig.querySelector(":scope > .md-dg-src")?.textContent ?? "") !== src) return;
   if (got) {
     // swap the drawing in one step: the old one (another theme's) stays until this one is ready
