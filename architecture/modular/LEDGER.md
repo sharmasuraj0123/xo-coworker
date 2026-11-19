@@ -4,10 +4,10 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 631 |
+| planned | 630 |
 | vendor | 367 |
 | deleted | 232 |
-| moved | 47 |
+| moved | 48 |
 | split | 35 |
 | kept | 1 |
 
@@ -114,7 +114,7 @@ Items inside first-party files: 2290 (planned 1008, split-region 631, moved 624,
 | File | Lines | Status | New home |
 |---|---:|---|---|
 | `css/app.css` | 3154 | split | core/ui + shell + modules/* by region (analysis/6-css-tests-tools.md, app.css region map) |
-| `css/artifacts.css` | 126 | planned | modules/artifacts/artifacts.css |
+| `css/artifacts.css` | 126 | moved | modules/artifacts/artifacts.css · next: css/artifacts.css imports it, and keeps the phone pin's background-image !important until the sheet gets its @layer |
 | `css/base.css` | 52 | moved | core/ui/foundation.css |
 | `css/diffs.css` | 245 | planned | modules/changes/diffs.css |
 | `css/docs.css` | 141 | planned | modules/files/editor/docs.css |

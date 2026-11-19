@@ -52,7 +52,7 @@ assert.doesNotMatch(view, /m\.kind === "image" \? "" : fileColor/);
 assert.match(view, /title="Open the thread that made it">\$\{ICON\.threadOne\}<span>/);
 
 // CSS: concentric, tokens only
-const css = readFileSync(new URL("../css/artifacts.css", import.meta.url), "utf8");
+const css = readFileSync(new URL("../modules/artifacts/artifacts.css", import.meta.url), "utf8");
 const block = css.slice(css.indexOf("── The thing itself"));
 assert.match(block, /:is\(\.ar-grid,\.md-grid\.is-strip\) \.md-th\.has-well\{display:block;place-items:normal;padding:var\(--cell-in\) var\(--cell-in\) 0;/);
 assert.match(block, /\.md-well\{[^}]*border-radius:var\(--r\) var\(--r\) 0 0;/);
