@@ -50,7 +50,7 @@
     }
   };
   document.getElementById("greet").addEventListener("click", greet);
-  document.getElementById("name").addEventListener("keydown", (e) => { if (e.key === "Enter") greet(); });
+  document.getElementById("name").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.isComposing) greet(); });
   ask("ui/initialize", { protocolVersion: "2026-01-26", appInfo: { name: "hello", version: "0.1.0" }, appCapabilities: {} })
     .then((r) => { theme(r && r.hostContext); parent.postMessage({ jsonrpc: "2.0", method: "ui/notifications/initialized" }, "*"); });
 </script>

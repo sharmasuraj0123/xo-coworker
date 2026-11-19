@@ -11,7 +11,7 @@ const ok = (/** @type {unknown} */ body, status = 200) => ({ status, body });
 const soon = () => new Date(Date.now() + 3600_000).toISOString();
 const err = (/** @type {number} */ status, /** @type {string} */ code, /** @type {string} */ message) => ({ status, body: { detail: { code, message } } });
 
-/** @typedef {{ packages?: Record<string, string>, answers?: Record<string, string> }} AppsSeed @typedef {{ plugin: Row, views: Record<string, string>, source: Row, sha: string }} Pkg @typedef {{ approval_id: string, action: string, title: string, project: string | null, state: string, apply: () => Row | null, result: Row | null }} Approval */
+/** @typedef {{ packages?: Record<string, string>, installed?: string[], answers?: Record<string, string> }} AppsSeed @typedef {{ plugin: Row, views: Record<string, string>, source: Row, sha: string }} Pkg @typedef {{ approval_id: string, action: string, title: string, project: string | null, state: string, apply: () => Row | null, result: Row | null }} Approval */
 
 /** The fake Space's app host in xo-space's shapes: an install or enable waits for the owner's answer, which only a case gives. @param {AppsSeed} [seed] */
 export function createApps(seed = {}) {
@@ -29,6 +29,14 @@ export function createApps(seed = {}) {
   const views = /** @type {Map<string, Record<string, string>>} */ (new Map()), approvals = /** @type {Map<string, Approval>} */ (new Map());
   const A = {
     packages, answers: seed.answers || {}, installed, staged, views, approvals, n: 0,
+    /** An install the owner allowed: the row xo-space lists, and the frame it sends. @param {Pkg} pkg */
+    add(pkg) {
+      const x = pkg.plugin.extensions["space.xo"];
+      const row = { id: x.id, slug: x.id.split(".").pop(), name: x.displayName, version: pkg.plugin.version, sha256: pkg.sha, development: pkg.source.kind === "folder", source: pkg.source, previous: null, state: "installed", runtime: null, projects: {}, pending: [], manifest: x };
+      installed.set(row.id, row);
+      views.set(row.id, pkg.views);
+      return row;
+    },
     /** @type {Frame[]} */
     later: [],
     /** The owner's answer in Needs you. @param {string} id @param {"allow" | "decline"} verdict */
@@ -42,6 +50,7 @@ export function createApps(seed = {}) {
     },
     pendingIds: () => [...approvals.values()].filter((a) => a.state === "pending").map((a) => a.approval_id),
   };
+  for (const where of seed.installed || []) A.add(packages[where]);
   return A;
 }
 /** @typedef {ReturnType<typeof createApps>} Apps */
@@ -88,9 +97,7 @@ export function answerApps(A, q, frames) {
     if (!pkg || body.sha256 !== pkg.sha) return err(409, "stale", "The package changed since you saw it. Check it again.");
     const x = pkg.plugin.extensions["space.xo"];
     return approval("install", `Install ${x.displayName} ${pkg.plugin.version}`, null, () => {
-      const row = { id: x.id, slug: x.id.split(".").pop(), name: x.displayName, version: pkg.plugin.version, sha256: pkg.sha, development: pkg.source.kind === "folder", source: pkg.source, previous: null, state: "installed", runtime: null, projects: {}, pending: [], manifest: x };
-      A.installed.set(row.id, row);
-      A.views.set(row.id, pkg.views);
+      const row = A.add(pkg);
       A.staged.delete(sid);
       changed(row, "installed");
       return { id: row.id, slug: row.slug, version: row.version };
