@@ -1,11 +1,13 @@
-// The Map's pure parts (js/map.js): a thread's folder, where a step's file is, what a session's turns
+// The Map's pure parts (core/services/places.js, agent-activity.js, js/map.js): a thread's folder, where a step's file is, what a session's turns
 // touched and which file is live, and the folded tree. No network.
 //   node tests/map.test.mjs
 import assert from "node:assert/strict";
 
 // js/ui.js reads the reduced-motion setting when it loads
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
-const { folderOf, placeOf, activityOf, layoutOf, edgePath, colorOf, pathsInCommand } = await import("../js/map.js");
+const { layoutOf, edgePath, colorOf } = await import("../js/map.js");
+const { folderOf, placeOf, pathsInCommand } = await import("../core/services/places.js");
+const { activityOf } = await import("../core/services/agent-activity.js");
 const { createTurns } = await import("../js/blocks.js");
 
 let passed = 0;

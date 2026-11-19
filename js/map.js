@@ -4,19 +4,16 @@
 //     a cursor that glides from file to file as it reads and edits. What it made or changed is marked.
 //   · a project: the project's folder, with every agent working in it as its own coloured cursor.
 //   · Home, the Workspace, Chats: your projects, with the agents at work in them.
-// Drag (or scroll) to pan, ⌘/Ctrl-scroll or pinch to zoom; Fit, Follow, and a full-size mode. A box
-// opens what it is: a folder unfolds, a file opens in the viewer, a project or an agent's name goes there.
-// The Map and the file viewer are one right-hand panel with two modes, Live and File: a file opened shows
-// as File, with a Live · File switch on top; Live parks the file and File brings it back as it was. The
-// Needs you panel takes the right side while it is open and gives it back after. On a phone it is a full
-// sheet.
+// Drag (or scroll) to pan, ⌘/Ctrl-scroll or pinch to zoom; Fit and Follow. A box opens what it is: a
+// folder unfolds, a file opens in the viewer, a project or an agent's name goes there. It draws in the
+// right panel's Map frame (js/stage.js), which owns its fold, its size and its full-size mode.
 //
 // What it reads: the turns the stream already brings (storm's activity rows: kind, target, status),
 // and GET /api/xo-projects/<project>/tree (one level per call; it serves a thread's worktree under
 // `.xo/worktrees/<name>` too). Nothing here writes.
 
 import { esc } from "./world.js";
-import { ICON, $ } from "./ui.js";
+import { ICON } from "./ui.js";
 import { api } from "./api.js";
 import { renderInline } from "./markdown.js";
 import { isImagePath, elapsed } from "../core/platform/index.js";
@@ -24,10 +21,9 @@ import { commsLine, commsText } from "./comms.js";
 import { heldWords } from "./timeline.js";
 import { fileIcon, folderIcon, fileColor } from "./fileicons.js";
 import { redraw } from "./redraw.js";
+import { folderOf } from "../core/services/places.js";
+import { activityOf } from "../core/services/agent-activity.js";
 
-const KEY = "cv-map";
-const FILE_KINDS = new Set(["create_file", "edit_file", "delete_file", "read"]);
-const VERB_NOW = { create_file: "Writing", edit_file: "Editing", delete_file: "Deleting", read: "Reading" };
 
 // the drawing
 const NW = 148, NH = 32, COL = 184, ROW = 42, PAD = 28; // compact: two columns read at 360px
@@ -41,7 +37,7 @@ export const MAP_ICON = ICON.map;
 const ARROW = ICON.cursor;
 const MODE_KEY = "cv-map-mode";
 const TOOL = {
-  out: ICON.minimize, in: ICON.plus, fit: ICON.fit, follow: ICON.follow, full: ICON.full, unfull: ICON.unfull,
+  out: ICON.minimize, in: ICON.plus, fit: ICON.fit, follow: ICON.follow,
   tree: ICON.map, graph: ICON.graph,
 };
 
@@ -50,121 +46,6 @@ const parentOf = (p) => { const i = p.lastIndexOf("/"); return i < 0 ? "" : p.sl
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 /** An agent's colour: the same agent keeps it, wherever it shows. */
 export function colorOf(id) { let h = 7; for (const c of String(id)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return PALETTE[h % PALETTE.length]; }
-
-
-/** A thread's folder: its absolute root and, inside the project, the relative base the tree route takes. */
-export function folderOf(t) {
-  if (!t || !t.project) return null;
-  const wt = String(t.worktree || "").replace(/\/+$/, "");
-  if (wt) {
-    const i = wt.indexOf("/.xo/worktrees/");
-    const sub = i < 0 ? "" : wt.slice(i + 1);
-    return /^\.xo\/worktrees\/[^/]+$/.test(sub) ? { root: wt, base: sub, project: t.project, projectRoot: wt.slice(0, i) } : null;
-  }
-  const cwd = String(t.cwd || "").replace(/\/+$/, "");
-  return cwd && cwd.split("/").pop() === t.project ? { root: cwd, base: "", project: t.project, projectRoot: cwd } : null;
-}
-
-/** A row's target, relative to `root` ({rel}), or outside it ({abs}). */
-export function placeOf(root, target) {
-  let p = String(target || "").replace(/\\/g, "/");
-  if (!p) return null;
-  if (p.startsWith("/")) {
-    if (root && p.startsWith(root + "/")) p = p.slice(root.length + 1);
-    else return { abs: p };
-  }
-  p = p.replace(/^(\.\/)+/, "");
-  if (!p || p.split("/").some((s) => s === ".." || s === "")) return { abs: target };
-  return { rel: p };
-}
-
-/** A path with "." and ".." resolved; null if it climbs above its start. */
-function norm(p) {
-  const out = [];
-  for (const seg of p.split("/")) {
-    if (seg === "" || seg === ".") continue;
-    if (seg === "..") { if (!out.length) return null; out.pop(); } else out.push(seg);
-  }
-  return (p.startsWith("/") ? "/" : "") + out.join("/");
-}
-
-/**
- * The files and folders a shell command names, inside `root`, in order: so a cursor can follow an agent
- * through `cd js && sed -i … app.js` as well as through its edits. A `cd` moves where later relative
- * paths start; a glob counts as its folder; flags, URLs and sed-like expressions don't count. Pure.
- */
-export function pathsInCommand(cmd, root) {
-  const out = [];
-  let cwd = root || "";
-  for (const part of String(cmd || "").split(/&&|\|\||;|\||\n/)) {
-    const words = (part.trim().match(/"[^"]*"|'[^']*'|\S+/g) || []).map((t) => t.replace(/^["']|["']$/g, ""));
-    if (!words.length) continue;
-    if (words[0] === "cd") {
-      const d = words[1];
-      if (d && !d.startsWith("-")) { const n = norm(d.startsWith("/") ? d : `${cwd}/${d}`); if (n) cwd = n; }
-      continue;
-    }
-    for (const w of words.slice(1)) {
-      if (!w || w.length > 240 || w.startsWith("-") || w.includes("://") || /[\\^$#|<>(){}=;'"`\s]/.test(w)) continue;
-      if (!(w.includes("/") || /\.[A-Za-z0-9]{1,8}$/.test(w))) continue;
-      if (/^s([\/#|]).*\1.*\1[gimp]*$/.test(w)) continue; // a sed expression, not a path
-      let p = w.replace(/[,:]+$/, "");
-      const g = p.search(/[*?[]/);
-      if (g >= 0) p = p.slice(0, g).replace(/\/[^/]*$/, "");
-      if (!p) continue;
-      const abs = norm(p.startsWith("/") ? p : cwd ? `${cwd}/${p}` : p);
-      if (!abs) continue;
-      const pl = placeOf(root, abs);
-      if (pl && pl.rel != null) out.push(pl.rel);
-    }
-  }
-  return out;
-}
-
-/**
- * What a session's loaded turns did, from storm's activity rows. Pure: `turns` is the turn store.
- * → {files: Map rel → F, outside: Map abs → F, now: {row, turn} | null, last, running,
- *    nowSpots: the paths the running step names (a command's files), lastFile: the last file it was on}
- * F = {path, mark: "new" | "edited" | "deleted" | "read", live, waiting, verb}
- */
-export function activityOf(turns, session, root) {
-  const out = { files: new Map(), outside: new Map(), now: null, last: null, running: null, nowSpots: [], lastFile: null };
-  if (!turns || !session) return out;
-  let n = 0;
-  for (const tu of turns.list((x) => x.session === session)) {
-    const live = tu.status === "running";
-    if (live) out.running = tu;
-    for (const b of turns.blocksOf(tu)) {
-      if (b.type !== "activity") continue;
-      for (const r of b.rows || []) {
-        n++;
-        if (r.kind === "notice" || r.kind === "error") continue;
-        const on = live && r.status === "running";
-        out.last = { row: r, turn: tu };
-        if (on) out.now = { row: r, turn: tu };
-        if (on && (r.kind === "command" || r.kind === "search" || r.kind === "list") && r.target) out.nowSpots = pathsInCommand(r.target, root);
-        if (!FILE_KINDS.has(r.kind) || !r.target || r.status === "error" || r.status === "denied" || r.status === "cancelled") continue;
-        const pl = placeOf(root, r.target);
-        if (!pl) continue;
-        const into = pl.rel != null ? out.files : out.outside;
-        const key = pl.rel ?? pl.abs;
-        const f = into.get(key) || { path: key, kinds: new Set(), seq: 0 };
-        f.kinds.add(r.kind);
-        f.lastKind = r.kind;
-        f.seq = n;
-        f.live = on;
-        f.waiting = on && !!r.waiting;
-        f.verb = VERB_NOW[r.kind];
-        into.set(key, f);
-        if (pl.rel != null) out.lastFile = pl.rel;
-      }
-    }
-  }
-  for (const m of [out.files, out.outside]) for (const f of m.values()) {
-    f.mark = f.lastKind === "delete_file" ? "deleted" : f.kinds.has("create_file") ? "new" : f.kinds.has("edit_file") ? "edited" : "read";
-  }
-  return out;
-}
 
 
 /**
@@ -197,14 +78,6 @@ export function edgePath(p, c, { nw = NW, nh = NH, r = 8 } = {}) {
 }
 
 /**
- * The Map. Two ways to host it:
- *  · in the right panel (js/stage.js): mount(host) once, then show(view) / hide() as its tab shows and
- *    hides, render(view) on every app render, live(view) for the tab's and the header's dot. Files open
- *    through `openFile`. The panel owns the card, tabs, close, full size, Esc and persistence.
- *  · standalone (#map, until the panel lands): open/close/toggle/button/tabs, files through `viewer`.
- *    None of that runs once the Map is mounted.
- */
-/**
  * Run fn once the frame in hand has painted and input has paused (no key, press, wheel or touch for PAUSE_MS), and at
  * the latest after MAX_MS: work that can wait never shares the frame of the click that brought it (the page is never
  * idle here, so requestIdleCallback won't do: memory "page-never-idle").
@@ -221,12 +94,11 @@ function afterPause(fn) {
   requestAnimationFrame(() => setTimeout(check, 0));
 }
 
-export function createMap({ world, viewer = null, go, announce, isBusy, onChange, openFile = null }) {
-  let el = $("#map"); // the panel it draws in: its own #map, or a host's tab (mount)
-  let saved = false; // standalone only: was #map open last time (read on the first render, if nothing mounted it)
-  try { saved = localStorage.getItem(KEY) === "1"; } catch { /* private mode */ }
+/** The Map, in the right panel (js/stage.js): mount(host) once, show(view) / hide() with its frame, render(view) on every app render. */
+export function createMap({ world, go, announce, isBusy, openFile }) {
+  let el = null;
   const M = {
-    open: false, view: "home", full: false, hosted: false, restored: false,
+    open: false, view: "home",
     dirs: new Map(),     // "<project>|<api rel>" → {state: "loading"|"ok"|"error", dirs, files, error}
     opened: new Map(),   // scope key → folders you unfolded
     closed: new Map(),   // scope key → folders you folded (even with an agent inside)
@@ -955,7 +827,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     if (M.raf) return;
     const loop = () => {
       M.raf = 0;
-      if (!M.open || M.mode !== "graph" || (!M.hosted && viewer && viewer.isOpen) || !M.gnodes.length) return;
+      if (!M.open || M.mode !== "graph" || !M.gnodes.length) return;
       gstep(); gstep();
       M.alpha *= 0.975;
       gdraw();
@@ -968,30 +840,26 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
 
   // ── the panel ────────────────────────────────────────────────────────────────
   function headHtml(scope, ags) {
-    let title, sub, ic, extra = "";
+    let title, sub, extra = "";
     if (scope.kind === "thread") {
       const t = scope.t, a = ags[0];
-      title = t.title; ic = ICON.thread;
+      title = t.title;
       sub = [t.branch && `<span class="mp-br">${ICON.branch}<code>${esc(t.branch)}</code></span>`, scope.fold ? (scope.fold.base ? "its own worktree" : "the project folder") : ""].filter(Boolean).join(`<span class="mp-sep">·</span>`);
       const word = a.busy ? (a.waiting ? "Waiting for you" : doingLine(a)) : a.held ? esc(heldWords(a.held)) : t.state === "done" ? "Done" : t.state === "resolved" ? "Resolved" : t.state === "failed" ? "Stopped" : "Not working right now";
       extra = `<div class="mp-now st-${a.busy ? (a.waiting ? "wait" : "busy") : a.held ? "wait" : "rest"}" style="--c:${a.color}"><p class="mp-nl">${word}</p>${a.busy ? since(a.since) : ""}</div>`;
     } else {
-      if (scope.kind === "project") { title = (world.project(scope.pid) || {}).name || scope.pid; ic = ICON.project; }
-      else { title = "Working now"; ic = MAP_ICON; }
+      if (scope.kind === "project") { title = (world.project(scope.pid) || {}).name || scope.pid; }
+      else title = "Working now";
       const n = ags.length;
       sub = n ? `${n} agent${n === 1 ? "" : "s"} at work` : scope.kind === "project" ? "No agent is working here right now" : "No agent is working right now";
       if (n) extra = `<ul class="mp-legend" aria-label="Agents">${ags.map((a) => `<li><button type="button" class="mp-who" data-mp-focus="${esc(a.id)}" style="--c:${a.color}" title="Show where it is"><i aria-hidden="true"></i><b>${esc(a.title)}</b><span>${esc(verbOf(a))}</span></button></li>`).join("")}</ul>`;
     }
-    // in a host's panel the host owns the tabs, Full size and Close
-    const chrome = M.hosted ? "" : `<button type="button" class="mp-x mp-full" data-mp-full aria-pressed="${M.full}" aria-label="${M.full ? "Back beside the conversation" : "Full size"}" title="${M.full ? "Back beside the conversation" : "Full size"}">${M.full ? TOOL.unfull : TOOL.full}</button>` +
-      `<button type="button" class="mp-x" data-mp-close aria-label="Close the map" title="Close">${ICON.close}</button>`;
-    return (M.hosted ? "" : tabs("live")) + `<header class="mp-top">${M.hosted ? "" : `<span class="mp-hic" aria-hidden="true">${ic}</span>`}<div class="mp-t"><h2 id="mp-h">${esc(title)}</h2>${sub ? `<p class="mp-sub">${sub}</p>` : ""}</div>` +
-      chrome + `</header>` + extra;
+    return `<header class="mp-top"><div class="mp-t"><h2 id="mp-h">${esc(title)}</h2>${sub ? `<p class="mp-sub">${sub}</p>` : ""}</div></header>` + extra;
   }
 
   /** Draw what changed: the head as words, the boxes when the drawing changes, the cursors always (they glide). */
   function paint() {
-    if (!M.open || !el || M.waking || (!M.hosted && viewer && viewer.isOpen)) return; // under the viewer nothing moves, so focus comes back to the box it left
+    if (!M.open || !el || M.waking) return;
     const scope = scopeOf(M.view);
     // a different thread or project (or view): it gets its own first look
     const sk = scope.key + "|" + M.mode;
@@ -1121,51 +989,6 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     return world.state.threads.some(isBusy);
   }
 
-  /** The Live · File switch, on whichever mode shows; nothing unless both are there. */
-  function tabs(mode) {
-    if (M.hosted || !viewer || !M.open || !viewer.hasFile) return "";
-    const f = viewer.file || {};
-    const name = f.name || base(f.rel || f.path) || "File";
-    const live = liveIn(M.view);
-    return `<nav class="stage-tabs" aria-label="Right panel"><button type="button" class="st-tab" data-stage="live" aria-pressed="${mode === "live"}" title="Where your agents are working">${MAP_ICON}<span>Live</span></button>` +
-      `<span class="st-file"><button type="button" class="st-tab" data-stage="file" aria-pressed="${mode === "file"}" title="${esc(f.where || name)}">${f.image ? ICON.image : ICON.doc}<span>${esc(name)}</span></button>` +
-      `<button type="button" class="st-x" data-stage="close-file" aria-label="Close ${esc(name)}" title="Close the file">${ICON.close}</button></span></nav>`;
-  }
-
-  function setFull(on) {
-    if (M.hosted) return;
-    M.full = on;
-    document.body.classList.toggle("map-full", on && M.open);
-    M.head = "";
-    const c = M.scope && camOf(M.scope);
-    paint();
-    // the canvas changed size: frame it again once it has
-    if (c) requestAnimationFrame(() => frame(c));
-  }
-
-  function setOpen(on, { focus = true } = {}) {
-    if (M.hosted || !el) return; // in the panel, the panel opens and closes it
-    M.open = on;
-    try { localStorage.setItem(KEY, on ? "1" : "0"); } catch { /* private mode */ }
-    document.body.classList.toggle("map-open", on);
-    document.body.classList.toggle("map-full", on && M.full);
-    el.hidden = !on;
-    if (on) {
-      if (viewer && viewer.isOpen) viewer.park(); // one panel: Live comes forward, the file waits behind its tab
-      el.classList.remove("is-in"); void el.offsetWidth; el.classList.add("is-in");
-      el.dataset.scope = ""; M.lastScope = null;
-      paint();
-      if (focus) (view() || el).focus({ preventScroll: true });
-      announce("The map is open: where your agents are working.");
-    } else {
-      el.innerHTML = ""; el.dataset.scope = "";
-      if (viewer && viewer.isParked) viewer.close({ restore: false }); // closing the panel closes all of it
-      else if (viewer) viewer.refresh();
-      announce("Map closed.");
-    }
-    onChange && onChange();
-  }
-
   // ── input ──────────────────────────────────────────────────────────────────
   const bound = new WeakSet();
   function bind(node) {
@@ -1173,8 +996,6 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
   bound.add(node);
   node.addEventListener("click", (e) => {
     const t = e.target;
-    if (t.closest("[data-mp-close]")) { close(); return; }
-    if (t.closest("[data-mp-full]")) { setFull(!M.full); return; }
     const tl = t.closest("[data-dg]");
     if (tl && tl.dataset.dg) { tool(tl.dataset.dg); return; }
     const g = t.closest("[data-mp-go]");
@@ -1231,20 +1052,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     }
     else if (r.retry != null) load(r.fold, r.retry, { again: true });
     else if (r.go) go(r.go);
-    else if (r.open) (openFile ? openFile(r.open, nb) : viewer && viewer.open(r.open, nb));
-  });
-  // the Live · File switch, drawn on the Map and on the viewer alike
-  document.addEventListener("click", (e) => {
-    const s = e.target.closest?.("[data-stage]");
-    if (!s || M.hosted || !viewer) return;
-    const what = s.dataset.stage;
-    if (what === "live") { viewer.park(); M.head = ""; paint(); (view() || el).focus({ preventScroll: true }); }
-    else if (what === "file") viewer.unpark();
-    else if (what === "close-file") { viewer.close({ restore: false }); M.head = ""; paint(); (view() || el).focus({ preventScroll: true }); }
-  });
-  node.addEventListener("keydown", (e) => {
-    if (M.hosted) return; // the host decides what Esc does
-    if (e.key === "Escape" && !(viewer && viewer.isOpen)) { e.preventDefault(); e.stopPropagation(); if (M.full) setFull(false); else close(); }
+    else if (r.open) openFile(r.open, nb);
   });
   // the panel's size changes with the window: frame it again unless you've moved it
   if (typeof ResizeObserver === "function") {
@@ -1262,21 +1070,8 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     }).observe(node);
   }
   }
-  bind(el);
-
-  function close() {
-    if (!M.open || M.hosted) return;
-    const back = document.querySelector("[data-map-toggle]");
-    if (M.full) { M.full = false; document.body.classList.remove("map-full"); }
-    setOpen(false);
-    back?.focus({ preventScroll: true });
-  }
-
 
   return {
-    /** Standalone #map is open (always false in the panel: the panel answers that). */
-    get isOpen() { return M.open && !M.hosted; },
-    // ── in the right panel ──
     /**
      * Draw only inside `host` (the Map tab's body; give it a height). Either shape works: mount once and
      * show()/hide() with the tab, or mount() each time the tab shows and unmount() when it hides. A host
@@ -1284,10 +1079,8 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
      */
     mount(host) {
       if (!host) return;
-      if (el !== host || !M.hosted) {
-        // the standalone #map, if it had already reopened itself, steps aside for good
-        if (!M.hosted && M.open && el && el !== host) { el.hidden = true; el.innerHTML = ""; document.body.classList.remove("map-open", "map-full"); }
-        M.hosted = true; M.full = false; M.open = false;
+      if (el !== host) {
+        M.open = false;
         el = host; bind(host);
         host.classList.add("map-host");
         el.dataset.scope = ""; M.head = "";
@@ -1336,25 +1129,10 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     /** The drawing: "tree" (the diagram) or "graph". */
     get mode() { return M.mode; },
     setMode: (m) => tool(m, { focus: false }),
-    liveIn: (v) => liveIn(v),
-
-    // ── standalone (#map), until the panel lands ──
-    /** The header's Map button: shows Live (parking a file in front of it), or closes the panel. */
-    toggle: () => (M.open && viewer && viewer.isOpen ? (viewer.park(), (M.head = ""), paint(), (view() || el).focus({ preventScroll: true })) : M.open ? close() : setOpen(true)),
-    tabs,
-    open: () => setOpen(true),
-    close,
     /** The view changed or the world moved: follow it. */
     render(v) {
       if (v !== M.view) M.view = v;
-      // standalone: reopen #map as it was, unless a panel mounted the Map first
-      if (!M.hosted && !M.restored) { M.restored = true; if (saved && el) { setOpen(true, { focus: false }); return; } }
       paint();
-    },
-    /** The header's toggle, for any conversation view. */
-    button(v) {
-      const live = liveIn(v);
-      return `<button type="button" class="map-btn${M.open ? " is-on" : ""}" data-map-toggle aria-pressed="${M.open}" aria-controls="map" title="Map: where your agents are working">${MAP_ICON}<span>Map</span></button>`;
     },
   };
 }

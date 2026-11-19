@@ -21,7 +21,8 @@ import { esc, copyText, COPY_REFUSED, space, rank, marked } from "../core/platfo
 import { ICON } from "./ui.js";
 import { redraw } from "./redraw.js";
 import { api } from "./api.js";
-import { activityOf, folderOf } from "./map.js";
+import { activityOf } from "../core/services/agent-activity.js";
+import { folderOf } from "../core/services/places.js";
 import { fileIcon, folderIcon } from "./fileicons.js";
 import { countsHtml } from "./changesframe.js";
 import { RUNS } from "./viewer.js";

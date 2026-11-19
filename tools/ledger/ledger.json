@@ -2389,7 +2389,8 @@
     "modules/map",
     "core/services/places.js",
     "core/services/agent-activity.js"
-   ]
+   ],
+   "note": "folderOf, placeOf, pathsInCommand are in core/services/places.js; activityOf in core/services/agent-activity.js; the standalone #map is deleted (its markup in index.html and its app.css rules wait for their owners); the rest waits for modules/map"
   },
   "js/markdown.js": {
    "status": "split",
@@ -10647,40 +10648,20 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/map.js::exports::folderOf": {
-   "status": "split-region",
-   "home": [
-    "modules/map",
-    "core/services/places.js",
-    "core/services/agent-activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/places.js"
   },
   "js/map.js::exports::placeOf": {
-   "status": "split-region",
-   "home": [
-    "modules/map",
-    "core/services/places.js",
-    "core/services/agent-activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/places.js"
   },
   "js/map.js::exports::pathsInCommand": {
-   "status": "split-region",
-   "home": [
-    "modules/map",
-    "core/services/places.js",
-    "core/services/agent-activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/places.js"
   },
   "js/map.js::exports::activityOf": {
-   "status": "split-region",
-   "home": [
-    "modules/map",
-    "core/services/places.js",
-    "core/services/agent-activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/agent-activity.js"
   },
   "js/map.js::exports::layoutOf": {
    "status": "split-region",
@@ -10719,49 +10700,24 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/map.js::functions::folderOf": {
-   "status": "split-region",
-   "home": [
-    "modules/map",
-    "core/services/places.js",
-    "core/services/agent-activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/places.js"
   },
   "js/map.js::functions::placeOf": {
-   "status": "split-region",
-   "home": [
-    "modules/map",
-    "core/services/places.js",
-    "core/services/agent-activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/places.js"
   },
   "js/map.js::functions::norm": {
-   "status": "split-region",
-   "home": [
-    "modules/map",
-    "core/services/places.js",
-    "core/services/agent-activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/places.js"
   },
   "js/map.js::functions::pathsInCommand": {
-   "status": "split-region",
-   "home": [
-    "modules/map",
-    "core/services/places.js",
-    "core/services/agent-activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/places.js"
   },
   "js/map.js::functions::activityOf": {
-   "status": "split-region",
-   "home": [
-    "modules/map",
-    "core/services/places.js",
-    "core/services/agent-activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/agent-activity.js"
   },
   "js/map.js::functions::layoutOf": {
    "status": "split-region",
@@ -10809,13 +10765,8 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/map.js::storage::cv-map": {
-   "status": "split-region",
-   "home": [
-    "modules/map",
-    "core/services/places.js",
-    "core/services/agent-activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "only the standalone #map read it (open last time); the Map lives in the panel, whose own state keeps its frame (tests/map-panel-only.test.mjs)"
   },
   "js/map.js::storage::cv-map-mode": {
    "status": "split-region",
@@ -10827,13 +10778,8 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/map.js::keys::Escape": {
-   "status": "split-region",
-   "home": [
-    "modules/map",
-    "core/services/places.js",
-    "core/services/agent-activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "the standalone #map closed on Esc; in the panel the panel decides what Esc does (tests/map-panel-only.test.mjs)"
   },
   "js/map.js::custom_events::loadingdone": {
    "status": "split-region",

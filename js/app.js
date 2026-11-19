@@ -389,7 +389,7 @@ const stOf = (t) => (t.frozen ? "resolved" : isHeld(t) ? "paused" : t.stop ? "st
 setThreadInfo((id) => { const t = world.thread(id); return t ? { state: glyphOf(t), word: wordOf(t), title: t.title } : null; });
 const SORT_STATE = { needs_approval: 0, needs_reply: 0, paused: 0, failed: 1, working: 2, done: 3, resolved: 4 };
 // the Map (js/map.js): where your agents are working, beside the conversation; the viewer stacks over it
-const MAP = createMap({ world, viewer: VW, go: (v) => go(v, { panel: true }), announce, isBusy, onChange: () => schedule(), openFile: (f, from) => VW.open(f, from) });
+const MAP = createMap({ world, go: (v) => go(v, { panel: true }), announce, isBusy, openFile: (f, from) => VW.open(f, from) });
 // the panel: one card on the right with tabs (Map, Made, File; later apps), one header button, ⌘\
 // Files: the project's files, and the one place a file opens (js/files.js)
 const FILES = createFiles({ world, viewer: VW, isBusy, PROJ, go: (v) => go(v), changes: CHG, onFold: (f) => FP.treeFolded(f), paths: PATHS });

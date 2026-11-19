@@ -7,15 +7,14 @@
 // On a real DOM (linkedom): node identity across redraws (core/ui/redraw.js), rows under a press in keyed lists
 // (its reconcile), and the Files tree (js/files.js) while an agent's marks change, with a press held across each
 // redraw. Then the write paths themselves, read from the source: no region on the render path is drawn anew.
-//   node tests/press-keeps-node.test.mjs   (linkedom: LINKEDOM=<its esm/index.js>, else `npm i linkedom` in ~/.cache/xo-test-deps)
+//   node tests/press-keeps-node.test.mjs   (linkedom, a dev-only tool: npm ci)
 import assert from "node:assert/strict";
-import { readFileSync, mkdtempSync, writeFileSync, mkdirSync, rmSync, existsSync } from "node:fs";
-import { tmpdir, homedir } from "node:os";
+import { readFileSync, mkdtempSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join, dirname, relative, resolve } from "node:path";
+import { dom } from "./lib/dom.mjs";
 
-// linkedom, outside the repo (it has no dependencies of its own): LINKEDOM, else ~/.cache/xo-test-deps or /tmp/dom
-const LD = process.env.LINKEDOM || [join(homedir(), ".cache/xo-test-deps/node_modules/linkedom/esm/index.js"), "/tmp/dom/node_modules/linkedom/esm/index.js"].find((f) => existsSync(f)) || "~/.cache/xo-test-deps";
-let passed = 0, skipped = 0;
+let passed = 0;
 const t = async (name, fn) => {
   try { await fn(); passed++; console.log("  ok  " + name); }
   catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; }
@@ -70,18 +69,9 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
 });
 
 // ── on a DOM ──────────────────────────────────────────────────────────────────
-if (!existsSync(LD)) {
-  skipped++;
-  console.log(`  skip the DOM cases: linkedom isn't installed (npm i linkedom in ~/.cache/xo-test-deps, or set LINKEDOM)`);
-} else {
-  const { parseHTML } = await import(LD);
-  const { window, document } = parseHTML(`<!doctype html><html><body><main id="host"></main><div id="viewer"></div></body></html>`);
-  Object.assign(globalThis, {
-    window, document, HTMLElement: window.HTMLElement, CustomEvent: window.CustomEvent, Event: window.Event,
-    CSS: { escape: (s) => String(s).replace(/["\\]/g, "\\$&") },
-    requestAnimationFrame: (f) => setTimeout(f, 0), matchMedia: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }),
-    innerWidth: 1440, innerHeight: 900, localStorage: { getItem: () => null, setItem() {} },
-  });
+{
+  const { window } = await dom(`<main id="host"></main><div id="viewer"></div>`);
+  Object.assign(globalThis, { innerWidth: 1440, innerHeight: 900, localStorage: { getItem: () => null, setItem() {} } });
   globalThis.performance ??= { now: () => Date.now() };
   const ev = (el, type) => el.dispatchEvent(new window.Event(type, { bubbles: true }));
   /** A press held across `fn`: pointerdown on `node`, fn() (a redraw), then the press ends. True if the node stayed. */
@@ -147,7 +137,8 @@ if (!existsSync(LD)) {
       "core/platform/index.js": 'export const esc = (s) => String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); export const copyText = async () => true; export const COPY_REFUSED = ""; export const space = () => 0; export { rank, marked } from "./fuzzy.js";',
       "ui.js": 'export const ICON = new Proxy({}, { get: () => "<i></i>" });',
       "api.js": "export const calls = []; export const missingRoute = () => false; export const api = { projectTree: (project, rel) => new Promise((res) => calls.push({ project, rel, res })) };",
-      "map.js": 'export const MARKS = { files: new Map() }; export const activityOf = () => ({ files: MARKS.files }); export const folderOf = () => ({ root: "/w/p", base: "", project: "p", projectRoot: "/w/p" });',
+      "core/services/agent-activity.js": 'export const MARKS = { files: new Map() }; export const activityOf = () => ({ files: MARKS.files });',
+      "core/services/places.js": 'export const folderOf = () => ({ root: "/w/p", base: "", project: "p", projectRoot: "/w/p" });',
       "fileicons.js": 'export const fileIcon = () => "<i></i>"; export const folderIcon = () => "<i></i>";',
       "changesframe.js": 'export const countsHtml = () => "";',
       "viewer.js": "export const RUNS = /^(\\.git|\\.claude)\\//;",
@@ -173,7 +164,7 @@ if (!existsSync(LD)) {
     // the copy registers its own press listener on the same document: both see the same presses
     const { createFiles } = await import(join(dir, "js/files.js"));
     const { calls } = await import(join(dir, "js/api.js"));
-    const { MARKS } = await import(join(dir, "js/map.js"));
+    const { MARKS } = await import(join(dir, "core/services/agent-activity.js"));
     const world = { state: { turns: [], threads: [{ id: "t1", project: "p", sessionId: "s", title: "Agent" }], projects: [{ id: "p", name: "P" }] }, thread: () => null };
     const viewer = { hasFile: false, file: null, open() {}, close() {} };
     const FILES = createFiles({ world, viewer, isBusy: () => true, PROJ: (id) => id.toUpperCase(), go() {} });
@@ -248,4 +239,4 @@ if (!existsSync(LD)) {
     });
   } finally { rmSync(dir, { recursive: true, force: true }); }
 }
-console.log(`\n${passed} passed${skipped ? `, ${skipped} skipped (said above)` : ""}${process.exitCode ? ", some FAILED" : ""}`);
+console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
