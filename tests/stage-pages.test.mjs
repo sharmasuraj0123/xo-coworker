@@ -10,29 +10,39 @@ import { readFileSync } from "node:fs";
 const stage = readFileSync(new URL("../js/stage.js", import.meta.url), "utf8");
 const css = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
 
-assert.match(stage, /page, show, sections, closeTab,\n\s*pages: \(\) => S\.tabs\.map/);
+assert.match(stage, /page, show, sections, closeTab, requestClose,\n\s*pages: \(\) => S\.tabs\.map/);
 assert.match(stage, /const TAB_MAX = 5;/);
-// show: a tab once, the oldest beyond 5 asked to close, the panel opened, one host, one switch
-const show = stage.slice(stage.indexOf("  function show("), stage.indexOf("  function sections("));
-assert.match(show, /while \(S\.tabs\.length > TAB_MAX\) \{ const old = S\.tabs\.find\(\(t\) => !sameTab\(t, S\.page\) && !sameTab\(t, next\)\); if \(!old \|\| !closeTab\(old\.name, old\.key, \{ quiet: true \}\)\) break; \}/);
-assert.match(show, /if \(S\.page\) PAGES\.get\(S\.page\.name\)\.hide\?\.\(S\.page\.key\);/);
-assert.match(show, /el\.dataset\.page = name;/);
-assert.match(show, /sp\.mount\(el\.querySelector\("\.stg-page"\), next\.key\);/);
-// closing asks the page; refusing keeps it; the one showing hands over to the last tab, else the sections
-const ct = stage.slice(stage.indexOf("  function closeTab("), stage.indexOf("  function pageChanged("));
-assert.match(ct, /if \(sp\.close && sp\.close\(t\.key\) === false\) return false;/);
-assert.match(ct, /const prev = S\.tabs\[S\.tabs\.length - 1\]; if \(prev\) show\(prev\.name, prev\.key\); else pageChanged\(\);/);
+// the Files thread's seven edits:
+// 1. hidden pages live on: mount once, onShow/onHide every switch, unmount only when the tab closes; a box each
+const show = stage.slice(stage.indexOf("  function show("), stage.indexOf("  async function evict("));
+assert.match(show, /if \(was\) \{ PAGES\.get\(was\.name\)\.onHide\?\.\(was\.key\); boxFor\(was\)\.hidden = true; \}/);
+assert.match(show, /if \(box\._new\) \{ box\._new = false; sp\.mount\(box, next\.key\); \}/);
+assert.match(stage, /sp\.unmount\?\.\(t\.key\);\n\s*BOXES\.get\(id\)\?\.remove\(\); BOXES\.delete\(id\);/);
+// 2. canClose before a tab's ×, the panel closing, an eviction; refusers skipped, none go if all refuse
+assert.match(stage, /const ask = async \(t\) => \{ const sp = PAGES\.get\(t\.name\); try \{ return !sp\.canClose \|\| \(await sp\.canClose\(t\.key\)\) !== false; \} catch \{ return false; \} \};/);
+assert.match(stage, /if \(!\(await ask\(t\)\)\) return false;/);
+assert.match(stage, /for \(const t of \[\.\.\.S\.tabs\]\) if \(!\(await ask\(t\)\)\) \{/);
+assert.match(stage, /if \(sameTab\(t, S\.page\) \|\| sameTab\(t, keep\)\) continue;\n\s*if \(await ask\(t\)\) \{ drop\(t\); n--; \}/);
+assert.match(stage, /if \(t\.closest\("\[data-stg-close\]"\)\) \{ requestClose\(\); return; \}/);
+// 3. a single page (Files) is one tab, its key what it shows now
+assert.match(stage, /const tabOf = \(name, key\) => \{ const sp = PAGES\.get\(name\); return \{ name, key: sp && sp\.single \? name : String\(key\) \}; \};/);
+// 4. the page takes Esc first
+assert.match(stage, /if \(S\.page && PAGES\.get\(S\.page\.name\)\.escape\?\.\(S\.page\.key\) === true\) return;\n\s*if \(S\.full\) setFull\(false\); else if \(S\.page && S\.page\.name !== "shell"\) sections\(\); else requestClose\(\);/);
+// 5. focus on show only when asked
+assert.match(show, /sp\.onShow\?\.\(shownKey, \{ focus \}\);/);
+// 6. width per page, full size belongs to the page, the switch and the width in one write
+assert.match(show, /el\.dataset\.page = name;\n\s*el\.classList\.toggle\("is-shell", name === "shell"\);\n\s*if \(S\.full !== !!S\.fullOf\?\.\[name\]\) setFull\(!!S\.fullOf\?\.\[name\]\);[^\n]*\n\s*apply\(\);/);
+assert.match(stage, /if \(S\.full\) setFull\(false\); \/\/ the sections come back at their own width/);
+// 7. ‹ Sections with a dot when the sections need you
+assert.match(stage, /const sectionsNeed = \(\) => \{ const tg = threads \? threads\(view\(\)\) : null; return !!tg && tg\.some\(\(g\) => g\.k === "needs" && g\.rows\.length\); \};/);
+assert.match(stage, /\$\{sectionsNeed\(\) \? '<i class="pg-dot" aria-hidden="true"><\/i>' : ""\}/);
 // widths: a page's own, kept per kind, 480 up to the window less READ
 assert.match(stage, /const PAGE_MIN = 480;/);
 assert.match(stage, /const clampP = \(w\) => Math\.round\(Math\.max\(PAGE_MIN, Math\.min\(innerWidth - READ, w\)\)\);/);
 assert.match(stage, /localStorage\.setItem\(`\$\{W_KEY\}:\$\{S\.page\.name\}`, String\(v\)\)/);
-assert.match(stage, /const widthNow = \(\) => \(pageSpecW\(\) \? pageW\(\) :/);
-// Esc: full size, then the sections, then closed (the shell, as before, closes)
-assert.match(stage, /if \(S\.full\) setFull\(false\); else if \(S\.page && S\.page\.name !== "shell"\) sections\(\); else close\(\);/);
-// the bar: tabs from two pages on, ‹ first; one page alone keeps "place › page" as Shell did
-assert.match(stage, /if \(S\.tabs\.length > 1\) return `<button type="button" class="stg-ic pg-back" data-stg-sections/);
+// the bar: tabs from two pages on, ‹ first
 assert.match(stage, /role="tab" aria-selected="\$\{on\}" data-stg-tab="\$\{esc\(t\.name\)\}" data-stg-key="\$\{esc\(t\.key\)\}"/);
-// CSS: one host for every page; tokens only
+// CSS: one host for every page, a box each; tokens only
 assert.match(css, /\.stage\[data-page\] \.stg-frames\{display:none\}\n\.stage\[data-page\] \.stg-page\{display:flex;flex:1;min-height:0;flex-direction:column\}/);
 const block = css.slice(css.indexOf("── Pages open in the panel"));
 assert.ok(block.length > 300);

@@ -16,7 +16,7 @@ assert.match(stage, /\$\{shell \? `<button type="button" class="stg-ic stg-shell
 assert.match(stage, /`<div class="stg-page stg-shell"><\/div>` \+\n\s*`<div class="stg-frames">`/, "its host (the panel's one page host) sits where the frames are");
 // Shell is the page "shell" (the panel's pages, 19 Nov): on shows it, off closes its tab; nothing else changed
 assert.match(stage, /if \(t\.closest\("\[data-stg-shell\]"\)\) \{ setShell\(S\.page\?\.name !== "shell"\); return; \}/);
-assert.match(stage, /if \(shell\) page\("shell", \{ title: \(\) => "Shell", mount: \(host\) => shell\(true, host\), hide: \(\) => shell\(false\), close: \(\) => \{ shell\(false\); \} \}\);/);
+assert.match(stage, /if \(shell\) page\("shell", \{ title: \(\) => "Shell", mount: \(\) => \{\}, onShow: \(\) => shell\(true, boxFor\(S\.page\)\), onHide: \(\) => shell\(false\), unmount: \(\) => \{\} \}\);/);
 const set = stage.slice(stage.indexOf("function setShell("), stage.indexOf("function setShell(") + 300);
 assert.match(set, /if \(on\) show\("shell"\); else closeTab\("shell"\);/);
 assert.match(stage, /el\.classList\.toggle\("is-shell", name === "shell"\);/, "the shell's own CSS keeps its class");

@@ -606,3 +606,8 @@ body.stage-covers .herald{position:fixed;left:16px;right:16px;bottom:max(16px, e
 .stage .pg-tab:hover{background:var(--hover-fill);color:var(--ink)}
 .stage .pg-tab.is-on{background:var(--fill-2);color:var(--ink)}
 .stage .stg-t:has(.pg-tabs){align-items:center;gap:var(--s-1)}
+/* each page kind's own box in the host, kept while hidden (a file's editor and caret live on) */
+.stage .stg-pg{flex:1;min-height:0;display:flex;flex-direction:column}
+/* ‹ Sections says when the sections need you (an ask in Threads) while a page is up */
+.stage .pg-back{position:relative}
+.stage .pg-dot{position:absolute;top:var(--s-1);right:var(--s-1);width:var(--s-2);height:var(--s-2);border-radius:50%;background:var(--need, var(--warn))}

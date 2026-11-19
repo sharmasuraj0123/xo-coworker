@@ -270,11 +270,15 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     // the panel says the place it's beside (the owner, 19 Nov: not "Agentic Control Pane"); in Shell mode, "› Shell"
     const place = nameOf(view());
     const cur = S.page && PAGES.get(S.page.name);
-    // two pages or more open: their tabs (one strip for every kind, the Files plan's and the Thread page's)
-    if (S.tabs.length > 1) return `<button type="button" class="stg-ic pg-back" data-stg-sections title="Back to the panel's sections (Esc)" aria-label="Sections">${ICON.back}</button><span class="pg-tabs" role="tablist" aria-label="Open in the panel">${S.tabs.map((t) => {
-      const on = !!S.page && t.name === S.page.name && t.key === S.page.key, sp = PAGES.get(t.name), tt = sp.title ? sp.title(t.key) : t.name;
+    const titleOf = (t) => { const sp = PAGES.get(t.name), k = sp.single ? (S.single?.[t.name] ?? t.key) : t.key; return sp.title ? sp.title(k) : t.name; };
+    // ‹ Sections leads any page but the shell (its own button is its way back, as before), with a dot when the
+    // sections need you (an ask in Threads)
+    const back = S.page && S.page.name !== "shell" ? `<button type="button" class="stg-ic pg-back" data-stg-sections title="Back to Threads, Changes and Map (Esc)" aria-label="Sections${sectionsNeed() ? ", something needs you" : ""}">${ICON.back}${sectionsNeed() ? '<i class="pg-dot" aria-hidden="true"></i>' : ""}</button>` : "";
+    if (S.tabs.length > 1) return `${back || `<button type="button" class="stg-ic pg-back" data-stg-sections title="Back to Threads, Changes and Map (Esc)" aria-label="Sections">${ICON.back}</button>`}<span class="pg-tabs" role="tablist" aria-label="Open in the panel">${S.tabs.map((t) => {
+      const on = sameTab(t, S.page), sp = PAGES.get(t.name), tt = titleOf(t);
       return `<button type="button" class="pg-tab${on ? " is-on" : ""}" role="tab" aria-selected="${on}" data-stg-tab="${esc(t.name)}" data-stg-key="${esc(t.key)}" title="${esc(tt)}">${sp.icon ? sp.icon(t.key) : ""}<span>${esc(tt)}</span></button>`; }).join("")}</span>`;
-    return `<b class="stg-name" title="${esc(place || "")}">${esc(place || "Panel")}</b>${cur ? `<span class="stg-sub">${esc(cur.title ? cur.title(S.page.key) : S.page.name)}</span>` : ""}`;
+    if (cur && back) return `${back}<b class="stg-name" title="${esc(titleOf(S.page))}">${esc(titleOf(S.page))}</b>`;
+    return `<b class="stg-name" title="${esc(place || "")}">${esc(place || "Panel")}</b>${cur ? `<span class="stg-sub">${esc(titleOf(S.page))}</span>` : ""}`;
   }
   let nameOf = () => "";
 
@@ -440,67 +444,117 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   }
 
   function toggle() { if (S.open && !S.rail) close(); else open(); }
-  // ── Pages (one panel model: the Files plan and the Thread page, 19 Nov): the panel shows its sections, or one
-  // page in their place. A page kind is registered once: page(name, {title(key), icon(key), mount(host, key),
-  // hide(key), close(key) → false to keep it open (an unsaved file), width}). show(name, key) opens it as a tab
-  // and shows it; sections() goes back, its tabs kept; closeTab(name, key) asks the page first. One host, one
-  // switch (el.dataset.page); a page's width is its own (WIDTHS), the sections keep theirs.
-  const PAGES = new Map();
+  // ── Pages (one panel model: the Files plan and the Thread page, 19 Nov; the Files thread's seven edits folded in)
+  // The panel shows its sections, or one page in their place. A kind is registered once:
+  //   page(name, { title(key), icon(key), width, single,
+  //                mount(host, key)   once, when its tab first shows (host is the page's own box, kept),
+  //                onShow(key, {focus}) / onHide(key)   every switch; hidden, a page lives on (Files keeps its
+  //                                     editor, undo and caret),
+  //                unmount(key)       when its tab closes,
+  //                canClose(key)      → true | false | Promise<boolean>: asked before its tab's ×, the panel's ×
+  //                                     or Esc closing it, and an eviction,
+  //                escape(key)        → true when it took Esc (its find bar, a question, an old version) })
+  // single: one tab for the kind, its key what it shows now (Files' own inner tabs); else a tab per key (threads).
+  // show(name, key, {focus}) opens or brings forward; sections() goes back, tabs kept; closeTab(name, key) asks
+  // first (a Promise<boolean>). dataset.page and --sw change in one write, nothing measured between.
+  const PAGES = new Map(), BOXES = new Map();
   const TAB_MAX = 5;
   Object.assign(S, { page: null, tabs: [] });
   const sameTab = (a, b) => !!a && !!b && a.name === b.name && a.key === b.key;
+  const tabOf = (name, key) => { const sp = PAGES.get(name); return { name, key: sp && sp.single ? name : String(key) }; };
   function page(name, spec) { PAGES.set(name, spec); }
-  function show(name, key = name) {
+  /** A page kind's own box in the host: made on its first show, hidden while another shows, gone with its tab. */
+  function boxFor(t) {
+    const id = `${t.name}\u0000${t.key}`;
+    let b = BOXES.get(id);
+    if (!b) { b = document.createElement("div"); b.className = "stg-pg"; b.dataset.pg = t.name; el.querySelector(".stg-page").append(b); BOXES.set(id, b); b._new = true; }
+    return b;
+  }
+  const ask = async (t) => { const sp = PAGES.get(t.name); try { return !sp.canClose || (await sp.canClose(t.key)) !== false; } catch { return false; } };
+  function show(name, key = name, { focus = false } = {}) {
     const sp = PAGES.get(name);
     if (!sp) return false;
-    const next = { name, key: String(key) };
-    if (!S.tabs.some((t) => sameTab(t, next))) {
-      S.tabs.push(next);
-      // at most TAB_MAX: the oldest that isn't showing goes, if it lets itself
-      while (S.tabs.length > TAB_MAX) { const old = S.tabs.find((t) => !sameTab(t, S.page) && !sameTab(t, next)); if (!old || !closeTab(old.name, old.key, { quiet: true })) break; }
-    }
+    const next = tabOf(name, key), shownKey = String(key);
+    if (!S.tabs.some((t) => sameTab(t, next))) { S.tabs.push(next); evict(next); }
+    if (sp.single) S.single = { ...(S.single || {}), [name]: shownKey }; // what the one tab shows now (its title)
     if (!S.open) open({ focus: false });
-    if (!sameTab(S.page, next)) {
-      if (S.page) PAGES.get(S.page.name).hide?.(S.page.key);
+    const was = S.page;
+    if (!sameTab(was, next)) {
+      if (was) { PAGES.get(was.name).onHide?.(was.key); boxFor(was).hidden = true; }
+      // one write: the switch and the width, nothing measured between (the Files thread)
       S.page = next;
       el.dataset.page = name;
       el.classList.toggle("is-shell", name === "shell");
-      sp.mount(el.querySelector(".stg-page"), next.key);
+      if (S.full !== !!S.fullOf?.[name]) setFull(!!S.fullOf?.[name]); // full size belongs to the page
+      apply();
+      const box = boxFor(next);
+      box.hidden = false;
+      if (box._new) { box._new = false; sp.mount(box, next.key); }
     }
+    sp.onShow?.(shownKey, { focus });
     pageChanged();
     return true;
   }
+  /** Over TAB_MAX: the oldest tab that isn't showing goes if it lets itself; a page that refuses is skipped; when
+   *  every one refuses, nothing goes. */
+  async function evict(keep) {
+    let n = S.tabs.length - TAB_MAX;
+    for (const t of [...S.tabs]) {
+      if (n <= 0) break;
+      if (sameTab(t, S.page) || sameTab(t, keep)) continue;
+      if (await ask(t)) { drop(t); n--; }
+    }
+    if (n < S.tabs.length - TAB_MAX + 1) pageChanged();
+  }
   function sections({ paint: draw = true } = {}) {
     if (!S.page) return;
-    PAGES.get(S.page.name).hide?.(S.page.key);
+    const t = S.page;
+    PAGES.get(t.name).onHide?.(t.key);
+    boxFor(t).hidden = true;
+    S.fullOf = { ...(S.fullOf || {}), [t.name]: S.full };
     S.page = null;
     delete el.dataset.page;
     el.classList.remove("is-shell");
+    if (S.full) setFull(false); // the sections come back at their own width
+    apply();
     if (draw) pageChanged();
   }
-  function closeTab(name, key = name, { quiet = false } = {}) {
-    const t = S.tabs.find((x) => x.name === name && x.key === String(key));
+  /** A tab goes: its page's own ×, or more than TAB_MAX. Asked first (canClose); refused, it stays. */
+  async function closeTab(name, key = name) {
+    const t = S.tabs.find((x) => sameTab(x, tabOf(name, key)));
     if (!t) return true;
-    const sp = PAGES.get(name);
-    if (sp.close && sp.close(t.key) === false) return false; // the page keeps itself open (it asked, or it must)
+    if (!(await ask(t))) return false;
     const was = sameTab(S.page, t);
-    if (was) { S.page = null; delete el.dataset.page; el.classList.remove("is-shell"); }
-    S.tabs = S.tabs.filter((x) => x !== t);
-    if (was && !quiet) { const prev = S.tabs[S.tabs.length - 1]; if (prev) show(prev.name, prev.key); else pageChanged(); }
-    else if (!quiet) pageChanged();
+    drop(t);
+    if (was) { const prev = S.tabs[S.tabs.length - 1]; if (prev) show(prev.name, prev.key); else { delete el.dataset.page; el.classList.remove("is-shell"); if (S.full) setFull(false); apply(); pageChanged(); } }
+    else pageChanged();
     return true;
   }
+  function drop(t) {
+    const sp = PAGES.get(t.name), id = `${t.name}\u0000${t.key}`;
+    if (sameTab(S.page, t)) { sp.onHide?.(t.key); S.page = null; }
+    sp.unmount?.(t.key);
+    BOXES.get(id)?.remove(); BOXES.delete(id);
+    S.tabs = S.tabs.filter((x) => x !== t);
+  }
+  /** The panel's × and Esc closing it: every open page is asked first (an unsaved file), then it closes. */
+  async function requestClose() {
+    for (const t of [...S.tabs]) if (!(await ask(t))) { if (!sameTab(S.page, t)) show(t.name, t.key, { focus: true }); return false; }
+    close();
+    return true;
+  }
+  /** Something in the sections needs you while a page is up: ‹ Sections says so (the Files thread). */
+  const sectionsNeed = () => { const tg = threads ? threads(view()) : null; return !!tg && tg.some((g) => g.k === "needs" && g.rows.length); };
   function pageChanged() {
     const b = el.querySelector("[data-stg-shell]");
     if (b) { const on = S.page?.name === "shell"; b.setAttribute("aria-pressed", String(on)); b.classList.toggle("is-on", on); b.title = on ? "Back to Threads, Changes and Map" : "A shell here, in the panel"; }
-    apply();
     S.h.head = ""; paint();
     onChange && onChange();
   }
   /** Shell mode (the owner, 19 Nov: a shell in the panel, the left panel's Shells as they are) is the page "shell":
    *  the shells' own dock, the same sessions and tabs, moved into the panel in place of its frames; app.js moves it
-   *  (shell(on, host)). Turned off, its tab goes. */
-  if (shell) page("shell", { title: () => "Shell", mount: (host) => shell(true, host), hide: () => shell(false), close: () => { shell(false); } });
+   *  (shell(on, host)). Hidden or closed, it goes back under the page, put away. */
+  if (shell) page("shell", { title: () => "Shell", mount: () => {}, onShow: () => shell(true, boxFor(S.page)), onHide: () => shell(false), unmount: () => {} });
   function setShell(on) {
     if (!shell || (S.page?.name === "shell") === !!on) return;
     if (on) show("shell"); else closeTab("shell");
@@ -537,12 +591,12 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   // ── input ─────────────────────────────────────────────────────────────────
   el.addEventListener("click", (e) => {
     const t = e.target;
-    if (t.closest("[data-stg-close]")) { close(); return; }
+    if (t.closest("[data-stg-close]")) { requestClose(); return; }
     if (t.closest("[data-stg-full]")) { setFull(!S.full); return; }
     if (t.closest("[data-stg-shell]")) { setShell(S.page?.name !== "shell"); return; }
     if (t.closest("[data-stg-sections]")) { sections(); return; }
     const tab = t.closest("[data-stg-tab]");
-    if (tab) { show(tab.dataset.stgTab, tab.dataset.stgKey); return; }
+    if (tab) { const sp = PAGES.get(tab.dataset.stgTab); show(tab.dataset.stgTab, sp?.single ? S.single?.[tab.dataset.stgTab] ?? tab.dataset.stgKey : tab.dataset.stgKey, { focus: true }); return; }
     const rl = t.closest("[data-rail]");
     // the rail goes as the part you asked for opens: focus goes to that part's own fold button, in its title row,
     // which now says it's open (Astra S121)
@@ -617,7 +671,9 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     if (e.key !== "Escape") return;
     if (e.target.closest && e.target.closest("input:not(.lp-in)") && e.target.value) return; // a search clears first; Launchpad's fields don't
     e.preventDefault(); e.stopPropagation();
-    if (S.full) setFull(false); else if (S.page && S.page.name !== "shell") sections(); else close();
+    // the page first (its find bar, a question, an old version), then full size, then the sections, then closed
+    if (S.page && PAGES.get(S.page.name).escape?.(S.page.key) === true) return;
+    if (S.full) setFull(false); else if (S.page && S.page.name !== "shell") sections(); else requestClose();
   }, true);
 
   // the line between two frames: drag it (or ↑ ↓ on it) to give one of them room
@@ -802,7 +858,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     get isShell() { return S.page?.name === "shell"; },
     shellOff: () => setShell(false),
     /** Pages (see "Pages" above): register a kind, show one, back to the sections, close a tab, what's open. */
-    page, show, sections, closeTab,
+    page, show, sections, closeTab, requestClose,
     pages: () => S.tabs.map((t) => ({ ...t, title: PAGES.get(t.name).title?.(t.key) || t.name, on: sameTab(t, S.page) })),
     get pageShown() { return S.page ? { ...S.page } : null; },
     /** The header's Deploy. */
