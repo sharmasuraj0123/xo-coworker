@@ -133,6 +133,9 @@ async function exchange(url, method, body, signal, extra = null) {
 }
 
 const enc = encodeURIComponent;
+/** A Space without this route yet: FastAPI's bare 404 (no code of its own: "http_404") or 405. A route's own 404 names
+ *  what isn't there (not_found, version_not_found…). Pure. */
+export const missingRoute = (err) => !!err && (err.status === 405 || (err.status === 404 && (!err.code || err.code === "http_404")));
 
 /** An ApiError from a non-2xx answer whose body is `text` (any of the four error shapes). */
 function errorOf(status, statusText, text) {

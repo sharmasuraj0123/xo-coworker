@@ -23,7 +23,7 @@ import { esc, isImagePath } from "./util.js";
 import { fileIcon } from "./fileicons.js";
 import { ICON, $ } from "./ui.js";
 import { usable } from "./focusview.js";
-import { api, attachmentUrl, attachmentText } from "./api.js";
+import { api, attachmentUrl, attachmentText, missingRoute } from "./api.js";
 import { kindOf, typeWord } from "./attach.js";
 import * as DV from "./diffview.js";
 import * as K from "./keys.js";
@@ -740,7 +740,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     try {
       const r = await api.projectVersions(D.project, D.rel);
       docs.knownVersions(D, r.versions || []);
-    } catch (err) { if (err && ((err.status === 404 && !err.code) || err.status === 405)) versionsRoute = false; } // a bare 404: no route yet
+    } catch (err) { if (missingRoute(err)) versionsRoute = false; } // a bare 404: no route yet
   }
 
   // Someone else changed a file that's open. Space says so itself (its file.version event: app.js → fileChanged);

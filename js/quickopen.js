@@ -10,6 +10,7 @@
 import { esc } from "./util.js";
 import { fileIcon } from "./fileicons.js";
 import { rank, marked, lineOf } from "./fuzzy.js";
+import { missingRoute } from "./api.js";
 
 const SEARCH_MS = 220;
 const MAX_FILES = 60;
@@ -32,7 +33,7 @@ export function createQuickOpen({ paths, api, place, openFile, openFiles = () =>
   function open(mode = "files") {
     const pl = place();
     if (!pl || !pl.project) return false;
-    S.pl = pl; S.mode = mode; S.sel = 0; S.items = [];
+    S.pl = pl; S.mode = mode; S.sel = 0; S.items = []; S.pendingEnter = false;
     S.back = document.activeElement;
     el.hidden = false;
     el.setAttribute("aria-label", mode === "files" ? "Go to a file" : "Find in files");
@@ -116,7 +117,7 @@ export function createQuickOpen({ paths, api, place, openFile, openFiles = () =>
       announce(foot.textContent);
     } catch (err) {
       if (my !== S.gen) return;
-      if (err && ((err.status === 404 && !err.code) || err.status === 405)) { S.noSearch = true; S.items = []; }
+      if (missingRoute(err)) { S.noSearch = true; S.items = []; }
       else foot.textContent = err && err.code === "bad_regex" ? `Not a valid pattern: ${err.message || ""}` : (err && err.message) || "Couldn't search.";
     }
     drawText();
@@ -141,14 +142,20 @@ export function createQuickOpen({ paths, api, place, openFile, openFiles = () =>
   }
 
   q.addEventListener("input", () => {
-    S.sel = 0;
+    S.sel = 0; S.pendingEnter = false;
     if (S.mode === "files") drawFiles();
     else { clearTimeout(S.t); S.t = setTimeout(search, SEARCH_MS); }
   });
   q.addEventListener("keydown", (e) => {
     if (e.isComposing || e.keyCode === 229) return;
     if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); move(e.key === "ArrowDown" ? 1 : -1); }
-    else if (e.key === "Enter") { e.preventDefault(); if (S.mode === "text" && S.t && !S.items.length) { clearTimeout(S.t); search(); return; } pick(S.sel); }
+    else if (e.key === "Enter") {
+      e.preventDefault();
+      if (S.mode === "text" && S.t && !S.items.length) { clearTimeout(S.t); search(); return; }
+      // the place's files still being read: Enter waits for the first match rather than doing nothing
+      if (S.mode === "files" && !S.items.length && paths.of(S.pl).state === "loading") { S.pendingEnter = true; foot.textContent = "Opening the first match once the files are read…"; return; }
+      pick(S.sel);
+    }
     else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); close(); }
   });
   list.addEventListener("click", (e) => { const li = e.target.closest("[data-i]"); if (li) pick(+li.dataset.i); });
@@ -161,6 +168,11 @@ export function createQuickOpen({ paths, api, place, openFile, openFiles = () =>
     get isOpen() { return !el.hidden; },
     el,
     /** The place's list changed (it grew while being read, a file came or went): redraw if open. */
-    refresh() { if (!el.hidden && S.mode === "files") drawFiles(); },
+    refresh() {
+      if (el.hidden || S.mode !== "files") return;
+      drawFiles();
+      if (S.pendingEnter && S.items.length) { S.pendingEnter = false; pick(0); }
+      else if (S.pendingEnter && paths.of(S.pl).state !== "loading") { S.pendingEnter = false; }
+    },
   };
 }

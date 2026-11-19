@@ -25,7 +25,7 @@
 .vw-doc .cm-xo-page .cm-content{box-sizing:border-box;max-width:760px;margin:0 auto;padding:32px 40px var(--h-bar)}
 .vw-doc .cm-xo-page .cm-activeLine{background:transparent}
 .vw-doc .cm-xo-page .cm-line{padding:0}
-.cm-md-h{font-family:var(--sans);font-weight:600;color:var(--ink)}
+.cm-md-h,.cm-md-h *{font-family:var(--sans);font-weight:600;color:var(--ink)}
 .cm-md-h1{font-size:var(--fs-3xl);line-height:var(--lh-doc);padding-top:16px !important}
 .cm-md-h2{font-size:var(--fs-2xl);line-height:var(--lh-doc);padding-top:12px !important}
 .cm-md-h3,.cm-md-h4{font-size:var(--fs-lg);line-height:var(--lh-doc);padding-top:8px !important}

@@ -66,7 +66,7 @@ t("paths on today's Space: /paths is missing, so /tree is walked, skipping .git 
   const tree = { "": { dirs: [{ name: "js" }, { name: "node_modules" }, { name: ".git" }], files: [{ name: "README.md" }] }, js: { dirs: [{ name: "vendor" }], files: [{ name: "app.js" }] }, "js/vendor": { dirs: [], files: [{ name: "x.js" }] } };
   const asked = [];
   // a bare 404 (no code): a Space without the route
-  const api = { projectPaths: async () => { throw Object.assign(new Error("Not Found"), { status: 404 }); }, projectTree: async (p, rel) => { asked.push(rel); return tree[rel] || { dirs: [], files: [] }; } };
+  const api = { projectPaths: async () => { throw Object.assign(new Error("Not Found"), { status: 404, code: "http_404" }); }, projectTree: async (p, rel) => { asked.push(rel); return tree[rel] || { dirs: [], files: [] }; } };
   const P = createPaths({ api });
   const e = await P.load({ project: "p", base: "" });
   assert.deepEqual(e.paths, ["README.md", "js/app.js", "js/vendor/x.js"]);

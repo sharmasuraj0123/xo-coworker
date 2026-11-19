@@ -3,6 +3,8 @@
 // from /tree a folder at a time in the background, skipping what nobody searches (.git, node_modules…). Kept per
 // place and refreshed when files come and go (Space's file.version create/delete/rename), never on a keystroke.
 
+import { missingRoute } from "./api.js";
+
 const SKIP = new Set([".git", "node_modules", "__pycache__", ".venv", "venv", "dist", "build", ".next", ".cache", ".xo"]);
 const WALK_MAX = 20000; // paths walked from /tree before it stops (says so: truncated)
 const WALK_PARALLEL = 4;
@@ -33,7 +35,7 @@ export function createPaths({ api, onChange = () => {} }) {
         return e;
       } catch (err) {
         // a Space without the route answers a bare 404 (no code); the route's own 404s say what isn't there
-        if (err && ((err.status === 404 && !err.code) || err.status === 405)) routeMissing = true;
+        if (missingRoute(err)) routeMissing = true;
         else { e.state = "error"; onChange(pl); return e; }
       }
     }
