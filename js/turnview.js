@@ -11,7 +11,7 @@ import { elapsed } from "../core/platform/index.js";
 import { ICON } from "./ui.js";
 import { renderMarkdown, renderInline } from "./markdown.js";
 import { mediaHtml, fromSharedFile, dedupeByMade } from "./media.js";
-import { commsLine, commsHeader, commsText, commsTool, commsBusy, commsPause } from "./comms.js";
+import { commsLine, commsHeader, commsText, commsTool, commsBusy, commsPause } from "../core/services/comms.js";
 
 const KIND_ICON = {
   create_file: "doc", edit_file: "edit", delete_file: "close", read: "eye", search: "search", list: "search",

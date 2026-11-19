@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createParser, SSEStream } from "../js/sse.js";
 import { createTurns } from "../core/services/world/turns.js";
-import { itemParts, itemBody, questionsOf, itemEffort, evidenceOf, hostOf, askedBy, isNo, holdWords } from "../js/review.js";
+import { itemParts, itemBody, questionsOf, itemEffort, evidenceOf, hostOf, askedBy, isNo, holdWords } from "../core/services/review.js";
 import { askingState } from "../js/timeline.js";
 import { hopRank, furtherState, mergeHop } from "../core/services/world/hops.js";
 
@@ -285,7 +285,7 @@ t("stream: nudge never opens a second connection; close stops delivery", async (
   assert.equal(got.length, n);
 });
 
-// ── review items (js/review.js): every kind's answers come from its own options ──
+// ── review items (core/services/review.js): every kind's answers come from its own options ──
 const OPT = {
   once: { id: "once", decision: "allow", label: "Allow once", scope: "once" },
   thread: { id: "thread", decision: "allow", label: "Allow for this thread", scope: "thread", sentence: "In this thread, run exactly `npm test`" },

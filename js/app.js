@@ -13,27 +13,28 @@ import { copyText, COPY_REFUSED, space, clock, dayOf, short, elapsed, once, isPe
 import { redraw } from "./redraw.js";
 import "./dropdown.js"; // <xo-select>: the one dropdown, in place of the browser's <select>
 import { renderMarkdown, renderInline, setThreadInfo, setWebImages } from "./markdown.js";
-import * as Kit from "./kit.js";
+import * as Kit from "../modules/decisions/kit.js";
 import * as K from "../core/platform/keys.js";
 import { createDecisions } from "./decide.js";
 import { createPacing } from "../modules/decisions/pacing.js";
 import { createIntel } from "./intel.js";
-import { EFFORT, estLine, evidenceFor } from "./content.js";
+import { EFFORT, estLine, evidenceFor } from "../modules/decisions/rank.js";
 import { keepTurning, ICON, xi, XO, NEXT_GLYPH, $, $$, RM, reconcile, sound, wait, hold, dial, morph, expand } from "./ui.js";
 import { paidHtml } from "../modules/decisions/cards/paid.js";
 import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldClock, heldBadge, soonestHeld } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn } from "./turnview.js";
-import { nameWith } from "./comms.js";
+import { nameWith } from "../core/services/comms.js";
 import { mediaHtml, fromAttachment, fromSharedFile, hydrateMedia, mediaItemOf, viewerFile, retryMedia, wireDragOut, webImagesHtml } from "./media.js";
 // math and diagrams in a reply, drawn between keystrokes (KaTeX, Mermaid: vendored, loaded only when needed)
 import { startRich } from "./rich.js";
 import { createLightbox } from "./lightbox.js";
-import { itemParts } from "./review.js";
+import { itemParts } from "../core/services/review.js";
 import { runsStripHtml, runsListHtml, runViewHtml } from "./runsview.js";
 import { createSettings } from "./settings.js";
 import { createRuntimeSettings } from "../modules/runtimes/settings.js";
 import { createChats } from "./chats.js";
 import { initFollow, toLatest, unpin, isPinned, fromTop, toRow, fromLatest, createFollow } from "../modules/conversation/follow.js";
+import { createTyping } from "../modules/conversation/typing.js";
 import { decorateConversation } from "./msgx.js";
 import { createViewer } from "./viewer.js";
 import { createMap } from "./map.js";
@@ -348,7 +349,7 @@ document.addEventListener("click", (e) => { const b = e.target.closest?.("[data-
 document.addEventListener("pointerdown", (e) => { if (PICK.el && !e.target.closest(".pk-pop,[data-pj-icon]")) closePick(); });
 const threadsOf = (pid) => world.state.threads.filter((t) => t.project === pid && t.state !== "resolved");
 const convThread = (v) => (v && v.startsWith("t:") ? world.thread(v.slice(2)) : null);
-// the team, visible (js/comms.js): a comms call names the thread, project or coordinator it reached
+// the team, visible (core/services/comms.js): a comms call names the thread, project or coordinator it reached
 nameWith({
   thread: (id) => world.thread(id)?.title || null,
   project: (chatId) => (world.state.projects || []).find((p) => p.chatId === chatId)?.name || null,
@@ -1906,66 +1907,8 @@ function openAsk(project) {
   }
   return best;
 }
-function typingRender(C = MAIN) {
-  const box = C.typing, view = C.view;
-  const t = convThread(view);
-  let spec = null;
-  const chat = !t && view !== "home" ? chatOf(view) : null;
-  // held back by a gate (the usage limit…): nothing runs, so no arc, no shimmer and no clock, only what it
-  // waits for and until when (timeline.js heldWords), in the pause's amber
-  const coHeld = chat && world.act.coordinatorHeld ? world.act.coordinatorHeld(chat) : null;
-  const chHeld = !chat && view.startsWith("c:") && world.act.sessionHeld ? world.act.sessionHeld(view.slice(2)) : null;
-  // a thread's own wait shows here even while an item on it asks you (it's true, and the item says the rest)
-  const held = coHeld || chHeld || (t && t.held && !isBusy(t) && t.state !== "resolved" ? t.held : null);
-  if (held) {
-    const who = coHeld ? (view === "ws" ? "The coordinator" : `${PROJ(chat)} coordinator`) : "";
-    const words = heldWords(held);
-    spec = { key: `held:${coHeld ? chat : chHeld ? view : t.id}`, cls: "av-live is-wait", icon: coHeld ? XO : ICON.thread, text: who ? `${who} · ${words.replace(/^\w/, (c) => c.toLowerCase())}` : words, since: null, wait: true };
-    // the words change when its reset passes ("starts at 6:50 AM" → "to reset"): drawn again then, not at a chance render
-    clearTimeout(S.heldT);
-    const at = Date.parse(held.until || "");
-    if (at > Date.now()) S.heldT = setTimeout(schedule, Math.min(at - Date.now() + 50, 2 ** 31 - 1));
-  } else if (chat && world.act.replying(chat)) {
-    // the coordinator's session really works, or our message still waits for its answer (never a timer)
-    const aw = world.state.awaiting[chat];
-    const who = view === "ws" ? "The coordinator" : `${PROJ(chat)} coordinator`;
-    const doing = world.act.doing ? world.act.doing(chat) : null;
-    spec = { key: `co:${chat}`, cls: "av-w", icon: XO, text: doing ? `${who} · ${doing.replace(/`/g, "")}` : `${who} is ${aw ? "replying" : "working"}`, since: aw ? aw.at : null };
-  } else if (chat && chat !== "workspace" && openAsk(chat)) {
-    // its coordinator asked the Workspace and the answer hasn't come: said only while that hop is open
-    const ask = openAsk(chat);
-    spec = { key: `ask:${ask.id}`, cls: "av-w", icon: XO, text: `${PROJ(chat)} coordinator · Waiting for the Workspace coordinator to reply`, since: null };
-    // the line goes when its 20 minutes are up, not at the next render that happens to come along
-    clearTimeout(S.askT);
-    S.askT = setTimeout(schedule, Math.max(0, (Date.parse(ask.created_at || ask.at || "") || Date.now()) + 20 * 60e3 - Date.now()) + 50);
-  } else if (view.startsWith("c:")) {
-    const sid = view.slice(2), tu = world.state.turns && world.state.turns.running(sid);
-    if (CH.working(view) && !(tu && world.state.turns.blocksOf(tu).length)) spec = { key: `c:${sid}`, cls: "av-live", icon: ICON.thread, text: "Working", since: null };
-  } else if (t && t.sessionId && world.state.turns && world.state.turns.running(t.sessionId) && world.state.turns.blocksOf(world.state.turns.running(t.sessionId)).length) {
-    spec = null; // its running turn shows the work itself
-  } else if (t && isBusy(t)) {
-    const cur = t.checklist.items.find((i) => i.state === "doing");
-    spec = { key: `t:${t.id}`, cls: "av-live", icon: ICON.thread, text: `Working${cur ? ` · ${cur.text}` : ""}`, since: t.lastAt };
-  }
-  let changed = false;
-  if (!spec) {
-    if (box._k != null) { box.innerHTML = ""; box._k = null; box._h = ""; changed = true; }
-    return changed;
-  }
-  if (box._k !== spec.key) {
-    box.innerHTML = spec.wait
-      ? `<div class="typing is-held" role="status"><div class="av ${spec.cls}">${spec.icon}</div><div class="ty-b"><span class="ty-t"></span><span class="elapsed"></span></div></div>`
-      : `<div class="typing" role="status"><div class="av ${spec.cls}">${spec.icon}<i class="arc" aria-hidden="true"></i></div><div class="ty-b"><span class="ty-t shimmer"></span><span class="elapsed"></span></div></div>`;
-    box._k = spec.key; box._h = spec.key;
-    changed = true;
-  }
-  const tx = box.querySelector(".ty-t");
-  if (tx.textContent !== spec.text) tx.textContent = spec.text;
-  const el = box.querySelector(".elapsed");
-  if (spec.since) el.dataset.since = spec.since; else { delete el.dataset.since; el.textContent = ""; }
-  tickElapsed();
-  return changed;
-}
+let TYPING = null;
+function typingRender(C = MAIN) { return (TYPING ||= createTyping({ world, CH, PROJ, convThread, chatOf, isBusy, heldWords, openAsk, schedule: () => schedule(), tick: () => tickElapsed() })).render(C); }
 // only a clock whose words changed is written (a rewrite is a mutation every layer reacts to)
 function tickElapsed() { for (const el of $$(".elapsed[data-since]")) { const t = elapsed(Math.max(0, Math.floor((Date.now() - +el.dataset.since) / 1000))); if (el.textContent !== t) el.textContent = t; } }
 setInterval(tickElapsed, 1000);

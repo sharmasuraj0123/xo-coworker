@@ -3,7 +3,7 @@
 //   node tests/paid.test.mjs
 import assert from "node:assert/strict";
 import { heldModes, effectiveMode, accountRows, onPaid, paidBody, paidItem, creditsWords, poolWords, MODE_SUB } from "../core/services/world/paid.js";
-import { evidenceOf, fromWords, askedBy } from "../js/review.js";
+import { evidenceOf, fromWords, askedBy } from "../core/services/review.js";
 
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };

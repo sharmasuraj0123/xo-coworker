@@ -1,6 +1,6 @@
 // @ts-check
 import { stormAsks } from "../../world/threads.js";
-import { hostOf, askedBy } from "../../../../js/review.js";
+import { hostOf, askedBy } from "../../review.js";
 import { isLimitItem, limitItem } from "../../runtimes.js";
 import { paidItem, accountRows, heldModes } from "../../world/paid.js";
 import { WAITING_STATES } from "../config.js";

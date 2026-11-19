@@ -14,14 +14,14 @@
 // suggestion is a quiet line: never pre-selected, never focused, never sent,
 // no key takes it. Focus lands on the card itself, never on an answer.
 import { esc, WAITING } from "./world.js";
-import * as Kit from "./kit.js";
+import * as Kit from "../modules/decisions/kit.js";
 import * as K from "../core/platform/keys.js";
-import { EFFORT, effortOf, rank, evidenceFor, leverageOf, suggestFor, whyLine, estLine } from "./content.js";
+import { EFFORT, effortOf, rank, evidenceFor, leverageOf, suggestFor, whyLine, estLine } from "../modules/decisions/rank.js";
 import { ICON, $, RM, clock, sound, dial, wait, morph, expand } from "./ui.js";
 import { usable, hookOf } from "./focusview.js";
 import { renderMarkdown, renderInline, excerptMarkdown } from "./markdown.js";
 import { highlight } from "./highlight.js";
-import { itemParts, itemBody, questionsOf, evidenceOf, itemEffort, isNo, VERB, holdWords as holdWordsOf } from "./review.js";
+import { itemParts, itemBody, questionsOf, evidenceOf, itemEffort, isNo, VERB, holdWords as holdWordsOf } from "../core/services/review.js";
 import { clientId as newKey } from "../core/platform/http.js";
 import { radioKeys } from "./keynav.js";
 import { resetWords, rtName } from "../core/services/runtimes.js";

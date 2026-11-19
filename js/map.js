@@ -17,7 +17,7 @@ import { ICON } from "./ui.js";
 import { api } from "./api.js";
 import { renderInline } from "./markdown.js";
 import { isImagePath, elapsed } from "../core/platform/index.js";
-import { commsLine, commsText } from "./comms.js";
+import { commsLine, commsText } from "../core/services/comms.js";
 import { heldWords } from "./timeline.js";
 import { fileIcon, folderIcon, fileColor } from "./fileicons.js";
 import { redraw } from "./redraw.js";

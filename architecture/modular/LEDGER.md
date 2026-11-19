@@ -4,14 +4,14 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 624 |
+| planned | 621 |
 | vendor | 367 |
 | deleted | 232 |
-| moved | 54 |
+| moved | 57 |
 | split | 35 |
 | kept | 1 |
 
-Items inside first-party files: 2290 (planned 1007, moved 696, split-region 560, deleted 24, kept 2, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 932, moved 793, split-region 538, deleted 24, kept 2, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -37,8 +37,8 @@ Items inside first-party files: 2290 (planned 1007, moved 696, split-region 560,
 | `js/changesframe.js` | 323 | split | modules/changes/frame.js, core/ui/components/counts.js |
 | `js/chart.js` | 176 | moved | core/ui/markdown/chart.js · next: js/chart.js re-exports it until the shims go |
 | `js/chats.js` | 452 | planned | modules/chats/ |
-| `js/comms.js` | 173 | planned | modules/conversation/blocks/comms.js |
-| `js/content.js` | 72 | planned | modules/decisions/rank.js |
+| `js/comms.js` | 173 | moved | core/services/comms.js |
+| `js/content.js` | 72 | moved | modules/decisions/rank.js |
 | `js/create.js` | 364 | moved | modules/create-project/create.js |
 | `js/decide.js` | 1104 | split | modules/decisions/needs.js, modules/decisions/queue.js, modules/decisions/card.js, modules/decisions/panel.js, modules/decisions/toast.js |
 | `js/diffthemes.js` | 4 | planned | modules/changes/diff-renderer/themes.js (generated) |
@@ -62,7 +62,7 @@ Items inside first-party files: 2290 (planned 1007, moved 696, split-region 560,
 | `js/intel.js` | 743 | planned | modules/intelligence/ |
 | `js/keynav.js` | 109 | moved | core/ui/a11y/keynav.js · next: js/keynav.js re-exports core/ui/a11y/keynav.js until the shims go |
 | `js/keys.js` | 176 | split | core/platform/keys.js, core/kernel (shortcut place), modules/settings/keyboard.js · next: the engine and its catalogue are in core/platform/keys.js; js/keys.js re-exports it until the shims go; the catalogue becomes the kernel's shortcut place when modules contribute their keys |
-| `js/kit.js` | 270 | split | modules/decisions/kit.js, core/ui/components/hold.js · next: the hold button and its guard are in core/ui/components/hold.js (kit.js re-exports them); the rest goes to modules/decisions |
+| `js/kit.js` | 270 | split | modules/decisions/kit.js, core/ui/components/hold.js · next: the hold button and its guard are in core/ui/components/hold.js (modules/decisions/kit.js re-exports them) |
 | `js/launchpad.js` | 1166 | planned | modules/launchpad/ (store, controller, views, section) |
 | `js/lightbox.js` | 384 | split | core/ui/lightbox.js, modules/conversation (the pictures it lends the lightbox) · next: the lightbox is core/ui/lightbox.js; js/lightbox.js keeps only the conversation pictures it lends it, until the conversation module moves |
 | `js/lpapi.js` | 239 | split | modules/launchpad/client.js, modules/launchpad/model.js, core/services/github.js |
@@ -84,7 +84,7 @@ Items inside first-party files: 2290 (planned 1007, moved 696, split-region 560,
 | `js/record.js` | 340 | split | modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js · next: every piece has moved (modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js); record.js only re-exports them until the shims go |
 | `js/recordview.js` | 855 | split | modules/artifacts, modules/since · next: Since you left (seen marks, the worktrees' git words, the line, Home's lines, Got it) is in modules/since/view.js; the preview queue in modules/artifacts/previews.js; the cards in modules/artifacts/cards.js; what was made (the backend's pages, the fallback, pins) in modules/artifacts/store.js; the dead Since card is deleted; the Made tab, Home's strip, the Artifacts page and ⌘K wait for modules/artifacts |
 | `js/redraw.js` | 130 | moved | core/ui/redraw.js · next: js/redraw.js re-exports core/ui/redraw.js until the shims go |
-| `js/review.js` | 153 | planned | modules/decisions/items.js |
+| `js/review.js` | 153 | moved | core/services/review.js |
 | `js/rich.js` | 281 | moved | core/ui/markdown/rich.js · next: js/rich.js re-exports it until the shims go |
 | `js/ring.js` | 65 | moved | core/ui/a11y/ring.js · next: js/ring.js re-exports core/ui/a11y/ring.js until the shims go; its two region selectors stay until files and changes contribute them |
 | `js/rtsettings.js` | 296 | moved | modules/runtimes/settings.js · next: the whole page moved, Paid usage rows with it: they become modules/runtimes/paid when Paid is its own settings.section |
