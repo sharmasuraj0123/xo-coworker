@@ -4,13 +4,13 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 654 |
+| planned | 653 |
 | vendor | 367 |
 | deleted | 232 |
 | split | 33 |
-| moved | 27 |
+| moved | 28 |
 
-Items inside first-party files: 2290 (planned 1241, split-region 717, moved 308, deleted 21, kept 2, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1221, split-region 717, moved 328, deleted 21, kept 2, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -74,7 +74,7 @@ Items inside first-party files: 2290 (planned 1241, split-region 717, moved 308,
 | `js/motion.js` | 82 | planned | core/ui/motion.js |
 | `js/msgx.js` | 917 | split | modules/conversation/decorate.js, modules/conversation/working.js, modules/conversation/actions.js, modules/conversation/gestures.js, modules/conversation/latest-button.js, modules/composer (reply chip, quote) |
 | `js/pacing.js` | 67 | planned | modules/decisions/pacing.js |
-| `js/paid.js` | 152 | planned | core/services/world/paid.js |
+| `js/paid.js` | 152 | moved | core/services/world/paid.js · next: every importer points at the new home, so it leaves with no re-export |
 | `js/paidview.js` | 21 | planned | modules/decisions/cards/paid.js |
 | `js/paths.js` | 83 | planned | core/services/paths.js |
 | `js/pending.js` | 22 | moved | core/platform/pending.js · next: js/pending.js re-exports core/platform until the shims go |

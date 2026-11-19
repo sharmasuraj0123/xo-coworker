@@ -1,7 +1,7 @@
 // @ts-check
 import { client, clientId as newClientId } from "./client.js";
 import { mergeRows, mapLimit } from "../../../js/timeline.js";
-import { paidBody } from "../../../js/paid.js";
+import { paidBody } from "../world/paid.js";
 import { LOAD_CAP } from "./config.js";
 
 /** @typedef {import("./types").Ctx} Ctx @typedef {import("./types").Row} Row @typedef {{ clientId?: string, attachments?: string[] }} SendOpts */

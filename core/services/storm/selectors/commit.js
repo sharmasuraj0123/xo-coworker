@@ -2,7 +2,7 @@
 import { stormAsks } from "../../../../js/timeline.js";
 import { hostOf, askedBy } from "../../../../js/review.js";
 import { isLimitItem, limitItem } from "../../runtimes.js";
-import { paidItem, accountRows, heldModes } from "../../../../js/paid.js";
+import { paidItem, accountRows, heldModes } from "../../world/paid.js";
 import { WAITING_STATES } from "../config.js";
 
 /** @typedef {import("../types").Ctx} Ctx @typedef {import("../types").Row} Row */

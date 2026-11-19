@@ -7,7 +7,7 @@ import { clockWords, rtName, isInstalled, healthOf, windowsOf, resetWords, allow
 import { once, isPending, busyAttrs } from "../../core/platform/index.js";
 import { redraw } from "../../js/redraw.js";
 import { rovingTab } from "../../js/keynav.js";
-import { MODES, MODE_NAME as MODE_NAMES, MODE_SUB as MODE_SUBS, heldModes, effectiveMode, accountRows, onPaid, creditsWords } from "../../js/paid.js";
+import { MODES, MODE_NAME as MODE_NAMES, MODE_SUB as MODE_SUBS, heldModes, effectiveMode, accountRows, onPaid, creditsWords } from "../../core/services/world/paid.js";
 
 const REFRESH_MS = 30000;
 const PREF_MAX = 2000;

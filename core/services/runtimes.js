@@ -145,7 +145,7 @@ export function errorField(err) {
 /** A usage item about a closed limit (one per pool), as opposed to the paid-usage item. @param {Row | null | undefined} it */
 export const isLimitItem = (it) => !!(it && it.kind === "usage" && it.detail && it.detail.limit === "closed");
 const ISO = /\b\d{4}-\d\d-\d\dT\d\d:\d\d(?::\d\d(?:\.\d+)?)?(?:Z|[+-]\d\d:?\d\d)\b/g;
-/** The server's sentence in the owner's terms: its times in their clock, its runtimes by their names. @param {any} text @param {Row[] | null | undefined} rts */
+/** The server's sentence in the owner's terms: its times in their clock, its runtimes by their names. @param {any} text @param {Row[] | null | undefined} [rts] */
 export function humanize(text, rts, now = Date.now()) {
   let s = String(text || "").replace(ISO, (iso) => clockWords(iso, now) || iso);
   for (const r of rts || []) if (r && r.name && NAME[r.name]) s = s.replace(new RegExp(`\\b${r.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "g"), NAME[r.name]);

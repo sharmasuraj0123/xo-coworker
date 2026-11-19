@@ -2426,8 +2426,9 @@
    "home": "modules/decisions/pacing.js"
   },
   "js/paid.js": {
-   "status": "planned",
-   "home": "core/services/world/paid.js"
+   "status": "moved",
+   "home": "core/services/world/paid.js",
+   "note": "every importer points at the new home, so it leaves with no re-export"
   },
   "js/paidview.js": {
    "status": "planned",
@@ -12230,83 +12231,83 @@
    "home": "modules/decisions/pacing.js"
   },
   "js/paid.js::exports::MODES": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/paid.js"
   },
   "js/paid.js::exports::MODE_NAME": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/paid.js"
   },
   "js/paid.js::exports::MODE_SUB": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/paid.js"
   },
   "js/paid.js::exports::DEFAULT_MODE": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/paid.js"
   },
   "js/paid.js::exports::known": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/paid.js"
   },
   "js/paid.js::exports::poolId": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/paid.js"
   },
   "js/paid.js::exports::heldModes": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/paid.js"
   },
   "js/paid.js::exports::effectiveMode": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/paid.js"
   },
   "js/paid.js::exports::poolWords": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/paid.js"
   },
   "js/paid.js::exports::creditsWords": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/paid.js"
   },
   "js/paid.js::exports::accountRows": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/paid.js"
   },
   "js/paid.js::exports::onPaid": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/paid.js"
   },
   "js/paid.js::exports::paidBody": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/paid.js"
   },
   "js/paid.js::exports::paidItem": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/paid.js"
   },
   "js/paid.js::functions::heldModes": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/paid.js"
   },
   "js/paid.js::functions::effectiveMode": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/paid.js"
   },
   "js/paid.js::functions::poolWords": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/paid.js"
   },
   "js/paid.js::functions::accountRows": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/paid.js"
   },
   "js/paid.js::functions::paidBody": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/paid.js"
   },
   "js/paid.js::functions::paidItem": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/paid.js"
   },
   "js/paidview.js::exports::paidHtml": {
