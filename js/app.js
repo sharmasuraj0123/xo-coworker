@@ -19,7 +19,7 @@ import { createDecisions } from "./decide.js";
 import { createPacing } from "../modules/decisions/pacing.js";
 import { createIntel } from "./intel.js";
 import { EFFORT, estLine, evidenceFor } from "./content.js";
-import { keepTurning, ICON, XO, NEXT_GLYPH, $, $$, RM, reconcile, sound, wait, hold, dial, morph, expand } from "./ui.js";
+import { keepTurning, ICON, xi, XO, NEXT_GLYPH, $, $$, RM, reconcile, sound, wait, hold, dial, morph, expand } from "./ui.js";
 import { paidHtml } from "../modules/decisions/cards/paid.js";
 import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldClock, heldBadge, soonestHeld } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn } from "./turnview.js";
@@ -40,7 +40,10 @@ import { createMap } from "./map.js";
 import { createStage } from "./stage.js";
 import { createSide } from "../shell/rail/side.js";
 import { kernel } from "../shell/kernel.js";
+import { hasIcon } from "./icon.js";
+import { headerActionsHtml, wireHeaderActions } from "../shell/header.js";
 import { stackLayers } from "../shell/layers.js";
+import { wireBack } from "../shell/back.js";
 import { faviconRender } from "../shell/favicon.js";
 import { createDrawer } from "../shell/phone.js";
 import { createLaunchpad } from "./launchpad.js";
@@ -409,10 +412,13 @@ const LP = createLaunchpad({ api: createLpApi(), projectOf: lpProject, nameOf: (
   // the owner's choice B): its Undo's deadline is the action's own (l.until), so it can't outlive what it undoes
   notice: (mid, l, ms) => { const h = { mid, kind: l.kind === "err" ? "stopped" : l.kind || "done", text: l.text, ...(l.sub ? { sub: l.sub } : {}), ...(l.undo ? { undo: l.undo, undoLabel: l.undoLabel, undoUntil: l.until || 0, ownFocus: true } : {}) }; return heraldFor(mid, () => h, ms) || heraldShow(h, ms); },
   unnotice: (mid) => heraldDrop(mid) });
-const STAGE = createStage({ map: MAP, files: FILES, changes: CHG, openFiles: () => FP.show({ focus: true }), viewer: VW, view: () => S.view, go: (v, e) => openFromPanel(v, e), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP, threads: (v) => panelThreads(v), shell: (on, host) => panelShell(on, host), owns: (e) => SH.owns(e), places: kernel.places });
+const iconNamed = (n) => (hasIcon(n) ? xi(n) : ""), atOf = (v) => { const t = convThread(v); return { view: v, project: t ? t.project : v.startsWith("p:") ? v.slice(2) : undefined, thread: t ? t.id : undefined }; };
+const STAGE = createStage({ map: MAP, files: FILES, changes: CHG, openFiles: () => FP.show({ focus: true }), viewer: VW, view: () => S.view, go: (v, e) => openFromPanel(v, e), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP, threads: (v) => panelThreads(v), shell: (on, host) => panelShell(on, host), owns: (e) => SH.owns(e), at: () => atOf(S.view), icon: iconNamed, places: kernel.places });
 // Files, a page of the panel (js/filespage.js; the owner, 19 Nov 14:57Z): the tree and the file open beside the chat,
 // which never moves
 const FP = createFilesPage({ stage: STAGE, files: FILES, viewer: VW, view: () => S.view, announce });
+kernel.start();
+wireHeaderActions(kernel.places, () => atOf(S.view));
 // the place beside the panel's name: a thread's project (its title is the conversation's own head), a project
 STAGE.names = (v) => {
   const p = v.startsWith("t:") ? world.thread(v.slice(2))?.project : v.startsWith("p:") ? v.slice(2) : null;
@@ -1421,7 +1427,7 @@ function topRender(needs) {
       `<button type="button" class="tw-act tw-more" data-tmenu="${esc(t.id)}" aria-haspopup="menu" aria-expanded="${S.tMenu === t.id && S.tMenuIn !== "page"}" title="Everything this thread can do" aria-label="Thread actions">${ICON.more}</button>` +
       (S.tMenu === t.id && S.tMenuIn !== "page" ? threadMenuHtml(t) : "") + `</span>` : "";
     // a shell in its worktree is in the menu (and the shells dock); the header keeps Resolve and the panel
-    const allActs = acts ? acts.replace(/<\/span>$/, `${LP.button(v, STAGE.launchOpen)}${STAGE.button(v)}</span>`) : `<span class="tw-acts">${LP.button(v, STAGE.launchOpen)}${STAGE.button(v)}</span>`;
+    const ext = headerActionsHtml(kernel.places, atOf(v), iconNamed), allActs = acts ? acts.replace(/<\/span>$/, `${ext}${LP.button(v, STAGE.launchOpen)}${STAGE.button(v)}</span>`) : `<span class="tw-acts">${ext}${LP.button(v, STAGE.launchOpen)}${STAGE.button(v)}</span>`;
     who = `${title}${label}<span class="badge st-${stOf(t)}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${isHeld(t) ? heldBadge(t.held) : wordOf(t)}</span>${rtTag(t)}${allActs}`;
     // a field being edited is never replaced under the person's fingers (a frame may change the badge)
     if (ed && $("#tw-edit")) who = null;
@@ -1432,7 +1438,7 @@ function topRender(needs) {
   // in place too: Threads (the switcher's opener) is the same button when All opens and sets aria-expanded, so
   // closing All finds it to return to (Astra H30)
   const pv = v.startsWith("p:");
-  const endHtml = t ? end : end + (pv ? S.hdrCtl + LP.button(v, STAGE.launchOpen) : "") + STAGE.button(v);
+  const endHtml = t ? end : end + (pv ? S.hdrCtl + headerActionsHtml(kernel.places, atOf(v), iconNamed) + LP.button(v, STAGE.launchOpen) : "") + STAGE.button(v);
   if ($("#top-end")._h !== endHtml) { redraw($("#top-end"), endHtml); $("#top-end")._h = endHtml; }
   LP.ensure(v);
   checklistRender(needs);
@@ -4229,7 +4235,7 @@ addEventListener("keydown", (e) => {
   if (e.isComposing || e.keyCode === 229) return;
   // inside a shell every key is the shell's (Esc for vim, Ctrl+K for bash), but the shells' own toggle
   if (SH.owns(e)) { if (K.hasMod("shells") && K.is(e, "shells")) { e.preventDefault(); GLOBAL.shells(); } return; }
-  // a key that works anywhere, by one rule (js/keys.js globalFor: the one Settings checks a key against): with ⌘/Ctrl
+  // a key that works anywhere, by one rule (keys' globalFor: the one Settings checks a key against): with ⌘/Ctrl
   // it works everywhere, even while typing (C118: only four actions' were answered here, so a ⌘/Ctrl key Settings
   // took for All shortcuts or Write did nothing)
   // A key the field you're typing in already took stays the field's: ⌘B in a Markdown page makes bold and doesn't
@@ -4241,16 +4247,7 @@ addEventListener("keydown", (e) => {
   if (CREATE.isOpen()) return;
   if (e.key === "Escape") {
     // the layer on top goes first: a sheet, then Settings (it covers the main area), then what it covers
-    if (QO.isOpen) { QO.close(); return; }
-    if (RS.open) { runsEscape(); return; }
-    if (!keys.hidden) { closeKeys(); return; }
-    if (!allEl.hidden) { closeAll(); return; }
-    if (!setEl.hidden) { closeSettings(); return; }
-    // a file in the panel: back to its sections (the file stays as the Files tab)
-    if (FP.isOpen) { STAGE.sections(); return; }
-    if ($("#app").classList.contains("drawer")) { setDrawer(false); return; }
-    if (D.isOpen()) { D.close(); return; }
-    if (CH.setupOpen) { CH.closeSetup(); return; }
+    if (kernel.layers.escape()) return;
     if (S.view.startsWith("t:")) back();
     else if (S.view.startsWith("c:")) go("chats");
     return;
@@ -4278,21 +4275,21 @@ function runGlobal(id) {
 // ── the phone's own Back (Android's back gesture, Safari's edge swipe) ──────
 // One history entry of the app's own while there's somewhere to go back to: Back closes the top-most open layer, then goes to a thread's parent, then the places you came through; with nothing left the browser leaves.
 const LAYERS = stackLayers(kernel.layers, [
-  { id: "create", open: () => CREATE.isOpen(), back: () => { CREATE.close(); } },
-  { id: "jump", open: () => !jump.hidden, back: () => { JUMP.close(); } },
-  { id: "intel", open: () => IQ.isOpen, back: () => { IQ.close(); } },
-  { id: "chat-setup", open: () => CH.setupOpen, back: () => { CH.closeSetup(); } },
-  { id: "runs", open: () => RS.open, back: () => { runsEscape(); } },
-  { id: "keys", open: () => !keys.hidden, back: () => { closeKeys(); } },
-  { id: "all", open: () => !allEl.hidden, back: () => { closeAll(); } },
-  { id: "lightbox", open: () => LB.isOpen, back: () => { LB.close(); }, overlay: false },
-  { id: "files-page", open: () => FP.isOpen, back: () => { STAGE.sections(); } },
-  { id: "panel-sheet", open: () => STAGE.isOpen && PHONE.matches, back: () => { STAGE.close(); } },
-  { id: "settings", open: () => !setEl.hidden, back: () => { closeSettings(); } },
-  { id: "shells", open: () => SH.raised, back: () => SH.lower() },
-  { id: "drawer", open: () => $("#app").classList.contains("drawer"), back: () => { setDrawer(false); } },
-  { id: "decisions", open: () => D.isOpen(), back: () => { D.close(); } },
-  { id: "quickopen", open: () => QO.isOpen, back: () => false },
+  { id: "create", open: () => CREATE.isOpen(), close: () => { CREATE.close(); } },
+  { id: "jump", open: () => !jump.hidden, close: () => { JUMP.close(); } },
+  { id: "intel", open: () => IQ.isOpen, close: () => { IQ.close(); } },
+  { id: "quickopen", open: () => QO.isOpen, close: () => { QO.close(); }, back: false, escape: true },
+  { id: "runs", open: () => RS.open, close: () => { runsEscape(); }, escape: true },
+  { id: "keys", open: () => !keys.hidden, close: () => { closeKeys(); }, escape: true },
+  { id: "all", open: () => !allEl.hidden, close: () => { closeAll(); }, escape: true },
+  { id: "lightbox", open: () => LB.isOpen, close: () => { LB.close(); }, overlay: false },
+  { id: "settings", open: () => !setEl.hidden, close: () => { closeSettings(); }, escape: true },
+  { id: "files-page", open: () => FP.isOpen, close: () => { STAGE.sections(); }, escape: true },
+  { id: "panel-sheet", open: () => STAGE.isOpen && PHONE.matches, close: () => { STAGE.close(); } },
+  { id: "shells", open: () => SH.raised, close: () => SH.lower() },
+  { id: "drawer", open: () => $("#app").classList.contains("drawer"), close: () => { setDrawer(false); }, escape: true },
+  { id: "decisions", open: () => D.isOpen(), close: () => { D.close(); }, escape: true },
+  { id: "chat-setup", open: () => CH.setupOpen, close: () => { CH.closeSetup(); }, escape: true },
 ]);
 const placeOk = (v) => v === "home" || v === "ws" || v === "chats" || v === "artifacts" || (v.startsWith("p:") && !!world.project(v.slice(2))) || (v.startsWith("t:") && !!world.thread(v.slice(2))) || v.startsWith("c:");
 const canBack = () => LAYERS.open() || S.view !== "home" || S.trail.length > 0;
@@ -4309,22 +4306,7 @@ function stepBack() {
   if (S.view !== "home") { S.retrace = true; go("home"); S.retrace = false; return true; }
   return false;
 }
-const HIST = { armed: history.state?.xo === 1 };
-function armBack() {
-  if (HIST.armed || !canBack()) return;
-  try { history.pushState({ ...(history.state || {}), xo: 1 }, ""); HIST.armed = true; } catch { /* a sandboxed frame */ }
-}
-addEventListener("popstate", () => {
-  HIST.armed = history.state?.xo === 1;
-  if (HIST.armed) return; // forward onto our own entry: nothing to undo
-  if (!stepBack()) { history.back(); return; }
-  armBack();
-});
-// arm on the person's own taps and keys (an entry pushed without one can be skipped by Back)
-document.addEventListener("click", () => setTimeout(armBack, 0), true);
-addEventListener("keyup", () => setTimeout(armBack, 0), true);
-document.addEventListener("touchend", () => setTimeout(armBack, 0), { capture: true, passive: true });
-document.addEventListener("xo:gesture", armBack);
+wireBack({ canBack, stepBack });
 
 // ── touch: gestures for the same moves (js/gestures.js), and the title back to the top ──
 wireGestures({

@@ -7,14 +7,19 @@ import { esc } from "../../core/platform/index.js";
 
 /** @typedef {{ name: string, key: string }} Tab */
 
-/** @typedef {{ title?: (key: string) => string, icon?: (key: string) => string, width?: number | ((o: { room: number }) => number), single?: boolean, lead?: (key: string) => string, act?: (name: string, el: Element) => void, mount: (host: HTMLElement, key: string) => void, onShow?: (key: string, o: { focus: boolean }) => void, onHide?: (key: string) => void, unmount?: (key: string) => void, canClose?: (key: string) => boolean | Promise<boolean>, escape?: (key: string) => boolean }} PageSpec */
+/** @typedef {import("../../core/kernel/types").At} At */
 
-/** @typedef {{ el: any, S: any, places: import("../../core/kernel/types").Kernel["places"], view: () => string, threads: ((v: string) => Array<{ k: string, rows: any[] }>) | null, shell: any, nameOf: () => (v: string) => string, open: (o?: { focus?: boolean }) => void, close: () => void, setFull: (on: boolean) => void, apply: () => void, paint: () => void, onChange: any }} PagesDeps */
+/** @typedef {{ title?: string | ((key: string) => string), icon?: string | ((key: string) => string), width?: number | ((o: { room: number }) => number), single?: boolean, lead?: (key: string) => string, act?: (name: string, el: Element) => void, mount: (host: HTMLElement, at: At & { key: string }) => void | (() => void), onShow?: (key: string, o: { focus: boolean }) => void, onHide?: (key: string) => void, unmount?: (key: string) => void, canClose?: (key: string) => boolean | Promise<boolean>, escape?: (key: string) => boolean }} PageSpec */
+
+/** @typedef {{ el: any, S: any, places: import("../../core/kernel/types").Kernel["places"], at: () => At, icon: (name: string) => string, view: () => string, threads: ((v: string) => Array<{ k: string, rows: any[] }>) | null, shell: any, nameOf: () => (v: string) => string, open: (o?: { focus?: boolean }) => void, close: () => void, setFull: (on: boolean) => void, apply: () => void, paint: () => void, onChange: any }} PagesDeps */
+
+/** A title or an icon, given as it is or worked out from the tab's key. @param {string | ((key: string) => string) | undefined} v @param {string} key */
+const said = (v, key) => (typeof v === "function" ? v(key) : v || "");
 
 const TAB_MAX = 5;
 
 /** @param {PagesDeps} P */
-export function createPages({ el, S, places, view, threads, shell, nameOf, open, close, setFull, apply, paint, onChange }) {
+export function createPages({ el, S, places, at, icon, view, threads, shell, nameOf, open, close, setFull, apply, paint, onChange }) {
   // the pages are the kernel's panel.page entries; registering a kind again replaces it
   const PAGES = { get: (/** @type {string} */ name) => /** @type {PageSpec} */ (/** @type {unknown} */ (places.get("panel.page", name))) };
   /** @type {Map<string, () => void>} */
@@ -27,7 +32,20 @@ export function createPages({ el, S, places, view, threads, shell, nameOf, open,
   /** @param {string} name @param {unknown} key @returns {Tab} */
   const tabOf = (name, key) => { const sp = PAGES.get(name); return { name, key: sp && sp.single ? name : String(key) }; };
   /** @param {string} name @param {PageSpec} spec */
-  function page(name, spec) { mine.get(name)?.(); mine.set(name, places.contribute("panel.page", { ...spec, id: name }, "xo.shell")); }
+  function page(name, spec) { replacing = true; try { mine.get(name)?.(); } finally { replacing = false; } mine.set(name, places.contribute("panel.page", { ...spec, id: name }, "xo.shell")); }
+  let replacing = false;
+  // a page whose entry is withdrawn (an app turned off or removed) goes with its tab and its own undo; there's nothing left to ask
+  places.watch("panel.page", () => { if (!replacing) for (const t of S.tabs.filter((/** @type {Tab} */ x) => !PAGES.get(x.name))) withdrawn(t); });
+  /** @param {Tab} t */
+  function withdrawn(t) {
+    const id = `${t.name}\u0000${t.key}`, was = sameTab(S.page, t);
+    BOXES.get(id)?._off?.(); BOXES.get(id)?.remove(); BOXES.delete(id);
+    S.tabs = S.tabs.filter((/** @type {Tab} */ x) => x !== t);
+    if (!was) { pageChanged(); return; }
+    S.page = null;
+    const prev = S.tabs[S.tabs.length - 1];
+    if (prev) show(prev.name, prev.key); else { delete el.dataset.page; el.classList.remove("is-shell"); if (S.full) setFull(false); apply(); pageChanged(); }
+  }
   /** A page kind's own box in the host: made on its first show, hidden while another shows, gone with its tab. @param {Tab} t */
   function boxFor(t) {
     const id = `${t.name}\u0000${t.key}`;
@@ -37,8 +55,9 @@ export function createPages({ el, S, places, view, threads, shell, nameOf, open,
   }
   /** @param {Tab} t */
   const ask = async (t) => { const sp = PAGES.get(t.name); try { return !sp.canClose || (await sp.canClose(t.key)) !== false; } catch { return false; } };
-  /** @param {string} name */
-  function show(name, key = name, { focus = false } = {}) {
+  /** @param {string} name @param {{ focus?: boolean, at?: At }} [opts] */
+  function show(name, key = name, opts = {}) {
+    const { focus = false, at: from = {} } = opts;
     const sp = PAGES.get(name);
     if (!sp) return false;
     const next = tabOf(name, key), shownKey = String(key);
@@ -56,8 +75,9 @@ export function createPages({ el, S, places, view, threads, shell, nameOf, open,
       apply();
       const box = boxFor(next);
       box.hidden = false;
-      if (box._new) { box._new = false; sp.mount(box, next.key); }
+      if (box._new) { box._new = false; const off = sp.mount(box, { ...at(), ...from, key: next.key }); if (typeof off === "function") box._off = off; }
     }
+    if (from.full && !S.full) setFull(true);
     sp.onShow?.(shownKey, { focus });
     pageChanged();
     return true;
@@ -104,6 +124,7 @@ export function createPages({ el, S, places, view, threads, shell, nameOf, open,
     const sp = PAGES.get(t.name), id = `${t.name}\u0000${t.key}`;
     if (sameTab(S.page, t)) { sp.onHide?.(t.key); S.page = null; }
     sp.unmount?.(t.key);
+    BOXES.get(id)?._off?.();
     BOXES.get(id)?.remove(); BOXES.delete(id);
     S.tabs = S.tabs.filter((/** @type {Tab} */ x) => x !== t);
   }
@@ -129,22 +150,23 @@ export function createPages({ el, S, places, view, threads, shell, nameOf, open,
     if (on) show("shell"); else closeTab("shell");
   }
 
+  /** A tab's title, for the key it shows now (a single page's own). @param {Tab} t */
+  const titleOf = (t) => { const sp = PAGES.get(t.name), k = sp.single ? (S.single?.[t.name] ?? t.key) : t.key; return sp.title ? said(sp.title, k) : t.name; };
   /** The panel's name, the place it's beside; with a page, ‹ Sections, the page's lead control and its tabs. */
   function titleHtml() {
     const place = nameOf()(view());
     const cur = S.page && PAGES.get(S.page.name);
-    const titleOf = (/** @type {Tab} */ t) => { const sp = PAGES.get(t.name), k = sp.single ? (S.single?.[t.name] ?? t.key) : t.key; return sp.title ? sp.title(k) : t.name; };
     // ‹ Sections leads any page but the shell, with a dot when the sections need you
     const back = S.page && S.page.name !== "shell" ? `<button type="button" class="stg-ic pg-back" data-stg-sections title="Back to Threads, Changes and Map (Esc)" aria-label="Sections${sectionsNeed() ? ", something needs you" : ""}">${ICON.back}${sectionsNeed() ? '<i class="pg-dot" aria-hidden="true"></i>' : ""}</button>` : "";
     const lead = cur && cur.lead ? cur.lead(S.page.key) || "" : "";
     // on the sections, what the pages keep stays one click away as its tab, beside the place
     if (S.tabs.length > 1 || (!S.page && S.tabs.length)) return `${S.page ? (back || `<button type="button" class="stg-ic pg-back" data-stg-sections title="Back to Threads, Changes and Map (Esc)" aria-label="Sections">${ICON.back}</button>`) + lead : `<b class="stg-name" title="${esc(place || "")}">${esc(place || "Panel")}</b>`}<span class="pg-tabs" role="tablist" aria-label="Open in the panel">${S.tabs.map((/** @type {Tab} */ t) => {
       const on = sameTab(t, S.page), sp = PAGES.get(t.name), tt = titleOf(t);
-      return `<button type="button" class="pg-tab${on ? " is-on" : ""}" role="tab" aria-selected="${on}" data-stg-tab="${esc(t.name)}" data-stg-key="${esc(t.key)}" title="${esc(tt)}">${sp.icon ? sp.icon(t.key) : ""}<span>${esc(tt)}</span></button>`; }).join("")}</span>`;
+      return `<button type="button" class="pg-tab${on ? " is-on" : ""}" role="tab" aria-selected="${on}" data-stg-tab="${esc(t.name)}" data-stg-key="${esc(t.key)}" title="${esc(tt)}">${typeof sp.icon === "function" ? sp.icon(t.key) : sp.icon ? icon(sp.icon) : ""}<span>${esc(tt)}</span></button>`; }).join("")}</span>`;
     if (cur && back) return `${back}${lead}<b class="stg-name" title="${esc(titleOf(S.page))}">${esc(titleOf(S.page))}</b>`;
     return `<b class="stg-name" title="${esc(place || "")}">${esc(place || "Panel")}</b>${cur ? `<span class="stg-sub">${esc(titleOf(S.page))}</span>` : ""}`;
   }
 
-  const pages = () => S.tabs.map((/** @type {Tab} */ t) => ({ ...t, title: PAGES.get(t.name).title?.(t.key) || t.name, on: sameTab(t, S.page) }));
+  const pages = () => S.tabs.map((/** @type {Tab} */ t) => ({ ...t, title: titleOf(t), on: sameTab(t, S.page) }));
   return { PAGES, page, show, sections, closeTab, requestClose, setShell, titleHtml, pages };
 }

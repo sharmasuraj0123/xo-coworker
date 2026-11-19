@@ -25,10 +25,10 @@ const sget = (k) => { try { return JSON.parse(localStorage.getItem(k) || "{}") |
 /** @param {string} k @param {unknown} v */
 const sset = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* private mode */ } };
 
-/** @typedef {{ map: any, files: any, changes: any, openFiles?: (() => void) | null, viewer: any, view: () => string, go: (v: string, e?: Event) => void, announce: (s: string) => void, onChange?: () => void, frames?: () => string[], launch?: any, threads?: any, shell?: ((on: boolean, host?: HTMLElement) => void) | null, owns?: (e: Event) => boolean, places: import("../../core/kernel/types").Kernel["places"] }} StageDeps */
+/** @typedef {{ map: any, files: any, changes: any, openFiles?: (() => void) | null, viewer: any, view: () => string, go: (v: string, e?: Event) => void, announce: (s: string) => void, onChange?: () => void, frames?: () => string[], launch?: any, threads?: any, shell?: ((on: boolean, host?: HTMLElement) => void) | null, owns?: (e: Event) => boolean, at: () => import("../../core/kernel/types").At, icon: (name: string) => string, places: import("../../core/kernel/types").Kernel["places"] }} StageDeps */
 
 /** @param {StageDeps} deps */
-export function createStage({ map, files, changes, openFiles = null, viewer, view, go, announce, onChange, frames = () => ORDER, launch = null, threads = null, shell = null, owns = () => false, places }) {
+export function createStage({ map, files, changes, openFiles = null, viewer, view, go, announce, onChange, frames = () => ORDER, launch = null, threads = null, shell = null, owns = () => false, at, icon, places }) {
   const saved = sget(KEY);
   // the Map starts folded, in its Graph: Threads and Changes have the room
   const fr = { changes: { folded: false }, agents: { rows: null, folded: false, groups: { done: true } }, map: { h: MAP_H, folded: true }, ...sget(FR_KEY) };
@@ -90,7 +90,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
 
   /** @type {(v: string) => string} */
   let nameOf = () => "";
-  const PG = createPages({ el, S, places, view, threads, shell, nameOf: () => nameOf, open, close, setFull, apply, paint, onChange });
+  const PG = createPages({ el, S, places, at, icon, view, threads, shell, nameOf: () => nameOf, open, close, setFull, apply, paint, onChange });
   const { PAGES, show, sections, requestClose, setShell } = PG;
   const FR = createFrames({ el, S, fr, LPF, frames, view, launch, map, persist, paint, pressDeploy });
   function layout() { FR.layout(); }

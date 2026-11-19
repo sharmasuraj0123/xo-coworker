@@ -2172,7 +2172,8 @@
   },
   "index.html": {
    "status": "split",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)"
+   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
+   "note": "the hidden layers' markup is in shell/overlays.js; comments are gone; the visible frame (sidebar, main) stays for the first paint"
   },
   "js/api.js": {
    "status": "split",
@@ -5958,144 +5959,144 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "index.html::ids::settings": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::set-h": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::set-x": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::set-t-general": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::set-t-shape": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::set-t-routing": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::set-t-runtimes": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::set-t-rules": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::set-t-worktrees": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::set-t-sounds": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::set-t-keys": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::set-p-general": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::bubbles-l": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::bubbles-tog": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::hops-l": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::hops-tog": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::webpics-l": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::webpics-tog": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::set-p-shape": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::set-p-routing": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::set-p-runtimes": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::set-p-rules": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::set-p-worktrees": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::set-p-sounds": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::sound-l": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::sound-tog": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::set-p-keys": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::set-keys-list": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::shd": {
    "status": "split-region",
@@ -6103,214 +6104,214 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "index.html::ids::create-dlg": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::create-form": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::dlg-ic": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::create-title": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::cp-mode": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::cpm-empty": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::cpm-clone": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::cp-repo-f": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::cp-repo-ic": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::cp-repo": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::cp-gh": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::cp-name": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::cp-where": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::cp-desc": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::cp-prog": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::cp-bar": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::cp-phase": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::cp-facts": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::cp-time": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::cp-stop": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::cp-hint": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::cp-err": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::cp-cancel": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::cp-submit": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::all": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::all-h": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::all-ic": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::all-q": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::all-f": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::all-list": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::runs": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::runs-card": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::cs-pop": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::iq-pop": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::jump": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::jump-ic": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::jump-q": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::jump-list": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::keys": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::keys-h": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::keys-cols": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::live": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js",
+   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "js/api.js::exports::coderHeaders": {
    "status": "moved",
@@ -7634,8 +7635,8 @@
    "note": "its layers are now one list on the kernel's stack (shell/layers.js); the history part stays until the router moves"
   },
   "js/app.js::functions::armBack": {
-   "status": "planned",
-   "home": "core/platform gestures, fed by the layer registry (each layer declares `swipeClose`) (app.js l.4678)"
+   "status": "moved",
+   "home": "shell/back.js"
   },
   "js/app.js::functions::whenWorld": {
    "status": "planned",

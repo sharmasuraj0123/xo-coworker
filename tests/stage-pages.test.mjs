@@ -18,8 +18,8 @@ assert.match(stage, /const TAB_MAX = 5;/);
 // 1. hidden pages live on: mount once, onShow/onHide every switch, unmount only when the tab closes; a box each
 const show = stage.slice(stage.indexOf("  function show("), stage.indexOf("  async function evict("));
 assert.match(show, /if \(was\) \{ PAGES\.get\(was\.name\)\.onHide\?\.\(was\.key\); boxFor\(was\)\.hidden = true; \}/);
-assert.match(show, /if \(box\._new\) \{ box\._new = false; sp\.mount\(box, next\.key\); \}/);
-assert.match(stage, /sp\.unmount\?\.\(t\.key\);\n\s*BOXES\.get\(id\)\?\.remove\(\); BOXES\.delete\(id\);/);
+assert.match(show, /if \(box\._new\) \{ box\._new = false; const off = sp\.mount\(box, \{ \.\.\.at\(\), \.\.\.from, key: next\.key \}\); if \(typeof off === \"function\"\) box\._off = off; \}/);
+assert.match(stage, /sp\.unmount\?\.\(t\.key\);\n\s*BOXES\.get\(id\)\?\._off\?\.\(\);\n\s*BOXES\.get\(id\)\?\.remove\(\); BOXES\.delete\(id\);/);
 // 2. canClose before a tab's ×, the panel closing, an eviction; refusers skipped, none go if all refuse
 assert.match(stage, /const ask = async \(t\) => \{ const sp = PAGES\.get\(t\.name\); try \{ return !sp\.canClose \|\| \(await sp\.canClose\(t\.key\)\) !== false; \} catch \{ return false; \} \};/);
 assert.match(stage, /if \(!\(await ask\(t\)\)\) return false;/);
@@ -53,9 +53,9 @@ assert.match(css, /\.stage \.stg-t:has\(\.pg-back\)\{align-items:center;gap:var\
 // inside the Shell page's terminal Esc is the shell's (vim), not the panel's: the stage's keys ask the shells' one rule
 // first (owns: inside #shd .xterm), as the app's keys do
 { const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8"), dock = readFileSync(new URL("../js/shells/dock.js", import.meta.url), "utf8");
-  assert.match(stage, /shell = null, owns = \(\) => false, places \}\) \{/);
+  assert.match(stage, /shell = null, owns = \(\) => false, at, icon, places \}\) \{/);
   assert.match(stage, /el\.addEventListener\("keydown", \((?:\/\*\* @type \{any\} \*\/ )?e\) => \{\n(\s*\/\/[^\n]*\n)*\s*if \(owns\(e\)\) return;/, "the terminal's keys before the panel's");
-  assert.match(app, /createStage\(\{[^\n]*owns: \(e\) => SH\.owns\(e\), places: kernel\.places \}\);/);
+  assert.match(app, /createStage\(\{[^\n]*owns: \(e\) => SH\.owns\(e\), at: \(\) => atOf\(S\.view\), icon: iconNamed, places: kernel\.places \}\);/);
   assert.match(dock, /return !!\(el && el\.closest && el\.closest\("#shd \.xterm"\)\);/);
   assert.match(app, /if \(SH\.owns\(e\)\) \{/); }
 console.log("stage-pages: ok");
