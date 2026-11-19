@@ -48,10 +48,10 @@ t("every refused path goes through it: the composer, Chats, a Retry, a Chat's Re
   has(body("retry"), "a message's Retry");
   has(body("sendAbout"), "a file's Tell and Ask about this");
   const sendFn = body("send") || "";
-  assert.match(sendFn, /CH\.isChats\(S\.view\)[\s\S]*?const block = liveBlock\(\);\s*if \(block\) \{ refuse\(block, "your text is kept"\); return; \}/, "Chats' composer");
+  assert.match(sendFn, /CH\.isChats\(K\.view\)[\s\S]*?const block = liveBlock\(K\.view, K\.say\.value\);\s*if \(block\) \{ refuse\(block, "your text is kept"\); return; \}/, "Chats' composer (its own composer, P1)");
   assert.match(app, /if \(chr\) \{[\s\S]{0,200}?const block = liveBlock\(\);\s*if \(block\) \{ refuse\(block, "the message stays, to retry"\); return; \}[\s\S]{0,120}?CH\.retry\(/, "a Chat's Retry passes the gate first");
   // and nothing else calls the gate and quietly returns
-  const silent = [...app.matchAll(/(?:blockFor\([^)]*\)|liveBlock\(\))\) return;/g)].length;
+  const silent = [...app.matchAll(/(?:blockFor\([^)]*\)|liveBlock\([^)]*\))\) return;/g)].length;
   assert.equal(silent, 0, "no refused path returns without a word");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

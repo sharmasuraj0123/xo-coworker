@@ -2097,6 +2097,22 @@ function chipRender(fade = false) {
 
 // ── the composer: send, or Stop while something runs ───────────────────────
 const say = $("#say"), atList = $("#at-list");
+/**
+ * A composer (P1, step 6): the main chat's (MK: #say and its form, the @ list, files, lines, the model chip) or a
+ * thread page's in the panel (its own field, Send and target line; a reply in its thread). Its view is its
+ * conversation's; sendLive, send, sendRender, the target line, the placeholder, the draft and Stop take it.
+ */
+const MK = { main: true, get view() { return S.view; }, say, send: $("#send"), form: $("#composer"), target: $("#target"), label: $("#say-label"), get conv() { return MAIN; } };
+/** A thread page's composer, wired: Enter sends (Shift+Enter a new line), Esc leaves the field, Send or Stop. */
+function wireComposer(K) {
+  K.say.addEventListener("input", () => { updateComposer(K); saveDraft(K); });
+  K.say.addEventListener("keydown", (e) => {
+    if (e.isComposing || e.keyCode === 229) { e.stopPropagation(); return; }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(K); }
+    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); K.say.blur(); }
+  });
+  K.form.addEventListener("submit", (e) => { e.preventDefault(); if (K.send.dataset.mode === "stop") stopRun(K.view); else send(K); });
+}
 
 // ── files on the unsent message (hub #30): the paperclip, a drop or a paste adds them; each uploads
 // at once to the chat this conversation writes to, as a chip with its progress, Retry and Remove.
@@ -2228,11 +2244,11 @@ say.addEventListener("paste", (e) => {
   addEventListener("drop", (e) => { if (!hasFiles(e)) return; e.preventDefault(); const on = !veil.hidden; hide(); if (on && takes()) addFiles(e.dataTransfer.files); });
   addEventListener("dragend", hide);
 }
-function growSay() {
-  say.style.height = "auto";
-  const h = say.scrollHeight;
-  say.style.height = Math.min(h, 200) + "px";
-  say.classList.toggle("is-capped", h > 200);
+function growSay(K = MK) {
+  K.say.style.height = "auto";
+  const h = K.say.scrollHeight;
+  K.say.style.height = Math.min(h, 200) + "px";
+  K.say.classList.toggle("is-capped", h > 200);
 }
 /** What would Stop stop here? The coordinator replying, or this thread's agent working. */
 // (P1: each conversation's own: view defaults to the main chat's, a thread page in the panel passes its own)
@@ -2248,18 +2264,18 @@ function running(view = S.view) {
   const sid = chat && world.act.coordinatorBusy ? world.act.coordinatorBusy(chat) : null;
   return sid ? live({ kind: "coord", conv: view, session: sid }) : null;
 }
-function sendRender() {
-  const btn = $("#send");
-  const files = filesHere();
-  const empty = !say.value.replace(/(^|\s)@[\w.-]+/, "").trim() && !files.count;
-  const run = empty ? running() : null;
+function sendRender(K = MK) {
+  const btn = K.send;
+  const files = filesHere(K.view);
+  const empty = !K.say.value.replace(/(^|\s)@[\w.-]+/, "").trim() && !files.count;
+  const run = empty ? running(K.view) : null;
   const mode = run ? "stop" : "send";
   if (btn.dataset.mode !== mode) {
     btn.dataset.mode = mode;
     redraw(btn, run ? STOP_ICON : ICON.send); // the icon changes in place: a press on it still clicks
     btn.classList.toggle("is-stop", !!run);
   }
-  btn.disabled = !run && (empty || !!liveBlock() || files.busy || files.failed);
+  btn.disabled = !run && (empty || !!liveBlock(K.view, K.say.value) || files.busy || files.failed);
   const wait = files.busy ? "Waiting for the files to upload" : files.failed ? "A file didn't upload: retry or remove it" : "";
   btn.setAttribute("aria-label", run ? (run.kind === "coord" ? "Stop the reply" : "Stop this run") : wait ? `Send · ${wait}` : "Send");
   btn.title = run ? (run.kind === "coord" ? "Stop the coordinator" : "Stop the agent (it keeps what's done)") : wait || "Send (Enter)";
@@ -2278,21 +2294,27 @@ function chatTargetRender() {
  * not only the keyboard: render() calls it too, so a cold Home never keeps saying "Sending is paused ·
  * Connecting to XO…" once everything has loaded (design-research/2026-11-vision/audit E4).
  */
-function targetLineRender() {
-  const tg = targetOf(say.value, world.state.projects);
+function targetLineRender(K = MK) {
+  const tg = targetOf(K.say.value, world.state.projects);
   const pid = tg.pid;
-  const t = convThread(S.view);
-  const block = liveBlock();
+  const t = convThread(K.view);
+  const block = liveBlock(K.view, K.say.value);
   let html;
   if (block) html = `<span class="tg-warn">${ICON.pause}</span><span>Sending is paused · ${esc(block)}</span>`;
   else if (pid === "workspace") html = `${ICON.arrow}<span><span class="tg-w">To the </span><b>Workspace</b><span class="tg-w"> coordinator</span></span>`;
   else if (pid) html = `${ICON.arrow}<span>New work for <b>${esc(PROJ(pid))}</b></span>`;
   else if (t) html = threadTargetHtml(t);
-  else if (S.view === "ws" || S.view === "home") html = `${ICON.arrow}<span><span class="tg-w">To the </span><b>Workspace</b><span class="tg-w"> coordinator</span></span><span class="muted">· @ to aim at a project</span>`;
-  else html = `${ICON.arrow}<span><span class="tg-w">To the </span><b>${esc(PROJ(convProject(S.view)))}</b><span class="tg-w"> coordinator</span></span>`;
-  if ($("#target")._h !== html) { $("#target").innerHTML = html; $("#target")._h = html; }
+  else if (K.view === "ws" || K.view === "home") html = `${ICON.arrow}<span><span class="tg-w">To the </span><b>Workspace</b><span class="tg-w"> coordinator</span></span><span class="muted">· @ to aim at a project</span>`;
+  else html = `${ICON.arrow}<span><span class="tg-w">To the </span><b>${esc(PROJ(convProject(K.view)))}</b><span class="tg-w"> coordinator</span></span>`;
+  if (K.target._h !== html) { K.target.innerHTML = html; K.target._h = html; }
 }
-function updateComposer() {
+function updateComposer(K = MK) {
+  if (!K.main) {
+    targetLineRender(K); syncPlaceholder(K);
+    K.form.classList.toggle("has-text", !!K.say.value);
+    sendRender(K); growSay(K);
+    return;
+  }
   trayRender();
   lrefRender();
   if (chatTargetRender()) {
@@ -2327,12 +2349,12 @@ function updateComposer() {
   say.setAttribute("aria-activedescendant", `at-${atList._sel}`);
 }
 /** The composer's placeholder follows the view, and a resolved thread says a reply reopens it. */
-function syncPlaceholder() {
-  if (CH.isChats(S.view)) { const ph = CH.placeholder(S.view); if (say.placeholder !== ph) { say.placeholder = ph; $("#say-label").textContent = ph; } return; }
-  const t = convThread(S.view), pid = convProject(S.view);
+function syncPlaceholder(K = MK) {
+  if (CH.isChats(K.view)) { const ph = CH.placeholder(K.view); if (K.say.placeholder !== ph) { K.say.placeholder = ph; K.label.textContent = ph; } return; }
+  const t = convThread(K.view), pid = convProject(K.view);
   // (a thread that isn't here has no project to name: its composer isn't drawn, and its label says only "Message")
-  const ph = t ? (t.state === "resolved" ? "Reply to reopen it…" : t.frozen ? "Write here to pick this thread back up…" : "Reply to the agent…") : S.view === "home" ? (PHONE.matches ? "What should get done?" : "What should get done? Use @project to aim it") : S.view === "ws" ? "Ask anything across your projects…" : pid ? `Message ${PROJ(pid)}…` : "Message";
-  if (say.placeholder !== ph) { say.placeholder = ph; $("#say-label").textContent = ph; }
+  const ph = t ? (t.state === "resolved" ? "Reply to reopen it…" : t.frozen ? "Write here to pick this thread back up…" : "Reply to the agent…") : K.view === "home" ? (PHONE.matches ? "What should get done?" : "What should get done? Use @project to aim it") : K.view === "ws" ? "Ask anything across your projects…" : pid ? `Message ${PROJ(pid)}…` : "Message";
+  if (K.say.placeholder !== ph) { K.say.placeholder = ph; K.label.textContent = ph; }
 }
 /** The @ list closed, and the field's accessible state with it (no longer expanded, no active option): one
  *  operation, so what's seen and what's announced always agree (Astra H24). */
@@ -2356,11 +2378,11 @@ function pickAt(pid) {
   saveDraft();
   updateComposer(); say.focus();
 }
-function saveDraft() { if (say.value) S.drafts[S.view] = say.value; else delete S.drafts[S.view]; store.set(DRAFTS, S.drafts); }
-function loadDraft() { say.value = S.drafts[S.view] || ""; atList._sel = 0; updateComposer(); }
+function saveDraft(K = MK) { const v = K.view; if (K.say.value) S.drafts[v] = K.say.value; else delete S.drafts[v]; store.set(DRAFTS, S.drafts); }
+function loadDraft(K = MK) { K.say.value = S.drafts[K.view] || ""; if (K.main) atList._sel = 0; updateComposer(K); }
 
 say.addEventListener("input", () => { atList._sel = 0; updateComposer(); saveDraft(); });
-say.addEventListener("click", updateComposer);
+say.addEventListener("click", () => updateComposer());
 say.addEventListener("keydown", (e) => {
   // an IME composing (its Enter commits the words, its arrows walk its candidates, its Escape cancels them) owns
   // every key: neither the @ list, nor Send, nor the page's own keys take them (Astra H25: a composing Enter chose
@@ -2499,16 +2521,16 @@ function stopsHerald() {
 }
 
 /** Stop: the run halts honestly; what's done is kept and said so. */
-function stopRun() {
-  const run = running();
+function stopRun(view = S.view) {
+  const run = running(view);
   if (run) stopLive(run);
 }
 /**
  * Interrupt: the same Stop, from your message that waits for the turn to end. Storm runs that
  * message as the agent's next turn once the stopped one ends; a thread message has no "send now".
  */
-function interruptRun() {
-  const run = running();
+function interruptRun(view = S.view) {
+  const run = running(view);
   if (run && run.kind === "thread") stopLive(run, { interrupt: true, runs: workingRuns(run.t) });
 }
 
@@ -2548,38 +2570,38 @@ function composerDest(view = S.view, text = say.value) {
   return t && !tg.pid ? { thread: true } : { pid: tg.pid || chatOf(view) || "workspace" };
 }
 
-function sendLive(raw) {
-  const block = liveBlock();
+function sendLive(raw, K = MK) {
+  const block = liveBlock(K.view, K.say.value);
   if (block) { refuse(block, "your text is kept"); return; }
   const tg = targetOf(raw, world.state.projects);
   let text = stripTarget(raw, tg.token);
-  const files = filesHere();
+  const files = filesHere(K.view);
   if (!text && !files.count) return;
   if (files.busy) { announce("Not sent yet: waiting for the files to upload."); return; }
   if (files.failed) { announce("Not sent: a file didn't upload. Retry or remove it first."); return; }
-  const t = convThread(S.view);
+  const t = convThread(K.view);
   const thread = t && !tg.pid ? t : null;
-  const chat = thread ? t.project : tg.pid || chatOf(S.view) || "workspace";
-  const conv = thread ? S.view : convOfChat(chat);
-  const here = conv === S.view;
+  const chat = thread ? t.project : tg.pid || chatOf(K.view) || "workspace";
+  const conv = thread ? K.view : convOfChat(chat);
+  const here = conv === K.view;
   // the lines a message is about (a file beside the chat): "path:a-b", then the words, as Ask about lines sends
   const ref = here && S.lref[conv];
   if (ref && text) { text = `${ref.a ? `${ref.path}:${ref.a}${ref.b > ref.a ? `-${ref.b}` : ""}` : `File: ${ref.path}`}\n\n${text}`; delete S.lref[conv]; }
-  const from = say.getBoundingClientRect();
+  const from = K.say.getBoundingClientRect();
   // client_id: a retry of this exact message is the same request, so the server stores it once (UI-reference §0.7)
   const m = { id: `l${++S.n}_${Date.now().toString(36)}`, conv, at: Date.now(), who: "you", text, status: "sending", target: thread ? null : chat, to: thread ? t.title || "the thread" : chat === "workspace" ? "the coordinator" : PROJ(chat), cid: `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}` };
-  if (files.count) { m.files = tray.take(S.view); m.files.forEach(dropThumb); }
+  if (files.count) { m.files = tray.take(K.view); m.files.forEach(dropThumb); }
   (S.local[conv] = S.local[conv] || []).push(m);
-  say.value = ""; saveDraft(); updateComposer();
-  const btn = $("#send"); btn.classList.remove("fired"); void btn.offsetWidth; btn.classList.add("fired");
+  K.say.value = ""; saveDraft(K); updateComposer(K);
+  const btn = K.send; btn.classList.remove("fired"); void btn.offsetWidth; btn.classList.add("fired");
   sound.play("send");
   // From Home, what you wrote carries you into the conversation it went to (the Workspace, or the
   // @project's): the bubble rises out of the composer into place, and Back returns to Home. From a
   // conversation, a message aimed elsewhere leaves you where you are and says where it went.
-  if (!here && S.view === "home") { go(conv, { carry: true }); toLatest(false); lift(msgsEl.querySelector(`[data-k="${m.id}"]`), from); }
+  if (!here && K.view === "home") { go(conv, { carry: true }); K.conv.follow.toLatest(false); lift(K.conv.msgs.querySelector(`[data-k="${m.id}"]`), from); }
   // while it's out it says so; each answer sets this same notice whole (postLive: sent, or not sent; a Retry: out)
   else if (!here) heraldShow(noticeFor(m, "out"), 9000);
-  else { render(); toLatest(false); lift(msgsEl.querySelector(`[data-k="${m.id}"]`), from); }
+  else { render(); K.conv.follow.toLatest(false); lift(K.conv.msgs.querySelector(`[data-k="${m.id}"]`), from); }
   // handing the work back to the agent: the panel's Changes follows it again (the owner's D6)
   if (thread) STAGE.resumeFollow(conv);
   deliverLive(m, thread);
@@ -2636,19 +2658,19 @@ async function postWithFiles(m, thread) {
 
 /** Send what's in the composer. Pressed on Send itself, focus goes to the composer: Send empties it and is
  *  disabled until you write again, which would leave focus on nothing. */
-function send() {
-  const raw = say.value;
-  const fromSend = document.activeElement === $("#send");
-  if (CH.isChats(S.view)) {
+function send(K = MK) {
+  const raw = K.say.value;
+  const fromSend = document.activeElement === K.send;
+  if (CH.isChats(K.view)) {
     const text = raw.trim();
     if (!text) return;
-    const block = liveBlock();
+    const block = liveBlock(K.view, K.say.value);
     if (block) { refuse(block, "your text is kept"); return; }
-    say.value = ""; saveDraft(); updateComposer();
+    K.say.value = ""; saveDraft(K); updateComposer(K);
     sound.play("send");
-    CH.send(S.view, text);
-  } else sendLive(raw);
-  if (fromSend && document.activeElement !== say && !say.value) say.focus({ preventScroll: true });
+    CH.send(K.view, text);
+  } else sendLive(raw, K);
+  if (fromSend && document.activeElement !== K.say && !K.say.value) K.say.focus({ preventScroll: true });
 }
 
 /** A failed message sent again: the same request (its client_id), one at a time, so a second press joins the
