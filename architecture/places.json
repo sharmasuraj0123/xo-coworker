@@ -1,0 +1,415 @@
+{
+ "kernel": "^1",
+ "places": [
+  {
+   "id": "page",
+   "kind": "keyed",
+   "scope": "app",
+   "description": "A main page, keyed by route kind (home, ws, p, t, c, chats, artifacts).",
+   "openToApps": false,
+   "requires": [
+    "mount"
+   ]
+  },
+  {
+   "id": "rail.entry",
+   "kind": "list",
+   "scope": "app",
+   "description": "An entry in the left rail's top list; the shape orders and hides them.",
+   "openToApps": true,
+   "requires": [
+    "label",
+    "icon",
+    "onPress"
+   ]
+  },
+  {
+   "id": "rail.section",
+   "kind": "list",
+   "scope": "app",
+   "description": "A section of the left rail below its entries (Projects).",
+   "openToApps": false,
+   "requires": [
+    "mount"
+   ]
+  },
+  {
+   "id": "rail.foot",
+   "kind": "list",
+   "scope": "app",
+   "description": "A control at the foot of the left rail (account, theme, settings).",
+   "openToApps": false,
+   "requires": [
+    "label",
+    "icon",
+    "onPress"
+   ]
+  },
+  {
+   "id": "header.title",
+   "kind": "keyed",
+   "scope": "conversation",
+   "description": "How the header names what is open, keyed by route kind.",
+   "openToApps": false,
+   "requires": [
+    "render"
+   ]
+  },
+  {
+   "id": "header.badge",
+   "kind": "list",
+   "scope": "conversation",
+   "description": "A small mark beside the header's title (runtime, needs you).",
+   "openToApps": false,
+   "requires": [
+    "render"
+   ]
+  },
+  {
+   "id": "header.action",
+   "kind": "list",
+   "scope": "conversation",
+   "description": "A button in the header (Threads, Resolve, Deploy, Map, the panel).",
+   "openToApps": true,
+   "requires": [
+    "label",
+    "icon",
+    "onPress"
+   ]
+  },
+  {
+   "id": "thread.menu",
+   "kind": "list",
+   "scope": "conversation",
+   "description": "An item in a thread's ⋯ menu, in a named group.",
+   "openToApps": true,
+   "requires": [
+    "label",
+    "group",
+    "run"
+   ]
+  },
+  {
+   "id": "thread.head",
+   "kind": "list",
+   "scope": "conversation",
+   "description": "A strip under a thread's header (checklist, sub-agents).",
+   "openToApps": false,
+   "requires": [
+    "mount"
+   ]
+  },
+  {
+   "id": "panel.frame",
+   "kind": "list",
+   "scope": "conversation",
+   "description": "A stacked frame in the right panel (Threads, Changes, Map, Launchpad).",
+   "openToApps": true,
+   "requires": [
+    "title",
+    "mount"
+   ]
+  },
+  {
+   "id": "panel.page",
+   "kind": "keyed",
+   "scope": "app",
+   "description": "A page the right panel shows in place of its frames (Shell, Files, Thread).",
+   "openToApps": true,
+   "requires": [
+    "mount"
+   ]
+  },
+  {
+   "id": "panel.title-action",
+   "kind": "list",
+   "scope": "app",
+   "description": "A button in the right panel's title bar.",
+   "openToApps": false,
+   "requires": [
+    "label",
+    "icon",
+    "onPress"
+   ]
+  },
+  {
+   "id": "dock.bottom",
+   "kind": "single",
+   "scope": "app",
+   "description": "The dock under the conversation; it can move into a panel page.",
+   "openToApps": false,
+   "requires": [
+    "mount"
+   ]
+  },
+  {
+   "id": "conversation.source",
+   "kind": "keyed",
+   "scope": "app",
+   "description": "Where a conversation's rows come from, keyed by view prefix.",
+   "openToApps": false,
+   "requires": [
+    "items"
+   ]
+  },
+  {
+   "id": "conversation.row",
+   "kind": "keyed",
+   "scope": "conversation",
+   "description": "How one kind of conversation row is drawn, keyed by its kind.",
+   "openToApps": true,
+   "requires": [
+    "render"
+   ]
+  },
+  {
+   "id": "conversation.block",
+   "kind": "keyed",
+   "scope": "conversation",
+   "description": "How one block type of an agent's turn is drawn, keyed by type.",
+   "openToApps": true,
+   "requires": [
+    "render"
+   ]
+  },
+  {
+   "id": "conversation.tool-words",
+   "kind": "chain",
+   "scope": "app",
+   "description": "Plain words for a tool call; the first that knows the tool wins.",
+   "openToApps": true,
+   "requires": [
+    "words"
+   ]
+  },
+  {
+   "id": "conversation.typing",
+   "kind": "chain",
+   "scope": "conversation",
+   "description": "The line that says who is working or waiting; the first that applies wins.",
+   "openToApps": false,
+   "requires": [
+    "render"
+   ]
+  },
+  {
+   "id": "message.action",
+   "kind": "list",
+   "scope": "conversation",
+   "description": "An action under a message (Copy, Reply, Good, Bad).",
+   "openToApps": true,
+   "requires": [
+    "label",
+    "run"
+   ]
+  },
+  {
+   "id": "message.decorator",
+   "kind": "list",
+   "scope": "conversation",
+   "description": "Something drawn onto a message after it renders (tails, quotes, marks).",
+   "openToApps": false,
+   "requires": [
+    "decorate"
+   ]
+  },
+  {
+   "id": "composer.tool",
+   "kind": "list",
+   "scope": "conversation",
+   "description": "A tool in the composer (attach, intelligence, send now).",
+   "openToApps": true,
+   "requires": [
+    "mount"
+   ]
+  },
+  {
+   "id": "composer.target",
+   "kind": "chain",
+   "scope": "conversation",
+   "description": "The line that says where a message goes; the first that applies wins.",
+   "openToApps": false,
+   "requires": [
+    "render"
+   ]
+  },
+  {
+   "id": "composer.send-gate",
+   "kind": "chain",
+   "scope": "app",
+   "description": "A reason sending is held; the first refusal wins.",
+   "openToApps": false,
+   "requires": [
+    "block"
+   ]
+  },
+  {
+   "id": "composer.above",
+   "kind": "list",
+   "scope": "conversation",
+   "description": "What stacks above the composer (notices, a docked decision, a file chip).",
+   "openToApps": false,
+   "requires": [
+    "mount"
+   ]
+  },
+  {
+   "id": "decision.card",
+   "kind": "single",
+   "scope": "app",
+   "description": "How a decision is drawn, in the panel, the dock and Home.",
+   "openToApps": false,
+   "requires": [
+    "render"
+   ]
+  },
+  {
+   "id": "decision.detail",
+   "kind": "keyed",
+   "scope": "app",
+   "description": "The details of one kind of decision, keyed by kind.",
+   "openToApps": false,
+   "requires": [
+    "render"
+   ]
+  },
+  {
+   "id": "decision.evidence",
+   "kind": "keyed",
+   "scope": "app",
+   "description": "A view shown as evidence inside a decision.",
+   "openToApps": true,
+   "requires": [
+    "mount"
+   ]
+  },
+  {
+   "id": "home.section",
+   "kind": "list",
+   "scope": "app",
+   "description": "A section of Home; the shape orders them.",
+   "openToApps": false,
+   "requires": [
+    "mount"
+   ]
+  },
+  {
+   "id": "settings.section",
+   "kind": "list",
+   "scope": "app",
+   "description": "A section of Settings.",
+   "openToApps": true,
+   "requires": [
+    "label",
+    "icon",
+    "render"
+   ]
+  },
+  {
+   "id": "files.viewer.kind",
+   "kind": "chain",
+   "scope": "app",
+   "description": "How a file is shown; the first kind that accepts it wins.",
+   "openToApps": true,
+   "requires": [
+    "accepts",
+    "mount"
+   ]
+  },
+  {
+   "id": "files.row.menu",
+   "kind": "list",
+   "scope": "project",
+   "description": "An item in a file row's ⋯ menu.",
+   "openToApps": true,
+   "requires": [
+    "label",
+    "run"
+   ]
+  },
+  {
+   "id": "files.viewer.head.action",
+   "kind": "list",
+   "scope": "project",
+   "description": "An action in an open file's head.",
+   "openToApps": true,
+   "requires": [
+    "label",
+    "run"
+   ]
+  },
+  {
+   "id": "files.tree.section",
+   "kind": "list",
+   "scope": "project",
+   "description": "A section of the files tree (changed here, all files).",
+   "openToApps": false,
+   "requires": [
+    "mount"
+   ]
+  },
+  {
+   "id": "editor.extension",
+   "kind": "list",
+   "scope": "project",
+   "description": "An editor extension for a kind of file.",
+   "openToApps": false,
+   "requires": [
+    "extension"
+   ]
+  },
+  {
+   "id": "search.provider",
+   "kind": "list",
+   "scope": "app",
+   "description": "A source of results for ⌘K and ⌘P.",
+   "openToApps": true,
+   "requires": [
+    "items",
+    "pick"
+   ]
+  },
+  {
+   "id": "command",
+   "kind": "keyed",
+   "scope": "app",
+   "description": "A named command, run by keys, menus or ⌘K; ids are <module>:<name>.",
+   "openToApps": true,
+   "requires": [
+    "label",
+    "run"
+   ]
+  },
+  {
+   "id": "shortcut",
+   "kind": "keyed",
+   "scope": "app",
+   "description": "A key binding for a command, in a scope (global, decision, editor, diff, panel).",
+   "openToApps": false,
+   "requires": [
+    "keys",
+    "command"
+   ]
+  },
+  {
+   "id": "pre-paint",
+   "kind": "list",
+   "scope": "app",
+   "description": "A flag set on <html> before the first paint (theme, bubbles, density).",
+   "openToApps": false,
+   "requires": [
+    "apply"
+   ]
+  },
+  {
+   "id": "world.reducer",
+   "kind": "keyed",
+   "scope": "app",
+   "description": "How one stream frame type changes the world, keyed by frame type.",
+   "openToApps": false,
+   "requires": [
+    "reduce"
+   ]
+  }
+ ]
+}
