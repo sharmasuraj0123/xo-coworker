@@ -268,12 +268,14 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     // ‹ Sections leads any page but the shell (its own button is its way back, as before), with a dot when the
     // sections need you (an ask in Threads)
     const back = S.page && S.page.name !== "shell" ? `<button type="button" class="stg-ic pg-back" data-stg-sections title="Back to Threads, Changes and Map (Esc)" aria-label="Sections${sectionsNeed() ? ", something needs you" : ""}">${ICON.back}${sectionsNeed() ? '<i class="pg-dot" aria-hidden="true"></i>' : ""}</button>` : "";
+    // a page's own lead control (Files: show or hide its file list), first after ‹ Sections, where you look first
+    const lead = cur && cur.lead ? cur.lead(S.page.key) || "" : "";
     // on the sections, what the pages keep (a file in Files, a thread) stays one click away as its tab, beside the place
     // (‹ Sections or Esc from a file keeps it: the plan, FILES-IN-PANEL.md §2)
-    if (S.tabs.length > 1 || (!S.page && S.tabs.length)) return `${S.page ? back || `<button type="button" class="stg-ic pg-back" data-stg-sections title="Back to Threads, Changes and Map (Esc)" aria-label="Sections">${ICON.back}</button>` : `<b class="stg-name" title="${esc(place || "")}">${esc(place || "Panel")}</b>`}<span class="pg-tabs" role="tablist" aria-label="Open in the panel">${S.tabs.map((t) => {
+    if (S.tabs.length > 1 || (!S.page && S.tabs.length)) return `${S.page ? (back || `<button type="button" class="stg-ic pg-back" data-stg-sections title="Back to Threads, Changes and Map (Esc)" aria-label="Sections">${ICON.back}</button>`) + lead : `<b class="stg-name" title="${esc(place || "")}">${esc(place || "Panel")}</b>`}<span class="pg-tabs" role="tablist" aria-label="Open in the panel">${S.tabs.map((t) => {
       const on = sameTab(t, S.page), sp = PAGES.get(t.name), tt = titleOf(t);
       return `<button type="button" class="pg-tab${on ? " is-on" : ""}" role="tab" aria-selected="${on}" data-stg-tab="${esc(t.name)}" data-stg-key="${esc(t.key)}" title="${esc(tt)}">${sp.icon ? sp.icon(t.key) : ""}<span>${esc(tt)}</span></button>`; }).join("")}</span>`;
-    if (cur && back) return `${back}<b class="stg-name" title="${esc(titleOf(S.page))}">${esc(titleOf(S.page))}</b>`;
+    if (cur && back) return `${back}${lead}<b class="stg-name" title="${esc(titleOf(S.page))}">${esc(titleOf(S.page))}</b>`;
     return `<b class="stg-name" title="${esc(place || "")}">${esc(place || "Panel")}</b>${cur ? `<span class="stg-sub">${esc(titleOf(S.page))}</span>` : ""}`;
   }
   let nameOf = () => "";
@@ -500,9 +502,9 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
   function sections({ paint: draw = true } = {}) {
     if (!S.page) return;
     const t = S.page;
-    // focus in the page (a file, Esc from it) doesn't fall to the page's body as it hides: it goes to the panel's own
-    // Files (or that page's tab), else the panel
-    const had = boxFor(t).contains(document.activeElement);
+    // focus in the page (a file, Esc from it) or on its head (‹ Sections itself, which goes with it) doesn't fall to the
+    // page's body: it goes to that page's tab, else the panel
+    const had = el.contains(document.activeElement);
     PAGES.get(t.name).onHide?.(t.key);
     boxFor(t).hidden = true;
     S.fullOf = { ...(S.fullOf || {}), [t.name]: S.full };
@@ -572,6 +574,8 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     if (t.closest("[data-stg-full]")) { setFull(!S.full); return; }
     if (t.closest("[data-stg-shell]")) { setShell(S.page?.name !== "shell"); return; }
     if (t.closest("[data-stg-sections]")) { sections(); return; }
+    const pa = t.closest("[data-stg-act]");
+    if (pa && S.page) { PAGES.get(S.page.name).act?.(pa.dataset.stgAct, pa); return; }
     const tab = t.closest("[data-stg-tab]");
     if (tab) { const sp = PAGES.get(tab.dataset.stgTab); show(tab.dataset.stgTab, sp?.single ? S.single?.[tab.dataset.stgTab] ?? tab.dataset.stgKey : tab.dataset.stgKey, { focus: true }); return; }
     const fo = t.closest("[data-fr-fold]");

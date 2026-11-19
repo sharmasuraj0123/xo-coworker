@@ -296,9 +296,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
   function headHtml(s) {
     return `<div class="fl-crumb">${F.pick || (F.follow && F.viewKey === "all") ? `<button type="button" class="fl-up" data-fl-unpick title="Your projects">${BACK}</button>` : ""}<b>${esc(s.label)}</b>${s.sub ? `<small title="${s.base ? "A thread's own worktree: its branch" : ""}">${esc(s.sub)}</small>` : ""}</div>` +
       `<div class="fl-find"><label class="fl-q"><span class="sr-only">Find a file</span>${ICON.search}<input data-fl-q placeholder="Find a file" autocomplete="off" spellcheck="false"></label>` +
-      `<button type="button" class="fl-add" data-fl-new="" title="New file" aria-label="New file in ${esc(s.label || "this folder")}">${NEW_IC}</button>` +
-      // beside a file: fold the browser to its rail so the file has the panel (⌘B; the owner, 19 Nov 17:41Z)
-      `<button type="button" class="fl-add fl-foldtree" data-fl-foldtree title="Fold the files (⌘B)" aria-label="Fold the files to a rail">${ICON.foldRail}</button></div>`;
+      `<button type="button" class="fl-add" data-fl-new="" title="New file" aria-label="New file in ${esc(s.label || "this folder")}">${NEW_IC}</button></div>`;
   }
   /** Above the tree: what this place changed (Space's /changes), every file with its counts, each opening on
    *  its diff; where Space can't say, what agents touched (from the turns). Where Space says nothing changed,
@@ -753,7 +751,6 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       const mb = t.closest("[data-fl-more]");
       if (mb) { if (M.menu.hidden || M.from !== mb) openMenu(mb); else closeMenu(true); return; }
       if (t.closest("[data-fl-new]")) { startNew(""); return; }
-      if (t.closest("[data-fl-foldtree]")) { fold(true, { mine: true }); return; }
       const sec = t.closest("[data-fl-sec]");
       if (sec) { const part = sec.dataset.flSec; setFolded(F.scope, part, !folded(F.scope, part)); paint(); host.querySelector(`[data-fl-sec="${part}"]`)?.focus({ preventScroll: true }); return; }
       if (t.closest("[data-fl-undo]")) { if (F.undo && F.undo.editId) undoRemove(); else { F.undo = null; paint(); } return; }
@@ -934,6 +931,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     list(on) { if (F.wide || !viewer.hasFile) return false; F.fileView = !on; paint(); return true; },
     get listing() { return !F.wide && viewer.hasFile && !F.fileView; },
     get folded() { return F.folded; },
+    get wide() { return F.wide; },
     /** The file came from you (a click), not from the front page: the panel treats it as yours. */
     get auto() { return F.auto; },
     /** The folder on screen ({label, sub}), or null when it's the list of projects. */

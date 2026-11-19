@@ -11,6 +11,7 @@
 // sync(), get isOpen}.
 
 import { fileIcon } from "./fileicons.js";
+import { ICON } from "./ui.js";
 
 const TW_KEY = "xo-files-tree", TW_DEF = 240, TW_MIN = 160, TW_MAX = 420;
 const FOLD_KEY = "xo-files-folds"; // {tree: "open" | "folded"}: what you chose, per browser
@@ -83,6 +84,14 @@ export function createFilesPage({ stage, files, viewer, view, announce = () => {
     // chat's 560. A width you drag the panel to is kept (per page).
     width: ({ room }) => Math.max(480, Math.min(room, viewer.hasFile ? FILE_W + (treeOpen() ? tw + 1 : RAIL_W) : tw + 240)),
     title: () => (viewer.hasFile ? nameOf(viewer.file) : "Files"),
+    // the one control that shows or hides the file list beside a file: first in the panel's head, after ‹, with the
+    // sidebar's own icon (the owner couldn't find the old ◧ in Files' head; the coordinator, 19 Nov 17:42Z). ⌘B too
+    lead: () => {
+      if (!viewer.hasFile) return "";
+      const shown = listShown();
+      return `<button type="button" class="stg-ic pg-lead" data-stg-act="tree" aria-pressed="${shown}" title="${shown ? "Hide" : "Show"} the files (⌘B)" aria-label="${shown ? "Hide" : "Show"} the files" aria-keyshortcuts="Meta+B Control+B">${ICON.sidebar}</button>`;
+    },
+    act: (name) => { if (name === "tree") P.toggleTree({ focus: true }); },
     icon: () => fileIcon(viewer.hasFile ? nameOf(viewer.file) : ""),
     mount: (host) => { host.append(pane); mountOnce(); },
     onShow: (key, { focus } = {}) => {
@@ -99,19 +108,26 @@ export function createFilesPage({ stage, files, viewer, view, announce = () => {
     escape: () => viewer.escape(),
   });
 
+  // the files' list shown beside (or, narrow, instead of) the file
+  const listShown = () => (files.listing || (files.wide ? !files.folded : false));
+  // the head's control keeps focus as the head redraws (it's redrawn in place, the same button)
+  const refocus = (on) => { if (on) requestAnimationFrame(() => document.querySelector('#stage [data-stg-act="tree"]')?.focus({ preventScroll: true })); };
   const P = {
     /** Show Files in the panel, on the file the viewer has (or the tree alone). focus: into the file. */
     show({ focus = false } = {}) {
       const f = viewer.hasFile ? viewer.file : null;
       stage.show("files", f ? f.rel || f.path || nameOf(f) : "files", { focus });
     },
-    /** ⌘B: fold the browser to its rail, or open it again (only while Files shows). */
-    toggleTree() {
-      if (stage.pageShown?.name !== "files") return false;
+    /** ⌘B or the head's control: the file list folds to its rail, or opens again (only while Files shows a file). A
+     *  narrow panel (a phone) has no room for both: the file and its list take turns. */
+    toggleTree({ focus = false } = {}) {
+      if (stage.pageShown?.name !== "files" || !viewer.hasFile) return false;
+      if (files.list(!files.listing)) { stage.refit(); refocus(focus); announce(files.listing ? "The files." : "The file."); return true; }
       const open = !treeOpen();
       keepFold(open);
       files.fold(!open);
       stage.refit();
+      refocus(focus);
       announce(open ? "The files are beside the file." : "The files are folded: the file has the panel.");
       return true;
     },

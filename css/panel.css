@@ -88,8 +88,6 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 .fl-find .fl-q{flex:1;min-width:0}
 .fl-add{flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .fl-add:hover{background:var(--fill-2);color:var(--ink);transition-duration:var(--d-hover-in)}
-.fl-foldtree{display:none}
-.fl.is-wide.has-file .fl-foldtree{display:grid}
 .fl-list{position:relative}
 .fl-more{position:absolute;right:8px;z-index:1;display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);margin-top:var(--s-1);border-radius:var(--r-sm);color:var(--ink-3)}
 .fl-more:hover,.fl-more[aria-expanded="true"]{background:var(--fill-3);color:var(--ink)}
@@ -611,6 +609,8 @@ body.stage-covers .herald .hr-conn{display:none}
 .stage .stg-pg{flex:1;min-height:0;display:flex;flex-direction:column}
 /* ‹ Sections says when the sections need you (an ask in Threads) while a page is up */
 .stage .pg-back{position:relative}
+/* Files' show/hide the file list, first after ‹: on (the list shown) in a stronger ink */
+.stage .pg-lead[aria-pressed="true"]{color:var(--ink-2)}
 .stage .pg-dot{position:absolute;top:var(--s-1);right:var(--s-1);width:var(--s-2);height:var(--s-2);border-radius:50%;background:var(--need, var(--warn))}
 
 /* ── The Thread page (P2, the owner chose the proper build, 19 Nov 15:20Z): a thread beside the coordinator's chat,

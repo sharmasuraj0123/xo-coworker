@@ -534,22 +534,23 @@ t("S061: the project's top failing, then reading empty: Try again lands on New f
   await done(page);
 });
 
-t("C036: the browser's fold beside a file: folded, focus on the file; its rail opens it on Find", async () => {
-  if (WIDTH < 600) skip("the browser folds beside a file on a desktop");
+t("C036: the file list's toggle, first in the panel's head beside a file: it keeps focus as the list hides and shows", async () => {
   const page = await app({ files: { "a.js": FILE() } });
   await panelOpen(page);
   await filesOpen(page);
   await page.locator('[data-fl-file="a.js"]').filter({ visible: true }).first().click();
-  const fold = page.locator("[data-fl-foldtree]").filter({ visible: true }).first();
-  await fold.waitFor();
-  await fold.focus();
+  const tog = page.locator('#stage [data-stg-act="tree"]').filter({ visible: true }).first();
+  await tog.waitFor();
+  const was = await tog.getAttribute("aria-pressed");
+  await tog.focus();
   await page.keyboard.press("Enter");
-  await page.waitForTimeout(200);
-  assert.ok(await page.locator("#stage .fl.is-folded").count(), "folded to its rail");
-  assert.match(await active(page), /id=viewer/, "the button went with the tree: focus on the file, never the page");
-  await page.locator('[data-fl-rail="find"]').filter({ visible: true }).first().click();
-  await page.waitForTimeout(200);
-  assert.match(await active(page), /data-fl-q/, "open again, on its Find");
+  await page.waitForTimeout(300);
+  assert.match(await active(page), /data-stg-act=tree/, "focus stays on the toggle");
+  assert.notEqual(await tog.getAttribute("aria-pressed"), was, "it says what it did");
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(300);
+  assert.match(await active(page), /data-stg-act=tree/);
+  assert.equal(await tog.getAttribute("aria-pressed"), was, "back as it was");
   await done(page);
 });
 
