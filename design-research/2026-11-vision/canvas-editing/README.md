@@ -1,6 +1,6 @@
 # Editing a document in place: the system map, and three options for XO
 
-Research only, 19 Nov 2026. No product code was changed.
+Research only, 19 Nov 2026. No product code was changed. Follow-up: the whole Files view as a seamless editor (code-server, Monaco, CodeMirror 6): [files-as-editor.md](files-as-editor.md).
 
 **What the owner asked for (08:57Z).** They want the Markdown viewer to feel like Claude's canvas: the document sits beside the chat, you edit it in place like a Word page, and it has headings, text, equations and graphs.
 
