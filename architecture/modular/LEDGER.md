@@ -4,13 +4,13 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 669 |
+| planned | 667 |
 | vendor | 367 |
 | deleted | 232 |
-| split | 35 |
-| moved | 10 |
+| split | 34 |
+| moved | 13 |
 
-Items inside first-party files: 2290 (planned 1316, split-region 842, moved 113, deleted 19), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1316, split-region 828, moved 127, deleted 19), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -86,7 +86,7 @@ Items inside first-party files: 2290 (planned 1316, split-region 842, moved 113,
 | `js/review.js` | 153 | planned | modules/decisions/items.js |
 | `js/rich.js` | 281 | planned | core/ui/markdown/rich.js |
 | `js/ring.js` | 65 | planned | core/ui/a11y/ring.js |
-| `js/rtsettings.js` | 296 | split | modules/runtimes (settings.section), modules/runtimes/paid |
+| `js/rtsettings.js` | 296 | moved | modules/runtimes/settings.js · next: the whole page moved, Paid usage rows with it: they become modules/runtimes/paid when Paid is its own settings.section |
 | `js/runsview.js` | 138 | planned | modules/threads/runs/ |
 | `js/runtimes.js` | 179 | planned | core/services/runtimes.js |
 | `js/settings.js` | 407 | split | modules/settings (host, pend/land), modules/routing, modules/rules, modules/worktrees |
@@ -261,10 +261,10 @@ Items inside first-party files: 2290 (planned 1316, split-region 842, moved 113,
 | `tests/ring.test.mjs` | 124 | planned | core/platform/tests/ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/routing-truth.test.mjs` | 45 | planned | modules/settings/tests/routing-truth.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/routing-words.test.mjs` | 26 | planned | modules/settings/tests/routing-words.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/rtsettings.test.mjs` | 81 | planned | modules/settings/runtimes/tests/rtsettings.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/rtsettings.test.mjs` | 81 | moved | modules/runtimes/tests/rtsettings.test.mjs |
 | `tests/runs-stop-receipt.test.mjs` | 69 | planned | modules/threads/tests/runs-stop-receipt.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/runtimes.test.mjs` | 126 | planned | modules/settings/runtimes/tests/runtimes.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/saved-truth.test.mjs` | 43 | planned | modules/settings/runtimes/tests/saved-truth.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/saved-truth.test.mjs` | 43 | moved | modules/runtimes/tests/saved-truth.test.mjs |
 | `tests/scroller-ring.test.mjs` | 171 | planned | core/ui (css guard)/tests/scroller-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/seg-fold.test.mjs` | 32 | planned | modules/files/tests/seg-fold.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/seg-ring.test.mjs` | 16 | planned | core/ui (css guard)/tests/seg-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |

@@ -2478,11 +2478,9 @@
    "home": "core/ui/a11y/ring.js"
   },
   "js/rtsettings.js": {
-   "status": "split",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ]
+   "status": "moved",
+   "home": "modules/runtimes/settings.js",
+   "note": "the whole page moved, Paid usage rows with it: they become modules/runtimes/paid when Paid is its own settings.section"
   },
   "js/runsview.js": {
    "status": "planned",
@@ -4685,8 +4683,8 @@
    "home": "modules/settings/tests/routing-words.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/rtsettings.test.mjs": {
-   "status": "planned",
-   "home": "modules/settings/runtimes/tests/rtsettings.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/runtimes/tests/rtsettings.test.mjs"
   },
   "tests/runs-stop-receipt.test.mjs": {
    "status": "planned",
@@ -4697,8 +4695,8 @@
    "home": "modules/settings/runtimes/tests/runtimes.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/saved-truth.test.mjs": {
-   "status": "planned",
-   "home": "modules/settings/runtimes/tests/saved-truth.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/runtimes/tests/saved-truth.test.mjs"
   },
   "tests/scroller-ring.test.mjs": {
    "status": "planned",
@@ -13249,116 +13247,60 @@
    "home": "core/ui/a11y/ring.js"
   },
   "js/rtsettings.js::exports::usualOf": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::exports::sameValue": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::exports::receipts": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::exports::createRuntimeSettings": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::functions::usualOf": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::functions::receipts": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::functions::createRuntimeSettings": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::ids::settings": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::ids::rtsp-h": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::ids::rtd-preferences": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::ids::rtd-pref": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::ids::rtp-space": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::ids::rtp-h": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::ids::rtl-h": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/runsview.js::exports::runsStripHtml": {
    "status": "planned",

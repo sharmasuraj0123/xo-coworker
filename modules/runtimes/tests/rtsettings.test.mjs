@@ -1,12 +1,6 @@
-// Settings › Runtimes (js/rtsettings.js): the "Saved" receipt beside a default, and which usual runtime applies.
-// Each receipt clears only itself: an earlier save's timer never cuts a newer "Saved" on the same field short
-// (Astra on 15bb2fd: ACKs at 0 and 700 ms, and the first timer cleared the second receipt at 1600 ms, 900 ms old).
-// The usual runtime shown is the one XO actually uses, as its own choose() picks it (Astra on 44e429d: default:null
-// with XO's own runtime excluded showed nothing chosen).
-// No DOM, no network.
-//   node tests/rtsettings.test.mjs
+// Settings › Runtimes: each "Saved" receipt clears only itself, and the usual runtime is the one XO actually uses. No DOM.
 import assert from "node:assert/strict";
-import { receipts, usualOf } from "../js/rtsettings.js";
+import { receipts, usualOf } from "../settings.js";
 
 let passed = 0;
 const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
