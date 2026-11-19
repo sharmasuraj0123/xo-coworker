@@ -1,24 +1,10 @@
-// Storm's turns and their blocks, as the server sends them (UI-reference §1.8). The server builds
-// every block (grouping, headers, row wording); this store only applies frames, so a turn looks
-// the same whether it was watched live or loaded from history. Pure: no DOM, no network.
-//
-// The client rules (PR 8 "For the UI"):
-//   1. block.started creates the block; a second one for the same id only adds its index.
-//   2. block.updated applies: text `append` and row `output_append` are appended; the rest replaces.
-//   3. block.finished replaces the block with its final form.
-//   4. snapshot replaces each listed turn's open blocks.
-//   5. turn.finished drops that turn's blocks that never finished (they only streamed).
-//   6. A turn that ends without turn.finished drops its open blocks too: a `session` frame for its
-//      session with status cold or parked, or a new turn.started in the same session.
-//   7. (the stream) keeps the last SSE id and sends it back as Last-Event-ID.
+// @ts-check
+
+/** @typedef {Record<string, any>} Row @typedef {{ type?: string, envelope?: Row } & Row} Frame @typedef {{ id: string, session: string | null, chat: string | null, thread: string | null, seq: number | null, at: string | null, origin: string | null, wakes: string[], status: string, end: Row | null, blocks: Map<string, Row>, lastSeq: number, held?: Row[], selfEnded?: boolean, stopped?: Row | null }} Turn */
 
 const ENDED = new Set(["cold", "parked"]);
 
-/**
- * A row patch is the whole row (the server sends `_row_view` minus output), so it REPLACES the row:
- * live-only keys (waiting, streams, progress, pending) must not outlive the state that had them.
- * Only the command output carries over: `output_append` is appended to it, `output` replaces it.
- */
+/** A row patch is the whole row, so it replaces it; only the command output carries over (`output_append` appends). @param {Row | null} old @param {Row} p */
 function patchRow(old, p) {
   const row = { ...p };
   delete row.output_append;
@@ -28,14 +14,15 @@ function patchRow(old, p) {
   return row;
 }
 
+/** Storm's turns and their blocks, built only from frames, so a turn looks the same watched live or read from history. */
 export function createTurns() {
-  const turns = new Map(); // turn id → Turn
-  // the newest seq seen on any frame (messages too: every frame passes through apply). A block keeps the
-  // seq of its first frame (`seq`), so a turn can be split where the agent spoke (turnview.js
-  // turnSegments); one whose frame has none (a live-only frame) counts as just after the newest seen.
-  let seen = 0;
+  /** @type {Map<string, Turn>} */
+  const turns = new Map();
+  let seen = 0; // the newest seq on any frame; a block without one (a live-only frame) counts as just after it
+  /** @param {Row} env */
   const seqOf = (env) => (env.seq != null ? env.seq : seen + 0.5);
 
+  /** @param {Row} env @returns {Turn | null} */
   function turnOf(env) {
     const id = env.turn_id;
     if (!id) return null;
@@ -56,11 +43,12 @@ export function createTurns() {
     return t;
   }
 
-  /** Drop a turn's open (never finished) blocks. */
+  /** Drop a turn's open (never finished) blocks. @param {Turn} t */
   function dropOpen(t) {
     for (const [id, b] of t.blocks) if (!b.done) t.blocks.delete(id);
   }
 
+  /** @param {Frame} frame @returns {string | string[] | null} */
   function apply(frame) {
     const env = frame.envelope || frame;
     const type = frame.type || env.type;
@@ -72,7 +60,7 @@ export function createTurns() {
         if (!t) return null;
         t.origin = d.origin || t.origin;
         if (Array.isArray(d.wakes)) t.wakes = [...new Set([...t.wakes, ...d.wakes])];
-        // rule 6: an earlier turn of this session that never finished has ended
+        // an earlier turn of this session that never finished has ended
         for (const o of turns.values()) {
           if (o !== t && o.session && o.session === t.session && o.status === "running" && (o.lastSeq || 0) < (env.seq ?? Infinity)) {
             o.status = "ended"; dropOpen(o);
@@ -87,14 +75,13 @@ export function createTurns() {
         if (t.status === "stopped" && t.selfEnded) t.status = "finished";
         t.end = d;
         if (Array.isArray(d.wakes)) t.wakes = [...new Set([...t.wakes, ...d.wakes])];
-        dropOpen(t); // rule 5
+        dropOpen(t);
         return t.id;
       }
       case "turn.stopped": {
         const t = turnOf(env);
         if (!t) return null;
-        // the agent ended its own turn (no_reply_needed) and XO cut off what it went on with: XO reads that
-        // as finished (storm lifecycle), and so does this. No "Stopped after …" line for a turn nobody stopped.
+        // the agent ended its own turn and XO cut off what it went on with: finished, no "Stopped after …" line
         if (d.by === "turn_ended") {
           t.selfEnded = true;
           t.stopped = null;
@@ -105,9 +92,7 @@ export function createTurns() {
         return t.id;
       }
       case "session": {
-        // rule 6: the session's process ended; its running turn is over. Only a turn older than this
-        // frame: history applied after live frames carries old "cold" rows that must not end a turn
-        // running now.
+        // the session's process ended; only a turn older than this frame (history's old "cold" rows never end one running now)
         if (!ENDED.has(d.status) || !env.session_id || env.seq == null) return null;
         let changed = null;
         for (const t of turns.values()) {
@@ -121,14 +106,12 @@ export function createTurns() {
         if (!t || !b || !b.id) return null;
         const old = t.blocks.get(b.id);
         if (old) {
-          // rule 1: only its index; a finished block is never reopened by an older frame
+          // only its index; a finished block is never reopened by an older frame
           if (b.index != null) old.index = b.index;
           if (env.seq != null && (old.seq == null || env.seq < old.seq)) old.seq = env.seq; // its true first frame
         } else if (t.status === "running" || (env.seq != null && !t.end)) {
-          // (a turn that has already finished, met again through its older stored frames when a
-          // conversation pages back: a block it finished is already here, or comes with its own
-          // block.finished; one it never finished was dropped when it ended, rule 5)
-          t.blocks.set(b.id, { ...b, rows: b.rows ? b.rows.map((r) => ({ ...r })) : b.rows, done: false, n: t.blocks.size, seq: seqOf(env) });
+          // a finished turn met again through older frames: its finished blocks are here or come finished; open ones were dropped
+          t.blocks.set(b.id, { ...b, rows: b.rows ? b.rows.map((/** @type {Row} */ r) => ({ ...r })) : b.rows, done: false, n: t.blocks.size, seq: seqOf(env) });
         }
         return t.id;
       }
@@ -162,15 +145,15 @@ export function createTurns() {
         if (!t || !b || !b.id) return null;
         const old = t.blocks.get(b.id);
         // a row's live command output is kept when the final form has none (claude: output only at the end)
-        const rows = b.rows ? b.rows.map((r) => {
-          const o = old && old.rows ? old.rows.find((x) => x.call_id === r.call_id) : null;
+        const rows = b.rows ? b.rows.map((/** @type {Row} */ r) => {
+          const o = old && old.rows ? old.rows.find((/** @type {Row} */ x) => x.call_id === r.call_id) : null;
           return o && o.output && r.output == null ? { ...r, output: o.output } : { ...r };
         }) : b.rows;
-        t.blocks.set(b.id, { ...b, rows, done: true, n: old ? old.n : t.blocks.size, seq: old && old.seq != null ? Math.min(old.seq, seqOf(env)) : seqOf(env) }); // rule 3
+        t.blocks.set(b.id, { ...b, rows, done: true, n: old ? old.n : t.blocks.size, seq: old && old.seq != null ? Math.min(old.seq, seqOf(env)) : seqOf(env) });
         return t.id;
       }
       case "snapshot": {
-        // rule 4: each listed turn's open blocks are replaced by the snapshot's
+        // each listed turn's open blocks are replaced by the snapshot's
         const changed = [];
         for (const s of d.turns || []) {
           const t = turnOf({ turn_id: s.turn_id, session_id: s.session_id, chat_id: s.chat_id, thread_ts: s.thread_ts, seq: s.seq });
@@ -181,7 +164,7 @@ export function createTurns() {
           for (const b of s.blocks || []) {
             const old = t.blocks.get(b.id);
             if (old && old.done) continue;
-            t.blocks.set(b.id, { ...b, rows: b.rows ? b.rows.map((r) => ({ ...r })) : b.rows, done: false, n: old ? old.n : t.blocks.size, seq: old ? old.seq : seqOf(env) });
+            t.blocks.set(b.id, { ...b, rows: b.rows ? b.rows.map((/** @type {Row} */ r) => ({ ...r })) : b.rows, done: false, n: old ? old.n : t.blocks.size, seq: old ? old.seq : seqOf(env) });
           }
           changed.push(t.id);
         }
@@ -192,32 +175,31 @@ export function createTurns() {
     }
   }
 
-  /** A turn's blocks in order: by index, then (still streaming, no index) in arrival order. */
+  /** A turn's blocks in order: by index, then (still streaming, no index) in arrival order. @param {Turn} t */
   function blocksOf(t) {
     return [...t.blocks.values()].sort((a, b) => (a.index ?? 1e9) - (b.index ?? 1e9) || a.n - b.n);
   }
 
   return {
     apply,
+    /** @param {string} id */
     get: (id) => turns.get(id) || null,
     blocksOf,
-    /** Turns matching a filter, oldest first (by the seq of their first frame). */
+    /** Turns matching a filter, oldest first (by the seq of their first frame). @param {(t: Turn) => boolean} [pred] */
     list(pred = () => true) {
       return [...turns.values()].filter(pred).sort((a, b) => (a.seq ?? Infinity) - (b.seq ?? Infinity));
     },
-    /** The running turn of a session, if any. */
+    /** The running turn of a session, if any. @param {string | null | undefined} session */
     running(session) {
       for (const t of turns.values()) if (t.session === session && t.status === "running") return t;
       return null;
     },
-    /**
-     * Keep memory bounded: drop finished turns of sessions not in `keep`, beyond the newest `perSession`
-     * of each, and never more than `max` finished turns in all. Running turns always stay. Returns
-     * the sessions that lost turns.
-     */
+    /** Finished turns beyond each unkept session's newest `perSession`, and past `max` in all, go; returns the sessions that lost some. @param {Set<string | null>} [keep] @param {{ perSession?: number, max?: number }} [o] */
     prune(keep = new Set(), { perSession = 2, max = 300 } = {}) {
       const done = [...turns.values()].filter((t) => t.status !== "running").sort((a, b) => (b.lastSeq || 0) - (a.lastSeq || 0));
+      /** @type {Map<string | null, number>} */
       const seen = new Map();
+      /** @type {Set<string | null>} */
       const trimmed = new Set();
       let kept = 0;
       for (const t of done) {
@@ -229,9 +211,9 @@ export function createTurns() {
       }
       return trimmed; // the sessions that lost turns: read them again when shown
     },
-    /** Whether any turn of this session is held (for reloading its history after a prune). */
+    /** Whether any turn of this session is held (for reloading its history after a prune). @param {string} session */
     hasSession: (session) => [...turns.values()].some((t) => t.session === session),
-    /** The turn that took a wake (e.g. `msg:<cmsg>` or `msg:prompt:<client_id>`). */
+    /** The turn that took a wake (e.g. `msg:<cmsg>` or `msg:prompt:<client_id>`). @param {string} wake */
     byWake(wake) {
       for (const t of turns.values()) if (t.wakes.includes(wake)) return t;
       return null;

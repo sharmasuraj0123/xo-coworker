@@ -17,7 +17,7 @@ globalThis.fetch = async (url) => {
 };
 const { scopeOf, activityIn, createChanges, lineRef, fileRef } = await import("../js/changes.js");
 const { choose, newestHunkLine, countsHtml } = await import("../js/changesframe.js");
-const { createTurns } = await import("../js/blocks.js");
+const { createTurns } = await import("../core/services/world/turns.js");
 
 let passed = 0;
 const t = async (name, fn) => {

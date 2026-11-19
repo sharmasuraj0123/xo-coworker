@@ -1,6 +1,6 @@
 // @ts-check
 import { client, coderHeaders, SSEStream } from "./client.js";
-import { createTurns } from "../../../js/blocks.js";
+import { createTurns } from "../world/turns.js";
 import { RUNS_KEEP } from "./config.js";
 
 /** @typedef {import("./types").Ctx} Ctx @typedef {import("./types").Frame} Frame */

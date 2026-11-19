@@ -1,5 +1,5 @@
 // @ts-check
-import { createTurns } from "../../../js/blocks.js";
+import { createTurns } from "../world/turns.js";
 import { installSessions } from "./selectors/sessions.js";
 import { installThreads } from "./selectors/threads.js";
 import { installCommit } from "./selectors/commit.js";

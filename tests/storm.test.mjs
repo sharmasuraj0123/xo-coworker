@@ -1,11 +1,11 @@
 // The storm client's pure parts: the SSE parser and stream resume (js/sse.js), and the block
-// store (js/blocks.js), against a turn recorded from the real backend and hand-made edge cases.
+// store (core/services/world/turns.js), against a turn recorded from the real backend and hand-made edge cases.
 // No network: nothing here talks to a server.
 //   node tests/storm.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createParser, SSEStream } from "../js/sse.js";
-import { createTurns } from "../js/blocks.js";
+import { createTurns } from "../core/services/world/turns.js";
 import { itemParts, itemBody, questionsOf, itemEffort, evidenceOf, hostOf, askedBy, isNo, holdWords } from "../js/review.js";
 import { askingState } from "../js/timeline.js";
 import { hopRank, furtherState, mergeHop } from "../core/services/world/hops.js";

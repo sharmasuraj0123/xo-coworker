@@ -4,13 +4,13 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 656 |
+| planned | 655 |
 | vendor | 367 |
 | deleted | 232 |
 | split | 33 |
-| moved | 25 |
+| moved | 26 |
 
-Items inside first-party files: 2290 (planned 1281, split-region 717, moved 268, deleted 21, kept 2, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1278, split-region 717, moved 271, deleted 21, kept 2, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -31,7 +31,7 @@ Items inside first-party files: 2290 (planned 1281, split-region 717, moved 268,
 | `js/api.js` | 428 | split | core/platform/http.js, per-module clients (routes declared in each module.json) · next: the transport is in core/platform/http.js; js/api.js keeps the route table (and re-exports the transport) until the routes go to their modules |
 | `js/app.js` | 4840 | split | boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md §2.6) · next: moved so far: the sidebar (SIDE) to shell/rail/side.js, the phone drawer to shell/phone.js, the tab favicon to shell/favicon.js |
 | `js/attach.js` | 270 | split | modules/composer/attachments.js, core/services/world/normalise.js, core/platform/util.js |
-| `js/blocks.js` | 241 | planned | core/services/world/turns.js |
+| `js/blocks.js` | 241 | moved | core/services/world/turns.js · next: nothing imports the old path, so it leaves with no re-export |
 | `js/changes.js` | 194 | split | modules/changes/store.js, modules/conversation/refs.js (fileRef, lineRef), core/services/places.js |
 | `js/changesframe.js` | 323 | split | modules/changes/frame.js, core/ui/components/counts.js |
 | `js/chart.js` | 176 | planned | core/ui/markdown/chart.js |
@@ -55,7 +55,7 @@ Items inside first-party files: 2290 (planned 1281, split-region 717, moved 268,
 | `js/gestures.js` | 451 | split | core/platform/gestures.js, shell (the app's gestures: wireGestures, dockGestures, long press) · next: the drag primitive is in core/platform/gestures.js; the app's gestures stay in js/gestures.js until the shell takes them |
 | `js/herald.js` | 92 | split | core/services/notices.js, shell (notice renderer) |
 | `js/highlight.js` | 149 | planned | core/ui/markdown/highlight.js |
-| `js/hopstate.js` | 13 | moved | core/services/world/hops.js · next: js/hopstate.js is a one-line re-export until the shims go |
+| `js/hopstate.js` | 13 | moved | core/services/world/hops.js · next: nothing imports the old path, so it leaves with no re-export |
 | `js/icon.js` | 24 | planned | core/ui/icons/icon.js |
 | `js/imagechange.js` | 120 | planned | modules/changes/imagechange.js |
 | `js/intel.js` | 743 | planned | modules/intelligence/ |

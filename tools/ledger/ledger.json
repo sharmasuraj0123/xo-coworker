@@ -2195,8 +2195,9 @@
    ]
   },
   "js/blocks.js": {
-   "status": "planned",
-   "home": "core/services/world/turns.js"
+   "status": "moved",
+   "home": "core/services/world/turns.js",
+   "note": "nothing imports the old path, so it leaves with no re-export"
   },
   "js/changes.js": {
    "status": "split",
@@ -2322,7 +2323,7 @@
   "js/hopstate.js": {
    "status": "moved",
    "home": "core/services/world/hops.js",
-   "note": "js/hopstate.js is a one-line re-export until the shims go"
+   "note": "nothing imports the old path, so it leaves with no re-export"
   },
   "js/icon.js": {
    "status": "planned",
@@ -8117,15 +8118,15 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/blocks.js::exports::createTurns": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/turns.js"
   },
   "js/blocks.js::functions::patchRow": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/turns.js"
   },
   "js/blocks.js::functions::createTurns": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/turns.js"
   },
   "js/changes.js::exports::FILE_MARK": {
