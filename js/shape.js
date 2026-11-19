@@ -139,7 +139,9 @@ const TOP = {
   words: fields((w) => (Object.hasOwn(WORDS, w) ? one(C.word) : null), "word"),
   surfaces: fields(surfaceSpec, "surface"),
   apps: fields((id) => (APP_ID.test(id) ? fields({ version: one(C.str), enable: one(C.oneOf(ENABLE)) }, "app setting") : null), "app id"),
-  layout: fields({ panel: one(C.list), dock: one(C.strs), artifacts: one(C.strs), canvas: one(C.str), commands: one(C.strs), open: one(C.obj) }, "layout key"),
+  // side: the sidebar's places, {order, shown} (More → Edit the sidebar…); icons: a project's own icon, {project id:
+  // topic} (the owner, 19 Nov 14:44Z). Both are yours, kept for every device; app.js reads them whole and checks them.
+  layout: fields({ panel: one(C.list), dock: one(C.strs), artifacts: one(C.strs), canvas: one(C.str), commands: one(C.strs), open: one(C.obj), side: one(C.obj), icons: one(C.obj) }, "layout key"),
   defaults: fields({ model: one(C.str), effort: one(C.str), home: one(C.obj), newProject: one(C.obj), settings: one(C.obj), skills: one(C.strs) }, "default"),
 };
 
@@ -686,6 +688,15 @@ export function createShapeStore({ storage = defaultStorage(), load = fetchPrese
       const id = typeof doc.preset === "string" && PRESET_ID.test(doc.preset) ? doc.preset : null;
       if (id) { await loadPreset(id); remember(id); }
       const kept = saveMine({ shape: SHAPE_VERSION, ...doc });
+      emit();
+      return { ok: true, kept };
+    },
+    /** A change of yours kept for every device (a merge patch into mine; null removes a key), e.g. the sidebar's
+     *  places or a project's icon. Reset to preset clears it with the rest of your changes. */
+    patchMine(patch) {
+      if (!isObj(patch)) return { error: "A change is a JSON object, { … }." };
+      if (newer("mine")) return { error: "Your shape was saved by a newer XO; it isn't changed here." };
+      const kept = saveMine(merge({ shape: SHAPE_VERSION, ...(isObj(mine) ? mine : {}) }, patch));
       emit();
       return { ok: true, kept };
     },

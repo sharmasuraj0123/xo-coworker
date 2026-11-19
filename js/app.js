@@ -50,7 +50,7 @@ import { setTheme as setDiffTheme } from "./diffview.js";
 import { createTray, fmtSize, kindOf, isLargePaste, pasteLabel, uploadErrorText, FINAL, MAX_FILES } from "./attach.js";
 import { api, uploadAttachment } from "./api.js";
 import { initCreate } from "./create.js";
-import { classify, glyph } from "./projicons.js";
+import { classify, glyph, TOPICS } from "./projicons.js";
 import { createShells } from "./shells/dock.js";
 import { createRecord } from "./recordview.js";
 import { greeting, today } from "./skeleton.js"; // Home's shell, drawn before this module graph arrives
@@ -267,15 +267,70 @@ const projects = () => world.state.projects.filter((p) => p.id !== "workspace");
 // nothing. Offline and instant; worked out again only when the project's thread count changes. A project
 // it can't place keeps the cube.
 const projIcons = new Map();
+// A project can wear the icon you chose for it (the owner, 19 Nov 14:44Z: "per project icons are fine"): one of the
+// owner's topics or the cube, kept in your shape (layout.icons), so every device shows it; otherwise its own guess.
+const ownIcon = (pid) => { const v = SHAPE.get("layout")?.icons?.[pid]; return typeof v === "string" && (v === "project" || TOPICS.includes(v)) ? v : null; };
 function projectIcon(pid) {
   const ts = world.state.threads.filter((t) => t.project === pid);
+  const own = ownIcon(pid);
   const memo = projIcons.get(pid);
-  if (memo && memo.n === ts.length) return memo.svg;
-  const { icon } = classify((world.project(pid) || {}).name || pid, ts.map((t) => t.title || ""));
+  if (memo && memo.n === ts.length && memo.own === own) return memo.svg;
+  const icon = own || classify((world.project(pid) || {}).name || pid, ts.map((t) => t.title || "")).icon;
   const svg = glyph(icon);
-  projIcons.set(pid, { n: ts.length, svg });
+  projIcons.set(pid, { n: ts.length, own, svg });
   return svg;
 }
+/** The project icon picker: its header tile opens it; a grid of the owner's topics and the cube, "Automatic" first
+ *  (its own guess, from its name and threads); arrows walk it, Enter or a click chooses, Esc closes. */
+const PICK = { el: null, pid: null, from: null };
+const topicName = (k) => (k === "project" ? "Cube" : k[0].toUpperCase() + k.slice(1));
+function pickIcon(pid, from) {
+  if (PICK.el && PICK.pid === pid) { closePick(); return; }
+  closePick();
+  const own = ownIcon(pid), name = PROJ(pid);
+  const guess = classify((world.project(pid) || {}).name || pid, world.state.threads.filter((t) => t.project === pid).map((t) => t.title || "")).icon;
+  const opt = (k, label, svg, on) => `<button type="button" class="pk-o${on ? " is-on" : ""}" role="radio" aria-checked="${on}" data-pk="${k}" title="${esc(label)}" aria-label="${esc(label)}" tabindex="${on ? 0 : -1}">${svg}</button>`;
+  const el = document.createElement("div");
+  el.className = "side-pop pk-pop"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", `${name}'s icon`);
+  el.innerHTML = `<div class="se-h"><b>${esc(name)}'s icon</b><span>Kept on every device you use. Automatic picks one from its name and threads.</span></div>` +
+    `<div class="pk-grid" role="radiogroup" aria-label="Icons">${opt("", `Automatic (${topicName(guess)})`, `<span class="pk-auto">${glyph(guess)}<i>A</i></span>`, !own)}` +
+    [...TOPICS, "project"].map((k) => opt(k, topicName(k), glyph(k), own === k)).join("") + `</div>`;
+  document.body.append(el);
+  const r = from.getBoundingClientRect();
+  el.style.setProperty("--pop-x", `${Math.round(r.left - 8)}px`); el.style.setProperty("--pop-y", `${Math.round(r.bottom + 8 + 8)}px`);
+  el.hidden = false;
+  PICK.el = el; PICK.pid = pid; PICK.from = from;
+  from.setAttribute("aria-expanded", "true");
+  el.querySelector('.pk-o[tabindex="0"]').focus({ preventScroll: true });
+  el.addEventListener("click", (e) => { const o = e.target.closest("[data-pk]"); if (o) chooseIcon(pid, o.dataset.pk); });
+  el.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closePick({ focus: true }); return; }
+    const os = [...el.querySelectorAll(".pk-o")], i = os.indexOf(document.activeElement);
+    if (i < 0) return;
+    const cols = Math.max(1, Math.round(el.querySelector(".pk-grid").clientWidth / os[0].offsetWidth));
+    const d = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: cols, ArrowUp: -cols, Home: -i, End: os.length - 1 - i }[e.key];
+    if (d == null) return;
+    e.preventDefault();
+    const j = Math.max(0, Math.min(os.length - 1, i + d));
+    os[i].tabIndex = -1; os[j].tabIndex = 0; os[j].focus({ preventScroll: true });
+  });
+}
+function closePick({ focus = false } = {}) {
+  if (!PICK.el) return;
+  PICK.el.remove(); PICK.from?.setAttribute("aria-expanded", "false");
+  const back = $(`[data-pj-icon="${CSS.escape(PICK.pid)}"]`);
+  PICK.el = null; PICK.pid = null; PICK.from = null;
+  if (focus) back?.focus({ preventScroll: true });
+}
+function chooseIcon(pid, k) {
+  SHAPE.patchMine({ layout: { icons: { [pid]: k || null } } });
+  projIcons.delete(pid);
+  closePick({ focus: true });
+  announce(k ? `${PROJ(pid)} wears ${topicName(k)}` : `${PROJ(pid)}'s icon is automatic again`);
+  render();
+}
+document.addEventListener("click", (e) => { const b = e.target.closest?.("[data-pj-icon]"); if (b) pickIcon(b.dataset.pjIcon, b); });
+document.addEventListener("pointerdown", (e) => { if (PICK.el && !e.target.closest(".pk-pop,[data-pj-icon]")) closePick(); });
 const threadsOf = (pid) => world.state.threads.filter((t) => t.project === pid && t.state !== "resolved");
 const convThread = (v) => (v && v.startsWith("t:") ? world.thread(v.slice(2)) : null);
 // the team, visible (js/comms.js): a comms call names the thread, project or coordinator it reached
@@ -1373,7 +1428,7 @@ function topRender(needs) {
     const need = hostNeedHtml(v, needs);
     // the header says the project has threads (the owner, 19 Nov 14:20Z picked it beside Deploy): Threads and how
     // many, what's at work, what needs you; one control among the header's actions, apart from the title
-    who = `<span class="tw-ic" aria-hidden="true">${projectIcon(pid)}</span><span class="tw-t is-one"><h1 id="conv-title"${S.desc[pid] ? ` title="${esc(S.desc[pid])}"` : ""}>${esc(PROJ(pid))}</h1>${need}</span>`;
+    who = `<button type="button" class="pj-pick" data-pj-icon="${esc(pid)}" aria-haspopup="dialog" aria-expanded="${PICK.pid === pid}" title="Change ${esc(PROJ(pid))}'s icon" aria-label="Change ${esc(PROJ(pid))}'s icon"><span class="tw-ic" aria-hidden="true">${projectIcon(pid)}</span></button><span class="tw-t is-one"><h1 id="conv-title"${S.desc[pid] ? ` title="${esc(S.desc[pid])}"` : ""}>${esc(PROJ(pid))}</h1>${need}</span>`;
     S.hdrCtl = threadsCtl(by.all, by);
   } else if (t) {
     const ed = S.tEdit && S.tEdit.tid === t.id ? S.tEdit.field : null;
@@ -4163,8 +4218,9 @@ const SIDE = {
     if (!quiet) { announce(SIDE.folded ? "Sidebar folded" : "Sidebar shown"); render(); }
   },
   // The bar (the owner, 19 Nov 14:29Z: "customize the bar: what to keep, what not to keep"): every place, in the
-  // order you set; the ones you keep are rows, the rest wait in More. Saved on this device (the Space keeps no
-  // settings of the interface). Settings' own pages are places too; new places arrive in More.
+  // order you set; the ones you keep are rows, the rest wait in More. Kept in your shape (layout.side, js/shape.js),
+  // so it follows you to every device; what this browser kept before is moved there once. Settings' own pages are
+  // places too; new places arrive in More.
   BAR: "xo-side-bar",
   CORE: [
     { id: "home", name: "Home", sel: "#nv-home" },
@@ -4185,8 +4241,8 @@ const SIDE = {
    *  no more is dropped). Before this, More's pins said which of Settings' pages showed: they still do. */
   bar() {
     const ids = SIDE.all().map((p) => p.id), def = { order: ids, shown: SIDE.CORE.map((p) => p.id) };
-    let v = null;
-    try { v = JSON.parse(localStorage.getItem(SIDE.BAR) || "null"); } catch { v = null; }
+    let v = SHAPE.get("layout")?.side ?? null;
+    if (v == null) { try { v = JSON.parse(localStorage.getItem(SIDE.BAR) || "null"); } catch { v = null; } }
     if (!v || !Array.isArray(v.order) || !Array.isArray(v.shown)) {
       let pins = [];
       try { pins = JSON.parse(localStorage.getItem(SIDE.PINS) || "[]"); } catch { pins = []; }
@@ -4195,9 +4251,16 @@ const SIDE = {
     const order = [...v.order.filter((x) => ids.includes(x)), ...ids.filter((x) => !v.order.includes(x))];
     return { order: [...new Set(order)], shown: v.shown.filter((x) => ids.includes(x)) };
   },
-  save(b) { try { localStorage.setItem(SIDE.BAR, JSON.stringify(b)); } catch { /* private */ } SIDE.apply(); },
+  save(b) { SHAPE.patchMine({ layout: { side: { order: b.order, shown: b.shown } } }); try { localStorage.removeItem(SIDE.BAR); localStorage.removeItem(SIDE.PINS); } catch { /* private */ } SIDE.apply(); },
   isDefault(b = SIDE.bar()) { const d = SIDE.all().map((p) => p.id); return b.order.join() === d.join() && b.shown.join() === SIDE.CORE.map((p) => p.id).join(); },
-  reset() { try { localStorage.removeItem(SIDE.BAR); localStorage.removeItem(SIDE.PINS); } catch { /* private */ } SIDE.apply(); },
+  reset() { SHAPE.patchMine({ layout: { side: null } }); try { localStorage.removeItem(SIDE.BAR); localStorage.removeItem(SIDE.PINS); } catch { /* private */ } SIDE.apply(); },
+  /** What this browser kept before the bar lived in your shape (its own key, or More's pins): moved there once. */
+  adopt() {
+    if (SHAPE.get("layout")?.side != null) return;
+    let had = false;
+    try { had = localStorage.getItem(SIDE.BAR) != null || localStorage.getItem(SIDE.PINS) != null; } catch { had = false; }
+    if (had && !SIDE.isDefault()) SIDE.save(SIDE.bar());
+  },
   /** Keep a place in the bar, or send it to More (More's pin, the editor's switch). */
   pin(id, on) {
     const b = SIDE.bar();
@@ -4336,6 +4399,10 @@ $("#side-more").addEventListener("drop", (e) => {
 });
 document.addEventListener("pointerdown", (e) => { if (!$("#side-more").hidden && !e.target.closest("#side-more,#nv-more")) SIDE.closeMore(); });
 SIDE.apply();
+// your shape is read from Storm after load (and another device can change it): the bar follows; this browser's old
+// copy moves into it once it's read
+SHAPE.synced.then(() => { SIDE.adopt(); SIDE.apply(); });
+SHAPE.onChange(() => SIDE.apply());
 
 // the Map's toggle, in every conversation's header
 document.addEventListener("click", (e) => { if (e.target.closest?.("[data-stage-toggle]")) STAGE.toggle(); else if (e.target.closest?.("[data-stage-open]")) STAGE.threads(); else if (e.target.closest?.("[data-lp-open]")) STAGE.launch(); });

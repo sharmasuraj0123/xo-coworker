@@ -1,7 +1,7 @@
 // The bar, yours to edit (the owner, 19 Nov 14:29Z: "in the More section, i want the ability to customize the bar:
 // what to keep, what not to keep"). Every place in one order you set; the ones you keep are the sidebar's rows, the
-// rest wait in More; drag or ↑ ↓ on a grip to reorder; Reset to default; saved on this device (the Space keeps no
-// interface settings). More's old pins carry over.
+// rest wait in More; drag or ↑ ↓ on a grip to reorder; Reset to default; kept in your shape (layout.side), so it
+// follows you to every device; what this browser kept before (its own key, More's pins) moves there once.
 //   node tests/side-bar.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -15,7 +15,9 @@ const store = new Map();
 globalThis.localStorage = { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k) };
 const part = app.slice(app.indexOf('  BAR: "xo-side-bar",'), app.indexOf("  extras: new Map(),"));
 assert.ok(part.length > 1000, "the bar's model is there");
-const SIDE = new Function(`const ICON = {}; const SIDE = { PINS: "xo-side-pins", ${part} apply() {} }; return SIDE;`)();
+let mine = {};
+const SHAPE = { get: (k) => mine[k], patchMine: (p) => { for (const [k, v] of Object.entries(p.layout || {})) { mine.layout = { ...(mine.layout || {}) }; if (v === null) delete mine.layout[k]; else mine.layout[k] = v; } return { ok: true }; } };
+const SIDE = new Function("SHAPE", `const ICON = {}; const SIDE = { PINS: "xo-side-pins", ${part} apply() {} }; return SIDE;`)(SHAPE);
 
 const ids = ["home", "ws", "chats", "arts", "runtimes", "routing", "rules", "worktrees", "keys"];
 assert.deepEqual(SIDE.bar(), { order: ids, shown: ["home", "ws", "chats", "arts"] }, "the default: the four places; Settings' pages in More");
@@ -38,15 +40,27 @@ SIDE.move("keys", 1); assert.equal(SIDE.bar().order.at(-1), "keys");
 SIDE.move("worktrees", 0, "home"); assert.equal(SIDE.bar().order[0], "worktrees");
 SIDE.move("home", 0, ""); assert.equal(SIDE.bar().order.at(-1), "home");
 
+// kept in your shape, not this browser
+assert.deepEqual(mine.layout.side.shown, ["home", "ws", "arts", "worktrees"]);
+assert.ok(!store.has("xo-side-bar"));
+
 // what's saved is made whole: an unknown place is dropped, a new one joins at the end, hidden
-store.set("xo-side-bar", JSON.stringify({ order: ["arts", "nope", "home"], shown: ["arts", "nope"] }));
+mine.layout.side = { order: ["arts", "nope", "home"], shown: ["arts", "nope"] };
 const b = SIDE.bar();
 assert.deepEqual(b.order.slice(0, 2), ["arts", "home"]);
 assert.equal(b.order.length, ids.length);
 assert.deepEqual(b.shown, ["arts"]);
 
 // Reset to default
-SIDE.reset(); assert.ok(SIDE.isDefault()); assert.ok(!store.has("xo-side-bar"));
+SIDE.reset(); assert.ok(SIDE.isDefault()); assert.equal(mine.layout.side, undefined);
+
+// this browser's old copy moves into your shape once (not when your shape already has one)
+store.set("xo-side-bar", JSON.stringify({ order: ids, shown: ["home", "rules"] }));
+SIDE.adopt();
+assert.deepEqual(mine.layout.side.shown, ["home", "rules"]);
+assert.ok(!store.has("xo-side-bar"));
+assert.match(app, /SHAPE\.synced\.then\(\(\) => \{ SIDE\.adopt\(\); SIDE\.apply\(\); \}\);/);
+assert.match(app, /SHAPE\.onChange\(\(\) => SIDE\.apply\(\)\);/, "another device's change follows");
 
 // the page: More ends with Edit the sidebar…; editing, grips, switches, Reset and Done
 assert.match(app, /data-side-edit><span class="nr-ic">\$\{ICON\.edit\}<\/span><span class="nr-name">Edit the sidebar…<\/span>/);

@@ -40,6 +40,9 @@ const CLASSES = [
   ["work", "work coworker workspace office business company startup"],
 ].map(([icon, words], order) => ({ icon, order, words: new Set(words.split(/\s+/)) }));
 
+/** Every topic a project can wear, in the table's order (the picker lists them, then the cube). */
+export const TOPICS = CLASSES.map((c) => c.icon);
+
 const NAME_W = 4;                         // a word in the name counts four times a word in a title
 const NOISE = new Set(["xo", "the", "and", "for", "with", "new"]);
 const words = (s) => String(s || "")
