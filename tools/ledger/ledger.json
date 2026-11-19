@@ -7074,8 +7074,8 @@
    "home": "modules/conversation (typing) (app.js l.1886)"
   },
   "js/app.js::functions::typingRender": {
-   "status": "planned",
-   "home": "modules/conversation (typing) (app.js l.1897)"
+   "status": "moved",
+   "home": "modules/conversation/typing.js"
   },
   "js/app.js::functions::tickElapsed": {
    "status": "planned",
