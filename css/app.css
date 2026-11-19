@@ -2897,7 +2897,6 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .pj-title svg{flex:none;width:14px;height:14px;color:var(--ink-4);transition:transform var(--dur-base) var(--ease),color var(--d-hover) var(--ease)}
 .pj-title:hover svg{color:var(--ink-2)}
 .pj-title[aria-expanded="true"] svg{transform:rotate(180deg)}
-.pj-n{flex:none;padding:2px 6px;border-radius:var(--r-sm);background:var(--fill-2);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3);font-variant-numeric:tabular-nums}
 .sheet.is-drop{display:block;padding:0;background:transparent;animation:none;-webkit-backdrop-filter:none;backdrop-filter:none}
 .sheet.is-drop .all-card{position:absolute;left:var(--dx);top:var(--dy);width:min(480px,calc(100vw - var(--dx) - 16px));max-height:min(70vh,580px);border-radius:var(--r-lg);box-shadow:var(--e2);animation:float-in-down var(--d-out) var(--ease) both;transform-origin:top left}
 /* dropped from its button it's 12: the same rules at 6 px (5 + 1); one text column 16 px in */
@@ -3117,5 +3116,22 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 /* ── A project's header on one line (the owner, 19 Nov 13:54Z): its name, then what's at work as a glyph and a number,
    one quiet 24 control (--h-sm, --r-sm) that opens the panel's Threads; the words are its tooltip and its name. */
 .tw-t.is-one{flex-direction:row;align-items:center;gap:var(--s-3)}
-.pj-n{flex:none;display:inline-flex;align-items:center;gap:var(--s-2);height:var(--h-sm);padding:0 var(--s-2);border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-3)}
-.pj-n:hover,.pj-n:focus-visible{color:var(--ink)}
+
+/* ── The project header's Threads control (the owner, 19 Nov 14:16Z): one 32 control, the header's own button
+   family (.tw-act), that says "Threads" and how many; what's at work is the blue arc and its number, what needs you
+   the amber mark and its number. Spaced from the title by the header's own gaps; short of room, the word goes first
+   and the marks and numbers stay. */
+.th-ctl{flex:none;gap:var(--s-2)}
+.th-ctl .th-w{color:var(--ink)}
+.th-ctl .th-n{color:var(--ink-3);font-variant-numeric:tabular-nums}
+.th-ctl .th-seg{display:inline-flex;align-items:center;gap:var(--s-1);padding-left:var(--s-2);border-left:1px solid var(--line-soft);font-weight:var(--fw-strong);font-variant-numeric:tabular-nums}
+.th-ctl .th-seg .g{width:var(--mark-sm);height:var(--mark-sm)}
+.th-ctl .th-seg .pj-k{color:inherit;font-weight:inherit}
+.th-ctl .is-work{color:var(--info)}
+.th-ctl .is-need{color:var(--warn)}
+@container top (max-width:820px){
+  .top .tw-act.th-ctl{width:auto;padding:0 var(--s-2)}
+  .top .tw-act.th-ctl>:is(.th-n,.th-seg){display:inline-flex}
+  .top .tw-act.th-ctl .th-seg>.pj-k{display:inline}
+  .top .tw-act.th-ctl>.th-w{display:none}
+}
