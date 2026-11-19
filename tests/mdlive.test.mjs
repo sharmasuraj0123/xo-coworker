@@ -1,6 +1,6 @@
 // Markdown as a page (js/mdlive.js): tables, rules, display math and ```math, ```mermaid, ```chart blocks are drawn
-// whole while the caret is elsewhere, and open to their source the moment it's inside them; plain fenced code stays
-// text. The file's text is never changed. Node, with the vendored CodeMirror's state (no view, no browser).
+// whole; with the caret inside one its source shows with its drawing kept under it (a rule is always drawn); plain
+// fenced code stays text. The file's text is never changed. Node, with the vendored CodeMirror's state (no view, no browser).
 //   node tests/mdlive.test.mjs
 import assert from "node:assert/strict";
 
@@ -9,7 +9,7 @@ const CM = await import("../js/vendor/codemirror/cm.js");
 // own code has loaded, which reads `document` only when it's there)
 globalThis.document = { documentElement: { dataset: {} }, createElement: () => ({ getContext: () => null }), querySelector: () => null };
 globalThis.addEventListener ??= () => {};
-const { pageView } = await import("../js/mdlive.js");
+const { pageView, toggleMark } = await import("../js/mdlive.js");
 const { EditorState, EditorView, markdown, markdownLanguage, ensureSyntaxTree } = CM;
 
 let passed = 0;
@@ -54,14 +54,31 @@ t("with the caret on the last line: the table, the diagram, the formula and the 
   assert.deepEqual(out, [[3, 5], [7, 9], [15, 15], [17, 17]]);
 });
 
-t("the caret inside a block opens it to its source; the others stay drawn", () => {
-  assert.deepEqual(blocks(4).out, [[7, 9], [15, 15], [17, 17]], "in the table");
-  assert.deepEqual(blocks(8).out, [[3, 5], [15, 15], [17, 17]], "in the diagram");
+t("the caret inside a table, a diagram or a formula: its source to type in, its drawing kept right under it", () => {
+  assert.deepEqual(blocks(4).out, [[5, 5], [7, 9], [15, 15], [17, 17]], "in the table: drawn under its last line");
+  assert.deepEqual(blocks(8).out, [[3, 5], [9, 9], [15, 15], [17, 17]], "in the diagram");
+});
+
+t("a rule is drawn even with the caret on it (no mode to fall into)", () => {
+  assert.deepEqual(blocks(17).out, [[3, 5], [7, 9], [15, 15], [17, 17]]);
 });
 
 t("the text is the file's, byte for byte", () => {
   const { state } = blocks(19);
   assert.equal(state.doc.toString(), DOC);
+});
+
+t("⌘B on a word makes it bold; on a bold word takes it away; with nothing selected, the pair and the caret between", () => {
+  let st = EditorState.create({ doc: "make this bold", selection: { anchor: 10, head: 14 } });
+  st = st.update(toggleMark(CM, st, "**")).state;
+  assert.equal(st.doc.toString(), "make this **bold**");
+  assert.equal(st.sliceDoc(st.selection.main.from, st.selection.main.to), "bold", "the word stays selected");
+  st = st.update(toggleMark(CM, st, "**")).state;
+  assert.equal(st.doc.toString(), "make this bold");
+  let e = EditorState.create({ doc: "ab", selection: { anchor: 1 } });
+  e = e.update(toggleMark(CM, e, "*")).state;
+  assert.equal(e.doc.toString(), "a**b");
+  assert.equal(e.selection.main.head, 2);
 });
 
 console.log(`${passed} passed`);

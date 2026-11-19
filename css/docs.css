@@ -130,3 +130,6 @@
 /* ── unsaved: a file you've typed in waits for ⌘S (the owner, 19 Nov 11:42Z: no autosave) ── */
 .xd-state.is-unsaved{color:var(--ink-2)}
 .xd-state.is-unsaved i{background:var(--warn)}
+
+/* a table's, formula's or diagram's drawing under its source while the caret is in it */
+.cm-md-block.is-preview{margin-top:4px;padding-top:8px;border-top:1px dashed var(--line);opacity:.92}
