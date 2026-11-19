@@ -81,4 +81,18 @@ t("⌘B on a word makes it bold; on a bold word takes it away; with nothing sele
   assert.equal(e.selection.main.head, 2);
 });
 
+t("a long file read a part at a time: every table is drawn once the parser has read that far", () => {
+  const table = "| a | b |\n|---|---|\n| 1 | 2 |\n";
+  const filler = Array.from({ length: 400 }, (_, i) => `Paragraph ${i} with some words to make it long enough.\n`).join("\n");
+  const doc = Array.from({ length: 8 }, (_, i) => `## Part ${i}\n\n${filler}\n${table}`).join("\n");
+  let st = EditorState.create({ doc, extensions: [markdown({ base: markdownLanguage }), pageView(CM)] });
+  const count = (s) => { let n = 0; for (const v of s.facet(EditorView.decorations)) if (typeof v !== "function") v.between(0, s.doc.length, (a, b, d) => { if (d.spec.block) n++; }); return n; };
+  const before = count(st);
+  assert.ok(before < 8, `only part of it parsed at first (${before} drawn)`);
+  // the parser reading on: a transaction with no change of text, whose tree has grown
+  CM.ensureSyntaxTree(st, st.doc.length, 5000);
+  st = st.update({}).state;
+  assert.equal(count(st), 8, "all eight tables drawn");
+});
+
 console.log(`${passed} passed`);

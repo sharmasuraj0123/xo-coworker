@@ -128,8 +128,12 @@ export function pageView(CM) {
   const blockField = StateField.define({
     create: (state) => ({ list: blocksOf(state), deco: null }),
     update(v, tr) {
-      const list = tr.docChanged ? blocksOf(tr.state) : v.list;
-      if (!tr.docChanged && !tr.selection && v.deco) return v;
+      // the parser reads a long file a part at a time (the rest after the first frame, in the background): the blocks
+      // are found again whenever it has read further, not only when the text changes (the owner, 19 Nov 12:08Z: "these
+      // tables don't render in file view", 7 of ICONS.md's 8 lay past the first part)
+      const grew = syntaxTree(tr.state) !== syntaxTree(tr.startState);
+      const list = tr.docChanged || grew ? blocksOf(tr.state) : v.list;
+      if (!tr.docChanged && !grew && !tr.selection && v.deco) return v;
       return { list, deco: null };
     },
     provide: (f) => EditorView.decorations.compute([f, "selection"], (state) => {
@@ -210,7 +214,7 @@ export function pageView(CM) {
 
   const inlinePlugin = ViewPlugin.fromClass(class {
     constructor(view) { this.decorations = safe(view); this.atomic = Decoration.set(atomic, true); }
-    update(u) { if (u.docChanged || u.viewportChanged || u.selectionSet) { this.decorations = safe(u.view); this.atomic = Decoration.set(atomic, true); } }
+    update(u) { if (u.docChanged || u.viewportChanged || u.selectionSet || syntaxTree(u.state) !== syntaxTree(u.startState)) { this.decorations = safe(u.view); this.atomic = Decoration.set(atomic, true); } }
   }, { decorations: (v) => v.decorations, provide: (p) => EditorView.atomicRanges.of((view) => view.plugin(p)?.atomic ?? Decoration.none) });
   // overlapping ranges (a hidden mark inside a replaced math) can't be set together: drop the inner ones
   function safe(view) {
