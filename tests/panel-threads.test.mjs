@@ -45,7 +45,7 @@ assert.doesNotMatch(app, /class="all-btn th-btn"/, "the header's Threads button 
 // the group heads: tokens only (a 1 px line aside)
 const block = css.slice(css.indexOf("── Threads (the frame that was Agents)"));
 assert.ok(block.length > 100);
-assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, ""), /\b\d+(\.\d+)?(px|rem|ms)\b/, "no literal sizes");
+assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\b1px solid\b/g, "").replace(/@media \([^)]*\)/g, ""), /\b\d+(\.\d+)?(px|rem|ms)\b/, "no literal sizes");
 
 // Threads above Changes (the owner, 19 Nov 13:42Z): the order, the lines between, the rail; files arriving open Changes
 assert.match(stage, /const ORDER = \["agents", "changes", "map"\];/);

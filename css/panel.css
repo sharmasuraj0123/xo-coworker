@@ -563,3 +563,14 @@ body.stage-covers .herald{position:fixed;left:16px;right:16px;bottom:max(16px, e
 .stage .ag-tm .ag-when{line-height:var(--lh-14);min-height:var(--lh-14)}
 .stage .ag-mk{display:flex;align-items:center;height:var(--lh-12)}
 .stage .ag-mk .agm{width:var(--mark-sm);height:var(--mark-sm);vertical-align:baseline;margin:0}
+
+/* ── Shell mode: the shells' own dock in the panel, in place of its frames (the owner, 19 Nov) ─────────────────
+   The same dock (its tabs, its sessions), filling the panel under its bar; its drag grip has nothing to size here.
+   A phone keeps its shells sheet: the panel's Shell button isn't there. */
+.stg-shell{display:none}
+.stage.is-shell .stg-frames{display:none}
+.stage.is-shell .stg-shell{display:flex;flex:1;min-height:0;flex-direction:column}
+.shd.in-panel{grid-column:auto;grid-row:auto;flex:1;align-self:stretch;align-items:stretch;height:auto;min-height:0;border-top:1px solid var(--line-faint);z-index:auto}
+.shd.in-panel>*{align-self:stretch}
+.shd.in-panel .shd-grip{display:none}
+@media (max-width:760px){.stg-shell-b{display:none}}

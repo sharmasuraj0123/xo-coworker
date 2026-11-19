@@ -686,6 +686,10 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
     /** Running shells: a project's (its folder name), the workspace's ("workspace"), or every one (null). */
     countFor: (p = null) => (p === "workspace" ? R.list.filter((t) => isRunning(t) && t.scope === "workspace").length : runningOf(R.list, p).length),
     openProject, openWorkspace, openThread, showList, toggle, owns,
+    /** Shown and not minimised (the panel's Shell mode leaves when the dock is put away from inside it). */
+    get shown() { return R.enabled && wanted() && R.open && !R.min; },
+    /** Put away, as its own ↓ does: shells keep running. */
+    hide() { if (!R.open) return; R.open = false; changed(); away(); },
     /** On a phone, is the shells sheet up over the page (so Back puts it away first)? */
     get raised() { return PHONE.matches && R.enabled && wanted() && R.open && !R.min; },
     /** Back on a phone: half height first, then away behind the sidebar's toggle. */
