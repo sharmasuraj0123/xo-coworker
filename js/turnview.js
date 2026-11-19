@@ -114,9 +114,7 @@ function blockHtml(b, open, live, now, media = {}, tail = "") {
 // show as chips, and a step that failed stays outside the fold. Opening the line shows every block
 // as before, on a thin rail.
 const WORK = new Set(["thinking", "activity", "narration"]);
-// The person's shape (js/shape.js, xo:thread/work), set by app.js: "raw" is the above; "words" folds every
-// turn's tool work into one plain line ("Changed 2 files and ran 3 checks"), with the commands and paths
-// kept for Details (opening the line), so nothing on screen reads like an engineer's terminal.
+// xo:thread/work, set by app.js: "words" folds a turn's tool work into one plain line, its commands kept for Details.
 let WORDS = false;
 export function setWorkMode(mode) { WORDS = mode === "words"; }
 const EDITS = new Set(["create_file", "edit_file", "delete_file"]);

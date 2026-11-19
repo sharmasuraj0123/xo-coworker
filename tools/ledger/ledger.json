@@ -2,16 +2,18 @@
  "commit": "5a2b0784aafcfa95a45431535482f5e2ae9ca3dd",
  "files": {
   ".gitignore": {
-   "status": "planned",
-   "home": ".gitignore (updated)"
+   "status": "kept",
+   "home": ".gitignore",
+   "note": "ignores node_modules and the design work kept outside git"
   },
   "PR_DESCRIPTION.md": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4)"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "README.md": {
-   "status": "planned",
-   "home": "README.md (rewritten: architecture + module table generated)"
+   "status": "kept",
+   "home": "README.md",
+   "note": "rewritten: what the app does, the layout by folder and layer, and how to run the checks, the unit tests and the UI lane"
   },
   "assets/icons/xo/a-places-and-the-frame/artifacts.svg": {
    "status": "planned",
@@ -2300,7 +2302,7 @@
   "js/fuzzy.js": {
    "status": "moved",
    "home": "core/platform/fuzzy.js",
-   "note": "js/fuzzy.js re-exports core/platform until the shims go"
+   "note": "every importer points at core/platform/fuzzy.js, so it leaves with no re-export"
   },
   "js/gestures.js": {
    "status": "split",
@@ -2412,7 +2414,7 @@
   "js/merge.js": {
    "status": "moved",
    "home": "core/platform/diff.js",
-   "note": "js/merge.js re-exports core/platform/diff.js until the shims go"
+   "note": "every importer points at core/platform/diff.js, so it leaves with no re-export"
   },
   "js/model.js": {
    "status": "planned",
@@ -2455,7 +2457,7 @@
   "js/pending.js": {
    "status": "moved",
    "home": "core/platform/pending.js",
-   "note": "js/pending.js re-exports core/platform until the shims go"
+   "note": "every importer points at core/platform/pending.js, so it leaves with no re-export"
   },
   "js/projicons.js": {
    "status": "moved",
@@ -2558,7 +2560,7 @@
   "js/sse.js": {
    "status": "moved",
    "home": "core/platform/sse.js",
-   "note": "js/sse.js re-exports core/platform until the shims go; storm.js still imports it there while core-services splits storm"
+   "note": "every importer points at core/platform/sse.js, so it leaves with no re-export"
   },
   "js/stage.js": {
    "status": "split",
@@ -2590,7 +2592,7 @@
     "core/services/storm/act.js",
     "core/services/storm/types.d.ts"
    ],
-   "note": "js/storm.js is a one-line re-export of core/services/storm until the shims go"
+   "note": "every importer points at core/services/storm, so it leaves with no re-export"
   },
   "js/timeline.js": {
    "status": "split",
@@ -3252,16 +3254,16 @@
    "home": "vendor/katex/katex.min.js"
   },
   "js/vendor/lucide/LICENSE": {
-   "status": "planned",
-   "home": "delete: no importer anywhere (owner D6)"
+   "status": "deleted",
+   "reason": "no importer anywhere (owner D6)"
   },
   "js/vendor/lucide/files.js": {
-   "status": "planned",
-   "home": "delete: no importer anywhere (owner D6)"
+   "status": "deleted",
+   "reason": "no importer anywhere (owner D6)"
   },
   "js/vendor/lucide/projects.js": {
-   "status": "planned",
-   "home": "delete: no importer anywhere (owner D6)"
+   "status": "deleted",
+   "reason": "no importer anywhere (owner D6)"
   },
   "js/vendor/mermaid/LICENSE": {
    "status": "vendor",
@@ -4150,8 +4152,9 @@
    "note": "the writer key now also covers app management (/api/apps writes) and app views (/api/coworker/apps/*), only for XO's own page"
   },
   "start.sh": {
-   "status": "planned",
-   "home": "start.sh (kept)"
+   "status": "kept",
+   "home": "start.sh",
+   "note": "unchanged"
   },
   "tests/agent-marks.test.mjs": {
    "status": "planned",
@@ -4981,36 +4984,36 @@
    "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
   },
   "tools/files/space-e2e-reset.sh": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/files/space-e2e.mjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/README.md": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/bench.html": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/bench.js": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/perf.mjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/same.mjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/mockspace.cjs": {
    "status": "moved",
@@ -5018,8 +5021,8 @@
    "note": "Wave 4 Launchpad: fold the scenarios Launchpad's tests need into e2e/fixtures/mockspace-harness.cjs, then delete tools/launchpad/smoke.cjs (D6) and e2e/fixtures/mockspace.cjs together, after one browser run when the owner asks"
   },
   "tools/launchpad/smoke.cjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/xoicons/build.mjs": {
    "status": "kept",
@@ -7635,8 +7638,8 @@
    "home": "drop (history) (app.js l.1)"
   },
   "js/app.js::keys::Home": {
-   "status": "planned",
-   "home": "drop (history) (app.js l.3)"
+   "status": "deleted",
+   "reason": "drop (history) (app.js l.3)"
   },
   "js/app.js::keys::End": {
    "status": "planned",
@@ -7651,8 +7654,8 @@
    "home": "modules/projects (picker; registers `header.title` affordance) (app.js l.315)"
   },
   "js/app.js::custom_events::xo:gesture": {
-   "status": "planned",
-   "home": "core/platform gestures, fed by the layer registry (each layer declares `swipeClose`) (app.js l.4692)"
+   "status": "moved",
+   "home": "core/platform/gestures.js"
   },
   "js/attach.js::exports::MAX_BYTES": {
    "status": "split-region",
@@ -15649,16 +15652,16 @@
    "home": "core/platform/tests/focusview.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/follow-instance.test.mjs::globals::matchMedia": {
-   "status": "planned",
-   "home": "modules/conversation/tests/follow-instance.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/conversation/tests/follow-instance.test.mjs"
   },
   "tests/follow-instance.test.mjs::globals::ResizeObserver": {
-   "status": "planned",
-   "home": "modules/conversation/tests/follow-instance.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/conversation/tests/follow-instance.test.mjs"
   },
   "tests/follow-instance.test.mjs::globals::document": {
-   "status": "planned",
-   "home": "modules/conversation/tests/follow-instance.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/conversation/tests/follow-instance.test.mjs"
   },
   "tests/keynav.test.mjs::globals::document": {
    "status": "planned",
@@ -16169,8 +16172,8 @@
    "home": "modules/files/tests/viewer-head-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/words.test.mjs::globals::getComputedStyle": {
-   "status": "planned",
-   "home": "modules/conversation/tests/words.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/conversation/tests/words.test.mjs"
   },
   "tests/xoicons.test.mjs::exports::ICON": {
    "status": "planned",
@@ -16477,128 +16480,128 @@
    "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
   },
   "tools/files/space-e2e.mjs::routes::/api/chat/stream": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/files/space-e2e.mjs::routes::/xo-projects/demo/no-such-route": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/files/space-e2e.mjs::globals::fetch": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/files/space-e2e.mjs::globals::location": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/bench.js::ids::ours": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/bench.js::globals::B": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::exports::EXE": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::exports::loadSet": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::exports::open": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::functions::loadSet": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::functions::open": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::storage::cv-theme": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::globals::LT": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::globals::frame": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::globals::timed": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::globals::waitFor": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/perf.mjs::functions::scrollFrames": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/perf.mjs::ids::ours": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/perf.mjs::globals::FR": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/perf.mjs::globals::FRon": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/perf.mjs::globals::__p": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/same.mjs::functions::step": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/same.mjs::ids::ours": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/mockspace.cjs::functions::body": {
    "status": "moved",
    "home": "e2e/fixtures/mockspace.cjs"
   },
   "tools/launchpad/smoke.cjs::ids::main": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/smoke.cjs::ids::fr-body-launch": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/smoke.cjs::ids::app": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/smoke.cjs::storage::xo-stage": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/smoke.cjs::storage::xo-lp-state": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/smoke.cjs::routes::/tmp/pw/node_modules/playwright-core": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/smoke.cjs::globals::requestAnimationFrame": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/xoicons/build.mjs::exports::clean": {
    "status": "planned",

@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Inventories every tracked file at a commit, and the items inside first-party files."""
-import json, re, subprocess, sys
-from collections import defaultdict, OrderedDict
+import json, os, re, subprocess, sys
+from collections import defaultdict
 from pathlib import Path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from scan import js_items, css_items, html_items, LEDGER_KINDS
 
 repo, commit, out = sys.argv[1], sys.argv[2], Path(sys.argv[3])
 out.mkdir(parents=True, exist_ok=True)
@@ -37,29 +39,6 @@ def group(p):
 TEXT = re.compile(r"\.(js|mjs|cjs|css|html|json|md|py|sh|svg|txt|sse|yml|yaml)$")
 FIRST_PARTY_SCAN = {"js", "css", "tests-unit", "tests-browser", "tests-lib", "root", "presets"} | {g for g in []}
 
-R = {
-    "imports":   re.compile(r"""(?:^|\n)\s*import\s+(?:[^'"]*?\s+from\s+)?['"]([^'"]+)['"]|import\(\s*['"]([^'"]+)['"]\s*\)|require\(\s*['"]([^'"]+)['"]\s*\)"""),
-    "exports":   re.compile(r"""export\s+(?:default\s+)?(?:async\s+)?(?:function\*?|class|const|let|var)\s+([A-Za-z_$][\w$]*)|export\s*\{([^}]*)\}"""),
-    "functions": re.compile(r"""^(?:export\s+)?(?:async\s+)?function\*?\s+([A-Za-z_$][\w$]*)""", re.M),
-    "ids":       re.compile(r"""getElementById\(\s*['"`]([\w:-]+)['"`]|querySelector(?:All)?\(\s*['"`]#([\w-]+)|\bid=\\?["']([\w-]+)\\?["']"""),
-    "storage":   re.compile(r"""(?:localStorage|sessionStorage)\.(?:getItem|setItem|removeItem)\(\s*['"`]([^'"`]+)['"`]|(?:localStorage|sessionStorage)\[\s*['"`]([^'"`]+)['"`]\]"""),
-    "routes":    re.compile(r"""['"`](/api/[^'"`\s?]*)|\b(?:get|post|put|del|delete|patch|request|api|json|send|stream|req|fetchJson|call)\w*\(\s*[`'"](/[a-z][^`'"?]*)"""),
-    "events":    re.compile(r"""new\s+CustomEvent\(\s*['"`]([\w:.-]+)['"`]|dispatchEvent\(\s*new\s+Event\(\s*['"`]([\w:.-]+)['"`]|addEventListener\(\s*['"`]([\w:.-]+)['"`]"""),
-    "keys":      re.compile(r"""\.key\s*===?\s*['"`]([^'"`]{1,12})['"`]|\.code\s*===?\s*['"`]([^'"`]{1,16})['"`]"""),
-    "globals":   re.compile(r"""\b(?:window|globalThis)\.([A-Za-z_$][\w$]*)\s*=(?!=)"""),
-}
-CSS = {
-    "rules":     re.compile(r"""([^{}@][^{}]*)\{"""),
-    "ids":       re.compile(r"""#([A-Za-z][\w-]*)(?![^{]*;)"""),
-    "props_def": re.compile(r"""(--[\w-]+)\s*:"""),
-    "props_use": re.compile(r"""var\(\s*(--[\w-]+)"""),
-    "media":     re.compile(r"""@media\s*([^{]+)\{"""),
-}
-STD_EVENTS = set("""click dblclick mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave pointerdown pointerup pointermove pointercancel pointerenter pointerleave pointerover pointerout gotpointercapture lostpointercapture keydown keyup keypress input change submit focus blur focusin focusout scroll wheel resize load unload beforeunload error message open close abort contextmenu dragstart dragend dragover dragenter dragleave drop touchstart touchend touchmove touchcancel transitionend transitionstart animationend animationstart visibilitychange online offline popstate hashchange storage copy paste cut selectionchange compositionstart compositionend toggle cancel beforeinput loadedmetadata play pause ended timeupdate select invalid readystatechange progress pagehide pageshow fullscreenchange""".split())
-
-def uniq(xs):
-    return list(OrderedDict.fromkeys(x for x in xs if x))
-
 inv = []
 for path, size in entries:
     g = group(path)
@@ -72,37 +51,11 @@ for path, size in entries:
         rec["lines"] = text.count("\n") + (0 if text.endswith("\n") or not text else 1)
         scan = g in FIRST_PARTY_SCAN or g.startswith("tools/")
         if scan and re.search(r"\.(m|c)?js$", path):
-            items = {}
-            for k, rx in R.items():
-                found = []
-                for m in rx.finditer(text):
-                    if k == "exports" and m.group(2):
-                        found += [x.strip().split(" as ")[-1].strip() for x in m.group(2).split(",")]
-                    else:
-                        found += [x for x in m.groups() if x]
-                items[k] = uniq(found)
-            items["custom_events"] = [e for e in items.pop("events") if e not in STD_EVENTS]
-            idents = re.findall(r"(?:localStorage|sessionStorage)\.(?:getItem|setItem|removeItem)\(\s*([A-Za-z_$][\w$.]*)", text)
-            for ident in uniq(idents):
-                m = re.search(r"(?:const|let|var)\s+" + re.escape(ident.split(".")[-1]) + r"\s*=\s*['\"`]([^'\"`]+)['\"`]", text)
-                items["storage"] = uniq(items.get("storage", []) + [m.group(1) if m else f"<{ident}>"])
-            items["routes"] = uniq(re.sub(r"\$\{[^}]*\}", "{}", r) for r in items.get("routes", []))
-            rec["items"] = {k: v for k, v in items.items() if v}
+            rec["items"] = js_items(text)
         elif scan and path.endswith(".css"):
-            sels = [s.strip() for s in CSS["rules"].findall(re.sub(r"/\*[\s\S]*?\*/", "", text)) if s.strip() and not s.strip().startswith(("from", "to")) and not re.match(r"^[\d.]+%", s.strip())]
-            rec["items"] = {
-                "rule_blocks": len(sels),
-                "ids": uniq(CSS["ids"].findall(" ".join(sels))),
-                "custom_props_defined": uniq(CSS["props_def"].findall(text)),
-                "custom_props_used": uniq(CSS["props_use"].findall(text)),
-                "media": uniq(m.strip() for m in CSS["media"].findall(text)),
-            }
+            rec["items"] = css_items(text)
         elif path.endswith(".html") and g in ("root",):
-            rec["items"] = {
-                "ids": uniq(re.findall(r'\bid="([\w-]+)"', text)),
-                "scripts": uniq(re.findall(r'<script[^>]*src="([^"]+)"', text)),
-                "stylesheets": uniq(re.findall(r'<link[^>]*href="([^"]+\.css)"', text)),
-            }
+            rec["items"] = html_items(text)
     inv.append(rec)
 
 (out / "inventory.json").write_text(json.dumps({"commit": commit, "files": inv}, indent=1))
@@ -111,7 +64,7 @@ ledger = {"commit": commit, "files": {}, "items": {}}
 for r in inv:
     ledger["files"][r["path"]] = {"home": None, "status": "unmapped"}
     for k, vals in (r.get("items") or {}).items():
-        if k in ("exports", "functions", "ids", "storage", "routes", "custom_events", "keys", "globals"):
+        if k in LEDGER_KINDS:
             for v in vals:
                 ledger["items"][f"{r['path']}::{k}::{v}"] = {"home": None, "status": "unmapped"}
 (out / "ledger.json").write_text(json.dumps(ledger, indent=1))

@@ -3,7 +3,7 @@
   "plugins": ["import"],
   "categories": { "correctness": "off" },
   "env": { "browser": true, "es2024": true },
-  "ignorePatterns": ["js/vendor/**", "vendor/**", "node_modules/**", "design-research/**", "ui-mockups/**", "tools/diffview/**", "tools/filetree/**"],
+  "ignorePatterns": ["js/vendor/**", "vendor/**", "node_modules/**", "design-research/**", "ui-mockups/**", "tools/diffview/**"],
   "rules": {
     "no-undef": "error",
     "no-unused-vars": ["error", { "args": "none", "caughtErrors": "none", "ignoreRestSiblings": true }],

@@ -9,11 +9,11 @@ A web UI for the XO Space **projects chat** backend (`/api/projects-chat/*`). It
 - **Workspace**: your coordinator across all projects. Messages show where they were routed.
 - **Projects**: a title, one sentence, the Now shelf of threads in progress, and All threads (searchable, finished ones folded).
 - **Threads**: each has its own agent, branch and checklist. The thread's own decision sits above the composer.
-- **Pictures in the conversation** (`js/media.js`, `js/lightbox.js`): what an agent or you share is *shown*, not attached. A picture appears bare (12 px corners, a hairline, no shadow; an agent's up to 560×480, yours up to 320×320, never enlarged), several make an album with "+N", other files are cards. Its box is reserved from the server's `w`, `h` and `tint` (a fixed 16:10 frame when they're missing), so nothing moves while it loads. A picture opens in the lightbox: it grows from its place, ← → walk through the conversation's pictures, Esc or a swipe down puts it back. A file an agent titled (`share_files` titles, xo-space 8c6bc03) is named by its title there, on its card, in Made, Artifacts and Recently made, with its file name beside it or in a tooltip; a long file name is cut in the middle, keeping its extension (`r3-dark…title.png`). **Pictures from the web** in an agent's words (`![alt](https://…)`, or a bare http(s) picture address on a line of its own; consecutive lines make an album) show the same way, read straight from their site with no referrer, in the fixed 16:10 frame (their size is unknown); one that can't load becomes its ↗ link, and the lightbox names its host with "Open original ↗". Only http(s). Settings › General › "Show pictures from the web" (on; this device's shape layer) makes them links.
-- **Shape** (`core/services/shape/`, `modules/settings/shape-page.js`, `presets/`): the UI fits the person. A first-run question picks **Build software**, **Make content and campaigns** or **Everything**; Settings › Shape switches it, shows what it changes, resets it, shows everything, and edits your own layer as JSON. Layers: defaults < preset < yours < this device (Compact lives here). Yours is Storm's where it keeps one (`GET/PUT /api/chat/shape`, xo-space 8c6bc03), so it follows you to every device: read on load (a 404 keeps this browser's copy), written only on your change with `if_version`, another device's change applied live from the stream's `ui.shape` setting, and a conflict said quietly (your one-key change is put back on top; a larger one gives way). Marketing hides branch chips, runtime names, sub-agent counts, raw commands, Shells and the Map, says "task", and puts Recently made first. XO never reshapes itself on its own.
+- **Pictures in the conversation**: what an agent or you share is *shown*, not attached. A picture appears bare (12 px corners, a hairline, no shadow; an agent's up to 560×480, yours up to 320×320, never enlarged), several make an album with "+N", other files are cards. Its box is reserved from the server's `w`, `h` and `tint` (a fixed 16:10 frame when they're missing), so nothing moves while it loads. A picture opens in the lightbox: it grows from its place, ← → walk through the conversation's pictures, Esc or a swipe down puts it back. A file an agent titled (`share_files` titles, xo-space 8c6bc03) is named by its title there, on its card, in Made, Artifacts and Recently made, with its file name beside it or in a tooltip; a long file name is cut in the middle, keeping its extension (`r3-dark…title.png`). **Pictures from the web** in an agent's words (`![alt](https://…)`, or a bare http(s) picture address on a line of its own; consecutive lines make an album) show the same way, read straight from their site with no referrer, in the fixed 16:10 frame (their size is unknown); one that can't load becomes its ↗ link, and the lightbox names its host with "Open original ↗". Only http(s). Settings › General › "Show pictures from the web" (on; this device's shape layer) makes them links.
+- **Shape**: the UI fits the person. A first-run question picks **Build software**, **Make content and campaigns** or **Everything**; Settings › Shape switches it, shows what it changes, resets it, shows everything, and edits your own layer as JSON. Layers: defaults < preset < yours < this device (Compact lives here). Yours is Storm's where it keeps one (`GET/PUT /api/chat/shape`, xo-space 8c6bc03), so it follows you to every device: read on load (a 404 keeps this browser's copy), written only on your change with `if_version`, another device's change applied live from the stream's `ui.shape` setting, and a conflict said quietly (your one-key change is put back on top; a larger one gives way). Marketing hides branch chips, runtime names, sub-agent counts, raw commands, Shells and the Map, says "task", and puts Recently made first. XO never reshapes itself on its own.
 - **A coordinator's own ask** (it, or one of its sub-agents, asks with no thread): it sits above the composer of the project's or the Workspace's chat, the header's count line leads with "Coordinator needs you", and Home and the panel name it "xo-space › Coordinator". A thread with any open item reads Needs you in its list row, header and Now chip, whatever its row's state says yet.
 - **Map** (`⌘\`, or Map at the top right of any conversation): where your agents are working, drawn. Two ways to see it, one icon apart: a **Diagram** (the folder as boxes and connectors) or a **Graph** (a living node graph that settles). Each agent is a coloured cursor with its name that moves to the file it reads or edits, or that its command names, and the way down to it lights in its colour. In a thread, its own worktree, with what it made or changed marked; in a project, the project's folder with every agent at work; elsewhere, your projects and the agents in them. Drag, zoom, Fit, Follow, full size. With a file open, the Map and the viewer are one right-hand panel with two modes, **Live** and **File**.
-- **Changes and files** (`modules/changes/`: `diffview.js`, `store.js`, `frame.js`; `@pierre/diffs` 1.6.4, vendored in `js/vendor/pierre-diffs`):
+- **Changes and files** (`@pierre/diffs` 1.6.4, vendored):
   - **The panel's Changes**, on top of Agents and Map, lists every file the thread changed, with `+n −n` counts (Space's `/changes`). The chosen file's diff sits below the list, drawn from git's patch.
   - **Following** is on by default: it shows the file the agent just changed. A touch pauses it, and later edits show as a "changed · Show" pill instead of a jump. Sending a message resumes it.
   - **In the chat**, a changed file's chip carries its counts and opens its diff in the panel.
@@ -25,10 +25,10 @@ A web UI for the XO Space **projects chat** backend (`/api/projects-chat/*`). It
   - All colouring happens in a worker, so the page never freezes. The library loads only after you pause. J / K step through changes.
 - **Composer**: `@project` aims a message at a project. The model chip shows the routing in effect. The line above it follows the world: "Sending is paused" shows only while it's true.
 - **Creating a project**: "Create XO Project" in Home's header, always, and "+ New" on the sidebar's Projects label.
-- **Stone and glass**: the chrome is stone (neutral, crisp, shadowless; controls 32 px with 6 px corners), the work is glass (soft bubbles, vivid pictures). One scale for everything in `core/ui/tokens.css` (**Plan F**): 8 type sizes with whole-pixel line heights and tracking by size, 3 weights, radii 6 · 12 · 20 · 22, one floating elevation, one motion curve (a hover engages in 120 ms and releases in 200, a press in 60; nothing overshoots), three lights (green done, blue working, amber needs you). Icons outside the sidebar draw one 1.5 px line at any size. Documents in Files read in a serif. `tests/design-budget.test.mjs` fails the build when a stylesheet strays from the scale. The left sidebar keeps its own look (the owner's decision).
+- **Stone and glass**: the chrome is stone (neutral, crisp, shadowless; controls 32 px with 6 px corners), the work is glass (soft bubbles, vivid pictures). One scale for everything in `core/ui/tokens.css`: 8 type sizes with whole-pixel line heights and tracking by size, 3 weights, radii 6 · 12 · 20 · 22, one floating elevation, one motion curve (a hover engages in 120 ms and releases in 200, a press in 60; nothing overshoots), three lights (green done, blue working, amber needs you). Icons outside the sidebar draw one 1.5 px line at any size. Documents in Files read in a serif. `tests/design-budget.test.mjs` fails the build when a stylesheet strays from the scale. The left sidebar keeps its own look (the owner's decision).
 - Light and dark themes. Geist type and the XO palette, with XO green as the accent. Motion honours reduced-motion settings.
 
-Plain HTML, CSS and vanilla ES modules: no build step and no CDN. The app needs nothing installed to run; `package.json` holds only dev-only checkers (types, lint), installed with `npm ci` for `node tools/check.mjs`. Rules for working here: `AGENTS.md`. The modular rebuild: `architecture/PLAN.md`.
+Plain HTML, CSS and vanilla ES modules: no build step and no CDN. The app needs nothing installed to run; `package.json` holds only dev-only tools (types, lint, and linkedom, the DOM some unit tests run in), installed with `npm ci`. Rules for working here: `AGENTS.md`.
 
 ## Start
 
@@ -86,7 +86,7 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
     runtimes XO may use, starting elsewhere at a limit, and how coordinators choose.
   - **A usage limit:** one card per runtime (decided with `move` or `wait`), shown in Needs you and at the end of each thread waiting on it. Those threads' headers read "Waiting for … until …".
   - A coordinator's steer, interrupt or stop on a thread shows as one quiet row (`thread.control`).
-- **Open thread:** polled every 4 s while its agent is busy and every 15 s otherwise. "Working" means the session is actually busy: storm's `busy` (on a turn, or a sub-agent working on after it), kept live between reads by the same rule from the stream's session status, `run.*` events and `runs` counts (`timeline.js` `sessionBusy`). Waiting on you is never Working. An idle one reads "Idle".
+- **Open thread:** polled every 4 s while its agent is busy and every 15 s otherwise. "Working" means the session is actually busy: storm's `busy` (on a turn, or a sub-agent working on after it), kept live between reads by the same rule from the stream's session status, `run.*` events and `runs` counts (`timeline.js` `sessionBusy`). Waiting on you is never Working. An idle one reads "Waiting".
 - **Coordinator messages:** storm keeps what a coordinator and a thread write each other as hops (`GET /chats/{chat}/hops?thread=`, the text in `note`), not as messages. A thread shows them in place: the coordinator's brief, follow-ups and answers as its messages, the thread's own questions as a quiet "Asked the coordinator" line, and your messages they cite. A hop that arrives on the stream has no note, so the open thread reads its hops again.
 - **Asks:** a thread waiting on you is titled from its agent's last message. You answer in words, as a thread reply.
 - **Since you left and Made:** each place (Home, a project) remembers per browser when you last
@@ -113,63 +113,58 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
     reconnect (with backoff; none after 4404, 4403 or 4429, too many viewers, which is said in words), `pause`/`resume` from xterm's write callbacks (100 KB / 10 KB).
   - Inside a shell every key is the shell's (Esc, Ctrl+K…) except the toggle (`` mod+` ``). Ctrl+Shift+C / V copy and paste.
 
-**The backend does not have these yet**, so the UI hides or degrades them (see `docs/requirements.md`):
+**The backend does not have these yet**, so the UI hides or degrades them:
 - approvals with an approve/deny route (R2);
 - stopping a running agent;
 - resolving a thread from the UI (R1);
 - per-chat model choice (R6; the chip is read-only);
 - a `before` history cursor (R5).
 
-## Code
+## Layout
 
-| File | Role |
+The app is a small kernel, a few layers of shared code, and modules that plug into named places. Lowest layer first:
+
+| Folder | What lives there |
 |---|---|
-| `index.html` | the shell: sidebar, Home, conversation, dock, panel, sheets |
-| `core/ui/tokens.css` | **Plan F**, the one scale: palette, type sizes and line heights, tracking, weights, radii, elevation, motion, hover and press fills, the three lights, Geist faces. Other sheets use these names and never define a scale of their own |
-| `core/ui/foundation.css`, `css/app.css` | reset and the UI |
-| `js/app.js` | views, rendering, navigation, composer, sending |
-| `core/services/world/`, `core/services/storm/` | the world the views render, from the real API (`js/world.js`, `js/storm.js` re-export them) |
-| `core/platform/api.js`, `core/platform/http.js`, `core/platform/sse.js` | the route table, the HTTP transport and the SSE stream |
-| `js/attach.js` | files on a message: checks before upload, a large paste as a file, the composer's upload tray |
-| `js/model.js`, `js/timeline.js`, `js/markdown.js`, `js/util.js` | pure helpers: thread state, checklists, message rows and dedupe, asks, `@target`, safe markdown |
-| `js/decide.js`, `js/kit.js`, `js/pacing.js` | decisions, the decision kit and commit window, and pacing (what speaks up and what waits) |
-| `js/intel.js` | the model and depth chip |
-| `core/services/runtimes.js` | runtimes, the pure part: names, health in words, usage windows, the runtime policy, moves, the limit card |
-| `modules/runtimes/settings.js` | Settings › Runtimes: each runtime's health, and the defaults |
-| `js/content.js` | what an ask costs you, what it frees, and its evidence |
-| `js/ui.js` | icons and motion helpers |
-| `js/gestures.js` | touch gestures on a phone: swipe back or open the sidebar, drag sheets away, swipe between asks, long-press Copy |
-| `css/foundation.css` | the foundation: loaded last; flush side panels with one hairline, one left edge, one press, whole pixels, inset focus rings, nothing looping unless an agent works |
-| `js/motion.js` | one motion system: arrive (fade and settle), glide (FLIP), update in place, pictures fade in once decoded; `syncList` keeps a list in step without redrawing it |
-| `js/stage.js` | the panel: one card on the right, tools as labelled tabs (Files, Made, Map; apps later, past four into More), one header button (`mod+\`) that opens on Files first and then on the last tool, full size, Esc; the Map mounts into its tab |
-| `js/files.js` | Files: the project's (or a thread's worktree's) files a folder at a time, the README first, the file beside the tree or one at a time, what agents touched marked; the one place a file opens (the viewer lives in it) |
-| `js/record.js`, `js/recordview.js` | a project's record: what its threads made (Made, Recently made on Home, ⌘K) and Since you left; the pure part, then the screen |
-| `js/fileicons.js` | one resolver for every file's icon (Files, Made, the viewer, the Map, file chips): the swarm's Pierre Trees set (`js/vendor/pierre`, Apache-2.0), matched as Pierre matches; folders a Lucide line glyph |
-| `js/map.js` | the Map: the folder drawn as a diagram (`/xo-projects/{p}/tree`, a level at a time), agents as cursors (from the stream's activity rows), pan and zoom, the Live · File switch with the viewer |
-| `js/shells/dock.js` | shells: the dock, its tabs and list, the sidebar's toggle; what `app.js` calls |
-| `js/shells/term.js` | one shell on screen: xterm.js, its WebSocket, reconnects, flow control, theme |
-| `js/shells/model.js` | shells, the pure part: row words, counts, flow-control watermarks, backoff |
-| `js/vendor/xterm/` | xterm.js 6.0.0 and addon-fit 0.11.0, copied byte for byte (pinned hashes in its README) |
-| `js/media.js`, `css/media.css` | pictures and files on a message or a turn: single images, albums, file cards, the 16:10 fallback, dedupe of `shared_files` against a message by `made_id`, titles and names cut in the middle, pictures from the web and their link fallback |
-| `js/lightbox.js` | a picture opened over the conversation: grows from its place, ← → through the conversation's pictures, Esc or swipe down to put it back, Open in Files |
-| `core/services/shape/` | the shape: the list of surfaces, the four layers, merge per key with a fallback per key and a problems list, versions; your layer kept on Storm (read, compare-and-set writes, conflicts, the live event) |
-| `modules/settings/shape-page.js`, `css/shape.css` | Settings › Shape, the first-run question, Advanced settings, Home's order, density |
-| `presets/*.json` | the presets (Build software, Make content and campaigns), served as static files until Storm serves them |
+| `core/kernel/` | Holds modules together without knowing any feature: places, activation, undo of everything a module registers, the bus, batched redraws, the layer stack. It imports nothing. |
+| `core/platform/` | Browser plumbing: requests, streams, keys, touch, time words, small helpers. |
+| `core/ui/` | What every view draws with: the tokens and the foundation sheet, icons, markdown, motion, redraw in place, accessibility helpers, shared components, the lightbox. |
+| `core/services/` | The data layer: the world the views render, storm's stream and writes, the shape, paths, notices, runtimes. It draws nothing, so it is tested from Node. |
+| `shell/` | The frame around everything: the rail, the right panel and its pages, the phone layout, one layer stack for Esc, Back, inert and Tab, and the catalogue of places. |
+| `modules/*/` | One feature per folder, such as Settings, search or create project. |
+| `apps-host/` | Installed apps: their manifests, sandboxed frames, the bridge to their tools, Settings › Apps. |
+| `js/`, `css/` | Code that has not moved into a layer or a module yet. These files may only shrink. |
 
-## Tests
+`index.html` loads `boot.js`, which starts the kernel, then the app. A file imports only its own folder and lower layers. Modules never import each other: they talk through services, places and the bus. `node tools/check.mjs` checks both, and the imports left over from before the layers may only shrink. The folders with a `README.md` describe their files. `architecture/places.md` lists every place a module or an app can fill.
+
+Outside the app:
+
+| Folder | What lives there |
+|---|---|
+| `tests/` | Unit tests that have not moved beside their code yet, and their helpers in `tests/lib/`. Moved tests live in `core/*/tests/`, `shell/tests/`, `modules/*/tests/` and `apps-host/tests/`. |
+| `e2e/` | The fast UI lane: the real app in headless Chromium against a fake Space on a seeded store, asserted with accessibility-text snapshots. |
+| `tests/browser/` | The older Playwright suites, run only when the owner asks. |
+| `tools/` | `check.mjs` and its baselines, the file ledger, the places catalogue's generator, the OpenAPI snapshot, and the scripts that vendor CodeMirror and Pierre's diffs and build the icon set. |
+| `presets/` | The presets (Build software, Make content and campaigns), served as static files until Storm serves them. |
+| `assets/`, `fonts/` | Icons and the Geist faces. |
+
+## Checks and tests
 
 ```sh
-node tests/run.mjs               # every unit test (tests/*.test.mjs and tests/*.test.py), judged by exit code; ~15 s
-node tests/run.mjs files         # only the tests whose name contains "files"
-node tools/check.mjs             # the full check before a merge: lint, types, ratchets, ledger, then every test
-node tools/check.mjs --fast      # the same without the tests; the pre-commit hook runs it (already on in the shared git config)
+npm ci                           # once, and whenever package.json changes: the dev-only tools
+node tools/check.mjs             # before a merge: lint, types, ratchets, comments, layers, places, ledger, then every unit test
+node tools/check.mjs --fast      # the same without the tests; the pre-commit hook runs it
+node tools/check.mjs --update-baselines   # lower the baselines to what the code is now; they never rise
+node tests/run.mjs               # every unit test in tests/ and beside the code, judged by exit code
+node tests/run.mjs files         # only the tests whose path contains "files"
+node e2e/run.mjs                 # the fast UI lane in headless Chromium, under 3 minutes
+node e2e/run.mjs send            # only the cases whose "file › name" contains "send"
+UPDATE=1 node e2e/run.mjs        # write the snapshots instead of comparing; review the diff before committing
 ```
 
-Each test file says what it covers in its header. Browser suites (`tests/browser/`, Playwright) run only when the owner asks. Their mocks live in `e2e/`:
-- `e2e/fixtures/mockspace-harness.cjs`: Space's deploy routes for `tests/browser/harness.cjs` and the Launchpad + Shells world;
-- `e2e/fixtures/mockspace.cjs`: the newer copy `tools/launchpad/smoke.cjs` uses;
-- `e2e/worlds/lp-shell.cjs`: the world `tests/browser/lpshell.test.cjs` runs in;
-- `e2e/fixtures/controls/`: the controls registry and its generator, read by `tests/stale-pass.test.mjs`.
+- The exit code is the verdict, never the printed lines.
+- `tools/check.mjs` and `tests/run.mjs` never start a browser. `e2e/run.mjs` and `tests/browser/` run only when the owner asks, one browser at a time.
+- Each test file says what it covers in its header. `e2e/README.md` explains the lane: the fake Space, the settle barrier and the snapshots.
 
 **Never let a test send a non-GET request to a live backend.**
 

@@ -125,7 +125,7 @@ body.stage-full .stg-grip{display:none}
 :where(.theme,.switch):where(:hover:not(:disabled,[aria-disabled="true"])) .th-track{background-image:linear-gradient(color-mix(in srgb,var(--ink) 14%,transparent),color-mix(in srgb,var(--ink) 14%,transparent))!important}
 :where(.theme,.switch):where(:active:not(:disabled,[aria-disabled="true"])) .th-track{background-image:linear-gradient(color-mix(in srgb,var(--ink) 28%,transparent),color-mix(in srgb,var(--ink) 28%,transparent))!important}
 :where(a[href]:not([class])):where(:active){opacity:.7}
-/* a control whose request is out (js/pending.js): it keeps focus and its place, says it's waiting, and doesn't press */
+/* a control whose request is out (core/platform/pending.js): it keeps focus and its place, says it's waiting, and doesn't press */
 [aria-busy="true"]{cursor:progress}
 :where([aria-busy="true"]):where(:active){background-image:none!important;transform:none}
 .md-it:has(.md-open:active){transform:none}

@@ -1,15 +1,7 @@
 @import url("../modules/settings/shape.css");
-/* The shape per person (js/shape.js, modules/settings/shape-page.js): compact density, Settings › Shape, and
-   the simple model choice. Built from Plan F only (core/ui/tokens.css): the scale's sizes and
-   line heights, three weights, its radii, --e2 for the one floating sheet, --ease and its durations.
-   Everything else reuses the existing parts (.set-choice cards, .btn, .switch, .sheet), so it reads as
-   one product. The left sidebar is never styled here: a shape may only hide its Shells row. */
+/* The shape per person (core/services/shape): compact density and the simple model choice, from tokens only; never the sidebar. */
 
-/* ── Compact density: one step tighter, in the main column, its sheets and popovers ──────────────
-   Rows 36 → 32, controls 32 → 24, reading 15/24 → 14/20: each the scale's next step down (controls on the 24 · 32 · 40
-   scale: the owner, 11 Nov 05:42Z, with the coordinator's recommendation; it was 28, off the scale, C106). Comfortable
-   is today. The tokens move first, so a part already built on them follows by itself; the parts below
-   still carry their own heights from before Plan F, so they're named until they move onto the tokens. */
+/* Compact density: each size one step down the scale (rows 32, controls 24, reading 14/20); older parts are named until they move onto the tokens. */
 :root[data-density="compact"] :is(.main,.sheet,.iq-pop){
   --h-row:32px; --h-ctl:var(--h-sm);
   --fs-lg:var(--fs-md); --fs-xl:var(--fs-md);

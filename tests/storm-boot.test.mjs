@@ -1,4 +1,4 @@
-// storm.js boot, stream and reset, end to end on a fake backend: the stream first, frames held through the load, reads ordered by the stream.
+// storm boot, stream and reset, end to end on a fake backend: the stream first, frames held through the load, reads ordered by the stream.
 import { fakeBackend, boot, until, settle, fire, intervals, thread, runner } from "./storm-harness.mjs";
 
 const { t, done, assert } = runner();

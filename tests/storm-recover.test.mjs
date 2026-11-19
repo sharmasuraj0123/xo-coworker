@@ -1,4 +1,4 @@
-// storm.js after a failed first load and across resets, end to end on a fake backend: recovery, the pool gate, frames with no reducer, lookups read again.
+// storm after a failed first load and across resets, end to end on a fake backend: recovery, the pool gate, frames with no reducer, lookups read again.
 import { fakeBackend, boot, until, settle, advance, fail, fire, thread, runner } from "./storm-harness.mjs";
 
 const { t, done, assert } = runner();

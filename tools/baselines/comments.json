@@ -1,10 +1,6 @@
 {
- "js/api.js": {
-  "extra": 33,
-  "refs": 1
- },
  "js/app.js": {
-  "extra": 399,
+  "extra": 395,
   "refs": 2
  },
  "js/attach.js": {
@@ -12,15 +8,7 @@
   "refs": 0
  },
  "js/chats.js": {
-  "extra": 27,
-  "refs": 0
- },
- "js/comms.js": {
-  "extra": 19,
-  "refs": 0
- },
- "js/content.js": {
-  "extra": 8,
+  "extra": 25,
   "refs": 0
  },
  "js/decide.js": {
@@ -37,10 +25,6 @@
  },
  "js/intel.js": {
   "extra": 48,
-  "refs": 0
- },
- "js/kit.js": {
-  "extra": 30,
   "refs": 0
  },
  "js/launchpad.js": {
@@ -68,11 +52,7 @@
   "refs": 0
  },
  "js/recordview.js": {
-  "extra": 71,
-  "refs": 0
- },
- "js/review.js": {
-  "extra": 21,
+  "extra": 45,
   "refs": 0
  },
  "js/runsview.js": {
@@ -100,7 +80,7 @@
   "refs": 0
  },
  "js/turnview.js": {
-  "extra": 63,
+  "extra": 61,
   "refs": 0
  },
  "js/ui.js": {
@@ -108,19 +88,15 @@
   "refs": 0
  },
  "js/viewer.js": {
-  "extra": 94,
+  "extra": 93,
   "refs": 1
  },
  "css/app.css": {
-  "extra": 196,
-  "refs": 0
- },
- "css/artifacts.css": {
-  "extra": 15,
+  "extra": 192,
   "refs": 0
  },
  "css/diffs.css": {
-  "extra": 20,
+  "extra": 17,
   "refs": 0
  },
  "css/docs.css": {
@@ -157,10 +133,6 @@
  },
  "css/phone.css": {
   "extra": 77,
-  "refs": 0
- },
- "css/shape.css": {
-  "extra": 8,
   "refs": 0
  },
  "css/side.css": {
@@ -200,7 +172,7 @@
   "refs": 0
  },
  "tests/browser/flows.test.cjs": {
-  "extra": 146,
+  "extra": 110,
   "refs": 0
  },
  "tests/browser/harness.cjs": {
@@ -540,7 +512,7 @@
   "refs": 0
  },
  "tests/paint-a11y.test.mjs": {
-  "extra": 7,
+  "extra": 5,
   "refs": 0
  },
  "tests/panel-shell.test.mjs": {
@@ -792,31 +764,11 @@
   "refs": 0
  },
  "tools/diffview/theme.mjs": {
-  "extra": 10,
+  "extra": 9,
   "refs": 0
  },
  "tools/diffview/vendor.mjs": {
-  "extra": 16,
-  "refs": 0
- },
- "tools/files/space-e2e.mjs": {
-  "extra": 7,
-  "refs": 0
- },
- "tools/filetree/lib.mjs": {
-  "extra": 2,
-  "refs": 0
- },
- "tools/filetree/perf.mjs": {
-  "extra": 1,
-  "refs": 0
- },
- "tools/filetree/same.mjs": {
-  "extra": 2,
-  "refs": 0
- },
- "tools/launchpad/smoke.cjs": {
-  "extra": 3,
+  "extra": 15,
   "refs": 0
  },
  "tools/xoicons/build.mjs": {
@@ -825,10 +777,6 @@
  },
  "serve.py": {
   "extra": 67,
-  "refs": 0
- },
- "index.html": {
-  "extra": 285,
   "refs": 0
  },
  "core/ui/foundation.css": {

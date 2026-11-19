@@ -1,4 +1,4 @@
-// storm.js on turns, end to end on a fake backend: which coordinator is a chat's, "is replying", and what is kept in memory.
+// storm on turns, end to end on a fake backend: which coordinator is a chat's, "is replying", and what is kept in memory.
 import { fakeBackend, boot, until, settle, advance, intervals, thread, runner } from "./storm-harness.mjs";
 
 const { t, done, assert } = runner();

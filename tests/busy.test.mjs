@@ -1,8 +1,8 @@
 // "Working": is an agent at work right now? Storm's `busy` on session and thread views (xo-space 8c6bc03:
 // on a turn, or a sub-agent working on after it), kept live between reads by the same rule from the
-// stream's session status and sub-agent runs (timeline.js sessionBusy, storm.js). Waiting on the person is
+// stream's session status and sub-agent runs (timeline.js sessionBusy, storm). Waiting on the person is
 // never Working, and nor is a session a gate holds back (queued: the usage limit…, no process): that one is
-// Waiting, saying for what and until when (timeline.js heldOf). The pure rule first, then storm.js end to end: fetch and the stream are fakes, nothing is
+// Waiting, saying for what and until when (timeline.js heldOf). The pure rule first, then storm end to end: fetch and the stream are fakes, nothing is
 // sent anywhere, and nothing but GETs is asked.
 //   node tests/busy.test.mjs
 import assert from "node:assert/strict";
@@ -175,8 +175,8 @@ t("the newest word wins: the runs counts after a read, a run named after the cou
   assert.equal(sessionBusy({ id: "s", state: "warm", sub: false, readAt: 50 }, { runs: [{ session: "s", state: "running", seen: 30 }] }), false);
 });
 
-// ── storm.js end to end ───────────────────────────────────────────────────
-// A browser-ish global: storm.js listens for the tab coming back and the network returning.
+// ── storm end to end ───────────────────────────────────────────────────
+// A browser-ish global: storm listens for the tab coming back and the network returning.
 globalThis.addEventListener = () => {};
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
 // its housekeeping interval mustn't keep node alive
@@ -209,7 +209,7 @@ function fakeBackend(routes) {
 const until = async (cond, ms = 3000) => { const t0 = Date.now(); while (!cond()) { if (Date.now() - t0 > ms) throw new Error("timed out"); await new Promise((r) => setTimeout(r, 5)); } };
 const settle = () => new Promise((r) => setTimeout(r, 80)); // storm commits a burst of frames after 30 ms
 
-t("storm.js: a thread's Working follows busy from its view, then the stream's status and sub-agents; waiting on you never", async () => {
+t("storm: a thread's Working follows busy from its view, then the stream's status and sub-agents; waiting on you never", async () => {
   const at = "2026-11-04T10:00:00Z";
   const thread = (ts, session, view, extra = {}) => ({ ts, chat_id: "chat_p", title: ts, state: "working", session_id: session, created_at: at, updated_at: at, session: view, ...extra });
   const be = fakeBackend({
@@ -278,7 +278,7 @@ t("storm.js: a thread's Working follows busy from its view, then the stream's st
   assert.ok(be.asked.every((a) => a.startsWith("GET ")), "only GETs");
 });
 
-t("storm.js: held by the usage limit is Waiting, never Working or replying, on an older backend and a newer one; it starts at the reset", async () => {
+t("storm: held by the usage limit is Waiting, never Working or replying, on an older backend and a newer one; it starts at the reset", async () => {
   const at = "2026-11-13T21:00:00Z", reset = new Date(Date.now() + 3 * 3600e3).toISOString();
   const pool = "claude_code:acct-1";
   const thread = (ts, session, view, extra = {}) => ({ ts, chat_id: "chat_p", title: ts, state: "working", session_id: session, created_at: at, updated_at: at, session: view, ...extra });
@@ -346,7 +346,7 @@ t("storm.js: held by the usage limit is Waiting, never Working or replying, on a
   assert.ok(be.asked.every((a) => a.startsWith("GET ")), "only GETs");
 });
 
-t("storm.js: held is one shown state, and work seen after a stale queued wins (a turn started, a newer read)", async () => {
+t("storm: held is one shown state, and work seen after a stale queued wins (a turn started, a newer read)", async () => {
   const at = "2026-11-13T21:00:00Z", reset = new Date(Date.now() + 3 * 3600e3).toISOString();
   const pool = "claude_code:acct-1";
   const thread = (ts, session, state, view) => ({ ts, chat_id: "chat_p", title: ts, state, session_id: session, created_at: at, updated_at: at, session: view, busy: false });
@@ -398,7 +398,7 @@ t("storm.js: held is one shown state, and work seen after a stale queued wins (a
   assert.ok(be.asked.every((a) => a.startsWith("GET ")), "only GETs");
 });
 
-t("storm.js: at boot a listed queued session stands at the snapshot's seq: a turn left running in history doesn't make it Working", async () => {
+t("storm: at boot a listed queued session stands at the snapshot's seq: a turn left running in history doesn't make it Working", async () => {
   const at = "2026-11-13T21:00:00Z";
   const be = fakeBackend({
     "/chat/chats": { chats: [{ id: "chat_ws", kind: "workspace" }, { id: "chat_p", kind: "project", project: "demo" }] },
@@ -426,7 +426,7 @@ t("storm.js: at boot a listed queued session stands at the snapshot's seq: a tur
   assert.equal(world.thread("t3").busy, true);
 });
 
-t("storm.js: a read sent before a status frame and answered after it doesn't undo that frame (it stands where it was sent)", async () => {
+t("storm: a read sent before a status frame and answered after it doesn't undo that frame (it stands where it was sent)", async () => {
   const at = "2026-11-13T21:00:00Z";
   let release;
   const gate = new Promise((r) => { release = r; });

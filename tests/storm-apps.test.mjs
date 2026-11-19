@@ -1,4 +1,4 @@
-// storm.js and the apps.changed frame, end to end on a fake backend: one world event with the five fields, nothing else kept.
+// storm and the apps.changed frame, end to end on a fake backend: one world event with the five fields, nothing else kept.
 import { fakeBackend, boot, settle, runner } from "./storm-harness.mjs";
 
 const { t, done, assert } = runner();

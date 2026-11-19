@@ -1,4 +1,4 @@
-// storm.js history, end to end on a fake backend: pages read once and whole, rows looked up by id off the timeline, hops that only move on.
+// storm history, end to end on a fake backend: pages read once and whole, rows looked up by id off the timeline, hops that only move on.
 import { fakeBackend, boot, until, settle, thread, runner } from "./storm-harness.mjs";
 
 const { t, done, assert } = runner();

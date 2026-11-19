@@ -4,26 +4,26 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 585 |
+| planned | 569 |
 | vendor | 367 |
-| deleted | 258 |
+| deleted | 271 |
 | moved | 70 |
 | split | 32 |
-| kept | 1 |
+| kept | 4 |
 
-Items inside first-party files: 2290 (moved 952, planned 823, split-region 429, deleted 83, kept 2, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (moved 957, planned 787, split-region 429, deleted 114, kept 2, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `.gitignore` |  | planned | .gitignore (updated) |
-| `PR_DESCRIPTION.md` | 284 | planned | out of the repo: the design archive (owner D4) |
-| `README.md` | 191 | planned | README.md (rewritten: architecture + module table generated) |
+| `.gitignore` |  | kept | .gitignore · next: ignores node_modules and the design work kept outside git |
+| `PR_DESCRIPTION.md` | 284 | deleted | moved to the design archive (owner D4) |
+| `README.md` | 191 | kept | README.md · next: rewritten: what the app does, the layout by folder and layer, and how to run the checks, the unit tests and the UI lane |
 | `favicon.svg` | 6 | planned | core/ui/icons/favicon.svg, generated from the icon pack (owner D7: today a hand-made copy that differs) |
 | `index.html` | 293 | split | shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table) · next: the hidden layers' markup is in shell/overlays.js; comments are gone; the visible frame (sidebar, main) stays for the first paint |
 | `serve.py` | 540 | planned | serve.py (kept; apps-host routes added in phase 7) · next: the writer key now also covers app management (/api/apps writes) and app views (/api/coworker/apps/*), only for XO's own page |
-| `start.sh` | 29 | planned | start.sh (kept) |
+| `start.sh` | 29 | kept | start.sh · next: unchanged |
 
 ## js (79)
 
@@ -52,7 +52,7 @@ Items inside first-party files: 2290 (moved 952, planned 823, split-region 429, 
 | `js/filespage.js` | 150 | moved | modules/files/page.js |
 | `js/focusview.js` | 138 | moved | core/ui/a11y/focus.js · next: js/focusview.js re-exports core/ui/a11y/focus.js until the shims go |
 | `js/follow.js` | 150 | moved | modules/conversation/follow.js |
-| `js/fuzzy.js` | 118 | moved | core/platform/fuzzy.js · next: js/fuzzy.js re-exports core/platform until the shims go |
+| `js/fuzzy.js` | 118 | moved | core/platform/fuzzy.js · next: every importer points at core/platform/fuzzy.js, so it leaves with no re-export |
 | `js/gestures.js` | 451 | split | core/platform/gestures.js, shell (the app's gestures: wireGestures, dockGestures, long press) · next: the drag primitive is in core/platform/gestures.js; the app's gestures stay in js/gestures.js until the shell takes them |
 | `js/herald.js` | 92 | moved | core/services/notices.js · next: every importer points at the new home; the line is drawn by app.js's heraldShow, which the shell takes |
 | `js/highlight.js` | 149 | moved | core/ui/markdown/highlight.js · next: js/highlight.js re-exports it until the shims go |
@@ -70,7 +70,7 @@ Items inside first-party files: 2290 (moved 952, planned 823, split-region 429, 
 | `js/markdown.js` | 519 | split | core/ui/markdown/markdown.js, core/ui/markdown/inline.js · next: blocks in markdown.js, inline text, links, pictures and the rich hooks in inline.js; js/markdown.js re-exports markdown.js until the shims go |
 | `js/mdlive.js` | 331 | moved | modules/files/markdown-page.js |
 | `js/media.js` | 609 | split | modules/conversation/media/, core/ui/media (layout) |
-| `js/merge.js` | 101 | moved | core/platform/diff.js · next: js/merge.js re-exports core/platform/diff.js until the shims go |
+| `js/merge.js` | 101 | moved | core/platform/diff.js · next: every importer points at core/platform/diff.js, so it leaves with no re-export |
 | `js/model.js` | 34 | planned | modules/threads/checklist.js |
 | `js/motion.js` | 82 | moved | core/ui/motion.js · next: js/motion.js re-exports core/ui/motion.js until the shims go |
 | `js/msgx.js` | 917 | split | modules/conversation/decorate.js, modules/conversation/working.js, modules/conversation/actions.js, modules/conversation/gestures.js, modules/conversation/latest-button.js, modules/composer (reply chip, quote) |
@@ -78,7 +78,7 @@ Items inside first-party files: 2290 (moved 952, planned 823, split-region 429, 
 | `js/paid.js` | 152 | moved | core/services/world/paid.js · next: every importer points at the new home, so it leaves with no re-export |
 | `js/paidview.js` | 21 | moved | modules/decisions/cards/paid.js |
 | `js/paths.js` | 83 | moved | core/services/paths.js · next: every importer points at the new home, so it leaves with no re-export |
-| `js/pending.js` | 22 | moved | core/platform/pending.js · next: js/pending.js re-exports core/platform until the shims go |
+| `js/pending.js` | 22 | moved | core/platform/pending.js · next: every importer points at core/platform/pending.js, so it leaves with no re-export |
 | `js/projicons.js` | 83 | moved | modules/projects/projicons.js |
 | `js/quickopen.js` | 179 | moved | modules/search/quickopen.js |
 | `js/record.js` | 340 | split | modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js · next: every piece has moved (modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js); record.js only re-exports them until the shims go |
@@ -97,9 +97,9 @@ Items inside first-party files: 2290 (moved 952, planned 823, split-region 429, 
 | `js/shells/model.js` | 128 | planned | modules/shells/model.js |
 | `js/shells/term.js` | 205 | planned | modules/shells/term.js |
 | `js/skeleton.js` | 105 | split | modules/home/skeleton.js, core/ui/skeleton.js |
-| `js/sse.js` | 190 | moved | core/platform/sse.js · next: js/sse.js re-exports core/platform until the shims go; storm.js still imports it there while core-services splits storm |
+| `js/sse.js` | 190 | moved | core/platform/sse.js · next: every importer points at core/platform/sse.js, so it leaves with no re-export |
 | `js/stage.js` | 870 | split | shell/panel (panel.js, pages.js, frames.js, width.js, lists.js), core/kernel (panel.page/panel.frame places), modules/threads (Threads frame), modules/changes (frame wiring), modules/map (frame wiring), modules/launchpad (cover), modules/shells (shell page) · next: moved into shell/panel/ whole; js/stage.js re-exports createStage until the shims go; lists.js (the frames' contents) and the shell page still go to their modules |
-| `js/storm.js` | 1242 | split | core/services/storm/index.js, core/services/storm/config.js, core/services/storm/client.js, core/services/storm/stream.js, core/services/storm/load.js, core/services/storm/account.js, core/services/storm/history.js, core/services/storm/hops.js, core/services/storm/reducers/, core/services/storm/selectors/, core/services/storm/commands.js, core/services/storm/act.js, core/services/storm/types.d.ts · next: js/storm.js is a one-line re-export of core/services/storm until the shims go |
+| `js/storm.js` | 1242 | split | core/services/storm/index.js, core/services/storm/config.js, core/services/storm/client.js, core/services/storm/stream.js, core/services/storm/load.js, core/services/storm/account.js, core/services/storm/history.js, core/services/storm/hops.js, core/services/storm/reducers/, core/services/storm/selectors/, core/services/storm/commands.js, core/services/storm/act.js, core/services/storm/types.d.ts · next: every importer points at core/services/storm, so it leaves with no re-export |
 | `js/timeline.js` | 816 | split | core/services/world/rows.js + sessions.js + threads.js, modules/conversation/model.js, modules/threads, modules/decisions · next: its normalisers are in core/services/world (rows, sessions, threads), re-exported here; the rest is the views' |
 | `js/turnview.js` | 331 | planned | modules/conversation/blocks/turn.js |
 | `js/ui.js` | 397 | split | core/ui/icons, core/ui/motion, core/ui/redraw (reconcile), core/platform/dom, core/platform/time, core/services/sound · next: reconcile in core/ui/redraw.js, the motion in core/ui/motion.js, the icon names in core/ui/icons/names.js, the time words in core/platform; ui.js keeps $, $$, plain and the sounds, and re-exports the rest until the shims go |
@@ -506,9 +506,9 @@ Items inside first-party files: 2290 (moved 952, planned 823, split-region 429, 
 | `js/vendor/katex/fonts/KaTeX_Typewriter-Regular.woff2` |  | vendor | vendor/katex/fonts/KaTeX_Typewriter-Regular.woff2 |
 | `js/vendor/katex/katex.min.css` | 1 | vendor | vendor/katex/katex.min.css |
 | `js/vendor/katex/katex.min.js` | 1 | vendor | vendor/katex/katex.min.js |
-| `js/vendor/lucide/LICENSE` |  | planned | delete: no importer anywhere (owner D6) |
-| `js/vendor/lucide/files.js` | 25 | planned | delete: no importer anywhere (owner D6) |
-| `js/vendor/lucide/projects.js` | 38 | planned | delete: no importer anywhere (owner D6) |
+| `js/vendor/lucide/LICENSE` |  | deleted | no importer anywhere (owner D6) |
+| `js/vendor/lucide/files.js` | 25 | deleted | no importer anywhere (owner D6) |
+| `js/vendor/lucide/projects.js` | 38 | deleted | no importer anywhere (owner D6) |
 | `js/vendor/mermaid/LICENSE` |  | vendor | vendor/mermaid/LICENSE |
 | `js/vendor/mermaid/README.md` | 3 | vendor | vendor/mermaid/README.md |
 | `js/vendor/mermaid/chunks/mermaid.esm.min/abnfDiagram-7WIW2FYK.mjs` | 1 | vendor | vendor/mermaid/chunks/mermaid.esm.min/abnfDiagram-7WIW2FYK.mjs |
@@ -1394,26 +1394,26 @@ Items inside first-party files: 2290 (moved 952, planned 823, split-region 429, 
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `tools/files/space-e2e-reset.sh` | 6 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/files/space-e2e.mjs` | 156 | planned | delete: a one-off probe with machine paths (owner D6) |
+| `tools/files/space-e2e-reset.sh` | 6 | deleted | a one-off probe with machine paths (owner D6) |
+| `tools/files/space-e2e.mjs` | 156 | deleted | a one-off probe with machine paths (owner D6) |
 
 ## tools/filetree (6)
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `tools/filetree/README.md` | 17 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/filetree/bench.html` | 44 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/filetree/bench.js` | 7 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/filetree/lib.mjs` | 56 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/filetree/perf.mjs` | 51 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/filetree/same.mjs` | 59 | planned | delete: a one-off probe with machine paths (owner D6) |
+| `tools/filetree/README.md` | 17 | deleted | a one-off probe with machine paths (owner D6) |
+| `tools/filetree/bench.html` | 44 | deleted | a one-off probe with machine paths (owner D6) |
+| `tools/filetree/bench.js` | 7 | deleted | a one-off probe with machine paths (owner D6) |
+| `tools/filetree/lib.mjs` | 56 | deleted | a one-off probe with machine paths (owner D6) |
+| `tools/filetree/perf.mjs` | 51 | deleted | a one-off probe with machine paths (owner D6) |
+| `tools/filetree/same.mjs` | 59 | deleted | a one-off probe with machine paths (owner D6) |
 
 ## tools/launchpad (2)
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
 | `tools/launchpad/mockspace.cjs` | 164 | moved | e2e/fixtures/mockspace.cjs · next: Wave 4 Launchpad: fold the scenarios Launchpad's tests need into e2e/fixtures/mockspace-harness.cjs, then delete tools/launchpad/smoke.cjs (D6) and e2e/fixtures/mockspace.cjs together, after one browser run when the owner asks |
-| `tools/launchpad/smoke.cjs` | 128 | planned | delete: a one-off probe with machine paths (owner D6) |
+| `tools/launchpad/smoke.cjs` | 128 | deleted | a one-off probe with machine paths (owner D6) |
 
 ## tools/xoicons (1)
 
