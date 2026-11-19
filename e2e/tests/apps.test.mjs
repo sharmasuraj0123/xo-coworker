@@ -1,11 +1,13 @@
-// node e2e/tests/apps.test.mjs: the fake Space's app routes, in xo-space's shapes; an approval waits for an answer only a case gives.
+// @ts-check
+
+// The fake Space's app routes, in xo-space's shapes; an approval waits for an answer only a case gives.
 import assert from "node:assert/strict";
 import { createApps, answerApps } from "../lib/apps.mjs";
 
 const A = createApps({ packages: { "/home/me/xo-apps/hello": "e2e/fixtures/apps/hello" }, answers: { hello_greet: "Hello, {name}." } });
 /** @type {any[]} */
 const frames = [];
-const ask = (/** @type {string} */ method, /** @type {string} */ url, /** @type {unknown} */ body) => {
+const ask = (/** @type {string} */ method, /** @type {string} */ url, /** @type {unknown} */ body = undefined) => {
   const u = new URL(url, "http://e2e");
   return /** @type {any} */ (answerApps(A, { method, path: u.pathname, query: u.searchParams, body }, frames));
 };

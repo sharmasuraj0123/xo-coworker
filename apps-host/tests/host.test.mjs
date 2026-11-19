@@ -153,6 +153,16 @@ assert.deepEqual((await K3.start()).failed, [], "a Space without the app routes 
 const oldEl = doc.createElement("div");
 doc.body.append(oldEl);
 /** @type {any} */ (K3.places.get("settings.section", "apps")).render(oldEl, {});
-assert.match(String(/** @type {any} */ (oldEl).html), /doesn't run apps yet/);
+assert.match(String(/** @type {any} */ (oldEl).html), /doesn&#39;t run apps yet/);
+const K4 = createKernel({ warn: () => {}, log: () => {} });
+definePlaces(K4);
+const safe = /** @type {any} */ ({ list: async () => ({ contract: "0.1", safe_mode: true, apps: [{ id: "dev.example.word", name: "Word", version: "0.3.0", state: "installed", manifest: WORD.extensions["space.xo"], projects: { p1: { state: "enabled", permissions: [] } } }] }) });
+K4.register(createAppsHost({ client: safe, doc: /** @type {any} */ (doc), win: /** @type {any} */ (win), redraw: (el, html) => { /** @type {any} */ (el).html = html; }, projects: () => [], draft() {}, openPanel() {}, confirm: async () => true, context() {} }));
+await K4.start();
+assert.equal(K4.places.entries("panel.page", { project: "p1" }).length, 0, "safe mode: no app shows anywhere");
+const safeEl = doc.createElement("div");
+doc.body.append(safeEl);
+/** @type {any} */ (K4.places.get("settings.section", "apps")).render(safeEl, {});
+assert.match(String(/** @type {any} */ (safeEl).html), /Safe mode is on/);
 assert.doesNotMatch(String(/** @type {any} */ (oldEl).html), /Install an app|set-err/);
 console.log("ok host: manifest → places per project, prompt commands draft, views open and close, cards are pictures first, disable leaves nothing");

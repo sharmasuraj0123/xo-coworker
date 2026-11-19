@@ -119,7 +119,7 @@ export function createAppsHost(d) {
       };
       const deps = { enabled, mountView, openPanel: (/** @type {App} */ app, /** @type {Surface} */ s, /** @type {At} */ at) => d.openPanel(`${app.id}:${s.id}`, at), runCommand };
 
-      const settings = createAppsSettings({ client: d.client, redraw: d.redraw, projects: d.projects, confirm: d.confirm, rows: () => [...apps.values()].map((a) => a.row), refresh: () => refresh() });
+      const settings = createAppsSettings({ client: d.client, redraw: d.redraw, projects: d.projects, confirm: d.confirm, openPanel: (key, at) => d.openPanel(key, at), rows: () => [...apps.values()].map((a) => a.row), refresh: () => refresh() });
       const cards = createCards({ doc: d.doc, mountView, find: (id, project) => (enabled(id, project) ? apps.get(id)?.app || null : null) });
       ctx.contribute("settings.section", { id: "apps", label: "Apps", icon: "plug", order: 900, render: settings.render });
       ctx.contribute("conversation.block", { id: "app", render: cards.render });
@@ -146,8 +146,9 @@ export function createAppsHost(d) {
           none = true;
         }
         if (disposed) return;
-        settings.unavailable(none);
-        if (disposed) return;
+        const safe = !none && !!res && res.safe_mode === true;
+        settings.off(none ? "This XO Space doesn't run apps yet. Apps appear here once it does." : safe ? "Safe mode is on, so every app is off. Turn it off in XO Space to use them again." : "");
+        if (safe) res = [];
         /** @type {Row[]} */
         const rows = Array.isArray(res) ? res : Array.isArray(res?.apps) ? res.apps : [];
         const seen = new Set();

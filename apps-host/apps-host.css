@@ -4,6 +4,7 @@
   [data-m="apps-host"] .xa-from { display: flex; flex-direction: column; gap: var(--s-2); margin: 0; padding: 0; border: 0; }
   [data-m="apps-host"] .xa-from legend { margin-bottom: var(--s-1); color: var(--ink-3); font-size: var(--fs-sm); }
   [data-m="apps-host"] .xa-back { justify-content: flex-start; }
+  [data-m="apps-host"] .xa-acts { display: flex; gap: var(--s-2); }
 
   .xa-frame { position: relative; display: flex; flex-direction: column; min-height: var(--h-lg); height: var(--xa-view-h, 100%); max-height: var(--xa-card-max, none); color: var(--ink-3); font-size: var(--fs-sm); }
   .xa-frame-status { display: flex; align-items: center; justify-content: center; gap: var(--s-2); padding: var(--s-3); }

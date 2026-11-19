@@ -2,7 +2,7 @@
 import { view } from "./settings-view.js";
 import { checkRow } from "./manifest.js";
 
-/** @typedef {import("./settings-view.js").State} State @typedef {import("./settings-view.js").Row} Row @typedef {import("./client.js").AppsClient} AppsClient @typedef {{ client: AppsClient, redraw(el: HTMLElement, html: string): unknown, projects(): Array<{ id: string, name: string }>, confirm(text: string): Promise<boolean>, rows(): Row[], refresh(): Promise<void> }} SettingsDeps */
+/** @typedef {import("./settings-view.js").State} State @typedef {import("./settings-view.js").Row} Row @typedef {import("./client.js").AppsClient} AppsClient @typedef {{ client: AppsClient, redraw(el: HTMLElement, html: string): unknown, projects(): Array<{ id: string, name: string }>, confirm(text: string): Promise<boolean>, rows(): Row[], refresh(): Promise<void>, openPanel(key: string, at: { project: string }): void, wait?: (ms: number) => Promise<void> }} SettingsDeps */
 
 /** @param {unknown} e */
 const words = (e) => String(/** @type {any} */ (e)?.message || e || "Something went wrong.");
@@ -10,7 +10,7 @@ const words = (e) => String(/** @type {any} */ (e)?.message || e || "Something w
 /** Settings › Apps: install from a repo or a folder, the consent sheet, per-project grants, update, rollback, remove. @param {SettingsDeps} d */
 export function createAppsSettings(d) {
   /** @type {State} */
-  const s = { mode: "list", rows: [], loading: true, error: "", busy: "", source: "git", staged: null, appId: "", grantFor: "", activity: null, values: {}, unavailable: false };
+  const s = { mode: "list", rows: [], loading: true, error: "", busy: "", source: "git", staged: null, appId: "", grantFor: "", activity: null, values: {}, off: "" };
   /** @type {Set<HTMLElement>} */
   const shown = new Set();
   /** @type {WeakSet<HTMLElement>} */
@@ -46,6 +46,27 @@ export function createAppsSettings(d) {
     if (!project || !id || Object.hasOwn(s.values, key)) return;
     d.client.settings(id, project).then((v) => { if (!Object.hasOwn(s.values, key)) set({ values: { ...s.values, [key]: v && typeof v === "object" ? (v.values || v) : {} } }); }).catch(() => {});
   };
+  const wait = d.wait || ((/** @type {number} */ ms) => new Promise((ok) => setTimeout(ok, ms)));
+  const showing = () => [...shown].some((el) => el.isConnected);
+  /** An owner decision xo-space holds in Needs you: true once applied, false when Settings closed before an answer; anything else is said in words. @param {any} r @returns {Promise<any>} */
+  const approved = async (r) => {
+    const id = r && typeof r.approval_id === "string" ? r.approval_id : "";
+    if (!id) return r ?? {};
+    const until = Date.parse(r.expires_at) || Infinity;
+    set({ busy: "Waiting for your approval in Needs you…" });
+    for (;;) {
+      const a = await d.client.approval(id);
+      const state = a && a.state;
+      if (state === "applied") return a;
+      if (state === "declined") throw new Error("You said not now. Nothing changed.");
+      if (state === "expired" || state === "void" || (state === "pending" && Date.now() > until)) throw new Error("That request expired before an answer. Nothing changed; try again.");
+      if (state === "withdrawn") throw new Error("That request was withdrawn. Nothing changed.");
+      if (state === "failed") throw new Error(`XO couldn't do it${a.reason ? `: ${a.reason}` : "."} Nothing changed.`);
+      if (state !== "pending") throw new Error("XO couldn't tell what happened to that request, so nothing changed.");
+      if (!showing()) return null;
+      await wait(2000);
+    }
+  };
   const app = () => { const r = s.rows.find((x) => x.id === s.appId); return r ? checkRow(r).app : null; };
 
   /** @type {Record<string, (el: HTMLElement, data: DOMStringMap) => unknown>} */
@@ -61,9 +82,9 @@ export function createAppsSettings(d) {
     confirm: () => work("Installing…", async () => {
       const st = s.staged;
       if (!st) return {};
-      await d.client.confirm(st.staging_id, st.sha256);
+      const a = await approved(await d.client.confirm(st.staging_id, st.sha256));
       await d.refresh();
-      return { mode: "app", appId: st.id, staged: null };
+      return a ? { mode: "app", appId: a.result?.id || st.id, staged: null } : {};
     }),
     grant: (_el, data) => set({ grantFor: data.project || "", error: "" }),
     "cancel-grant": () => set({ grantFor: "" }),
@@ -71,9 +92,9 @@ export function createAppsSettings(d) {
       const a = app();
       if (!a || !data.project) return {};
       const picked = new Set([...el.querySelectorAll("input[data-optional]:checked")].map((i) => /** @type {HTMLElement} */ (i).dataset.optional));
-      const optional = a.permissions.optional.map((p, i) => i).filter((i) => picked.has(`${a.permissions.optional[i].cap}#${i}`));
-      const sha = s.rows.find((r) => r.id === a.id)?.manifest_sha;
-      await d.client.setGrant(a.id, data.project, { optional, routes: a.routes.map((r) => `${r.method} ${r.template}`), ...(typeof sha === "string" ? { manifestSha: sha } : {}) });
+      const chosen = [...a.permissions.required, ...a.permissions.optional.filter((p, i) => picked.has(`${p.cap}#${i}`))];
+      const permissions = chosen.map((p) => ({ cap: p.cap, paths: p.paths || [], names: p.names || [] }));
+      await approved(await d.client.setGrant(a.id, data.project, { state: "enabled", permissions }));
       await d.refresh();
       return { grantFor: "" };
     }),
@@ -85,9 +106,14 @@ export function createAppsSettings(d) {
     update: () => work("Fetching the newest version…", async () => {
       const staged = await d.client.update(s.appId);
       if (staged && staged.staging_id) return { mode: "sheet", staged };
+      await approved(staged);
       await d.refresh();
     }),
-    rollback: () => work("Going back…", async () => { await d.client.rollback(s.appId); await d.refresh(); }),
+    rollback: () => work("Going back…", async () => { await approved(await d.client.rollback(s.appId)); await d.refresh(); }),
+    "open-panel": (_el, data) => {
+      const a = app(), panel = a && (a.surfaces.panel || [])[0];
+      if (a && panel && data.project) d.openPanel(`${a.id}:${panel.id}`, { project: data.project });
+    },
     start: () => work("Restarting…", async () => { await d.client.start(s.appId); await d.refresh(); }),
     activity: () => (s.activity ? set({ activity: null }) : work("Reading activity…", async () => {
       const a = await d.client.activity(s.appId);
@@ -142,8 +168,7 @@ export function createAppsSettings(d) {
     },
     /** @param {boolean} loading @param {string} [error] */
     loaded(loading, error = "") { set({ loading, error }); },
-    /** @param {boolean} on */
-    unavailable(on) { if (s.unavailable !== on) set({ unavailable: on, ...(on ? { mode: "list" } : {}) }); },
+    off(/** @type {string} */ why) { if (s.off !== why) set({ off: why, ...(why ? { mode: "list" } : {}) }); },
     redraw: draw,
   };
 }

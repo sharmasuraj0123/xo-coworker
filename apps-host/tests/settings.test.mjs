@@ -63,14 +63,14 @@ const press = async (act, data = {}) => {
 await press("install");
 assert.match(el.html, /Install an app/);
 await press("stage");
-assert.deepEqual(calls.at(-1), ["stage", { git: "https://github.com/me/xo-word", ref: "v0.3.0" }]);
+assert.deepEqual(calls.at(-1), ["stage", { git: "https://github.com/me/xo-word", ref: "v0.3.0" }], "the client turns this into {source: {kind: \"git\", …}}");
 assert.match(el.html, /Install Word\?/);
 await press("confirm");
 assert.deepEqual(calls.at(-1), ["confirm", "s1", "a".repeat(64)]);
 assert.match(el.html, /<h3 class="xa-title"[^>]*>Word<\/h3>/);
 await press("grant", { project: "p1" });
 await press("allow", { project: "p1" });
-assert.deepEqual(calls.at(-1), ["setGrant", "dev.example.word", "p1", { optional: [0], routes: ["GET /api/chat/chats/{chat_id}/threads", "POST /api/chat/chats/{chat_id}/messages", "GET /api/xo-projects/{project_id}/file"], manifestSha: "f".repeat(64) }]);
+assert.deepEqual(calls.at(-1), ["setGrant", "dev.example.word", "p1", { state: "enabled", permissions: [{ cap: "files.read", paths: ["docs/**", "**/*.word.json"], names: [] }, { cap: "files.write", paths: ["**/*.word.json"], names: [] }, { cap: "composer.draft", paths: [], names: [] }] }], "the required permissions and the picked optional one, by their caps and paths");
 ok = false;
 await press("remove");
 assert.equal(calls.at(-1)[0], "setGrant", "No to the confirm removes nothing");
@@ -82,4 +82,39 @@ client.stage = async () => { throw new Error("needs XO apps contract >=0.2; this
 await press("install");
 await press("stage");
 assert.match(el.html, /class="set-err" role="alert">needs XO apps contract/);
+
+const el2 = /** @type {any} */ (doc.createElement("div"));
+doc.body.append(el2);
+el2.querySelector = (/** @type {string} */ q) => inputs[q] || null;
+el2.querySelectorAll = () => [];
+el2.contains = () => true;
+let polls = 0, verdict = "applied";
+/** @type {any[]} */
+const opened = [];
+rows = [];
+const c2 = /** @type {any} */ ({
+  stage: async () => staged,
+  confirm: async () => ({ approval_id: "ap_1" }),
+  approval: async (/** @type {string} */ id) => { assert.equal(id, "ap_1"); polls++; return { state: polls < 3 ? "pending" : verdict, result: verdict === "applied" ? { id: "dev.example.word", slug: "word", version: "0.3.0" } : null }; },
+  setGrant: async () => ({ approval_id: "ap_1" }),
+  settings: async () => ({}),
+});
+const S2 = createAppsSettings({ client: c2, redraw: (e, html) => { /** @type {any} */ (e).html = html; }, projects: () => ctx.projects, confirm: async () => true, rows: () => rows, refresh: async () => { if (polls >= 3 && verdict === "applied") rows = [row]; }, openPanel: (k, at) => opened.push([k, at.project]), wait: async () => { await tick(); assert.match(el2.html, /Waiting for your approval in Needs you/); } });
+S2.loaded(false);
+S2.render(el2, { project: "p1" });
+const press2 = async (/** @type {string} */ act, data = {}) => { el2.dispatch("click", { target: { closest: () => ({ dataset: { act, ...data }, disabled: false }) } }); for (let i = 0; i < 8; i++) await tick(); };
+await press2("install");
+await press2("stage");
+await press2("confirm");
+assert.equal(polls, 3, "install waits for the owner's answer in Needs you");
+assert.match(el2.html, /<h3 class="xa-title"[^>]*>Word<\/h3>/);
+await press2("open-panel", { project: "p1" });
+assert.deepEqual(opened, [["dev.example.word:outline", "p1"]], "Open shows the app's panel for that project");
+polls = 0; verdict = "declined";
+await press2("grant", { project: "p1" });
+await press2("allow", { project: "p1" });
+assert.match(el2.html, /You said not now/);
+polls = 0; verdict = "mystery";
+await press2("allow", { project: "p1" });
+assert.match(el2.html, /couldn&#39;t tell what happened/, "a state XO doesn't know is never taken as a yes");
 console.log("ok settings: install sheet, equal-weight choices, grants with picked optional permissions, remove asks first, errors in words");

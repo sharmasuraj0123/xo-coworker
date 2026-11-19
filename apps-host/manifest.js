@@ -33,7 +33,6 @@ export const CAPS = Object.freeze({
   "context.update": "Tell the agent what you're pointing at",
   "composer.draft": "Suggest a message. Only you send it.",
   "inbox.post": "Post notes to Inbox (never Needs you)",
-  "network": "Can reach the internet (through XO's proxy)",
   "secrets": "Use your {names}. Its views never see it.",
   "clipboard.write": "Copy to your clipboard",
 });
@@ -46,7 +45,7 @@ const RISKS = ["routine", "notable", "destructive"];
 const VIS = ["model", "app"];
 const BAD_GLOB = /(^\/|^~|\\|(^|\/)\.\.(\/|$)|(^|\/)\.git(\/|$)|(^|\/)\.xo(\/|$)|(^|\/)\.env)/;
 const DOC_PATTERN = /^(?:\*\*\/)?(?:[a-z0-9_-]+\/)*\*((?:\.[a-z0-9-]+)+)$/;
-const XO_TYPES = new Set("md markdown txt text json jsonl js mjs cjs ts tsx jsx html htm css scss py sh bash zsh yml yaml toml xml svg png jpg jpeg gif webp avif bmp ico pdf csv tsv log lock ini cfg conf env rs go java kt rb php c h cc cpp hpp cs swift sql ipynb".split(" "));
+const XO_TYPES = new Set("md markdown txt text json jsonl js mjs cjs ts tsx jsx html htm css scss py sh bash zsh yml yaml toml xml svg png jpg jpeg gif webp avif bmp ico pdf csv tsv log lock ini cfg conf env rs go java kt rb php c h cc cpp hpp cs swift sql ipynb diff patch mp3 mp4 mov wav webm doc docx xls xlsx ppt pptx zip tar gz tgz".split(" "));
 
 const str = (/** @type {unknown} */ v, max = 200) => typeof v === "string" && v.trim().length > 0 && v.length <= max;
 const list = (/** @type {unknown} */ v) => (Array.isArray(v) ? v : []);
@@ -67,7 +66,7 @@ export function checkManifest(plugin) {
   if (!x || typeof x !== "object") return { app: null, problems: ["plugin.json has no extensions[\"space.xo\"] block"], warnings };
   const id = String(x.id || "");
   if (!APP_ID.test(id) || id.length < 3 || id.length > 100) problems.push(`id must be reverse-DNS like "dev.me.word" (got "${id}")`);
-  else if (/^xo\./.test(id)) problems.push(`"xo." ids belong to XO's own modules (got "${id}")`);
+  else if (/^(xo|space\.xo)\./.test(id)) problems.push(`"xo." and "space.xo." ids belong to XO itself (got "${id}")`);
   const version = String(plugin.version || "");
   if (!/^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/.test(version)) problems.push(`version must be semver like "0.1.0" (got "${version}")`);
   const engines = x.engines && x.engines["xo-space"];
@@ -202,3 +201,6 @@ export function permissionWords(p) {
 
 /** An installed app as xo-space lists it (its version and raw space.xo block), checked like a manifest. @param {{ version?: unknown, manifest?: unknown }} row */
 export const checkRow = (row) => checkManifest({ version: row.version, extensions: { "space.xo": row.manifest } });
+
+/** A capability by itself, in the words the person reads. @param {string} cap */
+export const capabilityWords = (cap) => (Object.hasOwn(CAPS, cap) ? CAPS[/** @type {keyof typeof CAPS} */ (cap)].replace(" in {paths}", "").replace("{names}", "keys") : cap);

@@ -31,10 +31,10 @@ function checkSource(source) {
   if ("git" in source) {
     if (!HTTPS_GIT.test(source.git)) throw new Error("A repo is an https address, like https://github.com/me/xo-word");
     if (source.ref !== undefined && !/^[A-Za-z0-9._][A-Za-z0-9._\/-]{0,99}$/.test(source.ref)) throw new Error("A ref is a tag, branch or commit");
-    return { git: source.git, ...(source.ref ? { ref: source.ref } : {}) };
+    return { kind: "git", url: source.git, ...(source.ref ? { ref: source.ref } : {}) };
   }
   if (typeof source.path !== "string" || !source.path.startsWith("/") || source.path.split("/").includes("..")) throw new Error("A folder is an absolute path on this machine");
-  return { path: source.path };
+  return { kind: "folder", path: source.path };
 }
 
 /** The one way apps-host reaches xo-space's app routes; request is core/platform's http request. @param {Request} request */
@@ -43,7 +43,7 @@ export function createAppsClient(request) {
     contract: () => request("/api/apps/contract"),
     list: () => request("/api/apps"),
     get: (/** @type {string} */ id) => request(app(id)),
-    stage: (/** @type {Source} */ source) => request("/api/apps/installs", { method: "POST", body: checkSource(source) }),
+    stage: (/** @type {Source} */ source) => request("/api/apps/installs", { method: "POST", body: { source: checkSource(source) } }),
     staged: (/** @type {string} */ stagingId) => request(`/api/apps/installs/${token(stagingId, "staging id")}`),
     confirm: (/** @type {string} */ stagingId, /** @type {string} */ sha256) => {
       if (!/^[0-9a-f]{64}$/.test(sha256)) throw new Error("the staged package's sha256 is missing");
@@ -53,9 +53,10 @@ export function createAppsClient(request) {
     rollback: (/** @type {string} */ id) => request(`${app(id)}/rollback`, { method: "POST" }),
     remove: (/** @type {string} */ id, { deleteData = false } = {}) => request(app(id), { method: "DELETE", body: { delete_data: !!deleteData } }),
     grant: (/** @type {string} */ id, /** @type {string} */ project) => request(`${app(id)}/grants`, { query: { project: token(project, "project id") } }),
-    setGrant: (/** @type {string} */ id, /** @type {string} */ project, /** @type {{ optional: number[], routes: string[], manifestSha?: string }} */ grant) =>
-      request(`${app(id)}/grants`, { method: "PUT", query: { project: token(project, "project id") }, body: { required: true, optional: grant.optional, routes: grant.routes, ...(grant.manifestSha ? { manifest_sha: grant.manifestSha } : {}) } }),
-    revoke: (/** @type {string} */ id, /** @type {string} */ project) => request(`${app(id)}/grants`, { method: "DELETE", query: { project: token(project, "project id") } }),
+    setGrant: (/** @type {string} */ id, /** @type {string} */ project, /** @type {{ state: "enabled", permissions?: Array<{ cap: string, paths: string[], names: string[] }>, routes?: string[] }} */ grant) =>
+      request(`${app(id)}/grants`, { method: "PUT", query: { project: token(project, "project id") }, body: grant }),
+    revoke: (/** @type {string} */ id, /** @type {string} */ project) => request(`${app(id)}/grants`, { method: "PUT", query: { project: token(project, "project id") }, body: { state: "disabled" } }),
+    approval: (/** @type {string} */ approvalId) => request(`/api/apps/approvals/${token(approvalId, "approval id")}`),
     stop: (/** @type {string} */ id) => request(`${app(id)}/stop`, { method: "POST" }),
     start: (/** @type {string} */ id) => request(`${app(id)}/start`, { method: "POST" }),
     activity: (/** @type {string} */ id) => request(`${app(id)}/activity`),

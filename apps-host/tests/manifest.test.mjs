@@ -27,7 +27,6 @@ const sneaky = clone();
 x(sneaky).permissions.optional[0].askWhen = "context.update; x";
 assert.equal(checkManifest(sneaky).app?.permissions.optional[0].askWhen, undefined, "askWhen is a plain key or nothing");
 assert.equal(permissionWords(app.permissions.required[0]), "Read files in docs/**, **/*.word.json");
-assert.equal(permissionWords({ cap: "network", why: "x" }), "Can reach the internet (through XO's proxy)");
 assert.ok(globRe("**/*.word.json").test("a/b/c.word.json"));
 assert.ok(globRe("**/*.word.json").test("c.word.json"));
 assert.ok(!globRe("docs/*.word.json").test("docs/a/b.word.json"));
@@ -43,6 +42,8 @@ const refused = (edit, why) => {
 refused((p) => { delete p.extensions; }, /no extensions/);
 refused((p) => { x(p).id = "Word"; }, /reverse-DNS/);
 refused((p) => { x(p).id = "xo.files"; }, /belong to XO/);
+refused((p) => { x(p).id = "space.xo.word"; }, /belong to XO/);
+refused((p) => { x(p).documents[0].pattern = "**/*.diff"; }, /own file type/);
 refused((p) => { p.version = "1"; }, /semver/);
 refused((p) => { x(p).engines["xo-space"] = ">=1.0 <2"; }, /needs XO apps contract/);
 refused((p) => { x(p).engines.xo = "^2"; }, /needs XO kernel/);
