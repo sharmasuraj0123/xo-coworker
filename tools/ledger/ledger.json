@@ -2553,14 +2553,21 @@
   "js/storm.js": {
    "status": "split",
    "home": [
-    "core/services/storm/client",
-    "core/services/storm/stream",
-    "core/services/storm/reducers/*",
-    "core/services/storm/selectors/*",
-    "core/services/storm/commands",
-    "core/services/account",
-    "core/services/review"
-   ]
+    "core/services/storm/index.js",
+    "core/services/storm/config.js",
+    "core/services/storm/client.js",
+    "core/services/storm/stream.js",
+    "core/services/storm/load.js",
+    "core/services/storm/account.js",
+    "core/services/storm/history.js",
+    "core/services/storm/hops.js",
+    "core/services/storm/reducers/",
+    "core/services/storm/selectors/",
+    "core/services/storm/commands.js",
+    "core/services/storm/act.js",
+    "core/services/storm/types.d.ts"
+   ],
+   "note": "js/storm.js is a one-line re-export of core/services/storm until the shims go"
   },
   "js/timeline.js": {
    "status": "split",
@@ -13869,134 +13876,44 @@
    "home": "shell/panel/panel.js"
   },
   "js/storm.js::exports::WAITING_STATES": {
-   "status": "split-region",
-   "home": [
-    "core/services/storm/client",
-    "core/services/storm/stream",
-    "core/services/storm/reducers/*",
-    "core/services/storm/selectors/*",
-    "core/services/storm/commands",
-    "core/services/account",
-    "core/services/review"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/storm/config.js"
   },
   "js/storm.js::exports::stormSource": {
-   "status": "split-region",
-   "home": [
-    "core/services/storm/client",
-    "core/services/storm/stream",
-    "core/services/storm/reducers/*",
-    "core/services/storm/selectors/*",
-    "core/services/storm/commands",
-    "core/services/account",
-    "core/services/review"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/storm/index.js"
   },
   "js/storm.js::functions::stormSource": {
-   "status": "split-region",
-   "home": [
-    "core/services/storm/client",
-    "core/services/storm/stream",
-    "core/services/storm/reducers/*",
-    "core/services/storm/selectors/*",
-    "core/services/storm/commands",
-    "core/services/account",
-    "core/services/review"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/storm/index.js"
   },
   "js/storm.js::routes::/api/chat/*": {
-   "status": "split-region",
-   "home": [
-    "core/services/storm/client",
-    "core/services/storm/stream",
-    "core/services/storm/reducers/*",
-    "core/services/storm/selectors/*",
-    "core/services/storm/commands",
-    "core/services/account",
-    "core/services/review"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/storm/client.js"
   },
   "js/storm.js::keys::router": {
-   "status": "split-region",
-   "home": [
-    "core/services/storm/client",
-    "core/services/storm/stream",
-    "core/services/storm/reducers/*",
-    "core/services/storm/selectors/*",
-    "core/services/storm/commands",
-    "core/services/account",
-    "core/services/review"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/storm/reducers/space.js"
   },
   "js/storm.js::keys::ui.shape": {
-   "status": "split-region",
-   "home": [
-    "core/services/storm/client",
-    "core/services/storm/stream",
-    "core/services/storm/reducers/*",
-    "core/services/storm/selectors/*",
-    "core/services/storm/commands",
-    "core/services/account",
-    "core/services/review"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/storm/reducers/space.js"
   },
   "js/storm.js::keys::already_decided": {
-   "status": "split-region",
-   "home": [
-    "core/services/storm/client",
-    "core/services/storm/stream",
-    "core/services/storm/reducers/*",
-    "core/services/storm/selectors/*",
-    "core/services/storm/commands",
-    "core/services/account",
-    "core/services/review"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/storm/commands.js"
   },
   "js/storm.js::keys::withdrawn": {
-   "status": "split-region",
-   "home": [
-    "core/services/storm/client",
-    "core/services/storm/stream",
-    "core/services/storm/reducers/*",
-    "core/services/storm/selectors/*",
-    "core/services/storm/commands",
-    "core/services/account",
-    "core/services/review"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/storm/commands.js"
   },
   "js/storm.js::keys::expired": {
-   "status": "split-region",
-   "home": [
-    "core/services/storm/client",
-    "core/services/storm/stream",
-    "core/services/storm/reducers/*",
-    "core/services/storm/selectors/*",
-    "core/services/storm/commands",
-    "core/services/account",
-    "core/services/review"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/storm/commands.js"
   },
   "js/storm.js::keys::review_not_found": {
-   "status": "split-region",
-   "home": [
-    "core/services/storm/client",
-    "core/services/storm/stream",
-    "core/services/storm/reducers/*",
-    "core/services/storm/selectors/*",
-    "core/services/storm/commands",
-    "core/services/account",
-    "core/services/review"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/storm/commands.js"
   },
   "js/timeline.js::exports::uiMsg": {
    "status": "split-region",

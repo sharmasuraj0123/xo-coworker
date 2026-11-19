@@ -123,4 +123,29 @@ t("every 60 s: finished sub-agents beyond 300 go, oldest first; live ones and th
   for (const id of ["r3", "r302", "r_open", "r_live"]) assert.equal(world.state.runs.has(id), true, id);
 });
 
+t("a thread page beside the chat is watched as the main one: read once, its turns kept, its new hops re-read; null lets it go", async () => {
+  const be = fakeBackend({
+    "GET /chat/chats/chat_p/threads": { threads: [thread("main", { session_id: "s_main" }), thread("side", { session_id: "s_side" })] },
+    "GET /chat/chats/chat_p/messages": { messages: [] }, "GET /chat/chats/chat_p/hops": { hops: [] }, "GET /chat/events": { events: [] },
+  });
+  const { world } = await boot(be);
+  world.act.watchThread("main");
+  world.act.watchSideThread("side");
+  world.act.watchSideThread("side");
+  await until(() => world.state.threadHist.side && world.state.threadHist.side.loaded);
+  assert.equal(be.asked.filter((a) => a.path === "/chat/chats/chat_p/messages" && a.query.thread === "side").length, 1);
+  let seq = 200;
+  for (const s of ["s_main", "s_side"]) for (let i = 0; i < 3; i++) { turnFrames(be, s, `${s}_${i}`, seq); seq += 2; }
+  await until(() => world.state.lastSeq === seq - 1);
+  intervals.filter((x) => x.ms === 60000).pop().fn();
+  assert.equal(world.state.turns.list((x) => x.session === "s_side").length, 3);
+  const hops = () => be.asked.filter((a) => a.path === "/chat/chats/chat_p/hops" && a.query.thread === "side").length;
+  const n = hops();
+  be.push("hop", { chat_id: "chat_p", seq: 900, data: { id: "hs", kind: "relay", state: "sent", thread_ts: "side" } }, 900);
+  await until(() => hops() === n + 1, 2000);
+  world.act.watchSideThread(null);
+  intervals.filter((x) => x.ms === 60000).pop().fn();
+  assert.equal(world.state.turns.list((x) => x.session === "s_side").length, 2);
+});
+
 await done();

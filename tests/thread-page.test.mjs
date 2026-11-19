@@ -5,7 +5,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
-const storm = readFileSync(new URL("../js/storm.js", import.meta.url), "utf8");
 const css = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
 
 // registered on the panel's page model: one page (single), 560 wide, its own box, kept while hidden
@@ -24,7 +23,6 @@ assert.match(app, /checklistRender\(needs, \$\("#tpthead"\), tpView\(\), "tck-li
 assert.match(app, /if \(!t\) \{ STAGE\.closeTab\("thread"\); return; \}/);
 // watched beside the main thread (storm keeps both)
 assert.match(app, /world\.act\.watchSideThread\?\.\(key\);/);
-assert.match(storm, /watchSideThread: \(ts\) => \{ watched\.side = ts \|\| null;/);
 // opening: beside a chat, from the panel's rows; ⌘/Ctrl-click or elsewhere: today's full page
 const ofp = app.slice(app.indexOf("function openFromPanel("), app.indexOf("\n}\n", app.indexOf("function openFromPanel(")));
 assert.match(ofp, /const besideChat = S\.view === "ws" \|\| S\.view\.startsWith\("p:"\);/);
