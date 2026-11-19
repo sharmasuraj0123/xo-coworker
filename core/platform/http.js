@@ -105,8 +105,8 @@ async function exchange(url, method, body, signal, extra = null) {
   if (res.type === "opaqueredirect") {
     throw new ApiError(401, "signed_out", "Signed out of the workspace. Reopen this app from XO.");
   }
+  if (!res.ok) throw await failure(res);
   const text = await res.text();
-  if (!res.ok) throw errorOf(res.status, res.statusText, text);
   try {
     return text ? JSON.parse(text) : null;
   } catch {
@@ -133,6 +133,9 @@ function errorOf(status, statusText, text) {
   return new ApiError(status, code, message, extra);
 }
 
+/** A failed answer as an ApiError; a body that can't be read still keeps the answer's status. @param {Response} res */
+const failure = async (res) => errorOf(res.status, res.statusText, await res.text().catch(() => ""));
+
 /** The page-relative URL of a route. @param {string} path */
 export const urlOf = (path) => BASE + path;
 
@@ -154,9 +157,8 @@ export async function text(path, { signal } = {}) {
   try {
     res = await fetch(BASE + path, { signal: dl.signal, headers: coderHeaders(), redirect: "manual" });
     if (res.type === "opaqueredirect") throw new ApiError(401, "signed_out", "Signed out of the workspace. Reopen this app from XO.");
-    const body = await res.text();
-    if (!res.ok) throw errorOf(res.status, res.statusText, body);
-    return body;
+    if (!res.ok) throw await failure(res);
+    return await res.text();
   } catch (err) {
     if (err instanceof ApiError) throw err;
     if (err && /** @type {Error} */ (err).name === "AbortError" && dl.timedOut()) throw new ApiError(0, "timeout", `XO didn't answer in ${Math.round(READ_MS / 1000)} s.`);
@@ -195,7 +197,7 @@ export async function blob(path, { signal, ms = READ_MS } = {}) {
     const res = await fetch(BASE + path, { signal: dl.signal, headers: coderHeaders(), cache: "no-store", redirect: "manual" });
     if (res.type === "opaqueredirect") throw new ApiError(401, "signed_out", "Signed out of the workspace. Reopen this app from XO.");
     if (res.ok) return await res.blob();
-    throw errorOf(res.status, res.statusText, await res.text());
+    throw await failure(res);
   } catch (err) {
     if (err instanceof ApiError) throw err;
     if (err && /** @type {Error} */ (err).name === "AbortError" && dl.timedOut()) throw new ApiError(0, "timeout", `XO didn't answer in ${Math.round(ms / 1000)} s.`);

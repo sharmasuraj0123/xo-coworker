@@ -146,6 +146,14 @@ await t("one error parser: blobs, texts and uploads read every error shape as re
   e = await rejects(A.attachmentText("c", "a"));
   assert.deepEqual([e.code, e.current], ["changed", { v: 3 }]);
 });
+await t("a failed answer whose body can't be read keeps its status: blobs, texts and requests alike", async () => {
+  const broken = (status) => ({ ...res(status, "", { statusText: "Gone" }), text: async () => { throw new TypeError("body stream broke"); }, json: async () => { throw new TypeError("body stream broke"); } });
+  answer = () => broken(410);
+  for (const p of [A.api.projectImage("p", "x.png"), A.attachmentText("c", "a"), A.request("/a")]) {
+    const e = await rejects(p);
+    assert.deepEqual([e.status, e.code, e.message], [410, "http_410", "410 Gone"]);
+  }
+});
 await t("clientId: fresh each time, ui_ prefixed", async () => {
   const a = A.clientId(), b = A.clientId();
   assert.match(a, /^ui_[0-9a-z]+_[0-9a-z]{1,8}$/);
