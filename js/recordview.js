@@ -335,14 +335,17 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
    *  their first lines. Card 12 → well inset --cell-in, so 8; the page inside is the fixed --r-xs. The kind's icon
    *  stays under it for a phone's list, where a card is one line. */
   function wellHtml(m) {
-    const tint = m.kind === "image" ? "" : fileColor(m.name || m.path) || "";
-    if (m.kind === "image") { const u = thumbs.get(m.key); return u ? `<span class="md-well"><img class="md-pic" src="${esc(u)}" alt="" loading="lazy" decoding="async"></span>` : ""; }
+    // every well takes its file icon's colour, pictures too (the proposal's rule; the owner, 19 Nov 14:29Z: "wasn't
+    // there supposed to be some colours here?": a picture's well was left grey)
+    const tint = fileColor(m.name || m.path) || "";
+    const wt = tint ? ` style="--wt:${esc(tint)}"` : "";
+    if (m.kind === "image") { const u = thumbs.get(m.key); return u ? `<span class="md-well"${wt}><img class="md-pic" src="${esc(u)}" alt="" loading="lazy" decoding="async"></span>` : ""; }
     const p = texts.get(m.key);
     if (!p) return "";
     const page = p.kind === "doc"
       ? `${p.title ? `<span class="md-pt">${esc(p.title)}</span>` : ""}<span class="md-pp">${esc(p.text)}</span>`
       : `<span class="md-pl">${p.lines.map((l) => esc(l) || " ").join("\n")}</span>`;
-    return `<span class="md-well"${tint ? ` style="--wt:${esc(tint)}"` : ""}><span class="md-sheet${p.kind === "doc" ? " is-doc" : ""}">${page}</span></span>`;
+    return `<span class="md-well"${wt}><span class="md-sheet${p.kind === "doc" ? " is-doc" : ""}">${page}</span></span>`;
   }
   function thumbHtml(m, where) {
     if (where === "page") { const w = wellHtml(m); if (w) return w + iconHtml(m); }
@@ -396,7 +399,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
     return `<li class="md-it${m.pinned ? " is-pin" : ""}${m.exists === false ? " is-gone" : ""}">` +
       `<button type="button" class="md-open" data-made-file="${esc(m.key)}" title="${esc(n.tip)}" aria-label="Open ${esc(n.label)}"><span class="md-th k-${m.kind}${where === "page" && (m.kind === "image" ? thumbs.get(m.key) : texts.get(m.key)) ? " has-well" : ""}">${thumbHtml(m, where)}</span>` +
       `<span class="md-meta"><b>${n.html}</b><span>${esc(where === true ? `${PROJ(m.project)} · ${ago}` : meta)}</span></span></button>` +
-      (where === true ? "" : m.tid ? `<button type="button" class="md-from" data-made-go="t:${esc(m.tid)}" title="Open the thread that made it">${ICON.back}<span>${esc(n.from)}</span></button>`
+      (where === true ? "" : m.tid ? `<button type="button" class="md-from" data-made-go="t:${esc(m.tid)}" title="Open the thread that made it">${ICON.threadOne}<span>${esc(n.from)}</span></button>`
         : where === "page" ? `<span class="md-from is-none" aria-hidden="true"><span>&nbsp;</span></span>` : "") + // on the page every card is one height
       `<button type="button" class="md-pin" data-made-pin="${esc(m.key)}" aria-pressed="${m.pinned}" aria-label="${m.pinned ? "Unpin" : "Pin"} ${esc(n.label)}" title="${m.pinned ? "Unpin" : "Pin it on top"}">${ICON.pin}</button></li>`;
   }

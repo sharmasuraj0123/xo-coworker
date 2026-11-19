@@ -30,6 +30,13 @@ assert.match(view, /String\(d && d\.content \|\| ""\)\.slice\(0, 4096\)/, "from 
 assert.match(view, /!\/\\\.\(pdf\|docx\?\|xlsx\?\|pptx\?\|zip\|gz\)\$\/i\.test/);
 assert.match(view, /if \(where === "page"\) \{ const w = wellHtml\(m\); if \(w\) return w \+ iconHtml\(m\); \}/, "only on the Artifacts page; the icon stays for a phone's rows");
 
+// every well is tinted with its file icon's colour, a picture's too (the owner, 19 Nov 14:29Z); the card's link back
+// to its thread wears the thread mark, not a "‹" that reads as Back (proposal round 4)
+assert.match(view, /const tint = fileColor\(m\.name \|\| m\.path\) \|\| "";/);
+assert.match(view, /<span class="md-well"\$\{wt\}><img class="md-pic"/);
+assert.doesNotMatch(view, /m\.kind === "image" \? "" : fileColor/);
+assert.match(view, /title="Open the thread that made it">\$\{ICON\.threadOne\}<span>/);
+
 // CSS: concentric, tokens only
 const css = readFileSync(new URL("../css/artifacts.css", import.meta.url), "utf8");
 const block = css.slice(css.indexOf("── The thing itself"));
