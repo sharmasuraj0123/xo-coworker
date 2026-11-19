@@ -2329,8 +2329,9 @@
    "home": "modules/intelligence/"
   },
   "js/keynav.js": {
-   "status": "planned",
-   "home": "core/ui/a11y/keynav.js"
+   "status": "moved",
+   "home": "core/ui/a11y/keynav.js",
+   "note": "js/keynav.js re-exports core/ui/a11y/keynav.js until the shims go"
   },
   "js/keys.js": {
    "status": "split",
@@ -2466,8 +2467,9 @@
    "home": "core/ui/markdown/rich.js"
   },
   "js/ring.js": {
-   "status": "planned",
-   "home": "core/ui/a11y/ring.js"
+   "status": "moved",
+   "home": "core/ui/a11y/ring.js",
+   "note": "js/ring.js re-exports core/ui/a11y/ring.js until the shims go; its two region selectors stay until files and changes contribute them"
   },
   "js/rtsettings.js": {
    "status": "split",
@@ -9858,83 +9860,83 @@
    "home": "modules/intelligence/"
   },
   "js/keynav.js::exports::usable": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::exports::step": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::exports::rovingTab": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::exports::radioKeys": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::exports::pointerFollows": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::exports::menuKeys": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::functions::step": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::functions::radioKeys": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::functions::pointerFollows": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::functions::menuKeys": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::keys:: ": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::keys::Enter": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::keys::ArrowDown": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::keys::ArrowRight": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::keys::ArrowUp": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::keys::ArrowLeft": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::keys::Escape": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::keys::Tab": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::keys::Home": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::keys::End": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keys.js::exports::GROUPS": {
@@ -13420,23 +13422,23 @@
    "home": "core/ui/markdown/rich.js"
   },
   "js/ring.js::exports::REGIONS": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/ring.js"
   },
   "js/ring.js::exports::ringBox": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/ring.js"
   },
   "js/ring.js::exports::regionRings": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/ring.js"
   },
   "js/ring.js::functions::ringBox": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/ring.js"
   },
   "js/ring.js::functions::regionRings": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/ring.js"
   },
   "js/rtsettings.js::exports::usualOf": {

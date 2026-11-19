@@ -36,7 +36,7 @@ t("a file you're typing in draws no ring", () => {
   assert.doesNotMatch(css, /\.vw-body:focus-within\{outline/, "none on its box");
   assert.match(css, /\.vw-doc>\.cm-editor\.cm-focused\{outline:none\}/, "nor CodeMirror's own");
   assert.match(css, /\.vw-body\.vw-doc:focus-visible\{outline:none\}/, "the scroll regions' ring leaves the editor out");
-  const ring = readFileSync(new URL("../js/ring.js", import.meta.url), "utf8");
+  const ring = readFileSync(new URL("../core/ui/a11y/ring.js", import.meta.url), "utf8");
   assert.match(ring, /classList\.contains\("vw-doc"\)\) return;/, "and ring.js draws none over it");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

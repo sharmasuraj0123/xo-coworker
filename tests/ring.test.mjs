@@ -1,21 +1,21 @@
 // The keyboard's ring on a region you scroll with the keys, one rule for both: a file in the viewer (.vw-body) and a
 // change's diff (.cx-pd). The region's own inset outline sat under what the renderer paints inside it (Astra C087 on
 // dd15034, the diff; C096 on cb7afe7, the file: focused and unfocused pixel-identical). The ring is one layer just
-// after the region, over its box (js/ring.js, css .region-ring). The real placing runs here on a stand-in page; the
+// after the region, over its box (core/ui/a11y/ring.js, css .region-ring). The real placing runs here on a stand-in page; the
 // drawn pixels in all four cells are the flows case's.
 //   node tests/ring.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 let ring = {};
-try { ring = await import("../js/ring.js"); } catch (e) { console.error("  (no js/ring.js: " + e.code + ")"); }
+try { ring = await import("../core/ui/a11y/ring.js"); } catch (e) { console.error("  (no core/ui/a11y/ring.js: " + e.code + ")"); }
 let passed = 0;
 // a pattern in a whole file: says which, not the file
 const has = (src, re, msg) => assert.ok(re.test(src), msg ? `${msg} (${re})` : String(re));
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
 t("one list of regions: the file and the diff, each the element made to take the keys", () => {
-  assert.ok(ring.REGIONS, "js/ring.js REGIONS");
+  assert.ok(ring.REGIONS, "core/ui/a11y/ring.js REGIONS");
   const list = ring.REGIONS.split(",").map((s) => s.trim()).sort();
   assert.deepEqual(list, [".cx-pd", ".vw-body"]);
   const viewer = readFileSync(new URL("../js/viewer.js", import.meta.url), "utf8");

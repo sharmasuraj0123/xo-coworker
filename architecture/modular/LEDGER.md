@@ -4,13 +4,13 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 675 |
+| planned | 673 |
 | vendor | 367 |
 | deleted | 232 |
 | split | 34 |
-| moved | 5 |
+| moved | 7 |
 
-Items inside first-party files: 2290 (planned 1343, split-region 923, moved 24), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1318, split-region 923, moved 49), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -59,7 +59,7 @@ Items inside first-party files: 2290 (planned 1343, split-region 923, moved 24),
 | `js/icon.js` | 24 | planned | core/ui/icons/icon.js |
 | `js/imagechange.js` | 120 | planned | modules/changes/imagechange.js |
 | `js/intel.js` | 743 | planned | modules/intelligence/ |
-| `js/keynav.js` | 109 | planned | core/ui/a11y/keynav.js |
+| `js/keynav.js` | 109 | moved | core/ui/a11y/keynav.js · next: js/keynav.js re-exports core/ui/a11y/keynav.js until the shims go |
 | `js/keys.js` | 176 | split | core/platform/keys.js, core/kernel (shortcut place), modules/settings/keyboard.js |
 | `js/kit.js` | 270 | split | modules/decisions/kit.js, core/ui/components/hold.js |
 | `js/launchpad.js` | 1166 | planned | modules/launchpad/ (store, controller, views, section) |
@@ -85,7 +85,7 @@ Items inside first-party files: 2290 (planned 1343, split-region 923, moved 24),
 | `js/redraw.js` | 130 | planned | core/ui/redraw.js |
 | `js/review.js` | 153 | planned | modules/decisions/items.js |
 | `js/rich.js` | 281 | planned | core/ui/markdown/rich.js |
-| `js/ring.js` | 65 | planned | core/ui/a11y/ring.js |
+| `js/ring.js` | 65 | moved | core/ui/a11y/ring.js · next: js/ring.js re-exports core/ui/a11y/ring.js until the shims go; its two region selectors stay until files and changes contribute them |
 | `js/rtsettings.js` | 296 | split | modules/runtimes (settings.section), modules/runtimes/paid |
 | `js/runsview.js` | 138 | planned | modules/threads/runs/ |
 | `js/runtimes.js` | 179 | planned | core/services/runtimes.js |
