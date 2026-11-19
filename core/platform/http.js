@@ -3,7 +3,6 @@
 // Requests to XO Space through serve.py, relative to the page; inside Coder the session token rides on every one.
 
 const BASE = "api";
-const enc = encodeURIComponent;
 
 const TOKEN_PARAM = "coder_session_token";
 const TOKEN_KEY = "xo-coder-token";
@@ -140,13 +139,18 @@ const failure = async (res) => errorOf(res.status, res.statusText, await res.tex
 export const urlOf = (path) => BASE + path;
 
 /** The URL for what can't send headers (an <img>, an <iframe>): the token rides in the query, and serve.py takes it out. @param {string} path */
-export const signedUrl = (path) => BASE + path + (coderToken ? `?${TOKEN_PARAM}=${enc(coderToken)}` : "");
+export function signedUrl(path) {
+  if (!coderToken) return BASE + path;
+  const url = new URL(BASE + path, "http://page/");
+  url.searchParams.set(TOKEN_PARAM, coderToken);
+  return url.pathname.slice(1) + url.search + url.hash;
+}
 
 /** The ws(s):// URL of a socket, relative to the page; the token rides in the query, which serve.py drops before the tunnel. @param {string} path */
 export function socketUrl(path) {
   const url = new URL(BASE + path, location.href);
   url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
-  url.search = coderToken ? `?${TOKEN_PARAM}=${enc(coderToken)}` : "";
+  if (coderToken) url.searchParams.set(TOKEN_PARAM, coderToken);
   return url.href;
 }
 
