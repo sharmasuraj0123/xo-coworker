@@ -1,11 +1,11 @@
-// Saving a file (Files: the file saves itself, js/docs.js refusal): every refusal Space can give means one thing,
+// Saving a file (Files: the file saves itself, modules/files/documents.js refusal): every refusal Space can give means one thing,
 // in words, and none of them loses your text or overwrites the agent's. The flows themselves (autosave, merge,
 // confirm, offline, deleted) are in tests/docs.test.mjs. No network, no browser.
 //   node tests/edits.test.mjs
 import assert from "node:assert/strict";
 
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
-const { refusal } = await import("../js/docs.js");
+const { refusal } = await import("../modules/files/documents.js");
 const { RUNS } = await import("../js/viewer.js");
 const err = (status, code, extra = {}) => Object.assign(new Error(`${status} ${code}`), { status, code, ...extra });
 

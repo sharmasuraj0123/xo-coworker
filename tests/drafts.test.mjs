@@ -1,7 +1,7 @@
-// Drafts (js/drafts.js): unsaved edits kept in this browser, by file. Pure, with a stand-in for localStorage.
+// Drafts (modules/files/drafts.js): unsaved edits kept in this browser, by file. Pure, with a stand-in for localStorage.
 //   node tests/drafts.test.mjs
 import assert from "node:assert/strict";
-import { draftKey, getDraft, putDraft, dropDraft } from "../js/drafts.js";
+import { draftKey, getDraft, putDraft, dropDraft } from "../modules/files/drafts.js";
 
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };

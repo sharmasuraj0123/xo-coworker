@@ -1,11 +1,11 @@
-// Open files as documents (js/docs.js): states, saving on ⌘S only (no autosave), saving against the version, someone else's change coming
+// Open files as documents (modules/files/documents.js): states, saving on ⌘S only (no autosave), saving against the version, someone else's change coming
 // in (taken in, merged, or the merge view), drafts, versions. Pure, with a fake clock, a fake Space and a stand-in
 // for localStorage.
 //   node tests/docs.test.mjs
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { createDocs, refusal, changedLines, minimalEdit, byWords, MERGE_MS } from "../js/docs.js";
-import { draftKey, getDraft, putDraft } from "../js/drafts.js";
+import { createDocs, refusal, changedLines, minimalEdit, byWords, MERGE_MS } from "../modules/files/documents.js";
+import { draftKey, getDraft, putDraft } from "../modules/files/drafts.js";
 
 let passed = 0;
 const queue = [];

@@ -15,7 +15,7 @@ const realFetch = globalThis.fetch;
 globalThis.fetch = (u, o) => realFetch(new URL(u, ORIGIN + "/"), o);
 globalThis.location = new URL(ORIGIN + "/");
 const { api } = await import(WT + "/js/api.js");
-const { createDocs } = await import(WT + "/js/docs.js");
+const { createDocs } = await import(WT + "/modules/files/documents.js");
 const P = "demo", DIR = "/tmp/e2e/projects/demo";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let ok = 0;

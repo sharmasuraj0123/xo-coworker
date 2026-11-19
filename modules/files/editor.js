@@ -1,18 +1,10 @@
-// The one editor for every text file in Files: CodeMirror 6,
-// vendored (js/vendor/codemirror, loaded the first time a file opens). A file opens ready to type in: no Edit, no
-// Save; what you type goes to its document (js/docs.js), which saves it. One editor state per document, kept while
-// the document is open, so undo reaches back past saves and a tab you come back to is as you left it.
-//
-// Code reads as code (line numbers, folding, VS Code's keys: ⌘D, ⌥↑↓, ⌘/, ⌘F, ⌃G). Markdown reads as a page
-// (js/mdlive.js: formatted, its marks shown only where the caret is, math, diagrams and charts drawn by the chat's
-// own renderer); Source is the same editor with the page off. Someone else's change comes in as one edit (your
-// caret stays) and the lines it touched glow for a moment. A clash is chunks to keep or take back (CodeMirror's
-// merge view), an older version is shown read only, and Show changes marks what the last version changed.
-//
-// mount(host, {docs, doc, name, page, onLines, onAsk, onSave, onKey}) → handle (below).
+// @ts-check
 
-const CM_URL = new URL("./vendor/codemirror/cm.js", import.meta.url).href;
-const MERGE_URL = new URL("./vendor/codemirror/merge.js", import.meta.url).href;
+// The one editor for every text file in Files: CodeMirror 6, vendored (js/vendor/codemirror, loaded the first time a file opens).
+
+/** @import { EditorMountOptions } from "./types.d.ts" */
+const CM_URL = new URL("../../js/vendor/codemirror/cm.js", import.meta.url).href;
+const MERGE_URL = new URL("../../js/vendor/codemirror/merge.js", import.meta.url).href;
 let cmP = null, mergeP = null;
 export const loadCM = () => (cmP ||= import(CM_URL));
 export const loadMerge = () => (mergeP ||= import(MERGE_URL));
@@ -23,7 +15,7 @@ const MAC = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator
 const TINT_MS = 2400;
 
 /** The colours: XO's code tokens (css/app.css --code-*), so the editor reads like every other code block. */
-function highlight(CM) {
+function highlight(/** @type {any} */ CM) {
   const { HighlightStyle, tags: t } = CM;
   return HighlightStyle.define([
     { tag: [t.comment, t.lineComment, t.blockComment, t.docComment], color: "var(--code-com)", fontStyle: "italic" },
@@ -48,14 +40,14 @@ function highlight(CM) {
 }
 
 /** Lines changed by someone else glow for a moment (the lines are 1-based, inclusive). */
-function tints(CM) {
+function tints(/** @type {any} */ CM) {
   const { StateEffect, StateField, Decoration, EditorView } = CM;
   const add = StateEffect.define();
   const clear = StateEffect.define();
   const mark = Decoration.line({ class: "cm-xo-tint" });
   const field = StateField.define({
     create: () => Decoration.none,
-    update(deco, tr) {
+    update(/** @type {any} */ deco, /** @type {any} */ tr) {
       deco = deco.map(tr.changes);
       for (const e of tr.effects) {
         if (e.is(clear)) deco = Decoration.none;
@@ -67,15 +59,15 @@ function tints(CM) {
       }
       return deco;
     },
-    provide: (f) => EditorView.decorations.from(f),
+    provide: (/** @type {any} */ f) => EditorView.decorations.from(f),
   });
   return { field, add, clear };
 }
 
 /** "Ask about lines a–b ⌘L" under a selection of whole lines' worth (the file's own thread, or its coordinator). */
-function askTip(CM, { onLines, onAsk }) {
+function askTip(/** @type {any} */ CM, /** @type {Pick<EditorMountOptions, "onLines" | "onAsk">} */ { onLines, onAsk }) {
   const { StateField, showTooltip } = CM;
-  const linesOf = (state) => {
+  const linesOf = (/** @type {any} */ state) => {
     const s = state.selection.main;
     if (s.empty) return null;
     const a = state.doc.lineAt(s.from).number, bLine = state.doc.lineAt(s.to);
@@ -83,9 +75,9 @@ function askTip(CM, { onLines, onAsk }) {
     return { a, b, pos: s.head };
   };
   const field = StateField.define({
-    create: (state) => linesOf(state),
-    update(v, tr) { if (!tr.selection && !tr.docChanged) return v; return linesOf(tr.state); },
-    provide: (f) => showTooltip.compute([f], (state) => {
+    create: (/** @type {any} */ state) => linesOf(state),
+    update(/** @type {any} */ v, /** @type {any} */ tr) { if (!tr.selection && !tr.docChanged) return v; return linesOf(tr.state); },
+    provide: (/** @type {any} */ f) => showTooltip.compute([f], (/** @type {any} */ state) => {
       const l = state.field(f);
       if (!l || !onAsk) return null;
       return {
@@ -104,8 +96,8 @@ function askTip(CM, { onLines, onAsk }) {
       };
     }),
   });
-  let last = null;
-  const listen = CM.EditorView.updateListener.of((u) => {
+  let last = /** @type {any} */ (null);
+  const listen = CM.EditorView.updateListener.of((/** @type {any} */ u) => {
     if (!u.selectionSet && !u.docChanged) return;
     const l = u.state.field(field);
     const k = l ? `${l.a}-${l.b}` : "";
@@ -114,11 +106,8 @@ function askTip(CM, { onLines, onAsk }) {
   return { field, ext: [field, listen], linesOf };
 }
 
-/**
- * Mount an editor for a document. host: the element it fills. Returns {view, focus, reveal, select, setPage,
- * showVersion, showChanges, refresh, destroy}. Resolves once it's there (the editor's code loads the first time).
- */
-export async function mount(host, { docs, doc, name = "", page = false, onLines = null, onAsk = null, onSave = null, onKey = null }) {
+/** Mount an editor for a document. */
+export async function mount(/** @type {HTMLElement} */ host, /** @type {EditorMountOptions} */ { docs, doc, name = "", page = false, onLines = null, onAsk = null, onSave = null, onKey = null }) {
   const CM = await loadCM();
   const { EditorState, EditorView, Compartment, Annotation, keymap, lineNumbers, highlightActiveLine, highlightActiveLineGutter, drawSelection, dropCursor,
     rectangularSelection, crosshairCursor, highlightSpecialChars, history, historyKeymap, defaultKeymap, indentWithTab, searchKeymap, highlightSelectionMatches,
@@ -130,7 +119,7 @@ export async function mount(host, { docs, doc, name = "", page = false, onLines 
   const ask = askTip(CM, { onLines, onAsk });
   const isMd = /\.(md|markdown|mdx)$/i.test(name) || doc.kind === "markdown";
   let pageExt = [];
-  if (isMd) { try { pageExt = (await import("./mdlive.js")).pageView(CM); } catch (e) { console.error(e); } }
+  if (isMd) { try { pageExt = (await import("./markdown-page.js")).pageView(CM); } catch (e) { console.error(e); } }
 
   const theme = EditorView.theme({
     "&": { height: "100%", color: "var(--code-ink)", backgroundColor: "transparent", fontSize: "var(--fs-base)" },
@@ -154,12 +143,12 @@ export async function mount(host, { docs, doc, name = "", page = false, onLines 
   const keys = keymap.of([
     { key: "Mod-s", preventDefault: true, run: () => { onSave && onSave(); return true; } },
     { key: "Ctrl-g", run: gotoLine },
-    { key: "Mod-l", run: (v) => { const l = ask.linesOf(v.state); if (!l || !onAsk) return false; onAsk({ a: l.a, b: l.b }); return true; } },
+    { key: "Mod-l", run: (/** @type {any} */ v) => { const l = ask.linesOf(v.state); if (!l || !onAsk) return false; onAsk({ a: l.a, b: l.b }); return true; } },
     ...closeBracketsKeymap, ...defaultKeymap, ...searchKeymap, ...historyKeymap, ...foldKeymap, indentWithTab,
   ]);
 
-  const extensions = (readOnly) => [
-    gutters.of(page && isMd ? [] : [lineNumbers(), highlightActiveLineGutter(), foldGutter({ markerDOM: (open) => { const s = document.createElement("span"); s.className = "cm-xo-fold"; s.textContent = open ? "⌄" : "›"; return s; } })]),
+  const extensions = (/** @type {any} */ readOnly) => [
+    gutters.of(page && isMd ? [] : [lineNumbers(), highlightActiveLineGutter(), foldGutter({ markerDOM: (/** @type {any} */ open) => { const s = document.createElement("span"); s.className = "cm-xo-fold"; s.textContent = open ? "⌄" : "›"; return s; } })]),
     highlightSpecialChars(), history(), drawSelection(), dropCursor(), EditorState.allowMultipleSelections.of(true), indentOnInput(),
     syntaxHighlighting(highlight(CM)), bracketMatching(), closeBrackets(), rectangularSelection(), crosshairCursor(), highlightActiveLine(), highlightSelectionMatches(),
     search({ top: true }),
@@ -170,36 +159,35 @@ export async function mount(host, { docs, doc, name = "", page = false, onLines 
     mergeC.of([]),
     tint.field, ask.ext, keys, theme,
     EditorView.contentAttributes.of({ "aria-label": `${name || "File"}${page && isMd ? ", as a page" : ""}`, spellcheck: page && isMd ? "true" : "false" }),
-    EditorView.updateListener.of((u) => {
-      if (u.docChanged && !u.transactions.some((tr) => tr.annotation(external))) { if (!viewing) docs.edited(doc); }
+    EditorView.updateListener.of((/** @type {any} */ u) => {
+      if (u.docChanged && !u.transactions.some((/** @type {any} */ tr) => tr.annotation(external))) { if (!viewing) docs.edited(doc); }
       if (merging && u.docChanged) countChunks();
     }),
-    EditorView.domEventHandlers({ keydown: (e) => (onKey ? onKey(e) : false) }),
+    EditorView.domEventHandlers({ keydown: (/** @type {any} */ e) => (onKey ? onKey(e) : false) }),
   ];
 
   const readOnlyNow = () => doc.state === "readonly";
-  // the state kept from the last time this document was open (its undo, its caret), given this mount's extensions:
-  // history is one field across configurations, so it survives; the rest is this mount's own
+  // the state kept from the last time this document was open (its undo, its caret), rebuilt with this mount's extensions
   let state = doc.cmState && doc.cmState.doc.toString() === docs.textOf(doc)
     ? doc.cmState.update({ effects: CM.StateEffect.reconfigure.of(extensions(readOnlyNow())) }).state
     : EditorState.create({ doc: docs.textOf(doc), extensions: extensions(readOnlyNow()) });
   const view = new EditorView({ state, parent: host });
   doc.cmState = null;
-  let live = null;     // the live state, while an older version is shown
-  let viewing = null;  // the version shown, read only
+  let live = /** @type {any} */ (null); // the live state, while an older version is shown
+  let viewing = /** @type {any} */ (null); // the version shown, read only
   let merging = false, showing = false;
 
   // the code's own language, once it's loaded (a file opens at once, coloured a moment later)
   if (!isMd) {
     const d = LanguageDescription.matchFilename(languages, name);
-    if (d) d.load().then((support) => { if (!destroyed) view.dispatch({ effects: lang.reconfigure(support) }); }).catch(() => {});
+    if (d) d.load().then((/** @type {any} */ support) => { if (!destroyed) view.dispatch({ effects: lang.reconfigure(support) }); }).catch(() => {});
   }
 
   // the document's hooks: its text (the live one, even while an old version shows), and its changes coming in
   docs.attach(doc, {
     source: () => (live || view.state).doc.toString(),
     length: () => (live || view.state).doc.length,
-    apply: (e, info) => {
+    apply: (/** @type {any} */ e, /** @type {any} */ info) => {
       const spec = { changes: { from: e.from, to: e.to, insert: e.insert }, annotations: external.of(true) };
       if (live) { live = live.update(spec).state; return; }
       const lines = info && info.lines && info.lines.length ? info.lines : null;
@@ -228,29 +216,29 @@ export async function mount(host, { docs, doc, name = "", page = false, onLines 
       view.focus();
       if (line && Number.isFinite(line)) { const l = view.state.doc.line(Math.min(Math.max(1, line), view.state.doc.lines)); view.dispatch({ selection: { anchor: l.from }, effects: EditorView.scrollIntoView(l.from, { y: "center" }) }); }
     },
-    reveal(line) { const l = view.state.doc.line(Math.min(Math.max(1, line), view.state.doc.lines)); view.dispatch({ effects: EditorView.scrollIntoView(l.from, { y: "start", yMargin: 96 }) }); },
+    reveal(/** @type {any} */ line) { const l = view.state.doc.line(Math.min(Math.max(1, line), view.state.doc.lines)); view.dispatch({ effects: EditorView.scrollIntoView(l.from, { y: "start", yMargin: 96 }) }); },
     /** Select lines a–b (1-based, inclusive), as a link to them does. */
-    select(a, b) {
+    select(/** @type {any} */ a, /** @type {any} */ b) {
       const d = view.state.doc, A = d.line(Math.min(Math.max(1, a), d.lines)), B = d.line(Math.min(Math.max(a, b), d.lines));
       view.dispatch({ selection: { anchor: A.from, head: B.to }, effects: EditorView.scrollIntoView(A.from, { y: "center" }) });
     },
     clearSelection() { const h = view.state.selection.main.head; view.dispatch({ selection: { anchor: h } }); },
     /** Markdown as a page (true) or its source (false): the same editor, caret and undo. */
-    setPage(on) {
+    setPage(/** @type {any} */ on) {
       if (!isMd) return;
       view.dispatch({ effects: [pageC.reconfigure(on ? pageExt : []), gutters.reconfigure(on ? [] : [lineNumbers(), highlightActiveLineGutter(), foldGutter()])] });
       view.contentDOM.setAttribute("spellcheck", on ? "true" : "false");
     },
     get isMarkdown() { return isMd; },
     /** Show an older version's text, read only (null: back to the file as it is). */
-    showVersion(text) {
+    showVersion(/** @type {any} */ text) {
       if (text == null) { if (live) { view.setState(live); live = null; viewing = null; } return; }
       if (!live) live = view.state;
       viewing = text;
       view.setState(EditorState.create({ doc: text, extensions: extensions(true) }));
     },
     /** Mark what changed since `original` (the version before), in the text itself; null: stop. */
-    async showChanges(original) {
+    async showChanges(/** @type {any} */ original) {
       if (original == null) { if (showing) { showing = false; view.dispatch({ effects: mergeC.reconfigure([]) }); } return; }
       const M = await loadMerge();
       if (destroyed || merging) return;
@@ -263,7 +251,7 @@ export async function mount(host, { docs, doc, name = "", page = false, onLines 
       const M = await loadMerge();
       if (destroyed) return;
       merging = true; showing = false;
-      const control = (type, action) => {
+      const control = (/** @type {any} */ type, /** @type {any} */ action) => {
         const b = document.createElement("button");
         b.type = "button"; b.className = `xd-btn cm-xo-chunk${type === "accept" ? " is-pri" : ""}`;
         b.textContent = type === "accept" ? "Keep yours" : "Take theirs";

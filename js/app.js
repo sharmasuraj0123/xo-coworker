@@ -54,7 +54,7 @@ import { createQuickOpen } from "../modules/search/quickopen.js";
 import { createJump } from "../modules/search/jump.js";
 import { createSettingsFrame } from "../modules/settings/frame.js";
 import { createKeysPage } from "../modules/settings/keys-page.js";
-import { createFilesPage } from "./filespage.js";
+import { createFilesPage } from "../modules/files/page.js";
 import { createChanges, lineRef, fileRef } from "../modules/changes/store.js";
 import { fileIcon } from "./fileicons.js";
 import { countsHtml } from "../modules/changes/frame.js";

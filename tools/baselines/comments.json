@@ -27,24 +27,8 @@
   "extra": 42,
   "refs": 0
  },
- "js/doceditor.js": {
-  "extra": 15,
-  "refs": 0
- },
- "js/docs.js": {
-  "extra": 50,
-  "refs": 0
- },
- "js/drafts.js": {
-  "extra": 7,
-  "refs": 0
- },
  "js/files.js": {
   "extra": 66,
-  "refs": 0
- },
- "js/filespage.js": {
-  "extra": 15,
   "refs": 0
  },
  "js/gestures.js": {
@@ -69,10 +53,6 @@
  },
  "js/map.js": {
   "extra": 93,
-  "refs": 0
- },
- "js/mdlive.js": {
-  "extra": 24,
   "refs": 0
  },
  "js/media.js": {

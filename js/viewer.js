@@ -30,8 +30,8 @@ import * as K from "../core/platform/keys.js";
 import { pointerFollows } from "./keynav.js";
 import { redrawNode } from "./redraw.js";
 import { countsHtml } from "../modules/changes/frame.js";
-import { createDocs, byWords } from "./docs.js";
-import { mount as mountEditor, prefetch as prefetchEditor } from "./doceditor.js";
+import { createDocs, byWords } from "../modules/files/documents.js";
+import { mount as mountEditor, prefetch as prefetchEditor } from "../modules/files/editor.js";
 import { isImageChange, drawImageChange } from "../modules/changes/imagechange.js";
 
 const size = (n) => (n == null || !Number.isFinite(n) ? "" : n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(1)} MB`);

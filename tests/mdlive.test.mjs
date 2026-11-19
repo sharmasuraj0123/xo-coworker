@@ -1,4 +1,4 @@
-// Markdown as a page (js/mdlive.js): tables, rules, display math and ```math, ```mermaid, ```chart blocks are drawn
+// Markdown as a page (modules/files/markdown-page.js): tables, rules, display math and ```math, ```mermaid, ```chart blocks are drawn
 // whole; with the caret inside one its source shows with its drawing kept under it (a rule is always drawn); plain
 // fenced code stays text. The file's text is never changed. Node, with the vendored CodeMirror's state (no view, no browser).
 //   node tests/mdlive.test.mjs
@@ -9,7 +9,7 @@ const CM = await import("../js/vendor/codemirror/cm.js");
 // own code has loaded, which reads `document` only when it's there)
 globalThis.document = { documentElement: { dataset: {} }, createElement: () => ({ getContext: () => null }), querySelector: () => null };
 globalThis.addEventListener ??= () => {};
-const { pageView, toggleMark, rowLine, tableRows } = await import("../js/mdlive.js");
+const { pageView, toggleMark, rowLine, tableRows } = await import("../modules/files/markdown-page.js");
 const { EditorState, EditorView, markdown, markdownLanguage, ensureSyntaxTree } = CM;
 
 let passed = 0;

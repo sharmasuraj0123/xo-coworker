@@ -2254,16 +2254,16 @@
    "note": "js/diffview.js re-exports modules/changes/diffview.js until the shell renders panel.frame from places and the shims go"
   },
   "js/doceditor.js": {
-   "status": "planned",
-   "home": "modules/files/editor/doceditor.js"
+   "status": "moved",
+   "home": "modules/files/editor.js"
   },
   "js/docs.js": {
-   "status": "planned",
-   "home": "modules/files/documents/docs.js"
+   "status": "moved",
+   "home": "modules/files/documents.js"
   },
   "js/drafts.js": {
-   "status": "planned",
-   "home": "modules/files/documents/drafts.js"
+   "status": "moved",
+   "home": "modules/files/drafts.js"
   },
   "js/dropdown.js": {
    "status": "moved",
@@ -2285,7 +2285,7 @@
    ]
   },
   "js/filespage.js": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/files/page.js"
   },
   "js/focusview.js": {
@@ -2399,8 +2399,8 @@
    "note": "blocks in markdown.js, inline text, links, pictures and the rich hooks in inline.js; js/markdown.js re-exports markdown.js until the shims go"
   },
   "js/mdlive.js": {
-   "status": "planned",
-   "home": "modules/files/editor/markdown-page.js"
+   "status": "moved",
+   "home": "modules/files/markdown-page.js"
   },
   "js/media.js": {
    "status": "split",
@@ -8674,128 +8674,128 @@
    "reason": "Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6)"
   },
   "js/doceditor.js::exports::loadCM": {
-   "status": "planned",
-   "home": "modules/files/editor/doceditor.js"
+   "status": "moved",
+   "home": "modules/files/editor.js"
   },
   "js/doceditor.js::exports::loadMerge": {
-   "status": "planned",
-   "home": "modules/files/editor/doceditor.js"
+   "status": "moved",
+   "home": "modules/files/editor.js"
   },
   "js/doceditor.js::exports::prefetch": {
-   "status": "planned",
-   "home": "modules/files/editor/doceditor.js"
+   "status": "moved",
+   "home": "modules/files/editor.js"
   },
   "js/doceditor.js::exports::mount": {
-   "status": "planned",
-   "home": "modules/files/editor/doceditor.js"
+   "status": "moved",
+   "home": "modules/files/editor.js"
   },
   "js/doceditor.js::functions::prefetch": {
-   "status": "planned",
-   "home": "modules/files/editor/doceditor.js"
+   "status": "moved",
+   "home": "modules/files/editor.js"
   },
   "js/doceditor.js::functions::highlight": {
-   "status": "planned",
-   "home": "modules/files/editor/doceditor.js"
+   "status": "moved",
+   "home": "modules/files/editor.js"
   },
   "js/doceditor.js::functions::tints": {
-   "status": "planned",
-   "home": "modules/files/editor/doceditor.js"
+   "status": "moved",
+   "home": "modules/files/editor.js"
   },
   "js/doceditor.js::functions::askTip": {
-   "status": "planned",
-   "home": "modules/files/editor/doceditor.js"
+   "status": "moved",
+   "home": "modules/files/editor.js"
   },
   "js/doceditor.js::functions::mount": {
-   "status": "planned",
-   "home": "modules/files/editor/doceditor.js"
+   "status": "moved",
+   "home": "modules/files/editor.js"
   },
   "js/docs.js::exports::DRAFT_MS": {
-   "status": "planned",
-   "home": "modules/files/documents/docs.js"
+   "status": "moved",
+   "home": "modules/files/documents.js"
   },
   "js/docs.js::exports::KEEP_TEXT": {
-   "status": "planned",
-   "home": "modules/files/documents/docs.js"
+   "status": "moved",
+   "home": "modules/files/documents.js"
   },
   "js/docs.js::exports::MERGE_MS": {
-   "status": "planned",
-   "home": "modules/files/documents/docs.js"
+   "status": "moved",
+   "home": "modules/files/documents.js"
   },
   "js/docs.js::exports::refusal": {
-   "status": "planned",
-   "home": "modules/files/documents/docs.js"
+   "status": "moved",
+   "home": "modules/files/documents.js"
   },
   "js/docs.js::exports::changedLines": {
-   "status": "planned",
-   "home": "modules/files/documents/docs.js"
+   "status": "moved",
+   "home": "modules/files/documents.js"
   },
   "js/docs.js::exports::minimalEdit": {
-   "status": "planned",
-   "home": "modules/files/documents/docs.js"
+   "status": "moved",
+   "home": "modules/files/documents.js"
   },
   "js/docs.js::exports::byWords": {
-   "status": "planned",
-   "home": "modules/files/documents/docs.js"
+   "status": "moved",
+   "home": "modules/files/documents.js"
   },
   "js/docs.js::exports::createDocs": {
-   "status": "planned",
-   "home": "modules/files/documents/docs.js"
+   "status": "moved",
+   "home": "modules/files/documents.js"
   },
   "js/docs.js::functions::refusal": {
-   "status": "planned",
-   "home": "modules/files/documents/docs.js"
+   "status": "moved",
+   "home": "modules/files/documents.js"
   },
   "js/docs.js::functions::changedLines": {
-   "status": "planned",
-   "home": "modules/files/documents/docs.js"
+   "status": "moved",
+   "home": "modules/files/documents.js"
   },
   "js/docs.js::functions::minimalEdit": {
-   "status": "planned",
-   "home": "modules/files/documents/docs.js"
+   "status": "moved",
+   "home": "modules/files/documents.js"
   },
   "js/docs.js::functions::byWords": {
-   "status": "planned",
-   "home": "modules/files/documents/docs.js"
+   "status": "moved",
+   "home": "modules/files/documents.js"
   },
   "js/docs.js::functions::createDocs": {
-   "status": "planned",
-   "home": "modules/files/documents/docs.js"
+   "status": "moved",
+   "home": "modules/files/documents.js"
   },
   "js/drafts.js::exports::draftKey": {
-   "status": "planned",
-   "home": "modules/files/documents/drafts.js"
+   "status": "moved",
+   "home": "modules/files/drafts.js"
   },
   "js/drafts.js::exports::getDraft": {
-   "status": "planned",
-   "home": "modules/files/documents/drafts.js"
+   "status": "moved",
+   "home": "modules/files/drafts.js"
   },
   "js/drafts.js::exports::putDraft": {
-   "status": "planned",
-   "home": "modules/files/documents/drafts.js"
+   "status": "moved",
+   "home": "modules/files/drafts.js"
   },
   "js/drafts.js::exports::dropDraft": {
-   "status": "planned",
-   "home": "modules/files/documents/drafts.js"
+   "status": "moved",
+   "home": "modules/files/drafts.js"
   },
   "js/drafts.js::functions::index": {
-   "status": "planned",
-   "home": "modules/files/documents/drafts.js"
+   "status": "moved",
+   "home": "modules/files/drafts.js"
   },
   "js/drafts.js::functions::putIndex": {
-   "status": "planned",
-   "home": "modules/files/documents/drafts.js"
+   "status": "moved",
+   "home": "modules/files/drafts.js"
   },
   "js/drafts.js::functions::getDraft": {
-   "status": "planned",
-   "home": "modules/files/documents/drafts.js"
+   "status": "moved",
+   "home": "modules/files/drafts.js"
   },
   "js/drafts.js::functions::putDraft": {
-   "status": "planned",
-   "home": "modules/files/documents/drafts.js"
+   "status": "moved",
+   "home": "modules/files/drafts.js"
   },
   "js/drafts.js::functions::dropDraft": {
-   "status": "planned",
-   "home": "modules/files/documents/drafts.js"
+   "status": "moved",
+   "home": "modules/files/drafts.js"
   },
   "js/fileicons.js::exports::iconKey": {
    "status": "moved",
@@ -9094,31 +9094,31 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/filespage.js::exports::createFilesPage": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/files/page.js"
   },
   "js/filespage.js::functions::createFilesPage": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/files/page.js"
   },
   "js/filespage.js::ids::viewer": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/files/page.js"
   },
   "js/filespage.js::ids::stage": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/files/page.js"
   },
   "js/filespage.js::storage::xo-files-tree": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/files/page.js"
   },
   "js/filespage.js::storage::xo-files-folds": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/files/page.js"
   },
   "js/filespage.js::keys::ArrowRight": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/files/page.js"
   },
   "js/focusview.js::exports::usable": {
@@ -10664,52 +10664,52 @@
    "home": "core/ui/markdown/markdown.js"
   },
   "js/mdlive.js::exports::toggleMark": {
-   "status": "planned",
-   "home": "modules/files/editor/markdown-page.js"
+   "status": "moved",
+   "home": "modules/files/markdown-page.js"
   },
   "js/mdlive.js::exports::rowLine": {
-   "status": "planned",
-   "home": "modules/files/editor/markdown-page.js"
+   "status": "moved",
+   "home": "modules/files/markdown-page.js"
   },
   "js/mdlive.js::exports::tableRows": {
-   "status": "planned",
-   "home": "modules/files/editor/markdown-page.js"
+   "status": "moved",
+   "home": "modules/files/markdown-page.js"
   },
   "js/mdlive.js::exports::pageView": {
-   "status": "planned",
-   "home": "modules/files/editor/markdown-page.js"
+   "status": "moved",
+   "home": "modules/files/markdown-page.js"
   },
   "js/mdlive.js::functions::drawIn": {
-   "status": "planned",
-   "home": "modules/files/editor/markdown-page.js"
+   "status": "moved",
+   "home": "modules/files/markdown-page.js"
   },
   "js/mdlive.js::functions::toggleMark": {
-   "status": "planned",
-   "home": "modules/files/editor/markdown-page.js"
+   "status": "moved",
+   "home": "modules/files/markdown-page.js"
   },
   "js/mdlive.js::functions::rowLine": {
-   "status": "planned",
-   "home": "modules/files/editor/markdown-page.js"
+   "status": "moved",
+   "home": "modules/files/markdown-page.js"
   },
   "js/mdlive.js::functions::tableRows": {
-   "status": "planned",
-   "home": "modules/files/editor/markdown-page.js"
+   "status": "moved",
+   "home": "modules/files/markdown-page.js"
   },
   "js/mdlive.js::functions::pageView": {
-   "status": "planned",
-   "home": "modules/files/editor/markdown-page.js"
+   "status": "moved",
+   "home": "modules/files/markdown-page.js"
   },
   "js/mdlive.js::keys::Tab": {
-   "status": "planned",
-   "home": "modules/files/editor/markdown-page.js"
+   "status": "moved",
+   "home": "modules/files/markdown-page.js"
   },
   "js/mdlive.js::keys::Escape": {
-   "status": "planned",
-   "home": "modules/files/editor/markdown-page.js"
+   "status": "moved",
+   "home": "modules/files/markdown-page.js"
   },
   "js/mdlive.js::keys::Enter": {
-   "status": "planned",
-   "home": "modules/files/editor/markdown-page.js"
+   "status": "moved",
+   "home": "modules/files/markdown-page.js"
   },
   "js/media.js::exports::LIMITS": {
    "status": "split-region",
