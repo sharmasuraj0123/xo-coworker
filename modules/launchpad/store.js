@@ -23,7 +23,7 @@ export function installStore(L) {
     s.loading = true; s.err = null;
     const n = ticket(s);
     try {
-      // once preflight has answered, a refresh asks it again on the fresh check, so check's guesses never cover what GitHub and Launchpad said
+      // once preflight has answered, or while one is out, a refresh asks it again on the fresh check, so check's guesses never cover what GitHub and Launchpad said
       let c = await api.check(p);
       if (s.pre && api.preflight) c = await api.preflight(p, s.form?.name);
       if (!current(s, n)) { s.loading = false; return; } // a newer answer is already here
