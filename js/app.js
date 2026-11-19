@@ -55,11 +55,11 @@ import { createQuickOpen } from "../modules/search/quickopen.js";
 import { createJump } from "../modules/search/jump.js";
 import { createSettingsFrame } from "../modules/settings/frame.js";
 import { createKeysPage } from "../modules/settings/keys-page.js";
-import { createFilesPage } from "./filespage.js";
-import { createChanges, lineRef, fileRef } from "./changes.js";
+import { createFilesPage } from "../modules/files/page.js";
+import { createChanges, lineRef, fileRef } from "../modules/changes/store.js";
 import { fileIcon } from "./fileicons.js";
-import { countsHtml } from "./changesframe.js";
-import { setTheme as setDiffTheme } from "./diffview.js";
+import { countsHtml } from "../core/ui/components/counts.js";
+import { setTheme as setDiffTheme } from "../modules/changes/diffview.js";
 import { createTray, fmtSize, kindOf, isLargePaste, pasteLabel, uploadErrorText, FINAL, MAX_FILES } from "./attach.js";
 import { api, uploadAttachment } from "../core/platform/api.js";
 import { initCreate } from "../modules/create-project/create.js";
@@ -127,7 +127,7 @@ const STOP_ICON = ICON.stop;
 const THEME = { get() { try { return localStorage.getItem("cv-theme") === "light" ? "light" : "dark"; } catch { return "dark"; } } };
 function applyTheme(t) {
   document.documentElement.dataset.theme = t;
-  setDiffTheme(t); // a drawn diff follows at once (js/diffview.js)
+  setDiffTheme(t); // a drawn diff follows at once (modules/changes/diffview.js)
   document.querySelector('meta[name="color-scheme"]')?.setAttribute("content", t);
   // the browser's own chrome (Safari's bars, Android's status bar) takes the canvas's colour
   const canvas = getComputedStyle(document.documentElement).getPropertyValue("--canvas").trim();
@@ -224,8 +224,8 @@ const CH = createChats({
   },
 });
 world.ui = { tbOpen: S.tbOpen }; // turn blocks open or folded, shared with the Chats view
-// what a place changed, from Space's /changes (js/changes.js): the panel's Changes, Files' diffs, the chips' counts
-const CHG = createChanges({ world, onChange: () => schedule() });
+// what a place changed, from Space's /changes (modules/changes/store.js): the panel's Changes, Files' diffs, the chips' counts
+const CHG = createChanges({ world, api, onChange: () => schedule() });
 const VW = createViewer({
   announce, onChange: () => schedule(), changes: CHG,
   ask: { target: (f) => askPlace(f)?.name || null, send: askAboutLines, compose: (f, a, b) => composeAbout(f, a, b), file: (f) => askAboutFile(f) },
@@ -233,13 +233,13 @@ const VW = createViewer({
   edits: { saved: (f) => savedSoon(f) },
   // who made a version: an agent's thread, by its title
   threadTitle: (ts) => world.thread(ts)?.title || null,
-  // Esc from a file: back to the panel's sections, the file kept as the Files tab (js/filespage.js)
+  // Esc from a file: back to the panel's sections, the file kept as the Files tab (modules/files/page.js)
   away: () => { if (!FP.isOpen) return false; STAGE.sections(); return true; },
   // every way a file opens ends in the panel's Files page
   opened: (f, o) => FP.show(o),
   // closed, with what opened it gone and nothing drawn in its place: where you'd carry on
   home: () => [$("#say"), placeRegion()].find(usable) || null,
-}); // a file, in the panel's Files page (js/filespage.js)
+}); // a file, in the panel's Files page (modules/files/page.js)
 // saves (⌘S): the place's changes are read again once they settle, not per save
 const savedT = new Map();
 function savedSoon(f) {
@@ -398,7 +398,7 @@ const MAP = createMap({ world, go: (v) => go(v, { panel: true }), announce, isBu
 // the panel: one card on the right with tabs (Map, Made, File; later apps), one header button, ⌘\
 // Files: the project's files, and the one place a file opens (js/files.js)
 const FILES = createFiles({ world, viewer: VW, isBusy, PROJ, go: (v) => go(v), changes: CHG, onFold: (f) => FP.treeFolded(f), paths: PATHS });
-// Files is a page of the panel (js/filespage.js); otherwise the panel is a stack of frames: Threads · Changes · Map
+// Files is a page of the panel (modules/files/page.js); otherwise the panel is a stack of frames: Threads · Changes · Map
 // Launchpad (js/launchpad.js): Deploy in the header row of a project and a thread; its section tops the panel
 const lpProject = (v) => (v && v.startsWith("p:") ? v.slice(2) : v && v.startsWith("t:") ? world.thread(v.slice(2))?.project || null : null);
 // the thread "Ask an agent" started: by its id when Launchpad has it (whatever its title, past older threads of the
@@ -415,7 +415,7 @@ const LP = createLaunchpad({ api: createLpApi(), projectOf: lpProject, nameOf: (
   unnotice: (mid) => heraldDrop(mid) });
 const iconNamed = (n) => (hasIcon(n) ? xi(n) : ""), atOf = (v) => { const t = convThread(v); return { view: v, project: t ? t.project : v.startsWith("p:") ? v.slice(2) : undefined, thread: t ? t.id : undefined }; };
 const STAGE = createStage({ map: MAP, files: FILES, changes: CHG, openFiles: () => FP.show({ focus: true }), viewer: VW, view: () => S.view, go: (v, e) => openFromPanel(v, e), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP, threads: (v) => panelThreads(v), shell: (on, host) => panelShell(on, host), owns: (e) => SH.owns(e), at: () => atOf(S.view), icon: iconNamed, places: kernel.places });
-// Files, a page of the panel (js/filespage.js; the owner, 19 Nov 14:57Z): the tree and the file open beside the chat,
+// Files, a page of the panel (modules/files/page.js; the owner, 19 Nov 14:57Z): the tree and the file open beside the chat,
 // which never moves
 const FP = createFilesPage({ stage: STAGE, files: FILES, viewer: VW, view: () => S.view, announce });
 kernel.start();

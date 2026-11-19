@@ -24,7 +24,7 @@ import { api } from "../core/platform/api.js";
 import { activityOf } from "../core/services/agent-activity.js";
 import { folderOf } from "../core/services/places.js";
 import { fileIcon, folderIcon } from "./fileicons.js";
-import { countsHtml } from "./changesframe.js";
+import { countsHtml } from "../core/ui/components/counts.js";
 import { RUNS } from "./viewer.js";
 import { pointerFollows } from "./keynav.js";
 
@@ -100,7 +100,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     follow: null,        // the folder of a file opened from elsewhere (Artifacts, another thread): shown until you leave
     viewKey: "all",      // the scope the view itself gives
     q: "", wide: false,
-    folded: false,       // beside a file, the tree folded to its rail (its fold button, ⌘B; js/filespage.js keeps it)
+    folded: false,       // beside a file, the tree folded to its rail (its fold button, ⌘B; modules/files/page.js keeps it)
   };
   const setOf = (k) => { if (!F.open.has(k)) F.open.set(k, new Set()); return F.open.get(k); };
   const apiRel = (s, local) => (s.base ? (local ? `${s.base}/${local}` : s.base) : local);
@@ -479,7 +479,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
   }
 
   // ── folded to a rail (beside a file) ─────────────────────────────────────
-  /** Fold or open the tree; `onFold` (js/filespage.js) hears it when it was you. */
+  /** Fold or open the tree; `onFold` (modules/files/page.js) hears it when it was you. */
   function fold(on, { mine = false } = {}) {
     if (F.folded === !!on) return;
     F.folded = !!on;

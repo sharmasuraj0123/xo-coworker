@@ -11,14 +11,6 @@
   "extra": 21,
   "refs": 0
  },
- "js/changes.js": {
-  "extra": 30,
-  "refs": 0
- },
- "js/changesframe.js": {
-  "extra": 26,
-  "refs": 1
- },
  "js/chats.js": {
   "extra": 27,
   "refs": 0
@@ -35,40 +27,12 @@
   "extra": 42,
   "refs": 0
  },
- "js/diffthemes.js": {
-  "extra": 1,
-  "refs": 0
- },
- "js/diffview.js": {
-  "extra": 90,
-  "refs": 0
- },
- "js/doceditor.js": {
-  "extra": 15,
-  "refs": 0
- },
- "js/docs.js": {
-  "extra": 50,
-  "refs": 0
- },
- "js/drafts.js": {
-  "extra": 7,
-  "refs": 0
- },
  "js/files.js": {
   "extra": 66,
   "refs": 0
  },
- "js/filespage.js": {
-  "extra": 15,
-  "refs": 0
- },
  "js/gestures.js": {
   "extra": 11,
-  "refs": 0
- },
- "js/imagechange.js": {
-  "extra": 18,
   "refs": 0
  },
  "js/intel.js": {
@@ -89,10 +53,6 @@
  },
  "js/map.js": {
   "extra": 93,
-  "refs": 0
- },
- "js/mdlive.js": {
-  "extra": 24,
   "refs": 0
  },
  "js/media.js": {
@@ -275,10 +235,6 @@
   "extra": 4,
   "refs": 0
  },
- "tests/changes.test.mjs": {
-  "extra": 4,
-  "refs": 0
- },
  "tests/checklist-empty.test.mjs": {
   "extra": 4,
   "refs": 0
@@ -363,14 +319,6 @@
   "extra": 3,
   "refs": 0
  },
- "tests/editor-caret.test.mjs": {
-  "extra": 7,
-  "refs": 0
- },
- "tests/editor-exit.test.mjs": {
-  "extra": 4,
-  "refs": 0
- },
  "tests/edits.test.mjs": {
   "extra": 3,
   "refs": 0
@@ -393,14 +341,6 @@
  },
  "tests/files.test.mjs": {
   "extra": 1,
-  "refs": 0
- },
- "tests/find-bar.test.mjs": {
-  "extra": 4,
-  "refs": 0
- },
- "tests/find-race.test.mjs": {
-  "extra": 6,
   "refs": 0
  },
  "tests/focus-back.test.mjs": {
@@ -453,10 +393,6 @@
  },
  "tests/image-text-mode.test.mjs": {
   "extra": 5,
-  "refs": 0
- },
- "tests/imagechange.test.mjs": {
-  "extra": 2,
   "refs": 0
  },
  "tests/inverse-toast.test.mjs": {
@@ -643,10 +579,6 @@
   "extra": 5,
   "refs": 0
  },
- "tests/pierre-find-focus.test.mjs": {
-  "extra": 9,
-  "refs": 0
- },
  "tests/press-inks.test.mjs": {
   "extra": 7,
   "refs": 0
@@ -705,10 +637,6 @@
  },
  "tests/retry-waiting.test.mjs": {
   "extra": 6,
-  "refs": 0
- },
- "tests/reveal-focus.test.mjs": {
-  "extra": 3,
   "refs": 0
  },
  "tests/rich-markdown.test.mjs": {
@@ -861,82 +789,6 @@
  },
  "tools/codemirror/vendor.mjs": {
   "extra": 25,
-  "refs": 0
- },
- "tools/diffview/astra-recheck.cjs": {
-  "extra": 4,
-  "refs": 0
- },
- "tools/diffview/dlcopy.cjs": {
-  "extra": 3,
-  "refs": 0
- },
- "tools/diffview/fake-changes.cjs": {
-  "extra": 5,
-  "refs": 0
- },
- "tools/diffview/fake-preload.cjs": {
-  "extra": 2,
-  "refs": 0
- },
- "tools/diffview/fileview-shots.cjs": {
-  "extra": 3,
-  "refs": 0
- },
- "tools/diffview/livecheck.cjs": {
-  "extra": 4,
-  "refs": 0
- },
- "tools/diffview/measure.cjs": {
-  "extra": 6,
-  "refs": 0
- },
- "tools/diffview/p1measure.cjs": {
-  "extra": 4,
-  "refs": 0
- },
- "tools/diffview/p1shots.cjs": {
-  "extra": 2,
-  "refs": 0
- },
- "tools/diffview/p2ask.cjs": {
-  "extra": 4,
-  "refs": 0
- },
- "tools/diffview/p2measure.cjs": {
-  "extra": 2,
-  "refs": 0
- },
- "tools/diffview/p3flow.cjs": {
-  "extra": 4,
-  "refs": 0
- },
- "tools/diffview/p3phone.cjs": {
-  "extra": 4,
-  "refs": 0
- },
- "tools/diffview/panel.cjs": {
-  "extra": 5,
-  "refs": 0
- },
- "tools/diffview/rows-long.cjs": {
-  "extra": 3,
-  "refs": 0
- },
- "tools/diffview/rows-max.cjs": {
-  "extra": 1,
-  "refs": 0
- },
- "tools/diffview/rows.cjs": {
-  "extra": 3,
-  "refs": 0
- },
- "tools/diffview/sandbox-preview.cjs": {
-  "extra": 3,
-  "refs": 0
- },
- "tools/diffview/sandbox.cjs": {
-  "extra": 5,
   "refs": 0
  },
  "tools/diffview/theme.mjs": {

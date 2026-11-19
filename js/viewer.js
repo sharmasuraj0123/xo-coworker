@@ -1,7 +1,7 @@
 // The file viewer (if1 #2), in Files: a file opens beside the conversation, like a canvas, ready to read and to
-// type in. Every text file is one editor (js/doceditor.js, CodeMirror): code reads as code, Markdown as a page
-// (Page, or Source: the same editor), and what you type saves itself (js/docs.js, one document per open file:
-// a second after your last key, when you leave it, ⌘S at once). There's no Edit and no Save. Someone else's change
+// type in. Every text file is one editor (modules/files/editor.js, CodeMirror): code reads as code, Markdown as a page
+// (Page, or Source: the same editor), and what you type saves on ⌘S only (modules/files/documents.js, one document per open
+// file; unsaved text waits as a draft in this browser). There's no Edit button and no autosave. Someone else's change
 // (an agent, bash, git) comes in place as a new version, the lines it touched glowing for a moment; if you were
 // typing, it's merged into yours, and only lines you both changed ask (Keep yours · Take theirs). Each version is in
 // the head's ‹ n of m ›: who made it, an older one read only with Restore, and Show changes.
@@ -25,14 +25,14 @@ import { ICON, $, xi } from "./ui.js";
 import { usable } from "./focusview.js";
 import { api, attachmentUrl, attachmentText, missingRoute } from "../core/platform/api.js";
 import { kindOf, typeWord } from "./attach.js";
-import * as DV from "./diffview.js";
+import * as DV from "../modules/changes/diffview.js";
 import * as K from "../core/platform/keys.js";
 import { pointerFollows } from "./keynav.js";
 import { redrawNode } from "./redraw.js";
-import { countsHtml } from "./changesframe.js";
-import { createDocs, byWords } from "./docs.js";
-import { mount as mountEditor, prefetch as prefetchEditor } from "./doceditor.js";
-import { isImageChange, drawImageChange } from "./imagechange.js";
+import { countsHtml } from "../core/ui/components/counts.js";
+import { createDocs, byWords } from "../modules/files/documents.js";
+import { mount as mountEditor, prefetch as prefetchEditor } from "../modules/files/editor.js";
+import { isImageChange, drawImageChange } from "../modules/changes/imagechange.js";
 
 const size = (n) => (n == null || !Number.isFinite(n) ? "" : n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(1)} MB`);
 const bytes = (s) => new TextEncoder().encode(s).length;
@@ -87,7 +87,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   const COPY_SAYS_MS = 150;
   const V = { open: false, parked: false, file: null, data: null, error: null, loading: false, mode: "preview", textMode: "page", imgMode: "preview", returnTo: null, gen: 0, copied: false, dims: null, busy: null, saveError: null, show: "file", split: false, menu: false, tabs: [], showChanges: false };
   // the diff, kept across redraws of the head (Pierre's element moves with its body): {el, handle, img (an image
-  // change's drawing, js/imagechange.js), key, gen, failed (the change the renderer last failed to draw: its notice
+  // change's drawing, modules/changes/imagechange.js), key, gen, failed (the change the renderer last failed to draw: its notice
   // turns busy when it's drawn again)}
   const DF = { el: null, handle: null, img: null, key: null, gen: 0, ask: 0, reading: null, failed: null };
   /** This file in its place's changes ({scope, path, file, base}), or null. */
@@ -96,7 +96,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   // the text file's editor: {el (its body, kept across redraws of the head), h (the editor), key (which document),
   // gen, sel ({a, b}: lines selected), asking ({a, b}: the fallback composer is open)}
   const TX = { el: null, h: null, key: null, gen: 0, sel: null, asking: false, q: null };
-  // the open files' documents (js/docs.js): one per project file, shared by every tab and view of it
+  // the open files' documents (modules/files/documents.js): one per project file, shared by every tab and view of it
   const store = (() => { try { return localStorage; } catch { return null; } })();
   const docs = createDocs({ api, store, onChange: (d, what) => docChanged(d, what) });
   /** The document on show (a project file's, or an attachment's read-only one), or null. */
@@ -170,8 +170,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (back) el.querySelector("[data-vw-more]")?.focus({ preventScroll: true });
   }
   /** The first of these that shows: a control folded into ⋯ is drawn twice, in the head (hidden while the head is
-   *  narrow) and in the menu, and focus put on the hidden one falls to the page (the controls grader on d79d37e, S130:
-   *  Updated · Show from More left focus on BODY at 390). */
+   *  narrow) and in the menu, and focus put on the hidden one falls to the page. */
   const shown = (root, sel) => [...root.querySelectorAll(sel)].find((x) => x.getClientRects().length > 0) || null;
   /** The ⋯ menu's items that show (a fold shows only while the head is narrow) */
   const menuItems = () => [...el.querySelectorAll(".vw-menu :is([role=menuitem],[role=menuitemradio])")].filter((x) => x.getClientRects().length > 0);
@@ -462,9 +461,9 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     const my = ++DF.gen;
     if (!patch) {
       dropDiff();
-      // an image: itself (js/imagechange.js), Before beside Now when it changed, in place of "Binary file"
+      // an image: itself (modules/changes/imagechange.js), Before beside Now when it changed, in place of "Binary file"
       if (isImageChange(c.file) && V.file.project && V.file.rel) {
-        DF.img = drawImageChange(host, { project: V.file.project, rel: V.file.rel, file: c.file, at: c.base || null });
+        DF.img = drawImageChange(host, { project: V.file.project, rel: V.file.rel, file: c.file, read: changes.read, at: c.base || null });
         DF.key = key;
         return;
       }
@@ -518,7 +517,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     (same && same.getClientRects().length && !same.matches('[aria-busy="true"]') ? same : host).focus({ preventScroll: true });
   }
 
-  // ── the text: one editor (js/doceditor.js) on the document (js/docs.js) ─────────────────────────────────────────
+  // ── the text: one editor (modules/files/editor.js) on the document (modules/files/documents.js) ─────────────────────────────────────────
   function textBody() {
     // the editor's own text takes the keys (a tab stop of its own); the body holds focus only when what was in it goes
     // (a notice drawn over, a Try again pressed), so focus never falls to the page
@@ -781,7 +780,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   // Someone else changed a file that's open. Space says so itself (its file.version event: app.js → fileChanged);
   // until it does, the project's changes are the signal: a changed file's hash in /changes (read after each edit an
   // agent finishes) that isn't the open document's version means a newer one. Either way the document takes it in
-  // (js/docs.js changed): in place when you have nothing unsaved, merged when you do.
+  // (modules/files/documents.js changed): in place when you have nothing unsaved, merged when you do.
   const sigNow = (D) => { const c = changes ? changes.at(D.project, D.rel) : null; return c && typeof c.file.version === "string" ? c.file.version : null; };
   let pushed = false; // Space sends file.version: the /changes signal isn't needed
   /** Called on every app render (the /changes signal, on today's Space). */
@@ -867,7 +866,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     showTab(t);
     if (!(f.created || f.lines)) el.focus({ preventScroll: true });
     announce(`${f.name || f.path} is open in the panel. Esc goes back to its sections.`);
-    // the panel's Files page brings itself forward (js/filespage.js): every way in ends here
+    // the panel's Files page brings itself forward (modules/files/page.js): every way in ends here
     opened && opened(V.file, { focus: !!from || !!f.created || !!f.lines });
     onChange && onChange();
   }
@@ -1084,7 +1083,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       if (D && D.viewing && TX.h) { docs.view(D, null); TX.h.showVersion(null); paintHead(); TX.h.focus(); return; }
       if (TX.sel && TX.h && TX.el && TX.el.contains(e.target)) { TX.h.clearSelection(); return; } // a selection clears first
       if (V.asking) { answerUnsaved("cancel"); return; }
-      if (away && away()) return; // in the panel, Esc goes back to its sections with the file kept (js/filespage.js)
+      if (away && away()) return; // in the panel, Esc goes back to its sections with the file kept (modules/files/page.js)
       close({ ask: true }); return;
     }
     // J / K: the next or previous change, on a diff

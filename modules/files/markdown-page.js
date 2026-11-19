@@ -1,24 +1,13 @@
-// Markdown as a page you type in (the page view): the same
-// CodeMirror editor as Source, drawn as a document, and you type straight into the formatted text (the owner, 19 Nov
-// 11:42Z: "it shouldn't feel like you're in another mode editing it. have it edit directly even on the formatted
-// text"). Headings stay headings and bold stays bold where the caret is: the marks (#, **, `, [](…), >) are never
-// shown, and the caret steps over them as one character (atomic ranges), so Backspace at the start of a heading makes
-// it a paragraph again. Formatting comes as Notion and Typora do it: ⌘B, ⌘I, ⌘E (code), ⌘⇧X (strike), and "# ",
-// "- ", "1. ", "> " typed at a line's start. Lists continue on Enter. Rules are drawn always. Tables, display math and
-// ```math, ```mermaid and ```chart blocks are drawn by the chat's own renderer (js/markdown.js, js/rich.js); with the
-// caret in one, its source shows with the drawing kept under it, updating as you type. An inline $formula$ shows its
-// TeX only while the caret is inside it. The file stays its Markdown, byte for byte.
-//
-// pageView(CM) → the extension (js/doceditor.js puts it in a compartment, so Source is the same editor without it).
+// @ts-check
 
-import { renderMarkdown, renderInline, cells } from "./markdown.js";
-import { drawMath, drawDiagram } from "./rich.js";
+// Markdown as a page you type in: the same CodeMirror editor as Source, drawn as a document you type straight into.
 
-// A widget's math and diagrams are drawn by the chat's own renderer (js/rich.js: one cache, one Mermaid queue), a
-// moment after the widget appears (the caret just left the block: the next key may bring it back), then the widget's
-// HTML is written again from the cache, exactly as the chat writes it.
+import { renderMarkdown, renderInline, cells } from "../../core/ui/markdown/markdown.js";
+import { drawMath, drawDiagram } from "../../core/ui/markdown/rich.js";
+
+// math and diagrams in a widget are drawn by the chat's own renderer (js/rich.js), a moment after the widget appears
 const DRAW_MS = 250;
-function drawIn(node, write) {
+function drawIn(/** @type {any} */ node, /** @type {any} */ write) {
   const math = [...node.querySelectorAll(".md-math:not(.is-done):not(.is-failed)")];
   const dgs = [...node.querySelectorAll(".md-diagram:not(.is-done):not(.is-failed)")];
   if (!math.length && !dgs.length) return;
@@ -36,14 +25,11 @@ const RICH_FENCE = /^(math|katex|latex|mermaid|chart)$/i;
 const INLINE_MATH = /(?<![\\$\w])\$(?=[^\s$])((?:\\.|[^$\\\n])*?[^\s\\$])\$(?![\w$])/g;
 const HIDE_MARKS = new Set(["HeaderMark", "EmphasisMark", "StrikethroughMark", "CodeMark", "QuoteMark", "LinkMark", "URL", "LinkTitle"]);
 
-/**
- * ⌘B and the rest: wrap each selection in a mark, or take the mark away when it's already wrapped; an empty selection
- * gets the pair with the caret between. Returns the transaction's spec. Pure (state in, spec out).
- */
-export function toggleMark(CM, state, mark) {
+/** ⌘B and the rest: wrap each selection in a mark, or take the mark away when it's already wrapped; an empty selection gets the pair with the caret between. */
+export function toggleMark(/** @type {any} */ CM, /** @type {any} */ state, /** @type {any} */ mark) {
   const n = mark.length;
   return {
-    ...state.changeByRange((r) => {
+    ...state.changeByRange((/** @type {any} */ r) => {
       if (state.sliceDoc(r.from - n, r.from) === mark && state.sliceDoc(r.to, r.to + n) === mark) {
         return { changes: [{ from: r.from - n, to: r.from }, { from: r.to, to: r.to + n }], range: CM.EditorSelection.range(r.from - n, r.to - n) };
       }
@@ -54,32 +40,32 @@ export function toggleMark(CM, state, mark) {
 }
 
 /** A table row written back from its cells: "| a | b |", a "|" inside a cell escaped. Pure. */
-export function rowLine(list) {
-  return `| ${list.map((c) => String(c).replace(/\n/g, " ").replace(/(?<!\\)\|/g, "\\|")).join(" | ")} |`;
+export function rowLine(/** @type {any} */ list) {
+  return `| ${list.map((/** @type {any} */ c) => String(c).replace(/\n/g, " ").replace(/(?<!\\)\|/g, "\\|")).join(" | ")} |`;
 }
 /** A table's source as rows of cells (the delimiter row left out) and the line each row is on. Pure. */
-export function tableRows(src) {
+export function tableRows(/** @type {any} */ src) {
   const lines = src.split("\n");
-  const rows = [];
-  lines.forEach((l, i) => { if (i !== 1 && l.trim()) rows.push({ line: i, cells: cells(l) }); });
+  const rows = /** @type {{ line: number, cells: string[] }[]} */ ([]);
+  lines.forEach((/** @type {any} */ l, /** @type {any} */ i) => { if (i !== 1 && l.trim()) rows.push({ line: i, cells: cells(l) }); });
   const align = lines[1] ? cells(lines[1]).map((c) => (/^:-+:$/.test(c) ? "center" : /-+:$/.test(c) ? "right" : "")) : [];
   return { rows, align, width: rows.length ? rows[0].cells.length : 0 };
 }
 
-export function pageView(CM) {
-  const { ViewPlugin, Decoration, WidgetType, StateField, EditorView, syntaxTree, RangeSetBuilder, EditorSelection, Prec, keymap } = CM;
+export function pageView(/** @type {any} */ CM) {
+  const { ViewPlugin, Decoration, WidgetType, StateField, EditorView, syntaxTree, RangeSetBuilder, Prec, keymap } = CM;
 
   /** A block drawn by the chat's renderer: a table, a rule, a formula, a diagram, a chart. */
   class BlockWidget extends WidgetType {
-    constructor(src, from, preview = false) { super(); this.src = src; this.from = from; this.preview = preview; }
-    eq(o) { return o.src === this.src && o.preview === this.preview; }
-    toDOM(view) {
+    constructor(/** @type {any} */ src, /** @type {any} */ from, preview = false) { super(); this.src = src; this.from = from; this.preview = preview; }
+    eq(/** @type {any} */ o) { return o.src === this.src && o.preview === this.preview; }
+    toDOM(/** @type {any} */ view) {
       const d = document.createElement("div");
       d.className = `cm-md-block prose vw-md${this.preview ? " is-preview" : ""}`;
       d.innerHTML = renderMarkdown(this.src);
       drawIn(d, () => { d.innerHTML = renderMarkdown(this.src); });
       d.addEventListener("mousedown", (e) => {
-        if (e.target.closest("a, button")) return;
+        if (/** @type {HTMLElement} */ (e.target).closest("a, button")) return;
         e.preventDefault();
         const at = Math.min(view.state.doc.length, this.from);
         view.dispatch({ selection: { anchor: at } });
@@ -90,31 +76,25 @@ export function pageView(CM) {
     ignoreEvent() { return false; }
     get estimatedHeight() { return 48; }
   }
-  /**
-   * A table you type into (the owner, 19 Nov 12:11Z): each cell is editable where it's drawn; a cell's text goes back
-   * into its row's line as you type (that line only, rewritten as "| a | b |"). Tab and ⇧Tab move between cells, Enter
-   * goes down a row (in the last row it adds one), Esc leaves the table. A cell shows its Markdown while you're in it
-   * and its formatting otherwise. The editor keeps this same table as the text changes under it (updateDOM), so the
-   * cell you're in keeps its caret.
-   */
+  /** A table you type into: each cell is editable where it's drawn, and its text goes back into its row's line as you type. */
   class TableWidget extends WidgetType {
-    constructor(src, from) { super(); this.src = src; this.from = from; }
-    eq(o) { return o.src === this.src; }
-    toDOM(view) {
+    constructor(/** @type {any} */ src, /** @type {any} */ from) { super(); this.src = src; this.from = from; }
+    eq(/** @type {any} */ o) { return o.src === this.src; }
+    toDOM(/** @type {any} */ view) {
       const wrap = document.createElement("div");
       wrap.className = "cm-md-block cm-md-table prose vw-md";
       wrap.innerHTML = `<div class="md-table"><table><thead></thead><tbody></tbody></table></div>`;
-      wrap._w = this;
+      /** @type {any} */ (wrap)._w = this;
       this.fill(wrap, null);
-      const cellOf = (t) => t.closest && t.closest("[data-r]");
+      const cellOf = (/** @type {any} */ t) => t.closest && t.closest("[data-r]");
       wrap.addEventListener("focusin", (e) => { const c = cellOf(e.target); if (c && c.textContent !== c.dataset.raw) c.textContent = c.dataset.raw; });
       wrap.addEventListener("focusout", (e) => { const c = cellOf(e.target); if (c) c.innerHTML = renderInline(c.dataset.raw) || "&#8203;"; });
       wrap.addEventListener("input", (e) => {
         const c = cellOf(e.target);
         if (!c) return;
         c.dataset.raw = c.textContent.replace(/\u200b/g, "");
-        const w = wrap._w, r = +c.dataset.r;
-        const row = [...wrap.querySelectorAll(`[data-r="${r}"]`)].map((x) => x.dataset.raw);
+        const w = /** @type {any} */ (wrap)._w, r = +c.dataset.r;
+        const row = [...wrap.querySelectorAll(`[data-r="${r}"]`)].map((x) => /** @type {HTMLElement} */ (x).dataset.raw);
         const { rows } = tableRows(w.src);
         const line = view.state.doc.lineAt(w.from).number + rows[r].line;
         const l = view.state.doc.line(line);
@@ -124,8 +104,8 @@ export function pageView(CM) {
         const c = cellOf(e.target);
         if (!c || e.isComposing) return;
         const all = [...wrap.querySelectorAll("[data-r]")], i = all.indexOf(c);
-        const w = wrap._w, { rows, width } = tableRows(w.src), r = +c.dataset.r, k = +c.dataset.c;
-        const go = (x) => { if (!x) return; x.focus(); const s = getSelection(); s.selectAllChildren(x); s.collapseToEnd(); };
+        const w = /** @type {any} */ (wrap)._w, { rows, width } = tableRows(w.src), r = +c.dataset.r, k = +c.dataset.c;
+        const go = (/** @type {any} */ x) => { if (!x) return; x.focus(); const s = /** @type {Selection} */ (getSelection()); s.selectAllChildren(x); s.collapseToEnd(); };
         if (e.key === "Tab") { e.preventDefault(); go(all[i + (e.shiftKey ? -1 : 1)]); return; }
         if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); const end = view.state.doc.lineAt(w.from).number + rows[rows.length - 1].line; view.focus(); view.dispatch({ selection: { anchor: view.state.doc.line(end).to } }); return; }
         if (e.key === "Enter") {
@@ -133,24 +113,24 @@ export function pageView(CM) {
           if (r < rows.length - 1) { go(wrap.querySelector(`[data-r="${r + 1}"][data-c="${k}"]`)); return; }
           // the last row: a new one under it, its first cell next
           const last = view.state.doc.line(view.state.doc.lineAt(w.from).number + rows[r].line);
-          wrap._focusNext = { r: r + 1, c: 0 };
+          /** @type {any} */ (wrap)._focusNext = { r: r + 1, c: 0 };
           view.dispatch({ changes: { from: last.to, insert: "\n" + rowLine(Array(width).fill("")) }, userEvent: "input.table" });
         }
       });
       return wrap;
     }
     /** The text changed under the table (a cell typed in, a row added): its cells are brought up to date in place. */
-    updateDOM(dom) {
+    updateDOM(/** @type {any} */ dom) {
       if (!dom.classList.contains("cm-md-table")) return false;
       dom._w = this;
       this.fill(dom, document.activeElement);
       if (dom._focusNext) { const n = dom._focusNext; dom._focusNext = null; const x = dom.querySelector(`[data-r="${n.r}"][data-c="${n.c}"]`); if (x) x.focus(); }
       return true;
     }
-    fill(wrap, keep) {
+    fill(/** @type {any} */ wrap, /** @type {any} */ keep) {
       const { rows, align, width } = tableRows(this.src);
       const head = wrap.querySelector("thead"), body = wrap.querySelector("tbody");
-      const want = (r) => (r === 0 ? head : body);
+      const want = (/** @type {any} */ r) => (r === 0 ? head : body);
       rows.forEach((row, r) => {
         const sec = want(r), idx = r === 0 ? 0 : r - 1;
         let tr = sec.children[idx];
@@ -172,9 +152,9 @@ export function pageView(CM) {
   }
   /** An inline formula, drawn; a click puts the caret in it (its source shows). */
   class MathWidget extends WidgetType {
-    constructor(src, from) { super(); this.src = src; this.from = from; }
-    eq(o) { return o.src === this.src; }
-    toDOM(view) {
+    constructor(/** @type {any} */ src, /** @type {any} */ from) { super(); this.src = src; this.from = from; }
+    eq(/** @type {any} */ o) { return o.src === this.src; }
+    toDOM(/** @type {any} */ view) {
       const s = document.createElement("span");
       s.className = "cm-md-imath";
       s.innerHTML = renderInline(this.src);
@@ -190,14 +170,14 @@ export function pageView(CM) {
   }
   const bullet = new Bullet();
 
-  const touches = (state, from, to) => state.selection.ranges.some((r) => r.to >= from && r.from <= to);
+  const touches = (/** @type {any} */ state, /** @type {any} */ from, /** @type {any} */ to) => state.selection.ranges.some((/** @type {any} */ r) => r.to >= from && r.from <= to);
 
   // ── blocks: worked out once per change of the text, shown or opened as the caret moves ──
-  function blocksOf(state) {
-    const out = [];
+  function blocksOf(/** @type {any} */ state) {
+    const out = /** @type {any[]} */ ([]);
     const tree = syntaxTree(state);
     tree.iterate({
-      enter(n) {
+      enter(/** @type {any} */ n) {
         const name = n.name;
         if (name === "HorizontalRule") { out.push({ from: n.from, to: n.to, always: true }); return false; }
         if (name === "Table") { out.push({ from: n.from, to: n.to, always: true, table: true }); return false; }
@@ -219,17 +199,15 @@ export function pageView(CM) {
     return out.map((b) => ({ from: state.doc.lineAt(b.from).from, to: state.doc.lineAt(b.to).to, always: !!b.always, table: !!b.table }));
   }
   const blockField = StateField.define({
-    create: (state) => ({ list: blocksOf(state), deco: null }),
-    update(v, tr) {
-      // the parser reads a long file a part at a time (the rest after the first frame, in the background): the blocks
-      // are found again whenever it has read further, not only when the text changes (the owner, 19 Nov 12:08Z: "these
-      // tables don't render in file view")
+    create: (/** @type {any} */ state) => ({ list: blocksOf(state), deco: null }),
+    update(/** @type {any} */ v, /** @type {any} */ tr) {
+      // the parser reads a long file a part at a time: the blocks are found again whenever it has read further
       const grew = syntaxTree(tr.state) !== syntaxTree(tr.startState);
       const list = tr.docChanged || grew ? blocksOf(tr.state) : v.list;
       if (!tr.docChanged && !grew && !tr.selection && v.deco) return v;
       return { list, deco: null };
     },
-    provide: (f) => EditorView.decorations.compute([f, "selection"], (state) => {
+    provide: (/** @type {any} */ f) => EditorView.decorations.compute([f, "selection"], (/** @type {any} */ state) => {
       const v = state.field(f);
       const b = new RangeSetBuilder();
       for (const x of v.list) {
@@ -253,7 +231,7 @@ export function pageView(CM) {
   const codeMark = Decoration.mark({ class: "cm-md-code" });
   const linkMark = Decoration.mark({ class: "cm-md-link" });
 
-  function inline(view) {
+  function inline(/** @type {any} */ view) {
     const { state } = view;
     const tree = syntaxTree(state);
     const ranges = [];
@@ -262,7 +240,7 @@ export function pageView(CM) {
     for (const { from, to } of view.visibleRanges) {
       tree.iterate({
         from, to,
-        enter(n) {
+        enter(/** @type {any} */ n) {
           const name = n.name;
           const h = /^(?:ATX|Setext)Heading(\d)$/.exec(name);
           if (h) { lineDeco.set(state.doc.lineAt(n.from).from, H[+h[1] - 1]); }
@@ -294,7 +272,7 @@ export function pageView(CM) {
             const a = l.from + m.index, b = a + m[0].length;
             const node = tree.resolveInner(a + 1, 1);
             if (/Code/.test(node.name) || /Code/.test(node.parent?.name || "")) continue;
-            if (state.selection.ranges.some((r) => r.from > a && r.from < b) || state.selection.ranges.some((r) => r.to > a && r.to < b)) continue;
+            if (state.selection.ranges.some((/** @type {any} */ r) => r.from > a && r.from < b) || state.selection.ranges.some((/** @type {any} */ r) => r.to > a && r.to < b)) continue;
             ranges.push(Decoration.replace({ widget: new MathWidget(m[0], a) }).range(a, b));
           }
         }
@@ -305,18 +283,18 @@ export function pageView(CM) {
     return Decoration.set(ranges, true);
   }
   // the hidden marks and the bullets: the caret steps over each as one (and Backspace takes it whole)
-  let atomic = [];
+  let atomic = /** @type {any[]} */ ([]);
 
   const inlinePlugin = ViewPlugin.fromClass(class {
-    constructor(view) { this.decorations = safe(view); this.atomic = Decoration.set(atomic, true); }
-    update(u) { if (u.docChanged || u.viewportChanged || u.selectionSet || syntaxTree(u.state) !== syntaxTree(u.startState)) { this.decorations = safe(u.view); this.atomic = Decoration.set(atomic, true); } }
-  }, { decorations: (v) => v.decorations, provide: (p) => EditorView.atomicRanges.of((view) => view.plugin(p)?.atomic ?? Decoration.none) });
+    constructor(/** @type {any} */ view) { this.decorations = safe(view); this.atomic = Decoration.set(atomic, true); }
+    update(/** @type {any} */ u) { if (u.docChanged || u.viewportChanged || u.selectionSet || syntaxTree(u.state) !== syntaxTree(u.startState)) { this.decorations = safe(u.view); this.atomic = Decoration.set(atomic, true); } }
+  }, { decorations: (/** @type {any} */ v) => v.decorations, provide: (/** @type {any} */ p) => EditorView.atomicRanges.of((/** @type {any} */ view) => view.plugin(p)?.atomic ?? Decoration.none) });
   // overlapping ranges (a hidden mark inside a replaced math) can't be set together: drop the inner ones
-  function safe(view) {
+  function safe(/** @type {any} */ view) {
     try { return inline(view); } catch { atomic = []; return Decoration.none; }
   }
 
-  const wrap = (mark) => (view) => { view.dispatch(view.state.update(toggleMark(CM, view.state, mark))); return true; };
+  const wrap = (/** @type {any} */ mark) => (/** @type {any} */ view) => { view.dispatch(view.state.update(toggleMark(CM, view.state, mark))); return true; };
   const keys = Prec.high(keymap.of([
     { key: "Mod-b", run: wrap("**") },
     { key: "Mod-i", run: wrap("*") },

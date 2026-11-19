@@ -1,4 +1,4 @@
-// Diffs and files (js/diffview.js): the vendored library is the one
+// Diffs and files (modules/changes/diffview.js): the vendored library is the one
 // pinned and hashed, the syntax theme still matches XO's code tokens, every language the adapter asks for is
 // one the build carries, and nothing loads the library on the app's first load. No network, no browser.
 //   node tests/diffview.test.mjs
@@ -45,8 +45,8 @@ await t("every language the bundle names carries its licence", () => {
   assert.ok(Object.keys(manifest.bundled).includes("@pierre/diffs") && Object.keys(manifest.bundled).includes("shiki"));
 });
 
-await t("js/diffthemes.js matches the code tokens (else: node tools/diffview/theme.mjs)", () => {
-  assert.equal(readFileSync(join(ROOT, "js/diffthemes.js"), "utf8"), moduleSource(codeColors(ROOT)));
+await t("modules/changes/diffthemes.js matches the code tokens (else: node tools/diffview/theme.mjs)", () => {
+  assert.equal(readFileSync(join(ROOT, "modules/changes/diffthemes.js"), "utf8"), moduleSource(codeColors(ROOT)));
 });
 
 await t("the theme resolver follows the cascade: light overrides dark, color-mix is worked out", () => {
@@ -61,18 +61,36 @@ await t("the theme resolver follows the cascade: light overrides dark, color-mix
 });
 
 await t("every language langOf() asks for is in the build", async () => {
-  const { langOf } = await import("../js/diffview.js");
-  const src = readFileSync(join(ROOT, "js/diffview.js"), "utf8");
+  const { langOf } = await import("../modules/changes/diffview.js");
+  const src = readFileSync(join(ROOT, "modules/changes/diffview.js"), "utf8");
   const asked = new Set([...src.matchAll(/:\s*"([a-z0-9+#-]+)"/g)].map((m) => m[1]).filter((l) => !["text", "dark", "light", "xo-dark", "xo-light", "shiki-js", "module", "split", "unified", "bars", "word", "line-info", "wrap", "scroll"].includes(l)));
   for (const l of asked) assert.ok(manifest.languages.includes(l), `"${l}" isn't vendored`);
   const cases = { "js/app.js": "javascript", "a/b.tsx": "tsx", "Makefile": "make", "x/Dockerfile": "docker", ".env": "dotenv", ".env.local": "dotenv", "run.sh": "shellscript", "README": "text", "notes.unknown": "text", ".gitignore": "text", "css/app.css": "css", "README.md": "markdown", "a.H": "c" };
   for (const [p, l] of Object.entries(cases)) assert.equal(langOf(p), l, p);
 });
 
-await t("first load stays as it was: only js/diffview.js reaches the library, and only by import()", () => {
-  const src = readFileSync(join(ROOT, "js/diffview.js"), "utf8").replace(/\/\/.*$/gm, "");
-  assert.ok(!/^\s*import\s[^(]/m.test(src), "js/diffview.js has a static import");
-  for (const f of sourcePaths(".js").filter((n) => n !== "js/diffview.js" && n !== "js/diffthemes.js")) {
+await t("the adapter offers only what the app draws: diffs, J/K, the theme, idle warm-up; no editor or merge view", async () => {
+  const D = await import("../modules/changes/diffview.js");
+  assert.deepEqual(Object.keys(D).sort(), ["diff", "jump", "langOf", "prefetch", "setTheme"]);
+  assert.ok(!("edit.js" in manifest.files) && !manifest.patches, "Pierre's editor isn't vendored, so nothing patches it");
+  assert.doesNotMatch(readFileSync(join(ROOT, "tools/diffview/vendor.mjs"), "utf8"), /diffs\/edit/, "and the vendoring script doesn't bring it back");
+});
+
+await t("no rule styles the deleted merge view's choices", () => {
+  assert.doesNotMatch(readFileSync(join(ROOT, "css/diffs.css"), "utf8"), /\.xd-merge|\.xd-mbtn/);
+});
+
+await t("tools/diffview holds only what makes the vendored library and its themes, no one-off probes", () => {
+  assert.deepEqual(readdirSync(join(ROOT, "tools/diffview")).sort(), ["theme.mjs", "vendor.mjs"]);
+});
+
+await t("first load stays as it was: only modules/changes/diffview.js reaches the library, and only by import()", () => {
+  const ADAPTER = "modules/changes/diffview.js";
+  const src = readFileSync(join(ROOT, ADAPTER), "utf8").replace(/\/\/.*$/gm, "");
+  assert.ok(!/^\s*import\s[^(]/m.test(src), `${ADAPTER} has a static import`);
+  const all = sourcePaths(".js");
+  assert.ok(all.includes(ADAPTER), "the census reads the adapter's folder");
+  for (const f of all.filter((n) => n !== ADAPTER && n !== "modules/changes/diffthemes.js" && !n.includes("/tests/"))) {
     const s = readSource(f);
     assert.ok(!/vendor\/pierre-diffs|diffthemes/.test(s), `${f} reaches the library directly`);
   }

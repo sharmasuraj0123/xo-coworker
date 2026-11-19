@@ -1,12 +1,8 @@
 // Browser tests for what the unit tests can't reach: the flows where timing, focus and the network meet.
 //   G1  every decision path waits out the card's 300 ms re-arm; a held key (repeat) never decides anything
 //   G2  a card withdrawn while you type on it hands over with the next card's letter keys paused
-//   G3  a merge with a place still to choose never saves, by Ctrl/Cmd+S or the button
-//   G4  a save that finishes after you opened another file only lands on the file that started it
 //   G5  a hop's receipt survives a history read that left before it, and one that came before its hop
 //   G6  Launchpad says a deploy stopped only once Space confirms it; a refused stop says so, with Stop again
-//   G7  keyboard focus after an editor outcome: Edit after a save or a discard, Save after a failed save,
-//       Keep editing for Cancel's question
 //   G8  the whole-file capsule's × is named for the file, a line range's for its lines
 //
 // Self-contained: the app is served from this folder by a small static server, and every /api request is
@@ -58,144 +54,7 @@ const done = async (page) => {
   assert.deepEqual(drops, [], "focus fell to the page when its control went");
 };
 
-// ── the viewer's editor ───────────────────────────────────────────────────
 const FILE = () => ({ content: "one\ntwo\nthree\n", version: "sha256:A" });
-async function editing(page, rel = "a.js") {
-  await toDemo(page);
-  await page.evaluate((rel) => window.__t.VW.open({ project: "demo", rel, path: rel, name: rel }), rel);
-  await page.locator("[data-vw-edit]").click();
-  await page.waitForFunction(() => window.__ED && window.__ED.on && window.__ED.ed);
-}
-async function typeAll(page, text) {
-  await page.locator("#viewer [contenteditable=true]").first().click();
-  await page.keyboard.press("ControlOrMeta+a");
-  await page.keyboard.insertText(text);
-  await page.waitForFunction(() => window.__ED.dirty);
-}
-const focusOf = (page) => page.evaluate(() => { const a = document.activeElement; return a ? [a.tagName, ...[...a.attributes].map((x) => x.name).filter((n) => n.startsWith("data-vw-"))].join(" ") : null; });
-
-t("G3: Ctrl/Cmd+S on a merge with a place still to choose saves nothing", async () => {
-  const page = await app({ files: { "a.js": FILE() }, saveMode: "overlap" });
-  await editing(page);
-  await typeAll(page, "mine\ntwo\nthree\n");
-  await page.locator("[data-vw-saveit]").click();
-  await page.waitForFunction(() => window.__ED.conflict && window.__ED.conflict.left === 1);
-  await page.locator("#viewer").focus();
-  await page.keyboard.press("ControlOrMeta+s");
-  await page.locator("[data-vw-saveit]").click({ force: true });
-  await page.waitForTimeout(300);
-  assert.equal(page.W.saves.length, 1, "only the first save, the one that met the change");
-  assert.ok(!/<<<<<<<|>>>>>>>/.test(page.W.files["a.js"].content), "no conflict markers written");
-  assert.equal(await page.evaluate(() => window.__ED.on && window.__ED.conflict.left), 1, "still choosing");
-  await done(page);
-});
-
-t("G4: a save that finishes after another file opened lands only on its own file", async () => {
-  let answer;
-  const page = await app({ files: { "a.js": FILE(), "b.js": { content: "SECOND FILE\n", version: "sha256:Z" } }, saveGate: new Promise((ok) => (answer = ok)) });
-  await editing(page);
-  await typeAll(page, "first file saved slowly\n");
-  await page.locator("[data-vw-saveit]").click();
-  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "b.js", path: "b.js", name: "b.js" }));
-  await page.waitForFunction(() => window.__V.data && window.__V.data.content === "SECOND FILE\n");
-  answer(); // a.js's save answers only now, with b.js open
-  await page.waitForTimeout(300);
-  assert.equal(page.W.files["a.js"].content, "first file saved slowly\n", "a.js saved");
-  assert.equal(await page.evaluate(() => window.__V.file.name), "b.js");
-  assert.equal(await page.evaluate(() => window.__V.data.content), "SECOND FILE\n", "b.js shows its own text");
-  assert.ok(!(await page.locator("#viewer").innerText()).includes("Saved a.js"), "no Saved/Undo for a.js on b.js");
-  await done(page);
-});
-
-t("G7: focus after a keyboard save goes to Edit; a failed clicked save keeps Save; Cancel asks with Keep editing; Discard goes to Edit", async () => {
-  const page = await app({ files: { "a.js": FILE() } });
-  await editing(page);
-  await typeAll(page, "mine\ntwo\nthree\n");
-  await page.keyboard.press("ControlOrMeta+s");
-  await page.waitForFunction(() => !window.__ED.on);
-  assert.equal(await focusOf(page), "BUTTON data-vw-edit", "after a keyboard save");
-  page.W.saveMode = "503";
-  await page.locator("[data-vw-edit]").click();
-  await page.waitForFunction(() => window.__ED.on && window.__ED.ed);
-  await typeAll(page, "unsaved\n");
-  await page.locator("[data-vw-saveit]").click();
-  await page.waitForFunction(() => window.__ED.err);
-  assert.equal(await focusOf(page), "BUTTON data-vw-saveit", "after a failed clicked save");
-  assert.equal(await page.evaluate(() => window.__ED.ed.text()), "unsaved\n", "the text stays");
-  await page.locator("[data-vw-cancel]").focus();
-  await page.keyboard.press("Enter");
-  assert.equal(await focusOf(page), "BUTTON data-vw-keep", "Cancel's question");
-  await page.locator("[data-vw-discard]").click();
-  await page.waitForFunction(() => !window.__ED.on);
-  assert.equal(await focusOf(page), "BUTTON data-vw-edit", "after Discard");
-  await done(page);
-});
-
-t("Save while typing: words typed during a save stay, unsaved, against the version it saved", async () => {
-  let answer;
-  const page = await app({ files: { "a.js": FILE() }, saveGate: new Promise((ok) => (answer = ok)) });
-  await editing(page);
-  await typeAll(page, "saved portion\n");
-  await page.locator("[data-vw-saveit]").click();
-  await page.locator("#viewer [contenteditable=true]").first().click(); // back into the text, which stays editable
-  await page.keyboard.press("ControlOrMeta+End");
-  await page.keyboard.insertText("TYPED WHILE SAVING");
-  answer(); // the save's answer arrives now, with the words already typed
-  await page.waitForFunction(() => !window.__ED.saving);
-  await page.waitForTimeout(100);
-  assert.equal(page.W.files["a.js"].content, "saved portion\n", "the save sent what was there at Save");
-  const st = await page.evaluate(() => ({ on: window.__ED.on, dirty: window.__ED.dirty, text: window.__ED.ed && window.__ED.ed.text(), base: window.__ED.base, version: window.__ED.version }));
-  assert.equal(st.on, true, "still editing");
-  assert.equal(st.text, "saved portion\nTYPED WHILE SAVING", "what was typed is still there");
-  assert.equal(st.dirty, true, "and unsaved");
-  assert.equal(st.base, "saved portion\n");
-  assert.equal(st.version, page.W.files["a.js"].version, "against the version just saved");
-  assert.ok(!(await page.locator("#viewer").innerText()).includes("Saved a.js"), "no Saved toast while unsaved words remain");
-  // Save again sends the rest, against that version
-  page.W.saveGate = null;
-  const v = st.version;
-  await page.keyboard.press("ControlOrMeta+s");
-  await page.waitForFunction(() => !window.__ED.on);
-  assert.equal(page.W.saves.at(-1).base_version, v);
-  assert.equal(page.W.files["a.js"].content, "saved portion\nTYPED WHILE SAVING");
-  await done(page);
-});
-
-t("G9: a late conflict while you type puts focus on what happened, and typing on can't choose", async () => {
-  let answer;
-  const page = await app({ files: { "a.js": FILE() }, saveMode: "overlap", saveGate: new Promise((ok) => (answer = ok)) });
-  await editing(page);
-  await typeAll(page, "mine\ntwo\nthree\n");
-  await page.locator("[data-vw-saveit]").click();
-  await page.locator("#viewer [contenteditable=true]").first().click();
-  await page.keyboard.press("ControlOrMeta+End");
-  await page.keyboard.insertText("more");
-  answer(); // the 409 arrives while the editor has focus
-  await page.waitForFunction(() => window.__ED.conflict && window.__ED.conflict.left >= 1);
-  await page.waitForTimeout(300);
-  assert.equal(await page.evaluate(() => document.activeElement.className), "xd-bar", "focus on the explanation, not BODY");
-  const left = await page.evaluate(() => window.__ED.conflict.left);
-  await page.keyboard.type("ab ");
-  await page.keyboard.press("Enter");
-  assert.equal(await page.evaluate(() => window.__ED.conflict.left), left, "no choice made by the keys");
-  assert.equal(page.W.saves.length, 1, "nothing saved");
-  await done(page);
-});
-
-t("G7: a failed Undo returns focus to the file's head", async () => {
-  const page = await app({ files: { "a.js": FILE() }, undoMode: "503" });
-  await editing(page);
-  await typeAll(page, "mine\ntwo\nthree\n");
-  await page.keyboard.press("ControlOrMeta+s");
-  await page.waitForFunction(() => !window.__ED.on);
-  await page.locator("[data-vw-undo]").focus();
-  await page.keyboard.press("Enter");
-  await page.waitForTimeout(500);
-  assert.equal(page.W.undos, 1);
-  assert.equal(await focusOf(page), "BUTTON data-vw-edit");
-  assert.match(await page.locator("#viewer").innerText(), /Fixture unavailable/);
-  await done(page);
-});
 
 t("G8: the whole-file capsule's × is named for the file", async () => {
   const page = await app({ files: { "notes.md": { content: "# Notes\n", version: "sha256:N" } } });
@@ -342,33 +201,6 @@ t("Jump: the row under a moving pointer is the selection, and Enter goes there",
 
 // ── focus never falls to the page when a control it was on goes ──
 const active = (page) => page.evaluate(() => { const a = document.activeElement; return a ? a.tagName + [...a.attributes].filter((x) => x.name.startsWith("data-") || x.name === "id" || x.name === "class").map((x) => ` ${x.name}=${x.value}`).join("") : null; });
-t("S136/S137: the Saved notice's Undo and Tell answer the pointer", async () => {
-  const page = await app({ files: { "a.js": FILE() } });
-  await editing(page);
-  await typeAll(page, "mine\n");
-  await page.keyboard.press("ControlOrMeta+s");
-  await page.waitForFunction(() => !window.__ED.on);
-  for (const sel of ["[data-vw-undo]", "[data-vw-tell]"]) {
-    const b = page.locator(sel).first();
-    const rest = await b.evaluate((e) => getComputedStyle(e).backgroundImage + getComputedStyle(e).backgroundColor);
-    await b.hover();
-    const over = await b.evaluate((e) => getComputedStyle(e).backgroundImage + getComputedStyle(e).backgroundColor);
-    assert.notEqual(over, rest, `${sel} answers hover`);
-  }
-  await page.mouse.move(2, 2);
-  await done(page);
-});
-t("S138: dismissing the Saved notice hands focus to the file's Edit", async () => {
-  const page = await app({ files: { "a.js": FILE() } });
-  await editing(page);
-  await typeAll(page, "mine\n");
-  await page.keyboard.press("ControlOrMeta+s");
-  await page.waitForFunction(() => !window.__ED.on);
-  await page.locator("[data-vw-toastx]").focus();
-  await page.keyboard.press("Enter");
-  assert.match(await active(page), /data-vw-edit/);
-  await done(page);
-});
 t("C023: the window narrows to a phone's (or widens) with focus on the panel's opener: focus goes into the panel, never the page", async () => {
   const page = await app();
   await panelOpen(page);
@@ -825,154 +657,6 @@ t("C087/C096: a change's diff region, focused by the keyboard, shows the same ri
   ringOk(await ringSides(page, "#stage .cx-pd"), "the diff");
   await done(page);
 });
-// ── a choice from the viewer's ⋯ menu leaves focus on something that shows (the controls grader on d79d37e, S130 at
-// 390 in both themes: Updated · Show, folded into More by the narrow head, loaded the new text and left focus on BODY,
-// put back on the head's hidden twin). Updated · Show, then Copy path, each chosen by the keyboard where it is: in
-// the head on a desktop, in More on a phone. Focus after each: in the viewer, on something drawn.
-const focusShows = (page) => page.evaluate(() => { const a = document.activeElement; return { tag: a ? a.tagName : null, inViewer: !!a && !!a.closest("#viewer"), drawn: !!a && a.getClientRects().length > 0, what: a ? [...a.attributes].filter((x) => x.name.startsWith("data-vw-")).map((x) => x.name).join(" ") : "" }; });
-async function choose(page, attr) {
-  // the head's own, where it shows; else from ⋯'s menu
-  const inHead = page.locator(`#viewer .vw-top [${attr}]:not(.vw-fold)`).first();
-  if (await inHead.isVisible().catch(() => false)) { await inHead.focus(); await page.keyboard.press("Enter"); return "head"; }
-  await page.locator("#viewer [data-vw-more]").focus();
-  await page.keyboard.press("Enter");
-  const item = page.locator(`#viewer .vw-menu [${attr}]`).first();
-  await item.waitFor({ state: "visible" });
-  await item.focus();
-  await page.keyboard.press("Enter");
-  return "more";
-}
-// the head redrawn while the selected File has focus keeps it on File, never the first control of its kind, Changes
-// (the controls grader on 2a8d278, S127, 1440 dark: an agent's change lit Updated · Show by paintHead, and focus moved
-// from File, still selected, to Changes, with no input; the same name-only lookup as C092's image-load route, 823c1cc)
-t("S127 (update): File focused when an agent's change lights Updated · Show: focus stays on File", async () => {
-  const page = await app({ files: { "a.js": FILE() }, changes: [{ path: "a.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: PATCH("a.js", "one", "ONE") }] });
-  await toDemo(page);
-  await page.waitForFunction(() => !!window.__t.CHG.at("demo", "a.js"), null, { timeout: 15000 });
-  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js", show: "file" }));
-  const file = page.locator('#viewer .vw-top [data-vw-show="file"]').filter({ visible: true }).first();
-  await file.waitFor({ timeout: 15000 });
-  await page.locator("#viewer .vw-top [data-vw-edit]").waitFor();
-  await file.focus();
-  page.W.files["a.js"] = { content: "one\ntwo\nthree\nfour, the new line\n", version: "sha256:B" };
-  page.W.changes[0].version = "sha256:B";
-  await page.evaluate(() => window.__t.CHG.saved("demo", "a.js"));
-  await page.waitForFunction(() => { window.__t.render(); return !!document.querySelector("#viewer .vw-top [data-vw-update]"); }, null, { timeout: 8000, polling: 200 });
-  for (const ms of [0, 250, 500]) {
-    if (ms) await page.waitForTimeout(250);
-    assert.equal(await page.evaluate(() => document.activeElement?.getAttribute("data-vw-show")), "file", `${ms} ms: focus stays on File`);
-  }
-  await done(page);
-});
-for (const reread of ["read", "refused"]) t(`S130: Updated · Show (its reread ${reread === "read" ? "read" : "refused, 503"}), and Copy path, chosen where they are (the head, or More), leave focus on something that shows`, async () => {
-  const page = await app({ files: { "a.js": FILE() }, changes: [{ path: "a.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: PATCH("a.js", "one", "ONE") }] });
-  await toDemo(page);
-  await page.waitForFunction(() => !!window.__t.CHG.at("demo", "a.js"), null, { timeout: 15000 });
-  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
-  await page.locator("#viewer .vw-top [data-vw-edit]").waitFor();
-  // an agent changes the file: its changes and the file itself carry the new version
-  page.W.files["a.js"] = { content: "one\ntwo\nthree\nfour, the new line\n", version: "sha256:B" };
-  page.W.changes[0].version = "sha256:B";
-  await page.evaluate(() => window.__t.CHG.saved("demo", "a.js"));
-  await page.waitForFunction(() => { window.__t.render(); return !!document.querySelector("#viewer .vw-top [data-vw-update]"); }, null, { timeout: 8000, polling: 200 });
-  if (reread === "refused") page.W.fileReadFails = 1; // the new version's read is refused (the grader's edge)
-  const where = await choose(page, "data-vw-update");
-  // the grader's moments after the choice (250 and 500 ms), then once the reread has settled
-  for (const ms of [250, 500]) {
-    await page.waitForTimeout(250);
-    const f = await focusShows(page);
-    assert.ok(f.inViewer && f.drawn, `${ms} ms after Updated · Show (${where}, ${reread}): focus on something drawn in the viewer, not ${f.tag} ${f.what}`);
-  }
-  // the file is drawn in the renderer's shadow root: its words are read through it
-  if (reread === "read") await page.waitForFunction(() => { const deep = (n) => (n.shadowRoot ? deep(n.shadowRoot) : "") + [...n.childNodes].map((c) => (c.nodeType === 3 ? c.textContent : c.nodeType === 1 ? deep(c) : "")).join(""); const b = document.querySelector("#viewer .vw-body"); return !!b && /four, the new line/.test(deep(b)); }, null, { timeout: 8000 });
-  else await page.waitForTimeout(1000);
-  let f = await focusShows(page);
-  assert.ok(f.inViewer && f.drawn, `once the reread ${reread === "read" ? "read" : "was refused"} (${where}): focus on something drawn in the viewer, not ${f.tag} ${f.what}`);
-  if (reread === "refused" && !(await page.locator("#viewer [data-vw-more]").isVisible().catch(() => false))) { await done(page); return; } // nothing to copy from a file that didn't read
-  const where2 = await choose(page, "data-vw-copy-path");
-  await page.waitForTimeout(300);
-  f = await focusShows(page);
-  assert.ok(f.inViewer && f.drawn, `after Copy path (${where2}): focus on something drawn in the viewer, not ${f.tag} ${f.what}`);
-  if (WIDTH < 600) assert.equal(where, "more", "on a phone it's in More (the owner's choice)");
-  await done(page);
-});
-// ── the Saved notice reads on its dark toast in both themes (the controls grader on d79d37e, S138: its × took light's
-// --ink-3 on the dark toast, faint at rest and on keyboard focus in 1440-light and 390-light). Computed colours over
-// the toast's own background (composited on the canvas): its words 4.5:1, Undo's and Tell's on their fill 4.5:1, the
-// × 3:1 at rest and with the keyboard's focus, and its focus ring 3:1.
-t("S138 (paint): on the Saved notice, its words, Undo, Tell and its × read on the toast, at rest and on keyboard focus", async () => {
-  const page = await app({ files: { "a.js": FILE() } });
-  await editing(page);
-  await typeAll(page, "mine\n");
-  await page.keyboard.press("ControlOrMeta+s");
-  await page.waitForFunction(() => !window.__ED.on);
-  await page.locator("#viewer .xd-toast [data-vw-toastx]").waitFor();
-  const read = () => page.evaluate(() => {
-    const rgb = (s) => { const m = /rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?/.exec(s); return m ? { c: [+m[1], +m[2], +m[3]], a: m[4] == null ? 1 : +m[4] } : null; };
-    const over = (t, b) => t.c.map((v, i) => v * t.a + b[i] * (1 - t.a));
-    const lum = (c) => { const [r, g, b] = c.map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
-    const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return +((x + 0.05) / (y + 0.05)).toFixed(2); };
-    const canvas = rgb(getComputedStyle(document.body).backgroundColor) || { c: [250, 250, 250], a: 1 };
-    const toast = document.querySelector("#viewer .xd-toast .toast"), tb = over(rgb(getComputedStyle(toast).backgroundColor), over(canvas, [255, 255, 255]));
-    const ink = (el) => over(rgb(getComputedStyle(el).color), tb);
-    const x = toast.querySelector("[data-vw-toastx]"), words = toast.querySelector(".t-m"), title = toast.querySelector(".t-m b"), undo = toast.querySelector(".t-undo");
-    const undoBg = undo ? over(rgb(getComputedStyle(undo).backgroundColor), tb) : null;
-    const xs = getComputedStyle(x), ring = xs.outlineStyle !== "none" && parseFloat(xs.outlineWidth) > 0 ? ratio(over(rgb(xs.outlineColor), tb), tb) : null;
-    return { x: ratio(ink(x), tb), words: ratio(ink(words), tb), title: ratio(ink(title), tb), undo: undo ? ratio(over(rgb(getComputedStyle(undo).color), undoBg), undoBg) : null, ring, focused: document.activeElement === x };
-  });
-  const rest = await read();
-  assert.ok(rest.title >= 4.5, `the title ${rest.title}:1`);
-  assert.ok(rest.words >= 4.5, `the words ${rest.words}:1`);
-  assert.ok(rest.undo == null || rest.undo >= 4.5, `Undo and Tell ${rest.undo}:1`);
-  assert.ok(rest.x >= 3, `the × at rest ${rest.x}:1`);
-  await page.locator("#viewer .xd-toast [data-vw-toastx]").focus();
-  await page.keyboard.press("Shift"); // the keyboard's focus
-  await page.locator("#viewer .xd-toast [data-vw-toastx]").focus();
-  const on = await read();
-  assert.equal(on.focused, true);
-  assert.ok(on.x >= 3, `the × on keyboard focus ${on.x}:1`);
-  assert.ok(on.ring != null && on.ring >= 3, `its focus ring ${on.ring}:1`);
-  await done(page);
-});
-// ── the keyboard can always leave the code editor (the controls grader on d79d37e, all four cells: after Created the
-// editor opens; Tab indents and Escape only eases the selection, so Created's Undo couldn't be reached by keyboard).
-// Tab alone still indents; Escape, then Tab or Shift+Tab, moves focus on, and Created's Undo is reached by keys.
-const inEditor = (page) => page.evaluate(() => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return !!(a && a.closest && a.closest("[contenteditable]")); });
-// the file editor's ring (the owner, 11 Nov 05:42Z; C120, S231: the caret in Pierre's editor drew no ring): editing, with
-// the caret in it, the file's box draws the message box's ring, 2 px of the focus colour, and loses it when focus leaves
-t("EDITOR-ring: editing, the caret in the file, its box draws the message box's ring", async () => {
-  const page = await app({ files: { "a.js": FILE() } });
-  await panelOpen(page);
-  await filesOpen(page);
-  await page.locator("[data-fl-new]").filter({ visible: true }).first().click();
-  await page.keyboard.insertText("ring.md");
-  await page.keyboard.press("Enter");
-  await page.waitForFunction(() => window.__ED && window.__ED.on && window.__ED.ed, null, { timeout: 10000 });
-  await window_focusEditor(page);
-  assert.equal(await inEditor(page), true, "the editor has focus");
-  await page.waitForTimeout(200);
-  // drawn as seen: the ring's own pixels on all four sides of the file, the top too (C120 S231 on fa49c3c: the file's
-  // lines covered the top of a ring on its box)
-  const g = await page.evaluate(() => { const b = document.querySelector("#viewer.is-editing .vw-body"); if (!b) return null; const r = b.getBoundingClientRect(), f = getComputedStyle(document.querySelector("#viewer")).getPropertyValue("--focus").trim() || getComputedStyle(document.documentElement).getPropertyValue("--focus").trim(); const c = document.createElement("canvas").getContext("2d"); c.fillStyle = f; c.fillRect(0, 0, 1, 1); return { x: r.x, y: r.y, w: r.width, h: r.height, rgb: [...c.getImageData(0, 0, 1, 1).data].slice(0, 3) }; });
-  assert.ok(g, "the viewer is marked as editing");
-  // focused, then with focus gone from the file: each side's edge (its two outer pixels) differs past the graders' 30
-  // RGB-sum, and toward the focus colour (a ring, not a shade)
-  const clip = { x: g.x, y: g.y, width: g.w, height: g.h };
-  const P = H.pngPixels(await page.screenshot({ clip }));
-  await page.evaluate(() => document.querySelector("#viewer .vw-top button")?.focus()); await page.waitForTimeout(200);
-  const Q = H.pngPixels(await page.screenshot({ clip }));
-  const at = (I, x, y) => { const i = (y * I.w + x) * I.bpp; return [I.data[i], I.data[i + 1], I.data[i + 2]]; };
-  const d = (p, q) => Math.abs(p[0] - q[0]) + Math.abs(p[1] - q[1]) + Math.abs(p[2] - q[2]);
-  const mx = Math.floor(P.w / 2), my = Math.floor(P.h / 2);
-  const pts = { top: [[mx, 0], [mx, 1]], bottom: [[mx, P.h - 1], [mx, P.h - 2]], left: [[0, my], [1, my]], right: [[P.w - 1, my], [P.w - 2, my]] };
-  const missing = [];
-  for (const [k, ps] of Object.entries(pts)) {
-    const ok = ps.some(([x, y]) => { const on = at(P, x, y), off = at(Q, x, y); return d(on, off) > 30 && d(on, g.rgb) < d(off, g.rgb); });
-    if (!ok) missing.push(`${k}: focused ${at(P, ...ps[0])} / not ${at(Q, ...ps[0])}`);
-  }
-  assert.deepEqual(missing, [], `the ring drawn on every side, toward the focus colour ${g.rgb}`);
-  await done(page);
-});
 // S005 on a phone: the coordinator asking, its 36 px pill under the name answers hover and held by the graders' bar
 // (the controls grader on fa49c3c: its words' colour alone moved 6% of the box)
 t("S005-phone: Coordinator needs you, a 36 px pill on a phone, answers hover and held past the bar", async () => {
@@ -994,42 +678,6 @@ t("S005-phone: Coordinator needs you, a 36 px pill on a phone, answers hover and
   console.log(`  S005-phone: hover ${(v1.box * 100).toFixed(0)}%, held ${(v2.box * 100).toFixed(0)}% of the box`);
   await done(page);
 });
-t("EDITOR-exit: after Created, Tab indents; Escape then Shift+Tab, or Escape then Tab, leaves the editor; Created's Undo is reached by keys", async () => {
-  const page = await app({ files: { "a.js": FILE() } });
-  await panelOpen(page);
-  await filesOpen(page);
-  await page.locator("[data-fl-new]").filter({ visible: true }).first().click();
-  await page.keyboard.insertText("made.md");
-  await page.keyboard.press("Enter");
-  await page.waitForFunction(() => window.__ED && window.__ED.on && window.__ED.ed, null, { timeout: 10000 });
-  await page.locator("#viewer [data-vw-undo]").first().waitFor({ state: "attached", timeout: 8000 });
-  await window_focusEditor(page);
-  assert.equal(await inEditor(page), true, "the editor has focus");
-  // Tab alone indents: focus stays, the text takes it
-  await page.keyboard.press("Tab");
-  assert.equal(await inEditor(page), true, "Tab alone stays in the editor");
-  await page.waitForFunction(() => /^(\t| {2})/.test(window.__ED.ed.text()), null, { timeout: 2000 });
-  // Escape, then Shift+Tab: out, backwards; still editing
-  await page.keyboard.press("Escape");
-  await page.keyboard.press("Shift+Tab");
-  assert.equal(await inEditor(page), false, "Escape, then Shift+Tab: out of the editor");
-  assert.equal(await page.evaluate(() => !!(window.__ED && window.__ED.on)), true, "still editing (nothing was cancelled)");
-  // Tab, back into it (moving in doesn't indent)
-  for (let i = 0; i < 20 && !(await inEditor(page)); i++) await page.keyboard.press("Tab");
-  assert.equal(await inEditor(page), true, "Tab comes back into the editor");
-  // Escape, then Tab: out, forwards; on to Created's Undo
-  await page.keyboard.press("Escape");
-  await page.keyboard.press("Tab");
-  assert.equal(await inEditor(page), false, "Escape, then Tab: out of the editor");
-  let reached = false;
-  for (let i = 0; i < 10 && !reached; i++) {
-    reached = await page.evaluate(() => !!document.activeElement && document.activeElement.hasAttribute("data-vw-undo"));
-    if (!reached) await page.keyboard.press("Tab");
-  }
-  assert.ok(reached, "Created's Undo reached by keys");
-  await done(page);
-});
-async function window_focusEditor(page) { await page.evaluate(() => window.__ED.ed.focus()); await page.waitForTimeout(150); }
 // Settings › Keyboard, opened as a person would: the sidebar's gear on a desktop; on a phone Home's bar has it (a
 // project's page has its own head there)
 async function keysPage(page) {
@@ -1133,38 +781,6 @@ t("S139 (waiting): the file's Try again says it's trying while the renderer load
   await page.waitForFunction(() => !document.querySelector("#viewer [data-vw-retry]") && !!document.querySelector("#viewer .vw-file diffs-container"), null, { timeout: 15000 });
   await page.waitForTimeout(150);
   assert.equal(await page.evaluate(() => { const a = document.activeElement; return !!a && a !== document.body && !!a.closest("#viewer .vw-file, #viewer .vw-body"); }), true, "focus on the drawn file, not the page");
-  await done(page);
-});
-// ── closing the Created notice by the keyboard while its file is being edited (the controls grader on 9d1f71b, S138,
-// all four cells): focus went to the viewer's own section, which shows no ring (Edit isn't in the head while
-// editing). It goes back to the caret.
-for (const how of ["Enter", "pointer"]) t(`S138 (Created): ${how === "Enter" ? "Enter on" : "a press on"} the Created notice's Close, while editing the new file, puts focus back in the editor, in sight`, async () => {
-  const page = await app({ files: { "a.js": FILE() } });
-  await panelOpen(page);
-  await filesOpen(page);
-  await page.locator("[data-fl-new]").filter({ visible: true }).first().click();
-  await page.keyboard.insertText("made.md");
-  await page.keyboard.press("Enter");
-  await page.waitForFunction(() => window.__ED && window.__ED.on && window.__ED.ed, null, { timeout: 10000 });
-  const x = page.locator("#viewer .xd-toast [data-vw-toastx]");
-  await x.waitFor();
-  if (how === "Enter") { await page.keyboard.press("Shift"); await x.focus(); await page.keyboard.press("Enter"); } // the keyboard's
-  else {
-    // a person's press, at Close's own coordinates (locator.click scrolls its target into view by itself first)
-    const at = await x.evaluate((e) => { const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
-    await page.mouse.click(at.x, at.y);
-  }
-  await page.waitForFunction(() => !document.querySelector("#viewer .xd-toast"), null, { timeout: 3000 });
-  await page.waitForTimeout(150);
-  const where = await page.evaluate(() => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return { editor: !!(a && a.closest && a.closest("[contenteditable]")), tag: a ? a.tagName + (a.id ? "#" + a.id : "") : null }; });
-  assert.equal(where.editor, true, `back in the editor, not ${where.tag}`);
-  // and in sight: nothing scrolled the page's main area (the controls grader on 65e84b7, S138 on a phone: the editor's
-  // own scrollIntoView took MAIN#main to 262 and the file out of sight)
-  await page.waitForTimeout(300);
-  const sight = await page.evaluate(() => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; const r = a.getBoundingClientRect(), fv = document.getElementById("fv"); return { main: document.getElementById("main").scrollTop, top: Math.round(r.top), bottom: Math.round(r.bottom), fvTop: fv ? Math.round(fv.getBoundingClientRect().top) : null, vh: innerHeight }; });
-  assert.equal(sight.main, 0, `the main area isn't scrolled (${JSON.stringify(sight)})`);
-  assert.ok(sight.bottom > 0 && sight.top < sight.vh, `the editor is on screen (${JSON.stringify(sight)})`);
-  assert.equal(await page.evaluate(() => !!(window.__ED && window.__ED.on)), true, "still editing");
   await done(page);
 });
 // ── a frame's head under Launchpad keeps focus while its count moves live (the controls grader on 9d1f71b, C072–C074,
@@ -1271,26 +887,6 @@ const heraldSeen = (page) => page.evaluate(() => {
   const r = line.getBoundingClientRect(), at = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
   return { text: line.querySelector(".hr-t")?.textContent || "", sub: line.querySelector(".hr-s")?.textContent || "", shown: r.width > 0 && r.height > 0 && r.bottom <= innerHeight && r.top >= 0 && !!at && h.contains(at) && getComputedStyle(h).visibility === "visible" };
 });
-t("S137 (refused): under routing Off, Tell the agent shows Not sent on screen, posts nothing and keeps its notice", async () => {
-  const page = await app(offWorld({ files: { "a.js": FILE() } }));
-  await editing(page);
-  await typeAll(page, "mine\n");
-  await page.keyboard.press("ControlOrMeta+s");
-  await page.waitForFunction(() => !window.__ED.on);
-  await page.waitForFunction(() => window.__t.world.state.router && window.__t.world.state.router.mode === "off", null, { timeout: 15000 });
-  await reachable(page);
-  const tell = page.locator("[data-vw-tell]").first();
-  await tell.focus();
-  await page.keyboard.press("Enter");
-  await page.waitForFunction(() => /^Not sent/.test(document.querySelector("#herald .hr-ev .hr-t")?.textContent || ""), null, { timeout: 4000 });
-  const seen = await heraldSeen(page);
-  assert.match(seen.text, /^Not sent: .*off/i, `why, on screen: ${seen.text}`);
-  assert.equal(seen.sub, "your words are kept");
-  assert.equal(seen.shown, true, "on screen and uncovered");
-  assert.equal((page.W.posts || []).length, 0, "nothing posted");
-  assert.equal(await page.locator("[data-vw-tell]").count(), 1, "the Saved notice and its Tell are kept, to try again");
-  await done(page);
-});
 t("S137 (refused): under routing Off, a draft to the Workspace sent with Enter shows Not sent on screen and keeps the text", async () => {
   const page = await app(offWorld());
   await toDemo(page);
@@ -1349,33 +945,6 @@ t("C111-SEND-NOTICE-QUEUE-1: behind an Undo, a message that didn't go shows in i
   assert.ok(iF > iU, `A's failure shows after the Undo, in its turn: ${JSON.stringify(seen)}`);
   assert.ok(iS > iF, `B's receipt only after A's failure: ${JSON.stringify(seen)}`);
   assert.ok(!seen.slice(iU + 1, iF).some((t) => /^Sent to |^Sending to /.test(t)), `no passing line before the failure: ${JSON.stringify(seen)}`);
-  await done(page);
-});
-// ── a notice while a file is open (the controls grader on cb7afe7, S137 and V22): the line once sat in a folded chat's
-// dock, inert and out of sight, so a Tell that failed showed nothing on a phone. The chat never folds now (the file is
-// in the panel); the line must still be on screen, uncovered: above the composer, or over the covering panel on a phone.
-t("S137/V22: with a file in the panel, a Tell that fails says Not sent on screen", async () => {
-  const page = await app({ files: { "a.js": FILE() }, postFail: true });
-  await editing(page);
-  await typeAll(page, "mine\n");
-  await page.keyboard.press("ControlOrMeta+s");
-  await page.waitForFunction(() => !window.__ED.on);
-  assert.equal(await page.evaluate(() => document.querySelector("#stage").dataset.page), "files", "the file is the panel's Files page");
-  await page.locator("[data-vw-tell]").first().click();
-  await page.waitForFunction(() => /Not sent/.test(document.getElementById("herald")?.textContent || ""), null, { timeout: 5000 });
-  assert.ok((page.W.posts || []).length >= 1, "it was sent, and refused");
-  const seen = await page.evaluate(() => {
-    const h = document.getElementById("herald"), line = h.querySelector(".hr"), r = line.getBoundingClientRect();
-    const at = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
-    return { inert: !!h.closest("[inert]"), vis: getComputedStyle(h).visibility, w: r.width, h: r.height,
-      inView: r.top >= 0 && r.bottom <= innerHeight && r.left >= 0 && r.right <= innerWidth, hit: !!at && h.contains(at), text: line.textContent };
-  });
-  assert.match(seen.text, /Not sent/);
-  assert.equal(seen.vis, "visible", "visible");
-  assert.ok(seen.w > 40 && seen.h >= 24, `it has a size (${seen.w}×${seen.h})`);
-  assert.ok(seen.inView, "on screen");
-  assert.ok(seen.hit, "nothing covers it");
-  assert.equal(seen.inert, false, "nothing inert holds it");
   await done(page);
 });
 t("C085: A, then B while it's read, then A again: A's diff shows again", async () => {
@@ -1510,23 +1079,6 @@ t("H20/S144: a refused clone Stop keeps focus on Stop, ready to try again", asyn
   await done(page);
 });
 
-t("C091: an Edit that couldn't open says it was opening, then hands focus back to Edit", async () => {
-  let answer;
-  const page = await app({ files: { "a.js": FILE() }, editReadFails: 1, editGate: new Promise((ok) => (answer = ok)) });
-  await toDemo(page);
-  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
-  const ed = page.locator("[data-vw-edit]");
-  await ed.waitFor();
-  await ed.focus();
-  await page.keyboard.press("Enter");
-  // it says it's opening at every width (a phone shows the icon only: the spinner takes the pencil's place)
-  await page.waitForFunction(() => { const b = document.querySelector("[data-vw-edit]"); return b && b.getAttribute("aria-label") === "Opening for editing" && b.querySelector(".spin")?.getClientRects().length; });
-  answer();
-  await page.waitForFunction(() => { const b = document.querySelector("[data-vw-edit]"); return b && !b.disabled; });
-  await page.waitForTimeout(150);
-  assert.match(await active(page), /data-vw-edit/, "back on Edit, to try again");
-  await done(page);
-});
 t("C092/S126: Download from ⋯ keeps focus on ⋯ while it downloads and once it's done", async () => {
   let answer;
   const page = await app({ files: { "a.js": FILE() }, downloadGate: new Promise((ok) => (answer = ok)) });
@@ -1546,26 +1098,6 @@ t("C092/S126: Download from ⋯ keeps focus on ⋯ while it downloads and once i
   await page.waitForFunction(() => { const b = document.querySelector("[data-vw-more]"); return b && !b.hasAttribute("aria-busy"); });
   assert.match(await active(page), /data-vw-more/, "and once it's done");
   assert.equal(page.W.downloads, 1);
-  await done(page);
-});
-t("S232: a merge choice hands focus to the next place to choose, then to Save", async () => {
-  const base = "one\ntwo\nthree\nfour\nfive\nsix\nseven\n";
-  const page = await app({ files: { "a.js": { content: base, version: "sha256:A" } }, saveMode: "overlap", agentText: "AGENT1\ntwo\nthree\nfour\nfive\nsix\nAGENT7\n" });
-  await editing(page);
-  await typeAll(page, "MINE1\ntwo\nthree\nfour\nfive\nsix\nMINE7\n");
-  await page.locator("[data-vw-saveit]").click();
-  await page.waitForFunction(() => window.__ED.conflict && window.__ED.conflict.left === 2);
-  const first = page.locator(".xd-mbtn").first();
-  await first.waitFor();
-  await first.focus();
-  await page.keyboard.press("Enter");
-  await page.waitForFunction(() => window.__ED.conflict.left === 1);
-  await page.waitForFunction(() => document.activeElement?.classList.contains("xd-merge"), null, { timeout: 3000 });
-  await page.keyboard.press("Tab"); // the place's choices are one Tab in
-  assert.match(await page.evaluate(() => document.activeElement.className), /xd-mbtn/);
-  await page.keyboard.press("Enter");
-  await page.waitForFunction(() => window.__ED.conflict.left === 0);
-  await page.waitForFunction(() => document.activeElement?.hasAttribute("data-vw-saveit"), null, { timeout: 3000 });
   await done(page);
 });
 t("S082: a file opened from the map takes focus (on a phone the panel steps aside for it)", async () => {
@@ -1744,267 +1276,6 @@ t("S063: a changed file opened from Files' Changed takes focus", async () => {
   assert.match(await active(page), /id=viewer/);
   await done(page);
 });
-const deepActive = (page) => page.evaluate(() => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return { editable: !!a?.isContentEditable, inViewer: !!document.activeElement?.closest?.("#viewer") }; });
-t("EDITOR-close: the find bar's Escape and Close put you back at your caret, still editing", async () => {
-  const page = await app({ files: { "a.js": FILE() } });
-  await editing(page);
-  await page.locator("#viewer [contenteditable=true]").first().click();
-  // the bar's field takes focus in the bar's first frame (Pierre: requestAnimationFrame → select(), which focuses it);
-  // the case types once it has, as a person does. It used to force focus there at once and move on to Close inside
-  // that same frame, so the bar's frame took focus back to its field, Enter went to the field (next match) and the bar
-  // stayed: the intermittent "Close: back at the caret" (1 of 40 runs on 905ea5c; moving focus within the first frame
-  // is taken back 6 of 6 times, after two frames 0 of 6), never Close's own path
-  const fieldHasFocus = () => page.waitForFunction(() => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return !!a && !!a.matches && a.matches("[data-search-grid] [data-search]"); });
-  for (const how of ["Escape", "Close"]) {
-    await page.keyboard.press("ControlOrMeta+f");
-    await fieldHasFocus();
-    await page.keyboard.insertText("two");
-    if (how === "Escape") await page.keyboard.press("Escape");
-    else { await page.locator("[data-search-close]").first().focus(); await page.keyboard.press("Enter"); }
-    await page.waitForTimeout(200);
-    assert.equal(await page.evaluate(() => !document.querySelector("#viewer diffs-container")?.shadowRoot?.querySelector("[data-search-panel]")), true, `${how}: the bar is gone`);
-    assert.equal(await page.evaluate(() => !!(window.__ED && window.__ED.on)), true, `${how}: still editing`);
-    assert.deepEqual(await deepActive(page), { editable: true, inViewer: true }, `${how}: back at the caret`);
-  }
-  await done(page);
-});
-// the editor's find bar as one family (the controls grader on e55c2d8, S242–S252, and the contrast review): on a
-// phone every control in it is a real 36 px target (fields 36 tall; toggles, arrows, Replace, Replace all, the
-// replace toggle and Close 36 × 36; they were 16–28); its match count and "No results" read 4.5:1 on its surface.
-t("S242–S252 (find bar): on a phone every control is a 36 px target; its count and No results read 4.5:1", async () => {
-  const page = await app({ files: { "a.js": FILE() } });
-  await editing(page);
-  await page.locator("#viewer [contenteditable=true]").first().click();
-  await page.keyboard.press("ControlOrMeta+f");
-  const q = page.locator("[data-search-grid] [data-search]").first();
-  await q.waitFor();
-  await page.locator("[data-search-grid] [data-replace-toggle]").first().click(); // the replace row too
-  await page.waitForTimeout(150);
-  const read = () => page.evaluate(() => {
-    const g = [...document.querySelectorAll("#viewer *")].map((n) => n.shadowRoot).filter(Boolean).map((r) => r.querySelector("[data-search-grid]")).find(Boolean);
-    const panel = g.closest("[data-search-panel]") || g.getRootNode().querySelector("[data-search-panel]");
-    const ctl = [...panel.querySelectorAll("button, input")].filter((x) => x.getClientRects().length && getComputedStyle(x).visibility !== "hidden");
-    const sizes = ctl.map((x) => { const r = x.getBoundingClientRect(); return { who: x.getAttribute("aria-label") || x.getAttribute("placeholder") || x.tagName, w: +r.width.toFixed(1), h: +r.height.toFixed(1), input: x.tagName === "INPUT" }; });
-    // any CSS colour (the bar's are lab() and color-mix()) to sRGB, as the screen draws it: through a canvas
-    const cv = document.createElement("canvas"); cv.width = cv.height = 1; const cx = cv.getContext("2d", { willReadFrequently: true });
-    const toRGB = (c) => { cx.clearRect(0, 0, 1, 1); cx.fillStyle = "#000"; cx.fillStyle = c; cx.fillRect(0, 0, 1, 1); const [r, g, b, a] = cx.getImageData(0, 0, 1, 1).data; return { r, g, b, a: a / 255 }; };
-    const bgOf = (n) => { for (let e = n; e; e = e.parentElement || (e.getRootNode() && e.getRootNode().host)) { const c = getComputedStyle(e).backgroundColor; const v = toRGB(c); if (v.a > 0.99) return v; } return toRGB(getComputedStyle(document.body).backgroundColor); };
-    const lum = ({ r, g, b }) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
-    const cr = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
-    const m = g.querySelector("[data-matches]"), fg = toRGB(getComputedStyle(m).color), bg = bgOf(m);
-    return { sizes, matches: m.textContent.trim(), contrast: +cr(fg, bg).toFixed(2) };
-  });
-  // a query with matches, then one with none
-  await q.focus(); await page.keyboard.insertText("o"); await page.waitForTimeout(200);
-  const a = await read();
-  await page.keyboard.press("ControlOrMeta+a"); await page.keyboard.insertText("zzzz-nothing"); await page.waitForTimeout(200);
-  const b = await read();
-  assert.ok(a.contrast >= 4.5, `the match count reads 4.5:1 at the least (${a.matches}: ${a.contrast})`);
-  assert.match(b.matches, /No results/i);
-  assert.ok(b.contrast >= 4.5, `"No results" reads 4.5:1 at the least (${b.contrast})`);
-  if (WIDTH < 600) {
-    const small = a.sizes.filter((x) => x.h < 36 - 0.01 || (!x.input && x.w < 36 - 0.01));
-    assert.deepEqual(small, [], `every control a 36 px target on a phone: ${JSON.stringify(a.sizes)}`);
-  }
-  // no two targets overlap: a tap meant for one never lands on another (the controls grader on 76a53c1, 390: Close and
-  // Regexp overlapped 14 × 18 px, and a tap on Regexp closed Find). Checked as drawn, every cell
-  const overlaps = await page.evaluate(() => {
-    const g = [...document.querySelectorAll("#viewer *")].map((n) => n.shadowRoot).filter(Boolean).map((r) => r.querySelector("[data-search-panel]")).find(Boolean);
-    const ctl = [...g.querySelectorAll("button, input")].filter((x) => x.getClientRects().length && getComputedStyle(x).visibility !== "hidden");
-    const out = [];
-    for (let i = 0; i < ctl.length; i++) for (let j = i + 1; j < ctl.length; j++) {
-      const a = ctl[i].getBoundingClientRect(), b = ctl[j].getBoundingClientRect();
-      if (ctl[i].contains(ctl[j]) || ctl[j].contains(ctl[i])) continue;
-      const w = Math.min(a.right, b.right) - Math.max(a.left, b.left), h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
-      const name = (x) => x.getAttribute("aria-label") || x.getAttribute("placeholder") || x.tagName;
-      // the field and its own toggles sit inside it by design: the toggles are its children's targets, not neighbours
-      if (w > 0.5 && h > 0.5 && !(ctl[i].tagName === "INPUT" || ctl[j].tagName === "INPUT")) out.push(`${name(ctl[i])} × ${name(ctl[j])}: ${w.toFixed(1)} × ${h.toFixed(1)}`);
-    }
-    return out;
-  });
-  assert.deepEqual(overlaps, [], "no two of the bar's buttons overlap");
-  await done(page);
-});
-// Find opens with focus after a jump to a line not drawn yet (the controls grader on e55c2d8, S242: in a 180-line
-// file, Ctrl+End then Ctrl+F at once, and focus stayed in the editor at 0, 250 and 500 ms; traced: the editor's
-// landing of the caret, a render later, focused it after Find's own focus). No delay between the keys, no focus moved
-// by the case: Find's field has focus by 250 ms and keeps it, and the page itself never scrolls.
-t("S242 (race): Ctrl+End then Ctrl+F at once in a long file: Find's field has focus by 250 ms and keeps it", async () => {
-  const LONG = Array.from({ length: 180 }, (_, i) => `export const line${String(i).padStart(3, "0")} = ${i}; // a line of the long file`).join("\n") + "\n";
-  const page = await app({ files: { "long.js": { content: LONG, version: "sha256:L" } } });
-  await editing(page, "long.js");
-  await page.locator("#viewer [contenteditable=true]").first().click();
-  await page.waitForTimeout(300);
-  await page.keyboard.press("ControlOrMeta+End");
-  await page.keyboard.press("ControlOrMeta+f");
-  const inFind = () => page.evaluate(() => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return !!a && a.matches && a.matches("[data-search]"); });
-  await page.waitForTimeout(250);
-  assert.equal(await inFind(), true, "Find's field has focus by 250 ms");
-  await page.waitForTimeout(250);
-  assert.equal(await inFind(), true, "and still at 500 ms");
-  await page.keyboard.insertText("line179");
-  await page.waitForTimeout(200);
-  assert.match(await page.locator("[data-search-grid] [data-matches]").first().innerText(), /1/, "typing goes into Find");
-  assert.equal(await page.evaluate(() => document.getElementById("main").scrollTop), 0, "the page itself never scrolls");
-  await done(page);
-});
-// Edit on an empty file puts the caret in it (the controls grader's S242–S252 contract on dead20c, three cells of four:
-// after a long file's Find and Close, Edit on an empty file left focus on the viewer, not the editor: our wrapper asked
-// Pierre for focus for ten frames, and an empty file's editor can be ready later). The case's own order: the long file
-// first, then the empty one, by Files.
-t("S231/C120: Edit on an empty file, right after a long file's Find and Close: the caret is in it, and typing goes in", async () => {
-  const LONG = Array.from({ length: 180 }, (_, i) => `${i === 174 ? "one " : ""}line ${i}`).join("\n") + "\n";
-  const page = await app({ files: { "long.js": { content: LONG, version: "sha256:L" }, "empty.js": { content: "", version: "sha256:E" } } });
-  await editing(page, "long.js");
-  await page.locator("#viewer [contenteditable=true]").first().click();
-  await page.keyboard.press("ControlOrMeta+End");
-  await page.keyboard.press("ControlOrMeta+f");
-  await page.locator("[data-search-grid] [data-search]").first().waitFor();
-  await page.keyboard.insertText("one");
-  await page.locator("[data-search-close]").first().focus();
-  await page.keyboard.press("Enter");
-  await page.waitForTimeout(200);
-  // the empty file, as a person opens it: leave this one, open the other, Edit
-  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "empty.js", path: "empty.js", name: "empty.js" }));
-  await page.locator("[data-vw-edit]").filter({ visible: true }).first().waitFor({ timeout: 15000 });
-  await page.keyboard.press("Shift");
-  await page.locator("[data-vw-edit]").filter({ visible: true }).first().focus();
-  await page.keyboard.press("Enter");
-  await page.waitForFunction(() => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return !!a && a.isContentEditable; }, null, { timeout: 4500 });
-  await page.keyboard.type("EMPTY NOW TYPED");
-  await page.waitForFunction(() => window.__ED && window.__ED.ed && window.__ED.ed.text().includes("EMPTY NOW TYPED"), null, { timeout: 3000 });
-  await done(page);
-});
-t("EDITOR-regex: a pattern that isn't a valid regexp says so", async () => {
-  const page = await app({ files: { "a.js": FILE() } });
-  await editing(page);
-  await page.locator("#viewer [contenteditable=true]").first().click();
-  await page.keyboard.press("ControlOrMeta+f");
-  const q = page.locator("[data-search-grid] [data-search]").first();
-  await q.waitFor();
-  await page.locator('[data-search-grid] [aria-label="Regexp"]').first().click();
-  await q.focus();
-  await page.keyboard.insertText("[");
-  await page.waitForTimeout(150);
-  assert.equal(await page.locator("[data-search-grid] [data-matches]").first().innerText(), "Not a valid pattern");
-  assert.equal(await q.getAttribute("aria-invalid"), "true");
-  // in the error's ink (the controls grader on dead20c, S245: the find bar's sheet painted it the plain ink)
-  const ink = await page.evaluate(() => { const m = [...document.querySelectorAll("#viewer *")].map((n) => n.shadowRoot).filter(Boolean).map((r) => r.querySelector("[data-matches]")).find(Boolean); const p = document.createElement("i"); p.style.color = "var(--err-ink)"; document.body.append(p); const want = getComputedStyle(p).color; p.remove(); return { got: getComputedStyle(m).color, want }; });
-  assert.equal(ink.got, ink.want, `"Not a valid pattern" in the error's ink (${JSON.stringify(ink)})`);
-  await page.keyboard.press("Backspace");
-  await page.keyboard.insertText("t.o");
-  await page.waitForTimeout(150);
-  assert.equal(await q.getAttribute("aria-invalid"), "false", "a valid one is fine again");
-  await done(page);
-});
-
-t("EDITOR-close: Escape on one of the find bar's buttons closes the bar and puts you back at your caret, still editing", async () => {
-  const page = await app({ files: { "a.js": FILE() } });
-  await editing(page);
-  await page.locator("#viewer [contenteditable=true]").first().click();
-  await page.keyboard.press("ControlOrMeta+f");
-  const q = page.locator("[data-search-grid] [data-search]").first();
-  await q.waitFor();
-  await q.focus();
-  await page.keyboard.insertText("two");
-  // from the field to one of the bar's own buttons, as Tab takes you
-  await page.locator('[data-search-grid] [aria-label="Regexp"]').first().focus();
-  await page.keyboard.press("Escape");
-  await page.waitForTimeout(200);
-  assert.equal(await page.evaluate(() => !!(window.__ED && window.__ED.on)), true, "still editing");
-  assert.deepEqual(await deepActive(page), { editable: true, inViewer: true }, "back at the caret");
-  assert.equal(await page.locator("[data-search-grid] [data-search]").filter({ visible: true }).count(), 0, "the bar closed");
-  await done(page);
-});
-t("EDITOR-regex: a pattern that isn't a valid regexp still says so after an edit to the document", async () => {
-  const page = await app({ files: { "a.js": FILE() } });
-  await editing(page);
-  await page.locator("#viewer [contenteditable=true]").first().click();
-  await page.keyboard.press("ControlOrMeta+f");
-  const q = page.locator("[data-search-grid] [data-search]").first();
-  await q.waitFor();
-  await page.locator('[data-search-grid] [aria-label="Regexp"]').first().click();
-  await q.focus();
-  await page.keyboard.insertText("[");
-  await page.waitForTimeout(150);
-  assert.equal(await page.locator("[data-search-grid] [data-matches]").first().innerText(), "Not a valid pattern");
-  // an edit to the document while the bar is open: the editor counts its matches again (back at the caret the way
-  // the bar's own Close puts you there; the bar covers the first lines, so a click there lands on the bar)
-  await page.evaluate(() => window.__ED.ed.focus());
-  await page.waitForFunction(() => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return !!a?.isContentEditable; });
-  await page.keyboard.insertText("x");
-  await page.waitForTimeout(300);
-  assert.equal(await page.locator("[data-search-grid] [data-matches]").first().innerText(), "Not a valid pattern", "its words after the edit");
-  assert.equal(await q.getAttribute("aria-invalid"), "true", "and the field says so too");
-  await done(page);
-});
-t("S232: a merge choice hands focus to the next place even far below, never to Save while a place is left", async () => {
-  const lines = Array.from({ length: 400 }, (_, i) => `line ${i + 1}`);
-  const of = (a, z) => [a, ...lines.slice(1, 399), z].join("\n") + "\n";
-  const page = await app({ files: { "a.js": { content: of("line 1", "line 400"), version: "sha256:A" } }, saveMode: "overlap", agentText: of("AGENT first", "AGENT last") });
-  await editing(page);
-  await typeAll(page, of("MINE first", "MINE last"));
-  await page.locator("[data-vw-saveit]").click();
-  await page.waitForFunction(() => window.__ED.conflict && window.__ED.conflict.left === 2);
-  const first = page.locator(".xd-mbtn").first();
-  await first.waitFor();
-  await first.focus();
-  await page.keyboard.press("Enter");
-  await page.waitForFunction(() => window.__ED.conflict.left === 1);
-  // where focus goes in the next moments: a place to choose, never Save
-  const seen = await page.evaluate(() => new Promise((ok) => {
-    const out = [], t0 = performance.now();
-    const look = () => { const a = document.activeElement; out.push(a?.classList.contains("xd-merge") ? "place" : a?.hasAttribute("data-vw-saveit") ? "save" : a?.id === "viewer" || a?.classList.contains("vw-file") ? "file" : a === document.body ? "page" : a?.tagName || "none"); if (performance.now() - t0 < 1500 && out[out.length - 1] !== "place") requestAnimationFrame(look); else ok(out); };
-    look();
-  }));
-  assert.ok(!seen.includes("save"), `never Save with a place left (${[...new Set(seen)].join(", ")})`);
-  assert.equal(seen[seen.length - 1], "place", `it reaches the next place (${[...new Set(seen)].join(", ")})`);
-  await page.keyboard.press("Tab");
-  await page.keyboard.press("Enter");
-  await page.waitForFunction(() => window.__ED.conflict.left === 0);
-  await page.waitForFunction(() => document.activeElement?.hasAttribute("data-vw-saveit"), null, { timeout: 3000 });
-  await done(page);
-});
-for (const how of ["Enter", "click"]) {
-  t(`S137: Tell the agent (${how}) tells it once, and the notice hands focus to the file's Edit`, async () => {
-    const page = await app({ files: { "a.js": FILE() } });
-    await editing(page);
-    await typeAll(page, "mine\n");
-    await page.keyboard.press("ControlOrMeta+s");
-    await page.waitForFunction(() => !window.__ED.on);
-    const tell = page.locator("[data-vw-tell]").first();
-    if (how === "click") await tell.click(); else { await tell.focus(); await page.keyboard.press("Enter"); }
-    assert.match(await active(page), /data-vw-edit/, "focus on the file's Edit");
-    assert.equal(await page.locator("[data-vw-tell]").count(), 0, "the notice went");
-    const said = await page.evaluate(() => Object.values(window.__t.S.local || {}).flat().filter((m) => /^I edited a\.js\. Read it again/.test(m.text || "")).length);
-    assert.equal(said, 1, "the agent is told, once");
-    await done(page);
-  });
-}
-// ── the viewer: what's shown is the file's or change's you're on, never the last one's ──
-for (const how of [413, "late"]) {
-  t(`VW-STALE-EDIT: an Edit read for the file you left never lands on the next one (${how === 413 ? "too large" : "answered late"})`, async () => {
-    let answerA;
-    const page = await app({ files: { "a.js": FILE(), "b.js": { content: "bee\nbuzz\n", version: "sha256:B" } }, editGateFor: { "a.js": new Promise((ok) => (answerA = ok)) }, editStatusFor: how === 413 ? { "a.js": 413 } : {} });
-    await toDemo(page);
-    const edit = () => page.evaluate(() => document.querySelector("#viewer .vw-top [data-vw-edit]")?.getAttribute("aria-label") || null);
-    await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
-    await page.waitForFunction(() => document.querySelector("#viewer .vw-top [data-vw-edit]")?.getAttribute("aria-label") === "Edit");
-    await page.locator("#viewer .vw-top [data-vw-edit]").click();
-    await page.waitForFunction(() => document.querySelector("#viewer .vw-top [data-vw-edit]")?.getAttribute("aria-label") === "Opening for editing");
-    await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "b.js", path: "b.js", name: "b.js" }));
-    await page.waitForFunction(() => window.__t.VW.file?.rel === "b.js" && document.querySelector("#viewer .vw-top [data-vw-edit]"));
-    assert.equal(await edit(), "Edit", "b.js has its own Edit, not a.js's Opening…");
-    answerA();
-    await page.waitForTimeout(400);
-    assert.equal(await edit(), "Edit", "a.js's answer changed nothing on b.js");
-    assert.equal(await page.evaluate(() => !!(window.__ED && window.__ED.on)), false, "not editing b.js on a.js's answer");
-    await page.locator("#viewer .vw-top [data-vw-edit]").click();
-    await page.waitForFunction(() => window.__ED && window.__ED.on && window.__ED.ed);
-    assert.equal(await page.evaluate(() => window.__ED.ed.text()), "bee\nbuzz\n", "b.js opens for editing on its own words");
-    await done(page);
-  });
-}
 const viewerDiff = (page) => page.evaluate(() => { const d = document.querySelector("#viewer .vw-diff"); if (!d) return ""; const c = d.querySelector("diffs-container"); return d.textContent + (c && c.shadowRoot ? c.shadowRoot.textContent : ""); });
 async function diffOpen(page, rel) {
   await page.waitForFunction((rel) => !!window.__t.CHG.at("demo", rel), rel, { timeout: 15000 }); // the project's changes are read
@@ -3824,13 +3095,13 @@ for (const w of [320, 390]) {
     const page = await app({ files: { "a-much-longer-file-name.js": FILE() }, changes: [{ path: "a-much-longer-file-name.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: PATCH("a-much-longer-file-name.js", "one", "ONE") }] }, { width: w });
     await toDemo(page);
     await page.waitForFunction(() => !!window.__t.CHG.at("demo", "a-much-longer-file-name.js"), null, { timeout: 15000 });
-    // a changed, editable text file, showing File: Ask about this, Changes · File, Edit and More in its head
+    // a changed text file, showing Ask about this, Changes · File and More in its head
     await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a-much-longer-file-name.js", path: "a-much-longer-file-name.js", name: "a-much-longer-file-name.js" }));
-    await page.locator("#viewer .vw-top [data-vw-edit]").waitFor();
+    await page.locator("#viewer .vw-top [data-vw-more]").waitFor();
     const g = await page.evaluate(() => {
       const top = document.querySelector("#viewer .vw-top"), r = top.getBoundingClientRect(), vw = innerWidth;
       const box = (sel) => { const e = top.querySelector(sel); if (!e || !e.getClientRects().length) return null; const b = e.getBoundingClientRect(); return { l: Math.round(b.left), r: Math.round(b.right), w: Math.round(b.width), h: Math.round(b.height) }; };
-      return { vw, top: { h: Math.round(r.height) }, name: box("#vw-h"), more: box("[data-vw-more]"), edit: box("[data-vw-edit]"), seg: box(".vw-seg.is-words"), ask: box(".vw-acts .vw-ask"), rows: (() => {
+      return { vw, top: { h: Math.round(r.height) }, name: box("#vw-h"), more: box("[data-vw-more]"), seg: box(".vw-seg.is-words"), ask: box(".vw-acts .vw-ask"), rows: (() => {
         // rows by their middles: a 36 px control sits 2 px lower than a 40 px one in the same row (the phone floor)
         const mids = [...top.querySelectorAll(".vw-acts > *")].filter((e) => e.getClientRects().length).map((e) => { const b = e.getBoundingClientRect(); return (b.top + b.bottom) / 2; }).sort((a, b) => a - b);
         return mids.length ? 1 + mids.slice(1).filter((m, i) => m - mids[i] > 4).length : 0;
@@ -3839,7 +3110,7 @@ for (const w of [320, 390]) {
     assert.ok(g.more && g.more.r <= g.vw, `More on screen: ${JSON.stringify(g.more)} in ${g.vw}`);
     assert.ok(g.name && g.name.w >= 56, `the name readable (a long one, cut with …): ${JSON.stringify(g.name)}`);
     assert.equal(g.ask, null, "Ask about this isn't in the narrow row");
-    assert.ok(g.seg && g.edit, "the view switch and Edit stay");
+    assert.ok(g.seg, "the view switch stays");
     assert.equal(g.rows, 1, "one row");
     assert.ok(g.top.h <= 48, `the head is one row tall: ${g.top.h}`);
     // Ask about this is in More

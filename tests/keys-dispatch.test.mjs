@@ -76,7 +76,7 @@ t("the page asks the one rule, not a list of its own", () => {
 });
 t("a ⌘/Ctrl key the field took stays the field's: ⌘B in a Markdown page bolds, it doesn't fold the tree", () => {
   // mdlive's keymap answers Mod-b first (CodeMirror preventDefaults what it runs); the page sees it taken
-  assert.match(readFileSync(new URL("../js/mdlive.js", import.meta.url), "utf8"), /\{ key: "Mod-b", run: wrap\("\*\*"\) \}/);
+  assert.match(readFileSync(new URL("../modules/files/markdown-page.js", import.meta.url), "utf8"), /\{ key: "Mod-b", run: wrap\("\*\*"\) \}/);
   K.resetAll();
   const ed = { matches: (q) => q.includes("[contenteditable]") }, e = { ...keydown("mod+b"), defaultPrevented: true, target: ed, composedPath: () => [ed] };
   assert.equal(K.globalFor(e), "treeFold", "⌘B is still the tree's key");

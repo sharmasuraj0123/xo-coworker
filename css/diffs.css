@@ -1,8 +1,5 @@
-/* Diffs and files drawn by @pierre/diffs (js/diffview.js). Pierre draws inside its own element's shadow
-   root, where this sheet can't reach; custom properties set on that element can, since they inherit. So
-   the look is set here, once, from XO's tokens, and light and dark switch with the tokens. The syntax
-   colours alone are a generated TextMate pair (js/diffthemes.js), because Pierre's editor needs them
-   concrete. */
+/* Diffs drawn by @pierre/diffs (modules/changes/diffview.js): set here from XO's tokens as custom properties on
+   its element, which its shadow root inherits; the syntax colours are a generated pair (modules/changes/diffthemes.js). */
 diffs-container{
   display:block;
   /* never 0 px tall: Pierre's virtualiser keeps a file that ends above the view where it ends, so an empty
@@ -43,7 +40,7 @@ diffs-container{
 .tb-cf .xd-n{margin-left:var(--s-1)}
 .tb-cf.is-on{background:color-mix(in srgb,var(--ink) 9%,var(--surface));border-color:var(--line-strong);color:var(--ink)}
 
-/* ── the panel's Changes (js/changesframe.js): the list, then the chosen file's diff ──
+/* ── the panel's Changes (modules/changes/frame.js): the list, then the chosen file's diff ──
    Rows are 32 px on the panel's 12 px side margins. Measured from the card's outer edge (its 1 px border
    included): the head's button, 28 px, sits 4 px in on top and right, so its radius is 12 − 4 = 8; the
    head is 1 + 3 + 28 + 3 = 35 px with its line, the path 12 px in, as the rows' icons are. */
@@ -190,15 +187,9 @@ diffs-container{
 .xd-bar{flex:none;margin:0;padding:10px 16px;border-bottom:1px solid var(--line-faint);background:color-mix(in srgb,var(--warn) 7%,var(--canvas));font:var(--fw-regular) var(--fs-md)/var(--lh-14) var(--sans);color:var(--ink-2)}
 .xd-bar b{color:var(--ink);font-weight:var(--fw-strong)}
 .xd-bar:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
-/* each place you both changed: your three choices, drawn by us in Pierre's slot */
-.xd-merge{display:flex;align-items:center;gap:4px;padding:4px 0;font-family:var(--sans);border-radius:var(--r-sm);outline:none}
-.xd-merge:focus-visible{box-shadow:0 0 0 2px var(--focus)}
-.xd-mbtn{height:var(--h-sm);padding:0 10px;border-radius:var(--r-pill);border:1px solid var(--line);background:var(--surface);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.xd-mbtn:hover{border-color:var(--line-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
-.xd-mbtn.is-mine{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));color:var(--ink)}
-.xd-mbtn:focus-visible,.xd-btn:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+.xd-btn:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
 /* "Saved · Undo · Tell the agent", at the foot of the file (the app's toast, here) */
-@media (prefers-reduced-motion:reduce){.xd-pop{animation:none}.xd-btn,.xd-mbtn{transition:none}}
+@media (prefers-reduced-motion:reduce){.xd-pop{animation:none}.xd-btn{transition:none}}
 @media (max-width:600px){
   .xd-btn kbd,.xd-runs span{display:none}
   .xd-pop{width:min(320px,calc(100vw - 32px))}
@@ -222,7 +213,7 @@ diffs-container{
 :root[data-theme="light"] .vw-menu{box-shadow:var(--lift-3)}
 @media (prefers-reduced-motion:reduce){.vw-menu{animation:none}}
 
-/* an image change (js/imagechange.js): the image itself, fitted on a checkerboard (its transparent parts show
+/* an image change (modules/changes/imagechange.js): the image itself, fitted on a checkerboard (its transparent parts show
    as such), and a line under it: what changed, its size, what can't be shown. In the panel's pane and in
    Files' Changes view */
 .stage .cx-im{flex:1 1 0;min-height:0;display:flex;flex-direction:column}

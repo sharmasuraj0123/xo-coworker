@@ -1,4 +1,4 @@
-// End-to-end, no browser: the frontend's document model (js/docs.js) and the frontend's own api.js, against xo-space's
+// End-to-end, no browser: the frontend's document model (modules/files/documents.js) and the frontend's own api.js, against xo-space's
 // branch (e2b7b3f) on :5292 behind this branch's serve.py on :5293, a throwaway project in /tmp/e2e. Checks the
 // contract as the UI uses it: saves, version store, merge window, file.version events (UI save, a disk write as an
 // agent's bash would, rename, delete + undo), /versions, /file?version=, /paths, /search, Restore's header.
@@ -15,7 +15,7 @@ const realFetch = globalThis.fetch;
 globalThis.fetch = (u, o) => realFetch(new URL(u, ORIGIN + "/"), o);
 globalThis.location = new URL(ORIGIN + "/");
 const { api } = await import(WT + "/core/platform/api.js");
-const { createDocs } = await import(WT + "/js/docs.js");
+const { createDocs } = await import(WT + "/modules/files/documents.js");
 const P = "demo", DIR = "/tmp/e2e/projects/demo";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let ok = 0;

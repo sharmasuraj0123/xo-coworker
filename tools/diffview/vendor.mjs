@@ -5,14 +5,13 @@
 //   node tools/diffview/vendor.mjs /tmp/pv/node_modules
 //
 // What it makes:
-//   diffs.js    FileDiff, File, parsePatchFiles, registerCustomTheme, the worker pool (js/diffview.js)
-//   edit.js     the editor (Files › Edit), sharing the chunks above
+//   diffs.js    FileDiff, File, parsePatchFiles, registerCustomTheme, the worker pool (modules/changes/diffview.js)
 //   worker.js   the highlighting worker (a module worker; languages and themes arrive from the page)
 //   c/*.js      shared chunks and one chunk per language, each fetched on first use
 //   manifest.json  the versions and a sha256 per file (tests/diffview.test.mjs checks them)
 //   LICENSES.md the licence of every package inside the bundle
 //
-// What it leaves out, on purpose: every bundled colour theme (XO registers its own two, js/diffthemes.js),
+// What it leaves out, on purpose: every bundled colour theme (XO registers its own two, modules/changes/diffthemes.js),
 // Shiki's WebAssembly engine (the JavaScript regex engine needs none), the Highlights backend and its
 // theme catalogue (XO uses Shiki), and all but the languages below.
 
@@ -48,11 +47,10 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const OUT = join(ROOT, "js/vendor/pierre-diffs");
 const tmp = mkdtempSync(join(tmpdir(), "pierre-diffs-"));
 
-// the entries: only what js/diffview.js uses
+// the entries: only what modules/changes/diffview.js uses
 writeFileSync(join(tmp, "diffs.js"), `export { FileDiff, File, VirtualizedFile, Virtualizer, UnresolvedFile, parsePatchFiles, parseDiffFromFile, registerCustomTheme, getSharedHighlighter } from "@pierre/diffs";
 export { getOrCreateWorkerPoolSingleton } from "@pierre/diffs/worker";
 `);
-writeFileSync(join(tmp, "edit.js"), `export * from "@pierre/diffs/edit";\n`);
 writeFileSync(join(tmp, "worker.js"), `import "@pierre/diffs/worker/worker.js";\n`);
 
 // shiki/langs, cut to LANGS: the same map Shiki exports, so Pierre's resolveLanguage works unchanged
@@ -92,7 +90,7 @@ const stubs = {
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT, { recursive: true });
 const res = await esbuild.build({
-  entryPoints: { diffs: join(tmp, "diffs.js"), edit: join(tmp, "edit.js"), worker: join(tmp, "worker.js") },
+  entryPoints: { diffs: join(tmp, "diffs.js"), worker: join(tmp, "worker.js") },
   absWorkingDir: tmp,
   nodePaths: [nm],
   bundle: true, format: "esm", splitting: true, minify: true, target: "es2022", platform: "browser",
@@ -129,4 +127,4 @@ rmSync(tmp, { recursive: true, force: true });
 const size = (f) => statSync(join(OUT, f)).size;
 const total = Object.keys(files).reduce((a, f) => a + size(f), 0);
 console.log(`js/vendor/pierre-diffs: ${Object.keys(files).length} files, ${(total / 1024).toFixed(0)} KB`);
-for (const f of ["diffs.js", "edit.js", "worker.js"]) console.log(`  ${f}  ${(size(f) / 1024).toFixed(1)} KB`);
+for (const f of ["diffs.js", "worker.js"]) console.log(`  ${f}  ${(size(f) / 1024).toFixed(1)} KB`);
