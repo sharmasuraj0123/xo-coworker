@@ -6,10 +6,11 @@
 // source; the drawn ring is the settings case "S111 S112 the ring has room at the foot".
 //   node tests/ring-room.test.mjs
 import assert from "node:assert/strict";
+import { resolveTokens, NEW_SIZES } from "./lib/tokens.mjs";
 import { readFileSync } from "node:fs";
 
 const R = new URL("../", import.meta.url);
-const read = (f) => readFileSync(new URL(f, R), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+const read = (f) => { const s = readFileSync(new URL(f, R), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""); return f.endsWith(".css") && !f.endsWith("tokens.css") ? resolveTokens(s, [...NEW_SIZES, "--h-lg", "--h-ctl", "--h-sm"]) : s; };
 const base = read("css/base.css"), tokens = read("css/tokens.css"), fv = readFileSync(new URL("js/focusview.js", R), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };

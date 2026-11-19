@@ -5,9 +5,10 @@
 // card 22 round, its body 16 down and 22 in; a file 18 round in the composer.
 //   node tests/app-ctl-scale.test.mjs
 import assert from "node:assert/strict";
+import { resolveTokens } from "./lib/tokens.mjs";
 import { readFileSync } from "node:fs";
 
-const css = readFileSync(new URL("../css/app.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+const css = resolveTokens(readFileSync(new URL("../css/app.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""));
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const rule = (sel) => { const m = new RegExp(`(?:^|[}\\n])${sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\{([^}]*)\\}`).exec(css); assert.ok(m, sel); return m[1]; };

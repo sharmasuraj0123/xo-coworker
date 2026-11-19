@@ -10,6 +10,7 @@
 // here). The desktop's sizes stay as they are. No browser.
 //   node tests/lp-phone-links.test.mjs
 import assert from "node:assert/strict";
+import { resolveTokens } from "./lib/tokens.mjs";
 import { readFileSync, readdirSync } from "node:fs";
 import { rules, context, decls, px, spec, cmp, covers } from "./lib/cascade.mjs";
 
@@ -33,7 +34,7 @@ const win = (live, B, p) => {
   return w;
 };
 // phone.css's floor: weightless (:where), so any min-height of a link's own outranks it
-const phoneCss = readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+const phoneCss = resolveTokens(readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""));
 const FLOOR = /:where\(([^{]*?)\):where\(:not\(([^{]*)\)\)\{min-height:36px;min-width:36px\}/.exec(phoneCss);
 const floored = (B) => !!FLOOR && FLOOR[1].split(",").includes("a[class]") && !(B.split(/[\s>]+/).pop().match(/\.[\w-]+/g) || []).some((k) => FLOOR[2].split(",").includes(k));
 const tall = (live, B) => {

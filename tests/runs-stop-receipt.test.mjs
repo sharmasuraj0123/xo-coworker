@@ -7,11 +7,12 @@
 // - the Undo inside its line: 6 px corners in a 6 px line, insets 3 and 4 (never concentric).
 //   node tests/runs-stop-receipt.test.mjs
 import assert from "node:assert/strict";
+import { resolveTokens } from "./lib/tokens.mjs";
 import { readFileSync } from "node:fs";
 
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 const view = readFileSync(new URL("../js/runsview.js", import.meta.url), "utf8");
-const css = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
+const css = resolveTokens(readFileSync(new URL("../css/app.css", import.meta.url), "utf8"));
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const i = app.indexOf("function stopRunsUndo("), body = app.slice(i, app.indexOf("\nrunsEl.addEventListener(\"click\"", i));

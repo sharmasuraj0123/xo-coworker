@@ -23,7 +23,7 @@
   .ar-wrap{padding:8px 16px 48px}
 }
 .ar-tools{display:flex;align-items:center;gap:8px;margin-top:8px}
-.ar-q{flex:1;min-width:0;max-width:420px;display:flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft);color:var(--ink-4);transition:border-color var(--d-hover) var(--ease)}
+.ar-q{flex:1;min-width:0;max-width:420px;display:flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 12px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft);color:var(--ink-4);transition:border-color var(--d-hover) var(--ease)}
 .ar-q:focus-within{border-color:var(--line-strong)}
 .ar-q svg{flex:none;width:16px;height:16px}
 .ar-q input{flex:1;min-width:0;height:100%;border:0;outline:none;background:none;color:var(--ink);font:var(--fw-regular) var(--fs-md)/var(--lh-14) var(--sans)}
@@ -75,7 +75,7 @@
   /* the name, its line and the thread it came from sit together in the middle of the row (one height for every
      row, so a one-line name with no thread doesn't sit at the top of an empty row) */
   .arts:not(.is-pics) .ar-grid .md-open{grid-column:1;grid-row:2;flex-direction:row;align-items:center;gap:12px;min-height:0;padding:0 0 0 12px}
-  .arts:not(.is-pics) .ar-grid .md-th{flex:none;width:36px;height:36px;gap:0;border:1px solid var(--line-soft);border-radius:var(--r)}
+  .arts:not(.is-pics) .ar-grid .md-th{flex:none;width:var(--tile-lg);height:var(--tile-lg);gap:0;border:1px solid var(--line-soft);border-radius:var(--r)}
   .arts:not(.is-pics) .ar-grid .md-th .md-ic{width:auto;height:auto;border:0;background:none}
   .arts:not(.is-pics) .ar-grid .md-th .md-ic svg{width:20px;height:20px}
   .arts:not(.is-pics) .ar-grid .md-ext{display:none}
@@ -86,7 +86,7 @@
   .arts:not(.is-pics) .ar-grid .md-meta > span{font:400 var(--fs-base)/18px var(--sans)}
   .arts:not(.is-pics) .ar-grid .md-from{grid-column:1;grid-row:3;margin:2px 0 0 54px;font:400 var(--fs-base)/18px var(--sans)}
   .arts:not(.is-pics) .ar-grid .md-from.is-none{display:none}
-  .arts:not(.is-pics) .ar-grid .md-pin{position:static;grid-column:2;grid-row:1 / -1;width:44px;height:auto;align-self:stretch;border-radius:0;background:none;color:var(--ink-4);opacity:1}
+  .arts:not(.is-pics) .ar-grid .md-pin{position:static;grid-column:2;grid-row:1 / -1;width:var(--h-hit);height:auto;align-self:stretch;border-radius:0;background:none;color:var(--ink-4);opacity:1}
   .arts:not(.is-pics) .ar-grid .md-it.is-pin .md-pin{color:var(--accent)}
   .arts:not(.is-pics) .ar-grid .md-pin svg{width:16px;height:16px}
   /* a cell of the row (its full height): its press and focus are drawn --cell-in inside it, at --r, never square */

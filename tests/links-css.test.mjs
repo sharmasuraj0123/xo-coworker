@@ -4,9 +4,10 @@
 // keeps the declarations and the markup from going again. No browser.
 //   node tests/links-css.test.mjs
 import assert from "node:assert/strict";
+import { resolveTokens, NEW_SIZES } from "./lib/tokens.mjs";
 import { readFileSync } from "node:fs";
 
-const sheet = (f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+const sheet = (f) => resolveTokens(readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""), [...NEW_SIZES, "--h-ctl", "--h-sm", "--h-lg"]);
 // app.css, then phone.css, which loads last (a phone rule in app.css's own phone block lost to the base rule after it)
 const css = sheet("app.css") + "\n" + sheet("phone.css"), phoneCss = sheet("phone.css");
 const files = readFileSync(new URL("../js/files.js", import.meta.url), "utf8");

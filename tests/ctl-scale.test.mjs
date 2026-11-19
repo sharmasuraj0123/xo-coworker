@@ -92,7 +92,7 @@ t("rows from the tokens: 40 one line, 48 with an action, 56 a two-line list row;
   assert.equal((mx.match(/>\.tb-h\{width:100%;min-height:var\(--h-row\);/g) || []).length, 2, "an open tool disclosure 40 (it was 44)");
   // a phone's rows on the steps (the owner, 11 Nov 05:42Z)
   const phone = readCss(new URL("css/phone.css", ROOT), "utf8");
-  assert.match(phone, /\.nrow,\.prow\{min-height:40px;padding-top:5px;padding-bottom:5px\}/);
+  assert.match(phone, /\.nrow,\.prow\{min-height:(40px|var\(--h-lg\));padding-top:5px;padding-bottom:5px\}/);
   // Chats' rows are 56 on a phone too: no phone rule changes them (C048: their phone 58 floor drew 66)
   assert.doesNotMatch(phone.replace(/\/\*[\s\S]*?\*\//g, ""), /\.ch-(row|main|m)\{/, "a phone keeps Chats' rows as a desktop draws them, 56");
   assert.match(phone, /\.pr-name\{line-height:1\.3\}\s*\.pr-t\{line-height:1\.35\}/);

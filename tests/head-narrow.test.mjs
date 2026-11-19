@@ -4,9 +4,10 @@
 // check), with the word as its name and title; wider, the word shows beside the icon as before.
 //   node tests/head-narrow.test.mjs
 import assert from "node:assert/strict";
+import { resolveTokens } from "./lib/tokens.mjs";
 import { readFileSync } from "node:fs";
 
-const css = ["panel.css", "diffs.css"].map((f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
+const css = ["panel.css", "diffs.css"].map((f) => resolveTokens(readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""))).join("\n");
 const src = readFileSync(new URL("../js/viewer.js", import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
@@ -25,7 +26,7 @@ t("the state stays said: the word is ⋯'s name and title, the icon a spinner or
 // where the word steps aside the spinner alone says Copying… / Downloading…, so it's drawn in full ink: the busy ⋯ is
 // never dimmed (the controls grader at 320: the spinner too faint, ink-3 at .6 opacity is 2.8:1 on the dark head)
 t("the busy ⋯ isn't dimmed, and its spinner is drawn in the second ink (9.9:1 dark, 10:1 light)", () => {
-  const app = readFileSync(new URL("../css/app.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  const app = resolveTokens(readFileSync(new URL("../css/app.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""));
   assert.match(app, /:is\(\.vw-cut-dl,\.vw-btn:not\(\.vw-more\)\)\[aria-busy="true"\]\{opacity:\.6;cursor:progress\}/, "the dimming leaves ⋯ out");
   assert.match(css, /\.vw-more\.is-busy\{color:var\(--ink-2\)\}/, "its spinner in the second ink");
 });

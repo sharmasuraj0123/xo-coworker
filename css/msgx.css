@@ -9,7 +9,7 @@
    A 40 px glass circle 12 px above what's docked (the composer, or a decision card docked over it: its real
    top, tracked in msgx.js), its right edge on the composer's right edge. It rises in
    when you've read up more than half a screen; new messages since are counted on it in a quiet ink pill. */
-.mx-down{position:absolute;z-index:4;right:var(--col-x);bottom:calc(var(--dock-h) + var(--s-3));display:grid;place-items:center;width:40px;height:40px;border:1px solid var(--line);border-radius:50%;background:color-mix(in srgb,var(--fill-1) 90%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);box-shadow:var(--e2),var(--hairline);color:var(--ink-2);opacity:0;transform:translateY(8px) scale(.92);pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease),color var(--d-hover) var(--ease)}
+.mx-down{position:absolute;z-index:4;right:var(--col-x);bottom:calc(var(--dock-h) + var(--s-3));display:grid;place-items:center;width:var(--h-lg);height:var(--h-lg);border:1px solid var(--line);border-radius:50%;background:color-mix(in srgb,var(--fill-1) 90%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);box-shadow:var(--e2),var(--hairline);color:var(--ink-2);opacity:0;transform:translateY(8px) scale(.92);pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease),color var(--d-hover) var(--ease)}
 .mx-down.is-on{opacity:1;transform:none;pointer-events:auto;transition-duration:var(--d-in)}
 /* hidden, it's out of the keyboard order and unread by screen readers (it faded only: QA #12); visibility
    waits for the fade out, and comes back at once */
@@ -54,7 +54,7 @@ body.files-open .mx-down{display:none}
 @media (hover:none){.mx-acts{display:none}}
 
 /* a reply on its way: the quote waits above what you type */
-.mx-reply{display:flex;align-items:center;gap:8px;height:36px;margin:-3px 0 10px;padding:0 6px 0 12px;border-radius:calc(var(--r-3xl) - 10px);background:var(--hover-fill);box-shadow:var(--hairline)}
+.mx-reply{display:flex;align-items:center;gap:8px;height:var(--h-touch);margin:-3px 0 10px;padding:0 6px 0 12px;border-radius:calc(var(--r-3xl) - 10px);background:var(--hover-fill);box-shadow:var(--hairline)}
 .mx-reply[hidden]{display:none}
 .mx-reply.is-in{animation:mx-up var(--d-in) var(--ease)}
 @keyframes mx-up{from{opacity:0;transform:translateY(6px)}}
@@ -79,7 +79,7 @@ body.files-open .mx-down{display:none}
 @keyframes mx-flash{0%,30%{background:var(--hover-fill);box-shadow:0 0 0 8px var(--hover-fill)}100%{background:transparent;box-shadow:0 0 0 8px transparent}}
 
 /* select words: reply to exactly them */
-.mx-qpop{position:fixed;z-index:var(--z-overlay);display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px 0 10px;border:1px solid var(--line);border-radius:var(--r-pill);background:color-mix(in srgb,var(--fill-1) 82%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:var(--e2);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink);animation:mx-up var(--d-in) var(--ease)}
+.mx-qpop{position:fixed;z-index:var(--z-overlay);display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 12px 0 10px;border:1px solid var(--line);border-radius:var(--r-pill);background:color-mix(in srgb,var(--fill-1) 82%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:var(--e2);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink);animation:mx-up var(--d-in) var(--ease)}
 .mx-qpop[hidden]{display:none}
 .mx-qpop svg{width:16px;height:16px;color:var(--ink-3)}
 /* it answers the pointer like every other button: a step brighter, its icon with it, pressed in (RPL-4) */
@@ -91,7 +91,7 @@ body.files-open .mx-down{display:none}
 /* swipe right on a message: it follows, an arrow grows in, and past the line it's a reply */
 #msgs>.m>*{transition:transform var(--d-move) var(--ease)}
 #msgs>.m.mx-dragging>*:not(.mx-swipe){transform:translateX(calc(var(--mx-drag,0) * 1px));transition:none}
-.mx-swipe{position:absolute;left:12px;top:0;display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--float);color:var(--ink-3);opacity:0;transform:scale(.6);pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease),background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.mx-swipe{position:absolute;left:12px;top:0;display:grid;place-items:center;width:var(--tile);height:var(--tile);border-radius:50%;background:var(--float);color:var(--ink-3);opacity:0;transform:scale(.6);pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease),background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .mx-swipe svg{width:16px;height:16px}
 .bubble{position:relative}
 .bubble>.mx-swipe{left:-44px;top:calc(50% - 16px)}
@@ -243,7 +243,7 @@ body.files-open .mx-down{display:none}
 /* While it's folded, its place is held at the bubble's 44 px from the very first frame, before msgx.js has
    drawn the bubble, so a redraw never passes through a different layout (the app's scroll-keeping measures
    in between). Everything here keys off the app's own markup (.is-live, aria-expanded), not msgx.js. */
-:root[data-msgx] #msgs>.m-turn.is-live.is-folded>.mb{min-height:44px}
+:root[data-msgx] #msgs>.m-turn.is-live.is-folded>.mb{min-height:var(--tile-xl)}
 /* (drawn out of its list order, it must never be the browser's scroll anchor: its redraws would pull the page) */
 :root[data-msgx] .m-turn.is-live.is-folded .turn>:is(.tb-think,.tb-act,.tb-narr,.tb-plan){display:none}
 :root[data-msgx] .m-turn.is-live.is-folded .turn:not(.is-said){display:none}
@@ -255,7 +255,7 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-turn.is-live.is-folded.has-said .mx-work{margin-top:4px}
 :root[data-msgx] .mx-work.mx-under .mx-we{display:none}
 .mx-work{display:none}
-:root[data-msgx] .m-turn.is-live.is-folded .mx-work{position:relative;display:flex;align-items:center;gap:12px;max-width:min(88%,560px);height:44px;padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-md);line-height:var(--lh-14);text-align:left;overflow:visible;transition:width var(--d-move) var(--ease),background var(--d-hover) var(--ease)}
+:root[data-msgx] .m-turn.is-live.is-folded .mx-work{position:relative;display:flex;align-items:center;gap:12px;max-width:min(88%,560px);height:var(--tile-xl);padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-md);line-height:var(--lh-14);text-align:left;overflow:visible;transition:width var(--d-move) var(--ease),background var(--d-hover) var(--ease)}
 :root[data-msgx] .mx-work:hover,:root[data-msgx] .m-turn.is-live.is-folded .mx-work:hover{background:var(--mx-them-top)}
 .mx-wt{position:relative;flex:1 1 auto;min-width:0;height:20px;overflow:hidden}
 .mx-wl{position:absolute;inset:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -274,7 +274,7 @@ body.files-open .mx-down{display:none}
 /* the line under a conversation (a coordinator replying) is the same bubble */
 :root[data-msgx] .typing{grid-template-columns:28px minmax(0,1fr);gap:8px;padding-bottom:20px;animation:none}
 :root[data-msgx] .typing>.av{width:28px;height:28px;border-radius:50%;align-self:center}
-:root[data-msgx] .typing .ty-b{width:fit-content;max-width:min(88%,560px);height:44px;align-items:center;gap:12px;padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-md);line-height:var(--lh-14)}
+:root[data-msgx] .typing .ty-b{width:fit-content;max-width:min(88%,560px);height:var(--tile-xl);align-items:center;gap:12px;padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-md);line-height:var(--lh-14)}
 /* the app writes this line itself, so when it's too long for the bubble its end fades out over 32 px
    (msgx.js marks it) instead of stopping mid-word: CSS's "…" takes the text colour, which the shimmer
    makes transparent */
@@ -287,7 +287,7 @@ body.files-open .mx-down{display:none}
 /* a held line (the usage limit…) ends with when it starts: it wraps onto a second line rather than fade its
    time away on a phone (nothing animates in it, so it can grow); the time itself never breaks (timeline.js
    keeps it one phrase), and the lines balance rather than leave one word alone */
-:root[data-msgx] .typing.is-held .ty-b{height:auto;min-height:44px;padding-block:12px}
+:root[data-msgx] .typing.is-held .ty-b{height:auto;min-height:var(--tile-xl);padding-block:12px}
 .typing.is-held .ty-b .ty-t{white-space:normal;overflow:visible;text-wrap:pretty}
 :root[data-msgx] .typing.is-held .ty-t.mx-fade{-webkit-mask-image:none;mask-image:none}
 @media (prefers-reduced-motion:reduce){.mx-wl.is-in,.mx-wl.is-out,:root[data-msgx] .mx-wl:not(.is-out){animation:none;color:var(--ink-2);background:none}}
@@ -359,7 +359,7 @@ body.files-open .mx-down{display:none}
 /* An admitted ask is emitted as st-needs, not st-needs_reply. Keep its band amber and full width:
    the separate Decide button belongs in the footer, not in a column beside the preview. */
 :root[data-msgx] .m-them .tcard.st-needs{--st:var(--warn);--mx-decide-w:72px;flex-direction:column}
-:root[data-msgx] .m-them .tcard.st-needs .tc-foot{min-height:32px}
+:root[data-msgx] .m-them .tcard.st-needs .tc-foot{min-height:var(--h-ctl)}
 :root[data-msgx] .m-them .tcard.st-needs .tc-go{margin-right:calc(var(--mx-decide-w) + 8px)}
 :root[data-msgx] .m-them .tcard.st-needs>.tc-dec{position:absolute;right:12px;bottom:12px;width:var(--mx-decide-w);margin:0;border-radius:calc(var(--r-xl) - 12px)}
 :root[data-msgx] .m-them .tc-open{gap:8px;padding:0 16px 12px;border-radius:var(--r-xl)}
@@ -370,7 +370,7 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-them .tc-next{margin:0 12px 12px;border-radius:calc(var(--r-xl) - 12px)}
 /* the strip sits 16 px in from the card's top and sides (the caption's text column), so with the card's 20 px
    corner its ends round at 20 − 16 = 4: an 8 px bar (band 16 + 8 + 16 = 40) */
-:root[data-msgx] .m-them .tc-segs{order:-1;margin:0 -16px 4px;width:calc(100% + 32px);min-height:40px;padding:16px;gap:4px;background:color-mix(in srgb,var(--st,var(--ink-4)) 14%,var(--mx-them-top));transition:background var(--d-hover) var(--ease)}
+:root[data-msgx] .m-them .tc-segs{order:-1;margin:0 -16px 4px;width:calc(100% + 32px);min-height:var(--h-lg);padding:16px;gap:4px;background:color-mix(in srgb,var(--st,var(--ink-4)) 14%,var(--mx-them-top));transition:background var(--d-hover) var(--ease)}
 :root[data-msgx] .m-them .tcard:hover .tc-segs{background:color-mix(in srgb,var(--st,var(--ink-4)) 20%,var(--mx-them-top))}
 :root[data-msgx] .m-them .tc-segs .sg{max-width:none;height:8px;border-radius:calc(var(--r-xl) - 16px)}
 :root[data-msgx] .m-them .tc-top b{font:var(--fw-strong) var(--fs-lg)/var(--lh-15) var(--sans)}
@@ -405,5 +405,5 @@ body.files-open .mx-down{display:none}
   :root[data-msgx] .m-them .tc-top b{width:100%;white-space:normal;overflow-wrap:anywhere}
   :root[data-msgx] .m-them .tc-foot{flex-wrap:wrap;gap:4px 10px}
   :root[data-msgx] .m-them .tc-foot>code{flex:0 1 100%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  :root[data-msgx] .m-them .tcard.st-needs>.tc-dec{height:36px}
+  :root[data-msgx] .m-them .tcard.st-needs>.tc-dec{height:var(--h-touch)}
 }

@@ -11,14 +11,14 @@
    composer's edge). The time moves from the header to the action row, under every message. */
 :root:not([data-msgx]) .m-them{grid-template-columns:24px minmax(0,1fr);gap:0 8px}
 :root:not([data-msgx]) .m-them>.mb{grid-area:1/1/2/3;min-width:0}
-:root:not([data-msgx]) .m-them>.av{grid-area:1/1;z-index:1;width:24px;height:24px;margin-top:0;border-radius:var(--r-sm)}
+:root:not([data-msgx]) .m-them>.av{grid-area:1/1;z-index:1;width:var(--h-sm);height:var(--h-sm);margin-top:0;border-radius:var(--r-sm)}
 :root:not([data-msgx]) .m-them>.av svg{width:14px;height:14px}
 :root:not([data-msgx]) .m-them>.av-gap,:root:not([data-msgx]) .m-turn>.av{display:none}
 /* The name line is a label above the words, not a line of them (the owner, 19 Nov: the name and the body had
    "nothing differentiating" them: the name was 14/600 in the body's own ink, read as one more bold line). Now it's the
    UI's label voice: 13 px (--fs-base) at 500 in the third ink, on a 24 px line with the speaker's mark, then 8 px to the
    words (15 px in the first ink). A role or the model chosen trails it in the fourth ink. */
-:root:not([data-msgx]) .m-them>.mb>.mh{min-height:24px;margin-bottom:8px;padding-left:32px;gap:8px;align-items:center}
+:root:not([data-msgx]) .m-them>.mb>.mh{min-height:var(--h-sm);margin-bottom:8px;padding-left:32px;gap:8px;align-items:center}
 :root:not([data-msgx]) .m-them>.mb>.mh b{font:var(--fw-medium) var(--fs-base)/var(--lh-15) var(--sans);color:var(--ink-3)}
 :root:not([data-msgx]) .m-them>.mb>.mh :is(.role,.m-iq){font:var(--fw-regular) var(--fs-sm)/var(--lh-15) var(--sans);color:var(--ink-4)}
 :root:not([data-msgx]) .m-them>.mb>.mh time{display:none}
@@ -35,7 +35,7 @@
 :root:not([data-msgx]) #msgs>.ev>.ev-ic{margin:0 1px}
 /* someone replying: the same mark and edge as a message's header */
 :root:not([data-msgx]) .typing{grid-template-columns:24px minmax(0,1fr);gap:8px}
-:root:not([data-msgx]) .typing>.av{width:24px;height:24px;border-radius:var(--r-sm)}
+:root:not([data-msgx]) .typing>.av{width:var(--h-sm);height:var(--h-sm);border-radius:var(--r-sm)}
 /* an agent's Reply and Copy are its action row; yours stay beside your bubble, on hover (no row under it) */
 :root:not([data-msgx]) :is(.m-them,.m-turn) .mx-acts{display:none!important}
 
@@ -146,7 +146,7 @@
 :root:not([data-msgx]) .tcard.st-needs .tc-go{margin-right:calc(var(--dec-w) + 8px)}
 @media (max-width:760px){
   /* a phone: Decide is a 36 px control, its own line under the foot, on the text edge */
-  :root:not([data-msgx]) .tcard.st-needs>.tc-dec{position:static;align-self:flex-start;width:auto;height:36px;margin:0 16px 12px;padding:0 16px}
+  :root:not([data-msgx]) .tcard.st-needs>.tc-dec{position:static;align-self:flex-start;width:auto;height:var(--h-touch);margin:0 16px 12px;padding:0 16px}
   :root:not([data-msgx]) .tcard.st-needs .tc-go{margin-right:0}
   :root:not([data-msgx]) .tc-top{flex-direction:column;align-items:flex-start;gap:0}
   :root:not([data-msgx]) .tc-top b{width:100%;white-space:normal;overflow-wrap:anywhere}

@@ -15,7 +15,7 @@
 .stage{container:stage / inline-size;--pe:12px;--pn:36px}
 
 /* ── the strip: 40 px; quiet tabs, the one in front underlined; under 360 px the counts step aside, the names stay ─ */
-.stg-bar{box-sizing:border-box;min-height:0;height:40px;padding:0 8px 0 4px;gap:4px;border-bottom:0;box-shadow:inset 0 -1px 0 var(--line-faint)}
+.stg-bar{box-sizing:border-box;min-height:0;height:var(--h-lg);padding:0 8px 0 4px;gap:4px;border-bottom:0;box-shadow:inset 0 -1px 0 var(--line-faint)}
 .stg-tabs{gap:0;overflow:visible;align-self:stretch}
 .stg-tab{height:39px;padding:0 8px;gap:8px;border-radius:0;background-color:transparent!important;box-shadow:none!important;font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-3)}
 .stg-tab::after{content:"";position:absolute;left:8px;right:8px;bottom:-1px;height:2px;border-radius:2px 2px 0 0;background:transparent;transition:background var(--d-hover) var(--ease)}
@@ -37,12 +37,12 @@ body.stage-over .stage{box-shadow:var(--e2)}
 
 /* ── the scope line and the field under it: the same in Files, Made and the Map ─────────────────────── */
 .fl-head{gap:8px;padding:12px var(--pe) 8px}
-.fl-crumb{gap:8px;min-height:24px;padding:0}
+.fl-crumb{gap:8px;min-height:var(--h-sm);padding:0}
 .fl-crumb b{font:var(--fw-strong) var(--fs-base)/var(--lh-14) var(--sans)}
 .fl-crumb small{max-width:60%;padding:0;border-radius:0;background:none;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
 .fl-up{margin:0 calc((16px - var(--h-sm)) / 2);border-radius:var(--r-sm)} /* its size is app.css's, on the scale (S062) */
 .fl-up svg{width:14px;height:14px}
-.fl-q,.md-pane .md-tools .all-q{box-sizing:border-box;height:32px;padding:0 8px;gap:8px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft)}
+.fl-q,.md-pane .md-tools .all-q{box-sizing:border-box;height:var(--h-ctl);padding:0 8px;gap:8px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft)}
 .fl-q svg,.md-pane .md-tools .all-q svg{width:16px;height:16px}
 .fl-q input,.md-pane .md-tools .all-q input{font:var(--fw-regular) var(--fs-base)/var(--lh-14) var(--sans)}
 :root[data-theme="light"] .fl-q,:root[data-theme="light"] .md-pane .md-tools .all-q{background:#fff;border-color:rgba(0,0,0,.12)}
@@ -80,15 +80,15 @@ body.stage-over .stage{box-shadow:var(--e2)}
    folder's rows, and what that name would do is said in the row under it (both 28 px: whole rows still) */
 .fl-find{display:flex;gap:6px;min-width:0}
 .fl-find .fl-q{flex:1;min-width:0}
-.fl-add{flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:var(--r-sm);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.fl-add{flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .fl-add:hover{background:var(--fill-2);color:var(--ink);transition-duration:var(--d-hover-in)}
 .fl-list{position:relative}
-.fl-more{position:absolute;right:8px;z-index:1;display:grid;place-items:center;width:24px;height:24px;margin-top:var(--s-1);border-radius:var(--r-sm);color:var(--ink-3)}
+.fl-more{position:absolute;right:8px;z-index:1;display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);margin-top:var(--s-1);border-radius:var(--r-sm);color:var(--ink-3)}
 .fl-more:hover,.fl-more[aria-expanded="true"]{background:var(--fill-3);color:var(--ink)}
 .fl-r.has-more{padding-right:36px}
 .fl-menu{position:fixed;z-index:var(--z-popover);display:flex;flex-direction:column;min-width:168px;padding:4px;border-radius:var(--r-lg);border:1px solid var(--line-soft);background:var(--float);box-shadow:var(--e2);animation:msg-in var(--d-out) var(--ease)}
 .fl-menu[hidden]{display:none}
-.fl-menu button{display:flex;align-items:center;gap:8px;height:32px;padding:0 8px;border-radius:var(--r-sm);text-align:left;font:var(--fw-regular) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-2)}
+.fl-menu button{display:flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 8px;border-radius:var(--r-sm);text-align:left;font:var(--fw-regular) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-2)}
 /* one active item: the focused one, whichever hand moved it (the mouse moves focus: keynav.js pointerFollows); :hover
    never paints a second (Astra on e1f8666: mouse onto an item, then ↓, left two looking active) */
 .fl-menu button:focus{background:var(--menu-focus);color:var(--ink);outline:none}
@@ -107,7 +107,7 @@ body.stage-over .stage{box-shadow:var(--e2)}
 /* a 40 px bar draws its rule inside it, so its whole 40 holds a 32 px control and the ring's 4 px above and below it
    (4 + 32 + 4): a 1 px border left 39, and where the bar meets a box that clips (the viewer's top), the ring of a
    focused control lost half a pixel (the controls grader on f93345a and 0f51890, C092 at 1440: Copied's ring cut 0.5) */
-.vw-top{height:40px;padding:0 8px 0 var(--pe);gap:8px;align-items:center;border-bottom:0;box-shadow:inset 0 -1px 0 var(--line-faint);container:vwtop / inline-size}
+.vw-top{height:var(--h-lg);padding:0 8px 0 var(--pe);gap:8px;align-items:center;border-bottom:0;box-shadow:inset 0 -1px 0 var(--line-faint);container:vwtop / inline-size}
 /* a narrow head keeps one row (the owner's choice, 9 Nov): the name keeps a readable width; the view switch, Edit (or
    Cancel · Save), ⋯ and × stay; Ask about this, Updated · Show, Your draft · Discard and Runs code fold into ⋯ below
    560 px, and with both switches in one head the file's own (Preview · Source, Fit · Actual size) folds below 400 */
@@ -131,7 +131,7 @@ body.stage-over .stage{box-shadow:var(--e2)}
    width less 20 px: 370 at a 390 phone, where the word fits and shows; 355 at 375 and 300 at 320, where it doesn't */
 @container vwtop (max-width:360px){
   .vw-top .vw-more:is(.is-done,.is-busy) span{display:none}
-  .vw-top .vw-more:is(.is-done,.is-busy){width:36px;padding:0}
+  .vw-top .vw-more:is(.is-done,.is-busy){width:var(--h-touch);padding:0}
   .vw-top .vw-more.is-busy .spin{width:16px;height:16px;border-width:2px} /* alone, it says the state: the icons' 16 px */
 }
 .vw-ic{width:16px;height:20px;border-radius:0;background:none;color:var(--ink-3);display:grid;place-items:center}
@@ -177,7 +177,7 @@ body.stage-over .stage{box-shadow:var(--e2)}
 .md-pane .md-tools{gap:8px;padding:8px var(--pe)}
 .md-pane .md-tools .all-q{flex:1 1 100%;max-width:none}
 .md-pane .all-f{gap:4px}
-.md-pane .all-f button{height:24px;padding:0 8px;gap:4px;border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans)}
+.md-pane .all-f button{height:var(--h-sm);padding:0 8px;gap:4px;border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans)}
 .md-pane .all-f button span{font-variant-numeric:tabular-nums}
 .md-pane .md-body{padding:0 var(--pe) 12px}
 .md-pane .md-gh{padding:12px 0 8px;font:var(--fw-strong) var(--fs-sm)/var(--lh-12) var(--sans);letter-spacing:var(--tr-caps);text-transform:uppercase;color:var(--ink-4)}
@@ -185,7 +185,7 @@ body.stage-over .stage{box-shadow:var(--e2)}
 .md-pane .md-it{border-radius:var(--r-sm)}
 .md-pane .md-th{border-radius:var(--r-sm) var(--r-sm) 0 0;height:100px}
 .md-ic{width:auto;height:auto;background:none;border:0}
-.md-ic svg,.md-ic svg.fi{width:24px;height:24px}
+.md-ic svg,.md-ic svg.fi{width:var(--h-sm);height:var(--h-sm)}
 .md-pane .md-meta{gap:4px;padding:12px 12px 4px}
 .md-pane .md-from{gap:4px;margin:0 4px 8px;padding:4px 8px;border-radius:var(--r-sm);font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans)}
 .md-pane .md-meta b{font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans)}
@@ -221,13 +221,13 @@ body.stage-over .stage{box-shadow:var(--e2)}
 .map-host .mp-now{margin:0 var(--pe) 8px;padding:6px 8px 6px 16px;border-radius:var(--r-sm)}
 .map-host .mp-nl{font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans)}
 .map-host .mp-legend{padding:0 var(--pe) 8px;gap:4px}
-.map-host .mp-who{height:24px;padding:0 8px;gap:8px;border-radius:var(--r-sm);font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans)}
+.map-host .mp-who{height:var(--h-sm);padding:0 8px;gap:8px;border-radius:var(--r-sm);font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans)}
 .map-host .dg{margin:0;border-radius:0;border-width:1px 0 0}
 .dg-tools{border-radius:var(--r-sm)}
 .dg-tools button{border-radius:var(--r-sm)}
-.dg-n{width:148px;height:32px;padding:0 8px;gap:8px;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans)}
-.dg-n.k-root{height:36px;margin-top:-2px;font-weight:var(--fw-strong)}
-.dg-n.k-more,.dg-n.k-note{width:auto;height:24px;margin-top:4px}
+.dg-n{width:148px;height:var(--tile);padding:0 8px;gap:8px;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans)}
+.dg-n.k-root{height:var(--tile-lg);margin-top:-2px;font-weight:var(--fw-strong)}
+.dg-n.k-more,.dg-n.k-note{width:auto;height:var(--h-sm);margin-top:4px}
 /* a box's hit area grows as the map zooms out, by 12 px × (1/scale − 1) on each side, in the map's own units, but
    never more than 5: boxes are 32 tall and 42 apart, so a target stops half way into the 10 between and never
    reaches a neighbour's box, edge or centre (Files/Map grader on b153247). That keeps targets 24 px or more down to
@@ -299,7 +299,7 @@ button .spin,.btn .spin{color:inherit}
 .fr.is-grow{flex:1 1 0;min-height:96px}
 .fr.is-folded{height:auto!important;flex:none}
 .fr.is-folded .fr-b{display:none!important} /* over any frame's own display (Changes and the Map are flex) */
-.fr-h{flex:none;box-sizing:border-box;height:32px;display:flex;align-items:stretch;padding:0 6px 0 4px;border-bottom:1px solid var(--line-faint)}
+.fr-h{flex:none;box-sizing:border-box;height:var(--h-ctl);display:flex;align-items:stretch;padding:0 6px 0 4px;border-bottom:1px solid var(--line-faint)}
 .fr.is-folded .fr-h{border-bottom:0}
 .fr-tabs{display:flex;align-items:stretch;min-width:0}
 .fr-t{position:relative;display:flex;align-items:center;gap:6px;padding:0 8px;border:0;background:none;font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-4);white-space:nowrap}
@@ -310,7 +310,7 @@ button.fr-t:hover{color:var(--ink-2)}
 .fr-n{font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
 .fr-n:empty{display:none}
 .fr-a{margin-left:auto;display:flex;align-items:center;gap:4px}
-.fr-ib{display:grid;place-items:center;width:24px;height:24px;border-radius:var(--r-sm);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.fr-ib{display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);border-radius:var(--r-sm);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .fr-ib:hover{background:var(--fill-2);color:var(--ink)}
 .fr-ib svg{width:16px;height:16px;transition:transform var(--d-out) var(--ease)}
 .fr.is-folded .fr-fold svg{transform:rotate(-90deg)}
@@ -324,7 +324,7 @@ body.stage-vsizing{cursor:row-resize;user-select:none}
 
 /* Agents: a 40 px row each: its colour (the Map's cursor), its title and what it's doing, how long */
 .ag-list,.ch-list{list-style:none;margin:0;padding:0}
-.ag-r{box-sizing:border-box;display:grid;grid-template-columns:16px minmax(0,1fr) auto;align-items:center;column-gap:8px;width:100%;height:40px;padding:0 var(--pe);text-align:left;border-bottom:1px solid var(--line-faint);transition:background var(--d-hover) var(--ease)}
+.ag-r{box-sizing:border-box;display:grid;grid-template-columns:16px minmax(0,1fr) auto;align-items:center;column-gap:8px;width:100%;height:var(--h-lg);padding:0 var(--pe);text-align:left;border-bottom:1px solid var(--line-faint);transition:background var(--d-hover) var(--ease)}
 .ag-r:hover{background:var(--surface)}
 .ag-sw{justify-self:center;width:8px;height:8px;border-radius:2px;background:var(--c)}
 .ag-r.is-idle .ag-sw{opacity:.4}
@@ -366,7 +366,7 @@ body.stage-open:not(.panel-open):not(.stage-full):not(.stage-over) .fv{right:var
 /* a phone: the panel is a sheet over everything, never a column beside Files (stage.js steps it aside) */
 @media (max-width:760px){body.stage-open:not(.panel-open):not(.stage-full):not(.stage-over) .fv{right:0}}
 body.files-open .dock,body.files-open .tdock{display:none}
-.fv-h{flex:none;box-sizing:border-box;height:40px;display:flex;align-items:center;gap:8px;padding:0 12px 0 8px;box-shadow:inset 0 -1px 0 var(--line-faint)}
+.fv-h{flex:none;box-sizing:border-box;height:var(--h-lg);display:flex;align-items:center;gap:8px;padding:0 12px 0 8px;box-shadow:inset 0 -1px 0 var(--line-faint)}
 .fv-back{display:flex;align-items:center;gap:4px;height:var(--h-ctl);padding:0 8px 0 4px;border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .fv-back:hover{background:var(--fill-2);color:var(--ink)}
 .fv-back svg{width:16px;height:16px}
@@ -408,10 +408,10 @@ body.viewer-open .fv~.dock{display:none}
 :root[data-theme="light"] .stage{background:var(--sunken);--panel-lift:var(--lift-2)}
 .stage .stg-bar{box-shadow:none;border-bottom:1px solid var(--panel-line)}
 .stage .stg-name{font-weight:var(--fw-strong)}
-.stage .fr-h{height:40px;padding:0 12px;border-bottom:0;align-items:center;gap:8px}
+.stage .fr-h{height:var(--h-lg);padding:0 12px;border-bottom:0;align-items:center;gap:8px}
 .stage .fr-title{display:flex;align-items:baseline;gap:8px;margin:0;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
 .stage .fr-views{display:flex;align-items:center;gap:0;padding:4px;border-radius:var(--r-lg);background:var(--panel-hover)}
-.stage .fr-t{height:24px;padding:0 8px;gap:8px;border-radius:calc(var(--r-lg) - 4px);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.stage .fr-t{height:var(--h-sm);padding:0 8px;gap:8px;border-radius:calc(var(--r-lg) - 4px);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .stage .fr-t.is-on{color:var(--ink)}
 .stage .fr-t.is-on::after{display:none}
 .stage button.fr-t.is-on{background:var(--panel-surface);box-shadow:var(--panel-lift)}

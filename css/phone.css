@@ -51,7 +51,7 @@
     flex-direction:row;flex-wrap:wrap;align-items:center;align-content:flex-start;column-gap:4px;row-gap:0;
     min-height:52px;padding:calc(6px + env(safe-area-inset-top)) 16px 5px 6px;border-bottom:1px solid var(--line-faint)}
   :root:root .top-menu,
-  :root:root .top-back{flex:none;display:grid;place-items:center;width:40px;height:40px;min-height:40px;margin:0;padding:0;border-radius:var(--r-lg);color:var(--ink-2)}
+  :root:root .top-back{flex:none;display:grid;place-items:center;width:var(--h-lg);height:var(--h-lg);min-height:var(--h-lg);margin:0;padding:0;border-radius:var(--r-lg);color:var(--ink-2)}
   :root:root .top-back[hidden]{display:none}
   :root:root .top-back:not([hidden]) ~ .top-menu{display:none}
   :root:root .top-menu{order:-2}
@@ -82,8 +82,8 @@
   :root:root .top .pj-s.has-need > :not(.pj-need){display:none}
   /* and it's a button a thumb can take: 36 tall, a quiet warm pill under the name, only while the coordinator asks (the
      bar grows by 20 then). The owner, 11 Nov 05:42Z, with the coordinator's recommendation (S005: 154×16 on a phone) */
-  :root:root .top .pj-s.has-need{height:36px;margin-top:var(--s-1);overflow:visible}
-  :root:root .top .pj-s > .pj-need{flex:0 1 auto;min-width:0;max-width:100%;height:36px;min-height:36px;padding:0 12px 0 10px;border-radius:999px;background:color-mix(in srgb,var(--warn) 12%,transparent);font-size:var(--fs-sm);line-height:var(--lh-12)}
+  :root:root .top .pj-s.has-need{height:var(--h-touch);margin-top:var(--s-1);overflow:visible}
+  :root:root .top .pj-s > .pj-need{flex:0 1 auto;min-width:0;max-width:100%;height:var(--h-touch);min-height:var(--h-touch);padding:0 12px 0 10px;border-radius:999px;background:color-mix(in srgb,var(--warn) 12%,transparent);font-size:var(--fs-sm);line-height:var(--lh-12)}
   /* its hover a deeper wash (12% → 24% of the warn: 46 RGB-sum in dark, 60 in light), held the shared press over it: its
      words' colour alone moved 6% of the box (the controls grader on fa49c3c, S005 at 390) */
   :root:root .top .pj-s > .pj-need:hover{background-color:color-mix(in srgb,var(--warn) 24%,transparent);color:var(--warn)}
@@ -94,8 +94,8 @@
   :root:root .top[data-kind="thread"] .top-who{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;grid-template-rows:20px 16px;column-gap:0;row-gap:0;padding-left:4px}
   :root:root .top[data-kind="thread"] .tw-h{grid-column:1 / 4;grid-row:1;display:block;-webkit-line-clamp:unset}
   /* 16 px in the fields: under 16, iPhone zooms the page when one takes focus (and the label's was 13) */
-  :root:root .top[data-kind="thread"] .tw-in-t{grid-column:1 / 4;grid-row:1 / 3;height:36px;font:var(--fw-strong) var(--fs-read)/1 var(--sans)}
-  :root:root .top[data-kind="thread"] .tw-in-l{grid-column:1 / 4;grid-row:1 / 3;height:36px;font:var(--fw-medium) var(--fs-read)/1 var(--sans)}
+  :root:root .top[data-kind="thread"] .tw-in-t{grid-column:1 / 4;grid-row:1 / 3;height:var(--h-touch);font:var(--fw-strong) var(--fs-read)/1 var(--sans)}
+  :root:root .top[data-kind="thread"] .tw-in-l{grid-column:1 / 4;grid-row:1 / 3;height:var(--h-touch);font:var(--fw-medium) var(--fs-read)/1 var(--sans)}
   :root:root .top[data-kind="thread"] .badge{grid-column:1;grid-row:2;height:16px;padding:0;gap:6px;background:none;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans)}
   :root:root .top[data-kind="thread"] .badge .g{width:7px;height:7px}
   :root:root .top[data-kind="thread"] .tw-label{grid-column:3;grid-row:2;justify-self:start;height:16px;margin-left:8px;padding:0 6px;font-size:var(--fs-sm);line-height:var(--lh-12);max-width:100%}
@@ -109,7 +109,7 @@
   :root:root .top[data-kind="thread"] .top-who:has(> .tw-t) .badge{height:28px;padding:0 10px;background:color-mix(in srgb,var(--st,var(--ink-4)) 12%,transparent)}
 
   /* a project: Threads keeps its icon and count (the word goes; its label says it) */
-  :root:root .top .th-btn{height:36px;min-height:36px;margin:0;padding:0 7px 0 10px;font-size:0;gap:6px}
+  :root:root .top .th-btn{height:var(--h-touch);min-height:var(--h-touch);margin:0;padding:0 7px 0 10px;font-size:0;gap:6px}
   /* its count: 20 high, 8 in from the button's outer edge all round (1 border + 7), so 12 − 8 = 4 round */
   :root:root .top .th-btn span{font-size:var(--fs-sm);border-radius:calc(var(--r-lg) - 8px)}
   :root:root .top[data-kind="project"] .top-who{flex:1 1 0}
@@ -118,7 +118,7 @@
   :root:root .top[data-kind="project"]:has(> .now-wrap:not([hidden])){padding-bottom:6px}
   :root:root .top[data-kind="project"] .now-wrap{order:3;flex:1 1 100%;margin:var(--s-1) calc(-1 * var(--gut-min)) 0 0;padding:0 0 0 10px}
   :root:root .top[data-kind="project"] .now{padding:2px 16px 2px 0;scroll-padding-left:0}
-  :root:root .top[data-kind="project"] .nw{height:36px}
+  :root:root .top[data-kind="project"] .nw{height:var(--h-touch)}
 
   /* the checklist: 8 under the bar's name line, 8 above the hairline; finished sub-agents ride its row */
   /* (the 4 px under the bar's line is the head's, so its controls' ring has room above them: under the bar it was
@@ -127,13 +127,13 @@
   :root:root .top[data-kind="thread"]{border-bottom:0;padding-bottom:0}
   :root:root .thead .ckbar{flex:1;min-width:0}
   /* finished sub-agents: their count alone ("≡ 9"), read from data-n; the words stay for VoiceOver */
-  :root:root .thead .rn-log{flex:none;height:40px;margin:0;padding:0 12px 0 10px;border-radius:var(--r-lg);border:1px solid var(--line-faint);gap:6px}
+  :root:root .thead .rn-log{flex:none;height:var(--h-lg);margin:0;padding:0 12px 0 10px;border-radius:var(--r-lg);border:1px solid var(--line-faint);gap:6px}
   :root:root .thead .rn-log span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
   :root:root .thead .rn-log::after{content:attr(data-n);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);font-variant-numeric:tabular-nums}
   /* sub-agents working now: one count beside the checklist (its arc, or ◆ when one waits on you), the
      same 40 px box as the finished count; it opens the list, where each one is named */
   :root:root .thead .rn-strip{display:none}
-  :root:root .thead .rn-live{flex:none;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 13px 0 12px;border-radius:var(--r-lg);border:1px solid color-mix(in srgb,var(--info) 28%,var(--line-soft));background:color-mix(in srgb,var(--info) 6%,transparent);color:var(--ink-2)}
+  :root:root .thead .rn-live{flex:none;display:inline-flex;align-items:center;gap:8px;height:var(--h-lg);padding:0 13px 0 12px;border-radius:var(--r-lg);border:1px solid color-mix(in srgb,var(--info) 28%,var(--line-soft));background:color-mix(in srgb,var(--info) 6%,transparent);color:var(--ink-2)}
   :root:root .thead .rn-live:has(.g-needs_reply){border-color:color-mix(in srgb,var(--warn) 34%,var(--line-soft));background:color-mix(in srgb,var(--warn) 7%,transparent)}
   :root:root .thead .rn-live .rn-n{font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);font-variant-numeric:tabular-nums}
   :root:root .thead .rn-live:active{transform:scale(.96)}
@@ -167,8 +167,8 @@
   :root:root .md-pane .md-pin::after{content:none}
   :root:root .ev-asked>.ev-t::after{content:"";position:absolute;inset:-12px 0}
   /* a finger's menus: the file's ⋯ and a folder's ⋯ (44 px items), and the folder's ⋯ itself (32 px) */
-  :root:root :is(.vw-menu [role=menuitem],.fl-menu button){height:44px}
-  :root:root .fl-more{width:32px;height:28px;margin-top:0}
+  :root:root :is(.vw-menu [role=menuitem],.fl-menu button){height:var(--h-hit)}
+  :root:root .fl-more{width:var(--h-ctl);height:28px;margin-top:0}
 }
 
 /* A narrow phone's folded checklist has room for the count, not the step: it showed two letters of it
@@ -210,13 +210,13 @@
    app.css's phone block comes before these controls' own rules, so there they lost (Files' Try again kept 32, its
    back to the projects 24); here they win. The phone's floor is 36 (Astra S061, S062 on 2354917). */
 @media (max-width:760px){
-  .fl-link{min-height:36px}
-  .fl-up{width:36px;height:36px}
+  .fl-link{min-height:var(--h-touch)}
+  .fl-up{width:var(--h-touch);height:var(--h-touch)}
   /* the file's segment: the scale's top size (40) holding buttons at the phone's floor (36), concentric: 1 px of
      border and 1 of padding around them, their radius the segment's less those 2 */
   .vw-seg{height:var(--h-lg);padding:1px}
-  .vw-seg button{height:36px;border-radius:calc(var(--r-sm) - 2px)}
-  @container flpv (max-width:520px){.vw-seg button{width:36px}}
+  .vw-seg button{height:var(--h-touch);border-radius:calc(var(--r-sm) - 2px)}
+  @container flpv (max-width:520px){.vw-seg button{width:var(--h-touch)}}
 }
 
 /* ── phone declarations a later or stronger rule undid where they were (tests/phone-cascade.test.mjs finds them):
@@ -224,7 +224,7 @@
    msgx's messages) were dropped where they were instead: the phone keeps that design ── */
 @media (max-width:760px){
   /* the file's buttons at the phone's 40, its title a step up (panel.css drew them 28 and base-size) */
-  .vw-btn{width:40px}
+  .vw-btn{width:var(--h-lg)}
   .vw-t h2{font-size:var(--fs-lg)}
   /* the file's head stays on the grid, 40 like the phone's other bars, and its 40 px buttons fill it: the viewer clips
      at its edge, so there's no room outside them for the ring (the controls grader on e55c2d8, C092: a focused Copied's
@@ -245,16 +245,16 @@
    (tests/phone-cascade.test.mjs; Astra on 0689984: the Changes · File words kept 22 px) ── */
 @media (max-width:760px){
   /* Changes · File: words in the 40 px segment, at the phone's 36 like Preview · Source */
-  .vw-seg.is-words button{height:36px}
+  .vw-seg.is-words button{height:var(--h-touch)}
   /* Runs' Back to the list (the run view's head, a run inside a run too): the phone's 36 (Launchpad grader on 23c726e,
      S099: 30 px, a desktop height with no phone rule, so no guard could see it undone) */
-  .rn-back{height:36px}
+  .rn-back{height:var(--h-touch)}
   /* a sub-agent's own Stop (its view's pill): 36 tall, a round icon */
-  .rn-st .rn-stop{height:36px;width:36px;padding:0}
+  .rn-st .rn-stop{height:var(--h-touch);width:var(--h-touch);padding:0}
   /* a turn's rows (msgx's 28 and 32, compact density's 32) at the phone's floor */
   :root[data-msgx] .m-turn .turn>.tb>.tb-h,
   :root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>.tb-h,
-  [data-density="compact"] .tb-h{min-height:36px}
+  [data-density="compact"] .tb-h{min-height:var(--h-touch)}
   /* and the line the avatar centres on with them (compact density's 32 outranked the phone's 36) */
   [data-density="compact"] .m-turn{--tb-line:36px}
 }
@@ -269,28 +269,28 @@
   /* a link drawn as a control is a control too: every link with a class of its own, but a link in text (a message's
      file or web link, Launchpad's host line and its links in a sentence, Create's) (grader B on 05d76ca, S267: Open in
      Launchpad was 161×32 at 390; the lightbox's Open the original 36×28) */
-  :where(button,[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],[role=menuitemcheckbox],[role=switch],summary,select,label:has(>input[type=checkbox],>input[type=radio]),a[class]):where(:not(.dg-n,.gn,.dg-tag,.pj-s *,.tw-rt,.lk,.lp-hh,.lp-ln,.cp-link)){min-height:36px;min-width:36px}
+  :where(button,[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],[role=menuitemcheckbox],[role=switch],summary,select,label:has(>input[type=checkbox],>input[type=radio]),a[class]):where(:not(.dg-n,.gn,.dg-tag,.pj-s *,.tw-rt,.lk,.lp-hh,.lp-ln,.cp-link)){min-height:var(--h-touch);min-width:var(--h-touch)}
   /* a text field is a control too (the controls grader on 1ed50f6: a refused path's field was 24 px, and the floor
      left every text input out): every one at least 36 tall; one that fills its box (a search box) leaves the floor to
      the box, which takes it; Files' new-name row grows with its field */
-  :where(input:not([type=checkbox],[type=radio],[type=range],[type=hidden],[type=file],[type=color],[type=image],[type=submit],[type=button],[type=reset])):where(:not(:is(.fl-q,.ar-q,.all-q,.side-find,.jump-field) input)){min-height:36px}
-  :where(.fl-q,.ar-q,.all-q,.side-find,.fl-new-r){min-height:36px}
+  :where(input:not([type=checkbox],[type=radio],[type=range],[type=hidden],[type=file],[type=color],[type=image],[type=submit],[type=button],[type=reset])):where(:not(:is(.fl-q,.ar-q,.all-q,.side-find,.jump-field) input)){min-height:var(--h-touch)}
+  :where(.fl-q,.ar-q,.all-q,.side-find,.fl-new-r){min-height:var(--h-touch)}
   /* the square icon buttons stay square at the floor, and so do those whose words hide on a phone (Edit, Runs code,
      the header's and the map's actions): the browser pass at 320/390 found Edit 28 wide, Open in Files 28, New file 32 */
-  :where(.x,.vw-x,.vw-btn,.fr-ib,.st-x,.stg-x,.fv-ib,.lbx-btn,.fchip-x,.cref-x,.side-x,.sl-x,.md-pin,.shd-tx,.mx-r-x,.lp-ib,.fl-up,.stg-ic,.fl-back,.fv-back,.xd-runs,.vw-tab-x,.cx-ofi,.fl-add,.tw-act,.map-btn){min-width:36px}
+  :where(.x,.vw-x,.vw-btn,.fr-ib,.st-x,.stg-x,.fv-ib,.lbx-btn,.fchip-x,.cref-x,.side-x,.sl-x,.md-pin,.shd-tx,.mx-r-x,.lp-ib,.fl-up,.stg-ic,.fl-back,.fv-back,.xd-runs,.vw-tab-x,.cx-ofi,.fl-add,.tw-act,.map-btn){min-width:var(--h-touch)}
   /* controls whose own min-height was smaller: Files' rows, a turn's step rows, a stop's notice with its Undo */
-  .fl-r,.tb-rh,.hr-ev.k-stopped.has-undo{min-height:36px}
+  .fl-r,.tb-rh,.hr-ev.k-stopped.has-undo{min-height:var(--h-touch)}
   :root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-rows>.tb-row>.tb-rh,
-  :root[data-msgx] .m-turn .turn>.tb.tb-act.is-unfolded>.tb-rows>.tb-row>.tb-rh{min-height:36px}
+  :root[data-msgx] .m-turn .turn>.tb.tb-act.is-unfolded>.tb-rows>.tb-row>.tb-rh{min-height:var(--h-touch)}
   /* a phone's rows on the 8 px steps too (the owner, 11 Nov 05:42Z, with the coordinator's recommendation): the sidebar's
      rows, Handled's, All threads', 40; a record's lines and an open tool disclosure, 48; the panel's agents and changes,
      the desktop's 48 (their own 44 is gone). Chats' rows are the desktop's 56: their 58 floor drew 66, 1 + 10 + 20 + 4 +
      20 + 10 + 1 (the controls grader on 8aa58d3, C048, by the standard S052 was fixed to) */
-  .nrow,.prow{min-height:40px;padding-top:5px;padding-bottom:5px}
+  .nrow,.prow{min-height:var(--h-lg);padding-top:5px;padding-bottom:5px}
   .pr-name{line-height:1.3}
   .pr-t{line-height:1.35}
-  .hd-r{min-height:40px}
-  :is(.ar,.ar-fold,.ar-undo){min-height:40px}
+  .hd-r{min-height:var(--h-lg)}
+  :is(.ar,.ar-fold,.ar-undo){min-height:var(--h-lg)}
   .syl-ln{min-height:48px;padding-top:7px;padding-bottom:7px}
   :root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h,
   :root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>.tb-h{min-height:48px}

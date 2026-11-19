@@ -125,6 +125,11 @@
      density steps a one-line row down to 32 (css/shape.css). A phone keeps its rows as they were: one-line rows
      at its 36 floor, below. */
   --h-row:40px; --h-row-act:48px; --h-row-list:56px;
+  /* The rest of the size scale, so no box writes its own px (the owner, 19 Nov, after Apple's guides: one place to
+     change a size, everywhere it's used). Controls: --h-sm 24 · --h-ctl 32 (compact: 24) · --h-lg 40 · --h-touch 36
+     (a phone's floor for anything pressed) · --h-hit 44 (a full touch row or target). Boxes that don't follow density
+     (an avatar, an icon or file tile, an orb, a fade): --tile 32 · --tile-lg 36 · --tile-xl 44. */
+  --h-touch:36px; --h-hit:44px; --tile:32px; --tile-lg:36px; --tile-xl:44px;
   /* Space: a 4 px grid. */
   --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px; --s-6:24px; --s-8:32px; --s-10:40px; --s-12:48px;
 

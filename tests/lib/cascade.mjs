@@ -3,6 +3,7 @@
 // its own condition; selectors compared by the elements they can reach (the same selector, or one that only adds
 // context before it, in either direction); specificity, then order, decide; !important wins over normal.
 import { readFileSync } from "node:fs";
+import { resolveTokens } from "./tokens.mjs";
 
 export const ORDER = ["base.css", "app.css", "light.css", "foundation.css", "panel.css", "diffs.css", "launchpad.css", "links.css", "artifacts.css", "dropdown.css", "media.css", "shape.css", "side.css", "msgx.css", "fileview.css", "phone.css"];
 
@@ -10,7 +11,7 @@ export const ORDER = ["base.css", "app.css", "light.css", "foundation.css", "pan
 export function rules(root) {
   const out = [];
   for (const f of ORDER) {
-    const css = readFileSync(new URL(`../../css/${f}`, root), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+    const css = resolveTokens(readFileSync(new URL(`../../css/${f}`, root), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""));
     const stack = []; let i = 0, start = 0;
     while (i < css.length) {
       const c = css[i];

@@ -5,6 +5,7 @@
 // the browser pass).
 //   node tests/phone-floor.test.mjs
 import assert from "node:assert/strict";
+import { resolveTokens, NEW_SIZES } from "./lib/tokens.mjs";
 import { readFileSync, readdirSync } from "node:fs";
 import { rules, context, decls, px, spec, cmp, covers } from "./lib/cascade.mjs";
 
@@ -43,7 +44,7 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
 
 // 36 wide too (the controls grader on 1ed50f6 at 320: the Changes · File switch's File was 32 × 36)
 t("phone.css holds one weightless floor: every control at least 36 px tall and wide on a phone", () => {
-  const phone = readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  const phone = resolveTokens(readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""));
   const re = /@media \(max-width:760px\)\{\s*:where\(button,\[role=button\],\[role=tab\],\[role=option\],\[role=menuitem\],\[role=menuitemradio\],\[role=menuitemcheckbox\],\[role=switch\],summary,select,label:has\(>input\[type=checkbox\],>input\[type=radio\]\),a\[class\]\)[^{]*\{min-height:36px;min-width:36px\}/;
   assert.ok(re.test(phone), `the floor rule (${re})`);
 });
@@ -67,19 +68,19 @@ t("no control's own min-height or max-height holds it under 36 px on a phone, un
 });
 t("a control whose words hide to leave its icon is 36 px wide on a phone too (the browser pass at 320/390 found Edit 28)", () => {
   // the controls whose label (a span) is hidden somewhere: on a phone they're icon buttons
-  const css = readdirSync(new URL("css/", ROOT)).filter((f) => f.endsWith(".css")).map((f) => readFileSync(new URL(`css/${f}`, ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
+  const css = readdirSync(new URL("css/", ROOT)).filter((f) => f.endsWith(".css")).map((f) => resolveTokens(readFileSync(new URL(`css/${f}`, ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""), [...NEW_SIZES, "--h-sm", "--h-ctl"])).join("\n");
   const iconed = new Set();
   for (const m of css.matchAll(/([^{}]+)\{display:none\}/g)) for (const sel of m[1].split(",")) {
     const k = /\.([\w-]+)(?:[.:][\w-]+(?:\([^)]*\))?)*(?: |>)span$/.exec(sel.trim());
     if (k) iconed.add(k[1]);
   }
-  const phone = readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  const phone = resolveTokens(readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""));
   const wide = /:where\(([^)]*)\)\{min-width:36px\}/.exec(phone);
   assert.ok(wide, "phone.css's square-at-the-floor list");
   const listed = new Set(wide[1].split(",").map((x) => x.trim().replace(/^\./, "")));
   // the ones that are 36 or more wide on a phone by their own rule
   const OWN = {
-    "top-back": [/\.top-back\{[^}]*width:40px/, phone, "40 square in the phone's bar"],
+    "top-back": [/\.top-back\{[^}]*width:(40px|var\(--h-lg\))/, phone, "40 square in the phone's bar"],
     "dock-hide": [/\.dock-hide\{height:36px;min-width:36px\}/, css, "its own 36 at the phone"],
     "shd-act": [/\.shd-act\{width:var\(--h-lg\);height:var\(--h-lg\)/, css, "40 square at the phone"],
   };
@@ -93,12 +94,12 @@ t("a control whose words hide to leave its icon is 36 px wide on a phone too (th
   for (const k of ["xd-runs", "tw-act", "map-btn", "lbx-btn", "vw-btn"]) assert.ok(iconed.has(k), `found: ${k}`);
 });
 t("the icon buttons the browser pass found narrow are on the list: Open in Files (28), New file (32)", () => {
-  const phone = readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  const phone = resolveTokens(readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""));
   const listed = /:where\(([^)]*)\)\{min-width:36px\}/.exec(phone)[1].split(",").map((x) => x.trim());
   for (const k of [".cx-ofi", ".fl-add"]) assert.ok(listed.includes(k), `${k} is 36 wide on a phone`);
 });
 t("the floor reaches every kind of control the templates make, a label holding a checkbox or radio included (C115)", () => {
-  const phone = readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  const phone = resolveTokens(readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""));
   const floor = /:where\(([^{]*?)\):where\(:not\([^)]*\)\)\{min-height:36px;min-width:36px\}/.exec(phone);
   assert.ok(floor, "the floor rule");
   assert.ok(floor[1].includes("label:has(>input[type=checkbox],>input[type=radio])"), "labels that hold a checkbox or radio");
@@ -107,7 +108,7 @@ t("the floor reaches every kind of control the templates make, a label holding a
   for (const k of labels) assert.ok(!new RegExp(`\\${k}\\{[^}]*max-height:(\\d+)px`).test(phone), `${k} has no max-height under the floor`);
 });
 t("the floor reaches a link drawn as a control and leaves a link in text (S267): one rule, no second one for Launchpad", () => {
-  const phone = readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  const phone = resolveTokens(readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""));
   const floor = /:where\(([^{]*?)\):where\(:not\(([^{]*)\)\)\{min-height:36px;min-width:36px\}/.exec(phone);
   assert.ok(floor, "the floor rule");
   assert.ok(floor[1].split(",").includes("a[class]"), "every link with a class of its own");
@@ -121,14 +122,14 @@ t("the floor reaches a link drawn as a control and leaves a link in text (S267):
     assert.ok(!not.includes(k), `${k} is under the floor`);
   }
   // one rule: no part restates the floor for its own links
-  const css = readdirSync(new URL("css/", ROOT)).filter((f) => f.endsWith(".css") && f !== "phone.css").map((f) => readFileSync(new URL(`css/${f}`, ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
+  const css = readdirSync(new URL("css/", ROOT)).filter((f) => f.endsWith(".css") && f !== "phone.css").map((f) => resolveTokens(readFileSync(new URL(`css/${f}`, ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""), [...NEW_SIZES, "--h-sm", "--h-ctl"])).join("\n");
   assert.doesNotMatch(css, /a\.[\w-]+[^{}]*\{min-height:36px;min-width:36px\}/, "no second floor for links outside phone.css");
 });
 // a text field is a control too (the controls grader on 1ed50f6: the refused path's field, .vw-cut-sel, was 24 px on a
 // phone, and the floor left every text input out). One weightless rule lifts every text input; a borderless field that
 // fills its box leaves the floor to the box, which takes it; Files' new-name row grows with its field
 t("every text field is at least 36 px tall on a phone: the field itself, or the box it fills", () => {
-  const phone = readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  const phone = resolveTokens(readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""));
   const BOXES = ".fl-q,.ar-q,.all-q,.side-find,.jump-field";
   assert.ok(phone.includes(`:where(input:not([type=checkbox],[type=radio],[type=range],[type=hidden],[type=file],[type=color],[type=image],[type=submit],[type=button],[type=reset])):where(:not(:is(${BOXES}) input)){min-height:36px}`), "every text input, but one that fills its box");
   assert.ok(phone.includes(`:where(${BOXES.split(",").filter((b) => b !== ".jump-field").join(",")},.fl-new-r){min-height:36px}`), "the boxes (the jump field is 56), and Files' new-name row");
