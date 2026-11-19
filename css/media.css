@@ -14,7 +14,7 @@
 .mx-stack>.tb-fl{margin:0;min-width:0;max-width:100%}
 /* in a turn: a shared set sits 12 from the block above it (the turn's 6 + the block's 4 + 2); files alone keep
    their "Shared 3 files" line 8 above them, as before */
-.tb-files>.mx-stack:first-child{margin-top:2px}
+.tb-files>.mx-stack:first-child{margin-top:var(--s-1)}
 .tb-fh+.mx-stack{margin-top:8px}
 
 /* ── one picture: bare, 12 px corners, a 1 px hairline drawn over it (it never shifts the layout) ── */

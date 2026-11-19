@@ -188,7 +188,7 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .lp-rec-k{display:flex;align-items:center;gap:6px;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
 .lp-rec-k svg{width:14px;height:14px;color:var(--accent)}
 .lp-rec-c b{display:block;margin-top:8px;font:var(--fw-strong) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink)}
-.lp-rec-c p{margin:2px 0 0;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
+.lp-rec-c p{margin:var(--s-1) 0 0;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
 .lp-rec-c p+p{margin-top:8px}
 .lp-also{margin:4px 0 0;padding:0;list-style:none;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
 .lp-also li{padding:2px 0;overflow-wrap:anywhere}
@@ -293,7 +293,7 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .lpv-orb svg{width:20px;height:20px}
 .lpv-orb.on{color:var(--ink);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--go) 50%,transparent),0 0 28px -6px color-mix(in srgb,var(--go) 45%,transparent)}
 .lpv-cap{font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
-.lpv-link{position:relative;flex:none;align-self:center;width:2px;height:20px;margin:2px 0;border-radius:1px;overflow:hidden;background:repeating-linear-gradient(to bottom,var(--fill-4) 0 3px,transparent 3px 6px)}
+.lpv-link{position:relative;flex:none;align-self:center;width:2px;height:20px;margin:var(--s-1) 0;border-radius:1px;overflow:hidden;background:repeating-linear-gradient(to bottom,var(--fill-4) 0 3px,transparent 3px 6px)}
 .lpv-link.ok{background:color-mix(in srgb,var(--go) 75%,transparent);box-shadow:0 0 8px color-mix(in srgb,var(--go) 45%,transparent);overflow:visible}
 .lpv-link.feed{background:color-mix(in srgb,var(--ink) 22%,transparent)}
 .lpv-link.err{background:repeating-linear-gradient(to bottom,var(--danger) 0 3px,transparent 3px 6px)}
@@ -400,7 +400,7 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
   .lpm-meta.lpm-env{padding-top:12px;grid-template-columns:104px auto 1fr}
   .lpm-env .lp-a{justify-self:start;margin-left:0}
   .lpv-vis{flex:none;width:72px}
-  .lpv-link{width:32px;height:2px;margin:0 2px;background:repeating-linear-gradient(to right,var(--fill-4) 0 3px,transparent 3px 6px)}
+  .lpv-link{width:32px;height:2px;margin:0 var(--s-1);background:repeating-linear-gradient(to right,var(--fill-4) 0 3px,transparent 3px 6px)}
   .lpv-link.err{background:repeating-linear-gradient(to right,var(--danger) 0 3px,transparent 3px 6px)}
   .lpv-link.ok{background:color-mix(in srgb,var(--go) 75%,transparent)}
   .lpv-link.feed{background:color-mix(in srgb,var(--ink) 22%,transparent)}

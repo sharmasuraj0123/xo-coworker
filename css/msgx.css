@@ -177,7 +177,7 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-them .mh{display:none;min-height:0;padding:0 0 4px 16px}
 /* a named sender's name is the first line inside their bubble (12/16, their colour); their mark centres on it */
 .mx-name{display:none}
-:root[data-msgx] .prose>.mx-name{display:block;margin:0 0 2px;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
+:root[data-msgx] .prose>.mx-name{display:block;margin:0 0 var(--s-1);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
 :root[data-msgx] .prose>.mx-name+*{margin-top:0}
 :root[data-msgx] .m-them.mx-other:not(.cont)>.av{margin-top:4px}
 /* an agent's turn: its mark centres on whatever comes first, a 28 px work pill (0), or a 44 px row (8):
