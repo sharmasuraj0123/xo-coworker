@@ -27,7 +27,7 @@ export const CAPS = Object.freeze({
   "context.update": "Tell the agent what you're pointing at",
   "composer.draft": "Suggest a message. Only you send it.",
   "inbox.post": "Post notes to Inbox (never Needs you)",
-  "network": "Reach the internet, through XO's egress proxy",
+  "network": "Can reach the internet (through XO's proxy)",
   "secrets": "Use your {names}. Its views never see it.",
   "clipboard.write": "Copy to your clipboard",
 });

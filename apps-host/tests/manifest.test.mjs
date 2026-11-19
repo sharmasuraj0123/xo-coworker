@@ -26,7 +26,7 @@ const sneaky = clone();
 x(sneaky).permissions.optional[0].askWhen = "context.update; x";
 assert.equal(checkManifest(sneaky).app?.permissions.optional[0].askWhen, undefined, "askWhen is a plain key or nothing");
 assert.equal(permissionWords(app.permissions.required[0]), "Read files in docs/**, **/*.word.json");
-assert.equal(permissionWords({ cap: "network", why: "x" }), "Reach the internet, through XO's egress proxy");
+assert.equal(permissionWords({ cap: "network", why: "x" }), "Can reach the internet (through XO's proxy)");
 assert.ok(globRe("**/*.word.json").test("a/b/c.word.json"));
 assert.ok(globRe("**/*.word.json").test("c.word.json"));
 assert.ok(!globRe("docs/*.word.json").test("docs/a/b.word.json"));
