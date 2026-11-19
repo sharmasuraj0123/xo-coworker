@@ -5,7 +5,7 @@ import { createAppsSettings } from "../settings.js";
 import { FakeDoc, tick } from "./dom.mjs";
 
 const WORD = JSON.parse(readFileSync(new URL("./fixtures/word.plugin.json", import.meta.url), "utf8"));
-const base = { mode: "list", rows: [], loading: false, error: "", busy: "", source: "git", staged: null, appId: "", grantFor: "", activity: null, values: {} };
+const base = { mode: "list", rows: [], loading: false, error: "", busy: "", source: "git", staged: null, appId: "", grantFor: "", activity: null, values: {}, off: "", waiting: "" };
 const ctx = { projects: [{ id: "p1", name: "Book" }], project: "p1" };
 
 assert.match(view(/** @type {any} */ ({ ...base }), ctx), /No apps yet/);
@@ -42,6 +42,8 @@ let rows = /** @type {any[]} */ ([]);
 /** @type {any[]} */
 const calls = [];
 let ok = true;
+/** @type {any[]} */
+const confirms = [];
 const client = /** @type {any} */ ({
   stage: async (src) => { calls.push(["stage", src]); return staged; },
   confirm: async (...a) => { calls.push(["confirm", ...a]); rows = [row]; },
@@ -50,7 +52,7 @@ const client = /** @type {any} */ ({
   remove: async (...a) => { calls.push(["remove", ...a]); rows = []; },
   settings: async () => ({ values: { units: "pt" } }),
 });
-const S = createAppsSettings({ client, redraw: (e, html) => { /** @type {any} */ (e).html = html; }, projects: () => ctx.projects, confirm: async () => ok, rows: () => rows, refresh: async () => {} });
+const S = createAppsSettings({ client, redraw: (e, html) => { /** @type {any} */ (e).html = html; }, projects: () => ctx.projects, confirm: async (/** @type {string} */ text, /** @type {any} */ o) => { confirms.push([text, o]); return ok; }, rows: () => rows, refresh: async () => {} });
 S.loaded(false);
 S.render(el, { project: "p1" });
 /** @param {string} act @param {Record<string, string>} [data] */
@@ -77,6 +79,7 @@ assert.equal(calls.at(-1)[0], "setGrant", "No to the confirm removes nothing");
 ok = true;
 await press("remove");
 assert.deepEqual(calls.at(-1), ["remove", "dev.example.word"]);
+assert.deepEqual(confirms.at(-1)[1], { yes: "Remove", near: el }, "Remove asks inside Settings");
 assert.match(el.html, /No apps yet/);
 client.stage = async () => { throw new Error("needs XO apps contract >=0.2; this Space has 0.1"); };
 await press("install");
@@ -99,7 +102,7 @@ const c2 = /** @type {any} */ ({
   setGrant: async () => ({ approval_id: "ap_1" }),
   settings: async () => ({}),
 });
-const S2 = createAppsSettings({ client: c2, redraw: (e, html) => { /** @type {any} */ (e).html = html; }, projects: () => ctx.projects, confirm: async () => true, rows: () => rows, refresh: async () => { if (polls >= 3 && verdict === "applied") rows = [row]; }, openPanel: (k, at) => opened.push([k, at.project]), wait: async () => { await tick(); assert.match(el2.html, /Waiting for your approval in Needs you/); } });
+const S2 = createAppsSettings({ client: c2, redraw: (e, html) => { /** @type {any} */ (e).html = html; }, projects: () => ctx.projects, confirm: async () => true, rows: () => rows, refresh: async () => { if (polls >= 3 && verdict === "applied") rows = [row]; }, openPanel: (k, at) => opened.push([k, at.project]), wait: async () => { await tick(); assert.match(el2.html, /Waiting for your approval in Needs you/); assert.match(el2.html, /aria-busy="false"/, "waiting for a person is not loading"); } });
 S2.loaded(false);
 S2.render(el2, { project: "p1" });
 const press2 = async (/** @type {string} */ act, data = {}) => { el2.dispatch("click", { target: { closest: () => ({ dataset: { act, ...data }, disabled: false }) } }); for (let i = 0; i < 8; i++) await tick(); };

@@ -15,7 +15,7 @@
 | `bridge.js` | MCP Apps JSON-RPC over `postMessage`. It accepts only messages from the view's own frame at the opaque origin `"null"`, allows a fixed list of methods, checks grants, and caps size (1 MiB) and rate (a burst of 50, then 20 a second). |
 | `card.js` | `conversation.block: app`: a picture and caption drawn by XO, live only when touched, three live at most. |
 | `settings.js`, `settings-view.js` | Settings › Apps: install from a repo or a folder, the consent sheet, per-project grants with Allow and Not now of equal weight, update, rollback, remove and activity. |
-| `client.js` | The one interface to xo-space: `/api/apps/*` to manage apps, `/api/coworker/apps/{id}/*` for views (resources, call, prompts, views open/heartbeat/close). It checks ids, paths and sources before anything is sent. |
+| `client.js` | The one interface to xo-space: `/api/apps/*` to manage apps and `/api/coworker/apps/{id}/*` for views, written without `/api` since core/platform's request adds it (resources, call, prompts, views open/heartbeat/close). It checks ids, paths and sources before anything is sent. |
 | `apps-host.css` | Tokens only, in `@layer apps`. Settings reuse the settings page's classes. |
 
 ## The sandbox

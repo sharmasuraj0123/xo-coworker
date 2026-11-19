@@ -2,7 +2,7 @@
 import { view } from "./settings-view.js";
 import { checkRow } from "./manifest.js";
 
-/** @typedef {import("./settings-view.js").State} State @typedef {import("./settings-view.js").Row} Row @typedef {import("./client.js").AppsClient} AppsClient @typedef {{ client: AppsClient, redraw(el: HTMLElement, html: string): unknown, projects(): Array<{ id: string, name: string }>, confirm(text: string): Promise<boolean>, rows(): Row[], refresh(): Promise<void>, openPanel(key: string, at: { project: string }): void, wait?: (ms: number) => Promise<void> }} SettingsDeps */
+/** @typedef {import("./settings-view.js").State} State @typedef {import("./settings-view.js").Row} Row @typedef {import("./client.js").AppsClient} AppsClient @typedef {{ client: AppsClient, redraw(el: HTMLElement, html: string): unknown, projects(): Array<{ id: string, name: string }>, confirm(text: string, o: { yes: string, near: Element | null }): Promise<boolean>, rows(): Row[], refresh(): Promise<void>, openPanel(key: string, at: { project: string }): void, wait?: (ms: number) => Promise<void> }} SettingsDeps */
 
 /** @param {unknown} e */
 const words = (e) => String(/** @type {any} */ (e)?.message || e || "Something went wrong.");
@@ -10,7 +10,7 @@ const words = (e) => String(/** @type {any} */ (e)?.message || e || "Something w
 /** Settings › Apps: install from a repo or a folder, the consent sheet, per-project grants, update, rollback, remove. @param {SettingsDeps} d */
 export function createAppsSettings(d) {
   /** @type {State} */
-  const s = { mode: "list", rows: [], loading: true, error: "", busy: "", source: "git", staged: null, appId: "", grantFor: "", activity: null, values: {}, off: "" };
+  const s = { mode: "list", rows: [], loading: true, error: "", busy: "", source: "git", staged: null, appId: "", grantFor: "", activity: null, values: {}, off: "", waiting: "" };
   /** @type {Set<HTMLElement>} */
   const shown = new Set();
   /** @type {WeakSet<HTMLElement>} */
@@ -32,11 +32,11 @@ export function createAppsSettings(d) {
   const set = (next) => { Object.assign(s, next); draw(); };
   /** @param {string} busy @param {() => Promise<Partial<State> | void>} fn */
   const work = async (busy, fn) => {
-    if (s.busy) return;
+    if (s.busy || s.waiting) return;
     const at = `${s.mode}|${s.appId}`;
     set({ busy, error: "" });
     const still = () => `${s.mode}|${s.appId}` === at;
-    try { const next = await fn(); set({ busy: "", ...(still() ? next || {} : {}) }); } catch (e) { set({ busy: "", ...(still() ? { error: words(e) } : {}) }); }
+    try { const next = await fn(); set({ busy: "", waiting: "", ...(still() ? next || {} : {}) }); } catch (e) { set({ busy: "", waiting: "", ...(still() ? { error: words(e) } : {}) }); }
   };
   /** @param {HTMLElement} el @param {string} sel */
   const val = (el, sel) => String(/** @type {HTMLInputElement | null} */ (el.querySelector(sel))?.value || "").trim();
@@ -54,7 +54,7 @@ export function createAppsSettings(d) {
     if (!id) return r ?? {};
     const until = typeof r.expires_at === "number" ? r.expires_at * 1000 : Date.parse(r.expires_at) || Infinity;
     const here = `${s.mode}|${s.appId}`;
-    set({ busy: "Waiting for your approval in Needs you…" });
+    set({ busy: "", waiting: "Waiting for your approval in Needs you…" });
     for (;;) {
       const a = await d.client.approval(id);
       const state = a && a.state;
@@ -120,9 +120,9 @@ export function createAppsSettings(d) {
       const a = await d.client.activity(s.appId);
       return { activity: Array.isArray(a) ? a : Array.isArray(a?.items) ? a.items : [] };
     })),
-    remove: () => work("Removing…", async () => {
+    remove: (el) => work("Removing…", async () => {
       const name = s.rows.find((r) => r.id === s.appId)?.name || s.appId;
-      if (!(await d.confirm(`Remove ${name}? Everything it added goes away. Your files stay.`))) return {};
+      if (!(await d.confirm(`Remove ${name}? Everything it added goes away. Your files stay.`, { yes: "Remove", near: el }))) return {};
       await d.client.remove(s.appId);
       await d.refresh();
       return { mode: "list", appId: "", activity: null };
