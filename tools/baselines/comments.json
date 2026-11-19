@@ -8,7 +8,7 @@
   "refs": 2
  },
  "js/attach.js": {
-  "extra": 28,
+  "extra": 21,
   "refs": 0
  },
  "js/changes.js": {
@@ -124,7 +124,7 @@
   "refs": 0
  },
  "js/map.js": {
-  "extra": 118,
+  "extra": 96,
   "refs": 0
  },
  "js/markdown.js": {
@@ -208,7 +208,7 @@
   "refs": 0
  },
  "js/timeline.js": {
-  "extra": 203,
+  "extra": 94,
   "refs": 0
  },
  "js/turnview.js": {
