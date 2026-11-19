@@ -512,7 +512,7 @@ class WriterKey(unittest.TestCase):
 
     def test_app_bodies_keep_the_one_mib_cap(self):
         SEEN.clear()
-        status, _ = ask("POST", "/api/coworker/apps/dev.me.word/call", self.page(), b"x" * ((1 << 20) + 1))
+        status, _ = ask("POST", "/api/coworker/apps/dev.me.word/call", {**self.page(), "Content-Length": str((1 << 20) + 1)})
         self.assertEqual(status, 413)
         self.assertEqual(SEEN, [])
 
