@@ -2,7 +2,7 @@
 
 import { copyText, COPY_REFUSED } from "../core/platform/index.js";
 import { menuKeys } from "./keynav.js";
-import { wordsOf } from "./words.js";
+import { wordsOf } from "../modules/conversation/words.js";
 import { drag, glide, follow, unstyle, tick, scrollsX, scrolledY, edgeIsSafari, FLICK } from "../core/platform/gestures.js";
 /** Past the end there is nothing to reach: it stretches a little and springs back. */
 const band = (d) => d * 0.28;

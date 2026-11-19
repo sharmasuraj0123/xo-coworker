@@ -1,12 +1,13 @@
-// A paid-usage question's facts as a block (the card in the panel and Home's next move): the account, how much of its
-// window is used, when it resets, its credits, and how far Continue reaches. Its words are the item's own (js/paid.js
-// paidItem); this only lays them out.
+// @ts-check
 
-import { esc } from "./world.js";
-import { ICON } from "./ui.js";
-import { resetWords } from "../core/services/runtimes.js";
-import { creditsWords } from "../core/services/world/paid.js";
+// A paid-usage question's facts as a block: the account, its window used, when it resets, its credits, how far Continue reaches.
 
+import { esc } from "../../../core/platform/util.js";
+import { ICON } from "../../../core/ui/icons/names.js";
+import { resetWords } from "../../../core/services/runtimes.js";
+import { creditsWords } from "../../../core/services/world/paid.js";
+
+/** @param {{ paid?: { account?: string, used?: number | null, resetsAt?: string, credits?: number | null, reach?: string } } | null | undefined} it */
 export function paidHtml(it) {
   const P = it && it.paid;
   if (!P) return "";

@@ -15,7 +15,7 @@
 import { ICON, xi } from "./ui.js";
 import { toLatest as mainToLatest, fromLatest as mainFromLatest } from "../modules/conversation/follow.js";
 import { copyText, COPY_REFUSED, space, elapsed, RM } from "../core/platform/index.js";
-import { wordsOf } from "./words.js";
+import { wordsOf } from "../modules/conversation/words.js";
 
 const $ = (s, r = document) => r.querySelector(s);
 const root = document.documentElement;

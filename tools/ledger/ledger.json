@@ -2447,7 +2447,7 @@
    "note": "every importer points at the new home, so it leaves with no re-export"
   },
   "js/paidview.js": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/cards/paid.js"
   },
   "js/paths.js": {
@@ -4122,7 +4122,7 @@
    ]
   },
   "js/words.js": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/words.js"
   },
   "js/world.js": {
@@ -4882,8 +4882,9 @@
    "home": "modules/files/tests/viewer-hooks.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/words.test.mjs": {
-   "status": "planned",
-   "home": "modules/conversation/tests/words.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/conversation/tests/words.test.mjs",
+   "note": "still reads the source for the two imports; its rewrite as a behaviour test is owed"
   },
   "tests/xoicons.test.mjs": {
    "status": "planned",
