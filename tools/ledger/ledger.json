@@ -2396,8 +2396,9 @@
    "home": "modules/threads/checklist.js"
   },
   "js/motion.js": {
-   "status": "planned",
-   "home": "core/ui/motion.js"
+   "status": "moved",
+   "home": "core/ui/motion.js",
+   "note": "js/motion.js re-exports core/ui/motion.js until the shims go"
   },
   "js/msgx.js": {
    "status": "split",
@@ -11907,55 +11908,55 @@
    "home": "modules/threads/checklist.js"
   },
   "js/motion.js::exports::EASE": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/motion.js"
   },
   "js/motion.js::exports::IN": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/motion.js"
   },
   "js/motion.js::exports::still": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/motion.js"
   },
   "js/motion.js::exports::arrive": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/motion.js"
   },
   "js/motion.js::exports::fadeImage": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/motion.js"
   },
   "js/motion.js::exports::syncList": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/motion.js"
   },
   "js/motion.js::exports::setHtml": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/motion.js"
   },
   "js/motion.js::exports::setText": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/motion.js"
   },
   "js/motion.js::functions::arrive": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/motion.js"
   },
   "js/motion.js::functions::fadeImage": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/motion.js"
   },
   "js/motion.js::functions::syncList": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/motion.js"
   },
   "js/motion.js::functions::setHtml": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/motion.js"
   },
   "js/motion.js::functions::setText": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/motion.js"
   },
   "js/msgx.js::exports::decorateConversation": {
@@ -16054,52 +16055,20 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/ui.js::exports::morph": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/motion.js"
   },
   "js/ui.js::exports::EASE": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/motion.js"
   },
   "js/ui.js::exports::EXPAND_MS": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/motion.js"
   },
   "js/ui.js::exports::expand": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/motion.js"
   },
   "js/ui.js::exports::mmss": {
    "status": "split-region",
@@ -16150,40 +16119,16 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/ui.js::exports::RM": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/motion.js"
   },
   "js/ui.js::exports::wait": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/motion.js"
   },
   "js/ui.js::exports::hold": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/motion.js"
   },
   "js/ui.js::exports::clock": {
    "status": "split-region",
@@ -16274,16 +16219,8 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/ui.js::exports::keepTurning": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/motion.js"
   },
   "js/ui.js::functions::dial": {
    "status": "split-region",
@@ -16298,40 +16235,16 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/ui.js::functions::morph": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/motion.js"
   },
   "js/ui.js::functions::expand": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/motion.js"
   },
   "js/ui.js::functions::expandFrame": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/motion.js"
   },
   "js/ui.js::functions::waited": {
    "status": "split-region",
@@ -16398,16 +16311,8 @@
    "home": "core/ui/redraw.js"
   },
   "js/ui.js::functions::keepTurning": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/motion.js"
   },
   "js/ui.js::storage::cv-sound": {
    "status": "split-region",

@@ -2,6 +2,7 @@
 // reduced motion and the optional soft sounds (off by default).
 import { esc } from "./world.js";
 export { reconcile } from "../core/ui/redraw.js";
+export { morph, EASE, EXPAND_MS, expand, RM, wait, hold, keepTurning } from "../core/ui/motion.js";
 
 import { xi } from "./icon.js";
 export { xi };
@@ -122,90 +123,6 @@ export function dial(effort) {
 /** The XO mark: the X in the theme's ink, the O green (.x, .o: css/app.css). */
 export const XO = xi("xo-mark", "xo-mark");
 
-/**
- * Smooth height change: measure, mutate, measure, animate the height
- * continuously while the new content cross-fades in. No jumps.
- */
-export function morph(el, mutate, { duration = 320, fade = null } = {}) {
-  if (!el) { mutate(); return; }
-  const h0 = el.getBoundingClientRect().height;
-  mutate();
-  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const h1 = el.getBoundingClientRect().height;
-  if (Math.abs(h1 - h0) > 1) {
-    el.getAnimations?.().forEach((a) => a.id === "morph" && a.cancel());
-    const a = el.animate([{ height: `${h0}px`, overflow: "hidden" }, { height: `${h1}px`, overflow: "hidden" }], { duration, easing: EASE });
-    a.id = "morph";
-  }
-  if (fade) fade.animate([{ opacity: 0 }, { opacity: 1 }], { duration: Math.round(duration * 0.8), easing: EASE, delay: Math.round(duration * 0.15), fill: "backwards" });
-}
-
-/** One easing for every size change: continuous, no front-loaded jump (a frame never moves more than ~40 px). */
-export const EASE = "cubic-bezier(.2,.8,.2,1)"; // the one curve (css/tokens.css --ease)
-export const EXPAND_MS = 320;
-
-/**
- * Smooth disclosure (#20): the body's height animates continuously from its old
- * to its new size over ~320 ms while its contents cross-fade. Opening renders the
- * contents first (so they can be measured); closing animates, then removes them
- * from layout (so folded text is never counted, read or tabbed to).
- * box: the element that carries .is-open; body: the element whose height moves.
- */
-export function expand(box, body, open, { onStep = null, frame = null } = {}) {
-  if (!box || !body) return;
-  if (frame) { expandFrame(box, body, open, frame, onStep); return; }
-  const was = box.classList.contains("is-open");
-  if (was === open && !body._closing) return;
-  const rm = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  body.getAnimations?.().forEach((a) => a.cancel());
-  const inner = body.firstElementChild;
-  const h0 = was && !body.hidden ? body.getBoundingClientRect().height : 0;
-  body._closing = false;
-  if (open) {
-    body.hidden = false;
-    box.classList.add("is-open");
-    if (rm) return;
-    const h1 = body.getBoundingClientRect().height;
-    const a = body.animate([{ height: `${h0}px` }, { height: `${h1}px` }], { duration: EXPAND_MS, easing: EASE });
-    body.style.overflow = "hidden";
-    a.onfinish = a.oncancel = () => { body.style.overflow = ""; };
-    if (inner) inner.animate([{ opacity: 0, transform: "translateY(-3px)" }, { opacity: 1, transform: "none" }], { duration: 220, delay: 60, easing: EASE, fill: "backwards" });
-  } else {
-    box.classList.remove("is-open");
-    if (rm || !h0) { body.hidden = true; return; }
-    body._closing = true;
-    body.style.overflow = "hidden";
-    if (inner) inner.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, easing: EASE, fill: "forwards" });
-    const a = body.animate([{ height: `${h0}px` }, { height: "0px" }], { duration: EXPAND_MS - 40, easing: EASE });
-    a.onfinish = () => { if (body._closing) { body.hidden = true; body._closing = false; } body.style.overflow = ""; inner?.getAnimations?.().forEach((x) => x.cancel()); };
-  }
-  if (onStep) { const t0 = performance.now(); const f = () => { onStep(); if (performance.now() - t0 < EXPAND_MS + 40) requestAnimationFrame(f); }; requestAnimationFrame(f); }
-}
-
-/**
- * The same, for a card with a capped height (the thread's own card): the card's
- * frame animates from its old to its new height, so the motion stays continuous
- * even when the card hits its cap and its body starts to scroll.
- */
-function expandFrame(box, body, open, frame, onStep) {
-  const rm = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  frame.getAnimations?.().forEach((a) => a.id === "xf" && a.cancel());
-  const inner = body.firstElementChild;
-  const h0 = frame.getBoundingClientRect().height;
-  if (open) { body.hidden = false; box.classList.add("is-open"); }
-  else { box.classList.remove("is-open"); body.hidden = true; }
-  if (rm) return;
-  const h1 = frame.getBoundingClientRect().height;
-  if (!open) { body.hidden = false; }
-  frame.style.overflow = "hidden";
-  const a = frame.animate([{ height: `${h0}px` }, { height: `${h1}px` }], { duration: EXPAND_MS, easing: EASE });
-  a.id = "xf";
-  if (open && inner) inner.animate([{ opacity: 0, transform: "translateY(-3px)" }, { opacity: 1, transform: "none" }], { duration: 220, delay: 60, easing: EASE, fill: "backwards" });
-  if (!open && inner) inner.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, fill: "forwards" });
-  a.onfinish = a.oncancel = () => { frame.style.overflow = ""; if (!box.classList.contains("is-open")) body.hidden = true; inner?.getAnimations?.().forEach((x) => x.cancel()); };
-  if (onStep) { const t0 = performance.now(); const f = () => { onStep(); if (performance.now() - t0 < EXPAND_MS + 40) requestAnimationFrame(f); }; requestAnimationFrame(f); }
-}
-
 /** mm:ss for a countdown. */
 export const mmss = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
 /** "3 h 12 m" / "42 m" for how long something has waited. */
@@ -218,12 +135,6 @@ export function waited(ms) {
 
 export const $ = (s, el = document) => el.querySelector(s);
 export const $$ = (s, el = document) => [...el.querySelectorAll(s)];
-export const RM = matchMedia("(prefers-reduced-motion: reduce)");
-/** An animation's time: none under reduced motion. Never for time a person needs to act (see hold). */
-export const wait = (ms) => new Promise((r) => setTimeout(r, RM.matches ? 0 : ms));
-/** Time a person has to act (an Undo window, a moment to read): real time, reduced motion or not. Reduced motion
- *  cuts animations, never the time to act (Astra S014: the dock's Undo vanished in ~20 ms). */
-export const hold = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // one formatter each, made once: toLocale*String with options builds a new one per call (25 ms per redraw
 // of a 400-row conversation; QA C5)
@@ -302,25 +213,3 @@ export const sound = {
 
 export { esc };
 
-/**
- * Every turning arc and every shimmering "working" line on the page moves in step, from the page's first
- * moment, whenever it was drawn: one redrawn by a streamed update would otherwise restart from zero and
- * look like it stutters.
- */
-export function keepTurning() {
-  if (typeof document === "undefined" || !document.getAnimations) return;
-  const sync = () => {
-    for (const a of document.getAnimations()) {
-      if (a.animationName === "spin" || a.animationName === "arc-turn" || a.animationName === "shimmer") { if (a.startTime !== 0) a.startTime = 0; }
-    }
-  };
-  // only when something added holds an arc, a spinner or a shimmer (a scan of every animation on the page
-  // after any change at all cost tens of ms on a busy page, QA #11), and at once, before the frame is
-  // painted: a redrawn arc used to show one frame from its start before being put back in step
-  const MOVING = ".arc, .spin, .shimmer, .tb-live";
-  const moving = (n) => n.nodeType === 1 && (n.matches(MOVING) || !!n.querySelector(MOVING));
-  new MutationObserver((recs) => {
-    for (const r of recs) for (const n of r.addedNodes) if (moving(n)) { sync(); return; }
-  }).observe(document.body, { childList: true, subtree: true });
-  sync();
-}

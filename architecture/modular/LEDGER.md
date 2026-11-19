@@ -4,13 +4,13 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 672 |
+| planned | 671 |
 | vendor | 367 |
 | deleted | 232 |
 | split | 34 |
-| moved | 8 |
+| moved | 9 |
 
-Items inside first-party files: 2290 (planned 1309, split-region 920, moved 61), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1296, split-region 908, moved 86), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -71,7 +71,7 @@ Items inside first-party files: 2290 (planned 1309, split-region 920, moved 61),
 | `js/media.js` | 609 | split | modules/conversation/media/, core/ui/media (layout) |
 | `js/merge.js` | 101 | planned | core/platform/diff.js |
 | `js/model.js` | 34 | planned | modules/threads/checklist.js |
-| `js/motion.js` | 82 | planned | core/ui/motion.js |
+| `js/motion.js` | 82 | moved | core/ui/motion.js · next: js/motion.js re-exports core/ui/motion.js until the shims go |
 | `js/msgx.js` | 917 | split | modules/conversation/decorate.js, modules/conversation/working.js, modules/conversation/actions.js, modules/conversation/gestures.js, modules/conversation/latest-button.js, modules/composer (reply chip, quote) |
 | `js/pacing.js` | 67 | planned | modules/decisions/pacing.js |
 | `js/paid.js` | 152 | planned | core/services/world/paid.js |
