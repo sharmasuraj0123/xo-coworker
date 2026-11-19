@@ -12,19 +12,19 @@ let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
 t("the times' label rests inside its row (no transform past the edge when no swipe pulls it)", () => {
-  const rest = rule("#msgs>.m::after");
+  const rest = rule(":is(#msgs,#tmsgs)>.m::after");
   assert.ok(rest, "the label is declared");
   const tr = /(?:^|;)\s*transform:\s*([^;]+)/.exec(rest);
   assert.ok(!tr || !/translateX\(\s*[1-9]/.test(tr[1]), `at rest: transform ${tr && tr[1]}`);
   assert.doesNotMatch(rest, /(?:^|;)\s*right:\s*-/, "nor a negative right");
 });
 t("while a swipe pulls, it slides in from 64 px out, as before", () => {
-  const pull = rule("#msgs.mx-pulling>.m::after");
+  const pull = rule(":is(#msgs,#tmsgs).mx-pulling>.m::after");
   assert.ok(pull, "the pulling rule");
   assert.match(pull, /translateX\(calc\(\(64 - var\(--mx-pull,0\)\) \* 1px\)\)/);
 });
 t("where a pointer hovers, a bubble leaves its actions their room beside it (a narrow window: 401 of 390 px)", () => {
-  assert.match(css, /@media \(hover:hover\)\{#msgs \.bubble\{max-width:min\(80%,540px,calc\(100% - 2 \* var\(--h-ctl\) - 10px\)\)\}\}/);
+  assert.match(css, /@media \(hover:hover\)\{:is\(#msgs,#tmsgs\) \.bubble\{max-width:min\(80%,540px,calc\(100% - 2 \* var\(--h-ctl\) - 10px\)\)\}\}/);
 });
 t("where a pointer hovers, an agent's bubble (and a table's) leaves its actions their room too", () => {
   assert.match(css, /@media \(hover:hover\)\{\s*:root\[data-msgx\] :is\(\.m-them>\.mb>\.prose,\.m-turn \.turn>\.tb-answer,\.m-turn \.turn>\.tb-text\)\{max-width:min\(88%,560px,calc\(100% - 2 \* var\(--h-ctl\) - 10px\)\)\}/);

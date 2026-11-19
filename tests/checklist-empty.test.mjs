@@ -9,7 +9,7 @@ import { readFileSync } from "node:fs";
 const src = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-const f = (() => { const i = src.indexOf("function checklistRender(needs) {"); assert.ok(i > 0); return src.slice(i, src.indexOf("\n}\n", i)); })();
+const f = (() => { const i = src.indexOf("function checklistRender(needs, th = $(\"#thead\"), view = S.view, listId = \"ck-list\") {"); assert.ok(i > 0); return src.slice(i, src.indexOf("\n}\n", i)); })();
 
 t("no steps, no checklist: the head holds only the thread's runs, and hides when there are none", () => {
   const i = f.indexOf("if (!c.total) {");

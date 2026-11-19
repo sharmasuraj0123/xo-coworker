@@ -34,7 +34,7 @@ t("the room a bubble leaves them is two of them, their gap and the 8 px between:
 });
 
 t("under pictures, the row holds the buttons' height plus its 6 and 20 (it held 28's)", () => {
-  assert.match(msgx, /:root\[data-msgx\] #msgs>\.m\.mx-nobub\{margin-bottom:calc\(var\(--h-ctl\) \+ 26px\)\}/);
+  assert.match(msgx, /:root\[data-msgx\] :is\(#msgs,#tmsgs\)>\.m\.mx-nobub\{margin-bottom:calc\(var\(--h-ctl\) \+ 26px\)\}/);
   assert.match(body(msgx, ".mx-nobub .mx-acts.is-foot"), /top:calc\(100% \+ 6px\)/);
 });
 

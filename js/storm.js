@@ -73,7 +73,10 @@ export function stormSource(state, emit, event) {
   let stream = null;
   let statusT = null, runtimesT = null, recoverT = null;
   let chatsAt = 0, chatsBusy = null;
-  const watched = { projects: new Set(), thread: null, session: null }; // what's on screen, to reload after a reset
+  // what's on screen, to reload after a reset. thread: the main chat's; side: a thread page in the panel beside it
+  // (two conversations on screen, P1): both are watched, their turns kept, their hops read
+  const watched = { projects: new Set(), thread: null, side: null, session: null };
+  const isWatched = (ts) => !!ts && (ts === watched.thread || ts === watched.side);
   const trimmed = new Set(); // sessions whose older turns were pruned (read again when shown)
   const framesBefore = new Map(); // session → the cursor below its stored frames read so far (null: all read)
   let firstFrame = null;
@@ -761,7 +764,7 @@ export function stormSource(state, emit, event) {
         // a move for a hop not read yet (a cold load, its history still on the way) is held for it
         else if (d.id && d.state) holdMove(d.id, d.state);
         // the open thread shows what its hops say: read the new one's note
-        if (d.kind && d.thread_ts && d.thread_ts === watched.thread) hopsSoon(d.thread_ts);
+        if (d.kind && d.thread_ts && isWatched(d.thread_ts)) hopsSoon(d.thread_ts);
         break;
       }
       case "chat": {
@@ -864,6 +867,7 @@ export function stormSource(state, emit, event) {
     for (const [ts, r] of rawThreads) if (!chatProject.has(r.chat_id)) rawThreads.delete(ts);
     await Promise.all([...watched.projects].map((p) => loadTimeline(p)));
     if (watched.thread) await loadThread(watched.thread);
+    if (watched.side && watched.side !== watched.thread) await loadThread(watched.side);
     commit(); emit();
   }
 
@@ -896,8 +900,7 @@ export function stormSource(state, emit, event) {
   boot();
   setInterval(() => {
     const keep = new Set();
-    const t = watched.thread && rawThreads.get(watched.thread);
-    if (t && t.session_id) keep.add(t.session_id);
+    for (const ts of [watched.thread, watched.side]) { const t = ts && rawThreads.get(ts); if (t && t.session_id) keep.add(t.session_id); }
     if (watched.session) keep.add(watched.session); // an open plain chat keeps its turns
     for (const sid of state.turns.prune(keep)) trimmed.add(sid);
     // sub-agents: keep every live one and the open thread's; the rest only up to a bounded log
@@ -1121,6 +1124,8 @@ export function stormSource(state, emit, event) {
       /** The open conversations: load their timelines once; the stream keeps them current. */
       watch: (projects) => { watched.projects = new Set((projects || []).filter(Boolean)); for (const p of watched.projects) loadTimeline(p); },
       watchThread: (ts) => { watched.thread = ts || null; if (ts) loadThread(ts); },
+      /** The thread shown in the panel beside the main chat (null when none): watched as the main one is. */
+      watchSideThread: (ts) => { watched.side = ts || null; if (ts && ts !== watched.thread) loadThread(ts); },
       /** An open plain chat: its session's turns are never pruned while it is on screen. */
       watchSession: (sid) => { watched.session = sid || null; },
       /** Were this session's older turns pruned? (then read them again; asking clears it) */

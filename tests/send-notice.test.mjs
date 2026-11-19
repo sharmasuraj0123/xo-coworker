@@ -31,6 +31,6 @@ t("the file actions' Tell says nothing itself before the answer (the message's n
   assert.doesNotMatch(line, /Told the agent/);
 });
 t("a plain chat's message is never routed: its gate and its line agree (no Off line beside a send that goes)", () => {
-  assert.match(body("composerDest") || "", /if \(CH\.isChats\(S\.view\)\) return \{ thread: true \};/);
+  assert.match(body("composerDest") || "", /if \(CH\.isChats\(view\)\) return \{ thread: true \};/); // view: the conversation asked about (P1)
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

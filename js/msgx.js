@@ -13,7 +13,7 @@
 //     · a sent reply shows its quote as a card in your bubble; press it to go back to the original
 
 import { elapsed, ICON, xi } from "./ui.js";
-import { toLatest, fromLatest } from "./follow.js";
+import { toLatest as mainToLatest, fromLatest as mainFromLatest } from "./follow.js";
 import { copyText, COPY_REFUSED, space } from "./util.js";
 import { wordsOf } from "./words.js";
 
@@ -26,10 +26,20 @@ const IC = { reply: ICON.reply, copy: ICON.copy, check: xi("check"), close: ICON
 // The bubbles, when on, are as the owner finalised them on 5 Nov: XO's green for yours, tails on, every reply in a bubble.
 // Everything else here (Reply, Copy, swipes, back-to-latest, the working turn) works in both looks.
 // (the switch is app.js's chatBubbles/setChatBubbles: it writes the same two attributes and localStorage cv-bubbles)
-const conv = $("#conv");
+/**
+ * One conversation's decoration (P1 of a thread beside the coordinator's chat: two conversations on screen, each
+ * decorated by its own call). E: { conv (the box the back-to-latest button sits in), msgs, scroller, typing,
+ * composer, say, send, atList, dock, tdock, herald, host (where its docked-card classes go), follow
+ * ({toLatest, fromLatest}), isThread() (its rows are a thread's: their agent's name is the thread's), main }.
+ * The main chat's is called once at the end of this file, over the page's own elements.
+ */
+export function decorateConversation(E) {
+const conv = E.conv;
+const toLatest = E.follow.toLatest, fromLatest = E.follow.fromLatest;
 
 // ── decorating what the app draws ───────────────────────────────────────────
-const msgs = $("#msgs");
+const msgs = E.msgs;
+const SEL = `#${msgs.id}`; // this conversation's list, in the sheets this layer writes
 // the name the agent signs its own messages with (theirs carry the thread tile, a coordinator's the XO
 // mark): looked up once per pass, not once per turn (that made a pass over a long thread quadratic)
 let agentNameMemo = null;
@@ -168,7 +178,7 @@ function decorate() {
   }
   // Names: whoever you're mainly talking to here goes unnamed, as in a one-to-one chat; anyone else who
   // speaks up is named. In a thread, the coordinator stepping in is set apart, quietly, in its violet.
-  const view = document.getElementById("app").dataset.view;
+  const view = E.isThread() ? "thread" : document.getElementById("app").dataset.view;
   const theirs = kids.filter((el) => el.classList.contains("m-them") && !el.classList.contains("m-turn") && !el.classList.contains("m-card"));
   const count = new Map();
   for (const el of theirs) { const n = nameIn(el); el._mxWho = n; count.set(n, (count.get(n) || 0) + 1); }
@@ -301,18 +311,18 @@ function cardSteps() {
  *  Workspace coordinator. In a thread, its violet ring still says "coordinator". */
 function projectMarks() {
   const row = document.querySelector('#projects .prow.is-on[data-go^="p:"]');
-  const view = document.getElementById("app").dataset.view;
+  const view = E.isThread() ? "thread" : document.getElementById("app").dataset.view;
   const ic = (view === "project" || view === "thread") && row && row.querySelector(".pr-ic svg");
   if (!ic) return;
-  for (const av of document.querySelectorAll("#msgs .m-them > .av:not(.av-gap):not(.mx-pm), #typing .typing > .av:not(.mx-pm)")) {
+  for (const av of [...msgs.querySelectorAll(".m-them > .av:not(.av-gap):not(.mx-pm)"), ...E.typing.querySelectorAll(".typing > .av:not(.mx-pm)")]) {
     if (!av.querySelector(".xo-mark")) continue;
     av.classList.add("mx-pm");
     av.replaceChildren(ic.cloneNode(true), ...[...av.querySelectorAll(".arc")]);
   }
 }
-const typingFade = () => { const t = document.querySelector("#typing .ty-t"); if (t) t.classList.toggle("mx-fade", t.scrollWidth > t.clientWidth + 1); };
-new MutationObserver(() => { projectMarks(); wave(document.getElementById("typing")); typingFade(); }).observe(document.getElementById("typing"), { childList: true, subtree: true, characterData: true });
-new ResizeObserver(typingFade).observe(document.getElementById("typing"));
+const typingFade = () => { const t = E.typing.querySelector(".ty-t"); if (t) t.classList.toggle("mx-fade", t.scrollWidth > t.clientWidth + 1); };
+new MutationObserver(() => { projectMarks(); wave(E.typing); typingFade(); }).observe(E.typing, { childList: true, subtree: true, characterData: true });
+new ResizeObserver(typingFade).observe(E.typing);
 
 // ── the agent at work: one calm bubble ──────────────────────────────────────
 const WORKING = new Map(); // turn key → { text, since, w }
@@ -324,7 +334,7 @@ const FINISHED_CARDS = new Map(); // only completed turns whose work card has be
 const ENDED = new Set();
 // each working turn's height, held by its key (see working(): the finished turn starts drawn at it)
 const HOLD = new Map();
-const holdSheet = document.head.appendChild(Object.assign(document.createElement("style"), { id: "mx-hold" }));
+const holdSheet = document.head.appendChild(Object.assign(document.createElement("style"), { id: E.main ? "mx-hold" : `mx-hold-${msgs.id}` }));
 /** An element's height from its content alone (its children's extent), whatever min-height holds it at. */
 function naturalHeight(el) {
   const top = el.getBoundingClientRect().top;
@@ -332,13 +342,13 @@ function naturalHeight(el) {
   for (const c of el.children) { const r = c.getBoundingClientRect(); if (r.height) h = Math.max(h, r.bottom - top); }
   return Math.round(h);
 }
-function holdRules() { holdSheet.textContent = [...HOLD].map(([k, h]) => `:root[data-msgx] #msgs>[data-k="${CSS.escape(k)}"]{min-height:${h}px}`).join("\n"); }
-const orderSheet = document.head.appendChild(Object.assign(document.createElement("style"), { id: "mx-order" }));
+function holdRules() { holdSheet.textContent = [...HOLD].map(([k, h]) => `:root[data-msgx] ${SEL}>[data-k="${CSS.escape(k)}"]{min-height:${h}px}`).join("\n"); }
+const orderSheet = document.head.appendChild(Object.assign(document.createElement("style"), { id: E.main ? "mx-order" : `mx-order-${msgs.id}` }));
 function keepEnded(key, lastKey) {
   if (ENDED.has(key)) return;
   ENDED.add(key);
   const n = ENDED.size;
-  orderSheet.append(`:root[data-msgx] #msgs>[data-k="${CSS.escape(key)}"]{order:${2 * n - 1}}\n:root[data-msgx] #msgs>[data-k="${CSS.escape(lastKey)}"]~*{order:${2 * n}}\n`);
+  orderSheet.append(`:root[data-msgx] ${SEL}>[data-k="${CSS.escape(key)}"]{order:${2 * n - 1}}\n:root[data-msgx] ${SEL}>[data-k="${CSS.escape(lastKey)}"]~*{order:${2 * n}}\n`);
 }
 /** What the agent is doing right now, in its own words where it has them. */
 function nowText(turn) {
@@ -603,7 +613,7 @@ msgs.addEventListener("redrawn", (e) => {
 });
 
 // ── replying ────────────────────────────────────────────────────────────────
-const composer = $("#composer"), sayEl = $("#say");
+const composer = E.composer, sayEl = E.say;
 // A reply belongs to the conversation it was started in, like a draft (QA #4: one page-wide quote used to
 // follow you into every other conversation and go out with the next message there). Each conversation keeps
 // its own; switching shows that conversation's (or none).
@@ -615,7 +625,7 @@ chip.innerHTML = `<span class="mx-r-ic">${IC.reply}</span><span class="mx-r-t"><
 composer.insertBefore(chip, $(".composer-field", composer));
 const clip = (s, n = 220) => { s = s.replace(/\s+/g, " ").trim(); return s.length > n ? s.slice(0, n - 1).replace(/\s+\S*$/, "") + "…" : s; };
 
-const convNow = () => document.getElementById("app").dataset.conv || "";
+const convNow = () => (E.view ? E.view() : document.getElementById("app").dataset.conv || "");
 function showReply(r, animate) {
   reply = r;
   chip.hidden = !r;
@@ -642,7 +652,9 @@ function startReply(m, text) {
 }
 function endReply() { if (reply) replies.delete(reply.conv); showReply(null); }
 // another conversation: its own reply, or none
-new MutationObserver(() => showReply(replies.get(convNow()) || null, false)).observe(document.getElementById("app"), { attributes: true, attributeFilter: ["data-conv"] });
+// (the main chat's place changes with #app's data-conv; a thread page says when it shows another thread: E.onView)
+if (E.main) new MutationObserver(() => showReply(replies.get(convNow()) || null, false)).observe(document.getElementById("app"), { attributes: true, attributeFilter: ["data-conv"] });
+else if (E.onView) E.onView(() => showReply(replies.get(convNow()) || null, false));
 chip.querySelector(".mx-r-x").addEventListener("click", () => { endReply(); sayEl.focus(); });
 
 // When you send, the quote goes first, as Markdown the agent reads like any quote. If the app doesn't send
@@ -659,10 +671,10 @@ document.addEventListener("keydown", (e) => {
   // Escape on the quote's own × removes it too, as its title says (Astra RPL-2: only the composer's Escape did)
   if (e.key === "Escape" && reply && chip.contains(e.target)) { e.preventDefault(); e.stopImmediatePropagation(); endReply(); sayEl.focus(); return; }
   if (e.target !== sayEl || !reply) return;
-  if (e.key === "Enter" && !e.shiftKey && !e.isComposing && e.keyCode !== 229 && $("#at-list").hidden) withQuote();
-  if (e.key === "Escape" && $("#at-list").hidden) { e.preventDefault(); e.stopImmediatePropagation(); endReply(); }
+  if (e.key === "Enter" && !e.shiftKey && !e.isComposing && e.keyCode !== 229 && (!E.atList || E.atList.hidden)) withQuote();
+  if (e.key === "Escape" && (!E.atList || E.atList.hidden)) { e.preventDefault(); e.stopImmediatePropagation(); endReply(); }
 }, true);
-document.addEventListener("submit", (e) => { if (e.target === composer && $("#send").dataset.mode !== "stop") withQuote(); }, true);
+document.addEventListener("submit", (e) => { if (e.target === composer && E.send.dataset.mode !== "stop") withQuote(); }, true);
 
 msgs.addEventListener("click", async (e) => {
   const g = e.target.closest("[data-mx-rate]");
@@ -703,7 +715,7 @@ let picked = null;
 function onSelect() {
   const s = getSelection();
   const text = s && !s.isCollapsed ? s.toString().trim() : "";
-  const m = text && s.anchorNode && s.anchorNode.parentElement?.closest("#msgs .m");
+  const m0 = text && s.anchorNode && s.anchorNode.parentElement?.closest(".m"), m = m0 && m0.parentElement === msgs ? m0 : null;
   if (!m || !m.contains(s.focusNode) || text.length < 2) { qpop.hidden = true; picked = null; return; }
   const r = s.getRangeAt(0).getBoundingClientRect();
   picked = { m, text };
@@ -716,12 +728,12 @@ function onSelect() {
 document.addEventListener("mouseup", () => setTimeout(onSelect, 0));
 document.addEventListener("keyup", (e) => { if (e.shiftKey) onSelect(); });
 document.addEventListener("selectionchange", () => { if (!qpop.hidden && getSelection().isCollapsed) qpop.hidden = true; });
-$("#scroller").addEventListener("scroll", () => { qpop.hidden = true; }, { passive: true });
+E.scroller.addEventListener("scroll", () => { qpop.hidden = true; }, { passive: true });
 qpop.addEventListener("mousedown", (e) => e.preventDefault());
 qpop.addEventListener("click", () => { if (picked) startReply(picked.m, picked.text); qpop.hidden = true; getSelection().removeAllRanges(); });
 
 // ── swipes: right on a message replies to it, left anywhere shows the times ─
-const scroller = $("#scroller");
+const scroller = E.scroller;
 const REPLY_AT = 56, REPLY_MAX = 72, TIME_MAX = 64;
 let g = null, idle = 0;
 const band = (raw, max) => (raw <= max ? raw : max + (raw - max) * 0.15); // past the end it only gives a little
@@ -769,7 +781,7 @@ scroller.addEventListener("wheel", (e) => {
   if (!g && (ax < 6 || ax < ay * 2 || e.timeStamp - lastV < 400 || ownsSideways(e.target))) return;
   e.preventDefault();
   if (!g) {
-    const m = e.target.closest?.("#msgs .m");
+    const m0 = e.target.closest?.(".m"), m = m0 && msgs.contains(m0) ? m0 : null;
     if (e.deltaX < 0 && m) gStart("reply", m); else if (e.deltaX > 0) gStart("time", null); else return;
   }
   gMove(g.kind === "reply" ? -e.deltaX : e.deltaX);
@@ -815,7 +827,7 @@ const away = fromLatest;
  *  one (its real top, whatever its height on this screen), else the composer itself; and the notice line just
  *  above the composer wherever it reaches under the button (a long one on a phone spans the width), so the
  *  button is never under it (Astra CONV-9: a refusal's line took the button's presses). */
-const tdock = $("#tdock"), herald = $("#herald");
+const tdock = E.tdock, herald = E.herald;
 function dockTop() {
   let top = composer.getBoundingClientRect().top;
   for (const el of tdock.querySelectorAll(":scope > *, :scope > * > *")) {
@@ -823,7 +835,7 @@ function dockTop() {
     if (r.height > 0 && r.width > 0 && getComputedStyle(el).visibility !== "hidden") top = Math.min(top, r.top);
   }
   const d = down.getBoundingClientRect();
-  for (const el of herald.children) {
+  for (const el of herald ? herald.children : []) {
     const r = el.getBoundingClientRect();
     if (r.height > 0 && r.right > d.left && r.left < d.right) top = Math.min(top, r.top);
   }
@@ -871,19 +883,30 @@ new MutationObserver((ms) => {
   requestAnimationFrame(downSync);
 }).observe(msgs, { childList: true });
 const downRO = new ResizeObserver(() => downSync());
-downRO.observe(scroller); downRO.observe($("#dock")); downRO.observe(tdock); downRO.observe(herald);
+downRO.observe(scroller); downRO.observe(E.dock); downRO.observe(tdock); if (herald) downRO.observe(herald);
 // a card docking or leaving (and its own glide in or out) moves the button with it, frame by frame
 let downRaf = 0;
 const followDock = (until) => { cancelAnimationFrame(downRaf); const step = () => { downSync(); if (performance.now() < until) downRaf = requestAnimationFrame(step); }; step(); };
 new MutationObserver(() => {
   // what's docked, as classes the CSS keys off (were .app:has(#tdock > …) rules)
-  const a = document.getElementById("app"), first = tdock.firstElementChild;
+  const a = E.host, first = tdock.firstElementChild;
   a.classList.toggle("has-tdock", !!first);
   a.classList.toggle("has-tdock-card", !!tdock.querySelector(":scope > .card"));
   followDock(performance.now() + 700);
 }).observe(tdock, { childList: true, subtree: true });
 // a notice arriving or leaving (and its float in) moves the button with it too
-new MutationObserver(() => followDock(performance.now() + 700)).observe(herald, { childList: true });
+if (herald) new MutationObserver(() => followDock(performance.now() + 700)).observe(herald, { childList: true });
 
 // Following the latest, keeping your place and opening at the latest belong to js/follow.js now. Nothing
 // here moves the view except the back-to-latest button and pressing the working bubble (both toLatest).
+return { decorate, conv, msgs };
+}
+
+// the main chat: the page's own conversation
+decorateConversation({
+  conv: $("#conv"), msgs: $("#msgs"), scroller: $("#scroller"), typing: $("#typing"),
+  composer: $("#composer"), say: $("#say"), send: $("#send"), atList: $("#at-list"),
+  dock: $("#dock"), tdock: $("#tdock"), herald: $("#herald"), host: document.getElementById("app"),
+  follow: { toLatest: mainToLatest, fromLatest: mainFromLatest },
+  isThread: () => document.getElementById("app").dataset.view === "thread", main: true,
+});

@@ -24,7 +24,8 @@ t("go(): on a phone, the panel steps aside for the place opened, before anything
 t("only a place opened from the panel: Launchpad, the Map and the panel's own links pass panel; a place changed from elsewhere leaves it covering (lpshell LP21)", () => {
   for (const m of ["const MAP = createMap(", "const LP = createLaunchpad(", "const STAGE = createStage("]) {
     const i = app.indexOf(m); assert.ok(i >= 0, m);
-    assert.match(app.slice(i, app.indexOf("\n", i)), /go: \(v\) => go\(v, \{ panel: true \}\)/, `${m} navigates as the panel`);
+    // (the panel's own rows open a thread as its Thread page beside a chat, else navigate as the panel: openFromPanel)
+    assert.match(app.slice(i, app.indexOf("\n", i)), /go: \(v(, e)?\) => (go\(v, \{ panel: true \}\)|openFromPanel\(v, e\))/, `${m} navigates as the panel`);
   }
   assert.match(app, /function go\(v, \{ from, focus = false, carry = false, panel = false \} = \{\}\) \{/);
 });
@@ -33,3 +34,7 @@ t("Launchpad's asked-thread row opens the thread and leaves focus to go(): no wa
   assert.doesNotMatch(lp, /requestAnimationFrame\(land\)/);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
+
+// openFromPanel: what isn't a thread page beside a chat still goes as the panel's own link
+{ const app2 = readFileSync(new URL("../js/app.js", import.meta.url), "utf8"); const f = app2.slice(app2.indexOf("function openFromPanel("), app2.indexOf("\n}\n", app2.indexOf("function openFromPanel(")));
+  if (!/go\(v, \{ panel: true \}\);/.test(f)) { console.error("  FAIL openFromPanel passes panel"); process.exitCode = 1; } }

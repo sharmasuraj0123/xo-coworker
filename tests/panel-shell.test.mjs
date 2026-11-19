@@ -13,14 +13,16 @@ const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 
 // the panel: a Shell button (only when the app gives it a shell), a host, the mode
 assert.match(stage, /\$\{shell \? `<button type="button" class="stg-ic stg-shell-b" data-stg-shell aria-pressed="false"/);
-assert.match(stage, /`<div class="stg-shell"><\/div>` \+\n\s*`<div class="stg-frames">`/, "its host sits where the frames are");
-assert.match(stage, /if \(t\.closest\("\[data-stg-shell\]"\)\) \{ setShell\(!S\.shell\); return; \}/);
-const set = stage.slice(stage.indexOf("function setShell("), stage.indexOf("function setShell(") + 900);
-assert.match(set, /el\.classList\.toggle\("is-shell", S\.shell\)/);
-assert.match(set, /b\.setAttribute\("aria-pressed", String\(S\.shell\)\)/);
-assert.match(set, /shell\(S\.shell, el\.querySelector\("\.stg-shell"\)\)/);
+assert.match(stage, /`<div class="stg-page stg-shell"><\/div>` \+\n\s*`<div class="stg-frames">`/, "its host (the panel's one page host) sits where the frames are");
+// Shell is the page "shell" (the panel's pages, 19 Nov): on shows it, off closes its tab; nothing else changed
+assert.match(stage, /if \(t\.closest\("\[data-stg-shell\]"\)\) \{ setShell\(S\.page\?\.name !== "shell"\); return; \}/);
+assert.match(stage, /if \(shell\) page\("shell", \{ title: \(\) => "Shell", mount: \(\) => \{\}, onShow: \(\) => shell\(true, boxFor\(S\.page\)\), onHide: \(\) => shell\(false\), unmount: \(\) => \{\} \}\);/);
+const set = stage.slice(stage.indexOf("function setShell("), stage.indexOf("function setShell(") + 300);
+assert.match(set, /if \(on\) show\("shell"\); else closeTab\("shell"\);/);
+assert.match(stage, /el\.classList\.toggle\("is-shell", name === "shell"\);/, "the shell's own CSS keeps its class");
+assert.match(stage, /b\.setAttribute\("aria-pressed", String\(on\)\)/);
 const close = stage.slice(stage.indexOf("function close("), stage.indexOf("function close(") + 200);
-assert.match(close, /if \(S\.shell\) setShell\(false\);/, "the panel closing leaves Shell mode");
+assert.match(close, /if \(S\.page\) sections\(\{ paint: false \}\);/, "the panel closing puts its page away (the shell goes back under the page)");
 
 // the app: the dock itself moves (no second terminal), a shell opens for where you are, and it goes back home
 const ps = app.slice(app.indexOf("function panelShell("), app.indexOf("/** A Shell button: \"ws\""));
@@ -37,8 +39,8 @@ assert.match(html, /<button type="button" class="gear sh-tog" id="nv-shells"/);
 assert.match(html, /<section class="shd" id="shd" aria-label="Shells" hidden><\/section>/);
 
 // CSS: tokens only; a phone keeps its own shells sheet
-const block = css.slice(css.indexOf("── Shell mode"));
-assert.match(block, /\.stage\.is-shell \.stg-frames\{display:none\}/);
+const block = css.slice(css.indexOf("── Shell mode"), ((css.indexOf("/* ──", css.indexOf("── Shell mode") + 4) + 1) || css.length + 1) - 1);
+assert.match(block, /\.stage\[data-page\] \.stg-frames\{display:none\}/);
 assert.match(block, /@media \(max-width:760px\)\{\.stg-shell-b\{display:none\}\}/);
 assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\b1px solid\b/g, "").replace(/@media \([^)]*\)/g, ""), /\b\d+(\.\d+)?(px|rem|ms)\b/);
 

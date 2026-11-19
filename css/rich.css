@@ -35,8 +35,8 @@
 :root:not([data-msgx]) .m-you .bubble{border:0;background:var(--mx-you);box-shadow:var(--mx-you-hi);color:var(--mx-you-ink)}
 /* a line between messages (a thread finished, a decision): its icon centred on the mark's 24 px, its words on the
    names' edge (24 + 8) */
-:root:not([data-msgx]) #msgs>.ev{gap:8px}
-:root:not([data-msgx]) #msgs>.ev>.ev-ic{margin:0 1px}
+:root:not([data-msgx]) :is(#msgs,#tmsgs)>.ev{gap:8px}
+:root:not([data-msgx]) :is(#msgs,#tmsgs)>.ev>.ev-ic{margin:0 1px}
 /* someone replying: the same mark and edge as a message's header */
 :root:not([data-msgx]) .typing{grid-template-columns:24px minmax(0,1fr);gap:8px}
 :root:not([data-msgx]) .typing>.av{width:var(--h-sm);height:var(--h-sm);border-radius:var(--r-sm)}
@@ -57,19 +57,19 @@
    line sat 0 px under the action row above it.) */
 /* the rhythm is the conversation's: a project's empty page (.m-start, "What should get done in…?") isn't a message
    and keeps its own margin:auto, which centres it in the room (css/app.css) */
-:root:not([data-msgx]) #msgs>:not(.m-start){margin-block:16px}
-:root:not([data-msgx]) #msgs>.m:not(.cont,.m-card){margin-top:24px}
-:root:not([data-msgx]) #msgs>.ev{min-height:var(--h-sm);margin-block:16px}
-:root:not([data-msgx]) #msgs>:first-child:not(.m-start){margin-top:0}
+:root:not([data-msgx]) :is(#msgs,#tmsgs)>:not(.m-start){margin-block:16px}
+:root:not([data-msgx]) :is(#msgs,#tmsgs)>.m:not(.cont,.m-card){margin-top:24px}
+:root:not([data-msgx]) :is(#msgs,#tmsgs)>.ev{min-height:var(--h-sm);margin-block:16px}
+:root:not([data-msgx]) :is(#msgs,#tmsgs)>:first-child:not(.m-start){margin-top:0}
 /* the action row is a 32 px control row whose 16 px glyphs leave 8 px of air under them: that air counts toward the
    gap after it, so the next thing sits 16 (or 24) from the glyphs you see, as from any other line */
-:root:not([data-msgx]) #msgs>.m:has(>.mb>.mx-actrow){margin-bottom:8px}
-:root:not([data-msgx]) #msgs>.m:has(>.mb>.mx-actrow)+*{margin-top:8px}
-:root:not([data-msgx]) #msgs>.m:has(>.mb>.mx-actrow)+.m:not(.cont,.m-card){margin-top:16px}
+:root:not([data-msgx]) :is(#msgs,#tmsgs)>.m:has(>.mb>.mx-actrow){margin-bottom:8px}
+:root:not([data-msgx]) :is(#msgs,#tmsgs)>.m:has(>.mb>.mx-actrow)+*{margin-top:8px}
+:root:not([data-msgx]) :is(#msgs,#tmsgs)>.m:has(>.mb>.mx-actrow)+.m:not(.cont,.m-card){margin-top:16px}
 :root:not([data-msgx]) .typing{padding-bottom:16px}
 /* someone replying is a new speaker: 24 above it, whatever the conversation ends with (its margin collapses with the
    last message's, through #msgs and #typing, so the larger wins) */
-:root:not([data-msgx]) #typing>.typing{margin-top:24px}
+:root:not([data-msgx]) :is(#typing,#ttyping)>.typing{margin-top:24px}
 /* inside a reply */
 :root:not([data-msgx]) .prose>*+*{margin-top:12px}
 :root:not([data-msgx]) .prose>:is(.md-code,.md-table,.md-chart,.md-diagram,.md-display,.mx-stack),
@@ -94,7 +94,7 @@
 :root:not([data-msgx]) .turn .tb.is-live:not(.is-waiting):not(:has(.tb.is-live))>.tb-h::before{content:"";flex:none;box-sizing:border-box;width:12px;height:12px;margin:0 2px;border:1.5px solid color-mix(in srgb,var(--info) 22%,transparent);border-top-color:var(--info);border-radius:50%;animation:arc-turn 1.6s linear infinite}
 @media (prefers-reduced-motion:reduce){:root:not([data-msgx]) .turn .tb.is-live>.tb-h::before{animation:none}}
 /* the shimmer reads in the conversation's own weight (app.css .shimmer sets 500, which looked bold) */
-:root:not([data-msgx]) :is(#typing,#msgs) .shimmer{font-weight:var(--fw-regular)}
+:root:not([data-msgx]) :is(:is(#typing,#ttyping),:is(#msgs,#tmsgs)) .shimmer{font-weight:var(--fw-regular)}
 
 /* ── the action row (js/msgx.js actionRows) ────────────────────────────────────
    Icon buttons of --mx-b (32, --h-ctl; 36 on a phone) on the text's edge: the first icon's 16 px glyph sits
@@ -104,8 +104,8 @@
    Between messages: the row, then 8 px, so a run of messages keeps one rhythm. */
 .mx-actrow{display:none}
 :root:not([data-msgx]) .mx-actrow{--mx-b:var(--h-ctl);display:flex;align-items:center;height:var(--mx-b);margin:4px 0 0 calc((16px - var(--mx-b)) / 2);opacity:0;transition:opacity var(--d-out) var(--ease)}
-:root:not([data-msgx]) #msgs>.m:is(:hover,:focus-within,.mx-latest)>.mb>.mx-actrow,
-:root:not([data-msgx]) #msgs>.m:is(:hover,:focus-within)>.mb>.mx-actrow{opacity:1;transition-duration:var(--d-hover-in)}
+:root:not([data-msgx]) :is(#msgs,#tmsgs)>.m:is(:hover,:focus-within,.mx-latest)>.mb>.mx-actrow,
+:root:not([data-msgx]) :is(#msgs,#tmsgs)>.m:is(:hover,:focus-within)>.mb>.mx-actrow{opacity:1;transition-duration:var(--d-hover-in)}
 .mx-actrow button{display:grid;place-items:center;flex:none;width:var(--mx-b,var(--h-ctl));height:var(--mx-b,var(--h-ctl));border-radius:var(--r);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .mx-actrow button:hover{background:var(--hover-fill);color:var(--ink);transition-duration:var(--d-hover-in)}
 .mx-actrow button:active{background:var(--press-fill);--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
