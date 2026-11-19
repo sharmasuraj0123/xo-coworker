@@ -9,7 +9,7 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | deleted | 244 |
 | moved | 54 |
 | split | 35 |
-| kept | 1 |
+| kept | 2 |
 
 Items inside first-party files: 2290 (planned 977, moved 695, split-region 561, deleted 54, kept 2, split 1), in `ledger.json` as `path::kind::name`.
 
@@ -19,7 +19,7 @@ Items inside first-party files: 2290 (planned 977, moved 695, split-region 561, 
 |---|---:|---|---|
 | `.gitignore` |  | planned | .gitignore (updated) |
 | `PR_DESCRIPTION.md` | 284 | planned | out of the repo: the design archive (owner D4) |
-| `README.md` | 191 | planned | README.md (rewritten: architecture + module table generated) |
+| `README.md` | 191 | kept | README.md · next: rewritten: what the app does, the layout by folder and layer, and how to run the checks, the unit tests and the UI lane |
 | `favicon.svg` | 6 | planned | core/ui/icons/favicon.svg, generated from the icon pack (owner D7: today a hand-made copy that differs) |
 | `index.html` | 293 | split | shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table) · next: the hidden layers' markup is in shell/overlays.js; comments are gone; the visible frame (sidebar, main) stays for the first paint |
 | `serve.py` | 540 | planned | serve.py (kept; apps-host routes added in phase 7) · next: the writer key now also covers app management (/api/apps writes) and app views (/api/coworker/apps/*), only for XO's own page |
