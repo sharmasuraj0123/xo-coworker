@@ -1,10 +1,13 @@
 // Settings › Runtimes: each "Saved" receipt clears only itself, and the usual runtime is the one XO actually uses. No DOM.
 import assert from "node:assert/strict";
+import { mock } from "node:test";
 import { receipts, usualOf } from "../settings.js";
 
 let passed = 0;
 const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
-const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+// a clock the test moves: a receipt's time passes exactly as told, however loaded the machine is
+mock.timers.enable({ apis: ["setTimeout"] });
+const wait = async (ms) => { mock.timers.tick(ms); };
 
 await t("a receipt shows for its time, then goes, and says so once", async () => {
   let cleared = 0;
