@@ -11,8 +11,8 @@ const checked = (id) => {
   if (!APP_ID.test(id)) throw new Error(`"${id}" isn't an app id`);
   return id;
 };
-const app = (/** @type {string} */ id) => `/api/apps/${checked(id)}`;
-const live = (/** @type {string} */ id) => `/api/coworker/apps/${checked(id)}`;
+const app = (/** @type {string} */ id) => `/apps/${checked(id)}`;
+const live = (/** @type {string} */ id) => `/coworker/apps/${checked(id)}`;
 /** @param {string} v @param {string} what */
 const token = (v, what) => {
   if (!TOKEN.test(v)) throw new Error(`"${v}" isn't a ${what}`);
@@ -37,17 +37,17 @@ function checkSource(source) {
   return { kind: "folder", path: source.path };
 }
 
-/** The one way apps-host reaches xo-space's app routes; request is core/platform's http request. @param {Request} request */
+/** The one way apps-host reaches xo-space's app routes; request is core/platform's http request, whose paths follow /api. @param {Request} request */
 export function createAppsClient(request) {
   return {
-    contract: () => request("/api/apps/contract"),
-    list: () => request("/api/apps"),
+    contract: () => request("/apps/contract"),
+    list: () => request("/apps"),
     get: (/** @type {string} */ id) => request(app(id)),
-    stage: (/** @type {Source} */ source) => request("/api/apps/installs", { method: "POST", body: { source: checkSource(source) } }),
-    staged: (/** @type {string} */ stagingId) => request(`/api/apps/installs/${token(stagingId, "staging id")}`),
+    stage: (/** @type {Source} */ source) => request("/apps/installs", { method: "POST", body: { source: checkSource(source) } }),
+    staged: (/** @type {string} */ stagingId) => request(`/apps/installs/${token(stagingId, "staging id")}`),
     confirm: (/** @type {string} */ stagingId, /** @type {string} */ sha256) => {
       if (!/^[0-9a-f]{64}$/.test(sha256)) throw new Error("the staged package's sha256 is missing");
-      return request(`/api/apps/installs/${token(stagingId, "staging id")}/confirm`, { method: "POST", body: { sha256 } });
+      return request(`/apps/installs/${token(stagingId, "staging id")}/confirm`, { method: "POST", body: { sha256 } });
     },
     update: (/** @type {string} */ id, /** @type {Source | undefined} */ source = undefined) => request(`${app(id)}/update`, { method: "POST", body: source ? checkSource(source) : {} }),
     rollback: (/** @type {string} */ id) => request(`${app(id)}/rollback`, { method: "POST" }),
@@ -56,7 +56,7 @@ export function createAppsClient(request) {
     setGrant: (/** @type {string} */ id, /** @type {string} */ project, /** @type {{ state: "enabled", permissions?: Array<{ cap: string, paths: string[], names: string[] }>, routes?: string[] }} */ grant) =>
       request(`${app(id)}/grants`, { method: "PUT", query: { project: token(project, "project id") }, body: grant }),
     revoke: (/** @type {string} */ id, /** @type {string} */ project) => request(`${app(id)}/grants`, { method: "PUT", query: { project: token(project, "project id") }, body: { state: "disabled" } }),
-    approval: (/** @type {string} */ approvalId) => request(`/api/apps/approvals/${token(approvalId, "approval id")}`),
+    approval: (/** @type {string} */ approvalId) => request(`/apps/approvals/${token(approvalId, "approval id")}`),
     stop: (/** @type {string} */ id) => request(`${app(id)}/stop`, { method: "POST" }),
     start: (/** @type {string} */ id) => request(`${app(id)}/start`, { method: "POST" }),
     activity: (/** @type {string} */ id) => request(`${app(id)}/activity`),
