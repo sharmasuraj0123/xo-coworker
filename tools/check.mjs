@@ -1,4 +1,4 @@
-// node tools/check.mjs [--fast] [--update-baselines] [--accept-upstream <release ref>]: lint, types, ratchets, comments, ledger, tests.
+// node tools/check.mjs [--fast] [--update-baselines] [--accept-upstream <release ref>]: lint, types, ratchets, comments, places, ledger, tests.
 import { spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, mkdirSync } from "node:fs";
 import { join, relative, dirname } from "node:path";
@@ -160,6 +160,11 @@ step("comments", () => {
   }
   if (UPDATE) writeJson(basePath, Object.fromEntries(Object.entries(base).filter(([f]) => now[f]).map(([f, b]) => [f, { extra: Math.min(b.extra, now[f].extra), refs: Math.min(b.refs, now[f].refs) }])));
   return errs.length ? `comments:\n${errs.join("\n")}` : null;
+});
+
+step("places", () => {
+  const r = run(process.execPath, ["tools/places-md.mjs", "--check"]);
+  return r.status === 0 ? null : (r.stderr || r.stdout).trim();
 });
 
 step("ledger", () => {
