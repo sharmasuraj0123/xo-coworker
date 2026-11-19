@@ -19,7 +19,7 @@ import { createDecisions } from "./decide.js";
 import { createPacing } from "./pacing.js";
 import { createIntel } from "./intel.js";
 import { EFFORT, estLine, evidenceFor } from "./content.js";
-import { keepTurning, ICON, XO, NEXT_GLYPH, $, $$, RM, clock, dayOf, short, elapsed, reconcile, sound, wait, hold, dial, morph, expand } from "./ui.js";
+import { keepTurning, ICON, xi, XO, NEXT_GLYPH, $, $$, RM, clock, dayOf, short, elapsed, reconcile, sound, wait, hold, dial, morph, expand } from "./ui.js";
 import { paidHtml } from "./paidview.js";
 import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldClock, heldBadge, soonestHeld } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn } from "./turnview.js";
@@ -4152,8 +4152,16 @@ const SIDE = {
     SIDE.closeMore();
     if (!quiet) { announce(SIDE.folded ? "Sidebar folded" : "Sidebar shown"); render(); }
   },
-  // More: the places that aren't pinned (today Settings' own pages; new places arrive here). Pin one and it joins
-  // the rows above More.
+  // The bar (the owner, 19 Nov 14:29Z: "customize the bar: what to keep, what not to keep"): every place, in the
+  // order you set; the ones you keep are rows, the rest wait in More. Saved on this device (the Space keeps no
+  // settings of the interface). Settings' own pages are places too; new places arrive in More.
+  BAR: "xo-side-bar",
+  CORE: [
+    { id: "home", name: "Home", sel: "#nv-home" },
+    { id: "ws", name: "Workspace", sel: "#nv-ws" },
+    { id: "chats", name: "Chats", sel: "#nv-chats" },
+    { id: "arts", name: "Artifacts", sel: "#nv-arts" },
+  ],
   PLACES: [
     { id: "runtimes", name: "Runtimes", ic: () => ICON.runtime },
     { id: "routing", name: "Routing", ic: () => ICON.router },
@@ -4161,25 +4169,94 @@ const SIDE = {
     { id: "worktrees", name: "Worktrees", ic: () => ICON.branch },
     { id: "keys", name: "Keyboard", ic: () => ICON.key },
   ],
-  pins() { try { const v = JSON.parse(localStorage.getItem(SIDE.PINS) || "[]"); return Array.isArray(v) ? v : []; } catch { return []; } },
+  all() { return [...SIDE.CORE, ...SIDE.PLACES]; },
+  byId(id) { return SIDE.all().find((p) => p.id === id); },
+  /** {order, shown}: what you saved, made whole (a place it doesn't know joins at the end, hidden; one it knows
+   *  no more is dropped). Before this, More's pins said which of Settings' pages showed: they still do. */
+  bar() {
+    const ids = SIDE.all().map((p) => p.id), def = { order: ids, shown: SIDE.CORE.map((p) => p.id) };
+    let v = null;
+    try { v = JSON.parse(localStorage.getItem(SIDE.BAR) || "null"); } catch { v = null; }
+    if (!v || !Array.isArray(v.order) || !Array.isArray(v.shown)) {
+      let pins = [];
+      try { pins = JSON.parse(localStorage.getItem(SIDE.PINS) || "[]"); } catch { pins = []; }
+      return { order: def.order, shown: [...def.shown, ...(Array.isArray(pins) ? pins.filter((x) => ids.includes(x)) : [])] };
+    }
+    const order = [...v.order.filter((x) => ids.includes(x)), ...ids.filter((x) => !v.order.includes(x))];
+    return { order: [...new Set(order)], shown: v.shown.filter((x) => ids.includes(x)) };
+  },
+  save(b) { try { localStorage.setItem(SIDE.BAR, JSON.stringify(b)); } catch { /* private */ } SIDE.apply(); },
+  isDefault(b = SIDE.bar()) { const d = SIDE.all().map((p) => p.id); return b.order.join() === d.join() && b.shown.join() === SIDE.CORE.map((p) => p.id).join(); },
+  reset() { try { localStorage.removeItem(SIDE.BAR); localStorage.removeItem(SIDE.PINS); } catch { /* private */ } SIDE.apply(); },
+  /** Keep a place in the bar, or send it to More (More's pin, the editor's switch). */
   pin(id, on) {
-    const now = SIDE.pins().filter((x) => x !== id);
-    if (on) now.push(id);
-    try { localStorage.setItem(SIDE.PINS, JSON.stringify(now)); } catch { /* private */ }
-    SIDE.drawPins(); SIDE.drawMore();
+    const b = SIDE.bar();
+    b.shown = b.shown.filter((x) => x !== id);
+    if (on) b.shown.push(id);
+    SIDE.save(b);
   },
-  // a pinned place is a row like the others, opening its page
-  drawPins() {
-    const pins = SIDE.pins(), html = SIDE.PLACES.filter((p) => pins.includes(p.id)).map((p) =>
-      `<button type="button" class="nrow" data-set-open="${p.id}"${SIDE.folded ? ` title="${esc(p.name)}"` : ""}><span class="nr-ic">${p.ic()}</span><span class="nr-name">${esc(p.name)}</span></button>`).join("");
-    const el = $("#nv-pins"); if (el._h !== html) { redraw(el, html); el._h = html; }
+  /** Move a place one step (dir −1 / +1), or to before another (the editor's drag). */
+  move(id, dir, before = null) {
+    const b = SIDE.bar(), o = b.order.filter((x) => x !== id);
+    let at = before != null ? (before === "" ? o.length : o.indexOf(before)) : Math.max(0, Math.min(o.length, b.order.indexOf(id) + dir));
+    if (at < 0) at = o.length;
+    o.splice(at, 0, id);
+    b.order = o;
+    SIDE.save(b);
   },
+  extras: new Map(), // a Settings page kept in the bar: its row, made once
+  /** The sidebar's rows, as the bar says: the four places are the page's own rows (they keep their counts), moved
+   *  and hidden; Settings' pages are rows made for them. All of them before More. */
+  apply() {
+    const b = SIDE.bar(), nav = $("#side .nav"), more = $("#nv-more");
+    for (const p of SIDE.PLACES) if (!b.shown.includes(p.id)) SIDE.extras.get(p.id)?.remove();
+    for (const id of b.order) {
+      const p = SIDE.byId(id), on = b.shown.includes(id);
+      let el = p.sel ? $(p.sel) : SIDE.extras.get(id);
+      if (!p.sel && on && !el) {
+        const t = document.createElement("template");
+        t.innerHTML = `<button type="button" class="nrow" data-set-open="${p.id}"><span class="nr-ic">${p.ic()}</span><span class="nr-name">${esc(p.name)}</span></button>`;
+        el = t.content.firstElementChild; SIDE.extras.set(id, el);
+      }
+      if (!el) continue;
+      if (p.sel) el.hidden = !on;
+      if (on || p.sel) { if (el.nextElementSibling !== more || el.parentNode !== nav) nav.insertBefore(el, more); }
+      if (on && SIDE.folded) el.title = p.name;
+    }
+    if (!$("#side-more").hidden) SIDE.drawMore();
+  },
+  drawPins() { SIDE.apply(); },
+  /** More: the places you didn't keep, each with its pin, and "Edit the sidebar…"; or, editing, every place with
+   *  its switch and its grip (drag, or ↑ ↓ on the grip), Reset and Done. */
   drawMore() {
-    const pins = SIDE.pins();
-    const html = SIDE.PLACES.map((p) => { const on = pins.includes(p.id);
-      return `<div class="sm-row" role="none"><button type="button" class="nrow" role="menuitem" data-set-open="${p.id}"><span class="nr-ic">${p.ic()}</span><span class="nr-name">${esc(p.name)}</span></button>` +
-        `<button type="button" class="sm-pin" data-side-pin="${p.id}" aria-pressed="${on}" title="${on ? "Unpin from the sidebar" : "Pin to the sidebar"}" aria-label="${on ? "Unpin" : "Pin"} ${esc(p.name)}">${ICON.pin}</button></div>`; }).join("");
-    const el = $("#side-more"); if (el._h !== html) { redraw(el, html); el._h = html; }
+    const b = SIDE.bar(), pop = $("#side-more");
+    const icon = (p) => (p.ic ? p.ic() : $(p.sel)?.querySelector(".nr-ic")?.innerHTML || "");
+    let html;
+    if (SIDE.editing) {
+      pop.setAttribute("role", "dialog"); pop.setAttribute("aria-label", "Edit the sidebar");
+      html = `<div class="se-h"><b>Edit the sidebar</b><span>Keep a place in the bar, or leave it in More. Drag to reorder, or ↑ ↓ on its grip.</span></div><ul class="se-list">` +
+        b.order.map((id) => { const p = SIDE.byId(id), on = b.shown.includes(id);
+          return `<li class="se-row${on ? "" : " is-off"}" data-se="${id}" draggable="true">` +
+            `<button type="button" class="se-grip" data-se-grip="${id}" aria-label="Move ${esc(p.name)}: up or down arrow" title="Drag, or ↑ ↓">${xi("drag-handle")}</button>` +
+            `<span class="nr-ic">${icon(p)}</span><span class="nr-name">${esc(p.name)}</span>` +
+            `<button type="button" class="switch se-sw" role="switch" data-se-sw="${id}" aria-checked="${on}" aria-label="Keep ${esc(p.name)} in the sidebar"><span class="th-track" aria-hidden="true"><span class="th-knob"></span></span></button></li>`; }).join("") +
+        `</ul><div class="se-f"><button type="button" class="btn" data-se-reset${SIDE.isDefault(b) ? " disabled" : ""}>Reset to default</button><button type="button" class="btn btn-pri" data-se-done>Done</button></div>`;
+    } else {
+      pop.setAttribute("role", "menu"); pop.setAttribute("aria-label", "More places");
+      const rest = b.order.filter((id) => !b.shown.includes(id)).map((id) => SIDE.byId(id));
+      html = rest.map((p) => {
+        const go = p.sel ? `data-go="${$(p.sel).dataset.go}"` : `data-set-open="${p.id}"`;
+        return `<div class="sm-row" role="none"><button type="button" class="nrow" role="menuitem" ${go}><span class="nr-ic">${icon(p)}</span><span class="nr-name">${esc(p.name)}</span></button>` +
+          `<button type="button" class="sm-pin" data-side-pin="${p.id}" aria-pressed="false" title="Keep in the sidebar" aria-label="Keep ${esc(p.name)} in the sidebar">${ICON.pin}</button></div>`; }).join("") +
+        `${rest.length ? `<div class="sm-sep" role="separator"></div>` : ""}<div class="sm-row" role="none"><button type="button" class="nrow" role="menuitem" data-side-edit><span class="nr-ic">${ICON.edit}</span><span class="nr-name">Edit the sidebar…</span></button></div>`;
+    }
+    if (pop._h !== html) { redraw(pop, html); pop._h = html; }
+  },
+  editing: false,
+  edit(on) {
+    SIDE.editing = !!on; SIDE.drawMore();
+    const pop = $("#side-more");
+    (on ? pop.querySelector("[data-se-grip]") : pop.querySelector('[role="menuitem"]'))?.focus({ preventScroll: true });
   },
   openMore() {
     const pop = $("#side-more"), row = $("#nv-more");
@@ -4194,7 +4271,7 @@ const SIDE = {
   closeMore({ focus = false } = {}) {
     const pop = $("#side-more"), row = $("#nv-more");
     if (!pop || pop.hidden) return;
-    pop.hidden = true;
+    pop.hidden = true; SIDE.editing = false;
     row.setAttribute("aria-expanded", "false"); row.classList.remove("is-on");
     if (focus) row.focus({ preventScroll: true });
   },
@@ -4203,17 +4280,52 @@ $("#side-fold").addEventListener("click", () => SIDE.fold(!SIDE.folded));
 $("#side-jump").addEventListener("click", () => (jump.hidden ? openJump() : closeJump()));
 $("#nv-more").addEventListener("click", () => ($("#side-more").hidden ? SIDE.openMore() : SIDE.closeMore({ focus: true })));
 $("#side-more").addEventListener("click", (e) => {
-  const pin = e.target.closest("[data-side-pin]");
-  if (pin) { SIDE.pin(pin.dataset.sidePin, pin.getAttribute("aria-pressed") !== "true"); return; }
-  if (e.target.closest("[data-set-open]")) SIDE.closeMore();
+  const t = e.target, pop = $("#side-more");
+  const pin = t.closest("[data-side-pin]");
+  if (pin) { const id = pin.dataset.sidePin; SIDE.pin(id, true); announce(`${SIDE.byId(id).name} is in the sidebar`); pop.querySelector('[role="menuitem"]')?.focus({ preventScroll: true }); return; }
+  if (t.closest("[data-side-edit]")) { SIDE.edit(true); return; }
+  const sw = t.closest("[data-se-sw]");
+  if (sw) { const id = sw.dataset.seSw, on = sw.getAttribute("aria-checked") !== "true"; SIDE.pin(id, on); announce(`${SIDE.byId(id).name}: ${on ? "in the sidebar" : "in More"}`); pop.querySelector(`[data-se-sw="${id}"]`)?.focus({ preventScroll: true }); return; }
+  if (t.closest("[data-se-reset]")) { SIDE.reset(); announce("The sidebar is back to its default"); pop.querySelector("[data-se-done]")?.focus({ preventScroll: true }); return; }
+  if (t.closest("[data-se-done]")) { SIDE.edit(false); return; }
+  if (t.closest("[data-set-open],[data-go]")) SIDE.closeMore();
 });
 $("#side-more").addEventListener("keydown", (e) => {
+  const grip = e.target.closest?.("[data-se-grip]");
+  if (grip && (e.key === "ArrowUp" || e.key === "ArrowDown") && !e.metaKey && !e.ctrlKey) {
+    e.preventDefault();
+    const id = grip.dataset.seGrip;
+    SIDE.move(id, e.key === "ArrowUp" ? -1 : 1);
+    const b = SIDE.bar();
+    announce(`${SIDE.byId(id).name}: ${b.order.indexOf(id) + 1} of ${b.order.length}`);
+    $(`#side-more [data-se-grip="${id}"]`)?.focus({ preventScroll: true });
+    return;
+  }
+  if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); if (SIDE.editing) SIDE.edit(false); else SIDE.closeMore({ focus: true }); return; }
+  if (SIDE.editing) return;
   const items = $$('#side-more [role="menuitem"]'), i = items.indexOf(document.activeElement);
-  if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); SIDE.closeMore({ focus: true }); }
-  else if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); const j = (i + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length; items[j]?.focus({ preventScroll: true }); }
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); const j = (i + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length; items[j]?.focus({ preventScroll: true }); }
+});
+// the editor's drag: a row dropped on another goes before it (after it, past its middle)
+$("#side-more").addEventListener("dragstart", (e) => { const r = e.target.closest?.(".se-row"); if (!r) return; e.dataTransfer.setData("text/x-xo-place", r.dataset.se); e.dataTransfer.effectAllowed = "move"; r.classList.add("is-drag"); });
+$("#side-more").addEventListener("dragend", (e) => { e.target.closest?.(".se-row")?.classList.remove("is-drag"); $$("#side-more .se-row.is-over").forEach((x) => x.classList.remove("is-over", "is-after")); });
+$("#side-more").addEventListener("dragover", (e) => {
+  const r = e.target.closest?.(".se-row"); if (!r) return;
+  e.preventDefault(); e.dataTransfer.dropEffect = "move";
+  const after = e.clientY > r.getBoundingClientRect().top + r.offsetHeight / 2;
+  $$("#side-more .se-row.is-over").forEach((x) => x !== r && x.classList.remove("is-over", "is-after"));
+  r.classList.add("is-over"); r.classList.toggle("is-after", after);
+});
+$("#side-more").addEventListener("drop", (e) => {
+  const r = e.target.closest?.(".se-row"), id = e.dataTransfer.getData("text/x-xo-place");
+  if (!r || !id || r.dataset.se === id) return;
+  e.preventDefault();
+  const after = e.clientY > r.getBoundingClientRect().top + r.offsetHeight / 2;
+  const next = after ? r.nextElementSibling?.dataset.se ?? "" : r.dataset.se;
+  if (next !== id) SIDE.move(id, 0, next);
 });
 document.addEventListener("pointerdown", (e) => { if (!$("#side-more").hidden && !e.target.closest("#side-more,#nv-more")) SIDE.closeMore(); });
-SIDE.drawPins();
+SIDE.apply();
 
 // the Map's toggle, in every conversation's header
 document.addEventListener("click", (e) => { if (e.target.closest?.("[data-stage-toggle]")) STAGE.toggle(); else if (e.target.closest?.("[data-stage-open]")) STAGE.open(); else if (e.target.closest?.("[data-lp-open]")) STAGE.launch(); });

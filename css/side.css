@@ -124,3 +124,28 @@
   .side-folded .side-foot .gear{width:var(--h-ctl);padding:0;justify-content:center}
 }
 @media (max-width:760px){.side-fold{display:none}}
+
+/* ── The bar, yours to edit (the owner, 19 Nov 14:29Z: "customize the bar: what to keep, what not to keep"). More
+   ends with "Edit the sidebar…"; editing, the same popover lists every place in its order: a grip (drag it, or
+   ↑ ↓ on it), the place's own icon and name, and a switch: on, it's a row of the bar; off, it waits in More.
+   Rows are the sidebar's own (40, r 12) inside the popover's 8, so 20 = 12 + 8 still holds. */
+.sm-sep{margin:var(--s-1) var(--s-3);border-top:1px solid var(--line-soft)}
+.side-pop[role="dialog"]{min-width:calc(7 * var(--h-row))}
+.se-h{display:flex;flex-direction:column;gap:var(--s-1);padding:var(--s-2) var(--s-3) var(--s-3)}
+.se-h b{font:var(--fw-strong) var(--fs-md)/var(--lh-14) var(--sans);color:var(--ink)}
+.se-h span{font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
+.se-list{list-style:none;display:flex;flex-direction:column}
+.se-row{position:relative;display:flex;align-items:center;gap:var(--s-3);height:var(--h-row);padding:0 var(--s-2) 0 var(--s-1);border-radius:var(--r-lg)}
+.se-row:hover{background:var(--hover-fill)}
+.se-row .nr-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)}
+.se-row.is-off .nr-name{color:var(--ink-3)}
+.se-row.is-off .nr-ic{opacity:.6}
+.se-row.is-drag{opacity:.5}
+/* where a dragged place lands: a line in the focus colour at the row's edge */
+.se-row.is-over::before{content:"";position:absolute;left:var(--s-3);right:var(--s-3);top:0;border-top:1px solid var(--focus)}
+.se-row.is-over.is-after::before{top:auto;bottom:0}
+.se-grip{flex:none;display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);border-radius:var(--r-sm);color:var(--ink-4);cursor:grab}
+.se-grip:hover,.se-grip:focus-visible{color:var(--ink-2)}
+.se-grip:active{cursor:grabbing}
+.se-sw{margin-left:auto}
+.se-f{display:flex;justify-content:space-between;gap:var(--s-2);padding:var(--s-3) var(--s-2) var(--s-1)}
