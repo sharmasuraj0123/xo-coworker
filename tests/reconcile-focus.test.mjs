@@ -1,25 +1,16 @@
 // A row that goes while it holds focus hands focus on first, never to BODY (the create-project/Launchpad grader on
 // f70ca6b, C050/C121): to the nearest row that stays, before it, else after, on its first control that shows; with
-// none, to the list's own fallback (the conversation's: the message box). Run on a DOM (linkedom), as the app calls it.
-//   node tests/reconcile-focus.test.mjs   (linkedom: LINKEDOM=<its esm/index.js>, else `npm i linkedom` in ~/.cache/xo-test-deps)
+// none, to the list's own fallback (the conversation's: the message box). Run on a DOM (tests/lib/dom.mjs), as the app calls it.
 import assert from "node:assert/strict";
-import { readFileSync, existsSync } from "node:fs";
-import { homedir } from "node:os";
-import { join } from "node:path";
+import { readFileSync } from "node:fs";
+import { dom } from "./lib/dom.mjs";
 
-const LD = process.env.LINKEDOM || [join(homedir(), ".cache/xo-test-deps/node_modules/linkedom/esm/index.js"), "/tmp/dom/node_modules/linkedom/esm/index.js"].find((f) => existsSync(f));
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
-if (!LD) console.log("  skip the DOM cases: linkedom isn't installed (npm i linkedom in ~/.cache/xo-test-deps, or set LINKEDOM)");
-else {
-  const { parseHTML } = await import(LD);
-  const { window, document } = parseHTML(`<!doctype html><html><body><main id="box"></main><textarea id="say"></textarea></body></html>`);
-  let active = document.body;
-  Object.defineProperty(document, "activeElement", { get: () => (active && active.isConnected ? active : document.body) });
-  Object.assign(window.HTMLElement.prototype, { focus() { active = this; }, getClientRects() { return this.hidden ? [] : [{}]; } });
-  Object.assign(globalThis, { window, document, CustomEvent: window.CustomEvent });
+{
+  const { document } = await dom(`<main id="box"></main><textarea id="say"></textarea>`);
   const { reconcile } = await import("../core/ui/redraw.js");
   const box = document.getElementById("box"), say = document.getElementById("say");
   const row = (k, ctl = `<button data-r="${k}">${k}</button>`) => ({ key: k, html: `<div class="row">${ctl}</div>` });
