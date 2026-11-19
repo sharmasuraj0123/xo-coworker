@@ -36,6 +36,26 @@ export function madeKind(f) {
 export const KINDS = [["all", "All"], ["doc", "Docs"], ["image", "Images"], ["page", "Pages"], ["code", "Code"], ["data", "Data"], ["link", "Links"], ["branch", "Branches"]];
 export const KIND_WORD = { image: "Image", page: "Page", doc: "Document", data: "Data", code: "Code", link: "Link", branch: "Branch" };
 
+/**
+ * What an Artifacts card's page shows of a text file (the owner, 19 Nov: the thing itself): a document its title and
+ * first words; code, data and anything else its first lines. From the file's first bytes only.
+ *   {kind: "doc", title, text} | {kind: "lines", lines} | null
+ */
+export function previewOf(name, content, { lines: n = 14, words = 320 } = {}) {
+  const src = String(content || "").replace(/\r\n?/g, "\n");
+  if (!src.trim()) return null;
+  const ext = (/\.([\w-]+)$/.exec(String(name || "")) || [])[1]?.toLowerCase() || "";
+  if (ext === "md" || ext === "markdown" || ext === "txt") {
+    const ls = src.split("\n");
+    const h = ls.find((l) => /^#{1,3}\s+\S/.test(l));
+    const title = h ? h.replace(/^#+\s*/, "").trim() : null;
+    const body = ls.filter((l) => l !== h && l.trim() && !/^(#|```|\||>|-{3,}|<)/.test(l.trim()))
+      .map((l) => l.replace(/^[-*+]\s+|^\d+\.\s+/, "").replace(/[*_`]/g, "")).join(" ").replace(/\s+/g, " ").trim();
+    return { kind: "doc", title, text: body.slice(0, words) };
+  }
+  return { kind: "lines", lines: src.split("\n").slice(0, n).map((l) => l.replace(/\t/g, "  ").slice(0, 120)) };
+}
+
 /** A file's own title: one line of words, or null (absent, null or blank all mean none). */
 const fileTitle = (t) => (typeof t === "string" && t.trim() ? t.replace(/\s+/g, " ").trim() : null);
 

@@ -29,7 +29,7 @@ import { api } from "./api.js";
 import { esc } from "./util.js";
 import { ICON, $, short } from "./ui.js";
 import { sharedFileRoute } from "./timeline.js";
-import { fileIcon } from "./fileicons.js";
+import { fileIcon, fileColor } from "./fileicons.js";
 import { midName, midNameHtml } from "./media.js";
 import { skTile, bar as skBar, rememberedMade } from "./skeleton.js";
 
@@ -330,14 +330,46 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
   }
   const madeCount = (pid) => madeOf(pid).length;
 
-  function thumbHtml(m) {
+  /** On the Artifacts page a card shows the thing itself, as a page on a well tinted with its file icon's own colour
+   *  (the owner, 19 Nov): a picture whole from its top left, a document its title and first words, code and data
+   *  their first lines. Card 12 → well inset --cell-in, so 8; the page inside is the fixed --r-xs. The kind's icon
+   *  stays under it for a phone's list, where a card is one line. */
+  function wellHtml(m) {
+    const tint = m.kind === "image" ? "" : fileColor(m.name || m.path) || "";
+    if (m.kind === "image") { const u = thumbs.get(m.key); return u ? `<span class="md-well"><img class="md-pic" src="${esc(u)}" alt="" loading="lazy" decoding="async"></span>` : ""; }
+    const p = texts.get(m.key);
+    if (!p) return "";
+    const page = p.kind === "doc"
+      ? `${p.title ? `<span class="md-pt">${esc(p.title)}</span>` : ""}<span class="md-pp">${esc(p.text)}</span>`
+      : `<span class="md-pl">${p.lines.map((l) => esc(l) || " ").join("\n")}</span>`;
+    return `<span class="md-well"${tint ? ` style="--wt:${esc(tint)}"` : ""}><span class="md-sheet${p.kind === "doc" ? " is-doc" : ""}">${page}</span></span>`;
+  }
+  function thumbHtml(m, where) {
+    if (where === "page") { const w = wellHtml(m); if (w) return w + iconHtml(m); }
     if (m.kind === "image") {
       const u = thumbs.get(m.key);
       if (u) return `<img src="${esc(u)}" alt="" loading="lazy" decoding="async">`;
     }
+    return iconHtml(m);
+  }
+  function iconHtml(m) {
     const tag = m.kind === "link" ? hostOf(m.url) : m.kind === "branch" ? R.gitState(null, m.git).word || "branch" : (/\.([\w-]+)$/.exec(m.name) || [])[1] || R.KIND_WORD[m.kind];
     const ic = m.kind === "link" || m.kind === "branch" ? KIND_IC[m.kind] : fileIcon(m.name || m.path);
     return `<span class="md-ic">${ic}</span><span class="md-ext${m.kind === "link" || m.kind === "branch" ? " is-word" : ""}">${esc(tag)}</span>`;
+  }
+  /** Text files on the Artifacts page show their first lines: each read once, through its thread's folder, only
+   *  when its card comes near view (the pictures' observer); a file that can't be read keeps its icon. */
+  const TEXTS = new Set(["doc", "code", "data", "page"]);
+  const texts = new Map(); // key → previewOf(…), or null when it couldn't be read
+  const wantsText = (m) => TEXTS.has(m.kind) && !texts.has(m.key) && m.exists !== false && !/\.(pdf|docx?|xlsx?|pptx?|zip|gz)$/i.test(m.name || m.path || "");
+  function loadTexts(items) {
+    for (const m of items) {
+      if (!wantsText(m)) continue;
+      const r = m.fileProject && m.rel ? { project: m.fileProject, rel: m.rel } : m.server ? {} : sharedFileRoute(world.thread(m.tid), m.path);
+      texts.set(m.key, null);
+      if (!r.project) continue;
+      api.projectFile(r.project, r.rel).then((d) => { texts.set(m.key, R.previewOf(m.name || m.path, String(d && d.content || "").slice(0, 4096))); schedule(); if (shown()) madeRender(); }).catch(() => {});
+    }
   }
   /** Image files show themselves: each read once, through its thread's folder. */
   function loadThumbs(items) {
@@ -362,7 +394,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
     // on the page a card says where it's from, what it is and when; its size is in the file itself
     const meta = (where === "page" ? [PROJ(m.project), what, ago] : [what, size(m.bytes), ago]).filter(Boolean).join(" · ");
     return `<li class="md-it${m.pinned ? " is-pin" : ""}${m.exists === false ? " is-gone" : ""}">` +
-      `<button type="button" class="md-open" data-made-file="${esc(m.key)}" title="${esc(n.tip)}" aria-label="Open ${esc(n.label)}"><span class="md-th k-${m.kind}">${thumbHtml(m)}</span>` +
+      `<button type="button" class="md-open" data-made-file="${esc(m.key)}" title="${esc(n.tip)}" aria-label="Open ${esc(n.label)}"><span class="md-th k-${m.kind}${where === "page" && (m.kind === "image" ? thumbs.get(m.key) : texts.get(m.key)) ? " has-well" : ""}">${thumbHtml(m, where)}</span>` +
       `<span class="md-meta"><b>${n.html}</b><span>${esc(where === true ? `${PROJ(m.project)} · ${ago}` : meta)}</span></span></button>` +
       (where === true ? "" : m.tid ? `<button type="button" class="md-from" data-made-go="t:${esc(m.tid)}" title="Open the thread that made it">${ICON.back}<span>${esc(n.from)}</span></button>`
         : where === "page" ? `<span class="md-from is-none" aria-hidden="true"><span>&nbsp;</span></span>` : "") + // on the page every card is one height
@@ -594,7 +626,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
         const items = l.g.items.slice(l.start, l.start + l.n);
         syncCards(el, items, "page");
         // pictures: read when their card comes within a screen of view
-        if (A.tio) for (const c of el.children) if (!c._tw && A.byKey.get(c.dataset.k)?.kind === "image" && !thumbs.has(c.dataset.k)) { c._tw = true; A.tio.observe(c); }
+        if (A.tio) for (const c of el.children) { const m = A.byKey.get(c.dataset.k); if (!c._tw && m && ((m.kind === "image" && !thumbs.has(m.key)) || wantsText(m))) { c._tw = true; A.tio.observe(c); } }
       }
       // in order, so Tab goes card by card down the page
       const at = prev ? prev.nextElementSibling : be.firstElementChild;
@@ -616,7 +648,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
           if (!e.isIntersecting) continue;
           A.tio.unobserve(e.target);
           const m = A.byKey.get(e.target.dataset.k);
-          if (m) loadThumbs([m]);
+          if (m) { loadThumbs([m]); loadTexts([m]); }
         }
       }, { root: box, rootMargin: "50% 0px" });
     }

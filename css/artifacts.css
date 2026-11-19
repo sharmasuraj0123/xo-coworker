@@ -95,3 +95,22 @@
   .arts:not(.is-pics) .ar-grid .md-pin:active{background-image:none!important;--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
   .arts:not(.is-pics) .ar-grid .md-pin:active::before{background:var(--press-fill)}
 }
+
+/* ── The thing itself (the owner, 19 Nov: "artifacts look nice"): a card's picture is a well inside it, tinted with
+   the file icon's own colour, and on it a page of the thing: a picture whole from its top left, a document its title
+   and first words in the document serif, code and data their first lines. Corners: the card 12 → the well inset
+   --cell-in, so 12 − 4 = --r; the page inside sits --s-4 in, past the well's radius, so it takes the fixed --r-xs and runs
+   off the well's foot. On a phone's one-line rows the kind's icon leads instead, as before. */
+.ar-grid .md-th.has-well{display:block;place-items:normal;padding:var(--cell-in) var(--cell-in) 0;background:transparent}
+.ar-grid .md-th.has-well>:is(.md-ic,.md-ext){display:none}
+.md-well{position:relative;display:block;height:100%;overflow:hidden;border-radius:var(--r) var(--r) 0 0;background:color-mix(in srgb,var(--wt,var(--ink-4)) 11%,var(--fill-1))}
+.md-well .md-pic{position:absolute;inset:var(--s-4) var(--s-4) 0;width:calc(100% - 2 * var(--s-4));height:calc(100% - var(--s-4));object-fit:cover;object-position:top left;border-radius:var(--r-xs) var(--r-xs) 0 0;box-shadow:0 0 0 1px var(--line-soft),var(--e2)}
+.md-sheet{position:absolute;inset:var(--s-4) var(--s-4) calc(-1 * var(--s-2));display:block;padding:var(--s-3) var(--s-4);overflow:hidden;border-radius:var(--r-xs);background:var(--surface);box-shadow:0 0 0 1px var(--line-soft),var(--e2);text-align:left}
+.md-pt{display:block;margin-bottom:var(--s-1);font:var(--fw-strong) var(--fs-base)/var(--lh-13) var(--serif);color:var(--ink)}
+.md-pp{display:block;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--serif);color:var(--ink-3)}
+.md-pl{display:block;white-space:pre;font:var(--fw-regular) var(--fs-xs)/var(--lh-12) var(--mono);color:var(--ink-3)}
+@media (max-width:760px){
+  .arts:not(.is-pics) .ar-grid .md-th.has-well{display:grid;padding:0;background:var(--fill-1)}
+  .arts:not(.is-pics) .ar-grid .md-th.has-well>.md-ic{display:grid}
+  .arts:not(.is-pics) .md-well{display:none}
+}

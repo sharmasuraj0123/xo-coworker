@@ -1351,9 +1351,14 @@ function topRender(needs) {
     // lives in the panel, folded. Every thread here, searchable, is the panel Threads frame's search.
     const by = { working: 0, waiting: 0 };
     for (const x of every) { const k = threadState(x, needs); if (by[k] != null) by[k]++; }
-    const parts = [counted(by.working, "working"), counted(by.waiting, "waiting")].filter(Boolean);
     const need = hostNeedHtml(v, needs);
-    who = `<span class="tw-ic" aria-hidden="true">${projectIcon(pid)}</span><span class="tw-t"><h1 id="conv-title">${esc(PROJ(pid))}</h1><span class="pj-s${need ? " has-need" : ""}">${countLine([need, ...(parts.length ? [`<button type="button" class="pj-home" data-stage-open title="Open its threads in the panel">${countLine(parts)}</button>`] : [every.length ? "All quiet" : "No threads yet"]), S.desc[pid] && esc(S.desc[pid])])}</span></span>`;
+    // one line, not two (the owner, 19 Nov 13:54Z: the words looked cheap and made the bar taller): what's at work, as
+    // its glyph and its number, one quiet control that opens the panel's Threads; the words are its tooltip and its
+    // name. Waiting isn't counted here (the panel groups it); nothing at work, nothing shown. The project's one
+    // sentence is the title's tooltip.
+    const words = [by.working && `${by.working} working`, by.waiting && `${by.waiting} waiting`].filter(Boolean).join(" · ");
+    const at = by.working ? `<button type="button" class="pj-n" data-stage-open title="${esc(words)}: open its threads in the panel" aria-label="${esc(words)}. Open its threads"><i class="g g-working" aria-hidden="true"></i><span class="pj-k">${by.working}</span></button>` : "";
+    who = `<span class="tw-ic" aria-hidden="true">${projectIcon(pid)}</span><span class="tw-t is-one"><h1 id="conv-title"${S.desc[pid] ? ` title="${esc(S.desc[pid])}"` : ""}>${esc(PROJ(pid))}</h1>${need}${at}</span>`;
   } else if (t) {
     const ed = S.tEdit && S.tEdit.tid === t.id ? S.tEdit.field : null;
     // the field shows what was typed (kept through a refusal), and says it's waiting while it saves
