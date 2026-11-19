@@ -38,7 +38,7 @@
   :root:root :is(input:not([type="checkbox"],[type="radio"],[type="range"],[type="file"]),textarea,select){font-size:var(--fs-read)}
   /* the notch and the status bar: as a home-screen app the page runs under them (viewport-fit=cover),
      so the bars start below the top safe area (0 in a browser tab) */
-  :root:root .phonebar{height:calc(52px + env(safe-area-inset-top));padding-top:calc(6px + env(safe-area-inset-top))}
+  :root:root .phonebar{height:calc(var(--h-phonebar) + env(safe-area-inset-top));padding-top:calc(6px + env(safe-area-inset-top))}
   :root:root :is(.home,.conv){top:calc(52px + env(safe-area-inset-top))}
   :root:root .side-top{height:calc(64px + env(safe-area-inset-top));padding-top:env(safe-area-inset-top)}
   :root:root .set-top{padding-top:calc(12px + env(safe-area-inset-top))}

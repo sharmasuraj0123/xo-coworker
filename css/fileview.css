@@ -13,8 +13,8 @@ body.dock-switch :is(.top,.thead,.since,.dock){transition:none!important}
 
 /* the file: the middle; the line it shares with the chat is dragged (360–560) */
 body.chat-docked .fv{right:var(--cw)}
-body.chat-docked .fv-cgrip{display:block;position:absolute;z-index:2;top:0;bottom:0;right:-5px;width:9px;cursor:col-resize;outline:none}
-body.chat-docked .fv-cgrip::before{content:"";position:absolute;top:0;bottom:0;left:4px;width:1px;background:var(--surface);transition:background var(--d-hover) var(--ease)}
+body.chat-docked .fv-cgrip{display:block;position:absolute;z-index:2;top:0;bottom:0;right:calc(var(--grip-w) / -2);width:var(--grip-w);cursor:col-resize;outline:none}
+body.chat-docked .fv-cgrip::before{content:"";position:absolute;top:0;bottom:0;left:calc(var(--grip-w) / 2);width:1px;background:var(--surface);transition:background var(--d-hover) var(--ease)}
 :root[data-theme="light"] body.chat-docked .fv-cgrip::before{background:rgba(0,0,0,.08)}
 body.chat-docked .fv-cgrip:hover::before,body.chat-docked .fv-cgrip:focus-visible::before,body.fv-sizing .fv-cgrip::before{background:var(--line-hover)}
 /* the file's head beside the chat: where it is, then put it away (32 × 32, 4 px in from the 40 px head) */
@@ -126,12 +126,12 @@ body.fv-min .fv{visibility:hidden;pointer-events:none;right:var(--cw)}
 body.chat-docked :is(.conv,.dock){transition:transform var(--dur-base) var(--ease)}
 body.chat-docked.chat-min :is(.conv,.dock){transform:translateX(100%);pointer-events:none}
 body.chat-docked.chat-railed :is(.conv,.dock){visibility:hidden}
-body.chat-docked.chat-railed .fv{right:44px}
+body.chat-docked.chat-railed .fv{right:var(--rail-w)}
 body.chat-docked.chat-railed .fv-cgrip{display:none}
 .crail{display:none}
-body.chat-docked.chat-railed .crail{display:flex;position:absolute;z-index:6;top:0;right:0;bottom:0;width:44px;padding:0;background:var(--canvas);box-shadow:inset 1px 0 var(--line-faint)}
+body.chat-docked.chat-railed .crail{display:flex;position:absolute;z-index:6;top:0;right:0;bottom:0;width:var(--rail-w);padding:0;background:var(--canvas);box-shadow:inset 1px 0 var(--line-faint)}
 :root[data-theme="light"] body.chat-docked.chat-railed .crail{box-shadow:inset 1px 0 rgba(0,0,0,.08)}
-.crail-b{position:relative;display:flex;flex-direction:column;align-items:center;gap:12px;width:44px;padding:3.5px 0 12px;border-radius:0;color:var(--ink-3)} /* its tile on the heads' controls' line (y 3.5) */
+.crail-b{position:relative;display:flex;flex-direction:column;align-items:center;gap:12px;width:var(--rail-w);padding:3.5px 0 12px;border-radius:0;color:var(--ink-3)} /* its tile on the heads' controls' line (y 3.5) */
 .crail-b:hover{color:var(--ink)}
 /* its hover is the cell's inset layer (css/foundation.css, "a cell of a flush bar"), never the whole square cell */
 body.chat-docked.chat-railed .crail-b:hover::before{background:var(--surface)}
@@ -145,7 +145,7 @@ body.chat-docked.chat-railed .crail-b:hover::before{background:var(--surface)}
 .crail-m.is-ask{display:grid;place-items:center;width:14px;height:14px;border-radius:50%;background:var(--warn);color:#1A1200;font:var(--fw-strong) var(--fs-xs)/1 var(--sans)}
 .crail-t{writing-mode:vertical-rl;transform:rotate(180deg);max-height:min(320px,60vh);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans)}
 /* compact (under sidebar + 44 + the chat + 560): opened, the chat lies over the file's right edge */
-body.chat-docked.chat-over .fv{right:44px}
+body.chat-docked.chat-over .fv{right:var(--rail-w)}
 body.chat-docked.chat-over :is(.conv,.dock){z-index:8;box-shadow:var(--e2)}
 body.chat-docked.chat-over .conv{background:var(--canvas)}
 
@@ -181,7 +181,7 @@ body.chat-docked.chat-over .conv{background:var(--canvas)}
   :root:root body.chat-sheet .dock{z-index:9}
   /* its head: a grabber over the name, its state and ⌄ */
   :root:root body.chat-sheet .chead{display:flex;align-items:center;gap:8px;flex:none;position:relative;box-sizing:border-box;height:52px;padding:8px 4px 0 16px;border-bottom:1px solid var(--line-faint);border-radius:var(--r-2xl) var(--r-2xl) 0 0;background:var(--canvas);touch-action:none}
-  :root:root body.chat-sheet .chead::before{content:"";position:absolute;top:6px;left:50%;width:36px;height:4px;margin-left:-18px;border-radius:2px;background:var(--fill-4)}
+  :root:root body.chat-sheet .chead::before{content:"";position:absolute;top:var(--s-2);left:50%;width:var(--grab-w);height:var(--grab-h);margin-left:calc(var(--grab-w) / -2);border-radius:2px;background:var(--fill-4)}
   :root:root body.chat-sheet .chead .fv-ib{width:40px;height:40px}
   /* the bar: folded, one line over the file's foot */
   :root:root body.chat-sheet.files-open:not(.sheet-up) .crail{display:flex;position:fixed;z-index:8;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));height:56px;padding:0;border-radius:var(--r-xl);background:var(--surface);box-shadow:var(--e2),inset 0 0 0 1px var(--line-soft);touch-action:none}

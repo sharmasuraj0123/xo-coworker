@@ -113,6 +113,9 @@
   --halo:8px; --cell-in:4px;
   /* a whole row reads as a card when hovered (Home's lists): its fill reaches a step further, at --r-lg */
   --halo-row:12px;
+  /* Places, said once (the positioning audit's G5): a floating panel's inset from the window; the phone's top bar; the
+     docked chat's rail; a resize grip's width; a drag handle's size */
+  --float-inset:var(--s-3); --h-phonebar:52px; --rail-w:44px; --grip-w:8px; --grab-w:36px; --grab-h:4px;
   /* Controls with a body come in three sizes. Hit areas may be larger (44 under a coarse pointer); compact
      density steps one size down. 24 inline · 32 standard (every button, select and toolbar field) · 40 form
      fields and a screen's primary action. */

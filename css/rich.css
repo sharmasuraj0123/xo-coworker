@@ -142,7 +142,7 @@
 :root:not([data-msgx]) .tc-go svg{width:14px;height:14px}
 /* Decide: at the foot's right end, on the text edge, a 24 px pill in the ask's amber (centred on the foot's line);
    Open steps aside for it */
-:root:not([data-msgx]) .tcard.st-needs>.tc-dec{position:absolute;right:16px;bottom:10px;width:var(--dec-w);height:var(--h-sm);margin:0;padding:0;border-radius:var(--r-pill);font:var(--fw-strong) var(--fs-sm)/var(--lh-12) var(--sans)}
+:root:not([data-msgx]) .tcard.st-needs>.tc-dec{position:absolute;right:16px;bottom:calc(var(--s-3) + (var(--lh-14) - var(--h-sm)) / 2);width:var(--dec-w);height:var(--h-sm);margin:0;padding:0;border-radius:var(--r-pill);font:var(--fw-strong) var(--fs-sm)/var(--lh-12) var(--sans)}
 :root:not([data-msgx]) .tcard.st-needs .tc-go{margin-right:calc(var(--dec-w) + 8px)}
 @media (max-width:760px){
   /* a phone: Decide is a 36 px control, its own line under the foot, on the text edge */

@@ -17,7 +17,7 @@
 .ar-sub{margin:0}
 /* a phone has one header, its bar (it names the place): the page keeps only its count line */
 @media (max-width:760px){
-  .arts{top:52px}
+  .arts{top:var(--h-phonebar)}
   .ar-head{position:static;min-height:0;padding:12px 16px 0;border:0;background:none}
   .ar-head .tw-ic,.ar-head h1{display:none}
   .ar-wrap{padding:8px 16px 48px}

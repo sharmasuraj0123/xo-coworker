@@ -422,7 +422,7 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
    heads show at its foot, as they would folded (js/stage.js ghosts()). */
 .stage .stg-frames{position:relative}
 .stage .fr-lp.is-open{position:static} /* the stack, not the head, holds what it draws over (its light sits where it did: the stack's top) */
-.stage .fr-lp.is-open>.fr-b{position:absolute;z-index:3;left:0;right:0;top:41px;bottom:var(--ghosts,0px);background:var(--sunken)}
+.stage .fr-lp.is-open>.fr-b{position:absolute;z-index:3;left:0;right:0;top:calc(var(--h-lg) + 1px);bottom:var(--ghosts,0px);background:var(--sunken)}
 .stage .fr-lp.is-open>.fr-ghosts{position:absolute;z-index:3;left:0;right:0;bottom:0;background:var(--sunken)}
 .fr-ghosts{flex:none;display:flex;flex-direction:column}
 .fr-ghosts:empty{display:none}

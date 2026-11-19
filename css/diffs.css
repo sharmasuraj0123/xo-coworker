@@ -90,7 +90,7 @@ diffs-container{
 .stage .cx-none{padding:4px 20px 12px}
 .stage .cx-none .spin{display:inline-block;width:10px;height:10px;margin-right:6px;border-radius:50%;vertical-align:calc(var(--cap-mid) - 5px)}
 /* paused: an edit you aren't looking at, said quietly over the diff, never a jump */
-.stage .cx-pill{position:absolute;z-index:2;top:44px;left:50%;transform:translateX(-50%);display:inline-flex;align-items:center;gap:8px;height:var(--h-ctl);max-width:calc(100% - 48px);padding:0 12px;border-radius:var(--r-pill);background:var(--surface);border:1px solid var(--panel-line);box-shadow:var(--e2);font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-2);white-space:nowrap;animation:cx-pill var(--d-in) var(--ease)}
+.stage .cx-pill{position:absolute;z-index:2;top:calc(var(--h-lg) + var(--s-1));left:50%;transform:translateX(-50%);display:inline-flex;align-items:center;gap:8px;height:var(--h-ctl);max-width:calc(100% - 48px);padding:0 12px;border-radius:var(--r-pill);background:var(--surface);border:1px solid var(--panel-line);box-shadow:var(--e2);font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-2);white-space:nowrap;animation:cx-pill var(--d-in) var(--ease)}
 .stage .cx-pill[hidden]{display:none}
 .stage .cx-pill>span:first-of-type{min-width:0;overflow:hidden;text-overflow:ellipsis}
 .stage .cx-pill b{font-weight:var(--fw-medium);color:var(--ink)}
