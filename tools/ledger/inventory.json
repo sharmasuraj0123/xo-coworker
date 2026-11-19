@@ -1,5 +1,5 @@
 {
- "commit": "f006ec1a09da72424cacbdfef330951d6d708136",
+ "commit": "5a2b0784aafcfa95a45431535482f5e2ae9ca3dd",
  "files": [
   {
    "path": ".gitignore",
@@ -2331,10 +2331,10 @@
   {
    "path": "css/app.css",
    "group": "css",
-   "bytes": 279489,
-   "lines": 3149,
+   "bytes": 279916,
+   "lines": 3154,
    "items": {
-    "rule_blocks": 2594,
+    "rule_blocks": 2596,
     "ids": [
      "pf-in",
      "hm-body",
@@ -3396,10 +3396,10 @@
   {
    "path": "css/panel.css",
    "group": "css",
-   "bytes": 55458,
-   "lines": 639,
+   "bytes": 56111,
+   "lines": 645,
    "items": {
-    "rule_blocks": 458,
+    "rule_blocks": 459,
     "ids": [],
     "custom_props_defined": [
      "--pe",
@@ -3515,8 +3515,8 @@
      "--s-12",
      "--s-5",
      "--col-w",
-     "--ic-xs",
-     "--h-row"
+     "--col-max",
+     "--ic-xs"
     ],
     "media": [
      "(prefers-reduced-motion:reduce)",
@@ -4547,6 +4547,21 @@
    "bytes": 215617
   },
   {
+   "path": "design-research/2026-11-19-threads-panel/thread-page/built/one-menu-main-dark.png",
+   "group": "design-research",
+   "bytes": 198427
+  },
+  {
+   "path": "design-research/2026-11-19-threads-panel/thread-page/built/one-menu-page-dark.png",
+   "group": "design-research",
+   "bytes": 190865
+  },
+  {
+   "path": "design-research/2026-11-19-threads-panel/thread-page/built/one-menu-page-light.png",
+   "group": "design-research",
+   "bytes": 192704
+  },
+  {
    "path": "design-research/2026-11-19-threads-panel/thread-page/built/p2-beside-dark.png",
    "group": "design-research",
    "bytes": 190937
@@ -4997,8 +5012,8 @@
   {
    "path": "js/app.js",
    "group": "js",
-   "bytes": 340635,
-   "lines": 4826,
+   "bytes": 342216,
+   "lines": 4840,
    "items": {
     "imports": [
      "./world.js",
@@ -5174,7 +5189,6 @@
      "tpShow",
      "tpUnmount",
      "tpHead",
-     "tpMenuHtml",
      "drawThreadPage",
      "openFromPanel",
      "createConv",
@@ -6737,8 +6751,8 @@
   {
    "path": "js/msgx.js",
    "group": "js",
-   "bytes": 56712,
-   "lines": 912,
+   "bytes": 57195,
+   "lines": 917,
    "items": {
     "imports": [
      "./ui.js",
@@ -7585,8 +7599,8 @@
   {
    "path": "js/stage.js",
    "group": "js",
-   "bytes": 62878,
-   "lines": 867,
+   "bytes": 63124,
+   "lines": 870,
    "items": {
     "imports": [
      "./ui.js",
@@ -11491,8 +11505,8 @@
   {
    "path": "tests/keys-dispatch.test.mjs",
    "group": "tests-unit",
-   "bytes": 5334,
-   "lines": 77,
+   "bytes": 6268,
+   "lines": 87,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -12801,8 +12815,8 @@
   {
    "path": "tests/stage-pages.test.mjs",
    "group": "tests-unit",
-   "bytes": 4874,
-   "lines": 51,
+   "bytes": 5659,
+   "lines": 59,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -12924,8 +12938,8 @@
   {
    "path": "tests/thread-filter.test.mjs",
    "group": "tests-unit",
-   "bytes": 4035,
-   "lines": 48,
+   "bytes": 4702,
+   "lines": 55,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -12958,8 +12972,8 @@
   {
    "path": "tests/thread-page.test.mjs",
    "group": "tests-unit",
-   "bytes": 9352,
-   "lines": 110,
+   "bytes": 11971,
+   "lines": 136,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -12967,7 +12981,8 @@
     ],
     "exports": [
      "dockGestures",
-     "wireGestures"
+     "wireGestures",
+     "decorateConversation"
     ]
    }
   },

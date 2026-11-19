@@ -1,7 +1,7 @@
 {
  "lines": {
   "js/api.js": 428,
-  "js/app.js": 4826,
+  "js/app.js": 4840,
   "js/chats.js": 452,
   "js/decide.js": 1104,
   "js/diffview.js": 421,
@@ -13,19 +13,19 @@
   "js/map.js": 1360,
   "js/markdown.js": 519,
   "js/media.js": 609,
-  "js/msgx.js": 912,
+  "js/msgx.js": 917,
   "js/recordview.js": 855,
   "js/settings.js": 407,
   "js/shape.js": 731,
   "js/shells/dock.js": 704,
-  "js/stage.js": 867,
+  "js/stage.js": 870,
   "js/storm.js": 1242,
   "js/timeline.js": 816,
   "js/viewer.js": 1157,
-  "css/app.css": 3149,
+  "css/app.css": 3154,
   "css/launchpad.css": 438,
   "css/msgx.css": 408,
-  "css/panel.css": 639
+  "css/panel.css": 645
  },
  "important": {
   "css/app.css": 7,

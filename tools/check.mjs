@@ -1,4 +1,4 @@
-// node tools/check.mjs [--fast] [--update-baselines]: lint, types, ratchets, comments, ledger, then the unit tests.
+// node tools/check.mjs [--fast] [--update-baselines] [--accept-upstream <release ref>]: lint, types, ratchets, comments, ledger, tests.
 import { spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, mkdirSync } from "node:fs";
 import { join, relative, dirname } from "node:path";
@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const FAST = process.argv.includes("--fast");
 const UPDATE = process.argv.includes("--update-baselines");
+const UPSTREAM = process.argv.includes("--accept-upstream") ? process.argv[process.argv.indexOf("--accept-upstream") + 1] : null;
 const BASE_DIR = join(ROOT, "tools/baselines");
 const NEW_FILE_MAX = 400;
 const SOURCE_DIRS = ["js", "css", "core", "shell", "modules", "apps-host"];
@@ -16,6 +17,15 @@ const readJson = (p, d) => (existsSync(p) ? JSON.parse(readFileSync(p, "utf8")) 
 const writeJson = (p, v) => { mkdirSync(dirname(p), { recursive: true }); writeFileSync(p, JSON.stringify(v, null, 1) + "\n"); };
 const run = (cmd, args, opts = {}) => spawnSync(cmd, args, { cwd: ROOT, encoding: "utf8", maxBuffer: 64 << 20, ...opts });
 const bin = (name) => join(ROOT, "node_modules/.bin", name);
+
+const upstreamSame = (() => {
+  if (!UPSTREAM) return () => false;
+  const r = run("git", ["diff", "--name-only", UPSTREAM, "--"]);
+  if (r.status !== 0) throw new Error(`--accept-upstream: unknown ref ${UPSTREAM}`);
+  const ours = new Set(r.stdout.split("\n").filter(Boolean));
+  const theirs = new Set(run("git", ["ls-tree", "-r", "--name-only", UPSTREAM]).stdout.split("\n"));
+  return (/** @type {string} */ f) => theirs.has(f) && !ours.has(f);
+})();
 
 const steps = [];
 function step(name, fn) { steps.push({ name, fn }); }
@@ -30,6 +40,7 @@ step("lint", () => {
   const basePath = join(BASE_DIR, "lint.json");
   const base = readJson(basePath, null);
   if (!base) { writeJson(basePath, now); return null; }
+  if (UPSTREAM) { for (const [k, n] of Object.entries(now)) if (upstreamSame(k.split("::")[0])) base[k] = Math.max(base[k] || 0, n); writeJson(basePath, base); }
   const grown = Object.entries(now).filter(([k, n]) => n > (base[k] || 0));
   if (UPDATE) writeJson(basePath, Object.fromEntries(Object.entries(base).map(([k, n]) => [k, Math.min(n, now[k] || 0)]).filter(([, n]) => n > 0)));
   if (!grown.length) return null;
@@ -71,6 +82,11 @@ step("ratchets", () => {
   }
   const base = readJson(basePath, null);
   if (!base) { writeJson(basePath, now); return null; }
+  if (UPSTREAM) {
+    for (const [f, n] of Object.entries(now.lines)) if (upstreamSame(f)) base.lines[f] = Math.max(base.lines[f] || 0, n);
+    for (const [f, n] of Object.entries(now.important)) if (upstreamSame(f)) base.important[f] = Math.max(base.important[f] || 0, n);
+    writeJson(basePath, base);
+  }
   const errs = [];
   for (const [f, n] of Object.entries(now.lines)) {
     if (base.lines[f] === undefined) errs.push(`  ${f}: ${n} lines; a new or small file may not pass ${NEW_FILE_MAX} (split it)`);
@@ -132,6 +148,10 @@ step("comments", () => {
   }
   const base = readJson(basePath, null);
   if (!base) { writeJson(basePath, now); return null; }
+  if (UPSTREAM) {
+    for (const [f, st] of Object.entries(now)) if (upstreamSame(f)) base[f] = { extra: Math.max(base[f]?.extra || 0, st.extra), refs: Math.max(base[f]?.refs || 0, st.refs) };
+    writeJson(basePath, base);
+  }
   const errs = [];
   for (const [f, s] of Object.entries(now)) {
     const b = base[f] || { extra: 0, refs: 0 };

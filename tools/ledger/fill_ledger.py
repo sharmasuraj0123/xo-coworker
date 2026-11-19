@@ -66,9 +66,9 @@ CSS = {
 }
 ROOT = {
  "index.html": ("split", "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)"),
- "README.md": ("planned", "README.md (rewritten: architecture + module table generated)"), "PR_DESCRIPTION.md": ("decide", "move to docs/history/ or delete (it describes one past PR)"),
+ "README.md": ("planned", "README.md (rewritten: architecture + module table generated)"), "PR_DESCRIPTION.md": ("planned", "out of the repo: the design archive (owner D4)"),
  "serve.py": ("planned", "serve.py (kept; apps-host routes added in phase 7)"), "start.sh": ("planned", "start.sh (kept)"), ".gitignore": ("planned", ".gitignore (updated)"),
- "favicon.svg": ("decide", "core/ui/icons/favicon.svg, generated from the icon pack (today a hand-made copy that differs)"),
+ "favicon.svg": ("planned", "core/ui/icons/favicon.svg, generated from the icon pack (owner D7: today a hand-made copy that differs)"),
 }
 
 TEST_HOME = {}
@@ -92,8 +92,8 @@ def file_plan(p):
     if p in CSS: return CSS[p]
     if p in ROOT: return ROOT[p]
     if p.startswith("tests/"): return test_home(p)
-    if p.startswith("js/vendor/lucide/"): return ("decide", "delete: no importer anywhere (analysis/5)")
-    if p.startswith("js/vendor/pierre-diffs/") and p.endswith("edit.js"): return ("decide", "delete with diffview's dead editor path, or keep (analysis/5)")
+    if p.startswith("js/vendor/lucide/"): return ("planned", "delete: no importer anywhere (owner D6)")
+    if p.startswith("js/vendor/pierre-diffs/") and p.endswith("edit.js"): return ("planned", "delete with diffview's dead editor path (owner D6)")
     if p.startswith("js/vendor/"): return ("vendor", "vendor/" + p[len("js/vendor/"):])
     if p.startswith("assets/icons/"): return ("planned", "core/ui/icons/source/" + p[len("assets/icons/"):])
     if p.startswith("fonts/"): return ("planned", "core/ui/fonts/" + p[len("fonts/"):])
@@ -102,10 +102,10 @@ def file_plan(p):
     if p.startswith("tools/diffview/theme"): return ("planned", "tools/diffview/ (generates the diff themes)")
     if p.startswith(("tools/codemirror/", "tools/diffview/vendor")): return ("planned", p + " (vendor hash manifests)")
     if p.startswith("tools/launchpad/mockspace"): return ("planned", "e2e/fixtures/mockspace.cjs (one copy; the design-research copy goes)")
-    if p.startswith("tools/"): return ("decide", "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)")
+    if p.startswith("tools/"): return ("planned", "delete: a one-off probe with machine paths (owner D6)")
     if p in ("design-research/2026-11-lg/controls-ids.json", "design-research/2026-11-lg/tools/controls-md.cjs", "design-research/2026-11-lg/lp-shell/world.cjs", "design-research/2026-11-vision/launchpad/tools/mockspace.cjs"):
         return ("planned", "e2e/fixtures/ (tests need it; then it leaves design-research)")
-    if p.startswith(("design-research/", "ui-mockups/")): return ("decide", "leave the product repo for the design archive (nothing in the app or tests depends on it)")
+    if p.startswith(("design-research/", "ui-mockups/")): return ("planned", "out of the repo: the design archive (owner D4); removed from git once the copy is verified")
     return ("decide", "unclassified")
 
 def regions(md, start_pat, sep):
@@ -119,7 +119,7 @@ def regions(md, start_pat, sep):
             if on and row.startswith("####") and out: break
     return out
 APP = regions("1-app-index.md", r"2\.6 REGION MAP", "|")
-def git_show(p): return subprocess.run(["git", "-C", "/home/coder/xo-coworker", "show", f"{commit}:{p}"], capture_output=True, text=True).stdout.splitlines()
+def git_show(p): return subprocess.run(["git", "show", f"{commit}:{p}"], capture_output=True, text=True).stdout.splitlines()
 app_lines = git_show("js/app.js")
 def app_home(token):
     for i, ln in enumerate(app_lines, 1):
@@ -140,7 +140,7 @@ for k in L["items"]:
     if p == "js/app.js":
         tok = {"functions": f"function {v}", "exports": v}.get(kind, v)
         h = app_home(tok) or app_home(v)
-        e = {"status": "planned", "home": h} if h else {"status": "decide", "home": "not found in the region map: place by hand"}
+        e = {"status": "planned", "home": h or "shell/rail (the sidebar's own keys)"} if (h or kind == "storage") else {"status": "decide", "home": "not found in the region map: place by hand"}
     elif fs == "split":
         e = {"status": "split-region", "home": fh, "note": "assign to its region's home when this file moves (see its analysis)"}
     else:

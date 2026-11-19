@@ -4,7 +4,7 @@
   "refs": 3
  },
  "js/app.js": {
-  "extra": 425,
+  "extra": 428,
   "refs": 8
  },
  "js/attach.js": {
@@ -176,7 +176,7 @@
   "refs": 1
  },
  "js/msgx.js": {
-  "extra": 111,
+  "extra": 112,
   "refs": 0
  },
  "js/pacing.js": {
@@ -276,7 +276,7 @@
   "refs": 0
  },
  "js/stage.js": {
-  "extra": 100,
+  "extra": 101,
   "refs": 1
  },
  "js/storm.js": {
@@ -316,7 +316,7 @@
   "refs": 0
  },
  "css/app.css": {
-  "extra": 197,
+  "extra": 198,
   "refs": 3
  },
  "css/artifacts.css": {
@@ -364,7 +364,7 @@
   "refs": 1
  },
  "css/panel.css": {
-  "extra": 86,
+  "extra": 89,
   "refs": 1
  },
  "css/phone.css": {
@@ -1024,7 +1024,7 @@
   "refs": 0
  },
  "tests/stage-pages.test.mjs": {
-  "extra": 7,
+  "extra": 8,
   "refs": 0
  },
  "tests/stale-pass.test.mjs": {
@@ -1056,7 +1056,7 @@
   "refs": 0
  },
  "tests/thread-filter.test.mjs": {
-  "extra": 3,
+  "extra": 4,
   "refs": 0
  },
  "tests/thread-menu.test.mjs": {
@@ -1064,7 +1064,7 @@
   "refs": 0
  },
  "tests/thread-page.test.mjs": {
-  "extra": 7,
+  "extra": 9,
   "refs": 0
  },
  "tests/turnview.test.mjs": {

@@ -1,13 +1,13 @@
 {
- "commit": "f006ec1a09da72424cacbdfef330951d6d708136",
+ "commit": "5a2b0784aafcfa95a45431535482f5e2ae9ca3dd",
  "files": {
   ".gitignore": {
    "status": "planned",
    "home": ".gitignore (updated)"
   },
   "PR_DESCRIPTION.md": {
-   "status": "decide",
-   "home": "move to docs/history/ or delete (it describes one past PR)"
+   "status": "planned",
+   "home": "out of the repo: the design archive (owner D4)"
   },
   "README.md": {
    "status": "planned",
@@ -1645,578 +1645,475 @@
   },
   "design-research/2026-11-19-icons/ICONS.md": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-icons/pack/COVERAGE.md": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-icons/pack/after/1-project-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-icons/pack/after/2-project-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-icons/pack/after/3-thread-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-icons/pack/after/4-folded-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-icons/pack/after/5-arts-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-icons/pack/after/6-settings-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-icons/pack/after/7-phone-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-icons/pack/before/1-project-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-icons/pack/before/2-project-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-icons/pack/before/3-thread-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-icons/pack/before/4-folded-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-icons/pack/before/5-arts-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-icons/pack/before/6-settings-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-icons/pack/before/7-phone-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-icons/pack/empty-page/after-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-icons/pack/empty-page/after-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-icons/pack/empty-page/before-live-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/DELETE-SPEC.md": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/filter-and-counts/1-counts-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/filter-and-counts/2-again-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/filter-and-counts/3-filter-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/filter-and-counts/4-nothing-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/header-threads/A-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/header-threads/A-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/header-threads/A-phone-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/header-threads/A-space-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/header-threads/B-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/header-threads/C-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/header-threads/final-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/header-threads/final-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/header-threads/final-phone-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/home-colour/after-home-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/home-colour/after-home-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/home-colour/after-home-phone-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/home-colour/before-live-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/outlines/recommended-mock.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/outlines/today-needs-you.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/outlines/today-working.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p1/folded-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p1/folded-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p1/more-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p1/open-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p1/open-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p2/panel-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p2/panel-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p2/panel-search-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p2/panel-thread-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p3/all-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p3/delete-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p3/menu-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p3/menu-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p3/project-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p4/shell-back-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p4/shell-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p4/shell-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p5-colour/after-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p5-colour/after-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p5-colour/before-live-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p5/all-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p5/panel-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p5/panel-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p5/panel-thread-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p6/arts-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p6/arts-docs-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p6/arts-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p7/head-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p7/head-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/p7/head-quiet-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/project-icons/1-picker-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/project-icons/2-chosen-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/project-icons/3-picker-keys-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/sidebar-edit/1-more-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/sidebar-edit/2-edit-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/sidebar-edit/3-edit-custom-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/sidebar-edit/4-bar-custom-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/build/sidebar-edit/5-folded-custom-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/CONV-MAP.md": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/THREAD-IN-PANEL.md": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/beside-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/beside-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/align-after.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/align-before-live.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/fold-before-live.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/fold-card-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/fold-line-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/fold-line-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/fold-main-line-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/gap-after-full.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/gap-after-page-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/gap-after-page.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/gap-before-live-full.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/gap-before-live-page.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/menu-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/menu-fixed.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/menu-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+  },
+  "design-research/2026-11-19-threads-panel/thread-page/built/one-menu-main-dark.png": {
+   "status": "planned",
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+  },
+  "design-research/2026-11-19-threads-panel/thread-page/built/one-menu-page-dark.png": {
+   "status": "planned",
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+  },
+  "design-research/2026-11-19-threads-panel/thread-page/built/one-menu-page-light.png": {
+   "status": "planned",
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/p2-beside-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/p2-beside-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/p3-desk-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/p3-desk-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/p3-phone-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/p3-phone-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/title-after.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/title-before-live.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/files-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/focus-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/mock.cjs": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-19-threads-panel/thread-page/phone-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-chatview/hardcoded-positioning-audit.md": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-chatview/shots-gaps/composer-gap-before-after.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-chatview/shots-gaps/coordinator-violet-before-after.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-chatview/shots-gaps/now-gap-before-after.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-chatview/shots-gaps/thread-strip-before-after.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-chatview/showcase.cjs": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-lg/controls-ids.json": {
    "status": "planned",
@@ -2232,36 +2129,31 @@
   },
   "design-research/2026-11-vision/canvas-editing/PLAN.md": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-vision/canvas-editing/README.md": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-vision/canvas-editing/SPACE-CONTRACT.md": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-vision/canvas-editing/files-as-editor.md": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-vision/canvas-editing/vscode-behaviours.md": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "design-research/2026-11-vision/launchpad/tools/mockspace.cjs": {
    "status": "planned",
    "home": "e2e/fixtures/ (tests need it; then it leaves design-research)"
   },
   "favicon.svg": {
-   "status": "decide",
-   "home": "core/ui/icons/favicon.svg, generated from the icon pack (today a hand-made copy that differs)"
+   "status": "planned",
+   "home": "core/ui/icons/favicon.svg, generated from the icon pack (owner D7: today a hand-made copy that differs)"
   },
   "fonts/geist/Geist-Variable.woff2": {
    "status": "planned",
@@ -3315,16 +3207,16 @@
    "home": "vendor/katex/katex.min.js"
   },
   "js/vendor/lucide/LICENSE": {
-   "status": "decide",
-   "home": "delete: no importer anywhere (analysis/5)"
+   "status": "planned",
+   "home": "delete: no importer anywhere (owner D6)"
   },
   "js/vendor/lucide/files.js": {
-   "status": "decide",
-   "home": "delete: no importer anywhere (analysis/5)"
+   "status": "planned",
+   "home": "delete: no importer anywhere (owner D6)"
   },
   "js/vendor/lucide/projects.js": {
-   "status": "decide",
-   "home": "delete: no importer anywhere (analysis/5)"
+   "status": "planned",
+   "home": "delete: no importer anywhere (owner D6)"
   },
   "js/vendor/mermaid/LICENSE": {
    "status": "vendor",
@@ -4127,8 +4019,8 @@
    "home": "vendor/pierre-diffs/diffs.js"
   },
   "js/vendor/pierre-diffs/edit.js": {
-   "status": "decide",
-   "home": "delete with diffview's dead editor path, or keep (analysis/5)"
+   "status": "planned",
+   "home": "delete with diffview's dead editor path (owner D6)"
   },
   "js/vendor/pierre-diffs/manifest.json": {
    "status": "vendor",
@@ -4931,84 +4823,84 @@
    "home": "tools/codemirror/vendor.mjs (vendor hash manifests)"
   },
   "tools/diffview/astra-recheck.cjs": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/dlcopy.cjs": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/fake-changes.cjs": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/fake-preload.cjs": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/fileview-shots.cjs": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/lab.html": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/livecheck.cjs": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/measure.cjs": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/p1measure.cjs": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/p1shots.cjs": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/p2ask.cjs": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/p2measure.cjs": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/p3flow.cjs": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/p3phone.cjs": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/panel.cjs": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/rows-long.cjs": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/rows-max.cjs": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/rows.cjs": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/sandbox-preview.cjs": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/sandbox.cjs": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/theme.mjs": {
    "status": "planned",
@@ -5019,44 +4911,44 @@
    "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
   },
   "tools/files/space-e2e-reset.sh": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/files/space-e2e.mjs": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/README.md": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/bench.html": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/bench.js": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/perf.mjs": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/same.mjs": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/mockspace.cjs": {
    "status": "planned",
    "home": "e2e/fixtures/mockspace.cjs (one copy; the design-research copy goes)"
   },
   "tools/launchpad/smoke.cjs": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/xoicons/build.mjs": {
    "status": "planned",
@@ -5064,543 +4956,435 @@
   },
   "ui-mockups/create-project/README.md": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-1440-home-active.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-1440-home-focus.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-1440-home-hover.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-1440-home-rest.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-1440-home.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-1440-side-active.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-1440-side-focus.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-1440-side-hover.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-1440-side-rest.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-1440-sidebar.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-320-home-active.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-320-home-focus.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-320-home-hover.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-320-home-rest.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-320-home.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-320-side-active.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-320-side-focus.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-320-side-hover.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-320-side-rest.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-320-sidebar.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-390-home-active.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-390-home-focus.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-390-home-hover.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-390-home-rest.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-390-home.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-390-side-active.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-390-side-focus.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-390-side-hover.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-390-side-rest.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/dark-390-sidebar.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-1440-home-active.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-1440-home-focus.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-1440-home-hover.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-1440-home-rest.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-1440-home.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-1440-side-active.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-1440-side-focus.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-1440-side-hover.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-1440-side-rest.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-1440-sidebar.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-320-home-active.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-320-home-focus.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-320-home-hover.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-320-home-rest.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-320-home.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-320-side-active.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-320-side-focus.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-320-side-hover.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-320-side-rest.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-320-sidebar.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-390-home-active.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-390-home-focus.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-390-home-hover.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-390-home-rest.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-390-home.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-390-side-active.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-390-side-focus.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-390-side-hover.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-390-side-rest.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/light-390-sidebar.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/craft-audit/measurements.json": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/3400/built-dark-create-hover.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/3400/built-dark-phone.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/3400/built-dark-plus-focus.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/3400/built-dark-plus-hover.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/3400/built-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/3400/built-light-create-hover.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/3400/built-light-phone.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/3400/built-light-plus-focus.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/3400/built-light-plus-hover.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/3400/built-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/A-dark-side.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/A-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/A-light-side.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/A-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/B-dark-side.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/B-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/B-light-side.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/B-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/C-dark-side.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/C-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/C-light-side.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/C-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/D-dark-side.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/D-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/D-light-side.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/D-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/base-live-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/base-live-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/base-sg-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/base-sg-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/base-sg-workspace-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/built-dark-create-hover.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/built-dark-phone-320.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/built-dark-phone-390.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/built-dark-phone.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/built-dark-plus-focus.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/built-dark-plus-hover.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/built-dark.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/built-light-create-hover.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/built-light-phone.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/built-light-plus-focus.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/built-light-plus-hover.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/shots/built-light.png": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/tools/craft-audit.cjs": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/tools/variants.cjs": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   },
   "ui-mockups/create-project/tools/verify.cjs": {
    "status": "planned",
-   "home": "out of the repo: the design archive (owner D4, 19 Nov 19:08Z); removed from git only after the copy is verified",
-   "decision": "D4"
+   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
   }
  },
  "items": {
@@ -7478,363 +7262,359 @@
   },
   "js/app.js::functions::tpShow": {
    "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2741)"
+   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2743)"
   },
   "js/app.js::functions::tpUnmount": {
    "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2754)"
+   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2756)"
   },
   "js/app.js::functions::tpHead": {
    "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2778)"
-  },
-  "js/app.js::functions::tpMenuHtml": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2788)"
+   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2781)"
   },
   "js/app.js::functions::drawThreadPage": {
    "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2797)"
+   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2791)"
   },
   "js/app.js::functions::openFromPanel": {
    "status": "planned",
-   "home": "core/kernel (scheduler + render pass that calls each registered module's `render(ctx)`), shell (page host switching) (app.js l.2819)"
+   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2806)"
   },
   "js/app.js::functions::createConv": {
    "status": "planned",
-   "home": "core/kernel (scheduler + render pass that calls each registered module's `render(ctx)`), shell (page host switching) (app.js l.2833)"
+   "home": "core/kernel (scheduler + render pass that calls each registered module's `render(ctx)`), shell (page host switching) (app.js l.2820)"
   },
   "js/app.js::functions::schedule": {
    "status": "planned",
-   "home": "core/kernel (scheduler + render pass that calls each registered module's `render(ctx)`), shell (page host switching) (app.js l.2841)"
+   "home": "core/kernel (scheduler + render pass that calls each registered module's `render(ctx)`), shell (page host switching) (app.js l.2828)"
   },
   "js/app.js::functions::render": {
    "status": "planned",
-   "home": "core/kernel (scheduler + render pass that calls each registered module's `render(ctx)`), shell (page host switching) (app.js l.2847)"
+   "home": "core/kernel (scheduler + render pass that calls each registered module's `render(ctx)`), shell (page host switching) (app.js l.2834)"
   },
   "js/app.js::functions::faviconRender": {
    "status": "planned",
-   "home": "`placeRegion` \u2192 shell (focus fallback); favicon \u2192 shell (tab status) (app.js l.2913)"
+   "home": "`placeRegion` \u2192 shell (focus fallback); favicon \u2192 shell (tab status) (app.js l.2900)"
   },
   "js/app.js::functions::loadAhead": {
    "status": "planned",
-   "home": "modules/conversation (app.js l.2934)"
+   "home": "`placeRegion` \u2192 shell (focus fallback); favicon \u2192 shell (tab status) (app.js l.2921)"
   },
   "js/app.js::functions::loadOlderNow": {
    "status": "planned",
-   "home": "modules/conversation (app.js l.2950)"
+   "home": "modules/conversation (app.js l.2937)"
   },
   "js/app.js::functions::drawConv": {
    "status": "planned",
-   "home": "modules/conversation (app.js l.2966)"
+   "home": "modules/conversation (app.js l.2953)"
   },
   "js/app.js::functions::readingPlace": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.2999)"
+   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.2986)"
   },
   "js/app.js::functions::holdPlace": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.3010)"
+   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.2997)"
   },
   "js/app.js::functions::stirred": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.3017)"
+   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.3004)"
   },
   "js/app.js::functions::foldsBefore": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.3026)"
+   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.3013)"
   },
   "js/app.js::functions::workMotion": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.3046)"
+   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.3033)"
   },
   "js/app.js::functions::saveScroll": {
    "status": "planned",
-   "home": "core/platform router (places/router: `go`, parent, trail) + shell (transitions, focus); module hooks `onLeave`/`onEnter` (app.js l.3100)"
+   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.3087)"
   },
   "js/app.js::functions::go": {
    "status": "planned",
-   "home": "core/platform router (places/router: `go`, parent, trail) + shell (transitions, focus); module hooks `onLeave`/`onEnter` (app.js l.3105)"
+   "home": "core/platform router (places/router: `go`, parent, trail) + shell (transitions, focus); module hooks `onLeave`/`onEnter` (app.js l.3092)"
   },
   "js/app.js::functions::returnPill": {
    "status": "planned",
-   "home": "core/platform router (places/router: `go`, parent, trail) + shell (transitions, focus); module hooks `onLeave`/`onEnter` (app.js l.3155)"
+   "home": "core/platform router (places/router: `go`, parent, trail) + shell (transitions, focus); module hooks `onLeave`/`onEnter` (app.js l.3142)"
   },
   "js/app.js::functions::liveReady": {
    "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3193)"
+   "home": "core/platform router (places/router: `go`, parent, trail) + shell (transitions, focus); module hooks `onLeave`/`onEnter` (app.js l.3180)"
   },
   "js/app.js::functions::follow": {
    "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3200)"
+   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3187)"
   },
   "js/app.js::functions::loadChatHops": {
    "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3213)"
+   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3200)"
   },
   "js/app.js::functions::ensureRoot": {
    "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3221)"
+   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3208)"
   },
   "js/app.js::functions::back": {
    "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3230)"
+   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3217)"
   },
   "js/app.js::functions::decideKey": {
    "status": "planned",
-   "home": "modules/decisions (`decideKey`), modules/conversation (`showMsg`) (app.js l.3240)"
+   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3227)"
   },
   "js/app.js::functions::showMsg": {
    "status": "planned",
-   "home": "modules/decisions (`decideKey`), modules/conversation (`showMsg`) (app.js l.3256)"
+   "home": "modules/decisions (`decideKey`), modules/conversation (`showMsg`) (app.js l.3243)"
   },
   "js/app.js::functions::fwdSource": {
    "status": "planned",
-   "home": "modules/conversation (app.js l.3270)"
+   "home": "modules/decisions (`decideKey`), modules/conversation (`showMsg`) (app.js l.3257)"
   },
   "js/app.js::functions::reactionsHtml": {
    "status": "planned",
-   "home": "modules/conversation (app.js l.3277)"
+   "home": "modules/conversation (app.js l.3264)"
   },
   "js/app.js::functions::reactorName": {
    "status": "planned",
-   "home": "modules/conversation (app.js l.3285)"
+   "home": "modules/conversation (app.js l.3272)"
   },
   "js/app.js::functions::openMedia": {
    "status": "planned",
-   "home": "modules/conversation (app.js l.3298)"
+   "home": "modules/conversation (app.js l.3285)"
   },
   "js/app.js::functions::fileRoute": {
    "status": "planned",
-   "home": "modules/files (route resolution), called from conversation (app.js l.3316)"
+   "home": "modules/files (route resolution), called from conversation (app.js l.3303)"
   },
   "js/app.js::functions::openSharedFile": {
    "status": "planned",
-   "home": "modules/files (route resolution), called from conversation (app.js l.3322)"
+   "home": "modules/files (route resolution), called from conversation (app.js l.3309)"
   },
   "js/app.js::functions::youText": {
    "status": "planned",
-   "home": "modules/files (ask-about) using composer API (`composer.attachment` \"line-ref\") and send service (app.js l.3333)"
+   "home": "modules/files (route resolution), called from conversation (app.js l.3320)"
   },
   "js/app.js::functions::openLineRef": {
    "status": "planned",
-   "home": "modules/files (ask-about) using composer API (`composer.attachment` \"line-ref\") and send service (app.js l.3345)"
+   "home": "modules/files (ask-about) using composer API (`composer.attachment` \"line-ref\") and send service (app.js l.3332)"
   },
   "js/app.js::functions::askPlace": {
    "status": "planned",
-   "home": "modules/files (ask-about) using composer API (`composer.attachment` \"line-ref\") and send service (app.js l.3352)"
+   "home": "modules/files (ask-about) using composer API (`composer.attachment` \"line-ref\") and send service (app.js l.3339)"
   },
   "js/app.js::functions::askAboutLines": {
    "status": "planned",
-   "home": "modules/files (ask-about) using composer API (`composer.attachment` \"line-ref\") and send service (app.js l.3364)"
+   "home": "modules/files (ask-about) using composer API (`composer.attachment` \"line-ref\") and send service (app.js l.3351)"
   },
   "js/app.js::functions::composeAbout": {
    "status": "planned",
-   "home": "modules/files (ask-about) using composer API (`composer.attachment` \"line-ref\") and send service (app.js l.3371)"
+   "home": "modules/files (ask-about) using composer API (`composer.attachment` \"line-ref\") and send service (app.js l.3358)"
   },
   "js/app.js::functions::askAboutFile": {
    "status": "planned",
-   "home": "modules/files (ask-about) using composer API (`composer.attachment` \"line-ref\") and send service (app.js l.3384)"
+   "home": "modules/files (ask-about) using composer API (`composer.attachment` \"line-ref\") and send service (app.js l.3371)"
   },
   "js/app.js::functions::lrefRender": {
    "status": "planned",
-   "home": "modules/files (ask-about) using composer API (`composer.attachment` \"line-ref\") and send service (app.js l.3396)"
+   "home": "modules/files (ask-about) using composer API (`composer.attachment` \"line-ref\") and send service (app.js l.3383)"
   },
   "js/app.js::functions::sendAbout": {
    "status": "planned",
-   "home": "modules/files (ask-about) using composer API (`composer.attachment` \"line-ref\") and send service (app.js l.3405)"
+   "home": "modules/files (ask-about) using composer API (`composer.attachment` \"line-ref\") and send service (app.js l.3392)"
   },
   "js/app.js::functions::resolveThread": {
    "status": "planned",
-   "home": "modules/threads (app.js l.3428)"
+   "home": "modules/threads (app.js l.3415)"
   },
   "js/app.js::functions::closeThreadMenu": {
    "status": "planned",
-   "home": "modules/threads (app.js l.3459)"
+   "home": "modules/threads (app.js l.3446)"
   },
   "js/app.js::functions::startThreadEdit": {
    "status": "planned",
-   "home": "modules/threads (app.js l.3468)"
+   "home": "modules/threads (app.js l.3456)"
   },
   "js/app.js::functions::endThreadEdit": {
    "status": "planned",
-   "home": "modules/threads (app.js l.3479)"
+   "home": "modules/threads (app.js l.3467)"
   },
   "js/app.js::functions::saveThreadField": {
    "status": "planned",
-   "home": "modules/threads (app.js l.3490)"
+   "home": "modules/threads (app.js l.3478)"
   },
   "js/app.js::functions::openNext": {
    "status": "planned",
-   "home": "modules/threads (public `threadState`, `panelThreads` \u2192 panel frame \"threads\") (app.js l.3728)"
+   "home": "modules/threads (public `threadState`, `panelThreads` \u2192 panel frame \"threads\") (app.js l.3736)"
   },
   "js/app.js::functions::threadState": {
    "status": "planned",
-   "home": "modules/threads (public `threadState`, `panelThreads` \u2192 panel frame \"threads\") (app.js l.3738)"
+   "home": "modules/threads (public `threadState`, `panelThreads` \u2192 panel frame \"threads\") (app.js l.3746)"
   },
   "js/app.js::functions::panelThreads": {
    "status": "planned",
-   "home": "modules/threads (public `threadState`, `panelThreads` \u2192 panel frame \"threads\") (app.js l.3747)"
+   "home": "modules/threads (public `threadState`, `panelThreads` \u2192 panel frame \"threads\") (app.js l.3755)"
   },
   "js/app.js::functions::allRender": {
    "status": "planned",
-   "home": "modules/threads (app.js l.3775)"
+   "home": "modules/threads (app.js l.3783)"
   },
   "js/app.js::functions::allFilterRender": {
    "status": "planned",
-   "home": "modules/threads (app.js l.3814)"
+   "home": "modules/threads (`thread.menu` list place: shells, runtimes add items) (app.js l.3822)"
   },
   "js/app.js::functions::threadSiblings": {
    "status": "planned",
-   "home": "modules/threads (`thread.menu` list place: shells, runtimes add items) (app.js l.3829)"
+   "home": "modules/threads (`thread.menu` list place: shells, runtimes add items) (app.js l.3837)"
   },
   "js/app.js::functions::threadMenuHtml": {
    "status": "planned",
-   "home": "modules/threads (`thread.menu` list place: shells, runtimes add items) (app.js l.3834)"
+   "home": "modules/threads (`thread.menu` list place: shells, runtimes add items) (app.js l.3845)"
   },
   "js/app.js::functions::tdelRender": {
    "status": "planned",
-   "home": "modules/threads (`thread.menu` list place: shells, runtimes add items) (app.js l.3851)"
+   "home": "modules/threads (`thread.menu` list place: shells, runtimes add items) (app.js l.3863)"
   },
   "js/app.js::functions::deleteThread": {
    "status": "planned",
-   "home": "modules/threads (`thread.menu` list place: shells, runtimes add items) (app.js l.3863)"
+   "home": "modules/threads (`thread.menu` list place: shells, runtimes add items) (app.js l.3875)"
   },
   "js/app.js::functions::panelShell": {
    "status": "planned",
-   "home": "modules/shells (`panel.page` \"shell\") (app.js l.3887)"
+   "home": "modules/shells (`panel.page` \"shell\") (app.js l.3899)"
   },
   "js/app.js::functions::openShell": {
    "status": "planned",
-   "home": "modules/threads (app.js l.3901)"
+   "home": "modules/threads (app.js l.3913)"
   },
   "js/app.js::functions::openAll": {
    "status": "planned",
-   "home": "modules/threads (app.js l.3908)"
+   "home": "modules/threads (app.js l.3920)"
   },
   "js/app.js::functions::closeAll": {
    "status": "planned",
-   "home": "modules/threads (app.js l.3930)"
+   "home": "modules/threads (app.js l.3942)"
   },
   "js/app.js::functions::setDrawer": {
    "status": "planned",
-   "home": "shell (phone layout) (app.js l.3989)"
+   "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4001)"
   },
   "js/app.js::functions::threadIc": {
    "status": "planned",
-   "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4013)"
+   "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4025)"
   },
   "js/app.js::functions::jumpRender": {
    "status": "planned",
-   "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4017)"
+   "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4029)"
   },
   "js/app.js::functions::focusOverlay": {
    "status": "planned",
-   "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4046)"
+   "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4058)"
   },
   "js/app.js::functions::openJump": {
    "status": "planned",
-   "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4051)"
+   "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4063)"
   },
   "js/app.js::functions::closeJump": {
    "status": "planned",
-   "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4052)"
+   "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4064)"
   },
   "js/app.js::functions::syncInert": {
    "status": "planned",
-   "home": "core/ui (layers / focus trap service: `layer.push/pop`) (app.js l.4081)"
+   "home": "core/ui (layers / focus trap service: `layer.push/pop`) (app.js l.4093)"
   },
   "js/app.js::functions::keyLayer": {
    "status": "planned",
-   "home": "core/ui (layers / focus trap service: `layer.push/pop`) (app.js l.4095)"
+   "home": "core/ui (layers / focus trap service: `layer.push/pop`) (app.js l.4107)"
   },
   "js/app.js::functions::soundRender": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4120)"
+   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4132)"
   },
   "js/app.js::functions::hopsRender": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4146)"
+   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4158)"
   },
   "js/app.js::functions::webpicsRender": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4147)"
+   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4159)"
   },
   "js/app.js::functions::deviceSaid": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4153)"
+   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4165)"
   },
   "js/app.js::functions::setChatBubbles": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4174)"
+   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4186)"
   },
   "js/app.js::functions::bubblesRender": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4181)"
+   "home": "modules/settings host; shape fan-out \u2192 core/services shape `onChange` subscribers per module (app.js l.4193)"
   },
   "js/app.js::functions::openKeys": {
    "status": "planned",
-   "home": "modules/settings host; shape fan-out \u2192 core/services shape `onChange` subscribers per module (app.js l.4196)"
+   "home": "modules/settings host; shape fan-out \u2192 core/services shape `onChange` subscribers per module (app.js l.4208)"
   },
   "js/app.js::functions::closeKeys": {
    "status": "planned",
-   "home": "modules/settings host; shape fan-out \u2192 core/services shape `onChange` subscribers per module (app.js l.4197)"
+   "home": "modules/settings host; shape fan-out \u2192 core/services shape `onChange` subscribers per module (app.js l.4209)"
   },
   "js/app.js::functions::shapeApply": {
    "status": "planned",
-   "home": "modules/settings host; shape fan-out \u2192 core/services shape `onChange` subscribers per module (app.js l.4207)"
+   "home": "modules/runtimes (app.js l.4219)"
   },
   "js/app.js::functions::decideLimit": {
    "status": "planned",
-   "home": "modules/runtimes (app.js l.4221)"
+   "home": "modules/runtimes (app.js l.4233)"
   },
   "js/app.js::functions::unfreeze": {
    "status": "planned",
-   "home": "modules/runtimes (app.js l.4230)"
+   "home": "modules/settings (route `settings/<page>`) (app.js l.4242)"
   },
   "js/app.js::functions::setPage": {
    "status": "planned",
-   "home": "modules/settings (route `settings/<page>`) (app.js l.4243)"
+   "home": "modules/settings (route `settings/<page>`) (app.js l.4255)"
   },
   "js/app.js::functions::openSettings": {
    "status": "planned",
-   "home": "modules/settings (route `settings/<page>`) (app.js l.4251)"
+   "home": "modules/settings (route `settings/<page>`) (app.js l.4263)"
   },
   "js/app.js::functions::closeSettings": {
    "status": "planned",
-   "home": "modules/settings (route `settings/<page>`) (app.js l.4265)"
+   "home": "core/platform keys (sheet + settings section); rail keys \u2192 modules/settings (app.js l.4277)"
   },
   "js/app.js::functions::keysSheetRender": {
    "status": "planned",
-   "home": "core/platform keys (sheet + settings section); rail keys \u2192 modules/settings (app.js l.4284)"
+   "home": "core/platform keys (sheet + settings section); rail keys \u2192 modules/settings (app.js l.4296)"
   },
   "js/app.js::functions::keysPageRender": {
    "status": "planned",
-   "home": "core/platform keys (sheet + settings section); rail keys \u2192 modules/settings (app.js l.4290)"
+   "home": "core/platform keys (sheet + settings section); rail keys \u2192 modules/settings (app.js l.4302)"
   },
   "js/app.js::functions::runGlobal": {
    "status": "planned",
-   "home": "core/platform keys (command registry: each module registers `command` + default key) + core/ui layers (Escape goes to the top layer) (app.js l.4617)"
+   "home": "core/platform router (history) + core/ui layers (app.js l.4631)"
   },
   "js/app.js::functions::canBack": {
    "status": "planned",
-   "home": "core/platform router (history) + core/ui layers (app.js l.4634)"
+   "home": "core/platform router (history) + core/ui layers (app.js l.4648)"
   },
   "js/app.js::functions::stepBack": {
    "status": "planned",
-   "home": "core/platform router (history) + core/ui layers (app.js l.4638)"
+   "home": "core/platform router (history) + core/ui layers (app.js l.4652)"
   },
   "js/app.js::functions::armBack": {
    "status": "planned",
-   "home": "core/platform router (history) + core/ui layers (app.js l.4664)"
+   "home": "core/platform gestures, fed by the layer registry (each layer declares `swipeClose`) (app.js l.4678)"
   },
   "js/app.js::functions::whenWorld": {
    "status": "planned",
-   "home": "`whenWorld` \u2192 core/services world; `resolveFromRow` \u2192 modules/threads (app.js l.4708)"
+   "home": "`whenWorld` \u2192 core/services world; `resolveFromRow` \u2192 modules/threads (app.js l.4722)"
   },
   "js/app.js::functions::resolveFromRow": {
    "status": "planned",
-   "home": "`whenWorld` \u2192 core/services world; `resolveFromRow` \u2192 modules/threads (app.js l.4721)"
+   "home": "`whenWorld` \u2192 core/services world; `resolveFromRow` \u2192 modules/threads (app.js l.4735)"
   },
   "js/app.js::ids::nx-note-in": {
    "status": "planned",
@@ -7978,15 +7758,15 @@
   },
   "js/app.js::ids::tdel-q": {
    "status": "planned",
-   "home": "modules/threads (`thread.menu` list place: shells, runtimes add items) (app.js l.3857)"
+   "home": "modules/threads (`thread.menu` list place: shells, runtimes add items) (app.js l.3869)"
   },
   "js/app.js::ids::keys-reset-all": {
    "status": "planned",
-   "home": "core/platform keys (sheet + settings section); rail keys \u2192 modules/settings (app.js l.4303)"
+   "home": "core/platform keys (sheet + settings section); rail keys \u2192 modules/settings (app.js l.4315)"
   },
   "js/app.js::ids::all-list": {
    "status": "planned",
-   "home": "modules/threads (app.js l.3806)"
+   "home": "modules/threads (app.js l.3814)"
   },
   "js/app.js::storage::cv-theme": {
    "status": "planned",
@@ -7994,27 +7774,27 @@
   },
   "js/app.js::storage::cv-bubbles": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4170)"
+   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4182)"
   },
   "js/app.js::storage::xo-side-folded": {
    "status": "planned",
-   "home": "shell (sidebar: entries come from the `sidebar.entry` place, so CORE/PLACES become registrations) (app.js l.4361)"
+   "home": "shell (sidebar: entries come from the `sidebar.entry` place, so CORE/PLACES become registrations) (app.js l.4373)"
   },
   "js/app.js::storage::${f.project}|${f.rel}": {
    "status": "planned",
    "home": "modules/changes; modules/files (viewer) (app.js l.234)"
   },
   "js/app.js::storage::<SIDE.KEY>": {
-   "status": "decide",
-   "home": "not found in the region map: place by hand"
+   "status": "planned",
+   "home": "shell/rail (the sidebar's own keys)"
   },
   "js/app.js::storage::<SIDE.BAR>": {
-   "status": "decide",
-   "home": "not found in the region map: place by hand"
+   "status": "planned",
+   "home": "shell/rail (the sidebar's own keys)"
   },
   "js/app.js::storage::<SIDE.PINS>": {
-   "status": "decide",
-   "home": "not found in the region map: place by hand"
+   "status": "planned",
+   "home": "shell/rail (the sidebar's own keys)"
   },
   "js/app.js::keys::all": {
    "status": "planned",
@@ -8054,7 +7834,7 @@
   },
   "js/app.js::keys::would_lose_work": {
    "status": "planned",
-   "home": "modules/shells (`panel.page` \"shell\") (app.js l.3879)"
+   "home": "modules/shells (`panel.page` \"shell\") (app.js l.3891)"
   },
   "js/app.js::keys::/": {
    "status": "planned",
@@ -8078,7 +7858,7 @@
   },
   "js/app.js::custom_events::xo:gesture": {
    "status": "planned",
-   "home": "core/platform gestures, fed by the layer registry (each layer declares `swipeClose`) (app.js l.4678)"
+   "home": "core/platform gestures, fed by the layer registry (each layer declares `swipeClose`) (app.js l.4692)"
   },
   "js/attach.js::exports::MAX_BYTES": {
    "status": "split-region",
@@ -18552,6 +18332,10 @@
    "status": "planned",
    "home": "modules/threads/tests/thread-page.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
+  "tests/thread-page.test.mjs::exports::decorateConversation": {
+   "status": "planned",
+   "home": "modules/threads/tests/thread-page.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+  },
   "tests/turnview.test.mjs::globals::matchMedia": {
    "status": "planned",
    "home": "modules/conversation/tests/turnview.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
@@ -18581,152 +18365,152 @@
    "home": "tools/codemirror/vendor.mjs (vendor hash manifests)"
   },
   "tools/diffview/astra-recheck.cjs::ids::stage": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/dlcopy.cjs::ids::projects": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/dlcopy.cjs::ids::stage": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/dlcopy.cjs::ids::viewer": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/dlcopy.cjs::storage::cv-theme": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/dlcopy.cjs::routes::/tmp/pw/node_modules/playwright-core": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/dlcopy.cjs::routes::/api/": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/fileview-shots.cjs::functions::openFile": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/fileview-shots.cjs::ids::stage": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/livecheck.cjs::ids::stage": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/measure.cjs::functions::run": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/measure.cjs::routes::/tmp/pw/node_modules/playwright-core": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/measure.cjs::globals::__lt": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/p1measure.cjs::functions::scene": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/p1measure.cjs::ids::stage": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/p2ask.cjs::ids::herald": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/p3flow.cjs::functions::openFile": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/p3flow.cjs::functions::edit": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/p3flow.cjs::ids::stage": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/p3phone.cjs::ids::stage": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/panel.cjs::ids::projects": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/panel.cjs::ids::herald": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/panel.cjs::ids::stage": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/panel.cjs::storage::cv-theme": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/panel.cjs::storage::<k>": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/panel.cjs::routes::/tmp/pw/node_modules/playwright-core": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/rows-long.cjs::ids::stage": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/rows-max.cjs::ids::stage": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/rows.cjs::ids::stage": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/sandbox-preview.cjs::ids::projects": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/sandbox-preview.cjs::ids::stage": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/sandbox-preview.cjs::ids::viewer": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/sandbox-preview.cjs::storage::xo-probe-secret": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/sandbox-preview.cjs::routes::/tmp/pw/node_modules/playwright-core": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/sandbox-preview.cjs::routes::/api/": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/sandbox-preview.cjs::routes::/api/xo-projects": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/sandbox.cjs::routes::/api/xo-projects/{}/(changes|file|tree|edits|download|image)": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/diffview/theme.mjs::exports::rootProps": {
    "status": "planned",
@@ -18869,128 +18653,128 @@
    "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
   },
   "tools/files/space-e2e.mjs::routes::/api/chat/stream": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/files/space-e2e.mjs::routes::/xo-projects/demo/no-such-route": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/files/space-e2e.mjs::globals::fetch": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/files/space-e2e.mjs::globals::location": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/bench.js::ids::ours": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/bench.js::globals::B": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::exports::EXE": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::exports::loadSet": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::exports::open": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::functions::loadSet": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::functions::open": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::storage::cv-theme": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::globals::LT": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::globals::frame": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::globals::timed": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::globals::waitFor": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/perf.mjs::functions::scrollFrames": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/perf.mjs::ids::ours": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/perf.mjs::globals::FR": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/perf.mjs::globals::FRon": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/perf.mjs::globals::__p": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/same.mjs::functions::step": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/same.mjs::ids::ours": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/mockspace.cjs::functions::body": {
    "status": "planned",
    "home": "e2e/fixtures/mockspace.cjs (one copy; the design-research copy goes)"
   },
   "tools/launchpad/smoke.cjs::ids::main": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/smoke.cjs::ids::fr-body-launch": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/smoke.cjs::ids::app": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/smoke.cjs::storage::xo-stage": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/smoke.cjs::storage::xo-lp-state": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/smoke.cjs::routes::/tmp/pw/node_modules/playwright-core": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/smoke.cjs::globals::requestAnimationFrame": {
-   "status": "decide",
-   "home": "one-off probe with machine paths: keep under tools/probes/ or delete (analysis/6 Part C)"
+   "status": "planned",
+   "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/xoicons/build.mjs::exports::clean": {
    "status": "planned",
