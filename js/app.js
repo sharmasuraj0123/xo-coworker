@@ -16,11 +16,11 @@ import { renderMarkdown, renderInline, setThreadInfo, setWebImages } from "./mar
 import * as Kit from "./kit.js";
 import * as K from "../core/platform/keys.js";
 import { createDecisions } from "./decide.js";
-import { createPacing } from "./pacing.js";
+import { createPacing } from "../modules/decisions/pacing.js";
 import { createIntel } from "./intel.js";
 import { EFFORT, estLine, evidenceFor } from "./content.js";
 import { keepTurning, ICON, XO, NEXT_GLYPH, $, $$, RM, reconcile, sound, wait, hold, dial, morph, expand } from "./ui.js";
-import { paidHtml } from "./paidview.js";
+import { paidHtml } from "../modules/decisions/cards/paid.js";
 import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldClock, heldBadge, soonestHeld } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn } from "./turnview.js";
 import { nameWith } from "./comms.js";
@@ -33,7 +33,7 @@ import { runsStripHtml, runsListHtml, runViewHtml } from "./runsview.js";
 import { createSettings } from "./settings.js";
 import { createRuntimeSettings } from "../modules/runtimes/settings.js";
 import { createChats } from "./chats.js";
-import { initFollow, toLatest, unpin, isPinned, fromTop, toRow, fromLatest, createFollow } from "./follow.js";
+import { initFollow, toLatest, unpin, isPinned, fromTop, toRow, fromLatest, createFollow } from "../modules/conversation/follow.js";
 import { decorateConversation } from "./msgx.js";
 import { createViewer } from "./viewer.js";
 import { createMap } from "./map.js";
@@ -2831,7 +2831,7 @@ const MAIN = createConv({ view: () => S.view, msgs: msgsEl, scroller, column: $(
 const FIRST_MSG = "[data-k]:not([data-k=hist]):not([data-k=note]):not([data-k^='day|'])";
 let rendered = null, raf = 0;
 function schedule() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); }
-// Where the view is has one owner, js/follow.js (QA #9): pinned at the latest, or reading where you are.
+// Where the view is has one owner, modules/conversation/follow.js (QA #9): pinned at the latest, or reading where you are.
 // Here: opening a conversation goes to the latest; a redraw while you read puts what you read back where it
 // stood (holdPlace). The browser's scroll anchoring usually has, so nothing is written; it can't when the
 // row you're reading is itself redrawn (a thread's first fill redraws most of them), or has none (Safari).

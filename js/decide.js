@@ -25,7 +25,7 @@ import { itemParts, itemBody, questionsOf, evidenceOf, itemEffort, isNo, VERB, h
 import { clientId as newKey } from "../core/platform/http.js";
 import { radioKeys } from "./keynav.js";
 import { resetWords, rtName } from "../core/services/runtimes.js";
-import { paidHtml } from "./paidview.js";
+import { paidHtml } from "../modules/decisions/cards/paid.js";
 import { redraw } from "./redraw.js";
 
 export const riskLabel = (r) => ({ destructive: "Destructive", notable: "Notable", routine: "Routine", stopped: "Stopped" })[r] || "Notable";

@@ -63,10 +63,6 @@
   "extra": 15,
   "refs": 0
  },
- "js/follow.js": {
-  "extra": 37,
-  "refs": 0
- },
  "js/gestures.js": {
   "extra": 11,
   "refs": 0
@@ -109,14 +105,6 @@
  },
  "js/msgx.js": {
   "extra": 112,
-  "refs": 0
- },
- "js/pacing.js": {
-  "extra": 12,
-  "refs": 0
- },
- "js/paidview.js": {
-  "extra": 2,
   "refs": 0
  },
  "js/recordview.js": {
@@ -162,10 +150,6 @@
  "js/viewer.js": {
   "extra": 94,
   "refs": 1
- },
- "js/words.js": {
-  "extra": 11,
-  "refs": 0
  },
  "css/app.css": {
   "extra": 196,
@@ -425,10 +409,6 @@
  },
  "tests/focusview.test.mjs": {
   "extra": 8,
-  "refs": 0
- },
- "tests/follow-instance.test.mjs": {
-  "extra": 2,
   "refs": 0
  },
  "tests/gone-thread-composer.test.mjs": {
@@ -873,10 +853,6 @@
  },
  "tests/viewer-hooks.test.mjs": {
   "extra": 12,
-  "refs": 0
- },
- "tests/words.test.mjs": {
-  "extra": 3,
   "refs": 0
  },
  "tests/xoicons.test.mjs": {

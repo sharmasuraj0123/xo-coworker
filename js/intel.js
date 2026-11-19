@@ -726,7 +726,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     // Esc steps back out of continuing elsewhere first, then closes
     if (P.mv && !P.mv.busy) stepBack(); else if (!(P.mv && P.mv.busy)) close({ apply: false });
   });
-  document.addEventListener("pointerdown", (e) => { if (P.open && !(P.mv && P.mv.busy) && !pop.contains(e.target) && !e.target.closest("#iq")) close({ restore: false }); });
+  document.addEventListener("pointerdown", (e) => { if (P.open && !(P.mv && P.mv.busy) && !pop.contains(e.target) && !P.anchor?.contains(e.target)) close({ restore: false }); });
   addEventListener("resize", () => { if (P.open) place(); });
 
   return {
