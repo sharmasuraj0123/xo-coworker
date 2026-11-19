@@ -1,6 +1,6 @@
 // The "Back to chat" click's layout reads, batched (the owner, 19 Nov 12:06Z: "back to the chat … seems to have a lag";
 // a trace of the click found 99 layout reads, none of them Files' own): the conversation's ⌄ button follows the scroll
-// once per frame, after the frame's writes (js/msgx.js). js/follow.js, the scroll's one owner, is untouched. (The Now
+// once per frame, after the frame's writes (js/msgx.js). modules/conversation/follow.js, the scroll's one owner, is untouched. (The Now
 // strip, whose fit was the other half, left the header for the panel's Threads on 19 Nov.)
 //   node tests/layout-reads.test.mjs
 import assert from "node:assert/strict";
@@ -18,7 +18,7 @@ t("the ⌄ button follows the scroll once per frame, after the frame's writes", 
 });
 
 t("follow.js, the scroll's one owner, is as it was", () => {
-  const f = readFileSync(new URL("../js/follow.js", import.meta.url), "utf8");
+  const f = readFileSync(new URL("../modules/conversation/follow.js", import.meta.url), "utf8");
   assert.match(f, /export function initFollow\(\)/);
 });
 

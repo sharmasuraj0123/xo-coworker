@@ -4,10 +4,10 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 631 |
+| planned | 629 |
 | vendor | 367 |
 | deleted | 232 |
-| moved | 47 |
+| moved | 49 |
 | split | 35 |
 | kept | 1 |
 
@@ -51,7 +51,7 @@ Items inside first-party files: 2290 (planned 1008, split-region 631, moved 624,
 | `js/files.js` | 940 | split | modules/files/tree, modules/files/ops, core/services/places.js, core/services/activity.js |
 | `js/filespage.js` | 150 | planned | modules/files/page.js |
 | `js/focusview.js` | 138 | moved | core/ui/a11y/focus.js · next: js/focusview.js re-exports core/ui/a11y/focus.js until the shims go |
-| `js/follow.js` | 150 | planned | modules/conversation/follow.js |
+| `js/follow.js` | 150 | moved | modules/conversation/follow.js |
 | `js/fuzzy.js` | 118 | moved | core/platform/fuzzy.js · next: js/fuzzy.js re-exports core/platform until the shims go |
 | `js/gestures.js` | 451 | split | core/platform/gestures.js, shell (the app's gestures: wireGestures, dockGestures, long press) · next: the drag primitive is in core/platform/gestures.js; the app's gestures stay in js/gestures.js until the shell takes them |
 | `js/herald.js` | 92 | moved | core/services/notices.js · next: every importer points at the new home; the line is drawn by app.js's heraldShow, which the shell takes |
@@ -179,7 +179,7 @@ Items inside first-party files: 2290 (planned 1008, split-region 631, moved 624,
 | `tests/find-race.test.mjs` | 38 | planned | modules/files/tests/find-race.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/focus-back.test.mjs` | 55 | planned | core/platform (focus) + decisions/tests/focus-back.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/focusview.test.mjs` | 151 | planned | core/platform/tests/focusview.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/follow-instance.test.mjs` | 30 | planned | modules/conversation/tests/follow-instance.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/follow-instance.test.mjs` | 30 | moved | modules/conversation/tests/follow-instance.test.mjs |
 | `tests/gone-thread-composer.test.mjs` | 33 | planned | modules/composer/tests/gone-thread-composer.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/graph-focus.test.mjs` | 49 | planned | core/ui (css guard)/tests/graph-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/grip-ring.test.mjs` | 23 | planned | core/ui (css guard)/tests/grip-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |

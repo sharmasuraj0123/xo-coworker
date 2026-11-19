@@ -2298,7 +2298,7 @@
    "note": "js/focusview.js re-exports core/ui/a11y/focus.js until the shims go"
   },
   "js/follow.js": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/fuzzy.js": {
@@ -4387,8 +4387,8 @@
    "home": "core/platform/tests/focusview.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/follow-instance.test.mjs": {
-   "status": "planned",
-   "home": "modules/conversation/tests/follow-instance.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/conversation/tests/follow-instance.test.mjs"
   },
   "tests/gone-thread-composer.test.mjs": {
    "status": "planned",

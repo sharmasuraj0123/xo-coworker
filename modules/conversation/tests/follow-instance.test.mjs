@@ -1,11 +1,12 @@
-// Two conversations on screen (the main chat and the panel's thread page, P1): each has its own follower, so
-// following, reading and the row held in one never move the other. The main one keeps the old exports.
-//   node tests/follow-instance.test.mjs
+// @ts-check
+
+// Two conversations on screen each have their own follower; the main one keeps the old exports.
+
 import assert from "node:assert/strict";
 globalThis.matchMedia = () => ({ matches: false });
 globalThis.ResizeObserver = class { constructor(fn) { this.fn = fn; } observe() {} disconnect() {} };
 globalThis.document = { getElementById: () => null };
-const { createFollow, initFollow, toLatest, isPinned } = await import("../js/follow.js");
+const { createFollow, initFollow, toLatest, isPinned } = await import("../follow.js");
 
 const scroller = (h = 2000) => { const s = { scrollTop: 0, scrollHeight: h, clientHeight: 500, ls: [], addEventListener(t, f) { this.ls.push(f); }, removeEventListener(t, f) { this.ls = this.ls.filter((x) => x !== f); }, scrollTo({ top }) { this.scrollTop = Math.min(top, this.scrollHeight - this.clientHeight); this.ls.forEach((f) => f()); }, getBoundingClientRect: () => ({ top: 0, bottom: 500 }), contains: () => true }; return s; };
 const column = { clientWidth: 600 };

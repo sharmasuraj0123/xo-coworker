@@ -13,7 +13,7 @@
 //     · a sent reply shows its quote as a card in your bubble; press it to go back to the original
 
 import { ICON, xi } from "./ui.js";
-import { toLatest as mainToLatest, fromLatest as mainFromLatest } from "./follow.js";
+import { toLatest as mainToLatest, fromLatest as mainFromLatest } from "../modules/conversation/follow.js";
 import { copyText, COPY_REFUSED, space, elapsed, RM } from "../core/platform/index.js";
 import { wordsOf } from "./words.js";
 
@@ -901,7 +901,7 @@ new MutationObserver(() => {
 // a notice arriving or leaving (and its float in) moves the button with it too
 if (herald) new MutationObserver(() => followDock(performance.now() + 700)).observe(herald, { childList: true });
 
-// Following the latest, keeping your place and opening at the latest belong to js/follow.js now. Nothing
+// Following the latest, keeping your place and opening at the latest belong to modules/conversation/follow.js now. Nothing
 // here moves the view except the back-to-latest button and pressing the working bubble (both toLatest).
 if (!E.main) gone.push(() => { holdSheet.remove(); orderSheet.remove(); });
 return { decorate, conv, msgs, destroy: () => { while (gone.length) gone.pop()(); } };
