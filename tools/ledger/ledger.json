@@ -7541,24 +7541,28 @@
    "home": "modules/settings (route `settings/<page>`) (app.js l.4242)"
   },
   "js/app.js::functions::setPage": {
-   "status": "planned",
-   "home": "modules/settings (route `settings/<page>`) (app.js l.4255)"
+   "status": "moved",
+   "home": "modules/settings/frame.js",
+   "note": "createSettingsFrame; app.js keeps one-line openSettings/closeSettings until the shell's settings place takes them"
   },
   "js/app.js::functions::openSettings": {
-   "status": "planned",
-   "home": "modules/settings (route `settings/<page>`) (app.js l.4263)"
+   "status": "moved",
+   "home": "modules/settings/frame.js",
+   "note": "createSettingsFrame; app.js keeps one-line openSettings/closeSettings until the shell's settings place takes them"
   },
   "js/app.js::functions::closeSettings": {
-   "status": "planned",
-   "home": "core/platform keys (sheet + settings section); rail keys → modules/settings (app.js l.4277)"
+   "status": "moved",
+   "home": "modules/settings/frame.js",
+   "note": "createSettingsFrame; app.js keeps one-line openSettings/closeSettings until the shell's settings place takes them"
   },
   "js/app.js::functions::keysSheetRender": {
    "status": "planned",
    "home": "core/platform keys (sheet + settings section); rail keys → modules/settings (app.js l.4296)"
   },
   "js/app.js::functions::keysPageRender": {
-   "status": "planned",
-   "home": "core/platform keys (sheet + settings section); rail keys → modules/settings (app.js l.4302)"
+   "status": "moved",
+   "home": "modules/settings/keys-page.js",
+   "note": "createKeysPage; app.js renders it on K.onChange"
   },
   "js/app.js::functions::runGlobal": {
    "status": "planned",
@@ -7729,8 +7733,9 @@
    "home": "modules/threads (`thread.menu` list place: shells, runtimes add items) (app.js l.3869)"
   },
   "js/app.js::ids::keys-reset-all": {
-   "status": "planned",
-   "home": "core/platform keys (sheet + settings section); rail keys → modules/settings (app.js l.4315)"
+   "status": "moved",
+   "home": "modules/settings/keys-page.js",
+   "note": "createKeysPage; app.js renders it on K.onChange"
   },
   "js/app.js::ids::all-list": {
    "status": "planned",
