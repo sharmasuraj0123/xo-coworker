@@ -1,11 +1,15 @@
 // @ts-check
 import { satisfies } from "../core/kernel/semver.js";
+import { KERNEL_VERSION } from "../core/kernel/kernel.js";
+import { PLACES } from "../shell/places.js";
 import { parseRoute } from "./routes.js";
 import { parseWhen } from "./when.js";
 
 /** @typedef {import("./routes.js").Route} Route @typedef {import("./when.js").When} When @typedef {{ cap: string, why: string, paths?: string[], names?: string[], askWhen?: string }} Permission @typedef {{ id: string, title: string, icon?: string, view?: string, when?: When, for?: string, slash?: string, description?: string, opens?: string, run?: { tool?: string, prompt?: string }, size?: string, maxHeight?: number }} Surface @typedef {{ name: string, label: string, type: string, options?: string[], default?: unknown, scope: "person" | "project" }} Field @typedef {{ type: string, label: string, pattern: string, re: RegExp }} DocType @typedef {{ risk: string, visibility: string[], readOnly: boolean }} Tool @typedef {{ id: string, name: string, version: string, summary: string, engines: string, permissions: { required: Permission[], optional: Permission[] }, routes: Route[], documents: DocType[], surfaces: Record<string, Surface[]>, settings: Field[], tools: Record<string, Tool>, limits: { callTimeoutMs: number, maxResultBytes: number } }} App */
 
 export const APPS_CONTRACT = "0.1.0";
+
+export const OPEN_PLACES = Object.freeze(PLACES.filter((p) => p.openToApps).map((p) => p.id));
 
 export const SURFACE_PLACES = Object.freeze({
   panel: "panel.page",
@@ -20,6 +24,8 @@ export const SURFACE_PLACES = Object.freeze({
 export const CAPS = Object.freeze({
   "files.read": "Read files in {paths}",
   "files.write": "Change files in {paths}",
+  "chats.read": "See this project's chats and threads",
+  "chats.write": "Start threads and send messages in this project, as the app",
   "threads.read": "See this project's threads: titles, state and checklists, not messages",
   "conversation.read": "Read the conversation it's open in",
   "artifacts.publish": "Add its files to Artifacts and show them in threads",
@@ -39,7 +45,8 @@ const FIELD_TYPES = ["checkbox", "select", "text", "number", "directory"];
 const RISKS = ["routine", "notable", "destructive"];
 const VIS = ["model", "app"];
 const BAD_GLOB = /(^\/|^~|\\|(^|\/)\.\.(\/|$)|(^|\/)\.git(\/|$)|(^|\/)\.xo(\/|$)|(^|\/)\.env)/;
-const DOC_PATTERN = /^(\*\*\/)?(?:[a-z0-9_-]+\/)*\*\.[a-z0-9-]+\.[a-z0-9]+$/;
+const DOC_PATTERN = /^(?:\*\*\/)?(?:[a-z0-9_-]+\/)*\*((?:\.[a-z0-9-]+)+)$/;
+const XO_TYPES = new Set("md markdown txt text json jsonl js mjs cjs ts tsx jsx html htm css scss py sh bash zsh yml yaml toml xml svg png jpg jpeg gif webp avif bmp ico pdf csv tsv log lock ini cfg conf env rs go java kt rb php c h cc cpp hpp cs swift sql ipynb".split(" "));
 
 const str = (/** @type {unknown} */ v, max = 200) => typeof v === "string" && v.trim().length > 0 && v.length <= max;
 const list = (/** @type {unknown} */ v) => (Array.isArray(v) ? v : []);
@@ -50,25 +57,31 @@ export function globRe(pattern) {
   return new RegExp(`^${src}$`);
 }
 
-/** The app in a plugin.json, checked; problems are in plain words and an app with any is never contributed. @param {any} plugin @returns {{ app: App | null, problems: string[] }} */
+/** The app in a plugin.json, checked; problems are in plain words and an app with any is never contributed. @param {any} plugin @returns {{ app: App | null, problems: string[], warnings: string[] }} */
 export function checkManifest(plugin) {
   /** @type {string[]} */
   const problems = [];
+  /** @type {string[]} */
+  const warnings = [];
   const x = plugin && typeof plugin === "object" && plugin.extensions && plugin.extensions["space.xo"];
-  if (!x || typeof x !== "object") return { app: null, problems: ["plugin.json has no extensions[\"space.xo\"] block"] };
+  if (!x || typeof x !== "object") return { app: null, problems: ["plugin.json has no extensions[\"space.xo\"] block"], warnings };
   const id = String(x.id || "");
   if (!APP_ID.test(id) || id.length < 3 || id.length > 100) problems.push(`id must be reverse-DNS like "dev.me.word" (got "${id}")`);
   else if (/^xo\./.test(id)) problems.push(`"xo." ids belong to XO's own modules (got "${id}")`);
   const version = String(plugin.version || "");
   if (!/^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/.test(version)) problems.push(`version must be semver like "0.1.0" (got "${version}")`);
-  const engines = x.engines && x.engines.xo;
-  if (!str(engines, 60)) problems.push("engines.xo must name the XO apps contract range, like \">=0.1 <1\"");
+  const engines = x.engines && x.engines["xo-space"];
+  if (!str(engines, 60)) problems.push("engines[\"xo-space\"] must name the apps contract range, like \">=0.1 <1\"");
   else if (!satisfies(APPS_CONTRACT, engines)) problems.push(`it needs XO apps contract ${engines}; this XO has ${APPS_CONTRACT}`);
+  const kernel = x.engines && x.engines.xo;
+  if (!str(kernel, 60)) problems.push("engines.xo must name the XO kernel range, like \"^1\"");
+  else if (!satisfies(KERNEL_VERSION, kernel)) problems.push(`it needs XO kernel ${kernel}; this XO has ${KERNEL_VERSION}`);
   const name = x.displayName;
   if (!str(name, 40)) problems.push("displayName must be a short name (40 characters at most)");
 
   /** @param {any} p @param {string} where @returns {Permission | null} */
   const permission = (p, where) => {
+    if (p && p.cap === "network") { warnings.push("It declares a network permission; every app reaches the internet only through XO's proxy, so it is ignored."); return null; }
     if (!p || !Object.hasOwn(CAPS, p.cap)) { problems.push(`${where}: "${p && p.cap}" isn't a permission XO knows`); return null; }
     if (!str(p.why, 300)) { problems.push(`${where} ${p.cap}: say why in plain words (why)`); return null; }
     if (p.cap.startsWith("files.")) {
@@ -92,7 +105,8 @@ export function checkManifest(plugin) {
   const documents = [];
   for (const d of list(x.documents)) {
     if (!d || !SURFACE_ID.test(d.type || "") || !str(d.label, 40)) { problems.push(`documents: each needs a type like "word" and a label`); continue; }
-    if (typeof d.pattern !== "string" || !DOC_PATTERN.test(d.pattern)) { problems.push(`documents ${d.type}: pattern must name its own file type, like "**/*.word.json"`); continue; }
+    const suffix = typeof d.pattern === "string" ? DOC_PATTERN.exec(d.pattern)?.[1] : undefined;
+    if (!suffix || XO_TYPES.has(suffix.slice(1))) { problems.push(`documents ${d.type}: pattern must name its own file type, like "**/*.hello" (not one XO opens itself)`); continue; }
     documents.push({ type: d.type, label: d.label, pattern: d.pattern, re: globRe(d.pattern) });
   }
 
@@ -100,47 +114,47 @@ export function checkManifest(plugin) {
   const surfaces = {};
   /** @type {Field[]} */
   let settings = [];
-  const raw = x.surfaces && typeof x.surfaces === "object" ? x.surfaces : {};
-  for (const kind of Object.keys(raw)) {
-    if (!Object.hasOwn(SURFACE_PLACES, kind)) { problems.push(`surfaces.${kind} isn't a place apps can use (${Object.keys(SURFACE_PLACES).join(", ")})`); continue; }
-    if (kind === "settings") { settings = fields(list(raw.settings), problems); continue; }
-    const seen = new Set();
-    surfaces[kind] = [];
-    for (const s of list(raw[kind])) {
-      const sid = s && s.id;
-      const where = `surfaces.${kind} "${sid}"`;
-      if (!SURFACE_ID.test(sid || "") || seen.has(sid)) { problems.push(`surfaces.${kind}: each needs its own short id like "editor"`); continue; }
-      seen.add(sid);
-      /** @type {Surface} */
-      const out = { id: sid, title: s.title };
-      if (kind !== "inline" && kind !== "evidence" && !str(s.title, 60)) { problems.push(`${where}: needs a short title`); continue; }
-      if (s.when !== undefined) { const w = parseWhen(s.when); if (typeof w === "string") { problems.push(`${where}: ${w}`); continue; } out.when = w; }
-      if (kind !== "commands" && kind !== "header") {
-        if (typeof s.view !== "string" || !s.view.startsWith(`ui://${id}/`)) { problems.push(`${where}: view must be one of its own, "ui://${id}/…"`); continue; }
-        out.view = s.view;
-      }
-      if (kind === "canvas") {
-        if (!documents.some((d) => d.type === s.for)) { problems.push(`${where}: "for" must name one of its documents`); continue; }
-        out.for = s.for;
-      }
-      if (kind === "commands") {
-        if (s.slash !== undefined && !(typeof s.slash === "string" && SLASH.test(s.slash))) { problems.push(`${where}: slash must look like "/word"`); continue; }
-        const run = s.run || {};
-        if (!(typeof run.tool === "string" && run.tool) === !(typeof run.prompt === "string" && run.prompt)) { problems.push(`${where}: run must name one tool or one prompt`); continue; }
-        Object.assign(out, { slash: s.slash, description: typeof s.description === "string" ? s.description.slice(0, 200) : undefined, run: { tool: run.tool, prompt: run.prompt } });
-      }
-      if (kind === "header") {
-        if (!str(s.opens, 40)) { problems.push(`${where}: opens must name one of its panel surfaces or commands`); continue; }
-        out.opens = s.opens;
-      }
-      if (typeof s.icon === "string" && /^[a-z][a-z0-9-]{0,39}$/.test(s.icon)) out.icon = s.icon;
-      if (kind === "inline") out.maxHeight = Math.min(360, Math.max(60, Number(s.maxHeight) || 360));
-      surfaces[kind].push(out);
+  const KIND = /** @type {Record<string, string>} */ (Object.fromEntries(Object.entries(SURFACE_PLACES).map(([k, v]) => [v, k])));
+  const seen = new Set();
+  if (x.surfaces !== undefined && !Array.isArray(x.surfaces)) problems.push("surfaces must be a list, each naming its place");
+  for (const s of list(x.surfaces)) {
+    const sid = s && s.id, place = s && s.place;
+    const where = `surface "${sid}"`;
+    if (!SURFACE_ID.test(sid || "") || seen.has(sid)) { problems.push("surfaces: each needs its own short id like \"editor\""); continue; }
+    seen.add(sid);
+    if (!OPEN_PLACES.includes(place)) { problems.push(`${where}: "${place}" isn't a place apps can use (${OPEN_PLACES.join(", ")})`); continue; }
+    const kind = KIND[place];
+    if (!kind) { warnings.push(`${where}: XO doesn't show apps in ${place} yet, so it is left out for now.`); continue; }
+    if (kind === "settings") { settings = settings.concat(fields(list(s.fields), problems)); continue; }
+    /** @type {Surface} */
+    const out = { id: sid, title: s.title };
+    if (kind !== "inline" && kind !== "evidence" && !str(s.title, 60)) { problems.push(`${where}: needs a short title`); continue; }
+    if (s.when !== undefined) { const w = parseWhen(s.when); if (typeof w === "string") { problems.push(`${where}: ${w}`); continue; } out.when = w; }
+    if (kind !== "commands" && kind !== "header") {
+      if (typeof s.view !== "string" || !s.view.startsWith(`ui://${id}/`)) { problems.push(`${where}: view must be one of its own, "ui://${id}/…"`); continue; }
+      out.view = s.view;
     }
+    if (kind === "canvas") {
+      if (!documents.some((d) => d.type === s.for)) { problems.push(`${where}: "for" must name one of its documents`); continue; }
+      out.for = s.for;
+    }
+    if (kind === "commands") {
+      if (s.slash !== undefined && !(typeof s.slash === "string" && SLASH.test(s.slash))) { problems.push(`${where}: slash must look like "/word"`); continue; }
+      const run = s.run || {};
+      if (!(typeof run.tool === "string" && run.tool) === !(typeof run.prompt === "string" && run.prompt)) { problems.push(`${where}: run must name one tool or one prompt`); continue; }
+      Object.assign(out, { slash: s.slash, description: typeof s.description === "string" ? s.description.slice(0, 200) : undefined, run: { tool: run.tool, prompt: run.prompt } });
+    }
+    if (kind === "header") {
+      if (!str(s.opens, 40)) { problems.push(`${where}: opens must name one of its panel surfaces or commands`); continue; }
+      out.opens = s.opens;
+    }
+    if (typeof s.icon === "string" && /^[a-z][a-z0-9-]{0,39}$/.test(s.icon)) out.icon = s.icon;
+    if (kind === "inline") out.maxHeight = Math.min(360, Math.max(60, Number(s.maxHeight) || 360));
+    (surfaces[kind] = surfaces[kind] || []).push(out);
   }
   for (const h of surfaces.header || []) {
     const ok = (surfaces.panel || []).some((p) => p.id === h.opens) || (surfaces.commands || []).some((c) => c.id === h.opens);
-    if (!ok) problems.push(`surfaces.header "${h.id}": opens "${h.opens}" isn't one of its panel surfaces or commands`);
+    if (!ok) problems.push(`surface "${h.id}": opens "${h.opens}" isn't one of its panel surfaces or commands`);
   }
 
   /** @type {Record<string, Tool>} */
@@ -153,15 +167,15 @@ export function checkManifest(plugin) {
     if (!RISKS.includes(risk)) { problems.push(`tools.${tname}: risk is routine, notable or destructive`); continue; }
     tools[tname] = { risk, visibility: vis, readOnly: !!(t && t.readOnly) };
   }
-  for (const c of surfaces.commands || []) if (c.run?.tool && !tools[c.run.tool]?.visibility.includes("app")) problems.push(`surfaces.commands "${c.id}": its tool "${c.run.tool}" must be declared with "app" visibility`);
+  for (const c of surfaces.commands || []) if (c.run?.tool && !tools[c.run.tool]?.visibility.includes("app")) problems.push(`surface "${c.id}": its tool "${c.run.tool}" must be declared with "app" visibility`);
 
   const lim = x.limits || {};
   const limits = {
     callTimeoutMs: Math.min(300000, Math.max(1000, Number(lim.callTimeoutMs) || 30000)),
     maxResultBytes: Math.min(1 << 20, Math.max(1024, Number(lim.maxResultBytes) || 1 << 20)),
   };
-  if (problems.length) return { app: null, problems };
-  return { app: { id, name, version, summary: typeof x.summary === "string" ? x.summary.slice(0, 200) : "", engines, permissions, routes, documents, surfaces, settings, tools, limits }, problems };
+  if (problems.length) return { app: null, problems, warnings };
+  return { app: { id, name, version, summary: typeof x.summary === "string" ? x.summary.slice(0, 200) : "", engines, permissions, routes, documents, surfaces, settings, tools, limits }, problems, warnings };
 }
 
 /** @param {any[]} raw @param {string[]} problems @returns {Field[]} */
@@ -171,10 +185,10 @@ function fields(raw, problems) {
   const seen = new Set();
   for (const f of raw) {
     const n = f && f.name;
-    if (!/^[a-zA-Z][a-zA-Z0-9]{0,39}$/.test(n || "") || seen.has(n)) { problems.push("surfaces.settings: each field needs its own name"); continue; }
+    if (!/^[a-zA-Z][a-zA-Z0-9]{0,39}$/.test(n || "") || seen.has(n)) { problems.push("settings fields: each needs its own name"); continue; }
     seen.add(n);
-    if (!str(f.label, 60) || !FIELD_TYPES.includes(f.type)) { problems.push(`surfaces.settings "${n}": needs a label and a type (${FIELD_TYPES.join(", ")})`); continue; }
-    if (f.type === "select" && !(list(f.options).length && list(f.options).every((o) => str(o, 60)))) { problems.push(`surfaces.settings "${n}": a select lists its options`); continue; }
+    if (!str(f.label, 60) || !FIELD_TYPES.includes(f.type)) { problems.push(`setting "${n}": needs a label and a type (${FIELD_TYPES.join(", ")})`); continue; }
+    if (f.type === "select" && !(list(f.options).length && list(f.options).every((o) => str(o, 60)))) { problems.push(`setting "${n}": a select lists its options`); continue; }
     out.push({ name: n, label: f.label, type: f.type, options: f.options, default: f.default, scope: f.scope === "project" ? "project" : "person" });
   }
   return out;

@@ -94,7 +94,7 @@ await tick(); await tick();
 assert.equal(P.entries("panel.page", p1).length, 1);
 const v2 = structuredClone(WORD);
 v2.version = "0.4.0";
-v2.extensions["space.xo"].surfaces.panel[0].view = "ui://dev.example.word/outline-2";
+v2.extensions["space.xo"].surfaces.find((/** @type {any} */ s) => s.id === "outline").view = "ui://dev.example.word/outline-2";
 rows = [{ ...rows[0], version: "0.4.0", manifest: v2 }];
 K.bus.emit("apps:refresh");
 await tick(); await tick();
@@ -105,8 +105,7 @@ assert.deepEqual(calls.filter((c) => c[0] === "resource").map((c) => c[2]), ["ui
 assert.ok(keep.find((n) => n.tagName === "IFRAME"));
 const v3 = structuredClone(v2);
 v3.version = "0.5.0";
-v3.extensions["space.xo"].surfaces.panel = [];
-v3.extensions["space.xo"].surfaces.header = [];
+v3.extensions["space.xo"].surfaces = v3.extensions["space.xo"].surfaces.filter((/** @type {any} */ s) => s.place !== "panel.page" && s.place !== "header.action");
 rows = [{ ...rows[0], version: "0.5.0", manifest: v3 }];
 K.bus.emit("apps:refresh");
 await tick(); await tick();
