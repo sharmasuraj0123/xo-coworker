@@ -4,14 +4,14 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 624 |
+| planned | 618 |
 | vendor | 367 |
-| deleted | 232 |
+| deleted | 238 |
 | moved | 54 |
 | split | 35 |
 | kept | 1 |
 
-Items inside first-party files: 2290 (planned 1007, moved 695, split-region 561, deleted 24, kept 2, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 988, moved 695, split-region 561, deleted 43, kept 2, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -1401,12 +1401,12 @@ Items inside first-party files: 2290 (planned 1007, moved 695, split-region 561,
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `tools/filetree/README.md` | 17 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/filetree/bench.html` | 44 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/filetree/bench.js` | 7 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/filetree/lib.mjs` | 56 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/filetree/perf.mjs` | 51 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/filetree/same.mjs` | 59 | planned | delete: a one-off probe with machine paths (owner D6) |
+| `tools/filetree/README.md` | 17 | deleted | a one-off probe with machine paths (owner D6) |
+| `tools/filetree/bench.html` | 44 | deleted | a one-off probe with machine paths (owner D6) |
+| `tools/filetree/bench.js` | 7 | deleted | a one-off probe with machine paths (owner D6) |
+| `tools/filetree/lib.mjs` | 56 | deleted | a one-off probe with machine paths (owner D6) |
+| `tools/filetree/perf.mjs` | 51 | deleted | a one-off probe with machine paths (owner D6) |
+| `tools/filetree/same.mjs` | 59 | deleted | a one-off probe with machine paths (owner D6) |
 
 ## tools/launchpad (2)
 

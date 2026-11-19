@@ -4994,28 +4994,28 @@
    "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/README.md": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/bench.html": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/bench.js": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/perf.mjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/same.mjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/mockspace.cjs": {
    "status": "moved",
@@ -17042,80 +17042,80 @@
    "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/bench.js::ids::ours": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/bench.js::globals::B": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::exports::EXE": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::exports::loadSet": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::exports::open": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::functions::loadSet": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::functions::open": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::storage::cv-theme": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::globals::LT": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::globals::frame": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::globals::timed": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/lib.mjs::globals::waitFor": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/perf.mjs::functions::scrollFrames": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/perf.mjs::ids::ours": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/perf.mjs::globals::FR": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/perf.mjs::globals::FRon": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/perf.mjs::globals::__p": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/same.mjs::functions::step": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/same.mjs::ids::ours": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/mockspace.cjs::functions::body": {
    "status": "moved",
