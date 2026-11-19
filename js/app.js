@@ -67,7 +67,7 @@ import { arrive, still, EASE, MOVE } from "./motion.js";
 import { wireGestures, dockGestures } from "./gestures.js";
 import { rtName, rtMark, manyRuntimes, findRt, healthOf, canMove, untilWords } from "../core/services/runtimes.js";
 // the UI's shape per person: which surfaces show, in what order, how dense, in which words (js/shape.js)
-import { createShapeStore } from "./shape.js";
+import { createShapeStore } from "../core/services/shape/index.js";
 import { createShapeView, SHAPE_IC, UNKEPT } from "../modules/settings/shape-page.js";
 import { setWorkMode } from "./turnview.js";
 import { radioKeys, menuKeys } from "./keynav.js";

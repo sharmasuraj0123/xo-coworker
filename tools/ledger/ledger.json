@@ -2508,8 +2508,9 @@
    "note": "js/settings.js keeps only the wiring until the shell's settings.section place takes it"
   },
   "js/shape.js": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/",
+   "note": "every importer points at the new home, so it leaves with no re-export"
   },
   "js/shapeview.js": {
    "status": "moved",
@@ -13239,140 +13240,140 @@
    "home": "modules/worktrees/page.js"
   },
   "js/shape.js::exports::SHAPE_VERSION": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/model.js"
   },
   "js/shape.js::exports::PRESET_VERSION": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/model.js"
   },
   "js/shape.js::exports::MIGRATIONS": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/model.js"
   },
   "js/shape.js::exports::SURFACES": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/model.js"
   },
   "js/shape.js::exports::WORDS": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/model.js"
   },
   "js/shape.js::exports::PRESETS": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/model.js"
   },
   "js/shape.js::exports::PRESET_ID": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/model.js"
   },
   "js/shape.js::exports::DENSITY": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/model.js"
   },
   "js/shape.js::exports::andList": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/model.js"
   },
   "js/shape.js::exports::merge": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/model.js"
   },
   "js/shape.js::exports::migrate": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/model.js"
   },
   "js/shape.js::exports::cleanLayer": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/model.js"
   },
   "js/shape.js::exports::createShape": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/model.js"
   },
   "js/shape.js::exports::describeShape": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/model.js"
   },
   "js/shape.js::exports::everythingLayer": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/model.js"
   },
   "js/shape.js::exports::migrateDevice": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/model.js"
   },
   "js/shape.js::exports::sameDoc": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/changes.js"
   },
   "js/shape.js::exports::changesOf": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/changes.js"
   },
   "js/shape.js::exports::applyChanges": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/changes.js"
   },
   "js/shape.js::exports::oneKey": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/changes.js"
   },
   "js/shape.js::exports::KEYS": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/store.js"
   },
   "js/shape.js::exports::createShapeStore": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/store.js"
   },
   "js/shape.js::functions::merge": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/model.js"
   },
   "js/shape.js::functions::migrate": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/model.js"
   },
   "js/shape.js::functions::surfaceSpec": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/model.js"
   },
   "js/shape.js::functions::cleanLayer": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/model.js"
   },
   "js/shape.js::functions::createShape": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/model.js"
   },
   "js/shape.js::functions::describeShape": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/model.js"
   },
   "js/shape.js::functions::everythingLayer": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/model.js"
   },
   "js/shape.js::functions::migrateDevice": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/model.js"
   },
   "js/shape.js::functions::changesOf": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/changes.js"
   },
   "js/shape.js::functions::applyChanges": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/changes.js"
   },
   "js/shape.js::functions::createShapeStore": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/store.js"
   },
   "js/shape.js::keys::shape_changed": {
-   "status": "planned",
-   "home": "core/services/shape/shape.js"
+   "status": "moved",
+   "home": "core/services/shape/store.js"
   },
   "js/shapeview.js::exports::SHAPE_IC": {
    "status": "moved",

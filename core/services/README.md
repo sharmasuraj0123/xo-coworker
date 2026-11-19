@@ -6,6 +6,7 @@ The data layer under the shell and the modules. It never draws: no DOM here, so 
 |---|---|
 | `storm/` | The world on storm, XO Space's chat engine: reads, the one stream, reducers, selectors and writes (its own README). |
 | `world/` | `createWorld` (the store the views subscribe to) and the world's pure parts: turns, hops, paid usage (its own README). |
+| `shape/` | The UI's shape per person: the surfaces, the layers it merges, and mine kept on Storm (its own README). |
 | `runtimes.js` | A runtime's name, mark, health, usage windows and policy, and the words for each; the backend is the truth. |
 | `paths.js` | Every file in a place, for ⌘P and Find: Space's `/paths`, or a background walk of `/tree`; kept current by file events. |
 | `notices.js` | The dock line's notices: what's on screen, what waits, and how a newer line meets an older one. The line itself is drawn by the app. |

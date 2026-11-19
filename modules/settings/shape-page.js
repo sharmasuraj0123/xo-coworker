@@ -1,10 +1,10 @@
 // @ts-check
 
-// Settings › Shape, the Settings rail's Advanced group, density on <html> and Home's order; js/shape.js holds the rules.
+// Settings › Shape, the Settings rail's Advanced group, density on <html> and Home's order; core/services/shape holds the rules.
 
 import { esc, once, isPending, busyAttrs } from "../../core/platform/index.js";
 import { ICON } from "../../js/ui.js";
-import { PRESETS, createShape, describeShape } from "../../js/shape.js";
+import { PRESETS, createShape, describeShape } from "../../core/services/shape/index.js";
 import { redraw } from "../../js/redraw.js";
 import { bringWhole } from "../../js/focusview.js";
 import { rovingTab } from "../../js/keynav.js";

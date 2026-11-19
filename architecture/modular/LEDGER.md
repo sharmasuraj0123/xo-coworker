@@ -4,13 +4,13 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 651 |
+| planned | 650 |
 | vendor | 367 |
 | deleted | 232 |
 | split | 33 |
-| moved | 30 |
+| moved | 31 |
 
-Items inside first-party files: 2290 (planned 1213, split-region 710, moved 340, deleted 24, kept 2, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1179, split-region 710, moved 374, deleted 24, kept 2, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -90,7 +90,7 @@ Items inside first-party files: 2290 (planned 1213, split-region 710, moved 340,
 | `js/runsview.js` | 138 | planned | modules/threads/runs/ |
 | `js/runtimes.js` | 179 | moved | core/services/runtimes.js · next: every importer points at the new home, so it leaves with no re-export |
 | `js/settings.js` | 407 | split | modules/settings/host.js, modules/routing/page.js, modules/rules/page.js, modules/worktrees/page.js · next: js/settings.js keeps only the wiring until the shell's settings.section place takes it |
-| `js/shape.js` | 731 | planned | core/services/shape/shape.js |
+| `js/shape.js` | 731 | moved | core/services/shape/ · next: every importer points at the new home, so it leaves with no re-export |
 | `js/shapeview.js` | 314 | moved | modules/settings/shape-page.js · next: whole file moved; the home thread takes homeOrder and the shell thread density (apply) from shape-page.js later |
 | `js/shells/dock.js` | 704 | planned | modules/shells/dock.js |
 | `js/shells/model.js` | 128 | planned | modules/shells/model.js |
