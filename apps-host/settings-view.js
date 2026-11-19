@@ -30,7 +30,7 @@ const top = (title) => `<h3 class="xa-title" tabindex="-1" data-autofocus>${esc(
 /** @param {State} s */
 function list(s) {
   const rows = s.rows.map((r) => row(esc(r.name || r.id), esc(rowState(r) || r.id), btn("Open", "open", { app: r.id }, ` aria-label="Open ${esc(r.name || r.id)}"`), r.id)).join("");
-  return `${top("Apps")}<p class="set-lead">Apps add views and tools to the projects you turn them on in. They use XO's local routes, ask before they touch anything, and never see your keys.</p>
+  return `${top("Installed apps")}<p class="set-lead">Apps add views and tools to the projects you turn them on in. They use XO's local routes, ask before they touch anything, and never see your keys.</p>
 ${s.off ? `<p class="set-note">${esc(s.off)}</p>` : `${note(s)}${s.loading ? "" : rows || `<p class="set-empty">No apps yet.</p>`}<div class="set-fa">${btn("Install an app", "install")}</div>`}`;
 }
 
