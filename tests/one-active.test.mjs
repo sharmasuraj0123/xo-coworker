@@ -8,17 +8,17 @@ import { readFileSync } from "node:fs";
 import { cssNames } from "./lib/sources.mjs";
 
 const css = cssNames().map((f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
-const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
+const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
 
-for (const [list, cls, el] of [["the @ recipients", ".at-list", "atList"], ["Jump", ".jump-list", "jl"]]) {
+for (const [list, cls, el, file] of [["the @ recipients", ".at-list", "atList", "js/app.js"], ["Jump", ".jump-list", "list", "modules/search/jump.js"]]) {
   t(`${list}: :hover doesn't paint a row as active, and a moving mouse makes its row the active one`, () => {
     // a rule that names the list only to leave it out (the chosen state's shared hover layer, foundation.css) paints nothing on it
     const rules = [...css.matchAll(/([^{}]+)\{[^{}]*\}/g)].map((m) => m[1]).filter((s) => s.replace(/:not\((?:[^()]|\([^()]*\))*\)/g, "").includes(cls));
     const bad = rules.filter((s) => s.split(",").some((x) => /:hover/.test(x)) && s.split(",").some((x) => /aria-selected/.test(x)));
     assert.deepEqual(bad, [], "no rule paints :hover and the active row alike");
-    assert.match(app, new RegExp(`${el}\\.addEventListener\\("pointermove"`), `${el} follows the pointer`);
+    assert.match(read(file), new RegExp(`${el}\\.addEventListener\\("pointermove"`), `${el} follows the pointer`);
   });
 }
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

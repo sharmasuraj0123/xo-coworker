@@ -4,12 +4,13 @@
 // from it, so no module keeps a hand-drawn <svg> of its own.
 //   node tests/xoicons.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { build, clean } from "../tools/xoicons/build.mjs";
 import { XI } from "../js/xoicons.js";
 import { xi, hasIcon } from "../js/icon.js";
 import { classify, glyph } from "../js/projicons.js";
 import { fileIcon, iconKey, FOLDER_ICON } from "../js/fileicons.js";
+import { sourcePaths } from "./lib/sources.mjs";
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
 let passed = 0;
@@ -50,7 +51,7 @@ t("xi(): the pack's icon, its name on it, a size only from the scale", () => {
 });
 
 t("every icon a module names is in the pack", () => {
-  const files = readdirSync(new URL("../js/", import.meta.url)).filter((f) => f.endsWith(".js")).map((f) => `js/${f}`);
+  const files = sourcePaths(".js");
   const names = new Set();
   for (const f of files) for (const m of read(f).matchAll(/\bxi\("([a-z0-9-]+)"/g)) names.add(m[1]);
   assert.ok(names.size > 60, `${names.size} names`);
@@ -58,8 +59,8 @@ t("every icon a module names is in the pack", () => {
 });
 
 t("no module keeps a hand-drawn icon: every set draws from the pack", () => {
-  const sets = ["js/ui.js", "js/stage.js", "js/map.js", "js/files.js", "js/filespage.js", "js/changesframe.js", "js/shapeview.js",
-    "js/viewer.js", "js/lightbox.js", "js/create.js", "js/intel.js", "js/quickopen.js", "js/msgx.js", "js/turnview.js",
+  const sets = ["js/ui.js", "js/stage.js", "js/map.js", "js/files.js", "js/filespage.js", "js/changesframe.js", "modules/settings/shape-page.js",
+    "js/viewer.js", "js/lightbox.js", "modules/create-project/create.js", "js/intel.js", "modules/search/quickopen.js", "js/msgx.js", "js/turnview.js",
     "js/launchpad.js", "js/markdown.js", "js/projicons.js"];
   for (const f of sets) assert.doesNotMatch(read(f), /<svg viewBox="0 0 24 24"|<path d="M|const I = \(d/, f);
   const ui = read("js/ui.js");

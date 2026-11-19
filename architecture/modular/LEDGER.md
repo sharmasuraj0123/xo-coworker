@@ -4,13 +4,13 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 670 |
+| planned | 658 |
 | vendor | 367 |
 | deleted | 232 |
-| split | 35 |
-| moved | 9 |
+| split | 33 |
+| moved | 23 |
 
-Items inside first-party files: 2290 (planned 1326, split-region 842, moved 103, deleted 19), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1296, split-region 804, moved 168, deleted 19, kept 2, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -38,7 +38,7 @@ Items inside first-party files: 2290 (planned 1326, split-region 842, moved 103,
 | `js/chats.js` | 452 | planned | modules/chats/ |
 | `js/comms.js` | 173 | planned | modules/conversation/blocks/comms.js |
 | `js/content.js` | 72 | planned | modules/decisions/rank.js |
-| `js/create.js` | 364 | planned | modules/create-project/ |
+| `js/create.js` | 364 | moved | modules/create-project/create.js |
 | `js/decide.js` | 1104 | split | modules/decisions/needs.js, modules/decisions/queue.js, modules/decisions/card.js, modules/decisions/panel.js, modules/decisions/toast.js |
 | `js/diffthemes.js` | 4 | planned | modules/changes/diff-renderer/themes.js (generated) |
 | `js/diffview.js` | 421 | split | modules/changes/diff-renderer/, decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS) |
@@ -79,19 +79,19 @@ Items inside first-party files: 2290 (planned 1326, split-region 842, moved 103,
 | `js/paths.js` | 83 | planned | core/services/paths.js |
 | `js/pending.js` | 22 | moved | core/platform/pending.js · next: js/pending.js re-exports core/platform until the shims go |
 | `js/projicons.js` | 83 | planned | modules/projects/projicons.js |
-| `js/quickopen.js` | 179 | planned | modules/search/quickopen.js |
+| `js/quickopen.js` | 179 | moved | modules/search/quickopen.js |
 | `js/record.js` | 340 | split | modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js |
 | `js/recordview.js` | 855 | split | modules/artifacts, modules/since |
 | `js/redraw.js` | 130 | planned | core/ui/redraw.js |
 | `js/review.js` | 153 | planned | modules/decisions/items.js |
 | `js/rich.js` | 281 | planned | core/ui/markdown/rich.js |
 | `js/ring.js` | 65 | planned | core/ui/a11y/ring.js |
-| `js/rtsettings.js` | 296 | split | modules/runtimes (settings.section), modules/runtimes/paid |
+| `js/rtsettings.js` | 296 | moved | modules/runtimes/settings.js · next: the whole page moved, Paid usage rows with it: they become modules/runtimes/paid when Paid is its own settings.section |
 | `js/runsview.js` | 138 | planned | modules/threads/runs/ |
 | `js/runtimes.js` | 179 | planned | core/services/runtimes.js |
-| `js/settings.js` | 407 | split | modules/settings (host, pend/land), modules/routing, modules/rules, modules/worktrees |
+| `js/settings.js` | 407 | split | modules/settings/host.js, modules/routing/page.js, modules/rules/page.js, modules/worktrees/page.js · next: js/settings.js keeps only the wiring until the shell's settings.section place takes it |
 | `js/shape.js` | 731 | planned | core/services/shape/shape.js |
-| `js/shapeview.js` | 314 | split | modules/settings/shape-page.js, modules/home (homeOrder), shell (density) |
+| `js/shapeview.js` | 314 | moved | modules/settings/shape-page.js · next: whole file moved; the home thread takes homeOrder and the shell thread density (apply) from shape-page.js later |
 | `js/shells/dock.js` | 704 | planned | modules/shells/dock.js |
 | `js/shells/model.js` | 128 | planned | modules/shells/model.js |
 | `js/shells/term.js` | 205 | planned | modules/shells/term.js |
@@ -127,7 +127,7 @@ Items inside first-party files: 2290 (planned 1326, split-region 842, moved 103,
 | `css/panel.css` | 645 | split | shell/panel.css, modules/threads, modules/changes, modules/map, modules/files |
 | `css/phone.css` | 293 | split | shell/phone.css, modules/* (phone blocks) |
 | `css/rich.css` | 232 | planned | core/ui/markdown/rich.css |
-| `css/shape.css` | 74 | split | modules/settings/shape.css, core/ui (density) |
+| `css/shape.css` | 74 | split | modules/settings/shape.css, core/ui (density) · next: Settings › Shape and its rail label moved to modules/settings/shape.css, which css/shape.css imports first (same cascade place); density and the two composer and thread rules stay for core/ui |
 | `css/side.css` | 164 | planned | shell/sidebar.css |
 | `css/tokens.css` | 245 | planned | core/ui/tokens.css |
 
@@ -153,8 +153,8 @@ Items inside first-party files: 2290 (planned 1326, split-region 842, moved 103,
 | `tests/coord-colour.test.mjs` | 46 | planned | modules/conversation/tests/coord-colour.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/copy-path-fail.test.mjs` | 57 | planned | modules/files/tests/copy-path-fail.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/cover-inert.test.mjs` | 28 | planned | shell (panel host)/tests/cover-inert.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/create-busy-honest.test.mjs` | 33 | planned | modules/create-project/tests/create-busy-honest.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/create.test.mjs` | 51 | planned | modules/create-project/tests/create.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/create-busy-honest.test.mjs` | 33 | moved | modules/create-project/tests/create-busy-honest.test.mjs · next: still reads the source; its rewrite as a behaviour test is owed |
+| `tests/create.test.mjs` | 51 | moved | modules/create-project/tests/create.test.mjs |
 | `tests/css-wellformed.test.mjs` | 80 | planned | core/ui (css guard)/tests/css-wellformed.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/ctl-heights.test.mjs` | 25 | planned | core/ui (css guard)/tests/ctl-heights.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/ctl-scale.test.mjs` | 181 | planned | core/ui (css guard, all modules)/tests/ctl-scale.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
@@ -201,8 +201,8 @@ Items inside first-party files: 2290 (planned 1326, split-region 842, moved 103,
 | `tests/link-buttons.test.mjs` | 47 | planned | core/ui (css guard)/tests/link-buttons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/links-css.test.mjs` | 44 | planned | modules/files/tests/links-css.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/logic.test.mjs` | 549 | planned | core/services + conversation (markdown)/tests/logic.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/lp-create-connect-focus.test.mjs` | 34 | planned | modules/create-project/tests/lp-create-connect-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/lp-create-stop-focus.test.mjs` | 39 | planned | modules/create-project/tests/lp-create-stop-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/lp-create-connect-focus.test.mjs` | 34 | moved | modules/create-project/tests/lp-create-connect-focus.test.mjs · next: still reads the source; its rewrite as a behaviour test is owed |
+| `tests/lp-create-stop-focus.test.mjs` | 39 | moved | modules/create-project/tests/lp-create-stop-focus.test.mjs · next: still reads the source; its rewrite as a behaviour test is owed |
 | `tests/lp-intel-order.test.mjs` | 74 | planned | modules/composer/tests/lp-intel-order.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/lp-phone-links.test.mjs` | 90 | planned | core/ui phone floor (launchpad, create, intel, shells)/tests/lp-phone-links.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/lp-stop-notice.test.mjs` | 171 | planned | modules/launchpad/tests/lp-stop-notice.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
@@ -245,7 +245,7 @@ Items inside first-party files: 2290 (planned 1326, split-region 842, moved 103,
 | `tests/project-find-escape.test.mjs` | 21 | planned | shell (sidebar)/tests/project-find-escape.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/project-icons.test.mjs` | 40 | planned | modules/projects/tests/project-icons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/quickopen.test.mjs` | 95 | planned | modules/search/tests/quickopen.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/rail-order.test.mjs` | 49 | planned | modules/settings/tests/rail-order.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/rail-order.test.mjs` | 49 | moved | modules/settings/tests/rail-order.test.mjs · next: re-pointed at shape-page.js; still reads the source, a behaviour rewrite is open |
 | `tests/rec-undo-focus.test.mjs` | 26 | planned | modules/conversation/tests/rec-undo-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/reconcile-focus.test.mjs` | 32 | planned | core/platform (redraw/focus)/tests/reconcile-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/record.test.mjs` | 280 | planned | modules/artifacts/tests/record.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
@@ -260,11 +260,11 @@ Items inside first-party files: 2290 (planned 1326, split-region 842, moved 103,
 | `tests/ring-room.test.mjs` | 67 | planned | core/platform/tests/ring-room.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/ring.test.mjs` | 124 | planned | core/platform/tests/ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/routing-truth.test.mjs` | 45 | planned | modules/settings/tests/routing-truth.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/routing-words.test.mjs` | 26 | planned | modules/settings/tests/routing-words.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/rtsettings.test.mjs` | 81 | planned | modules/settings/runtimes/tests/rtsettings.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/routing-words.test.mjs` | 26 | moved | modules/routing/tests/routing-words.test.mjs · next: still reads the source; its rewrite as a behaviour test is owed |
+| `tests/rtsettings.test.mjs` | 81 | moved | modules/runtimes/tests/rtsettings.test.mjs |
 | `tests/runs-stop-receipt.test.mjs` | 69 | planned | modules/threads/tests/runs-stop-receipt.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/runtimes.test.mjs` | 126 | planned | modules/settings/runtimes/tests/runtimes.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/saved-truth.test.mjs` | 43 | planned | modules/settings/runtimes/tests/saved-truth.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/saved-truth.test.mjs` | 43 | moved | modules/runtimes/tests/saved-truth.test.mjs · next: still reads the source; its rewrite as a behaviour test is owed |
 | `tests/scroller-ring.test.mjs` | 171 | planned | core/ui (css guard)/tests/scroller-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/seg-fold.test.mjs` | 32 | planned | modules/files/tests/seg-fold.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/seg-ring.test.mjs` | 16 | planned | core/ui (css guard)/tests/seg-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
@@ -272,8 +272,8 @@ Items inside first-party files: 2290 (planned 1326, split-region 842, moved 103,
 | `tests/send-notice.test.mjs` | 36 | planned | modules/composer/tests/send-notice.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/serve.test.py` | 489 | planned | modules/root:/tests/serve.test.py  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/settings-css.test.mjs` | 20 | planned | core/ui (css guard)/tests/settings-css.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/shape-held.test.mjs` | 42 | planned | modules/settings/tests/shape-held.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/shape-unkept.test.mjs` | 29 | planned | modules/settings/tests/shape-unkept.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/shape-held.test.mjs` | 42 | moved | modules/settings/tests/shape-held.test.mjs · next: re-pointed at shape-page.js; still reads the source, a behaviour rewrite is open |
+| `tests/shape-unkept.test.mjs` | 29 | moved | modules/settings/tests/shape-unkept.test.mjs · next: re-pointed at shape-page.js; still reads the source, a behaviour rewrite is open |
 | `tests/shape.test.mjs` | 957 | planned | core/services/tests/shape.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/shell-grip.test.mjs` | 35 | planned | core/ui (css guard)/tests/shell-grip.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/shells.test.mjs` | 125 | planned | shells/tests/shells.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
@@ -305,16 +305,16 @@ Items inside first-party files: 2290 (planned 1326, split-region 842, moved 103,
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `tests/browser/chat-read-order.test.cjs` | 100 | planned | e2e/specs/chat-read-order.spec.mjs |
-| `tests/browser/conversation.test.cjs` | 1495 | planned | e2e/specs/conversation.spec.mjs |
-| `tests/browser/coordinator-busy.test.cjs` | 80 | planned | e2e/specs/coordinator-busy.spec.mjs |
-| `tests/browser/flows.test.cjs` | 4382 | planned | e2e/specs/flows.spec.mjs |
-| `tests/browser/harness.cjs` | 444 | planned | e2e/lib (space.mjs, store.mjs, settle.mjs, browser.mjs) + e2e/run.mjs |
-| `tests/browser/held-contract.test.cjs` | 99 | planned | e2e/specs/held-contract.spec.mjs |
-| `tests/browser/held-waiting.test.cjs` | 151 | planned | e2e/specs/held-waiting.spec.mjs |
-| `tests/browser/lpshell.test.cjs` | 1008 | planned | e2e/specs/lpshell.spec.mjs |
-| `tests/browser/settings.test.cjs` | 1464 | planned | e2e/specs/settings.spec.mjs |
-| `tests/browser/smoke.test.cjs` | 115 | planned | e2e/specs/smoke.spec.mjs |
+| `tests/browser/chat-read-order.test.cjs` | 100 | planned | e2e/specs/chat-read-order.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/conversation.test.cjs` | 1495 | planned | e2e/specs/conversation.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/coordinator-busy.test.cjs` | 80 | planned | e2e/specs/coordinator-busy.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/flows.test.cjs` | 4382 | planned | e2e/specs/flows.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/harness.cjs` | 444 | planned | e2e/lib (space.mjs, store.mjs, settle.mjs, browser.mjs) + e2e/run.mjs · next: its in-page mock world becomes the fake Space and seeds; it goes when the last suite is a case in e2e/specs |
+| `tests/browser/held-contract.test.cjs` | 99 | planned | e2e/specs/held-contract.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/held-waiting.test.cjs` | 151 | planned | e2e/specs/held-waiting.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/lpshell.test.cjs` | 1008 | planned | e2e/specs/lpshell.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/settings.test.cjs` | 1464 | planned | e2e/specs/settings.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/smoke.test.cjs` | 115 | planned | e2e/specs/smoke.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
 
 ## tests-lib (2)
 

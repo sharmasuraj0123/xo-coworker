@@ -1,14 +1,9 @@
-// "Saved" means XO holds what the field shows (the create-project/Launchpad grader on 9d1f71b, S098: preference A saving,
-// B typed, Runtimes left and opened again, A lands: "Saved" stood beside B while XO held A; B was never sent). The
-// real receipts (js/rtsettings.js) hold what was taken and say Saved only beside exactly that; then, from the source,
-// every field's note asks it with what the field shows, and a draft left while another save was out goes in its turn.
-// The drawn sequence is settings.test.cjs "S098 a newer preference typed while one saves".
-//   node tests/saved-truth.test.mjs
+// "Saved" means XO holds what the field shows: receipts say it only beside exactly what was taken; drawn in tests/browser/settings.test.cjs.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 globalThis.matchMedia = globalThis.matchMedia || (() => ({ matches: false, addEventListener() {}, removeEventListener() {} }));
-const RT = await import("../js/rtsettings.js");
+const RT = await import("../settings.js");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
@@ -25,7 +20,7 @@ t("a receipt says Saved only beside what XO took", () => {
   R.set("preferences", null);
   assert.equal(R.says("preferences", null), true, "cleared: Saved beside the empty field");
 });
-const src = readFileSync(new URL("../js/rtsettings.js", import.meta.url), "utf8");
+const src = readFileSync(new URL("../settings.js", import.meta.url), "utf8");
 t("every field's note asks it with what the field shows; a save's receipt holds what it sent", () => {
   assert.ok(/R\.saved\.says\(f, fieldNow\(f\)\) \? `<span class="rt-saved" role="status">Saved<\/span>`/.test(src), "the note");
   assert.ok(!/R\.saved\.field === f/.test(src), "never by the field alone");
@@ -38,6 +33,6 @@ t("a draft left while another save was out goes in its turn (not while you're ty
   const i = src.indexOf("async function put("), put = src.slice(i, src.indexOf("\n  }\n", i));
   assert.ok(put.includes("const draft = R.pref == null ? undefined : (R.pref.trim() || null);"), "the draft as the page holds it, when the save settles");
   assert.ok(put.includes("if (draft !== undefined && draft !== (next.preferences ?? null) && !typing) savePref();"), "only one that differs from what this save sent, and not while you're typing in it");
-  assert.ok(/addEventListener\("focusout", \(e\) => \{ if \(e\.target\.matches\("\[data-rtd-pref\]"\)\) savePref\(\); \}\)/.test(src), "leaving the field saves it");
+  assert.ok(/addEventListener\("focusout", \((?:\/\*\* @type \{any\} \*\/ )?e\) => \{ if \(e\.target\.matches\("\[data-rtd-pref\]"\)\) savePref\(\); \}\)/.test(src), "leaving the field saves it");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

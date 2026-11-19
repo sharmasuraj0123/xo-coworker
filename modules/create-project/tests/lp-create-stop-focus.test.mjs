@@ -1,14 +1,9 @@
-// Create's progress row (the clone's Stop) never takes focus away with it (S144: H20). After a refused Stop, focus
-// stays on Stop (aria-disabled, never disabled) to try again. If the clone then fails, or is stopped elsewhere, or
-// finishes, setBusy(false) hides the progress row. Before, nothing handed focus on while Stop had it: the failure
-// path asks "is focus in the dialog?" and a hidden Stop still is, so no one moved it, and the browser dropped it to
-// the page. setBusy itself now hands focus that was in the row to Create (what starts it again) before hiding it.
-//   node tests/lp-create-stop-focus.test.mjs
+// Create's progress row (the clone's Stop) never takes focus away with it: setBusy hands focus in the row to Create before hiding it.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const src = readFileSync(new URL("../js/create.js", import.meta.url), "utf8");
-const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+const src = readFileSync(new URL("../create.js", import.meta.url), "utf8");
+const html = readFileSync(new URL("../../../index.html", import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const setBusy = (() => { const i = src.indexOf("function setBusy(on, repoOf) {"); assert.ok(i > 0, "setBusy found"); return src.slice(i, src.indexOf("\n  }\n", i)); })();

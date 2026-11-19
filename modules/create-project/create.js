@@ -1,27 +1,27 @@
-// Create XO Project: start empty (Space scaffolds a folder) or clone a Git repository into a new project.
-// Cloning is a Space clone job: POST /xo-projects answers {clone_id} at once, then the dialog polls it for
-// progress and can stop it (xo-space services/project_clones.py). For https://github.com/… Space sends the GitHub connector's
-// token, so private repos clone once GitHub is connected, which the dialog can do in place (device flow).
-import { esc } from "./world.js";
-import { ICON, $, RM } from "./ui.js";
-import { api } from "./api.js";
-import { fmtSize } from "./attach.js";
-import { redraw } from "./redraw.js";
-import { usable } from "./focusview.js";
-import { copyText, COPY_REFUSED } from "../core/platform/index.js";
+// @ts-check
 
-const PHASE = { counting: "Counting files in", receiving: "Downloading", resolving: "Unpacking", checkout: "Checking out", finishing: "Adding plan and memory to" };
+// Create XO Project: start empty or clone a Git repository (a Space clone job, polled and stoppable) into a new project.
+import { esc } from "../../js/world.js";
+import { ICON, $ as query, RM } from "../../js/ui.js";
+import { api } from "../../js/api.js";
+import { fmtSize } from "../../js/attach.js";
+import { redraw } from "../../js/redraw.js";
+import { usable } from "../../js/focusview.js";
+import { copyText, COPY_REFUSED } from "../../core/platform/index.js";
+
+const $ = /** @type {(sel: string) => any} */ (query);
+
+const PHASE = /** @type {Record<string, string>} */ ({ counting: "Counting files in", receiving: "Downloading", resolving: "Unpacking", checkout: "Checking out", finishing: "Adding plan and memory to" });
 
 const GH = ICON.github;
 
-export const slugify = (name) => String(name || "").normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48);
+export const slugify = (/** @type {unknown} */ name) => String(name || "").normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48);
 
-// GitHub as Space reads it (services/project_management.py _github_url): any page of a repo (…/tree/main,
-// …/pulls?q=…, #readme) names the repo; owner/repo alone does too
+// GitHub as Space reads it: any page of a repo names the repo; owner/repo alone does too
 const GH_PAGE = /^(?:https?:\/\/)?(?:www\.)?github\.com\/([A-Za-z0-9][A-Za-z0-9-]{0,38})\/([A-Za-z0-9._-]{1,100}?)(?:\.git)?(?:\/[^?#]*)?(?:[?#].*)?$/i;
 const GH_SHORT = /^([A-Za-z0-9][A-Za-z0-9-]{0,38})\/([A-Za-z0-9._-]{1,100}?)(?:\.git)?\/?$/;
 
-/** What the Repository field holds → {url, label, name, github} or null. owner/repo and github.com/… mean GitHub. */
+/** What the Repository field holds → {url, label, name, github} or null; owner/repo and github.com/… mean GitHub. @param {unknown} raw @returns {import("./types").Repo | null} */
 export function parseRepo(raw) {
   const v = String(raw || "").trim();
   if (!v || /\s/.test(v)) return null;
@@ -39,17 +39,17 @@ export function parseRepo(raw) {
   } catch { return null; }
 }
 
-/** ctx: {world, S, go, heraldShow, announce, setDrawer, onPhoneClose} */
+/** @param {import("./types").CreateCtx} ctx */
 export function initCreate(ctx) {
   const dlg = $("#create-dlg"), form = $("#create-form");
   const name = $("#cp-name"), desc = $("#cp-desc"), repo = $("#cp-repo"), submit = $("#cp-submit"), cancel = $("#cp-cancel");
-  let root = null, mode = "empty", nameTouched = false, busy = null, gh = { status: "unknown" }, login = null;
+  let root = /** @type {string | null} */ (null), mode = "empty", nameTouched = false, busy = /** @type {any} */ (null), gh = /** @type {any} */ ({ status: "unknown" }), login = /** @type {any} */ (null);
 
   $("#dlg-ic").innerHTML = ICON.project;
   $("#cpm-empty").innerHTML = ICON.plus;
   $("#cpm-clone").innerHTML = GH;
 
-  const error = (text, action) => {
+  const error = (/** @type {string} */ text, /** @type {{ id: string, label: string } | null | undefined} */ action = undefined) => {
     const el = $("#cp-err");
     el.innerHTML = text ? `${esc(text)}${action ? ` <button type="button" class="cp-link" data-cp="${action.id}">${esc(action.label)}</button>` : ""}` : "";
     el.hidden = !text;
@@ -67,7 +67,7 @@ export function initCreate(ctx) {
   function renderGh() {
     const el = $("#cp-gh"), r = parseRepo(repo.value), off = busy ? " disabled" : ""; // no new login mid-clone
     // in place: Connect becomes "Connecting…" and then Try again as the same button, so it keeps focus
-    const put = (html) => redraw(el, html);
+    const put = (/** @type {string} */ html) => redraw(el, html);
     delete el.dataset.tone;
     if (r && !r.github) { put(`${ICON.key}<span>Cloned with this server's own Git access.</span>`); return; }
     if (gh.status === "connected") { put(`${ICON.check}<span>Connected as <b>@${esc(gh.username || "you")}</b>. Private repos work too.</span>`); el.dataset.tone = "ok"; return; }
@@ -86,40 +86,35 @@ export function initCreate(ctx) {
     if (gh.status !== "connected") gh = { status: "needs_auth" };
     renderGh();
   }
-  /** GitHub's device flow, in place. Space answers "connected" at once when it can reuse this machine's gh
-   *  login. A code keeps being polled with the dialog closed: Space allows one login at a time, so dropping it
-   *  would leave the next Connect refused until the code expires. */
+  /** GitHub's device flow, in place; a code keeps being polled with the dialog closed, since Space allows one login at a time. */
   async function connect() {
     if (gh.status === "starting") return; // a second Connect while the first is starting joins it (Astra H6)
     clearTimeout(login);
     gh = { status: "starting" }; renderGh();
-    // a Connect can be pressed in two places: GitHub's line (#cp-gh) and a failed clone's message (#cp-err, its
-    // "Connect GitHub"). Focus on either is focus on Connect, and goes where Connect leads (Astra H6: BODY after
-    // success, from the message's Connect, which error("") takes away)
+    // Connect lives in GitHub's line (#cp-gh) and in a failed clone's message (#cp-err): focus on either is focus on Connect
     const onConnect = () => { const a = document.activeElement; return !!a && ($("#cp-gh").contains(a) || $("#cp-err").contains(a)); };
-    const settle = (next) => {
+    const settle = (/** @type {any} */ next) => {
       const was = onConnect();
       gh = next;
       renderGh();
       if (gh.status === "connected") { error(""); ctx.announce(`GitHub connected as ${gh.username}${gh.imported ? ", from this machine's gh login" : ""}.`); }
       if (!was) return;
-      // where Connect leads: a failure, a Connect again (the one you're on, else GitHub line's Try again); a code,
-      // its Copy; connected, the repository to clone
+      // where Connect leads: on failure a Connect again, for a code its Copy, once connected the repository
       const a = document.activeElement, still = a && a.isConnected && a.matches?.('[data-cp="connect"]');
       if (gh.status === "failed") { if (!still) $("#cp-gh [data-cp=connect]")?.focus({ preventScroll: true }); }
       else (gh.status === "code" ? $("#cp-gh [data-cp=copy]") : repo)?.focus({ preventScroll: true });
     };
-    let s;
-    try { s = await api.githubConnect(); } catch (err) { settle({ status: "failed", error: err.message }); return; }
+    let s = /** @type {any} */ (undefined);
+    try { s = await api.githubConnect(); } catch (/** @type {any} */ err) { settle({ status: "failed", error: err.message }); return; }
     if (s.status === "connected") { settle(s); return; }
     const was = onConnect();
     gh = { status: "code", code: s.user_code, uri: s.verification_uri, session: s.session_id };
     renderGh();
     if (was) $("#cp-gh [data-cp=copy]")?.focus({ preventScroll: true });
     const poll = async () => {
-      let r;
+      let r = /** @type {any} */ (undefined);
       // Space's 502 carries its words in a field ApiError doesn't read; 404 is a code that expired
-      try { r = await api.githubConnectPoll(s.session_id); } catch (err) { r = { status: "failed", error: err.status === 404 ? "That code expired." : "" }; }
+      try { r = await api.githubConnectPoll(s.session_id); } catch (/** @type {any} */ err) { r = { status: "failed", error: err.status === 404 ? "That code expired." : "" }; }
       if (gh.session !== s.session_id) return; // a newer code took over
       if (r.status === "pending") { login = setTimeout(poll, 5000); return; }
       settle(r.status === "connected" ? r : { status: "failed", error: r.error });
@@ -127,7 +122,7 @@ export function initCreate(ctx) {
     login = setTimeout(poll, 5000);
   }
 
-  function setMode(m, { focus = true } = {}) {
+  function setMode(/** @type {string} */ m, { focus = true } = {}) {
     mode = m;
     for (const b of $("#cp-mode").children) { b.setAttribute("aria-checked", String(b.dataset.mode === m)); b.tabIndex = b.dataset.mode === m ? 0 : -1; }
     $("#cp-repo-f").hidden = m !== "clone";
@@ -138,24 +133,18 @@ export function initCreate(ctx) {
     if (focus) (m === "clone" ? repo : name).focus();
   }
 
-  // busy: {t0, label, cloneId?, st?: Space's clone status} while creating or cloning
+  /** busy: {t0, label, cloneId?, st?} while creating or cloning. @param {boolean} on @param {import("./types").Repo | null} [repoOf] */
   function setBusy(on, repoOf) {
     clearTimeout(busy?.timer);
     busy = on ? { t0: Date.now(), label: repoOf?.label, host: repoOf && (repoOf.github ? "GitHub" : repoOf.label.split(/[/:]/)[0]) } : null;
     for (const el of [name, desc, repo]) el.disabled = on;
     for (const b of $("#cp-mode").children) b.disabled = on;
-    // aria-disabled, not disabled: a pressed Create keeps focus while it works, and a failure leaves it there to
-    // try again (a disabled button drops focus to the page: Astra H3)
-    // (a value, never a bare attribute: aria-disabled="" reads as not disabled, the create-project grader's C019)
+    // aria-disabled="true", not disabled: a pressed Create keeps focus while it works, and a failure leaves it there
     if (on) { submit.setAttribute("aria-disabled", "true"); submit.setAttribute("aria-busy", "true"); } else { submit.removeAttribute("aria-disabled"); submit.removeAttribute("aria-busy"); }
     submit.innerHTML = on ? `<i class="spin" aria-hidden="true"></i>${mode === "clone" ? "Cloning…" : "Creating…"}` : (mode === "clone" ? "Clone project" : "Create project");
-    // a create on its way can't be called back (a clone has its own Stop): the button only closes the dialog, and
-    // says so; it said Cancel for an empty project, which was made anyway (the create-project grader's C018)
+    // a create on its way can't be called back (a clone has its own Stop): the button only closes the dialog, and says so
     cancel.textContent = on ? "Close" : "Cancel";
-    // the progress row (and its Stop) goes when the work ends, however it ends (failed, stopped, done): focus that
-    // was in it lands on Create, the control that starts it again, before the row is hidden. A Stop hidden while it
-    // has focus drops focus to the page: after a refused Stop, a clone that then failed did that (Astra H20/S144).
-    // A caller with a better place (the field to fix, the new project) moves it on from there.
+    // the progress row goes when the work ends, however it ends: focus that was in it lands on Create before it hides
     const fromProg = !on && $("#cp-prog").contains(document.activeElement);
     $("#cp-prog").hidden = !(on && mode === "clone");
     if (fromProg) submit.focus({ preventScroll: true });
@@ -164,13 +153,12 @@ export function initCreate(ctx) {
     if (mode === "clone") renderGh();
     if (on && mode === "clone") tick();
   }
-  /** The cloning row: what Space says it's doing (or just "Cloning"), how far when it knows, the time taken.
-   *  Its nodes stay put (only their text changes), so Stop keeps focus; only a new phase is announced. */
+  /** The cloning row: phase, progress and time; its nodes stay put so Stop keeps focus, and only a new phase is announced. */
   function tick() {
     if (!busy) return;
     const s = Math.floor((Date.now() - busy.t0) / 1000), st = busy.st || {};
     // 0 % is "not started yet" (a big repo can count for a while on GitHub's side): the bar keeps moving until it has a real figure
-    const pct = st.percent > 0 ? Math.min(100, Math.round(st.percent)) : null;
+    const pct = /** @type {any} */ (st.percent > 0 ? Math.min(100, Math.round(st.percent)) : null);
     const bar = $("#cp-bar"), facts = [pct > 0 && `${pct}%`, st.received_bytes > 0 && fmtSize(st.received_bytes)].filter(Boolean).join(" · ");
     bar.classList.toggle("is-known", pct != null);
     bar.firstElementChild.style.width = pct != null ? `${pct}%` : "";
@@ -187,14 +175,13 @@ export function initCreate(ctx) {
     $("#cp-hint").hidden = s < 6;
     busy.timer = setTimeout(tick, 1000 - ((Date.now() - busy.t0) % 1000));
   }
-  /** Follow a clone Space runs in the background until it's done; throws its error, or "cancelled" once it's
-   *  stopped (from here or anywhere else). This is the one place a clone ends, so busy stays this clone's. */
+  /** Follow a clone until it's done; throws its error, or "cancelled" once it's stopped from anywhere. @param {string} cloneId */
   async function follow(cloneId) {
     busy.cloneId = cloneId;
     for (;;) {
       await new Promise((r) => setTimeout(r, 1000));
       let st;
-      try { st = await api.cloneStatus(cloneId); } catch (err) { if (err.status === 404) throw err; continue; } // a blip: ask again
+      try { st = await api.cloneStatus(cloneId); } catch (/** @type {any} */ err) { if (err.status === 404) throw err; continue; } // a blip: ask again
       busy.st = st;
       if (st.state === "done") return st;
       if (st.state === "failed") throw Object.assign(new Error(st.error?.message || "The clone failed."), { code: st.error?.code || "clone_failed", detail: st.error?.detail, status: 502 });
@@ -205,14 +192,11 @@ export function initCreate(ctx) {
     const id = busy?.cloneId;
     const st = $("#cp-stop");
     if (!id || st.getAttribute("aria-busy") === "true") return;
-    // aria-disabled while it asks, not disabled: a disabled button drops focus to the page, and a refused stop
-    // leaves you on Stop to try again (Astra H20/S144)
+    // aria-disabled while it asks, not disabled: a refused stop leaves you on Stop to try again
     st.setAttribute("aria-disabled", "true"); st.setAttribute("aria-busy", "true");
-    // Following the clone shows how it ended: stopped, or done or failed when Stop came too late
-    // (once Space has published the project, a cancel ends the job "done" and the project opens).
-    try { await api.cancelClone(id); } catch (err) {
-      // the answer is this clone's: if it has ended and another started meanwhile, its refusal says nothing to
-      // the new one's Stop (Astra SRC-MAIN-CREATE-1: an old refusal cleared the new Stop's busy state)
+    // following the clone shows how it ended: stopped, or done or failed when Stop came too late
+    try { await api.cancelClone(id); } catch (/** @type {any} */ err) {
+      // the answer is this clone's: a refusal for an ended clone says nothing to a newer one's Stop
       if (busy?.cloneId !== id) return;
       if (err.code === "clone_finished" || err.status === 404) return;
       st.removeAttribute("aria-disabled"); st.removeAttribute("aria-busy");
@@ -220,7 +204,7 @@ export function initCreate(ctx) {
     }
   }
 
-  /** Space's words for a failed clone → what the dialog says, and the one action that helps. */
+  /** Space's words for a failed clone → what the dialog says, and the one action that helps. @param {any} err @param {import("./types").Repo} r @param {string} id @returns {[string, { id: string, label: string } | null, any?]} */
   function cloneError(err, r, id) {
     const code = err.code, host = r.github ? "GitHub" : r.label.split(/[/:]/)[0];
     const connect = { id: "connect", label: gh.status === "connected" ? "Reconnect GitHub" : "Connect GitHub" };
@@ -242,7 +226,7 @@ export function initCreate(ctx) {
     return [err.detail ? `${err.message} (${err.detail})` : err.message, null];
   }
 
-  let opener = null; // what opened Create: focus goes back there when it closes (Astra H4)
+  let opener = /** @type {any} */ (null); // what opened Create: focus goes back there when it closes (Astra H4)
   async function open() {
     const a = document.activeElement;
     if (a && a !== document.body && !dlg.contains(a)) opener = a;
@@ -258,18 +242,14 @@ export function initCreate(ctx) {
     (mode === "clone" ? repo : name).focus();
     loadRoot();
   }
-  /** Where projects live, read once; a submit that comes first waits for it. */
+  /** Where projects live, read once; a submit that comes first waits for it. @type {Promise<string | null> | null} */
   let rootP = null;
   function loadRoot() {
     if (root) return Promise.resolve(root);
-    return (rootP ||= api.workspaceConfig().then((cfg) => { root = cfg.roots?.[cfg.default] || null; renderWhere(); return root; },
-      (err) => { rootP = null; error(`Can't read where projects live: ${err.message}`); return null; }));
+    return (rootP ||= api.workspaceConfig().then((/** @type {any} */ cfg) => { root = cfg.roots?.[cfg.default] || null; renderWhere(); return root; },
+      (/** @type {any} */ err) => { rootP = null; error(`Can't read where projects live: ${err.message}`); return null; }));
   }
-  /**
-   * Close. Back to what opened it (Home's Create, the composer Jump came from …), or, on a phone, the menu when
-   * that opener was inside the drawer and is gone. now: no closing animation, so the native modal lets go at once
-   * and the place the person is taken to can take focus (a project just made: Astra H2).
-   */
+  /** Close, back to what opened it (or the phone menu); now: no closing animation, so the place opened next can take focus. */
   function close({ now = false, restore = true } = {}) {
     if (!dlg.open) return;
     const back = opener; opener = null;
@@ -283,7 +263,7 @@ export function initCreate(ctx) {
     setTimeout(() => { dlg.classList.remove("is-closing"); dlg.close(); land(); }, 160);
   }
 
-  /** warning: Space's word on what didn't stick (the project is made either way). */
+  /** warning: Space's word on what didn't stick. @param {string} id @param {string} title @param {string} description @param {string} line @param {string} [warning] */
   async function done(id, title, description, line, warning) {
     // The project is made either way: a failed refresh mustn't read as a failed clone (the next one shows it)
     await ctx.world.act.refresh().catch(() => {});
@@ -322,7 +302,7 @@ export function initCreate(ctx) {
         await api.createProject({ path: `${root}/${id}`, displayName: title, description });
         await done(id, title, description, "created · folder, plan and memory scaffolded");
       }
-    } catch (err) {
+    } catch (/** @type {any} */ err) {
       setBusy(false);
       // Stop is gone: land on what starts it again
       if (err.code === "cancelled") { error(""); submit.focus(); ctx.announce("Stopped cloning. Nothing was kept."); return; }
@@ -334,14 +314,14 @@ export function initCreate(ctx) {
     }
   }
 
-  $("#cp-mode").addEventListener("click", (e) => { const b = e.target.closest("[data-mode]"); if (b && b.dataset.mode !== mode) setMode(b.dataset.mode); });
-  $("#cp-mode").addEventListener("keydown", (e) => {
+  $("#cp-mode").addEventListener("click", (/** @type {any} */ e) => { const b = e.target.closest("[data-mode]"); if (b && b.dataset.mode !== mode) setMode(b.dataset.mode); });
+  $("#cp-mode").addEventListener("keydown", (/** @type {any} */ e) => {
     if (!/^Arrow(Left|Right|Up|Down)$/.test(e.key)) return;
     e.preventDefault();
     setMode(mode === "empty" ? "clone" : "empty", { focus: false });
     $(`#cp-mode [data-mode="${mode}"]`).focus();
   });
-  form.addEventListener("click", (e) => {
+  form.addEventListener("click", (/** @type {any} */ e) => {
     const a = e.target.closest("[data-cp]");
     if (!a) return;
     if (a.dataset.cp === "connect") { e.preventDefault(); connect(); }
@@ -358,7 +338,7 @@ export function initCreate(ctx) {
   name.addEventListener("input", () => { nameTouched = !!name.value; renderWhere(); error(""); });
   cancel.addEventListener("click", close);
   $("#cp-stop").addEventListener("click", stop);
-  form.addEventListener("submit", (e) => { e.preventDefault(); submitForm(); });
-  dlg.addEventListener("cancel", (e) => { e.preventDefault(); close(); });
+  form.addEventListener("submit", (/** @type {any} */ e) => { e.preventDefault(); submitForm(); });
+  dlg.addEventListener("cancel", (/** @type {any} */ e) => { e.preventDefault(); close(); });
   return { open, close, isOpen: () => dlg.open };
 }

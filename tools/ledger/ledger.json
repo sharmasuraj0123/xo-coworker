@@ -1633,7 +1633,8 @@
    "home": [
     "modules/settings/shape.css",
     "core/ui (density)"
-   ]
+   ],
+   "note": "Settings \u203a Shape and its rail label moved to modules/settings/shape.css, which css/shape.css imports first (same cascade place); density and the two composer and thread rules stay for core/ui"
   },
   "css/side.css": {
    "status": "planned",
@@ -2228,8 +2229,8 @@
    "home": "modules/decisions/rank.js"
   },
   "js/create.js": {
-   "status": "planned",
-   "home": "modules/create-project/"
+   "status": "moved",
+   "home": "modules/create-project/create.js"
   },
   "js/decide.js": {
    "status": "split",
@@ -2442,7 +2443,7 @@
    "home": "modules/projects/projicons.js"
   },
   "js/quickopen.js": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/record.js": {
@@ -2478,11 +2479,9 @@
    "home": "core/ui/a11y/ring.js"
   },
   "js/rtsettings.js": {
-   "status": "split",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ]
+   "status": "moved",
+   "home": "modules/runtimes/settings.js",
+   "note": "the whole page moved, Paid usage rows with it: they become modules/runtimes/paid when Paid is its own settings.section"
   },
   "js/runsview.js": {
    "status": "planned",
@@ -2495,23 +2494,21 @@
   "js/settings.js": {
    "status": "split",
    "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ]
+    "modules/settings/host.js",
+    "modules/routing/page.js",
+    "modules/rules/page.js",
+    "modules/worktrees/page.js"
+   ],
+   "note": "js/settings.js keeps only the wiring until the shell's settings.section place takes it"
   },
   "js/shape.js": {
    "status": "planned",
    "home": "core/services/shape/shape.js"
   },
   "js/shapeview.js": {
-   "status": "split",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ]
+   "status": "moved",
+   "home": "modules/settings/shape-page.js",
+   "note": "whole file moved; the home thread takes homeOrder and the shell thread density (apply) from shape-page.js later"
   },
   "js/shells/dock.js": {
    "status": "planned",
@@ -4237,12 +4234,13 @@
    "home": "shell (panel host)/tests/cover-inert.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/create-busy-honest.test.mjs": {
-   "status": "planned",
-   "home": "modules/create-project/tests/create-busy-honest.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/create-project/tests/create-busy-honest.test.mjs",
+   "note": "still reads the source; its rewrite as a behaviour test is owed"
   },
   "tests/create.test.mjs": {
-   "status": "planned",
-   "home": "modules/create-project/tests/create.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/create-project/tests/create.test.mjs"
   },
   "tests/css-wellformed.test.mjs": {
    "status": "planned",
@@ -4445,12 +4443,14 @@
    "home": "core/services + conversation (markdown)/tests/logic.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/lp-create-connect-focus.test.mjs": {
-   "status": "planned",
-   "home": "modules/create-project/tests/lp-create-connect-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/create-project/tests/lp-create-connect-focus.test.mjs",
+   "note": "still reads the source; its rewrite as a behaviour test is owed"
   },
   "tests/lp-create-stop-focus.test.mjs": {
-   "status": "planned",
-   "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs",
+   "note": "still reads the source; its rewrite as a behaviour test is owed"
   },
   "tests/lp-intel-order.test.mjs": {
    "status": "planned",
@@ -4621,8 +4621,9 @@
    "home": "modules/search/tests/quickopen.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/rail-order.test.mjs": {
-   "status": "planned",
-   "home": "modules/settings/tests/rail-order.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/settings/tests/rail-order.test.mjs",
+   "note": "re-pointed at shape-page.js; still reads the source, a behaviour rewrite is open"
   },
   "tests/rec-undo-focus.test.mjs": {
    "status": "planned",
@@ -4681,12 +4682,13 @@
    "home": "modules/settings/tests/routing-truth.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/routing-words.test.mjs": {
-   "status": "planned",
-   "home": "modules/settings/tests/routing-words.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/routing/tests/routing-words.test.mjs",
+   "note": "still reads the source; its rewrite as a behaviour test is owed"
   },
   "tests/rtsettings.test.mjs": {
-   "status": "planned",
-   "home": "modules/settings/runtimes/tests/rtsettings.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/runtimes/tests/rtsettings.test.mjs"
   },
   "tests/runs-stop-receipt.test.mjs": {
    "status": "planned",
@@ -4697,8 +4699,9 @@
    "home": "modules/settings/runtimes/tests/runtimes.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/saved-truth.test.mjs": {
-   "status": "planned",
-   "home": "modules/settings/runtimes/tests/saved-truth.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/runtimes/tests/saved-truth.test.mjs",
+   "note": "still reads the source; its rewrite as a behaviour test is owed"
   },
   "tests/scroller-ring.test.mjs": {
    "status": "planned",
@@ -4729,12 +4732,14 @@
    "home": "core/ui (css guard)/tests/settings-css.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/shape-held.test.mjs": {
-   "status": "planned",
-   "home": "modules/settings/tests/shape-held.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/settings/tests/shape-held.test.mjs",
+   "note": "re-pointed at shape-page.js; still reads the source, a behaviour rewrite is open"
   },
   "tests/shape-unkept.test.mjs": {
-   "status": "planned",
-   "home": "modules/settings/tests/shape-unkept.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/settings/tests/shape-unkept.test.mjs",
+   "note": "re-pointed at shape-page.js; still reads the source, a behaviour rewrite is open"
   },
   "tests/shape.test.mjs": {
    "status": "planned",
@@ -7472,20 +7477,23 @@
    "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4025)"
   },
   "js/app.js::functions::jumpRender": {
-   "status": "planned",
-   "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4029)"
+   "status": "moved",
+   "home": "modules/search/jump.js",
+   "note": "createJump: render, open, close; app.js keeps the items it lists (places, actions) until the jump.item place"
   },
   "js/app.js::functions::focusOverlay": {
    "status": "planned",
    "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4058)"
   },
   "js/app.js::functions::openJump": {
-   "status": "planned",
-   "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4063)"
+   "status": "moved",
+   "home": "modules/search/jump.js",
+   "note": "createJump: render, open, close; app.js keeps the items it lists (places, actions) until the jump.item place"
   },
   "js/app.js::functions::closeJump": {
-   "status": "planned",
-   "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4064)"
+   "status": "moved",
+   "home": "modules/search/jump.js",
+   "note": "createJump: render, open, close; app.js keeps the items it lists (places, actions) until the jump.item place"
   },
   "js/app.js::functions::syncInert": {
    "status": "planned",
@@ -7540,24 +7548,28 @@
    "home": "modules/settings (route `settings/<page>`) (app.js l.4242)"
   },
   "js/app.js::functions::setPage": {
-   "status": "planned",
-   "home": "modules/settings (route `settings/<page>`) (app.js l.4255)"
+   "status": "moved",
+   "home": "modules/settings/frame.js",
+   "note": "createSettingsFrame; app.js keeps one-line openSettings/closeSettings until the shell's settings place takes them"
   },
   "js/app.js::functions::openSettings": {
-   "status": "planned",
-   "home": "modules/settings (route `settings/<page>`) (app.js l.4263)"
+   "status": "moved",
+   "home": "modules/settings/frame.js",
+   "note": "createSettingsFrame; app.js keeps one-line openSettings/closeSettings until the shell's settings place takes them"
   },
   "js/app.js::functions::closeSettings": {
-   "status": "planned",
-   "home": "core/platform keys (sheet + settings section); rail keys → modules/settings (app.js l.4277)"
+   "status": "moved",
+   "home": "modules/settings/frame.js",
+   "note": "createSettingsFrame; app.js keeps one-line openSettings/closeSettings until the shell's settings place takes them"
   },
   "js/app.js::functions::keysSheetRender": {
    "status": "planned",
    "home": "core/platform keys (sheet + settings section); rail keys → modules/settings (app.js l.4296)"
   },
   "js/app.js::functions::keysPageRender": {
-   "status": "planned",
-   "home": "core/platform keys (sheet + settings section); rail keys → modules/settings (app.js l.4302)"
+   "status": "moved",
+   "home": "modules/settings/keys-page.js",
+   "note": "createKeysPage; app.js renders it on K.onChange"
   },
   "js/app.js::functions::runGlobal": {
    "status": "planned",
@@ -7728,8 +7740,9 @@
    "home": "modules/threads (`thread.menu` list place: shells, runtimes add items) (app.js l.3869)"
   },
   "js/app.js::ids::keys-reset-all": {
-   "status": "planned",
-   "home": "core/platform keys (sheet + settings section); rail keys → modules/settings (app.js l.4315)"
+   "status": "moved",
+   "home": "modules/settings/keys-page.js",
+   "note": "createKeysPage; app.js renders it on K.onChange"
   },
   "js/app.js::ids::all-list": {
    "status": "planned",
@@ -8507,32 +8520,32 @@
    "home": "modules/decisions/rank.js"
   },
   "js/create.js::exports::slugify": {
-   "status": "planned",
-   "home": "modules/create-project/"
+   "status": "moved",
+   "home": "modules/create-project/create.js"
   },
   "js/create.js::exports::parseRepo": {
-   "status": "planned",
-   "home": "modules/create-project/"
+   "status": "moved",
+   "home": "modules/create-project/create.js"
   },
   "js/create.js::exports::initCreate": {
-   "status": "planned",
-   "home": "modules/create-project/"
+   "status": "moved",
+   "home": "modules/create-project/create.js"
   },
   "js/create.js::functions::parseRepo": {
-   "status": "planned",
-   "home": "modules/create-project/"
+   "status": "moved",
+   "home": "modules/create-project/create.js"
   },
   "js/create.js::functions::initCreate": {
-   "status": "planned",
-   "home": "modules/create-project/"
+   "status": "moved",
+   "home": "modules/create-project/create.js"
   },
   "js/create.js::keys::clone_finished": {
-   "status": "planned",
-   "home": "modules/create-project/"
+   "status": "moved",
+   "home": "modules/create-project/create.js"
   },
   "js/create.js::keys::cancelled": {
-   "status": "planned",
-   "home": "modules/create-project/"
+   "status": "moved",
+   "home": "modules/create-project/create.js"
   },
   "js/decide.js::exports::riskLabel": {
    "status": "split-region",
@@ -12417,43 +12430,43 @@
    "home": "modules/projects/projicons.js"
   },
   "js/quickopen.js::exports::createQuickOpen": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/quickopen.js::functions::createQuickOpen": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/quickopen.js::ids::qo-q": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/quickopen.js::ids::qo-list": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/quickopen.js::ids::qo-": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/quickopen.js::keys::bad_regex": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/quickopen.js::keys::ArrowDown": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/quickopen.js::keys::ArrowUp": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/quickopen.js::keys::Enter": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/quickopen.js::keys::Escape": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/record.js::exports::AWAY_MS": {
@@ -13249,116 +13262,60 @@
    "home": "core/ui/a11y/ring.js"
   },
   "js/rtsettings.js::exports::usualOf": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::exports::sameValue": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::exports::receipts": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::exports::createRuntimeSettings": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::functions::usualOf": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::functions::receipts": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::functions::createRuntimeSettings": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::ids::settings": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::ids::rtsp-h": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::ids::rtd-preferences": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::ids::rtd-pref": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::ids::rtp-space": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::ids::rtp-h": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::ids::rtl-h": {
-   "status": "split-region",
-   "home": [
-    "modules/runtimes (settings.section)",
-    "modules/runtimes/paid"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/runtimes/settings.js"
   },
   "js/runsview.js::exports::runsStripHtml": {
    "status": "planned",
@@ -13577,114 +13534,53 @@
    "home": "core/services/runtimes.js"
   },
   "js/settings.js::exports::createSettings": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "js/settings.js (wiring)"
   },
   "js/settings.js::functions::createSettings": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "js/settings.js (wiring)"
   },
   "js/settings.js::ids::settings": {
-   "status": "split-region",
+   "status": "split",
    "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+    "modules/settings/host.js",
+    "modules/routing/page.js",
+    "modules/rules/page.js",
+    "modules/worktrees/page.js"
+   ]
   },
   "js/settings.js::ids::rt-h": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/routing/page.js"
   },
   "js/settings.js::ids::dm-h": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/routing/page.js"
   },
   "js/settings.js::ids::ov-h": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/routing/page.js"
   },
   "js/settings.js::ids::rl-mine": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/rules/page.js"
   },
   "js/settings.js::ids::rl-def": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/rules/page.js"
   },
   "js/settings.js::keys::invalid_key": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/routing/page.js"
   },
   "js/settings.js::keys::would_lose_work": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/worktrees/page.js"
   },
   "js/settings.js::keys::session_busy": {
-   "status": "split-region",
-   "home": [
-    "modules/settings (host, pend/land)",
-    "modules/routing",
-    "modules/rules",
-    "modules/worktrees"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/worktrees/page.js"
   },
   "js/shape.js::exports::SHAPE_VERSION": {
    "status": "planned",
@@ -13823,121 +13719,56 @@
    "home": "core/services/shape/shape.js"
   },
   "js/shapeview.js::exports::SHAPE_IC": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::exports::UNKEPT": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::exports::createShapeView": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::functions::inOrder": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::functions::createShapeView": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::ids::settings": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::ids::shp-h-p": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::ids::shp-cf": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::ids::shp-h-d": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::ids::shp-h-v": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::ids::shp-dense-l": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::ids::shp-js": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::ids::shp-h-pr": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shells/dock.js::exports::createShells": {
    "status": "planned",
@@ -17376,8 +17207,8 @@
    "home": "core/platform (sounds) + settings/tests/conv-sound.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/create.test.mjs::globals::matchMedia": {
-   "status": "planned",
-   "home": "modules/create-project/tests/create.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/create-project/tests/create.test.mjs"
   },
   "tests/css-wellformed.test.mjs::functions::uncomment": {
    "status": "planned",
@@ -17636,12 +17467,12 @@
    "home": "core/services + conversation (markdown)/tests/logic.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/lp-create-stop-focus.test.mjs::ids::cp-prog": {
-   "status": "planned",
-   "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs"
   },
   "tests/lp-create-stop-focus.test.mjs::ids::cp-stop": {
-   "status": "planned",
-   "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs"
   },
   "tests/lp-intel-order.test.mjs::globals::window": {
    "status": "planned",
@@ -17804,8 +17635,8 @@
    "home": "modules/projects/tests/project-icons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/rail-order.test.mjs::functions::dom": {
-   "status": "planned",
-   "home": "modules/settings/tests/rail-order.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/settings/tests/rail-order.test.mjs"
   },
   "tests/reconcile-focus.test.mjs::exports::reconcile": {
    "status": "planned",
@@ -17844,8 +17675,8 @@
    "home": "modules/threads/tests/runs-stop-receipt.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/saved-truth.test.mjs::globals::matchMedia": {
-   "status": "planned",
-   "home": "modules/settings/runtimes/tests/saved-truth.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/runtimes/tests/saved-truth.test.mjs"
   },
   "tests/shape.test.mjs::functions::test_store_more": {
    "status": "planned",

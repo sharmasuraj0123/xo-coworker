@@ -31,7 +31,7 @@ import { createLightbox } from "./lightbox.js";
 import { itemParts } from "./review.js";
 import { runsStripHtml, runsListHtml, runViewHtml } from "./runsview.js";
 import { createSettings } from "./settings.js";
-import { createRuntimeSettings } from "./rtsettings.js";
+import { createRuntimeSettings } from "../modules/runtimes/settings.js";
 import { createChats } from "./chats.js";
 import { initFollow, toLatest, unpin, isPinned, fromTop, toRow, fromLatest, createFollow } from "./follow.js";
 import { decorateConversation } from "./msgx.js";
@@ -42,7 +42,10 @@ import { createLaunchpad } from "./launchpad.js";
 import { createLpApi } from "./lpapi.js";
 import { createFiles, fileScope, localIn, scopeOf as filesScopeOf } from "./files.js";
 import { createPaths } from "./paths.js";
-import { createQuickOpen } from "./quickopen.js";
+import { createQuickOpen } from "../modules/search/quickopen.js";
+import { createJump } from "../modules/search/jump.js";
+import { createSettingsFrame } from "../modules/settings/frame.js";
+import { createKeysPage } from "../modules/settings/keys-page.js";
 import { createFilesPage } from "./filespage.js";
 import { createChanges, lineRef, fileRef } from "./changes.js";
 import { fileIcon } from "./fileicons.js";
@@ -50,7 +53,7 @@ import { countsHtml } from "./changesframe.js";
 import { setTheme as setDiffTheme } from "./diffview.js";
 import { createTray, fmtSize, kindOf, isLargePaste, pasteLabel, uploadErrorText, FINAL, MAX_FILES } from "./attach.js";
 import { api, uploadAttachment } from "./api.js";
-import { initCreate } from "./create.js";
+import { initCreate } from "../modules/create-project/create.js";
 import { classify, glyph, TOPICS } from "./projicons.js";
 import { createShells } from "./shells/dock.js";
 import { createRecord } from "./recordview.js";
@@ -60,7 +63,7 @@ import { wireGestures, dockGestures } from "./gestures.js";
 import { rtName, rtMark, manyRuntimes, findRt, healthOf, canMove, untilWords } from "./runtimes.js";
 // the UI's shape per person: which surfaces show, in what order, how dense, in which words (js/shape.js)
 import { createShapeStore } from "./shape.js";
-import { createShapeView, SHAPE_IC, UNKEPT } from "./shapeview.js";
+import { createShapeView, SHAPE_IC, UNKEPT } from "../modules/settings/shape-page.js";
 import { setWorkMode } from "./turnview.js";
 import { radioKeys, menuKeys } from "./keynav.js";
 import { createHerald, noticeFor, refusedNotice } from "./herald.js";
@@ -243,7 +246,7 @@ world.onEvent((e) => {
     PATHS.changed({ project: d.project_id, base: m ? m[1] : "" }, { kind: d.kind, path: m ? m[2] : d.path, old_path: d.old_path ? d.old_path.replace(/^\.xo\/worktrees\/[^/]+\//, "") : null });
   }
 });
-// every file in a place (js/paths.js), for ⌘P and the tree's Find; ⌘P and ⌘⇧F themselves (js/quickopen.js)
+// every file in a place (js/paths.js), for ⌘P and the tree's Find; ⌘P and ⌘⇧F themselves (modules/search/quickopen.js)
 const PATHS = createPaths({ api, onChange: () => { QO.refresh(); FILES.pathsChanged && FILES.pathsChanged(); } });
 /** The place the view shows files of (a thread's worktree, a project's folder), or null. */
 const placeNow = () => { const s = filesScopeOf(S.view, { thread: (id) => world.thread(id), project: (id) => PROJ(id) }); return s.key === "all" ? null : { project: s.project, base: s.base || "", label: s.label + (s.sub ? ` · ${s.sub}` : "") }; };
@@ -3985,7 +3988,7 @@ allEl.addEventListener("click", (e) => {
   if (g) { allEl.hidden = true; go(g.dataset.go); }
 });
 
-// ── Create XO Project (js/create.js): start empty or clone a repository ─────
+// ── Create XO Project (modules/create-project/create.js): start empty or clone a repository ─────
 const CREATE = initCreate({
   world, S, go, heraldShow, announce, setDrawer,
   // On a phone the sidebar button that opened it is inside the closed drawer: return to the menu.
@@ -4015,72 +4018,38 @@ $("#side-x").addEventListener("click", () => setDrawer(false));
 $("#side-scrim").addEventListener("click", () => setDrawer(false));
 
 // ── jump (⌘K) ───────────────────────────────────────────────────────────────
-const jump = $("#jump"), jq = $("#jump-q"), jl = $("#jump-list");
-let jsel = 0, jitems = [];
-/** A thread's icon in ⌘K: its state glyph, the one every list uses (the blue working arc while it works, amber
-    when it needs you); no dot on a corner (the owner: no blue dots anywhere). */
+const jump = $("#jump");
+/** A thread's icon in ⌘K: its state glyph, the one every list uses (amber when it needs you). */
 function threadIc(t) {
   const n = D.needItems().some((x) => x.t.id === t.id && x.admitted);
   return `<span class="j-th"><i class="g g-${n ? "needs_reply" : glyphOf(t)}" aria-hidden="true"></i></span>`;
 }
-function jumpRender() {
-  const q = jq.value.trim().toLowerCase();
+function jumpPlaces() {
   const all = [{ v: "home", name: "Home", sub: "Your next move", icon: ICON.home }, { v: "ws", name: "Workspace", sub: "The coordinator", icon: XO }, { v: "chats", name: "Chats", sub: "One agent, one folder", icon: ICON.thread }, { v: "artifacts", name: "Artifacts", sub: "Everything your threads made", icon: ICON.stack }];
   for (const p of projects()) {
     all.push({ v: "p:" + p.id, name: p.name, sub: "Project", icon: projectIcon(p.id) });
     for (const t of threadsOf(p.id)) all.push({ v: "t:" + t.id, name: t.title, sub: `${p.name} · ${wordOf(t).toLowerCase()}`, icon: threadIc(t), t: true });
   }
-  // verbs, after the places and only when typed for: searching never runs one; Enter or a click does
+  return all;
+}
+function jumpActions() {
   const light = document.documentElement.dataset.theme === "light";
-  const verbs = q ? [
+  return [
     { name: "New project…", sub: "Action", icon: ICON.plus, run: () => CREATE.open() },
     { name: "Settings", sub: "Action", icon: ICON.sliders, run: () => openSettings() },
     { name: "Keyboard shortcuts", sub: "Action", icon: ICON.sliders, run: () => openKeys() },
     { name: light ? "Dark mode" : "Light mode", sub: "Action", icon: light ? ICON.moon : ICON.sun, run: () => $("#theme").click() },
     ...(IQ.kindOf(sessionOf(S.view)) ? [{ name: "Intelligence: model and thinking", sub: "Action", icon: ICON.sliders, run: () => IQ.open(sessionOf(S.view), $("#iq")) }] : []),
     ...(S.view !== "home" && S.view !== "artifacts" ? [{ name: "Threads, Changes and Map", sub: "Action", icon: ICON.sliders, run: () => STAGE.toggle() }] : []),
-  ].filter((x) => x.name.toLowerCase().includes(q)) : [];
-  jitems = all.filter((x) => !q || (x.name + " " + x.sub).toLowerCase().includes(q)).concat(verbs, REC.jumpItems(q));
-  jsel = Math.min(jsel, Math.max(0, jitems.length - 1));
-  jl.innerHTML = jitems.map((x, i) => `<li role="option" id="j-${i}" aria-selected="${i === jsel}" data-i="${i}" class="${x.t ? "is-t" : ""}"><span class="j-ic">${x.icon}</span><span class="j-n">${esc(x.name)}</span><span class="j-s">${esc(x.sub)}</span></li>`).join("") || `<li class="j-none">Nothing matches “${esc(q)}”.</li>`;
-  jq.setAttribute("aria-activedescendant", jitems.length ? `j-${jsel}` : "");
-  jl.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: "nearest" });
+  ];
 }
-let jumpReturn = null;
-/**
- * Focus an overlay that is opening. A native modal still closing (Create's 160 ms) holds focus until it lets go,
- * and then hands it back to whatever opened it: the overlay takes it now if it can, and again once the modal has
- * closed, so the person's keys land where they now look (Astra C020: Create, Esc, Ctrl+K at once).
- */
+// Focus an opening overlay now, and again once a native modal still closing (Create's 160 ms) lets go of it.
 function focusOverlay(target) {
   target.focus({ preventScroll: true });
   const modal = [...document.querySelectorAll("dialog[open]")].find((d) => d.matches(":modal"));
   if (modal) modal.addEventListener("close", () => { if (target.isConnected && !target.closest("[hidden]")) target.focus({ preventScroll: true }); }, { once: true });
 }
-function openJump() { jumpReturn = document.activeElement; jump.hidden = false; jq.value = ""; jsel = 0; jumpRender(); focusOverlay(jq); }
-function closeJump({ restore = true } = {}) { if (jump.hidden) return; jump.hidden = true; syncInert(); if (restore && jumpReturn && jumpReturn.isConnected && jumpReturn.offsetParent) jumpReturn.focus({ preventScroll: true }); }
-jq.addEventListener("input", () => { jsel = 0; jumpRender(); });
-jq.addEventListener("keydown", (e) => {
-  // every key of a word being composed (an IME) is the word's: its arrows move among the candidates, Escape
-  // cancels it, Enter finishes it; none of them moves the selection or closes Jump (Astra SRC-MAIN-IME-1)
-  if (e.isComposing || e.keyCode === 229) return;
-  if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); jsel = (jsel + (e.key === "ArrowDown" ? 1 : jitems.length - 1)) % Math.max(1, jitems.length); jumpRender(); }
-  // Enter while a word is being composed (an IME) finishes the word; with nothing found, Jump stays open on what
-  // you typed (it never closes onto nothing: Astra, e20231c)
-  if (e.key === "Enter") { e.preventDefault(); const x = jitems[jsel]; if (!x) { announce("Nothing matches. Change what you typed, or Esc to close."); return; } closeJump({ restore: !!x.run }); x.run ? x.run() : go(x.v); }
-  if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeJump(); }
-});
-// the row under a moving pointer becomes the selection, as the arrows make it (only on a real move: a list
-// scrolling under a still pointer never steals the keyboard's row)
-jl.addEventListener("pointermove", (e) => {
-  const li = e.target.closest("[data-i]");
-  if (!li || +li.dataset.i === jsel) return;
-  jl.querySelector('[aria-selected="true"]')?.setAttribute("aria-selected", "false");
-  jsel = +li.dataset.i; li.setAttribute("aria-selected", "true");
-  jq.setAttribute("aria-activedescendant", li.id);
-});
-jl.addEventListener("click", (e) => { const li = e.target.closest("[data-i]"); if (li) { const x = jitems[+li.dataset.i]; closeJump({ restore: !!x.run }); if (x.run) x.run(); else go(x.v); } });
-jump.addEventListener("mousedown", (e) => { if (e.target === jump) closeJump(); });
+const JUMP = createJump({ host: jump, field: $("#jump-q"), list: $("#jump-list"), places: jumpPlaces, actions: jumpActions, more: (q) => REC.jumpItems(q), go: (v) => go(v), announce, focusIn: focusOverlay, onHidden: () => syncInert() });
 
 // ── one layer on top ──────────────────────────────────────────────────────────
 // A sheet (Jump, Keys, All threads, Runs) is modal: everything under it is inert, so Tab and Shift+Tab stay in
@@ -4207,7 +4176,6 @@ function closeKeys() { keys.hidden = true; syncInert(); keysReturn?.focus?.({ pr
 
 // ── settings: a page over the main area; closing it returns exactly where you were ──
 const setEl = $("#settings");
-let setReturn = null;
 const SETS = createSettings({ world, announce, PROJ, onChange: () => schedule() });
 const RTSET = createRuntimeSettings({ world, announce, PROJ });
 // Settings › Shape and the page's own reading of the shape (density, work, rail)
@@ -4249,45 +4217,16 @@ async function unfreeze(tid, btn) {
     schedule();
   } catch (err) { announce(`Couldn't pick it back up: ${err.message}`); if (btn) { btn.removeAttribute("aria-disabled"); btn.removeAttribute("aria-busy"); } }
 }
-function setPage(id) {
-  // the rail is a tablist: only the chosen tab is in the Tab order (arrows move between them), Tab goes on into its page
-  for (const b of $$("[data-set]")) { const on = b.dataset.set === id; b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1; }
-  for (const p of $$("[data-page]")) p.hidden = p.dataset.page !== id;
-  SETS.open(id);
-  if (id === "runtimes") RTSET.open();
-  if (id === "shape") SV.open();
-}
-function openSettings() {
-  if (!setEl.hidden) return;
-  // the layers Settings takes the place of close first (a phone's drawer hands the keyboard back to its menu):
-  // where the keyboard is then is where closing Settings returns it
-  setDrawer(false);
-  if (D.isOpen()) D.close();
-  IQ.close({ restore: false });
-  setReturn = document.activeElement;
-  setEl.hidden = false;
-  $("#set-side").classList.add("is-on");
-  $("#set-side").setAttribute("aria-expanded", "true");
-  const first = setEl.querySelector('[aria-selected="true"]');
-  if (first) focusOverlay(first);
-}
-function closeSettings({ restore = true } = {}) {
-  if (setEl.hidden) return;
-  if (S.recording) { S.recording = null; keysPageRender(); }
-  setEl.hidden = true;
-  syncInert();
-  $("#set-side").classList.remove("is-on");
-  $("#set-side").setAttribute("aria-expanded", "false");
-  // back where you were, if it can take the keyboard (there, drawn, not inert, not disabled); else the composer
-  const takes = (el) => !!el && el !== document.body && el.isConnected && el.getClientRects().length > 0 && !el.closest("[inert]") && !el.disabled;
-  if (restore) [setReturn, say].find(takes)?.focus({ preventScroll: true });
-}
-$("#set-side").addEventListener("click", () => (setEl.hidden ? openSettings() : closeSettings()));
-$("#set-phone").addEventListener("click", openSettings);
-$("#set-x").addEventListener("click", () => closeSettings());
-for (const b of $$("[data-set]")) b.addEventListener("click", () => setPage(b.dataset.set));
-/** A link into one Settings page (a thread's runtime name opens Runtimes). */
-document.addEventListener("click", (e) => { const b = e.target.closest("[data-set-open]"); if (b) { setPage(b.dataset.setOpen); if (setEl.hidden) openSettings(); else setEl.querySelector('[aria-selected="true"]')?.focus({ preventScroll: true }); } });
+const SETF = createSettingsFrame({
+  el: setEl, side: $("#set-side"), phoneButton: $("#set-phone"), closeButton: $("#set-x"), phone: PHONE, focusIn: focusOverlay, fallback: () => say,
+  onPage: (id) => { SETS.open(id); if (id === "runtimes") RTSET.open(); if (id === "shape") SV.open(); },
+  // a phone's drawer hands the keyboard back to its menu first, so closing Settings returns it there
+  beforeOpen: () => { setDrawer(false); if (D.isOpen()) D.close(); IQ.close({ restore: false }); },
+  beforeClose: () => { if (S.recording) { S.recording = null; KP.render(); } },
+  onHidden: () => syncInert(),
+});
+function openSettings() { SETF.open(); }
+function closeSettings(o) { SETF.close(o); }
 
 // ── shortcuts: one list (keys.js) drives the handlers, the tooltips, the sheet and this page ──
 function keysSheetRender() {
@@ -4295,65 +4234,9 @@ function keysSheetRender() {
     K.ACTIONS.filter((a) => a.scope === g).map((a) => `<dt><kbd>${esc(K.label(a.id))}</kbd></dt><dd>${esc(a.label)}</dd>`).join("")).join("")}</dl>`;
   $("#keys-cols").innerHTML = col(["global", "picture"]) + col(["decision", "intel"]);
 }
-/** The Keyboard page, drawn in place: the key under the keyboard stays the same node as it records, cancels or changes. */
-function keysPageRender() {
-  const box = $("#set-keys-list");
-  const rec = S.recording, err = S.keyErr;
-  redraw(box, `<p class="kp-t">Click a key to change it. Keys that work anywhere need ⌘ or Ctrl, or a symbol like / or ?, so typing never sets them off. Your keys are kept in this browser.</p>` +
-    K.GROUPS.map((g) => `<section class="kg" aria-labelledby="kg-${g.id}"><h3 id="kg-${g.id}">${esc(g.name)}</h3><div class="kl">` +
-      K.ACTIONS.filter((a) => a.scope === g.id).map((a) => {
-        const key = a.fixed
-          ? `<span class="kr-k is-fixed" title="This one is fixed"><kbd>${esc(a.fixed)}</kbd></span>`
-          : `<button type="button" class="kr-k${rec === a.id ? " is-rec" : ""}" data-rebind="${a.id}" aria-label="${esc(a.label)}: ${esc(K.label(a.id))}. ${rec === a.id ? "Press the new key, or Esc to cancel" : "Change it"}">${rec === a.id ? `<span class="kr-rec">Press a key…</span>` : `<kbd>${esc(K.label(a.id))}</kbd>`}</button>`;
-        const reset = !a.fixed && K.changed(a.id) ? `<button type="button" class="kr-r" data-kreset="${a.id}" title="Back to ${esc(K.show(a.def))}" aria-label="Reset ${esc(a.label)} to ${esc(K.show(a.def))}">${ICON.retry}</button>` : `<span class="kr-r" aria-hidden="true"></span>`;
-        return `<div class="kr${K.changed(a.id) ? " is-changed" : ""}${a.fixed ? " is-fixed" : ""}"><span class="kr-l">${esc(a.label)}</span>${key}${reset}</div>` +
-          (err && err.id === a.id ? `<p class="kr-err" role="alert">${esc(err.msg)}</p>` : "");
-      }).join("") + `</div></section>`).join("") +
-    `<div class="kp-f"><button type="button" class="btn" id="keys-reset-all"${K.anyChanged() ? "" : " disabled"}>${ICON.retry}Reset all to defaults</button></div>`);
-}
-$("#set-keys-list").addEventListener("click", (e) => {
-  const rb = e.target.closest("[data-rebind]");
-  if (rb) { S.keyErr = null; S.recording = S.recording === rb.dataset.rebind ? null : rb.dataset.rebind; keysPageRender(); return; }
-  // a reset takes its own button away (nothing left to reset): the keyboard goes to the key it reset,
-  // and after Reset all, which disables itself, to the first key in the list
-  const rs = e.target.closest("[data-kreset]");
-  if (rs) { const id = rs.dataset.kreset; S.keyErr = null; K.reset(id); $(`[data-rebind="${id}"]`)?.focus({ preventScroll: true }); return; }
-  if (e.target.closest("#keys-reset-all")) { S.keyErr = null; S.recording = null; K.resetAll(); $("#set-keys-list [data-rebind]")?.focus({ preventScroll: true }); }
-});
-document.addEventListener("pointerdown", (e) => {
-  // a click anywhere but a key chip cancels a recording
-  if (S.recording && !e.target.closest?.("[data-rebind]")) { S.recording = null; S.keyErr = null; keysPageRender(); }
-}, true);
-addEventListener("keydown", (e) => {
-  if (!S.recording) return;
-  e.preventDefault(); e.stopPropagation();
-  if (e.key === "Escape" && !e.metaKey && !e.ctrlKey) { S.recording = null; S.keyErr = null; keysPageRender(); return; }
-  const combo = K.fromEvent(e);
-  if (!combo) return; // a modifier on its own: keep listening
-  const id = S.recording;
-  const r = K.set(id, combo);
-  S.recording = null;
-  S.keyErr = r.error ? { id, msg: r.error } : null;
-  keysPageRender();
-  if (r.ok) announce(`${K.ACTIONS.find((a) => a.id === id).label}: ${K.label(id)}`);
-}, true);
-K.onChange(() => { keysPageRender(); if (!keys.hidden) keysSheetRender(); schedule(); });
-keysPageRender();
-// the rail's keys (WAI-ARIA tabs, chosen as they're reached): down/right the next, up/left the previous, wrapping; Home, End
-setEl.querySelector(".set-nav").addEventListener("keydown", (e) => {
-  if (e.altKey || e.ctrlKey || e.metaKey) return;
-  const tabs = $$("[data-set]");
-  const i = tabs.indexOf(document.activeElement);
-  if (i < 0) return;
-  const j = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1
-    : e.key === "ArrowDown" || e.key === "ArrowRight" ? (i + 1) % tabs.length
-    : e.key === "ArrowUp" || e.key === "ArrowLeft" ? (i + tabs.length - 1) % tabs.length : -1;
-  if (j < 0) return;
-  e.preventDefault();
-  tabs[j].focus(); setPage(tabs[j].dataset.set);
-});
-// a column of tabs at the side; on a phone, a row across the top
-{ const nav = setEl.querySelector(".set-nav"), orient = () => nav.setAttribute("aria-orientation", PHONE.matches ? "horizontal" : "vertical"); orient(); PHONE.addEventListener("change", orient); }
+const KP = createKeysPage({ box: $("#set-keys-list"), state: S, announce, resetIcon: ICON.retry });
+K.onChange(() => { KP.render(); if (!keys.hidden) keysSheetRender(); schedule(); });
+KP.render();
 
 // ── theme toggle ────────────────────────────────────────────────────────────
 $("#theme").addEventListener("click", () => {
@@ -4516,7 +4399,7 @@ const SIDE = {
   },
 };
 $("#side-fold").addEventListener("click", () => SIDE.fold(!SIDE.folded));
-$("#side-jump").addEventListener("click", () => (jump.hidden ? openJump() : closeJump()));
+$("#side-jump").addEventListener("click", () => (jump.hidden ? JUMP.open() : JUMP.close()));
 $("#nv-more").addEventListener("click", () => ($("#side-more").hidden ? SIDE.openMore() : SIDE.closeMore({ focus: true })));
 $("#side-more").addEventListener("click", (e) => {
   const t = e.target, pop = $("#side-more");
@@ -4576,7 +4459,7 @@ document.addEventListener("click", (e) => { if (e.target.closest?.("[data-stage-
 // ── global keys ─────────────────────────────────────────────────────────────
 const GLOBAL = {
   shells: () => SH.toggle(),
-  jump: () => (jump.hidden ? openJump() : closeJump()),
+  jump: () => (jump.hidden ? JUMP.open() : JUMP.close()),
   intel: () => (IQ.isOpen ? IQ.close() : IQ.open(sessionOf(S.view), $("#iq"))),
   write: () => say.focus(),
   keys: () => openKeys(),
@@ -4597,7 +4480,7 @@ addEventListener("keydown", (e) => {
   // also fold the tree (the editor's keymap answers first, and says so with preventDefault)
   const g = K.globalFor(e), taken = e.defaultPrevented && K.typing(e);
   if (g && K.hasMod(g) && !taken && runGlobal(g)) { e.preventDefault(); return; }
-  if (!jump.hidden) { if (e.key === "Escape") { e.preventDefault(); closeJump(); } return; }
+  if (!jump.hidden) { if (e.key === "Escape") { e.preventDefault(); JUMP.close(); } return; }
   if (IQ.isOpen) { if (e.key === "Escape") { e.preventDefault(); IQ.close(); } return; }
   if (CREATE.isOpen()) return;
   if (e.key === "Escape") {
@@ -4648,7 +4531,7 @@ function canBack() {
 /** One step back. False when there's nothing left in the app to go back to. */
 function stepBack() {
   if (CREATE.isOpen()) { CREATE.close(); return true; }
-  if (!jump.hidden) { closeJump(); return true; }
+  if (!jump.hidden) { JUMP.close(); return true; }
   if (IQ.isOpen) { IQ.close(); return true; }
   if (CH.setupOpen) { CH.closeSetup(); return true; }
   if (RS.open) { runsEscape(); return true; }
@@ -4704,7 +4587,7 @@ wireGestures({
     { host: $("#panel"), open: () => PHONE.matches && D.isOpen(), close: () => D.close() },
     { host: allEl, card: () => allEl.querySelector(".sheet-card"), open: () => !allEl.hidden, close: closeAll },
     { host: runsEl, card: () => runsCard, open: () => RS.open, close: closeRuns },
-    { host: jump, card: () => jump.querySelector(".sheet-card"), open: () => !jump.hidden, close: closeJump },
+    { host: jump, card: () => jump.querySelector(".sheet-card"), open: () => !jump.hidden, close: JUMP.close },
     { host: keys, card: () => keys.querySelector(".sheet-card"), open: () => !keys.hidden, close: closeKeys },
     { host: $("#iq-pop"), open: () => IQ.isOpen && $("#iq-pop").classList.contains("is-sheet"), close: () => IQ.close() },
     { host: $("#cs-pop"), open: () => CH.setupOpen && $("#cs-pop").classList.contains("is-sheet"), close: () => { CH.closeSetup(); updateComposer(); } },

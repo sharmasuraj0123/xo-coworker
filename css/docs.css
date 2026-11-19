@@ -104,7 +104,7 @@
   .vw-who{display:none}
 }
 
-/* ── ⌘P go to a file, ⌘⇧F find in files (js/quickopen.js): the ⌘K sheet's card, a row per file or match ── */
+/* ── ⌘P go to a file, ⌘⇧F find in files (modules/search/quickopen.js): the ⌘K sheet's card, a row per file or match ── */
 .qo-card{width:min(680px,calc(100vw - 32px))}
 .qo-where{flex:none;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-regular) var(--fs-sm)/var(--lh-ui) var(--sans);color:var(--ink-4)}
 .qo-opts{display:flex;gap:4px;padding:6px 16px;border-bottom:1px solid var(--line-soft)}

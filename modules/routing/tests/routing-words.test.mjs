@@ -1,12 +1,8 @@
-// What Settings › Routing says about chats is read from the routing as it is, never kept from an action (the
-// create-project grader on 65e84b7, S113: Disconnect's chat cleanup refused, then "Use the Space's" for that chat: its
-// routing null, its row gone, and "demo still names it" stayed, a flag Disconnect set that only it would clear).
-// Checked from the source; the drawn page is the settings case "S113 a refused chat cleanup after Disconnect".
-//   node tests/routing-words.test.mjs
+// What Settings › Routing says about chats is read from the routing as it is, never kept from an action (S113).
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const src = readFileSync(new URL("../js/settings.js", import.meta.url), "utf8");
+const src = readFileSync(new URL("../page.js", import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const body = (name) => { const i = src.indexOf(`function ${name}(`); assert.ok(i >= 0, name); return src.slice(i, src.indexOf("\n  }\n", i)); };
