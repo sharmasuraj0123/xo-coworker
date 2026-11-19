@@ -26,6 +26,17 @@ export function wordsOf(root) {
         continue;
       }
       if (c.nodeType !== 1 || c.matches(NOT_WORDS)) continue;
+      // a formula copies as the TeX it was written in (drawn, it's KaTeX's boxes and MathML); a chart as its title;
+      // a diagram as its Mermaid source (its hidden <pre>, read below; the drawing is an svg, not words)
+      if (c.matches("[data-tex]")) {
+        const b = c.classList.contains("is-block");
+        if (b) brk(2);
+        out += b ? "$$\n" + c.dataset.tex + "\n$$" : "$" + c.dataset.tex + "$";
+        flowing = false; keep = out.length;
+        if (b) brk(2);
+        continue;
+      }
+      if (c.matches(".md-chart")) { brk(2); out += c.getAttribute("aria-label") || "Chart"; flowing = false; keep = out.length; brk(2); continue; }
       if (c.tagName === "BR") { tidy(); out += "\n"; continue; }
       const b = BLOCK[c.tagName] || 0;
       if (b) brk(b);

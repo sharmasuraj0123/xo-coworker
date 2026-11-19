@@ -1,0 +1,89 @@
+/* The conversation as a document (the default; owner, 19 Nov) and what a reply can hold: math, charts, diagrams.
+   Chat bubbles (Settings › General) are css/msgx.css under <html data-msgx="bubbles">; everything here that's about
+   the document look is scoped :root:not([data-msgx]), and the rich blocks below read well in both looks.
+   Values come from css/tokens.css; corners nest (a block's 12 px corner inside nothing; a tooltip 12). */
+
+/* ── the document view ────────────────────────────────────────────────────────
+   An agent's reply reads as a page: its words take the whole text column (the avatar's 32 + 12 gutter, then
+   everything to the column's right edge), so a table, a chart or a diagram has the room it needs. Yours stays the
+   quiet box on the right. Reply and Copy sit on the reply's header line, at its right end, shown on hover, so
+   they never cover the words or hold space under every message. */
+:root:not([data-msgx]) :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text){max-width:none}
+:root:not([data-msgx]) :is(.m-them,.m-turn)>.mb{position:relative}
+:root:not([data-msgx]) :is(.m-them,.m-turn) .mb .mx-acts:not(.is-foot){display:none}
+:root:not([data-msgx]) :is(.m-them,.m-turn)>.mb>.mx-acts.is-foot{display:flex;top:0;right:0;left:auto;flex-direction:row;transform:none;opacity:0;pointer-events:none;background:var(--canvas);border-radius:var(--r-pill)}
+:root:not([data-msgx]) :is(.m-them,.m-turn):is(:hover,:focus-within)>.mb>.mx-acts.is-foot{opacity:1;pointer-events:auto}
+@media (hover:none){:root:not([data-msgx]) :is(.m-them,.m-turn)>.mb>.mx-acts.is-foot{display:none}}
+
+/* ── math (KaTeX, js/rich.js) ─────────────────────────────────────────────────
+   Before it's drawn (a beat, while KaTeX loads between keystrokes), a formula shows its TeX quietly, in the code
+   face; drawn, it takes the text's colour. A displayed formula is centred on its own line and scrolls sideways on
+   its own when it's wider than the column, never the page. */
+.md-math:not(.is-done){font:400 .9em/inherit var(--mono);color:var(--ink-3)}
+.md-math.is-failed{color:var(--ink-3)}
+.md-math.is-block{display:block;text-align:center}
+.md-math.is-block:not(.is-done){white-space:pre-wrap}
+.md-display{margin:16px 0;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:thin;padding:4px 0}
+.prose .md-math.is-block{margin:16px 0;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:thin;padding:4px 0}
+.md-display>.md-math.is-block{margin:0;padding:0;overflow:visible}
+.prose>.md-display:first-child{margin-top:0}
+.md-math .katex{font-size:1.1em;color:inherit}
+.md-math .katex-display{margin:0}
+/* inline, a formula keeps the line's height: tall pieces (fractions, sums) sit in it rather than push lines apart */
+.md-math:not(.is-block) .katex{line-height:1}
+
+/* ── charts (js/chart.js) ─────────────────────────────────────────────────────
+   One palette in fixed order (the data-viz method's validated eight: CVD-safe adjacent pairs, light and dark stepped
+   separately against our canvases). Text never wears a series colour; identity is the legend's swatch, the table and
+   the hover. Marks: 2 px lines, 8 px dots with a 2 px ring of the chart's surface, columns ≤ 24 px with the scale's 6 px round
+   ends square at the baseline, gridlines a hairline. */
+:root{--viz-1:#3987e5;--viz-2:#d95926;--viz-3:#199e70;--viz-4:#c98500;--viz-5:#d55181;--viz-6:#0ca30c;--viz-7:#9085e9;--viz-8:#e66767}
+:root[data-theme="light"]{--viz-1:#2a78d6;--viz-2:#eb6834;--viz-3:#1baf7a;--viz-4:#eda100;--viz-5:#e87ba4;--viz-6:#008300;--viz-7:#6250d6;--viz-8:#e34948}
+.md-chart{--mc-bg:var(--fill-1);margin:16px 0;padding:16px 16px 12px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--mc-bg);font-variant-numeric:tabular-nums}
+.mc-title{font:600 var(--fs-md)/20px var(--sans);color:var(--ink)}
+.mc-legend{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:4px;font:400 var(--fs-sm)/20px var(--sans);color:var(--ink-2)}
+.mc-key{display:inline-flex;align-items:center;gap:8px}
+.mc-sw{flex:none;width:8px;height:8px;border-radius:2px;background:var(--c)}
+.mc-sw.is-line{width:12px;height:2px;border-radius:1px}
+.mc-frame{display:grid;grid-template-columns:var(--yw) minmax(0,1fr);grid-template-rows:auto 200px 24px auto;column-gap:8px;margin-top:12px;font:400 var(--fs-xs)/16px var(--sans);color:var(--ink-3)}
+.mc-yl{grid-column:1/-1;grid-row:1;margin-bottom:12px}
+.mc-y{position:relative;grid-column:1;grid-row:2}
+.mc-y>span{position:absolute;right:0;transform:translateY(-50%);white-space:nowrap}
+.mc-plot{position:relative;grid-column:2;grid-row:2}
+.mc-plot>svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.mc-x{position:relative;grid-column:2;grid-row:3}
+.mc-x>span{position:absolute;top:8px;transform:translateX(-50%);white-space:nowrap}
+.mc-xl{grid-column:2;grid-row:4;margin-top:4px;text-align:center}
+.mc-grid{stroke:var(--line-faint);stroke-width:1;vector-effect:non-scaling-stroke}
+.mc-grid.is-zero{stroke:var(--line-strong)}
+.mc-line{fill:none;stroke:var(--c);stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.mc-area{fill:var(--c);fill-opacity:.1;stroke:none}
+.mc-dot{position:absolute;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:var(--c);box-shadow:0 0 0 2px var(--mc-bg)}
+/* a category's columns side by side, 2 px apart, each at most 24 px and 70 % of the band shared, centred on it */
+.mc-bar{--w:min(24px,calc((70% / var(--n) - (var(--k) - 1) * 2px) / var(--k)));position:absolute;width:var(--w);margin-left:calc((var(--k) * var(--w) + (var(--k) - 1) * 2px) / -2 + var(--i) * (var(--w) + 2px));border-radius:var(--r-xs) var(--r-xs) 0 0;background:var(--c)}
+.mc-bar.is-neg{border-radius:0 0 var(--r-xs) var(--r-xs)}
+.mc-hover{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity var(--d-out) var(--ease)}
+.mc-hover.is-on{opacity:1;transition-duration:var(--d-hover-in)}
+.mc-cross{position:absolute;top:0;bottom:0;left:var(--at);width:1px;background:var(--line-strong)}
+.mc-tip{position:absolute;top:0;left:calc(var(--at) + 12px);display:grid;gap:4px;min-width:140px;padding:8px 12px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--float);box-shadow:var(--e2);font:400 var(--fs-sm)/16px var(--sans);color:var(--ink);white-space:nowrap}
+.mc-hover.is-left .mc-tip{left:auto;right:calc(100% - var(--at) + 12px)}
+.mc-tip b{font-weight:600}
+.mc-tip span{display:flex;align-items:center;gap:8px}
+.mc-tip em{flex:1;font-style:normal;color:var(--ink-2)}
+.mc-tip strong{font-weight:500}
+@media (max-width:760px){.mc-frame{grid-template-rows:auto 168px 24px auto}.md-chart{padding:12px 12px 8px}}
+
+/* ── diagrams (Mermaid, js/rich.js) ───────────────────────────────────────────
+   On the same quiet card as a chart, drawn in XO's own tokens (stone nodes, hairline edges, ink words). Until it's
+   drawn, its source shows dimmed in the code face; a diagram Mermaid can't read stays its source, with why. */
+.md-diagram{margin:16px 0;padding:16px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--fill-1);overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}
+/* its natural width at most; never under 80 % of it (a phone scrolls the card sideways rather than shrink the words) */
+.md-diagram>svg{display:block;width:100%;max-width:var(--dg-w,100%)!important;min-width:calc(var(--dg-w,0px) * .8);height:auto;margin:0 auto}
+/* no hard corners (the owner: "consistently rounded"): a plain node is the scale's 8 px; Mermaid's own shadows off */
+.md-diagram>svg .node>rect:not([rx]),.md-diagram>svg .node>rect[rx="0"]{rx:var(--r);ry:var(--r)}
+.md-diagram>svg :is(.node,.cluster)>:is(rect,polygon,circle,path){filter:none}
+.md-dg-src{margin:0;font:400 var(--fs-base)/20px var(--mono);color:var(--ink-4);white-space:pre-wrap;text-align:left}
+.md-dg-src code{background:none;border:0;padding:0;font:inherit}
+.md-diagram.is-done>.md-dg-src{display:none}
+.md-diagram.is-failed>.md-dg-src{color:var(--ink-2)}
+.md-dg-why{margin:0 0 8px;font:400 var(--fs-sm)/20px var(--sans);color:var(--ink-3);text-align:left}

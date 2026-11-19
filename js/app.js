@@ -24,7 +24,9 @@ import { paidHtml } from "./paidview.js";
 import { uiMsg, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldClock, heldBadge, soonestHeld } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn } from "./turnview.js";
 import { nameWith } from "./comms.js";
-import { mediaHtml, fromAttachment, hydrateMedia, mediaItemOf, viewerFile, retryMedia, wireDragOut, webImagesHtml } from "./media.js";
+import { mediaHtml, fromAttachment, fromSharedFile, hydrateMedia, mediaItemOf, viewerFile, retryMedia, wireDragOut, webImagesHtml } from "./media.js";
+// math and diagrams in a reply, drawn between keystrokes (KaTeX, Mermaid: vendored, loaded only when needed)
+import { startRich } from "./rich.js";
 import { createLightbox } from "./lightbox.js";
 import { itemParts } from "./review.js";
 import { runsStripHtml, runsListHtml, runViewHtml } from "./runsview.js";
@@ -78,7 +80,16 @@ world.onEvent((e) => { if (e.kind === "shape") SHAPE.heard(e.value); });
 // pictures from the web in an agent's words (markdown's ![alt](https://…)) show like shared ones, unless this
 // device's "Show pictures from the web" is off (the shape's xo:conversation/webpics): then they're links
 const WEBPICS = "xo:conversation/webpics";
-setWebImages((list) => (SHAPE.on(WEBPICS) ? webImagesHtml(list) : null));
+// A picture in the conversation's own folder (![alt](plots/fit.png)) always shows: it's the agent's own work, read
+// from XO, not from a site; it's found the way a shared file is (fileRoute), else it's a card saying why it can't open.
+setWebImages((list) => {
+  const web = list.filter((x) => x.url), files = list.filter((x) => x.file);
+  if (web.length && !SHAPE.on(WEBPICS)) return null;
+  const own = files.map((x) => fromSharedFile({ path: x.file, name: x.file.split("/").pop(), title: x.alt || null }, { route: fileRoute }));
+  if (!web.length) return mediaHtml(own, { side: "them" });
+  return own.length ? mediaHtml(own, { side: "them" }) + webImagesHtml(web) : webImagesHtml(web);
+});
+startRich();
 /** A noun in the shape's words (HTML). Where it isn't XO's own, XO's word stays in a tooltip, so help
  *  text and agents never disagree with the screen. */
 const noun = (w) => { const x = SHAPE.word(w); return x === w ? esc(w) : `<span title="${esc(`XO's word: ${w}`)}">${esc(x)}</span>`; };
@@ -3815,6 +3826,24 @@ $("#bar-seg").addEventListener("click", (e) => {
 });
 radioKeys($("#bar-seg"));
 barRender();
+// Settings › General › Chat bubbles: this device's choice (localStorage cv-bubbles, read before the first paint in
+// index.html). Off (the default), the conversation reads as a document; on, in bubbles (css/msgx.css keys off
+// <html data-msgx="bubbles"> and data-msgx-tails). Nothing is redrawn: the same rows take the other look.
+const chatBubbles = () => document.documentElement.dataset.msgx === "bubbles";
+function setChatBubbles(on) {
+  const r = document.documentElement;
+  if (on) { r.dataset.msgx = "bubbles"; r.dataset.msgxTails = ""; } else { delete r.dataset.msgx; delete r.dataset.msgxTails; }
+  let kept = true;
+  try { localStorage.setItem("cv-bubbles", on ? "on" : "off"); } catch { kept = false; }
+  return { on, kept };
+}
+function bubblesRender() { $("#bubbles-tog").setAttribute("aria-checked", String(chatBubbles())); }
+$("#bubbles-tog").addEventListener("click", (e) => {
+  const r = setChatBubbles(!chatBubbles());
+  bubblesRender();
+  deviceSaid(e.currentTarget, r, r.on ? "Messages show in bubbles." : "Replies read as full-width documents.");
+});
+bubblesRender();
 $("#hops-tog").addEventListener("click", (e) => {
   // this device's layer of the shape (xo:thread/hops), where cv-hops was folded in; the shape's change redraws
   const on = !S.showHops;

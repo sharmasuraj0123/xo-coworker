@@ -3,7 +3,11 @@
 // Supported: paragraphs (soft line breaks kept), headings, bullet and numbered
 // lists (one level of nesting by indent), blockquotes, horizontal rules, tables,
 // fenced code blocks (with a copy button and colours, js/highlight.js), inline code, **bold**, *italic*,
-// _italic_, ~~strike~~, [links](…) and bare http(s) URLs.
+// _italic_, ~~strike~~, [links](…) and bare http(s) URLs. And what a working notebook needs (owner, 19 Nov):
+// math ($…$, \(…\) inline; $$…$$, \[…\] and ```math displayed), ```chart (js/chart.js) and ```mermaid diagrams.
+// Math and diagrams are drawn by js/rich.js, which loads KaTeX and Mermaid only when a reply has some and the page
+// is between keystrokes; until then (and in node) they show as their source. Once drawn, the drawing is cached by
+// its source, so a redraw of the message (every streamed chunk) writes the same HTML and nothing flickers or moves.
 //
 // Safety: the input is never interpreted as HTML. Every piece of text goes
 // through esc(); the only tags in the output are the ones built here. Links
@@ -28,6 +32,7 @@
 import { esc } from "./util.js";
 import { highlight } from "./highlight.js";
 import { fileIcon } from "./fileicons.js";
+import { chartHtml } from "./chart.js";
 
 const THREAD_HREF = /^#(cmsg_[A-Za-z0-9_-]{1,128})$/;
 const HTTP_HREF = /^https?:\/\/[^\s<>"'`]+$/i;
@@ -134,6 +139,29 @@ function linkHtml(href, label) {
   return null;
 }
 
+// ── math and diagrams: drawn by js/rich.js, through these hooks (unset, they stay their source) ──────────────
+// rich.math(tex, display) → HTML or null (not drawn yet); rich.diagram(src) → {html, theme} | {error} | null
+let rich = { math: null, diagram: null };
+/** Let the app draw math and diagrams (js/rich.js): cached drawings come back synchronously, or null. */
+export function setRich(hooks) { rich = { math: null, diagram: null, ...(hooks || {}) }; }
+/** A formula: drawn when its drawing is cached, else its TeX as written (js/rich.js draws it in place). */
+function mathHtml(tex, display) {
+  const t = String(tex).trim();
+  if (!t) return "";
+  const done = rich.math ? rich.math(t, display) : null;
+  return `<span class="md-math${display ? " is-block" : ""}${done != null ? " is-done" : ""}" data-tex="${esc(t)}">${done ?? esc(t)}</span>`;
+}
+/** A ```mermaid diagram: its drawing when cached for this theme (or the other one, until it's redrawn), else its source. */
+function diagramHtml(src) {
+  const done = rich.diagram ? rich.diagram(src) : null;
+  const state = !done ? "" : done.error ? " is-failed" : " is-done";
+  const w = done && Number.isFinite(done.w) ? ` style="--dg-w:${done.w}px"` : "";
+  return `<figure class="md-diagram${state}"${done && done.theme ? ` data-dg-theme="${esc(done.theme)}"` : ""}${w}>` +
+    (done && done.html ? done.html : "") +
+    (done && done.error ? `<figcaption class="md-dg-why">This diagram couldn't be drawn: ${esc(done.error)}</figcaption>` : "") +
+    `<pre class="md-dg-src"><code>${esc(src)}</code></pre></figure>`;
+}
+
 // ── pictures from the web ──────────────────────────────────────────────────────
 const IMG_PATH = /\.(?:png|jpe?g|gif|webp|avif|svg)$/i;
 const IMG_MD = /!\[([^\]\n]{0,500})\]\(([^()\s]{1,2000})\)/;
@@ -148,7 +176,13 @@ export function webImageUrl(u, { bare = false } = {}) {
   }
   return h;
 }
-/** The pictures a line is made of, [{alt, url}], when it holds only `![alt](url)`s or one bare picture address; else null. */
+/** A picture in the conversation's folder, `![alt](plots/fit.png)`: its relative path, or null. */
+export function fileImagePath(u) {
+  const f = FILE_HREF.exec(String(u || "").trim());
+  return f && IMG_PATH.test(f[1]) ? f[1] : null;
+}
+/** The pictures a line is made of, [{alt, url} or {alt, file}], when it holds only `![alt](…)`s or one bare picture
+ *  address; else null. A relative path is a picture in the conversation's folder (the app finds which, js/app.js). */
 export function imageLine(line) {
   const s = String(line || "").trim();
   if (!s) return null;
@@ -158,9 +192,9 @@ export function imageLine(line) {
   while (re.lastIndex < s.length) {
     const m = re.exec(s);
     if (!m) return null; // anything else on the line: it's a sentence, not pictures
-    const url = webImageUrl(m[2]);
-    if (!url) return null;
-    out.push({ alt: m[1].replace(/\s+/g, " ").trim(), url });
+    const url = webImageUrl(m[2]), file = url ? null : fileImagePath(m[2]);
+    if (!url && !file) return null;
+    out.push({ alt: m[1].replace(/\s+/g, " ").trim(), ...(url ? { url } : { file }) });
   }
   return out.length ? out : null;
 }
@@ -172,12 +206,17 @@ function imagesHtml(list) {
   const shown = webImages && webImages(list);
   if (shown) return shown;
   // as links, one per line: the alt as words, else the address as a bare link reads
-  return `<p>${list.map((x) => linkHtml(x.url, x.alt ? renderInline(x.alt, true) : null) || esc(x.alt || x.url)).join("<br>")}</p>`;
+  return `<p>${list.map((x) => linkHtml(x.url || x.file, x.alt ? renderInline(x.alt, true) : x.file ? esc(x.file.split("/").pop()) : null) || esc(x.alt || x.url || x.file)).join("<br>")}</p>`;
 }
 
 // Inline patterns, tried at each position; the earliest match wins.
 const INLINE = [
   { name: "code", re: /(`+)([\s\S]*?[^`])\1(?!`)/ },
+  // math: an escaped \$ is a dollar; $$…$$ and \[…\] display; $…$ (no space inside either end, no digit or letter
+  // after: "$5 and $10" and "$HOME/$USER" stay text) and \(…\) inline
+  { name: "dollar", re: /\\\$/ },
+  { name: "dmath", re: /\$\$([^$]+?)\$\$|\\\[([\s\S]+?)\\\]/ },
+  { name: "math", re: /(?<![\\$\w])\$(?=[^\s$])((?:\\.|[^$\\\n])*?[^\s\\$])\$(?![\w$])|\\\(([\s\S]+?)\\\)/ },
   { name: "img", re: IMG_MD },
   { name: "link", re: /\[([^\]\n]{1,500})\]\(([^()\s]{1,2000})\)/ },
   { name: "url", re: /\bhttps?:\/\/[^\s<>()"'`]+[^\s<>()"'`.,;:!?]/i },
@@ -207,6 +246,15 @@ export function renderInline(text, noLinks = false) {
     switch (p.name) {
       case "code":
         out += `<code>${esc(m[2].replace(/^ (.*) $/, "$1"))}</code>`;
+        break;
+      case "dollar":
+        out += "$";
+        break;
+      case "dmath":
+        out += noLinks ? esc(m[0]) : mathHtml(m[1] ?? m[2], true);
+        break;
+      case "math":
+        out += noLinks ? esc(m[0]) : mathHtml(m[1] ?? m[2], false);
         break;
       case "link": {
         const label = renderInline(m[1], true);
@@ -326,9 +374,39 @@ export function renderMarkdown(src) {
       const body = [];
       i++;
       while (i < lines.length && !lines[i].trim().startsWith(marker)) body.push(lines[i++]);
+      const closed = i < lines.length;
       i++; // closing fence (or end of input)
-      out.push(codeBlock(fence[2], body.join("\n")));
+      // a chart, a diagram or a formula is drawn only once its fence is closed: while it streams it's code
+      const lang = fence[2].toLowerCase(), code = body.join("\n");
+      if (closed && lang === "chart") { const c = chartHtml(code); if (c) { out.push(c); continue; } }
+      if (closed && lang === "mermaid" && code.trim()) { out.push(diagramHtml(code)); continue; }
+      if (closed && (lang === "math" || lang === "katex") && code.trim()) { out.push(`<div class="md-display">${mathHtml(code, true)}</div>`); continue; }
+      out.push(codeBlock(fence[2], code));
       continue;
+    }
+    // display math on lines of its own: $$ … $$ or \[ … \] (one line or several); unclosed (still streaming), it's text
+    const dm = /^\s{0,3}(\$\$|\\\[)/.exec(line);
+    if (dm) {
+      const close = dm[1] === "$$" ? "$$" : "\\]";
+      const first = line.trim().slice(2);
+      let j = i, tex = null;
+      if (first.trimEnd().endsWith(close) && first.trim().length > close.length - 1) tex = first.trimEnd().slice(0, -close.length);
+      else {
+        const acc = [first];
+        for (j = i + 1; j < lines.length; j++) {
+          const t = lines[j].trimEnd();
+          if (t.endsWith(close)) { acc.push(t.slice(0, -close.length)); tex = acc.join("\n"); break; }
+          if (!t.trim() && dm[1] === "$$" && j > i + 40) break;
+          acc.push(lines[j]);
+        }
+      }
+      // only the formula on its lines: "$$x$$ and more" is a sentence, drawn inline
+      if (tex != null && tex.trim() && !tex.includes(close === "$$" ? "$$" : "\\]")) {
+        flush();
+        out.push(`<div class="md-display">${mathHtml(tex, true)}</div>`);
+        i = j + 1;
+        continue;
+      }
     }
     if (!line.trim()) {
       flush();
