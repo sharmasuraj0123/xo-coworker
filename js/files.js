@@ -100,7 +100,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     follow: null,        // the folder of a file opened from elsewhere (Artifacts, another thread): shown until you leave
     viewKey: "all",      // the scope the view itself gives
     q: "", wide: false,
-    folded: false,       // beside a file, the tree folded to its rail (◧, ⌘B; js/filesview.js decides when)
+    folded: false,       // beside a file, the tree folded to its rail (its fold button, ⌘B; js/filespage.js keeps it)
   };
   const setOf = (k) => { if (!F.open.has(k)) F.open.set(k, new Set()); return F.open.get(k); };
   const apiRel = (s, local) => (s.base ? (local ? `${s.base}/${local}` : s.base) : local);

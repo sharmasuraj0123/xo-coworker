@@ -18,7 +18,6 @@
 .mx-down svg{width:20px;height:20px}
 .mx-down-n{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 6px;border-radius:var(--r-pill);background:var(--ink);color:var(--canvas);font:var(--fw-strong) var(--fs-xs)/var(--lh-14) var(--sans);font-variant-numeric:tabular-nums;text-align:center}
 .mx-down-n[hidden]{display:none}
-body.files-open .mx-down{display:none}
 @media (max-width:760px){.mx-down{right:16px}}
 @media (prefers-reduced-motion:reduce){.mx-down{transform:none}}
 

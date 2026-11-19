@@ -36,7 +36,7 @@ import { createChats } from "./chats.js";
 import { initFollow, toLatest, unpin, isPinned, fromTop, toRow, fromLatest, createFollow } from "./follow.js";
 import { decorateConversation } from "./msgx.js";
 import { createViewer } from "./viewer.js";
-import { createMap, MAP_ICON } from "./map.js";
+import { createMap } from "./map.js";
 import { createStage } from "./stage.js";
 import { createLaunchpad } from "./launchpad.js";
 import { createLpApi } from "./lpapi.js";
@@ -217,7 +217,7 @@ const CHG = createChanges({ world, onChange: () => schedule() });
 const VW = createViewer({
   announce, onChange: () => schedule(), changes: CHG,
   ask: { target: (f) => askPlace(f)?.name || null, send: askAboutLines, compose: (f, a, b) => composeAbout(f, a, b), file: (f) => askAboutFile(f) },
-  // each save (the file saves itself as you type): its place's changes are read again, once you pause
+  // each save (⌘S): its place's changes are read again, once you pause
   edits: { saved: (f) => savedSoon(f) },
   // who made a version: an agent's thread, by its title
   threadTitle: (ts) => world.thread(ts)?.title || null,
@@ -227,8 +227,8 @@ const VW = createViewer({
   opened: (f, o) => FP.show(o),
   // closed, with what opened it gone and nothing drawn in its place: where you'd carry on
   home: () => [$("#say"), placeRegion()].find(usable) || null,
-}); // a file, in Files (js/filesview.js)
-// saves come a second apart while you type: the place's changes are read again once they settle, not per save
+}); // a file, in the panel's Files page (js/filespage.js)
+// saves (⌘S): the place's changes are read again once they settle, not per save
 const savedT = new Map();
 function savedSoon(f) {
   const k = `${f.project}|${f.rel}`;
@@ -386,7 +386,7 @@ const MAP = createMap({ world, viewer: VW, go: (v) => go(v, { panel: true }), an
 // the panel: one card on the right with tabs (Map, Made, File; later apps), one header button, ⌘\
 // Files: the project's files, and the one place a file opens (js/files.js, design-research/13)
 const FILES = createFiles({ world, viewer: VW, isBusy, PROJ, go: (v) => go(v), changes: CHG, onFold: (f) => FP.treeFolded(f), paths: PATHS });
-// Files is a place in the main area (js/filesview.js); the panel is a stack of frames: Agents · Map · Changes
+// Files is a page of the panel (js/filespage.js); otherwise the panel is a stack of frames: Threads · Changes · Map
 // Launchpad (js/launchpad.js): Deploy in the header row of a project and a thread; its section tops the panel
 const lpProject = (v) => (v && v.startsWith("p:") ? v.slice(2) : v && v.startsWith("t:") ? world.thread(v.slice(2))?.project || null : null);
 // the thread "Ask an agent" started: by its id when Launchpad has it (whatever its title, past older threads of the
@@ -401,7 +401,7 @@ const LP = createLaunchpad({ api: createLpApi(), projectOf: lpProject, nameOf: (
   // the owner's choice B): its Undo's deadline is the action's own (l.until), so it can't outlive what it undoes
   notice: (mid, l, ms) => { const h = { mid, kind: l.kind === "err" ? "stopped" : l.kind || "done", text: l.text, ...(l.sub ? { sub: l.sub } : {}), ...(l.undo ? { undo: l.undo, undoLabel: l.undoLabel, undoUntil: l.until || 0, ownFocus: true } : {}) }; return heraldFor(mid, () => h, ms) || heraldShow(h, ms); },
   unnotice: (mid) => heraldDrop(mid) });
-const STAGE = createStage({ map: MAP, mapIcon: MAP_ICON, files: FILES, changes: CHG, openFiles: () => FP.show({ focus: true }), viewer: VW, view: () => S.view, go: (v, e) => openFromPanel(v, e), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP, threads: (v) => panelThreads(v), shell: (on, host) => panelShell(on, host) });
+const STAGE = createStage({ map: MAP, files: FILES, changes: CHG, openFiles: () => FP.show({ focus: true }), viewer: VW, view: () => S.view, go: (v, e) => openFromPanel(v, e), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP, threads: (v) => panelThreads(v), shell: (on, host) => panelShell(on, host) });
 // Files, a page of the panel (js/filespage.js; the owner, 19 Nov 14:57Z): the tree and the file open beside the chat,
 // which never moves
 const FP = createFilesPage({ stage: STAGE, files: FILES, viewer: VW, view: () => S.view, announce });
@@ -1995,14 +1995,14 @@ function heraldRender(needs) {
  * The notices' line sits on the dock's top, over the conversation's foot (css/app.css .herald). The conversation
  * keeps room for it while it shows there (--herald-room, css/msgx.css .scroller), so it never covers the last
  * bubble or the line under it ("Paused until 6:50 AM" over "Waiting for the usage limit…"). Measured, not assumed:
- * its height and how far it stands above the dock change with the width and with what's docked (is-stacked). A line
- * moved out of the conversation (is-out: over a file) or hidden takes no room. follow.js keeps the latest pinned as
+ * its height and how far it stands above the dock change with the width and with what's docked (is-stacked). A hidden
+ * line takes no room. follow.js keeps the latest pinned as
  * the room changes (it watches the scroller's box).
  */
 function heraldRoom() {
   const box = $("#herald"), dock = $("#dock");
   const line = box.firstElementChild;
-  const shown = line && !box.classList.contains("is-out") && line.getClientRects().length > 0;
+  const shown = line && line.getClientRects().length > 0;
   const px = shown ? Math.max(0, Math.round(dock.getBoundingClientRect().top - box.getBoundingClientRect().top)) : 0;
   const v = px ? `${px + 8}px` : "0px";
   if ($("#app").style.getPropertyValue("--herald-room") !== v) $("#app").style.setProperty("--herald-room", v);
@@ -4649,12 +4649,10 @@ addEventListener("keydown", (e) => {
   const s = K.globalFor(e, { typing: false });
   if (s && !K.hasMod(s) && runGlobal(s)) e.preventDefault();
 });
-/** Run a key that works anywhere; false when it has nothing to do here (the chat's and the tree's folds, away from a
- *  file: the key stays the browser's). */
+/** Run a key that works anywhere; false when it has nothing to do here (the tree's fold away from Files: the key
+ *  stays the browser's). */
 function runGlobal(id) {
-  // ⌘B: the panel's file browser folds to its rail (or opens), while Files shows; ⌘J had no meaning without the
-  // chat beside a file in the main area, so it stays the browser's
-  if (id === "chatFold") return false;
+  // ⌘B: the panel's file browser folds to its rail (or opens), while Files shows
   if (id === "treeFold") return FP.toggleTree();
   // ⌘P, ⌘⇧F: only where the view has files (a project, a thread); elsewhere the browser keeps its keys
   if (id === "quickOpen") return QO.isOpen ? (QO.close(), true) : QO.open("files");

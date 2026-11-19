@@ -1084,7 +1084,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       if (D && D.viewing && TX.h) { docs.view(D, null); TX.h.showVersion(null); paintHead(); TX.h.focus(); return; }
       if (TX.sel && TX.h && TX.el && TX.el.contains(e.target)) { TX.h.clearSelection(); return; } // a selection clears first
       if (V.asking) { answerUnsaved("cancel"); return; }
-      if (away && away()) return; // beside the chat, the file is put away, not closed (js/filesview.js)
+      if (away && away()) return; // in the panel, Esc goes back to its sections with the file kept (js/filespage.js)
       close({ ask: true }); return;
     }
     // J / K: the next or previous change, on a diff

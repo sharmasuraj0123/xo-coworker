@@ -534,21 +534,22 @@ t("S061: the project's top failing, then reading empty: Try again lands on New f
   await done(page);
 });
 
-t("C036: the tree toggle beside a file keeps focus as it folds and unfolds", async () => {
-  if (WIDTH < 600) skip("the toggle shows beside a file on a desktop");
+t("C036: the browser's fold beside a file: folded, focus on the file; its rail opens it on Find", async () => {
+  if (WIDTH < 600) skip("the browser folds beside a file on a desktop");
   const page = await app({ files: { "a.js": FILE() } });
   await panelOpen(page);
   await filesOpen(page);
   await page.locator('[data-fl-file="a.js"]').filter({ visible: true }).first().click();
-  const tog = page.locator("[data-fv-tree]").filter({ visible: true }).first();
-  await tog.waitFor();
-  await tog.focus();
+  const fold = page.locator("[data-fl-foldtree]").filter({ visible: true }).first();
+  await fold.waitFor();
+  await fold.focus();
   await page.keyboard.press("Enter");
   await page.waitForTimeout(200);
-  assert.match(await active(page), /data-fv-tree/);
-  await page.keyboard.press("Enter");
+  assert.ok(await page.locator("#stage .fl.is-folded").count(), "folded to its rail");
+  assert.match(await active(page), /id=viewer/, "the button went with the tree: focus on the file, never the page");
+  await page.locator('[data-fl-rail="find"]').filter({ visible: true }).first().click();
   await page.waitForTimeout(200);
-  assert.match(await active(page), /data-fv-tree/);
+  assert.match(await active(page), /data-fl-q/, "open again, on its Find");
   await done(page);
 });
 
@@ -558,31 +559,29 @@ t("C034: Files' divider takes the pointer at its line, over the file beside it t
   await panelOpen(page);
   await filesOpen(page);
   await page.locator('[data-fl-file="a.js"]').filter({ visible: true }).first().click();
-  // beside the chat the tree may fold for the file: unfolded, the divider is between them
+  // the browser may be folded (kept from before): unfolded, the divider is between it and the file
   await page.waitForTimeout(300);
-  if (await page.locator(".fv .fl.is-folded").count()) await page.locator("[data-fv-tree]").filter({ visible: true }).first().click();
+  if (await page.locator(".fv .fl.is-folded").count()) await page.locator('[data-fl-rail="find"]').filter({ visible: true }).first().click();
   const sp = page.locator(".fv .fl.is-wide .fl-split").first();
   await sp.waitFor();
   const hit = await sp.evaluate((e) => { const r = e.getBoundingClientRect(), y = r.top + r.height / 2; return [-3, 3].map((dx) => document.elementFromPoint(r.left + dx, y) === e); });
   assert.deepEqual(hit, [true, true], "3 px either side of the line is the divider's");
   await done(page);
 });
-t("C034/C035: the resize grips beside a file show the one ring when the keyboard is on them", async () => {
+t("C034: the panel's grip and Files' divider show the one ring when the keyboard is on them", async () => {
   // the controls grader on 9d1f71b, desktop: only their 1 px line brightened (1.5–2.5:1)
   if (WIDTH < 600) skip("the grips are a desktop's (a phone has none)");
   const page = await app({ files: { "a.js": FILE() } });
   await toDemo(page);
   await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
-  await page.waitForFunction(() => document.body.classList.contains("chat-docked"), null, { timeout: 8000 });
+  await page.waitForFunction(() => document.querySelector("#stage").dataset.page === "files", null, { timeout: 8000 });
   await page.keyboard.press("Shift");
   // read once settled: reduced motion turns every property into a 10 µs transition (base.css), and a just-focused
   // control can read its transition's start (outline:none's 3 px, currentColor; box-shadow none) a while: finish them first
   const ring = (sel, pseudo) => page.evaluate(([sel, pseudo]) => { for (const a of document.getAnimations()) if (a instanceof CSSTransition) a.finish(); const e = document.querySelector(sel); if (!e || !e.getClientRects().length) return null; const s = getComputedStyle(e, pseudo); return pseudo ? s.boxShadow : `${s.outlineStyle} ${s.outlineWidth}`; }, [sel, pseudo]);
-  await page.locator(".fv-cgrip").focus();
-  assert.equal(await ring(".fv-cgrip", null), "solid 2px", "the chat's grip");
-  // Files' divider shows with the tree beside the file: the chat folded (room), the tree shown (⌘B) if it isn't
-  await page.keyboard.press("ControlOrMeta+j");
-  await page.waitForTimeout(400);
+  await page.locator(".stg-grip").focus();
+  assert.equal(await ring(".stg-grip", null), "solid 2px", "the panel's grip");
+  // Files' divider shows with the tree beside the file: the tree shown (⌘B) if it's folded
   const shown = () => page.evaluate(() => { const e = document.querySelector(".fv .fl.is-wide .fl-split"); return !!e && e.getBoundingClientRect().width > 0; });
   if (!(await shown())) { await page.keyboard.press("ControlOrMeta+b"); await page.waitForTimeout(400); }
   assert.equal(await shown(), true, "Files' divider is on screen (the tree beside the file)");
@@ -718,23 +717,6 @@ t("S208 (zoom): Follow keeps the zoom you chose through live updates, and Follow
     assert.equal(await follow.getAttribute("aria-pressed"), "false", `${mode}: Follow off`);
     assert.equal(await world(), off, `${mode}: Follow off, the view holds through updates`);
   }
-  await done(page);
-});
-t("S121: a part opened from the folded panel's rail takes focus, on its own fold button", async () => {
-  if (WIDTH < 600) skip("the rail is a desktop's");
-  // the rail shows where the panel shares the screen with Files beside no conversation: opened in a project,
-  // carried to Home, Files opened from it, at a width where the reader would get under 520 px
-  const page = await app({ files: { "a.js": FILE() } });
-  await page.setViewportSize({ width: 1180, height: 900 });
-  await panelOpen(page);
-  await page.evaluate(() => window.__t.go("home"));
-  await filesOpen(page);
-  await page.waitForFunction(() => document.body.classList.contains("stage-rail"), null, { timeout: 4000 });
-  const r = page.locator('[data-rail="changes"]').filter({ visible: true }).first();
-  await r.focus();
-  await page.keyboard.press("Enter");
-  await page.waitForFunction(() => !document.body.classList.contains("stage-rail"));
-  assert.match(await active(page), /data-fr-fold=changes/, "on the part's own fold button, not the page");
   await done(page);
 });
 const PATCH = (f, a, b) => `diff --git a/${f} b/${f}\n--- a/${f}\n+++ b/${f}\n@@ -1,3 +1,3 @@\n-${a}\n+${b}\n two\n three\n`;
@@ -1368,44 +1350,31 @@ t("C111-SEND-NOTICE-QUEUE-1: behind an Undo, a message that didn't go shows in i
   assert.ok(!seen.slice(iU + 1, iF).some((t) => /^Sent to |^Sending to /.test(t)), `no passing line before the failure: ${JSON.stringify(seen)}`);
   await done(page);
 });
-// ── a notice while Files has the chat folded away (the controls grader on cb7afe7, S137 and V22): the line sat in the
-// folded chat's dock, inert and out of sight, so a Tell that failed showed nothing on a phone. It must be on screen,
-// above the file (and on a phone above the folded chat's bar), not covered, and back in its place when the chat opens.
-t("S137/V22: in Files with the chat folded, a Tell that fails says Not sent on screen, above the file", async () => {
+// ── a notice while a file is open (the controls grader on cb7afe7, S137 and V22): the line once sat in a folded chat's
+// dock, inert and out of sight, so a Tell that failed showed nothing on a phone. The chat never folds now (the file is
+// in the panel); the line must still be on screen, uncovered: above the composer, or over the covering panel on a phone.
+t("S137/V22: with a file in the panel, a Tell that fails says Not sent on screen", async () => {
   const page = await app({ files: { "a.js": FILE() }, postFail: true });
   await editing(page);
   await typeAll(page, "mine\n");
   await page.keyboard.press("ControlOrMeta+s");
   await page.waitForFunction(() => !window.__ED.on);
-  const folded = () => page.evaluate(() => { const c = document.body.classList; return c.contains("chat-sheet") ? !c.contains("sheet-up") : c.contains("chat-docked") ? c.contains("chat-min") : null; });
-  assert.notEqual(await folded(), null, "the file is beside a conversation (docked, or a phone's sheet)");
-  if (!(await folded())) { await page.keyboard.press("ControlOrMeta+j"); await page.waitForFunction(() => { const c = document.body.classList; return c.contains("chat-sheet") ? !c.contains("sheet-up") : c.contains("chat-railed"); }); }
-  if (await page.evaluate(() => document.body.classList.contains("chat-docked"))) await page.waitForFunction(() => document.body.classList.contains("chat-railed"));
+  assert.equal(await page.evaluate(() => document.querySelector("#stage").dataset.page), "files", "the file is the panel's Files page");
   await page.locator("[data-vw-tell]").first().click();
   await page.waitForFunction(() => /Not sent/.test(document.getElementById("herald")?.textContent || ""), null, { timeout: 5000 });
   assert.ok((page.W.posts || []).length >= 1, "it was sent, and refused");
   const seen = await page.evaluate(() => {
     const h = document.getElementById("herald"), line = h.querySelector(".hr"), r = line.getBoundingClientRect();
     const at = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
-    const bar = document.querySelector(".crail"), br = bar && bar.getClientRects().length ? bar.getBoundingClientRect() : null;
-    return { out: h.classList.contains("is-out"), onPage: h.parentNode === document.body, inert: !!h.closest("[inert]"), vis: getComputedStyle(h).visibility, w: r.width, h: r.height,
-      inView: r.top >= 0 && r.bottom <= innerHeight && r.left >= 0 && r.right <= innerWidth, hit: !!at && h.contains(at), barTop: br && getComputedStyle(bar).display !== "none" ? br.top : null, bottom: r.bottom, text: line.textContent };
+    return { inert: !!h.closest("[inert]"), vis: getComputedStyle(h).visibility, w: r.width, h: r.height,
+      inView: r.top >= 0 && r.bottom <= innerHeight && r.left >= 0 && r.right <= innerWidth, hit: !!at && h.contains(at), text: line.textContent };
   });
-  // what's seen first (on screen, uncovered, saying so), then how (out of the dock, nothing inert holding it)
   assert.match(seen.text, /Not sent/);
   assert.equal(seen.vis, "visible", "visible");
   assert.ok(seen.w > 40 && seen.h >= 24, `it has a size (${seen.w}×${seen.h})`);
   assert.ok(seen.inView, "on screen");
   assert.ok(seen.hit, "nothing covers it");
   assert.equal(seen.inert, false, "nothing inert holds it");
-  assert.equal(seen.onPage && seen.out, true, "out of the folded chat's dock, on the page");
-  if (await page.evaluate(() => document.body.classList.contains("chat-sheet"))) {
-    assert.ok(seen.barTop != null, "a phone's folded chat shows its bar");
-    assert.ok(seen.bottom <= seen.barTop - 4, `above the folded chat's bar (line ends ${seen.bottom}, bar starts ${seen.barTop})`);
-  }
-  // the chat opens: the line goes back above the composer
-  await page.keyboard.press("ControlOrMeta+j");
-  await page.waitForFunction(() => { const h = document.getElementById("herald"); return !h.classList.contains("is-out") && !!h.closest("#dock"); });
   await done(page);
 });
 t("C085: A, then B while it's read, then A again: A's diff shows again", async () => {
@@ -2686,7 +2655,7 @@ for (const how of ["Enter", "Space", "click"]) {
     await done(page);
   });
 }
-t("S224: the file put away after its turn went on: focus goes to what brings it back, or to a.js's chip, never the page", async () => {
+t("S224: Esc from a file in the panel after its turn went on: the panel's sections, focus in the panel, never the page", async () => {
   const page = await app({ files: { "a.js": FILE() }, threadsBy: TT() });
   await toDemo(page);
   const chip = await turnChip(page);
@@ -2698,13 +2667,13 @@ t("S224: the file put away after its turn went on: focus goes to what brings it 
   await feedTurn(page, { id: "tt1", sid: "ses-tt", rows: [{ call_id: "c3", kind: "read_file", status: "ok", target: "c.js" }], n: 2 });
   await page.waitForTimeout(300);
   assert.match(await active(page), /id=viewer/, "still on the file");
-  // Escape, as a person leaves it: beside the chat the file is put away (its own chip brings it back); on a phone
-  // the sheet steps back to the chat
+  // Escape, as a person leaves it: the panel goes back to its sections, the file kept as its Files tab
   await page.keyboard.press("Escape");
   await page.waitForTimeout(400);
-  const st = await page.evaluate(() => { const a = document.activeElement; return { usable: !!a && a !== document.body && a.isConnected && a.getClientRects().length > 0 && !a.closest("[inert], [hidden]"), chip: !!a?.matches?.('#msgs .tb-cf[data-file="a.js"], [data-fv-restore]'), at: a ? a.tagName + (a.id ? "#" + a.id : "") + (a.className ? "." + String(a.className).split(" ").join(".") : "") : null }; });
+  const st = await page.evaluate(() => { const a = document.activeElement; return { usable: !!a && a !== document.body && a.isConnected && a.getClientRects().length > 0 && !a.closest("[inert], [hidden]"), inPanel: !!a?.closest?.("#stage"), page: document.querySelector("#stage").dataset.page || null, at: a ? a.tagName + (a.id ? "#" + a.id : "") + "." + a.className : "none" }; });
   assert.ok(st.usable, `focus on something you can use, never the page (${st.at})`);
-  if (WIDTH >= 600) assert.ok(st.chip, `on what brings a.js back, or a.js's chip in the turn (${st.at})`);
+  assert.equal(st.page, null, "the panel shows its sections");
+  assert.ok(st.inPanel, `focus stays in the panel (${st.at})`);
   await done(page);
 });
 for (const variant of ["read", "held", "refused"]) {
@@ -3293,36 +3262,29 @@ for (const refused of [false, true]) {
   });
 }
 
-t("C029: on a phone, Back to chat from a file shows the chat, not the panel again", async () => {
-  if (WIDTH > 760) return; // beside the chat on a desktop, the panel coming back is the design
+t("C029: on a phone, closing the panel from a file shows the chat, not the panel again", async () => {
+  if (WIDTH > 760) skip("a phone's: the panel covers the chat there");
   const page = await app({ files: { "a.js": FILE() } });
   await panelOpen(page);
-  if (await page.locator('[data-ghost="changes"]').filter({ visible: true }).count()) await page.locator('[data-ghost="changes"]').filter({ visible: true }).first().click();
-  await page.locator("[data-open-files]").filter({ visible: true }).first().click();
+  await filesOpen(page);
   await page.locator('[data-fl-file="a.js"]').filter({ visible: true }).first().click();
-  await page.locator("[data-fv-min]").filter({ visible: true }).first().click();
+  await page.locator("[data-stg-close]").filter({ visible: true }).first().click();
   await page.waitForTimeout(400);
   assert.ok(await page.evaluate(() => document.querySelector("#stage").hidden), "the panel stays closed");
   assert.ok(await page.locator("#say").isVisible(), "the chat's box is there to type in");
   await done(page);
 });
 
-t("C029/F08: on a phone, the chat unfolded and folded beside a file opened from the panel, then Back to chat: nothing left inert, the box takes typing", async () => {
-  // the controls grader on 9d1f71b (phone, both themes): #fdock and #composer kept the panel's inert after it had
-  // closed (its release followed the notices' line, which had moved out of the folded chat), and nothing could be typed
+t("C029/F08: on a phone, a file opened from the panel, then the panel closed: nothing left inert, the box takes typing", async () => {
+  // the controls grader on 9d1f71b (phone, both themes): what the covering panel made inert stayed inert after it had
+  // closed, and nothing could be typed
   if (WIDTH > 760) skip("a phone's sheet");
   const page = await app({ files: { "note.md": { content: "# Note\n", version: "sha256:N" } } });
   await panelOpen(page);
-  if (await page.locator('[data-ghost="changes"]').filter({ visible: true }).count()) await page.locator('[data-ghost="changes"]').filter({ visible: true }).first().click();
-  await page.locator("[data-open-files]").filter({ visible: true }).first().click();
+  await filesOpen(page);
   await page.locator('[data-fl-file="note.md"]').filter({ visible: true }).first().click();
-  await page.waitForFunction(() => document.body.classList.contains("chat-sheet"));
-  // the chat unfolded, then folded again (its bar, then its head's fold), by the pointer
-  await page.locator("[data-crail]").filter({ visible: true }).first().click();
-  await page.waitForFunction(() => document.body.classList.contains("sheet-up"));
-  await page.keyboard.press("ControlOrMeta+j");
-  await page.waitForFunction(() => !document.body.classList.contains("sheet-up"));
-  await page.locator("[data-fv-min]").filter({ visible: true }).first().click();
+  await page.waitForFunction(() => document.querySelector("#stage").dataset.page === "files");
+  await page.locator("[data-stg-close]").filter({ visible: true }).first().click();
   await page.waitForTimeout(400);
   const st = await page.evaluate(() => ({ stageHidden: document.querySelector("#stage").hidden, inert: [...document.querySelectorAll("[data-stage-inert]")].map((n) => n.id || n.className), inertBox: !!document.querySelector("#say").closest("[inert]") }));
   assert.equal(st.stageHidden, true, "the panel is closed");
@@ -3998,14 +3960,13 @@ t("S240: the docked card and its folded line share the composer's edges, their r
 });
 
 // ── what's docked over the composer is one stack, the notices' line on its top (S007; the docked card at 390) ──
-// a census of the stack as drawn: every docked box shown (the put-away file's chip, the decision card, the folded
-// line) keeps its ring's room clear of the line, and the composer is never under it (tests/notice-clear.test.mjs
+// a census of the stack as drawn: every docked box shown (the decision card, the folded line) keeps its ring's room clear of the line, and the composer is never under it (tests/notice-clear.test.mjs
 // reads the rule). On 86b3f9b the line lay 6 px over the docked card's foot at 390, and met it with no ring room at 1440
 const NOTICE = { kind: "calm", text: "Can't reach XO", sub: "retrying · what you see may be out of date" };
 const notice = (page) => page.evaluate((h) => window.__t.heraldShow(h, 60000), NOTICE).then(() => page.waitForTimeout(400));
 const stackClear = (page) => page.evaluate(() => {
   const vis = (e) => !!e && e.getClientRects().length > 0 && getComputedStyle(e).visibility !== "hidden";
-  const docked = [...document.querySelectorAll("#fdock .fchip, #tdock > *")].filter(vis).map((e) => ({ name: e.className.split(" ")[0], r: e.getBoundingClientRect(), ring: 4 }));
+  const docked = [...document.querySelectorAll("#tdock > *")].filter(vis).map((e) => ({ name: e.className.split(" ")[0], r: e.getBoundingClientRect(), ring: 4 }));
   const comp = document.querySelector("#composer");
   if (vis(comp)) docked.push({ name: "composer", r: comp.getBoundingClientRect(), ring: 0 });
   const hs = [...document.querySelectorAll("#herald .hr")].filter(vis).map((e) => e.getBoundingClientRect());
@@ -4039,32 +4000,6 @@ t("STACK: the notices' line clears everything docked over the composer: nothing,
   assert.equal(s.gap, WIDTH > 760 ? 10 : 8, "its place with nothing docked is unchanged");
   await done(page);
 });
-t("STACK: on a phone, the put-away file's chip and the decision stack under the notices' line, alone or together", async () => {
-  if (WIDTH > 760) skip("the put-away file's chip is docked over the composer only on a phone");
-  const page = await app({ files: { "a.js": FILE() } });
-  await dockAsk(page);
-  await panelOpen(page);
-  await filesOpen(page);
-  await page.locator('[data-fl-file="a.js"]').filter({ visible: true }).first().click();
-  await page.locator("[data-fv-min]").filter({ visible: true }).first().click();
-  await page.locator("#fdock .fchip").waitFor({ state: "visible", timeout: 8000 });
-  await notice(page);
-  assertClear(await stackClear(page), "the chip", ["fchip", "composer"]);
-  await page.evaluate(() => { window.__t.go("t:dk1"); window.__t.render(); });
-  await page.locator("#tdock .card").waitFor();
-  await page.waitForTimeout(500);
-  await notice(page);
-  const both = await stackClear(page);
-  if (process.env.STACK_DIR) await page.screenshot({ path: `${process.env.STACK_DIR}/chip-decision-${WIDTH}-${THEME}.png` });
-  if (!both.docked.includes("fchip")) skip("the chip isn't shown in a thread, so it never docks with the decision");
-  assertClear(both, "the chip and the decision", ["fchip", "card", "composer"]);
-  await page.locator("#tdock [data-fold]").click();
-  await page.locator("#tdock [data-unfold]").waitFor();
-  await page.waitForTimeout(400);
-  assertClear(await stackClear(page), "the chip and the folded line", ["fchip", "dock-fold", "composer"]);
-  await done(page);
-});
-
 // ── RINGCLIP: no clipping box cuts a focused control's ring (C047, C008, C045, S089) ──
 // A sweep of the page as drawn: every control in view is focused as Tab would (keepFocusInView brings it in), its ring
 // read as drawn (outline width and offset), and every box around it that clips (overflow either axis, paint
@@ -4103,13 +4038,13 @@ t("RINGCLIP: no clipping box cuts a focused control's ring: Home, a project with
   // Jump (C020: its field's box ring, clipped by the sheet's card)
   await page.keyboard.press("ControlOrMeta+k"); await page.locator("#jump-q").waitFor({ state: "visible", timeout: 4000 }).catch(() => {});
   if (await page.locator("#jump-q").isVisible()) { await page.waitForTimeout(300); await sweep("Jump"); await page.keyboard.press("Escape"); await page.waitForTimeout(300); }
-  // a made file opened from Artifacts: Files over Artifacts, its Back at the top of a phone's screen (S070)
+  // a made file opened from Artifacts: in the panel's Files page (on a phone, the panel's sheet; S070)
   await page.evaluate(() => { window.__t.go("artifacts"); window.__t.render(); });
   const mo = page.locator('#arts-body .md-it[data-k] .md-open').filter({ visible: true }).first();
   await mo.waitFor({ timeout: 6000 }); await mo.focus(); await page.keyboard.press("Enter");
-  await page.locator("[data-fv-back]").filter({ visible: true }).first().waitFor({ timeout: 6000 }); await page.waitForTimeout(500);
-  await sweep("Files over Artifacts");
-  await page.locator("[data-fv-back]").filter({ visible: true }).first().click(); await page.waitForTimeout(400);
+  await page.waitForFunction(() => document.querySelector("#stage").dataset.page === "files", null, { timeout: 6000 }); await page.waitForTimeout(500);
+  await sweep("a file from Artifacts, in the panel");
+  await page.locator("[data-stg-close]").filter({ visible: true }).first().click(); await page.waitForTimeout(400);
   await toDemo(page); await page.waitForTimeout(400);
   await panelOpen(page);
   await page.waitForTimeout(400);
