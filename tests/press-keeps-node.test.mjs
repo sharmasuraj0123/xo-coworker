@@ -143,7 +143,7 @@ if (!existsSync(LD)) {
     const specs = [...filesSrc.matchAll(/^import [^;]* from "([^"]+)";$/gm)].map((m) => m[1]);
     const STUB = {
       "focusview.js": "export const inSight = () => true; export const bringWhole = () => {};",
-      "core/platform/index.js": 'export const esc = (s) => String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); export const copyText = async () => true; export const COPY_REFUSED = ""; export const space = () => 0;',
+      "core/platform/index.js": 'export const esc = (s) => String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); export const copyText = async () => true; export const COPY_REFUSED = ""; export const space = () => 0; export { rank, marked } from "./fuzzy.js";',
       "ui.js": 'export const ICON = new Proxy({}, { get: () => "<i></i>" });',
       "api.js": "export const calls = []; export const missingRoute = () => false; export const api = { projectTree: (project, rel) => new Promise((res) => calls.push({ project, rel, res })) };",
       "map.js": 'export const MARKS = { files: new Map() }; export const activityOf = () => ({ files: MARKS.files }); export const folderOf = () => ({ root: "/w/p", base: "", project: "p", projectRoot: "/w/p" });',
@@ -163,10 +163,10 @@ if (!existsSync(LD)) {
       if (seen.has(rel)) continue;
       seen.add(rel);
       const stub = stubFor(rel);
-      if (stub != null) { place(rel, stub); continue; }
+      if (stub != null) { place(rel, stub); for (const m of stub.matchAll(/export [^;]* from "([^"]+)";/g)) todo.push(repoRel(rel, m[1])); continue; }
       const text = readFileSync(join(ROOT, rel), "utf8");
       place(rel, text);
-      for (const m of text.matchAll(/^import [^;]* from "([^"]+)";$/gm)) todo.push(repoRel(rel, m[1]));
+      for (const m of text.matchAll(/^(?:import|export) [^;]* from "([^"]+)";$/gm)) todo.push(repoRel(rel, m[1]));
     }
     assert.ok(specs.length > 5, "files.js's imports were read");
     // the copy registers its own press listener on the same document: both see the same presses

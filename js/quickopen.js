@@ -1,5 +1,5 @@
 // Go to a file (⌘P) or find text in the place's files (⌘⇧F), as VS Code's Quick Open and Search do, in the sheet ⌘K
-// uses (#qo, the same card). Files: a few letters of a path (js/fuzzy.js over js/paths.js: every file in the place,
+// uses (#qo, the same card). Files: a few letters of a path (core/platform/fuzzy.js over js/paths.js: every file in the place,
 // open ones first), and `:120` to land on a line. Text: Space's GET /search (git grep, SPACE-CONTRACT.md §4.7),
 // results by file, a line each; Enter opens the file at that line. Where Space has no /search yet, it says so.
 //
@@ -7,10 +7,9 @@
 //   place() → {project, base, label} for the view (null: nothing to search); openFile(rel, {line, col}) opens a file
 //   of the place; openFiles() → the files open now ({rel}); layer.shown()/hidden() keeps the page behind inert.
 
-import { esc } from "../core/platform/index.js";
+import { esc, rank, marked, lineOf } from "../core/platform/index.js";
 import { xi } from "./icon.js";
 import { fileIcon } from "./fileicons.js";
-import { rank, marked, lineOf } from "./fuzzy.js";
 import { missingRoute } from "./api.js";
 
 const SEARCH_MS = 220;

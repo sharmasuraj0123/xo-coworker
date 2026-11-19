@@ -17,7 +17,7 @@
 //
 // stage.js calls: mount, show, hide, render, reveal, count.
 
-import { esc, copyText, COPY_REFUSED, space } from "../core/platform/index.js";
+import { esc, copyText, COPY_REFUSED, space, rank, marked } from "../core/platform/index.js";
 import { ICON } from "./ui.js";
 import { redraw } from "./redraw.js";
 import { api } from "./api.js";
@@ -26,7 +26,6 @@ import { fileIcon, folderIcon } from "./fileicons.js";
 import { countsHtml } from "./changesframe.js";
 import { RUNS } from "./viewer.js";
 import { pointerFollows } from "./keynav.js";
-import { rank, marked } from "./fuzzy.js";
 
 const WIDE = 600;       // the panel's width from which tree and file sit side by side (the panel goes to 720)
 const TOUCHED = 6;      // "Touched by agents" shows at most this many
@@ -241,7 +240,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     refocus(had, root);
   }
 
-  /** What Find finds: every file in the place (js/paths.js) ranked by a few letters (js/fuzzy.js), a row each, its
+  /** What Find finds: every file in the place (js/paths.js) ranked by a few letters (core/platform/fuzzy.js), a row each, its
    *  folder after its name; while the list is still being read, it says so. */
   function drawFound(s) {
     const root = T.groups.get("").el;

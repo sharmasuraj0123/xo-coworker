@@ -2292,8 +2292,9 @@
    "home": "modules/conversation/follow.js"
   },
   "js/fuzzy.js": {
-   "status": "planned",
-   "home": "core/platform/fuzzy.js"
+   "status": "moved",
+   "home": "core/platform/fuzzy.js",
+   "note": "js/fuzzy.js re-exports core/platform until the shims go"
   },
   "js/gestures.js": {
    "status": "planned",
@@ -9489,47 +9490,47 @@
    "home": "modules/conversation/follow.js"
   },
   "js/fuzzy.js::exports::score": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/fuzzy.js"
   },
   "js/fuzzy.js::exports::rank": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/fuzzy.js"
   },
   "js/fuzzy.js::exports::marked": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/fuzzy.js"
   },
   "js/fuzzy.js::exports::lineOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/fuzzy.js"
   },
   "js/fuzzy.js::functions::score": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/fuzzy.js"
   },
   "js/fuzzy.js::functions::scoreWord": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/fuzzy.js"
   },
   "js/fuzzy.js::functions::best": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/fuzzy.js"
   },
   "js/fuzzy.js::functions::charBonus": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/fuzzy.js"
   },
   "js/fuzzy.js::functions::rank": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/fuzzy.js"
   },
   "js/fuzzy.js::functions::marked": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/fuzzy.js"
   },
   "js/fuzzy.js::functions::lineOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/fuzzy.js"
   },
   "js/gestures.js::exports::FLICK": {
