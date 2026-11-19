@@ -4,14 +4,14 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 656 |
+| planned | 655 |
 | vendor | 367 |
 | deleted | 232 |
-| split | 36 |
+| split | 37 |
 | moved | 21 |
 | kept | 1 |
 
-Items inside first-party files: 2290 (planned 1168, split-region 814, moved 289, deleted 19), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1161, split-region 814, moved 296, deleted 19), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -64,7 +64,7 @@ Items inside first-party files: 2290 (planned 1168, split-region 814, moved 289,
 | `js/keys.js` | 176 | split | core/platform/keys.js, core/kernel (shortcut place), modules/settings/keyboard.js · next: the engine and its catalogue are in core/platform/keys.js; js/keys.js re-exports it until the shims go; the catalogue becomes the kernel's shortcut place when modules contribute their keys |
 | `js/kit.js` | 270 | split | modules/decisions/kit.js, core/ui/components/hold.js · next: the hold button and its guard are in core/ui/components/hold.js (kit.js re-exports them); the rest goes to modules/decisions |
 | `js/launchpad.js` | 1166 | planned | modules/launchpad/ (store, controller, views, section) |
-| `js/lightbox.js` | 384 | planned | core/ui/lightbox.js |
+| `js/lightbox.js` | 384 | split | core/ui/lightbox.js, modules/conversation (the pictures it lends the lightbox) · next: the lightbox is core/ui/lightbox.js; js/lightbox.js keeps only the conversation pictures it lends it, until the conversation module moves |
 | `js/lpapi.js` | 239 | split | modules/launchpad/client.js, modules/launchpad/model.js, core/services/github.js |
 | `js/map.js` | 1360 | split | modules/map, core/services/places.js, core/services/agent-activity.js |
 | `js/markdown.js` | 519 | split | core/ui/markdown/markdown.js, core/ui/markdown/inline.js · next: blocks in markdown.js, inline text, links, pictures and the rich hooks in inline.js; js/markdown.js re-exports markdown.js until the shims go |

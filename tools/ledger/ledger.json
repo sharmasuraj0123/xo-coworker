@@ -2366,8 +2366,12 @@
    "home": "modules/launchpad/ (store, controller, views, section)"
   },
   "js/lightbox.js": {
-   "status": "planned",
-   "home": "core/ui/lightbox.js"
+   "status": "split",
+   "home": [
+    "core/ui/lightbox.js",
+    "modules/conversation (the pictures it lends the lightbox)"
+   ],
+   "note": "the lightbox is core/ui/lightbox.js; js/lightbox.js keeps only the conversation pictures it lends it, until the conversation module moves"
   },
   "js/lpapi.js": {
    "status": "split",
@@ -10326,31 +10330,31 @@
    "home": "modules/launchpad/ (store, controller, views, section)"
   },
   "js/lightbox.js::exports::createLightbox": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/lightbox.js"
   },
   "js/lightbox.js::functions::ms": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/lightbox.js"
   },
   "js/lightbox.js::functions::createLightbox": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/lightbox.js"
   },
   "js/lightbox.js::keys::Escape": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/lightbox.js"
   },
   "js/lightbox.js::keys::ArrowLeft": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/lightbox.js"
   },
   "js/lightbox.js::keys::ArrowRight": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/lightbox.js"
   },
   "js/lightbox.js::keys::Tab": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/lightbox.js"
   },
   "js/lpapi.js::exports::nextStep": {
