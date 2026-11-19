@@ -4105,7 +4105,8 @@
   },
   "serve.py": {
    "status": "planned",
-   "home": "serve.py (kept; apps-host routes added in phase 7)"
+   "home": "serve.py (kept; apps-host routes added in phase 7)",
+   "note": "the writer key now also covers app management (/api/apps writes) and app views (/api/coworker/apps/*), only for XO's own page"
   },
   "start.sh": {
    "status": "planned",

@@ -21,7 +21,7 @@ Items inside first-party files: 2290 (planned 1296, split-region 804, moved 168,
 | `README.md` | 191 | planned | README.md (rewritten: architecture + module table generated) |
 | `favicon.svg` | 6 | planned | core/ui/icons/favicon.svg, generated from the icon pack (owner D7: today a hand-made copy that differs) |
 | `index.html` | 293 | split | shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table) |
-| `serve.py` | 540 | planned | serve.py (kept; apps-host routes added in phase 7) |
+| `serve.py` | 540 | planned | serve.py (kept; apps-host routes added in phase 7) · next: the writer key now also covers app management (/api/apps writes) and app views (/api/coworker/apps/*), only for XO's own page |
 | `start.sh` | 29 | planned | start.sh (kept) |
 
 ## js (79)
