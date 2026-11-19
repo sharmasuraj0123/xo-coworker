@@ -2,8 +2,9 @@
  "commit": "5a2b0784aafcfa95a45431535482f5e2ae9ca3dd",
  "files": {
   ".gitignore": {
-   "status": "planned",
-   "home": ".gitignore (updated)"
+   "status": "kept",
+   "home": ".gitignore",
+   "note": "ignores node_modules and the design work kept outside git"
   },
   "PR_DESCRIPTION.md": {
    "status": "planned",
@@ -4156,8 +4157,9 @@
    "note": "the writer key now also covers app management (/api/apps writes) and app views (/api/coworker/apps/*), only for XO's own page"
   },
   "start.sh": {
-   "status": "planned",
-   "home": "start.sh (kept)"
+   "status": "kept",
+   "home": "start.sh",
+   "note": "unchanged"
   },
   "tests/agent-marks.test.mjs": {
    "status": "planned",
