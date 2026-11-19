@@ -198,6 +198,7 @@ export async function mount(host, { docs, doc, name = "", page = false, onLines 
   // the document's hooks: its text (the live one, even while an old version shows), and its changes coming in
   docs.attach(doc, {
     source: () => (live || view.state).doc.toString(),
+    length: () => (live || view.state).doc.length,
     apply: (e, info) => {
       const spec = { changes: { from: e.from, to: e.to, insert: e.insert }, annotations: external.of(true) };
       if (live) { live = live.update(spec).state; return; }

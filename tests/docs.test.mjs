@@ -323,6 +323,24 @@ t("a restore says which version it brings back; a renamed file's document follow
   assert.equal(space.disk.get("b/renamed.md"), "after the move\n");
 });
 
+t("undoing back to the saved text: saved again (no Unsaved, no draft, no question); redo: unsaved again", async () => {
+  const { space, docs, store } = setup();
+  const d = await openDoc(docs, space);
+  const v = fakeView(docs, d);
+  v.type("one\ntwo!\nthree\n");
+  assert.equal(d.state, "dirty");
+  v.type("one\ntwo\nthree\n"); // undone
+  assert.equal(d.state, "saved");
+  assert.equal(getDraft(store, draftKey("p", "a.md")), null);
+  assert.deepEqual(docs.unsaved(), [], "nothing to ask about on close");
+  v.type("one\ntwo!\nthree\n"); // redone
+  assert.equal(d.state, "dirty");
+  // the same length, other text: still unsaved
+  v.type("one\ntwo\nthreE\n");
+  assert.equal(d.state, "dirty");
+  assert.equal(space.saves.length, 0);
+});
+
 for (const [name, fn] of queue) {
   try { await fn(); passed++; console.log("  ok  " + name); }
   catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; }

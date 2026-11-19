@@ -165,9 +165,9 @@ export function createDocs({ api, store = null, clock = { now: () => Date.now(),
    * The view's hooks: source() → its text now; apply(edit, {lines, why}) changes its text by a minimal edit
    * (someone else's change, a merge), keeping the caret where it was.
    */
-  function attach(d, { source, apply }) {
+  function attach(d, { source, apply, length = null }) {
     if (d.source && !source) d.text = d.source();
-    d.source = source || null; d.apply = apply || null;
+    d.source = source || null; d.apply = apply || null; d.length = source ? length : null;
     if (source) { const t = source(); if (t !== d.text) { const e = minimalEdit(t, d.text); if (e && apply) apply(e, { lines: [], why: "restore" }); } }
   }
 
@@ -181,9 +181,24 @@ export function createDocs({ api, store = null, clock = { now: () => Date.now(),
   /** You typed (the view says so on each change: cheap, no text read). */
   function edited(d) {
     if (d.state === "readonly" || d.state === "conflict" || d.viewing) return;
+    // back to the saved text (undone, or typed back): saved again, and its draft goes (the owner, 19 Nov 12:06Z: "i
+    // edit and then when i undo everything, this still shows"). Cheap: the text is compared only when its length is
+    // the saved one's (the view says its length without building the text)
+    if ((d.state === "dirty" || d.state === "error") && sameAsSaved(d)) {
+      clock.clear(d.draftT);
+      dropDraft(store, d.key);
+      setState(d, "saved");
+      return;
+    }
     if (d.state === "saved" || d.state === "error" || d.state === "deleted") setState(d, d.state === "deleted" ? "deleted" : "dirty", d.state === "deleted" ? d.err : null);
     clock.clear(d.draftT);
     d.draftT = clock.set(() => keepDraft(d), DRAFT_MS);
+  }
+  /** The text is the saved one again: same length first (no text built), then the same text. */
+  function sameAsSaved(d) {
+    const n = d.length ? d.length() : null;
+    if (n != null && n !== d.base.length) return false;
+    return textOf(d) === d.base;
   }
 
   /** Save now: ⌘S / Ctrl+S (or Save in the "save your changes?" question). The only way a file is written. */
