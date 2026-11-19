@@ -2285,8 +2285,9 @@
    "home": "modules/files/page.js"
   },
   "js/focusview.js": {
-   "status": "planned",
-   "home": "core/ui/a11y/focus.js"
+   "status": "moved",
+   "home": "core/ui/a11y/focus.js",
+   "note": "js/focusview.js re-exports core/ui/a11y/focus.js until the shims go"
   },
   "js/follow.js": {
    "status": "planned",
@@ -9341,95 +9342,95 @@
    "home": "modules/files/page.js"
   },
   "js/focusview.js::exports::usable": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::exports::hookOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::exports::outside": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::exports::scrollerOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::exports::seen": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::exports::room": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::exports::ringsOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::exports::decoration": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::exports::bring": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::exports::lost": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::exports::inSight": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::exports::bringWhole": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::exports::keepFocusInView": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::functions::hookOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::functions::scrollerOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::functions::room": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::functions::ringsOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::functions::decoration": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::functions::shift": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::functions::bring": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::functions::inSight": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::functions::bringWhole": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::functions::keepFocusInView": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/follow.js::exports::createFollow": {

@@ -2,7 +2,7 @@
 // Settings › Routing's Keep it and Disconnect brought flush with the scroller's foot, by Tab and when focus landed by
 // itself, and 3.56 px of the ring cut off). Layout, not a smaller ring: every control keeps the ring's room clear as
 // its scroll-margin, which the browser's own scrollIntoView (a Tab, Settings' focusOn) keeps, and so does the focus
-// rule (js/focusview.js: room(), ringsOf(), decoration(): a checkbox's label and its ring too, C115). Checked from the
+// rule (core/ui/a11y/focus.js: room(), ringsOf(), decoration(): a checkbox's label and its ring too, C115). Checked from the
 // source; the drawn ring is the settings case "S111 S112 the ring has room at the foot".
 //   node tests/ring-room.test.mjs
 import assert from "node:assert/strict";
@@ -11,7 +11,7 @@ import { readFileSync } from "node:fs";
 
 const R = new URL("../", import.meta.url);
 const read = (f) => { const s = readFileSync(new URL(f, R), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""); return f.endsWith(".css") && !f.endsWith("tokens.css") ? resolveTokens(s, [...NEW_SIZES, "--h-lg", "--h-ctl", "--h-sm"]) : s; };
-const base = read("css/base.css"), tokens = read("css/tokens.css"), fv = readFileSync(new URL("js/focusview.js", R), "utf8");
+const base = read("css/base.css"), tokens = read("css/tokens.css"), fv = readFileSync(new URL("core/ui/a11y/focus.js", R), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 

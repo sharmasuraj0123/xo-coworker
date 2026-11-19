@@ -17,16 +17,16 @@ let passed = 0;
 const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
 await t("one helper says a control can take focus: no file keeps its own copy", () => {
-  const fv = read("js/focusview.js");
+  const fv = read("core/ui/a11y/focus.js");
   assert.match(fv, /export const usable = \(el\) => !!el && el !== document\.body && el\.isConnected && !el\.closest\("\[inert\], \[hidden\]"\) && el\.getClientRects\(\)\.length > 0;/);
-  const copies = readdirSync(new URL("js/", ROOT)).filter((f) => f.endsWith(".js") && f !== "focusview.js").filter((f) => /closest\("\[inert\], \[hidden\]"\)/.test(read(`js/${f}`)));
+  const copies = readdirSync(new URL("js/", ROOT)).filter((f) => f.endsWith(".js")).filter((f) => /closest\("\[inert\], \[hidden\]"\)/.test(read(`js/${f}`)));
   assert.deepEqual(copies, [], `own copies of the test: ${copies.join(", ")}`);
   for (const f of ["app.js", "decide.js", "viewer.js", "stage.js", "create.js", "ui.js"]) assert.match(read(`js/${f}`), /import \{[^}]*\busable\b[^}]*\} from "\.\/focusview\.js";/, `${f} takes it from focusview.js`);
 });
 
 await t("hookOf names a control so the redraw's copy is found: its id, else its tag and data- hooks, a count aside", async () => {
   globalThis.CSS = { escape: (s) => String(s).replace(/["\\]/g, "\\$&") };
-  const { hookOf } = await import(new URL("js/focusview.js", ROOT));
+  const { hookOf } = await import(new URL("core/ui/a11y/focus.js", ROOT));
   const el = (tag, attrs, id = "") => ({ tagName: tag.toUpperCase(), id, attributes: Object.entries(attrs).map(([name, value]) => ({ name, value })), getAttribute: (n) => attrs[n] ?? null });
   assert.equal(hookOf(el("button", { class: "nx-link", "data-fid": "ev", "data-decide": "t1:ask" })), 'button[data-fid="ev"][data-decide="t1:ask"]', "Home's Details");
   assert.equal(hookOf(el("button", { class: "x", "data-runs": "", "data-n": "45" })), "button[data-runs]", "a count isn't its identity");

@@ -4,13 +4,13 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 676 |
+| planned | 675 |
 | vendor | 367 |
 | deleted | 232 |
 | split | 34 |
-| moved | 4 |
+| moved | 5 |
 
-Items inside first-party files: 2290 (planned 1366, split-region 923, moved 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1343, split-region 923, moved 24), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -49,7 +49,7 @@ Items inside first-party files: 2290 (planned 1366, split-region 923, moved 1), 
 | `js/fileicons.js` | 83 | planned | core/ui/icons/fileicons.js |
 | `js/files.js` | 940 | split | modules/files/tree, modules/files/ops, core/services/places.js, core/services/activity.js |
 | `js/filespage.js` | 150 | planned | modules/files/page.js |
-| `js/focusview.js` | 138 | planned | core/ui/a11y/focus.js |
+| `js/focusview.js` | 138 | moved | core/ui/a11y/focus.js · next: js/focusview.js re-exports core/ui/a11y/focus.js until the shims go |
 | `js/follow.js` | 150 | planned | modules/conversation/follow.js |
 | `js/fuzzy.js` | 118 | planned | core/platform/fuzzy.js |
 | `js/gestures.js` | 451 | planned | core/platform/gestures.js |
