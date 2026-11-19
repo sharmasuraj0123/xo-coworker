@@ -298,3 +298,12 @@ Checked: a read-only layout diff of Home, the chat (document view, bubbles, phon
 on :3000's data, before and after. On screen, only what was meant to move moved: the composer's @ target 2 px narrower
 (its right padding on --halo), the model picker 2 px nearer its chip (10 → --s-2), Settings' page head 2 px up (its
 2 px top margin gone), and the bubbles' column 18 px taller over the conversation (2 px gaps that are now 4).
+
+## Sizes (e89d1610, ab6000a6)
+
+All 244 sizes written as 24/32/36/40/44 px now name a size from the scale, by what the thing is: a control
+(--h-sm 24, --h-ctl 32, which follows compact density, --h-lg 40), a phone's touch floor (--h-touch 36, new) or a full
+touch row (--h-hit 44, new), or a box that doesn't follow density (--tile 32, --tile-lg 36, --tile-xl 44, new; the Files
+rail is --rail-w). Layout diff at comfortable density, before and after, on Home, the chat (document view, bubbles,
+phone), a thread, Settings and the model picker: 0 of ~2,250 elements moved. In compact density the 56 controls that
+were a fixed 32 now step down to 24 with the rest, as compact always meant them to.
