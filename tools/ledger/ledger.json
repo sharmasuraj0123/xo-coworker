@@ -7,8 +7,8 @@
    "note": "ignores node_modules and the design work kept outside git"
   },
   "PR_DESCRIPTION.md": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4)"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "README.md": {
    "status": "kept",

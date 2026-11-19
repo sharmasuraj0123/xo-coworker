@@ -4,9 +4,9 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 610 |
+| planned | 608 |
 | vendor | 367 |
-| deleted | 244 |
+| deleted | 245 |
 | moved | 54 |
 | split | 35 |
 | kept | 4 |
@@ -18,7 +18,7 @@ Items inside first-party files: 2290 (planned 977, moved 695, split-region 561, 
 | File | Lines | Status | New home |
 |---|---:|---|---|
 | `.gitignore` |  | kept | .gitignore · next: ignores node_modules and the design work kept outside git |
-| `PR_DESCRIPTION.md` | 284 | planned | out of the repo: the design archive (owner D4) |
+| `PR_DESCRIPTION.md` | 284 | deleted | moved to the design archive (owner D4) |
 | `README.md` | 191 | kept | README.md · next: rewritten: what the app does, the layout by folder and layer, and how to run the checks, the unit tests and the UI lane |
 | `favicon.svg` | 6 | planned | core/ui/icons/favicon.svg, generated from the icon pack (owner D7: today a hand-made copy that differs) |
 | `index.html` | 293 | split | shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table) · next: the hidden layers' markup is in shell/overlays.js; comments are gone; the visible frame (sidebar, main) stays for the first paint |
