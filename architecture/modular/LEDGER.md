@@ -78,7 +78,7 @@ Items inside first-party files: 2290 (planned 1007, moved 695, split-region 561,
 | `js/paid.js` | 152 | moved | core/services/world/paid.js · next: every importer points at the new home, so it leaves with no re-export |
 | `js/paidview.js` | 21 | moved | modules/decisions/cards/paid.js |
 | `js/paths.js` | 83 | moved | core/services/paths.js · next: every importer points at the new home, so it leaves with no re-export |
-| `js/pending.js` | 22 | moved | core/platform/pending.js · next: js/pending.js re-exports core/platform until the shims go |
+| `js/pending.js` | 22 | moved | core/platform/pending.js · next: every importer points at core/platform/pending.js, so it leaves with no re-export |
 | `js/projicons.js` | 83 | moved | modules/projects/projicons.js |
 | `js/quickopen.js` | 179 | moved | modules/search/quickopen.js |
 | `js/record.js` | 340 | split | modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js · next: every piece has moved (modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js); record.js only re-exports them until the shims go |

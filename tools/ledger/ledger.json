@@ -2460,7 +2460,7 @@
   "js/pending.js": {
    "status": "moved",
    "home": "core/platform/pending.js",
-   "note": "js/pending.js re-exports core/platform until the shims go"
+   "note": "every importer points at core/platform/pending.js, so it leaves with no re-export"
   },
   "js/projicons.js": {
    "status": "moved",
