@@ -9,7 +9,7 @@ const storm = readFileSync(new URL("../js/storm.js", import.meta.url), "utf8");
 const css = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
 
 // registered on the panel's page model: one page (single), 560 wide, its own box, kept while hidden
-assert.match(app, /STAGE\.page\("thread", \{\n\s*single: true, width: 560,/);
+assert.match(app, /single: true, width: \(\{ room \}\) => Math\.max\(560, Math\.min\(720, room\)\),/, "wider by default: 720 where the chat keeps its 560");
 assert.match(app, /mount: \(box\) => tpMount\(box\),\n\s*onShow: \(key, o\) => tpShow\(key, o\),\n\s*unmount: \(\) => tpUnmount\(\),/);
 // its own elements (unique ids beside the main chat's), its own follower, drawing, composer and decoration
 for (const id of ["tscroller", "tcolumn", "tmsgs", "ttyping", "tpdock", "tptdock", "tpcomposer", "tsay", "tsend"]) assert.match(app, new RegExp(`id="${id}"`), id);
@@ -50,3 +50,23 @@ console.log("thread-page: ok");
   assert.match(a, /class="tp-ask" data-tp-full="\$\{esc\(t\.id\)\}"/);
   console.log("thread-page clicks: ok");
 }
+
+// the page's one reading column: its messages and its dock (asks line, composer) share their edges
+{ const c2 = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
+  assert.match(c2, /\.stage \.tp,\.stage \.tp \.dock\{--col-w:calc\(100cqw - 2 \* var\(--s-5\)\);--col-x:var\(--s-5\);/);
+  assert.match(c2, /\.stage \.tp-ask\{display:flex;align-items:center;gap:var\(--s-2\);width:100%;margin:0 0 var\(--s-2\);/);
+  const st2 = readFileSync(new URL("../js/stage.js", import.meta.url), "utf8");
+  assert.match(st2, /w\(\{ room: innerWidth - sideW\(\) - READ \}\)/);
+  console.log("thread-page column and width: ok"); }
+
+// a file chip clicked in the thread page opens that thread's file (its worktree), not the main chat's project's
+assert.match(app, /VW\.open\(\{ \.\.\.f, \.\.\.fileRoute\(f\.path, convAt\(btn\)\.view\) \}, btn\);/);
+assert.match(app, /route: \(p\) => fileRoute\(p, conv\), by:/);
+{ // fileRoute, run as written: a thread's path goes through its thread; a project chat's through the project
+  const src = app.slice(app.indexOf("function fileRoute("), app.indexOf("\n}\n", app.indexOf("function fileRoute(")) + 2);
+  const fr = new Function("convThread", "sharedFileRoute", "S", "drawing", `${src}; return fileRoute;`)(
+    (v) => (v === "t:x" ? { id: "x", project: "p" } : null), (t, p) => ({ via: t ? "thread:" + t.id : "none", p }), { view: "p:p" }, null);
+  assert.deepEqual(fr("a.md", "t:x"), { via: "thread:x", p: "a.md" }, "the thread page's chip: its thread's worktree");
+  assert.deepEqual(fr("a.md", "p:p"), { project: "p", rel: "a.md" }, "the project chat's chip: the project");
+  assert.deepEqual(fr("a.md"), { project: "p", rel: "a.md" }, "no conversation named, nothing drawn: the main chat's");
+  console.log("thread-page file chips: ok"); }

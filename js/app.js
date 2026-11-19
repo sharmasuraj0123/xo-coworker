@@ -1234,7 +1234,7 @@ function msgItemsOf(conv, needs) {
         (cont ? "" : `<div class="mh"><b>${esc(name)}</b>${role ? `<span class="role">${esc(role)}</span>` : ""}<time>${clock(m.at)}</time>${iq}</div>`) +
         `${m.text ? proseHtml(m.text) : ""}${media}${reactionsHtml(m.reactions)}${tid ? threadCardHtml(tid, needs) : ""}${(m.threads || []).map((x) => threadCardHtml(x, needs)).join("")}</div></div>`;
     } else if (m.who === "turn") {
-      const inner = turnHtml(m.turn, m.blocks, { open: S.tbOpen, hideAnswer: m.hideAnswer, carried: m.carried, route: fileRoute, by: nameOf(conv, "agent")[0], working: m.working, changed });
+      const inner = turnHtml(m.turn, m.blocks, { open: S.tbOpen, hideAnswer: m.hideAnswer, carried: m.carried, route: (p) => fileRoute(p, conv), by: nameOf(conv, "agent")[0], working: m.working, changed });
       if (!inner) { prev = m; continue; }
       // is-folded: running with nothing pressed open and no step waiting on you (the working bubble shows)
       const live = m.turn.status === "running", unfolded = inner.includes('aria-expanded="true"') || /class="[^"]*\bis-waiting\b/.test(inner);
@@ -2760,7 +2760,10 @@ function tpUnmount() {
   Object.assign(TP, { box: null, C: null, K: null, tid: null, follow: null }); TP.viewSubs.clear();
 }
 STAGE.page("thread", {
-  single: true, width: 560,
+  // wider by default (the owner, 19 Nov 16:09Z): 720 reads at the chat's own measure (its column less its 20 insets,
+  // less the 48 a line keeps: 632, about 72 characters of 16 px text); where that would push the chat under its
+  // 560, as much as leaves it 560; never under the 560 it was. A width you drag it to is kept (per page).
+  single: true, width: ({ room }) => Math.max(560, Math.min(720, room)),
   title: (key) => world.thread(key)?.title || "Thread",
   icon: () => ICON.threadOne,
   mount: (box) => tpMount(box),
@@ -3305,7 +3308,9 @@ function openSharedFile(btn) {
   // a size only when the entry says one: an entry without data-file-bytes has none (Astra S224: "NaN MB")
   const raw = btn.dataset.fileBytes, n = raw == null || raw === "" ? NaN : Number(raw);
   const f = { path: btn.dataset.file, name: btn.dataset.fileName, type: btn.dataset.fileType, bytes: Number.isFinite(n) ? n : null };
-  VW.open({ ...f, ...fileRoute(f.path) }, btn);
+  // the chip's own conversation decides where its file is (a thread page's chip: that thread's worktree), not the
+  // main chat's view: at a click nothing is being drawn, so fileRoute would fall back to S.view
+  VW.open({ ...f, ...fileRoute(f.path, convAt(btn).view) }, btn);
 }
 
 // ── "Ask about these lines" (Files, js/viewer.js): to the file's own thread, else its project's coordinator ──
