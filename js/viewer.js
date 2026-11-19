@@ -81,7 +81,7 @@ export function whenWords(at, now = Date.now()) {
  * after each save (its place's changes are read again)}. threadTitle(ts) names who made a version. away() puts the
  * file away beside a chat (Esc); home() is where focus goes when what opened the file is gone.
  */
-export function createViewer({ announce, onChange, tabs, changes = null, ask = null, edits = null, away = null, home = null, threadTitle = () => null }) {
+export function createViewer({ announce, onChange, tabs, changes = null, ask = null, edits = null, away = null, home = null, threadTitle = () => null, opened = null }) {
   const el = $("#viewer");
   // a copy still on its way after this long says so ("Copying…"): quicker, and it only says Copied
   const COPY_SAYS_MS = 150;
@@ -222,21 +222,22 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     return `<div class="xd-pop" role="alertdialog" aria-label="Save ${what}?"><p><b>Save ${what}?</b> If you don't, they're gone.</p><div class="xd-pop-a"><button type="button" class="xd-btn" data-vw-unsaved="discard">Don't save</button><button type="button" class="xd-btn" data-vw-unsaved="cancel">Cancel</button><button type="button" class="xd-btn is-pri" data-vw-unsaved="save">Save</button></div></div>`;
   };
   /** Ask before closing what has unsaved changes; then() goes on once it's saved or let go. */
-  function askUnsaved(list, then) {
+  function askUnsaved(list, then, cancel = null) {
     const ds = list.filter((D) => D && (D.state === "dirty" || D.state === "error" || D.state === "conflict" || D.state === "deleted"));
     if (!ds.length) { then(); return; }
-    V.asking = { docs: ds, then };
+    if (V.asking && V.asking.cancel) V.asking.cancel(); // a question already open gives way to this one
+    V.asking = { docs: ds, then, cancel };
     paintHead();
     el.querySelector('[data-vw-unsaved="save"]')?.focus({ preventScroll: true });
   }
   async function answerUnsaved(how) {
     const A = V.asking;
     V.asking = null;
-    if (!A || how === "cancel") { paintHead(); TX.h?.focus(); return; }
+    if (!A || how === "cancel") { A?.cancel?.(); paintHead(); TX.h?.focus(); return; }
     if (how === "discard") { for (const D of A.docs) docs.discard(D); A.then(); return; }
     await Promise.all(A.docs.map((D) => docs.flush(D)));
-    // saved (or refused: then it stays open, saying why)
-    if (A.docs.every((D) => D.state === "saved")) A.then(); else paintHead();
+    // saved (or refused: then it stays open, saying why, and what asked hears no)
+    if (A.docs.every((D) => D.state === "saved")) A.then(); else { A.cancel?.(); paintHead(); }
   }
   /** A file that runs code asks once before its first save: Save, or Not now (it stays unsaved, in this browser). */
   const confirmPop = () => `<div class="xd-pop" role="dialog" aria-label="Save a file that runs code"><p><b>Git or an agent runs what this file says.</b> A slip here runs on the next commit or the next agent turn. Save it?</p><div class="xd-pop-a"><button type="button" class="xd-btn" data-vw-noconfirm>Not now</button><button type="button" class="xd-btn is-pri" data-vw-confirm>Save</button></div></div>`;
@@ -865,7 +866,9 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     prefetchEditor();
     showTab(t);
     if (!(f.created || f.lines)) el.focus({ preventScroll: true });
-    announce(`${f.name || f.path} is open beside the conversation. Esc closes it.`);
+    announce(`${f.name || f.path} is open in the panel. Esc goes back to its sections.`);
+    // the panel's Files page brings itself forward (js/filespage.js): every way in ends here
+    opened && opened(V.file, { focus: !!from || !!f.created || !!f.lines });
     onChange && onChange();
   }
   /** Close one tab; the last one closes the viewer. */
@@ -1122,6 +1125,26 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     get openFiles() { return V.tabs.map((t) => t.file); },
     /** You're leaving (another place, back to the conversation): unsaved text is kept as a draft in this browser (it
      *  comes back unsaved, for ⌘S); nothing is saved for you. */
+    /** The panel asks before Files closes (its tab's ×, the panel's ×, an eviction): unsaved files ask Save, Don't save
+     *  or Cancel; true once they're saved or let go, false on Cancel; nothing unsaved, true at once. */
+    confirmClose() {
+      return new Promise((res) => {
+        if (!V.open) { res(true); return; }
+        const ds = V.tabs.map((t) => t.doc).filter(Boolean);
+        if (!docs.unsaved().some((D) => ds.includes(D))) { res(true); return; }
+        const cur = V.tabs.find((t) => t.doc && ds.includes(t.doc) && t.doc.state !== "saved");
+        if (cur && cur !== V.tab) showTab(cur);
+        askUnsaved(ds, () => res(true), () => res(false));
+      });
+    },
+    /** The panel's Esc, asked first: a question open, an older version shown. True when it took the Esc. */
+    escape() {
+      const D = doc();
+      if (V.asking) { answerUnsaved("cancel"); return true; }
+      if (D && D.confirm) { docs.confirmRunsCode(D, false); paintHead(); TX.h?.focus(); return true; }
+      if (D && D.viewing && TX.h) { docs.view(D, null); TX.h.showVersion(null); paintHead(); TX.h.focus(); return true; }
+      return false;
+    },
     leave(go) {
       for (const D of docs.unsaved()) docs.keepDraft(D);
       const clash = docs.all().find((D) => D.state === "conflict");

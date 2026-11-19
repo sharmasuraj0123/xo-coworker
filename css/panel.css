@@ -88,6 +88,8 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 .fl-find .fl-q{flex:1;min-width:0}
 .fl-add{flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .fl-add:hover{background:var(--fill-2);color:var(--ink);transition-duration:var(--d-hover-in)}
+.fl-foldtree{display:none}
+.fl.is-wide.has-file .fl-foldtree{display:grid}
 .fl-list{position:relative}
 .fl-more{position:absolute;right:8px;z-index:1;display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);margin-top:var(--s-1);border-radius:var(--r-sm);color:var(--ink-3)}
 .fl-more:hover,.fl-more[aria-expanded="true"]{background:var(--fill-3);color:var(--ink)}
@@ -365,13 +367,9 @@ body.stage-vsizing{cursor:row-resize;user-select:none}
 body.stage-rail .stage .stg-bar,body.stage-rail .stage .stg-frames,body.stage-rail .stage .stg-grip{display:none}
 body.stage-rail .stg-rail{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0}
 
-/* ══ Files, a place in the main area: a 40 px head, the tree at a width you drag, the file in the rest ══ */
-.fv{position:absolute;z-index:6;top:0;right:0;bottom:0;left:0;display:flex;flex-direction:column;min-width:0;background:var(--canvas);outline:none;--pe:12px;--pn:36px}
+/* ══ Files, a page of the panel (js/filespage.js): the tree at a width you drag (or its rail), the file in the rest ══ */
+.fv{flex:1;min-height:0;display:flex;flex-direction:column;min-width:0;background:var(--canvas);outline:none;--pe:12px;--pn:36px}
 .fv[hidden]{display:none}
-body.stage-open:not(.panel-open):not(.stage-full):not(.stage-over) .fv{right:var(--sw)}
-/* a phone: the panel is a sheet over everything, never a column beside Files (stage.js steps it aside) */
-@media (max-width:760px){body.stage-open:not(.panel-open):not(.stage-full):not(.stage-over) .fv{right:0}}
-body.files-open .dock,body.files-open .tdock{display:none}
 .fv-h{flex:none;box-sizing:border-box;height:var(--h-lg);display:flex;align-items:center;gap:8px;padding:0 12px 0 8px;box-shadow:inset 0 -1px 0 var(--line-faint)}
 .fv-back{display:flex;align-items:center;gap:4px;height:var(--h-ctl);padding:0 8px 0 4px;border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .fv-back:hover{background:var(--fill-2);color:var(--ink)}

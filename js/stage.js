@@ -48,8 +48,8 @@ const ago = (ms) => { if (!Number.isFinite(ms)) return ""; const s = Math.max(0,
 
 /**
  * map: the Map (mount, show, hide, render, live, agents, mode, setMode), mapIcon. files: js/files.js
- * (changes, today's list). changes: js/changes.js (Space's /changes). filesView: js/filesview.js (open,
- * isOpen). viewer: the file viewer. view(): the view on screen. go(view): navigate. onChange(): the app
+ * (changes, today's list). changes: js/changes.js (Space's /changes). openFiles(): the panel's Files page (js/filespage.js;
+ * "All files"). viewer: the file viewer. view(): the view on screen. go(view): navigate. onChange(): the app
  * re-renders (header buttons). frames(): the frames the person's shape keeps (xo:panel/*), of "changes",
  * "agents", "map"; the order stays the panel's own, since each line between two frames sizes a known pair.
  */
@@ -61,7 +61,7 @@ const AG_ROWS = 6, ROW = 48; // Threads shows six rows at first (a list to read,
 // Agents never takes the room Changes needs: its 40 px head, one 32 px file row and the list's 8 px foot,
 // the diff's 120 px and its 12 px margin (css/diffs.css). In a short window Agents shows fewer rows
 const CH_MIN = 212, HEAD = 40;
-export function createStage({ map, mapIcon, files, changes, filesView, viewer, view, go, announce, onChange, frames = () => ORDER, launch = null, threads = null, shell = null }) {
+export function createStage({ map, mapIcon, files, changes, openFiles = null, viewer, view, go, announce, onChange, frames = () => ORDER, launch = null, threads = null, shell = null }) {
   const saved = sget(KEY);
   // the Map starts folded, in its Graph (the owner, 19 Nov): Threads and Changes have the room
   const fr = { changes: { folded: false }, agents: { rows: null, folded: false, groups: { done: true } }, map: { h: MAP_H, folded: true }, ...sget(FR_KEY) };
@@ -370,8 +370,6 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   }
 
   function open({ focus = true } = {}) {
-    // asked for while a file sits beside the chat: the right column is the panel's again, the file waits
-    if (filesView.docked) { filesView.minimise({ chip: false }); S.aside = false; }
     if (!S.open) {
       S.open = true;
       S.returnTo = document.activeElement;
@@ -564,24 +562,6 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   function sync() {
     // what the cover holds inert follows the page as it changes (the herald moving in or out of the folded chat)
     if (S.open || document.querySelector("[data-stage-inert]")) coverSync();
-    // the panel steps aside while Files covers a phone, and while a file sits beside the chat (the right
-    // column holds one thing: the chat); it comes back as it was when the file goes
-    const aside = filesView.isOpen && (innerWidth <= 760 || filesView.docked);
-    if (aside !== S.aside) {
-      S.aside = aside;
-      // stepping aside for a file you opened from the panel: what you were on goes with it, so focus goes to the
-      // file (Files couldn't take it a moment ago: the panel covering a phone kept it out of reach) (Astra S082)
-      if (aside && S.open) {
-        S.yielded = true;
-        const had = el.contains(document.activeElement) || document.activeElement === document.body;
-        close({ restore: false, quiet: true });
-        if (had) { const v = document.getElementById("viewer"), fv = document.getElementById("fv"); (v && !v.hidden && v.getClientRects().length ? v : fv)?.focus({ preventScroll: true }); }
-        return;
-      }
-      // it comes back as it was when the file goes; but on a phone, "Back to chat" (Files put away to its chip)
-      // means the chat: a panel brought back would cover it again (Astra C029). It opens from its button.
-      if (!aside && S.yielded) { S.yielded = false; if (!S.open && !(innerWidth <= 760 && filesView.isMin)) open({ focus: innerWidth <= 760 }); }
-    }
     if (!S.open) return;
     fitRail();
     if (LPF.hidden === !!(launch && launch.has(view()) && S.lp)) layout();
@@ -615,7 +595,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     if (t.closest('[data-fr="launch"] .fr-h') && !S.lp && !t.closest("a,button")) { S.lp = true; layout(); paint(); return; }
     const mm = t.closest("[data-map-mode]");
     if (mm) { if (fr.map.folded) { fr.map.folded = false; layout(); } map.setMode(mm.dataset.mapMode); paint(); return; }
-    if (t.closest("[data-open-files]")) { filesView.open(); return; }
+    if (t.closest("[data-open-files]")) { openFiles && openFiles(); return; }
     if (t.closest("[data-follow]")) { CX.toggleFollow(); paint(); return; }
     const ch = t.closest("[data-change]");
     if (ch) { const rel = ch.dataset.change; viewer.open({ path: rel, name: rel.split("/").pop(), project: ch.dataset.changeProject, rel }, ch); return; }
@@ -803,11 +783,10 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     apply();
     return wSaved;
   };
-  /** Beside Files, a wide panel folds to its rail so the reader keeps 560 px, unless you opened it. */
+  /** The panel's rail was for Files beside the chat in the main area; Files is a page of the panel now (the owner,
+   *  19 Nov 14:57Z), so the panel is never folded to a rail for it. */
   function fitRail() {
-    const tw = filesView.isOpen ? (parseFloat(getComputedStyle(document.querySelector("#fv") || document.body).getPropertyValue("--tw")) || 280) : 0;
-    if (!filesView.isOpen) S.railOff = false;
-    const want = S.open && filesView.isOpen && !S.railOff && innerWidth > 760 && innerWidth - sideW() - widthNow() - tw < RAIL_READ;
+    const want = false;
     if (want !== S.rail) {
       S.rail = want;
       document.body.classList.toggle("stage-rail", want);
@@ -864,6 +843,8 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     page, show, sections, closeTab, requestClose,
     pages: () => S.tabs.map((t) => ({ ...t, title: PAGES.get(t.name).title?.(t.key) || t.name, on: sameTab(t, S.page) })),
     get pageShown() { return S.page ? { ...S.page } : null; },
+    /** A page's width changed (Files' tree folded or opened, its width dragged): the panel fits it again, one write. */
+    refit: () => apply(),
     /** The header's Deploy. */
     launch() {
       if (!(S.open && S.lp && !S.rail)) { openLaunch(); return; }

@@ -43,7 +43,7 @@ import { createLpApi } from "./lpapi.js";
 import { createFiles, fileScope, localIn, scopeOf as filesScopeOf } from "./files.js";
 import { createPaths } from "./paths.js";
 import { createQuickOpen } from "./quickopen.js";
-import { createFilesView } from "./filesview.js";
+import { createFilesPage } from "./filespage.js";
 import { createChanges, lineRef, fileRef } from "./changes.js";
 import { fileIcon } from "./fileicons.js";
 import { countsHtml } from "./changesframe.js";
@@ -221,7 +221,10 @@ const VW = createViewer({
   edits: { saved: (f) => savedSoon(f) },
   // who made a version: an agent's thread, by its title
   threadTitle: (ts) => world.thread(ts)?.title || null,
-  away: () => { if (FILESV.sheet) return FILESV.escape(document.activeElement); if (!FILESV.docked) return false; FILESV.minimise(); return true; },
+  // Esc from a file: back to the panel's sections, the file kept as the Files tab (js/filespage.js)
+  away: () => { if (!FP.isOpen) return false; STAGE.sections(); return true; },
+  // every way a file opens ends in the panel's Files page
+  opened: (f, o) => FP.show(o),
   // closed, with what opened it gone and nothing drawn in its place: where you'd carry on
   home: () => [$("#say"), placeRegion()].find(usable) || null,
 }); // a file, in Files (js/filesview.js)
@@ -382,9 +385,8 @@ const SORT_STATE = { needs_approval: 0, needs_reply: 0, paused: 0, failed: 1, wo
 const MAP = createMap({ world, viewer: VW, go: (v) => go(v, { panel: true }), announce, isBusy, onChange: () => schedule(), openFile: (f, from) => VW.open(f, from) });
 // the panel: one card on the right with tabs (Map, Made, File; later apps), one header button, ⌘\
 // Files: the project's files, and the one place a file opens (js/files.js, design-research/13)
-const FILES = createFiles({ world, viewer: VW, isBusy, PROJ, go: (v) => go(v), changes: CHG, onFold: (f) => FILESV.treeFolded(f), paths: PATHS });
+const FILES = createFiles({ world, viewer: VW, isBusy, PROJ, go: (v) => go(v), changes: CHG, onFold: (f) => FP.treeFolded(f), paths: PATHS });
 // Files is a place in the main area (js/filesview.js); the panel is a stack of frames: Agents · Map · Changes
-const FILESV = createFilesView({ files: FILES, viewer: VW, view: () => S.view, PROJ, world, announce, onChange: () => schedule(), onDock: () => STAGE.sync() });
 // Launchpad (js/launchpad.js): Deploy in the header row of a project and a thread; its section tops the panel
 const lpProject = (v) => (v && v.startsWith("p:") ? v.slice(2) : v && v.startsWith("t:") ? world.thread(v.slice(2))?.project || null : null);
 // the thread "Ask an agent" started: by its id when Launchpad has it (whatever its title, past older threads of the
@@ -399,7 +401,10 @@ const LP = createLaunchpad({ api: createLpApi(), projectOf: lpProject, nameOf: (
   // the owner's choice B): its Undo's deadline is the action's own (l.until), so it can't outlive what it undoes
   notice: (mid, l, ms) => { const h = { mid, kind: l.kind === "err" ? "stopped" : l.kind || "done", text: l.text, ...(l.sub ? { sub: l.sub } : {}), ...(l.undo ? { undo: l.undo, undoLabel: l.undoLabel, undoUntil: l.until || 0, ownFocus: true } : {}) }; return heraldFor(mid, () => h, ms) || heraldShow(h, ms); },
   unnotice: (mid) => heraldDrop(mid) });
-const STAGE = createStage({ map: MAP, mapIcon: MAP_ICON, files: FILES, changes: CHG, filesView: FILESV, viewer: VW, view: () => S.view, go: (v, e) => openFromPanel(v, e), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP, threads: (v) => panelThreads(v), shell: (on, host) => panelShell(on, host) });
+const STAGE = createStage({ map: MAP, mapIcon: MAP_ICON, files: FILES, changes: CHG, openFiles: () => FP.show({ focus: true }), viewer: VW, view: () => S.view, go: (v, e) => openFromPanel(v, e), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP, threads: (v) => panelThreads(v), shell: (on, host) => panelShell(on, host) });
+// Files, a page of the panel (js/filespage.js; the owner, 19 Nov 14:57Z): the tree and the file open beside the chat,
+// which never moves
+const FP = createFilesPage({ stage: STAGE, files: FILES, viewer: VW, view: () => S.view, announce });
 // the place beside the panel's name: a thread's project (its title is the conversation's own head), a project
 STAGE.names = (v) => {
   const p = v.startsWith("t:") ? world.thread(v.slice(2))?.project : v.startsWith("p:") ? v.slice(2) : null;
@@ -1183,8 +1188,7 @@ function msgItemsOf(conv, needs) {
   const lastQueued = [...list].reverse().find((m) => m.queued);
   // a changed file's chip carries its +/− counts, and reads as chosen while the panel shows its diff
   // the chosen file: the one beside the chat when a file is open there (the middle), else the panel's
-  const shown = (FILESV.docked || FILESV.sheet) && VW.hasFile && VW.file && VW.file.project && VW.file.rel ? CHG.at(VW.file.project, VW.file.rel) : null;
-  const chosen = shown ? shown.path : STAGE.chosen(conv);
+  const chosen = STAGE.chosen(conv);
   const changed = (target) => { const c = CHG.forTarget(conv, target); return c ? { additions: c.file.additions, deletions: c.file.deletions, binary: c.file.binary, on: c.path === chosen } : null; };
   for (const m of list) {
     const d = Number.isFinite(m.at) ? dayOf(m.at) : day;
@@ -1343,53 +1347,12 @@ function hostNeedHtml(v, needs) {
     `<i class="g g-needs_approval" aria-hidden="true"></i><span class="pj-nt">${esc(who)} needs you</span>${k > 1 ? ` <span class="pj-k">${k}</span>` : ""}</button>`;
 }
 
-/** A file put away (Files beside the chat, then — or Esc): its chip in the header brings it back as it was;
- *  its × really closes it (js/filesview.js). */
-function fileChipHtml() {
-  const pa = FILESV.putAway;
-  if (!pa) return "";
-  const f = pa.file, name = f.name || String(f.path || "").split("/").pop();
-  const c = f.project && f.rel ? CHG.at(f.project, f.rel) : null;
-  return `<span class="fchip"><button type="button" class="fchip-b" data-fv-restore data-fid="fchip" title="Bring ${esc(name)} back, as you left it">` +
-    `<span class="fchip-i" aria-hidden="true">${fileIcon(name)}</span><span class="fchip-n">${esc(name)}</span>${c && !c.file.binary ? countsHtml(c.file) : ""}</button>` +
-    `<button type="button" class="fchip-x" data-fv-close data-fid="fchip-x" aria-label="Close ${esc(name)}" title="Close it">${ICON.close}</button></span>`;
-}
-const CHAT_FOLD_IC = ICON.foldRail;
 const convName = (v, t) => (t ? t.title : v.startsWith("p:") ? PROJ(v.slice(2)) : v === "ws" ? "Workspace" : ($("#conv-title")?.textContent || "Conversation"));
-/** The chat's own head while it sits beside a file (body.chat-docked hides the header): its name, its state,
- *  and fold it to its rail (js/filesview.js). */
-function cheadHtml(v, t) {
-  const badge = t ? `<span class="badge st-${stOf(t)}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${wordOf(t)}</span>` : "";
-  return `<h2 class="chead-t">${esc(convName(v, t))}</h2>${badge}<span class="chead-sp"></span>` +
-    (FILESV.sheet ? `<button type="button" class="fv-ib" data-chat-fold data-fid="chat-fold" title="Fold the chat to its bar" aria-label="Fold the chat">${ICON.chevron}</button>`
-      : `<button type="button" class="fv-ib" data-chat-fold data-fid="chat-fold" title="Fold the chat to a rail (${K.label("chatFold")})" aria-label="Fold the chat">${CHAT_FOLD_IC}</button>`);
-}
-/** The chat folded to a rail beside a file: who it is (the name, set vertically), working (the arc), asking
- *  you (amber !), new messages since it folded (a blue dot). One button: it opens the chat. */
-function crailHtml(v, t, needs) {
-  if (!FILESV.chatFolded) return "";
-  const ask = t ? needs.find((n) => n.t.id === t.id && n.admitted) : null;
-  const busy = t ? isBusy(t) : false;
-  const fresh = Math.max(0, ($("#msgs")?.children.length || 0) - FILESV.chatRows);
-  const name = convName(v, t);
-  // a phone's bar also says what it's doing, or what it asks (amber), and how many new messages
-  const held = !ask && !busy && isHeld(t) ? t.held : null;
-  const doing = ask ? `Needs you · ${askShort(ask)}` : busy ? `Working${(() => { const d = MAP.agents(v).find((a) => a.go === v)?.doing; return d ? ` · ${d}` : ""; })()}` : held ? heldWords(held) : t ? wordOf(t) : "";
-  const says = [name, ask ? "needs you" : busy ? "working" : held ? "waiting" : "", fresh ? "new messages" : ""].filter(Boolean).join(" · ");
-  return `<button type="button" class="crail-b${ask ? " is-ask" : ""}" data-crail data-fid="crail" title="Open the chat${FILESV.sheet ? "" : ` (${K.label("chatFold")})`}" aria-label="Open the chat: ${esc(says)}">` +
-    `<span class="crail-ic">${ICON.threadOne}${busy && !ask ? '<i class="arc"></i>' : ""}</span>` +
-    (ask ? `<em class="crail-m is-ask" aria-hidden="true">!</em>` : fresh ? `<em class="crail-m is-new" aria-hidden="true">${fresh > 9 ? "9+" : fresh}</em>` : "") +
-    `<span class="crail-t">${esc(name)}</span><span class="crail-s">${esc(doing)}</span>` +
-    (ask ? `<span class="crail-open">Open</span>` : `${fresh ? `<span class="crail-n">${fresh}</span>` : ""}<span class="crail-up" aria-hidden="true">${ICON.chevron}</span>`) + `</button>`;
-}
 
 function topRender(needs) {
   const v = S.view;
   const t = convThread(v);
   const top = $("#top");
-  patch($("#chead"), cheadHtml(v, t));
-  patch($("#crail"), crailHtml(v, t, needs));
-  patch($("#fdock"), fileChipHtml());
   top.dataset.kind = t ? "thread" : "project"; // hub #28: the Workspace has a project's header, always shown
   // a thin state line along the thread's header: amber needs you, blue working, green done, red stopped
   top.dataset.state = !t ? "" : needs.some((n) => n.t.id === t.id && n.admitted) ? "need" : t.state === "failed" && !t.stop ? "stop" : isBusy(t) ? "busy" : t.state === "done" || t.state === "resolved" ? "done" : "";
@@ -1453,7 +1416,7 @@ function topRender(needs) {
       (S.tMenu === t.id ? threadMenuHtml(t) : "") + `</span>` : "";
     // a shell in its worktree is in the menu (and the shells dock); the header keeps Resolve and the panel
     const allActs = acts ? acts.replace(/<\/span>$/, `${LP.button(v, STAGE.launchOpen)}${STAGE.button(v)}</span>`) : `<span class="tw-acts">${LP.button(v, STAGE.launchOpen)}${STAGE.button(v)}</span>`;
-    who = `${title}${label}<span class="badge st-${stOf(t)}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${isHeld(t) ? heldBadge(t.held) : wordOf(t)}</span>${rtTag(t)}${fileChipHtml()}${allActs}`;
+    who = `${title}${label}<span class="badge st-${stOf(t)}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${isHeld(t) ? heldBadge(t.held) : wordOf(t)}</span>${rtTag(t)}${allActs}`;
     // a field being edited is never replaced under the person's fingers (a frame may change the badge)
     if (ed && $("#tw-edit")) who = null;
   } else who = `<span class="tw-t"><h1 id="conv-title">Thread</h1></span>`;
@@ -1463,7 +1426,7 @@ function topRender(needs) {
   // in place too: Threads (the switcher's opener) is the same button when All opens and sets aria-expanded, so
   // closing All finds it to return to (Astra H30)
   const pv = v.startsWith("p:");
-  const endHtml = t ? end : fileChipHtml() + end + (pv ? S.hdrCtl + LP.button(v, STAGE.launchOpen) : "") + STAGE.button(v);
+  const endHtml = t ? end : end + (pv ? S.hdrCtl + LP.button(v, STAGE.launchOpen) : "") + STAGE.button(v);
   if ($("#top-end")._h !== endHtml) { redraw($("#top-end"), endHtml); $("#top-end")._h = endHtml; }
   LP.ensure(v);
   checklistRender(needs);
@@ -2963,7 +2926,6 @@ function render() {
   chipRender();
   D.sync();
   MAP.render(v);
-  FILESV.sync();
   VW.notice();
   STAGE.sync();
   const nd = needs.filter((n) => n.admitted && !n.later).length;
@@ -3183,7 +3145,7 @@ function go(v, { from, focus = false, carry = false, panel = false } = {}) {
   // an edit or menu in a thread's header belongs to that visit
   S.tEdit = null; S.tMenu = null;
   // the file viewer belongs to the conversation it was opened from
-  if (v !== S.view) { VW.close({ restore: false }); FILESV.close({ restore: false }); }
+  if (v !== S.view) FP.reset();
   closeSettings({ restore: false });
   setDrawer(false);
   IQ.close({ restore: false });
@@ -3443,11 +3405,11 @@ function askAboutLines(f, a, b, text) {
  *  as a capsule, and the composer has focus. The file's place must be this conversation; else false (the
  *  file's own composer asks, as before). */
 function composeAbout(f, a, b) {
-  const at = FILESV.docked || FILESV.sheet ? askPlace(f) : null;
+  // the chat is always beside the panel's file now: the lines go into its composer
+  const at = askPlace(f);
   if (!at || at.conv !== S.view || CH.isChats(S.view)) return false;
   S.lref[S.view] = { path: at.path, a, b, name: f.name || at.path.split("/").pop() };
   lrefRender();
-  FILESV.chat(true); // beside the file it opens if folded; on a phone the sheet comes up
   say.focus({ preventScroll: true });
   announce(`Lines ${a}${b > a ? ` to ${b}` : ""} of ${S.lref[S.view].name} are in your message. Write your question.`);
   return true;
@@ -3460,7 +3422,6 @@ function askAboutFile(f) {
   if (!at) { announce("This file isn't in a project XO can ask about."); return false; }
   const ref = { path: at.path, a: null, b: null, name: f.name || at.path.split("/").pop() };
   if (at.conv !== S.view) { VW.close({ restore: false }); go(at.conv); }
-  else if (FILESV.docked || FILESV.sheet) FILESV.chat(true); // beside the file it unfolds; on a phone the sheet comes up
   S.lref[at.conv] = ref;
   lrefRender();
   say.focus({ preventScroll: true });
@@ -3689,18 +3650,6 @@ document.addEventListener("click", (e) => {
     S.tbToggled = { k, open: S.tbOpen[k], focus: tb === document.activeElement || tb.contains(document.activeElement), in: tc.msgs };
     schedule(); return;
   }
-  // beside a file, the chat folds to its rail and opens from it (js/filesview.js)
-  if (t.closest("[data-chat-fold]")) { FILESV.chat(false); return; }
-  // asking you: the chat opens on its ask (the card above the composer), not the composer
-  if (t.closest("[data-crail]")) {
-    const ask = !!t.closest(".crail-b.is-ask");
-    FILESV.chat(true, { focus: !ask });
-    if (ask) requestAnimationFrame(() => requestAnimationFrame(() => { const card = $("#tdock"); card?.scrollIntoView({ block: "nearest" }); card?.querySelector("button")?.focus({ preventScroll: true }); }));
-    return;
-  }
-  // a file put away: its chip brings it back as it was; its × closes it (js/filesview.js)
-  if (t.closest("[data-fv-restore]")) { FILESV.restore(); return; }
-  if (t.closest("[data-fv-close]")) { FILESV.close({ restore: false }); $("#say")?.focus({ preventScroll: true }); return; }
   // a thread's own header: resolve or reopen (R1), rename, label
   const rs = t.closest("[data-resolve]");
   if (rs) { resolveThread(rs.dataset.resolve, rs.dataset.to === "resolve"); return; }
@@ -3765,7 +3714,7 @@ document.addEventListener("click", (e) => {
       const inFiles = () => VW.open({ path: c.path, name: c.path.split("/").pop(), project: s.project, rel: s.worktree ? `.xo/worktrees/${s.worktree}/${c.path}` : c.path, show: "changes" }, cf);
       // beside a file (the chat docked, a phone's sheet), or ⌘/Ctrl-click: its diff in Files, in the middle, in
       // place of the one shown; on a phone the sheet folds so the file shows
-      if (s && (FILESV.docked || FILESV.sheet || e.metaKey || e.ctrlKey)) { const sheet = FILESV.sheet; inFiles(); if (sheet) FILESV.chat(false); return; }
+      if (s && (e.metaKey || e.ctrlKey)) { inFiles(); return; }
       // its diff in the panel's Changes: focus goes to its row there, in the draw that shows it (the chip you
       // pressed is redrawn as chosen, and on a phone the panel covers it) (Files/Map grader on S224)
       if (STAGE.showChange(c.path)) { S.focusNext = [`#stage [data-cx="${CSS.escape(c.path)}"]`, "#stage .cx-pd"]; schedule(); return; }
@@ -4684,10 +4633,8 @@ addEventListener("keydown", (e) => {
     if (!keys.hidden) { closeKeys(); return; }
     if (!allEl.hidden) { closeAll(); return; }
     if (!setEl.hidden) { closeSettings(); return; }
-    // a file beside the chat: Esc puts it away (or, from an empty composer, goes back to it)
-    if (FILESV.docked || FILESV.sheet) { FILESV.escape(e.target); return; }
-    if (VW.isOpen) { VW.close(); return; }
-    if (FILESV.isOpen) { FILESV.close(); return; }
+    // a file in the panel: back to its sections (the file stays as the Files tab)
+    if (FP.isOpen) { STAGE.sections(); return; }
     if ($("#app").classList.contains("drawer")) { setDrawer(false); return; }
     if (D.isOpen()) { D.close(); return; }
     if (CH.setupOpen) { CH.closeSetup(); return; }
@@ -4705,8 +4652,10 @@ addEventListener("keydown", (e) => {
 /** Run a key that works anywhere; false when it has nothing to do here (the chat's and the tree's folds, away from a
  *  file: the key stays the browser's). */
 function runGlobal(id) {
-  if (id === "chatFold") return FILESV.chatKey();
-  if (id === "treeFold") return FILESV.toggleTree();
+  // ⌘B: the panel's file browser folds to its rail (or opens), while Files shows; ⌘J had no meaning without the
+  // chat beside a file in the main area, so it stays the browser's
+  if (id === "chatFold") return false;
+  if (id === "treeFold") return FP.toggleTree();
   // ⌘P, ⌘⇧F: only where the view has files (a project, a thread); elsewhere the browser keeps its keys
   if (id === "quickOpen") return QO.isOpen ? (QO.close(), true) : QO.open("files");
   if (id === "findInFiles") return QO.isOpen ? (QO.close(), true) : QO.open("text");
@@ -4722,7 +4671,7 @@ function runGlobal(id) {
 const sheetsOpen = () => QO.isOpen || !jump.hidden || !keys.hidden || !allEl.hidden || RS.open || CREATE.isOpen() || IQ.isOpen || CH.setupOpen;
 const placeOk = (v) => v === "home" || v === "ws" || v === "chats" || v === "artifacts" || (v.startsWith("p:") && !!world.project(v.slice(2))) || (v.startsWith("t:") && !!world.thread(v.slice(2))) || v.startsWith("c:");
 function canBack() {
-  return sheetsOpen() || LB.isOpen || VW.isOpen || FILESV.isOpen || (STAGE.isOpen && PHONE.matches) || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised || S.view !== "home" || S.trail.length > 0;
+  return sheetsOpen() || LB.isOpen || FP.isOpen || (STAGE.isOpen && PHONE.matches) || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised || S.view !== "home" || S.trail.length > 0;
 }
 /** One step back. False when there's nothing left in the app to go back to. */
 function stepBack() {
@@ -4734,10 +4683,7 @@ function stepBack() {
   if (!keys.hidden) { closeKeys(); return true; }
   if (!allEl.hidden) { closeAll(); return true; }
   if (LB.isOpen) { LB.close(); return true; }
-  // a phone's sheet: down to its bar first, then the file is put away (its chip brings it back)
-  if (FILESV.sheet && FILESV.escape(document.activeElement)) return true;
-  if (VW.isOpen) { VW.close(); return true; }
-  if (FILESV.isOpen) { FILESV.close(); return true; }
+  if (FP.isOpen) { STAGE.sections(); return true; }
   if (STAGE.isOpen && PHONE.matches) { STAGE.close(); return true; }
   if (!setEl.hidden) { closeSettings(); return true; }
   if (SH.raised && SH.lower()) return true;
@@ -4773,7 +4719,7 @@ document.addEventListener("xo:gesture", armBack);
 // ── touch: gestures for the same moves (js/gestures.js), and the title back to the top ──
 wireGestures({
   phone: () => PHONE.matches,
-  overlay: () => sheetsOpen() || VW.isOpen || FILESV.isOpen || (STAGE.isOpen && PHONE.matches) || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised,
+  overlay: () => sheetsOpen() || FP.isOpen || (STAGE.isOpen && PHONE.matches) || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised,
   view: () => S.view,
   back,
   drawer: (open) => setDrawer(open),
