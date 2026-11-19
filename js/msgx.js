@@ -34,6 +34,10 @@ const IC = { reply: ICON.reply, copy: ICON.copy, check: xi("check"), close: ICON
  * The main chat's is called once at the end of this file, over the page's own elements.
  */
 export function decorateConversation(E) {
+// what this decoration hangs on the page itself (document listeners, a timer, the quote button, its sheets), taken
+// down by destroy() when its conversation goes (a thread page closed): nothing outlives it
+const gone = [];
+const onDoc = (type, fn, opts) => { document.addEventListener(type, fn, opts); gone.push(() => document.removeEventListener(type, fn, opts)); };
 const conv = E.conv;
 const toLatest = E.follow.toLatest, fromLatest = E.follow.fromLatest;
 
@@ -588,7 +592,7 @@ function tick() {
     if (e.textContent !== t) e.textContent = t;
   }
 }
-setInterval(tick, 1000);
+{ const tk = setInterval(tick, 1000); gone.push(() => clearInterval(tk)); }
 
 new MutationObserver(decorate).observe(msgs, { childList: true });
 // A row brought to new HTML in place (ui.js reconcile does that to the row holding focus) has lost what this file
@@ -667,14 +671,14 @@ function withQuote() {
   sayEl.value = prefix + before;
   setTimeout(() => { if (sayEl.value === prefix + before) sayEl.value = before; else endReply(); }, 0);
 }
-document.addEventListener("keydown", (e) => {
+onDoc("keydown", (e) => {
   // Escape on the quote's own × removes it too, as its title says (Astra RPL-2: only the composer's Escape did)
   if (e.key === "Escape" && reply && chip.contains(e.target)) { e.preventDefault(); e.stopImmediatePropagation(); endReply(); sayEl.focus(); return; }
   if (e.target !== sayEl || !reply) return;
   if (e.key === "Enter" && !e.shiftKey && !e.isComposing && e.keyCode !== 229 && (!E.atList || E.atList.hidden)) withQuote();
   if (e.key === "Escape" && (!E.atList || E.atList.hidden)) { e.preventDefault(); e.stopImmediatePropagation(); endReply(); }
 }, true);
-document.addEventListener("submit", (e) => { if (e.target === composer && E.send.dataset.mode !== "stop") withQuote(); }, true);
+onDoc("submit", (e) => { if (e.target === composer && E.send.dataset.mode !== "stop") withQuote(); }, true);
 
 msgs.addEventListener("click", async (e) => {
   const g = e.target.closest("[data-mx-rate]");
@@ -710,7 +714,7 @@ msgs.addEventListener("click", async (e) => {
 const qpop = document.createElement("button");
 qpop.type = "button"; qpop.className = "mx-qpop"; qpop.hidden = true;
 qpop.innerHTML = `${IC.reply}<span>Reply to this</span>`;
-document.body.append(qpop);
+document.body.append(qpop); gone.push(() => qpop.remove());
 let picked = null;
 function onSelect() {
   const s = getSelection();
@@ -725,9 +729,9 @@ function onSelect() {
   qpop.style.left = `${Math.max(gap, Math.min(innerWidth - w - gap, r.left + r.width / 2 - w / 2))}px`;
   qpop.style.top = `${Math.max(gap, r.top - qpop.offsetHeight - gap)}px`;
 }
-document.addEventListener("mouseup", () => setTimeout(onSelect, 0));
-document.addEventListener("keyup", (e) => { if (e.shiftKey) onSelect(); });
-document.addEventListener("selectionchange", () => { if (!qpop.hidden && getSelection().isCollapsed) qpop.hidden = true; });
+onDoc("mouseup", () => setTimeout(onSelect, 0));
+onDoc("keyup", (e) => { if (e.shiftKey) onSelect(); });
+onDoc("selectionchange", () => { if (!qpop.hidden && getSelection().isCollapsed) qpop.hidden = true; });
 E.scroller.addEventListener("scroll", () => { qpop.hidden = true; }, { passive: true });
 qpop.addEventListener("mousedown", (e) => e.preventDefault());
 qpop.addEventListener("click", () => { if (picked) startReply(picked.m, picked.text); qpop.hidden = true; getSelection().removeAllRanges(); });
@@ -899,7 +903,8 @@ if (herald) new MutationObserver(() => followDock(performance.now() + 700)).obse
 
 // Following the latest, keeping your place and opening at the latest belong to js/follow.js now. Nothing
 // here moves the view except the back-to-latest button and pressing the working bubble (both toLatest).
-return { decorate, conv, msgs };
+if (!E.main) gone.push(() => { holdSheet.remove(); orderSheet.remove(); });
+return { decorate, conv, msgs, destroy: () => { while (gone.length) gone.pop()(); } };
 }
 
 // the main chat: the page's own conversation

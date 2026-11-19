@@ -85,12 +85,23 @@ assert.match(app, /route: \(p\) => fileRoute\(p, conv\), by:/);
   assert.deepEqual(fr("a.md"), { project: "p", rel: "a.md" }, "no conversation named, nothing drawn: the main chat's");
   console.log("thread-page file chips: ok"); }
 
-// its ⋯: a shell, the branch's name, Stop; the rest on its own page
-assert.match(app, /data-tp-menu aria-haspopup="menu" aria-expanded="\$\{!!TP\.menu\}"/);
-assert.match(app, /item\(`data-tp-full="\$\{esc\(t\.id\)\}"`, `Rename, label\$\{t\.canDelete \? ", delete" : ""\}… \(its page\)`\)/);
-// its ⋯ answers a press (19 Nov 18:52Z: the listener went with a refactor and the button did nothing)
-assert.match(app, /const m = e\.target\.closest\?\.\("\[data-tp-menu\]"\);\n\s*if \(m\) \{ TP\.menu = !TP\.menu; \$\("#tphead"\)\._h = ""; render\(\);/);
-assert.match(app, /if \(TP\.menu\) \{ TP\.menu = false; \$\("#tphead"\)\._h = ""; schedule\(\); \}\n\}, true\);/, "a click elsewhere closes it");
+// its ⋯ is THE thread menu (the owner, 19 Nov 18:59Z): the full header's, opened in the page; its hover and keys
+// (menuKeys on the page's head), drawn in the click; a choice acts there or goes to its own page with it started
+assert.match(app, /data-tmenu="\$\{esc\(t\.id\)\}" data-tmenu-in="page" aria-haspopup="menu" aria-expanded="\$\{open\}"/);
+assert.match(app, /\$\{open \? threadMenuHtml\(t, "page"\) : ""\}/);
+assert.match(app, /menuKeys\(\$\("#tphead"\), \{ close: \(\) => closeThreadMenu\(\) \}\);/);
+assert.doesNotMatch(app, /tpMenuHtml|data-tp-menu|TP\.menu/, "no second menu");
+assert.match(app, /where === "page" \? item\(`data-tp-full="\$\{esc\(t\.id\)\}"`, "Open as its own page"\) : item\(`data-tside="\$\{esc\(t\.id\)\}"`, "Open beside its project's chat"\)/);
+assert.match(app, /render\(\); \/\/ drawn now, in the click/);
+// the page's ⤢ is back beside its ⋯ (the owner, 19 Nov 19:25Z): the thread's own page, full width
+assert.match(app.slice(app.indexOf("function tpHead("), app.indexOf("\n}\n", app.indexOf("function tpHead("))), /class="stg-ic tp-full" data-tp-full="\$\{esc\(t\.id\)\}"[^`]*\$\{ICON\.full\}<\/button>` \+\n\s*`<span class="tp-menu-w">/);
+// at full size only the chat's own dock hides under the panel; the Thread page's reply box and decision stay
+{ const a3 = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
+  assert.match(a3, /body\.stage-full \.dock:not\(\.stage \.dock\),body\.stage-full \.tdock:not\(\.stage \.tdock\)\{visibility:hidden\}/);
+  assert.doesNotMatch(a3, /body\.stage-full \.dock,body\.stage-full \.tdock\{/, "never every dock");
+  // and at full size the page reads at the chat's own column, centred (it ran edge to edge)
+  const p3 = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
+  assert.match(p3, /body\.stage-full \.stage \.tp,body\.stage-full \.stage \.tp \.dock\{--col-w:min\(var\(--col-max\),100cqw - 2 \* var\(--s-5\)\);--col-x:calc\(\(100cqw - var\(--col-w\)\) \/ 2\)\}/); }
 console.log("thread-page menu: ok");
 
 // its composer has files (the paperclip, a paste, a drop on the page) and its model chip, the chat's own code
@@ -108,3 +119,18 @@ console.log("thread-page files and model: ok");
   assert.doesNotMatch(a2, /\n\s+grader on 8aa58d3, C024[^\n]*\*\/\n/, "no stray comment ending voids the rule after it");
   assert.match(p2, /\.stage \.tp-thead\{--hg:var\(--s-4\)\}/);
   console.log("thread-page checklist gap: ok"); }
+
+// a Thread page that closes takes down what it hung on the page: msgx's document listeners, its timer, its quote button
+// and sheets, and the dock's ResizeObserver (closing and opening a thread added one more set each time)
+{ const mx = readFileSync(new URL("../js/msgx.js", import.meta.url), "utf8"), ap = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
+  const code = mx.replace(/\/\/[^\n]*/g, "");
+  const body = code.slice(code.indexOf("export function decorateConversation(E) {"));
+  assert.doesNotMatch(body.replace(/const onDoc = [^\n]*/, ""), /document\.addEventListener\(/, "every document listener goes through onDoc, so destroy() removes it");
+  assert.equal((body.match(/\bonDoc\("/g) || []).length, 5);
+  assert.match(body, /const tk = setInterval\(tick, 1000\); gone\.push\(\(\) => clearInterval\(tk\)\);/);
+  assert.match(body, /document\.body\.append\(qpop\); gone\.push\(\(\) => qpop\.remove\(\)\);/);
+  assert.match(body, /return \{ decorate, conv, msgs, destroy: \(\) => \{ while \(gone\.length\) gone\.pop\(\)\(\); \} \};/);
+  assert.match(ap, /TP\.deco = decorateConversation\(/);
+  assert.match(ap, /TP\.dockRO = new ResizeObserver\(/);
+  assert.match(ap, /TP\.follow\?\.destroy\(\); TP\.deco\?\.destroy\(\); TP\.dockRO\?\.disconnect\(\);/);
+  console.log("thread-page teardown: ok"); }

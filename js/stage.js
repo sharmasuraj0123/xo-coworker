@@ -58,7 +58,7 @@ const AG_ROWS = 6, ROW = 48; // Threads shows six rows at first (a list to read,
 // Agents never takes the room Changes needs: its 40 px head, one 32 px file row and the list's 8 px foot,
 // the diff's 120 px and its 12 px margin (css/diffs.css). In a short window Agents shows fewer rows
 const CH_MIN = 212, HEAD = 40;
-export function createStage({ map, files, changes, openFiles = null, viewer, view, go, announce, onChange, frames = () => ORDER, launch = null, threads = null, shell = null }) {
+export function createStage({ map, files, changes, openFiles = null, viewer, view, go, announce, onChange, frames = () => ORDER, launch = null, threads = null, shell = null, owns = () => false }) {
   const saved = sget(KEY);
   // the Map starts folded, in its Graph (the owner, 19 Nov): Threads and Changes have the room
   const fr = { changes: { folded: false }, agents: { rows: null, folded: false, groups: { done: true } }, map: { h: MAP_H, folded: true }, ...sget(FR_KEY) };
@@ -635,6 +635,9 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
   }
   // Esc: a search clears first; then full size steps back, then the panel closes
   el.addEventListener("keydown", (e) => {
+    // inside the Shell page's terminal every key is the shell's (Esc for vim, / for less): the panel's Esc, tabs and /
+    // leave it alone, by the shells' own rule (the app's keys ask the same one)
+    if (owns(e)) return;
     if (e.target.closest?.("[data-map-mode]") && ["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) {
       e.preventDefault(); e.stopPropagation();
       const tabs = [...el.querySelectorAll("[data-map-mode]")], index = tabs.indexOf(e.target.closest("[data-map-mode]"));
