@@ -1,0 +1,27 @@
+- log "Messages":
+  - separator: Beginning of the conversation
+  - separator: Today
+  - text: Can you tidy the README?
+  - button "Reply"
+  - button "Copy"
+  - text: 11:40 demo coordinator
+  - paragraph: "Started a thread for it: Tidy the README."
+  - button "Copy"
+  - button "Reply"
+  - button "Good response"
+  - button "Bad response"
+  - time: 11:40
+  - text: 11:40 Tidy the README finished
+  - time: 11:51
+  - text: demo coordinator
+  - paragraph: Done. The README now has a short intro and a usage section.
+  - button "Copy"
+  - button "Reply"
+  - button "Good response"
+  - button "Bad response"
+  - time: 11:52
+  - text: 11:52 Please add a licence
+  - button "Reply"
+  - button "Copy"
+  - time: 12:00
+  - text: Received by XO 12:00

@@ -1,0 +1,25 @@
+- 'complementary "Panel: threads, changes and map"':
+  - separator "Resize the panel"
+  - text: demo
+  - button "Shell in the panel"
+  - button "Full size"
+  - button "Close the panel"
+  - region "Threads 1":
+    - heading "Threads 1" [level=2]
+    - button "Filter threads"
+    - button "Fold" [expanded]
+    - list:
+      - listitem:
+        - button "Done 1" [expanded]
+      - listitem:
+        - button "Tidy the README. Done": Tidy the README Rewrote the README's intro and added a usage section. 9m
+  - separator "Resize agents and changes"
+  - region "Changes":
+    - heading "Changes" [level=2]
+    - button "All files"
+    - button "Fold" [expanded]
+    - paragraph: Nothing changed here yet.
+  - separator "Resize changes and map"
+  - region "Map":
+    - heading "Map" [level=2]
+    - button "Open"
