@@ -615,20 +615,22 @@ body.stage-covers .herald{position:fixed;left:16px;right:16px;bottom:max(16px, e
 /* ── The Thread page (P2, the owner chose the proper build, 19 Nov 15:20Z): a thread beside the coordinator's chat,
    its conversation drawn by the same code as the chat's, in the panel's own reading column (inset --s-5 each
    side), its composer docked at its foot on the panel's ground. */
-.stage .tp{position:relative;--col-w:calc(100% - 2 * var(--s-5));--col-x:var(--s-5);--dock-h:var(--s-12)}
+/* one reading column for everything in the page, its messages and its dock alike: the page is the container, and
+   its dock (a .dock, which sets its own column from its own box: css/app.css) is given the same one, so the asks
+   line, the composer and the rows share their edges (the owner, 19 Nov 16:09Z: "it's misaligned") */
+.stage .tp{position:relative;container-type:inline-size;--dock-h:var(--s-12)}
+.stage .tp,.stage .tp .dock{--col-w:calc(100cqw - 2 * var(--s-5));--col-x:var(--s-5);--measure:calc(var(--col-w) - var(--s-12))}
 .stage .tp-head{flex:none;display:flex;align-items:center;gap:var(--s-2);min-height:var(--h-lg);padding:0 var(--s-3) 0 var(--s-4);box-shadow:inset 0 -1px 0 var(--line-faint)}
 .stage .tp-br{display:inline-flex;align-items:center;gap:var(--s-1);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--mono);color:var(--ink-4)}
 .stage .tp-br svg{flex:none;width:var(--ic-xs);height:var(--ic-xs)}
 .stage .tp-full{margin-left:auto}
-.stage .tp-thead{padding-left:var(--s-4);padding-right:var(--s-4)}
+/* the page's checklist takes the header gutter as its own (--hg is the conversation's: undefined here, it voided
+   the strip's whole padding, so it sat on the head with no gap) */
+.stage .tp-thead{--hg:var(--s-4)}
 .stage .tp .scroller{flex:1;min-height:0}
 .stage .tp .dock{left:0;right:0;width:auto}
 .stage .tp .cbar{background:linear-gradient(to bottom,transparent,var(--sunken) var(--s-8))}
 .stage .tp-target{flex:1;display:inline-flex;align-items:center;gap:var(--s-1);min-width:0;color:var(--ink-3);font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans)}
-/* what the thread asks you, above its composer: one line, in the needs-you amber, that opens the decision */
-.stage .tp-ask{display:flex;align-items:center;gap:var(--s-2);width:var(--col-w);margin:0 0 var(--s-2) var(--col-x);min-height:var(--h-ctl);padding:0 var(--s-3);border-radius:var(--r);background:color-mix(in srgb,var(--warn) 10%,var(--surface));color:var(--ink);font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);text-align:left;pointer-events:auto}
-.stage .tp-ask span:first-of-type{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.stage .tp-ask-go{display:inline-flex;align-items:center;gap:var(--s-1);color:var(--warn)}
-.stage .tp-ask-go svg{width:var(--ic-sm);height:var(--ic-sm)}
-.stage .tp-ask:hover{background:color-mix(in srgb,var(--warn) 16%,var(--surface))}
-@media (max-width:760px){.stage .tp-ask{min-height:var(--h-touch)}}
+.stage .tp-menu-w{position:relative;display:inline-flex}
+.stage .tp-menu{position:absolute;top:calc(100% + var(--s-1));right:0;z-index:2;min-width:calc(6 * var(--h-row))}
+.stage .tp-menu [role=menuitem]{white-space:nowrap}

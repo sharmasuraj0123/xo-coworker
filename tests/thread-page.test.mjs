@@ -9,7 +9,7 @@ const storm = readFileSync(new URL("../js/storm.js", import.meta.url), "utf8");
 const css = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
 
 // registered on the panel's page model: one page (single), 560 wide, its own box, kept while hidden
-assert.match(app, /STAGE\.page\("thread", \{\n\s*single: true, width: 560,/);
+assert.match(app, /single: true, width: \(\{ room \}\) => Math\.max\(560, Math\.min\(720, room\)\),/, "wider by default: 720 where the chat keeps its 560");
 assert.match(app, /mount: \(box\) => tpMount\(box\),\n\s*onShow: \(key, o\) => tpShow\(key, o\),\n\s*unmount: \(\) => tpUnmount\(\),/);
 // its own elements (unique ids beside the main chat's), its own follower, drawing, composer and decoration
 for (const id of ["tscroller", "tcolumn", "tmsgs", "ttyping", "tpdock", "tptdock", "tpcomposer", "tsay", "tsend"]) assert.match(app, new RegExp(`id="${id}"`), id);
@@ -46,7 +46,52 @@ console.log("thread-page: ok");
   for (const re of [/if \(t\.closest\("\[data-older\]"\)\) \{ loadOlderNow\(convAt\(t\)\); return; \}/, /stopRun\(convAt\(t\)\.view\)/, /interruptRun\(convAt\(t\)\.view\)/,
     /editFailed\(ed\.dataset\.edit, composerAt\(ed\)\)/, /S\.tbToggled = \{ k, open: S\.tbOpen\[k\], focus: [^\n]*, in: tc\.msgs \};/, /const cv = convAt\(cf\), c = CHG\.forTarget\(cv\.view, cf\.dataset\.file\);/,
     /:is\(#thead,#tpthead\) \[data-runs\]/, /const convAt = \(el\) => \(TP\.box && el && TP\.box\.contains\(el\) \? TP\.C : MAIN\);/]) assert.match(a, re, String(re));
-  // what it asks you: one line above its composer that opens the decision
-  assert.match(a, /class="tp-ask" data-tp-full="\$\{esc\(t\.id\)\}"/);
+  // what it asks you: decided in place, the chat's own card docked over its composer, with its Undo
+  assert.match(a, /tpDockRender\(t, needs\);/);
+  const td = a.slice(a.indexOf("function tpDockRender("), a.indexOf("\n}\n", a.indexOf("function tpDockRender(")));
+  assert.match(td, /tpl\.innerHTML = D\.cardHtml\(n, "dock"\)\.trim\(\);/);
+  assert.match(td, /D\.wireCard\(frame, inner, n, \{/);
+  assert.match(td, /data-tpd-undo>Undo<\/button>/);
+  assert.match(a, /if \(e\.target\.closest\?\.\("\[data-tpd-undo\]"\)\) \{ D\.undo\(\); TPD\.undone\?\.\(\); \}/);
   console.log("thread-page clicks: ok");
 }
+
+// the page's one reading column: its messages and its dock (asks line, composer) share their edges
+{ const c2 = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
+  assert.match(c2, /\.stage \.tp,\.stage \.tp \.dock\{--col-w:calc\(100cqw - 2 \* var\(--s-5\)\);--col-x:var\(--s-5\);/);
+  const st2 = readFileSync(new URL("../js/stage.js", import.meta.url), "utf8");
+  assert.match(st2, /w\(\{ room: innerWidth - sideW\(\) - READ \}\)/);
+  console.log("thread-page column and width: ok"); }
+
+// a file chip clicked in the thread page opens that thread's file (its worktree), not the main chat's project's
+assert.match(app, /VW\.open\(\{ \.\.\.f, \.\.\.fileRoute\(f\.path, convAt\(btn\)\.view\) \}, btn\);/);
+assert.match(app, /route: \(p\) => fileRoute\(p, conv\), by:/);
+{ // fileRoute, run as written: a thread's path goes through its thread; a project chat's through the project
+  const src = app.slice(app.indexOf("function fileRoute("), app.indexOf("\n}\n", app.indexOf("function fileRoute(")) + 2);
+  const fr = new Function("convThread", "sharedFileRoute", "S", "drawing", `${src}; return fileRoute;`)(
+    (v) => (v === "t:x" ? { id: "x", project: "p" } : null), (t, p) => ({ via: t ? "thread:" + t.id : "none", p }), { view: "p:p" }, null);
+  assert.deepEqual(fr("a.md", "t:x"), { via: "thread:x", p: "a.md" }, "the thread page's chip: its thread's worktree");
+  assert.deepEqual(fr("a.md", "p:p"), { project: "p", rel: "a.md" }, "the project chat's chip: the project");
+  assert.deepEqual(fr("a.md"), { project: "p", rel: "a.md" }, "no conversation named, nothing drawn: the main chat's");
+  console.log("thread-page file chips: ok"); }
+
+// its ⋯: a shell, the branch's name, Stop; the rest on its own page
+assert.match(app, /data-tp-menu aria-haspopup="menu" aria-expanded="\$\{!!TP\.menu\}"/);
+assert.match(app, /item\(`data-tp-full="\$\{esc\(t\.id\)\}"`, `Rename, label\$\{t\.canDelete \? ", delete" : ""\}… \(its page\)`\)/);
+console.log("thread-page menu: ok");
+
+// its composer has files (the paperclip, a paste, a drop on the page) and its model chip, the chat's own code
+for (const id of ["tatt-tray", "tattach", "tatt-input", "tiq", "tatt-note"]) assert.match(app, new RegExp(`id="${id}"`), id);
+assert.match(app, /wireTray\(TP\.K\);/);
+assert.match(app, /wireTray\(MK\);/);
+assert.match(app, /addFiles\(e\.dataTransfer\.files, TP\.K\)/);
+assert.match(app, /trayRender\(K\); chipRender\(false, K\);/);
+assert.match(app, /IQ\.open\(sid, TP\.K\.iq\)/);
+console.log("thread-page files and model: ok");
+// a step of space over the checklist strip, the same in a thread's page and the panel's Thread page (the owner,
+// 19 Nov 16:19Z); the page gives the strip the header gutter it uses (undefined, it voided the strip's padding)
+{ const a2 = readFileSync(new URL("../css/app.css", import.meta.url), "utf8"), p2 = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
+  assert.match(a2, /\n\.thead\{flex:none;padding:var\(--s-2\) var\(--hg\) 10px;/);
+  assert.doesNotMatch(a2, /\n\s+grader on 8aa58d3, C024[^\n]*\*\/\n/, "no stray comment ending voids the rule after it");
+  assert.match(p2, /\.stage \.tp-thead\{--hg:var\(--s-4\)\}/);
+  console.log("thread-page checklist gap: ok"); }

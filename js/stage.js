@@ -779,7 +779,9 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   // a page with a width of its own (a file 640, a thread 560) keeps it apart from the sections': 480 up to the window
   // less READ for the conversation beside it, the width you dragged it to kept per page kind
   const PAGE_MIN = 480;
-  const pageSpecW = () => (S.page && PAGES.get(S.page.name)?.width) || 0;
+  // a page's default width: a number, or a function of the room it has (the window less the sidebar less the
+  // conversation's own READ): a thread page's reads at the chat's measure where that fits
+  const pageSpecW = () => { const w = S.page && PAGES.get(S.page.name)?.width; return (typeof w === "function" ? w({ room: innerWidth - sideW() - READ }) : w) || 0; };
   // (a phone: the panel is its full-screen sheet, so a page is the window's width)
   const clampP = (w) => (innerWidth <= 760 ? innerWidth : Math.round(Math.max(PAGE_MIN, Math.min(innerWidth - READ, w))));
   const pageW = () => { let v = 0; try { v = Number(localStorage.getItem(`${W_KEY}:${S.page.name}`)) || 0; } catch { v = 0; } return clampP(v || pageSpecW()); };

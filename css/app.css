@@ -394,7 +394,9 @@ button:disabled{cursor:default}
   .top .tw-act:not(.tw-more)>span{display:none}
   .top .tw-rt{display:none}
 }
-.thead{flex:none;padding:0 var(--hg) 10px;border-bottom:1px solid var(--line-faint)}
+/* the checklist strip sits a step under the header that names its thread (the owner, 19 Nov 16:19Z: "have some margin
+   on top of checklist"): one spacing token, the same in a thread's own page and in the panel's Thread page */
+.thead{flex:none;padding:var(--s-2) var(--hg) 10px;border-bottom:1px solid var(--line-faint)}
 .ckbar{border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-faint);overflow:hidden;transition:border-color var(--d-in) var(--ease),background var(--d-in) var(--ease)}
 .ckbar.m-needs{border-color:rgb(245 166 35 / .24)}
 .ckbar.m-fresh{border-color:rgba(var(--accent-rgb),.32);background:color-mix(in srgb,var(--accent-fill) 4%,var(--surface))}
