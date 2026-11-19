@@ -372,10 +372,7 @@ const askShort = (n) => {
   return n.ask.title;
 };
 const STATE_WORD = { working: "Working", needs_reply: "Needs you", needs_approval: "Needs you", paused: "Paused", done: "Done", failed: "Stopped", resolved: "Resolved" };
-// "Working" only while its agent really works: storm's `busy` (on a turn, or a sub-agent working on after it,
-// never while it waits on you), kept live between reads by the same rule (timeline.js sessionBusy). The Working
-// filter, the header's badge and sweep, the sidebar's count and the favicon's line all read it from here.
-// A working thread whose session sits idle reads "Waiting" (the one vocabulary, 19 Nov; it read "Idle", P1-8).
+// "Working" only while its agent really works (storm's `busy`, live by timeline.js sessionBusy); an idle session reads "Waiting".
 const isBusy = (t) => t.busy === true || (t.state === "working" && t.busy !== false);
 // held back by a gate (the usage limit, the paid gate, the founder's pause…): nothing runs, its next input waits
 // (timeline.js heldOf). One shown state, as storm promotes it (threadState: a done, stopped or needs-reply thread
