@@ -39,7 +39,8 @@
 .cm-md-link{color:var(--code-fn);text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--code-fn) 40%,transparent);text-underline-offset:3px}
 .cm-md-bullet{display:inline-block;width:12px;color:var(--ink-3)}
 .cm-md-block{margin:8px 0;padding:4px 0;border-radius:var(--r);cursor:text;font-family:var(--sans)}
-.cm-md-block:hover{box-shadow:0 0 0 1px var(--line-soft)}
+/* no hover chrome on the page's blocks: a table, formula or diagram reads as part of the document (the owner, 19 Nov
+   13:35Z: "what's with the hover border when i am in md canvas?"); a table cell you type in keeps its own focus mark */
 .cm-md-imath{cursor:text}
 
 /* ── what someone else just changed glows a moment; a clash's chunks; the versions' marks ── */
