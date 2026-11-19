@@ -6,7 +6,7 @@ const store = new Map();
 globalThis.localStorage = { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, String(v)) };
 const calls = [];
 let chats = { chats: [] };
-const api = { chats: async () => chats, worktrees: async () => ({ worktrees: [] }), markSeen: async (chat) => { calls.push(`seen ${chat}`); } };
+const api = { chats: () => new Promise((r) => setTimeout(() => r(chats), 0)), worktrees: async () => ({ worktrees: [] }), markSeen: async (chat) => { calls.push(`seen ${chat}`); } };
 await dom("");
 const { createSince } = await import("../view.js");
 
@@ -95,7 +95,10 @@ await t("a project with a chat waits for the backend's mark before it speaks, th
 await t("the backend's mark counts only when it's the later one", async () => {
   store.set("xo-seen", JSON.stringify({ "p:demo": now - 9 * H }));
   chats = { chats: [{ id: "c1", seen: { seen_at: new Date(now - 30 * H).toISOString() } }] };
+  world.project = (id) => (id === "demo" ? { id: "demo", name: "Demo", chatId: "c1" } : null);
   const S = await make();
+  S.sinceLine("demo", []);
+  assert.equal(box.hidden, true, "its mark is on its way: nothing yet, and nothing decided");
   await settle();
   S.sinceLine("demo", []);
   assert.equal(box.hidden, false, "this browser looked 9 hours ago, later than the backend's mark");
