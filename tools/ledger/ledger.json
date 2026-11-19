@@ -8192,7 +8192,7 @@
   },
   "js/changesframe.js::exports::countsHtml": {
    "status": "moved",
-   "home": "modules/changes/frame.js"
+   "home": "core/ui/components/counts.js"
   },
   "js/changesframe.js::exports::newestHunkLine": {
    "status": "moved",
@@ -8208,7 +8208,7 @@
   },
   "js/changesframe.js::functions::countsHtml": {
    "status": "moved",
-   "home": "modules/changes/frame.js"
+   "home": "core/ui/components/counts.js"
   },
   "js/changesframe.js::functions::newestHunkLine": {
    "status": "moved",

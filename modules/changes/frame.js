@@ -9,21 +9,14 @@ import { fileIcon } from "../../core/ui/icons/fileicons.js";
 import * as DV from "./diffview.js";
 import * as K from "../../core/platform/keys.js";
 import { isImageChange, drawImageChange } from "./imagechange.js";
-/** @import { Counts, FollowState, Drawn, FrameFile, FrameDeps, ChangeFile, Scope } from "./types.d.ts" */
+import { countsHtml } from "../../core/ui/components/counts.js";
+/** @import { FollowState, Drawn, FrameFile, FrameDeps, ChangeFile, Scope } from "./types.d.ts" */
 
 const OPEN_IC = xi("external-link");
 const base = (/** @type {string | null | undefined} */ p) => String(p || "").split("/").pop();
 const SHOWN = 100; // rows drawn at first: a long list costs a frame per few hundred
 const dirOf = (/** @type {string} */ p) => { const i = String(p || "").lastIndexOf("/"); return i < 0 ? "" : p.slice(0, i); };
 
-/** "+5 −8", tabular, green and red; nothing for a side with none. n: {additions, deletions} or {add, del}. @param {Counts | null | undefined} n */
-export function countsHtml(n) {
-  if (!n) return "";
-  const a = n.additions ?? n.add, d = n.deletions ?? n.del;
-  if (a == null && d == null) return "";
-  if (!a && !d) return ""; // a pure rename, a mode change: its row says what happened
-  return `<span class="xd-n" aria-label="${a || 0} added, ${d || 0} removed">${a ? `<b class="xd-a">+${a}</b>` : ""}${d ? `<b class="xd-d">−${d}</b>` : ""}</span>`;
-}
 
 /** The hunks of a patch, as text (for "which hunk is new"). */
 const hunks = (/** @type {string | null | undefined} */ patch) => String(patch || "").split(/\n(?=@@ )/).slice(1);
@@ -302,3 +295,4 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
     get wide() { return !pane.hidden && !!D.handle; },
   };
 }
+export { countsHtml };

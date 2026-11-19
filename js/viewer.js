@@ -29,7 +29,7 @@ import * as DV from "../modules/changes/diffview.js";
 import * as K from "../core/platform/keys.js";
 import { pointerFollows } from "./keynav.js";
 import { redrawNode } from "./redraw.js";
-import { countsHtml } from "../modules/changes/frame.js";
+import { countsHtml } from "../core/ui/components/counts.js";
 import { createDocs, byWords } from "../modules/files/documents.js";
 import { mount as mountEditor, prefetch as prefetchEditor } from "../modules/files/editor.js";
 import { isImageChange, drawImageChange } from "../modules/changes/imagechange.js";

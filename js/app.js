@@ -57,7 +57,7 @@ import { createKeysPage } from "../modules/settings/keys-page.js";
 import { createFilesPage } from "../modules/files/page.js";
 import { createChanges, lineRef, fileRef } from "../modules/changes/store.js";
 import { fileIcon } from "./fileicons.js";
-import { countsHtml } from "../modules/changes/frame.js";
+import { countsHtml } from "../core/ui/components/counts.js";
 import { setTheme as setDiffTheme } from "../modules/changes/diffview.js";
 import { createTray, fmtSize, kindOf, isLargePaste, pasteLabel, uploadErrorText, FINAL, MAX_FILES } from "./attach.js";
 import { api, uploadAttachment } from "./api.js";

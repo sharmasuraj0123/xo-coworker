@@ -15,7 +15,6 @@ export interface PlaceChanges {
   sig: string | null; inflight: boolean; again: boolean; timer: ReturnType<typeof setTimeout> | 0; err?: string | null;
 }
 export interface Activity { sig: string; busy: boolean; live: Set<string>; last: string | null }
-export interface Counts { additions?: number | null; deletions?: number | null; add?: number | null; del?: number | null }
 export interface FollowState { follow: boolean; sel: string | null; pill: string | null; sig: string | null; all?: boolean; reveal?: Set<string | undefined> | null }
 export interface DiffHandle { update(patch: string, key?: string): void; split(on: boolean): void; destroy(): void }
 export interface Drawn {

@@ -140,7 +140,7 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
       "core/services/agent-activity.js": 'export const MARKS = { files: new Map() }; export const activityOf = () => ({ files: MARKS.files });',
       "core/services/places.js": 'export const folderOf = () => ({ root: "/w/p", base: "", project: "p", projectRoot: "/w/p" });',
       "fileicons.js": 'export const fileIcon = () => "<i></i>"; export const folderIcon = () => "<i></i>";',
-      "modules/changes/frame.js": 'export const countsHtml = () => "";',
+      "core/ui/components/counts.js": 'export const countsHtml = () => "";',
       "viewer.js": "export const RUNS = /^(\\.git|\\.claude)\\//;",
       "keynav.js": "export const pointerFollows = () => {};",
     };
