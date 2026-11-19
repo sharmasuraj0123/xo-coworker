@@ -754,3 +754,33 @@ export function relayedInto(thread, hops, timeline, have = new Set(), found = nu
   return { shown, missing };
 }
 
+
+// ── a stop someone meant: never a failure ─────────────────────────────────
+// Storm gives a thread two words (xo-space a868f6c, chats/thread_status.py): `state`, one of the API's seven, and
+// `activity`, the true one, with `wait_reason`. A deliberate stop (the founder's Stop intent, or the thread's task
+// stopped or cancelled: the coordinator's stop_thread moves it, talk.py) has activity "stopped" and state
+// "failed", the seven words' "Stopped". A real failure (a crash, an API error) is activity "failed". Reading only
+// `state`, every stop the owner asked for came up as a failure to retry: Decide's red card, "Try again from the
+// failing step" (the owner, 19 Nov). An older backend sends no activity: null, and everything stays as it was.
+
+/**
+ * Who stopped a thread on purpose, and why: {by: "you" | "coordinator" | "workspace" | null, reason}, or null when
+ * the thread isn't stopped on purpose. `controls` are its thread.control rows (in order); the newest stop names
+ * the coordinator and its reason, the founder's intent says "stopped by the founder (…)".
+ */
+export function stopOf(activity, waitReason, controls = []) {
+  if (activity !== "stopped") return null;
+  const why = String(waitReason || "");
+  if (/^stopped by the founder\b/i.test(why)) return { by: "you", reason: null };
+  let c = null;
+  for (const x of controls || []) if (x && x.action === "stop") c = x;
+  const by = !c ? null : c.by === "workspace-coordinator" ? "workspace" : "coordinator";
+  return { by, reason: c && c.reason ? String(c.reason).replace(/\s+/g, " ").trim() : null };
+}
+
+/** The quiet line a stopped thread says: "Stopped by the coordinator · Owner asked for Opus", "Stopped by you". */
+export function stopWords(stop) {
+  if (!stop) return "";
+  const who = stop.by === "you" ? "Stopped by you" : stop.by === "workspace" ? "Stopped by the workspace coordinator" : stop.by === "coordinator" ? "Stopped by the coordinator" : "Stopped";
+  return stop.reason ? `${who} · ${stop.reason}` : who;
+}

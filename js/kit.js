@@ -36,7 +36,7 @@ export const askKey = (t, ask) => `${ask.id ?? `${t.id}:synthetic`}|${ask.title}
 
 /** Which needs-you group an ask belongs to. */
 export function groupOf(t, ask) {
-  if (t.state === "failed") return "stopped";
+  if (t.state === "failed" && !t.stop) return "stopped"; // a stop someone meant isn't one (timeline.js stopOf)
   const r = riskOf(ask);
   return r === "destructive" ? "rope" : r;
 }

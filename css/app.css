@@ -41,6 +41,9 @@ button:disabled{cursor:default}
 .g-needs_reply,.g-needs_approval{background:var(--warn);border-radius:1.5px;transform:rotate(45deg) scale(.86)}
 .g-done{width:9px;height:5px;border:solid var(--accent);border-width:0 0 2px 2px;transform:rotate(-45deg) translate(1px,-1px)}
 .g-failed{background:var(--err-ink);border-radius:2px}
+/* stopped on purpose (the owner's Stop, or the coordinator's on the owner's word: timeline.js stopOf): the same square, in the
+   quiet ink, never the red of a failure */
+.g-stopped{background:var(--ink-4);border-radius:2px}
 .g-resolved{border:1.5px dashed var(--ink-4);border-radius:50%}
 .g-held{border:1.5px solid var(--ink-4);border-radius:1.5px;transform:rotate(45deg) scale(.8)}
 /* the thread header's Working badge stays a neutral pill; its arc is the blue one above */
@@ -372,7 +375,7 @@ button:disabled{cursor:default}
 .all-btn.is-need{border-color:color-mix(in srgb,var(--warn) 40%,var(--line-soft));color:var(--ink)}
 .all-btn.is-need span{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
 .badge{flex:none;display:inline-flex;align-items:center;gap:7px;height:24px;padding:0 10px;border-radius:999px;font:600 var(--fs-sm)/16px var(--sans);background:color-mix(in srgb,var(--st,var(--ink-4)) 12%,transparent);color:var(--st,var(--ink-3))}
-.st-working{--st:var(--info)}.st-needs_reply,.st-needs_approval{--st:var(--warn)}.st-done{--st:var(--accent)}.st-failed{--st:var(--err-ink)}.st-resolved{--st:var(--ink-4)}
+.st-working{--st:var(--info)}.st-needs_reply,.st-needs_approval{--st:var(--warn)}.st-done{--st:var(--accent)}.st-failed{--st:var(--err-ink)}.st-stopped{--st:var(--ink-4)}.st-resolved{--st:var(--ink-4)}
 
 /* the Now shelf: at most three, needs-you first, never grows */
 .now-wrap{flex:1;min-width:0;display:flex;align-items:center}
