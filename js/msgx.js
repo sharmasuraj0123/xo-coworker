@@ -222,19 +222,18 @@ const ROWS = new Map(); // row key → its action row element
 const RATE_KEY = "xo-msg-rating";
 let RATED;
 try { RATED = new Map(Object.entries(JSON.parse(localStorage.getItem(RATE_KEY) || "{}"))); } catch { RATED = new Map(); }
-function rowFor(el, you) {
+function rowFor(el) {
   const k = el.dataset.k;
   let row = ROWS.get(k);
   if (row) return row;
   row = document.createElement("div");
   row.className = "mx-actrow"; row.dataset.own = "";
   const r = RATED.get(k);
-  row.innerHTML = (you ? "" :
+  row.innerHTML =
     `<button type="button" data-mx-copy title="Copy" aria-label="Copy">${IC.copy}</button>` +
     `<button type="button" data-mx-reply title="Reply" aria-label="Reply">${IC.reply}</button>` +
     `<button type="button" data-mx-rate="good" title="Good response" aria-label="Good response" aria-pressed="${r === "good"}">${IC.good}</button>` +
-    `<button type="button" data-mx-rate="bad" title="Bad response" aria-label="Bad response" aria-pressed="${r === "bad"}">${IC.bad}</button>`) +
-    (you ? `<button type="button" data-mx-copy title="Copy" aria-label="Copy">${IC.copy}</button><button type="button" data-mx-reply title="Reply" aria-label="Reply">${IC.reply}</button>` : "") +
+    `<button type="button" data-mx-rate="bad" title="Bad response" aria-label="Bad response" aria-pressed="${r === "bad"}">${IC.bad}</button>` +
     `<time></time>`;
   ROWS.set(k, row);
   // a long conversation, or many: forget rows no longer on the page, oldest first
@@ -247,18 +246,30 @@ function actionRows(kids) {
     if (!el.classList.contains("m") || el.classList.contains("m-card") || !el.dataset.k) continue;
     const you = el.classList.contains("m-you");
     const host = you ? el : el.querySelector(":scope > .mb");
-    // words to copy and rate (a card or pictures alone have none); a turn still at work waits for its end
-    if (!host || !bubbleOf(el) || el.classList.contains("is-live")) continue;
-    const row = rowFor(el, you);
+    const mine = ROWS.get(el.dataset.k);
+    // words to copy and rate (a card or pictures alone have none); a turn still at work waits for its end; a
+    // message the same speaker goes on from isn't a reply's end
+    if (you || !host || !bubbleOf(el) || el.classList.contains("is-live") || el.classList.contains("mx-next-cont")) {
+      if (mine && host && mine.parentElement === host && !mine.contains(document.activeElement)) mine.remove();
+      continue;
+    }
+    const row = rowFor(el);
     if (row.parentElement !== host) host.append(row);
     const t = el.dataset.mxTime || "";
     const time = row.querySelector("time");
     if (time.textContent !== t) time.textContent = t;
-    if (!you) latest = el;
+    latest = el;
   }
   for (const el of msgs.querySelectorAll(":scope > .mx-latest")) if (el !== latest) el.classList.remove("mx-latest");
   latest?.classList.add("mx-latest");
 }
+/** A reply's words: the message and the ones before it in the same speaker's run (each a .cont of the one before). */
+function runText(m) {
+  const run = [m];
+  for (let x = m; x.classList.contains("cont") && x.previousElementSibling && x.previousElementSibling.matches(".m-them:not(.m-card)"); ) { x = x.previousElementSibling; run.unshift(x); }
+  return run.map(textOf).filter(Boolean).join("\n\n");
+}
+
 /**
  * Good or bad, for one message: pressed again, it's taken back. Kept on this device only for now.
  * BACKEND: when xo-space takes ratings, send them here (one call per change, rating null when taken back), e.g.
@@ -675,7 +686,7 @@ msgs.addEventListener("click", async (e) => {
     // newest one's timer puts the icon back (Astra SRC-CONV-4: the first Copy's timer wiped the second's check),
     // and only the newest is announced (SRC-CONV-6: an earlier success said "Copied" after a newer refusal)
     const gen = (c._copyGen = (c._copyGen || 0) + 1);
-    const ok = await copyText(textOf(c.closest(".m")));
+    const ok = await copyText(c.closest(".mx-actrow") ? runText(c.closest(".m")) : textOf(c.closest(".m")));
     if (c._copyGen !== gen) return;
     const live = document.getElementById("live");
     // said a moment after the region empties (so a repeat is announced), and only if it's still the newest Copy

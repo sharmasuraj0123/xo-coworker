@@ -24,22 +24,46 @@
 /* someone replying: the same mark and edge as a message's header */
 :root:not([data-msgx]) .typing{grid-template-columns:24px minmax(0,1fr);gap:8px}
 :root:not([data-msgx]) .typing>.av{width:24px;height:24px;border-radius:var(--r-sm)}
-/* the bubbles' Reply and Copy beside a bubble give way to the action row */
-:root:not([data-msgx]) .mx-acts{display:none!important}
+/* an agent's Reply and Copy are its action row; yours stay beside your bubble, on hover (no row under it) */
+:root:not([data-msgx]) :is(.m-them,.m-turn) .mx-acts{display:none!important}
+
+/* ── one rhythm for the conversation (the owner, 19 Nov: "the gaps ... inconsistent ... cluttered") ──────────
+   Four steps of the scale, each with one job, set here once:
+     4   inside a message: its name line to its words, its words to its action row, a turn's work rows
+     12  between a reply's paragraphs, lists and headings (half its 24 px line)
+     16  around a block inside a reply (code, a table, a chart, a diagram, a formula, pictures, a thread's card), and
+         between messages of the same speaker, and around a line between messages (an approval, a thread finished)
+     24  where the speaker changes
+   Messages are blocks in normal flow, so their margins collapse: every row asks for 16 above and below, a row that
+   starts a new speaker asks for 24 above, and the larger wins: no gap is ever a sum of two rules. (Before: 24 and
+   −16 for a run, 8 after an action row, −8 and 16 around a line, 6 in a turn, 12 or 16 around blocks; an approval
+   line sat 0 px under the action row above it.) */
+:root:not([data-msgx]) #msgs>*{margin-block:16px}
+:root:not([data-msgx]) #msgs>.m:not(.cont,.m-card){margin-top:24px}
+:root:not([data-msgx]) #msgs>.ev{min-height:var(--h-sm);margin-block:16px}
+:root:not([data-msgx]) #msgs>:first-child{margin-top:0}
+:root:not([data-msgx]) .typing{padding-bottom:16px}
+/* inside a reply */
+:root:not([data-msgx]) .prose>*+*{margin-top:12px}
+:root:not([data-msgx]) .prose>:is(.md-code,.md-table,.md-chart,.md-diagram,.md-display,.mx-stack),
+:root:not([data-msgx]) .prose>:is(.md-code,.md-table,.md-chart,.md-diagram,.md-display,.mx-stack)+*{margin-block:16px 0}
+:root:not([data-msgx]) .prose>:is(.md-code,.md-table,.md-chart,.md-diagram,.md-display,.mx-stack):first-child{margin-top:0}
+:root:not([data-msgx]) .prose>:is(.md-code,.md-table,.md-chart,.md-diagram,.md-display,.mx-stack):last-child{margin-bottom:0}
+:root:not([data-msgx]) .mb>:is(.tcard,.mx-stack,.m-reacts){margin-top:16px}
+:root:not([data-msgx]) .mb>.mh+:is(.tcard,.mx-stack){margin-top:4px}
+:root:not([data-msgx]) .turn{gap:4px}
+:root:not([data-msgx]) .turn>:is(.tb-text,.tb-answer,.tb-narr)+:is(.tb-text,.tb-answer,.tb-narr){margin-top:8px}
 
 /* ── the action row (js/msgx.js actionRows) ────────────────────────────────────
    Icon buttons of --mx-b (32, --h-ctl; 36 on a phone) on the text's edge: the first icon's 16 px glyph sits
-   (b − 16) / 2 into its button, so the row starts that far out and the glyph lands on the edge itself; yours
-   mirror it on the right edge. Quiet at rest:
+   (b − 16) / 2 into its button, so the row starts that far out and the glyph lands on the edge itself. One row per
+   reply, under its last message (js/msgx.js actionRows). Quiet at rest:
    the row holds its place (no shift on hover) and shows on hover or focus; the latest reply's always shows.
    Between messages: the row, then 8 px, so a run of messages keeps one rhythm. */
 .mx-actrow{display:none}
 :root:not([data-msgx]) .mx-actrow{--mx-b:var(--h-ctl);display:flex;align-items:center;height:var(--mx-b);margin:4px 0 0 calc((16px - var(--mx-b)) / 2);opacity:0;transition:opacity var(--d-out) var(--ease)}
-:root:not([data-msgx]) .m-you>.mx-actrow{margin:4px calc((16px - var(--mx-b)) / 2) 0 0;flex-direction:row-reverse}
 :root:not([data-msgx]) #msgs>.m:is(:hover,:focus-within,.mx-latest)>.mb>.mx-actrow,
-:root:not([data-msgx]) #msgs>.m:is(:hover,:focus-within)>.mx-actrow{opacity:1;transition-duration:var(--d-hover-in)}
-:root:not([data-msgx]) #msgs>.m:has(>.mb>.mx-actrow,>.mx-actrow){margin-bottom:8px}
-:root:not([data-msgx]) #msgs>.m:has(>.mb>.mx-actrow,>.mx-actrow)+.m.cont{margin-top:0}
+:root:not([data-msgx]) #msgs>.m:is(:hover,:focus-within)>.mb>.mx-actrow{opacity:1;transition-duration:var(--d-hover-in)}
 .mx-actrow button{display:grid;place-items:center;flex:none;width:var(--mx-b,var(--h-ctl));height:var(--mx-b,var(--h-ctl));border-radius:var(--r);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .mx-actrow button:hover{background:var(--hover-fill);color:var(--ink);transition-duration:var(--d-hover-in)}
 .mx-actrow button:active{background:var(--press-fill);--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
