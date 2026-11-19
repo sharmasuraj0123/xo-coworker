@@ -13,7 +13,6 @@
 
 import { stormSource } from "./storm.js";
 
-export const STATES = ["needs_approval", "needs_reply", "paused", "failed", "working", "done", "resolved"];
 // paused (storm's loop breaker) waits on the person too: a reply in the thread resumes it.
 export const WAITING = (s) => s === "needs_reply" || s === "needs_approval" || s === "paused";
 
@@ -40,15 +39,6 @@ export function createWorld() {
     project: (id) => state.projects.find((p) => p.id === id),
     waiting: () => state.threads.filter((t) => WAITING(t.state) && !t.frozen),
   };
-}
-
-export function ago(ms, now = Date.now()) {
-  const s = Math.max(0, Math.round((now - ms) / 1000));
-  if (s < 45) return "just now";
-  const m = Math.round(s / 60);
-  if (m < 60) return `${m}m ago`;
-  const h = Math.round(m / 60);
-  return h < 24 ? `${h}h ago` : `${Math.round(h / 24)}d ago`;
 }
 
 export function esc(v) {

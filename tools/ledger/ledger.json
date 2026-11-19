@@ -15681,8 +15681,8 @@
    "home": "modules/conversation/words.js"
   },
   "js/world.js::exports::STATES": {
-   "status": "planned",
-   "home": "core/services/world/store.js"
+   "status": "deleted",
+   "reason": "nothing imports it"
   },
   "js/world.js::exports::WAITING": {
    "status": "planned",
@@ -15693,8 +15693,8 @@
    "home": "core/services/world/store.js"
   },
   "js/world.js::exports::ago": {
-   "status": "planned",
-   "home": "core/services/world/store.js"
+   "status": "deleted",
+   "reason": "nothing imports it"
   },
   "js/world.js::exports::esc": {
    "status": "planned",
@@ -15705,8 +15705,8 @@
    "home": "core/services/world/store.js"
   },
   "js/world.js::functions::ago": {
-   "status": "planned",
-   "home": "core/services/world/store.js"
+   "status": "deleted",
+   "reason": "nothing imports it"
   },
   "js/world.js::functions::esc": {
    "status": "planned",
