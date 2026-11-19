@@ -4,12 +4,13 @@
 // from it, so no module keeps a hand-drawn <svg> of its own.
 //   node tests/xoicons.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { build, clean } from "../tools/xoicons/build.mjs";
 import { XI } from "../js/xoicons.js";
 import { xi, hasIcon } from "../js/icon.js";
 import { classify, glyph } from "../js/projicons.js";
 import { fileIcon, iconKey, FOLDER_ICON } from "../js/fileicons.js";
+import { sourcePaths } from "./lib/sources.mjs";
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
 let passed = 0;
@@ -50,8 +51,7 @@ t("xi(): the pack's icon, its name on it, a size only from the scale", () => {
 });
 
 t("every icon a module names is in the pack", () => {
-  const files = readdirSync(new URL("../js/", import.meta.url)).filter((f) => f.endsWith(".js")).map((f) => `js/${f}`);
-  for (const f of readdirSync(new URL("../modules/", import.meta.url), { recursive: true })) if (/\.js$/.test(String(f)) && !/(^|\/)tests\//.test(String(f))) files.push(`modules/${f}`);
+  const files = sourcePaths(".js");
   const names = new Set();
   for (const f of files) for (const m of read(f).matchAll(/\bxi\("([a-z0-9-]+)"/g)) names.add(m[1]);
   assert.ok(names.size > 60, `${names.size} names`);

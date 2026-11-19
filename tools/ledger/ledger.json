@@ -4235,7 +4235,8 @@
   },
   "tests/create-busy-honest.test.mjs": {
    "status": "moved",
-   "home": "modules/create-project/tests/create-busy-honest.test.mjs"
+   "home": "modules/create-project/tests/create-busy-honest.test.mjs",
+   "note": "still reads the source; its rewrite as a behaviour test is owed"
   },
   "tests/create.test.mjs": {
    "status": "moved",
@@ -4443,11 +4444,13 @@
   },
   "tests/lp-create-connect-focus.test.mjs": {
    "status": "moved",
-   "home": "modules/create-project/tests/lp-create-connect-focus.test.mjs"
+   "home": "modules/create-project/tests/lp-create-connect-focus.test.mjs",
+   "note": "still reads the source; its rewrite as a behaviour test is owed"
   },
   "tests/lp-create-stop-focus.test.mjs": {
    "status": "moved",
-   "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs"
+   "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs",
+   "note": "still reads the source; its rewrite as a behaviour test is owed"
   },
   "tests/lp-intel-order.test.mjs": {
    "status": "planned",
@@ -4681,7 +4684,7 @@
   "tests/routing-words.test.mjs": {
    "status": "moved",
    "home": "modules/routing/tests/routing-words.test.mjs",
-   "note": "still reads the source; its rewrite as a behaviour test is open"
+   "note": "still reads the source; its rewrite as a behaviour test is owed"
   },
   "tests/rtsettings.test.mjs": {
    "status": "moved",
@@ -4697,7 +4700,8 @@
   },
   "tests/saved-truth.test.mjs": {
    "status": "moved",
-   "home": "modules/runtimes/tests/saved-truth.test.mjs"
+   "home": "modules/runtimes/tests/saved-truth.test.mjs",
+   "note": "still reads the source; its rewrite as a behaviour test is owed"
   },
   "tests/scroller-ring.test.mjs": {
    "status": "planned",
@@ -17203,8 +17207,8 @@
    "home": "core/platform (sounds) + settings/tests/conv-sound.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/create.test.mjs::globals::matchMedia": {
-   "status": "planned",
-   "home": "modules/create-project/tests/create.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/create-project/tests/create.test.mjs"
   },
   "tests/css-wellformed.test.mjs::functions::uncomment": {
    "status": "planned",
@@ -17463,12 +17467,12 @@
    "home": "core/services + conversation (markdown)/tests/logic.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/lp-create-stop-focus.test.mjs::ids::cp-prog": {
-   "status": "planned",
-   "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs"
   },
   "tests/lp-create-stop-focus.test.mjs::ids::cp-stop": {
-   "status": "planned",
-   "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs"
   },
   "tests/lp-intel-order.test.mjs::globals::window": {
    "status": "planned",
@@ -17671,8 +17675,8 @@
    "home": "modules/threads/tests/runs-stop-receipt.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/saved-truth.test.mjs::globals::matchMedia": {
-   "status": "planned",
-   "home": "modules/settings/runtimes/tests/saved-truth.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/runtimes/tests/saved-truth.test.mjs"
   },
   "tests/shape.test.mjs::functions::test_store_more": {
    "status": "planned",

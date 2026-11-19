@@ -135,7 +135,7 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 | `js/decide.js`, `js/kit.js`, `js/pacing.js` | decisions, the decision kit and commit window, and pacing (what speaks up and what waits) |
 | `js/intel.js` | the model and depth chip |
 | `js/runtimes.js` | runtimes, the pure part: names, health in words, usage windows, the runtime policy, moves, the limit card |
-| `js/rtsettings.js` | Settings › Runtimes: each runtime's health, and the defaults |
+| `modules/runtimes/settings.js` | Settings › Runtimes: each runtime's health, and the defaults |
 | `js/content.js` | what an ask costs you, what it frees, and its evidence |
 | `js/ui.js` | icons and motion helpers |
 | `js/gestures.js` | touch gestures on a phone: swipe back or open the sidebar, drag sheets away, swipe between asks, long-press Copy |
