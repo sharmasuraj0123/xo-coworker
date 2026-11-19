@@ -13,7 +13,7 @@
 // rows' worth of events (repo, build, release, live) out of Space's eleven steps. Secrets travel once, in
 // the POST's body; nothing here keeps, logs or puts them in a URL.
 
-import { request, coderHeaders, ApiError } from "./api.js";
+import { request, coderHeaders, ApiError } from "../core/platform/http.js";
 
 const enc = encodeURIComponent;
 

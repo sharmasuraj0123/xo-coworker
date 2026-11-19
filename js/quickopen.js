@@ -10,7 +10,7 @@
 import { esc, rank, marked, lineOf } from "../core/platform/index.js";
 import { xi } from "./icon.js";
 import { fileIcon } from "./fileicons.js";
-import { missingRoute } from "./api.js";
+import { missingRoute } from "../core/platform/http.js";
 
 const SEARCH_MS = 220;
 const MAX_FILES = 60;

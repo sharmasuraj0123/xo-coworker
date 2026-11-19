@@ -2176,7 +2176,8 @@
    "home": [
     "core/platform/http.js",
     "per-module clients (routes declared in each module.json)"
-   ]
+   ],
+   "note": "the transport is in core/platform/http.js; js/api.js keeps the route table (and re-exports the transport) until the routes go to their modules"
   },
   "js/app.js": {
    "status": "split",
@@ -6242,20 +6243,12 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/api.js::exports::coderHeaders": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/http.js"
   },
   "js/api.js::exports::ApiError": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/http.js"
   },
   "js/api.js::exports::STORM_DOWN": {
    "status": "split-region",
@@ -6274,20 +6267,12 @@
    "reason": "the export only: nothing imported it; the constant stays where requests use it"
   },
   "js/api.js::exports::request": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/http.js"
   },
   "js/api.js::exports::missingRoute": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/http.js"
   },
   "js/api.js::exports::attachmentUrl": {
    "status": "split-region",
@@ -6322,12 +6307,8 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/api.js::exports::clientId": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/http.js"
   },
   "js/api.js::exports::NEWEST": {
    "status": "split-region",
@@ -6346,36 +6327,20 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/api.js::functions::deadline": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/http.js"
   },
   "js/api.js::functions::request": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/http.js"
   },
   "js/api.js::functions::exchange": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/http.js"
   },
   "js/api.js::functions::errorOf": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/http.js"
   },
   "js/api.js::functions::terminalSocketUrl": {
    "status": "split-region",
@@ -6402,20 +6367,12 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/api.js::functions::blob": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/http.js"
   },
   "js/api.js::storage::xo-coder-token": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/http.js"
   },
   "js/api.js::routes::/api/chat/*": {
    "status": "split-region",
@@ -6802,12 +6759,8 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/api.js::keys::http_404": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/http.js"
   },
   "js/app.js::functions::applyTheme": {
    "status": "planned",
