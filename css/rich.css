@@ -51,10 +51,12 @@
    starts a new speaker asks for 24 above, and the larger wins: no gap is ever a sum of two rules. (Before: 24 and
    −16 for a run, 8 after an action row, −8 and 16 around a line, 6 in a turn, 12 or 16 around blocks; an approval
    line sat 0 px under the action row above it.) */
-:root:not([data-msgx]) #msgs>*{margin-block:16px}
+/* the rhythm is the conversation's: a project's empty page (.m-start, "What should get done in…?") isn't a message
+   and keeps its own margin:auto, which centres it in the room (css/app.css) */
+:root:not([data-msgx]) #msgs>:not(.m-start){margin-block:16px}
 :root:not([data-msgx]) #msgs>.m:not(.cont,.m-card){margin-top:24px}
 :root:not([data-msgx]) #msgs>.ev{min-height:var(--h-sm);margin-block:16px}
-:root:not([data-msgx]) #msgs>:first-child{margin-top:0}
+:root:not([data-msgx]) #msgs>:first-child:not(.m-start){margin-top:0}
 /* the action row is a 32 px control row whose 16 px glyphs leave 8 px of air under them: that air counts toward the
    gap after it, so the next thing sits 16 (or 24) from the glyphs you see, as from any other line */
 :root:not([data-msgx]) #msgs>.m:has(>.mb>.mx-actrow){margin-bottom:8px}

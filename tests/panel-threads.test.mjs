@@ -38,8 +38,18 @@ for (const s of ["done", "resolved", "failed", "stopped"]) assert.equal(threadSt
 assert.equal(threadState({ id: "e", state: "working", frozen: true }, needs), "done", "a frozen (continued) thread is done");
 
 // the header: the same words, and the counts open the panel
-// one line (the owner, 19 Nov 13:54Z): what's at work as its glyph and number, the words its tooltip and name; no Waiting
-assert.match(app, /class="pj-n" data-stage-open title="\$\{esc\(words\)\}: open its threads in the panel" aria-label="\$\{esc\(words\)\}\. Open its threads"><i class="g g-working" aria-hidden="true"><\/i><span class="pj-k">\$\{by\.working\}<\/span><\/button>/);
+// the Threads control beside Deploy (the owner, 19 Nov 14:16Z / 14:20Z picked A): "Threads" and how many, the working
+// arc and its number, the needs-you mark and its number; one 32 control (.tw-act) among the actions; opens Threads
+assert.match(app, /class="tw-act th-ctl" data-stage-open aria-controls="stage" title="\$\{esc\(words\)\}: open them in the panel"/);
+assert.match(app, /\$\{ICON\.threadOne\}<span class="th-w">Threads<\/span><span class="th-n">\$\{n\}<\/span>\$\{live\}/);
+assert.match(app, /g-working" aria-hidden="true"><\/i><span class="pj-k">\$\{by\.working\}/);
+assert.match(app, /g-needs_reply" aria-hidden="true"><\/i><span class="pj-k">\$\{by\.needs\}/);
+assert.match(app, /\(pv \? S\.hdrCtl \+ LP\.button\(v, STAGE\.launchOpen\) : ""\) \+ STAGE\.button\(v\)/, "before Deploy and the panel's toggle");
+assert.doesNotMatch(app, /xo-hdr-opt/, "the exploration switch is gone");
+const appCss = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
+const th = appCss.slice(appCss.indexOf("── The project header's Threads control"));
+assert.ok(th.length > 200, "the block is there");
+assert.doesNotMatch(th.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\b1px solid\b/g, "").replace(/@container top \([^)]*\)/g, ""), /\b\d+(\.\d+)?(px|rem|ms)\b/, "tokens only");
 assert.match(app, /<span class="tw-t is-one"><h1 id="conv-title"/);
 assert.match(app, /else if \(e\.target\.closest\?\.\("\[data-stage-open\]"\)\) STAGE\.open\(\)/);
 assert.doesNotMatch(app, /class="all-btn th-btn"/, "the header's Threads button moved into the panel");

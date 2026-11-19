@@ -1247,6 +1247,19 @@ function wsHeadRender() {
  *  line breaks only at a dot, never inside "1 resolved". */
 const counted = (n, word) => (n ? `<span class="pj-c"><span class="pj-k">${n}</span> ${word}</span>` : "");
 const countLine = (bits) => bits.filter(Boolean).join(`<span class="pj-d" aria-hidden="true"> · </span>`);
+/** The project header's Threads control (the owner, 19 Nov 14:16Z: the header must say the project has threads,
+ *  legibly, apart from its title; 14:20Z: beside Deploy): "Threads" and how many, then what's at work as the working
+ *  arc and its number, and what needs you as its mark and number. One 32 control among the header's actions; it
+ *  opens the panel's Threads. Short of room (a phone), the word goes; the marks and numbers stay. */
+function threadsCtl(n, by) {
+  if (!n) return ""; // a project with no threads yet: its empty page says what to start
+  const words = [`${n} ${n === 1 ? "thread" : "threads"}`, by.working && `${by.working} working`, by.needs && `${by.needs} ${by.needs === 1 ? "needs" : "need"} you`].filter(Boolean).join(", ");
+  const live = (by.working ? `<span class="th-seg is-work"><i class="g g-working" aria-hidden="true"></i><span class="pj-k">${by.working}</span></span>` : "") +
+    (by.needs ? `<span class="th-seg is-need"><i class="g g-needs_reply" aria-hidden="true"></i><span class="pj-k">${by.needs}</span></span>` : "");
+  return `<button type="button" class="tw-act th-ctl" data-stage-open aria-controls="stage" title="${esc(words)}: open them in the panel" aria-label="${esc(words)}. Open them in the panel">` +
+    `${ICON.threadOne}<span class="th-w">Threads</span><span class="th-n">${n}</span>${live}</button>`;
+}
+
 /** A chat whose own coordinator asks: "Needs you" leads its count line, and opens the card above the composer. */
 function hostNeedHtml(v, needs) {
   const h = convHost(v);
@@ -1349,16 +1362,13 @@ function topRender(needs) {
     const every = world.state.threads.filter((x) => x.project === pid); // resolved ones too: findable, reopenable
     // the same words as the panel's Threads (Working, Waiting; Needs you is said by `need`, its own button); Done
     // lives in the panel, folded. Every thread here, searchable, is the panel Threads frame's search.
-    const by = { working: 0, waiting: 0 };
+    const by = { working: 0, waiting: 0, needs: 0 };
     for (const x of every) { const k = threadState(x, needs); if (by[k] != null) by[k]++; }
     const need = hostNeedHtml(v, needs);
-    // one line, not two (the owner, 19 Nov 13:54Z: the words looked cheap and made the bar taller): what's at work, as
-    // its glyph and its number, one quiet control that opens the panel's Threads; the words are its tooltip and its
-    // name. Waiting isn't counted here (the panel groups it); nothing at work, nothing shown. The project's one
-    // sentence is the title's tooltip.
-    const words = [by.working && `${by.working} working`, by.waiting && `${by.waiting} waiting`].filter(Boolean).join(" · ");
-    const at = by.working ? `<button type="button" class="pj-n" data-stage-open title="${esc(words)}: open its threads in the panel" aria-label="${esc(words)}. Open its threads"><i class="g g-working" aria-hidden="true"></i><span class="pj-k">${by.working}</span></button>` : "";
-    who = `<span class="tw-ic" aria-hidden="true">${projectIcon(pid)}</span><span class="tw-t is-one"><h1 id="conv-title"${S.desc[pid] ? ` title="${esc(S.desc[pid])}"` : ""}>${esc(PROJ(pid))}</h1>${need}${at}</span>`;
+    // the header says the project has threads (the owner, 19 Nov 14:20Z picked it beside Deploy): Threads and how
+    // many, what's at work, what needs you; one control among the header's actions, apart from the title
+    who = `<span class="tw-ic" aria-hidden="true">${projectIcon(pid)}</span><span class="tw-t is-one"><h1 id="conv-title"${S.desc[pid] ? ` title="${esc(S.desc[pid])}"` : ""}>${esc(PROJ(pid))}</h1>${need}</span>`;
+    S.hdrCtl = threadsCtl(ts.length, by);
   } else if (t) {
     const ed = S.tEdit && S.tEdit.tid === t.id ? S.tEdit.field : null;
     // the field shows what was typed (kept through a refusal), and says it's waiting while it saves
@@ -1384,7 +1394,8 @@ function topRender(needs) {
   if (who != null && $("#top-who")._h !== who) { redraw($("#top-who"), who); $("#top-who")._h = who; }
   // in place too: Threads (the switcher's opener) is the same button when All opens and sets aria-expanded, so
   // closing All finds it to return to (Astra H30)
-  const endHtml = t ? end : fileChipHtml() + end + (v.startsWith("p:") ? LP.button(v, STAGE.launchOpen) : "") + STAGE.button(v);
+  const pv = v.startsWith("p:");
+  const endHtml = t ? end : fileChipHtml() + end + (pv ? S.hdrCtl + LP.button(v, STAGE.launchOpen) : "") + STAGE.button(v);
   if ($("#top-end")._h !== endHtml) { redraw($("#top-end"), endHtml); $("#top-end")._h = endHtml; }
   LP.ensure(v);
   checklistRender(needs);
