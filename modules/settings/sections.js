@@ -36,12 +36,14 @@ export function createSettingsSections({ places, nav, pages, at, pick, isOpen, o
   }
   function sync() {
     const entries = /** @type {import("./types").SectionEntry[]} */ (places.entries("settings.section", at()));
+    const tabsNow = () => [...nav.children].filter((el) => [...shown.values()].some((s) => s.tab === el));
+    const was = tabsNow();
     const ids = new Set(entries.map((e) => e.id));
     for (const [id, s] of shown) {
       if (ids.has(id)) continue;
-      const was = !s.page.hidden, a = document.activeElement, had = !!a && (s.tab.contains(a) || s.page.contains(a));
+      const open = !s.page.hidden, a = document.activeElement, had = !!a && (s.tab.contains(a) || s.page.contains(a));
       leave(id); s.tab.remove(); s.page.remove(); shown.delete(id);
-      if (was) pick(/** @type {HTMLElement} */ (nav.querySelector("[data-set]")).dataset.set || "general");
+      if (open) pick(/** @type {HTMLElement} */ (nav.querySelector("[data-set]")).dataset.set || "general");
       if (had) /** @type {HTMLElement | null} */ (nav.querySelector('[aria-selected="true"]'))?.focus({ preventScroll: true });
     }
     const seen = new Set();
@@ -56,11 +58,10 @@ export function createSettingsSections({ places, nav, pages, at, pick, isOpen, o
       shown.set(e.id, s);
       if (!s.page.hidden && !s.undo && isOpen()) show(e.id);
     }
-    const mine = [...nav.children].filter((el) => [...shown.values()].some((s) => s.tab === el));
+    const mine = tabsNow();
     const want = [...new Set(entries.map((e) => shown.get(e.id)?.tab).filter((x) => !!x))];
-    const before = mine.length;
     if (want.some((el, i) => mine[i] !== el)) for (const el of want) nav.append(/** @type {HTMLElement} */ (el));
-    if (want.length !== before || want.some((el, i) => mine[i] !== el)) onTabs();
+    if (want.length !== was.length || want.some((el, i) => was[i] !== el)) onTabs();
   }
   /** A Settings page was opened: a section's entry draws it now; any other section that was drawn lets go. @param {string} id */
   function show(id) {

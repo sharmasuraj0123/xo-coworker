@@ -11,9 +11,10 @@ const PAGE = `<section id="settings" hidden><nav class="set-nav" role="tablist">
 
 /** Each render and undo of the fake sections, in order. */
 const log = [];
+let tabsChanged = 0;
 async function settings({ project = "demo", early = null } = {}) {
   await dom(PAGE);
-  log.length = 0;
+  log.length = 0; tabsChanged = 0;
   const { createSettingsFrame } = await import("../frame.js");
   const { createSettingsSections } = await import("../sections.js");
   const kernel = createKernel();
@@ -22,7 +23,7 @@ async function settings({ project = "demo", early = null } = {}) {
   const el = document.querySelector("#settings");
   const btn = () => document.createElement("button");
   if (early) places.contribute("settings.section", early(log), "xo.early");
-  const sections = createSettingsSections({ places, nav: el.querySelector(".set-nav"), pages: el.querySelector(".set-body"), at: () => ({ project }), pick: (id) => frame.setPage(id), isOpen: () => !el.hidden });
+  const sections = createSettingsSections({ places, nav: el.querySelector(".set-nav"), pages: el.querySelector(".set-body"), at: () => ({ project }), pick: (id) => frame.setPage(id), isOpen: () => !el.hidden, onTabs: () => tabsChanged++ });
   const frame = createSettingsFrame({ el, side: btn(), phoneButton: btn(), closeButton: btn(), onPage: (id) => sections.show(id), beforeOpen: () => sections.resume(), beforeClose: () => sections.hide(), onHidden: () => {}, focusIn: () => {}, fallback: () => null, phone: { matches: false, addEventListener() {} } });
   const entry = (id, label) => ({ id, label, icon: "plug", render: (live, at) => { log.push(["render", id, at.project]); live.innerHTML = `<div class="set-live">${label} for ${at.project}</div>`; return () => log.push(["undo", id]); } });
   return { places, frame, sections, el, log, entry };
@@ -127,6 +128,39 @@ await t("an entry there before Settings is built renders once per click", async 
   S.frame.open();
   tab("apps").dispatchEvent(new Event("click", { bubbles: true }));
   assert.deepEqual(S.log, [["render", "apps"]]);
+});
+await t("each change to the section tabs is told (the Shape view places the rail again), and nothing else is", async () => {
+  const S = await settings();
+  const undo = S.places.contribute("settings.section", S.entry("apps", "Apps"), "xo.apps-host");
+  assert.equal(tabsChanged, 1, "a tab added");
+  S.places.contribute("settings.section", { ...S.entry("first", "First"), order: -1 }, "xo.other");
+  assert.equal(tabsChanged, 2, "another, placed before it");
+  S.frame.open(); S.frame.setPage("apps");
+  assert.equal(tabsChanged, 2, "opening a page changes no tab");
+  undo();
+  assert.equal(tabsChanged, 3, "a tab taken away");
+});
+
+await t("a second entry with an id already in the place is refused, said once, and the first keeps its tab", async () => {
+  const S = await settings();
+  const errs = []; const was = console.error; console.error = (m) => errs.push(String(m));
+  try {
+    S.places.contribute("settings.section", S.entry("apps", "Apps"), "xo.apps-host");
+    S.places.contribute("settings.section", S.entry("apps", "Impostor"), "xo.other");
+    S.places.contribute("settings.section", S.entry("more", "More"), "xo.more");
+  } finally { console.error = was; }
+  assert.equal(tab("apps").textContent, "Apps");
+  assert.equal(document.querySelectorAll('[data-set="apps"]').length, 1);
+  assert.equal(errs.length, 1);
+});
+
+await t("focus inside a section's page that goes lands on the tab Settings goes to", async () => {
+  const S = await settings();
+  const undo = S.places.contribute("settings.section", { ...S.entry("apps", "Apps"), render: (live) => { live.innerHTML = `<div class="set-live"><button id="in-app">Install</button></div>`; } }, "xo.apps-host");
+  S.frame.open(); S.frame.setPage("apps");
+  document.querySelector("#in-app").focus();
+  undo();
+  same(document.activeElement, tab("general"));
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
 process.exit();
