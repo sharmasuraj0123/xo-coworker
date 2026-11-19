@@ -41,6 +41,9 @@ button:disabled{cursor:default}
 .g-needs_reply,.g-needs_approval{background:var(--warn);border-radius:1.5px;transform:rotate(45deg) scale(.86)}
 .g-done{width:9px;height:5px;border:solid var(--accent);border-width:0 0 2px 2px;transform:rotate(-45deg) translate(1px,-1px)}
 .g-failed{background:var(--err-ink);border-radius:2px}
+/* stopped on purpose (the owner's Stop, or the coordinator's on the owner's word: timeline.js stopOf): the same square, in the
+   quiet ink, never the red of a failure */
+.g-stopped{background:var(--ink-4);border-radius:2px}
 .g-resolved{border:1.5px dashed var(--ink-4);border-radius:50%}
 .g-held{border:1.5px solid var(--ink-4);border-radius:1.5px;transform:rotate(45deg) scale(.8)}
 /* the thread header's Working badge stays a neutral pill; its arc is the blue one above */
@@ -372,7 +375,7 @@ button:disabled{cursor:default}
 .all-btn.is-need{border-color:color-mix(in srgb,var(--warn) 40%,var(--line-soft));color:var(--ink)}
 .all-btn.is-need span{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
 .badge{flex:none;display:inline-flex;align-items:center;gap:7px;height:24px;padding:0 10px;border-radius:999px;font:600 var(--fs-sm)/16px var(--sans);background:color-mix(in srgb,var(--st,var(--ink-4)) 12%,transparent);color:var(--st,var(--ink-3))}
-.st-working{--st:var(--info)}.st-needs_reply,.st-needs_approval{--st:var(--warn)}.st-done{--st:var(--accent)}.st-failed{--st:var(--err-ink)}.st-resolved{--st:var(--ink-4)}
+.st-working{--st:var(--info)}.st-needs_reply,.st-needs_approval{--st:var(--warn)}.st-done{--st:var(--accent)}.st-failed{--st:var(--err-ink)}.st-stopped{--st:var(--ink-4)}.st-resolved{--st:var(--ink-4)}
 
 /* the Now shelf: at most three, needs-you first, never grows */
 .now-wrap{flex:1;min-width:0;display:flex;align-items:center}
@@ -752,8 +755,13 @@ button.hr:active{transform:scale(.97)}
 .send:active{transform:scale(var(--press-scale))}
 .send:disabled{background:var(--fill-3);color:var(--ink-5);cursor:default}
 /* Stop: while the coordinator or this thread's agent is working (and the field is empty) */
-.send.is-stop{background:var(--ink);color:var(--on-ink)}
-.send.is-stop:hover{background:var(--ink-hi)}
+/* It was a white disc (the ink) with a 6 px square of 1 px corners, and the owner wanted no harsh corners and nothing
+   glaring (19 Nov 08:57Z). Now a quiet stone disc in Send's own place, 40 px and round, so its edge is concentric with
+   the composer's 28 px corner (8 px in: 28 − 8 = 20, its radius); in it a 14 px square with 4 px corners, the ink's
+   own colour. Hover and press only deepen the stone */
+.send.is-stop{--stop:var(--fill-4);--ring-in:var(--focus);background:var(--stop);color:var(--ink)}
+:root[data-theme="light"] .send.is-stop{--stop:var(--fill-3)}
+.send.is-stop:hover{background:color-mix(in srgb,var(--ink) 9%,var(--stop))}
 .send.is-stop svg{width:14px;height:14px}
 .send.fired{animation:fire var(--d-move) var(--ease)}
 @keyframes fire{from{transform:scale(.9)}}

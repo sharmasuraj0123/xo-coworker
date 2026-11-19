@@ -21,7 +21,7 @@ import { createIntel } from "./intel.js";
 import { EFFORT, estLine, evidenceFor } from "./content.js";
 import { keepTurning, ICON, XO, NEXT_GLYPH, $, $$, RM, clock, dayOf, short, elapsed, reconcile, sound, wait, hold, dial, morph, expand } from "./ui.js";
 import { paidHtml } from "./paidview.js";
-import { uiMsg, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldClock, heldBadge, soonestHeld } from "./timeline.js";
+import { stopWords, uiMsg, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldClock, heldBadge, soonestHeld } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn } from "./turnview.js";
 import { nameWith } from "./comms.js";
 import { mediaHtml, fromAttachment, fromSharedFile, hydrateMedia, mediaItemOf, viewerFile, retryMedia, wireDragOut, webImagesHtml } from "./media.js";
@@ -106,7 +106,8 @@ const num = (n) => NUM[n] || String(n);
 const low = (n) => num(n).toLowerCase();
 const plural = (n, w) => `${w}${n === 1 ? "" : "s"}`;
 const DRAFTS = "cv-drafts:live";
-const STOP_ICON = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2.2" fill="currentColor"/></svg>`;
+// Stop's square: all of its 14 px box, with 4 px corners (css/app.css, .send.is-stop)
+const STOP_ICON = `<svg viewBox="0 0 14 14" width="14" height="14" aria-hidden="true"><rect width="14" height="14" rx="4" fill="currentColor"/></svg>`;
 
 // ── theme: dark by default, a slide toggle in the sidebar (#28) ────────────
 const THEME = { get() { try { return localStorage.getItem("cv-theme") === "light" ? "light" : "dark"; } catch { return "dark"; } } };
@@ -278,10 +279,11 @@ const isBusy = (t) => t.busy === true || (t.state === "working" && t.busy !== fa
 // says it. An open item on it still reads Needs you (askingState), and a resolved one Resolved.
 const isHeld = (t) => !!(t && t.held && !isBusy(t) && t.state === "working");
 // a thread continued on another runtime is frozen, not waiting on you: a quiet "Continued" (F4)
-const glyphOf = (t) => (isHeld(t) ? "paused" : t.state === "working" && t.busy === false ? "idle" : t.frozen ? "resolved" : t.state);
+// a stop someone meant (timeline.js stopOf) is drawn quiet, in the ink, never the red of a failure: "stopped"
+const glyphOf = (t) => (isHeld(t) ? "paused" : t.state === "working" && t.busy === false ? "idle" : t.frozen ? "resolved" : t.stop ? "stopped" : t.state);
 const wordOf = (t) => (isHeld(t) ? heldShort(t.held) : glyphOf(t) === "idle" ? "Idle" : t.frozen ? "Continued" : STATE_WORD[t.state]);
 // the state a badge or card is coloured by: a held thread in the pause's amber, never Working's blue
-const stOf = (t) => (t.frozen ? "resolved" : isHeld(t) ? "paused" : t.state);
+const stOf = (t) => (t.frozen ? "resolved" : isHeld(t) ? "paused" : t.stop ? "stopped" : t.state);
 // a thread link in any message is a token led by that thread's live state (js/markdown.js)
 setThreadInfo((id) => { const t = world.thread(id); return t ? { state: glyphOf(t), word: wordOf(t), title: t.title } : null; });
 const SORT_STATE = { needs_approval: 0, needs_reply: 0, paused: 0, failed: 1, working: 2, done: 3, resolved: 4 };
@@ -945,7 +947,7 @@ function threadCardHtml(tid, needs) {
   const cur = c.items.find((i) => i.state === "doing") || c.items.find((i) => i.state === "todo");
   const segs = c.items.map((i) => `<i class="sg s-${i.state}"></i>`).join("");
   const st = n ? `Needs you · ${EFFORT[n.effort].time}` : isBusy(t) ? `Working${c.total ? ` · ${c.done} of ${c.total}` : ""}` : t.state === "done" ? `Done${c.total ? ` · ${c.total} of ${c.total}` : ""}` : wordOf(t);
-  const now = n ? `◆ ${askTitle(n)}` : isBusy(t) && cur ? `✱ ${esc(cur.text)}` : isHeld(t) ? esc(heldWords(t.held)) : t.state === "failed" ? esc(String(t.happened || "").replace(/^Stopped:\s*/i, "")) : t.state === "done" ? esc(t.happened || "Finished.") : "";
+  const now = n ? `◆ ${askTitle(n)}` : isBusy(t) && cur ? `✱ ${esc(cur.text)}` : isHeld(t) ? esc(heldWords(t.held)) : t.stop ? esc(stopWords(t.stop)) : t.state === "failed" ? esc(String(t.happened || "").replace(/^Stopped:\s*/i, "")) : t.state === "done" ? esc(t.happened || "Finished.") : "";
   // a finished thread offers its real next step: the newest file it made, one click away (no file, no offer)
   const made = !n && t.state === "done" && REC.latestOf ? REC.latestOf(t.id, t.project) : null;
   return `<div class="tcard st-${n ? "needs" : stOf(t)}${made ? " has-next" : ""}">` +
@@ -1209,7 +1211,7 @@ const convName = (v, t) => (t ? t.title : v.startsWith("p:") ? PROJ(v.slice(2)) 
 /** The chat's own head while it sits beside a file (body.chat-docked hides the header): its name, its state,
  *  and fold it to its rail (js/filesview.js). */
 function cheadHtml(v, t) {
-  const badge = t ? `<span class="badge st-${t.frozen ? "resolved" : t.state}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${wordOf(t)}</span>` : "";
+  const badge = t ? `<span class="badge st-${stOf(t)}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${wordOf(t)}</span>` : "";
   return `<h2 class="chead-t">${esc(convName(v, t))}</h2>${badge}<span class="chead-sp"></span>` +
     (FILESV.sheet ? `<button type="button" class="fv-ib" data-chat-fold data-fid="chat-fold" title="Fold the chat to its bar" aria-label="Fold the chat">${ICON.chevron}</button>`
       : `<button type="button" class="fv-ib" data-chat-fold data-fid="chat-fold" title="Fold the chat to a rail (${K.label("chatFold")})" aria-label="Fold the chat">${CHAT_FOLD_IC}</button>`);
@@ -1242,7 +1244,7 @@ function topRender(needs) {
   patch($("#fdock"), fileChipHtml());
   top.dataset.kind = t ? "thread" : "project"; // hub #28: the Workspace has a project's header, always shown
   // a thin state line along the thread's header: amber needs you, blue working, green done, red stopped
-  top.dataset.state = !t ? "" : needs.some((n) => n.t.id === t.id && n.admitted) ? "need" : t.state === "failed" ? "stop" : isBusy(t) ? "busy" : t.state === "done" || t.state === "resolved" ? "done" : "";
+  top.dataset.state = !t ? "" : needs.some((n) => n.t.id === t.id && n.admitted) ? "need" : t.state === "failed" && !t.stop ? "stop" : isBusy(t) ? "busy" : t.state === "done" || t.state === "resolved" ? "done" : "";
   const back = $("#top-back");
   back.hidden = !t;
   if (CH.isChats(v)) {
@@ -1343,7 +1345,7 @@ function nowRender(needs) {
   const items = shelf.map((t) => {
     const c = t.checklist, n = need(t);
     const st = n ? "needs" : glyphOf(t);
-    const what = n ? `needs you: ${askShort(n)}` : t.state === "failed" ? String(t.happened || "Stopped") : wordOf(t).toLowerCase();
+    const what = n ? `needs you: ${askShort(n)}` : t.stop ? stopWords(t.stop) : t.state === "failed" ? String(t.happened || "Stopped") : wordOf(t).toLowerCase();
     return `<button type="button" class="nw st-${st}" role="listitem" data-go="t:${esc(t.id)}" title="${esc(`${t.title} · ${c.done} of ${c.total} · ${what}`)}" aria-label="${esc(t.title)}, ${n ? "needs you" : wordOf(t).toLowerCase()}, ${c.done} of ${c.total}">` +
       `<i class="g g-${n ? "needs_reply" : glyphOf(t)}" aria-hidden="true"></i><b>${esc(t.title)}</b>` +
       `<span class="nw-segs" aria-hidden="true">${c.items.map((i) => `<i class="sg s-${i.state}"></i>`).join("")}</span></button>`;
@@ -1425,6 +1427,7 @@ function checklistRender(needs) {
   let mode = "working", nowHtml;
   if (fresh) { mode = "fresh"; nowHtml = `<span class="ck-m is-ok">${ICON.check}</span><span>${esc(fresh.text)}</span>`; }
   else if (n && WAITING(t.state)) { mode = "needs"; nowHtml = `<span class="ck-m is-amber">◆</span><span>Paused on you</span>`; }
+  else if (t.stop) { mode = "stopped"; nowHtml = `<span class="ck-m">■</span><span>${esc(stopWords(t.stop))}</span>`; }
   else if (t.state === "failed") { mode = "failed"; nowHtml = `<span class="ck-m is-red">■</span><span>Stopped at “${esc(cur ? cur.text : "a step")}”</span>`; }
   else if (c.done >= c.total) { mode = "done"; nowHtml = `<span class="ck-m is-ok">${ICON.check}</span><span>All ${c.total} steps done</span>`; }
   else if (t.state === "resolved") { mode = "done"; nowHtml = `<span class="ck-m">■</span><span>Resolved at ${c.done} of ${c.total}</span>`; }

@@ -61,7 +61,10 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
       if (t.state === "failed") {
         const key = `stop|${t.id}`;
         if (stoppedDone.has(t.id) || queue.has(key)) continue;
-        out.push({ key, t, ask: { kind: "stopped", title: t.title, detail: String(t.happened || "").replace(/^Stopped:\s*/i, "Stopped: "), risk: "stopped" }, group: "stopped", risk: "stopped" });
+        // a stop someone meant (storm's activity "stopped": the owner's, or the coordinator's on the owner's word)
+        // is no failure and asks nothing: the thread says who stopped it, and the owner's next message resumes it.
+        // Only a real failure (activity "failed", or an older backend's bare "failed") offers Try again
+        if (!t.stop) out.push({ key, t, ask: { kind: "stopped", title: t.title, detail: String(t.happened || "").replace(/^Stopped:\s*/i, "Stopped: "), risk: "stopped" }, group: "stopped", risk: "stopped" });
         // its open review items (an integrity report, a schedule to approve) still need their own answer
         for (const a of Kit.asksOf(t)) {
           if (!a.item) continue;

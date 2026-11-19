@@ -13,7 +13,7 @@ import { api, clientId as newClientId, NEWEST, coderHeaders, STORM_DOWN } from "
 import { SSEStream } from "./sse.js";
 import { createTurns } from "./blocks.js";
 import { tasksOf } from "./model.js";
-import { uiMsg, mergeRows, addReaction, updateMessage, stormAsks, mapLimit, currentPools, threadState, askingState, mainRuntime, BUSY_STATES, heldOf, queuedButWorking, statusLater, readSub, sessionRead, sessionBusy, pageAfter, canPageOlder, framesShort } from "./timeline.js";
+import { stopOf, uiMsg, mergeRows, addReaction, updateMessage, stormAsks, mapLimit, currentPools, threadState, askingState, mainRuntime, BUSY_STATES, heldOf, queuedButWorking, statusLater, readSub, sessionRead, sessionBusy, pageAfter, canPageOlder, framesShort } from "./timeline.js";
 import { hostOf, askedBy } from "./review.js";
 import { isLimitItem, limitItem } from "./runtimes.js";
 import { paidBody, paidItem, accountRows, heldModes } from "./paid.js";
@@ -217,6 +217,10 @@ export function stormSource(state, emit, event) {
     const open = openItemsFor(r.ts);
     // an open item on the thread waits on you whatever its row says yet: its list row, header and Now chip say so
     t.state = askingState(t.state, open.length, t.frozen);
+    // storm's true state beside the seven words: a stop someone meant reads "failed" there, and is no failure
+    // (timeline.js stopOf). Who stopped it and why come from its thread.control rows, once they're read
+    t.activity = r.activity || null; t.waitReason = r.wait_reason || null;
+    t.stop = t.state === "failed" ? stopOf(t.activity, t.waitReason, state.controls[r.ts]) : null;
     t.asks = stormAsks(t, open);
     t.needsYou = t.asks.length ? t.asks[0].title : "";
     return t;
