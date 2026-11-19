@@ -1,11 +1,11 @@
 {
  "js/api.js": {
   "extra": 51,
-  "refs": 3
+  "refs": 1
  },
  "js/app.js": {
-  "extra": 428,
-  "refs": 8
+  "extra": 426,
+  "refs": 2
  },
  "js/attach.js": {
   "extra": 28,
@@ -17,11 +17,11 @@
  },
  "js/changes.js": {
   "extra": 30,
-  "refs": 1
+  "refs": 0
  },
  "js/changesframe.js": {
   "extra": 26,
-  "refs": 2
+  "refs": 1
  },
  "js/chart.js": {
   "extra": 19,
@@ -33,7 +33,7 @@
  },
  "js/comms.js": {
   "extra": 19,
-  "refs": 1
+  "refs": 0
  },
  "js/content.js": {
   "extra": 8,
@@ -45,7 +45,7 @@
  },
  "js/decide.js": {
   "extra": 42,
-  "refs": 1
+  "refs": 0
  },
  "js/diffthemes.js": {
   "extra": 1,
@@ -53,15 +53,15 @@
  },
  "js/diffview.js": {
   "extra": 90,
-  "refs": 1
+  "refs": 0
  },
  "js/doceditor.js": {
   "extra": 15,
-  "refs": 1
+  "refs": 0
  },
  "js/docs.js": {
   "extra": 50,
-  "refs": 1
+  "refs": 0
  },
  "js/drafts.js": {
   "extra": 7,
@@ -77,11 +77,11 @@
  },
  "js/files.js": {
   "extra": 66,
-  "refs": 1
+  "refs": 0
  },
  "js/filespage.js": {
   "extra": 15,
-  "refs": 1
+  "refs": 0
  },
  "js/focusview.js": {
   "extra": 33,
@@ -97,7 +97,7 @@
  },
  "js/gestures.js": {
   "extra": 26,
-  "refs": 1
+  "refs": 0
  },
  "js/herald.js": {
   "extra": 17,
@@ -141,7 +141,7 @@
  },
  "js/lightbox.js": {
   "extra": 31,
-  "refs": 1
+  "refs": 0
  },
  "js/lpapi.js": {
   "extra": 28,
@@ -153,19 +153,19 @@
  },
  "js/markdown.js": {
   "extra": 41,
-  "refs": 1
+  "refs": 0
  },
  "js/mdlive.js": {
   "extra": 24,
-  "refs": 1
+  "refs": 0
  },
  "js/media.js": {
   "extra": 97,
-  "refs": 1
+  "refs": 0
  },
  "js/merge.js": {
   "extra": 14,
-  "refs": 1
+  "refs": 0
  },
  "js/model.js": {
   "extra": 5,
@@ -173,7 +173,7 @@
  },
  "js/motion.js": {
   "extra": 13,
-  "refs": 1
+  "refs": 0
  },
  "js/msgx.js": {
   "extra": 112,
@@ -209,11 +209,11 @@
  },
  "js/record.js": {
   "extra": 57,
-  "refs": 1
+  "refs": 0
  },
  "js/recordview.js": {
   "extra": 71,
-  "refs": 1
+  "refs": 0
  },
  "js/redraw.js": {
   "extra": 28,
@@ -249,7 +249,7 @@
  },
  "js/shape.js": {
   "extra": 98,
-  "refs": 1
+  "refs": 0
  },
  "js/shapeview.js": {
   "extra": 27,
@@ -289,11 +289,11 @@
  },
  "js/turnview.js": {
   "extra": 63,
-  "refs": 1
+  "refs": 0
  },
  "js/ui.js": {
   "extra": 47,
-  "refs": 1
+  "refs": 0
  },
  "js/util.js": {
   "extra": 10,
@@ -317,15 +317,15 @@
  },
  "css/app.css": {
   "extra": 198,
-  "refs": 3
+  "refs": 0
  },
  "css/artifacts.css": {
   "extra": 15,
-  "refs": 1
+  "refs": 0
  },
  "css/base.css": {
   "extra": 18,
-  "refs": 1
+  "refs": 0
  },
  "css/diffs.css": {
   "extra": 20,
@@ -341,7 +341,7 @@
  },
  "css/foundation.css": {
   "extra": 92,
-  "refs": 2
+  "refs": 0
  },
  "css/launchpad.css": {
   "extra": 28,
@@ -352,24 +352,24 @@
   "refs": 0
  },
  "css/links.css": {
-  "extra": 34,
-  "refs": 1
+  "extra": 33,
+  "refs": 0
  },
  "css/media.css": {
   "extra": 14,
-  "refs": 1
+  "refs": 0
  },
  "css/msgx.css": {
   "extra": 97,
-  "refs": 1
+  "refs": 0
  },
  "css/panel.css": {
   "extra": 89,
-  "refs": 1
+  "refs": 0
  },
  "css/phone.css": {
   "extra": 77,
-  "refs": 1
+  "refs": 0
  },
  "css/rich.css": {
   "extra": 62,
@@ -381,11 +381,11 @@
  },
  "css/side.css": {
   "extra": 39,
-  "refs": 1
+  "refs": 0
  },
  "css/tokens.css": {
   "extra": 68,
-  "refs": 2
+  "refs": 0
  },
  "tests/agent-marks.test.mjs": {
   "extra": 3,
@@ -425,7 +425,7 @@
  },
  "tests/browser/harness.cjs": {
   "extra": 31,
-  "refs": 1
+  "refs": 0
  },
  "tests/browser/held-contract.test.cjs": {
   "extra": 6,
@@ -436,8 +436,8 @@
   "refs": 0
  },
  "tests/browser/lpshell.test.cjs": {
-  "extra": 25,
-  "refs": 2
+  "extra": 24,
+  "refs": 0
  },
  "tests/browser/settings.test.cjs": {
   "extra": 46,
@@ -521,7 +521,7 @@
  },
  "tests/design-budget.test.mjs": {
   "extra": 14,
-  "refs": 1
+  "refs": 0
  },
  "tests/diff-redraw-focus.test.mjs": {
   "extra": 10,
@@ -529,7 +529,7 @@
  },
  "tests/diffview.test.mjs": {
   "extra": 3,
-  "refs": 1
+  "refs": 0
  },
  "tests/dock-focus.test.mjs": {
   "extra": 11,
@@ -1027,10 +1027,6 @@
   "extra": 8,
   "refs": 0
  },
- "tests/stale-pass.test.mjs": {
-  "extra": 4,
-  "refs": 0
- },
  "tests/start-centred.test.mjs": {
   "extra": 4,
   "refs": 0
@@ -1109,7 +1105,7 @@
  },
  "tools/diffview/fake-changes.cjs": {
   "extra": 5,
-  "refs": 1
+  "refs": 0
  },
  "tools/diffview/fake-preload.cjs": {
   "extra": 2,
@@ -1188,8 +1184,8 @@
   "refs": 0
  },
  "tools/filetree/lib.mjs": {
-  "extra": 3,
-  "refs": 1
+  "extra": 2,
+  "refs": 0
  },
  "tools/filetree/perf.mjs": {
   "extra": 1,
@@ -1197,10 +1193,6 @@
  },
  "tools/filetree/same.mjs": {
   "extra": 2,
-  "refs": 0
- },
- "tools/launchpad/mockspace.cjs": {
-  "extra": 5,
   "refs": 0
  },
  "tools/launchpad/smoke.cjs": {
@@ -1213,10 +1205,10 @@
  },
  "serve.py": {
   "extra": 67,
-  "refs": 2
+  "refs": 0
  },
  "index.html": {
   "extra": 285,
-  "refs": 1
+  "refs": 0
  }
 }
