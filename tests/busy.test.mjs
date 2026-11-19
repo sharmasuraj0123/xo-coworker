@@ -227,7 +227,7 @@ t("storm.js: a thread's Working follows busy from its view, then the stream's st
     "/chat/runtimes": { runtimes: [] },
     "/chat/router": { mode: "auto" },
   });
-  const { createWorld } = await import("../js/world.js");
+  const { createWorld } = await import("../core/services/world/store.js");
   const world = createWorld();
   be.push("snapshot", { data: { seq: 1, turns: [] } });
   await until(() => world.state.loaded);
@@ -303,7 +303,7 @@ t("storm.js: held by the usage limit is Waiting, never Working or replying, on a
     "/chat/runtimes": { runtimes: [] },
     "/chat/router": { mode: "auto" },
   });
-  const { createWorld } = await import("../js/world.js");
+  const { createWorld } = await import("../core/services/world/store.js");
   const world = createWorld();
   be.push("snapshot", { data: { seq: 1, turns: [] } });
   await until(() => world.state.loaded);
@@ -364,7 +364,7 @@ t("storm.js: held is one shown state, and work seen after a stale queued wins (a
     "/chat/runtimes": { runtimes: [] },
     "/chat/router": { mode: "auto" },
   });
-  const { createWorld } = await import("../js/world.js");
+  const { createWorld } = await import("../core/services/world/store.js");
   const world = createWorld();
   be.push("snapshot", { data: { seq: 100, turns: [] } });
   await until(() => world.state.loaded);
@@ -410,7 +410,7 @@ t("storm.js: at boot a listed queued session stands at the snapshot's seq: a tur
     "/chat/runtimes": { runtimes: [] },
     "/chat/router": { mode: "auto" },
   });
-  const { createWorld } = await import("../js/world.js");
+  const { createWorld } = await import("../core/services/world/store.js");
   const world = createWorld();
   // the snapshot at seq 500 lists a turn of that session that started at 50 and never said it ended
   be.push("snapshot", { data: { seq: 500, turns: [{ turn_id: "turn_old", session_id: "cse_3", chat_id: "chat_p", thread_ts: "t3", seq: 50, blocks: [] }] } });
@@ -443,7 +443,7 @@ t("storm.js: a read sent before a status frame and answered after it doesn't und
     "/chat/runtimes": { runtimes: [] },
     "/chat/router": { mode: "auto" },
   });
-  const { createWorld } = await import("../js/world.js");
+  const { createWorld } = await import("../core/services/world/store.js");
   const world = createWorld();
   be.push("snapshot", { data: { seq: 5, turns: [] } });
   await until(() => world.state.loaded);

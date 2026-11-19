@@ -1,11 +1,11 @@
-// The UI's shape (js/shape.js): merge semantics, per-key fallback, unknown keys, ordering, capability
+// The UI's shape (core/services/shape): merge semantics, per-key fallback, unknown keys, ordering, capability
 // gating, versions and the cv-hops migration; and mine kept on Storm (GET/PUT /api/chat/shape, xo-space
 // 8c6bc03): read on load, written only on a change, conflicts, the live event, a backend without the route.
 // No network: the presets are read from disk, and Storm is a fake.
 //   node tests/shape.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { merge, migrate, cleanLayer, createShape, describeShape, everythingLayer, migrateDevice, createShapeStore, changesOf, applyChanges, oneKey, sameDoc, SURFACES, KEYS, SHAPE_VERSION } from "../js/shape.js";
+import { merge, migrate, cleanLayer, createShape, describeShape, everythingLayer, migrateDevice, createShapeStore, changesOf, applyChanges, oneKey, sameDoc, SURFACES, KEYS, SHAPE_VERSION } from "../core/services/shape/index.js";
 
 let passed = 0;
 const pending = [];

@@ -1,20 +1,12 @@
-// Paid usage (Settings › Runtimes): what the founder chose for the Space and for each agent account, and what
-// each account's facts say. Pure: no DOM, no fetch.
-//
-// The three modes are the founder's, kept by XO (POST /api/chat/intent/paid), never decided here:
-//   never   work stops before any paid usage, and when XO can't tell whether it would be paid (the default)
-//   ask     work stops before paid usage and asks; it goes on only after the founder allows it, until that window resets
-//   always  work goes on into paid usage without asking
-// An account follows the Space unless it has a mode of its own. What an account is (its plan, whether it can go
-// on to paid usage, its credits) is the Space advisory's: facts with a source and an age, each `known` or not.
-// What it is doing now (open, held for a question, on paid usage) is its pool in GET /api/chat/status.
-//
-// The wire is read in this one place: a field renamed on the server changes here and nowhere else.
+// @ts-check
+import { humanize } from "../runtimes.js";
 
-import { humanize } from "./runtimes.js";
+/** @typedef {Record<string, any>} Row @typedef {{ space: string | null, pools: Record<string, string> }} Held */
 
 export const MODES = ["never", "ask", "always"];
+/** @type {Record<string, string>} */
 export const MODE_NAME = { never: "Never", ask: "Ask me", always: "Always allow" };
+/** @type {Record<string, string>} */
 export const MODE_SUB = {
   never: "Work stops before any paid usage, and when XO can’t tell whether it would be paid.",
   ask: "Work stops before paid usage and asks you; it goes on only after you allow it, until that window resets.",
@@ -23,22 +15,22 @@ export const MODE_SUB = {
 /** The mode when nothing is chosen anywhere: no paid usage. */
 export const DEFAULT_MODE = "never";
 
-const AGENT = { claude_code: "Claude Code", codex: "Codex", agy: "Antigravity" };
+const AGENT = /** @type {Record<string, string>} */ ({ claude_code: "Claude Code", codex: "Codex", agy: "Antigravity" });
+/** @param {any} a */
 const agentName = (a) => AGENT[a] || String(a || "").replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
 
-/** A fact's value when it is known (not stale, not unseen), else null. */
+/** A fact's value when it is known (not stale, not unseen), else null. @param {Row | null | undefined} f */
 export const known = (f) => (f && f.known ? f.value ?? null : null);
 
-/** A pool's id, as XO makes it from the advisory's agent and account label (pool_id): "<agent>:<account>". */
+/** A pool's id, as XO makes it from the advisory's agent and account label (pool_id): "<agent>:<account>". @param {string} agent @param {string | null | undefined} account */
 export const poolId = (agent, account) => `${agent}:${account || "default"}`;
 
+/** @param {Row} it @param {number} now */
 const lapsed = (it, now) => { if (!it.until) return false; const t = Date.parse(it.until); return Number.isFinite(t) && t <= now; };
 
-/**
- * The paid modes that hold now, from GET /api/chat/intent's rows: {space: mode|null, pools: {poolId: mode}}.
- * A mode whose `until` has passed no longer holds. An unknown value is ignored (never guessed at).
- */
+/** The paid modes that hold now, from the intent rows; one whose `until` has passed, or an unknown value, is not one. @param {Row[] | null | undefined} rows @returns {Held} */
 export function heldModes(rows, now = Date.now()) {
+  /** @type {Held} */
   const out = { space: null, pools: {} };
   for (const it of rows || []) {
     if (!it || it.key !== "paid" || !MODES.includes(it.value) || lapsed(it, now)) continue;
@@ -48,7 +40,7 @@ export function heldModes(rows, now = Date.now()) {
   return out;
 }
 
-/** The mode an account runs under and where it comes from: its own, else the Space's, else the default. */
+/** The mode an account runs under and where it comes from: its own, else the Space's, else the default. @param {Held | null | undefined} held @param {string} pool */
 export function effectiveMode(held, pool) {
   const own = held && held.pools && held.pools[pool];
   if (own) return { mode: own, source: "pool" };
@@ -56,14 +48,16 @@ export function effectiveMode(held, pool) {
   return { mode: DEFAULT_MODE, source: "default" };
 }
 
+/** @type {Record<string, string>} */
 const REASON = {
   org_level_disabled: "Paid usage is turned off for your organisation.",
   out_of_credits: "It has no credits left.",
   no_credits: "It has no credits left.",
 };
+/** @param {any} r */
 const reasonWords = (r) => REASON[r] || (r ? `${String(r).replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase())}.` : "");
 
-/** What a pool is doing now, in words (its `reason` from the status), or "". */
+/** What a pool is doing now, in words (its `reason` from the status), or "". @param {Row | null | undefined} pool */
 export function poolWords(pool) {
   if (!pool) return "";
   switch (pool.reason) {
@@ -75,22 +69,16 @@ export function poolWords(pool) {
   }
 }
 
+/** @param {any} p */
 const planWords = (p) => (p ? String(p).replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase()) : "");
-/** "7,188 credits" (a balance is shown whole: the cents are noise). */
+/** "7,188 credits" (a balance is shown whole: the cents are noise). @param {any} n */
 export const creditsWords = (n) => (typeof n === "number" && Number.isFinite(n) ? `${Math.round(n).toLocaleString("en-US")} credit${Math.round(n) === 1 ? "" : "s"}` : "");
 
-/**
- * One row per agent account, from the advisory: [{pool, agent, name, account, plan, possible (true|false|null),
- * inUse (true|false|null), credits (number|null), why, own (this account's mode or null), mode, source, state, note}].
- * served: GET /api/chat/intent's pools, XO's own word on each account's effective mode (and source), its state and why;
- * where it has none for an account, the mode is worked out from the modes that hold (the same rule). pools: GET
- * /api/chat/status pools, by id, for the state when XO gave none. State "paid" is a hold, never spending: only the
- * advisory's in_use says an account is on paid usage.
- */
+/** One row per agent account from the advisory; XO's served word on its mode and state first, else the modes that hold. State "paid" is a hold, never spending. @param {{ advisory: Row | null, held: Held | null, pools: Record<string, Row> | null, served: Row[] | null }} o */
 export function accountRows({ advisory, held, pools, served }) {
   const byId = pools || {};
   const sv = new Map((served || []).filter((x) => x && x.pool).map((x) => [x.pool, x]));
-  return ((advisory && advisory.accounts) || []).filter((a) => a && a.agent).map((a) => {
+  return ((advisory && advisory.accounts) || []).filter((/** @type {Row} */ a) => a && a.agent).map((/** @type {Row} */ a) => {
     const pool = poolId(a.agent, a.account);
     const paid = a.paid || {};
     const possible = known(paid.possible);
@@ -112,10 +100,10 @@ export function accountRows({ advisory, held, pools, served }) {
   });
 }
 
-/** Is any account of this runtime on paid usage now? (the informational badge on its card) */
+/** Is any account of this runtime on paid usage now? (the informational badge on its card) @param {Row[] | null | undefined} rows @param {string} runtime */
 export const onPaid = (rows, runtime) => (rows || []).some((r) => r.agent === runtime && r.inUse === true);
 
-/** The request for a choice: the Space's mode, or an account's (value null: it follows the Space again). */
+/** The request for a choice: the Space's mode, or an account's (value null: it follows the Space again). @param {string} scope @param {string | null | undefined} id @param {any} value */
 export function paidBody(scope, id, value) {
   if (scope === "space") {
     if (!MODES.includes(value)) throw new Error("The Space’s paid usage is never, ask or always.");
@@ -126,16 +114,11 @@ export function paidBody(scope, id, value) {
   return { scope: "pool", scope_id: id, value };
 }
 
-/**
- * A paid-usage question (a usage item that isn't a closed limit), ready to show, from the item's own detail
- * ({pool, agent, resets_at, cause: paid_threshold | paid_in_use | paid_unknown, used (0 to 1 or null), credits, login:
- * subscription | api_key}): which account it is about, when its window resets, its credits, and how far Continue
- * reaches. The question's own words and options stay the server's. rows: the account rows, for the plan.
- */
+/** A paid-usage question ready to show: which account, when its window resets, its credits and how far Continue reaches; its words stay the server's. @param {Row} item @param {Row[] | null | undefined} rows */
 export function paidItem(item, rows) {
   const d = (item && item.detail) || {};
   if (!item || item.kind !== "usage" || d.limit === "closed" || !d.pool) return item;
-  const r = (rows || []).find((x) => x.pool === d.pool);
+  const r = (rows || []).find((/** @type {Row} */ x) => x.pool === d.pool);
   const apiKey = d.login === "api_key";
   const name = d.agent ? agentName(d.agent) : r ? r.name : "";
   // the server's sentence in the owner's terms: its times in their clock

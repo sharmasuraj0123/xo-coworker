@@ -1,4 +1,4 @@
-// The app's send paths give a message's notice its states through the real herald (js/herald.js; the states
+// The app's send paths give a message's notice its states through the real herald (core/services/notices.js; the states
 // themselves run in tests/herald.test.mjs): out when it's sent and when a Retry sends it again, then sent or failed,
 // each set whole by heraldFor + noticeFor. No browser.
 //   node tests/send-notice.test.mjs

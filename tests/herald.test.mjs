@@ -1,4 +1,4 @@
-// The real herald (js/herald.js) and a message's own notice through its states (Astra on dfe1491, by running the real
+// The real herald (core/services/notices.js) and a message's own notice through its states (Astra on dfe1491, by running the real
 // functions: a send failed, its Retry succeeded, and the notice still said "Not sent … open to follow the reply").
 // Out → failed → Retry (out) → sent, each set whole; an unrelated Undo keeps its place; a queued notice changes too.
 //   node tests/herald.test.mjs
@@ -7,8 +7,8 @@ import assert from "node:assert/strict";
 let passed = 0;
 const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + (e.stack || e)); process.exitCode = 1; } };
 let H;
-await t("js/herald.js: the herald's own functions, and a message's notice for each state", async () => {
-  H = await import("../js/herald.js");
+await t("core/services/notices.js: the herald's own functions, and a message's notice for each state", async () => {
+  H = await import("../core/services/notices.js");
   assert.equal(typeof H.createHerald, "function");
   assert.equal(typeof H.noticeFor, "function");
 });

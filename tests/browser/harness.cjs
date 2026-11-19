@@ -222,7 +222,7 @@ function mockApi(W) {
 async function hooks(page) {
   await page.route("**/js/app.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()) + "\nwindow.__t={VW,S,world,go,typingRender,lrefRender,render,D,openRuns,IQ,heraldShow,CHG};" }); });
   await page.route("**/js/viewer.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()).replace("function startEdit() {", "function startEdit() { window.__ED=ED; window.__V=V;") }); });
-  await page.route("**/js/storm.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()).replace("  boot();", "  window.__storm={apply,stop:()=>{stream?.close();clearTimeout(statusT);clearTimeout(runtimesT);clearTimeout(recoverT);}};\n  boot();") }); });
+  await page.route("**/core/services/storm/stream.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()).replace("  boot();", "  window.__storm={apply:ctx.apply,stop:()=>{stream?.close();ctx.stopTimers();clearTimeout(recoverT);}};\n  boot();") }); });
 }
 
 /** The app in a new browser context, against the mock world W (files, saves, messages, hops …). */

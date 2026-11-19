@@ -8,7 +8,7 @@ globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEv
 const { layoutOf, edgePath, colorOf } = await import("../modules/map/layout.js");
 const { folderOf, placeOf, pathsInCommand } = await import("../core/services/places.js");
 const { activityOf } = await import("../core/services/agent-activity.js");
-const { createTurns } = await import("../js/blocks.js");
+const { createTurns } = await import("../core/services/world/turns.js");
 
 let passed = 0;
 const t = (name, fn) => {

@@ -46,7 +46,7 @@ import { createDrawer } from "../shell/phone.js";
 import { createLaunchpad } from "./launchpad.js";
 import { createLpApi } from "./lpapi.js";
 import { createFiles, fileScope, localIn, scopeOf as filesScopeOf } from "./files.js";
-import { createPaths } from "./paths.js";
+import { createPaths } from "../core/services/paths.js";
 import { createQuickOpen } from "../modules/search/quickopen.js";
 import { createJump } from "../modules/search/jump.js";
 import { createSettingsFrame } from "../modules/settings/frame.js";
@@ -65,13 +65,13 @@ import { createRecord } from "./recordview.js";
 import { greeting, today } from "./skeleton.js"; // Home's shell, drawn before this module graph arrives
 import { arrive, still, EASE, MOVE } from "./motion.js";
 import { wireGestures, dockGestures } from "./gestures.js";
-import { rtName, rtMark, manyRuntimes, findRt, healthOf, canMove, untilWords } from "./runtimes.js";
-// the UI's shape per person: which surfaces show, in what order, how dense, in which words (js/shape.js)
-import { createShapeStore } from "./shape.js";
+import { rtName, rtMark, manyRuntimes, findRt, healthOf, canMove, untilWords } from "../core/services/runtimes.js";
+// the UI's shape per person: which surfaces show, in what order, how dense, in which words (core/services/shape)
+import { createShapeStore } from "../core/services/shape/index.js";
 import { createShapeView, SHAPE_IC, UNKEPT } from "../modules/settings/shape-page.js";
 import { setWorkMode } from "./turnview.js";
 import { radioKeys, menuKeys } from "./keynav.js";
-import { createHerald, noticeFor, refusedNotice } from "./herald.js";
+import { createHerald, noticeFor, refusedNotice } from "../core/services/notices.js";
 import { regionRings } from "./ring.js";
 import { keepFocusInView, usable, hookOf } from "./focusview.js";
 
@@ -251,7 +251,7 @@ world.onEvent((e) => {
     PATHS.changed({ project: d.project_id, base: m ? m[1] : "" }, { kind: d.kind, path: m ? m[2] : d.path, old_path: d.old_path ? d.old_path.replace(/^\.xo\/worktrees\/[^/]+\//, "") : null });
   }
 });
-// every file in a place (js/paths.js), for ⌘P and the tree's Find; ⌘P and ⌘⇧F themselves (modules/search/quickopen.js)
+// every file in a place (core/services/paths.js), for ⌘P and the tree's Find; ⌘P and ⌘⇧F themselves (modules/search/quickopen.js)
 const PATHS = createPaths({ api, onChange: () => { QO.refresh(); FILES.pathsChanged && FILES.pathsChanged(); } });
 /** The place the view shows files of (a thread's worktree, a project's folder), or null. */
 const placeNow = () => { const s = filesScopeOf(S.view, { thread: (id) => world.thread(id), project: (id) => PROJ(id) }); return s.key === "all" ? null : { project: s.project, base: s.base || "", label: s.label + (s.sub ? ` · ${s.sub}` : "") }; };
@@ -420,7 +420,7 @@ STAGE.names = (v) => {
 REC.panel = STAGE;
 /** The runtime a thread runs on, fixed for its life (its session's agent). */
 const agentOf = (t) => (t && ((t.session && t.session.agent) || (t.sessionId && world.state.sessions[t.sessionId]?.agent))) || null;
-/** A thread's agent as its company's mark (js/runtimes.js rtMark), wherever a thread is listed (the owner, 19 Nov:
+/** A thread's agent as its company's mark (core/services/runtimes.js rtMark), wherever a thread is listed (the owner, 19 Nov:
  *  "show that this is a claude thread or a codex thread"), when there's more than one runtime to tell apart; its name
  *  on hover and to a screen reader; nothing for a runtime without a mark or a thread whose agent isn't known yet. */
 const threadMark = (t, opts) => { const a = agentOf(t); return a && manyRuntimes(world.state.runtimes) ? rtMark(a, opts) || "" : ""; };
@@ -462,7 +462,7 @@ function rtTag(t, cls) {
   if (cls === "ar" && !warn) return "";
   // a shape without runtime names (xo:thread/runtime) still says when the runtime is in trouble
   if (!warn && !SHAPE.on("xo:thread/runtime")) return "";
-  // its company's mark (js/runtimes.js rtMark): alone in a list row, the name beside it in the header; a runtime
+  // its company's mark (core/services/runtimes.js rtMark): alone in a list row, the name beside it in the header; a runtime
   // without a mark keeps its name
   return cls === "ar" ? `<span class="ar-r${warn}" title="${esc(tip)}">${rtMark(agent) || esc(rtName(agent))}<span aria-hidden="true"> · </span></span>`
     : `<button type="button" class="tw-rt${warn}" data-set-open="runtimes" title="${esc(tip)}" aria-label="${esc(tip)} Open Runtimes in Settings.">${rtMark(agent, { withName: true }) || esc(rtName(agent))}</button>`;
@@ -1966,17 +1966,17 @@ function tickElapsed() { for (const el of $$(".elapsed[data-since]")) { const t 
 setInterval(tickElapsed, 1000);
 
 // ── the dock line: one calm labelled line (no glow on the composer, ever) ───
-// the herald's lines (js/herald.js): made on first use (S is the app's state), so a line asked for while the app is
+// the herald's lines (core/services/notices.js): made on first use (S is the app's state), so a line asked for while the app is
 // still starting has it
 function HER() { return S._her || (S._her = createHerald({ state: S, schedule: () => schedule() })); }
 regionRings(); // the keyboard's ring over a file's or a change's region (js/ring.js)
 keepFocusInView(); // focus a script hands on is never left out of sight (js/focusview.js)
 function heraldShow(h, ms) { return HER().show(h, ms); }
-/** A message's own notice, set in place (on screen, or still waiting): see js/herald.js */
+/** A message's own notice, set in place (on screen, or still waiting): see core/services/notices.js */
 function heraldFor(mid, make, ms) { return HER().forMsg(mid, make, ms); }
 function heraldPut(h, ms) { return HER().put(h, ms); }
 function heraldNext() { return HER().next(); }
-/** A subject's notice that's no longer true goes, on screen or waiting (js/herald.js drop). */
+/** A subject's notice that's no longer true goes, on screen or waiting (core/services/notices.js drop). */
 function heraldDrop(mid) { return HER().drop(mid); }
 function heraldRender(needs) {
   const box = $("#herald");
@@ -2545,7 +2545,7 @@ function blockFor(dest) {
   return sendBlock(world.state, { timeline: !dest.thread, pid: dest.thread ? null : dest.pid || "workspace" });
 }
 /** A send the gate refused, before it went: said, and shown where the person is, as a message that didn't go
- *  (js/herald.js refusedNotice). Every refused path comes here: the composer, Chats, a Retry, a file's Tell and Ask
+ *  (core/services/notices.js refusedNotice). Every refused path comes here: the composer, Chats, a Retry, a file's Tell and Ask
  *  about this (the controls grader on d79d37e, S137: the refusal was only read out; the screen didn't change). */
 function refuse(block, kept = "your words are kept") {
   announce(`Not sent: ${block}. ${kept[0].toUpperCase()}${kept.slice(1)}.`);

@@ -16,7 +16,7 @@
 //   • a waiting thread with no ask still gets one (synthetic), so the
 //     needs-you channel is complete.
 // ─────────────────────────────────────────────────────────────────────────────
-import { WAITING } from "./world.js";
+import { WAITING } from "../core/services/world/store.js";
 import { itemBody } from "./review.js";
 import { typing } from "./keys.js";
 

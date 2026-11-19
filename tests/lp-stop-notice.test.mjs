@@ -5,7 +5,7 @@
 // nothing. Now the notice is the action's: its Undo's deadline is the window's, the window's end changes it in place
 // (no Undo), and its outcome changes it again ("Deploy of … stopped", or "Couldn't stop … · Stop again").
 //
-// The real js/herald.js and the real js/launchpad.js, on a hand-moved clock (node:test's mock timers). Only the
+// The real core/services/notices.js and the real js/launchpad.js, on a hand-moved clock (node:test's mock timers). Only the
 // section's DOM is a stand-in, and the adapter is app.js's own notice() (its source is read and checked below).
 //   node tests/lp-stop-notice.test.mjs
 import assert from "node:assert/strict";
@@ -26,7 +26,7 @@ Object.assign(globalThis, {
 globalThis.window = globalThis;
 
 mock.timers.enable({ apis: ["setTimeout", "setInterval", "Date"], now: 1_000_000 });
-const { createHerald } = await import("../js/herald.js");
+const { createHerald } = await import("../core/services/notices.js");
 const { createLaunchpad } = await import("../js/launchpad.js");
 const appSrc = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 

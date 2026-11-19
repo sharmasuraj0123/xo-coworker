@@ -1,18 +1,17 @@
-// The dock line's lines (the herald): what's on screen (state.herald), what waits (the queue), and how a newer line
-// meets an older one. Moved here from app.js so tests run the real thing (Astra on dfe1491: a message's notice kept
-// "Not sent" through a successful Retry, which tests that only read the source didn't catch).
-//   An Undo is never pushed out of reach by a newer line; a passing line yields to an Undo, and to an own kind.
+// @ts-check
 
+/** @typedef {Record<string, any>} Notice @typedef {{ h: Notice, ms: number }} Waiting */
+
+/** A line's own kinds: a passing line yields to them. */
 export const OWN = new Set(["sent", "started", "ready", "clear", "rec", "halt"]);
 
-/**
- * state: an object holding .herald (the line on screen, or null); schedule(): draw again; now(): the clock;
- * setTimer / clearTimer: for the line's end.
- */
+/** The dock line's notices: the one on screen (state.herald), the queue, and how a newer line meets an older one. @param {{ state: { herald: Notice | null }, schedule?: () => void, now?: () => number, setTimer?: (fn: () => void, ms: number) => any, clearTimer?: (t: any) => void }} o */
 export function createHerald({ state, schedule = () => {}, now = () => Date.now(), setTimer = setTimeout, clearTimer = clearTimeout }) {
-  // Lines waiting for an Undo on screen to end: an Undo is never pushed out of reach by a newer line.
+  /** Lines waiting for an Undo on screen to end: an Undo is never pushed out of reach by a newer line. @type {Waiting[]} */
   const HQ = [];
+  /** @type {any} */
   let timer = 0;
+  /** @param {Notice} h */
   function show(h, ms = 4200) {
     const t = now();
     const cur = state.herald && state.herald.until > t ? state.herald : null;
@@ -28,8 +27,7 @@ export function createHerald({ state, schedule = () => {}, now = () => Date.now(
     if (!h.force && !h.undo && !stops && cur && (OWN.has(cur.kind) || cur.force) && !OWN.has(h.kind)) return;
     put(h, ms);
   }
-  /** A message's own notice, changed in place: on screen, or still waiting in the queue. make(h) gives the new one;
-   *  ms its time (on screen: what's left, at least 4 s). False when this message has no notice now. */
+  /** A message's own notice changed in place, on screen (at least 4 s left) or waiting; false when it has none now. @param {string} mid @param {(h: Notice) => Notice} make @param {number | null} [ms] */
   function forMsg(mid, make, ms = null) {
     const t = now();
     if (state.herald && state.herald.mid === mid && state.herald.until > t) { put(make(state.herald), ms ?? Math.max(4000, state.herald.until - t)); return true; }
@@ -37,25 +35,23 @@ export function createHerald({ state, schedule = () => {}, now = () => Date.now(
     if (q) { q.h = make(q.h); if (ms) q.ms = ms; return true; }
     return false;
   }
-  /** A notice that's no longer true goes, on screen or waiting: its subject's newer state has nothing to say (a
-   *  refused resolve, once a later resolve of the same thread went through: the controls grader on 1ef7056, C041). */
+  /** A notice that's no longer true goes, on screen or waiting (a refused resolve, once a later one went through). @param {string} mid */
   function drop(mid) {
     for (let i = HQ.length - 1; i >= 0; i--) if (HQ[i].h.mid === mid) HQ.splice(i, 1);
     if (state.herald && state.herald.mid === mid && state.herald.until > now()) { state.herald = { ...state.herald, until: 0 }; clearTimer(timer); next(); }
   }
+  /** @param {Notice} h @param {number} ms */
   function put(h, ms) {
     state.herald = { ...h, until: now() + ms, n: (state.herald?.n || 0) + 1 };
     clearTimer(timer);
     timer = setTimer(next, ms + 40);
     schedule();
   }
-  /** The line on screen ended (or was cleared): the next waiting line. Undo lines first, in order; then forced
-   *  lines (a message that didn't go), each in its turn, oldest first, never merged away; of the rest only the newest
-   *  shows (each was already announced). Astra on dfe1491 (C111-SEND-NOTICE-QUEUE-1): a failure queued behind an
-   *  Undo was cleared with the passing receipts when the Undo ended. */
+  /** The next waiting line: Undo lines first, in order; then forced lines, oldest first, never merged away; of the rest only the newest. */
   function next() {
     if (state.herald && state.herald.until > now() && state.herald.undo) return;
     const iu = HQ.findIndex((x) => x.h.undo), fi = HQ.findIndex((x) => x.h.force);
+    /** @type {Waiting | null} */
     let nx = null;
     if (iu >= 0) nx = HQ.splice(iu, 1)[0];
     else if (fi >= 0) nx = HQ.splice(fi, 1)[0];
@@ -72,11 +68,7 @@ export function createHerald({ state, schedule = () => {}, now = () => Date.now(
   return { show, forMsg, drop, put, next, HQ };
 }
 
-/**
- * A message's own notice for each of its states, set whole every time (never a text edit of the last one): out
- * ("Sending to …"), sent ("Sent to …"), failed ("Not sent: <why>", forced: it never yields to a passing line). m.to:
- * where it went, in words; m.conv: its conversation.
- */
+/** A message's own notice for each state, set whole every time: out, sent, failed (forced: it never yields to a passing line). @param {Notice} m @param {string} phase */
 export function noticeFor(m, phase) {
   const to = m.to || "the conversation";
   if (phase === "failed") return { kind: "stopped", text: `Not sent: ${(m.err && m.err.title) || "it didn't go"}`, sub: "open the conversation to retry", open: m.conv, mid: m.id, force: true };
@@ -84,9 +76,7 @@ export function noticeFor(m, phase) {
   return { kind: "sent", text: `Sending to ${to}…`, sub: "open to follow it", open: m.conv, mid: m.id };
 }
 
-/** A send the gate refused before it went (routing Off, XO out of reach, a limit): shown as a message that didn't go
- *  is, forced (it never yields to a passing line), with what was kept. Every refused path shows it, not only says it
- *  (the controls grader on d79d37e, S137: a Tell refused under routing Off spoke "Not sent" and painted nothing). */
+/** A send the gate refused before it went, shown as a message that didn't go: forced, with what was kept. @param {string} block */
 export function refusedNotice(block, kept = "your words are kept") {
   return { kind: "stopped", text: `Not sent: ${block}`, sub: kept, force: true };
 }

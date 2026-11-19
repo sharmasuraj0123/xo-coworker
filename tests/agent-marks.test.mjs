@@ -1,10 +1,10 @@
-// A runtime's mark (js/runtimes.js rtMark, the owner, 19 Nov): Claude Code wears Claude's, Codex OpenAI's, Antigravity
+// A runtime's mark (core/services/runtimes.js rtMark, the owner, 19 Nov): Claude Code wears Claude's, Codex OpenAI's, Antigravity
 // its own; anything else keeps its name as text. The name is always said: on hover and to a screen reader, or written
 // beside the mark where there's room. Pure: node only.
 //   node tests/agent-marks.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
-import { rtMark, markOf, rtName } from "../js/runtimes.js";
+import { rtMark, markOf, rtName } from "../core/services/runtimes.js";
 
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
