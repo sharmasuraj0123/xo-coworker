@@ -629,3 +629,6 @@ body.stage-covers .herald{position:fixed;left:16px;right:16px;bottom:max(16px, e
 .stage .tp .dock{left:0;right:0;width:auto}
 .stage .tp .cbar{background:linear-gradient(to bottom,transparent,var(--sunken) var(--s-8))}
 .stage .tp-target{flex:1;display:inline-flex;align-items:center;gap:var(--s-1);min-width:0;color:var(--ink-3);font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans)}
+.stage .tp-menu-w{position:relative;display:inline-flex}
+.stage .tp-menu{position:absolute;top:calc(100% + var(--s-1));right:0;z-index:2;min-width:calc(6 * var(--h-row))}
+.stage .tp-menu [role=menuitem]{white-space:nowrap}

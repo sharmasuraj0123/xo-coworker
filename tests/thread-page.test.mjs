@@ -74,3 +74,8 @@ assert.match(app, /route: \(p\) => fileRoute\(p, conv\), by:/);
   assert.deepEqual(fr("a.md", "p:p"), { project: "p", rel: "a.md" }, "the project chat's chip: the project");
   assert.deepEqual(fr("a.md"), { project: "p", rel: "a.md" }, "no conversation named, nothing drawn: the main chat's");
   console.log("thread-page file chips: ok"); }
+
+// its ⋯: a shell, the branch's name, Stop; the rest on its own page
+assert.match(app, /data-tp-menu aria-haspopup="menu" aria-expanded="\$\{!!TP\.menu\}"/);
+assert.match(app, /item\(`data-tp-full="\$\{esc\(t\.id\)\}"`, `Rename, label\$\{t\.canDelete \? ", delete" : ""\}… \(its page\)`\)/);
+console.log("thread-page menu: ok");

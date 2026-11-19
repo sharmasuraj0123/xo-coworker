@@ -2774,15 +2774,28 @@ STAGE.page("thread", {
   // a reply being written is kept (its draft), so closing never loses it: nothing to ask
   canClose: () => true,
   // Esc in its composer leaves the field first (the draft stays); the next Esc goes back to the sections
-  escape: () => { if (TP.K && document.activeElement === TP.K.say) { TP.K.say.blur(); TP.C.scroller.focus({ preventScroll: true }); return true; } return false; },
+  escape: () => { if (TP.menu) { TP.menu = false; $("#tphead")._h = ""; render(); $("#tphead [data-tp-menu]")?.focus({ preventScroll: true }); return true; }
+    if (TP.K && document.activeElement === TP.K.say) { TP.K.say.blur(); TP.C.scroller.focus({ preventScroll: true }); return true; } return false; },
 });
 /** The thread page's head: its state, its runtime and branch, Open full width. */
 function tpHead(t) {
   const head = $("#tphead");
   const html = `<span class="badge st-${stOf(t)}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${isHeld(t) ? heldBadge(t.held) : wordOf(t)}</span>` +
     `${rtTag(t)}${t.branch ? `<code class="tp-br" title="${esc(t.branch)}">${ICON.branch}${esc(t.branch)}</code>` : ""}` +
-    `<button type="button" class="stg-ic tp-full" data-tp-full="${esc(t.id)}" title="Open full width (the thread's own page)" aria-label="Open full width">${ICON.full}</button>`;
+    `<button type="button" class="stg-ic tp-full" data-tp-full="${esc(t.id)}" title="Open full width (the thread's own page)" aria-label="Open full width">${ICON.full}</button>` +
+    `<span class="tp-menu-w"><button type="button" class="stg-ic" data-tp-menu aria-haspopup="menu" aria-expanded="${!!TP.menu}" title="Everything this thread can do" aria-label="Thread actions">${ICON.more}</button>${TP.menu ? tpMenuHtml(t) : ""}</span>`;
   if (head._h !== html) { redraw(head, html); head._h = html; }
+}
+/** The page's ⋯: what the thread can do from here (a shell in its worktree, its branch's name, Stop), and the rest
+ *  (Rename, Label, Continue elsewhere, Delete) on its own page, where its header edits them in place. */
+function tpMenuHtml(t) {
+  const item = (attrs, words) => `<button type="button" role="menuitem" ${attrs}>${words}</button>`;
+  const sep = '<span class="tw-sep" role="separator"></span>';
+  const groups = [
+    [SH.enabled ? item(`data-shell="t:${esc(t.id)}"`, "Open a shell in its worktree") : "", t.branch ? item(`data-tcopy="${esc(t.branch)}"`, "Copy branch name") : "", isBusy(t) ? item("data-chat-stop", "Stop") : ""],
+    [item(`data-tp-full="${esc(t.id)}"`, `Rename, label${t.canDelete ? ", delete" : ""}… (its page)`)],
+  ].map((g) => g.filter(Boolean).join("")).filter(Boolean);
+  return `<span class="tw-menu tp-menu" role="menu">${groups.join(sep)}</span>`;
 }
 function drawThreadPage(needs) {
   const t = convThread(tpView());
@@ -2843,6 +2856,13 @@ function tpDockRender(t, needs) {
     },
   });
 }
+// the page's ⋯ opens and closes its menu; a choice in it (or a click elsewhere) closes it; Esc closes it first
+document.addEventListener("click", (e) => {
+  if (!TP.box) return;
+  const m = e.target.closest?.("[data-tp-menu]");
+  if (m) { TP.menu = !TP.menu; $("#tphead")._h = ""; render(); if (TP.menu) $("#tphead .tp-menu [role=menuitem]")?.focus({ preventScroll: true }); return; }
+  if (TP.menu) { TP.menu = false; $("#tphead")._h = ""; schedule(); }
+}, true);
 document.addEventListener("click", (e) => { if (e.target.closest?.("[data-tpd-undo]")) { D.undo(); TPD.undone?.(); } });
 document.addEventListener("click", (e) => { const b = e.target.closest?.("[data-tp-full]"); if (b) { const id = b.dataset.tpFull; STAGE.closeTab("thread"); go("t:" + id); } });
 /**
