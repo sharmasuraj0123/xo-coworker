@@ -1,26 +1,64 @@
-// "Applied for now: this browser won't keep it" is said where you acted, never only at Shape's top (node modules/settings/tests/shape-unkept.test.mjs)
+// A shape change this browser can't keep says so where it was made, never at the page's top: the Shape page on a DOM.
 import assert from "node:assert/strict";
-import process from "node:process";
-import { readFileSync } from "node:fs";
+import { shapePage } from "./shape-fixture.mjs";
+import { settle, same } from "../../../tests/lib/dom.mjs";
 
-const src = readFileSync(new URL("../shape-page.js", import.meta.url), "utf8");
 let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-t("never at the page's top: the warning is drawn where the change was made", () => {
-  assert.doesNotMatch(src, /return \(V\.unkept \? `<p class="set-err" role="alert">\$\{esc\(UNKEPT\)\}<\/p>` : ""\)/, "no top-of-page warning");
-  assert.match(src, /const unkeptAt = \(where\) => \(V\.unkept === where \? `<p class="set-err" role="alert" data-shp-unkept>/);
-  for (const w of ["preset", "acts", "device"]) assert.match(src, new RegExp(`unkeptAt\\("${w}"\\)`), w);
+const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
+const warning = (P) => P.box().querySelector("[data-shp-unkept]");
+
+await t("Show everything, not kept: said under its own row", async () => {
+  const P = await shapePage();
+  P.shape.next = { kept: false };
+  await P.press("[data-shp-all]");
+  assert.equal(P.where(warning(P)), "shp-h-d");
+  assert.equal(warning(P).textContent, P.UNKEPT);
+  assert.equal(P.box().querySelectorAll("[data-shp-unkept]").length, 1, "said once");
 });
-t("each action names its place: Show everything its row, Compact its row, Reset and a preset the cards (where focus goes), Save the JSON", () => {
-  assert.match(src, /said\(shape\.resetToPreset\(\), [^\n]*, "preset"\);/);
-  assert.match(src, /said\(shape\.showEverything\(\), [^\n]*, "acts"\);/);
-  assert.match(src, /said\(shape\.setDevice\(\{ density[^\n]*, "device"\);/);
-  assert.match(src, /V\.unkept = r\.kept === false \? "preset" : null;/);
-  assert.match(src, /V\.unkept = res\.kept === false \? "json" : null;/);
-  assert.match(src, /V\.unkept === "json" && V\.draft == null \? UNKEPT : null/, "Save: said in the JSON's status, beside the text");
+
+await t("Compact, not kept: said in this device's section", async () => {
+  const P = await shapePage();
+  P.shape.next = { kept: false };
+  await P.press("[data-shp-dense]");
+  assert.equal(P.where(warning(P)), "shp-h-v");
 });
-t("once drawn, it's kept in sight beside what you did (its scroller's least move, never the page's top)", () => {
-  assert.match(src, /const inSightUnkept = \(\) => \{ const w = V\.unkept && box\.querySelector\("\[data-shp-unkept\]"\); if \(w\) bringWhole\(w\); \};/);
-  assert.match(src, /render\(\);\n\s*inSightUnkept\(\);/, "after said()'s render");
+
+await t("a preset chosen, not kept: said under the cards, where focus goes", async () => {
+  const P = await shapePage();
+  P.shape.next = { kept: false };
+  await P.press('[data-shp-preset="engineering"]');
+  assert.deepEqual(P.shape.sent, ["choose:engineering"]);
+  assert.equal(P.where(warning(P)), "shp-h-p");
+});
+
+await t("Reset to preset, not kept: said under the cards, where Reset hands focus", async () => {
+  const P = await shapePage({ own: true });
+  P.shape.next = { kept: false };
+  await P.press("[data-shp-reset]");
+  assert.deepEqual(P.shape.sent, ["reset"]);
+  assert.equal(P.where(warning(P)), "shp-h-p");
+});
+
+await t("JSON saved, not kept: said in the JSON's status beside the text, not up the page", async () => {
+  const P = await shapePage();
+  P.shape.next = { kept: false };
+  const ta = P.box().querySelector("[data-shp-json]");
+  ta.value = '{ "shape": 1, "preset": "marketing" }';
+  ta.dispatchEvent(new Event("input", { bubbles: true }));
+  await P.press("[data-shp-save]");
+  assert.deepEqual(P.shape.sent, ["mine"]);
+  assert.equal(P.box().querySelector(".shp-status").textContent, P.UNKEPT);
+  same(warning(P), null, "no line elsewhere on the page");
+});
+
+await t("the next change that is kept takes the warning away", async () => {
+  const P = await shapePage();
+  P.shape.next = { kept: false };
+  await P.press("[data-shp-all]");
+  P.shape.next = { kept: true };
+  await P.press("[data-shp-dense]");
+  await settle();
+  same(warning(P), null);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
+process.exit();

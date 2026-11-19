@@ -52,8 +52,6 @@ import { createFiles, fileScope, localIn, scopeOf as filesScopeOf } from "./file
 import { createPaths } from "../core/services/paths.js";
 import { createQuickOpen } from "../modules/search/quickopen.js";
 import { createJump } from "../modules/search/jump.js";
-import { createSettingsFrame } from "../modules/settings/frame.js";
-import { createKeysPage } from "../modules/settings/keys-page.js";
 import { createFilesPage } from "../modules/files/page.js";
 import { createChanges, lineRef, fileRef } from "../modules/changes/store.js";
 import { fileIcon } from "./fileicons.js";
@@ -72,7 +70,7 @@ import { wireGestures, dockGestures } from "./gestures.js";
 import { rtName, rtMark, manyRuntimes, findRt, healthOf, canMove, untilWords } from "../core/services/runtimes.js";
 // the UI's shape per person: which surfaces show, in what order, how dense, in which words (core/services/shape)
 import { createShapeStore } from "../core/services/shape/index.js";
-import { createShapeView, SHAPE_IC, UNKEPT } from "../modules/settings/shape-page.js";
+import { createSettingsFrame, createSettingsSections, createKeysPage, createShapeView, SHAPE_IC, UNKEPT } from "../modules/settings/index.js";
 import { setWorkMode } from "./turnview.js";
 import { radioKeys, menuKeys } from "./keynav.js";
 import { createHerald, noticeFor, refusedNotice } from "../core/services/notices.js";
@@ -4124,12 +4122,13 @@ async function unfreeze(tid, btn) {
     schedule();
   } catch (err) { announce(`Couldn't pick it back up: ${err.message}`); if (btn) { btn.removeAttribute("aria-disabled"); btn.removeAttribute("aria-busy"); } }
 }
+const SECTIONS = createSettingsSections({ places: kernel.places, nav: setEl.querySelector(".set-nav"), pages: setEl.querySelector(".set-page").parentElement, at: () => ({ project: S.view.startsWith("p:") ? S.view.slice(2) : convThread(S.view)?.project }), pick: (id) => SETF.setPage(id), isOpen: () => !setEl.hidden, onTabs: () => SV.apply() });
 const SETF = createSettingsFrame({
   el: setEl, side: $("#set-side"), phoneButton: $("#set-phone"), closeButton: $("#set-x"), phone: PHONE, focusIn: focusOverlay, fallback: () => say,
-  onPage: (id) => { SETS.open(id); if (id === "runtimes") RTSET.open(); if (id === "shape") SV.open(); },
+  onPage: (id) => { SETS.open(id); if (id === "runtimes") RTSET.open(); if (id === "shape") SV.open(); SECTIONS.show(id); },
   // a phone's drawer hands the keyboard back to its menu first, so closing Settings returns it there
-  beforeOpen: () => { setDrawer(false); if (D.isOpen()) D.close(); IQ.close({ restore: false }); },
-  beforeClose: () => { if (S.recording) { S.recording = null; KP.render(); } },
+  beforeOpen: () => { setDrawer(false); if (D.isOpen()) D.close(); IQ.close({ restore: false }); SECTIONS.resume(); },
+  beforeClose: () => { if (S.recording) { S.recording = null; KP.render(); } SECTIONS.hide(); },
   onHidden: () => syncInert(),
 });
 function openSettings() { SETF.open(); }

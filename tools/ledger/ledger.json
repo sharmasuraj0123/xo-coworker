@@ -4293,7 +4293,7 @@
   "tests/create-busy-honest.test.mjs": {
    "status": "moved",
    "home": "modules/create-project/tests/create-busy-honest.test.mjs",
-   "note": "still reads the source; its rewrite as a behaviour test is owed"
+   "note": "rewritten as a behaviour test: the New project dialog from index.html driven on a DOM (modules/create-project/tests/create-fixture.mjs); its two app-wide ARIA rules stay source checks"
   },
   "tests/create.test.mjs": {
    "status": "moved",
@@ -4502,12 +4502,12 @@
   "tests/lp-create-connect-focus.test.mjs": {
    "status": "moved",
    "home": "modules/create-project/tests/lp-create-connect-focus.test.mjs",
-   "note": "still reads the source; its rewrite as a behaviour test is owed"
+   "note": "rewritten as a behaviour test: the New project dialog from index.html driven on a DOM (modules/create-project/tests/create-fixture.mjs)"
   },
   "tests/lp-create-stop-focus.test.mjs": {
    "status": "moved",
    "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs",
-   "note": "still reads the source; its rewrite as a behaviour test is owed"
+   "note": "rewritten as a behaviour test: the New project dialog from index.html driven on a DOM (modules/create-project/tests/create-fixture.mjs)"
   },
   "tests/lp-intel-order.test.mjs": {
    "status": "planned",
@@ -4681,7 +4681,7 @@
   "tests/rail-order.test.mjs": {
    "status": "moved",
    "home": "modules/settings/tests/rail-order.test.mjs",
-   "note": "re-pointed at shape-page.js; still reads the source, a behaviour rewrite is open"
+   "note": "rewritten as a behaviour test: the Shape page driven on a DOM (modules/settings/tests/shape-fixture.mjs, tests/lib/dom.mjs)"
   },
   "tests/rec-undo-focus.test.mjs": {
    "status": "planned",
@@ -4742,7 +4742,7 @@
   "tests/routing-words.test.mjs": {
    "status": "moved",
    "home": "modules/routing/tests/routing-words.test.mjs",
-   "note": "still reads the source; its rewrite as a behaviour test is owed"
+   "note": "rewritten as a behaviour test: Settings › Routing driven on a DOM (tests/lib/dom.mjs), api answered by the test"
   },
   "tests/rtsettings.test.mjs": {
    "status": "moved",
@@ -4759,7 +4759,7 @@
   "tests/saved-truth.test.mjs": {
    "status": "moved",
    "home": "modules/runtimes/tests/saved-truth.test.mjs",
-   "note": "still reads the source; its rewrite as a behaviour test is owed"
+   "note": "rewritten as a behaviour test: Settings › Runtimes driven on a DOM (tests/lib/dom.mjs), its saves answered by the test"
   },
   "tests/scroller-ring.test.mjs": {
    "status": "planned",
@@ -4792,12 +4792,12 @@
   "tests/shape-held.test.mjs": {
    "status": "moved",
    "home": "modules/settings/tests/shape-held.test.mjs",
-   "note": "re-pointed at shape-page.js; still reads the source, a behaviour rewrite is open"
+   "note": "rewritten as a behaviour test: the Shape page driven on a DOM (modules/settings/tests/shape-fixture.mjs, tests/lib/dom.mjs)"
   },
   "tests/shape-unkept.test.mjs": {
    "status": "moved",
    "home": "modules/settings/tests/shape-unkept.test.mjs",
-   "note": "re-pointed at shape-page.js; still reads the source, a behaviour rewrite is open"
+   "note": "rewritten as a behaviour test: the Shape page driven on a DOM (modules/settings/tests/shape-fixture.mjs, tests/lib/dom.mjs)"
   },
   "tests/shape.test.mjs": {
    "status": "planned",

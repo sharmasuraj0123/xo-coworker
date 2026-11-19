@@ -1,35 +1,61 @@
-// XO's refusal of a shape change is said where the change was made, in sight, never only at Shape's top (node modules/settings/tests/shape-held.test.mjs)
+// A shape change XO refused or couldn't take is said once, where it was made; Compact sends nothing and moves nothing.
 import assert from "node:assert/strict";
-import process from "node:process";
-import { readFileSync } from "node:fs";
+import { shapePage } from "./shape-fixture.mjs";
 
-const src = readFileSync(new URL("../shape-page.js", import.meta.url), "utf8");
 let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-// a function's body: its declaration first (a variable of the same name elsewhere isn't it), else a const arrow
-const fn = (name) => { let i = src.search(new RegExp(`function ${name}\\(`)); if (i < 0) i = src.indexOf(`const ${name} = `); assert.ok(i >= 0, name); const e = src.indexOf("\n  }\n", i); return src.slice(i, e > 0 ? e : i + 2000); };
+const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
+const REFUSED = { why: "refused", text: "A surface id is unknown.", kept: true };
+const lines = (P) => [...P.box().querySelectorAll("[data-shp-held]")];
+const at = (P) => lines(P).map((x) => P.where(x));
 
-t("one line for what's held, drawn by one function, at a place", () => {
-  assert.match(src, /const heldAt = \(where\) =>/, "heldAt(where)");
-  assert.equal((src.match(/XO refused your last shape change\./g) || []).length, 1, "the words are written once");
+await t("held from before this page: said at its top, once", async () => {
+  const P = await shapePage();
+  P.hold(REFUSED);
+  assert.deepEqual(at(P), ["top"]);
+  assert.equal((P.box().textContent.match(/XO refused your last shape change\./g) || []).length, 1, "the words once");
+  assert.match(lines(P)[0].textContent, /A surface id is unknown\. It's kept on this device only/);
 });
-t("never only at the top: the top draws it only when no change was made on this page", () => {
-  const top = fn("topHtml");
-  assert.match(top, /heldAt\(null\)/, "the top: a held change from before this page");
-  assert.match(top, /heldAt\("preset"\)/, "under the cards (a preset chosen, or Reset, which hands focus to the card)");
-  assert.match(top, /heldAt\("acts"\)/, "after Show everything's row");
-  assert.doesNotMatch(top, /\(held \? held\.why === "refused"/, "the old top-only line is gone");
-  assert.match(fn("jsonRender"), /heldAt\("json"\)/, "beside the JSON's text, after JSON's Save");
+
+await t("Show everything, then XO refuses: under its row, not at the top", async () => {
+  const P = await shapePage();
+  await P.press("[data-shp-all]");
+  P.hold(REFUSED);
+  assert.deepEqual(at(P), ["shp-h-d"]);
 });
-t("each change that's sent records where it was made, as it's made; Compact sends nothing and records nothing", () => {
-  assert.match(src, /said\(shape\.resetToPreset\(\), [^\n]*, "preset"\)/);
-  assert.match(src, /said\(shape\.showEverything\(\), [^\n]*, "acts"\)/);
-  assert.match(fn("said"), /if \(where !== "device"\) V\.sharedAt = where;/);
-  assert.match(fn("choose"), /V\.sharedAt = "preset";/);
-  assert.match(fn("save"), /V\.sharedAt = "json";/);
+
+await t("Compact sends nothing and records nothing: the line stays where the last sent change was made", async () => {
+  const P = await shapePage();
+  await P.press("[data-shp-all]");
+  await P.press("[data-shp-dense]");
+  assert.deepEqual(P.shape.sent, ["all"], "Compact is this device's own");
+  P.hold(REFUSED);
+  assert.deepEqual(at(P), ["shp-h-d"]);
 });
-t("when the answer arrives, the line is drawn and brought whole into sight (its scroller's least move); focus stays", () => {
-  assert.match(src, /shape\.onHeld\?\.\(\(\) => \{ if \(page && !page\.hidden && !\/\*\* @type \{HTMLElement\} \*\/ \(document\.querySelector\("#settings"\)\)\.hidden\) \{ render\(\); inSightHeld\(\); \} \}\);/);
-  assert.match(src, /const inSightHeld = \(\) => \{ const w = V\.sharedAt && box && box\.querySelector\("\[data-shp-held\]"\); if \(w\) bringWhole\(w\); \};/);
+
+await t("Reset to preset, then XO refuses: under the cards", async () => {
+  const P = await shapePage({ own: true });
+  await P.press("[data-shp-reset]");
+  P.hold(REFUSED);
+  assert.deepEqual(at(P), ["shp-h-p"]);
+});
+
+await t("a preset chosen, then XO can't be reached: under the cards", async () => {
+  const P = await shapePage();
+  await P.press('[data-shp-preset="engineering"]');
+  P.hold({ why: "unreachable", text: "", kept: true });
+  assert.deepEqual(at(P), ["shp-h-p"]);
+  assert.match(lines(P)[0].textContent, /Not on your other devices yet: XO couldn't be reached\./);
+});
+
+await t("JSON saved, then refused: beside the JSON, after its Save", async () => {
+  const P = await shapePage();
+  const ta = P.box().querySelector("[data-shp-json]");
+  ta.value = '{ "shape": 1, "preset": "marketing" }';
+  ta.dispatchEvent(new Event("input", { bubbles: true }));
+  await P.press("[data-shp-save]");
+  P.hold({ ...REFUSED, kept: false });
+  assert.deepEqual(at(P), ["json"]);
+  assert.match(lines(P)[0].textContent, /This browser can't keep it after a reload either/);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
+process.exit();

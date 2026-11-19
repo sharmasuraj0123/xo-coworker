@@ -5,8 +5,8 @@ import { esc } from "../../js/world.js";
 import { ICON, $ as query, RM } from "../../js/ui.js";
 import { api } from "../../core/platform/api.js";
 import { fmtSize } from "../../js/attach.js";
-import { redraw } from "../../js/redraw.js";
-import { usable } from "../../js/focusview.js";
+import { redraw } from "../../core/ui/redraw.js";
+import { usable } from "../../core/ui/a11y/focus.js";
 import { copyText, COPY_REFUSED } from "../../core/platform/index.js";
 
 const $ = /** @type {(sel: string) => any} */ (query);

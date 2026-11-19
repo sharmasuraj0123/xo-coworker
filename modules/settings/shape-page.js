@@ -3,11 +3,11 @@
 // Settings › Shape, the Settings rail's Advanced group, density on <html> and Home's order; core/services/shape holds the rules.
 
 import { esc, once, isPending, busyAttrs } from "../../core/platform/index.js";
-import { ICON } from "../../js/ui.js";
+import { ICON } from "../../core/ui/icons/names.js";
 import { PRESETS, createShape, describeShape } from "../../core/services/shape/index.js";
-import { redraw } from "../../js/redraw.js";
-import { bringWhole } from "../../js/focusview.js";
-import { rovingTab } from "../../js/keynav.js";
+import { redraw } from "../../core/ui/redraw.js";
+import { bringWhole } from "../../core/ui/a11y/focus.js";
+import { rovingTab } from "../../core/ui/a11y/keynav.js";
 
 export const SHAPE_IC = ICON.shape;
 
@@ -52,7 +52,8 @@ export function createShapeView({ shape, announce = () => {}, notice = () => {} 
     if (!head) { head = document.createElement("p"); head.className = "shp-navh"; head.setAttribute("aria-hidden", "true"); head.textContent = "Advanced"; }
     /** @param {string} id */
     const btn = (id) => nav.querySelector(`[data-set="${id}"]`);
-    const want = /** @type {Element[]} */ ([...navOrder.filter((id) => !adv.has(id)).map(btn), ...(adv.size ? [head, ...navOrder.filter((id) => adv.has(id)).map(btn)] : [])].filter(Boolean));
+    const added = [...nav.children].filter((el) => el !== head && !navOrder.includes(/** @type {HTMLElement} */ (el).dataset.set || ""));
+    const want = /** @type {Element[]} */ ([...navOrder.filter((id) => !adv.has(id)).map(btn), ...added, ...(adv.size ? [head, ...navOrder.filter((id) => adv.has(id)).map(btn)] : [])].filter(Boolean));
     if (!adv.size) head.remove();
     for (const id of navOrder) btn(id)?.toggleAttribute("data-advanced", adv.has(id));
     const cur = [...nav.children];
