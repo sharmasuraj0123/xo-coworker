@@ -811,10 +811,6 @@
     "button[data-lbx=files]"
    ]
   },
-  "S081": {
-   "key": "button[data-map-toggle]",
-   "aliases": []
-  },
   "S082": {
    "key": "button[data-node]",
    "aliases": []
@@ -825,18 +821,6 @@
   },
   "S084": {
    "key": "button[data-mp-focus]",
-   "aliases": []
-  },
-  "S085": {
-   "key": "button[data-mp-full]",
-   "aliases": []
-  },
-  "S086": {
-   "key": "button[data-mp-close]",
-   "aliases": []
-  },
-  "S087": {
-   "key": "button[data-stage]",
    "aliases": []
   },
   "S088": {

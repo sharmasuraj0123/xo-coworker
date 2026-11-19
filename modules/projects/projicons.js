@@ -1,11 +1,9 @@
-// A project's icon, from what the project is about (thread-28ea9d). Instant and offline: no model, no
-// network. It scores a small keyword table against the project's name (weighted) and its thread titles,
-// and picks one of the owner's project topics (assets/icons/xo/h-project-topics: project-<topic>.svg, 31 of them).
-// A project it can't place keeps the cube ("project"). The same inputs always give the same icon.
-import { xi, hasIcon } from "./icon.js";
+// @ts-check
 
-// Order is the tie-break: earlier wins. Each keyword is a whole word; in a project's name, a keyword of
-// 4+ letters also counts inside a run-together word ("agentadvisory" → agent, advisory).
+// A project's icon from what it is about, offline: keywords scored against its name (weighted) and thread titles pick one of the 31 project topics, else the cube.
+import { xi, hasIcon } from "../../js/icon.js";
+
+// Order breaks ties (earlier wins); a name's keyword of 4+ letters also counts inside a run-together word ("agentadvisory").
 const CLASSES = [
   ["deploy", "deploy deployment deploys release releases ship shipping rollout launchpad hosting ci cd"],
   ["research", "research researching study studies investigation investigate explore exploration survey literature findings"],
@@ -43,16 +41,21 @@ const CLASSES = [
 /** Every topic a project can wear, in the table's order (the picker lists them, then the cube). */
 export const TOPICS = CLASSES.map((c) => c.icon);
 
+/** @typedef {typeof CLASSES[number]} Cls */
 const NAME_W = 4;                         // a word in the name counts four times a word in a title
 const NOISE = new Set(["xo", "the", "and", "for", "with", "new"]);
+/** @param {unknown} s */
 const words = (s) => String(s || "")
   .replace(/&amp;/g, "&").replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase()
   .split(/[^a-z0-9]+/).filter((w) => w && !NOISE.has(w));
 
-/** Classify a project: { icon, scores } (icon is a topic, "deploy", "research"…; "project" when nothing matched). */
+/** Classify a project: { icon, scores } (icon is a topic, "deploy", "research"…; "project" when nothing matched). @param {string | null | undefined} name @param {string[]} [titles] @returns {{ icon: string, scores: Record<string, number> }} */
 export function classify(name, titles = []) {
+  /** @type {Map<Cls, number>} */
   const score = new Map();
+  /** @type {Map<Cls, number>} */
   const nameScore = new Map();
+  /** @param {Cls} c @param {number} n */
   const add = (c, n) => score.set(c, (score.get(c) || 0) + n);
   const nameWords = words(name);
   for (const c of CLASSES) {
@@ -60,15 +63,16 @@ export function classify(name, titles = []) {
       if (c.words.has(w)) add(c, NAME_W);
       else for (const k of c.words) if (k.length >= 4 && w !== k && w.includes(k)) { add(c, NAME_W); break; }
     }
-    if (score.get(c)) nameScore.set(c, score.get(c));
+    const sc = score.get(c);
+    if (sc) nameScore.set(c, sc);
   }
   for (const t of titles) {
     const seen = new Set(words(t));
     for (const c of CLASSES) for (const w of seen) if (c.words.has(w)) add(c, 1);
   }
-  // the name decides when it can (so an icon doesn't drift as threads come and go); titles break its
-  // ties, and place a project whose name says nothing
+  // the name decides when it can, so an icon doesn't drift as threads come and go; titles break its ties
   const named = new Set([...score.keys()].filter((c) => nameScore.get(c)));
+  /** @type {[Cls, number] | null} */
   let best = null;
   for (const [c, n] of score) {
     if (named.size && !named.has(c)) continue;
@@ -77,7 +81,7 @@ export function classify(name, titles = []) {
   return { icon: best ? best[0].icon : "project", scores: Object.fromEntries([...score].map(([c, n]) => [c.icon, n])) };
 }
 
-/** The topic's icon from the owner's pack (project-<topic>.svg), the cube for "project" or a topic it doesn't have. */
+/** The topic's icon from the owner's pack (project-<topic>.svg), the cube for "project" or a topic it doesn't have. @param {string} icon */
 export function glyph(icon) {
   return icon !== "project" && hasIcon(`project-${icon}`) ? xi(`project-${icon}`) : xi("project");
 }

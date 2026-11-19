@@ -4,13 +4,13 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 658 |
+| planned | 657 |
 | vendor | 367 |
 | deleted | 232 |
 | split | 33 |
-| moved | 23 |
+| moved | 24 |
 
-Items inside first-party files: 2290 (planned 1290, split-region 775, moved 201, deleted 21, kept 2, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1285, split-region 727, moved 254, deleted 21, kept 2, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -65,7 +65,7 @@ Items inside first-party files: 2290 (planned 1290, split-region 775, moved 201,
 | `js/launchpad.js` | 1166 | planned | modules/launchpad/ (store, controller, views, section) |
 | `js/lightbox.js` | 384 | planned | core/ui/lightbox.js |
 | `js/lpapi.js` | 239 | split | modules/launchpad/client.js, modules/launchpad/model.js, core/services/github.js |
-| `js/map.js` | 1360 | split | modules/map, core/services/places.js, core/services/agent-activity.js · next: folderOf, placeOf, pathsInCommand are in core/services/places.js; activityOf in core/services/agent-activity.js; the standalone #map is deleted (its markup in index.html and its app.css rules wait for their owners); the rest waits for modules/map |
+| `js/map.js` | 1360 | split | modules/map, core/services/places.js, core/services/agent-activity.js · next: folderOf, placeOf, pathsInCommand are in core/services/places.js; activityOf in core/services/agent-activity.js; colorOf, layoutOf, edgePath in modules/map/layout.js; the standalone #map is deleted; the rest waits for modules/map |
 | `js/markdown.js` | 519 | planned | core/ui/markdown/markdown.js |
 | `js/mdlive.js` | 331 | planned | modules/files/editor/markdown-page.js |
 | `js/media.js` | 609 | split | modules/conversation/media/, core/ui/media (layout) |
@@ -78,9 +78,9 @@ Items inside first-party files: 2290 (planned 1290, split-region 775, moved 201,
 | `js/paidview.js` | 21 | planned | modules/decisions/cards/paid.js |
 | `js/paths.js` | 83 | planned | core/services/paths.js |
 | `js/pending.js` | 22 | moved | core/platform/pending.js · next: js/pending.js re-exports core/platform until the shims go |
-| `js/projicons.js` | 83 | planned | modules/projects/projicons.js |
+| `js/projicons.js` | 83 | moved | modules/projects/projicons.js |
 | `js/quickopen.js` | 179 | moved | modules/search/quickopen.js |
-| `js/record.js` | 340 | split | modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js |
+| `js/record.js` | 340 | split | modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js · next: every piece has moved (modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js); record.js only re-exports them until the shims go |
 | `js/recordview.js` | 855 | split | modules/artifacts, modules/since |
 | `js/redraw.js` | 130 | planned | core/ui/redraw.js |
 | `js/review.js` | 153 | planned | modules/decisions/items.js |

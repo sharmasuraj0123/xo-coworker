@@ -43,7 +43,7 @@ const final = (sel, p, onPhone) => { let v = null; for (const r of named(sel)) {
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
 
-for (const sel of [".fl-up", ".vw-seg button", ".st-x", ".stg-x", ".fl-rb", ".vw-x", ".x"]) {
+for (const sel of [".fl-up", ".vw-seg button", ".stg-x", ".fl-rb", ".vw-x", ".x"]) {
   t(`${sel}: no sheet sizes it under 24 px`, () => {
     const bs = named(sel);
     assert.ok(bs.length, `${sel} is declared`);

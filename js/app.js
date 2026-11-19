@@ -59,7 +59,7 @@ import { setTheme as setDiffTheme } from "./diffview.js";
 import { createTray, fmtSize, kindOf, isLargePaste, pasteLabel, uploadErrorText, FINAL, MAX_FILES } from "./attach.js";
 import { api, uploadAttachment } from "./api.js";
 import { initCreate } from "../modules/create-project/create.js";
-import { classify, glyph, TOPICS } from "./projicons.js";
+import { classify, glyph, TOPICS } from "../modules/projects/projicons.js";
 import { createShells } from "./shells/dock.js";
 import { createRecord } from "./recordview.js";
 import { greeting, today } from "./skeleton.js"; // Home's shell, drawn before this module graph arrives
@@ -274,7 +274,7 @@ REC.view = () => S.view;
 
 // ── world helpers ───────────────────────────────────────────────────────────
 const projects = () => world.state.projects.filter((p) => p.id !== "workspace");
-// Each project its own icon (js/projicons.js): from its name, and its threads' titles when the name says
+// Each project its own icon (modules/projects/projicons.js): from its name, and its threads' titles when the name says
 // nothing. Offline and instant; worked out again only when the project's thread count changes. A project
 // it can't place keeps the cube.
 const projIcons = new Map();
@@ -388,7 +388,7 @@ const stOf = (t) => (t.frozen ? "resolved" : isHeld(t) ? "paused" : t.stop ? "st
 // a thread link in any message is a token led by that thread's live state (js/markdown.js)
 setThreadInfo((id) => { const t = world.thread(id); return t ? { state: glyphOf(t), word: wordOf(t), title: t.title } : null; });
 const SORT_STATE = { needs_approval: 0, needs_reply: 0, paused: 0, failed: 1, working: 2, done: 3, resolved: 4 };
-// the Map (js/map.js): where your agents are working, beside the conversation; the viewer stacks over it
+// the Map (js/map.js): where your agents are working, drawn in the panel's Map frame
 const MAP = createMap({ world, go: (v) => go(v, { panel: true }), announce, isBusy, openFile: (f, from) => VW.open(f, from) });
 // the panel: one card on the right with tabs (Map, Made, File; later apps), one header button, ⌘\
 // Files: the project's files, and the one place a file opens (js/files.js)
