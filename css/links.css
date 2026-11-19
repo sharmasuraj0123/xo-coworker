@@ -54,9 +54,9 @@
 .lk-in:active{background:color-mix(in srgb,var(--ink) 18%,transparent)}
 .lk-in:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
 
-/* the glyph's 1em box: an empty inline-block sits on the baseline, so lowering it .1405em puts
-   its middle on the middle of the capitals (.3595em). Its child is centred in it. */
-.lk-ic{position:relative;display:inline-block;width:1em;height:1em;margin-right:.2em;vertical-align:-.1405em;color:var(--ink-3)}
+/* the glyph's 1em box: an empty inline-block sits on the baseline, so lowering it by half its height less --cap-mid
+   puts its middle on the middle of the capitals (the one rule for an icon beside words, tokens.css). */
+.lk-ic{position:relative;display:inline-block;width:1em;height:1em;margin-right:.2em;vertical-align:calc(var(--cap-mid) - .5em);color:var(--ink-3)}
 .lk-ic>*{position:absolute;inset:0;margin:auto}
 /* a thread's state, a little larger than in lists so it holds its own beside capitals */
 .lk-ic .g{width:.6em;height:.6em}
@@ -88,8 +88,8 @@
    press of its own at all (tests/press-reach.test.mjs) */
 .lk-out:active{opacity:.7}
 .lk-out:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:3px}
-/* the arrow is centred on the middle of the capitals too: .0495em + half of .62em = .3595em */
-.lk-ar{display:inline-block;width:.62em;height:.62em;margin-left:.14em;vertical-align:.0495em;color:var(--accent);transition:transform var(--dur-fast) var(--ease)}
+/* the arrow is centred on the middle of the capitals too (--cap-mid less half its .62em) */
+.lk-ar{display:inline-block;width:.62em;height:.62em;margin-left:.14em;vertical-align:calc(var(--cap-mid) - .31em);color:var(--accent);transition:transform var(--dur-fast) var(--ease)}
 .lk-out:hover .lk-ar{transform:translate(1.5px,-1.5px)}
 /* a bare address is shown as people read it (host and path) in the code face */
 .lk-out.is-bare .lk-t{font:var(--fw-regular) .9em/1 var(--mono);letter-spacing:var(--tr-20)}
