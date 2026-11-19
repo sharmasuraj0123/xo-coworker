@@ -38,7 +38,9 @@ for (const s of ["done", "resolved", "failed", "stopped"]) assert.equal(threadSt
 assert.equal(threadState({ id: "e", state: "working", frozen: true }, needs), "done", "a frozen (continued) thread is done");
 
 // the header: the same words, and the counts open the panel
-assert.match(app, /data-stage-open title="Open its threads in the panel"/);
+// one line (the owner, 19 Nov 13:54Z): what's at work as its glyph and number, the words its tooltip and name; no Waiting
+assert.match(app, /class="pj-n" data-stage-open title="\$\{esc\(words\)\}: open its threads in the panel" aria-label="\$\{esc\(words\)\}\. Open its threads"><i class="g g-working" aria-hidden="true"><\/i><span class="pj-k">\$\{by\.working\}<\/span><\/button>/);
+assert.match(app, /<span class="tw-t is-one"><h1 id="conv-title"/);
 assert.match(app, /else if \(e\.target\.closest\?\.\("\[data-stage-open\]"\)\) STAGE\.open\(\)/);
 assert.doesNotMatch(app, /class="all-btn th-btn"/, "the header's Threads button moved into the panel");
 

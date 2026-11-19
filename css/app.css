@@ -3111,3 +3111,9 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .ar-a>span:first-child{line-height:var(--lh-14)}
 .ar-mk{display:flex;align-items:center;height:var(--mark-sm)}
 .ar-mk .agm{width:var(--mark-sm);height:var(--mark-sm);vertical-align:baseline;margin:0}
+
+/* ── A project's header on one line (the owner, 19 Nov 13:54Z): its name, then what's at work as a glyph and a number,
+   one quiet 24 control (--h-sm, --r-sm) that opens the panel's Threads; the words are its tooltip and its name. */
+.tw-t.is-one{flex-direction:row;align-items:center;gap:var(--s-3)}
+.pj-n{flex:none;display:inline-flex;align-items:center;gap:var(--s-2);height:var(--h-sm);padding:0 var(--s-2);border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-3)}
+.pj-n:hover,.pj-n:focus-visible{color:var(--ink)}
