@@ -1633,7 +1633,8 @@
    "home": [
     "modules/settings/shape.css",
     "core/ui (density)"
-   ]
+   ],
+   "note": "Settings \u203a Shape and its rail label moved to modules/settings/shape.css, which css/shape.css imports first (same cascade place); density and the two composer and thread rules stay for core/ui"
   },
   "css/side.css": {
    "status": "planned",

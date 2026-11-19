@@ -127,7 +127,7 @@ Items inside first-party files: 2290 (planned 1300, split-region 804, moved 164,
 | `css/panel.css` | 645 | split | shell/panel.css, modules/threads, modules/changes, modules/map, modules/files |
 | `css/phone.css` | 293 | split | shell/phone.css, modules/* (phone blocks) |
 | `css/rich.css` | 232 | planned | core/ui/markdown/rich.css |
-| `css/shape.css` | 74 | split | modules/settings/shape.css, core/ui (density) |
+| `css/shape.css` | 74 | split | modules/settings/shape.css, core/ui (density) · next: Settings › Shape and its rail label moved to modules/settings/shape.css, which css/shape.css imports first (same cascade place); density and the two composer and thread rules stay for core/ui |
 | `css/side.css` | 164 | planned | shell/sidebar.css |
 | `css/tokens.css` | 245 | planned | core/ui/tokens.css |
 
