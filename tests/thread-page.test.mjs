@@ -69,7 +69,7 @@ console.log("thread-page: ok");
 // the page's one reading column: its messages and its dock (asks line, composer) share their edges
 { const c2 = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
   assert.match(c2, /\.stage \.tp,\.stage \.tp \.dock\{--col-w:calc\(100cqw - 2 \* var\(--s-5\)\);--col-x:var\(--s-5\);/);
-  const st2 = readFileSync(new URL("../js/stage.js", import.meta.url), "utf8");
+  const st2 = readFileSync(new URL("../shell/panel/width.js", import.meta.url), "utf8");
   assert.match(st2, /w\(\{ room: innerWidth - sideW\(\) - READ \}\)/);
   console.log("thread-page column and width: ok"); }
 

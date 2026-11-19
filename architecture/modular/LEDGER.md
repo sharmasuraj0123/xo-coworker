@@ -10,7 +10,7 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | split | 33 |
 | moved | 23 |
 
-Items inside first-party files: 2290 (planned 1296, split-region 804, moved 168, deleted 19, kept 2, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1290, split-region 786, moved 192, deleted 19, kept 2, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -29,7 +29,7 @@ Items inside first-party files: 2290 (planned 1296, split-region 804, moved 168,
 | File | Lines | Status | New home |
 |---|---:|---|---|
 | `js/api.js` | 428 | split | core/platform/http.js, per-module clients (routes declared in each module.json) · next: the transport is in core/platform/http.js; js/api.js keeps the route table (and re-exports the transport) until the routes go to their modules |
-| `js/app.js` | 4840 | split | boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md §2.6) |
+| `js/app.js` | 4840 | split | boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md §2.6) · next: moved so far: the sidebar (SIDE) to shell/rail/side.js, the phone drawer to shell/phone.js, the tab favicon to shell/favicon.js |
 | `js/attach.js` | 270 | split | modules/composer/attachments.js, core/services/world/normalise.js, core/platform/util.js |
 | `js/blocks.js` | 241 | planned | core/services/world/turns.js |
 | `js/changes.js` | 194 | split | modules/changes/store.js, modules/conversation/refs.js (fileRef, lineRef), core/services/places.js |
@@ -97,7 +97,7 @@ Items inside first-party files: 2290 (planned 1296, split-region 804, moved 168,
 | `js/shells/term.js` | 205 | planned | modules/shells/term.js |
 | `js/skeleton.js` | 105 | split | modules/home/skeleton.js, core/ui/skeleton.js |
 | `js/sse.js` | 190 | moved | core/platform/sse.js · next: js/sse.js re-exports core/platform until the shims go; storm.js still imports it there while core-services splits storm |
-| `js/stage.js` | 870 | split | shell/panel, core/kernel (panel.page/panel.frame places), modules/threads (Threads frame), modules/changes (frame wiring), modules/map (frame wiring), modules/launchpad (cover), modules/shells (shell page) |
+| `js/stage.js` | 870 | split | shell/panel (panel.js, pages.js, frames.js, width.js, lists.js), core/kernel (panel.page/panel.frame places), modules/threads (Threads frame), modules/changes (frame wiring), modules/map (frame wiring), modules/launchpad (cover), modules/shells (shell page) · next: moved into shell/panel/ whole; js/stage.js re-exports createStage until the shims go; lists.js (the frames' contents) and the shell page still go to their modules |
 | `js/storm.js` | 1242 | split | core/services/storm/client, core/services/storm/stream, core/services/storm/reducers/*, core/services/storm/selectors/*, core/services/storm/commands, core/services/account, core/services/review |
 | `js/timeline.js` | 816 | split | core/services/world/normalise.js, modules/conversation/model.js, modules/threads, modules/decisions |
 | `js/turnview.js` | 331 | planned | modules/conversation/blocks/turn.js |

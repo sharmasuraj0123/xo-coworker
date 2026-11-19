@@ -5,7 +5,8 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const stage = readFileSync(new URL("../js/stage.js", import.meta.url), "utf8");
+import { panelSrc } from "./lib/panel-src.mjs";
+const stage = panelSrc;
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 const dock = readFileSync(new URL("../js/shells/dock.js", import.meta.url), "utf8");
 const css = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
