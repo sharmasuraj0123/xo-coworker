@@ -7,8 +7,8 @@
 // instant. One page in the panel's page model (js/stage.js page()): one tab for Files, its own inner tabs (js/viewer.js),
 // asked before it closes (unsaved files), its Esc first.
 //
-// createFilesPage({stage, files, viewer, view, announce}) → {show(file?, {focus}), toggleTree(), reset(), get isOpen,
-// get shown}.
+// createFilesPage({stage, files, viewer, view, announce}) → {show({focus}), toggleTree(), treeFolded(folded), reset(),
+// sync(), get isOpen}.
 
 import { fileIcon } from "./fileicons.js";
 
@@ -69,6 +69,14 @@ export function createFilesPage({ stage, files, viewer, view, announce = () => {
   }
 
   const nameOf = (f) => (f ? f.name || String(f.path || f.rel || "").split("/").pop() : "");
+  // the tree follows the file the viewer shows: found and marked in its folder, and on a narrow panel (a phone) the
+  // file takes the tree's place. Once per file; the panel refits when a file comes or goes (its width is the file's)
+  let seen = null, had = false;
+  function follow() {
+    const f = viewer.hasFile ? viewer.file : null;
+    if (f !== seen) { seen = f; if (f && !files.auto) files.reveal(f); }
+    if (viewer.hasFile !== had) { had = viewer.hasFile; stage.refit(); }
+  }
   stage.page("files", {
     single: true,
     // the file keeps 640 px, the tree its own width beside it (or its rail); never more than the room beside the
@@ -80,6 +88,7 @@ export function createFilesPage({ stage, files, viewer, view, announce = () => {
     onShow: (key, { focus } = {}) => {
       if (!pane.isConnected) return;
       files.show(view());
+      seen = null; follow();
       if (focus) (document.getElementById("viewer")?.hidden === false ? document.getElementById("viewer") : body.querySelector(".fl-tree [data-fl-q]"))?.focus({ preventScroll: true });
     },
     onHide: () => files.hide(),
@@ -114,6 +123,12 @@ export function createFilesPage({ stage, files, viewer, view, announce = () => {
       if (stage.pages().some((t) => t.name === "files")) stage.closeTab("files");
     },
     get isOpen() { return stage.pageShown?.name === "files"; },
+    /** Every app render: while Files shows, the tree follows the view (its marks, a new place) and the file. */
+    sync() {
+      if (!P.isOpen) return;
+      follow();
+      files.render(view());
+    },
   };
   return P;
 }

@@ -2928,6 +2928,7 @@ function render() {
   MAP.render(v);
   VW.notice();
   STAGE.sync();
+  FP.sync();
   const nd = needs.filter((n) => n.admitted && !n.later).length;
   document.title = Kit.titleFor(nd, "XO Space");
   faviconRender(world.state.threads.filter(isBusy).sort((a, b) => b.lastAt - a.lastAt)[0] || null, nd > 0);
