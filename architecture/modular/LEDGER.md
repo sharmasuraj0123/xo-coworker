@@ -11,7 +11,7 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | split | 34 |
 | kept | 4 |
 
-Items inside first-party files: 2290 (moved 1010, planned 760, split-region 402, deleted 115, kept 2, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (moved 1017, planned 760, split-region 394, deleted 116, kept 2, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -82,7 +82,7 @@ Items inside first-party files: 2290 (moved 1010, planned 760, split-region 402,
 | `js/projicons.js` | 83 | moved | modules/projects/projicons.js |
 | `js/quickopen.js` | 179 | moved | modules/search/quickopen.js |
 | `js/record.js` | 340 | split | modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js · next: every piece has moved (modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js); record.js only re-exports them until the shims go |
-| `js/recordview.js` | 855 | split | modules/artifacts, modules/since · next: Since you left (seen marks, the worktrees' git words, the line, Home's lines, Got it) is in modules/since/view.js; the preview queue in modules/artifacts/previews.js; the cards in modules/artifacts/cards.js; what was made (the backend's pages, the fallback, pins) in modules/artifacts/store.js; the dead Since card is deleted; the Made tab, Home's strip, the Artifacts page and ⌘K wait for modules/artifacts |
+| `js/recordview.js` | 855 | split | modules/artifacts, modules/since · next: Since you left (seen marks, the worktrees' git words, the line, Home's lines, Got it) is in modules/since/view.js; the preview queue and its device cache in modules/artifacts/previews.js; the cards in modules/artifacts/cards.js; what was made (the backend's pages, the fallback, pins) in modules/artifacts/store.js; the Artifacts page in modules/artifacts/page.js; the dead Since card is deleted; the Made tab, Home's strip and ⌘K wait for modules/artifacts |
 | `js/redraw.js` | 130 | moved | core/ui/redraw.js · next: js/redraw.js re-exports core/ui/redraw.js until the shims go |
 | `js/review.js` | 153 | moved | core/services/review.js |
 | `js/rich.js` | 281 | moved | core/ui/markdown/rich.js · next: js/rich.js re-exports it until the shims go |

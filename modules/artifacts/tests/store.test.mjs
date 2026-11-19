@@ -36,6 +36,12 @@ await t("a Space without the route: what threads shared, and pins kept in this b
   assert.deepEqual(JSON.parse(store.get("xo-made-pins")), [m.key]);
   assert.deepEqual(said, ["Pinned"]);
 });
+await t("pins kept under xo-made-pins before a reload are read again", async () => {
+  store.set("xo-made-pins", JSON.stringify(["t1|notes.md"]));
+  const { S } = make({ made: async () => { throw Object.assign(new Error("no"), { status: 404 }); } });
+  S.madeOf("demo"); await tick();
+  assert.equal(S.madeOf("demo")[0].pinned, true);
+});
 await t("the backend's pin shows at once and goes back when it's refused", async () => {
   const { S, said } = make({ made: async () => ({ made: [row("a", "2026-11-19T10:00:00Z")], next_before: null }), pinMade: () => Promise.reject(new Error("refused")) });
   S.madeOf("demo"); await tick();

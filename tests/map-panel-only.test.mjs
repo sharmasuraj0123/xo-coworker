@@ -50,6 +50,9 @@ await t("no sheet styles the standalone Map, nor names its leftover #map at all"
     assert.ok(!keys.includes("cv-map"), `keys touched: ${keys.join(", ")}`);
   });
 }
+await t("index.html holds no #map of its own", () => {
+  assert.doesNotMatch(readSource("index.html"), /id="map"|class="map"/);
+});
 await t("no stylesheet keeps the standalone Map's toggle or its file tab's close", () => {
   const css = sourceText(".css");
   assert.doesNotMatch(css, /\.map-btn\b|\.st-x\b/);

@@ -21,7 +21,7 @@
 // app.js calls: placeOf, leave, sinceLine, homeSinceLines, homeMade, madeCount, jumpItems, and
 // the panel's Made tab (made: mount, show, count); `panel` is set to the panel once it exists.
 
-import { syncList, setHtml, setText } from "./motion.js";
+import { syncList, setText } from "./motion.js";
 import { redraw } from "./redraw.js";
 import { radioKeys, rovingTab } from "./keynav.js";
 import * as R from "./record.js";
@@ -29,6 +29,7 @@ import { createSince } from "../modules/since/view.js";
 import { createPreviews } from "../modules/artifacts/previews.js";
 import { createCards, KIND_IC } from "../modules/artifacts/cards.js";
 import { createMadeStore } from "../modules/artifacts/store.js";
+import { createArtifactsPage } from "../modules/artifacts/page.js";
 import { sinceSection } from "../modules/since/section.js";
 import { madeSection } from "../modules/artifacts/section.js";
 import { api } from "../core/platform/api.js";
@@ -69,9 +70,9 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
   /** The project a view belongs to, or null (Home, the Workspace, Chats: every project). */
   const pidOf = (v) => (!v ? null : v.startsWith("p:") ? v.slice(2) : v.startsWith("t:") ? world.thread(v.slice(2))?.project || null : null);
   const MS = createMadeStore({ world, api, schedule, announce, changed: () => { if (shown()) madeRender(); } });
-  const { madeOf, madePending, olderPages, projectsMade, togglePin } = MS;
+  const { madeOf, madePending, togglePin } = MS;
   const madeCount = (pid) => madeOf(pid).length;
-  const PV = createPreviews({ world, api, sharedFileRoute, box: () => A.box, landed: () => { schedule(); if (shown()) madeRender(); } });
+  const PV = createPreviews({ world, api, sharedFileRoute, box: () => AP.box(), landed: () => { schedule(); if (shown()) madeRender(); } });
 
 
   const { syncCards } = createCards({ PV, PROJ, naming: madeNaming });
@@ -183,176 +184,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
     syncCards(ul, list, true);
   }
 
-  // ── the Artifacts page: everything threads made, across projects, a place of its own ────────────
-  // It can hold thousands, so only what's near the screen is drawn. The gallery is laid out as lines (a
-  // group's heading, a row of cards; record.js galleryLines) at places worked out from a card's measured
-  // size, the list keeps its whole height, and as you scroll the lines within a screen of view are drawn
-  // and the rest let go: the page holds a few dozen cards whether there are fifty or five thousand. Every
-  // card has the same height (a card without a thread keeps an empty "from" line), so nothing moves as lines
-  // come and go. Search, the kinds and the project filter the whole set (record.js artsView). The place
-  // outlives a visit (app.js keeps the scroll), and a picture is read only when its card nears the screen,
-  // fading in once decoded. While what was made is still being read, stand-in cards in the cards' own size
-  // hold the place, and land as it arrives.
-  const A = { box: null, kind: "all", pid: "", q: "", lines: null, els: new Map(), byKey: new Map(), M: null, placeT: 0, arrive: false, tio: null };
-  const tracks = (ul) => getComputedStyle(ul).gridTemplateColumns.split(" ").filter(Boolean).length;
-  /** The gallery's sizes, read from a hidden heading and stand-in card (so they follow the CSS, the width and the phone). */
-  function artsMetrics(be) {
-    let p = be.querySelector(":scope > .ar-probe");
-    if (!p) {
-      p = document.createElement("div");
-      p.className = "ar-probe";
-      p.setAttribute("aria-hidden", "true");
-      p.innerHTML = `<h2 class="ar-gh">Today</h2><ul class="md-grid ar-grid">${skTile("page")}</ul>`;
-      be.prepend(p);
-    }
-    const ul = p.querySelector("ul");
-    return { cols: Math.max(1, tracks(ul)), gap: parseFloat(getComputedStyle(ul).rowGap) || 0, headH: p.firstElementChild.offsetHeight, cardH: ul.firstElementChild.offsetHeight };
-  }
-  /** Draw the lines within a screen of view, let the others go. */
-  function artsPlace() {
-    A.placeT = 0;
-    const box = A.box, be = box && box.querySelector("#arts-body");
-    if (!be || box.hidden || !A.lines) return;
-    const top = box.scrollTop - be.offsetTop, H = box.clientHeight;
-    const want = R.linesIn(A.lines, top - H, top + 2 * H);
-    const keep = new Set(want.map((l) => l.key));
-    // the card you're on stays, wherever the scroll goes; but a card that moved (pinned or unpinned to another
-    // group) is drawn where it went, and the line it left goes with the rest (Astra H13: a stale copy stayed
-    // under the new one), its control taking focus there
-    const ae = document.activeElement && be.contains(document.activeElement) ? document.activeElement : null;
-    const fCard = ae && ae.closest(".md-it"), fKey = fCard && fCard.dataset.k, fCtl = ae && (ae.matches(".md-pin") ? ".md-pin" : ae.matches(".md-from") ? ".md-from" : ".md-open");
-    // where that card is now, in the whole layout (not only the lines near the screen: pinned, it can move far
-    // above them; Astra on 453de55); moved, its new line is drawn too, wherever it is, and focus lands there
-    const at = fKey ? A.lines.find((l) => l.kind === "row" && l.g.items.slice(l.start, l.start + l.n).some((it) => it.key === fKey)) : null;
-    const moved = !!at && !(A.els.get(at.key) && A.els.get(at.key).contains(fCard));
-    if (moved && !keep.has(at.key)) { want.push(at); want.sort((x, y) => x.y - y.y); keep.add(at.key); }
-    const focus = ae && !moved ? ae.closest(".ar-line") : null;
-    for (const [k, el] of A.els) {
-      if (keep.has(k) || el === focus) continue;
-      if (A.tio) for (const c of el.querySelectorAll(".md-it")) A.tio.unobserve(c);
-      el.remove();
-      A.els.delete(k);
-    }
-    let prev = be.querySelector(":scope > .ar-probe");
-    for (const l of want) {
-      let el = A.els.get(l.key);
-      if (!el) {
-        if (l.kind === "head") { el = document.createElement("h2"); el.className = "ar-gh ar-line"; }
-        else if (l.kind === "row") { el = document.createElement("ul"); el.className = "md-grid ar-grid ar-line"; el._seeded = A.arrive; }
-        else { el = document.createElement("div"); el.className = "ar-line"; el.setAttribute("aria-hidden", "true"); }
-        A.els.set(l.key, el);
-      }
-      if (l.kind === "tail" && el._n !== l.rows * A.M.cols) { el._n = l.rows * A.M.cols; el.innerHTML = `<ul class="md-grid ar-grid">${Array.from({ length: el._n }, (_, i) => skTile("page", i)).join("")}</ul>`; }
-      const y = `${l.y}px`;
-      if (el.style.top !== y) el.style.top = y;
-      if (l.kind === "head") setText(el, l.g.label);
-      else if (l.kind === "row") {
-        const items = l.g.items.slice(l.start, l.start + l.n);
-        syncCards(el, items, "page");
-        // pictures: read when their card comes within a screen of view
-        if (A.tio) for (const c of el.children) { const m = A.byKey.get(c.dataset.k); if (!c._tw && m && ((m.kind === "image" && !PV.thumbs.has(m.key)) || PV.wantsText(m))) { c._tw = true; A.tio.observe(c); } }
-      }
-      // in order, so Tab goes card by card down the page
-      const at = prev ? prev.nextElementSibling : be.firstElementChild;
-      if (at !== el) be.insertBefore(el, at);
-      prev = el;
-    }
-    // landed where it went, brought into view (the page doesn't jump to it otherwise: it stays anchored)
-    if (moved) be.querySelector(`.md-it[data-k="${CSS.escape(fKey)}"] ${fCtl}`)?.focus();
-    A.arrive = false;
-  }
-  function artsWatch(box) {
-    const be = box.querySelector("#arts-body");
-    box.addEventListener("scroll", () => { if (!A.placeT) A.placeT = requestAnimationFrame(artsPlace); }, { passive: true });
-    // a new width (the window, the panel opening beside it) can mean a new number of columns
-    if (typeof ResizeObserver === "function") { let w = 0; new ResizeObserver(() => { if (!box.hidden && be.clientWidth && be.clientWidth !== w) { w = be.clientWidth; if (A.lines) artsRender(); } }).observe(be); }
-    if (typeof IntersectionObserver === "function") {
-      A.tio = new IntersectionObserver((es) => {
-        for (const e of es) {
-          if (!e.isIntersecting) continue;
-          A.tio.unobserve(e.target);
-          const m = A.byKey.get(e.target.dataset.k);
-          if (m) { PV.nearY.set(m.key, { y: e.boundingClientRect.top - e.rootBounds.top + A.box.scrollTop }); PV.loadThumbs([m]); PV.loadTexts([m]); }
-        }
-      }, { root: box, rootMargin: "50% 0px" });
-    }
-  }
-  function artsRender() {
-    const box = A.box || (A.box = document.getElementById("arts"));
-    if (!box || box.hidden) return; // nothing is measured or drawn unseen
-    if (!box._built) {
-      box.innerHTML = `<header class="ar-head"><span class="tw-ic" aria-hidden="true">${ICON.stack}</span><span class="tw-t"><h1 id="arts-h">Artifacts</h1><p class="pj-s ar-sub" id="arts-sub"></p></span></header><div class="ar-wrap">` +
-        `<div class="ar-tools"><label class="ar-q">${ICON.search}<span class="sr-only">Find an artifact</span><input id="arts-q" placeholder="Find an artifact" autocomplete="off" spellcheck="false"></label>` +
-        `<label class="ar-pj"><span class="sr-only">Project</span><xo-select id="arts-pj"></xo-select></label></div>` +
-        `<div class="ar-kinds" id="arts-f" role="radiogroup" aria-label="Show"></div><div class="ar-body" id="arts-body"></div></div>`;
-      box._built = true;
-      box.addEventListener("input", (e) => { if (e.target.id === "arts-q") { A.q = e.target.value; artsRender(); } });
-      box.addEventListener("change", (e) => { if (e.target.id === "arts-pj") { A.pid = e.target.value; artsRender(); } });
-      box.addEventListener("click", (e) => { const k = e.target.closest("[data-arts-kind]"); if (k) { A.kind = k.dataset.artsKind; artsRender(); } });
-      box.addEventListener("keydown", (e) => { if (e.key === "Escape" && e.target.id === "arts-q" && e.target.value) { e.preventDefault(); e.stopPropagation(); e.target.value = ""; A.q = ""; artsRender(); } });
-      artsWatch(box);
-    }
-    const pending = madePending(null);
-    const all = pending ? [] : madeOf(null);
-    if (!pending) olderPages(); // what's older than each chat's newest page, read in the background
-    const v = R.artsView(all, { pid: A.pid, kind: A.kind, q: A.q });
-    setHtml(box.querySelector("#arts-sub"), pending ? skBar("18em") : all.length ? esc(`${all.length} ${all.length === 1 ? "thing" : "things"} your threads made, newest first`) : "What your threads make shows up here");
-    // projects that made something, in the sidebar's order
-    const made = new Set(all.map((m) => m.project));
-    const pids = projectsMade().filter((p) => made.has(p.id));
-    const opts = `<option value="">All projects</option>` + pids.map((p) => `<option value="${esc(p.id)}"${A.pid === p.id ? " selected" : ""}>${esc(p.name || p.id)}</option>`).join("");
-    setHtml(box.querySelector("#arts-pj"), opts);
-    // the kinds: one Tab stop (the chosen one), arrows choose (radioKeys), drawn in place so the focused one stays
-    // (Astra C065/H5: arrows did nothing, and Space dropped focus as the strip was redrawn)
-    // the kind you chose stays in the strip even where it has nothing (another project): one choice checked and
-    // one Tab stop, always (Astra C065 on 453de55: Images, then a project with only Docs, left neither)
-    const kf = box.querySelector("#arts-f"), kh = R.KINDS.filter(([k]) => k === "all" || v.counts[k] || k === A.kind).map(([k, w]) => `<button type="button" role="radio" data-arts-kind="${k}" aria-checked="${A.kind === k}"${rovingTab(A.kind === k)}>${w}<span>${pending ? "" : v.counts[k] || 0}</span></button>`).join("");
-    if (kf._h !== kh) { redraw(kf, kh); kf._h = kh; }
-    if (!kf._keys) { kf._keys = true; radioKeys(kf); }
-    // Images is the one filter shown as pictures on a phone; everything else is a list of rows (css/artifacts.css)
-    box.classList.toggle("is-pics", A.kind === "image");
-    const be = box.querySelector("#arts-body");
-    // a new filter is a new list: drawn afresh, still
-    const scope = `${A.pid}|${A.kind}|${A.q}|${pending ? "…" : ""}`;
-    if (be._scope !== scope) {
-      A.arrive = /…$/.test(be._scope || ""); // what was being read has come: its first cards arrive
-      be._scope = scope; be._h = null; be.innerHTML = ""; be.style.height = "";
-      A.els = new Map(); A.lines = null;
-    }
-    if (pending || !v.groups.length) {
-      // still reading: a screen of stand-ins in the gallery's own shape; or nothing to show
-      const html = pending ? `<section class="ar-g" aria-hidden="true"><h2 class="ar-gh">${skBar("64px")}</h2><ul class="md-grid ar-grid">${Array.from({ length: 12 }, (_, i) => skTile("page", i)).join("")}</ul></section>`
-        : `<p class="ar-none">${!all.length ? "<b>Nothing made yet.</b> Files, pages and pictures your threads share land here, newest first."
-          : A.q ? `Nothing matches “${esc(A.q)}”.`
-          : `No ${esc(((R.KINDS.find(([k]) => k === A.kind) || [])[1] || "things").toLowerCase())} ${A.pid ? "in this project" : "yet"}.`}</p>`;
-      if (be._h !== html) { be.innerHTML = html; be._h = html; be.style.height = ""; A.els = new Map(); A.lines = null; }
-      return;
-    }
-    if (be._h) { be.innerHTML = ""; be._h = null; A.els = new Map(); }
-    const M = (A.M = artsMetrics(be));
-    A.byKey = new Map();
-    for (const g of v.groups) for (const m of g.items) A.byKey.set(m.key, m);
-    // older pages still on their way: two rows of stand-ins under the list
-    const reading = MS.olderLeft();
-    // what you're looking at stays where it is when things land above it (a new thing at the top, a pinned one
-    // from an older page): the first card in view is the anchor, and the scroll follows it
-    const view = box.scrollTop - be.offsetTop;
-    let anchor = null;
-    if (A.lines && view > 0) {
-      const l = R.linesIn(A.lines, view, view).find((x) => x.kind === "row");
-      if (l) anchor = { key: l.g.items[l.start]?.key, off: l.y - view };
-    }
-    const { lines, height } = R.galleryLines(v.groups, { cols: M.cols, cardH: M.cardH, headH: M.headH, gap: M.gap, tail: reading ? 2 : 0 });
-    A.lines = lines;
-    const h = `${height}px`;
-    if (be.style.height !== h) be.style.height = h;
-    if (anchor && anchor.key) {
-      const l = lines.find((x) => x.kind === "row" && x.g.items.slice(x.start, x.start + x.n).some((m) => m.key === anchor.key));
-      const to = l ? Math.round(be.offsetTop + l.y - anchor.off) : null;
-      if (to != null && Math.abs(to - box.scrollTop) >= 1) box.scrollTop = to;
-    }
-    artsPlace();
-  }
+  const AP = createArtifactsPage({ MS, PV, syncCards, PROJ, sk: { tile: skTile, bar: skBar } });
 
   /** ⌘K: made files by title or name, only once you've typed something. A titled one's file name leads its line. */
   function jumpItems(q) {
@@ -388,7 +220,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
     /** The newest file a thread made (not a branch): what its finished card offers to open. */
     latestOf: (tid, project) => madeOf(project || null).find((x) => x.tid === tid && x.kind !== "branch" && x.kind !== "link" && x.exists !== false) || null,
     /** The Artifacts page (a sidebar place): render() draws it; count() is what the sidebar shows. */
-    artifacts: { render: artsRender, count: () => (madePending(null) ? 0 : madeOf(null).length) },
+    artifacts: { render: AP.render, count: () => (madePending(null) ? 0 : madeOf(null).length) },
     /** The panel's Made tab. */
     made: { mount, show: showMade, count: (v) => madeOf(pidOf(v)).length },
     set panel(p) { panel = p; },
