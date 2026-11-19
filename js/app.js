@@ -28,7 +28,7 @@ import { mediaHtml, fromAttachment, fromSharedFile, hydrateMedia, mediaItemOf, v
 // math and diagrams in a reply, drawn between keystrokes (KaTeX, Mermaid: vendored, loaded only when needed)
 import { startRich } from "./rich.js";
 import { createLightbox } from "./lightbox.js";
-import { itemParts } from "./review.js";
+import { itemParts } from "../core/services/review.js";
 import { runsStripHtml, runsListHtml, runViewHtml } from "./runsview.js";
 import { createSettings } from "./settings.js";
 import { createRuntimeSettings } from "../modules/runtimes/settings.js";

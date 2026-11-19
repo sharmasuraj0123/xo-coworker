@@ -17,7 +17,7 @@
 //     needs-you channel is complete.
 // ─────────────────────────────────────────────────────────────────────────────
 import { WAITING } from "../core/services/world/store.js";
-import { itemBody } from "./review.js";
+import { itemBody } from "../core/services/review.js";
 import { typing } from "./keys.js";
 export { HOLD_MS, holdButton, holdToConfirm } from "../core/ui/components/hold.js";
 

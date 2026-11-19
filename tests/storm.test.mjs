@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createParser, SSEStream } from "../js/sse.js";
 import { createTurns } from "../core/services/world/turns.js";
-import { itemParts, itemBody, questionsOf, itemEffort, evidenceOf, hostOf, askedBy, isNo, holdWords } from "../js/review.js";
+import { itemParts, itemBody, questionsOf, itemEffort, evidenceOf, hostOf, askedBy, isNo, holdWords } from "../core/services/review.js";
 import { askingState } from "../js/timeline.js";
 import { hopRank, furtherState, mergeHop } from "../core/services/world/hops.js";
 

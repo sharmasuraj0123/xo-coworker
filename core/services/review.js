@@ -1,63 +1,53 @@
-// Storm's review items (UI-reference §2.4, §3 Item) as the Decision Kit shows them. Pure: no DOM,
-// no fetch. The UI owns no decision logic: every answer, its label, its scope, its rule sentence
-// and whether it needs a hold come from the item's own `options`; this module only sorts them into
-// the card's places (the main answer, the "no", the rule choices) and builds the request body.
+// @ts-check
 
-/** The decisions that say "go ahead" vs the ones that say "not this" (UI-reference §2.4). */
+// Storm's review items as a decision card places them: the main yes, the no, the wider allows, the hold, the request body.
+
+/** @type {Set<string>} */
 const YES = new Set(["allow", "approve", "done", "continue", "answer", "move"]);
+/** @type {Set<string>} */
 const NO = new Set(["deny", "send_back", "cant", "wait"]);
 
-/** How the person's answer reads afterwards ("Allowed · npm test"). */
+/** @type {Record<string, string>} */
 export const VERB = { allow: "Allowed", deny: "Denied", answer: "Answered", approve: "Approved", send_back: "Sent back", done: "Done", cant: "Can't do it", continue: "Continued", wait: "Waiting", move: "Moving" };
 
-/**
- * Sort an item's options into the card's places.
- *  primary: the main "yes" (Allow once, Approve, Done, Allow, Continue…, Seen)
- *  back:    the "no" (Deny, Send back, Can't, Wait, Dismiss), with whether it takes a note
- *  scopes:  the wider allows of a permission (this thread, rules), each with the server's sentence
- *  hold:    the primary needs a press-and-hold (a destructive item, or an option that asks for it)
- */
+/** @param {any} item */
 export function itemParts(item) {
   const opts = Array.isArray(item && item.options) ? item.options : [];
-  const scopes = opts.filter((o) => o.decision === "allow" && (o.scope === "thread" || o.scope === "rule"));
-  const primary = opts.find((o) => YES.has(o.decision) && !scopes.includes(o)) || null;
-  const back = opts.find((o) => NO.has(o.decision)) || null;
-  // a hold for any "yes" to a destructive item (allow, approve, done, answer…) and for an option that
-  // asks for one (the 20-denials suggestion's "Pause it"); UI-reference §4.3 #2
+  const scopes = opts.filter((/** @type {any} */ o) => o.decision === "allow" && (o.scope === "thread" || o.scope === "rule"));
+  const primary = opts.find((/** @type {any} */ o) => YES.has(o.decision) && !scopes.includes(o)) || null;
+  const back = opts.find((/** @type {any} */ o) => NO.has(o.decision)) || null;
   const hold = !!(primary && (primary.hold_to_confirm || (item.risk === "destructive" && YES.has(primary.decision))));
   return { primary, back, scopes, hold, why: (primary && primary.why) || null };
 }
 
-/** The hold button's words: "Hold to allow", "Hold to approve", "Hold to pause it"… */
+/** @param {any} primary */
 export function holdWords(primary) {
   const d = primary && primary.decision;
+  /** @type {Record<string, string>} */
   const fixed = { allow: "Hold to allow", approve: "Hold to approve", done: "Hold to confirm", continue: "Hold to continue", answer: "Hold to answer" };
   if (fixed[d] && (d !== "approve" || !primary.label || /^approve$/i.test(primary.label))) return fixed[d];
   return `Hold to ${String((primary && primary.label) || "confirm").replace(/^\w/, (c) => c.toLowerCase())}`;
 }
 
-/** A question item's questions: [{id, header, question, options: [{label, description}], multi, secret}]. */
+/** @param {any} item */
 export function questionsOf(item) {
   const q = item && item.detail && Array.isArray(item.detail.questions) ? item.detail.questions : [];
-  return q.map((x, i) => ({ id: x.id || String(i), header: x.header || "", question: x.question || item.title || "", options: Array.isArray(x.options) ? x.options : [], multi: !!x.multi, secret: !!x.secret }));
+  return q.map((/** @type {any} */ x, /** @type {number} */ i) => ({ id: x.id || String(i), header: x.header || "", question: x.question || item.title || "", options: Array.isArray(x.options) ? x.options : [], multi: !!x.multi, secret: !!x.secret }));
 }
 
-/**
- * The request body for a decision (without the idempotency key, added when it is sent).
- * choice: "allow" | "deny" | {scope: option} | {option: label} | {answers: {id: str|[str]}} | {text} | {name}
- * note: the person's words for a "no" that takes one.
- */
+/** @param {any} item @param {any} choice @param {string} [note] @returns {Record<string, any>} */
 export function itemBody(item, choice, note = "") {
   const { primary, back, scopes } = itemParts(item);
   note = String(note || "").trim();
   if (choice === "deny" || (choice && choice.no)) {
     if (!back) throw new Error("This item has no way to say no.");
+    /** @type {Record<string, any>} */
     const body = { decision: back.decision };
     if (note && back.note) body.note = note.slice(0, 4000);
     return body;
   }
   if (choice && choice.scope) {
-    const o = scopes.find((x) => x.id === choice.scope.id);
+    const o = scopes.find((/** @type {any} */ x) => x.id === choice.scope.id);
     if (!o) throw new Error("That choice isn't offered for this item.");
     if (o.scope === "thread") return { decision: "allow", scope: "thread" };
     return { decision: "allow", option: o.id, rule_sentence: o.sentence };
@@ -72,16 +62,15 @@ export function itemBody(item, choice, note = "") {
     const name = String(choice.name).trim();
     return name ? { decision: "allow", answer: name } : { decision: "allow" };
   }
-  // only a question takes words or an option; anything else is its own "yes" or "no", never a guess
   if (choice !== "allow") throw new Error("This one is answered with its buttons, not in words.");
   if (!primary) throw new Error("This item has no answer to give.");
   return { decision: primary.decision };
 }
 
-/** Is this body a "no"? (the card's stamp and tone) */
+/** @param {any} body */
 export const isNo = (body) => NO.has(body && body.decision);
 
-/** How much attention an item needs: glance (a few seconds), decide (about a minute), think. */
+/** @param {any} item */
 export function itemEffort(item) {
   if (item.risk === "destructive") return "think";
   if (item.kind === "integrity" || item.kind === "usage" || item.kind === "suggestion") return "glance";
@@ -91,17 +80,15 @@ export function itemEffort(item) {
   return "decide";
 }
 
-/** Who an item's own words are from: XO for what XO raised itself (an integrity check, a limit, a paid-usage question: origin
- *  xo or engine), the agent for what a coordinator or a CLI raised (origin agent or cli). */
+/** @param {any} item */
 export const fromWords = (item) => (item && (item.origin === "xo" || item.origin === "engine") ? "From XO" : "From the agent");
 
-/**
- * The exact things to show under Details, from the item's own detail (never prose of ours):
- * [{label, lang, text}] blocks plus plain facts.
- */
+/** @param {any} item */
 export function evidenceOf(item) {
   const d = (item && item.detail) || {};
+  /** @type {{ label: string, lang: string, text: string }[]} */
   const blocks = [];
+  /** @type {string[]} */
   const facts = [];
   if (d.command) blocks.push({ label: "Command", lang: "sh", text: String(d.command) });
   if (d.diff) blocks.push({ label: "Change", lang: "diff", text: String(d.diff) });
@@ -129,12 +116,12 @@ export function evidenceOf(item) {
     if (d.more) facts.push(`${d.more} more changed`);
   }
   if (item.kind === "usage" && d.resets_at) facts.push(`Your plan resets at ${d.resets_at}`);
-  if (item.risk_reasons && item.risk_reasons.length) facts.push(...item.risk_reasons.map((r) => r.charAt(0).toUpperCase() + r.slice(1)));
+  if (item.risk_reasons && item.risk_reasons.length) facts.push(...item.risk_reasons.map((/** @type {string} */ r) => r.charAt(0).toUpperCase() + r.slice(1)));
   if (item.parked) facts.push("Parked: the agent was told to wait; an answer wakes it");
   return { blocks, facts };
 }
 
-/** Where a review item lives when it has no thread: its chat, or the person's account (usage). */
+/** @param {any} item */
 export function hostOf(item) {
   if (item.thread_ts) return null;
   if (item.kind === "usage") return { id: `pool:${(item.detail && item.detail.pool) || "account"}`, chat: null, title: "Your agent account" };
@@ -143,10 +130,7 @@ export function hostOf(item) {
   return { id: `item:${item.id}`, chat: null, title: "XO" };
 }
 
-/**
- * Who in a chat raised an item that has no thread: "coordinator" when its coordinator (or one of the
- * coordinator's sub-agents) asked, null when XO raised it itself. session: the asking session, if known.
- */
+/** @param {any} item @param {any} [session] */
 export function askedBy(item, session) {
   if (!item || (item.origin !== "cli" && item.origin !== "agent")) return null;
   return !session || !session.role || /coordinator/.test(session.role) ? "coordinator" : null;

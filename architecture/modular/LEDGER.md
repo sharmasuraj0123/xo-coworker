@@ -4,10 +4,10 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 624 |
+| planned | 623 |
 | vendor | 367 |
 | deleted | 232 |
-| moved | 54 |
+| moved | 55 |
 | split | 35 |
 | kept | 1 |
 
@@ -84,7 +84,7 @@ Items inside first-party files: 2290 (planned 1007, moved 695, split-region 561,
 | `js/record.js` | 340 | split | modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js · next: every piece has moved (modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js); record.js only re-exports them until the shims go |
 | `js/recordview.js` | 855 | split | modules/artifacts, modules/since · next: Since you left (seen marks, the worktrees' git words, the line, Home's lines, Got it) is in modules/since/view.js; the preview queue and its device cache in modules/artifacts/previews.js; the dead Since card is deleted; Made, the Artifacts page and the cards wait for modules/artifacts |
 | `js/redraw.js` | 130 | moved | core/ui/redraw.js · next: js/redraw.js re-exports core/ui/redraw.js until the shims go |
-| `js/review.js` | 153 | planned | modules/decisions/items.js |
+| `js/review.js` | 153 | moved | core/services/review.js |
 | `js/rich.js` | 281 | moved | core/ui/markdown/rich.js · next: js/rich.js re-exports it until the shims go |
 | `js/ring.js` | 65 | moved | core/ui/a11y/ring.js · next: js/ring.js re-exports core/ui/a11y/ring.js until the shims go; its two region selectors stay until files and changes contribute them |
 | `js/rtsettings.js` | 296 | moved | modules/runtimes/settings.js · next: the whole page moved, Paid usage rows with it: they become modules/runtimes/paid when Paid is its own settings.section |

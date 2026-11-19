@@ -2494,8 +2494,8 @@
    "note": "js/redraw.js re-exports core/ui/redraw.js until the shims go"
   },
   "js/review.js": {
-   "status": "planned",
-   "home": "modules/decisions/items.js"
+   "status": "moved",
+   "home": "core/services/review.js"
   },
   "js/rich.js": {
    "status": "moved",
