@@ -1,0 +1,40 @@
+{
+  "name": "xo-hello",
+  "version": "0.1.0",
+  "description": "The smallest XO app: a panel that greets you, a /hello command, and notes saved as .hello files.",
+  "author": { "name": "XO" },
+  "license": "UNLICENSED",
+  "mcpServers": "./mcp.json",
+  "extensions": {
+    "space.xo": {
+      "id": "dev.xo-apps.hello",
+      "displayName": "Hello",
+      "summary": "Greets you, and keeps short notes in .hello files.",
+      "engines": { "xo-space": ">=0.1 <1", "xo": "^1" },
+      "server": "hello",
+      "documents": [
+        { "type": "hello", "label": "Hello note", "pattern": "**/*.hello", "newIn": "notes/", "mime": "text/plain" }
+      ],
+      "permissions": {
+        "required": [
+          { "cap": "files.write", "paths": ["**/*.hello"], "why": "To save the notes you write in its panel." }
+        ],
+        "optional": []
+      },
+      "routes": [
+        "PUT /api/xo-projects/{project_id}/file"
+      ],
+      "attention": "silent",
+      "surfaces": [
+        { "id": "panel", "place": "panel.page", "title": "Hello", "view": "ui://dev.xo-apps.hello/panel" },
+        { "id": "greet", "place": "command", "slash": "/hello", "title": "Say hello", "run": { "tool": "hello_greet" } }
+      ],
+      "tools": {
+        "hello_greet": { "risk": "routine", "readOnly": true },
+        "hello_save": { "risk": "routine", "writes": ["**/*.hello"] }
+      },
+      "limits": { "callTimeoutMs": 10000, "maxResultBytes": 65536, "memoryMb": 128 },
+      "data": { "onRemove": "delete" }
+    }
+  }
+}

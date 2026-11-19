@@ -3,6 +3,7 @@
 // The fake Space's store: a seed (e2e/seeds/*.json) as xo-space's rows, and every /api request answered from them.
 
 /** @import { Seed, Store, Row, Ask, Answer, Frame } from "./types.d.ts" */
+import { createApps, answerApps } from "./apps.mjs";
 
 const QUIET_POLICY = { allowed: null, default: null, preferences: null, fallback: null };
 
@@ -72,6 +73,7 @@ export function createStore(seed = {}) {
     files: s.files || {},
     routes: s.routes || {},
     statics: quiet(now),
+    apps: createApps(s.apps),
     seq: Math.max(0, ...seqs),
     writes: [],
     misses: [],
@@ -111,6 +113,8 @@ export function answer(st, q) {
   const own = st.routes[`${m} ${p}`];
   if (own !== undefined) { if (m !== "GET") st.writes.push({ method: m, path: p, body: q.body }); return done(ok(own)); }
   if (m === "GET" && st.statics[p]) return done(ok(st.statics[p]));
+  const app = answerApps(st.apps, q, frames);
+  if (app) { if (m !== "GET") st.writes.push({ method: m, path: p, body: q.body }); return done(app); }
   if (m === "GET" && p === "/api/chat/chats") return done(ok({ chats: st.chats }));
   /** @type {RegExpExecArray | null} */
   let k;

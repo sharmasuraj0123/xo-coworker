@@ -1,9 +1,10 @@
 // @ts-check
-import { checkManifest } from "./manifest.js";
+import { checkRow } from "./manifest.js";
 import { compile, HOST_PLACES } from "./contributions.js";
 import { createAppFrame } from "./frame.js";
 import { createAppsSettings } from "./settings.js";
 import { createCards } from "./card.js";
+import { missingRoute } from "../core/platform/http.js";
 
 /** @typedef {import("./manifest.js").App} App @typedef {import("./manifest.js").Surface} Surface @typedef {import("./client.js").AppsClient} AppsClient @typedef {import("./settings-view.js").Row} Row @typedef {import("../core/kernel/types").ModuleDef} ModuleDef @typedef {import("../core/kernel/types").ModuleContext} ModuleContext @typedef {import("../core/kernel/types").At} At @typedef {import("../core/kernel/types").Undo} Undo @typedef {{ client: AppsClient, doc: Document, win: Window, redraw(el: HTMLElement, html: string): unknown, projects(): Array<{ id: string, name: string }>, draft(text: string, at: At): void, openPanel(key: string, at: At): void, confirm(text: string): Promise<boolean>, context(appId: string, at: At, params: unknown): void }} HostDeps */
 
@@ -43,7 +44,7 @@ export function createAppsHost(d) {
       const enabled = (/** @type {string} */ id, /** @type {string | undefined} */ project) => !!project && apps.get(id)?.row.projects?.[project]?.state === "enabled";
       const granted = (/** @type {string} */ id, /** @type {string} */ project) => {
         const g = apps.get(id)?.row.projects?.[project];
-        return Array.isArray(g?.granted) ? g.granted.filter((x) => typeof x === "string") : [];
+        return Array.isArray(g?.permissions) ? g.permissions.map((/** @type {any} */ p) => p && p.cap).filter((x) => typeof x === "string") : [];
       };
 
       /** @param {App} app @param {At} at @param {string} name @param {unknown} args */
@@ -118,7 +119,7 @@ export function createAppsHost(d) {
       };
       const deps = { enabled, mountView, openPanel: (/** @type {App} */ app, /** @type {Surface} */ s, /** @type {At} */ at) => d.openPanel(`${app.id}:${s.id}`, at), runCommand };
 
-      const settings = createAppsSettings({ client: d.client, redraw: d.redraw, projects: d.projects, confirm: d.confirm, rows: () => [...apps.values()].map((a) => a.row), refresh: () => refresh() });
+      const settings = createAppsSettings({ client: d.client, redraw: d.redraw, projects: d.projects, confirm: d.confirm, openPanel: (key, at) => d.openPanel(key, at), rows: () => [...apps.values()].map((a) => a.row), refresh: () => refresh() });
       const cards = createCards({ doc: d.doc, mountView, find: (id, project) => (enabled(id, project) ? apps.get(id)?.app || null : null) });
       ctx.contribute("settings.section", { id: "apps", label: "Apps", icon: "plug", order: 900, render: settings.render });
       ctx.contribute("conversation.block", { id: "app", render: cards.render });
@@ -138,8 +139,16 @@ export function createAppsHost(d) {
       let queue = Promise.resolve();
       const refresh = () => (queue = queue.catch(() => {}).then(load));
       async function load() {
-        const res = await d.client.list();
+        let res, none = false;
+        try { res = await d.client.list(); } catch (e) {
+          if (!missingRoute(e)) throw e;
+          res = [];
+          none = true;
+        }
         if (disposed) return;
+        const safe = !none && !!res && res.safe_mode === true;
+        settings.off(none ? "This XO Space doesn't run apps yet. Apps appear here once it does." : safe ? "Safe mode is on, so every app is off. Turn it off in XO Space to use them again." : "");
+        if (safe) res = [];
         /** @type {Row[]} */
         const rows = Array.isArray(res) ? res : Array.isArray(res?.apps) ? res.apps : [];
         const seen = new Set();
@@ -158,7 +167,7 @@ export function createAppsHost(d) {
             continue;
           }
           drop(row.id);
-          const { app, problems } = checkManifest(row.manifest);
+          const { app, problems } = checkRow(row);
           /** @type {Undo[]} */
           const undo = [];
           if (app && app.id === row.id && row.state !== "needs_consent") {

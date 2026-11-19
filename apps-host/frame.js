@@ -19,6 +19,7 @@ export const THEME_VARS = Object.freeze([
   ["--border-radius-xs", "--r-xs"], ["--border-radius-sm", "--r-sm"], ["--border-radius-md", "--r"], ["--border-radius-lg", "--r-lg"], ["--border-radius-xl", "--r-xl"], ["--border-radius-full", "--r-pill"],
   ["--shadow-hairline", "--hairline"], ["--shadow-md", "--shadow-md"], ["--shadow-lg", "--shadow-lg"],
   ["--xo-accent", "--accent"], ["--xo-accent-ink", "--accent-ink"], ["--xo-yours", "--need"], ["--xo-voice", "--violet"],
+  ["--font-text-md-line-height", "--lh-ui"], ["--xo-space-1", "--s-1"], ["--xo-space-2", "--s-2"], ["--xo-space-3", "--s-3"], ["--xo-space-4", "--s-4"],
   ["--xo-ease", "--ease"], ["--xo-dur-fast", "--dur-fast"], ["--xo-dur-base", "--dur-base"], ["--xo-dur-slow", "--dur-slow"],
 ]);
 
