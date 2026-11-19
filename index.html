@@ -48,9 +48,11 @@
     <!-- Sidebar: places only. Home, Workspace, Chats, then projects as button-like rows (text only when a
          project needs you). Tools that aren't places live in the foot: the shells toggle and Settings. -->
     <aside class="side" id="side" aria-label="Navigation">
+      <!-- the top row: fold the sidebar to its rail (where the eye starts), the brand, and search / jump (⌘K) -->
       <div class="side-top">
+        <button type="button" class="side-ib side-fold" id="side-fold" aria-controls="side" aria-expanded="true" aria-label="Fold the sidebar"></button>
         <p class="brand"><span class="brand-mark" id="brand-mark"></span><span class="sr-only">XO </span><b>Space</b></p>
-        <button type="button" class="theme" id="theme" role="switch" aria-checked="false" aria-label="Light mode"></button>
+        <button type="button" class="side-ib" id="side-jump" aria-label="Search and jump"></button>
         <button type="button" class="side-x" id="side-x" aria-label="Close menu"></button>
       </div>
       <nav class="nav" aria-label="Main">
@@ -59,7 +61,11 @@
         <button type="button" class="nrow" data-go="chats" id="nv-chats"><span class="nr-ic" id="ic-chats"></span><span class="nr-name">Chats</span></button>
         <!-- Artifacts (js/recordview.js): everything threads made, across projects, a place of its own -->
         <button type="button" class="nrow" data-go="artifacts" id="nv-arts"><span class="nr-ic" id="ic-arts"></span><span class="nr-name">Artifacts</span><span class="nr-q" id="arts-n"></span></button>
+        <!-- places you pinned from More, then More: where every further place arrives, so this list never outgrows a screen -->
+        <span class="nv-pins" id="nv-pins"></span>
+        <button type="button" class="nrow" id="nv-more" aria-haspopup="menu" aria-expanded="false" aria-controls="side-more"><span class="nr-ic" id="ic-more"></span><span class="nr-name">More</span></button>
       </nav>
+      <div class="side-pop" id="side-more" role="menu" aria-label="More places" hidden></div>
       <!-- Create XO Project: "+ New" on the Projects label, where the new project will appear (a bare "+" was
            too easy to miss: the owner, 4 Nov) -->
       <div class="side-label"><span id="projects-label">Projects</span><button type="button" class="side-plus" id="side-add" aria-label="New project" title="Create XO Project"><span class="sp-ic" id="sc-ic"></span><span class="sp-t">New</span></button></div>
@@ -70,7 +76,9 @@
         <!-- Shells (js/shells/): not a place but a dock under every view; this toggles it and counts what runs.
              Shown only when the backend has shells on. -->
         <button type="button" class="gear sh-tog" id="nv-shells" aria-pressed="false" hidden><span class="gear-ic" id="ic-shells"></span><span class="gear-t">Shells</span><span class="sh-n"></span></button>
-        <button type="button" class="gear" id="set-side" title="Settings" aria-haspopup="true" aria-expanded="false"><span class="gear-ic" id="set-side-ic"></span><span class="gear-t">Settings</span></button>
+        <!-- the theme and Settings say themselves with their icons (the owner, 19 Nov: the gear does enough) -->
+        <button type="button" class="gear is-ic" id="theme" role="switch" aria-checked="false" aria-label="Light mode"></button>
+        <button type="button" class="gear is-ic" id="set-side" title="Settings" aria-label="Settings" aria-haspopup="true" aria-expanded="false"><span class="gear-ic" id="set-side-ic"></span></button>
       </div>
     </aside>
     <div class="side-scrim" id="side-scrim" hidden></div>

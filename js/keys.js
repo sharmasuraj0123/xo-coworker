@@ -31,6 +31,7 @@ export const ACTIONS = [
   { id: "findInFiles", scope: "global", label: "Find text in this place's files", def: "mod+shift+f" },
   { id: "chatFold", scope: "global", label: "Beside a file: fold the chat, or open it and write", def: "mod+j" },
   { id: "treeFold", scope: "global", label: "Beside a file: fold or show the files", def: "mod+b" },
+  { id: "sideFold", scope: "global", label: "Fold the sidebar to its rail, or show it", def: "mod+shift+b" },
   { id: "esc", scope: "global", label: "Back, exactly where you were (a shell keeps Esc)", fixed: "Esc" },
   { id: "allow", scope: "decision", label: "Allow (routine, notable)", def: "a" },
   { id: "hold", scope: "decision", label: "Allow a destructive ask (hold 1.2 s)", fixed: "hold ↵" },

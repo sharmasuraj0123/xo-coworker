@@ -121,7 +121,12 @@ function applyTheme(t) {
   const canvas = getComputedStyle(document.documentElement).getPropertyValue("--canvas").trim();
   if (canvas) document.querySelector('meta[name="theme-color"]')?.setAttribute("content", canvas);
   const b = $("#theme");
-  if (b) { b.setAttribute("aria-checked", String(t === "light")); b.title = t === "light" ? "Light mode is on. Switch to dark" : "Switch to light mode"; }
+  if (b) {
+    b.setAttribute("aria-checked", String(t === "light")); b.title = t === "light" ? "Light mode is on. Switch to dark" : "Switch to light mode";
+    // an icon of the mode a press gives (the owner, 19 Nov: icons, no words, in the foot)
+    const ic = `<span class="gear-ic" aria-hidden="true">${t === "light" ? ICON.moon : ICON.sun}</span>`;
+    if (b._ic !== ic) { b.innerHTML = ic; b._ic = ic; }
+  }
 }
 applyTheme(THEME.get());
 
@@ -507,7 +512,7 @@ function sideRender(needs) {
     const w = S.wash.get(p.id);
     const washing = w && w.until > now;
     return { key: p.id, html:
-      `<button type="button" class="prow${needsMe ? ` needs k-${kind}` : working ? " busy" : ""}${on ? " is-on" : ""}${washing ? " wash" : ""}${q && pi === S.pfCur ? " is-cur" : ""}" data-go="p:${esc(p.id)}" data-w="${washing ? w.n : 0}"${on ? ' aria-current="page"' : ""} aria-label="${esc(p.name)}${needsMe ? `. ${asks.length} need${asks.length === 1 ? "s" : ""} you: ${esc(label)}` : busy ? ". Working" : held ? `. ${esc(heldWords(held))}` : ""}">` +
+      `<button type="button" class="prow${needsMe ? ` needs k-${kind}` : working ? " busy" : ""}${on ? " is-on" : ""}${washing ? " wash" : ""}${q && pi === S.pfCur ? " is-cur" : ""}" data-go="p:${esc(p.id)}" data-w="${washing ? w.n : 0}"${on ? ' aria-current="page"' : ""} aria-label="${esc(p.name)}${needsMe ? `. ${asks.length} need${asks.length === 1 ? "s" : ""} you: ${esc(label)}` : busy ? ". Working" : held ? `. ${esc(heldWords(held))}` : ""}"${SIDE.folded ? ` title="${esc(p.name)}${needsMe ? ` · ${asks.length} need${asks.length === 1 ? "s" : ""} you` : busy ? " · Working" : ""}"` : ""}>` +
       `<span class="pr-ic" aria-hidden="true">${projectIcon(p.id)}${busy && needsMe ? `<i class="pr-busy"></i>` : ""}</span>` +
       `<span class="pr-main"><span class="pr-l1"><span class="pr-name">${esc(p.name)}</span>${needsMe ? `<span class="pr-w" aria-hidden="true"><i class="pr-d"></i>${asks.length}</span>` : ""}</span>` +
       (label ? `<span class="pr-t">${esc(label)}</span>` : "") + `</span></button>` };
@@ -4062,6 +4067,89 @@ $("#theme").addEventListener("click", () => {
   announce(t === "light" ? "Light mode" : "Dark mode");
 });
 
+// ── the sidebar: folds to its rail; More holds every further place ─────────────
+// Folded, the sidebar is a rail of the same rows with their words hidden (64 = 12 + a 40 row + 12, tokens.css
+// --side-rail-w); a row's name is its tooltip. Kept per browser. Not on a phone: there the sidebar is a drawer.
+const SIDE = {
+  KEY: "xo-side-folded", PINS: "xo-side-pins",
+  folded: (() => { try { return localStorage.getItem("xo-side-folded") === "1"; } catch { return false; } })(),
+  fold(on, { quiet = false } = {}) {
+    SIDE.folded = !!on;
+    try { localStorage.setItem(SIDE.KEY, on ? "1" : "0"); } catch { /* private */ }
+    $("#app").classList.toggle("side-folded", SIDE.folded);
+    const b = $("#side-fold");
+    b.setAttribute("aria-expanded", String(!SIDE.folded));
+    b.setAttribute("aria-label", SIDE.folded ? "Show the sidebar" : "Fold the sidebar");
+    b.title = `${SIDE.folded ? "Show" : "Fold"} the sidebar${K.hint("sideFold")}`;
+    $("#side-jump").title = `Search and jump${K.hint("jump")}`;
+    // the places' names become their tooltips while the words are hidden
+    for (const r of $$("#side .nav .nrow")) { const n = r.querySelector(".nr-name")?.textContent || ""; if (SIDE.folded) r.title = n; else r.removeAttribute("title"); }
+    SIDE.closeMore();
+    if (!quiet) { announce(SIDE.folded ? "Sidebar folded" : "Sidebar shown"); render(); }
+  },
+  // More: the places that aren't pinned (today Settings' own pages; new places arrive here). Pin one and it joins
+  // the rows above More.
+  PLACES: [
+    { id: "runtimes", name: "Runtimes", ic: () => ICON.runtime },
+    { id: "routing", name: "Routing", ic: () => ICON.router },
+    { id: "rules", name: "Rules", ic: () => ICON.rule },
+    { id: "worktrees", name: "Worktrees", ic: () => ICON.branch },
+    { id: "keys", name: "Keyboard", ic: () => ICON.key },
+  ],
+  pins() { try { const v = JSON.parse(localStorage.getItem(SIDE.PINS) || "[]"); return Array.isArray(v) ? v : []; } catch { return []; } },
+  pin(id, on) {
+    const now = SIDE.pins().filter((x) => x !== id);
+    if (on) now.push(id);
+    try { localStorage.setItem(SIDE.PINS, JSON.stringify(now)); } catch { /* private */ }
+    SIDE.drawPins(); SIDE.drawMore();
+  },
+  // a pinned place is a row like the others, opening its page
+  drawPins() {
+    const pins = SIDE.pins(), html = SIDE.PLACES.filter((p) => pins.includes(p.id)).map((p) =>
+      `<button type="button" class="nrow" data-set-open="${p.id}"${SIDE.folded ? ` title="${esc(p.name)}"` : ""}><span class="nr-ic">${p.ic()}</span><span class="nr-name">${esc(p.name)}</span></button>`).join("");
+    const el = $("#nv-pins"); if (el._h !== html) { redraw(el, html); el._h = html; }
+  },
+  drawMore() {
+    const pins = SIDE.pins();
+    const html = SIDE.PLACES.map((p) => { const on = pins.includes(p.id);
+      return `<div class="sm-row" role="none"><button type="button" class="nrow" role="menuitem" data-set-open="${p.id}"><span class="nr-ic">${p.ic()}</span><span class="nr-name">${esc(p.name)}</span></button>` +
+        `<button type="button" class="sm-pin" data-side-pin="${p.id}" aria-pressed="${on}" title="${on ? "Unpin from the sidebar" : "Pin to the sidebar"}" aria-label="${on ? "Unpin" : "Pin"} ${esc(p.name)}">${ICON.pin}</button></div>`; }).join("");
+    const el = $("#side-more"); if (el._h !== html) { redraw(el, html); el._h = html; }
+  },
+  openMore() {
+    const pop = $("#side-more"), row = $("#nv-more");
+    SIDE.drawMore();
+    pop.hidden = false;
+    row.setAttribute("aria-expanded", "true"); row.classList.add("is-on");
+    // it springs from its row: beside it, level with it
+    const r = row.getBoundingClientRect();
+    pop.style.setProperty("--pop-x", `${Math.round(r.right)}px`); pop.style.setProperty("--pop-y", `${Math.round(r.top)}px`);
+    pop.querySelector('[role="menuitem"]')?.focus({ preventScroll: true });
+  },
+  closeMore({ focus = false } = {}) {
+    const pop = $("#side-more"), row = $("#nv-more");
+    if (!pop || pop.hidden) return;
+    pop.hidden = true;
+    row.setAttribute("aria-expanded", "false"); row.classList.remove("is-on");
+    if (focus) row.focus({ preventScroll: true });
+  },
+};
+$("#side-fold").addEventListener("click", () => SIDE.fold(!SIDE.folded));
+$("#side-jump").addEventListener("click", () => (jump.hidden ? openJump() : closeJump()));
+$("#nv-more").addEventListener("click", () => ($("#side-more").hidden ? SIDE.openMore() : SIDE.closeMore({ focus: true })));
+$("#side-more").addEventListener("click", (e) => {
+  const pin = e.target.closest("[data-side-pin]");
+  if (pin) { SIDE.pin(pin.dataset.sidePin, pin.getAttribute("aria-pressed") !== "true"); return; }
+  if (e.target.closest("[data-set-open]")) SIDE.closeMore();
+});
+$("#side-more").addEventListener("keydown", (e) => {
+  const items = $$('#side-more [role="menuitem"]'), i = items.indexOf(document.activeElement);
+  if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); SIDE.closeMore({ focus: true }); }
+  else if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); const j = (i + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length; items[j]?.focus({ preventScroll: true }); }
+});
+document.addEventListener("pointerdown", (e) => { if (!$("#side-more").hidden && !e.target.closest("#side-more,#nv-more")) SIDE.closeMore(); });
+SIDE.drawPins();
+
 // the Map's toggle, in every conversation's header
 document.addEventListener("click", (e) => { if (e.target.closest?.("[data-stage-toggle]")) STAGE.toggle(); else if (e.target.closest?.("[data-lp-open]")) STAGE.launch(); });
 
@@ -4073,6 +4161,7 @@ const GLOBAL = {
   write: () => say.focus(),
   keys: () => openKeys(),
   map: () => STAGE.toggle(),
+  sideFold: () => SIDE.fold(!SIDE.folded),
 };
 addEventListener("keydown", (e) => {
   if (S.recording) return; // Settings › Keyboard is listening for a new key
@@ -4316,8 +4405,11 @@ for (const x of $$(".sheet [data-close]")) x.innerHTML = ICON.close;
 $("#jump-ic").innerHTML = ICON.search;
 $("#all-ic").innerHTML = ICON.search;
 $("#send").innerHTML = ICON.send; $("#send").dataset.mode = "send";
-$("#theme").innerHTML = `<span class="th-track" aria-hidden="true"><span class="th-knob">${ICON.sun}${ICON.moon}</span></span>`;
 applyTheme(THEME.get());
+$("#side-fold").innerHTML = ICON.sidebar;
+$("#side-jump").innerHTML = ICON.search;
+$("#ic-more").innerHTML = ICON.more;
+SIDE.fold(SIDE.folded, { quiet: true });
 soundRender();
 PHONE.addEventListener("change", () => { setDrawer(false); render(); });
 
