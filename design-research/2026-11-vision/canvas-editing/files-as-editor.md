@@ -1,6 +1,8 @@
 # The whole Files view as a seamless editor: code-server, VS Code's editor, or our own
 
-Research only, 19 Nov 2026. Nothing was built. This follows `README.md` in this folder (the system map, and section V on versions).
+Research only, 19 Nov 2026. Nothing was built.
+
+> **Superseded in part by the owner, 09:40Z:** "i don't want to embed code server, i just wanted you to learn how it works, so we can have our file viewer to behave like that." Routes 1 and 4's VS Code handoff are off the table. What stands is Route 3 (our own Files on CodeMirror 6) and §5's foundation. How VS Code behaves, and what to copy, is in [vscode-behaviours.md](vscode-behaviours.md). This follows `README.md` in this folder (the system map, and section V on versions).
 
 **The owner, 09:35Z:** "if we were to make our entire files view to be something like this and code-server, is it possible … and make it feel seamless? so like I can have features like code server and edit the files anyway i want?? … think properly, don't hang yourself to any single rule or idea. explore properly. I want the smooth and seamless feeling."
 
