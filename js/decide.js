@@ -16,7 +16,7 @@
 import { esc, WAITING } from "./world.js";
 import * as Kit from "../modules/decisions/kit.js";
 import * as K from "../core/platform/keys.js";
-import { EFFORT, effortOf, rank, evidenceFor, leverageOf, suggestFor, whyLine, estLine } from "./content.js";
+import { EFFORT, effortOf, rank, evidenceFor, leverageOf, suggestFor, whyLine, estLine } from "../modules/decisions/rank.js";
 import { ICON, $, RM, clock, sound, dial, wait, morph, expand } from "./ui.js";
 import { usable, hookOf } from "./focusview.js";
 import { renderMarkdown, renderInline, excerptMarkdown } from "./markdown.js";

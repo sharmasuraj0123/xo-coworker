@@ -2231,7 +2231,7 @@
    "home": "core/services/comms.js"
   },
   "js/content.js": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/rank.js"
   },
   "js/create.js": {

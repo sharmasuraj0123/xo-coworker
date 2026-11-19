@@ -4,10 +4,10 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 623 |
+| planned | 621 |
 | vendor | 367 |
 | deleted | 232 |
-| moved | 55 |
+| moved | 57 |
 | split | 35 |
 | kept | 1 |
 
@@ -38,7 +38,7 @@ Items inside first-party files: 2290 (planned 1007, moved 695, split-region 561,
 | `js/chart.js` | 176 | moved | core/ui/markdown/chart.js · next: js/chart.js re-exports it until the shims go |
 | `js/chats.js` | 452 | planned | modules/chats/ |
 | `js/comms.js` | 173 | moved | core/services/comms.js |
-| `js/content.js` | 72 | planned | modules/decisions/rank.js |
+| `js/content.js` | 72 | moved | modules/decisions/rank.js |
 | `js/create.js` | 364 | moved | modules/create-project/create.js |
 | `js/decide.js` | 1104 | split | modules/decisions/needs.js, modules/decisions/queue.js, modules/decisions/card.js, modules/decisions/panel.js, modules/decisions/toast.js |
 | `js/diffthemes.js` | 4 | planned | modules/changes/diff-renderer/themes.js (generated) |
