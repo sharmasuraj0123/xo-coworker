@@ -4,14 +4,14 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 618 |
+| planned | 617 |
 | vendor | 367 |
 | deleted | 232 |
 | moved | 59 |
-| split | 36 |
+| split | 37 |
 | kept | 1 |
 
-Items inside first-party files: 2290 (planned 907, moved 902, split-region 453, deleted 25, kept 2, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 905, moved 904, split-region 453, deleted 25, kept 2, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -120,7 +120,7 @@ Items inside first-party files: 2290 (planned 907, moved 902, split-region 453, 
 | `css/docs.css` | 141 | planned | modules/files/editor/docs.css |
 | `css/dropdown.css` | 52 | moved | core/ui/components/xo-select.css |
 | `css/foundation.css` | 267 | split | core/ui/foundation.css, modules/* (structure rules) |
-| `css/launchpad.css` | 438 | planned | modules/launchpad/launchpad.css |
+| `css/launchpad.css` | 438 | split | modules/launchpad/launchpad.css, modules/launchpad/system.css, modules/launchpad/cover.css · next: css/launchpad.css keeps their @imports, in its place in the cascade, and the reduced-motion rule with its !important until the sheet gets its @layer |
 | `css/light.css` | 85 | split | core/ui/tokens.css (light roles), modules/* (light blocks) |
 | `css/links.css` | 104 | planned | modules/conversation/links.css |
 | `css/media.css` | 127 | planned | modules/conversation/media/media.css |
