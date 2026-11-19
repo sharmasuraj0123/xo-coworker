@@ -10,13 +10,15 @@
 - One module moves at a time. While it moves, no feature work touches it.
 
 ## Before you commit or merge
-- `node tools/check.mjs` must pass: lint, types, ratchets, ledger, then every unit test, judged by exit code.
+- `node tools/check.mjs` must pass: lint, types, ratchets, comments, ledger, then every unit test, judged by exit code.
 - The pre-commit hook runs `--fast`. Turn it on with `git config core.hooksPath .githooks`.
 - Dev-only tools: run `npm ci` once. The app never needs them; it runs from plain files with no build.
 - Never weaken a baseline. `--update-baselines` only lowers numbers.
 - No browser suites unless the owner asks. Hold the `headless-browser-suite` lease, and run one suite at a time.
 
 ## Code
+- Comments: avoid them. One line at most, and never one that points at a plan, a phase, a decision or a doc. The `comments` ratchet in `tools/check.mjs` enforces this. Type-only JSDoc goes on one line.
+- Fix problems at their root. No patches, workarounds or special cases layered on top.
 - Layers, lowest first: `core/kernel` → `core/platform` → `core/ui` → `core/services` → `shell` → `modules/*` → `apps-host`.
 - A file imports only its own folder and lower layers. Modules never import each other; they talk through services, places and the bus.
 - Render with `core/ui/redraw` (in place). A press must survive a live redraw. No framework re-creates nodes.

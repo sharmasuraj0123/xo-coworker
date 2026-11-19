@@ -1,15 +1,8 @@
 // @ts-check
-// Batched redraws. invalidate(key) marks a key; the next frame runs each marked key's flushers once, in
-// the order they were registered (so a region always draws after what it depends on, as it does today).
-// invalidate() with no key marks them all (the legacy app's render() is one flusher until it is gone).
 
 /** @typedef {import("./types").Scheduler} Scheduler */
 
-/**
- * @param {{ request?: (fn: () => void) => unknown, warn?: (...a: unknown[]) => void }} [opts]
- *   request: how to wait for the next flush (default: requestAnimationFrame, else a microtask)
- * @returns {Scheduler}
- */
+/** @param {{ request?: (fn: () => void) => unknown, warn?: (...a: unknown[]) => void }} [opts] @returns {Scheduler} */
 export function createScheduler(opts = {}) {
   const warn = opts.warn || console.error;
   const request = opts.request

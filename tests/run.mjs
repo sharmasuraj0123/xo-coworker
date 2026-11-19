@@ -1,19 +1,4 @@
-// One command for every unit test: `node tests/run.mjs [filter]`.
-//
-// Runs each tests/*.test.mjs (and tests/*.test.py with python3), plus every <dir>/**/tests/*.test.mjs under
-// core/, shell/, modules/, apps-host/ and e2e/ (unit tests that never start a browser), each in its own process, a few at a time,
-// and fails when ANY of them exits non-zero. The exit code is the verdict, never the words a test
-// prints: a file can print "N passed" and still fail (our memory note, 2026-11). Browser suites
-// (tests/browser/, later e2e/) are not run here: they run only when the owner asks.
-//
-//   node tests/run.mjs              every test
-//   node tests/run.mjs files        only tests whose file name contains "files"
-//   JOBS=8 node tests/run.mjs       more at once (default 4)
-//   TEST_TIMEOUT_MS=120000          per-file limit (default 120 s); a timeout is a failure
-//
-// Known failures are listed in tests/known-failures.json with a reason each: they are reported, and
-// they fail the run only when they start passing (so the list can never go stale) or when a new one
-// appears.
+// node tests/run.mjs [filter]: every unit test, judged by exit code (JOBS, TEST_TIMEOUT_MS).
 import { spawn } from "node:child_process";
 import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -28,7 +13,6 @@ const KNOWN_PATH = join(DIR, "known-failures.json");
 const known = existsSync(KNOWN_PATH) ? JSON.parse(readFileSync(KNOWN_PATH, "utf8")) : {};
 
 const IS_TEST = /\.test\.(mjs|py)$/;
-/** tests/<file> is listed by name; a test in a module's own tests/ folder by its path from the repo root. */
 const files = readdirSync(DIR).filter((f) => IS_TEST.test(f));
 /** @param {string} rel */
 function walk(rel) {
@@ -42,7 +26,6 @@ function walk(rel) {
 for (const d of ["core", "shell", "modules", "apps-host", "e2e"]) if (existsSync(join(ROOT, d))) walk(d);
 files.splice(0, files.length, ...files.filter((f) => f.includes(filter)).sort());
 
-/** Run one test file; resolve {file, code, ms, out}. */
 function runOne(file) {
   const t0 = Date.now();
   const path = file.includes("/") ? join(ROOT, file) : join(DIR, file);

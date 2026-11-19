@@ -1,17 +1,5 @@
 #!/usr/bin/env python3
-"""Fill ledger.json with the planned home of every file and item (plan mode).
-
-    python3 tools/ledger/fill_ledger.py <ledger-dir> <analysis-dir>
-
-Run ONCE, to make the plan. It refuses to run once any entry has moved, been
-kept or deleted, because it would reset those statuses. After that, statuses are
-changed by the commits that move code (see AGENTS.md).
-
-Sources: the six analyses in <modular-dir>/analysis/ (region maps for js/app.js
-and css/app.css, the tests table) and the per-file decisions below. Statuses in
-plan mode: planned (home), split (homes; items carry their own region's home),
-decide (needs the owner: options listed), vendor (kept as-is).
-"""
+"""Fills tools/ledger/ledger.json with each file's planned home; refuses once anything has moved."""
 import json, re, subprocess, sys
 from pathlib import Path
 
@@ -21,7 +9,7 @@ commit = inv["commit"]
 if any(e.get("status") in ("moved", "kept", "deleted") for e in list(L["files"].values()) + list(L["items"].values())):
     sys.exit("fill_ledger: the move has started (moved/kept/deleted entries exist); refusing to reset the ledger")
 
-JS = {  # file -> (status, home(s))  — from analyses 1–5
+JS = {
  "js/app.js": ("split", "boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md §2.6)"),
  "js/stage.js": ("split", ["shell/panel", "core/kernel (panel.page/panel.frame places)", "modules/threads (Threads frame)", "modules/changes (frame wiring)", "modules/map (frame wiring)", "modules/launchpad (cover)", "modules/shells (shell page)"]),
  "js/shells/dock.js": ("planned", "modules/shells/dock.js"), "js/shells/term.js": ("planned", "modules/shells/term.js"), "js/shells/model.js": ("planned", "modules/shells/model.js"),
@@ -83,7 +71,6 @@ ROOT = {
  "favicon.svg": ("decide", "core/ui/icons/favicon.svg, generated from the icon pack (today a hand-made copy that differs)"),
 }
 
-# Tests: proposed home column of analysis 6.
 TEST_HOME = {}
 for row in open(A / "6-css-tests-tools.md"):
     m = re.match(r"^\| *([\w.-]+\.(?:test\.(?:mjs|cjs|py)|cjs))(?: \(README\))? *\|.*\| *([^|]+?) *\|\s*$", row)
@@ -121,7 +108,6 @@ def file_plan(p):
     if p.startswith(("design-research/", "ui-mockups/")): return ("decide", "leave the product repo for the design archive (nothing in the app or tests depends on it)")
     return ("decide", "unclassified")
 
-# Region maps → item homes for js/app.js and css/app.css.
 def regions(md, start_pat, sep):
     out, on = [], False
     for row in open(A / md):

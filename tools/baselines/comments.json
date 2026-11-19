@@ -1,0 +1,1222 @@
+{
+ "js/api.js": {
+  "extra": 51,
+  "refs": 3
+ },
+ "js/app.js": {
+  "extra": 425,
+  "refs": 8
+ },
+ "js/attach.js": {
+  "extra": 28,
+  "refs": 0
+ },
+ "js/blocks.js": {
+  "extra": 27,
+  "refs": 0
+ },
+ "js/changes.js": {
+  "extra": 30,
+  "refs": 1
+ },
+ "js/changesframe.js": {
+  "extra": 26,
+  "refs": 2
+ },
+ "js/chart.js": {
+  "extra": 19,
+  "refs": 0
+ },
+ "js/chats.js": {
+  "extra": 27,
+  "refs": 0
+ },
+ "js/comms.js": {
+  "extra": 19,
+  "refs": 1
+ },
+ "js/content.js": {
+  "extra": 8,
+  "refs": 0
+ },
+ "js/create.js": {
+  "extra": 24,
+  "refs": 0
+ },
+ "js/decide.js": {
+  "extra": 42,
+  "refs": 1
+ },
+ "js/diffthemes.js": {
+  "extra": 1,
+  "refs": 0
+ },
+ "js/diffview.js": {
+  "extra": 90,
+  "refs": 1
+ },
+ "js/doceditor.js": {
+  "extra": 15,
+  "refs": 1
+ },
+ "js/docs.js": {
+  "extra": 50,
+  "refs": 1
+ },
+ "js/drafts.js": {
+  "extra": 7,
+  "refs": 0
+ },
+ "js/dropdown.js": {
+  "extra": 25,
+  "refs": 0
+ },
+ "js/fileicons.js": {
+  "extra": 16,
+  "refs": 0
+ },
+ "js/files.js": {
+  "extra": 66,
+  "refs": 1
+ },
+ "js/filespage.js": {
+  "extra": 15,
+  "refs": 1
+ },
+ "js/focusview.js": {
+  "extra": 33,
+  "refs": 0
+ },
+ "js/follow.js": {
+  "extra": 37,
+  "refs": 0
+ },
+ "js/fuzzy.js": {
+  "extra": 9,
+  "refs": 0
+ },
+ "js/gestures.js": {
+  "extra": 26,
+  "refs": 1
+ },
+ "js/herald.js": {
+  "extra": 17,
+  "refs": 0
+ },
+ "js/highlight.js": {
+  "extra": 13,
+  "refs": 0
+ },
+ "js/hopstate.js": {
+  "extra": 2,
+  "refs": 0
+ },
+ "js/icon.js": {
+  "extra": 8,
+  "refs": 0
+ },
+ "js/imagechange.js": {
+  "extra": 18,
+  "refs": 0
+ },
+ "js/intel.js": {
+  "extra": 48,
+  "refs": 0
+ },
+ "js/keynav.js": {
+  "extra": 24,
+  "refs": 0
+ },
+ "js/keys.js": {
+  "extra": 16,
+  "refs": 0
+ },
+ "js/kit.js": {
+  "extra": 44,
+  "refs": 0
+ },
+ "js/launchpad.js": {
+  "extra": 86,
+  "refs": 0
+ },
+ "js/lightbox.js": {
+  "extra": 31,
+  "refs": 1
+ },
+ "js/lpapi.js": {
+  "extra": 28,
+  "refs": 0
+ },
+ "js/map.js": {
+  "extra": 118,
+  "refs": 0
+ },
+ "js/markdown.js": {
+  "extra": 41,
+  "refs": 1
+ },
+ "js/mdlive.js": {
+  "extra": 24,
+  "refs": 1
+ },
+ "js/media.js": {
+  "extra": 97,
+  "refs": 1
+ },
+ "js/merge.js": {
+  "extra": 14,
+  "refs": 1
+ },
+ "js/model.js": {
+  "extra": 5,
+  "refs": 0
+ },
+ "js/motion.js": {
+  "extra": 13,
+  "refs": 1
+ },
+ "js/msgx.js": {
+  "extra": 111,
+  "refs": 0
+ },
+ "js/pacing.js": {
+  "extra": 12,
+  "refs": 0
+ },
+ "js/paid.js": {
+  "extra": 26,
+  "refs": 0
+ },
+ "js/paidview.js": {
+  "extra": 2,
+  "refs": 0
+ },
+ "js/paths.js": {
+  "extra": 6,
+  "refs": 0
+ },
+ "js/pending.js": {
+  "extra": 12,
+  "refs": 0
+ },
+ "js/projicons.js": {
+  "extra": 5,
+  "refs": 0
+ },
+ "js/quickopen.js": {
+  "extra": 7,
+  "refs": 0
+ },
+ "js/record.js": {
+  "extra": 57,
+  "refs": 1
+ },
+ "js/recordview.js": {
+  "extra": 71,
+  "refs": 1
+ },
+ "js/redraw.js": {
+  "extra": 28,
+  "refs": 0
+ },
+ "js/review.js": {
+  "extra": 21,
+  "refs": 0
+ },
+ "js/rich.js": {
+  "extra": 28,
+  "refs": 0
+ },
+ "js/ring.js": {
+  "extra": 9,
+  "refs": 0
+ },
+ "js/rtsettings.js": {
+  "extra": 28,
+  "refs": 0
+ },
+ "js/runsview.js": {
+  "extra": 9,
+  "refs": 0
+ },
+ "js/runtimes.js": {
+  "extra": 23,
+  "refs": 0
+ },
+ "js/settings.js": {
+  "extra": 17,
+  "refs": 0
+ },
+ "js/shape.js": {
+  "extra": 98,
+  "refs": 1
+ },
+ "js/shapeview.js": {
+  "extra": 27,
+  "refs": 0
+ },
+ "js/shells/dock.js": {
+  "extra": 25,
+  "refs": 0
+ },
+ "js/shells/model.js": {
+  "extra": 18,
+  "refs": 0
+ },
+ "js/shells/term.js": {
+  "extra": 13,
+  "refs": 0
+ },
+ "js/skeleton.js": {
+  "extra": 17,
+  "refs": 0
+ },
+ "js/sse.js": {
+  "extra": 19,
+  "refs": 0
+ },
+ "js/stage.js": {
+  "extra": 100,
+  "refs": 1
+ },
+ "js/storm.js": {
+  "extra": 86,
+  "refs": 0
+ },
+ "js/timeline.js": {
+  "extra": 203,
+  "refs": 0
+ },
+ "js/turnview.js": {
+  "extra": 63,
+  "refs": 1
+ },
+ "js/ui.js": {
+  "extra": 47,
+  "refs": 1
+ },
+ "js/util.js": {
+  "extra": 10,
+  "refs": 0
+ },
+ "js/viewer.js": {
+  "extra": 94,
+  "refs": 1
+ },
+ "js/words.js": {
+  "extra": 11,
+  "refs": 0
+ },
+ "js/world.js": {
+  "extra": 11,
+  "refs": 0
+ },
+ "js/xoicons.js": {
+  "extra": 2,
+  "refs": 0
+ },
+ "css/app.css": {
+  "extra": 197,
+  "refs": 3
+ },
+ "css/artifacts.css": {
+  "extra": 15,
+  "refs": 1
+ },
+ "css/base.css": {
+  "extra": 18,
+  "refs": 1
+ },
+ "css/diffs.css": {
+  "extra": 20,
+  "refs": 0
+ },
+ "css/docs.css": {
+  "extra": 4,
+  "refs": 0
+ },
+ "css/dropdown.css": {
+  "extra": 7,
+  "refs": 0
+ },
+ "css/foundation.css": {
+  "extra": 92,
+  "refs": 2
+ },
+ "css/launchpad.css": {
+  "extra": 28,
+  "refs": 0
+ },
+ "css/light.css": {
+  "extra": 2,
+  "refs": 0
+ },
+ "css/links.css": {
+  "extra": 34,
+  "refs": 1
+ },
+ "css/media.css": {
+  "extra": 14,
+  "refs": 1
+ },
+ "css/msgx.css": {
+  "extra": 97,
+  "refs": 1
+ },
+ "css/panel.css": {
+  "extra": 86,
+  "refs": 1
+ },
+ "css/phone.css": {
+  "extra": 77,
+  "refs": 1
+ },
+ "css/rich.css": {
+  "extra": 62,
+  "refs": 0
+ },
+ "css/shape.css": {
+  "extra": 8,
+  "refs": 0
+ },
+ "css/side.css": {
+  "extra": 39,
+  "refs": 1
+ },
+ "css/tokens.css": {
+  "extra": 68,
+  "refs": 2
+ },
+ "tests/agent-marks.test.mjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tests/agent-tag.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/app-ctl-scale.test.mjs": {
+  "extra": 6,
+  "refs": 0
+ },
+ "tests/artifacts-preview.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/attach.test.mjs": {
+  "extra": 1,
+  "refs": 0
+ },
+ "tests/browser/chat-read-order.test.cjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/browser/conversation.test.cjs": {
+  "extra": 29,
+  "refs": 0
+ },
+ "tests/browser/coordinator-busy.test.cjs": {
+  "extra": 2,
+  "refs": 0
+ },
+ "tests/browser/flows.test.cjs": {
+  "extra": 146,
+  "refs": 0
+ },
+ "tests/browser/harness.cjs": {
+  "extra": 31,
+  "refs": 1
+ },
+ "tests/browser/held-contract.test.cjs": {
+  "extra": 6,
+  "refs": 0
+ },
+ "tests/browser/held-waiting.test.cjs": {
+  "extra": 10,
+  "refs": 0
+ },
+ "tests/browser/lpshell.test.cjs": {
+  "extra": 25,
+  "refs": 2
+ },
+ "tests/browser/settings.test.cjs": {
+  "extra": 46,
+  "refs": 0
+ },
+ "tests/browser/smoke.test.cjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/busy.test.mjs": {
+  "extra": 8,
+  "refs": 0
+ },
+ "tests/card-ring.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/changes.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/checklist-empty.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/codemirror-vendor.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/conn-line.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/conv-ctl-scale.test.mjs": {
+  "extra": 6,
+  "refs": 0
+ },
+ "tests/conv-find-ring.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/conv-herald-resolve.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/conv-sound.test.mjs": {
+  "extra": 7,
+  "refs": 0
+ },
+ "tests/coord-colour.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/copy-path-fail.test.mjs": {
+  "extra": 13,
+  "refs": 0
+ },
+ "tests/cover-inert.test.mjs": {
+  "extra": 6,
+  "refs": 0
+ },
+ "tests/create-busy-honest.test.mjs": {
+  "extra": 8,
+  "refs": 0
+ },
+ "tests/create.test.mjs": {
+  "extra": 2,
+  "refs": 0
+ },
+ "tests/css-wellformed.test.mjs": {
+  "extra": 7,
+  "refs": 0
+ },
+ "tests/ctl-heights.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/ctl-scale.test.mjs": {
+  "extra": 23,
+  "refs": 0
+ },
+ "tests/design-budget.test.mjs": {
+  "extra": 14,
+  "refs": 1
+ },
+ "tests/diff-redraw-focus.test.mjs": {
+  "extra": 10,
+  "refs": 0
+ },
+ "tests/diffview.test.mjs": {
+  "extra": 3,
+  "refs": 1
+ },
+ "tests/dock-focus.test.mjs": {
+  "extra": 11,
+  "refs": 0
+ },
+ "tests/docs.test.mjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tests/drafts.test.mjs": {
+  "extra": 1,
+  "refs": 0
+ },
+ "tests/dropdown-held.test.mjs": {
+  "extra": 6,
+  "refs": 0
+ },
+ "tests/edge-ring.test.mjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tests/editor-caret.test.mjs": {
+  "extra": 7,
+  "refs": 0
+ },
+ "tests/editor-exit.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/edits.test.mjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tests/field-ring.test.mjs": {
+  "extra": 6,
+  "refs": 0
+ },
+ "tests/file-cache.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/files-stop-look.test.mjs": {
+  "extra": 2,
+  "refs": 0
+ },
+ "tests/files-tree-scroll-fold.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/files.test.mjs": {
+  "extra": 1,
+  "refs": 0
+ },
+ "tests/find-bar.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/find-race.test.mjs": {
+  "extra": 6,
+  "refs": 0
+ },
+ "tests/focus-back.test.mjs": {
+  "extra": 9,
+  "refs": 0
+ },
+ "tests/focusview.test.mjs": {
+  "extra": 8,
+  "refs": 0
+ },
+ "tests/follow-instance.test.mjs": {
+  "extra": 2,
+  "refs": 0
+ },
+ "tests/gone-thread-composer.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/graph-focus.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/grip-ring.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/head-focus.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/head-narrow.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/head-redraw.test.mjs": {
+  "extra": 7,
+  "refs": 0
+ },
+ "tests/herald.test.mjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tests/hover-census.test.mjs": {
+  "extra": 6,
+  "refs": 0
+ },
+ "tests/hover-inks.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/icon-gap.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/image-text-mode.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/imagechange.test.mjs": {
+  "extra": 2,
+  "refs": 0
+ },
+ "tests/inverse-toast.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/key-layer.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/keynav.test.mjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tests/keys-dispatch.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/keys.test.mjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tests/launchpad.test.mjs": {
+  "extra": 2,
+  "refs": 0
+ },
+ "tests/layout-reads.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/lib/cascade.mjs": {
+  "extra": 13,
+  "refs": 0
+ },
+ "tests/lib/tokens.mjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tests/link-buttons.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/links-css.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/logic.test.mjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tests/lp-create-connect-focus.test.mjs": {
+  "extra": 6,
+  "refs": 0
+ },
+ "tests/lp-create-stop-focus.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/lp-intel-order.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/lp-phone-links.test.mjs": {
+  "extra": 11,
+  "refs": 0
+ },
+ "tests/lp-stop-notice.test.mjs": {
+  "extra": 10,
+  "refs": 0
+ },
+ "tests/main-clip.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/map-focus-reveal.test.mjs": {
+  "extra": 7,
+  "refs": 0
+ },
+ "tests/map-follow-cursor.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/map-follow.test.mjs": {
+  "extra": 6,
+  "refs": 0
+ },
+ "tests/map-reach.test.mjs": {
+  "extra": 6,
+  "refs": 0
+ },
+ "tests/map-tag-press.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/map.test.mjs": {
+  "extra": 2,
+  "refs": 0
+ },
+ "tests/mdlive.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/media.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/menu-focus-fill.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/menu-focus.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/menu-one-active.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/menu-successor.test.mjs": {
+  "extra": 7,
+  "refs": 0
+ },
+ "tests/merge.test.mjs": {
+  "extra": 2,
+  "refs": 0
+ },
+ "tests/names.test.mjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tests/no-offedge.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/notice-clear.test.mjs": {
+  "extra": 9,
+  "refs": 0
+ },
+ "tests/notice-kind.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/one-active.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/page-no-hover.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/paging.test.mjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tests/paid.test.mjs": {
+  "extra": 2,
+  "refs": 0
+ },
+ "tests/paint-a11y.test.mjs": {
+  "extra": 7,
+  "refs": 0
+ },
+ "tests/panel-shell.test.mjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tests/panel-threads.test.mjs": {
+  "extra": 7,
+  "refs": 0
+ },
+ "tests/path-copy-inline.test.mjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tests/pending.test.mjs": {
+  "extra": 1,
+  "refs": 0
+ },
+ "tests/phone-cascade.test.mjs": {
+  "extra": 6,
+  "refs": 0
+ },
+ "tests/phone-floor.test.mjs": {
+  "extra": 9,
+  "refs": 0
+ },
+ "tests/phone-hit-area.test.mjs": {
+  "extra": 7,
+  "refs": 0
+ },
+ "tests/phone-panel-go.test.mjs": {
+  "extra": 6,
+  "refs": 0
+ },
+ "tests/picker-keys.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/pierre-find-focus.test.mjs": {
+  "extra": 9,
+  "refs": 0
+ },
+ "tests/press-inks.test.mjs": {
+  "extra": 7,
+  "refs": 0
+ },
+ "tests/press-keeps-node.test.mjs": {
+  "extra": 11,
+  "refs": 0
+ },
+ "tests/press-reach.test.mjs": {
+  "extra": 10,
+  "refs": 0
+ },
+ "tests/project-find-escape.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/project-icons.test.mjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tests/quickopen.test.mjs": {
+  "extra": 2,
+  "refs": 0
+ },
+ "tests/rail-order.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/rec-undo-focus.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/reconcile-focus.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/record.test.mjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tests/reduced-motion.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/refusal-mark.test.mjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tests/refused.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/region-focus.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/render-focus.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/retry-waiting.test.mjs": {
+  "extra": 6,
+  "refs": 0
+ },
+ "tests/reveal-focus.test.mjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tests/rich-markdown.test.mjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tests/ring-room.test.mjs": {
+  "extra": 10,
+  "refs": 0
+ },
+ "tests/ring.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/routing-truth.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/routing-words.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/rtsettings.test.mjs": {
+  "extra": 6,
+  "refs": 0
+ },
+ "tests/runs-stop-receipt.test.mjs": {
+  "extra": 11,
+  "refs": 0
+ },
+ "tests/runtimes.test.mjs": {
+  "extra": 1,
+  "refs": 0
+ },
+ "tests/saved-truth.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/scroller-ring.test.mjs": {
+  "extra": 17,
+  "refs": 0
+ },
+ "tests/seg-fold.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/seg-ring.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/send-gate.test.mjs": {
+  "extra": 7,
+  "refs": 0
+ },
+ "tests/send-notice.test.mjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tests/serve.test.py": {
+  "extra": 12,
+  "refs": 0
+ },
+ "tests/settings-css.test.mjs": {
+  "extra": 2,
+  "refs": 0
+ },
+ "tests/shape-held.test.mjs": {
+  "extra": 8,
+  "refs": 0
+ },
+ "tests/shape-unkept.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/shape.test.mjs": {
+  "extra": 6,
+  "refs": 0
+ },
+ "tests/shell-grip.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/shells.test.mjs": {
+  "extra": 1,
+  "refs": 0
+ },
+ "tests/side-bar.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/side-fold.test.mjs": {
+  "extra": 2,
+  "refs": 0
+ },
+ "tests/side-spacing.test.mjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tests/sidebar-hover.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/stage-inplace.test.mjs": {
+  "extra": 6,
+  "refs": 0
+ },
+ "tests/stage-pages.test.mjs": {
+  "extra": 7,
+  "refs": 0
+ },
+ "tests/stale-pass.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/start-centred.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/state-hover.test.mjs": {
+  "extra": 14,
+  "refs": 0
+ },
+ "tests/stopped-on-purpose.test.mjs": {
+  "extra": 7,
+  "refs": 0
+ },
+ "tests/storm.test.mjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tests/target-bounded.test.mjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tests/targets-css.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/thread-filter.test.mjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tests/thread-menu.test.mjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tests/thread-page.test.mjs": {
+  "extra": 7,
+  "refs": 0
+ },
+ "tests/turnview.test.mjs": {
+  "extra": 6,
+  "refs": 0
+ },
+ "tests/viewer-busy.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/viewer-errors.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/viewer-head-focus.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tests/viewer-hooks.test.mjs": {
+  "extra": 12,
+  "refs": 0
+ },
+ "tests/words.test.mjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tests/xoicons.test.mjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tools/codemirror/vendor.mjs": {
+  "extra": 25,
+  "refs": 0
+ },
+ "tools/diffview/astra-recheck.cjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tools/diffview/dlcopy.cjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tools/diffview/fake-changes.cjs": {
+  "extra": 5,
+  "refs": 1
+ },
+ "tools/diffview/fake-preload.cjs": {
+  "extra": 2,
+  "refs": 0
+ },
+ "tools/diffview/fileview-shots.cjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tools/diffview/livecheck.cjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tools/diffview/measure.cjs": {
+  "extra": 6,
+  "refs": 0
+ },
+ "tools/diffview/p1measure.cjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tools/diffview/p1shots.cjs": {
+  "extra": 2,
+  "refs": 0
+ },
+ "tools/diffview/p2ask.cjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tools/diffview/p2measure.cjs": {
+  "extra": 2,
+  "refs": 0
+ },
+ "tools/diffview/p3flow.cjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tools/diffview/p3phone.cjs": {
+  "extra": 4,
+  "refs": 0
+ },
+ "tools/diffview/panel.cjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tools/diffview/rows-long.cjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tools/diffview/rows-max.cjs": {
+  "extra": 1,
+  "refs": 0
+ },
+ "tools/diffview/rows.cjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tools/diffview/sandbox-preview.cjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tools/diffview/sandbox.cjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tools/diffview/theme.mjs": {
+  "extra": 10,
+  "refs": 0
+ },
+ "tools/diffview/vendor.mjs": {
+  "extra": 16,
+  "refs": 0
+ },
+ "tools/files/space-e2e.mjs": {
+  "extra": 7,
+  "refs": 0
+ },
+ "tools/filetree/lib.mjs": {
+  "extra": 3,
+  "refs": 1
+ },
+ "tools/filetree/perf.mjs": {
+  "extra": 1,
+  "refs": 0
+ },
+ "tools/filetree/same.mjs": {
+  "extra": 2,
+  "refs": 0
+ },
+ "tools/launchpad/mockspace.cjs": {
+  "extra": 5,
+  "refs": 0
+ },
+ "tools/launchpad/smoke.cjs": {
+  "extra": 3,
+  "refs": 0
+ },
+ "tools/xoicons/build.mjs": {
+  "extra": 13,
+  "refs": 0
+ },
+ "serve.py": {
+  "extra": 67,
+  "refs": 2
+ },
+ "index.html": {
+  "extra": 285,
+  "refs": 1
+ }
+}

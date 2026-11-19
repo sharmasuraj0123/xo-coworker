@@ -1,5 +1,4 @@
 // @ts-check
-// Just enough semver for "does this module fit this kernel": exact, ^, ~, x-ranges, >=/<, and "||".
 
 /** @param {string} v @returns {[number, number, number] | null} */
 export function parse(v) {
@@ -9,7 +8,7 @@ export function parse(v) {
 /** @param {number[]} a @param {number[]} b */
 const cmp = (a, b) => (a[0] - b[0]) || (a[1] - b[1]) || (a[2] - b[2]);
 
-/** Does version `v` satisfy `range`? An unreadable range or version never matches. @param {string} v @param {string} range */
+/** @param {string} v @param {string} range */
 export function satisfies(v, range) {
   const ver = parse(v);
   if (!ver || typeof range !== "string" || !range.trim()) return false;

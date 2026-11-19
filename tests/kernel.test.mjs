@@ -1,6 +1,3 @@
-// The kernel (core/kernel): places, bus, scheduler, layers, semver and the module lifecycle, with the
-// conformance rule every module will be held to: disable leaves nothing behind (live(id) === 0).
-//   node tests/kernel.test.mjs
 import assert from "node:assert/strict";
 import { createKernel, manifestProblems, satisfies } from "../core/kernel/index.js";
 import { createPlaces } from "../core/kernel/places.js";

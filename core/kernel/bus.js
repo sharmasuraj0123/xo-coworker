@@ -1,5 +1,4 @@
 // @ts-check
-// The kernel's event bus: synchronous topics. A listener that throws is logged; the others still run.
 
 /** @typedef {import("./types").Bus} Bus */
 

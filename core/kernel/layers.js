@@ -1,7 +1,4 @@
 // @ts-check
-// One stack of open layers. Escape and phone Back are offered to the top layer first, then down the
-// stack, until one takes them; the shell reads list() for inert and the Tab trap. Before this, app.js
-// kept six lists that disagreed (architecture/modular/analysis/1-app-index.md §3.4).
 
 /** @typedef {import("./types").Layer} Layer @typedef {import("./types").Layers} Layers */
 

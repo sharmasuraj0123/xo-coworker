@@ -1,18 +1,5 @@
 #!/usr/bin/env python3
-"""Inventory every tracked file of xo-coworker at one commit, and everything
-inside the first-party ones, for the modularisation ledger.
-
-    python3 inventory.py <repo> <commit> <out-dir>
-
-Reads the commit straight from git (git ls-tree / git show), so it never needs
-a checkout and never touches one. Writes:
-  inventory.json  every file: path, group, lines, bytes; and for first-party
-                  JS/CSS/HTML/tests the items inside (imports, exports, ids,
-                  storage keys, routes, events, shortcuts, globals, selectors,
-                  custom properties)
-  INVENTORY.md    the same, readable, grouped
-  ledger.json     one entry per file and per item, home: null (to be filled)
-"""
+"""Inventories every tracked file at a commit, and the items inside first-party files."""
 import json, re, subprocess, sys
 from collections import defaultdict, OrderedDict
 from pathlib import Path
@@ -120,7 +107,6 @@ for path, size in entries:
 
 (out / "inventory.json").write_text(json.dumps({"commit": commit, "files": inv}, indent=1))
 
-# Ledger skeleton: one entry per file, one per item inside first-party JS/CSS.
 ledger = {"commit": commit, "files": {}, "items": {}}
 for r in inv:
     ledger["files"][r["path"]] = {"home": None, "status": "unmapped"}
@@ -130,7 +116,6 @@ for r in inv:
                 ledger["items"][f"{r['path']}::{k}::{v}"] = {"home": None, "status": "unmapped"}
 (out / "ledger.json").write_text(json.dumps(ledger, indent=1))
 
-# Readable inventory.
 by = defaultdict(list)
 for r in inv: by[r["group"]].append(r)
 order = ["root", "js", "css", "tests-unit", "tests-browser", "tests-lib", "tests-fixtures", "presets", "fonts", "vendor", "assets", "ui-mockups", "design-research"]

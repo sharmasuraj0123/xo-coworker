@@ -40,5 +40,5 @@ Each module declares the range it was written for (`"kernel": "^1"`), and `regis
 
 ## Known limits
 
-- Places are defined at runtime. The generated catalogue (`architecture/places.md`) comes in phase 3, when the shell defines the first places.
+- Places are defined at runtime; there is no generated catalogue of them yet.
 - `when(at)` is called on every read, so keep it cheap.

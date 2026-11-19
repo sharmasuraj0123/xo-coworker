@@ -1,24 +1,5 @@
 #!/usr/bin/env python3
-"""The "nothing is left behind" check.
-
-    python3 tools/ledger/check_ledger.py [--final] [--repo .] [--ledger tools/ledger/ledger.json] [--inventory tools/ledger/inventory.json]
-
-The ledger is checked against ITS OWN base commit (ledger["commit"]: the files
-that existed when the plan was made). With --final it also checks the working
-tree: a moved/kept file's home exists, and a deleted file is gone.
-
-Fails (exit 1) when:
-  * a file tracked at <commit> has no ledger entry, or an entry names a file
-    that isn't tracked there (the ledger is stale);
-  * any file or item is still `unmapped`;
-  * an entry is `moved`/`split` without a `home`, or `deleted` without a `reason`;
-  * (with --inventory) an item found in the inventory is missing from the ledger.
-Plan mode (the default while nothing has moved): planned, split, split-region
-and vendor need a home; decide needs a home (the options) and is reported, so
-the owner's open decisions stay visible. --final (once the move is done): only
-moved, split, kept, deleted (with a reason) and vendor are allowed: nothing
-planned or undecided may remain.
-"""
+"""Fails when a file of the ledger's base commit has no home; --final also checks the working tree."""
 import json, subprocess, sys
 
 import os

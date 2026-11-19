@@ -1,11 +1,6 @@
 // @ts-check
-// The registry of places: named spots in the UI that modules (and, through the apps-host, apps) plug
-// into. A place says how it holds entries (single, list, keyed, chain) and where they apply (app,
-// project, conversation); see types.d.ts. Every contribution returns its undo.
 
-/** @typedef {import("./types").Entry} Entry @typedef {import("./types").At} At */
-/** @typedef {import("./types").PlaceDef} PlaceDef @typedef {import("./types").Places} Places */
-/** @typedef {import("./types").Arranger} Arranger @typedef {import("./types").Contributed} Contributed */
+/** @typedef {import("./types").Entry} Entry @typedef {import("./types").At} At @typedef {import("./types").PlaceDef} PlaceDef @typedef {import("./types").Places} Places @typedef {import("./types").Arranger} Arranger @typedef {import("./types").Contributed} Contributed */
 
 const ID = /^(preview:)?[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)*$/;
 const KINDS = new Set(["single", "list", "keyed", "chain"]);

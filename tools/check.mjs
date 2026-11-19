@@ -1,19 +1,4 @@
-// The one check: `node tools/check.mjs` (everything) or `node tools/check.mjs --fast` (the pre-commit half).
-//
-// Steps, in order; the run fails on the first failing step (exit code 1), and says which:
-//   1. lint     oxlint (.oxlintrc.json). Findings that existed when the baseline was made are allowed
-//               (tools/baselines/lint.json); a NEW finding fails. Fixing old ones is welcome.
-//   2. types    tsc --noEmit -p jsconfig.json: every file that starts with `// @ts-check` is type-checked.
-//   3. ratchets file size and `!important`: a file may shrink, never grow past its recorded size; a new
-//               source file may not pass NEW_FILE_MAX lines; a stylesheet's `!important` count may only fall
-//               (tools/baselines/ratchets.json).
-//   4. ledger   python3 tools/ledger/check_ledger.py: every file of the plan's base commit has a home.
-//   5. tests    node tests/run.mjs: every unit test, by exit code (skipped by --fast).
-//
-//   --fast              steps 1–4 (seconds; the pre-commit hook runs this)
-//   --update-baselines  lower the baselines to today's numbers where they fell; never raises one
-//
-// Browser suites never run here (the owner's rule: only when asked).
+// node tools/check.mjs [--fast] [--update-baselines]: lint, types, ratchets, comments, ledger, then the unit tests.
 import { spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, mkdirSync } from "node:fs";
 import { join, relative, dirname } from "node:path";
@@ -99,6 +84,62 @@ step("ratchets", () => {
     important: Object.fromEntries(Object.entries(base.important).filter(([f]) => now.important[f]).map(([f, n]) => [f, Math.min(n, now.important[f])])),
   });
   return errs.length ? `ratchets:\n${errs.join("\n")}` : null;
+});
+
+const REF = /(PLAN\.md|WAVES\.md|architecture\/|design-research\/|decision note|\bphase [0-9]|\bD[0-9]\b)/i;
+function commentFiles() {
+  const out = sourceFiles();
+  const walk = (dir, re) => {
+    if (!existsSync(join(ROOT, dir))) return;
+    for (const n of readdirSync(join(ROOT, dir), { withFileTypes: true })) {
+      const rel = `${dir}/${n.name}`;
+      if (SKIP.test(rel + "/") || n.name === "baselines") continue;
+      if (n.isDirectory()) walk(rel, re); else if (re.test(n.name)) out.push(rel);
+    }
+  };
+  walk("tests", /\.(m?js|cjs|py)$/);
+  walk("tools", /\.(m?js|cjs|py)$/);
+  walk("e2e", /\.(m?js|cjs)$/);
+  for (const f of ["serve.py", "index.html"]) if (existsSync(join(ROOT, f))) out.push(f);
+  return [...new Set(out)];
+}
+/** @param {string} f @param {string} text */
+function commentStats(f, text) {
+  const py = f.endsWith(".py");
+  let extra = 0, refs = 0, run = 0, inBlock = false, inDoc = false;
+  for (const line of text.split("\n")) {
+    const t = line.trim();
+    let isComment;
+    if (py) {
+      if (inDoc) { isComment = true; if (t.includes('"""')) inDoc = false; }
+      else if (t.startsWith('"""') && !(t.length > 3 && t.endsWith('"""'))) { isComment = true; inDoc = true; }
+      else isComment = t.startsWith("#") && !t.startsWith("#!");
+    } else if (inBlock) { isComment = true; if (t.includes("*/")) inBlock = false; }
+    else if (t.startsWith("/*") || t.startsWith("<!--")) { isComment = true; inBlock = !t.includes("*/") && !t.includes("-->"); }
+    else isComment = t.startsWith("//");
+    if (isComment) { run++; if (run > 1) extra++; } else run = 0;
+    if ((isComment || /\s\/\/\s|#\s/.test(line)) && REF.test(line)) refs++;
+  }
+  return { extra, refs };
+}
+
+step("comments", () => {
+  const basePath = join(BASE_DIR, "comments.json");
+  const now = {};
+  for (const f of commentFiles()) {
+    const s = commentStats(f, readFileSync(join(ROOT, f), "utf8"));
+    if (s.extra || s.refs) now[f] = s;
+  }
+  const base = readJson(basePath, null);
+  if (!base) { writeJson(basePath, now); return null; }
+  const errs = [];
+  for (const [f, s] of Object.entries(now)) {
+    const b = base[f] || { extra: 0, refs: 0 };
+    if (s.extra > b.extra) errs.push(`  ${f}: ${s.extra} comment lines past the first of a comment, was ${b.extra}; one line at most`);
+    if (s.refs > b.refs) errs.push(`  ${f}: ${s.refs} comments point at plan docs, phases or decisions, was ${b.refs}; none allowed`);
+  }
+  if (UPDATE) writeJson(basePath, Object.fromEntries(Object.entries(base).filter(([f]) => now[f]).map(([f, b]) => [f, { extra: Math.min(b.extra, now[f].extra), refs: Math.min(b.refs, now[f].refs) }])));
+  return errs.length ? `comments:\n${errs.join("\n")}` : null;
 });
 
 step("ledger", () => {

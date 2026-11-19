@@ -1,8 +1,4 @@
 // @ts-check
-// The kernel: modules, their services, and the lifecycle that makes every registration undoable.
-// A module is a manifest (module.json) plus activate(ctx). The kernel orders modules by what they need,
-// activates each in its own error boundary, and on disable runs every undo it collected, newest first,
-// taking dependents down before what they depend on. See types.d.ts for the contract.
 
 import { createUndos } from "./undo.js";
 import { createBus } from "./bus.js";
@@ -11,14 +7,12 @@ import { createScheduler } from "./scheduler.js";
 import { createLayers } from "./layers.js";
 import { satisfies } from "./semver.js";
 
-/** @typedef {import("./types").Kernel} Kernel @typedef {import("./types").ModuleDef} ModuleDef */
-/** @typedef {import("./types").ModuleManifest} ModuleManifest @typedef {import("./types").ModuleContext} ModuleContext */
-/** @typedef {import("./types").ModuleStatus} ModuleStatus @typedef {import("./types").StartReport} StartReport */
+/** @typedef {import("./types").Kernel} Kernel @typedef {import("./types").ModuleDef} ModuleDef @typedef {import("./types").ModuleManifest} ModuleManifest @typedef {import("./types").ModuleContext} ModuleContext @typedef {import("./types").ModuleStatus} ModuleStatus @typedef {import("./types").StartReport} StartReport */
 
 export const KERNEL_VERSION = "1.0.0";
 const MODULE_ID = /^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)+$/;
 
-/** Plain-words problems with a manifest ([] when it is fine). @param {any} m @returns {string[]} */
+/** @param {any} m @returns {string[]} */
 export function manifestProblems(m) {
   const out = [];
   if (!m || typeof m !== "object") return ["the manifest is missing"];
@@ -31,11 +25,7 @@ export function manifestProblems(m) {
   return out;
 }
 
-/**
- * @param {{ warn?: (...a: unknown[]) => void, log?: (...a: unknown[]) => void, request?: (fn: () => void) => unknown,
- *           timers?: { setTimeout: typeof setTimeout, clearTimeout: typeof clearTimeout, setInterval: typeof setInterval, clearInterval: typeof clearInterval } }} [opts]
- * @returns {Kernel}
- */
+/** @param {{ warn?: (...a: unknown[]) => void, log?: (...a: unknown[]) => void, request?: (fn: () => void) => unknown, timers?: { setTimeout: typeof setTimeout, clearTimeout: typeof clearTimeout, setInterval: typeof setInterval, clearInterval: typeof clearInterval } }} [opts] @returns {Kernel} */
 export function createKernel(opts = {}) {
   const warn = opts.warn || console.error;
   const log = opts.log || console.log;
@@ -124,7 +114,6 @@ export function createKernel(opts = {}) {
       bus.emit("kernel:module-failed", { id, error: rec.error });
     }
   }
-  /** Activate everything that can run, in dependency order, until nothing changes. */
   async function settle() {
     for (let changed = true; changed;) {
       changed = false;
@@ -146,7 +135,7 @@ export function createKernel(opts = {}) {
       disabled: all.filter((r) => r.status === "disabled").map((r) => r.def.manifest.id),
     };
   }
-  /** The active modules that need a service `id` provides, transitively, deepest first. @param {string} id @returns {string[]} */
+  /** @param {string} id @returns {string[]} */
   function dependents(id, seen = new Set([id])) {
     const out = [];
     const provides = mods.get(id)?.def.manifest.provides || [];
