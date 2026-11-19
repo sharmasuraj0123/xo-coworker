@@ -37,7 +37,7 @@ await t("connected from the message's Connect: the message goes, and focus lands
 await t("a code, from either Connect: focus lands on Copy", async () => {
   for (const which of ["#cp-err", "#cp-gh"]) {
     const D = await refused();
-    D.api.githubConnect = async () => CODE;
+    D.github.connect = async () => CODE;
     D.$(`${which} [data-cp="connect"]`).focus();
     await D.press(`${which} [data-cp="connect"]`);
     same(document.activeElement, D.$('#cp-gh [data-cp="copy"]'), which);
@@ -46,13 +46,13 @@ await t("a code, from either Connect: focus lands on Copy", async () => {
 
 await t("a failure: the Connect you're on keeps focus, and GitHub's line offers Try again", async () => {
   const D = await refused();
-  D.api.githubConnect = async () => { throw new Error("GitHub said no."); };
+  D.github.connect = async () => { throw new Error("GitHub said no."); };
   errConnect(D).focus();
   await D.press('#cp-err [data-cp="connect"]');
   same(document.activeElement, errConnect(D), "still on the message's Connect");
   assert.equal(ghConnect(D).textContent, "Try again");
   const G = await refused();
-  G.api.githubConnect = async () => { throw new Error("GitHub said no."); };
+  G.github.connect = async () => { throw new Error("GitHub said no."); };
   const b = ghConnect(G);
   b.focus();
   await G.press('#cp-gh [data-cp="connect"]');
@@ -60,10 +60,22 @@ await t("a failure: the Connect you're on keeps focus, and GitHub's line offers 
   assert.equal(b.textContent, "Try again");
 });
 
+await t("a code that fails while focus is on Copy (in GitHub's line, on no Connect): Try again takes it", async () => {
+  const D = await refused();
+  D.github.connect = async () => CODE;
+  D.github.poll = async () => ({ status: "failed", error: "That code expired." });
+  ghConnect(D).focus();
+  await D.press('#cp-gh [data-cp="connect"]');
+  same(document.activeElement, D.$('#cp-gh [data-cp="copy"]'));
+  await new Promise((r) => setTimeout(r, 5300)); await D.settle();
+  same(document.activeElement, ghConnect(D), "Try again, where the Copy link was");
+  assert.equal(ghConnect(D).textContent, "Try again");
+});
+
 await t("focus that moved on while connecting stays where it went", async () => {
   const D = await refused();
   let answer;
-  D.api.githubConnect = () => new Promise((ok) => { answer = ok; });
+  D.github.connect = () => new Promise((ok) => { answer = ok; });
   errConnect(D).focus();
   await D.press('#cp-err [data-cp="connect"]');
   D.$("#cp-name").focus();
