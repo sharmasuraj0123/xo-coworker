@@ -118,7 +118,7 @@ t("a phone's rows are on its steps (36 one line, 40, 48, 56), but those listed f
 });
 t("a control sized by its words and padding is on the scale too: the decision's where line, 24 (S157: 104×26)", () => {
   // the census reads declared heights; one drawn by its padding (3 + 20 + 3) escaped it (the controls grader on f93345a)
-  assert.match(readCss(new URL("css/app.css", ROOT), "utf8"), /\.c-where\{[^}]*height:var\(--h-sm\);[^}]*padding:0 6px;/);
+  assert.match(readCss(new URL("css/app.css", ROOT), "utf8"), /\.c-where\{[^}]*height:var\(--h-sm\);[^}]*padding:0 var\(--halo\);/);
 });
 t("a row-type control's one line fits its row: border, padding and line no taller than its floor, so only words that wrap grow it", () => {
   // a row's floor (min-height 40/48/56) hides a height its padding and line make: one 2 px over made Home's answers

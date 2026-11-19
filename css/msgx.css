@@ -315,7 +315,7 @@ body.files-open .mx-down{display:none}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-rows{margin:0 0 4px 32px}
 /* Tool rows use the same 8 px inset and 12 px hover corners as the fold rows. Retain the nested
    text column, but remove the base row's asymmetric -6 px overhang on its left edge. */
-:root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-rows>.tb-row>.tb-rh{width:calc(100% + 8px);min-height:var(--h-ctl);margin-left:-8px;padding:6px 8px;border-radius:calc(var(--r-xl) - 8px)}
+:root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-rows>.tb-row>.tb-rh{width:calc(100% + var(--halo));min-height:var(--h-ctl);margin-left:calc(-1 * var(--halo));padding:6px var(--halo);border-radius:calc(var(--r-xl) - 8px)}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb-narr{margin:4px 8px;padding:0 8px;font-size:var(--fs-sm);color:var(--ink-3)}
 
 /* The same card for any single work block pressed open (early in a turn there's no fold yet, only one

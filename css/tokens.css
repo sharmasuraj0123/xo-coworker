@@ -111,6 +111,8 @@
      focused: its fill reaches --halo past its words, at --r. A cell of a flush bar (a tab, a rail's button) draws its
      fill --cell-in inside its cell, at --r. Either way no state is ever a square, and nothing is flush with the words. */
   --halo:8px; --cell-in:4px;
+  /* a whole row reads as a card when hovered (Home's lists): its fill reaches a step further, at --r-lg */
+  --halo-row:12px;
   /* Controls with a body come in three sizes. Hit areas may be larger (44 under a coarse pointer); compact
      density steps one size down. 24 inline · 32 standard (every button, select and toolbar field) · 40 form
      fields and a screen's primary action. */

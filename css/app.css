@@ -273,7 +273,7 @@ button:disabled{cursor:default}
 .next.st-allow .stamp{animation:stamp var(--d-long) var(--ease) forwards}
 .next.st-allow .stamp .sk{animation:draw var(--d-in) var(--ease) var(--d-press) forwards}
 .nx-meta{display:flex;align-items:center;gap:10px;min-width:0;margin-bottom:12px}
-.nx-where{min-width:0;margin-left:auto;display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px;margin-right:-8px;border-radius:var(--r-sm);font-size:var(--fs-sm);color:var(--ink-4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.nx-where{min-width:0;margin-left:auto;display:inline-flex;align-items:center;gap:6px;height:var(--h-sm);padding:0 var(--halo);margin-right:calc(-1 * var(--halo));border-radius:var(--r-sm);font-size:var(--fs-sm);color:var(--ink-4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 /* where it was asked: a text link in the card's corner (it hangs 8 px into the margin to align its words),
    so its hover is the ink brightening, not a fill that would sit off the corner's curve */
 .nx-where:hover{color:var(--ink-2)}
@@ -289,7 +289,7 @@ button:disabled{cursor:default}
 .nx-btns.one{display:flex;gap:8px}
 .nx-btns.one .b{flex:none;padding:0 18px}
 .nx-foot{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:10px}
-.nx-link{display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 8px;margin-left:-8px;border-radius:var(--r-sm);font-size:var(--fs-base);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.nx-link{display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 var(--halo);margin-left:calc(-1 * var(--halo));border-radius:var(--r-sm);font-size:var(--fs-base);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 /* a text link: its hover is the ink brightening, no fill (a fill would stick out of the card's corner,
    since the link hangs 8 px into the margin to align its glyph) */
 .nx-link:hover{color:var(--ink)}
@@ -300,7 +300,7 @@ button:disabled{cursor:default}
 /* then… */
 .then ol{list-style:none;display:flex;flex-direction:column}
 .then li+li{border-top:1px solid var(--line-faint)}
-.then-i{display:grid;grid-template-columns:96px minmax(0,1fr) auto auto 16px;align-items:center;gap:14px;min-height:var(--h-row-act);padding:6px 12px;margin:0 -12px;width:calc(100% + 24px);border-radius:var(--r-lg);text-align:left;transition:background var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
+.then-i{display:grid;grid-template-columns:96px minmax(0,1fr) auto auto 16px;align-items:center;gap:14px;min-height:var(--h-row-act);padding:6px var(--halo-row);margin:0 calc(-1 * var(--halo-row));width:calc(100% + 2 * var(--halo-row));border-radius:var(--r-lg);text-align:left;transition:background var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
 .then-i:hover{background:var(--fill-1)}
 .then-i:active{transform:scale(.99)}
 .then-i>svg{width:15px;height:15px;color:var(--ink-5);transition:transform var(--dur-base) var(--ease),color var(--d-hover) var(--ease)}
@@ -759,7 +759,7 @@ button.hr:active{transform:scale(.97)}
 .composer textarea::placeholder{color:var(--ink-5)}
 .composer textarea:focus-visible{outline:none}
 .composer-row{display:flex;align-items:center;gap:8px;margin-top:6px}
-.target{display:inline-flex;align-items:center;gap:6px;min-width:0;height:var(--h-ctl);padding:0 10px 0 8px;margin-left:-8px;margin-right:auto;border-radius:var(--r-sm);color:var(--ink-4);font-size:var(--fs-sm);white-space:nowrap;overflow:hidden;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.target{display:inline-flex;align-items:center;gap:6px;min-width:0;height:var(--h-ctl);padding:0 var(--halo);margin-left:calc(-1 * var(--halo));margin-right:auto;border-radius:var(--r-sm);color:var(--ink-4);font-size:var(--fs-sm);white-space:nowrap;overflow:hidden;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .target:hover{background:var(--fill-2);color:var(--ink-3)}
 .target b{color:var(--ink-2);font-weight:var(--fw-strong)}
 .target svg{flex:none;width:13px;height:13px}
@@ -781,7 +781,7 @@ button.hr:active{transform:scale(.97)}
 .send.is-stop svg{width:14px;height:14px}
 .send.fired{animation:fire var(--d-move) var(--ease)}
 @keyframes fire{from{transform:scale(.9)}}
-.at-list{position:absolute;left:-8px;bottom:100%;margin-bottom:12px;z-index:6;list-style:none;min-width:260px;padding:6px;border-radius:var(--r-lg);border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow-lg);animation:msg-in var(--d-out) var(--ease)}
+.at-list{position:absolute;left:calc(-1 * var(--halo));bottom:100%;margin-bottom:12px;z-index:6;list-style:none;min-width:260px;padding:6px;border-radius:var(--r-lg);border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow-lg);animation:msg-in var(--d-out) var(--ease)}
 /* a row: 40 on a desktop (10 + its 20 px line + 10; it was 36: grader B on ba93c9b, C058) */
 .at-list li{display:flex;align-items:center;gap:9px;padding:10px 10px;border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-md)/var(--lh-14) var(--sans);color:var(--ink-2);cursor:pointer}
 .at-ic{flex:none;display:grid;place-items:center;color:var(--ink-4)}
@@ -1047,11 +1047,11 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .card-in{display:flex;flex-direction:column;min-height:0;flex:1}
 .c-body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:16px 20px 8px;scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent}
 .c-top{display:flex;align-items:center;gap:10px;min-width:0}
-.c-where{display:flex;align-items:center;gap:6px;min-width:0;height:var(--h-sm);white-space:nowrap;margin-left:-6px;padding:0 6px;border-radius:var(--r-sm);font-size:var(--fs-sm);color:var(--ink-4);text-align:left;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.c-where{display:flex;align-items:center;gap:6px;min-width:0;height:var(--h-sm);white-space:nowrap;margin-left:calc(-1 * var(--halo));padding:0 var(--halo);border-radius:var(--r-sm);font-size:var(--fs-sm);color:var(--ink-4);text-align:left;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .c-where:hover{background:var(--fill-2);color:var(--ink-2)}
 .c-where span{color:var(--ink-5)}
 .c-where b{font-weight:var(--fw-medium);color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.c-top .c-where{margin-left:auto;margin-right:-6px;min-width:0}
+.c-top .c-where{margin-left:auto;margin-right:calc(-1 * var(--halo));min-width:0}
 .c-h{margin-top:8px;font:var(--fw-strong) var(--fs-2xl)/var(--lh-20) var(--sans);letter-spacing:var(--tr-20);color:var(--ink);overflow-wrap:anywhere;text-wrap:pretty}
 .c-line{margin-top:6px;font-size:var(--fs-md);line-height:var(--lh-14);color:var(--ink-2);text-wrap:pretty}
 .c-facts{display:flex;gap:8px;margin-top:8px;font-size:var(--fs-md);line-height:var(--lh-14);color:#F0B3B6}
@@ -1076,7 +1076,7 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .dt-main>.dt-why:first-child{margin-top:0}
 .dt-ex{color:var(--ink-2)}
 .dt-ex.is-more{max-height:15.5em;overflow:hidden;-webkit-mask-image:linear-gradient(180deg,#000 72%,transparent);mask-image:linear-gradient(180deg,#000 72%,transparent)}
-.dt-more{display:inline-flex;align-items:center;gap:4px;height:var(--h-ctl);margin:2px 0 0 -8px;padding:0 8px;border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.dt-more{display:inline-flex;align-items:center;gap:4px;height:var(--h-ctl);margin:2px 0 0 calc(-1 * var(--halo));padding:0 var(--halo);border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .dt-more:hover{background:var(--fill-2);color:var(--ink)}
 .dt-more svg{width:12px;height:12px;transform:rotate(-90deg)}
 .dt-sug{margin-top:10px;font-size:var(--fs-base);line-height:var(--lh-14);color:var(--ink-3)}
@@ -1115,7 +1115,7 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .card-in.noting .c-btns,.card-in.noting .c-opts,.card-in.noting .c-low,.card-in.noting .teach-body{display:none}
 .c-low{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;margin-top:10px;font-size:var(--fs-sm);color:var(--ink-4)}
 .c-low-t{color:var(--ink-4)}
-.b-later{display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 10px;margin-left:-6px;border-radius:var(--r-sm);color:var(--ink-2);font-size:var(--fs-base);font-weight:var(--fw-medium);transition:background var(--d-hover) var(--ease)}
+.b-later{display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 var(--halo);margin-left:calc(-1 * var(--halo));border-radius:var(--r-sm);color:var(--ink-2);font-size:var(--fs-base);font-weight:var(--fw-medium);transition:background var(--d-hover) var(--ease)}
 .b-later:hover{background:var(--fill-2);color:var(--ink)}
 .b-later svg{width:14px;height:14px;color:var(--ink-3)}
 .b-open:hover svg{color:var(--ink)}
@@ -1594,7 +1594,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .hm-lbl-s{display:none}
   .next{padding:15px;border-radius:var(--r-2xl)}
   .nx-meta{flex-wrap:wrap;row-gap:8px}
-  .nx-where{margin-left:-8px;order:3;flex-basis:100%}
+  .nx-where{margin-left:calc(-1 * var(--halo));order:3;flex-basis:100%}
   .nx-h{font-size:var(--fs-2xl)}
   .nx-opts{grid-template-columns:1fr}
   .then-i{grid-template-columns:minmax(0,1fr) auto 16px;grid-template-rows:auto auto;row-gap:4px;padding:10px 12px}
@@ -1760,7 +1760,7 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
    amber = waiting on you, red = failed; everything else neutral ink. */
 .m-turn{margin-bottom:14px}
 .turn{display:flex;flex-direction:column;gap:6px;max-width:66ch}
-.tb-h{display:flex;align-items:center;gap:8px;width:100%;min-height:var(--h-ctl);padding:4px 8px 4px 6px;margin-left:-6px;border-radius:var(--r-sm);text-align:left;font:var(--fw-regular) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.tb-h{display:flex;align-items:center;gap:8px;width:100%;min-height:var(--h-ctl);padding:var(--s-1) var(--halo);margin-left:calc(-1 * var(--halo));border-radius:var(--r-sm);text-align:left;font:var(--fw-regular) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .tb-h:not(:disabled):hover{background:var(--row-hover);color:var(--ink-2)}
 .tb-h:disabled{cursor:default}
 .tb-hi{flex:none;display:grid;place-items:center;width:16px;height:16px;color:var(--ink-4)}
@@ -1778,7 +1778,7 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .tb-steps{margin:2px 0 6px 24px;padding-left:12px;border-left:1px solid var(--line-soft);list-style:none;display:flex;flex-direction:column;gap:6px;font-size:var(--fs-base);line-height:var(--lh-14);color:var(--ink-3)}
 .tb-rows{list-style:none;margin:2px 0 4px 24px;display:flex;flex-direction:column;gap:1px}
 .tb-rows.is-cur{margin-top:0}
-.tb-rh{display:flex;align-items:center;gap:8px;width:100%;min-height:var(--h-ctl);padding:3px 8px 3px 6px;margin-left:-6px;border-radius:var(--r-sm);text-align:left;font:var(--fw-regular) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-2)}
+.tb-rh{display:flex;align-items:center;gap:8px;width:100%;min-height:var(--h-ctl);padding:var(--s-1) var(--halo);margin-left:calc(-1 * var(--halo));border-radius:var(--r-sm);text-align:left;font:var(--fw-regular) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-2)}
 .tb-rh.is-btn:hover{background:var(--hover-fill)}
 .tb-ri{flex:none;display:grid;place-items:center;width:16px;height:16px;color:var(--ink-4)}
 .tb-ri svg{width:15px;height:15px}
@@ -1856,7 +1856,7 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .tw-label{flex:none;display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:var(--r-sm);background:var(--fill-2);border:1px solid var(--line-soft);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-2);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* F1: the runtime a thread runs on, named only when there are several. Identity, not status: grey,
    unboxed, after the state badge; amber only when that runtime can't take work. It opens Settings › Runtimes. */
-.tw-rt{flex:none;height:24px;padding:0 6px;margin-left:-4px;border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4);white-space:nowrap;transition:color var(--d-hover) var(--ease),background var(--d-hover) var(--ease)}
+.tw-rt{flex:none;height:var(--h-sm);padding:0 var(--halo);margin-left:calc(-1 * var(--s-1));border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4);white-space:nowrap;transition:color var(--d-hover) var(--ease),background var(--d-hover) var(--ease)}
 .tw-rt:hover,.tw-rt:focus-visible{color:var(--ink-2);background:var(--hover-fill)}
 .tw-rt.is-warn,.ar-r.is-warn{color:var(--warn)}
 .ar-r{color:var(--ink-4)}
@@ -2919,7 +2919,7 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .md-none{padding:28px 6px;font:var(--fw-regular) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-3)}
 .md-none b{display:block;margin-bottom:3px;color:var(--ink-2);font-weight:var(--fw-strong)}
 /* the project's title is its thread switcher */
-.pj-title{display:inline-flex;align-items:center;gap:8px;max-width:calc(100% + 14px);margin:-3px -7px -3px -7px;padding:3px 7px;border-radius:var(--r-sm);font:inherit;color:inherit;letter-spacing:inherit;text-align:left;transition:background var(--d-hover) var(--ease)}
+.pj-title{display:inline-flex;align-items:center;gap:8px;max-width:calc(100% + 2 * var(--halo));margin:calc(-1 * var(--s-1)) calc(-1 * var(--halo));padding:var(--s-1) var(--halo);border-radius:var(--r-sm);font:inherit;color:inherit;letter-spacing:inherit;text-align:left;transition:background var(--d-hover) var(--ease)}
 .pj-title>span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pj-title:hover,.pj-title[aria-expanded="true"]{background:var(--fill-2)}
 .pj-title svg{flex:none;width:14px;height:14px;color:var(--ink-4);transition:transform var(--dur-base) var(--ease),color var(--d-hover) var(--ease)}
@@ -2989,7 +2989,7 @@ body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
 .fl-crumb small{flex:none;max-width:55%;padding:3px 7px;border-radius:var(--r-sm);background:var(--fill-2);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--mono);color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* back to the projects: on the scale (24; 36 on a phone, as the phone's other icon controls), in every sheet
    (Astra S062 on 2354917: the panel's sheet made it 20 × 20) */
-.fl-up{display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);margin-left:-4px;border-radius:var(--r-sm);color:var(--ink-3)}
+.fl-up{display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);margin-left:calc((16px - var(--h-sm)) / 2);border-radius:var(--r-sm);color:var(--ink-3)}
 .fl-up:hover{background:var(--fill-2);color:var(--ink)}
 .fl-up svg{width:15px;height:15px}
 .fl-q{display:flex;align-items:center;gap:8px;height:32px;padding:0 10px;border-radius:var(--r-sm);background:var(--fill-1);border:1px solid var(--line);color:var(--ink-4);transition:border-color var(--d-hover) var(--ease)}

@@ -40,7 +40,7 @@ body.stage-over .stage{box-shadow:var(--e2)}
 .fl-crumb{gap:8px;min-height:24px;padding:0}
 .fl-crumb b{font:var(--fw-strong) var(--fs-base)/var(--lh-14) var(--sans)}
 .fl-crumb small{max-width:60%;padding:0;border-radius:0;background:none;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
-.fl-up{margin:0 -4px;border-radius:var(--r-sm)} /* its size is app.css's, on the scale (S062) */
+.fl-up{margin:0 calc((16px - var(--h-sm)) / 2);border-radius:var(--r-sm)} /* its size is app.css's, on the scale (S062) */
 .fl-up svg{width:14px;height:14px}
 .fl-q,.md-pane .md-tools .all-q{box-sizing:border-box;height:32px;padding:0 8px;gap:8px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft)}
 .fl-q svg,.md-pane .md-tools .all-q svg{width:16px;height:16px}
@@ -94,7 +94,7 @@ body.stage-over .stage{box-shadow:var(--e2)}
 .fl-menu button:focus{background:var(--menu-focus);color:var(--ink);outline:none}
 .fl-menu svg{flex:none;width:15px;height:15px;color:var(--ink-3)}
 .fl-new-r{display:flex;align-items:center;gap:8px;height:28px;padding:0 6px 0 calc(6px + var(--d) * 16px)}
-.fl-new-r input{flex:1;min-width:0;height:24px;margin-left:-6px;padding:0 5px;border:1px solid var(--line-strong);border-radius:var(--r-sm);background:var(--fill-1);outline:none;font:var(--fw-regular) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink)}
+.fl-new-r input{flex:1;min-width:0;height:var(--h-sm);margin-left:calc(-1 * var(--halo));padding:0 calc(var(--halo) - 1px);border:1px solid var(--line-strong);border-radius:var(--r-sm);background:var(--fill-1);outline:none;font:var(--fw-regular) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink)}
 .fl-new-r input[aria-invalid="true"]{border-color:var(--err)}
 .fl-new-say{box-sizing:border-box;height:28px;margin:0;padding:6px 6px 0 calc(6px + var(--d) * 16px + 18px);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
 .fl-new-say.is-err{color:var(--err-ink)}
