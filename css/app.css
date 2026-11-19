@@ -194,7 +194,7 @@ button:disabled{cursor:default}
 /* clip, not hidden: a hidden box can still be scrolled by a script, and the editor's own scrollIntoView (Pierre, after a
    focus) scrolled the page's main area 262 px up and the file out of sight on a phone (the controls grader on 65e84b7,
    S138: MAIN#main scrollTop 262, every other ancestor 0). A clipped box isn't a scroll container: nothing scrolls it */
-/* ── One geometry for the main area (design-research/2026-11-lg, P0-1) ──────────────────────────────────
+/* ── One geometry for the main area ──────────────────────────────────
    A side panel (the Agentic Control Pane, Needs you, the Map, the viewer) reserves --rp on the right, and
    every view ends where it begins: Home, the conversation, Artifacts, the dock, the toasts. Inside each, the
    reading column is placed from that view's own width (each is an inline-size container), never centred in
@@ -2451,7 +2451,7 @@ a.vw-btn{text-decoration:none}
   .shd-tabw.is-edit .shd-in{width:160px;font-size:var(--fs-read)} /* 16 on a phone: anything smaller zooms the page */
 }
 
-/* ── touch gestures (js/gestures.js, design-research/11) ──────────────────────
+/* ── touch gestures (js/gestures.js) ──────────────────────
    The surfaces follow the finger; these are only what shows while they do: the page being swiped back
    lifts off the list, the sidebar casts its shadow while dragged, sheets show a grabber, a row swiped
    left shows what letting go will do. */
@@ -2493,7 +2493,7 @@ a.vw-btn{text-decoration:none}
   .shd.is-half .shd-bar::before{top:var(--s-1)}
 }
 
-/* ── a project's record (js/recordview.js, design-research/12) ───────────────
+/* ── a project's record (js/recordview.js) ───────────────
    Since you left: one card under a project's header after you've been away, and on Home.
    Made: a sheet of what its threads shared, and Recently made on Home. */
 .since{flex:none;padding:12px var(--hg);border-bottom:1px solid var(--line-faint)}

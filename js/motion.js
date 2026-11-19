@@ -1,4 +1,4 @@
-// One motion system (design-research/15): one easing and three durations, used everywhere something
+// One motion system: one easing and three durations, used everywhere something
 // arrives, moves or leaves. Things never pop and never jump:
 //   · a new item fades in and settles 6 px into place (transform and opacity only: no layout shift);
 //   · items it pushes along glide to their new place (FLIP); one that wraps to another row settles

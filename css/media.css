@@ -1,5 +1,5 @@
-/* Pictures and files in the conversation (js/media.js) and the lightbox (js/lightbox.js):
-   design-research/2026-11-vision/chat/proposal.md §1, §2, §7, §13. Plan F tokens only (css/tokens.css):
+/* Pictures and files in the conversation (js/media.js) and the lightbox (js/lightbox.js).
+   Plan F tokens only (css/tokens.css):
    media take the cards' radius (--r-lg, 12) so a picture and a file are one family; nothing here casts a
    shadow but the lightbox, which floats. A picture's box comes from js/media.js as three custom
    properties on its element: --mx-w (its width at most), --mx-r (its shape, w/h) and --mx-tint (its

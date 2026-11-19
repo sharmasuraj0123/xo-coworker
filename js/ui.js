@@ -10,7 +10,7 @@ export { xi };
 // Every icon is the owner's (assets/icons/xo, 19 Nov), drawn on its 24 grid with its own pen (1.75, round ends),
 // cleaned for the page by tools/xoicons/build.mjs into js/xoicons.js: the one source (js/icon.js draws one).
 
-// The app's names for the icons it uses most (ICONS.md, design-research/2026-11-19-icons), each one file of the pack.
+// The app's names for the icons it uses most, each one file of the pack.
 export const ICON = {
   project: xi("project"),
   globe: xi("web"),

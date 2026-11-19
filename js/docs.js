@@ -1,4 +1,4 @@
-// Open files, as documents (design-research/2026-11-vision/canvas-editing/PLAN.md F1). One model per open project
+// Open files, as documents. One model per open project
 // file, the way VS Code keeps one per editor: what's on disk (base, version), what you have (the editor's text),
 // and one state every view of it shares. No DOM, no editor: the view hands its text in (`source`), and is told
 // when the text must change under it (`apply`), so this file is tested in node with a fake clock.

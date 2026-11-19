@@ -107,7 +107,7 @@
 :is(#msgs,#tmsgs).mx-pulling>.m>*{transform:translateX(calc(var(--mx-pull,0) * -1px));transition:none}
 
 /* ── Bubbles ─────────────────────────────────────────────────────────────────
-   Colour with a job (design-research/2026-11-vision/messages/README.md). XO's hues already mean things
+   Colour with a job. XO's hues already mean things
    (green done, blue working, amber needs you, violet the coordinator, red failed), so a bubble never wears
    one at full strength. Every tone is set in OKLCH at low chroma; --ink on each measures 8.5:1 or more
    (AAA), and the bubble stands only 1.4–1.7 : 1 off the dark canvas: enough to tell who spoke, never a

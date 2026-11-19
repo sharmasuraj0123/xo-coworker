@@ -1,4 +1,4 @@
-// A project's record on screen (design-research/12): Since you left, Made, and their doors on
+// A project's record on screen: Since you left, Made, and their doors on
 // Home and in ⌘K. The pure part (what counts, which group, the words) is record.js.
 //
 // Since you left: a place ("home", "p:<project>") remembers, per browser, when you last looked

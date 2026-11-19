@@ -1,4 +1,4 @@
-// Diffs and files (js/diffview.js, design-research/2026-11-vision/pierre): the vendored library is the one
+// Diffs and files (js/diffview.js): the vendored library is the one
 // pinned and hashed, the syntax theme still matches XO's code tokens, every language the adapter asks for is
 // one the build carries, and nothing loads the library on the app's first load. No network, no browser.
 //   node tests/diffview.test.mjs

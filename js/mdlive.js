@@ -1,4 +1,4 @@
-// Markdown as a page you type in (design-research/2026-11-vision/canvas-editing/PLAN.md F2, the page view): the same
+// Markdown as a page you type in (the page view): the same
 // CodeMirror editor as Source, drawn as a document, and you type straight into the formatted text (the owner, 19 Nov
 // 11:42Z: "it shouldn't feel like you're in another mode editing it. have it edit directly even on the formatted
 // text"). Headings stay headings and bold stays bold where the caret is: the marks (#, **, `, [](…), >) are never

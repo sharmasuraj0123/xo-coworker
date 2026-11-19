@@ -1,8 +1,7 @@
 # Files tree bench
 
 Times the Files tree (`js/files.js`) on a real repository's listing, and checks that two versions of it draw
-the same rows. From the @pierre/trees evaluation (`design-research/2026-11-pierre-trees-eval` on
-xo/thread-1dce08), which found that a folder click redrew the whole list.
+the same rows. From the @pierre/trees evaluation (xo/thread-1dce08), which found that a folder click redrew the whole list.
 
 1. A listing, one line per entry, `d|f <bytes> <path>`:
    `find /path/to/repo -mindepth 1 -printf '%y %s %P\n' > /tmp/filetree.txt` (set `LISTING=/tmp/filetree.txt`).

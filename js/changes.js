@@ -1,4 +1,4 @@
-// What a place changed, from Space (design-research/2026-11-vision/pierre): a thread's worktree against where
+// What a place changed, from Space: a thread's worktree against where
 // its branch left the default branch, uncommitted work included; a project's own checkout against its HEAD.
 // GET /api/xo-projects/{p}/changes[?worktree=<name>] gives every file with its +/− counts and git's patch.
 //

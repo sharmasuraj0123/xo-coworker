@@ -1,4 +1,4 @@
-// The panel's Changes (design-research/2026-11-vision/pierre, "Diffs live in the right panel"): every file the
+// The panel's Changes: every file the
 // place changed, one 32 px row each with its +/− counts, then the chosen file's diff below the list, drawn
 // from git's patch by js/diffview.js. The chat says what changed; this holds how.
 //

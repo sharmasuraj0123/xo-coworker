@@ -1,4 +1,4 @@
-// Pictures and files in the conversation (design-research/2026-11-vision/chat/proposal.md §1, §2, §8, §13).
+// Pictures and files in the conversation.
 // One module draws every file a message or a turn carries, so a picture looks the same wherever it sits:
 //   · a picture is shown, not attached: bare, 12 px corners, a 1 px hairline drawn over it, no card and no
 //     shadow. An agent's are at most 560 × 480 (the prose measure), yours 320 × 320 (you've seen them);

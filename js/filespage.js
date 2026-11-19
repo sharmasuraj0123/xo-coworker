@@ -1,4 +1,4 @@
-// Files, a page of the right panel (design-research/2026-11-vision/canvas-editing/FILES-IN-PANEL.md; the owner,
+// Files, a page of the right panel (the owner,
 // 19 Nov 14:57Z: "instead, i want the whole thing to move to the right panel. expand it accordingly", approved 17:41Z).
 // The conversation never moves: a file opens in the panel, which widens for it; the browser (tree, Find, Changed,
 // All files) sits beside the file and folds to a thin rail (⌘B, or its fold button) so the file has the panel's

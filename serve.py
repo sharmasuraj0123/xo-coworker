@@ -100,7 +100,7 @@ NEVER_FORWARD = [
 ]
 
 
-# The UI's two file writes (design-research/2026-11-vision/pierre): saving a project file and undoing a save.
+# The UI's two file writes: saving a project file and undoing a save.
 # Space accepts them only with the UI's writer key, which this server adds after its own same-origin check,
 # from the file Space keeps it in. No other request carries the key.
 WRITER_ROUTES = [
@@ -108,7 +108,7 @@ WRITER_ROUTES = [
     ("POST", re.compile(r"^/api/xo-projects/[^/]+/edits/[^/]+/undo$")),
     # the file work in Files' tree (SPACE-CONTRACT.md §4.3–4.5): rename or move, delete into Space's trash, a new folder
     ("POST", re.compile(r"^/api/xo-projects/[^/]+/files/(?:rename|delete|mkdir)$")),
-    # deleting a thread and taking it back (design-research/2026-11-19-threads-panel/DELETE-SPEC.md; xo-space asks for the key)
+    # deleting a thread and taking it back (xo-space asks for the key)
     ("DELETE", re.compile(r"^/api/chat/chats/[^/]+/threads/[^/]+$")),
     ("POST", re.compile(r"^/api/chat/chats/[^/]+/threads/[^/]+/restore$")),
 ]

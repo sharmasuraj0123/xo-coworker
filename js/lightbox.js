@@ -1,4 +1,4 @@
-// The lightbox (design-research/2026-11-vision/chat/proposal.md §7): a picture opens over the
+// The lightbox: a picture opens over the
 // conversation for a quick look, and documents keep opening beside it (js/viewer.js).
 //   · it grows from its own spot in the conversation to fit the window (320 ms, the one curve), its
 //     corners going 12 → 6, over a dark scrim; it never grows past its own pixels;

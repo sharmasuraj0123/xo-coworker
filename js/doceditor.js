@@ -1,4 +1,4 @@
-// The one editor for every text file in Files (design-research/2026-11-vision/canvas-editing/PLAN.md F2): CodeMirror 6,
+// The one editor for every text file in Files: CodeMirror 6,
 // vendored (js/vendor/codemirror, loaded the first time a file opens). A file opens ready to type in: no Edit, no
 // Save; what you type goes to its document (js/docs.js), which saves it. One editor state per document, kept while
 // the document is open, so undo reaches back past saves and a tab you come back to is as you left it.

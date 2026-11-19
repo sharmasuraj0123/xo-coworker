@@ -1,5 +1,5 @@
 // Diffs and files, drawn by @pierre/diffs (js/vendor/pierre-diffs, vendored at 1.6.4): the one adapter
-// between XO and the library. Design: design-research/2026-11-vision/pierre/README.md.
+// between XO and the library.
 //
 // Nothing loads until it's needed: the library (≈400 KB, then a chunk per language) is fetched by
 // prefetch() when the browser is truly idle in a place that has changes, or by the first draw. A diff is
