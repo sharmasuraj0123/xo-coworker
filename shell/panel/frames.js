@@ -3,7 +3,7 @@
 // The panel's stack of frames: which show, which fold, which grows, their heights and the lines between them.
 
 import { esc } from "../../core/platform/index.js";
-import { redraw } from "../../js/redraw.js";
+import { redraw } from "../../core/ui/redraw.js";
 
 export const ORDER = ["agents", "changes", "map"];
 export const MAP_H = 260, MAP_MIN = 72;

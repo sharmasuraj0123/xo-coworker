@@ -27,5 +27,7 @@ export function createDrawer({ phone: PHONE, syncInert }) {
   $("#top-menu").addEventListener("click", () => setDrawer(true));
   $("#side-x").addEventListener("click", () => setDrawer(false));
   $("#side-scrim").addEventListener("click", () => setDrawer(false));
+  // on a phone the shells open as a sheet over everything: the sidebar they were opened from steps aside
+  $("#nv-shells").addEventListener("click", () => setDrawer(false));
   return setDrawer;
 }

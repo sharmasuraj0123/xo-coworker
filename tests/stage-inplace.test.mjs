@@ -11,7 +11,7 @@ const src = panelSrc;
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 t("the heads under Launchpad and the live lists are drawn in place", () => {
-  assert.ok(/import \{ redraw \} from "\.\.\/\.\.\/js\/redraw\.js";/.test(src));
+  assert.ok(/import \{ redraw \} from "\.\.\/\.\.\/core\/ui\/redraw\.js";/.test(src));
   assert.ok(/if \(g\._h !== html\) \{ redraw\(g, html\);/.test(src), "the heads (ghosts)");
   assert.ok(/if \(S\.h\[k\] !== same\) \{ redraw\(node, html\); S\.h\[k\] = same; \}/.test(src), "Agents, Changes, the panel's name and counts (set)");
 });
