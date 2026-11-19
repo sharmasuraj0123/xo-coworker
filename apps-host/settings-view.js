@@ -1,8 +1,8 @@
 // @ts-check
 import { esc } from "../core/platform/util.js";
-import { checkManifest, permissionWords } from "./manifest.js";
+import { checkRow, permissionWords } from "./manifest.js";
 
-/** @typedef {import("./manifest.js").Permission} Permission @typedef {import("./manifest.js").App} App @typedef {{ state?: string, granted?: string[], optional?: string[] }} ProjectGrant @typedef {{ id: string, name?: string, version?: string, state?: string, development?: boolean, previous?: string, error?: string, manifest?: unknown, manifest_sha?: string, projects?: Record<string, ProjectGrant> }} Row @typedef {{ staging_id: string, sha256: string, id: string, name?: string, version?: string, commit?: string, publisher?: string, development?: boolean, permissions?: { required?: Permission[], optional?: Permission[] }, routes?: Array<{ words?: string, routes?: string[] }>, secrets?: string[], warnings?: string[], size?: number }} Staged @typedef {{ mode: "list" | "install" | "sheet" | "app", rows: Row[], loading: boolean, error: string, busy: string, source: "git" | "path", staged: Staged | null, appId: string, grantFor: string, activity: Array<{ at?: string, what?: string, outcome?: string }> | null, values: Record<string, Record<string, unknown>>, unavailable: boolean }} State @typedef {{ projects: Array<{ id: string, name: string }>, project?: string }} Ctx */
+/** @typedef {import("./manifest.js").Permission} Permission @typedef {import("./manifest.js").App} App @typedef {{ state?: string, permissions?: Array<{ cap: string }>, routes?: string[], manifest_sha?: string }} ProjectGrant @typedef {{ id: string, name?: string, version?: string, state?: string, development?: boolean, previous?: string, error?: string, manifest?: unknown, manifest_sha?: string, projects?: Record<string, ProjectGrant> }} Row @typedef {{ staging_id: string, sha256: string, id: string, name?: string, version?: string, commit?: string, publisher?: string, development?: boolean, permissions?: { required?: Permission[], optional?: Permission[] }, routes?: Array<{ words?: string, routes?: string[] }>, secrets?: string[], warnings?: string[], size?: number }} Staged @typedef {{ mode: "list" | "install" | "sheet" | "app", rows: Row[], loading: boolean, error: string, busy: string, source: "git" | "path", staged: Staged | null, appId: string, grantFor: string, activity: Array<{ at?: string, what?: string, outcome?: string }> | null, values: Record<string, Record<string, unknown>>, unavailable: boolean }} State @typedef {{ projects: Array<{ id: string, name: string }>, project?: string }} Ctx */
 
 /** @param {string} label @param {string} act @param {Record<string, string>} [data] @param {string} [extra] */
 const btn = (label, act, data = {}, extra = "") =>
@@ -63,7 +63,7 @@ ${note(s)}<div class="set-fa">${btn("Not now", "back")}${btn("Install", "confirm
 function appPage(s, c) {
   const r = s.rows.find((x) => x.id === s.appId);
   if (!r) return `<p class="set-empty">That app is gone.</p><div class="set-fa">${btn("Back to Apps", "back")}</div>`;
-  const { app, problems } = checkManifest(r.manifest);
+  const { app, problems } = checkRow(r);
   const grantFor = s.grantFor;
   const projects = c.projects.map((p) => {
     const g = r.projects?.[p.id];

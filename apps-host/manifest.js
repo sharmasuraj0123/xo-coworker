@@ -199,3 +199,6 @@ export function permissionWords(p) {
   const join = (/** @type {string[] | undefined} */ a) => (a || []).join(", ");
   return CAPS[/** @type {keyof typeof CAPS} */ (p.cap)].replace("{paths}", join(p.paths)).replace("{names}", join(p.names));
 }
+
+/** An installed app as xo-space lists it (its version and raw space.xo block), checked like a manifest. @param {{ version?: unknown, manifest?: unknown }} row */
+export const checkRow = (row) => checkManifest({ version: row.version, extensions: { "space.xo": row.manifest } });

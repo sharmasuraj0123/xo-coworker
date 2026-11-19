@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Hello</title>
+<style>
+  body { margin: 0; padding: var(--xo-space-3); font: var(--font-text-md-size) / var(--font-text-md-line-height) var(--font-sans); color: var(--color-text-primary); background: var(--color-background-primary); }
+  form { display: flex; gap: var(--xo-space-2); }
+  input { flex: 1; min-width: 0; padding: var(--xo-space-1) var(--xo-space-2); font: inherit; color: inherit; background: var(--color-background-secondary); border: thin solid var(--color-border-primary); border-radius: var(--border-radius-sm); }
+  button { padding: var(--xo-space-1) var(--xo-space-3); font: inherit; color: inherit; background: transparent; border: thin solid var(--color-border-primary); border-radius: var(--border-radius-sm); cursor: pointer; }
+  #out { margin: var(--xo-space-3) 0 0; color: var(--color-text-secondary); }
+</style>
+</head>
+<body>
+<form id="greet">
+  <input id="name" name="name" aria-label="Name" placeholder="Your name" autocomplete="off">
+  <button type="submit">Say hello</button>
+</form>
+<p id="out" role="status"></p>
+<script>
+  let next = 0;
+  const waiting = new Map();
+  const ask = (method, params) => new Promise((resolve, reject) => {
+    const id = ++next;
+    waiting.set(id, { resolve, reject });
+    parent.postMessage({ jsonrpc: "2.0", id, method, params }, "*");
+  });
+  addEventListener("message", (e) => {
+    const m = e.data;
+    if (e.source !== parent || !m || m.jsonrpc !== "2.0") return;
+    if (m.method === "ui/notifications/host-context-changed") return theme(m.params);
+    if (m.method === "ui/resource-teardown" && m.id !== undefined) return parent.postMessage({ jsonrpc: "2.0", id: m.id, result: {} }, "*");
+    if (m.method === "ping" && m.id !== undefined) return parent.postMessage({ jsonrpc: "2.0", id: m.id, result: {} }, "*");
+    const w = waiting.get(m.id);
+    if (!w) return;
+    waiting.delete(m.id);
+    if (m.error) w.reject(new Error(m.error.message)); else w.resolve(m.result);
+  });
+  const theme = (ctx) => {
+    const vars = (ctx && ctx.styles && ctx.styles.variables) || {};
+    for (const [k, v] of Object.entries(vars)) document.documentElement.style.setProperty(k, v);
+  };
+  const out = document.getElementById("out");
+  document.getElementById("greet").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    try {
+      const r = await ask("tools/call", { name: "hello_greet", arguments: { name: document.getElementById("name").value } });
+      out.textContent = ((r && r.content) || []).map((c) => c.text || "").join(" ");
+    } catch (err) {
+      out.textContent = err.message;
+    }
+  });
+  ask("ui/initialize", { protocolVersion: "2026-01-26", appInfo: { name: "hello", version: "0.1.0" }, appCapabilities: {} })
+    .then((r) => { theme(r && r.hostContext); parent.postMessage({ jsonrpc: "2.0", method: "ui/notifications/initialized" }, "*"); });
+</script>
+</body>
+</html>

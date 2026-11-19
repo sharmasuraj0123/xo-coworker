@@ -23,7 +23,7 @@ assert.match(sheet, /Installing runs nothing/);
 const buttons = (/** @type {string} */ h) => [...h.matchAll(/<button type="button" class="([^"]+)" data-act="([^"]+)"/g)].map((m) => [m[2], m[1]]);
 assert.deepEqual(buttons(sheet), [["back", "btn"], ["confirm", "btn"]], "Install and Not now carry equal weight");
 
-const row = { id: "dev.example.word", name: "Word", version: "0.3.0", manifest: WORD, manifest_sha: "f".repeat(64), projects: { p1: { state: "enabled" } } };
+const row = { id: "dev.example.word", name: "Word", version: "0.3.0", manifest: WORD.extensions["space.xo"], manifest_sha: "f".repeat(64), projects: { p1: { state: "enabled" } } };
 const page = view(/** @type {any} */ ({ ...base, mode: "app", appId: row.id, rows: [row], grantFor: "p1", values: { "dev.example.word|p1": { units: "px" }, "dev.example.word|p2": { units: "pt" } } }), ctx);
 assert.match(page, /Turn Word on in Book\?/);
 assert.match(page, /data-optional="composer.draft#0"/);

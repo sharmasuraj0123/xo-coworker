@@ -1,5 +1,5 @@
 // @ts-check
-import { checkManifest } from "./manifest.js";
+import { checkRow } from "./manifest.js";
 import { compile, HOST_PLACES } from "./contributions.js";
 import { createAppFrame } from "./frame.js";
 import { createAppsSettings } from "./settings.js";
@@ -44,7 +44,7 @@ export function createAppsHost(d) {
       const enabled = (/** @type {string} */ id, /** @type {string | undefined} */ project) => !!project && apps.get(id)?.row.projects?.[project]?.state === "enabled";
       const granted = (/** @type {string} */ id, /** @type {string} */ project) => {
         const g = apps.get(id)?.row.projects?.[project];
-        return Array.isArray(g?.granted) ? g.granted.filter((x) => typeof x === "string") : [];
+        return Array.isArray(g?.permissions) ? g.permissions.map((/** @type {any} */ p) => p && p.cap).filter((x) => typeof x === "string") : [];
       };
 
       /** @param {App} app @param {At} at @param {string} name @param {unknown} args */
@@ -166,7 +166,7 @@ export function createAppsHost(d) {
             continue;
           }
           drop(row.id);
-          const { app, problems } = checkManifest(row.manifest);
+          const { app, problems } = checkRow(row);
           /** @type {Undo[]} */
           const undo = [];
           if (app && app.id === row.id && row.state !== "needs_consent") {

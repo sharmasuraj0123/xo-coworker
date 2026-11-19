@@ -1,6 +1,6 @@
 // @ts-check
 import { view } from "./settings-view.js";
-import { checkManifest } from "./manifest.js";
+import { checkRow } from "./manifest.js";
 
 /** @typedef {import("./settings-view.js").State} State @typedef {import("./settings-view.js").Row} Row @typedef {import("./client.js").AppsClient} AppsClient @typedef {{ client: AppsClient, redraw(el: HTMLElement, html: string): unknown, projects(): Array<{ id: string, name: string }>, confirm(text: string): Promise<boolean>, rows(): Row[], refresh(): Promise<void> }} SettingsDeps */
 
@@ -46,7 +46,7 @@ export function createAppsSettings(d) {
     if (!project || !id || Object.hasOwn(s.values, key)) return;
     d.client.settings(id, project).then((v) => { if (!Object.hasOwn(s.values, key)) set({ values: { ...s.values, [key]: v && typeof v === "object" ? (v.values || v) : {} } }); }).catch(() => {});
   };
-  const app = () => { const r = s.rows.find((x) => x.id === s.appId); return r ? checkManifest(r.manifest).app : null; };
+  const app = () => { const r = s.rows.find((x) => x.id === s.appId); return r ? checkRow(r).app : null; };
 
   /** @type {Record<string, (el: HTMLElement, data: DOMStringMap) => unknown>} */
   const ACTS = {
