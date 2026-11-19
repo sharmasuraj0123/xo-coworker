@@ -2,7 +2,7 @@
 import { esc } from "../core/platform/util.js";
 import { checkManifest, permissionWords } from "./manifest.js";
 
-/** @typedef {import("./manifest.js").Permission} Permission @typedef {import("./manifest.js").App} App @typedef {{ state?: string, granted?: string[], optional?: string[] }} ProjectGrant @typedef {{ id: string, name?: string, version?: string, state?: string, development?: boolean, previous?: string, error?: string, manifest?: unknown, manifest_sha?: string, projects?: Record<string, ProjectGrant> }} Row @typedef {{ staging_id: string, sha256: string, id: string, name?: string, version?: string, commit?: string, publisher?: string, development?: boolean, permissions?: { required?: Permission[], optional?: Permission[] }, routes?: Array<{ words?: string, routes?: string[] }>, secrets?: string[], warnings?: string[], size?: number }} Staged @typedef {{ mode: "list" | "install" | "sheet" | "app", rows: Row[], loading: boolean, error: string, busy: string, source: "git" | "path", staged: Staged | null, appId: string, grantFor: string, activity: Array<{ at?: string, what?: string, outcome?: string }> | null, values: Record<string, Record<string, unknown>> }} State @typedef {{ projects: Array<{ id: string, name: string }>, project?: string }} Ctx */
+/** @typedef {import("./manifest.js").Permission} Permission @typedef {import("./manifest.js").App} App @typedef {{ state?: string, granted?: string[], optional?: string[] }} ProjectGrant @typedef {{ id: string, name?: string, version?: string, state?: string, development?: boolean, previous?: string, error?: string, manifest?: unknown, manifest_sha?: string, projects?: Record<string, ProjectGrant> }} Row @typedef {{ staging_id: string, sha256: string, id: string, name?: string, version?: string, commit?: string, publisher?: string, development?: boolean, permissions?: { required?: Permission[], optional?: Permission[] }, routes?: Array<{ words?: string, routes?: string[] }>, secrets?: string[], warnings?: string[], size?: number }} Staged @typedef {{ mode: "list" | "install" | "sheet" | "app", rows: Row[], loading: boolean, error: string, busy: string, source: "git" | "path", staged: Staged | null, appId: string, grantFor: string, activity: Array<{ at?: string, what?: string, outcome?: string }> | null, values: Record<string, Record<string, unknown>>, unavailable: boolean }} State @typedef {{ projects: Array<{ id: string, name: string }>, project?: string }} Ctx */
 
 /** @param {string} label @param {string} act @param {Record<string, string>} [data] @param {string} [extra] */
 const btn = (label, act, data = {}, extra = "") =>
@@ -28,7 +28,7 @@ const top = (title) => `<h3 class="xa-title" tabindex="-1" data-autofocus>${esc(
 function list(s) {
   const rows = s.rows.map((r) => row(esc(r.name || r.id), esc(rowState(r) || r.id), btn("Open", "open", { app: r.id }, ` aria-label="Open ${esc(r.name || r.id)}"`), r.id)).join("");
   return `${top("Apps")}<p class="set-lead">Apps add views and tools to the projects you turn them on in. They use XO's local routes, ask before they touch anything, and never see your keys.</p>
-${note(s)}${s.loading ? "" : rows || `<p class="set-empty">No apps yet.</p>`}<div class="set-fa">${btn("Install an app", "install")}</div>`;
+${s.unavailable ? `<p class="set-note">This XO Space doesn't run apps yet. Apps appear here once it does.</p>` : `${note(s)}${s.loading ? "" : rows || `<p class="set-empty">No apps yet.</p>`}<div class="set-fa">${btn("Install an app", "install")}</div>`}`;
 }
 
 /** @param {State} s */

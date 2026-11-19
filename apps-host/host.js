@@ -4,6 +4,7 @@ import { compile, HOST_PLACES } from "./contributions.js";
 import { createAppFrame } from "./frame.js";
 import { createAppsSettings } from "./settings.js";
 import { createCards } from "./card.js";
+import { missingRoute } from "../core/platform/http.js";
 
 /** @typedef {import("./manifest.js").App} App @typedef {import("./manifest.js").Surface} Surface @typedef {import("./client.js").AppsClient} AppsClient @typedef {import("./settings-view.js").Row} Row @typedef {import("../core/kernel/types").ModuleDef} ModuleDef @typedef {import("../core/kernel/types").ModuleContext} ModuleContext @typedef {import("../core/kernel/types").At} At @typedef {import("../core/kernel/types").Undo} Undo @typedef {{ client: AppsClient, doc: Document, win: Window, redraw(el: HTMLElement, html: string): unknown, projects(): Array<{ id: string, name: string }>, draft(text: string, at: At): void, openPanel(key: string, at: At): void, confirm(text: string): Promise<boolean>, context(appId: string, at: At, params: unknown): void }} HostDeps */
 
@@ -138,7 +139,14 @@ export function createAppsHost(d) {
       let queue = Promise.resolve();
       const refresh = () => (queue = queue.catch(() => {}).then(load));
       async function load() {
-        const res = await d.client.list();
+        let res, none = false;
+        try { res = await d.client.list(); } catch (e) {
+          if (!missingRoute(e)) throw e;
+          res = [];
+          none = true;
+        }
+        if (disposed) return;
+        settings.unavailable(none);
         if (disposed) return;
         /** @type {Row[]} */
         const rows = Array.isArray(res) ? res : Array.isArray(res?.apps) ? res.apps : [];

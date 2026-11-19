@@ -10,7 +10,7 @@ const words = (e) => String(/** @type {any} */ (e)?.message || e || "Something w
 /** Settings › Apps: install from a repo or a folder, the consent sheet, per-project grants, update, rollback, remove. @param {SettingsDeps} d */
 export function createAppsSettings(d) {
   /** @type {State} */
-  const s = { mode: "list", rows: [], loading: true, error: "", busy: "", source: "git", staged: null, appId: "", grantFor: "", activity: null, values: {} };
+  const s = { mode: "list", rows: [], loading: true, error: "", busy: "", source: "git", staged: null, appId: "", grantFor: "", activity: null, values: {}, unavailable: false };
   /** @type {Set<HTMLElement>} */
   const shown = new Set();
   /** @type {WeakSet<HTMLElement>} */
@@ -142,6 +142,8 @@ export function createAppsSettings(d) {
     },
     /** @param {boolean} loading @param {string} [error] */
     loaded(loading, error = "") { set({ loading, error }); },
+    /** @param {boolean} on */
+    unavailable(on) { if (s.unavailable !== on) set({ unavailable: on, ...(on ? { mode: "list" } : {}) }); },
     redraw: draw,
   };
 }
