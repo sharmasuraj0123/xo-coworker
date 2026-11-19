@@ -13,6 +13,7 @@ import { readFileSync, mkdtempSync, writeFileSync, mkdirSync, rmSync } from "nod
 import { tmpdir } from "node:os";
 import { join, dirname, relative, resolve } from "node:path";
 import { dom } from "./lib/dom.mjs";
+import { sourcePaths, readSource } from "./lib/sources.mjs";
 
 let passed = 0;
 const t = async (name, fn) => {
@@ -59,7 +60,7 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
   assert.match(src("decide.js"), /redraw\(foot, F\.done \|\| F\.vig \? "" :/);
   const lp = readFileSync(new URL("../modules/launchpad/launchpad.js", import.meta.url), "utf8");
   assert.match(lp, /redraw\(S\.hs, hs\)/); assert.match(lp, /redraw\(S\.ha, ha\)/); assert.match(lp, /redraw\(S\.body, `<div class="lp/);
-  assert.doesNotMatch(lp, /S\.body\.innerHTML\s*=/);
+  assert.doesNotMatch(sourcePaths(".js").filter((p) => p.startsWith("modules/launchpad/")).map(readSource).join("\n"), /S\.body\.innerHTML\s*=/);
   assert.match(src("viewer.js"), /redrawNode\(top, head\(\)\);/);
   const app = src("app.js");
   assert.match(app, /redraw\(btn, run \? STOP_ICON : ICON\.send\)/);

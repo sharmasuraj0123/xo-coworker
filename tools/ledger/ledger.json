@@ -2381,7 +2381,7 @@
     "modules/launchpad/actions.js",
     "modules/launchpad/words.js"
    ],
-   "note": "moved whole into modules/launchpad/, typed and split under 400 lines; app.js and the panel still call createLaunchpad until the shell hosts panel.frame and header.action"
+   "note": "moved whole into modules/launchpad/, typed and split under 400 lines; app.js still calls createLaunchpad and hands the section to the panel until the shell hosts panel.frame and header.action"
   },
   "js/lightbox.js": {
    "status": "split",
@@ -4522,7 +4522,8 @@
   },
   "tests/lp-stop-notice.test.mjs": {
    "status": "moved",
-   "home": "modules/launchpad/tests/lp-stop-notice.test.mjs"
+   "home": "modules/launchpad/tests/lp-stop-notice.test.mjs",
+   "note": "still reads app.js's notice() source; its rewrite as a behaviour test is owed"
   },
   "tests/main-clip.test.mjs": {
    "status": "planned",
