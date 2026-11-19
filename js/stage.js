@@ -626,7 +626,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     if (t.closest("[data-tg-find]")) { findThreads(); return; }
     if (t.closest("[data-tg-clear]")) { const inp = el.querySelector("[data-tg-q]"); inp.value = ""; S.tq = ""; paint(); inp.focus(); return; }
     const g = t.closest("[data-go]");
-    if (g) { go(g.dataset.go); }
+    if (g) { go(g.dataset.go, e); }
   });
   // focus that lands in a frame Launchpad covers moves on: forward (from Launchpad or its heads) out of the panel,
   // backward (from beyond the panel) to the last of its heads. No loop: Tab always gets out.

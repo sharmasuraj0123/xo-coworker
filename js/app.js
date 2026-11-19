@@ -33,7 +33,8 @@ import { runsStripHtml, runsListHtml, runViewHtml } from "./runsview.js";
 import { createSettings } from "./settings.js";
 import { createRuntimeSettings } from "./rtsettings.js";
 import { createChats } from "./chats.js";
-import { initFollow, toLatest, unpin, isPinned, fromTop, toRow, fromLatest } from "./follow.js";
+import { initFollow, toLatest, unpin, isPinned, fromTop, toRow, fromLatest, createFollow } from "./follow.js";
+import { decorateConversation } from "./msgx.js";
 import { createViewer } from "./viewer.js";
 import { createMap, MAP_ICON } from "./map.js";
 import { createStage } from "./stage.js";
@@ -398,7 +399,7 @@ const LP = createLaunchpad({ api: createLpApi(), projectOf: lpProject, nameOf: (
   // the owner's choice B): its Undo's deadline is the action's own (l.until), so it can't outlive what it undoes
   notice: (mid, l, ms) => { const h = { mid, kind: l.kind === "err" ? "stopped" : l.kind || "done", text: l.text, ...(l.sub ? { sub: l.sub } : {}), ...(l.undo ? { undo: l.undo, undoLabel: l.undoLabel, undoUntil: l.until || 0, ownFocus: true } : {}) }; return heraldFor(mid, () => h, ms) || heraldShow(h, ms); },
   unnotice: (mid) => heraldDrop(mid) });
-const STAGE = createStage({ map: MAP, mapIcon: MAP_ICON, files: FILES, changes: CHG, filesView: FILESV, viewer: VW, view: () => S.view, go: (v) => go(v, { panel: true }), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP, threads: (v) => panelThreads(v), shell: (on, host) => panelShell(on, host) });
+const STAGE = createStage({ map: MAP, mapIcon: MAP_ICON, files: FILES, changes: CHG, filesView: FILESV, viewer: VW, view: () => S.view, go: (v, e) => openFromPanel(v, e), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP, threads: (v) => panelThreads(v), shell: (on, host) => panelShell(on, host) });
 // the place beside the panel's name: a thread's project (its title is the conversation's own head), a project
 STAGE.names = (v) => {
   const p = v.startsWith("t:") ? world.thread(v.slice(2))?.project : v.startsWith("p:") ? v.slice(2) : null;
@@ -1470,9 +1471,8 @@ function topRender(needs) {
 
 
 /** The checklist bar: shows the step in progress; a finished step flashes its tick, then moves on. */
-function checklistRender(needs) {
-  const th = $("#thead");
-  const t = convThread(S.view);
+function checklistRender(needs, th = $("#thead"), view = S.view, listId = "ck-list") {
+  const t = convThread(view);
   if (!t) { th.hidden = true; th._h = ""; return; }
   const c = t.checklist;
   // no steps, no checklist: a thread without a plan has nothing to disclose and no step to count, so the head holds
@@ -1507,10 +1507,10 @@ function checklistRender(needs) {
   const segs = c.items.map((i, k) => `<i class="sg s-${i.state}${fresh && k === c.done - 1 ? " is-pop" : ""}"></i>`).join("");
   const list = c.items.map((i) => `<li class="ck ck-${i.state}"><span class="ck-m" aria-hidden="true">${i.state === "done" ? "✓" : i.state === "doing" ? "✱" : "○"}</span><span>${esc(i.text)}</span><span class="sr-only">, ${i.state === "doing" ? "in progress" : i.state}</span></li>`).join("");
   const html = `<div class="ckbar m-${mode}${open ? " is-open" : ""}">` +
-    `<div class="ck-row"><button type="button" class="ck-tog" data-ck aria-expanded="${open}" aria-controls="ck-list" title="Checklist">` +
+    `<div class="ck-row"><button type="button" class="ck-tog" data-ck aria-expanded="${open}" aria-controls="${listId}" title="Checklist">` +
     `<span class="ck-segs" aria-hidden="true">${segs}</span><span class="ck-n">${c.done} of ${c.total}</span>` +
     `<span class="ck-now" data-mode="${mode}">${nowHtml}</span>${t.branch && SHAPE.on("xo:thread/branch") ? `<code class="ck-br">${ICON.branch}${esc(t.branch)}</code>` : ""}<span class="ck-chev">${ICON.chevron}</span></button></div>` +
-    `<div class="ck-b"><ol class="ck-list" id="ck-list" aria-label="Checklist">${list}</ol></div></div>`;
+    `<div class="ck-b"><ol class="ck-list" id="${listId}" aria-label="Checklist">${list}</ol></div></div>`;
   // in place: the toggle you pressed is the same element afterwards (it keeps focus), and so is a run's row
   const all = html + runsStrip(t);
   if (th._h !== all) { redraw(th, all); th._h = all; }
@@ -2710,6 +2710,90 @@ function editFailed(id) {
   render();
 }
 
+// ── The Thread page (P2): a thread in the panel beside the coordinator's chat ────────────────────────────────
+// (design-research/2026-11-19-threads-panel/thread-page/THREAD-IN-PANEL.md; the owner chose the proper build, 19 Nov
+// 15:20Z.) One page, its key the thread it shows: its own head (state, runtime, branch, Open full width), checklist,
+// conversation (createConv + createFollow + msgx), typing line and composer (wireComposer). It opens from the
+// panel's Threads beside a chat; ⌘/Ctrl-click, or Open full width, gives today's full page.
+const TP = { box: null, C: null, K: null, tid: null, follow: null, viewSubs: new Set() };
+const tpView = () => (TP.tid ? "t:" + TP.tid : "");
+function tpMount(box) {
+  TP.box = box;
+  box.classList.add("tp");
+  box.innerHTML = `<header class="tp-head" id="tphead"></header><div class="thead tp-thead" id="tpthead" hidden></div>` +
+    `<div class="scroller tp-scroller" id="tscroller" tabindex="-1" data-own-scroll><div class="column" id="tcolumn">` +
+    `<div class="msgs" id="tmsgs" role="log" aria-live="off" aria-label="The thread's messages"></div><div class="typing-slot" id="ttyping"></div></div></div>` +
+    `<div class="dock tp-dock" id="tpdock"><div class="tdock" id="tptdock"></div><div class="cbar"><form class="composer" id="tpcomposer" autocomplete="off">` +
+    `<label class="sr-only" for="tsay" id="tsay-label">Reply</label><div class="composer-field"><textarea id="tsay" rows="1" placeholder="Reply to the agent…" spellcheck="true"></textarea></div>` +
+    `<div class="composer-row"><span class="tp-target" id="ttarget"></span><button type="submit" class="send" id="tsend" aria-label="Send" title="Send (Enter)" disabled></button></div></form></div></div>`;
+  const els = { scroller: $("#tscroller"), column: $("#tcolumn"), msgs: $("#tmsgs"), dock: $("#tpdock") };
+  TP.follow = createFollow(els);
+  TP.follow.init();
+  TP.C = createConv({ view: tpView, msgs: els.msgs, scroller: els.scroller, column: els.column, typing: $("#ttyping"), follow: TP.follow });
+  TP.K = { main: false, get view() { return tpView(); }, say: $("#tsay"), send: $("#tsend"), form: $("#tpcomposer"), target: $("#ttarget"), label: $("#tsay-label"), conv: TP.C };
+  wireComposer(TP.K);
+  decorateConversation({ conv: box, msgs: els.msgs, scroller: els.scroller, typing: $("#ttyping"), composer: TP.K.form, say: TP.K.say, send: TP.K.send, atList: null,
+    dock: els.dock, tdock: $("#tptdock"), herald: null, host: box, follow: TP.follow, isThread: () => true, view: tpView, onView: (fn) => TP.viewSubs.add(fn) });
+  // the composer's height is the conversation's room at its foot (as #app's --dock-h is the main chat's)
+  new ResizeObserver(() => box.style.setProperty("--dock-h", `${Math.round(els.dock.offsetHeight)}px`)).observe(els.dock);
+  els.scroller.addEventListener("scroll", () => { if (!TP.scrollRaf) TP.scrollRaf = requestAnimationFrame(() => { TP.scrollRaf = 0; loadAhead(TP.C); }); }, { passive: true });
+}
+function tpShow(key, { focus = false } = {}) {
+  if (TP.tid !== key) {
+    if (TP.tid && TP.K) saveDraft(TP.K);
+    TP.tid = key;
+    TP.C.rendered = null; TP.C.filled = null;
+    world.act.watchSideThread?.(key);
+    loadDraft(TP.K);
+    TP.viewSubs.forEach((fn) => fn());
+  }
+  render();
+  if (focus) requestAnimationFrame(() => TP.K.say.focus({ preventScroll: true }));
+}
+function tpUnmount() {
+  if (TP.K) saveDraft(TP.K);
+  TP.follow?.destroy();
+  world.act.watchSideThread?.(null);
+  Object.assign(TP, { box: null, C: null, K: null, tid: null, follow: null }); TP.viewSubs.clear();
+}
+STAGE.page("thread", {
+  single: true, width: 560,
+  title: (key) => world.thread(key)?.title || "Thread",
+  icon: () => ICON.threadOne,
+  mount: (box) => tpMount(box),
+  onShow: (key, o) => tpShow(key, o),
+  unmount: () => tpUnmount(),
+  // a reply being written is kept (its draft), so closing never loses it: nothing to ask
+  canClose: () => true,
+});
+/** The thread page's head: its state, its runtime and branch, Open full width. */
+function tpHead(t) {
+  const head = $("#tphead");
+  const html = `<span class="badge st-${stOf(t)}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${isHeld(t) ? heldBadge(t.held) : wordOf(t)}</span>` +
+    `${rtTag(t)}${t.branch ? `<code class="tp-br" title="${esc(t.branch)}">${ICON.branch}${esc(t.branch)}</code>` : ""}` +
+    `<button type="button" class="stg-ic tp-full" data-tp-full="${esc(t.id)}" title="Open full width (the thread's own page)" aria-label="Open full width">${ICON.full}</button>`;
+  if (head._h !== html) { redraw(head, html); head._h = html; }
+}
+function drawThreadPage(needs) {
+  const t = convThread(tpView());
+  if (!t) { STAGE.closeTab("thread"); return; } // a thread that's gone (deleted, resolved away) leaves the panel
+  tpHead(t);
+  checklistRender(needs, $("#tpthead"), tpView(), "tck-list");
+  drawConv(TP.C, needs);
+  if (document.activeElement !== TP.K.say) updateComposer(TP.K); else { sendRender(TP.K); targetLineRender(TP.K); }
+}
+document.addEventListener("click", (e) => { const b = e.target.closest?.("[data-tp-full]"); if (b) { const id = b.dataset.tpFull; STAGE.closeTab("thread"); go("t:" + id); } });
+/**
+ * A thread asked for from the panel (its Threads rows): beside a chat (a project's or the Workspace's) it opens as
+ * the panel's Thread page; ⌘/Ctrl-click, anywhere else (Home, Artifacts, another thread's page), or the thread
+ * already in the main chat, it goes there as today.
+ */
+function openFromPanel(v, e) {
+  const besideChat = S.view === "ws" || S.view.startsWith("p:");
+  if (v && v.startsWith("t:") && besideChat && !(e && (e.metaKey || e.ctrlKey)) && world.thread(v.slice(2))) { STAGE.show("thread", v.slice(2), { focus: true }); return; }
+  go(v, { panel: true });
+}
+
 // ── render ──────────────────────────────────────────────────────────────────
 const scroller = $("#scroller"), msgsEl = $("#msgs");
 /**
@@ -2765,6 +2849,7 @@ function render() {
     if (gone && document.activeElement === say) ([...msgsEl.querySelectorAll('.calm-act [data-go="home"]')].find(usable) || placeRegion()).focus({ preventScroll: true });
   }
   if (!isHome && !isArts) requestAnimationFrame(() => loadAhead(MAIN));
+  if (TP.C && TP.tid && STAGE.pageShown?.name === "thread") drawThreadPage(needs);
   dockRender(needs);
   heraldRender(needs);
   // the line above the composer follows the world on every view: a thread's follows its agent's turn
@@ -3428,7 +3513,8 @@ document.addEventListener("click", (e) => {
   const t = e.target;
   if (t.closest("#iq-pop")) return;
   const g = t.closest("[data-go]");
-  if (g && !t.closest("#all")) { e.preventDefault(); go(g.dataset.go); if (g.dataset.goMsg) showMsg(g.dataset.goMsg); return; }
+  // (the panel's own links are the panel's: it opens a thread as its page beside a chat, else goes as the panel)
+  if (g && !t.closest("#all") && !t.closest("#stage")) { e.preventDefault(); go(g.dataset.go); if (g.dataset.goMsg) showMsg(g.dataset.goMsg); return; }
   const tl = t.closest("a[data-thread]");
   if (tl) { e.preventDefault(); if (world.thread(tl.dataset.thread)) go("t:" + tl.dataset.thread); else heraldShow({ kind: "calm", text: "That thread isn't loaded", sub: "it may be in another project" }, 3200); return; }
   if (t.closest("[data-older]")) { loadOlderNow(); return; }

@@ -76,7 +76,7 @@ assert.match(app, /const ts = world\.state\.threads\.filter\(\(t\) => t\.project
 assert.doesNotMatch(app, /class="all-btn th-btn"/, "the header's Threads button moved into the panel");
 
 // the group heads: tokens only (a 1 px line aside)
-const block = css.slice(css.indexOf("── Threads (the frame that was Agents)"));
+const block = css.slice(css.indexOf("── Threads (the frame that was Agents)"), ((css.indexOf("/* ──", css.indexOf("── Threads (the frame that was Agents)") + 4) + 1) || css.length + 1) - 1);
 assert.ok(block.length > 100);
 assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\b1px solid\b/g, "").replace(/@media \([^)]*\)/g, ""), /\b\d+(\.\d+)?(px|rem|ms)\b/, "no literal sizes");
 

@@ -41,7 +41,7 @@ assert.match(app, /if \(e\.key === "Escape" && inSearch && \$\("#all-q"\)\.value
 assert.match(app, /if \(e\.key === "\/" && !inSearch/);
 
 // CSS: tokens only; the field's box takes the one focus ring
-const block = panel.slice(panel.indexOf("── Threads' filter"));
+const block = panel.slice(panel.indexOf("── Threads' filter"), ((panel.indexOf("/* ──", panel.indexOf("── Threads' filter") + 4) + 1) || panel.length + 1) - 1);
 assert.ok(block.length > 300);
 assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\b1px solid\b/g, ""), /\b\d+(\.\d+)?(px|rem|ms)\b|#[0-9a-f]{3,8}\b/i);
 assert.match(found, /\.tg-qf\):has\(:is\(input,textarea\):focus-visible\)/);

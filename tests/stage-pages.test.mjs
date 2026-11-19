@@ -44,7 +44,7 @@ assert.match(stage, /localStorage\.setItem\(`\$\{W_KEY\}:\$\{S\.page\.name\}`, S
 assert.match(stage, /role="tab" aria-selected="\$\{on\}" data-stg-tab="\$\{esc\(t\.name\)\}" data-stg-key="\$\{esc\(t\.key\)\}"/);
 // CSS: one host for every page, a box each; tokens only
 assert.match(css, /\.stage\[data-page\] \.stg-frames\{display:none\}\n\.stage\[data-page\] \.stg-page\{display:flex;flex:1;min-height:0;flex-direction:column\}/);
-const block = css.slice(css.indexOf("── Pages open in the panel"));
+const block = css.slice(css.indexOf("── Pages open in the panel"), css.indexOf("── The Thread page"));
 assert.ok(block.length > 300);
 assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, ""), /\b\d+(\.\d+)?(px|rem|ms)\b|#[0-9a-f]{3,8}\b/i);
 console.log("stage-pages: ok");

@@ -39,7 +39,7 @@ assert.match(html, /<button type="button" class="gear sh-tog" id="nv-shells"/);
 assert.match(html, /<section class="shd" id="shd" aria-label="Shells" hidden><\/section>/);
 
 // CSS: tokens only; a phone keeps its own shells sheet
-const block = css.slice(css.indexOf("── Shell mode"));
+const block = css.slice(css.indexOf("── Shell mode"), ((css.indexOf("/* ──", css.indexOf("── Shell mode") + 4) + 1) || css.length + 1) - 1);
 assert.match(block, /\.stage\[data-page\] \.stg-frames\{display:none\}/);
 assert.match(block, /@media \(max-width:760px\)\{\.stg-shell-b\{display:none\}\}/);
 assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\b1px solid\b/g, "").replace(/@media \([^)]*\)/g, ""), /\b\d+(\.\d+)?(px|rem|ms)\b/);
