@@ -42,6 +42,7 @@ import { createLpApi } from "./lpapi.js";
 import { createFiles, fileScope, localIn, scopeOf as filesScopeOf } from "./files.js";
 import { createPaths } from "./paths.js";
 import { createQuickOpen } from "./quickopen.js";
+import { fitChips } from "./nowfit.js";
 import { createFilesView } from "./filesview.js";
 import { createChanges, lineRef, fileRef } from "./changes.js";
 import { fileIcon } from "./fileicons.js";
@@ -1401,9 +1402,16 @@ function nowRender(needs) {
       `<i class="g g-${n ? "needs_reply" : glyphOf(t)}" aria-hidden="true"></i><b>${esc(t.title)}</b>` +
       `<span class="nw-segs" aria-hidden="true">${c.items.map((i) => `<i class="sg s-${i.state}"></i>`).join("")}</span></button>`;
   }).join("");
-  patch(wrap, `<div class="now" role="list" aria-label="Now in ${esc(PROJ(pid))}">${items}</div>`);
+  const html = `<div class="now" role="list" aria-label="Now in ${esc(PROJ(pid))}">${items}</div>`;
+  if (html !== NE.html) { NE.html = html; NE.dirty = true; }
+  patch(wrap, html);
   nowEdges();
 }
+// the strip is measured only when its chips or its width change (NE.dirty: the chips' markup changed, or the
+// ResizeObserver below saw a new size), never on every redraw: each render measured every chip, a forced layout each,
+// 28 of them in the "Back to chat" click (the owner, 19 Nov 12:06Z)
+const NE = { html: "", dirty: true };
+if (typeof ResizeObserver === "function") new ResizeObserver(() => { NE.dirty = true; nowEdges(); }).observe($("#now-wrap"));
 /** Fade the strip's edges only where there is more to scroll to. */
 function nowEdges() {
   const now = $("#now-wrap .now");
@@ -1414,21 +1422,16 @@ function nowEdges() {
   // opening never replaces it (it's the switcher's opener, the place Escape returns to: Astra H30); it's the strip's own
   // (data-own), so the chips' redraw in place leaves it be
   if (matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    if (!NE.dirty) return;
+    NE.dirty = false;
     const chips = [...now.querySelectorAll(".nw:not(.nw-more)")];
     let more = now.querySelector(".nw-more");
+    // write what measuring needs (every chip shown), then read everything once, then write the result
     for (const c of chips) c.hidden = false;
     now.classList.remove("fade-l", "fade-r");
     const cs = getComputedStyle(now), inner = now.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-    const all = chips.reduce((w, c, i) => w + c.offsetWidth + (i ? 6 : 0), 0);
-    let n = 0;
-    if (all > inner + 2) {
-      const room = inner - 56;
-      let used = 0, fit = 0;
-      for (const c of chips) { used += c.offsetWidth + (fit ? 6 : 0); if (used <= room) fit++; else break; }
-      fit = Math.max(1, fit);
-      for (const c of chips.slice(fit)) c.hidden = true;
-      n = chips.length - fit;
-    }
+    const { fit, n } = fitChips(chips.map((c) => c.offsetWidth), inner);
+    for (const c of chips.slice(fit)) c.hidden = true;
     if (!n) { more?.remove(); return; }
     if (!more) { now.insertAdjacentHTML("beforeend", `<button type="button" class="nw nw-more" data-switch aria-haspopup="dialog" data-own></button>`); more = now.lastElementChild; }
     else if (more !== now.lastElementChild) now.append(more);
@@ -1447,7 +1450,7 @@ $("#now-wrap").addEventListener("wheel", (e) => {
   e.preventDefault();
   now.scrollLeft += e.deltaY;
 }, { passive: false });
-addEventListener("resize", () => nowEdges());
+addEventListener("resize", () => { NE.dirty = true; nowEdges(); });
 
 /** The checklist bar: shows the step in progress; a finished step flashes its tick, then moves on. */
 function checklistRender(needs) {

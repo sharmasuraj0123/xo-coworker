@@ -855,7 +855,12 @@ function downSync() {
   if (n.textContent !== txt) n.textContent = txt;
   if (down.getAttribute("aria-label") !== label) down.setAttribute("aria-label", label);
 }
-scroller.addEventListener("scroll", downSync, { passive: true });
+// once per frame, after the frame's writes (the app's render runs in the frame before): a scroll that comes with a change
+// of the conversation's width ("Back to chat") read the dock and the button between those writes, a forced layout for
+// each of downSync's dozen reads (the owner, 19 Nov 12:06Z)
+let downT = 0;
+const downSoon = () => { if (!downT) downT = requestAnimationFrame(() => { downT = 0; downSync(); }); };
+scroller.addEventListener("scroll", downSoon, { passive: true });
 down.addEventListener("click", () => toLatest(true));
 new MutationObserver((ms) => {
   // a whole conversation swapped in is a new place, not news
