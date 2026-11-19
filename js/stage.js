@@ -268,7 +268,9 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     // ‹ Sections leads any page but the shell (its own button is its way back, as before), with a dot when the
     // sections need you (an ask in Threads)
     const back = S.page && S.page.name !== "shell" ? `<button type="button" class="stg-ic pg-back" data-stg-sections title="Back to Threads, Changes and Map (Esc)" aria-label="Sections${sectionsNeed() ? ", something needs you" : ""}">${ICON.back}${sectionsNeed() ? '<i class="pg-dot" aria-hidden="true"></i>' : ""}</button>` : "";
-    if (S.tabs.length > 1) return `${back || `<button type="button" class="stg-ic pg-back" data-stg-sections title="Back to Threads, Changes and Map (Esc)" aria-label="Sections">${ICON.back}</button>`}<span class="pg-tabs" role="tablist" aria-label="Open in the panel">${S.tabs.map((t) => {
+    // on the sections, what the pages keep (a file in Files, a thread) stays one click away as its tab, beside the place
+    // (‹ Sections or Esc from a file keeps it: the plan, FILES-IN-PANEL.md §2)
+    if (S.tabs.length > 1 || (!S.page && S.tabs.length)) return `${S.page ? back || `<button type="button" class="stg-ic pg-back" data-stg-sections title="Back to Threads, Changes and Map (Esc)" aria-label="Sections">${ICON.back}</button>` : `<b class="stg-name" title="${esc(place || "")}">${esc(place || "Panel")}</b>`}<span class="pg-tabs" role="tablist" aria-label="Open in the panel">${S.tabs.map((t) => {
       const on = sameTab(t, S.page), sp = PAGES.get(t.name), tt = titleOf(t);
       return `<button type="button" class="pg-tab${on ? " is-on" : ""}" role="tab" aria-selected="${on}" data-stg-tab="${esc(t.name)}" data-stg-key="${esc(t.key)}" title="${esc(tt)}">${sp.icon ? sp.icon(t.key) : ""}<span>${esc(tt)}</span></button>`; }).join("")}</span>`;
     if (cur && back) return `${back}<b class="stg-name" title="${esc(titleOf(S.page))}">${esc(titleOf(S.page))}</b>`;
@@ -838,6 +840,8 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
       if (!frames().includes("changes") || !CX.head()) return false;
       if (!CX.select(path)) return false;
       fr.changes.folded = false;
+      // a page in front (a file in Files, a thread): the sections come back to show it, the page kept as its tab
+      if (S.page) sections({ paint: false });
       if (!S.open) open({ focus: false }); else { layout(); paint(); persist(); }
       return true;
     },

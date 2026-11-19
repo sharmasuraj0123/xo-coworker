@@ -3712,8 +3712,7 @@ document.addEventListener("click", (e) => {
       cv.follow.unpin(cf); // the row you clicked in stays where it is while the panel takes its room (follow.js)
       const s = CHG.scope(cv.view);
       const inFiles = () => VW.open({ path: c.path, name: c.path.split("/").pop(), project: s.project, rel: s.worktree ? `.xo/worktrees/${s.worktree}/${c.path}` : c.path, show: "changes" }, cf);
-      // beside a file (the chat docked, a phone's sheet), or ⌘/Ctrl-click: its diff in Files, in the middle, in
-      // place of the one shown; on a phone the sheet folds so the file shows
+      // ⌘/Ctrl-click: its diff in the panel's Files page, as the file (the same place a file opens)
       if (s && (e.metaKey || e.ctrlKey)) { inFiles(); return; }
       // its diff in the panel's Changes: focus goes to its row there, in the draw that shows it (the chip you
       // pressed is redrawn as chosen, and on a phone the panel covers it) (Files/Map grader on S224)
