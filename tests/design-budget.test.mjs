@@ -5,7 +5,8 @@
 // No network, no browser.
 //   node tests/design-budget.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
+import { cssNames, sourcePaths, readSource } from "./lib/sources.mjs";
 
 const DIR = new URL("../css/", import.meta.url);
 const SIDEBAR = /\.side\b|\.side-|\.brand|\.nrow|\.nr-|\.prow|\.pr-|\.projects|#projects|\.gear|\.theme\b|\.th-(?:track|knob)|\.sc-|\.sf-|\.nv-|#nv-|\.pf-|#side|\.nav\b|#set-side/;
@@ -14,7 +15,7 @@ const FRAME = /^\s*(?:from|to|[\d.]+%)(?:\s*,\s*(?:from|to|[\d.]+%))*\s*$/;
 /** Every declaration outside the sidebar, token blocks, @font-face and keyframe frames. */
 function declarations() {
   const out = [];
-  for (const f of readdirSync(DIR).filter((n) => n.endsWith(".css") && n !== "tokens.css")) {
+  for (const f of cssNames().filter((n) => n !== "tokens.css")) {
     const css = readFileSync(new URL(f, DIR), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
     for (const m of css.matchAll(/([^{}]*)\{([^{}]*)\}/g)) {
       const sel = m[1].trim();
@@ -95,7 +96,7 @@ t("no malformed var() (a broken value drops its whole declaration without a word
 const ROLE = /^--(?:canvas|sunken|surface|float|fill-\d|line(?:-faint|-soft|-strong|-hover)?|ink(?:-\d)?|accent(?:-[\w]+)?|err(?:-ink)?|warn|info|violet|bg(?:-\d|-head)?|hair|raised|side|pop-(?:bg|line)|comp-line(?:-hi)?)$/;
 t("the palette lives in tokens.css alone", () => {
   const all = [];
-  for (const f of readdirSync(DIR).filter((n) => n.endsWith(".css") && n !== "tokens.css")) {
+  for (const f of cssNames().filter((n) => n !== "tokens.css")) {
     const css = readFileSync(new URL(f, DIR), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
     for (const m of css.matchAll(/(--[\w-]+)\s*:\s*([^;}]*)/g)) {
       const to = /^var\((--[\w-]+)\)$/.exec(m[2].trim());
@@ -119,9 +120,8 @@ t("motion timings come from the tokens", () => {
 
 // A curve set from script escapes the stylesheet's budget: the scripts may name only the two curves.
 t("scripts use the one curve and the loop curve", () => {
-  const JS = new URL("../js/", import.meta.url);
   const curves = new Set();
-  for (const f of readdirSync(JS).filter((n) => n.endsWith(".js"))) for (const m of readFileSync(new URL(f, JS), "utf8").matchAll(/cubic-bezier\(([^)]*)\)/g)) curves.add(m[1].replace(/\s/g, ""));
+  for (const f of sourcePaths(".js")) for (const m of readSource(f).matchAll(/cubic-bezier\(([^)]*)\)/g)) curves.add(m[1].replace(/\s/g, ""));
   const odd = [...curves].filter((c) => c !== ".2,.8,.2,1" && c !== ".45,0,.55,1");
   assert.deepEqual(odd, [], `curves in js/: ${odd.join(" | ")}`);
 });
@@ -137,7 +137,7 @@ t("one focus ring", () => {
 // (no scale above 1 — a pop or a bounce) and nothing shakes (a translate that reverses direction in one animation).
 t("keyframes neither overshoot nor shake", () => {
   const bad = [];
-  for (const f of readdirSync(DIR).filter((n) => n.endsWith(".css"))) {
+  for (const f of cssNames()) {
     const css = readFileSync(new URL(f, DIR), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
     for (const m of css.matchAll(/@keyframes\s+([\w-]+)\s*\{((?:[^{}]|\{[^{}]*\})*)\}/g)) {
       const [, name, body] = m;

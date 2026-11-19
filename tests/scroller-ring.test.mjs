@@ -11,13 +11,14 @@
 // control focused and every clipping box around it checked, is flows' RINGCLIP.
 //   node tests/scroller-ring.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { rules as cascade, decls } from "./lib/cascade.mjs";
 import { sourcePaths, readSource } from "./lib/sources.mjs";
+import { cssNames } from "./lib/sources.mjs";
 
 const R = new URL("../", import.meta.url);
 const read = (f) => readFileSync(new URL(f, R), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-const css = readdirSync(new URL("css/", R)).filter((f) => f.endsWith(".css")).map((f) => [f, read(`css/${f}`)]);
+const css = cssNames().map((f) => [f, read(`css/${f}`)]);
 const all = css.map((x) => x[1]).join("\n");
 const base = read("css/base.css"), fnd = read("css/foundation.css"), tokens = read("css/tokens.css");
 const ring = base.match(/(^|\n):focus-visible\{outline:(\d+)px solid var\(--focus\);outline-offset:(\d+)px\}/);

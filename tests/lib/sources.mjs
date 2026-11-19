@@ -1,3 +1,5 @@
+// @ts-check
+
 // The app's own source files wherever a move puts them (js/, css/, core/, shell/, modules/, apps-host/), never vendor or tests.
 import { readdirSync, readFileSync, existsSync } from "node:fs";
 
@@ -20,3 +22,5 @@ export function sourcePaths(ext) {
 export const readSource = (p) => readFileSync(new URL(p, ROOT), "utf8");
 /** @param {string} ext */
 export const sourceText = (ext) => sourcePaths(ext).map(readSource).join("\n");
+/** Every stylesheet named relative to css/ ("app.css", "../modules/settings/shape.css"), for tests that read css/${name}. */
+export const cssNames = () => sourcePaths(".css").map((p) => (p.startsWith("css/") ? p.slice(4) : `../${p}`));

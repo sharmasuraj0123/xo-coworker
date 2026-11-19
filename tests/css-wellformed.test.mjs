@@ -6,10 +6,11 @@
 // from edge to edge of the conversation, past the header's own edges.
 //   node tests/css-wellformed.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
+import { cssNames } from "./lib/sources.mjs";
 
 const DIR = new URL("../css/", import.meta.url);
-const files = readdirSync(DIR).filter((f) => f.endsWith(".css"));
+const files = cssNames();
 let failed = 0;
 const t = (name, fn) => { try { fn(); console.log(`  ok  ${name}`); } catch (e) { failed++; console.log(`  FAIL ${name}\n${e.message}`); } };
 const line = (s, i) => s.slice(0, i).split("\n").length;

@@ -11,7 +11,7 @@ export const ORDER = ["base.css", "app.css", "light.css", "foundation.css", "pan
 export function rules(root) {
   const out = [];
   for (const f of ORDER) {
-    const css = resolveTokens(readFileSync(new URL(`../../css/${f}`, root), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""));
+    const css = resolveTokens(sheet(new URL(`../../css/${f}`, root)));
     const stack = []; let i = 0, start = 0;
     while (i < css.length) {
       const c = css[i];
@@ -29,6 +29,10 @@ export function rules(root) {
     }
   }
   return out;
+}
+// a sheet with its @imports in place, as the browser reads it, comments out
+export function sheet(url) {
+  return readFileSync(url, "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/@import\s+url\(\s*["']?([^"')]+)["']?\s*\)\s*;/g, (_, href) => sheet(new URL(href, url)));
 }
 // split a selector list at top-level commas (not inside :is(…), :not(…), attribute brackets)
 function splitList(s) { const out = []; let depth = 0, cur = ""; for (const ch of s) { if (ch === "(" || ch === "[") depth++; if (ch === ")" || ch === "]") depth--; if (ch === "," && !depth) { out.push(cur); cur = ""; } else cur += ch; } out.push(cur); return out.map((x) => x.trim()).filter(Boolean); }
