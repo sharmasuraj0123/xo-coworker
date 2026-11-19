@@ -7,7 +7,7 @@ import { readFileSync } from "node:fs";
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const side = readFileSync(new URL("../css/side.css", import.meta.url), "utf8");
 const tokens = readFileSync(new URL("../css/tokens.css", import.meta.url), "utf8");
-const keys = readFileSync(new URL("../js/keys.js", import.meta.url), "utf8");
+const { ACTIONS, binding } = await import("../core/platform/keys.js");
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 
 // the top row: fold, brand, search; the foot: Shells, theme and Settings as icons
@@ -17,10 +17,10 @@ assert.match(html, /class="gear is-ic" id="set-side"[^>]*aria-label="Settings"/,
 assert.doesNotMatch(html, /<span class="gear-t">Settings<\/span>/, "Settings shows no word");
 
 // its own key, not the file tree's ⌘B
-const k = keys.match(/\{ id: "sideFold"[^}]*def: "([^"]+)"/);
-assert.ok(k, "keys.js has sideFold");
-assert.equal(k[1], "mod+shift+b");
-assert.doesNotMatch(keys.replace(/\{ id: "sideFold"[^}]*\}/, ""), /def: "mod\+shift\+b"/, "no other action has ⌘⇧B");
+assert.ok(ACTIONS.some((a) => a.id === "sideFold"), "keys.js has sideFold");
+assert.equal(ACTIONS.find((a) => a.id === "sideFold")?.def, "mod+shift+b");
+assert.equal(binding("sideFold"), "mod+shift+b");
+assert.deepEqual(ACTIONS.filter((a) => a.id !== "sideFold" && a.def === "mod+shift+b").map((a) => a.id), [], "no other action has ⌘⇧B");
 assert.match(app, /sideFold: \(\) => SIDE\.fold\(!SIDE\.folded\)/, "the key folds the sidebar");
 
 // the rail's width is a token: one row and the rows' inset on each side

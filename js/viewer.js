@@ -26,7 +26,7 @@ import { usable } from "./focusview.js";
 import { api, attachmentUrl, attachmentText, missingRoute } from "./api.js";
 import { kindOf, typeWord } from "./attach.js";
 import * as DV from "./diffview.js";
-import * as K from "./keys.js";
+import * as K from "../core/platform/keys.js";
 import { pointerFollows } from "./keynav.js";
 import { redrawNode } from "./redraw.js";
 import { countsHtml } from "./changesframe.js";

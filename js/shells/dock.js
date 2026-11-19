@@ -12,7 +12,7 @@ import { api } from "../api.js";
 import { esc, COPY_REFUSED } from "../../core/platform/index.js";
 import { redraw } from "../redraw.js"; // in place: the control a person is on is kept, never replaced under them
 import { ICON } from "../ui.js";
-import * as K from "../keys.js";
+import * as K from "../../core/platform/keys.js";
 import { mountShell } from "./term.js";
 import { drag, follow, glide, unstyle, tick, FLICK } from "../gestures.js";
 import { busyWith, isRunning, isDetached, stateLine, dotOf, runningOf, listRows, cleanName, nameFor, whereOf } from "./model.js";

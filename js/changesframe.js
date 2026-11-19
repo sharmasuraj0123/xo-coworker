@@ -18,7 +18,7 @@ import { xi } from "./icon.js";
 import { redraw } from "./redraw.js";
 import { fileIcon } from "./fileicons.js";
 import * as DV from "./diffview.js";
-import * as K from "./keys.js";
+import * as K from "../core/platform/keys.js";
 import { isImageChange, drawImageChange } from "./imagechange.js";
 
 const OPEN_IC = xi("external-link");

@@ -2338,7 +2338,8 @@
     "core/platform/keys.js",
     "core/kernel (shortcut place)",
     "modules/settings/keyboard.js"
-   ]
+   ],
+   "note": "the engine and its catalogue are in core/platform/keys.js; js/keys.js re-exports it until the shims go; the catalogue becomes the kernel's shortcut place when modules contribute their keys"
   },
   "js/kit.js": {
    "status": "split",
@@ -4397,8 +4398,8 @@
    "home": "core/platform/tests/keys-dispatch.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/keys.test.mjs": {
-   "status": "planned",
-   "home": "core/platform/tests/keys.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "core/platform/tests/keys.test.mjs"
   },
   "tests/launchpad.test.mjs": {
    "status": "planned",
@@ -9885,283 +9886,128 @@
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keys.js::exports::GROUPS": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::ACTIONS": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::fromEvent": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::binding": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::changed": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::typing": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::is": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::hasMod": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::globalFor": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::show": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::label": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::hint": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::set": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::reset": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::resetAll": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::anyChanged": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::onChange": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::functions::load": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::functions::save": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::functions::parse": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::functions::str": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::functions::fromEvent": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::functions::is": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::functions::globalFor": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::functions::show": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::functions::set": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::functions::reset": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::functions::resetAll": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::functions::onChange": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::storage::cv-keys": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::keys:: ": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/kit.js::exports::COMMIT_MS": {
    "status": "split-region",

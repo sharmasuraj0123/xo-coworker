@@ -4,12 +4,12 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 908 |
+| planned | 907 |
 | vendor | 367 |
 | split | 34 |
-| moved | 4 |
+| moved | 5 |
 
-Items inside first-party files: 2290 (planned 1344, split-region 873, moved 54, deleted 19), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1344, split-region 842, moved 85, deleted 19), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -194,7 +194,7 @@ Items inside first-party files: 2290 (planned 1344, split-region 873, moved 54, 
 | `tests/key-layer.test.mjs` | 20 | planned | shell (phone drawer)/tests/key-layer.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/keynav.test.mjs` | 185 | planned | core/platform/tests/keynav.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/keys-dispatch.test.mjs` | 87 | planned | core/platform/tests/keys-dispatch.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/keys.test.mjs` | 48 | planned | core/platform/tests/keys.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/keys.test.mjs` | 48 | moved | core/platform/tests/keys.test.mjs |
 | `tests/launchpad.test.mjs` | 326 | planned | modules/launchpad/tests/launchpad.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/layout-reads.test.mjs` | 25 | planned | modules/conversation/tests/layout-reads.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/link-buttons.test.mjs` | 47 | planned | core/ui (css guard)/tests/link-buttons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |

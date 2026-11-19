@@ -50,6 +50,11 @@ const imported = (name, file) => {
       const n = from.get(resolveFrom(f, m[2]));
       if (n && new RegExp(`\\b${m[1]}\\.${n}\\b`).test(text)) return true;
     }
+    for (const m of text.matchAll(/(?:const|let)\s+(\{[^}]*\}|[\w$]+)\s*=\s*await\s+import\(\s*(?:new URL\()?\s*"([^"?]+)/g)) {
+      const n = from.get(resolveFrom(f, m[2]));
+      if (!n) continue;
+      if (m[1].startsWith("{") ? m[1].slice(1, -1).split(",").some((x) => x.trim().split(/\s*:\s*/)[0] === n) : new RegExp(`\\b${m[1]}\\.${n}\\b`).test(text)) return true;
+    }
     return false;
   });
 };

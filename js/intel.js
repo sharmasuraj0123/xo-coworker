@@ -11,7 +11,7 @@
 //                          first), its agent's model and effort (the router chose them; you can pin)
 // One choice, in order: runtime, then model, then effort.
 
-import * as K from "./keys.js";
+import * as K from "../core/platform/keys.js";
 import { esc } from "./world.js";
 import { space, once } from "../core/platform/index.js";
 import { redraw } from "./redraw.js";
