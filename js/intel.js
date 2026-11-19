@@ -148,7 +148,8 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     const rt = manyRuntimes(world.state.runtimes) && rtn && rtn !== main && !phone ? rtName(rtn) : null;
     const words = [];
     // a runtime other than the usual one: its mark (its name on hover, and in the chip's title and the picker)
-    if (rt) words.push(rtMark(rtn) || `<span class="iq-a">${esc(rt)}</span>`);
+    // (inside the chip's own text span, so it sits on the words' line by the one icon rule, css/app.css .agm)
+    if (rt) words.push(`<span class="iq-a">${rtMark(rtn) || esc(rt)}</span>`);
     if (next) words.push(`<span class="iq-a">Next turn</span>`);
     words.push(model ? `<span class="iq-t">${esc(nameOf(model))}</span>` : `<span class="iq-a">Auto</span>`);
     if (effort) words.push(`<span class="iq-e">${esc(effortWord(effort))}</span>`);

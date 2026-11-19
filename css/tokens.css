@@ -84,6 +84,7 @@
   --fs-xs:12px; --fs-sm:12px; --fs-base:13px; --fs-md:14px; --fs-lg:15px; --fs-xl:15px; --fs-2xl:20px; --fs-3xl:28px; --fs-4xl:40px;
   --lh-12:16px; --lh-13:20px; --lh-14:20px; --lh-15:24px; --lh-16:24px; --lh-20:28px; --lh-28:36px; --lh-40:44px;
   --tr-12:.01em; --tr-13:0em; --tr-15:0em; --tr-20:-.01em; --tr-28:-.02em; --tr-40:-.03em;
+  --cap-mid:.3595em;   /* half Geist's cap height (.719em): where an icon beside words centres (see .agm, .lk-ic) */
   --tr-caps:.04em;   /* a small caps label (FILES, SECTION) */
   --tr-code:.1em;    /* a code to read out or type (a pairing code) */
   --lh-ui:20px; --lh-read:24px;
