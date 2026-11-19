@@ -19,12 +19,17 @@ assert.ok(!matchesQ(row, "design files"));
 
 // the panel: the field over the list (built once, kept), shown past 12 or while it filters; groups show all they match
 assert.match(stage, /const FILTER_AT = 12;/);
-assert.match(stage, /qBox\.hidden = !\(tg && \(total > FILTER_AT \|\| tq\)\);/);
+assert.match(stage, /qBox\.hidden = !\(tg && \(total > FILTER_AT \|\| tq \|\| S\.tqOpen\)\);/, "past 12, while it filters, or when asked");
+// the search button and / open it here and focus it (the owner, 19 Nov 15:04Z: "can't it search within?")
+assert.match(stage, /if \(t\.closest\("\[data-tg-find\]"\)\) \{ findThreads\(\); return; \}/);
+assert.match(stage, /S\.tqOpen = true; paint\(\);\s*const q = el\.querySelector\("\[data-tg-q\]"\); q\.focus\(\{ preventScroll: true \}\); q\.select\(\);/);
+assert.match(stage, /if \(e\.key === "Escape" && S\.tqOpen\)/, "empty, Esc puts it away again");
 assert.match(stage, /set\("agents", body\("agents"\)\.querySelector\("\.tg-box"\), tg \? threadsHtml\(tg, tq\) : agentsHtml\(ag\)\);/);
 assert.match(stage, /No thread matches “\$\{esc\(q\)\}”\. <button type="button" class="tg-clear" data-tg-clear>Clear the filter<\/button>/);
 assert.match(stage, /const g = q \? \{\} : fr\.agents\.groups \|\| \{\}, more = q \? \{ needs: 1, working: 1, waiting: 1, done: 1 \} : S\.tgMore \|\| \{\};/);
 // keys: / in the panel, Esc clears first, ↓ and Enter go to the first match
 assert.match(stage, /if \(e\.key === "\/" && !e\.metaKey && !e\.ctrlKey && !e\.altKey && !e\.target\.closest\?\.\("input, textarea, \[contenteditable\]"\)\)/);
+assert.match(stage, /if \(!fr\.agents\.folded && el\.querySelector\('\[data-fr="agents"\]:not\(\[hidden\]\)'\)\) \{ e\.preventDefault\(\); e\.stopPropagation\(\); findThreads\(\); return; \}/);
 assert.match(stage, /if \(e\.key === "Escape" && inp\.value\) \{ e\.preventDefault\(\); e\.stopPropagation\(\); inp\.value = ""; S\.tq = ""; paint\(\); return; \}/);
 assert.match(stage, /aria-keyshortcuts="\/"/);
 // the rows carry what it matches

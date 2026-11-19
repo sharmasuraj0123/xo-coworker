@@ -85,7 +85,8 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     `<div class="stg-shell"></div>` +
     `<div class="stg-frames">` +
     `<section class="fr fr-lp is-folded" data-fr="launch" aria-labelledby="fr-title-launch" hidden><header class="fr-h"><h2 class="fr-title" id="fr-title-launch">Launchpad</h2><span class="lp-hs"></span><div class="fr-a"><span class="lp-ha"></span><button type="button" class="fr-ib fr-fold" data-fr-fold="launch" aria-expanded="false" title="Open">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-launch" tabindex="-1"></div><div class="fr-ghosts" role="group" aria-label="Under Launchpad"></div></section><div class="fr-line" data-lp-line hidden></div>` +
-    frame("agents", "Threads", `<button type="button" class="fr-ib" data-switch aria-haspopup="dialog" aria-expanded="false" title="Find a thread" aria-label="Find a thread">${ICON.search}</button>`) + gutter("agents", "changes") +
+    // its search filters the list here, in place (the owner, 19 Nov 15:04Z: "can't it search within?"), not a sheet
+    frame("agents", "Threads", `<button type="button" class="fr-ib" data-tg-find aria-controls="fr-body-agents" title="Filter threads (/)" aria-label="Filter threads" aria-keyshortcuts="/">${ICON.search}</button>`) + gutter("agents", "changes") +
     frame("changes", "Changes", `<button type="button" class="xd-follow" data-follow hidden></button><button type="button" class="fr-ib" data-open-files title="All files">${FILES_IC}</button>`) + gutter("changes", "map") +
     frame("map", "Map", `<div class="fr-views" role="tablist" aria-label="Map view"><button type="button" class="fr-t" role="tab" id="stage-map-tree" aria-controls="fr-body-map" data-map-mode="tree">Diagram</button><button type="button" class="fr-t" role="tab" id="stage-map-graph" aria-controls="fr-body-map" data-map-mode="graph">Graph</button></div>`) +
     `</div>`;
@@ -101,6 +102,8 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     inp.addEventListener("input", () => { S.tq = inp.value; paint(); });
     inp.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && inp.value) { e.preventDefault(); e.stopPropagation(); inp.value = ""; S.tq = ""; paint(); return; }
+      // empty, Esc puts a field you opened away again (a long list keeps its field) and goes back to the search button
+      if (e.key === "Escape" && S.tqOpen) { e.preventDefault(); e.stopPropagation(); S.tqOpen = false; paint(); el.querySelector("[data-tg-find]")?.focus({ preventScroll: true }); return; }
       if (e.key === "ArrowDown" || e.key === "Enter") { const r = body("agents").querySelector(".tg-box [data-go]"); if (r) { e.preventDefault(); if (e.key === "Enter") r.click(); else r.focus(); } }
     });
   }
@@ -219,6 +222,12 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   // Esc clears it; while it filters, every group shows all it matches
   const FILTER_AT = 12;
   const matchesQ = (r, q) => { const s = `${r.title} ${r.sub || ""} ${r.summary || ""} ${r.branch || ""}`.toLowerCase(); return q.split(/\s+/).every((w) => s.includes(w)); };
+  /** The search button and /: the Threads filter, shown (a short list hides it until asked) and focused. */
+  function findThreads() {
+    if (fr.agents.folded) { fr.agents.folded = false; persist(); layout(); }
+    S.tqOpen = true; paint();
+    const q = el.querySelector("[data-tg-q]"); q.focus({ preventScroll: true }); q.select();
+  }
   function threadsHtml(groups, q = "") {
     if (q) {
       groups = groups.map((x) => ({ ...x, rows: x.rows.filter((r) => matchesQ(r, q)) })).filter((x) => x.rows.length);
@@ -278,7 +287,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     const tg = threads ? threads(v) : null;
     const tq = (S.tq || "").trim().toLowerCase(), total = tg ? tg.reduce((n, x) => n + x.rows.length, 0) : 0;
     const qBox = body("agents").querySelector(".tg-q");
-    qBox.hidden = !(tg && (total > FILTER_AT || tq));
+    qBox.hidden = !(tg && (total > FILTER_AT || tq || S.tqOpen));
     if (!S.lp) set("agents", body("agents").querySelector(".tg-box"), tg ? threadsHtml(tg, tq) : agentsHtml(ag));
     // the threads, not the coordinator's row: the same count as the header's Threads (app.js threadCounts)
     el.querySelector('[data-fr-n="agents"]').textContent = tg ? (tg.reduce((n, x) => n + x.rows.filter((r) => !r.coord).length, 0) || "") : (ag.filter((a) => a.busy).length || "");
@@ -499,6 +508,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     if (tf) { const k = tf.dataset.tgFold; fr.agents.groups = { ...(fr.agents.groups || {}), [k]: !fr.agents.groups?.[k] }; persist(); paint(); el.querySelector(`[data-tg-fold="${CSS.escape(k)}"]`)?.focus({ preventScroll: true }); return; }
     const tm = t.closest("[data-tg-more]");
     if (tm) { const k = tm.dataset.tgMore; S.tgMore = { ...(S.tgMore || {}), [k]: true }; paint(); return; }
+    if (t.closest("[data-tg-find]")) { findThreads(); return; }
     if (t.closest("[data-tg-clear]")) { const inp = el.querySelector("[data-tg-q]"); inp.value = ""; S.tq = ""; paint(); inp.focus(); return; }
     const g = t.closest("[data-go]");
     if (g) { go(g.dataset.go); }
@@ -541,8 +551,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     }
     // / in the panel goes to the Threads filter when it shows (elsewhere / still writes, keys.js "write")
     if (e.key === "/" && !e.metaKey && !e.ctrlKey && !e.altKey && !e.target.closest?.("input, textarea, [contenteditable]")) {
-      const q = el.querySelector(".tg-q:not([hidden]) [data-tg-q]");
-      if (q) { e.preventDefault(); e.stopPropagation(); q.focus(); q.select(); return; }
+      if (!fr.agents.folded && el.querySelector('[data-fr="agents"]:not([hidden])')) { e.preventDefault(); e.stopPropagation(); findThreads(); return; }
     }
     if (e.key !== "Escape") return;
     if (e.target.closest && e.target.closest("input:not(.lp-in)") && e.target.value) return; // a search clears first; Launchpad's fields don't

@@ -12,7 +12,8 @@ const css = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
 
 // the frame
 assert.match(stage, /frame\("agents", "Threads"/, "the Agents frame is Threads");
-assert.match(stage, /data-switch aria-haspopup="dialog"[^`]*title="Find a thread"/, "its head searches every thread");
+assert.match(stage, /class="fr-ib" data-tg-find aria-controls="fr-body-agents" title="Filter threads \(\/\)"/, "its head's search filters here, in place");
+assert.doesNotMatch(stage, /data-switch/, "no sheet from the panel");
 assert.match(stage, /const SHOW = \{ needs: Infinity, working: Infinity, waiting: 5, done: 5 \}/);
 assert.match(stage, /groups: \{ done: true \}/, "Done is folded at first");
 assert.doesNotMatch(stage.replace(/\/\/[^\n]*/g, ""), /Agentic Control Pane/, "the panel says the place, not its old name");
