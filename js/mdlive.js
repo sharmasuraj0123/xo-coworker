@@ -9,6 +9,25 @@
 // pageView(CM) → the extension (js/doceditor.js puts it in a compartment, so Source is the same editor without it).
 
 import { renderMarkdown, renderInline } from "./markdown.js";
+import { drawMath, drawDiagram } from "./rich.js";
+
+// A widget's math and diagrams are drawn by the chat's own renderer (js/rich.js: one cache, one Mermaid queue), a
+// moment after the widget appears (the caret just left the block: the next key may bring it back), then the widget's
+// HTML is written again from the cache, exactly as the chat writes it.
+const DRAW_MS = 250;
+function drawIn(node, write) {
+  const math = [...node.querySelectorAll(".md-math:not(.is-done):not(.is-failed)")];
+  const dgs = [...node.querySelectorAll(".md-diagram:not(.is-done):not(.is-failed)")];
+  if (!math.length && !dgs.length) return;
+  setTimeout(() => {
+    if (!node.isConnected) return;
+    const jobs = [
+      ...math.map((m) => drawMath(m.dataset.tex || "", m.classList.contains("is-block")).catch(() => null)),
+      ...dgs.map((g) => drawDiagram(g.querySelector(".md-dg-src code")?.textContent || "").catch(() => null)),
+    ];
+    Promise.all(jobs).then(() => { if (node.isConnected) write(); });
+  }, DRAW_MS);
+}
 
 const RICH_FENCE = /^(math|katex|latex|mermaid|chart)$/i;
 const INLINE_MATH = /(?<![\\$\w])\$(?=[^\s$])((?:\\.|[^$\\\n])*?[^\s\\$])\$(?![\w$])/g;
@@ -25,6 +44,7 @@ export function pageView(CM) {
       const d = document.createElement("div");
       d.className = "cm-md-block prose vw-md";
       d.innerHTML = renderMarkdown(this.src);
+      drawIn(d, () => { d.innerHTML = renderMarkdown(this.src); });
       d.addEventListener("mousedown", (e) => {
         if (e.target.closest("a, button")) return;
         e.preventDefault();
@@ -45,6 +65,7 @@ export function pageView(CM) {
       const s = document.createElement("span");
       s.className = "cm-md-imath";
       s.innerHTML = renderInline(this.src);
+      drawIn(s, () => { s.innerHTML = renderInline(this.src); });
       s.addEventListener("mousedown", (e) => { e.preventDefault(); view.dispatch({ selection: { anchor: this.from + 1 } }); view.focus(); });
       return s;
     }

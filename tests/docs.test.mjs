@@ -40,8 +40,8 @@ function fakeSpace(files = {}) {
   const S = {
     disk, saves: [], reads: 0, refuse: null, hold: null,
     async projectFile(project, rel) { S.reads++; const c = disk.get(rel); if (c == null) { const e = new Error("gone"); e.status = 404; throw e; } return { content: c, version: sha(c), editable: true, kind: "markdown" }; },
-    async saveProjectFile(project, rel, content, base, confirm) {
-      S.saves.push({ rel, content, base, confirm });
+    async saveProjectFile(project, rel, content, base, confirm, opts) {
+      S.saves.push({ rel, content, base, confirm, restoreOf: opts && opts.restoreOf || null });
       if (S.hold) await S.hold;
       if (S.refuse) { const r = S.refuse(rel, content, base, confirm); if (r) throw r; }
       const cur = disk.get(rel);
@@ -281,6 +281,25 @@ t("the last view letting go saves what's pending and forgets the document", asyn
   assert.equal(space.disk.get("a.md"), "bye\n");
   assert.equal(docs.get("p", "a.md"), null);
   void clock;
+});
+
+t("a restore says which version it brings back; a renamed file's document follows it", async () => {
+  const { clock, space, docs } = setup();
+  const d = await openDoc(docs, space);
+  const v = fakeView(docs, d);
+  v.type("later\n"); await clock.tick(AUTOSAVE_MS + 10);
+  d.versions[0].id = "v_first";
+  await docs.restore(d, d.versions[0].text, { id: "v_first" }); await settle();
+  assert.equal(space.saves.at(-1).restoreOf, "v_first");
+  v.type("next\n"); await clock.tick(AUTOSAVE_MS + 10);
+  assert.equal(space.saves.at(-1).restoreOf, null, "only that one save");
+  space.disk.set("b/renamed.md", space.disk.get("a.md")); space.disk.delete("a.md");
+  const moved = docs.renamed("p", "a.md", "b/renamed.md");
+  assert.equal(moved, d);
+  assert.equal(docs.get("p", "a.md"), null);
+  assert.equal(docs.get("p", "b/renamed.md"), d);
+  v.type("after the move\n"); await clock.tick(AUTOSAVE_MS + 10);
+  assert.equal(space.disk.get("b/renamed.md"), "after the move\n");
 });
 
 for (const [name, fn] of queue) {

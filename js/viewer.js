@@ -740,7 +740,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     try {
       const r = await api.projectVersions(D.project, D.rel);
       docs.knownVersions(D, r.versions || []);
-    } catch (err) { if (err && (err.status === 404 || err.status === 405)) versionsRoute = false; }
+    } catch (err) { if (err && ((err.status === 404 && !err.code) || err.status === 405)) versionsRoute = false; } // a bare 404: no route yet
   }
 
   // Someone else changed a file that's open. Space says so itself (its file.version event: app.js → fileChanged);
@@ -771,6 +771,14 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     }
     const D = docs.get(ev.project_id, ev.path) || (ev.old_path ? docs.get(ev.project_id, ev.old_path) : null);
     if (!D) return;
+    // renamed or moved: the document, and its tab, follow the file to its new path
+    if (ev.kind === "rename" && ev.old_path && ev.path && D.rel === ev.old_path) {
+      docs.renamed(D.project, ev.old_path, ev.path);
+      const name = ev.path.split("/").pop();
+      for (const t of V.tabs) if (t.doc === D) { t.file = { ...t.file, rel: ev.path, path: ev.path, name, where: ev.path }; if (t === V.tab) V.file = t.file; }
+      if (D === doc()) { announce(`${name}: the file moved to ${ev.path}.`); render(); } else paintHead();
+      if (ev.version && ev.version === D.version) return;
+    }
     if (ev.type === "file.version.attributed") { // who made a version already in
       const v = D.versions.find((x) => x.id === ev.id);
       if (v) { v.by = ev.by; if (D === doc()) paintHead(); }
@@ -953,7 +961,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       const D = doc(), v = D && D.viewing;
       if (!v || v.text == null || !TX.h) return;
       TX.h.showVersion(null);
-      docs.restore(D, v.text);
+      docs.restore(D, v.text, { id: v.id });
       announce("That version is the file again (a new version: the one before is kept).");
       paintHead(); TX.h.focus();
       return;

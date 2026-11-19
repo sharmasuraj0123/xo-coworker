@@ -69,7 +69,7 @@ function deadline(signal, ms) {
   };
 }
 
-export async function request(path, { method = "GET", body, signal, query, timeout } = {}) {
+export async function request(path, { method = "GET", body, signal, query, timeout, headers = null } = {}) {
   let url = BASE + path;
   if (query) {
     const q = new URLSearchParams();
@@ -80,7 +80,7 @@ export async function request(path, { method = "GET", body, signal, query, timeo
   const ms = timeout ?? (method === "GET" ? READ_MS : WRITE_MS);
   const dl = deadline(signal, ms);
   try {
-    return await exchange(url, method, body, dl.signal);
+    return await exchange(url, method, body, dl.signal, headers);
   } catch (err) {
     if (err && err.name === "AbortError" && dl.timedOut()) {
       throw new ApiError(0, "timeout", `XO didn't answer in ${Math.round(ms / 1000)} s.`);
@@ -91,13 +91,13 @@ export async function request(path, { method = "GET", body, signal, query, timeo
   }
 }
 
-async function exchange(url, method, body, signal) {
+async function exchange(url, method, body, signal, extra = null) {
   let res;
   try {
     res = await fetch(url, {
       method,
       signal,
-      headers: { ...(body ? { "Content-Type": "application/json" } : {}), ...coderHeaders() },
+      headers: { ...(body ? { "Content-Type": "application/json" } : {}), ...coderHeaders(), ...(extra || {}) },
       body: body ? JSON.stringify(body) : undefined,
       cache: "no-store",
       // A redirect here is Coder sending us to sign in, which fetch can't follow.
@@ -340,8 +340,9 @@ export const api = {
    * from. → {version, saved_at, edit_id}; 409 file_changed {current: {content, version}}; 428
    * confirm_required (send again with confirm "runs_code"); 403 read_only_place | ui_only | outside_project.
    */
-  saveProjectFile: (project, relativePath, content, baseVersion, confirm) =>
-    send("PUT", `/xo-projects/${enc(project)}/file`, { relative_path: relativePath, content, base_version: baseVersion, ...(confirm ? { confirm } : {}) }),
+  // restoreOf: the version id a Restore brings back (Space records the save as kind "restore": the contract's answer 1)
+  saveProjectFile: (project, relativePath, content, baseVersion, confirm, { restoreOf = null } = {}) =>
+    request(`/xo-projects/${enc(project)}/file`, { method: "PUT", body: { relative_path: relativePath, content, base_version: baseVersion, ...(confirm ? { confirm } : {}) }, ...(restoreOf ? { headers: { "X-XO-Restore-Of": restoreOf } } : {}) }),
   /**
    * A file's versions, every writer's (Space's version store, SPACE-CONTRACT.md §4.1): {versions: [{id, n, version,
    * at, by: {kind: ui|agent|disk, thread_ts?, message_id?}, kind, current}], head, more}. 404 on a Space without it.

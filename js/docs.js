@@ -207,7 +207,8 @@ export function createDocs({ api, store = null, clock = { now: () => Date.now(),
     const sentBase = d.deleted ? null : d.version;
     const run = (async () => {
       try {
-        const r = await api.saveProjectFile(d.project, d.rel, text, sentBase, confirm || (d.confirmed ? "runs_code" : null));
+        const restoreOf = d.restoreOf; d.restoreOf = null;
+        const r = await api.saveProjectFile(d.project, d.rel, text, sentBase, confirm || (d.confirmed ? "runs_code" : null), restoreOf ? { restoreOf } : undefined);
         d.inflight = null;
         d.base = text; d.version = r.version; d.deleted = false; d.offline = false; d.confirm = false;
         if (confirm) d.confirmed = true;
@@ -330,6 +331,20 @@ export function createDocs({ api, store = null, clock = { now: () => Date.now(),
   }
 
   /** Versions Space reports (GET /versions) fold in: who and when for versions held here, older ones listed. */
+  /** The file was renamed or moved (Space's rename event, or the tree's own): the document follows it. */
+  function renamed(project, oldRel, newRel) {
+    const d = docs.get(keyOf(project, oldRel));
+    if (!d || docs.has(keyOf(project, newRel))) return null;
+    const was = d.key;
+    docs.delete(was);
+    dropDraft(store, was);
+    d.rel = newRel; d.key = keyOf(project, newRel);
+    docs.set(d.key, d);
+    if (d.state !== "saved") keepDraft(d);
+    emit(d, "renamed");
+    return d;
+  }
+
   function knownVersions(d, list) {
     if (!d || !Array.isArray(list)) return;
     const have = new Map(d.versions.filter((v) => v.version).map((v) => [v.version, v]));
@@ -353,9 +368,11 @@ export function createDocs({ api, store = null, clock = { now: () => Date.now(),
     return d.viewing;
   }
 
-  /** Make an older version's text the file's again: a normal save, so it's a new version (and undoable). */
-  function restore(d, text) {
+  /** Make an older version's text the file's again: a save, so it's a new version (and undoable). Space records it as
+   *  a restore of that version (its id goes with the save) where it knows the version. */
+  function restore(d, text, { id = null } = {}) {
     d.viewing = null;
+    d.restoreOf = id || null;
     const now = textOf(d);
     const e = minimalEdit(now, text);
     d.text = text;
@@ -365,7 +382,7 @@ export function createDocs({ api, store = null, clock = { now: () => Date.now(),
   }
 
   return {
-    open, release, attach, edited, flush, save, confirmRunsCode, changed, mergeIn, mergeProgress, resolve, knownVersions, view, restore, keepDraft,
+    open, release, attach, edited, flush, save, confirmRunsCode, changed, mergeIn, mergeProgress, resolve, knownVersions, view, restore, keepDraft, renamed,
     get: (project, rel) => docs.get(keyOf(project, rel)) || null,
     all: () => [...docs.values()],
     /** Unsaved anywhere (the page going away asks only when a draft couldn't be kept). */
