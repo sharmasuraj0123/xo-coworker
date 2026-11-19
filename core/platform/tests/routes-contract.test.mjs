@@ -18,7 +18,7 @@ globalThis.fetch = /** @type {any} */ (async (url, init = {}) => {
 globalThis.XMLHttpRequest = /** @type {any} */ (class { constructor() { this.upload = {}; } open(m, u) { record(m, u); } setRequestHeader() {} send() {} abort() {} });
 
 const { api, attachmentUrl, attachmentText, uploadAttachment, terminalSocketUrl } = await import("../api.js");
-const { createLpApi } = await import("../../../js/lpapi.js");
+const { createLpApi } = await import("../../../modules/launchpad/client.js");
 
 const ARGS = { pinMade: [["c", "m", true], ["c", "m", false]], githubStart: [[true], [false]] };
 const call = async (name, fn, args) => { from = name; try { await fn(...args); } catch { /* the answer is fake; the request is what counts */ } };

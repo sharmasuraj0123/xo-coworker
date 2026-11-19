@@ -79,14 +79,6 @@
   "extra": 30,
   "refs": 0
  },
- "js/launchpad.js": {
-  "extra": 86,
-  "refs": 0
- },
- "js/lpapi.js": {
-  "extra": 28,
-  "refs": 0
- },
  "js/map.js": {
   "extra": 93,
   "refs": 0
@@ -475,10 +467,6 @@
   "extra": 5,
   "refs": 0
  },
- "tests/launchpad.test.mjs": {
-  "extra": 2,
-  "refs": 0
- },
  "tests/layout-reads.test.mjs": {
   "extra": 4,
   "refs": 0
@@ -509,10 +497,6 @@
  },
  "tests/lp-phone-links.test.mjs": {
   "extra": 11,
-  "refs": 0
- },
- "tests/lp-stop-notice.test.mjs": {
-  "extra": 10,
   "refs": 0
  },
  "tests/main-clip.test.mjs": {

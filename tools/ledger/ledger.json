@@ -2367,8 +2367,16 @@
    "note": "the hold button and its guard are in core/ui/components/hold.js (modules/decisions/kit.js re-exports them)"
   },
   "js/launchpad.js": {
-   "status": "planned",
-   "home": "modules/launchpad/ (store, controller, views, section)"
+   "status": "split",
+   "home": [
+    "modules/launchpad/launchpad.js",
+    "modules/launchpad/store.js",
+    "modules/launchpad/views.js",
+    "modules/launchpad/system.js",
+    "modules/launchpad/actions.js",
+    "modules/launchpad/words.js"
+   ],
+   "note": "moved whole into modules/launchpad/, typed and split under 400 lines; app.js and the panel still call createLaunchpad until the shell hosts panel.frame and header.action"
   },
   "js/lightbox.js": {
    "status": "split",
@@ -2381,10 +2389,10 @@
   "js/lpapi.js": {
    "status": "split",
    "home": [
-    "modules/launchpad/client.js",
     "modules/launchpad/model.js",
-    "core/services/github.js"
-   ]
+    "modules/launchpad/client.js"
+   ],
+   "note": "GitHub's device flow stays in client.js until core/services/github takes it with create-project's"
   },
   "js/map.js": {
    "status": "split",
@@ -4462,8 +4470,8 @@
    "home": "core/platform/tests/keys.test.mjs"
   },
   "tests/launchpad.test.mjs": {
-   "status": "planned",
-   "home": "modules/launchpad/tests/launchpad.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/launchpad/tests/launchpad.test.mjs"
   },
   "tests/layout-reads.test.mjs": {
    "status": "planned",
@@ -4508,8 +4516,8 @@
    "home": "core/ui phone floor (launchpad, create, intel, shells)/tests/lp-phone-links.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/lp-stop-notice.test.mjs": {
-   "status": "planned",
-   "home": "modules/launchpad/tests/lp-stop-notice.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/launchpad/tests/lp-stop-notice.test.mjs"
   },
   "tests/main-clip.test.mjs": {
    "status": "planned",
@@ -9921,92 +9929,92 @@
    "home": "core/ui/components/hold.js"
   },
   "js/launchpad.js::exports::LP_ICON": {
-   "status": "planned",
-   "home": "modules/launchpad/ (store, controller, views, section)"
+   "status": "moved",
+   "home": "modules/launchpad/words.js"
   },
   "js/launchpad.js::exports::createLaunchpad": {
-   "status": "planned",
-   "home": "modules/launchpad/ (store, controller, views, section)"
+   "status": "moved",
+   "home": "modules/launchpad/launchpad.js"
   },
   "js/launchpad.js::functions::createLaunchpad": {
-   "status": "planned",
-   "home": "modules/launchpad/ (store, controller, views, section)"
+   "status": "moved",
+   "home": "modules/launchpad/launchpad.js"
   },
   "js/launchpad.js::ids::lp-mn": {
-   "status": "planned",
-   "home": "modules/launchpad/ (store, controller, views, section)"
+   "status": "moved",
+   "home": "modules/launchpad/views.js"
   },
   "js/launchpad.js::ids::lp-h-size": {
-   "status": "planned",
-   "home": "modules/launchpad/ (store, controller, views, section)"
+   "status": "moved",
+   "home": "modules/launchpad/launchpad.js"
   },
   "js/launchpad.js::ids::stage": {
-   "status": "planned",
-   "home": "modules/launchpad/ (store, controller, views, section)"
+   "status": "moved",
+   "home": "modules/launchpad/actions.js"
   },
   "js/launchpad.js::ids::lp-h-": {
-   "status": "planned",
-   "home": "modules/launchpad/ (store, controller, views, section)"
+   "status": "moved",
+   "home": "modules/launchpad/views.js"
   },
   "js/launchpad.js::storage::xo-lp-state": {
-   "status": "planned",
-   "home": "modules/launchpad/ (store, controller, views, section)"
+   "status": "moved",
+   "home": "modules/launchpad/words.js"
   },
   "js/launchpad.js::keys::name_taken": {
-   "status": "planned",
-   "home": "modules/launchpad/ (store, controller, views, section)"
+   "status": "moved",
+   "home": "modules/launchpad/store.js"
   },
   "js/launchpad.js::keys::port_missing": {
-   "status": "planned",
-   "home": "modules/launchpad/ (store, controller, views, section)"
+   "status": "moved",
+   "home": "modules/launchpad/store.js"
   },
   "js/launchpad.js::keys::repo_name_taken": {
-   "status": "planned",
-   "home": "modules/launchpad/ (store, controller, views, section)"
+   "status": "moved",
+   "home": "modules/launchpad/store.js"
   },
   "js/launchpad.js::keys::create_repo": {
-   "status": "planned",
-   "home": "modules/launchpad/ (store, controller, views, section)"
+   "status": "moved",
+   "home": "modules/launchpad/store.js"
   },
   "js/launchpad.js::keys::confirm_repo": {
-   "status": "planned",
-   "home": "modules/launchpad/ (store, controller, views, section)"
+   "status": "moved",
+   "home": "modules/launchpad/store.js"
   },
   "js/launchpad.js::keys::other_apps": {
-   "status": "planned",
-   "home": "modules/launchpad/ (store, controller, views, section)"
+   "status": "moved",
+   "home": "modules/launchpad/store.js"
   },
   "js/launchpad.js::keys::cancelled": {
-   "status": "planned",
-   "home": "modules/launchpad/ (store, controller, views, section)"
+   "status": "moved",
+   "home": "modules/launchpad/store.js"
   },
   "js/launchpad.js::keys::size_not_allowed": {
-   "status": "planned",
-   "home": "modules/launchpad/ (store, controller, views, section)"
+   "status": "moved",
+   "home": "modules/launchpad/store.js"
   },
   "js/launchpad.js::keys::build_failed": {
-   "status": "planned",
-   "home": "modules/launchpad/ (store, controller, views, section)"
+   "status": "moved",
+   "home": "modules/launchpad/views.js"
   },
   "js/launchpad.js::keys::Enter": {
-   "status": "planned",
-   "home": "modules/launchpad/ (store, controller, views, section)"
+   "status": "moved",
+   "home": "modules/launchpad/launchpad.js"
   },
   "js/launchpad.js::keys::Tab": {
-   "status": "planned",
-   "home": "modules/launchpad/ (store, controller, views, section)"
+   "status": "moved",
+   "home": "modules/launchpad/launchpad.js"
   },
   "js/launchpad.js::keys::Home": {
-   "status": "planned",
-   "home": "modules/launchpad/ (store, controller, views, section)"
+   "status": "moved",
+   "home": "modules/launchpad/launchpad.js"
   },
   "js/launchpad.js::keys::End": {
-   "status": "planned",
-   "home": "modules/launchpad/ (store, controller, views, section)"
+   "status": "moved",
+   "home": "modules/launchpad/launchpad.js"
   },
   "js/launchpad.js::keys::ArrowDown": {
-   "status": "planned",
-   "home": "modules/launchpad/ (store, controller, views, section)"
+   "status": "moved",
+   "home": "modules/launchpad/launchpad.js"
   },
   "js/lightbox.js::exports::createLightbox": {
    "status": "moved",
@@ -10037,247 +10045,112 @@
    "home": "core/ui/lightbox.js"
   },
   "js/lpapi.js::exports::nextStep": {
-   "status": "split-region",
-   "home": [
-    "modules/launchpad/client.js",
-    "modules/launchpad/model.js",
-    "core/services/github.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/launchpad/model.js"
   },
   "js/lpapi.js::exports::formKey": {
-   "status": "split-region",
-   "home": [
-    "modules/launchpad/client.js",
-    "modules/launchpad/model.js",
-    "core/services/github.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/launchpad/model.js"
   },
   "js/lpapi.js::exports::appState": {
-   "status": "split-region",
-   "home": [
-    "modules/launchpad/client.js",
-    "modules/launchpad/model.js",
-    "core/services/github.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/launchpad/model.js"
   },
   "js/lpapi.js::exports::launchpadUrl": {
-   "status": "split-region",
-   "home": [
-    "modules/launchpad/client.js",
-    "modules/launchpad/model.js",
-    "core/services/github.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/launchpad/model.js"
   },
   "js/lpapi.js::exports::sizeWords": {
-   "status": "split-region",
-   "home": [
-    "modules/launchpad/client.js",
-    "modules/launchpad/model.js",
-    "core/services/github.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/launchpad/model.js"
   },
   "js/lpapi.js::exports::model": {
-   "status": "split-region",
-   "home": [
-    "modules/launchpad/client.js",
-    "modules/launchpad/model.js",
-    "core/services/github.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/launchpad/model.js"
   },
   "js/lpapi.js::exports::rows": {
-   "status": "split-region",
-   "home": [
-    "modules/launchpad/client.js",
-    "modules/launchpad/model.js",
-    "core/services/github.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/launchpad/model.js"
   },
   "js/lpapi.js::exports::RETRY": {
-   "status": "split-region",
-   "home": [
-    "modules/launchpad/client.js",
-    "modules/launchpad/model.js",
-    "core/services/github.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/launchpad/client.js"
   },
   "js/lpapi.js::exports::createLpApi": {
-   "status": "split-region",
-   "home": [
-    "modules/launchpad/client.js",
-    "modules/launchpad/model.js",
-    "core/services/github.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/launchpad/client.js"
   },
   "js/lpapi.js::functions::nextStep": {
-   "status": "split-region",
-   "home": [
-    "modules/launchpad/client.js",
-    "modules/launchpad/model.js",
-    "core/services/github.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/launchpad/model.js"
   },
   "js/lpapi.js::functions::formKey": {
-   "status": "split-region",
-   "home": [
-    "modules/launchpad/client.js",
-    "modules/launchpad/model.js",
-    "core/services/github.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/launchpad/model.js"
   },
   "js/lpapi.js::functions::sizesOf": {
-   "status": "split-region",
-   "home": [
-    "modules/launchpad/client.js",
-    "modules/launchpad/model.js",
-    "core/services/github.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/launchpad/model.js"
   },
   "js/lpapi.js::functions::model": {
-   "status": "split-region",
-   "home": [
-    "modules/launchpad/client.js",
-    "modules/launchpad/model.js",
-    "core/services/github.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/launchpad/model.js"
   },
   "js/lpapi.js::functions::rows": {
-   "status": "split-region",
-   "home": [
-    "modules/launchpad/client.js",
-    "modules/launchpad/model.js",
-    "core/services/github.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/launchpad/model.js"
   },
   "js/lpapi.js::functions::sse": {
-   "status": "split-region",
-   "home": [
-    "modules/launchpad/client.js",
-    "modules/launchpad/model.js",
-    "core/services/github.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/launchpad/client.js"
   },
   "js/lpapi.js::functions::stream": {
-   "status": "split-region",
-   "home": [
-    "modules/launchpad/client.js",
-    "modules/launchpad/model.js",
-    "core/services/github.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/launchpad/client.js"
   },
   "js/lpapi.js::functions::createLpApi": {
-   "status": "split-region",
-   "home": [
-    "modules/launchpad/client.js",
-    "modules/launchpad/model.js",
-    "core/services/github.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/launchpad/client.js"
   },
   "js/lpapi.js::routes::/deploy/{}/check": {
-   "status": "split-region",
-   "home": [
-    "modules/launchpad/client.js",
-    "modules/launchpad/model.js",
-    "core/services/github.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/launchpad/client.js"
   },
   "js/lpapi.js::routes::/deploy/{}/preflight": {
-   "status": "split-region",
-   "home": [
-    "modules/launchpad/client.js",
-    "modules/launchpad/model.js",
-    "core/services/github.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/launchpad/client.js"
   },
   "js/lpapi.js::routes::/deploy/{}": {
-   "status": "split-region",
-   "home": [
-    "modules/launchpad/client.js",
-    "modules/launchpad/model.js",
-    "core/services/github.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/launchpad/client.js"
   },
   "js/lpapi.js::routes::/deploy/{}/apps": {
-   "status": "split-region",
-   "home": [
-    "modules/launchpad/client.js",
-    "modules/launchpad/model.js",
-    "core/services/github.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/launchpad/client.js"
   },
   "js/lpapi.js::routes::/deploy/{}/link": {
-   "status": "split-region",
-   "home": [
-    "modules/launchpad/client.js",
-    "modules/launchpad/model.js",
-    "core/services/github.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/launchpad/client.js"
   },
   "js/lpapi.js::routes::/deploy/{}/agent": {
-   "status": "split-region",
-   "home": [
-    "modules/launchpad/client.js",
-    "modules/launchpad/model.js",
-    "core/services/github.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/launchpad/client.js"
   },
   "js/lpapi.js::routes::/connectors/github/disconnect": {
-   "status": "split-region",
-   "home": [
-    "modules/launchpad/client.js",
-    "modules/launchpad/model.js",
-    "core/services/github.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/launchpad/client.js"
   },
   "js/lpapi.js::routes::/connectors/github/cli/start": {
-   "status": "split-region",
-   "home": [
-    "modules/launchpad/client.js",
-    "modules/launchpad/model.js",
-    "core/services/github.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/launchpad/client.js"
   },
   "js/lpapi.js::routes::/connectors/github/cli/poll": {
-   "status": "split-region",
-   "home": [
-    "modules/launchpad/client.js",
-    "modules/launchpad/model.js",
-    "core/services/github.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/launchpad/client.js"
   },
   "js/lpapi.js::routes::/connectors/github/cli/cancel": {
-   "status": "split-region",
-   "home": [
-    "modules/launchpad/client.js",
-    "modules/launchpad/model.js",
-    "core/services/github.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/launchpad/client.js"
   },
   "js/map.js::exports::MAP_ICON": {
    "status": "split-region",
@@ -15890,8 +15763,8 @@
    "home": "core/platform/tests/keynav.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/launchpad.test.mjs::globals::fetch": {
-   "status": "planned",
-   "home": "modules/launchpad/tests/launchpad.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/launchpad/tests/launchpad.test.mjs"
   },
   "tests/layout-reads.test.mjs::exports::initFollow": {
    "status": "planned",
@@ -16098,12 +15971,12 @@
    "home": "modules/composer/tests/lp-intel-order.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/lp-stop-notice.test.mjs::functions::world": {
-   "status": "planned",
-   "home": "modules/launchpad/tests/lp-stop-notice.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/launchpad/tests/lp-stop-notice.test.mjs"
   },
   "tests/lp-stop-notice.test.mjs::globals::window": {
-   "status": "planned",
-   "home": "modules/launchpad/tests/lp-stop-notice.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/launchpad/tests/lp-stop-notice.test.mjs"
   },
   "tests/map.test.mjs::functions::store": {
    "status": "planned",

@@ -1,19 +1,9 @@
-// Launchpad's Stop and Unlink each have one notice, changed in place as the action goes on (the owner's choice B,
-// C041's pattern). Grader B on 9c3a663 saw a refused stop's "Couldn't stop it" share the screen with "Stopping the
-// deploy of xo-coworker · Undo" for up to ~200 ms. There were two clocks: Launchpad sent the stop at 3000 ms, and the
-// notice lived its own 3200 ms. The notice's Undo stayed pressable after the stop had gone out, and pressing it did
-// nothing. Now the notice is the action's: its Undo's deadline is the window's, the window's end changes it in place
-// (no Undo), and its outcome changes it again ("Deploy of … stopped", or "Couldn't stop … · Stop again").
-//
-// The real core/services/notices.js and the real js/launchpad.js, on a hand-moved clock (node:test's mock timers). Only the
-// section's DOM is a stand-in, and the adapter is app.js's own notice() (its source is read and checked below).
-//   node tests/lp-stop-notice.test.mjs
+// Stop and Unlink each have one notice, changed in place, whose Undo's deadline is the action's own; the real notices service and Launchpad on a mocked clock, with app.js's notice() adapter.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { mock } from "node:test";
 
-// a stand-in DOM, just enough for the section to mount and paint (nothing here is measured)
-// (a template's content and a first child: the section draws in place, core/ui/redraw.js, which finds nothing to keep here)
+// a stand-in DOM, just enough for the section to mount and paint in place (nothing here is measured)
 const el = () => { const e = { hidden: false, dataset: {}, style: {}, innerHTML: "", textContent: "", content: { childNodes: [] }, firstChild: null, scrollTop: 0, clientHeight: 0, scrollHeight: 0,
   classList: { add() {}, remove() {}, toggle() {}, contains: () => false }, addEventListener(t, f) { (e.on[t] ||= []).push(f); }, on: {}, removeEventListener() {},
   setAttribute() {}, getAttribute: () => null, removeAttribute() {}, hasAttribute: () => false, querySelector: () => null, querySelectorAll: () => [], contains: () => false, focus() {}, closest: () => null, getClientRects: () => [] };
@@ -26,9 +16,9 @@ Object.assign(globalThis, {
 globalThis.window = globalThis;
 
 mock.timers.enable({ apis: ["setTimeout", "setInterval", "Date"], now: 1_000_000 });
-const { createHerald } = await import("../core/services/notices.js");
-const { createLaunchpad } = await import("../js/launchpad.js");
-const appSrc = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
+const { createHerald } = await import("../../../core/services/notices.js");
+const { createLaunchpad } = await import("../launchpad.js");
+const appSrc = readFileSync(new URL("../../../js/app.js", import.meta.url), "utf8");
 
 const flush = async () => { for (let i = 0; i < 6; i++) await Promise.resolve(); };
 const at = async (ms) => { mock.timers.tick(ms); await flush(); };

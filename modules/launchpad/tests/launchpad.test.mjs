@@ -1,8 +1,7 @@
-// Launchpad's data layer (js/lpapi.js): how Launchpad's app states read, how Space's check and preflight become
-// the section's model, and how Space's eleven deploy steps land on the card's four rows. Pure, no network.
-//   node tests/launchpad.test.mjs
+// Launchpad's model and client: app states, check and preflight as the section's model, and Space's eleven steps on the card's four rows; no network.
 import assert from "node:assert/strict";
-import { appState, model, rows, createLpApi, nextStep, RETRY, formKey, launchpadUrl, sizeWords } from "../js/lpapi.js";
+import { appState, model, rows, nextStep, formKey, launchpadUrl, sizeWords } from "../model.js";
+import { createLpApi, RETRY } from "../client.js";
 
 let passed = 0;
 let chain = Promise.resolve(); // one at a time: the stream tests stand in for fetch

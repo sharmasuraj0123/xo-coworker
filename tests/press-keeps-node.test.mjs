@@ -57,7 +57,7 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
   assert.match(readFileSync(new URL("../modules/since/view.js", import.meta.url), "utf8"), /if \(box\._h !== html\) \{ redraw\(box, html\); box\._h = html; \}/, "the away line");
   assert.match(readFileSync(new URL("../shell/panel/panel.js", import.meta.url), "utf8"), /if \(fw\._h !== fh\) \{ redraw\(fw, fh\);/);
   assert.match(src("decide.js"), /redraw\(foot, F\.done \|\| F\.vig \? "" :/);
-  const lp = src("launchpad.js");
+  const lp = readFileSync(new URL("../modules/launchpad/launchpad.js", import.meta.url), "utf8");
   assert.match(lp, /redraw\(S\.hs, hs\)/); assert.match(lp, /redraw\(S\.ha, ha\)/); assert.match(lp, /redraw\(S\.body, `<div class="lp/);
   assert.doesNotMatch(lp, /S\.body\.innerHTML\s*=/);
   assert.match(src("viewer.js"), /redrawNode\(top, head\(\)\);/);
