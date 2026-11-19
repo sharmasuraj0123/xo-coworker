@@ -4,12 +4,12 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 907 |
+| planned | 906 |
 | vendor | 367 |
-| split | 34 |
+| split | 35 |
 | moved | 5 |
 
-Items inside first-party files: 2290 (planned 1344, split-region 842, moved 85, deleted 19), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1327, split-region 842, moved 102, deleted 19), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -51,7 +51,7 @@ Items inside first-party files: 2290 (planned 1344, split-region 842, moved 85, 
 | `js/focusview.js` | 138 | planned | core/ui/a11y/focus.js |
 | `js/follow.js` | 150 | planned | modules/conversation/follow.js |
 | `js/fuzzy.js` | 118 | moved | core/platform/fuzzy.js |
-| `js/gestures.js` | 451 | planned | core/platform/gestures.js |
+| `js/gestures.js` | 451 | split | core/platform/gestures.js, shell (the app's gestures: wireGestures, dockGestures, long press) |
 | `js/herald.js` | 92 | split | core/services/notices.js, shell (notice renderer) |
 | `js/highlight.js` | 149 | planned | core/ui/markdown/highlight.js |
 | `js/hopstate.js` | 13 | planned | core/services/world/hops.js |

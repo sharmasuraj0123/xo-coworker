@@ -14,7 +14,7 @@ import { redraw } from "../redraw.js"; // in place: the control a person is on i
 import { ICON } from "../ui.js";
 import * as K from "../../core/platform/keys.js";
 import { mountShell } from "./term.js";
-import { drag, follow, glide, unstyle, tick, FLICK } from "../gestures.js";
+import { drag, follow, glide, unstyle, tick, FLICK } from "../../core/platform/gestures.js";
 import { busyWith, isRunning, isDetached, stateLine, dotOf, runningOf, listRows, cleanName, nameFor, whereOf } from "./model.js";
 
 const LIST = "list";

@@ -2298,8 +2298,12 @@
    "note": "js/fuzzy.js re-exports core/platform until the shims go"
   },
   "js/gestures.js": {
-   "status": "planned",
-   "home": "core/platform/gestures.js"
+   "status": "split",
+   "home": [
+    "core/platform/gestures.js",
+    "shell (the app's gestures: wireGestures, dockGestures, long press)"
+   ],
+   "note": "the drag primitive is in core/platform/gestures.js; the app's gestures stay in js/gestures.js until the shell takes them"
   },
   "js/herald.js": {
    "status": "split",
@@ -9482,107 +9486,107 @@
    "home": "core/platform/fuzzy.js"
   },
   "js/gestures.js::exports::FLICK": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::exports::edgeIsSafari": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::exports::tick": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::exports::scrollsX": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::exports::scrolledY": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::exports::drag": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::exports::glide": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::exports::follow": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::exports::unstyle": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::exports::dockGestures": {
    "status": "planned",
-   "home": "core/platform/gestures.js"
+   "home": "shell (the app's gestures)"
   },
   "js/gestures.js::exports::wireGestures": {
    "status": "planned",
-   "home": "core/platform/gestures.js"
+   "home": "shell (the app's gestures)"
   },
   "js/gestures.js::exports::copyText": {
    "status": "planned",
-   "home": "core/platform/gestures.js"
+   "home": "shell (the app's gestures)"
   },
   "js/gestures.js::functions::tick": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::functions::scrollsX": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::functions::scrolledY": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::functions::drag": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::functions::glide": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::functions::follow": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::functions::unstyle": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::functions::dockGestures": {
    "status": "planned",
-   "home": "core/platform/gestures.js"
+   "home": "shell (the app's gestures)"
   },
   "js/gestures.js::functions::wireGestures": {
    "status": "planned",
-   "home": "core/platform/gestures.js"
+   "home": "shell (the app's gestures)"
   },
   "js/gestures.js::functions::longPress": {
    "status": "planned",
-   "home": "core/platform/gestures.js"
+   "home": "shell (the app's gestures)"
   },
   "js/gestures.js::ids::msgs": {
    "status": "planned",
-   "home": "core/platform/gestures.js"
+   "home": "shell (the app's gestures)"
   },
   "js/gestures.js::ids::scroller": {
    "status": "planned",
-   "home": "core/platform/gestures.js"
+   "home": "shell (the app's gestures)"
   },
   "js/gestures.js::keys::Escape": {
    "status": "planned",
-   "home": "core/platform/gestures.js"
+   "home": "shell (the app's gestures)"
   },
   "js/gestures.js::custom_events::xo:gesture": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/herald.js::exports::OWN": {
