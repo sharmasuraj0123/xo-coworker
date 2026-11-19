@@ -2634,12 +2634,6 @@ i.t-amber{background:var(--warn)}i.t-blue{background:var(--info)}i.t-red{backgro
    while it is open and gives it back. Blue = working, amber = waiting on you, green = new. ─────────── */
 :root{--mw:clamp(420px,42vw,720px)
 }
-.map-btn{position:relative;flex:none;display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 11px 0 9px;border-radius:var(--r-sm);border:1px solid var(--line-soft);color:var(--ink-2);font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
-.top[data-kind="project"] .map-btn{height:var(--h-ctl);border-radius:var(--r-sm);align-self:flex-end}
-.map-btn svg{width:15px;height:15px}
-.map-btn:hover{background:var(--surface);border-color:var(--line-strong);color:var(--ink)}
-.map-btn:active{transform:scale(.97)}
-.map-btn.is-on{background:var(--fill-2);border-color:var(--line-strong);color:var(--ink)}
 
 body.panel-open .map{display:none}
 .map{position:absolute;z-index:calc(var(--z-panel) - 1);top:var(--float-inset);right:var(--float-inset);bottom:var(--float-inset);width:var(--mw);display:flex;flex-direction:column;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);box-shadow:var(--e2);outline:none;overflow:hidden;transition:width var(--d-move) var(--ease)}
@@ -2824,9 +2818,6 @@ button.dg-n:hover{border-color:var(--line-strong);color:var(--ink)}
 .st-tab svg{flex:none;width:14px;height:14px}
 .st-tab:hover{background:var(--fill-2);color:var(--ink)}
 .st-tab[aria-pressed="true"]{background:var(--fill-2);color:var(--ink);box-shadow:var(--hairline)}
-.st-x{flex:none;display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);border-radius:var(--r-sm);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.st-x:hover{background:var(--fill-2);color:var(--ink)}
-.st-x svg{width:12px;height:12px}
 .viewer .stage-tabs{padding-bottom:2px}
 .viewer .stage-tabs ~ .vw-top .vw-x{display:none} /* the tab closes it */
 .map .stage-tabs + .mp-top{padding-top:8px}
@@ -2841,8 +2832,6 @@ button.dg-n:hover{border-color:var(--line-strong);color:var(--ink)}
   .mp-full{display:none}
   .dg{margin:0;border-radius:0;border-left:0;border-right:0}
   .dg-tools button{width:var(--h-touch);height:var(--h-touch)}
-  .map-btn span{display:none}
-  .map-btn{width:34px;padding:0;justify-content:center}
 }
 @media (prefers-reduced-motion:reduce){.dg-n.is-hit,.gn.is-hit .gn-d{animation:none}.dg-cur,.dg-world.is-glide{transition:none}}
 
