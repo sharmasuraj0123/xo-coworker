@@ -46,3 +46,10 @@ assert.ok(block.length > 300);
 assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\b1px solid\b/g, ""), /\b\d+(\.\d+)?(px|rem|ms)\b|#[0-9a-f]{3,8}\b/i);
 assert.match(found, /\.tg-qf\):has\(:is\(input,textarea\):focus-visible\)/);
 console.log("thread-filter: ok");
+// the list snaps row by row under a sticky filter: its top is a resting place and rows rest below the filter, so
+// scrolling up to "Needs you" stays there (19 Nov 18:57Z: it snapped back 40 px, its head under the filter)
+{ const p3 = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
+  assert.match(p3, /\.stage \.fr\[data-fr="agents"\] \.fr-b\{[^}]*scroll-snap-type:y mandatory/);
+  assert.match(p3, /\.stage \.tg-q\{scroll-snap-align:start\}/);
+  assert.match(p3, /\.stage \.fr\[data-fr="agents"\] \.fr-b:has\(>\.tg-q:not\(\[hidden\]\)\)\{scroll-padding-top:calc\(var\(--h-ctl\) \+ var\(--s-2\)\)\}/);
+  console.log("thread-filter snap: ok"); }

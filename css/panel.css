@@ -636,3 +636,9 @@ body.stage-covers .herald{position:fixed;left:16px;right:16px;bottom:max(16px, e
 .stage .tp-menu-w{position:relative;display:inline-flex}
 .stage .tp-menu{position:absolute;top:calc(100% + var(--s-1));right:0;z-index:2;min-width:calc(6 * var(--h-row))}
 .stage .tp-menu [role=menuitem]{white-space:nowrap}
+/* The list snaps row by row (scroll-snap-type: y mandatory), and its filter sits on top of it (sticky). The top of
+   the list (the filter, the first group's head) wasn't a place it could rest, so scrolling up to "Needs you" snapped
+   back down 40 px with its head under the filter (the owner, 19 Nov 18:57Z). The filter is a resting place, and
+   every row rests below it, never under it. */
+.stage .tg-q{scroll-snap-align:start}
+.stage .fr[data-fr="agents"] .fr-b:has(>.tg-q:not([hidden])){scroll-padding-top:calc(var(--h-ctl) + var(--s-2))}
