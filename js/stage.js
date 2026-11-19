@@ -85,7 +85,8 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     `<div class="stg-shell"></div>` +
     `<div class="stg-frames">` +
     `<section class="fr fr-lp is-folded" data-fr="launch" aria-labelledby="fr-title-launch" hidden><header class="fr-h"><h2 class="fr-title" id="fr-title-launch">Launchpad</h2><span class="lp-hs"></span><div class="fr-a"><span class="lp-ha"></span><button type="button" class="fr-ib fr-fold" data-fr-fold="launch" aria-expanded="false" title="Open">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-launch" tabindex="-1"></div><div class="fr-ghosts" role="group" aria-label="Under Launchpad"></div></section><div class="fr-line" data-lp-line hidden></div>` +
-    frame("agents", "Threads", `<button type="button" class="fr-ib" data-switch aria-haspopup="dialog" aria-expanded="false" title="Find a thread" aria-label="Find a thread">${ICON.search}</button>`) + gutter("agents", "changes") +
+    // its search filters the list here, in place (the owner, 19 Nov 15:04Z: "can't it search within?"), not a sheet
+    frame("agents", "Threads", `<button type="button" class="fr-ib" data-tg-find aria-controls="fr-body-agents" title="Filter threads (/)" aria-label="Filter threads" aria-keyshortcuts="/">${ICON.search}</button>`) + gutter("agents", "changes") +
     frame("changes", "Changes", `<button type="button" class="xd-follow" data-follow hidden></button><button type="button" class="fr-ib" data-open-files title="All files">${FILES_IC}</button>`) + gutter("changes", "map") +
     frame("map", "Map", `<div class="fr-views" role="tablist" aria-label="Map view"><button type="button" class="fr-t" role="tab" id="stage-map-tree" aria-controls="fr-body-map" data-map-mode="tree">Diagram</button><button type="button" class="fr-t" role="tab" id="stage-map-graph" aria-controls="fr-body-map" data-map-mode="graph">Graph</button></div>`) +
     `</div>`;
@@ -94,6 +95,18 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   // when it changes, in the observer, after layout, instead of a read forcing layout in the middle of a change
   if (typeof ResizeObserver === "function") new ResizeObserver(([e]) => { const h = Math.round(e.contentRect.height); if (h !== S.stackH) { S.stackH = h; if (S.open) capAgents(); } }).observe(el.querySelector(".stg-frames"));
   const body = (id) => el.querySelector(`[data-fr="${id}"] .fr-b`);
+  // Threads' body: the filter field (kept, never redrawn under your typing) over the list (drawn in place)
+  body("agents").innerHTML = `<div class="tg-q" hidden><label class="tg-qf">${ICON.search}<input type="search" data-tg-q placeholder="Filter threads" aria-label="Filter threads by title, summary or branch" aria-keyshortcuts="/" autocomplete="off" spellcheck="false"></label><kbd class="tg-k" aria-hidden="true">/</kbd></div><div class="tg-box"></div>`;
+  {
+    const inp = body("agents").querySelector("[data-tg-q]");
+    inp.addEventListener("input", () => { S.tq = inp.value; paint(); });
+    inp.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && inp.value) { e.preventDefault(); e.stopPropagation(); inp.value = ""; S.tq = ""; paint(); return; }
+      // empty, Esc puts a field you opened away again (a long list keeps its field) and goes back to the search button
+      if (e.key === "Escape" && S.tqOpen) { e.preventDefault(); e.stopPropagation(); S.tqOpen = false; paint(); el.querySelector("[data-tg-find]")?.focus({ preventScroll: true }); return; }
+      if (e.key === "ArrowDown" || e.key === "Enter") { const r = body("agents").querySelector(".tg-box [data-go]"); if (r) { e.preventDefault(); if (e.key === "Enter") r.click(); else r.focus(); } }
+    });
+  }
   map.mount(body("map"));
   const LPF = el.querySelector('[data-fr="launch"]');
   if (launch) launch.mount(LPF, { open: () => openLaunch(), hide: () => { S.lp = false; layout(); paint(); } });
@@ -204,9 +217,24 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
    *  (tile, title, what it's on, when), its state the tile's corner mark: the arc while it works, the amber
    *  diamond when it needs you, a tick when it's done. Waiting shows its first few, then "Show N more". */
   const SHOW = { needs: Infinity, working: Infinity, waiting: 5, done: 5 };
-  function threadsHtml(groups) {
+  // a filter field once a place has more threads than this (the owner, 19 Nov 14:44Z: "the filter for long thread
+  // list can be made"): it matches the title, the summary and the branch, every word; / in the panel focuses it,
+  // Esc clears it; while it filters, every group shows all it matches
+  const FILTER_AT = 12;
+  const matchesQ = (r, q) => { const s = `${r.title} ${r.sub || ""} ${r.summary || ""} ${r.branch || ""}`.toLowerCase(); return q.split(/\s+/).every((w) => s.includes(w)); };
+  /** The search button and /: the Threads filter, shown (a short list hides it until asked) and focused. */
+  function findThreads() {
+    if (fr.agents.folded) { fr.agents.folded = false; persist(); layout(); }
+    S.tqOpen = true; paint();
+    const q = el.querySelector("[data-tg-q]"); q.focus({ preventScroll: true }); q.select();
+  }
+  function threadsHtml(groups, q = "") {
+    if (q) {
+      groups = groups.map((x) => ({ ...x, rows: x.rows.filter((r) => matchesQ(r, q)) })).filter((x) => x.rows.length);
+      if (!groups.length) return `<p class="fr-none tg-none">No thread matches “${esc(q)}”. <button type="button" class="tg-clear" data-tg-clear>Clear the filter</button></p>`;
+    }
     if (!groups || !groups.length) return `<p class="fr-none">No ${"threads"} here yet.</p>`;
-    const g = fr.agents.groups || {}, more = S.tgMore || {};
+    const g = q ? {} : fr.agents.groups || {}, more = q ? { needs: 1, working: 1, waiting: 1, done: 1 } : S.tgMore || {};
     const row = (r) => {
       const mark = r.state === "working" ? '<i class="arc"></i>' : r.state === "needs" ? `<i class="ag-wait ag-need">${ICON.diamond}</i>` : r.state === "done" ? `<i class="ag-wait ag-done">${ICON.check}</i>` : "";
       return `<li><button type="button" class="ag-r${r.state === "working" || r.state === "needs" ? "" : " is-idle"}${r.on ? " is-on" : ""}"${r.on ? ' aria-current="page"' : ""} data-go="${esc(r.go)}" aria-label="${esc(`${r.title}. ${r.word}`)}">` +
@@ -257,8 +285,12 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     if (launch && !LPF.hidden) launch.paint(v, S.lp && !S.rail);
     // under Launchpad Threads is a head: its list waits
     const tg = threads ? threads(v) : null;
-    if (!S.lp) set("agents", body("agents"), tg ? threadsHtml(tg) : agentsHtml(ag));
-    el.querySelector('[data-fr-n="agents"]').textContent = tg ? (tg.reduce((n, x) => n + x.rows.length, 0) || "") : (ag.filter((a) => a.busy).length || "");
+    const tq = (S.tq || "").trim().toLowerCase(), total = tg ? tg.reduce((n, x) => n + x.rows.length, 0) : 0;
+    const qBox = body("agents").querySelector(".tg-q");
+    qBox.hidden = !(tg && (total > FILTER_AT || tq || S.tqOpen));
+    if (!S.lp) set("agents", body("agents").querySelector(".tg-box"), tg ? threadsHtml(tg, tq) : agentsHtml(ag));
+    // the threads, not the coordinator's row: the same count as the header's Threads (app.js threadCounts)
+    el.querySelector('[data-fr-n="agents"]').textContent = tg ? (tg.reduce((n, x) => n + x.rows.filter((r) => !r.coord).length, 0) || "") : (ag.filter((a) => a.busy).length || "");
     // Changes: Space's list and diff where it has /changes, else today's list
     const cxOn = !fr.changes.folded && !S.lp && CX.paint();
     const hd = CX.head();
@@ -476,6 +508,8 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     if (tf) { const k = tf.dataset.tgFold; fr.agents.groups = { ...(fr.agents.groups || {}), [k]: !fr.agents.groups?.[k] }; persist(); paint(); el.querySelector(`[data-tg-fold="${CSS.escape(k)}"]`)?.focus({ preventScroll: true }); return; }
     const tm = t.closest("[data-tg-more]");
     if (tm) { const k = tm.dataset.tgMore; S.tgMore = { ...(S.tgMore || {}), [k]: true }; paint(); return; }
+    if (t.closest("[data-tg-find]")) { findThreads(); return; }
+    if (t.closest("[data-tg-clear]")) { const inp = el.querySelector("[data-tg-q]"); inp.value = ""; S.tq = ""; paint(); inp.focus(); return; }
     const g = t.closest("[data-go]");
     if (g) { go(g.dataset.go); }
   });
@@ -514,6 +548,10 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
       const tabs = [...el.querySelectorAll("[data-map-mode]")], index = tabs.indexOf(e.target.closest("[data-map-mode]"));
       const next = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : (index + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
       tabs[next].focus(); tabs[next].click(); return;
+    }
+    // / in the panel goes to the Threads filter when it shows (elsewhere / still writes, keys.js "write")
+    if (e.key === "/" && !e.metaKey && !e.ctrlKey && !e.altKey && !e.target.closest?.("input, textarea, [contenteditable]")) {
+      if (!fr.agents.folded && el.querySelector('[data-fr="agents"]:not([hidden])')) { e.preventDefault(); e.stopPropagation(); findThreads(); return; }
     }
     if (e.key !== "Escape") return;
     if (e.target.closest && e.target.closest("input:not(.lp-in)") && e.target.value) return; // a search clears first; Launchpad's fields don't
@@ -672,6 +710,19 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   return {
     get isOpen() { return S.open; },
     open: () => open(), close, toggle, sync,
+    /** The header's Threads (the owner, 19 Nov 14:50Z: with the panel open it did nothing): the panel open on its
+     *  Threads whatever it showed. Shell mode and Launchpad give way, Threads unfolds, its list comes to its top,
+     *  focus lands on its first thread and its head glows once, so the press always answers. */
+    threads() {
+      if (S.shell) setShell(false);
+      S.lp = false; fr.agents.folded = false;
+      open({ focus: false });
+      persist(); layout(); paint();
+      const f = el.querySelector('[data-fr="agents"]'), b = body("agents");
+      b.scrollTop = 0;
+      (b.querySelector(".tg-box [data-go]") || el.querySelector('[data-fr-fold="agents"]'))?.focus({ preventScroll: true });
+      f.classList.remove("is-flash"); void f.offsetWidth; f.classList.add("is-flash");
+    },
     get isShell() { return !!S.shell; },
     shellOff: () => setShell(false),
     /** The header's Deploy. */

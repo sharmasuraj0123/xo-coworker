@@ -28,7 +28,8 @@ const view = readFileSync(new URL("../js/recordview.js", import.meta.url), "utf8
 assert.match(view, /if \(m\) \{ nearY\.set\(m\.key, \{ y: e\.boundingClientRect\.top - e\.rootBounds\.top \+ A\.box\.scrollTop \}\); loadThumbs\(\[m\]\); loadTexts\(\[m\]\); \}/, "read when its card comes near view; where it is comes from the observer, no layout read");
 assert.match(view, /String\(\(await api\.projectFile\(r\.project, r\.rel\)\)\?\.content \|\| ""\)\.slice\(0, 4096\)/, "from its first bytes");
 assert.match(view, /!\/\\\.\(pdf\|docx\?\|xlsx\?\|pptx\?\|zip\|gz\)\$\/i\.test/);
-assert.match(view, /if \(where === "page"\) \{ const w = wellHtml\(m\); if \(w\) return w \+ iconHtml\(m\); \}/, "only on the Artifacts page; the icon stays for a phone's rows");
+assert.match(view, /if \(where === "page" \|\| where === true\) \{ const w = wellHtml\(m\); if \(w\) return w \+ iconHtml\(m\); \}/, "on the Artifacts page and Home's strip; the icon stays for a phone's rows");
+assert.match(view, /loadThumbs\(list\); loadTexts\(list\);/, "Home's strip reads its previews too, through the queue");
 
 // previews never hold the page up (the owner, 19 Nov 14:46Z): one queue, a few at a time, nearest the view first;
 // what arrives is drawn once a frame; kept on the device (pictures as a small copy); a card is drawn at once
@@ -53,7 +54,7 @@ assert.match(view, /title="Open the thread that made it">\$\{ICON\.threadOne\}<s
 // CSS: concentric, tokens only
 const css = readFileSync(new URL("../css/artifacts.css", import.meta.url), "utf8");
 const block = css.slice(css.indexOf("── The thing itself"));
-assert.match(block, /\.ar-grid \.md-th\.has-well\{display:block;place-items:normal;padding:var\(--cell-in\) var\(--cell-in\) 0;/);
+assert.match(block, /:is\(\.ar-grid,\.md-grid\.is-strip\) \.md-th\.has-well\{display:block;place-items:normal;padding:var\(--cell-in\) var\(--cell-in\) 0;/);
 assert.match(block, /\.md-well\{[^}]*border-radius:var\(--r\) var\(--r\) 0 0;/);
 assert.match(block, /\.md-sheet\{[^}]*border-radius:var\(--r-xs\);/);
 assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\b1px\b/g, "").replace(/@media \([^)]*\)/g, ""), /\b\d+(\.\d+)?(px|rem|ms)\b/);
