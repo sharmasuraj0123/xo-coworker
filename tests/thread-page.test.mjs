@@ -93,7 +93,15 @@ assert.match(app, /menuKeys\(\$\("#tphead"\), \{ close: \(\) => closeThreadMenu\
 assert.doesNotMatch(app, /tpMenuHtml|data-tp-menu|TP\.menu/, "no second menu");
 assert.match(app, /where === "page" \? item\(`data-tp-full="\$\{esc\(t\.id\)\}"`, "Open as its own page"\) : item\(`data-tside="\$\{esc\(t\.id\)\}"`, "Open beside its project's chat"\)/);
 assert.match(app, /render\(\); \/\/ drawn now, in the click/);
-assert.doesNotMatch(app.slice(app.indexOf("function tpHead("), app.indexOf("\n}\n", app.indexOf("function tpHead("))), /tp-full/, "one ⤢: the panel's own");
+// the page's ⤢ is back beside its ⋯ (the owner, 19 Nov 19:25Z): the thread's own page, full width
+assert.match(app.slice(app.indexOf("function tpHead("), app.indexOf("\n}\n", app.indexOf("function tpHead("))), /class="stg-ic tp-full" data-tp-full="\$\{esc\(t\.id\)\}"[^`]*\$\{ICON\.full\}<\/button>` \+\n\s*`<span class="tp-menu-w">/);
+// at full size only the chat's own dock hides under the panel; the Thread page's reply box and decision stay
+{ const a3 = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
+  assert.match(a3, /body\.stage-full \.dock:not\(\.stage \.dock\),body\.stage-full \.tdock:not\(\.stage \.tdock\)\{visibility:hidden\}/);
+  assert.doesNotMatch(a3, /body\.stage-full \.dock,body\.stage-full \.tdock\{/, "never every dock");
+  // and at full size the page reads at the chat's own column, centred (it ran edge to edge)
+  const p3 = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
+  assert.match(p3, /body\.stage-full \.stage \.tp,body\.stage-full \.stage \.tp \.dock\{--col-w:min\(var\(--col-max\),100cqw - 2 \* var\(--s-5\)\);--col-x:calc\(\(100cqw - var\(--col-w\)\) \/ 2\)\}/); }
 console.log("thread-page menu: ok");
 
 // its composer has files (the paperclip, a paste, a drop on the page) and its model chip, the chat's own code
