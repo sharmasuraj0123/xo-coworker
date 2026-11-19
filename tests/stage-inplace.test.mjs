@@ -17,6 +17,7 @@ t("the heads under Launchpad and the live lists are drawn in place", () => {
 });
 t("innerHTML only for what's built once, or icons inside a button that stays", () => {
   const writes = [...src.matchAll(/(\w+(?:\([^)]*\))?)\.innerHTML = /g)].map((m) => m[1]);
-  assert.deepEqual(writes.sort(), ['body("changes")', "el", "fb", "fw"].sort(), `innerHTML writes: ${writes.join(", ")}`);
+  // (Follow's label is drawn in place too, so a press on it still clicks: the owner, 19 Nov)
+  assert.deepEqual(writes.sort(), ['body("changes")', "el", "fb"].sort(), `innerHTML writes: ${writes.join(", ")}`);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

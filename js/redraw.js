@@ -4,7 +4,8 @@
 // falls to the page (with a field's caret, selection and half-typed value). redraw(el, html) instead brings the
 // region's DOM to the new HTML by updating the nodes that stay: a node whose tag and key match is kept and its
 // attributes and children are updated; only what's new is created and only what's gone is removed. The control
-// with focus is never moved or replaced while it is still in the new HTML, so focus, caret and scroll stay.
+// with focus is never moved or replaced while it is still in the new HTML, so focus, caret and scroll stay; nor is
+// the node a pointer is pressing, so the press still clicks (see pressedNode).
 //
 // A node's key: its id, else its data-key, else its data- hooks (the control's identity in this codebase);
 // nodes without one match by tag, in order. A custom element (xo-select …) owns its insides: only its attributes
@@ -26,9 +27,41 @@ export function redraw(el, html) {
   // goes next. A hand-off here, to the place around it, landed before the callers that wait for focus to fall to the
   // page and then put it on the control that follows, and they read it as the person having moved on: Settings'
   // Connect, which hands focus to Disconnect once the request settles, C113/S110 on 8e8e5a4)
-  const changed = syncChildren(el, tpl.content, focus);
+  const changed = syncChildren(el, tpl.content, focus, [focus, pressedNode()].filter(Boolean));
   if (changed && seen && focus.isConnected && !inSight(focus)) bringWhole(focus);
   return changed;
+}
+
+// The node under a pressed pointer, from pointerdown until its click (or the press is cancelled). Chromium dispatches a
+// click only when the node the press began on is still in the page when it ends (mouse_event_manager.cc: "We don't
+// dispatch click events if the mousedown node is removed before a mouseup event"), and moving a node removes it first.
+// Live data redraws regions several times a second while agents work, so a redraw treats this node as it treats
+// focus: kept, never moved, what's drawn goes around it (the owner, 19 Nov: Back and folders needed several clicks).
+let pressed = null, pressEnd = 0;
+if (typeof document !== "undefined" && document.addEventListener) {
+  document.addEventListener("pointerdown", (e) => { clearTimeout(pressEnd); pressed = e.target; }, true);
+  // a touch's click can come a moment after the finger lifts: the press holds until its click, or a moment
+  document.addEventListener("pointerup", () => { clearTimeout(pressEnd); pressEnd = setTimeout(() => { pressed = null; }, 600); }, true);
+  document.addEventListener("pointercancel", () => { pressed = null; }, true);
+  document.addEventListener("click", () => { clearTimeout(pressEnd); pressed = null; }, true);
+}
+/** The node a pointer is pressing now (null when none, or it already left the page). */
+export const pressedNode = () => (pressed && pressed.isConnected ? pressed : null);
+
+/**
+ * Bring `node` itself to the one element `html` draws, in place: the same tag and key keeps the node (its attributes and
+ * children are brought to the new HTML as redraw does, the focused and the pressed node kept); anything else replaces
+ * it. Returns the node now in the page.
+ */
+export function redrawNode(node, html) {
+  const tpl = document.createElement("template");
+  tpl.innerHTML = html.trim();
+  const want = tpl.content.firstElementChild;
+  if (!want) return node;
+  if (!same(node, want)) { node.replaceWith(want); return want; }
+  const focus = deepActive();
+  syncNode(node, want, focus, [focus, pressedNode()].filter(Boolean));
+  return node;
 }
 
 const VOLATILE = /^data-(inv|inv-now)$/;
@@ -47,7 +80,7 @@ const same = (a, b) => a.nodeType === b.nodeType && (a.nodeType !== 1 || (a.tagN
 // A node the page's own script added (it carries data-own: a decorator's buttons, say) isn't drawn from the HTML:
 // it stays where it is, is never matched, moved or removed, and what is drawn goes around it.
 const own = (n) => n.nodeType === 1 && n.hasAttribute("data-own");
-function syncChildren(from, to, focus) {
+function syncChildren(from, to, focus, hold = []) {
   let changed = false;
   let cur = from.firstChild;
   while (cur && own(cur)) cur = cur.nextSibling; // own nodes at the start stay first
@@ -55,12 +88,12 @@ function syncChildren(from, to, focus) {
     let match = null;
     for (let c = cur; c; c = c.nextSibling) if (!own(c) && same(c, want)) { match = c; break; }
     if (match) {
-      // bring it to this place without moving it when it holds focus: move what's in between instead
+      // bring it to this place without moving it when it holds focus or a press: move what's in between instead
       if (match !== cur) {
-        if (focus && match.contains(focus)) { while (cur && cur !== match) { const next = cur.nextSibling; if (!own(cur)) from.appendChild(cur); cur = next; } changed = true; }
+        if (hold.some((h) => match.contains(h))) { while (cur && cur !== match) { const next = cur.nextSibling; if (!own(cur)) from.appendChild(cur); cur = next; } changed = true; }
         else { from.insertBefore(match, cur); changed = true; }
       }
-      if (syncNode(match, want, focus)) changed = true;
+      if (syncNode(match, want, focus, hold)) changed = true;
       cur = match.nextSibling;
     } else {
       from.insertBefore(want, cur); // adopted from the template: it's new
@@ -72,7 +105,7 @@ function syncChildren(from, to, focus) {
   return changed;
 }
 
-function syncNode(node, want, focus) {
+function syncNode(node, want, focus, hold) {
   if (node.nodeType === 3 || node.nodeType === 8) {
     if (node.nodeValue !== want.nodeValue) { node.nodeValue = want.nodeValue; return true; }
     return false;
@@ -93,5 +126,5 @@ function syncNode(node, want, focus) {
   }
   if (tag === "TEXTAREA") return changed;
   if (tag.includes("-")) return changed; // a custom element draws its own insides
-  return syncChildren(node, want, focus) || changed;
+  return syncChildren(node, want, focus, hold) || changed;
 }

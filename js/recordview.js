@@ -172,7 +172,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
       made ? `<button type="button" class="syl-more is-made" data-made-open="${esc(pid)}">${ICON.spark}${made} ${made === 1 ? "thing" : "things"} made</button>` : ""].filter(Boolean).join("");
     const html = `<section class="syl" aria-label="Since you left">${cardHead(place, s, cu.counts)}<div class="syl-b">${body}</div>${foot ? `<footer class="syl-f">${foot}</footer>` : ""}</section>`;
     box.hidden = false;
-    if (box._h !== html) { box.innerHTML = html; box._h = html; }
+    if (box._h !== html) { redraw(box, html); box._h = html; } // in place: its buttons stay the same nodes as counts change
   }
 
   /** The quiet form (the owner removed the card on 2026-11-04 and chose this one line on 2026-11-08): after
@@ -193,7 +193,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
     if (!cu.total) return off();
     const html = `<p class="sl" role="status">${ICON.clock}<span class="sl-k">Since ${esc(R.sinceWord(s))}</span>${partsHtml(cu)}<button type="button" class="sl-x" data-rec-got="${esc(place)}" aria-label="Got it" title="Got it">${ICON.close}</button></p>`;
     box.hidden = false;
-    if (box._h !== html) { box.innerHTML = html; box._h = html; }
+    if (box._h !== html) { redraw(box, html); box._h = html; } // in place: its buttons stay the same nodes as counts change
   }
   function homeSinceLines(needs) {
     const s = arrive("home");

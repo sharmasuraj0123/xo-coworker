@@ -419,13 +419,13 @@ function sideRender(needs) {
   const n = mine.length;
   const hn = $("#home-n");
   const hnHtml = n ? `<span class="nv-dot" aria-hidden="true"></span>${n}` : "";
-  if (hn._h !== hnHtml) { hn.innerHTML = hnHtml; hn._h = hnHtml; }
+  if (hn._h !== hnHtml) { redraw(hn, hnHtml); hn._h = hnHtml; }
   $("#nv-home").setAttribute("aria-label", n ? `Home, ${n} need you` : "Home, nothing needs you");
   // the Workspace's own coordinator asking: the same amber mark on its row, as a project's row has
   const wsN = mine.filter((x) => x.t.host && x.t.project === "workspace").length;
   const wnHtml = wsN ? `<span class="nv-dot" aria-hidden="true"></span>${wsN}` : "";
   const wn = $("#ws-n");
-  if (wn._h !== wnHtml) { wn.innerHTML = wnHtml; wn._h = wnHtml; }
+  if (wn._h !== wnHtml) { redraw(wn, wnHtml); wn._h = wnHtml; }
   $("#nv-ws").setAttribute("aria-label", wsN ? `Workspace, its coordinator needs you` : "Workspace");
   $("#nv-home").classList.toggle("is-on", S.view === "home");
   $("#nv-ws").classList.toggle("is-on", S.view === "ws");
@@ -516,9 +516,11 @@ function landed(el, parts = el ? [...el.children] : []) {
   parts.forEach((c, i) => c && arrive(c, { delay: i * 40 }));
 }
 /**
- * Redraw a region when its HTML changed. A control in it that had focus keeps it: the same control drawn again,
- * found by its data-fid, else its id, else its data- hooks (the head's panel toggle, Deploy …), so a redraw as
- * data lands never drops the keyboard to the page under someone's Enter.
+ * Draw a region's HTML when it changed, in place (js/redraw.js): what stays is the same node, only what changed is
+ * written. Live data redraws regions several times a second while agents work; a region drawn anew with innerHTML
+ * replaced the control under a press, and the browser drops a click whose pressed node left the page (the owner, 19 Nov:
+ * Back and folders needed several clicks). The control with focus, or under a press, is never moved or replaced. If the
+ * focused control itself went, the same control drawn again (by its data-fid, else id, else data- hooks) takes focus.
  */
 function patch(el, html) {
   if (el._h === html) return false;
@@ -529,8 +531,8 @@ function patch(el, html) {
     else if (a.id) sel = `#${CSS.escape(a.id)}`;
     else { const d = [...a.attributes].filter((x) => x.name.startsWith("data-")); if (d.length) sel = a.tagName.toLowerCase() + d.map((x) => (x.value ? `[${x.name}="${CSS.escape(x.value)}"]` : `[${x.name}]`)).join(""); }
   }
-  el.innerHTML = html; el._h = html;
-  if (sel) el.querySelector(sel)?.focus({ preventScroll: true });
+  redraw(el, html); el._h = html;
+  if (sel && !a.isConnected) el.querySelector(sel)?.focus({ preventScroll: true });
   return true;
 }
 function homeParts(needs = D.needItems()) {
@@ -1251,7 +1253,7 @@ function topRender(needs) {
     // Chats: the list, or one chat with its way back to the list
     top.dataset.kind = v === "chats" ? "project" : "thread";
     back.hidden = v === "chats";
-    if (v !== "chats") { back.innerHTML = `${ICON.back}<span>Chats</span>`; back.setAttribute("aria-label", "Back to Chats"); back.title = "Back (Esc)"; }
+    if (v !== "chats") { patch(back, `${ICON.back}<span>Chats</span>`); back.setAttribute("aria-label", "Back to Chats"); back.title = "Back (Esc)"; }
     patch($("#top-who"), CH.headHtml(v));
     patch($("#top-end"), STAGE.button(v));
     nowRender(needs); checklistRender(needs);
@@ -1260,7 +1262,7 @@ function topRender(needs) {
   if (t) {
     const to = S.parent[v] || "p:" + t.project;
     const name = to === "home" ? "Home" : to === "ws" ? "Workspace" : PROJ(to.slice(2));
-    back.innerHTML = `${ICON.back}<span>${esc(name)}</span>`;
+    patch(back, `${ICON.back}<span>${esc(name)}</span>`); // written when the name changes, not every render
     back.setAttribute("aria-label", `Back to ${name}`);
     back.title = "Back (Esc)";
   }
@@ -1360,7 +1362,8 @@ function nowEdges() {
   // with a pointer, the strip shows whole chips only, and what doesn't fit is one "+N" that opens the
   // project's threads (a chip cut mid-word read as broken); a touch screen keeps the swipe and the fades
   // The "+N" is one button for as long as it's needed: its count changes in place, so a scroll, a resize or All
-  // opening never replaces it (it's the switcher's opener, the place Escape returns to: Astra H30)
+  // opening never replaces it (it's the switcher's opener, the place Escape returns to: Astra H30); it's the strip's own
+  // (data-own), so the chips' redraw in place leaves it be
   if (matchMedia("(hover: hover) and (pointer: fine)").matches) {
     const chips = [...now.querySelectorAll(".nw:not(.nw-more)")];
     let more = now.querySelector(".nw-more");
@@ -1378,7 +1381,7 @@ function nowEdges() {
       n = chips.length - fit;
     }
     if (!n) { more?.remove(); return; }
-    if (!more) { now.insertAdjacentHTML("beforeend", `<button type="button" class="nw nw-more" data-switch aria-haspopup="dialog"></button>`); more = now.lastElementChild; }
+    if (!more) { now.insertAdjacentHTML("beforeend", `<button type="button" class="nw nw-more" data-switch aria-haspopup="dialog" data-own></button>`); more = now.lastElementChild; }
     else if (more !== now.lastElementChild) now.append(more);
     if (more.textContent !== `+${n}`) { more.textContent = `+${n}`; more.title = `${n} more in progress: every thread in this project`; }
     return;
@@ -2017,7 +2020,7 @@ function chipRender(fade = false) {
   chip.setAttribute("aria-label", `Intelligence: ${IQ.chipTitle(s).replace(/ \([^)]*\)$/, "")}`);
   chip.classList.toggle("is-pinned", IQ.current(s).pinned);
   if (chip._h === html) return;
-  const swap = () => { chip.innerHTML = html; chip._h = html; };
+  const swap = () => { redraw(chip, html); chip._h = html; }; // in place: the chip's insides stay the nodes a press is on
   if (fade && chip._h && !RM.matches) {
     chip.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 80, fill: "forwards" }).finished.then(() => { swap(); chip.getAnimations().forEach((a) => a.cancel()); chip.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 80 }); });
   } else swap();
@@ -2183,7 +2186,7 @@ function sendRender() {
   const mode = run ? "stop" : "send";
   if (btn.dataset.mode !== mode) {
     btn.dataset.mode = mode;
-    btn.innerHTML = run ? STOP_ICON : ICON.send;
+    redraw(btn, run ? STOP_ICON : ICON.send); // the icon changes in place: a press on it still clicks
     btn.classList.toggle("is-stop", !!run);
   }
   btn.disabled = !run && (empty || !!liveBlock() || files.busy || files.failed);
@@ -3167,7 +3170,7 @@ function lrefRender() {
   const html = r ? `<a href="#${esc(r.path)}" class="lk lk-in lk-file" data-ref="${esc(r.path)}"${r.a ? ` data-ref-a="${r.a}" data-ref-b="${r.b}"` : ""} title="${esc(r.a ? `${r.path}, ${r.a === r.b ? "line" : "lines"} ${r.a}${r.b > r.a ? `–${r.b}` : ""}` : r.path)}"><span class="lk-ic">${fileIcon(r.name)}</span><span class="lk-t">${esc(r.name)}${lines}</span></a>` +
     `<button type="button" class="cref-x" data-lref-x aria-label="${r.a ? `Take ${r.a === r.b ? "the line" : "the lines"} out of this message` : `Take ${esc(r.name || r.path.split("/").pop())} out of this message`}" title="${r.a ? (r.a === r.b ? "Take it out" : "Take them out") : "Take the file out"}">${ICON.close}</button>` : "";
   el.hidden = !r;
-  if (el._h !== html) { el.innerHTML = html; el._h = html; }
+  if (el._h !== html) { redraw(el, html); el._h = html; }
 }
 /** A message about a project file, as yours, in its thread (or its project's chat). True when it went. */
 function sendAbout(f, text) {
@@ -3529,7 +3532,7 @@ function allRender() {
   let html = liveL.length ? `<ul class="ar-list">${liveL.map(row).join("")}</ul>` : "";
   if (done.length) html += `<div class="ar-done${S.allDone ? " is-open" : ""}"><button type="button" class="ar-fold" data-all-done aria-expanded="${S.allDone}">${ICON.check}<span><b>${done.length} done</b>${done.some((t) => t.state === "resolved") ? " or resolved" : ""}</span>${ICON.chevron}</button><div class="ar-db"${S.allDone ? "" : " hidden"}><div class="ar-di"><ul class="ar-list">${done.map(row).join("")}</ul></div></div></div>`;
   if (!html) html = `<p class="ar-none">Nothing matches “${esc(q)}”.</p>`;
-  $("#all-list").innerHTML = html;
+  redraw($("#all-list"), html); // in place: a row that stays is the same node
 }
 /**
  * The filter: one radio group, drawn once and then updated in place, so the option you chose (by a click, Space,

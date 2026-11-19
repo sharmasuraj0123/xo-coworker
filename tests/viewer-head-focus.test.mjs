@@ -10,7 +10,7 @@ let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 t("paintHead holds focus on the viewer before the head it was in is replaced", () => {
   const ph = v.slice(v.indexOf("function paintHead() {"), v.indexOf("function headFocus("));
-  assert.match(ph, /if \(ae && top\.contains\(ae\)\) el\.focus\(\{ preventScroll: true \}\);\s*top\.outerHTML = head\(\);/);
+  assert.match(ph, /if \(ae && top\.contains\(ae\)\) el\.focus\(\{ preventScroll: true \}\);\s*redrawNode\(top, head\(\)\);/); // in place (the owner, 19 Nov)
 });
 t("the viewer can hold it: a dialog that takes focus (tabindex -1)", () => {
   assert.match(readFileSync(new URL("../index.html", import.meta.url), "utf8"), /<section class="viewer" id="viewer" role="dialog" aria-labelledby="vw-h" tabindex="-1" hidden><\/section>/);

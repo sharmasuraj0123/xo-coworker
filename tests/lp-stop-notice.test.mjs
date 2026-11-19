@@ -13,7 +13,8 @@ import { readFileSync } from "node:fs";
 import { mock } from "node:test";
 
 // a stand-in DOM, just enough for the section to mount and paint (nothing here is measured)
-const el = () => { const e = { hidden: false, dataset: {}, style: {}, innerHTML: "", textContent: "", scrollTop: 0, clientHeight: 0, scrollHeight: 0,
+// (a template's content and a first child: the section draws in place, js/redraw.js, which finds nothing to keep here)
+const el = () => { const e = { hidden: false, dataset: {}, style: {}, innerHTML: "", textContent: "", content: { childNodes: [] }, firstChild: null, scrollTop: 0, clientHeight: 0, scrollHeight: 0,
   classList: { add() {}, remove() {}, toggle() {}, contains: () => false }, addEventListener(t, f) { (e.on[t] ||= []).push(f); }, on: {}, removeEventListener() {},
   setAttribute() {}, getAttribute: () => null, removeAttribute() {}, hasAttribute: () => false, querySelector: () => null, querySelectorAll: () => [], contains: () => false, focus() {}, closest: () => null, getClientRects: () => [] };
   return e; };

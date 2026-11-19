@@ -65,7 +65,7 @@ t("the census finds Launchpad's boxed links (Open in Launchpad, Logs on GitHub, 
   for (const B of ["a.lp-b", "a.lp-ib", ".lp-ha>a.fr-ib", "a.lpm-host", "a.lp-go", "a.lp-go.lp-wide"]) assert.ok(links.has(B), `${B} in the census`);
   const lp = readFileSync(new URL("js/launchpad.js", ROOT), "utf8");
   assert.match(lp, /const ha = [^\n]*<a class="fr-ib"/, "the head's Open it is the .fr-ib link");
-  assert.match(lp, /S\.ha\.innerHTML = ha/, "drawn into .lp-ha, directly");
+  assert.match(lp, /redraw\(S\.ha, ha\)/, "drawn into .lp-ha, directly (in place)");
 });
 
 t("on a phone (390) every boxed link is at least 36 px tall (S267: Open in Launchpad was 32)", () => {
