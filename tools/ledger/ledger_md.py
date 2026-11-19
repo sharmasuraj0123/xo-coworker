@@ -21,6 +21,7 @@ for g in groups:
     out += [f"## {g} ({len(by[g])})", "", "| File | Lines | Status | New home |", "|---|---:|---|---|"]
     for p, e in sorted(by[g]):
         h = e.get("home") or e.get("reason") or ""; h = ", ".join(h) if isinstance(h, list) else h
+        if e.get("note"): h += f" · next: {e['note']}"
         out.append(f"| `{p}` | {N.get(p) if N.get(p) is not None else ''} | {e['status']} | {h} |")
     out.append("")
 open(os.path.join(repo, "architecture/modular/LEDGER.md"), "w").write("\n".join(out) + "\n")

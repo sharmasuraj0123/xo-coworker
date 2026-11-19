@@ -1,4 +1,4 @@
-// Files: the panel's file browser, and the one place a file opens (design-research/13). The idea is
+// Files: the panel's file browser, and the one place a file opens. The idea is
 // xo-swarm's org-mode browser (app/org/[orgId]/_components/ProjectFileTree.tsx): a tree read a folder
 // at a time, the README as the project's front page, the file beside the tree when there's room and
 // one at a time when there isn't. Ours on top: what the agents touched, marked where it is.

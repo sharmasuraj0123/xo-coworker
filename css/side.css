@@ -10,7 +10,7 @@
 
 /* ── The left sidebar: one corner system, one left edge, and which project is open (thread-28ea9d).
    The owner, 2026-11-04: idle projects shouldn't look like buttons, the open one should be obvious at a
-   glance ("Card + Tile", chosen from five variants in design-research/2026-11-vision/sidebar-open), and
+   glance ("Card + Tile", chosen from five variants), and
    the sidebar's corners should be consistent.
 
    Corners, measured (they were 13, 9, 11, 11, 16 and 8): Plan F's scale, nested ones computed.

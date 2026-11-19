@@ -1,5 +1,5 @@
-// A project's record: what its threads made, and what happened since you last looked
-// (design-research/12). Pure: no DOM, no network, no storage; app.js feeds it the world's threads,
+// A project's record: what its threads made, and what happened since you last looked.
+// Pure: no DOM, no network, no storage; app.js feeds it the world's threads,
 // what needs you and the worktrees, and renders what it returns.
 //
 // Made, for now, is what threads shared (each thread's `outputs`, which storm keeps as they share).

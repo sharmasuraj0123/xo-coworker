@@ -188,7 +188,7 @@ function workFold(turn, work, blocks, open, live, now, media = {}) {
   } else {
     // a failed turn's own error is said in its last line already. A command that exited non-zero in a
     // turn that went on to finish is the agent feeling its way (`ls`, `which`): it stays in the fold,
-    // because surfacing it in red would cry wolf (design-research/2026-11-vision/audit H2). A denial
+    // because surfacing it in red would cry wolf. A denial
     // or a real error step still shows.
     // so is a lease another session holds: the agent waits for it (often with a wake for when it frees)
     const routine = (r) => (r.kind === "command" && r.status === "error" && turn.status !== "failed") || commsBusy(r);

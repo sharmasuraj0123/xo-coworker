@@ -1,4 +1,4 @@
-// Touch gestures (design-research/11-mobile-gestures.md). One primitive, `drag`, and the app's gestures
+// Touch gestures. One primitive, `drag`, and the app's gestures
 // built from it. Every gesture is a shortcut for a button that is already on screen: Back, the sidebar,
 // closing a sheet, the next ask, folding the decision card, Resolve. One direction keeps one meaning:
 // right steps back toward the list, down puts something away, left acts on a row. No ask is ever

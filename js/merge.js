@@ -1,4 +1,4 @@
-// Your edit and an agent's, merged (Files › Edit, design-research/2026-11-vision/pierre row 10). When a save
+// Your edit and an agent's, merged (Files › Edit). When a save
 // finds the file changed since you started (Space's 409 file_changed), the two versions are merged against
 // the one you started from: a change only one side made is taken as it is; where both changed the same lines
 // differently, the place is marked as git marks a conflict, for Pierre's merge view, where you choose Keep

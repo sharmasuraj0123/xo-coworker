@@ -407,7 +407,7 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
     return Kit.commandOf(n.ask) || "";
   }
   // The headline says what will happen, in words; the exact command sits under it in mono at reading
-  // size, never at headline size (design-research/2026-11-vision/audit A6, the same rule as Home's card).
+  // size, never at headline size (the same rule as Home's card).
   function headline(n) {
     const c = headCmd(n);
     if (n.ask.item) return renderInline(c ? (n.ask.title || "").replace(`\`${c}\``, "a command") : n.ask.title || "", true); // the server's words

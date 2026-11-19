@@ -16,7 +16,7 @@
 // file paths (data-file, opened in the viewer). Anything else renders as its
 // plain text.
 //
-// Links say where they go by their shape, not by words (design-research/links):
+// Links say where they go by their shape, not by words:
 // - Inside Coworker (a thread, a file) a link is a token: a soft capsule led by
 //   the thing's own glyph (the thread's live state, the file's icon). It opens in place.
 // - Outside (the web) a link stays text, underlined, with a small ↗ after it:

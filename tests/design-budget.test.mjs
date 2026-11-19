@@ -1,4 +1,4 @@
-// The design budget (design-research/2026-11-vision/direction, "Plan F"): every stylesheet is built from
+// The design budget ("Plan F"): every stylesheet is built from
 // the one scale in css/tokens.css, and this test fails the moment a new literal size, weight, radius,
 // curve or heavy shadow sneaks back in. It counts what the CSS declares, outside the left sidebar
 // (which keeps its own look, the owner's decision) and outside the token file itself.

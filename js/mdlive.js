@@ -1,4 +1,4 @@
-// Markdown as a page you type in (design-research/2026-11-vision/canvas-editing/PLAN.md F2, the page view): the same
+// Markdown as a page you type in (the page view): the same
 // CodeMirror editor as Source, drawn as a document, and you type straight into the formatted text (the owner, 19 Nov
 // 11:42Z: "it shouldn't feel like you're in another mode editing it. have it edit directly even on the formatted
 // text"). Headings stay headings and bold stays bold where the caret is: the marks (#, **, `, [](…), >) are never
@@ -223,7 +223,7 @@ export function pageView(CM) {
     update(v, tr) {
       // the parser reads a long file a part at a time (the rest after the first frame, in the background): the blocks
       // are found again whenever it has read further, not only when the text changes (the owner, 19 Nov 12:08Z: "these
-      // tables don't render in file view", 7 of ICONS.md's 8 lay past the first part)
+      // tables don't render in file view")
       const grew = syntaxTree(tr.state) !== syntaxTree(tr.startState);
       const list = tr.docChanged || grew ? blocksOf(tr.state) : v.list;
       if (!tr.docChanged && !grew && !tr.selection && v.deco) return v;

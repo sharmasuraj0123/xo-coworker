@@ -16,7 +16,7 @@ input,textarea{font:inherit;color:inherit}
 :where(a[href],button,input,select,textarea,summary,xo-select,[tabindex]:not([tabindex="-1"]),[contenteditable="true"]){scroll-margin:var(--ring-room)}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 kbd{font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);padding:2px 5px;border:1px solid var(--line);border-bottom-width:2px;border-radius:var(--r-sm);color:var(--ink-3)}
-/* ── Plan F · every control answers (design-research/2026-11-vision/direction) ──────────────────────
+/* ── Plan F · every control answers ──────────────────────
    One curve. A hover engages in 120 ms and releases in 200 ms; a press goes down in 60 ms. Transitions
    that a component declares read var(--d-hover), which is set here per state, so the asymmetry holds
    everywhere without each component restating it. :where() keeps these at zero specificity: a

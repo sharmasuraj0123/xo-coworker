@@ -3,7 +3,7 @@
    fixes below. On a 390 × 844 phone a thread's bars took 282 px before the first message (the phonebar,
    the thread's header, the checklist and its sub-agents); now 101. A conversation's own header is the
    bar: ☰ or ‹, its name over one quiet line, its buttons; the checklist under it. Home and Artifacts keep
-   the phonebar, on the same lines. design-research/2026-11-phone/ has the measurements and the options.
+   the phonebar, on the same lines.
    Desktop is untouched: every rule here is inside the phone query, and .top-menu and .rn-live show only
    there.
 

@@ -32,7 +32,7 @@ const click = (sel) => { const b = document.querySelector(sel); if (!b) throw ne
 const dir = (p) => `#ours [data-fl-dir="${p}"]`;
 const log = (k, v) => console.log(k, JSON.stringify(v));
 // open a few folders, nested, and some siblings
-for (const p of ["css", "js", "js/vendor", "js/vendor/xterm", "design-research", "tests", "fonts"]) log(`open ${p}`, await step(`open ${p}`, click, dir(p)));
+for (const p of ["css", "js", "js/vendor", "js/vendor/xterm", "architecture", "tests", "fonts"]) log(`open ${p}`, await step(`open ${p}`, click, dir(p)));
 // close a parent with open children, reopen it: the children come back open
 log("close js", await step("close js", click, dir("js")));
 log("reopen js", await step("reopen js", click, dir("js")));
@@ -44,9 +44,9 @@ log("pick another", await step("pick another", click, '#ours [data-fl-file="css/
 // search: narrows, an open folder whose name doesn't match stays with what's found in it
 const type = (v) => { const q = document.querySelector("#ours [data-fl-q]"); q.focus(); q.value = v; q.dispatchEvent(new Event("input", { bubbles: true })); };
 for (const v of ["p", "pa", "pan", "pa", ""]) log(`search "${v}"`, await step(`search ${v}`, type, v));
-await step("search di", type, "di");
+await step("search arch", type, "arch");
 log("close js while searching", await step("close js while searching", click, dir("js")));
-log("open a found folder", await step("open a found folder", click, dir("design-research")));
+log("open a found folder", await step("open a found folder", click, dir("architecture")));
 log("clear", await step("clear", type, ""));
 log("reopen js", await step("reopen js", click, dir("js")));
 // a breadth of folders, then close and open at the top and the bottom

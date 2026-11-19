@@ -1,7 +1,6 @@
 // The Files tree bench: a repository listing served as XO's /tree API (one folder per call), the page
 // tools/filetree/bench.html with the real js/files.js and XO's CSS, and timing helpers (time to the next
-// painted frame, long tasks). From the @pierre/trees evaluation (design-research/2026-11-pierre-trees-eval,
-// xo/thread-1dce08). See README.md.
+// painted frame, long tasks). From the @pierre/trees evaluation (xo/thread-1dce08). See README.md.
 import { createRequire } from "module";
 import fs from "fs";
 const require = createRequire("/tmp/pw/node_modules/");

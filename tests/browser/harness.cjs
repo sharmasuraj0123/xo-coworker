@@ -1,9 +1,9 @@
 // The browser suite's world: the app served from this folder by a small static server, and every /api request
 // answered in the page from a mock world (a Workspace and one project, "demo"). Nothing reaches a Space.
-// Used by tests/browser/flows.test.cjs and design-research/2026-11-lg/tools/inventory-states.cjs.
+// Used by tests/browser/flows.test.cjs.
 "use strict";
 const http = require("http"), fs = require("fs"), path = require("path");
-const { install: installLaunchpad, SCENARIOS: LP } = require("../../design-research/2026-11-vision/launchpad/tools/mockspace.cjs");
+const { install: installLaunchpad, SCENARIOS: LP } = require("../../e2e/fixtures/mockspace-harness.cjs");
 
 const ROOT = path.resolve(__dirname, "..", "..");
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".json": "application/json", ".woff2": "font/woff2", ".wasm": "application/wasm", ".ico": "image/x-icon", ".webmanifest": "application/manifest+json" };
