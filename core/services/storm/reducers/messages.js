@@ -1,5 +1,5 @@
 // @ts-check
-import { mergeRows, addReaction, updateMessage } from "../../../../js/timeline.js";
+import { mergeRows, addReaction, updateMessage } from "../../world/rows.js";
 import { COORD } from "../config.js";
 
 /** @typedef {import("../types").Reducer} Reducer */

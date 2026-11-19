@@ -1634,7 +1634,7 @@
     "modules/settings/shape.css",
     "core/ui (density)"
    ],
-   "note": "Settings \u203a Shape and its rail label moved to modules/settings/shape.css, which css/shape.css imports first (same cascade place); density and the two composer and thread rules stay for core/ui"
+   "note": "Settings › Shape and its rail label moved to modules/settings/shape.css, which css/shape.css imports first (same cascade place); density and the two composer and thread rules stay for core/ui"
   },
   "css/side.css": {
    "status": "planned",
@@ -2192,7 +2192,8 @@
     "modules/composer/attachments.js",
     "core/services/world/normalise.js",
     "core/platform/util.js"
-   ]
+   ],
+   "note": "attachmentsOf, titleOf and picDims are in core/services/world/rows.js, re-exported here"
   },
   "js/blocks.js": {
    "status": "moved",
@@ -2580,7 +2581,8 @@
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
-   ]
+   ],
+   "note": "its normalisers are in core/services/world (rows, sessions, threads), re-exported here; the rest is the views'"
   },
   "js/turnview.js": {
    "status": "planned",
@@ -7971,31 +7973,16 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/attach.js::exports::attachmentsOf": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/rows.js"
   },
   "js/attach.js::exports::titleOf": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/rows.js"
   },
   "js/attach.js::exports::picDims": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/rows.js"
   },
   "js/attach.js::exports::kindOf": {
    "status": "split-region",
@@ -8079,22 +8066,12 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/attach.js::functions::attachmentsOf": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/rows.js"
   },
   "js/attach.js::functions::picDims": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/rows.js"
   },
   "js/attach.js::functions::typeWord": {
    "status": "split-region",
@@ -13896,34 +13873,16 @@
    "home": "core/services/storm/commands.js"
   },
   "js/timeline.js::exports::uiMsg": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/rows.js"
   },
   "js/timeline.js::exports::addReaction": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/rows.js"
   },
   "js/timeline.js::exports::updateMessage": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/rows.js"
   },
   "js/timeline.js::exports::reactionGroups": {
    "status": "split-region",
@@ -13936,34 +13895,16 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/timeline.js::exports::mergeRows": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/rows.js"
   },
   "js/timeline.js::exports::pageAfter": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/rows.js"
   },
   "js/timeline.js::exports::canPageOlder": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/rows.js"
   },
   "js/timeline.js::exports::pageFloor": {
    "status": "split-region",
@@ -13986,14 +13927,8 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/timeline.js::exports::framesShort": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/rows.js"
   },
   "js/timeline.js::exports::waitsForTurn": {
    "status": "split-region",
@@ -14016,134 +13951,56 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/timeline.js::exports::plainText": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/threads.js"
   },
   "js/timeline.js::exports::askText": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/threads.js"
   },
   "js/timeline.js::exports::threadState": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/threads.js"
   },
   "js/timeline.js::exports::BUSY_STATES": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/sessions.js"
   },
   "js/timeline.js::exports::HELD_STATE": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/sessions.js"
   },
   "js/timeline.js::exports::runWorks": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/sessions.js"
   },
   "js/timeline.js::exports::readSub": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/sessions.js"
   },
   "js/timeline.js::exports::sessionRead": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/sessions.js"
   },
   "js/timeline.js::exports::statusLater": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/sessions.js"
   },
   "js/timeline.js::exports::queuedButWorking": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/sessions.js"
   },
   "js/timeline.js::exports::sessionBusy": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/sessions.js"
   },
   "js/timeline.js::exports::HELD_FOR": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/sessions.js"
   },
   "js/timeline.js::exports::heldOf": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/sessions.js"
   },
   "js/timeline.js::exports::heldClock": {
    "status": "split-region",
@@ -14196,24 +14053,12 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/timeline.js::exports::askingState": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/threads.js"
   },
   "js/timeline.js::exports::stormAsks": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/threads.js"
   },
   "js/timeline.js::exports::threadAnchors": {
    "status": "split-region",
@@ -14256,14 +14101,8 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/timeline.js::exports::mainRuntime": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/sessions.js"
   },
   "js/timeline.js::exports::sendErrorTitle": {
    "status": "split-region",
@@ -14276,14 +14115,8 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/timeline.js::exports::currentPools": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/sessions.js"
   },
   "js/timeline.js::exports::routingOf": {
    "status": "split-region",
@@ -14326,14 +14159,8 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/timeline.js::exports::mapLimit": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/storm/load.js"
   },
   "js/timeline.js::exports::hopLine": {
    "status": "split-region",
@@ -14386,14 +14213,8 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/timeline.js::exports::stopOf": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/threads.js"
   },
   "js/timeline.js::exports::stopWords": {
    "status": "split-region",
@@ -14406,34 +14227,16 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/timeline.js::functions::uiMsg": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/rows.js"
   },
   "js/timeline.js::functions::addReaction": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/rows.js"
   },
   "js/timeline.js::functions::updateMessage": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/rows.js"
   },
   "js/timeline.js::functions::reactionGroups": {
    "status": "split-region",
@@ -14446,34 +14249,16 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/timeline.js::functions::mergeRows": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/rows.js"
   },
   "js/timeline.js::functions::pageAfter": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/rows.js"
   },
   "js/timeline.js::functions::canPageOlder": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/rows.js"
   },
   "js/timeline.js::functions::pageFloor": {
    "status": "split-region",
@@ -14516,94 +14301,40 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/timeline.js::functions::plainText": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/threads.js"
   },
   "js/timeline.js::functions::askText": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/threads.js"
   },
   "js/timeline.js::functions::threadState": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/threads.js"
   },
   "js/timeline.js::functions::readSub": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/sessions.js"
   },
   "js/timeline.js::functions::sessionRead": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/sessions.js"
   },
   "js/timeline.js::functions::statusLater": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/sessions.js"
   },
   "js/timeline.js::functions::queuedButWorking": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/sessions.js"
   },
   "js/timeline.js::functions::sessionBusy": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/sessions.js"
   },
   "js/timeline.js::functions::heldOf": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/sessions.js"
   },
   "js/timeline.js::functions::whenParts": {
    "status": "split-region",
@@ -14666,24 +14397,12 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/timeline.js::functions::askingState": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/threads.js"
   },
   "js/timeline.js::functions::stormAsks": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/threads.js"
   },
   "js/timeline.js::functions::threadAnchors": {
    "status": "split-region",
@@ -14726,14 +14445,8 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/timeline.js::functions::currentPools": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/sessions.js"
   },
   "js/timeline.js::functions::routingOf": {
    "status": "split-region",
@@ -14786,14 +14499,8 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/timeline.js::functions::mapLimit": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/storm/load.js"
   },
   "js/timeline.js::functions::hopLine": {
    "status": "split-region",
@@ -14846,14 +14553,8 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/timeline.js::functions::stopOf": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/normalise.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/threads.js"
   },
   "js/timeline.js::functions::stopWords": {
    "status": "split-region",

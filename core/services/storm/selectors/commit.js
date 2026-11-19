@@ -1,5 +1,5 @@
 // @ts-check
-import { stormAsks } from "../../../../js/timeline.js";
+import { stormAsks } from "../../world/threads.js";
 import { hostOf, askedBy } from "../../../../js/review.js";
 import { isLimitItem, limitItem } from "../../runtimes.js";
 import { paidItem, accountRows, heldModes } from "../../world/paid.js";

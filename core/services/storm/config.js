@@ -1,5 +1,5 @@
 // @ts-check
-import { BUSY_STATES } from "../../../js/timeline.js";
+import { BUSY_STATES } from "../world/sessions.js";
 
 export const STATUS_MS = 30000;
 export const STATUS_RETRY_MS = 8000;

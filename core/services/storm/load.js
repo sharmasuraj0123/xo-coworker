@@ -1,9 +1,15 @@
 // @ts-check
 import { client, NEWEST } from "./client.js";
-import { mapLimit } from "../../../js/timeline.js";
 import { CHATS_MIN_MS, LOAD_CAP } from "./config.js";
 
 /** @typedef {import("./types").Ctx} Ctx @typedef {import("./types").Row} Row */
+
+/** Run `fn` over `items`, at most `cap` at a time. @template T @param {Iterable<T>} items @param {number} cap @param {(x: T) => Promise<unknown>} fn */
+export async function mapLimit(items, cap, fn) {
+  const list = [...items];
+  const run = async () => { while (list.length) await fn(/** @type {T} */ (list.shift())); };
+  await Promise.all(Array.from({ length: Math.min(cap, list.length) }, run));
+}
 
 /** Reading the Space with GETs: chats, threads, sessions and review items. @param {Ctx} ctx */
 export function installLoad(ctx) {

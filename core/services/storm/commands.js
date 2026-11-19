@@ -1,6 +1,7 @@
 // @ts-check
 import { client, clientId as newClientId } from "./client.js";
-import { mergeRows, mapLimit } from "../../../js/timeline.js";
+import { mergeRows } from "../world/rows.js";
+import { mapLimit } from "./load.js";
 import { paidBody } from "../world/paid.js";
 import { LOAD_CAP } from "./config.js";
 

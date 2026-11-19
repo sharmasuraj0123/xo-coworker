@@ -3,6 +3,9 @@
 // The server has the final word on size and type (it reads the bytes); the checks here only spare the
 // person a wait for an answer that's known already. The pure part has no DOM: tests/logic.test.mjs.
 
+import { picDims } from "../core/services/world/rows.js";
+export { attachmentsOf, titleOf, picDims } from "../core/services/world/rows.js";
+
 export const MAX_BYTES = 25 * 1024 * 1024;
 export const MAX_FILES = 10;
 /** Above either, a paste becomes a file (`pasted-text-N.md`). */
@@ -82,44 +85,6 @@ export const pasteName = (text, n) => `pasted-text-${n}.${pasteExt(text)}`;
 export function pasteLabel(text) {
   const n = linesOf(text);
   return `Pasted text · ${n.toLocaleString("en")} line${n === 1 ? "" : "s"} · ${fmtSize(new TextEncoder().encode(String(text || "")).length)}`;
-}
-
-/**
- * A stored message's files: extra.attachments. An upload of yours is {id, name, type, bytes}, read through
- * its chat; a file an agent shared on its message has no id but its project's route instead: {project_id,
- * relative_path, path, made_id, mtime}. Pictures also carry w, h and tint (null when the server couldn't
- * read them, absent on uploads older than that); they're kept only when sent, so "unknown" stays unknown.
- * A file an agent shared may carry a `title` in plain words (share_files' titles, xo-space 8c6bc03), shown
- * in place of its name; it's absent when there's none, and the name is kept beside it.
- */
-export function attachmentsOf(row) {
-  const list = row && row.extra && row.extra.attachments;
-  if (!Array.isArray(list)) return [];
-  const out = [];
-  for (const a of list) {
-    if (!a) continue;
-    const f = { name: String(a.name || "file"), type: String(a.type || ""), bytes: a.bytes ?? null };
-    if (a.id) f.id = String(a.id);
-    else if (a.project_id && a.relative_path) Object.assign(f, { project_id: String(a.project_id), relative_path: String(a.relative_path), path: String(a.path || a.relative_path) });
-    else continue; // no way to read it
-    if (a.made_id) f.made_id = String(a.made_id);
-    if (a.mtime != null) f.mtime = a.mtime;
-    const title = titleOf(a.title);
-    if (title) f.title = title;
-    Object.assign(f, picDims(a));
-    out.push(f);
-  }
-  return out;
-}
-
-/** A file's title as people read it: one line of words, or "" when there's none (absent, null, blank). */
-export const titleOf = (t) => (typeof t === "string" ? t.replace(/\s+/g, " ").trim() : "");
-
-/** A picture's w, h and tint as the server sent them (only the keys it sent). */
-export function picDims(a) {
-  const out = {};
-  for (const k of ["w", "h", "tint"]) if (a && k in a) out[k] = a[k];
-  return out;
 }
 
 /** image | pdf | text, from the server's type (which it sniffed from the bytes). */

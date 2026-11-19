@@ -1,5 +1,5 @@
 // @ts-check
-import { statusLater, sessionRead } from "../../../../js/timeline.js";
+import { statusLater, sessionRead } from "../../world/sessions.js";
 import { BUSY, COORD } from "../config.js";
 
 /** @typedef {import("../types").Reducer} Reducer @typedef {import("../types").Ctx} Ctx */

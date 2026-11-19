@@ -1,5 +1,5 @@
 // @ts-check
-import { heldOf, queuedButWorking, statusLater, readSub, sessionBusy } from "../../../../js/timeline.js";
+import { heldOf, queuedButWorking, statusLater, readSub, sessionBusy } from "../../world/sessions.js";
 import { BUSY, COORD } from "../config.js";
 
 /** @typedef {import("../types").Ctx} Ctx @typedef {import("../types").Session} Session */

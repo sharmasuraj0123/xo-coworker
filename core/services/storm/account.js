@@ -1,6 +1,7 @@
 // @ts-check
 import { client } from "./client.js";
-import { mapLimit, currentPools } from "../../../js/timeline.js";
+import { currentPools } from "../world/sessions.js";
+import { mapLimit } from "./load.js";
 import { LOAD_CAP, STATUS_MS, STATUS_RETRY_MS, RUNTIMES_MS } from "./config.js";
 
 /** @typedef {import("./types").Ctx} Ctx @typedef {import("./types").Row} Row */

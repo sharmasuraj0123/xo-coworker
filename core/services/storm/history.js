@@ -1,6 +1,6 @@
 // @ts-check
 import { client, NEWEST } from "./client.js";
-import { mergeRows, pageAfter, canPageOlder, framesShort } from "../../../js/timeline.js";
+import { mergeRows, pageAfter, canPageOlder, framesShort } from "../world/rows.js";
 import { PAGE, OLDER_PAGE } from "./config.js";
 
 /** @typedef {import("./types").Ctx} Ctx @typedef {import("./types").Row} Row */
