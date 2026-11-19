@@ -95,7 +95,7 @@ export function createQuickOpen({ paths, api, place, openFile, openFiles = () =>
     return out + esc(text.slice(at));
   };
   async function search() {
-    const text = q.value;
+    const text = q.value.replace(/[\r\n]+/g, " ");
     const my = ++S.gen;
     if (!text.trim()) { S.items = []; foot.textContent = ""; drawText(); return; }
     foot.textContent = "Finding…";
@@ -116,7 +116,7 @@ export function createQuickOpen({ paths, api, place, openFile, openFiles = () =>
       announce(foot.textContent);
     } catch (err) {
       if (my !== S.gen) return;
-      if (err && (err.status === 404 || err.status === 405)) { S.noSearch = true; S.items = []; }
+      if (err && ((err.status === 404 && !err.code) || err.status === 405)) { S.noSearch = true; S.items = []; }
       else foot.textContent = err && err.code === "bad_regex" ? `Not a valid pattern: ${err.message || ""}` : (err && err.message) || "Couldn't search.";
     }
     drawText();

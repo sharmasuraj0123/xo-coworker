@@ -65,7 +65,8 @@ t("paths: Space's /paths when it has it, worktree-aware", async () => {
 t("paths on today's Space: /paths is missing, so /tree is walked, skipping .git and node_modules", async () => {
   const tree = { "": { dirs: [{ name: "js" }, { name: "node_modules" }, { name: ".git" }], files: [{ name: "README.md" }] }, js: { dirs: [{ name: "vendor" }], files: [{ name: "app.js" }] }, "js/vendor": { dirs: [], files: [{ name: "x.js" }] } };
   const asked = [];
-  const api = { projectPaths: async () => { throw Object.assign(new Error("nf"), { status: 404 }); }, projectTree: async (p, rel) => { asked.push(rel); return tree[rel] || { dirs: [], files: [] }; } };
+  // a bare 404 (no code): a Space without the route
+  const api = { projectPaths: async () => { throw Object.assign(new Error("Not Found"), { status: 404 }); }, projectTree: async (p, rel) => { asked.push(rel); return tree[rel] || { dirs: [], files: [] }; } };
   const P = createPaths({ api });
   const e = await P.load({ project: "p", base: "" });
   assert.deepEqual(e.paths, ["README.md", "js/app.js", "js/vendor/x.js"]);
@@ -77,6 +78,14 @@ t("paths on today's Space: /paths is missing, so /tree is walked, skipping .git 
   assert.ok(e.paths.includes("js/renamed.js") && !e.paths.includes("js/new.js"));
   P.changed({ project: "p", base: "" }, { kind: "delete", path: "README.md" });
   assert.ok(!e.paths.includes("README.md"));
+});
+
+t("a 404 with a code is the route's own answer, not a Space without the route", async () => {
+  const api = { projectPaths: async () => { throw Object.assign(new Error("gone"), { status: 404, code: "project_not_found" }); }, projectTree: async () => ({ dirs: [], files: [] }) };
+  const P = createPaths({ api });
+  const e = await P.load({ project: "p", base: "" });
+  assert.equal(e.state, "error");
+  assert.equal(P.routeMissing, false);
 });
 
 for (const [name, fn] of queue) {

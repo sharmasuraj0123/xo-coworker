@@ -32,7 +32,8 @@ export function createPaths({ api, onChange = () => {} }) {
         onChange(pl);
         return e;
       } catch (err) {
-        if (err && (err.status === 404 || err.status === 405)) routeMissing = true;
+        // a Space without the route answers a bare 404 (no code); the route's own 404s say what isn't there
+        if (err && ((err.status === 404 && !err.code) || err.status === 405)) routeMissing = true;
         else { e.state = "error"; onChange(pl); return e; }
       }
     }
