@@ -10,11 +10,12 @@ const src = readFileSync(new URL("../js/viewer.js", import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
-t("only paintHead replaces the head", () => {
-  const direct = [...src.matchAll(/^.*outerHTML = head\(\).*$/gm)].map((m) => m[0].trim());
-  assert.deepEqual(direct, ["top.outerHTML = head();"], "the one head redraw, paintHead's");
+t("only paintHead redraws the head, and in place (a head control under a press stays the same node: the owner, 19 Nov)", () => {
+  assert.doesNotMatch(src, /outerHTML = head\(\)/, "the head is never drawn anew");
+  const direct = [...src.matchAll(/^.*redrawNode\([^)]*head\(\)\).*$/gm)].map((m) => m[0].trim().replace(/;.*$/, ";"));
+  assert.deepEqual(direct, ["redrawNode(top, head());"], "the one head redraw, paintHead's");
   const i = src.indexOf("function paintHead()");
-  assert.ok(i > 0 && src.slice(i, src.indexOf("\n  }\n", i)).includes("top.outerHTML = head();"), "and it's paintHead's");
+  assert.ok(i > 0 && src.slice(i, src.indexOf("\n  }\n", i)).includes("redrawNode(top, head());"), "and it's paintHead's");
 });
 t("an image's size goes into the head by paintHead, so focus in the head stays", () => {
   const i = src.indexOf('el.addEventListener("load", (e) => {');

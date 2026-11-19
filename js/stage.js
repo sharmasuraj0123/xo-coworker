@@ -238,7 +238,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     fw.hidden = !hd || !hd.count;
     if (hd) {
       const fh = hd.follow ? `${hd.busy ? '<i class="xd-arc" aria-hidden="true"></i>' : ""}<span>Following</span>` : "<span>Follow</span>";
-      if (fw._h !== fh) { fw.innerHTML = fh; fw._h = fh; }
+      if (fw._h !== fh) { redraw(fw, fh); fw._h = fh; } // in place: its label stays the node a press is on
       fw.classList.toggle("is-on", hd.follow);
       fw.setAttribute("aria-pressed", String(hd.follow));
       fw.title = hd.follow ? "Following the agent: the file it changes shows here. Pick a file or scroll to stop." : "Follow the agent: show each file it changes as it changes it";

@@ -155,8 +155,11 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
   // after its row, and a group is redrawn only when what it shows changes: the folder was read again, or an
   // agent's mark in it changed. Opening or closing a folder adds or removes just its group (a closed folder
   // keeps its group, to come back as it was), and the file shown is marked in place. So a click no longer
-  // redraws thousands of rows, and keyboard focus stays where it was. A new place or a new search changes
-  // every folder's rows, so those draw the whole tree in one go.
+  // redraws thousands of rows, and keyboard focus stays where it was. A group's rows are redrawn in place
+  // (js/redraw.js): a row that stays is the same node, so a press on it still clicks while an agent's marks
+  // change around it (the owner, 19 Nov: a folder needed a second click). The groups, the ⋯ and a new file's
+  // row are the tree's own nodes (data-own), placed by sync, never drawn from HTML. A new place or a new
+  // search changes every folder's rows, so those draw the whole tree in one go.
   const T = { key: null, groups: new Map(), on: null, q: null, changed: 0 }; // groups: folder → {el, sig, open (child groups drawn)}
 
   /** What agents touched, as marks: by file, by folder (the newest, or one being edited), and per folder a
@@ -187,7 +190,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       const on = open.has(x.path);
       if (q && !x.name.toLowerCase().includes(q) && !on) continue;
       h += `<button type="button" class="fl-r is-dir${on ? " is-open" : ""}" style="--d:${depth}" data-fl-dir="${esc(x.path)}" aria-expanded="${on}"><span class="fl-c">${CH}</span><span class="fl-n">${esc(x.name)}</span>${marks.dirs.has(x.path) ? `<span class="fl-who w-${marks.dirs.get(x.path)}"><i></i></span>` : ""}</button>`;
-      if (on) h += `<div class="fl-g" data-fl-g="${esc(x.path)}">${inner ? inner(x.path) : ""}</div>`;
+      if (on && inner) h += `<div class="fl-g" data-fl-g="${esc(x.path)}" data-own>${inner(x.path)}</div>`;
     }
     for (const x of d.files) {
       if (q && !x.name.toLowerCase().includes(q)) continue;
@@ -206,7 +209,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
   }
   const group = (p) => {
     let g = T.groups.get(p);
-    if (!g) { const el = document.createElement("div"); el.className = "fl-g"; el.dataset.flG = p; T.groups.set(p, g = { el, sig: null, open: new Set() }); }
+    if (!g) { const el = document.createElement("div"); el.className = "fl-g"; el.dataset.flG = p; el.setAttribute("data-own", ""); T.groups.set(p, g = { el, sig: null, open: new Set() }); }
     return g;
   };
 
@@ -242,27 +245,26 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     const d = F.dirs.get(dkey(s, local));
     const sig = sigOf(d, local, ctx);
     if (g.sig !== sig) {
+      // its own rows, in place: a row that stays is the same node (a press on it still clicks, focus stays), only what
+      // changed is written; the open folders' groups, the ⋯ and a new file's row are the tree's own (data-own) and stay
       const a = document.activeElement, had = a && g.el.contains(a) ? a : null;
-      const html = rowsHtml(s, local, d, ctx.marks, ctx.q);
-      if (html.startsWith("<p class=\"fl-note") && g.el.firstElementChild?.matches?.("p.fl-note")) redraw(g.el, html); // a note to a note: in place
-      else g.el.innerHTML = html;
-      g.sig = sig; g.open.clear();
-      for (const ph of g.el.querySelectorAll(":scope > .fl-g")) {
-        const c = T.groups.get(ph.dataset.flG);
-        if (c) ph.replaceWith(c.el); else T.groups.set(ph.dataset.flG, { el: ph, sig: null, open: new Set() });
-        g.open.add(ph.dataset.flG);
-      }
+      redraw(g.el, rowsHtml(s, local, d, ctx.marks, ctx.q));
+      g.sig = sig;
       refocus(had, g.el);
-    } else {
-      const open = ctx.open;
-      for (const p of g.open) if (!open.has(p)) { flip(g.el, p, false); T.groups.get(p).el.remove(); g.open.delete(p); }
-      for (const p of ctx.openIn.get(local) || []) {
-        if (g.open.has(p)) continue;
-        const b = flip(g.el, p, true);
-        if (b) { b.after(group(p).el); g.open.add(p); }
-      }
     }
-    for (const p of g.open) sync(s, p, T.groups.get(p), ctx);
+    // each open folder in it: its group right after its row (the ⋯ may sit between them); a group whose folder closed,
+    // or whose row went, goes
+    const open = new Set();
+    for (const p of ctx.openIn.get(local) || []) {
+      const b = flip(g.el, p, true);
+      if (!b) continue;
+      const c = group(p), at = b.nextElementSibling === M.btn ? M.btn : b;
+      if (at.nextElementSibling !== c.el) at.after(c.el);
+      open.add(p);
+    }
+    for (const p of g.open) if (!open.has(p)) { flip(g.el, p, false); T.groups.get(p)?.el.remove(); }
+    g.open = open;
+    for (const p of open) sync(s, p, T.groups.get(p), ctx);
   }
 
   function headHtml(s) {
@@ -460,7 +462,8 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
   const rowOf = (p) => T.groups.get(parentOf(p))?.el.querySelector(`:scope > [data-fl-dir="${CSS.escape(p)}"]`) || null;
   function moreAt(row) {
     const b = M.btn;
-    if (!b || (row === M.row && (!row || b.previousElementSibling === row))) { if (row && b) b.style.top = `${row.offsetTop}px`; return; }
+    // (the same row, its folder's rows redrawn in place: its has-more is the tree's, so it's put back)
+    if (!b || (row === M.row && (!row || b.previousElementSibling === row))) { if (row && b) { row.classList.add("has-more"); b.style.top = `${row.offsetTop}px`; } return; }
     M.row?.classList.remove("has-more");
     if (!row || !canMake(F.scope, row.dataset.flDir)) { M.row = null; b.remove(); return; }
     M.row = row;
@@ -519,7 +522,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     if (dir) { setOf(s.key).add(dir); load(s, dir); }
     const depth = dir ? dir.split("/").length : 0;
     const el = document.createElement("div");
-    el.className = "fl-new";
+    el.className = "fl-new"; el.setAttribute("data-own", ""); // the tree's own: a redraw of its folder leaves it first
     el.innerHTML = `<div class="fl-new-r" style="--d:${depth}"><span class="fl-c fl-i">${fileIcon("")}</span><input data-fl-name aria-label="Name of the new file in ${esc(dir ? base(dir) : s.label || "this folder")}" placeholder="Name, e.g. notes.md" autocomplete="off" spellcheck="false" maxlength="255"></div>` +
       `<p class="fl-new-say" style="--d:${depth}" role="status" hidden></p>`;
     Object.assign(NW, { key: s.key, dir, el, busy: false, confirm: false });
@@ -717,7 +720,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       const vw = document.getElementById("viewer");
       if (vw) host.querySelector(".fl-view").appendChild(vw);
       M.btn = document.createElement("button");
-      M.btn.type = "button"; M.btn.className = "fl-more"; M.btn.title = "New file, copy path";
+      M.btn.type = "button"; M.btn.className = "fl-more"; M.btn.title = "New file, copy path"; M.btn.setAttribute("data-own", "");
       M.btn.setAttribute("aria-haspopup", "menu"); M.btn.setAttribute("aria-expanded", "false");
       M.btn.innerHTML = MORE_IC;
       M.menu = document.createElement("div");

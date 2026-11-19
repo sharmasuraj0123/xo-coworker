@@ -1,7 +1,7 @@
 // Converged · small shared helpers: icons, a keyed DOM reconciler, time words, smooth disclosure,
 // reduced motion and the optional soft sounds (off by default).
 import { esc } from "./world.js";
-import { redraw } from "./redraw.js";
+import { redraw, pressedNode } from "./redraw.js";
 import { usable } from "./focusview.js";
 
 // Every glyph is drawn on a 24 grid. Its attributes are the fallback: outside the sidebar, base.css draws
@@ -250,6 +250,9 @@ export function reconcile(box, items, { quiet = false, fallback = null } = {}) {
   const added = [];
   const tpl = document.createElement("template");
   const active = document.activeElement, inPlace = [];
+  // the node under a press: a row holding it is updated in place, as one holding focus is, so the press still clicks
+  // (a row drawn anew mid-press took the pressed node with it, and the browser drops that click: the owner, 19 Nov)
+  const pressed = pressedNode();
   // a row that's going while it holds focus hands it on first, never to BODY (the create-project/Launchpad grader on
   // f70ca6b, C050/C121: the working mini, dropped with no finished blocks, took focus with it): the nearest row that
   // stays, before it, else after it (found now, before anything moves), or the list's fallback
@@ -265,7 +268,7 @@ export function reconcile(box, items, { quiet = false, fallback = null } = {}) {
     if (el && el._h !== it.html) {
       tpl.innerHTML = it.html.trim();
       const fresh = tpl.content.firstElementChild;
-      if (active && active !== el && el.contains(active) && fresh && fresh.tagName === el.tagName) {
+      if (((active && active !== el && el.contains(active)) || (pressed && el.contains(pressed))) && fresh && fresh.tagName === el.tagName) {
         for (const a of [...el.attributes]) if (a.name !== "data-k" && !fresh.hasAttribute(a.name)) el.removeAttribute(a.name);
         for (const a of fresh.attributes) if (el.getAttribute(a.name) !== a.value) el.setAttribute(a.name, a.value);
         redraw(el, fresh.innerHTML);

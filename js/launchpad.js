@@ -21,6 +21,7 @@ import { ICON } from "./ui.js";
 import { appState, nextStep, formKey, launchpadUrl, sizeWords } from "./lpapi.js";
 import { esc, copyText, COPY_REFUSED } from "./util.js";
 import { pointerFollows } from "./keynav.js";
+import { redraw } from "./redraw.js";
 
 const I = (d) => `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 export const LP_ICON = {
@@ -654,9 +655,9 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     const sm = summary(p);
     S.el.dataset.tone = sm.tone;
     const hs = `<span class="lp-st t-${sm.tone}">${sm.tone === "work" ? '<i class="lp-arc" aria-hidden="true"></i>' : "<i></i>"}<span>${esc(sm.words)}</span>${sm.at ? ` <span class="lp-tm">${since(sm.at)}</span>` : ""}</span>${sm.host ? `<a class="lp-hh" href="${esc(sm.url)}" target="_blank" rel="noopener" title="Open ${esc(sm.host)}">${esc(sm.host)}</a>` : ""}`;
-    if (S.hs._h !== hs) { S.hs.innerHTML = hs; S.hs._h = hs; }
+    if (S.hs._h !== hs) { redraw(S.hs, hs); S.hs._h = hs; }
     const ha = !open && sm.cta ? `<button type="button" class="lp-hb" data-lp="open">${LP_ICON.rocket}<span>Deploy</span></button>` : sm.url ? `<a class="fr-ib" href="${esc(sm.url)}" target="_blank" rel="noopener" title="Open ${esc(sm.host)}" aria-label="Open it">${LP_ICON.out}</a>` : "";
-    if (S.ha._h !== ha) { S.ha.innerHTML = ha; S.ha._h = ha; }
+    if (S.ha._h !== ha) { redraw(S.ha, ha); S.ha._h = ha; }
     if (!open) return;
     preflight(p);
     const b = bodyHtml(p);
@@ -670,7 +671,9 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       const [focus, nth] = ae && ae !== S.body ? keyOf(ae) : [null, 0];
       const caret = ae && ae.matches("input") ? [ae.selectionStart, ae.selectionEnd] : null;
       const fresh = S.key.split("|").slice(0, 2).join("|") !== b.key.split("|").slice(0, 2).join("|");
-      S.body.innerHTML = `<div class="lp${fresh ? " is-new" : ""}" data-screen="${b.key.split("|")[1]}">${b.html}</div>`;
+      // in place (js/redraw.js): a control that stays is the same node, so a press on it still clicks as a deploy's
+      // steps redraw the screen (the owner, 19 Nov); a new screen is a new node (its data-screen)
+      redraw(S.body, `<div class="lp${fresh ? " is-new" : ""}" data-screen="${b.key.split("|")[1]}">${b.html}</div>`);
       // typed environment values go back into their inputs as properties, never into the markup (no value
       // attribute, nothing in outerHTML), so a redraw leaves no copy of a secret behind (Astra on 4026444)
       if (b.form) { const env = proj(p).form?.env || {}; for (const n of S.body.querySelectorAll("[data-lp-env]")) if (env[n.dataset.lpEnv]) n.value = env[n.dataset.lpEnv]; }

@@ -26,6 +26,7 @@ import { clientId as newKey } from "./api.js";
 import { radioKeys } from "./keynav.js";
 import { resetWords, rtName } from "./runtimes.js";
 import { paidHtml } from "./paidview.js";
+import { redraw } from "./redraw.js";
 
 export const riskLabel = (r) => ({ destructive: "Destructive", notable: "Notable", routine: "Routine", stopped: "Stopped" })[r] || "Notable";
 const BIG_CHECK = `<svg viewBox="0 0 52 52" aria-hidden="true"><circle class="sc" cx="26" cy="26" r="23"/><path class="sk" d="M15 27l7.5 7.5L38 19"/></svg>`;
@@ -946,10 +947,11 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
     $("#pn-count").innerHTML = F.done ? `All ${total} seen` : F.vig ? `${left} held` : `<b>${i}</b> of ${total}`;
     const routine = F.order.filter(pending).map((k) => F.items.get(k)).filter((n) => n && n.group === "routine" && Kit.isBinary(n.ask));
     const foot = $("#pn-foot");
-    foot.innerHTML = F.done || F.vig ? "" :
+    // in place: Previous, Allow all and Skip stay the same nodes as asks come and go, so a press on one still clicks
+    redraw(foot, F.done || F.vig ? "" :
       `<button type="button" class="pn-nav" data-nav="-1" title="Previous${K.hint("prev")}" aria-label="Previous ask"${total < 2 ? " disabled" : ""}>${ICON.back}</button>` +
       (routine.length >= 2 ? `<button type="button" class="pn-all" data-all>Allow all ${routine.length} routine</button>` : `<span class="pn-tip">Skip freely; nothing here is forced first.</span>`) +
-      `<button type="button" class="pn-nav" data-nav="1" title="Skip ahead${K.hint("next")}" aria-label="Skip to the next ask"${total < 2 ? " disabled" : ""}>${ICON.right}</button>`;
+      `<button type="button" class="pn-nav" data-nav="1" title="Skip ahead${K.hint("next")}" aria-label="Skip to the next ask"${total < 2 ? " disabled" : ""}>${ICON.right}</button>`);
     render();
   }
 

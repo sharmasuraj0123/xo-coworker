@@ -23,6 +23,7 @@ import { isImagePath } from "./util.js";
 import { commsLine, commsText } from "./comms.js";
 import { heldWords } from "./timeline.js";
 import { fileIcon, folderIcon, fileColor } from "./fileicons.js";
+import { redraw } from "./redraw.js";
 
 const KEY = "cv-map";
 const FILE_KINDS = new Set(["create_file", "edit_file", "delete_file", "read"]);
@@ -801,7 +802,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
         // same box, moved by the drawing: jump with it, no glide
         c.el.style.transition = "none"; c.el.style.transform = to; void c.el.offsetWidth; c.el.style.transition = "";
       } else c.el.style.transform = to;
-      if (c.tag !== tag) { c.el.querySelector(".dg-tag").innerHTML = tag; c.tag = tag; }
+      if (c.tag !== tag) { redraw(c.el.querySelector(".dg-tag"), tag); c.tag = tag; }
       if (c.node !== a.nid) {
         // it landed somewhere new: the box answers once, in its colour
         if (c.node != null) { const b = el.querySelector(`[data-node="${CSS.escape(a.nid)}"]`); if (b) { b.style.setProperty("--c", a.color); b.classList.remove("is-hit"); void b.offsetWidth; b.classList.add("is-hit"); } }
@@ -842,7 +843,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
         pos.set(n.id, { x: (par ? par.x : 0) + Math.cos(ang) * 24, y: (par ? par.y : 0) + Math.sin(ang) * 24, vx: 0, vy: 0 });
       }
       nodes.style.width = nodes.style.height = "0px";
-      nodes.innerHTML = html;
+      redraw(nodes, html); // in place: a box that stays is the same node, so a press on it still clicks (the owner, 19 Nov)
       svg.setAttribute("width", "1"); svg.setAttribute("height", "1"); svg.removeAttribute("viewBox");
       const byEl = new Map([...nodes.children].map((e) => [e.dataset.node, e]));
       M.gnodes = flat.map((n) => ({ n, p: pos.get(n.id), par: n.parent != null ? pos.get(n.parent) : null, el: byEl.get(n.id) }));
@@ -1014,7 +1015,7 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
     if (h !== M.head) {
       const hd = el.querySelector("[data-mp-head]");
       const a = document.activeElement, fid = a && hd.contains(a) ? a.dataset.mpFocus || a.dataset.mpGo : null;
-      hd.innerHTML = h; M.head = h;
+      redraw(hd, h); M.head = h; // in place: the legend's buttons stay the same nodes as the agents' verbs change
       for (const x of hd.querySelectorAll(".elapsed[data-since]")) x.textContent = elapsed(Math.max(0, Math.floor((Date.now() - +x.dataset.since) / 1000)));
       if (fid) hd.querySelector(`[data-mp-focus="${CSS.escape(fid)}"]`)?.focus({ preventScroll: true });
     }
@@ -1072,7 +1073,9 @@ export function createMap({ world, viewer = null, go, announce, isBusy, onChange
         svg.innerHTML = `<g transform="translate(${PAD} ${PAD})">${L.edges.map((e) => { const c = lit.get(e.to.id); return `<path d="${edgePath(e.from, e.to)}"${c ? ` class="is-lit" style="stroke:${c}"` : ""}/>`; }).join("")}</g>`;
         const nodes = el.querySelector(".dg-nodes");
         nodes.style.width = W + "px"; nodes.style.height = H + "px";
-        nodes.innerHTML = nodesHtml;
+        // in place, keyed by data-node: an agent moving file changes a box's class and colour, not the boxes, so a
+        // press on one still clicks (a box drawn anew mid-press took the pressed node with it: the owner, 19 Nov)
+        redraw(nodes, nodesHtml);
         M.layoutKey = key;
         if (old) holdStill(scope, old, L);
         // the focused node again; if it's gone (a folder's "Try again" becomes the folder once it reads), the
