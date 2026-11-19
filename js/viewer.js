@@ -1017,9 +1017,6 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   // the path a refused Copy path offers: focused (Tab, or a click), all of it is selected, ready to copy; a click that
   // only placed the caret selects it all again
   el.addEventListener("focusin", (e) => { if (e.target.matches?.(".vw-cut-sel")) e.target.select(); });
-  // typing, the ring is drawn over the file (css/panel.css #viewer::after) from the file's own top: the head above it
-  // changes height (tabs, the versions bar, a phone's safe area), so where the file starts is read as focus comes in
-  el.addEventListener("focusin", () => { if (TX.el && TX.el.isConnected) el.style.setProperty("--vw-body-top", `${TX.el.offsetTop}px`); });
   el.addEventListener("click", (e) => { const s = e.target.closest?.(".vw-cut-sel"); if (s && s.selectionStart === s.selectionEnd) s.select(); });
   // a press on the offered path selects all of it: the mouse's own caret placement is kept off it (it came after the
   // click's select and collapsed it again: the controls grader on c767cbf, S270-manual-reclick-v4); it takes focus and

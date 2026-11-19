@@ -6,6 +6,8 @@
 .vw-doc{display:flex;flex-direction:column;min-height:0;overflow:hidden;background:var(--canvas)}
 .vw-doc>.cm-editor{flex:1 1 auto;min-height:0;height:100%}
 .vw-doc>.cm-editor.cm-focused{outline:none}
+/* no ring around a file you type in, its box's or the editor's (the owner, 19 Nov 10:59Z): the caret is the mark */
+.vw-body.vw-doc:focus-visible{outline:none}
 .vw-doc .cm-gutters{padding-left:var(--cell-in)}
 .vw-doc .cm-lineNumbers .cm-gutterElement{padding:0 12px 0 8px;font:400 var(--fs-sm)/var(--lh-ui) var(--mono)}
 .vw-doc .cm-content{padding-bottom:var(--h-bar)}
