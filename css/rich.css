@@ -53,6 +53,45 @@
 @media (max-width:760px){:root:not([data-msgx]) .mx-actrow{--mx-b:36px}}
 @media (hover:none){:root:not([data-msgx]) .mx-actrow{--mx-b:36px;opacity:1}}
 
+/* ── a thread's card in the document view ────────────────────────────────────
+   One of the reply's blocks, built as its code, tables and charts are (1 px line, 12 px corners, the same fill), and
+   the bubbles' card in structure, so the two looks are one family (the owner, 19 Nov: "take a look at how it looked
+   for bubbles"): a band across the top in the thread's state colour carrying its progress, then its title with where
+   it stands, what it's doing now, and a foot (branch, when, Open). Everything on the right ends on one edge, the
+   card's 16 px text edge: the status, Open, Decide. It used to have two right edges (the caption's, and Decide's
+   own column beside it), progress bars that stopped at 64 px each, a state glyph pushing the title off its edge,
+   an amber border, and spacing off the scale (13, 9, 10, 3). The bubbles' card (css/msgx.css) is untouched. */
+:root:not([data-msgx]) .tcard{--st:var(--ink-4);--dec-w:72px;flex-direction:column;margin-top:16px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--fill-1);box-shadow:none}
+:root:not([data-msgx]) .tcard.st-needs{--st:var(--warn)}
+:root:not([data-msgx]) .tcard:is(.st-needs,.st-failed){border-color:var(--line)}
+:root:not([data-msgx]) .tcard:hover{border-color:var(--line-strong);background:var(--fill-1)}
+:root:not([data-msgx]) .tc-open{gap:4px;padding:0 16px 12px;border-radius:calc(var(--r-lg) - 1px)}
+/* the band: full width, flush with the card's top, its progress 16 px in on each side (the text column) */
+:root:not([data-msgx]) .tc-segs{order:-1;width:calc(100% + 32px);margin:0 -16px 8px;padding:12px 16px;gap:4px;border-radius:calc(var(--r-lg) - 1px) calc(var(--r-lg) - 1px) 0 0;background:color-mix(in srgb,var(--st) 10%,transparent);transition:background var(--d-hover) var(--ease)}
+:root:not([data-msgx]) .tcard:hover .tc-segs{background:color-mix(in srgb,var(--st) 14%,transparent)}
+:root:not([data-msgx]) .tc-segs .sg{max-width:none;height:6px;border-radius:3px}
+:root:not([data-msgx]) .tc-segs.is-empty::before{content:"";flex:1;height:6px;border-radius:3px;background:color-mix(in srgb,var(--st) 24%,transparent)}
+/* the title on the text edge (the band already says the state: no glyph before it), where it stands on the right */
+:root:not([data-msgx]) .tc-top{gap:16px}
+:root:not([data-msgx]) .tc-top>.g{display:none}
+:root:not([data-msgx]) .tc-st{font:500 var(--fs-sm)/20px var(--sans);color:var(--st)}
+:root:not([data-msgx]) .tcard.st-working .tc-st{color:var(--ink-3)}
+:root:not([data-msgx]) .tc-now{font:400 var(--fs-base)/20px var(--sans)}
+:root:not([data-msgx]) .tc-foot{gap:8px;margin-top:4px;font:400 var(--fs-sm)/20px var(--sans)}
+:root:not([data-msgx]) .tc-go{gap:4px}
+:root:not([data-msgx]) .tc-go svg{width:14px;height:14px}
+/* Decide: at the foot's right end, on the text edge, a 24 px pill in the ask's amber (centred on the foot's line);
+   Open steps aside for it */
+:root:not([data-msgx]) .tcard.st-needs>.tc-dec{position:absolute;right:16px;bottom:10px;width:var(--dec-w);height:var(--h-sm);margin:0;padding:0;border-radius:var(--r-pill);font:600 var(--fs-sm)/16px var(--sans)}
+:root:not([data-msgx]) .tcard.st-needs .tc-go{margin-right:calc(var(--dec-w) + 8px)}
+@media (max-width:760px){
+  /* a phone: Decide is a 36 px control, its own line under the foot, on the text edge */
+  :root:not([data-msgx]) .tcard.st-needs>.tc-dec{position:static;align-self:flex-start;width:auto;height:36px;margin:0 16px 12px;padding:0 16px}
+  :root:not([data-msgx]) .tcard.st-needs .tc-go{margin-right:0}
+  :root:not([data-msgx]) .tc-top{flex-direction:column;align-items:flex-start;gap:0}
+  :root:not([data-msgx]) .tc-top b{width:100%;white-space:normal;overflow-wrap:anywhere}
+}
+
 /* ── math (KaTeX, js/rich.js) ─────────────────────────────────────────────────
    Before it's drawn (a beat, while KaTeX loads between keystrokes), a formula shows its TeX quietly, in the code
    face; drawn, it takes the text's colour. A displayed formula is centred on its own line and scrolls sideways on
