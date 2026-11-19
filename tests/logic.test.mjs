@@ -78,7 +78,7 @@ t("a bare address wraps only at its seams, and its last piece keeps the arrow (Q
 t("relative file links open in the viewer; anything that leaves the folder stays text", () => {
   const f = renderInline("[the turn view](js/turnview.js) and [readme](./README.md#L10)");
   assert.match(f, /<a href="#js\/turnview.js" class="lk lk-in lk-file" data-file="js\/turnview.js" data-file-name="turnview.js"/);
-  assert.match(f, /<span class="lk-ic"><svg class="fi"/); // the file icon from js/fileicons.js, whichever set it draws
+  assert.match(f, /<span class="lk-ic"><svg class="fi"/); // the file icon from core/ui/icons/fileicons.js, whichever set it draws
   assert.match(f, /data-file="README.md"/);
   for (const bad of ["[x](../etc/passwd)", "[x](/etc/passwd)", "[x](a/../../b.txt)", "[x](file:///etc/passwd)", "[x](mailto:a@b.c)", "[x](folder/)"]) {
     const out = renderInline(bad);

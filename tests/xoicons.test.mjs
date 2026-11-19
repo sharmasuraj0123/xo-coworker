@@ -6,17 +6,17 @@
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { build, clean } from "../tools/xoicons/build.mjs";
-import { XI } from "../js/xoicons.js";
-import { xi, hasIcon } from "../js/icon.js";
+import { XI } from "../core/ui/icons/xoicons.js";
+import { xi, hasIcon } from "../core/ui/icons/icon.js";
 import { classify, glyph } from "../js/projicons.js";
-import { fileIcon, iconKey, FOLDER_ICON } from "../js/fileicons.js";
+import { fileIcon, iconKey, FOLDER_ICON } from "../core/ui/icons/fileicons.js";
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
 t("js/xoicons.js is what the pack makes (rebuild: node tools/xoicons/build.mjs)", () => {
-  assert.equal(read("js/xoicons.js"), build());
+  assert.equal(read("core/ui/icons/xoicons.js"), build());
   const man = JSON.parse(read("assets/icons/xo/manifest.json"));
   assert.equal(Object.keys(XI).length, man.icons.length);
 });
@@ -50,7 +50,7 @@ t("xi(): the pack's icon, its name on it, a size only from the scale", () => {
 });
 
 t("every icon a module names is in the pack", () => {
-  const files = readdirSync(new URL("../js/", import.meta.url)).filter((f) => f.endsWith(".js")).map((f) => `js/${f}`);
+  const files = ["js", "core/ui"].flatMap((d) => readdirSync(new URL(`../${d}/`, import.meta.url), { recursive: true }).filter((f) => f.endsWith(".js") && !f.includes("vendor/")).map((f) => `${d}/${f}`));
   const names = new Set();
   for (const f of files) for (const m of read(f).matchAll(/\bxi\("([a-z0-9-]+)"/g)) names.add(m[1]);
   assert.ok(names.size > 60, `${names.size} names`);
@@ -58,11 +58,11 @@ t("every icon a module names is in the pack", () => {
 });
 
 t("no module keeps a hand-drawn icon: every set draws from the pack", () => {
-  const sets = ["js/ui.js", "js/stage.js", "js/map.js", "js/files.js", "js/filespage.js", "js/changesframe.js", "js/shapeview.js",
+  const sets = ["core/ui/icons/names.js", "js/stage.js", "js/map.js", "js/files.js", "js/filespage.js", "js/changesframe.js", "js/shapeview.js",
     "js/viewer.js", "js/lightbox.js", "js/create.js", "js/intel.js", "js/quickopen.js", "js/msgx.js", "js/turnview.js",
     "js/launchpad.js", "js/markdown.js", "js/projicons.js"];
   for (const f of sets) assert.doesNotMatch(read(f), /<svg viewBox="0 0 24 24"|<path d="M|const I = \(d/, f);
-  const ui = read("js/ui.js");
+  const ui = read("core/ui/icons/names.js");
   const block = ui.slice(ui.indexOf("export const ICON = {"), ui.indexOf("\n};", ui.indexOf("export const ICON = {")));
   for (const line of block.split("\n").slice(1)) if (/^ {2}\w+:/.test(line)) assert.match(line, /: xi\("[a-z0-9-]+"/, line);
   // the stamps and the Stop come from the pack too; the undo ring (an animation) and the tab's live icon are drawn
