@@ -265,7 +265,7 @@ Items inside first-party files: 2290 (moved 957, planned 787, split-region 429, 
 | `tests/rtsettings.test.mjs` | 81 | moved | modules/runtimes/tests/rtsettings.test.mjs |
 | `tests/runs-stop-receipt.test.mjs` | 69 | planned | modules/threads/tests/runs-stop-receipt.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/runtimes.test.mjs` | 126 | planned | modules/settings/runtimes/tests/runtimes.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/saved-truth.test.mjs` | 43 | moved | modules/runtimes/tests/saved-truth.test.mjs · next: still reads the source; its rewrite as a behaviour test is owed |
+| `tests/saved-truth.test.mjs` | 43 | moved | modules/runtimes/tests/saved-truth.test.mjs · next: rewritten as a behaviour test: Settings › Runtimes driven on a DOM (tests/lib/dom.mjs), its saves answered by the test |
 | `tests/scroller-ring.test.mjs` | 171 | planned | core/ui (css guard)/tests/scroller-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/seg-fold.test.mjs` | 32 | planned | modules/files/tests/seg-fold.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/seg-ring.test.mjs` | 16 | planned | core/ui (css guard)/tests/seg-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |

@@ -4746,7 +4746,7 @@
   "tests/saved-truth.test.mjs": {
    "status": "moved",
    "home": "modules/runtimes/tests/saved-truth.test.mjs",
-   "note": "still reads the source; its rewrite as a behaviour test is owed"
+   "note": "rewritten as a behaviour test: Settings › Runtimes driven on a DOM (tests/lib/dom.mjs), its saves answered by the test"
   },
   "tests/scroller-ring.test.mjs": {
    "status": "planned",
