@@ -1,0 +1,123 @@
+/* Files: a file you read and type in (js/viewer.js, js/doceditor.js, js/mdlive.js). One editor for every text file:
+   code as code, Markdown as a page; the open files as tabs; the file's versions under its head. Built from the one
+   scale (css/tokens.css), soft corners everywhere. */
+
+/* ── the editor fills the file's body ── */
+.vw-doc{display:flex;flex-direction:column;min-height:0;overflow:hidden;background:var(--canvas)}
+.vw-doc>.cm-editor{flex:1 1 auto;min-height:0;height:100%}
+.vw-doc>.cm-editor.cm-focused{outline:none}
+.vw-doc .cm-gutters{padding-left:var(--cell-in)}
+.vw-doc .cm-lineNumbers .cm-gutterElement{padding:0 12px 0 8px;font:400 var(--fs-sm)/var(--lh-ui) var(--mono)}
+.vw-doc .cm-content{padding-bottom:var(--h-bar)}
+.vw-doc .cm-xo-fold{display:inline-block;width:12px;color:var(--ink-5);cursor:pointer}
+.vw-doc .cm-panels-top{border-bottom:1px solid var(--line-soft)}
+.vw-doc .cm-panel.cm-search{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 12px;font:400 var(--fs-sm)/var(--lh-ui) var(--sans)}
+.vw-doc .cm-panel.cm-search input,.vw-doc .cm-panel.cm-search button{height:var(--h-sm);border-radius:var(--r-sm);border:1px solid var(--line);background:var(--surface);color:var(--ink);font:400 var(--fs-sm)/var(--lh-ui) var(--sans)}
+.vw-doc .cm-panel.cm-search input[type=checkbox]{height:auto}
+.vw-doc .cm-panel.cm-search button[name=close]{border:none;background:none;color:var(--ink-3)}
+.vw-doc .cm-panel.cm-search button:hover{border-color:var(--line-hover);color:var(--ink)}
+.vw-doc .cm-panel.cm-gotoLine{padding:8px 12px;font:400 var(--fs-sm)/var(--lh-ui) var(--sans)}
+.vw-doc .cm-panel.cm-gotoLine input{height:var(--h-sm);border-radius:var(--r-sm);border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+
+/* ── Markdown as a page: the document's serif, a comfortable measure, the marks only where the caret is ── */
+.vw-doc.is-page{background:var(--surface)}
+.vw-doc .cm-xo-page .cm-scroller{font-family:var(--serif);font-size:var(--fs-doc);line-height:var(--lh-doc)}
+.vw-doc .cm-xo-page .cm-content{box-sizing:border-box;max-width:760px;margin:0 auto;padding:32px 40px var(--h-bar)}
+.vw-doc .cm-xo-page .cm-activeLine{background:transparent}
+.vw-doc .cm-xo-page .cm-line{padding:0}
+.cm-md-h{font-family:var(--sans);font-weight:600;color:var(--ink)}
+.cm-md-h1{font-size:var(--fs-3xl);line-height:var(--lh-doc);padding-top:16px !important}
+.cm-md-h2{font-size:var(--fs-2xl);line-height:var(--lh-doc);padding-top:12px !important}
+.cm-md-h3,.cm-md-h4{font-size:var(--fs-lg);line-height:var(--lh-doc);padding-top:8px !important}
+.cm-md-h5,.cm-md-h6{font-size:var(--fs-md);line-height:var(--lh-doc);color:var(--ink-2)}
+.cm-md-quote{border-left:2px solid var(--line-strong);padding-left:16px !important;color:var(--ink-2)}
+.cm-md-fence{font-family:var(--mono);font-size:var(--fs-base);line-height:var(--lh-ui);background:var(--code-bg);padding:0 12px !important}
+.cm-md-code{font-family:var(--mono);font-size:var(--fs-base);background:var(--code-bg);border-radius:var(--r-xs);padding:1px 4px}
+.cm-md-link{color:var(--code-fn);text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--code-fn) 40%,transparent);text-underline-offset:3px}
+.cm-md-bullet{display:inline-block;width:12px;color:var(--ink-3)}
+.cm-md-block{margin:8px 0;padding:4px 0;border-radius:var(--r);cursor:text;font-family:var(--sans)}
+.cm-md-block:hover{box-shadow:0 0 0 1px var(--line-soft)}
+.cm-md-imath{cursor:text}
+
+/* ── what someone else just changed glows a moment; a clash's chunks; the versions' marks ── */
+.vw-doc .cm-xo-tint{background:color-mix(in srgb,var(--info) 14%,transparent)}
+.vw-doc .cm-changedLine,.vw-doc .cm-inlineChangedLine{background:var(--code-add-bg) !important}
+.vw-doc .cm-deletedChunk{background:var(--code-del-bg) !important;padding-left:8px}
+.vw-doc .cm-deletedChunk .cm-chunkButtons{display:inline-flex;gap:6px;margin:4px 0}
+.vw-doc .cm-xo-chunk{height:var(--h-sm);padding:0 10px;font:500 var(--fs-sm)/var(--lh-ui) var(--sans)}
+.vw-doc .cm-changeGutter{width:3px;padding:0}
+.vw-doc .cm-changedLineGutter{background:var(--code-add)}
+.vw-doc .cm-deletedLineGutter{background:var(--code-del)}
+
+/* ── "Ask about lines a–b ⌘L" under a selection ── */
+.cm-tooltip.cm-xo-asktip{border:none;background:none}
+.cm-xo-asktip .xd-ask{position:static;margin-top:6px}
+
+/* ── the head's state: Saving… · Edited · Saved; what needs you in amber ── */
+.xd-state.is-quiet{color:var(--ink-4)}
+.xd-state.is-quiet i{background:var(--ink-4)}
+.xd-state.is-done{animation:rise-in var(--d-in) var(--ease)}
+.xd-state.is-need{color:var(--warn)}
+.xd-state.is-need i{background:var(--warn)}
+
+/* ── the open files, as tabs ── */
+.vw-tabs{display:flex;gap:2px;min-height:var(--h-ctl);padding:4px 8px 0;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--line-faint)}
+.vw-tabs::-webkit-scrollbar{display:none}
+.vw-tab{flex:none;display:inline-flex;align-items:center;max-width:220px;height:var(--h-ctl);border-radius:var(--r-sm) var(--r-sm) 0 0;color:var(--ink-3)}
+.vw-tab.is-on{background:var(--canvas);color:var(--ink)}
+.vw-tab:not(.is-on):hover{background:var(--hover-fill)}
+.vw-tab-b:hover{color:var(--ink-2)}
+.vw-tab.is-on .vw-tab-b:hover{color:var(--ink)}
+.vw-tab-b{display:inline-flex;align-items:center;gap:6px;min-width:0;height:100%;padding:0 4px 0 10px;border:none;background:none;color:inherit;font:400 var(--fs-sm)/var(--lh-ui) var(--sans);cursor:pointer}
+.vw-tab-b .vw-ic svg{width:14px;height:14px}
+.vw-tab.is-preview .vw-tn{font-style:italic}
+.vw-tn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vw-tab-x{position:relative;display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);margin-right:4px;border:none;border-radius:var(--r-xs);background:none;color:var(--ink-4);cursor:pointer}
+.vw-tab-x svg{width:12px;height:12px}
+.vw-tab-x>i{display:none}
+.vw-tab-x.is-dirty>i{display:block;position:absolute;width:8px;height:8px;border-radius:50%;background:var(--ink-3)}
+.vw-tab-x.is-dirty svg{visibility:hidden}
+.vw-tab-x:hover{background:var(--hover-fill);color:var(--ink)}
+.vw-tab-x.is-dirty:hover>i{display:none}
+.vw-tab-x.is-dirty:hover svg{visibility:visible}
+.vw-tab-b:focus-visible,.vw-tab-x:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+
+/* ── the file's versions: ‹ n of m ›, who made it and when, Show changes; an older one, Restore and Latest ── */
+.vw-verbar{display:flex;align-items:center;gap:8px;min-height:var(--h-lg);padding:0 12px;border-bottom:1px solid var(--line-faint);font:400 var(--fs-sm)/var(--lh-ui) var(--sans);color:var(--ink-3)}
+.vw-verbar.is-old{background:var(--warn-subtle);color:var(--ink-2)}
+.vw-vers{display:inline-flex;align-items:center;gap:2px}
+.vw-vers .vw-btn{width:var(--h-sm);height:var(--h-sm);border-radius:var(--r-xs)}
+.vw-vers .vw-btn[aria-disabled="true"]{opacity:.35;cursor:default}
+.vw-vn{min-width:48px;text-align:center;font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.vw-vn b{font-weight:600;color:var(--ink)}
+.vw-who{min-width:0;flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vw-verbar .xd-btn{height:var(--h-sm);padding:0 10px;font-size:var(--fs-sm)}
+.vw-verbar .xd-btn.is-on{background:var(--fill-2);color:var(--ink)}
+
+@media (prefers-reduced-motion:reduce){.xd-state.is-done{animation:none}.vw-doc .cm-xo-tint{transition:none}}
+@media (max-width:600px){
+  .vw-doc .cm-xo-page .cm-content{padding:16px 16px var(--h-bar)}
+  .vw-who{display:none}
+}
+
+/* ── ⌘P go to a file, ⌘⇧F find in files (js/quickopen.js): the ⌘K sheet's card, a row per file or match ── */
+.qo-card{width:min(680px,calc(100vw - 32px))}
+.qo-where{flex:none;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 var(--fs-sm)/var(--lh-ui) var(--sans);color:var(--ink-4)}
+.qo-opts{display:flex;gap:4px;padding:6px 16px;border-bottom:1px solid var(--line-soft)}
+.qo-opt{height:var(--h-sm);min-width:var(--h-sm);padding:0 6px;border:1px solid var(--line);border-radius:var(--r-xs);background:none;color:var(--ink-3);font:500 var(--fs-sm)/var(--lh-ui) var(--mono);cursor:pointer}
+.qo-opt:hover{border-color:var(--line-hover);color:var(--ink)}
+.qo-opt[aria-pressed="true"]{background:var(--fill-2);border-color:var(--line-strong);color:var(--ink)}
+.qo-list li{gap:8px;min-height:var(--h-ctl);font:400 var(--fs-base)/var(--lh-ui) var(--sans)}
+.qo-list li b{font-weight:600;color:var(--ink)}
+.qo-fi{flex:none;display:grid;place-items:center;width:16px}
+.qo-fi svg{width:16px;height:16px}
+.qo-n{flex:none;color:var(--ink-2);white-space:nowrap}
+.qo-d{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-4);font-size:var(--fs-sm)}
+.qo-tag{flex:none;margin-left:auto;font:500 var(--fs-xs)/var(--lh-ui) var(--sans);color:var(--ink-4)}
+.qo-list li.qo-h{cursor:default;min-height:var(--h-sm);margin-top:4px}
+.qo-list li.qo-m{padding-left:34px}
+.qo-ln{flex:none;min-width:32px;text-align:right;font:400 var(--fs-sm)/var(--lh-ui) var(--mono);color:var(--ink-5)}
+.qo-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:pre;font:400 var(--fs-sm)/var(--lh-ui) var(--mono);color:var(--ink-3)}
+.qo-t b{background:color-mix(in srgb,var(--warn) 24%,transparent);border-radius:var(--r-xs);color:var(--ink)}
+.qo-foot{margin:0;padding:6px 16px 10px;font:400 var(--fs-sm)/var(--lh-ui) var(--sans);color:var(--ink-4)}
+.qo-foot:empty{display:none}

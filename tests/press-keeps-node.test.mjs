@@ -139,7 +139,8 @@ if (!existsSync(LD)) {
   // Files: js/files.js on its real redraw, with its other imports stood in for (a folder of copies, as the app has them)
   const dir = mkdtempSync(join(tmpdir(), "files-press-"));
   try {
-    for (const f of ["files.js", "redraw.js"]) copyFileSync(new URL(`../js/${f}`, import.meta.url), join(dir, f));
+    // the pure modules it uses as they are (Find: fuzzy ranking over every path in the place)
+    for (const f of ["files.js", "redraw.js", "fuzzy.js", "paths.js"]) copyFileSync(new URL(`../js/${f}`, import.meta.url), join(dir, f));
     writeFileSync(join(dir, "package.json"), '{"type":"module"}');
     writeFileSync(join(dir, "focusview.js"), "export const inSight = () => true; export const bringWhole = () => {};");
     writeFileSync(join(dir, "util.js"), 'export const esc = (s) => String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); export const copyText = async () => true; export const COPY_REFUSED = "";');

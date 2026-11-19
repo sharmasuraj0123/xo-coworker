@@ -15,7 +15,8 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
 t("copy knows what it copies: Copy path says so", () => {
   assert.match(src, /async function copy\(text, what = "contents"\) \{/);
   assert.match(src, /if \(e\.target\.closest\("\[data-vw-copy-path\]"\)\) \{ copy\(V\.file\.rel \? localPath\(\) : V\.file\.path, "path"\); return; \}/);
-  assert.match(src, /if \(e\.target\.closest\("\[data-vw-copy\]"\)\) \{ copy\(String\(V\.data\.content\)\); return; \}/, "Copy: the contents, as before");
+  // Copy: the contents as they are now (the document's text, what you typed included), an attachment's as read
+  assert.match(src, /if \(e\.target\.closest\("\[data-vw-copy\]"\)\) \{ const D = doc\(\); copy\(D \? docs\.textOf\(D\) : String\(V\.data\.content\)\); return; \}/, "Copy: the contents");
 });
 t("a refused path copy says the path didn't copy and offers the path; a refused contents copy is said as before", () => {
   assert.match(src, /V\.saveError = what === "path"\s*\? \{ text: "Couldn't copy the path: the browser didn't allow it here\. Here it is to copy:", select: text \}\s*: "Couldn't copy: the browser didn't allow it here\. Select the text and copy it, or download the file\.";/);

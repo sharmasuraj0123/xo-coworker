@@ -923,7 +923,6 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .sl-p{height:24px;padding:0 8px 0 0;color:var(--ink);font:500 var(--fs-base)/20px var(--sans)}
 .sl-p:hover{color:var(--accent)}
 
-.vw-upd{color:var(--ink);border-color:var(--line-strong);animation:rise-in var(--d-in) var(--ease)}
 
 /* return to where you were: a quiet pill at the top of the conversation, pointing up to the message you left from */
 .mx-return{position:absolute;z-index:var(--z-sticky);left:0;right:0;width:max-content;margin:0 auto;display:flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 12px 0 10px;border-radius:var(--r-pill);border:1px solid var(--line);background:var(--float);box-shadow:var(--e2);color:var(--ink-2);font:500 var(--fs-base)/20px var(--sans);animation:float-in-down var(--d-pop) var(--ease)}

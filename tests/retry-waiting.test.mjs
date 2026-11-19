@@ -1,4 +1,4 @@
-// The file renderer's Try again says it's trying while the renderer loads (the controls grader on 9d1f71b, S139, all
+// The file editor's Try again says it's trying while the editor loads (the controls grader on 9d1f71b, S139, all
 // four cells: with the renderer's module held, "Couldn't show this file" and a ready-looking Try again stood at 150 and
 // 800 ms; viewer.js kept the draw's pending state to itself). Checked from the source: every draw that starts over a
 // failure notice paints the waiting state in place (status, words, Try again busy); a press while it's busy does
@@ -13,13 +13,14 @@ const body = (name) => { const i = src.indexOf(`function ${name}(`); if (i < 0) 
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const has = (s, re, msg) => assert.ok(re.test(s || ""), `${msg} (${re})`);
-t("a draw over a failure notice paints the waiting state before the renderer answers", () => {
-  const d = body("drawFile");
-  assert.ok(d, "drawFile");
-  const start = d.indexOf("FL.pend = key;"), awaitAt = d.indexOf("await DV.file(");
-  assert.ok(start > 0 && awaitAt > start, "the draw starts, then waits for the renderer");
-  const before = d.slice(start, awaitAt);
-  has(before, /const again = host\.querySelector\(":scope > \.vw-empty \[data-vw-retry\]"\)/, "it finds the failure's Try again");
+t("a draw over a failure notice paints the waiting state before the editor answers", () => {
+  const d = body("drawText");
+  assert.ok(d, "drawText");
+  const start = d.indexOf("TX.key = key;"), awaitAt = d.indexOf("await mountEditor(");
+  assert.ok(start > 0 && awaitAt > start, "the draw starts, then waits for the editor");
+  const before = d.slice(d.indexOf("const again"), awaitAt);
+  has(before, /const again = TX\.el && TX\.el\.querySelector\(":scope > \.vw-empty \[data-vw-retry\]"\)/, "it finds the failure's Try again");
+  has(before, /if \(!again\) dropText\(\);/, "the notice isn't wiped first");
   has(before, /box\.setAttribute\("role", "status"\)/, "said, as a status");
   has(before, /textContent = "Drawing this file…"/, "the words: what's happening");
   has(before, /again\.setAttribute\("aria-busy", "true"\); again\.setAttribute\("aria-disabled", "true"\); again\.textContent = "Trying again…"/, "Try again: busy");

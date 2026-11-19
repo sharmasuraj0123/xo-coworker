@@ -20,7 +20,8 @@ t("one list of regions: the file and the diff, each the element made to take the
   assert.deepEqual(list, [".cx-pd", ".vw-body"]);
   const viewer = readFileSync(new URL("../js/viewer.js", import.meta.url), "utf8");
   const frame = readFileSync(new URL("../js/changesframe.js", import.meta.url), "utf8");
-  has(viewer, /className = "vw-body vw-file"; FL\.el\.tabIndex = 0;/, "the file's region takes focus");
+  // a text file's keys go to its editor (its text is the tab stop); its body holds focus only when what was in it goes
+  has(viewer, /className = "vw-body vw-file vw-doc"; TX\.el\.tabIndex = -1;/, "the file's region can hold focus");
   has(viewer, /className = "vw-body vw-diff"; DF\.el\.tabIndex = 0;/, "so does a change's, in the viewer");
   has(frame, /<div class="cx-pd" tabindex="0"/, "the diff's region takes focus");
 });

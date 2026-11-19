@@ -160,15 +160,9 @@ diffs-container{
 @container flpv (max-width:520px){.vw-seg.is-words button{width:auto;padding:0 8px}}
 @container flpv (max-width:360px){.vw-seg.is-words{display:flex}.vw-seg.is-words button{padding:0 6px}}
 
-/* ── Files › Edit (js/viewer.js): the head while you edit, read-only places, files that run code ──
-   Head controls are 28 px, as the viewer's icon buttons; Save is the one green thing on the screen. */
-.xd-edit{display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 10px 0 8px;border-radius:var(--r-sm);font:500 var(--fs-base)/20px var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.xd-edit:hover{background:var(--fill-2);color:var(--ink);transition-duration:var(--d-hover-in)}
-.xd-edit:disabled{opacity:.6;cursor:progress}
-.xd-edit svg{width:16px;height:16px}
-.xd-edit .spin{width:14px;height:14px;margin:1px}
+/* ── Files (js/viewer.js): the file's state in its head, read-only places, files that run code ── */
 .xd-state{display:inline-flex;align-items:center;gap:6px;font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-3);white-space:nowrap}
-.xd-state i,.xd-draft i{flex:none;width:6px;height:6px;border-radius:50%;background:var(--warn)}
+.xd-state i{flex:none;width:6px;height:6px;border-radius:50%;background:var(--warn)}
 .xd-errline{color:var(--err-ink)}
 .xd-vsep{flex:none;width:1px;height:16px;margin:0 4px;background:var(--fill-3)}
 .xd-btn{flex:none;display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line);font:500 var(--fs-base)/20px var(--sans);color:var(--ink-2);white-space:nowrap;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
@@ -202,25 +196,13 @@ diffs-container{
 .xd-mbtn{height:24px;padding:0 10px;border-radius:var(--r-pill);border:1px solid var(--line);background:var(--surface);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .xd-mbtn:hover{border-color:var(--line-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
 .xd-mbtn.is-mine{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));color:var(--ink)}
-.xd-mbtn:focus-visible,.xd-btn:focus-visible,.xd-edit:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+.xd-mbtn:focus-visible,.xd-btn:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
 /* "Saved · Undo · Tell the agent", at the foot of the file (the app's toast, here) */
-.xd-toast{position:absolute;z-index:8;left:0;right:0;bottom:16px;display:flex;justify-content:center;padding:0 16px;pointer-events:none}
-.xd-toast .toast{pointer-events:auto}
-.xd-toast .t-m b{font-weight:600}
-.xd-toast .t-m{min-width:0}
-.xd-tacts{display:contents}
-.xd-tx{flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);color:var(--ink-3)}
-.xd-tx:hover{background:var(--fill-2);color:var(--ink)}
-.xd-tx svg{width:14px;height:14px}
-@media (prefers-reduced-motion:reduce){.xd-pop{animation:none}.xd-btn,.xd-edit,.xd-mbtn{transition:none}}
+@media (prefers-reduced-motion:reduce){.xd-pop{animation:none}.xd-btn,.xd-mbtn{transition:none}}
 @media (max-width:600px){
-  .xd-edit span,.xd-btn kbd,.xd-runs span{display:none}
-  .xd-edit{padding:0 6px}
+  .xd-btn kbd,.xd-runs span{display:none}
   .xd-pop{width:min(320px,calc(100vw - 32px))}
   /* the toast on a phone: the words and close on the first row, the actions on their own row below (Astra) */
-  .xd-toast .toast{flex-wrap:wrap;row-gap:4px;width:100%}
-  .xd-toast .t-m{flex:1 1 0}
-  .xd-tacts{display:flex;order:2;flex-basis:100%;justify-content:flex-end;gap:8px}
 }
 
 /* the head's ⋯ (js/viewer.js moreHtml): Copy, Copy path and Download in a menu. While a copy or a download

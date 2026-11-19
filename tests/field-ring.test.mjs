@@ -29,14 +29,15 @@ t("every bordered field (text inputs, textareas, selects, the dropdown's button)
   const out = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter(([, sel, body]) => !/:has\(/.test(sel) && /(^|[\s,(>])(input|textarea|select)\b[^,]*:focus/.test(sel) && /outline-offset:\s*[1-9]/.test(body)).map(([, sel]) => sel.trim().slice(0, 80));
   assert.deepEqual(out, [], "a field ringed outside its edge");
 });
-// the file editor (Files › Edit): its caret is in Pierre's shadow, so no field of ours turns a ring on; while editing, the
-// file's box draws the message box's ring with the caret in it (the owner, 11 Nov 05:42Z)
-t("a file being edited draws the message box's ring on its box while the caret is in it", () => {
+// the file's editor (CodeMirror, js/doceditor.js): its caret sits in the editor's content, so no field of ours turns a
+// ring on; while the caret is in it, the file's box draws the message box's ring (the owner, 11 Nov 05:42Z). A text file
+// is always ready to type in now, so the ring follows the editor's own focus, not an Edit mode
+t("a file you're typing in draws the message box's ring on its box while the caret is in it", () => {
   // over the file, from its own top: on the box, the file's lines covered it (C120 S231 on fa49c3c)
-  assert.match(css, /#viewer\.is-editing:has\(\.vw-body:focus-within\)::after\{content:"";position:absolute;left:0;right:0;bottom:0;top:var\(--vw-body-top,40px\);z-index:4;pointer-events:none;[^}]*box-shadow:inset 0 0 0 2px var\(--ring-in,var\(--focus\)\)\}/);
+  assert.match(css, /#viewer:has\(\.vw-doc \.cm-editor\.cm-focused\)::after\{content:"";position:absolute;left:0;right:0;bottom:0;top:var\(--vw-body-top,40px\);z-index:4;pointer-events:none;[^}]*box-shadow:inset 0 0 0 2px var\(--ring-in,var\(--focus\)\)\}/);
   assert.doesNotMatch(css, /\.vw-body:focus-within\{outline/, "not on the box the file covers");
+  assert.match(css, /\.vw-doc>\.cm-editor\.cm-focused\{outline:none\}/, "the editor's own outline gives way to it");
   const vw = readFileSync(new URL("../js/viewer.js", import.meta.url), "utf8");
-  assert.equal((vw.match(/el\.classList\.toggle\("is-editing", !!ED\.on\);/g) || []).length, 2, "marked as the head is drawn and as the viewer is");
-  assert.match(vw, /el\.style\.setProperty\("--vw-body-top", `\$\{b\.offsetTop\}px`\)/, "the file's top read as focus comes in");
+  assert.match(vw, /el\.style\.setProperty\("--vw-body-top", `\$\{TX\.el\.offsetTop\}px`\)/, "the file's top read as focus comes in");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
