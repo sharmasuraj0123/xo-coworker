@@ -1,7 +1,7 @@
 // @ts-check
 
 // Launchpad's constants and the small pure pieces its screens are drawn from.
-import { ICON } from "../../js/ui.js";
+import { ICON } from "../../core/ui/icons/names.js";
 import { esc } from "../../core/platform/index.js";
 import { nextStep, sizeWords } from "./model.js";
 

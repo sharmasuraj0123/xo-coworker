@@ -2,8 +2,8 @@
 
 // Launchpad, in the panel: put a project on the web; typed secrets stay in memory until the deploy request carries them, never in storage, a URL or a log.
 import { esc } from "../../core/platform/index.js";
-import { pointerFollows } from "../../js/keynav.js";
-import { redraw } from "../../js/redraw.js";
+import { pointerFollows } from "../../core/ui/a11y/keynav.js";
+import { redraw } from "../../core/ui/redraw.js";
 import { LP_ICON, CACHE, since, sizeHint } from "./words.js";
 import { installStore } from "./store.js";
 import { installViews } from "./views.js";

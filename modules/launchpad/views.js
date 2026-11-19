@@ -1,7 +1,7 @@
 // @ts-check
 
 // The section's screens: setup, a run, live, failed, needs, getting ready, GitHub's code, picking an app, checking.
-import { ICON } from "../../js/ui.js";
+import { ICON } from "../../core/ui/icons/names.js";
 import { esc } from "../../core/platform/index.js";
 import { appState, formKey, launchpadUrl } from "./model.js";
 import { createSystem } from "./system.js";

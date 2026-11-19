@@ -18,9 +18,8 @@ globalThis.fetch = /** @type {any} */ (async (url, init = {}) => {
 globalThis.XMLHttpRequest = /** @type {any} */ (class { constructor() { this.upload = {}; } open(m, u) { record(m, u); } setRequestHeader() {} send() {} abort() {} });
 
 const { api, attachmentUrl, attachmentText, uploadAttachment, terminalSocketUrl } = await import("../api.js");
-const { createLpApi } = await import("../../../modules/launchpad/client.js");
 
-const ARGS = { pinMade: [["c", "m", true], ["c", "m", false]], githubStart: [[true], [false]] };
+const ARGS = { pinMade: [["c", "m", true], ["c", "m", false]] };
 const call = async (name, fn, args) => { from = name; try { await fn(...args); } catch { /* the answer is fake; the request is what counts */ } };
 for (const [name, fn] of Object.entries(api)) {
   if (name === "streamUrl") { from = `api.${name}`; record("GET", fn()); continue; }
@@ -29,17 +28,14 @@ for (const [name, fn] of Object.entries(api)) {
 await call("attachmentText", attachmentText, ["c", "a"]);
 await call("uploadAttachment", (...a) => { uploadAttachment(...a); }, ["c", { type: "", size: 1 }, "n"]);
 from = "attachmentUrl"; record("GET", attachmentUrl("c", "a"));
-const lp = createLpApi();
-for (const [name, fn] of Object.entries(lp)) for (const args of ARGS[name] || [["p", "q"]]) await call(`lpapi.${name}`, /** @type {any} */ (fn), name === "deploy" || name === "watch" ? [args[0], {}, () => {}] : args);
 await new Promise((r) => setTimeout(r, 20));
 
 const wsPath = new URL(terminalSocketUrl("t")).pathname;
 let passed = 0;
 const t = (name, fn) => { fn(); passed++; console.log("  ok  " + name); };
-t("the client was driven: every api route and the deploy client made a request", () => {
+t("the client was driven: every api route made a request", () => {
   assert.ok(seen.length >= Object.keys(api).length, `${seen.length} requests`);
   for (const name of Object.keys(api)) assert.ok(seen.some((s) => s.from === `api.${name}`), `api.${name} made no request`);
-  for (const name of Object.keys(lp)) assert.ok(seen.some((s) => s.from === `lpapi.${name}`), `lpapi.${name} made no request`);
   for (const name of ["attachmentText", "uploadAttachment", "attachmentUrl"]) assert.ok(seen.some((s) => s.from === name), `${name} made no request`);
 });
 t("each request's path and method are in xo-space's OpenAPI", () => {

@@ -1,7 +1,7 @@
 // @ts-check
 
 // What you do in the section: deploy with its Undo, Stop with its window, link, unlink, GitHub's device flow, Ask an agent.
-import { ICON } from "../../js/ui.js";
+import { ICON } from "../../core/ui/icons/names.js";
 import { copyText, COPY_REFUSED } from "../../core/platform/index.js";
 import { NEEDS_YOU, SLUG, STOP_MS, UNLINK_MS, AFTER, newRun } from "./words.js";
 

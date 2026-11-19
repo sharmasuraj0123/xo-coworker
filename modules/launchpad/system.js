@@ -1,7 +1,7 @@
 // @ts-check
 
 // The system view, after the Launchpad demo: visitors, the address, the running app and its image; only what Space says is drawn.
-import { ICON } from "../../js/ui.js";
+import { ICON } from "../../core/ui/icons/names.js";
 import { esc } from "../../core/platform/index.js";
 import { appState } from "./model.js";
 import { LP_ICON, ago, since, split, sizeText } from "./words.js";
