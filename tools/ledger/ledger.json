@@ -6322,12 +6322,8 @@
    "home": "core/platform/http.js"
   },
   "js/api.js::exports::STORM_DOWN": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "nothing imported it since storm moved to core/services; timeline.js keeps the set it reads"
   },
   "js/api.js::exports::WRITE_MS": {
    "status": "deleted",

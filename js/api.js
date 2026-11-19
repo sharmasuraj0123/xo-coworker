@@ -9,9 +9,6 @@
 import { request, blob, signedUrl, socketUrl, text, upload, urlOf } from "../core/platform/http.js";
 export { coderHeaders, ApiError, request, missingRoute, clientId } from "../core/platform/http.js";
 
-/** The storm codes that mean "storm can't be used in this server right now" (UI-reference §0.3). */
-export const STORM_DOWN = new Set(["engine_not_running", "engine_elsewhere", "engine_failed", "store_refused", "store_failed", "stream_not_running"]);
-
 // ── attachments (hub #30): a file is (chat id, attachment id); the browser never sees a path ──
 const enc = encodeURIComponent;
 const attPath = (chat, id) => `/chat/chats/${enc(chat)}/attachments/${enc(id)}`;
