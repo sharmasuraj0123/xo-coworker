@@ -21,6 +21,9 @@ t("alone, the mark says its name (role img, aria-label, title)", () => {
 t("with its name, the name is the words and the mark is decoration", () => {
   assert.equal(rtMark("claude_code", { withName: true }), '<span class="agm-n"><i class="agm agm-claude" aria-hidden="true"></i>Claude Code</span>');
 });
+t("leading a title, the mark keeps a mark's gap before the words (is-lead)", () => {
+  assert.equal(rtMark("antigravity", { lead: true }), '<i class="agm agm-antigravity is-lead" role="img" aria-label="Antigravity" title="Antigravity"></i>');
+});
 t("a runtime without a mark: null, so its name stays text", () => {
   assert.equal(rtMark("other"), null);
   assert.equal(rtName("other"), "other");

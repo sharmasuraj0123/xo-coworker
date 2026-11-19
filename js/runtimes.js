@@ -24,11 +24,12 @@ export const markOf = (name) => MARK[name] || null;
  * The runtime's mark as HTML, its name on hover and for screen readers; null for a runtime without one (its name
  * stays text there). withName: the name written out beside it, where there's room (a header, a picker).
  */
-export function rtMark(name, { withName = false } = {}) {
+export function rtMark(name, { withName = false, lead = false } = {}) {
   const m = MARK[name];
   if (!m) return null;
   const n = esc(rtName(name));
-  return withName ? `<span class="agm-n"><i class="agm agm-${m}" aria-hidden="true"></i>${n}</span>` : `<i class="agm agm-${m}" role="img" aria-label="${n}" title="${n}"></i>`;
+  // lead: it opens a line of words (a thread's title in a list), so it keeps the gap a mark keeps before its name
+  return withName ? `<span class="agm-n"><i class="agm agm-${m}" aria-hidden="true"></i>${n}</span>` : `<i class="agm agm-${m}${lead ? " is-lead" : ""}" role="img" aria-label="${n}" title="${n}"></i>`;
 }
 export const windowName = (id) => WINDOW[id] || String(id || "").replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
 

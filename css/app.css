@@ -1273,7 +1273,7 @@ body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 .hd-p{color:var(--ink-4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* a block, so a long title ends in an ellipsis (a flex box cut it mid-letter); its glyph sits inline */
 .hd-tt{display:block;min-width:0;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hd-tt>:is(i,svg){display:inline-block;margin-right:6px;vertical-align:calc(var(--cap-mid) - 4px)}
+.hd-tt>:is(i:not(.agm),svg){display:inline-block;margin-right:6px;vertical-align:calc(var(--cap-mid) - 4px)}
 .hd-now{color:var(--ink-4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mini{display:block;height:3px;border-radius:3px;background:var(--fill-3);overflow:hidden}
 .mini i{display:block;height:100%;border-radius:3px;background:var(--info);transform-origin:left;transform:scaleX(var(--p));transition:transform var(--d-land) var(--ease)}
@@ -1868,7 +1868,7 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .agm-antigravity{background-image:url(../js/vendor/agent-marks/antigravity.svg)}
 .agm-openai{background-color:currentColor;-webkit-mask:url(../js/vendor/agent-marks/openai.svg) center/contain no-repeat;mask:url(../js/vendor/agent-marks/openai.svg) center/contain no-repeat}
 .agm-n{white-space:nowrap}
-.agm-n>.agm{margin-right:6px}
+.agm-n>.agm,.agm.is-lead{margin-right:6px}
 
 .tw-acts{position:relative;flex:none;display:flex;align-items:center;gap:8px}
 .tw-act{display:inline-flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 12px 0 10px;border-radius:var(--r-sm);border:1px solid var(--line-soft);color:var(--ink-2);font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}

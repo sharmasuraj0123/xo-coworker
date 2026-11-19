@@ -57,7 +57,7 @@ export function madeNaming(m, max = 28) {
   };
 }
 
-export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
+export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = () => "" }) {
   const seen = R.createSeen(localStorage);
   const since = new Map();        // place → when you'd last looked, if you were away long enough; null: nothing to say
   const done = new Set();         // places whose card you dismissed in this page
@@ -164,7 +164,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce }) {
       const items = g.items.slice(0, left);
       left -= items.length;
       body += `<p class="syl-gh"><i class="t-${g.tone}" aria-hidden="true"></i>${esc(g.label)}${g.why ? `<span> · ${esc(g.why)}</span>` : ""}</p>` +
-        items.map(({ t, line, git }) => `<button type="button" class="syl-ln" data-go="t:${esc(t.id)}"><span class="syl-tt"><b>${esc(t.title)}</b>${line ? `<small>${esc(line)}</small>` : ""}</span>${gitHtml(git)}<span class="syl-ch" aria-hidden="true">${ICON.right}</span></button>`).join("");
+        items.map(({ t, line, git }) => `<button type="button" class="syl-ln" data-go="t:${esc(t.id)}"><span class="syl-tt"><b>${mark(t)}${esc(t.title)}</b>${line ? `<small>${esc(line)}</small>` : ""}</span>${gitHtml(git)}<span class="syl-ch" aria-hidden="true">${ICON.right}</span></button>`).join("");
     }
     const hidden = cu.total - Math.min(cu.total, all ? cu.total : LINES);
     const made = madeOf(pid).filter((m) => m.at > s).length;

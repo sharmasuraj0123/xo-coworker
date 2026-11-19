@@ -253,7 +253,7 @@ wireDragOut($("#msgs"));
 const SH = createShells({ PROJ, announce, notify: (h) => heraldShow(h, 6000), onChange: () => schedule(), wanted: () => SHAPE.on("xo:dock/shells") });
 CAP.terminal = () => SH.available;
 // a project's record: Since you left, Made, Recently made (design-research/12)
-const REC = createRecord({ world, go: (v) => go(v), VW, PROJ, schedule: () => schedule(), announce });
+const REC = createRecord({ world, go: (v) => go(v), VW, PROJ, schedule: () => schedule(), announce, mark: (t) => threadMark(t, { lead: true }) });
 REC.view = () => S.view;
 /** A Shell button for the top bar: a count when shells already run there (it opens their list then). */
 
@@ -347,6 +347,11 @@ STAGE.names = (v) => {
 REC.panel = STAGE;
 /** The runtime a thread runs on, fixed for its life (its session's agent). */
 const agentOf = (t) => (t && ((t.session && t.session.agent) || (t.sessionId && world.state.sessions[t.sessionId]?.agent))) || null;
+/** A thread's agent as its company's mark (js/runtimes.js rtMark), wherever a thread is listed (the owner, 19 Nov:
+ *  "show that this is a claude thread or a codex thread"), when there's more than one runtime to tell apart; its name
+ *  on hover and to a screen reader; nothing for a runtime without a mark or a thread whose agent isn't known yet. */
+const threadMark = (t, opts) => { const a = agentOf(t); return a && manyRuntimes(world.state.runtimes) ? rtMark(a, opts) || "" : ""; };
+const threadAgentWords = (t) => { const a = agentOf(t); return a && manyRuntimes(world.state.runtimes) ? `, on ${rtName(a)}` : ""; };
 const RT_EFFORT = { low: "Quick", medium: "Balanced", high: "Deep", xhigh: "Deeper", max: "Deepest" };
 /** When the usage limit that holds a thread lets it start (ISO), or null. Only while the thread is held, and by the
  *  limit (or by a gate an older backend doesn't name): its session's word (timeline.js heldOf), else the open limit
@@ -380,7 +385,8 @@ function rtTag(t, cls) {
     `. ${h.key === "usable" ? `${rtName(agent)} is usable.` : `${h.word}.${h.why ? ` ${h.why}` : ""}`}`;
   const warn = h.tone === "bad" || h.tone === "warn" ? " is-warn" : "";
   // a list names only the exceptions: a thread on the Space's usual runtime needs no word there
-  if (cls === "ar" && rt && rt.default && !warn) return "";
+  // a list row shows every thread's agent as a mark before its title (threadMark): here only a runtime in trouble is named
+  if (cls === "ar" && !warn) return "";
   // a shape without runtime names (xo:thread/runtime) still says when the runtime is in trouble
   if (!warn && !SHAPE.on("xo:thread/runtime")) return "";
   // its company's mark (js/runtimes.js rtMark): alone in a list row, the name beside it in the header; a runtime
@@ -743,7 +749,7 @@ function endRender(P0, working) {
 function handledListHtml(P0, working) {
   const rows = working.slice().sort((a, b) => a.project.localeCompare(b.project)).map((t) => {
     const c = t.checklist, cur = c.items.find((i) => i.state === "doing");
-    return `<li><button type="button" class="hd-r" data-go="t:${esc(t.id)}"><span class="hd-p">${esc(PROJ(t.project))}</span><span class="hd-tt">${esc(t.title)}</span><span class="hd-now">${cur ? esc(cur.text) : ""}</span><span class="mini" aria-label="${c.done} of ${c.total}"><i style="--p:${c.total ? c.done / c.total : 0}"></i></span></button></li>`;
+    return `<li><button type="button" class="hd-r" data-go="t:${esc(t.id)}"><span class="hd-p">${esc(PROJ(t.project))}</span><span class="hd-tt">${threadMark(t, { lead: true })}${esc(t.title)}</span><span class="hd-now">${cur ? esc(cur.text) : ""}</span><span class="mini" aria-label="${c.done} of ${c.total}"><i style="--p:${c.total ? c.done / c.total : 0}"></i></span></button></li>`;
   }).join("");
   const wait = P0.held.map((n) => `<li class="cw"><span class="cw-main"><span class="cw-t">${askTitle(n)}</span><span class="cw-why">${esc(PROJ(n.t.project))} · ${esc(n.heldWhy)}</span></span><button type="button" class="cw-in" data-bring-in="${esc(n.key)}">Bring in</button></li>`).join("");
   return (rows ? `<ul class="hd-ul">${rows}</ul>` : "") + (wait ? `<h3 class="hd-k">Can wait</h3><ul class="cw-ul">${wait}</ul>` : "");
@@ -1003,7 +1009,7 @@ function threadCardHtml(tid, needs) {
     `<span class="tc-top"><i class="g g-${n ? "needs_reply" : glyphOf(t)}" aria-hidden="true"></i><b>${esc(t.title)}</b><span class="tc-st">${esc(st)}</span></span>` +
     `<span class="tc-segs${segs ? "" : " is-empty"}" aria-hidden="true">${segs}</span>` +
     (now ? `<span class="tc-now">${now}</span>` : "") +
-    `<span class="tc-foot">${t.branch && SHAPE.on("xo:thread/branch") ? `<code>${esc(t.branch)}</code>` : `<span>${noun("thread")}</span>`}${heldN ? `<span class="tc-cw">a small ask can wait</span>` : ""}<span>${short(t.lastAt) === "now" ? "just now" : short(t.lastAt) + " ago"}</span><span class="tc-go">Open ${ICON.arrow}</span></span></button>` +
+    `<span class="tc-foot">${threadMark(t, { withName: true })}${t.branch && SHAPE.on("xo:thread/branch") ? `<code>${esc(t.branch)}</code>` : `<span>${noun("thread")}</span>`}${heldN ? `<span class="tc-cw">a small ask can wait</span>` : ""}<span>${short(t.lastAt) === "now" ? "just now" : short(t.lastAt) + " ago"}</span><span class="tc-go">Open ${ICON.arrow}</span></span></button>` +
     (n ? `<button type="button" class="tc-dec" data-decide="${esc(n.key)}">Decide</button>` : "") +
     (made ? `<button type="button" class="tc-next" data-made-file="${esc(made.key)}" title="${esc(made.path)}">${ICON.doc}<span>Open ${esc(made.title || made.name)}</span></button>` : "") + `</div>`;
 }
@@ -1398,8 +1404,8 @@ function nowRender(needs) {
     const c = t.checklist, n = need(t);
     const st = n ? "needs" : glyphOf(t);
     const what = n ? `needs you: ${askShort(n)}` : t.stop ? stopWords(t.stop) : t.state === "failed" ? String(t.happened || "Stopped") : wordOf(t).toLowerCase();
-    return `<button type="button" class="nw st-${st}" role="listitem" data-go="t:${esc(t.id)}" title="${esc(`${t.title} · ${c.done} of ${c.total} · ${what}`)}" aria-label="${esc(t.title)}, ${n ? "needs you" : wordOf(t).toLowerCase()}, ${c.done} of ${c.total}">` +
-      `<i class="g g-${n ? "needs_reply" : glyphOf(t)}" aria-hidden="true"></i><b>${esc(t.title)}</b>` +
+    return `<button type="button" class="nw st-${st}" role="listitem" data-go="t:${esc(t.id)}" title="${esc(`${t.title} · ${c.done} of ${c.total} · ${what}`)}" aria-label="${esc(t.title)}${esc(threadAgentWords(t))}, ${n ? "needs you" : wordOf(t).toLowerCase()}, ${c.done} of ${c.total}">` +
+      `<i class="g g-${n ? "needs_reply" : glyphOf(t)}" aria-hidden="true"></i>${threadMark(t)}<b>${esc(t.title)}</b>` +
       `<span class="nw-segs" aria-hidden="true">${c.items.map((i) => `<i class="sg s-${i.state}"></i>`).join("")}</span></button>`;
   }).join("");
   const html = `<div class="now" role="list" aria-label="Now in ${esc(PROJ(pid))}">${items}</div>`;
@@ -3574,7 +3580,7 @@ function allRender() {
   const row = (t) => {
     const c = t.checklist;
     const k = cat(t);
-    return `<li><button type="button" class="ar st-${k}" data-go="t:${esc(t.id)}"><i class="g g-${k === "needs" ? "needs_reply" : glyphOf(t)}" aria-hidden="true"></i><span class="ar-tl"><span class="ar-t">${esc(t.title)}</span>${t.label ? `<span class="ar-l">${esc(t.label)}</span>` : ""}</span><span class="ar-s">${rtTag(t, "ar")}${k === "needs" ? "Needs you" : wordOf(t)}</span><span class="mini" aria-label="${c.done} of ${c.total}"><i style="--p:${c.total ? c.done / c.total : 0}"></i></span><span class="ar-a">${esc(short(t.lastAt))}</span></button></li>`;
+    return `<li><button type="button" class="ar st-${k}" data-go="t:${esc(t.id)}"><i class="g g-${k === "needs" ? "needs_reply" : glyphOf(t)}" aria-hidden="true"></i><span class="ar-tl">${threadMark(t)}<span class="ar-t">${esc(t.title)}</span>${t.label ? `<span class="ar-l">${esc(t.label)}</span>` : ""}</span><span class="ar-s">${rtTag(t, "ar")}${k === "needs" ? "Needs you" : wordOf(t)}</span><span class="mini" aria-label="${c.done} of ${c.total}"><i style="--p:${c.total ? c.done / c.total : 0}"></i></span><span class="ar-a">${esc(short(t.lastAt))}</span></button></li>`;
   };
   const fold = S.allFilter === "all" && !q;
   const liveL = fold ? list.filter((t) => cat(t) !== "done") : list;
