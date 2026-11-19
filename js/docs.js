@@ -3,8 +3,8 @@
 // and one state every view of it shares. No DOM, no editor: the view hands its text in (`source`), and is told
 // when the text must change under it (`apply`), so this file is tested in node with a fake clock.
 //
-// States: "saved" (what you see is what's on disk) · "dirty" (you typed; it saves itself 1 s after your last key,
-// when you leave it, or on ⌘S) · "saving" (a PUT is out; typing goes on) · "conflict" (you and someone else
+// States: "saved" (what you see is what's on disk) · "dirty" (you typed: unsaved until you press ⌘S / Ctrl+S, the
+// owner's call on 19 Nov 11:42Z: "ctrl s should save it. no auto save") · "saving" (a PUT is out; typing goes on) · "conflict" (you and someone else
 // changed the same lines: the merge view) · "deleted" (gone on disk: your text stays, Save makes it again) ·
 // "readonly" (XO keeps it, or too big, or not text) · "error" (a save failed: your text stays, it says why).
 // A file that runs code asks once before its first save (Space's 428): "confirm" is set and nothing is sent until
@@ -16,12 +16,12 @@
 // Each text the document has been is a version (newest last): who made it, when, and its text while it's held.
 //
 // Drafts (js/drafts.js) stay what VS Code calls hot exit: unsaved text kept in this browser after a pause, on
-// leaving, and before the page goes; a document opened over its draft takes it back, dirty, and saves it.
+// leaving, and before the page goes; a document opened over its draft takes it back, unsaved, for ⌘S.
 
 import { merge3, changes, linesOf } from "./merge.js";
 import { draftKey, getDraft, putDraft, dropDraft } from "./drafts.js";
 
-export const AUTOSAVE_MS = 1000;
+// (no autosave: the owner, 19 Nov 11:42Z. A save is ⌘S, Restore, or Save in the "save your changes?" question)
 export const DRAFT_MS = 800;
 // the versions held per document, with their text (older ones keep who and when; their text is read from Space)
 export const KEEP_TEXT = 20;
@@ -106,7 +106,7 @@ export function createDocs({ api, store = null, clock = { now: () => Date.now(),
     const last = d.versions[d.versions.length - 1];
     if (last && last.version === v.version && v.version) { Object.assign(last, { ...v, text: v.text ?? last.text }); return; }
     const now = clock.now();
-    if (last && v.by && v.by.kind === "ui" && last.by && last.by.kind === "ui" && last.restores == null && v.restores == null && last.t != null && now - last.t < MERGE_MS) {
+    if (last && v.by && v.by.kind === "ui" && last.by && last.by.kind === "ui" && last.kind !== "restore" && v.kind !== "restore" && last.t != null && now - last.t < MERGE_MS) {
       Object.assign(last, { version: v.version || null, at: v.at || new Date(now).toISOString(), text: v.text ?? null, id: last.id || v.id || null, t: now });
       emit(d, "version");
       return;
@@ -146,17 +146,16 @@ export function createDocs({ api, store = null, clock = { now: () => Date.now(),
       // merges at the save, as any other change does)
       d.text = dr.text; d.base = dr.base; d.version = dr.version;
       d.state = "dirty";
-      schedule(d, 0);
     } else if (dr) dropDraft(store, key);
     return d;
   }
 
-  /** A view lets go of the document; the last one gone saves what's pending and forgets it. */
+  /** A view lets go of the document; the last one gone keeps unsaved text as a draft (never saves it) and forgets it. */
   function release(d) {
     if (!d || --d.refs > 0) return;
     if (d.source) { d.text = d.source(); d.source = null; }
     d.apply = null;
-    if (d.state === "dirty") { keepDraft(d); flush(d); }
+    if (d.state === "dirty" || d.state === "error" || d.state === "deleted" || d.state === "conflict") keepDraft(d);
     // a save still out finishes on its own; the document goes once nothing holds it
     const gone = () => { if (d.refs <= 0 && !d.inflight) { clock.clear(d.saveT); clock.clear(d.draftT); docs.delete(d.key); } };
     if (d.inflight) d.inflight.then(gone, gone); else gone();
@@ -179,25 +178,18 @@ export function createDocs({ api, store = null, clock = { now: () => Date.now(),
     return putDraft(store, d.key, { text, base: d.base, version: d.version, at: clock.now() });
   }
 
-  function schedule(d, ms = AUTOSAVE_MS) {
-    clock.clear(d.saveT);
-    d.saveT = clock.set(() => { d.saveT = 0; save(d); }, ms);
-  }
-
   /** You typed (the view says so on each change: cheap, no text read). */
   function edited(d) {
     if (d.state === "readonly" || d.state === "conflict" || d.viewing) return;
     if (d.state === "saved" || d.state === "error" || d.state === "deleted") setState(d, d.state === "deleted" ? "deleted" : "dirty", d.state === "deleted" ? d.err : null);
     clock.clear(d.draftT);
     d.draftT = clock.set(() => keepDraft(d), DRAFT_MS);
-    if (!d.confirm) schedule(d);
   }
 
-  /** Save what's pending now (leaving the file, ⌘S, the page going away). */
+  /** Save now: ⌘S / Ctrl+S (or Save in the "save your changes?" question). The only way a file is written. */
   function flush(d) {
     if (!d || d.confirm) return d && d.inflight;
     if (d.state !== "dirty" && d.state !== "deleted" && d.state !== "error") return d.inflight;
-    clock.clear(d.saveT); d.saveT = 0;
     return save(d);
   }
 
@@ -216,28 +208,29 @@ export function createDocs({ api, store = null, clock = { now: () => Date.now(),
     const sentBase = d.deleted ? null : d.version;
     const run = (async () => {
       try {
-        const restoreOf = d.restoreOf; d.restoreOf = null;
+        const restoreOf = d.restoreOf, restoring = !!d.restoring; d.restoreOf = null; d.restoring = false;
         const r = await api.saveProjectFile(d.project, d.rel, text, sentBase, confirm || (d.confirmed ? "runs_code" : null), restoreOf ? { restoreOf } : undefined);
         d.inflight = null;
         d.base = text; d.version = r.version; d.deleted = false; d.offline = false; d.confirm = false;
         if (confirm) d.confirmed = true;
-        pushVersion(d, { version: r.version, at: r.saved_at || null, by: { kind: "ui" }, text, id: r.edit_id || null, kind: restoreOf ? "restore" : "edit", restores: restoreOf || null });
+        pushVersion(d, { version: r.version, at: r.saved_at || null, by: { kind: "ui" }, text, id: r.edit_id || null, kind: restoring ? "restore" : "edit", restores: restoreOf || null });
         const now = textOf(d);
-        if (now !== text) { setState(d, "dirty"); schedule(d); }
+        if (now !== text) setState(d, "dirty"); // typed while it saved: unsaved again, for the next ⌘S
         else { dropDraft(store, d.key); setState(d, "saved"); }
         emit(d, "saved");
       } catch (err) {
         d.inflight = null;
         const o = refusal(err);
         if (o.kind === "confirm") { d.confirm = true; setState(d, "dirty"); emit(d, "confirm"); return; }
-        if (o.kind === "changed") { mergeIn(d, err.current, { by: { kind: "agent" } }); return; }
+        // the file changed since you opened it: merged into yours, and (it was your ⌘S) saved on top when nothing clashes
+        if (o.kind === "changed") { mergeIn(d, err.current, { by: { kind: "agent" }, saving: true }); return; }
         if (o.kind === "deleted") { d.deleted = true; setState(d, "deleted", o.words); keepDraft(d); return; }
         if (o.kind === "readonly") { setState(d, "readonly", "read_only_place"); keepDraft(d); return; }
-        if (o.kind === "offline") { d.offline = true; setState(d, "error", o.words); keepDraft(d); schedule(d, 5000); return; }
+        if (o.kind === "offline") { d.offline = true; setState(d, "error", "Not saved: XO can't be reached. Your text is kept; press ⌘S again."); keepDraft(d); return; }
         setState(d, "error", o.words); keepDraft(d);
         void was;
       }
-      if (d.again) { d.again = false; if (d.state === "dirty") schedule(d, 0); }
+      if (d.again) { d.again = false; if (d.state === "dirty") save(d); } // ⌘S pressed again while it saved
     })();
     d.inflight = run;
     return run;
@@ -255,7 +248,7 @@ export function createDocs({ api, store = null, clock = { now: () => Date.now(),
    * Someone else's version of the file: {version, content} (a 409's current, or one read after a change came in),
    * with who made it. Saved: the new text goes in. Dirty: merged into yours. Same lines: the merge view.
    */
-  function mergeIn(d, current, { by = null, at = null, id = null } = {}) {
+  function mergeIn(d, current, { by = null, at = null, id = null, saving = false } = {}) {
     if (!current || typeof current.content !== "string") return;
     if (current.version && current.version === d.version) return;
     const theirs = current.content;
@@ -276,16 +269,15 @@ export function createDocs({ api, store = null, clock = { now: () => Date.now(),
       d.base = theirs; d.version = current.version; d.text = m.text;
       if (e && d.apply) d.apply(e, { lines: changedLines(mine, m.text), why: "merged" });
       if (m.text === theirs) { dropDraft(store, d.key); setState(d, "saved"); }
-      else { setState(d, "dirty"); schedule(d); }
+      else { setState(d, "dirty"); keepDraft(d); if (saving) save(d); }
       emit(d, "applied");
       return;
     }
     // the same lines, changed both ways: the merge view decides; nothing saves until every place is chosen. The
     // editor holds the merge with your lines in each such place (ours), shown against the same merge with theirs
     // (other): each place is one chunk, kept (yours) or taken back (theirs)
-    clock.clear(d.saveT);
     const ours = merge3(d.base, mine, theirs, { pick: "ours" }).text, other = merge3(d.base, mine, theirs, { pick: "theirs" }).text;
-    d.merge = { base: d.base, mine, theirs, version: current.version, text: ours, other, left: m.conflicts };
+    d.merge = { base: d.base, mine, theirs, version: current.version, text: ours, other, left: m.conflicts, saving };
     const e = minimalEdit(mine, ours);
     d.text = ours;
     if (e && d.apply) d.apply(e, { lines: changedLines(mine, ours), why: "merging" });
@@ -302,13 +294,15 @@ export function createDocs({ api, store = null, clock = { now: () => Date.now(),
   }
   function resolve(d) {
     if (!d.merge || d.merge.left) return false;
-    const { version, theirs } = d.merge;
+    const { version, theirs, saving } = d.merge;
     d.merge = null;
     d.base = theirs; d.version = version;
-    // what the editor holds now is the choice (each place kept or taken back)
+    // what the editor holds now is the choice (each place kept or taken back); saved now only when the clash came
+    // from your ⌘S, otherwise it waits for the next one
     d.text = textOf(d);
     setState(d, "dirty");
-    flush(d);
+    keepDraft(d);
+    if (saving) flush(d);
     return true;
   }
 
@@ -377,11 +371,21 @@ export function createDocs({ api, store = null, clock = { now: () => Date.now(),
     return d.viewing;
   }
 
+  /** Don't save: your unsaved text goes (and its draft); the document is the file again. */
+  function discard(d) {
+    if (!d) return;
+    const now = textOf(d), e = minimalEdit(now, d.base);
+    d.text = d.base; d.merge = null; d.confirm = false;
+    if (e && d.apply) d.apply(e, { lines: [], why: "discard" });
+    dropDraft(store, d.key);
+    setState(d, d.deleted ? "deleted" : "saved", d.deleted ? d.err : null);
+  }
+
   /** Make an older version's text the file's again: a save, so it's a new version (and undoable). Space records it as
    *  a restore of that version (its id goes with the save) where it knows the version. */
   function restore(d, text, { id = null } = {}) {
     d.viewing = null;
-    d.restoreOf = id || null;
+    d.restoreOf = id || null; d.restoring = true;
     const now = textOf(d);
     const e = minimalEdit(now, text);
     d.text = text;
@@ -391,7 +395,7 @@ export function createDocs({ api, store = null, clock = { now: () => Date.now(),
   }
 
   return {
-    open, release, attach, edited, flush, save, confirmRunsCode, changed, mergeIn, mergeProgress, resolve, knownVersions, view, restore, keepDraft, renamed,
+    open, release, attach, edited, flush, save, discard, confirmRunsCode, changed, mergeIn, mergeProgress, resolve, knownVersions, view, restore, keepDraft, renamed,
     get: (project, rel) => docs.get(keyOf(project, rel)) || null,
     all: () => [...docs.values()],
     /** Unsaved anywhere (the page going away asks only when a draft couldn't be kept). */

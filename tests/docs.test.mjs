@@ -1,10 +1,10 @@
-// Open files as documents (js/docs.js): states, autosave, saving against the version, someone else's change coming
+// Open files as documents (js/docs.js): states, saving on ⌘S only (no autosave), saving against the version, someone else's change coming
 // in (taken in, merged, or the merge view), drafts, versions. Pure, with a fake clock, a fake Space and a stand-in
 // for localStorage.
 //   node tests/docs.test.mjs
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { createDocs, refusal, changedLines, minimalEdit, byWords, AUTOSAVE_MS, MERGE_MS } from "../js/docs.js";
+import { createDocs, refusal, changedLines, minimalEdit, byWords, MERGE_MS } from "../js/docs.js";
 import { draftKey, getDraft, putDraft } from "../js/drafts.js";
 
 let passed = 0;
@@ -83,39 +83,38 @@ t("pure: refusal words, changed lines, minimal edit, who made it", () => {
   assert.equal(byWords({ kind: "disk" }), "Changed on disk");
 });
 
-t("typing saves itself a second after the last key, against the version it started from", async () => {
-  const { clock, space, docs } = setup();
+t("typing never saves by itself: the file is unsaved until ⌘S, which saves against the version it started from", async () => {
+  const { clock, space, docs, store } = setup();
   const d = await openDoc(docs, space);
   const v = fakeView(docs, d);
   assert.equal(d.state, "saved");
   v.type("one\ntwo!\nthree\n");
   assert.equal(d.state, "dirty");
-  await clock.tick(AUTOSAVE_MS - 100);
-  v.type("one\ntwo!!\nthree\n"); // still typing: the second waits for the pause
-  await clock.tick(AUTOSAVE_MS - 100);
-  assert.equal(space.saves.length, 0, "nothing sent while you type");
-  await clock.tick(200);
+  await clock.tick(60000);
+  assert.equal(space.saves.length, 0, "a minute later, still nothing written");
+  assert.equal(getDraft(store, draftKey("p", "a.md")).text, "one\ntwo!\nthree\n", "but kept in this browser");
+  await docs.flush(d); await settle();
   assert.equal(space.saves.length, 1);
   assert.equal(space.saves[0].base, sha("one\ntwo\nthree\n"));
   assert.equal(d.state, "saved");
-  assert.equal(space.disk.get("a.md"), "one\ntwo!!\nthree\n");
-  assert.equal(d.versions.length, 2, "the opened version and yours");
+  assert.equal(space.disk.get("a.md"), "one\ntwo!\nthree\n");
+  assert.equal(getDraft(store, draftKey("p", "a.md")), null, "saved: the draft goes");
   assert.deepEqual(d.versions[1].by, { kind: "ui" });
 });
 
-t("⌘S and leaving save at once; typing while a save is out saves next", async () => {
-  const { clock, space, docs } = setup();
+t("typing while a save is out stays unsaved for the next ⌘S; ⌘S pressed again meanwhile saves it", async () => {
+  const { space, docs } = setup();
   const d = await openDoc(docs, space);
   const v = fakeView(docs, d);
   v.type("x\n");
   let release; space.hold = new Promise((r) => (release = r));
   const p = docs.flush(d);
   assert.equal(d.state, "saving");
-  v.type("xy\n"); // typed while saving
+  v.type("xy\n");
   release(); space.hold = null; await p; await settle();
   assert.equal(space.disk.get("a.md"), "x\n", "what was sent is saved");
-  assert.equal(d.state, "dirty", "what you typed since is still to save");
-  await clock.tick(AUTOSAVE_MS + 10);
+  assert.equal(d.state, "dirty", "what you typed since is unsaved");
+  await docs.flush(d); await settle();
   assert.equal(space.disk.get("a.md"), "xy\n");
   assert.equal(d.state, "saved");
 });
@@ -134,7 +133,7 @@ t("someone else's change, while you have nothing unsaved: taken in place as a ne
   assert.equal(space.saves.length, 0, "nothing is saved back");
 });
 
-t("someone else's change while you type elsewhere: merged into yours, and yours saves on top", async () => {
+t("someone else's change while you have unsaved text: merged into yours, still unsaved until ⌘S", async () => {
   const { clock, space, docs } = setup();
   const d = await openDoc(docs, space);
   const v = fakeView(docs, d);
@@ -143,77 +142,93 @@ t("someone else's change while you type elsewhere: merged into yours, and yours 
   await docs.changed("p", "a.md", { version: sha("one\ntwo\nTHREE\n"), by: { kind: "agent" } });
   assert.equal(v.text, "ONE\ntwo\nTHREE\n", "both kept");
   assert.equal(d.state, "dirty");
-  await clock.tick(AUTOSAVE_MS + 10);
+  await clock.tick(60000);
+  assert.equal(space.saves.length, 0);
+  await docs.flush(d); await settle();
   assert.equal(space.disk.get("a.md"), "ONE\ntwo\nTHREE\n");
   assert.equal(space.saves.at(-1).base, sha("one\ntwo\nTHREE\n"), "saved against theirs");
 });
 
-t("a save that finds the file changed (409) merges and saves again; the same lines go to the merge view", async () => {
-  const { clock, space, docs } = setup();
+t("⌘S that finds the file changed (409) merges and saves on top; the same lines go to the merge view, then save", async () => {
+  const { space, docs } = setup();
   const d = await openDoc(docs, space);
   const v = fakeView(docs, d);
   v.type("one\ntwo\nthree\nfour\n");
   space.disk.set("a.md", "zero\none\ntwo\nthree\n"); // unseen change (bash): only the save finds it
-  await clock.tick(AUTOSAVE_MS + 10);
-  await clock.tick(AUTOSAVE_MS + 10);
+  await docs.flush(d); await settle(); await settle();
   assert.equal(space.disk.get("a.md"), "zero\none\ntwo\nthree\nfour\n");
   assert.equal(d.state, "saved");
-  // now a clash
   v.type("zero\none\nTWO mine\nthree\nfour\n");
   space.disk.set("a.md", "zero\none\nTWO theirs\nthree\nfour\n");
-  await clock.tick(AUTOSAVE_MS + 10);
+  await docs.flush(d); await settle();
   assert.equal(d.state, "conflict");
   assert.equal(d.merge.left, 1);
-  const n = space.saves.length;
-  await clock.tick(AUTOSAVE_MS * 3);
-  assert.equal(space.saves.length, n, "nothing saves until every place is chosen");
   assert.equal(v.text, "zero\none\nTWO mine\nthree\nfour\n", "the editor holds yours in the place you both changed");
   assert.equal(d.merge.other, "zero\none\nTWO theirs\nthree\nfour\n", "shown against theirs");
-  v.text = "zero\none\nTWO both\nthree\nfour\n"; // chosen in the merge view (kept, taken back, or edited)
+  const n = space.saves.length;
+  await docs.flush(d); await settle();
+  assert.equal(space.saves.length, n, "nothing saves until every place is chosen");
+  v.text = "zero\none\nTWO both\nthree\nfour\n";
   assert.equal(docs.resolve(d), false, "not while a place is left");
   docs.mergeProgress(d, 0);
   assert.ok(docs.resolve(d));
   await settle();
-  assert.equal(space.disk.get("a.md"), "zero\none\nTWO both\nthree\nfour\n");
+  assert.equal(space.disk.get("a.md"), "zero\none\nTWO both\nthree\nfour\n", "it came from your ⌘S, so it saves");
   assert.equal(d.state, "saved");
 });
 
-t("a file that runs code asks once; no leaves it unsaved, yes saves now and from then on", async () => {
-  const { clock, space, docs, events } = setup({ ".claude/x.md": "a\n" });
+t("a clash from someone else's change while you weren't saving waits, after you choose, for your ⌘S", async () => {
+  const { space, docs } = setup();
+  const d = await openDoc(docs, space);
+  const v = fakeView(docs, d);
+  v.type("one\nTWO mine\nthree\n");
+  space.disk.set("a.md", "one\nTWO theirs\nthree\n");
+  await docs.changed("p", "a.md", { version: sha("one\nTWO theirs\nthree\n"), by: { kind: "agent" } });
+  assert.equal(d.state, "conflict");
+  docs.mergeProgress(d, 0);
+  assert.ok(docs.resolve(d));
+  await settle();
+  assert.equal(d.state, "dirty");
+  assert.equal(space.saves.length, 0);
+});
+
+t("a file that runs code asks at ⌘S; no leaves it unsaved, yes saves now and from then on", async () => {
+  const { space, docs, events } = setup({ ".claude/x.md": "a\n" });
   space.refuse = (rel, content, base, confirm) => (confirm ? null : Object.assign(new Error("confirm"), { status: 428, code: "confirm_required" }));
   const d = await openDoc(docs, space, ".claude/x.md");
   const v = fakeView(docs, d);
   v.type("b\n");
-  await clock.tick(AUTOSAVE_MS + 10);
+  await docs.flush(d); await settle();
   assert.ok(d.confirm);
   assert.ok(events.includes("confirm"));
+  docs.confirmRunsCode(d, false);
+  assert.equal(d.state, "dirty");
+  assert.equal(space.disk.get(".claude/x.md"), "a\n");
   v.type("bc\n");
-  await clock.tick(AUTOSAVE_MS * 2);
-  assert.equal(space.saves.length, 1, "no more saves while the question is open");
-  docs.confirmRunsCode(d, true);
-  await settle();
+  await docs.flush(d); await settle();
+  docs.confirmRunsCode(d, true); await settle();
   assert.equal(space.disk.get(".claude/x.md"), "bc\n");
   v.type("bcd\n");
-  await clock.tick(AUTOSAVE_MS + 10);
+  await docs.flush(d); await settle();
   assert.equal(space.saves.at(-1).confirm, "runs_code");
   assert.equal(space.disk.get(".claude/x.md"), "bcd\n");
 });
 
-t("offline: your text stays as a draft and it tries again; deleted on disk: kept, and saving makes it again", async () => {
-  const { clock, space, docs, store } = setup();
+t("offline: your text stays as a draft and says so; deleted on disk: kept, and ⌘S makes it again", async () => {
+  const { space, docs, store } = setup();
   const d = await openDoc(docs, space);
   const v = fakeView(docs, d);
   space.refuse = () => new Error("Failed to fetch");
   v.type("mine\n");
-  await clock.tick(AUTOSAVE_MS + 10);
+  await docs.flush(d); await settle();
   assert.equal(d.state, "error");
+  assert.match(d.err, /⌘S again/);
   assert.equal(getDraft(store, draftKey("p", "a.md")).text, "mine\n");
   space.refuse = null;
-  await clock.tick(5000);
+  await docs.flush(d); await settle();
   assert.equal(space.disk.get("a.md"), "mine\n");
   assert.equal(d.state, "saved");
   assert.equal(getDraft(store, draftKey("p", "a.md")), null, "the draft goes once it's saved");
-  // deleted
   space.disk.delete("a.md");
   await docs.changed("p", "a.md", { kind: "delete", by: { kind: "disk" } });
   assert.equal(d.state, "deleted");
@@ -224,38 +239,39 @@ t("offline: your text stays as a draft and it tries again; deleted on disk: kept
   assert.equal(space.saves.at(-1).base, null);
 });
 
-t("a draft left behind comes back unsaved and saves itself; read-only files take no typing", async () => {
+t("a draft left behind comes back unsaved, for ⌘S; read-only files take no typing", async () => {
   const { clock, space, docs, store } = setup({ "a.md": "base\n", "big.txt": "x" });
   putDraft(store, draftKey("p", "a.md"), { text: "draft\n", base: "base\n", version: sha("base\n"), at: 1 });
   const d = await openDoc(docs, space);
   assert.equal(d.state, "dirty");
   assert.equal(docs.textOf(d), "draft\n");
-  await clock.tick(10);
+  await clock.tick(60000);
+  assert.equal(space.disk.get("a.md"), "base\n", "not saved by itself");
+  await docs.flush(d); await settle();
   assert.equal(space.disk.get("a.md"), "draft\n");
   const r = docs.open("p", "big.txt", { content: "x", version: null, truncated: true });
   assert.equal(r.state, "readonly");
   docs.edited(r);
-  await clock.tick(AUTOSAVE_MS * 2);
+  await docs.flush(r);
   assert.equal(space.saves.filter((s) => s.rel === "big.txt").length, 0);
 });
 
-t("versions: an older one is read only; restoring it is a new version", async () => {
+t("versions: your saves within 10 s are one; an older one is read only; restoring it is a new version", async () => {
   const { clock, space, docs } = setup();
   const d = await openDoc(docs, space);
   const v = fakeView(docs, d);
-  v.type("second\n"); await clock.tick(AUTOSAVE_MS + 10);
-  v.type("third\n"); await clock.tick(AUTOSAVE_MS + 10);
-  assert.equal(d.versions.length, 2, "saves a second apart are one version (the merge window)");
+  v.type("second\n"); await docs.flush(d); await settle();
+  await clock.tick(2000);
+  v.type("third\n"); await docs.flush(d); await settle();
+  assert.equal(d.versions.length, 2, "saves a moment apart are one version (the merge window)");
   await clock.tick(MERGE_MS);
-  v.type("fourth\n"); await clock.tick(AUTOSAVE_MS + 10);
+  v.type("fourth\n"); await docs.flush(d); await settle();
   assert.equal(d.versions.length, 3, "a pause longer than the window starts a new one");
-  v.type("third\n"); await clock.tick(MERGE_MS + AUTOSAVE_MS);
   const old = docs.view(d, 0);
   assert.equal(old.text, "one\ntwo\nthree\n");
   docs.edited(d); // a key while looking at an old version does nothing
-  await clock.tick(AUTOSAVE_MS * 2);
-  assert.equal(space.saves.length, 4, "no save while an old version is shown");
-  assert.equal(d.versions.length, 3, "the last save folded into the version before it");
+  await docs.flush(d); await settle();
+  assert.equal(space.saves.length, 3, "no save while an old version is shown");
   await docs.restore(d, old.text); await settle();
   assert.equal(space.disk.get("a.md"), "one\ntwo\nthree\n");
   assert.equal(v.text, "one\ntwo\nthree\n");
@@ -276,34 +292,34 @@ t("versions Space knows fold in: older ones listed before, who made the ones hel
   assert.equal(d.versions[0].text, null);
 });
 
-t("the last view letting go saves what's pending and forgets the document", async () => {
-  const { clock, space, docs } = setup();
+t("the last view letting go keeps unsaved text as a draft (never saves it) and forgets the document", async () => {
+  const { space, docs, store } = setup();
   const d = await openDoc(docs, space);
   const v = fakeView(docs, d);
   v.type("bye\n");
   docs.release(d);
   await settle();
-  assert.equal(space.disk.get("a.md"), "bye\n");
+  assert.equal(space.disk.get("a.md"), "one\ntwo\nthree\n", "not written");
+  assert.equal(getDraft(store, draftKey("p", "a.md")).text, "bye\n", "kept for next time");
   assert.equal(docs.get("p", "a.md"), null);
-  void clock;
 });
 
 t("a restore says which version it brings back; a renamed file's document follows it", async () => {
   const { clock, space, docs } = setup();
   const d = await openDoc(docs, space);
   const v = fakeView(docs, d);
-  v.type("later\n"); await clock.tick(AUTOSAVE_MS + 10);
+  v.type("later\n"); await docs.flush(d); await settle();
   d.versions[0].id = "v_first";
   await docs.restore(d, d.versions[0].text, { id: "v_first" }); await settle();
   assert.equal(space.saves.at(-1).restoreOf, "v_first");
-  v.type("next\n"); await clock.tick(AUTOSAVE_MS + 10);
+  await clock.tick(MERGE_MS); v.type("next\n"); await docs.flush(d); await settle();
   assert.equal(space.saves.at(-1).restoreOf, null, "only that one save");
   space.disk.set("b/renamed.md", space.disk.get("a.md")); space.disk.delete("a.md");
   const moved = docs.renamed("p", "a.md", "b/renamed.md");
   assert.equal(moved, d);
   assert.equal(docs.get("p", "a.md"), null);
   assert.equal(docs.get("p", "b/renamed.md"), d);
-  v.type("after the move\n"); await clock.tick(AUTOSAVE_MS + 10);
+  v.type("after the move\n"); await docs.flush(d); await settle();
   assert.equal(space.disk.get("b/renamed.md"), "after the move\n");
 });
 

@@ -174,7 +174,7 @@ export async function mount(host, { docs, doc, name = "", page = false, onLines 
       if (u.docChanged && !u.transactions.some((tr) => tr.annotation(external))) { if (!viewing) docs.edited(doc); }
       if (merging && u.docChanged) countChunks();
     }),
-    EditorView.domEventHandlers({ keydown: (e) => (onKey ? onKey(e) : false), blur: () => { if (!viewing) docs.flush(doc); return false; } }),
+    EditorView.domEventHandlers({ keydown: (e) => (onKey ? onKey(e) : false) }),
   ];
 
   const readOnlyNow = () => doc.state === "readonly";

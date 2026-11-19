@@ -126,3 +126,7 @@
 
 /* ── moving by dragging in the tree (js/files.js): the folder it would land in ── */
 .fl-r.is-drop,.fl-list.is-drop{background:var(--hover-fill);box-shadow:inset 0 0 0 1px var(--line-strong);border-radius:var(--r-sm)}
+
+/* ── unsaved: a file you've typed in waits for ⌘S (the owner, 19 Nov 11:42Z: no autosave) ── */
+.xd-state.is-unsaved{color:var(--ink-2)}
+.xd-state.is-unsaved i{background:var(--warn)}

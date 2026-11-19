@@ -189,7 +189,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (!d || d.state === "readonly") return "";
     if (d.state === "conflict") { const n = d.merge ? d.merge.left : 0; return `<span class="xd-state is-need" role="status"><i></i>${n} ${n === 1 ? "place" : "places"} to choose</span>`; }
     if (d.state === "saving") return `<span class="xd-state is-quiet" role="status">Saving…</span>`;
-    if (d.state === "dirty") return `<span class="xd-state is-quiet" role="status"><i></i>Edited</span>`;
+    if (d.state === "dirty") return `<span class="xd-state is-unsaved" role="status" title="${MODK}S saves it"><i></i>Unsaved · ${MODK}S</span>`;
     if (d.state === "deleted") return `<span class="xd-state is-need" role="status" title="${esc(d.err || "")}"><i></i>Deleted on disk</span>`;
     if (d.state === "error") return `<span class="xd-state is-need" role="status" title="${esc(d.err || "")}"><i></i>Not saved</span>`;
     return V.savedFlash === d ? `<span class="xd-state is-quiet is-done" role="status">Saved</span>` : "";
@@ -213,6 +213,30 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     const prev = d.versions[n - 2];
     const canShow = prev && prev.text != null && d.state !== "conflict";
     return step + who2 + (canShow ? `<button type="button" class="xd-btn${V.showChanges ? " is-on" : ""}" data-vw-changes aria-pressed="${!!V.showChanges}" title="Mark what this version changed">Show changes</button>` : "");
+  }
+  const MODK = /Mac|iPhone|iPad/.test(navigator.platform || "") ? "⌘" : "Ctrl ";
+  /** Closing files with unsaved changes asks, as VS Code does: Save, Don't save, or Cancel (V.asking: {docs, then}). */
+  const unsavedPop = () => {
+    const A = V.asking, n = A.docs.length;
+    const what = n === 1 ? `your changes to ${esc(A.docs[0].rel.split("/").pop())}` : `your changes to ${n} files`;
+    return `<div class="xd-pop" role="alertdialog" aria-label="Save ${what}?"><p><b>Save ${what}?</b> If you don't, they're gone.</p><div class="xd-pop-a"><button type="button" class="xd-btn" data-vw-unsaved="discard">Don't save</button><button type="button" class="xd-btn" data-vw-unsaved="cancel">Cancel</button><button type="button" class="xd-btn is-pri" data-vw-unsaved="save">Save</button></div></div>`;
+  };
+  /** Ask before closing what has unsaved changes; then() goes on once it's saved or let go. */
+  function askUnsaved(list, then) {
+    const ds = list.filter((D) => D && (D.state === "dirty" || D.state === "error" || D.state === "conflict" || D.state === "deleted"));
+    if (!ds.length) { then(); return; }
+    V.asking = { docs: ds, then };
+    paintHead();
+    el.querySelector('[data-vw-unsaved="save"]')?.focus({ preventScroll: true });
+  }
+  async function answerUnsaved(how) {
+    const A = V.asking;
+    V.asking = null;
+    if (!A || how === "cancel") { paintHead(); TX.h?.focus(); return; }
+    if (how === "discard") { for (const D of A.docs) docs.discard(D); A.then(); return; }
+    await Promise.all(A.docs.map((D) => docs.flush(D)));
+    // saved (or refused: then it stays open, saying why)
+    if (A.docs.every((D) => D.state === "saved")) A.then(); else paintHead();
   }
   /** A file that runs code asks once before its first save: Save, or Not now (it stays unsaved, in this browser). */
   const confirmPop = () => `<div class="xd-pop" role="dialog" aria-label="Save a file that runs code"><p><b>Git or an agent runs what this file says.</b> A slip here runs on the next commit or the next agent turn. Save it?</p><div class="xd-pop-a"><button type="button" class="xd-btn" data-vw-noconfirm>Not now</button><button type="button" class="xd-btn is-pri" data-vw-confirm>Save</button></div></div>`;
@@ -271,7 +295,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     return `<header class="vw-top">${name}` +
       `<div class="vw-acts">${askB}${runs}${ro}${show}${toggle}${more}` +
       `<button type="button" class="vw-x" data-vw-close aria-label="Close the file" title="Close (Esc)">${ICON.close}</button></div>` +
-      (D && D.confirm ? confirmPop() : "") + `</header>`;
+      (D && D.confirm ? confirmPop() : V.asking ? unsavedPop() : "") + `</header>`;
   }
   /** The bar under the head: the file's versions (two or more), or nothing. */
   function verBar() {
@@ -824,7 +848,6 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (V.parked) { V.parked = false; el.hidden = false; }
     const file = { ...f, where: f.rel || f.path || "", image: f.att ? kindOf(f.type || "") === "image" : f.local == null && isImagePath(f.rel || f.path || f.name) };
     // leaving the file on show: what's pending in it saves now
-    if (doc()) docs.flush(doc());
     let t = V.tabs.find((x) => sameFile(x.file, file));
     if (t) { t.file = { ...t.file, ...file }; }
     else {
@@ -850,7 +873,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     const t = V.tabs[i];
     if (!t) return;
     if (V.tabs.length === 1) { close(); return; }
-    if (t.doc) docs.flush(t.doc);
+    if (t.doc && !V.asking) { askUnsaved([t.doc], () => closeTab(V.tabs.indexOf(t))); if (V.asking) return; }
     const on = t === V.tab;
     releaseTab(t);
     V.tabs.splice(i, 1);
@@ -858,13 +881,17 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     onChange && onChange();
   }
 
-  function close({ restore = true } = {}) {
+  function close({ restore = true, ask = false } = {}) {
     if (!V.open) return;
+    // closed by you (× or Esc) with unsaved changes: asked first (Save, Don't save, Cancel), as VS Code does. Closed by
+    // the app (another place): unsaved text waits as a draft in this browser, unsaved, for when the file opens again
+    if (ask) { const ds = V.tabs.map((t) => t.doc).filter(Boolean); askUnsaved(ds, () => close({ restore })); if (V.asking) return; }
+    for (const D of docs.unsaved()) docs.keepDraft(D);
     V.open = false; V.parked = false; V.gen++;
     const a = document.activeElement, lost = !a || a === document.body || el.contains(a); // focus goes with the viewer
     dropText(); dropDiff();
-    // every open file's pending text saves (or waits as a draft); their documents go
-    for (const t of V.tabs) { if (t.doc) docs.flush(t.doc); releaseTab(t); }
+    // their documents go (anything unsaved was saved or let go in the question above)
+    for (const t of V.tabs) releaseTab(t);
     V.tabs = []; V.tab = null; V.data = null;
     el.hidden = true; el.innerHTML = "";
     document.body.classList.remove("viewer-open");
@@ -959,8 +986,10 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     const tx = e.target.closest("[data-vw-tabx]");
     if (tx) { closeTab(+tx.dataset.vwTabx); return; }
     const tb = e.target.closest("[data-vw-tab]");
-    if (tb) { const t = V.tabs[+tb.dataset.vwTab]; if (t && t !== V.tab) { if (doc()) docs.flush(doc()); V.focusText = true; showTab(t); onChange && onChange(); } return; }
-    if (e.target.closest("[data-vw-close]")) { close(); return; }
+    if (tb) { const t = V.tabs[+tb.dataset.vwTab]; if (t && t !== V.tab) { V.focusText = true; showTab(t); onChange && onChange(); } return; }
+    const un = e.target.closest("[data-vw-unsaved]");
+    if (un) { answerUnsaved(un.dataset.vwUnsaved); return; }
+    if (e.target.closest("[data-vw-close]")) { close({ ask: true }); return; }
     if (e.target.closest('[data-vw-diff-redraw][aria-busy="true"]')) return;
     const sh = e.target.closest("[data-vw-show]");
     if (sh) { V.show = sh.dataset.vwShow; if (V.show === "file" && !V.data && !V.loading) { load(); return; } V.keepScroll = true; render(); return; }
@@ -1017,12 +1046,12 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   }, true);
   // the page going away (a reload, a closed tab): what's pending saves now, and waits as a draft in this browser
   // meanwhile; the browser's own question only when a draft couldn't be kept
-  addEventListener("pagehide", () => { for (const D of docs.unsaved()) { docs.keepDraft(D); docs.flush(D); } });
+  addEventListener("pagehide", () => { for (const D of docs.unsaved()) docs.keepDraft(D); });
   addEventListener("beforeunload", (e) => { const lost = docs.unsaved().filter((D) => D.state === "conflict" || !docs.keepDraft(D)); if (lost.length) { e.preventDefault(); e.returnValue = ""; } });
   // a press anywhere but the ⋯ and its menu closes the menu
   document.addEventListener("pointerdown", (e) => { if (V.menu && !(e.target.closest && e.target.closest(".vw-mw"))) menuOff(); }, true);
   // a tab put away (a phone may close it later): what's pending saves now, kept as a draft meanwhile
-  document.addEventListener("visibilitychange", () => { if (document.hidden) for (const D of docs.unsaved()) { docs.keepDraft(D); docs.flush(D); } });
+  document.addEventListener("visibilitychange", () => { if (document.hidden) for (const D of docs.unsaved()) docs.keepDraft(D); });
   pointerFollows(el); // the More menu: the item under the mouse is the active one (C058)
   // the path a refused Copy path offers: focused (Tab, or a click), all of it is selected, ready to copy; a click that
   // only placed the caret selects it all again
@@ -1051,9 +1080,9 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       if (D && D.confirm) { docs.confirmRunsCode(D, false); paintHead(); TX.h?.focus(); return; }
       if (D && D.viewing && TX.h) { docs.view(D, null); TX.h.showVersion(null); paintHead(); TX.h.focus(); return; }
       if (TX.sel && TX.h && TX.el && TX.el.contains(e.target)) { TX.h.clearSelection(); return; } // a selection clears first
-      if (D) docs.flush(D);
+      if (V.asking) { answerUnsaved("cancel"); return; }
       if (away && away()) return; // beside the chat, the file is put away, not closed (js/filesview.js)
-      close(); return;
+      close({ ask: true }); return;
     }
     // J / K: the next or previous change, on a diff
     if (!showsDiff() || !DF.el || e.target.closest("input, textarea, [contenteditable]")) return;
@@ -1064,7 +1093,6 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   /** Live mode: the file steps aside, kept as it was (scroll and all), until `unpark`. */
   function park() {
     if (!V.open || V.parked) return;
-    if (doc()) docs.flush(doc());
     V.keep = el.querySelector(".vw-body")?.scrollTop || 0;
     V.parked = true; el.hidden = true;
     document.body.classList.remove("viewer-open");
@@ -1092,10 +1120,10 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     goto(line, col = null) { if (TX.h) { TX.h.focus({ line }); void col; } else if (V.file) V.file.lines = [line, line]; },
     /** The open files (tabs), for ⌘P's "open" section. */
     get openFiles() { return V.tabs.map((t) => t.file); },
-    /** You're leaving (another place, back to the conversation): what's pending saves; a clash waiting for your choice
-     *  keeps you here (its chunks are on screen), unless you go anyway with go(). */
+    /** You're leaving (another place, back to the conversation): unsaved text is kept as a draft in this browser (it
+     *  comes back unsaved, for ⌘S); nothing is saved for you. */
     leave(go) {
-      for (const D of docs.unsaved()) docs.flush(D);
+      for (const D of docs.unsaved()) docs.keepDraft(D);
       const clash = docs.all().find((D) => D.state === "conflict");
       if (!clash) { go(); return; }
       announce("Lines you and someone else both changed are waiting: keep yours or take theirs first. Your text is kept as a draft meanwhile.");
