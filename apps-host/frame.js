@@ -7,7 +7,6 @@ export const CSP = "default-src 'none'; script-src 'unsafe-inline' blob:; style-
 export const SANDBOX = "allow-scripts";
 export const ALLOW = "camera 'none'; microphone 'none'; geolocation 'none'; usb 'none'; serial 'none'; hid 'none'; bluetooth 'none'; payment 'none'; display-capture 'none'; fullscreen 'none'; clipboard-read 'none'; publickey-credentials-get 'none'";
 const PING_MS = 5000, DEAD_MS = 10000, OPEN_MS = 15000;
-const NO_PEERS = "<script>for(const k of [\"RTCPeerConnection\",\"webkitRTCPeerConnection\",\"RTCDataChannel\",\"RTCRtpSender\",\"RTCRtpReceiver\"])try{Object.defineProperty(window,k,{value:undefined,configurable:false,writable:false})}catch{}</script>";
 
 export const THEME_VARS = Object.freeze([
   ["--color-background-primary", "--surface"], ["--color-background-secondary", "--sunken"], ["--color-background-tertiary", "--fill-1"],
@@ -39,7 +38,7 @@ export function buildSrcdoc(html, look) {
   const body = String(html).replace(/^﻿?\s*<!doctype[^>]*>/i, "");
   const vars = Object.entries(look.variables).map(([k, v]) => `${k}:${v}`).join(";");
   const theme = look.theme === "light" ? "light" : "dark";
-  return `<!doctype html><html class="xo-${theme}" data-theme="${theme}"><head><meta http-equiv="Content-Security-Policy" content="${CSP}"><meta name="referrer" content="no-referrer"><style>:root{color-scheme:${theme};${vars}}</style>${NO_PEERS}</head>${body}`;
+  return `<!doctype html><html class="xo-${theme}" data-theme="${theme}"><head><meta http-equiv="Content-Security-Policy" content="${CSP}"><meta name="referrer" content="no-referrer"><style>:root{color-scheme:${theme};${vars}}</style></head>${body}`;
 }
 
 /** @param {Document} doc */
@@ -151,6 +150,8 @@ export function createAppFrame(host, o) {
     /** @param {string} method @param {unknown} params */
     notify(method, params) { if (bridge && bridge.ready) bridge.notify(method, params); },
     reload: mount,
+    /** Close the view but keep XO's frame, its words and Reload. @param {string} text */
+    halt(text) { if (!gone) { gen++; stop(text); } },
     destroy() {
       if (gone) return;
       gone = true;

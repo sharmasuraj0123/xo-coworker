@@ -72,7 +72,8 @@ export function createAppsSettings(d) {
       if (!a || !data.project) return {};
       const picked = new Set([...el.querySelectorAll("input[data-optional]:checked")].map((i) => /** @type {HTMLElement} */ (i).dataset.optional));
       const optional = a.permissions.optional.map((p, i) => i).filter((i) => picked.has(`${a.permissions.optional[i].cap}#${i}`));
-      await d.client.setGrant(a.id, data.project, { optional, routes: a.routes.map((r) => `${r.method} ${r.template}`) });
+      const sha = s.rows.find((r) => r.id === a.id)?.manifest_sha;
+      await d.client.setGrant(a.id, data.project, { optional, routes: a.routes.map((r) => `${r.method} ${r.template}`), ...(typeof sha === "string" ? { manifestSha: sha } : {}) });
       await d.refresh();
       return { grantFor: "" };
     }),

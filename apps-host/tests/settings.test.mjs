@@ -23,7 +23,7 @@ assert.match(sheet, /Installing runs nothing/);
 const buttons = (/** @type {string} */ h) => [...h.matchAll(/<button type="button" class="([^"]+)" data-act="([^"]+)"/g)].map((m) => [m[2], m[1]]);
 assert.deepEqual(buttons(sheet), [["back", "btn"], ["confirm", "btn"]], "Install and Not now carry equal weight");
 
-const row = { id: "dev.example.word", name: "Word", version: "0.3.0", manifest: WORD, projects: { p1: { state: "enabled" } } };
+const row = { id: "dev.example.word", name: "Word", version: "0.3.0", manifest: WORD, manifest_sha: "f".repeat(64), projects: { p1: { state: "enabled" } } };
 const page = view(/** @type {any} */ ({ ...base, mode: "app", appId: row.id, rows: [row], grantFor: "p1", values: { "dev.example.word|p1": { units: "px" }, "dev.example.word|p2": { units: "pt" } } }), ctx);
 assert.match(page, /Turn Word on in Book\?/);
 assert.match(page, /data-optional="composer.draft#0"/);
@@ -70,7 +70,7 @@ assert.deepEqual(calls.at(-1), ["confirm", "s1", "a".repeat(64)]);
 assert.match(el.html, /<h3 class="xa-title"[^>]*>Word<\/h3>/);
 await press("grant", { project: "p1" });
 await press("allow", { project: "p1" });
-assert.deepEqual(calls.at(-1), ["setGrant", "dev.example.word", "p1", { optional: [0], routes: ["GET /api/chat/chats/{chat_id}/threads", "POST /api/chat/chats/{chat_id}/messages", "GET /api/xo-projects/{project_id}/file"] }]);
+assert.deepEqual(calls.at(-1), ["setGrant", "dev.example.word", "p1", { optional: [0], routes: ["GET /api/chat/chats/{chat_id}/threads", "POST /api/chat/chats/{chat_id}/messages", "GET /api/xo-projects/{project_id}/file"], manifestSha: "f".repeat(64) }]);
 ok = false;
 await press("remove");
 assert.equal(calls.at(-1)[0], "setGrant", "No to the confirm removes nothing");

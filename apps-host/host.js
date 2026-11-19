@@ -37,7 +37,7 @@ export function createAppsHost(d) {
     async activate(ctx) {
       /** @type {Map<string, { row: Row, app: App | null, problems: string[], key: string, undo: Undo[] }>} */
       const apps = new Map();
-      /** @type {Set<{ app: string, retheme(): void, destroy(): void, gone?: () => void }>} */
+      /** @type {Set<{ app: string, project: string | undefined, retheme(): void, destroy(): void, halt(text: string): void, gone?: () => void }>} */
       const frames = new Set();
       let disposed = false;
       const enabled = (/** @type {string} */ id, /** @type {string | undefined} */ project) => !!project && apps.get(id)?.row.projects?.[project]?.state === "enabled";
@@ -60,12 +60,27 @@ export function createAppsHost(d) {
         let where, alive = 0;
         try { where = whereOf(at); } catch (e) { where = null; }
         const view = /** @type {string} */ (surface.view);
-        const frame = createAppFrame(el, {
+        /** @type {ReturnType<typeof createAppFrame> | null} */
+        let frame = null;
+        const closed = () => {
+          frames.delete(handle);
+          if (alive) { d.win.clearInterval(alive); alive = 0; if (where) d.client.viewClosed(app.id, where, view).catch(() => {}); }
+        };
+        const handle = {
+          app: app.id,
+          project: where ? where.project : undefined,
+          gone: v.onGone,
+          retheme: () => frame && frame.retheme(),
+          halt: (/** @type {string} */ text) => { if (frame) frame.halt(text); closed(); },
+          destroy: () => { if (frame) frame.destroy(); closed(); },
+        };
+        frame = createAppFrame(el, {
           doc: d.doc, win: d.win, app, title: surface.title ? `${app.name}: ${surface.title}` : app.name,
           granted: where ? granted(app.id, where.project) : [],
           load: async () => {
             if (!where || !enabled(app.id, where.project)) throw new Error("it isn't on in this project");
             const w = where;
+            frames.add(handle);
             if (!alive) {
               d.client.viewOpened(app.id, w, view).catch(() => {});
               alive = d.win.setInterval(() => { if (d.doc.visibilityState !== "hidden") d.client.viewAlive(app.id, w, view).catch(() => {}); }, ALIVE_MS);
@@ -82,16 +97,6 @@ export function createAppsHost(d) {
             displayMode: (mode) => (mode === "fullscreen" && v.kind === "panel" ? (d.openPanel(`${app.id}:${surface.id}`, { ...at, full: true }), "fullscreen") : "inline"),
           },
         });
-        const handle = {
-          app: app.id,
-          gone: v.onGone,
-          retheme: () => frame.retheme(),
-          destroy: () => {
-            frames.delete(handle);
-            frame.destroy();
-            if (alive) { d.win.clearInterval(alive); alive = 0; if (where) d.client.viewClosed(app.id, where, view).catch(() => {}); }
-          },
-        };
         frames.add(handle);
         return handle;
       };
@@ -113,9 +118,12 @@ export function createAppsHost(d) {
       ctx.contribute("conversation.block", { id: "app", render: cards.render });
       ctx.effect(() => () => { cards.closeAll(); for (const f of [...frames]) f.destroy(); });
 
-      /** @param {string} id */
-      const drop = (id) => {
-        for (const f of [...frames]) if (f.app === id) { f.destroy(); if (f.gone) f.gone(); }
+      /** @param {{ app: string, gone?: () => void, destroy(): void, halt(text: string): void }} f @param {string} text */
+      const close = (f, text) => { if (f.gone) { f.destroy(); f.gone(); } else f.halt(text); };
+      /** @param {string} id @param {string} [text] */
+      const drop = (id, text) => {
+        const name = apps.get(id)?.app?.name || apps.get(id)?.row.name || id;
+        for (const f of [...frames]) if (f.app === id) close(f, text || `${name} changed. Reload to open it again.`);
         const a = apps.get(id);
         if (a) for (const u of a.undo.reverse()) u();
         apps.delete(id);
@@ -132,9 +140,17 @@ export function createAppsHost(d) {
         for (const row of rows) {
           if (!row || typeof row.id !== "string") continue;
           seen.add(row.id);
-          const key = JSON.stringify([row.version, row.state, row.projects ?? null, row.manifest ?? null]);
+          const key = JSON.stringify([row.version, row.state, row.manifest ?? null]);
           const old = apps.get(row.id);
-          if (old && old.key === key) { old.row = row; continue; }
+          if (old && old.key === key) {
+            const was = old.row.projects || {}, now = row.projects || {};
+            old.row = row;
+            for (const f of [...frames]) {
+              if (f.app !== row.id || !f.project || JSON.stringify(was[f.project] ?? null) === JSON.stringify(now[f.project] ?? null)) continue;
+              close(f, now[f.project]?.state === "enabled" ? `${old.app?.name || row.id}'s access here changed. Reload to open it again.` : `${old.app?.name || row.id} is off in this project.`);
+            }
+            continue;
+          }
           drop(row.id);
           const { app, problems } = checkManifest(row.manifest);
           /** @type {Undo[]} */
@@ -147,7 +163,7 @@ export function createAppsHost(d) {
           } else if (app && app.id !== row.id) problems.push(`its manifest says it is ${app.id}`);
           apps.set(row.id, { row, app: problems.length ? null : app, problems, key, undo });
         }
-        for (const id of [...apps.keys()]) if (!seen.has(id)) drop(id);
+        for (const id of [...apps.keys()]) if (!seen.has(id)) drop(id, `${apps.get(id)?.app?.name || id} was removed.`);
         ctx.emit("apps:changed", { ids: [...apps.keys()] });
         settings.redraw();
       }

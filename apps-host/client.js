@@ -53,8 +53,8 @@ export function createAppsClient(request) {
     rollback: (/** @type {string} */ id) => request(`${app(id)}/rollback`, { method: "POST" }),
     remove: (/** @type {string} */ id, { deleteData = false } = {}) => request(app(id), { method: "DELETE", body: { delete_data: !!deleteData } }),
     grant: (/** @type {string} */ id, /** @type {string} */ project) => request(`${app(id)}/grants`, { query: { project: token(project, "project id") } }),
-    setGrant: (/** @type {string} */ id, /** @type {string} */ project, /** @type {{ optional: number[], routes: string[] }} */ grant) =>
-      request(`${app(id)}/grants`, { method: "PUT", query: { project: token(project, "project id") }, body: { required: true, optional: grant.optional, routes: grant.routes } }),
+    setGrant: (/** @type {string} */ id, /** @type {string} */ project, /** @type {{ optional: number[], routes: string[], manifestSha?: string }} */ grant) =>
+      request(`${app(id)}/grants`, { method: "PUT", query: { project: token(project, "project id") }, body: { required: true, optional: grant.optional, routes: grant.routes, ...(grant.manifestSha ? { manifest_sha: grant.manifestSha } : {}) } }),
     revoke: (/** @type {string} */ id, /** @type {string} */ project) => request(`${app(id)}/grants`, { method: "DELETE", query: { project: token(project, "project id") } }),
     stop: (/** @type {string} */ id) => request(`${app(id)}/stop`, { method: "POST" }),
     start: (/** @type {string} */ id) => request(`${app(id)}/start`, { method: "POST" }),

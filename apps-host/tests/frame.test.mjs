@@ -14,7 +14,6 @@ assert.match(CSP, /connect-src 'none'/);
 assert.match(CSP, /default-src 'none'/);
 assert.match(CSP, /form-action 'none'/);
 assert.ok(!/allow-same-origin/.test(SANDBOX) && SANDBOX === "allow-scripts");
-assert.ok(doc0.indexOf("RTCPeerConnection") < doc0.indexOf("<script>x()"), "peer connections are gone before the view runs");
 
 const vars = themeVariables((t) => ({ "--surface": "#111", "--accent": "red;}</style><script>alert(1)</script>", "--sans": "Geist, sans-serif" })[t] || "");
 assert.deepEqual(vars, { "--color-background-primary": "#111", "--font-sans": "Geist, sans-serif" }, "a value that could leave its declaration is dropped");
