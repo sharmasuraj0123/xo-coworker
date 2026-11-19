@@ -1,4 +1,4 @@
-// node tools/check.mjs [--fast] [--update-baselines] [--accept-upstream <release ref>]: lint, types, ratchets, comments, places, ledger, tests.
+// node tools/check.mjs [--fast] [--update-baselines] [--accept-upstream <release ref>]: lint, types, ratchets, comments, layers, places, ledger, tests.
 import { spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, mkdirSync } from "node:fs";
 import { join, relative, dirname } from "node:path";
@@ -163,6 +163,36 @@ step("comments", () => {
   }
   if (UPDATE) writeJson(basePath, Object.fromEntries(Object.entries(base).filter(([f]) => now[f]).map(([f, b]) => [f, { extra: Math.min(b.extra, now[f].extra), refs: Math.min(b.refs, now[f].refs) }])));
   return errs.length ? `comments:\n${errs.join("\n")}` : null;
+});
+
+const RANK = [["core/kernel/", 0], ["core/platform/", 1], ["core/ui/", 2], ["core/services/", 3], ["shell/", 4], ["modules/", 5], ["apps-host/", 6], ["js/", 7], ["boot.js", 8]];
+const rankOf = (/** @type {string} */ f) => RANK.find(([p]) => f.startsWith(p))?.[1] ?? -1;
+const moduleOf = (/** @type {string} */ f) => (f.startsWith("modules/") ? f.split("/")[1] : null);
+function layerViolations() {
+  const out = {};
+  for (const f of sourceFiles().filter((x) => /\.m?js$/.test(x) && rankOf(x) >= 0 && rankOf(x) < 7)) {
+    const text = readFileSync(join(ROOT, f), "utf8");
+    for (const m of text.matchAll(/(?:^|\n)\s*(?:import|export)\s[^"'`;]*?from\s*["']([^"']+)["']|import\(\s*["']([^"']+)["']\s*\)/g)) {
+      const spec = m[1] || m[2];
+      if (!spec || !spec.startsWith(".")) continue;
+      const target = relative(ROOT, join(ROOT, dirname(f), spec)).replace(/\\/g, "/");
+      if (/(^|\/)(vendor|node_modules)\//.test(target) || target.startsWith("js/vendor/")) continue;
+      const up = rankOf(target) > rankOf(f);
+      const across = moduleOf(f) && moduleOf(target) && moduleOf(f) !== moduleOf(target);
+      if (up || across) out[`${f} -> ${target}`] = 1;
+    }
+  }
+  return out;
+}
+
+step("layers", () => {
+  const basePath = join(BASE_DIR, "layers.json");
+  const now = layerViolations();
+  const base = readJson(basePath, null);
+  if (!base) { writeJson(basePath, now); return null; }
+  const fresh = Object.keys(now).filter((k) => !base[k]);
+  if (UPDATE) writeJson(basePath, Object.fromEntries(Object.keys(base).filter((k) => now[k]).map((k) => [k, 1])));
+  return fresh.length ? `layers: a file imports upward or from another module (talk through services, places or the bus):\n${fresh.map((k) => `  ${k}`).join("\n")}` : null;
 });
 
 step("places", () => {
