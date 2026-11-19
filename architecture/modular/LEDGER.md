@@ -4,13 +4,13 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 662 |
+| planned | 659 |
 | vendor | 367 |
 | deleted | 232 |
-| split | 34 |
-| moved | 18 |
+| split | 33 |
+| moved | 22 |
 
-Items inside first-party files: 2290 (planned 1309, split-region 828, moved 134, deleted 19), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1308, split-region 815, moved 148, deleted 19), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -91,7 +91,7 @@ Items inside first-party files: 2290 (planned 1309, split-region 828, moved 134,
 | `js/runtimes.js` | 179 | planned | core/services/runtimes.js |
 | `js/settings.js` | 407 | split | modules/settings (host, pend/land), modules/routing, modules/rules, modules/worktrees |
 | `js/shape.js` | 731 | planned | core/services/shape/shape.js |
-| `js/shapeview.js` | 314 | split | modules/settings/shape-page.js, modules/home (homeOrder), shell (density) |
+| `js/shapeview.js` | 314 | moved | modules/settings/shape-page.js · next: whole file moved; the home thread takes homeOrder and the shell thread density (apply) from shape-page.js later |
 | `js/shells/dock.js` | 704 | planned | modules/shells/dock.js |
 | `js/shells/model.js` | 128 | planned | modules/shells/model.js |
 | `js/shells/term.js` | 205 | planned | modules/shells/term.js |
@@ -245,7 +245,7 @@ Items inside first-party files: 2290 (planned 1309, split-region 828, moved 134,
 | `tests/project-find-escape.test.mjs` | 21 | planned | shell (sidebar)/tests/project-find-escape.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/project-icons.test.mjs` | 40 | planned | modules/projects/tests/project-icons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/quickopen.test.mjs` | 95 | planned | modules/search/tests/quickopen.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/rail-order.test.mjs` | 49 | planned | modules/settings/tests/rail-order.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/rail-order.test.mjs` | 49 | moved | modules/settings/tests/rail-order.test.mjs · next: re-pointed at shape-page.js; still reads the source, a behaviour rewrite is open |
 | `tests/rec-undo-focus.test.mjs` | 26 | planned | modules/conversation/tests/rec-undo-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/reconcile-focus.test.mjs` | 32 | planned | core/platform (redraw/focus)/tests/reconcile-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/record.test.mjs` | 280 | planned | modules/artifacts/tests/record.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
@@ -272,8 +272,8 @@ Items inside first-party files: 2290 (planned 1309, split-region 828, moved 134,
 | `tests/send-notice.test.mjs` | 36 | planned | modules/composer/tests/send-notice.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/serve.test.py` | 489 | planned | modules/root:/tests/serve.test.py  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/settings-css.test.mjs` | 20 | planned | core/ui (css guard)/tests/settings-css.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/shape-held.test.mjs` | 42 | planned | modules/settings/tests/shape-held.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/shape-unkept.test.mjs` | 29 | planned | modules/settings/tests/shape-unkept.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/shape-held.test.mjs` | 42 | moved | modules/settings/tests/shape-held.test.mjs · next: re-pointed at shape-page.js; still reads the source, a behaviour rewrite is open |
+| `tests/shape-unkept.test.mjs` | 29 | moved | modules/settings/tests/shape-unkept.test.mjs · next: re-pointed at shape-page.js; still reads the source, a behaviour rewrite is open |
 | `tests/shape.test.mjs` | 957 | planned | core/services/tests/shape.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/shell-grip.test.mjs` | 35 | planned | core/ui (css guard)/tests/shell-grip.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/shells.test.mjs` | 125 | planned | shells/tests/shells.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |

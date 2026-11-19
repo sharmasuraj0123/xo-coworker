@@ -1,12 +1,9 @@
-// The Settings rail is put in the shape's order without ever moving the item that has focus (the create-project
-// grader on 8a4ed16, SHAPE-FOCUS: a preset applying while you're on Shape's tab rearranged the rail with appendChild,
-// and focus fell to BODY on every Marketing path). The ordering runs here on stand-in nodes: every order comes out
-// right, and the focused item is never moved.
-//   node tests/rail-order.test.mjs
+// The Settings rail takes the shape's order without ever moving the focused item (node modules/settings/tests/rail-order.test.mjs)
 import assert from "node:assert/strict";
+import process from "node:process";
 import { readFileSync } from "node:fs";
 
-const src = readFileSync(new URL("../js/shapeview.js", import.meta.url), "utf8");
+const src = readFileSync(new URL("../shape-page.js", import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const i = src.indexOf("function placeInOrder(want) {"), body = src.slice(i, src.indexOf("\n  }\n", i) + 4);

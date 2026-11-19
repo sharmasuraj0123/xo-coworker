@@ -2504,12 +2504,9 @@
    "home": "core/services/shape/shape.js"
   },
   "js/shapeview.js": {
-   "status": "split",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ]
+   "status": "moved",
+   "home": "modules/settings/shape-page.js",
+   "note": "whole file moved; the home thread takes homeOrder and the shell thread density (apply) from shape-page.js later"
   },
   "js/shells/dock.js": {
    "status": "planned",
@@ -4619,8 +4616,9 @@
    "home": "modules/search/tests/quickopen.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/rail-order.test.mjs": {
-   "status": "planned",
-   "home": "modules/settings/tests/rail-order.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/settings/tests/rail-order.test.mjs",
+   "note": "re-pointed at shape-page.js; still reads the source, a behaviour rewrite is open"
   },
   "tests/rec-undo-focus.test.mjs": {
    "status": "planned",
@@ -4727,12 +4725,14 @@
    "home": "core/ui (css guard)/tests/settings-css.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/shape-held.test.mjs": {
-   "status": "planned",
-   "home": "modules/settings/tests/shape-held.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/settings/tests/shape-held.test.mjs",
+   "note": "re-pointed at shape-page.js; still reads the source, a behaviour rewrite is open"
   },
   "tests/shape-unkept.test.mjs": {
-   "status": "planned",
-   "home": "modules/settings/tests/shape-unkept.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/settings/tests/shape-unkept.test.mjs",
+   "note": "re-pointed at shape-page.js; still reads the source, a behaviour rewrite is open"
   },
   "tests/shape.test.mjs": {
    "status": "planned",
@@ -13765,121 +13765,56 @@
    "home": "core/services/shape/shape.js"
   },
   "js/shapeview.js::exports::SHAPE_IC": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::exports::UNKEPT": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::exports::createShapeView": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::functions::inOrder": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::functions::createShapeView": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::ids::settings": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::ids::shp-h-p": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::ids::shp-cf": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::ids::shp-h-d": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::ids::shp-h-v": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::ids::shp-dense-l": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::ids::shp-js": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shapeview.js::ids::shp-h-pr": {
-   "status": "split-region",
-   "home": [
-    "modules/settings/shape-page.js",
-    "modules/home (homeOrder)",
-    "shell (density)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/settings/shape-page.js"
   },
   "js/shells/dock.js::exports::createShells": {
    "status": "planned",
@@ -17746,8 +17681,8 @@
    "home": "modules/projects/tests/project-icons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/rail-order.test.mjs::functions::dom": {
-   "status": "planned",
-   "home": "modules/settings/tests/rail-order.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/settings/tests/rail-order.test.mjs"
   },
   "tests/reconcile-focus.test.mjs::exports::reconcile": {
    "status": "planned",
