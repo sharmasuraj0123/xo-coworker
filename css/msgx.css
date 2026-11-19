@@ -18,7 +18,6 @@
 .mx-down svg{width:20px;height:20px}
 .mx-down-n{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 6px;border-radius:var(--r-pill);background:var(--ink);color:var(--canvas);font:var(--fw-strong) var(--fs-xs)/var(--lh-14) var(--sans);font-variant-numeric:tabular-nums;text-align:center}
 .mx-down-n[hidden]{display:none}
-body.files-open .mx-down{display:none}
 @media (max-width:760px){.mx-down{right:16px}}
 @media (prefers-reduced-motion:reduce){.mx-down{transform:none}}
 
@@ -184,7 +183,7 @@ body.files-open .mx-down{display:none}
    the working bubble, the opened work card's header, or an answer bubble's first line */
 :root[data-msgx] :is(#msgs,#tmsgs)>.m-turn>.av{margin-top:0}
 :root[data-msgx] :is(#msgs,#tmsgs)>.m-turn.is-live.is-folded:not(.has-said)>.av,:root[data-msgx] :is(#msgs,#tmsgs)>.m-turn.mx-av-row>.av{margin-top:8px}
-:root[data-msgx] .mx-coord .prose>.mx-name{color:color-mix(in srgb,var(--violet) 72%,var(--ink-3))}
+:root[data-msgx] :is(.mx-coord,.m-coord) .prose>.mx-name,:root[data-msgx] .m-coord>.mb>.mh b{color:var(--coord-ink)}
 /* an open (unboxed) reply has no bubble to hold it, so its name sits above on the same text edge */
 :root[data-msgx] .m-them .mh b{font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
 :root[data-msgx] .m-them .mh :is(time,.role,.m-iq){display:none}
@@ -204,7 +203,7 @@ body.files-open .mx-down{display:none}
    name) and a violet ring round its mark. No inset bubble outline: it would stop at the tail's join.
    The words stay on the same stone, so reading never changes; only who's speaking does. */
 /* its mark's own 1 px border turns violet: one real ring, not a shadow ring drawn outside a grey border */
-:root[data-msgx] .mx-coord>.av{border-color:color-mix(in srgb,var(--violet) 60%,var(--line));box-shadow:none}
+:root[data-msgx] :is(.mx-coord,.m-coord)>.av{border-color:var(--coord-ring);box-shadow:none}
 
 /* a finger has no hover and the Reply row under pictures is hidden there, so nothing is held for it */
 @media (hover:none){

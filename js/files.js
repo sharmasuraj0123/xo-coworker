@@ -100,7 +100,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     follow: null,        // the folder of a file opened from elsewhere (Artifacts, another thread): shown until you leave
     viewKey: "all",      // the scope the view itself gives
     q: "", wide: false,
-    folded: false,       // beside a file, the tree folded to its rail (◧, ⌘B; js/filesview.js decides when)
+    folded: false,       // beside a file, the tree folded to its rail (its fold button, ⌘B; js/filespage.js keeps it)
   };
   const setOf = (k) => { if (!F.open.has(k)) F.open.set(k, new Set()); return F.open.get(k); };
   const apiRel = (s, local) => (s.base ? (local ? `${s.base}/${local}` : s.base) : local);
@@ -283,6 +283,9 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       if (!b) continue;
       const c = group(p), at = b.nextElementSibling === M.btn ? M.btn : b;
       if (at.nextElementSibling !== c.el) at.after(c.el);
+      // an open folder is read: one opened by any path (a click, a file revealed in it, a rename into it) and never read
+      // starts its read here, so "Reading…" always has a read under way
+      if (!F.dirs.has(dkey(s, p))) load(s, p);
       open.add(p);
     }
     for (const p of g.open) if (!open.has(p)) { flip(g.el, p, false); T.groups.get(p)?.el.remove(); }
@@ -428,7 +431,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     const s = F.scope;
     if (!F.wide || !s.project || viewer.hasFile) return;
     const d = await load(s, "");
-    if (F.scope !== s || viewer.hasFile || !d || d.state !== "ok") return;
+    if (F.scope.key !== s.key || viewer.hasFile || !d || d.state !== "ok") return; // (another place: by its key, see reveal)
     const r = d.files.find((x) => /^readme\.(md|mdx|markdown|txt)$/i.test(x.name)) || null;
     if (!r) return;
     F.sel = r.path; F.auto = true;
@@ -451,7 +454,11 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     for (let p = parentOf(local); p; p = parentOf(p)) chain.unshift(p);
     for (const p of chain) open.add(p);
     paint();
-    for (const p of ["", ...chain]) { await load(s, p); if (F.scope !== s) return; }
+    // each folder down to it is read, one after another, while the place is the same. The place is its key: every
+    // render gives F.scope a new object (setScope), so a check by identity stopped after the first read and left the
+    // folders below open with nothing read, "Reading…" for good until a click closed and opened them again (the owner,
+    // 19 Nov: a folder stuck on Reading until clicked again)
+    for (const p of ["", ...chain]) { await load(s, p); if (F.scope.key !== s.key) return; }
     requestAnimationFrame(() => F.host && F.host.querySelector(`.fl-r.is-on`)?.scrollIntoView({ block: "nearest" }));
   }
 
@@ -472,7 +479,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
   }
 
   // ── folded to a rail (beside a file) ─────────────────────────────────────
-  /** Fold or open the tree; `onFold` (js/filesview.js) hears it when it was you. */
+  /** Fold or open the tree; `onFold` (js/filespage.js) hears it when it was you. */
   function fold(on, { mine = false } = {}) {
     if (F.folded === !!on) return;
     F.folded = !!on;
@@ -924,6 +931,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     list(on) { if (F.wide || !viewer.hasFile) return false; F.fileView = !on; paint(); return true; },
     get listing() { return !F.wide && viewer.hasFile && !F.fileView; },
     get folded() { return F.folded; },
+    get wide() { return F.wide; },
     /** The file came from you (a click), not from the front page: the panel treats it as yours. */
     get auto() { return F.auto; },
     /** The folder on screen ({label, sub}), or null when it's the list of projects. */

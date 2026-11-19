@@ -360,25 +360,10 @@ body.stage-vsizing{cursor:row-resize;user-select:none}
 .fr[data-fr="map"] .mp-head,.fr[data-fr="map"] .dg-mode,.fr[data-fr="map"] .dg-sep{display:none}
 .fr[data-fr="map"] .dg{border-top:0}
 
-/* the rail: the panel folded to 40 px beside Files; an icon opens it again */
-.stg-rail{display:none}
-body.stage-rail .stage .stg-bar,body.stage-rail .stage .stg-frames,body.stage-rail .stage .stg-grip{display:none}
-body.stage-rail .stg-rail{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0}
 
-/* ══ Files, a place in the main area: a 40 px head, the tree at a width you drag, the file in the rest ══ */
-.fv{position:absolute;z-index:6;top:0;right:0;bottom:0;left:0;display:flex;flex-direction:column;min-width:0;background:var(--canvas);outline:none;--pe:12px;--pn:36px}
+/* ══ Files, a page of the panel (js/filespage.js): the tree at a width you drag (or its rail), the file in the rest ══ */
+.fv{flex:1;min-height:0;display:flex;flex-direction:column;min-width:0;background:var(--canvas);outline:none;--pe:12px;--pn:36px}
 .fv[hidden]{display:none}
-body.stage-open:not(.panel-open):not(.stage-full):not(.stage-over) .fv{right:var(--sw)}
-/* a phone: the panel is a sheet over everything, never a column beside Files (stage.js steps it aside) */
-@media (max-width:760px){body.stage-open:not(.panel-open):not(.stage-full):not(.stage-over) .fv{right:0}}
-body.files-open .dock,body.files-open .tdock{display:none}
-.fv-h{flex:none;box-sizing:border-box;height:var(--h-lg);display:flex;align-items:center;gap:8px;padding:0 12px 0 8px;box-shadow:inset 0 -1px 0 var(--line-faint)}
-.fv-back{display:flex;align-items:center;gap:4px;height:var(--h-ctl);padding:0 8px 0 4px;border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.fv-back:hover{background:var(--fill-2);color:var(--ink)}
-.fv-back svg{width:16px;height:16px}
-.fv-sep{width:1px;height:16px;background:var(--fill-3)}
-.fv-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-strong) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink)}
-.fv-s{flex:none;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
 .fv-b{flex:1;min-height:0;display:flex}
 .fv-b>.fl{flex:1;min-width:0}
 .fv .fl.is-wide .fl-tree{width:var(--tw,280px);border-right:0;background:var(--fill-1)}
@@ -390,7 +375,21 @@ body.files-open .dock,body.files-open .tdock{display:none}
 .fv .fl.is-wide .fl-split::after{content:"";position:absolute;top:0;bottom:0;left:-4px;width:9px}
 .fv .fl.is-wide .fl-split:hover,.fv .fl.is-wide .fl-split:focus-visible,body.fv-sizing .fl-split{background:var(--line-hover)}
 body.fv-sizing{cursor:col-resize;user-select:none}
-:root[data-theme="light"] .fv-h{border-bottom-color:rgba(0,0,0,.06)}
+/* the tree, folded to its rail (the owner, 19 Nov 17:41Z: "have a minimize the browsing panel, so we have space while
+   reading in the right")
+   Rails are 44 px inside, their line an inset shadow, so 32 px buttons sit on whole pixels at a 36 px pitch.
+   A mark on a rail button is a 6 px dot clear of its 16 px glyph (glyph 8–24, dot 25–31). */
+/* the tree, folded: Changed (a dot when this place changed something), All files, Find */
+.fl-rail{display:none}
+.fv .fl.is-wide.is-folded .fl-rail{display:flex;flex:none;flex-direction:column;align-items:center;gap:4px;width:var(--rail-w);padding:6px 0;background:var(--fill-1);box-shadow:inset -1px 0 var(--line-faint)}
+:root[data-theme="light"] .fv .fl.is-wide.is-folded .fl-rail{background:#FBFBFA;box-shadow:inset -1px 0 rgba(0,0,0,.06)}
+.fv .fl.is-wide.is-folded :is(.fl-tree,.fl-split){display:none}
+.fl-rb{position:relative;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.fl-rb:hover{background:var(--fill-2);color:var(--ink)}
+.fl-rb svg{width:16px;height:16px}
+.fl-rb em{position:absolute;top:3px;right:1px;width:6px;height:6px;border-radius:50%;background:var(--ink-3)} /* a mark, not news: blue is the chat's new messages */
+.fl-rb:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
+@media (prefers-reduced-motion:reduce){.fl-rb{transition:none}}
 .fv{container:fv / inline-size}
 @container fv (min-width:480px){.fl-sz{display:inline}}
 /* the file sits in the Files place now, not in the panel: it fills its column there */
@@ -535,10 +534,10 @@ body.viewer-open .fv~.dock{display:none}
    it, at the foot, where its Undo can be seen and pressed (js/stage.js coverSync keeps it out of the inert part) */
 body.stage-covers .dock{z-index:auto} /* no stacking context of its own, so the notice can rise above the panel */
 body.stage-covers .herald{position:fixed;left:16px;right:16px;bottom:max(16px, env(safe-area-inset-bottom));z-index:var(--z-popover);visibility:visible}
-/* away from the composer (over a covering panel, or out of Files' folded chat), only notices come: the composer's own
+/* away from the composer (over a covering panel), only notices come: the composer's own
    line (Off, can't reach XO) says where a draft can't go and stays with it. Over the panel it hid the map's zoom
    buttons on a phone (the phone floor's browser pass, 320 and 390) */
-:is(body.stage-covers .herald,.herald.is-out) .hr-conn{display:none}
+body.stage-covers .herald .hr-conn{display:none}
 
 /* ── Threads (the frame that was Agents): groups in one vocabulary (the owner, 19 Nov) ──────────────────────────
    A group's head is a 32 control: its word starts on the tiles' left edge (the list's 12 + the row's 8), its
@@ -612,6 +611,8 @@ body.stage-covers .herald{position:fixed;left:16px;right:16px;bottom:max(16px, e
 .stage .stg-pg{flex:1;min-height:0;display:flex;flex-direction:column}
 /* ‹ Sections says when the sections need you (an ask in Threads) while a page is up */
 .stage .pg-back{position:relative}
+/* Files' show/hide the file list, first after ‹: on (the list shown) in a stronger ink */
+.stage .pg-lead[aria-pressed="true"]{color:var(--ink-2)}
 .stage .pg-dot{position:absolute;top:var(--s-1);right:var(--s-1);width:var(--s-2);height:var(--s-2);border-radius:50%;background:var(--need, var(--warn))}
 
 /* ── The Thread page (P2, the owner chose the proper build, 19 Nov 15:20Z): a thread beside the coordinator's chat,

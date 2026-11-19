@@ -68,6 +68,9 @@
 
   /* Who speaks: the coordinator in violet, a decision in ink, a glance in green. */
   --e-glance:var(--accent); --e-decide:#D6D6D6; --e-think:var(--violet); --coord:var(--violet);
+  /* the coordinator's speaker colour, as the bubbles first set it, for every view: its name in violet over the
+     label's grey, its mark's ring in violet over the line (the owner, 19 Nov: keep the purple in the chat view) */
+  --coord-ink:color-mix(in srgb,var(--coord) 72%,var(--ink-3)); --coord-ring:color-mix(in srgb,var(--coord) 60%,var(--line));
 
   /* The three lights. Green: done or go. Blue: working now. Amber: needs you. Red: real, irreversible danger.
      Their quiet tints are mixed here, so a state never hard-codes one theme's RGB. */
@@ -138,6 +141,16 @@
   --ic-xs:12px; --ic-sm:14px; --ic:var(--s-4); --ic-lg:var(--s-5);
   /* Space: a 4 px grid. */
   --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px; --s-6:24px; --s-8:32px; --s-10:40px; --s-12:48px;
+  /* The space between an icon and its label, said once for every place one sits beside words: a state glyph and
+     a thread's title, an agent's mark and its name, a button's icon and its word (the owner, 19 Nov: the Now
+     strip's glyph had drifted away from its title). */
+  --gap-icon:var(--s-2);
+  /* The space between the things stacked over the message box (the notices' line, the put-away file's chip, the
+     thread's decision) and between each and the box: one gap, wherever the box is (the owner, 19 Nov: the notice
+     sat on the box with none, in the chat beside Files). --cbar-fade is the room the box's bar keeps over the box
+     for the conversation to fade under (22 on a phone and beside Files); the line is placed from it, never from a
+     number of its own. */
+  --dock-gap:var(--s-3); --cbar-fade:30px;
 
   /* Stacking: one scale, so a popover can never fall under a panel. */
   --z-raised:2; --z-sticky:4; --z-dock:6; --z-panel:20; --z-overlay:60; --z-popover:80; --z-toast:100; --z-top:120;
@@ -229,3 +242,4 @@
 /* a phone's one-line rows stay at its 36 px floor (Settings' and the picker's rows); its taller rows keep their own
    heights in css/phone.css */
 @media (max-width:760px){:root{--h-row:36px}}
+@media (max-width:760px){:root{--cbar-fade:22px}}

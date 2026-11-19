@@ -90,11 +90,11 @@ body.stage-full .stg-grip{display:none}
 :is(.tb-h,.tb-rh){width:calc(100% + 2 * var(--halo));margin-inline:calc(-1 * var(--halo));padding-inline:var(--halo);border-radius:var(--r)}
 /* the cell's own corners are the fill's plus its inset (--r 8 + --cell-in 4 = --r-lg 12), so its focus ring (just inside the cell)
    rounds concentric with the fill */
-:is(.stg-tab,body.chat-docked.chat-railed .crail-b){position:relative;isolation:isolate;border-radius:var(--r-lg)}
-:is(.stg-tab,body.chat-docked.chat-railed .crail-b)::before{content:"";position:absolute;inset:var(--cell-in);z-index:-1;border-radius:var(--r);background:transparent;transition:background-color var(--d-hover) var(--ease)}
+.stg-tab{position:relative;isolation:isolate;border-radius:var(--r-lg)}
+.stg-tab::before{content:"";position:absolute;inset:var(--cell-in);z-index:-1;border-radius:var(--r);background:transparent;transition:background-color var(--d-hover) var(--ease)}
 /* the shared press (and a chosen control's three veils) goes to that layer: class specificity, so it holds over both */
-:is(.stg-tab,body.chat-docked.chat-railed .crail-b):active{background-image:none!important;--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
-:is(.stg-tab,body.chat-docked.chat-railed .crail-b):active:not(:disabled,[aria-disabled="true"])::before{background:var(--press-fill)}
+.stg-tab:active{background-image:none!important;--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
+.stg-tab:active:not(:disabled,[aria-disabled="true"])::before{background:var(--press-fill)}
 /* a chosen control (on, checked, pressed, current) has a fill of its own, and the press's 9% veil over it read as its
    hover (the controls grader on 5f52deb, C084: Changes' Follow held vs hovered, 18–20 RGB-sum on average): held, it
    goes three veils deep, as an accent control goes to its own press (S135) */
@@ -250,10 +250,9 @@ body.stage-full .stg-grip{display:none}
 :is(input:not([type=checkbox],[type=radio],[type=range],[type=button],[type=submit],[type=reset],[type=file],[type=color],[type=image]),textarea,select,.dd-btn):focus-visible{outline-offset:-1px}
 
 /* a resize grip the keyboard is on shows the one ring round its grab area, as every control shows focus: its 1 px line
-   brightening was the only cue, 1.5–2.5:1 (the controls grader on 9d1f71b, C034 Files' divider, C035 the chat's; the
-   panel's grip is the same kind). Files' divider is a 1 px line with a 9 px grab area drawn after it: the ring is there.
-   Each as specific as the rule that takes its outline away (body.chat-docked .fv-cgrip{outline:none} outweighed it) */
-body.chat-docked .fv-cgrip:focus-visible,.stg-grip:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px;border-radius:3px}
+   brightening was the only cue, 1.5–2.5:1 (the controls grader on 9d1f71b, C034 Files' divider; the panel's grip is
+   the same kind). Files' divider is a 1 px line with a 9 px grab area drawn after it: the ring is there. */
+.stg-grip:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px;border-radius:3px}
 .fv .fl.is-wide .fl-split:focus-visible::after{box-shadow:inset 0 0 0 2px var(--focus);border-radius:3px}
 
 /* a boxed text field (a form's .field, Launchpad's, a shell's name, a note to the agent): the keyboard's focus is the base

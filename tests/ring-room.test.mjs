@@ -53,7 +53,7 @@ t("a 40 px bar holds a 32 px control and its whole ring: 4 + 32 + 4, its rule dr
   const ring = base.match(/(^|\n):focus-visible\{outline:(\d+)px solid var\(--focus\);outline-offset:(\d+)px\}/);
   const ext = +ring[2] + +ring[3], ctl = +tokens.match(/--h-ctl:(\d+)px/)[1];
   assert.ok((40 - ctl) / 2 >= ext, `(40 − ${ctl}) / 2 ≥ the ring's ${ext}`);
-  const css = ["app.css", "panel.css", "fileview.css", "diffs.css", "launchpad.css", "media.css", "msgx.css", "artifacts.css", "shape.css", "side.css", "dropdown.css", "links.css", "foundation.css"].map((f) => [f, read(`css/${f}`)]);
+  const css = ["app.css", "panel.css", "diffs.css", "launchpad.css", "media.css", "msgx.css", "artifacts.css", "shape.css", "side.css", "dropdown.css", "links.css", "foundation.css"].map((f) => [f, read(`css/${f}`)]);
   const bars = [];
   // a row that is itself the control (the stage's agent rows, buttons 40 tall) holds no control: its ring is its own
   const ROWS = new Set([".ag-r"]);
@@ -62,6 +62,6 @@ t("a 40 px bar holds a 32 px control and its whole ring: 4 + 32 + 4, its rule dr
     if (/(^|;)\s*(min-)?height:(40px|var\(--h-lg\))/.test(m[2]) && /(^|;)\s*border-(bottom|top):1px/.test(m[2])) bars.push(`${f}: ${m[1].trim()}`);
   }
   assert.deepEqual(bars, [], `40 px bars whose rule takes a pixel of their room:\n  ${bars.join("\n  ")}`);
-  for (const sel of ["\\.vw-top", "\\.fv-h", "body\\.chat-docked \\.chead", "\\.shd-bar"]) assert.match(css.map((x) => x[1]).join("\n"), new RegExp(`${sel}\\{[^}]*box-shadow:inset 0 -1px 0 var\\(--line-faint\\)`), `${sel}: its rule inside it`);
+  for (const sel of ["\\.vw-top", "\\.shd-bar"]) assert.match(css.map((x) => x[1]).join("\n"), new RegExp(`${sel}\\{[^}]*box-shadow:inset 0 -1px 0 var\\(--line-faint\\)`), `${sel}: its rule inside it`);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

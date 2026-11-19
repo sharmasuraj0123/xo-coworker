@@ -53,7 +53,7 @@ t("the grader's case: Ctrl+Shift+J for All shortcuts is taken, and opens it; the
   assert.equal(K.set("keys", "mod+shift+j").ok, true);
   assert.equal(K.globalFor(keydown("mod+shift+j"), { typing: false }), "keys");
   assert.equal(K.globalFor(keydown("mod+shift+j"), { typing: true }), "keys", "a ⌘/Ctrl key works while typing");
-  assert.equal(K.globalFor(keydown("mod+j"), { typing: false }), "chatFold", "⌘J is still the chat's fold");
+  assert.equal(K.globalFor(keydown("mod+j"), { typing: false }), null, "⌘J is the browser's again: it folded the chat docked beside a file, which is gone (Files is a page of the panel)");
   K.resetAll();
   assert.equal(K.globalFor(keydown("?"), { typing: false }), "keys", "? by default");
   assert.equal(K.globalFor(keydown("?"), { typing: true }), null, "never while typing");
@@ -71,7 +71,7 @@ t("the page asks the one rule, not a list of its own", () => {
   assert.doesNotMatch(app, /for \(const id of \["jump", "intel", "shells", "map"\]\)/, "the four-action list is gone");
   assert.match(app, /const g = K\.globalFor\(e\), taken = e\.defaultPrevented && K\.typing\(e\);\s*if \(g && K\.hasMod\(g\) && !taken && runGlobal\(g\)\)/, "⌘/Ctrl keys: the one rule, everywhere but a key the field took");
   assert.match(app, /const s = K\.globalFor\(e, \{ typing: false \}\);\s*if \(s && !K\.hasMod\(s\) && runGlobal\(s\)\)/, "symbol keys: the one rule, not while typing");
-  assert.match(app, /function runGlobal\(id\) \{[\s\S]*?chatFold[\s\S]*?treeFold[\s\S]*?GLOBAL\[id\]\(\);/, "every Anywhere action runs from it, the folds included");
+  assert.match(app, /function runGlobal\(id\) \{[\s\S]*?treeFold[\s\S]*?GLOBAL\[id\]\(\);/, "every Anywhere action runs from it, the tree's fold included");
   for (const id of ["jump", "intel", "write", "keys", "shells", "map"]) assert.match(app, new RegExp(`^  ${id}: \\(\\) =>`, "m"), `GLOBAL.${id}`);
 });
 t("a ⌘/Ctrl key the field took stays the field's: ⌘B in a Markdown page bolds, it doesn't fold the tree", () => {
