@@ -31,6 +31,14 @@ await t("a preset chosen, not kept: said under the cards, where focus goes", asy
   assert.equal(P.where(warning(P)), "shp-h-p");
 });
 
+await t("Reset to preset, not kept: said under the cards, where Reset hands focus", async () => {
+  const P = await shapePage({ own: true });
+  P.shape.next = { kept: false };
+  await P.press("[data-shp-reset]");
+  assert.deepEqual(P.shape.sent, ["reset"]);
+  assert.equal(P.where(warning(P)), "shp-h-p");
+});
+
 await t("JSON saved, not kept: said in the JSON's status beside the text, not up the page", async () => {
   const P = await shapePage();
   P.shape.next = { kept: false };

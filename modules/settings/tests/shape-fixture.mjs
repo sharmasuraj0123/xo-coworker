@@ -4,15 +4,15 @@ import { dom, settle } from "../../../tests/lib/dom.mjs";
 export const RAIL = ["general", "shape", "routing", "rules"];
 const PAGE = `<section id="settings"><nav class="set-nav">${RAIL.map((id) => `<button type="button" data-set="${id}">${id}</button>`).join("")}</nav><div data-page="shape"><div class="shp"></div></div></section>`;
 
-/** @param {{ advanced?: string[] }} [o] */
-export async function shapePage({ advanced = [] } = {}) {
+/** own: a change of your own on top of the preset, so Reset to preset has something to reset. @param {{ advanced?: string[], own?: boolean }} [o] */
+export async function shapePage({ advanced = [], own = false } = {}) {
   await dom(PAGE);
   const { createShape } = await import("../../../core/services/shape/index.js");
   const { createShapeView, UNKEPT } = await import("../shape-page.js");
   const heldSubs = new Set();
   const said = [];
   const shape = {
-    held: null, mine: { shape: 1 }, device: {}, presetId: null, problems: [], shape: createShape([]),
+    held: null, mine: { shape: 1 }, device: {}, presetId: null, problems: [], shape: createShape(own ? [{ from: "mine", doc: { shape: 1, words: { thread: "task" } } }] : []),
     next: { kept: true }, density: "comfortable", sent: [],
     get: (k) => (k === "density" ? shape.density : null),
     list: (k) => (k === "settings" ? advanced.map((id) => ({ id: `xo:settings/${id}`, advanced: true })) : []),

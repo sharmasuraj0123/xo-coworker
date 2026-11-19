@@ -93,6 +93,17 @@ await t("S098: A lands while B is being typed: Saved stands beside nothing, sinc
   assert.equal(note()?.textContent, "Saved", "B saved: now it says so");
 });
 
+await t("S098 on e55c2d8: A out, B left, A typed back and left, A refused: A is never sent again", async () => {
+  const { world, saves } = await space();
+  RT.createRuntimeSettings({ world, announce: () => {} }).open();
+  await settle();
+  type("Preference A"); await leave();
+  type("Preference B"); await leave();
+  type("Preference A"); await leave();
+  saves[0].d.reject(Object.assign(new Error("Too long."), { field: "preferences" })); await settle();
+  assert.equal(saves.length, 1, "the draft on the page is what was sent: nothing goes again");
+});
+
 await t("a refused save keeps the draft on screen and says why beside the field", async () => {
   const { world, saves } = await space();
   RT.createRuntimeSettings({ world, announce: () => {} }).open();
@@ -102,6 +113,7 @@ await t("a refused save keeps the draft on screen and says why beside the field"
   assert.equal(pref().value, "Preference A", "the draft stays to try again");
   assert.equal(world.state.policy.space.preferences, null, "XO holds what it held");
   assert.notEqual(note()?.textContent, "Saved");
+  assert.equal(page().querySelector("#rtd-preferences").closest(".set-l").querySelector(".rt-ferr")?.textContent, "Too long.", "why, beside the field");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
 process.exit();

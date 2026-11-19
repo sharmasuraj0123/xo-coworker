@@ -32,6 +32,13 @@ await t("Compact sends nothing and records nothing: the line stays where the las
   assert.deepEqual(at(P), ["shp-h-d"]);
 });
 
+await t("Reset to preset, then XO refuses: under the cards", async () => {
+  const P = await shapePage({ own: true });
+  await P.press("[data-shp-reset]");
+  P.hold(REFUSED);
+  assert.deepEqual(at(P), ["shp-h-p"]);
+});
+
 await t("a preset chosen, then XO can't be reached: under the cards", async () => {
   const P = await shapePage();
   await P.press('[data-shp-preset="engineering"]');

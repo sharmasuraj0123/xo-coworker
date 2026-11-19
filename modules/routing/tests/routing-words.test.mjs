@@ -36,6 +36,11 @@ await t("the page says, per model, which chats name a model that isn't connected
   assert.deepEqual(orphans(), ["Levanto Sage isn't connected, and demo and docs still name it: use the Space's routing for them below."]);
 });
 
+await t("a chat routed by a connected model is fine: no words about it", async () => {
+  await space([SAGE, { id: "x", label: "Model X", connected: true, model: "m" }], [["demo", "x"], ["docs", "sage"]]);
+  assert.deepEqual(orphans(), ["Levanto Sage isn't connected, and docs still names it: use the Space's routing for it below."]);
+});
+
 await t("the words follow the routing as it is: one chat back on the Space's, then none", async () => {
   await space([SAGE], [["demo", "sage"], ["docs", "sage"]]);
   await press('[data-ov-clear="c-demo"]');
