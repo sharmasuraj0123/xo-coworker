@@ -101,8 +101,11 @@
    and first words in the document serif, code and data their first lines. Corners: the card 12 → the well inset
    --cell-in, so 12 − 4 = --r; the page inside sits --s-4 in, past the well's radius, so it takes the fixed --r-xs and runs
    off the well's foot. On a phone's one-line rows the kind's icon leads instead, as before. */
-.ar-grid .md-th.has-well{display:block;place-items:normal;padding:var(--cell-in) var(--cell-in) 0;background:transparent}
-.ar-grid .md-th.has-well>:is(.md-ic,.md-ext){display:none}
+/* Home's Recently made wears the same (the owner, 19 Nov 14:57Z: "add colours to the home page as well") */
+:is(.ar-grid,.md-grid.is-strip) .md-th.has-well{display:block;place-items:normal;padding:var(--cell-in) var(--cell-in) 0;background:transparent}
+:is(.ar-grid,.md-grid.is-strip) .md-th.has-well>:is(.md-ic,.md-ext){display:none}
+.md-grid.is-strip .md-sheet{inset:var(--s-3) var(--s-3) calc(-1 * var(--s-2));padding:var(--s-2) var(--s-3)}
+.md-grid.is-strip .md-well .md-pic{inset:var(--s-3) var(--s-3) 0;width:calc(100% - 2 * var(--s-3));height:calc(100% - var(--s-3))}
 .md-well{position:relative;display:block;height:100%;overflow:hidden;border-radius:var(--r) var(--r) 0 0;background:color-mix(in srgb,var(--wt,var(--ink-4)) 11%,var(--fill-1))}
 /* drawn at once (the owner, 19 Nov 14:46Z): until its preview lands, the well holds the kind's icon in its colour;
    the picture or the page fades in over it */

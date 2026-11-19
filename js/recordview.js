@@ -352,7 +352,8 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
   /** A card on the page that will show the thing itself (a picture, a text file it can read). */
   const previewable = (m) => m.exists !== false && !!routeOf(m).project && (m.kind === "image" || (TEXTS.has(m.kind) && !/\.(pdf|docx?|xlsx?|pptx?|zip|gz)$/i.test(m.name || m.path || "")));
   function thumbHtml(m, where) {
-    if (where === "page") { const w = wellHtml(m); if (w) return w + iconHtml(m); }
+    // the Artifacts page and Home's Recently made show the thing itself, on its colour (the owner, 19 Nov 14:57Z: Home too)
+    if (where === "page" || where === true) { const w = wellHtml(m); if (w) return w + iconHtml(m); }
     if (m.kind === "image") {
       const u = thumbs.get(m.key);
       if (u) return `<img src="${esc(u)}" alt="" loading="lazy" decoding="async">`;
@@ -464,7 +465,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
     // on the page a card says where it's from, what it is and when; its size is in the file itself
     const meta = (where === "page" ? [PROJ(m.project), what, ago] : [what, size(m.bytes), ago]).filter(Boolean).join(" · ");
     return `<li class="md-it${m.pinned ? " is-pin" : ""}${m.exists === false ? " is-gone" : ""}">` +
-      `<button type="button" class="md-open" data-made-file="${esc(m.key)}" title="${esc(n.tip)}" aria-label="Open ${esc(n.label)}"><span class="md-th k-${m.kind}${where === "page" && ((m.kind === "image" ? thumbs.get(m.key) : texts.get(m.key)) || (previewable(m) && !failed.has(m.key))) ? " has-well" : ""}">${thumbHtml(m, where)}</span>` +
+      `<button type="button" class="md-open" data-made-file="${esc(m.key)}" title="${esc(n.tip)}" aria-label="Open ${esc(n.label)}"><span class="md-th k-${m.kind}${(where === "page" || where === true) && ((m.kind === "image" ? thumbs.get(m.key) : texts.get(m.key)) || (previewable(m) && !failed.has(m.key))) ? " has-well" : ""}">${thumbHtml(m, where)}</span>` +
       `<span class="md-meta"><b>${n.html}</b><span>${esc(where === true ? `${PROJ(m.project)} · ${ago}` : meta)}</span></span></button>` +
       (where === true ? "" : m.tid ? `<button type="button" class="md-from" data-made-go="t:${esc(m.tid)}" title="Open the thread that made it">${ICON.threadOne}<span>${esc(n.from)}</span></button>`
         : where === "page" ? `<span class="md-from is-none" aria-hidden="true"><span>&nbsp;</span></span>` : "") + // on the page every card is one height
@@ -625,7 +626,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
     sec.hidden = !items.length;
     if (!items.length) return;
     const list = [...items.filter((m) => m.pinned), ...items.filter((m) => !m.pinned)].slice(0, RECENT);
-    loadThumbs(list);
+    loadThumbs(list); loadTexts(list);
     syncCards(ul, list, true);
   }
 
