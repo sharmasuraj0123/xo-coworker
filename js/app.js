@@ -1405,12 +1405,14 @@ function nowRender(needs) {
   const shelf = ts.filter((t) => rankT(t) < 9).sort((a, b) => rankT(a) - rankT(b) || b.lastAt - a.lastAt);
   wrap.hidden = !shelf.length;
   if (!shelf.length) return;
+  // a chip leads with one icon, its state, at the icon gap (--gap-icon): the agent's mark beside it doubled the
+  // space before the title (0a0fcfa4; the owner, 19 Nov), so the agent is said in its tooltip and its name instead
   const items = shelf.map((t) => {
     const c = t.checklist, n = need(t);
     const st = n ? "needs" : glyphOf(t);
     const what = n ? `needs you: ${askShort(n)}` : t.stop ? stopWords(t.stop) : t.state === "failed" ? String(t.happened || "Stopped") : wordOf(t).toLowerCase();
-    return `<button type="button" class="nw st-${st}" role="listitem" data-go="t:${esc(t.id)}" title="${esc(`${t.title} · ${c.done} of ${c.total} · ${what}`)}" aria-label="${esc(t.title)}${esc(threadAgentWords(t))}, ${n ? "needs you" : wordOf(t).toLowerCase()}, ${c.done} of ${c.total}">` +
-      `<i class="g g-${n ? "needs_reply" : glyphOf(t)}" aria-hidden="true"></i>${threadMark(t)}<b>${esc(t.title)}</b>` +
+    return `<button type="button" class="nw st-${st}" role="listitem" data-go="t:${esc(t.id)}" title="${esc(`${t.title}${threadAgentWords(t).replace(/^, /, " · ")} · ${c.done} of ${c.total} · ${what}`)}" aria-label="${esc(t.title)}${esc(threadAgentWords(t))}, ${n ? "needs you" : wordOf(t).toLowerCase()}, ${c.done} of ${c.total}">` +
+      `<i class="g g-${n ? "needs_reply" : glyphOf(t)}" aria-hidden="true"></i><b>${esc(t.title)}</b>` +
       `<span class="nw-segs" aria-hidden="true">${c.items.map((i) => `<i class="sg s-${i.state}"></i>`).join("")}</span></button>`;
   }).join("");
   const html = `<div class="now" role="list" aria-label="Now in ${esc(PROJ(pid))}">${items}</div>`;

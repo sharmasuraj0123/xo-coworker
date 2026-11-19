@@ -39,10 +39,21 @@ t("census: the line is placed by the stack alone, never against one thing docked
   assert.deepEqual(named, [], "no rule places the line against a docked thing");
   const where = herald.filter((r) => !/\.herald\.is-out|body\.stage-covers/.test(r.sel)).map((r) => `${r.f}: ${r.sel} { bottom: ${decls(r.d).find((d) => d.p === "bottom").v} }`);
   assert.deepEqual(where, [
-    "app.css: .herald { bottom: calc(100% - 20px) }",
-    "app.css: body:not(.stage-covers) .dock.is-stacked>.herald:not(.is-out) { bottom: calc(100% + var(--ring-room)) }",
-    "app.css: .herald { bottom: calc(100% - 14px) }",
-  ], "on the bar's fade with nothing docked (20 and 14 into the bar: 10 and 8 over the composer); on the stack's top, clear of its ring's room, with anything docked");
+    "app.css: .herald { bottom: calc(100% - var(--cbar-fade) + var(--dock-gap)) }",
+    "app.css: body:not(.stage-covers) .dock.is-stacked>.herald:not(.is-out) { bottom: calc(100% + var(--dock-gap)) }",
+  ], "on the bar's fade with nothing docked, --dock-gap over the composer whatever the bar's fade room; on the stack's top, --dock-gap over it, with anything docked");
+  // the line was once placed 20 px into a bar whose fade room was 30, 22 on a phone and 22 beside Files: 10, 8 and
+  // 2 px over the box (the owner, 19 Nov). Every bar's top room is the one token the line is placed from.
+  const css = (f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8");
+  const bars = (css("app.css") + css("fileview.css")).match(/\.cbar\{[^}]*padding:[^;}]+/g).map((d) => d.replace(/^.*padding:/, ""));
+  assert.ok(bars.length >= 3, "the bar's rules: the dock's, a phone's, beside Files");
+  for (const p of bars) assert.ok(p === "0" || p.startsWith("var(--cbar-fade) "), `the bar's top room is --cbar-fade: ${p}`);
+  const tok = css("tokens.css");
+  assert.match(tok, /--dock-gap:var\(--s-\d+\)/, "the gap is on the space scale");
+  assert.match(tok, /--cbar-fade:\d+px/);
+  assert.ok(/body\.chat-docked\{--cbar-fade:\d+px\}/.test(css("fileview.css")), "beside Files the bar's room is said through the token");
+  assert.match(app, /\.tdock:not\(:empty\)\{margin-bottom:var\(--dock-gap\)\}/, "the decision over the box: the same gap");
+  assert.match(app, /\.dock\.is-stacked>\.cbar\{padding-top:0\}/, "with anything docked, the gap over the box is that thing's, not the fade room");
   assert.match(app, /\.herald\{position:absolute;z-index:1;/, "drawn over the bar's fade it rides above the bar, a later sibling");
 });
 t("anything docked is measured, in the dock's own observer, before the frame is painted", () => {
