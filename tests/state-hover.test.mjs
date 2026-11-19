@@ -12,12 +12,13 @@
 // layer doesn't list: a new state can't silence hover.
 //   node tests/state-hover.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { rules, context, decls } from "./lib/cascade.mjs";
+import { sourcePaths, readSource } from "./lib/sources.mjs";
 
 const ROOT = new URL("../", import.meta.url);
 const read = (f) => readFileSync(new URL(f, ROOT), "utf8");
-const src = [read("index.html"), ...readdirSync(new URL("js/", ROOT)).filter((f) => f.endsWith(".js")).map((f) => read(`js/${f}`)), ...readdirSync(new URL("js/shells/", ROOT)).filter((f) => f.endsWith(".js")).map((f) => read(`js/shells/${f}`))].join("\n");
+const src = [read("index.html"), ...sourcePaths(".js").map(readSource)].join("\n");
 const found = read("css/foundation.css").replace(/\/\*[\s\S]*?\*\//g, "");
 const all = rules(new URL("tests/lib/x.mjs", ROOT));
 

@@ -13,6 +13,7 @@
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { rules as cascade, decls } from "./lib/cascade.mjs";
+import { sourcePaths, readSource } from "./lib/sources.mjs";
 
 const R = new URL("../", import.meta.url);
 const read = (f) => readFileSync(new URL(f, R), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
@@ -105,7 +106,7 @@ const CLIPPERS = {
   ":root[data-msgx] .m-them .tc-segs .sg.mx-seg-done": ["decor", "a step's mark"], ":root[data-msgx] .m-them .tc-segs .sg.mx-seg-next": ["decor", "a step's mark"],
 };
 const CLIPS = (d) => (/^overflow(-[xy])?$/.test(d.p) && /hidden|clip/.test(d.v)) || (d.p === "contain" && /paint|strict|content/.test(d.v)) || (d.p === "clip-path" && d.v !== "none") || (/^(-webkit-)?mask(-image)?$/.test(d.p) && d.v !== "none");
-const srcs = [readFileSync(new URL("index.html", R), "utf8"), ...readdirSync(new URL("js/", R)).filter((f) => f.endsWith(".js")).map((f) => readFileSync(new URL(`js/${f}`, R), "utf8")), ...readdirSync(new URL("js/shells/", R)).filter((f) => f.endsWith(".js")).map((f) => readFileSync(new URL(`js/shells/${f}`, R), "utf8"))].join("\n");
+const srcs = [readFileSync(new URL("index.html", R), "utf8"), ...sourcePaths(".js").map(readSource)].join("\n");
 const controls = new Set();
 for (const m of srcs.matchAll(/<(button|summary|select|a|input|textarea)\b([^>]*)>/g)) { const c = /class="([^"$]*)/.exec(m[2]); if (c) for (const k of c[1].split(/\s+/)) if (k) controls.add(k); }
 for (const m of srcs.matchAll(/<\w+\b([^>]*role="(?:button|tab|option|menuitem|menuitemradio|switch|radio|checkbox)"[^>]*)>/g)) { const c = /class="([^"$]*)/.exec(m[1]); if (c) for (const k of c[1].split(/\s+/)) if (k) controls.add(k); }

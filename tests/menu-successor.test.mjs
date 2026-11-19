@@ -7,10 +7,11 @@
 // in the same handler. The browser check is grader B's S012 contract (gradeB.test.cjs) and every focus-drop record.
 //   node tests/menu-successor.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
+import { sourcePaths } from "./lib/sources.mjs";
 
 const ROOT = new URL("../", import.meta.url);
-const files = [...readdirSync(new URL("js/", ROOT)).filter((f) => f.endsWith(".js")).map((f) => `js/${f}`), ...readdirSync(new URL("js/shells/", ROOT)).filter((f) => f.endsWith(".js")).map((f) => `js/shells/${f}`)];
+const files = sourcePaths(".js");
 const read = (f) => readFileSync(new URL(f, ROOT), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };

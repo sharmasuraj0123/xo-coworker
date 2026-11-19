@@ -3,10 +3,11 @@
 // them; a picture's tile (S090) hovered and pressed under its own picture, 0.5–3.6% of its pixels.
 //   node tests/press-reach.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
+import { sourcePaths, readSource } from "./lib/sources.mjs";
 const read = (f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 const fnd = read("foundation.css"), media = read("media.css");
-const all = readdirSync(new URL("../css/", import.meta.url)).filter((f) => f.endsWith(".css")).map(read).join("\n");
+const all = sourcePaths(".css").map((f) => readSource(f).replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 t("the long-press menu's items take the shared press layer over their focus fill (S170, S171)", () => {
@@ -28,7 +29,7 @@ t("a chosen control held goes three veils deep, past its own fill and its hover'
 // held (S090 a message's pictures; S233 an attachment's Preview, held as hovered 0.0% in all four cells). Every button
 // drawn with a picture for its face (an <img>, imgHtml(), or .is-img) is found in the scripts and needs one
 t("every button whose face is a picture has a veil over it for hover and press, deeper held (S090, S233)", () => {
-  const js = readdirSync(new URL("../js/", import.meta.url)).filter((f) => f.endsWith(".js")).map((f) => readFileSync(new URL(`../js/${f}`, import.meta.url), "utf8")).join("\n");
+  const js = sourcePaths(".js").map(readSource).join("\n");
   const faces = new Set();
   for (const line of js.split("\n")) for (const m of line.matchAll(/<button[^>]*class="([\w-]+)[^"]*"[^>]*>(?:\$\{(?:imgHtml\(|ic\})|<img)/g)) faces.add(m[1]);
   for (const m of js.matchAll(/<button[^>]*class="([\w-]+) is-img"/g)) faces.add(m[1]);
