@@ -56,7 +56,7 @@ import { createShells } from "./shells/dock.js";
 import { createRecord } from "./recordview.js";
 import { greeting, today } from "./skeleton.js"; // Home's shell, drawn before this module graph arrives
 import { arrive, still, EASE, MOVE } from "./motion.js";
-import { wireGestures } from "./gestures.js";
+import { wireGestures, dockGestures } from "./gestures.js";
 import { rtName, rtMark, manyRuntimes, findRt, healthOf, canMove, untilWords } from "./runtimes.js";
 // the UI's shape per person: which surfaces show, in what order, how dense, in which words (js/shape.js)
 import { createShapeStore } from "./shape.js";
@@ -1744,7 +1744,14 @@ runsEl.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventD
 
 // ── the thread's own decision: docked above the composer (Today's card, #20) ──
 const tdock = $("#tdock");
-const TD = { key: null, busy: false, undone: null };
+/**
+ * A dock for a conversation's decision (the chat's #tdock, or a thread page's in the panel): one code path for both
+ * (the owner, 19 Nov 17:52Z: the page's card couldn't be folded). Its card, its fold ("Read the thread first": ⌄,
+ * or drag it down) to one slim line that still says a decision waits (tap it, or drag it up, to open it again), its
+ * Undo, its fit. o: { el, view() (its conversation), region() (where focus goes when its card goes), TD }.
+ */
+function createDock({ el: tdock, view, region, TD = { key: null, busy: false, undone: null } }) {
+  const placeRegion = region;
 /**
  * The dock's contents change under the keyboard: when focus was on what goes, it goes to what takes its place (the
  * card, the folded line), else the place, in the same step, so focus is never on the page, not even for a frame
@@ -1758,7 +1765,7 @@ function dockSwap(fill, to = null, opts = null) {
   };
   if (opts) morph(tdock, run, opts); else run();
 }
-const keepBottom = () => {}; // pinned at the latest, follow.js keeps the view there as the card changes
+  const keepBottom = () => {}; // pinned at the latest, follow.js keeps the view there as the card changes
 /**
  * The docked card's fit (QA 2026-11-05). Its answers stay pinned under the question while the whole
  * question shows above them; on a short phone (375×667) the card is one scroll instead, question first,
@@ -1802,11 +1809,11 @@ const dockRO = new ResizeObserver(() => { const f = tdock.querySelector(".card.i
 tdock.addEventListener("scroll", () => { const f = tdock.querySelector(".card.is-dock"); if (f) dockEdges(f); }, { capture: true, passive: true });
 function dockRender(needs) {
   // a chat: its "send now" question first, else its own open decision (the chat's host), as a thread docks one
-  const hc = CH.isChats(S.view) ? CH.confirmHtml(S.view) : "";
+  const hc = CH.isChats(view()) ? CH.confirmHtml(view()) : "";
   if (hc) { if (tdock._ch !== hc) { dockSwap(() => { tdock.innerHTML = hc; }); tdock._ch = hc; TD.key = null; } return; }
   if (tdock._ch) { tdock._ch = ""; dockSwap(() => { tdock.innerHTML = ""; }); TD.key = null; }
-  if (S.view === "chats") { if (TD.key) { TD.key = null; dockSwap(() => { tdock.innerHTML = ""; }); } return; }
-  const t = convThread(S.view) || convHost(S.view);
+  if (view() === "chats") { if (TD.key) { TD.key = null; dockSwap(() => { tdock.innerHTML = ""; }); } return; }
+  const t = convThread(view()) || convHost(view());
   const n = t && !D.isOpen() ? needs.find((x) => x.t.id === t.id && !x.later && (x.admitted || x.held)) : null;
   // Folded: the person chose to read the thread first. The ask waits as one slim line, and the
   // conversation isn't dimmed. A new ask on this thread docks open again.
@@ -1883,7 +1890,7 @@ function dockRender(needs) {
 tdock.addEventListener("click", (e) => {
   if (e.target.closest("[data-dock-more]")) { tdock.querySelector(".card.is-dock .c-act")?.scrollIntoView({ block: "end", behavior: RM.matches ? "auto" : "smooth" }); return; }
   const f = e.target.closest("[data-fold]");
-  if (f) { S.dockFold[f.dataset.fold] = true; dockRender(D.needItems()); scroller.focus({ preventScroll: true }); return; }
+  if (f) { S.dockFold[f.dataset.fold] = true; dockRender(D.needItems()); placeRegion().focus({ preventScroll: true }); return; }
   const u = e.target.closest("[data-unfold]");
   // the card takes focus in the step that draws it, not a frame later: the line pressed is gone by then (S240)
   if (u) { delete S.dockFold[u.dataset.unfold]; dockRender(D.needItems()); tdock.querySelector(".card")?.focus({ preventScroll: true }); return; }
@@ -1894,6 +1901,12 @@ tdock.addEventListener("keydown", (e) => {
   if (!card) return;
   D.cardKeys(e, card, {});
 });
+  dockGestures(tdock);
+  return { render: dockRender, TD, el: tdock };
+}
+const MDOCK = createDock({ el: tdock, view: () => S.view, region: () => placeRegion(), TD: { key: null, busy: false, undone: null } });
+const TD = MDOCK.TD;
+const dockRender = (needs) => MDOCK.render(needs);
 
 // ── typing ──────────────────────────────────────────────────────────────────
 /**
@@ -2746,6 +2759,7 @@ function tpMount(box) {
     tray: $("#tatt-tray"), attach: $("#tattach"), input: $("#tatt-input"), note: $("#tatt-note"), iq: $("#tiq") };
   wireComposer(TP.K);
   wireTray(TP.K);
+  TP.dock = createDock({ el: $("#tptdock"), view: tpView, region: () => TP.C.scroller });
   // its files: the paperclip, and a drop on the page (not the chat's: it stops here)
   TP.K.attach.addEventListener("click", () => TP.K.input.click());
   TP.K.input.addEventListener("change", () => { addFiles(TP.K.input.files, TP.K); TP.K.input.value = ""; });
@@ -2764,7 +2778,7 @@ function tpShow(key, { focus = false } = {}) {
     if (TP.tid && TP.K) saveDraft(TP.K);
     TP.tid = key;
     TP.C.rendered = null; TP.C.filled = null;
-    TPD.key = null; TPD.busy = false;
+    Object.assign(TP.dock.TD, { key: null, busy: false });
     world.act.watchSideThread?.(key);
     loadDraft(TP.K);
     TP.viewSubs.forEach((fn) => fn());
@@ -2777,7 +2791,7 @@ function tpUnmount() {
   TP.follow?.destroy();
   world.act.watchSideThread?.(null);
   Object.assign(TP, { box: null, C: null, K: null, tid: null, follow: null }); TP.viewSubs.clear();
-  Object.assign(TPD, { key: null, busy: false });
+
 }
 STAGE.page("thread", {
   // wider by default (the owner, 19 Nov 16:09Z): 720 reads at the chat's own measure (its column less its 20 insets,
@@ -2821,67 +2835,9 @@ function drawThreadPage(needs) {
   tpHead(t);
   checklistRender(needs, $("#tpthead"), tpView(), "tck-list");
   drawConv(TP.C, needs);
-  tpDockRender(t, needs);
+  TP.dock.render(needs); // the chat's own dock, over its own element: its card, fold, Undo
   if (document.activeElement !== TP.K.say) updateComposer(TP.K); else { sendRender(TP.K); targetLineRender(TP.K); }
 }
-/**
- * What the thread asks you, decided in place (the owner's known gap, 19 Nov): its decision card docked over the
- * page's composer, the same card as the chat's (D.cardHtml(n, "dock"), D.wireCard), its stamp, then one calm line
- * with its Undo for the window, then gone. One at a time; a decision you open elsewhere (the decision panel) isn't
- * doubled here.
- */
-const TPD = { key: null, busy: false };
-function tpDockRender(t, needs) {
-  const dk = $("#tptdock");
-  const n = !D.isOpen() ? needs.find((x) => x.t.id === t.id && !x.later && (x.admitted || x.held)) : null;
-  const key = n ? n.key : null;
-  if (TPD.busy || key === TPD.key) return;
-  TPD.key = key;
-  if (!n) { dk.innerHTML = ""; return; }
-  const frame = document.createElement("article");
-  frame.className = `card is-dock r-${n.risk} e-${n.effort}`;
-  frame.tabIndex = -1;
-  frame.setAttribute("aria-roledescription", "decision");
-  frame.innerHTML = `<div class="stamp stamp-allow" aria-hidden="true">${ICON.stampAllow}</div><div class="stamp stamp-back" aria-hidden="true">${ICON.stampBack}</div>`;
-  const tpl = document.createElement("template");
-  tpl.innerHTML = D.cardHtml(n, "dock").trim();
-  const inner = tpl.content.firstElementChild;
-  frame.appendChild(inner);
-  const h = inner.querySelector(".c-h");
-  if (h) { h.id = `tp-${h.id || "c-h"}`; frame.setAttribute("aria-labelledby", h.id); }
-  dk.innerHTML = ""; dk.appendChild(frame);
-  D.wireCard(frame, inner, n, {
-    surface: "dock",
-    onStep: () => {},
-    after: async (how) => {
-      TPD.busy = true;
-      if (!RM.matches && how !== "later") { frame.classList.add(`st-${how}`); await wait(380); }
-      if (how !== "later") {
-        const e = D.decisions()[0];
-        const verb = e && e.verb === "Answered" ? `Answered “${e.said}”` : e ? e.verb : "Done";
-        const had = frame.contains(document.activeElement);
-        frame.className = "card is-dock r-done";
-        frame.innerHTML = `<p class="tp-done${how === "back" ? " is-back" : ""}" role="status"><span class="tp-done-ic">${how === "back" ? ICON.rewind : ICON.check}</span><span><b>${esc(verb)}.</b> ${how === "back" ? "It's taking another route." : "It's back at work."}</span><button type="button" class="tp-done-u" data-tpd-undo>Undo</button></p>`;
-        if (had) frame.querySelector("[data-tpd-undo]").focus({ preventScroll: true });
-        let undone = false;
-        await new Promise((end) => { TPD.undone = () => { undone = true; end(); }; hold(RM.matches ? 3000 : 2700).then(end); });
-        TPD.undone = null;
-        if (undone) { TPD.busy = false; TPD.key = null; schedule(); return; }
-      }
-      TPD.busy = false; TPD.key = null;
-      dk.innerHTML = "";
-      schedule();
-    },
-  });
-}
-// the page's ⋯ opens and closes its menu; a choice in it (or a click elsewhere) closes it; Esc closes it first
-document.addEventListener("click", (e) => {
-  if (!TP.box) return;
-  const m = e.target.closest?.("[data-tp-menu]");
-  if (m) { TP.menu = !TP.menu; $("#tphead")._h = ""; render(); if (TP.menu) $("#tphead .tp-menu [role=menuitem]")?.focus({ preventScroll: true }); return; }
-  if (TP.menu) { TP.menu = false; $("#tphead")._h = ""; schedule(); }
-}, true);
-document.addEventListener("click", (e) => { if (e.target.closest?.("[data-tpd-undo]")) { D.undo(); TPD.undone?.(); } });
 document.addEventListener("click", (e) => { const b = e.target.closest?.("[data-tp-full]"); if (b) { const id = b.dataset.tpFull; STAGE.closeTab("thread"); go("t:" + id); } });
 /**
  * A thread asked for from the panel (its Threads rows): beside a chat (a project's or the Workspace's) it opens as

@@ -47,12 +47,22 @@ console.log("thread-page: ok");
     /editFailed\(ed\.dataset\.edit, composerAt\(ed\)\)/, /S\.tbToggled = \{ k, open: S\.tbOpen\[k\], focus: [^\n]*, in: tc\.msgs \};/, /const cv = convAt\(cf\), c = CHG\.forTarget\(cv\.view, cf\.dataset\.file\);/,
     /:is\(#thead,#tpthead\) \[data-runs\]/, /const convAt = \(el\) => \(TP\.box && el && TP\.box\.contains\(el\) \? TP\.C : MAIN\);/]) assert.match(a, re, String(re));
   // what it asks you: decided in place, the chat's own card docked over its composer, with its Undo
-  assert.match(a, /tpDockRender\(t, needs\);/);
-  const td = a.slice(a.indexOf("function tpDockRender("), a.indexOf("\n}\n", a.indexOf("function tpDockRender(")));
-  assert.match(td, /tpl\.innerHTML = D\.cardHtml\(n, "dock"\)\.trim\(\);/);
-  assert.match(td, /D\.wireCard\(frame, inner, n, \{/);
-  assert.match(td, /data-tpd-undo>Undo<\/button>/);
-  assert.match(a, /if \(e\.target\.closest\?\.\("\[data-tpd-undo\]"\)\) \{ D\.undo\(\); TPD\.undone\?\.\(\); \}/);
+  // what it asks you: the chat's own dock over the page's element (one code path, the owner 19 Nov 17:52Z): its
+  // card, its fold to a slim line and back (⌄, a drag), its Undo
+  assert.match(a, /TP\.dock\.render\(needs\);/);
+  assert.match(a, /TP\.dock = createDock\(\{ el: \$\("#tptdock"\), view: tpView, region: \(\) => TP\.C\.scroller \}\);/);
+  assert.match(a, /const MDOCK = createDock\(\{ el: tdock, view: \(\) => S\.view, region: \(\) => placeRegion\(\)/);
+  const cd = a.slice(a.indexOf("function createDock("), a.indexOf("const MDOCK = createDock("));
+  assert.match(cd, /tpl\.innerHTML = D\.cardHtml\(n, "dock"\)\.trim\(\);/);
+  assert.match(cd, /data-fold="\$\{esc\(n\.key\)\}"/, "the fold control");
+  assert.match(cd, /bar\.dataset\.unfold = n\.key;/, "folded: a slim line that opens it again");
+  assert.match(cd, /if \(f\) \{ S\.dockFold\[f\.dataset\.fold\] = true; dockRender\(D\.needItems\(\)\); placeRegion\(\)\.focus/);
+  assert.match(cd, /dockGestures\(tdock\);/, "and its drag");
+  assert.doesNotMatch(cd, /S\.view/, "its conversation's view, never the main chat's");
+  assert.doesNotMatch(a, /tpDockRender|data-tpd-undo/, "no copy of the dock for the page");
+  const g = readFileSync(new URL("../js/gestures.js", import.meta.url), "utf8");
+  assert.match(g, /export function dockGestures\(tdock\) \{/);
+  assert.doesNotMatch(g.slice(g.indexOf("export function wireGestures(")), /drag\(tdock, \{/, "the drag is bound once per dock, by its dock");
   console.log("thread-page clicks: ok");
 }
 

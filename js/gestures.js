@@ -126,6 +126,33 @@ const OWN = "input, textarea, select, xo-select, [contenteditable], .b-hold, pre
  *   sheets: [{host, card?(), open(), close()}] · panelOpen() · runsDeep() · runsBack()
  *   say (the composer's field) · canResolve() · resolve(tid, resolved, li) · threadOf(id)
  */
+/** A docked decision card (the chat's, or a thread page's in the panel): drag it down to fold it ("Read the thread
+ *  first"), up on its folded line to open it again. One code path for every dock (the owner, 19 Nov 17:52Z). */
+export function dockGestures(tdock) {
+  if (!tdock) return;
+  let tgt = null;
+  drag(tdock, {
+    axis: "y",
+    start: ({ target }) => {
+      tgt = target.closest(".card.is-dock:not(.r-done)") || target.closest(".dock-fold");
+      if (!tgt || target.closest(OWN)) return false;
+      return tgt.classList.contains("dock-fold") || scrolledY(target, tgt) <= 0;
+    },
+    accept: (_dx, dy) => (tgt.classList.contains("dock-fold") ? dy < 0 : dy > 0),
+    move: (_dx, dy) => follow(tgt, `translateY(${tgt.classList.contains("dock-fold") ? Math.max(-36, dy * 0.5) : Math.max(0, dy)}px)`),
+    end: async (_dx, dy, _vx, vy) => {
+      const fold = tgt.classList.contains("dock-fold");
+      if (fold ? committed(dy, vy, 60, 1) || dy < -28 : committed(dy, vy, tgt.offsetHeight, 0.3)) {
+        tick();
+        if (fold) { unstyle(tgt); tgt.click(); return; }
+        await glide(tgt, `translateY(${tgt.offsetHeight}px)`, { ms: 160, opacity: 0 });
+        tgt.querySelector(".dock-hide")?.click();
+      } else { await glide(tgt, "translateY(0)"); unstyle(tgt); }
+    },
+    cancel: () => unstyle(tgt),
+  });
+}
+
 export function wireGestures(A) {
   const $ = (s) => document.querySelector(s);
   const main = $("#main"), side = $("#side"), scrim = $("#side-scrim");
@@ -281,29 +308,7 @@ export function wireGestures(A) {
     cancel: () => unstyle(stage),
   });
 
-  // ── a thread's decision card: drag down to fold it ("Read the thread first"), up on the bar to open it ──
-  const tdock = $("#tdock");
-  let tgt = null;
-  drag(tdock, {
-    axis: "y",
-    start: ({ target }) => {
-      tgt = target.closest(".card.is-dock:not(.r-done)") || target.closest(".dock-fold");
-      if (!tgt || target.closest(OWN)) return false;
-      return tgt.classList.contains("dock-fold") || scrolledY(target, tgt) <= 0;
-    },
-    accept: (_dx, dy) => (tgt.classList.contains("dock-fold") ? dy < 0 : dy > 0),
-    move: (_dx, dy) => follow(tgt, `translateY(${tgt.classList.contains("dock-fold") ? Math.max(-36, dy * 0.5) : Math.max(0, dy)}px)`),
-    end: async (_dx, dy, _vx, vy) => {
-      const fold = tgt.classList.contains("dock-fold");
-      if (fold ? committed(dy, vy, 60, 1) || dy < -28 : committed(dy, vy, tgt.offsetHeight, 0.3)) {
-        tick();
-        if (fold) { unstyle(tgt); tgt.click(); return; }
-        await glide(tgt, `translateY(${tgt.offsetHeight}px)`, { ms: 160, opacity: 0 });
-        tgt.querySelector(".dock-hide")?.click();
-      } else { await glide(tgt, "translateY(0)"); unstyle(tgt); }
-    },
-    cancel: () => unstyle(tgt),
-  });
+  // (a thread's decision card's drag comes with its dock: dockGestures, called by app.js's createDock for each)
 
   // ── All threads: swipe a row left to Resolve it (Reopen a resolved one), with Undo in its place ──
   const allList = $("#all-list");
