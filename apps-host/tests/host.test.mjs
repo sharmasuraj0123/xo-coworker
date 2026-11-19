@@ -3,18 +3,18 @@ import { readFileSync } from "node:fs";
 import { createKernel } from "../../core/kernel/index.js";
 import { definePlaces } from "../../shell/places.js";
 import { createAppsHost, MANIFEST } from "../host.js";
-import { FakeDoc, tick } from "./dom.mjs";
+import { FakeDoc, tick, message } from "./dom.mjs";
 
 const WORD = JSON.parse(readFileSync(new URL("./fixtures/word.plugin.json", import.meta.url), "utf8"));
 assert.deepEqual(JSON.parse(readFileSync(new URL("../module.json", import.meta.url), "utf8")), { ...MANIFEST }, "module.json is the module's manifest");
 
-let rows = [{ id: "dev.example.word", name: "Word", version: "0.3.0", state: "installed", manifest: WORD.extensions["space.xo"], projects: { p1: { state: "enabled", permissions: [{ cap: "files.read" }, { cap: "composer.draft" }] }, p2: { state: "disabled" } } }];
+let rows = [{ id: "dev.example.word", name: "Word", version: "0.3.0", state: "installed", manifest: WORD.extensions["space.xo"], projects: { p1: { state: "enabled", permissions: [{ cap: "files.read" }, { cap: "composer.draft" }, { cap: "context.update" }] }, p2: { state: "disabled" } } }];
 /** @type {any[]} */
 const calls = [];
 const client = /** @type {any} */ (new Proxy({}, { get: (_t, k) => async (...a) => { calls.push([k, ...a]); if (k === "list") return { apps: rows }; if (k === "resource") return { contents: [{ uri: a[1], text: "<p>view</p>" }] }; if (k === "prompt") return { text: "Tighten the selected paragraph." }; return {}; } }));
 const doc = new FakeDoc();
 /** @type {any[]} */
-const drafts = [], opened = [], asked = [];
+const drafts = [], opened = [], asked = [], contexts = [];
 let yes = true;
 const win = Object.assign(new EventTarget(), { setInterval: globalThis.setInterval, clearInterval: globalThis.clearInterval, open: () => null });
 const K = createKernel({ warn: () => {}, log: () => {} });
@@ -22,7 +22,7 @@ definePlaces(K);
 K.register(createAppsHost({
   client, doc: /** @type {any} */ (doc), win: /** @type {any} */ (win), redraw: (el, html) => { /** @type {any} */ (el).html = html; },
   projects: () => [{ id: "p1", name: "Book" }, { id: "p2", name: "Site" }],
-  draft: (t, at) => drafts.push([t, at.project]), openPanel: (k, at) => opened.push([k, at.project]), confirm: async (text) => { asked.push(text); return yes; }, context() {},
+  draft: (t, at) => drafts.push([t, at.project]), openPanel: (k, at) => opened.push([k, at.project]), confirm: async (text, o) => { asked.push([text, o]); return yes; }, context: (id, at, p) => contexts.push([id, at.project, p]),
 }));
 const report = await K.start();
 assert.deepEqual(report.failed, []);
@@ -55,7 +55,8 @@ assert.deepEqual(calls.find((c) => c[0] === "call").slice(1), ["dev.example.word
 
 yes = false;
 await assert.rejects(/** @type {any} */ (P.get("command", "dev.example.word:delete")).run(p1), /you said no/);
-assert.match(asked.at(-1), /Word wants to run word_delete/);
+assert.match(asked.at(-1)[0], /Word wants to run word_delete/);
+assert.deepEqual(asked.at(-1)[1], { yes: "Run it", near: null }, "a command has no view to ask beside");
 assert.ok(!calls.some((c) => c[0] === "call" && c[3] === "word_delete"), "a destructive command never runs without a yes");
 yes = true;
 await /** @type {any} */ (P.get("command", "dev.example.word:delete")).run(p1);
@@ -69,6 +70,21 @@ assert.ok(calls.some((c) => c[0] === "viewOpened"));
 assert.ok(calls.some((c) => c[0] === "resource" && c[2] === "ui://dev.example.word/outline"));
 const iframe = host.find((n) => n.tagName === "IFRAME");
 assert.ok(iframe && iframe.srcdoc.includes("<p>view</p>"));
+const vw = iframe.contentWindow;
+iframe.dispatch("load");
+const say = async (/** @type {any} */ m) => { win.dispatchEvent(message({ jsonrpc: "2.0", ...m }, vw)); for (let i = 0; i < 6; i++) await tick(); };
+await say({ id: 1, method: "ui/initialize", params: {} });
+await say({ method: "ui/notifications/initialized" });
+yes = true;
+await say({ id: 2, method: "tools/call", params: { name: "word_delete", arguments: {} } });
+assert.equal(asked.at(-1)[1].yes, "Run it");
+assert.equal(asked.at(-1)[1].near, host, "a view's destructive tool asks beside the view");
+await say({ id: 3, method: "ui/open-link", params: { url: "https://example.com/a" } });
+assert.deepEqual([asked.at(-1)[0], asked.at(-1)[1].yes, asked.at(-1)[1].near === host], ["Open https://example.com/a?", "Open", true]);
+await say({ id: 4, method: "ui/message", params: { role: "user", content: [{ type: "text", text: "Tighten §2" }] } });
+assert.deepEqual(drafts.at(-1), ["Tighten §2", "p1"], "a draft goes to the composer where the view is");
+await say({ id: 5, method: "ui/update-model-context", params: { content: [{ type: "text", text: "§2" }] } });
+assert.deepEqual(contexts.at(-1), ["dev.example.word", "p1", { content: [{ type: "text", text: "§2" }], structuredContent: undefined }], "context goes through with where the view is");
 unmount();
 assert.ok(calls.some((c) => c[0] === "viewClosed"));
 
@@ -88,7 +104,7 @@ assert.equal(keep.find((n) => n.tagName === "IFRAME"), null, "turning it off in 
 assert.equal(keep.children[0].dataset.state, "stopped", "XO's frame stays, with words and Reload");
 assert.match(keep.children[0].children[0].children[0].textContent, /Word is off in this project/);
 assert.deepEqual(P.entries("panel.page", p1), []);
-rows = [{ ...rows[0], projects: { p1: { state: "enabled", permissions: [{ cap: "files.read" }, { cap: "composer.draft" }] }, p2: { state: "disabled" } } }];
+rows = [{ ...rows[0], projects: { p1: { state: "enabled", permissions: [{ cap: "files.read" }, { cap: "composer.draft" }, { cap: "context.update" }] }, p2: { state: "disabled" } } }];
 K.bus.emit("apps:refresh");
 await tick(); await tick();
 assert.equal(P.entries("panel.page", p1).length, 1);
@@ -112,7 +128,8 @@ await tick(); await tick();
 keep.children[0].children[0].children[1].dispatch("click");
 await tick(); await tick();
 assert.match(keep.children[0].children[0].children[0].textContent, /this view is gone from the app/);
-assert.equal(host.children.length, 0);
+await new Promise((r) => setTimeout(r, 600));
+assert.equal(host.children.length, 0, "a live view gets its teardown, then goes");
 
 const el = doc.createElement("div");
 const block = /** @type {any} */ (P.get("conversation.block", "app"));

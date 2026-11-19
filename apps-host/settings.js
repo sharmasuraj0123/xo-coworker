@@ -2,7 +2,7 @@
 import { view } from "./settings-view.js";
 import { checkRow } from "./manifest.js";
 
-/** @typedef {import("./settings-view.js").State} State @typedef {import("./settings-view.js").Row} Row @typedef {import("./client.js").AppsClient} AppsClient @typedef {{ client: AppsClient, redraw(el: HTMLElement, html: string): unknown, projects(): Array<{ id: string, name: string }>, confirm(text: string): Promise<boolean>, rows(): Row[], refresh(): Promise<void>, openPanel(key: string, at: { project: string }): void, wait?: (ms: number) => Promise<void> }} SettingsDeps */
+/** @typedef {import("./settings-view.js").State} State @typedef {import("./settings-view.js").Row} Row @typedef {import("./client.js").AppsClient} AppsClient @typedef {{ client: AppsClient, redraw(el: HTMLElement, html: string): unknown, projects(): Array<{ id: string, name: string }>, confirm(text: string, o: { yes: string, near: Element | null }): Promise<boolean>, rows(): Row[], refresh(): Promise<void>, openPanel(key: string, at: { project: string }): void, wait?: (ms: number) => Promise<void> }} SettingsDeps */
 
 /** @param {unknown} e */
 const words = (e) => String(/** @type {any} */ (e)?.message || e || "Something went wrong.");
@@ -120,9 +120,9 @@ export function createAppsSettings(d) {
       const a = await d.client.activity(s.appId);
       return { activity: Array.isArray(a) ? a : Array.isArray(a?.items) ? a.items : [] };
     })),
-    remove: () => work("Removing…", async () => {
+    remove: (el) => work("Removing…", async () => {
       const name = s.rows.find((r) => r.id === s.appId)?.name || s.appId;
-      if (!(await d.confirm(`Remove ${name}? Everything it added goes away. Your files stay.`))) return {};
+      if (!(await d.confirm(`Remove ${name}? Everything it added goes away. Your files stay.`, { yes: "Remove", near: el }))) return {};
       await d.client.remove(s.appId);
       await d.refresh();
       return { mode: "list", appId: "", activity: null };

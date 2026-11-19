@@ -6,7 +6,7 @@ import { createAppsSettings } from "./settings.js";
 import { createCards } from "./card.js";
 import { missingRoute } from "../core/platform/http.js";
 
-/** @typedef {import("./manifest.js").App} App @typedef {import("./manifest.js").Surface} Surface @typedef {import("./client.js").AppsClient} AppsClient @typedef {import("./settings-view.js").Row} Row @typedef {import("../core/kernel/types").ModuleDef} ModuleDef @typedef {import("../core/kernel/types").ModuleContext} ModuleContext @typedef {import("../core/kernel/types").At} At @typedef {import("../core/kernel/types").Undo} Undo @typedef {{ client: AppsClient, doc: Document, win: Window, redraw(el: HTMLElement, html: string): unknown, projects(): Array<{ id: string, name: string }>, draft(text: string, at: At): void, openPanel(key: string, at: At): void, confirm(text: string): Promise<boolean>, context(appId: string, at: At, params: unknown): void }} HostDeps */
+/** @typedef {import("./manifest.js").App} App @typedef {import("./manifest.js").Surface} Surface @typedef {import("./client.js").AppsClient} AppsClient @typedef {import("./settings-view.js").Row} Row @typedef {import("../core/kernel/types").ModuleDef} ModuleDef @typedef {import("../core/kernel/types").ModuleContext} ModuleContext @typedef {import("../core/kernel/types").At} At @typedef {import("../core/kernel/types").Undo} Undo @typedef {{ client: AppsClient, doc: Document, win: Window, redraw(el: HTMLElement, html: string): unknown, projects(): Array<{ id: string, name: string }>, draft(text: string, at: At): void, openPanel(key: string, at: At): void, confirm(text: string, o: { yes: string, near: Element | null }): Promise<boolean>, context(appId: string, at: At, params: unknown): void }} HostDeps */
 
 const ALIVE_MS = 60000;
 
@@ -47,11 +47,11 @@ export function createAppsHost(d) {
         return Array.isArray(g?.permissions) ? g.permissions.map((/** @type {any} */ p) => p && p.cap).filter((x) => typeof x === "string") : [];
       };
 
-      /** @param {App} app @param {At} at @param {string} name @param {unknown} args */
-      const callTool = async (app, at, name, args) => {
+      /** @param {App} app @param {At} at @param {string} name @param {unknown} args @param {Element | null} near */
+      const callTool = async (app, at, name, args, near) => {
         const w = whereOf(at);
         const risky = app.tools[name]?.risk === "destructive";
-        if (risky && !(await d.confirm(`${app.name} wants to run ${name}. This can't be undone.`))) throw new Error("you said no");
+        if (risky && !(await d.confirm(`${app.name} wants to run ${name}. This can't be undone.`, { yes: "Run it", near }))) throw new Error("you said no");
         return d.client.call(app.id, w, name, args && typeof args === "object" ? args : {}, { confirm: risky });
       };
 
@@ -96,11 +96,11 @@ export function createAppsHost(d) {
           },
           ready: (notify) => { if (v.input !== undefined) notify(v.kind === "inline" ? "ui/notifications/tool-result" : "ui/notifications/tool-input", v.kind === "inline" ? { structuredContent: v.input } : { arguments: v.input }); },
           handlers: {
-            callTool: (name, args) => callTool(app, at, name, args),
+            callTool: (name, args) => callTool(app, at, name, args, el),
             readResource: (uri) => d.client.resource(app.id, uri, whereOf(at)),
             draft: (text) => d.draft(text, at),
             context: (params) => d.context(app.id, at, params),
-            openLink: (url) => d.confirm(`Open ${url}?`).then((ok) => { if (ok) d.win.open(url, "_blank", "noopener,noreferrer"); return ok; }),
+            openLink: (url) => d.confirm(`Open ${url}?`, { yes: "Open", near: el }).then((ok) => { if (ok) d.win.open(url, "_blank", "noopener,noreferrer"); return ok; }),
             displayMode: (mode) => (mode === "fullscreen" && v.kind === "panel" ? (d.openPanel(`${app.id}:${surface.id}`, { ...at, full: true }), "fullscreen") : "inline"),
           },
         });
@@ -110,7 +110,7 @@ export function createAppsHost(d) {
 
       /** @param {App} app @param {Surface} c @param {At} at @param {unknown} [args] */
       const runCommand = async (app, c, at, args) => {
-        if (c.run?.tool) return callTool(app, at, c.run.tool, args);
+        if (c.run?.tool) return callTool(app, at, c.run.tool, args, null);
         if (c.run?.prompt) {
           const p = await d.client.prompt(app.id, whereOf(at), c.run.prompt);
           if (typeof p?.text === "string" && p.text) d.draft(p.text, at);
