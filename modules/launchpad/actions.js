@@ -200,14 +200,14 @@ export function installActions(L) {
     load(p, true); changed();
   }
 
-  /** A notice's Undo for p: focus moves first onto what it brought back and a person can reach: p's section, its fold, p's Deploy, the page's work, the panel's Close. @param {string} p @param {string} sel */
+  /** After a notice's Undo, or Hide, focus moves onto what reaches p's section and a person can reach: sel in it, its fold, p's Deploy, the page's work, the panel's Close. @param {string} p @param {string | null} sel */
   function fromNotice(p, sel) {
     const covered = document.body.classList.contains("stage-open") && matchMedia("(max-width: 760px)").matches;
     /** @param {any} el */
     const reach = (el) => !!(el && el.getClientRects().length && !el.closest("[inert]") && !(covered && !el.closest("#stage")));
     /** @param {any} el */
     const go = (el) => { el.focus({ preventScroll: true }); return true; };
-    const n = visible(p) && S.body.querySelector(sel);
+    const n = sel && visible(p) && S.body.querySelector(sel);
     if (reach(n)) return go(n);
     const fold = S.el && !S.el.hidden && projectOf(S.v) === p && document.body.classList.contains("stage-open") && S.el.querySelector('[data-fr-fold="launch"]');
     if (reach(fold)) return go(fold);
@@ -247,7 +247,7 @@ export function installActions(L) {
       case "open": L.onOpen && L.onOpen(); return;
       case "deploy": deploy(p); return;
       case "undo": if (s.run) { s.run = null; s.form.allowApps = null; land('[data-lp="deploy"], [data-lp="again"], [data-lp="recreate"]'); announce("Deploy undone. Nothing changed."); changed(); } return;
-      case "hide": { const here = S.body?.contains(document.activeElement); L.onHide && L.onHide(); if (here) S.el.querySelector('[data-fr-fold="launch"]')?.focus({ preventScroll: true }); return; } // folded: focus on its head's fold
+      case "hide": { const here = S.body?.contains(document.activeElement); L.onHide && L.onHide(); if (here) fromNotice(p, null); return; } // put away: focus on what opens it again
       case "stop": startStop(p); return;
       case "stop-undo": if (s.run) keep(p, s.run); return;
       case "cmd-copy": copied(el.dataset.v, "the command", () => {
