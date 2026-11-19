@@ -4288,18 +4288,18 @@ const LAYERS = stackLayers(kernel.layers, [
   { id: "create", open: () => CREATE.isOpen(), back: () => { CREATE.close(); } },
   { id: "jump", open: () => !jump.hidden, back: () => { JUMP.close(); } },
   { id: "intel", open: () => IQ.isOpen, back: () => { IQ.close(); } },
-  { id: "chat-setup", open: () => CH.setupOpen, back: () => { CH.closeSetup(); } },
+  { id: "quickopen", open: () => QO.isOpen, back: () => false },
   { id: "runs", open: () => RS.open, back: () => { runsEscape(); } },
   { id: "keys", open: () => !keys.hidden, back: () => { closeKeys(); } },
   { id: "all", open: () => !allEl.hidden, back: () => { closeAll(); } },
   { id: "lightbox", open: () => LB.isOpen, back: () => { LB.close(); }, overlay: false },
+  { id: "settings", open: () => !setEl.hidden, back: () => { closeSettings(); } },
   { id: "files-page", open: () => FP.isOpen, back: () => { STAGE.sections(); } },
   { id: "panel-sheet", open: () => STAGE.isOpen && PHONE.matches, back: () => { STAGE.close(); } },
-  { id: "settings", open: () => !setEl.hidden, back: () => { closeSettings(); } },
   { id: "shells", open: () => SH.raised, back: () => SH.lower() },
   { id: "drawer", open: () => $("#app").classList.contains("drawer"), back: () => { setDrawer(false); } },
   { id: "decisions", open: () => D.isOpen(), back: () => { D.close(); } },
-  { id: "quickopen", open: () => QO.isOpen, back: () => false },
+  { id: "chat-setup", open: () => CH.setupOpen, back: () => { CH.closeSetup(); } },
 ]);
 const placeOk = (v) => v === "home" || v === "ws" || v === "chats" || v === "artifacts" || (v.startsWith("p:") && !!world.project(v.slice(2))) || (v.startsWith("t:") && !!world.thread(v.slice(2))) || v.startsWith("c:");
 const canBack = () => LAYERS.open() || S.view !== "home" || S.trail.length > 0;
